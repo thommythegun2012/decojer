@@ -7,12 +7,8 @@ Add your content here.
 
 = Details =
 
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
-
-  * Install Eclipse Google Application Engine Plugins:
+Install Plugins:
+  * Install *Google Plugin for Eclipse*:
     * Update Manager: http://dl.google.com/eclipse/plugin/3.7
     * select all items
     * (see under http://code.google.com/intl/de-DE/eclipse/docs/download.html)
