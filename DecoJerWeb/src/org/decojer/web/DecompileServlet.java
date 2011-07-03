@@ -29,12 +29,24 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-@SuppressWarnings("serial")
-public class DecoJerWebServlet extends HttpServlet {
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+
+/**
+ * 
+ * @author André Pankraz
+ */
+public class DecompileServlet extends HttpServlet {
+
+	private final BlobstoreService blobstoreService = BlobstoreServiceFactory
+			.getBlobstoreService();
+
 	@Override
-	public void doGet(HttpServletRequest req, HttpServletResponse resp)
-			throws IOException {
-		resp.setContentType("text/plain");
-		resp.getWriter().println("Hello, world");
+	public void doGet(final HttpServletRequest req,
+			final HttpServletResponse res) throws IOException {
+		final BlobKey blobKey = new BlobKey(req.getParameter("blob-key"));
+		this.blobstoreService.serve(blobKey, res);
 	}
+
 }
