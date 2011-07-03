@@ -11,6 +11,7 @@ Install Plugins:
   * Install *Subversive*:
     * Choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
     * select Collaboration / Subversive SVN...
+    * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.6
 
   * Install *Google Plugin for Eclipse*:
     * Add Update Manager: http://dl.google.com/eclipse/plugin/3.7
