@@ -12,5 +12,7 @@ Add your content here.  Format your content with:
   * Headings, paragraphs, and lists
   * Automatic links to other wiki pages
 
-Eclipse Google Application Engine Plugins:
-http://dl.google.com/eclipse/plugin/3.7
+  * Install Eclipse Google Application Engine Plugins:
+    * Update Manager: http://dl.google.com/eclipse/plugin/3.7
+    * select all items
+    * (see under http://code.google.com/intl/de-DE/eclipse/docs/download.html)
