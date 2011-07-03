@@ -8,7 +8,11 @@ Add your content here.
 = Details =
 
 Install Plugins:
+  * Install *Subversive*:
+    * Choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
+    * select Collaboration / Subversive SVN...
+
   * Install *Google Plugin for Eclipse*:
-    * Update Manager: http://dl.google.com/eclipse/plugin/3.7
+    * Add Update Manager: http://dl.google.com/eclipse/plugin/3.7
     * select all items
     * (see under http://code.google.com/intl/de-DE/eclipse/docs/download.html)
