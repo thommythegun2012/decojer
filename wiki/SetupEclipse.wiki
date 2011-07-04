@@ -14,8 +14,11 @@ Install Plugins:
     * Choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
     * select Collaboration / Subversive SVN...
     * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.6
-    * after Installation add Subversion Repository Location (https://decojer.googlecode.com/svn/):
-      http://decojer.googlecode.com/svn/wiki/eclipse_svn_repository_location.png
+
+Checkout:
+
+Add Subversion Repository Location (https://decojer.googlecode.com/svn/):
+http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
 
   * Install *Google Plugin for Eclipse*:
     * Add Update Manager: http://dl.google.com/eclipse/plugin/3.7
