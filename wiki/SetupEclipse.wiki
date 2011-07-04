@@ -1,9 +1,11 @@
-HOWTO Install Eclipse with Plugins and Checkout Project.
-
 = Introduction =
 
-Add your content here.
+The project *DecoJer* currently exists of 3 sub projects.
+  * DecoJer
+  * DecoJerTest
+  * DecoJerWeb
 
+They are separately checked in (*Subversion*) and preconfigured for the *Eclipse* IDE.
 
 = Details =
 
@@ -12,6 +14,8 @@ Install Plugins:
     * Choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
     * select Collaboration / Subversive SVN...
     * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.6
+
+http://code.google.com/p/decojer/source/browse/wiki/eclipse_svn_repository_location.png
 
   * Install *Google Plugin for Eclipse*:
     * Add Update Manager: http://dl.google.com/eclipse/plugin/3.7
