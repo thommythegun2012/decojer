@@ -4,6 +4,5 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry exported="true" kind="lib" path="lib/javassist.jar" sourcepath="/javassist-3.14.0-GA"/>
-	<classpathentry kind="lib" path="C:/Program Files/Java/jdk1.6.0_26/lib/tools.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
