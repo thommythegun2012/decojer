@@ -1,31 +1,43 @@
 = Introduction =
 
-The project *DecoJer* currently exists of 3 sub projects.
+The project *DecoJer* currently exists of 3 subprojects.
   * DecoJer
   * DecoJerTest
   * DecoJerWeb
 
-They are separately checked in (*Subversion*) and preconfigured for the *Eclipse* IDE.
+These subprojects are separately checked in (using *Subversion*) and preconfigured for the *Eclipse* IDE.
+
+The following details give an overview of the necessary steps to check out the source code and to get the project running in Eclipse.
 
 = Details =
 
-Install Plugins:
-  * Install *Subversive*:
-    * Choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
-    * select Collaboration / Subversive SVN...
-    * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.6
+  * Download *Eclipse for RCP* (Version 3.7, Indigo) from http://www.eclipse.org/downloads/
 
-Checkout:
+  * Install Plugins:
+    * Install *AST View*:
+      * add Update Manager http://www.eclipse.org/jdt/ui/update-site
+      * select _AST View for 3.5 and 3.6_
+    * Install *ZEST*
+      * choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
+      * select _Graphical Editing Framework Zest Visualization Toolkit SDK_
+    * Install *Subversive*:
+      * choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
+      * select _Collaboration_ / _Subversive SVN..._
+      * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.6 for Win32
 
-Add Subversion Repository Location (https://decojer.googlecode.com/svn/):
-http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
+  * add Subversion Repository Location (https://decojer.googlecode.com/svn/): http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
+  * checkout DecoJer and DecoJerTest
 
-  * Install *Google Plugin for Eclipse*:
-    * Add Update Manager: http://dl.google.com/eclipse/plugin/3.7
-    * select all items
-    * (see under http://code.google.com/intl/de-DE/eclipse/docs/download.html)
+== Only for DecoJerWeb ==
 
-  * Web, XML, Java EE and OSGi Enterprise Development
-    * Eclipse Java Web Developer Tools
-    * Eclipse Web Developer Tools
-    * JavaScript Development Tools
+  * Install Web Development Plugins:
+    * Install *Google Plugin for Eclipse*:
+      * Add Update Manager: http://dl.google.com/eclipse/plugin/3.7
+      * select all items
+      * (see under http://code.google.com/intl/de-DE/eclipse/docs/download.html)
+    * Install *Eclipse WTP Plugins* (we use Eclipse for RCP!)
+      * choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
+      * select _Web, XML, Java EE and OSGi Enterprise Development_/
+      * _Eclipse Java Web Developer Tools_
+      * _Eclipse Web Developer Tools_
+      * _JavaScript Development Tools_
