@@ -23,10 +23,16 @@
  */
 package org.decojer.web;
 
+import java.io.DataInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javassist.ClassPool;
+import javassist.bytecode.ClassFile;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -34,8 +40,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreInputStream;
 import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import com.google.appengine.api.files.AppEngineFile;
+import com.google.appengine.api.files.FileService;
+import com.google.appengine.api.files.FileServiceFactory;
+import com.google.appengine.api.files.FileWriteChannel;
 
 public class UploadServlet extends HttpServlet {
 
@@ -46,24 +57,64 @@ public class UploadServlet extends HttpServlet {
 			.getBlobstoreService();
 
 	@Override
-	public void doPost(HttpServletRequest req, HttpServletResponse res)
-			throws ServletException, IOException {
+	public void doPost(final HttpServletRequest req,
+			final HttpServletResponse res) throws ServletException, IOException {
 
-		Map<String, BlobKey> blobs = blobstoreService.getUploadedBlobs(req);
+		final Map<String, BlobKey> blobs = this.blobstoreService
+				.getUploadedBlobs(req);
 
 		BlobKey blobKey = null;
-		for (Entry<String, BlobKey> entry : blobs.entrySet()) {
+		for (final Entry<String, BlobKey> entry : blobs.entrySet()) {
 			LOGGER.warning("TEST: " + entry.getKey());
 			LOGGER.warning("TEST: " + entry.getValue().getKeyString());
-			if (blobKey == null)
+			if (blobKey == null) {
 				blobKey = entry.getValue();
+			}
 		}
 
 		if (blobKey == null) {
 			res.sendRedirect("/");
-		} else {
-			res.sendRedirect("/decompile?blob-key=" + blobKey.getKeyString());
+			return;
 		}
+		try {
+			final ClassFile classFile = new ClassFile(new DataInputStream(
+					new BlobstoreInputStream(blobKey)));
+			String name = classFile.getName();
+			final int pos = name.lastIndexOf('.');
+			if (pos != -1) {
+				name = name.substring(pos + 1);
+			}
+			name += ".java";
+
+			// Get a file service
+			final FileService fileService = FileServiceFactory.getFileService();
+
+			// Create a new Blob file with mime-type "text/plain"
+			final AppEngineFile file = fileService.createNewBlobFile(
+					"text/plain", name);
+
+			// Open a channel to write to it
+			final FileWriteChannel writeChannel = fileService.openWriteChannel(
+					file, true);
+
+			writeChannel.write(ByteBuffer
+					.wrap("And miles to go before I sleep.".getBytes()));
+
+			writeChannel.closeFinally();
+
+			final BlobKey blobKeySource = fileService.getBlobKey(file);
+
+			res.sendRedirect("/decompile?blob-key="
+					+ blobKeySource.getKeyString());
+			return;
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Invalid class file for blog key: "
+					+ blobKey, e);
+		} finally {
+			// Thread save?
+			ClassPool.getDefault().clearImportedPackages();
+		}
+		res.sendRedirect("/");
 	}
 
 }
