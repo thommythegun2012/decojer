@@ -60,7 +60,10 @@ public class PackageClassStreamProvider {
 	 *            package path
 	 */
 	public PackageClassStreamProvider(final String path) {
-		assert path != null;
+		if (path == null) {
+			return;
+		}
+
 		// create package Map<type name, ClassFile>
 		final int pos = path.indexOf('!');
 		if (pos != -1) {
@@ -121,7 +124,7 @@ public class PackageClassStreamProvider {
 		}
 	}
 
-	protected DataInputStream addClassStream(final String name,
+	public DataInputStream addClassStream(final String name,
 			final InputStream inputStream) {
 		final DataInputStream dataInputStream = new DataInputStream(inputStream);
 		this.name2classStream.put(name, dataInputStream);
