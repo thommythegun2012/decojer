@@ -24,6 +24,7 @@
 package org.decojer.web;
 
 import java.io.DataInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -32,12 +33,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javassist.ClassPool;
-import javassist.bytecode.ClassFile;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.decojer.DecoJer;
+import org.decojer.PackageClassStreamProvider;
+import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.PF;
+import org.decojer.cavaj.model.TD;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
@@ -48,10 +54,16 @@ import com.google.appengine.api.files.FileService;
 import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.api.files.FileWriteChannel;
 
+/**
+ * 
+ * @author André Pankraz
+ */
 public class UploadServlet extends HttpServlet {
 
 	private static Logger LOGGER = Logger.getLogger(UploadServlet.class
 			.getName());
+
+	private static final long serialVersionUID = -6567596163814017159L;
 
 	private final BlobstoreService blobstoreService = BlobstoreServiceFactory
 			.getBlobstoreService();
@@ -77,28 +89,35 @@ public class UploadServlet extends HttpServlet {
 			return;
 		}
 		try {
-			final ClassFile classFile = new ClassFile(new DataInputStream(
-					new BlobstoreInputStream(blobKey)));
-			String name = classFile.getName();
-			final int pos = name.lastIndexOf('.');
-			if (pos != -1) {
-				name = name.substring(pos + 1);
+
+			final PackageClassStreamProvider packageClassStreamProvider = new PackageClassStreamProvider(
+					null);
+			try {
+				packageClassStreamProvider.addClassStream(
+						"DecTestBooleanOperators", new DataInputStream(
+								new BlobstoreInputStream(blobKey)));
+			} catch (final FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			name += ".java";
+			final PF pf = DecoJer.createPF(packageClassStreamProvider);
+			final Entry<String, TD> next = pf.getTds().entrySet().iterator()
+					.next();
+			final CU cu = DecoJer.createCU(next.getValue());
 
 			// Get a file service
 			final FileService fileService = FileServiceFactory.getFileService();
 
 			// Create a new Blob file with mime-type "text/plain"
 			final AppEngineFile file = fileService.createNewBlobFile(
-					"text/plain", name);
+					"text/plain", "DecTestBooleanOperators.java");
 
 			// Open a channel to write to it
 			final FileWriteChannel writeChannel = fileService.openWriteChannel(
 					file, true);
 
 			writeChannel.write(ByteBuffer
-					.wrap("And miles to go before I sleep.".getBytes()));
+					.wrap(DecoJer.decompile(cu).getBytes()));
 
 			writeChannel.closeFinally();
 
