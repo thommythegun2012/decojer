@@ -39,6 +39,8 @@ import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
  */
 public class DecompileServlet extends HttpServlet {
 
+	private static final long serialVersionUID = -6125126640433342536L;
+
 	private final BlobstoreService blobstoreService = BlobstoreServiceFactory
 			.getBlobstoreService();
 

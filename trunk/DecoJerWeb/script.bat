@@ -1,0 +1,1 @@
+DecoJerWeb\war\WEB-INF\lib>java -cp "*" org.decojer.DecoJer
