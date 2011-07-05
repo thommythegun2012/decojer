@@ -75,8 +75,6 @@ public class TD implements BD, PD {
 
 		// Javassist is a shortcut for now, later parse directly, in any case
 		// completely consume stream in this constructor and remember all data!
-		// TODO check if Javassist's dual licence MPL / LPGL is compatible with
-		// our AGPLv3?
 		try {
 			this.classFile = new ClassFile(classStream);
 		} catch (final IOException e) {

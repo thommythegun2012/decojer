@@ -124,9 +124,22 @@ public class PackageClassStreamProvider {
 		}
 	}
 
+	/**
+	 * Add input stream. The name must not be the type name, e.g. usage for
+	 * unknown bytestreams from uploads.
+	 * 
+	 * @param name
+	 *            type name (prefered) or other handle
+	 * @param inputStream
+	 *            data input stream or input stream
+	 * @return data input stream
+	 */
 	public DataInputStream addClassStream(final String name,
 			final InputStream inputStream) {
-		final DataInputStream dataInputStream = new DataInputStream(inputStream);
+		assert name != null;
+
+		final DataInputStream dataInputStream = inputStream instanceof DataInputStream ? (DataInputStream) inputStream
+				: new DataInputStream(inputStream);
 		this.name2classStream.put(name, dataInputStream);
 		return dataInputStream;
 	}
