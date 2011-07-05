@@ -23,8 +23,12 @@
  */
 package org.decojer;
 
+import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.PF;
@@ -154,8 +158,31 @@ public class DecoJer {
 		// later...
 	}
 
+	public static void main(final String[] args) {
+		final PackageClassStreamProvider packageClassStreamProvider = new PackageClassStreamProvider(
+				null);
+		try {
+			packageClassStreamProvider
+					.addClassStream(
+							"DecTestBooleanOperators",
+							new DataInputStream(
+									new FileInputStream(
+											new File(
+													"D:/Data/Decomp/workspace/DecoJerTest/bin_jdk1.6.0_26/org/decojer/cavaj/test/DecTestBooleanOperators.class"))));
+		} catch (final FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		final PF pf = createPF(packageClassStreamProvider);
+		final Entry<String, TD> next = pf.getTds().entrySet().iterator().next();
+		final CU cu = createCU(next.getValue());
+		System.out.println(decompile(cu));
+
+		// System.out
+		// .println(decompile("E:/Decomp/workspace/DecoJerTest/bin_jdk1.6.0_26/org/decojer/cavaj/test/DecTestBooleanOperators.class"));
+	}
+
 	private DecoJer() {
 		// don't initialize
 	}
-
 }
