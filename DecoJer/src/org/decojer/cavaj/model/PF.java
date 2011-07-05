@@ -70,11 +70,13 @@ public class PF {
 		assert classStream != null;
 
 		final TD td = new TD(this, classStream);
-		if (!name.equals(td.getName())) {
-			throw new DecoJerException("Type name from file '" + name
-					+ "' not equal to type name in class '" + td.getName()
-					+ "'!");
-		}
+		// The name must not be the type name, e.g. usage for unknown
+		// bytestreams from uploads.
+		/*
+		 * if (!name.equals(td.getName())) { throw new
+		 * DecoJerException("Type name from file '" + name +
+		 * "' not equal to type name in class '" + td.getName() + "'!"); }
+		 */
 		if (this.packageName == null) {
 			this.packageName = td.getPackageName();
 		} else if (!this.packageName.equals(td.getPackageName())) {

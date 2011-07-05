@@ -185,4 +185,5 @@ public class DecoJer {
 	private DecoJer() {
 		// don't initialize
 	}
+
 }
