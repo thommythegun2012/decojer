@@ -24,7 +24,6 @@
 package org.decojer.web;
 
 import java.io.DataInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
@@ -68,6 +67,8 @@ public class UploadServlet extends HttpServlet {
 	private final BlobstoreService blobstoreService = BlobstoreServiceFactory
 			.getBlobstoreService();
 
+	private final FileService fileService = FileServiceFactory.getFileService();
+
 	@Override
 	public void doPost(final HttpServletRequest req,
 			final HttpServletResponse res) throws ServletException, IOException {
@@ -85,55 +86,39 @@ public class UploadServlet extends HttpServlet {
 		}
 
 		if (blobKey == null) {
-			res.sendRedirect("/");
+			res.sendRedirect("/index.jsp");
 			return;
 		}
 		try {
 
 			final PackageClassStreamProvider packageClassStreamProvider = new PackageClassStreamProvider(
 					null);
-			try {
-				packageClassStreamProvider.addClassStream(
-						"DecTestBooleanOperators", new DataInputStream(
-								new BlobstoreInputStream(blobKey)));
-			} catch (final FileNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			packageClassStreamProvider.addClassStream(blobKey.getKeyString(),
+					new DataInputStream(new BlobstoreInputStream(blobKey)));
 			final PF pf = DecoJer.createPF(packageClassStreamProvider);
 			final Entry<String, TD> next = pf.getTds().entrySet().iterator()
 					.next();
 			final CU cu = DecoJer.createCU(next.getValue());
+			final String source = DecoJer.decompile(cu);
 
-			// Get a file service
-			final FileService fileService = FileServiceFactory.getFileService();
-
-			// Create a new Blob file with mime-type "text/plain"
-			final AppEngineFile file = fileService.createNewBlobFile(
-					"text/plain", "DecTestBooleanOperators.java");
-
-			// Open a channel to write to it
-			final FileWriteChannel writeChannel = fileService.openWriteChannel(
-					file, true);
-
-			writeChannel.write(ByteBuffer
-					.wrap(DecoJer.decompile(cu).getBytes()));
-
+			final AppEngineFile file = this.fileService.createNewBlobFile(
+					"text/plain", cu.getStartTd().getName() + ".java");
+			final FileWriteChannel writeChannel = this.fileService
+					.openWriteChannel(file, true);
+			writeChannel.write(ByteBuffer.wrap(source.getBytes()));
 			writeChannel.closeFinally();
-
-			final BlobKey blobKeySource = fileService.getBlobKey(file);
+			final BlobKey blobKeySource = this.fileService.getBlobKey(file);
 
 			res.sendRedirect("/decompile?blob-key="
 					+ blobKeySource.getKeyString());
 			return;
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Invalid class file for blog key: "
+			LOGGER.log(Level.WARNING, "Upload problems for blob key: "
 					+ blobKey, e);
 		} finally {
-			// Thread save?
 			ClassPool.getDefault().clearImportedPackages();
 		}
-		res.sendRedirect("/");
+		res.sendRedirect("/index.jsp");
 	}
 
 }
