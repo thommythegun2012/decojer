@@ -129,10 +129,12 @@ public class TrStructCfg2JavaControlFlowStmts {
 			transformSequence(null, getCfg().getStartBb(), statements);
 
 			// remove final return
-			final Object object = statements.get(statements.size() - 1);
-			if (object instanceof ReturnStatement
-					&& ((ReturnStatement) object).getExpression() == null) {
-				((ReturnStatement) object).delete();
+			if (statements.size() > 0) {
+				final Object object = statements.get(statements.size() - 1);
+				if (object instanceof ReturnStatement
+						&& ((ReturnStatement) object).getExpression() == null) {
+					((ReturnStatement) object).delete();
+				}
 			}
 		} catch (final Exception e) {
 			log("Couldn't fully decompile CFG!", e);
