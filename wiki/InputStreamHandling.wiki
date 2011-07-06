@@ -1,4 +1,4 @@
-#summary One-sentence summary of this page.
+#summary Handling of Input Streams, File Type recognition
 
 = Introduction =
 
@@ -7,8 +7,9 @@ DecoJer.decompile(stream)
 = Details =
 
   * Java Classfile starts with magic number "CA FE BA BE"
-  * ZIP (JAR, EAR, WAR) starts with "50 4B 03 04", zip entries are seperated through same
-  * ZIP Central Directory on file end => but not really used for InputStream? pure sequentially read
+  * ZIP (JAR, EAR, WAR) starts with "50 4B 03 04", zip entries are seperated through same signature
+  * http://www.onicos.com/staff/iz/formats/zip.html
+  * ZIP Central Directory on file end => but not used for Jar/ZipInputStream
   * ZIP embedded in ZIP possible (e.g. EAR), direct sub stream possible?
 
 == File Check Order ==
