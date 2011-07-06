@@ -1,0 +1,20 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+DecoJer.decompile(stream)
+
+= Details =
+
+  * Java Classfile starts with magic number "CA FE BA BE"
+  * ZIP (JAR, EAR, WAR) starts with "50 4B 03 04", zip entries are seperated through same
+  * ZIP Central Directory on file end => but not really used for InputStream? pure sequentially read
+  * ZIP embedded in ZIP possible (e.g. EAR), direct sub stream possible?
+
+== File Check Order ==
+  * http://www.java2s.com/Tutorial/Java/0180__File/UnzipusingtheZipInputStream.htm
+  *     static long LOCSIG = 0x04034b50L;	// "PK\003\004"
+
+  * markSupported()? mark() => check ZIP magic
+    * YES => open JarFile via Google FileService http://code.google.com/intl/de-DE/appengine/docs/java/javadoc/index.html?com/google/appengine/api/blobstore/package-summary.html
+    * NO => reset() and new TD(is) => new javassist.bytecode.ClassFile() => OK or throws IOException("bad magic number...)
