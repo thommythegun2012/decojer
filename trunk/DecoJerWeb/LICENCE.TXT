@@ -1,0 +1,2 @@
+DecoJerWeb  - AGPL 3.0, see war/WEB-INF/agpl-v3.0.txt
+favicon.ico - Creative Commons, no attribution, http://www.favicon.cc/?action=icon&file_id=35634
