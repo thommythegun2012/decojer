@@ -23,26 +23,14 @@
  */
 package org.decojer.web;
 
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javassist.ClassPool;
-
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
-import org.decojer.DecoJer;
-import org.decojer.PackageClassStreamProvider;
-import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.PF;
-import org.decojer.cavaj.model.TD;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
@@ -50,16 +38,19 @@ import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.files.AppEngineFile;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.PreparedQuery;
+import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.files.FileService;
 import com.google.appengine.api.files.FileServiceFactory;
-import com.google.appengine.api.files.FileWriteChannel;
 
 /**
  * 
  * @author André Pankraz
  */
-public class UploadServlet extends HttpServlet {
+public class ListServlet extends HttpServlet {
 
 	private static Logger LOGGER = Logger.getLogger(UploadServlet.class
 			.getName());
@@ -75,55 +66,50 @@ public class UploadServlet extends HttpServlet {
 	private final FileService fileService = FileServiceFactory.getFileService();
 
 	@Override
-	public void doPost(final HttpServletRequest req,
+	public void doGet(final HttpServletRequest req,
 			final HttpServletResponse res) throws ServletException, IOException {
 
-		final Map<String, BlobKey> blobs = this.blobstoreService
-				.getUploadedBlobs(req);
+		final ServletOutputStream out = res.getOutputStream();
 
-		BlobKey blobKey = null;
-		for (final Entry<String, BlobKey> entry : blobs.entrySet()) {
-			LOGGER.warning("TEST: " + entry.getKey());
-			LOGGER.warning("TEST: " + entry.getValue().getKeyString());
-			if (blobKey == null) {
-				blobKey = entry.getValue();
+		final Query q = new Query("__BlobInfo__");
+
+		final PreparedQuery pq = this.datastoreService.prepare(q);
+
+		for (final Entity result : pq.asIterable()) {
+			out.println("Class: " + result.getClass().getName());
+			out.println("AppId: " + result.getAppId());
+			out.println("Kind: " + result.getKind());
+			out.println("Namespace: " + result.getNamespace());
+			out.println("Key: " + result.getKey());
+			out.println("Key: " + result.getKey().getName());
+			out.println("Parent: " + result.getParent());
+			out.println("Props: " + result.getProperties());
+			out.println("---");
+
+			if (result.getProperty("md5_hash") == null) {
+				result.setProperty("md5_hash", "HURRAY");
+				this.datastoreService.put(result);
 			}
+
+			final BlobKey blobKey = new BlobKey(result.getKey().getName());
+			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
+					blobKey);
+			final byte[] test = new byte[100];
+			blobstoreInputStream.read(test);
+			// out.write(test);
+
+			out.println("---");
+
+			final Query q2 = new Query("__BlobInfo__");
+			final Key key = KeyFactory.createKey("__BlobInfo__",
+					blobKey.getKeyString());
+			q2.addFilter("__key__", Query.FilterOperator.EQUAL, key);
+
+			out.println("Props####: "
+					+ this.datastoreService.prepare(q2).asSingleEntity()
+							.getProperties());
+
 		}
 
-		if (blobKey == null) {
-			res.sendRedirect("/index.jsp");
-			return;
-		}
-		try {
-
-			final PackageClassStreamProvider packageClassStreamProvider = new PackageClassStreamProvider(
-					null);
-			packageClassStreamProvider.addClassStream(blobKey.getKeyString(),
-					new DataInputStream(new BlobstoreInputStream(blobKey)));
-			final PF pf = DecoJer.createPF(packageClassStreamProvider);
-			final Entry<String, TD> next = pf.getTds().entrySet().iterator()
-					.next();
-			final CU cu = DecoJer.createCU(next.getValue());
-			final String source = DecoJer.decompile(cu);
-
-			final AppEngineFile file = this.fileService.createNewBlobFile(
-					"text/plain", cu.getStartTd().getName() + ".java");
-			final FileWriteChannel writeChannel = this.fileService
-					.openWriteChannel(file, true);
-			writeChannel.write(ByteBuffer.wrap(source.getBytes()));
-			writeChannel.closeFinally();
-			final BlobKey blobKeySource = this.fileService.getBlobKey(file);
-
-			res.sendRedirect("/decompile?blob-key="
-					+ blobKeySource.getKeyString());
-			return;
-		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Upload problems for blob key: "
-					+ blobKey, e);
-		} finally {
-			ClassPool.getDefault().clearImportedPackages();
-		}
-		res.sendRedirect("/index.jsp");
 	}
-
 }
