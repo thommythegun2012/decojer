@@ -17,9 +17,7 @@ DecoJer.decompile(stream)
 Any order of ZIP entries possible, test:
 {{{
 			final ZipOutputStream os = new ZipOutputStream(
-					new FileOutputStream(
-							new File(
-									"...")));
+					new FileOutputStream(new File("...")));
 
 			os.putNextEntry(new ZipEntry("test/test"));
 			os.write("TEST".getBytes());
@@ -37,11 +35,9 @@ Any order of ZIP entries possible, test:
 
 And read:
 {{{
-			final InputStream is = new FileInputStream(
-					new File(
-							"..."));
+			final ZipInputStream zip = new ZipInputStream(new FileInputStream(new File("...")));
 
-			final ZipInputStream zip = new ZipInputStream(is);
+			System.out.println("Mark Supported: " + zip.markSupported());
 
 			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
 					.getNextEntry()) {
@@ -51,6 +47,7 @@ And read:
 
 results in:
 {{{
+Mark Supported: false
 ZIP Entry: test/test
 ZIP Entry: test2
 ZIP Entry: test/test3
