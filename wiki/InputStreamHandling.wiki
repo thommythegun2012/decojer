@@ -12,6 +12,51 @@ DecoJer.decompile(stream)
   * ZIP Central Directory on file end => but not used for Jar/ZipInputStream
   * ZIP embedded in ZIP possible (e.g. EAR), direct sub stream possible?
 
+== Zip Order ==
+
+Any order of ZIP entries possible, test:
+{{{
+			final ZipOutputStream os = new ZipOutputStream(
+					new FileOutputStream(
+							new File(
+									"...")));
+
+			os.putNextEntry(new ZipEntry("test/test"));
+			os.write("TEST".getBytes());
+
+			os.putNextEntry(new ZipEntry("test2"));
+			os.write("TEST2".getBytes());
+
+			os.putNextEntry(new ZipEntry("test/test3"));
+			os.write("TEST3".getBytes());
+
+			os.putNextEntry(new ZipEntry("test/")); // is possible...
+
+			os.finish();
+}}}
+
+And read:
+{{{
+			final InputStream is = new FileInputStream(
+					new File(
+							"..."));
+
+			final ZipInputStream zip = new ZipInputStream(is);
+
+			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
+					.getNextEntry()) {
+				System.out.println("ZIP Entry: " + zipEntry);
+			}
+}}}
+
+results in:
+{{{
+ZIP Entry: test/test
+ZIP Entry: test2
+ZIP Entry: test/test3
+ZIP Entry: test/
+}}}
+
 == File Check Order ==
   * http://www.java2s.com/Tutorial/Java/0180__File/UnzipusingtheZipInputStream.htm
   *     static long LOCSIG = 0x04034b50L;	// "PK\003\004"
