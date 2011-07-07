@@ -6,11 +6,17 @@ DecoJer.decompile(stream)
 
 = Details =
 
-  * Java Classfile starts with magic number "CA FE BA BE"
-  * ZIP (JAR, EAR, WAR) starts with "50 4B 03 04", zip entries are seperated through same signature
+  * Java Classfiles start with magic number "CA FE BA BE"
+  * Zip Files (JAR, EAR, WAR) start with "50 4B 03 04", Zip Entries begin with this signature, than Zip Entry local informations
   * http://www.onicos.com/staff/iz/formats/zip.html
-  * ZIP Central Directory on file end => but not used for Jar/ZipInputStream
-  * ZIP embedded in ZIP possible (e.g. EAR), direct sub stream possible?
+  * Zip Central Directory on file end, not necessary to read entries
+  * Zip embedded in Zip often used (e.g. EAR, WAR)
+
+  * Java build-in: JarFile / ZipFile and JarInputStream / ZipInputStream
+  * Jar-Versions expect META-INF
+  * InputStream doesn't read Zip Central Directory, only Zip Entry local informations
+
+  * MD5 on the fly possible with Java build-in: DigestInputStream
 
 == Zip Order ==
 
