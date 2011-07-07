@@ -29,8 +29,10 @@
 <body>
 	<form action="<%=blobstoreService.createUploadUrl("/upload")%>"
 		method="post" enctype="multipart/form-data">
-		<input type="file" name="file"> <input type="submit"
-			value="Submit">
+		<input type="file" name="file1">
+		<input type="file" name="file2">
+		<input type="file" name="file3">
+		<input type="submit" value="Submit">
 	</form>
 </body>
 </html>
