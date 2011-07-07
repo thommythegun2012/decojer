@@ -7,11 +7,12 @@ DecoJer.decompile(stream)
 = Details =
 
   * Java Classfiles start with magic number "CA FE BA BE"
-  * Zip Files (JAR, EAR, WAR) start with "50 4B 03 04", Zip Entries begin with this signature, than Zip Entry local informations
+  * JAR is like ZIP with special file structure (like META-INF folder)
+  * ZIP Files (JAR, EAR, WAR) start with "50 4B 03 04", ZIP Entries begin with this signature, than Zip Entry local informations
   * http://www.onicos.com/staff/iz/formats/zip.html
   * Zip Central Directory on file end, not necessary to read entries
   * Zip embedded in Zip often used (e.g. EAR, WAR)
-  * Dalvik DEX & APK, http://code.google.com/p/dex2jar/
+  * Dalvik: APK is like ZIP with special file structure, contains DEX, quick win: http://code.google.com/p/dex2jar/
 
   * Java build-in: JarFile / ZipFile and JarInputStream / ZipInputStream
   * Jar-Versions expect META-INF
