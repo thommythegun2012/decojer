@@ -16,8 +16,7 @@ DecoJer.decompile(stream)
 
 Any order of ZIP entries possible, test:
 {{{
-			final ZipOutputStream os = new ZipOutputStream(
-					new FileOutputStream(new File("...")));
+			final ZipOutputStream os = new ZipOutputStream(new FileOutputStream(new File("...")));
 
 			os.putNextEntry(new ZipEntry("test/test"));
 			os.write("TEST".getBytes());
@@ -52,6 +51,15 @@ ZIP Entry: test/test
 ZIP Entry: test2
 ZIP Entry: test/test3
 ZIP Entry: test/
+}}}
+
+Duplicate names on write ("test3" => "test") result in:
+{{{
+java.util.zip.ZipException: duplicate entry: test/test
+	at java.util.zip.ZipOutputStream.putNextEntry(ZipOutputStream.java:175)
+	at org.decojer.ZipTests.main(ZipTests.java:58)
+ZIP Entry: test/test
+ZIP Entry: test2
 }}}
 
 == File Check Order ==
