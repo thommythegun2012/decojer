@@ -11,6 +11,7 @@ DecoJer.decompile(stream)
   * http://www.onicos.com/staff/iz/formats/zip.html
   * Zip Central Directory on file end, not necessary to read entries
   * Zip embedded in Zip often used (e.g. EAR, WAR)
+  * Dalvik DEX & APK, http://code.google.com/p/dex2jar/
 
   * Java build-in: JarFile / ZipFile and JarInputStream / ZipInputStream
   * Jar-Versions expect META-INF
