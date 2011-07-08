@@ -3,6 +3,8 @@
 <%@ page import="com.google.appengine.api.blobstore.BlobstoreService"%>
 <%@ page
 	import="com.google.appengine.api.blobstore.BlobstoreServiceFactory"%>
+<%@ page import="org.decojer.web.util.Messages"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <%
 	BlobstoreService blobstoreService = BlobstoreServiceFactory
 			.getBlobstoreService();
@@ -35,5 +37,6 @@
 		<input type="file" name="file"> <input type="submit"
 			value="Submit">
 	</form>
+	<%=Messages.getMessagesHtml(pageContext.getSession())%>
 </body>
 </html>
