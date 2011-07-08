@@ -1,3 +1,5 @@
+#summary Description of Eclipse Setup.
+
 = Introduction =
 
 The project *DecoJer* currently exists of 3 subprojects.
@@ -10,6 +12,8 @@ These subprojects are separately checked in (using *Subversion*) and preconfigur
 The following details give an overview of the necessary steps to check out the source code and to get the project running in Eclipse.
 
 = Details =
+
+== Eclipse & Plugins ==
 
   * Download *Eclipse for RCP* (Version 3.7, Indigo) from http://www.eclipse.org/downloads/
 
@@ -25,10 +29,16 @@ The following details give an overview of the necessary steps to check out the s
       * select _Collaboration_ / _Subversive SVN..._
       * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.6 for Win32
 
-  * add Subversion Repository Location (https://decojer.googlecode.com/svn/): http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
-  * checkout DecoJer and DecoJerTest
+== Checkout Source Code ==
 
-== Only for DecoJerWeb ==
+http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
+
+  * add Subversion Repository Location https://decojer.googlecode.com/svn/
+    * checkout DecoJer and DecoJerTest
+  * add Subversion Repository Location svn://svn.forge.objectweb.org/svnroot/asm
+    * checkout tags/ASM_3_3_2_1497
+
+== Additional Plugins for DecoJerWeb ==
 
   * Install Web Development Plugins:
     * Install *Google Plugin for Eclipse*:
