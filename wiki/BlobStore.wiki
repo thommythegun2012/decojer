@@ -6,6 +6,8 @@ Description of BlobStore functionality.
 
 = Details =
 
+== Upload ==
+
 Multiple simultaneous uploads possible:
 {{{
 	<form action="<%=blobstoreService.createUploadUrl("/upload")%>"
@@ -26,6 +28,26 @@ Servlet for _/upload_:
 		res.sendRedirect(...);
 	}
 }}}
+
+== CPU Time and Logs for Upload ==
+
+Creation Date (GMT US) is time on successful request end, before start of Upload Servlet:
+{{{
+	Content Type 		Size 		Creation Date
+	application/x-msi 	38.9 MBytes 	2011-07-07 23:09:52 
+}}}
+From home for 39 MB (slow upload speed) upload time: 14 minutes (no 30 second rule, no size problems for 40 MB, started at 07:55:00).
+
+Log for Upload Servlet shows 200 ms billable CPU time for 39 MB write! Okay ... buyed:
+{{{
+2011-07-08 08:09:54.691 /upload 302 784ms 209cpu_ms 8api_cpu_ms 0kb Mozilla/5.0 (Windows NT 6.1; WOW64; rv:5.0) Gecko/20100101 Firefox/5.0,gzip(gfe),gzip(gfe),gzip(gfe)
+
+0.1.0.30 - - [07/Jul/2011:23:09:54 -0700] "POST /upload HTTP/1.1" 302 44 "http://www.decojer.org/" "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:5.0) Gecko/20100101 Firefox/5.0,gzip(gfe),gzip(gfe),gzip(gfe)" "www.decojer.org" ms=784 cpu_ms=209 api_cpu_ms=8 cpm_usd=0.091920
+}}}
+
+From company (fast upload speed) upload time: 38 seconds.
+
+== Blob Info ==
 
 Metadata like Filename via BlobInfo requestable:
 http://code.google.com/appengine/docs/java/javadoc/com/google/appengine/api/blobstore/BlobInfo.html
