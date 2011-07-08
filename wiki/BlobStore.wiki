@@ -70,14 +70,12 @@ Property md5_hash already created through uploader (currently not local)! Good f
 
 {{{
 	// get associated blob info entity __BlobInfo__ from BlobKey
-	final Key blobInfoEntityKey = KeyFactory.createKey("__BlobInfo__", blobKey.getKeyString());
-	// e.g. query entity
-	final Query blobInfoQuery = new Query("__BlobInfo__");
-	blobInfoQuery.addFilter("__key__", Query.FilterOperator.EQUAL, blobInfoEntityKey);
-	Entity blobInfoEntity = datastoreService.prepare(q).asSingleEntity();
+	Entity blobInfoEntity = datastoreService.get(KeyFactory.createKey("__BlobInfo__", blobKey.getKeyString()))
 
 	// get blob from associated blob info entity
 	final BlobKey blobKey = new BlobKey(blobInfoEntity.getKey().getName());
 	// e.g. read stream or serve()
 	BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(blobKey);
 }}}
+
+On production it's not possible to put (update) blob info entities, hence no own properties!
