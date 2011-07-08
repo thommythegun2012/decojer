@@ -47,6 +47,8 @@ Log for Upload Servlet shows 200 ms billable CPU time for 39 MB write! Okay ... 
 
 From company (fast upload speed) upload time: 38 seconds.
 
+No blobs or log entries for interrupted uploads.
+
 == Blob Info ==
 
 Metadata like Filename via BlobInfo requestable:
