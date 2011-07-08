@@ -5,25 +5,9 @@
 http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	version="2.5">
 	<servlet>
-		<servlet-name>Decompile</servlet-name>
-		<servlet-class>org.decojer.web.DecompileServlet</servlet-class>
-	</servlet>
-	<servlet>
-		<servlet-name>List</servlet-name>
-		<servlet-class>org.decojer.web.ListServlet</servlet-class>
-	</servlet>
-	<servlet>
 		<servlet-name>Upload</servlet-name>
-		<servlet-class>org.decojer.web.UploadServlet</servlet-class>
+		<servlet-class>org.decojer.web.servlet.UploadServlet</servlet-class>
 	</servlet>
-	<servlet-mapping>
-		<servlet-name>Decompile</servlet-name>
-		<url-pattern>/decompile</url-pattern>
-	</servlet-mapping>
-	<servlet-mapping>
-		<servlet-name>List</servlet-name>
-		<url-pattern>/list</url-pattern>
-	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>Upload</servlet-name>
 		<url-pattern>/upload</url-pattern>

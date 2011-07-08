@@ -21,34 +21,46 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web;
+package org.decojer.web.util;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import com.google.appengine.api.blobstore.BlobKey;
-import com.google.appengine.api.blobstore.BlobstoreService;
-import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
+import javax.servlet.http.HttpSession;
 
 /**
  * 
  * @author André Pankraz
  */
-public class DecompileServlet extends HttpServlet {
+public class Messages {
 
-	private static final long serialVersionUID = -6125126640433342536L;
+	public static void addMessage(final HttpServletRequest req,
+			final String message) {
+		List<String> messages = getMessages(req.getSession());
+		if (messages == null) {
+			messages = new ArrayList<String>();
+		}
+		messages.add(message);
+		req.getSession().setAttribute("messages", messages); // trigger update
+	}
 
-	private final BlobstoreService blobstoreService = BlobstoreServiceFactory
-			.getBlobstoreService();
+	public static List<String> getMessages(final HttpSession httpSession) {
+		return (List<String>) httpSession.getAttribute("messages");
+	}
 
-	@Override
-	public void doGet(final HttpServletRequest req,
-			final HttpServletResponse res) throws IOException {
-		final BlobKey blobKey = new BlobKey(req.getParameter("blob-key"));
-		this.blobstoreService.serve(blobKey, res);
+	public static String getMessagesHtml(final HttpSession httpSession) {
+		final List<String> messages = getMessages(httpSession);
+		if (messages == null || messages.size() == 0) {
+			return "";
+		}
+		final StringBuilder sb = new StringBuilder("<ul>");
+		for (final String message : messages) {
+			sb.append("<li>").append(message).append("</li>");
+		}
+		httpSession.removeAttribute("messages");
+		sb.append("</ul>");
+		return sb.toString();
 	}
 
 }
