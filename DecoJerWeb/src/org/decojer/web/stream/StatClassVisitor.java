@@ -23,6 +23,9 @@
  */
 package org.decojer.web.stream;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
@@ -35,13 +38,17 @@ import org.objectweb.asm.MethodVisitor;
  */
 public class StatClassVisitor implements ClassVisitor {
 
-	public String className;
+	public Map<String, Object> entityProperties;
+
+	public String name;
 
 	@Override
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName,
 			final String[] interfaces) {
-		this.className = name;
+		this.name = name;
+		this.entityProperties = new HashMap<String, Object>();
+		this.entityProperties.put("superName", superName);
 	}
 
 	@Override
