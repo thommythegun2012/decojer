@@ -32,7 +32,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -41,7 +40,6 @@ import java.util.zip.ZipInputStream;
 import org.decojer.web.util.IOUtils;
 import org.objectweb.asm.ClassReader;
 
-import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 
@@ -99,11 +97,12 @@ public class StreamAnalyzer {
 			final Entity entity = new Entity("Class", statClassVisitor.name
 					+ "_" + IOUtils.toHexString(digest.digest()));
 			this.debug = classReader.b;
-			entity.setProperty("content", new Blob(classReader.b));
-			for (final Entry<String, Object> next : statClassVisitor.entityProperties
-					.entrySet()) {
-				entity.setProperty(next.getKey(), next.getValue());
-			}
+			// entity.setProperty("content", new Blob(classReader.b));
+			entity.setProperty("name", statClassVisitor.superName);
+			entity.setUnindexedProperty("superName",
+					statClassVisitor.interfaces);
+			entity.setUnindexedProperty("interfaces",
+					statClassVisitor.superName);
 			this.classEntities.add(entity);
 			return;
 		}

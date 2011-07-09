@@ -188,6 +188,7 @@ public class UploadServlet extends HttpServlet {
 			// 20 MB EAR with 9886 Classes
 			// 29.29 min!
 			// only 10 seconds not in API stuff
+			// without binary 15 minutes
 			final List<Key> put = this.datastoreService
 					.put(streamAnalyzer.classEntities);
 
