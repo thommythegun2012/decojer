@@ -90,7 +90,7 @@ public class UploadServlet extends HttpServlet {
 			return;
 		}
 
-		final List<BlobKey> toDelete = new ArrayList<BlobKey>();
+		final List<BlobKey> duplicateBlobKeys = new ArrayList<BlobKey>();
 
 		// transaction only for transaction level SERIALIZABLE, always commit
 		// Transaction tx = this.datastoreService.beginTransaction();
@@ -146,7 +146,8 @@ public class UploadServlet extends HttpServlet {
 						oldestEntity = duplicateEntity;
 					}
 					// change and delete newer entry
-					toDelete.add(new BlobKey(dieEntity.getKey().getName()));
+					duplicateBlobKeys.add(new BlobKey(dieEntity.getKey()
+							.getName()));
 				}
 				blobKey = new BlobKey(oldestEntity.getKey().getName());
 			}
@@ -162,11 +163,12 @@ public class UploadServlet extends HttpServlet {
 		// }
 
 		// after transaction, entity group!
-		if (!toDelete.isEmpty()) {
-			this.blobstoreService.delete(toDelete.toArray(new BlobKey[toDelete
-					.size()]));
-			Messages.addMessage(req, "Duplicate! Delete " + toDelete.size()
-					+ " entries!");
+		if (!duplicateBlobKeys.isEmpty()) {
+			this.blobstoreService.delete(duplicateBlobKeys
+					.toArray(new BlobKey[duplicateBlobKeys.size()]));
+			Messages.addMessage(req,
+					"Duplicate! Delete " + duplicateBlobKeys.size()
+							+ " entries!");
 		}
 		// before transaction, entity group!
 		final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
@@ -185,14 +187,30 @@ public class UploadServlet extends HttpServlet {
 			// 1747537api_cpu_ms 0kb Mozilla/5.0 (Windows NT 6.0; rv:5.0)
 			// Gecko/20100101 Firefox/5.0,gzip(gfe),gzip(gfe),gzip(gfe)
 
+			// if (!duplicateBlobKeys.isEmpty()) {
+			// 4.3 MB JAR => 290 s, Rewrite 180 s,
+			// following batch get costs 12 s and reduces rewrite to 15 s,
+			// with single gets and Key-Only-Queries reduced to 18 s
+			Messages.addMessage(req, "Check uploaded Java classes: "
+					+ streamAnalyzer.classEntities.size());
+
+			final List<Key> keys = new ArrayList<Key>();
+			for (final Entity entity : streamAnalyzer.classEntities) {
+				keys.add(entity.getKey());
+			}
+			final Map<Key, Entity> map = this.datastoreService.get(keys);
+			streamAnalyzer.classEntities.removeAll(map.values());
+			// }
+
 			// 20 MB EAR with 9886 Classes
 			// 29.29 min!
 			// only 10 seconds not in API stuff
-			// without binary 15 minutes
+			// without binary 15 minutes:
+			// 10 pro CPU second, 1.000.000 => 27 CPU hours
 			final List<Key> put = this.datastoreService
 					.put(streamAnalyzer.classEntities);
 
-			Messages.addMessage(req, "Preparsed Java classes: "
+			Messages.addMessage(req, "Updated Java classes: "
 					+ streamAnalyzer.classEntities.size());
 			try {
 				final PackageClassStreamProvider packageClassStreamProvider = new PackageClassStreamProvider(
@@ -225,6 +243,8 @@ public class UploadServlet extends HttpServlet {
 			// tx.commit();
 			// }
 			// }
+		finally {
+		}
 
 		res.sendRedirect("/");
 	}

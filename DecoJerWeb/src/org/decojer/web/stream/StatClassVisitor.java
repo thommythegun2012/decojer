@@ -35,19 +35,26 @@ import org.objectweb.asm.MethodVisitor;
  */
 public class StatClassVisitor implements ClassVisitor {
 
-	public String[] interfaces;
-
 	public String name;
 
-	public String superName;
+	public String signature;
 
 	@Override
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName,
 			final String[] interfaces) {
 		this.name = name;
-		this.superName = superName;
-		this.interfaces = interfaces;
+		if (signature == null) {
+			final StringBuilder sb = new StringBuilder("L");
+			sb.append(superName);
+			sb.append(";");
+			for (int i = 0; i < interfaces.length; ++i) {
+				sb.append("L").append(interfaces[i]).append(";");
+			}
+			this.signature = sb.toString();
+		} else {
+			this.signature = signature;
+		}
 	}
 
 	@Override
