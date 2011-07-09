@@ -94,15 +94,13 @@ public class StreamAnalyzer {
 			final StatClassVisitor statClassVisitor = new StatClassVisitor();
 			classReader.accept(statClassVisitor, ClassReader.SKIP_FRAMES);
 
-			final Entity entity = new Entity("Class", statClassVisitor.name
-					+ "_" + IOUtils.toHexString(digest.digest()));
+			final Entity entity = new Entity("Class",
+					IOUtils.toHexString(digest.digest())
+							+ statClassVisitor.name);
 			this.debug = classReader.b;
 			// entity.setProperty("content", new Blob(classReader.b));
-			entity.setProperty("name", statClassVisitor.superName);
-			entity.setUnindexedProperty("superName",
-					statClassVisitor.interfaces);
-			entity.setUnindexedProperty("interfaces",
-					statClassVisitor.superName);
+			entity.setProperty("name", statClassVisitor.name);
+			entity.setUnindexedProperty("signature", statClassVisitor.signature);
 			this.classEntities.add(entity);
 			return;
 		}
