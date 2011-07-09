@@ -5,9 +5,17 @@
 http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	version="2.5">
 	<servlet>
+		<servlet-name>Cleanup</servlet-name>
+		<servlet-class>org.decojer.web.servlet.CleanupServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>Upload</servlet-name>
 		<servlet-class>org.decojer.web.servlet.UploadServlet</servlet-class>
 	</servlet>
+	<servlet-mapping>
+		<servlet-name>Cleanup</servlet-name>
+		<url-pattern>/cleanup</url-pattern>
+	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>Upload</servlet-name>
 		<url-pattern>/upload</url-pattern>
