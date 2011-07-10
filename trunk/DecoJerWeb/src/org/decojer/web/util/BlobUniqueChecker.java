@@ -23,46 +23,54 @@
  */
 package org.decojer.web.util;
 
-import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Query;
 
 public class BlobUniqueChecker {
 
+	private BlobKey blobKey;
+
 	private final DatastoreService datastoreService;
 
-	private List<BlobKey> deleteBlobKeys;
+	private Set<BlobKey> deleteBlobKeys;
 
-	private final String filename;
+	private String filename;
 
-	private final String md5Hash;
+	private String md5Hash;
 
 	private Date newestDate;
 
 	private Date oldestDate;
 
-	private BlobKey uniqueBlobKey;
-
-	private int uploadedSum;
+	private Long size;
 
 	public BlobUniqueChecker(final DatastoreService datastoreService,
-			final String filename, final String md5Hash) {
+			final BlobKey blobKey) throws EntityNotFoundException {
 		this.datastoreService = datastoreService;
-		this.filename = filename;
-		this.md5Hash = md5Hash;
+		this.blobKey = blobKey;
+		check();
 	}
 
-	private void check() {
-		if (this.uniqueBlobKey != null) {
+	private void check() throws EntityNotFoundException {
+		if (this.deleteBlobKeys != null) {
 			return;
 		}
-		this.deleteBlobKeys = new ArrayList<BlobKey>();
+
+		final Entity blobInfoEntity = EntityUtils.getBlobInfoEntity(
+				this.datastoreService, this.blobKey);
+
+		this.filename = (String) blobInfoEntity.getProperty(Property.FILENAME);
+		this.md5Hash = (String) blobInfoEntity.getProperty(Property.MD5_HASH);
+		this.size = (Long) blobInfoEntity.getProperty(Property.SIZE);
 
 		final Query duplicateQuery = new Query("__BlobInfo__");
 		duplicateQuery.addFilter(Property.MD5_HASH, Query.FilterOperator.EQUAL,
@@ -71,30 +79,25 @@ public class BlobUniqueChecker {
 				this.filename);
 		final List<Entity> duplicateEntities = this.datastoreService.prepare(
 				duplicateQuery).asList(FetchOptions.Builder.withLimit(10));
+		// could be 0 or 1 - even if 1 or 2 blobs are in store, HA metadata...
+
+		Entity oldestEntity = blobInfoEntity;
+		this.oldestDate = (Date) blobInfoEntity.getProperty("creation");
+		this.newestDate = this.oldestDate;
+
+		this.deleteBlobKeys = new HashSet<BlobKey>();
 
 		// find oldest...
-		Entity oldestEntity = null;
-		this.oldestDate = null;
-		this.newestDate = null;
-		this.uploadedSum = 0;
 		for (final Entity duplicateEntity : duplicateEntities) {
-			final Date creationDate = (Date) duplicateEntity
-					.getProperty("creation");
-			Date updatedDate = (Date) duplicateEntity.getProperty("updated");
-			if (updatedDate == null) {
-				updatedDate = creationDate;
-			}
-			++this.uploadedSum;
 			// init
-			if (this.oldestDate == null) {
-				oldestEntity = duplicateEntity;
-				this.oldestDate = creationDate;
-				this.newestDate = updatedDate;
+			if (oldestEntity.equals(duplicateEntity)) {
 				continue;
 			}
+			final Date creationDate = (Date) duplicateEntity
+					.getProperty("creation");
 			// one must die now...
-			if (this.newestDate.compareTo(updatedDate) < 0) {
-				this.newestDate = updatedDate;
+			if (this.newestDate.compareTo(creationDate) < 0) {
+				this.newestDate = creationDate;
 			}
 			Entity dieEntity;
 			if (this.oldestDate.compareTo(creationDate) < 0) {
@@ -107,17 +110,27 @@ public class BlobUniqueChecker {
 			// change and delete newer entry
 			this.deleteBlobKeys.add(new BlobKey(dieEntity.getKey().getName()));
 		}
-		this.uniqueBlobKey = new BlobKey(oldestEntity.getKey().getName());
+		this.blobKey = new BlobKey(oldestEntity.getKey().getName());
 	}
 
-	public List<BlobKey> getDeleteBlobKeys() {
-		check();
+	public Set<BlobKey> getDeleteBlobKeys() {
 		return this.deleteBlobKeys;
 	}
 
+	public String getFilename() {
+		return this.filename;
+	}
+
+	public String getMd5Hash() {
+		return this.md5Hash;
+	}
+
+	public Long getSize() {
+		return this.size;
+	}
+
 	public BlobKey getUniqueBlobKey() {
-		check();
-		return this.uniqueBlobKey;
+		return this.blobKey;
 	}
 
 }

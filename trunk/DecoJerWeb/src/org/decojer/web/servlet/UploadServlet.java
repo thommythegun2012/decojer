@@ -25,6 +25,7 @@ package org.decojer.web.servlet;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,6 +34,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -47,9 +50,9 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.util.MagicNumbers;
 import org.decojer.web.stream.StreamAnalyzer;
 import org.decojer.web.util.BlobUniqueChecker;
-import org.decojer.web.util.EntityUtils;
+import org.decojer.web.util.ClassChecker;
+import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
-import org.decojer.web.util.Property;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
@@ -65,12 +68,6 @@ import com.google.appengine.api.datastore.Key;
  * @author André Pankraz
  */
 public class UploadServlet extends HttpServlet {
-
-	enum UploadType {
-
-		CLASS, JAR, DEX, APK
-
-	}
 
 	class UploadTypeException extends RuntimeException {
 
@@ -108,21 +105,20 @@ public class UploadServlet extends HttpServlet {
 		final List<BlobKey> deleteBlobKeys = new ArrayList<BlobKey>();
 
 		final String filename;
-		final String md5Hash; // for unique check
+		final String md5Hash;
+		final int size;
 
 		// transaction only for transaction level SERIALIZABLE, always commit
 		// Transaction tx = this.datastoreService.beginTransaction();
 		try {
-			final Entity blobInfoEntity = EntityUtils.getBlobInfoEntity(
-					this.datastoreService, blobKey);
-
-			filename = (String) blobInfoEntity.getProperty(Property.FILENAME);
-			md5Hash = (String) blobInfoEntity.getProperty(Property.MD5_HASH);
-
 			final BlobUniqueChecker blobUniqueChecker = new BlobUniqueChecker(
-					this.datastoreService, filename, md5Hash);
+					this.datastoreService, blobKey);
 			blobKey = blobUniqueChecker.getUniqueBlobKey();
 			deleteBlobKeys.addAll(blobUniqueChecker.getDeleteBlobKeys());
+
+			filename = blobUniqueChecker.getFilename();
+			md5Hash = blobUniqueChecker.getMd5Hash();
+			size = blobUniqueChecker.getSize().intValue();
 
 			if (!deleteBlobKeys.isEmpty()) {
 				Messages.addMessage(req,
@@ -138,40 +134,83 @@ public class UploadServlet extends HttpServlet {
 
 			byte[] magicNumber;
 
-			if ("jar".equals(ext)) {
-				magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
-						MagicNumbers.MAGIC_NUMBER_ZIP.length - 1);
-				if (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_ZIP)) {
+			if ("class".equals(ext)) {
+				/*
+				 * magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
+				 * MagicNumbers.MAGIC_NUMBER_JAVA.length - 1); if
+				 * (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_JAVA))
+				 * { throw new UploadTypeException(
+				 * "This isn't a Java Class like the file extension suggests.");
+				 * }
+				 */
+				final ClassChecker classChecker;
+				try {
+					// asm.ClassReader reads streams into byte array with
+					// available() sized buffer, which is 0!
+					// better read fully now...
+					final byte[] content = this.blobstoreService.fetchData(
+							blobKey, 0, size);
+					classChecker = new ClassChecker(content);
+				} catch (final Exception e) {
+					e.printStackTrace();
 					throw new UploadTypeException(
-							"This isn't a Java Archive (JAR) like the file extension suggests.");
+							"This isn't a valid Java Class like the file extension suggests.");
 				}
-			} else if ("class".equals(ext)) {
-				magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
-						MagicNumbers.MAGIC_NUMBER_JAVA.length - 1);
-				if (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_JAVA)) {
-					throw new UploadTypeException(
-							"This isn't a Java Class like the file extension suggests.");
-				}
-			} else if ("apk".equals(ext)) {
-				magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
-						MagicNumbers.MAGIC_NUMBER_ZIP.length - 1);
-				if (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_ZIP)) {
-					throw new UploadTypeException(
-							"This isn't a Dalvik Archive (APK) like the file extension suggests.");
+				// className:
+				// org/decojer/cavaj/test/jdk6/DecTestParametrizedMethods
+				// fileName: DecTestParametrizedMethods.class
+
+			} else if ("jar".equals(ext)) {
+				/*
+				 * magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
+				 * MagicNumbers.MAGIC_NUMBER_ZIP.length - 1); if
+				 * (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_ZIP))
+				 * { throw new UploadTypeException(
+				 * "This isn't a Java Archive (JAR) like the file extension suggests."
+				 * ); }
+				 */
+				final MessageDigest digest = MessageDigest.getInstance("MD5");
+				int checkFailures = 0;
+
+				final ZipInputStream zip = new ZipInputStream(
+						new BlobstoreInputStream(blobKey));
+				for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
+						.getNextEntry()) {
+					final String name = zipEntry.getName();
+					if (!name.endsWith(".class")) {
+						continue;
+					}
+					try {
+						// asm.ClassReader reads streams into byte array with
+						// available() sized buffer, which is 0!
+						// better read fully now...
+						final byte[] bytes = IOUtils
+								.toBytes(new DigestInputStream(zip, digest));
+						final ClassChecker classChecker = new ClassChecker(
+								bytes);
+						classChecker.getName();
+						classChecker.getSignature();
+					} catch (final Exception e) {
+						++checkFailures;
+					}
 				}
 			} else if ("dex".equals(ext)) {
 				magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
 						MagicNumbers.MAGIC_NUMBER_DEX.length - 1);
 				if (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_DEX)) {
 					throw new UploadTypeException(
-							"This isn't a Dalvik Class (DEX) like the file extension suggests.");
+							"This isn't a Dalvik Executable (DEX) like the file extension suggests.");
 				}
+				Messages.addMessage(req, "Sry not ready yet!");
+			} else if ("apk".equals(ext)) {
+				throw new UploadTypeException(
+						"Sorry, because of quota limits the online version doesn't support the direct decompilation of Android Package Archives (APK). Please unzip and upload the contained 'classes.dex' Dalvik Executable File (DEX).");
 			} else if ("war".equals(ext)) {
 				throw new UploadTypeException(
-						"Sorry, the online version doesn't support decompilation of Web Application Archives (WAR), often containing multiple embedded JARs.");
+						"Sorry, because of quota limits the online version doesn't support the direct decompilation of Web Application Archives (WAR), often containing multiple embedded Java Archives (JAR).");
 			} else if ("ear".equals(ext)) {
 				throw new UploadTypeException(
-						"Sorry, the online version doesn't support decompilation of Enterprise Application Archives (EAR), often containing multiple embedded JARs.");
+						"Sorry, because of quota limits the online version doesn't support the direct decompilation of Enterprise Application Archives (EAR), often containing multiple embedded Java Archives (JAR).");
 			} else {
 				throw new UploadTypeException(
 						"This is an unknown file extension.");
@@ -181,14 +220,16 @@ public class UploadServlet extends HttpServlet {
 			Messages.addMessage(
 					req,
 					e.getMessage()
-							+ "  Please upload Java Classes or Archives (JAR) respectively Dalvik Classes (DEX) or Archives (APK). Upload deleted.");
+							+ "  Please upload Java Classes or Archives (JAR) respectively Android / Dalvik Executable File (DEX).");
 			res.sendRedirect("/");
+			deleteBlobKeys.add(blobKey);
 			return;
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING, "Couldn't evaluate upload meta data!", e);
 			Messages.addMessage(req,
 					"Couldn't evaluate upload meta data! Upload deleted.");
 			res.sendRedirect("/");
+			deleteBlobKeys.add(blobKey);
 			return;
 		} finally {
 			LOGGER.info("Deleting '" + deleteBlobKeys.size() + "' uploads.");
