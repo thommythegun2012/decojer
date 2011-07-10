@@ -35,7 +35,7 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Query;
 
-public class BlobUniqueChecker {
+public class BlobChecker {
 
 	private BlobKey blobKey;
 
@@ -53,7 +53,7 @@ public class BlobUniqueChecker {
 
 	private Long size;
 
-	public BlobUniqueChecker(final DatastoreService datastoreService,
+	public BlobChecker(final DatastoreService datastoreService,
 			final BlobKey blobKey) throws EntityNotFoundException {
 		this.datastoreService = datastoreService;
 		this.blobKey = blobKey;
