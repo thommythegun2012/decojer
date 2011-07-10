@@ -27,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +45,7 @@ import org.decojer.PackageClassStreamProvider;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.PF;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.util.MagicNumbers;
 import org.decojer.web.stream.StreamAnalyzer;
 import org.decojer.web.util.EntityUtils;
 import org.decojer.web.util.Messages;
@@ -64,6 +66,20 @@ import com.google.appengine.api.datastore.Query;
  * @author André Pankraz
  */
 public class UploadServlet extends HttpServlet {
+
+	enum UploadType {
+
+		CLASS, JAR, DEX, APK
+
+	}
+
+	class UploadTypeException extends RuntimeException {
+
+		public UploadTypeException(final String message) {
+			super(message);
+		}
+
+	}
 
 	private static Logger LOGGER = Logger.getLogger(UploadServlet.class
 			.getName());
@@ -90,7 +106,9 @@ public class UploadServlet extends HttpServlet {
 			return;
 		}
 
-		final List<BlobKey> duplicateBlobKeys = new ArrayList<BlobKey>();
+		final UploadType uploadType;
+		final String filename;
+		final String md5Hash; // for unique check
 
 		// transaction only for transaction level SERIALIZABLE, always commit
 		// Transaction tx = this.datastoreService.beginTransaction();
@@ -98,9 +116,76 @@ public class UploadServlet extends HttpServlet {
 			final Entity blobInfoEntity = EntityUtils.getBlobInfoEntity(
 					this.datastoreService, blobKey);
 
-			final String md5Hash = (String) blobInfoEntity
-					.getProperty("md5_hash");
+			filename = (String) blobInfoEntity.getProperty("filename");
+			final int pos = filename.lastIndexOf('.');
+			if (pos == -1) {
+				throw new UploadTypeException("The file extension is missing.");
+			}
+			final String ext = filename.substring(pos + 1).toLowerCase();
 
+			byte[] magicNumber;
+
+			if ("jar".equals(ext)) {
+				magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
+						MagicNumbers.MAGIC_NUMBER_ZIP.length - 1);
+				if (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_ZIP)) {
+					throw new UploadTypeException(
+							"This isn't a Java Archive (JAR) like the file extension suggests.");
+				}
+			} else if ("class".equals(ext)) {
+				magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
+						MagicNumbers.MAGIC_NUMBER_JAVA.length - 1);
+				if (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_JAVA)) {
+					throw new UploadTypeException(
+							"This isn't a Java Class like the file extension suggests.");
+				}
+			} else if ("apk".equals(ext)) {
+				magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
+						MagicNumbers.MAGIC_NUMBER_ZIP.length - 1);
+				if (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_ZIP)) {
+					throw new UploadTypeException(
+							"This isn't a Dalvik Archive (APK) like the file extension suggests.");
+				}
+			} else if ("dex".equals(ext)) {
+				magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
+						MagicNumbers.MAGIC_NUMBER_DEX.length - 1);
+				if (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_DEX)) {
+					throw new UploadTypeException(
+							"This isn't a Dalvik Class (DEX) like the file extension suggests.");
+				}
+			} else if ("war".equals(ext)) {
+				throw new UploadTypeException(
+						"Sorry, the online version doesn't support decompilation of Web Application Archives (WAR), often containing multiple embedded JARs.");
+			} else if ("ear".equals(ext)) {
+				throw new UploadTypeException(
+						"Sorry, the online version doesn't support decompilation of Enterprise Application Archives (EAR), often containing multiple embedded JARs.");
+			} else {
+				throw new UploadTypeException(
+						"This is an unknown file extension.");
+			}
+
+			md5Hash = (String) blobInfoEntity.getProperty("md5_hash");
+		} catch (final UploadTypeException e) {
+			LOGGER.log(Level.WARNING, e.getMessage());
+			Messages.addMessage(
+					req,
+					e.getMessage()
+							+ "  Please upload Java Classes or Archives (JAR) respectively Dalvik Classes (DEX) or Archives (APK). Upload deleted.");
+			this.blobstoreService.delete(blobKey);
+			res.sendRedirect("/");
+			return;
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Couldn't evaluate upload meta data!", e);
+			Messages.addMessage(req,
+					"Couldn't evaluate upload meta data! Upload deleted.");
+			this.blobstoreService.delete(blobKey);
+			res.sendRedirect("/");
+			return;
+		}
+
+		final List<BlobKey> duplicateBlobKeys = new ArrayList<BlobKey>();
+
+		try {
 			final Query duplicateQuery = new Query("__BlobInfo__");
 			duplicateQuery.addFilter("md5_hash", Query.FilterOperator.EQUAL,
 					md5Hash);
@@ -170,7 +255,7 @@ public class UploadServlet extends HttpServlet {
 					"Duplicate! Delete " + duplicateBlobKeys.size()
 							+ " entries!");
 		}
-		// before transaction, entity group!
+
 		final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
 				blobKey);
 
@@ -181,7 +266,8 @@ public class UploadServlet extends HttpServlet {
 			final MessageDigest subDigest = MessageDigest.getInstance("MD5");
 			final StreamAnalyzer streamAnalyzer = new StreamAnalyzer(
 					this.datastoreService);
-			streamAnalyzer.visitStream(blobstoreInputStream, "TEST", subDigest);
+			streamAnalyzer.visitStream(blobstoreInputStream, filename,
+					subDigest);
 
 			// 2011-07-09 05:02:03.668 /upload 302 30443ms 1757400cpu_ms
 			// 1747537api_cpu_ms 0kb Mozilla/5.0 (Windows NT 6.0; rv:5.0)
@@ -206,7 +292,7 @@ public class UploadServlet extends HttpServlet {
 			// 29.29 min!
 			// only 10 seconds not in API stuff
 			// without binary 15 minutes:
-			// 10 pro CPU second, 1.000.000 => 27 CPU hours
+			// 10 entities pro CPU second, 1.000.000 => 27 CPU hours
 			final List<Key> put = this.datastoreService
 					.put(streamAnalyzer.classEntities);
 
@@ -248,5 +334,4 @@ public class UploadServlet extends HttpServlet {
 
 		res.sendRedirect("/");
 	}
-
 }
