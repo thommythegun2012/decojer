@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,8 +46,10 @@ import org.decojer.cavaj.model.PF;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.util.MagicNumbers;
 import org.decojer.web.stream.StreamAnalyzer;
+import org.decojer.web.util.BlobUniqueChecker;
 import org.decojer.web.util.EntityUtils;
 import org.decojer.web.util.Messages;
+import org.decojer.web.util.Property;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
@@ -57,9 +58,7 @@ import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.Query;
 
 /**
  * 
@@ -106,7 +105,8 @@ public class UploadServlet extends HttpServlet {
 			return;
 		}
 
-		final UploadType uploadType;
+		final List<BlobKey> deleteBlobKeys = new ArrayList<BlobKey>();
+
 		final String filename;
 		final String md5Hash; // for unique check
 
@@ -116,7 +116,20 @@ public class UploadServlet extends HttpServlet {
 			final Entity blobInfoEntity = EntityUtils.getBlobInfoEntity(
 					this.datastoreService, blobKey);
 
-			filename = (String) blobInfoEntity.getProperty("filename");
+			filename = (String) blobInfoEntity.getProperty(Property.FILENAME);
+			md5Hash = (String) blobInfoEntity.getProperty(Property.MD5_HASH);
+
+			final BlobUniqueChecker blobUniqueChecker = new BlobUniqueChecker(
+					this.datastoreService, filename, md5Hash);
+			blobKey = blobUniqueChecker.getUniqueBlobKey();
+			deleteBlobKeys.addAll(blobUniqueChecker.getDeleteBlobKeys());
+
+			if (!deleteBlobKeys.isEmpty()) {
+				Messages.addMessage(req,
+						"Duplicate! Delete " + deleteBlobKeys.size()
+								+ " entries!");
+			}
+
 			final int pos = filename.lastIndexOf('.');
 			if (pos == -1) {
 				throw new UploadTypeException("The file extension is missing.");
@@ -163,97 +176,24 @@ public class UploadServlet extends HttpServlet {
 				throw new UploadTypeException(
 						"This is an unknown file extension.");
 			}
-
-			md5Hash = (String) blobInfoEntity.getProperty("md5_hash");
 		} catch (final UploadTypeException e) {
 			LOGGER.log(Level.WARNING, e.getMessage());
 			Messages.addMessage(
 					req,
 					e.getMessage()
 							+ "  Please upload Java Classes or Archives (JAR) respectively Dalvik Classes (DEX) or Archives (APK). Upload deleted.");
-			this.blobstoreService.delete(blobKey);
 			res.sendRedirect("/");
 			return;
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING, "Couldn't evaluate upload meta data!", e);
 			Messages.addMessage(req,
 					"Couldn't evaluate upload meta data! Upload deleted.");
-			this.blobstoreService.delete(blobKey);
 			res.sendRedirect("/");
 			return;
-		}
-
-		final List<BlobKey> duplicateBlobKeys = new ArrayList<BlobKey>();
-
-		try {
-			final Query duplicateQuery = new Query("__BlobInfo__");
-			duplicateQuery.addFilter("md5_hash", Query.FilterOperator.EQUAL,
-					md5Hash);
-			final List<Entity> duplicateEntities = this.datastoreService
-					.prepare(duplicateQuery).asList(
-							FetchOptions.Builder.withLimit(10));
-			LOGGER.warning("Duplicate entities for hash '" + md5Hash + "': "
-					+ duplicateEntities.size());
-			if (duplicateEntities.size() > 1) {
-				// find oldest...
-				Entity oldestEntity = null;
-				Date oldestDate = null;
-				Date newestDate = null;
-				int uploadedSum = 0;
-				for (final Entity duplicateEntity : duplicateEntities) {
-					final Date creationDate = (Date) duplicateEntity
-							.getProperty("creation");
-					Date updatedDate = (Date) duplicateEntity
-							.getProperty("updated");
-					if (updatedDate == null) {
-						updatedDate = creationDate;
-					}
-					final Integer uploaded = (Integer) duplicateEntity
-							.getProperty("uploaded");
-					uploadedSum += uploaded == null ? 1 : uploaded.intValue();
-					// init
-					if (oldestDate == null) {
-						oldestEntity = duplicateEntity;
-						oldestDate = creationDate;
-						newestDate = updatedDate;
-						continue;
-					}
-					// one must die now...
-					if (newestDate.compareTo(updatedDate) < 0) {
-						newestDate = updatedDate;
-					}
-					Entity dieEntity;
-					if (oldestDate.compareTo(creationDate) < 0) {
-						dieEntity = duplicateEntity;
-					} else {
-						dieEntity = oldestEntity;
-						oldestDate = creationDate;
-						oldestEntity = duplicateEntity;
-					}
-					// change and delete newer entry
-					duplicateBlobKeys.add(new BlobKey(dieEntity.getKey()
-							.getName()));
-				}
-				blobKey = new BlobKey(oldestEntity.getKey().getName());
-			}
-		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Problems with database operations.", e);
-			Messages.addMessage(req, "Internal system problem!");
-			res.sendRedirect("/");
-			return;
-		} // finally {
-			// if (tx.isActive()) {
-		// tx.commit();
-		// }
-		// }
-
-		// after transaction, entity group!
-		if (!duplicateBlobKeys.isEmpty()) {
-			this.blobstoreService.delete(duplicateBlobKeys
-					.toArray(new BlobKey[duplicateBlobKeys.size()]));
-			Messages.addMessage(req,
-					"Duplicate! Delete " + duplicateBlobKeys.size()
-							+ " entries!");
+		} finally {
+			LOGGER.info("Deleting '" + deleteBlobKeys.size() + "' uploads.");
+			this.blobstoreService.delete(deleteBlobKeys
+					.toArray(new BlobKey[deleteBlobKeys.size()]));
 		}
 
 		final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(

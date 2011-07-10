@@ -46,11 +46,11 @@ public class EntityUtils {
 		// in development mode no property "md5_hash" is created (for
 		// recognition of duplicate entities), luckily we can change this
 		// entities here (not possible on production)
-		String md5Hash = (String) blobInfoEntity.getProperty("md5_hash");
+		String md5Hash = (String) blobInfoEntity.getProperty(Property.MD5_HASH);
 		if (md5Hash == null) {
-			md5Hash = "_" + blobInfoEntity.getProperty("filename") + "_"
-					+ blobInfoEntity.getProperty("size");
-			blobInfoEntity.setProperty("md5_hash", md5Hash);
+			md5Hash = "_" + blobInfoEntity.getProperty(Property.FILENAME) + "_"
+					+ blobInfoEntity.getProperty(Property.SIZE);
+			blobInfoEntity.setProperty(Property.MD5_HASH, md5Hash);
 			// flush for following query
 			final Transaction tx = datastoreService.beginTransaction();
 			// not allowed on production!!!
