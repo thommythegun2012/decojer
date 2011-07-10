@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,10 +46,10 @@ import org.decojer.PackageClassStreamProvider;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.PF;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.util.MagicNumbers;
 import org.decojer.web.stream.StreamAnalyzer;
-import org.decojer.web.util.BlobUniqueChecker;
+import org.decojer.web.util.BlobChecker;
 import org.decojer.web.util.ClassChecker;
+import org.decojer.web.util.DexChecker;
 import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
 
@@ -111,14 +110,14 @@ public class UploadServlet extends HttpServlet {
 		// transaction only for transaction level SERIALIZABLE, always commit
 		// Transaction tx = this.datastoreService.beginTransaction();
 		try {
-			final BlobUniqueChecker blobUniqueChecker = new BlobUniqueChecker(
+			final BlobChecker blobChecker = new BlobChecker(
 					this.datastoreService, blobKey);
-			blobKey = blobUniqueChecker.getUniqueBlobKey();
-			deleteBlobKeys.addAll(blobUniqueChecker.getDeleteBlobKeys());
+			blobKey = blobChecker.getUniqueBlobKey();
+			deleteBlobKeys.addAll(blobChecker.getDeleteBlobKeys());
 
-			filename = blobUniqueChecker.getFilename();
-			md5Hash = blobUniqueChecker.getMd5Hash();
-			size = blobUniqueChecker.getSize().intValue();
+			filename = blobChecker.getFilename();
+			md5Hash = blobChecker.getMd5Hash();
+			size = blobChecker.getSize().intValue();
 
 			if (!deleteBlobKeys.isEmpty()) {
 				Messages.addMessage(req,
@@ -132,43 +131,23 @@ public class UploadServlet extends HttpServlet {
 			}
 			final String ext = filename.substring(pos + 1).toLowerCase();
 
-			byte[] magicNumber;
-
 			if ("class".equals(ext)) {
-				/*
-				 * magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
-				 * MagicNumbers.MAGIC_NUMBER_JAVA.length - 1); if
-				 * (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_JAVA))
-				 * { throw new UploadTypeException(
-				 * "This isn't a Java Class like the file extension suggests.");
-				 * }
-				 */
+				// asm.ClassReader reads streams into byte array with
+				// available() sized buffer, which is 0!
+				// better read fully now...
+				final byte[] content = this.blobstoreService.fetchData(blobKey,
+						0, size);
 				final ClassChecker classChecker;
 				try {
-					// asm.ClassReader reads streams into byte array with
-					// available() sized buffer, which is 0!
-					// better read fully now...
-					final byte[] content = this.blobstoreService.fetchData(
-							blobKey, 0, size);
 					classChecker = new ClassChecker(content);
 				} catch (final Exception e) {
-					e.printStackTrace();
 					throw new UploadTypeException(
 							"This isn't a valid Java Class like the file extension suggests.");
 				}
 				// className:
 				// org/decojer/cavaj/test/jdk6/DecTestParametrizedMethods
 				// fileName: DecTestParametrizedMethods.class
-
 			} else if ("jar".equals(ext)) {
-				/*
-				 * magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
-				 * MagicNumbers.MAGIC_NUMBER_ZIP.length - 1); if
-				 * (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_ZIP))
-				 * { throw new UploadTypeException(
-				 * "This isn't a Java Archive (JAR) like the file extension suggests."
-				 * ); }
-				 */
 				final MessageDigest digest = MessageDigest.getInstance("MD5");
 				int checkFailures = 0;
 
@@ -180,28 +159,38 @@ public class UploadServlet extends HttpServlet {
 					if (!name.endsWith(".class")) {
 						continue;
 					}
+					// asm.ClassReader reads streams into byte array with
+					// available() sized buffer, which is 0!
+					// better read fully now...
+					final byte[] bytes = IOUtils.toBytes(new DigestInputStream(
+							zip, digest));
+					final ClassChecker classChecker;
 					try {
-						// asm.ClassReader reads streams into byte array with
-						// available() sized buffer, which is 0!
-						// better read fully now...
-						final byte[] bytes = IOUtils
-								.toBytes(new DigestInputStream(zip, digest));
-						final ClassChecker classChecker = new ClassChecker(
-								bytes);
-						classChecker.getName();
-						classChecker.getSignature();
+						classChecker = new ClassChecker(bytes);
 					} catch (final Exception e) {
 						++checkFailures;
+						continue;
 					}
+					classChecker.getName();
+					classChecker.getSignature();
 				}
 			} else if ("dex".equals(ext)) {
-				magicNumber = this.blobstoreService.fetchData(blobKey, 0L,
-						MagicNumbers.MAGIC_NUMBER_DEX.length - 1);
-				if (!Arrays.equals(magicNumber, MagicNumbers.MAGIC_NUMBER_DEX)) {
+				// asm.ClassReader reads streams into byte array with
+				// available() sized buffer, which is 0!
+				// better read fully now...
+				final byte[] content = this.blobstoreService.fetchData(blobKey,
+						0, size);
+				final DexChecker dexChecker;
+				try {
+					dexChecker = new DexChecker(content);
+				} catch (final Exception e) {
 					throw new UploadTypeException(
-							"This isn't a Dalvik Executable (DEX) like the file extension suggests.");
+							"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
 				}
-				Messages.addMessage(req, "Sry not ready yet!");
+				Messages.addMessage(req, dexChecker.getClasses()
+						+ " Classes found. Sry not ready yet!");
+				res.sendRedirect("/");
+				return;
 			} else if ("apk".equals(ext)) {
 				throw new UploadTypeException(
 						"Sorry, because of quota limits the online version doesn't support the direct decompilation of Android Package Archives (APK). Please unzip and upload the contained 'classes.dex' Dalvik Executable File (DEX).");
@@ -216,7 +205,7 @@ public class UploadServlet extends HttpServlet {
 						"This is an unknown file extension.");
 			}
 		} catch (final UploadTypeException e) {
-			LOGGER.log(Level.WARNING, e.getMessage());
+			LOGGER.log(Level.INFO, e.getMessage());
 			Messages.addMessage(
 					req,
 					e.getMessage()
