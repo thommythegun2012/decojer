@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.decojer.DecoJer;
 import org.decojer.PackageClassStreamProvider;
 import org.decojer.cavaj.model.CU;
@@ -50,7 +51,6 @@ import org.decojer.web.util.BlobChecker;
 import org.decojer.web.util.ClassChecker;
 import org.decojer.web.util.DexChecker;
 import org.decojer.web.util.EntityKind;
-import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
 import org.decojer.web.util.PropertyName;
 
@@ -225,7 +225,7 @@ public class UploadServlet extends HttpServlet {
 					// asm.ClassReader reads streams into byte array with
 					// available() sized buffer, which is 0!
 					// better read fully now...
-					final byte[] bytes = IOUtils.toBytes(zip);
+					final byte[] bytes = IOUtils.toByteArray(zip);
 					final ClassChecker classChecker;
 					try {
 						classChecker = new ClassChecker(bytes);
