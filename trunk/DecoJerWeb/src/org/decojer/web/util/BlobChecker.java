@@ -68,14 +68,14 @@ public class BlobChecker {
 		final Entity blobInfoEntity = EntityUtils.getBlobInfoEntity(
 				this.datastoreService, this.blobKey);
 
-		this.filename = (String) blobInfoEntity.getProperty(Property.FILENAME);
-		this.md5Hash = (String) blobInfoEntity.getProperty(Property.MD5_HASH);
-		this.size = (Long) blobInfoEntity.getProperty(Property.SIZE);
+		this.filename = (String) blobInfoEntity.getProperty(PropertyName.FILENAME);
+		this.md5Hash = (String) blobInfoEntity.getProperty(PropertyName.MD5_HASH);
+		this.size = (Long) blobInfoEntity.getProperty(PropertyName.SIZE);
 
 		final Query duplicateQuery = new Query("__BlobInfo__");
-		duplicateQuery.addFilter(Property.MD5_HASH, Query.FilterOperator.EQUAL,
+		duplicateQuery.addFilter(PropertyName.MD5_HASH, Query.FilterOperator.EQUAL,
 				this.md5Hash);
-		duplicateQuery.addFilter(Property.FILENAME, Query.FilterOperator.EQUAL,
+		duplicateQuery.addFilter(PropertyName.FILENAME, Query.FilterOperator.EQUAL,
 				this.filename);
 		final List<Entity> duplicateEntities = this.datastoreService.prepare(
 				duplicateQuery).asList(FetchOptions.Builder.withLimit(10));

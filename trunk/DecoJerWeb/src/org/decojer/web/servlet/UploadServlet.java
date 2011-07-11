@@ -25,7 +25,6 @@ package org.decojer.web.servlet;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.List;
@@ -50,8 +49,10 @@ import org.decojer.web.stream.StreamAnalyzer;
 import org.decojer.web.util.BlobChecker;
 import org.decojer.web.util.ClassChecker;
 import org.decojer.web.util.DexChecker;
+import org.decojer.web.util.EntityKind;
 import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
+import org.decojer.web.util.PropertyName;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
@@ -60,13 +61,42 @@ import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.twmacinta.util.MD5;
 
 /**
  * 
  * @author André Pankraz
  */
 public class UploadServlet extends HttpServlet {
+
+	public class TypeInfo {
+
+		public String md5Hash;
+
+		public String name;
+
+		public String signature;
+
+		public int size; // for child ref
+
+		public String superName;
+
+		public Entity createEntity() {
+			final Entity entity = new Entity(EntityKind.TYPE);
+			entity.setProperty(PropertyName.NAME, this.name);
+			entity.setUnindexedProperty(PropertyName.SIGNATURE, this.signature);
+			return entity;
+		}
+
+		public Key createKey() {
+			return KeyFactory.createKey(EntityKind.TYPE, this.md5Hash
+					+ this.superName);
+		}
+
+	}
 
 	class UploadTypeException extends RuntimeException {
 
@@ -91,7 +121,7 @@ public class UploadServlet extends HttpServlet {
 	public void doPost(final HttpServletRequest req,
 			final HttpServletResponse res) throws ServletException, IOException {
 
-		// read uploaded blob
+		// get and check BlobKey
 		final Map<String, BlobKey> blobs = this.blobstoreService
 				.getUploadedBlobs(req);
 		BlobKey blobKey = blobs.get("file");
@@ -107,8 +137,6 @@ public class UploadServlet extends HttpServlet {
 		final String md5Hash;
 		final int size;
 
-		// transaction only for transaction level SERIALIZABLE, always commit
-		// Transaction tx = this.datastoreService.beginTransaction();
 		try {
 			final BlobChecker blobChecker = new BlobChecker(
 					this.datastoreService, blobKey);
@@ -147,8 +175,43 @@ public class UploadServlet extends HttpServlet {
 				// className:
 				// org/decojer/cavaj/test/jdk6/DecTestParametrizedMethods
 				// fileName: DecTestParametrizedMethods.class
+
+				final String name = classChecker.getName();
+				final String signature = classChecker.getSignature();
+				final String superName = classChecker.getSuperName();
+
+				final MD5 md5 = new MD5(name);
+				md5.Update(signature);
+
+				final Key typeKey = KeyFactory.createKey(EntityKind.TYPE,
+						md5.asHex() + superName);
+				Entity typeEntity;
+				try {
+					typeEntity = this.datastoreService.get(typeKey);
+				} catch (final EntityNotFoundException e) {
+					typeEntity = new Entity(typeKey);
+					typeEntity.setProperty(PropertyName.NAME, name);
+					typeEntity.setUnindexedProperty(PropertyName.SIGNATURE,
+							signature);
+					this.datastoreService.put(typeEntity);
+				}
+
+				final Key classKey = KeyFactory.createKey(typeKey,
+						EntityKind.CLASS, md5Hash + size);
+				Entity classEntity;
+				try {
+					classEntity = this.datastoreService.get(classKey);
+				} catch (final EntityNotFoundException e) {
+					classEntity = new Entity(classKey);
+					classEntity.setUnindexedProperty(PropertyName.NAME,
+							filename);
+					classEntity.setUnindexedProperty(PropertyName.UPLOAD,
+							blobKey);
+					this.datastoreService.put(classEntity);
+				}
+
 			} else if ("jar".equals(ext)) {
-				final MessageDigest digest = MessageDigest.getInstance("MD5");
+				final List<TypeInfo> typeInfos = new ArrayList<UploadServlet.TypeInfo>();
 				int checkFailures = 0;
 
 				final ZipInputStream zip = new ZipInputStream(
@@ -162,8 +225,7 @@ public class UploadServlet extends HttpServlet {
 					// asm.ClassReader reads streams into byte array with
 					// available() sized buffer, which is 0!
 					// better read fully now...
-					final byte[] bytes = IOUtils.toBytes(new DigestInputStream(
-							zip, digest));
+					final byte[] bytes = IOUtils.toBytes(zip);
 					final ClassChecker classChecker;
 					try {
 						classChecker = new ClassChecker(bytes);
@@ -171,8 +233,18 @@ public class UploadServlet extends HttpServlet {
 						++checkFailures;
 						continue;
 					}
-					classChecker.getName();
-					classChecker.getSignature();
+					final TypeInfo typeInfo = new TypeInfo();
+					typeInfo.md5Hash = new MD5(bytes).asHex();
+					typeInfo.size = bytes.length;
+					typeInfo.name = classChecker.getName();
+					typeInfo.signature = classChecker.getSignature();
+					typeInfo.superName = classChecker.getSuperName();
+					typeInfos.add(typeInfo);
+				}
+				LOGGER.info("JAR Check failures: " + checkFailures);
+				if (typeInfos.size() == 0) {
+					throw new UploadTypeException(
+							"This isn't a valid Java Archive like the file extension suggests.");
 				}
 			} else if ("dex".equals(ext)) {
 				// asm.ClassReader reads streams into byte array with
