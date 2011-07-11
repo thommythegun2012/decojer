@@ -23,12 +23,14 @@
  */
 package org.decojer.web.util;
 
-public interface Property {
+public interface EntityKind {
 
-	String FILENAME = "filename";
+	public static final String CLASS = "CLASS";
 
-	String MD5_HASH = "md5_hash";
+	public static final String DEX = "DEX";
 
-	String SIZE = "size";
+	public static final String JAR = "JAR";
+
+	public static final String TYPE = "TYPE";
 
 }

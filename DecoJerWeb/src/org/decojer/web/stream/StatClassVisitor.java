@@ -39,11 +39,14 @@ public class StatClassVisitor implements ClassVisitor {
 
 	public String signature;
 
+	public String superName;
+
 	@Override
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName,
 			final String[] interfaces) {
 		this.name = name;
+		this.superName = superName;
 		if (signature == null) {
 			final StringBuilder sb = new StringBuilder("L");
 			sb.append(superName);
