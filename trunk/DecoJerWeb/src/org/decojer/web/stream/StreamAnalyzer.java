@@ -37,11 +37,11 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.decojer.web.util.IOUtils;
 import org.objectweb.asm.ClassReader;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
+import com.twmacinta.util.MD5InputStream;
 
 /**
  * 
@@ -65,11 +65,11 @@ public class StreamAnalyzer {
 	private static final byte[] MAGIC_NUMBER_ZIP = { (byte) 0x50, (byte) 0x4B,
 			(byte) 0x03, (byte) 0x04 };
 
+	public List<Entity> classEntities = new ArrayList<Entity>();
+
 	private final DatastoreService datastoreService;
 
 	public byte[] debug;
-
-	public List<Entity> classEntities = new ArrayList<Entity>();
 
 	public StreamAnalyzer(final DatastoreService datastoreService) {
 		this.datastoreService = datastoreService;
@@ -88,15 +88,14 @@ public class StreamAnalyzer {
 			pis.unread(MAGIC_NUMBER, 0, MAGIC_NUMBER_MAX_LENGTH);
 
 			// rough test and statistics
-			final ClassReader classReader = new ClassReader(
-					digest == null ? pis : new DigestInputStream(pis, digest));
+			final MD5InputStream md5InputStream = new MD5InputStream(pis);
+			final ClassReader classReader = new ClassReader(md5InputStream);
 
 			final StatClassVisitor statClassVisitor = new StatClassVisitor();
 			classReader.accept(statClassVisitor, ClassReader.SKIP_FRAMES);
 
-			final Entity entity = new Entity("Class",
-					IOUtils.toHexString(digest.digest())
-							+ statClassVisitor.name);
+			final Entity entity = new Entity("Class", md5InputStream.getMD5()
+					.asHex() + statClassVisitor.name);
 			this.debug = classReader.b;
 			// entity.setProperty("content", new Blob(classReader.b));
 			entity.setProperty("name", statClassVisitor.name);
