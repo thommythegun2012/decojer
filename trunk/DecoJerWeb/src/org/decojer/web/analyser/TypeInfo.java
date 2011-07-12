@@ -21,20 +21,38 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web.util;
+package org.decojer.web.analyser;
 
-public interface PropertyName {
+import org.decojer.web.util.EntityConstants;
 
-	String FILENAME = "filename";
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.twmacinta.util.MD5;
 
-	String MD5_HASH = "md5_hash";
+public class TypeInfo {
 
-	String NAME = "name";
+	public String md5Hash;
 
-	String SIGNATURE = "signature";
+	public String name;
 
-	String SIZE = "size";
+	public String signature;
 
-	String UPLOAD = "upload";
+	public int size; // for child ref
 
+	public String superName;
+
+	public Entity createEntity(final Key key) {
+		final Entity entity = new Entity(EntityConstants.KIND_TYPE);
+		entity.setProperty(EntityConstants.PROP_NAME, this.name);
+		entity.setUnindexedProperty(EntityConstants.PROP_SIGNATURE,
+				this.signature);
+		return entity;
+	}
+
+	public Key createKey() {
+		final String id = this.name + this.signature;
+		return KeyFactory.createKey(EntityConstants.KIND_TYPE,
+				new MD5(id).asHex() + id.length());
+	}
 }

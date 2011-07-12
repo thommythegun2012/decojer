@@ -64,29 +64,27 @@ public class BlobChecker {
 		if (this.deleteBlobKeys != null) {
 			return;
 		}
-
 		final Entity blobInfoEntity = EntityUtils.getBlobInfoEntity(
 				this.datastoreService, this.blobKey);
-
-		this.filename = (String) blobInfoEntity.getProperty(PropertyName.FILENAME);
-		this.md5Hash = (String) blobInfoEntity.getProperty(PropertyName.MD5_HASH);
-		this.size = (Long) blobInfoEntity.getProperty(PropertyName.SIZE);
-
+		this.filename = (String) blobInfoEntity
+				.getProperty(EntityConstants.PROP_FILENAME);
+		this.md5Hash = (String) blobInfoEntity
+				.getProperty(EntityConstants.PROP_MD5HASH);
+		this.size = (Long) blobInfoEntity
+				.getProperty(EntityConstants.PROP_SIZE);
 		final Query duplicateQuery = new Query("__BlobInfo__");
-		duplicateQuery.addFilter(PropertyName.MD5_HASH, Query.FilterOperator.EQUAL,
-				this.md5Hash);
-		duplicateQuery.addFilter(PropertyName.FILENAME, Query.FilterOperator.EQUAL,
-				this.filename);
+		duplicateQuery.addFilter(EntityConstants.PROP_MD5HASH,
+				Query.FilterOperator.EQUAL, this.md5Hash);
+		duplicateQuery.addFilter(EntityConstants.PROP_SIZE,
+				Query.FilterOperator.EQUAL, this.size);
 		final List<Entity> duplicateEntities = this.datastoreService.prepare(
 				duplicateQuery).asList(FetchOptions.Builder.withLimit(10));
 		// could be 0 or 1 - even if 1 or 2 blobs are in store, HA metadata...
-
 		Entity oldestEntity = blobInfoEntity;
-		this.oldestDate = (Date) blobInfoEntity.getProperty("creation");
+		this.oldestDate = (Date) blobInfoEntity
+				.getProperty(EntityConstants.PROP_CREATION);
 		this.newestDate = this.oldestDate;
-
 		this.deleteBlobKeys = new HashSet<BlobKey>();
-
 		// find oldest...
 		for (final Entity duplicateEntity : duplicateEntities) {
 			// init
@@ -94,7 +92,7 @@ public class BlobChecker {
 				continue;
 			}
 			final Date creationDate = (Date) duplicateEntity
-					.getProperty("creation");
+					.getProperty(EntityConstants.PROP_CREATION);
 			// one must die now...
 			if (this.newestDate.compareTo(creationDate) < 0) {
 				this.newestDate = creationDate;
@@ -132,5 +130,4 @@ public class BlobChecker {
 	public BlobKey getUniqueBlobKey() {
 		return this.blobKey;
 	}
-
 }

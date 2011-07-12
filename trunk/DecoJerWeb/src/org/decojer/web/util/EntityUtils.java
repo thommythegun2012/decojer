@@ -31,7 +31,6 @@ import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Transaction;
 
 /**
- * 
  * @author André Pankraz
  */
 public class EntityUtils {
@@ -39,18 +38,19 @@ public class EntityUtils {
 	public static Entity getBlobInfoEntity(
 			final DatastoreService datastoreService, final BlobKey blobKey)
 			throws EntityNotFoundException {
-
 		final Entity blobInfoEntity = datastoreService.get(KeyFactory
 				.createKey("__BlobInfo__", blobKey.getKeyString()));
-
+		String md5Hash = (String) blobInfoEntity
+				.getProperty(EntityConstants.PROP_MD5HASH);
 		// in development mode no property "md5_hash" is created (for
 		// recognition of duplicate entities), luckily we can change this
 		// entities here (not possible on production)
-		String md5Hash = (String) blobInfoEntity.getProperty(PropertyName.MD5_HASH);
 		if (md5Hash == null) {
-			md5Hash = "_" + blobInfoEntity.getProperty(PropertyName.FILENAME) + "_"
-					+ blobInfoEntity.getProperty(PropertyName.SIZE);
-			blobInfoEntity.setProperty(PropertyName.MD5_HASH, md5Hash);
+			md5Hash = "_"
+					+ blobInfoEntity.getProperty(EntityConstants.PROP_FILENAME)
+					+ "_"
+					+ blobInfoEntity.getProperty(EntityConstants.PROP_SIZE);
+			blobInfoEntity.setProperty(EntityConstants.PROP_MD5HASH, md5Hash);
 			// flush for following query
 			final Transaction tx = datastoreService.beginTransaction();
 			// not allowed on production!!!
@@ -59,5 +59,4 @@ public class EntityUtils {
 		}
 		return blobInfoEntity;
 	}
-
 }

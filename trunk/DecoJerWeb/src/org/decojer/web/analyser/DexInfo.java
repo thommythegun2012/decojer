@@ -21,50 +21,12 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web.util;
+package org.decojer.web.analyser;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.decojer.web.stream.StatClassVisitor;
-import org.objectweb.asm.ClassReader;
+public class DexInfo {
 
-public class ClassChecker {
-
-	private ClassReader classReader;
-
-	private final byte[] content;
-
-	private StatClassVisitor statClassVisitor;
-
-	public ClassChecker(final byte[] content) throws IOException {
-		this.content = content;
-		check();
-	}
-
-	private void check() throws IOException {
-		if (this.classReader != null) {
-			return;
-		}
-		this.classReader = new ClassReader(this.content);
-
-		this.statClassVisitor = new StatClassVisitor();
-		this.classReader.accept(this.statClassVisitor, ClassReader.SKIP_FRAMES);
-	}
-
-	public byte[] getContent() {
-		return this.content;
-	}
-
-	public String getName() {
-		return this.statClassVisitor.name;
-	}
-
-	public String getSignature() {
-		return this.statClassVisitor.signature;
-	}
-
-	public String getSuperName() {
-		return this.statClassVisitor.superName;
-	}
-
+	public List<TypeInfo> typeInfos = new ArrayList<TypeInfo>();
 }

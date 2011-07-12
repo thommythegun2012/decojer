@@ -21,16 +21,37 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web.util;
+package org.decojer.web.analyser;
 
-public interface EntityKind {
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
-	public static final String CLASS = "CLASS";
+import org.apache.commons.io.IOUtils;
 
-	public static final String DEX = "DEX";
+public class JarAnalyser {
 
-	public static final String JAR = "JAR";
-
-	public static final String TYPE = "TYPE";
-
+	public static JarInfo analyse(final InputStream is) throws IOException {
+		final JarInfo jarInfo = new JarInfo();
+		final ZipInputStream zip = new ZipInputStream(is);
+		for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
+				.getNextEntry()) {
+			final String name = zipEntry.getName();
+			if (!name.endsWith(".class")) {
+				continue;
+			}
+			// asm.ClassReader reads streams into byte array with
+			// available() sized buffer, which is 0!
+			// better read fully now...
+			final byte[] bytes = IOUtils.toByteArray(zip);
+			try {
+				jarInfo.typeInfos.add(ClassAnalyser.analyse(bytes));
+			} catch (final Exception e) {
+				++jarInfo.checkFailures;
+				continue;
+			}
+		}
+		return jarInfo;
+	}
 }
