@@ -29,10 +29,25 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 /**
- * 
  * @author André Pankraz
  */
 public class IOUtils {
+
+	private static final char[] HEX_CHARS = { '0', '1', '2', '3', '4', '5',
+			'6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+
+	public static String bytes2hex(final byte[] bytes) {
+		int i = bytes.length;
+		int t = i << 1;
+		final char[] hex = new char[t];
+		byte v;
+		while (i > 0) {
+			v = bytes[--i];
+			hex[--t] = HEX_CHARS[v & 0x0F];
+			hex[--t] = HEX_CHARS[v >> 4 & 0x0F];
+		}
+		return new String(hex);
+	}
 
 	public static int copy(final InputStream is, final OutputStream os)
 			throws IOException {
@@ -46,23 +61,23 @@ public class IOUtils {
 		return count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count;
 	}
 
+	public static byte[] hex2bytes(final String hex) {
+		int j = hex.length();
+		int i = j >> 1;
+		final byte[] bytes = new byte[i];
+		char v;
+		while (i > 0) {
+			v = hex.charAt(--j);
+			bytes[--i] = (byte) (v - (v >= 'a' ? 'a' : '0'));
+			v = hex.charAt(--j);
+			bytes[i] |= (byte) (v - (v >= 'a' ? 'a' : '0')) << 4;
+		}
+		return bytes;
+	}
+
 	public static byte[] toBytes(final InputStream is) throws IOException {
 		final ByteArrayOutputStream os = new ByteArrayOutputStream(32486);
 		copy(is, os);
 		return os.toByteArray();
 	}
-
-	public static String toHexString(final byte[] bytes) {
-		final char[] hexArray = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
-				'9', 'a', 'b', 'c', 'd', 'e', 'f' };
-		final char[] hexChars = new char[bytes.length * 2];
-		int v;
-		for (int j = 0; j < bytes.length; j++) {
-			v = bytes[j] & 0xFF;
-			hexChars[j * 2] = hexArray[v / 16];
-			hexChars[j * 2 + 1] = hexArray[v % 16];
-		}
-		return new String(hexChars);
-	}
-
 }
