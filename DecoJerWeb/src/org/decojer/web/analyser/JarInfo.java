@@ -21,43 +21,13 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web.util;
+package org.decojer.web.analyser;
 
-import java.io.IOException;
+import java.util.List;
 
-import org.decojer.web.stream.StatDexVisitor;
+public class JarInfo {
 
-import com.googlecode.dex2jar.reader.DexFileReader;
+	public int checkFailures;
 
-public class DexChecker {
-
-	private final byte[] content;
-
-	private DexFileReader dexFileReader;
-
-	private StatDexVisitor statDexVisitor;
-
-	public DexChecker(final byte[] content) throws IOException {
-		this.content = content;
-		check();
-	}
-
-	private void check() throws IOException {
-		if (this.dexFileReader != null) {
-			return;
-		}
-		this.dexFileReader = new DexFileReader(this.content);
-
-		this.statDexVisitor = new StatDexVisitor();
-		this.dexFileReader.accept(this.statDexVisitor);
-	}
-
-	public int getClasses() {
-		return this.statDexVisitor.classes;
-	}
-
-	public byte[] getContent() {
-		return this.content;
-	}
-
+	public List<TypeInfo> typeInfos;
 }
