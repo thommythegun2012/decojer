@@ -26,6 +26,8 @@ package org.decojer.web.analyser;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.decojer.web.util.IOUtils;
+
 import com.googlecode.dex2jar.reader.DexFileReader;
 import com.googlecode.dex2jar.visitors.DexClassVisitor;
 import com.googlecode.dex2jar.visitors.DexFileVisitor;
@@ -33,7 +35,8 @@ import com.googlecode.dex2jar.visitors.DexFileVisitor;
 public class DexAnalyser {
 
 	public static DexInfo analyse(final InputStream is) throws IOException {
-		final DexFileReader dexFileReader = new DexFileReader(is);
+		final DexFileReader dexFileReader = new DexFileReader(
+				IOUtils.toBytes(is));
 		final DexInfo dexInfo = new DexInfo();
 		dexFileReader.accept(new DexFileVisitor() {
 
