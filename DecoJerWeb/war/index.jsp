@@ -1,3 +1,4 @@
+<%@page import="org.decojer.web.util.Uploads"%>
 <%@ page language="java" contentType="text/html; charset=ISO-8859-1"
 	pageEncoding="ISO-8859-1"%>
 <%@ page import="com.google.appengine.api.blobstore.BlobstoreService"%>
@@ -38,5 +39,6 @@
 			value="Submit">
 	</form>
 	<%=Messages.getMessagesHtml(pageContext.getSession())%>
+	<%=Uploads.getUploadsHtml(pageContext.getSession()) %>
 </body>
 </html>

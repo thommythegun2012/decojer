@@ -33,11 +33,15 @@ public interface EntityConstants {
 
 	String KIND_JAR = "JAR";
 
-	String KIND_MEMBER = "MEMBER";
-
 	String KIND_TYPE = "TYPE";
 
+	String KIND_UPLOAD = "UPLOAD";
+
 	String PROP_CREATION = "creation";
+
+	String PROP_DELETED = "deleted";
+
+	String PROP_ERROR = "error";
 
 	String PROP_FILENAME = "filename";
 
@@ -47,11 +51,11 @@ public interface EntityConstants {
 
 	String PROP_NEWEST = "newest";
 
+	String PROP_OLDEST = "oldest";
+
 	String PROP_SIGNATURE = "signature";
 
 	String PROP_SIZE = "size";
 
 	String PROP_UPLOAD = "upload";
-
-	String PROP_UPLOADS = "uploads";
 }
