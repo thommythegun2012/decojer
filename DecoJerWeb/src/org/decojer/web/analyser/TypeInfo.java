@@ -43,7 +43,7 @@ public class TypeInfo {
 	public String superName;
 
 	public Entity createEntity(final Key key) {
-		final Entity entity = new Entity(EntityConstants.KIND_TYPE);
+		final Entity entity = new Entity(key);
 		entity.setProperty(EntityConstants.PROP_NAME, this.name);
 		entity.setUnindexedProperty(EntityConstants.PROP_SIGNATURE,
 				this.signature);

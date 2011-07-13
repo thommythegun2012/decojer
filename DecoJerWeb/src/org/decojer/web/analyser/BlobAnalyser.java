@@ -43,8 +43,6 @@ public class BlobAnalyser {
 		final BlobInfo blobInfo = new BlobInfo();
 		final Entity blobInfoEntity = EntityUtils.getBlobInfoEntity(
 				datastoreService, blobKey);
-		blobInfo.filename = (String) blobInfoEntity
-				.getProperty(EntityConstants.PROP_FILENAME);
 		blobInfo.md5Hash = (String) blobInfoEntity
 				.getProperty(EntityConstants.PROP_MD5HASH);
 		blobInfo.size = (Long) blobInfoEntity
@@ -86,6 +84,32 @@ public class BlobAnalyser {
 					.getName()));
 		}
 		blobInfo.blobKey = new BlobKey(oldestEntity.getKey().getName());
+		blobInfo.filename = (String) blobInfoEntity
+				.getProperty(EntityConstants.PROP_FILENAME);
+		final int pos = blobInfo.filename.lastIndexOf('.');
+		if (pos == -1) {
+			throw new AnalyseException("The file extension is missing.");
+		}
+		final String ext = blobInfo.filename.substring(pos + 1).toLowerCase();
+		if ("class".equals(ext)) {
+			blobInfo.kind = EntityConstants.KIND_CLASS;
+		} else if ("jar".equals(ext)) {
+			blobInfo.kind = EntityConstants.KIND_JAR;
+		} else if ("dex".equals(ext)) {
+			blobInfo.kind = EntityConstants.KIND_DEX;
+		} else if ("apk".equals(ext)) {
+			throw new AnalyseException(
+					"Sorry, because of quota limits the online version doesn't support the direct decompilation of Android Package Archives (APK). Please unzip and upload the contained 'classes.dex' Dalvik Executable File (DEX).");
+		} else if ("war".equals(ext)) {
+			throw new AnalyseException(
+					"Sorry, because of quota limits the online version doesn't support the direct decompilation of Web Application Archives (WAR), often containing multiple embedded Java Archives (JAR).");
+		} else if ("ear".equals(ext)) {
+			throw new AnalyseException(
+					"Sorry, because of quota limits the online version doesn't support the direct decompilation of Enterprise Application Archives (EAR), often containing multiple embedded Java Archives (JAR).");
+		} else {
+			throw new AnalyseException("The file extension '" + ext
+					+ "' is unknown.");
+		}
 		return blobInfo;
 	}
 }

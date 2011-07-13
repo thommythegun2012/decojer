@@ -43,6 +43,7 @@ import org.decojer.PackageClassStreamProvider;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.PF;
 import org.decojer.cavaj.model.TD;
+import org.decojer.web.analyser.AnalyseException;
 import org.decojer.web.analyser.BlobAnalyser;
 import org.decojer.web.analyser.BlobInfo;
 import org.decojer.web.analyser.ClassAnalyser;
@@ -69,15 +70,6 @@ import com.google.appengine.api.datastore.KeyFactory;
  * @author André Pankraz
  */
 public class UploadServlet extends HttpServlet {
-
-	private class UploadTypeException extends RuntimeException {
-
-		private static final long serialVersionUID = 7396630888599912608L;
-
-		public UploadTypeException(final String message) {
-			super(message);
-		}
-	}
 
 	private static Logger LOGGER = Logger.getLogger(UploadServlet.class
 			.getName());
@@ -116,28 +108,39 @@ public class UploadServlet extends HttpServlet {
 				Messages.addMessage(req, "Duplicate! Delete "
 						+ blobInfo.deleteBlobKeys.size() + " entries!");
 			}
-			// check blob content for file extension;
 			// read CLASS and DEX streams directly into a byte array, the
 			// used readers do this anyway but with an available() sized buffer,
 			// which is 0 for BlobstoreInputStream!
-			final int pos = blobInfo.filename.lastIndexOf('.');
-			if (pos == -1) {
-				throw new UploadTypeException("The file extension is missing.");
-			}
-			final String ext = blobInfo.filename.substring(pos + 1)
-					.toLowerCase();
-			if ("class".equals(ext)) {
+			if (blobInfo.kind == EntityConstants.KIND_CLASS) {
 				final TypeInfo typeInfo;
 				final byte[] bytes = this.blobstoreService.fetchData(blobKey,
 						0, blobInfo.size);
 				try {
 					typeInfo = ClassAnalyser.analyse(bytes);
+					// class:
+					// org/decojer/cavaj/test/jdk6/DecTestParametrizedMethods
+					// fileName: DecTestParametrizedMethods.class
 				} catch (final Exception e) {
-					throw new UploadTypeException(
+					throw new AnalyseException(
 							"This isn't a valid Java Class like the file extension suggests.");
 				}
-				// class: org/decojer/cavaj/test/jdk6/DecTestParametrizedMethods
-				// fileName: DecTestParametrizedMethods.class
+				// update class entity
+				final Key uploadKey = blobInfo.createKey();
+				Entity uploadEntity;
+				try {
+					uploadEntity = this.datastoreService.get(uploadKey);
+				} catch (final EntityNotFoundException e) {
+					uploadEntity = blobInfo.createEntity(uploadKey);
+				}
+				final Integer uploads = (Integer) uploadEntity
+						.getProperty(EntityConstants.PROP_UPLOADS);
+				uploadEntity.setUnindexedProperty(EntityConstants.PROP_UPLOADS,
+						uploads == null ? deleteBlobKeys.size() : uploads
+								+ deleteBlobKeys.size());
+				uploadEntity.setUnindexedProperty(EntityConstants.PROP_NEWEST,
+						blobInfo.newestDate);
+				this.datastoreService.put(uploadEntity);
+				// update type entity
 				final Key typeKey = typeInfo.createKey();
 				Entity typeEntity;
 				try {
@@ -146,17 +149,17 @@ public class UploadServlet extends HttpServlet {
 					typeEntity = typeInfo.createEntity(typeKey);
 					this.datastoreService.put(typeEntity);
 				}
-				final Key classKey = KeyFactory.createKey(typeKey,
-						EntityConstants.KIND_CLASS, blobInfo.md5Hash
+				final Key memberKey = KeyFactory.createKey(typeKey,
+						EntityConstants.KIND_MEMBER, blobInfo.md5Hash
 								+ blobInfo.size);
-				Entity classEntity;
+				Entity memberEntity;
 				try {
-					classEntity = this.datastoreService.get(classKey);
+					memberEntity = this.datastoreService.get(memberKey);
 				} catch (final EntityNotFoundException e) {
-					classEntity = new Entity(classKey);
-					classEntity.setUnindexedProperty(
-							EntityConstants.PROP_UPLOAD, blobKey);
-					this.datastoreService.put(classEntity);
+					memberEntity = new Entity(memberKey);
+					memberEntity.setUnindexedProperty(
+							EntityConstants.PROP_UPLOAD, uploadKey);
+					this.datastoreService.put(uploadEntity);
 				}
 				// TODO delete here
 				try {
@@ -188,18 +191,18 @@ public class UploadServlet extends HttpServlet {
 					res.sendRedirect("/");
 					return;
 				}
-			} else if ("jar".equals(ext)) {
+			} else if (blobInfo.kind == EntityConstants.KIND_JAR) {
 				final JarInfo jarInfo;
 				try {
 					jarInfo = JarAnalyser.analyse(new BlobstoreInputStream(
 							blobKey));
 				} catch (final Exception e) {
-					throw new UploadTypeException(
+					throw new AnalyseException(
 							"This isn't a valid Java Class like the file extension suggests.");
 				}
 				LOGGER.info("JAR Check failures: " + jarInfo.checkFailures);
 				if (jarInfo.typeInfos.size() == 0) {
-					throw new UploadTypeException(
+					throw new AnalyseException(
 							"This isn't a valid Java Archive like the file extension suggests.");
 				}
 				// 2011-07-09 05:02:03.668 /upload 302 30443ms 1757400cpu_ms
@@ -232,48 +235,38 @@ public class UploadServlet extends HttpServlet {
 						+ " Classes found. Sry not ready yet!");
 				res.sendRedirect("/");
 				return;
-			} else if ("dex".equals(ext)) {
+			} else if (blobInfo.kind == EntityConstants.KIND_DEX) {
 				final DexInfo dexInfo;
 				final byte[] bytes = this.blobstoreService.fetchData(blobKey,
 						0, blobInfo.size);
 				try {
 					dexInfo = DexAnalyser.analyse(bytes);
 				} catch (final Exception e) {
-					throw new UploadTypeException(
+					throw new AnalyseException(
 							"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
 				}
 				Messages.addMessage(req, dexInfo.typeInfos.size()
 						+ " Classes found. Sry not ready yet!");
 				res.sendRedirect("/");
 				return;
-			} else if ("apk".equals(ext)) {
-				throw new UploadTypeException(
-						"Sorry, because of quota limits the online version doesn't support the direct decompilation of Android Package Archives (APK). Please unzip and upload the contained 'classes.dex' Dalvik Executable File (DEX).");
-			} else if ("war".equals(ext)) {
-				throw new UploadTypeException(
-						"Sorry, because of quota limits the online version doesn't support the direct decompilation of Web Application Archives (WAR), often containing multiple embedded Java Archives (JAR).");
-			} else if ("ear".equals(ext)) {
-				throw new UploadTypeException(
-						"Sorry, because of quota limits the online version doesn't support the direct decompilation of Enterprise Application Archives (EAR), often containing multiple embedded Java Archives (JAR).");
-			} else {
-				throw new UploadTypeException(
-						"This is an unknown file extension.");
 			}
-		} catch (final UploadTypeException e) {
+		} catch (final AnalyseException e) {
 			LOGGER.log(Level.INFO, e.getMessage());
 			Messages.addMessage(
 					req,
 					e.getMessage()
-							+ "  Please upload Java Classes or Archives (JAR) respectively Android / Dalvik Executable File (DEX).");
+							+ "  Please upload valid Java Classes or Archives (JAR) respectively Android / Dalvik Executable File (DEX).");
 			res.sendRedirect("/");
 			deleteBlobKeys.add(blobKey);
 			return;
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Couldn't evaluate upload meta data!", e);
+			LOGGER.log(Level.WARNING,
+					"Unexpected problem, couldn't evaluate upload: " + blobKey,
+					e);
 			Messages.addMessage(req,
-					"Couldn't evaluate upload meta data! Upload deleted.");
+					"Unexpected problem, couldn't evaluate upload!");
 			res.sendRedirect("/");
-			deleteBlobKeys.add(blobKey);
+			// deleteBlobKeys.add(blobKey);
 			return;
 		} finally {
 			LOGGER.info("Deleting '" + deleteBlobKeys.size() + "' uploads.");
