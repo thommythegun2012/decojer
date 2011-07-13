@@ -41,9 +41,6 @@ public class JarAnalyser {
 			if (!name.endsWith(".class")) {
 				continue;
 			}
-			// asm.ClassReader reads streams into byte array with
-			// available() sized buffer, which is 0!
-			// better read fully now...
 			final byte[] bytes = IOUtils.toByteArray(zip);
 			try {
 				jarInfo.typeInfos.add(ClassAnalyser.analyse(bytes));

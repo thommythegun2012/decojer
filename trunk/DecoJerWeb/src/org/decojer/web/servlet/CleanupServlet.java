@@ -40,7 +40,6 @@ import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Query;
 
 /**
- * 
  * @author André Pankraz
  */
 public class CleanupServlet extends HttpServlet {
@@ -53,9 +52,7 @@ public class CleanupServlet extends HttpServlet {
 	@Override
 	public void doGet(final HttpServletRequest req,
 			final HttpServletResponse res) throws ServletException, IOException {
-
 		final Query query = new Query("Class").setKeysOnly();
-
 		final Iterator<Entity> asIterable = this.datastoreService
 				.prepare(query).asIterable().iterator();
 		final List<Key> list = new ArrayList<Key>();
@@ -65,5 +62,4 @@ public class CleanupServlet extends HttpServlet {
 		this.datastoreService.delete(list);
 		res.getOutputStream().println("DELETED: " + list.size());
 	}
-
 }

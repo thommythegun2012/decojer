@@ -26,6 +26,7 @@ package org.decojer.web.servlet;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -42,13 +43,14 @@ import org.decojer.PackageClassStreamProvider;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.PF;
 import org.decojer.cavaj.model.TD;
+import org.decojer.web.analyser.BlobAnalyser;
+import org.decojer.web.analyser.BlobInfo;
 import org.decojer.web.analyser.ClassAnalyser;
 import org.decojer.web.analyser.DexAnalyser;
 import org.decojer.web.analyser.DexInfo;
 import org.decojer.web.analyser.JarAnalyser;
 import org.decojer.web.analyser.JarInfo;
 import org.decojer.web.analyser.TypeInfo;
-import org.decojer.web.util.BlobChecker;
 import org.decojer.web.util.EntityConstants;
 import org.decojer.web.util.Messages;
 
@@ -100,35 +102,34 @@ public class UploadServlet extends HttpServlet {
 			res.sendRedirect("/");
 			return;
 		}
-		final List<BlobKey> deleteBlobKeys = new ArrayList<BlobKey>();
-		final String filename;
-		final String md5Hash;
-		final long size;
+		final HashSet<BlobKey> deleteBlobKeys = new HashSet<BlobKey>();
 		try {
-			final BlobChecker blobChecker = new BlobChecker(
+			// read blob meta data for upload and find all duplicates;
+			// attention: this servlet can rely on the existence of the current
+			// uploads blob meta data via datastoreService.get(), but the
+			// results from other queries are HA write lag dependend!
+			final BlobInfo blobInfo = BlobAnalyser.analyse(
 					this.datastoreService, blobKey);
-			blobKey = blobChecker.getUniqueBlobKey();
-			deleteBlobKeys.addAll(blobChecker.getDeleteBlobKeys());
-			md5Hash = blobChecker.getMd5Hash();
-			size = blobChecker.getSize();
-			filename = blobChecker.getFilename();
-			if (!deleteBlobKeys.isEmpty()) {
-				Messages.addMessage(req,
-						"Duplicate! Delete " + deleteBlobKeys.size()
-								+ " entries!");
+			blobKey = blobInfo.blobKey;
+			if (!blobInfo.deleteBlobKeys.isEmpty()) {
+				deleteBlobKeys.addAll(blobInfo.deleteBlobKeys);
+				Messages.addMessage(req, "Duplicate! Delete "
+						+ blobInfo.deleteBlobKeys.size() + " entries!");
 			}
-			final int pos = filename.lastIndexOf('.');
+			// check blob content for file extension;
+			// read CLASS and DEX streams directly into a byte array, the
+			// used readers do this anyway but with an available() sized buffer,
+			// which is 0 for BlobstoreInputStream!
+			final int pos = blobInfo.filename.lastIndexOf('.');
 			if (pos == -1) {
 				throw new UploadTypeException("The file extension is missing.");
 			}
-			final String ext = filename.substring(pos + 1).toLowerCase();
+			final String ext = blobInfo.filename.substring(pos + 1)
+					.toLowerCase();
 			if ("class".equals(ext)) {
 				final TypeInfo typeInfo;
-				// asm.ClassReader reads streams into byte array with
-				// available() sized buffer, which is 0!
-				// better read fully now...
 				final byte[] bytes = this.blobstoreService.fetchData(blobKey,
-						0, size);
+						0, blobInfo.size);
 				try {
 					typeInfo = ClassAnalyser.analyse(bytes);
 				} catch (final Exception e) {
@@ -146,7 +147,8 @@ public class UploadServlet extends HttpServlet {
 					this.datastoreService.put(typeEntity);
 				}
 				final Key classKey = KeyFactory.createKey(typeKey,
-						EntityConstants.KIND_CLASS, md5Hash + size);
+						EntityConstants.KIND_CLASS, blobInfo.md5Hash
+								+ blobInfo.size);
 				Entity classEntity;
 				try {
 					classEntity = this.datastoreService.get(classKey);
@@ -232,11 +234,8 @@ public class UploadServlet extends HttpServlet {
 				return;
 			} else if ("dex".equals(ext)) {
 				final DexInfo dexInfo;
-				// dex.DexFileReader reads streams into byte array with
-				// available() sized buffer, which is 0!
-				// better read fully now...
 				final byte[] bytes = this.blobstoreService.fetchData(blobKey,
-						0, size);
+						0, blobInfo.size);
 				try {
 					dexInfo = DexAnalyser.analyse(bytes);
 				} catch (final Exception e) {

@@ -30,7 +30,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 /**
- * 
  * @author André Pankraz
  */
 public class Messages {
@@ -62,5 +61,4 @@ public class Messages {
 		sb.append("</ul>");
 		return sb.toString();
 	}
-
 }

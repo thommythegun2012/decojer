@@ -34,6 +34,7 @@ public class ClassAnalyser {
 
 	public static TypeInfo analyse(final byte[] bytes) {
 		final TypeInfo typeInfo = new TypeInfo();
+		typeInfo.size = bytes.length;
 		final ClassReader classReader = new ClassReader(bytes);
 		classReader.accept(new ClassVisitor() {
 

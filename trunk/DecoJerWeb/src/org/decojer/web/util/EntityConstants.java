@@ -25,6 +25,8 @@ package org.decojer.web.util;
 
 public interface EntityConstants {
 
+	String KIND_BLOBINFO = "__BlobInfo__";
+
 	String KIND_CLASS = "CLASS";
 
 	String KIND_DEX = "DEX";

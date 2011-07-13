@@ -39,7 +39,8 @@ public class EntityUtils {
 			final DatastoreService datastoreService, final BlobKey blobKey)
 			throws EntityNotFoundException {
 		final Entity blobInfoEntity = datastoreService.get(KeyFactory
-				.createKey("__BlobInfo__", blobKey.getKeyString()));
+				.createKey(EntityConstants.KIND_BLOBINFO,
+						blobKey.getKeyString()));
 		String md5Hash = (String) blobInfoEntity
 				.getProperty(EntityConstants.PROP_MD5HASH);
 		// in development mode no property "md5_hash" is created (for
