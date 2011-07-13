@@ -23,6 +23,10 @@
  */
 package org.decojer.web.analyser;
 
+import java.io.IOException;
+import java.io.InputStream;
+
+import org.decojer.web.util.IOUtils;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
@@ -32,10 +36,11 @@ import org.objectweb.asm.MethodVisitor;
 
 public class ClassAnalyser {
 
-	public static TypeInfo analyse(final byte[] bytes) {
+	public static TypeInfo analyse(final InputStream is) throws IOException {
+		// don't give stream to ClassReader, bug for available() == 0
+		final ClassReader classReader = new ClassReader(IOUtils.toBytes(is));
 		final TypeInfo typeInfo = new TypeInfo();
-		typeInfo.size = bytes.length;
-		final ClassReader classReader = new ClassReader(bytes);
+		typeInfo.size = classReader.b.length;
 		classReader.accept(new ClassVisitor() {
 
 			@Override
