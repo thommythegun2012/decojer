@@ -21,37 +21,13 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web.util;
+package org.decojer.web.analyser;
 
-public interface EntityConstants {
+public class AnalyseException extends RuntimeException {
 
-	String KIND_BLOBINFO = "__BlobInfo__";
+	private static final long serialVersionUID = 7396630888599912608L;
 
-	String KIND_CLASS = "CLASS";
-
-	String KIND_DEX = "DEX";
-
-	String KIND_JAR = "JAR";
-
-	String KIND_MEMBER = "MEMBER";
-
-	String KIND_TYPE = "TYPE";
-
-	String PROP_CREATION = "creation";
-
-	String PROP_FILENAME = "filename";
-
-	String PROP_MD5HASH = "md5_hash";
-
-	String PROP_NAME = "name";
-
-	String PROP_NEWEST = "newest";
-
-	String PROP_SIGNATURE = "signature";
-
-	String PROP_SIZE = "size";
-
-	String PROP_UPLOAD = "upload";
-
-	String PROP_UPLOADS = "uploads";
+	public AnalyseException(final String message) {
+		super(message);
+	}
 }

@@ -26,7 +26,12 @@ package org.decojer.web.analyser;
 import java.util.Date;
 import java.util.HashSet;
 
+import org.decojer.web.util.EntityConstants;
+
 import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
 
 public class BlobInfo {
 
@@ -35,6 +40,8 @@ public class BlobInfo {
 	public HashSet<BlobKey> deleteBlobKeys = new HashSet<BlobKey>();
 
 	public String filename;
+
+	public String kind;
 
 	public String md5Hash;
 
@@ -45,4 +52,14 @@ public class BlobInfo {
 	public Date oldestDate;
 
 	public Long size;
+
+	public Entity createEntity(final Key key) {
+		final Entity entity = new Entity(key);
+		entity.setProperty(EntityConstants.PROP_UPLOAD, this.blobKey);
+		return entity;
+	}
+
+	public Key createKey() {
+		return KeyFactory.createKey(this.kind, this.md5Hash + this.size);
+	}
 }
