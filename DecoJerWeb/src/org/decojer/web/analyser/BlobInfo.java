@@ -23,9 +23,26 @@
  */
 package org.decojer.web.analyser;
 
-import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 
-public class DexInfo {
+import com.google.appengine.api.blobstore.BlobKey;
 
-	public ArrayList<TypeInfo> typeInfos = new ArrayList<TypeInfo>();
+public class BlobInfo {
+
+	public BlobKey blobKey;
+
+	public HashSet<BlobKey> deleteBlobKeys = new HashSet<BlobKey>();
+
+	public String filename;
+
+	public String md5Hash;
+
+	public String name;
+
+	public Date newestDate;
+
+	public Date oldestDate;
+
+	public Long size;
 }

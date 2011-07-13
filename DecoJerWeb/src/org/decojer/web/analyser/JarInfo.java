@@ -23,11 +23,11 @@
  */
 package org.decojer.web.analyser;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class JarInfo {
 
 	public int checkFailures;
 
-	public List<TypeInfo> typeInfos;
+	public ArrayList<TypeInfo> typeInfos = new ArrayList<TypeInfo>();
 }

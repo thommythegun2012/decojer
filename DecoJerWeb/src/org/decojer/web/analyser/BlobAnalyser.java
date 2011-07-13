@@ -21,12 +21,13 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web.util;
+package org.decojer.web.analyser;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
+import org.decojer.web.util.EntityConstants;
+import org.decojer.web.util.EntityUtils;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.DatastoreService;
@@ -35,56 +36,31 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Query;
 
-public class BlobChecker {
+public class BlobAnalyser {
 
-	private BlobKey blobKey;
-
-	private final DatastoreService datastoreService;
-
-	private Set<BlobKey> deleteBlobKeys;
-
-	private String filename;
-
-	private String md5Hash;
-
-	private Date newestDate;
-
-	private Date oldestDate;
-
-	private Long size;
-
-	public BlobChecker(final DatastoreService datastoreService,
+	public static BlobInfo analyse(final DatastoreService datastoreService,
 			final BlobKey blobKey) throws EntityNotFoundException {
-		this.datastoreService = datastoreService;
-		this.blobKey = blobKey;
-		check();
-	}
-
-	private void check() throws EntityNotFoundException {
-		if (this.deleteBlobKeys != null) {
-			return;
-		}
+		final BlobInfo blobInfo = new BlobInfo();
 		final Entity blobInfoEntity = EntityUtils.getBlobInfoEntity(
-				this.datastoreService, this.blobKey);
-		this.filename = (String) blobInfoEntity
+				datastoreService, blobKey);
+		blobInfo.filename = (String) blobInfoEntity
 				.getProperty(EntityConstants.PROP_FILENAME);
-		this.md5Hash = (String) blobInfoEntity
+		blobInfo.md5Hash = (String) blobInfoEntity
 				.getProperty(EntityConstants.PROP_MD5HASH);
-		this.size = (Long) blobInfoEntity
+		blobInfo.size = (Long) blobInfoEntity
 				.getProperty(EntityConstants.PROP_SIZE);
-		final Query duplicateQuery = new Query("__BlobInfo__");
+		final Query duplicateQuery = new Query(EntityConstants.KIND_BLOBINFO);
 		duplicateQuery.addFilter(EntityConstants.PROP_MD5HASH,
-				Query.FilterOperator.EQUAL, this.md5Hash);
+				Query.FilterOperator.EQUAL, blobInfo.md5Hash);
 		duplicateQuery.addFilter(EntityConstants.PROP_SIZE,
-				Query.FilterOperator.EQUAL, this.size);
-		final List<Entity> duplicateEntities = this.datastoreService.prepare(
+				Query.FilterOperator.EQUAL, blobInfo.size);
+		final List<Entity> duplicateEntities = datastoreService.prepare(
 				duplicateQuery).asList(FetchOptions.Builder.withLimit(10));
 		// could be 0 or 1 - even if 1 or 2 blobs are in store, HA metadata...
 		Entity oldestEntity = blobInfoEntity;
-		this.oldestDate = (Date) blobInfoEntity
+		blobInfo.oldestDate = (Date) blobInfoEntity
 				.getProperty(EntityConstants.PROP_CREATION);
-		this.newestDate = this.oldestDate;
-		this.deleteBlobKeys = new HashSet<BlobKey>();
+		blobInfo.newestDate = blobInfo.oldestDate;
 		// find oldest...
 		for (final Entity duplicateEntity : duplicateEntities) {
 			// init
@@ -94,40 +70,22 @@ public class BlobChecker {
 			final Date creationDate = (Date) duplicateEntity
 					.getProperty(EntityConstants.PROP_CREATION);
 			// one must die now...
-			if (this.newestDate.compareTo(creationDate) < 0) {
-				this.newestDate = creationDate;
+			if (blobInfo.newestDate.compareTo(creationDate) < 0) {
+				blobInfo.newestDate = creationDate;
 			}
 			Entity dieEntity;
-			if (this.oldestDate.compareTo(creationDate) < 0) {
+			if (blobInfo.oldestDate.compareTo(creationDate) < 0) {
 				dieEntity = duplicateEntity;
 			} else {
 				dieEntity = oldestEntity;
-				this.oldestDate = creationDate;
+				blobInfo.oldestDate = creationDate;
 				oldestEntity = duplicateEntity;
 			}
 			// change and delete newer entry
-			this.deleteBlobKeys.add(new BlobKey(dieEntity.getKey().getName()));
+			blobInfo.deleteBlobKeys.add(new BlobKey(dieEntity.getKey()
+					.getName()));
 		}
-		this.blobKey = new BlobKey(oldestEntity.getKey().getName());
-	}
-
-	public Set<BlobKey> getDeleteBlobKeys() {
-		return this.deleteBlobKeys;
-	}
-
-	public String getFilename() {
-		return this.filename;
-	}
-
-	public String getMd5Hash() {
-		return this.md5Hash;
-	}
-
-	public Long getSize() {
-		return this.size;
-	}
-
-	public BlobKey getUniqueBlobKey() {
-		return this.blobKey;
+		blobInfo.blobKey = new BlobKey(oldestEntity.getKey().getName());
+		return blobInfo;
 	}
 }
