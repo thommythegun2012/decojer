@@ -25,40 +25,38 @@ package org.decojer.web.analyser;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import org.decojer.web.util.EntityConstants;
-import org.decojer.web.util.EntityUtils;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.FetchOptions;
+import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Transaction;
 
 public class BlobAnalyser {
 
-	public static BlobInfo analyse(final DatastoreService datastoreService,
+	public static BlobInfo uniqueBlobInfo(final DatastoreService datastoreService,
 			final BlobKey blobKey) throws EntityNotFoundException {
-		final BlobInfo blobInfo = new BlobInfo();
-		final Entity blobInfoEntity = EntityUtils.getBlobInfoEntity(
-				datastoreService, blobKey);
-		blobInfo.md5Hash = (String) blobInfoEntity
-				.getProperty(EntityConstants.PROP_MD5HASH);
-		blobInfo.size = (Long) blobInfoEntity
-				.getProperty(EntityConstants.PROP_SIZE);
+		final BlobInfo blobInfo = new BlobInfo(getBlobInfoEntity(
+				datastoreService, blobKey));
+		// query duplicates via md5 and size
 		final Query duplicateQuery = new Query(EntityConstants.KIND_BLOBINFO);
 		duplicateQuery.addFilter(EntityConstants.PROP_MD5HASH,
-				Query.FilterOperator.EQUAL, blobInfo.md5Hash);
+				Query.FilterOperator.EQUAL, blobInfo.getMd5Hash());
 		duplicateQuery.addFilter(EntityConstants.PROP_SIZE,
-				Query.FilterOperator.EQUAL, blobInfo.size);
+				Query.FilterOperator.EQUAL, blobInfo.getSize());
 		final List<Entity> duplicateEntities = datastoreService.prepare(
 				duplicateQuery).asList(FetchOptions.Builder.withLimit(10));
 		// could be 0 or 1 - even if 1 or 2 blobs are in store, HA metadata...
-		Entity oldestEntity = blobInfoEntity;
-		blobInfo.oldestDate = (Date) blobInfoEntity
-				.getProperty(EntityConstants.PROP_CREATION);
-		blobInfo.newestDate = blobInfo.oldestDate;
+		Entity oldestEntity = blobInfo.getBlobInfoEntity();
+		Date oldestDate = blobInfo.getCreation();
+		Date newestDate = oldestDate;
+		final Set<BlobKey> deleteBlobKeys = blobInfo.getDeleteBlobKeys();
 		// find oldest...
 		for (final Entity duplicateEntity : duplicateEntities) {
 			// init
@@ -68,48 +66,49 @@ public class BlobAnalyser {
 			final Date creationDate = (Date) duplicateEntity
 					.getProperty(EntityConstants.PROP_CREATION);
 			// one must die now...
-			if (blobInfo.newestDate.compareTo(creationDate) < 0) {
-				blobInfo.newestDate = creationDate;
+			if (newestDate.compareTo(creationDate) < 0) {
+				newestDate = creationDate;
 			}
 			Entity dieEntity;
-			if (blobInfo.oldestDate.compareTo(creationDate) < 0) {
+			if (oldestDate.compareTo(creationDate) < 0) {
 				dieEntity = duplicateEntity;
 			} else {
 				dieEntity = oldestEntity;
-				blobInfo.oldestDate = creationDate;
+				oldestDate = creationDate;
 				oldestEntity = duplicateEntity;
 			}
 			// change and delete newer entry
-			blobInfo.deleteBlobKeys.add(new BlobKey(dieEntity.getKey()
-					.getName()));
+			deleteBlobKeys.add(new BlobKey(dieEntity.getKey().getName()));
 		}
-		blobInfo.blobKey = new BlobKey(oldestEntity.getKey().getName());
-		blobInfo.filename = (String) blobInfoEntity
-				.getProperty(EntityConstants.PROP_FILENAME);
-		final int pos = blobInfo.filename.lastIndexOf('.');
-		if (pos == -1) {
-			throw new AnalyseException("The file extension is missing.");
-		}
-		final String ext = blobInfo.filename.substring(pos + 1).toLowerCase();
-		if ("class".equals(ext)) {
-			blobInfo.kind = EntityConstants.KIND_CLASS;
-		} else if ("jar".equals(ext)) {
-			blobInfo.kind = EntityConstants.KIND_JAR;
-		} else if ("dex".equals(ext)) {
-			blobInfo.kind = EntityConstants.KIND_DEX;
-		} else if ("apk".equals(ext)) {
-			throw new AnalyseException(
-					"Sorry, because of quota limits the online version doesn't support the direct decompilation of Android Package Archives (APK). Please unzip and upload the contained 'classes.dex' Dalvik Executable File (DEX).");
-		} else if ("war".equals(ext)) {
-			throw new AnalyseException(
-					"Sorry, because of quota limits the online version doesn't support the direct decompilation of Web Application Archives (WAR), often containing multiple embedded Java Archives (JAR).");
-		} else if ("ear".equals(ext)) {
-			throw new AnalyseException(
-					"Sorry, because of quota limits the online version doesn't support the direct decompilation of Enterprise Application Archives (EAR), often containing multiple embedded Java Archives (JAR).");
-		} else {
-			throw new AnalyseException("The file extension '" + ext
-					+ "' is unknown.");
-		}
+		blobInfo.setBlobInfoEntity(oldestEntity);
+		blobInfo.setNewestDate(newestDate);
+		blobInfo.setOldestDate(oldestDate);
 		return blobInfo;
+	}
+
+	public static Entity getBlobInfoEntity(
+			final DatastoreService datastoreService, final BlobKey blobKey)
+			throws EntityNotFoundException {
+		final Entity blobInfoEntity = datastoreService.get(KeyFactory
+				.createKey(EntityConstants.KIND_BLOBINFO,
+						blobKey.getKeyString()));
+		String md5Hash = (String) blobInfoEntity
+				.getProperty(EntityConstants.PROP_MD5HASH);
+		// in development mode no property "md5_hash" is created (for
+		// recognition of duplicate entities), luckily we can change this
+		// entities here (not possible on production)
+		if (md5Hash == null) {
+			md5Hash = "_"
+					+ blobInfoEntity.getProperty(EntityConstants.PROP_FILENAME)
+					+ "_"
+					+ blobInfoEntity.getProperty(EntityConstants.PROP_SIZE);
+			blobInfoEntity.setProperty(EntityConstants.PROP_MD5HASH, md5Hash);
+			// flush for following query
+			final Transaction tx = datastoreService.beginTransaction();
+			// not allowed on production!!!
+			datastoreService.put(blobInfoEntity);
+			tx.commit();
+		}
+		return blobInfoEntity;
 	}
 }

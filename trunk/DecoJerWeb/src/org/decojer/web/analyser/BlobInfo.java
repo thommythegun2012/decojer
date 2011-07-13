@@ -23,43 +23,94 @@
  */
 package org.decojer.web.analyser;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Set;
 
 import org.decojer.web.util.EntityConstants;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
 
-public class BlobInfo {
+public class BlobInfo implements Serializable {
 
-	public BlobKey blobKey;
+	private static final long serialVersionUID = 1521504215210091647L;
 
-	public HashSet<BlobKey> deleteBlobKeys = new HashSet<BlobKey>();
+	private Entity blobInfoEntity;
 
-	public String filename;
+	private final Set<BlobKey> deleteBlobKeys = new HashSet<BlobKey>();
 
-	public String kind;
+	private String error;
 
-	public String md5Hash;
+	private Date newestDate;
 
-	public String name;
+	private Date oldestDate;
 
-	public Date newestDate;
-
-	public Date oldestDate;
-
-	public Long size;
-
-	public Entity createEntity(final Key key) {
-		final Entity entity = new Entity(key);
-		entity.setProperty(EntityConstants.PROP_UPLOAD, this.blobKey);
-		return entity;
+	public BlobInfo(final Entity blobInfoEntity) {
+		setBlobInfoEntity(blobInfoEntity);
 	}
 
-	public Key createKey() {
-		return KeyFactory.createKey(this.kind, this.md5Hash + this.size);
+	public Entity getBlobInfoEntity() {
+		return this.blobInfoEntity;
+	}
+
+	public BlobKey getBlobKey() {
+		return new BlobKey(this.blobInfoEntity.getKey().getName());
+	}
+
+	public Date getCreation() {
+		return (Date) this.blobInfoEntity
+				.getProperty(EntityConstants.PROP_CREATION);
+	}
+
+	public Set<BlobKey> getDeleteBlobKeys() {
+		return this.deleteBlobKeys;
+	}
+
+	public String getError() {
+		return this.error;
+	}
+
+	public String getFilename() {
+		return (String) this.blobInfoEntity
+				.getProperty(EntityConstants.PROP_FILENAME);
+	}
+
+	public String getMd5Hash() {
+		return (String) this.blobInfoEntity
+				.getProperty(EntityConstants.PROP_MD5HASH);
+	}
+
+	public Date getNewestDate() {
+		return this.newestDate;
+	}
+
+	public Date getOldestDate() {
+		return this.oldestDate;
+	}
+
+	public Long getSize() {
+		return (Long) this.blobInfoEntity
+				.getProperty(EntityConstants.PROP_SIZE);
+	}
+
+	public void setBlobInfoEntity(final Entity blobInfoEntity) {
+		if (blobInfoEntity == null) {
+			throw new RuntimeException("Blob info entity nust not be null!");
+		}
+		this.blobInfoEntity = blobInfoEntity;
+	}
+
+	public void setError(final String error) {
+		this.error = error;
+	}
+
+	public void setNewestDate(final Date newestDate) {
+		this.newestDate = newestDate;
+	}
+
+	public void setOldestDate(final Date oldestDate) {
+		this.oldestDate = oldestDate;
 	}
 }
