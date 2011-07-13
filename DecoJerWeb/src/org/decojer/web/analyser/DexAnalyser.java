@@ -23,15 +23,18 @@
  */
 package org.decojer.web.analyser;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import com.googlecode.dex2jar.reader.DexFileReader;
 import com.googlecode.dex2jar.visitors.DexClassVisitor;
 import com.googlecode.dex2jar.visitors.DexFileVisitor;
 
 public class DexAnalyser {
 
-	public static DexInfo analyse(final byte[] bytes) {
+	public static DexInfo analyse(final InputStream is) throws IOException {
+		final DexFileReader dexFileReader = new DexFileReader(is);
 		final DexInfo dexInfo = new DexInfo();
-		final DexFileReader dexFileReader = new DexFileReader(bytes);
 		dexFileReader.accept(new DexFileVisitor() {
 
 			private TypeInfo typeInfo;
@@ -45,8 +48,10 @@ public class DexAnalyser {
 				final StringBuilder sb = new StringBuilder("L");
 				sb.append(superClass);
 				sb.append(";");
-				for (int i = 0; i < interfaceNames.length; ++i) {
-					sb.append("L").append(interfaceNames[i]).append(";");
+				if (interfaceNames != null) {
+					for (int i = 0; i < interfaceNames.length; ++i) {
+						sb.append("L").append(interfaceNames[i]).append(";");
+					}
 				}
 				this.typeInfo.signature = sb.toString();
 				this.typeInfo.superName = superClass;

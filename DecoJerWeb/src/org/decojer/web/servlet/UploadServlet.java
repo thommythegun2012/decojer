@@ -92,7 +92,7 @@ public class UploadServlet extends HttpServlet {
 			// the results from other queries are HA write lag dependend!
 			final BlobInfo blobInfo = BlobAnalyser.uniqueBlobInfo(
 					this.datastoreService, blobKey);
-			final List<TypeInfo> typeInfos;
+			final List<TypeInfo> typeInfos = new ArrayList<TypeInfo>();
 			try {
 				// check file name extension
 				final int pos = blobInfo.getFilename().lastIndexOf('.');
@@ -101,21 +101,16 @@ public class UploadServlet extends HttpServlet {
 				}
 				final String ext = blobInfo.getFilename().substring(pos + 1)
 						.toLowerCase();
-				// read CLASS and DEX streams directly into a byte array, the
-				// used readers do this anyway but with an available() sized
-				// buffer,
-				// which is 0 for BlobstoreInputStream!
 				if ("class".equals(ext)) {
 					final TypeInfo typeInfo;
-					final byte[] bytes = this.blobstoreService.fetchData(
-							blobInfo.getBlobKey(), 0, blobInfo.getSize());
 					try {
-						typeInfo = ClassAnalyser.analyse(bytes);
+						typeInfo = ClassAnalyser
+								.analyse(new BlobstoreInputStream(blobInfo
+										.getBlobKey()));
 					} catch (final Exception e) {
 						throw new AnalyseException(
 								"This isn't a valid Java Class like the file extension suggests.");
 					}
-					typeInfos = new ArrayList<TypeInfo>(1);
 					typeInfos.add(typeInfo);
 				} else if ("jar".equals(ext)) {
 					final JarInfo jarInfo;
@@ -131,18 +126,17 @@ public class UploadServlet extends HttpServlet {
 						throw new AnalyseException(
 								"This isn't a valid Java Archive like the file extension suggests.");
 					}
-					typeInfos = jarInfo.typeInfos;
+					typeInfos.addAll(jarInfo.typeInfos);
 				} else if ("dex".equals(ext)) {
 					final DexInfo dexInfo;
-					final byte[] bytes = this.blobstoreService.fetchData(
-							blobInfo.getBlobKey(), 0, blobInfo.getSize());
 					try {
-						dexInfo = DexAnalyser.analyse(bytes);
+						dexInfo = DexAnalyser.analyse(new BlobstoreInputStream(
+								blobInfo.getBlobKey()));
 					} catch (final Exception e) {
 						throw new AnalyseException(
 								"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
 					}
-					typeInfos = dexInfo.typeInfos;
+					typeInfos.addAll(dexInfo.typeInfos);
 				} else if ("apk".equals(ext)) {
 					throw new AnalyseException(
 							"Sorry, because of quota limits the online version doesn't support the direct decompilation of Android Package Archives (APK). Please unzip and upload the contained 'classes.dex' Dalvik Executable File (DEX).");
@@ -196,6 +190,10 @@ public class UploadServlet extends HttpServlet {
 						blobInfo.getOldestDate());
 				entity.setUnindexedProperty(EntityConstants.PROP_ERROR,
 						blobInfo.getError());
+				entity.setUnindexedProperty(EntityConstants.PROP_DELETED,
+						deleteBlobKeys.size());
+				entity.setUnindexedProperty(EntityConstants.PROP_TYPES,
+						typeInfos.size());
 				this.datastoreService.put(entity);
 			}
 			// now save type info refs

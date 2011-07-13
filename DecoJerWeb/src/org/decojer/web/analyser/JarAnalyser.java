@@ -28,22 +28,19 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import org.apache.commons.io.IOUtils;
-
 public class JarAnalyser {
 
 	public static JarInfo analyse(final InputStream is) throws IOException {
-		final JarInfo jarInfo = new JarInfo();
 		final ZipInputStream zip = new ZipInputStream(is);
+		final JarInfo jarInfo = new JarInfo();
 		for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
 				.getNextEntry()) {
 			final String name = zipEntry.getName();
 			if (!name.endsWith(".class")) {
 				continue;
 			}
-			final byte[] bytes = IOUtils.toByteArray(zip);
 			try {
-				jarInfo.typeInfos.add(ClassAnalyser.analyse(bytes));
+				jarInfo.typeInfos.add(ClassAnalyser.analyse(zip));
 			} catch (final Exception e) {
 				++jarInfo.checkFailures;
 				continue;
