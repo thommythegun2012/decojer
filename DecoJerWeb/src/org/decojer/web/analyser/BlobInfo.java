@@ -25,7 +25,6 @@ package org.decojer.web.analyser;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Set;
 
 import org.decojer.web.util.EntityConstants;
@@ -37,9 +36,9 @@ public class BlobInfo implements Serializable {
 
 	private static final long serialVersionUID = 1521504215210091647L;
 
-	private Entity blobInfoEntity;
+	private final Entity blobInfoEntity;
 
-	private final Set<BlobKey> deleteBlobKeys = new HashSet<BlobKey>();
+	private final Set<BlobKey> duplicateBlobs;
 
 	private String error;
 
@@ -47,8 +46,19 @@ public class BlobInfo implements Serializable {
 
 	private Date oldestDate;
 
-	public BlobInfo(final Entity blobInfoEntity) {
-		setBlobInfoEntity(blobInfoEntity);
+	private int types;
+
+	public BlobInfo(final Entity blobInfoEntity,
+			final Set<BlobKey> duplicateBlobs) {
+		this.blobInfoEntity = blobInfoEntity;
+		this.duplicateBlobs = duplicateBlobs;
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		return obj instanceof BlobInfo
+				&& this.blobInfoEntity.equals(((BlobInfo) obj)
+						.getBlobInfoEntity());
 	}
 
 	public Entity getBlobInfoEntity() {
@@ -64,8 +74,8 @@ public class BlobInfo implements Serializable {
 				.getProperty(EntityConstants.PROP_CREATION);
 	}
 
-	public Set<BlobKey> getDeleteBlobKeys() {
-		return this.deleteBlobKeys;
+	public Set<BlobKey> getDuplicateBlobs() {
+		return this.duplicateBlobs;
 	}
 
 	public String getError() {
@@ -95,11 +105,13 @@ public class BlobInfo implements Serializable {
 				.getProperty(EntityConstants.PROP_SIZE);
 	}
 
-	public void setBlobInfoEntity(final Entity blobInfoEntity) {
-		if (blobInfoEntity == null) {
-			throw new RuntimeException("Blob info entity nust not be null!");
-		}
-		this.blobInfoEntity = blobInfoEntity;
+	public int getTypes() {
+		return this.types;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.blobInfoEntity.hashCode();
 	}
 
 	public void setError(final String error) {
@@ -112,5 +124,9 @@ public class BlobInfo implements Serializable {
 
 	public void setOldestDate(final Date oldestDate) {
 		this.oldestDate = oldestDate;
+	}
+
+	public void setTypes(final int types) {
+		this.types = types;
 	}
 }

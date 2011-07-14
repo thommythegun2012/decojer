@@ -41,6 +41,9 @@ public class Uploads {
 		List<BlobInfo> uploads = getUploads(req.getSession());
 		if (uploads == null) {
 			uploads = new ArrayList<BlobInfo>();
+		} else {
+			// to list end
+			uploads.remove(blobInfo);
 		}
 		uploads.add(blobInfo);
 		req.getSession().setAttribute("blobKeys", uploads); // trigger update
@@ -57,9 +60,14 @@ public class Uploads {
 		}
 		final StringBuilder sb = new StringBuilder("<ul>");
 		for (int i = 0; i < uploads.size(); ++i) {
+			final BlobInfo blobInfo = uploads.get(i);
 			sb.append("<li><a href='/decompile?u=").append(i)
 					.append("' target='_blank'>")
-					.append(uploads.get(i).getFilename()).append("</a></li>");
+					.append(blobInfo.getFilename()).append("</a>");
+			if (blobInfo.getTypes() > 1) {
+				sb.append(" (").append(blobInfo.getTypes()).append(" classes)");
+			}
+			sb.append("</li>");
 		}
 		httpSession.removeAttribute("messages");
 		sb.append("</ul>");
