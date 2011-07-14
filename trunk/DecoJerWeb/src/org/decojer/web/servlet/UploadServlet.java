@@ -25,6 +25,7 @@ package org.decojer.web.servlet;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -56,6 +57,10 @@ import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.Key;
+import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Transaction;
 
 /**
  * @author André Pankraz
@@ -76,13 +81,14 @@ public class UploadServlet extends HttpServlet {
 	@Override
 	public void doPost(final HttpServletRequest req,
 			final HttpServletResponse res) throws ServletException, IOException {
+		// same target page in all cases
+		res.sendRedirect("/");
 		// check given upload BlobKey
 		final Map<String, BlobKey> blobs = this.blobstoreService
 				.getUploadedBlobs(req);
 		final BlobKey blobKey = blobs.get("file");
 		if (blobKey == null) {
 			Messages.addMessage(req, "File was empty!");
-			res.sendRedirect("/");
 			return;
 		}
 		try {
@@ -119,9 +125,11 @@ public class UploadServlet extends HttpServlet {
 								blobInfo.getBlobKey()));
 					} catch (final Exception e) {
 						throw new AnalyseException(
-								"This isn't a valid Java Class like the file extension suggests.");
+								"This isn't a valid Java Archive like the file extension suggests.");
 					}
-					LOGGER.info("JAR Check failures: " + jarInfo.checkFailures);
+					LOGGER.info("JAR analyzed with " + jarInfo.typeInfos.size()
+							+ " types and " + jarInfo.checkFailures
+							+ " check failures.");
 					if (jarInfo.typeInfos.size() == 0) {
 						throw new AnalyseException(
 								"This isn't a valid Java Archive like the file extension suggests.");
@@ -133,6 +141,12 @@ public class UploadServlet extends HttpServlet {
 						dexInfo = DexAnalyser.analyse(new BlobstoreInputStream(
 								blobInfo.getBlobKey()));
 					} catch (final Exception e) {
+						throw new AnalyseException(
+								"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
+					}
+					LOGGER.info("DEX analyzed with " + dexInfo.typeInfos.size()
+							+ " types.");
+					if (dexInfo.typeInfos.size() == 0) {
 						throw new AnalyseException(
 								"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
 					}
@@ -153,7 +167,10 @@ public class UploadServlet extends HttpServlet {
 				if (typeInfos.size() == 0) {
 					throw new AnalyseException("Could not find any classes!");
 				}
+				blobInfo.setTypes(typeInfos.size());
 				// should appear as download link to user
+				Messages.addMessage(req, "Found " + typeInfos.size()
+						+ (typeInfos.size() == 1 ? " class." : " classes."));
 				Uploads.addUpload(req, blobInfo);
 			} catch (final AnalyseException e) {
 				LOGGER.log(Level.INFO, e.getMessage());
@@ -163,41 +180,80 @@ public class UploadServlet extends HttpServlet {
 								+ "  Please upload valid Java Classes or Archives (JAR) respectively Android / Dalvik Executable File (DEX).");
 				// delete found unique too
 				blobInfo.setError(e.getMessage());
-				res.sendRedirect("/");
-				return;
-			} finally {
-				final Set<BlobKey> deleteBlobKeys = blobInfo
-						.getDeleteBlobKeys();
-				if (blobInfo.getError() != null) {
-					deleteBlobKeys.add(blobInfo.getBlobKey());
-				}
-				LOGGER.info("Deleting '" + deleteBlobKeys.size() + "' uploads.");
-				this.blobstoreService.delete(deleteBlobKeys
-						.toArray(new BlobKey[deleteBlobKeys.size()]));
-				// log all uploads (original blob key);
-				// this key is automatically unique
-				final Entity entity = new Entity(EntityConstants.KIND_UPLOAD,
-						blobKey.getKeyString());
-				entity.setProperty(EntityConstants.PROP_FILENAME,
-						blobInfo.getFilename());
-				entity.setProperty(EntityConstants.PROP_MD5HASH,
-						blobInfo.getMd5Hash());
-				entity.setProperty(EntityConstants.PROP_SIZE,
-						blobInfo.getSize());
-				entity.setUnindexedProperty(EntityConstants.PROP_NEWEST,
-						blobInfo.getNewestDate());
-				entity.setUnindexedProperty(EntityConstants.PROP_OLDEST,
-						blobInfo.getOldestDate());
-				entity.setUnindexedProperty(EntityConstants.PROP_ERROR,
-						blobInfo.getError());
-				entity.setUnindexedProperty(EntityConstants.PROP_DELETED,
-						deleteBlobKeys.size());
-				entity.setUnindexedProperty(EntityConstants.PROP_TYPES,
-						typeInfos.size());
-				this.datastoreService.put(entity);
 			}
-			// now save type info refs
-			System.out.println("TY: " + typeInfos.size());
+			final Set<BlobKey> duplicateBlobs = blobInfo.getDuplicateBlobs();
+			if (blobInfo.getError() != null) {
+				duplicateBlobs.add(blobInfo.getBlobKey());
+			}
+			final Key key = KeyFactory.createKey(EntityConstants.KIND_UPLOAD,
+					blobInfo.getMd5Hash() + blobInfo.getSize());
+			int retries = 3;
+			while (true) {
+				final Transaction tx = this.datastoreService.beginTransaction();
+				try {
+					Entity entity;
+					final List<Entity> puts = new ArrayList<Entity>();
+					try {
+						// exists already? increase counter and newest
+						entity = this.datastoreService.get(key);
+						final Long deleted = (Long) entity
+								.getProperty(EntityConstants.PROP_DELETED);
+						entity.setUnindexedProperty(
+								EntityConstants.PROP_DELETED,
+								deleted == null ? duplicateBlobs.size()
+										: deleted + duplicateBlobs.size());
+						entity.setProperty(EntityConstants.PROP_NEWEST,
+								blobInfo.getNewestDate());
+						puts.add(entity);
+					} catch (final EntityNotFoundException e) {
+						// create all stuff at once
+						entity = new Entity(key);
+						entity.setUnindexedProperty(
+								EntityConstants.PROP_DELETED,
+								duplicateBlobs.size());
+						entity.setUnindexedProperty(EntityConstants.PROP_ERROR,
+								blobInfo.getError());
+						entity.setUnindexedProperty(
+								EntityConstants.PROP_UPLOAD,
+								blobInfo.getBlobKey());
+						entity.setProperty(EntityConstants.PROP_FILENAME,
+								blobInfo.getFilename());
+						entity.setUnindexedProperty(EntityConstants.PROP_TYPES,
+								blobInfo.getTypes());
+						entity.setProperty(EntityConstants.PROP_NEWEST,
+								blobInfo.getNewestDate());
+						entity.setUnindexedProperty(
+								EntityConstants.PROP_OLDEST,
+								blobInfo.getOldestDate());
+						puts.add(entity);
+						for (int i = 0; i < typeInfos.size(); ++i) {
+							final TypeInfo typeInfo = typeInfos.get(i);
+							final Entity typeEntity = new Entity(
+									EntityConstants.KIND_TYPE, typeInfo.name,
+									key);
+							typeEntity.setUnindexedProperty(
+									EntityConstants.PROP_SIGNATURE,
+									typeInfo.signature);
+							puts.add(typeEntity);
+						}
+					}
+					this.datastoreService.put(puts);
+					tx.commit();
+					break;
+				} catch (final ConcurrentModificationException ec) {
+					if (retries-- == 0) {
+						throw ec;
+					}
+				} finally {
+					if (tx.isActive()) {
+						tx.rollback();
+					}
+				}
+			}
+			LOGGER.info("Deleting '" + duplicateBlobs.size() + "' uploads.");
+			this.blobstoreService.delete(duplicateBlobs
+					.toArray(new BlobKey[duplicateBlobs.size()]));
+			// blob info and blobstore stuff is done now
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING,
 					"Unexpected problem, couldn't evaluate upload: " + blobKey,
@@ -205,6 +261,5 @@ public class UploadServlet extends HttpServlet {
 			Messages.addMessage(req,
 					"Unexpected problem, couldn't evaluate upload!");
 		}
-		res.sendRedirect("/");
 	}
 }

@@ -23,13 +23,16 @@
  */
 package org.decojer.web.analyser;
 
+import java.io.IOException;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.decojer.web.util.EntityConstants;
 
 import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreInputStream;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
@@ -37,27 +40,61 @@ import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
+import com.twmacinta.util.MD5;
+import com.twmacinta.util.MD5InputStream;
 
 public class BlobAnalyser {
 
-	public static BlobInfo uniqueBlobInfo(final DatastoreService datastoreService,
-			final BlobKey blobKey) throws EntityNotFoundException {
-		final BlobInfo blobInfo = new BlobInfo(getBlobInfoEntity(
-				datastoreService, blobKey));
-		// query duplicates via md5 and size
+	private static Entity getBlobInfoEntity(
+			final DatastoreService datastoreService, final BlobKey blobKey)
+			throws EntityNotFoundException {
+		final Entity blobInfoEntity = datastoreService.get(KeyFactory
+				.createKey(EntityConstants.KIND_BLOBINFO,
+						blobKey.getKeyString()));
+		// in development mode no property "md5_hash" is created (for
+		// recognition of duplicate entities), luckily we can change this
+		// entities here (not possible on production)
+		if (blobInfoEntity.getProperty(EntityConstants.PROP_MD5HASH) == null) {
+			MD5 md5Hash;
+			try {
+				md5Hash = new MD5InputStream(new BlobstoreInputStream(blobKey))
+						.getMD5();
+			} catch (final IOException e) {
+				throw new RuntimeException(
+						"Could not generate blobstore input stream MD5 - should only happen in development mode!");
+			}
+			blobInfoEntity.setProperty(EntityConstants.PROP_MD5HASH, md5Hash);
+			// flush for following query
+			final Transaction tx = datastoreService.beginTransaction();
+			// not allowed on production!!!
+			datastoreService.put(blobInfoEntity);
+			tx.commit();
+		}
+		return blobInfoEntity;
+	}
+
+	public static BlobInfo uniqueBlobInfo(
+			final DatastoreService datastoreService, final BlobKey blobKey)
+			throws EntityNotFoundException {
+		final Entity blobInfoEntity = getBlobInfoEntity(datastoreService,
+				blobKey);
+		// query duplicates via md5 and size;
+		// because of lagging HA writes - could be less, even _0_ or other
 		final Query duplicateQuery = new Query(EntityConstants.KIND_BLOBINFO);
 		duplicateQuery.addFilter(EntityConstants.PROP_MD5HASH,
-				Query.FilterOperator.EQUAL, blobInfo.getMd5Hash());
+				Query.FilterOperator.EQUAL,
+				blobInfoEntity.getProperty(EntityConstants.PROP_MD5HASH));
 		duplicateQuery.addFilter(EntityConstants.PROP_SIZE,
-				Query.FilterOperator.EQUAL, blobInfo.getSize());
+				Query.FilterOperator.EQUAL,
+				blobInfoEntity.getProperty(EntityConstants.PROP_SIZE));
 		final List<Entity> duplicateEntities = datastoreService.prepare(
-				duplicateQuery).asList(FetchOptions.Builder.withLimit(10));
-		// could be 0 or 1 - even if 1 or 2 blobs are in store, HA metadata...
-		Entity oldestEntity = blobInfo.getBlobInfoEntity();
-		Date oldestDate = blobInfo.getCreation();
+				duplicateQuery).asList(FetchOptions.Builder.withDefaults());
+		// find oldest entity, start with myself
+		Entity oldestEntity = blobInfoEntity;
+		Date oldestDate = (Date) blobInfoEntity
+				.getProperty(EntityConstants.PROP_CREATION);
 		Date newestDate = oldestDate;
-		final Set<BlobKey> deleteBlobKeys = blobInfo.getDeleteBlobKeys();
-		// find oldest...
+		final Set<BlobKey> duplicateBlobs = new HashSet<BlobKey>();
 		for (final Entity duplicateEntity : duplicateEntities) {
 			// init
 			if (oldestEntity.equals(duplicateEntity)) {
@@ -69,46 +106,20 @@ public class BlobAnalyser {
 			if (newestDate.compareTo(creationDate) < 0) {
 				newestDate = creationDate;
 			}
-			Entity dieEntity;
+			Entity duplicateBlob;
 			if (oldestDate.compareTo(creationDate) < 0) {
-				dieEntity = duplicateEntity;
+				duplicateBlob = duplicateEntity;
 			} else {
-				dieEntity = oldestEntity;
+				duplicateBlob = oldestEntity;
 				oldestDate = creationDate;
 				oldestEntity = duplicateEntity;
 			}
 			// change and delete newer entry
-			deleteBlobKeys.add(new BlobKey(dieEntity.getKey().getName()));
+			duplicateBlobs.add(new BlobKey(duplicateBlob.getKey().getName()));
 		}
-		blobInfo.setBlobInfoEntity(oldestEntity);
+		final BlobInfo blobInfo = new BlobInfo(oldestEntity, duplicateBlobs);
 		blobInfo.setNewestDate(newestDate);
 		blobInfo.setOldestDate(oldestDate);
 		return blobInfo;
-	}
-
-	public static Entity getBlobInfoEntity(
-			final DatastoreService datastoreService, final BlobKey blobKey)
-			throws EntityNotFoundException {
-		final Entity blobInfoEntity = datastoreService.get(KeyFactory
-				.createKey(EntityConstants.KIND_BLOBINFO,
-						blobKey.getKeyString()));
-		String md5Hash = (String) blobInfoEntity
-				.getProperty(EntityConstants.PROP_MD5HASH);
-		// in development mode no property "md5_hash" is created (for
-		// recognition of duplicate entities), luckily we can change this
-		// entities here (not possible on production)
-		if (md5Hash == null) {
-			md5Hash = "_"
-					+ blobInfoEntity.getProperty(EntityConstants.PROP_FILENAME)
-					+ "_"
-					+ blobInfoEntity.getProperty(EntityConstants.PROP_SIZE);
-			blobInfoEntity.setProperty(EntityConstants.PROP_MD5HASH, md5Hash);
-			// flush for following query
-			final Transaction tx = datastoreService.beginTransaction();
-			// not allowed on production!!!
-			datastoreService.put(blobInfoEntity);
-			tx.commit();
-		}
-		return blobInfoEntity;
 	}
 }
