@@ -52,7 +52,7 @@ public class CleanupServlet extends HttpServlet {
 	@Override
 	public void doGet(final HttpServletRequest req,
 			final HttpServletResponse res) throws ServletException, IOException {
-		final Query query = new Query("Class").setKeysOnly();
+		final Query query = new Query("TYPE").setKeysOnly();
 		final Iterator<Entity> asIterable = this.datastoreService
 				.prepare(query).asIterable().iterator();
 		final List<Key> list = new ArrayList<Key>();

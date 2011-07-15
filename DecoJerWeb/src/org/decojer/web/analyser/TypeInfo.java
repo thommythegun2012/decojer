@@ -23,12 +23,6 @@
  */
 package org.decojer.web.analyser;
 
-import org.decojer.web.util.EntityConstants;
-
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
-import com.google.appengine.api.datastore.KeyFactory;
-import com.twmacinta.util.MD5;
 
 public class TypeInfo {
 
@@ -41,18 +35,4 @@ public class TypeInfo {
 	public int size; // for child ref
 
 	public String superName;
-
-	public Entity createEntity(final Key key) {
-		final Entity entity = new Entity(key);
-		entity.setProperty(EntityConstants.PROP_NAME, this.name);
-		entity.setUnindexedProperty(EntityConstants.PROP_SIGNATURE,
-				this.signature);
-		return entity;
-	}
-
-	public Key createKey() {
-		final String id = this.name + this.signature;
-		return KeyFactory.createKey(EntityConstants.KIND_TYPE,
-				new MD5(id).asHex() + id.length());
-	}
 }

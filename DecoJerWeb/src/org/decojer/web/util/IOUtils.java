@@ -24,6 +24,7 @@
 package org.decojer.web.util;
 
 import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -105,5 +106,16 @@ public class IOUtils {
 		final ByteArrayOutputStream os = new ByteArrayOutputStream(32486);
 		copyStream(is, os);
 		return os.toByteArray();
+	}
+
+	public static String toKey(final String md5Hash, final Long size,
+			final byte b) throws IOException {
+		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		final DataOutputStream dos = new DataOutputStream(bos);
+		dos.write(hexDecode(md5Hash));
+		dos.writeLong(size);
+		dos.write(b);
+		dos.close();
+		return base91Encode(bos.toByteArray());
 	}
 }

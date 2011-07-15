@@ -40,7 +40,6 @@ import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
-import com.twmacinta.util.MD5;
 import com.twmacinta.util.MD5InputStream;
 
 public class BlobAnalyser {
@@ -55,15 +54,21 @@ public class BlobAnalyser {
 		// recognition of duplicate entities), luckily we can change this
 		// entities here (not possible on production)
 		if (blobInfoEntity.getProperty(EntityConstants.PROP_MD5HASH) == null) {
-			MD5 md5Hash;
+			String md5hash;
 			try {
-				md5Hash = new MD5InputStream(new BlobstoreInputStream(blobKey))
-						.getMD5();
+				final MD5InputStream md5InputStream = new MD5InputStream(
+						new BlobstoreInputStream(blobKey));
+				final byte[] buf = new byte[65536];
+				int num_read;
+				while ((num_read = md5InputStream.read(buf)) != -1) {
+					;
+				}
+				md5hash = md5InputStream.getMD5().asHex();
 			} catch (final IOException e) {
 				throw new RuntimeException(
 						"Could not generate blobstore input stream MD5 - should only happen in development mode!");
 			}
-			blobInfoEntity.setProperty(EntityConstants.PROP_MD5HASH, md5Hash);
+			blobInfoEntity.setProperty(EntityConstants.PROP_MD5HASH, md5hash);
 			// flush for following query
 			final Transaction tx = datastoreService.beginTransaction();
 			// not allowed on production!!!
