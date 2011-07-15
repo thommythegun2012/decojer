@@ -47,6 +47,7 @@ import org.decojer.web.analyser.JarAnalyser;
 import org.decojer.web.analyser.JarInfo;
 import org.decojer.web.analyser.TypeInfo;
 import org.decojer.web.util.EntityConstants;
+import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
 import org.decojer.web.util.Uploads;
 
@@ -186,7 +187,8 @@ public class UploadServlet extends HttpServlet {
 				duplicateBlobs.add(blobInfo.getBlobKey());
 			}
 			final Key key = KeyFactory.createKey(EntityConstants.KIND_UPLOAD,
-					blobInfo.getMd5Hash() + blobInfo.getSize());
+					IOUtils.toKey(blobInfo.getMd5Hash(), blobInfo.getSize(),
+							(byte) '@'));
 			int retries = 3;
 			while (true) {
 				final Transaction tx = this.datastoreService.beginTransaction();
@@ -211,8 +213,10 @@ public class UploadServlet extends HttpServlet {
 						entity.setUnindexedProperty(
 								EntityConstants.PROP_DELETED,
 								duplicateBlobs.size());
-						entity.setUnindexedProperty(EntityConstants.PROP_ERROR,
-								blobInfo.getError());
+						entity.setUnindexedProperty(
+								EntityConstants.PROP_ERROR,
+								blobInfo.getError() == null ? "" : blobInfo
+										.getError());
 						entity.setUnindexedProperty(
 								EntityConstants.PROP_UPLOAD,
 								blobInfo.getBlobKey());
@@ -233,7 +237,8 @@ public class UploadServlet extends HttpServlet {
 									key);
 							typeEntity.setUnindexedProperty(
 									EntityConstants.PROP_SIGNATURE,
-									typeInfo.signature);
+									typeInfo.signature.replace(
+											"Ljava.lang.Object;", "@"));
 							puts.add(typeEntity);
 						}
 					}
