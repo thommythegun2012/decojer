@@ -169,26 +169,26 @@ public class UploadServlet extends HttpServlet {
 					throw new AnalyseException("Could not find any classes!");
 				}
 				blobInfo.setTypes(typeInfos.size());
-				// should appear as download link to user
-				Messages.addMessage(req, "Found " + typeInfos.size()
-						+ (typeInfos.size() == 1 ? " class." : " classes."));
-				Uploads.addUpload(req, blobInfo);
 			} catch (final AnalyseException e) {
 				LOGGER.log(Level.INFO, e.getMessage());
 				Messages.addMessage(
 						req,
 						e.getMessage()
 								+ "  Please upload valid Java Classes or Archives (JAR) respectively Android / Dalvik Executable File (DEX).");
-				// delete found unique too
 				blobInfo.setError(e.getMessage());
 			}
-			final Set<BlobKey> duplicateBlobs = blobInfo.getDuplicateBlobs();
+			final Set<BlobKey> deleteBlobs = blobInfo.getDuplicateBlobs();
 			if (blobInfo.getError() != null) {
-				duplicateBlobs.add(blobInfo.getBlobKey());
+				deleteBlobs.add(blobInfo.getBlobKey());
+			}
+			// write upload entity, mark error uploads with §
+			String keyName = IOUtils.toKey(blobInfo.getMd5Hash(),
+					blobInfo.getSize());
+			if (blobInfo.getError() != null) {
+				keyName += "§";
 			}
 			final Key key = KeyFactory.createKey(EntityConstants.KIND_UPLOAD,
-					IOUtils.toKey(blobInfo.getMd5Hash(), blobInfo.getSize(),
-							(byte) '@'));
+					keyName);
 			int retries = 3;
 			while (true) {
 				final Transaction tx = this.datastoreService.beginTransaction();
@@ -202,8 +202,8 @@ public class UploadServlet extends HttpServlet {
 								.getProperty(EntityConstants.PROP_DELETED);
 						entity.setUnindexedProperty(
 								EntityConstants.PROP_DELETED,
-								deleted == null ? duplicateBlobs.size()
-										: deleted + duplicateBlobs.size());
+								deleted == null ? deleteBlobs.size() : deleted
+										+ deleteBlobs.size());
 						entity.setProperty(EntityConstants.PROP_NEWEST,
 								blobInfo.getNewestDate());
 						puts.add(entity);
@@ -212,7 +212,7 @@ public class UploadServlet extends HttpServlet {
 						entity = new Entity(key);
 						entity.setUnindexedProperty(
 								EntityConstants.PROP_DELETED,
-								duplicateBlobs.size());
+								deleteBlobs.size());
 						entity.setUnindexedProperty(
 								EntityConstants.PROP_ERROR,
 								blobInfo.getError() == null ? "" : blobInfo
@@ -255,10 +255,17 @@ public class UploadServlet extends HttpServlet {
 					}
 				}
 			}
-			LOGGER.info("Deleting '" + duplicateBlobs.size() + "' uploads.");
-			this.blobstoreService.delete(duplicateBlobs
-					.toArray(new BlobKey[duplicateBlobs.size()]));
-			// blob info and blobstore stuff is done now
+			LOGGER.info("Deleting '" + deleteBlobs.size() + "' uploads.");
+			this.blobstoreService.delete(deleteBlobs
+					.toArray(new BlobKey[deleteBlobs.size()]));
+			if (blobInfo.getError() != null) {
+				return;
+			}
+			// add message and link
+			Messages.addMessage(req,
+					"Found " + typeInfos.size()
+							+ (typeInfos.size() == 1 ? " class." : " classes."));
+			Uploads.addUpload(req, blobInfo);
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING,
 					"Unexpected problem, couldn't evaluate upload: " + blobKey,

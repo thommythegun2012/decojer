@@ -108,13 +108,12 @@ public class IOUtils {
 		return os.toByteArray();
 	}
 
-	public static String toKey(final String md5Hash, final Long size,
-			final byte b) throws IOException {
+	public static String toKey(final String md5Hash, final Long size)
+			throws IOException {
 		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		final DataOutputStream dos = new DataOutputStream(bos);
 		dos.write(hexDecode(md5Hash));
 		dos.writeLong(size);
-		dos.write(b);
 		dos.close();
 		return base91Encode(bos.toByteArray());
 	}
