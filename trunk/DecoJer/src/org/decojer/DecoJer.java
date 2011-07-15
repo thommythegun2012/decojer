@@ -168,7 +168,7 @@ public class DecoJer {
 							new DataInputStream(
 									new FileInputStream(
 											new File(
-													"D:/Data/Decomp/workspace/DecoJerTest/bin_jdk1.6.0_26/org/decojer/cavaj/test/DecTestBooleanOperators.class"))));
+													"D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"))));
 		} catch (final FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
