@@ -1,6 +1,5 @@
 package org.decojer.cavaj.test;
 
-
 public class DecTestFields {
 
 	public final byte byteTest = 127;
@@ -17,6 +16,10 @@ public class DecTestFields {
 
 	protected final Class referenceClassTest = String.class;
 
+	protected final Class referenceClassTest2 = int.class;
+
+	protected final Class referenceClassTest3 = int[][].class.getClass();
+
 	private final String referenceStringTest = "test";
 
 	private final short shortTest = 32767;
@@ -25,6 +28,19 @@ public class DecTestFields {
 
 	private static final int[] referenceIntArrayTest = { 1000000 };
 
-	private final int[][] referenceIntArrayNullTest = null;
+	public static void main(String[] args) {
+		System.out.println("TEST : " + String.class);
+		System.out.println("TEST : " + String[].class);
+		System.out.println("TEST : " + String[].class.getSuperclass());
+		System.out.println("TEST : " + int.class);
+		System.out.println("TEST : " + int.class.getSuperclass());
+		System.out.println("TEST : " + int[].class);
+		System.out.println("TEST : " + int[].class.getSuperclass());
+		System.out.println("TEST : " + int[][].class);
+		System.out.println("TEST : " + int[][].class.getSuperclass());
+		System.out.println("TEST : " + int.class.getClass());
+		System.out.println("TEST : " + int.class.getClass().getSuperclass());
+	}
 
+	private final int[][] referenceIntArrayNullTest = null;
 }
