@@ -185,7 +185,7 @@ public class UploadServlet extends HttpServlet {
 			String keyName = IOUtils.toKey(blobInfo.getMd5Hash(),
 					blobInfo.getSize());
 			if (blobInfo.getError() != null) {
-				keyName += "§";
+				keyName += "-";
 			}
 			final Key key = KeyFactory.createKey(EntityConstants.KIND_UPLOAD,
 					keyName);
@@ -233,12 +233,12 @@ public class UploadServlet extends HttpServlet {
 						for (int i = 0; i < typeInfos.size(); ++i) {
 							final TypeInfo typeInfo = typeInfos.get(i);
 							final Entity typeEntity = new Entity(
-									EntityConstants.KIND_TYPE, typeInfo.name,
-									key);
+									EntityConstants.KIND_TYPE,
+									typeInfo.getName(), key);
 							typeEntity.setUnindexedProperty(
 									EntityConstants.PROP_SIGNATURE,
-									typeInfo.signature.replace(
-											"Ljava.lang.Object;", "@"));
+									typeInfo.getSignature().replace(
+											"Ljava/lang/Object;", "@"));
 							puts.add(typeEntity);
 						}
 					}

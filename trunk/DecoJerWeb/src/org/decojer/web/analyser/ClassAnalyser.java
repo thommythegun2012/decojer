@@ -40,26 +40,17 @@ public class ClassAnalyser {
 		// don't give stream to ClassReader, bug for available() == 0
 		final ClassReader classReader = new ClassReader(IOUtils.toBytes(is));
 		final TypeInfo typeInfo = new TypeInfo();
-		typeInfo.size = classReader.b.length;
+		typeInfo.setSize(classReader.b.length);
 		classReader.accept(new ClassVisitor() {
 
 			@Override
 			public void visit(final int version, final int access,
 					final String name, final String signature,
 					final String superName, final String[] interfaces) {
-				typeInfo.name = name;
-				if (signature == null) {
-					final StringBuilder sb = new StringBuilder("L");
-					sb.append(superName);
-					sb.append(";");
-					for (int i = 0; i < interfaces.length; ++i) {
-						sb.append("L").append(interfaces[i]).append(";");
-					}
-					typeInfo.signature = sb.toString();
-				} else {
-					typeInfo.signature = signature;
-				}
-				typeInfo.superName = superName;
+				typeInfo.setName(name);
+				typeInfo.setSuperName(superName);
+				typeInfo.setInterfaces(interfaces);
+				typeInfo.setSignature(signature);
 			}
 
 			@Override
