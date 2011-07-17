@@ -23,16 +23,95 @@
  */
 package org.decojer.web.analyser;
 
-
 public class TypeInfo {
 
-	public String md5Hash;
+	private String[] interfaces;
 
-	public String name;
+	// hash from as many infos as possible
+	private String md5Hash;
 
-	public String signature;
+	// without L...;
+	private String name;
 
-	public int size; // for child ref
+	// signature with L...;
+	private String signature;
 
-	public String superName;
+	private int size;
+
+	// without L...;
+	private String superName;
+
+	public String[] getInterfaces() {
+		return this.interfaces;
+	}
+
+	public String getMd5Hash() {
+		return this.md5Hash;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public String getSignature() {
+		if (this.signature == null) {
+			final StringBuilder sb = new StringBuilder("L");
+			sb.append(getSuperName());
+			sb.append(";");
+			final String[] interfaces = getInterfaces();
+			if (interfaces != null) {
+				for (int i = 0; i < interfaces.length; ++i) {
+					sb.append("L").append(interfaces[i]).append(";");
+				}
+			}
+			this.signature = sb.toString();
+		}
+		return this.signature;
+	}
+
+	public int getSize() {
+		return this.size;
+	}
+
+	public String getSuperName() {
+		return this.superName;
+	}
+
+	private String normalize(final String string) {
+		if (string.length() > 2 && string.charAt(0) == 'L'
+				&& string.charAt(string.length() - 1) == ';') {
+			return string.substring(1, string.length() - 1);
+		}
+		return string;
+	}
+
+	public void setInterfaces(final String[] interfaces) {
+		if (interfaces == null || interfaces.length == 0) {
+			return;
+		}
+		for (int i = interfaces.length; i-- > 0;) {
+			interfaces[i] = normalize(interfaces[i]);
+		}
+		this.interfaces = interfaces;
+	}
+
+	public void setMd5Hash(final String md5Hash) {
+		this.md5Hash = md5Hash;
+	}
+
+	public void setName(final String name) {
+		this.name = normalize(name);
+	}
+
+	public void setSignature(final String signature) {
+		this.signature = signature;
+	}
+
+	public void setSize(final int size) {
+		this.size = size;
+	}
+
+	public void setSuperName(final String superName) {
+		this.superName = normalize(superName);
+	}
 }

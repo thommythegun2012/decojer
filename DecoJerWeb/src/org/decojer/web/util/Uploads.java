@@ -23,13 +23,22 @@
  */
 package org.decojer.web.util;
 
+import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
+import org.decojer.DecoJer;
+import org.decojer.PackageClassStreamProvider;
+import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.PF;
+import org.decojer.cavaj.model.TD;
 import org.decojer.web.analyser.BlobInfo;
+
+import com.google.appengine.api.blobstore.BlobstoreInputStream;
 
 /**
  * @author André Pankraz
@@ -53,7 +62,8 @@ public class Uploads {
 		return (List<BlobInfo>) httpSession.getAttribute("blobKeys");
 	}
 
-	public static String getUploadsHtml(final HttpSession httpSession) {
+	public static String getUploadsHtml(final HttpServletRequest req,
+			final HttpSession httpSession) {
 		final List<BlobInfo> uploads = getUploads(httpSession);
 		if (uploads == null || uploads.size() == 0) {
 			return "";
@@ -66,11 +76,44 @@ public class Uploads {
 					.append(blobInfo.getFilename()).append("</a>");
 			if (blobInfo.getTypes() > 1) {
 				sb.append(" (").append(blobInfo.getTypes()).append(" classes)");
+			} else {
+				sb.append(" (<a href='/?u=").append(i).append("'>View</a>)");
 			}
 			sb.append("</li>");
 		}
-		httpSession.removeAttribute("messages");
 		sb.append("</ul>");
+		int u;
+		try {
+			u = Integer.parseInt(req.getParameter("u"));
+			if (u >= uploads.size()) {
+				return sb.toString();
+			}
+		} catch (final NumberFormatException e) {
+			u = uploads.size() - 1;
+		}
+		final BlobInfo upload = uploads.get(u);
+		if (!upload.getFilename().endsWith(".class")) {
+			return sb.toString();
+		}
+		try {
+			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
+					upload.getBlobKey());
+			final byte[] bytes = IOUtils.toBytes(blobstoreInputStream);
+			final PackageClassStreamProvider packageClassStreamProvider = new PackageClassStreamProvider(
+					null);
+			packageClassStreamProvider.addClassStream("TEST",
+					new ByteArrayInputStream(bytes));
+			final PF pf = DecoJer.createPF(packageClassStreamProvider);
+			final Entry<String, TD> next = pf.getTds().entrySet().iterator()
+					.next();
+			final CU cu = DecoJer.createCU(next.getValue());
+			final String source = DecoJer.decompile(cu);
+			sb.append("<hr /><pre class=\"brush: java\">")
+					.append(source.replace("<", "&lt;"))
+					.append("</pre><script type=\"text/javascript\">SyntaxHighlighter.all()</script>");
+		} catch (final Exception e) {
+			;
+		}
 		return sb.toString();
 	}
 }

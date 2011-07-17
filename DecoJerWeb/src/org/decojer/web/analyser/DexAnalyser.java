@@ -40,33 +40,22 @@ public class DexAnalyser {
 		final DexInfo dexInfo = new DexInfo();
 		dexFileReader.accept(new DexFileVisitor() {
 
-			private TypeInfo typeInfo;
-
 			@Override
 			public DexClassVisitor visit(final int access_flags,
 					final String className, final String superClass,
 					final String... interfaceNames) {
-				this.typeInfo = new TypeInfo();
-				this.typeInfo.name = className;
-				final StringBuilder sb = new StringBuilder("L");
-				sb.append(superClass);
-				sb.append(";");
-				if (interfaceNames != null) {
-					for (int i = 0; i < interfaceNames.length; ++i) {
-						sb.append("L").append(interfaceNames[i]).append(";");
-					}
-				}
-				this.typeInfo.signature = sb.toString();
-				this.typeInfo.superName = superClass;
+				// attention: all type names already with L...;
+				final TypeInfo typeInfo = new TypeInfo();
+				typeInfo.setName(className);
+				typeInfo.setSuperName(superClass);
+				typeInfo.setInterfaces(interfaceNames);
+				dexInfo.typeInfos.add(typeInfo);
 				return null;
 			}
 
 			@Override
 			public void visitEnd() {
-				if (this.typeInfo != null) {
-					dexInfo.typeInfos.add(this.typeInfo);
-				}
-				this.typeInfo = null;
+				// nothing, only 1 time called, not per above visit()!
 			}
 		});
 		return dexInfo;

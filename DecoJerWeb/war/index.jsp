@@ -1,44 +1,34 @@
-<%@page import="org.decojer.web.util.Uploads"%>
-<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
-	pageEncoding="ISO-8859-1"%>
-<%@ page import="com.google.appengine.api.blobstore.BlobstoreService"%>
-<%@ page
-	import="com.google.appengine.api.blobstore.BlobstoreServiceFactory"%>
-<%@ page import="org.decojer.web.util.Messages"%>
-<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<jsp:directive.page contentType="text/html; charset=UTF-8"
+	language="java" pageEncoding="UTF-8" />
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+<jsp:include page="WEB-INF/template/head.jsp" />
+<%@ page import="com.google.appengine.api.blobstore.*"%>
+<%@ page import="org.decojer.web.util.*"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%
 	BlobstoreService blobstoreService = BlobstoreServiceFactory
 			.getBlobstoreService();
 %>
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-<title>DecoJer</title>
-<script type="text/javascript">
-	var _gaq = _gaq || [];
-	_gaq.push([ '_setAccount', 'UA-24324733-2' ]);
-	_gaq.push([ '_trackPageview' ]);
-
-	(function() {
-		var ga = document.createElement('script');
-		ga.type = 'text/javascript';
-		ga.async = true;
-		ga.src = ('https:' == document.location.protocol ? 'https://ssl'
-				: 'http://www')
-				+ '.google-analytics.com/ga.js';
-		var s = document.getElementsByTagName('script')[0];
-		s.parentNode.insertBefore(ga, s);
-	})();
-</script>
 </head>
 <body>
+	<jsp:include page="WEB-INF/template/header.jsp" />
+	<h1>DecoJer - A Java Decompiler</h1>
+	<p>This is currently only a test page! The Java Decompiler is not
+		yet finished. Currenty working on:</p>
+	<ul>
+		<li>Download JAR sources</li>
+		<li>Add Data Flow Analysis for proper variable Types and Names</li>
+		<li>Complete Control Flow Analysis, break support</li>
+		<li>Add Exceptions</li>
+	</ul>
 	<form action="<%=blobstoreService.createUploadUrl("/upload")%>"
 		method="post" enctype="multipart/form-data">
 		<input type="file" name="file"> <input type="submit"
 			value="Submit">
 	</form>
 	<%=Messages.getMessagesHtml(pageContext.getSession())%>
-	<%=Uploads.getUploadsHtml(pageContext.getSession()) %>
+	<%=Uploads.getUploadsHtml(request, pageContext.getSession())%>
 </body>
 </html>
