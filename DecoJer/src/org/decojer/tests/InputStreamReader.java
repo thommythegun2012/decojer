@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.tool;
+package org.decojer.tests;
 
 import java.io.DataInputStream;
 import java.io.IOException;
@@ -42,9 +42,9 @@ import javassist.bytecode.ClassFile;
  */
 public class InputStreamReader {
 
-	private static int MAGIC_NUMBER_MAX_LENGTH = 4;
+	private static int _MAGIC_NUMBER_MAX_LENGTH = 4;
 
-	private static byte[] MAGIC_NUMBER = new byte[MAGIC_NUMBER_MAX_LENGTH];
+	private static byte[] MAGIC_NUMBER = new byte[_MAGIC_NUMBER_MAX_LENGTH];
 
 	private static final byte[] MAGIC_NUMBER_DEX_CLASS = { (byte) 0x64,
 			(byte) 0x65, (byte) 0x78, (byte) 0x0A };
@@ -79,8 +79,8 @@ public class InputStreamReader {
 	}
 
 	public void visitStream(final InputStream is) throws IOException {
-		final int read = is.read(MAGIC_NUMBER, 0, MAGIC_NUMBER_MAX_LENGTH);
-		if (read < MAGIC_NUMBER_MAX_LENGTH) {
+		final int read = is.read(MAGIC_NUMBER, 0, _MAGIC_NUMBER_MAX_LENGTH);
+		if (read < _MAGIC_NUMBER_MAX_LENGTH) {
 			System.out.println("  MN too small: " + read);
 			return;
 		}
@@ -88,17 +88,21 @@ public class InputStreamReader {
 			System.out.println("  Java!");
 
 			final PushbackInputStream pis = new PushbackInputStream(is, 4);
-			pis.unread(MAGIC_NUMBER, 0, MAGIC_NUMBER_MAX_LENGTH);
+			pis.unread(MAGIC_NUMBER, 0, _MAGIC_NUMBER_MAX_LENGTH);
 
 			final DigestInputStream dis = new DigestInputStream(pis,
 					this.messageDigest);
 
-			final DataInputStream dip = new DataInputStream(dis);
+			if (true) {
+				final DataInputStream dip = new DataInputStream(dis);
+				final ClassFile classFile = new ClassFile(dip);
+				// System.out.println("  Classfile: " + classFile.getName() +
+				// "  "
+				// + toHexString(this.messageDigest.digest()));
+			} else {
+				ClassReaderTest.decompileClass(dis, null);
+			}
 
-			final ClassFile classFile = new ClassFile(dip);
-
-			System.out.println("  Classfile: " + classFile.getName() + "  "
-					+ toHexString(this.messageDigest.digest()));
 			return;
 		}
 		if (Arrays.equals(MAGIC_NUMBER_DEX_CLASS, MAGIC_NUMBER)) {
@@ -112,7 +116,7 @@ public class InputStreamReader {
 			System.out.println("  Zip!");
 
 			final PushbackInputStream pis = new PushbackInputStream(is, 4);
-			pis.unread(MAGIC_NUMBER, 0, MAGIC_NUMBER_MAX_LENGTH);
+			pis.unread(MAGIC_NUMBER, 0, _MAGIC_NUMBER_MAX_LENGTH);
 			final ZipInputStream zip = new ZipInputStream(pis);
 
 			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
@@ -126,5 +130,4 @@ public class InputStreamReader {
 		System.out.println("  Unknown!");
 		return;
 	}
-
 }
