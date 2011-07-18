@@ -438,6 +438,9 @@ public class SignatureDecompiler {
 			// <T extends Map<? extends E, ? extends Object>, E>
 			// compiled to:
 			// <T::Ljava/util/Map<+TE;+Ljava/lang/Object;>;E:Ljava/lang/Object;>
+			// <T extends Integer & Accessible>
+			// compiled to:
+			// <T:Ljava/lang/Integer;:Ljavax/accessibility/Accessible;>Ljava/lang/Object;
 			final int posFull1 = this.signatureFull.indexOf(':', this.posFull);
 			final int posFull2 = this.signatureFull.indexOf('>', this.posFull);
 			if (posFull1 != -1 && posFull1 < posFull2) {
