@@ -1,5 +1,6 @@
 package org.decojer.cavaj.test.jdk7;
 
+
 public class DecTestParametrizedMethods<T extends Integer> {
 
 	private static <T extends Integer> void parameterizedStaticClassMethod(

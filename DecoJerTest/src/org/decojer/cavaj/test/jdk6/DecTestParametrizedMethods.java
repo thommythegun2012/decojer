@@ -1,6 +1,8 @@
 package org.decojer.cavaj.test.jdk6;
 
-public class DecTestParametrizedMethods<T extends Integer> {
+import javax.accessibility.Accessible;
+
+public class DecTestParametrizedMethods<T extends Integer & Accessible> {
 
 	private static <T extends Integer> void parameterizedStaticClassMethod(
 			final T a, final T b) {
