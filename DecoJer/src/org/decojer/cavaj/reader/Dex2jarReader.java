@@ -21,40 +21,34 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.tests;
+package org.decojer.cavaj.reader;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.security.NoSuchAlgorithmException;
+import java.io.InputStream;
+
+import org.decojer.cavaj.model.type.Types;
+import org.decojer.cavaj.reader.dex2jar.AnalyseDexFileVisitor;
+
+import com.googlecode.dex2jar.reader.DexFileReader;
 
 /**
- * 
  * @author André Pankraz
  */
-public class ZipTests {
+public class Dex2jarReader {
 
-	/**
-	 * @param args
-	 */
-	public static void main(final String[] args) {
+	public static Types analyse(final InputStream is) throws IOException {
+		final DexFileReader dexFileReader = new DexFileReader(is);
+		final AnalyseDexFileVisitor analyseDexFileVisitor = new AnalyseDexFileVisitor();
+		dexFileReader.accept(analyseDexFileVisitor);
+		return analyseDexFileVisitor.getTypes();
+	}
 
-		try {
-			new InputStreamReader()
-					.visitStream(new FileInputStream(
-							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/xrepositoryApp.ear")));
-		} catch (final NoSuchAlgorithmException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (final FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (final IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+	public static void main(final String[] args) throws IOException {
+		final FileInputStream is = new FileInputStream(
+				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex");
+		final Types types = analyse(is);
+		System.out.println("Ana: " + types.getTypes().size());
 	}
 
 }
