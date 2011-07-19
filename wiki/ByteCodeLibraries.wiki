@@ -10,9 +10,39 @@ DecoJer uses multiple ByteCode Libraries:
 
   == Dalvik ByteCode ==
   * smali (dexlib)
-  * dex2jar
+  * dex2jar (dex-reader)
 
 = Details =
 
   * DOM-like: Javassist and smali
   * SAX-like: ASM and dex2jar (uses ASM)
+
+= Patch for smali =
+
+Can currently only read files. Small dirty patch:
+
+in _/prj-smali/dexlib/src/main/java/org/jf/dexlib/DexFile.java_
+
+after
+{{{
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+            if (zipFile != null) {
+                zipFile.close();
+            }
+        }
+}}}
+insert
+{{{
+        read(in);
+    }
+
+	public DexFile(final Input in, boolean preserveSignedRegisters, boolean skipInstructions) {
+		this(preserveSignedRegisters, skipInstructions);
+		read(in);
+	}
+
+	private void read(final Input in) {
+}}}
