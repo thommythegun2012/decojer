@@ -44,7 +44,7 @@ public class ZipTests {
 			new InputStreamReader()
 					.visitStream(new FileInputStream(
 							new File(
-									"E:/Decomp/workspace/DecoJerTest/uploaded_test/xrepositoryApp.ear")));
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/xrepositoryApp.ear")));
 		} catch (final NoSuchAlgorithmException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

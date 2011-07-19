@@ -30,16 +30,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.ItemType;
 import org.jf.dexlib.Section;
+import org.jf.dexlib.Util.ByteArrayInput;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Label;
 
 import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.Method;
 import com.googlecode.dex2jar.reader.DexFileReader;
+import com.googlecode.dex2jar.visitors.DexAnnotationAble;
 import com.googlecode.dex2jar.visitors.DexClassVisitor;
+import com.googlecode.dex2jar.visitors.DexCodeVisitor;
 import com.googlecode.dex2jar.visitors.DexFieldVisitor;
 import com.googlecode.dex2jar.visitors.DexFileVisitor;
 import com.googlecode.dex2jar.visitors.DexMethodVisitor;
@@ -74,13 +79,259 @@ public class DexReaderTest {
 				public DexFieldVisitor visitField(final Field field,
 						final Object value) {
 					// TODO Auto-generated method stub
-					return null;
+					return new DexFieldVisitor() {
+
+						@Override
+						public AnnotationVisitor visitAnnotation(
+								final String name, final boolean visitable) {
+							// TODO Auto-generated method stub
+							return null;
+						}
+
+						@Override
+						public void visitEnd() {
+							// TODO Auto-generated method stub
+
+						}
+					};
 				}
 
 				@Override
 				public DexMethodVisitor visitMethod(final Method method) {
 					// TODO Auto-generated method stub
-					return null;
+					return new DexMethodVisitor() {
+
+						@Override
+						public AnnotationVisitor visitAnnotation(
+								final String name, final boolean visitable) {
+							// TODO Auto-generated method stub
+							return null;
+						}
+
+						@Override
+						public DexCodeVisitor visitCode() {
+							// TODO Auto-generated method stub
+							return new DexCodeVisitor() {
+
+								@Override
+								public void visitArguments(final int total,
+										final int[] args) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitArrayStmt(final int opcode,
+										final int formOrToReg,
+										final int arrayReg, final int indexReg) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitBinopLitXStmt(
+										final int opcode, final int distReg,
+										final int srcReg, final int content) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitBinopStmt(final int opcode,
+										final int toReg, final int r1,
+										final int r2) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitClassStmt(final int opcode,
+										final int a, final int b,
+										final String type) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitClassStmt(final int opcode,
+										final int saveTo, final String type) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitCmpStmt(final int opcode,
+										final int distReg, final int bB,
+										final int cC) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitConstStmt(final int opcode,
+										final int toReg, final Object value) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitEnd() {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitFieldStmt(final int opcode,
+										final int fromOrToReg, final Field field) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitFieldStmt(final int opcode,
+										final int fromOrToReg,
+										final int objReg, final Field field) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitFillArrayStmt(
+										final int opcode, final int aA,
+										final int elemWidth,
+										final int initLength,
+										final Object[] values) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitFilledNewArrayStmt(
+										final int opcode, final int[] args,
+										final String type) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitJumpStmt(final int opcode,
+										final int a, final int b,
+										final Label label) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitJumpStmt(final int opcode,
+										final int reg, final Label label) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitJumpStmt(final int opcode,
+										final Label label) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitLabel(final Label label) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitLookupSwitchStmt(
+										final int opcode, final int aA,
+										final Label label, final int[] cases,
+										final Label[] labels) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitMethodStmt(final int opcode,
+										final int[] args, final Method method) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitMonitorStmt(final int opcode,
+										final int reg) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitMoveStmt(final int opcode,
+										final int toReg) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitMoveStmt(final int opcode,
+										final int toReg, final int fromReg) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitReturnStmt(final int opcode) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitReturnStmt(final int opcode,
+										final int reg) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitTableSwitchStmt(
+										final int opcode, final int aA,
+										final Label label,
+										final int first_case,
+										final int last_case,
+										final Label[] labels) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitTryCatch(final Label start,
+										final Label end, final Label handler,
+										final String type) {
+									// TODO Auto-generated method stub
+
+								}
+
+								@Override
+								public void visitUnopStmt(final int opcode,
+										final int toReg, final int fromReg) {
+									// TODO Auto-generated method stub
+
+								}
+							};
+						}
+
+						@Override
+						public void visitEnd() {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public DexAnnotationAble visitParamesterAnnotation(
+								final int index) {
+							// TODO Auto-generated method stub
+							return null;
+						}
+					};
 				}
 
 				@Override
@@ -106,29 +357,33 @@ public class DexReaderTest {
 
 	public static void main(final String[] args) throws FileNotFoundException,
 			IOException {
-
 		new DexFile(
-				"E:/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex")
+				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex")
 				.getSectionForType(ItemType.TYPE_CODE_ITEM);
 
 		decompileDex(
 				new FileInputStream(
 						new File(
-								"E:/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex")),
+								"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex")),
 				null);
 
 		final long millis = System.currentTimeMillis();
 		if (false) {
+			// 70 ms (45 ms ohne read)
+			final byte[] readFileToByteArray = FileUtils
+					.readFileToByteArray(new File(
+							"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex"));
 			final Section<CodeItem> sectionForItem = new DexFile(
-					"E:/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex")
+					new ByteArrayInput(readFileToByteArray), true, false)
 					.getSectionForType(ItemType.TYPE_CODE_ITEM);
-			System.out.println("TEST: "
-					+ sectionForItem.getItems().get(0).getInstructions()[0]);
+			System.out.println("TEST: " + sectionForItem.getItems().get(0));
 		} else {
+			// 120 ms
+			// 490 with further visitors, because of reordering?
 			decompileDex(
 					new FileInputStream(
 							new File(
-									"E:/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex")),
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex")),
 					null);
 		}
 		System.out.println("TEST: " + (System.currentTimeMillis() - millis));
