@@ -17,6 +17,11 @@ DecoJer uses multiple ByteCode Libraries:
   * DOM-like: Javassist and smali
   * SAX-like: ASM and dex2jar (uses ASM)
 
+*BUT*
+
+  * Javassist 10 times slower than ASM (as expected)
+  * reader form smali 8 times faster(!) than dex2jar (maybe because or implicit reordering in dex-reader?)
+
 = Patch for smali =
 
 Can currently only read files. Small dirty patch:
