@@ -1,0 +1,18 @@
+#summary ByteCode Libraries
+
+= Introduction =
+
+DecoJer uses multiple ByteCode Libraries:
+
+  == JVM ByteCode ==
+  * JBoss Javassist
+  * ObjectWeb ASM
+
+  == Dalvik ByteCode ==
+  * smali (dexlib)
+  * dex2jar
+
+= Details =
+
+  * DOM-like: Javassist and smali
+  * SAX-like: ASM and dex2jar (uses ASM)
