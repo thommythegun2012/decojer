@@ -24,6 +24,9 @@
 package org.decojer.tests;
 
 import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
@@ -54,6 +57,28 @@ public class InputStreamReader {
 
 	private static final byte[] MAGIC_NUMBER_ZIP = { (byte) 0x50, (byte) 0x4B,
 			(byte) 0x03, (byte) 0x04 };
+
+	/**
+	 * @param args
+	 */
+	public static void main(final String[] args) {
+
+		try {
+			new InputStreamReader()
+					.visitStream(new FileInputStream(
+							new File(
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/xrepositoryApp.ear")));
+		} catch (final NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (final FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (final IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	public static String toHexString(final byte[] bytes) {
 		final char[] hexArray = { '0', '1', '2', '3', '4', '5', '6', '7', '8',
@@ -130,4 +155,5 @@ public class InputStreamReader {
 		System.out.println("  Unknown!");
 		return;
 	}
+
 }
