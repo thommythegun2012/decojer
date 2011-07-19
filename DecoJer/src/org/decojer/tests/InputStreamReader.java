@@ -93,7 +93,7 @@ public class InputStreamReader {
 			final DigestInputStream dis = new DigestInputStream(pis,
 					this.messageDigest);
 
-			if (true) {
+			if (false) {
 				final DataInputStream dip = new DataInputStream(dis);
 				final ClassFile classFile = new ClassFile(dip);
 				// System.out.println("  Classfile: " + classFile.getName() +

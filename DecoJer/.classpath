@@ -4,12 +4,12 @@
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry exported="true" kind="lib" path="lib/javassist.jar" sourcepath="/javassist-3.14.0-GA"/>
-	<classpathentry kind="lib" path="lib/asm-3.3.1.jar" sourcepath="/asm3"/>
-	<classpathentry kind="lib" path="lib/asm-commons-3.3.1.jar"/>
 	<classpathentry kind="lib" path="lib/dex-reader-1.1.jar" sourcepath="/dex2jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-api-1.6.1.jar"/>
 	<classpathentry kind="lib" path="lib/slf4j-jdk14-1.6.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-io-2.0.1.jar"/>
-	<classpathentry kind="lib" path="lib/dexlib-1.2.7-dev.jar" sourcepath="/smali"/>
+	<classpathentry kind="lib" path="lib/dexlib-1.2.7-dev.jar" sourcepath="/prj-smali"/>
+	<classpathentry kind="lib" path="lib/asm-4.0_RC1.jar" sourcepath="/asm3"/>
+	<classpathentry kind="lib" path="lib/asm-commons-4.0_RC1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

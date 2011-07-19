@@ -23,7 +23,7 @@
  */
 package org.decojer.tests;
 
-import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -31,12 +31,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import javassist.bytecode.ClassFile;
+
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.MethodVisitor;
 
 /**
@@ -121,42 +124,7 @@ public class ClassReaderTest {
 					public AnnotationVisitor visitAnnotation(final String desc,
 							final boolean visible) {
 						// TODO Auto-generated method stub
-						return new AnnotationVisitor() {
-
-							@Override
-							public void visit(final String name,
-									final Object value) {
-								// TODO Auto-generated method stub
-
-							}
-
-							@Override
-							public AnnotationVisitor visitAnnotation(
-									final String name, final String desc) {
-								// TODO Auto-generated method stub
-								return null;
-							}
-
-							@Override
-							public AnnotationVisitor visitArray(
-									final String name) {
-								// TODO Auto-generated method stub
-								return null;
-							}
-
-							@Override
-							public void visitEnd() {
-								// TODO Auto-generated method stub
-
-							}
-
-							@Override
-							public void visitEnum(final String name,
-									final String desc, final String value) {
-								// TODO Auto-generated method stub
-
-							}
-						};
+						return null;
 					}
 
 					@Override
@@ -185,7 +153,7 @@ public class ClassReaderTest {
 			public MethodVisitor visitMethod(final int access,
 					final String name, final String desc,
 					final String signature, final String[] exceptions) {
-				System.out.println("  visitMethod: " + name);
+				// System.out.println("  visitMethod: " + name);
 				return new MethodVisitor() {
 
 					@Override
@@ -198,42 +166,7 @@ public class ClassReaderTest {
 					@Override
 					public AnnotationVisitor visitAnnotationDefault() {
 						// TODO Auto-generated method stub
-						return new AnnotationVisitor() {
-
-							@Override
-							public void visit(final String name,
-									final Object value) {
-								// TODO Auto-generated method stub
-
-							}
-
-							@Override
-							public AnnotationVisitor visitAnnotation(
-									final String name, final String desc) {
-								// TODO Auto-generated method stub
-								return null;
-							}
-
-							@Override
-							public AnnotationVisitor visitArray(
-									final String name) {
-								// TODO Auto-generated method stub
-								return null;
-							}
-
-							@Override
-							public void visitEnd() {
-								// TODO Auto-generated method stub
-
-							}
-
-							@Override
-							public void visitEnum(final String name,
-									final String desc, final String value) {
-								// TODO Auto-generated method stub
-
-							}
-						};
+						return null;
 					}
 
 					@Override
@@ -289,6 +222,14 @@ public class ClassReaderTest {
 					}
 
 					@Override
+					public void visitInvokeDynamicInsn(final String arg0,
+							final String arg1, final MethodHandle arg2,
+							final Object... arg3) {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
 					public void visitJumpInsn(final int opcode,
 							final Label label) {
 						// TODO Auto-generated method stub
@@ -298,7 +239,7 @@ public class ClassReaderTest {
 					@Override
 					public void visitLabel(final Label label) {
 						// TODO Auto-generated method stub
-
+						// System.out.println("Label: " + label);
 					}
 
 					@Override
@@ -311,7 +252,7 @@ public class ClassReaderTest {
 					public void visitLineNumber(final int line,
 							final Label start) {
 						// TODO Auto-generated method stub
-
+						// System.out.println("Label: " + line + " : " + start);
 					}
 
 					@Override
@@ -319,7 +260,9 @@ public class ClassReaderTest {
 							final String desc, final String signature,
 							final Label start, final Label end, final int index) {
 						// TODO Auto-generated method stub
-
+						// System.out.println("LocalVar: " + name + " : " + desc
+						// + " : " + signature + " : " + start + " : "
+						// + end + " : " + index);
 					}
 
 					@Override
@@ -407,11 +350,36 @@ public class ClassReaderTest {
 
 	public static void main(final String[] args) throws FileNotFoundException,
 			IOException {
-		decompileClass(
-				new FileInputStream(
-						new File(
-								"E:/Decomp/workspace/DecoJerTest/uploaded_test/DecTestBooleanOperators.class")),
-				new ByteArrayOutputStream());
+		for (int i = 1000; i-- > 0;) {
+			new ClassFile(
+					new DataInputStream(
+							new FileInputStream(
+									new File(
+											"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/DecTestBooleanOperators.class"))));
+			decompileClass(
+					new FileInputStream(
+							new File(
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/DecTestBooleanOperators.class")),
+					null);
+		}
+		final long millis = System.currentTimeMillis();
+		for (int i = 1000; i-- > 0;) {
+			if (false) {
+				// 560 ms
+				new ClassFile(
+						new DataInputStream(
+								new FileInputStream(
+										new File(
+												"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/DecTestBooleanOperators.class"))));
+			} else {
+				// 60 ms
+				decompileClass(
+						new FileInputStream(
+								new File(
+										"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/DecTestBooleanOperators.class")),
+						null);
+			}
+		}
+		System.out.println("TEST: " + (System.currentTimeMillis() - millis));
 	}
-
 }
