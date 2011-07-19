@@ -21,38 +21,38 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.reader.dex2jar;
-
-import org.decojer.cavaj.model.type.Type;
-import org.decojer.cavaj.model.type.Types;
-
-import com.googlecode.dex2jar.visitors.DexClassVisitor;
-import com.googlecode.dex2jar.visitors.DexFileVisitor;
+package org.decojer.cavaj.model;
 
 /**
  * @author André Pankraz
  */
-public class AnalyseDexFileVisitor implements DexFileVisitor {
+public class TD2 {
 
-	private final Types types = new Types();
+	private final String name;
 
-	public Types getTypes() {
-		return this.types;
+	private final String signature;
+
+	public TD2(final String name, final String signature) {
+		this.name = name;
+		this.signature = signature;
+	}
+
+	/**
+	 * Get full name, e.g. "decojer.model.TD$Inner".
+	 * 
+	 * @return full name
+	 */
+	public String getName() {
+		return this.name;
+	}
+
+	public String getSignature() {
+		return this.signature;
 	}
 
 	@Override
-	public DexClassVisitor visit(final int access_flags,
-			final String className, final String superClass,
-			final String... interfaceNames) {
-		// TODO Auto-generated method stub
-		this.types.addType(new Type(className, null));
-		return null;
-	}
-
-	@Override
-	public void visitEnd() {
-		// TODO Auto-generated method stub
-
+	public String toString() {
+		return getName() + " : " + getSignature();
 	}
 
 }

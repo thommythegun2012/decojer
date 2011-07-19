@@ -59,7 +59,7 @@ public class AnalyseClassVisitor implements ClassVisitor {
 		// com/thoughtworks/xstream/mapper/AnnotationMapper$UnprocessedTypesSet
 		// : Ljava/util/LinkedHashSet<Ljava/lang/Class<*>;>; :
 		// java/util/LinkedHashSet : [Ljava.lang.String;@1b9a2fd
-		this.type = new Type(name);
+		this.type = new Type(name, signature);
 	}
 
 	@Override

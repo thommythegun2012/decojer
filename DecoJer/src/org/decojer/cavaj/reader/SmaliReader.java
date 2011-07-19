@@ -52,7 +52,7 @@ public class SmaliReader {
 			System.out.println("TEST " + classDefItem + " : "
 					+ classDefItem.getClassType().getTypeDescriptor());
 			types.addType(new Type(classDefItem.getClassType()
-					.getTypeDescriptor()));
+					.getTypeDescriptor(), null));
 		}
 		return types;
 	}
