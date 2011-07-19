@@ -30,8 +30,24 @@ public class Type {
 
 	private final String name;
 
-	public Type(final String name) {
+	private final String signature;
+
+	public Type(final String name, final String signature) {
 		this.name = name;
+		this.signature = signature;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public String getSignature() {
+		return this.signature;
+	}
+
+	@Override
+	public String toString() {
+		return getName() + " : " + getSignature();
 	}
 
 }
