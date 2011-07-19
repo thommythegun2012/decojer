@@ -2,7 +2,7 @@ package org.decojer.cavaj.test.jdk6;
 
 import javax.accessibility.Accessible;
 
-public class DecTestParametrizedMethods<T extends Integer & Accessible> {
+public class DecTestMethodTypeParams<T extends Integer & Cloneable & Accessible> {
 
 	private static <T extends Integer> void parameterizedStaticClassMethod(
 			final T a, final T b) {

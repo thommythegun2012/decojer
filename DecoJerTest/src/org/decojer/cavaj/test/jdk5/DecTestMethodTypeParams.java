@@ -2,7 +2,7 @@ package org.decojer.cavaj.test.jdk5;
 
 import javax.accessibility.Accessible;
 
-public class DecTestParametrizedMethods<T extends Integer & Accessible> {
+public class DecTestMethodTypeParams<T extends Integer & Cloneable & Accessible> {
 
 	private static <T extends Integer> void parameterizedStaticClassMethod(
 			final T a, final T b) {
@@ -22,6 +22,7 @@ public class DecTestParametrizedMethods<T extends Integer & Accessible> {
 		return (U) new Long(1L);
 	}
 
+	// wouldn't work with static!
 	private <U extends T> void parameterizedClassMethod3(final T a, final U b) {
 		System.out.println(a);
 		System.out.println(b);
