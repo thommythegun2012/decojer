@@ -23,36 +23,94 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
+ * Type.
+ * 
  * @author André Pankraz
  */
-public class TD2 {
+public class T {
+
+	private static final Map<String, T> ts = new HashMap<String, T>();
+
+	/**
+	 * Init type.
+	 * 
+	 * @param name
+	 *            name
+	 * @param descriptor
+	 *            descriptor
+	 * @return type
+	 */
+	public static T initT(final String name, final String descriptor) {
+		final T t = new T(name);
+		t.setDescriptor(descriptor);
+		return t;
+	}
+
+	private String descriptor;
+
+	private T[] interfaceTs;
 
 	private final String name;
 
-	private final String signature;
+	private T superT;
 
-	public TD2(final String name, final String signature) {
+	/**
+	 * Constructor.
+	 * 
+	 * @param name
+	 *            name
+	 */
+	protected T(final String name) {
 		this.name = name;
-		this.signature = signature;
 	}
 
 	/**
-	 * Get full name, e.g. "decojer.model.TD$Inner".
+	 * Get descriptor.
 	 * 
-	 * @return full name
+	 * @return descriptor
+	 */
+	public String getDescriptor() {
+		return this.descriptor;
+	}
+
+	/**
+	 * Get name.
+	 * 
+	 * @return name
 	 */
 	public String getName() {
 		return this.name;
 	}
 
-	public String getSignature() {
-		return this.signature;
+	public T getSuperT() {
+		if (this.interfaceTs == null) {
+			init();
+		}
+		return this.superT;
+	}
+
+	private void init() {
+		// parse and init
+
+	}
+
+	/**
+	 * Set descriptor.
+	 * 
+	 * @param descriptor
+	 *            descriptor
+	 */
+	public void setDescriptor(final String descriptor) {
+		this.descriptor = descriptor;
 	}
 
 	@Override
 	public String toString() {
-		return getName() + " : " + getSignature();
+		return getName() + ": " + getDescriptor();
 	}
 
 }
