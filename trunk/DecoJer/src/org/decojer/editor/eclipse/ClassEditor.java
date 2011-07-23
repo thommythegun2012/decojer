@@ -231,10 +231,10 @@ public class ClassEditor extends MultiPageEditorPart implements
 			final String typeFileName = classFile.getElementName();
 
 			final PF pf = DecoJer
-					.createPF(new EclipsePackageClassStreamProvider(classFile));
+					.createPf(new EclipsePackageClassStreamProvider(classFile));
 			final String typeName = typeFileName.substring(0,
 					typeFileName.length() - 6);
-			this.cu = DecoJer.createCU(pf.getTd(typeName));
+			this.cu = DecoJer.createCu(pf.getTd(typeName));
 			sourceCode = DecoJer.decompile(this.cu);
 		} catch (final Throwable e) {
 			e.printStackTrace();
