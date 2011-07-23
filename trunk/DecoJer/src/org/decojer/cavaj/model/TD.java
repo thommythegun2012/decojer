@@ -176,7 +176,7 @@ public class TD implements BD, PD {
 	 *            method descriptor, e.g. "()V"
 	 * @return method declaration or null
 	 */
-	public MD getMD(final String name, final String descriptor) {
+	public MD getMd(final String name, final String descriptor) {
 		assert name != null;
 		assert descriptor != null;
 

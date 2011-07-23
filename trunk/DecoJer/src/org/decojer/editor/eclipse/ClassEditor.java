@@ -344,7 +344,7 @@ public class ClassEditor extends MultiPageEditorPart implements
 		MD md = null;
 		try {
 			md = this.cu.getTd(
-					method.getDeclaringType().getFullyQualifiedName()).getMD(
+					method.getDeclaringType().getFullyQualifiedName()).getMd(
 					method.getElementName(), method.getSignature());
 		} catch (final Exception e) {
 			e.printStackTrace();
