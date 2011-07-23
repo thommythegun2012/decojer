@@ -57,7 +57,7 @@ public class DecoJer {
 	 *            start type declaration
 	 * @return compilation unit
 	 */
-	public static CU createCU(final TD startTD) {
+	public static CU createCu(final TD startTD) {
 		return new CU(startTD);
 	}
 
@@ -68,7 +68,7 @@ public class DecoJer {
 	 *            package class file provider
 	 * @return package fragment
 	 */
-	public static PF createPF(
+	public static PF createPf(
 			final PackageClassStreamProvider packageClassFileProvider) {
 		return new PF(packageClassFileProvider);
 	}
@@ -139,10 +139,10 @@ public class DecoJer {
 			throw new DecoJerException("Must be a path to a class file: "
 					+ path);
 		}
-		final PF pf = createPF(new PackageClassStreamProvider(path));
+		final PF pf = createPf(new PackageClassStreamProvider(path));
 		final String typeName = typeFileName.substring(0,
 				typeFileName.length() - 6);
-		final CU cu = createCU(pf.getTd(typeName));
+		final CU cu = createCu(pf.getTd(typeName));
 		return decompile(cu);
 	}
 
@@ -173,9 +173,9 @@ public class DecoJer {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		final PF pf = createPF(packageClassStreamProvider);
+		final PF pf = createPf(packageClassStreamProvider);
 		final Entry<String, TD> next = pf.getTds().entrySet().iterator().next();
-		final CU cu = createCU(next.getValue());
+		final CU cu = createCu(next.getValue());
 		System.out.println(decompile(cu));
 
 		// System.out
