@@ -53,12 +53,12 @@ public class DecoJer {
 	/**
 	 * Create compilation unit.
 	 * 
-	 * @param startTD
+	 * @param startTd
 	 *            start type declaration
 	 * @return compilation unit
 	 */
-	public static CU createCu(final TD startTD) {
-		return new CU(startTD);
+	public static CU createCu(final TD startTd) {
+		return new CU(startTd);
 	}
 
 	/**

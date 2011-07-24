@@ -23,9 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Type.
  * 
@@ -33,24 +30,11 @@ import java.util.Map;
  */
 public class T {
 
-	private static final Map<String, T> ts = new HashMap<String, T>();
-
-	/**
-	 * Init type.
-	 * 
-	 * @param name
-	 *            name
-	 * @param descriptor
-	 *            descriptor
-	 * @return type
-	 */
-	public static T initT(final String name, final String descriptor) {
-		final T t = new T(name);
-		t.setDescriptor(descriptor);
-		return t;
-	}
+	private T[] argTs;
 
 	private String descriptor;
+
+	private final DU du;
 
 	private T[] interfaceTs;
 
@@ -64,8 +48,21 @@ public class T {
 	 * @param name
 	 *            name
 	 */
-	protected T(final String name) {
+	protected T(final DU du, final String name) {
+		this.du = du;
 		this.name = name;
+	}
+
+	/**
+	 * Get argument types.
+	 * 
+	 * @return argument types
+	 */
+	public T[] getArgTs() {
+		if (this.interfaceTs == null) {
+			init();
+		}
+		return this.argTs;
 	}
 
 	/**
@@ -78,6 +75,27 @@ public class T {
 	}
 
 	/**
+	 * Get decompilation unit.
+	 * 
+	 * @return decompilation unit
+	 */
+	public DU getDu() {
+		return this.du;
+	}
+
+	/**
+	 * Get interface types.
+	 * 
+	 * @return interface types
+	 */
+	public T[] getInterfaceTs() {
+		if (this.interfaceTs == null) {
+			init();
+		}
+		return this.interfaceTs;
+	}
+
+	/**
 	 * Get name.
 	 * 
 	 * @return name
@@ -86,6 +104,11 @@ public class T {
 		return this.name;
 	}
 
+	/**
+	 * Get super type.
+	 * 
+	 * @return super type
+	 */
 	public T getSuperT() {
 		if (this.interfaceTs == null) {
 			init();
