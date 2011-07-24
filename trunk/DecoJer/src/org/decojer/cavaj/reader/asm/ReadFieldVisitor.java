@@ -21,68 +21,52 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model;
+package org.decojer.cavaj.reader.asm;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
+import org.objectweb.asm.FieldVisitor;
 
 /**
- * Decompilation unit.
- * 
  * @author André Pankraz
  */
-public class DU {
+public class ReadFieldVisitor implements FieldVisitor {
 
-	private final Map<String, TD> tds = new HashMap<String, TD>();
+	private final static Logger LOGGER = Logger
+			.getLogger(ReadFieldVisitor.class.getName());
 
-	private final Map<String, T> ts = new HashMap<String, T>();
+	private final ReadClassVisitor readClassVisitor;
 
 	/**
 	 * Constructor.
 	 * 
+	 * @param readClassVisitor
+	 *            read class visitor
 	 */
-	public DU() {
-		this.ts.put(void.class.getName(), new T(this, void.class.getName()));
+	public ReadFieldVisitor(final ReadClassVisitor readClassVisitor) {
+		this.readClassVisitor = readClassVisitor;
 	}
 
-	/**
-	 * Add type declaration.
-	 * 
-	 * @param td
-	 *            type declaration
-	 */
-	public void addTd(final TD td) {
-		assert td != null;
-
-		this.tds.put(td.getT().getName(), td);
+	@Override
+	public AnnotationVisitor visitAnnotation(final String desc,
+			final boolean visible) {
+		LOGGER.warning("### field visitAnnotation ### " + desc + " : "
+				+ visible);
+		return null;
 	}
 
-	/**
-	 * Get type declaration.
-	 * 
-	 * @param name
-	 *            name
-	 * @return type declaration
-	 */
-	public T getT(final String name) {
-		assert name != null;
-
-		T t = this.ts.get(name);
-		if (t == null) {
-			t = new T(this, name);
-		}
-		return t;
+	@Override
+	public void visitAttribute(final Attribute attr) {
+		LOGGER.log(Level.WARNING, "Unknown field attribute tag '" + attr.type
+				+ "' for field info '" + this.readClassVisitor.getTd() + "'!");
 	}
 
-	/**
-	 * Get type declaration.
-	 * 
-	 * @param name
-	 *            name
-	 * @return type declaration
-	 */
-	public TD getTd(final String name) {
-		return this.tds.get(name);
+	@Override
+	public void visitEnd() {
+		// nothing
 	}
 
 }

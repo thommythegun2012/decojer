@@ -23,7 +23,6 @@
  */
 package org.decojer;
 
-import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -49,7 +48,7 @@ public class PackageClassStreamProvider {
 	protected final static Logger LOGGER = Logger
 			.getLogger(PackageClassStreamProvider.class.getName());
 
-	protected final Map<String, DataInputStream> name2classStream = new HashMap<String, DataInputStream>();
+	protected final Map<String, InputStream> name2classStream = new HashMap<String, InputStream>();
 
 	/**
 	 * Constructor.
@@ -131,17 +130,15 @@ public class PackageClassStreamProvider {
 	 * @param name
 	 *            type name (prefered) or other handle
 	 * @param inputStream
-	 *            data input stream or input stream
+	 *            input stream
 	 * @return data input stream
 	 */
-	public DataInputStream addClassStream(final String name,
+	public InputStream addClassStream(final String name,
 			final InputStream inputStream) {
 		assert name != null;
 
-		final DataInputStream dataInputStream = inputStream instanceof DataInputStream ? (DataInputStream) inputStream
-				: new DataInputStream(inputStream);
-		this.name2classStream.put(name, dataInputStream);
-		return dataInputStream;
+		this.name2classStream.put(name, inputStream);
+		return inputStream;
 	}
 
 	/**
@@ -151,7 +148,7 @@ public class PackageClassStreamProvider {
 	 *            full type name
 	 * @return class file
 	 */
-	public DataInputStream getClassStream(final String name) {
+	public InputStream getClassStream(final String name) {
 		return this.name2classStream.get(name);
 	}
 
@@ -162,7 +159,7 @@ public class PackageClassStreamProvider {
 	 * 
 	 * @return type name to class stream mapping
 	 */
-	public Map<String, DataInputStream> getClassStreams() {
+	public Map<String, InputStream> getClassStreams() {
 		return this.name2classStream;
 	}
 

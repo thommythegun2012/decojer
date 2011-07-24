@@ -592,7 +592,7 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				if (varName == null) {
 					if (varIndex == 0
-							&& (getMd().getMethodInfo().getAccessFlags() & AccessFlag.STATIC) == 0) {
+							&& (getMd().getAccessFlags() & AccessFlag.STATIC) == 0) {
 						varName = "this";
 					} else {
 						varName = "arg" + varIndex;

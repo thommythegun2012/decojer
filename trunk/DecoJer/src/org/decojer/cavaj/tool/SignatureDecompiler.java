@@ -28,8 +28,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javassist.bytecode.SignatureAttribute;
-
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -74,11 +73,11 @@ public class SignatureDecompiler {
 	 *            type declaration
 	 * @param signatureSimple
 	 *            simple signature
-	 * @param signatureFullAttribute
+	 * @param signatureFull
 	 *            full signature attribute
 	 */
 	public SignatureDecompiler(final TD td, final String signatureSimple,
-			final SignatureAttribute signatureFullAttribute) {
+			final String signatureFull) {
 		assert td != null;
 		assert td.getCu() != null;
 		assert td.getCu().getAst() != null;
@@ -87,8 +86,7 @@ public class SignatureDecompiler {
 		this.td = td;
 		this.ast = td.getCu().getAst();
 		this.signatureSimple = signatureSimple;
-		this.signatureFull = signatureFullAttribute == null ? null
-				: signatureFullAttribute.getSignature();
+		this.signatureFull = signatureFull;
 	}
 
 	/**
@@ -101,7 +99,7 @@ public class SignatureDecompiler {
 	 */
 	@SuppressWarnings("unchecked")
 	public void decompileClassTypes(final TypeDeclaration typeDeclaration,
-			final String[] interfaces) {
+			final T[] interfaces) {
 		// class type parameters
 		decompileTypeParameters(typeDeclaration.typeParameters());
 		// super class
@@ -110,14 +108,17 @@ public class SignatureDecompiler {
 			typeDeclaration.setSuperclassType(type);
 		}
 		// interfaces
-		for (final String interfaceName : interfaces) {
-			final Type interfaceType = decompileTypeFull();
-			if (interfaceType != null) {
-				typeDeclaration.superInterfaceTypes().add(interfaceType);
-				continue;
+		if (interfaces != null) {
+			for (final T interfaceT : interfaces) {
+				final Type interfaceType = decompileTypeFull();
+				if (interfaceType != null) {
+					typeDeclaration.superInterfaceTypes().add(interfaceType);
+					continue;
+				}
+				typeDeclaration.superInterfaceTypes().add(
+						getAST().newSimpleType(
+								getTD().newTypeName(interfaceT.getName())));
 			}
-			typeDeclaration.superInterfaceTypes().add(
-					getAST().newSimpleType(getTD().newTypeName(interfaceName)));
 		}
 	}
 

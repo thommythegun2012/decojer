@@ -238,7 +238,7 @@ public class TrControlFlowAnalysis {
 		// smaller then
 		final boolean negated = firstValue == Boolean.FALSE;
 
-		if (!negated && getMd().getTd().isJdk6()) {
+		if (!negated && getMd().getTd().getVersion() >= 50) {
 			log("Uncommon usage of unnegated conditional in JDK 6:\n" + cond);
 		}
 

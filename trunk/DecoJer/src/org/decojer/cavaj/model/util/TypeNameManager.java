@@ -47,9 +47,9 @@ public class TypeNameManager {
 
 	private final Map<String, Map<String, Integer>> package2name2number = new HashMap<String, Map<String, Integer>>();
 
-	private final Map<String, Integer> packagesName2number = new HashMap<String, Integer>();
-
 	private String packagePrefix;
+
+	private final Map<String, Integer> packagesName2number = new HashMap<String, Integer>();
 
 	/**
 	 * Constructor.
@@ -91,13 +91,14 @@ public class TypeNameManager {
 
 				if (!this.cu.isStartTdOnly()) {
 					// add TD to CU if main type name equal to any main TD in CU
-					final TD td = this.cu.getPf().getTd(name);
+					final TD td = this.cu.getStartTd().getT().getDu()
+							.getTd(name);
 					if (td != null && td.getCu() == null) {
 						pos = name.indexOf('$');
 						if (pos != -1) {
 							final String mName = name.substring(0, pos);
 							for (final TD _td : this.cu.getTds()) {
-								if (mName.equals(_td.getName())) {
+								if (mName.equals(_td.getT().getName())) {
 									this.cu.addTd(td);
 									break;
 								}

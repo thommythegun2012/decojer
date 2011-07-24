@@ -31,9 +31,12 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.reader.asm.AnalyseClassVisitor;
+import org.decojer.cavaj.reader.asm.ReadClassVisitor;
 import org.objectweb.asm.ClassReader;
 
 /**
@@ -80,6 +83,13 @@ public class AsmReader {
 				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61.jar");
 		final Types types = analyseJar(is);
 		System.out.println("Ana: " + types.getTypes().size());
+	}
+
+	public static TD read(final InputStream is, final DU du) throws IOException {
+		final ClassReader classReader = new ClassReader(is);
+		final ReadClassVisitor readClassVisitor = new ReadClassVisitor(du);
+		classReader.accept(readClassVisitor, 0);
+		return readClassVisitor.getTd();
 	}
 
 }

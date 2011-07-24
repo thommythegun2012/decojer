@@ -86,7 +86,7 @@ public class CU implements PD {
 		this.compilationUnit = (CompilationUnit) parser.createAST(null);
 		this.compilationUnit.recordModifications();
 
-		final String packageName = getPf().getPackageName();
+		final String packageName = getStartTd().getT().getPackageName();
 		if (packageName != null && packageName.length() != 0) {
 			setPackageName(packageName);
 		}
@@ -102,15 +102,15 @@ public class CU implements PD {
 	public boolean addTd(final TD td) {
 		assert td != null;
 
-		final PF pf = getPf();
-		final String typeName = td.getName();
+		final String typeName = td.getT().getName();
 
 		int pos = typeName.indexOf('$');
 		if (pos == -1) {
 			pos = typeName.length();
 		}
 
-		final TD rootTd = pf.getTd(typeName.substring(0, pos));
+		final TD rootTd = getStartTd().getT().getDu()
+				.getTd(typeName.substring(0, pos));
 		if (rootTd == null || rootTd.getPd() != null && rootTd.getPd() != this) {
 			return false;
 		}
@@ -123,7 +123,8 @@ public class CU implements PD {
 			if (pos == -1) {
 				pos = typeName.length();
 			}
-			final TD bd = pf.getTd(typeName.substring(0, pos));
+			final TD bd = getStartTd().getT().getDu()
+					.getTd(typeName.substring(0, pos));
 			if (bd == null) {
 				return false;
 			}
@@ -139,7 +140,7 @@ public class CU implements PD {
 				if (pbd != pd) {
 					throw new DecoJerException(
 							"Type declaration '"
-									+ bd.getName()
+									+ bd.getT().getName()
 									+ "' allready belongs to other parent type declaration '"
 									+ pd + "'!");
 				}
@@ -221,15 +222,6 @@ public class CU implements PD {
 	}
 
 	/**
-	 * Get package fragment.
-	 * 
-	 * @return package fragment, not null
-	 */
-	public PF getPf() {
-		return getStartTd().getPf();
-	}
-
-	/**
 	 * Get source file name.
 	 * 
 	 * @return source file name
@@ -257,10 +249,10 @@ public class CU implements PD {
 	public TD getTd(final String name) {
 		String n = name;
 		if (n.indexOf('.') == -1) {
-			n = getPf().getPackageName() + '.' + n;
+			n = getStartTd().getT().getPackageName() + '.' + n;
 		}
 		for (final TD td : getAllTds()) {
-			if (n.equals(td.getFullName())) {
+			if (n.equals(td.getT().getName())) {
 				return td;
 			}
 		}
