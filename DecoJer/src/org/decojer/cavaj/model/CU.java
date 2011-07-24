@@ -46,6 +46,9 @@ import org.eclipse.text.edits.TextEdit;
  */
 public class CU implements PD {
 
+	// all sub type declarations
+	private final List<TD> allTds = new ArrayList<TD>();
+
 	// global comment at end of source
 	private String comment;
 
@@ -54,31 +57,28 @@ public class CU implements PD {
 
 	private boolean ignoreSynthetic = true;
 
+	private String sourceFileName;
+
 	// start type declaration
 	private final TD startTd;
 
 	private boolean startTdOnly;
 
-	private String sourceFileName;
-
 	// sub type declarations
 	private final List<TD> tds = new ArrayList<TD>();
-
-	// all sub type declarations
-	private final List<TD> allTds = new ArrayList<TD>();
 
 	private final TypeNameManager typeNameManager = new TypeNameManager(this);
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param startTD
+	 * @param startTd
 	 *            start type declaration
 	 */
-	public CU(final TD startTD) {
-		assert startTD != null;
+	public CU(final TD startTd) {
+		assert startTd != null;
 
-		this.startTd = startTD;
+		this.startTd = startTd;
 
 		// initializes Eclipse AST
 		final ASTParser parser = ASTParser.newParser(AST.JLS3);
