@@ -23,15 +23,19 @@
  */
 package org.decojer.editor.eclipse;
 
+import java.io.ByteArrayInputStream;
 import java.util.IdentityHashMap;
 import java.util.List;
 
 import org.decojer.DecoJer;
+import org.decojer.PackageClassStreamProvider;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.PF;
+import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.reader.JavassistReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -91,6 +95,22 @@ import org.eclipse.zest.layouts.LayoutStyles;
 @SuppressWarnings("restriction")
 public class ClassEditor extends MultiPageEditorPart implements
 		IResourceChangeListener {
+
+	private static String extractPath(final IClassFile eclipseClassFile) {
+		assert eclipseClassFile != null;
+
+		if (eclipseClassFile.getResource() == null) {
+			// is from JAR...
+			// example: sun/org/mozilla/javascript/internal/
+			final String jarPath = eclipseClassFile.getPath().toOSString();
+			final String packageName = eclipseClassFile.getParent()
+					.getElementName();
+			final String typeName = eclipseClassFile.getElementName();
+			return jarPath + "!/" + packageName.replace('.', '/') + '/'
+					+ typeName;
+		}
+		return eclipseClassFile.getResource().getLocation().toOSString();
+	}
 
 	private Button antialiasingButton;
 
@@ -228,13 +248,12 @@ public class ClassEditor extends MultiPageEditorPart implements
 			final IClassFileEditorInput classFileEditorInput = (IClassFileEditorInput) this.classFileEditor
 					.getEditorInput();
 			final IClassFile classFile = classFileEditorInput.getClassFile();
-			final String typeFileName = classFile.getElementName();
-
-			final PF pf = DecoJer
-					.createPf(new EclipsePackageClassStreamProvider(classFile));
-			final String typeName = typeFileName.substring(0,
-					typeFileName.length() - 6);
-			this.cu = DecoJer.createCu(pf.getTd(typeName));
+			final DU du = DecoJer.createDu(new PackageClassStreamProvider(
+					extractPath(classFile)));
+			final TD td = JavassistReader.read(new ByteArrayInputStream(
+					classFile.getBytes()), du);
+			du.addTd(td);
+			this.cu = DecoJer.createCu(td);
 			sourceCode = DecoJer.decompile(this.cu);
 		} catch (final Throwable e) {
 			e.printStackTrace();

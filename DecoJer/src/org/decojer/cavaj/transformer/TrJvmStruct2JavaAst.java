@@ -28,30 +28,17 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javassist.CannotCompileException;
 import javassist.bytecode.AccessFlag;
-import javassist.bytecode.AnnotationDefaultAttribute;
-import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.AttributeInfo;
-import javassist.bytecode.ClassFile;
 import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.ConstantAttribute;
-import javassist.bytecode.DeprecatedAttribute;
-import javassist.bytecode.EnclosingMethodAttribute;
-import javassist.bytecode.ExceptionsAttribute;
-import javassist.bytecode.FieldInfo;
-import javassist.bytecode.InnerClassesAttribute;
-import javassist.bytecode.MethodInfo;
-import javassist.bytecode.ParameterAnnotationsAttribute;
-import javassist.bytecode.SignatureAttribute;
-import javassist.bytecode.SourceFileAttribute;
-import javassist.bytecode.SyntheticAttribute;
 
+import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.tool.AnnotationsDecompiler;
 import org.decojer.cavaj.tool.SignatureDecompiler;
@@ -64,15 +51,12 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
-import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
-import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
-import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
@@ -90,43 +74,13 @@ public class TrJvmStruct2JavaAst {
 	@SuppressWarnings("unchecked")
 	private static void decompileField(final FD fd, final CU cu) {
 		final TD td = fd.getTd();
-		final FieldInfo fieldInfo = fd.getFieldInfo();
 		final AbstractTypeDeclaration typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
 
-		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
-		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
-		ConstantAttribute constantAttribute = null;
-		DeprecatedAttribute deprecatedAttribute = null;
-		SignatureAttribute signatureAttribute = null;
-		SyntheticAttribute syntheticAttribute = null;
-		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) fieldInfo
-				.getAttributes()) {
-			final String attributeTag = attributeInfo.getName();
-			if (AnnotationsAttribute.invisibleTag.equals(attributeTag)) {
-				annotationsAttributeRuntimeInvisible = (AnnotationsAttribute) attributeInfo;
-			} else if (AnnotationsAttribute.visibleTag.equals(attributeTag)) {
-				annotationsAttributeRuntimeVisible = (AnnotationsAttribute) attributeInfo;
-			} else if (ConstantAttribute.tag.equals(attributeTag)) {
-				constantAttribute = (ConstantAttribute) attributeInfo;
-			} else if (DeprecatedAttribute.tag.equals(attributeTag)) {
-				deprecatedAttribute = (DeprecatedAttribute) attributeInfo;
-			} else if (SignatureAttribute.tag.equals(attributeTag)) {
-				signatureAttribute = (SignatureAttribute) attributeInfo;
-			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
-				syntheticAttribute = (SyntheticAttribute) attributeInfo;
-			} else {
-				LOGGER.log(Level.WARNING,
-						"Unknown field info attribute tag '" + attributeTag
-								+ "' for field info '" + fieldInfo.getName()
-								+ "'!");
-			}
-		}
-
-		int accessFlags = fieldInfo.getAccessFlags();
+		int accessFlags = fd.getAccessFlags();
 
 		if (accessFlags != (accessFlags &= ~AccessFlag.SYNTHETIC)
-				|| syntheticAttribute != null) {
+				|| fd.isSynthetic()) {
 			if (cu.isIgnoreSynthetic()) {
 				return; // no source code ?
 			}
@@ -137,7 +91,7 @@ public class TrJvmStruct2JavaAst {
 		// decompile BodyDeclaration, possible subtypes:
 		// FieldDeclaration, EnumConstantDeclaration
 		final BodyDeclaration fieldDeclaration;
-		final String name = fieldInfo.getName();
+		final String name = fd.getName();
 		if (isEnum) {
 			fieldDeclaration = ast.newEnumConstantDeclaration();
 			((EnumConstantDeclaration) fieldDeclaration).setName(ast
@@ -149,32 +103,27 @@ public class TrJvmStruct2JavaAst {
 			fieldDeclaration = ast
 					.newFieldDeclaration(variableDeclarationFragment);
 		}
-
-		// decompile deprecated Javadoc-tag if no annotation set
-		if (deprecatedAttribute != null
-				&& !AnnotationsDecompiler
-						.isDeprecatedAnnotation(annotationsAttributeRuntimeVisible)) {
-			final Javadoc newJavadoc = ast.newJavadoc();
-			final TagElement newTagElement = ast.newTagElement();
-			newTagElement.setTagName("@deprecated");
-			newJavadoc.tags().add(newTagElement);
-			fieldDeclaration.setJavadoc(newJavadoc);
-		}
-
-		// decompile annotations,
-		// add annotation modifiers before other modifiers, order preserved in
-		// source code generation through Eclipse JDT
-		if (annotationsAttributeRuntimeInvisible != null) {
-			AnnotationsDecompiler.decompileAnnotations(td,
-					fieldDeclaration.modifiers(),
-					annotationsAttributeRuntimeInvisible.getAnnotations());
-		}
-		if (annotationsAttributeRuntimeVisible != null) {
-			AnnotationsDecompiler.decompileAnnotations(td,
-					fieldDeclaration.modifiers(),
-					annotationsAttributeRuntimeVisible.getAnnotations());
-		}
-
+		/*
+		 * // decompile deprecated Javadoc-tag if no annotation set if
+		 * (deprecatedAttribute != null && !AnnotationsDecompiler
+		 * .isDeprecatedAnnotation(annotationsAttributeRuntimeVisible)) { final
+		 * Javadoc newJavadoc = ast.newJavadoc(); final TagElement newTagElement
+		 * = ast.newTagElement(); newTagElement.setTagName("@deprecated");
+		 * newJavadoc.tags().add(newTagElement);
+		 * fieldDeclaration.setJavadoc(newJavadoc); }
+		 */
+		/*
+		 * // decompile annotations, // add annotation modifiers before other
+		 * modifiers, order preserved in // source code generation through
+		 * Eclipse JDT if (annotationsAttributeRuntimeInvisible != null) {
+		 * AnnotationsDecompiler.decompileAnnotations(td,
+		 * fieldDeclaration.modifiers(),
+		 * annotationsAttributeRuntimeInvisible.getAnnotations()); } if
+		 * (annotationsAttributeRuntimeVisible != null) {
+		 * AnnotationsDecompiler.decompileAnnotations(td,
+		 * fieldDeclaration.modifiers(),
+		 * annotationsAttributeRuntimeVisible.getAnnotations()); }
+		 */
 		// decompile modifier flags,
 		// public is default for enum and interface
 		if (accessFlags != (accessFlags &= ~AccessFlag.PUBLIC)
@@ -218,24 +167,23 @@ public class TrJvmStruct2JavaAst {
 		}
 		if (accessFlags != 0) {
 			LOGGER.log(Level.WARNING, "Unknown field info modifier flags '"
-					+ accessFlags + "' for field info '" + fieldInfo.getName()
-					+ "'!");
+					+ accessFlags + "' for field info '" + fd.getName() + "'!");
 		}
 
 		if (fieldDeclaration instanceof EnumConstantDeclaration) {
 			if (!(typeDeclaration instanceof EnumDeclaration)) {
 				LOGGER.log(Level.WARNING,
 						"No enum declaration for enum constant declaration '"
-								+ fieldInfo.getName() + "'!");
+								+ fd.getName() + "'!");
 			} else {
 				((EnumDeclaration) typeDeclaration).enumConstants().add(
 						fieldDeclaration);
 			}
 		} else if (fieldDeclaration instanceof FieldDeclaration) {
-			new SignatureDecompiler(td, fieldInfo.getDescriptor(),
-					signatureAttribute)
+			new SignatureDecompiler(td, fd.getDescriptor(), fd.getSignature())
 					.decompileFieldType((FieldDeclaration) fieldDeclaration);
 
+			final ConstantAttribute constantAttribute = null;
 			if (constantAttribute != null) {
 				final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
 						.fragments().get(0);
@@ -258,13 +206,13 @@ public class TrJvmStruct2JavaAst {
 					// also: int, short, byte, char, boolean
 					final int integerInfo = constPool.getIntegerInfo(index);
 					// TODO better check decompiled type
-					if ("C".equals(fieldInfo.getDescriptor())) {
+					if ("C".equals(fd.getDescriptor())) {
 						final CharacterLiteral newCharacterLiteral = ast
 								.newCharacterLiteral();
 						newCharacterLiteral.setCharValue((char) integerInfo);
 						variableDeclarationFragment
 								.setInitializer(newCharacterLiteral);
-					} else if ("Z".equals(fieldInfo.getDescriptor())) {
+					} else if ("Z".equals(fd.getDescriptor())) {
 						variableDeclarationFragment.setInitializer(ast
 								.newBooleanLiteral(integerInfo == 1));
 					} else {
@@ -288,8 +236,7 @@ public class TrJvmStruct2JavaAst {
 					break;
 				default:
 					LOGGER.log(Level.WARNING, "Unknown constant attribute '"
-							+ tag + "' for field info '" + fieldInfo.getName()
-							+ "'!");
+							+ tag + "' for field info '" + fd.getName() + "'!");
 				}
 			}
 			fd.setFieldDeclaration(fieldDeclaration);
@@ -299,57 +246,13 @@ public class TrJvmStruct2JavaAst {
 	@SuppressWarnings("unchecked")
 	private static void decompileMethod(final MD md, final CU cu) {
 		final TD td = md.getTd();
-		final MethodInfo methodInfo = md.getMethodInfo();
 		final AbstractTypeDeclaration typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
 
-		AnnotationDefaultAttribute annotationDefaultAttribute = null;
-		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
-		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
-		CodeAttribute codeAttribute = null;
-		DeprecatedAttribute deprecatedAttribute = null;
-		ExceptionsAttribute exceptionsAttribute = null;
-		ParameterAnnotationsAttribute parameterAnnotationsAttributeRuntimeInvisible = null;
-		ParameterAnnotationsAttribute parameterAnnotationsAttributeRuntimeVisible = null;
-		SignatureAttribute signatureAttribute = null;
-		SyntheticAttribute syntheticAttribute = null;
-		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) methodInfo
-				.getAttributes()) {
-			final String attributeTag = attributeInfo.getName();
-			if (AnnotationDefaultAttribute.tag.equals(attributeTag)) {
-				annotationDefaultAttribute = (AnnotationDefaultAttribute) attributeInfo;
-			} else if (AnnotationsAttribute.invisibleTag.equals(attributeTag)) {
-				annotationsAttributeRuntimeInvisible = (AnnotationsAttribute) attributeInfo;
-			} else if (AnnotationsAttribute.visibleTag.equals(attributeTag)) {
-				annotationsAttributeRuntimeVisible = (AnnotationsAttribute) attributeInfo;
-			} else if (CodeAttribute.tag.equals(attributeTag)) {
-				codeAttribute = (CodeAttribute) attributeInfo;
-			} else if (DeprecatedAttribute.tag.equals(attributeTag)) {
-				deprecatedAttribute = (DeprecatedAttribute) attributeInfo;
-			} else if (ExceptionsAttribute.tag.equals(attributeTag)) {
-				exceptionsAttribute = (ExceptionsAttribute) attributeInfo;
-			} else if (ParameterAnnotationsAttribute.invisibleTag
-					.equals(attributeTag)) {
-				parameterAnnotationsAttributeRuntimeInvisible = (ParameterAnnotationsAttribute) attributeInfo;
-			} else if (ParameterAnnotationsAttribute.visibleTag
-					.equals(attributeTag)) {
-				parameterAnnotationsAttributeRuntimeVisible = (ParameterAnnotationsAttribute) attributeInfo;
-			} else if (SignatureAttribute.tag.equals(attributeTag)) {
-				signatureAttribute = (SignatureAttribute) attributeInfo;
-			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
-				syntheticAttribute = (SyntheticAttribute) attributeInfo;
-			} else {
-				LOGGER.log(Level.WARNING,
-						"Unknown method info attribute tag '" + attributeTag
-								+ "' for method info '" + methodInfo.getName()
-								+ "'!");
-			}
-		}
-
-		int accessFlags = methodInfo.getAccessFlags();
+		int accessFlags = md.getAccessFlags();
 
 		if (accessFlags != (accessFlags &= ~AccessFlag.SYNTHETIC)
-				|| syntheticAttribute != null) {
+				|| md.isSynthetic()) {
 			if (cu.isIgnoreSynthetic()) {
 				return; // no source code ?
 			}
@@ -360,7 +263,7 @@ public class TrJvmStruct2JavaAst {
 		// AnnotationTypeMemberDeclaration (all methods in @interface) or
 		// Initializer (static {})
 		final BodyDeclaration methodDeclaration;
-		final String name = methodInfo.getName();
+		final String name = md.getName();
 		if ("<clinit>".equals(name)) {
 			// this is the static initializer "static {}" => Initializer
 			methodDeclaration = ast.newInitializer();
@@ -370,55 +273,49 @@ public class TrJvmStruct2JavaAst {
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setConstructor(true);
 			((MethodDeclaration) methodDeclaration).setName(ast
-					.newSimpleName(cu.isStartTdOnly() ? td.getName() : td
-							.getIName()));
+					.newSimpleName(cu.isStartTdOnly() ? td.getT().getPName()
+							: td.getT().getIName()));
 		} else if (typeDeclaration instanceof AnnotationTypeDeclaration) {
 			// AnnotationTypeMemberDeclaration
 			methodDeclaration = ast.newAnnotationTypeMemberDeclaration();
 			((AnnotationTypeMemberDeclaration) methodDeclaration).setName(ast
 					.newSimpleName(name));
-			// check if default value (byte byteTest() default 2;)
-			if (annotationDefaultAttribute != null) {
-				final Expression expression = AnnotationsDecompiler
-						.decompileAnnotationMemberValue(td,
-								annotationDefaultAttribute.getDefaultValue());
-				if (expression != null) {
-					((AnnotationTypeMemberDeclaration) methodDeclaration)
-							.setDefault(expression);
-				}
-			}
+			/*
+			 * // check if default value (byte byteTest() default 2;) if
+			 * (annotationDefaultAttribute != null) { final Expression
+			 * expression = AnnotationsDecompiler
+			 * .decompileAnnotationMemberValue(td,
+			 * annotationDefaultAttribute.getDefaultValue()); if (expression !=
+			 * null) { ((AnnotationTypeMemberDeclaration) methodDeclaration)
+			 * .setDefault(expression); } }
+			 */
 		} else {
 			// MethodDeclaration
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setName(ast
 					.newSimpleName(name));
 		}
-
-		// decompile deprecated Javadoc-tag if no annotation set
-		if (deprecatedAttribute != null
-				&& !AnnotationsDecompiler
-						.isDeprecatedAnnotation(annotationsAttributeRuntimeVisible)) {
-			final Javadoc newJavadoc = ast.newJavadoc();
-			final TagElement newTagElement = ast.newTagElement();
-			newTagElement.setTagName("@deprecated");
-			newJavadoc.tags().add(newTagElement);
-			methodDeclaration.setJavadoc(newJavadoc);
-		}
-
-		// decompile annotations,
-		// add annotation modifiers before other modifiers, order preserved in
-		// source code generation through Eclipse JDT
-		if (annotationsAttributeRuntimeInvisible != null) {
-			AnnotationsDecompiler.decompileAnnotations(td,
-					methodDeclaration.modifiers(),
-					annotationsAttributeRuntimeInvisible.getAnnotations());
-		}
-		if (annotationsAttributeRuntimeVisible != null) {
-			AnnotationsDecompiler.decompileAnnotations(td,
-					methodDeclaration.modifiers(),
-					annotationsAttributeRuntimeVisible.getAnnotations());
-		}
-
+		/*
+		 * // decompile deprecated Javadoc-tag if no annotation set if
+		 * (deprecatedAttribute != null && !AnnotationsDecompiler
+		 * .isDeprecatedAnnotation(annotationsAttributeRuntimeVisible)) { final
+		 * Javadoc newJavadoc = ast.newJavadoc(); final TagElement newTagElement
+		 * = ast.newTagElement(); newTagElement.setTagName("@deprecated");
+		 * newJavadoc.tags().add(newTagElement);
+		 * methodDeclaration.setJavadoc(newJavadoc); }
+		 */
+		/*
+		 * // decompile annotations, // add annotation modifiers before other
+		 * modifiers, order preserved in // source code generation through
+		 * Eclipse JDT if (annotationsAttributeRuntimeInvisible != null) {
+		 * AnnotationsDecompiler.decompileAnnotations(td,
+		 * methodDeclaration.modifiers(),
+		 * annotationsAttributeRuntimeInvisible.getAnnotations()); } if
+		 * (annotationsAttributeRuntimeVisible != null) {
+		 * AnnotationsDecompiler.decompileAnnotations(td,
+		 * methodDeclaration.modifiers(),
+		 * annotationsAttributeRuntimeVisible.getAnnotations()); }
+		 */
 		// decompile modifier flags,
 		// public is default for interface and annotation type declarations
 		if (accessFlags != (accessFlags &= ~AccessFlag.PUBLIC)
@@ -473,18 +370,17 @@ public class TrJvmStruct2JavaAst {
 		if (accessFlags != 0) {
 			LOGGER.log(Level.WARNING, "Unknown method info modifier flags '0x"
 					+ Integer.toHexString(accessFlags) + "' for method info '"
-					+ methodInfo.getName() + "'!");
+					+ md.getName() + "'!");
 		}
 		// decompile method signature (not necessary for Initializer)
 		if (methodDeclaration instanceof MethodDeclaration) {
-			new SignatureDecompiler(td, methodInfo.getDescriptor(),
-					signatureAttribute).decompileMethodTypes(
-					(MethodDeclaration) methodDeclaration,
-					exceptionsAttribute == null ? null : exceptionsAttribute
-							.getExceptions(), varargs);
+			new SignatureDecompiler(td, md.getDescriptor(), md.getSignature())
+					.decompileMethodTypes(
+							(MethodDeclaration) methodDeclaration,
+							md.getExceptions(), varargs);
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(
-					td, methodInfo.getDescriptor(), signatureAttribute);
+					td, md.getDescriptor(), md.getSignature());
 			// should be empty, skip "()"
 			signatureDecompiler.decompileMethodParameterTypes();
 			final Type returnType = signatureDecompiler.decompileType();
@@ -496,8 +392,8 @@ public class TrJvmStruct2JavaAst {
 		// get method block
 		final Block block;
 		// abstract and native methods have no block
-		if ((methodInfo.getAccessFlags() & AccessFlag.ABSTRACT) == 0
-				&& (methodInfo.getAccessFlags() & AccessFlag.NATIVE) == 0) {
+		if ((md.getAccessFlags() & AccessFlag.ABSTRACT) == 0
+				&& (md.getAccessFlags() & AccessFlag.NATIVE) == 0) {
 			if (methodDeclaration instanceof MethodDeclaration) {
 				block = ast.newBlock();
 				((MethodDeclaration) methodDeclaration).setBody(block);
@@ -511,20 +407,42 @@ public class TrJvmStruct2JavaAst {
 			block = null;
 		}
 		// block == null => helper for variable name only
+		final CodeAttribute codeAttribute = null;
 		final CFG cfg = new CFG(md, block, codeAttribute);
 
 		if (methodDeclaration instanceof MethodDeclaration) {
 			// decompile method parameter annotations and names
-			final javassist.bytecode.annotation.Annotation[][] annotationsInvisible = parameterAnnotationsAttributeRuntimeInvisible == null ? null
-					: parameterAnnotationsAttributeRuntimeInvisible
-							.getAnnotations();
-			final javassist.bytecode.annotation.Annotation[][] annotationsVisible = parameterAnnotationsAttributeRuntimeVisible == null ? null
-					: parameterAnnotationsAttributeRuntimeVisible
-							.getAnnotations();
+			final javassist.bytecode.annotation.Annotation[][] annotationsInvisible = null; /*
+																							 * parameterAnnotationsAttributeRuntimeInvisible
+																							 * ==
+																							 * null
+																							 * ?
+																							 * null
+																							 * :
+																							 * parameterAnnotationsAttributeRuntimeInvisible
+																							 * .
+																							 * getAnnotations
+																							 * (
+																							 * )
+																							 * ;
+																							 */
+			final javassist.bytecode.annotation.Annotation[][] annotationsVisible = null; /*
+																						 * parameterAnnotationsAttributeRuntimeVisible
+																						 * ==
+																						 * null
+																						 * ?
+																						 * null
+																						 * :
+																						 * parameterAnnotationsAttributeRuntimeVisible
+																						 * .
+																						 * getAnnotations
+																						 * (
+																						 * )
+																						 * ;
+																						 */
 
 			int annotation = 0;
-			int test = (methodInfo.getAccessFlags() & AccessFlag.STATIC) != 0 ? 0
-					: 1;
+			int test = (md.getAccessFlags() & AccessFlag.STATIC) != 0 ? 0 : 1;
 			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
 					.parameters()) {
 				// decompile parameter annotations
@@ -552,78 +470,14 @@ public class TrJvmStruct2JavaAst {
 
 	@SuppressWarnings("unchecked")
 	public static void transform(final TD td) {
+		final T t = td.getT();
 		final CU cu = td.getCu();
 		final AST ast = cu.getAst();
-		final ClassFile classFile = td.getClassFile();
 
-		// only annotations with RetentionPolicy.CLASS or RUNTIME are visible
-		// here and can be decompiled, e.g. @SuppressWarnings not visible here,
-		// has @Retention(RetentionPolicy.SOURCE)
-		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
-		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
-		DeprecatedAttribute deprecatedAttribute = null;
-		// for local or inner classes the innermost enclosing class or method
-		EnclosingMethodAttribute enclosingMethodAttribute = null;
-		InnerClassesAttribute innerClassesAttribute = null;
-		SignatureAttribute signatureAttribute = null;
-		SourceFileAttribute sourceFileAttribute = null;
-		SyntheticAttribute syntheticAttribute = null;
-		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) classFile
-				.getAttributes()) {
-			final String attributeTag = attributeInfo.getName();
-			if (AnnotationsAttribute.invisibleTag.equals(attributeTag)) {
-				annotationsAttributeRuntimeInvisible = (AnnotationsAttribute) attributeInfo;
-			} else if (AnnotationsAttribute.visibleTag.equals(attributeTag)) {
-				annotationsAttributeRuntimeVisible = (AnnotationsAttribute) attributeInfo;
-			} else if (DeprecatedAttribute.tag.equals(attributeTag)) {
-				deprecatedAttribute = (DeprecatedAttribute) attributeInfo;
-			} else if (EnclosingMethodAttribute.tag.equals(attributeTag)) {
-				enclosingMethodAttribute = (EnclosingMethodAttribute) attributeInfo;
-			} else if (InnerClassesAttribute.tag.equals(attributeTag)) {
-				innerClassesAttribute = (InnerClassesAttribute) attributeInfo;
-			} else if (SignatureAttribute.tag.equals(attributeTag)) {
-				signatureAttribute = (SignatureAttribute) attributeInfo;
-			} else if (SourceFileAttribute.tag.equals(attributeTag)) {
-				sourceFileAttribute = (SourceFileAttribute) attributeInfo;
-			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
-				syntheticAttribute = (SyntheticAttribute) attributeInfo;
-			} else {
-				LOGGER.log(Level.WARNING, "Unknown class file attribute tag '"
-						+ attributeTag + "'!");
-			}
-		}
-
-		if (enclosingMethodAttribute != null) {
-			// is anonymous class,
-			// innermost enclosing class or method
-			if (enclosingMethodAttribute.classIndex() > 0) {
-				System.out.println("Enclosing Method Attribute: className: "
-						+ enclosingMethodAttribute.className());
-			}
-			if (enclosingMethodAttribute.methodIndex() > 0) {
-				System.out.println("Enclosing Method Attribute: methodName: "
-						+ enclosingMethodAttribute.methodName()
-						+ ", methodDescriptor: "
-						+ enclosingMethodAttribute.methodDescriptor());
-			}
-		}
-		if (innerClassesAttribute != null) {
-			// is or has inner classes
-			for (int i = 0; i < innerClassesAttribute.tableLength(); ++i) {
-				// innerClassesAttribute.getName() is "InnerClasses"
-				System.out.println("Inner Classes Attribute: accessFlags: "
-						+ innerClassesAttribute.accessFlags(i)
-						+ ", innerClass: "
-						+ innerClassesAttribute.innerClass(i) + ", innerName: "
-						+ innerClassesAttribute.innerName(i) + ", outerClass: "
-						+ innerClassesAttribute.outerClass(i));
-			}
-		}
-
-		int accessFlags = classFile.getAccessFlags();
+		int accessFlags = td.getAccessFlags();
 
 		if (accessFlags != (accessFlags &= ~AccessFlag.SYNTHETIC)
-				|| syntheticAttribute != null) {
+				|| td.isSynthetic()) {
 			if (cu.isIgnoreSynthetic()) {
 				return; // no source code ?
 			}
@@ -633,28 +487,20 @@ public class TrJvmStruct2JavaAst {
 
 		// annotation type declaration
 		if (accessFlags != (accessFlags &= ~AccessFlag.ANNOTATION)) {
-			if (classFile.getSuperclass() == null
-					|| !Object.class.getName()
-							.equals(classFile.getSuperclass())) {
+			if (t.getSuperT() == null
+					|| !Object.class.getName().equals(t.getSuperT().getName())) {
 				LOGGER.log(Level.WARNING,
 						"Classfile with AccessFlag.ANNOTATION has no super class '"
 								+ Object.class.getName() + "' but has '"
-								+ classFile.getSuperclass() + "'! Repairing.");
-				try {
-					classFile.setSuperclass(Annotation.class.getName());
-				} catch (final CannotCompileException e) {
-					LOGGER.log(Level.WARNING, "...Failed!", e);
-				}
+								+ t.getSuperT().getName() + "'!");
 			}
-			if (classFile.getInterfaces().length != 1
+			if (t.getInterfaceTs().length != 1
 					|| !Annotation.class.getName().equals(
-							classFile.getInterfaces()[0])) {
+							t.getInterfaceTs()[0].getName())) {
 				LOGGER.log(Level.WARNING,
 						"Classfile with AccessFlag.ANNOTATION has no interface '"
 								+ Annotation.class.getName() + "' but has '"
-								+ classFile.getInterfaces() + "'! Repairing.");
-				classFile.setInterfaces(new String[] { Annotation.class
-						.getName() });
+								+ t.getInterfaceTs()[0].getName() + "'!");
 			}
 			typeDeclaration = ast.newAnnotationTypeDeclaration();
 		}
@@ -664,26 +510,21 @@ public class TrJvmStruct2JavaAst {
 				LOGGER.log(Level.WARNING,
 						"Enum declaration cannot be an annotation type declaration! Ignoring.");
 			} else {
-				if (classFile.getSuperclass() == null
-						|| !Enum.class.getName().equals(
-								classFile.getSuperclass())) {
+				if (t.getSuperT() == null
+						|| !Enum.class.getName()
+								.equals(t.getSuperT().getName())) {
 					LOGGER.log(Level.WARNING,
 							"Classfile with AccessFlag.ENUM has no super class '"
 									+ Enum.class.getName() + "' but has '"
-									+ classFile.getSuperclass()
-									+ "'! Repairing.");
-					try {
-						classFile.setSuperclass(Enum.class.getName());
-					} catch (final CannotCompileException e) {
-						LOGGER.log(Level.WARNING, "...Failed!", e);
-					}
+									+ t.getSuperT().getName() + "'!");
 				}
 				typeDeclaration = ast.newEnumDeclaration();
 				// enum declarations cannot extent other classes but Enum.class,
 				// but can have interfaces
-				for (final String interfaceName : classFile.getInterfaces()) {
+				for (final T interfaceT : t.getInterfaceTs()) {
 					((EnumDeclaration) typeDeclaration).superInterfaceTypes()
-							.add(ast.newSimpleType(ast.newName(interfaceName)));
+							.add(ast.newSimpleType(ast.newName(interfaceT
+									.getName())));
 				}
 			}
 		}
@@ -693,26 +534,22 @@ public class TrJvmStruct2JavaAst {
 			typeDeclaration = ast.newTypeDeclaration();
 
 			final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(
-					td, "L" + classFile.getSuperclass() + ";",
-					signatureAttribute);
+					td, "L" + t.getSuperT().getName() + ";", t.getSignature());
 			signatureDecompiler.decompileClassTypes(
-					(TypeDeclaration) typeDeclaration,
-					classFile.getInterfaces());
+					(TypeDeclaration) typeDeclaration, t.getInterfaceTs());
 		}
-
-		// add annotation modifiers before other modifiers, order preserved in
-		// source code generation through eclipse.jdt
-		if (annotationsAttributeRuntimeInvisible != null) {
-			AnnotationsDecompiler.decompileAnnotations(td,
-					typeDeclaration.modifiers(),
-					annotationsAttributeRuntimeInvisible.getAnnotations());
-		}
-		if (annotationsAttributeRuntimeVisible != null) {
-			AnnotationsDecompiler.decompileAnnotations(td,
-					typeDeclaration.modifiers(),
-					annotationsAttributeRuntimeVisible.getAnnotations());
-		}
-
+		/*
+		 * // add annotation modifiers before other modifiers, order preserved
+		 * in // source code generation through eclipse.jdt if
+		 * (annotationsAttributeRuntimeInvisible != null) {
+		 * AnnotationsDecompiler.decompileAnnotations(td,
+		 * typeDeclaration.modifiers(),
+		 * annotationsAttributeRuntimeInvisible.getAnnotations()); } if
+		 * (annotationsAttributeRuntimeVisible != null) {
+		 * AnnotationsDecompiler.decompileAnnotations(td,
+		 * typeDeclaration.modifiers(),
+		 * annotationsAttributeRuntimeVisible.getAnnotations()); }
+		 */
 		// decompile remaining modifier flags
 		if (accessFlags != (accessFlags &= ~AccessFlag.PUBLIC)) {
 			typeDeclaration.modifiers().add(
@@ -748,31 +585,24 @@ public class TrJvmStruct2JavaAst {
 		// multiple CompilationUnit.TypeDeclaration in same AST (source file)
 		// possible, but only one of them is public and multiple class files are
 		// necessary
-		typeDeclaration.setName(ast.newSimpleName(cu.isStartTdOnly() ? td
-				.getName() : td.getIName()));
-
-		if (deprecatedAttribute != null
-				&& !AnnotationsDecompiler
-						.isDeprecatedAnnotation(annotationsAttributeRuntimeVisible)) {
-			final Javadoc newJavadoc = ast.newJavadoc();
-			final TagElement newTagElement = ast.newTagElement();
-			newTagElement.setTagName("@deprecated");
-			newJavadoc.tags().add(newTagElement);
-			typeDeclaration.setJavadoc(newJavadoc);
-		}
-
+		typeDeclaration.setName(ast.newSimpleName(cu.isStartTdOnly() ? t
+				.getPName() : t.getIName()));
+		/*
+		 * if (td.isDeprecated() && !AnnotationsDecompiler
+		 * .isDeprecatedAnnotation(annotationsAttributeRuntimeVisible)) { final
+		 * Javadoc newJavadoc = ast.newJavadoc(); final TagElement newTagElement
+		 * = ast.newTagElement(); newTagElement.setTagName("@deprecated");
+		 * newJavadoc.tags().add(newTagElement);
+		 * typeDeclaration.setJavadoc(newJavadoc); }
+		 */
 		td.setTypeDeclaration(typeDeclaration);
-		for (final FieldInfo fieldInfo : (List<FieldInfo>) classFile
-				.getFields()) {
-			final FD fd = new FD(td, fieldInfo);
-			td.getBds().add(fd);
-			decompileField(fd, cu);
-		}
-		for (final MethodInfo methodInfo : (List<MethodInfo>) classFile
-				.getMethods()) {
-			final MD md = new MD(td, methodInfo);
-			td.getBds().add(md);
-			decompileMethod(md, cu);
+		for (final BD bd : td.getBds()) {
+			if (bd instanceof FD) {
+				decompileField((FD) bd, cu);
+			}
+			if (bd instanceof MD) {
+				decompileMethod((MD) bd, cu);
+			}
 		}
 
 		// build class decompilation comment
@@ -783,29 +613,41 @@ public class TrJvmStruct2JavaAst {
 				.append(", a Java-bytecode decompiler.\n")
 				.append(" * DecoJer Copyright (C) 2009-2011 André Pankraz. All Rights Reserved.\n")
 				.append(" *\n");
-		final int majorVersion = classFile.getMajorVersion();
-		final int minorVersion = classFile.getMinorVersion();
-		sb.append(" * Class File Version: ").append(majorVersion).append('.')
-				.append(minorVersion).append(" (Java ");
-		if (majorVersion == ClassFile.JAVA_1) {
+		final int version = td.getVersion();
+		sb.append(" * Class File Version: ").append(version).append(" (Java ");
+		switch (version) {
+		case 45:
 			sb.append("1.1");
-		} else if (majorVersion == ClassFile.JAVA_2) {
+			break;
+		case 46:
 			sb.append("1.2");
-		} else if (majorVersion == ClassFile.JAVA_3) {
+			break;
+		case 47:
 			sb.append("1.3");
-		} else if (majorVersion == ClassFile.JAVA_5) {
+			break;
+		case 48:
+			sb.append("1.4");
+			break;
+		case 49:
 			sb.append("5");
-		} else if (majorVersion == ClassFile.JAVA_6) {
+			break;
+		case 50:
 			sb.append("6");
-		} else if (majorVersion == ClassFile.JAVA_7) {
+			break;
+		case 51:
 			sb.append("7");
-		} else {
+			break;
+		case 52:
+			sb.append("8");
+			break;
+		default:
 			sb.append("TODO version unknown");
+			break;
 		}
 		sb.append(")\n");
-		if (sourceFileAttribute != null) {
-			sb.append(" * Source File Name: ")
-					.append(sourceFileAttribute.getFileName()).append('\n');
+		if (td.getSourceFileName() != null) {
+			sb.append(" * Source File Name: ").append(td.getSourceFileName())
+					.append('\n');
 		}
 		sb.append(" */");
 		cu.setComment(sb.toString());

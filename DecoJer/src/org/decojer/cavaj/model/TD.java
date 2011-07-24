@@ -23,14 +23,9 @@
  */
 package org.decojer.cavaj.model;
 
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javassist.bytecode.ClassFile;
-
-import org.decojer.DecoJerException;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.Name;
@@ -45,44 +40,38 @@ import org.eclipse.jdt.core.dom.Name;
  */
 public class TD implements BD, PD {
 
+	private int accessFlags;
+
 	// all body declarations: inner type/method/field declarations
 	private final List<BD> bds = new ArrayList<BD>();
 
-	private final ClassFile classFile;
+	private boolean deprecated;
 
 	// parent declaration
 	private PD pd;
 
-	// package fragment
-	private final PF pf;
+	private String sourceFileName;
+
+	private boolean synthetic;
+
+	// type
+	private final T t;
 
 	// Eclipse type declaration
 	private AbstractTypeDeclaration typeDeclaration; // anonymousClassDeclaration?
 
+	private int version;
+
 	/**
 	 * Constructor.
 	 * 
-	 * @param pf
-	 *            package fragment
-	 * @param classStream
-	 *            class stream
+	 * @param t
+	 *            t
 	 */
-	public TD(final PF pf, final DataInputStream classStream) {
-		assert pf != null;
-		assert classStream != null;
+	public TD(final T t) {
+		assert t != null;
 
-		this.pf = pf;
-
-		// Javassist is a shortcut for now, later parse directly, in any case
-		// completely consume stream in this constructor and remember all data!
-		try {
-			this.classFile = new ClassFile(classStream);
-		} catch (final IOException e) {
-			throw new DecoJerException(
-					"Couldn't read class file from class stream!", e);
-		}
-		// Nevertheless, it isn't possible to create Eclipse AST objects here!
-		// Can only be after Compilation Unit creation.
+		this.t = t;
 	}
 
 	/**
@@ -101,21 +90,21 @@ public class TD implements BD, PD {
 	}
 
 	/**
+	 * Get access flags.
+	 * 
+	 * @return access flags
+	 */
+	public int getAccessFlags() {
+		return this.accessFlags;
+	}
+
+	/**
 	 * Get body declarations.
 	 * 
 	 * @return body declarations, not null
 	 */
 	public List<BD> getBds() {
 		return this.bds;
-	}
-
-	/**
-	 * Get class file.
-	 * 
-	 * @return class file, not null
-	 */
-	public ClassFile getClassFile() {
-		return this.classFile;
 	}
 
 	/**
@@ -138,33 +127,6 @@ public class TD implements BD, PD {
 			return ((FD) pd).getTd().getCu();
 		}
 		return null;
-	}
-
-	/**
-	 * Get full name, e.g. "decojer.model.TD$Inner".
-	 * 
-	 * @return full name
-	 */
-	public String getFullName() {
-		return getClassFile().getName();
-	}
-
-	/**
-	 * Get inner name, without '$'.
-	 * 
-	 * @return inner name
-	 */
-	public String getIName() {
-		final String fullName = getName();
-		final int pos = fullName.lastIndexOf('$');
-		final String name = pos == -1 ? fullName : fullName.substring(pos + 1);
-
-		try {
-			Integer.parseInt(name);
-			return "T$" + name;
-		} catch (final NumberFormatException e) {
-			return name;
-		}
 	}
 
 	/**
@@ -194,28 +156,6 @@ public class TD implements BD, PD {
 	}
 
 	/**
-	 * Get name, with '$', e.g. "TD$Inner".
-	 * 
-	 * @return name, not null
-	 */
-	public String getName() {
-		final String name = getFullName();
-		final int pos = name.lastIndexOf('.');
-		return pos == -1 ? name : name.substring(pos + 1);
-	}
-
-	/**
-	 * Get package name (from class file).
-	 * 
-	 * @return package name, not null
-	 */
-	public String getPackageName() {
-		final String name = getFullName();
-		final int pos = name.lastIndexOf('.');
-		return pos == -1 ? "" : name.substring(0, pos);
-	}
-
-	/**
 	 * Get parent declaration.
 	 * 
 	 * @return parent declaration or null if no inner class
@@ -225,21 +165,21 @@ public class TD implements BD, PD {
 	}
 
 	/**
-	 * Get package fragment.
-	 * 
-	 * @return package fragment, not null
-	 */
-	public PF getPf() {
-		return this.pf;
-	}
-
-	/**
-	 * Get source file name from source file attribute.
+	 * Get source file name (from source file attribute).
 	 * 
 	 * @return source file name or null
 	 */
 	public String getSourceFileName() {
-		return this.classFile.getSourceFile();
+		return this.sourceFileName;
+	}
+
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
+	public T getT() {
+		return this.t;
 	}
 
 	/**
@@ -251,8 +191,31 @@ public class TD implements BD, PD {
 		return this.typeDeclaration;
 	}
 
-	public boolean isJdk6() {
-		return getClassFile().getMajorVersion() == ClassFile.JAVA_6;
+	/**
+	 * Get Class file version (Java2 46 ... Java7 51).
+	 * 
+	 * @return Class file version
+	 */
+	public int getVersion() {
+		return this.version;
+	}
+
+	/**
+	 * Get deprecated state (from deprecated attribute).
+	 * 
+	 * @return true - deprecated
+	 */
+	public boolean isDeprecated() {
+		return this.deprecated;
+	}
+
+	/**
+	 * Get synthetic state (from synthetic attribute).
+	 * 
+	 * @return true - synthetic
+	 */
+	public boolean isSynthetic() {
+		return this.synthetic;
 	}
 
 	/**
@@ -269,6 +232,26 @@ public class TD implements BD, PD {
 	}
 
 	/**
+	 * Set access flags
+	 * 
+	 * @param accessFlags
+	 *            access flags
+	 */
+	public void setAccessFlags(final int accessFlags) {
+		this.accessFlags = accessFlags;
+	}
+
+	/**
+	 * Set deprecated state (from deprecated attribute).
+	 * 
+	 * @param deprecated
+	 *            true - deprecated
+	 */
+	public void setDeprecated(final boolean deprecated) {
+		this.deprecated = deprecated;
+	}
+
+	/**
 	 * Set parent declaration.
 	 * 
 	 * @param pd
@@ -276,6 +259,26 @@ public class TD implements BD, PD {
 	 */
 	public void setPd(final PD pd) {
 		this.pd = pd;
+	}
+
+	/**
+	 * Set source file name (from source file attribute).
+	 * 
+	 * @param sourceFileName
+	 *            source file name
+	 */
+	public void setSourceFileName(final String sourceFileName) {
+		this.sourceFileName = sourceFileName;
+	}
+
+	/**
+	 * Set synthetic state (from synthetic attribute).
+	 * 
+	 * @param synthetic
+	 *            true - synthetic
+	 */
+	public void setSynthetic(final boolean synthetic) {
+		this.synthetic = synthetic;
 	}
 
 	/**
@@ -288,9 +291,19 @@ public class TD implements BD, PD {
 		this.typeDeclaration = typeDeclaration;
 	}
 
+	/**
+	 * Set Class file version (Java2 46 ... Java7 51).
+	 * 
+	 * @param version
+	 *            Class file version
+	 */
+	public void setVersion(final int version) {
+		this.version = version;
+	}
+
 	@Override
 	public String toString() {
-		return getFullName();
+		return getT().toString();
 	}
 
 }

@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import javassist.bytecode.FieldInfo;
-
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 
@@ -35,11 +33,21 @@ import org.eclipse.jdt.core.dom.Expression;
  */
 public class FD implements BD, PD {
 
+	private final int accessFlags;
+
+	private boolean deprecated;
+
+	private final String descriptor;
+
 	private BodyDeclaration fieldDeclaration;
 
-	private final FieldInfo fieldInfo;
-
 	private Expression initializer;
+
+	private final String name;
+
+	private final String signature;
+
+	private boolean synthetic;
 
 	private final TD td;
 
@@ -48,15 +56,44 @@ public class FD implements BD, PD {
 	 * 
 	 * @param td
 	 *            type declaration
-	 * @param fieldInfo
-	 *            field info
+	 * @param accessFlags
+	 *            access flags
+	 * @param name
+	 *            name
+	 * @param descriptor
+	 *            descriptor
+	 * @param signature
+	 *            signature
 	 */
-	public FD(final TD td, final FieldInfo fieldInfo) {
+	public FD(final TD td, final int accessFlags, final String name,
+			final String descriptor, final String signature) {
 		assert td != null;
-		assert fieldInfo != null;
+		assert name != null;
+		assert descriptor != null;
 
 		this.td = td;
-		this.fieldInfo = fieldInfo;
+		this.accessFlags = accessFlags;
+		this.name = name;
+		this.descriptor = descriptor;
+		this.signature = signature;
+	}
+
+	/**
+	 * Get access flags.
+	 * 
+	 * @return access flags
+	 */
+	public int getAccessFlags() {
+		return this.accessFlags;
+	}
+
+	/**
+	 * Get descriptor.
+	 * 
+	 * @return descriptor
+	 */
+	public String getDescriptor() {
+		return this.descriptor;
 	}
 
 	/**
@@ -69,15 +106,6 @@ public class FD implements BD, PD {
 	}
 
 	/**
-	 * Get field info.
-	 * 
-	 * @return field info
-	 */
-	public FieldInfo getFieldInfo() {
-		return this.fieldInfo;
-	}
-
-	/**
 	 * Get initializer expression.
 	 * 
 	 * @return initializer expression
@@ -87,12 +115,53 @@ public class FD implements BD, PD {
 	}
 
 	/**
+	 * Get name.
+	 * 
+	 * @return name
+	 */
+	public String getName() {
+		return this.name;
+	}
+
+	public String getSignature() {
+		return this.signature;
+	}
+
+	/**
 	 * Get type declaration.
 	 * 
 	 * @return type declaration, not null
 	 */
 	public TD getTd() {
 		return this.td;
+	}
+
+	/**
+	 * Get deprecated state (from deprecated attribute).
+	 * 
+	 * @return true - deprecated
+	 */
+	public boolean isDeprecated() {
+		return this.deprecated;
+	}
+
+	/**
+	 * Get synthetic state (from synthetic attribute).
+	 * 
+	 * @return true - synthetic
+	 */
+	public boolean isSynthetic() {
+		return this.synthetic;
+	}
+
+	/**
+	 * Set deprecated state (from deprecated attribute).
+	 * 
+	 * @param deprecated
+	 *            true - deprecated
+	 */
+	public void setDeprecated(final boolean deprecated) {
+		this.deprecated = deprecated;
 	}
 
 	/**
@@ -107,6 +176,16 @@ public class FD implements BD, PD {
 		assert fieldDeclaration != null;
 
 		this.fieldDeclaration = fieldDeclaration;
+	}
+
+	/**
+	 * Set synthetic state (from synthetic attribute).
+	 * 
+	 * @param synthetic
+	 *            true - synthetic
+	 */
+	public void setSynthetic(final boolean synthetic) {
+		this.synthetic = synthetic;
 	}
 
 }

@@ -27,12 +27,15 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map.Entry;
 
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.PF;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.reader.JavassistReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -58,19 +61,30 @@ public class DecoJer {
 	 * @return compilation unit
 	 */
 	public static CU createCu(final TD startTd) {
+		assert startTd != null;
+
 		return new CU(startTd);
 	}
 
 	/**
-	 * Create package fragment from package class file provider.
+	 * Create decompilation unit.
 	 * 
-	 * @param packageClassFileProvider
-	 *            package class file provider
-	 * @return package fragment
+	 * @param packageClassStreamProvider
+	 *            package class stream provider
+	 * @return decompilation unit
+	 * @throws IOException
+	 *             read exception
 	 */
-	public static PF createPf(
-			final PackageClassStreamProvider packageClassFileProvider) {
-		return new PF(packageClassFileProvider);
+	public static DU createDu(
+			final PackageClassStreamProvider packageClassStreamProvider)
+			throws IOException {
+		final DU du = new DU();
+		for (final Entry<String, InputStream> classFileEntry : packageClassStreamProvider
+				.getClassStreams().entrySet()) {
+			final TD td = JavassistReader.read(classFileEntry.getValue(), du);
+			du.addTd(td);
+		}
+		return du;
 	}
 
 	/**
@@ -122,8 +136,9 @@ public class DecoJer {
 	 * @param path
 	 *            path to class file
 	 * @return source code
+	 * @throws IOException
 	 */
-	public static String decompile(final String path) {
+	public static String decompile(final String path) throws IOException {
 		if (path == null) {
 			throw new DecoJerException("Path must not be null!");
 		}
@@ -139,10 +154,10 @@ public class DecoJer {
 			throw new DecoJerException("Must be a path to a class file: "
 					+ path);
 		}
-		final PF pf = createPf(new PackageClassStreamProvider(path));
+		final DU du = createDu(new PackageClassStreamProvider(path));
 		final String typeName = typeFileName.substring(0,
 				typeFileName.length() - 6);
-		final CU cu = createCu(pf.getTd(typeName));
+		final CU cu = createCu(du.getTd(typeName));
 		return decompile(cu);
 	}
 
@@ -158,24 +173,23 @@ public class DecoJer {
 		// later...
 	}
 
-	public static void main(final String[] args) {
+	public static void main(final String[] args) throws IOException {
 		final PackageClassStreamProvider packageClassStreamProvider = new PackageClassStreamProvider(
 				null);
 		try {
 			packageClassStreamProvider
 					.addClassStream(
-							"DecTestBooleanOperators",
+							"DecTestFields",
 							new DataInputStream(
 									new FileInputStream(
 											new File(
-													"D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/jdk5/DecTestParametrizedMethods.class"))));
+													"D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"))));
 		} catch (final FileNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		final PF pf = createPf(packageClassStreamProvider);
-		final Entry<String, TD> next = pf.getTds().entrySet().iterator().next();
-		final CU cu = createCu(next.getValue());
+		final DU du = createDu(packageClassStreamProvider);
+		final CU cu = createCu(du.getTd("org.decojer.cavaj.test.DecTestFields"));
 		System.out.println(decompile(cu));
 
 		// System.out

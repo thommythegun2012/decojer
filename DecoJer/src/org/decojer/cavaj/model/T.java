@@ -30,15 +30,13 @@ package org.decojer.cavaj.model;
  */
 public class T {
 
-	private T[] argTs;
-
-	private String descriptor;
-
 	private final DU du;
 
 	private T[] interfaceTs;
 
 	private final String name;
+
+	private String signature;
 
 	private T superT;
 
@@ -54,27 +52,6 @@ public class T {
 	}
 
 	/**
-	 * Get argument types.
-	 * 
-	 * @return argument types
-	 */
-	public T[] getArgTs() {
-		if (this.interfaceTs == null) {
-			init();
-		}
-		return this.argTs;
-	}
-
-	/**
-	 * Get descriptor.
-	 * 
-	 * @return descriptor
-	 */
-	public String getDescriptor() {
-		return this.descriptor;
-	}
-
-	/**
 	 * Get decompilation unit.
 	 * 
 	 * @return decompilation unit
@@ -84,14 +61,22 @@ public class T {
 	}
 
 	/**
+	 * Get inner name.
+	 * 
+	 * @return inner name
+	 */
+	public String getIName() {
+		final String pName = getPName();
+		final int pos = pName.lastIndexOf('$');
+		return pos == -1 ? pName : pName.substring(pos + 1);
+	}
+
+	/**
 	 * Get interface types.
 	 * 
 	 * @return interface types
 	 */
 	public T[] getInterfaceTs() {
-		if (this.interfaceTs == null) {
-			init();
-		}
 		return this.interfaceTs;
 	}
 
@@ -105,35 +90,76 @@ public class T {
 	}
 
 	/**
+	 * Get package name.
+	 * 
+	 * @return package name
+	 */
+	public String getPackageName() {
+		final int pos = getName().lastIndexOf('.');
+		return pos == -1 ? "" : getName().substring(0, pos);
+	}
+
+	/**
+	 * Get primary name.
+	 * 
+	 * @return primary name
+	 */
+	public String getPName() {
+		final int pos = getName().lastIndexOf('.');
+		return pos == -1 ? getName() : getName().substring(pos + 1);
+	}
+
+	/**
+	 * Get signature.
+	 * 
+	 * @return signature
+	 */
+	public String getSignature() {
+		return this.signature;
+	}
+
+	/**
 	 * Get super type.
 	 * 
 	 * @return super type
 	 */
 	public T getSuperT() {
-		if (this.interfaceTs == null) {
-			init();
-		}
 		return this.superT;
 	}
 
-	private void init() {
-		// parse and init
-
+	/**
+	 * Set interface types.
+	 * 
+	 * @param interfaceTs
+	 *            interface types
+	 */
+	public void setInterfaceTs(final T[] interfaceTs) {
+		this.interfaceTs = interfaceTs;
 	}
 
 	/**
-	 * Set descriptor.
+	 * Set signature.
 	 * 
-	 * @param descriptor
-	 *            descriptor
+	 * @param signature
+	 *            signature
 	 */
-	public void setDescriptor(final String descriptor) {
-		this.descriptor = descriptor;
+	public void setSignature(final String signature) {
+		this.signature = signature;
+	}
+
+	/**
+	 * Set super type.
+	 * 
+	 * @param superT
+	 *            super type
+	 */
+	public void setSuperT(final T superT) {
+		this.superT = superT;
 	}
 
 	@Override
 	public String toString() {
-		return getName() + ": " + getDescriptor();
+		return getName();
 	}
 
 }

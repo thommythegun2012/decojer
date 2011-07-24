@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import javassist.bytecode.MethodInfo;
-
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
@@ -34,11 +32,23 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  */
 public class MD implements BD, PD {
 
+	private final int accessFlags;
+
 	private CFG cfg;
+
+	private boolean deprecated;
+
+	private final String descriptor;
+
+	private final String[] exceptions;
 
 	private BodyDeclaration methodDeclaration;
 
-	private final MethodInfo methodInfo;
+	private final String name;
+
+	private final String signature;
+
+	private boolean synthetic;
 
 	private final TD td;
 
@@ -47,15 +57,39 @@ public class MD implements BD, PD {
 	 * 
 	 * @param td
 	 *            type declaration
-	 * @param methodInfo
-	 *            method info
+	 * @param accessFlags
+	 *            access flags
+	 * @param name
+	 *            name
+	 * @param descriptor
+	 *            descriptor
+	 * @param signature
+	 *            signature
+	 * @param exceptions
+	 *            exceptions
 	 */
-	public MD(final TD td, final MethodInfo methodInfo) {
+	public MD(final TD td, final int accessFlags, final String name,
+			final String descriptor, final String signature,
+			final String[] exceptions) {
 		assert td != null;
-		assert methodInfo != null;
+		assert name != null;
+		assert descriptor != null;
 
 		this.td = td;
-		this.methodInfo = methodInfo;
+		this.accessFlags = accessFlags;
+		this.name = name;
+		this.descriptor = descriptor;
+		this.signature = signature;
+		this.exceptions = exceptions;
+	}
+
+	/**
+	 * Get access flags.
+	 * 
+	 * @return access flags
+	 */
+	public int getAccessFlags() {
+		return this.accessFlags;
 	}
 
 	/**
@@ -68,12 +102,21 @@ public class MD implements BD, PD {
 	}
 
 	/**
-	 * Get method descriptor, e.g. "()V".
+	 * Get method descriptor.
 	 * 
 	 * @return method descriptor
 	 */
 	public String getDescriptor() {
-		return this.methodInfo.getDescriptor();
+		return this.descriptor;
+	}
+
+	/**
+	 * Get exceptions.
+	 * 
+	 * @return exceptions
+	 */
+	public String[] getExceptions() {
+		return this.exceptions;
 	}
 
 	/**
@@ -86,37 +129,21 @@ public class MD implements BD, PD {
 	}
 
 	/**
-	 * Get method info.
-	 * 
-	 * @return method info
-	 */
-	public MethodInfo getMethodInfo() {
-		return this.methodInfo;
-	}
-
-	/**
-	 * Get method name, e.g. "test".
+	 * Get method name.
 	 * 
 	 * @return method name
 	 */
 	public String getName() {
-		final String name = this.methodInfo.getName();
-		if ("<clinit>".equals(name)) {
-			return "static"; // TODO OK for Outline?
-		}
-		if ("<init>".equals(name)) {
-			return getTd().getIName();
-		}
-		return name;
+		return this.name;
 	}
 
 	/**
-	 * Get method signature, e.g. "test()V".
+	 * Get method signature.
 	 * 
 	 * @return method signature
 	 */
 	public String getSignature() {
-		return getName() + getDescriptor();
+		return this.signature;
 	}
 
 	/**
@@ -126,6 +153,24 @@ public class MD implements BD, PD {
 	 */
 	public TD getTd() {
 		return this.td;
+	}
+
+	/**
+	 * Get deprecated state (from deprecated attribute).
+	 * 
+	 * @return true - deprecated
+	 */
+	public boolean isDeprecated() {
+		return this.deprecated;
+	}
+
+	/**
+	 * Get synthetic state (from synthetic attribute).
+	 * 
+	 * @return true - synthetic
+	 */
+	public boolean isSynthetic() {
+		return this.synthetic;
 	}
 
 	/**
@@ -139,6 +184,16 @@ public class MD implements BD, PD {
 	}
 
 	/**
+	 * Set deprecated state (from deprecated attribute).
+	 * 
+	 * @param deprecated
+	 *            true - deprecated
+	 */
+	public void setDeprecated(final boolean deprecated) {
+		this.deprecated = deprecated;
+	}
+
+	/**
 	 * Set Eclipse method declaration.
 	 * 
 	 * @param methodDeclaration
@@ -146,6 +201,16 @@ public class MD implements BD, PD {
 	 */
 	public void setMethodDeclaration(final BodyDeclaration methodDeclaration) {
 		this.methodDeclaration = methodDeclaration;
+	}
+
+	/**
+	 * Set synthetic state (from synthetic attribute).
+	 * 
+	 * @param synthetic
+	 *            true - synthetic
+	 */
+	public void setSynthetic(final boolean synthetic) {
+		this.synthetic = synthetic;
 	}
 
 	@Override
