@@ -81,16 +81,18 @@ public class ReadClassVisitor implements ClassVisitor {
 		// : Ljava/util/LinkedHashSet<Ljava/lang/Class<*>;>; :
 		// java/util/LinkedHashSet : [Ljava.lang.String;@1b9a2fd
 
-		final T t = this.du.getT(name);
-		t.setSuperT(this.du.getT(superName));
+		final T t = this.du.getT(name.replace('/', '.'));
+		t.setSuperT(this.du.getT(superName.replace('/', '.')));
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
-				interfaceTs[i] = this.du.getT(interfaces[i]);
+				interfaceTs[i] = this.du.getT(interfaces[i].replace('/', '.'));
 			}
 			t.setInterfaceTs(interfaceTs);
 		}
-		t.setSignature(signature);
+		if (signature != null) {
+			t.setSignature(signature.replace('/', '.'));
+		}
 
 		this.td = new TD(t);
 		this.td.setAccessFlags(access);
@@ -121,7 +123,7 @@ public class ReadClassVisitor implements ClassVisitor {
 	@Override
 	public FieldVisitor visitField(final int access, final String name,
 			final String desc, final String signature, final Object value) {
-		final FD fd = new FD(this.td, access, name, desc, signature);
+		final FD fd = new FD(this.td, access, name, desc, signature, value);
 		this.td.getBds().add(fd);
 		return this.readFieldVisitor;
 	}
