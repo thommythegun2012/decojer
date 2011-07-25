@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.tool;
 
+import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -31,12 +32,12 @@ import java.util.logging.Logger;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.AnnotationMemberValue;
-import javassist.bytecode.annotation.ArrayMemberValue;
 import javassist.bytecode.annotation.EnumMemberValue;
 
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
@@ -77,7 +78,7 @@ public class AnnotationsDecompiler {
 			// a single member name "value=" is optional
 			if (memberNames.size() == 1
 					&& "value".equals(memberNames.iterator().next())) {
-				final Expression expression = decompileAnnotationMemberValue(
+				final Expression expression = decompileAnnotationDefaultValue(
 						td, annotation.getMemberValue("value"));
 				if (expression != null) {
 					final SingleMemberAnnotation newSingleMemberAnnotation = ast
@@ -93,7 +94,7 @@ public class AnnotationsDecompiler {
 			newNormalAnnotation.setTypeName(ast.newName(annotation
 					.getTypeName()));
 			for (final String memberName : memberNames) {
-				final Expression expression = decompileAnnotationMemberValue(
+				final Expression expression = decompileAnnotationDefaultValue(
 						td, annotation.getMemberValue(memberName));
 				if (expression != null) {
 					final MemberValuePair newMemberValuePair = ast
@@ -113,15 +114,16 @@ public class AnnotationsDecompiler {
 	}
 
 	/**
-	 * Decompile annotation member value (value or default value literal).
+	 * Decompile annotation default value (value or default value literal).
 	 * 
 	 * @param td
 	 *            type declaration
-	 * @param memberValue
-	 *            member value
+	 * @param defaultValue
+	 *            default value
 	 * @return expression node or null
 	 */
-	public static Expression decompileAnnotationMemberValue(final TD td,
+	@SuppressWarnings("unchecked")
+	public static Expression decompileAnnotationDefaultValue(final TD td,
 			final Object defaultValue) {
 		final AST ast = td.getCu().getAst();
 		if (defaultValue == null) {
@@ -132,17 +134,18 @@ public class AnnotationsDecompiler {
 			// ((AnnotationMemberValue) memberValue).getValue());
 			return null;
 		}
-		if (defaultValue instanceof ArrayMemberValue) {
-			/*
-			 * final ArrayInitializer arrayInitializer =
-			 * ast.newArrayInitializer(); for (final MemberValue
-			 * arrayMemberValue : ((ArrayMemberValue) memberValue) .getValue())
-			 * { final Expression expression = decompileAnnotationMemberValue(
-			 * td, arrayMemberValue); if (expression != null) {
-			 * arrayInitializer.expressions().add(expression); } } return
-			 * arrayInitializer;
-			 */
-			return null;
+		// could be primitive array - use slow reflection
+		if (defaultValue.getClass().isArray()) {
+			final ArrayInitializer arrayInitializer = ast.newArrayInitializer();
+			final int size = Array.getLength(defaultValue);
+			for (int i = 0; i < size; ++i) {
+				final Expression expression = decompileAnnotationDefaultValue(
+						td, Array.get(defaultValue, i));
+				if (expression != null) {
+					arrayInitializer.expressions().add(expression);
+				}
+			}
+			return arrayInitializer;
 		}
 		if (defaultValue instanceof Boolean) {
 			return ast.newBooleanLiteral((Boolean) defaultValue);

@@ -273,7 +273,7 @@ public class TrJvmStruct2JavaAst {
 			// check if default value (byte byteTest() default 2;)
 			if (md.getAnnotationDefaultValue() != null) {
 				final Expression expression = AnnotationsDecompiler
-						.decompileAnnotationMemberValue(td,
+						.decompileAnnotationDefaultValue(td,
 								md.getAnnotationDefaultValue());
 				if (expression != null) {
 					((AnnotationTypeMemberDeclaration) methodDeclaration)
