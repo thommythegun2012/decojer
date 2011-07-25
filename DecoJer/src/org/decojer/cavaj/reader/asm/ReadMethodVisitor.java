@@ -71,6 +71,15 @@ public class ReadMethodVisitor implements MethodVisitor {
 	}
 
 	/**
+	 * Get read class visitor.
+	 * 
+	 * @return read class visitor
+	 */
+	public ReadClassVisitor getReadClassVisitor() {
+		return this.readClassVisitor;
+	}
+
+	/**
 	 * Set method declaration.
 	 * 
 	 * @param md

@@ -25,6 +25,7 @@ package org.decojer.cavaj.reader.asm;
 
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.T;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Type;
 
@@ -63,12 +64,15 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 	public void visit(final String name, final Object value) {
 		checkName(name);
 		if (value instanceof Type) {
-			; // TODO type stuff
+			final Type type = (Type) value;
+			System.out.println("###TYPE: " + type.getClassName() + " : "
+					+ type.getDescriptor());
+			final T t = this.readMethodVisitor.getReadClassVisitor().getDu()
+					.getT(type.getClassName());
+			// descriptor???
+			this.readMethodVisitor.getMd().setAnnotationDefaultValue(t);
 			return;
 		}
-
-		LOGGER.warning("###### default visit ### " + value + " :C: "
-				+ value.getClass());
 		this.readMethodVisitor.getMd().setAnnotationDefaultValue(value);
 	}
 

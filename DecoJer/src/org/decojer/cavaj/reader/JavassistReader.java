@@ -327,6 +327,65 @@ public class JavassistReader {
 		return fd;
 	}
 
+	private static Object readMemberValue(final MemberValue memberValue) {
+		if (memberValue instanceof AnnotationMemberValue) {
+			final Annotation annotation = ((AnnotationMemberValue) memberValue)
+					.getValue();
+			System.out.println("### ANNOTATION: " + annotation);
+			return null;
+		}
+		if (memberValue instanceof ArrayMemberValue) {
+			final MemberValue[] values = ((ArrayMemberValue) memberValue)
+					.getValue();
+			final Object[] objects = new Object[values.length];
+			for (int i = values.length; i-- > 0;) {
+				objects[i] = readMemberValue(values[i]);
+			}
+			return objects;
+		}
+		if (memberValue instanceof BooleanMemberValue) {
+			return ((BooleanMemberValue) memberValue).getValue();
+		}
+		if (memberValue instanceof ByteMemberValue) {
+			return ((ByteMemberValue) memberValue).getValue();
+		}
+		if (memberValue instanceof CharMemberValue) {
+			return ((CharMemberValue) memberValue).getValue();
+		}
+		if (memberValue instanceof ClassMemberValue) {
+			final String className = ((ClassMemberValue) memberValue)
+					.getValue();
+			System.out.println("### CLASSNAME: " + className);
+			return null;
+		}
+		if (memberValue instanceof DoubleMemberValue) {
+			return ((DoubleMemberValue) memberValue).getValue();
+		} else if (memberValue instanceof EnumMemberValue) {
+			final String type = ((EnumMemberValue) memberValue).getType();
+			final String value = ((EnumMemberValue) memberValue).getValue();
+			System.out.println("### ENUMTYPE: " + type);
+			return null;
+		}
+		if (memberValue instanceof FloatMemberValue) {
+			return ((FloatMemberValue) memberValue).getValue();
+		}
+		if (memberValue instanceof IntegerMemberValue) {
+			return ((IntegerMemberValue) memberValue).getValue();
+		}
+		if (memberValue instanceof LongMemberValue) {
+			return ((LongMemberValue) memberValue).getValue();
+		}
+		if (memberValue instanceof ShortMemberValue) {
+			return ((ShortMemberValue) memberValue).getValue();
+		}
+		if (memberValue instanceof StringMemberValue) {
+			return ((StringMemberValue) memberValue).getValue();
+		}
+		LOGGER.log(Level.WARNING, "Unknown member value type '"
+				+ memberValue.getClass().getName() + "'!");
+		return null;
+	}
+
 	@SuppressWarnings("unchecked")
 	private static MD readMethodInfo(final TD td, final MethodInfo methodInfo) {
 		AnnotationDefaultAttribute annotationDefaultAttribute = null;
@@ -392,59 +451,7 @@ public class JavassistReader {
 		if (annotationDefaultAttribute != null) {
 			final MemberValue defaultMemberValue = annotationDefaultAttribute
 					.getDefaultValue();
-			Object annotationDefaultValue = null;
-			if (defaultMemberValue instanceof AnnotationMemberValue) {
-				final Annotation annotation = ((AnnotationMemberValue) defaultMemberValue)
-						.getValue();
-				System.out.println("### ANNOTATION: " + annotation);
-			}
-			if (defaultMemberValue instanceof ArrayMemberValue) {
-				final MemberValue type = ((ArrayMemberValue) defaultMemberValue)
-						.getType();
-				final MemberValue[] values = ((ArrayMemberValue) defaultMemberValue)
-						.getValue();
-				System.out.println("### ARRAYTYPE: " + type);
-			} else if (defaultMemberValue instanceof BooleanMemberValue) {
-				annotationDefaultValue = ((BooleanMemberValue) defaultMemberValue)
-						.getValue();
-			} else if (defaultMemberValue instanceof ByteMemberValue) {
-				annotationDefaultValue = ((ByteMemberValue) defaultMemberValue)
-						.getValue();
-			} else if (defaultMemberValue instanceof CharMemberValue) {
-				annotationDefaultValue = ((CharMemberValue) defaultMemberValue)
-						.getValue();
-			} else if (defaultMemberValue instanceof ClassMemberValue) {
-				final String className = ((ClassMemberValue) defaultMemberValue)
-						.getValue();
-				System.out.println("### CLASSNAME: " + className);
-			} else if (defaultMemberValue instanceof DoubleMemberValue) {
-				annotationDefaultValue = ((DoubleMemberValue) defaultMemberValue)
-						.getValue();
-			} else if (defaultMemberValue instanceof EnumMemberValue) {
-				final String type = ((EnumMemberValue) defaultMemberValue)
-						.getType();
-				annotationDefaultValue = ((EnumMemberValue) defaultMemberValue)
-						.getValue();
-				System.out.println("### ENUMTYPE: " + type);
-			} else if (defaultMemberValue instanceof FloatMemberValue) {
-				annotationDefaultValue = ((FloatMemberValue) defaultMemberValue)
-						.getValue();
-			} else if (defaultMemberValue instanceof IntegerMemberValue) {
-				annotationDefaultValue = ((IntegerMemberValue) defaultMemberValue)
-						.getValue();
-			} else if (defaultMemberValue instanceof LongMemberValue) {
-				annotationDefaultValue = ((LongMemberValue) defaultMemberValue)
-						.getValue();
-			} else if (defaultMemberValue instanceof ShortMemberValue) {
-				annotationDefaultValue = ((ShortMemberValue) defaultMemberValue)
-						.getValue();
-			} else if (defaultMemberValue instanceof StringMemberValue) {
-				annotationDefaultValue = ((StringMemberValue) defaultMemberValue)
-						.getValue();
-			} else {
-				LOGGER.log(Level.WARNING, "Unknown member value type '"
-						+ defaultMemberValue.getClass().getName() + "'!");
-			}
+			final Object annotationDefaultValue = readMemberValue(defaultMemberValue);
 			md.setAnnotationDefaultValue(annotationDefaultValue);
 		}
 

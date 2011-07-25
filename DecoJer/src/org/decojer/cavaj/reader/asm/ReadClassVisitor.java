@@ -66,6 +66,15 @@ public class ReadClassVisitor implements ClassVisitor {
 	}
 
 	/**
+	 * Get decompilation unit.
+	 * 
+	 * @return decompilation unit
+	 */
+	public DU getDu() {
+		return this.du;
+	}
+
+	/**
 	 * Get type declaration.
 	 * 
 	 * @return type declaration
