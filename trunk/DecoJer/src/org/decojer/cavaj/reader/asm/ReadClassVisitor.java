@@ -38,6 +38,8 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
 /**
+ * Read class visitor.
+ * 
  * @author André Pankraz
  */
 public class ReadClassVisitor implements ClassVisitor {
@@ -106,7 +108,7 @@ public class ReadClassVisitor implements ClassVisitor {
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
 		LOGGER.warning("### visitAnnotation ### " + desc + " : " + visible);
-		return null;
+		return new ReadAnnotationVisitor();
 	}
 
 	@Override
@@ -123,23 +125,43 @@ public class ReadClassVisitor implements ClassVisitor {
 	@Override
 	public FieldVisitor visitField(final int access, final String name,
 			final String desc, final String signature, final Object value) {
+		System.out.println("FIELD DESC: " + desc);
+		if (signature != null) {
+			System.out.println("FIELD SIGN: " + signature);
+		}
 		final FD fd = new FD(this.td, access, name, desc, signature, value);
 		this.td.getBds().add(fd);
+		this.readFieldVisitor.setFd(fd);
 		return this.readFieldVisitor;
 	}
 
 	@Override
 	public void visitInnerClass(final String name, final String outerName,
 			final String innerName, final int access) {
-		// TODO Auto-generated method stub
-
+		LOGGER.warning("### visitInner ### " + name + " : " + outerName + " : "
+				+ innerName + " : " + access);
 	}
 
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name,
 			final String desc, final String signature, final String[] exceptions) {
-		final MD md = new MD(this.td, access, name, desc, signature, exceptions);
+		String mdSignature = null;
+		if (signature != null) {
+			mdSignature = signature.replace('/', '.');
+		}
+
+		String[] mdExceptions = null;
+		if (exceptions != null && exceptions.length > 0) {
+			mdExceptions = new String[exceptions.length];
+			for (int i = exceptions.length; i-- > 0;) {
+				mdExceptions[i] = exceptions[i].replace('/', '.');
+			}
+		}
+
+		final MD md = new MD(this.td, access, name, desc.replace('/', '.'),
+				mdSignature, mdExceptions);
 		this.td.getBds().add(md);
+		this.readMethodVisitor.setMd(md);
 		return this.readMethodVisitor;
 	}
 
@@ -152,8 +174,8 @@ public class ReadClassVisitor implements ClassVisitor {
 
 	@Override
 	public void visitSource(final String source, final String debug) {
-		// what is that?
 		if (debug != null) {
+			// what is that?
 			LOGGER.warning("### visitSource debug? ###: " + debug);
 		}
 		this.td.setSourceFileName(source);

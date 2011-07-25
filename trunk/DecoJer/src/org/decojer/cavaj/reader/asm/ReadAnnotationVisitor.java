@@ -23,74 +23,50 @@
  */
 package org.decojer.cavaj.reader.asm;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.FD;
 import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
-import org.objectweb.asm.FieldVisitor;
 
 /**
- * Read field visitor.
+ * Read annotation visitor.
  * 
  * @author André Pankraz
  */
-public class ReadFieldVisitor implements FieldVisitor {
+public class ReadAnnotationVisitor implements AnnotationVisitor {
 
 	private final static Logger LOGGER = Logger
-			.getLogger(ReadFieldVisitor.class.getName());
+			.getLogger(ReadAnnotationVisitor.class.getName());
 
-	private FD fd;
-
-	private final ReadClassVisitor readClassVisitor;
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param readClassVisitor
-	 *            read class visitor
-	 */
-	public ReadFieldVisitor(final ReadClassVisitor readClassVisitor) {
-		this.readClassVisitor = readClassVisitor;
-	}
-
-	/**
-	 * Get field declaration.
-	 * 
-	 * @return field declaration
-	 */
-	public FD getFd() {
-		return this.fd;
-	}
-
-	/**
-	 * Set field declaration.
-	 * 
-	 * @param fd
-	 *            field declaration
-	 */
-	public void setFd(final FD fd) {
-		this.fd = fd;
+	@Override
+	public void visit(final String name, final Object value) {
+		LOGGER.warning("### annotation visit ### " + name + " : " + value
+				+ " :C: " + value.getClass());
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String desc,
-			final boolean visible) {
-		LOGGER.warning("### field visitAnnotation ### " + desc + " : "
-				+ visible);
+	public AnnotationVisitor visitAnnotation(final String name,
+			final String desc) {
+		LOGGER.warning("### annotation visitAnnotation ### " + name + " : "
+				+ desc);
 		return new ReadAnnotationVisitor();
 	}
 
 	@Override
-	public void visitAttribute(final Attribute attr) {
-		LOGGER.log(Level.WARNING, "Unknown field attribute tag '" + attr.type
-				+ "' for field info '" + this.readClassVisitor.getTd() + "'!");
+	public AnnotationVisitor visitArray(final String name) {
+		LOGGER.warning("### annotation visitArray ### " + name);
+		return new ReadAnnotationVisitor();
 	}
 
 	@Override
 	public void visitEnd() {
-		// nothing
+		// LOGGER.warning("### annotation visitEnd ### ");
+	}
+
+	@Override
+	public void visitEnum(final String name, final String desc,
+			final String value) {
+		LOGGER.warning("### annotation visitEnum ### " + name + " : " + desc
+				+ " : " + value);
 	}
 
 }

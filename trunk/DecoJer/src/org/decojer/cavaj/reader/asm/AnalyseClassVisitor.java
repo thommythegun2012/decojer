@@ -31,12 +31,19 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 
 /**
+ * Analyse class visitor.
+ * 
  * @author André Pankraz
  */
 public class AnalyseClassVisitor implements ClassVisitor {
 
 	private Type type;
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public Type getType() {
 		return this.type;
 	}

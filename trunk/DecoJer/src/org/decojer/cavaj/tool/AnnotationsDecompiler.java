@@ -32,31 +32,18 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.AnnotationMemberValue;
 import javassist.bytecode.annotation.ArrayMemberValue;
-import javassist.bytecode.annotation.BooleanMemberValue;
-import javassist.bytecode.annotation.ByteMemberValue;
-import javassist.bytecode.annotation.CharMemberValue;
-import javassist.bytecode.annotation.ClassMemberValue;
-import javassist.bytecode.annotation.DoubleMemberValue;
 import javassist.bytecode.annotation.EnumMemberValue;
-import javassist.bytecode.annotation.FloatMemberValue;
-import javassist.bytecode.annotation.IntegerMemberValue;
-import javassist.bytecode.annotation.LongMemberValue;
-import javassist.bytecode.annotation.MemberValue;
-import javassist.bytecode.annotation.ShortMemberValue;
-import javassist.bytecode.annotation.StringMemberValue;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
-import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.StringLiteral;
-import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeLiteral;
 
 /**
@@ -134,123 +121,105 @@ public class AnnotationsDecompiler {
 	 *            member value
 	 * @return expression node or null
 	 */
-	@SuppressWarnings("unchecked")
 	public static Expression decompileAnnotationMemberValue(final TD td,
-			final MemberValue memberValue) {
+			final Object defaultValue) {
 		final AST ast = td.getCu().getAst();
-		if (memberValue == null) {
+		if (defaultValue == null) {
 			return null;
 		}
-		if (memberValue instanceof AnnotationMemberValue) {
-			return decompileAnnotation(td,
-					((AnnotationMemberValue) memberValue).getValue());
+		if (defaultValue instanceof AnnotationMemberValue) {
+			// return decompileAnnotation(td,
+			// ((AnnotationMemberValue) memberValue).getValue());
+			return null;
 		}
-		if (memberValue instanceof ArrayMemberValue) {
-			final ArrayInitializer arrayInitializer = ast.newArrayInitializer();
-			for (final MemberValue arrayMemberValue : ((ArrayMemberValue) memberValue)
-					.getValue()) {
-				final Expression expression = decompileAnnotationMemberValue(
-						td, arrayMemberValue);
-				if (expression != null) {
-					arrayInitializer.expressions().add(expression);
-				}
-			}
-			return arrayInitializer;
+		if (defaultValue instanceof ArrayMemberValue) {
+			/*
+			 * final ArrayInitializer arrayInitializer =
+			 * ast.newArrayInitializer(); for (final MemberValue
+			 * arrayMemberValue : ((ArrayMemberValue) memberValue) .getValue())
+			 * { final Expression expression = decompileAnnotationMemberValue(
+			 * td, arrayMemberValue); if (expression != null) {
+			 * arrayInitializer.expressions().add(expression); } } return
+			 * arrayInitializer;
+			 */
+			return null;
 		}
-		if (memberValue instanceof BooleanMemberValue) {
-			return ast.newBooleanLiteral(((BooleanMemberValue) memberValue)
-					.getValue());
+		if (defaultValue instanceof Boolean) {
+			return ast.newBooleanLiteral((Boolean) defaultValue);
 		}
-		if (memberValue instanceof ByteMemberValue) {
-			return ast.newNumberLiteral(Byte
-					.toString(((ByteMemberValue) memberValue).getValue()));
+		if (defaultValue instanceof Byte) {
+			return ast.newNumberLiteral(defaultValue.toString());
 		}
-		if (memberValue instanceof CharMemberValue) {
+		if (defaultValue instanceof Character) {
 			final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-			characterLiteral.setCharValue(((CharMemberValue) memberValue)
-					.getValue());
+			characterLiteral.setCharValue((Character) defaultValue);
 			return characterLiteral;
 		}
-		if (memberValue instanceof ClassMemberValue) {
+		if (defaultValue instanceof T) {
 			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-			final String value = ((ClassMemberValue) memberValue).getValue();
-			// value: byte, java.util.List, java.lang.Byte[][][], void
-			// no type arguments possible
-			// => PrimitiveType, SimpleType, ArrayType
-			final int pos = value.indexOf('[');
-			final String name = pos == -1 ? value : value.substring(0, pos);
-			Type type;
-			// similar to switch in SignatureDecompiler
-			if ("void".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.VOID);
-			} else if ("byte".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.BYTE);
-			} else if ("char".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.CHAR);
-			} else if ("double".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.DOUBLE);
-			} else if ("float".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.FLOAT);
-			} else if ("int".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.INT);
-			} else if ("long".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.LONG);
-			} else if ("short".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.SHORT);
-			} else if ("boolean".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.BOOLEAN);
-			} else {
-				type = ast.newSimpleType(td.newTypeName(name));
-			}
-			if (pos > 0) {
-				// array number is "length" - "pos of first [" / 2
-				for (int i = (value.length() - pos) / 2; i-- > 0;) {
-					type = ast.newArrayType(type);
-				}
-			}
-			typeLiteral.setType(type);
-			return typeLiteral;
+			/*
+			 * final String value = ((ClassMemberValue) memberValue).getValue();
+			 * // value: byte, java.util.List, java.lang.Byte[][][], void // no
+			 * type arguments possible // => PrimitiveType, SimpleType,
+			 * ArrayType final int pos = value.indexOf('['); final String name =
+			 * pos == -1 ? value : value.substring(0, pos); Type type; //
+			 * similar to switch in SignatureDecompiler if ("void".equals(name))
+			 * { type = ast.newPrimitiveType(PrimitiveType.VOID); } else if
+			 * ("byte".equals(name)) { type =
+			 * ast.newPrimitiveType(PrimitiveType.BYTE); } else if
+			 * ("char".equals(name)) { type =
+			 * ast.newPrimitiveType(PrimitiveType.CHAR); } else if
+			 * ("double".equals(name)) { type =
+			 * ast.newPrimitiveType(PrimitiveType.DOUBLE); } else if
+			 * ("float".equals(name)) { type =
+			 * ast.newPrimitiveType(PrimitiveType.FLOAT); } else if
+			 * ("int".equals(name)) { type =
+			 * ast.newPrimitiveType(PrimitiveType.INT); } else if
+			 * ("long".equals(name)) { type =
+			 * ast.newPrimitiveType(PrimitiveType.LONG); } else if
+			 * ("short".equals(name)) { type =
+			 * ast.newPrimitiveType(PrimitiveType.SHORT); } else if
+			 * ("boolean".equals(name)) { type =
+			 * ast.newPrimitiveType(PrimitiveType.BOOLEAN); } else { type =
+			 * ast.newSimpleType(td.newTypeName(name)); } if (pos > 0) { //
+			 * array number is "length" - "pos of first [" / 2 for (int i =
+			 * (value.length() - pos) / 2; i-- > 0;) { type =
+			 * ast.newArrayType(type); } } typeLiteral.setType(type); return
+			 * typeLiteral;
+			 */
+			return null;
 		}
-		if (memberValue instanceof DoubleMemberValue) {
-			return ast.newNumberLiteral(Double
-					.toString(((DoubleMemberValue) memberValue).getValue())
-					+ "D");
+		if (defaultValue instanceof Double) {
+			return ast.newNumberLiteral(defaultValue.toString() + 'D');
 		}
-		if (memberValue instanceof EnumMemberValue) {
-			return ast.newName(((EnumMemberValue) memberValue).getType() + "."
-					+ ((EnumMemberValue) memberValue).getValue());
+		if (defaultValue instanceof EnumMemberValue) {
+			// return ast.newName(((EnumMemberValue) memberValue).getType() +
+			// "."
+			// + ((EnumMemberValue) memberValue).getValue());
 			// TODO default java.lang.Thread$State.BLOCKED
+			return null;
 		}
-		if (memberValue instanceof FloatMemberValue) {
-			return ast.newNumberLiteral(Double
-					.toString(((FloatMemberValue) memberValue).getValue())
-					+ "F");
+		if (defaultValue instanceof Float) {
+			return ast.newNumberLiteral(defaultValue.toString() + 'F');
 		}
-		if (memberValue instanceof IntegerMemberValue) {
-			return ast.newNumberLiteral(Integer
-					.toString(((IntegerMemberValue) memberValue).getValue()));
+		if (defaultValue instanceof Integer) {
+			return ast.newNumberLiteral(defaultValue.toString());
 		}
-		if (memberValue instanceof LongMemberValue) {
-			return ast
-					.newNumberLiteral(Long
-							.toString(((LongMemberValue) memberValue)
-									.getValue())
-							+ "L");
+		if (defaultValue instanceof Long) {
+			return ast.newNumberLiteral(defaultValue.toString() + 'L');
 		}
-		if (memberValue instanceof ShortMemberValue) {
-			return ast.newNumberLiteral(Integer
-					.toString(((ShortMemberValue) memberValue).getValue()));
+		if (defaultValue instanceof Short) {
+			return ast.newNumberLiteral(defaultValue.toString());
 		}
-		if (memberValue instanceof StringMemberValue) {
+		if (defaultValue instanceof String) {
 			final StringLiteral stringLiteral = ast.newStringLiteral();
-			stringLiteral.setLiteralValue(((StringMemberValue) memberValue)
-					.getValue());
+			stringLiteral.setLiteralValue((String) defaultValue);
 			return stringLiteral;
 		}
 		LOGGER.log(Level.WARNING, "Unknown member value type '"
-				+ memberValue.getClass().getName() + "'!");
+				+ defaultValue.getClass().getName() + "'!");
 		final StringLiteral stringLiteral = ast.newStringLiteral();
-		stringLiteral.setLiteralValue(memberValue.toString());
+		stringLiteral.setLiteralValue(defaultValue.toString());
 		return stringLiteral;
 	}
 
