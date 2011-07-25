@@ -35,7 +35,7 @@ import java.util.Map.Entry;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.reader.JavassistReader;
+import org.decojer.cavaj.reader.AsmReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -81,7 +81,7 @@ public class DecoJer {
 		final DU du = new DU();
 		for (final Entry<String, InputStream> classFileEntry : packageClassStreamProvider
 				.getClassStreams().entrySet()) {
-			final TD td = JavassistReader.read(classFileEntry.getValue(), du);
+			final TD td = AsmReader.read(classFileEntry.getValue(), du);
 			du.addTd(td);
 		}
 		return du;
@@ -179,21 +179,18 @@ public class DecoJer {
 		try {
 			packageClassStreamProvider
 					.addClassStream(
-							"DecTestFields",
+							"DecTestAnnotations",
 							new DataInputStream(
 									new FileInputStream(
 											new File(
-													"D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"))));
+													"D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/jdk5/DecTestAnnotations.class"))));
 		} catch (final FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		final DU du = createDu(packageClassStreamProvider);
-		final CU cu = createCu(du.getTd("org.decojer.cavaj.test.DecTestFields"));
+		final CU cu = createCu(du
+				.getTd("org.decojer.cavaj.test.jdk5.DecTestAnnotations"));
 		System.out.println(decompile(cu));
-
-		// System.out
-		// .println(decompile("E:/Decomp/workspace/DecoJerTest/bin_jdk1.6.0_26/org/decojer/cavaj/test/DecTestBooleanOperators.class"));
 	}
 
 	private DecoJer() {

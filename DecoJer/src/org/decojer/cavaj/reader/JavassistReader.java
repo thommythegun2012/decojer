@@ -50,6 +50,21 @@ import javassist.bytecode.ParameterAnnotationsAttribute;
 import javassist.bytecode.SignatureAttribute;
 import javassist.bytecode.SourceFileAttribute;
 import javassist.bytecode.SyntheticAttribute;
+import javassist.bytecode.annotation.Annotation;
+import javassist.bytecode.annotation.AnnotationMemberValue;
+import javassist.bytecode.annotation.ArrayMemberValue;
+import javassist.bytecode.annotation.BooleanMemberValue;
+import javassist.bytecode.annotation.ByteMemberValue;
+import javassist.bytecode.annotation.CharMemberValue;
+import javassist.bytecode.annotation.ClassMemberValue;
+import javassist.bytecode.annotation.DoubleMemberValue;
+import javassist.bytecode.annotation.EnumMemberValue;
+import javassist.bytecode.annotation.FloatMemberValue;
+import javassist.bytecode.annotation.IntegerMemberValue;
+import javassist.bytecode.annotation.LongMemberValue;
+import javassist.bytecode.annotation.MemberValue;
+import javassist.bytecode.annotation.ShortMemberValue;
+import javassist.bytecode.annotation.StringMemberValue;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.FD;
@@ -312,6 +327,7 @@ public class JavassistReader {
 		return fd;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static MD readMethodInfo(final TD td, final MethodInfo methodInfo) {
 		AnnotationDefaultAttribute annotationDefaultAttribute = null;
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
@@ -356,12 +372,81 @@ public class JavassistReader {
 			}
 		}
 
+		String mdSignature = null;
+		if (signatureAttribute != null
+				&& signatureAttribute.getSignature() != null) {
+			mdSignature = signatureAttribute.getSignature();
+		}
+
+		String[] mdExceptions = null;
+		if (exceptionsAttribute != null
+				&& exceptionsAttribute.getExceptions() != null
+				&& exceptionsAttribute.getExceptions().length > 0) {
+			mdExceptions = exceptionsAttribute.getExceptions();
+		}
+
 		final MD md = new MD(td, methodInfo.getAccessFlags(),
-				methodInfo.getName(), methodInfo.getDescriptor(),
-				signatureAttribute == null ? null : signatureAttribute
-						.getSignature(),
-				exceptionsAttribute == null ? null : exceptionsAttribute
-						.getExceptions());
+				methodInfo.getName(), methodInfo.getDescriptor(), mdSignature,
+				mdExceptions);
+
+		if (annotationDefaultAttribute != null) {
+			final MemberValue defaultMemberValue = annotationDefaultAttribute
+					.getDefaultValue();
+			Object annotationDefaultValue = null;
+			if (defaultMemberValue instanceof AnnotationMemberValue) {
+				final Annotation annotation = ((AnnotationMemberValue) defaultMemberValue)
+						.getValue();
+				System.out.println("### ANNOTATION: " + annotation);
+			}
+			if (defaultMemberValue instanceof ArrayMemberValue) {
+				final MemberValue type = ((ArrayMemberValue) defaultMemberValue)
+						.getType();
+				final MemberValue[] values = ((ArrayMemberValue) defaultMemberValue)
+						.getValue();
+				System.out.println("### ARRAYTYPE: " + type);
+			} else if (defaultMemberValue instanceof BooleanMemberValue) {
+				annotationDefaultValue = ((BooleanMemberValue) defaultMemberValue)
+						.getValue();
+			} else if (defaultMemberValue instanceof ByteMemberValue) {
+				annotationDefaultValue = ((ByteMemberValue) defaultMemberValue)
+						.getValue();
+			} else if (defaultMemberValue instanceof CharMemberValue) {
+				annotationDefaultValue = ((CharMemberValue) defaultMemberValue)
+						.getValue();
+			} else if (defaultMemberValue instanceof ClassMemberValue) {
+				final String className = ((ClassMemberValue) defaultMemberValue)
+						.getValue();
+				System.out.println("### CLASSNAME: " + className);
+			} else if (defaultMemberValue instanceof DoubleMemberValue) {
+				annotationDefaultValue = ((DoubleMemberValue) defaultMemberValue)
+						.getValue();
+			} else if (defaultMemberValue instanceof EnumMemberValue) {
+				final String type = ((EnumMemberValue) defaultMemberValue)
+						.getType();
+				annotationDefaultValue = ((EnumMemberValue) defaultMemberValue)
+						.getValue();
+				System.out.println("### ENUMTYPE: " + type);
+			} else if (defaultMemberValue instanceof FloatMemberValue) {
+				annotationDefaultValue = ((FloatMemberValue) defaultMemberValue)
+						.getValue();
+			} else if (defaultMemberValue instanceof IntegerMemberValue) {
+				annotationDefaultValue = ((IntegerMemberValue) defaultMemberValue)
+						.getValue();
+			} else if (defaultMemberValue instanceof LongMemberValue) {
+				annotationDefaultValue = ((LongMemberValue) defaultMemberValue)
+						.getValue();
+			} else if (defaultMemberValue instanceof ShortMemberValue) {
+				annotationDefaultValue = ((ShortMemberValue) defaultMemberValue)
+						.getValue();
+			} else if (defaultMemberValue instanceof StringMemberValue) {
+				annotationDefaultValue = ((StringMemberValue) defaultMemberValue)
+						.getValue();
+			} else {
+				LOGGER.log(Level.WARNING, "Unknown member value type '"
+						+ defaultMemberValue.getClass().getName() + "'!");
+			}
+			md.setAnnotationDefaultValue(annotationDefaultValue);
+		}
 
 		if (deprecatedAttribute != null) {
 			md.setDeprecated(true);

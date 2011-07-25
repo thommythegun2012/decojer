@@ -34,6 +34,8 @@ public class MD implements BD, PD {
 
 	private final int accessFlags;
 
+	private Object annotationDefaultValue;
+
 	private CFG cfg;
 
 	private boolean deprecated;
@@ -90,6 +92,15 @@ public class MD implements BD, PD {
 	 */
 	public int getAccessFlags() {
 		return this.accessFlags;
+	}
+
+	/**
+	 * Get annotation default value.
+	 * 
+	 * @return annotation default value
+	 */
+	public Object getAnnotationDefaultValue() {
+		return this.annotationDefaultValue;
 	}
 
 	/**
@@ -171,6 +182,16 @@ public class MD implements BD, PD {
 	 */
 	public boolean isSynthetic() {
 		return this.synthetic;
+	}
+
+	/**
+	 * Set annotation default value.
+	 * 
+	 * @param annotationDefaultValue
+	 *            annotation default value
+	 */
+	public void setAnnotationDefaultValue(final Object annotationDefaultValue) {
+		this.annotationDefaultValue = annotationDefaultValue;
 	}
 
 	/**

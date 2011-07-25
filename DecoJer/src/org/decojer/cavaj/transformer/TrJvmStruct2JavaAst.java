@@ -49,6 +49,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
+import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -268,15 +269,17 @@ public class TrJvmStruct2JavaAst {
 			methodDeclaration = ast.newAnnotationTypeMemberDeclaration();
 			((AnnotationTypeMemberDeclaration) methodDeclaration).setName(ast
 					.newSimpleName(name));
-			/*
-			 * // check if default value (byte byteTest() default 2;) if
-			 * (annotationDefaultAttribute != null) { final Expression
-			 * expression = AnnotationsDecompiler
-			 * .decompileAnnotationMemberValue(td,
-			 * annotationDefaultAttribute.getDefaultValue()); if (expression !=
-			 * null) { ((AnnotationTypeMemberDeclaration) methodDeclaration)
-			 * .setDefault(expression); } }
-			 */
+
+			// check if default value (byte byteTest() default 2;)
+			if (md.getAnnotationDefaultValue() != null) {
+				final Expression expression = AnnotationsDecompiler
+						.decompileAnnotationMemberValue(td,
+								md.getAnnotationDefaultValue());
+				if (expression != null) {
+					((AnnotationTypeMemberDeclaration) methodDeclaration)
+							.setDefault(expression);
+				}
+			}
 		} else {
 			// MethodDeclaration
 			methodDeclaration = ast.newMethodDeclaration();

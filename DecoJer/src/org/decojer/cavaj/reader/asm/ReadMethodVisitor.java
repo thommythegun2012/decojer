@@ -26,6 +26,7 @@ package org.decojer.cavaj.reader.asm;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.MD;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Label;
@@ -33,6 +34,8 @@ import org.objectweb.asm.MethodHandle;
 import org.objectweb.asm.MethodVisitor;
 
 /**
+ * Read method visitor.
+ * 
  * @author André Pankraz
  */
 public class ReadMethodVisitor implements MethodVisitor {
@@ -40,7 +43,11 @@ public class ReadMethodVisitor implements MethodVisitor {
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadMethodVisitor.class.getName());
 
+	private MD md;
+
 	private final ReadClassVisitor readClassVisitor;
+
+	private final ReadDefaultAnnotationVisitor readDefaultAnnotationVisitor;
 
 	/**
 	 * Constructor.
@@ -50,6 +57,27 @@ public class ReadMethodVisitor implements MethodVisitor {
 	 */
 	public ReadMethodVisitor(final ReadClassVisitor readClassVisitor) {
 		this.readClassVisitor = readClassVisitor;
+		this.readDefaultAnnotationVisitor = new ReadDefaultAnnotationVisitor(
+				this);
+	}
+
+	/**
+	 * Get method declaration.
+	 * 
+	 * @return method declaration
+	 */
+	public MD getMd() {
+		return this.md;
+	}
+
+	/**
+	 * Set method declaration.
+	 * 
+	 * @param md
+	 *            method declaration
+	 */
+	public void setMd(final MD md) {
+		this.md = md;
 	}
 
 	@Override
@@ -57,13 +85,12 @@ public class ReadMethodVisitor implements MethodVisitor {
 			final boolean visible) {
 		LOGGER.warning("### method visitAnnotation ### " + desc + " : "
 				+ visible);
-		return null;
+		return new ReadAnnotationVisitor();
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotationDefault() {
-		// TODO Auto-generated method stub
-		return null;
+		return this.readDefaultAnnotationVisitor;
 	}
 
 	@Override
@@ -181,7 +208,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			final String desc, final boolean visible) {
 		LOGGER.warning("### method visitParameterAnnotation ### " + parameter
 				+ " : " + desc + " : " + visible);
-		return null;
+		return new ReadAnnotationVisitor();
 	}
 
 	@Override
