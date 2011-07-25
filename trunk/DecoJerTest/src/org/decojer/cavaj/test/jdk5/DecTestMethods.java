@@ -1,18 +1,22 @@
 package org.decojer.cavaj.test.jdk5;
 
-public abstract class DecTestMethods<E extends Appendable> {
+import java.lang.Thread.State;
 
-	@DecTestAnnotations(byteTest = 1)
+public abstract class DecTestMethods {
+
+	@DecTestAnnotations(byteNoDefault = 1, charTest = 'x', stringTest = "test")
 	public final byte getByteTest(
-			@DecTestAnnotations(intTest = 1, charTest = 'c') final E test)
+			@DecTestAnnotations(byteNoDefault = 1, classTest = Appendable.class) final String test)
 			throws IllegalAccessError {
 		return 1;
 	}
 
-	@DecTestAnnotations(intTest = 1, charTest = 'c')
+	@DecTestAnnotations(byteNoDefault = 1, booleanTest = false, byteTest = 2, shortTest = 3, intTest = 4, longTest = 5)
 	public abstract int getIntTest(final String test) throws Throwable;
 
-	public int varargsTest(final int a, final Object... b) {
+	public int varargsTest(
+			final int a,
+			@DecTestAnnotations(byteNoDefault = 1, enumTest = State.NEW) final Object... b) {
 		return 1;
 	}
 

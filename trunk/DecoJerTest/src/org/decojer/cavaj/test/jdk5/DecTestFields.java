@@ -6,10 +6,10 @@ public class DecTestFields<E> extends HashMap<String, E> {
 
 	protected final Class referenceClassTest = String.class;
 
-	@DecTestAnnotations(byteTest = 1)
+	@DecTestAnnotations(byteNoDefault = 1, byteArrayTest = {})
 	protected final static Class<String> referenceGenericClassTest = String.class;
 
-	@DecTestAnnotations(intTest = 1, charTest = 'c')
+	@DecTestAnnotations(byteNoDefault = 1, stringArrayTest = {})
 	protected final Class<? extends E> referenceGenericClassTest2 = null;
 
 	protected final Class<? super E> referenceGenericClassTest3 = null;
