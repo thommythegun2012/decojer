@@ -30,8 +30,6 @@ import java.util.logging.Logger;
 
 import javassist.bytecode.AccessFlag;
 import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.ConstPool;
-import javassist.bytecode.ConstantAttribute;
 
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
@@ -183,60 +181,50 @@ public class TrJvmStruct2JavaAst {
 			new SignatureDecompiler(td, fd.getDescriptor(), fd.getSignature())
 					.decompileFieldType((FieldDeclaration) fieldDeclaration);
 
-			final ConstantAttribute constantAttribute = null;
-			if (constantAttribute != null) {
+			final Object value = fd.getValue();
+			if (value != null) {
 				final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
 						.fragments().get(0);
 				// only final, non static - no arrays, class types
-				final int index = constantAttribute.getConstantValue();
-				final ConstPool constPool = constantAttribute.getConstPool();
-				final int tag = constPool.getTag(index);
-				switch (tag) {
-				case ConstPool.CONST_Double:
+				if (value instanceof Double) {
 					variableDeclarationFragment.setInitializer(ast
-							.newNumberLiteral(Double.toString(constPool
-									.getDoubleInfo(index)) + 'D'));
-					break;
-				case ConstPool.CONST_Float:
+							.newNumberLiteral(value.toString() + 'D'));
+				} else if (value instanceof Float) {
 					variableDeclarationFragment.setInitializer(ast
-							.newNumberLiteral(Float.toString(constPool
-									.getFloatInfo(index)) + 'F'));
-					break;
-				case ConstPool.CONST_Integer:
+							.newNumberLiteral(value.toString() + 'F'));
+				} else if (value instanceof Integer) {
 					// also: int, short, byte, char, boolean
-					final int integerInfo = constPool.getIntegerInfo(index);
-					// TODO better check decompiled type
 					if ("C".equals(fd.getDescriptor())) {
 						final CharacterLiteral newCharacterLiteral = ast
 								.newCharacterLiteral();
-						newCharacterLiteral.setCharValue((char) integerInfo);
+						newCharacterLiteral
+								.setCharValue((char) ((Integer) value)
+										.intValue());
 						variableDeclarationFragment
 								.setInitializer(newCharacterLiteral);
 					} else if ("Z".equals(fd.getDescriptor())) {
-						variableDeclarationFragment.setInitializer(ast
-								.newBooleanLiteral(integerInfo == 1));
-					} else {
 						variableDeclarationFragment
-								.setInitializer(ast.newNumberLiteral(Integer
-										.toString(integerInfo)));
+								.setInitializer(ast
+										.newBooleanLiteral(((Integer) value)
+												.intValue() == 1));
+					} else {
+						variableDeclarationFragment.setInitializer(ast
+								.newNumberLiteral(value.toString()));
 					}
-					break;
-				case ConstPool.CONST_Long:
+				} else if (value instanceof Long) {
 					variableDeclarationFragment.setInitializer(ast
-							.newNumberLiteral(Long.toString(constPool
-									.getLongInfo(index)) + 'L'));
-					break;
-				case ConstPool.CONST_String:
+							.newNumberLiteral(value.toString() + 'L'));
+				} else if (value instanceof String) {
 					final StringLiteral newStringLiteral = ast
 							.newStringLiteral();
-					newStringLiteral.setLiteralValue(constPool
-							.getStringInfo(index));
+					newStringLiteral.setLiteralValue((String) value);
 					variableDeclarationFragment
 							.setInitializer(newStringLiteral);
-					break;
-				default:
-					LOGGER.log(Level.WARNING, "Unknown constant attribute '"
-							+ tag + "' for field info '" + fd.getName() + "'!");
+				} else {
+					LOGGER.log(Level.WARNING,
+							"Unknown constant attribute '" + value.getClass()
+									+ "' for field info '" + fd.getName()
+									+ "'!");
 				}
 			}
 			fd.setFieldDeclaration(fieldDeclaration);

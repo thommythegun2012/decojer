@@ -51,6 +51,9 @@ public class FD implements BD, PD {
 
 	private final TD td;
 
+	// value, type Integer: int, short, byte, char, boolean
+	private final Object value;
+
 	/**
 	 * Constructor.
 	 * 
@@ -64,9 +67,11 @@ public class FD implements BD, PD {
 	 *            descriptor
 	 * @param signature
 	 *            signature
+	 * @param value
+	 *            value
 	 */
 	public FD(final TD td, final int accessFlags, final String name,
-			final String descriptor, final String signature) {
+			final String descriptor, final String signature, final Object value) {
 		assert td != null;
 		assert name != null;
 		assert descriptor != null;
@@ -76,6 +81,7 @@ public class FD implements BD, PD {
 		this.name = name;
 		this.descriptor = descriptor;
 		this.signature = signature;
+		this.value = value;
 	}
 
 	/**
@@ -123,6 +129,11 @@ public class FD implements BD, PD {
 		return this.name;
 	}
 
+	/**
+	 * Get signature.
+	 * 
+	 * @return signature
+	 */
 	public String getSignature() {
 		return this.signature;
 	}
@@ -134,6 +145,15 @@ public class FD implements BD, PD {
 	 */
 	public TD getTd() {
 		return this.td;
+	}
+
+	/**
+	 * Get value, type Integer: int, short, byte, char, boolean.
+	 * 
+	 * @return value
+	 */
+	public Object getValue() {
+		return this.value;
 	}
 
 	/**

@@ -38,6 +38,7 @@ import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.CodeAttribute;
+import javassist.bytecode.ConstPool;
 import javassist.bytecode.ConstantAttribute;
 import javassist.bytecode.DeprecatedAttribute;
 import javassist.bytecode.EnclosingMethodAttribute;
@@ -266,10 +267,39 @@ public class JavassistReader {
 			}
 		}
 
+		Object value = null;
+		if (constantAttribute != null) {
+			// only final, non static - no arrays, class types
+			final int index = constantAttribute.getConstantValue();
+			final ConstPool constPool = constantAttribute.getConstPool();
+			final int tag = constPool.getTag(index);
+			switch (tag) {
+			case ConstPool.CONST_Double:
+				value = constPool.getDoubleInfo(index);
+				break;
+			case ConstPool.CONST_Float:
+				value = constPool.getFloatInfo(index);
+				break;
+			case ConstPool.CONST_Integer:
+				// also: int, short, byte, char, boolean
+				value = constPool.getIntegerInfo(index);
+				break;
+			case ConstPool.CONST_Long:
+				value = constPool.getLongInfo(index);
+				break;
+			case ConstPool.CONST_String:
+				value = constPool.getStringInfo(index);
+				break;
+			default:
+				LOGGER.log(Level.WARNING, "Unknown constant attribute '" + tag
+						+ "' for field info '" + fieldInfo.getName() + "'!");
+			}
+		}
+
 		final FD fd = new FD(td, fieldInfo.getAccessFlags(),
 				fieldInfo.getName(), fieldInfo.getDescriptor(),
 				signatureAttribute == null ? null
-						: signatureAttribute.getSignature());
+						: signatureAttribute.getSignature(), value);
 
 		if (deprecatedAttribute != null) {
 			fd.setDeprecated(true);
