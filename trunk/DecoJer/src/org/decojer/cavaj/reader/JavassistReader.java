@@ -556,6 +556,11 @@ public class JavassistReader {
 			md.setVisibleAs(as);
 		}
 
+		if (codeAttribute != null) {
+			// TODO temporary
+			md.setCodeAttribute(codeAttribute);
+		}
+
 		if (deprecatedAttribute != null) {
 			md.setDeprecated(true);
 		}
