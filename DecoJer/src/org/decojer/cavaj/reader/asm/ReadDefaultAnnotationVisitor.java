@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.reader.asm;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.T;
@@ -40,6 +42,8 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 			.getLogger(ReadDefaultAnnotationVisitor.class.getName());
 
 	private final ReadMethodVisitor readMethodVisitor;
+
+	private Object value;
 
 	/**
 	 * Constructor.
@@ -70,10 +74,10 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 			final T t = this.readMethodVisitor.getReadClassVisitor().getDu()
 					.getT(type.getClassName());
 			// descriptor???
-			this.readMethodVisitor.getMd().setAnnotationDefaultValue(t);
+			this.value = t;
 			return;
 		}
-		this.readMethodVisitor.getMd().setAnnotationDefaultValue(value);
+		this.value = value;
 	}
 
 	@Override
@@ -88,12 +92,48 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 	public AnnotationVisitor visitArray(final String name) {
 		checkName(name);
 		LOGGER.warning("###### default visitArray ### ");
-		return new ReadAnnotationVisitor();
+		return new AnnotationVisitor() {
+
+			private final List<Object> values = new ArrayList<Object>();
+
+			@Override
+			public void visit(final String name, final Object value) {
+				checkName(name);
+				this.values.add(value);
+			}
+
+			@Override
+			public AnnotationVisitor visitAnnotation(final String name,
+					final String desc) {
+				checkName(name);
+				return null;
+			}
+
+			@Override
+			public AnnotationVisitor visitArray(final String name) {
+				LOGGER.warning("Onle 1-dimensional arrays allowed as default values!");
+				return null;
+			}
+
+			@Override
+			public void visitEnd() {
+				ReadDefaultAnnotationVisitor.this.value = this.values.toArray();
+			}
+
+			@Override
+			public void visitEnum(final String name, final String desc,
+					final String value) {
+				checkName(name);
+			}
+		};
 	}
 
 	@Override
 	public void visitEnd() {
-		// nothing
+		if (this.value != null) {
+			this.readMethodVisitor.getMd()
+					.setAnnotationDefaultValue(this.value);
+		}
 	}
 
 	@Override
