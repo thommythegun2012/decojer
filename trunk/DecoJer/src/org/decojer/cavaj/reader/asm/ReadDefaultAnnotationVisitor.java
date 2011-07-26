@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.E;
 import org.decojer.cavaj.model.T;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Type;
@@ -99,6 +100,17 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 			@Override
 			public void visit(final String name, final Object value) {
 				checkName(name);
+				if (value instanceof Type) {
+					final Type type = (Type) value;
+					System.out.println("###TYPE: " + type.getClassName()
+							+ " : " + type.getDescriptor());
+					final T t = ReadDefaultAnnotationVisitor.this.readMethodVisitor
+							.getReadClassVisitor().getDu()
+							.getT(type.getClassName());
+					// descriptor???
+					this.values.add(t);
+					return;
+				}
 				this.values.add(value);
 			}
 
@@ -140,7 +152,11 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 	public void visitEnum(final String name, final String desc,
 			final String value) {
 		checkName(name);
-		LOGGER.warning("###### default visitEnum ### " + desc + " : " + value);
+		// desc: Ljava/lang/Thread$State;
+		// value: BLOCKED
+		final T t = this.readMethodVisitor.getReadClassVisitor().getDu()
+				.getT(desc.substring(1, desc.length() - 1).replace('/', '.'));
+		this.value = new E(t, value);
 	}
 
 }

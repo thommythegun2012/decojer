@@ -67,6 +67,7 @@ import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.E;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
@@ -327,7 +328,8 @@ public class JavassistReader {
 		return fd;
 	}
 
-	private static Object readMemberValue(final MemberValue memberValue) {
+	private static Object readMemberValue(final MemberValue memberValue,
+			final DU du) {
 		if (memberValue instanceof AnnotationMemberValue) {
 			final Annotation annotation = ((AnnotationMemberValue) memberValue)
 					.getValue();
@@ -339,7 +341,7 @@ public class JavassistReader {
 					.getValue();
 			final Object[] objects = new Object[values.length];
 			for (int i = values.length; i-- > 0;) {
-				objects[i] = readMemberValue(values[i]);
+				objects[i] = readMemberValue(values[i], du);
 			}
 			return objects;
 		}
@@ -353,18 +355,16 @@ public class JavassistReader {
 			return ((CharMemberValue) memberValue).getValue();
 		}
 		if (memberValue instanceof ClassMemberValue) {
-			final String className = ((ClassMemberValue) memberValue)
-					.getValue();
-			System.out.println("### CLASSNAME: " + className);
-			return null;
+			return du.getT(((ClassMemberValue) memberValue).getValue());
 		}
 		if (memberValue instanceof DoubleMemberValue) {
 			return ((DoubleMemberValue) memberValue).getValue();
 		} else if (memberValue instanceof EnumMemberValue) {
-			final String type = ((EnumMemberValue) memberValue).getType();
+			final String typeName = ((EnumMemberValue) memberValue).getType();
 			final String value = ((EnumMemberValue) memberValue).getValue();
-			System.out.println("### ENUMTYPE: " + type);
-			return null;
+			final T t = du.getT(typeName); // java.lang.Thread$State
+			final E e = new E(t, value);
+			return e;
 		}
 		if (memberValue instanceof FloatMemberValue) {
 			return ((FloatMemberValue) memberValue).getValue();
@@ -451,7 +451,8 @@ public class JavassistReader {
 		if (annotationDefaultAttribute != null) {
 			final MemberValue defaultMemberValue = annotationDefaultAttribute
 					.getDefaultValue();
-			final Object annotationDefaultValue = readMemberValue(defaultMemberValue);
+			final Object annotationDefaultValue = readMemberValue(
+					defaultMemberValue, td.getT().getDu());
 			md.setAnnotationDefaultValue(annotationDefaultValue);
 		}
 

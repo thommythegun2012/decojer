@@ -32,8 +32,8 @@ import java.util.logging.Logger;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.AnnotationMemberValue;
-import javassist.bytecode.annotation.EnumMemberValue;
 
+import org.decojer.cavaj.model.E;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.AST;
@@ -43,8 +43,10 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
+import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.StringLiteral;
+import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeLiteral;
 
 /**
@@ -160,47 +162,50 @@ public class AnnotationsDecompiler {
 		}
 		if (defaultValue instanceof T) {
 			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-			/*
-			 * final String value = ((ClassMemberValue) memberValue).getValue();
-			 * // value: byte, java.util.List, java.lang.Byte[][][], void // no
-			 * type arguments possible // => PrimitiveType, SimpleType,
-			 * ArrayType final int pos = value.indexOf('['); final String name =
-			 * pos == -1 ? value : value.substring(0, pos); Type type; //
-			 * similar to switch in SignatureDecompiler if ("void".equals(name))
-			 * { type = ast.newPrimitiveType(PrimitiveType.VOID); } else if
-			 * ("byte".equals(name)) { type =
-			 * ast.newPrimitiveType(PrimitiveType.BYTE); } else if
-			 * ("char".equals(name)) { type =
-			 * ast.newPrimitiveType(PrimitiveType.CHAR); } else if
-			 * ("double".equals(name)) { type =
-			 * ast.newPrimitiveType(PrimitiveType.DOUBLE); } else if
-			 * ("float".equals(name)) { type =
-			 * ast.newPrimitiveType(PrimitiveType.FLOAT); } else if
-			 * ("int".equals(name)) { type =
-			 * ast.newPrimitiveType(PrimitiveType.INT); } else if
-			 * ("long".equals(name)) { type =
-			 * ast.newPrimitiveType(PrimitiveType.LONG); } else if
-			 * ("short".equals(name)) { type =
-			 * ast.newPrimitiveType(PrimitiveType.SHORT); } else if
-			 * ("boolean".equals(name)) { type =
-			 * ast.newPrimitiveType(PrimitiveType.BOOLEAN); } else { type =
-			 * ast.newSimpleType(td.newTypeName(name)); } if (pos > 0) { //
-			 * array number is "length" - "pos of first [" / 2 for (int i =
-			 * (value.length() - pos) / 2; i-- > 0;) { type =
-			 * ast.newArrayType(type); } } typeLiteral.setType(type); return
-			 * typeLiteral;
-			 */
-			return null;
+
+			final String value = ((T) defaultValue).getName();
+			// value: byte, byte[], java.lang.Byte[][][], void
+			// no type parameter possible
+			final int pos = value.indexOf('[');
+			final String name = pos == -1 ? value : value.substring(0, pos);
+			Type type; // similar to switch in SignatureDecompiler
+			if ("void".equals(name)) {
+				type = ast.newPrimitiveType(PrimitiveType.VOID);
+			} else if ("byte".equals(name)) {
+				type = ast.newPrimitiveType(PrimitiveType.BYTE);
+			} else if ("char".equals(name)) {
+				type = ast.newPrimitiveType(PrimitiveType.CHAR);
+			} else if ("double".equals(name)) {
+				type = ast.newPrimitiveType(PrimitiveType.DOUBLE);
+			} else if ("float".equals(name)) {
+				type = ast.newPrimitiveType(PrimitiveType.FLOAT);
+			} else if ("int".equals(name)) {
+				type = ast.newPrimitiveType(PrimitiveType.INT);
+			} else if ("long".equals(name)) {
+				type = ast.newPrimitiveType(PrimitiveType.LONG);
+			} else if ("short".equals(name)) {
+				type = ast.newPrimitiveType(PrimitiveType.SHORT);
+			} else if ("boolean".equals(name)) {
+				type = ast.newPrimitiveType(PrimitiveType.BOOLEAN);
+			} else {
+				type = ast.newSimpleType(td.newTypeName(name));
+			}
+			if (pos > 0) {
+				// final array number is "length" - "pos of first [" / 2
+				for (int i = (value.length() - pos) / 2; i-- > 0;) {
+					type = ast.newArrayType(type);
+				}
+			}
+			typeLiteral.setType(type);
+			return typeLiteral;
 		}
 		if (defaultValue instanceof Double) {
 			return ast.newNumberLiteral(defaultValue.toString() + 'D');
 		}
-		if (defaultValue instanceof EnumMemberValue) {
-			// return ast.newName(((EnumMemberValue) memberValue).getType() +
-			// "."
-			// + ((EnumMemberValue) memberValue).getValue());
+		if (defaultValue instanceof E) {
+			final E e = (E) defaultValue;
 			// TODO default java.lang.Thread$State.BLOCKED
-			return null;
+			return ast.newName(e.getT().getName() + "." + e.getName());
 		}
 		if (defaultValue instanceof Float) {
 			return ast.newNumberLiteral(defaultValue.toString() + 'F');
