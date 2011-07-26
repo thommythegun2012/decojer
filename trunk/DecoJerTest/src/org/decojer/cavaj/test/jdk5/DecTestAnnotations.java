@@ -1,9 +1,11 @@
 package org.decojer.cavaj.test.jdk5;
 
 import java.lang.Thread.State;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 
-@DecTestAnnotations(stringTest = "annotate the annotation...")
+@Retention(RetentionPolicy.RUNTIME)
 public @interface DecTestAnnotations {
 
 	SuppressWarnings[] annotationArrayTest() default {
@@ -21,6 +23,8 @@ public @interface DecTestAnnotations {
 
 	char charTest() default 'b';
 
+	// runtime visible in bytecode allways after invisible
+	@Deprecated
 	@DecTestAnnotations
 	Class classTest() default byte.class;
 
