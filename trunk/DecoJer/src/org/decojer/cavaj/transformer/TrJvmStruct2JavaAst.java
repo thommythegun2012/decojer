@@ -24,7 +24,6 @@
 package org.decojer.cavaj.transformer;
 
 import java.lang.annotation.Annotation;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -54,7 +53,6 @@ import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
-import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -402,56 +400,31 @@ public class TrJvmStruct2JavaAst {
 		final CFG cfg = new CFG(md, block, codeAttribute);
 
 		if (methodDeclaration instanceof MethodDeclaration) {
-			// decompile method parameter annotations and names
-			final javassist.bytecode.annotation.Annotation[][] annotationsInvisible = null; /*
-																							 * parameterAnnotationsAttributeRuntimeInvisible
-																							 * ==
-																							 * null
-																							 * ?
-																							 * null
-																							 * :
-																							 * parameterAnnotationsAttributeRuntimeInvisible
-																							 * .
-																							 * getAnnotations
-																							 * (
-																							 * )
-																							 * ;
-																							 */
-			final javassist.bytecode.annotation.Annotation[][] annotationsVisible = null; /*
-																						 * parameterAnnotationsAttributeRuntimeVisible
-																						 * ==
-																						 * null
-																						 * ?
-																						 * null
-																						 * :
-																						 * parameterAnnotationsAttributeRuntimeVisible
-																						 * .
-																						 * getAnnotations
-																						 * (
-																						 * )
-																						 * ;
-																						 */
-
-			int annotation = 0;
-			int test = (md.getAccessFlags() & AccessFlag.STATIC) != 0 ? 0 : 1;
-			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
-					.parameters()) {
-				// decompile parameter annotations
-				if (annotationsInvisible != null
-						&& annotationsInvisible.length > annotation) {
-					AnnotationsDecompiler.decompileAnnotations(td,
-							singleVariableDeclaration.modifiers(),
-							annotationsInvisible[annotation]);
-				}
-				if (annotationsVisible != null
-						&& annotationsVisible.length > annotation) {
-					AnnotationsDecompiler.decompileAnnotations(td,
-							singleVariableDeclaration.modifiers(),
-							annotationsVisible[annotation++]);
-				}
-				singleVariableDeclaration.setName(ast.newSimpleName(cfg
-						.getVariableName(test++)));
-			}
+			/*
+			 * // decompile method parameter annotations and names final
+			 * javassist.bytecode.annotation.Annotation[][] annotationsInvisible
+			 * = parameterAnnotationsAttributeRuntimeInvisible == null ? null :
+			 * parameterAnnotationsAttributeRuntimeInvisible .getAnnotations();
+			 * final javassist.bytecode.annotation.Annotation[][]
+			 * annotationsVisible = parameterAnnotationsAttributeRuntimeVisible
+			 * == null ? null : parameterAnnotationsAttributeRuntimeVisible
+			 * .getAnnotations(); int annotation = 0; int test =
+			 * (md.getAccessFlags() & AccessFlag.STATIC) != 0 ? 0 : 1; for
+			 * (final SingleVariableDeclaration singleVariableDeclaration :
+			 * (List<SingleVariableDeclaration>) ((MethodDeclaration)
+			 * methodDeclaration) .parameters()) { // decompile parameter
+			 * annotations if (annotationsInvisible != null &&
+			 * annotationsInvisible.length > annotation) {
+			 * AnnotationsDecompiler.decompileAnnotations(td,
+			 * singleVariableDeclaration.modifiers(),
+			 * annotationsInvisible[annotation]); } if (annotationsVisible !=
+			 * null && annotationsVisible.length > annotation) {
+			 * AnnotationsDecompiler.decompileAnnotations(td,
+			 * singleVariableDeclaration.modifiers(),
+			 * annotationsVisible[annotation++]); }
+			 * singleVariableDeclaration.setName(ast.newSimpleName(cfg
+			 * .getVariableName(test++))); }
+			 */
 		}
 		if (codeAttribute != null) {
 			md.setCFG(cfg);
