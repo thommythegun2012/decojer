@@ -51,9 +51,11 @@ import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
+import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.StringLiteral;
+import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
@@ -100,27 +102,30 @@ public class TrJvmStruct2JavaAst {
 			fieldDeclaration = ast
 					.newFieldDeclaration(variableDeclarationFragment);
 		}
-		/*
-		 * // decompile deprecated Javadoc-tag if no annotation set if
-		 * (deprecatedAttribute != null && !AnnotationsDecompiler
-		 * .isDeprecatedAnnotation(annotationsAttributeRuntimeVisible)) { final
-		 * Javadoc newJavadoc = ast.newJavadoc(); final TagElement newTagElement
-		 * = ast.newTagElement(); newTagElement.setTagName("@deprecated");
-		 * newJavadoc.tags().add(newTagElement);
-		 * fieldDeclaration.setJavadoc(newJavadoc); }
-		 */
-		/*
-		 * // decompile annotations, // add annotation modifiers before other
-		 * modifiers, order preserved in // source code generation through
-		 * Eclipse JDT if (annotationsAttributeRuntimeInvisible != null) {
-		 * AnnotationsDecompiler.decompileAnnotations(td,
-		 * fieldDeclaration.modifiers(),
-		 * annotationsAttributeRuntimeInvisible.getAnnotations()); } if
-		 * (annotationsAttributeRuntimeVisible != null) {
-		 * AnnotationsDecompiler.decompileAnnotations(td,
-		 * fieldDeclaration.modifiers(),
-		 * annotationsAttributeRuntimeVisible.getAnnotations()); }
-		 */
+
+		// decompile deprecated Javadoc-tag if no annotation set
+		if (fd.isDeprecated()
+				&& !AnnotationsDecompiler.isDeprecatedAnnotation(fd
+						.getVisibleAs())) {
+			final Javadoc newJavadoc = ast.newJavadoc();
+			final TagElement newTagElement = ast.newTagElement();
+			newTagElement.setTagName("@deprecated");
+			newJavadoc.tags().add(newTagElement);
+			fieldDeclaration.setJavadoc(newJavadoc);
+		}
+
+		// decompile annotations,
+		// add annotation modifiers before other modifiers, order preserved in
+		// source code generation through Eclipse JDT
+		if (fd.getInvisibleAs() != null) {
+			AnnotationsDecompiler.decompileAnnotations(td,
+					fieldDeclaration.modifiers(), fd.getInvisibleAs());
+		}
+		if (fd.getVisibleAs() != null) {
+			AnnotationsDecompiler.decompileAnnotations(td,
+					fieldDeclaration.modifiers(), fd.getVisibleAs());
+		}
+
 		// decompile modifier flags,
 		// public is default for enum and interface
 		if (accessFlags != (accessFlags &= ~AccessFlag.PUBLIC)
@@ -284,27 +289,30 @@ public class TrJvmStruct2JavaAst {
 			((MethodDeclaration) methodDeclaration).setName(ast
 					.newSimpleName(name));
 		}
-		/*
-		 * // decompile deprecated Javadoc-tag if no annotation set if
-		 * (deprecatedAttribute != null && !AnnotationsDecompiler
-		 * .isDeprecatedAnnotation(annotationsAttributeRuntimeVisible)) { final
-		 * Javadoc newJavadoc = ast.newJavadoc(); final TagElement newTagElement
-		 * = ast.newTagElement(); newTagElement.setTagName("@deprecated");
-		 * newJavadoc.tags().add(newTagElement);
-		 * methodDeclaration.setJavadoc(newJavadoc); }
-		 */
-		/*
-		 * // decompile annotations, // add annotation modifiers before other
-		 * modifiers, order preserved in // source code generation through
-		 * Eclipse JDT if (annotationsAttributeRuntimeInvisible != null) {
-		 * AnnotationsDecompiler.decompileAnnotations(td,
-		 * methodDeclaration.modifiers(),
-		 * annotationsAttributeRuntimeInvisible.getAnnotations()); } if
-		 * (annotationsAttributeRuntimeVisible != null) {
-		 * AnnotationsDecompiler.decompileAnnotations(td,
-		 * methodDeclaration.modifiers(),
-		 * annotationsAttributeRuntimeVisible.getAnnotations()); }
-		 */
+
+		// decompile deprecated Javadoc-tag if no annotation set
+		if (md.isDeprecated()
+				&& !AnnotationsDecompiler.isDeprecatedAnnotation(md
+						.getVisibleAs())) {
+			final Javadoc newJavadoc = ast.newJavadoc();
+			final TagElement newTagElement = ast.newTagElement();
+			newTagElement.setTagName("@deprecated");
+			newJavadoc.tags().add(newTagElement);
+			methodDeclaration.setJavadoc(newJavadoc);
+		}
+
+		// decompile annotations,
+		// add annotation modifiers before other modifiers, order preserved in
+		// source code generation through Eclipse JDT
+		if (md.getInvisibleAs() != null) {
+			AnnotationsDecompiler.decompileAnnotations(td,
+					methodDeclaration.modifiers(), md.getInvisibleAs());
+		}
+		if (md.getVisibleAs() != null) {
+			AnnotationsDecompiler.decompileAnnotations(td,
+					methodDeclaration.modifiers(), md.getVisibleAs());
+		}
+
 		// decompile modifier flags,
 		// public is default for interface and annotation type declarations
 		if (accessFlags != (accessFlags &= ~AccessFlag.PUBLIC)
@@ -502,18 +510,18 @@ public class TrJvmStruct2JavaAst {
 			signatureDecompiler.decompileClassTypes(
 					(TypeDeclaration) typeDeclaration, t.getInterfaceTs());
 		}
-		/*
-		 * // add annotation modifiers before other modifiers, order preserved
-		 * in // source code generation through eclipse.jdt if
-		 * (annotationsAttributeRuntimeInvisible != null) {
-		 * AnnotationsDecompiler.decompileAnnotations(td,
-		 * typeDeclaration.modifiers(),
-		 * annotationsAttributeRuntimeInvisible.getAnnotations()); } if
-		 * (annotationsAttributeRuntimeVisible != null) {
-		 * AnnotationsDecompiler.decompileAnnotations(td,
-		 * typeDeclaration.modifiers(),
-		 * annotationsAttributeRuntimeVisible.getAnnotations()); }
-		 */
+
+		// add annotation modifiers before other modifiers, order preserved in
+		// source code generation through eclipse.jdt
+		if (td.getInvisibleAs() != null) {
+			AnnotationsDecompiler.decompileAnnotations(td,
+					typeDeclaration.modifiers(), td.getInvisibleAs());
+		}
+		if (td.getVisibleAs() != null) {
+			AnnotationsDecompiler.decompileAnnotations(td,
+					typeDeclaration.modifiers(), td.getVisibleAs());
+		}
+
 		// decompile remaining modifier flags
 		if (accessFlags != (accessFlags &= ~AccessFlag.PUBLIC)) {
 			typeDeclaration.modifiers().add(
@@ -551,14 +559,17 @@ public class TrJvmStruct2JavaAst {
 		// necessary
 		typeDeclaration.setName(ast.newSimpleName(cu.isStartTdOnly() ? t
 				.getPName() : t.getIName()));
-		/*
-		 * if (td.isDeprecated() && !AnnotationsDecompiler
-		 * .isDeprecatedAnnotation(annotationsAttributeRuntimeVisible)) { final
-		 * Javadoc newJavadoc = ast.newJavadoc(); final TagElement newTagElement
-		 * = ast.newTagElement(); newTagElement.setTagName("@deprecated");
-		 * newJavadoc.tags().add(newTagElement);
-		 * typeDeclaration.setJavadoc(newJavadoc); }
-		 */
+
+		if (td.isDeprecated()
+				&& !AnnotationsDecompiler.isDeprecatedAnnotation(td
+						.getVisibleAs())) {
+			final Javadoc newJavadoc = ast.newJavadoc();
+			final TagElement newTagElement = ast.newTagElement();
+			newTagElement.setTagName("@deprecated");
+			newJavadoc.tags().add(newTagElement);
+			typeDeclaration.setJavadoc(newJavadoc);
+		}
+
 		td.setTypeDeclaration(typeDeclaration);
 		for (final BD bd : td.getBds()) {
 			if (bd instanceof FD) {

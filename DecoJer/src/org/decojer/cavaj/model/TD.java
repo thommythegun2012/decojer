@@ -47,6 +47,8 @@ public class TD implements BD, PD {
 
 	private boolean deprecated;
 
+	private A[] invisibleAs;
+
 	// parent declaration
 	private PD pd;
 
@@ -61,6 +63,8 @@ public class TD implements BD, PD {
 	private AbstractTypeDeclaration typeDeclaration; // anonymousClassDeclaration?
 
 	private int version;
+
+	private A[] visibleAs;
 
 	/**
 	 * Constructor.
@@ -127,6 +131,10 @@ public class TD implements BD, PD {
 			return ((FD) pd).getTd().getCu();
 		}
 		return null;
+	}
+
+	public A[] getInvisibleAs() {
+		return this.invisibleAs;
 	}
 
 	/**
@@ -200,6 +208,10 @@ public class TD implements BD, PD {
 		return this.version;
 	}
 
+	public A[] getVisibleAs() {
+		return this.visibleAs;
+	}
+
 	/**
 	 * Get deprecated state (from deprecated attribute).
 	 * 
@@ -251,6 +263,10 @@ public class TD implements BD, PD {
 		this.deprecated = deprecated;
 	}
 
+	public void setInvisibleAs(final A[] invisibleAs) {
+		this.invisibleAs = invisibleAs;
+	}
+
 	/**
 	 * Set parent declaration.
 	 * 
@@ -299,6 +315,10 @@ public class TD implements BD, PD {
 	 */
 	public void setVersion(final int version) {
 		this.version = version;
+	}
+
+	public void setVisibleAs(final A[] visibleAs) {
+		this.visibleAs = visibleAs;
 	}
 
 	@Override

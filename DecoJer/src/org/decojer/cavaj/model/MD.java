@@ -44,6 +44,8 @@ public class MD implements BD, PD {
 
 	private final String[] exceptions;
 
+	private A[] invisibleAs;
+
 	private BodyDeclaration methodDeclaration;
 
 	private final String name;
@@ -53,6 +55,8 @@ public class MD implements BD, PD {
 	private boolean synthetic;
 
 	private final TD td;
+
+	private A[] visibleAs;
 
 	/**
 	 * Constructor.
@@ -130,6 +134,10 @@ public class MD implements BD, PD {
 		return this.exceptions;
 	}
 
+	public A[] getInvisibleAs() {
+		return this.invisibleAs;
+	}
+
 	/**
 	 * Get Eclipse method declaration.
 	 * 
@@ -164,6 +172,10 @@ public class MD implements BD, PD {
 	 */
 	public TD getTd() {
 		return this.td;
+	}
+
+	public A[] getVisibleAs() {
+		return this.visibleAs;
 	}
 
 	/**
@@ -214,6 +226,10 @@ public class MD implements BD, PD {
 		this.deprecated = deprecated;
 	}
 
+	public void setInvisibleAs(final A[] invisibleAs) {
+		this.invisibleAs = invisibleAs;
+	}
+
 	/**
 	 * Set Eclipse method declaration.
 	 * 
@@ -232,6 +248,10 @@ public class MD implements BD, PD {
 	 */
 	public void setSynthetic(final boolean synthetic) {
 		this.synthetic = synthetic;
+	}
+
+	public void setVisibleAs(final A[] visibleAs) {
+		this.visibleAs = visibleAs;
 	}
 
 	@Override
