@@ -203,8 +203,8 @@ public class AnnotationsDecompiler {
 		}
 		if (defaultValue instanceof E) {
 			final E e = (E) defaultValue;
-			// TODO java.lang.Thread$State.BLOCKED
-			return ast.newName(e.getT().getName() + "." + e.getName());
+			return ast.newQualifiedName(td.newTypeName(e.getT().getName()),
+					ast.newSimpleName(e.getName()));
 		}
 		if (defaultValue instanceof Float) {
 			return ast.newNumberLiteral(defaultValue.toString() + 'F');

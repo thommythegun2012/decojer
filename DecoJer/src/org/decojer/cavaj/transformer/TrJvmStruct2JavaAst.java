@@ -24,12 +24,14 @@
 package org.decojer.cavaj.transformer;
 
 import java.lang.annotation.Annotation;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javassist.bytecode.AccessFlag;
 import javassist.bytecode.CodeAttribute;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
@@ -54,6 +56,7 @@ import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.Type;
@@ -408,31 +411,29 @@ public class TrJvmStruct2JavaAst {
 		final CFG cfg = new CFG(md, block, codeAttribute);
 
 		if (methodDeclaration instanceof MethodDeclaration) {
-			/*
-			 * // decompile method parameter annotations and names final
-			 * javassist.bytecode.annotation.Annotation[][] annotationsInvisible
-			 * = parameterAnnotationsAttributeRuntimeInvisible == null ? null :
-			 * parameterAnnotationsAttributeRuntimeInvisible .getAnnotations();
-			 * final javassist.bytecode.annotation.Annotation[][]
-			 * annotationsVisible = parameterAnnotationsAttributeRuntimeVisible
-			 * == null ? null : parameterAnnotationsAttributeRuntimeVisible
-			 * .getAnnotations(); int annotation = 0; int test =
-			 * (md.getAccessFlags() & AccessFlag.STATIC) != 0 ? 0 : 1; for
-			 * (final SingleVariableDeclaration singleVariableDeclaration :
-			 * (List<SingleVariableDeclaration>) ((MethodDeclaration)
-			 * methodDeclaration) .parameters()) { // decompile parameter
-			 * annotations if (annotationsInvisible != null &&
-			 * annotationsInvisible.length > annotation) {
-			 * AnnotationsDecompiler.decompileAnnotations(td,
-			 * singleVariableDeclaration.modifiers(),
-			 * annotationsInvisible[annotation]); } if (annotationsVisible !=
-			 * null && annotationsVisible.length > annotation) {
-			 * AnnotationsDecompiler.decompileAnnotations(td,
-			 * singleVariableDeclaration.modifiers(),
-			 * annotationsVisible[annotation++]); }
-			 * singleVariableDeclaration.setName(ast.newSimpleName(cfg
-			 * .getVariableName(test++))); }
-			 */
+			// decompile method parameter annotations and names
+			final A[][] invisibleParamAs = md.getInvisibleParamAs();
+			final A[][] visibleParamAs = md.getVisibleParamAs();
+			int annotation = 0;
+			int test = (md.getAccessFlags() & AccessFlag.STATIC) != 0 ? 0 : 1;
+			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
+					.parameters()) {
+				// decompile parameter annotations
+				if (invisibleParamAs != null
+						&& invisibleParamAs.length > annotation) {
+					AnnotationsDecompiler.decompileAnnotations(td,
+							singleVariableDeclaration.modifiers(),
+							invisibleParamAs[annotation]);
+				}
+				if (visibleParamAs != null
+						&& visibleParamAs.length > annotation) {
+					AnnotationsDecompiler.decompileAnnotations(td,
+							singleVariableDeclaration.modifiers(),
+							visibleParamAs[annotation++]);
+				}
+				singleVariableDeclaration.setName(ast.newSimpleName(cfg
+						.getVariableName(test++)));
+			}
 		}
 		if (codeAttribute != null) {
 			md.setCFG(cfg);
