@@ -407,7 +407,7 @@ public class TrJvmStruct2JavaAst {
 			block = null;
 		}
 		// block == null => helper for variable name only
-		final CodeAttribute codeAttribute = null;
+		final CodeAttribute codeAttribute = md.getCodeAttribute();
 		final CFG cfg = new CFG(md, block, codeAttribute);
 
 		if (methodDeclaration instanceof MethodDeclaration) {
@@ -494,10 +494,13 @@ public class TrJvmStruct2JavaAst {
 				typeDeclaration = ast.newEnumDeclaration();
 				// enum declarations cannot extent other classes but Enum.class,
 				// but can have interfaces
-				for (final T interfaceT : t.getInterfaceTs()) {
-					((EnumDeclaration) typeDeclaration).superInterfaceTypes()
-							.add(ast.newSimpleType(ast.newName(interfaceT
-									.getName())));
+				if (t.getInterfaceTs() != null) {
+					for (final T interfaceT : t.getInterfaceTs()) {
+						((EnumDeclaration) typeDeclaration)
+								.superInterfaceTypes()
+								.add(ast.newSimpleType(ast.newName(interfaceT
+										.getName())));
+					}
 				}
 			}
 		}

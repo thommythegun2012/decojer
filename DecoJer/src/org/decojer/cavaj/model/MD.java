@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model;
 
+import javassist.bytecode.CodeAttribute;
+
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
@@ -37,6 +39,9 @@ public class MD implements BD, PD {
 	private Object annotationDefaultValue;
 
 	private CFG cfg;
+
+	// TODO temporary
+	private CodeAttribute codeAttribute;
 
 	private boolean deprecated;
 
@@ -118,6 +123,10 @@ public class MD implements BD, PD {
 	 */
 	public CFG getCfg() {
 		return this.cfg;
+	}
+
+	public CodeAttribute getCodeAttribute() {
+		return this.codeAttribute;
 	}
 
 	/**
@@ -226,6 +235,11 @@ public class MD implements BD, PD {
 	 */
 	public void setCFG(final CFG cfg) {
 		this.cfg = cfg;
+	}
+
+	// TODO temporary
+	public void setCodeAttribute(final CodeAttribute codeAttribute) {
+		this.codeAttribute = codeAttribute;
 	}
 
 	/**
