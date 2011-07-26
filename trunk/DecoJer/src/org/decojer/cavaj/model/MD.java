@@ -46,6 +46,8 @@ public class MD implements BD, PD {
 
 	private A[] invisibleAs;
 
+	private A[][] invisibleParamAs;
+
 	private BodyDeclaration methodDeclaration;
 
 	private final String name;
@@ -57,6 +59,8 @@ public class MD implements BD, PD {
 	private final TD td;
 
 	private A[] visibleAs;
+
+	private A[][] visibleParamAs;
 
 	/**
 	 * Constructor.
@@ -138,6 +142,10 @@ public class MD implements BD, PD {
 		return this.invisibleAs;
 	}
 
+	public A[][] getInvisibleParamAs() {
+		return this.invisibleParamAs;
+	}
+
 	/**
 	 * Get Eclipse method declaration.
 	 * 
@@ -176,6 +184,10 @@ public class MD implements BD, PD {
 
 	public A[] getVisibleAs() {
 		return this.visibleAs;
+	}
+
+	public A[][] getVisibleParamAs() {
+		return this.visibleParamAs;
 	}
 
 	/**
@@ -230,6 +242,10 @@ public class MD implements BD, PD {
 		this.invisibleAs = invisibleAs;
 	}
 
+	public void setInvisibleParamAs(final A[][] invisibleParamAs) {
+		this.invisibleParamAs = invisibleParamAs;
+	}
+
 	/**
 	 * Set Eclipse method declaration.
 	 * 
@@ -252,6 +268,10 @@ public class MD implements BD, PD {
 
 	public void setVisibleAs(final A[] visibleAs) {
 		this.visibleAs = visibleAs;
+	}
+
+	public void setVisibleParamAs(final A[][] visibleParamAs) {
+		this.visibleParamAs = visibleParamAs;
 	}
 
 	@Override

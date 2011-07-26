@@ -85,6 +85,15 @@ public class JavassistReader {
 	private final static Logger LOGGER = Logger.getLogger(JavassistReader.class
 			.getName());
 
+	/**
+	 * Analyse class input stream.
+	 * 
+	 * @param is
+	 *            input stream
+	 * @return type
+	 * @throws IOException
+	 *             problems
+	 */
 	public static Type analyse(final InputStream is) throws IOException {
 		final ClassFile classFile = new ClassFile(new DataInputStream(is));
 		final SignatureAttribute signatureAttribute = (SignatureAttribute) classFile
@@ -104,6 +113,15 @@ public class JavassistReader {
 		return type;
 	}
 
+	/**
+	 * Analyse JAR input stream.
+	 * 
+	 * @param is
+	 *            input stream
+	 * @return types
+	 * @throws IOException
+	 *             problems
+	 */
 	public static Types analyseJar(final InputStream is) throws IOException {
 		final ZipInputStream zip = new ZipInputStream(is);
 		final Types types = new Types();
@@ -138,6 +156,14 @@ public class JavassistReader {
 		return a;
 	}
 
+	/**
+	 * Test it...
+	 * 
+	 * @param args
+	 *            args
+	 * @throws IOException
+	 *             problems
+	 */
 	public static void main(final String[] args) throws IOException {
 		final FileInputStream is = new FileInputStream(
 				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61.jar");
@@ -156,6 +182,7 @@ public class JavassistReader {
 	 * @throws IOException
 	 *             read exception
 	 */
+	@SuppressWarnings("unchecked")
 	public static TD read(final InputStream is, final DU du) throws IOException {
 		final ClassFile classFile = new ClassFile(new DataInputStream(is));
 
@@ -288,6 +315,7 @@ public class JavassistReader {
 		return td;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static FD readFieldInfo(final TD td, final FieldInfo fieldInfo) {
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
@@ -525,11 +553,39 @@ public class JavassistReader {
 			for (int i = annotations.length; i-- > 0;) {
 				as[i] = createA(annotations[i], td.getT().getDu());
 			}
-			td.setVisibleAs(as);
+			md.setVisibleAs(as);
 		}
 
 		if (deprecatedAttribute != null) {
 			md.setDeprecated(true);
+		}
+
+		if (parameterAnnotationsAttributeRuntimeInvisible != null) {
+			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeInvisible
+					.getAnnotations();
+			final A[][] ass = new A[annotationss.length][];
+			for (int i = annotationss.length; i-- > 0;) {
+				final Annotation[] annotations = annotationss[i];
+				final A[] as = ass[i] = new A[annotations.length];
+				for (int j = annotations.length; j-- > 0;) {
+					as[j] = createA(annotations[j], td.getT().getDu());
+				}
+			}
+			md.setInvisibleParamAs(ass);
+		}
+
+		if (parameterAnnotationsAttributeRuntimeVisible != null) {
+			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeVisible
+					.getAnnotations();
+			final A[][] ass = new A[annotationss.length][];
+			for (int i = annotationss.length; i-- > 0;) {
+				final Annotation[] annotations = annotationss[i];
+				final A[] as = ass[i] = new A[annotations.length];
+				for (int j = annotations.length; j-- > 0;) {
+					as[j] = createA(annotations[j], td.getT().getDu());
+				}
+			}
+			md.setVisibleParamAs(ass);
 		}
 
 		if (syntheticAttribute != null) {
