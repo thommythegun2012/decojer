@@ -3,10 +3,17 @@ package org.decojer.cavaj.test.jdk5;
 import java.lang.Thread.State;
 import java.util.List;
 
-@DecTestAnnotations(byteNoDefault = 1, suppressWarnings = @SuppressWarnings("TEST_OVER"))
+@DecTestAnnotations(byteNoDefault = 1, annotationTest = @SuppressWarnings("TEST_OVER"))
 public @interface DecTestAnnotations {
 
-	@DecTestAnnotations(byteNoDefault = 1, deprecated = @Deprecated)
+	SuppressWarnings[] annotationArrayTest() default {
+			@SuppressWarnings("TEST1"), @SuppressWarnings(value = "TEST2") };
+
+	SuppressWarnings annotationTest() default @SuppressWarnings("TEST");
+
+	Deprecated annotationTest2() default @Deprecated;
+
+	@DecTestAnnotations(byteNoDefault = 1, annotationTest2 = @Deprecated)
 	boolean booleanTest() default true;
 
 	byte[] byteArrayTest() default { 1, 2, 3 };
@@ -25,8 +32,6 @@ public @interface DecTestAnnotations {
 
 	Class classTest4() default void.class;
 
-	Deprecated deprecated() default @Deprecated;
-
 	double doubleTest() default 2.1D;
 
 	State enumTest() default State.BLOCKED;
@@ -42,9 +47,5 @@ public @interface DecTestAnnotations {
 	String[] stringArrayTest() default { "eins", "zwei" };
 
 	String stringTest() default "zwei";
-
-	SuppressWarnings suppressWarnings() default @SuppressWarnings("TEST");
-
-	SuppressWarnings suppressWarnings2() default @SuppressWarnings(value = "TEST2");
 
 }
