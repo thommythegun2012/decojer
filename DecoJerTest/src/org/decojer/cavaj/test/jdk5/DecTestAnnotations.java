@@ -3,7 +3,7 @@ package org.decojer.cavaj.test.jdk5;
 import java.lang.Thread.State;
 import java.util.List;
 
-@DecTestAnnotations(byteNoDefault = 1, annotationTest = @SuppressWarnings("TEST_OVER"))
+@DecTestAnnotations(stringTest = "annotate the annotation...")
 public @interface DecTestAnnotations {
 
 	SuppressWarnings[] annotationArrayTest() default {
@@ -13,24 +13,28 @@ public @interface DecTestAnnotations {
 
 	Deprecated annotationTest2() default @Deprecated;
 
-	@DecTestAnnotations(byteNoDefault = 1, annotationTest2 = @Deprecated)
 	boolean booleanTest() default true;
 
 	byte[] byteArrayTest() default { 1, 2, 3 };
-
-	byte byteNoDefault();
 
 	byte byteTest() default 2;
 
 	char charTest() default 'b';
 
+	@DecTestAnnotations
 	Class classTest() default byte.class;
 
-	Class classTest2() default List.class;
+	@DecTestAnnotations(1)
+	Class classTest2() default byte[].class;
 
-	Class classTest3() default Byte[][][].class; // no type arguments possible
+	@DecTestAnnotations(value = 1, stringTest = "value is necessary here")
+	Class classTest3() default Byte.class;
 
-	Class classTest4() default void.class;
+	Class classTest4() default Byte[][][].class;
+
+	Class classTest5() default void.class; // no array
+
+	Class classTest6() default List.class; // no generics
 
 	double doubleTest() default 2.1D;
 
@@ -47,5 +51,7 @@ public @interface DecTestAnnotations {
 	String[] stringArrayTest() default { "eins", "zwei" };
 
 	String stringTest() default "zwei";
+
+	byte value() default 1;
 
 }
