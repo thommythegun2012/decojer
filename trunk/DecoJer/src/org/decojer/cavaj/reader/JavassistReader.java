@@ -125,6 +125,19 @@ public class JavassistReader {
 		return types;
 	}
 
+	@SuppressWarnings("unchecked")
+	private static A createA(final Annotation annotation, final DU du) {
+		final T t = du.getT(annotation.getTypeName());
+		final A a = new A(t);
+		if (annotation.getMemberNames() != null) {
+			for (final String name : (Set<String>) annotation.getMemberNames()) {
+				a.addParameter(name,
+						readMemberValue(annotation.getMemberValue(name), du));
+			}
+		}
+		return a;
+	}
+
 	public static void main(final String[] args) throws IOException {
 		final FileInputStream is = new FileInputStream(
 				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61.jar");
@@ -230,6 +243,26 @@ public class JavassistReader {
 		td.setAccessFlags(classFile.getAccessFlags());
 		td.setVersion(classFile.getMajorVersion());
 
+		if (annotationsAttributeRuntimeInvisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
+					.getAnnotations();
+			final A[] as = new A[annotations.length];
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = createA(annotations[i], td.getT().getDu());
+			}
+			td.setInvisibleAs(as);
+		}
+
+		if (annotationsAttributeRuntimeVisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeVisible
+					.getAnnotations();
+			final A[] as = new A[annotations.length];
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = createA(annotations[i], td.getT().getDu());
+			}
+			td.setVisibleAs(as);
+		}
+
 		if (deprecatedAttribute != null) {
 			td.setDeprecated(true);
 		}
@@ -319,6 +352,26 @@ public class JavassistReader {
 				signatureAttribute == null ? null
 						: signatureAttribute.getSignature(), value);
 
+		if (annotationsAttributeRuntimeInvisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
+					.getAnnotations();
+			final A[] as = new A[annotations.length];
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = createA(annotations[i], td.getT().getDu());
+			}
+			fd.setInvisibleAs(as);
+		}
+
+		if (annotationsAttributeRuntimeVisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeVisible
+					.getAnnotations();
+			final A[] as = new A[annotations.length];
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = createA(annotations[i], td.getT().getDu());
+			}
+			fd.setVisibleAs(as);
+		}
+
 		if (deprecatedAttribute != null) {
 			fd.setDeprecated(true);
 		}
@@ -330,23 +383,10 @@ public class JavassistReader {
 		return fd;
 	}
 
-	@SuppressWarnings("unchecked")
 	private static Object readMemberValue(final MemberValue memberValue,
 			final DU du) {
 		if (memberValue instanceof AnnotationMemberValue) {
-			final Annotation annotation = ((AnnotationMemberValue) memberValue)
-					.getValue();
-			final T t = du.getT(annotation.getTypeName());
-			final A a = new A(t);
-			if (annotation.getMemberNames() != null) {
-				for (final String name : (Set<String>) annotation
-						.getMemberNames()) {
-					a.addParameter(
-							name,
-							readMemberValue(annotation.getMemberValue(name), du));
-				}
-			}
-			return a;
+			return createA(((AnnotationMemberValue) memberValue).getValue(), du);
 		}
 		if (memberValue instanceof ArrayMemberValue) {
 			final MemberValue[] values = ((ArrayMemberValue) memberValue)
@@ -466,6 +506,26 @@ public class JavassistReader {
 			final Object annotationDefaultValue = readMemberValue(
 					defaultMemberValue, td.getT().getDu());
 			md.setAnnotationDefaultValue(annotationDefaultValue);
+		}
+
+		if (annotationsAttributeRuntimeInvisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
+					.getAnnotations();
+			final A[] as = new A[annotations.length];
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = createA(annotations[i], td.getT().getDu());
+			}
+			md.setInvisibleAs(as);
+		}
+
+		if (annotationsAttributeRuntimeVisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeVisible
+					.getAnnotations();
+			final A[] as = new A[annotations.length];
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = createA(annotations[i], td.getT().getDu());
+			}
+			td.setVisibleAs(as);
 		}
 
 		if (deprecatedAttribute != null) {

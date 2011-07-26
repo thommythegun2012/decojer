@@ -43,6 +43,8 @@ public class FD implements BD, PD {
 
 	private Expression initializer;
 
+	private A[] invisibleAs;
+
 	private final String name;
 
 	private final String signature;
@@ -53,6 +55,8 @@ public class FD implements BD, PD {
 
 	// value, type Integer: int, short, byte, char, boolean
 	private final Object value;
+
+	private A[] visibleAs;
 
 	/**
 	 * Constructor.
@@ -120,6 +124,10 @@ public class FD implements BD, PD {
 		return this.initializer;
 	}
 
+	public A[] getInvisibleAs() {
+		return this.invisibleAs;
+	}
+
 	/**
 	 * Get name.
 	 * 
@@ -154,6 +162,10 @@ public class FD implements BD, PD {
 	 */
 	public Object getValue() {
 		return this.value;
+	}
+
+	public A[] getVisibleAs() {
+		return this.visibleAs;
 	}
 
 	/**
@@ -198,6 +210,10 @@ public class FD implements BD, PD {
 		this.fieldDeclaration = fieldDeclaration;
 	}
 
+	public void setInvisibleAs(final A[] invisibleAs) {
+		this.invisibleAs = invisibleAs;
+	}
+
 	/**
 	 * Set synthetic state (from synthetic attribute).
 	 * 
@@ -206,6 +222,10 @@ public class FD implements BD, PD {
 	 */
 	public void setSynthetic(final boolean synthetic) {
 		this.synthetic = synthetic;
+	}
+
+	public void setVisibleAs(final A[] visibleAs) {
+		this.visibleAs = visibleAs;
 	}
 
 }

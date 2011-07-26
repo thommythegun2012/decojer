@@ -29,9 +29,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javassist.bytecode.AnnotationsAttribute;
-import javassist.bytecode.annotation.Annotation;
-
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.E;
 import org.decojer.cavaj.model.T;
@@ -75,28 +72,28 @@ public class AnnotationsDecompiler {
 		if (a == null) {
 			return null;
 		}
-		final Set<String> memberNames = a.getParamNames();
+		final Set<String> memberNames = a.getMemberNames();
 		if (memberNames != null) {
 			// a single member name "value=" is optional
 			if (memberNames.size() == 1
 					&& "value".equals(memberNames.iterator().next())) {
 				final Expression expression = decompileAnnotationDefaultValue(
-						td, a.getParameter("value"));
+						td, a.getMemberValue("value"));
 				if (expression != null) {
 					final SingleMemberAnnotation newSingleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
-					newSingleMemberAnnotation.setTypeName(ast.newName(a.getT()
-							.getName()));
+					newSingleMemberAnnotation.setTypeName(td.newTypeName(a
+							.getT().getName()));
 					newSingleMemberAnnotation.setValue(expression);
 					return newSingleMemberAnnotation;
 				}
 			}
 			final NormalAnnotation newNormalAnnotation = ast
 					.newNormalAnnotation();
-			newNormalAnnotation.setTypeName(ast.newName(a.getT().getName()));
+			newNormalAnnotation.setTypeName(td.newTypeName(a.getT().getName()));
 			for (final String memberName : memberNames) {
 				final Expression expression = decompileAnnotationDefaultValue(
-						td, a.getParameter(memberName));
+						td, a.getMemberValue(memberName));
 				if (expression != null) {
 					final MemberValuePair newMemberValuePair = ast
 							.newMemberValuePair();
@@ -110,7 +107,7 @@ public class AnnotationsDecompiler {
 			}
 		}
 		final MarkerAnnotation newMarkerAnnotation = ast.newMarkerAnnotation();
-		newMarkerAnnotation.setTypeName(ast.newName(a.getT().getName()));
+		newMarkerAnnotation.setTypeName(td.newTypeName(a.getT().getName()));
 		return newMarkerAnnotation;
 	}
 
@@ -261,16 +258,14 @@ public class AnnotationsDecompiler {
 	/**
 	 * Gets statement if annotations contain the deprecated annotation.
 	 * 
-	 * @param annotationsAttribute
-	 *            annotations attribute
+	 * @param as
+	 *            annotations
 	 * @return true - annotations contain deprecated annotation.
 	 */
-	public static boolean isDeprecatedAnnotation(
-			final AnnotationsAttribute annotationsAttribute) {
-		if (annotationsAttribute != null) {
-			for (final Annotation annotation : annotationsAttribute
-					.getAnnotations()) {
-				if ("java.lang.Deprecated".equals(annotation.getTypeName())) {
+	public static boolean isDeprecatedAnnotation(final A[] as) {
+		if (as != null) {
+			for (final A a : as) {
+				if ("java.lang.Deprecated".equals(a.getT().getName())) {
 					return true;
 				}
 			}

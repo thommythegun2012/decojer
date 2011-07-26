@@ -66,7 +66,7 @@ public class A {
 	 *            name
 	 * @return value
 	 */
-	public Object getParameter(final String name) {
+	public Object getMemberValue(final String name) {
 		return this.params.get(name);
 	}
 
@@ -75,7 +75,7 @@ public class A {
 	 * 
 	 * @return parameter names
 	 */
-	public Set<String> getParamNames() {
+	public Set<String> getMemberNames() {
 		return this.params.keySet();
 	}
 
