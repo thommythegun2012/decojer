@@ -28,6 +28,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -66,6 +67,7 @@ import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.E;
 import org.decojer.cavaj.model.FD;
@@ -328,13 +330,23 @@ public class JavassistReader {
 		return fd;
 	}
 
+	@SuppressWarnings("unchecked")
 	private static Object readMemberValue(final MemberValue memberValue,
 			final DU du) {
 		if (memberValue instanceof AnnotationMemberValue) {
 			final Annotation annotation = ((AnnotationMemberValue) memberValue)
 					.getValue();
-			System.out.println("### ANNOTATION: " + annotation);
-			return null;
+			final T t = du.getT(annotation.getTypeName());
+			final A a = new A(t);
+			if (annotation.getMemberNames() != null) {
+				for (final String name : (Set<String>) annotation
+						.getMemberNames()) {
+					a.addParameter(
+							name,
+							readMemberValue(annotation.getMemberValue(name), du));
+				}
+			}
+			return a;
 		}
 		if (memberValue instanceof ArrayMemberValue) {
 			final MemberValue[] values = ((ArrayMemberValue) memberValue)

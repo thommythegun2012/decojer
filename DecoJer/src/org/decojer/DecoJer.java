@@ -35,7 +35,7 @@ import java.util.Map.Entry;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.reader.AsmReader;
+import org.decojer.cavaj.reader.JavassistReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -81,7 +81,7 @@ public class DecoJer {
 		final DU du = new DU();
 		for (final Entry<String, InputStream> classFileEntry : packageClassStreamProvider
 				.getClassStreams().entrySet()) {
-			final TD td = AsmReader.read(classFileEntry.getValue(), du);
+			final TD td = JavassistReader.read(classFileEntry.getValue(), du);
 			du.addTd(td);
 		}
 		return du;

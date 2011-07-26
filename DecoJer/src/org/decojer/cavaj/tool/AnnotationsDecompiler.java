@@ -31,8 +31,8 @@ import java.util.logging.Logger;
 
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.annotation.Annotation;
-import javassist.bytecode.annotation.AnnotationMemberValue;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.E;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -64,40 +64,39 @@ public class AnnotationsDecompiler {
 	 * 
 	 * @param td
 	 *            type declaration
-	 * @param annotation
+	 * @param a
 	 *            annotation
 	 * @return annotation node or null
 	 */
 	@SuppressWarnings("unchecked")
 	public static org.eclipse.jdt.core.dom.Annotation decompileAnnotation(
-			final TD td, final Annotation annotation) {
+			final TD td, final A a) {
 		final AST ast = td.getCu().getAst();
-		if (annotation == null) {
+		if (a == null) {
 			return null;
 		}
-		final Set<String> memberNames = annotation.getMemberNames();
+		final Set<String> memberNames = a.getParamNames();
 		if (memberNames != null) {
 			// a single member name "value=" is optional
 			if (memberNames.size() == 1
 					&& "value".equals(memberNames.iterator().next())) {
 				final Expression expression = decompileAnnotationDefaultValue(
-						td, annotation.getMemberValue("value"));
+						td, a.getParameter("value"));
 				if (expression != null) {
 					final SingleMemberAnnotation newSingleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
-					newSingleMemberAnnotation.setTypeName(ast
-							.newName(annotation.getTypeName()));
+					newSingleMemberAnnotation.setTypeName(ast.newName(a.getT()
+							.getName()));
 					newSingleMemberAnnotation.setValue(expression);
 					return newSingleMemberAnnotation;
 				}
 			}
 			final NormalAnnotation newNormalAnnotation = ast
 					.newNormalAnnotation();
-			newNormalAnnotation.setTypeName(ast.newName(annotation
-					.getTypeName()));
+			newNormalAnnotation.setTypeName(ast.newName(a.getT().getName()));
 			for (final String memberName : memberNames) {
 				final Expression expression = decompileAnnotationDefaultValue(
-						td, annotation.getMemberValue(memberName));
+						td, a.getParameter(memberName));
 				if (expression != null) {
 					final MemberValuePair newMemberValuePair = ast
 							.newMemberValuePair();
@@ -111,7 +110,7 @@ public class AnnotationsDecompiler {
 			}
 		}
 		final MarkerAnnotation newMarkerAnnotation = ast.newMarkerAnnotation();
-		newMarkerAnnotation.setTypeName(ast.newName(annotation.getTypeName()));
+		newMarkerAnnotation.setTypeName(ast.newName(a.getT().getName()));
 		return newMarkerAnnotation;
 	}
 
@@ -131,15 +130,18 @@ public class AnnotationsDecompiler {
 		if (defaultValue == null) {
 			return null;
 		}
-		if (defaultValue instanceof AnnotationMemberValue) {
-			// return decompileAnnotation(td,
-			// ((AnnotationMemberValue) memberValue).getValue());
-			return null;
+		if (defaultValue instanceof A) {
+			return decompileAnnotation(td, (A) defaultValue);
 		}
 		// could be primitive array - use slow reflection
 		if (defaultValue.getClass().isArray()) {
-			final ArrayInitializer arrayInitializer = ast.newArrayInitializer();
 			final int size = Array.getLength(defaultValue);
+			if (size == 1) {
+				// single entry autoboxing
+				return decompileAnnotationDefaultValue(td,
+						Array.get(defaultValue, 0));
+			}
+			final ArrayInitializer arrayInitializer = ast.newArrayInitializer();
 			for (int i = 0; i < size; ++i) {
 				final Expression expression = decompileAnnotationDefaultValue(
 						td, Array.get(defaultValue, i));
@@ -204,7 +206,7 @@ public class AnnotationsDecompiler {
 		}
 		if (defaultValue instanceof E) {
 			final E e = (E) defaultValue;
-			// TODO default java.lang.Thread$State.BLOCKED
+			// TODO java.lang.Thread$State.BLOCKED
 			return ast.newName(e.getT().getName() + "." + e.getName());
 		}
 		if (defaultValue instanceof Float) {
@@ -238,18 +240,18 @@ public class AnnotationsDecompiler {
 	 *            type declaration
 	 * @param modifiers
 	 *            modifier nodes
-	 * @param annotations
+	 * @param as
 	 *            annotations
 	 */
 	public static void decompileAnnotations(final TD td,
 			final List<org.eclipse.jdt.core.dom.Annotation> modifiers,
-			final Annotation[] annotations) {
-		if (annotations == null) {
+			final A[] as) {
+		if (as == null) {
 			return;
 		}
-		for (final Annotation annotation : annotations) {
+		for (final A a : as) {
 			final org.eclipse.jdt.core.dom.Annotation decompileAnnotation = decompileAnnotation(
-					td, annotation);
+					td, a);
 			if (decompileAnnotation != null) {
 				modifiers.add(decompileAnnotation);
 			}
