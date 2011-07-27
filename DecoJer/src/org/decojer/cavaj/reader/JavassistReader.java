@@ -78,6 +78,8 @@ import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 
 /**
+ * Reader from Javassist.
+ * 
  * @author André Pankraz
  */
 public class JavassistReader {
@@ -463,7 +465,7 @@ public class JavassistReader {
 		if (memberValue instanceof StringMemberValue) {
 			return ((StringMemberValue) memberValue).getValue();
 		}
-		LOGGER.log(Level.WARNING, "Unknown member value type '"
+		LOGGER.warning("Unknown member value type '"
 				+ memberValue.getClass().getName() + "'!");
 		return null;
 	}
