@@ -35,10 +35,21 @@ import org.decojer.cavaj.reader.dex2jar.ReadDexFileVisitor;
 import com.googlecode.dex2jar.reader.DexFileReader;
 
 /**
+ * Reader from Dex2Jar.
+ * 
  * @author André Pankraz
  */
 public class Dex2jarReader {
 
+	/**
+	 * Analyse DEX input stream.
+	 * 
+	 * @param is
+	 *            DEX input stream
+	 * @return types
+	 * @throws IOException
+	 *             read exception
+	 */
 	public static Types analyse(final InputStream is) throws IOException {
 		final DexFileReader dexFileReader = new DexFileReader(is);
 		final AnalyseDexFileVisitor analyseDexFileVisitor = new AnalyseDexFileVisitor();
@@ -46,6 +57,14 @@ public class Dex2jarReader {
 		return analyseDexFileVisitor.getTypes();
 	}
 
+	/**
+	 * Test it...
+	 * 
+	 * @param args
+	 *            args
+	 * @throws IOException
+	 *             read exception
+	 */
 	public static void main(final String[] args) throws IOException {
 		final FileInputStream is = new FileInputStream(
 				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex");
@@ -54,6 +73,16 @@ public class Dex2jarReader {
 		read(is, new DU());
 	}
 
+	/**
+	 * Read DEX input stream.
+	 * 
+	 * @param is
+	 *            DEX input stream
+	 * @param du
+	 *            decompilation unit
+	 * @throws IOException
+	 *             read exception
+	 */
 	public static void read(final InputStream is, final DU du)
 			throws IOException {
 		final DexFileReader dexFileReader = new DexFileReader(is);

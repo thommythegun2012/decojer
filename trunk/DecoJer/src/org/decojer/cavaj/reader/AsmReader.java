@@ -40,6 +40,8 @@ import org.decojer.cavaj.reader.asm.ReadClassVisitor;
 import org.objectweb.asm.ClassReader;
 
 /**
+ * Reader from ObjectWeb ASM.
+ * 
  * @author André Pankraz
  */
 public class AsmReader {
@@ -47,6 +49,15 @@ public class AsmReader {
 	private final static Logger LOGGER = Logger.getLogger(AsmReader.class
 			.getName());
 
+	/**
+	 * Analyse class input stream.
+	 * 
+	 * @param is
+	 *            class input stream
+	 * @return type type
+	 * @throws IOException
+	 *             read exception
+	 */
 	public static Type analyse(final InputStream is) throws IOException {
 		final ClassReader classReader = new ClassReader(is);
 		final AnalyseClassVisitor analyseClassVisitor = new AnalyseClassVisitor();
@@ -54,6 +65,15 @@ public class AsmReader {
 		return analyseClassVisitor.getType();
 	}
 
+	/**
+	 * Analyse JAR input stream.
+	 * 
+	 * @param is
+	 *            JAR input stream
+	 * @return types
+	 * @throws IOException
+	 *             read exception
+	 */
 	public static Types analyseJar(final InputStream is) throws IOException {
 		final ZipInputStream zip = new ZipInputStream(is);
 		final AnalyseClassVisitor analyseClassVisitor = new AnalyseClassVisitor();
@@ -78,6 +98,14 @@ public class AsmReader {
 		return types;
 	}
 
+	/**
+	 * Test it...
+	 * 
+	 * @param args
+	 *            args
+	 * @throws IOException
+	 *             read exception
+	 */
 	public static void main(final String[] args) throws IOException {
 		final FileInputStream is = new FileInputStream(
 				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61.jar");
@@ -85,6 +113,17 @@ public class AsmReader {
 		System.out.println("Ana: " + types.getTypes().size());
 	}
 
+	/**
+	 * Read class input stream.
+	 * 
+	 * @param is
+	 *            class input stream
+	 * @param du
+	 *            decompilation unit
+	 * @return type declaration
+	 * @throws IOException
+	 *             read exception
+	 */
 	public static TD read(final InputStream is, final DU du) throws IOException {
 		final ClassReader classReader = new ClassReader(is);
 		final ReadClassVisitor readClassVisitor = new ReadClassVisitor(du);
