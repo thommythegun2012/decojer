@@ -26,28 +26,49 @@ package org.decojer.cavaj.reader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.jf.dexlib.ClassDataItem;
+import org.jf.dexlib.ClassDataItem.EncodedField;
 import org.jf.dexlib.ClassDataItem.EncodedMethod;
 import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.DexFile;
+import org.jf.dexlib.EncodedArrayItem;
+import org.jf.dexlib.FieldIdItem;
 import org.jf.dexlib.ItemType;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Section;
 import org.jf.dexlib.TypeListItem;
+import org.jf.dexlib.EncodedValue.BooleanEncodedValue;
+import org.jf.dexlib.EncodedValue.ByteEncodedValue;
+import org.jf.dexlib.EncodedValue.CharEncodedValue;
+import org.jf.dexlib.EncodedValue.DoubleEncodedValue;
+import org.jf.dexlib.EncodedValue.EncodedValue;
+import org.jf.dexlib.EncodedValue.FloatEncodedValue;
+import org.jf.dexlib.EncodedValue.IntEncodedValue;
+import org.jf.dexlib.EncodedValue.LongEncodedValue;
+import org.jf.dexlib.EncodedValue.NullEncodedValue;
+import org.jf.dexlib.EncodedValue.ShortEncodedValue;
+import org.jf.dexlib.EncodedValue.StringEncodedValue;
 import org.jf.dexlib.Util.ByteArrayInput;
 
 /**
+ * Reader from Smali.
+ * 
  * @author André Pankraz
  */
 public class SmaliReader {
+
+	private final static Logger LOGGER = Logger.getLogger(SmaliReader.class
+			.getName());
 
 	/**
 	 * Analyse DEX input stream.
@@ -73,6 +94,42 @@ public class SmaliReader {
 					.getTypeDescriptor(), null));
 		}
 		return types;
+	}
+
+	private static Object decodeValue(final EncodedValue encodedValue) {
+		if (encodedValue instanceof BooleanEncodedValue) {
+			return ((BooleanEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof ByteEncodedValue) {
+			return ((ByteEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof CharEncodedValue) {
+			return ((CharEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof DoubleEncodedValue) {
+			return ((DoubleEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof FloatEncodedValue) {
+			return ((FloatEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof IntEncodedValue) {
+			return ((IntEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof LongEncodedValue) {
+			return ((LongEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof NullEncodedValue) {
+			return null; // placeholder in constant array
+		}
+		if (encodedValue instanceof ShortEncodedValue) {
+			return ((ShortEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof StringEncodedValue) {
+			return ((StringEncodedValue) encodedValue).value;
+		}
+		LOGGER.warning("Unknown encoded value type '"
+				+ encodedValue.getClass().getName() + "'!");
+		return null;
 	}
 
 	/**
@@ -134,6 +191,10 @@ public class SmaliReader {
 
 			final ClassDataItem classData = classDefItem.getClassData();
 			if (classData != null) {
+				readFields(td, classDefItem.getStaticFieldInitializers(),
+						classData.getStaticFields(),
+						classData.getInstanceFields());
+
 				final EncodedMethod[] directMethods = classData
 						.getDirectMethods();
 				for (int i = 0; i < directMethods.length; ++i) {
@@ -164,6 +225,45 @@ public class SmaliReader {
 			}
 
 			du.addTd(td);
+		}
+	}
+
+	private static void readFields(final TD td,
+			final EncodedArrayItem staticFieldInitializers,
+			final EncodedField[] staticFields,
+			final EncodedField[] instanceFields) {
+		final EncodedValue[] staticFieldValues = staticFieldInitializers == null ? new EncodedValue[0]
+				: staticFieldInitializers.getEncodedArray().values;
+
+		for (int i = 0; i < staticFields.length; ++i) {
+			final EncodedField encodedField = staticFields[i];
+			final FieldIdItem field = encodedField.field;
+
+			// static field initializer values are packed away into a different
+			// section, both arrays (encoded fields and static field values) are
+			// sorted in same order, there could be less static field values if
+			// not all static fields have an initializer, but there is also a
+			// null value as placeholder
+			Object value = null;
+			if (staticFieldValues.length > i) {
+				value = decodeValue(staticFieldValues[i]);
+			}
+			final FD fd = new FD(td, encodedField.accessFlags, field
+					.getFieldName().getStringValue(), field.getFieldType()
+					.getTypeDescriptor(), null, value);
+			td.getBds().add(fd);
+		}
+
+		for (int i = 0; i < instanceFields.length; ++i) {
+			final EncodedField encodedField = instanceFields[i];
+			final FieldIdItem field = encodedField.field;
+
+			// there is no field initializer section for instance fields,
+			// only via constructor
+			final FD fd = new FD(td, encodedField.accessFlags, field
+					.getFieldName().getStringValue(), field.getFieldType()
+					.getTypeDescriptor(), null, null);
+			td.getBds().add(fd);
 		}
 	}
 
