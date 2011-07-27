@@ -89,10 +89,10 @@ public class JavassistReader {
 	 * Analyse class input stream.
 	 * 
 	 * @param is
-	 *            input stream
+	 *            class input stream
 	 * @return type
 	 * @throws IOException
-	 *             problems
+	 *             read exception
 	 */
 	public static Type analyse(final InputStream is) throws IOException {
 		final ClassFile classFile = new ClassFile(new DataInputStream(is));
@@ -117,10 +117,10 @@ public class JavassistReader {
 	 * Analyse JAR input stream.
 	 * 
 	 * @param is
-	 *            input stream
+	 *            JAR input stream
 	 * @return types
 	 * @throws IOException
-	 *             problems
+	 *             read exception
 	 */
 	public static Types analyseJar(final InputStream is) throws IOException {
 		final ZipInputStream zip = new ZipInputStream(is);
@@ -162,7 +162,7 @@ public class JavassistReader {
 	 * @param args
 	 *            args
 	 * @throws IOException
-	 *             problems
+	 *             read exception
 	 */
 	public static void main(final String[] args) throws IOException {
 		final FileInputStream is = new FileInputStream(
