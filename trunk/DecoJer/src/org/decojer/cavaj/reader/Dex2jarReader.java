@@ -27,8 +27,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.reader.dex2jar.AnalyseDexFileVisitor;
+import org.decojer.cavaj.reader.dex2jar.ReadDexFileVisitor;
 
 import com.googlecode.dex2jar.reader.DexFileReader;
 
@@ -47,8 +49,16 @@ public class Dex2jarReader {
 	public static void main(final String[] args) throws IOException {
 		final FileInputStream is = new FileInputStream(
 				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex");
-		final Types types = analyse(is);
-		System.out.println("Ana: " + types.getTypes().size());
+		// final Types types = analyse(is);
+		// System.out.println("Ana: " + types.getTypes().size());
+		read(is, new DU());
+	}
+
+	public static void read(final InputStream is, final DU du)
+			throws IOException {
+		final DexFileReader dexFileReader = new DexFileReader(is);
+		final ReadDexFileVisitor dexFileVisitor = new ReadDexFileVisitor(du);
+		dexFileReader.accept(dexFileVisitor);
 	}
 
 }

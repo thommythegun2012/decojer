@@ -60,6 +60,19 @@ public class DU {
 	/**
 	 * Get type declaration.
 	 * 
+	 * @param desc
+	 *            descriptor
+	 * @return type declaration
+	 */
+	public T getDescT(final String desc) {
+		assert desc != null;
+
+		return getT(desc.substring(1, desc.length() - 1).replace('/', '.'));
+	}
+
+	/**
+	 * Get type declaration.
+	 * 
 	 * @param name
 	 *            name
 	 * @return type declaration
