@@ -140,6 +140,7 @@ public class ReadClassVisitor implements ClassVisitor {
 		}
 		final FD fd = new FD(this.td, access, name, desc, signature, value);
 		this.td.getBds().add(fd);
+
 		this.readFieldVisitor.setFd(fd);
 		return this.readFieldVisitor;
 	}
@@ -170,6 +171,7 @@ public class ReadClassVisitor implements ClassVisitor {
 		final MD md = new MD(this.td, access, name, desc.replace('/', '.'),
 				mdSignature, mdExceptions);
 		this.td.getBds().add(md);
+
 		this.readMethodVisitor.setMd(md);
 		return this.readMethodVisitor;
 	}

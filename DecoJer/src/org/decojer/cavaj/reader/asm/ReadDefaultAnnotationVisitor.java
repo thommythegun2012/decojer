@@ -69,13 +69,8 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 	public void visit(final String name, final Object value) {
 		checkName(name);
 		if (value instanceof Type) {
-			final Type type = (Type) value;
-			System.out.println("###TYPE: " + type.getClassName() + " : "
-					+ type.getDescriptor());
-			final T t = this.readMethodVisitor.getReadClassVisitor().getDu()
-					.getT(type.getClassName());
-			// descriptor???
-			this.value = t;
+			this.value = this.readMethodVisitor.getReadClassVisitor().getDu()
+					.getT(((Type) value).getClassName());
 			return;
 		}
 		this.value = value;
@@ -92,7 +87,6 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 	@Override
 	public AnnotationVisitor visitArray(final String name) {
 		checkName(name);
-		LOGGER.warning("###### default visitArray ### ");
 		return new AnnotationVisitor() {
 
 			private final List<Object> values = new ArrayList<Object>();
@@ -101,13 +95,9 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 			public void visit(final String name, final Object value) {
 				checkName(name);
 				if (value instanceof Type) {
-					final Type type = (Type) value;
-					System.out.println("###TYPE: " + type.getClassName()
-							+ " : " + type.getDescriptor());
 					final T t = ReadDefaultAnnotationVisitor.this.readMethodVisitor
 							.getReadClassVisitor().getDu()
-							.getT(type.getClassName());
-					// descriptor???
+							.getT(((Type) value).getClassName());
 					this.values.add(t);
 					return;
 				}
@@ -155,7 +145,7 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 		// desc: Ljava/lang/Thread$State;
 		// value: BLOCKED
 		final T t = this.readMethodVisitor.getReadClassVisitor().getDu()
-				.getT(desc.substring(1, desc.length() - 1).replace('/', '.'));
+				.getDescT(desc);
 		this.value = new E(t, value);
 	}
 

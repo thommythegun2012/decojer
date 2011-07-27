@@ -35,7 +35,7 @@ import java.util.Map.Entry;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.reader.JavassistReader;
+import org.decojer.cavaj.reader.Dex2jarReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -81,8 +81,7 @@ public class DecoJer {
 		final DU du = new DU();
 		for (final Entry<String, InputStream> classFileEntry : packageClassStreamProvider
 				.getClassStreams().entrySet()) {
-			final TD td = JavassistReader.read(classFileEntry.getValue(), du);
-			du.addTd(td);
+			Dex2jarReader.read(classFileEntry.getValue(), du);
 		}
 		return du;
 	}
@@ -179,17 +178,17 @@ public class DecoJer {
 		try {
 			packageClassStreamProvider
 					.addClassStream(
-							"DecTestAnnotations",
+							"MUUH",
 							new DataInputStream(
 									new FileInputStream(
 											new File(
-													"D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/jdk5/DecTestAnnotations.class"))));
+													"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex"))));
 		} catch (final FileNotFoundException e) {
 			e.printStackTrace();
 		}
 		final DU du = createDu(packageClassStreamProvider);
 		final CU cu = createCu(du
-				.getTd("org.decojer.cavaj.test.jdk5.DecTestAnnotations"));
+				.getTd("org.apache.commons.logging.impl.WeakHashtable"));
 		System.out.println(decompile(cu));
 	}
 

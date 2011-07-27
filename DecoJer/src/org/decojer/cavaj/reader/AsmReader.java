@@ -89,7 +89,9 @@ public class AsmReader {
 		final ClassReader classReader = new ClassReader(is);
 		final ReadClassVisitor readClassVisitor = new ReadClassVisitor(du);
 		classReader.accept(readClassVisitor, 0);
-		return readClassVisitor.getTd();
+		final TD td = readClassVisitor.getTd();
+		du.addTd(td);
+		return td;
 	}
 
 }

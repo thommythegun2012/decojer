@@ -312,6 +312,8 @@ public class JavassistReader {
 			td.getBds().add(readMethodInfo(td, methodInfo));
 		}
 
+		du.addTd(td);
+
 		return td;
 	}
 
