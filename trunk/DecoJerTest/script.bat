@@ -62,4 +62,4 @@ del /S /Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_26\*.class
 "C:\Program Files\Java\jdk1.6.0_26\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk5\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_26
 "C:\Program Files\Java\jdk1.6.0_26\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_26
 
-# D:\Data\Decomp\workspace\DecoJerTest\dex>dx --dex --output=D:\Data\Decomp\workspace\DecoJerTest\dex\classes.dex D:\Data\Decomp\workspace\DecoJerTest\dex\tests.jar
+# D:\Data\Decomp\workspace\DecoJerTest\dex>dx --dex --output=D:\Data\Decomp\workspace\DecoJerTest\dex\classes.dex D:\Data\Decomp\workspace\DecoJerTest\dex\classes.jar
