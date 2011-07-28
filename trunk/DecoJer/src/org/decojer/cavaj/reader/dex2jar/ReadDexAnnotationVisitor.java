@@ -23,47 +23,50 @@
  */
 package org.decojer.cavaj.reader.dex2jar;
 
-import org.decojer.cavaj.model.FD;
+import java.util.logging.Logger;
+
 import org.objectweb.asm.AnnotationVisitor;
 
-import com.googlecode.dex2jar.visitors.DexFieldVisitor;
-
 /**
- * Read DEX field visitor.
+ * Read DEX annotation visitor.
  * 
  * @author André Pankraz
  */
-public class ReadDexFieldVisitor implements DexFieldVisitor {
+public class ReadDexAnnotationVisitor implements AnnotationVisitor {
 
-	private FD fd;
+	private final static Logger LOGGER = Logger
+			.getLogger(ReadDexAnnotationVisitor.class.getName());
 
-	/**
-	 * Get field declaration.
-	 * 
-	 * @return field declaration
-	 */
-	public FD getFd() {
-		return this.fd;
-	}
-
-	/**
-	 * Set field declaration.
-	 * 
-	 * @param fd
-	 *            field declaration
-	 */
-	public void setFd(final FD fd) {
-		this.fd = fd;
+	@Override
+	public void visit(final String name, final Object value) {
+		LOGGER.warning("### annotation visit ### " + name + " : " + value
+				+ " :C: " + value.getClass());
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String name,
-			final boolean visitable) {
+			final String desc) {
+		LOGGER.warning("### annotation visitAnnotation ### " + name + " : "
+				+ desc);
+		return new ReadDexAnnotationVisitor();
+	}
+
+	@Override
+	public AnnotationVisitor visitArray(final String name) {
+		LOGGER.warning("### annotation visitArray ### " + name);
 		return new ReadDexAnnotationVisitor();
 	}
 
 	@Override
 	public void visitEnd() {
+		// LOGGER.warning("### annotation visitEnd ### ");
+	}
+
+	@Override
+	public void visitEnum(final String name, final String desc,
+			final String value) {
+		LOGGER.warning("### annotation visitEnum ### " + name + " : " + desc
+				+ " : " + value);
 	}
 
 }

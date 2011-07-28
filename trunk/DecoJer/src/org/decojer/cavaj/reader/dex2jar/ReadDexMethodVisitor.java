@@ -61,7 +61,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 	@Override
 	public AnnotationVisitor visitAnnotation(final String name,
 			final boolean visitable) {
-		return null;
+		return new ReadDexAnnotationVisitor();
 	}
 
 	@Override
