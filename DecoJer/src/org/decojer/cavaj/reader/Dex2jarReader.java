@@ -67,9 +67,10 @@ public class Dex2jarReader {
 	 */
 	public static void main(final String[] args) throws IOException {
 		final FileInputStream is = new FileInputStream(
-				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex");
+				"D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
 		// final Types types = analyse(is);
 		// System.out.println("Ana: " + types.getTypes().size());
+		System.out.println("### START ###");
 		read(is, new DU());
 	}
 

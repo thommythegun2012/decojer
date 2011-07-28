@@ -182,13 +182,13 @@ public class DecoJer {
 							new DataInputStream(
 									new FileInputStream(
 											new File(
-													"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex"))));
+													"D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex"))));
 		} catch (final FileNotFoundException e) {
 			e.printStackTrace();
 		}
 		final DU du = createDu(packageClassStreamProvider);
 		final CU cu = createCu(du
-				.getTd("org.apache.commons.logging.impl.WeakHashtable"));
+				.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
 		System.out.println(decompile(cu));
 	}
 
