@@ -1,5 +1,8 @@
 package org.decojer.cavaj.test;
 
+import java.io.IOException;
+import java.io.NotSerializableException;
+
 public abstract class DecTestMethods {
 
 	static {
@@ -23,7 +26,8 @@ public abstract class DecTestMethods {
 		return a / (b / c);
 	}
 
-	public abstract int getIntTest(final String test) throws Throwable;
+	public abstract int getIntTest(final String test) throws IOException,
+			IllegalArgumentException, NotSerializableException;
 
 	public int subIntTest(int a, int b, int c) {
 		return (a = b - c) - (b++ - --c);
