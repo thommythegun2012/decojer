@@ -23,22 +23,15 @@ public @interface DecTestAnnotations {
 
 	char charTest() default 'b';
 
-	// runtime visible in bytecode allways after invisible
-	@Deprecated
+	@DecTestAnnotations(value = 1, stringTest = "value is necessary here")
+	Class[] classArrayTest() default { byte.class, byte[].class, Byte.class,
+			Byte[][][].class, void.class, List.class };
+
 	@DecTestAnnotations
-	Class classTest() default byte.class;
+	Class classTest() default void.class; // no array
 
 	@DecTestAnnotations(1)
-	Class classTest2() default byte[].class;
-
-	@DecTestAnnotations(value = 1, stringTest = "value is necessary here")
-	Class classTest3() default Byte.class;
-
-	Class classTest4() default Byte[][][].class;
-
-	Class classTest5() default void.class; // no array
-
-	Class classTest6() default List.class; // no generics
+	Class classTest2() default List.class; // no generics
 
 	double doubleTest() default 2.1D;
 
