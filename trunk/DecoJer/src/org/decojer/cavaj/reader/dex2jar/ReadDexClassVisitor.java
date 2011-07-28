@@ -69,7 +69,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	@Override
 	public AnnotationVisitor visitAnnotation(final String name,
 			final boolean visitable) {
-		return null;
+		return new ReadDexAnnotationVisitor();
 	}
 
 	@Override
@@ -92,7 +92,9 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	@Override
 	public DexMethodVisitor visitMethod(final Method method) {
 		// put : (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-		// TODO no exception information?
+
+		// Exceptions are in method annotations!
+
 		final MD md = new MD(this.td, method.getAccessFlags(),
 				method.getName(), method.getType().getDesc().replace('/', '.'),
 				null, null);

@@ -26,9 +26,13 @@ package org.decojer.cavaj.reader;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
@@ -36,6 +40,9 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
+import org.jf.dexlib.AnnotationDirectoryItem;
+import org.jf.dexlib.AnnotationItem;
+import org.jf.dexlib.AnnotationSetItem;
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.ClassDataItem.EncodedField;
 import org.jf.dexlib.ClassDataItem.EncodedMethod;
@@ -46,18 +53,25 @@ import org.jf.dexlib.FieldIdItem;
 import org.jf.dexlib.ItemType;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Section;
+import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeListItem;
+import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
+import org.jf.dexlib.EncodedValue.AnnotationEncodedValue;
+import org.jf.dexlib.EncodedValue.ArrayEncodedValue;
 import org.jf.dexlib.EncodedValue.BooleanEncodedValue;
 import org.jf.dexlib.EncodedValue.ByteEncodedValue;
 import org.jf.dexlib.EncodedValue.CharEncodedValue;
 import org.jf.dexlib.EncodedValue.DoubleEncodedValue;
 import org.jf.dexlib.EncodedValue.EncodedValue;
+import org.jf.dexlib.EncodedValue.EnumEncodedValue;
 import org.jf.dexlib.EncodedValue.FloatEncodedValue;
 import org.jf.dexlib.EncodedValue.IntEncodedValue;
 import org.jf.dexlib.EncodedValue.LongEncodedValue;
+import org.jf.dexlib.EncodedValue.MethodEncodedValue;
 import org.jf.dexlib.EncodedValue.NullEncodedValue;
 import org.jf.dexlib.EncodedValue.ShortEncodedValue;
 import org.jf.dexlib.EncodedValue.StringEncodedValue;
+import org.jf.dexlib.EncodedValue.TypeEncodedValue;
 import org.jf.dexlib.Util.ByteArrayInput;
 
 /**
@@ -96,7 +110,29 @@ public class SmaliReader {
 		return types;
 	}
 
-	private static Object decodeValue(final EncodedValue encodedValue) {
+	private static Object decodeValue(final EncodedValue encodedValue,
+			final DU du) {
+		if (encodedValue instanceof AnnotationEncodedSubValue) {
+			final T t = du
+					.getDescT(((AnnotationEncodedValue) encodedValue).annotationType
+							.getTypeDescriptor());
+			final A a = new A(t, null); // retention unknown here
+			final StringIdItem[] names = ((AnnotationEncodedValue) encodedValue).names;
+			final EncodedValue[] values = ((AnnotationEncodedValue) encodedValue).values;
+			for (int i = 0; i < names.length; ++i) {
+				a.addMember(names[i].getStringValue(),
+						decodeValue(values[i], du));
+			}
+			return a;
+		}
+		if (encodedValue instanceof ArrayEncodedValue) {
+			final EncodedValue[] values = ((ArrayEncodedValue) encodedValue).values;
+			final Object[] objects = new Object[values.length];
+			for (int i = values.length; i-- > 0;) {
+				objects[i] = decodeValue(values[i], du);
+			}
+			return objects;
+		}
 		if (encodedValue instanceof BooleanEncodedValue) {
 			return ((BooleanEncodedValue) encodedValue).value;
 		}
@@ -109,6 +145,10 @@ public class SmaliReader {
 		if (encodedValue instanceof DoubleEncodedValue) {
 			return ((DoubleEncodedValue) encodedValue).value;
 		}
+		if (encodedValue instanceof EnumEncodedValue) {
+			// enum ... interesting parallel to MethodEncodedValue with M????
+			return ((EnumEncodedValue) encodedValue).value.getFieldString();
+		}
 		if (encodedValue instanceof FloatEncodedValue) {
 			return ((FloatEncodedValue) encodedValue).value;
 		}
@@ -118,6 +158,10 @@ public class SmaliReader {
 		if (encodedValue instanceof LongEncodedValue) {
 			return ((LongEncodedValue) encodedValue).value;
 		}
+		if (encodedValue instanceof MethodEncodedValue) {
+			// for @dalvik.annotation.EnclosingMethod only? M?
+			return ((MethodEncodedValue) encodedValue).value.getMethodString();
+		}
 		if (encodedValue instanceof NullEncodedValue) {
 			return null; // placeholder in constant array
 		}
@@ -125,7 +169,11 @@ public class SmaliReader {
 			return ((ShortEncodedValue) encodedValue).value;
 		}
 		if (encodedValue instanceof StringEncodedValue) {
-			return ((StringEncodedValue) encodedValue).value;
+			return ((StringEncodedValue) encodedValue).value.getStringValue();
+		}
+		if (encodedValue instanceof TypeEncodedValue) {
+			return du.getDescT(((TypeEncodedValue) encodedValue).value
+					.getTypeDescriptor());
 		}
 		LOGGER.warning("Unknown encoded value type '"
 				+ encodedValue.getClass().getName() + "'!");
@@ -184,6 +232,88 @@ public class SmaliReader {
 			final TD td = new TD(t);
 			td.setAccessFlags(classDefItem.getAccessFlags());
 
+			final AnnotationDirectoryItem annotations = classDefItem
+					.getAnnotations();
+			if (annotations != null) {
+				final AnnotationSetItem classAnnotations = annotations
+						.getClassAnnotations();
+				if (classAnnotations != null) {
+					final List<A> as = new ArrayList<A>();
+					for (final AnnotationItem annotation : classAnnotations
+							.getAnnotations()) {
+						final AnnotationEncodedSubValue encodedAnnotation = annotation
+								.getEncodedAnnotation();
+						final String typeDescriptor = encodedAnnotation.annotationType
+								.getTypeDescriptor();
+						if ("Ldalvik/annotation/AnnotationDefault;"
+								.equals(typeDescriptor)) {
+							// annotation default values
+							continue;
+						}
+						if ("Ldalvik/annotation/Signature;"
+								.equals(typeDescriptor)) {
+							// signature ist encoded as special annotation
+							final Object[] signature = (Object[]) decodeValue(
+									encodedAnnotation.values[0], du);
+							final StringBuilder sb = new StringBuilder();
+							for (int i = 0; i < signature.length; ++i) {
+								sb.append(signature[i]);
+							}
+							td.getT().setSignature(sb.toString());
+							continue;
+						}
+						if ("Ldalvik/annotation/EnclosingClass;"
+								.equals(typeDescriptor)) {
+							// whats that?
+							continue;
+						}
+						if ("Ldalvik/annotation/EnclosingMethod;"
+								.equals(typeDescriptor)) {
+							continue;
+						}
+						if ("Ldalvik/annotation/InnerClass;"
+								.equals(typeDescriptor)) {
+							continue;
+						}
+						if ("Ldalvik/annotation/MemberClasses;"
+								.equals(typeDescriptor)) {
+							// whats that?
+							continue;
+						}
+
+						RetentionPolicy retentionPolicy;
+						switch (annotation.getVisibility()) {
+						case BUILD:
+							retentionPolicy = RetentionPolicy.SOURCE;
+							break;
+						case RUNTIME:
+							retentionPolicy = RetentionPolicy.RUNTIME;
+							break;
+						case SYSTEM:
+							retentionPolicy = RetentionPolicy.CLASS;
+							break;
+						default:
+							retentionPolicy = null;
+							LOGGER.warning("Unknown annotation visibility '"
+									+ annotation.getVisibility().visibility
+									+ "'!");
+						}
+
+						final T at = du.getDescT(typeDescriptor);
+						final A a = new A(at, retentionPolicy);
+
+						final StringIdItem[] names = encodedAnnotation.names;
+						final EncodedValue[] values = encodedAnnotation.values;
+						for (int i = 0; i < names.length; ++i) {
+							a.addMember(names[i].getStringValue(),
+									decodeValue(values[i], du));
+						}
+						as.add(a);
+					}
+					td.setInvisibleAs(as.toArray(new A[as.size()]));
+				}
+			}
+
 			if (classDefItem.getSourceFile() != null) {
 				td.setSourceFileName(classDefItem.getSourceFile()
 						.getStringValue());
@@ -194,6 +324,31 @@ public class SmaliReader {
 				readFields(td, classDefItem.getStaticFieldInitializers(),
 						classData.getStaticFields(),
 						classData.getInstanceFields());
+
+				// Exceptions are in Annotations:
+				// ## visit ## Lorg/decojer/cavaj/test/DecTestMethods; :
+				// Ljava/lang/Object; : null
+				// 28.07.2011 11:46:27
+				// org.decojer.cavaj.reader.dex2jar.ReadDexAnnotationVisitor
+				// visitArray
+				// WARNUNG: ### annotation visitArray ### value
+				// 28.07.2011 11:46:27
+				// org.decojer.cavaj.reader.dex2jar.ReadDexAnnotationVisitor
+				// visit
+				// WARNUNG: ### annotation visit ### null :
+				// Ljava/io/IOException; :C: class org.objectweb.asm.Type
+				// 28.07.2011 11:46:27
+				// org.decojer.cavaj.reader.dex2jar.ReadDexAnnotationVisitor
+				// visit
+				// WARNUNG: ### annotation visit ### null :
+				// Ljava/lang/IllegalArgumentException; :C: class
+				// org.objectweb.asm.Type
+				// 28.07.2011 11:46:27
+				// org.decojer.cavaj.reader.dex2jar.ReadDexAnnotationVisitor
+				// visit
+				// WARNUNG: ### annotation visit ### null :
+				// Ljava/io/NotSerializableException; :C: class
+				// org.objectweb.asm.Type
 
 				final EncodedMethod[] directMethods = classData
 						.getDirectMethods();
@@ -246,7 +401,7 @@ public class SmaliReader {
 			// null value as placeholder
 			Object value = null;
 			if (staticFieldValues.length > i) {
-				value = decodeValue(staticFieldValues[i]);
+				value = decodeValue(staticFieldValues[i], td.getT().getDu());
 			}
 			final FD fd = new FD(td, encodedField.accessFlags, field
 					.getFieldName().getStringValue(), field.getFieldType()

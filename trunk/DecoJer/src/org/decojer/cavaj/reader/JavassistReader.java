@@ -27,6 +27,7 @@ import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
@@ -146,12 +147,13 @@ public class JavassistReader {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static A createA(final Annotation annotation, final DU du) {
+	private static A createA(final Annotation annotation,
+			final RetentionPolicy retentionPolicy, final DU du) {
 		final T t = du.getT(annotation.getTypeName());
-		final A a = new A(t);
+		final A a = new A(t, retentionPolicy);
 		if (annotation.getMemberNames() != null) {
 			for (final String name : (Set<String>) annotation.getMemberNames()) {
-				a.addParameter(name,
+				a.addMember(name,
 						readMemberValue(annotation.getMemberValue(name), du));
 			}
 		}
@@ -277,7 +279,8 @@ public class JavassistReader {
 					.getAnnotations();
 			final A[] as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], td.getT().getDu());
+				as[i] = createA(annotations[i], RetentionPolicy.CLASS, td
+						.getT().getDu());
 			}
 			td.setInvisibleAs(as);
 		}
@@ -287,7 +290,8 @@ public class JavassistReader {
 					.getAnnotations();
 			final A[] as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], td.getT().getDu());
+				as[i] = createA(annotations[i], RetentionPolicy.RUNTIME, td
+						.getT().getDu());
 			}
 			td.setVisibleAs(as);
 		}
@@ -389,7 +393,8 @@ public class JavassistReader {
 					.getAnnotations();
 			final A[] as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], td.getT().getDu());
+				as[i] = createA(annotations[i], RetentionPolicy.CLASS, td
+						.getT().getDu());
 			}
 			fd.setInvisibleAs(as);
 		}
@@ -399,7 +404,8 @@ public class JavassistReader {
 					.getAnnotations();
 			final A[] as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], td.getT().getDu());
+				as[i] = createA(annotations[i], RetentionPolicy.RUNTIME, td
+						.getT().getDu());
 			}
 			fd.setVisibleAs(as);
 		}
@@ -418,7 +424,8 @@ public class JavassistReader {
 	private static Object readMemberValue(final MemberValue memberValue,
 			final DU du) {
 		if (memberValue instanceof AnnotationMemberValue) {
-			return createA(((AnnotationMemberValue) memberValue).getValue(), du);
+			return createA(((AnnotationMemberValue) memberValue).getValue(),
+					null, du); // retention unknown here
 		}
 		if (memberValue instanceof ArrayMemberValue) {
 			final MemberValue[] values = ((ArrayMemberValue) memberValue)
@@ -545,7 +552,8 @@ public class JavassistReader {
 					.getAnnotations();
 			final A[] as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], td.getT().getDu());
+				as[i] = createA(annotations[i], RetentionPolicy.CLASS, td
+						.getT().getDu());
 			}
 			md.setInvisibleAs(as);
 		}
@@ -555,7 +563,8 @@ public class JavassistReader {
 					.getAnnotations();
 			final A[] as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], td.getT().getDu());
+				as[i] = createA(annotations[i], RetentionPolicy.RUNTIME, td
+						.getT().getDu());
 			}
 			md.setVisibleAs(as);
 		}
@@ -577,7 +586,8 @@ public class JavassistReader {
 				final Annotation[] annotations = annotationss[i];
 				final A[] as = ass[i] = new A[annotations.length];
 				for (int j = annotations.length; j-- > 0;) {
-					as[j] = createA(annotations[j], td.getT().getDu());
+					as[j] = createA(annotations[j], RetentionPolicy.CLASS, td
+							.getT().getDu());
 				}
 			}
 			md.setInvisibleParamAs(ass);
@@ -591,7 +601,8 @@ public class JavassistReader {
 				final Annotation[] annotations = annotationss[i];
 				final A[] as = ass[i] = new A[annotations.length];
 				for (int j = annotations.length; j-- > 0;) {
-					as[j] = createA(annotations[j], td.getT().getDu());
+					as[j] = createA(annotations[j], RetentionPolicy.RUNTIME, td
+							.getT().getDu());
 				}
 			}
 			md.setVisibleParamAs(ass);
