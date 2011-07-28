@@ -35,6 +35,8 @@ public class FD implements BD, PD {
 
 	private final int accessFlags;
 
+	private A[] as;
+
 	private boolean deprecated;
 
 	private final String descriptor;
@@ -42,8 +44,6 @@ public class FD implements BD, PD {
 	private BodyDeclaration fieldDeclaration;
 
 	private Expression initializer;
-
-	private A[] invisibleAs;
 
 	private final String name;
 
@@ -55,8 +55,6 @@ public class FD implements BD, PD {
 
 	// value, type Integer: int, short, byte, char, boolean
 	private final Object value;
-
-	private A[] visibleAs;
 
 	/**
 	 * Constructor.
@@ -98,6 +96,15 @@ public class FD implements BD, PD {
 	}
 
 	/**
+	 * Get annotations.
+	 * 
+	 * @return annotations
+	 */
+	public A[] getAs() {
+		return this.as;
+	}
+
+	/**
 	 * Get descriptor.
 	 * 
 	 * @return descriptor
@@ -122,10 +129,6 @@ public class FD implements BD, PD {
 	 */
 	public Expression getInitializer() {
 		return this.initializer;
-	}
-
-	public A[] getInvisibleAs() {
-		return this.invisibleAs;
 	}
 
 	/**
@@ -164,10 +167,6 @@ public class FD implements BD, PD {
 		return this.value;
 	}
 
-	public A[] getVisibleAs() {
-		return this.visibleAs;
-	}
-
 	/**
 	 * Get deprecated state (from deprecated attribute).
 	 * 
@@ -184,6 +183,16 @@ public class FD implements BD, PD {
 	 */
 	public boolean isSynthetic() {
 		return this.synthetic;
+	}
+
+	/**
+	 * Set annotations.
+	 * 
+	 * @param as
+	 *            annotations
+	 */
+	public void setAs(final A[] as) {
+		this.as = as;
 	}
 
 	/**
@@ -210,10 +219,6 @@ public class FD implements BD, PD {
 		this.fieldDeclaration = fieldDeclaration;
 	}
 
-	public void setInvisibleAs(final A[] invisibleAs) {
-		this.invisibleAs = invisibleAs;
-	}
-
 	/**
 	 * Set synthetic state (from synthetic attribute).
 	 * 
@@ -222,10 +227,6 @@ public class FD implements BD, PD {
 	 */
 	public void setSynthetic(final boolean synthetic) {
 		this.synthetic = synthetic;
-	}
-
-	public void setVisibleAs(final A[] visibleAs) {
-		this.visibleAs = visibleAs;
 	}
 
 }

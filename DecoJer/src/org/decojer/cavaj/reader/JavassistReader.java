@@ -269,32 +269,35 @@ public class JavassistReader {
 		}
 
 		final TD td = new TD(t);
-
-		// TODO move to T?
 		td.setAccessFlags(classFile.getAccessFlags());
 		td.setVersion(classFile.getMajorVersion());
 
+		A[] as = null;
 		if (annotationsAttributeRuntimeInvisible != null) {
 			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
 					.getAnnotations();
-			final A[] as = new A[annotations.length];
+			as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
 				as[i] = createA(annotations[i], RetentionPolicy.CLASS, td
 						.getT().getDu());
 			}
-			td.setInvisibleAs(as);
 		}
-
 		if (annotationsAttributeRuntimeVisible != null) {
 			final Annotation[] annotations = annotationsAttributeRuntimeVisible
 					.getAnnotations();
-			final A[] as = new A[annotations.length];
+			if (as == null) {
+				as = new A[annotations.length];
+			} else {
+				final A[] newAs = new A[annotations.length + as.length];
+				System.arraycopy(as, 0, newAs, annotations.length, as.length);
+				as = newAs;
+			}
 			for (int i = annotations.length; i-- > 0;) {
 				as[i] = createA(annotations[i], RetentionPolicy.RUNTIME, td
 						.getT().getDu());
 			}
-			td.setVisibleAs(as);
 		}
+		td.setAs(as);
 
 		if (deprecatedAttribute != null) {
 			td.setDeprecated(true);
@@ -388,27 +391,32 @@ public class JavassistReader {
 				signatureAttribute == null ? null
 						: signatureAttribute.getSignature(), value);
 
-		if (annotationsAttributeRuntimeInvisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
-					.getAnnotations();
-			final A[] as = new A[annotations.length];
-			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], RetentionPolicy.CLASS, td
-						.getT().getDu());
-			}
-			fd.setInvisibleAs(as);
-		}
-
+		A[] as = null;
 		if (annotationsAttributeRuntimeVisible != null) {
 			final Annotation[] annotations = annotationsAttributeRuntimeVisible
 					.getAnnotations();
-			final A[] as = new A[annotations.length];
+			as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
 				as[i] = createA(annotations[i], RetentionPolicy.RUNTIME, td
 						.getT().getDu());
 			}
-			fd.setVisibleAs(as);
 		}
+		if (annotationsAttributeRuntimeInvisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
+					.getAnnotations();
+			if (as == null) {
+				as = new A[annotations.length];
+			} else {
+				final A[] newAs = new A[annotations.length + as.length];
+				System.arraycopy(as, 0, newAs, annotations.length, as.length);
+				as = newAs;
+			}
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = createA(annotations[i], RetentionPolicy.CLASS, td
+						.getT().getDu());
+			}
+		}
+		fd.setAs(as);
 
 		if (deprecatedAttribute != null) {
 			fd.setDeprecated(true);
@@ -547,27 +555,32 @@ public class JavassistReader {
 			md.setAnnotationDefaultValue(annotationDefaultValue);
 		}
 
-		if (annotationsAttributeRuntimeInvisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
-					.getAnnotations();
-			final A[] as = new A[annotations.length];
-			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], RetentionPolicy.CLASS, td
-						.getT().getDu());
-			}
-			md.setInvisibleAs(as);
-		}
-
+		A[] as = null;
 		if (annotationsAttributeRuntimeVisible != null) {
 			final Annotation[] annotations = annotationsAttributeRuntimeVisible
 					.getAnnotations();
-			final A[] as = new A[annotations.length];
+			as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
 				as[i] = createA(annotations[i], RetentionPolicy.RUNTIME, td
 						.getT().getDu());
 			}
-			md.setVisibleAs(as);
 		}
+		if (annotationsAttributeRuntimeInvisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
+					.getAnnotations();
+			if (as == null) {
+				as = new A[annotations.length];
+			} else {
+				final A[] newAs = new A[annotations.length + as.length];
+				System.arraycopy(as, 0, newAs, annotations.length, as.length);
+				as = newAs;
+			}
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = createA(annotations[i], RetentionPolicy.CLASS, td
+						.getT().getDu());
+			}
+		}
+		md.setAs(as);
 
 		if (codeAttribute != null) {
 			// TODO temporary
@@ -578,35 +591,48 @@ public class JavassistReader {
 			md.setDeprecated(true);
 		}
 
-		if (parameterAnnotationsAttributeRuntimeInvisible != null) {
-			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeInvisible
-					.getAnnotations();
-			final A[][] ass = new A[annotationss.length][];
-			for (int i = annotationss.length; i-- > 0;) {
-				final Annotation[] annotations = annotationss[i];
-				final A[] as = ass[i] = new A[annotations.length];
-				for (int j = annotations.length; j-- > 0;) {
-					as[j] = createA(annotations[j], RetentionPolicy.CLASS, td
-							.getT().getDu());
-				}
-			}
-			md.setInvisibleParamAs(ass);
-		}
-
+		A[][] paramAss = null;
 		if (parameterAnnotationsAttributeRuntimeVisible != null) {
 			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeVisible
 					.getAnnotations();
-			final A[][] ass = new A[annotationss.length][];
+			paramAss = new A[annotationss.length][];
 			for (int i = annotationss.length; i-- > 0;) {
 				final Annotation[] annotations = annotationss[i];
-				final A[] as = ass[i] = new A[annotations.length];
+				final A[] paramAs = paramAss[i] = new A[annotations.length];
 				for (int j = annotations.length; j-- > 0;) {
-					as[j] = createA(annotations[j], RetentionPolicy.RUNTIME, td
-							.getT().getDu());
+					paramAs[j] = createA(annotations[j],
+							RetentionPolicy.RUNTIME, td.getT().getDu());
 				}
 			}
-			md.setVisibleParamAs(ass);
 		}
+		if (parameterAnnotationsAttributeRuntimeInvisible != null) {
+			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeInvisible
+					.getAnnotations();
+			if (paramAss == null) {
+				paramAss = new A[annotationss.length][];
+			} else if (paramAss.length < annotationss.length) {
+				final A[][] newParamAss = new A[annotationss.length][];
+				System.arraycopy(paramAss, 0, newParamAss, 0, paramAss.length);
+				paramAss = newParamAss;
+			}
+			for (int i = annotationss.length; i-- > 0;) {
+				final Annotation[] annotations = annotationss[i];
+				A[] paramAs = paramAss[i];
+				if (paramAs == null) {
+					paramAs = paramAss[i] = new A[annotations.length];
+				} else {
+					paramAss[i] = new A[annotations.length + paramAs.length];
+					System.arraycopy(paramAs, 0, paramAss[i],
+							annotations.length, paramAs.length);
+					paramAs = paramAss[i];
+				}
+				for (int j = annotations.length; j-- > 0;) {
+					paramAs[j] = createA(annotations[j], RetentionPolicy.CLASS,
+							td.getT().getDu());
+				}
+			}
+		}
+		md.setParamAs(paramAss);
 
 		if (syntheticAttribute != null) {
 			md.setSynthetic(true);

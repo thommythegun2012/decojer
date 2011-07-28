@@ -327,7 +327,7 @@ public class SmaliReader {
 						}
 						as.add(a);
 					}
-					td.setInvisibleAs(as.toArray(new A[as.size()]));
+					td.setAs(as.toArray(new A[as.size()]));
 				}
 				// TODO field/method/param annotations are here too...
 			}

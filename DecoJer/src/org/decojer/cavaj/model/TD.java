@@ -42,12 +42,12 @@ public class TD implements BD, PD {
 
 	private int accessFlags;
 
+	private A[] as;
+
 	// all body declarations: inner type/method/field declarations
 	private final List<BD> bds = new ArrayList<BD>();
 
 	private boolean deprecated;
-
-	private A[] invisibleAs;
 
 	// parent declaration
 	private PD pd;
@@ -63,8 +63,6 @@ public class TD implements BD, PD {
 	private AbstractTypeDeclaration typeDeclaration; // anonymousClassDeclaration?
 
 	private int version;
-
-	private A[] visibleAs;
 
 	/**
 	 * Constructor.
@@ -103,6 +101,15 @@ public class TD implements BD, PD {
 	}
 
 	/**
+	 * Get annotations.
+	 * 
+	 * @return annotations
+	 */
+	public A[] getAs() {
+		return this.as;
+	}
+
+	/**
 	 * Get body declarations.
 	 * 
 	 * @return body declarations, not null
@@ -131,10 +138,6 @@ public class TD implements BD, PD {
 			return ((FD) pd).getTd().getCu();
 		}
 		return null;
-	}
-
-	public A[] getInvisibleAs() {
-		return this.invisibleAs;
 	}
 
 	/**
@@ -208,10 +211,6 @@ public class TD implements BD, PD {
 		return this.version;
 	}
 
-	public A[] getVisibleAs() {
-		return this.visibleAs;
-	}
-
 	/**
 	 * Get deprecated state (from deprecated attribute).
 	 * 
@@ -254,6 +253,16 @@ public class TD implements BD, PD {
 	}
 
 	/**
+	 * Set annotations.
+	 * 
+	 * @param as
+	 *            annotations
+	 */
+	public void setAs(final A[] as) {
+		this.as = as;
+	}
+
+	/**
 	 * Set deprecated state (from deprecated attribute).
 	 * 
 	 * @param deprecated
@@ -261,10 +270,6 @@ public class TD implements BD, PD {
 	 */
 	public void setDeprecated(final boolean deprecated) {
 		this.deprecated = deprecated;
-	}
-
-	public void setInvisibleAs(final A[] invisibleAs) {
-		this.invisibleAs = invisibleAs;
 	}
 
 	/**
@@ -315,10 +320,6 @@ public class TD implements BD, PD {
 	 */
 	public void setVersion(final int version) {
 		this.version = version;
-	}
-
-	public void setVisibleAs(final A[] visibleAs) {
-		this.visibleAs = visibleAs;
 	}
 
 	@Override
