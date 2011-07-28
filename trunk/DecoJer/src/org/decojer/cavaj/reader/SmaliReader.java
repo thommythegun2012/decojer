@@ -111,20 +111,25 @@ public class SmaliReader {
 		return types;
 	}
 
+	private static A decodeAnnotationValue(
+			final AnnotationEncodedSubValue encodedValue,
+			final RetentionPolicy retentionPolicy, final DU du) {
+		final T t = du
+				.getDescT(encodedValue.annotationType.getTypeDescriptor());
+		final A a = new A(t, retentionPolicy);
+		final StringIdItem[] names = encodedValue.names;
+		final EncodedValue[] values = encodedValue.values;
+		for (int i = 0; i < names.length; ++i) {
+			a.addMember(names[i].getStringValue(), decodeValue(values[i], du));
+		}
+		return a;
+	}
+
 	private static Object decodeValue(final EncodedValue encodedValue,
 			final DU du) {
 		if (encodedValue instanceof AnnotationEncodedSubValue) {
-			final T t = du
-					.getDescT(((AnnotationEncodedValue) encodedValue).annotationType
-							.getTypeDescriptor());
-			final A a = new A(t, null); // retention unknown here
-			final StringIdItem[] names = ((AnnotationEncodedValue) encodedValue).names;
-			final EncodedValue[] values = ((AnnotationEncodedValue) encodedValue).values;
-			for (int i = 0; i < names.length; ++i) {
-				a.addMember(names[i].getStringValue(),
-						decodeValue(values[i], du));
-			}
-			return a;
+			return decodeAnnotationValue((AnnotationEncodedValue) encodedValue,
+					null, du);
 		}
 		if (encodedValue instanceof ArrayEncodedValue) {
 			final EncodedValue[] values = ((ArrayEncodedValue) encodedValue).values;
@@ -253,48 +258,6 @@ public class SmaliReader {
 							.getAnnotations()) {
 						final AnnotationEncodedSubValue encodedAnnotation = annotation
 								.getEncodedAnnotation();
-						final String typeDescriptor = encodedAnnotation.annotationType
-								.getTypeDescriptor();
-						if ("Ldalvik/annotation/AnnotationDefault;"
-								.equals(typeDescriptor)) {
-							// annotation default values, not encoded in
-							// methods,
-							// but in AnnotationEncodedValue: "field name" ->
-							// value
-							annotationDefaultValues = (A) decodeValue(
-									encodedAnnotation.values[0], du);
-							continue;
-						}
-						if ("Ldalvik/annotation/Signature;"
-								.equals(typeDescriptor)) {
-							// signature ist encoded as special annotation
-							final Object[] signature = (Object[]) decodeValue(
-									encodedAnnotation.values[0], du);
-							final StringBuilder sb = new StringBuilder();
-							for (int i = 0; i < signature.length; ++i) {
-								sb.append(signature[i]);
-							}
-							td.getT().setSignature(sb.toString());
-							continue;
-						}
-						if ("Ldalvik/annotation/EnclosingClass;"
-								.equals(typeDescriptor)) {
-							// whats that?
-							continue;
-						}
-						if ("Ldalvik/annotation/EnclosingMethod;"
-								.equals(typeDescriptor)) {
-							continue;
-						}
-						if ("Ldalvik/annotation/InnerClass;"
-								.equals(typeDescriptor)) {
-							continue;
-						}
-						if ("Ldalvik/annotation/MemberClasses;"
-								.equals(typeDescriptor)) {
-							// whats that?
-							continue;
-						}
 
 						RetentionPolicy retentionPolicy;
 						switch (annotation.getVisibility()) {
@@ -314,14 +277,53 @@ public class SmaliReader {
 									+ "'!");
 						}
 
-						final T at = du.getDescT(typeDescriptor);
-						final A a = new A(at, retentionPolicy);
+						final A a = decodeAnnotationValue(encodedAnnotation,
+								retentionPolicy, du);
 
-						final StringIdItem[] names = encodedAnnotation.names;
-						final EncodedValue[] values = encodedAnnotation.values;
-						for (int i = 0; i < names.length; ++i) {
-							a.addMember(names[i].getStringValue(),
-									decodeValue(values[i], du));
+						if ("dalvik.annotation.AnnotationDefault".equals(a
+								.getT().getName())) {
+							// annotation default values, not encoded in
+							// method annotations, but in global annotation with
+							// "field name" -> value
+							annotationDefaultValues = (A) a.getMemberValue();
+							continue;
+						}
+						if ("dalvik.annotation.Signature".equals(a.getT()
+								.getName())) {
+							// signature, is encoded as annotation with string
+							// array value
+							final Object[] signature = (Object[]) a
+									.getMemberValue();
+							final StringBuilder sb = new StringBuilder();
+							for (int i = 0; i < signature.length; ++i) {
+								sb.append(signature[i]);
+							}
+							td.getT().setSignature(sb.toString());
+							continue;
+						}
+						if ("dalvik.annotation.EnclosingClass".equals(a.getT()
+								.getName())) {
+							System.out.println("EnclosingClass '"
+									+ td.getT().getName() + "': " + a);
+							continue;
+						}
+						if ("dalvik.annotation.EnclosingMethod".equals(a.getT()
+								.getName())) {
+							System.out.println("EnclosingMethod '"
+									+ td.getT().getName() + "': " + a);
+							continue;
+						}
+						if ("dalvik.annotation.InnerClass".equals(a.getT()
+								.getName())) {
+							System.out.println("InnerClass '"
+									+ td.getT().getName() + "': " + a);
+							continue;
+						}
+						if ("dalvik.annotation.MemberClasses".equals(a.getT()
+								.getName())) {
+							System.out.println("MemberClasses '"
+									+ td.getT().getName() + "': " + a);
+							continue;
 						}
 						as.add(a);
 					}
