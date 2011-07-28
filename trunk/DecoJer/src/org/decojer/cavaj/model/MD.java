@@ -38,6 +38,8 @@ public class MD implements BD, PD {
 
 	private Object annotationDefaultValue;
 
+	private A[] as;
+
 	private CFG cfg;
 
 	// TODO temporary
@@ -49,23 +51,17 @@ public class MD implements BD, PD {
 
 	private final String[] exceptions;
 
-	private A[] invisibleAs;
-
-	private A[][] invisibleParamAs;
-
 	private BodyDeclaration methodDeclaration;
 
 	private final String name;
+
+	private A[][] paramAs;
 
 	private final String signature;
 
 	private boolean synthetic;
 
 	private final TD td;
-
-	private A[] visibleAs;
-
-	private A[][] visibleParamAs;
 
 	/**
 	 * Constructor.
@@ -117,6 +113,15 @@ public class MD implements BD, PD {
 	}
 
 	/**
+	 * Get annotations.
+	 * 
+	 * @return annotations
+	 */
+	public A[] getAs() {
+		return this.as;
+	}
+
+	/**
 	 * Get control flow graph.
 	 * 
 	 * @return control flow graph or null
@@ -147,14 +152,6 @@ public class MD implements BD, PD {
 		return this.exceptions;
 	}
 
-	public A[] getInvisibleAs() {
-		return this.invisibleAs;
-	}
-
-	public A[][] getInvisibleParamAs() {
-		return this.invisibleParamAs;
-	}
-
 	/**
 	 * Get Eclipse method declaration.
 	 * 
@@ -174,6 +171,15 @@ public class MD implements BD, PD {
 	}
 
 	/**
+	 * Get parameter annotations.
+	 * 
+	 * @return parameter annotations
+	 */
+	public A[][] getParamAs() {
+		return this.paramAs;
+	}
+
+	/**
 	 * Get method signature.
 	 * 
 	 * @return method signature
@@ -189,14 +195,6 @@ public class MD implements BD, PD {
 	 */
 	public TD getTd() {
 		return this.td;
-	}
-
-	public A[] getVisibleAs() {
-		return this.visibleAs;
-	}
-
-	public A[][] getVisibleParamAs() {
-		return this.visibleParamAs;
 	}
 
 	/**
@@ -228,6 +226,16 @@ public class MD implements BD, PD {
 	}
 
 	/**
+	 * Set annotations.
+	 * 
+	 * @param as
+	 *            annotations
+	 */
+	public void setAs(final A[] as) {
+		this.as = as;
+	}
+
+	/**
 	 * Set control flow graph.
 	 * 
 	 * @param cfg
@@ -252,14 +260,6 @@ public class MD implements BD, PD {
 		this.deprecated = deprecated;
 	}
 
-	public void setInvisibleAs(final A[] invisibleAs) {
-		this.invisibleAs = invisibleAs;
-	}
-
-	public void setInvisibleParamAs(final A[][] invisibleParamAs) {
-		this.invisibleParamAs = invisibleParamAs;
-	}
-
 	/**
 	 * Set Eclipse method declaration.
 	 * 
@@ -271,6 +271,16 @@ public class MD implements BD, PD {
 	}
 
 	/**
+	 * Set parameter annotations.
+	 * 
+	 * @param paramAs
+	 *            parameter annotations
+	 */
+	public void setParamAs(final A[][] paramAs) {
+		this.paramAs = paramAs;
+	}
+
+	/**
 	 * Set synthetic state (from synthetic attribute).
 	 * 
 	 * @param synthetic
@@ -278,14 +288,6 @@ public class MD implements BD, PD {
 	 */
 	public void setSynthetic(final boolean synthetic) {
 		this.synthetic = synthetic;
-	}
-
-	public void setVisibleAs(final A[] visibleAs) {
-		this.visibleAs = visibleAs;
-	}
-
-	public void setVisibleParamAs(final A[][] visibleParamAs) {
-		this.visibleParamAs = visibleParamAs;
 	}
 
 	@Override

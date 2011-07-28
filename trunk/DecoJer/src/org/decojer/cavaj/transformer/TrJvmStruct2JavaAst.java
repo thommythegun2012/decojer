@@ -108,8 +108,7 @@ public class TrJvmStruct2JavaAst {
 
 		// decompile deprecated Javadoc-tag if no annotation set
 		if (fd.isDeprecated()
-				&& !AnnotationsDecompiler.isDeprecatedAnnotation(fd
-						.getVisibleAs())) {
+				&& !AnnotationsDecompiler.isDeprecatedAnnotation(fd.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");
@@ -120,13 +119,9 @@ public class TrJvmStruct2JavaAst {
 		// decompile annotations,
 		// add annotation modifiers before other modifiers, order preserved in
 		// source code generation through Eclipse JDT
-		if (fd.getInvisibleAs() != null) {
+		if (fd.getAs() != null) {
 			AnnotationsDecompiler.decompileAnnotations(td,
-					fieldDeclaration.modifiers(), fd.getInvisibleAs());
-		}
-		if (fd.getVisibleAs() != null) {
-			AnnotationsDecompiler.decompileAnnotations(td,
-					fieldDeclaration.modifiers(), fd.getVisibleAs());
+					fieldDeclaration.modifiers(), fd.getAs());
 		}
 
 		// decompile modifier flags,
@@ -295,8 +290,7 @@ public class TrJvmStruct2JavaAst {
 
 		// decompile deprecated Javadoc-tag if no annotation set
 		if (md.isDeprecated()
-				&& !AnnotationsDecompiler.isDeprecatedAnnotation(md
-						.getVisibleAs())) {
+				&& !AnnotationsDecompiler.isDeprecatedAnnotation(md.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");
@@ -307,13 +301,9 @@ public class TrJvmStruct2JavaAst {
 		// decompile annotations,
 		// add annotation modifiers before other modifiers, order preserved in
 		// source code generation through Eclipse JDT
-		if (md.getInvisibleAs() != null) {
+		if (md.getAs() != null) {
 			AnnotationsDecompiler.decompileAnnotations(td,
-					methodDeclaration.modifiers(), md.getInvisibleAs());
-		}
-		if (md.getVisibleAs() != null) {
-			AnnotationsDecompiler.decompileAnnotations(td,
-					methodDeclaration.modifiers(), md.getVisibleAs());
+					methodDeclaration.modifiers(), md.getAs());
 		}
 
 		// decompile modifier flags,
@@ -412,24 +402,16 @@ public class TrJvmStruct2JavaAst {
 
 		if (methodDeclaration instanceof MethodDeclaration) {
 			// decompile method parameter annotations and names
-			final A[][] invisibleParamAs = md.getInvisibleParamAs();
-			final A[][] visibleParamAs = md.getVisibleParamAs();
+			final A[][] paramAs = md.getParamAs();
 			int annotation = 0;
 			int test = (md.getAccessFlags() & AccessFlag.STATIC) != 0 ? 0 : 1;
 			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
 					.parameters()) {
 				// decompile parameter annotations
-				if (invisibleParamAs != null
-						&& invisibleParamAs.length > annotation) {
+				if (paramAs != null && paramAs.length > annotation) {
 					AnnotationsDecompiler.decompileAnnotations(td,
 							singleVariableDeclaration.modifiers(),
-							invisibleParamAs[annotation]);
-				}
-				if (visibleParamAs != null
-						&& visibleParamAs.length > annotation) {
-					AnnotationsDecompiler.decompileAnnotations(td,
-							singleVariableDeclaration.modifiers(),
-							visibleParamAs[annotation++]);
+							paramAs[annotation++]);
 				}
 				singleVariableDeclaration.setName(ast.newSimpleName(cfg
 						.getVariableName(test++)));
@@ -441,6 +423,12 @@ public class TrJvmStruct2JavaAst {
 		md.setMethodDeclaration(methodDeclaration);
 	}
 
+	/**
+	 * Transform type declaration.
+	 * 
+	 * @param td
+	 *            type declaration
+	 */
 	@SuppressWarnings("unchecked")
 	public static void transform(final TD td) {
 		final T t = td.getT();
@@ -517,13 +505,9 @@ public class TrJvmStruct2JavaAst {
 
 		// add annotation modifiers before other modifiers, order preserved in
 		// source code generation through eclipse.jdt
-		if (td.getInvisibleAs() != null) {
+		if (td.getAs() != null) {
 			AnnotationsDecompiler.decompileAnnotations(td,
-					typeDeclaration.modifiers(), td.getInvisibleAs());
-		}
-		if (td.getVisibleAs() != null) {
-			AnnotationsDecompiler.decompileAnnotations(td,
-					typeDeclaration.modifiers(), td.getVisibleAs());
+					typeDeclaration.modifiers(), td.getAs());
 		}
 
 		// decompile remaining modifier flags
@@ -565,8 +549,7 @@ public class TrJvmStruct2JavaAst {
 				.getPName() : t.getIName()));
 
 		if (td.isDeprecated()
-				&& !AnnotationsDecompiler.isDeprecatedAnnotation(td
-						.getVisibleAs())) {
+				&& !AnnotationsDecompiler.isDeprecatedAnnotation(td.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");

@@ -441,20 +441,28 @@ public class SignatureDecompiler {
 			// <T::Ljava/util/Map<+TE;+Ljava/lang/Object;>;E:Ljava/lang/Object;>
 			// <T extends Integer & Accessible>
 			// compiled to:
-			// <T:Ljava/lang/Integer;:Ljavax/accessibility/Accessible;>Ljava/lang/Object;
+			// <T:Ljava/lang/Integer;:Ljava/lang/Cloneable;:Ljavax/accessibility/Accessible;>Ljava/lang/Object;
+
+			// posFull is now on type position (e.g. T)
 			final int posFull1 = this.signatureFull.indexOf(':', this.posFull);
 			final int posFull2 = this.signatureFull.indexOf('>', this.posFull);
 			if (posFull1 != -1 && posFull1 < posFull2) {
 				newTypeParameter.setName(getAST().newSimpleName(
 						this.signatureFull.substring(this.posFull, posFull1)));
-				this.posFull = posFull1 + 1;
-				if (this.signatureFull.charAt(this.posFull) == ':') {
+				this.posFull = posFull1;
+				// after first : follows an _optional_ single superclass bound,
+				// interface class bounds start with : (so without superclass
+				// bound we get :: at start)
+				if (this.signatureFull.charAt(this.posFull + 1) == ':') {
 					++this.posFull; // treat interface bounds like class bounds
 				}
-				final Type type = decompileTypeFull();
-				// ignore simple type bounds <E extends java.lang.Object>
-				if (type != null && !"Object".equals(type.toString())) {
-					newTypeParameter.typeBounds().add(type);
+				while (this.signatureFull.charAt(this.posFull) == ':') {
+					++this.posFull;
+					final Type type = decompileTypeFull();
+					// ignore simple type bounds <E extends java.lang.Object>
+					if (type != null && !"Object".equals(type.toString())) {
+						newTypeParameter.typeBounds().add(type);
+					}
 				}
 			} else {
 				newTypeParameter.setName(getAST().newSimpleName(
