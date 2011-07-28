@@ -75,7 +75,18 @@ public class A {
 	}
 
 	/**
-	 * Get member.
+	 * Get member value.
+	 * 
+	 * @param name
+	 *            name
+	 * @return value
+	 */
+	public Object getMemberValue() {
+		return this.members.get("value");
+	}
+
+	/**
+	 * Get member value.
 	 * 
 	 * @param name
 	 *            name
@@ -103,4 +114,13 @@ public class A {
 		return this.t;
 	}
 
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder(getT().getName());
+		for (final String name : getMemberNames()) {
+			sb.append("  ").append(name).append("=")
+					.append(getMemberValue(name));
+		}
+		return sb.toString();
+	}
 }
