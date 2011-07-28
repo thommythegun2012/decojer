@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.E;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
@@ -146,8 +147,15 @@ public class SmaliReader {
 			return ((DoubleEncodedValue) encodedValue).value;
 		}
 		if (encodedValue instanceof EnumEncodedValue) {
-			// enum ... interesting parallel to MethodEncodedValue with M????
-			return ((EnumEncodedValue) encodedValue).value.getFieldString();
+			// TODO enum ... interesting parallel to MethodEncodedValue with
+			// M? maybe use F here?
+			final FieldIdItem fieldidItem = ((EnumEncodedValue) encodedValue).value;
+			final String typeDescr = fieldidItem.getFieldType()
+					.getTypeDescriptor();
+			final String value = fieldidItem.getFieldName().getStringDataItem()
+					.getStringValue();
+			final T t = du.getDescT(typeDescr);
+			return new E(t, value);
 		}
 		if (encodedValue instanceof FloatEncodedValue) {
 			return ((FloatEncodedValue) encodedValue).value;
@@ -159,7 +167,7 @@ public class SmaliReader {
 			return ((LongEncodedValue) encodedValue).value;
 		}
 		if (encodedValue instanceof MethodEncodedValue) {
-			// for @dalvik.annotation.EnclosingMethod only? M?
+			// TODO for @dalvik.annotation.EnclosingMethod only? M?
 			return ((MethodEncodedValue) encodedValue).value.getMethodString();
 		}
 		if (encodedValue instanceof NullEncodedValue) {
@@ -232,6 +240,8 @@ public class SmaliReader {
 			final TD td = new TD(t);
 			td.setAccessFlags(classDefItem.getAccessFlags());
 
+			A annotationDefaultValues = null;
+
 			final AnnotationDirectoryItem annotations = classDefItem
 					.getAnnotations();
 			if (annotations != null) {
@@ -247,7 +257,12 @@ public class SmaliReader {
 								.getTypeDescriptor();
 						if ("Ldalvik/annotation/AnnotationDefault;"
 								.equals(typeDescriptor)) {
-							// annotation default values
+							// annotation default values, not encoded in
+							// methods,
+							// but in AnnotationEncodedValue: "field name" ->
+							// value
+							annotationDefaultValues = (A) decodeValue(
+									encodedAnnotation.values[0], du);
 							continue;
 						}
 						if ("Ldalvik/annotation/Signature;"
@@ -312,6 +327,7 @@ public class SmaliReader {
 					}
 					td.setInvisibleAs(as.toArray(new A[as.size()]));
 				}
+				// TODO field/method/param annotations are here too...
 			}
 
 			if (classDefItem.getSourceFile() != null) {
@@ -321,62 +337,11 @@ public class SmaliReader {
 
 			final ClassDataItem classData = classDefItem.getClassData();
 			if (classData != null) {
-				readFields(td, classDefItem.getStaticFieldInitializers(),
-						classData.getStaticFields(),
-						classData.getInstanceFields());
-
-				// Exceptions are in Annotations:
-				// ## visit ## Lorg/decojer/cavaj/test/DecTestMethods; :
-				// Ljava/lang/Object; : null
-				// 28.07.2011 11:46:27
-				// org.decojer.cavaj.reader.dex2jar.ReadDexAnnotationVisitor
-				// visitArray
-				// WARNUNG: ### annotation visitArray ### value
-				// 28.07.2011 11:46:27
-				// org.decojer.cavaj.reader.dex2jar.ReadDexAnnotationVisitor
-				// visit
-				// WARNUNG: ### annotation visit ### null :
-				// Ljava/io/IOException; :C: class org.objectweb.asm.Type
-				// 28.07.2011 11:46:27
-				// org.decojer.cavaj.reader.dex2jar.ReadDexAnnotationVisitor
-				// visit
-				// WARNUNG: ### annotation visit ### null :
-				// Ljava/lang/IllegalArgumentException; :C: class
-				// org.objectweb.asm.Type
-				// 28.07.2011 11:46:27
-				// org.decojer.cavaj.reader.dex2jar.ReadDexAnnotationVisitor
-				// visit
-				// WARNUNG: ### annotation visit ### null :
-				// Ljava/io/NotSerializableException; :C: class
-				// org.objectweb.asm.Type
-
-				final EncodedMethod[] directMethods = classData
-						.getDirectMethods();
-				for (int i = 0; i < directMethods.length; ++i) {
-					final EncodedMethod encodedMethod = directMethods[i];
-					final MethodIdItem method = encodedMethod.method;
-
-					// getResourceAsStream :
-					// (Ljava/lang/String;)Ljava/io/InputStream;
-					final MD md = new MD(td, encodedMethod.accessFlags, method
-							.getMethodName().getStringValue(), method
-							.getPrototype().getPrototypeString(), null, null);
-					td.getBds().add(md);
-				}
-
-				final EncodedMethod[] virtualMethods = classData
-						.getVirtualMethods();
-				for (int i = 0; i < virtualMethods.length; ++i) {
-					final EncodedMethod encodedMethod = virtualMethods[i];
-					final MethodIdItem method = encodedMethod.method;
-
-					// getResourceAsStream :
-					// (Ljava/lang/String;)Ljava/io/InputStream;
-					final MD md = new MD(td, encodedMethod.accessFlags, method
-							.getMethodName().getStringValue(), method
-							.getPrototype().getPrototypeString(), null, null);
-					td.getBds().add(md);
-				}
+				readFields(td, classData.getStaticFields(),
+						classData.getInstanceFields(),
+						classDefItem.getStaticFieldInitializers());
+				readMethods(td, classData.getDirectMethods(),
+						classData.getVirtualMethods(), annotationDefaultValues);
 			}
 
 			du.addTd(td);
@@ -384,9 +349,14 @@ public class SmaliReader {
 	}
 
 	private static void readFields(final TD td,
-			final EncodedArrayItem staticFieldInitializers,
 			final EncodedField[] staticFields,
-			final EncodedField[] instanceFields) {
+			final EncodedField[] instanceFields,
+			final EncodedArrayItem staticFieldInitializers) {
+		// static field initializer values are packed away into a different
+		// section, both arrays (encoded fields and static field values) are
+		// sorted in same order, there could be less static field values if
+		// not all static fields have an initializer, but there is also a
+		// null value as placeholder
 		final EncodedValue[] staticFieldValues = staticFieldInitializers == null ? new EncodedValue[0]
 				: staticFieldInitializers.getEncodedArray().values;
 
@@ -394,31 +364,60 @@ public class SmaliReader {
 			final EncodedField encodedField = staticFields[i];
 			final FieldIdItem field = encodedField.field;
 
-			// static field initializer values are packed away into a different
-			// section, both arrays (encoded fields and static field values) are
-			// sorted in same order, there could be less static field values if
-			// not all static fields have an initializer, but there is also a
-			// null value as placeholder
 			Object value = null;
 			if (staticFieldValues.length > i) {
 				value = decodeValue(staticFieldValues[i], td.getT().getDu());
 			}
+
 			final FD fd = new FD(td, encodedField.accessFlags, field
 					.getFieldName().getStringValue(), field.getFieldType()
 					.getTypeDescriptor(), null, value);
 			td.getBds().add(fd);
 		}
-
 		for (int i = 0; i < instanceFields.length; ++i) {
 			final EncodedField encodedField = instanceFields[i];
 			final FieldIdItem field = encodedField.field;
-
 			// there is no field initializer section for instance fields,
 			// only via constructor
 			final FD fd = new FD(td, encodedField.accessFlags, field
 					.getFieldName().getStringValue(), field.getFieldType()
 					.getTypeDescriptor(), null, null);
 			td.getBds().add(fd);
+		}
+	}
+
+	private static void readMethods(final TD td,
+			final EncodedMethod[] directMethods,
+			final EncodedMethod[] virtualMethods,
+			final A annotationDefaultValues) {
+		for (int i = 0; i < directMethods.length; ++i) {
+			final EncodedMethod encodedMethod = directMethods[i];
+			final MethodIdItem method = encodedMethod.method;
+
+			// getResourceAsStream :
+			// (Ljava/lang/String;)Ljava/io/InputStream;
+			final MD md = new MD(td, encodedMethod.accessFlags, method
+					.getMethodName().getStringValue(), method.getPrototype()
+					.getPrototypeString(), null, null);
+			// no annotation default values
+			td.getBds().add(md);
+		}
+		for (int i = 0; i < virtualMethods.length; ++i) {
+			final EncodedMethod encodedMethod = virtualMethods[i];
+			final MethodIdItem method = encodedMethod.method;
+
+			// getResourceAsStream :
+			// (Ljava/lang/String;)Ljava/io/InputStream;
+			final MD md = new MD(td, encodedMethod.accessFlags, method
+					.getMethodName().getStringValue(), method.getPrototype()
+					.getPrototypeString(), null, null);
+
+			if (annotationDefaultValues != null) {
+				md.setAnnotationDefaultValue(annotationDefaultValues
+						.getMemberValue(md.getName()));
+			}
+
+			td.getBds().add(md);
 		}
 	}
 
