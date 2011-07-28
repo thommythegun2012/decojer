@@ -188,7 +188,7 @@ public class DecoJer {
 		}
 		final DU du = createDu(packageClassStreamProvider);
 		final CU cu = createCu(du
-				.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
+				.getTd("org.decojer.cavaj.test.jdk5.DecTestAnnotations"));
 		System.out.println(decompile(cu));
 	}
 

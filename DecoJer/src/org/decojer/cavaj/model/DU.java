@@ -25,6 +25,7 @@ package org.decojer.cavaj.model;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Decompilation unit.
@@ -32,6 +33,8 @@ import java.util.Map;
  * @author André Pankraz
  */
 public class DU {
+
+	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
 
 	private final Map<String, TD> tds = new HashMap<String, TD>();
 
@@ -67,7 +70,27 @@ public class DU {
 	public T getDescT(final String desc) {
 		assert desc != null;
 
-		return getT(desc.substring(1, desc.length() - 1).replace('/', '.'));
+		switch (desc.charAt(0)) {
+		case '[':
+			int i = 0;
+			while (desc.charAt(++i) == '[') {
+				;
+			}
+			final T descT = getDescT(desc.substring(i));
+			final StringBuilder sb = new StringBuilder(descT.getName());
+			while (i-- > 0) {
+				sb.append("[]");
+			}
+			return getT(sb.toString());
+		case 'B':
+			return getT(byte.class.getName());
+		case 'V':
+			return getT(void.class.getName());
+		case 'L':
+			return getT(desc.substring(1, desc.length() - 1).replace('/', '.'));
+		}
+		LOGGER.warning("Unknown desc: " + desc);
+		return getT(desc);
 	}
 
 	/**

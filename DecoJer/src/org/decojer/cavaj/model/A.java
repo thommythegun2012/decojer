@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
+import java.lang.annotation.RetentionPolicy;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
@@ -33,7 +34,9 @@ import java.util.Set;
  */
 public class A {
 
-	private final LinkedHashMap<String, Object> params = new LinkedHashMap<String, Object>();
+	private final LinkedHashMap<String, Object> members = new LinkedHashMap<String, Object>();
+
+	private final RetentionPolicy retentionPolicy;
 
 	private final T t;
 
@@ -42,41 +45,53 @@ public class A {
 	 * 
 	 * @param t
 	 *            type
+	 * @param retentionPolicy
+	 *            retention policy
 	 */
-	public A(final T t) {
+	public A(final T t, final RetentionPolicy retentionPolicy) {
 		this.t = t;
+		this.retentionPolicy = retentionPolicy;
 	}
 
 	/**
-	 * Add parameter.
+	 * Add member.
 	 * 
 	 * @param name
 	 *            name
 	 * @param value
 	 *            value
 	 */
-	public void addParameter(final String name, final Object value) {
-		this.params.put(name, value);
+	public void addMember(final String name, final Object value) {
+		this.members.put(name, value);
 	}
 
 	/**
-	 * Get parameter.
+	 * Get member names.
+	 * 
+	 * @return member names
+	 */
+	public Set<String> getMemberNames() {
+		return this.members.keySet();
+	}
+
+	/**
+	 * Get member.
 	 * 
 	 * @param name
 	 *            name
 	 * @return value
 	 */
 	public Object getMemberValue(final String name) {
-		return this.params.get(name);
+		return this.members.get(name);
 	}
 
 	/**
-	 * Get parameter names.
+	 * Get retention policy.
 	 * 
-	 * @return parameter names
+	 * @return retention policy
 	 */
-	public Set<String> getMemberNames() {
-		return this.params.keySet();
+	public RetentionPolicy getRetentionPolicy() {
+		return this.retentionPolicy;
 	}
 
 	/**

@@ -64,6 +64,7 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 
 	@Override
 	public void visitEnd() {
+		// nothing
 	}
 
 }
