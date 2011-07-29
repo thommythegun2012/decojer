@@ -28,7 +28,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
@@ -42,8 +44,12 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.jf.dexlib.AnnotationDirectoryItem;
+import org.jf.dexlib.AnnotationDirectoryItem.FieldAnnotationIteratorDelegate;
+import org.jf.dexlib.AnnotationDirectoryItem.MethodAnnotationIteratorDelegate;
+import org.jf.dexlib.AnnotationDirectoryItem.ParameterAnnotationIteratorDelegate;
 import org.jf.dexlib.AnnotationItem;
 import org.jf.dexlib.AnnotationSetItem;
+import org.jf.dexlib.AnnotationSetRefList;
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.ClassDataItem.EncodedField;
 import org.jf.dexlib.ClassDataItem.EncodedMethod;
@@ -123,6 +129,28 @@ public class SmaliReader {
 			a.addMember(names[i].getStringValue(), decodeValue(values[i], du));
 		}
 		return a;
+	}
+
+	private static A decodeAnnotationValue(final AnnotationItem annotationItem,
+			final DU du) {
+		RetentionPolicy retentionPolicy;
+		switch (annotationItem.getVisibility()) {
+		case BUILD:
+			retentionPolicy = RetentionPolicy.SOURCE;
+			break;
+		case RUNTIME:
+			retentionPolicy = RetentionPolicy.RUNTIME;
+			break;
+		case SYSTEM:
+			retentionPolicy = RetentionPolicy.CLASS;
+			break;
+		default:
+			retentionPolicy = null;
+			LOGGER.warning("Unknown annotation visibility '"
+					+ annotationItem.getVisibility().visibility + "'!");
+		}
+		return decodeAnnotationValue(annotationItem.getEncodedAnnotation(),
+				retentionPolicy, du);
 	}
 
 	private static Object decodeValue(final EncodedValue encodedValue,
@@ -246,6 +274,12 @@ public class SmaliReader {
 			td.setAccessFlags(classDefItem.getAccessFlags());
 
 			A annotationDefaultValues = null;
+			final Map<FieldIdItem, String> fieldSignatures = new HashMap<FieldIdItem, String>();
+			final Map<FieldIdItem, A[]> fieldAs = new HashMap<FieldIdItem, A[]>();
+			final Map<MethodIdItem, String[]> methodExceptions = new HashMap<MethodIdItem, String[]>();
+			final Map<MethodIdItem, String> methodSignatures = new HashMap<MethodIdItem, String>();
+			final Map<MethodIdItem, A[]> methodAs = new HashMap<MethodIdItem, A[]>();
+			final Map<MethodIdItem, A[][]> methodParamAs = new HashMap<MethodIdItem, A[][]>();
 
 			final AnnotationDirectoryItem annotations = classDefItem
 					.getAnnotations();
@@ -256,30 +290,7 @@ public class SmaliReader {
 					final List<A> as = new ArrayList<A>();
 					for (final AnnotationItem annotation : classAnnotations
 							.getAnnotations()) {
-						final AnnotationEncodedSubValue encodedAnnotation = annotation
-								.getEncodedAnnotation();
-
-						RetentionPolicy retentionPolicy;
-						switch (annotation.getVisibility()) {
-						case BUILD:
-							retentionPolicy = RetentionPolicy.SOURCE;
-							break;
-						case RUNTIME:
-							retentionPolicy = RetentionPolicy.RUNTIME;
-							break;
-						case SYSTEM:
-							retentionPolicy = RetentionPolicy.CLASS;
-							break;
-						default:
-							retentionPolicy = null;
-							LOGGER.warning("Unknown annotation visibility '"
-									+ annotation.getVisibility().visibility
-									+ "'!");
-						}
-
-						final A a = decodeAnnotationValue(encodedAnnotation,
-								retentionPolicy, du);
-
+						final A a = decodeAnnotationValue(annotation, du);
 						if ("dalvik.annotation.AnnotationDefault".equals(a
 								.getT().getName())) {
 							// annotation default values, not encoded in
@@ -329,7 +340,115 @@ public class SmaliReader {
 					}
 					td.setAs(as.toArray(new A[as.size()]));
 				}
-				// TODO field/method/param annotations are here too...
+				annotations
+						.iterateFieldAnnotations(new FieldAnnotationIteratorDelegate() {
+
+							@Override
+							public void processFieldAnnotations(
+									final FieldIdItem field,
+									final AnnotationSetItem fieldAnnotations) {
+								final List<A> as = new ArrayList<A>();
+								for (final AnnotationItem annotationItem : fieldAnnotations
+										.getAnnotations()) {
+									final A a = decodeAnnotationValue(
+											annotationItem, du);
+									if ("dalvik.annotation.Signature".equals(a
+											.getT().getName())) {
+										// signature, is encoded as annotation
+										// with string array value
+										final Object[] signature = (Object[]) a
+												.getMemberValue();
+										final StringBuilder sb = new StringBuilder();
+										for (int i = 0; i < signature.length; ++i) {
+											sb.append(signature[i]);
+										}
+										fieldSignatures.put(field,
+												sb.toString());
+										continue;
+									} else {
+										as.add(a);
+									}
+								}
+								if (as.size() > 0) {
+									fieldAs.put(field,
+											as.toArray(new A[as.size()]));
+								}
+							}
+
+						});
+				annotations
+						.iterateMethodAnnotations(new MethodAnnotationIteratorDelegate() {
+
+							@Override
+							public void processMethodAnnotations(
+									final MethodIdItem method,
+									final AnnotationSetItem methodAnnotations) {
+								final List<A> as = new ArrayList<A>();
+								for (final AnnotationItem annotationItem : methodAnnotations
+										.getAnnotations()) {
+									final A a = decodeAnnotationValue(
+											annotationItem, du);
+									if ("dalvik.annotation.Signature".equals(a
+											.getT().getName())) {
+										// signature, is encoded as annotation
+										// with string array value
+										final Object[] signature = (Object[]) a
+												.getMemberValue();
+										final StringBuilder sb = new StringBuilder();
+										for (int i = 0; i < signature.length; ++i) {
+											sb.append(signature[i]);
+										}
+										methodSignatures.put(method,
+												sb.toString());
+										continue;
+									} else if ("dalvik.annotation.Throws"
+											.equals(a.getT().getName())) {
+										// throws, is encoded as annotation with
+										// type array value
+										final Object[] throwables = (Object[]) a
+												.getMemberValue();
+										final String[] exceptions = new String[throwables.length];
+										for (int i = throwables.length; i-- > 0;) {
+											exceptions[i] = ((T) throwables[i])
+													.getName();
+										}
+										methodExceptions
+												.put(method, exceptions);
+										continue;
+									} else {
+										as.add(a);
+									}
+								}
+								if (as.size() > 0) {
+									methodAs.put(method,
+											as.toArray(new A[as.size()]));
+								}
+							}
+
+						});
+				annotations
+						.iterateParameterAnnotations(new ParameterAnnotationIteratorDelegate() {
+
+							@Override
+							public void processParameterAnnotations(
+									final MethodIdItem method,
+									final AnnotationSetRefList parameterAnnotations) {
+								final AnnotationSetItem[] annotationSets = parameterAnnotations
+										.getAnnotationSets();
+								final A[][] paramAss = new A[annotationSets.length][];
+								for (int i = annotationSets.length; i-- > 0;) {
+									final AnnotationItem[] annotationItems = annotationSets[i]
+											.getAnnotations();
+									final A[] paramAs = paramAss[i] = new A[annotationItems.length];
+									for (int j = annotationItems.length; j-- > 0;) {
+										paramAs[j] = decodeAnnotationValue(
+												annotationItems[j], du);
+									}
+								}
+								methodParamAs.put(method, paramAss);
+							}
+
+						});
 			}
 
 			if (classDefItem.getSourceFile() != null) {
@@ -340,10 +459,12 @@ public class SmaliReader {
 			final ClassDataItem classData = classDefItem.getClassData();
 			if (classData != null) {
 				readFields(td, classData.getStaticFields(),
-						classData.getInstanceFields(),
-						classDefItem.getStaticFieldInitializers());
+						classData.getInstanceFields(), fieldSignatures,
+						classDefItem.getStaticFieldInitializers(), fieldAs);
 				readMethods(td, classData.getDirectMethods(),
-						classData.getVirtualMethods(), annotationDefaultValues);
+						classData.getVirtualMethods(), methodSignatures,
+						methodExceptions, annotationDefaultValues, methodAs,
+						methodParamAs);
 			}
 
 			du.addTd(td);
@@ -353,7 +474,9 @@ public class SmaliReader {
 	private static void readFields(final TD td,
 			final EncodedField[] staticFields,
 			final EncodedField[] instanceFields,
-			final EncodedArrayItem staticFieldInitializers) {
+			final Map<FieldIdItem, String> fieldSignatures,
+			final EncodedArrayItem staticFieldInitializers,
+			final Map<FieldIdItem, A[]> fieldAs) {
 		// static field initializer values are packed away into a different
 		// section, both arrays (encoded fields and static field values) are
 		// sorted in same order, there could be less static field values if
@@ -373,7 +496,8 @@ public class SmaliReader {
 
 			final FD fd = new FD(td, encodedField.accessFlags, field
 					.getFieldName().getStringValue(), field.getFieldType()
-					.getTypeDescriptor(), null, value);
+					.getTypeDescriptor(), fieldSignatures.get(field), value);
+			fd.setAs(fieldAs.get(field));
 			td.getBds().add(fd);
 		}
 		for (int i = 0; i < instanceFields.length; ++i) {
@@ -383,7 +507,8 @@ public class SmaliReader {
 			// only via constructor
 			final FD fd = new FD(td, encodedField.accessFlags, field
 					.getFieldName().getStringValue(), field.getFieldType()
-					.getTypeDescriptor(), null, null);
+					.getTypeDescriptor(), fieldSignatures.get(field), null);
+			fd.setAs(fieldAs.get(field));
 			td.getBds().add(fd);
 		}
 	}
@@ -391,7 +516,11 @@ public class SmaliReader {
 	private static void readMethods(final TD td,
 			final EncodedMethod[] directMethods,
 			final EncodedMethod[] virtualMethods,
-			final A annotationDefaultValues) {
+			final Map<MethodIdItem, String> methodSignatures,
+			final Map<MethodIdItem, String[]> methodException,
+			final A annotationDefaultValues,
+			final Map<MethodIdItem, A[]> methodAs,
+			final Map<MethodIdItem, A[][]> methodParamAs) {
 		for (int i = 0; i < directMethods.length; ++i) {
 			final EncodedMethod encodedMethod = directMethods[i];
 			final MethodIdItem method = encodedMethod.method;
@@ -400,8 +529,10 @@ public class SmaliReader {
 			// (Ljava/lang/String;)Ljava/io/InputStream;
 			final MD md = new MD(td, encodedMethod.accessFlags, method
 					.getMethodName().getStringValue(), method.getPrototype()
-					.getPrototypeString(), null, null);
+					.getPrototypeString(), methodSignatures.get(method),
+					methodException.get(method));
 			// no annotation default values
+			md.setAs(methodAs.get(method));
 			td.getBds().add(md);
 		}
 		for (int i = 0; i < virtualMethods.length; ++i) {
@@ -412,13 +543,14 @@ public class SmaliReader {
 			// (Ljava/lang/String;)Ljava/io/InputStream;
 			final MD md = new MD(td, encodedMethod.accessFlags, method
 					.getMethodName().getStringValue(), method.getPrototype()
-					.getPrototypeString(), null, null);
-
+					.getPrototypeString(), methodSignatures.get(method),
+					methodException.get(method));
 			if (annotationDefaultValues != null) {
 				md.setAnnotationDefaultValue(annotationDefaultValues
 						.getMemberValue(md.getName()));
 			}
-
+			md.setAs(methodAs.get(method));
+			md.setParamAs(methodParamAs.get(method));
 			td.getBds().add(md);
 		}
 	}
