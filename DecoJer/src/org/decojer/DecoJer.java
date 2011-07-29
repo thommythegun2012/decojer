@@ -35,7 +35,7 @@ import java.util.Map.Entry;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.reader.SmaliReader;
+import org.decojer.cavaj.reader.JavassistReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -81,7 +81,7 @@ public class DecoJer {
 		final DU du = new DU();
 		for (final Entry<String, InputStream> classFileEntry : packageClassStreamProvider
 				.getClassStreams().entrySet()) {
-			SmaliReader.read(classFileEntry.getValue(), du);
+			JavassistReader.read(classFileEntry.getValue(), du);
 		}
 		return du;
 	}
@@ -182,13 +182,13 @@ public class DecoJer {
 							new DataInputStream(
 									new FileInputStream(
 											new File(
-													"D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex"))));
+													"D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestBooleanOperators.class"))));
 		} catch (final FileNotFoundException e) {
 			e.printStackTrace();
 		}
 		final DU du = createDu(packageClassStreamProvider);
 		final CU cu = createCu(du
-				.getTd("org.decojer.cavaj.test.DecTestMethods"));
+				.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
 		System.out.println(decompile(cu));
 	}
 

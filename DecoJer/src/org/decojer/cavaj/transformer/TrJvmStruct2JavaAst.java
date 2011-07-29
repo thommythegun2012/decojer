@@ -554,8 +554,16 @@ public class TrJvmStruct2JavaAst {
 		// multiple CompilationUnit.TypeDeclaration in same AST (source file)
 		// possible, but only one of them is public and multiple class files are
 		// necessary
-		typeDeclaration.setName(ast.newSimpleName(cu.isStartTdOnly() ? t
-				.getPName() : t.getIName()));
+		if (cu.isStartTdOnly()) {
+			typeDeclaration.setName(ast.newSimpleName(t.getPName()));
+		} else {
+			try {
+				final int iNumber = Integer.parseInt(t.getIName());
+				typeDeclaration.setName(ast.newSimpleName("I_" + iNumber));
+			} catch (final NumberFormatException e) {
+				typeDeclaration.setName(ast.newSimpleName(t.getIName()));
+			}
+		}
 
 		if (td.isDeprecated()
 				&& !AnnotationsDecompiler.isDeprecatedAnnotation(td.getAs())) {
