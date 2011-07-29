@@ -353,6 +353,12 @@ public class SignatureDecompiler {
 					final char wildcard = this.signatureFull
 							.charAt(this.posFull);
 					switch (wildcard) {
+					case '*': {
+						++this.posFull;
+						newParameterizedType.typeArguments().add(
+								getAST().newWildcardType());
+						break;
+					}
 					case '+': {
 						++this.posFull;
 						final Type type = decompileTypeFull();
@@ -361,7 +367,7 @@ public class SignatureDecompiler {
 						}
 						final WildcardType newWildcardType = getAST()
 								.newWildcardType();
-						newWildcardType.setUpperBound(true);
+						// default...newWildcardType.setUpperBound(true);
 						newWildcardType.setBound(type);
 						newParameterizedType.typeArguments().add(
 								newWildcardType);
