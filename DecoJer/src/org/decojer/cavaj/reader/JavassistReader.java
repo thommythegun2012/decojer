@@ -231,8 +231,8 @@ public class JavassistReader {
 			// is anonymous class,
 			// innermost enclosing class or method
 			if (enclosingMethodAttribute.classIndex() > 0) {
-				System.out.println("Enclosing Method Attribute: className: "
-						+ enclosingMethodAttribute.className());
+				// System.out.println("Enclosing Method Attribute: className: "
+				// + enclosingMethodAttribute.className());
 			}
 			if (enclosingMethodAttribute.methodIndex() > 0) {
 				System.out.println("Enclosing Method Attribute: methodName: "
@@ -245,12 +245,13 @@ public class JavassistReader {
 			// is or has inner classes
 			for (int i = 0; i < innerClassesAttribute.tableLength(); ++i) {
 				// innerClassesAttribute.getName() is "InnerClasses"
-				System.out.println("Inner Classes Attribute: accessFlags: "
-						+ innerClassesAttribute.accessFlags(i)
-						+ ", innerClass: "
-						+ innerClassesAttribute.innerClass(i) + ", innerName: "
-						+ innerClassesAttribute.innerName(i) + ", outerClass: "
-						+ innerClassesAttribute.outerClass(i));
+				/*
+				 * System.out.println("Inner Classes Attribute: accessFlags: " +
+				 * innerClassesAttribute.accessFlags(i) + ", innerClass: " +
+				 * innerClassesAttribute.innerClass(i) + ", innerName: " +
+				 * innerClassesAttribute.innerName(i) + ", outerClass: " +
+				 * innerClassesAttribute.outerClass(i));
+				 */
 			}
 		}
 
