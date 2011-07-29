@@ -54,6 +54,7 @@ import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.ClassDataItem.EncodedField;
 import org.jf.dexlib.ClassDataItem.EncodedMethod;
 import org.jf.dexlib.ClassDefItem;
+import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.EncodedArrayItem;
 import org.jf.dexlib.FieldIdItem;
@@ -62,6 +63,7 @@ import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Section;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeListItem;
+import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedValue;
 import org.jf.dexlib.EncodedValue.ArrayEncodedValue;
@@ -314,26 +316,26 @@ public class SmaliReader {
 						}
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT()
 								.getName())) {
-							System.out.println("EnclosingClass '"
-									+ td.getT().getName() + "': " + a);
+							// System.out.println("EnclosingClass '"
+							// + td.getT().getName() + "': " + a);
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingMethod".equals(a.getT()
 								.getName())) {
-							System.out.println("EnclosingMethod '"
-									+ td.getT().getName() + "': " + a);
+							// System.out.println("EnclosingMethod '"
+							// + td.getT().getName() + "': " + a);
 							continue;
 						}
 						if ("dalvik.annotation.InnerClass".equals(a.getT()
 								.getName())) {
-							System.out.println("InnerClass '"
-									+ td.getT().getName() + "': " + a);
+							// System.out.println("InnerClass '"
+							// + td.getT().getName() + "': " + a);
 							continue;
 						}
 						if ("dalvik.annotation.MemberClasses".equals(a.getT()
 								.getName())) {
-							System.out.println("MemberClasses '"
-									+ td.getT().getName() + "': " + a);
+							// System.out.println("MemberClasses '"
+							// + td.getT().getName() + "': " + a);
 							continue;
 						}
 						as.add(a);
@@ -471,6 +473,13 @@ public class SmaliReader {
 		}
 	}
 
+	private static void readCode(final CodeItem codeItem) {
+		final Instruction[] instructions = codeItem.getInstructions();
+		for (int j = 0; j < instructions.length; ++j) {
+			System.out.println("I: " + instructions[j].opcode);
+		}
+	}
+
 	private static void readFields(final TD td,
 			final EncodedField[] staticFields,
 			final EncodedField[] instanceFields,
@@ -493,7 +502,6 @@ public class SmaliReader {
 			if (staticFieldValues.length > i) {
 				value = decodeValue(staticFieldValues[i], td.getT().getDu());
 			}
-
 			final FD fd = new FD(td, encodedField.accessFlags, field
 					.getFieldName().getStringValue(), field.getFieldType()
 					.getTypeDescriptor(), fieldSignatures.get(field), value);
@@ -533,6 +541,13 @@ public class SmaliReader {
 					methodException.get(method));
 			// no annotation default values
 			md.setAs(methodAs.get(method));
+
+			final CodeItem codeItem = encodedMethod.codeItem;
+			if (codeItem != null) {
+				System.out.println("M " + method.getMethodString());
+				readCode(codeItem);
+			}
+
 			td.getBds().add(md);
 		}
 		for (int i = 0; i < virtualMethods.length; ++i) {
@@ -551,6 +566,13 @@ public class SmaliReader {
 			}
 			md.setAs(methodAs.get(method));
 			md.setParamAs(methodParamAs.get(method));
+
+			final CodeItem codeItem = encodedMethod.codeItem;
+			if (codeItem != null) {
+				System.out.println("M " + method.getMethodString());
+				readCode(codeItem);
+			}
+
 			td.getBds().add(md);
 		}
 	}
