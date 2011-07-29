@@ -357,6 +357,15 @@ public class TrJvmStruct2JavaAst {
 			methodDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
 		}
+		// TODO only if is DEX?
+		// DEX: ACC_CONSTRUCTOR = 0x10000
+		if (accessFlags != (accessFlags &= ~0x10000)) {
+			// nothing
+		}
+		// DEX: ACC_DECLARED_SYNCHRONIZED = 0x20000
+		if (accessFlags != (accessFlags &= ~0x20000)) {
+			// nothing
+		}
 		if (accessFlags != 0) {
 			LOGGER.log(Level.WARNING, "Unknown method info modifier flags '0x"
 					+ Integer.toHexString(accessFlags) + "' for method info '"

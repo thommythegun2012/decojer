@@ -58,12 +58,14 @@ import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.EncodedArrayItem;
 import org.jf.dexlib.FieldIdItem;
+import org.jf.dexlib.Item;
 import org.jf.dexlib.ItemType;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Section;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeListItem;
 import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.Format.Instruction35c;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedValue;
 import org.jf.dexlib.EncodedValue.ArrayEncodedValue;
@@ -476,7 +478,45 @@ public class SmaliReader {
 	private static void readCode(final CodeItem codeItem) {
 		final Instruction[] instructions = codeItem.getInstructions();
 		for (int j = 0; j < instructions.length; ++j) {
-			System.out.println("I: " + instructions[j].opcode);
+			final Instruction instruction = instructions[j];
+			switch (instruction.opcode) {
+			case INVOKE_DIRECT: {
+				final Item referencedItem = ((Instruction35c) instruction)
+						.getReferencedItem();
+				System.out.println("  refItem: " + referencedItem + " : "
+						+ ((Instruction35c) instruction).getRegCount());
+				System.out.println("    : "
+						+ ((Instruction35c) instruction).getRegisterD());
+				System.out.println("    : "
+						+ ((Instruction35c) instruction).getRegisterE());
+				System.out.println("    : "
+						+ ((Instruction35c) instruction).getRegisterF());
+				System.out.println("    : "
+						+ ((Instruction35c) instruction).getRegisterG());
+				System.out.println("    : "
+						+ ((Instruction35c) instruction).getRegisterA());
+				break;
+			}
+			case INVOKE_VIRTUAL: {
+				final Item referencedItem = ((Instruction35c) instruction)
+						.getReferencedItem();
+				System.out.println("  refItem: " + referencedItem + " : "
+						+ ((Instruction35c) instruction).getRegCount());
+				System.out.println("    : "
+						+ ((Instruction35c) instruction).getRegisterD());
+				System.out.println("    : "
+						+ ((Instruction35c) instruction).getRegisterE());
+				System.out.println("    : "
+						+ ((Instruction35c) instruction).getRegisterF());
+				System.out.println("    : "
+						+ ((Instruction35c) instruction).getRegisterG());
+				System.out.println("    : "
+						+ ((Instruction35c) instruction).getRegisterA());
+				break;
+			}
+			}
+			System.out.println("I: " + instructions[j].opcode + "     "
+					+ instructions[j].getClass().getName());
 		}
 	}
 
@@ -543,7 +583,7 @@ public class SmaliReader {
 			md.setAs(methodAs.get(method));
 
 			final CodeItem codeItem = encodedMethod.codeItem;
-			if (codeItem != null) {
+			if (codeItem != null && false) {
 				System.out.println("M " + method.getMethodString());
 				readCode(codeItem);
 			}
@@ -568,7 +608,7 @@ public class SmaliReader {
 			md.setParamAs(methodParamAs.get(method));
 
 			final CodeItem codeItem = encodedMethod.codeItem;
-			if (codeItem != null) {
+			if (codeItem != null && false) {
 				System.out.println("M " + method.getMethodString());
 				readCode(codeItem);
 			}
