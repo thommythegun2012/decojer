@@ -23,18 +23,15 @@
  */
 package org.decojer.web.util;
 
-import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.decojer.DecoJer;
-import org.decojer.PackageClassStreamProvider;
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.PF;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
 import org.decojer.web.analyser.BlobInfo;
 
@@ -98,21 +95,16 @@ public class Uploads {
 		try {
 			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
 					upload.getBlobKey());
-			final byte[] bytes = IOUtils.toBytes(blobstoreInputStream);
-			final PackageClassStreamProvider packageClassStreamProvider = new PackageClassStreamProvider(
+			final DU du = DecoJer.createDu();
+			final TD td = du.read(upload.getFilename(), blobstoreInputStream,
 					null);
-			packageClassStreamProvider.addClassStream("TEST",
-					new ByteArrayInputStream(bytes));
-			final PF pf = DecoJer.createPF(packageClassStreamProvider);
-			final Entry<String, TD> next = pf.getTds().entrySet().iterator()
-					.next();
-			final CU cu = DecoJer.createCU(next.getValue());
+			final CU cu = DecoJer.createCu(td);
 			final String source = DecoJer.decompile(cu);
 			sb.append("<hr /><pre class=\"brush: java\">")
 					.append(source.replace("<", "&lt;"))
 					.append("</pre><script type=\"text/javascript\">SyntaxHighlighter.all()</script>");
 		} catch (final Exception e) {
-			;
+			e.printStackTrace();
 		}
 		return sb.toString();
 	}

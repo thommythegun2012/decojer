@@ -26,7 +26,6 @@ package org.decojer.web.servlet;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,9 +35,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.decojer.DecoJer;
-import org.decojer.PackageClassStreamProvider;
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.PF;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
 import org.decojer.web.analyser.BlobInfo;
 import org.decojer.web.util.IOUtils;
@@ -65,32 +63,71 @@ public class DecompileServlet extends HttpServlet {
 			return;
 		}
 		final String filename = upload.getFilename();
-		final int pos = filename.lastIndexOf('.');
-		final String sourcename = filename.substring(0, pos) + ".java";
-		// application/java-archive
-		res.setContentType("text/x-java-source");
-		res.setContentLength(-1);
-		res.setHeader("Content-Disposition", "attachment; filename=\""
-				+ sourcename + "\"");
-		final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
-				upload.getBlobKey());
-		final byte[] bytes = IOUtils.toBytes(blobstoreInputStream);
-		try {
-			final PackageClassStreamProvider packageClassStreamProvider = new PackageClassStreamProvider(
-					null);
-			packageClassStreamProvider.addClassStream("TEST",
-					new ByteArrayInputStream(bytes));
-			final PF pf = DecoJer.createPF(packageClassStreamProvider);
-			final Entry<String, TD> next = pf.getTds().entrySet().iterator()
-					.next();
-			final CU cu = DecoJer.createCU(next.getValue());
-			final String source = DecoJer.decompile(cu);
-			res.getWriter().write(source);
-		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
-			Messages.addMessage(req, "Decompilation problems!");
-			res.sendRedirect("/");
-			return;
+		if (filename.endsWith(".class")) {
+			final int pos = filename.lastIndexOf('.');
+			final String sourcename = filename.substring(0, pos) + ".java";
+			// application/java-archive
+			res.setContentType("text/x-java-source");
+			res.setContentLength(-1);
+			res.setHeader("Content-Disposition", "attachment; filename=\""
+					+ sourcename + "\"");
+			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
+					upload.getBlobKey());
+			final byte[] bytes = IOUtils.toBytes(blobstoreInputStream);
+			try {
+				final DU du = DecoJer.createDu();
+				final TD td = du.read(filename,
+						new ByteArrayInputStream(bytes), null);
+				final CU cu = DecoJer.createCu(td);
+				res.getWriter().write(DecoJer.decompile(cu));
+			} catch (final Exception e) {
+				LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
+				Messages.addMessage(req, "Decompilation problems!");
+				res.sendRedirect("/");
+				return;
+			}
+		} else if (filename.endsWith(".jar")) {
+			final int pos = filename.lastIndexOf('.');
+			final String sourcename = filename.substring(0, pos)
+					+ "_source.jar";
+			res.setContentType("application/java-archive");
+			res.setContentLength(-1);
+			res.setHeader("Content-Disposition", "attachment; filename=\""
+					+ sourcename + "\"");
+			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
+					upload.getBlobKey());
+			final byte[] bytes = IOUtils.toBytes(blobstoreInputStream);
+			try {
+				final DU du = DecoJer.createDu();
+				du.read(filename, new ByteArrayInputStream(bytes), null);
+				DecoJer.decompile(res.getOutputStream(), du);
+			} catch (final Exception e) {
+				LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
+				Messages.addMessage(req, "Decompilation problems!");
+				res.sendRedirect("/");
+				return;
+			}
+		} else if (filename.endsWith(".dex")) {
+			final int pos = filename.lastIndexOf('.');
+			final String sourcename = filename.substring(0, pos)
+					+ "_android_source.jar";
+			res.setContentType("application/java-archive");
+			res.setContentLength(-1);
+			res.setHeader("Content-Disposition", "attachment; filename=\""
+					+ sourcename + "\"");
+			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
+					upload.getBlobKey());
+			final byte[] bytes = IOUtils.toBytes(blobstoreInputStream);
+			try {
+				final DU du = DecoJer.createDu();
+				du.read(filename, new ByteArrayInputStream(bytes), null);
+				DecoJer.decompile(res.getOutputStream(), du);
+			} catch (final Exception e) {
+				LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
+				Messages.addMessage(req, "Decompilation problems!");
+				res.sendRedirect("/");
+				return;
+			}
 		}
 	}
 }
