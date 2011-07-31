@@ -68,7 +68,15 @@ public class T {
 	public String getIName() {
 		final String pName = getPName();
 		final int pos = pName.lastIndexOf('$');
-		return pos == -1 ? pName : pName.substring(pos + 1);
+		if (pos == -1) {
+			return pName;
+		}
+		try {
+			final int parseInt = Integer.parseInt(pName.substring(pos + 1));
+			return "I_" + parseInt;
+		} catch (final NumberFormatException e) {
+			return pName.substring(pos + 1);
+		}
 	}
 
 	/**

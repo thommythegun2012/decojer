@@ -23,19 +23,16 @@
  */
 package org.decojer.editor.eclipse;
 
-import java.io.ByteArrayInputStream;
 import java.util.IdentityHashMap;
 import java.util.List;
 
 import org.decojer.DecoJer;
-import org.decojer.PackageClassStreamProvider;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.reader.JavassistReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -248,11 +245,9 @@ public class ClassEditor extends MultiPageEditorPart implements
 			final IClassFileEditorInput classFileEditorInput = (IClassFileEditorInput) this.classFileEditor
 					.getEditorInput();
 			final IClassFile classFile = classFileEditorInput.getClassFile();
-			final DU du = DecoJer.createDu(new PackageClassStreamProvider(
-					extractPath(classFile)));
-			final TD td = JavassistReader.read(new ByteArrayInputStream(
-					classFile.getBytes()), du);
-			du.addTd(td);
+
+			final DU du = DecoJer.createDu();
+			final TD td = du.read(extractPath(classFile));
 			this.cu = DecoJer.createCu(td);
 			sourceCode = DecoJer.decompile(this.cu);
 		} catch (final Throwable e) {
