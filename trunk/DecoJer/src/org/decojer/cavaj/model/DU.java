@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -53,7 +54,6 @@ public class DU {
 
 	/**
 	 * Constructor.
-	 * 
 	 */
 	public DU() {
 		this.ts.put(void.class.getName(), new T(this, void.class.getName()));
@@ -130,6 +130,10 @@ public class DU {
 	 */
 	public TD getTd(final String name) {
 		return this.tds.get(name);
+	}
+
+	public Collection<TD> getTds() {
+		return this.tds.values();
 	}
 
 	public TD read(final File file, final String selector) throws IOException {
