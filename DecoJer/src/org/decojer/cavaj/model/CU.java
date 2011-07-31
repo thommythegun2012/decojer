@@ -311,6 +311,16 @@ public class CU implements PD {
 	}
 
 	/**
+	 * Set source file name.
+	 * 
+	 * @param sourceFileName
+	 *            source file name
+	 */
+	public void setSourceFileName(final String sourceFileName) {
+		this.sourceFileName = sourceFileName;
+	}
+
+	/**
 	 * Decompile start type declaration only.
 	 */
 	public void startTdOnly() {

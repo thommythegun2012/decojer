@@ -24,8 +24,12 @@
 package org.decojer;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
@@ -109,7 +113,37 @@ public class DecoJer {
 		TrMergeAll.transform(cu);
 		TrQualifiedNames2Imports.transform(cu);
 
+		if (cu.isStartTdOnly()) {
+			cu.setSourceFileName(cu.getStartTd().getT().getPName() + ".java");
+		} else {
+			final List<TD> rootTds = cu.getTds();
+			final TD td = rootTds.get(0);
+			// if (td.getSourceFileName() != null) {
+			// cu.setSourceFileName(td.getSourceFileName());
+			cu.setSourceFileName(td.getT().getPName() + ".java");
+		}
+
 		return cu.createSourceCode();
+	}
+
+	public static void decompile(final OutputStream os, final DU du)
+			throws IOException {
+		final ZipOutputStream zip = new ZipOutputStream(os);
+
+		for (final TD td : du.getTds()) {
+			if (td.getCu() != null) {
+				continue;
+			}
+			final CU cu = createCu(td);
+			final String source = decompile(cu);
+			final String sourceFileName = cu.getSourceFileName();
+			final String packagePath = td.getT().getPackageName()
+					.replace('.', '/') + '/';
+			final ZipEntry zipEntry = new ZipEntry(packagePath + sourceFileName);
+			zip.putNextEntry(zipEntry);
+			zip.write(source.getBytes());
+		}
+		zip.finish();
 	}
 
 	/**
@@ -157,7 +191,7 @@ public class DecoJer {
 
 	public static void main(final String[] args) throws IOException {
 		final DU du = createDu();
-		switch (2) {
+		switch (10) {
 		case 0:
 			System.out
 					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestBooleanOperators.class"));
@@ -181,6 +215,15 @@ public class DecoJer {
 			final CU cu = createCu(du
 					.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
 			System.out.println(decompile(cu));
+			break;
+		}
+		case 10: {
+			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
+			decompile(
+					new FileOutputStream(
+							new File(
+									"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.zip")),
+					du);
 			break;
 		}
 		}
