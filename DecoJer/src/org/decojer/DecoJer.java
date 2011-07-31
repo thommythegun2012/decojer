@@ -23,19 +23,13 @@
  */
 package org.decojer;
 
-import java.io.DataInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
-import java.util.Map.Entry;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.reader.JavassistReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -69,21 +63,10 @@ public class DecoJer {
 	/**
 	 * Create decompilation unit.
 	 * 
-	 * @param packageClassStreamProvider
-	 *            package class stream provider
 	 * @return decompilation unit
-	 * @throws IOException
-	 *             read exception
 	 */
-	public static DU createDu(
-			final PackageClassStreamProvider packageClassStreamProvider)
-			throws IOException {
-		final DU du = new DU();
-		for (final Entry<String, InputStream> classFileEntry : packageClassStreamProvider
-				.getClassStreams().entrySet()) {
-			JavassistReader.read(classFileEntry.getValue(), du);
-		}
-		return du;
+	public static DU createDu() {
+		return new DU();
 	}
 
 	/**
@@ -130,12 +113,13 @@ public class DecoJer {
 	}
 
 	/**
-	 * Decompile class file.
+	 * Decompile single class file.
 	 * 
 	 * @param path
 	 *            path to class file
 	 * @return source code
 	 * @throws IOException
+	 *             read exception
 	 */
 	public static String decompile(final String path) throws IOException {
 		if (path == null) {
@@ -153,10 +137,9 @@ public class DecoJer {
 			throw new DecoJerException("Must be a path to a class file: "
 					+ path);
 		}
-		final DU du = createDu(new PackageClassStreamProvider(path));
-		final String typeName = typeFileName.substring(0,
-				typeFileName.length() - 6);
-		final CU cu = createCu(du.getTd(typeName));
+		final DU du = createDu();
+		final TD td = du.read(path);
+		final CU cu = createCu(td);
 		return decompile(cu);
 	}
 
@@ -173,23 +156,34 @@ public class DecoJer {
 	}
 
 	public static void main(final String[] args) throws IOException {
-		final PackageClassStreamProvider packageClassStreamProvider = new PackageClassStreamProvider(
-				null);
-		try {
-			packageClassStreamProvider
-					.addClassStream(
-							"MUUH",
-							new DataInputStream(
-									new FileInputStream(
-											new File(
-													"D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestBooleanOperators.class"))));
-		} catch (final FileNotFoundException e) {
-			e.printStackTrace();
+		final DU du = createDu();
+		switch (2) {
+		case 0:
+			System.out
+					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestBooleanOperators.class"));
+			break;
+		case 1: {
+			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
+			final CU cu = createCu(du
+					.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
+			System.out.println(decompile(cu));
+			break;
 		}
-		final DU du = createDu(packageClassStreamProvider);
-		final CU cu = createCu(du
-				.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
-		System.out.println(decompile(cu));
+		case 2: {
+			final TD td = du
+					.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar!/org/decojer/cavaj/test/DecTestBooleanOperators.class");
+			final CU cu = createCu(td);
+			System.out.println(decompile(cu));
+			break;
+		}
+		case 3: {
+			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
+			final CU cu = createCu(du
+					.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
+			System.out.println(decompile(cu));
+			break;
+		}
+		}
 	}
 
 	private DecoJer() {

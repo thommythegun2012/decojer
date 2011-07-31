@@ -23,9 +23,20 @@
  */
 package org.decojer.cavaj.model;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+
+import org.decojer.DecoJerException;
+import org.decojer.cavaj.reader.JavassistReader;
+import org.decojer.cavaj.reader.SmaliReader;
 
 /**
  * Decompilation unit.
@@ -119,6 +130,86 @@ public class DU {
 	 */
 	public TD getTd(final String name) {
 		return this.tds.get(name);
+	}
+
+	public TD read(final File file, final String selector) throws IOException {
+		final String fileName = file.getName();
+		if (fileName.endsWith(".class")) {
+			// try reading whole package first
+			for (final File entry : file.getParentFile().listFiles()) {
+				final String name = entry.getName();
+				if (!name.endsWith(".class") || name.equals(fileName)) {
+					continue;
+				}
+				try {
+					read(name, new FileInputStream(entry), null);
+				} catch (final Exception e) {
+					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!",
+							e);
+				}
+			}
+		}
+		return read(fileName, new FileInputStream(file), selector);
+	}
+
+	public TD read(final String fileName) throws IOException {
+		final int pos = fileName.indexOf('!');
+		if (pos == -1) {
+			return read(new File(fileName), null);
+		}
+		// ...\jdk1.6.0_26\jre\lib\rt.jar!/com/sun/xml/internal/fastinfoset/Decoder.class
+		return read(new File(fileName.substring(0, pos)),
+				fileName.substring(pos + 1));
+	}
+
+	public TD read(final String fileName, final InputStream is,
+			final String selector) throws IOException {
+		if (fileName.endsWith(".class")) {
+			return JavassistReader.read(is, this);
+		} else if (fileName.endsWith(".dex")) {
+			SmaliReader.read(is, this);
+		} else if (fileName.endsWith(".jar")) {
+			String selectorPrefix = null;
+			String selectorFileName = null;
+			if (selector != null && selector.endsWith(".class")) {
+				selectorFileName = selector.charAt(0) == '/' ? selector
+						.substring(1) : selector;
+				final int pos = selectorFileName.lastIndexOf('/');
+				if (pos != -1) {
+					selectorPrefix = selectorFileName.substring(0, pos + 1);
+				}
+			}
+			TD td = null;
+
+			final ZipInputStream zip = new ZipInputStream(is);
+			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
+					.getNextEntry()) {
+				final String name = zipEntry.getName();
+				if (!name.endsWith(".class")) {
+					continue;
+				}
+				if (selectorPrefix != null
+						&& (!name.startsWith(selectorPrefix) || name.indexOf(
+								'/', selectorPrefix.length()) != -1)) {
+					continue;
+				}
+				try {
+					if (name.equals(selectorFileName)) {
+						td = read(name, zip, null);
+					} else {
+						read(name, zip, null);
+					}
+				} catch (final Exception e) {
+					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!",
+							e);
+				}
+			}
+			return td;
+		} else {
+			throw new DecoJerException("Unknown file extension '" + fileName
+					+ "'!");
+		}
+		return null;
 	}
 
 }
