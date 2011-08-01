@@ -191,7 +191,7 @@ public class DecoJer {
 
 	public static void main(final String[] args) throws IOException {
 		final DU du = createDu();
-		switch (3) {
+		switch (2) {
 		case 0:
 			System.out
 					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestBooleanOperators.class"));
@@ -213,7 +213,7 @@ public class DecoJer {
 		case 3: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
 			final CU cu = createCu(du
-					.getTd("org.decojer.cavaj.test.DecTestInner$Inner1$Inner11"));
+					.getTd("org.decojer.cavaj.test.DecTestMethods"));
 			System.out.println(decompile(cu));
 			break;
 		}

@@ -56,6 +56,7 @@ import org.jf.dexlib.ClassDataItem.EncodedField;
 import org.jf.dexlib.ClassDataItem.EncodedMethod;
 import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.DebugInfoItem;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.EncodedArrayItem;
 import org.jf.dexlib.FieldIdItem;
@@ -120,113 +121,6 @@ public class SmaliReader {
 					.getTypeDescriptor(), null));
 		}
 		return types;
-	}
-
-	private static A decodeAnnotationValue(
-			final AnnotationEncodedSubValue encodedValue,
-			final RetentionPolicy retentionPolicy, final DU du) {
-		final T t = du
-				.getDescT(encodedValue.annotationType.getTypeDescriptor());
-		final A a = new A(t, retentionPolicy);
-		final StringIdItem[] names = encodedValue.names;
-		final EncodedValue[] values = encodedValue.values;
-		for (int i = 0; i < names.length; ++i) {
-			a.addMember(names[i].getStringValue(), decodeValue(values[i], du));
-		}
-		return a;
-	}
-
-	private static A decodeAnnotationValue(final AnnotationItem annotationItem,
-			final DU du) {
-		RetentionPolicy retentionPolicy;
-		switch (annotationItem.getVisibility()) {
-		case BUILD:
-			retentionPolicy = RetentionPolicy.SOURCE;
-			break;
-		case RUNTIME:
-			retentionPolicy = RetentionPolicy.RUNTIME;
-			break;
-		case SYSTEM:
-			retentionPolicy = RetentionPolicy.CLASS;
-			break;
-		default:
-			retentionPolicy = null;
-			LOGGER.warning("Unknown annotation visibility '"
-					+ annotationItem.getVisibility().visibility + "'!");
-		}
-		return decodeAnnotationValue(annotationItem.getEncodedAnnotation(),
-				retentionPolicy, du);
-	}
-
-	private static Object decodeValue(final EncodedValue encodedValue,
-			final DU du) {
-		if (encodedValue instanceof AnnotationEncodedSubValue) {
-			return decodeAnnotationValue((AnnotationEncodedValue) encodedValue,
-					null, du);
-		}
-		if (encodedValue instanceof ArrayEncodedValue) {
-			final EncodedValue[] values = ((ArrayEncodedValue) encodedValue).values;
-			final Object[] objects = new Object[values.length];
-			for (int i = values.length; i-- > 0;) {
-				objects[i] = decodeValue(values[i], du);
-			}
-			return objects;
-		}
-		if (encodedValue instanceof BooleanEncodedValue) {
-			return ((BooleanEncodedValue) encodedValue).value;
-		}
-		if (encodedValue instanceof ByteEncodedValue) {
-			return ((ByteEncodedValue) encodedValue).value;
-		}
-		if (encodedValue instanceof CharEncodedValue) {
-			return ((CharEncodedValue) encodedValue).value;
-		}
-		if (encodedValue instanceof DoubleEncodedValue) {
-			return ((DoubleEncodedValue) encodedValue).value;
-		}
-		if (encodedValue instanceof EnumEncodedValue) {
-			// TODO enum ... interesting parallel to MethodEncodedValue with
-			// M? maybe use F here?
-			final FieldIdItem fieldidItem = ((EnumEncodedValue) encodedValue).value;
-			final String typeDescr = fieldidItem.getFieldType()
-					.getTypeDescriptor();
-			final String value = fieldidItem.getFieldName().getStringDataItem()
-					.getStringValue();
-			final T t = du.getDescT(typeDescr);
-			return new E(t, value);
-		}
-		if (encodedValue instanceof FloatEncodedValue) {
-			return ((FloatEncodedValue) encodedValue).value;
-		}
-		if (encodedValue instanceof IntEncodedValue) {
-			return ((IntEncodedValue) encodedValue).value;
-		}
-		if (encodedValue instanceof LongEncodedValue) {
-			return ((LongEncodedValue) encodedValue).value;
-		}
-		if (encodedValue instanceof MethodEncodedValue) {
-			final MethodIdItem value = ((MethodEncodedValue) encodedValue).value;
-			final T t = du.getDescT(value.getContainingClass()
-					.getTypeDescriptor());
-			return t.getM(value.getMethodName().getStringValue(), value
-					.getPrototype().getPrototypeString());
-		}
-		if (encodedValue instanceof NullEncodedValue) {
-			return null; // placeholder in constant array
-		}
-		if (encodedValue instanceof ShortEncodedValue) {
-			return ((ShortEncodedValue) encodedValue).value;
-		}
-		if (encodedValue instanceof StringEncodedValue) {
-			return ((StringEncodedValue) encodedValue).value.getStringValue();
-		}
-		if (encodedValue instanceof TypeEncodedValue) {
-			return du.getDescT(((TypeEncodedValue) encodedValue).value
-					.getTypeDescriptor());
-		}
-		LOGGER.warning("Unknown encoded value type '"
-				+ encodedValue.getClass().getName() + "'!");
-		return null;
 	}
 
 	/**
@@ -298,7 +192,7 @@ public class SmaliReader {
 					final List<A> as = new ArrayList<A>();
 					for (final AnnotationItem annotation : classAnnotations
 							.getAnnotations()) {
-						final A a = decodeAnnotationValue(annotation, du);
+						final A a = readAnnotation(annotation, du);
 						if ("dalvik.annotation.AnnotationDefault".equals(a
 								.getT().getName())) {
 							// annotation default values, not encoded in
@@ -383,8 +277,8 @@ public class SmaliReader {
 								final List<A> as = new ArrayList<A>();
 								for (final AnnotationItem annotationItem : fieldAnnotations
 										.getAnnotations()) {
-									final A a = decodeAnnotationValue(
-											annotationItem, du);
+									final A a = readAnnotation(annotationItem,
+											du);
 									if ("dalvik.annotation.Signature".equals(a
 											.getT().getName())) {
 										// signature, is encoded as annotation
@@ -419,8 +313,8 @@ public class SmaliReader {
 								final List<A> as = new ArrayList<A>();
 								for (final AnnotationItem annotationItem : methodAnnotations
 										.getAnnotations()) {
-									final A a = decodeAnnotationValue(
-											annotationItem, du);
+									final A a = readAnnotation(annotationItem,
+											du);
 									if ("dalvik.annotation.Signature".equals(a
 											.getT().getName())) {
 										// signature, is encoded as annotation
@@ -472,7 +366,7 @@ public class SmaliReader {
 											.getAnnotations();
 									final A[] paramAs = paramAss[i] = new A[annotationItems.length];
 									for (int j = annotationItems.length; j-- > 0;) {
-										paramAs[j] = decodeAnnotationValue(
+										paramAs[j] = readAnnotation(
 												annotationItems[j], du);
 									}
 								}
@@ -502,7 +396,63 @@ public class SmaliReader {
 		}
 	}
 
-	private static void readCode(final CodeItem codeItem) {
+	private static A readAnnotation(
+			final AnnotationEncodedSubValue encodedValue,
+			final RetentionPolicy retentionPolicy, final DU du) {
+		final T t = du
+				.getDescT(encodedValue.annotationType.getTypeDescriptor());
+		final A a = new A(t, retentionPolicy);
+		final StringIdItem[] names = encodedValue.names;
+		final EncodedValue[] values = encodedValue.values;
+		for (int i = 0; i < names.length; ++i) {
+			a.addMember(names[i].getStringValue(), readValue(values[i], du));
+		}
+		return a;
+	}
+
+	private static A readAnnotation(final AnnotationItem annotationItem,
+			final DU du) {
+		RetentionPolicy retentionPolicy;
+		switch (annotationItem.getVisibility()) {
+		case BUILD:
+			retentionPolicy = RetentionPolicy.SOURCE;
+			break;
+		case RUNTIME:
+			retentionPolicy = RetentionPolicy.RUNTIME;
+			break;
+		case SYSTEM:
+			retentionPolicy = RetentionPolicy.CLASS;
+			break;
+		default:
+			retentionPolicy = null;
+			LOGGER.warning("Unknown annotation visibility '"
+					+ annotationItem.getVisibility().visibility + "'!");
+		}
+		return readAnnotation(annotationItem.getEncodedAnnotation(),
+				retentionPolicy, du);
+	}
+
+	private static void readCode(final MD md, final CodeItem codeItem) {
+		final M m = md.getM();
+
+		final DebugInfoItem debugInfo = codeItem.getDebugInfo();
+		if (debugInfo != null) {
+			final StringIdItem[] parameterNames = debugInfo.getParameterNames();
+			if (parameterNames != null && parameterNames.length > 0) {
+				final String[] paramNames = new String[parameterNames.length];
+				for (int i = parameterNames.length; i-- > 0;) {
+					if (parameterNames[i] == null) {
+						// could happen, e.g. synthetic methods, inner <init>
+						// with outer type param
+						continue;
+					}
+					paramNames[i] = parameterNames[i].getStringValue();
+				}
+				m.setParamNames(paramNames);
+			}
+		}
+		// TODO no debug info for local variables available?
+
 		final Instruction[] instructions = codeItem.getInstructions();
 		for (int j = 0; j < instructions.length; ++j) {
 			final Instruction instruction = instructions[j];
@@ -570,7 +520,7 @@ public class SmaliReader {
 
 			Object value = null;
 			if (staticFieldValues.length > i) {
-				value = decodeValue(staticFieldValues[i], du);
+				value = readValue(staticFieldValues[i], du);
 			}
 			final FD fd = new FD(td, encodedField.accessFlags, field
 					.getFieldName().getStringValue(), field.getFieldType()
@@ -621,9 +571,9 @@ public class SmaliReader {
 			md.setParamAs(methodParamAs.get(method));
 
 			final CodeItem codeItem = encodedMethod.codeItem;
-			if (codeItem != null && false) {
+			if (codeItem != null) {
 				System.out.println("M " + method.getMethodString());
-				readCode(codeItem);
+				readCode(md, codeItem);
 			}
 
 			td.getBds().add(md);
@@ -651,13 +601,83 @@ public class SmaliReader {
 			md.setParamAs(methodParamAs.get(method));
 
 			final CodeItem codeItem = encodedMethod.codeItem;
-			if (codeItem != null && false) {
+			if (codeItem != null) {
 				System.out.println("M " + method.getMethodString());
-				readCode(codeItem);
+				readCode(md, codeItem);
 			}
 
 			td.getBds().add(md);
 		}
+	}
+
+	private static Object readValue(final EncodedValue encodedValue, final DU du) {
+		if (encodedValue instanceof AnnotationEncodedSubValue) {
+			return readAnnotation((AnnotationEncodedValue) encodedValue, null,
+					du);
+		}
+		if (encodedValue instanceof ArrayEncodedValue) {
+			final EncodedValue[] values = ((ArrayEncodedValue) encodedValue).values;
+			final Object[] objects = new Object[values.length];
+			for (int i = values.length; i-- > 0;) {
+				objects[i] = readValue(values[i], du);
+			}
+			return objects;
+		}
+		if (encodedValue instanceof BooleanEncodedValue) {
+			return ((BooleanEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof ByteEncodedValue) {
+			return ((ByteEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof CharEncodedValue) {
+			return ((CharEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof DoubleEncodedValue) {
+			return ((DoubleEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof EnumEncodedValue) {
+			// TODO enum ... interesting parallel to MethodEncodedValue with
+			// M? maybe use F here?
+			final FieldIdItem fieldidItem = ((EnumEncodedValue) encodedValue).value;
+			final String typeDescr = fieldidItem.getFieldType()
+					.getTypeDescriptor();
+			final String value = fieldidItem.getFieldName().getStringDataItem()
+					.getStringValue();
+			final T t = du.getDescT(typeDescr);
+			return new E(t, value);
+		}
+		if (encodedValue instanceof FloatEncodedValue) {
+			return ((FloatEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof IntEncodedValue) {
+			return ((IntEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof LongEncodedValue) {
+			return ((LongEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof MethodEncodedValue) {
+			final MethodIdItem value = ((MethodEncodedValue) encodedValue).value;
+			final T t = du.getDescT(value.getContainingClass()
+					.getTypeDescriptor());
+			return t.getM(value.getMethodName().getStringValue(), value
+					.getPrototype().getPrototypeString());
+		}
+		if (encodedValue instanceof NullEncodedValue) {
+			return null; // placeholder in constant array
+		}
+		if (encodedValue instanceof ShortEncodedValue) {
+			return ((ShortEncodedValue) encodedValue).value;
+		}
+		if (encodedValue instanceof StringEncodedValue) {
+			return ((StringEncodedValue) encodedValue).value.getStringValue();
+		}
+		if (encodedValue instanceof TypeEncodedValue) {
+			return du.getDescT(((TypeEncodedValue) encodedValue).value
+					.getTypeDescriptor());
+		}
+		LOGGER.warning("Unknown encoded value type '"
+				+ encodedValue.getClass().getName() + "'!");
+		return null;
 	}
 
 }

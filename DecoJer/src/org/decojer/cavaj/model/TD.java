@@ -49,15 +49,19 @@ public class TD implements BD, PD {
 
 	private boolean deprecated;
 
+	// is anonymous, enclosing method
 	private M enclosingM;
 
+	// is anonymous, enclosing type
 	private T enclosingT;
 
+	// member types (really contained inner classes)
 	private T[] memberTs;
 
 	// parent declaration
 	private PD pd;
 
+	// from source file attribute
 	private String sourceFileName;
 
 	private boolean synthetic;

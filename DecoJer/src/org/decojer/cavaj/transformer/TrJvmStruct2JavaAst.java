@@ -36,6 +36,7 @@ import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -235,7 +236,9 @@ public class TrJvmStruct2JavaAst {
 
 	@SuppressWarnings("unchecked")
 	private static void decompileMethod(final MD md, final CU cu) {
+		final M m = md.getM();
 		final TD td = md.getTd();
+
 		final AbstractTypeDeclaration typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
 
@@ -253,7 +256,7 @@ public class TrJvmStruct2JavaAst {
 		// AnnotationTypeMemberDeclaration (all methods in @interface) or
 		// Initializer (static {})
 		final BodyDeclaration methodDeclaration;
-		final String name = md.getM().getName();
+		final String name = m.getName();
 		if ("<clinit>".equals(name)) {
 			// this is the static initializer "static {}" => Initializer
 			methodDeclaration = ast.newInitializer();
@@ -369,17 +372,17 @@ public class TrJvmStruct2JavaAst {
 		if (accessFlags != 0) {
 			LOGGER.log(Level.WARNING, "Unknown method info modifier flags '0x"
 					+ Integer.toHexString(accessFlags) + "' for method info '"
-					+ md.getM().getName() + "'!");
+					+ m.getName() + "'!");
 		}
 		// decompile method signature (not necessary for Initializer)
 		if (methodDeclaration instanceof MethodDeclaration) {
-			new SignatureDecompiler(td, md.getM().getDescriptor(), md.getM()
-					.getSignature()).decompileMethodTypes(
-					(MethodDeclaration) methodDeclaration, md.getM()
-							.getThrowsTs(), varargs);
+			new SignatureDecompiler(td, m.getDescriptor(), m.getSignature())
+					.decompileMethodTypes(
+							(MethodDeclaration) methodDeclaration,
+							m.getThrowsTs(), varargs);
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(
-					td, md.getM().getDescriptor(), md.getM().getSignature());
+					td, m.getDescriptor(), m.getSignature());
 			// should be empty, skip "()"
 			signatureDecompiler.decompileMethodParameterTypes();
 			final Type returnType = signatureDecompiler.decompileType();
@@ -412,18 +415,17 @@ public class TrJvmStruct2JavaAst {
 		if (methodDeclaration instanceof MethodDeclaration) {
 			// decompile method parameter annotations and names
 			final A[][] paramAs = md.getParamAs();
-			int annotation = 0;
-			int test = (md.getAccessFlags() & AccessFlag.STATIC) != 0 ? 0 : 1;
+			int param = 0;
 			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
 					.parameters()) {
 				// decompile parameter annotations
-				if (paramAs != null && paramAs.length > annotation) {
+				if (paramAs != null && param < paramAs.length) {
 					AnnotationsDecompiler.decompileAnnotations(td,
 							singleVariableDeclaration.modifiers(),
-							paramAs[annotation++]);
+							paramAs[param]);
 				}
-				singleVariableDeclaration.setName(ast.newSimpleName(cfg
-						.getVariableName(test++)));
+				singleVariableDeclaration.setName(ast.newSimpleName(m
+						.getParamName(param++)));
 			}
 		}
 		if (codeAttribute != null) {
