@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -155,21 +156,24 @@ public class ReadClassVisitor implements ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name,
 			final String desc, final String signature, final String[] exceptions) {
-		String mdSignature = null;
-		if (signature != null) {
-			mdSignature = signature.replace('/', '.');
-		}
 
-		String[] mdExceptions = null;
+		final T t = this.td.getT();
+
+		final M m = t.getM(name, desc.replace('/', '.'));
 		if (exceptions != null && exceptions.length > 0) {
-			mdExceptions = new String[exceptions.length];
+			final T[] throwsTs = new T[exceptions.length];
 			for (int i = exceptions.length; i-- > 0;) {
-				mdExceptions[i] = exceptions[i].replace('/', '.');
+				throwsTs[i] = this.du.getT(exceptions[i].replace('/', '.'));
 			}
+			m.setThrowsTs(throwsTs);
+		}
+		if (signature != null) {
+			t.setSignature(signature.replace('/', '.'));
 		}
 
-		final MD md = new MD(this.td, access, name, desc.replace('/', '.'),
-				mdSignature, mdExceptions);
+		final MD md = new MD(m, this.td);
+		md.setAccessFlags(access);
+
 		this.td.getBds().add(md);
 
 		this.readMethodVisitor.setMd(md);

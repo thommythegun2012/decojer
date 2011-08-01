@@ -222,14 +222,14 @@ public class SignatureDecompiler {
 	 * 
 	 * @param methodDeclaration
 	 *            method declaration
-	 * @param exceptions
-	 *            simple signatures for exceptions
+	 * @param throwsTs
+	 *            throws types
 	 * @param varargs
 	 *            last method parameter is vararg
 	 */
 	@SuppressWarnings("unchecked")
 	public void decompileMethodTypes(final MethodDeclaration methodDeclaration,
-			final String[] exceptions, final boolean varargs) {
+			final T[] throwsTs, final boolean varargs) {
 		// method type parameters (full signature only):
 		// <T:Ljava/lang/Integer;U:Ljava/lang/Long;>(TT;TU;)V
 		// <U:TT;>(TT;TU;)V
@@ -267,8 +267,8 @@ public class SignatureDecompiler {
 			methodDeclaration.setReturnType2(returnType);
 		}
 		// decompile exceptions
-		if (exceptions != null) {
-			for (final String exception : exceptions) {
+		if (throwsTs != null) {
+			for (final T throwT : throwsTs) {
 				if (this.posFull > 0 && this.signatureFull != null
 						&& this.signatureFull.length() > this.posFull
 						&& this.signatureFull.charAt(this.posFull++) == '^') {
@@ -280,7 +280,7 @@ public class SignatureDecompiler {
 					}
 				}
 				methodDeclaration.thrownExceptions().add(
-						getTD().newTypeName(exception));
+						getTD().newTypeName(throwT.getName()));
 			}
 		}
 	}

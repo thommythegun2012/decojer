@@ -38,6 +38,7 @@ import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.E;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -204,8 +205,11 @@ public class SmaliReader {
 			return ((LongEncodedValue) encodedValue).value;
 		}
 		if (encodedValue instanceof MethodEncodedValue) {
-			// TODO for @dalvik.annotation.EnclosingMethod only? M?
-			return ((MethodEncodedValue) encodedValue).value.getMethodString();
+			final MethodIdItem value = ((MethodEncodedValue) encodedValue).value;
+			final T t = du.getDescT(value.getContainingClass()
+					.getTypeDescriptor());
+			return t.getM(value.getMethodName().getStringValue(), value
+					.getPrototype().getPrototypeString());
 		}
 		if (encodedValue instanceof NullEncodedValue) {
 			return null; // placeholder in constant array
@@ -280,7 +284,7 @@ public class SmaliReader {
 			A annotationDefaultValues = null;
 			final Map<FieldIdItem, String> fieldSignatures = new HashMap<FieldIdItem, String>();
 			final Map<FieldIdItem, A[]> fieldAs = new HashMap<FieldIdItem, A[]>();
-			final Map<MethodIdItem, String[]> methodExceptions = new HashMap<MethodIdItem, String[]>();
+			final Map<MethodIdItem, T[]> methodThrowsTs = new HashMap<MethodIdItem, T[]>();
 			final Map<MethodIdItem, String> methodSignatures = new HashMap<MethodIdItem, String>();
 			final Map<MethodIdItem, A[]> methodAs = new HashMap<MethodIdItem, A[]>();
 			final Map<MethodIdItem, A[][]> methodParamAs = new HashMap<MethodIdItem, A[][]>();
@@ -313,36 +317,61 @@ public class SmaliReader {
 							for (int i = 0; i < signature.length; ++i) {
 								sb.append(signature[i]);
 							}
-							td.getT().setSignature(sb.toString());
+							t.setSignature(sb.toString());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT()
 								.getName())) {
-							// System.out.println("EnclosingClass '"
-							// + td.getT().getName() + "': " + a);
+							// is anonymous class, is in field initializer
+							td.setEnclosingT((T) a.getMemberValue());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingMethod".equals(a.getT()
 								.getName())) {
-							// System.out.println("EnclosingMethod '"
-							// + td.getT().getName() + "': " + a);
+							// is anonymous class, is in method
+							td.setEnclosingM((M) a.getMemberValue());
 							continue;
 						}
+						// Dalvik has not all inner class info from JVM:
+						// outer class info not known in Dalvik and derivable,
+						// no access flags for member classes,
+						// no info for arbitrary accessed inner classes
+
+						// InnerClass for
+						// 'org.decojer.cavaj.test.DecTestInner$Inner1$Inner11':
+						// dalvik.annotation.InnerClass accessFlags=20
+						// name=Inner11
+						// InnerClass for
+						// 'org.decojer.cavaj.test.DecTestInner$Inner1':
+						// dalvik.annotation.InnerClass accessFlags=1
+						// name=Inner1
+						// MemberClasses for
+						// 'org.decojer.cavaj.test.DecTestInner$Inner1':
+						// dalvik.annotation.MemberClasses
+						// value=[Ljava.lang.Object;@170bea5
+						// org.decojer.cavaj.test.DecTestInner$Inner1$Inner11
 						if ("dalvik.annotation.InnerClass".equals(a.getT()
 								.getName())) {
-							// System.out.println("InnerClass '"
-							// + td.getT().getName() + "': " + a);
+							// is inner type, this attributes is senseless?
+							// inner name from naming rules and flags are known
 							continue;
 						}
 						if ("dalvik.annotation.MemberClasses".equals(a.getT()
 								.getName())) {
-							// System.out.println("MemberClasses '"
-							// + td.getT().getName() + "': " + a);
+							// has member types (really contained inner classes)
+							final Object[] memberValue = (Object[]) a
+									.getMemberValue();
+							final T[] memberTs = new T[memberValue.length];
+							System.arraycopy(memberValue, 0, memberTs, 0,
+									memberValue.length);
+							td.setMemberTs(memberTs);
 							continue;
 						}
 						as.add(a);
 					}
-					td.setAs(as.toArray(new A[as.size()]));
+					if (as.size() > 0) {
+						td.setAs(as.toArray(new A[as.size()]));
+					}
 				}
 				annotations
 						.iterateFieldAnnotations(new FieldAnnotationIteratorDelegate() {
@@ -411,13 +440,11 @@ public class SmaliReader {
 										// type array value
 										final Object[] throwables = (Object[]) a
 												.getMemberValue();
-										final String[] exceptions = new String[throwables.length];
+										final T[] throwsTs = new T[throwables.length];
 										for (int i = throwables.length; i-- > 0;) {
-											exceptions[i] = ((T) throwables[i])
-													.getName();
+											throwsTs[i] = (T) throwables[i];
 										}
-										methodExceptions
-												.put(method, exceptions);
+										methodThrowsTs.put(method, throwsTs);
 										continue;
 									} else {
 										as.add(a);
@@ -467,7 +494,7 @@ public class SmaliReader {
 						classDefItem.getStaticFieldInitializers(), fieldAs);
 				readMethods(td, classData.getDirectMethods(),
 						classData.getVirtualMethods(), methodSignatures,
-						methodExceptions, annotationDefaultValues, methodAs,
+						methodThrowsTs, annotationDefaultValues, methodAs,
 						methodParamAs);
 			}
 
@@ -526,6 +553,9 @@ public class SmaliReader {
 			final Map<FieldIdItem, String> fieldSignatures,
 			final EncodedArrayItem staticFieldInitializers,
 			final Map<FieldIdItem, A[]> fieldAs) {
+		final T t = td.getT();
+		final DU du = t.getDu();
+
 		// static field initializer values are packed away into a different
 		// section, both arrays (encoded fields and static field values) are
 		// sorted in same order, there could be less static field values if
@@ -540,7 +570,7 @@ public class SmaliReader {
 
 			Object value = null;
 			if (staticFieldValues.length > i) {
-				value = decodeValue(staticFieldValues[i], td.getT().getDu());
+				value = decodeValue(staticFieldValues[i], du);
 			}
 			final FD fd = new FD(td, encodedField.accessFlags, field
 					.getFieldName().getStringValue(), field.getFieldType()
@@ -565,22 +595,30 @@ public class SmaliReader {
 			final EncodedMethod[] directMethods,
 			final EncodedMethod[] virtualMethods,
 			final Map<MethodIdItem, String> methodSignatures,
-			final Map<MethodIdItem, String[]> methodException,
+			final Map<MethodIdItem, T[]> methodThrowsTs,
 			final A annotationDefaultValues,
 			final Map<MethodIdItem, A[]> methodAs,
 			final Map<MethodIdItem, A[][]> methodParamAs) {
+		final T t = td.getT();
+
 		for (int i = 0; i < directMethods.length; ++i) {
 			final EncodedMethod encodedMethod = directMethods[i];
 			final MethodIdItem method = encodedMethod.method;
 
 			// getResourceAsStream :
 			// (Ljava/lang/String;)Ljava/io/InputStream;
-			final MD md = new MD(td, encodedMethod.accessFlags, method
-					.getMethodName().getStringValue(), method.getPrototype()
-					.getPrototypeString(), methodSignatures.get(method),
-					methodException.get(method));
+			final M m = t.getM(method.getMethodName().getStringValue(), method
+					.getPrototype().getPrototypeString());
+			m.setThrowsTs(methodThrowsTs.get(method));
+			m.setSignature(methodSignatures.get(method));
+
+			final MD md = new MD(m, td);
+			md.setAccessFlags(encodedMethod.accessFlags);
+
 			// no annotation default values
+
 			md.setAs(methodAs.get(method));
+			md.setParamAs(methodParamAs.get(method));
 
 			final CodeItem codeItem = encodedMethod.codeItem;
 			if (codeItem != null && false) {
@@ -596,14 +634,19 @@ public class SmaliReader {
 
 			// getResourceAsStream :
 			// (Ljava/lang/String;)Ljava/io/InputStream;
-			final MD md = new MD(td, encodedMethod.accessFlags, method
-					.getMethodName().getStringValue(), method.getPrototype()
-					.getPrototypeString(), methodSignatures.get(method),
-					methodException.get(method));
+			final M m = t.getM(method.getMethodName().getStringValue(), method
+					.getPrototype().getPrototypeString());
+			m.setThrowsTs(methodThrowsTs.get(method));
+			m.setSignature(methodSignatures.get(method));
+
+			final MD md = new MD(m, td);
+			md.setAccessFlags(encodedMethod.accessFlags);
+
 			if (annotationDefaultValues != null) {
 				md.setAnnotationDefaultValue(annotationDefaultValues
-						.getMemberValue(md.getName()));
+						.getMemberValue(md.getM().getName()));
 			}
+
 			md.setAs(methodAs.get(method));
 			md.setParamAs(methodParamAs.get(method));
 

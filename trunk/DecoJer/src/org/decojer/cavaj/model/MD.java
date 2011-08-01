@@ -34,7 +34,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  */
 public class MD implements BD, PD {
 
-	private final int accessFlags;
+	private int accessFlags;
 
 	private Object annotationDefaultValue;
 
@@ -47,17 +47,11 @@ public class MD implements BD, PD {
 
 	private boolean deprecated;
 
-	private final String descriptor;
-
-	private final String[] exceptions;
+	private final M m;
 
 	private BodyDeclaration methodDeclaration;
 
-	private final String name;
-
 	private A[][] paramAs;
-
-	private final String signature;
 
 	private boolean synthetic;
 
@@ -66,32 +60,15 @@ public class MD implements BD, PD {
 	/**
 	 * Constructor.
 	 * 
-	 * @param td
-	 *            type declaration
-	 * @param accessFlags
-	 *            access flags
-	 * @param name
-	 *            name
-	 * @param descriptor
-	 *            descriptor
-	 * @param signature
-	 *            signature
-	 * @param exceptions
-	 *            exceptions
+	 * @param m
+	 *            method
 	 */
-	public MD(final TD td, final int accessFlags, final String name,
-			final String descriptor, final String signature,
-			final String[] exceptions) {
+	public MD(final M m, final TD td) {
+		assert m != null;
 		assert td != null;
-		assert name != null;
-		assert descriptor != null;
 
+		this.m = m;
 		this.td = td;
-		this.accessFlags = accessFlags;
-		this.name = name;
-		this.descriptor = descriptor;
-		this.signature = signature;
-		this.exceptions = exceptions;
 	}
 
 	/**
@@ -135,21 +112,12 @@ public class MD implements BD, PD {
 	}
 
 	/**
-	 * Get method descriptor.
+	 * Get method.
 	 * 
-	 * @return method descriptor
+	 * @return method
 	 */
-	public String getDescriptor() {
-		return this.descriptor;
-	}
-
-	/**
-	 * Get exceptions.
-	 * 
-	 * @return exceptions
-	 */
-	public String[] getExceptions() {
-		return this.exceptions;
+	public M getM() {
+		return this.m;
 	}
 
 	/**
@@ -162,15 +130,6 @@ public class MD implements BD, PD {
 	}
 
 	/**
-	 * Get method name.
-	 * 
-	 * @return method name
-	 */
-	public String getName() {
-		return this.name;
-	}
-
-	/**
 	 * Get parameter annotations.
 	 * 
 	 * @return parameter annotations
@@ -180,18 +139,9 @@ public class MD implements BD, PD {
 	}
 
 	/**
-	 * Get method signature.
-	 * 
-	 * @return method signature
-	 */
-	public String getSignature() {
-		return this.signature;
-	}
-
-	/**
 	 * Get type declaration.
 	 * 
-	 * @return type declaration, not null
+	 * @return type declaration
 	 */
 	public TD getTd() {
 		return this.td;
@@ -213,6 +163,16 @@ public class MD implements BD, PD {
 	 */
 	public boolean isSynthetic() {
 		return this.synthetic;
+	}
+
+	/**
+	 * Set access flags.
+	 * 
+	 * @param accessFlags
+	 *            access flags
+	 */
+	public void setAccessFlags(final int accessFlags) {
+		this.accessFlags = accessFlags;
 	}
 
 	/**
@@ -292,7 +252,7 @@ public class MD implements BD, PD {
 
 	@Override
 	public String toString() {
-		return getTd().toString() + '.' + getSignature();
+		return getM().toString();
 	}
 
 }

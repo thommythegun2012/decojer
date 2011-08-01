@@ -49,6 +49,12 @@ public class TD implements BD, PD {
 
 	private boolean deprecated;
 
+	private M enclosingM;
+
+	private T enclosingT;
+
+	private T[] memberTs;
+
 	// parent declaration
 	private PD pd;
 
@@ -68,7 +74,7 @@ public class TD implements BD, PD {
 	 * Constructor.
 	 * 
 	 * @param t
-	 *            t
+	 *            type
 	 */
 	public TD(final T t) {
 		assert t != null;
@@ -141,6 +147,24 @@ public class TD implements BD, PD {
 	}
 
 	/**
+	 * Get enclosing method.
+	 * 
+	 * @return enclosing method
+	 */
+	public M getEnclosingM() {
+		return this.enclosingM;
+	}
+
+	/**
+	 * Get enclosing type.
+	 * 
+	 * @return enclosing type
+	 */
+	public T getEnclosingT() {
+		return this.enclosingT;
+	}
+
+	/**
 	 * Get method declaration with name and signature.
 	 * 
 	 * @param name
@@ -158,12 +182,21 @@ public class TD implements BD, PD {
 				continue;
 			}
 			final MD md = (MD) bd;
-			if (name.equals(md.getName())
-					&& descriptor.equals(md.getDescriptor())) {
+			if (name.equals(md.getM().getName())
+					&& descriptor.equals(md.getM().getDescriptor())) {
 				return md;
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Get member types (really contained inner classes).
+	 * 
+	 * @return member types
+	 */
+	public T[] getMemberTs() {
+		return this.memberTs;
 	}
 
 	/**
@@ -270,6 +303,36 @@ public class TD implements BD, PD {
 	 */
 	public void setDeprecated(final boolean deprecated) {
 		this.deprecated = deprecated;
+	}
+
+	/**
+	 * Set enclosing method.
+	 * 
+	 * @param enclosingM
+	 *            enclosing method
+	 */
+	public void setEnclosingM(final M enclosingM) {
+		this.enclosingM = enclosingM;
+	}
+
+	/**
+	 * Set enclosing type.
+	 * 
+	 * @param enclosingT
+	 *            enclosing type
+	 */
+	public void setEnclosingT(final T enclosingT) {
+		this.enclosingT = enclosingT;
+	}
+
+	/**
+	 * Set member types (really contained inner classes).
+	 * 
+	 * @param memberTs
+	 *            member types
+	 */
+	public void setMemberTs(final T[] memberTs) {
+		this.memberTs = memberTs;
 	}
 
 	/**

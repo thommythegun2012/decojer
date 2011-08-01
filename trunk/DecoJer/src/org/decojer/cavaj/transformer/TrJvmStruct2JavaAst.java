@@ -253,7 +253,7 @@ public class TrJvmStruct2JavaAst {
 		// AnnotationTypeMemberDeclaration (all methods in @interface) or
 		// Initializer (static {})
 		final BodyDeclaration methodDeclaration;
-		final String name = md.getName();
+		final String name = md.getM().getName();
 		if ("<clinit>".equals(name)) {
 			// this is the static initializer "static {}" => Initializer
 			methodDeclaration = ast.newInitializer();
@@ -369,17 +369,17 @@ public class TrJvmStruct2JavaAst {
 		if (accessFlags != 0) {
 			LOGGER.log(Level.WARNING, "Unknown method info modifier flags '0x"
 					+ Integer.toHexString(accessFlags) + "' for method info '"
-					+ md.getName() + "'!");
+					+ md.getM().getName() + "'!");
 		}
 		// decompile method signature (not necessary for Initializer)
 		if (methodDeclaration instanceof MethodDeclaration) {
-			new SignatureDecompiler(td, md.getDescriptor(), md.getSignature())
-					.decompileMethodTypes(
-							(MethodDeclaration) methodDeclaration,
-							md.getExceptions(), varargs);
+			new SignatureDecompiler(td, md.getM().getDescriptor(), md.getM()
+					.getSignature()).decompileMethodTypes(
+					(MethodDeclaration) methodDeclaration, md.getM()
+							.getThrowsTs(), varargs);
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(
-					td, md.getDescriptor(), md.getSignature());
+					td, md.getM().getDescriptor(), md.getM().getSignature());
 			// should be empty, skip "()"
 			signatureDecompiler.decompileMethodParameterTypes();
 			final Type returnType = signatureDecompiler.decompileType();
