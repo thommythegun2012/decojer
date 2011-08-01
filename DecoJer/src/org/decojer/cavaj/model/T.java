@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.LinkedHashMap;
+
 /**
  * Type.
  * 
@@ -33,6 +35,8 @@ public class T {
 	private final DU du;
 
 	private T[] interfaceTs;
+
+	private final LinkedHashMap<String, M> ms = new LinkedHashMap<String, M>();
 
 	private final String name;
 
@@ -86,6 +90,24 @@ public class T {
 	 */
 	public T[] getInterfaceTs() {
 		return this.interfaceTs;
+	}
+
+	/**
+	 * Get method.
+	 * 
+	 * @param name
+	 *            name
+	 * @param descriptor
+	 *            descriptor
+	 * @return method
+	 */
+	public M getM(final String name, final String descriptor) {
+		M m = this.ms.get(name + descriptor);
+		if (m == null) {
+			m = new M(this, name, descriptor);
+			this.ms.put(name + descriptor, m);
+		}
+		return m;
 	}
 
 	/**

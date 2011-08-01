@@ -112,7 +112,9 @@ public class DU {
 	 * @return type declaration
 	 */
 	public T getT(final String name) {
-		assert name != null;
+		assert name != null && name.length() > 0;
+		assert name.charAt(0) != 'L' : name;
+		assert name.indexOf('/') == -1 : name;
 
 		T t = this.ts.get(name);
 		if (t == null) {

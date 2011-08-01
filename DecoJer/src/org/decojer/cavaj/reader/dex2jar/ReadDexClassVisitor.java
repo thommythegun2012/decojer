@@ -24,7 +24,9 @@
 package org.decojer.cavaj.reader.dex2jar;
 
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.objectweb.asm.AnnotationVisitor;
 
@@ -93,11 +95,15 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	public DexMethodVisitor visitMethod(final Method method) {
 		// put : (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 
+		final T t = this.td.getT();
+
+		final M m = t.getM(method.getName(), method.getType().getDesc()
+				.replace('/', '.'));
 		// Exceptions are in method annotations!
 
-		final MD md = new MD(this.td, method.getAccessFlags(),
-				method.getName(), method.getType().getDesc().replace('/', '.'),
-				null, null);
+		final MD md = new MD(m, this.td);
+		md.setAccessFlags(method.getAccessFlags());
+
 		this.td.getBds().add(md);
 
 		this.readDexMethodVisitor.setMd(md);

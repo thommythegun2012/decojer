@@ -68,14 +68,14 @@ public class CFG {
 
 	private final MD md;
 
-	private StackMap stackMap;
-
-	private StackMapTable stackMapTable;
-
 	/**
 	 * Array with postordered basic blocks.
 	 */
 	private List<BB> postorderedBbs;
+
+	private StackMap stackMap;
+
+	private StackMapTable stackMapTable;
 
 	private BB startBb;
 
@@ -113,8 +113,8 @@ public class CFG {
 				} else {
 					// TODO parent
 					LOGGER.log(Level.WARNING, "Unknown code attribute tag '"
-							+ attributeTag + "' in '" + getMd().getSignature()
-							+ "'!");
+							+ attributeTag + "' in '"
+							+ getMd().getM().getSignature() + "'!");
 				}
 			}
 		}
@@ -309,7 +309,8 @@ public class CFG {
 				// TODO parent
 				LOGGER.log(Level.WARNING,
 						"Couldn't read variable name for index '" + i
-								+ "' in '" + getMd().getDescriptor() + "'!", e);
+								+ "' in '" + getMd().getM().getDescriptor()
+								+ "'!", e);
 			}
 		}
 		// TODO

@@ -40,7 +40,7 @@ public class ReadDexAnnotationVisitor implements AnnotationVisitor {
 	@Override
 	public void visit(final String name, final Object value) {
 		LOGGER.warning("### annotation visit ### " + name + " : " + value
-				+ " :C: " + value.getClass());
+				+ " :C: " + (value == null ? "<null>" : value.getClass()));
 	}
 
 	@Override
