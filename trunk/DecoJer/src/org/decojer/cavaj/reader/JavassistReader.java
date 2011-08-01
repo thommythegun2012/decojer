@@ -643,10 +643,9 @@ public class JavassistReader {
 
 	private static Object readValue(final MemberValue memberValue, final DU du) {
 		if (memberValue instanceof AnnotationMemberValue) {
+			// retention unknown for annotation constant
 			return readAnnotation(
-					((AnnotationMemberValue) memberValue).getValue(), null, du); // retention
-																					// unknown
-																					// here
+					((AnnotationMemberValue) memberValue).getValue(), null, du);
 		}
 		if (memberValue instanceof ArrayMemberValue) {
 			final MemberValue[] values = ((ArrayMemberValue) memberValue)

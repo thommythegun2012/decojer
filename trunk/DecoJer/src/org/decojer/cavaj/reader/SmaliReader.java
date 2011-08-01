@@ -612,6 +612,7 @@ public class SmaliReader {
 
 	private static Object readValue(final EncodedValue encodedValue, final DU du) {
 		if (encodedValue instanceof AnnotationEncodedSubValue) {
+			// retention unknown for annotation constant
 			return readAnnotation((AnnotationEncodedValue) encodedValue, null,
 					du);
 		}
