@@ -48,10 +48,14 @@ import javassist.bytecode.EnclosingMethodAttribute;
 import javassist.bytecode.ExceptionsAttribute;
 import javassist.bytecode.FieldInfo;
 import javassist.bytecode.InnerClassesAttribute;
+import javassist.bytecode.LineNumberAttribute;
+import javassist.bytecode.LocalVariableAttribute;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.ParameterAnnotationsAttribute;
 import javassist.bytecode.SignatureAttribute;
 import javassist.bytecode.SourceFileAttribute;
+import javassist.bytecode.StackMap;
+import javassist.bytecode.StackMapTable;
 import javassist.bytecode.SyntheticAttribute;
 import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.AnnotationMemberValue;
@@ -148,20 +152,6 @@ public class JavassistReader {
 		return types;
 	}
 
-	@SuppressWarnings("unchecked")
-	private static A createA(final Annotation annotation,
-			final RetentionPolicy retentionPolicy, final DU du) {
-		final T t = du.getT(annotation.getTypeName());
-		final A a = new A(t, retentionPolicy);
-		if (annotation.getMemberNames() != null) {
-			for (final String name : (Set<String>) annotation.getMemberNames()) {
-				a.addMember(name,
-						readMemberValue(annotation.getMemberValue(name), du));
-			}
-		}
-		return a;
-	}
-
 	/**
 	 * Test it...
 	 * 
@@ -253,7 +243,8 @@ public class JavassistReader {
 					.getAnnotations();
 			as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], RetentionPolicy.CLASS, du);
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
+						du);
 			}
 		}
 		if (annotationsAttributeRuntimeVisible != null) {
@@ -267,7 +258,8 @@ public class JavassistReader {
 				as = newAs;
 			}
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], RetentionPolicy.RUNTIME, du);
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
+						du);
 			}
 		}
 		td.setAs(as);
@@ -319,12 +311,12 @@ public class JavassistReader {
 
 		for (final FieldInfo fieldInfo : (List<FieldInfo>) classFile
 				.getFields()) {
-			td.getBds().add(readFieldInfo(td, fieldInfo));
+			td.getBds().add(readField(td, fieldInfo));
 		}
 
 		for (final MethodInfo methodInfo : (List<MethodInfo>) classFile
 				.getMethods()) {
-			td.getBds().add(readMethodInfo(td, methodInfo));
+			td.getBds().add(readMethod(td, methodInfo));
 		}
 
 		du.addTd(td);
@@ -333,7 +325,62 @@ public class JavassistReader {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static FD readFieldInfo(final TD td, final FieldInfo fieldInfo) {
+	private static A readAnnotation(final Annotation annotation,
+			final RetentionPolicy retentionPolicy, final DU du) {
+		final T t = du.getT(annotation.getTypeName());
+		final A a = new A(t, retentionPolicy);
+		if (annotation.getMemberNames() != null) {
+			for (final String name : (Set<String>) annotation.getMemberNames()) {
+				a.addMember(name,
+						readValue(annotation.getMemberValue(name), du));
+			}
+		}
+		return a;
+	}
+
+	@SuppressWarnings("unchecked")
+	private static void readCode(final MD md, final CodeAttribute codeAttribute) {
+		LineNumberAttribute lineNumberAttribute = null;
+		LocalVariableAttribute localVariableAttribute = null;
+		LocalVariableAttribute localVariableTypeAttribute = null;
+		StackMap stackMap;
+		StackMapTable stackMapTable;
+
+		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) codeAttribute
+				.getAttributes()) {
+			final String attributeTag = attributeInfo.getName();
+			if (LineNumberAttribute.tag.equals(attributeTag)) {
+				lineNumberAttribute = (LineNumberAttribute) attributeInfo;
+			} else if (LocalVariableAttribute.tag.equals(attributeTag)) {
+				localVariableAttribute = (LocalVariableAttribute) attributeInfo;
+			} else if (LocalVariableAttribute.typeTag.equals(attributeTag)) {
+				localVariableTypeAttribute = (LocalVariableAttribute) attributeInfo;
+			} else if (StackMap.tag.equals(attributeTag)) {
+				stackMap = (StackMap) attributeInfo;
+			} else if (StackMapTable.tag.equals(attributeTag)) {
+				stackMapTable = (StackMapTable) attributeInfo;
+			} else {
+				LOGGER.warning("Unknown code attribute tag '" + attributeTag
+						+ "' in '" + md + "'!");
+			}
+		}
+
+		final M m = md.getM();
+		/*
+		 * if (localVariableAttribute != null) { final int params =
+		 * m.getParamTs().length; final String[] paramNames = new
+		 * String[params]; // TODO static starts with 0, else 1 ... ignore this!
+		 * for (int i = params; i-- > 0;) { if (i <
+		 * localVariableAttribute.tableLength()) { paramNames[i] =
+		 * localVariableAttribute.variableName(i); } }
+		 * m.setParamNames(paramNames); }
+		 */
+		// TODO temporary
+		md.setCodeAttribute(codeAttribute);
+	}
+
+	@SuppressWarnings("unchecked")
+	private static FD readField(final TD td, final FieldInfo fieldInfo) {
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
 		ConstantAttribute constantAttribute = null;
@@ -356,10 +403,8 @@ public class JavassistReader {
 			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
 				syntheticAttribute = (SyntheticAttribute) attributeInfo;
 			} else {
-				LOGGER.log(Level.WARNING,
-						"Unknown field attribute tag '" + attributeTag
-								+ "' for field info '" + fieldInfo.getName()
-								+ "'!");
+				LOGGER.warning("Unknown field attribute tag '" + attributeTag
+						+ "' for field info '" + fieldInfo.getName() + "'!");
 			}
 		}
 
@@ -406,7 +451,8 @@ public class JavassistReader {
 					.getAnnotations();
 			as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], RetentionPolicy.RUNTIME, du);
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
+						du);
 			}
 		}
 		if (annotationsAttributeRuntimeInvisible != null) {
@@ -420,7 +466,8 @@ public class JavassistReader {
 				as = newAs;
 			}
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], RetentionPolicy.CLASS, du);
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
+						du);
 			}
 		}
 		fd.setAs(as);
@@ -436,18 +483,177 @@ public class JavassistReader {
 		return fd;
 	}
 
-	private static Object readMemberValue(final MemberValue memberValue,
-			final DU du) {
+	@SuppressWarnings("unchecked")
+	private static MD readMethod(final TD td, final MethodInfo methodInfo) {
+		AnnotationDefaultAttribute annotationDefaultAttribute = null;
+		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
+		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
+		CodeAttribute codeAttribute = null;
+		DeprecatedAttribute deprecatedAttribute = null;
+		ExceptionsAttribute exceptionsAttribute = null;
+		ParameterAnnotationsAttribute parameterAnnotationsAttributeRuntimeInvisible = null;
+		ParameterAnnotationsAttribute parameterAnnotationsAttributeRuntimeVisible = null;
+		SignatureAttribute signatureAttribute = null;
+		SyntheticAttribute syntheticAttribute = null;
+		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) methodInfo
+				.getAttributes()) {
+			final String attributeTag = attributeInfo.getName();
+			if (AnnotationDefaultAttribute.tag.equals(attributeTag)) {
+				annotationDefaultAttribute = (AnnotationDefaultAttribute) attributeInfo;
+			} else if (AnnotationsAttribute.invisibleTag.equals(attributeTag)) {
+				annotationsAttributeRuntimeInvisible = (AnnotationsAttribute) attributeInfo;
+			} else if (AnnotationsAttribute.visibleTag.equals(attributeTag)) {
+				annotationsAttributeRuntimeVisible = (AnnotationsAttribute) attributeInfo;
+			} else if (CodeAttribute.tag.equals(attributeTag)) {
+				codeAttribute = (CodeAttribute) attributeInfo;
+			} else if (DeprecatedAttribute.tag.equals(attributeTag)) {
+				deprecatedAttribute = (DeprecatedAttribute) attributeInfo;
+			} else if (ExceptionsAttribute.tag.equals(attributeTag)) {
+				exceptionsAttribute = (ExceptionsAttribute) attributeInfo;
+			} else if (ParameterAnnotationsAttribute.invisibleTag
+					.equals(attributeTag)) {
+				parameterAnnotationsAttributeRuntimeInvisible = (ParameterAnnotationsAttribute) attributeInfo;
+			} else if (ParameterAnnotationsAttribute.visibleTag
+					.equals(attributeTag)) {
+				parameterAnnotationsAttributeRuntimeVisible = (ParameterAnnotationsAttribute) attributeInfo;
+			} else if (SignatureAttribute.tag.equals(attributeTag)) {
+				signatureAttribute = (SignatureAttribute) attributeInfo;
+			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
+				syntheticAttribute = (SyntheticAttribute) attributeInfo;
+			} else {
+				LOGGER.warning("Unknown method attribute tag '" + attributeTag
+						+ "' for method info '" + methodInfo.getName() + "'!");
+			}
+		}
+
+		final T t = td.getT();
+		final DU du = t.getDu();
+
+		final M m = t.getM(methodInfo.getName(), methodInfo.getDescriptor());
+		if (exceptionsAttribute != null) {
+			final String[] exceptions = exceptionsAttribute.getExceptions();
+			if (exceptions != null && exceptions.length > 0) {
+				final T[] throwsTs = new T[exceptions.length];
+				for (int i = exceptions.length; i-- > 0;) {
+					throwsTs[i] = du.getT(exceptions[i]);
+				}
+				m.setThrowsTs(throwsTs);
+			}
+		}
+		if (signatureAttribute != null
+				&& signatureAttribute.getSignature() != null) {
+			m.setSignature(signatureAttribute.getSignature());
+		}
+
+		final MD md = new MD(m, td);
+		md.setAccessFlags(methodInfo.getAccessFlags());
+
+		if (annotationDefaultAttribute != null) {
+			final MemberValue defaultMemberValue = annotationDefaultAttribute
+					.getDefaultValue();
+			final Object annotationDefaultValue = readValue(defaultMemberValue,
+					du);
+			md.setAnnotationDefaultValue(annotationDefaultValue);
+		}
+
+		A[] as = null;
+		if (annotationsAttributeRuntimeVisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeVisible
+					.getAnnotations();
+			as = new A[annotations.length];
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
+						du);
+			}
+		}
+		if (annotationsAttributeRuntimeInvisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
+					.getAnnotations();
+			if (as == null) {
+				as = new A[annotations.length];
+			} else {
+				final A[] newAs = new A[annotations.length + as.length];
+				System.arraycopy(as, 0, newAs, annotations.length, as.length);
+				as = newAs;
+			}
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
+						du);
+			}
+		}
+		md.setAs(as);
+
+		if (codeAttribute != null) {
+			readCode(md, codeAttribute);
+		}
+
+		if (deprecatedAttribute != null) {
+			md.setDeprecated(true);
+		}
+
+		A[][] paramAss = null;
+		if (parameterAnnotationsAttributeRuntimeVisible != null) {
+			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeVisible
+					.getAnnotations();
+			paramAss = new A[annotationss.length][];
+			for (int i = annotationss.length; i-- > 0;) {
+				final Annotation[] annotations = annotationss[i];
+				final A[] paramAs = paramAss[i] = new A[annotations.length];
+				for (int j = annotations.length; j-- > 0;) {
+					paramAs[j] = readAnnotation(annotations[j],
+							RetentionPolicy.RUNTIME, du);
+				}
+			}
+		}
+		if (parameterAnnotationsAttributeRuntimeInvisible != null) {
+			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeInvisible
+					.getAnnotations();
+			if (paramAss == null) {
+				paramAss = new A[annotationss.length][];
+			} else if (paramAss.length < annotationss.length) {
+				final A[][] newParamAss = new A[annotationss.length][];
+				System.arraycopy(paramAss, 0, newParamAss, 0, paramAss.length);
+				paramAss = newParamAss;
+			}
+			for (int i = annotationss.length; i-- > 0;) {
+				final Annotation[] annotations = annotationss[i];
+				A[] paramAs = paramAss[i];
+				if (paramAs == null) {
+					paramAs = paramAss[i] = new A[annotations.length];
+				} else {
+					paramAss[i] = new A[annotations.length + paramAs.length];
+					System.arraycopy(paramAs, 0, paramAss[i],
+							annotations.length, paramAs.length);
+					paramAs = paramAss[i];
+				}
+				for (int j = annotations.length; j-- > 0;) {
+					paramAs[j] = readAnnotation(annotations[j],
+							RetentionPolicy.CLASS, du);
+				}
+			}
+		}
+		md.setParamAs(paramAss);
+
+		if (syntheticAttribute != null) {
+			md.setSynthetic(true);
+		}
+
+		return md;
+	}
+
+	private static Object readValue(final MemberValue memberValue, final DU du) {
 		if (memberValue instanceof AnnotationMemberValue) {
-			return createA(((AnnotationMemberValue) memberValue).getValue(),
-					null, du); // retention unknown here
+			return readAnnotation(
+					((AnnotationMemberValue) memberValue).getValue(), null, du); // retention
+																					// unknown
+																					// here
 		}
 		if (memberValue instanceof ArrayMemberValue) {
 			final MemberValue[] values = ((ArrayMemberValue) memberValue)
 					.getValue();
 			final Object[] objects = new Object[values.length];
 			for (int i = values.length; i-- > 0;) {
-				objects[i] = readMemberValue(values[i], du);
+				objects[i] = readValue(values[i], du);
 			}
 			return objects;
 		}
@@ -490,165 +696,6 @@ public class JavassistReader {
 		LOGGER.warning("Unknown member value type '"
 				+ memberValue.getClass().getName() + "'!");
 		return null;
-	}
-
-	@SuppressWarnings("unchecked")
-	private static MD readMethodInfo(final TD td, final MethodInfo methodInfo) {
-		AnnotationDefaultAttribute annotationDefaultAttribute = null;
-		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
-		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
-		CodeAttribute codeAttribute = null;
-		DeprecatedAttribute deprecatedAttribute = null;
-		ExceptionsAttribute exceptionsAttribute = null;
-		ParameterAnnotationsAttribute parameterAnnotationsAttributeRuntimeInvisible = null;
-		ParameterAnnotationsAttribute parameterAnnotationsAttributeRuntimeVisible = null;
-		SignatureAttribute signatureAttribute = null;
-		SyntheticAttribute syntheticAttribute = null;
-		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) methodInfo
-				.getAttributes()) {
-			final String attributeTag = attributeInfo.getName();
-			if (AnnotationDefaultAttribute.tag.equals(attributeTag)) {
-				annotationDefaultAttribute = (AnnotationDefaultAttribute) attributeInfo;
-			} else if (AnnotationsAttribute.invisibleTag.equals(attributeTag)) {
-				annotationsAttributeRuntimeInvisible = (AnnotationsAttribute) attributeInfo;
-			} else if (AnnotationsAttribute.visibleTag.equals(attributeTag)) {
-				annotationsAttributeRuntimeVisible = (AnnotationsAttribute) attributeInfo;
-			} else if (CodeAttribute.tag.equals(attributeTag)) {
-				codeAttribute = (CodeAttribute) attributeInfo;
-			} else if (DeprecatedAttribute.tag.equals(attributeTag)) {
-				deprecatedAttribute = (DeprecatedAttribute) attributeInfo;
-			} else if (ExceptionsAttribute.tag.equals(attributeTag)) {
-				exceptionsAttribute = (ExceptionsAttribute) attributeInfo;
-			} else if (ParameterAnnotationsAttribute.invisibleTag
-					.equals(attributeTag)) {
-				parameterAnnotationsAttributeRuntimeInvisible = (ParameterAnnotationsAttribute) attributeInfo;
-			} else if (ParameterAnnotationsAttribute.visibleTag
-					.equals(attributeTag)) {
-				parameterAnnotationsAttributeRuntimeVisible = (ParameterAnnotationsAttribute) attributeInfo;
-			} else if (SignatureAttribute.tag.equals(attributeTag)) {
-				signatureAttribute = (SignatureAttribute) attributeInfo;
-			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
-				syntheticAttribute = (SyntheticAttribute) attributeInfo;
-			} else {
-				LOGGER.log(Level.WARNING,
-						"Unknown method attribute tag '" + attributeTag
-								+ "' for method info '" + methodInfo.getName()
-								+ "'!");
-			}
-		}
-
-		final T t = td.getT();
-		final DU du = t.getDu();
-
-		final M m = t.getM(methodInfo.getName(), methodInfo.getDescriptor());
-		if (exceptionsAttribute != null) {
-			final String[] exceptions = exceptionsAttribute.getExceptions();
-			if (exceptions != null && exceptions.length > 0) {
-				final T[] throwsTs = new T[exceptions.length];
-				for (int i = exceptions.length; i-- > 0;) {
-					throwsTs[i] = du.getT(exceptions[i]);
-				}
-				m.setThrowsTs(throwsTs);
-			}
-		}
-		if (signatureAttribute != null
-				&& signatureAttribute.getSignature() != null) {
-			m.setSignature(signatureAttribute.getSignature());
-		}
-
-		final MD md = new MD(m, td);
-		md.setAccessFlags(methodInfo.getAccessFlags());
-
-		if (annotationDefaultAttribute != null) {
-			final MemberValue defaultMemberValue = annotationDefaultAttribute
-					.getDefaultValue();
-			final Object annotationDefaultValue = readMemberValue(
-					defaultMemberValue, du);
-			md.setAnnotationDefaultValue(annotationDefaultValue);
-		}
-
-		A[] as = null;
-		if (annotationsAttributeRuntimeVisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeVisible
-					.getAnnotations();
-			as = new A[annotations.length];
-			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], RetentionPolicy.RUNTIME, du);
-			}
-		}
-		if (annotationsAttributeRuntimeInvisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
-					.getAnnotations();
-			if (as == null) {
-				as = new A[annotations.length];
-			} else {
-				final A[] newAs = new A[annotations.length + as.length];
-				System.arraycopy(as, 0, newAs, annotations.length, as.length);
-				as = newAs;
-			}
-			for (int i = annotations.length; i-- > 0;) {
-				as[i] = createA(annotations[i], RetentionPolicy.CLASS, du);
-			}
-		}
-		md.setAs(as);
-
-		if (codeAttribute != null) {
-			// TODO temporary
-			md.setCodeAttribute(codeAttribute);
-		}
-
-		if (deprecatedAttribute != null) {
-			md.setDeprecated(true);
-		}
-
-		A[][] paramAss = null;
-		if (parameterAnnotationsAttributeRuntimeVisible != null) {
-			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeVisible
-					.getAnnotations();
-			paramAss = new A[annotationss.length][];
-			for (int i = annotationss.length; i-- > 0;) {
-				final Annotation[] annotations = annotationss[i];
-				final A[] paramAs = paramAss[i] = new A[annotations.length];
-				for (int j = annotations.length; j-- > 0;) {
-					paramAs[j] = createA(annotations[j],
-							RetentionPolicy.RUNTIME, du);
-				}
-			}
-		}
-		if (parameterAnnotationsAttributeRuntimeInvisible != null) {
-			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeInvisible
-					.getAnnotations();
-			if (paramAss == null) {
-				paramAss = new A[annotationss.length][];
-			} else if (paramAss.length < annotationss.length) {
-				final A[][] newParamAss = new A[annotationss.length][];
-				System.arraycopy(paramAss, 0, newParamAss, 0, paramAss.length);
-				paramAss = newParamAss;
-			}
-			for (int i = annotationss.length; i-- > 0;) {
-				final Annotation[] annotations = annotationss[i];
-				A[] paramAs = paramAss[i];
-				if (paramAs == null) {
-					paramAs = paramAss[i] = new A[annotations.length];
-				} else {
-					paramAss[i] = new A[annotations.length + paramAs.length];
-					System.arraycopy(paramAs, 0, paramAss[i],
-							annotations.length, paramAs.length);
-					paramAs = paramAss[i];
-				}
-				for (int j = annotations.length; j-- > 0;) {
-					paramAs[j] = createA(annotations[j], RetentionPolicy.CLASS,
-							du);
-				}
-			}
-		}
-		md.setParamAs(paramAss);
-
-		if (syntheticAttribute != null) {
-			md.setSynthetic(true);
-		}
-
-		return md;
 	}
 
 }

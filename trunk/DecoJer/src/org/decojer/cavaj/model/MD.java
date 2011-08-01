@@ -62,6 +62,8 @@ public class MD implements BD, PD {
 	 * 
 	 * @param m
 	 *            method
+	 * @param td
+	 *            type declaration
 	 */
 	public MD(final M m, final TD td) {
 		assert m != null;
