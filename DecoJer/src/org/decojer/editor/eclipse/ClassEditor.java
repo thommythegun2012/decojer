@@ -36,7 +36,6 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
-import org.decojer.cavaj.transformer.TrJvmCode2IvmCfg;
 import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
 import org.decojer.editor.eclipse.util.StringInput;
 import org.decojer.editor.eclipse.util.StringStorage;
@@ -367,7 +366,6 @@ public class ClassEditor extends MultiPageEditorPart implements
 		final CFG cfg = md.getCfg();
 		if (cfg != null) {
 			final int i = this.combo.getSelectionIndex();
-			TrJvmCode2IvmCfg.transform(cfg);
 			if (i > 0) {
 				TrDataFlowAnalysis.transform(cfg);
 				TrIvmCfg2JavaExprStmts.transform(cfg);

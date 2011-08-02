@@ -23,6 +23,10 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.ArrayList;
+
+import org.decojer.DecoJerException;
+
 /**
  * Method.
  * 
@@ -64,8 +68,23 @@ public class M {
 		this.t = t;
 		this.name = name;
 		this.descriptor = descriptor;
-		this.returnT = null;
-		this.paramTs = null;
+
+		if (descriptor.charAt(0) != '(') {
+			throw new DecoJerException("Method descriptor must start with '('!");
+		}
+		final int endPos = descriptor.indexOf(')', 1);
+		if (endPos == -1) {
+			throw new DecoJerException("Method descriptor must contain ')'!");
+		}
+		final ArrayList<T> paramTs = new ArrayList<T>();
+		final DU du = t.getDu();
+		for (int pos = 1; pos < endPos;) {
+			final T paramT = du.getDescT(descriptor.substring(pos));
+			pos += paramT.getDescriptorLength();
+			paramTs.add(paramT);
+		}
+		this.paramTs = paramTs.toArray(new T[paramTs.size()]);
+		this.returnT = du.getDescT(descriptor.substring(endPos + 1));
 	}
 
 	/**

@@ -32,6 +32,45 @@ import java.util.HashMap;
  */
 public class T {
 
+	/**
+	 * Primitive type boolean.
+	 */
+	public static T BOOLEAN = new T(boolean.class.getName());
+	/**
+	 * Primitive type byte.
+	 */
+	public static T BYTE = new T(byte.class.getName());
+	/**
+	 * Primitive type char.
+	 */
+	public static T CHAR = new T(char.class.getName());
+	/**
+	 * Primitive type double.
+	 */
+	public static T DOUBLE = new T(double.class.getName());
+	/**
+	 * Primitive type float.
+	 */
+	public static T FLOAT = new T(float.class.getName());
+	/**
+	 * Primitive type int.
+	 */
+	public static T INT = new T(int.class.getName());
+	/**
+	 * Primitive type long.
+	 */
+	public static T LONG = new T(long.class.getName());
+	/**
+	 * Primitive type short.
+	 */
+	public static T SHORT = new T(short.class.getName());
+	/**
+	 * Primitive type void.
+	 */
+	public static T VOID = new T(void.class.getName());
+
+	private int dim;
+
 	private final DU du;
 
 	private T[] interfaceTs;
@@ -44,15 +83,55 @@ public class T {
 
 	private T superT;
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param name
-	 *            name
-	 */
 	protected T(final DU du, final String name) {
+		assert du != null;
+		assert name != null;
+
 		this.du = du;
 		this.name = name;
+	}
+
+	private T(final String name) {
+		assert name != null;
+
+		this.du = null; // primitive
+		this.name = name;
+	}
+
+	/**
+	 * Get base type.
+	 * 
+	 * @return base type
+	 */
+	public T getBaseT() {
+		if (isArray()) {
+			return this.superT;
+		}
+		return this;
+	}
+
+	/**
+	 * Get descriptor length.
+	 * 
+	 * @return descriptor length
+	 */
+	public int getDescriptorLength() {
+		if (isPrimitive()) {
+			return 1;
+		}
+		if (isArray()) {
+			return getBaseT().getDescriptorLength() + this.dim;
+		}
+		return getName().length() + 2; // L...;
+	}
+
+	/**
+	 * Get dimension.
+	 * 
+	 * @return dimension
+	 */
+	public int getDim() {
+		return this.dim;
 	}
 
 	/**
@@ -75,12 +154,8 @@ public class T {
 		if (pos == -1) {
 			return pName;
 		}
-		try {
-			final int parseInt = Integer.parseInt(pName.substring(pos + 1));
-			return "I_" + parseInt;
-		} catch (final NumberFormatException e) {
-			return pName.substring(pos + 1);
-		}
+		return Character.isJavaIdentifierStart(pName.charAt(pos + 1)) ? pName
+				.substring(pos + 1) : "I_" + pName.substring(pos + 1);
 	}
 
 	/**
@@ -154,7 +229,38 @@ public class T {
 	 * @return super type
 	 */
 	public T getSuperT() {
+		if (isArray()) {
+			return this.du.getT(Object.class.getName());
+		}
 		return this.superT;
+	}
+
+	/**
+	 * Is array?
+	 * 
+	 * @return true - is array
+	 */
+	public boolean isArray() {
+		return this.dim > 0;
+	}
+
+	/**
+	 * Is primitive?
+	 * 
+	 * @return true - is primitive
+	 */
+	public boolean isPrimitive() {
+		return this.du == null;
+	}
+
+	/**
+	 * Set dimension.
+	 * 
+	 * @param dim
+	 *            dimension
+	 */
+	public void setDim(final int dim) {
+		this.dim = dim;
 	}
 
 	/**

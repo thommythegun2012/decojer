@@ -123,6 +123,10 @@ public class TrStructCfg2JavaControlFlowStmts {
 
 	@SuppressWarnings("unchecked")
 	public void transform() {
+		if (getCfg().getBlock() == null) {
+			// TODO can happen, e.g. if synthethic
+			return;
+		}
 		final List<Statement> statements = getCfg().getBlock().statements();
 		statements.clear(); // possible in debug mode
 		try {

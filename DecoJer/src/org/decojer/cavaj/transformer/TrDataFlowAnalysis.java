@@ -39,6 +39,7 @@ import org.decojer.cavaj.model.TD;
 public class TrDataFlowAnalysis {
 
 	public static void transform(final CFG cfg) {
+		cfg.calculatePostorder();
 		new TrDataFlowAnalysis(cfg).transform();
 		cfg.calculatePostorder();
 	}

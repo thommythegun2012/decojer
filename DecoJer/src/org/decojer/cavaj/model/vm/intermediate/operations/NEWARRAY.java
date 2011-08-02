@@ -23,20 +23,20 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
-import org.eclipse.jdt.core.dom.Type;
 
 public class NEWARRAY extends Operation {
 
-	private final Type type;
-
 	private final int dimensions;
 
+	private final T t;
+
 	public NEWARRAY(final int opPc, final int opcodeJvm, final int lineNumber,
-			final Type type, final int dimensions) {
+			final T t, final int dimensions) {
 		super(opPc, opcodeJvm, lineNumber);
-		this.type = type;
+		this.t = t;
 		this.dimensions = dimensions;
 	}
 
@@ -54,8 +54,8 @@ public class NEWARRAY extends Operation {
 		return Opcode.NEWARRAY;
 	}
 
-	public Type getType() {
-		return this.type;
+	public T getT() {
+		return this.t;
 	}
 
 }

@@ -23,18 +23,18 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
-import org.eclipse.jdt.core.dom.Type;
 
 public class CHECKCAST extends Operation {
 
-	private final Type type;
+	private final T t;
 
 	public CHECKCAST(final int opPc, final int opcodeJvm, final int lineNumber,
-			final Type type) {
+			final T t) {
 		super(opPc, opcodeJvm, lineNumber);
-		this.type = type;
+		this.t = t;
 	}
 
 	@Override
@@ -47,8 +47,8 @@ public class CHECKCAST extends Operation {
 		return Opcode.CHECKCAST;
 	}
 
-	public Type getType() {
-		return this.type;
+	public T getT() {
+		return this.t;
 	}
 
 }
