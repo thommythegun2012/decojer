@@ -37,7 +37,6 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
-import org.decojer.cavaj.transformer.TrJvmCode2IvmCfg;
 import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformer.TrMergeAll;
 import org.decojer.cavaj.transformer.TrQualifiedNames2Imports;
@@ -95,7 +94,6 @@ public class DecoJer {
 			final TD td = tds.get(i);
 
 			TrJvmStruct2JavaAst.transform(td); // could add tds
-			TrJvmCode2IvmCfg.transform(td); // could add tds
 
 			TrDataFlowAnalysis.transform(td);
 			TrIvmCfg2JavaExprStmts.transform(td);
@@ -191,7 +189,7 @@ public class DecoJer {
 
 	public static void main(final String[] args) throws IOException {
 		final DU du = createDu();
-		switch (2) {
+		switch (3) {
 		case 0:
 			System.out
 					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestBooleanOperators.class"));
@@ -205,7 +203,7 @@ public class DecoJer {
 		}
 		case 2: {
 			final TD td = du
-					.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar!/org/decojer/cavaj/test/DecTestMethods.class");
+					.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar!/org/decojer/cavaj/test/jdk5/DecTestAnnotations.class");
 			final CU cu = createCu(td);
 			System.out.println(decompile(cu));
 			break;

@@ -29,7 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map;
+import java.util.LinkedHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -48,9 +48,9 @@ public class DU {
 
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
 
-	private final Map<String, TD> tds = new HashMap<String, TD>();
+	private final LinkedHashMap<String, TD> tds = new LinkedHashMap<String, TD>();
 
-	private final Map<String, T> ts = new HashMap<String, T>();
+	private final HashMap<String, T> ts = new HashMap<String, T>();
 
 	/**
 	 * Constructor.
@@ -82,26 +82,45 @@ public class DU {
 		assert desc != null;
 
 		switch (desc.charAt(0)) {
+		case 'V':
+			return T.VOID;
+		case 'B':
+			return T.BYTE;
+		case 'C':
+			return T.CHAR;
+		case 'D':
+			return T.DOUBLE;
+		case 'F':
+			return T.FLOAT;
+		case 'I':
+			return T.INT;
+		case 'J':
+			return T.LONG;
+		case 'S':
+			return T.SHORT;
+		case 'Z':
+			return T.BOOLEAN;
+		case 'L': {
+			final int pos = desc.indexOf(';', 1);
+			if (pos == -1) {
+				throw new DecoJerException(
+						"Missing ';' in reference descriptor: " + desc);
+			}
+			return getT(desc.substring(1, pos).replace('/', '.'));
+		}
 		case '[':
-			int i = 0;
-			while (desc.charAt(++i) == '[') {
+			int dim = 0;
+			while (desc.charAt(++dim) == '[') {
 				;
 			}
-			final T descT = getDescT(desc.substring(i));
+			final T descT = getDescT(desc.substring(dim));
 			final StringBuilder sb = new StringBuilder(descT.getName());
-			while (i-- > 0) {
+			for (int i = dim; i-- > 0;) {
 				sb.append("[]");
 			}
 			return getT(sb.toString());
-		case 'B':
-			return getT(byte.class.getName());
-		case 'V':
-			return getT(void.class.getName());
-		case 'L':
-			return getT(desc.substring(1, desc.length() - 1).replace('/', '.'));
 		}
-		LOGGER.warning("Unknown desc: " + desc);
-		return getT(desc);
+		throw new DecoJerException("Unknown descriptor: " + desc);
 	}
 
 	/**
@@ -116,9 +135,40 @@ public class DU {
 		assert name.charAt(0) != 'L' : name;
 		assert name.indexOf('/') == -1 : name;
 
+		// TODO improve this lame code
+		if (name.equals(T.VOID.getName())) {
+			return T.VOID;
+		} else if (name.equals(T.BYTE.getName())) {
+			return T.BYTE;
+		} else if (name.equals(T.CHAR.getName())) {
+			return T.CHAR;
+		} else if (name.equals(T.DOUBLE.getName())) {
+			return T.DOUBLE;
+		} else if (name.equals(T.FLOAT.getName())) {
+			return T.FLOAT;
+		} else if (name.equals(T.INT.getName())) {
+			return T.INT;
+		} else if (name.equals(T.LONG.getName())) {
+			return T.LONG;
+		} else if (name.equals(T.SHORT.getName())) {
+			return T.SHORT;
+		} else if (name.equals(T.BOOLEAN.getName())) {
+			return T.BOOLEAN;
+		}
+
 		T t = this.ts.get(name);
 		if (t == null) {
-			t = new T(this, name);
+			final int pos = name.indexOf('[');
+			if (pos == -1) {
+				t = new T(this, name);
+			} else {
+				final T baseT = getT(name.substring(0, pos));
+				final int dim = (name.length() - pos) / 2;
+				t = new T(this, name);
+				t.setDim(dim);
+				t.setSuperT(baseT);
+			}
+			this.ts.put(name, t);
 		}
 		return t;
 	}

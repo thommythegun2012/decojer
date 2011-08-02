@@ -40,10 +40,8 @@ import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
-import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
 import org.eclipse.jdt.core.dom.StringLiteral;
-import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeLiteral;
 
 /**
@@ -161,41 +159,7 @@ public class AnnotationsDecompiler {
 		}
 		if (defaultValue instanceof T) {
 			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-
-			final String value = ((T) defaultValue).getName();
-			// value: byte, byte[], java.lang.Byte[][][], void
-			// no type parameter possible
-			final int pos = value.indexOf('[');
-			final String name = pos == -1 ? value : value.substring(0, pos);
-			Type type; // similar to switch in SignatureDecompiler
-			if ("void".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.VOID);
-			} else if ("byte".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.BYTE);
-			} else if ("char".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.CHAR);
-			} else if ("double".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.DOUBLE);
-			} else if ("float".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.FLOAT);
-			} else if ("int".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.INT);
-			} else if ("long".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.LONG);
-			} else if ("short".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.SHORT);
-			} else if ("boolean".equals(name)) {
-				type = ast.newPrimitiveType(PrimitiveType.BOOLEAN);
-			} else {
-				type = ast.newSimpleType(td.newTypeName(name));
-			}
-			if (pos > 0) {
-				// final array number is "length" - "pos of first [" / 2
-				for (int i = (value.length() - pos) / 2; i-- > 0;) {
-					type = ast.newArrayType(type);
-				}
-			}
-			typeLiteral.setType(type);
+			typeLiteral.setType(Types.convertType((T) defaultValue, td));
 			return typeLiteral;
 		}
 		if (defaultValue instanceof Double) {

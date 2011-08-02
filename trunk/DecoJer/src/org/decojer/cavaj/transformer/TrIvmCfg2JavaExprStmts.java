@@ -34,13 +34,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javassist.bytecode.AccessFlag;
-
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
@@ -79,6 +79,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.SUB;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
 import org.decojer.cavaj.model.vm.intermediate.operations.THROW;
 import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
+import org.decojer.cavaj.tool.Types;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.ArrayCreation;
@@ -104,7 +105,6 @@ import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
-import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeLiteral;
 
 /**
@@ -237,7 +237,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final CHECKCAST op = (CHECKCAST) operation;
 				final CastExpression castExpression = getAst()
 						.newCastExpression();
-				castExpression.setType(op.getType());
+				castExpression.setType(Types.convertType(op.getT(), getTd()));
 				castExpression.setExpression(wrap(bb.popExpression(),
 						priority(castExpression)));
 				bb.pushExpression(castExpression);
@@ -382,15 +382,18 @@ public class TrIvmCfg2JavaExprStmts {
 						.newInstanceofExpression();
 				instanceofExpression.setLeftOperand(wrap(bb.popExpression(),
 						priority(instanceofExpression)));
-				instanceofExpression.setRightOperand(op.getType());
+				instanceofExpression.setRightOperand(Types.convertType(
+						op.getT(), getTd()));
 				bb.pushExpression(instanceofExpression);
 			}
 				break;
 			case Opcode.INVOKE: {
 				final INVOKE op = (INVOKE) operation;
+				final M m = op.getM();
+
 				// read method invokation arguments
 				final List<Expression> arguments = new ArrayList<Expression>();
-				for (int i = 0; i < op.getMethodParameterTypes().size(); ++i) {
+				for (int i = 0; i < m.getParamTs().length; ++i) {
 					arguments.add(wrap(bb.popExpression()));
 				}
 				Collections.reverse(arguments);
@@ -398,7 +401,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final Expression methodExpression;
 				switch (op.getFunctionType()) {
 				case INVOKE.T_SPECIAL: {
-					if ("<init>".equals(op.getMethodrefName())) {
+					if ("<init>".equals(m.getName())) {
 						methodExpression = null;
 						final Expression expression = bb.popExpression();
 						if (expression instanceof ThisExpression) {
@@ -428,7 +431,7 @@ public class TrIvmCfg2JavaExprStmts {
 						final SuperMethodInvocation superMethodInvocation = getAst()
 								.newSuperMethodInvocation();
 						superMethodInvocation.setName(getAst().newSimpleName(
-								op.getMethodrefName()));
+								m.getName()));
 						superMethodInvocation.arguments().addAll(arguments);
 
 						methodExpression = superMethodInvocation;
@@ -442,8 +445,8 @@ public class TrIvmCfg2JavaExprStmts {
 				case INVOKE.T_VIRTUAL: {
 					final MethodInvocation methodInvocation = getAst()
 							.newMethodInvocation();
-					methodInvocation.setName(getAst().newSimpleName(
-							op.getMethodrefName()));
+					methodInvocation.setName(getAst()
+							.newSimpleName(m.getName()));
 					methodInvocation.arguments().addAll(arguments);
 					methodInvocation.setExpression(wrap(bb.popExpression(),
 							priority(methodInvocation)));
@@ -453,11 +456,11 @@ public class TrIvmCfg2JavaExprStmts {
 				case INVOKE.T_STATIC: {
 					final MethodInvocation methodInvocation = getAst()
 							.newMethodInvocation();
-					methodInvocation.setName(getAst().newSimpleName(
-							op.getMethodrefName()));
+					methodInvocation.setName(getAst()
+							.newSimpleName(m.getName()));
 					methodInvocation.arguments().addAll(arguments);
 					methodInvocation.setExpression(getTd().newTypeName(
-							op.getMethodrefClassName()));
+							m.getT().getName()));
 					methodExpression = methodInvocation;
 				}
 					break;
@@ -465,10 +468,8 @@ public class TrIvmCfg2JavaExprStmts {
 					methodExpression = null;
 				}
 				if (methodExpression != null) {
-					final Type returnType = op.getReturnType();
-					if (returnType instanceof PrimitiveType
-							&& ((PrimitiveType) returnType)
-									.getPrimitiveTypeCode() == PrimitiveType.VOID) {
+					final T returnType = m.getReturnT();
+					if (void.class.getName().equals(returnType.getName())) {
 						statement = getAst().newExpressionStatement(
 								methodExpression);
 					} else {
@@ -570,39 +571,10 @@ public class TrIvmCfg2JavaExprStmts {
 			case Opcode.LOAD: {
 				final LOAD op = (LOAD) operation;
 
-				final int varIndex = op.getVarIndex();
-				String varName = null;
-				String varDescriptor = null;
-				if (cfg.localVariableAttribute != null) {
-					for (int i = 0; i < cfg.localVariableAttribute
-							.tableLength(); ++i) {
-						if (cfg.localVariableAttribute.index(i) == varIndex
-								&& cfg.localVariableAttribute.startPc(i) <= op
-										.getOpPc()
-								&& cfg.localVariableAttribute.startPc(i)
-										+ cfg.localVariableAttribute
-												.codeLength(i) >= op.getOpPc()) {
-							varName = cfg.localVariableAttribute
-									.variableName(i);
-							varDescriptor = cfg.localVariableAttribute
-									.descriptor(i);
-							break;
-						}
-					}
-				}
-				if (varName == null) {
-					if (varIndex == 0
-							&& (getMd().getAccessFlags() & AccessFlag.STATIC) == 0) {
-						varName = "this";
-					} else {
-						varName = "arg" + varIndex;
-					}
-				}
-
-				if ("this".equals(varName)) {
+				if ("this".equals(op.getVarName())) {
 					bb.pushExpression(getAst().newThisExpression());
 				} else {
-					bb.pushExpression(getAst().newSimpleName(varName));
+					bb.pushExpression(getAst().newSimpleName(op.getVarName()));
 				}
 			}
 				break;
@@ -628,7 +600,8 @@ public class TrIvmCfg2JavaExprStmts {
 				final NEW op = (NEW) operation;
 				final ClassInstanceCreation classInstanceCreation = getAst()
 						.newClassInstanceCreation();
-				classInstanceCreation.setType(op.getType());
+				classInstanceCreation.setType(Types.convertType(op.getT(),
+						getTd()));
 				// classInstanceCreation.setAnonymousClassDeclaration(decl);
 				bb.pushExpression(classInstanceCreation);
 			}
@@ -636,7 +609,8 @@ public class TrIvmCfg2JavaExprStmts {
 			case Opcode.NEWARRAY: {
 				final NEWARRAY op = (NEWARRAY) operation;
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
-				arrayCreation.setType(getAst().newArrayType(op.getType()));
+				arrayCreation.setType(getAst().newArrayType(
+						Types.convertType(op.getT(), getTd())));
 				arrayCreation.dimensions().add(bb.popExpression());
 				bb.pushExpression(arrayCreation);
 			}
@@ -700,7 +674,8 @@ public class TrIvmCfg2JavaExprStmts {
 					break;
 				case DataType.T_CLASS:
 					expr = getAst().newTypeLiteral();
-					((TypeLiteral) expr).setType((Type) op.getValue());
+					((TypeLiteral) expr).setType(Types.convertType(
+							(T) op.getValue(), getTd()));
 					break;
 				default:
 					LOGGER.warning("Unknown data type '" + op.getType() + "'!");
@@ -768,34 +743,6 @@ public class TrIvmCfg2JavaExprStmts {
 			case Opcode.STORE: {
 				final STORE op = (STORE) operation;
 
-				final int varIndex = op.getVarIndex();
-				String varName = null;
-				String varDescriptor = null;
-				if (cfg.localVariableAttribute != null) {
-					for (int i = 0; i < cfg.localVariableAttribute
-							.tableLength(); ++i) {
-						if (cfg.localVariableAttribute.index(i) != varIndex) {
-							continue;
-						}
-						// stack end TODO?
-						if (cfg.localVariableAttribute.startPc(i)
-								+ cfg.localVariableAttribute.codeLength(i) < op
-									.getOpPc()) {
-							continue;
-						}
-						// variable is known on next operation pc! (+1)
-						// declaration TODO
-						if (cfg.localVariableAttribute.startPc(i) <= op
-								.getOpPc() + 1) {
-							varName = cfg.localVariableAttribute
-									.variableName(i);
-							varDescriptor = cfg.localVariableAttribute
-									.descriptor(i);
-							break;
-						}
-					}
-				}
-
 				final Expression rightExpression = bb.popExpression();
 				final Assignment assignment = getAst().newAssignment();
 				// TODO a = a +/- 1 => a++ / a--
@@ -803,9 +750,8 @@ public class TrIvmCfg2JavaExprStmts {
 				assignment.setRightHandSide(wrap(rightExpression,
 						priority(assignment)));
 
-				// TODO missing local var name
 				assignment.setLeftHandSide(getAst().newSimpleName(
-						varName == null ? "i" : varName));
+						op.getVarName()));
 				// inline assignment, DUP -> STORE
 				if (bb.getExpressionsSize() > 0
 						&& bb.peekExpression() == rightExpression) {

@@ -23,11 +23,9 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
-import java.util.List;
-
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
-import org.eclipse.jdt.core.dom.Type;
 
 public class INVOKE extends Operation {
 
@@ -41,24 +39,13 @@ public class INVOKE extends Operation {
 
 	private final int functionType;
 
-	private final String methodrefClassName;
-
-	private final String methodrefName;
-
-	private final List<Type> methodParameterTypes;
-
-	private final Type returnType;
+	private final M m;
 
 	public INVOKE(final int opPc, final int opcodeJvm, final int lineNumber,
-			final int functionType, final String methodrefClassName,
-			final String methodrefName, final List<Type> methodParameterTypes,
-			final Type returnType) {
+			final int functionType, final M m) {
 		super(opPc, opcodeJvm, lineNumber);
 		this.functionType = functionType;
-		this.methodrefClassName = methodrefClassName;
-		this.methodrefName = methodrefName;
-		this.methodParameterTypes = methodParameterTypes;
-		this.returnType = returnType;
+		this.m = m;
 	}
 
 	public int getFunctionType() {
@@ -68,19 +55,16 @@ public class INVOKE extends Operation {
 	@Override
 	public int getInStackSize() {
 		return (this.functionType == T_STATIC ? 0 : 1)
-				+ this.methodParameterTypes.size();
+				+ this.m.getParamTs().length;
 	}
 
-	public List<Type> getMethodParameterTypes() {
-		return this.methodParameterTypes;
-	}
-
-	public String getMethodrefClassName() {
-		return this.methodrefClassName;
-	}
-
-	public String getMethodrefName() {
-		return this.methodrefName;
+	/**
+	 * Get method.
+	 * 
+	 * @return method
+	 */
+	public M getM() {
+		return this.m;
 	}
 
 	@Override
@@ -88,13 +72,9 @@ public class INVOKE extends Operation {
 		return Opcode.INVOKE;
 	}
 
-	public Type getReturnType() {
-		return this.returnType;
-	}
-
 	@Override
 	public String toString() {
-		return super.toString() + " " + getMethodrefName();
+		return super.toString() + " " + getM();
 	}
 
 }

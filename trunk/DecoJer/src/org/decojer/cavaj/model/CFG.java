@@ -28,16 +28,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
-import javassist.bytecode.AttributeInfo;
-import javassist.bytecode.CodeAttribute;
-import javassist.bytecode.ConstPool;
-import javassist.bytecode.LineNumberAttribute;
-import javassist.bytecode.LocalVariableAttribute;
-import javassist.bytecode.StackMap;
-import javassist.bytecode.StackMapTable;
 
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.eclipse.jdt.core.dom.Block;
@@ -49,22 +39,12 @@ import org.eclipse.jdt.core.dom.Block;
  */
 public class CFG {
 
-	private final static Logger LOGGER = Logger.getLogger(CFG.class.getName());
-
-	private final Block block;
-
-	private final CodeAttribute codeAttribute;
+	private Block block;
 
 	/**
 	 * Array with Immediate Dominators, index is postorder.
 	 */
 	private BB[] iDoms;
-
-	public LineNumberAttribute lineNumberAttribute;
-
-	public LocalVariableAttribute localVariableAttribute;
-
-	private LocalVariableAttribute localVariableTypeAttribute;
 
 	private final MD md;
 
@@ -73,10 +53,6 @@ public class CFG {
 	 */
 	private List<BB> postorderedBbs;
 
-	private StackMap stackMap;
-
-	private StackMapTable stackMapTable;
-
 	private BB startBb;
 
 	/**
@@ -84,40 +60,12 @@ public class CFG {
 	 * 
 	 * @param md
 	 *            method declaration
-	 * @param block
-	 *            Eclipse block
-	 * @param codeAttribute
-	 *            code attribute
 	 */
-	@SuppressWarnings("unchecked")
-	public CFG(final MD md, final Block block, final CodeAttribute codeAttribute) {
+	public CFG(final MD md) {
 		assert md != null;
 
 		this.md = md;
-		this.block = block;
-		this.codeAttribute = codeAttribute;
-		if (codeAttribute != null) {
-			for (final AttributeInfo attributeInfo : (List<AttributeInfo>) codeAttribute
-					.getAttributes()) {
-				final String attributeTag = attributeInfo.getName();
-				if (LineNumberAttribute.tag.equals(attributeTag)) {
-					this.lineNumberAttribute = (LineNumberAttribute) attributeInfo;
-				} else if (LocalVariableAttribute.tag.equals(attributeTag)) {
-					this.localVariableAttribute = (LocalVariableAttribute) attributeInfo;
-				} else if (LocalVariableAttribute.typeTag.equals(attributeTag)) {
-					this.localVariableTypeAttribute = (LocalVariableAttribute) attributeInfo;
-				} else if (StackMap.tag.equals(attributeTag)) {
-					this.stackMap = (StackMap) attributeInfo;
-				} else if (StackMapTable.tag.equals(attributeTag)) {
-					this.stackMapTable = (StackMapTable) attributeInfo;
-				} else {
-					// TODO parent
-					LOGGER.log(Level.WARNING, "Unknown code attribute tag '"
-							+ attributeTag + "' in '"
-							+ getMd().getM().getSignature() + "'!");
-				}
-			}
-		}
+		this.startBb = newBb(0);
 	}
 
 	private int _calculatePostorder(final int postorder, final BB bb,
@@ -183,24 +131,6 @@ public class CFG {
 	 */
 	public Block getBlock() {
 		return this.block;
-	}
-
-	/**
-	 * Get code.
-	 * 
-	 * @return code
-	 */
-	public byte[] getCode() {
-		return this.codeAttribute.getCode();
-	}
-
-	/**
-	 * Get const pool.
-	 * 
-	 * @return const pool
-	 */
-	public ConstPool getConstPool() {
-		return this.codeAttribute.getConstPool();
 	}
 
 	/**
@@ -292,38 +222,6 @@ public class CFG {
 		return targetBB;
 	}
 
-	/**
-	 * Get variable name for index. If no local variable name info is found,
-	 * return "arg[index]".
-	 * 
-	 * @param i
-	 *            index
-	 * @return variable name
-	 */
-	public String getVariableName(final int i) {
-		if (this.localVariableAttribute != null
-				&& this.localVariableAttribute.tableLength() > i) {
-			try {
-				return this.localVariableAttribute.variableName(i);
-			} catch (final Exception e) {
-				// TODO parent
-				LOGGER.log(Level.WARNING,
-						"Couldn't read variable name for index '" + i
-								+ "' in '" + getMd().getM().getDescriptor()
-								+ "'!", e);
-			}
-		}
-		// TODO
-		return "arg" + i;
-	}
-
-	/**
-	 * Initialize.
-	 */
-	public void init() {
-		this.startBb = newBb(0);
-	}
-
 	private BB intersectIDoms(final BB b1, final BB b2) {
 		BB finger1 = b1;
 		BB finger2 = b2;
@@ -347,6 +245,16 @@ public class CFG {
 	 */
 	public BB newBb(final int opPc) {
 		return new BB(this, opPc);
+	}
+
+	/**
+	 * Set block.
+	 * 
+	 * @param block
+	 *            block
+	 */
+	public void setBlock(final Block block) {
+		this.block = block;
 	}
 
 }

@@ -29,11 +29,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javassist.bytecode.AccessFlag;
-import javassist.bytecode.CodeAttribute;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.BD;
-import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
@@ -391,27 +389,22 @@ public class TrJvmStruct2JavaAst {
 						.setType(returnType);
 			}
 		}
-		// get method block
-		final Block block;
+		// get method block,
 		// abstract and native methods have no block
-		if ((md.getAccessFlags() & AccessFlag.ABSTRACT) == 0
+		// TODO double check this way?
+		if (md.getCfg() != null
+				&& (md.getAccessFlags() & AccessFlag.ABSTRACT) == 0
 				&& (md.getAccessFlags() & AccessFlag.NATIVE) == 0) {
 			if (methodDeclaration instanceof MethodDeclaration) {
-				block = ast.newBlock();
+				final Block block = ast.newBlock();
 				((MethodDeclaration) methodDeclaration).setBody(block);
+				md.getCfg().setBlock(block);
 			} else if (methodDeclaration instanceof Initializer) {
 				// Initializer (static{}) has block per default
-				block = ((Initializer) methodDeclaration).getBody();
-			} else {
-				block = null;
+				md.getCfg().setBlock(
+						((Initializer) methodDeclaration).getBody());
 			}
-		} else {
-			block = null;
 		}
-		// block == null => helper for variable name only
-		final CodeAttribute codeAttribute = md.getCodeAttribute();
-		final CFG cfg = new CFG(md, block, codeAttribute);
-
 		if (methodDeclaration instanceof MethodDeclaration) {
 			// decompile method parameter annotations and names
 			final A[][] paramAs = md.getParamAs();
@@ -427,9 +420,6 @@ public class TrJvmStruct2JavaAst {
 				singleVariableDeclaration.setName(ast.newSimpleName(m
 						.getParamName(param++)));
 			}
-		}
-		if (codeAttribute != null) {
-			md.setCFG(cfg);
 		}
 		md.setMethodDeclaration(methodDeclaration);
 	}

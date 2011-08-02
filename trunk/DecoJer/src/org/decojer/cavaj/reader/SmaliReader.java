@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.E;
 import org.decojer.cavaj.model.FD;
@@ -452,6 +453,10 @@ public class SmaliReader {
 			}
 		}
 		// TODO no debug info for local variables available?
+
+		// init CFG with start BB
+		final CFG cfg = new CFG(md);
+		md.setCFG(cfg);
 
 		final Instruction[] instructions = codeItem.getInstructions();
 		for (int j = 0; j < instructions.length; ++j) {
