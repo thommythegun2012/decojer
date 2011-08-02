@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 
 /**
  * Type.
@@ -36,7 +36,7 @@ public class T {
 
 	private T[] interfaceTs;
 
-	private final LinkedHashMap<String, M> ms = new LinkedHashMap<String, M>();
+	private final HashMap<String, M> ms = new HashMap<String, M>();
 
 	private final String name;
 

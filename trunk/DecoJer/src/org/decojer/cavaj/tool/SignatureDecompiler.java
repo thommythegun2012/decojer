@@ -116,8 +116,8 @@ public class SignatureDecompiler {
 					continue;
 				}
 				typeDeclaration.superInterfaceTypes().add(
-						getAST().newSimpleType(
-								getTD().newTypeName(interfaceT.getName())));
+						getAst().newSimpleType(
+								getTd().newTypeName(interfaceT.getName())));
 			}
 		}
 	}
@@ -172,10 +172,10 @@ public class SignatureDecompiler {
 			methodParameterTypes.add(type);
 		}
 		if (this.signatureFull.charAt(this.posFull) != ')') {
-			LOGGER.log(Level.WARNING,
-					"No correct closing of method parameter types at position '"
-							+ this.posFull + "' in full signature '"
-							+ this.signatureFull + "'!");
+			LOGGER.warning("No correct closing of method parameter types at position '"
+					+ this.posFull
+					+ "' in full signature '"
+					+ this.signatureFull + "'!");
 			this.posFull = -1;
 			return methodParameterTypes; // not perfect, but... ;)
 		}
@@ -206,10 +206,10 @@ public class SignatureDecompiler {
 			methodParameterTypes.add(type);
 		}
 		if (this.signatureSimple.charAt(this.posSimple) != ')') {
-			LOGGER.log(Level.WARNING,
-					"No correct closing of method parameter types at position '"
-							+ this.posSimple + "' in simple signature '"
-							+ this.signatureSimple + "'!");
+			LOGGER.warning("No correct closing of method parameter types at position '"
+					+ this.posSimple
+					+ "' in simple signature '"
+					+ this.signatureSimple + "'!");
 			this.posSimple = -1;
 			return methodParameterTypes; // not perfect, but... ;)
 		}
@@ -238,14 +238,14 @@ public class SignatureDecompiler {
 		if (methodParameterTypes != null) {
 			for (int i = 0; i < methodParameterTypes.size(); ++i) {
 				final Type methosParameterType = methodParameterTypes.get(i);
-				final SingleVariableDeclaration singleVariableDeclaration = getAST()
+				final SingleVariableDeclaration singleVariableDeclaration = getAst()
 						.newSingleVariableDeclaration();
 				// decompile varargs (flag set, ArrayType and last method param)
 				if (varargs && i == methodParameterTypes.size() - 1) {
 					if (methosParameterType instanceof ArrayType) {
 						singleVariableDeclaration.setVarargs(true);
 						singleVariableDeclaration.setType((Type) ASTNode
-								.copySubtree(getAST(),
+								.copySubtree(getAst(),
 										((ArrayType) methosParameterType)
 												.getComponentType()));
 					} else {
@@ -275,12 +275,12 @@ public class SignatureDecompiler {
 					final Type exceptionType = decompileTypeFull();
 					if (exceptionType != null) {
 						methodDeclaration.thrownExceptions().add(
-								getTD().newTypeName(exceptionType.toString()));
+								getTd().newTypeName(exceptionType.toString()));
 						continue;
 					}
 				}
 				methodDeclaration.thrownExceptions().add(
-						getTD().newTypeName(throwT.getName()));
+						getTd().newTypeName(throwT.getName()));
 			}
 		}
 	}
@@ -314,29 +314,29 @@ public class SignatureDecompiler {
 		final char id = this.signatureFull.charAt(this.posFull++);
 		switch (id) {
 		case 'V':
-			return getAST().newPrimitiveType(PrimitiveType.VOID);
+			return getAst().newPrimitiveType(PrimitiveType.VOID);
 		case 'B':
-			return getAST().newPrimitiveType(PrimitiveType.BYTE);
+			return getAst().newPrimitiveType(PrimitiveType.BYTE);
 		case 'C':
-			return getAST().newPrimitiveType(PrimitiveType.CHAR);
+			return getAst().newPrimitiveType(PrimitiveType.CHAR);
 		case 'D':
-			return getAST().newPrimitiveType(PrimitiveType.DOUBLE);
+			return getAst().newPrimitiveType(PrimitiveType.DOUBLE);
 		case 'F':
-			return getAST().newPrimitiveType(PrimitiveType.FLOAT);
+			return getAst().newPrimitiveType(PrimitiveType.FLOAT);
 		case 'I':
-			return getAST().newPrimitiveType(PrimitiveType.INT);
+			return getAst().newPrimitiveType(PrimitiveType.INT);
 		case 'J':
-			return getAST().newPrimitiveType(PrimitiveType.LONG);
+			return getAst().newPrimitiveType(PrimitiveType.LONG);
 		case 'S':
-			return getAST().newPrimitiveType(PrimitiveType.SHORT);
+			return getAst().newPrimitiveType(PrimitiveType.SHORT);
 		case 'Z':
-			return getAST().newPrimitiveType(PrimitiveType.BOOLEAN);
+			return getAst().newPrimitiveType(PrimitiveType.BOOLEAN);
 		case '[': {
 			final Type type = decompileTypeFull();
 			if (type == null) {
 				return null;
 			}
-			return getAST().newArrayType(type);
+			return getAst().newArrayType(type);
 		}
 		case 'L': {
 			final int posFull1 = this.signatureFull.indexOf('<', this.posFull);
@@ -344,10 +344,10 @@ public class SignatureDecompiler {
 			if (posFull1 != -1 && posFull1 < posFull2) {
 				final String className = this.signatureFull.substring(
 						this.posFull, posFull1).replace('/', '.');
-				final ParameterizedType newParameterizedType = getAST()
+				final ParameterizedType newParameterizedType = getAst()
 						.newParameterizedType(
-								getAST().newSimpleType(
-										getTD().newTypeName(className)));
+								getAst().newSimpleType(
+										getTd().newTypeName(className)));
 				this.posFull = posFull1 + 1;
 				while (this.signatureFull.charAt(this.posFull) != '>') {
 					final char wildcard = this.signatureFull
@@ -356,7 +356,7 @@ public class SignatureDecompiler {
 					case '*': {
 						++this.posFull;
 						newParameterizedType.typeArguments().add(
-								getAST().newWildcardType());
+								getAst().newWildcardType());
 						break;
 					}
 					case '+': {
@@ -365,7 +365,7 @@ public class SignatureDecompiler {
 						if (type == null) {
 							return null;
 						}
-						final WildcardType newWildcardType = getAST()
+						final WildcardType newWildcardType = getAst()
 								.newWildcardType();
 						// default...newWildcardType.setUpperBound(true);
 						newWildcardType.setBound(type);
@@ -379,7 +379,7 @@ public class SignatureDecompiler {
 						if (type == null) {
 							return null;
 						}
-						final WildcardType newWildcardType = getAST()
+						final WildcardType newWildcardType = getAst()
 								.newWildcardType();
 						newWildcardType.setUpperBound(false);
 						newWildcardType.setBound(type);
@@ -403,12 +403,12 @@ public class SignatureDecompiler {
 			final String className = this.signatureFull.substring(this.posFull,
 					posFull2).replace('/', '.');
 			this.posFull = posFull2 + 1;
-			return getAST().newSimpleType(getTD().newTypeName(className));
+			return getAst().newSimpleType(getTd().newTypeName(className));
 		}
 		case 'T': {
 			final int posFull1 = this.signatureFull.indexOf(';', this.posFull);
-			final SimpleType newSimpleType = getAST().newSimpleType(
-					getAST().newSimpleName(
+			final SimpleType newSimpleType = getAst().newSimpleType(
+					getAst().newSimpleName(
 							this.signatureFull
 									.substring(this.posFull, posFull1).replace(
 											'/', '.')));
@@ -416,9 +416,9 @@ public class SignatureDecompiler {
 			return newSimpleType;
 		}
 		default:
-			LOGGER.log(Level.WARNING, "Unknown type id '" + id
-					+ "' at position '" + --this.posFull
-					+ "' in full signature '" + this.signatureFull + "'!");
+			LOGGER.warning("Unknown type id '" + id + "' at position '"
+					+ --this.posFull + "' in full signature '"
+					+ this.signatureFull + "'!");
 			this.posFull = -1;
 			return null;
 		}
@@ -441,7 +441,7 @@ public class SignatureDecompiler {
 		}
 		++this.posFull;
 		while (this.signatureFull.charAt(this.posFull) != '>') {
-			final TypeParameter newTypeParameter = getAST().newTypeParameter();
+			final TypeParameter newTypeParameter = getAst().newTypeParameter();
 			// <T extends Map<? extends E, ? extends Object>, E>
 			// compiled to:
 			// <T::Ljava/util/Map<+TE;+Ljava/lang/Object;>;E:Ljava/lang/Object;>
@@ -453,7 +453,7 @@ public class SignatureDecompiler {
 			final int posFull1 = this.signatureFull.indexOf(':', this.posFull);
 			final int posFull2 = this.signatureFull.indexOf('>', this.posFull);
 			if (posFull1 != -1 && posFull1 < posFull2) {
-				newTypeParameter.setName(getAST().newSimpleName(
+				newTypeParameter.setName(getAst().newSimpleName(
 						this.signatureFull.substring(this.posFull, posFull1)));
 				this.posFull = posFull1;
 				// after first : follows an _optional_ single superclass bound,
@@ -471,7 +471,7 @@ public class SignatureDecompiler {
 					}
 				}
 			} else {
-				newTypeParameter.setName(getAST().newSimpleName(
+				newTypeParameter.setName(getAst().newSimpleName(
 						this.signatureFull.substring(this.posFull, posFull2)));
 				this.posFull = posFull2 + 1;
 			}
@@ -493,51 +493,51 @@ public class SignatureDecompiler {
 		final char id = this.signatureSimple.charAt(this.posSimple++);
 		switch (id) {
 		case 'V':
-			return getAST().newPrimitiveType(PrimitiveType.VOID);
+			return getAst().newPrimitiveType(PrimitiveType.VOID);
 		case 'B':
-			return getAST().newPrimitiveType(PrimitiveType.BYTE);
+			return getAst().newPrimitiveType(PrimitiveType.BYTE);
 		case 'C':
-			return getAST().newPrimitiveType(PrimitiveType.CHAR);
+			return getAst().newPrimitiveType(PrimitiveType.CHAR);
 		case 'D':
-			return getAST().newPrimitiveType(PrimitiveType.DOUBLE);
+			return getAst().newPrimitiveType(PrimitiveType.DOUBLE);
 		case 'F':
-			return getAST().newPrimitiveType(PrimitiveType.FLOAT);
+			return getAst().newPrimitiveType(PrimitiveType.FLOAT);
 		case 'I':
-			return getAST().newPrimitiveType(PrimitiveType.INT);
+			return getAst().newPrimitiveType(PrimitiveType.INT);
 		case 'J':
-			return getAST().newPrimitiveType(PrimitiveType.LONG);
+			return getAst().newPrimitiveType(PrimitiveType.LONG);
 		case 'S':
-			return getAST().newPrimitiveType(PrimitiveType.SHORT);
+			return getAst().newPrimitiveType(PrimitiveType.SHORT);
 		case 'Z':
-			return getAST().newPrimitiveType(PrimitiveType.BOOLEAN);
+			return getAst().newPrimitiveType(PrimitiveType.BOOLEAN);
 		case '[': {
 			final Type type = decompileTypeSimple();
 			if (type == null) {
 				return null;
 			}
-			return getAST().newArrayType(type);
+			return getAst().newArrayType(type);
 		}
 		case 'L': {
 			final int pos = this.signatureSimple.indexOf(';', this.posSimple);
 			final String className = this.signatureSimple.substring(
 					this.posSimple, pos).replace('/', '.');
 			this.posSimple = pos + 1;
-			return getAST().newSimpleType(getTD().newTypeName(className));
+			return getAst().newSimpleType(getTd().newTypeName(className));
 		}
 		default:
-			LOGGER.log(Level.WARNING, "Unknown type id '" + id
-					+ "' at position '" + --this.posSimple
-					+ "' in simple signature '" + this.signatureSimple + "'!");
+			LOGGER.warning("Unknown type id '" + id + "' at position '"
+					+ --this.posSimple + "' in simple signature '"
+					+ this.signatureSimple + "'!");
 			this.posSimple = -1;
 			return null;
 		}
 	}
 
-	private AST getAST() {
+	private AST getAst() {
 		return this.ast;
 	}
 
-	private TD getTD() {
+	private TD getTd() {
 		return this.td;
 	}
 
