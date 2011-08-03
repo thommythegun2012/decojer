@@ -71,6 +71,7 @@ import org.jf.dexlib.TypeListItem;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Format.Instruction11n;
 import org.jf.dexlib.Code.Format.Instruction11x;
+import org.jf.dexlib.Code.Format.Instruction12x;
 import org.jf.dexlib.Code.Format.Instruction21c;
 import org.jf.dexlib.Code.Format.Instruction21s;
 import org.jf.dexlib.Code.Format.Instruction35c;
@@ -480,6 +481,18 @@ public class SmaliReader {
 					+ instruction.getClass().getName());
 
 			switch (instruction.opcode) {
+			case ADD_INT_2ADDR: {
+				final Instruction12x instr = (Instruction12x) instruction;
+				System.out.println("  A: " + instr.getRegisterA() + "  A: "
+						+ instr.getRegisterB());
+				break;
+			}
+			case ADD_LONG_2ADDR: {
+				final Instruction12x instr = (Instruction12x) instruction;
+				System.out.println("  A: " + instr.getRegisterA() + "  B: "
+						+ instr.getRegisterB());
+				break;
+			}
 			case CONST_4: {
 				final Instruction11n instr = (Instruction11n) instruction;
 				System.out.println("  refItem: " + instr.getLiteral() + "  A: "
@@ -497,6 +510,12 @@ public class SmaliReader {
 				final Instruction21c instr = (Instruction21c) instruction;
 				System.out.println("  refItem: " + instr.getReferencedItem()
 						+ "  A: " + instr.getRegisterA());
+				break;
+			}
+			case INT_TO_LONG: {
+				final Instruction12x instr = (Instruction12x) instruction;
+				System.out.println("  A: " + instr.getRegisterA() + "  B: "
+						+ instr.getRegisterB());
 				break;
 			}
 			case INVOKE_DIRECT: {
@@ -540,6 +559,17 @@ public class SmaliReader {
 			case MOVE_RESULT_OBJECT: {
 				final Instruction11x instr = (Instruction11x) instruction;
 				System.out.println("  A: " + instr.getRegisterA());
+				break;
+			}
+			case MOVE_RESULT_WIDE: {
+				final Instruction11x instr = (Instruction11x) instruction;
+				System.out.println("  A: " + instr.getRegisterA());
+				break;
+			}
+			case NEW_INSTANCE: {
+				final Instruction21c instr = (Instruction21c) instruction;
+				System.out.println("  refItem: " + instr.getReferencedItem()
+						+ "  A: " + instr.getRegisterA());
 				break;
 			}
 			case RETURN_VOID: {
