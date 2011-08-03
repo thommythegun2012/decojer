@@ -45,6 +45,8 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
+import org.decojer.cavaj.model.vm.intermediate.DataType;
+import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
 import org.jf.dexlib.AnnotationDirectoryItem;
 import org.jf.dexlib.AnnotationDirectoryItem.FieldAnnotationIteratorDelegate;
 import org.jf.dexlib.AnnotationDirectoryItem.MethodAnnotationIteratorDelegate;
@@ -61,13 +63,16 @@ import org.jf.dexlib.DebugInfoItem;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.EncodedArrayItem;
 import org.jf.dexlib.FieldIdItem;
-import org.jf.dexlib.Item;
 import org.jf.dexlib.ItemType;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Section;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeListItem;
 import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.Format.Instruction11n;
+import org.jf.dexlib.Code.Format.Instruction11x;
+import org.jf.dexlib.Code.Format.Instruction21c;
+import org.jf.dexlib.Code.Format.Instruction21s;
 import org.jf.dexlib.Code.Format.Instruction35c;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedValue;
@@ -459,46 +464,96 @@ public class SmaliReader {
 		md.setCFG(cfg);
 
 		final Instruction[] instructions = codeItem.getInstructions();
-		for (int j = 0; j < instructions.length; ++j) {
-			final Instruction instruction = instructions[j];
+
+		System.out.println("RegisterCount: " + codeItem.getRegisterCount());
+		// 2 free to use work register, 3 parameter
+		// static: (5 register)
+		// work_register1...work_register_2...param1...param2...param3
+		// dynamic: (6 register)
+		// work_register1...work_register_2...this...param1...param2...param3
+
+		for (int opPc = 0; opPc < instructions.length; ++opPc) {
+			final Instruction instruction = instructions[opPc];
+			final int opCode = instruction.opcode.value;
+
+			System.out.println("I: " + instruction.opcode + "     "
+					+ instruction.getClass().getName());
+
 			switch (instruction.opcode) {
+			case CONST_4: {
+				final Instruction11n instr = (Instruction11n) instruction;
+				System.out.println("  refItem: " + instr.getLiteral() + "  A: "
+						+ instr.getRegisterA());
+				break;
+			}
+			case CONST_16:
+			case CONST_WIDE_16: /* long */{
+				final Instruction21s instr = (Instruction21s) instruction;
+				System.out.println("  refItem: " + instr.getLiteral() + "  A: "
+						+ instr.getRegisterA());
+				break;
+			}
+			case CONST_STRING: {
+				final Instruction21c instr = (Instruction21c) instruction;
+				System.out.println("  refItem: " + instr.getReferencedItem()
+						+ "  A: " + instr.getRegisterA());
+				break;
+			}
 			case INVOKE_DIRECT: {
-				final Item referencedItem = ((Instruction35c) instruction)
-						.getReferencedItem();
-				System.out.println("  refItem: " + referencedItem + " : "
-						+ ((Instruction35c) instruction).getRegCount());
-				System.out.println("    : "
-						+ ((Instruction35c) instruction).getRegisterD());
-				System.out.println("    : "
-						+ ((Instruction35c) instruction).getRegisterE());
-				System.out.println("    : "
-						+ ((Instruction35c) instruction).getRegisterF());
-				System.out.println("    : "
-						+ ((Instruction35c) instruction).getRegisterG());
-				System.out.println("    : "
-						+ ((Instruction35c) instruction).getRegisterA());
+				final Instruction35c instr = (Instruction35c) instruction;
+				System.out.print("  " + instr.getReferencedItem() + " : "
+						+ instr.getRegCount());
+				System.out.print("  (D: " + instr.getRegisterD());
+				System.out.print("  E: " + instr.getRegisterE());
+				System.out.print("  F: " + instr.getRegisterF());
+				System.out.print("  G: " + instr.getRegisterG());
+				System.out.println("  A: " + instr.getRegisterA() + ")");
+				break;
+			}
+			case INVOKE_STATIC: {
+				final Instruction35c instr = (Instruction35c) instruction;
+				System.out.print("  " + instr.getReferencedItem() + " : "
+						+ instr.getRegCount());
+				System.out.print("  (D: " + instr.getRegisterD());
+				System.out.print("  E: " + instr.getRegisterE());
+				System.out.print("  F: " + instr.getRegisterF());
+				System.out.print("  G: " + instr.getRegisterG());
+				System.out.println("  A: " + instr.getRegisterA() + ")");
 				break;
 			}
 			case INVOKE_VIRTUAL: {
-				final Item referencedItem = ((Instruction35c) instruction)
-						.getReferencedItem();
-				System.out.println("  refItem: " + referencedItem + " : "
-						+ ((Instruction35c) instruction).getRegCount());
-				System.out.println("    : "
-						+ ((Instruction35c) instruction).getRegisterD());
-				System.out.println("    : "
-						+ ((Instruction35c) instruction).getRegisterE());
-				System.out.println("    : "
-						+ ((Instruction35c) instruction).getRegisterF());
-				System.out.println("    : "
-						+ ((Instruction35c) instruction).getRegisterG());
-				System.out.println("    : "
-						+ ((Instruction35c) instruction).getRegisterA());
+				final Instruction35c instr = (Instruction35c) instruction;
+				System.out.print("  " + instr.getReferencedItem() + " : "
+						+ instr.getRegCount());
+				System.out.print("  (D: " + instr.getRegisterD());
+				System.out.print("  E: " + instr.getRegisterE());
+				System.out.print("  F: " + instr.getRegisterF());
+				System.out.print("  G: " + instr.getRegisterG());
+				System.out.println("  A: " + instr.getRegisterA() + ")");
 				break;
 			}
+			case MOVE_RESULT: {
+				final Instruction11x instr = (Instruction11x) instruction;
+				System.out.println("  A: " + instr.getRegisterA());
+				break;
 			}
-			System.out.println("I: " + instructions[j].opcode + "     "
-					+ instructions[j].getClass().getName());
+			case MOVE_RESULT_OBJECT: {
+				final Instruction11x instr = (Instruction11x) instruction;
+				System.out.println("  A: " + instr.getRegisterA());
+				break;
+			}
+			case RETURN_VOID: {
+				// TODO DataType?
+				cfg.getStartBb().addOperation(
+						new RETURN(opPc, opCode, 0, DataType.T_VOID));
+				break;
+			}
+			case SGET_OBJECT:
+				final Instruction21c instr = (Instruction21c) instruction;
+				System.out.println("  " + instr.getReferencedItem() + "  A: "
+						+ instr.getRegisterA());
+				break;
+			}
 		}
 	}
 
@@ -577,7 +632,7 @@ public class SmaliReader {
 
 			final CodeItem codeItem = encodedMethod.codeItem;
 			if (codeItem != null) {
-				System.out.println("M " + method.getMethodString());
+				System.out.println("##### " + method.getMethodString());
 				readCode(md, codeItem);
 			}
 
@@ -607,7 +662,7 @@ public class SmaliReader {
 
 			final CodeItem codeItem = encodedMethod.codeItem;
 			if (codeItem != null) {
-				System.out.println("M " + method.getMethodString());
+				System.out.println("##### " + method.getMethodString());
 				readCode(md, codeItem);
 			}
 
