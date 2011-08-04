@@ -149,7 +149,7 @@ public class SmaliReader {
 				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex");
 		// final Types types = analyse(is);
 		// System.out.println("Ana: " + types.getTypes().size());
-		read(is, new DU());
+		read(is, new DU(), null);
 	}
 
 	/**
@@ -159,18 +159,41 @@ public class SmaliReader {
 	 *            DEX input stream
 	 * @param du
 	 *            decompilation unit
+	 * @param selector
+	 *            selector
+	 * @return type descriptor for selector
 	 * @throws IOException
 	 *             read exception
 	 */
 	@SuppressWarnings("unchecked")
-	public static void read(final InputStream is, final DU du)
-			throws IOException {
+	public static TD read(final InputStream is, final DU du,
+			final String selector) throws IOException {
+		String selectorPrefix = null;
+		String selectorMatch = null;
+		if (selector != null && selector.endsWith(".class")) {
+			selectorMatch = "L"
+					+ selector.substring(selector.charAt(0) == '/' ? 1 : 0,
+							selector.length() - 6) + ";";
+			final int pos = selectorMatch.lastIndexOf('/');
+			if (pos != -1) {
+				selectorPrefix = selectorMatch.substring(0, pos + 1);
+			}
+		}
+		TD selectorTd = null;
+
 		final byte[] bytes = IOUtils.toByteArray(is);
 		final DexFile dexFile = new DexFile(new ByteArrayInput(bytes), true,
 				false);
 		final Section<ClassDefItem> classDefItems = dexFile
 				.getSectionForType(ItemType.TYPE_CLASS_DEF_ITEM);
 		for (final ClassDefItem classDefItem : classDefItems.getItems()) {
+			final String typeDescriptor = classDefItem.getClassType()
+					.getTypeDescriptor();
+			if (selectorPrefix != null
+					&& (!typeDescriptor.startsWith(selectorPrefix) || typeDescriptor
+							.indexOf('/', selectorPrefix.length()) != -1)) {
+				continue;
+			}
 			final T t = du.getDescT(classDefItem.getClassType()
 					.getTypeDescriptor());
 			t.setSuperT(du.getDescT(classDefItem.getSuperclass()
@@ -187,6 +210,10 @@ public class SmaliReader {
 
 			final TD td = new TD(t);
 			td.setAccessFlags(classDefItem.getAccessFlags());
+
+			if (typeDescriptor.equals(selectorMatch)) {
+				selectorTd = td;
+			}
 
 			A annotationDefaultValues = null;
 			final Map<FieldIdItem, String> fieldSignatures = new HashMap<FieldIdItem, String>();
@@ -407,6 +434,7 @@ public class SmaliReader {
 
 			du.addTd(td);
 		}
+		return selectorTd;
 	}
 
 	private static A readAnnotation(

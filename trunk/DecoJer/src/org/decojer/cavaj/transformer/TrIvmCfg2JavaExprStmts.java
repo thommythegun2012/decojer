@@ -145,7 +145,7 @@ public class TrIvmCfg2JavaExprStmts {
 	}
 
 	@SuppressWarnings("unchecked")
-	private boolean convertToHLLIntermediate(final CFG cfg, final BB bb) {
+	private boolean convertToHLLIntermediate(final BB bb) {
 		while (bb.getOperationsSize() != 0) {
 			final Operation operation = bb.getOperation(0);
 			if (operation.getInStackSize() > bb.getExpressionsSize()) {
@@ -861,7 +861,7 @@ public class TrIvmCfg2JavaExprStmts {
 			}
 			// initially convert all operations to statements and
 			// expressions till possible stack underflow
-			convertToHLLIntermediate(this.cfg, bb);
+			convertToHLLIntermediate(bb);
 			if (bb.getSuccBbs().size() != 2) {
 				// must be 2-way
 				continue;
