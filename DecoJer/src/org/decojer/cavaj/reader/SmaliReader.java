@@ -78,7 +78,10 @@ import org.jf.dexlib.Code.Format.Instruction12x;
 import org.jf.dexlib.Code.Format.Instruction21c;
 import org.jf.dexlib.Code.Format.Instruction21s;
 import org.jf.dexlib.Code.Format.Instruction21t;
+import org.jf.dexlib.Code.Format.Instruction22b;
+import org.jf.dexlib.Code.Format.Instruction22s;
 import org.jf.dexlib.Code.Format.Instruction22t;
+import org.jf.dexlib.Code.Format.Instruction23x;
 import org.jf.dexlib.Code.Format.Instruction35c;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
@@ -529,19 +532,78 @@ public class SmaliReader {
 					+ instruction.getClass().getName());
 
 			switch (instruction.opcode) {
-			case ADD_INT_2ADDR: {
-				final Instruction12x instr = (Instruction12x) instruction;
-				System.out.println("  A: " + instr.getRegisterA() + "  A: "
-						+ instr.getRegisterB());
+			case ADD_DOUBLE:
+			case ADD_FLOAT:
+			case ADD_INT:
+			case ADD_LONG: {
+				// C := A + B
+				final Instruction23x instr = (Instruction23x) instruction;
+				System.out
+						.println("  A: " + instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB() + "  C: "
+								+ instr.getRegisterC());
 				break;
 			}
+			case ADD_DOUBLE_2ADDR:
+			case ADD_FLOAT_2ADDR:
+			case ADD_INT_2ADDR:
 			case ADD_LONG_2ADDR: {
+				// A := A + B
 				final Instruction12x instr = (Instruction12x) instruction;
 				System.out.println("  A: " + instr.getRegisterA() + "  B: "
 						+ instr.getRegisterB());
 				break;
 			}
+			case ADD_INT_LIT8: {
+				// B := A + literal
+				final Instruction22b instr = (Instruction22b) instruction;
+				System.out
+						.println("  literal: " + instr.getLiteral() + "  A: "
+								+ instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB());
+				break;
+			}
+			case ADD_INT_LIT16: {
+				// B := A + literal
+				final Instruction22s instr = (Instruction22s) instruction;
+				System.out
+						.println("  literal: " + instr.getLiteral() + "  A: "
+								+ instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB());
+				break;
+			}
+			case AGET:
+			case AGET_BOOLEAN:
+			case AGET_BYTE:
+			case AGET_CHAR:
+			case AGET_OBJECT:
+			case AGET_SHORT:
+			case AGET_WIDE: {
+				// A := B[C]
+				final Instruction23x instr = (Instruction23x) instruction;
+				System.out
+						.println("  A: " + instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB() + "  C: "
+								+ instr.getRegisterC());
+				break;
+			}
+			case APUT:
+			case APUT_BOOLEAN:
+			case APUT_BYTE:
+			case APUT_CHAR:
+			case APUT_OBJECT:
+			case APUT_SHORT:
+			case APUT_WIDE: {
+				// B[C] := A
+				final Instruction23x instr = (Instruction23x) instruction;
+				System.out
+						.println("  A: " + instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB() + "  C: "
+								+ instr.getRegisterC());
+				break;
+			}
 			case CONST_4: {
+				// A := literal
 				final Instruction11n instr = (Instruction11n) instruction;
 				System.out.println("  refItem: " + instr.getLiteral() + "  A: "
 						+ instr.getRegisterA());
@@ -549,15 +611,57 @@ public class SmaliReader {
 			}
 			case CONST_16:
 			case CONST_WIDE_16: /* long */{
+				// A := literal
 				final Instruction21s instr = (Instruction21s) instruction;
 				System.out.println("  refItem: " + instr.getLiteral() + "  A: "
 						+ instr.getRegisterA());
 				break;
 			}
 			case CONST_STRING: {
+				// A := refItem
 				final Instruction21c instr = (Instruction21c) instruction;
 				System.out.println("  refItem: " + instr.getReferencedItem()
 						+ "  A: " + instr.getRegisterA());
+				break;
+			}
+			case DIV_DOUBLE:
+			case DIV_FLOAT:
+			case DIV_INT:
+			case DIV_LONG: {
+				// C := A / B
+				final Instruction23x instr = (Instruction23x) instruction;
+				System.out
+						.println("  A: " + instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB() + "  C: "
+								+ instr.getRegisterC());
+				break;
+			}
+			case DIV_DOUBLE_2ADDR:
+			case DIV_FLOAT_2ADDR:
+			case DIV_INT_2ADDR:
+			case DIV_LONG_2ADDR: {
+				// A := A / B
+				final Instruction12x instr = (Instruction12x) instruction;
+				System.out.println("  A: " + instr.getRegisterA() + "  B: "
+						+ instr.getRegisterB());
+				break;
+			}
+			case DIV_INT_LIT8: {
+				// B := A / literal
+				final Instruction22b instr = (Instruction22b) instruction;
+				System.out
+						.println("  literal: " + instr.getLiteral() + "  A: "
+								+ instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB());
+				break;
+			}
+			case DIV_INT_LIT16: {
+				// B := A / literal
+				final Instruction22s instr = (Instruction22s) instruction;
+				System.out
+						.println("  literal: " + instr.getLiteral() + "  A: "
+								+ instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB());
 				break;
 			}
 			case GOTO: {
@@ -575,6 +679,7 @@ public class SmaliReader {
 			case IF_LE:
 			case IF_LT:
 			case IF_NE: {
+				// IF A cond B JMP offset
 				final Instruction22t instr = (Instruction22t) instruction;
 				// offset can be negative and positive
 				System.out
@@ -590,6 +695,7 @@ public class SmaliReader {
 			case IF_LEZ:
 			case IF_LTZ:
 			case IF_NEZ: {
+				// IF A cond 0 JMP offset
 				final Instruction21t instr = (Instruction21t) instruction;
 				// offset can be negative and positive
 				System.out.println("  targetOff: "
@@ -597,7 +703,12 @@ public class SmaliReader {
 						+ instr.getRegisterA());
 				break;
 			}
-			case INT_TO_LONG: {
+			case INT_TO_BYTE:
+			case INT_TO_CHAR:
+			case INT_TO_DOUBLE:
+			case INT_TO_FLOAT:
+			case INT_TO_LONG:
+			case INT_TO_SHORT: {
 				final Instruction12x instr = (Instruction12x) instruction;
 				System.out.println("  A: " + instr.getRegisterA() + "  B: "
 						+ instr.getRegisterB());
@@ -729,19 +840,52 @@ public class SmaliReader {
 				System.out.println("  B: " + instr.getRegisterB());
 				break;
 			}
-			case MOVE_RESULT: {
-				final Instruction11x instr = (Instruction11x) instruction;
-				System.out.println("  A: " + instr.getRegisterA());
-				break;
-			}
-			case MOVE_RESULT_OBJECT: {
-				final Instruction11x instr = (Instruction11x) instruction;
-				System.out.println("  A: " + instr.getRegisterA());
-				break;
-			}
+			case MOVE_RESULT:
+			case MOVE_RESULT_OBJECT:
 			case MOVE_RESULT_WIDE: {
+				// A := resultRegister
 				final Instruction11x instr = (Instruction11x) instruction;
 				System.out.println("  A: " + instr.getRegisterA());
+				break;
+			}
+			case MUL_DOUBLE:
+			case MUL_FLOAT:
+			case MUL_INT:
+			case MUL_LONG: {
+				// C := A * B
+				final Instruction23x instr = (Instruction23x) instruction;
+				System.out
+						.println("  A: " + instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB() + "  C: "
+								+ instr.getRegisterC());
+				break;
+			}
+			case MUL_DOUBLE_2ADDR:
+			case MUL_FLOAT_2ADDR:
+			case MUL_INT_2ADDR:
+			case MUL_LONG_2ADDR: {
+				// A := A * B
+				final Instruction12x instr = (Instruction12x) instruction;
+				System.out.println("  A: " + instr.getRegisterA() + "  B: "
+						+ instr.getRegisterB());
+				break;
+			}
+			case MUL_INT_LIT8: {
+				// B := A * literal
+				final Instruction22b instr = (Instruction22b) instruction;
+				System.out
+						.println("  literal: " + instr.getLiteral() + "  A: "
+								+ instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB());
+				break;
+			}
+			case MUL_INT_LIT16: {
+				// B := A * literal
+				final Instruction22s instr = (Instruction22s) instruction;
+				System.out
+						.println("  literal: " + instr.getLiteral() + "  A: "
+								+ instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB());
 				break;
 			}
 			case NEW_INSTANCE: {
@@ -750,16 +894,82 @@ public class SmaliReader {
 						+ "  A: " + instr.getRegisterA());
 				break;
 			}
+			case RETURN:
+			case RETURN_OBJECT:
+			case RETURN_WIDE: {
+				final Instruction11x instr = (Instruction11x) instruction;
+				System.out.println("  A: " + instr.getRegisterA());
+				break;
+			}
 			case RETURN_VOID: {
 				cfg.getStartBb().addOperation(
 						new RETURN(opPc, opCode, opLine, DataType.T_VOID));
 				break;
 			}
-			case SGET_OBJECT:
+			case SGET_OBJECT: {
 				final Instruction21c instr = (Instruction21c) instruction;
 				System.out.println("  " + instr.getReferencedItem() + "  A: "
 						+ instr.getRegisterA());
 				break;
+			}
+			case SUB_DOUBLE:
+			case SUB_FLOAT:
+			case SUB_INT:
+			case SUB_LONG: {
+				// C := A - B
+				final Instruction23x instr = (Instruction23x) instruction;
+				System.out
+						.println("  A: " + instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB() + "  C: "
+								+ instr.getRegisterC());
+				break;
+			}
+			case SUB_DOUBLE_2ADDR:
+			case SUB_FLOAT_2ADDR:
+			case SUB_INT_2ADDR:
+			case SUB_LONG_2ADDR: {
+				// A := A - B
+				final Instruction12x instr = (Instruction12x) instruction;
+				System.out.println("  A: " + instr.getRegisterA() + "  B: "
+						+ instr.getRegisterB());
+				break;
+			}
+			case XOR_INT:
+			case XOR_LONG: {
+				// C := A ^ B
+				final Instruction23x instr = (Instruction23x) instruction;
+				System.out
+						.println("  A: " + instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB() + "  C: "
+								+ instr.getRegisterC());
+				break;
+			}
+			case XOR_INT_2ADDR:
+			case XOR_LONG_2ADDR: {
+				// A := A ^ B
+				final Instruction12x instr = (Instruction12x) instruction;
+				System.out.println("  A: " + instr.getRegisterA() + "  B: "
+						+ instr.getRegisterB());
+				break;
+			}
+			case XOR_INT_LIT8: {
+				// B := A ^ literal
+				final Instruction22b instr = (Instruction22b) instruction;
+				System.out
+						.println("  literal: " + instr.getLiteral() + "  A: "
+								+ instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB());
+				break;
+			}
+			case XOR_INT_LIT16: {
+				// B := A ^ literal
+				final Instruction22s instr = (Instruction22s) instruction;
+				System.out
+						.println("  literal: " + instr.getLiteral() + "  A: "
+								+ instr.getRegisterA() + "  B: "
+								+ instr.getRegisterB());
+				break;
+			}
 			}
 			opPc += instruction.getSize(opPc);
 		}
