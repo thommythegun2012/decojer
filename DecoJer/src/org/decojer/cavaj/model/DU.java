@@ -223,19 +223,19 @@ public class DU {
 		if (fileName.endsWith(".class")) {
 			return JavassistReader.read(is, this);
 		} else if (fileName.endsWith(".dex")) {
-			SmaliReader.read(is, this);
+			return SmaliReader.read(is, this, selector);
 		} else if (fileName.endsWith(".jar")) {
 			String selectorPrefix = null;
-			String selectorFileName = null;
+			String selectorMatch = null;
 			if (selector != null && selector.endsWith(".class")) {
-				selectorFileName = selector.charAt(0) == '/' ? selector
+				selectorMatch = selector.charAt(0) == '/' ? selector
 						.substring(1) : selector;
-				final int pos = selectorFileName.lastIndexOf('/');
+				final int pos = selectorMatch.lastIndexOf('/');
 				if (pos != -1) {
-					selectorPrefix = selectorFileName.substring(0, pos + 1);
+					selectorPrefix = selectorMatch.substring(0, pos + 1);
 				}
 			}
-			TD td = null;
+			TD selectorTd = null;
 
 			final ZipInputStream zip = new ZipInputStream(is);
 			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
@@ -250,22 +250,20 @@ public class DU {
 					continue;
 				}
 				try {
-					if (name.equals(selectorFileName)) {
-						td = read(name, zip, null);
-					} else {
-						read(name, zip, null);
+					final TD td = read(name, zip, null);
+					if (name.equals(selectorMatch)) {
+						selectorTd = td;
 					}
 				} catch (final Exception e) {
 					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!",
 							e);
 				}
 			}
-			return td;
+			return selectorTd;
 		} else {
 			throw new DecoJerException("Unknown file extension '" + fileName
 					+ "'!");
 		}
-		return null;
 	}
 
 }
