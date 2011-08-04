@@ -28,8 +28,8 @@ import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class ARRAYLENGTH extends Operation {
 
-	public ARRAYLENGTH(final int opPc, final int opcodeJvm, final int lineNumber) {
-		super(opPc, opcodeJvm, lineNumber);
+	public ARRAYLENGTH(final int opPc, final int opCode, final int opLine) {
+		super(opPc, opCode, opLine);
 	}
 
 	@Override

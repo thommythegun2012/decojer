@@ -30,9 +30,9 @@ public class RET extends Operation {
 
 	private final int varIndex;
 
-	public RET(final int opPc, final int opcodeJvm, final int lineNumber,
+	public RET(final int opPc, final int opCode, final int opLine,
 			final int varIndex) {
-		super(opPc, opcodeJvm, lineNumber);
+		super(opPc, opCode, opLine);
 		this.varIndex = varIndex;
 	}
 

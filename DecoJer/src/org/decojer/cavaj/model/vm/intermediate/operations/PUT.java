@@ -40,10 +40,10 @@ public class PUT extends Operation {
 
 	private final String fieldrefType;
 
-	public PUT(final int opPc, final int opcodeJvm, final int lineNumber,
+	public PUT(final int opPc, final int opCode, final int opLine,
 			final int functionType, final String fieldrefClassName,
 			final String fieldrefName, final String fieldrefType) {
-		super(opPc, opcodeJvm, lineNumber);
+		super(opPc, opCode, opLine);
 		this.functionType = functionType;
 		this.fieldrefClassName = fieldrefClassName;
 		this.fieldrefName = fieldrefName;

@@ -31,9 +31,9 @@ public class NEW extends Operation {
 
 	private final T t;
 
-	public NEW(final int opPc, final int opcodeJvm, final int lineNumber,
+	public NEW(final int opPc, final int opCode, final int opLine,
 			final T t) {
-		super(opPc, opcodeJvm, lineNumber);
+		super(opPc, opCode, opLine);
 		this.t = t;
 	}
 

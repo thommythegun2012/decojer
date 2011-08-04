@@ -34,9 +34,9 @@ public class MONITOR extends Operation {
 
 	private final int monitorType;
 
-	public MONITOR(final int opPc, final int opcodeJvm, final int lineNumber,
+	public MONITOR(final int opPc, final int opCode, final int opLine,
 			final int monitorType) {
-		super(opPc, opcodeJvm, lineNumber);
+		super(opPc, opCode, opLine);
 		this.monitorType = monitorType;
 	}
 

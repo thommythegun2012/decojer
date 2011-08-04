@@ -23,32 +23,36 @@
  */
 package org.decojer.cavaj.model.vm.intermediate;
 
-import org.decojer.cavaj.model.code.Instruction;
+public abstract class Operation {
 
-public abstract class Operation extends Instruction {
+	private final int opCode;
 
-	private final int opcodeJvm;
+	private final int opLine;
 
 	private final int opPc;
 
-	public Operation(final int opPc, final int opcodeJvm, final int lineNumber) {
-		super(lineNumber);
+	public Operation(final int opPc, final int opCode, final int opLine) {
 		this.opPc = opPc;
-		this.opcodeJvm = opcodeJvm;
+		this.opCode = opCode;
+		this.opLine = opLine;
 	}
 
 	@Override
-	public boolean equals(final Object arg0) {
-		return arg0 instanceof Operation
-				&& getOpPc() == ((Operation) arg0).getOpPc(); // super.equals(arg0);
+	public boolean equals(final Object ob) {
+		return ob instanceof Operation
+				&& getOpPc() == ((Operation) ob).getOpPc(); // super.equals(arg0);
 	}
 
 	public abstract int getInStackSize();
 
 	public abstract int getOpcode();
 
-	public int getOpcodeJvm() {
-		return this.opcodeJvm;
+	public int getOpCode() {
+		return this.opCode;
+	}
+
+	public int getOpLine() {
+		return this.opLine;
 	}
 
 	public int getOpPc() {
@@ -58,6 +62,11 @@ public abstract class Operation extends Instruction {
 	@Override
 	public int hashCode() {
 		return getOpPc(); // super.hashCode();
+	}
+
+	@Override
+	public String toString() {
+		return getClass().getSimpleName();
 	}
 
 }
