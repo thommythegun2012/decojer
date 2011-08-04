@@ -904,7 +904,8 @@ public class JavassistReader {
 						constPool.getInterfaceMethodrefName(cpMethodIndex),
 						constPool.getInterfaceMethodrefType(cpMethodIndex));
 
-				bb.addOperation(new INVOKE(opPc, opCode, opLine, type, invokeM));
+				bb.addOperation(new INVOKE(opPc, opCode, opLine, type, invokeM,
+						null));
 			}
 				break;
 			case Opcode.INVOKESPECIAL:
@@ -929,7 +930,7 @@ public class JavassistReader {
 							constPool.getMethodrefType(cpMethodIndex));
 
 					bb.addOperation(new INVOKE(opPc, opCode, opLine, type,
-							invokeM));
+							invokeM, null));
 				}
 				break;
 			/********

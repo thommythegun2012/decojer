@@ -41,11 +41,14 @@ public class INVOKE extends Operation {
 
 	private final M m;
 
+	private final int[] registers;
+
 	public INVOKE(final int opPc, final int opcodeJvm, final int lineNumber,
-			final int functionType, final M m) {
+			final int functionType, final M m, final int[] registers) {
 		super(opPc, opcodeJvm, lineNumber);
 		this.functionType = functionType;
 		this.m = m;
+		this.registers = registers;
 	}
 
 	public int getFunctionType() {
@@ -54,6 +57,9 @@ public class INVOKE extends Operation {
 
 	@Override
 	public int getInStackSize() {
+		if (this.registers != null) {
+			return 0;
+		}
 		return (this.functionType == T_STATIC ? 0 : 1)
 				+ this.m.getParamTs().length;
 	}
@@ -70,6 +76,10 @@ public class INVOKE extends Operation {
 	@Override
 	public int getOpcode() {
 		return Opcode.INVOKE;
+	}
+
+	public int[] getRegisters() {
+		return this.registers;
 	}
 
 	@Override

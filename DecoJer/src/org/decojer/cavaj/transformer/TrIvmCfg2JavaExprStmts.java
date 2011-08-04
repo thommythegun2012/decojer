@@ -394,9 +394,19 @@ public class TrIvmCfg2JavaExprStmts {
 				// read method invokation arguments
 				final List<Expression> arguments = new ArrayList<Expression>();
 				for (int i = 0; i < m.getParamTs().length; ++i) {
+					if (op.getRegisters() != null) {
+						// TODO dalvik test only
+						arguments.add(getAst().newSimpleName("i" + i));
+						continue;
+					}
 					arguments.add(wrap(bb.popExpression()));
 				}
 				Collections.reverse(arguments);
+
+				// TODO dalvik test only
+				if (op.getRegisters() != null) {
+					bb.pushExpression(getAst().newSimpleName("i_"));
+				}
 
 				final Expression methodExpression;
 				switch (op.getFunctionType()) {
