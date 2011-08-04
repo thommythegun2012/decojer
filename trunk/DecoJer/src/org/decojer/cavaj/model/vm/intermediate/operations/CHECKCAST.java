@@ -31,9 +31,9 @@ public class CHECKCAST extends Operation {
 
 	private final T t;
 
-	public CHECKCAST(final int opPc, final int opcodeJvm, final int lineNumber,
+	public CHECKCAST(final int opPc, final int opCode, final int opLine,
 			final T t) {
-		super(opPc, opcodeJvm, lineNumber);
+		super(opPc, opCode, opLine);
 		this.t = t;
 	}
 

@@ -33,9 +33,9 @@ public class NEWARRAY extends Operation {
 
 	private final T t;
 
-	public NEWARRAY(final int opPc, final int opcodeJvm, final int lineNumber,
+	public NEWARRAY(final int opPc, final int opCode, final int opLine,
 			final T t, final int dimensions) {
-		super(opPc, opcodeJvm, lineNumber);
+		super(opPc, opCode, opLine);
 		this.t = t;
 		this.dimensions = dimensions;
 	}

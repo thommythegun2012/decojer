@@ -31,9 +31,9 @@ public class RETURN extends Operation {
 
 	private final int type;
 
-	public RETURN(final int opPc, final int opcodeJvm, final int lineNumber,
+	public RETURN(final int opPc, final int opCode, final int opLine,
 			final int type) {
-		super(opPc, opcodeJvm, lineNumber);
+		super(opPc, opCode, opLine);
 		this.type = type;
 	}
 

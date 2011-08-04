@@ -38,9 +38,9 @@ public class CMP extends Operation {
 
 	private final int cmp;
 
-	public CMP(final int opPc, final int opcodeJvm, final int lineNumber,
+	public CMP(final int opPc, final int opCode, final int opLine,
 			final int type, final int cmp) {
-		super(opPc, opcodeJvm, lineNumber);
+		super(opPc, opCode, opLine);
 		this.type = type;
 		this.cmp = cmp;
 	}

@@ -43,9 +43,9 @@ public class INVOKE extends Operation {
 
 	private final int[] registers;
 
-	public INVOKE(final int opPc, final int opcodeJvm, final int lineNumber,
+	public INVOKE(final int opPc, final int opCode, final int opLine,
 			final int functionType, final M m, final int[] registers) {
-		super(opPc, opcodeJvm, lineNumber);
+		super(opPc, opCode, opLine);
 		this.functionType = functionType;
 		this.m = m;
 		this.registers = registers;

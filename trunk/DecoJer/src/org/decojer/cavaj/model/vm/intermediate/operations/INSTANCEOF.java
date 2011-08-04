@@ -31,9 +31,9 @@ public class INSTANCEOF extends Operation {
 
 	private final T t;
 
-	public INSTANCEOF(final int opPc, final int opcodeJvm,
-			final int lineNumber, final T t) {
-		super(opPc, opcodeJvm, lineNumber);
+	public INSTANCEOF(final int opPc, final int opCode,
+			final int opLine, final T t) {
+		super(opPc, opCode, opLine);
 		this.t = t;
 	}
 

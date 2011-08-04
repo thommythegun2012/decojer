@@ -28,8 +28,8 @@ import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class GOTO extends Operation {
 
-	public GOTO(final int opPc, final int opcodeJvm, final int lineNumber) {
-		super(opPc, opcodeJvm, lineNumber);
+	public GOTO(final int opPc, final int opCode, final int opLine) {
+		super(opPc, opCode, opLine);
 	}
 
 	@Override
