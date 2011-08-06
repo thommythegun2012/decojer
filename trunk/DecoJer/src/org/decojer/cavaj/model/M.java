@@ -60,7 +60,7 @@ public class M {
 	 * @param descriptor
 	 *            descriptor
 	 */
-	public M(final T t, final String name, final String descriptor) {
+	protected M(final T t, final String name, final String descriptor) {
 		assert t != null;
 		assert name != null;
 		assert descriptor != null;
@@ -226,6 +226,11 @@ public class M {
 	 */
 	public void setThrowsTs(final T[] throwsTs) {
 		this.throwsTs = throwsTs;
+	}
+
+	@Override
+	public String toString() {
+		return getT() + "->" + getName() + getDescriptor();
 	}
 
 }

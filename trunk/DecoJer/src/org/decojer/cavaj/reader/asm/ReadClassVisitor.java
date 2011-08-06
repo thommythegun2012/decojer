@@ -27,6 +27,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
@@ -135,11 +136,16 @@ public class ReadClassVisitor implements ClassVisitor {
 	@Override
 	public FieldVisitor visitField(final int access, final String name,
 			final String desc, final String signature, final Object value) {
-		System.out.println("FIELD DESC: " + desc);
-		if (signature != null) {
-			System.out.println("FIELD SIGN: " + signature);
-		}
-		final FD fd = new FD(this.td, access, name, desc, signature, value);
+		final T t = this.td.getT();
+		// desc: Ljava/lang/Class;
+		final T fieldT = this.du.getDescT(desc);
+		final F f = t.getF(name, fieldT);
+		t.setSignature(signature);
+
+		final FD fd = new FD(f, this.td);
+		fd.setAccessFlags(access);
+		fd.setValue(value);
+
 		this.td.getBds().add(fd);
 
 		this.readFieldVisitor.setFd(fd);
@@ -156,20 +162,18 @@ public class ReadClassVisitor implements ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name,
 			final String desc, final String signature, final String[] exceptions) {
-
 		final T t = this.td.getT();
-
-		final M m = t.getM(name, desc.replace('/', '.'));
+		// desc: (Ljava/lang/String;)I
+		final M m = t.getM(name, desc);
 		if (exceptions != null && exceptions.length > 0) {
 			final T[] throwsTs = new T[exceptions.length];
 			for (int i = exceptions.length; i-- > 0;) {
+				// e.g. java/io/IOException, without L...;
 				throwsTs[i] = this.du.getT(exceptions[i].replace('/', '.'));
 			}
 			m.setThrowsTs(throwsTs);
 		}
-		if (signature != null) {
-			t.setSignature(signature.replace('/', '.'));
-		}
+		t.setSignature(signature);
 
 		final MD md = new MD(m, this.td);
 		md.setAccessFlags(access);

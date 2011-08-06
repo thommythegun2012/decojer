@@ -23,14 +23,22 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.EnumSet;
+
 /**
- * Enum.
+ * Field.
  * 
- * @author André Pankraz.
+ * @author André Pankraz
  */
-public class E {
+public class F {
+
+	private EnumSet<AF> afs = null;
+
+	private final T fieldT;
 
 	private final String name;
+
+	private String signature;
 
 	private final T t;
 
@@ -43,9 +51,23 @@ public class E {
 	 *            name
 	 * 
 	 */
-	public E(final T t, final String name) {
+	protected F(final T t, final String name, final T fieldT) {
+		assert t != null;
+		assert name != null;
+		assert fieldT != null;
+
 		this.t = t;
 		this.name = name;
+		this.fieldT = fieldT;
+	}
+
+	/**
+	 * Get field type.
+	 * 
+	 * @return field type
+	 */
+	public T getFieldT() {
+		return this.fieldT;
 	}
 
 	/**
@@ -58,12 +80,47 @@ public class E {
 	}
 
 	/**
+	 * Get signature.
+	 * 
+	 * @return signature or null
+	 */
+	public String getSignature() {
+		return this.signature;
+	}
+
+	/**
 	 * Get type.
 	 * 
 	 * @return type
 	 */
 	public T getT() {
 		return this.t;
+	}
+
+	/**
+	 * Is enum?
+	 * 
+	 * @return true - is enum
+	 */
+	public boolean isEnum() {
+		return this.afs != null && this.afs.contains(AF.ENUM);
+	}
+
+	/**
+	 * Set is enum.
+	 */
+	public void setEnum() {
+		this.afs = EnumSet.of(AF.PUBLIC, AF.STATIC, AF.FINAL, AF.ENUM);
+	}
+
+	/**
+	 * Set signature.
+	 * 
+	 * @param signature
+	 *            signature
+	 */
+	public void setSignature(final String signature) {
+		this.signature = signature;
 	}
 
 }

@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.reader.dex2jar;
 
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
@@ -81,10 +82,16 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexFieldVisitor visitField(final Field field, final Object value) {
-		// MAX_CHANGES_BEFORE_PURGE : I : 100
-		// queue : Ljava/lang/ref/ReferenceQueue; : null
-		final FD fd = new FD(this.td, field.getAccessFlags(), field.getName(),
-				field.getType(), null, value);
+		final T t = this.td.getT();
+		// desc: Ljava/lang/ref/ReferenceQueue;
+		final T fieldT = t.getDu().getDescT(field.getType());
+		final F f = t.getF(field.getName(), fieldT);
+		// TODO signature in annotation
+
+		final FD fd = new FD(f, this.td);
+		fd.setAccessFlags(field.getAccessFlags());
+		fd.setValue(value);
+
 		this.td.getBds().add(fd);
 
 		this.readDexFieldVisitor.setFd(fd);
@@ -93,13 +100,11 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexMethodVisitor visitMethod(final Method method) {
-		// put : (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-
 		final T t = this.td.getT();
-
+		// desc: (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 		final M m = t.getM(method.getName(), method.getType().getDesc()
 				.replace('/', '.'));
-		// Exceptions are in method annotations!
+		// TODO throws in annotation
 
 		final MD md = new MD(m, this.td);
 		md.setAccessFlags(method.getAccessFlags());

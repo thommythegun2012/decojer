@@ -40,6 +40,7 @@ public class MD implements BD, PD {
 
 	private CFG cfg;
 
+	// deprecated state (from deprecated attribute)
 	private boolean deprecated;
 
 	private final M m;
@@ -48,6 +49,7 @@ public class MD implements BD, PD {
 
 	private A[][] paramAs;
 
+	// synthetic state (from synthetic attribute)
 	private boolean synthetic;
 
 	private final TD td;

@@ -68,10 +68,16 @@ public class T {
 	 * Primitive type void.
 	 */
 	public static T VOID = new T(void.class.getName());
+	/**
+	 * Artificial type 'uninit'.
+	 */
+	public static T UNINIT = new T("<uninit>");
 
 	private int dim;
 
 	private final DU du;
+
+	private final HashMap<String, F> fs = new HashMap<String, F>();
 
 	private T[] interfaceTs;
 
@@ -141,6 +147,24 @@ public class T {
 	 */
 	public DU getDu() {
 		return this.du;
+	}
+
+	/**
+	 * Get field.
+	 * 
+	 * @param name
+	 *            name
+	 * @param fieldT
+	 *            field type
+	 * @return field
+	 */
+	public F getF(final String name, final T fieldT) {
+		F f = this.fs.get(name);
+		if (f == null) {
+			f = new F(this, name, fieldT);
+			this.fs.put(name, f);
+		}
+		return f;
 	}
 
 	/**

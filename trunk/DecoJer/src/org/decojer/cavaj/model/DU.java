@@ -80,6 +80,7 @@ public class DU {
 	 */
 	public T getDescT(final String desc) {
 		assert desc != null;
+		assert desc.indexOf('.') == -1 : desc;
 
 		switch (desc.charAt(0)) {
 		case 'V':

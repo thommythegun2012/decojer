@@ -82,7 +82,7 @@ import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.E;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
@@ -259,8 +259,8 @@ public class JavassistReader {
 			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
 				syntheticAttribute = (SyntheticAttribute) attributeInfo;
 			} else {
-				LOGGER.log(Level.WARNING, "Unknown class attribute tag '"
-						+ attributeTag + "'!");
+				LOGGER.warning("Unknown class attribute tag '" + attributeTag
+						+ "'!");
 			}
 		}
 
@@ -904,8 +904,9 @@ public class JavassistReader {
 						constPool.getInterfaceMethodrefName(cpMethodIndex),
 						constPool.getInterfaceMethodrefType(cpMethodIndex));
 
-				bb.addOperation(new INVOKE(opPc, opCode, opLine, type, invokeM,
-						null));
+				LOGGER.warning("INVOKE INTERFACE: " + invokeM);
+
+				bb.addOperation(new INVOKE(opPc, opCode, opLine, type, invokeM));
 			}
 				break;
 			case Opcode.INVOKESPECIAL:
@@ -930,7 +931,7 @@ public class JavassistReader {
 							constPool.getMethodrefType(cpMethodIndex));
 
 					bb.addOperation(new INVOKE(opPc, opCode, opLine, type,
-							invokeM, null));
+							invokeM));
 				}
 				break;
 			/********
@@ -2061,42 +2062,18 @@ public class JavassistReader {
 			}
 		}
 
-		Object value = null;
-		if (constantAttribute != null) {
-			// only final, non static - no arrays, class types
-			final int index = constantAttribute.getConstantValue();
-			final ConstPool constPool = constantAttribute.getConstPool();
-			final int tag = constPool.getTag(index);
-			switch (tag) {
-			case ConstPool.CONST_Double:
-				value = constPool.getDoubleInfo(index);
-				break;
-			case ConstPool.CONST_Float:
-				value = constPool.getFloatInfo(index);
-				break;
-			case ConstPool.CONST_Integer:
-				// also: int, short, byte, char, boolean
-				value = constPool.getIntegerInfo(index);
-				break;
-			case ConstPool.CONST_Long:
-				value = constPool.getLongInfo(index);
-				break;
-			case ConstPool.CONST_String:
-				value = constPool.getStringInfo(index);
-				break;
-			default:
-				LOGGER.log(Level.WARNING, "Unknown constant attribute '" + tag
-						+ "' for field info '" + fieldInfo.getName() + "'!");
-			}
-		}
-
 		final T t = td.getT();
 		final DU du = t.getDu();
 
-		final FD fd = new FD(td, fieldInfo.getAccessFlags(),
-				fieldInfo.getName(), fieldInfo.getDescriptor(),
-				signatureAttribute == null ? null
-						: signatureAttribute.getSignature(), value);
+		final T fieldT = du.getDescT(fieldInfo.getDescriptor());
+		final F f = t.getF(fieldInfo.getName(), fieldT);
+		if (signatureAttribute != null
+				&& signatureAttribute.getSignature() != null) {
+			f.setSignature(signatureAttribute.getSignature());
+		}
+
+		final FD fd = new FD(f, td);
+		fd.setAccessFlags(fieldInfo.getAccessFlags());
 
 		A[] as = null;
 		if (annotationsAttributeRuntimeVisible != null) {
@@ -2124,6 +2101,36 @@ public class JavassistReader {
 			}
 		}
 		fd.setAs(as);
+
+		if (constantAttribute != null) {
+			Object value = null;
+			// only final, non static - no arrays, class types
+			final int index = constantAttribute.getConstantValue();
+			final ConstPool constPool = constantAttribute.getConstPool();
+			final int tag = constPool.getTag(index);
+			switch (tag) {
+			case ConstPool.CONST_Double:
+				value = constPool.getDoubleInfo(index);
+				break;
+			case ConstPool.CONST_Float:
+				value = constPool.getFloatInfo(index);
+				break;
+			case ConstPool.CONST_Integer:
+				// also: int, short, byte, char, boolean
+				value = constPool.getIntegerInfo(index);
+				break;
+			case ConstPool.CONST_Long:
+				value = constPool.getLongInfo(index);
+				break;
+			case ConstPool.CONST_String:
+				value = constPool.getStringInfo(index);
+				break;
+			default:
+				LOGGER.warning("Unknown constant attribute '" + tag
+						+ "' for field info '" + fieldInfo.getName() + "'!");
+			}
+			fd.setValue(value);
+		}
 
 		if (deprecatedAttribute != null) {
 			fd.setDeprecated(true);
@@ -2297,12 +2304,14 @@ public class JavassistReader {
 	private static T readType(final ConstPool constPool,
 			final int cpClassIndex, final DU du) {
 		final String classInfo = constPool.getClassInfo(cpClassIndex);
+		// org.decojer.cavaj.test.DecTestInner$1$1$1, [[I, [Ljava.lang.String;
+
 		// javassist only replaces '/' with '.', no proper array handling for
 		// cp arrays: "[L<classname>;" instead of "<classname>"
 		if (classInfo.indexOf('[') == -1 && classInfo.indexOf(';') == -1) {
 			return du.getT(classInfo);
 		}
-		return du.getDescT(classInfo);
+		return du.getDescT(classInfo.replace('.', '/'));
 	}
 
 	private static Object readValue(final MemberValue memberValue, final DU du) {
@@ -2335,11 +2344,11 @@ public class JavassistReader {
 		if (memberValue instanceof DoubleMemberValue) {
 			return ((DoubleMemberValue) memberValue).getValue();
 		} else if (memberValue instanceof EnumMemberValue) {
-			final String typeName = ((EnumMemberValue) memberValue).getType();
-			final String value = ((EnumMemberValue) memberValue).getValue();
-			final T t = du.getT(typeName); // java.lang.Thread$State
-			final E e = new E(t, value);
-			return e;
+			final T enumT = du.getT(((EnumMemberValue) memberValue).getType());
+			final F enumF = enumT.getF(
+					((EnumMemberValue) memberValue).getValue(), enumT);
+			enumF.setEnum();
+			return enumF;
 		}
 		if (memberValue instanceof FloatMemberValue) {
 			return ((FloatMemberValue) memberValue).getValue();

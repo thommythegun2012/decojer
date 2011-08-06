@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.E;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Type;
@@ -146,7 +146,9 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 		// value: BLOCKED
 		final T t = this.readMethodVisitor.getReadClassVisitor().getDu()
 				.getDescT(desc);
-		this.value = new E(t, value);
+		final F f = t.getF(value, t);
+		f.setEnum();
+		this.value = f;
 	}
 
 }

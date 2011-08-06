@@ -25,7 +25,6 @@ package org.decojer.cavaj.transformer;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javassist.bytecode.AccessFlag;
@@ -33,6 +32,7 @@ import javassist.bytecode.AccessFlag;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
@@ -40,6 +40,7 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.tool.AnnotationsDecompiler;
 import org.decojer.cavaj.tool.SignatureDecompiler;
+import org.decojer.cavaj.tool.Types;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
@@ -74,7 +75,9 @@ public class TrJvmStruct2JavaAst {
 
 	@SuppressWarnings("unchecked")
 	private static void decompileField(final FD fd, final CU cu) {
+		final F f = fd.getF();
 		final TD td = fd.getTd();
+
 		final AbstractTypeDeclaration typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
 
@@ -92,7 +95,7 @@ public class TrJvmStruct2JavaAst {
 		// decompile BodyDeclaration, possible subtypes:
 		// FieldDeclaration, EnumConstantDeclaration
 		final BodyDeclaration fieldDeclaration;
-		final String name = fd.getName();
+		final String name = f.getName();
 		if (isEnum) {
 			fieldDeclaration = ast.newEnumConstantDeclaration();
 			((EnumConstantDeclaration) fieldDeclaration).setName(ast
@@ -165,22 +168,26 @@ public class TrJvmStruct2JavaAst {
 					ast.newModifier(ModifierKeyword.TRANSIENT_KEYWORD));
 		}
 		if (accessFlags != 0) {
-			LOGGER.log(Level.WARNING, "Unknown field info modifier flags '"
-					+ accessFlags + "' for field info '" + fd.getName() + "'!");
+			LOGGER.warning("Unknown field info modifier flags '" + accessFlags
+					+ "' for field info '" + f.getName() + "'!");
 		}
 
 		if (fieldDeclaration instanceof EnumConstantDeclaration) {
 			if (!(typeDeclaration instanceof EnumDeclaration)) {
-				LOGGER.log(Level.WARNING,
-						"No enum declaration for enum constant declaration '"
-								+ fd.getName() + "'!");
+				LOGGER.warning("No enum declaration for enum constant declaration '"
+						+ f.getName() + "'!");
 			} else {
 				((EnumDeclaration) typeDeclaration).enumConstants().add(
 						fieldDeclaration);
 			}
 		} else if (fieldDeclaration instanceof FieldDeclaration) {
-			new SignatureDecompiler(td, fd.getDescriptor(), fd.getSignature())
-					.decompileFieldType((FieldDeclaration) fieldDeclaration);
+			if (f.getSignature() != null) {
+				new SignatureDecompiler(td, null, f.getSignature())
+						.decompileFieldType((FieldDeclaration) fieldDeclaration);
+			} else {
+				((FieldDeclaration) fieldDeclaration).setType(Types
+						.convertType(f.getFieldT(), td));
+			}
 
 			final Object value = fd.getValue();
 			if (value != null) {
@@ -195,7 +202,7 @@ public class TrJvmStruct2JavaAst {
 							.newNumberLiteral(value.toString() + 'F'));
 				} else if (value instanceof Integer) {
 					// also: int, short, byte, char, boolean
-					if ("C".equals(fd.getDescriptor())) {
+					if (T.CHAR == f.getFieldT()) {
 						final CharacterLiteral newCharacterLiteral = ast
 								.newCharacterLiteral();
 						newCharacterLiteral
@@ -203,7 +210,7 @@ public class TrJvmStruct2JavaAst {
 										.intValue());
 						variableDeclarationFragment
 								.setInitializer(newCharacterLiteral);
-					} else if ("Z".equals(fd.getDescriptor())) {
+					} else if (T.BOOLEAN == f.getFieldT()) {
 						variableDeclarationFragment
 								.setInitializer(ast
 										.newBooleanLiteral(((Integer) value)
@@ -222,10 +229,9 @@ public class TrJvmStruct2JavaAst {
 					variableDeclarationFragment
 							.setInitializer(newStringLiteral);
 				} else {
-					LOGGER.log(Level.WARNING,
-							"Unknown constant attribute '" + value.getClass()
-									+ "' for field info '" + fd.getName()
-									+ "'!");
+					LOGGER.warning("Unknown constant attribute '"
+							+ value.getClass() + "' for field info '"
+							+ f.getName() + "'!");
 				}
 			}
 			fd.setFieldDeclaration(fieldDeclaration);
@@ -368,7 +374,7 @@ public class TrJvmStruct2JavaAst {
 			// nothing
 		}
 		if (accessFlags != 0) {
-			LOGGER.log(Level.WARNING, "Unknown method info modifier flags '0x"
+			LOGGER.warning("Unknown method info modifier flags '0x"
 					+ Integer.toHexString(accessFlags) + "' for method info '"
 					+ m.getName() + "'!");
 		}
@@ -451,34 +457,33 @@ public class TrJvmStruct2JavaAst {
 		if (accessFlags != (accessFlags &= ~AccessFlag.ANNOTATION)) {
 			if (t.getSuperT() == null
 					|| !Object.class.getName().equals(t.getSuperT().getName())) {
-				LOGGER.log(Level.WARNING,
-						"Classfile with AccessFlag.ANNOTATION has no super class '"
-								+ Object.class.getName() + "' but has '"
-								+ t.getSuperT().getName() + "'!");
+				LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no super class '"
+						+ Object.class.getName()
+						+ "' but has '"
+						+ t.getSuperT().getName() + "'!");
 			}
 			if (t.getInterfaceTs().length != 1
 					|| !Annotation.class.getName().equals(
 							t.getInterfaceTs()[0].getName())) {
-				LOGGER.log(Level.WARNING,
-						"Classfile with AccessFlag.ANNOTATION has no interface '"
-								+ Annotation.class.getName() + "' but has '"
-								+ t.getInterfaceTs()[0].getName() + "'!");
+				LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no interface '"
+						+ Annotation.class.getName()
+						+ "' but has '"
+						+ t.getInterfaceTs()[0].getName() + "'!");
 			}
 			typeDeclaration = ast.newAnnotationTypeDeclaration();
 		}
 		// enum declaration
 		if (accessFlags != (accessFlags &= ~AccessFlag.ENUM)) {
 			if (typeDeclaration != null) {
-				LOGGER.log(Level.WARNING,
-						"Enum declaration cannot be an annotation type declaration! Ignoring.");
+				LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 			} else {
 				if (t.getSuperT() == null
 						|| !Enum.class.getName()
 								.equals(t.getSuperT().getName())) {
-					LOGGER.log(Level.WARNING,
-							"Classfile with AccessFlag.ENUM has no super class '"
-									+ Enum.class.getName() + "' but has '"
-									+ t.getSuperT().getName() + "'!");
+					LOGGER.warning("Classfile with AccessFlag.ENUM has no super class '"
+							+ Enum.class.getName()
+							+ "' but has '"
+							+ t.getSuperT().getName() + "'!");
 				}
 				typeDeclaration = ast.newEnumDeclaration();
 				// enum declarations cannot extent other classes but Enum.class,
@@ -538,9 +543,8 @@ public class TrJvmStruct2JavaAst {
 					ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 		}
 		if (accessFlags != 0) {
-			LOGGER.log(Level.WARNING,
-					"Unknown type declaration modifier flags '" + accessFlags
-							+ "'!");
+			LOGGER.warning("Unknown type declaration modifier flags '"
+					+ accessFlags + "'!");
 		}
 
 		// multiple CompilationUnit.TypeDeclaration in same AST (source file)
@@ -615,5 +619,4 @@ public class TrJvmStruct2JavaAst {
 		sb.append(" */");
 		cu.setComment(sb.toString());
 	}
-
 }
