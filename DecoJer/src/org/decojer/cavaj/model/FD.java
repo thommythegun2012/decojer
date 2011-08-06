@@ -33,57 +33,41 @@ import org.eclipse.jdt.core.dom.Expression;
  */
 public class FD implements BD, PD {
 
-	private final int accessFlags;
+	private int accessFlags;
 
 	private A[] as;
 
+	// deprecated state (from deprecated attribute)
 	private boolean deprecated;
 
-	private final String descriptor;
+	private final F f;
 
 	private BodyDeclaration fieldDeclaration;
 
 	private Expression initializer;
 
-	private final String name;
-
-	private final String signature;
-
+	// synthetic state (from synthetic attribute)
 	private boolean synthetic;
 
 	private final TD td;
 
 	// value, type Integer: int, short, byte, char, boolean
-	private final Object value;
+	private Object value;
 
 	/**
 	 * Constructor.
 	 * 
+	 * @param f
+	 *            field
 	 * @param td
 	 *            type declaration
-	 * @param accessFlags
-	 *            access flags
-	 * @param name
-	 *            name
-	 * @param descriptor
-	 *            descriptor
-	 * @param signature
-	 *            signature
-	 * @param value
-	 *            value
 	 */
-	public FD(final TD td, final int accessFlags, final String name,
-			final String descriptor, final String signature, final Object value) {
+	public FD(final F f, final TD td) {
+		assert f != null;
 		assert td != null;
-		assert name != null;
-		assert descriptor != null;
 
+		this.f = f;
 		this.td = td;
-		this.accessFlags = accessFlags;
-		this.name = name;
-		this.descriptor = descriptor;
-		this.signature = signature;
-		this.value = value;
 	}
 
 	/**
@@ -105,12 +89,12 @@ public class FD implements BD, PD {
 	}
 
 	/**
-	 * Get descriptor.
+	 * Get field.
 	 * 
-	 * @return descriptor
+	 * @return field
 	 */
-	public String getDescriptor() {
-		return this.descriptor;
+	public F getF() {
+		return this.f;
 	}
 
 	/**
@@ -129,24 +113,6 @@ public class FD implements BD, PD {
 	 */
 	public Expression getInitializer() {
 		return this.initializer;
-	}
-
-	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	public String getName() {
-		return this.name;
-	}
-
-	/**
-	 * Get signature.
-	 * 
-	 * @return signature
-	 */
-	public String getSignature() {
-		return this.signature;
 	}
 
 	/**
@@ -183,6 +149,16 @@ public class FD implements BD, PD {
 	 */
 	public boolean isSynthetic() {
 		return this.synthetic;
+	}
+
+	/**
+	 * Set access flags.
+	 * 
+	 * @param accessFlags
+	 *            access flags
+	 */
+	public void setAccessFlags(final int accessFlags) {
+		this.accessFlags = accessFlags;
 	}
 
 	/**
@@ -227,6 +203,16 @@ public class FD implements BD, PD {
 	 */
 	public void setSynthetic(final boolean synthetic) {
 		this.synthetic = synthetic;
+	}
+
+	/**
+	 * Set value.
+	 * 
+	 * @param value
+	 *            value
+	 */
+	public void setValue(final Object value) {
+		this.value = value;
 	}
 
 }

@@ -35,9 +35,10 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.E;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
@@ -45,9 +46,14 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
+import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
+import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
+import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
+import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
 import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
+import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
 import org.decojer.cavaj.reader.smali.ReadDebugInfo;
 import org.jf.dexlib.AnnotationDirectoryItem;
 import org.jf.dexlib.AnnotationDirectoryItem.FieldAnnotationIteratorDelegate;
@@ -517,6 +523,8 @@ public class SmaliReader {
 		// dynamic: (6 register)
 		// work_register1...work_register_2...this...param1...param2...param3
 
+		final BB bb = cfg.getStartBb();
+
 		for (int opPc = 0, opLine = -1, i = 0; i < instructions.length; ++i) {
 			final Instruction instruction = instructions[i];
 
@@ -530,6 +538,10 @@ public class SmaliReader {
 			System.out.println("I" + opPc + " (" + opLine + "): "
 					+ instruction.opcode + "     "
 					+ instruction.getClass().getName());
+
+			int type = -1;
+			int iValue = Integer.MIN_VALUE;
+			final Object oValue = null;
 
 			switch (instruction.opcode) {
 			case ADD_DOUBLE:
@@ -607,6 +619,10 @@ public class SmaliReader {
 				final Instruction11n instr = (Instruction11n) instruction;
 				System.out.println("  refItem: " + instr.getLiteral() + "  A: "
 						+ instr.getRegisterA());
+				bb.addOperation(new PUSH(opPc, opCode, opLine, DataType.T_INT,
+						(int) instr.getLiteral()));
+				bb.addOperation(new STORE(opPc, opCode, opLine, DataType.T_INT,
+						instr.getRegisterA(), "r" + instr.getRegisterA(), null));
 				break;
 			}
 			case CONST_16:
@@ -622,6 +638,13 @@ public class SmaliReader {
 				final Instruction21c instr = (Instruction21c) instruction;
 				System.out.println("  refItem: " + instr.getReferencedItem()
 						+ "  A: " + instr.getRegisterA());
+				final StringIdItem stringIdItem = (StringIdItem) instr
+						.getReferencedItem();
+				bb.addOperation(new PUSH(opPc, opCode, opLine,
+						DataType.T_STRING, stringIdItem.getStringValue()));
+				bb.addOperation(new STORE(opPc, opCode, opLine,
+						DataType.T_STRING, instr.getRegisterA(), "r"
+								+ instr.getRegisterA(), null));
 				break;
 			}
 			case DIV_DOUBLE:
@@ -690,17 +713,47 @@ public class SmaliReader {
 				break;
 			}
 			case IF_EQZ:
+				type = DataType.T_INT;
+				iValue = CompareType.T_EQ;
+				// fall through
 			case IF_GEZ:
+				if (type < 0) {
+					type = DataType.T_INT;
+					iValue = CompareType.T_GE;
+				}
+				// fall through
 			case IF_GTZ:
+				if (type < 0) {
+					type = DataType.T_INT;
+					iValue = CompareType.T_GT;
+				}
+				// fall through
 			case IF_LEZ:
+				if (type < 0) {
+					type = DataType.T_INT;
+					iValue = CompareType.T_LE;
+				}
+				// fall through
 			case IF_LTZ:
+				if (type < 0) {
+					type = DataType.T_INT;
+					iValue = CompareType.T_LT;
+				}
+				// fall through
 			case IF_NEZ: {
+				if (type < 0) {
+					type = DataType.T_INT;
+					iValue = CompareType.T_NE;
+				}
 				// IF A cond 0 JMP offset
 				final Instruction21t instr = (Instruction21t) instruction;
 				// offset can be negative and positive
 				System.out.println("  targetOff: "
 						+ instr.getTargetAddressOffset() + "  A: "
 						+ instr.getRegisterA());
+
+				// TODO this and GOTO...than test(ZZZ) should work
+
 				break;
 			}
 			case INT_TO_BYTE:
@@ -714,97 +767,22 @@ public class SmaliReader {
 						+ instr.getRegisterB());
 				break;
 			}
-			case INVOKE_DIRECT: {
-				final Instruction35c instr = (Instruction35c) instruction;
-
-				final MethodIdItem methodIdItem = (MethodIdItem) instr
-						.getReferencedItem();
-				final T t = du.getDescT(methodIdItem.getContainingClass()
-						.getTypeDescriptor());
-				final M invokeM = t.getM(methodIdItem.getMethodName()
-						.getStringValue(), methodIdItem.getPrototype()
-						.getPrototypeString());
-
-				System.out.print("  " + instr.getReferencedItem() + " : "
-						+ instr.getRegCount());
-				System.out.print("  (D: " + instr.getRegisterD());
-				System.out.print("  E: " + instr.getRegisterE());
-				System.out.print("  F: " + instr.getRegisterF());
-				System.out.print("  G: " + instr.getRegisterG());
-				System.out.println("  A: " + instr.getRegisterA() + ")");
-
-				final int[] registers = new int[instr.getRegCount()];
-				if (instr.getRegCount() > 0) {
-					registers[0] = instr.getRegisterD();
+			case INVOKE_INTERFACE:
+				type = INVOKE.T_INTERFACE;
+				// fall through
+			case INVOKE_DIRECT:
+				type = INVOKE.T_SPECIAL;
+				// fall through
+			case INVOKE_STATIC:
+				if (type < 0) {
+					type = INVOKE.T_STATIC;
 				}
-				if (instr.getRegCount() > 1) {
-					registers[1] = instr.getRegisterE();
-				}
-				if (instr.getRegCount() > 2) {
-					registers[2] = instr.getRegisterF();
-				}
-				if (instr.getRegCount() > 3) {
-					registers[3] = instr.getRegisterG();
-				}
-				if (instr.getRegCount() > 4) {
-					registers[4] = instr.getRegisterA();
-				}
-				cfg.getStartBb().addOperation(
-						new INVOKE(opPc, opCode, opLine, INVOKE.T_SPECIAL,
-								invokeM, registers));
-				break;
-			}
-			case INVOKE_STATIC: {
-				final Instruction35c instr = (Instruction35c) instruction;
-
-				final MethodIdItem methodIdItem = (MethodIdItem) instr
-						.getReferencedItem();
-				final T t = du.getDescT(methodIdItem.getContainingClass()
-						.getTypeDescriptor());
-				final M invokeM = t.getM(methodIdItem.getMethodName()
-						.getStringValue(), methodIdItem.getPrototype()
-						.getPrototypeString());
-
-				System.out.print("  " + instr.getReferencedItem() + " : "
-						+ instr.getRegCount());
-				System.out.print("  (D: " + instr.getRegisterD());
-				System.out.print("  E: " + instr.getRegisterE());
-				System.out.print("  F: " + instr.getRegisterF());
-				System.out.print("  G: " + instr.getRegisterG());
-				System.out.println("  A: " + instr.getRegisterA() + ")");
-
-				final int[] registers = new int[instr.getRegCount()];
-				if (instr.getRegCount() > 0) {
-					registers[0] = instr.getRegisterD();
-				}
-				if (instr.getRegCount() > 1) {
-					registers[1] = instr.getRegisterE();
-				}
-				if (instr.getRegCount() > 2) {
-					registers[2] = instr.getRegisterF();
-				}
-				if (instr.getRegCount() > 3) {
-					registers[3] = instr.getRegisterG();
-				}
-				if (instr.getRegCount() > 4) {
-					registers[4] = instr.getRegisterA();
-				}
-				cfg.getStartBb().addOperation(
-						new INVOKE(opPc, opCode, opLine, INVOKE.T_STATIC,
-								invokeM, registers));
-				break;
-			}
+				// fall through
 			case INVOKE_VIRTUAL: {
+				if (type < 0) {
+					type = INVOKE.T_VIRTUAL;
+				}
 				final Instruction35c instr = (Instruction35c) instruction;
-
-				final MethodIdItem methodIdItem = (MethodIdItem) instr
-						.getReferencedItem();
-				final T t = du.getDescT(methodIdItem.getContainingClass()
-						.getTypeDescriptor());
-				final M invokeM = t.getM(methodIdItem.getMethodName()
-						.getStringValue(), methodIdItem.getPrototype()
-						.getPrototypeString());
-
 				System.out.print("  " + instr.getReferencedItem() + " : "
 						+ instr.getRegCount());
 				System.out.print("  (D: " + instr.getRegisterD());
@@ -812,32 +790,45 @@ public class SmaliReader {
 				System.out.print("  F: " + instr.getRegisterF());
 				System.out.print("  G: " + instr.getRegisterG());
 				System.out.println("  A: " + instr.getRegisterA() + ")");
-
-				final int[] registers = new int[instr.getRegCount()];
-				if (instr.getRegCount() > 0) {
-					registers[0] = instr.getRegisterD();
-				}
 				if (instr.getRegCount() > 1) {
-					registers[1] = instr.getRegisterE();
+					bb.addOperation(new LOAD(opPc, opCode, opLine, 0, instr
+							.getRegisterE(), "r" + instr.getRegisterE(), null));
 				}
 				if (instr.getRegCount() > 2) {
-					registers[2] = instr.getRegisterF();
+					bb.addOperation(new LOAD(opPc, opCode, opLine, 0, instr
+							.getRegisterF(), "r" + instr.getRegisterF(), null));
 				}
 				if (instr.getRegCount() > 3) {
-					registers[3] = instr.getRegisterG();
+					bb.addOperation(new LOAD(opPc, opCode, opLine, 0, instr
+							.getRegisterG(), "r" + instr.getRegisterG(), null));
 				}
 				if (instr.getRegCount() > 4) {
-					registers[4] = instr.getRegisterA();
+					bb.addOperation(new LOAD(opPc, opCode, opLine, 0, instr
+							.getRegisterA(), "r" + instr.getRegisterA(), null));
 				}
-				cfg.getStartBb().addOperation(
-						new INVOKE(opPc, opCode, opLine, INVOKE.T_VIRTUAL,
-								invokeM, registers));
+				final MethodIdItem methodIdItem = (MethodIdItem) instr
+						.getReferencedItem();
+				final T t = du.getDescT(methodIdItem.getContainingClass()
+						.getTypeDescriptor());
+				final M invokeM = t.getM(methodIdItem.getMethodName()
+						.getStringValue(), methodIdItem.getPrototype()
+						.getPrototypeString());
+				if (instr.getRegCount() > 0) {
+					bb.addOperation(new LOAD(opPc, opCode, opLine,
+							DataType.T_AREF, instr.getRegisterD(), "r"
+									+ instr.getRegisterD(), null));
+				}
+				bb.addOperation(new INVOKE(opPc, opCode, opLine, type, invokeM));
 				break;
 			}
 			case MOVE: {
 				final Instruction12x instr = (Instruction12x) instruction;
 				System.out.print("  A: " + instr.getRegisterA());
 				System.out.println("  B: " + instr.getRegisterB());
+				bb.addOperation(new LOAD(opPc, opCode, opLine, 0, instr
+						.getRegisterA(), "r" + instr.getRegisterA(), null));
+				bb.addOperation(new STORE(opPc, opCode, opLine, 0, instr
+						.getRegisterB(), "r" + instr.getRegisterB(), null));
 				break;
 			}
 			case MOVE_RESULT:
@@ -910,6 +901,18 @@ public class SmaliReader {
 				final Instruction21c instr = (Instruction21c) instruction;
 				System.out.println("  " + instr.getReferencedItem() + "  A: "
 						+ instr.getRegisterA());
+				final FieldIdItem fieldIdItem = (FieldIdItem) instr
+						.getReferencedItem();
+				final T fieldRef = du.getDescT(fieldIdItem.getContainingClass()
+						.getTypeDescriptor());
+				final T fieldType = du.getDescT(fieldIdItem.getFieldType()
+						.getTypeDescriptor());
+				bb.addOperation(new GET(opPc, opCode, opLine, GET.T_STATIC,
+						fieldRef.getName(), fieldIdItem.getFieldName()
+								.getStringValue(), fieldType.getName()));
+				bb.addOperation(new STORE(opPc, opCode, opLine,
+						DataType.T_AREF, instr.getRegisterA(), "r"
+								+ instr.getRegisterA(), null));
 				break;
 			}
 			case SUB_DOUBLE:
@@ -996,24 +999,38 @@ public class SmaliReader {
 			final EncodedField encodedField = staticFields[i];
 			final FieldIdItem field = encodedField.field;
 
-			Object value = null;
-			if (staticFieldValues.length > i) {
-				value = readValue(staticFieldValues[i], du);
+			final T fieldT = du.getDescT(field.getFieldType()
+					.getTypeDescriptor());
+			final F f = t.getF(field.getFieldName().getStringValue(), fieldT);
+			if (fieldSignatures.get(field) != null) {
+				f.setSignature(fieldSignatures.get(field));
 			}
-			final FD fd = new FD(td, encodedField.accessFlags, field
-					.getFieldName().getStringValue(), field.getFieldType()
-					.getTypeDescriptor(), fieldSignatures.get(field), value);
+
+			final FD fd = new FD(f, td);
+			fd.setAccessFlags(encodedField.accessFlags);
+			if (staticFieldValues.length > i) {
+				fd.setValue(readValue(staticFieldValues[i], du));
+			}
+
 			fd.setAs(fieldAs.get(field));
 			td.getBds().add(fd);
 		}
 		for (int i = 0; i < instanceFields.length; ++i) {
 			final EncodedField encodedField = instanceFields[i];
 			final FieldIdItem field = encodedField.field;
+
+			final T fieldT = du.getDescT(field.getFieldType()
+					.getTypeDescriptor());
+			final F f = t.getF(field.getFieldName().getStringValue(), fieldT);
+			if (fieldSignatures.get(field) != null) {
+				f.setSignature(fieldSignatures.get(field));
+			}
+
+			final FD fd = new FD(f, td);
+			fd.setAccessFlags(encodedField.accessFlags);
 			// there is no field initializer section for instance fields,
 			// only via constructor
-			final FD fd = new FD(td, encodedField.accessFlags, field
-					.getFieldName().getStringValue(), field.getFieldType()
-					.getTypeDescriptor(), fieldSignatures.get(field), null);
+
 			fd.setAs(fieldAs.get(field));
 			td.getBds().add(fd);
 		}
@@ -1115,15 +1132,13 @@ public class SmaliReader {
 			return ((DoubleEncodedValue) encodedValue).value;
 		}
 		if (encodedValue instanceof EnumEncodedValue) {
-			// TODO enum ... interesting parallel to MethodEncodedValue with
-			// M? maybe use F here?
 			final FieldIdItem fieldidItem = ((EnumEncodedValue) encodedValue).value;
-			final String typeDescr = fieldidItem.getFieldType()
-					.getTypeDescriptor();
-			final String value = fieldidItem.getFieldName().getStringDataItem()
-					.getStringValue();
-			final T t = du.getDescT(typeDescr);
-			return new E(t, value);
+			final T enumT = du.getDescT(fieldidItem.getFieldType()
+					.getTypeDescriptor());
+			final F enumF = enumT.getF(fieldidItem.getFieldName()
+					.getStringDataItem().getStringValue(), enumT);
+			enumF.setEnum();
+			return enumF;
 		}
 		if (encodedValue instanceof FloatEncodedValue) {
 			return ((FloatEncodedValue) encodedValue).value;

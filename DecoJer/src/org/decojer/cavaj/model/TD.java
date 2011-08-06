@@ -47,6 +47,7 @@ public class TD implements BD, PD {
 	// all body declarations: inner type/method/field declarations
 	private final List<BD> bds = new ArrayList<BD>();
 
+	// deprecated state (from deprecated attribute)
 	private boolean deprecated;
 
 	// is anonymous, enclosing method
@@ -64,6 +65,7 @@ public class TD implements BD, PD {
 	// from source file attribute
 	private String sourceFileName;
 
+	// synthetic state (from synthetic attribute)
 	private boolean synthetic;
 
 	// type

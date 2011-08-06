@@ -30,7 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.E;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.AST;
@@ -165,10 +165,13 @@ public class AnnotationsDecompiler {
 		if (defaultValue instanceof Double) {
 			return ast.newNumberLiteral(defaultValue.toString() + 'D');
 		}
-		if (defaultValue instanceof E) {
-			final E e = (E) defaultValue;
-			return ast.newQualifiedName(td.newTypeName(e.getT().getName()),
-					ast.newSimpleName(e.getName()));
+		if (defaultValue instanceof F) {
+			final F f = (F) defaultValue;
+			if (!f.isEnum()) {
+				LOGGER.warning("Default value field must be enum!");
+			}
+			return ast.newQualifiedName(td.newTypeName(f.getT().getName()),
+					ast.newSimpleName(f.getName()));
 		}
 		if (defaultValue instanceof Float) {
 			return ast.newNumberLiteral(defaultValue.toString() + 'F');
