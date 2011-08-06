@@ -1753,7 +1753,7 @@ public class JavassistReader {
 				codeReader.pc = codeReader.code.length; // next open pc
 				break;
 			/**************
-			 * CHECKCCAST *
+			 * CHECKCAST *
 			 **************/
 			case Opcode.CHECKCAST: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
@@ -2303,15 +2303,16 @@ public class JavassistReader {
 
 	private static T readType(final ConstPool constPool,
 			final int cpClassIndex, final DU du) {
+		// no primitives here: for checkcast, instanceof etc.
 		final String classInfo = constPool.getClassInfo(cpClassIndex);
-		// org.decojer.cavaj.test.DecTestInner$1$1$1, [[I, [Ljava.lang.String;
-
-		// javassist only replaces '/' with '.', no proper array handling for
-		// cp arrays: "[L<classname>;" instead of "<classname>"
-		if (classInfo.indexOf('[') == -1 && classInfo.indexOf(';') == -1) {
-			return du.getT(classInfo);
+		// strange Javassist behaviour:
+		if (classInfo.charAt(0) == '[') {
+			// Javassist only replaces '/' through '.' for arrays
+			// desc: [[I, [Ljava.lang.String;
+			return du.getDescT(classInfo.replace('.', '/'));
 		}
-		return du.getDescT(classInfo.replace('.', '/'));
+		// org.decojer.cavaj.test.DecTestInner$1$1$1
+		return du.getT(classInfo);
 	}
 
 	private static Object readValue(final MemberValue memberValue, final DU du) {

@@ -81,7 +81,6 @@ public class SignatureDecompiler {
 		assert td != null;
 		assert td.getCu() != null;
 		assert td.getCu().getAst() != null;
-		assert signatureSimple != null;
 
 		this.td = td;
 		this.ast = td.getCu().getAst();
