@@ -116,11 +116,19 @@ public class F {
 	}
 
 	/**
-	 * Mark as enum.
+	 * Mark access flag.
+	 * 
+	 * @param af
+	 *            access flag
 	 */
-	public void markEnum() {
-		this.accessFlags = AF.PUBLIC.getValue() | AF.STATIC.getValue()
-				| AF.FINAL.getValue() | AF.ENUM.getValue();
+	public void markAf(final AF af) {
+		// TODO many more checks
+		if (af == AF.ENUM) {
+			this.accessFlags = AF.PUBLIC.getValue() | AF.STATIC.getValue()
+					| AF.FINAL.getValue() | AF.ENUM.getValue();
+			return;
+		}
+		this.accessFlags |= af.getValue();
 	}
 
 	/**

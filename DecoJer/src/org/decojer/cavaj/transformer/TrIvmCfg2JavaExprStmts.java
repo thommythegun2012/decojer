@@ -34,10 +34,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
@@ -341,27 +343,21 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			case Opcode.GET: {
 				final GET op = (GET) operation;
-				switch (op.getFunctionType()) {
-				case GET.T_DYNAMIC:
+				final F f = op.getF();
+				if (f.checkAf(AF.STATIC)) {
+					final Name name = getAst().newQualifiedName(
+							getTd().newTypeName(f.getT().getName()),
+							getAst().newSimpleName(f.getName()));
+					bb.pushExpression(name);
+				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
 					fieldAccess.setExpression(wrap(bb.popExpression(),
 							priority(fieldAccess)));
-					fieldAccess.setName(getAst().newSimpleName(
-							op.getFieldrefName()));
+					fieldAccess.setName(getAst().newSimpleName(f.getName()));
 					bb.pushExpression(fieldAccess);
-					break;
-				case GET.T_STATIC:
-					final Name name = getAst().newQualifiedName(
-							getTd().newTypeName(op.getFieldrefClassName()),
-							getAst().newSimpleName(op.getFieldrefName()));
-					bb.pushExpression(name);
-					break;
-				default:
-					LOGGER.warning("Unknown function type '"
-							+ op.getFunctionType() + "'!");
 				}
-			}
 				break;
+			}
 			case Opcode.GOTO: {
 				// not really necessary, but important for
 				// 1) correct opPc blocks
