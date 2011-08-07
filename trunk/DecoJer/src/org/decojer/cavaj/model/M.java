@@ -220,6 +220,16 @@ public class M {
 	}
 
 	/**
+	 * Mark access flag.
+	 * 
+	 * @param af
+	 *            access flag
+	 */
+	public void markAf(final AF af) {
+		this.accessFlags |= af.getValue();
+	}
+
+	/**
 	 * Set access flags.
 	 * 
 	 * @param accessFlags
