@@ -386,7 +386,9 @@ public class JavassistReader {
 	@SuppressWarnings("unchecked")
 	private static void readCode(final MD md, final CodeAttribute codeAttribute) {
 		LineNumberAttribute lineNumberAttribute = null;
+		// contains names and descriptors
 		LocalVariableAttribute localVariableAttribute = null;
+		// contains signatures, names are same
 		LocalVariableAttribute localVariableTypeAttribute = null;
 		StackMap stackMap;
 		StackMapTable stackMapTable;
@@ -1236,7 +1238,6 @@ public class JavassistReader {
 					type = DataType.T_LONG;
 					iValue = 3;
 				}
-
 				String varName = null;
 				String varDescriptor = null;
 				if (localVariableAttribute != null) {
@@ -1252,6 +1253,32 @@ public class JavassistReader {
 						}
 					}
 				}
+				final T varT = varDescriptor == null ? null : du
+						.getDescT(varDescriptor);
+				if (localVariableTypeAttribute != null) {
+					for (int i = 0; i < localVariableTypeAttribute
+							.tableLength(); ++i) {
+						if (localVariableTypeAttribute.index(i) == iValue
+								&& localVariableTypeAttribute.startPc(i) <= opPc
+								&& localVariableTypeAttribute.startPc(i)
+										+ localVariableTypeAttribute
+												.codeLength(i) >= opPc) {
+							if (!localVariableTypeAttribute.variableName(i)
+									.equals(varName)) {
+								LOGGER.warning("Local variable type attribute name '"
+										+ localVariableTypeAttribute
+												.variableName(i)
+										+ "' not equal to local variable attribute name '"
+										+ varName + "'!");
+							} else {
+								varT.setSignature(localVariableTypeAttribute
+										.descriptor(i));
+							}
+							break;
+						}
+					}
+				}
+				// TODO delete this, use frames
 				if (varName == null) {
 					if (iValue == 0 && !isStatic) {
 						varName = "this";
@@ -1259,11 +1286,8 @@ public class JavassistReader {
 						varName = "arg" + iValue;
 					}
 				}
-				final T varT = varDescriptor == null ? null : du
-						.getDescT(varDescriptor);
-
 				bb.addOperation(new LOAD(opPc, opCode, opLine, type, iValue,
-						varName, varT));
+						varT, varName));
 				break;
 			}
 			/*******
@@ -1698,7 +1722,6 @@ public class JavassistReader {
 					type = DataType.T_LONG;
 					iValue = 3;
 				}
-
 				String varName = null;
 				String varDescriptor = null;
 				if (localVariableAttribute != null) {
@@ -1714,6 +1737,32 @@ public class JavassistReader {
 						}
 					}
 				}
+				final T varT = varDescriptor == null ? null : du
+						.getDescT(varDescriptor);
+				if (localVariableTypeAttribute != null) {
+					for (int i = 0; i < localVariableTypeAttribute
+							.tableLength(); ++i) {
+						if (localVariableTypeAttribute.index(i) == iValue
+								&& localVariableTypeAttribute.startPc(i) <= opPc
+								&& localVariableTypeAttribute.startPc(i)
+										+ localVariableTypeAttribute
+												.codeLength(i) >= opPc) {
+							if (!localVariableTypeAttribute.variableName(i)
+									.equals(varName)) {
+								LOGGER.warning("Local variable type attribute name '"
+										+ localVariableTypeAttribute
+												.variableName(i)
+										+ "' not equal to local variable attribute name '"
+										+ varName + "'!");
+							} else {
+								varT.setSignature(localVariableTypeAttribute
+										.descriptor(i));
+							}
+							break;
+						}
+					}
+				}
+				// TODO delete this, use frames
 				if (varName == null) {
 					if (iValue == 0 && !isStatic) {
 						varName = "this";
@@ -1721,11 +1770,8 @@ public class JavassistReader {
 						varName = "arg" + iValue;
 					}
 				}
-				final T varT = varDescriptor == null ? null : du
-						.getDescT(varDescriptor);
-
 				bb.addOperation(new STORE(opPc, opCode, opLine, type, iValue,
-						varName, varT));
+						varT, varName));
 				break;
 			}
 			/*********
