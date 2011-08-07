@@ -504,7 +504,7 @@ public class TrJvmStruct2JavaAst {
 				((TypeDeclaration) typeDeclaration).setInterface(true);
 			}
 		} else if (!t.checkAf(AF.SUPER)) {
-			// modern invokesuper syntax, is allways set in current java
+			// modern invokesuper syntax, is always set in current java
 			LOGGER.warning("Modern invokesuper syntax flag not set in type '"
 					+ td + "'!");
 		}

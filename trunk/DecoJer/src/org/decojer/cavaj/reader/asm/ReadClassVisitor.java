@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.reader.asm;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.DU;
@@ -124,8 +123,7 @@ public class ReadClassVisitor implements ClassVisitor {
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
-		LOGGER.log(Level.WARNING, "Unknown class attribute tag '" + attr.type
-				+ "'!");
+		LOGGER.warning("Unknown class attribute tag '" + attr.type + "'!");
 	}
 
 	@Override

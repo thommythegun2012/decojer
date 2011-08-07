@@ -25,7 +25,6 @@ package org.decojer.cavaj.tool;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.T;
@@ -154,7 +153,7 @@ public class SignatureDecompiler {
 			return null;
 		}
 		if (this.signatureFull.charAt(this.posFull) != '(') {
-			LOGGER.log(Level.WARNING, "No method parameter types at position '"
+			LOGGER.warning("No method parameter types at position '"
 					+ this.posFull + "' in full signature '"
 					+ this.signatureFull + "'!");
 			this.posFull = -1;
@@ -188,7 +187,7 @@ public class SignatureDecompiler {
 			return null;
 		}
 		if (this.signatureSimple.charAt(this.posSimple) != '(') {
-			LOGGER.log(Level.WARNING, "No method parameter types at position '"
+			LOGGER.warning("No method parameter types at position '"
 					+ this.posSimple + "' in simple signature '"
 					+ this.signatureSimple + "'!");
 			this.posSimple = -1;
