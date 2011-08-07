@@ -38,13 +38,13 @@ public class LOAD extends Operation {
 	private final T varT;
 
 	public LOAD(final int opPc, final int opCode, final int opLine,
-			final int type, final int varIndex, final String varName,
-			final T varT) {
+			final int type, final int varIndex, final T varT,
+			final String varName) {
 		super(opPc, opCode, opLine);
 		this.type = type;
 		this.varIndex = varIndex;
-		this.varName = varName;
 		this.varT = varT;
+		this.varName = varName;
 	}
 
 	@Override

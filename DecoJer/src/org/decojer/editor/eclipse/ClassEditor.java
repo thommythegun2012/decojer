@@ -371,7 +371,9 @@ public class ClassEditor extends MultiPageEditorPart implements
 			// HACK, constructor check
 			final String methodName = method.getDeclaringType()
 					.getFullyQualifiedName()
-					.endsWith("." + method.getElementName()) ? "<init>"
+					.endsWith("." + method.getElementName())
+					|| method.getDeclaringType().getFullyQualifiedName()
+							.endsWith("$" + method.getElementName()) ? "<init>"
 					: method.getElementName();
 			final MD md = methodTd.getMd(methodName, method.getSignature());
 

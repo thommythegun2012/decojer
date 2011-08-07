@@ -152,4 +152,9 @@ public class F {
 		this.signature = signature;
 	}
 
+	@Override
+	public String toString() {
+		return getT() + "->" + getName();
+	}
+
 }

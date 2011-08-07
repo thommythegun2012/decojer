@@ -99,9 +99,16 @@ public class TrDataFlowAnalysis {
 				frame.registerTs[0] = t;
 				frame.varNames[0] = "this";
 			}
-			System.arraycopy(paramTs, 0, frame.registerTs, 0, paramTs.length);
-			for (int i = paramTs.length; i-- > 0;) {
-				frame.varNames[i] = m.getParamName(i);
+			for (int i = 0, j = 0; i < paramTs.length; ++i, ++j) {
+				final T paramT = paramTs[i];
+				frame.registerTs[j] = paramT;
+				frame.varNames[j] = m.getParamName(i);
+				// wide values need 2 registers, srsly?
+				if (paramT == T.LONG || paramT == T.DOUBLE) {
+					++j;
+					// TODO better mark as unuseable?
+					frame.registerTs[j] = T.UNINIT;
+				}
 			}
 		}
 
