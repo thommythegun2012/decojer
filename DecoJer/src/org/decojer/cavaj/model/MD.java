@@ -32,8 +32,6 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  */
 public class MD implements BD, PD {
 
-	private int accessFlags;
-
 	private Object annotationDefaultValue;
 
 	private A[] as;
@@ -68,15 +66,6 @@ public class MD implements BD, PD {
 
 		this.m = m;
 		this.td = td;
-	}
-
-	/**
-	 * Get access flags.
-	 * 
-	 * @return access flags
-	 */
-	public int getAccessFlags() {
-		return this.accessFlags;
 	}
 
 	/**
@@ -158,16 +147,6 @@ public class MD implements BD, PD {
 	 */
 	public boolean isSynthetic() {
 		return this.synthetic;
-	}
-
-	/**
-	 * Set access flags.
-	 * 
-	 * @param accessFlags
-	 *            access flags
-	 */
-	public void setAccessFlags(final int accessFlags) {
-		this.accessFlags = accessFlags;
 	}
 
 	/**

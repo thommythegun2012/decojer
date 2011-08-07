@@ -34,10 +34,11 @@ import org.decojer.DecoJerException;
  */
 public class M {
 
+	private int accessFlags;
+
 	private final String descriptor;
 
 	private final String name;
-
 	private String[] paramNames;
 
 	private final T[] paramTs;
@@ -121,6 +122,26 @@ public class M {
 	}
 
 	/**
+	 * Check access flag.
+	 * 
+	 * @param af
+	 *            access flag
+	 * @return true - is access flag
+	 */
+	public boolean checkAf(final AF af) {
+		return (this.accessFlags & af.getValue()) != 0;
+	}
+
+	/**
+	 * Get access flags.
+	 * 
+	 * @return access flags
+	 */
+	public int getAccessFlags() {
+		return this.accessFlags;
+	}
+
+	/**
 	 * Get descriptor.
 	 * 
 	 * @return descriptor
@@ -196,6 +217,16 @@ public class M {
 	 */
 	public T[] getThrowsTs() {
 		return this.throwsTs;
+	}
+
+	/**
+	 * Set access flags.
+	 * 
+	 * @param accessFlags
+	 *            access flags
+	 */
+	public void setAccessFlags(final int accessFlags) {
+		this.accessFlags = accessFlags;
 	}
 
 	/**

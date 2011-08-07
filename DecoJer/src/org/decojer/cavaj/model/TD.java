@@ -40,8 +40,6 @@ import org.eclipse.jdt.core.dom.Name;
  */
 public class TD implements BD, PD {
 
-	private int accessFlags;
-
 	private A[] as;
 
 	// all body declarations: inner type/method/field declarations
@@ -101,15 +99,6 @@ public class TD implements BD, PD {
 		assert bodyDeclaration != null;
 
 		return getTypeDeclaration().bodyDeclarations().add(bodyDeclaration);
-	}
-
-	/**
-	 * Get access flags.
-	 * 
-	 * @return access flags
-	 */
-	public int getAccessFlags() {
-		return this.accessFlags;
 	}
 
 	/**
@@ -279,16 +268,6 @@ public class TD implements BD, PD {
 		assert fullName != null;
 
 		return getCu().getTypeNameManager().newTypeName(fullName);
-	}
-
-	/**
-	 * Set access flags
-	 * 
-	 * @param accessFlags
-	 *            access flags
-	 */
-	public void setAccessFlags(final int accessFlags) {
-		this.accessFlags = accessFlags;
 	}
 
 	/**

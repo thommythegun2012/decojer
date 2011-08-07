@@ -95,6 +95,7 @@ public class ReadClassVisitor implements ClassVisitor {
 		// java/util/LinkedHashSet : [Ljava.lang.String;@1b9a2fd
 
 		final T t = this.du.getT(name.replace('/', '.'));
+		t.setAccessFlags(access);
 		t.setSuperT(this.du.getT(superName.replace('/', '.')));
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
@@ -108,7 +109,6 @@ public class ReadClassVisitor implements ClassVisitor {
 		}
 
 		this.td = new TD(t);
-		this.td.setAccessFlags(access);
 		this.td.setVersion(version);
 
 		this.readFieldVisitor = new ReadFieldVisitor(this);
@@ -140,10 +140,10 @@ public class ReadClassVisitor implements ClassVisitor {
 		// desc: Ljava/lang/Class;
 		final T fieldT = this.du.getDescT(desc);
 		final F f = t.getF(name, fieldT);
+		f.setAccessFlags(access);
 		t.setSignature(signature);
 
 		final FD fd = new FD(f, this.td);
-		fd.setAccessFlags(access);
 		fd.setValue(value);
 
 		this.td.getBds().add(fd);
@@ -165,6 +165,7 @@ public class ReadClassVisitor implements ClassVisitor {
 		final T t = this.td.getT();
 		// desc: (Ljava/lang/String;)I
 		final M m = t.getM(name, desc);
+		m.setAccessFlags(access);
 		if (exceptions != null && exceptions.length > 0) {
 			final T[] throwsTs = new T[exceptions.length];
 			for (int i = exceptions.length; i-- > 0;) {
@@ -176,7 +177,6 @@ public class ReadClassVisitor implements ClassVisitor {
 		t.setSignature(signature);
 
 		final MD md = new MD(m, this.td);
-		md.setAccessFlags(access);
 
 		this.td.getBds().add(md);
 

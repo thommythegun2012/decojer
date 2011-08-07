@@ -63,6 +63,7 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 				+ " : " + interfaceNames);
 
 		final T t = this.du.getDescT(className);
+		t.setAccessFlags(access_flags);
 		t.setSuperT(this.du.getDescT(superClass));
 		if (interfaceNames != null && interfaceNames.length > 0) {
 			final T[] interfaceTs = new T[interfaceNames.length];
@@ -73,7 +74,6 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 		}
 
 		final TD td = new TD(t);
-		td.setAccessFlags(access_flags);
 		this.du.addTd(td);
 
 		this.readDexClassVisitor.setTd(td);

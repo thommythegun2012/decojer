@@ -147,7 +147,7 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 		final T t = this.readMethodVisitor.getReadClassVisitor().getDu()
 				.getDescT(desc);
 		final F f = t.getF(value, t);
-		f.setEnum();
+		f.markEnum();
 		this.value = f;
 	}
 

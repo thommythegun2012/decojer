@@ -33,8 +33,6 @@ import org.eclipse.jdt.core.dom.Expression;
  */
 public class FD implements BD, PD {
 
-	private int accessFlags;
-
 	private A[] as;
 
 	// deprecated state (from deprecated attribute)
@@ -68,15 +66,6 @@ public class FD implements BD, PD {
 
 		this.f = f;
 		this.td = td;
-	}
-
-	/**
-	 * Get access flags.
-	 * 
-	 * @return access flags
-	 */
-	public int getAccessFlags() {
-		return this.accessFlags;
 	}
 
 	/**
@@ -149,16 +138,6 @@ public class FD implements BD, PD {
 	 */
 	public boolean isSynthetic() {
 		return this.synthetic;
-	}
-
-	/**
-	 * Set access flags.
-	 * 
-	 * @param accessFlags
-	 *            access flags
-	 */
-	public void setAccessFlags(final int accessFlags) {
-		this.accessFlags = accessFlags;
 	}
 
 	/**

@@ -205,6 +205,7 @@ public class SmaliReader {
 			}
 			final T t = du.getDescT(classDefItem.getClassType()
 					.getTypeDescriptor());
+			t.setAccessFlags(classDefItem.getAccessFlags());
 			t.setSuperT(du.getDescT(classDefItem.getSuperclass()
 					.getTypeDescriptor()));
 			final TypeListItem interfaces = classDefItem.getInterfaces();
@@ -218,7 +219,6 @@ public class SmaliReader {
 			}
 
 			final TD td = new TD(t);
-			td.setAccessFlags(classDefItem.getAccessFlags());
 
 			if (typeDescriptor.equals(selectorMatch)) {
 				selectorTd = td;
@@ -1002,12 +1002,12 @@ public class SmaliReader {
 			final T fieldT = du.getDescT(field.getFieldType()
 					.getTypeDescriptor());
 			final F f = t.getF(field.getFieldName().getStringValue(), fieldT);
+			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
 				f.setSignature(fieldSignatures.get(field));
 			}
 
 			final FD fd = new FD(f, td);
-			fd.setAccessFlags(encodedField.accessFlags);
 			if (staticFieldValues.length > i) {
 				fd.setValue(readValue(staticFieldValues[i], du));
 			}
@@ -1022,12 +1022,12 @@ public class SmaliReader {
 			final T fieldT = du.getDescT(field.getFieldType()
 					.getTypeDescriptor());
 			final F f = t.getF(field.getFieldName().getStringValue(), fieldT);
+			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
 				f.setSignature(fieldSignatures.get(field));
 			}
 
 			final FD fd = new FD(f, td);
-			fd.setAccessFlags(encodedField.accessFlags);
 			// there is no field initializer section for instance fields,
 			// only via constructor
 
@@ -1054,11 +1054,11 @@ public class SmaliReader {
 			// (Ljava/lang/String;)Ljava/io/InputStream;
 			final M m = t.getM(method.getMethodName().getStringValue(), method
 					.getPrototype().getPrototypeString());
+			m.setAccessFlags(encodedMethod.accessFlags);
 			m.setThrowsTs(methodThrowsTs.get(method));
 			m.setSignature(methodSignatures.get(method));
 
 			final MD md = new MD(m, td);
-			md.setAccessFlags(encodedMethod.accessFlags);
 
 			// no annotation default values
 
@@ -1081,11 +1081,11 @@ public class SmaliReader {
 			// (Ljava/lang/String;)Ljava/io/InputStream;
 			final M m = t.getM(method.getMethodName().getStringValue(), method
 					.getPrototype().getPrototypeString());
+			m.setAccessFlags(encodedMethod.accessFlags);
 			m.setThrowsTs(methodThrowsTs.get(method));
 			m.setSignature(methodSignatures.get(method));
 
 			final MD md = new MD(m, td);
-			md.setAccessFlags(encodedMethod.accessFlags);
 
 			if (annotationDefaultValues != null) {
 				md.setAnnotationDefaultValue(annotationDefaultValues
@@ -1137,7 +1137,7 @@ public class SmaliReader {
 					.getTypeDescriptor());
 			final F enumF = enumT.getF(fieldidItem.getFieldName()
 					.getStringDataItem().getStringValue(), enumT);
-			enumF.setEnum();
+			enumF.markEnum();
 			return enumF;
 		}
 		if (encodedValue instanceof FloatEncodedValue) {
