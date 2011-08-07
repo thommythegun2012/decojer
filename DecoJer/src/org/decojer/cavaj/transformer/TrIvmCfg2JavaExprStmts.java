@@ -395,8 +395,7 @@ public class TrIvmCfg2JavaExprStmts {
 				Collections.reverse(arguments);
 
 				final Expression methodExpression;
-				switch (op.getFunctionType()) {
-				case INVOKE.T_SPECIAL: {
+				if (op.isDirect()) {
 					if ("<init>".equals(m.getName())) {
 						methodExpression = null;
 						final Expression expression = bb.popExpression();
@@ -435,21 +434,7 @@ public class TrIvmCfg2JavaExprStmts {
 					}
 
 					methodExpression = null;
-				}
-					break;
-				case INVOKE.T_INTERFACE:
-				case INVOKE.T_VIRTUAL: {
-					final MethodInvocation methodInvocation = getAst()
-							.newMethodInvocation();
-					methodInvocation.setName(getAst()
-							.newSimpleName(m.getName()));
-					methodInvocation.arguments().addAll(arguments);
-					methodInvocation.setExpression(wrap(bb.popExpression(),
-							priority(methodInvocation)));
-					methodExpression = methodInvocation;
-				}
-					break;
-				case INVOKE.T_STATIC: {
+				} else if (m.checkAf(AF.STATIC)) {
 					final MethodInvocation methodInvocation = getAst()
 							.newMethodInvocation();
 					methodInvocation.setName(getAst()
@@ -458,10 +443,15 @@ public class TrIvmCfg2JavaExprStmts {
 					methodInvocation.setExpression(getTd().newTypeName(
 							m.getT().getName()));
 					methodExpression = methodInvocation;
-				}
-					break;
-				default:
-					methodExpression = null;
+				} else {
+					final MethodInvocation methodInvocation = getAst()
+							.newMethodInvocation();
+					methodInvocation.setName(getAst()
+							.newSimpleName(m.getName()));
+					methodInvocation.arguments().addAll(arguments);
+					methodInvocation.setExpression(wrap(bb.popExpression(),
+							priority(methodInvocation)));
+					methodExpression = methodInvocation;
 				}
 				if (methodExpression != null) {
 					final T returnType = m.getReturnT();

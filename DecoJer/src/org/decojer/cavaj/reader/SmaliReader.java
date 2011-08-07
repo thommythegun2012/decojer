@@ -78,6 +78,7 @@ import org.jf.dexlib.Section;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeListItem;
 import org.jf.dexlib.Code.Instruction;
+import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.Format.Instruction10t;
 import org.jf.dexlib.Code.Format.Instruction11n;
 import org.jf.dexlib.Code.Format.Instruction11x;
@@ -768,21 +769,11 @@ public class SmaliReader {
 						+ instr.getRegisterB());
 				break;
 			}
-			case INVOKE_INTERFACE:
-				type = INVOKE.T_INTERFACE;
-				// fall through
 			case INVOKE_DIRECT:
-				type = INVOKE.T_SPECIAL;
-				// fall through
+				// constructor or supermethod callout
+			case INVOKE_INTERFACE:
 			case INVOKE_STATIC:
-				if (type < 0) {
-					type = INVOKE.T_STATIC;
-				}
-				// fall through
 			case INVOKE_VIRTUAL: {
-				if (type < 0) {
-					type = INVOKE.T_VIRTUAL;
-				}
 				final Instruction35c instr = (Instruction35c) instruction;
 				System.out.print("  " + instr.getReferencedItem() + " : "
 						+ instr.getRegCount());
@@ -792,43 +783,50 @@ public class SmaliReader {
 				System.out.print("  G: " + instr.getRegisterG());
 				System.out.println("  A: " + instr.getRegisterA() + ")");
 				if (instr.getRegCount() > 1) {
-					bb.addOperation(new LOAD(opPc, opCode, opLine, 0, instr
+					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
 							.getRegisterE(), "r" + instr.getRegisterE(), null));
 				}
 				if (instr.getRegCount() > 2) {
-					bb.addOperation(new LOAD(opPc, opCode, opLine, 0, instr
+					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
 							.getRegisterF(), "r" + instr.getRegisterF(), null));
 				}
 				if (instr.getRegCount() > 3) {
-					bb.addOperation(new LOAD(opPc, opCode, opLine, 0, instr
+					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
 							.getRegisterG(), "r" + instr.getRegisterG(), null));
 				}
 				if (instr.getRegCount() > 4) {
-					bb.addOperation(new LOAD(opPc, opCode, opLine, 0, instr
+					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
 							.getRegisterA(), "r" + instr.getRegisterA(), null));
 				}
 				final MethodIdItem methodIdItem = (MethodIdItem) instr
 						.getReferencedItem();
-				final T t = du.getDescT(methodIdItem.getContainingClass()
+				final T invokeT = du.getDescT(methodIdItem.getContainingClass()
 						.getTypeDescriptor());
-				final M invokeM = t.getM(methodIdItem.getMethodName()
+				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
+					invokeT.markAf(AF.INTERFACE);
+				}
+				final M invokeM = invokeT.getM(methodIdItem.getMethodName()
 						.getStringValue(), methodIdItem.getPrototype()
 						.getPrototypeString());
+				if (instruction.opcode == Opcode.INVOKE_STATIC) {
+					invokeM.markAf(AF.STATIC);
+				}
 				if (instr.getRegCount() > 0) {
 					bb.addOperation(new LOAD(opPc, opCode, opLine,
 							DataType.T_AREF, instr.getRegisterD(), "r"
 									+ instr.getRegisterD(), null));
 				}
-				bb.addOperation(new INVOKE(opPc, opCode, opLine, type, invokeM));
+				bb.addOperation(new INVOKE(opPc, opCode, opLine, invokeM,
+						instruction.opcode == Opcode.INVOKE_DIRECT));
 				break;
 			}
 			case MOVE: {
 				final Instruction12x instr = (Instruction12x) instruction;
 				System.out.print("  A: " + instr.getRegisterA());
 				System.out.println("  B: " + instr.getRegisterB());
-				bb.addOperation(new LOAD(opPc, opCode, opLine, 0, instr
+				bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
 						.getRegisterA(), "r" + instr.getRegisterA(), null));
-				bb.addOperation(new STORE(opPc, opCode, opLine, 0, instr
+				bb.addOperation(new STORE(opPc, opCode, opLine, -1, instr
 						.getRegisterB(), "r" + instr.getRegisterB(), null));
 				break;
 			}

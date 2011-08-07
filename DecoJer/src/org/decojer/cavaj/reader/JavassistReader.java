@@ -844,21 +844,19 @@ public class JavassistReader {
 			 * GET *
 			 *******/
 			case Opcode.GETFIELD:
-				type = 0;
-				// fall through
 			case Opcode.GETSTATIC: {
 				final int cpFieldIndex = codeReader.readUnsignedShort();
 
-				final T fieldRefT = du.getT(constPool
+				final T getT = du.getT(constPool
 						.getFieldrefClassName(cpFieldIndex));
-				final T fieldValueT = du.getDescT(constPool
+				final T getValueT = du.getDescT(constPool
 						.getFieldrefType(cpFieldIndex));
-				final F f = fieldRefT.getF(
-						constPool.getFieldrefName(cpFieldIndex), fieldValueT);
-				if (type < 0) {
-					f.markAf(AF.STATIC);
+				final F getF = getT.getF(
+						constPool.getFieldrefName(cpFieldIndex), getValueT);
+				if (opCode == Opcode.GETSTATIC) {
+					getF.markAf(AF.STATIC);
 				}
-				bb.addOperation(new GET(opPc, opCode, opLine, f));
+				bb.addOperation(new GET(opPc, opCode, opLine, getF));
 				break;
 			}
 			/********
@@ -892,45 +890,39 @@ public class JavassistReader {
 			 * INVOKE *
 			 **********/
 			case Opcode.INVOKEINTERFACE: {
-				type = INVOKE.T_INTERFACE;
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
 
 				final T invokeT = du.getT(constPool
 						.getInterfaceMethodrefClassName(cpMethodIndex));
+				// invoke type must be interface
+				invokeT.checkAf(AF.INTERFACE);
 				final M invokeM = invokeT.getM(
 						constPool.getInterfaceMethodrefName(cpMethodIndex),
 						constPool.getInterfaceMethodrefType(cpMethodIndex));
 
-				bb.addOperation(new INVOKE(opPc, opCode, opLine, type, invokeM));
+				bb.addOperation(new INVOKE(opPc, opCode, opLine, invokeM, false));
+				break;
 			}
-				break;
 			case Opcode.INVOKESPECIAL:
-				type = INVOKE.T_SPECIAL;
-				// fall through
-			case Opcode.INVOKESTATIC:
-				if (type < 0) {
-					type = INVOKE.T_STATIC;
-				}
-				// fall through
+				// constructor or supermethod callout
 			case Opcode.INVOKEVIRTUAL:
-				if (type < 0) {
-					type = INVOKE.T_VIRTUAL;
-				}
-				{
-					final int cpMethodIndex = codeReader.readUnsignedShort();
+			case Opcode.INVOKESTATIC: {
+				final int cpMethodIndex = codeReader.readUnsignedShort();
 
-					final T invokeT = du.getT(constPool
-							.getMethodrefClassName(cpMethodIndex));
-					final M invokeM = invokeT.getM(
-							constPool.getMethodrefName(cpMethodIndex),
-							constPool.getMethodrefType(cpMethodIndex));
-
-					bb.addOperation(new INVOKE(opPc, opCode, opLine, type,
-							invokeM));
+				final T invokeT = du.getT(constPool
+						.getMethodrefClassName(cpMethodIndex));
+				final M invokeM = invokeT.getM(
+						constPool.getMethodrefName(cpMethodIndex),
+						constPool.getMethodrefType(cpMethodIndex));
+				if (opCode == Opcode.INVOKESTATIC) {
+					invokeM.markAf(AF.STATIC);
 				}
+				bb.addOperation(new INVOKE(opPc, opCode, opLine, invokeM,
+						opCode == Opcode.INVOKESPECIAL));
 				break;
+			}
 			/********
 			 * JCMP *
 			 ********/
@@ -1500,21 +1492,19 @@ public class JavassistReader {
 			 * PUT *
 			 *******/
 			case Opcode.PUTFIELD:
-				type = 0;
-				// fall through
 			case Opcode.PUTSTATIC: {
 				final int cpFieldIndex = codeReader.readUnsignedShort();
 
-				final T fieldRefT = du.getT(constPool
+				final T putT = du.getT(constPool
 						.getFieldrefClassName(cpFieldIndex));
-				final T fieldValueT = du.getDescT(constPool
+				final T putValueT = du.getDescT(constPool
 						.getFieldrefType(cpFieldIndex));
-				final F f = fieldRefT.getF(
-						constPool.getFieldrefName(cpFieldIndex), fieldValueT);
-				if (type < 0) {
-					f.markAf(AF.STATIC);
+				final F putF = putT.getF(
+						constPool.getFieldrefName(cpFieldIndex), putValueT);
+				if (opCode == Opcode.PUTSTATIC) {
+					putF.markAf(AF.STATIC);
 				}
-				bb.addOperation(new PUT(opPc, opCode, opLine, f));
+				bb.addOperation(new PUT(opPc, opCode, opLine, putF));
 				break;
 			}
 			/*******
