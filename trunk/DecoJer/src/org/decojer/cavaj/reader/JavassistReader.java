@@ -844,22 +844,26 @@ public class JavassistReader {
 			 * GET *
 			 *******/
 			case Opcode.GETFIELD:
-				type = GET.T_DYNAMIC;
+				type = 0;
 				// fall through
 			case Opcode.GETSTATIC:
 				if (type < 0) {
-					type = GET.T_STATIC;
+					type = 1;
 				}
 				{
 					final int cpFieldIndex = codeReader.readUnsignedShort();
-					final String fieldrefClassName = constPool
-							.getFieldrefClassName(cpFieldIndex);
-					final String fieldrefName = constPool
-							.getFieldrefName(cpFieldIndex);
-					final String fieldrefType = constPool
-							.getFieldrefType(cpFieldIndex);
-					bb.addOperation(new GET(opPc, opCode, opLine, type,
-							fieldrefClassName, fieldrefName, fieldrefType));
+
+					final T fieldRefT = du.getT(constPool
+							.getFieldrefClassName(cpFieldIndex));
+					final T fieldValueT = du.getDescT(constPool
+							.getFieldrefType(cpFieldIndex));
+					final F f = fieldRefT.getF(
+							constPool.getFieldrefName(cpFieldIndex),
+							fieldValueT);
+					if (type == 1) {
+						f.markAf(AF.STATIC);
+					}
+					bb.addOperation(new GET(opPc, opCode, opLine, f));
 				}
 				break;
 			/********
@@ -1262,7 +1266,7 @@ public class JavassistReader {
 					}
 				}
 				if (varName == null) {
-					if (iValue == 0 && isStatic) {
+					if (iValue == 0 && !isStatic) {
 						varName = "this";
 					} else {
 						varName = "arg" + iValue;
@@ -1727,7 +1731,7 @@ public class JavassistReader {
 					}
 				}
 				if (varName == null) {
-					if (iValue == 0 && isStatic) {
+					if (iValue == 0 && !isStatic) {
 						varName = "this";
 					} else {
 						varName = "arg" + iValue;
@@ -2344,7 +2348,7 @@ public class JavassistReader {
 			final T enumT = du.getT(((EnumMemberValue) memberValue).getType());
 			final F enumF = enumT.getF(
 					((EnumMemberValue) memberValue).getValue(), enumT);
-			enumF.markEnum();
+			enumF.markAf(AF.ENUM);
 			return enumF;
 		}
 		if (memberValue instanceof FloatMemberValue) {

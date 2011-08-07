@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.io.IOUtils;
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
@@ -903,13 +904,14 @@ public class SmaliReader {
 						+ instr.getRegisterA());
 				final FieldIdItem fieldIdItem = (FieldIdItem) instr
 						.getReferencedItem();
-				final T fieldRef = du.getDescT(fieldIdItem.getContainingClass()
+				final T fieldRefT = du.getDescT(fieldIdItem
+						.getContainingClass().getTypeDescriptor());
+				final T fieldValueT = du.getDescT(fieldIdItem.getFieldType()
 						.getTypeDescriptor());
-				final T fieldType = du.getDescT(fieldIdItem.getFieldType()
-						.getTypeDescriptor());
-				bb.addOperation(new GET(opPc, opCode, opLine, GET.T_STATIC,
-						fieldRef.getName(), fieldIdItem.getFieldName()
-								.getStringValue(), fieldType.getName()));
+				final F f = fieldRefT.getF(fieldIdItem.getFieldName()
+						.getStringValue(), fieldValueT);
+				f.markAf(AF.STATIC);
+				bb.addOperation(new GET(opPc, opCode, opLine, f));
 				bb.addOperation(new STORE(opPc, opCode, opLine,
 						DataType.T_AREF, instr.getRegisterA(), "r"
 								+ instr.getRegisterA(), null));
@@ -1137,7 +1139,7 @@ public class SmaliReader {
 					.getTypeDescriptor());
 			final F enumF = enumT.getF(fieldidItem.getFieldName()
 					.getStringDataItem().getStringValue(), enumT);
-			enumF.markEnum();
+			enumF.markAf(AF.ENUM);
 			return enumF;
 		}
 		if (encodedValue instanceof FloatEncodedValue) {

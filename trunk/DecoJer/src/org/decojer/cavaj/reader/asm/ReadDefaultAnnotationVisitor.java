@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
 import org.objectweb.asm.AnnotationVisitor;
@@ -147,7 +148,7 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 		final T t = this.readMethodVisitor.getReadClassVisitor().getDu()
 				.getDescT(desc);
 		final F f = t.getF(value, t);
-		f.markEnum();
+		f.markAf(AF.ENUM);
 		this.value = f;
 	}
 
