@@ -535,7 +535,7 @@ public class TrControlFlowAnalysis {
 	}
 
 	private void log(final String message) {
-		LOGGER.log(Level.WARNING, getMd().toString() + ": " + message);
+		LOGGER.warning(getMd().toString() + ": " + message);
 	}
 
 	private void log(final String message, final Throwable e) {

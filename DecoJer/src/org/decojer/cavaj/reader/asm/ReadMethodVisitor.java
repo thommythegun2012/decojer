@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.reader.asm;
 
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.MD;
@@ -104,7 +103,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
-		LOGGER.log(Level.WARNING, "Unknown method attribute tag '" + attr.type
+		LOGGER.warning("Unknown method attribute tag '" + attr.type
 				+ "' for field info '" + this.readClassVisitor.getTd() + "'!");
 	}
 

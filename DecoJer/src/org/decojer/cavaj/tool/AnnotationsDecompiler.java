@@ -26,7 +26,6 @@ package org.decojer.cavaj.tool;
 import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
@@ -191,7 +190,7 @@ public class AnnotationsDecompiler {
 			stringLiteral.setLiteralValue((String) defaultValue);
 			return stringLiteral;
 		}
-		LOGGER.log(Level.WARNING, "Unknown member value type '"
+		LOGGER.warning("Unknown member value type '"
 				+ defaultValue.getClass().getName() + "'!");
 		final StringLiteral stringLiteral = ast.newStringLiteral();
 		stringLiteral.setLiteralValue(defaultValue.toString());

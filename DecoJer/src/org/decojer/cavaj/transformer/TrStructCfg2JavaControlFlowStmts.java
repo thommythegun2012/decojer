@@ -114,7 +114,7 @@ public class TrStructCfg2JavaControlFlowStmts {
 	}
 
 	private void log(final String message) {
-		LOGGER.log(Level.WARNING, getMd().toString() + ": " + message);
+		LOGGER.warning(getMd().toString() + ": " + message);
 	}
 
 	private void log(final String message, final Throwable e) {
@@ -269,7 +269,7 @@ public class TrStructCfg2JavaControlFlowStmts {
 			doStatement.setExpression(negate ? newPrefixExpression(
 					PrefixExpression.Operator.NOT, expression) : expression);
 
-			// has allways block
+			// has always block
 			((Block) doStatement.getBody()).statements().addAll(subStatements);
 			return doStatement;
 		}
