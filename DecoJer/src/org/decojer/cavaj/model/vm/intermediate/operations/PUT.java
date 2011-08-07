@@ -23,52 +23,32 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class PUT extends Operation {
 
-	public static final int T_DYNAMIC = 0;
+	private final F f;
 
-	public static final int T_STATIC = 1;
-
-	private final int functionType;
-
-	private final String fieldrefClassName;
-
-	private final String fieldrefName;
-
-	private final String fieldrefType;
-
-	public PUT(final int opPc, final int opCode, final int opLine,
-			final int functionType, final String fieldrefClassName,
-			final String fieldrefName, final String fieldrefType) {
+	public PUT(final int opPc, final int opCode, final int opLine, final F f) {
 		super(opPc, opCode, opLine);
-		this.functionType = functionType;
-		this.fieldrefClassName = fieldrefClassName;
-		this.fieldrefName = fieldrefName;
-		this.fieldrefType = fieldrefType;
+		this.f = f;
 	}
 
-	public String getFieldrefClassName() {
-		return this.fieldrefClassName;
-	}
-
-	public String getFieldrefName() {
-		return this.fieldrefName;
-	}
-
-	public String getFieldrefType() {
-		return this.fieldrefType;
-	}
-
-	public int getFunctionType() {
-		return this.functionType;
+	/**
+	 * Get field.
+	 * 
+	 * @return field
+	 */
+	public F getF() {
+		return this.f;
 	}
 
 	@Override
 	public int getInStackSize() {
-		return (getFunctionType() == T_STATIC ? 0 : 1) + 1;
+		return (this.f.checkAf(AF.STATIC) ? 0 : 1) + 1;
 	}
 
 	@Override
