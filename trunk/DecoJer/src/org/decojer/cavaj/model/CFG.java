@@ -53,6 +53,8 @@ public class CFG {
 	 */
 	private List<BB> postorderedBbs;
 
+	private final int registerCount;
+
 	private BB startBb;
 
 	/**
@@ -60,11 +62,14 @@ public class CFG {
 	 * 
 	 * @param md
 	 *            method declaration
+	 * @param registerCount
+	 *            register count
 	 */
-	public CFG(final MD md) {
+	public CFG(final MD md, final int registerCount) {
 		assert md != null;
 
 		this.md = md;
+		this.registerCount = registerCount;
 		this.startBb = newBb(0);
 	}
 
@@ -160,6 +165,15 @@ public class CFG {
 	 */
 	public List<BB> getPostorderedBbs() {
 		return this.postorderedBbs;
+	}
+
+	/**
+	 * Get register count.
+	 * 
+	 * @return register count
+	 */
+	public int getRegisterCount() {
+		return this.registerCount;
 	}
 
 	/**

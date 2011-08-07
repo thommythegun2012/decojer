@@ -513,12 +513,11 @@ public class SmaliReader {
 		}
 
 		// init CFG with start BB
-		final CFG cfg = new CFG(md);
+		final CFG cfg = new CFG(md, codeItem.getRegisterCount());
 		md.setCFG(cfg);
 
 		final Instruction[] instructions = codeItem.getInstructions();
 
-		System.out.println("RegisterCount: " + codeItem.getRegisterCount());
 		// 2 free to use work register, 3 parameter
 		// static: (5 register)
 		// work_register1...work_register_2...param1...param2...param3
@@ -976,6 +975,7 @@ public class SmaliReader {
 			}
 			opPc += instruction.getSize(opPc);
 		}
+		cfg.calculatePostorder();
 	}
 
 	private static void readFields(final TD td,

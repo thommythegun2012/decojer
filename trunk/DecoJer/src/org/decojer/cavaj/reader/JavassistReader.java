@@ -485,7 +485,7 @@ public class JavassistReader {
 		final CodeReader codeReader = new CodeReader(codeAttribute.getCode());
 
 		// init CFG with start BB
-		final CFG cfg = new CFG(md);
+		final CFG cfg = new CFG(md, codeAttribute.getMaxLocals());
 		md.setCFG(cfg);
 
 		final ConstPool constPool = codeAttribute.getConstPool();
@@ -2015,6 +2015,7 @@ public class JavassistReader {
 			// reset wide
 			wide = false;
 		}
+		cfg.calculatePostorder();
 	}
 
 	@SuppressWarnings("unchecked")
