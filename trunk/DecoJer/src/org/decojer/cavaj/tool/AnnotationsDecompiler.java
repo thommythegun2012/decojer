@@ -30,6 +30,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -167,7 +168,7 @@ public class AnnotationsDecompiler {
 		}
 		if (defaultValue instanceof F) {
 			final F f = (F) defaultValue;
-			if (!f.isEnum()) {
+			if (!f.checkAf(AF.ENUM)) {
 				LOGGER.warning("Default value field must be enum!");
 			}
 			return ast.newQualifiedName(td.newTypeName(f.getT().getName()),

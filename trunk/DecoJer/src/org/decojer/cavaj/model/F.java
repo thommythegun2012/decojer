@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.EnumSet;
-
 /**
  * Field.
  * 
@@ -32,7 +30,7 @@ import java.util.EnumSet;
  */
 public class F {
 
-	private EnumSet<AF> afs = null;
+	private int accessFlags;
 
 	private final T fieldT;
 
@@ -59,6 +57,26 @@ public class F {
 		this.t = t;
 		this.name = name;
 		this.fieldT = fieldT;
+	}
+
+	/**
+	 * Check access flag.
+	 * 
+	 * @param af
+	 *            access flag
+	 * @return true - is access flag
+	 */
+	public boolean checkAf(final AF af) {
+		return (this.accessFlags & af.getValue()) != 0;
+	}
+
+	/**
+	 * Get access flags.
+	 * 
+	 * @return access flags
+	 */
+	public int getAccessFlags() {
+		return this.accessFlags;
 	}
 
 	/**
@@ -98,19 +116,21 @@ public class F {
 	}
 
 	/**
-	 * Is enum?
-	 * 
-	 * @return true - is enum
+	 * Mark as enum.
 	 */
-	public boolean isEnum() {
-		return this.afs != null && this.afs.contains(AF.ENUM);
+	public void markEnum() {
+		this.accessFlags = AF.PUBLIC.getValue() | AF.STATIC.getValue()
+				| AF.FINAL.getValue() | AF.ENUM.getValue();
 	}
 
 	/**
-	 * Set is enum.
+	 * Set access flags.
+	 * 
+	 * @param accessFlags
+	 *            access flags
 	 */
-	public void setEnum() {
-		this.afs = EnumSet.of(AF.PUBLIC, AF.STATIC, AF.FINAL, AF.ENUM);
+	public void setAccessFlags(final int accessFlags) {
+		this.accessFlags = accessFlags;
 	}
 
 	/**

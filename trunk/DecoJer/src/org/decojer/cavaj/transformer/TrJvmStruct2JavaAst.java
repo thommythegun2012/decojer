@@ -27,9 +27,8 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.logging.Logger;
 
-import javassist.bytecode.AccessFlag;
-
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.F;
@@ -81,16 +80,13 @@ public class TrJvmStruct2JavaAst {
 		final AbstractTypeDeclaration typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
 
-		int accessFlags = fd.getAccessFlags();
-
-		if (accessFlags != (accessFlags &= ~AccessFlag.SYNTHETIC)
-				|| fd.isSynthetic()) {
+		if (f.checkAf(AF.SYNTHETIC) || fd.isSynthetic()) {
 			if (cu.isIgnoreSynthetic()) {
 				return; // no source code ?
 			}
 		}
 
-		final boolean isEnum = accessFlags != (accessFlags &= ~AccessFlag.ENUM);
+		final boolean isEnum = f.checkAf(AF.ENUM);
 
 		// decompile BodyDeclaration, possible subtypes:
 		// FieldDeclaration, EnumConstantDeclaration
@@ -128,23 +124,23 @@ public class TrJvmStruct2JavaAst {
 
 		// decompile modifier flags,
 		// public is default for enum and interface
-		if (accessFlags != (accessFlags &= ~AccessFlag.PUBLIC)
+		if (f.checkAf(AF.PUBLIC)
 				&& !isEnum
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			fieldDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.PRIVATE)) {
+		if (f.checkAf(AF.PRIVATE)) {
 			fieldDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.PROTECTED)) {
+		if (f.checkAf(AF.PROTECTED)) {
 			fieldDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
 		// static is default for enum and interface
-		if (accessFlags != (accessFlags &= ~AccessFlag.STATIC)
+		if (f.checkAf(AF.STATIC)
 				&& !isEnum
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
@@ -152,24 +148,20 @@ public class TrJvmStruct2JavaAst {
 					ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
 		// final is default for enum and interface
-		if (accessFlags != (accessFlags &= ~AccessFlag.FINAL)
+		if (f.checkAf(AF.FINAL)
 				&& !isEnum
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			fieldDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.VOLATILE)) {
+		if (f.checkAf(AF.VOLATILE)) {
 			fieldDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.VOLATILE_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.TRANSIENT)) {
+		if (f.checkAf(AF.TRANSIENT)) {
 			fieldDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.TRANSIENT_KEYWORD));
-		}
-		if (accessFlags != 0) {
-			LOGGER.warning("Unknown field info modifier flags '" + accessFlags
-					+ "' for field info '" + f.getName() + "'!");
 		}
 
 		if (fieldDeclaration instanceof EnumConstantDeclaration) {
@@ -246,10 +238,7 @@ public class TrJvmStruct2JavaAst {
 		final AbstractTypeDeclaration typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
 
-		int accessFlags = md.getAccessFlags();
-
-		if (accessFlags != (accessFlags &= ~AccessFlag.SYNTHETIC)
-				|| md.isSynthetic()) {
+		if (m.checkAf(AF.SYNTHETIC) || md.isSynthetic()) {
 			if (cu.isIgnoreSynthetic()) {
 				return; // no source code ?
 			}
@@ -315,75 +304,62 @@ public class TrJvmStruct2JavaAst {
 
 		// decompile modifier flags,
 		// public is default for interface and annotation type declarations
-		if (accessFlags != (accessFlags &= ~AccessFlag.PUBLIC)
+		if (m.checkAf(AF.PUBLIC)
 				&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			methodDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.PRIVATE)) {
+		if (m.checkAf(AF.PRIVATE)) {
 			methodDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.PROTECTED)) {
+		if (m.checkAf(AF.PROTECTED)) {
 			methodDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.STATIC)) {
+		if (m.checkAf(AF.STATIC)) {
 			methodDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.FINAL)) {
+		if (m.checkAf(AF.FINAL)) {
 			methodDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.SYNCHRONIZED)) {
+		if (m.checkAf(AF.SYNCHRONIZED)) {
 			methodDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.BRIDGE)) {
+		if (m.checkAf(AF.BRIDGE)) {
 			return; // TODO
 		}
-		// don't really need it here, but have to check because of access flags
-		// warn message:
-		final boolean varargs = accessFlags != (accessFlags &= ~AccessFlag.VARARGS);
-		if (accessFlags != (accessFlags &= ~AccessFlag.NATIVE)) {
+		if (m.checkAf(AF.NATIVE)) {
 			methodDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.NATIVE_KEYWORD));
 		}
 		// abstract is default for interface and annotation type declarations
-		if (accessFlags != (accessFlags &= ~AccessFlag.ABSTRACT)
+		if (m.checkAf(AF.ABSTRACT)
 				&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			methodDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.STRICT)) {
+		if (m.checkAf(AF.STRICTFP)) {
 			methodDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
 		}
-		// TODO only if is DEX?
-		// DEX: ACC_CONSTRUCTOR = 0x10000
-		if (accessFlags != (accessFlags &= ~0x10000)) {
-			// nothing
-		}
-		// DEX: ACC_DECLARED_SYNCHRONIZED = 0x20000
-		if (accessFlags != (accessFlags &= ~0x20000)) {
-			// nothing
-		}
-		if (accessFlags != 0) {
-			LOGGER.warning("Unknown method info modifier flags '0x"
-					+ Integer.toHexString(accessFlags) + "' for method info '"
-					+ m.getName() + "'!");
-		}
+		/*
+		 * if (m.checkAf(AF.CONSTRUCTOR)) { // nothing, Dalvik only? } if
+		 * (m.checkAf(AF.DECLARED_SYNCHRONIZED)) { // nothing, Dalvik only? }
+		 */
 		// decompile method signature (not necessary for Initializer)
 		if (methodDeclaration instanceof MethodDeclaration) {
 			new SignatureDecompiler(td, m.getDescriptor(), m.getSignature())
 					.decompileMethodTypes(
 							(MethodDeclaration) methodDeclaration,
-							m.getThrowsTs(), varargs);
+							m.getThrowsTs(), m.checkAf(AF.VARARGS));
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(
 					td, m.getDescriptor(), m.getSignature());
@@ -398,9 +374,8 @@ public class TrJvmStruct2JavaAst {
 		// get method block,
 		// abstract and native methods have no block
 		// TODO double check this way?
-		if (md.getCfg() != null
-				&& (md.getAccessFlags() & AccessFlag.ABSTRACT) == 0
-				&& (md.getAccessFlags() & AccessFlag.NATIVE) == 0) {
+		if (md.getCfg() != null && !m.checkAf(AF.ABSTRACT)
+				&& !m.checkAf(AF.NATIVE)) {
 			if (methodDeclaration instanceof MethodDeclaration) {
 				final Block block = ast.newBlock();
 				((MethodDeclaration) methodDeclaration).setBody(block);
@@ -442,10 +417,7 @@ public class TrJvmStruct2JavaAst {
 		final CU cu = td.getCu();
 		final AST ast = cu.getAst();
 
-		int accessFlags = td.getAccessFlags();
-
-		if (accessFlags != (accessFlags &= ~AccessFlag.SYNTHETIC)
-				|| td.isSynthetic()) {
+		if (t.checkAf(AF.SYNTHETIC) || td.isSynthetic()) {
 			if (cu.isIgnoreSynthetic()) {
 				return; // no source code ?
 			}
@@ -454,7 +426,7 @@ public class TrJvmStruct2JavaAst {
 		AbstractTypeDeclaration typeDeclaration = null;
 
 		// annotation type declaration
-		if (accessFlags != (accessFlags &= ~AccessFlag.ANNOTATION)) {
+		if (t.checkAf(AF.ANNOTATION)) {
 			if (t.getSuperT() == null
 					|| !Object.class.getName().equals(t.getSuperT().getName())) {
 				LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no super class '"
@@ -473,7 +445,7 @@ public class TrJvmStruct2JavaAst {
 			typeDeclaration = ast.newAnnotationTypeDeclaration();
 		}
 		// enum declaration
-		if (accessFlags != (accessFlags &= ~AccessFlag.ENUM)) {
+		if (t.checkAf(AF.ENUM)) {
 			if (typeDeclaration != null) {
 				LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 			} else {
@@ -517,34 +489,31 @@ public class TrJvmStruct2JavaAst {
 		}
 
 		// decompile remaining modifier flags
-		if (accessFlags != (accessFlags &= ~AccessFlag.PUBLIC)) {
+		if (t.checkAf(AF.PUBLIC)) {
 			typeDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.FINAL)
+		if (t.checkAf(AF.FINAL)
 				&& !(typeDeclaration instanceof EnumDeclaration)) {
 			// enum declaration is final by default
 			typeDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.SUPER)) {
-			; // modern invokesuper syntax, is allways set in current java
-		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.INTERFACE)) {
+		if (t.checkAf(AF.INTERFACE)) {
 			if (typeDeclaration instanceof TypeDeclaration) {
 				((TypeDeclaration) typeDeclaration).setInterface(true);
 			}
+		} else if (!t.checkAf(AF.SUPER)) {
+			// modern invokesuper syntax, is allways set in current java
+			LOGGER.warning("Modern invokesuper syntax flag not set in type '"
+					+ td + "'!");
 		}
-		if (accessFlags != (accessFlags &= ~AccessFlag.ABSTRACT)
+		if (t.checkAf(AF.ABSTRACT)
 				&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			typeDeclaration.modifiers().add(
 					ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
-		}
-		if (accessFlags != 0) {
-			LOGGER.warning("Unknown type declaration modifier flags '"
-					+ accessFlags + "'!");
 		}
 
 		// multiple CompilationUnit.TypeDeclaration in same AST (source file)

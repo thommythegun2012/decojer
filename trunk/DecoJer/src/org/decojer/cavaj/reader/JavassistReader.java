@@ -39,7 +39,6 @@ import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import javassist.bytecode.AccessFlag;
 import javassist.bytecode.AnnotationDefaultAttribute;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.AttributeInfo;
@@ -79,6 +78,7 @@ import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
@@ -265,6 +265,7 @@ public class JavassistReader {
 		}
 
 		final T t = du.getT(classFile.getName());
+		t.setAccessFlags(classFile.getAccessFlags());
 		t.setSuperT(du.getT(classFile.getSuperclass()));
 		final String[] interfaces = classFile.getInterfaces();
 		if (interfaces != null && interfaces.length > 0) {
@@ -279,7 +280,6 @@ public class JavassistReader {
 		}
 
 		final TD td = new TD(t);
-		td.setAccessFlags(classFile.getAccessFlags());
 		td.setVersion(classFile.getMajorVersion());
 
 		A[] as = null;
@@ -413,7 +413,7 @@ public class JavassistReader {
 		final M m = md.getM();
 		final DU du = md.getTd().getT().getDu();
 
-		final boolean isStatic = (md.getAccessFlags() & AccessFlag.STATIC) != 0;
+		final boolean isStatic = m.checkAf(AF.STATIC);
 
 		if (localVariableAttribute != null) {
 			final int params = m.getParamTs().length;
@@ -904,8 +904,6 @@ public class JavassistReader {
 						constPool.getInterfaceMethodrefName(cpMethodIndex),
 						constPool.getInterfaceMethodrefType(cpMethodIndex));
 
-				LOGGER.warning("INVOKE INTERFACE: " + invokeM);
-
 				bb.addOperation(new INVOKE(opPc, opCode, opLine, type, invokeM));
 			}
 				break;
@@ -1264,8 +1262,7 @@ public class JavassistReader {
 					}
 				}
 				if (varName == null) {
-					if (iValue == 0
-							&& (md.getAccessFlags() & AccessFlag.STATIC) == 0) {
+					if (iValue == 0 && isStatic) {
 						varName = "this";
 					} else {
 						varName = "arg" + iValue;
@@ -1730,8 +1727,7 @@ public class JavassistReader {
 					}
 				}
 				if (varName == null) {
-					if (iValue == 0
-							&& (md.getAccessFlags() & AccessFlag.STATIC) == 0) {
+					if (iValue == 0 && isStatic) {
 						varName = "this";
 					} else {
 						varName = "arg" + iValue;
@@ -2067,13 +2063,13 @@ public class JavassistReader {
 
 		final T fieldT = du.getDescT(fieldInfo.getDescriptor());
 		final F f = t.getF(fieldInfo.getName(), fieldT);
+		f.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null
 				&& signatureAttribute.getSignature() != null) {
 			f.setSignature(signatureAttribute.getSignature());
 		}
 
 		final FD fd = new FD(f, td);
-		fd.setAccessFlags(fieldInfo.getAccessFlags());
 
 		A[] as = null;
 		if (annotationsAttributeRuntimeVisible != null) {
@@ -2190,6 +2186,7 @@ public class JavassistReader {
 		final DU du = t.getDu();
 
 		final M m = t.getM(methodInfo.getName(), methodInfo.getDescriptor());
+		m.setAccessFlags(methodInfo.getAccessFlags());
 		if (exceptionsAttribute != null) {
 			final String[] exceptions = exceptionsAttribute.getExceptions();
 			if (exceptions != null && exceptions.length > 0) {
@@ -2206,7 +2203,6 @@ public class JavassistReader {
 		}
 
 		final MD md = new MD(m, td);
-		md.setAccessFlags(methodInfo.getAccessFlags());
 
 		if (annotationDefaultAttribute != null) {
 			final MemberValue defaultMemberValue = annotationDefaultAttribute
@@ -2348,7 +2344,7 @@ public class JavassistReader {
 			final T enumT = du.getT(((EnumMemberValue) memberValue).getType());
 			final F enumF = enumT.getF(
 					((EnumMemberValue) memberValue).getValue(), enumT);
-			enumF.setEnum();
+			enumF.markEnum();
 			return enumF;
 		}
 		if (memberValue instanceof FloatMemberValue) {

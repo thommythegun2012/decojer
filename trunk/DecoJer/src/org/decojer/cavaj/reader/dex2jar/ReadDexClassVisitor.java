@@ -86,10 +86,10 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 		// desc: Ljava/lang/ref/ReferenceQueue;
 		final T fieldT = t.getDu().getDescT(field.getType());
 		final F f = t.getF(field.getName(), fieldT);
+		f.setAccessFlags(field.getAccessFlags());
 		// TODO signature in annotation
 
 		final FD fd = new FD(f, this.td);
-		fd.setAccessFlags(field.getAccessFlags());
 		fd.setValue(value);
 
 		this.td.getBds().add(fd);
@@ -104,10 +104,10 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 		// desc: (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
 		final M m = t.getM(method.getName(), method.getType().getDesc()
 				.replace('/', '.'));
+		m.setAccessFlags(method.getAccessFlags());
 		// TODO throws in annotation
 
 		final MD md = new MD(m, this.td);
-		md.setAccessFlags(method.getAccessFlags());
 
 		this.td.getBds().add(md);
 

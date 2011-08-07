@@ -51,6 +51,10 @@ public enum AF {
 	 */
 	FINAL(0x10, "final", true, true, true),
 	/**
+	 * Super. Modern invokesuper syntax, is allways set in current java.
+	 */
+	SUPER(0x20, "super", true, false, false),
+	/**
 	 * Synchronized.
 	 */
 	SYNCHRONIZED(0x20, "synchronized", false, false, true),

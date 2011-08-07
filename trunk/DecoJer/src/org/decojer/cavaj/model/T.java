@@ -73,6 +73,8 @@ public class T {
 	 */
 	public static T UNINIT = new T("<uninit>");
 
+	private int accessFlags;
+
 	private int dim;
 
 	private final DU du;
@@ -102,6 +104,26 @@ public class T {
 
 		this.du = null; // primitive
 		this.name = name;
+	}
+
+	/**
+	 * Check access flag.
+	 * 
+	 * @param af
+	 *            access flag
+	 * @return true - is access flag
+	 */
+	public boolean checkAf(final AF af) {
+		return (this.accessFlags & af.getValue()) != 0;
+	}
+
+	/**
+	 * Get access flags.
+	 * 
+	 * @return access flags
+	 */
+	public int getAccessFlags() {
+		return this.accessFlags;
 	}
 
 	/**
@@ -275,6 +297,16 @@ public class T {
 	 */
 	public boolean isPrimitive() {
 		return this.du == null;
+	}
+
+	/**
+	 * Set access flags
+	 * 
+	 * @param accessFlags
+	 *            access flags
+	 */
+	public void setAccessFlags(final int accessFlags) {
+		this.accessFlags = accessFlags;
 	}
 
 	/**
