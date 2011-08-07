@@ -32,13 +32,13 @@ public class F {
 
 	private int accessFlags;
 
-	private final T fieldT;
-
 	private final String name;
 
 	private String signature;
 
 	private final T t;
+
+	private final T valueT;
 
 	/**
 	 * Constructor.
@@ -47,16 +47,17 @@ public class F {
 	 *            type
 	 * @param name
 	 *            name
-	 * 
+	 * @param valueT
+	 *            value type
 	 */
-	protected F(final T t, final String name, final T fieldT) {
+	protected F(final T t, final String name, final T valueT) {
 		assert t != null;
 		assert name != null;
-		assert fieldT != null;
+		assert valueT != null;
 
 		this.t = t;
 		this.name = name;
-		this.fieldT = fieldT;
+		this.valueT = valueT;
 	}
 
 	/**
@@ -77,15 +78,6 @@ public class F {
 	 */
 	public int getAccessFlags() {
 		return this.accessFlags;
-	}
-
-	/**
-	 * Get field type.
-	 * 
-	 * @return field type
-	 */
-	public T getFieldT() {
-		return this.fieldT;
 	}
 
 	/**
@@ -113,6 +105,15 @@ public class F {
 	 */
 	public T getT() {
 		return this.t;
+	}
+
+	/**
+	 * Get value type.
+	 * 
+	 * @return value type
+	 */
+	public T getValueT() {
+		return this.valueT;
 	}
 
 	/**

@@ -178,7 +178,7 @@ public class TrJvmStruct2JavaAst {
 						.decompileFieldType((FieldDeclaration) fieldDeclaration);
 			} else {
 				((FieldDeclaration) fieldDeclaration).setType(Types
-						.convertType(f.getFieldT(), td));
+						.convertType(f.getValueT(), td));
 			}
 
 			final Object value = fd.getValue();
@@ -194,7 +194,7 @@ public class TrJvmStruct2JavaAst {
 							.newNumberLiteral(value.toString() + 'F'));
 				} else if (value instanceof Integer) {
 					// also: int, short, byte, char, boolean
-					if (T.CHAR == f.getFieldT()) {
+					if (T.CHAR == f.getValueT()) {
 						final CharacterLiteral newCharacterLiteral = ast
 								.newCharacterLiteral();
 						newCharacterLiteral
@@ -202,7 +202,7 @@ public class TrJvmStruct2JavaAst {
 										.intValue());
 						variableDeclarationFragment
 								.setInitializer(newCharacterLiteral);
-					} else if (T.BOOLEAN == f.getFieldT()) {
+					} else if (T.BOOLEAN == f.getValueT()) {
 						variableDeclarationFragment
 								.setInitializer(ast
 										.newBooleanLiteral(((Integer) value)

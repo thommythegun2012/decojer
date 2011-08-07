@@ -176,14 +176,14 @@ public class T {
 	 * 
 	 * @param name
 	 *            name
-	 * @param fieldT
-	 *            field type
+	 * @param valueT
+	 *            value type
 	 * @return field
 	 */
-	public F getF(final String name, final T fieldT) {
+	public F getF(final String name, final T valueT) {
 		F f = this.fs.get(name);
 		if (f == null) {
-			f = new F(this, name, fieldT);
+			f = new F(this, name, valueT);
 			this.fs.put(name, f);
 		}
 		return f;
@@ -297,6 +297,16 @@ public class T {
 	 */
 	public boolean isPrimitive() {
 		return this.du == null;
+	}
+
+	/**
+	 * Mark access flag.
+	 * 
+	 * @param af
+	 *            access flag
+	 */
+	public void markAf(final AF af) {
+		this.accessFlags |= af.getValue();
 	}
 
 	/**
