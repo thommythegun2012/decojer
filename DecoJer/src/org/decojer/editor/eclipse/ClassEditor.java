@@ -36,6 +36,7 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
+import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
 import org.decojer.editor.eclipse.util.StringInput;
 import org.decojer.editor.eclipse.util.StringStorage;
@@ -116,11 +117,11 @@ public class ClassEditor extends MultiPageEditorPart implements
 
 	private CompilationUnitEditor compilationUnitEditor;
 
-	private CU cu;
-
 	private Graph graph;
 
 	private JavaOutlinePage javaOutlinePage;
+
+	private String fileName;
 
 	/**
 	 * Constructor.
@@ -238,17 +239,18 @@ public class ClassEditor extends MultiPageEditorPart implements
 
 	private void createDecompilationUnitEditor() {
 		this.compilationUnitEditor = new CompilationUnitEditor();
+		// create editor input, in-memory string with decompiled source
+		final IClassFileEditorInput classFileEditorInput = (IClassFileEditorInput) this.classFileEditor
+				.getEditorInput();
+		final IClassFile classFile = classFileEditorInput.getClassFile();
+		this.fileName = extractPath(classFile);
+
 		String sourceCode;
 		try {
-			// create editor input, in-memory string with decompiled source
-			final IClassFileEditorInput classFileEditorInput = (IClassFileEditorInput) this.classFileEditor
-					.getEditorInput();
-			final IClassFile classFile = classFileEditorInput.getClassFile();
-
 			final DU du = DecoJer.createDu();
-			final TD td = du.read(extractPath(classFile));
-			this.cu = DecoJer.createCu(td);
-			sourceCode = DecoJer.decompile(this.cu);
+			final TD td = du.read(this.fileName);
+			final CU cu = DecoJer.createCu(td);
+			sourceCode = DecoJer.decompile(cu);
 		} catch (final Throwable e) {
 			e.printStackTrace();
 			sourceCode = "// Decompilation error!";
@@ -354,31 +356,44 @@ public class ClassEditor extends MultiPageEditorPart implements
 		// decompiler step
 		final IMethod method = (IMethod) firstElement;
 
-		MD md = null;
 		try {
-			md = this.cu.getTd(
-					method.getDeclaringType().getFullyQualifiedName()).getMd(
-					method.getElementName(), method.getSignature());
-		} catch (final Exception e) {
-			e.printStackTrace();
-		}
+			final DU du = DecoJer.createDu();
+			final TD td = du.read(this.fileName);
+			final CU cu = DecoJer.createCu(td);
+			if (!cu.addTd(cu.getStartTd())) {
+				// cannot add startTd with parents
+				cu.startTdOnly();
+			}
+			TrJvmStruct2JavaAst.transform(td); // could add tds
 
-		final CFG cfg = md.getCfg();
-		if (cfg != null) {
-			final int i = this.combo.getSelectionIndex();
-			if (i > 0) {
-				TrDataFlowAnalysis.transform(cfg);
-				TrIvmCfg2JavaExprStmts.transform(cfg);
-			}
-			if (i > 1) {
-				TrControlFlowAnalysis.transform(cfg);
-				try {
-					TrStructCfg2JavaControlFlowStmts.transform(cfg);
-				} catch (final Throwable e) {
-					e.printStackTrace();
+			final TD methodTd = cu.getTd(method.getDeclaringType()
+					.getFullyQualifiedName());
+			// HACK, constructor check
+			final String methodName = method.getDeclaringType()
+					.getFullyQualifiedName()
+					.endsWith("." + method.getElementName()) ? "<init>"
+					: method.getElementName();
+			final MD md = methodTd.getMd(methodName, method.getSignature());
+
+			final CFG cfg = md.getCfg();
+			if (cfg != null) {
+				final int i = this.combo.getSelectionIndex();
+				if (i > 0) {
+					TrDataFlowAnalysis.transform(cfg);
+					TrIvmCfg2JavaExprStmts.transform(cfg);
 				}
+				if (i > 1) {
+					TrControlFlowAnalysis.transform(cfg);
+					try {
+						TrStructCfg2JavaControlFlowStmts.transform(cfg);
+					} catch (final Throwable e) {
+						e.printStackTrace();
+					}
+				}
+				initGraph(cfg);
 			}
-			initGraph(cfg);
+		} catch (final Throwable e) {
+			e.printStackTrace();
 		}
 	}
 

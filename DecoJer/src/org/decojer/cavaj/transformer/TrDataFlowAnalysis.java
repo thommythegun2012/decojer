@@ -23,13 +23,18 @@
  */
 package org.decojer.cavaj.transformer;
 
+import java.util.Arrays;
 import java.util.List;
 
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.data.Frame;
 
 /**
  * Transform Data Flow Analysis.
@@ -39,13 +44,10 @@ import org.decojer.cavaj.model.TD;
 public class TrDataFlowAnalysis {
 
 	public static void transform(final CFG cfg) {
-		cfg.calculatePostorder();
 		new TrDataFlowAnalysis(cfg).transform();
-		cfg.calculatePostorder();
 	}
 
 	public static void transform(final TD td) {
-		// no parallelism! 2 shared instance variables: code and nextPc
 		final List<BD> bds = td.getBds();
 		for (int i = 0; i < bds.size(); ++i) {
 			final BD bd = bds.get(i);
@@ -67,6 +69,42 @@ public class TrDataFlowAnalysis {
 	}
 
 	private void transform() {
+		final MD md = this.cfg.getMd();
+		final M m = md.getM();
+		final TD td = md.getTd();
+		final T t = td.getT();
+
+		// init first frame
+		final Frame frame = new Frame();
+		frame.registerTs = new T[this.cfg.getRegisterCount()];
+		frame.varNames = new String[this.cfg.getRegisterCount()];
+		final T[] paramTs = m.getParamTs();
+		if (td.getVersion() == 0) {
+			// Dalvik
+			int locals = this.cfg.getRegisterCount() - paramTs.length;
+			if (!m.checkAf(AF.STATIC)) {
+				frame.registerTs[locals - 1] = t;
+				frame.varNames[locals - 1] = "this";
+				--locals;
+			}
+			Arrays.fill(frame.registerTs, 0, locals, T.UNINIT);
+			System.arraycopy(paramTs, 0, frame.registerTs, locals,
+					paramTs.length);
+			for (int i = paramTs.length; i-- > 0;) {
+				frame.varNames[locals + i] = m.getParamName(i);
+			}
+		} else {
+			// JVM
+			if (!m.checkAf(AF.STATIC)) {
+				frame.registerTs[0] = t;
+				frame.varNames[0] = "this";
+			}
+			System.arraycopy(paramTs, 0, frame.registerTs, 0, paramTs.length);
+			for (int i = paramTs.length; i-- > 0;) {
+				frame.varNames[i] = m.getParamName(i);
+			}
+		}
+
 		final List<BB> postorderedBBs = this.cfg.getPostorderedBbs();
 		for (int postorder = postorderedBBs.size(); postorder-- > 0;) {
 			final BB basicBlock = postorderedBBs.get(postorder);

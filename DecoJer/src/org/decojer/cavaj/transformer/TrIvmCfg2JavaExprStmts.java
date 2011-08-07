@@ -121,7 +121,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 	public static void transform(final CFG cfg) {
 		new TrIvmCfg2JavaExprStmts(cfg).transform();
-		cfg.calculatePostorder();
+		cfg.calculatePostorder(); // blocks deleted...
 	}
 
 	public static void transform(final TD td) {
