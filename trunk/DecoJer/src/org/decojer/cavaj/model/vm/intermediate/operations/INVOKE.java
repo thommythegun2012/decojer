@@ -23,51 +23,27 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class INVOKE extends Operation {
 
-	/**
-	 * Invoke dynamic via interface.
-	 */
-	public static final int T_INTERFACE = 0;
-
-	/**
-	 * Invoke dynamic direct, e.g. constructor.
-	 */
-	public static final int T_SPECIAL = 1;
-
-	/**
-	 * Invoke static.
-	 */
-	public static final int T_STATIC = 2;
-
-	/**
-	 * Invoke dynamic virtual.
-	 */
-	public static final int T_VIRTUAL = 3;
-
-	private final int functionType;
+	private final boolean direct;
 
 	private final M m;
 
 	public INVOKE(final int opPc, final int opCode, final int opLine,
-			final int functionType, final M m) {
+			final M m, final boolean direct) {
 		super(opPc, opCode, opLine);
-		this.functionType = functionType;
 		this.m = m;
-	}
-
-	public int getFunctionType() {
-		return this.functionType;
+		this.direct = direct;
 	}
 
 	@Override
 	public int getInStackSize() {
-		return (this.functionType == T_STATIC ? 0 : 1)
-				+ this.m.getParamTs().length;
+		return (this.m.checkAf(AF.STATIC) ? 0 : 1) + this.m.getParamTs().length;
 	}
 
 	/**
@@ -84,9 +60,20 @@ public class INVOKE extends Operation {
 		return Opcode.INVOKE;
 	}
 
+	/**
+	 * Is direct call?
+	 * 
+	 * Constructor or supermethod callout, JVM: SPECIAL, Dalvik: DIRECT.
+	 * 
+	 * @return true - is direct
+	 */
+	public boolean isDirect() {
+		return this.direct;
+	}
+
 	@Override
 	public String toString() {
-		return super.toString() + " " + getM();
+		return super.toString() + " " + this.m;
 	}
 
 }

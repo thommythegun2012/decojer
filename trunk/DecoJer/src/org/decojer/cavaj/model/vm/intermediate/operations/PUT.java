@@ -56,4 +56,9 @@ public class PUT extends Operation {
 		return Opcode.PUT;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + " " + this.f;
+	}
+
 }
