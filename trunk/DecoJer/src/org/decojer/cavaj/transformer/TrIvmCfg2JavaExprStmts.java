@@ -690,24 +690,18 @@ public class TrIvmCfg2JavaExprStmts {
 				// TODO a = a <op> expr => a <op>= expr
 				assignment.setRightHandSide(wrap(rightExpression,
 						priority(assignment)));
-				switch (op.getFunctionType()) {
-				case PUT.T_DYNAMIC:
+				final F f = op.getF();
+				if (f.checkAf(AF.STATIC)) {
+					final Name name = getAst().newQualifiedName(
+							getTd().newTypeName(f.getT().getName()),
+							getAst().newSimpleName(f.getName()));
+					assignment.setLeftHandSide(name);
+				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
 					fieldAccess.setExpression(wrap(bb.popExpression(),
 							priority(fieldAccess)));
-					fieldAccess.setName(getAst().newSimpleName(
-							op.getFieldrefName()));
+					fieldAccess.setName(getAst().newSimpleName(f.getName()));
 					assignment.setLeftHandSide(fieldAccess);
-					break;
-				case PUT.T_STATIC:
-					final Name name = getAst().newQualifiedName(
-							getTd().newTypeName(op.getFieldrefClassName()),
-							getAst().newSimpleName(op.getFieldrefName()));
-					assignment.setLeftHandSide(name);
-					break;
-				default:
-					LOGGER.warning("Unknown function type '"
-							+ op.getFunctionType() + "'!");
 				}
 				// inline assignment, DUP(_X1) -> PUT
 				if (bb.getExpressionsSize() > 0

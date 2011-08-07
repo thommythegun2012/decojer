@@ -846,26 +846,21 @@ public class JavassistReader {
 			case Opcode.GETFIELD:
 				type = 0;
 				// fall through
-			case Opcode.GETSTATIC:
-				if (type < 0) {
-					type = 1;
-				}
-				{
-					final int cpFieldIndex = codeReader.readUnsignedShort();
+			case Opcode.GETSTATIC: {
+				final int cpFieldIndex = codeReader.readUnsignedShort();
 
-					final T fieldRefT = du.getT(constPool
-							.getFieldrefClassName(cpFieldIndex));
-					final T fieldValueT = du.getDescT(constPool
-							.getFieldrefType(cpFieldIndex));
-					final F f = fieldRefT.getF(
-							constPool.getFieldrefName(cpFieldIndex),
-							fieldValueT);
-					if (type == 1) {
-						f.markAf(AF.STATIC);
-					}
-					bb.addOperation(new GET(opPc, opCode, opLine, f));
+				final T fieldRefT = du.getT(constPool
+						.getFieldrefClassName(cpFieldIndex));
+				final T fieldValueT = du.getDescT(constPool
+						.getFieldrefType(cpFieldIndex));
+				final F f = fieldRefT.getF(
+						constPool.getFieldrefName(cpFieldIndex), fieldValueT);
+				if (type < 0) {
+					f.markAf(AF.STATIC);
 				}
+				bb.addOperation(new GET(opPc, opCode, opLine, f));
 				break;
+			}
 			/********
 			 * GOTO *
 			 ********/
@@ -1505,24 +1500,23 @@ public class JavassistReader {
 			 * PUT *
 			 *******/
 			case Opcode.PUTFIELD:
-				type = PUT.T_DYNAMIC;
+				type = 0;
 				// fall through
-			case Opcode.PUTSTATIC:
+			case Opcode.PUTSTATIC: {
+				final int cpFieldIndex = codeReader.readUnsignedShort();
+
+				final T fieldRefT = du.getT(constPool
+						.getFieldrefClassName(cpFieldIndex));
+				final T fieldValueT = du.getDescT(constPool
+						.getFieldrefType(cpFieldIndex));
+				final F f = fieldRefT.getF(
+						constPool.getFieldrefName(cpFieldIndex), fieldValueT);
 				if (type < 0) {
-					type = PUT.T_STATIC;
+					f.markAf(AF.STATIC);
 				}
-				{
-					final int cpFieldIndex = codeReader.readUnsignedShort();
-					final String fieldrefClassName = constPool
-							.getFieldrefClassName(cpFieldIndex);
-					final String fieldrefName = constPool
-							.getFieldrefName(cpFieldIndex);
-					final String fieldrefType = constPool
-							.getFieldrefType(cpFieldIndex);
-					bb.addOperation(new PUT(opPc, opCode, opLine, type,
-							fieldrefClassName, fieldrefName, fieldrefType));
-				}
+				bb.addOperation(new PUT(opPc, opCode, opLine, f));
 				break;
+			}
 			/*******
 			 * RET *
 			 *******/
