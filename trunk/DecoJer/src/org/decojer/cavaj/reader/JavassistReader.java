@@ -1278,14 +1278,6 @@ public class JavassistReader {
 						}
 					}
 				}
-				// TODO delete this, use frames
-				if (varName == null) {
-					if (iValue == 0 && !isStatic) {
-						varName = "this";
-					} else {
-						varName = "arg" + iValue;
-					}
-				}
 				bb.addOperation(new LOAD(opPc, opCode, opLine, type, iValue,
 						varT, varName));
 				break;
@@ -1760,14 +1752,6 @@ public class JavassistReader {
 							}
 							break;
 						}
-					}
-				}
-				// TODO delete this, use frames
-				if (varName == null) {
-					if (iValue == 0 && !isStatic) {
-						varName = "this";
-					} else {
-						varName = "arg" + iValue;
 					}
 				}
 				bb.addOperation(new STORE(opPc, opCode, opLine, type, iValue,

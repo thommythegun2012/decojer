@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.transformer;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.decojer.cavaj.model.AF;
@@ -35,6 +34,7 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.data.Frame;
+import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 /**
  * Transform Data Flow Analysis.
@@ -68,53 +68,73 @@ public class TrDataFlowAnalysis {
 		this.cfg = cfg;
 	}
 
-	private void transform() {
-		final MD md = this.cfg.getMd();
+	private Frame createMethodFrame() {
+		final MD md = getCfg().getMd();
 		final M m = md.getM();
 		final TD td = md.getTd();
 		final T t = td.getT();
-
-		// init first frame
 		final Frame frame = new Frame();
 		frame.registerTs = new T[this.cfg.getRegisterCount()];
 		frame.varNames = new String[this.cfg.getRegisterCount()];
 		final T[] paramTs = m.getParamTs();
 		if (td.getVersion() == 0) {
-			// Dalvik
-			int locals = this.cfg.getRegisterCount() - paramTs.length;
-			if (!m.checkAf(AF.STATIC)) {
-				frame.registerTs[locals - 1] = t;
-				frame.varNames[locals - 1] = "this";
-				--locals;
-			}
-			Arrays.fill(frame.registerTs, 0, locals, T.UNINIT);
-			System.arraycopy(paramTs, 0, frame.registerTs, locals,
-					paramTs.length);
+			// Dalvik...function parameters right aligned
+			int reg = this.cfg.getRegisterCount();
 			for (int i = paramTs.length; i-- > 0;) {
-				frame.varNames[locals + i] = m.getParamName(i);
+				frame.registerTs[--reg] = paramTs[i];
+				frame.varNames[reg] = m.getParamName(i);
+			}
+			if (!m.checkAf(AF.STATIC)) {
+				frame.registerTs[--reg] = t;
+				frame.varNames[reg] = "this";
+			}
+			while (reg > 0) {
+				frame.registerTs[--reg] = T.UNINIT;
+				frame.varNames[reg] = "r" + reg;
 			}
 		} else {
-			// JVM
+			// JVM...function parameters left aligned
+			int reg = 0;
 			if (!m.checkAf(AF.STATIC)) {
-				frame.registerTs[0] = t;
-				frame.varNames[0] = "this";
+				frame.registerTs[reg] = t;
+				frame.varNames[reg++] = "this";
 			}
-			for (int i = 0, j = 0; i < paramTs.length; ++i, ++j) {
+			for (int i = 0; i < paramTs.length; ++i) {
 				final T paramT = paramTs[i];
-				frame.registerTs[j] = paramT;
-				frame.varNames[j] = m.getParamName(i);
+				frame.registerTs[reg] = paramT;
+				frame.varNames[reg++] = m.getParamName(i);
 				// wide values need 2 registers, srsly?
 				if (paramT == T.LONG || paramT == T.DOUBLE) {
-					++j;
 					// TODO better mark as unuseable?
-					frame.registerTs[j] = T.UNINIT;
+					frame.registerTs[reg++] = T.UNINIT;
 				}
 			}
+			while (reg < this.cfg.getRegisterCount()) {
+				frame.registerTs[reg] = T.UNINIT;
+				frame.varNames[reg++] = "r" + reg;
+			}
 		}
+		return frame;
+	}
 
-		final List<BB> postorderedBBs = this.cfg.getPostorderedBbs();
-		for (int postorder = postorderedBBs.size(); postorder-- > 0;) {
-			final BB basicBlock = postorderedBBs.get(postorder);
+	private CFG getCfg() {
+		return this.cfg;
+	}
+
+	private Frame propagateFrames(final BB bb, final Frame frame) {
+		for (final Operation operation : bb.getOperations()) {
+			operation.setFrame(frame);
+		}
+		return frame;
+	}
+
+	private void transform() {
+		Frame frame = createMethodFrame();
+
+		final List<BB> bbs = this.cfg.getPostorderedBbs();
+		for (int postorder = bbs.size(); postorder-- > 0;) {
+			final BB bb = bbs.get(postorder);
+			frame = propagateFrames(bb, frame);
 		}
 	}
 

@@ -192,21 +192,24 @@ public class CFG {
 	 * 
 	 * @param pc
 	 *            target pc
-	 * @param pcBBs
+	 * @param pcBbs
 	 *            map: pc -> basic block
 	 * @return target basic block
 	 */
-	public BB getTargetBb(final int pc, final Map<Integer, BB> pcBBs) {
+	public BB getTargetBb(final int pc, final Map<Integer, BB> pcBbs) {
 		// operation with pc must be in this basic block
-		final BB targetBB = pcBBs.get(pc);
+		final BB targetBb = pcBbs.get(pc);
 		// no basic block found for pc yet
-		if (targetBB == null) {
+		if (targetBb == null) {
 			return null;
 		}
+
+		final List<Operation> operations = targetBb.getOperations();
+
 		int i = 0;
 		// find operation index in basic block with given pc
-		while (i < targetBB.getOperationsSize()) {
-			if (targetBB.getOperation(i).getOpPc() == pc) {
+		while (i < operations.size()) {
+			if (operations.get(i).getOpPc() == pc) {
 				break;
 			}
 			++i;
@@ -214,26 +217,26 @@ public class CFG {
 		// first operation in basic block has target pc, return basic block,
 		// no split necessary
 		if (i == 0) {
-			return targetBB;
+			return targetBb;
 		}
 		// split basic block, new incoming block, adapt basic block pcs
-		final BB splitSourceBB = newBb(targetBB.getOpPc());
-		targetBB.setOpPc(pc);
-		if (this.startBb == targetBB) {
-			this.startBb = splitSourceBB;
+		final BB splitSourceBb = newBb(targetBb.getOpPc());
+		targetBb.setOpPc(pc);
+		if (this.startBb == targetBb) {
+			this.startBb = splitSourceBb;
 		}
 		// first preserve predecessors...
-		targetBB.movePredBbs(splitSourceBB);
+		targetBb.movePredBbs(splitSourceBb);
 		// ...then add connection
-		splitSourceBB.addSucc(targetBB, null);
+		splitSourceBb.addSucc(targetBb, null);
 
 		// move operations, change pc map
 		while (i-- > 0) {
-			final Operation vmOperation = targetBB.removeOperation(0);
-			splitSourceBB.addOperation(vmOperation);
-			pcBBs.put(vmOperation.getOpPc(), splitSourceBB);
+			final Operation vmOperation = operations.remove(0);
+			splitSourceBb.addOperation(vmOperation);
+			pcBbs.put(vmOperation.getOpPc(), splitSourceBb);
 		}
-		return targetBB;
+		return targetBb;
 	}
 
 	private BB intersectIDoms(final BB b1, final BB b2) {
