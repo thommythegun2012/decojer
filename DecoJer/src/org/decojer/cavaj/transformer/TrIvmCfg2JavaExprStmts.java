@@ -148,12 +148,13 @@ public class TrIvmCfg2JavaExprStmts {
 
 	@SuppressWarnings("unchecked")
 	private boolean convertToHLLIntermediate(final BB bb) {
-		while (bb.getOperationsSize() != 0) {
-			final Operation operation = bb.getOperation(0);
+		final List<Operation> operations = bb.getOperations();
+		while (operations.size() != 0) {
+			final Operation operation = operations.get(0);
 			if (operation.getInStackSize() > bb.getExpressionsSize()) {
 				return false;
 			}
-			bb.removeOperation(0);
+			operations.remove(0);
 			Statement statement = null;
 			switch (operation.getOpcode()) {
 			case Opcode.ADD: {
@@ -557,10 +558,15 @@ public class TrIvmCfg2JavaExprStmts {
 			case Opcode.LOAD: {
 				final LOAD op = (LOAD) operation;
 
-				if ("this".equals(op.getVarName())) {
+				String name = op.getVarName();
+				if (name == null) {
+					name = op.getFrame().varNames[op.getVarIndex()];
+				}
+
+				if ("this".equals(name)) {
 					bb.pushExpression(getAst().newThisExpression());
 				} else {
-					bb.pushExpression(getAst().newSimpleName(op.getVarName()));
+					bb.pushExpression(getAst().newSimpleName(name));
 				}
 			}
 				break;
@@ -730,8 +736,12 @@ public class TrIvmCfg2JavaExprStmts {
 				assignment.setRightHandSide(wrap(rightExpression,
 						priority(assignment)));
 
-				assignment.setLeftHandSide(getAst().newSimpleName(
-						op.getVarName()));
+				String name = op.getVarName();
+				if (name == null) {
+					name = op.getFrame().varNames[op.getVarIndex()];
+				}
+
+				assignment.setLeftHandSide(getAst().newSimpleName(name));
 				// inline assignment, DUP -> STORE
 				if (bb.getExpressionsSize() > 0
 						&& bb.peekExpression() == rightExpression) {

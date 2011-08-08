@@ -66,6 +66,12 @@ public class BB {
 		this.opPc = opPc;
 	}
 
+	/**
+	 * Add operation.
+	 * 
+	 * @param operation
+	 *            operation
+	 */
 	public void addOperation(final Operation operation) {
 		if (this.operations.size() == 0) {
 			this.opLine = operation.getOpLine();
@@ -73,6 +79,12 @@ public class BB {
 		this.operations.add(operation);
 	}
 
+	/**
+	 * Add statement.
+	 * 
+	 * @param statement
+	 *            statement
+	 */
 	public void addStatement(final Statement statement) {
 		this.statements.add(statement);
 	}
@@ -127,6 +139,11 @@ public class BB {
 		this.expressions.addAll(bb.expressions);
 	}
 
+	/**
+	 * Get control flow graph.
+	 * 
+	 * @return control flow graph
+	 */
 	public CFG getCfg() {
 		return this.cfg;
 	}
@@ -154,18 +171,29 @@ public class BB {
 		return getCfg().getIDom(this);
 	}
 
-	public Operation getOperation(final int i) {
-		return this.operations.get(i);
+	/**
+	 * Get operations.
+	 * 
+	 * @return operations
+	 */
+	public List<Operation> getOperations() {
+		return this.operations;
 	}
 
-	public int getOperationsSize() {
-		return this.operations.size();
-	}
-
+	/**
+	 * Get operation line.
+	 * 
+	 * @return operation line
+	 */
 	public int getOpLine() {
 		return this.opLine;
 	}
 
+	/**
+	 * Get operation program counter.
+	 * 
+	 * @return operation program counter
+	 */
 	public int getOpPc() {
 		return this.opPc;
 	}
@@ -182,6 +210,11 @@ public class BB {
 		return opLine == -1 ? getOpPc() : opLine;
 	}
 
+	/**
+	 * Get poerstorder.
+	 * 
+	 * @return postorder
+	 */
 	public int getPostorder() {
 		return this.postorder;
 	}
@@ -190,10 +223,20 @@ public class BB {
 		return this.predBbs;
 	}
 
+	/**
+	 * Get statements.
+	 * 
+	 * @return statements
+	 */
 	public List<Statement> getStatements() {
 		return this.statements;
 	}
 
+	/**
+	 * Get control flow structure.
+	 * 
+	 * @return control flow structure
+	 */
 	public Struct getStruct() {
 		return this.struct;
 	}
@@ -274,18 +317,32 @@ public class BB {
 		}
 	}
 
-	public Operation removeOperation(final int i) {
-		return this.operations.remove(i);
-	}
-
+	/**
+	 * Set operation program counter.
+	 * 
+	 * @param opPc
+	 *            operation program counter
+	 */
 	public void setOpPc(final int opPc) {
 		this.opPc = opPc;
 	}
 
+	/**
+	 * Set postorder.
+	 * 
+	 * @param postorder
+	 *            postorder
+	 */
 	public void setPostorder(final int postorder) {
 		this.postorder = postorder;
 	}
 
+	/**
+	 * Set control flow structure.
+	 * 
+	 * @param struct
+	 *            control flow structure
+	 */
 	public void setStruct(final Struct struct) {
 		this.struct = struct;
 	}

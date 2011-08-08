@@ -23,7 +23,11 @@
  */
 package org.decojer.cavaj.model.vm.intermediate;
 
+import org.decojer.cavaj.model.data.Frame;
+
 public abstract class Operation {
+
+	private Frame frame;
 
 	private final int opCode;
 
@@ -41,6 +45,10 @@ public abstract class Operation {
 	public boolean equals(final Object ob) {
 		return ob instanceof Operation
 				&& getOpPc() == ((Operation) ob).getOpPc(); // super.equals(arg0);
+	}
+
+	public Frame getFrame() {
+		return this.frame;
 	}
 
 	public abstract int getInStackSize();
@@ -62,6 +70,10 @@ public abstract class Operation {
 	@Override
 	public int hashCode() {
 		return getOpPc(); // super.hashCode();
+	}
+
+	public void setFrame(final Frame frame) {
+		this.frame = frame;
 	}
 
 	@Override
