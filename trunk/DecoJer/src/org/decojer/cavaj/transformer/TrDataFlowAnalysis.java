@@ -24,6 +24,7 @@
 package org.decojer.cavaj.transformer;
 
 import java.util.List;
+import java.util.Stack;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BB;
@@ -33,11 +34,16 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.vm.intermediate.DataType;
 import org.decojer.cavaj.model.vm.intermediate.Frame;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
+import org.decojer.cavaj.model.vm.intermediate.operations.GET;
+import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
+import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
+import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
 
 /**
  * Transform Data Flow Analysis.
@@ -71,12 +77,46 @@ public class TrDataFlowAnalysis {
 		this.cfg = cfg;
 	}
 
+	private T convertType(final int dataType) {
+		switch (dataType) {
+		case DataType.T_AREF:
+			return getCfg().getMd().getTd().getT().getDu()
+					.getT(Object.class.getName());
+		case DataType.T_BOOLEAN:
+			return T.BOOLEAN;
+		case DataType.T_BYTE:
+			return T.BYTE;
+		case DataType.T_CHAR:
+			return T.CHAR;
+		case DataType.T_CLASS:
+			return getCfg().getMd().getTd().getT().getDu()
+					.getT(Class.class.getName());
+		case DataType.T_DOUBLE:
+			return T.DOUBLE;
+		case DataType.T_FLOAT:
+			return T.FLOAT;
+		case DataType.T_INT:
+			return T.INT;
+		case DataType.T_LONG:
+			return T.LONG;
+		case DataType.T_SHORT:
+			return T.SHORT;
+		case DataType.T_STRING:
+			return getCfg().getMd().getTd().getT().getDu()
+					.getT(String.class.getName());
+		case DataType.T_VOID:
+			return T.VOID;
+		}
+		return null;
+	}
+
 	private Frame createMethodFrame() {
 		final MD md = getCfg().getMd();
 		final M m = md.getM();
 		final TD td = md.getTd();
 		final T t = td.getT();
 		final Frame frame = new Frame();
+		frame.stack = new Stack<Var>();
 		frame.vars = new Var[this.cfg.getRegisterCount()];
 		frame.varNames = new String[this.cfg.getRegisterCount()];
 		final T[] paramTs = m.getParamTs();
@@ -125,13 +165,43 @@ public class TrDataFlowAnalysis {
 	}
 
 	private Frame propagateFrames(final BB bb, final Frame frame) {
+		Frame opFrame = frame;
 		for (final Operation operation : bb.getOperations()) {
-			operation.setFrame(frame);
+			operation.setFrame(opFrame);
 			switch (operation.getOpcode()) {
 			case Opcode.ADD: {
 				final ADD op = (ADD) operation;
-				// pop
-				// pop
+				opFrame = new Frame(opFrame);
+				// check op.getType()
+				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
+						opFrame.stack.pop()));
+				break;
+			}
+			case Opcode.GET: {
+				final GET op = (GET) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(new Var(op.getF().getValueT()));
+				break;
+			}
+			case Opcode.LOAD: {
+				final LOAD op = (LOAD) operation;
+				opFrame = new Frame(opFrame);
+				// check op.getType()
+				final Var var = opFrame.vars[op.getVarIndex()];
+				opFrame.stack.push(var);
+				break;
+			}
+			case Opcode.PUSH: {
+				final PUSH op = (PUSH) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(new Var(convertType(op.getType())));
+				break;
+			}
+			case Opcode.STORE: {
+				final STORE op = (STORE) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.vars[op.getVarIndex()] = opFrame.stack.pop();
+				// check follow?
 				break;
 			}
 			}

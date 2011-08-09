@@ -23,13 +23,36 @@
  */
 package org.decojer.cavaj.model.vm.intermediate;
 
+import java.util.Stack;
+
 /**
  * @author André Pankraz
  */
 public class Frame {
 
+	public Stack<Var> stack;
+
 	public Var[] vars;
 
 	public String[] varNames;
+
+	/**
+	 * Constructor.
+	 */
+	public Frame() {
+		// nothing
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param frame
+	 *            copy frame
+	 */
+	public Frame(final Frame frame) {
+		this.stack = (Stack<Var>) frame.stack.clone();
+		this.vars = frame.vars.clone();
+		this.varNames = frame.varNames.clone();
+	}
 
 }
