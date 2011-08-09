@@ -23,60 +23,13 @@
  */
 package org.decojer.cavaj.model.vm.intermediate;
 
-public abstract class Operation {
+/**
+ * @author André Pankraz
+ */
+public class Frame {
 
-	private Frame frame;
+	public Var[] vars;
 
-	private final int opCode;
-
-	private final int opLine;
-
-	private final int opPc;
-
-	public Operation(final int opPc, final int opCode, final int opLine) {
-		this.opPc = opPc;
-		this.opCode = opCode;
-		this.opLine = opLine;
-	}
-
-	@Override
-	public boolean equals(final Object ob) {
-		return ob instanceof Operation
-				&& getOpPc() == ((Operation) ob).getOpPc(); // super.equals(arg0);
-	}
-
-	public Frame getFrame() {
-		return this.frame;
-	}
-
-	public abstract int getInStackSize();
-
-	public abstract int getOpcode();
-
-	public int getOpCode() {
-		return this.opCode;
-	}
-
-	public int getOpLine() {
-		return this.opLine;
-	}
-
-	public int getOpPc() {
-		return this.opPc;
-	}
-
-	@Override
-	public int hashCode() {
-		return getOpPc(); // super.hashCode();
-	}
-
-	public void setFrame(final Frame frame) {
-		this.frame = frame;
-	}
-
-	@Override
-	public String toString() {
-		return getClass().getSimpleName();
-	}
+	public String[] varNames;
 
 }

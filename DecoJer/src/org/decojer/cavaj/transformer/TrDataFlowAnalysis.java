@@ -33,8 +33,11 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.data.Frame;
+import org.decojer.cavaj.model.vm.intermediate.Frame;
+import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
+import org.decojer.cavaj.model.vm.intermediate.Var;
+import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
 
 /**
  * Transform Data Flow Analysis.
@@ -74,43 +77,43 @@ public class TrDataFlowAnalysis {
 		final TD td = md.getTd();
 		final T t = td.getT();
 		final Frame frame = new Frame();
-		frame.registerTs = new T[this.cfg.getRegisterCount()];
+		frame.vars = new Var[this.cfg.getRegisterCount()];
 		frame.varNames = new String[this.cfg.getRegisterCount()];
 		final T[] paramTs = m.getParamTs();
 		if (td.getVersion() == 0) {
 			// Dalvik...function parameters right aligned
 			int reg = this.cfg.getRegisterCount();
 			for (int i = paramTs.length; i-- > 0;) {
-				frame.registerTs[--reg] = paramTs[i];
+				frame.vars[--reg] = new Var(paramTs[i]);
 				frame.varNames[reg] = m.getParamName(i);
 			}
 			if (!m.checkAf(AF.STATIC)) {
-				frame.registerTs[--reg] = t;
+				frame.vars[--reg] = new Var(t);
 				frame.varNames[reg] = "this";
 			}
 			while (reg > 0) {
-				frame.registerTs[--reg] = T.UNINIT;
+				frame.vars[--reg] = new Var(T.UNINIT);
 				frame.varNames[reg] = "r" + reg;
 			}
 		} else {
 			// JVM...function parameters left aligned
 			int reg = 0;
 			if (!m.checkAf(AF.STATIC)) {
-				frame.registerTs[reg] = t;
+				frame.vars[reg] = new Var(t);
 				frame.varNames[reg++] = "this";
 			}
 			for (int i = 0; i < paramTs.length; ++i) {
 				final T paramT = paramTs[i];
-				frame.registerTs[reg] = paramT;
+				frame.vars[reg] = new Var(paramT);
 				frame.varNames[reg++] = m.getParamName(i);
 				// wide values need 2 registers, srsly?
 				if (paramT == T.LONG || paramT == T.DOUBLE) {
 					// TODO better mark as unuseable?
-					frame.registerTs[reg++] = T.UNINIT;
+					frame.vars[reg++] = new Var(T.UNINIT);
 				}
 			}
 			while (reg < this.cfg.getRegisterCount()) {
-				frame.registerTs[reg] = T.UNINIT;
+				frame.vars[reg] = new Var(T.UNINIT);
 				frame.varNames[reg++] = "r" + reg;
 			}
 		}
@@ -124,6 +127,14 @@ public class TrDataFlowAnalysis {
 	private Frame propagateFrames(final BB bb, final Frame frame) {
 		for (final Operation operation : bb.getOperations()) {
 			operation.setFrame(frame);
+			switch (operation.getOpcode()) {
+			case Opcode.ADD: {
+				final ADD op = (ADD) operation;
+				// pop
+				// pop
+				break;
+			}
+			}
 		}
 		return frame;
 	}
