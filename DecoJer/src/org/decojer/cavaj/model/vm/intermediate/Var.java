@@ -23,6 +23,10 @@
  */
 package org.decojer.cavaj.model.vm.intermediate;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -30,15 +34,39 @@ import org.decojer.cavaj.model.T;
  */
 public class Var {
 
-	public T[] ts;
+	/**
+	 * Merge variables.
+	 * 
+	 * @param vars
+	 *            variables
+	 * @return variable
+	 */
+	public static Var merge(final Var... vars) {
+		final HashSet<T> ts = new HashSet<T>();
+		ts.addAll(vars[0].ts);
+		return new Var(ts);
+	}
+
+	private Set<T> ts = new HashSet<T>();
 
 	/**
 	 * Constructor.
 	 * 
+	 * @param ts
+	 *            types
 	 */
-	public Var(final T t) {
-		this.ts = new T[1];
-		this.ts[0] = t;
+	public Var(final Set<T> ts) {
+		this.ts = ts;
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param ts
+	 *            types
+	 */
+	public Var(final T... ts) {
+		this.ts.addAll(Arrays.asList(ts));
 	}
 
 }
