@@ -21,17 +21,24 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model.data;
+package org.decojer.cavaj.model.vm.intermediate;
 
 import org.decojer.cavaj.model.T;
 
 /**
  * @author André Pankraz
  */
-public class Frame {
+public class Var {
 
-	public T[] registerTs;
+	public T[] ts;
 
-	public String[] varNames;
+	/**
+	 * Constructor.
+	 * 
+	 */
+	public Var(final T t) {
+		this.ts = new T[1];
+		this.ts[0] = t;
+	}
 
 }
