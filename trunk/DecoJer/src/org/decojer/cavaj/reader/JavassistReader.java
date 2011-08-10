@@ -92,6 +92,7 @@ import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
+import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
 import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.AND;
@@ -128,6 +129,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
 import org.decojer.cavaj.model.vm.intermediate.operations.THROW;
 import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
+import org.decojer.cavaj.reader.javassist.CodeReader;
 
 /**
  * Reader from Javassist.
@@ -392,7 +394,6 @@ public class JavassistReader {
 		LocalVariableAttribute localVariableTypeAttribute = null;
 		StackMap stackMap;
 		StackMapTable stackMapTable;
-
 		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) codeAttribute
 				.getAttributes()) {
 			final String attributeTag = attributeInfo.getName();
@@ -412,83 +413,17 @@ public class JavassistReader {
 			}
 		}
 
-		final M m = md.getM();
-		final DU du = md.getTd().getT().getDu();
+		readLocalVariables(md, localVariableAttribute,
+				localVariableTypeAttribute);
 
-		final boolean isStatic = m.checkAf(AF.STATIC);
-
-		if (localVariableAttribute != null) {
-			final int params = m.getParamTs().length;
-			final String[] paramNames = new String[params];
-			for (int i = localVariableAttribute.tableLength(); i-- > 0;) {
-				int index = localVariableAttribute.index(i);
-				if (!isStatic) {
-					// index == 0 is "this" for non-statics
-					--index;
-				}
-				if (index < 0) {
-					continue;
-				}
-				if (index < paramNames.length) {
-					paramNames[index] = localVariableAttribute.variableName(i);
-				}
-				// TODO where goes the other stuff, local variables?
-			}
-			m.setParamNames(paramNames);
-		}
-
-		class CodeReader {
-
-			final byte[] code;
-
-			int pc;
-
-			/**
-			 * Constructor.
-			 * 
-			 */
-			CodeReader(final byte[] code) {
-				this.code = code;
-			}
-
-			int readSignedByte() {
-				return this.code[this.pc++];
-			}
-
-			int readSignedInt() {
-				return this.code[this.pc++] << 24
-						| (this.code[this.pc++] & 0xff) << 16
-						| (this.code[this.pc++] & 0xff) << 8
-						| this.code[this.pc++] & 0xff;
-			}
-
-			int readSignedShort() {
-				return this.code[this.pc++] << 8 | this.code[this.pc++] & 0xff;
-			}
-
-			int readUnsignedByte() {
-				return this.code[this.pc++] & 0xff;
-			}
-
-			int readUnsignedInt() {
-				return (this.code[this.pc++] & 0xff) << 24
-						| (this.code[this.pc++] & 0xff) << 16
-						| (this.code[this.pc++] & 0xff) << 8
-						| this.code[this.pc++] & 0xff;
-			}
-
-			int readUnsignedShort() {
-				return (this.code[this.pc++] & 0xff) << 8
-						| this.code[this.pc++] & 0xff;
-			}
-
-		}
-
+		// read code
 		final CodeReader codeReader = new CodeReader(codeAttribute.getCode());
 
 		// init CFG with start BB
 		final CFG cfg = new CFG(md, codeAttribute.getMaxLocals());
 		md.setCFG(cfg);
+
+		final DU du = md.getTd().getT().getDu();
 
 		final ConstPool constPool = codeAttribute.getConstPool();
 
@@ -2156,6 +2091,114 @@ public class JavassistReader {
 		}
 
 		return fd;
+	}
+
+	private static void readLocalVariables(final MD md,
+			final LocalVariableAttribute localVariableAttribute,
+			final LocalVariableAttribute localVariableTypeAttribute) {
+		final M m = md.getM();
+		final DU du = m.getT().getDu();
+		final Map<Integer, List<Var>> reg2vars = new HashMap<Integer, List<Var>>();
+		if (localVariableAttribute != null) {
+			final int tableLength = localVariableAttribute.tableLength();
+			for (int i = 0; i < tableLength; ++i) {
+				final int index = localVariableAttribute.index(i);
+				List<Var> vars = reg2vars.get(index);
+				if (vars == null) {
+					vars = new ArrayList<Var>();
+					reg2vars.put(index, vars);
+				}
+				final Var var = new Var(du.getDescT(localVariableAttribute
+						.descriptor(i)));
+				var.setName(localVariableAttribute.variableName(i));
+				final int startPc = localVariableAttribute.startPc(i);
+				final int endPc = startPc
+						+ localVariableAttribute.codeLength(i);
+				var.setStartOpPc(startPc);
+				var.setEndOpPc(endPc);
+				vars.add(var);
+			}
+		}
+		if (localVariableTypeAttribute != null) {
+			final int tableLength = localVariableTypeAttribute.tableLength();
+			table: for (int i = 0; i < tableLength; ++i) {
+				final int index = localVariableTypeAttribute.index(i);
+				if (reg2vars == null) {
+					LOGGER.warning("Local variable type attribute without local variable attribute!");
+					break;
+				}
+				final List<Var> vars = reg2vars.get(index);
+				if (vars == null) {
+					LOGGER.warning("Local variable type attribute without local variable attribute!");
+					break;
+				}
+				final int startPc = localVariableTypeAttribute.startPc(i);
+				final int endPc = startPc
+						+ localVariableTypeAttribute.codeLength(i);
+				for (final Var var : vars) {
+					if (var.getStartOpPc() == startPc
+							&& var.getEndOpPc() == endPc) {
+						var.getTs()
+								.iterator()
+								.next()
+								.setSignature(
+										localVariableTypeAttribute.signature(i));
+						continue table;
+					}
+				}
+				LOGGER.warning("No local variable attribute given for type attribute with index '"
+						+ index
+						+ "': "
+						+ localVariableTypeAttribute.variableName(index));
+			}
+		}
+		if (reg2vars != null) {
+			final T[] paramTs = m.getParamTs();
+			final String[] paramNames = new String[paramTs.length];
+			int reg = 0;
+			if (!m.checkAf(AF.STATIC)) {
+				reg2vars.remove(reg++);
+				// check this?
+			}
+			for (int i = 0; i < paramTs.length; ++i) {
+				final List<Var> vars = reg2vars.remove(reg++);
+				if (vars == null) {
+					// could happen, e.g. synthetic methods, inner <init>
+					// with outer type param
+					continue;
+				}
+				if (vars.size() != 1) {
+					LOGGER.warning("Variable size for method parameter register '"
+							+ reg + "' not equal 1!");
+					continue;
+				}
+				final Var var = vars.get(0);
+				if (var.getStartOpPc() != 0) {
+					LOGGER.warning("Variable start for method parameter register '"
+							+ reg + "' not 0!");
+					continue;
+				}
+				if (var.getTs().size() != 1) {
+					LOGGER.warning("Variable type for method parameter register '"
+							+ reg + "' not unique!");
+					continue;
+				}
+				final T paramT = var.getTs().iterator().next();
+				if (paramT != paramTs[i]) {
+					LOGGER.warning("Variable type for method parameter register '"
+							+ reg + "' not equal!");
+					continue;
+				}
+				if (paramT == T.LONG || paramT == T.DOUBLE) {
+					++reg;
+				}
+				paramNames[i] = var.getName();
+			}
+			m.setParamNames(paramNames);
+		}
+		if (reg2vars.size() > 0) {
+			md.setReg2vars(reg2vars);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
