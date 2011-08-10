@@ -23,6 +23,10 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.List;
+import java.util.Map;
+
+import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
@@ -46,6 +50,8 @@ public class MD implements BD, PD {
 	private BodyDeclaration methodDeclaration;
 
 	private A[][] paramAs;
+
+	private Map<Integer, List<Var>> reg2vars;
 
 	// synthetic state (from synthetic attribute)
 	private boolean synthetic;
@@ -120,6 +126,15 @@ public class MD implements BD, PD {
 	 */
 	public A[][] getParamAs() {
 		return this.paramAs;
+	}
+
+	/**
+	 * Get registers to local variables (not method parameters).
+	 * 
+	 * @return local variables
+	 */
+	public Map<Integer, List<Var>> getReg2vars() {
+		return this.reg2vars;
 	}
 
 	/**
@@ -207,6 +222,16 @@ public class MD implements BD, PD {
 	 */
 	public void setParamAs(final A[][] paramAs) {
 		this.paramAs = paramAs;
+	}
+
+	/**
+	 * Set registers to local variables (not method parameters).
+	 * 
+	 * @param vars
+	 *            local variables
+	 */
+	public void setReg2vars(final Map<Integer, List<Var>> vars) {
+		this.reg2vars = vars;
 	}
 
 	/**

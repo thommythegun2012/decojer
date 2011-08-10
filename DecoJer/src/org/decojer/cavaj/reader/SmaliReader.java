@@ -68,6 +68,8 @@ import org.jf.dexlib.ClassDataItem.EncodedField;
 import org.jf.dexlib.ClassDataItem.EncodedMethod;
 import org.jf.dexlib.ClassDefItem;
 import org.jf.dexlib.CodeItem;
+import org.jf.dexlib.CodeItem.EncodedTypeAddrPair;
+import org.jf.dexlib.CodeItem.TryItem;
 import org.jf.dexlib.DebugInfoItem;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.EncodedArrayItem;
@@ -505,11 +507,32 @@ public class SmaliReader {
 				}
 				m.setParamNames(paramNames);
 			}
-
-			final ReadDebugInfo readDebugInfo = new ReadDebugInfo();
+			final ReadDebugInfo readDebugInfo = new ReadDebugInfo(du);
 			DebugInstructionIterator.DecodeInstructions(debugInfo,
 					codeItem.getRegisterCount(), readDebugInfo);
 			opLines = readDebugInfo.getOpLines();
+			if (readDebugInfo.getReg2vars().size() > 0) {
+				// TODO end local sometimes not called, optimization? set end pc
+				md.setReg2vars(readDebugInfo.getReg2vars());
+			}
+		}
+
+		final TryItem[] tryItems = codeItem.getTries();
+		if (tryItems != null) {
+			for (final TryItem tryItem : tryItems) {
+				System.out.println("## TRY: " + tryItem.getStartCodeAddress()
+						+ " - " + tryItem.getTryLength());
+				// same like codeItem.getHandlers()
+				for (final EncodedTypeAddrPair handler : tryItem.encodedCatchHandler.handlers) {
+					System.out.println(" # CATCH: " + handler.exceptionType
+							+ " : " + handler.getHandlerAddress());
+				}
+				System.out.println(" # FINALLY: "
+						+ tryItem.encodedCatchHandler
+								.getCatchAllHandlerAddress());
+				// TODO => instructions contain handlers in Dalvik too
+				// no subroutines here, JDK6 style
+			}
 		}
 
 		// init CFG with start BB

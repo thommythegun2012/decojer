@@ -47,6 +47,12 @@ public class Var {
 		return new Var(ts);
 	}
 
+	private int endOpPc;
+
+	private int startOpPc;
+
+	private String name;
+
 	private Set<T> ts = new HashSet<T>();
 
 	/**
@@ -67,6 +73,46 @@ public class Var {
 	 */
 	public Var(final T... ts) {
 		this.ts.addAll(Arrays.asList(ts));
+	}
+
+	public int getEndOpPc() {
+		return this.endOpPc;
+	}
+
+	public String getName() {
+		return this.name;
+	}
+
+	public int getStartOpPc() {
+		return this.startOpPc;
+	}
+
+	public Set<T> getTs() {
+		return this.ts;
+	}
+
+	public void setEndOpPc(final int endOpPc) {
+		this.endOpPc = endOpPc;
+	}
+
+	public void setName(final String name) {
+		this.name = name;
+	}
+
+	public void setStartOpPc(final int startOpPc) {
+		this.startOpPc = startOpPc;
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("Var");
+		sb.append("(").append(this.startOpPc).append(" - ")
+				.append(this.endOpPc).append(") ");
+		sb.append(this.name).append(": ");
+		for (final T t : this.ts) {
+			sb.append(t).append(" ");
+		}
+		return sb.toString();
 	}
 
 }
