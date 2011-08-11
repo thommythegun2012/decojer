@@ -26,6 +26,7 @@ package org.decojer.cavaj.model;
 import java.util.List;
 import java.util.Map;
 
+import org.decojer.cavaj.model.vm.intermediate.Try;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
@@ -41,6 +42,8 @@ public class MD implements BD, PD {
 	private A[] as;
 
 	private CFG cfg;
+
+	private Try[] tries;
 
 	// deprecated state (from deprecated attribute)
 	private boolean deprecated;
@@ -147,6 +150,15 @@ public class MD implements BD, PD {
 	}
 
 	/**
+	 * Get tries.
+	 * 
+	 * @return tries
+	 */
+	public Try[] getTries() {
+		return this.tries;
+	}
+
+	/**
 	 * Get deprecated state (from deprecated attribute).
 	 * 
 	 * @return true - deprecated
@@ -242,6 +254,16 @@ public class MD implements BD, PD {
 	 */
 	public void setSynthetic(final boolean synthetic) {
 		this.synthetic = synthetic;
+	}
+
+	/**
+	 * Set tries.
+	 * 
+	 * @param tries
+	 *            tries
+	 */
+	public void setTries(final Try[] tries) {
+		this.tries = tries;
 	}
 
 	@Override

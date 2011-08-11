@@ -48,6 +48,7 @@ import javassist.bytecode.ConstPool;
 import javassist.bytecode.ConstantAttribute;
 import javassist.bytecode.DeprecatedAttribute;
 import javassist.bytecode.EnclosingMethodAttribute;
+import javassist.bytecode.ExceptionTable;
 import javassist.bytecode.ExceptionsAttribute;
 import javassist.bytecode.FieldInfo;
 import javassist.bytecode.InnerClassesAttribute;
@@ -92,6 +93,7 @@ import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
+import org.decojer.cavaj.model.vm.intermediate.Try;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
 import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
@@ -1981,6 +1983,27 @@ public class JavassistReader {
 			wide = false;
 		}
 		cfg.calculatePostorder();
+
+		final ExceptionTable exceptionTable = codeAttribute.getExceptionTable();
+		if (exceptionTable != null && exceptionTable.size() > 0) {
+			final HashMap<Integer, Try> startPc2try = new HashMap<Integer, Try>();
+			for (int i = exceptionTable.size(); i-- > 0;) {
+				final int startPc = exceptionTable.startPc(i);
+				Try tryy = startPc2try.get(startPc);
+				if (tryy == null) {
+					tryy = new Try(startPc, exceptionTable.endPc(i));
+					startPc2try.put(startPc, tryy);
+				}
+				final HashMap<T, Integer> catches = tryy.getCatches();
+				final String catchName = constPool.getClassInfo(exceptionTable
+						.catchType(i));
+				// no array possible, name is OK here
+				final T catchT = catchName == null ? null : du.getT(catchName);
+				catches.put(catchT, exceptionTable.handlerPc(i));
+			}
+			md.setTries(startPc2try.values().toArray(
+					new Try[startPc2try.values().size()]));
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -2114,8 +2137,8 @@ public class JavassistReader {
 				final int startPc = localVariableAttribute.startPc(i);
 				final int endPc = startPc
 						+ localVariableAttribute.codeLength(i);
-				var.setStartOpPc(startPc);
-				var.setEndOpPc(endPc);
+				var.setStartPc(startPc);
+				var.setEndPc(endPc);
 				vars.add(var);
 			}
 		}
@@ -2136,8 +2159,7 @@ public class JavassistReader {
 				final int endPc = startPc
 						+ localVariableTypeAttribute.codeLength(i);
 				for (final Var var : vars) {
-					if (var.getStartOpPc() == startPc
-							&& var.getEndOpPc() == endPc) {
+					if (var.getStartPc() == startPc && var.getEndPc() == endPc) {
 						var.getTs()
 								.iterator()
 								.next()
@@ -2173,7 +2195,7 @@ public class JavassistReader {
 					continue;
 				}
 				final Var var = vars.get(0);
-				if (var.getStartOpPc() != 0) {
+				if (var.getStartPc() != 0) {
 					LOGGER.warning("Variable start for method parameter register '"
 							+ reg + "' not 0!");
 					continue;

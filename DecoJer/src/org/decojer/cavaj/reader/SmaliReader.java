@@ -49,6 +49,7 @@ import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
+import org.decojer.cavaj.model.vm.intermediate.Try;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
@@ -517,24 +518,6 @@ public class SmaliReader {
 			}
 		}
 
-		final TryItem[] tryItems = codeItem.getTries();
-		if (tryItems != null) {
-			for (final TryItem tryItem : tryItems) {
-				System.out.println("## TRY: " + tryItem.getStartCodeAddress()
-						+ " - " + tryItem.getTryLength());
-				// same like codeItem.getHandlers()
-				for (final EncodedTypeAddrPair handler : tryItem.encodedCatchHandler.handlers) {
-					System.out.println(" # CATCH: " + handler.exceptionType
-							+ " : " + handler.getHandlerAddress());
-				}
-				System.out.println(" # FINALLY: "
-						+ tryItem.encodedCatchHandler
-								.getCatchAllHandlerAddress());
-				// TODO => instructions contain handlers in Dalvik too
-				// no subroutines here, JDK6 style
-			}
-		}
-
 		// init CFG with start BB
 		final CFG cfg = new CFG(md, codeItem.getRegisterCount());
 		md.setCFG(cfg);
@@ -999,6 +982,28 @@ public class SmaliReader {
 			opPc += instruction.getSize(opPc);
 		}
 		cfg.calculatePostorder();
+
+		final TryItem[] tryItems = codeItem.getTries();
+		if (tryItems != null && tryItems.length > 0) {
+			final Try[] tries = new Try[tryItems.length];
+			for (int i = tryItems.length; i-- > 0;) {
+				final TryItem tryItem = tryItems[i];
+				final Try tryy = new Try(tryItem.getStartCodeAddress(),
+						tryItem.getStartCodeAddress() + tryItem.getTryLength());
+				final HashMap<T, Integer> catches = tryy.getCatches();
+				for (final EncodedTypeAddrPair handler : tryItem.encodedCatchHandler.handlers) {
+					final T catchT = du.getDescT(handler.exceptionType
+							.getTypeDescriptor());
+					catches.put(catchT, handler.getHandlerAddress());
+				}
+				if (tryItem.encodedCatchHandler.getCatchAllHandlerAddress() != -1) {
+					catches.put(null, tryItem.encodedCatchHandler
+							.getCatchAllHandlerAddress());
+				}
+				tries[i] = tryy;
+			}
+			md.setTries(tries);
+		}
 	}
 
 	private static void readFields(final TD td,

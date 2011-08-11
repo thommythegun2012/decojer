@@ -23,76 +23,57 @@
  */
 package org.decojer.cavaj.model.vm.intermediate;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.decojer.cavaj.model.T;
 
 /**
- * Variable.
+ * Try.
  * 
  * @author André Pankraz
  */
-public class Var {
+public class Try {
 
-	/**
-	 * Merge variables.
-	 * 
-	 * @param vars
-	 *            variables
-	 * @return variable
-	 */
-	public static Var merge(final Var... vars) {
-		final HashSet<T> ts = new HashSet<T>();
-		ts.addAll(vars[0].ts);
-		return new Var(ts);
-	}
+	private final int endPc;
 
-	private int endPc;
+	private final int startPc;
 
-	private int startPc;
-
-	private String name;
-
-	private Set<T> ts = new HashSet<T>();
+	private final HashMap<T, Integer> catches = new HashMap<T, Integer>();
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param ts
-	 *            types
+	 * @param t
+	 *            type
+	 * @param startPc
+	 *            start pc
+	 * @param endPc
+	 *            end pc
+	 * @param handlerOpPc
+	 *            handler pc
 	 */
-	public Var(final Set<T> ts) {
-		this.ts = ts;
+	public Try(final int startPc, final int endPc) {
+		this.startPc = startPc;
+		this.endPc = endPc;
 	}
 
 	/**
-	 * Constructor.
+	 * Get catches.
 	 * 
-	 * @param ts
-	 *            types
+	 * @return catches
 	 */
-	public Var(final T... ts) {
-		this.ts.addAll(Arrays.asList(ts));
+	public HashMap<T, Integer> getCatches() {
+		return this.catches;
 	}
 
 	/**
-	 * Get emd pc.
+	 * Get end pc.
 	 * 
 	 * @return end pc
 	 */
 	public int getEndPc() {
 		return this.endPc;
-	}
-
-	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	public String getName() {
-		return this.name;
 	}
 
 	/**
@@ -104,53 +85,14 @@ public class Var {
 		return this.startPc;
 	}
 
-	/**
-	 * Get types.
-	 * 
-	 * @return types
-	 */
-	public Set<T> getTs() {
-		return this.ts;
-	}
-
-	/**
-	 * Set end pc.
-	 * 
-	 * @param endPc
-	 *            end pc
-	 */
-	public void setEndPc(final int endPc) {
-		this.endPc = endPc;
-	}
-
-	/**
-	 * Set name.
-	 * 
-	 * @param name
-	 *            name
-	 */
-	public void setName(final String name) {
-		this.name = name;
-	}
-
-	/**
-	 * Set start pc.
-	 * 
-	 * @param startPc
-	 *            start pc
-	 */
-	public void setStartPc(final int startPc) {
-		this.startPc = startPc;
-	}
-
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("Var");
+		final StringBuilder sb = new StringBuilder("Try");
 		sb.append("(").append(this.startPc).append(" - ").append(this.endPc)
 				.append(") ");
-		sb.append(this.name).append(": ");
-		for (final T t : this.ts) {
-			sb.append(t).append(" ");
+		for (final Map.Entry<T, Integer> catchh : this.catches.entrySet()) {
+			sb.append(catchh.getKey()).append(": ").append(catchh.getValue())
+					.append(" ");
 		}
 		return sb.toString();
 	}
