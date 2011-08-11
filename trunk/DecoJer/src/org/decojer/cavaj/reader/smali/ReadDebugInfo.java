@@ -102,12 +102,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			return;
 		}
 		final Var var = vars.get(vars.size() - 1);
-		if (var.getEndOpPc() != 0) {
+		if (var.getEndPc() != 0) {
 			LOGGER.warning("ProcessEndLocal for already ended variable register '"
 					+ registerNum + "'!");
 			return;
 		}
-		var.setEndOpPc(codeAddress);
+		var.setEndPc(codeAddress);
 	}
 
 	@Override
@@ -173,7 +173,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		}
 		final Var var = new Var(varT);
 		var.setName(name.getStringValue());
-		var.setStartOpPc(codeAddress);
+		var.setStartPc(codeAddress);
 		List<Var> vars = this.reg2vars.get(registerNum);
 		if (vars == null) {
 			vars = new ArrayList<Var>();
