@@ -32,11 +32,11 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodVisitor;
+import org.ow2.asm.AnnotationVisitor;
+import org.ow2.asm.Attribute;
+import org.ow2.asm.ClassVisitor;
+import org.ow2.asm.FieldVisitor;
+import org.ow2.asm.MethodVisitor;
 
 /**
  * Read class visitor.
@@ -50,9 +50,9 @@ public class ReadClassVisitor implements ClassVisitor {
 
 	private final DU du;
 
-	private ReadFieldVisitor readFieldVisitor;
+	private final ReadFieldVisitor readFieldVisitor = new ReadFieldVisitor();
 
-	private ReadMethodVisitor readMethodVisitor;
+	private final ReadMethodVisitor readMethodVisitor = new ReadMethodVisitor();
 
 	private TD td;
 
@@ -109,9 +109,6 @@ public class ReadClassVisitor implements ClassVisitor {
 
 		this.td = new TD(t);
 		this.td.setVersion(version);
-
-		this.readFieldVisitor = new ReadFieldVisitor(this);
-		this.readMethodVisitor = new ReadMethodVisitor(this);
 	}
 
 	@Override
@@ -146,7 +143,7 @@ public class ReadClassVisitor implements ClassVisitor {
 
 		this.td.getBds().add(fd);
 
-		this.readFieldVisitor.setFd(fd);
+		this.readFieldVisitor.init(fd);
 		return this.readFieldVisitor;
 	}
 
@@ -178,7 +175,7 @@ public class ReadClassVisitor implements ClassVisitor {
 
 		this.td.getBds().add(md);
 
-		this.readMethodVisitor.setMd(md);
+		this.readMethodVisitor.init(md);
 		return this.readMethodVisitor;
 	}
 

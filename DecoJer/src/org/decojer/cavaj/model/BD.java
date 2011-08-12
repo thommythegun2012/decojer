@@ -30,4 +30,6 @@ package org.decojer.cavaj.model;
  */
 public interface BD {
 
+	void setAs(A[] as);
+
 }

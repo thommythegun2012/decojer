@@ -26,9 +26,9 @@ package org.decojer.cavaj.reader.asm;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.FD;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
-import org.objectweb.asm.FieldVisitor;
+import org.ow2.asm.AnnotationVisitor;
+import org.ow2.asm.Attribute;
+import org.ow2.asm.FieldVisitor;
 
 /**
  * Read field visitor.
@@ -42,17 +42,7 @@ public class ReadFieldVisitor implements FieldVisitor {
 
 	private FD fd;
 
-	private final ReadClassVisitor readClassVisitor;
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param readClassVisitor
-	 *            read class visitor
-	 */
-	public ReadFieldVisitor(final ReadClassVisitor readClassVisitor) {
-		this.readClassVisitor = readClassVisitor;
-	}
+	private final ReadAnnotationVisitor readAnnotationVisitor = new ReadAnnotationVisitor();
 
 	/**
 	 * Get field declaration.
@@ -64,12 +54,12 @@ public class ReadFieldVisitor implements FieldVisitor {
 	}
 
 	/**
-	 * Set field declaration.
+	 * Init and set field declaration.
 	 * 
 	 * @param fd
 	 *            field declaration
 	 */
-	public void setFd(final FD fd) {
+	public void init(final FD fd) {
 		this.fd = fd;
 	}
 
@@ -78,13 +68,14 @@ public class ReadFieldVisitor implements FieldVisitor {
 			final boolean visible) {
 		LOGGER.warning("### field visitAnnotation ### " + desc + " : "
 				+ visible);
-		return new ReadAnnotationVisitor();
+		this.readAnnotationVisitor.init(this.fd);
+		return this.readAnnotationVisitor;
 	}
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
 		LOGGER.warning("Unknown field attribute tag '" + attr.type
-				+ "' for field info '" + this.readClassVisitor.getTd() + "'!");
+				+ "' for field info '" + this.fd.getTd() + "'!");
 	}
 
 	@Override

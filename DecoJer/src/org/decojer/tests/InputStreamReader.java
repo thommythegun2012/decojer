@@ -125,7 +125,7 @@ public class InputStreamReader {
 				// "  "
 				// + toHexString(this.messageDigest.digest()));
 			} else {
-				ClassReaderTest.decompileClass(dis, null);
+				// ClassReaderTest.decompileClass(dis, null);
 			}
 
 			return;

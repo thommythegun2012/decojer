@@ -24,11 +24,11 @@
 package org.decojer.cavaj.reader.asm;
 
 import org.decojer.cavaj.model.type.Type;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
-import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.FieldVisitor;
-import org.objectweb.asm.MethodVisitor;
+import org.ow2.asm.AnnotationVisitor;
+import org.ow2.asm.Attribute;
+import org.ow2.asm.ClassVisitor;
+import org.ow2.asm.FieldVisitor;
+import org.ow2.asm.MethodVisitor;
 
 /**
  * Analyse class visitor.

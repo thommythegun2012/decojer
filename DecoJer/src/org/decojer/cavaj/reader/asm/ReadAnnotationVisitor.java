@@ -25,7 +25,8 @@ package org.decojer.cavaj.reader.asm;
 
 import java.util.logging.Logger;
 
-import org.objectweb.asm.AnnotationVisitor;
+import org.decojer.cavaj.model.BD;
+import org.ow2.asm.AnnotationVisitor;
 
 /**
  * Read annotation visitor.
@@ -36,6 +37,18 @@ public class ReadAnnotationVisitor implements AnnotationVisitor {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadAnnotationVisitor.class.getName());
+
+	private BD bd;
+
+	/**
+	 * Init and set body declaration.
+	 * 
+	 * @param bd
+	 *            body declaration
+	 */
+	public void init(final BD bd) {
+		this.bd = bd;
+	}
 
 	@Override
 	public void visit(final String name, final Object value) {
@@ -60,6 +73,7 @@ public class ReadAnnotationVisitor implements AnnotationVisitor {
 	@Override
 	public void visitEnd() {
 		// LOGGER.warning("### annotation visitEnd ### ");
+		this.bd.setAs(null);
 	}
 
 	@Override
