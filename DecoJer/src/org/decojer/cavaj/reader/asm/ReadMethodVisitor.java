@@ -301,7 +301,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			final String desc, final boolean visible) {
 		LOGGER.warning("### method visitParameterAnnotation ### " + parameter
 				+ " : " + desc + " : " + visible);
-		return new ReadAnnotationVisitor();
+		return null;
 	}
 
 	@Override

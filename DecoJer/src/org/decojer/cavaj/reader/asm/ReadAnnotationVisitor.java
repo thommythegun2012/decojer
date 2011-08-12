@@ -61,13 +61,13 @@ public class ReadAnnotationVisitor implements AnnotationVisitor {
 			final String desc) {
 		LOGGER.warning("### annotation visitAnnotation ### " + name + " : "
 				+ desc);
-		return new ReadAnnotationVisitor();
+		return null;
 	}
 
 	@Override
 	public AnnotationVisitor visitArray(final String name) {
 		LOGGER.warning("### annotation visitArray ### " + name);
-		return new ReadAnnotationVisitor();
+		return null;
 	}
 
 	@Override

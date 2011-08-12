@@ -87,7 +87,7 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 			final String desc) {
 		checkName(name);
 		LOGGER.warning("###### default visitAnnotation ### " + desc);
-		return new ReadAnnotationVisitor();
+		return null;
 	}
 
 	@Override

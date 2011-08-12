@@ -203,7 +203,7 @@ public class DecoJer {
 		}
 		case 2: {
 			final TD td = du
-					.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar!/org/decojer/cavaj/test/DecTestBooleanOperators.class");
+					.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar!/org/decojer/cavaj/test/jdk5/DecTestAnnotations.class");
 			final CU cu = createCu(td);
 			System.out.println(decompile(cu));
 			break;
