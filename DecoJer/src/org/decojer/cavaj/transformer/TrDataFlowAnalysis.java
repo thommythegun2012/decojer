@@ -117,12 +117,12 @@ public class TrDataFlowAnalysis {
 		final T t = td.getT();
 		final Frame frame = new Frame();
 		frame.stack = new Stack<Var>();
-		frame.vars = new Var[this.cfg.getRegisterCount()];
-		frame.varNames = new String[this.cfg.getRegisterCount()];
+		frame.vars = new Var[this.cfg.getMaxRegs()];
+		frame.varNames = new String[this.cfg.getMaxRegs()];
 		final T[] paramTs = m.getParamTs();
 		if (td.getVersion() == 0) {
 			// Dalvik...function parameters right aligned
-			int reg = this.cfg.getRegisterCount();
+			int reg = this.cfg.getMaxRegs();
 			for (int i = paramTs.length; i-- > 0;) {
 				frame.vars[--reg] = new Var(paramTs[i]);
 				frame.varNames[reg] = m.getParamName(i);
@@ -152,7 +152,7 @@ public class TrDataFlowAnalysis {
 					frame.vars[reg++] = new Var(T.UNINIT);
 				}
 			}
-			while (reg < this.cfg.getRegisterCount()) {
+			while (reg < this.cfg.getMaxRegs()) {
 				frame.vars[reg] = new Var(T.UNINIT);
 				frame.varNames[reg++] = "r" + reg;
 			}

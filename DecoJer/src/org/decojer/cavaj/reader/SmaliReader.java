@@ -519,7 +519,7 @@ public class SmaliReader {
 		}
 
 		// init CFG with start BB
-		final CFG cfg = new CFG(md, codeItem.getRegisterCount());
+		final CFG cfg = new CFG(md, codeItem.getRegisterCount(), -1);
 		md.setCFG(cfg);
 
 		final Instruction[] instructions = codeItem.getInstructions();
