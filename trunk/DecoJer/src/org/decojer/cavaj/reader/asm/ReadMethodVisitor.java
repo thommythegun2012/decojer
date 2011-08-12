@@ -110,7 +110,6 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitEnd() {
-		LOGGER.warning("### method visitEnd ### ");
 		// TODO identical to JavassistReader.readLocalVariables
 		if (this.reg2vars.size() > 0) {
 			final M m = this.md.getM();
@@ -273,11 +272,10 @@ public class ReadMethodVisitor implements MethodVisitor {
 	@Override
 	public void visitMaxs(final int maxStack, final int maxLocals) {
 		// is called before visitEnd
-		LOGGER.warning("### method visitMaxs ### " + maxStack + " : "
-				+ maxLocals);
 		// init CFG with start BB
-		final CFG cfg = new CFG(this.md, maxLocals);
+		final CFG cfg = new CFG(this.md, maxLocals, maxStack);
 		this.md.setCFG(cfg);
+
 		cfg.calculatePostorder();
 	}
 

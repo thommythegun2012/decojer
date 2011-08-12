@@ -422,7 +422,8 @@ public class JavassistReader {
 		final CodeReader codeReader = new CodeReader(codeAttribute.getCode());
 
 		// init CFG with start BB
-		final CFG cfg = new CFG(md, codeAttribute.getMaxLocals());
+		final CFG cfg = new CFG(md, codeAttribute.getMaxLocals(),
+				codeAttribute.getMaxStack());
 		md.setCFG(cfg);
 
 		final DU du = md.getTd().getT().getDu();

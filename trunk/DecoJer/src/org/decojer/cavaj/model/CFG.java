@@ -46,6 +46,8 @@ public class CFG {
 	 */
 	private BB[] iDoms;
 
+	private final int maxStack;
+
 	private final MD md;
 
 	private Operation[] operations;
@@ -55,7 +57,7 @@ public class CFG {
 	 */
 	private List<BB> postorderedBbs;
 
-	private final int registerCount;
+	private final int maxRegs;
 
 	private BB startBb;
 
@@ -64,14 +66,17 @@ public class CFG {
 	 * 
 	 * @param md
 	 *            method declaration
-	 * @param registerCount
-	 *            register count
+	 * @param maxRegs
+	 *            max register number
+	 * @param maxStack
+	 *            max stack number
 	 */
-	public CFG(final MD md, final int registerCount) {
+	public CFG(final MD md, final int maxRegs, final int maxStack) {
 		assert md != null;
 
 		this.md = md;
-		this.registerCount = registerCount;
+		this.maxRegs = maxRegs;
+		this.maxStack = maxStack;
 		this.startBb = newBb(0);
 	}
 
@@ -152,6 +157,24 @@ public class CFG {
 	}
 
 	/**
+	 * Get max register number.
+	 * 
+	 * @return max register number
+	 */
+	public int getMaxRegs() {
+		return this.maxRegs;
+	}
+
+	/**
+	 * Get max stack number.
+	 * 
+	 * @return max stack number
+	 */
+	public int getMaxStack() {
+		return this.maxStack;
+	}
+
+	/**
 	 * Get method declaration.
 	 * 
 	 * @return method declaration
@@ -176,15 +199,6 @@ public class CFG {
 	 */
 	public List<BB> getPostorderedBbs() {
 		return this.postorderedBbs;
-	}
-
-	/**
-	 * Get register count.
-	 * 
-	 * @return register count
-	 */
-	public int getRegisterCount() {
-		return this.registerCount;
 	}
 
 	/**
