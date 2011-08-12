@@ -50,6 +50,8 @@ public class ReadClassVisitor implements ClassVisitor {
 
 	private final DU du;
 
+	private final ReadAnnotationVisitor readAnnotationVisitor = new ReadAnnotationVisitor();
+
 	private final ReadFieldVisitor readFieldVisitor = new ReadFieldVisitor();
 
 	private final ReadMethodVisitor readMethodVisitor = new ReadMethodVisitor();
@@ -115,7 +117,8 @@ public class ReadClassVisitor implements ClassVisitor {
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
 		LOGGER.warning("### visitAnnotation ### " + desc + " : " + visible);
-		return new ReadAnnotationVisitor();
+		this.readAnnotationVisitor.init(this.td);
+		return this.readAnnotationVisitor;
 	}
 
 	@Override
