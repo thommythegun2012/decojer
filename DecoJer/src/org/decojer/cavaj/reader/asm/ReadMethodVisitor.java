@@ -23,9 +23,18 @@
  */
 package org.decojer.cavaj.reader.asm;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.CFG;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.ow2.asm.AnnotationVisitor;
 import org.ow2.asm.Attribute;
 import org.ow2.asm.Handle;
@@ -48,6 +57,10 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	private final ReadDefaultAnnotationVisitor readDefaultAnnotationVisitor = new ReadDefaultAnnotationVisitor();
 
+	final Map<Integer, List<Var>> reg2vars = new HashMap<Integer, List<Var>>();
+
+	private static final boolean TODOCODE = true;
+
 	/**
 	 * Get method declaration.
 	 * 
@@ -64,7 +77,9 @@ public class ReadMethodVisitor implements MethodVisitor {
 	 *            method declaration
 	 */
 	public void init(final MD md) {
+		LOGGER.warning("###### init md ###### " + md);
 		this.md = md;
+		this.reg2vars.clear();
 	}
 
 	@Override
@@ -90,106 +105,197 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitCode() {
-		// nothing
+		LOGGER.warning("### method visitCode ### ");
 	}
 
 	@Override
 	public void visitEnd() {
-		// nothing
+		LOGGER.warning("### method visitEnd ### ");
+		// TODO identical to JavassistReader.readLocalVariables
+		if (this.reg2vars.size() > 0) {
+			final M m = this.md.getM();
+			final T[] paramTs = m.getParamTs();
+			final String[] paramNames = new String[paramTs.length];
+			int reg = 0;
+			if (!m.checkAf(AF.STATIC)) {
+				this.reg2vars.remove(reg++);
+				// check this?
+			}
+			for (int i = 0; i < paramTs.length; ++i) {
+				final List<Var> vars = this.reg2vars.remove(reg++);
+				if (vars == null) {
+					// could happen, e.g. synthetic methods, inner <init>
+					// with outer type param
+					continue;
+				}
+				if (vars.size() != 1) {
+					LOGGER.warning("Variable size for method parameter register '"
+							+ reg + "' not equal 1!");
+					continue;
+				}
+				final Var var = vars.get(0);
+				if (var.getStartPc() != 0) {
+					LOGGER.warning("Variable start for method parameter register '"
+							+ reg + "' not 0!");
+					continue;
+				}
+				if (var.getTs().size() != 1) {
+					LOGGER.warning("Variable type for method parameter register '"
+							+ reg + "' not unique!");
+					continue;
+				}
+				final T paramT = var.getTs().iterator().next();
+				if (paramT != paramTs[i]) {
+					LOGGER.warning("Variable type for method parameter register '"
+							+ reg + "' not equal!");
+					continue;
+				}
+				if (paramT == T.LONG || paramT == T.DOUBLE) {
+					++reg;
+				}
+				paramNames[i] = var.getName();
+			}
+			m.setParamNames(paramNames);
+		}
+		if (this.reg2vars.size() > 0) {
+			this.md.setReg2vars(this.reg2vars);
+		}
 	}
 
 	@Override
 	public void visitFieldInsn(final int opcode, final String owner,
 			final String name, final String desc) {
-		LOGGER.warning("### method visitFieldInsn ### " + opcode + " : "
-				+ owner + " : " + name + " : " + desc);
-		// ### 178 : java/lang/System : out : Ljava/io/PrintStream;
+		if (TODOCODE) {
+			LOGGER.warning("### method visitFieldInsn ### " + opcode + " : "
+					+ owner + " : " + name + " : " + desc);
+			// ### 178 : java/lang/System : out : Ljava/io/PrintStream;
+		}
 	}
 
 	@Override
 	public void visitFrame(final int type, final int nLocal,
 			final Object[] local, final int nStack, final Object[] stack) {
-		LOGGER.warning("### method visitFrame ### " + type + " : " + nLocal
-				+ " : " + local + " : " + nStack + " : " + stack);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitFrame ### " + type + " : " + nLocal
+					+ " : " + local + " : " + nStack + " : " + stack);
+		}
 	}
 
 	@Override
 	public void visitIincInsn(final int var, final int increment) {
-		LOGGER.warning("### method visitIincInsn ### " + var + " : "
-				+ increment);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitIincInsn ### " + var + " : "
+					+ increment);
+		}
 	}
 
 	@Override
 	public void visitInsn(final int opcode) {
-		LOGGER.warning("### method visitInsn ### " + opcode);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitInsn ### " + opcode);
+		}
 	}
 
 	@Override
 	public void visitIntInsn(final int opcode, final int operand) {
-		LOGGER.warning("### method visitIntInsn ### " + opcode + " : "
-				+ operand);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitIntInsn ### " + opcode + " : "
+					+ operand);
+		}
 	}
 
 	@Override
 	public void visitInvokeDynamicInsn(final String name, final String desc,
 			final Handle bsm, final Object... bsmArgs) {
-		LOGGER.warning("### method visitInvokeDynamicInsn ### " + name + " : "
-				+ desc + " : " + bsm + " : " + bsmArgs);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitInvokeDynamicInsn ### " + name
+					+ " : " + desc + " : " + bsm + " : " + bsmArgs);
+		}
 	}
 
 	@Override
 	public void visitJumpInsn(final int opcode, final Label label) {
-		LOGGER.warning("### method visitJumpInsn ### " + opcode + " : " + label);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitJumpInsn ### " + opcode + " : "
+					+ label);
+		}
 	}
 
 	@Override
 	public void visitLabel(final Label label) {
-		LOGGER.warning("### method visitLabel ### " + label.getOffset());
+		if (TODOCODE) {
+			LOGGER.warning("### method visitLabel ### " + label.getOffset());
+		}
 	}
 
 	@Override
 	public void visitLdcInsn(final Object cst) {
-		LOGGER.warning("### method visitLdcInsn ### " + cst);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitLdcInsn ### " + cst);
+		}
 	}
 
 	@Override
 	public void visitLineNumber(final int line, final Label start) {
-		LOGGER.warning("### method visitLineNumber ### " + line + " : " + start);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitLineNumber ### " + line + " : "
+					+ start);
+		}
 	}
 
 	@Override
 	public void visitLocalVariable(final String name, final String desc,
 			final String signature, final Label start, final Label end,
 			final int index) {
-		LOGGER.warning("### method visitLocalVariable ### " + name + " : "
-				+ desc + " : " + signature + " : " + start + " : " + end
-				+ " : " + index);
+		List<Var> vars = this.reg2vars.get(index);
+		if (vars == null) {
+			vars = new ArrayList<Var>();
+			this.reg2vars.put(index, vars);
+		}
+		final Var var = new Var(this.md.getM().getT().getDu().getDescT(desc));
+		var.setName(name);
+		final int startPc = start.getOffset();
+		final int endPc = end.getOffset();
+		var.setStartPc(startPc);
+		var.setEndPc(endPc);
+		vars.add(var);
 	}
 
 	@Override
 	public void visitLookupSwitchInsn(final Label dflt, final int[] keys,
 			final Label[] labels) {
-		LOGGER.warning("### method visitLookupSwitchInsn ### " + dflt + " : "
-				+ keys + " : " + labels);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitLookupSwitchInsn ### " + dflt
+					+ " : " + keys + " : " + labels);
+		}
 	}
 
 	@Override
 	public void visitMaxs(final int maxStack, final int maxLocals) {
+		// is called before visitEnd
 		LOGGER.warning("### method visitMaxs ### " + maxStack + " : "
 				+ maxLocals);
+		// init CFG with start BB
+		final CFG cfg = new CFG(this.md, maxLocals);
+		this.md.setCFG(cfg);
+		cfg.calculatePostorder();
 	}
 
 	@Override
 	public void visitMethodInsn(final int opcode, final String owner,
 			final String name, final String desc) {
-		LOGGER.warning("### method visitMethodInsn ### " + opcode + " : "
-				+ owner + " : " + name + " : " + desc);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitMethodInsn ### " + opcode + " : "
+					+ owner + " : " + name + " : " + desc);
+		}
 	}
 
 	@Override
 	public void visitMultiANewArrayInsn(final String desc, final int dims) {
-		LOGGER.warning("### method visitMultiANewArrayInsn ### " + desc + " : "
-				+ dims);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitMultiANewArrayInsn ### " + desc
+					+ " : " + dims);
+		}
 	}
 
 	@Override
@@ -203,25 +309,35 @@ public class ReadMethodVisitor implements MethodVisitor {
 	@Override
 	public void visitTableSwitchInsn(final int min, final int max,
 			final Label dflt, final Label... labels) {
-		LOGGER.warning("### method visitTableSwitchInsn ### " + min + " : "
-				+ max + " : " + dflt + " : " + labels);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitTableSwitchInsn ### " + min + " : "
+					+ max + " : " + dflt + " : " + labels);
+		}
 	}
 
 	@Override
 	public void visitTryCatchBlock(final Label start, final Label end,
 			final Label handler, final String type) {
-		LOGGER.warning("### method visitTryCatchBlock ### " + start + " : "
-				+ end + " : " + handler + " : " + type);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitTryCatchBlock ### " + start + " : "
+					+ end + " : " + handler + " : " + type);
+		}
 	}
 
 	@Override
 	public void visitTypeInsn(final int opcode, final String type) {
-		LOGGER.warning("### method visitTypeInsn ### " + opcode + " : " + type);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitTypeInsn ### " + opcode + " : "
+					+ type);
+		}
 	}
 
 	@Override
 	public void visitVarInsn(final int opcode, final int var) {
-		LOGGER.warning("### method visitVarInsn ### " + opcode + " : " + var);
+		if (TODOCODE) {
+			LOGGER.warning("### method visitVarInsn ### " + opcode + " : "
+					+ var);
+		}
 	}
 
 }

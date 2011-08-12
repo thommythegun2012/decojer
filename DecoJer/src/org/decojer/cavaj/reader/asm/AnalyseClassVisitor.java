@@ -52,16 +52,6 @@ public class AnalyseClassVisitor implements ClassVisitor {
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName,
 			final String[] interfaces) {
-		// only signature contains L...;
-		System.out.println("visit: "
-				+ name
-				+ " : "
-				+ signature
-				+ " : "
-				+ superName
-				+ " : "
-				+ (interfaces == null || interfaces.length == 0 ? "null"
-						: interfaces[0]));
 		// visit:
 		// com/thoughtworks/xstream/mapper/AnnotationMapper$UnprocessedTypesSet
 		// : Ljava/util/LinkedHashSet<Ljava/lang/Class<*>;>; :
