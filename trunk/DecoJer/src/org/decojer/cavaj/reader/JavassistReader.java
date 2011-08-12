@@ -812,8 +812,8 @@ public class JavassistReader {
 				// not really necessary, but important for
 				// 1) correct opPc blocks
 				// 2) line numbers
-				bb.addOperation(new GOTO(opPc, opCode, opLine));
 				codeReader.pc = opPc + iValue;
+				bb.addOperation(new GOTO(opPc, opCode, opLine, codeReader.pc));
 				break;
 			/*******
 			 * INC *

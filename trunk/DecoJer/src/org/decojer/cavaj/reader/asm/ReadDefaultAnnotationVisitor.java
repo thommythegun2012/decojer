@@ -28,10 +28,12 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Type;
+import org.ow2.asm.AnnotationVisitor;
+import org.ow2.asm.Type;
 
 /**
  * Read default annotation visitor.
@@ -43,20 +45,9 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadDefaultAnnotationVisitor.class.getName());
 
-	private final ReadMethodVisitor readMethodVisitor;
+	private MD md;
 
 	private Object value;
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param readMethodVisitor
-	 *            read method visitor
-	 */
-	public ReadDefaultAnnotationVisitor(
-			final ReadMethodVisitor readMethodVisitor) {
-		this.readMethodVisitor = readMethodVisitor;
-	}
 
 	private void checkName(final String name) {
 		if (name == null) {
@@ -66,12 +57,26 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 				+ name + "'!");
 	}
 
+	private DU getDu() {
+		return this.md.getM().getT().getDu();
+	}
+
+	/**
+	 * Init and set method declaration.
+	 * 
+	 * @param md
+	 *            method declaration
+	 */
+	public void init(final MD md) {
+		this.md = md;
+		this.value = null;
+	}
+
 	@Override
 	public void visit(final String name, final Object value) {
 		checkName(name);
 		if (value instanceof Type) {
-			this.value = this.readMethodVisitor.getReadClassVisitor().getDu()
-					.getT(((Type) value).getClassName());
+			this.value = getDu().getT(((Type) value).getClassName());
 			return;
 		}
 		this.value = value;
@@ -96,9 +101,7 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 			public void visit(final String name, final Object value) {
 				checkName(name);
 				if (value instanceof Type) {
-					final T t = ReadDefaultAnnotationVisitor.this.readMethodVisitor
-							.getReadClassVisitor().getDu()
-							.getT(((Type) value).getClassName());
+					final T t = getDu().getT(((Type) value).getClassName());
 					this.values.add(t);
 					return;
 				}
@@ -134,8 +137,7 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 	@Override
 	public void visitEnd() {
 		if (this.value != null) {
-			this.readMethodVisitor.getMd()
-					.setAnnotationDefaultValue(this.value);
+			this.md.setAnnotationDefaultValue(this.value);
 		}
 	}
 
@@ -145,8 +147,7 @@ public class ReadDefaultAnnotationVisitor implements AnnotationVisitor {
 		checkName(name);
 		// desc: Ljava/lang/Thread$State;
 		// value: BLOCKED
-		final T t = this.readMethodVisitor.getReadClassVisitor().getDu()
-				.getDescT(desc);
+		final T t = getDu().getDescT(desc);
 		final F f = t.getF(value, t);
 		f.markAf(AF.ENUM);
 		this.value = f;

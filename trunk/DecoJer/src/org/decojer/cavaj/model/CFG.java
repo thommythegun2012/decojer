@@ -48,6 +48,8 @@ public class CFG {
 
 	private final MD md;
 
+	private Operation[] operations;
+
 	/**
 	 * Array with postordered basic blocks.
 	 */
@@ -156,6 +158,15 @@ public class CFG {
 	 */
 	public MD getMd() {
 		return this.md;
+	}
+
+	/**
+	 * Get operations.
+	 * 
+	 * @return operations
+	 */
+	public Operation[] getOperations() {
+		return this.operations;
 	}
 
 	/**
@@ -272,6 +283,16 @@ public class CFG {
 	 */
 	public void setBlock(final Block block) {
 		this.block = block;
+	}
+
+	/**
+	 * Set operations.
+	 * 
+	 * @param operations
+	 *            operations
+	 */
+	public void setOperations(final Operation[] operations) {
+		this.operations = operations;
 	}
 
 }

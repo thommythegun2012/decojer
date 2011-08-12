@@ -26,11 +26,11 @@ package org.decojer.cavaj.reader.asm;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.MD;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Attribute;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodHandle;
-import org.objectweb.asm.MethodVisitor;
+import org.ow2.asm.AnnotationVisitor;
+import org.ow2.asm.Attribute;
+import org.ow2.asm.Handle;
+import org.ow2.asm.Label;
+import org.ow2.asm.MethodVisitor;
 
 /**
  * Read method visitor.
@@ -44,21 +44,9 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	private MD md;
 
-	private final ReadClassVisitor readClassVisitor;
+	private final ReadAnnotationVisitor readAnnotationVisitor = new ReadAnnotationVisitor();
 
-	private final ReadDefaultAnnotationVisitor readDefaultAnnotationVisitor;
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param readClassVisitor
-	 *            read class visitor
-	 */
-	public ReadMethodVisitor(final ReadClassVisitor readClassVisitor) {
-		this.readClassVisitor = readClassVisitor;
-		this.readDefaultAnnotationVisitor = new ReadDefaultAnnotationVisitor(
-				this);
-	}
+	private final ReadDefaultAnnotationVisitor readDefaultAnnotationVisitor = new ReadDefaultAnnotationVisitor();
 
 	/**
 	 * Get method declaration.
@@ -70,21 +58,12 @@ public class ReadMethodVisitor implements MethodVisitor {
 	}
 
 	/**
-	 * Get read class visitor.
-	 * 
-	 * @return read class visitor
-	 */
-	public ReadClassVisitor getReadClassVisitor() {
-		return this.readClassVisitor;
-	}
-
-	/**
-	 * Set method declaration.
+	 * Init and set method declaration.
 	 * 
 	 * @param md
 	 *            method declaration
 	 */
-	public void setMd(final MD md) {
+	public void init(final MD md) {
 		this.md = md;
 	}
 
@@ -93,18 +72,20 @@ public class ReadMethodVisitor implements MethodVisitor {
 			final boolean visible) {
 		LOGGER.warning("### method visitAnnotation ### " + desc + " : "
 				+ visible);
-		return new ReadAnnotationVisitor();
+		this.readAnnotationVisitor.init(this.md);
+		return this.readAnnotationVisitor;
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotationDefault() {
+		this.readDefaultAnnotationVisitor.init(this.md);
 		return this.readDefaultAnnotationVisitor;
 	}
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
 		LOGGER.warning("Unknown method attribute tag '" + attr.type
-				+ "' for field info '" + this.readClassVisitor.getTd() + "'!");
+				+ "' for field info '" + this.md.getTd() + "'!");
 	}
 
 	@Override
@@ -151,7 +132,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitInvokeDynamicInsn(final String name, final String desc,
-			final MethodHandle bsm, final Object... bsmArgs) {
+			final Handle bsm, final Object... bsmArgs) {
 		LOGGER.warning("### method visitInvokeDynamicInsn ### " + name + " : "
 				+ desc + " : " + bsm + " : " + bsmArgs);
 	}
@@ -163,7 +144,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitLabel(final Label label) {
-		LOGGER.warning("### method visitLabel ### " + label);
+		LOGGER.warning("### method visitLabel ### " + label.getOffset());
 	}
 
 	@Override

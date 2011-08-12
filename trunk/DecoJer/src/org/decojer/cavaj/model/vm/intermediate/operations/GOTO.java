@@ -28,8 +28,12 @@ import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class GOTO extends Operation {
 
-	public GOTO(final int opPc, final int opCode, final int opLine) {
+	private final int targetPc;
+
+	public GOTO(final int opPc, final int opCode, final int opLine,
+			final int targetPc) {
 		super(opPc, opCode, opLine);
+		this.targetPc = targetPc;
 	}
 
 	@Override
@@ -40,6 +44,10 @@ public class GOTO extends Operation {
 	@Override
 	public int getOpcode() {
 		return Opcode.GOTO;
+	}
+
+	public int getTargetPc() {
+		return this.targetPc;
 	}
 
 }

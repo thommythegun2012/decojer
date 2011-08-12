@@ -37,7 +37,7 @@ import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.reader.asm.AnalyseClassVisitor;
 import org.decojer.cavaj.reader.asm.ReadClassVisitor;
-import org.objectweb.asm.ClassReader;
+import org.ow2.asm.ClassReader;
 
 /**
  * Reader from ObjectWeb ASM.
