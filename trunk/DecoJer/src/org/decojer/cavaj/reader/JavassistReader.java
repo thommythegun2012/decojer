@@ -2174,7 +2174,8 @@ public class JavassistReader {
 						+ localVariableTypeAttribute.variableName(index));
 			}
 		}
-		if (reg2vars != null) {
+		// TODO identical to ReadMethodVisitor.visitEnd
+		if (reg2vars.size() > 0) {
 			final T[] paramTs = m.getParamTs();
 			final String[] paramNames = new String[paramTs.length];
 			int reg = 0;
