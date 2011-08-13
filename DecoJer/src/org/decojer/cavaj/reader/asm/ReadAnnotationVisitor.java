@@ -23,64 +23,94 @@
  */
 package org.decojer.cavaj.reader.asm;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.BD;
+import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.T;
 import org.ow2.asm.AnnotationVisitor;
+import org.ow2.asm.Type;
 
 /**
  * Read annotation visitor.
  * 
  * @author André Pankraz
  */
-public class ReadAnnotationVisitor implements AnnotationVisitor {
+public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadAnnotationVisitor.class.getName());
 
-	private BD bd;
+	private final DU du;
 
 	/**
-	 * Init and set body declaration.
+	 * Constructor.
 	 * 
-	 * @param bd
-	 *            body declaration
 	 */
-	public void init(final BD bd) {
-		this.bd = bd;
+	public ReadAnnotationVisitor(final DU du) {
+		this.du = du;
 	}
+
+	protected abstract void add(final String name, final Object value);
 
 	@Override
 	public void visit(final String name, final Object value) {
-		LOGGER.warning("### annotation visit ### " + name + " : " + value
-				+ " :C: " + value.getClass());
+		if (value instanceof Type) {
+			add(name, this.du.getT(((Type) value).getClassName()));
+			return;
+		}
+		add(name, value);
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String name,
 			final String desc) {
-		LOGGER.warning("### annotation visitAnnotation ### " + name + " : "
-				+ desc);
-		return null;
+		final T t = this.du.getDescT(desc);
+		final A a = new A(t, null);
+		add(name, a);
+
+		final ReadAnnotationMemberVisitor readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(
+				this.du);
+		readAnnotationMemberVisitor.init(a);
+		return readAnnotationMemberVisitor;
 	}
 
 	@Override
 	public AnnotationVisitor visitArray(final String name) {
-		LOGGER.warning("### annotation visitArray ### " + name);
-		return null;
+		return new ReadAnnotationVisitor(this.du) {
+
+			private final List<Object> values = new ArrayList<Object>();
+
+			@Override
+			protected void add(final String name, final Object value) {
+				this.values.add(value);
+			}
+
+			@Override
+			public void visitEnd() {
+				ReadAnnotationVisitor.this.add(name,
+						this.values.toArray(new Object[this.values.size()]));
+			}
+
+		};
 	}
 
 	@Override
 	public void visitEnd() {
-		// LOGGER.warning("### annotation visitEnd ### ");
-		this.bd.setAs(null);
+		// nothing
 	}
 
 	@Override
 	public void visitEnum(final String name, final String desc,
 			final String value) {
-		LOGGER.warning("### annotation visitEnum ### " + name + " : " + desc
-				+ " : " + value);
+		final T enumT = this.du.getDescT(desc);
+		final F enumF = enumT.getF(value, enumT);
+		enumF.markAf(AF.ENUM);
+		add(name, enumF);
 	}
 
 }

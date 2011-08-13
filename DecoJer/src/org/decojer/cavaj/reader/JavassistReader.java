@@ -287,17 +287,17 @@ public class JavassistReader {
 		td.setVersion(classFile.getMajorVersion());
 
 		A[] as = null;
-		if (annotationsAttributeRuntimeInvisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
+		if (annotationsAttributeRuntimeVisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeVisible
 					.getAnnotations();
 			as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
 						du);
 			}
 		}
-		if (annotationsAttributeRuntimeVisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeVisible
+		if (annotationsAttributeRuntimeInvisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
 					.getAnnotations();
 			if (as == null) {
 				as = new A[annotations.length];
@@ -307,7 +307,7 @@ public class JavassistReader {
 				as = newAs;
 			}
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
 						du);
 			}
 		}
