@@ -4,29 +4,42 @@
 
 DecoJer uses multiple ByteCode Libraries:
 
-  == JVM ByteCode ==
-  * JBoss Javassist
-  * ObjectWeb ASM
+ == JVM ByteCode ==
+ * JBoss Javassist
+ * ObjectWeb ASM
 
-  == Dalvik ByteCode ==
-  * smali (dexlib)
-  * dex2jar (dex-reader)
+ == Dalvik ByteCode ==
+ * smali (dexlib)
+ * dex2jar (dex-reader)
 
-= Details =
+Blog: http://blog.decojer.org/2011/07/virtual-machine-bytecode-reading-dom.html
 
-  * DOM-like: Javassist and smali
-  * SAX-like: ASM and dex2jar (uses ASM)
+= Javassist =
 
-*BUT*
+ * Version: 3.15.0-GA
+ * Download project as archive from: http://sourceforge.net/projects/jboss/files/Javassist/
+ * svn co http://anonsvn.jboss.org/repos/javassist/trunk
 
-  * Javassist 10 times slower than ASM (as expected)
-  * reader form smali 8 times faster(!) than dex2jar (maybe because or implicit reordering in dex-reader?)
+= ASM =
 
-= Patch for smali =
+= smali =
 
-Can currently only read files. Small dirty patch:
+ * Sublib: dexlib
+ * Version: 1.2.7-dev
+ * http://code.google.com/p/smali/
+ * git clone https://code.google.com/p/smali/
 
-in _/prj-smali/dexlib/src/main/java/org/jf/dexlib/DexFile.java_
+ == Checkout with Eclipse ==
+ * install m2e, EGit, m2e
+ * checkout (not as Maven, errors) into workspace as prj-smali
+ * Import maven: dexlib
+ * # dexlib/mvn clean install
+
+ == Patch for smali ==
+
+ * Can currently only read files. Small dirty patch:
+
+ * in _/prj-smali/dexlib/src/main/java/org/jf/dexlib/DexFile.java_
 
 after
 {{{
@@ -51,3 +64,10 @@ insert
 
 	private void read(final Input in) {
 }}}
+
+= dex2jar =
+
+ * Sublib: dexreader
+ * Version: 1.1-dev
+ * http://code.google.com/p/dex2jar/
+ * hg clone https://code.google.com/p/dex2jar/
