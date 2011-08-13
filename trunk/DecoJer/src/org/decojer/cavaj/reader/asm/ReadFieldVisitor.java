@@ -23,9 +23,14 @@
  */
 package org.decojer.cavaj.reader.asm;
 
+import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.T;
 import org.ow2.asm.AnnotationVisitor;
 import org.ow2.asm.Attribute;
 import org.ow2.asm.FieldVisitor;
@@ -40,9 +45,26 @@ public class ReadFieldVisitor implements FieldVisitor {
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadFieldVisitor.class.getName());
 
+	private final ArrayList<A> as = new ArrayList<A>();
+
+	private final DU du;
+
 	private FD fd;
 
-	private final ReadAnnotationVisitor readAnnotationVisitor = new ReadAnnotationVisitor();
+	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param du
+	 *            decompilation unit
+	 */
+	public ReadFieldVisitor(final DU du) {
+		assert du != null;
+
+		this.du = du;
+		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+	}
 
 	/**
 	 * Get field declaration.
@@ -61,15 +83,19 @@ public class ReadFieldVisitor implements FieldVisitor {
 	 */
 	public void init(final FD fd) {
 		this.fd = fd;
+		this.as.clear();
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
-		LOGGER.warning("### field visitAnnotation ### " + desc + " : "
-				+ visible);
-		this.readAnnotationVisitor.init(this.fd);
-		return this.readAnnotationVisitor;
+		final T t = this.du.getDescT(desc);
+		final A a = new A(t, visible ? RetentionPolicy.RUNTIME
+				: RetentionPolicy.CLASS);
+		this.as.add(a);
+
+		this.readAnnotationMemberVisitor.init(a);
+		return this.readAnnotationMemberVisitor;
 	}
 
 	@Override

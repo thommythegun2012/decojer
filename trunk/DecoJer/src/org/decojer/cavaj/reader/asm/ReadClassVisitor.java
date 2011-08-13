@@ -23,8 +23,11 @@
  */
 package org.decojer.cavaj.reader.asm;
 
+import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
@@ -48,13 +51,15 @@ public class ReadClassVisitor implements ClassVisitor {
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadClassVisitor.class.getName());
 
+	private final ArrayList<A> as = new ArrayList<A>();
+
 	private final DU du;
 
-	private final ReadAnnotationVisitor readAnnotationVisitor = new ReadAnnotationVisitor();
+	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
-	private final ReadFieldVisitor readFieldVisitor = new ReadFieldVisitor();
+	private final ReadFieldVisitor readFieldVisitor;
 
-	private final ReadMethodVisitor readMethodVisitor = new ReadMethodVisitor();
+	private final ReadMethodVisitor readMethodVisitor;
 
 	private TD td;
 
@@ -65,7 +70,12 @@ public class ReadClassVisitor implements ClassVisitor {
 	 *            decompilation unit
 	 */
 	public ReadClassVisitor(final DU du) {
+		assert du != null;
+
 		this.du = du;
+		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+		this.readFieldVisitor = new ReadFieldVisitor(du);
+		this.readMethodVisitor = new ReadMethodVisitor(du);
 	}
 
 	/**
@@ -111,14 +121,21 @@ public class ReadClassVisitor implements ClassVisitor {
 
 		this.td = new TD(t);
 		this.td.setVersion(version);
+
+		// init
+		this.as.clear();
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
-		LOGGER.warning("### visitAnnotation ### " + desc + " : " + visible);
-		this.readAnnotationVisitor.init(this.td);
-		return this.readAnnotationVisitor;
+		final T t = this.du.getDescT(desc);
+		final A a = new A(t, visible ? RetentionPolicy.RUNTIME
+				: RetentionPolicy.CLASS);
+		this.as.add(a);
+
+		this.readAnnotationMemberVisitor.init(a);
+		return this.readAnnotationMemberVisitor;
 	}
 
 	@Override
@@ -128,7 +145,9 @@ public class ReadClassVisitor implements ClassVisitor {
 
 	@Override
 	public void visitEnd() {
-		// nothing
+		if (this.as.size() > 0) {
+			this.td.setAs(this.as.toArray(new A[this.as.size()]));
+		}
 	}
 
 	@Override

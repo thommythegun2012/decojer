@@ -23,14 +23,17 @@
  */
 package org.decojer.cavaj.reader.asm;
 
+import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CFG;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
@@ -51,15 +54,30 @@ public class ReadMethodVisitor implements MethodVisitor {
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadMethodVisitor.class.getName());
 
+	private final ArrayList<A> as = new ArrayList<A>();
+
+	private final DU du;
+
 	private MD md;
 
-	private final ReadAnnotationVisitor readAnnotationVisitor = new ReadAnnotationVisitor();
-
-	private final ReadDefaultAnnotationVisitor readDefaultAnnotationVisitor = new ReadDefaultAnnotationVisitor();
+	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
 	final Map<Integer, List<Var>> reg2vars = new HashMap<Integer, List<Var>>();
 
 	private static final boolean TODOCODE = true;
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param du
+	 *            decompilation unit
+	 */
+	public ReadMethodVisitor(final DU du) {
+		assert du != null;
+
+		this.du = du;
+		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+	}
 
 	/**
 	 * Get method declaration.
@@ -79,22 +97,32 @@ public class ReadMethodVisitor implements MethodVisitor {
 	public void init(final MD md) {
 		LOGGER.warning("###### init md ###### " + md);
 		this.md = md;
+		this.as.clear();
 		this.reg2vars.clear();
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
-		LOGGER.warning("### method visitAnnotation ### " + desc + " : "
-				+ visible);
-		this.readAnnotationVisitor.init(this.md);
-		return this.readAnnotationVisitor;
+		final T t = this.du.getDescT(desc);
+		final A a = new A(t, visible ? RetentionPolicy.RUNTIME
+				: RetentionPolicy.CLASS);
+		this.as.add(a);
+
+		this.readAnnotationMemberVisitor.init(a);
+		return this.readAnnotationMemberVisitor;
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotationDefault() {
-		this.readDefaultAnnotationVisitor.init(this.md);
-		return this.readDefaultAnnotationVisitor;
+		return new ReadAnnotationVisitor(this.du) {
+
+			@Override
+			protected void add(final String name, final Object value) {
+				ReadMethodVisitor.this.md.setAnnotationDefaultValue(value);
+			}
+
+		};
 	}
 
 	@Override
@@ -251,7 +279,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			vars = new ArrayList<Var>();
 			this.reg2vars.put(index, vars);
 		}
-		final Var var = new Var(this.md.getM().getT().getDu().getDescT(desc));
+		final Var var = new Var(this.du.getDescT(desc));
 		var.setName(name);
 		final int startPc = start.getOffset();
 		final int endPc = end.getOffset();
@@ -301,7 +329,17 @@ public class ReadMethodVisitor implements MethodVisitor {
 			final String desc, final boolean visible) {
 		LOGGER.warning("### method visitParameterAnnotation ### " + parameter
 				+ " : " + desc + " : " + visible);
-		return null;
+
+		// TODO separate ass, parameter
+		// TODO 2 following stuff into init()
+
+		final T t = this.du.getDescT(desc);
+		final A a = new A(t, visible ? RetentionPolicy.RUNTIME
+				: RetentionPolicy.CLASS);
+		this.as.add(a);
+
+		this.readAnnotationMemberVisitor.init(a);
+		return this.readAnnotationMemberVisitor;
 	}
 
 	@Override
