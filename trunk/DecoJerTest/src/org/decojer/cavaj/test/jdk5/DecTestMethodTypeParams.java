@@ -22,7 +22,7 @@ public class DecTestMethodTypeParams<T extends Integer & Cloneable & Accessible>
 			final T a, final U b) {
 		System.out.println(a);
 		System.out.println(b);
-		return (U) new Long(1L);
+		return null;
 	}
 
 	// wouldn't work with static!
