@@ -244,14 +244,24 @@ public class ReadMethodVisitor implements MethodVisitor {
 			final String signature, final Label start, final Label end,
 			final int index) {
 		final M m = getMd().getM();
-		final int params = m.getParamTs().length;
 		final boolean isStatic = m.checkAf(AF.STATIC);
+		final T[] paramTs = m.getParamTs();
+
+		int params = paramTs.length;
+		for (int j = params; j-- > 0;) {
+			if (paramTs[j] == T.DOUBLE || paramTs[j] == T.LONG) {
+				++params;
+			}
+		}
+		if (!isStatic) {
+			++params;
+		}
 
 		final int startPc = start.getOffset();
 		final int endPc = end.getOffset();
 
 		// split away method parameter names
-		if (index < params || !isStatic && index == params) {
+		if (index < params) {
 			// TODO check start and end?
 			int param = index;
 			if (!isStatic) {
@@ -261,9 +271,14 @@ public class ReadMethodVisitor implements MethodVisitor {
 				}
 				--param;
 			}
+			for (int j = 0; j < param; ++j) {
+				if (paramTs[j] == T.DOUBLE || paramTs[j] == T.LONG) {
+					--param;
+				}
+			}
 			// TODO check type?
 			if (this.paramNames == null) {
-				this.paramNames = new String[params];
+				this.paramNames = new String[paramTs.length];
 			}
 			this.paramNames[param] = name;
 			return;
