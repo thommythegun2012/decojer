@@ -23,7 +23,9 @@
  */
 package org.decojer.cavaj.model;
 
-import org.decojer.cavaj.model.vm.intermediate.Try;
+import java.util.logging.Logger;
+
+import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
@@ -34,16 +36,18 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  */
 public class MD implements BD, PD {
 
+	private final static Logger LOGGER = Logger.getLogger(MD.class.getName());
+
 	private Object annotationDefaultValue;
 
 	private A[] as;
 
 	private CFG cfg;
 
-	private Try[] tries;
-
 	// deprecated state (from deprecated attribute)
 	private boolean deprecated;
+
+	private Exc[] excs;
 
 	private final M m;
 
@@ -75,6 +79,28 @@ public class MD implements BD, PD {
 	}
 
 	/**
+	 * Add exception handler.
+	 * 
+	 * @param exc
+	 *            exception handler
+	 */
+	public void addExc(final Exc exc) {
+		if (this.excs == null) {
+			this.excs = new Exc[1];
+			this.excs[0] = exc;
+			return;
+		}
+		if (exc.getStartPc() < this.excs[this.excs.length - 1].getStartPc()) {
+			LOGGER.warning("Wrong exception order!");
+		}
+		final Exc[] newExcs = new Exc[this.excs.length + 1];
+		// sorted insert?
+		System.arraycopy(this.excs, 0, newExcs, 0, this.excs.length);
+		this.excs = newExcs;
+		this.excs[this.excs.length - 1] = exc;
+	}
+
+	/**
 	 * Get annotation default value.
 	 * 
 	 * @return annotation default value
@@ -99,6 +125,15 @@ public class MD implements BD, PD {
 	 */
 	public CFG getCfg() {
 		return this.cfg;
+	}
+
+	/**
+	 * Get exception handlers.
+	 * 
+	 * @return exception handlers
+	 */
+	public Exc[] getExcs() {
+		return this.excs;
 	}
 
 	/**
@@ -135,15 +170,6 @@ public class MD implements BD, PD {
 	 */
 	public TD getTd() {
 		return this.td;
-	}
-
-	/**
-	 * Get tries.
-	 * 
-	 * @return tries
-	 */
-	public Try[] getTries() {
-		return this.tries;
 	}
 
 	/**
@@ -241,16 +267,6 @@ public class MD implements BD, PD {
 	 */
 	public void setSynthetic(final boolean synthetic) {
 		this.synthetic = synthetic;
-	}
-
-	/**
-	 * Set tries.
-	 * 
-	 * @param tries
-	 *            tries
-	 */
-	public void setTries(final Try[] tries) {
-		this.tries = tries;
 	}
 
 	/**

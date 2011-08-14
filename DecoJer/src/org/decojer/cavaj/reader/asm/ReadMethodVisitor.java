@@ -33,6 +33,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.ow2.asm.AnnotationVisitor;
 import org.ow2.asm.Attribute;
@@ -303,28 +304,14 @@ public class ReadMethodVisitor implements MethodVisitor {
 		} else {
 			vars = this.varss[index];
 		}
-
 		if (vars == null) {
 			vars = new Var[1];
-			vars[0] = var;
 		} else {
-			// sorted insert
-			final Var[] newVars = new Var[vars.length];
-			for (int j = 0, k = 0; j < vars.length; ++j) {
-				final Var varSort = vars[j];
-				if (varSort.getStartPc() < startPc) {
-					newVars[k++] = varSort;
-					continue;
-				}
-				if (varSort.getStartPc() == startPc) {
-					LOGGER.warning("Two local variables with same start pc!");
-					continue;
-				}
-				newVars[k++] = var;
-				newVars[k++] = varSort;
-			}
+			final Var[] newVars = new Var[vars.length + 1];
+			System.arraycopy(vars, 0, newVars, 0, vars.length);
 			vars = newVars;
 		}
+		vars[vars.length - 1] = var;
 		this.varss[index] = vars;
 	}
 
@@ -404,10 +391,9 @@ public class ReadMethodVisitor implements MethodVisitor {
 	@Override
 	public void visitTryCatchBlock(final Label start, final Label end,
 			final Label handler, final String type) {
-		if (TODOCODE) {
-			LOGGER.warning("### method visitTryCatchBlock ### " + start + " : "
-					+ end + " : " + handler + " : " + type);
-		}
+		final T catchT = type == null ? null : this.du.getDescT(type);
+		this.md.addExc(new Exc(catchT, start.getOffset(), end.getOffset(),
+				handler.getOffset()));
 	}
 
 	@Override

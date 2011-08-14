@@ -185,25 +185,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		}
 		if (vars == null) {
 			vars = new Var[1];
-			vars[0] = var;
 		} else {
-			// sorted insert
-			final Var[] newVars = new Var[vars.length];
-			for (int j = 0, k = 0; j < vars.length; ++j) {
-				final Var varSort = vars[j];
-				if (varSort.getStartPc() < codeAddress) {
-					newVars[k++] = varSort;
-					continue;
-				}
-				if (varSort.getStartPc() == codeAddress) {
-					LOGGER.warning("Two local variables with same start pc!");
-					continue;
-				}
-				newVars[k++] = var;
-				newVars[k++] = varSort;
-			}
+			final Var[] newVars = new Var[vars.length + 1];
+			System.arraycopy(vars, 0, newVars, 0, vars.length);
 			vars = newVars;
 		}
+		vars[vars.length - 1] = var;
 		this.varss[registerNum] = vars;
 	}
 

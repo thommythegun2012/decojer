@@ -93,7 +93,7 @@ import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
-import org.decojer.cavaj.model.vm.intermediate.Try;
+import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
 import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
@@ -2001,23 +2001,15 @@ public class JavassistReader {
 
 		final ExceptionTable exceptionTable = codeAttribute.getExceptionTable();
 		if (exceptionTable != null && exceptionTable.size() > 0) {
-			final HashMap<Integer, Try> startPc2try = new HashMap<Integer, Try>();
-			for (int i = exceptionTable.size(); i-- > 0;) {
-				final int startPc = exceptionTable.startPc(i);
-				Try tryy = startPc2try.get(startPc);
-				if (tryy == null) {
-					tryy = new Try(startPc, exceptionTable.endPc(i));
-					startPc2try.put(startPc, tryy);
-				}
-				final HashMap<T, Integer> catches = tryy.getCatches();
+			// preserve order
+			for (int i = 0; i < exceptionTable.size(); ++i) {
 				final String catchName = constPool.getClassInfo(exceptionTable
 						.catchType(i));
 				// no array possible, name is OK here
 				final T catchT = catchName == null ? null : du.getT(catchName);
-				catches.put(catchT, exceptionTable.handlerPc(i));
+				md.addExc(new Exc(catchT, exceptionTable.startPc(i),
+						exceptionTable.endPc(i), exceptionTable.handlerPc(i)));
 			}
-			md.setTries(startPc2try.values().toArray(
-					new Try[startPc2try.values().size()]));
 		}
 	}
 
@@ -2181,28 +2173,14 @@ public class JavassistReader {
 				} else {
 					vars = varss[index];
 				}
-
 				if (vars == null) {
 					vars = new Var[1];
-					vars[0] = var;
 				} else {
-					// sorted insert
-					final Var[] newVars = new Var[vars.length];
-					for (int j = 0, k = 0; j < vars.length; ++j) {
-						final Var varSort = vars[j];
-						if (varSort.getStartPc() < startPc) {
-							newVars[k++] = varSort;
-							continue;
-						}
-						if (varSort.getStartPc() == startPc) {
-							LOGGER.warning("Two local variables with same start pc!");
-							continue;
-						}
-						newVars[k++] = var;
-						newVars[k++] = varSort;
-					}
+					final Var[] newVars = new Var[vars.length + 1];
+					System.arraycopy(vars, 0, newVars, 0, vars.length);
 					vars = newVars;
 				}
+				vars[vars.length - 1] = var;
 				varss[index] = vars;
 			}
 		}
