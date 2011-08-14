@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
@@ -45,7 +44,7 @@ public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadAnnotationVisitor.class.getName());
 
-	private final DU du;
+	protected final DU du;
 
 	/**
 	 * Constructor.
@@ -69,13 +68,9 @@ public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
 	@Override
 	public AnnotationVisitor visitAnnotation(final String name,
 			final String desc) {
-		final T t = this.du.getDescT(desc);
-		final A a = new A(t, null);
-		add(name, a);
-
 		final ReadAnnotationMemberVisitor readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(
 				this.du);
-		readAnnotationMemberVisitor.init(a);
+		add(name, readAnnotationMemberVisitor.init(desc, null));
 		return readAnnotationMemberVisitor;
 	}
 

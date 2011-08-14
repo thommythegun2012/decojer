@@ -129,12 +129,8 @@ public class ReadClassVisitor implements ClassVisitor {
 	@Override
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
-		final T t = this.du.getDescT(desc);
-		final A a = new A(t, visible ? RetentionPolicy.RUNTIME
-				: RetentionPolicy.CLASS);
-		this.as.add(a);
-
-		this.readAnnotationMemberVisitor.init(a);
+		this.as.add(this.readAnnotationMemberVisitor.init(desc,
+				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS));
 		return this.readAnnotationMemberVisitor;
 	}
 

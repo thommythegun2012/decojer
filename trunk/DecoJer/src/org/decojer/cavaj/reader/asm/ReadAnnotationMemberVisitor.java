@@ -23,8 +23,11 @@
  */
 package org.decojer.cavaj.reader.asm;
 
+import java.lang.annotation.RetentionPolicy;
+
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.T;
 
 /**
  * Read annotation member visitor.
@@ -53,11 +56,15 @@ public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 	/**
 	 * Init and set annotation.
 	 * 
-	 * @param a
-	 *            annotation
+	 * @param desc
+	 *            annotation descriptor
+	 * @param retentionPolicy
+	 *            retention policy
+	 * @return annotation
 	 */
-	public void init(final A a) {
-		this.a = a;
+	public A init(final String desc, final RetentionPolicy retentionPolicy) {
+		final T t = this.du.getDescT(desc);
+		return this.a = new A(t, retentionPolicy);
 	}
 
 }
