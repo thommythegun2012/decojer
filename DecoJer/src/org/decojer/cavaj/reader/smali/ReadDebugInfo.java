@@ -175,14 +175,16 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		var.setName(name.getStringValue());
 		var.setStartPc(codeAddress);
 
+		Var[] vars = null;
 		if (this.vars == null) {
 			this.vars = new Var[registerNum + 1][];
 		} else if (registerNum >= this.vars.length) {
 			final Var[][] newVars = new Var[registerNum + 1][];
 			System.arraycopy(this.vars, 0, newVars, 0, this.vars.length);
 			this.vars = newVars;
+		} else {
+			vars = this.vars[registerNum];
 		}
-		Var[] vars = this.vars[registerNum];
 		if (vars == null) {
 			vars = new Var[1];
 		} else {

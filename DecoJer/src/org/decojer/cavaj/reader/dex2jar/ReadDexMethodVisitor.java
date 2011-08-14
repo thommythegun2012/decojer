@@ -126,8 +126,9 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 							newParamAss, 0,
 							ReadDexMethodVisitor.this.paramAss.length);
 					ReadDexMethodVisitor.this.paramAss = newParamAss;
+				} else {
+					paramAs = ReadDexMethodVisitor.this.paramAss[index];
 				}
-				paramAs = ReadDexMethodVisitor.this.paramAss[index];
 				if (paramAs == null) {
 					paramAs = new A[1];
 				} else {
