@@ -348,8 +348,9 @@ public class ReadMethodVisitor implements MethodVisitor {
 			System.arraycopy(this.paramAss, 0, newParamAss, 0,
 					this.paramAss.length);
 			this.paramAss = newParamAss;
+		} else {
+			paramAs = this.paramAss[parameter];
 		}
-		paramAs = this.paramAss[parameter];
 		if (paramAs == null) {
 			paramAs = new A[1];
 		} else {

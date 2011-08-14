@@ -2115,15 +2115,21 @@ public class JavassistReader {
 			final LocalVariableAttribute localVariableTypeAttribute) {
 		final M m = md.getM();
 		final DU du = m.getT().getDu();
-		final Map<Integer, List<Var>> reg2vars = new HashMap<Integer, List<Var>>();
+		final Var[][] varss;
 		if (localVariableAttribute != null) {
+			// read top-down for order preservation
 			final int tableLength = localVariableAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
 				final int index = localVariableAttribute.index(i);
-				List<Var> vars = reg2vars.get(index);
-				if (vars == null) {
-					vars = new ArrayList<Var>();
-					reg2vars.put(index, vars);
+				Var[] vars = null;
+				if (varss == null) {
+					varss = new Var[index + 1][];
+				} else if (index >= varss.length) {
+					final Var[][] newVarss = new Var[index + 1][];
+					System.arraycopy(varss, 0, newVarss, 0, varss.length);
+					varss = newVarss;
+				} else {
+					vars = varss[index];
 				}
 				final Var var = new Var(du.getDescT(localVariableAttribute
 						.descriptor(i)));
@@ -2133,18 +2139,27 @@ public class JavassistReader {
 						+ localVariableAttribute.codeLength(i);
 				var.setStartPc(startPc);
 				var.setEndPc(endPc);
-				vars.add(var);
+
+				if (vars == null) {
+					vars = new Var[1];
+				} else {
+					final Var[] newVars = new Var[vars.length];
+					System.arraycopy(vars, 0, newVars, 0, vars.length);
+					vars = newVars;
+				}
+				vars[vars.length - 1] = var;
 			}
 		}
 		if (localVariableTypeAttribute != null) {
 			final int tableLength = localVariableTypeAttribute.tableLength();
+			// read top-down for order preservation
 			table: for (int i = 0; i < tableLength; ++i) {
 				final int index = localVariableTypeAttribute.index(i);
-				if (reg2vars == null) {
+				if (varss == null || index >= varss.length) {
 					LOGGER.warning("Local variable type attribute without local variable attribute!");
 					break;
 				}
-				final List<Var> vars = reg2vars.get(index);
+				final Var[] vars = varss[index];
 				if (vars == null) {
 					LOGGER.warning("Local variable type attribute without local variable attribute!");
 					break;
