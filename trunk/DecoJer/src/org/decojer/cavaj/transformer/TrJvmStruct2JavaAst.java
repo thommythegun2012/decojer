@@ -480,6 +480,7 @@ public class TrJvmStruct2JavaAst {
 			signatureDecompiler.decompileClassTypes(
 					(TypeDeclaration) typeDeclaration, t.getInterfaceTs());
 		}
+		td.setTypeDeclaration(typeDeclaration);
 
 		// add annotation modifiers before other modifiers, order preserved in
 		// source code generation through eclipse.jdt
@@ -531,7 +532,6 @@ public class TrJvmStruct2JavaAst {
 			typeDeclaration.setJavadoc(newJavadoc);
 		}
 
-		td.setTypeDeclaration(typeDeclaration);
 		for (final BD bd : td.getBds()) {
 			if (bd instanceof FD) {
 				decompileField((FD) bd, cu);
@@ -588,4 +588,5 @@ public class TrJvmStruct2JavaAst {
 		sb.append(" */");
 		cu.setComment(sb.toString());
 	}
+
 }

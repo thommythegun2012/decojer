@@ -31,7 +31,9 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
 import org.objectweb.asm.AnnotationVisitor;
-import org.ow2.asm.Type;
+import org.objectweb.asm.Type;
+
+import com.googlecode.dex2jar.Field;
 
 /**
  * Read annotation visitor.
@@ -54,6 +56,12 @@ public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
 
 	@Override
 	public void visit(final String name, final Object value) {
+		if (value instanceof Field) {
+			// Bug in dex2jar 1.1? should be visitEnum...
+			visitEnum(name, ((Field) value).getType(),
+					((Field) value).getName());
+			return;
+		}
 		if (value instanceof Type) {
 			add(name, this.du.getT(((Type) value).getClassName()));
 			return;
