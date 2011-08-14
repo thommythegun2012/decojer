@@ -24,7 +24,6 @@
 package org.decojer.cavaj.reader.asm;
 
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
@@ -44,9 +43,7 @@ public class ReadFieldVisitor implements FieldVisitor {
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadFieldVisitor.class.getName());
 
-	private final ArrayList<A> as = new ArrayList<A>();
-
-	private final DU du;
+	private A[] as;
 
 	private FD fd;
 
@@ -61,7 +58,6 @@ public class ReadFieldVisitor implements FieldVisitor {
 	public ReadFieldVisitor(final DU du) {
 		assert du != null;
 
-		this.du = du;
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
 	}
 
@@ -82,14 +78,22 @@ public class ReadFieldVisitor implements FieldVisitor {
 	 */
 	public void init(final FD fd) {
 		this.fd = fd;
-		this.as.clear();
+		this.as = null;
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
-		this.as.add(this.readAnnotationMemberVisitor.init(desc,
-				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS));
+		if (this.as == null) {
+			this.as = new A[1];
+		} else {
+			final A[] newAs = new A[this.as.length + 1];
+			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
+			this.as = newAs;
+		}
+		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor
+				.init(desc, visible ? RetentionPolicy.RUNTIME
+						: RetentionPolicy.CLASS);
 		return this.readAnnotationMemberVisitor;
 	}
 
@@ -101,7 +105,9 @@ public class ReadFieldVisitor implements FieldVisitor {
 
 	@Override
 	public void visitEnd() {
-		// nothing
+		if (this.as != null) {
+			this.fd.setAs(this.as);
+		}
 	}
 
 }

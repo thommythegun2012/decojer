@@ -25,7 +25,6 @@ package org.decojer.cavaj.reader.asm;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
@@ -40,9 +39,6 @@ import org.ow2.asm.Type;
  * @author André Pankraz
  */
 public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
-
-	private final static Logger LOGGER = Logger
-			.getLogger(ReadAnnotationVisitor.class.getName());
 
 	protected final DU du;
 

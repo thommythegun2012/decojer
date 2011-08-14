@@ -189,10 +189,10 @@ public class DecoJer {
 
 	public static void main(final String[] args) throws IOException {
 		final DU du = createDu();
-		switch (0) {
+		switch (11) {
 		case 0:
 			System.out
-					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/jdk5/DecTestMethods.class"));
+					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/jdk5/DecTestAnnotations.class"));
 			break;
 		case 1: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
@@ -220,7 +220,7 @@ public class DecoJer {
 		case 11: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
 			final CU cu = createCu(du
-					.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
+					.getTd("org.decojer.cavaj.test.jdk5.DecTestAnnotations"));
 			System.out.println(decompile(cu));
 			break;
 		}

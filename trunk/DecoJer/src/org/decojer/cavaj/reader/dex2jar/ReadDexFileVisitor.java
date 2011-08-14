@@ -39,18 +39,46 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 
 	private final DU du;
 
-	private final ReadDexClassVisitor readDexClassVisitor = new ReadDexClassVisitor();
+	private final ReadDexClassVisitor readDexClassVisitor;
+
+	private String selectorPrefix;
+
+	private String selectorMatch;
+
+	private TD selectorTd;
 
 	/**
 	 * Constructor.
 	 * 
 	 * @param du
 	 *            decompilation unit
+	 * @param selector
+	 *            selector
 	 */
-	public ReadDexFileVisitor(final DU du) {
+	public ReadDexFileVisitor(final DU du, final String selector) {
 		assert du != null;
 
 		this.du = du;
+		this.readDexClassVisitor = new ReadDexClassVisitor(du);
+
+		if (selector != null && selector.endsWith(".class")) {
+			this.selectorMatch = "L"
+					+ selector.substring(selector.charAt(0) == '/' ? 1 : 0,
+							selector.length() - 6) + ";";
+			final int pos = this.selectorMatch.lastIndexOf('/');
+			if (pos != -1) {
+				this.selectorPrefix = this.selectorMatch.substring(0, pos + 1);
+			}
+		}
+	}
+
+	/**
+	 * Get type declaration for selector.
+	 * 
+	 * @return type declaration for selector
+	 */
+	public TD getSelectorTd() {
+		return this.selectorTd;
 	}
 
 	@Override
@@ -61,6 +89,12 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 		// Ljava/util/Hashtable; : null
 		System.out.println("## visit ## " + className + " : " + superClass
 				+ " : " + interfaceNames);
+
+		if (this.selectorPrefix != null
+				&& (!className.startsWith(this.selectorPrefix) || className
+						.indexOf('/', this.selectorPrefix.length()) != -1)) {
+			return null;
+		}
 
 		final T t = this.du.getDescT(className);
 		t.setAccessFlags(access_flags);
@@ -74,9 +108,14 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 		}
 
 		final TD td = new TD(t);
+
+		if (className.equals(this.selectorMatch)) {
+			this.selectorTd = td;
+		}
+
 		this.du.addTd(td);
 
-		this.readDexClassVisitor.setTd(td);
+		this.readDexClassVisitor.init(td);
 		return this.readDexClassVisitor;
 	}
 

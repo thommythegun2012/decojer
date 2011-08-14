@@ -23,6 +23,10 @@
  */
 package org.decojer.cavaj.reader.dex2jar;
 
+import java.lang.annotation.RetentionPolicy;
+
+import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
@@ -44,47 +48,72 @@ import com.googlecode.dex2jar.visitors.DexMethodVisitor;
  */
 public class ReadDexClassVisitor implements DexClassVisitor {
 
-	private final ReadDexFieldVisitor readDexFieldVisitor = new ReadDexFieldVisitor();
+	private A[] as;
 
-	private final ReadDexMethodVisitor readDexMethodVisitor = new ReadDexMethodVisitor();
+	private final DU du;
+
+	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
+
+	private final ReadDexFieldVisitor readDexFieldVisitor;
+
+	private final ReadDexMethodVisitor readDexMethodVisitor;
 
 	private TD td;
 
 	/**
-	 * Get type declaration.
+	 * Constructor.
 	 * 
-	 * @return type declaration
+	 * @param du
+	 *            decompilation unit
 	 */
-	public TD getTd() {
-		return this.td;
+	public ReadDexClassVisitor(final DU du) {
+		assert du != null;
+
+		this.du = du;
+		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+		this.readDexFieldVisitor = new ReadDexFieldVisitor(du);
+		this.readDexMethodVisitor = new ReadDexMethodVisitor(du);
 	}
 
 	/**
-	 * Set type declaration.
+	 * Init and set type declaration.
 	 * 
 	 * @param td
 	 *            type declaration
 	 */
-	public void setTd(final TD td) {
+	public void init(final TD td) {
 		this.td = td;
+		this.as = null;
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String name,
 			final boolean visitable) {
-		return new ReadDexAnnotationVisitor();
+		if (this.as == null) {
+			this.as = new A[1];
+		} else {
+			final A[] newAs = new A[this.as.length + 1];
+			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
+			this.as = newAs;
+		}
+		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor.init(
+				name, visitable ? RetentionPolicy.RUNTIME
+						: RetentionPolicy.CLASS);
+		return this.readAnnotationMemberVisitor;
 	}
 
 	@Override
 	public void visitEnd() {
-		// nothing
+		if (this.as != null) {
+			this.td.setAs(this.as);
+		}
 	}
 
 	@Override
 	public DexFieldVisitor visitField(final Field field, final Object value) {
 		final T t = this.td.getT();
 		// desc: Ljava/lang/ref/ReferenceQueue;
-		final T fieldT = t.getDu().getDescT(field.getType());
+		final T fieldT = this.du.getDescT(field.getType());
 		final F f = t.getF(field.getName(), fieldT);
 		f.setAccessFlags(field.getAccessFlags());
 		// TODO signature in annotation
@@ -94,7 +123,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 		this.td.getBds().add(fd);
 
-		this.readDexFieldVisitor.setFd(fd);
+		this.readDexFieldVisitor.init(fd);
 		return this.readDexFieldVisitor;
 	}
 
@@ -102,8 +131,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	public DexMethodVisitor visitMethod(final Method method) {
 		final T t = this.td.getT();
 		// desc: (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-		final M m = t.getM(method.getName(), method.getType().getDesc()
-				.replace('/', '.'));
+		final M m = t.getM(method.getName(), method.getType().getDesc());
 		m.setAccessFlags(method.getAccessFlags());
 		// TODO throws in annotation
 
@@ -111,7 +139,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 		this.td.getBds().add(md);
 
-		this.readDexMethodVisitor.setMd(md);
+		this.readDexMethodVisitor.init(md);
 		return this.readDexMethodVisitor;
 	}
 

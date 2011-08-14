@@ -23,50 +23,85 @@
  */
 package org.decojer.cavaj.reader.dex2jar;
 
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.T;
 import org.objectweb.asm.AnnotationVisitor;
+import org.ow2.asm.Type;
 
 /**
- * Read DEX annotation visitor.
+ * Read annotation visitor.
  * 
  * @author André Pankraz
  */
-public class ReadDexAnnotationVisitor implements AnnotationVisitor {
+public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
 
-	private final static Logger LOGGER = Logger
-			.getLogger(ReadDexAnnotationVisitor.class.getName());
+	protected final DU du;
+
+	/**
+	 * Constructor.
+	 * 
+	 */
+	public ReadAnnotationVisitor(final DU du) {
+		this.du = du;
+	}
+
+	protected abstract void add(final String name, final Object value);
 
 	@Override
 	public void visit(final String name, final Object value) {
-		LOGGER.warning("### annotation visit ### " + name + " : " + value
-				+ " :C: " + (value == null ? "<null>" : value.getClass()));
+		if (value instanceof Type) {
+			add(name, this.du.getT(((Type) value).getClassName()));
+			return;
+		}
+		add(name, value);
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String name,
 			final String desc) {
-		LOGGER.warning("### annotation visitAnnotation ### " + name + " : "
-				+ desc);
-		return new ReadDexAnnotationVisitor();
+		final ReadAnnotationMemberVisitor readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(
+				this.du);
+		add(name, readAnnotationMemberVisitor.init(desc, null));
+		return readAnnotationMemberVisitor;
 	}
 
 	@Override
 	public AnnotationVisitor visitArray(final String name) {
-		LOGGER.warning("### annotation visitArray ### " + name);
-		return new ReadDexAnnotationVisitor();
+		return new ReadAnnotationVisitor(this.du) {
+
+			private final List<Object> values = new ArrayList<Object>();
+
+			@Override
+			protected void add(final String name, final Object value) {
+				this.values.add(value);
+			}
+
+			@Override
+			public void visitEnd() {
+				ReadAnnotationVisitor.this.add(name,
+						this.values.toArray(new Object[this.values.size()]));
+			}
+
+		};
 	}
 
 	@Override
 	public void visitEnd() {
-		// LOGGER.warning("### annotation visitEnd ### ");
+		// nothing
 	}
 
 	@Override
 	public void visitEnum(final String name, final String desc,
 			final String value) {
-		LOGGER.warning("### annotation visitEnum ### " + name + " : " + desc
-				+ " : " + value);
+		final T enumT = this.du.getDescT(desc);
+		final F enumF = enumT.getF(value, enumT);
+		enumF.markAf(AF.ENUM);
+		add(name, enumF);
 	}
 
 }
