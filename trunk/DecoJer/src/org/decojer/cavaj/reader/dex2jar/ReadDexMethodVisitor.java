@@ -106,7 +106,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 			this.md.setAs(this.as);
 		}
 		if (this.paramAss != null) {
-			this.md.setParamAs(this.paramAss);
+			this.md.setParamAss(this.paramAss);
 		}
 	}
 

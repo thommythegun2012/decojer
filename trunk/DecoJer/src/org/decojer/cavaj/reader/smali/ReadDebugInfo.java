@@ -47,7 +47,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
 
-	private Var[][] vars;
+	private Var[][] varss;
 
 	/**
 	 * Constructor.
@@ -74,17 +74,13 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	 * @return local variables
 	 */
 	public Var[][] getVars() {
-		return this.vars;
+		return this.varss;
 	}
 
 	@Override
 	public void ProcessEndLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
-		System.out
-				.println("*EndLocal: I" + codeAddress + " l" + length + " r"
-						+ registerNum + " : " + name + " : " + type + " : "
-						+ signature);
 		if (name == null) {
 			// can happen, sometimes start with
 			// Lorg/decojer/cavaj/test/DecTestInlineAssignments;->decIntTest(I[I)I
@@ -92,21 +88,28 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			// Smali-Bug? DebugInfo-Bug?
 			return;
 		}
-		if (this.vars == null || registerNum >= this.vars.length) {
-			LOGGER.warning("ProcessEndLocal for unknown variable register '"
-					+ registerNum + "'!");
+		if (this.varss == null || registerNum >= this.varss.length) {
+			LOGGER.warning("ProcessEndLocal without any ProcessStartLocal!");
+			return;
 		}
-		final Var[] vars = this.vars[registerNum];
-		for (int i = vars.length; i-- > 0;) {
-			final Var var = vars[i];
-			if (!var.getName().equals(name.getStringValue())) {
+		final Var[] vars = this.varss[registerNum];
+		if (vars == null) {
+			LOGGER.warning("ProcessEndLocal '" + registerNum
+					+ "' without any ProcessStartLocal!");
+			return;
+		}
+		for (int j = vars.length; j-- > 0;) {
+			final Var var = vars[j];
+			if (var.getStartPc() > codeAddress) {
 				continue;
 			}
-			// TODO check type / signature?
-			if (var.getEndPc() != 0) {
-				continue;
+			if (var.getEndPc() == 0) {
+				var.setEndPc(codeAddress);
+				return;
 			}
-			var.setEndPc(codeAddress);
+			LOGGER.warning("ProcessEndLocal '" + registerNum
+					+ "' without ProcessStartLocal!");
+			return;
 		}
 	}
 
@@ -149,8 +152,6 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	public void ProcessStartLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type) {
-		System.out.println("*StartLocal: I" + codeAddress + " l" + length
-				+ " r" + registerNum + " : " + name + " : " + type);
 		startLocal(codeAddress, length, registerNum, name, type, null);
 	}
 
@@ -158,13 +159,10 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	public void ProcessStartLocalExtended(final int codeAddress,
 			final int length, final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
-		System.out.println("*StartLocalExtended: I" + codeAddress + " l"
-				+ length + " r" + registerNum + " : " + name + " : " + type
-				+ " : " + signature);
 		startLocal(codeAddress, length, registerNum, name, type, signature);
 	}
 
-	void startLocal(final int codeAddress, final int length,
+	private void startLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
 		final T varT = this.du.getDescT(type.getTypeDescriptor());
@@ -176,24 +174,37 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		var.setStartPc(codeAddress);
 
 		Var[] vars = null;
-		if (this.vars == null) {
-			this.vars = new Var[registerNum + 1][];
-		} else if (registerNum >= this.vars.length) {
+		if (this.varss == null) {
+			this.varss = new Var[registerNum + 1][];
+		} else if (registerNum >= this.varss.length) {
 			final Var[][] newVars = new Var[registerNum + 1][];
-			System.arraycopy(this.vars, 0, newVars, 0, this.vars.length);
-			this.vars = newVars;
+			System.arraycopy(this.varss, 0, newVars, 0, this.varss.length);
+			this.varss = newVars;
 		} else {
-			vars = this.vars[registerNum];
+			vars = this.varss[registerNum];
 		}
 		if (vars == null) {
 			vars = new Var[1];
+			vars[0] = var;
 		} else {
-			final Var[] newVars = new Var[vars.length + 1];
-			System.arraycopy(vars, 0, newVars, 0, vars.length);
+			// sorted insert
+			final Var[] newVars = new Var[vars.length];
+			for (int j = 0, k = 0; j < vars.length; ++j) {
+				final Var varSort = vars[j];
+				if (varSort.getStartPc() < codeAddress) {
+					newVars[k++] = varSort;
+					continue;
+				}
+				if (varSort.getStartPc() == codeAddress) {
+					LOGGER.warning("Two local variables with same start pc!");
+					continue;
+				}
+				newVars[k++] = var;
+				newVars[k++] = varSort;
+			}
 			vars = newVars;
 		}
-		this.vars[registerNum] = vars;
-		vars[vars.length - 1] = var;
+		this.varss[registerNum] = vars;
 	}
 
 }

@@ -24,10 +24,6 @@
 package org.decojer.cavaj.reader.asm;
 
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
@@ -62,9 +58,11 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	private A[][] paramAss;
 
+	private String[] paramNames;
+
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
-	final Map<Integer, List<Var>> reg2vars = new HashMap<Integer, List<Var>>();
+	private Var[][] varss;
 
 	private static final boolean TODOCODE = true;
 
@@ -101,7 +99,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 		this.md = md;
 		this.as = null;
 		this.paramAss = null;
-		this.reg2vars.clear();
+		this.paramNames = null;
+		this.varss = null;
 	}
 
 	@Override
@@ -149,56 +148,13 @@ public class ReadMethodVisitor implements MethodVisitor {
 			this.md.setAs(this.as);
 		}
 		if (this.paramAss != null) {
-			this.md.setParamAs(this.paramAss);
+			this.md.setParamAss(this.paramAss);
 		}
-		// TODO identical to JavassistReader.readLocalVariables
-		if (this.reg2vars.size() > 0) {
-			final M m = this.md.getM();
-			final T[] paramTs = m.getParamTs();
-			final String[] paramNames = new String[paramTs.length];
-			int reg = 0;
-			if (!m.checkAf(AF.STATIC)) {
-				this.reg2vars.remove(reg++);
-				// check this?
-			}
-			for (int i = 0; i < paramTs.length; ++i) {
-				final List<Var> vars = this.reg2vars.remove(reg++);
-				if (vars == null) {
-					// could happen, e.g. synthetic methods, inner <init>
-					// with outer type param
-					continue;
-				}
-				if (vars.size() != 1) {
-					LOGGER.warning("Variable size for method parameter register '"
-							+ reg + "' not equal 1!");
-					continue;
-				}
-				final Var var = vars.get(0);
-				if (var.getStartPc() != 0) {
-					LOGGER.warning("Variable start for method parameter register '"
-							+ reg + "' not 0!");
-					continue;
-				}
-				if (var.getTs().size() != 1) {
-					LOGGER.warning("Variable type for method parameter register '"
-							+ reg + "' not unique!");
-					continue;
-				}
-				final T paramT = var.getTs().iterator().next();
-				if (paramT != paramTs[i]) {
-					LOGGER.warning("Variable type for method parameter register '"
-							+ reg + "' not equal!");
-					continue;
-				}
-				if (paramT == T.LONG || paramT == T.DOUBLE) {
-					++reg;
-				}
-				paramNames[i] = var.getName();
-			}
-			m.setParamNames(paramNames);
+		if (this.paramNames != null) {
+			this.md.getM().setParamNames(this.paramNames);
 		}
-		if (this.reg2vars.size() > 0) {
-			this.md.setReg2vars(this.reg2vars);
+		if (this.varss != null) {
+			this.md.setVarss(this.varss);
 		}
 	}
 
@@ -287,18 +243,74 @@ public class ReadMethodVisitor implements MethodVisitor {
 	public void visitLocalVariable(final String name, final String desc,
 			final String signature, final Label start, final Label end,
 			final int index) {
-		List<Var> vars = this.reg2vars.get(index);
-		if (vars == null) {
-			vars = new ArrayList<Var>();
-			this.reg2vars.put(index, vars);
-		}
-		final Var var = new Var(this.du.getDescT(desc));
-		var.setName(name);
+		final M m = getMd().getM();
+		final int params = m.getParamTs().length;
+		final boolean isStatic = m.checkAf(AF.STATIC);
+
 		final int startPc = start.getOffset();
 		final int endPc = end.getOffset();
+
+		// split away method parameter names
+		if (index < params || !isStatic && index == params) {
+			// TODO check start and end?
+			int param = index;
+			if (!isStatic) {
+				if (index == 0) {
+					// TODO check name 'this' and type?
+					return;
+				}
+				--param;
+			}
+			// TODO check type?
+			if (this.paramNames == null) {
+				this.paramNames = new String[params];
+			}
+			this.paramNames[param] = name;
+			return;
+		}
+
+		final T varT = this.du.getDescT(desc);
+		if (signature != null) {
+			varT.setSignature(signature);
+		}
+		final Var var = new Var(varT);
+		var.setName(name);
 		var.setStartPc(startPc);
 		var.setEndPc(endPc);
-		vars.add(var);
+
+		Var[] vars = null;
+		if (this.varss == null) {
+			this.varss = new Var[index + 1][];
+		} else if (index >= this.varss.length) {
+			final Var[][] newVarss = new Var[index + 1][];
+			System.arraycopy(this.varss, 0, newVarss, 0, this.varss.length);
+			this.varss = newVarss;
+		} else {
+			vars = this.varss[index];
+		}
+
+		if (vars == null) {
+			vars = new Var[1];
+			vars[0] = var;
+		} else {
+			// sorted insert
+			final Var[] newVars = new Var[vars.length];
+			for (int j = 0, k = 0; j < vars.length; ++j) {
+				final Var varSort = vars[j];
+				if (varSort.getStartPc() < startPc) {
+					newVars[k++] = varSort;
+					continue;
+				}
+				if (varSort.getStartPc() == startPc) {
+					LOGGER.warning("Two local variables with same start pc!");
+					continue;
+				}
+				newVars[k++] = var;
+				newVars[k++] = varSort;
+			}
+			vars = newVars;
+		}
+		this.varss[index] = vars;
 	}
 
 	@Override

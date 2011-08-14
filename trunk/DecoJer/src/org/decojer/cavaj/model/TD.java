@@ -240,6 +240,15 @@ public class TD implements BD, PD {
 	}
 
 	/**
+	 * Is Dalvik?
+	 * 
+	 * @return true is Dalvik
+	 */
+	public boolean isDalvik() {
+		return this.version == 0;
+	}
+
+	/**
 	 * Get deprecated state (from deprecated attribute).
 	 * 
 	 * @return true - deprecated
