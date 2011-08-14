@@ -388,7 +388,7 @@ public class TrJvmStruct2JavaAst {
 		}
 		if (methodDeclaration instanceof MethodDeclaration) {
 			// decompile method parameter annotations and names
-			final A[][] paramAs = md.getParamAs();
+			final A[][] paramAs = md.getParamAss();
 			int param = 0;
 			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
 					.parameters()) {
@@ -504,8 +504,9 @@ public class TrJvmStruct2JavaAst {
 			if (typeDeclaration instanceof TypeDeclaration) {
 				((TypeDeclaration) typeDeclaration).setInterface(true);
 			}
-		} else if (!t.checkAf(AF.SUPER)) {
-			// modern invokesuper syntax, is always set in current java
+		} else if (!t.checkAf(AF.SUPER) && !td.isDalvik()) {
+			// modern invokesuper syntax, is always set in current JVM, but not
+			// in Dalvik
 			LOGGER.warning("Modern invokesuper syntax flag not set in type '"
 					+ td + "'!");
 		}

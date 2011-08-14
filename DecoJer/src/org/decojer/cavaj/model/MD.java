@@ -49,14 +49,14 @@ public class MD implements BD, PD {
 
 	private BodyDeclaration methodDeclaration;
 
-	private A[][] paramAs;
+	private A[][] paramAss;
 
 	// synthetic state (from synthetic attribute)
 	private boolean synthetic;
 
 	private final TD td;
 
-	private Var[][] vars;
+	private Var[][] varss;
 
 	/**
 	 * Constructor.
@@ -124,8 +124,8 @@ public class MD implements BD, PD {
 	 * 
 	 * @return parameter annotations
 	 */
-	public A[][] getParamAs() {
-		return this.paramAs;
+	public A[][] getParamAss() {
+		return this.paramAss;
 	}
 
 	/**
@@ -151,8 +151,8 @@ public class MD implements BD, PD {
 	 * 
 	 * @return local variables
 	 */
-	public Var[][] getVars() {
-		return this.vars;
+	public Var[][] getVarss() {
+		return this.varss;
 	}
 
 	/**
@@ -226,11 +226,11 @@ public class MD implements BD, PD {
 	/**
 	 * Set parameter annotations.
 	 * 
-	 * @param paramAs
+	 * @param paramAss
 	 *            parameter annotations
 	 */
-	public void setParamAs(final A[][] paramAs) {
-		this.paramAs = paramAs;
+	public void setParamAss(final A[][] paramAss) {
+		this.paramAss = paramAss;
 	}
 
 	/**
@@ -256,11 +256,11 @@ public class MD implements BD, PD {
 	/**
 	 * Set local variables.
 	 * 
-	 * @param vars
+	 * @param varss
 	 *            local variables
 	 */
-	public void setVars(final Var[][] vars) {
-		this.vars = vars;
+	public void setVarss(final Var[][] varss) {
+		this.varss = varss;
 	}
 
 	@Override

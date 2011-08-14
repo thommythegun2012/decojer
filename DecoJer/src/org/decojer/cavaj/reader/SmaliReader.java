@@ -514,7 +514,7 @@ public class SmaliReader {
 			opLines = readDebugInfo.getOpLines();
 			if (readDebugInfo.getVars() != null) {
 				// TODO end local sometimes not called, optimization? set end pc
-				md.setVars(readDebugInfo.getVars());
+				md.setVarss(readDebugInfo.getVars());
 			}
 		}
 
@@ -1091,7 +1091,7 @@ public class SmaliReader {
 			// no annotation default values
 
 			md.setAs(methodAs.get(method));
-			md.setParamAs(methodParamAs.get(method));
+			md.setParamAss(methodParamAs.get(method));
 
 			final CodeItem codeItem = encodedMethod.codeItem;
 			if (codeItem != null) {
@@ -1121,7 +1121,7 @@ public class SmaliReader {
 			}
 
 			md.setAs(methodAs.get(method));
-			md.setParamAs(methodParamAs.get(method));
+			md.setParamAss(methodParamAs.get(method));
 
 			final CodeItem codeItem = encodedMethod.codeItem;
 			if (codeItem != null) {

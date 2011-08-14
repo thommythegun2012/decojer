@@ -2115,12 +2115,46 @@ public class JavassistReader {
 			final LocalVariableAttribute localVariableTypeAttribute) {
 		final M m = md.getM();
 		final DU du = m.getT().getDu();
-		final Var[][] varss;
+		final int params = m.getParamTs().length;
+		final boolean isStatic = m.checkAf(AF.STATIC);
+		String[] paramNames = null;
+		Var[][] varss = null;
 		if (localVariableAttribute != null) {
 			// read top-down for order preservation
 			final int tableLength = localVariableAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
 				final int index = localVariableAttribute.index(i);
+				final int startPc = localVariableAttribute.startPc(i);
+				final int endPc = startPc
+						+ localVariableAttribute.codeLength(i);
+				final String variableName = localVariableAttribute
+						.variableName(i);
+
+				// split away method parameter names
+				if (index < params || !isStatic && index == params) {
+					// TODO check start and end?
+					int param = index;
+					if (!isStatic) {
+						if (index == 0) {
+							// TODO check name 'this' and type?
+							continue;
+						}
+						--param;
+					}
+					// TODO check type?
+					if (paramNames == null) {
+						paramNames = new String[params];
+					}
+					paramNames[param] = variableName;
+					continue;
+				}
+
+				final Var var = new Var(du.getDescT(localVariableAttribute
+						.descriptor(i)));
+				var.setName(variableName);
+				var.setStartPc(startPc);
+				var.setEndPc(endPc);
+
 				Var[] vars = null;
 				if (varss == null) {
 					varss = new Var[index + 1][];
@@ -2131,23 +2165,29 @@ public class JavassistReader {
 				} else {
 					vars = varss[index];
 				}
-				final Var var = new Var(du.getDescT(localVariableAttribute
-						.descriptor(i)));
-				var.setName(localVariableAttribute.variableName(i));
-				final int startPc = localVariableAttribute.startPc(i);
-				final int endPc = startPc
-						+ localVariableAttribute.codeLength(i);
-				var.setStartPc(startPc);
-				var.setEndPc(endPc);
 
 				if (vars == null) {
 					vars = new Var[1];
+					vars[0] = var;
 				} else {
+					// sorted insert
 					final Var[] newVars = new Var[vars.length];
-					System.arraycopy(vars, 0, newVars, 0, vars.length);
+					for (int j = 0, k = 0; j < vars.length; ++j) {
+						final Var varSort = vars[j];
+						if (varSort.getStartPc() < startPc) {
+							newVars[k++] = varSort;
+							continue;
+						}
+						if (varSort.getStartPc() == startPc) {
+							LOGGER.warning("Two local variables with same start pc!");
+							continue;
+						}
+						newVars[k++] = var;
+						newVars[k++] = varSort;
+					}
 					vars = newVars;
 				}
-				vars[vars.length - 1] = var;
+				varss[index] = vars;
 			}
 		}
 		if (localVariableTypeAttribute != null) {
@@ -2155,20 +2195,31 @@ public class JavassistReader {
 			// read top-down for order preservation
 			table: for (int i = 0; i < tableLength; ++i) {
 				final int index = localVariableTypeAttribute.index(i);
+				final int startPc = localVariableTypeAttribute.startPc(i);
+				final int endPc = startPc
+						+ localVariableTypeAttribute.codeLength(i);
+
 				if (varss == null || index >= varss.length) {
-					LOGGER.warning("Local variable type attribute without local variable attribute!");
+					LOGGER.warning("Local variable type attribute without any local variable attribute!");
 					break;
 				}
 				final Var[] vars = varss[index];
 				if (vars == null) {
-					LOGGER.warning("Local variable type attribute without local variable attribute!");
+					LOGGER.warning("Local variable type attribute '" + index
+							+ "' without any local variable attribute!");
 					break;
 				}
-				final int startPc = localVariableTypeAttribute.startPc(i);
-				final int endPc = startPc
-						+ localVariableTypeAttribute.codeLength(i);
-				for (final Var var : vars) {
-					if (var.getStartPc() == startPc && var.getEndPc() == endPc) {
+				for (int j = vars.length; j-- > 0;) {
+					final Var var = vars[j];
+					if (var.getStartPc() > startPc) {
+						continue;
+					}
+					if (var.getStartPc() == startPc) {
+						if (var.getEndPc() != endPc) {
+							LOGGER.warning("Local variable type attribute '"
+									+ index
+									+ "' has wrong local variable attribute!");
+						}
 						var.getTs()
 								.iterator()
 								.next()
@@ -2176,60 +2227,17 @@ public class JavassistReader {
 										localVariableTypeAttribute.signature(i));
 						continue table;
 					}
+					LOGGER.warning("Local variable type attribute '" + index
+							+ "' without local variable attribute!");
+					break table;
 				}
-				LOGGER.warning("No local variable attribute given for type attribute with index '"
-						+ index
-						+ "': "
-						+ localVariableTypeAttribute.variableName(index));
 			}
 		}
-		// TODO identical to ReadMethodVisitor.visitEnd
-		if (reg2vars.size() > 0) {
-			final T[] paramTs = m.getParamTs();
-			final String[] paramNames = new String[paramTs.length];
-			int reg = 0;
-			if (!m.checkAf(AF.STATIC)) {
-				reg2vars.remove(reg++);
-				// check this?
-			}
-			for (int i = 0; i < paramTs.length; ++i) {
-				final List<Var> vars = reg2vars.remove(reg++);
-				if (vars == null) {
-					// could happen, e.g. synthetic methods, inner <init>
-					// with outer type param
-					continue;
-				}
-				if (vars.size() != 1) {
-					LOGGER.warning("Variable size for method parameter register '"
-							+ reg + "' not equal 1!");
-					continue;
-				}
-				final Var var = vars.get(0);
-				if (var.getStartPc() != 0) {
-					LOGGER.warning("Variable start for method parameter register '"
-							+ reg + "' not 0!");
-					continue;
-				}
-				if (var.getTs().size() != 1) {
-					LOGGER.warning("Variable type for method parameter register '"
-							+ reg + "' not unique!");
-					continue;
-				}
-				final T paramT = var.getTs().iterator().next();
-				if (paramT != paramTs[i]) {
-					LOGGER.warning("Variable type for method parameter register '"
-							+ reg + "' not equal!");
-					continue;
-				}
-				if (paramT == T.LONG || paramT == T.DOUBLE) {
-					++reg;
-				}
-				paramNames[i] = var.getName();
-			}
+		if (paramNames != null) {
 			m.setParamNames(paramNames);
 		}
-		if (reg2vars.size() > 0) {
-			md.setReg2vars(reg2vars);
+		if (varss != null) {
+			md.setVarss(varss);
 		}
 	}
 
@@ -2365,7 +2373,7 @@ public class JavassistReader {
 				}
 			}
 		}
-		md.setParamAs(paramAss);
+		md.setParamAss(paramAss);
 
 		if (syntheticAttribute != null) {
 			md.setSynthetic(true);

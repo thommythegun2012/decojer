@@ -192,7 +192,7 @@ public class DecoJer {
 		switch (11) {
 		case 0:
 			System.out
-					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/jdk5/DecTestAnnotations.class"));
+					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestMethods.class"));
 			break;
 		case 1: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
@@ -220,7 +220,7 @@ public class DecoJer {
 		case 11: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
 			final CU cu = createCu(du
-					.getTd("org.decojer.cavaj.test.jdk5.DecTestAnnotations"));
+					.getTd("org.decojer.cavaj.test.jdk5.DecTestMethods"));
 			System.out.println(decompile(cu));
 			break;
 		}
