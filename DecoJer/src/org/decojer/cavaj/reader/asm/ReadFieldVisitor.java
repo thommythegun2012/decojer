@@ -30,7 +30,6 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.T;
 import org.ow2.asm.AnnotationVisitor;
 import org.ow2.asm.Attribute;
 import org.ow2.asm.FieldVisitor;
@@ -89,12 +88,8 @@ public class ReadFieldVisitor implements FieldVisitor {
 	@Override
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
-		final T t = this.du.getDescT(desc);
-		final A a = new A(t, visible ? RetentionPolicy.RUNTIME
-				: RetentionPolicy.CLASS);
-		this.as.add(a);
-
-		this.readAnnotationMemberVisitor.init(a);
+		this.as.add(this.readAnnotationMemberVisitor.init(desc,
+				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS));
 		return this.readAnnotationMemberVisitor;
 	}
 

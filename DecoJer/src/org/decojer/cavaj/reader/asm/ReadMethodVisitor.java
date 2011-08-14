@@ -60,6 +60,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	private MD md;
 
+	private A[][] paramAss;
+
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
 	final Map<Integer, List<Var>> reg2vars = new HashMap<Integer, List<Var>>();
@@ -104,12 +106,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 	@Override
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
-		final T t = this.du.getDescT(desc);
-		final A a = new A(t, visible ? RetentionPolicy.RUNTIME
-				: RetentionPolicy.CLASS);
-		this.as.add(a);
-
-		this.readAnnotationMemberVisitor.init(a);
+		this.as.add(this.readAnnotationMemberVisitor.init(desc,
+				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS));
 		return this.readAnnotationMemberVisitor;
 	}
 
@@ -183,6 +181,9 @@ public class ReadMethodVisitor implements MethodVisitor {
 				paramNames[i] = var.getName();
 			}
 			m.setParamNames(paramNames);
+		}
+		if (this.paramAss != null) {
+			this.md.setParamAs(this.paramAss);
 		}
 		if (this.reg2vars.size() > 0) {
 			this.md.setReg2vars(this.reg2vars);
@@ -327,18 +328,24 @@ public class ReadMethodVisitor implements MethodVisitor {
 	@Override
 	public AnnotationVisitor visitParameterAnnotation(final int parameter,
 			final String desc, final boolean visible) {
-		LOGGER.warning("### method visitParameterAnnotation ### " + parameter
-				+ " : " + desc + " : " + visible);
-
-		// TODO separate ass, parameter
-		// TODO 2 following stuff into init()
-
-		final T t = this.du.getDescT(desc);
-		final A a = new A(t, visible ? RetentionPolicy.RUNTIME
-				: RetentionPolicy.CLASS);
-		this.as.add(a);
-
-		this.readAnnotationMemberVisitor.init(a);
+		A[] paramAs = null;
+		if (this.paramAss == null) {
+			this.paramAss = new A[parameter + 1][];
+			paramAs = this.paramAss[parameter] = new A[1];
+		} else if (parameter >= this.paramAss.length) {
+			final A[][] newParamAss = new A[parameter + 1][];
+			System.arraycopy(this.paramAss, 0, newParamAss, 0,
+					this.paramAss.length);
+			this.paramAss = newParamAss;
+			paramAs = this.paramAss[parameter] = new A[1];
+		} else {
+			paramAs = new A[this.paramAss[parameter].length + 1];
+			System.arraycopy(this.paramAss[parameter], 0, paramAs, 0,
+					this.paramAss[parameter].length);
+		}
+		paramAs[paramAs.length - 1] = this.readAnnotationMemberVisitor
+				.init(desc, visible ? RetentionPolicy.RUNTIME
+						: RetentionPolicy.CLASS);
 		return this.readAnnotationMemberVisitor;
 	}
 
