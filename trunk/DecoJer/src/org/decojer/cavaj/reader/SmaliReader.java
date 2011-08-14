@@ -49,7 +49,7 @@ import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
-import org.decojer.cavaj.model.vm.intermediate.Try;
+import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
@@ -985,24 +985,25 @@ public class SmaliReader {
 
 		final TryItem[] tryItems = codeItem.getTries();
 		if (tryItems != null && tryItems.length > 0) {
-			final Try[] tries = new Try[tryItems.length];
-			for (int i = tryItems.length; i-- > 0;) {
+			// preserve order
+			for (int i = 0; i < tryItems.length; ++i) {
 				final TryItem tryItem = tryItems[i];
-				final Try tryy = new Try(tryItem.getStartCodeAddress(),
-						tryItem.getStartCodeAddress() + tryItem.getTryLength());
-				final HashMap<T, Integer> catches = tryy.getCatches();
 				for (final EncodedTypeAddrPair handler : tryItem.encodedCatchHandler.handlers) {
 					final T catchT = du.getDescT(handler.exceptionType
 							.getTypeDescriptor());
-					catches.put(catchT, handler.getHandlerAddress());
+					md.addExc(new Exc(catchT, tryItem.getStartCodeAddress(),
+							tryItem.getStartCodeAddress()
+									+ tryItem.getTryLength(), handler
+									.getHandlerAddress()));
 				}
 				if (tryItem.encodedCatchHandler.getCatchAllHandlerAddress() != -1) {
-					catches.put(null, tryItem.encodedCatchHandler
-							.getCatchAllHandlerAddress());
+					md.addExc(new Exc(null, tryItem.getStartCodeAddress(),
+							tryItem.getStartCodeAddress()
+									+ tryItem.getTryLength(),
+							tryItem.encodedCatchHandler
+									.getCatchAllHandlerAddress()));
 				}
-				tries[i] = tryy;
 			}
-			md.setTries(tries);
 		}
 	}
 

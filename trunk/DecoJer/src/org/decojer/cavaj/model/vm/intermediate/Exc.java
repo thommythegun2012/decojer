@@ -23,48 +23,41 @@
  */
 package org.decojer.cavaj.model.vm.intermediate;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.decojer.cavaj.model.T;
 
 /**
- * Try.
+ * Exception handler.
  * 
  * @author André Pankraz
  */
-public class Try {
+public class Exc {
 
 	private final int endPc;
 
+	private final int handlerPc;
+
 	private final int startPc;
 
-	private final HashMap<T, Integer> catches = new HashMap<T, Integer>();
+	private final T t;
 
 	/**
 	 * Constructor.
 	 * 
 	 * @param t
-	 *            type
+	 *            type (null => catch all)
 	 * @param startPc
 	 *            start pc
 	 * @param endPc
 	 *            end pc
-	 * @param handlerOpPc
+	 * @param handlerPc
 	 *            handler pc
 	 */
-	public Try(final int startPc, final int endPc) {
+	public Exc(final T t, final int startPc, final int endPc,
+			final int handlerPc) {
+		this.t = t;
 		this.startPc = startPc;
 		this.endPc = endPc;
-	}
-
-	/**
-	 * Get catches.
-	 * 
-	 * @return catches
-	 */
-	public HashMap<T, Integer> getCatches() {
-		return this.catches;
+		this.handlerPc = handlerPc;
 	}
 
 	/**
@@ -77,6 +70,15 @@ public class Try {
 	}
 
 	/**
+	 * Get handler pc.
+	 * 
+	 * @return handler pc
+	 */
+	public int getHandlerPc() {
+		return this.handlerPc;
+	}
+
+	/**
 	 * Get start pc.
 	 * 
 	 * @return start pc
@@ -85,15 +87,21 @@ public class Try {
 		return this.startPc;
 	}
 
+	/**
+	 * Get type (null => catch all).
+	 * 
+	 * @return type (null => catch all)
+	 */
+	public T getT() {
+		return this.t;
+	}
+
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("Try");
+		final StringBuilder sb = new StringBuilder("Exc");
 		sb.append("(").append(this.startPc).append(" - ").append(this.endPc)
 				.append(") ");
-		for (final Map.Entry<T, Integer> catchh : this.catches.entrySet()) {
-			sb.append(catchh.getKey()).append(": ").append(catchh.getValue())
-					.append(" ");
-		}
+		sb.append(this.t).append(": ").append(this.handlerPc);
 		return sb.toString();
 	}
 
