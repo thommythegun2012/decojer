@@ -286,8 +286,8 @@ public class JavassistReader {
 		final TD td = new TD(t);
 		td.setVersion(classFile.getMajorVersion());
 
-		final A[] as = readAnnotations(annotationsAttributeRuntimeVisible,
-				annotationsAttributeRuntimeInvisible, du);
+		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
+				annotationsAttributeRuntimeVisible, du);
 		if (as != null) {
 			td.setAs(as);
 		}
@@ -367,21 +367,23 @@ public class JavassistReader {
 	}
 
 	private static A[] readAnnotations(
-			final AnnotationsAttribute annotationsAttributeRuntimeVisible,
 			final AnnotationsAttribute annotationsAttributeRuntimeInvisible,
+			final AnnotationsAttribute annotationsAttributeRuntimeVisible,
 			final DU du) {
 		A[] as = null;
-		if (annotationsAttributeRuntimeVisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeVisible
+		// Visible comes first in bytecode, but here we start with invisible
+		// because of array extension trick
+		if (annotationsAttributeRuntimeInvisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
 					.getAnnotations();
 			as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
 						du);
 			}
 		}
-		if (annotationsAttributeRuntimeInvisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
+		if (annotationsAttributeRuntimeVisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeVisible
 					.getAnnotations();
 			if (as == null) {
 				as = new A[annotations.length];
@@ -390,8 +392,9 @@ public class JavassistReader {
 				System.arraycopy(as, 0, newAs, annotations.length, as.length);
 				as = newAs;
 			}
+			// trick
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
 						du);
 			}
 		}
@@ -2060,8 +2063,8 @@ public class JavassistReader {
 
 		final FD fd = new FD(f, td);
 
-		final A[] as = readAnnotations(annotationsAttributeRuntimeVisible,
-				annotationsAttributeRuntimeInvisible, du);
+		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
+				annotationsAttributeRuntimeVisible, du);
 		if (as != null) {
 			fd.setAs(as);
 		}
@@ -2288,8 +2291,8 @@ public class JavassistReader {
 			md.setAnnotationDefaultValue(annotationDefaultValue);
 		}
 
-		final A[] as = readAnnotations(annotationsAttributeRuntimeVisible,
-				annotationsAttributeRuntimeInvisible, du);
+		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
+				annotationsAttributeRuntimeVisible, du);
 		if (as != null) {
 			md.setAs(as);
 		}
@@ -2303,8 +2306,10 @@ public class JavassistReader {
 		}
 
 		A[][] paramAss = null;
-		if (parameterAnnotationsAttributeRuntimeVisible != null) {
-			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeVisible
+		// Visible comes first in bytecode, but here we start with invisible
+		// because of array extension trick
+		if (parameterAnnotationsAttributeRuntimeInvisible != null) {
+			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeInvisible
 					.getAnnotations();
 			paramAss = new A[annotationss.length][];
 			for (int i = annotationss.length; i-- > 0;) {
@@ -2312,16 +2317,16 @@ public class JavassistReader {
 				final A[] paramAs = paramAss[i] = new A[annotations.length];
 				for (int j = annotations.length; j-- > 0;) {
 					paramAs[j] = readAnnotation(annotations[j],
-							RetentionPolicy.RUNTIME, du);
+							RetentionPolicy.CLASS, du);
 				}
 			}
 		}
-		if (parameterAnnotationsAttributeRuntimeInvisible != null) {
-			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeInvisible
+		if (parameterAnnotationsAttributeRuntimeVisible != null) {
+			final Annotation[][] annotationss = parameterAnnotationsAttributeRuntimeVisible
 					.getAnnotations();
 			if (paramAss == null) {
 				paramAss = new A[annotationss.length][];
-			} else if (paramAss.length < annotationss.length) {
+			} else if (annotationss.length > paramAss.length) {
 				final A[][] newParamAss = new A[annotationss.length][];
 				System.arraycopy(paramAss, 0, newParamAss, 0, paramAss.length);
 				paramAss = newParamAss;
@@ -2330,16 +2335,18 @@ public class JavassistReader {
 				final Annotation[] annotations = annotationss[i];
 				A[] paramAs = paramAss[i];
 				if (paramAs == null) {
-					paramAs = paramAss[i] = new A[annotations.length];
+					paramAs = new A[annotations.length];
 				} else {
-					paramAss[i] = new A[annotations.length + paramAs.length];
-					System.arraycopy(paramAs, 0, paramAss[i],
+					final A[] newParamAs = new A[annotations.length
+							+ paramAs.length];
+					System.arraycopy(paramAs, 0, newParamAs,
 							annotations.length, paramAs.length);
-					paramAs = paramAss[i];
+					paramAs = newParamAs;
 				}
+				paramAss[i] = paramAs;
 				for (int j = annotations.length; j-- > 0;) {
 					paramAs[j] = readAnnotation(annotations[j],
-							RetentionPolicy.CLASS, du);
+							RetentionPolicy.RUNTIME, du);
 				}
 			}
 		}

@@ -23,10 +23,7 @@
  */
 package org.decojer.cavaj.reader.smali;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.DU;
@@ -50,7 +47,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
 
-	private final Map<Integer, List<Var>> reg2vars = new HashMap<Integer, List<Var>>();
+	private Var[][] vars;
 
 	/**
 	 * Constructor.
@@ -72,12 +69,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	}
 
 	/**
-	 * Get registers to local variables.
+	 * Get local variables.
 	 * 
-	 * @return registers to local variables
+	 * @return local variables
 	 */
-	public Map<Integer, List<Var>> getReg2vars() {
-		return this.reg2vars;
+	public Var[][] getVars() {
+		return this.vars;
 	}
 
 	@Override
@@ -95,19 +92,22 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			// Smali-Bug? DebugInfo-Bug?
 			return;
 		}
-		final List<Var> vars = this.reg2vars.get(registerNum);
-		if (vars == null || vars.size() == 0) {
+		if (this.vars == null || registerNum >= this.vars.length) {
 			LOGGER.warning("ProcessEndLocal for unknown variable register '"
 					+ registerNum + "'!");
-			return;
 		}
-		final Var var = vars.get(vars.size() - 1);
-		if (var.getEndPc() != 0) {
-			LOGGER.warning("ProcessEndLocal for already ended variable register '"
-					+ registerNum + "'!");
-			return;
+		final Var[] vars = this.vars[registerNum];
+		for (int i = vars.length; i-- > 0;) {
+			final Var var = vars[i];
+			if (!var.getName().equals(name.getStringValue())) {
+				continue;
+			}
+			// TODO check type / signature?
+			if (var.getEndPc() != 0) {
+				continue;
+			}
+			var.setEndPc(codeAddress);
 		}
-		var.setEndPc(codeAddress);
 	}
 
 	@Override
@@ -174,12 +174,24 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		final Var var = new Var(varT);
 		var.setName(name.getStringValue());
 		var.setStartPc(codeAddress);
-		List<Var> vars = this.reg2vars.get(registerNum);
-		if (vars == null) {
-			vars = new ArrayList<Var>();
-			this.reg2vars.put(registerNum, vars);
+
+		if (this.vars == null) {
+			this.vars = new Var[registerNum + 1][];
+		} else if (registerNum >= this.vars.length) {
+			final Var[][] newVars = new Var[registerNum + 1][];
+			System.arraycopy(this.vars, 0, newVars, 0, this.vars.length);
+			this.vars = newVars;
 		}
-		vars.add(var);
+		Var[] vars = this.vars[registerNum];
+		if (vars == null) {
+			vars = new Var[1];
+		} else {
+			final Var[] newVars = new Var[vars.length + 1];
+			System.arraycopy(vars, 0, newVars, 0, vars.length);
+			vars = newVars;
+		}
+		this.vars[registerNum] = vars;
+		vars[vars.length - 1] = var;
 	}
 
 }

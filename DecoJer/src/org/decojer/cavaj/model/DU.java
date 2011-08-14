@@ -37,7 +37,7 @@ import java.util.zip.ZipInputStream;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.reader.AsmReader;
-import org.decojer.cavaj.reader.Dex2jarReader;
+import org.decojer.cavaj.reader.SmaliReader;
 
 /**
  * Decompilation unit.
@@ -224,7 +224,7 @@ public class DU {
 		if (fileName.endsWith(".class")) {
 			return AsmReader.read(is, this);
 		} else if (fileName.endsWith(".dex")) {
-			return Dex2jarReader.read(is, this, selector);
+			return SmaliReader.read(is, this, selector);
 		} else if (fileName.endsWith(".jar")) {
 			String selectorPrefix = null;
 			String selectorMatch = null;
