@@ -54,7 +54,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadMethodVisitor.class.getName());
 
-	private final ArrayList<A> as = new ArrayList<A>();
+	private A[] as;
 
 	private final DU du;
 
@@ -99,15 +99,24 @@ public class ReadMethodVisitor implements MethodVisitor {
 	public void init(final MD md) {
 		LOGGER.warning("###### init md ###### " + md);
 		this.md = md;
-		this.as.clear();
+		this.as = null;
+		this.paramAss = null;
 		this.reg2vars.clear();
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
-		this.as.add(this.readAnnotationMemberVisitor.init(desc,
-				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS));
+		if (this.as == null) {
+			this.as = new A[1];
+		} else {
+			final A[] newAs = new A[this.as.length + 1];
+			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
+			this.as = newAs;
+		}
+		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor
+				.init(desc, visible ? RetentionPolicy.RUNTIME
+						: RetentionPolicy.CLASS);
 		return this.readAnnotationMemberVisitor;
 	}
 
@@ -136,6 +145,12 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitEnd() {
+		if (this.as != null) {
+			this.md.setAs(this.as);
+		}
+		if (this.paramAss != null) {
+			this.md.setParamAs(this.paramAss);
+		}
 		// TODO identical to JavassistReader.readLocalVariables
 		if (this.reg2vars.size() > 0) {
 			final M m = this.md.getM();
@@ -181,9 +196,6 @@ public class ReadMethodVisitor implements MethodVisitor {
 				paramNames[i] = var.getName();
 			}
 			m.setParamNames(paramNames);
-		}
-		if (this.paramAss != null) {
-			this.md.setParamAs(this.paramAss);
 		}
 		if (this.reg2vars.size() > 0) {
 			this.md.setReg2vars(this.reg2vars);
@@ -331,18 +343,21 @@ public class ReadMethodVisitor implements MethodVisitor {
 		A[] paramAs = null;
 		if (this.paramAss == null) {
 			this.paramAss = new A[parameter + 1][];
-			paramAs = this.paramAss[parameter] = new A[1];
 		} else if (parameter >= this.paramAss.length) {
 			final A[][] newParamAss = new A[parameter + 1][];
 			System.arraycopy(this.paramAss, 0, newParamAss, 0,
 					this.paramAss.length);
 			this.paramAss = newParamAss;
-			paramAs = this.paramAss[parameter] = new A[1];
-		} else {
-			paramAs = new A[this.paramAss[parameter].length + 1];
-			System.arraycopy(this.paramAss[parameter], 0, paramAs, 0,
-					this.paramAss[parameter].length);
 		}
+		paramAs = this.paramAss[parameter];
+		if (paramAs == null) {
+			paramAs = new A[1];
+		} else {
+			final A[] newParamAs = new A[paramAs.length + 1];
+			System.arraycopy(newParamAs, 0, paramAs, 0, paramAs.length);
+			paramAs = newParamAs;
+		}
+		this.paramAss[parameter] = paramAs;
 		paramAs[paramAs.length - 1] = this.readAnnotationMemberVisitor
 				.init(desc, visible ? RetentionPolicy.RUNTIME
 						: RetentionPolicy.CLASS);

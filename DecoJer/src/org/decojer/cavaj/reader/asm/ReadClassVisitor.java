@@ -24,7 +24,6 @@
 package org.decojer.cavaj.reader.asm;
 
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
@@ -51,7 +50,7 @@ public class ReadClassVisitor implements ClassVisitor {
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadClassVisitor.class.getName());
 
-	private final ArrayList<A> as = new ArrayList<A>();
+	private A[] as;
 
 	private final DU du;
 
@@ -123,14 +122,22 @@ public class ReadClassVisitor implements ClassVisitor {
 		this.td.setVersion(version);
 
 		// init
-		this.as.clear();
+		this.as = null;
 	}
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String desc,
 			final boolean visible) {
-		this.as.add(this.readAnnotationMemberVisitor.init(desc,
-				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS));
+		if (this.as == null) {
+			this.as = new A[1];
+		} else {
+			final A[] newAs = new A[this.as.length + 1];
+			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
+			this.as = newAs;
+		}
+		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor
+				.init(desc, visible ? RetentionPolicy.RUNTIME
+						: RetentionPolicy.CLASS);
 		return this.readAnnotationMemberVisitor;
 	}
 
@@ -141,8 +148,8 @@ public class ReadClassVisitor implements ClassVisitor {
 
 	@Override
 	public void visitEnd() {
-		if (this.as.size() > 0) {
-			this.td.setAs(this.as.toArray(new A[this.as.size()]));
+		if (this.as != null) {
+			this.td.setAs(this.as);
 		}
 	}
 

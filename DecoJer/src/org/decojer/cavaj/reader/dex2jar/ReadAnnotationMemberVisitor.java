@@ -27,25 +27,16 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.FD;
-import org.objectweb.asm.AnnotationVisitor;
-
-import com.googlecode.dex2jar.visitors.DexFieldVisitor;
+import org.decojer.cavaj.model.T;
 
 /**
- * Read DEX field visitor.
+ * Read annotation member visitor.
  * 
  * @author André Pankraz
  */
-public class ReadDexFieldVisitor implements DexFieldVisitor {
+public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 
-	private A[] as;
-
-	private final DU du;
-
-	private FD fd;
-
-	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
+	private A a;
 
 	/**
 	 * Constructor.
@@ -53,45 +44,27 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadDexFieldVisitor(final DU du) {
-		assert du != null;
+	public ReadAnnotationMemberVisitor(final DU du) {
+		super(du);
+	}
 
-		this.du = du;
-		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+	@Override
+	protected void add(final String name, final Object value) {
+		this.a.addMember(name, value);
 	}
 
 	/**
-	 * Init and set field declaration.
+	 * Init and set annotation.
 	 * 
-	 * @param fd
-	 *            field declaration
+	 * @param desc
+	 *            annotation descriptor
+	 * @param retentionPolicy
+	 *            retention policy
+	 * @return annotation
 	 */
-	public void init(final FD fd) {
-		this.fd = fd;
-		this.as = null;
-	}
-
-	@Override
-	public AnnotationVisitor visitAnnotation(final String name,
-			final boolean visitable) {
-		if (this.as == null) {
-			this.as = new A[1];
-		} else {
-			final A[] newAs = new A[this.as.length + 1];
-			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
-			this.as = newAs;
-		}
-		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor.init(
-				name, visitable ? RetentionPolicy.RUNTIME
-						: RetentionPolicy.CLASS);
-		return this.readAnnotationMemberVisitor;
-	}
-
-	@Override
-	public void visitEnd() {
-		if (this.as != null) {
-			this.fd.setAs(this.as);
-		}
+	public A init(final String desc, final RetentionPolicy retentionPolicy) {
+		final T t = this.du.getDescT(desc);
+		return this.a = new A(t, retentionPolicy);
 	}
 
 }

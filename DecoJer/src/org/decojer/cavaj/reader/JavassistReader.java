@@ -286,32 +286,11 @@ public class JavassistReader {
 		final TD td = new TD(t);
 		td.setVersion(classFile.getMajorVersion());
 
-		A[] as = null;
-		if (annotationsAttributeRuntimeVisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeVisible
-					.getAnnotations();
-			as = new A[annotations.length];
-			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
-						du);
-			}
+		final A[] as = readAnnotations(annotationsAttributeRuntimeVisible,
+				annotationsAttributeRuntimeInvisible, du);
+		if (as != null) {
+			td.setAs(as);
 		}
-		if (annotationsAttributeRuntimeInvisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
-					.getAnnotations();
-			if (as == null) {
-				as = new A[annotations.length];
-			} else {
-				final A[] newAs = new A[annotations.length + as.length];
-				System.arraycopy(as, 0, newAs, annotations.length, as.length);
-				as = newAs;
-			}
-			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
-						du);
-			}
-		}
-		td.setAs(as);
 
 		if (deprecatedAttribute != null) {
 			td.setDeprecated(true);
@@ -385,6 +364,38 @@ public class JavassistReader {
 			}
 		}
 		return a;
+	}
+
+	private static A[] readAnnotations(
+			final AnnotationsAttribute annotationsAttributeRuntimeVisible,
+			final AnnotationsAttribute annotationsAttributeRuntimeInvisible,
+			final DU du) {
+		A[] as = null;
+		if (annotationsAttributeRuntimeVisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeVisible
+					.getAnnotations();
+			as = new A[annotations.length];
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
+						du);
+			}
+		}
+		if (annotationsAttributeRuntimeInvisible != null) {
+			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
+					.getAnnotations();
+			if (as == null) {
+				as = new A[annotations.length];
+			} else {
+				final A[] newAs = new A[annotations.length + as.length];
+				System.arraycopy(as, 0, newAs, annotations.length, as.length);
+				as = newAs;
+			}
+			for (int i = annotations.length; i-- > 0;) {
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
+						du);
+			}
+		}
+		return as;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -2049,32 +2060,11 @@ public class JavassistReader {
 
 		final FD fd = new FD(f, td);
 
-		A[] as = null;
-		if (annotationsAttributeRuntimeVisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeVisible
-					.getAnnotations();
-			as = new A[annotations.length];
-			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
-						du);
-			}
+		final A[] as = readAnnotations(annotationsAttributeRuntimeVisible,
+				annotationsAttributeRuntimeInvisible, du);
+		if (as != null) {
+			fd.setAs(as);
 		}
-		if (annotationsAttributeRuntimeInvisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
-					.getAnnotations();
-			if (as == null) {
-				as = new A[annotations.length];
-			} else {
-				final A[] newAs = new A[annotations.length + as.length];
-				System.arraycopy(as, 0, newAs, annotations.length, as.length);
-				as = newAs;
-			}
-			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
-						du);
-			}
-		}
-		fd.setAs(as);
 
 		if (constantAttribute != null) {
 			Object value = null;
@@ -2298,32 +2288,11 @@ public class JavassistReader {
 			md.setAnnotationDefaultValue(annotationDefaultValue);
 		}
 
-		A[] as = null;
-		if (annotationsAttributeRuntimeVisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeVisible
-					.getAnnotations();
-			as = new A[annotations.length];
-			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
-						du);
-			}
+		final A[] as = readAnnotations(annotationsAttributeRuntimeVisible,
+				annotationsAttributeRuntimeInvisible, du);
+		if (as != null) {
+			md.setAs(as);
 		}
-		if (annotationsAttributeRuntimeInvisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
-					.getAnnotations();
-			if (as == null) {
-				as = new A[annotations.length];
-			} else {
-				final A[] newAs = new A[annotations.length + as.length];
-				System.arraycopy(as, 0, newAs, annotations.length, as.length);
-				as = newAs;
-			}
-			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
-						du);
-			}
-		}
-		md.setAs(as);
 
 		if (codeAttribute != null) {
 			readCode(md, codeAttribute);

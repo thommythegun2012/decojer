@@ -47,7 +47,7 @@ import org.eclipse.jdt.core.dom.TypeLiteral;
 /**
  * Annotations decompiler.
  * 
- * @author Andre Pankraz
+ * @author André Pankraz
  */
 public class AnnotationsDecompiler {
 

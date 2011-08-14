@@ -175,7 +175,7 @@ public class SmaliReader {
 	 *            decompilation unit
 	 * @param selector
 	 *            selector
-	 * @return type descriptor for selector
+	 * @return type declaration for selector
 	 * @throws IOException
 	 *             read exception
 	 */

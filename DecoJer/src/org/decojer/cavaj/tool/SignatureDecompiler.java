@@ -46,7 +46,7 @@ import org.eclipse.jdt.core.dom.WildcardType;
 /**
  * Signature decompiler.
  * 
- * @author Andre Pankraz
+ * @author André Pankraz
  */
 public class SignatureDecompiler {
 

@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.reader.dex2jar.AnalyseDexFileVisitor;
 import org.decojer.cavaj.reader.dex2jar.ReadDexFileVisitor;
@@ -71,7 +72,7 @@ public class Dex2jarReader {
 		// final Types types = analyse(is);
 		// System.out.println("Ana: " + types.getTypes().size());
 		System.out.println("### START ###");
-		read(is, new DU());
+		read(is, new DU(), null);
 	}
 
 	/**
@@ -81,14 +82,19 @@ public class Dex2jarReader {
 	 *            DEX input stream
 	 * @param du
 	 *            decompilation unit
+	 * @param selector
+	 *            selector
+	 * @return type declaration for selector
 	 * @throws IOException
 	 *             read exception
 	 */
-	public static void read(final InputStream is, final DU du)
-			throws IOException {
+	public static TD read(final InputStream is, final DU du,
+			final String selector) throws IOException {
 		final DexFileReader dexFileReader = new DexFileReader(is);
-		final ReadDexFileVisitor dexFileVisitor = new ReadDexFileVisitor(du);
+		final ReadDexFileVisitor dexFileVisitor = new ReadDexFileVisitor(du,
+				selector);
 		dexFileReader.accept(dexFileVisitor);
+		return dexFileVisitor.getSelectorTd();
 	}
 
 }
