@@ -23,9 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.List;
-import java.util.Map;
-
 import org.decojer.cavaj.model.vm.intermediate.Try;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
@@ -54,12 +51,12 @@ public class MD implements BD, PD {
 
 	private A[][] paramAs;
 
-	private Map<Integer, List<Var>> reg2vars;
-
 	// synthetic state (from synthetic attribute)
 	private boolean synthetic;
 
 	private final TD td;
+
+	private Var[][] vars;
 
 	/**
 	 * Constructor.
@@ -132,15 +129,6 @@ public class MD implements BD, PD {
 	}
 
 	/**
-	 * Get registers to local variables (not method parameters).
-	 * 
-	 * @return local variables
-	 */
-	public Map<Integer, List<Var>> getReg2vars() {
-		return this.reg2vars;
-	}
-
-	/**
 	 * Get type declaration.
 	 * 
 	 * @return type declaration
@@ -156,6 +144,15 @@ public class MD implements BD, PD {
 	 */
 	public Try[] getTries() {
 		return this.tries;
+	}
+
+	/**
+	 * Get local variables.
+	 * 
+	 * @return local variables
+	 */
+	public Var[][] getVars() {
+		return this.vars;
 	}
 
 	/**
@@ -237,16 +234,6 @@ public class MD implements BD, PD {
 	}
 
 	/**
-	 * Set registers to local variables (not method parameters).
-	 * 
-	 * @param vars
-	 *            local variables
-	 */
-	public void setReg2vars(final Map<Integer, List<Var>> vars) {
-		this.reg2vars = vars;
-	}
-
-	/**
 	 * Set synthetic state (from synthetic attribute).
 	 * 
 	 * @param synthetic
@@ -264,6 +251,16 @@ public class MD implements BD, PD {
 	 */
 	public void setTries(final Try[] tries) {
 		this.tries = tries;
+	}
+
+	/**
+	 * Set local variables.
+	 * 
+	 * @param vars
+	 *            local variables
+	 */
+	public void setVars(final Var[][] vars) {
+		this.vars = vars;
 	}
 
 	@Override

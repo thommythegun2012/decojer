@@ -512,9 +512,9 @@ public class SmaliReader {
 			DebugInstructionIterator.DecodeInstructions(debugInfo,
 					codeItem.getRegisterCount(), readDebugInfo);
 			opLines = readDebugInfo.getOpLines();
-			if (readDebugInfo.getReg2vars().size() > 0) {
+			if (readDebugInfo.getVars() != null) {
 				// TODO end local sometimes not called, optimization? set end pc
-				md.setReg2vars(readDebugInfo.getReg2vars());
+				md.setVars(readDebugInfo.getVars());
 			}
 		}
 
