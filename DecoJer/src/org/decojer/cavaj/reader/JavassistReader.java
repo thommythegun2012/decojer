@@ -2114,9 +2114,20 @@ public class JavassistReader {
 			final LocalVariableAttribute localVariableAttribute,
 			final LocalVariableAttribute localVariableTypeAttribute) {
 		final M m = md.getM();
-		final DU du = m.getT().getDu();
-		final int params = m.getParamTs().length;
 		final boolean isStatic = m.checkAf(AF.STATIC);
+		final DU du = m.getT().getDu();
+		final T[] paramTs = m.getParamTs();
+
+		int params = paramTs.length;
+		for (int j = params; j-- > 0;) {
+			if (paramTs[j] == T.DOUBLE || paramTs[j] == T.LONG) {
+				++params;
+			}
+		}
+		if (!isStatic) {
+			++params;
+		}
+
 		String[] paramNames = null;
 		Var[][] varss = null;
 		if (localVariableAttribute != null) {
@@ -2131,7 +2142,7 @@ public class JavassistReader {
 						.variableName(i);
 
 				// split away method parameter names
-				if (index < params || !isStatic && index == params) {
+				if (index < params) {
 					// TODO check start and end?
 					int param = index;
 					if (!isStatic) {
@@ -2141,9 +2152,14 @@ public class JavassistReader {
 						}
 						--param;
 					}
+					for (int j = 0; j < param; ++j) {
+						if (paramTs[j] == T.DOUBLE || paramTs[j] == T.LONG) {
+							--param;
+						}
+					}
 					// TODO check type?
 					if (paramNames == null) {
-						paramNames = new String[params];
+						paramNames = new String[paramTs.length];
 					}
 					paramNames[param] = variableName;
 					continue;
