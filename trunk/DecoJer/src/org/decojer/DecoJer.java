@@ -189,7 +189,7 @@ public class DecoJer {
 
 	public static void main(final String[] args) throws IOException {
 		final DU du = createDu();
-		switch (11) {
+		switch (1) {
 		case 0:
 			System.out
 					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestMethods.class"));

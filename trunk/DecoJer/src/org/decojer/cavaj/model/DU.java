@@ -185,6 +185,11 @@ public class DU {
 		return this.tds.get(name);
 	}
 
+	/**
+	 * Get type declarations.
+	 * 
+	 * @return type declarations
+	 */
 	public Collection<TD> getTds() {
 		return this.tds.values();
 	}

@@ -93,7 +93,6 @@ import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
-import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
 import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
@@ -848,8 +847,9 @@ public class JavassistReader {
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
 
-				final T invokeT = du.getT(constPool
-						.getInterfaceMethodrefClassName(cpMethodIndex));
+				final T invokeT = readT(
+						constPool.getInterfaceMethodrefClassName(cpMethodIndex),
+						du);
 				// invoke type must be interface
 				invokeT.checkAf(AF.INTERFACE);
 				final M invokeM = invokeT.getM(
@@ -865,8 +865,8 @@ public class JavassistReader {
 			case Opcode.INVOKESTATIC: {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
-				final T invokeT = du.getT(constPool
-						.getMethodrefClassName(cpMethodIndex));
+				final T invokeT = readT(
+						constPool.getMethodrefClassName(cpMethodIndex), du);
 				final M invokeM = invokeT.getM(
 						constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
@@ -1998,6 +1998,7 @@ public class JavassistReader {
 			wide = false;
 		}
 		cfg.calculatePostorder();
+		md.postProcessVars();
 
 		final ExceptionTable exceptionTable = codeAttribute.getExceptionTable();
 		if (exceptionTable != null && exceptionTable.size() > 0) {
@@ -2007,8 +2008,8 @@ public class JavassistReader {
 						.catchType(i));
 				// no array possible, name is OK here
 				final T catchT = catchName == null ? null : du.getT(catchName);
-				md.addExc(new Exc(catchT, exceptionTable.startPc(i),
-						exceptionTable.endPc(i), exceptionTable.handlerPc(i)));
+				md.addExc(catchT, exceptionTable.startPc(i),
+						exceptionTable.endPc(i), exceptionTable.handlerPc(i));
 			}
 		}
 	}
@@ -2105,133 +2106,32 @@ public class JavassistReader {
 	private static void readLocalVariables(final MD md,
 			final LocalVariableAttribute localVariableAttribute,
 			final LocalVariableAttribute localVariableTypeAttribute) {
-		final M m = md.getM();
-		final boolean isStatic = m.checkAf(AF.STATIC);
-		final DU du = m.getT().getDu();
-		final T[] paramTs = m.getParamTs();
-
-		int params = paramTs.length;
-		for (int j = params; j-- > 0;) {
-			if (paramTs[j] == T.DOUBLE || paramTs[j] == T.LONG) {
-				++params;
-			}
-		}
-		if (!isStatic) {
-			++params;
-		}
-
-		String[] paramNames = null;
-		Var[][] varss = null;
 		if (localVariableAttribute != null) {
 			// read top-down for order preservation
 			final int tableLength = localVariableAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final int index = localVariableAttribute.index(i);
 				final int startPc = localVariableAttribute.startPc(i);
-				final int endPc = startPc
-						+ localVariableAttribute.codeLength(i);
-				final String variableName = localVariableAttribute
-						.variableName(i);
-
-				// split away method parameter names
-				if (index < params) {
-					// TODO check start and end?
-					int param = index;
-					if (!isStatic) {
-						if (index == 0) {
-							// TODO check name 'this' and type?
-							continue;
-						}
-						--param;
-					}
-					for (int j = 0; j < param; ++j) {
-						if (paramTs[j] == T.DOUBLE || paramTs[j] == T.LONG) {
-							--param;
-						}
-					}
-					// TODO check type?
-					if (paramNames == null) {
-						paramNames = new String[paramTs.length];
-					}
-					paramNames[param] = variableName;
-					continue;
-				}
-
-				final Var var = new Var(du.getDescT(localVariableAttribute
-						.descriptor(i)));
-				var.setName(variableName);
-				var.setStartPc(startPc);
-				var.setEndPc(endPc);
-
-				Var[] vars = null;
-				if (varss == null) {
-					varss = new Var[index + 1][];
-				} else if (index >= varss.length) {
-					final Var[][] newVarss = new Var[index + 1][];
-					System.arraycopy(varss, 0, newVarss, 0, varss.length);
-					varss = newVarss;
-				} else {
-					vars = varss[index];
-				}
-				if (vars == null) {
-					vars = new Var[1];
-				} else {
-					final Var[] newVars = new Var[vars.length + 1];
-					System.arraycopy(vars, 0, newVars, 0, vars.length);
-					vars = newVars;
-				}
-				vars[vars.length - 1] = var;
-				varss[index] = vars;
+				md.addVar(localVariableAttribute.index(i),
+						localVariableAttribute.descriptor(i), null,
+						localVariableAttribute.variableName(i), startPc,
+						startPc + localVariableAttribute.codeLength(i));
 			}
 		}
 		if (localVariableTypeAttribute != null) {
 			final int tableLength = localVariableTypeAttribute.tableLength();
 			// read top-down for order preservation
-			table: for (int i = 0; i < tableLength; ++i) {
-				final int index = localVariableTypeAttribute.index(i);
-				final int startPc = localVariableTypeAttribute.startPc(i);
-				final int endPc = startPc
-						+ localVariableTypeAttribute.codeLength(i);
-
-				if (varss == null || index >= varss.length) {
-					LOGGER.warning("Local variable type attribute without any local variable attribute!");
-					break;
-				}
-				final Var[] vars = varss[index];
-				if (vars == null) {
-					LOGGER.warning("Local variable type attribute '" + index
-							+ "' without any local variable attribute!");
-					break;
-				}
-				for (int j = vars.length; j-- > 0;) {
-					final Var var = vars[j];
-					if (var.getStartPc() > startPc) {
-						continue;
-					}
-					if (var.getStartPc() == startPc) {
-						if (var.getEndPc() != endPc) {
-							LOGGER.warning("Local variable type attribute '"
-									+ index
-									+ "' has wrong local variable attribute!");
-						}
-						var.getTs()
-								.iterator()
-								.next()
-								.setSignature(
-										localVariableTypeAttribute.signature(i));
-						continue table;
-					}
-					LOGGER.warning("Local variable type attribute '" + index
+			for (int i = 0; i < tableLength; ++i) {
+				final Var var = md.getVar(localVariableTypeAttribute.index(i),
+						localVariableTypeAttribute.startPc(i));
+				if (var == null) {
+					LOGGER.warning("Local variable type attribute '"
+							+ localVariableTypeAttribute.index(i)
 							+ "' without local variable attribute!");
-					break table;
+					continue;
 				}
+				var.getTs().iterator().next()
+						.setSignature(localVariableTypeAttribute.signature(i));
 			}
-		}
-		if (paramNames != null) {
-			m.setParamNames(paramNames);
-		}
-		if (varss != null) {
-			md.setVarss(varss);
 		}
 	}
 
@@ -2376,10 +2276,7 @@ public class JavassistReader {
 		return md;
 	}
 
-	private static T readType(final ConstPool constPool,
-			final int cpClassIndex, final DU du) {
-		// no primitives here: for checkcast, instanceof etc.
-		final String classInfo = constPool.getClassInfo(cpClassIndex);
+	private static T readT(final String classInfo, final DU du) {
 		// strange Javassist behaviour:
 		if (classInfo.charAt(0) == '[') {
 			// Javassist only replaces '/' through '.' for arrays
@@ -2388,6 +2285,12 @@ public class JavassistReader {
 		}
 		// org.decojer.cavaj.test.DecTestInner$1$1$1
 		return du.getT(classInfo);
+	}
+
+	private static T readType(final ConstPool constPool,
+			final int cpClassIndex, final DU du) {
+		// no primitives here: for checkcast, instanceof etc.
+		return readT(constPool.getClassInfo(cpClassIndex), du);
 	}
 
 	private static Object readValue(final MemberValue memberValue, final DU du) {

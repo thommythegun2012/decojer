@@ -26,8 +26,7 @@ package org.decojer.cavaj.reader.smali;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
@@ -43,20 +42,18 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	private final static Logger LOGGER = Logger.getLogger(ReadDebugInfo.class
 			.getName());
 
-	private final DU du;
+	private final MD md;
 
 	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
-
-	private Var[][] varss;
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param du
-	 *            decompilation unit
+	 * @param md
+	 *            method declaration
 	 */
-	public ReadDebugInfo(final DU du) {
-		this.du = du;
+	public ReadDebugInfo(final MD md) {
+		this.md = md;
 	}
 
 	/**
@@ -68,49 +65,17 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		return this.opLines;
 	}
 
-	/**
-	 * Get local variables.
-	 * 
-	 * @return local variables
-	 */
-	public Var[][] getVars() {
-		return this.varss;
-	}
-
 	@Override
 	public void ProcessEndLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
-		if (name == null) {
-			// can happen, sometimes start with
-			// Lorg/decojer/cavaj/test/DecTestInlineAssignments;->decIntTest(I[I)I
-			// *EndLocal: I7 l2 r8 : null : null : null
-			// Smali-Bug? DebugInfo-Bug?
-			return;
-		}
-		if (this.varss == null || registerNum >= this.varss.length) {
-			LOGGER.warning("ProcessEndLocal without any ProcessStartLocal!");
-			return;
-		}
-		final Var[] vars = this.varss[registerNum];
-		if (vars == null) {
-			LOGGER.warning("ProcessEndLocal '" + registerNum
-					+ "' without any ProcessStartLocal!");
-			return;
-		}
-		for (int j = vars.length; j-- > 0;) {
-			final Var var = vars[j];
-			if (var.getStartPc() > codeAddress) {
-				continue;
-			}
-			if (var.getEndPc() == 0) {
-				var.setEndPc(codeAddress);
-				return;
-			}
+		final Var var = this.md.getVar(registerNum, codeAddress);
+		if (var == null) {
 			LOGGER.warning("ProcessEndLocal '" + registerNum
 					+ "' without ProcessStartLocal!");
 			return;
 		}
+		var.setEndPc(codeAddress);
 	}
 
 	@Override
@@ -165,33 +130,9 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	private void startLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
-		final T varT = this.du.getDescT(type.getTypeDescriptor());
-		if (signature != null) {
-			varT.setSignature(signature.getStringValue());
-		}
-		final Var var = new Var(varT);
-		var.setName(name.getStringValue());
-		var.setStartPc(codeAddress);
-
-		Var[] vars = null;
-		if (this.varss == null) {
-			this.varss = new Var[registerNum + 1][];
-		} else if (registerNum >= this.varss.length) {
-			final Var[][] newVars = new Var[registerNum + 1][];
-			System.arraycopy(this.varss, 0, newVars, 0, this.varss.length);
-			this.varss = newVars;
-		} else {
-			vars = this.varss[registerNum];
-		}
-		if (vars == null) {
-			vars = new Var[1];
-		} else {
-			final Var[] newVars = new Var[vars.length + 1];
-			System.arraycopy(vars, 0, newVars, 0, vars.length);
-			vars = newVars;
-		}
-		vars[vars.length - 1] = var;
-		this.varss[registerNum] = vars;
+		this.md.addVar(registerNum, type.getTypeDescriptor(),
+				signature == null ? null : signature.getStringValue(),
+				name.getStringValue(), codeAddress, 0);
 	}
 
 }

@@ -47,6 +47,8 @@ public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
 	/**
 	 * Constructor.
 	 * 
+	 * @param du
+	 *            decompilation unit
 	 */
 	public ReadAnnotationVisitor(final DU du) {
 		this.du = du;

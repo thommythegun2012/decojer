@@ -110,8 +110,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitEnd() {
-		// TODO Auto-generated method stub
-
+		this.md.postProcessVars();
 	}
 
 	@Override
