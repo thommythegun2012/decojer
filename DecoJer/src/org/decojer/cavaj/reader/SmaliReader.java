@@ -49,7 +49,6 @@ import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
-import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
@@ -497,30 +496,25 @@ public class SmaliReader {
 		if (debugInfo != null) {
 			final StringIdItem[] parameterNames = debugInfo.getParameterNames();
 			if (parameterNames != null && parameterNames.length > 0) {
-				final String[] paramNames = new String[parameterNames.length];
 				for (int i = parameterNames.length; i-- > 0;) {
 					if (parameterNames[i] == null) {
 						// could happen, e.g. synthetic methods, inner <init>
 						// with outer type param
 						continue;
 					}
-					paramNames[i] = parameterNames[i].getStringValue();
+					m.setParamName(i, parameterNames[i].getStringValue());
 				}
-				m.setParamNames(paramNames);
 			}
-			final ReadDebugInfo readDebugInfo = new ReadDebugInfo(du);
+			final ReadDebugInfo readDebugInfo = new ReadDebugInfo(md);
 			DebugInstructionIterator.DecodeInstructions(debugInfo,
 					codeItem.getRegisterCount(), readDebugInfo);
 			opLines = readDebugInfo.getOpLines();
-			if (readDebugInfo.getVars() != null) {
-				// TODO end local sometimes not called, optimization? set end pc
-				md.setVarss(readDebugInfo.getVars());
-			}
 		}
 
 		// init CFG with start BB
 		final CFG cfg = new CFG(md, codeItem.getRegisterCount(), -1);
 		md.setCFG(cfg);
+		md.postProcessVars();
 
 		final Instruction[] instructions = codeItem.getInstructions();
 
@@ -991,17 +985,21 @@ public class SmaliReader {
 				for (final EncodedTypeAddrPair handler : tryItem.encodedCatchHandler.handlers) {
 					final T catchT = du.getDescT(handler.exceptionType
 							.getTypeDescriptor());
-					md.addExc(new Exc(catchT, tryItem.getStartCodeAddress(),
+					md.addExc(
+							catchT,
+							tryItem.getStartCodeAddress(),
 							tryItem.getStartCodeAddress()
-									+ tryItem.getTryLength(), handler
-									.getHandlerAddress()));
+									+ tryItem.getTryLength(),
+							handler.getHandlerAddress());
 				}
 				if (tryItem.encodedCatchHandler.getCatchAllHandlerAddress() != -1) {
-					md.addExc(new Exc(null, tryItem.getStartCodeAddress(),
+					md.addExc(
+							null,
+							tryItem.getStartCodeAddress(),
 							tryItem.getStartCodeAddress()
 									+ tryItem.getTryLength(),
 							tryItem.encodedCatchHandler
-									.getCatchAllHandlerAddress()));
+									.getCatchAllHandlerAddress());
 				}
 			}
 		}

@@ -27,14 +27,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.vm.intermediate.Exc;
-import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.ow2.asm.AnnotationVisitor;
 import org.ow2.asm.Attribute;
 import org.ow2.asm.Handle;
@@ -59,11 +55,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	private A[][] paramAss;
 
-	private String[] paramNames;
-
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
-
-	private Var[][] varss;
 
 	private static final boolean TODOCODE = true;
 
@@ -100,8 +92,6 @@ public class ReadMethodVisitor implements MethodVisitor {
 		this.md = md;
 		this.as = null;
 		this.paramAss = null;
-		this.paramNames = null;
-		this.varss = null;
 	}
 
 	@Override
@@ -151,12 +141,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 		if (this.paramAss != null) {
 			this.md.setParamAss(this.paramAss);
 		}
-		if (this.paramNames != null) {
-			this.md.getM().setParamNames(this.paramNames);
-		}
-		if (this.varss != null) {
-			this.md.setVarss(this.varss);
-		}
+		this.md.postProcessVars();
 	}
 
 	@Override
@@ -244,75 +229,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 	public void visitLocalVariable(final String name, final String desc,
 			final String signature, final Label start, final Label end,
 			final int index) {
-		final M m = getMd().getM();
-		final boolean isStatic = m.checkAf(AF.STATIC);
-		final T[] paramTs = m.getParamTs();
-
-		int params = paramTs.length;
-		for (int j = params; j-- > 0;) {
-			if (paramTs[j] == T.DOUBLE || paramTs[j] == T.LONG) {
-				++params;
-			}
-		}
-		if (!isStatic) {
-			++params;
-		}
-
-		final int startPc = start.getOffset();
-		final int endPc = end.getOffset();
-
-		// split away method parameter names
-		if (index < params) {
-			// TODO check start and end?
-			int param = index;
-			if (!isStatic) {
-				if (index == 0) {
-					// TODO check name 'this' and type?
-					return;
-				}
-				--param;
-			}
-			for (int j = 0; j < param; ++j) {
-				if (paramTs[j] == T.DOUBLE || paramTs[j] == T.LONG) {
-					--param;
-				}
-			}
-			// TODO check type?
-			if (this.paramNames == null) {
-				this.paramNames = new String[paramTs.length];
-			}
-			this.paramNames[param] = name;
-			return;
-		}
-
-		final T varT = this.du.getDescT(desc);
-		if (signature != null) {
-			varT.setSignature(signature);
-		}
-		final Var var = new Var(varT);
-		var.setName(name);
-		var.setStartPc(startPc);
-		var.setEndPc(endPc);
-
-		Var[] vars = null;
-		if (this.varss == null) {
-			this.varss = new Var[index + 1][];
-		} else if (index >= this.varss.length) {
-			final Var[][] newVarss = new Var[index + 1][];
-			System.arraycopy(this.varss, 0, newVarss, 0, this.varss.length);
-			this.varss = newVarss;
-		} else {
-			vars = this.varss[index];
-		}
-		if (vars == null) {
-			vars = new Var[1];
-		} else {
-			final Var[] newVars = new Var[vars.length + 1];
-			System.arraycopy(vars, 0, newVars, 0, vars.length);
-			vars = newVars;
-		}
-		vars[vars.length - 1] = var;
-		this.varss[index] = vars;
+		this.md.addVar(index, desc, signature, name, start.getOffset(),
+				end.getOffset());
 	}
 
 	@Override
@@ -391,9 +309,11 @@ public class ReadMethodVisitor implements MethodVisitor {
 	@Override
 	public void visitTryCatchBlock(final Label start, final Label end,
 			final Label handler, final String type) {
-		final T catchT = type == null ? null : this.du.getDescT(type);
-		this.md.addExc(new Exc(catchT, start.getOffset(), end.getOffset(),
-				handler.getOffset()));
+		// type: java/lang/Exception
+		final T catchT = type == null ? null : this.du.getT(type.replace('/',
+				'.'));
+		this.md.addExc(catchT, start.getOffset(), end.getOffset(),
+				handler.getOffset());
 	}
 
 	@Override
