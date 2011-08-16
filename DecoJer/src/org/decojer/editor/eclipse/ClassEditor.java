@@ -33,6 +33,9 @@ import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.vm.intermediate.Frame;
+import org.decojer.cavaj.model.vm.intermediate.Operation;
+import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -135,7 +138,35 @@ public class ClassEditor extends MultiPageEditorPart implements
 			final IdentityHashMap<BB, GraphNode> map) {
 		final GraphNode node = new GraphNode(this.graph, SWT.NONE,
 				bb.toString(), bb);
-		if (bb.getStruct() != null) {
+		final List<Operation> operations = bb.getOperations();
+		if (operations.size() != 0) {
+			final StringBuilder sb = new StringBuilder();
+			for (final Operation operation : operations) {
+				final Frame frame = operation.getFrame();
+				if (frame != null) {
+					if (frame.vars != null && frame.vars.length > 0) {
+						sb.append("R: ");
+						for (final Var var : frame.vars) {
+							sb.append(var).append("  ");
+						}
+						sb.append('\n');
+					}
+					if (frame.stack != null && !frame.stack.empty()) {
+						sb.append("S: ");
+						for (final Var var : frame.stack) {
+							sb.append(var).append("  ");
+						}
+						sb.append('\n');
+					}
+				}
+				sb.append('\t').append(operation).append('\n');
+			}
+			if (sb.length() > 0) {
+				node.setTooltip(new Label(sb.toString()));
+			} else {
+				node.setTooltip(null);
+			}
+		} else if (bb.getStruct() != null) {
 			node.setTooltip(new Label(bb.getStruct().toString()));
 		} else {
 			node.setTooltip(null);
@@ -379,9 +410,9 @@ public class ClassEditor extends MultiPageEditorPart implements
 
 			final CFG cfg = md.getCfg();
 			if (cfg != null) {
+				TrDataFlowAnalysis.transform(cfg);
 				final int i = this.combo.getSelectionIndex();
 				if (i > 0) {
-					TrDataFlowAnalysis.transform(cfg);
 					TrIvmCfg2JavaExprStmts.transform(cfg);
 				}
 				if (i > 1) {
