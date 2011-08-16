@@ -33,14 +33,13 @@ import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.vm.intermediate.Frame;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
-import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
 import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
+import org.decojer.editor.eclipse.util.FramesFigure;
 import org.decojer.editor.eclipse.util.StringInput;
 import org.decojer.editor.eclipse.util.StringStorage;
 import org.decojer.editor.eclipse.viewer.cfg.HierarchicalLayoutAlgorithm;
@@ -140,32 +139,7 @@ public class ClassEditor extends MultiPageEditorPart implements
 				bb.toString(), bb);
 		final List<Operation> operations = bb.getOperations();
 		if (operations.size() != 0) {
-			final StringBuilder sb = new StringBuilder();
-			for (final Operation operation : operations) {
-				final Frame frame = operation.getFrame();
-				if (frame != null) {
-					if (frame.vars != null && frame.vars.length > 0) {
-						sb.append("R: ");
-						for (final Var var : frame.vars) {
-							sb.append(var).append("  ");
-						}
-						sb.append('\n');
-					}
-					if (frame.stack != null && !frame.stack.empty()) {
-						sb.append("S: ");
-						for (final Var var : frame.stack) {
-							sb.append(var).append("  ");
-						}
-						sb.append('\n');
-					}
-				}
-				sb.append('\t').append(operation).append('\n');
-			}
-			if (sb.length() > 0) {
-				node.setTooltip(new Label(sb.toString()));
-			} else {
-				node.setTooltip(null);
-			}
+			node.setTooltip(new FramesFigure(bb));
 		} else if (bb.getStruct() != null) {
 			node.setTooltip(new Label(bb.getStruct().toString()));
 		} else {
