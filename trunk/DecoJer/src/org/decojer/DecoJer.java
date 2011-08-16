@@ -124,6 +124,17 @@ public class DecoJer {
 		return cu.createSourceCode();
 	}
 
+	/**
+	 * Decompile all type declarations from decompilation unit into output
+	 * stream.
+	 * 
+	 * @param os
+	 *            output stream
+	 * @param du
+	 *            decompilation unit
+	 * @throws IOException
+	 *             read exception
+	 */
 	public static void decompile(final OutputStream os, final DU du)
 			throws IOException {
 		final ZipOutputStream zip = new ZipOutputStream(os);
@@ -187,6 +198,14 @@ public class DecoJer {
 		// later...
 	}
 
+	/**
+	 * Main test method.
+	 * 
+	 * @param args
+	 *            args - currently unused
+	 * @throws IOException
+	 *             read exception
+	 */
 	public static void main(final String[] args) throws IOException {
 		final DU du = createDu();
 		switch (1) {

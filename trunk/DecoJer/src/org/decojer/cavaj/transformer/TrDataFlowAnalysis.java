@@ -26,11 +26,9 @@ package org.decojer.cavaj.transformer;
 import java.util.List;
 import java.util.Stack;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -112,50 +110,11 @@ public class TrDataFlowAnalysis {
 
 	private Frame createMethodFrame() {
 		final MD md = getCfg().getMd();
-		final M m = md.getM();
-		final TD td = md.getTd();
-		final T t = td.getT();
 		final Frame frame = new Frame();
 		frame.stack = new Stack<Var>();
 		frame.vars = new Var[this.cfg.getMaxRegs()];
-		frame.varNames = new String[this.cfg.getMaxRegs()];
-		final T[] paramTs = m.getParamTs();
-		if (td.getVersion() == 0) {
-			// Dalvik...function parameters right aligned
-			int reg = this.cfg.getMaxRegs();
-			for (int i = paramTs.length; i-- > 0;) {
-				frame.vars[--reg] = new Var(paramTs[i]);
-				frame.varNames[reg] = m.getParamName(i);
-			}
-			if (!m.checkAf(AF.STATIC)) {
-				frame.vars[--reg] = new Var(t);
-				frame.varNames[reg] = "this";
-			}
-			while (reg > 0) {
-				frame.vars[--reg] = new Var(T.UNINIT);
-				frame.varNames[reg] = "r" + reg;
-			}
-		} else {
-			// JVM...function parameters left aligned
-			int reg = 0;
-			if (!m.checkAf(AF.STATIC)) {
-				frame.vars[reg] = new Var(t);
-				frame.varNames[reg++] = "this";
-			}
-			for (int i = 0; i < paramTs.length; ++i) {
-				final T paramT = paramTs[i];
-				frame.vars[reg] = new Var(paramT);
-				frame.varNames[reg++] = m.getParamName(i);
-				// wide values need 2 registers, srsly?
-				if (paramT == T.LONG || paramT == T.DOUBLE) {
-					// TODO better mark as unuseable?
-					frame.vars[reg++] = new Var(T.UNINIT);
-				}
-			}
-			while (reg < this.cfg.getMaxRegs()) {
-				frame.vars[reg] = new Var(T.UNINIT);
-				frame.varNames[reg++] = "r" + reg;
-			}
+		for (int i = frame.vars.length; i-- > 0;) {
+			frame.vars[i] = md.getVar(i, 0);
 		}
 		return frame;
 	}

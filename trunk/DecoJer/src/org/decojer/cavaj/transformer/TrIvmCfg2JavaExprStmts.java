@@ -560,7 +560,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 				String name = op.getVarName();
 				if (name == null) {
-					name = op.getFrame().varNames[op.getVarIndex()];
+					name = op.getFrame().vars[op.getVarIndex()].getName();
 				}
 
 				if ("this".equals(name)) {
@@ -738,7 +738,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 				String name = op.getVarName();
 				if (name == null) {
-					name = op.getFrame().varNames[op.getVarIndex()];
+					name = op.getFrame().vars[op.getVarIndex()].getName();
 				}
 
 				assignment.setLeftHandSide(getAst().newSimpleName(name));

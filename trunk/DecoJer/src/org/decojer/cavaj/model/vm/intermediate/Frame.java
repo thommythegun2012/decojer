@@ -34,8 +34,6 @@ public class Frame {
 
 	public Var[] vars;
 
-	public String[] varNames;
-
 	/**
 	 * Constructor.
 	 */
@@ -52,7 +50,6 @@ public class Frame {
 	public Frame(final Frame frame) {
 		this.stack = (Stack<Var>) frame.stack.clone();
 		this.vars = frame.vars.clone();
-		this.varNames = frame.varNames.clone();
 	}
 
 }

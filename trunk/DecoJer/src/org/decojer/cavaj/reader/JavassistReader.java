@@ -800,8 +800,8 @@ public class JavassistReader {
 			case Opcode.GETSTATIC: {
 				final int cpFieldIndex = codeReader.readUnsignedShort();
 
-				final T getT = du.getT(constPool
-						.getFieldrefClassName(cpFieldIndex));
+				final T getT = readType(
+						constPool.getFieldrefClassName(cpFieldIndex), du);
 				final T getValueT = du.getDescT(constPool
 						.getFieldrefType(cpFieldIndex));
 				final F getF = getT.getF(
@@ -847,7 +847,7 @@ public class JavassistReader {
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
 
-				final T invokeT = readT(
+				final T invokeT = readType(
 						constPool.getInterfaceMethodrefClassName(cpMethodIndex),
 						du);
 				// invoke type must be interface
@@ -865,7 +865,7 @@ public class JavassistReader {
 			case Opcode.INVOKESTATIC: {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
-				final T invokeT = readT(
+				final T invokeT = readType(
 						constPool.getMethodrefClassName(cpMethodIndex), du);
 				final M invokeM = invokeT.getM(
 						constPool.getMethodrefName(cpMethodIndex),
@@ -1240,7 +1240,7 @@ public class JavassistReader {
 			case Opcode.NEW: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				bb.addOperation(new NEW(opPc, opCode, opLine, readType(
-						constPool, cpClassIndex, du)));
+						constPool.getClassInfo(cpClassIndex), du)));
 			}
 				break;
 			/************
@@ -1249,7 +1249,7 @@ public class JavassistReader {
 			case Opcode.ANEWARRAY: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				bb.addOperation(new NEWARRAY(opPc, opCode, opLine, readType(
-						constPool, cpClassIndex, du), 1));
+						constPool.getClassInfo(cpClassIndex), du), 1));
 			}
 				break;
 			case Opcode.NEWARRAY: {
@@ -1267,7 +1267,7 @@ public class JavassistReader {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				final int dimensions = codeReader.readUnsignedByte();
 				bb.addOperation(new NEWARRAY(opPc, opCode, opLine, readType(
-						constPool, cpClassIndex, du), dimensions));
+						constPool.getClassInfo(cpClassIndex), du), dimensions));
 			}
 				break;
 			/********
@@ -1296,7 +1296,8 @@ public class JavassistReader {
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
 						type = DataType.T_CLASS;
-						oValue = readType(constPool, ldcValueIndex, du);
+						oValue = readType(
+								constPool.getClassInfo(ldcValueIndex), du);
 						break;
 					case ConstPool.CONST_Double:
 						// Double / Long only with LDC2_W, but is OK here too
@@ -1339,7 +1340,8 @@ public class JavassistReader {
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
 						type = DataType.T_CLASS;
-						oValue = readType(constPool, ldcValueIndex, du);
+						oValue = readType(
+								constPool.getClassInfo(ldcValueIndex), du);
 						break;
 					case ConstPool.CONST_Double:
 						type = DataType.T_DOUBLE;
@@ -1463,8 +1465,8 @@ public class JavassistReader {
 			case Opcode.PUTSTATIC: {
 				final int cpFieldIndex = codeReader.readUnsignedShort();
 
-				final T putT = du.getT(constPool
-						.getFieldrefClassName(cpFieldIndex));
+				final T putT = readType(
+						constPool.getFieldrefClassName(cpFieldIndex), du);
 				final T putValueT = du.getDescT(constPool
 						.getFieldrefType(cpFieldIndex));
 				final F putF = putT.getF(
@@ -1725,7 +1727,7 @@ public class JavassistReader {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				// cp arrays: "[L<classname>;" instead of "<classname>"!!!
 				bb.addOperation(new CHECKCAST(opPc, opCode, opLine, readType(
-						constPool, cpClassIndex, du)));
+						constPool.getClassInfo(cpClassIndex), du)));
 			}
 				break;
 			/*******
@@ -1824,7 +1826,7 @@ public class JavassistReader {
 			case Opcode.INSTANCEOF: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				bb.addOperation(new INSTANCEOF(opPc, opCode, opLine, readType(
-						constPool, cpClassIndex, du)));
+						constPool.getClassInfo(cpClassIndex), du)));
 			}
 				break;
 			/******
@@ -2276,21 +2278,19 @@ public class JavassistReader {
 		return md;
 	}
 
-	private static T readT(final String classInfo, final DU du) {
-		// strange Javassist behaviour:
+	private static T readType(final String classInfo, final DU du) {
+		if (classInfo == null) {
+			return null;
+		}
+		// strange Javassist behaviour for classinfo:
 		if (classInfo.charAt(0) == '[') {
 			// Javassist only replaces '/' through '.' for arrays
 			// desc: [[I, [Ljava.lang.String;
 			return du.getDescT(classInfo.replace('.', '/'));
 		}
+		// no arrays - no descriptor but class name:
 		// org.decojer.cavaj.test.DecTestInner$1$1$1
 		return du.getT(classInfo);
-	}
-
-	private static T readType(final ConstPool constPool,
-			final int cpClassIndex, final DU du) {
-		// no primitives here: for checkcast, instanceof etc.
-		return readT(constPool.getClassInfo(cpClassIndex), du);
 	}
 
 	private static Object readValue(final MemberValue memberValue, final DU du) {
