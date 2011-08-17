@@ -25,12 +25,15 @@ package org.decojer.editor.eclipse;
 
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.BB;
+import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
@@ -43,9 +46,6 @@ import org.decojer.editor.eclipse.util.FramesFigure;
 import org.decojer.editor.eclipse.util.StringInput;
 import org.decojer.editor.eclipse.util.StringStorage;
 import org.decojer.editor.eclipse.viewer.cfg.HierarchicalLayoutAlgorithm;
-import org.eclipse.core.resources.IResourceChangeEvent;
-import org.eclipse.core.resources.IResourceChangeListener;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.draw2d.ColorConstants;
@@ -72,11 +72,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PartInitException;
-import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiPageEditorPart;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.zest.core.widgets.Graph;
@@ -95,8 +92,7 @@ import org.eclipse.zest.layouts.LayoutStyles;
  * </ul>
  */
 @SuppressWarnings("restriction")
-public class ClassEditor extends MultiPageEditorPart implements
-		IResourceChangeListener {
+public class ClassEditor extends MultiPageEditorPart {
 
 	private static String extractPath(final IClassFile eclipseClassFile) {
 		assert eclipseClassFile != null;
@@ -128,13 +124,7 @@ public class ClassEditor extends MultiPageEditorPart implements
 
 	private String fileName;
 
-	/**
-	 * Constructor.
-	 */
-	public ClassEditor() {
-		super();
-		ResourcesPlugin.getWorkspace().addResourceChangeListener(this);
-	}
+	private boolean success;
 
 	private GraphNode addToGraph(final BB bb,
 			final IdentityHashMap<BB, GraphNode> map) {
@@ -255,11 +245,13 @@ public class ClassEditor extends MultiPageEditorPart implements
 
 		CU cu = null;
 		String sourceCode = null;
+		this.success = false;
 		try {
 			final DU du = DecoJer.createDu();
 			final TD td = du.read(this.fileName);
 			cu = DecoJer.createCu(td);
 			sourceCode = DecoJer.decompile(cu);
+			this.success = true;
 		} catch (final Throwable e) {
 			e.printStackTrace();
 			sourceCode = "// Decompilation error!";
@@ -288,13 +280,6 @@ public class ClassEditor extends MultiPageEditorPart implements
 		createDecompilationUnitEditor();
 	}
 
-	@Override
-	public void dispose() {
-		ResourcesPlugin.getWorkspace().removeResourceChangeListener(this);
-		// TODO JavaOutlinePage.removeListener necessary???
-		super.dispose();
-	}
-
 	/**
 	 * Saves the multi-page editor's document.
 	 */
@@ -319,7 +304,7 @@ public class ClassEditor extends MultiPageEditorPart implements
 	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(final Class required) {
-		Object adapter;
+		Object adapter = null;
 		if (IContentOutlinePage.class.equals(required)) {
 			// the plan is, to initialize the Compilation Unit Editor with the
 			// decompiled source code via an in-memory String Input and to ask
@@ -330,7 +315,9 @@ public class ClassEditor extends MultiPageEditorPart implements
 			// JavaOutlinePage.fInput == null in this case, also ask the Class
 			// File Editor, which has other problems and only delivers an
 			// Outline if class is in class path
-			adapter = this.compilationUnitEditor.getAdapter(required);
+			if (this.success) {
+				adapter = this.compilationUnitEditor.getAdapter(required);
+			}
 			if (adapter == null) {
 				adapter = this.classFileEditor.getAdapter(required);
 			}
@@ -402,13 +389,36 @@ public class ClassEditor extends MultiPageEditorPart implements
 			TrJvmStruct2JavaAst.transform(td); // could add tds
 
 			final TD methodTd = cu.getTd(fullyQualifiedName);
-			// HACK, constructor check
+
+			// constructor -> <init>
 			final String methodName = fullyQualifiedName.equals(elementName)
 					|| fullyQualifiedName.endsWith("." + elementName)
 					|| fullyQualifiedName.endsWith("$" + elementName) ? "<init>"
 					: elementName;
-			// handle Eclipse Q for unresolved???
-			final MD md = methodTd.getMd(methodName, signature);
+			// not enough here...Q can come after all kind off stuff, parser!
+			final Pattern signaturePattern = Pattern.compile(signature
+					.replace("[", "\\[").replace("]", "\\]")
+					.replace("(Q", "(L[^;]*").replace(")Q", ")L[^;]*")
+					.replace(";Q", ";L[^;]*").replace("$", "\\$")
+					.replace("(", "\\(").replace(")", "\\)"));
+
+			MD md = null;
+			for (final BD bd : methodTd.getBds()) {
+				if (!(bd instanceof MD)) {
+					continue;
+				}
+				final M m = ((MD) bd).getM();
+				if (!methodName.equals(m.getName())) {
+					continue;
+				}
+				final String descriptor = m.getDescriptor();
+				if (signaturePattern.matcher(descriptor).matches()) {
+					md = (MD) bd;
+					break;
+				}
+				System.out.println("NOT EQUAL: " + signature + " : "
+						+ m.getDescriptor() + " : " + m.getSignature());
+			}
 
 			final CFG cfg = md.getCfg();
 			if (cfg != null) {
@@ -451,30 +461,6 @@ public class ClassEditor extends MultiPageEditorPart implements
 	@Override
 	public boolean isSaveAsAllowed() {
 		return true;
-	}
-
-	/**
-	 * Closes all project files on project close.
-	 */
-	public void resourceChanged(final IResourceChangeEvent event) {
-		if (event.getType() == IResourceChangeEvent.PRE_CLOSE) {
-			Display.getDefault().asyncExec(new Runnable() {
-				public void run() {
-					final IWorkbenchPage[] pages = getSite()
-							.getWorkbenchWindow().getPages();
-					for (final IWorkbenchPage page : pages) {
-						if (((FileEditorInput) ClassEditor.this.classFileEditor
-								.getEditorInput()).getFile().getProject()
-								.equals(event.getResource())) {
-							final IEditorPart editorPart = page
-									.findEditor(ClassEditor.this.classFileEditor
-											.getEditorInput());
-							page.closeEditor(editorPart, true);
-						}
-					}
-				}
-			});
-		}
 	}
 
 }

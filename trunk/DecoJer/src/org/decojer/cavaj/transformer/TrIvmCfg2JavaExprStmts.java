@@ -240,7 +240,8 @@ public class TrIvmCfg2JavaExprStmts {
 				final CHECKCAST op = (CHECKCAST) operation;
 				final CastExpression castExpression = getAst()
 						.newCastExpression();
-				castExpression.setType(Types.convertType(op.getT(), getTd()));
+				castExpression.setType(Types.convertType(op.getT(), getTd(),
+						getAst()));
 				castExpression.setExpression(wrap(bb.popExpression(),
 						priority(castExpression)));
 				bb.pushExpression(castExpression);
@@ -380,7 +381,7 @@ public class TrIvmCfg2JavaExprStmts {
 				instanceofExpression.setLeftOperand(wrap(bb.popExpression(),
 						priority(instanceofExpression)));
 				instanceofExpression.setRightOperand(Types.convertType(
-						op.getT(), getTd()));
+						op.getT(), getTd(), getAst()));
 				bb.pushExpression(instanceofExpression);
 			}
 				break;
@@ -560,7 +561,11 @@ public class TrIvmCfg2JavaExprStmts {
 
 				String name = op.getVarName();
 				if (name == null) {
-					name = op.getFrame().vars[op.getVarIndex()].getName();
+					try {
+						name = op.getFrame().vars[op.getVarIndex()].getName();
+					} catch (final Exception e) {
+						name = "t";
+					}
 				}
 
 				if ("this".equals(name)) {
@@ -593,7 +598,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final ClassInstanceCreation classInstanceCreation = getAst()
 						.newClassInstanceCreation();
 				classInstanceCreation.setType(Types.convertType(op.getT(),
-						getTd()));
+						getTd(), getAst()));
 				// classInstanceCreation.setAnonymousClassDeclaration(decl);
 				bb.pushExpression(classInstanceCreation);
 			}
@@ -602,7 +607,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final NEWARRAY op = (NEWARRAY) operation;
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
 				arrayCreation.setType(getAst().newArrayType(
-						Types.convertType(op.getT(), getTd())));
+						Types.convertType(op.getT(), getTd(), getAst())));
 				arrayCreation.dimensions().add(bb.popExpression());
 				bb.pushExpression(arrayCreation);
 			}
@@ -667,7 +672,7 @@ public class TrIvmCfg2JavaExprStmts {
 				case DataType.T_CLASS:
 					expr = getAst().newTypeLiteral();
 					((TypeLiteral) expr).setType(Types.convertType(
-							(T) op.getValue(), getTd()));
+							(T) op.getValue(), getTd(), getAst()));
 					break;
 				default:
 					LOGGER.warning("Unknown data type '" + op.getType() + "'!");
@@ -738,7 +743,11 @@ public class TrIvmCfg2JavaExprStmts {
 
 				String name = op.getVarName();
 				if (name == null) {
-					name = op.getFrame().vars[op.getVarIndex()].getName();
+					try {
+						name = op.getFrame().vars[op.getVarIndex()].getName();
+					} catch (final Exception e) {
+						name = "t";
+					}
 				}
 
 				assignment.setLeftHandSide(getAst().newSimpleName(name));

@@ -159,7 +159,7 @@ public class AnnotationsDecompiler {
 		}
 		if (defaultValue instanceof T) {
 			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-			typeLiteral.setType(Types.convertType((T) defaultValue, td));
+			typeLiteral.setType(Types.convertType((T) defaultValue, td, ast));
 			return typeLiteral;
 		}
 		if (defaultValue instanceof Double) {

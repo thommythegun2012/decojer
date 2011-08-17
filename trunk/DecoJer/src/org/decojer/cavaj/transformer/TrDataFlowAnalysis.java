@@ -165,7 +165,7 @@ public class TrDataFlowAnalysis {
 			}
 			default:
 				// TODO hack for now
-				if (operation.getInStackSize() > 0) {
+				if (operation.getInStackSize() > 100) {
 					opFrame = new Frame(opFrame);
 					for (int i = operation.getInStackSize(); i-- > 0
 							&& !opFrame.stack.isEmpty();) {
