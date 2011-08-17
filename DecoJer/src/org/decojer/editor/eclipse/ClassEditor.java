@@ -325,10 +325,11 @@ public class ClassEditor extends MultiPageEditorPart implements
 			// decompiled source code via an in-memory String Input and to ask
 			// this Editor for the IContentOutlinePage;
 			// this way we can also show inner classes informations
-			// TODO:
-			// doesn't work yet, JavaOutlinePage.fInput == null in this case, so
-			// ask Class File Editor for now, which has other problems and only
-			// delivers an Outline if class is in class path
+
+			// didn't work in older Eclipse?
+			// JavaOutlinePage.fInput == null in this case, also ask the Class
+			// File Editor, which has other problems and only delivers an
+			// Outline if class is in class path
 			adapter = this.compilationUnitEditor.getAdapter(required);
 			if (adapter == null) {
 				adapter = this.classFileEditor.getAdapter(required);
