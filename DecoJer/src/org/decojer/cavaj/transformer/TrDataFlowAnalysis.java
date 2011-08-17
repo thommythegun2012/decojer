@@ -163,9 +163,18 @@ public class TrDataFlowAnalysis {
 				// check follow?
 				break;
 			}
+			default:
+				// TODO hack for now
+				if (operation.getInStackSize() > 0) {
+					opFrame = new Frame(opFrame);
+					for (int i = operation.getInStackSize(); i-- > 0
+							&& !opFrame.stack.isEmpty();) {
+						opFrame.stack.pop();
+					}
+				}
 			}
 		}
-		return frame;
+		return opFrame;
 	}
 
 	private void transform() {
