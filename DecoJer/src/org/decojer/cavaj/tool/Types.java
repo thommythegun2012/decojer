@@ -43,11 +43,12 @@ public class Types {
 	 *            type
 	 * @param td
 	 *            type declaration context
+	 * @param ast
+	 *            abstract syntax tree
 	 * @return Eclipse type
 	 */
-	public static Type convertType(final T t, final TD td) {
+	public static Type convertType(final T t, final TD td, final AST ast) {
 		Type type;
-		final AST ast = td.getTypeDeclaration().getAST();
 		final T baseT = t.getBaseT();
 		if (baseT == T.VOID) {
 			type = ast.newPrimitiveType(PrimitiveType.VOID);

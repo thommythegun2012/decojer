@@ -178,9 +178,8 @@ public class TrJvmStruct2JavaAst {
 						.decompileFieldType((FieldDeclaration) fieldDeclaration);
 			} else {
 				((FieldDeclaration) fieldDeclaration).setType(Types
-						.convertType(f.getValueT(), td));
+						.convertType(f.getValueT(), td, ast));
 			}
-
 			final Object value = fd.getValue();
 			if (value != null) {
 				final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)

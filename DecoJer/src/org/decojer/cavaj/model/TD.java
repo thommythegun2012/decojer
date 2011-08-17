@@ -160,32 +160,6 @@ public class TD implements BD, PD {
 	}
 
 	/**
-	 * Get method declaration with name and signature.
-	 * 
-	 * @param name
-	 *            method name, e.g. "test"
-	 * @param descriptor
-	 *            method descriptor, e.g. "()V"
-	 * @return method declaration or null
-	 */
-	public MD getMd(final String name, final String descriptor) {
-		assert name != null;
-		assert descriptor != null;
-
-		for (final BD bd : getBds()) {
-			if (!(bd instanceof MD)) {
-				continue;
-			}
-			final MD md = (MD) bd;
-			if (name.equals(md.getM().getName())
-					&& descriptor.equals(md.getM().getDescriptor())) {
-				return md;
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Get member types (really contained inner classes).
 	 * 
 	 * @return member types
