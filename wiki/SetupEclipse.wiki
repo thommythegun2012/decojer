@@ -38,6 +38,17 @@ http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
   * add Subversion Repository Location svn://svn.forge.objectweb.org/svnroot/asm
     * checkout tags/ASM_3_3_2_1497
 
+== Additional Plugins for Dalvik ==
+
+  * Install Android SDK
+  * Install Eclipse Android Plugins: http://developer.android.com/sdk/eclipse-adt.html#installing
+  * Android/Preferences - add SDK
+
+  * View DecoJerTest/dex/classes.dex as dump:
+    * add as project nature: com.android.ide.eclipse.adt.AndroidNature
+    * put classes.dex into bin/
+    * on project context-menu: Android Tools/Display dex bytecode
+
 == Additional Plugins for DecoJerWeb ==
 
   * Install Web Development Plugins:
