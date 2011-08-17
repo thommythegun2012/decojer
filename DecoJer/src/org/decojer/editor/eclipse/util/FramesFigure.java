@@ -61,6 +61,7 @@ public class FramesFigure extends Figure {
 			tempRect.shrink(1, 0);
 			graphics.drawLine(tempRect.getTopLeft(), tempRect.getBottomLeft());
 		}
+
 	};
 
 	/**
@@ -95,7 +96,7 @@ public class FramesFigure extends Figure {
 			}
 		}
 
-		for (int i = maxStack; i-- > 0;) {
+		for (int i = 0; i < maxStack; ++i) {
 			add(new Label("s" + i), GRID_DATA, 0);
 		}
 		for (int i = maxRegs; i-- > 0;) {
