@@ -38,15 +38,20 @@ import org.eclipse.core.runtime.IPath;
  */
 public class StringStorage implements IStorage {
 
+	private final IPath fullPath;
+
 	private final String string;
 
 	/**
 	 * Constructor.
 	 * 
+	 * @param fullPath
+	 *            full path, important for faked compilation unit and outline
 	 * @param input
 	 *            String input
 	 */
-	public StringStorage(final String input) {
+	public StringStorage(final IPath fullPath, final String input) {
+		this.fullPath = fullPath;
 		this.string = input;
 	}
 
@@ -60,7 +65,7 @@ public class StringStorage implements IStorage {
 	}
 
 	public IPath getFullPath() {
-		return null;
+		return this.fullPath;
 	}
 
 	public String getName() {

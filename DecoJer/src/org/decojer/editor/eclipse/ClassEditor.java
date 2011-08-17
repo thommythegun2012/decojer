@@ -47,12 +47,15 @@ import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.Polyline;
 import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.IInitializer;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.ClassFileEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.IClassFileEditorInput;
@@ -250,11 +253,12 @@ public class ClassEditor extends MultiPageEditorPart implements
 		final IClassFile classFile = classFileEditorInput.getClassFile();
 		this.fileName = extractPath(classFile);
 
-		String sourceCode;
+		CU cu = null;
+		String sourceCode = null;
 		try {
 			final DU du = DecoJer.createDu();
 			final TD td = du.read(this.fileName);
-			final CU cu = DecoJer.createCu(td);
+			cu = DecoJer.createCu(td);
 			sourceCode = DecoJer.decompile(cu);
 		} catch (final Throwable e) {
 			e.printStackTrace();
@@ -262,7 +266,9 @@ public class ClassEditor extends MultiPageEditorPart implements
 		}
 		try {
 			addPage(0, this.compilationUnitEditor, new StringInput(
-					new StringStorage(sourceCode)));
+					new StringStorage(cu == null
+							|| cu.getSourceFileName() == null ? null
+							: new Path(cu.getSourceFileName()), sourceCode)));
 		} catch (final PartInitException e) {
 			ErrorDialog.openError(getSite().getShell(),
 					"Error creating nested text editor", null, e.getStatus());
@@ -313,7 +319,7 @@ public class ClassEditor extends MultiPageEditorPart implements
 	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(final Class required) {
-		final Object adapter;
+		Object adapter;
 		if (IContentOutlinePage.class.equals(required)) {
 			// the plan is, to initialize the Compilation Unit Editor with the
 			// decompiled source code via an in-memory String Input and to ask
@@ -323,7 +329,10 @@ public class ClassEditor extends MultiPageEditorPart implements
 			// doesn't work yet, JavaOutlinePage.fInput == null in this case, so
 			// ask Class File Editor for now, which has other problems and only
 			// delivers an Outline if class is in class path
-			adapter = this.classFileEditor.getAdapter(required);
+			adapter = this.compilationUnitEditor.getAdapter(required);
+			if (adapter == null) {
+				adapter = this.classFileEditor.getAdapter(required);
+			}
 			if (this.javaOutlinePage == null
 					&& adapter instanceof JavaOutlinePage) {
 				this.javaOutlinePage = (JavaOutlinePage) adapter;
@@ -354,12 +363,32 @@ public class ClassEditor extends MultiPageEditorPart implements
 			System.out.println("###TypeSelection: "
 					+ type.getFullyQualifiedName());
 		}
-		if (!(firstElement instanceof IMethod)) {
+		String fullyQualifiedName;
+		String elementName;
+		String signature;
+		if (firstElement instanceof IInitializer) {
+			final IInitializer method = (IInitializer) firstElement;
+			fullyQualifiedName = method.getDeclaringType()
+					.getFullyQualifiedName();
+			elementName = "<init>";
+			signature = "()V";
+		} else if (firstElement instanceof IMethod) {
+			final IMethod method = (IMethod) firstElement;
+			fullyQualifiedName = method.getDeclaringType()
+					.getFullyQualifiedName();
+			elementName = method.getElementName();
+			try {
+				signature = method.getSignature();
+			} catch (final JavaModelException e) {
+				e.printStackTrace();
+				return;
+			}
+		} else {
 			return;
 		}
+
 		// if selection found => get matching CFG from CU with choosen
 		// decompiler step
-		final IMethod method = (IMethod) firstElement;
 
 		try {
 			final DU du = DecoJer.createDu();
@@ -371,16 +400,14 @@ public class ClassEditor extends MultiPageEditorPart implements
 			}
 			TrJvmStruct2JavaAst.transform(td); // could add tds
 
-			final TD methodTd = cu.getTd(method.getDeclaringType()
-					.getFullyQualifiedName());
+			final TD methodTd = cu.getTd(fullyQualifiedName);
 			// HACK, constructor check
-			final String methodName = method.getDeclaringType()
-					.getFullyQualifiedName()
-					.endsWith("." + method.getElementName())
-					|| method.getDeclaringType().getFullyQualifiedName()
-							.endsWith("$" + method.getElementName()) ? "<init>"
-					: method.getElementName();
-			final MD md = methodTd.getMd(methodName, method.getSignature());
+			final String methodName = fullyQualifiedName.equals(elementName)
+					|| fullyQualifiedName.endsWith("." + elementName)
+					|| fullyQualifiedName.endsWith("$" + elementName) ? "<init>"
+					: elementName;
+			// handle Eclipse Q for unresolved???
+			final MD md = methodTd.getMd(methodName, signature);
 
 			final CFG cfg = md.getCfg();
 			if (cfg != null) {
