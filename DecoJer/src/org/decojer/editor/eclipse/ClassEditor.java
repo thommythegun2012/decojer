@@ -23,6 +23,7 @@
  */
 package org.decojer.editor.eclipse;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -49,6 +50,7 @@ import org.decojer.editor.eclipse.util.FramesFigure;
 import org.decojer.editor.eclipse.util.StringInput;
 import org.decojer.editor.eclipse.util.StringStorage;
 import org.decojer.editor.eclipse.viewer.cfg.HierarchicalLayoutAlgorithm;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.draw2d.ColorConstants;
@@ -69,13 +71,16 @@ import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiPageEditorPart;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.zest.core.widgets.Graph;
@@ -116,6 +121,8 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	private Button antialiasingButton;
+
+	private File archiveFile;
 
 	private ClassFileEditor classFileEditor;
 
@@ -273,11 +280,40 @@ public class ClassEditor extends MultiPageEditorPart {
 		setPageText(0, "Source");
 	}
 
+	@Override
+	protected Composite createPageContainer(final Composite parent) {
+		final Composite pageContainer = super.createPageContainer(parent);
+		// check input,
+		// in dependency from this open archive or class file editor
+		final IEditorInput editorInput = getEditorInput();
+		LOGGER.info("Editor Input: " + editorInput);
+		if (editorInput instanceof FileEditorInput) {
+			final FileEditorInput fileEditorInput = (FileEditorInput) editorInput;
+			final IPath path = fileEditorInput.getPath();
+			final String pathName = path.toString();
+			if (pathName.endsWith(".jar") || pathName.endsWith(".dex")) {
+				this.archiveFile = path.toFile();
+				LOGGER.info("  Archive: " + this.archiveFile);
+			}
+		}
+		final Composite composite = new Composite(pageContainer, SWT.RESIZE);
+		composite.setLayout(new FormLayout());
+		final Button button = new Button(composite, SWT.CHECK);
+		button.setText("HUH");
+		return pageContainer;
+	}
+
 	/**
 	 * Creates the pages of the multi-page editor.
 	 */
 	@Override
 	protected void createPages() {
+		getContainer().getParent().setLayout(new GridLayout(2, false));
+		final GridData gridData = new GridData();
+		gridData.horizontalAlignment = GridData.FILL;
+		gridData.grabExcessHorizontalSpace = true;
+		getContainer().setLayoutData(gridData);
+
 		// for debugging purposes:
 		createControlFlowGraphViewer();
 		// initialization comes first, delivers IClassFileEditorInput

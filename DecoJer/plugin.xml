@@ -8,7 +8,7 @@
             class="org.decojer.editor.eclipse.ClassEditor"
             contributorClass="org.decojer.editor.eclipse.ClassEditorContributor"
             default="true"
-            extensions="class"
+            extensions="class,jar,dex"
             icon="icons/sample.gif"
             id="decojer.editor.ClassEditor"
             name="Class Editor">
