@@ -132,6 +132,8 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private Tree archiveTree;
 
+	private String archiveFileName;
+
 	private ClassFileEditor classFileEditor;
 
 	private Combo combo;
@@ -304,12 +306,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		if (editorInput instanceof FileEditorInput) {
 			final FileEditorInput fileEditorInput = (FileEditorInput) editorInput;
 			final IPath path = fileEditorInput.getPath();
-			this.fileName = path.toString();
+			final String pathName = path.toString();
 
 			Types types = null;
 
-			if (this.fileName.endsWith(".jar")) {
-				LOGGER.info("  Java Archive: " + this.fileName);
+			if (pathName.endsWith(".jar")) {
+				this.archiveFileName = pathName;
 				try {
 					types = AsmReader.analyseJar(new FileInputStream(path
 							.toFile()));
@@ -320,8 +322,8 @@ public class ClassEditor extends MultiPageEditorPart {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-			} else if (this.fileName.endsWith(".dex")) {
-				LOGGER.info("  DEX Archive: " + this.fileName);
+			} else if (pathName.endsWith(".dex")) {
+				this.archiveFileName = pathName;
 				try {
 					types = SmaliReader.analyse(new FileInputStream(path
 							.toFile()));
@@ -332,6 +334,8 @@ public class ClassEditor extends MultiPageEditorPart {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+			} else {
+				this.fileName = pathName;
 			}
 			if (types != null) {
 				final SashForm sashForm = new SashForm(pageContainer,
@@ -342,7 +346,6 @@ public class ClassEditor extends MultiPageEditorPart {
 					final TreeItem item = new TreeItem(this.archiveTree,
 							SWT.NONE);
 					item.setText(type.getName());
-					item.setData(type);
 				}
 				this.archiveTree.addSelectionListener(new SelectionListener() {
 
@@ -360,17 +363,16 @@ public class ClassEditor extends MultiPageEditorPart {
 						}
 						final TreeItem selection = selections[0];
 						final String text = selection.getText();
-						final Object data = selection.getData();
 
 						CU cu = null;
 						String sourceCode = null;
 						ClassEditor.this.success = false;
 						try {
 							final DU du = DecoJer.createDu();
-							final String path = ClassEditor.this.fileName + "!"
-									+ text + ".class";
+							ClassEditor.this.fileName = ClassEditor.this.archiveFileName
+									+ "!" + text + ".class";
 							System.out.println("PATH: " + path);
-							final TD td = du.read(path);
+							final TD td = du.read(ClassEditor.this.fileName);
 							cu = DecoJer.createCu(td);
 							sourceCode = DecoJer.decompile(cu);
 							ClassEditor.this.compilationUnitEditor.setInput(new MemoryStorageEditorInput(
@@ -409,7 +411,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		// for debugging purposes:
 		createControlFlowGraphViewer();
 		// initialization comes first, delivers IClassFileEditorInput
-		if (this.fileName.endsWith(".class")) {
+		if (this.fileName != null && this.fileName.endsWith(".class")) {
 			createClassFileEditor();
 		}
 		createDecompilationUnitEditor();
