@@ -51,6 +51,9 @@ public class StringStorage implements IStorage {
 	 *            String input
 	 */
 	public StringStorage(final IPath fullPath, final String input) {
+		assert fullPath != null;
+		assert this.string != null;
+
 		this.fullPath = fullPath;
 		this.string = input;
 	}
@@ -69,8 +72,8 @@ public class StringStorage implements IStorage {
 	}
 
 	public String getName() {
-		final int len = Math.min(5, this.string.length());
-		return this.string.substring(0, len).concat("..."); //$NON-NLS-1$
+		final String lastSegment = this.fullPath.lastSegment();
+		return lastSegment == null ? this.fullPath.toString() : lastSegment;
 	}
 
 	public boolean isReadOnly() {
