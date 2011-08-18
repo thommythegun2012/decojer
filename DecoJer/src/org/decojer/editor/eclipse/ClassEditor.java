@@ -23,7 +23,9 @@
  */
 package org.decojer.editor.eclipse;
 
-import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -40,7 +42,11 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.type.Type;
+import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
+import org.decojer.cavaj.reader.AsmReader;
+import org.decojer.cavaj.reader.SmaliReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -69,14 +75,16 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PartInitException;
@@ -122,7 +130,7 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private Button antialiasingButton;
 
-	private File archiveFile;
+	private Tree archiveTree;
 
 	private ClassFileEditor classFileEditor;
 
@@ -130,11 +138,11 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private CompilationUnitEditor compilationUnitEditor;
 
+	private String fileName;
+
 	private Graph graph;
 
 	private JavaOutlinePage javaOutlinePage;
-
-	private String fileName;
 
 	private boolean success;
 
@@ -249,11 +257,8 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private void createDecompilationUnitEditor() {
 		this.compilationUnitEditor = new CompilationUnitEditor();
+
 		// create editor input, in-memory string with decompiled source
-		final IClassFileEditorInput classFileEditorInput = (IClassFileEditorInput) this.classFileEditor
-				.getEditorInput();
-		final IClassFile classFile = classFileEditorInput.getClassFile();
-		this.fileName = extractPath(classFile);
 
 		CU cu = null;
 		String sourceCode = null;
@@ -282,24 +287,106 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	@Override
 	protected Composite createPageContainer(final Composite parent) {
-		final Composite pageContainer = super.createPageContainer(parent);
+		Composite pageContainer = super.createPageContainer(parent);
 		// check input,
 		// in dependency from this open archive or class file editor
 		final IEditorInput editorInput = getEditorInput();
 		LOGGER.info("Editor Input: " + editorInput);
+		if (editorInput instanceof IClassFileEditorInput) {
+			final IClassFile classFile = ((IClassFileEditorInput) editorInput)
+					.getClassFile();
+			this.fileName = extractPath(classFile);
+
+		}
+
 		if (editorInput instanceof FileEditorInput) {
 			final FileEditorInput fileEditorInput = (FileEditorInput) editorInput;
 			final IPath path = fileEditorInput.getPath();
-			final String pathName = path.toString();
-			if (pathName.endsWith(".jar") || pathName.endsWith(".dex")) {
-				this.archiveFile = path.toFile();
-				LOGGER.info("  Archive: " + this.archiveFile);
+			this.fileName = path.toString();
+
+			Types types = null;
+
+			if (this.fileName.endsWith(".jar")) {
+				LOGGER.info("  Java Archive: " + this.fileName);
+				try {
+					types = AsmReader.analyseJar(new FileInputStream(path
+							.toFile()));
+				} catch (final FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (final IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			} else if (this.fileName.endsWith(".dex")) {
+				LOGGER.info("  DEX Archive: " + this.fileName);
+				try {
+					types = SmaliReader.analyse(new FileInputStream(path
+							.toFile()));
+				} catch (final FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (final IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+			if (types != null) {
+				final SashForm sashForm = new SashForm(pageContainer,
+						SWT.HORIZONTAL | SWT.BORDER | SWT.SMOOTH);
+
+				this.archiveTree = new Tree(sashForm, SWT.NONE);
+				for (final Type type : types.getTypes()) {
+					final TreeItem item = new TreeItem(this.archiveTree,
+							SWT.NONE);
+					item.setText(type.getName());
+					item.setData(type);
+				}
+				this.archiveTree.addSelectionListener(new SelectionListener() {
+
+					@Override
+					public void widgetDefaultSelected(final SelectionEvent e) {
+						// OK
+					}
+
+					@Override
+					public void widgetSelected(final SelectionEvent e) {
+						final TreeItem[] selections = ClassEditor.this.archiveTree
+								.getSelection();
+						if (selections.length != 1) {
+							return;
+						}
+						final TreeItem selection = selections[0];
+						final String text = selection.getText();
+						final Object data = selection.getData();
+
+						CU cu = null;
+						String sourceCode = null;
+						ClassEditor.this.success = false;
+						try {
+							final DU du = DecoJer.createDu();
+							final String path = ClassEditor.this.fileName + "!"
+									+ text + ".class";
+							System.out.println("PATH: " + path);
+							final TD td = du.read(path);
+							cu = DecoJer.createCu(td);
+							sourceCode = DecoJer.decompile(cu);
+							ClassEditor.this.compilationUnitEditor
+									.setInput(new StringInput(
+											new StringStorage(new Path(
+													"Test.java"), sourceCode)));
+							ClassEditor.this.success = true;
+						} catch (final Throwable e2) {
+							e2.printStackTrace();
+							sourceCode = "// Decompilation error!";
+						}
+
+					}
+
+				});
+				pageContainer = sashForm;
 			}
 		}
-		final Composite composite = new Composite(pageContainer, SWT.RESIZE);
-		composite.setLayout(new FormLayout());
-		final Button button = new Button(composite, SWT.CHECK);
-		button.setText("HUH");
 		return pageContainer;
 	}
 
@@ -308,16 +395,18 @@ public class ClassEditor extends MultiPageEditorPart {
 	 */
 	@Override
 	protected void createPages() {
-		getContainer().getParent().setLayout(new GridLayout(2, false));
-		final GridData gridData = new GridData();
-		gridData.horizontalAlignment = GridData.FILL;
-		gridData.grabExcessHorizontalSpace = true;
-		getContainer().setLayoutData(gridData);
+		if (this.archiveTree != null) {
+			// must happen delayed after added tab pane
+			((SashForm) this.archiveTree.getParent()).setWeights(new int[] { 1,
+					4 });
+		}
 
 		// for debugging purposes:
 		createControlFlowGraphViewer();
 		// initialization comes first, delivers IClassFileEditorInput
-		createClassFileEditor();
+		if (this.fileName.endsWith(".class")) {
+			createClassFileEditor();
+		}
 		createDecompilationUnitEditor();
 	}
 
@@ -356,14 +445,13 @@ public class ClassEditor extends MultiPageEditorPart {
 			// JavaOutlinePage.fInput == null in this case, also ask the Class
 			// File Editor, which has other problems and only delivers an
 			// Outline if class is in class path
-			if (this.success) {
+			if (this.success || this.classFileEditor == null) {
 				adapter = this.compilationUnitEditor.getAdapter(required);
 			}
-			if (adapter == null) {
+			if (adapter == null && this.classFileEditor != null) {
 				adapter = this.classFileEditor.getAdapter(required);
 			}
-			if (this.javaOutlinePage == null
-					&& adapter instanceof JavaOutlinePage) {
+			if (adapter instanceof JavaOutlinePage) {
 				this.javaOutlinePage = (JavaOutlinePage) adapter;
 				this.javaOutlinePage
 						.addSelectionChangedListener(new ISelectionChangedListener() {

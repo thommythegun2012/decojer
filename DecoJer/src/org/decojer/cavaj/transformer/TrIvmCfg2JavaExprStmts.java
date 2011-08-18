@@ -564,7 +564,10 @@ public class TrIvmCfg2JavaExprStmts {
 					try {
 						name = op.getFrame().vars[op.getVarIndex()].getName();
 					} catch (final Exception e) {
-						name = "t";
+						//
+					}
+					if (name == null) {
+						name = "test";
 					}
 				}
 
@@ -746,7 +749,10 @@ public class TrIvmCfg2JavaExprStmts {
 					try {
 						name = op.getFrame().vars[op.getVarIndex()].getName();
 					} catch (final Exception e) {
-						name = "t";
+						//
+					}
+					if (name == null) {
+						name = "test";
 					}
 				}
 

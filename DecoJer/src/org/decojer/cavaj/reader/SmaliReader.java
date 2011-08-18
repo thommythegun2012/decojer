@@ -141,10 +141,11 @@ public class SmaliReader {
 		final Section<ClassDefItem> classDefItems = dexFile
 				.getSectionForType(ItemType.TYPE_CLASS_DEF_ITEM);
 		for (final ClassDefItem classDefItem : classDefItems.getItems()) {
-			System.out.println("TEST " + classDefItem + " : "
-					+ classDefItem.getClassType().getTypeDescriptor());
-			types.addType(new Type(classDefItem.getClassType()
-					.getTypeDescriptor(), null));
+			final String typeDescriptor = classDefItem.getClassType()
+					.getTypeDescriptor();
+			System.out.println("TEST " + typeDescriptor);
+			types.addType(new Type(typeDescriptor.substring(1,
+					typeDescriptor.length() - 1), null));
 		}
 		return types;
 	}
@@ -207,8 +208,7 @@ public class SmaliReader {
 							.indexOf('/', selectorPrefix.length()) != -1)) {
 				continue;
 			}
-			final T t = du.getDescT(classDefItem.getClassType()
-					.getTypeDescriptor());
+			final T t = du.getDescT(typeDescriptor);
 			t.setAccessFlags(classDefItem.getAccessFlags());
 			t.setSuperT(du.getDescT(classDefItem.getSuperclass()
 					.getTypeDescriptor()));
