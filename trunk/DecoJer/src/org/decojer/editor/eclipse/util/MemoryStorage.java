@@ -31,31 +31,31 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 
 /**
- * String Storage for Eclipse Editor Framework.
+ * Memory Storage for Eclipse Editor Framework.
  * 
  * @see StringInput
  * @author André Pankraz
  */
-public class StringStorage implements IStorage {
+public class MemoryStorage implements IStorage {
+
+	private final byte[] contents;
 
 	private final IPath fullPath;
-
-	private final String string;
 
 	/**
 	 * Constructor.
 	 * 
 	 * @param fullPath
 	 *            full path, important for faked compilation unit and outline
-	 * @param input
-	 *            String input
+	 * @param contents
+	 *            Content
 	 */
-	public StringStorage(final IPath fullPath, final String input) {
+	public MemoryStorage(final byte[] contents, final IPath fullPath) {
 		assert fullPath != null;
-		assert this.string != null;
+		assert this.contents != null;
 
 		this.fullPath = fullPath;
-		this.string = input;
+		this.contents = contents;
 	}
 
 	@SuppressWarnings("rawtypes")
@@ -64,7 +64,7 @@ public class StringStorage implements IStorage {
 	}
 
 	public InputStream getContents() throws CoreException {
-		return new ByteArrayInputStream(this.string.getBytes());
+		return new ByteArrayInputStream(this.contents);
 	}
 
 	public IPath getFullPath() {
@@ -72,6 +72,9 @@ public class StringStorage implements IStorage {
 	}
 
 	public String getName() {
+		if (this.fullPath == null) {
+			return null;
+		}
 		final String lastSegment = this.fullPath.lastSegment();
 		return lastSegment == null ? this.fullPath.toString() : lastSegment;
 	}

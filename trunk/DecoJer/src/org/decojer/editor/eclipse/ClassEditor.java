@@ -53,8 +53,8 @@ import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
 import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
 import org.decojer.editor.eclipse.util.FramesFigure;
-import org.decojer.editor.eclipse.util.StringInput;
-import org.decojer.editor.eclipse.util.StringStorage;
+import org.decojer.editor.eclipse.util.MemoryStorage;
+import org.decojer.editor.eclipse.util.MemoryStorageEditorInput;
 import org.decojer.editor.eclipse.viewer.cfg.HierarchicalLayoutAlgorithm;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -274,10 +274,12 @@ public class ClassEditor extends MultiPageEditorPart {
 			sourceCode = "// Decompilation error!";
 		}
 		try {
-			addPage(0, this.compilationUnitEditor, new StringInput(
-					new StringStorage(cu == null
+			addPage(0,
+					this.compilationUnitEditor,
+					new MemoryStorageEditorInput(new MemoryStorage(sourceCode
+							.getBytes(), cu == null
 							|| cu.getSourceFileName() == null ? null
-							: new Path(cu.getSourceFileName()), sourceCode)));
+							: new Path(cu.getSourceFileName()))));
 		} catch (final PartInitException e) {
 			ErrorDialog.openError(getSite().getShell(),
 					"Error creating nested text editor", null, e.getStatus());
@@ -371,10 +373,13 @@ public class ClassEditor extends MultiPageEditorPart {
 							final TD td = du.read(path);
 							cu = DecoJer.createCu(td);
 							sourceCode = DecoJer.decompile(cu);
-							ClassEditor.this.compilationUnitEditor
-									.setInput(new StringInput(
-											new StringStorage(new Path(
-													"Test.java"), sourceCode)));
+							ClassEditor.this.compilationUnitEditor.setInput(new MemoryStorageEditorInput(
+									new MemoryStorage(
+											sourceCode.getBytes(),
+											cu == null
+													|| cu.getSourceFileName() == null ? null
+													: new Path(
+															cu.getSourceFileName()))));
 							ClassEditor.this.success = true;
 						} catch (final Throwable e2) {
 							e2.printStackTrace();

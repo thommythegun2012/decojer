@@ -29,8 +29,10 @@ import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.IStorageEditorInput;
 
 /**
- * String Input for Eclipse Editor Framework. This wraps a String Storage
- * element which delivers an in-memory String Input Stream.
+ * Memory Storage Editor Input for Eclipse Editor Framework.
+ * 
+ * This wraps for instance a String Storage element which delivers an in-memory
+ * String Input Stream.
  * 
  * This way it isn't necassary to create a local temporary file containing the
  * decompiled source code. I don't know yet if this really works, there are
@@ -39,7 +41,7 @@ import org.eclipse.ui.IStorageEditorInput;
  * 
  * @author André Pankraz
  */
-public class StringInput implements IStorageEditorInput {
+public class MemoryStorageEditorInput implements IStorageEditorInput {
 
 	private final IStorage storage;
 
@@ -49,7 +51,7 @@ public class StringInput implements IStorageEditorInput {
 	 * @param storage
 	 *            String storage.
 	 */
-	public StringInput(final IStorage storage) {
+	public MemoryStorageEditorInput(final IStorage storage) {
 		this.storage = storage;
 	}
 
@@ -79,7 +81,7 @@ public class StringInput implements IStorageEditorInput {
 	}
 
 	public String getToolTipText() {
-		return "String-based file: " + this.storage.getName();
+		return "StorageEditorInput: " + this.storage.getName();
 	}
 
 }
