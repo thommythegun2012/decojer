@@ -23,8 +23,11 @@
  */
 package org.decojer.editor.eclipse;
 
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.decojer.DecoJer;
@@ -54,7 +57,6 @@ import org.eclipse.draw2d.Polyline;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IInitializer;
 import org.eclipse.jdt.core.IMethod;
-import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.ClassFileEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
@@ -93,6 +95,9 @@ import org.eclipse.zest.layouts.LayoutStyles;
  */
 @SuppressWarnings("restriction")
 public class ClassEditor extends MultiPageEditorPart {
+
+	private final static Logger LOGGER = Logger.getLogger(ClassEditor.class
+			.getName());
 
 	private static String extractPath(final IClassFile eclipseClassFile) {
 		assert eclipseClassFile != null;
@@ -342,15 +347,10 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	private void initGraph() {
-		// get selection from java outline page
 		final TreeSelection treeSelection = (TreeSelection) this.javaOutlinePage
 				.getSelection();
 		final Object firstElement = treeSelection.getFirstElement();
-		if (firstElement instanceof IType) {
-			final IType type = (IType) firstElement;
-			System.out.println("###TypeSelection: "
-					+ type.getFullyQualifiedName());
-		}
+
 		String fullyQualifiedName;
 		String elementName;
 		String signature;
@@ -377,7 +377,6 @@ public class ClassEditor extends MultiPageEditorPart {
 
 		// if selection found => get matching CFG from CU with choosen
 		// decompiler step
-
 		try {
 			final DU du = DecoJer.createDu();
 			final TD td = du.read(this.fileName);
@@ -388,36 +387,58 @@ public class ClassEditor extends MultiPageEditorPart {
 			}
 			TrJvmStruct2JavaAst.transform(td); // could add tds
 
-			final TD methodTd = cu.getTd(fullyQualifiedName);
+			// nearly all of the following is very hacky...TODO OOOOOOOO
+			final TD methodTd = cu
+					.getTd(fullyQualifiedName.replace("$I_", "$"));
 
 			// constructor -> <init>
 			final String methodName = fullyQualifiedName.equals(elementName)
 					|| fullyQualifiedName.endsWith("." + elementName)
 					|| fullyQualifiedName.endsWith("$" + elementName) ? "<init>"
 					: elementName;
-			// not enough here...Q can come after all kind off stuff, parser!
-			final Pattern signaturePattern = Pattern.compile(signature
-					.replace("[", "\\[").replace("]", "\\]")
-					.replace("(Q", "(L[^;]*").replace(")Q", ")L[^;]*")
-					.replace(";Q", ";L[^;]*").replace("$", "\\$")
-					.replace("(", "\\(").replace(")", "\\)"));
 
-			MD md = null;
+			final ArrayList<MD> mds = new ArrayList<MD>();
 			for (final BD bd : methodTd.getBds()) {
 				if (!(bd instanceof MD)) {
 					continue;
 				}
-				final M m = ((MD) bd).getM();
-				if (!methodName.equals(m.getName())) {
-					continue;
+				if (methodName.equals(((MD) bd).getM().getName())) {
+					mds.add((MD) bd);
 				}
-				final String descriptor = m.getDescriptor();
-				if (signaturePattern.matcher(descriptor).matches()) {
-					md = (MD) bd;
-					break;
+			}
+			MD md = null;
+			if (mds.size() == 0) {
+				LOGGER.warning("Unknown method dedclaration for '" + methodName
+						+ "'!");
+				return;
+			}
+			if (mds.size() == 1) {
+				md = mds.get(0);
+			} else if (mds.size() > 1) {
+				// not enough here...Q can come after all kind off stuff,
+				// parser!
+				final Pattern signaturePattern = Pattern.compile(signature
+						.replace("[", "\\[").replace("]", "\\]")
+						.replace("(Q", "(L[^;]*").replace(")Q", ")L[^;]*")
+						.replace(";Q", ";L[^;]*").replace("$", "\\$")
+						.replace("(", "\\(").replace(")", "\\)"));
+
+				for (final MD checkMd : mds) {
+					final M m = checkMd.getM();
+					final String descriptor = m.getDescriptor();
+					if (signaturePattern.matcher(descriptor).matches()) {
+						md = checkMd;
+						break;
+					}
+					LOGGER.info("Signature for method '" + methodName
+							+ "' doesn't match: " + signature + " : "
+							+ m.getDescriptor() + " : " + m.getSignature());
 				}
-				System.out.println("NOT EQUAL: " + signature + " : "
-						+ m.getDescriptor() + " : " + m.getSignature());
+			}
+			if (md == null) {
+				LOGGER.warning("Unknown method dedclaration for '" + methodName
+						+ "' and signature '" + signature + "'!");
+				return;
 			}
 
 			final CFG cfg = md.getCfg();
@@ -438,7 +459,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				initGraph(cfg);
 			}
 		} catch (final Throwable e) {
-			e.printStackTrace();
+			LOGGER.log(Level.WARNING, "Couldn't create graph!", e);
 		}
 	}
 
