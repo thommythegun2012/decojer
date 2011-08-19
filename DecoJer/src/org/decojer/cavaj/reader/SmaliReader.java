@@ -623,7 +623,7 @@ public class SmaliReader {
 				bb.addOperation(new PUSH(opPc, opCode, opLine, DataType.T_INT,
 						(int) instr.getLiteral()));
 				bb.addOperation(new STORE(opPc, opCode, opLine, DataType.T_INT,
-						instr.getRegisterA(), null, null));
+						instr.getRegisterA()));
 				break;
 			}
 			case CONST_16:
@@ -644,7 +644,7 @@ public class SmaliReader {
 				bb.addOperation(new PUSH(opPc, opCode, opLine,
 						DataType.T_STRING, stringIdItem.getStringValue()));
 				bb.addOperation(new STORE(opPc, opCode, opLine,
-						DataType.T_STRING, instr.getRegisterA(), null, null));
+						DataType.T_STRING, instr.getRegisterA()));
 				break;
 			}
 			case DIV_DOUBLE:
@@ -798,23 +798,23 @@ public class SmaliReader {
 				}
 				if (instr.getRegCount() > 0) {
 					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-							.getRegisterD(), null, null));
+							.getRegisterD()));
 				}
 				if (instr.getRegCount() > 1) {
 					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-							.getRegisterE(), null, null));
+							.getRegisterE()));
 				}
 				if (instr.getRegCount() > 2) {
 					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-							.getRegisterF(), null, null));
+							.getRegisterF()));
 				}
 				if (instr.getRegCount() > 3) {
 					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-							.getRegisterG(), null, null));
+							.getRegisterG()));
 				}
 				if (instr.getRegCount() > 4) {
 					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-							.getRegisterA(), null, null));
+							.getRegisterA()));
 				}
 				bb.addOperation(new INVOKE(opPc, opCode, opLine, invokeM,
 						instruction.opcode == Opcode.INVOKE_DIRECT));
@@ -825,9 +825,9 @@ public class SmaliReader {
 				System.out.print("  A: " + instr.getRegisterA());
 				System.out.println("  B: " + instr.getRegisterB());
 				bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-						.getRegisterA(), null, null));
+						.getRegisterA()));
 				bb.addOperation(new STORE(opPc, opCode, opLine, -1, instr
-						.getRegisterB(), null, null));
+						.getRegisterB()));
 				break;
 			}
 			case MOVE_RESULT:
@@ -911,7 +911,7 @@ public class SmaliReader {
 				f.markAf(AF.STATIC);
 				bb.addOperation(new GET(opPc, opCode, opLine, f));
 				bb.addOperation(new STORE(opPc, opCode, opLine,
-						DataType.T_AREF, instr.getRegisterA(), null, null));
+						DataType.T_AREF, instr.getRegisterA()));
 				break;
 			}
 			case SUB_DOUBLE:

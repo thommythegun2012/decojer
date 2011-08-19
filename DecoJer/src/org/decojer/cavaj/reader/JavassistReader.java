@@ -1190,48 +1190,7 @@ public class JavassistReader {
 					type = DataType.T_LONG;
 					iValue = 3;
 				}
-				String varName = null;
-				String varDescriptor = null;
-				if (localVariableAttribute != null) {
-					for (int i = 0; i < localVariableAttribute.tableLength(); ++i) {
-						if (localVariableAttribute.index(i) == iValue
-								&& localVariableAttribute.startPc(i) <= opPc
-								&& localVariableAttribute.startPc(i)
-										+ localVariableAttribute.codeLength(i) >= opPc) {
-							varName = localVariableAttribute.variableName(i);
-							varDescriptor = localVariableAttribute
-									.descriptor(i);
-							break;
-						}
-					}
-				}
-				final T varT = varDescriptor == null ? null : du
-						.getDescT(varDescriptor);
-				if (localVariableTypeAttribute != null) {
-					for (int i = 0; i < localVariableTypeAttribute
-							.tableLength(); ++i) {
-						if (localVariableTypeAttribute.index(i) == iValue
-								&& localVariableTypeAttribute.startPc(i) <= opPc
-								&& localVariableTypeAttribute.startPc(i)
-										+ localVariableTypeAttribute
-												.codeLength(i) >= opPc) {
-							if (!localVariableTypeAttribute.variableName(i)
-									.equals(varName)) {
-								LOGGER.warning("Local variable type attribute name '"
-										+ localVariableTypeAttribute
-												.variableName(i)
-										+ "' not equal to local variable attribute name '"
-										+ varName + "'!");
-							} else {
-								varT.setSignature(localVariableTypeAttribute
-										.descriptor(i));
-							}
-							break;
-						}
-					}
-				}
-				bb.addOperation(new LOAD(opPc, opCode, opLine, type, iValue,
-						varT, varName));
+				bb.addOperation(new LOAD(opPc, opCode, opLine, type, iValue));
 				break;
 			}
 			/*******
@@ -1668,48 +1627,7 @@ public class JavassistReader {
 					type = DataType.T_LONG;
 					iValue = 3;
 				}
-				String varName = null;
-				String varDescriptor = null;
-				if (localVariableAttribute != null) {
-					for (int i = 0; i < localVariableAttribute.tableLength(); ++i) {
-						if (localVariableAttribute.index(i) == iValue
-								&& localVariableAttribute.startPc(i) <= opPc
-								&& localVariableAttribute.startPc(i)
-										+ localVariableAttribute.codeLength(i) >= opPc) {
-							varName = localVariableAttribute.variableName(i);
-							varDescriptor = localVariableAttribute
-									.descriptor(i);
-							break;
-						}
-					}
-				}
-				final T varT = varDescriptor == null ? null : du
-						.getDescT(varDescriptor);
-				if (localVariableTypeAttribute != null) {
-					for (int i = 0; i < localVariableTypeAttribute
-							.tableLength(); ++i) {
-						if (localVariableTypeAttribute.index(i) == iValue
-								&& localVariableTypeAttribute.startPc(i) <= opPc
-								&& localVariableTypeAttribute.startPc(i)
-										+ localVariableTypeAttribute
-												.codeLength(i) >= opPc) {
-							if (!localVariableTypeAttribute.variableName(i)
-									.equals(varName)) {
-								LOGGER.warning("Local variable type attribute name '"
-										+ localVariableTypeAttribute
-												.variableName(i)
-										+ "' not equal to local variable attribute name '"
-										+ varName + "'!");
-							} else {
-								varT.setSignature(localVariableTypeAttribute
-										.descriptor(i));
-							}
-							break;
-						}
-					}
-				}
-				bb.addOperation(new STORE(opPc, opCode, opLine, type, iValue,
-						varT, varName));
+				bb.addOperation(new STORE(opPc, opCode, opLine, type, iValue));
 				break;
 			}
 			/*********

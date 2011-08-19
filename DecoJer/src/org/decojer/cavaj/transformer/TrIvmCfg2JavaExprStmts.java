@@ -559,18 +559,7 @@ public class TrIvmCfg2JavaExprStmts {
 			case Opcode.LOAD: {
 				final LOAD op = (LOAD) operation;
 
-				String name = op.getVarName();
-				if (name == null) {
-					try {
-						name = op.getFrame().vars[op.getVarIndex()].getName();
-					} catch (final Exception e) {
-						//
-					}
-					if (name == null) {
-						name = "test";
-					}
-				}
-
+				final String name = op.getVarName(op.getVarIndex());
 				if ("this".equals(name)) {
 					bb.pushExpression(getAst().newThisExpression());
 				} else {
@@ -744,18 +733,7 @@ public class TrIvmCfg2JavaExprStmts {
 				assignment.setRightHandSide(wrap(rightExpression,
 						priority(assignment)));
 
-				String name = op.getVarName();
-				if (name == null) {
-					try {
-						name = op.getFrame().vars[op.getVarIndex()].getName();
-					} catch (final Exception e) {
-						//
-					}
-					if (name == null) {
-						name = "test";
-					}
-				}
-
+				final String name = op.getVarName(op.getVarIndex());
 				assignment.setLeftHandSide(getAst().newSimpleName(name));
 				// inline assignment, DUP -> STORE
 				if (bb.getExpressionsSize() > 0

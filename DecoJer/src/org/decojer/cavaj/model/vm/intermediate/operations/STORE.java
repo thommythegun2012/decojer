@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
-import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
@@ -33,18 +32,11 @@ public class STORE extends Operation {
 
 	private final int varIndex;
 
-	private final String varName;
-
-	private final T varT;
-
 	public STORE(final int opPc, final int opCode, final int opLine,
-			final int type, final int varIndex, final T varT,
-			final String varName) {
+			final int type, final int varIndex) {
 		super(opPc, opCode, opLine);
 		this.type = type;
 		this.varIndex = varIndex;
-		this.varT = varT;
-		this.varName = varName;
 	}
 
 	@Override
@@ -63,14 +55,6 @@ public class STORE extends Operation {
 
 	public int getVarIndex() {
 		return this.varIndex;
-	}
-
-	public String getVarName() {
-		return this.varName;
-	}
-
-	public T getVarT() {
-		return this.varT;
 	}
 
 	@Override
