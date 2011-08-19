@@ -128,29 +128,31 @@ public class ClassEditor extends MultiPageEditorPart {
 		return eclipseClassFile.getResource().getLocation().toOSString();
 	}
 
-	private Button antialiasingButton;
-
 	private Tree archiveTree;
 
 	private String archiveFileName;
 
-	private ClassFileEditor classFileEditor;
+	private Button cfgAntialiasingCheckbox;
 
-	private Combo combo;
+	private Graph cfgViewer;
+
+	private Combo cfgViewModeCombo;
+
+	private ClassFileEditor classFileEditor;
 
 	private CompilationUnitEditor compilationUnitEditor;
 
-	private String fileName;
+	private CU cu;
 
-	private Graph graph;
+	private DU du;
+
+	private String fileName;
 
 	private JavaOutlinePage javaOutlinePage;
 
-	private boolean success;
-
 	private GraphNode addToGraph(final BB bb,
 			final IdentityHashMap<BB, GraphNode> map) {
-		final GraphNode node = new GraphNode(this.graph, SWT.NONE,
+		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE,
 				bb.toString(), bb);
 		final List<Operation> operations = bb.getOperations();
 		if (operations.size() != 0) {
@@ -169,9 +171,10 @@ public class ClassEditor extends MultiPageEditorPart {
 			if (succNode == null) {
 				succNode = addToGraph(succBB, map);
 			}
-			final GraphConnection connection = new GraphConnection(this.graph,
-					ZestStyles.CONNECTIONS_DIRECTED, node, succNode);
-			if (this.antialiasingButton.getSelection()) {
+			final GraphConnection connection = new GraphConnection(
+					this.cfgViewer, ZestStyles.CONNECTIONS_DIRECTED, node,
+					succNode);
+			if (this.cfgAntialiasingCheckbox.getSelection()) {
 				((Polyline) connection.getConnectionFigure())
 						.setAntialias(SWT.ON);
 			}
@@ -204,28 +207,29 @@ public class ClassEditor extends MultiPageEditorPart {
 		final GridLayout layout = new GridLayout(2, false);
 		composite.setLayout(layout);
 
-		this.antialiasingButton = new Button(composite, SWT.CHECK);
+		this.cfgAntialiasingCheckbox = new Button(composite, SWT.CHECK);
 		GridData gridData = new GridData();
-		this.antialiasingButton.setLayoutData(gridData);
-		this.antialiasingButton.setText("Antialiasing");
-		this.antialiasingButton.addSelectionListener(new SelectionListener() {
+		this.cfgAntialiasingCheckbox.setLayoutData(gridData);
+		this.cfgAntialiasingCheckbox.setText("Antialiasing");
+		this.cfgAntialiasingCheckbox
+				.addSelectionListener(new SelectionListener() {
 
-			@Override
-			public void widgetDefaultSelected(final SelectionEvent e) {
-				initGraph();
-			}
+					@Override
+					public void widgetDefaultSelected(final SelectionEvent e) {
+						initGraph();
+					}
 
-			@Override
-			public void widgetSelected(final SelectionEvent e) {
-				initGraph();
-			}
+					@Override
+					public void widgetSelected(final SelectionEvent e) {
+						initGraph();
+					}
 
-		});
-		this.combo = new Combo(composite, SWT.READ_ONLY);
-		this.combo.setItems(new String[] { "IVM CFG", "Java Expr",
+				});
+		this.cfgViewModeCombo = new Combo(composite, SWT.READ_ONLY);
+		this.cfgViewModeCombo.setItems(new String[] { "IVM CFG", "Java Expr",
 				"Control Flow" });
-		this.combo.setText("Control Flow");
-		this.combo.addSelectionListener(new SelectionListener() {
+		this.cfgViewModeCombo.setText("Control Flow");
+		this.cfgViewModeCombo.addSelectionListener(new SelectionListener() {
 
 			@Override
 			public void widgetDefaultSelected(final SelectionEvent e) {
@@ -239,18 +243,18 @@ public class ClassEditor extends MultiPageEditorPart {
 
 		});
 		gridData = new GridData();
-		this.combo.setLayoutData(gridData);
+		this.cfgViewModeCombo.setLayoutData(gridData);
 		// draw graph
 		// Graph will hold all other objects
-		this.graph = new Graph(composite, SWT.NONE);
+		this.cfgViewer = new Graph(composite, SWT.NONE);
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		gridData.horizontalAlignment = GridData.FILL;
 		gridData.grabExcessHorizontalSpace = true;
 		gridData.verticalAlignment = GridData.FILL;
 		gridData.grabExcessVerticalSpace = true;
-		this.graph.setLayoutData(gridData);
-		this.graph.setLayoutAlgorithm(new HierarchicalLayoutAlgorithm(
+		this.cfgViewer.setLayoutData(gridData);
+		this.cfgViewer.setLayoutAlgorithm(new HierarchicalLayoutAlgorithm(
 				LayoutStyles.NO_LAYOUT_NODE_RESIZING), true);
 
 		addPage(0, composite);
@@ -262,15 +266,12 @@ public class ClassEditor extends MultiPageEditorPart {
 
 		// create editor input, in-memory string with decompiled source
 
-		CU cu = null;
+		this.cu = null;
 		String sourceCode = null;
-		this.success = false;
 		try {
-			final DU du = DecoJer.createDu();
-			final TD td = du.read(this.fileName);
-			cu = DecoJer.createCu(td);
-			sourceCode = DecoJer.decompile(cu);
-			this.success = true;
+			final TD td = this.du.read(this.fileName);
+			this.cu = DecoJer.createCu(td);
+			sourceCode = DecoJer.decompile(this.cu);
 		} catch (final Throwable e) {
 			e.printStackTrace();
 			sourceCode = "// Decompilation error!";
@@ -279,9 +280,10 @@ public class ClassEditor extends MultiPageEditorPart {
 			addPage(0,
 					this.compilationUnitEditor,
 					new MemoryStorageEditorInput(new MemoryStorage(sourceCode
-							.getBytes(), cu == null
-							|| cu.getSourceFileName() == null ? new Path(
-							"<Unknown>") : new Path(cu.getSourceFileName()))));
+							.getBytes(), this.cu == null
+							|| this.cu.getSourceFileName() == null ? new Path(
+							"<Unknown>")
+							: new Path(this.cu.getSourceFileName()))));
 		} catch (final PartInitException e) {
 			ErrorDialog.openError(getSite().getShell(),
 					"Error creating nested text editor", null, e.getStatus());
@@ -291,26 +293,32 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	@Override
 	protected Composite createPageContainer(final Composite parent) {
+		// method is called before createPages(): pre-analyze editor input and
+		// add archive if necessary
 		Composite pageContainer = super.createPageContainer(parent);
-		// check input,
-		// in dependency from this open archive or class file editor
+
+		this.du = DecoJer.createDu();
+
 		final IEditorInput editorInput = getEditorInput();
 		LOGGER.info("Editor Input: " + editorInput);
 		if (editorInput instanceof IClassFileEditorInput) {
+			// is a simple Eclipse-pre-analyzed class file, not an archive
 			final IClassFile classFile = ((IClassFileEditorInput) editorInput)
 					.getClassFile();
 			this.fileName = extractPath(classFile);
-
+			return pageContainer;
 		}
-
 		if (editorInput instanceof FileEditorInput) {
+			// could be a class file (not Eclipse-pre-analyzed) or an archive
 			final FileEditorInput fileEditorInput = (FileEditorInput) editorInput;
 			final IPath path = fileEditorInput.getPath();
 			final String pathName = path.toString();
 
 			Types types = null;
 
-			if (pathName.endsWith(".jar")) {
+			if (pathName.endsWith(".class")) {
+				this.fileName = pathName;
+			} else if (pathName.endsWith(".jar")) {
 				this.archiveFileName = pathName;
 				try {
 					types = AsmReader.analyseJar(new FileInputStream(path
@@ -335,7 +343,9 @@ public class ClassEditor extends MultiPageEditorPart {
 					e.printStackTrace();
 				}
 			} else {
-				this.fileName = pathName;
+				LOGGER.severe("Unknown file editor input extension '"
+						+ pathName + "'!");
+				return pageContainer;
 			}
 			if (types != null) {
 				final SashForm sashForm = new SashForm(pageContainer,
@@ -370,22 +380,22 @@ public class ClassEditor extends MultiPageEditorPart {
 						ClassEditor.this.fileName = ClassEditor.this.archiveFileName
 								+ "!" + selection.getText() + ".class";
 
-						CU cu = null;
+						ClassEditor.this.cu = null;
 						String sourceCode = null;
-						ClassEditor.this.success = false;
 						try {
-							final DU du = DecoJer.createDu();
-							final TD td = du.read(ClassEditor.this.fileName);
-							cu = DecoJer.createCu(td);
-							sourceCode = DecoJer.decompile(cu);
+							final TD td = ClassEditor.this.du
+									.read(ClassEditor.this.fileName);
+							ClassEditor.this.cu = DecoJer.createCu(td);
+							sourceCode = DecoJer.decompile(ClassEditor.this.cu);
 							ClassEditor.this.compilationUnitEditor.setInput(new MemoryStorageEditorInput(
 									new MemoryStorage(
 											sourceCode.getBytes(),
-											cu == null
-													|| cu.getSourceFileName() == null ? null
+											ClassEditor.this.cu == null
+													|| ClassEditor.this.cu
+															.getSourceFileName() == null ? null
 													: new Path(
-															cu.getSourceFileName()))));
-							ClassEditor.this.success = true;
+															ClassEditor.this.cu
+																	.getSourceFileName()))));
 						} catch (final Throwable e2) {
 							e2.printStackTrace();
 							sourceCode = "// Decompilation error!";
@@ -444,24 +454,29 @@ public class ClassEditor extends MultiPageEditorPart {
 	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(final Class required) {
-		Object adapter = null;
 		if (IContentOutlinePage.class.equals(required)) {
-			// the plan is, to initialize the Compilation Unit Editor with the
-			// decompiled source code via an in-memory String Input and to ask
-			// this Editor for the IContentOutlinePage;
-			// this way we can also show inner classes informations
+			// initialize the CompilationUnitEditor with the decompiled source
+			// via a in-memory StorageEditorInput and ask this Editor for the
+			// IContentOutlinePage, this way we can also show inner classes
 
-			// didn't work in older Eclipse?
-			// JavaOutlinePage.fInput == null in this case, also ask the Class
-			// File Editor, which has other problems and only delivers an
-			// Outline if class is in class path
-			if (this.success || this.classFileEditor == null) {
+			// for this the in-memory StorageEditorInput needs a fullPath!
+
+			// didn't work in older Eclipse? JavaOutlinePage.fInput == null in
+			// this case, also ask the ClassFileEditor, which has other problems
+			// and only delivers an Outline if the class is in the class path
+			Object adapter = null;
+			if ((this.cu != null && this.cu.getSourceFileName() != null || this.classFileEditor == null)
+					&& this.compilationUnitEditor != null) {
 				adapter = this.compilationUnitEditor.getAdapter(required);
 			}
 			if (adapter == null && this.classFileEditor != null) {
 				adapter = this.classFileEditor.getAdapter(required);
 			}
 			if (adapter instanceof JavaOutlinePage) {
+				if (this.javaOutlinePage != null
+						&& this.javaOutlinePage == adapter) {
+					return this.javaOutlinePage;
+				}
 				this.javaOutlinePage = (JavaOutlinePage) adapter;
 				this.javaOutlinePage
 						.addSelectionChangedListener(new ISelectionChangedListener() {
@@ -473,11 +488,10 @@ public class ClassEditor extends MultiPageEditorPart {
 							}
 
 						});
+				return this.javaOutlinePage;
 			}
-		} else {
-			adapter = super.getAdapter(required);
 		}
-		return adapter;
+		return super.getAdapter(required);
 	}
 
 	private void initGraph() {
@@ -578,7 +592,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			final CFG cfg = md.getCfg();
 			if (cfg != null) {
 				TrDataFlowAnalysis.transform(cfg);
-				final int i = this.combo.getSelectionIndex();
+				final int i = this.cfgViewModeCombo.getSelectionIndex();
 				if (i > 0) {
 					TrIvmCfg2JavaExprStmts.transform(cfg);
 				}
@@ -598,7 +612,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	private void initGraph(final CFG cfg) {
-		final Graph g = this.graph;
+		final Graph g = this.cfgViewer;
 		// dispose old graph content, first connections than nodes
 		Object[] objects = g.getConnections().toArray();
 		for (final Object object : objects) {

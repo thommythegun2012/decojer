@@ -65,6 +65,22 @@ public abstract class Operation {
 		return this.opPc;
 	}
 
+	public String getVarName(final int varIndex) {
+		if (this.frame != null) {
+			final Var[] vars = this.frame.vars;
+			if (vars != null && varIndex < vars.length) {
+				final Var var = this.frame.vars[varIndex];
+				if (var != null) {
+					final String name = var.getName();
+					if (name != null) {
+						return name;
+					}
+				}
+			}
+		}
+		return "r" + varIndex;
+	}
+
 	@Override
 	public int hashCode() {
 		return getOpPc(); // super.hashCode();
