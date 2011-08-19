@@ -38,6 +38,14 @@ import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
+import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
+import org.decojer.cavaj.model.vm.intermediate.operations.AND;
+import org.decojer.cavaj.model.vm.intermediate.operations.ARRAYLENGTH;
+import org.decojer.cavaj.model.vm.intermediate.operations.ASTORE;
+import org.decojer.cavaj.model.vm.intermediate.operations.CHECKCAST;
+import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
+import org.decojer.cavaj.model.vm.intermediate.operations.CONVERT;
+import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
@@ -131,7 +139,63 @@ public class TrDataFlowAnalysis {
 			case Opcode.ADD: {
 				final ADD op = (ADD) operation;
 				opFrame = new Frame(opFrame);
-				// check op.getType()
+				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
+						opFrame.stack.pop()));
+				break;
+			}
+			case Opcode.ALOAD: {
+				final ALOAD op = (ALOAD) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(new Var(convertType(op.getType())));
+				break;
+			}
+			case Opcode.AND: {
+				final AND op = (AND) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
+						opFrame.stack.pop()));
+				break;
+			}
+			case Opcode.ARRAYLENGTH: {
+				final ARRAYLENGTH op = (ARRAYLENGTH) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
+				opFrame.stack.push(new Var(T.INT));
+				break;
+			}
+			case Opcode.ASTORE: {
+				final ASTORE op = (ASTORE) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
+				opFrame.stack.pop();
+				opFrame.stack.pop();
+				break;
+			}
+			case Opcode.CHECKCAST: {
+				final CHECKCAST op = (CHECKCAST) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
+				opFrame.stack.push(new Var(op.getT()));
+				break;
+			}
+			case Opcode.CMP: {
+				final CMP op = (CMP) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
+				opFrame.stack.pop();
+				opFrame.stack.push(new Var(T.INT));
+				break;
+			}
+			case Opcode.CONVERT: {
+				final CONVERT op = (CONVERT) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
+				opFrame.stack.push(new Var(convertType(op.getToType())));
+				break;
+			}
+			case Opcode.DIV: {
+				final DIV op = (DIV) operation;
+				opFrame = new Frame(opFrame);
 				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
 						opFrame.stack.pop()));
 				break;

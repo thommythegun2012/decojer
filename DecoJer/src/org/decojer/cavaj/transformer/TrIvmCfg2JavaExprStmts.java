@@ -162,8 +162,8 @@ public class TrIvmCfg2JavaExprStmts {
 				bb.pushExpression(newInfixExpression(
 						InfixExpression.Operator.PLUS, bb.popExpression(),
 						bb.popExpression()));
-			}
 				break;
+			}
 			case Opcode.ALOAD: {
 				final ALOAD op = (ALOAD) operation;
 				final ArrayAccess arrayAccess = getAst().newArrayAccess();
@@ -171,15 +171,15 @@ public class TrIvmCfg2JavaExprStmts {
 				arrayAccess.setArray(wrap(bb.popExpression(),
 						priority(arrayAccess)));
 				bb.pushExpression(arrayAccess);
-			}
 				break;
+			}
 			case Opcode.AND: {
 				final AND op = (AND) operation;
 				bb.pushExpression(newInfixExpression(
 						InfixExpression.Operator.AND, bb.popExpression(),
 						bb.popExpression()));
-			}
 				break;
+			}
 			case Opcode.ARRAYLENGTH: {
 				final ARRAYLENGTH op = (ARRAYLENGTH) operation;
 				final Expression expression = bb.popExpression();
@@ -197,8 +197,8 @@ public class TrIvmCfg2JavaExprStmts {
 					fieldAccess.setName(getAst().newSimpleName("length"));
 					bb.pushExpression(fieldAccess);
 				}
-			}
 				break;
+			}
 			case Opcode.ASTORE: {
 				final ASTORE op = (ASTORE) operation;
 				final Expression rightExpression = bb.popExpression();
@@ -234,8 +234,8 @@ public class TrIvmCfg2JavaExprStmts {
 						statement = getAst().newExpressionStatement(assignment);
 					}
 				}
-			}
 				break;
+			}
 			case Opcode.CHECKCAST: {
 				final CHECKCAST op = (CHECKCAST) operation;
 				final CastExpression castExpression = getAst()
@@ -245,8 +245,8 @@ public class TrIvmCfg2JavaExprStmts {
 				castExpression.setExpression(wrap(bb.popExpression(),
 						priority(castExpression)));
 				bb.pushExpression(castExpression);
-			}
 				break;
+			}
 			case Opcode.CMP: {
 				final CMP op = (CMP) operation;
 				// pseudo expression for following JCND, not really the correct
@@ -254,8 +254,8 @@ public class TrIvmCfg2JavaExprStmts {
 				bb.pushExpression(newInfixExpression(
 						InfixExpression.Operator.LESS_EQUALS,
 						bb.popExpression(), bb.popExpression()));
-			}
 				break;
+			}
 			case Opcode.CONVERT: {
 				final CONVERT op = (CONVERT) operation;
 				final CastExpression castExpression = getAst()
@@ -271,15 +271,15 @@ public class TrIvmCfg2JavaExprStmts {
 				castExpression.setExpression(wrap(bb.popExpression(),
 						priority(castExpression)));
 				bb.pushExpression(castExpression);
-			}
 				break;
+			}
 			case Opcode.DIV: {
 				final DIV op = (DIV) operation;
 				bb.pushExpression(newInfixExpression(
 						InfixExpression.Operator.DIVIDE, bb.popExpression(),
 						bb.popExpression()));
-			}
 				break;
+			}
 			case Opcode.DUP: {
 				final DUP op = (DUP) operation;
 				switch (op.getDupType()) {
