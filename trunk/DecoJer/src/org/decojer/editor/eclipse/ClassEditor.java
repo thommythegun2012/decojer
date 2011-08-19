@@ -280,8 +280,8 @@ public class ClassEditor extends MultiPageEditorPart {
 					this.compilationUnitEditor,
 					new MemoryStorageEditorInput(new MemoryStorage(sourceCode
 							.getBytes(), cu == null
-							|| cu.getSourceFileName() == null ? null
-							: new Path(cu.getSourceFileName()))));
+							|| cu.getSourceFileName() == null ? new Path(
+							"<Unknown>") : new Path(cu.getSourceFileName()))));
 		} catch (final PartInitException e) {
 			ErrorDialog.openError(getSite().getShell(),
 					"Error creating nested text editor", null, e.getStatus());
@@ -343,9 +343,14 @@ public class ClassEditor extends MultiPageEditorPart {
 
 				this.archiveTree = new Tree(sashForm, SWT.NONE);
 				for (final Type type : types.getTypes()) {
-					final TreeItem item = new TreeItem(this.archiveTree,
+					final TreeItem treeItem = new TreeItem(this.archiveTree,
 							SWT.NONE);
-					item.setText(type.getName());
+					treeItem.setText(type.getName());
+					if (this.fileName == null) {
+						this.archiveTree.setSelection(treeItem);
+						this.fileName = this.archiveFileName + "!"
+								+ treeItem.getText() + ".class";
+					}
 				}
 				this.archiveTree.addSelectionListener(new SelectionListener() {
 
@@ -362,16 +367,14 @@ public class ClassEditor extends MultiPageEditorPart {
 							return;
 						}
 						final TreeItem selection = selections[0];
-						final String text = selection.getText();
+						ClassEditor.this.fileName = ClassEditor.this.archiveFileName
+								+ "!" + selection.getText() + ".class";
 
 						CU cu = null;
 						String sourceCode = null;
 						ClassEditor.this.success = false;
 						try {
 							final DU du = DecoJer.createDu();
-							ClassEditor.this.fileName = ClassEditor.this.archiveFileName
-									+ "!" + text + ".class";
-							System.out.println("PATH: " + path);
 							final TD td = du.read(ClassEditor.this.fileName);
 							cu = DecoJer.createCu(td);
 							sourceCode = DecoJer.decompile(cu);
@@ -411,7 +414,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		// for debugging purposes:
 		createControlFlowGraphViewer();
 		// initialization comes first, delivers IClassFileEditorInput
-		if (this.fileName != null && this.fileName.endsWith(".class")) {
+		if (this.archiveFileName == null) {
 			createClassFileEditor();
 		}
 		createDecompilationUnitEditor();
