@@ -52,7 +52,7 @@ public class MemoryStorage implements IStorage {
 	 */
 	public MemoryStorage(final byte[] contents, final IPath fullPath) {
 		assert fullPath != null;
-		assert this.contents != null;
+		assert contents != null;
 
 		this.fullPath = fullPath;
 		this.contents = contents;
