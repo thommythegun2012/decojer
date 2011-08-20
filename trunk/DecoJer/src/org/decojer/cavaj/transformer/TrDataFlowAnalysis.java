@@ -430,6 +430,7 @@ public class TrDataFlowAnalysis {
 			case Opcode.RETURN: {
 				final RETURN op = (RETURN) operation;
 				if (op.getType() != DataType.T_VOID) {
+					opFrame = new Frame(opFrame);
 					opFrame.stack.pop();
 				}
 				break;
@@ -437,7 +438,12 @@ public class TrDataFlowAnalysis {
 			case Opcode.STORE: {
 				final STORE op = (STORE) operation;
 				opFrame = new Frame(opFrame);
-				opFrame.vars[op.getVarIndex()] = opFrame.stack.pop();
+				final Var pop = opFrame.stack.pop();
+
+				final int reg = op.getVarIndex();
+				final Var var = getCfg().getMd().getVar(reg, op.getOpPc() + 3);
+
+				opFrame.vars[op.getVarIndex()] = var != null ? var : pop;
 				break;
 			}
 			case Opcode.SUB: {
