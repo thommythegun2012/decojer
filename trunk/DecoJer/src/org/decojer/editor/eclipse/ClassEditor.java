@@ -194,12 +194,11 @@ public class ClassEditor extends MultiPageEditorPart {
 		this.classFileEditor = new ClassFileEditor();
 		try {
 			addPage(0, this.classFileEditor, getEditorInput());
+			setPageText(0, "Class File Editor");
 		} catch (final PartInitException e) {
 			ErrorDialog.openError(getSite().getShell(),
 					"Error creating nested text editor", null, e.getStatus());
 		}
-		setPageText(0, "Class File Editor");
-		setPartName(this.classFileEditor.getTitle()); // multi page editor name
 	}
 
 	private void createControlFlowGraphViewer() {
@@ -407,6 +406,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				pageContainer = sashForm;
 			}
 		}
+		setPartName(editorInput.getName());
 		return pageContainer;
 	}
 
