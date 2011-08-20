@@ -25,10 +25,14 @@ package org.decojer.cavaj.transformer;
 
 import java.util.List;
 import java.util.Stack;
+import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
+import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -46,10 +50,31 @@ import org.decojer.cavaj.model.vm.intermediate.operations.CHECKCAST;
 import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
 import org.decojer.cavaj.model.vm.intermediate.operations.CONVERT;
 import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
+import org.decojer.cavaj.model.vm.intermediate.operations.DUP;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
+import org.decojer.cavaj.model.vm.intermediate.operations.INC;
+import org.decojer.cavaj.model.vm.intermediate.operations.INSTANCEOF;
+import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
+import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
+import org.decojer.cavaj.model.vm.intermediate.operations.JCND;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
+import org.decojer.cavaj.model.vm.intermediate.operations.MONITOR;
+import org.decojer.cavaj.model.vm.intermediate.operations.MUL;
+import org.decojer.cavaj.model.vm.intermediate.operations.NEG;
+import org.decojer.cavaj.model.vm.intermediate.operations.NEW;
+import org.decojer.cavaj.model.vm.intermediate.operations.NEWARRAY;
+import org.decojer.cavaj.model.vm.intermediate.operations.OR;
+import org.decojer.cavaj.model.vm.intermediate.operations.POP;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
+import org.decojer.cavaj.model.vm.intermediate.operations.PUT;
+import org.decojer.cavaj.model.vm.intermediate.operations.REM;
+import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
 import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
+import org.decojer.cavaj.model.vm.intermediate.operations.SUB;
+import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
+import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
+import org.decojer.cavaj.model.vm.intermediate.operations.THROW;
+import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
 
 /**
  * Transform Data Flow Analysis.
@@ -57,6 +82,9 @@ import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
  * @author André Pankraz
  */
 public class TrDataFlowAnalysis {
+
+	private final static Logger LOGGER = Logger
+			.getLogger(TrDataFlowAnalysis.class.getName());
 
 	public static void transform(final CFG cfg) {
 		new TrDataFlowAnalysis(cfg).transform();
@@ -200,18 +228,181 @@ public class TrDataFlowAnalysis {
 						opFrame.stack.pop()));
 				break;
 			}
+			case Opcode.DUP: {
+				final DUP op = (DUP) operation;
+				opFrame = new Frame(opFrame);
+				switch (op.getDupType()) {
+				case DUP.T_DUP:
+					opFrame.stack.push(opFrame.stack.peek());
+					break;
+				case DUP.T_DUP_X1: {
+					final Var e1 = opFrame.stack.pop();
+					final Var e2 = opFrame.stack.pop();
+					opFrame.stack.push(e1);
+					opFrame.stack.push(e2);
+					opFrame.stack.push(e1);
+					break;
+				}
+				case DUP.T_DUP_X2: {
+					final Var e1 = opFrame.stack.pop();
+					final Var e2 = opFrame.stack.pop();
+					final Var e3 = opFrame.stack.pop();
+					opFrame.stack.push(e1);
+					opFrame.stack.push(e3);
+					opFrame.stack.push(e2);
+					opFrame.stack.push(e1);
+					break;
+				}
+				case DUP.T_DUP2: {
+					final Var e1 = opFrame.stack.pop();
+					final Var e2 = opFrame.stack.pop();
+					opFrame.stack.push(e2);
+					opFrame.stack.push(e1);
+					opFrame.stack.push(e2);
+					opFrame.stack.push(e1);
+					break;
+				}
+				case DUP.T_DUP2_X1: {
+					final Var e1 = opFrame.stack.pop();
+					final Var e2 = opFrame.stack.pop();
+					final Var e3 = opFrame.stack.pop();
+					opFrame.stack.push(e2);
+					opFrame.stack.push(e1);
+					opFrame.stack.push(e3);
+					opFrame.stack.push(e2);
+					opFrame.stack.push(e1);
+					break;
+				}
+				case DUP.T_DUP2_X2: {
+					final Var e1 = opFrame.stack.pop();
+					final Var e2 = opFrame.stack.pop();
+					final Var e3 = opFrame.stack.pop();
+					final Var e4 = opFrame.stack.pop();
+					opFrame.stack.push(e2);
+					opFrame.stack.push(e1);
+					opFrame.stack.push(e4);
+					opFrame.stack.push(e3);
+					opFrame.stack.push(e2);
+					opFrame.stack.push(e1);
+					break;
+				}
+				default:
+					LOGGER.warning("Unknown dup type '" + op.getDupType()
+							+ "'!");
+				}
+			}
+				break;
 			case Opcode.GET: {
 				final GET op = (GET) operation;
 				opFrame = new Frame(opFrame);
-				opFrame.stack.push(new Var(op.getF().getValueT()));
+				final F f = op.getF();
+				if (!f.checkAf(AF.STATIC)) {
+					opFrame.stack.pop();
+				}
+				opFrame.stack.push(new Var(f.getValueT()));
+				break;
+			}
+			case Opcode.INC: {
+				final INC op = (INC) operation;
+				// no Bool!
+				break;
+			}
+			case Opcode.INSTANCEOF: {
+				final INSTANCEOF op = (INSTANCEOF) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
+				opFrame.stack.push(new Var(T.BOOLEAN));
+				break;
+			}
+			case Opcode.INVOKE: {
+				final INVOKE op = (INVOKE) operation;
+				opFrame = new Frame(opFrame);
+				final M m = op.getM();
+				if (!m.checkAf(AF.STATIC)) {
+					opFrame.stack.pop();
+				}
+				for (int i = m.getParamTs().length; i-- > 0;) {
+					opFrame.stack.pop();
+				}
+				if (m.getReturnT() != T.VOID) {
+					opFrame.stack.push(new Var(m.getReturnT()));
+				}
+				break;
+			}
+			case Opcode.JCMP: {
+				final JCMP op = (JCMP) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
+				opFrame.stack.pop();
+				break;
+			}
+			case Opcode.JCND: {
+				final JCND op = (JCND) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
 				break;
 			}
 			case Opcode.LOAD: {
 				final LOAD op = (LOAD) operation;
 				opFrame = new Frame(opFrame);
-				// check op.getType()
 				final Var var = opFrame.vars[op.getVarIndex()];
 				opFrame.stack.push(var);
+				break;
+			}
+			case Opcode.MONITOR: {
+				final MONITOR op = (MONITOR) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
+				break;
+			}
+			case Opcode.MUL: {
+				final MUL op = (MUL) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
+						opFrame.stack.pop()));
+				break;
+			}
+			case Opcode.NEG: {
+				final NEG op = (NEG) operation;
+				// opFrame = new Frame(opFrame);
+				// no BOOL
+				break;
+			}
+			case Opcode.NEW: {
+				final NEW op = (NEW) operation;
+				opFrame.stack.push(new Var(op.getT()));
+				break;
+			}
+			case Opcode.NEWARRAY: {
+				final NEWARRAY op = (NEWARRAY) operation;
+				opFrame.stack.pop(); // no BOOL
+				opFrame.stack.push(new Var(op.getT())); // add dimension!
+				break;
+			}
+			case Opcode.OR: {
+				final OR op = (OR) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
+						opFrame.stack.pop()));
+				break;
+			}
+			case Opcode.POP: {
+				final POP op = (POP) operation;
+				opFrame = new Frame(opFrame);
+				switch (op.getPopType()) {
+				case POP.T_POP: {
+					opFrame.stack.pop();
+					break;
+				}
+				case POP.T_POP2: {
+					opFrame.stack.pop();
+					// should pop 2...add 2 for double/long
+					break;
+				}
+				default:
+					LOGGER.warning("Unknown pop type '" + op.getPopType()
+							+ "'!");
+				}
 				break;
 			}
 			case Opcode.PUSH: {
@@ -220,21 +411,74 @@ public class TrDataFlowAnalysis {
 				opFrame.stack.push(new Var(convertType(op.getType())));
 				break;
 			}
+			case Opcode.PUT: {
+				final PUT op = (PUT) operation;
+				final F f = op.getF();
+				opFrame.stack.pop();
+				if (!f.checkAf(AF.STATIC)) {
+					opFrame.stack.pop();
+				}
+				break;
+			}
+			case Opcode.REM: {
+				final REM op = (REM) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
+						opFrame.stack.pop()));
+				break;
+			}
+			case Opcode.RETURN: {
+				final RETURN op = (RETURN) operation;
+				if (op.getType() != DataType.T_VOID) {
+					opFrame.stack.pop();
+				}
+				break;
+			}
 			case Opcode.STORE: {
 				final STORE op = (STORE) operation;
 				opFrame = new Frame(opFrame);
 				opFrame.vars[op.getVarIndex()] = opFrame.stack.pop();
-				// check follow?
+				break;
+			}
+			case Opcode.SUB: {
+				final SUB op = (SUB) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
+						opFrame.stack.pop()));
+				break;
+			}
+			case Opcode.SWAP: {
+				final SWAP op = (SWAP) operation;
+				opFrame = new Frame(opFrame);
+				final Var e1 = opFrame.stack.pop();
+				final Var e2 = opFrame.stack.pop();
+				opFrame.stack.push(e1);
+				opFrame.stack.push(e2);
+				break;
+			}
+			case Opcode.SWITCH: {
+				final SWITCH op = (SWITCH) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
+				break;
+			}
+			case Opcode.THROW: {
+				final THROW op = (THROW) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.pop();
+				break;
+			}
+			case Opcode.XOR: {
+				final XOR op = (XOR) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
+						opFrame.stack.pop()));
 				break;
 			}
 			default:
-				// TODO hack for now
-				if (operation.getInStackSize() > 100) {
-					opFrame = new Frame(opFrame);
-					for (int i = operation.getInStackSize(); i-- > 0
-							&& !opFrame.stack.isEmpty();) {
-						opFrame.stack.pop();
-					}
+				if (operation.getInStackSize() > 0) {
+					LOGGER.warning("Operation '" + operation
+							+ "' with stacksize not handled!");
 				}
 			}
 		}
