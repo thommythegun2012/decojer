@@ -78,6 +78,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.REM;
 import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
 import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
 import org.decojer.cavaj.model.vm.intermediate.operations.SUB;
+import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
 import org.decojer.cavaj.model.vm.intermediate.operations.THROW;
 import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
@@ -292,8 +293,8 @@ public class TrIvmCfg2JavaExprStmts {
 					bb.pushExpression(e1);
 					bb.pushExpression(e2);
 					bb.pushExpression(e1);
-				}
 					break;
+				}
 				case DUP.T_DUP_X2: {
 					final Expression e1 = bb.popExpression();
 					final Expression e2 = bb.popExpression();
@@ -302,8 +303,8 @@ public class TrIvmCfg2JavaExprStmts {
 					bb.pushExpression(e3);
 					bb.pushExpression(e2);
 					bb.pushExpression(e1);
-				}
 					break;
+				}
 				case DUP.T_DUP2: {
 					final Expression e1 = bb.popExpression();
 					final Expression e2 = bb.popExpression();
@@ -311,8 +312,8 @@ public class TrIvmCfg2JavaExprStmts {
 					bb.pushExpression(e1);
 					bb.pushExpression(e2);
 					bb.pushExpression(e1);
-				}
 					break;
+				}
 				case DUP.T_DUP2_X1: {
 					final Expression e1 = bb.popExpression();
 					final Expression e2 = bb.popExpression();
@@ -322,8 +323,8 @@ public class TrIvmCfg2JavaExprStmts {
 					bb.pushExpression(e3);
 					bb.pushExpression(e2);
 					bb.pushExpression(e1);
-				}
 					break;
+				}
 				case DUP.T_DUP2_X2: {
 					final Expression e1 = bb.popExpression();
 					final Expression e2 = bb.popExpression();
@@ -335,14 +336,14 @@ public class TrIvmCfg2JavaExprStmts {
 					bb.pushExpression(e3);
 					bb.pushExpression(e2);
 					bb.pushExpression(e1);
-				}
 					break;
+				}
 				default:
 					LOGGER.warning("Unknown dup type '" + op.getDupType()
 							+ "'!");
 				}
-			}
 				break;
+			}
 			case Opcode.GET: {
 				final GET op = (GET) operation;
 				final F f = op.getF();
@@ -367,13 +368,13 @@ public class TrIvmCfg2JavaExprStmts {
 
 				// TODO put line number anywhere?
 				// remember as pseudo statement? but problem with boolean ops
-			}
 				break;
+			}
 			case Opcode.INC: {
 				final INC op = (INC) operation;
 				op.getConstValue();
-			}
 				break;
+			}
 			case Opcode.INSTANCEOF: {
 				final INSTANCEOF op = (INSTANCEOF) operation;
 				final InstanceofExpression instanceofExpression = getAst()
@@ -383,8 +384,8 @@ public class TrIvmCfg2JavaExprStmts {
 				instanceofExpression.setRightOperand(Types.convertType(
 						op.getT(), getTd(), getAst()));
 				bb.pushExpression(instanceofExpression);
-			}
 				break;
+			}
 			case Opcode.INVOKE: {
 				final INVOKE op = (INVOKE) operation;
 				final M m = op.getM();
@@ -464,8 +465,8 @@ public class TrIvmCfg2JavaExprStmts {
 						bb.pushExpression(methodExpression);
 					}
 				}
-			}
 				break;
+			}
 			case Opcode.JCMP: {
 				final JCMP op = (JCMP) operation;
 				// invert all operators and switch out edge predicates
@@ -497,8 +498,8 @@ public class TrIvmCfg2JavaExprStmts {
 				statement = getAst().newIfStatement();
 				((IfStatement) statement).setExpression(newInfixExpression(
 						operator, bb.popExpression(), bb.popExpression()));
-			}
 				break;
+			}
 			case Opcode.JCND: {
 				final JCND op = (JCND) operation;
 				Expression expression = bb.popExpression();
@@ -554,8 +555,8 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				statement = getAst().newIfStatement();
 				((IfStatement) statement).setExpression(expression);
-			}
 				break;
+			}
 			case Opcode.LOAD: {
 				final LOAD op = (LOAD) operation;
 
@@ -565,13 +566,13 @@ public class TrIvmCfg2JavaExprStmts {
 				} else {
 					bb.pushExpression(getAst().newSimpleName(name));
 				}
-			}
 				break;
+			}
 			case Opcode.MONITOR: {
 				final MONITOR op = (MONITOR) operation;
 				bb.popExpression();
-			}
 				break;
+			}
 			case Opcode.MUL: {
 				final MUL op = (MUL) operation;
 				bb.pushExpression(newInfixExpression(
@@ -583,8 +584,8 @@ public class TrIvmCfg2JavaExprStmts {
 				final NEG op = (NEG) operation;
 				bb.pushExpression(newPrefixExpression(
 						PrefixExpression.Operator.MINUS, bb.popExpression()));
-			}
 				break;
+			}
 			case Opcode.NEW: {
 				final NEW op = (NEW) operation;
 				final ClassInstanceCreation classInstanceCreation = getAst()
@@ -593,8 +594,8 @@ public class TrIvmCfg2JavaExprStmts {
 						getTd(), getAst()));
 				// classInstanceCreation.setAnonymousClassDeclaration(decl);
 				bb.pushExpression(classInstanceCreation);
-			}
 				break;
+			}
 			case Opcode.NEWARRAY: {
 				final NEWARRAY op = (NEWARRAY) operation;
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
@@ -602,15 +603,15 @@ public class TrIvmCfg2JavaExprStmts {
 						Types.convertType(op.getT(), getTd(), getAst())));
 				arrayCreation.dimensions().add(bb.popExpression());
 				bb.pushExpression(arrayCreation);
-			}
 				break;
+			}
 			case Opcode.OR: {
 				final OR op = (OR) operation;
 				bb.pushExpression(newInfixExpression(
 						InfixExpression.Operator.OR, bb.popExpression(),
 						bb.popExpression()));
-			}
 				break;
+			}
 			case Opcode.POP: {
 				final POP op = (POP) operation;
 				switch (op.getPopType()) {
@@ -630,8 +631,8 @@ public class TrIvmCfg2JavaExprStmts {
 					LOGGER.warning("Unknown pop type '" + op.getPopType()
 							+ "'!");
 				}
-			}
 				break;
+			}
 			case Opcode.PUSH: {
 				final PUSH op = (PUSH) operation;
 				final Expression expr;
@@ -673,8 +674,8 @@ public class TrIvmCfg2JavaExprStmts {
 				if (expr != null) {
 					bb.pushExpression(expr);
 				}
-			}
 				break;
+			}
 			case Opcode.PUT: {
 				final PUT op = (PUT) operation;
 				final Expression rightExpression = bb.popExpression();
@@ -704,15 +705,15 @@ public class TrIvmCfg2JavaExprStmts {
 				} else {
 					statement = getAst().newExpressionStatement(assignment);
 				}
-			}
 				break;
+			}
 			case Opcode.REM: {
 				final REM op = (REM) operation;
 				bb.pushExpression(newInfixExpression(
 						InfixExpression.Operator.REMAINDER, bb.popExpression(),
 						bb.popExpression()));
-			}
 				break;
+			}
 			case Opcode.RETURN: {
 				final RETURN op = (RETURN) operation;
 				final ReturnStatement returnStatement = getAst()
@@ -721,8 +722,8 @@ public class TrIvmCfg2JavaExprStmts {
 					returnStatement.setExpression(wrap(bb.popExpression()));
 				}
 				statement = returnStatement;
-			}
 				break;
+			}
 			case Opcode.STORE: {
 				final STORE op = (STORE) operation;
 
@@ -743,38 +744,39 @@ public class TrIvmCfg2JavaExprStmts {
 				} else {
 					statement = getAst().newExpressionStatement(assignment);
 				}
-			}
 				break;
+			}
 			case Opcode.SUB: {
 				final SUB op = (SUB) operation;
 				bb.pushExpression(newInfixExpression(
 						InfixExpression.Operator.MINUS, bb.popExpression(),
 						bb.popExpression()));
-			}
 				break;
+			}
 			case Opcode.SWAP: {
+				final SWAP op = (SWAP) operation;
 				final Expression e1 = bb.popExpression();
 				final Expression e2 = bb.popExpression();
 				bb.pushExpression(e1);
 				bb.pushExpression(e2);
-			}
 				break;
+			}
 			case Opcode.SWITCH: {
 				final SWITCH op = (SWITCH) operation;
 				final SwitchStatement switchStatement = getAst()
 						.newSwitchStatement();
 				switchStatement.setExpression(wrap(bb.popExpression()));
 				statement = switchStatement;
-			}
 				break;
+			}
 			case Opcode.THROW: {
 				final THROW op = (THROW) operation;
 				final ThrowStatement throwStatement = getAst()
 						.newThrowStatement();
 				throwStatement.setExpression(wrap(bb.popExpression()));
 				statement = throwStatement;
-			}
 				break;
+			}
 			case Opcode.XOR: {
 				final XOR op = (XOR) operation;
 				final Expression expression = bb.popExpression();
@@ -789,8 +791,8 @@ public class TrIvmCfg2JavaExprStmts {
 							InfixExpression.Operator.XOR, expression,
 							bb.popExpression()));
 				}
-			}
 				break;
+			}
 			default:
 				throw new RuntimeException(
 						"Unknown intermediate vm operation '" + operation
