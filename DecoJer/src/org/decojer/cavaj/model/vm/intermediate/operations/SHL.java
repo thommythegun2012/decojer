@@ -21,84 +21,33 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model.vm.intermediate;
+package org.decojer.cavaj.model.vm.intermediate.operations;
 
-public interface Opcode {
+import org.decojer.cavaj.model.vm.intermediate.Opcode;
+import org.decojer.cavaj.model.vm.intermediate.Operation;
 
-	int ADD = 1;
+public class SHL extends Operation {
 
-	int ALOAD = 2;
+	private final int type;
 
-	int AND = 3;
+	public SHL(final int opPc, final int opCode, final int opLine,
+			final int type) {
+		super(opPc, opCode, opLine);
+		this.type = type;
+	}
 
-	int ARRAYLENGTH = 4;
+	@Override
+	public int getInStackSize() {
+		return 2;
+	}
 
-	int ASTORE = 5;
+	@Override
+	public int getOpcode() {
+		return Opcode.SHL;
+	}
 
-	int CHECKCAST = 6;
-
-	int CMP = 7;
-
-	int CONVERT = 8;
-
-	int DIV = 9;
-
-	int DUP = 10;
-
-	int GET = 11;
-
-	int GOTO = 12;
-
-	int INC = 13;
-
-	int INSTANCEOF = 14;
-
-	int INVOKE = 15;
-
-	int JCMP = 16;
-
-	int JCND = 17;
-
-	int LOAD = 18;
-
-	int MONITOR = 19;
-
-	int MUL = 20;
-
-	int NEG = 21;
-
-	int NEW = 22;
-
-	int NEWARRAY = 23;
-
-	int OR = 24;
-
-	int POP = 25;
-
-	int PUSH = 26;
-
-	int PUT = 27;
-
-	int REM = 28;
-
-	int RET = 29;
-
-	int RETURN = 30;
-
-	int SHL = 31;
-
-	int SHR = 32;
-
-	int STORE = 33;
-
-	int SUB = 34;
-
-	int SWAP = 35;
-
-	int SWITCH = 36;
-
-	int THROW = 37;
-
-	int XOR = 38;
+	public int getType() {
+		return this.type;
+	}
 
 }
