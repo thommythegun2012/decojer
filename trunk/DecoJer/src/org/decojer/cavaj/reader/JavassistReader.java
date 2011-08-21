@@ -124,6 +124,8 @@ import org.decojer.cavaj.model.vm.intermediate.operations.PUT;
 import org.decojer.cavaj.model.vm.intermediate.operations.REM;
 import org.decojer.cavaj.model.vm.intermediate.operations.RET;
 import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
+import org.decojer.cavaj.model.vm.intermediate.operations.SHL;
+import org.decojer.cavaj.model.vm.intermediate.operations.SHR;
 import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
 import org.decojer.cavaj.model.vm.intermediate.operations.SUB;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
@@ -615,6 +617,48 @@ public class JavassistReader {
 				}
 				bb.addOperation(new ASTORE(opPc, opCode, opLine, type));
 				break;
+			/**************
+			 * CHECKCAST *
+			 **************/
+			case Opcode.CHECKCAST: {
+				final int cpClassIndex = codeReader.readUnsignedShort();
+				// cp arrays: "[L<classname>;" instead of "<classname>"!!!
+				bb.addOperation(new CHECKCAST(opPc, opCode, opLine, readType(
+						constPool.getClassInfo(cpClassIndex), du)));
+				break;
+			}
+			/*******
+			 * CMP *
+			 *******/
+			case Opcode.DCMPG:
+				type = DataType.T_DOUBLE;
+				iValue = CMP.T_G;
+				// fall through
+			case Opcode.DCMPL:
+				if (type < 0) {
+					type = DataType.T_DOUBLE;
+					iValue = CMP.T_L;
+				}
+				// fall through
+			case Opcode.FCMPG:
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+					iValue = CMP.T_G;
+				}
+				// fall through
+			case Opcode.FCMPL:
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+					iValue = CMP.T_L;
+				}
+				// fall through
+			case Opcode.LCMP:
+				if (type < 0) {
+					type = DataType.T_LONG;
+					iValue = CMP.T_0;
+				}
+				bb.addOperation(new CMP(opPc, opCode, opLine, type, iValue));
+				break;
 			/***********
 			 * CONVERT *
 			 ***********/
@@ -708,38 +752,6 @@ public class JavassistReader {
 				bb.addOperation(new CONVERT(opPc, opCode, opLine, type, iValue));
 				break;
 			/*******
-			 * CMP *
-			 *******/
-			case Opcode.DCMPG:
-				type = DataType.T_DOUBLE;
-				iValue = CMP.T_G;
-				// fall through
-			case Opcode.DCMPL:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
-					iValue = CMP.T_L;
-				}
-				// fall through
-			case Opcode.FCMPG:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
-					iValue = CMP.T_G;
-				}
-				// fall through
-			case Opcode.FCMPL:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
-					iValue = CMP.T_L;
-				}
-				// fall through
-			case Opcode.LCMP:
-				if (type < 0) {
-					type = DataType.T_LONG;
-					iValue = CMP.T_0;
-				}
-				bb.addOperation(new CMP(opPc, opCode, opLine, type, iValue));
-				break;
-			/*******
 			 * DIV *
 			 *******/
 			case Opcode.DDIV:
@@ -800,16 +812,16 @@ public class JavassistReader {
 			case Opcode.GETSTATIC: {
 				final int cpFieldIndex = codeReader.readUnsignedShort();
 
-				final T getT = readType(
+				final T ownerT = readType(
 						constPool.getFieldrefClassName(cpFieldIndex), du);
-				final T getValueT = du.getDescT(constPool
-						.getFieldrefType(cpFieldIndex));
-				final F getF = getT.getF(
-						constPool.getFieldrefName(cpFieldIndex), getValueT);
+				final T t = du
+						.getDescT(constPool.getFieldrefType(cpFieldIndex));
+				final F f = ownerT.getF(
+						constPool.getFieldrefName(cpFieldIndex), t);
 				if (opCode == Opcode.GETSTATIC) {
-					getF.markAf(AF.STATIC);
+					f.markAf(AF.STATIC);
 				}
-				bb.addOperation(new GET(opPc, opCode, opLine, getF));
+				bb.addOperation(new GET(opPc, opCode, opLine, f));
 				break;
 			}
 			/********
@@ -837,8 +849,17 @@ public class JavassistReader {
 				final int constValue = codeReader.readUnsignedByte();
 				bb.addOperation(new INC(opPc, opCode, opLine, DataType.T_INT,
 						varIndex, constValue));
-			}
 				break;
+			}
+			/**************
+			 * INSTANCEOF *
+			 **************/
+			case Opcode.INSTANCEOF: {
+				final int cpClassIndex = codeReader.readUnsignedShort();
+				bb.addOperation(new INSTANCEOF(opPc, opCode, opLine, readType(
+						constPool.getClassInfo(cpClassIndex), du)));
+				break;
+			}
 			/**********
 			 * INVOKE *
 			 **********/
@@ -1193,6 +1214,64 @@ public class JavassistReader {
 				bb.addOperation(new LOAD(opPc, opCode, opLine, type, iValue));
 				break;
 			}
+			/***********
+			 * MONITOR *
+			 ***********/
+			case Opcode.MONITORENTER:
+				type = MONITOR.T_ENTER;
+				// fall through
+			case Opcode.MONITOREXIT:
+				if (type < 0) {
+					type = MONITOR.T_EXIT;
+				}
+				bb.addOperation(new MONITOR(opPc, opCode, opLine, type));
+				break;
+			/*******
+			 * MUL *
+			 *******/
+			case Opcode.DMUL:
+				type = DataType.T_DOUBLE;
+				// fall through
+			case Opcode.FMUL:
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+				}
+				// fall through
+			case Opcode.IMUL:
+				if (type < 0) {
+					type = DataType.T_INT;
+				}
+				// fall through
+			case Opcode.LMUL:
+				if (type < 0) {
+					type = DataType.T_LONG;
+				}
+				bb.addOperation(new MUL(opPc, opCode, opLine, type));
+				break;
+			/*******
+			 * NEG *
+			 *******/
+			case Opcode.DNEG:
+				if (type < 0) {
+					type = DataType.T_DOUBLE;
+				}
+				// fall through
+			case Opcode.FNEG:
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+				}
+				// fall through
+			case Opcode.INEG:
+				if (type < 0) {
+					type = DataType.T_INT;
+				}
+				// fall through
+			case Opcode.LNEG:
+				if (type < 0) {
+					type = DataType.T_LONG;
+				}
+				bb.addOperation(new NEG(opPc, opCode, opLine, type));
+				break;
 			/*******
 			 * NEW *
 			 *******/
@@ -1209,8 +1288,8 @@ public class JavassistReader {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				bb.addOperation(new NEWARRAY(opPc, opCode, opLine, readType(
 						constPool.getClassInfo(cpClassIndex), du), 1));
-			}
 				break;
+			}
 			case Opcode.NEWARRAY: {
 				type = codeReader.readUnsignedByte();
 				final String typeName = new String[] { null, null, null, null,
@@ -1220,14 +1299,38 @@ public class JavassistReader {
 						int.class.getName(), long.class.getName() }[type];
 				bb.addOperation(new NEWARRAY(opPc, opCode, opLine, du
 						.getT(typeName), 1));
-			}
 				break;
+			}
 			case Opcode.MULTIANEWARRAY: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				final int dimensions = codeReader.readUnsignedByte();
 				bb.addOperation(new NEWARRAY(opPc, opCode, opLine, readType(
 						constPool.getClassInfo(cpClassIndex), du), dimensions));
+				break;
 			}
+			/******
+			 * OR *
+			 ******/
+			case Opcode.IOR:
+				type = DataType.T_INT;
+				// fall through
+			case Opcode.LOR:
+				if (type < 0) {
+					type = DataType.T_LONG;
+				}
+				bb.addOperation(new OR(opPc, opCode, opLine, type));
+				break;
+			/*******
+			 * POP *
+			 *******/
+			case Opcode.POP:
+				type = POP.T_POP;
+				// fall through
+			case Opcode.POP2:
+				if (type < 0) {
+					type = POP.T_POP2;
+				}
+				bb.addOperation(new POP(opPc, opCode, opLine, type));
 				break;
 			/********
 			 * PUSH *
@@ -1424,18 +1527,42 @@ public class JavassistReader {
 			case Opcode.PUTSTATIC: {
 				final int cpFieldIndex = codeReader.readUnsignedShort();
 
-				final T putT = readType(
+				final T ownerT = readType(
 						constPool.getFieldrefClassName(cpFieldIndex), du);
-				final T putValueT = du.getDescT(constPool
-						.getFieldrefType(cpFieldIndex));
-				final F putF = putT.getF(
-						constPool.getFieldrefName(cpFieldIndex), putValueT);
+				final T t = du
+						.getDescT(constPool.getFieldrefType(cpFieldIndex));
+				final F f = ownerT.getF(
+						constPool.getFieldrefName(cpFieldIndex), t);
 				if (opCode == Opcode.PUTSTATIC) {
-					putF.markAf(AF.STATIC);
+					f.markAf(AF.STATIC);
 				}
-				bb.addOperation(new PUT(opPc, opCode, opLine, putF));
+				bb.addOperation(new PUT(opPc, opCode, opLine, f));
 				break;
 			}
+			/*******
+			 * REM *
+			 *******/
+			case Opcode.DREM:
+				if (type < 0) {
+					type = DataType.T_DOUBLE;
+				}
+				// fall through
+			case Opcode.FREM:
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+				}
+				// fall through
+			case Opcode.IREM:
+				if (type < 0) {
+					type = DataType.T_INT;
+				}
+				// fall through
+			case Opcode.LREM:
+				if (type < 0) {
+					type = DataType.T_LONG;
+				}
+				bb.addOperation(new REM(opPc, opCode, opLine, type));
+				break;
 			/*******
 			 * RET *
 			 *******/
@@ -1444,8 +1571,8 @@ public class JavassistReader {
 						: codeReader.readUnsignedByte();
 				bb.addOperation(new RET(opPc, opCode, opLine, varIndex));
 				codeReader.pc = codeReader.code.length; // next open pc
-			}
 				break;
+			}
 			/**********
 			 * RETURN *
 			 **********/
@@ -1630,93 +1757,32 @@ public class JavassistReader {
 				bb.addOperation(new STORE(opPc, opCode, opLine, type, iValue));
 				break;
 			}
-			/*********
-			 * THROW *
-			 *********/
-			case Opcode.ATHROW:
-				bb.addOperation(new THROW(opPc, opCode, opLine));
-				// next open pc
-				codeReader.pc = codeReader.code.length; // next open pc
-				break;
-			/**************
-			 * CHECKCAST *
-			 **************/
-			case Opcode.CHECKCAST: {
-				final int cpClassIndex = codeReader.readUnsignedShort();
-				// cp arrays: "[L<classname>;" instead of "<classname>"!!!
-				bb.addOperation(new CHECKCAST(opPc, opCode, opLine, readType(
-						constPool.getClassInfo(cpClassIndex), du)));
-			}
-				break;
 			/*******
-			 * MUL *
+			 * SHL *
 			 *******/
-			case Opcode.DMUL:
-				type = DataType.T_DOUBLE;
+			case Opcode.ISHL:
+				type = DataType.T_INT;
 				// fall through
-			case Opcode.FMUL:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
-				}
-				// fall through
-			case Opcode.IMUL:
-				if (type < 0) {
-					type = DataType.T_INT;
-				}
-				// fall through
-			case Opcode.LMUL:
+			case Opcode.LSHL:
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new MUL(opPc, opCode, opLine, type));
+				bb.addOperation(new SHL(opPc, opCode, opLine, type));
 				break;
 			/*******
-			 * NEG *
+			 * SHR *
 			 *******/
-			case Opcode.DNEG:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
-				}
+			case Opcode.ISHR:
+			case Opcode.IUSHR:
+				type = DataType.T_INT;
 				// fall through
-			case Opcode.FNEG:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
-				}
-				// fall through
-			case Opcode.INEG:
-				if (type < 0) {
-					type = DataType.T_INT;
-				}
-				// fall through
-			case Opcode.LNEG:
+			case Opcode.LSHR:
+			case Opcode.LUSHR:
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new NEG(opPc, opCode, opLine, type));
-				break;
-			/*******
-			 * REM *
-			 *******/
-			case Opcode.DREM:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
-				}
-				// fall through
-			case Opcode.FREM:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
-				}
-				// fall through
-			case Opcode.IREM:
-				if (type < 0) {
-					type = DataType.T_INT;
-				}
-				// fall through
-			case Opcode.LREM:
-				if (type < 0) {
-					type = DataType.T_LONG;
-				}
-				bb.addOperation(new REM(opPc, opCode, opLine, type));
+				bb.addOperation(new SHR(opPc, opCode, opLine, type,
+						opCode == Opcode.IUSHR || opCode == Opcode.LUSHR));
 				break;
 			/*******
 			 * SUB *
@@ -1740,49 +1806,11 @@ public class JavassistReader {
 				}
 				bb.addOperation(new SUB(opPc, opCode, opLine, type));
 				break;
-			// *** INSTANCEOF ***
-			case Opcode.INSTANCEOF: {
-				final int cpClassIndex = codeReader.readUnsignedShort();
-				bb.addOperation(new INSTANCEOF(opPc, opCode, opLine, readType(
-						constPool.getClassInfo(cpClassIndex), du)));
-			}
-				break;
-			/******
-			 * OR *
-			 ******/
-			case Opcode.IOR:
-				type = DataType.T_INT;
-				// fall through
-			case Opcode.LOR:
-				if (type < 0) {
-					type = DataType.T_LONG;
-				}
-				bb.addOperation(new OR(opPc, opCode, opLine, type));
-				break;
-			case Opcode.ISHL:
-				// fall through
-			case Opcode.LSHL:
-				break;
-			case Opcode.ISHR:
-				// fall through
-			case Opcode.LSHR:
-				break;
-			case Opcode.IUSHR:
-				// fall through
-			case Opcode.LUSHR:
-				break;
-			/*******
-			 * XOR *
-			 *******/
-			case Opcode.IXOR:
-				type = DataType.T_INT;
-				// fall through
-			case Opcode.LXOR: {
-				if (type < 0) {
-					type = DataType.T_LONG;
-				}
-				bb.addOperation(new XOR(opPc, opCode, opLine, type));
-			}
+			/********
+			 * SWAP *
+			 ********/
+			case Opcode.SWAP:
+				bb.addOperation(new SWAP(opPc, opCode, opLine));
 				break;
 			/**********
 			 * SWITCH *
@@ -1871,38 +1899,29 @@ public class JavassistReader {
 				bb.addOperation(new SWITCH(opPc, opCode, opLine));
 				// next open pc
 				codeReader.pc = codeReader.code.length; // next open pc
-			}
 				break;
-			/***********
-			 * MONITOR *
-			 ***********/
-			case Opcode.MONITORENTER:
-				type = MONITOR.T_ENTER;
-				// fall through
-			case Opcode.MONITOREXIT:
-				if (type < 0) {
-					type = MONITOR.T_EXIT;
-				}
-				bb.addOperation(new MONITOR(opPc, opCode, opLine, type));
+			}
+			/*********
+			 * THROW *
+			 *********/
+			case Opcode.ATHROW:
+				bb.addOperation(new THROW(opPc, opCode, opLine));
+				// next open pc
+				codeReader.pc = codeReader.code.length; // next open pc
 				break;
 			/*******
-			 * POP *
+			 * XOR *
 			 *******/
-			case Opcode.POP:
-				type = POP.T_POP;
+			case Opcode.IXOR:
+				type = DataType.T_INT;
 				// fall through
-			case Opcode.POP2:
+			case Opcode.LXOR: {
 				if (type < 0) {
-					type = POP.T_POP2;
+					type = DataType.T_LONG;
 				}
-				bb.addOperation(new POP(opPc, opCode, opLine, type));
+				bb.addOperation(new XOR(opPc, opCode, opLine, type));
 				break;
-			/********
-			 * SWAP *
-			 ********/
-			case Opcode.SWAP:
-				bb.addOperation(new SWAP(opPc, opCode, opLine));
-				break;
+			}
 			/*******
 			 * WIDE *
 			 *******/

@@ -24,18 +24,51 @@
 package org.decojer.cavaj.reader.asm;
 
 import java.lang.annotation.RetentionPolicy;
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.vm.intermediate.DataType;
+import org.decojer.cavaj.model.vm.intermediate.Operation;
+import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
+import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
+import org.decojer.cavaj.model.vm.intermediate.operations.AND;
+import org.decojer.cavaj.model.vm.intermediate.operations.ARRAYLENGTH;
+import org.decojer.cavaj.model.vm.intermediate.operations.ASTORE;
+import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
+import org.decojer.cavaj.model.vm.intermediate.operations.CONVERT;
+import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
+import org.decojer.cavaj.model.vm.intermediate.operations.DUP;
+import org.decojer.cavaj.model.vm.intermediate.operations.GET;
+import org.decojer.cavaj.model.vm.intermediate.operations.INC;
+import org.decojer.cavaj.model.vm.intermediate.operations.MONITOR;
+import org.decojer.cavaj.model.vm.intermediate.operations.MUL;
+import org.decojer.cavaj.model.vm.intermediate.operations.NEG;
+import org.decojer.cavaj.model.vm.intermediate.operations.NEWARRAY;
+import org.decojer.cavaj.model.vm.intermediate.operations.OR;
+import org.decojer.cavaj.model.vm.intermediate.operations.POP;
+import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
+import org.decojer.cavaj.model.vm.intermediate.operations.PUT;
+import org.decojer.cavaj.model.vm.intermediate.operations.REM;
+import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
+import org.decojer.cavaj.model.vm.intermediate.operations.SHL;
+import org.decojer.cavaj.model.vm.intermediate.operations.SHR;
+import org.decojer.cavaj.model.vm.intermediate.operations.SUB;
+import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
+import org.decojer.cavaj.model.vm.intermediate.operations.THROW;
+import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
 import org.ow2.asm.AnnotationVisitor;
 import org.ow2.asm.Attribute;
 import org.ow2.asm.Handle;
 import org.ow2.asm.Label;
 import org.ow2.asm.MethodVisitor;
+import org.ow2.asm.Opcodes;
 
 /**
  * Read method visitor.
@@ -52,6 +85,12 @@ public class ReadMethodVisitor implements MethodVisitor {
 	private final DU du;
 
 	private MD md;
+
+	private ArrayList<Operation> operations;
+
+	private int opLine;
+
+	private int opPc;
 
 	private A[][] paramAss;
 
@@ -70,6 +109,11 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 		this.du = du;
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+	}
+
+	private void addOperation(final Operation operation) {
+		this.operations.add(operation);
+		++this.opPc;
 	}
 
 	/**
@@ -130,7 +174,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitCode() {
-		LOGGER.warning("### method visitCode ### ");
+		this.operations = new ArrayList<Operation>();
 	}
 
 	@Override
@@ -147,42 +191,707 @@ public class ReadMethodVisitor implements MethodVisitor {
 	@Override
 	public void visitFieldInsn(final int opcode, final String owner,
 			final String name, final String desc) {
-		if (TODOCODE) {
-			LOGGER.warning("### method visitFieldInsn ### " + opcode + " : "
-					+ owner + " : " + name + " : " + desc);
-			// ### 178 : java/lang/System : out : Ljava/io/PrintStream;
+		// ### 178 : java/lang/System : out : Ljava/io/PrintStream;
+		switch (opcode) {
+		/*******
+		 * GET *
+		 *******/
+		case Opcodes.GETFIELD:
+		case Opcodes.GETSTATIC: {
+			final T ownerT = this.du.getT(owner.replace('/', '.'));
+			final T t = this.du.getDescT(desc);
+			final F f = ownerT.getF(name, t);
+			if (opcode == Opcodes.GETSTATIC) {
+				f.markAf(AF.STATIC);
+			}
+			addOperation(new GET(this.opPc, opcode, this.opLine, f));
+			return;
+		}
+		/*******
+		 * PUT *
+		 *******/
+		case Opcodes.PUTFIELD:
+		case Opcodes.PUTSTATIC: {
+			final T ownerT = this.du.getT(owner.replace('/', '.'));
+			final T t = this.du.getDescT(desc);
+			final F f = ownerT.getF(name, t);
+			if (opcode == Opcodes.PUTSTATIC) {
+				f.markAf(AF.STATIC);
+			}
+			addOperation(new PUT(this.opPc, opcode, this.opLine, f));
+			return;
+		}
+		default:
+			LOGGER.warning("Unknown field insn opcode '" + opcode + "'!");
 		}
 	}
 
 	@Override
 	public void visitFrame(final int type, final int nLocal,
 			final Object[] local, final int nStack, final Object[] stack) {
-		if (TODOCODE) {
-			LOGGER.warning("### method visitFrame ### " + type + " : " + nLocal
-					+ " : " + local + " : " + nStack + " : " + stack);
-		}
+		// LOGGER.info("### method visitFrame ### " + type + " : " + nLocal
+		// + " : " + local + " : " + nStack + " : " + stack);
 	}
 
 	@Override
 	public void visitIincInsn(final int var, final int increment) {
-		if (TODOCODE) {
-			LOGGER.warning("### method visitIincInsn ### " + var + " : "
-					+ increment);
-		}
+		/*******
+		 * INC *
+		 *******/
+		addOperation(new INC(this.opPc, Opcodes.IINC, this.opLine,
+				DataType.T_INT, var, increment));
 	}
 
 	@Override
 	public void visitInsn(final int opcode) {
-		if (TODOCODE) {
-			LOGGER.warning("### method visitInsn ### " + opcode);
+		int type = -1;
+		int iValue = Integer.MIN_VALUE;
+		Object oValue = null;
+
+		switch (opcode) {
+		case Opcodes.NOP:
+			// nothing to do, ignore
+			break;
+		/*******
+		 * ADD *
+		 *******/
+		case Opcodes.DADD:
+			type = DataType.T_DOUBLE;
+			// fall through
+		case Opcodes.FADD:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.IADD:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.LADD:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new ADD(this.opPc, opcode, this.opLine, type));
+			break;
+		/*********
+		 * ALOAD *
+		 *********/
+		case Opcodes.AALOAD:
+			type = DataType.T_AREF;
+			// fall through
+		case Opcodes.BALOAD:
+			if (type < 0) {
+				type = DataType.T_BOOLEAN;
+			}
+			// fall through
+		case Opcodes.CALOAD:
+			if (type < 0) {
+				type = DataType.T_CHAR;
+			}
+			// fall through
+		case Opcodes.DALOAD:
+			if (type < 0) {
+				type = DataType.T_DOUBLE;
+			}
+			// fall through
+		case Opcodes.FALOAD:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.IALOAD:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.LALOAD:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			// fall through
+		case Opcodes.SALOAD:
+			if (type < 0) {
+				type = DataType.T_SHORT;
+			}
+			addOperation(new ALOAD(this.opPc, opcode, this.opLine, type));
+			break;
+		/*******
+		 * AND *
+		 *******/
+		case Opcodes.IAND:
+			type = DataType.T_INT;
+			// fall through
+		case Opcodes.LAND:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new AND(this.opPc, opcode, this.opLine, type));
+			break;
+		/***************
+		 * ARRAYLENGTH *
+		 ***************/
+		case Opcodes.ARRAYLENGTH:
+			addOperation(new ARRAYLENGTH(this.opPc, opcode, this.opLine));
+			break;
+		/**********
+		 * ASTORE *
+		 **********/
+		case Opcodes.AASTORE:
+			type = DataType.T_AREF;
+			// fall through
+		case Opcodes.BASTORE:
+			if (type < 0) {
+				type = DataType.T_BOOLEAN;
+			}
+			// fall through
+		case Opcodes.CASTORE:
+			if (type < 0) {
+				type = DataType.T_CHAR;
+			}
+			// fall through
+		case Opcodes.DASTORE:
+			if (type < 0) {
+				type = DataType.T_DOUBLE;
+			}
+			// fall through
+		case Opcodes.FASTORE:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.IASTORE:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.LASTORE:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			// fall through
+		case Opcodes.SASTORE:
+			if (type < 0) {
+				type = DataType.T_SHORT;
+			}
+			addOperation(new ASTORE(this.opPc, opcode, this.opLine, type));
+			break;
+		/*******
+		 * CMP *
+		 *******/
+		case Opcodes.DCMPG:
+			type = DataType.T_DOUBLE;
+			iValue = CMP.T_G;
+			// fall through
+		case Opcodes.DCMPL:
+			if (type < 0) {
+				type = DataType.T_DOUBLE;
+				iValue = CMP.T_L;
+			}
+			// fall through
+		case Opcodes.FCMPG:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+				iValue = CMP.T_G;
+			}
+			// fall through
+		case Opcodes.FCMPL:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+				iValue = CMP.T_L;
+			}
+			// fall through
+		case Opcodes.LCMP:
+			if (type < 0) {
+				type = DataType.T_LONG;
+				iValue = CMP.T_0;
+			}
+			addOperation(new CMP(this.opPc, opcode, this.opLine, type, iValue));
+			break;
+		/***********
+		 * CONVERT *
+		 ***********/
+		case Opcodes.D2F:
+			type = DataType.T_DOUBLE;
+			iValue = DataType.T_FLOAT;
+			// fall through
+		case Opcodes.D2I:
+			if (type < 0) {
+				type = DataType.T_DOUBLE;
+				iValue = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.D2L:
+			if (type < 0) {
+				type = DataType.T_DOUBLE;
+				iValue = DataType.T_LONG;
+			}
+			// fall through
+		case Opcodes.F2D:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+				iValue = DataType.T_DOUBLE;
+			}
+			// fall through
+		case Opcodes.F2I:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+				iValue = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.F2L:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+				iValue = DataType.T_LONG;
+			}
+			// fall through
+		case Opcodes.I2B:
+			if (type < 0) {
+				type = DataType.T_INT;
+				iValue = DataType.T_BYTE;
+			}
+			// fall through
+		case Opcodes.I2C:
+			if (type < 0) {
+				type = DataType.T_INT;
+				iValue = DataType.T_CHAR;
+			}
+			// fall through
+		case Opcodes.I2D:
+			if (type < 0) {
+				type = DataType.T_INT;
+				iValue = DataType.T_DOUBLE;
+			}
+			// fall through
+		case Opcodes.I2F:
+			if (type < 0) {
+				type = DataType.T_INT;
+				iValue = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.I2L:
+			if (type < 0) {
+				type = DataType.T_INT;
+				iValue = DataType.T_LONG;
+			}
+			// fall through
+		case Opcodes.I2S:
+			if (type < 0) {
+				type = DataType.T_INT;
+				iValue = DataType.T_SHORT;
+			}
+			// fall through
+		case Opcodes.L2D:
+			if (type < 0) {
+				type = DataType.T_LONG;
+				iValue = DataType.T_DOUBLE;
+			}
+			// fall through
+		case Opcodes.L2F:
+			if (type < 0) {
+				type = DataType.T_LONG;
+				iValue = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.L2I:
+			if (type < 0) {
+				type = DataType.T_LONG;
+				iValue = DataType.T_INT;
+			}
+			addOperation(new CONVERT(this.opPc, opcode, this.opLine, type,
+					iValue));
+			break;
+		/*******
+		 * DIV *
+		 *******/
+		case Opcodes.DDIV:
+			type = DataType.T_DOUBLE;
+			// fall through
+		case Opcodes.FDIV:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.IDIV:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.LDIV:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new DIV(this.opPc, opcode, this.opLine, type));
+			break;
+		/*******
+		 * DUP *
+		 *******/
+		case Opcodes.DUP:
+			type = DUP.T_DUP;
+			// fall through
+		case Opcodes.DUP_X1:
+			if (type < 0) {
+				type = DUP.T_DUP_X1;
+			}
+			// fall through
+		case Opcodes.DUP_X2:
+			if (type < 0) {
+				type = DUP.T_DUP_X2;
+			}
+			// fall through
+		case Opcodes.DUP2:
+			if (type < 0) {
+				type = DUP.T_DUP2;
+			}
+			// fall through
+		case Opcodes.DUP2_X1:
+			if (type < 0) {
+				type = DUP.T_DUP2_X1;
+			}
+			// fall through
+		case Opcodes.DUP2_X2:
+			if (type < 0) {
+				type = DUP.T_DUP2_X2;
+			}
+			addOperation(new DUP(this.opPc, opcode, this.opLine, type));
+			break;
+		/***********
+		 * MONITOR *
+		 ***********/
+		case Opcodes.MONITORENTER:
+			type = MONITOR.T_ENTER;
+			// fall through
+		case Opcodes.MONITOREXIT:
+			if (type < 0) {
+				type = MONITOR.T_EXIT;
+			}
+			addOperation(new MONITOR(this.opPc, opcode, this.opLine, type));
+			break;
+		/*******
+		 * MUL *
+		 *******/
+		case Opcodes.DMUL:
+			type = DataType.T_DOUBLE;
+			// fall through
+		case Opcodes.FMUL:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.IMUL:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.LMUL:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new MUL(this.opPc, opcode, this.opLine, type));
+			break;
+		/*******
+		 * NEG *
+		 *******/
+		case Opcodes.DNEG:
+			if (type < 0) {
+				type = DataType.T_DOUBLE;
+			}
+			// fall through
+		case Opcodes.FNEG:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.INEG:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.LNEG:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new NEG(this.opPc, opcode, this.opLine, type));
+			break;
+		/******
+		 * OR *
+		 ******/
+		case Opcodes.IOR:
+			type = DataType.T_INT;
+			// fall through
+		case Opcodes.LOR:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new OR(this.opPc, opcode, this.opLine, type));
+			break;
+		/*******
+		 * POP *
+		 *******/
+		case Opcodes.POP:
+			type = POP.T_POP;
+			// fall through
+		case Opcodes.POP2:
+			if (type < 0) {
+				type = POP.T_POP2;
+			}
+			addOperation(new POP(this.opPc, opcode, this.opLine, type));
+			break;
+		/********
+		 * PUSH *
+		 ********/
+		case Opcodes.ACONST_NULL:
+		case Opcodes.DCONST_0:
+			if (type < 0) {
+				type = DataType.T_DOUBLE;
+				oValue = 0D;
+			}
+			// fall through
+		case Opcodes.FCONST_0:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+				oValue = 0;
+			}
+			// fall through
+		case Opcodes.ICONST_0:
+			if (type < 0) {
+				type = DataType.T_INT;
+				oValue = 0;
+			}
+			// fall through
+		case Opcodes.LCONST_0:
+			if (type < 0) {
+				type = DataType.T_LONG;
+				oValue = 0L;
+			}
+			// fall through
+		case Opcodes.DCONST_1:
+			if (type < 0) {
+				type = DataType.T_DOUBLE;
+				oValue = 1D;
+			}
+			// fall through
+		case Opcodes.FCONST_1:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+				oValue = 1;
+			}
+			// fall through
+		case Opcodes.ICONST_1:
+			if (type < 0) {
+				type = DataType.T_INT;
+				oValue = 1;
+			}
+			// fall through
+		case Opcodes.LCONST_1:
+			if (type < 0) {
+				type = DataType.T_LONG;
+				oValue = 1L;
+			}
+			// fall through
+		case Opcodes.FCONST_2:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+				oValue = 2;
+			}
+			// fall through
+		case Opcodes.ICONST_2:
+			if (type < 0) {
+				type = DataType.T_INT;
+				oValue = 2;
+			}
+			// fall through
+		case Opcodes.ICONST_3:
+			if (type < 0) {
+				type = DataType.T_INT;
+				oValue = 3;
+			}
+			// fall through
+		case Opcodes.ICONST_4:
+			if (type < 0) {
+				type = DataType.T_INT;
+				oValue = 4;
+			}
+			// fall through
+		case Opcodes.ICONST_5:
+			if (type < 0) {
+				type = DataType.T_INT;
+				oValue = 5;
+			}
+			// fall through
+		case Opcodes.ICONST_M1:
+			if (type < 0) {
+				type = DataType.T_INT;
+				oValue = -1;
+			}
+			addOperation(new PUSH(this.opPc, opcode, this.opLine, type, oValue));
+			break;
+		/*******
+		 * REM *
+		 *******/
+		case Opcodes.DREM:
+			if (type < 0) {
+				type = DataType.T_DOUBLE;
+			}
+			// fall through
+		case Opcodes.FREM:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.IREM:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.LREM:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new REM(this.opPc, opcode, this.opLine, type));
+			break;
+		/**********
+		 * RETURN *
+		 **********/
+		case Opcodes.ARETURN:
+			type = DataType.T_AREF;
+			// fall through
+		case Opcodes.DRETURN:
+			if (type < 0) {
+				type = DataType.T_DOUBLE;
+			}
+			// fall through
+		case Opcodes.FRETURN:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.IRETURN:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.LRETURN:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			// fall through
+		case Opcodes.RETURN:
+			if (type < 0) {
+				type = DataType.T_VOID;
+			}
+			addOperation(new RETURN(this.opPc, opcode, this.opLine, type));
+			break;
+		/*******
+		 * SHL *
+		 *******/
+		case Opcodes.ISHL:
+			type = DataType.T_INT;
+			// fall through
+		case Opcodes.LSHL:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new SHL(this.opPc, opcode, this.opLine, type));
+			break;
+		/*******
+		 * SHR *
+		 *******/
+		case Opcodes.ISHR:
+		case Opcodes.IUSHR:
+			type = DataType.T_INT;
+			// fall through
+		case Opcodes.LSHR:
+		case Opcodes.LUSHR:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new SHR(this.opPc, opcode, this.opLine, type,
+					opcode == Opcodes.IUSHR || opcode == Opcodes.LUSHR));
+			break;
+		/*******
+		 * SUB *
+		 *******/
+		case Opcodes.DSUB:
+			type = DataType.T_DOUBLE;
+			// fall through
+		case Opcodes.FSUB:
+			if (type < 0) {
+				type = DataType.T_FLOAT;
+			}
+			// fall through
+		case Opcodes.ISUB:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.LSUB:
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new SUB(this.opPc, opcode, this.opLine, type));
+			break;
+		/********
+		 * SWAP *
+		 ********/
+		case Opcodes.SWAP:
+			addOperation(new SWAP(this.opPc, opcode, this.opLine));
+			break;
+		/*********
+		 * THROW *
+		 *********/
+		case Opcodes.ATHROW:
+			addOperation(new THROW(this.opPc, opcode, this.opLine));
+			break;
+		/*******
+		 * XOR *
+		 *******/
+		case Opcodes.IXOR:
+			type = DataType.T_INT;
+			// fall through
+		case Opcodes.LXOR: {
+			if (type < 0) {
+				type = DataType.T_LONG;
+			}
+			addOperation(new XOR(this.opPc, opcode, this.opLine, type));
+			break;
+		}
+		default:
+			LOGGER.warning("Unknown insn opcode '" + opcode + "'!");
 		}
 	}
 
 	@Override
 	public void visitIntInsn(final int opcode, final int operand) {
-		if (TODOCODE) {
-			LOGGER.warning("### method visitIntInsn ### " + opcode + " : "
-					+ operand);
+		int type = -1;
+
+		switch (opcode) {
+		/********
+		 * PUSH *
+		 ********/
+		case Opcodes.BIPUSH:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			// fall through
+		case Opcodes.SIPUSH:
+			if (type < 0) {
+				type = DataType.T_INT;
+			}
+			addOperation(new PUSH(this.opPc, opcode, this.opLine, type, operand));
+			break;
+		case Opcodes.NEWARRAY: {
+			final String typeName = new String[] { null, null, null, null,
+					boolean.class.getName(), char.class.getName(),
+					float.class.getName(), double.class.getName(),
+					byte.class.getName(), short.class.getName(),
+					int.class.getName(), long.class.getName() }[operand];
+			addOperation(new NEWARRAY(this.opPc, opcode, this.opLine,
+					this.du.getT(typeName), 1));
+			break;
+		}
+		default:
+			LOGGER.warning("Unknown int insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -223,6 +932,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			LOGGER.warning("### method visitLineNumber ### " + line + " : "
 					+ start);
 		}
+		this.opLine = line;
 	}
 
 	@Override
