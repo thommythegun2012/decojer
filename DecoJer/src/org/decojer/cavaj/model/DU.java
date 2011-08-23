@@ -36,7 +36,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.decojer.DecoJerException;
-import org.decojer.cavaj.reader.JavassistReader;
+import org.decojer.cavaj.reader.AsmReader;
 import org.decojer.cavaj.reader.SmaliReader;
 
 /**
@@ -227,7 +227,7 @@ public class DU {
 	public TD read(final String fileName, final InputStream is,
 			final String selector) throws IOException {
 		if (fileName.endsWith(".class")) {
-			return JavassistReader.read(is, this);
+			return AsmReader.read(is, this);
 		} else if (fileName.endsWith(".dex")) {
 			return SmaliReader.read(is, this, selector);
 		} else if (fileName.endsWith(".jar")) {

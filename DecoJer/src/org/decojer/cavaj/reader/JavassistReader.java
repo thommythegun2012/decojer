@@ -839,7 +839,7 @@ public class JavassistReader {
 				// 1) correct opPc blocks
 				// 2) line numbers
 				codeReader.pc = opPc + iValue;
-				bb.addOperation(new GOTO(opPc, opCode, opLine, codeReader.pc));
+				bb.addOperation(new GOTO(opPc, opCode, opLine));
 				break;
 			/*******
 			 * INC *
@@ -1088,7 +1088,6 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				// for all above
 				iValue = wide ? codeReader.readUnsignedShort() : codeReader
 						.readUnsignedByte();
 				// fall through
@@ -1279,8 +1278,8 @@ public class JavassistReader {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				bb.addOperation(new NEW(opPc, opCode, opLine, readType(
 						constPool.getClassInfo(cpClassIndex), du)));
-			}
 				break;
+			}
 			/************
 			 * NEWARRAY *
 			 ************/
@@ -1631,7 +1630,6 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				// for all above
 				iValue = wide ? codeReader.readUnsignedShort() : codeReader
 						.readUnsignedByte();
 				// fall through
@@ -2219,13 +2217,13 @@ public class JavassistReader {
 		if (classInfo == null) {
 			return null;
 		}
-		// strange Javassist behaviour for classinfo:
+		// strange behaviour for classinfo:
+		// arrays: normal descriptor (but with '.'):
+		// [[I, [Ljava/lang/String;
 		if (classInfo.charAt(0) == '[') {
-			// Javassist only replaces '/' through '.' for arrays
-			// desc: [[I, [Ljava.lang.String;
 			return du.getDescT(classInfo.replace('.', '/'));
 		}
-		// no arrays - no descriptor but class name:
+		// no arrays - class name:
 		// org.decojer.cavaj.test.DecTestInner$1$1$1
 		return du.getT(classInfo);
 	}
