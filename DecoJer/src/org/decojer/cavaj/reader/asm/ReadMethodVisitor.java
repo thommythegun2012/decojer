@@ -1209,7 +1209,11 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitLineNumber(final int line, final Label start) {
-		// TODO start label interesting?
+		final int labelIndex = getLabelIndex(start);
+		if (labelIndex < 0) {
+			LOGGER.warning("Line number '" + line + "' start label '" + start
+					+ "' unknown yet?");
+		}
 		this.opLine = line;
 	}
 
