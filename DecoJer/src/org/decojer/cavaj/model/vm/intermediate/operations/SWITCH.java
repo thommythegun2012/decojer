@@ -28,8 +28,18 @@ import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class SWITCH extends Operation {
 
+	private int defaultTarget;
+
+	private int[] keys;
+
+	private int[] keyTargets;
+
 	public SWITCH(final int opPc, final int opCode, final int opLine) {
 		super(opPc, opCode, opLine);
+	}
+
+	public int getDefaultTarget() {
+		return this.defaultTarget;
 	}
 
 	@Override
@@ -37,9 +47,29 @@ public class SWITCH extends Operation {
 		return 1;
 	}
 
+	public int[] getKeys() {
+		return this.keys;
+	}
+
+	public int[] getKeyTargets() {
+		return this.keyTargets;
+	}
+
 	@Override
 	public int getOpcode() {
 		return Opcode.SWITCH;
+	}
+
+	public void setDefaultTarget(final int defaultTarget) {
+		this.defaultTarget = defaultTarget;
+	}
+
+	public void setKeys(final int[] keys) {
+		this.keys = keys;
+	}
+
+	public void setKeyTargets(final int[] keyTargets) {
+		this.keyTargets = keyTargets;
 	}
 
 }

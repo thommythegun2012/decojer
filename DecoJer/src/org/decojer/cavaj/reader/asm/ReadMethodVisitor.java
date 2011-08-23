@@ -75,6 +75,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.SHR;
 import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
 import org.decojer.cavaj.model.vm.intermediate.operations.SUB;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
+import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
 import org.decojer.cavaj.model.vm.intermediate.operations.THROW;
 import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
 import org.ow2.asm.AnnotationVisitor;
@@ -83,6 +84,7 @@ import org.ow2.asm.Handle;
 import org.ow2.asm.Label;
 import org.ow2.asm.MethodVisitor;
 import org.ow2.asm.Opcodes;
+import org.ow2.asm.Type;
 
 /**
  * Read method visitor.
@@ -93,6 +95,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadMethodVisitor.class.getName());
+
+	private static final boolean TODOCODE = true;
 
 	private static T readType(final String classInfo, final DU du) {
 		if (classInfo == null) {
@@ -113,23 +117,24 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	private final DU du;
 
-	private HashMap<Label, Integer> label2index;
+	private int index;
 
-	private HashMap<Label, ArrayList<?>> label2unresolved;
+	// operation index or temporary unknown index
+	private final HashMap<Label, Integer> label2index = new HashMap<Label, Integer>();
+
+	private final HashMap<Label, ArrayList<Object>> label2unresolved = new HashMap<Label, ArrayList<Object>>();
+
+	private int labelUnknownIndex;
 
 	private MD md;
 
-	private ArrayList<Operation> operations;
+	private final ArrayList<Operation> operations = new ArrayList<Operation>();
 
 	private int opLine;
-
-	private int index;
 
 	private A[][] paramAss;
 
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
-
-	private static final boolean TODOCODE = true;
 
 	/**
 	 * Constructor.
@@ -149,6 +154,28 @@ public class ReadMethodVisitor implements MethodVisitor {
 		++this.index;
 	}
 
+	private int getLabelIndex(final Label label) {
+		assert label != null;
+
+		final Integer index = this.label2index.get(label);
+		if (index != null) {
+			return index;
+		}
+		this.label2index.put(label, --this.labelUnknownIndex);
+		return this.labelUnknownIndex;
+	}
+
+	private ArrayList<Object> getLabelUnresolved(final Label label) {
+		assert label != null;
+
+		ArrayList<Object> unresolved = this.label2unresolved.get(label);
+		if (unresolved == null) {
+			unresolved = new ArrayList<Object>();
+			this.label2unresolved.put(label, unresolved);
+		}
+		return unresolved;
+	}
+
 	/**
 	 * Get method declaration.
 	 * 
@@ -165,10 +192,20 @@ public class ReadMethodVisitor implements MethodVisitor {
 	 *            method declaration
 	 */
 	public void init(final MD md) {
-		LOGGER.warning("###### init md ###### " + md);
 		this.md = md;
+
+		// reuse object
 		this.as = null;
 		this.paramAss = null;
+		if (this.index > 0) {
+			// code existed in previous method
+			this.index = 0;
+			this.label2index.clear();
+			this.label2unresolved.clear();
+			this.labelUnknownIndex = 0;
+			this.operations.clear();
+			this.opLine = 0;
+		}
 	}
 
 	@Override
@@ -207,9 +244,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitCode() {
-		this.operations = new ArrayList<Operation>();
-		this.label2index = new HashMap<Label, Integer>();
-		this.label2unresolved = new HashMap<Label, ArrayList<?>>();
+		// OK
 	}
 
 	@Override
@@ -945,22 +980,21 @@ public class ReadMethodVisitor implements MethodVisitor {
 		int type = -1;
 		int iValue = Integer.MIN_VALUE;
 
-		final Integer index = this.label2index.get(label);
-		if (index == null) {
-			ArrayList<?> unresolved = this.label2unresolved.get(label);
-			if (unresolved == null) {
-				unresolved = new ArrayList<Object>();
-				this.label2unresolved.put(label, unresolved);
-			}
-		}
+		final int labelIndex = getLabelIndex(label);
 
 		switch (opcode) {
 		/********
 		 * GOTO *
 		 ********/
-		case Opcodes.GOTO:
-			addOperation(new GOTO(this.index, opcode, this.opLine));
+		case Opcodes.GOTO: {
+			final GOTO op = new GOTO(this.index, opcode, this.opLine);
+			op.setTargetPc(labelIndex);
+			if (labelIndex < 0) {
+				getLabelUnresolved(label).add(op);
+			}
+			addOperation(op);
 			break;
+		}
 		/********
 		 * JCMP *
 		 ********/
@@ -1009,7 +1043,15 @@ public class ReadMethodVisitor implements MethodVisitor {
 				type = DataType.T_INT;
 				iValue = CompareType.T_NE;
 			}
-			addOperation(new JCMP(this.index, opcode, this.opLine, type, iValue));
+			{
+				final JCMP op = new JCMP(this.index, opcode, this.opLine, type,
+						iValue);
+				op.setTargetPc(labelIndex);
+				if (labelIndex < 0) {
+					getLabelUnresolved(label).add(op);
+				}
+				addOperation(op);
+			}
 			break;
 		/********
 		 * JCND *
@@ -1059,14 +1101,28 @@ public class ReadMethodVisitor implements MethodVisitor {
 				type = DataType.T_INT;
 				iValue = CompareType.T_NE;
 			}
-			addOperation(new JCND(this.index, opcode, this.opLine, type, iValue));
+			{
+				final JCND op = new JCND(this.index, opcode, this.opLine, type,
+						iValue);
+				op.setTargetPc(labelIndex);
+				if (labelIndex < 0) {
+					getLabelUnresolved(label).add(op);
+				}
+				addOperation(op);
+			}
 			break;
 		/*******
 		 * JSR *
 		 *******/
-		case Opcodes.JSR:
-			addOperation(new JSR(this.index, opcode, this.opLine));
+		case Opcodes.JSR: {
+			final JSR op = new JSR(this.index, opcode, this.opLine);
+			op.setTargetPc(labelIndex);
+			if (labelIndex < 0) {
+				getLabelUnresolved(label).add(op);
+			}
+			addOperation(op);
 			break;
+		}
 		default:
 			LOGGER.warning("Unknown jump insn opcode '" + opcode + "'!");
 		}
@@ -1074,14 +1130,48 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitLabel(final Label label) {
-		final Integer index = this.label2index.put(label, this.index);
-		if (index != null) {
-			LOGGER.warning("Label '" + label
-					+ "' is not unique, has old opPc '" + index + "'!");
+		final Integer labelIndex = this.label2index.put(label, this.index);
+		if (labelIndex == null) {
+			// fresh new label, never referenced before
+			return;
 		}
+		if (labelIndex > 0) {
+			// visited before but is known?!
+			LOGGER.warning("Label '" + label
+					+ "' is not unique, has old opPc '" + this.index + "'!");
+			return;
+		}
+		final int labelUnknownIndex = labelIndex;
+		// unknown and has forward reference
 		for (final Object o : this.label2unresolved.get(label)) {
 			if (o instanceof GOTO) {
-				((GOTO) o).setTargetPc(index);
+				((GOTO) o).setTargetPc(this.index);
+				continue;
+			}
+			if (o instanceof JCMP) {
+				((JCMP) o).setTargetPc(this.index);
+				continue;
+			}
+			if (o instanceof JCND) {
+				((JCND) o).setTargetPc(this.index);
+				continue;
+			}
+			if (o instanceof JSR) {
+				((JSR) o).setTargetPc(this.index);
+				continue;
+			}
+			if (o instanceof SWITCH) {
+				final SWITCH op = (SWITCH) o;
+				if (labelUnknownIndex == op.getDefaultTarget()) {
+					op.setDefaultTarget(this.index);
+				}
+				final int[] keyTargets = op.getKeyTargets();
+				for (int i = keyTargets.length; i-- > 0;) {
+					if (labelUnknownIndex == keyTargets[i]) {
+						keyTargets[i] = this.index;
+					}
+				}
+				continue;
 			}
 		}
 	}
@@ -1089,32 +1179,37 @@ public class ReadMethodVisitor implements MethodVisitor {
 	@Override
 	public void visitLdcInsn(final Object cst) {
 		int type = -1;
+		Object oValue = null;
 
 		/********
 		 * PUSH *
 		 ********/
-		if (cst instanceof Double) {
-			type = DataType.T_DOUBLE;
-		} else if (cst instanceof Float) {
-			type = DataType.T_FLOAT;
-		} else if (cst instanceof Integer) {
-			type = DataType.T_INT;
-		} else if (cst instanceof Long) {
-			type = DataType.T_LONG;
-		} else if (cst instanceof String) {
-			type = DataType.T_STRING;
+		if (cst instanceof Type) {
+			type = DataType.T_CLASS;
+			oValue = this.du.getDescT(((Type) cst).getDescriptor());
 		} else {
-			LOGGER.warning("Unknown ldc insn cst '" + cst + "'!");
+			if (cst instanceof Double) {
+				type = DataType.T_DOUBLE;
+			} else if (cst instanceof Float) {
+				type = DataType.T_FLOAT;
+			} else if (cst instanceof Integer) {
+				type = DataType.T_INT;
+			} else if (cst instanceof Long) {
+				type = DataType.T_LONG;
+			} else if (cst instanceof String) {
+				type = DataType.T_STRING;
+			} else {
+				LOGGER.warning("Unknown ldc insn cst '" + cst + "'!");
+			}
+			oValue = cst;
 		}
-		addOperation(new PUSH(this.index, Opcodes.LDC, this.opLine, type, cst));
+		addOperation(new PUSH(this.index, Opcodes.LDC, this.opLine, type,
+				oValue));
 	}
 
 	@Override
 	public void visitLineNumber(final int line, final Label start) {
-		if (TODOCODE) {
-			LOGGER.warning("### method visitLineNumber ### " + line + " : "
-					+ start);
-		}
+		// TODO start label interesting?
 		this.opLine = line;
 	}
 
@@ -1129,10 +1224,25 @@ public class ReadMethodVisitor implements MethodVisitor {
 	@Override
 	public void visitLookupSwitchInsn(final Label dflt, final int[] keys,
 			final Label[] labels) {
-		if (TODOCODE) {
-			LOGGER.warning("### method visitLookupSwitchInsn ### " + dflt
-					+ " : " + keys + " : " + labels);
+		final SWITCH op = new SWITCH(this.index, Opcodes.LOOKUPSWITCH,
+				this.opLine);
+		// default
+		int labelIndex = getLabelIndex(dflt);
+		op.setDefaultTarget(labelIndex);
+		if (labelIndex < 0) {
+			getLabelUnresolved(dflt).add(op);
 		}
+		// keys
+		final int[] keyTargets = new int[labels.length];
+		for (int i = labels.length; i-- > 0;) {
+			keyTargets[i] = labelIndex = getLabelIndex(labels[i]);
+			if (labelIndex < 0) {
+				getLabelUnresolved(labels[i]).add(op);
+			}
+		}
+		op.setKeys(keys);
+		op.setKeyTargets(keyTargets);
+		addOperation(op);
 	}
 
 	@Override
@@ -1217,10 +1327,27 @@ public class ReadMethodVisitor implements MethodVisitor {
 	@Override
 	public void visitTableSwitchInsn(final int min, final int max,
 			final Label dflt, final Label... labels) {
-		if (TODOCODE) {
-			LOGGER.warning("### method visitTableSwitchInsn ### " + min + " : "
-					+ max + " : " + dflt + " : " + labels);
+		final SWITCH op = new SWITCH(this.index, Opcodes.TABLESWITCH,
+				this.opLine);
+		// default
+		int labelIndex = getLabelIndex(dflt);
+		op.setDefaultTarget(labelIndex);
+		if (labelIndex < 0) {
+			getLabelUnresolved(dflt).add(op);
 		}
+		// keys
+		final int[] keys = new int[labels.length];
+		final int[] keyTargets = new int[labels.length];
+		for (int i = labels.length; i-- > 0;) {
+			keys[i] = min + i;
+			keyTargets[i] = labelIndex = getLabelIndex(labels[i]);
+			if (labelIndex < 0) {
+				getLabelUnresolved(labels[i]).add(op);
+			}
+		}
+		op.setKeys(keys);
+		op.setKeyTargets(keyTargets);
+		addOperation(op);
 	}
 
 	@Override
