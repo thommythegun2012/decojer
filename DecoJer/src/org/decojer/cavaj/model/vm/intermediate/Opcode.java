@@ -59,46 +59,48 @@ public interface Opcode {
 
 	int JCND = 17;
 
-	int LOAD = 18;
+	int JSR = 18;
 
-	int MONITOR = 19;
+	int LOAD = 19;
 
-	int MUL = 20;
+	int MONITOR = 20;
 
-	int NEG = 21;
+	int MUL = 21;
 
-	int NEW = 22;
+	int NEG = 22;
 
-	int NEWARRAY = 23;
+	int NEW = 23;
 
-	int OR = 24;
+	int NEWARRAY = 24;
 
-	int POP = 25;
+	int OR = 25;
 
-	int PUSH = 26;
+	int POP = 26;
 
-	int PUT = 27;
+	int PUSH = 27;
 
-	int REM = 28;
+	int PUT = 28;
 
-	int RET = 29;
+	int REM = 29;
 
-	int RETURN = 30;
+	int RET = 30;
 
-	int SHL = 31;
+	int RETURN = 31;
 
-	int SHR = 32;
+	int SHL = 32;
 
-	int STORE = 33;
+	int SHR = 33;
 
-	int SUB = 34;
+	int STORE = 34;
 
-	int SWAP = 35;
+	int SUB = 35;
 
-	int SWITCH = 36;
+	int SWAP = 36;
 
-	int THROW = 37;
+	int SWITCH = 37;
 
-	int XOR = 38;
+	int THROW = 38;
+
+	int XOR = 39;
 
 }
