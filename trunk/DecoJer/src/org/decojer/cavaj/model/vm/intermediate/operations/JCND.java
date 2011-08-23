@@ -33,6 +33,8 @@ public class JCND extends Operation {
 
 	private final int cmpType;
 
+	private int targetPc;
+
 	public JCND(final int opPc, final int opCode, final int opLine,
 			final int type, final int cmpType) {
 		super(opPc, opCode, opLine);
@@ -54,8 +56,16 @@ public class JCND extends Operation {
 		return Opcode.JCND;
 	}
 
+	public int getTargetPc() {
+		return this.targetPc;
+	}
+
 	public int getType() {
 		return this.type;
+	}
+
+	public void setTargetPc(final int targetPc) {
+		this.targetPc = targetPc;
 	}
 
 	@Override
