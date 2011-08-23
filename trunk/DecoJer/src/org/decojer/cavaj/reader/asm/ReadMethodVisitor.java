@@ -28,8 +28,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import javassist.bytecode.Opcode;
-
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CFG;
@@ -58,6 +56,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.INSTANCEOF;
 import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCND;
+import org.decojer.cavaj.model.vm.intermediate.operations.JSR;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.MONITOR;
 import org.decojer.cavaj.model.vm.intermediate.operations.MUL;
@@ -965,47 +964,47 @@ public class ReadMethodVisitor implements MethodVisitor {
 		/********
 		 * JCMP *
 		 ********/
-		case Opcode.IF_ACMPEQ:
+		case Opcodes.IF_ACMPEQ:
 			type = DataType.T_AREF;
 			iValue = CompareType.T_EQ;
 			// fall through
-		case Opcode.IF_ACMPNE:
+		case Opcodes.IF_ACMPNE:
 			if (type < 0) {
 				type = DataType.T_AREF;
 				iValue = CompareType.T_NE;
 			}
 			// fall through
-		case Opcode.IF_ICMPEQ:
+		case Opcodes.IF_ICMPEQ:
 			if (type < 0) {
 				type = DataType.T_INT;
 				iValue = CompareType.T_EQ;
 			}
 			// fall through
-		case Opcode.IF_ICMPGE:
+		case Opcodes.IF_ICMPGE:
 			if (type < 0) {
 				type = DataType.T_INT;
 				iValue = CompareType.T_GE;
 			}
 			// fall through
-		case Opcode.IF_ICMPGT:
+		case Opcodes.IF_ICMPGT:
 			if (type < 0) {
 				type = DataType.T_INT;
 				iValue = CompareType.T_GT;
 			}
 			// fall through
-		case Opcode.IF_ICMPLE:
+		case Opcodes.IF_ICMPLE:
 			if (type < 0) {
 				type = DataType.T_INT;
 				iValue = CompareType.T_LE;
 			}
 			// fall through
-		case Opcode.IF_ICMPLT:
+		case Opcodes.IF_ICMPLT:
 			if (type < 0) {
 				type = DataType.T_INT;
 				iValue = CompareType.T_LT;
 			}
 			// fall through
-		case Opcode.IF_ICMPNE:
+		case Opcodes.IF_ICMPNE:
 			if (type < 0) {
 				type = DataType.T_INT;
 				iValue = CompareType.T_NE;
@@ -1031,7 +1030,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 				iValue = CompareType.T_EQ;
 			}
 			// fall through
-		case Opcode.IFGE:
+		case Opcodes.IFGE:
 			if (type < 0) {
 				type = DataType.T_INT;
 				iValue = CompareType.T_GE;
@@ -1066,8 +1065,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * JSR *
 		 *******/
 		case Opcodes.JSR:
-			// TODO
-			System.out.println("### JSR: " + iValue + " : " + label);
+			addOperation(new JSR(this.index, opcode, this.opLine));
 			break;
 		default:
 			LOGGER.warning("Unknown jump insn opcode '" + opcode + "'!");

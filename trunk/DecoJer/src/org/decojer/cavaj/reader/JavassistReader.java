@@ -111,6 +111,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.INSTANCEOF;
 import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCND;
+import org.decojer.cavaj.model.vm.intermediate.operations.JSR;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.MONITOR;
 import org.decojer.cavaj.model.vm.intermediate.operations.MUL;
@@ -1059,9 +1060,8 @@ public class JavassistReader {
 				if (type < 0) {
 					iValue = codeReader.readUnsignedInt();
 				}
-				// TODO
-				System.out.println("### JSR: " + iValue + " : "
-						+ (opPc + iValue));
+				// TODO add target
+				bb.addOperation(new JSR(opPc, opCode, opLine));
 				break;
 			/********
 			 * LOAD *
