@@ -29,15 +29,15 @@ import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class JCMP extends Operation {
 
-	private final int type;
-
 	private final int cmpType;
 
 	private int targetPc;
 
-	public JCMP(final int opPc, final int opCode, final int opLine,
-			final int type, final int cmpType) {
-		super(opPc, opCode, opLine);
+	private final int type;
+
+	public JCMP(final int pc, final int code, final int line, final int type,
+			final int cmpType) {
+		super(pc, code, line);
 		this.type = type;
 		this.cmpType = cmpType;
 	}

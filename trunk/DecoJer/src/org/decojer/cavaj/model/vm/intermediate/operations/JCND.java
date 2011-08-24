@@ -29,15 +29,15 @@ import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class JCND extends Operation {
 
-	private final int type;
-
 	private final int cmpType;
 
 	private int targetPc;
 
-	public JCND(final int opPc, final int opCode, final int opLine,
-			final int type, final int cmpType) {
-		super(opPc, opCode, opLine);
+	private final int type;
+
+	public JCND(final int pc, final int code, final int line, final int type,
+			final int cmpType) {
+		super(pc, code, line);
 		this.type = type;
 		this.cmpType = cmpType;
 	}

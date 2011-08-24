@@ -28,15 +28,15 @@ import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class INC extends Operation {
 
+	private final int constValue;
+
 	private final int type;
 
 	private final int varIndex;
 
-	private final int constValue;
-
-	public INC(final int opPc, final int opCode, final int opLine,
-			final int type, final int varIndex, final int constValue) {
-		super(opPc, opCode, opLine);
+	public INC(final int pc, final int code, final int line, final int type,
+			final int varIndex, final int constValue) {
+		super(pc, code, line);
 		this.type = type;
 		this.varIndex = varIndex;
 		this.constValue = constValue;

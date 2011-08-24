@@ -23,46 +23,85 @@
  */
 package org.decojer.cavaj.model.vm.intermediate;
 
+/**
+ * Operation.
+ * 
+ * @author André Pankraz
+ */
 public abstract class Operation {
+
+	private final int code;
 
 	private Frame frame;
 
-	private final int opCode;
+	private final int line;
 
-	private final int opLine;
+	private final int pc;
 
-	private final int opPc;
-
-	public Operation(final int opPc, final int opCode, final int opLine) {
-		this.opPc = opPc;
-		this.opCode = opCode;
-		this.opLine = opLine;
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            (if possible original) pc
+	 * @param code
+	 *            (if possible original JVM or Dalvik) operation code
+	 * @param line
+	 *            operation line number
+	 */
+	public Operation(final int pc, final int code, final int line) {
+		this.pc = pc;
+		this.code = code;
+		this.line = line;
 	}
 
 	@Override
 	public boolean equals(final Object ob) {
-		return ob instanceof Operation
-				&& getOpPc() == ((Operation) ob).getOpPc(); // super.equals(arg0);
+		return ob instanceof Operation && getPc() == ((Operation) ob).getPc();
+	}
+
+	/**
+	 * Get (if possible original JVM or Dalvik) operation code.
+	 * 
+	 * @return operation code
+	 */
+	public int getCode() {
+		return this.code;
 	}
 
 	public Frame getFrame() {
 		return this.frame;
 	}
 
+	/**
+	 * Get in stack size.
+	 * 
+	 * @return in stack size
+	 */
 	public abstract int getInStackSize();
 
+	/**
+	 * Get operation line number (if debug info available).
+	 * 
+	 * @return operation line number
+	 */
+	public int getLine() {
+		return this.line;
+	}
+
+	/**
+	 * Get operation code.
+	 * 
+	 * @return operation code
+	 */
 	public abstract int getOpcode();
 
-	public int getOpCode() {
-		return this.opCode;
-	}
-
-	public int getOpLine() {
-		return this.opLine;
-	}
-
-	public int getOpPc() {
-		return this.opPc;
+	/**
+	 * Get (if possible original) pc.
+	 * 
+	 * @return pc
+	 */
+	public int getPc() {
+		return this.pc;
 	}
 
 	public String getVarName(final int varIndex) {
@@ -83,7 +122,7 @@ public abstract class Operation {
 
 	@Override
 	public int hashCode() {
-		return getOpPc(); // super.hashCode();
+		return getPc(); // super.hashCode();
 	}
 
 	public void setFrame(final Frame frame) {

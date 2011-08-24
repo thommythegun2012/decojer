@@ -28,8 +28,8 @@ import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class THROW extends Operation {
 
-	public THROW(final int opPc, final int opCode, final int opLine) {
-		super(opPc, opCode, opLine);
+	public THROW(final int pc, final int code, final int line) {
+		super(pc, code, line);
 	}
 
 	@Override

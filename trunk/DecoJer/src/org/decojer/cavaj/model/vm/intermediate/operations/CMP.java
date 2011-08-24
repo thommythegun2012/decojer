@@ -34,13 +34,13 @@ public class CMP extends Operation {
 
 	public static final int T_L = 2;
 
-	private final int type;
-
 	private final int cmp;
 
-	public CMP(final int opPc, final int opCode, final int opLine,
-			final int type, final int cmp) {
-		super(opPc, opCode, opLine);
+	private final int type;
+
+	public CMP(final int pc, final int code, final int line, final int type,
+			final int cmp) {
+		super(pc, code, line);
 		this.type = type;
 		this.cmp = cmp;
 	}

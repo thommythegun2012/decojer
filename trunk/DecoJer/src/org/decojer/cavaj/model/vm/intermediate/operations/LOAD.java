@@ -32,9 +32,9 @@ public class LOAD extends Operation {
 
 	private final int varIndex;
 
-	public LOAD(final int opPc, final int opCode, final int opLine,
-			final int type, final int varIndex) {
-		super(opPc, opCode, opLine);
+	public LOAD(final int pc, final int code, final int line, final int type,
+			final int varIndex) {
+		super(pc, code, line);
 		this.type = type;
 		this.varIndex = varIndex;
 	}

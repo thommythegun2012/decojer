@@ -32,8 +32,8 @@ public class GET extends Operation {
 
 	private final F f;
 
-	public GET(final int opPc, final int opCode, final int opLine, final F f) {
-		super(opPc, opCode, opLine);
+	public GET(final int pc, final int code, final int line, final F f) {
+		super(pc, code, line);
 		this.f = f;
 	}
 

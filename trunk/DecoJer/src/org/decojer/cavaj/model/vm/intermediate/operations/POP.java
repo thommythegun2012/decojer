@@ -34,9 +34,8 @@ public class POP extends Operation {
 
 	private final int popType;
 
-	public POP(final int opPc, final int opCode, final int opLine,
-			final int popType) {
-		super(opPc, opCode, opLine);
+	public POP(final int pc, final int code, final int line, final int popType) {
+		super(pc, code, line);
 		this.popType = popType;
 	}
 

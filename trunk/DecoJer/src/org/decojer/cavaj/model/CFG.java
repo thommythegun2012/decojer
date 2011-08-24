@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.eclipse.jdt.core.dom.Block;
 
@@ -41,10 +42,14 @@ public class CFG {
 
 	private Block block;
 
+	private Exc[] excs;
+
 	/**
 	 * Array with Immediate Dominators, index is postorder.
 	 */
 	private BB[] iDoms;
+
+	private final int maxRegs;
 
 	private final int maxStack;
 
@@ -56,8 +61,6 @@ public class CFG {
 	 * Array with postordered basic blocks.
 	 */
 	private List<BB> postorderedBbs;
-
-	private final int maxRegs;
 
 	private BB startBb;
 
@@ -143,6 +146,15 @@ public class CFG {
 	 */
 	public Block getBlock() {
 		return this.block;
+	}
+
+	/**
+	 * Get exception handlers.
+	 * 
+	 * @return exception handlers
+	 */
+	public Exc[] getExcs() {
+		return this.excs;
 	}
 
 	/**
@@ -234,7 +246,7 @@ public class CFG {
 		int i = 0;
 		// find operation index in basic block with given pc
 		while (i < operations.size()) {
-			if (operations.get(i).getOpPc() == pc) {
+			if (operations.get(i).getPc() == pc) {
 				break;
 			}
 			++i;
@@ -259,7 +271,7 @@ public class CFG {
 		while (i-- > 0) {
 			final Operation vmOperation = operations.remove(0);
 			splitSourceBb.addOperation(vmOperation);
-			pcBbs.put(vmOperation.getOpPc(), splitSourceBb);
+			pcBbs.put(vmOperation.getPc(), splitSourceBb);
 		}
 		return targetBb;
 	}
@@ -297,6 +309,16 @@ public class CFG {
 	 */
 	public void setBlock(final Block block) {
 		this.block = block;
+	}
+
+	/**
+	 * Set exception handlers.
+	 * 
+	 * @param excs
+	 *            exception handlers
+	 */
+	public void setExcs(final Exc[] excs) {
+		this.excs = excs;
 	}
 
 	/**

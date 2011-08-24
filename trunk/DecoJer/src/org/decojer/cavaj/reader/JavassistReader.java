@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
 import java.util.logging.Level;
@@ -93,6 +94,7 @@ import org.decojer.cavaj.model.type.Type;
 import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
+import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
 import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
@@ -1939,15 +1941,23 @@ public class JavassistReader {
 
 		final ExceptionTable exceptionTable = codeAttribute.getExceptionTable();
 		if (exceptionTable != null && exceptionTable.size() > 0) {
+			final ArrayList<Exc> excs = new ArrayList<Exc>();
 			// preserve order
-			for (int i = 0; i < exceptionTable.size(); ++i) {
+			final int exceptionTableSize = exceptionTable.size();
+			for (int i = 0; i < exceptionTableSize; ++i) {
 				final String catchName = constPool.getClassInfo(exceptionTable
 						.catchType(i));
 				// no array possible, name is OK here
 				final T catchT = catchName == null ? null : du.getT(catchName);
-				md.addExc(catchT, exceptionTable.startPc(i),
-						exceptionTable.endPc(i), exceptionTable.handlerPc(i));
+				final Exc exc = new Exc(catchT);
+
+				exc.setStartPc(exceptionTable.startPc(i));
+				exc.setEndPc(exceptionTable.endPc(i));
+				exc.setHandlerPc(exceptionTable.handlerPc(i));
+
+				excs.add(exc);
 			}
+			cfg.setExcs(excs.toArray(new Exc[excs.size()]));
 		}
 	}
 
@@ -2043,15 +2053,36 @@ public class JavassistReader {
 	private static void readLocalVariables(final MD md,
 			final LocalVariableAttribute localVariableAttribute,
 			final LocalVariableAttribute localVariableTypeAttribute) {
-		if (localVariableAttribute != null) {
+		final HashMap<Integer, ArrayList<Var>> reg2vars = new HashMap<Integer, ArrayList<Var>>();
+		if (localVariableAttribute != null
+				&& localVariableAttribute.tableLength() > 0) {
+			final DU du = md.getTd().getT().getDu();
 			// read top-down for order preservation
 			final int tableLength = localVariableAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final int startPc = localVariableAttribute.startPc(i);
-				md.addVar(localVariableAttribute.index(i),
-						localVariableAttribute.descriptor(i), null,
-						localVariableAttribute.variableName(i), startPc,
-						startPc + localVariableAttribute.codeLength(i));
+				final T varT = du
+						.getDescT(localVariableAttribute.descriptor(i));
+				final Var var = new Var(varT);
+
+				var.setName(localVariableAttribute.variableName(i));
+				var.setStartPc(localVariableAttribute.startPc(i));
+				var.setEndPc(var.getStartPc()
+						+ localVariableAttribute.codeLength(i));
+
+				final int index = localVariableAttribute.index(i);
+
+				ArrayList<Var> vars = reg2vars.get(index);
+				if (vars == null) {
+					vars = new ArrayList<Var>();
+					reg2vars.put(index, vars);
+				}
+				vars.add(var);
+			}
+		}
+		for (final Entry<Integer, ArrayList<Var>> entry : reg2vars.entrySet()) {
+			final int reg = entry.getKey();
+			for (final Var var : entry.getValue()) {
+				md.addVar(reg, var);
 			}
 		}
 		if (localVariableTypeAttribute != null) {

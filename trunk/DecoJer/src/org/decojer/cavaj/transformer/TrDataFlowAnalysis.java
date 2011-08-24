@@ -441,7 +441,7 @@ public class TrDataFlowAnalysis {
 				final Var pop = opFrame.stack.pop();
 
 				final int reg = op.getVarIndex();
-				final Var var = getCfg().getMd().getVar(reg, op.getOpPc() + 3);
+				final Var var = getCfg().getMd().getVar(reg, op.getPc() + 3);
 
 				opFrame.vars[op.getVarIndex()] = var != null ? var : pop;
 				break;

@@ -32,9 +32,9 @@ public class PUSH extends Operation {
 
 	private final Object value;
 
-	public PUSH(final int opPc, final int opCode, final int opLine,
-			final int type, final Object value) {
-		super(opPc, opCode, opLine);
+	public PUSH(final int pc, final int code, final int line, final int type,
+			final Object value) {
+		super(pc, code, line);
 		this.type = type;
 		this.value = value;
 	}

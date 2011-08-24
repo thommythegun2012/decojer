@@ -32,11 +32,11 @@ import org.decojer.cavaj.model.T;
  */
 public class Exc {
 
-	private final int endPc;
+	private int endPc;
 
-	private final int handlerPc;
+	private int handlerPc;
 
-	private final int startPc;
+	private int startPc;
 
 	private final T t;
 
@@ -45,19 +45,9 @@ public class Exc {
 	 * 
 	 * @param t
 	 *            type (null => catch all)
-	 * @param startPc
-	 *            start pc
-	 * @param endPc
-	 *            end pc
-	 * @param handlerPc
-	 *            handler pc
 	 */
-	public Exc(final T t, final int startPc, final int endPc,
-			final int handlerPc) {
+	public Exc(final T t) {
 		this.t = t;
-		this.startPc = startPc;
-		this.endPc = endPc;
-		this.handlerPc = handlerPc;
 	}
 
 	/**
@@ -94,6 +84,36 @@ public class Exc {
 	 */
 	public T getT() {
 		return this.t;
+	}
+
+	/**
+	 * Set end pc.
+	 * 
+	 * @param endPc
+	 *            end pc
+	 */
+	public void setEndPc(final int endPc) {
+		this.endPc = endPc;
+	}
+
+	/**
+	 * Set handler pc.
+	 * 
+	 * @param handlerPc
+	 *            handler pc
+	 */
+	public void setHandlerPc(final int handlerPc) {
+		this.handlerPc = handlerPc;
+	}
+
+	/**
+	 * Set start pc.
+	 * 
+	 * @param startPc
+	 *            start pc
+	 */
+	public void setStartPc(final int startPc) {
+		this.startPc = startPc;
 	}
 
 	@Override
