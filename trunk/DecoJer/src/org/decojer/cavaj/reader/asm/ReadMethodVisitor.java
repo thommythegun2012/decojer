@@ -156,10 +156,6 @@ public class ReadMethodVisitor implements MethodVisitor {
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
 	}
 
-	private void addOperation(final Operation operation) {
-		this.operations.add(operation);
-	}
-
 	private int getLabelIndex(final Label label) {
 		assert label != null;
 
@@ -296,7 +292,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (opcode == Opcodes.GETSTATIC) {
 				f.markAf(AF.STATIC);
 			}
-			addOperation(new GET(this.operations.size(), opcode, this.line, f));
+			this.operations.add(new GET(this.operations.size(), opcode,
+					this.line, f));
 			return;
 		}
 		/*******
@@ -310,7 +307,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (opcode == Opcodes.PUTSTATIC) {
 				f.markAf(AF.STATIC);
 			}
-			addOperation(new PUT(this.operations.size(), opcode, this.line, f));
+			this.operations.add(new PUT(this.operations.size(), opcode,
+					this.line, f));
 			return;
 		}
 		default:
@@ -330,8 +328,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 		/*******
 		 * INC *
 		 *******/
-		addOperation(new INC(this.operations.size(), Opcodes.IINC, this.line,
-				DataType.T_INT, var, increment));
+		this.operations.add(new INC(this.operations.size(), Opcodes.IINC,
+				this.line, DataType.T_INT, var, increment));
 	}
 
 	@Override
@@ -364,8 +362,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new ADD(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new ADD(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/*********
 		 * ALOAD *
@@ -407,8 +405,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_SHORT;
 			}
-			addOperation(new ALOAD(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new ALOAD(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/*******
 		 * AND *
@@ -420,14 +418,14 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new AND(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new AND(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/***************
 		 * ARRAYLENGTH *
 		 ***************/
 		case Opcodes.ARRAYLENGTH:
-			addOperation(new ARRAYLENGTH(this.operations.size(), opcode,
+			this.operations.add(new ARRAYLENGTH(this.operations.size(), opcode,
 					this.line));
 			break;
 		/**********
@@ -470,8 +468,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_SHORT;
 			}
-			addOperation(new ASTORE(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new ASTORE(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/*******
 		 * CMP *
@@ -503,8 +501,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 				type = DataType.T_LONG;
 				iValue = CMP.T_0;
 			}
-			addOperation(new CMP(this.operations.size(), opcode, this.line,
-					type, iValue));
+			this.operations.add(new CMP(this.operations.size(), opcode,
+					this.line, type, iValue));
 			break;
 		/***********
 		 * CONVERT *
@@ -596,8 +594,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 				type = DataType.T_LONG;
 				iValue = DataType.T_INT;
 			}
-			addOperation(new CONVERT(this.operations.size(), opcode, this.line,
-					type, iValue));
+			this.operations.add(new CONVERT(this.operations.size(), opcode,
+					this.line, type, iValue));
 			break;
 		/*******
 		 * DIV *
@@ -619,8 +617,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new DIV(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new DIV(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/*******
 		 * DUP *
@@ -652,8 +650,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DUP.T_DUP2_X2;
 			}
-			addOperation(new DUP(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new DUP(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/***********
 		 * MONITOR *
@@ -665,8 +663,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = MONITOR.T_EXIT;
 			}
-			addOperation(new MONITOR(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new MONITOR(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/*******
 		 * MUL *
@@ -688,8 +686,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new MUL(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new MUL(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/*******
 		 * NEG *
@@ -713,8 +711,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new NEG(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new NEG(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/******
 		 * OR *
@@ -726,7 +724,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new OR(this.operations.size(), opcode, this.line, type));
+			this.operations.add(new OR(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/*******
 		 * POP *
@@ -738,8 +737,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = POP.T_POP2;
 			}
-			addOperation(new POP(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new POP(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/********
 		 * PUSH *
@@ -828,8 +827,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 				type = DataType.T_INT;
 				oValue = -1;
 			}
-			addOperation(new PUSH(this.operations.size(), opcode, this.line,
-					type, oValue));
+			this.operations.add(new PUSH(this.operations.size(), opcode,
+					this.line, type, oValue));
 			break;
 		/*******
 		 * REM *
@@ -853,8 +852,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new REM(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new REM(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/**********
 		 * RETURN *
@@ -886,8 +885,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_VOID;
 			}
-			addOperation(new RETURN(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new RETURN(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/*******
 		 * SHL *
@@ -899,8 +898,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new SHL(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new SHL(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/*******
 		 * SHR *
@@ -914,8 +913,9 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new SHR(this.operations.size(), opcode, this.line,
-					type, opcode == Opcodes.IUSHR || opcode == Opcodes.LUSHR));
+			this.operations.add(new SHR(this.operations.size(), opcode,
+					this.line, type, opcode == Opcodes.IUSHR
+							|| opcode == Opcodes.LUSHR));
 			break;
 		/*******
 		 * SUB *
@@ -937,20 +937,22 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new SUB(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new SUB(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		/********
 		 * SWAP *
 		 ********/
 		case Opcodes.SWAP:
-			addOperation(new SWAP(this.operations.size(), opcode, this.line));
+			this.operations.add(new SWAP(this.operations.size(), opcode,
+					this.line));
 			break;
 		/*********
 		 * THROW *
 		 *********/
 		case Opcodes.ATHROW:
-			addOperation(new THROW(this.operations.size(), opcode, this.line));
+			this.operations.add(new THROW(this.operations.size(), opcode,
+					this.line));
 			break;
 		/*******
 		 * XOR *
@@ -962,8 +964,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new XOR(this.operations.size(), opcode, this.line,
-					type));
+			this.operations.add(new XOR(this.operations.size(), opcode,
+					this.line, type));
 			break;
 		}
 		default:
@@ -988,8 +990,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_INT;
 			}
-			addOperation(new PUSH(this.operations.size(), opcode, this.line,
-					type, operand));
+			this.operations.add(new PUSH(this.operations.size(), opcode,
+					this.line, type, operand));
 			break;
 		case Opcodes.NEWARRAY: {
 			final String typeName = new String[] { null, null, null, null,
@@ -997,7 +999,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 					float.class.getName(), double.class.getName(),
 					byte.class.getName(), short.class.getName(),
 					int.class.getName(), long.class.getName() }[operand];
-			addOperation(new NEWARRAY(this.operations.size(), opcode,
+			this.operations.add(new NEWARRAY(this.operations.size(), opcode,
 					this.line, this.du.getT(typeName), 1));
 			break;
 		}
@@ -1032,7 +1034,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (labelIndex < 0) {
 				getLabelUnresolved(label).add(op);
 			}
-			addOperation(op);
+			this.operations.add(op);
 			break;
 		}
 		/********
@@ -1090,7 +1092,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 				if (labelIndex < 0) {
 					getLabelUnresolved(label).add(op);
 				}
-				addOperation(op);
+				this.operations.add(op);
 			}
 			break;
 		/********
@@ -1148,7 +1150,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 				if (labelIndex < 0) {
 					getLabelUnresolved(label).add(op);
 				}
-				addOperation(op);
+				this.operations.add(op);
 			}
 			break;
 		/*******
@@ -1160,7 +1162,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (labelIndex < 0) {
 				getLabelUnresolved(label).add(op);
 			}
-			addOperation(op);
+			this.operations.add(op);
 			break;
 		}
 		default:
@@ -1266,8 +1268,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			}
 			oValue = cst;
 		}
-		addOperation(new PUSH(this.operations.size(), Opcodes.LDC, this.line,
-				type, oValue));
+		this.operations.add(new PUSH(this.operations.size(), Opcodes.LDC,
+				this.line, type, oValue));
 	}
 
 	@Override
@@ -1331,7 +1333,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 		}
 		op.setKeys(keys);
 		op.setKeyPcs(keyTargets);
-		addOperation(op);
+		this.operations.add(op);
 	}
 
 	@Override
@@ -1364,8 +1366,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (opcode == Opcodes.INVOKESTATIC) {
 				invokeM.markAf(AF.STATIC);
 			}
-			addOperation(new INVOKE(this.operations.size(), opcode, this.line,
-					invokeM, opcode == Opcodes.INVOKESPECIAL));
+			this.operations.add(new INVOKE(this.operations.size(), opcode,
+					this.line, invokeM, opcode == Opcodes.INVOKESPECIAL));
 			break;
 		}
 		default:
@@ -1378,8 +1380,10 @@ public class ReadMethodVisitor implements MethodVisitor {
 		/************
 		 * NEWARRAY *
 		 ************/
-		addOperation(new NEWARRAY(this.operations.size(),
-				Opcodes.MULTIANEWARRAY, this.line, this.du.getDescT(desc), dims));
+		this.operations
+				.add(new NEWARRAY(this.operations.size(),
+						Opcodes.MULTIANEWARRAY, this.line, this.du
+								.getDescT(desc), dims));
 	}
 
 	@Override
@@ -1434,7 +1438,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 		}
 		op.setKeys(keys);
 		op.setKeyPcs(keyTargets);
-		addOperation(op);
+		this.operations.add(op);
 	}
 
 	@Override
@@ -1474,27 +1478,28 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * CHECKCAST *
 		 **************/
 		case Opcodes.CHECKCAST:
-			addOperation(new CHECKCAST(this.operations.size(), opcode,
+			this.operations.add(new CHECKCAST(this.operations.size(), opcode,
 					this.line, t));
 			break;
 		/**************
 		 * INSTANCEOF *
 		 **************/
 		case Opcodes.INSTANCEOF:
-			addOperation(new INSTANCEOF(this.operations.size(), opcode,
+			this.operations.add(new INSTANCEOF(this.operations.size(), opcode,
 					this.line, t));
 			break;
 		/*******
 		 * NEW *
 		 *******/
 		case Opcodes.NEW:
-			addOperation(new NEW(this.operations.size(), opcode, this.line, t));
+			this.operations.add(new NEW(this.operations.size(), opcode,
+					this.line, t));
 			break;
 		/************
 		 * NEWARRAY *
 		 ************/
 		case Opcodes.ANEWARRAY:
-			addOperation(new NEWARRAY(this.operations.size(), opcode,
+			this.operations.add(new NEWARRAY(this.operations.size(), opcode,
 					this.line, t, 1));
 			break;
 		default:
@@ -1532,8 +1537,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new LOAD(this.operations.size(), opcode, this.line,
-					type, var));
+			this.operations.add(new LOAD(this.operations.size(), opcode,
+					this.line, type, var));
 			break;
 		/*********
 		 * STORE *
@@ -1560,14 +1565,15 @@ public class ReadMethodVisitor implements MethodVisitor {
 			if (type < 0) {
 				type = DataType.T_LONG;
 			}
-			addOperation(new STORE(this.operations.size(), opcode, this.line,
-					type, var));
+			this.operations.add(new STORE(this.operations.size(), opcode,
+					this.line, type, var));
 			break;
 		/*******
 		 * RET *
 		 *******/
 		case Opcodes.RET: {
-			addOperation(new RET(this.operations.size(), opcode, this.line, var));
+			this.operations.add(new RET(this.operations.size(), opcode,
+					this.line, var));
 			break;
 		}
 		default:

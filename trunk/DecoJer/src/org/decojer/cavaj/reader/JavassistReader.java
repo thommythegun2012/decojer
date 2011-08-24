@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -95,6 +94,7 @@ import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
 import org.decojer.cavaj.model.vm.intermediate.Exc;
+import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
 import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
@@ -450,17 +450,7 @@ public class JavassistReader {
 
 		final ConstPool constPool = codeAttribute.getConstPool();
 
-		// setup loop
-
-		// start with pc = 0
-		codeReader.pc = 0;
-		// start with this basic block, may not remain the start basic block
-		// (splitting)
-		BB bb = cfg.getStartBb();
-		// remember visited pcs via BBNode
-		final Map<Integer, BB> pcBbs = new HashMap<Integer, BB>();
-		// remember open pcs
-		final Stack<Integer> openPcs = new Stack<Integer>();
+		final ArrayList<Operation> operations = new ArrayList<Operation>();
 
 		// wide operation following?
 		// one of: iload, fload, aload, lload, dload, istore, fstore, astore,
@@ -469,32 +459,16 @@ public class JavassistReader {
 
 		while (true) {
 			// next open pc?
-			if (codeReader.pc >= codeReader.code.length) {
-				if (openPcs.isEmpty()) {
-					break;
-				}
-				codeReader.pc = openPcs.pop();
-				bb = pcBbs.get(codeReader.pc);
-			} else {
-				// next pc allready in flow?
-				final BB nextBB = cfg.getTargetBb(codeReader.pc, pcBbs);
-				if (nextBB != null) {
-					bb.addSucc(nextBB, null);
-					codeReader.pc = codeReader.code.length; // next open pc
-					continue;
-				}
-				pcBbs.put(codeReader.pc, bb);
-			}
 			final int opPc = codeReader.pc;
-			final int opCode = codeReader.readUnsignedByte();
-			final int opLine = lineNumberAttribute == null ? -1
+			final int opcode = codeReader.readUnsignedByte();
+			final int line = lineNumberAttribute == null ? -1
 					: lineNumberAttribute.toLineNumber(opPc);
 
 			int type = -1;
 			int iValue = Integer.MIN_VALUE;
 			Object oValue = null;
 
-			switch (opCode) {
+			switch (opcode) {
 			case Opcode.NOP:
 				// nothing to do, ignore
 				break;
@@ -518,7 +492,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new ADD(opPc, opCode, opLine, type));
+				operations.add(new ADD(opPc, opcode, line, type));
 				break;
 			/*********
 			 * ALOAD *
@@ -560,7 +534,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_SHORT;
 				}
-				bb.addOperation(new ALOAD(opPc, opCode, opLine, type));
+				operations.add(new ALOAD(opPc, opcode, line, type));
 				break;
 			/*******
 			 * AND *
@@ -572,13 +546,13 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new AND(opPc, opCode, opLine, type));
+				operations.add(new AND(opPc, opcode, line, type));
 				break;
 			/***************
 			 * ARRAYLENGTH *
 			 ***************/
 			case Opcode.ARRAYLENGTH:
-				bb.addOperation(new ARRAYLENGTH(opPc, opCode, opLine));
+				operations.add(new ARRAYLENGTH(opPc, opcode, line));
 				break;
 			/**********
 			 * ASTORE *
@@ -620,7 +594,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_SHORT;
 				}
-				bb.addOperation(new ASTORE(opPc, opCode, opLine, type));
+				operations.add(new ASTORE(opPc, opcode, line, type));
 				break;
 			/**************
 			 * CHECKCAST *
@@ -628,7 +602,7 @@ public class JavassistReader {
 			case Opcode.CHECKCAST: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				// cp arrays: "[L<classname>;" instead of "<classname>"!!!
-				bb.addOperation(new CHECKCAST(opPc, opCode, opLine, readType(
+				operations.add(new CHECKCAST(opPc, opcode, line, readType(
 						constPool.getClassInfo(cpClassIndex), du)));
 				break;
 			}
@@ -662,7 +636,7 @@ public class JavassistReader {
 					type = DataType.T_LONG;
 					iValue = CMP.T_0;
 				}
-				bb.addOperation(new CMP(opPc, opCode, opLine, type, iValue));
+				operations.add(new CMP(opPc, opcode, line, type, iValue));
 				break;
 			/***********
 			 * CONVERT *
@@ -754,7 +728,7 @@ public class JavassistReader {
 					type = DataType.T_LONG;
 					iValue = DataType.T_INT;
 				}
-				bb.addOperation(new CONVERT(opPc, opCode, opLine, type, iValue));
+				operations.add(new CONVERT(opPc, opcode, line, type, iValue));
 				break;
 			/*******
 			 * DIV *
@@ -776,7 +750,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new DIV(opPc, opCode, opLine, type));
+				operations.add(new DIV(opPc, opcode, line, type));
 				break;
 			/*******
 			 * DUP *
@@ -808,7 +782,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DUP.T_DUP2_X2;
 				}
-				bb.addOperation(new DUP(opPc, opCode, opLine, type));
+				operations.add(new DUP(opPc, opcode, line, type));
 				break;
 			/*******
 			 * GET *
@@ -823,10 +797,10 @@ public class JavassistReader {
 						.getDescT(constPool.getFieldrefType(cpFieldIndex));
 				final F f = ownerT.getF(
 						constPool.getFieldrefName(cpFieldIndex), t);
-				if (opCode == Opcode.GETSTATIC) {
+				if (opcode == Opcode.GETSTATIC) {
 					f.markAf(AF.STATIC);
 				}
-				bb.addOperation(new GET(opPc, opCode, opLine, f));
+				operations.add(new GET(opPc, opcode, line, f));
 				break;
 			}
 			/********
@@ -840,11 +814,16 @@ public class JavassistReader {
 				if (type < 0) {
 					iValue = codeReader.readSignedInt();
 				}
-				// not really necessary, but important for
-				// 1) correct opPc blocks
-				// 2) line numbers
-				codeReader.pc = opPc + iValue;
-				bb.addOperation(new GOTO(opPc, opCode, opLine));
+				{
+					final int targetPc = opPc + iValue;
+
+					final GOTO op = new GOTO(opPc, opcode, line);
+					op.setTargetPc(labelIndex);
+					if (labelIndex < 0) {
+						getLabelUnresolved(label).add(op);
+					}
+					operations.add(op);
+				}
 				break;
 			/*******
 			 * INC *
@@ -852,7 +831,7 @@ public class JavassistReader {
 			case Opcode.IINC: {
 				final int varIndex = codeReader.readUnsignedByte();
 				final int constValue = codeReader.readUnsignedByte();
-				bb.addOperation(new INC(opPc, opCode, opLine, DataType.T_INT,
+				operations.add(new INC(opPc, opcode, line, DataType.T_INT,
 						varIndex, constValue));
 				break;
 			}
@@ -861,7 +840,7 @@ public class JavassistReader {
 			 **************/
 			case Opcode.INSTANCEOF: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				bb.addOperation(new INSTANCEOF(opPc, opCode, opLine, readType(
+				operations.add(new INSTANCEOF(opPc, opcode, line, readType(
 						constPool.getClassInfo(cpClassIndex), du)));
 				break;
 			}
@@ -882,7 +861,7 @@ public class JavassistReader {
 						constPool.getInterfaceMethodrefName(cpMethodIndex),
 						constPool.getInterfaceMethodrefType(cpMethodIndex));
 
-				bb.addOperation(new INVOKE(opPc, opCode, opLine, invokeM, false));
+				operations.add(new INVOKE(opPc, opcode, line, invokeM, false));
 				break;
 			}
 			case Opcode.INVOKESPECIAL:
@@ -896,11 +875,11 @@ public class JavassistReader {
 				final M invokeM = invokeT.getM(
 						constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
-				if (opCode == Opcode.INVOKESTATIC) {
+				if (opcode == Opcode.INVOKESTATIC) {
 					invokeM.markAf(AF.STATIC);
 				}
-				bb.addOperation(new INVOKE(opPc, opCode, opLine, invokeM,
-						opCode == Opcode.INVOKESPECIAL));
+				operations.add(new INVOKE(opPc, opcode, line, invokeM,
+						opcode == Opcode.INVOKESPECIAL));
 				break;
 			}
 			/********
@@ -953,29 +932,14 @@ public class JavassistReader {
 				}
 				{
 					final int branch = codeReader.readSignedShort();
-					bb.addOperation(new JCMP(opPc, opCode, opLine, type, iValue));
 					final int targetPc = opPc + branch;
-					if (targetPc == codeReader.pc) {
-						System.out.println("### BRANCH_IFCMP (Empty): "
-								+ targetPc);
-					} else {
-						BB targetBB = cfg.getTargetBb(targetPc, pcBbs);
-						if (targetBB == null) {
-							targetBB = cfg.newBb(targetPc);
-							pcBbs.put(targetPc, targetBB);
-							openPcs.add(targetPc);
-						}
-						bb.addSucc(targetBB, Boolean.TRUE);
-						BB nextBB = cfg.getTargetBb(codeReader.pc, pcBbs);
-						if (nextBB == null) {
-							nextBB = cfg.newBb(codeReader.pc);
-						} else {
-							codeReader.pc = codeReader.code.length; // next open
-																	// pc
-						}
-						bb.addSucc(nextBB, Boolean.FALSE);
-						bb = nextBB;
+
+					final JCMP op = new JCMP(opPc, opcode, line, type, iValue);
+					op.setTargetPc(labelIndex);
+					if (labelIndex < 0) {
+						getLabelUnresolved(label).add(op);
 					}
+					operations.add(op);
 				}
 				break;
 			/********
@@ -1028,29 +992,14 @@ public class JavassistReader {
 				}
 				{
 					final int branch = codeReader.readSignedShort();
-					bb.addOperation(new JCND(opPc, opCode, opLine, type, iValue));
 					final int targetPc = opPc + branch;
-					if (targetPc == codeReader.pc) {
-						System.out
-								.println("### BRANCH_IF (Empty): " + targetPc);
-					} else {
-						BB targetBB = cfg.getTargetBb(targetPc, pcBbs);
-						if (targetBB == null) {
-							targetBB = cfg.newBb(targetPc);
-							pcBbs.put(targetPc, targetBB);
-							openPcs.add(targetPc);
-						}
-						bb.addSucc(targetBB, Boolean.TRUE);
-						BB nextBB = cfg.getTargetBb(codeReader.pc, pcBbs);
-						if (nextBB == null) {
-							nextBB = cfg.newBb(codeReader.pc);
-						} else {
-							codeReader.pc = codeReader.code.length; // next open
-																	// pc
-						}
-						bb.addSucc(nextBB, Boolean.FALSE);
-						bb = nextBB;
+
+					final JCND op = new JCND(opPc, opcode, line, type, iValue);
+					op.setTargetPc(labelIndex);
+					if (labelIndex < 0) {
+						getLabelUnresolved(label).add(op);
 					}
+					operations.add(op);
 				}
 				break;
 			/*******
@@ -1064,8 +1013,16 @@ public class JavassistReader {
 				if (type < 0) {
 					iValue = codeReader.readUnsignedInt();
 				}
-				// TODO add target
-				bb.addOperation(new JSR(opPc, opCode, opLine));
+				{
+					final int targetPc = opPc + iValue;
+
+					final JSR op = new JSR(opPc, opcode, line);
+					op.setTargetPc(labelIndex);
+					if (labelIndex < 0) {
+						getLabelUnresolved(label).add(op);
+					}
+					operations.add(op);
+				}
 				break;
 			/********
 			 * LOAD *
@@ -1214,7 +1171,7 @@ public class JavassistReader {
 					type = DataType.T_LONG;
 					iValue = 3;
 				}
-				bb.addOperation(new LOAD(opPc, opCode, opLine, type, iValue));
+				operations.add(new LOAD(opPc, opcode, line, type, iValue));
 				break;
 			}
 			/***********
@@ -1227,7 +1184,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = MONITOR.T_EXIT;
 				}
-				bb.addOperation(new MONITOR(opPc, opCode, opLine, type));
+				operations.add(new MONITOR(opPc, opcode, line, type));
 				break;
 			/*******
 			 * MUL *
@@ -1249,7 +1206,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new MUL(opPc, opCode, opLine, type));
+				operations.add(new MUL(opPc, opcode, line, type));
 				break;
 			/*******
 			 * NEG *
@@ -1273,14 +1230,14 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new NEG(opPc, opCode, opLine, type));
+				operations.add(new NEG(opPc, opcode, line, type));
 				break;
 			/*******
 			 * NEW *
 			 *******/
 			case Opcode.NEW: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				bb.addOperation(new NEW(opPc, opCode, opLine, readType(
+				operations.add(new NEW(opPc, opcode, line, readType(
 						constPool.getClassInfo(cpClassIndex), du)));
 				break;
 			}
@@ -1289,7 +1246,7 @@ public class JavassistReader {
 			 ************/
 			case Opcode.ANEWARRAY: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				bb.addOperation(new NEWARRAY(opPc, opCode, opLine, readType(
+				operations.add(new NEWARRAY(opPc, opcode, line, readType(
 						constPool.getClassInfo(cpClassIndex), du), 1));
 				break;
 			}
@@ -1300,14 +1257,14 @@ public class JavassistReader {
 						float.class.getName(), double.class.getName(),
 						byte.class.getName(), short.class.getName(),
 						int.class.getName(), long.class.getName() }[type];
-				bb.addOperation(new NEWARRAY(opPc, opCode, opLine, du
+				operations.add(new NEWARRAY(opPc, opcode, line, du
 						.getT(typeName), 1));
 				break;
 			}
 			case Opcode.MULTIANEWARRAY: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				final int dimensions = codeReader.readUnsignedByte();
-				bb.addOperation(new NEWARRAY(opPc, opCode, opLine, readType(
+				operations.add(new NEWARRAY(opPc, opcode, line, readType(
 						constPool.getClassInfo(cpClassIndex), du), dimensions));
 				break;
 			}
@@ -1321,7 +1278,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new OR(opPc, opCode, opLine, type));
+				operations.add(new OR(opPc, opcode, line, type));
 				break;
 			/*******
 			 * POP *
@@ -1333,7 +1290,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = POP.T_POP2;
 				}
-				bb.addOperation(new POP(opPc, opCode, opLine, type));
+				operations.add(new POP(opPc, opcode, line, type));
 				break;
 			/********
 			 * PUSH *
@@ -1521,7 +1478,7 @@ public class JavassistReader {
 					type = DataType.T_INT;
 					oValue = -1;
 				}
-				bb.addOperation(new PUSH(opPc, opCode, opLine, type, oValue));
+				operations.add(new PUSH(opPc, opcode, line, type, oValue));
 				break;
 			/*******
 			 * PUT *
@@ -1536,10 +1493,10 @@ public class JavassistReader {
 						.getDescT(constPool.getFieldrefType(cpFieldIndex));
 				final F f = ownerT.getF(
 						constPool.getFieldrefName(cpFieldIndex), t);
-				if (opCode == Opcode.PUTSTATIC) {
+				if (opcode == Opcode.PUTSTATIC) {
 					f.markAf(AF.STATIC);
 				}
-				bb.addOperation(new PUT(opPc, opCode, opLine, f));
+				operations.add(new PUT(opPc, opcode, line, f));
 				break;
 			}
 			/*******
@@ -1564,7 +1521,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new REM(opPc, opCode, opLine, type));
+				operations.add(new REM(opPc, opcode, line, type));
 				break;
 			/*******
 			 * RET *
@@ -1572,7 +1529,7 @@ public class JavassistReader {
 			case Opcode.RET: {
 				final int varIndex = wide ? codeReader.readUnsignedShort()
 						: codeReader.readUnsignedByte();
-				bb.addOperation(new RET(opPc, opCode, opLine, varIndex));
+				operations.add(new RET(opPc, opcode, line, varIndex));
 				codeReader.pc = codeReader.code.length; // next open pc
 				break;
 			}
@@ -1606,7 +1563,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_VOID;
 				}
-				bb.addOperation(new RETURN(opPc, opCode, opLine, type));
+				operations.add(new RETURN(opPc, opcode, line, type));
 				codeReader.pc = codeReader.code.length; // next open pc
 				break;
 			/*********
@@ -1756,7 +1713,7 @@ public class JavassistReader {
 					type = DataType.T_LONG;
 					iValue = 3;
 				}
-				bb.addOperation(new STORE(opPc, opCode, opLine, type, iValue));
+				operations.add(new STORE(opPc, opcode, line, type, iValue));
 				break;
 			}
 			/*******
@@ -1769,7 +1726,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new SHL(opPc, opCode, opLine, type));
+				operations.add(new SHL(opPc, opcode, line, type));
 				break;
 			/*******
 			 * SHR *
@@ -1783,8 +1740,8 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new SHR(opPc, opCode, opLine, type,
-						opCode == Opcode.IUSHR || opCode == Opcode.LUSHR));
+				operations.add(new SHR(opPc, opcode, line, type,
+						opcode == Opcode.IUSHR || opcode == Opcode.LUSHR));
 				break;
 			/*******
 			 * SUB *
@@ -1806,13 +1763,13 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new SUB(opPc, opCode, opLine, type));
+				operations.add(new SUB(opPc, opcode, line, type));
 				break;
 			/********
 			 * SWAP *
 			 ********/
 			case Opcode.SWAP:
-				bb.addOperation(new SWAP(opPc, opCode, opLine));
+				operations.add(new SWAP(opPc, opcode, line));
 				break;
 			/**********
 			 * SWITCH *
@@ -1897,7 +1854,7 @@ public class JavassistReader {
 					}
 					bb.addSucc(caseBb, values);
 				}
-				bb.addOperation(new SWITCH(opPc, opCode, opLine));
+				operations.add(new SWITCH(opPc, opcode, line));
 				// next open pc
 				codeReader.pc = codeReader.code.length; // next open pc
 				break;
@@ -1906,7 +1863,7 @@ public class JavassistReader {
 			 * THROW *
 			 *********/
 			case Opcode.ATHROW:
-				bb.addOperation(new THROW(opPc, opCode, opLine));
+				operations.add(new THROW(opPc, opcode, line));
 				// next open pc
 				codeReader.pc = codeReader.code.length; // next open pc
 				break;
@@ -1920,7 +1877,7 @@ public class JavassistReader {
 				if (type < 0) {
 					type = DataType.T_LONG;
 				}
-				bb.addOperation(new XOR(opPc, opCode, opLine, type));
+				operations.add(new XOR(opPc, opcode, line, type));
 				break;
 			}
 			/*******
@@ -1932,7 +1889,7 @@ public class JavassistReader {
 				continue;
 			default:
 				throw new RuntimeException("Unknown jvm operation code '"
-						+ opCode + "'!");
+						+ opcode + "'!");
 			}
 			// reset wide
 			wide = false;
