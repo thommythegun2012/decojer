@@ -26,7 +26,6 @@ package org.decojer.cavaj.model;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.decojer.cavaj.model.vm.intermediate.Exc;
@@ -233,9 +232,9 @@ public class CFG {
 	 *            map: pc -> basic block
 	 * @return target basic block
 	 */
-	public BB getTargetBb(final int pc, final Map<Integer, BB> pcBbs) {
+	public BB getTargetBb(final int pc, final BB[] pcBbs) {
 		// operation with pc must be in this basic block
-		final BB targetBb = pcBbs.get(pc);
+		final BB targetBb = pcBbs[pc];
 		// no basic block found for pc yet
 		if (targetBb == null) {
 			return null;
@@ -243,12 +242,15 @@ public class CFG {
 
 		final List<Operation> operations = targetBb.getOperations();
 
-		int i = pc - targetBb.getOpPc();
+		int i = 0;
 		// find operation index in basic block with given pc
-		/*
-		 * while (i < operations.size()) { if (operations.get(i).getPc() == pc)
-		 * { break; } ++i; }
-		 */
+		while (i < operations.size()) {
+			if (operations.get(i).getPc() == pc) {
+				break;
+			}
+			++i;
+		}
+
 		// first operation in basic block has target pc, return basic block,
 		// no split necessary
 		if (i == 0) {
@@ -269,7 +271,7 @@ public class CFG {
 		while (i-- > 0) {
 			final Operation vmOperation = operations.remove(0);
 			splitSourceBb.addOperation(vmOperation);
-			pcBbs.put(vmOperation.getPc(), splitSourceBb);
+			pcBbs[vmOperation.getPc()] = splitSourceBb;
 		}
 		return targetBb;
 	}

@@ -23,9 +23,7 @@
  */
 package org.decojer.cavaj.transformer;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 
 import org.decojer.cavaj.model.BB;
@@ -80,15 +78,16 @@ public class TrInitControlFlowGraph {
 	}
 
 	private void transform() {
+		final Operation[] operations = getCfg().getOperations();
+
 		// start with this basic block, may not remain the start basic block
 		// (splitting)
 		BB bb = this.cfg.getStartBb();
 		// remember visited pcs via BBNode
-		final Map<Integer, BB> pcBbs = new HashMap<Integer, BB>();
+		final BB[] pcBbs = new BB[operations.length];
 		// remember open pcs
 		final Stack<Integer> openPcs = new Stack<Integer>();
 
-		final Operation[] operations = getCfg().getOperations();
 		int pc = 0;
 		while (true) {
 			// next open pc?
@@ -97,7 +96,7 @@ public class TrInitControlFlowGraph {
 					break;
 				}
 				pc = openPcs.pop();
-				bb = pcBbs.get(pc);
+				bb = pcBbs[pc];
 			} else {
 				// next pc allready in flow?
 				final BB nextBB = this.cfg.getTargetBb(pc, pcBbs);
@@ -106,7 +105,7 @@ public class TrInitControlFlowGraph {
 					pc = operations.length; // next open pc
 					continue;
 				}
-				pcBbs.put(pc, bb);
+				pcBbs[pc] = bb;
 			}
 
 			final Operation operation = operations[pc++];
@@ -126,7 +125,7 @@ public class TrInitControlFlowGraph {
 					BB targetBB = this.cfg.getTargetBb(targetPc, pcBbs);
 					if (targetBB == null) {
 						targetBB = this.cfg.newBb(targetPc);
-						pcBbs.put(targetPc, targetBB);
+						pcBbs[targetPc] = targetBB;
 						openPcs.add(targetPc);
 					}
 					bb.addSucc(targetBB, Boolean.TRUE);
@@ -150,7 +149,7 @@ public class TrInitControlFlowGraph {
 					BB targetBB = this.cfg.getTargetBb(targetPc, pcBbs);
 					if (targetBB == null) {
 						targetBB = this.cfg.newBb(targetPc);
-						pcBbs.put(targetPc, targetBB);
+						pcBbs[targetPc] = targetBB;
 						openPcs.add(targetPc);
 					}
 					bb.addSucc(targetBB, Boolean.TRUE);
