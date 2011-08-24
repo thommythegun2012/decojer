@@ -282,9 +282,6 @@ public class ReadMethodVisitor implements MethodVisitor {
 				}
 				this.reg2vars.clear();
 			}
-
-			cfg.calculatePostorder(); // TODO delete
-
 			this.md.postProcessVars();
 		}
 	}
@@ -1192,10 +1189,10 @@ public class ReadMethodVisitor implements MethodVisitor {
 			}
 			if (o instanceof SWITCH) {
 				final SWITCH op = (SWITCH) o;
-				if (labelUnknownIndex == op.getDefaultTarget()) {
-					op.setDefaultTarget(this.index);
+				if (labelUnknownIndex == op.getDefaultPc()) {
+					op.setDefaultPc(this.index);
 				}
-				final int[] keyTargets = op.getKeyTargets();
+				final int[] keyTargets = op.getKeyPcs();
 				for (int i = keyTargets.length; i-- > 0;) {
 					if (labelUnknownIndex == keyTargets[i]) {
 						keyTargets[i] = this.index;
@@ -1304,7 +1301,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 				this.line);
 		// default
 		int labelIndex = getLabelIndex(dflt);
-		op.setDefaultTarget(labelIndex);
+		op.setDefaultPc(labelIndex);
 		if (labelIndex < 0) {
 			getLabelUnresolved(dflt).add(op);
 		}
@@ -1317,7 +1314,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			}
 		}
 		op.setKeys(keys);
-		op.setKeyTargets(keyTargets);
+		op.setKeyPcs(keyTargets);
 		addOperation(op);
 	}
 
@@ -1338,6 +1335,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * INVOKE *
 		 **********/
 		case Opcodes.INVOKEINTERFACE:
+			// interface method callout
 		case Opcodes.INVOKESPECIAL:
 			// constructor or supermethod callout
 		case Opcodes.INVOKEVIRTUAL:
@@ -1345,7 +1343,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			final T invokeT = readType(owner, this.du);
 			final M invokeM = invokeT.getM(name, desc);
 			if (opcode == Opcodes.INVOKEINTERFACE) {
-				invokeM.markAf(AF.STATIC);
+				invokeT.markAf(AF.INTERFACE);
 			}
 			if (opcode == Opcodes.INVOKESTATIC) {
 				invokeM.markAf(AF.STATIC);
@@ -1402,7 +1400,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 		final SWITCH op = new SWITCH(this.index, Opcodes.TABLESWITCH, this.line);
 		// default
 		int labelIndex = getLabelIndex(dflt);
-		op.setDefaultTarget(labelIndex);
+		op.setDefaultPc(labelIndex);
 		if (labelIndex < 0) {
 			getLabelUnresolved(dflt).add(op);
 		}
@@ -1418,7 +1416,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			}
 		}
 		op.setKeys(keys);
-		op.setKeyTargets(keyTargets);
+		op.setKeyPcs(keyTargets);
 		addOperation(op);
 	}
 

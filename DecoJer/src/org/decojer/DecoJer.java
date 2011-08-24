@@ -36,6 +36,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
+import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
 import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformer.TrMergeAll;
@@ -94,6 +95,8 @@ public class DecoJer {
 			final TD td = tds.get(i);
 
 			TrJvmStruct2JavaAst.transform(td); // could add tds
+
+			TrInitControlFlowGraph.transform(td);
 
 			TrDataFlowAnalysis.transform(td);
 			TrIvmCfg2JavaExprStmts.transform(td);

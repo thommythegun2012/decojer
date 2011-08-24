@@ -243,14 +243,12 @@ public class CFG {
 
 		final List<Operation> operations = targetBb.getOperations();
 
-		int i = 0;
+		int i = pc - targetBb.getOpPc();
 		// find operation index in basic block with given pc
-		while (i < operations.size()) {
-			if (operations.get(i).getPc() == pc) {
-				break;
-			}
-			++i;
-		}
+		/*
+		 * while (i < operations.size()) { if (operations.get(i).getPc() == pc)
+		 * { break; } ++i; }
+		 */
 		// first operation in basic block has target pc, return basic block,
 		// no split necessary
 		if (i == 0) {

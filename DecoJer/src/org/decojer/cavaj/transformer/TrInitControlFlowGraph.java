@@ -26,6 +26,7 @@ package org.decojer.cavaj.transformer;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
@@ -35,6 +36,9 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.operations.GOTO;
+import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
+import org.decojer.cavaj.model.vm.intermediate.operations.JCND;
+import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
 
 /**
  * Transform Init Control Flow Graph.
@@ -58,6 +62,9 @@ public class TrInitControlFlowGraph {
 			if (cfg == null) {
 				continue;
 			}
+			if (cfg.getOperations() == null) {
+				continue; // TODO delete?
+			}
 			transform(cfg);
 		}
 	}
@@ -73,11 +80,37 @@ public class TrInitControlFlowGraph {
 	}
 
 	private void transform() {
+		// start with this basic block, may not remain the start basic block
+		// (splitting)
+		BB bb = this.cfg.getStartBb();
+		// remember visited pcs via BBNode
 		final Map<Integer, BB> pcBbs = new HashMap<Integer, BB>();
+		// remember open pcs
+		final Stack<Integer> openPcs = new Stack<Integer>();
+
 		final Operation[] operations = getCfg().getOperations();
 		int pc = 0;
 		while (true) {
-			final Operation operation = operations[pc];
+			// next open pc?
+			if (pc >= operations.length) {
+				if (openPcs.isEmpty()) {
+					break;
+				}
+				pc = openPcs.pop();
+				bb = pcBbs.get(pc);
+			} else {
+				// next pc allready in flow?
+				final BB nextBB = this.cfg.getTargetBb(pc, pcBbs);
+				if (nextBB != null) {
+					bb.addSucc(nextBB, null);
+					pc = operations.length; // next open pc
+					continue;
+				}
+				pcBbs.put(pc, bb);
+			}
+
+			final Operation operation = operations[pc++];
+			bb.addOperation(operation);
 			switch (operation.getOpcode()) {
 			case Opcode.GOTO: {
 				final GOTO op = (GOTO) operation;
@@ -85,14 +118,66 @@ public class TrInitControlFlowGraph {
 				break;
 			}
 			case Opcode.JCMP: {
-				final GOTO op = (GOTO) operation;
-				pc = op.getTargetPc();
+				final JCMP op = (JCMP) operation;
+				final int targetPc = op.getTargetPc();
+				if (targetPc == pc) {
+					System.out.println("### BRANCH_IFCMP (Empty): " + targetPc);
+				} else {
+					BB targetBB = this.cfg.getTargetBb(targetPc, pcBbs);
+					if (targetBB == null) {
+						targetBB = this.cfg.newBb(targetPc);
+						pcBbs.put(targetPc, targetBB);
+						openPcs.add(targetPc);
+					}
+					bb.addSucc(targetBB, Boolean.TRUE);
+					BB nextBB = this.cfg.getTargetBb(pc, pcBbs);
+					if (nextBB == null) {
+						nextBB = this.cfg.newBb(pc);
+					} else {
+						pc = operations.length; // next open pc
+					}
+					bb.addSucc(nextBB, Boolean.FALSE);
+					bb = nextBB;
+				}
 				break;
 			}
-			default:
-				++pc;
+			case Opcode.JCND: {
+				final JCND op = (JCND) operation;
+				final int targetPc = op.getTargetPc();
+				if (targetPc == pc) {
+					System.out.println("### BRANCH_IF (Empty): " + targetPc);
+				} else {
+					BB targetBB = this.cfg.getTargetBb(targetPc, pcBbs);
+					if (targetBB == null) {
+						targetBB = this.cfg.newBb(targetPc);
+						pcBbs.put(targetPc, targetBB);
+						openPcs.add(targetPc);
+					}
+					bb.addSucc(targetBB, Boolean.TRUE);
+					BB nextBB = this.cfg.getTargetBb(pc, pcBbs);
+					if (nextBB == null) {
+						nextBB = this.cfg.newBb(pc);
+					} else {
+						pc = operations.length; // next open pc
+					}
+					bb.addSucc(nextBB, Boolean.FALSE);
+					bb = nextBB;
+				}
+				break;
+			}
+			case Opcode.SWITCH: {
+				final SWITCH op = (SWITCH) operation;
+				pc = op.getDefaultPc();
+				break;
+			}
+			case Opcode.RET:
+			case Opcode.RETURN:
+			case Opcode.THROW:
+				pc = operations.length; // next open pc
+				break;
 			}
 		}
+		this.cfg.calculatePostorder();
 	}
 
 }
