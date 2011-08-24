@@ -1215,6 +1215,15 @@ public class ReadMethodVisitor implements MethodVisitor {
 					op.setHandlerPc(this.index);
 				}
 			}
+			if (o instanceof Var) {
+				final Var op = (Var) o;
+				if (labelUnknownIndex == op.getStartPc()) {
+					op.setStartPc(this.index);
+				}
+				if (labelUnknownIndex == op.getEndPc()) {
+					op.setEndPc(this.index);
+				}
+			}
 		}
 	}
 

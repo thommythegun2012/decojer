@@ -175,8 +175,9 @@ public class ReadClassVisitor implements ClassVisitor {
 	@Override
 	public void visitInnerClass(final String name, final String outerName,
 			final String innerName, final int access) {
-		LOGGER.warning("### visitInner ### " + name + " : " + outerName + " : "
-				+ innerName + " : " + access);
+		// LOGGER.warning("### visitInner ### " + name + " : " + outerName +
+		// " : "
+		// + innerName + " : " + access);
 	}
 
 	@Override
@@ -207,8 +208,8 @@ public class ReadClassVisitor implements ClassVisitor {
 	@Override
 	public void visitOuterClass(final String owner, final String name,
 			final String desc) {
-		LOGGER.warning("### visitOuter ### " + owner + " : " + name + " : "
-				+ desc);
+		// LOGGER.warning("### visitOuter ### " + owner + " : " + name + " : "
+		// + desc);
 	}
 
 	@Override
