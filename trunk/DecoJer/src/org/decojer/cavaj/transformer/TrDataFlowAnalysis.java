@@ -140,6 +140,8 @@ public class TrDataFlowAnalysis {
 					.getT(String.class.getName());
 		case DataType.T_VOID:
 			return T.VOID;
+		default:
+			LOGGER.warning("Unknown convert type '" + dataType + "'!");
 		}
 		return null;
 	}

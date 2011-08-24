@@ -49,6 +49,7 @@ import org.decojer.cavaj.reader.AsmReader;
 import org.decojer.cavaj.reader.SmaliReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
+import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
 import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
@@ -128,9 +129,9 @@ public class ClassEditor extends MultiPageEditorPart {
 		return eclipseClassFile.getResource().getLocation().toOSString();
 	}
 
-	private Tree archiveTree;
-
 	private String archiveFileName;
+
+	private Tree archiveTree;
 
 	private Button cfgAntialiasingCheckbox;
 
@@ -591,6 +592,7 @@ public class ClassEditor extends MultiPageEditorPart {
 
 			final CFG cfg = md.getCfg();
 			if (cfg != null) {
+				TrInitControlFlowGraph.transform(td);
 				TrDataFlowAnalysis.transform(cfg);
 				final int i = this.cfgViewModeCombo.getSelectionIndex();
 				if (i > 0) {

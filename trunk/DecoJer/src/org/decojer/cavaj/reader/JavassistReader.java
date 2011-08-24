@@ -869,6 +869,7 @@ public class JavassistReader {
 			 * INVOKE *
 			 **********/
 			case Opcode.INVOKEINTERFACE: {
+				// interface method callout
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
@@ -876,8 +877,7 @@ public class JavassistReader {
 				final T invokeT = readType(
 						constPool.getInterfaceMethodrefClassName(cpMethodIndex),
 						du);
-				// invoke type must be interface
-				invokeT.checkAf(AF.INTERFACE);
+				invokeT.markAf(AF.INTERFACE);
 				final M invokeM = invokeT.getM(
 						constPool.getInterfaceMethodrefName(cpMethodIndex),
 						constPool.getInterfaceMethodrefType(cpMethodIndex));
@@ -1872,8 +1872,7 @@ public class JavassistReader {
 						values.add(caseValue);
 					}
 					// add default branch, can overlay with other cases, even
-					// JDK 6
-					// doesn't optimize this
+					// JDK 6 doesn't optimize this
 					List<Integer> values = casePc2Values.get(defaultBranch);
 					if (values == null) {
 						values = new ArrayList<Integer>();
