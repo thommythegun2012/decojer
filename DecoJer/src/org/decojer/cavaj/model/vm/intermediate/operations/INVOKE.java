@@ -34,9 +34,9 @@ public class INVOKE extends Operation {
 
 	private final M m;
 
-	public INVOKE(final int opPc, final int opCode, final int opLine,
-			final M m, final boolean direct) {
-		super(opPc, opCode, opLine);
+	public INVOKE(final int pc, final int code, final int line, final M m,
+			final boolean direct) {
+		super(pc, code, line);
 		this.m = m;
 		this.direct = direct;
 	}

@@ -30,9 +30,8 @@ public class OR extends Operation {
 
 	private final int type;
 
-	public OR(final int opPc, final int opCode, final int opLine,
-			final int type) {
-		super(opPc, opCode, opLine);
+	public OR(final int pc, final int code, final int line, final int type) {
+		super(pc, code, line);
 		this.type = type;
 	}
 

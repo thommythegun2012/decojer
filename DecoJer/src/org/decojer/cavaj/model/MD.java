@@ -25,7 +25,6 @@ package org.decojer.cavaj.model;
 
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
@@ -46,8 +45,6 @@ public class MD implements BD, PD {
 
 	// deprecated state (from deprecated attribute)
 	private boolean deprecated;
-
-	private Exc[] excs;
 
 	private final M m;
 
@@ -79,61 +76,17 @@ public class MD implements BD, PD {
 	}
 
 	/**
-	 * Add exception handler.
-	 * 
-	 * @param t
-	 *            catch type
-	 * @param startPc
-	 *            start pc
-	 * @param endPc
-	 *            end pc
-	 * @param handlerPc
-	 *            handler pc
-	 */
-	public void addExc(final T t, final int startPc, final int endPc,
-			final int handlerPc) {
-		if (this.excs == null) {
-			this.excs = new Exc[1];
-		} else {
-			final Exc[] newExcs = new Exc[this.excs.length + 1];
-			System.arraycopy(this.excs, 0, newExcs, 0, this.excs.length);
-			this.excs = newExcs;
-		}
-		this.excs[this.excs.length - 1] = new Exc(t, startPc, endPc, handlerPc);
-	}
-
-	/**
 	 * Add local variable.
 	 * 
 	 * Only basic checks, compare later with method parameters.
 	 * 
 	 * @param reg
 	 *            register
-	 * @param desc
-	 *            descriptor
-	 * @param signature
-	 *            signature
-	 * @param name
-	 *            variable name
-	 * @param startPc
-	 *            start pc
-	 * @param endPc
-	 *            endpc
+	 * @param var
+	 *            local variable
 	 */
-	public void addVar(final int reg, final String desc,
-			final String signature, final String name, final int startPc,
-			final int endPc) {
-		assert name != null;
-		assert desc != null;
-
-		final T varT = getTd().getT().getDu().getDescT(desc);
-		if (signature != null) {
-			varT.setSignature(signature);
-		}
-		final Var var = new Var(varT);
-		var.setName(name);
-		var.setStartPc(startPc);
-		var.setEndPc(endPc == 0 ? Integer.MAX_VALUE : endPc);
+	public void addVar(final int reg, final Var var) {
+		assert var != null;
 
 		Var[] vars = null;
 		if (this.varss == null) {
@@ -181,15 +134,6 @@ public class MD implements BD, PD {
 	 */
 	public CFG getCfg() {
 		return this.cfg;
-	}
-
-	/**
-	 * Get exception handlers.
-	 * 
-	 * @return exception handlers
-	 */
-	public Exc[] getExcs() {
-		return this.excs;
 	}
 
 	/**

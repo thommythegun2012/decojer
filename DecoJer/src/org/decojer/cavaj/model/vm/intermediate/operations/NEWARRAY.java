@@ -33,9 +33,9 @@ public class NEWARRAY extends Operation {
 
 	private final T t;
 
-	public NEWARRAY(final int opPc, final int opCode, final int opLine,
-			final T t, final int dimensions) {
-		super(opPc, opCode, opLine);
+	public NEWARRAY(final int pc, final int code, final int line, final T t,
+			final int dimensions) {
+		super(pc, code, line);
 		this.t = t;
 		this.dimensions = dimensions;
 	}

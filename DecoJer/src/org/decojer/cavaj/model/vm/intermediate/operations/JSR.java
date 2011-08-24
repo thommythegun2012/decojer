@@ -30,8 +30,8 @@ public class JSR extends Operation {
 
 	private int targetPc;
 
-	public JSR(final int opPc, final int opCode, final int opLine) {
-		super(opPc, opCode, opLine);
+	public JSR(final int pc, final int code, final int line) {
+		super(pc, code, line);
 	}
 
 	@Override

@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
@@ -130,9 +131,17 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	private void startLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
-		this.md.addVar(registerNum, type.getTypeDescriptor(),
-				signature == null ? null : signature.getStringValue(),
-				name.getStringValue(), codeAddress, 0);
+		final T varT = this.md.getTd().getT().getDu()
+				.getDescT(type.getTypeDescriptor());
+		if (signature != null) {
+			varT.setSignature(signature.getStringValue());
+		}
+		final Var var = new Var(varT);
+		var.setName(name.getStringValue());
+
+		var.setStartPc(codeAddress);
+
+		this.md.addVar(registerNum, var);
 	}
 
 }

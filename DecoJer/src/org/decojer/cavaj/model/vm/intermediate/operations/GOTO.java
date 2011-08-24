@@ -30,8 +30,8 @@ public class GOTO extends Operation {
 
 	private int targetPc;
 
-	public GOTO(final int opPc, final int opCode, final int opLine) {
-		super(opPc, opCode, opLine);
+	public GOTO(final int pc, final int code, final int line) {
+		super(pc, code, line);
 	}
 
 	@Override

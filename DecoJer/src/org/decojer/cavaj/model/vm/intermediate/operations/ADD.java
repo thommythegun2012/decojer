@@ -30,9 +30,8 @@ public class ADD extends Operation {
 
 	private final int type;
 
-	public ADD(final int opPc, final int opCode, final int opLine,
-			final int type) {
-		super(opPc, opCode, opLine);
+	public ADD(final int pc, final int code, final int line, final int type) {
+		super(pc, code, line);
 		this.type = type;
 	}
 

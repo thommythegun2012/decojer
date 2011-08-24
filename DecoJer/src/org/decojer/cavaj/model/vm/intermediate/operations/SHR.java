@@ -32,9 +32,9 @@ public class SHR extends Operation {
 
 	private final boolean unsigned;
 
-	public SHR(final int opPc, final int opCode, final int opLine,
-			final int type, final boolean unsigned) {
-		super(opPc, opCode, opLine);
+	public SHR(final int pc, final int code, final int line, final int type,
+			final boolean unsigned) {
+		super(pc, code, line);
 		this.type = type;
 		this.unsigned = unsigned;
 	}

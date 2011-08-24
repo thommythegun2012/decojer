@@ -30,15 +30,14 @@ public class RET extends Operation {
 
 	private final int varIndex;
 
-	public RET(final int opPc, final int opCode, final int opLine,
-			final int varIndex) {
-		super(opPc, opCode, opLine);
+	public RET(final int pc, final int code, final int line, final int varIndex) {
+		super(pc, code, line);
 		this.varIndex = varIndex;
 	}
 
 	@Override
 	public int getInStackSize() {
-		return 0;
+		return 1;
 	}
 
 	@Override

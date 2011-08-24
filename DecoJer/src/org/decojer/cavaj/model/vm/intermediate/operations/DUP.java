@@ -42,9 +42,8 @@ public class DUP extends Operation {
 
 	private final int dupType;
 
-	public DUP(final int opPc, final int opCode, final int opLine,
-			final int dupType) {
-		super(opPc, opCode, opLine);
+	public DUP(final int pc, final int code, final int line, final int dupType) {
+		super(pc, code, line);
 		this.dupType = dupType;
 	}
 

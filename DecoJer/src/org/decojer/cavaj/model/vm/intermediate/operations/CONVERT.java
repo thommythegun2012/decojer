@@ -32,9 +32,9 @@ public class CONVERT extends Operation {
 
 	private final int toType;
 
-	public CONVERT(final int opPc, final int opCode, final int opLine,
+	public CONVERT(final int pc, final int code, final int line,
 			final int fromType, final int toType) {
-		super(opPc, opCode, opLine);
+		super(pc, code, line);
 		this.fromType = fromType;
 		this.toType = toType;
 	}

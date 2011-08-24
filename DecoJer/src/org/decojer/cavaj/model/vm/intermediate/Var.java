@@ -51,9 +51,9 @@ public class Var {
 
 	private int endPc;
 
-	private int startPc;
-
 	private String name;
+
+	private int startPc;
 
 	private Set<T> ts = new HashSet<T>();
 

@@ -34,8 +34,8 @@ public class SWITCH extends Operation {
 
 	private int[] keyTargets;
 
-	public SWITCH(final int opPc, final int opCode, final int opLine) {
-		super(opPc, opCode, opLine);
+	public SWITCH(final int pc, final int code, final int line) {
+		super(pc, code, line);
 	}
 
 	public int getDefaultTarget() {

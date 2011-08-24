@@ -74,7 +74,7 @@ public class BB {
 	 */
 	public void addOperation(final Operation operation) {
 		if (this.operations.size() == 0) {
-			this.opLine = operation.getOpLine();
+			this.opLine = operation.getLine();
 		}
 		this.operations.add(operation);
 	}
