@@ -315,7 +315,9 @@ public class JavassistReader {
 		}
 		if (innerClassesAttribute != null) {
 			final List<T> memberTs = new ArrayList<T>();
-			for (int i = 0; i < innerClassesAttribute.tableLength(); ++i) {
+			// preserve order
+			final int tableLength = innerClassesAttribute.tableLength();
+			for (int i = 0; i < tableLength; ++i) {
 				// outer class info not known in Dalvik and derivable
 				if (t.getName().equals(innerClassesAttribute.innerClass(i))) {
 					// is inner type, this attributes is senseless?
@@ -1940,7 +1942,7 @@ public class JavassistReader {
 		md.postProcessVars();
 
 		final ExceptionTable exceptionTable = codeAttribute.getExceptionTable();
-		if (exceptionTable != null && exceptionTable.size() > 0) {
+		if (exceptionTable != null) {
 			final ArrayList<Exc> excs = new ArrayList<Exc>();
 			// preserve order
 			final int exceptionTableSize = exceptionTable.size();
@@ -1957,7 +1959,9 @@ public class JavassistReader {
 
 				excs.add(exc);
 			}
-			cfg.setExcs(excs.toArray(new Exc[excs.size()]));
+			if (excs.size() > 0) {
+				cfg.setExcs(excs.toArray(new Exc[excs.size()]));
+			}
 		}
 	}
 
@@ -2054,10 +2058,9 @@ public class JavassistReader {
 			final LocalVariableAttribute localVariableAttribute,
 			final LocalVariableAttribute localVariableTypeAttribute) {
 		final HashMap<Integer, ArrayList<Var>> reg2vars = new HashMap<Integer, ArrayList<Var>>();
-		if (localVariableAttribute != null
-				&& localVariableAttribute.tableLength() > 0) {
+		if (localVariableAttribute != null) {
 			final DU du = md.getTd().getT().getDu();
-			// read top-down for order preservation
+			// preserve order
 			final int tableLength = localVariableAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
 				final T varT = du
@@ -2078,16 +2081,19 @@ public class JavassistReader {
 				}
 				vars.add(var);
 			}
-		}
-		for (final Entry<Integer, ArrayList<Var>> entry : reg2vars.entrySet()) {
-			final int reg = entry.getKey();
-			for (final Var var : entry.getValue()) {
-				md.addVar(reg, var);
+			if (reg2vars.size() > 0) {
+				for (final Entry<Integer, ArrayList<Var>> entry : reg2vars
+						.entrySet()) {
+					final int reg = entry.getKey();
+					for (final Var var : entry.getValue()) {
+						md.addVar(reg, var);
+					}
+				}
 			}
 		}
 		if (localVariableTypeAttribute != null) {
+			// preserve order
 			final int tableLength = localVariableTypeAttribute.tableLength();
-			// read top-down for order preservation
 			for (int i = 0; i < tableLength; ++i) {
 				final Var var = md.getVar(localVariableTypeAttribute.index(i),
 						localVariableTypeAttribute.startPc(i));
