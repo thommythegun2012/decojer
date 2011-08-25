@@ -114,6 +114,18 @@ public class TrInitControlFlowGraph {
 			case Opcode.GOTO: {
 				final GOTO op = (GOTO) operation;
 				pc = op.getTargetPc();
+				// create new BB because we need the correct index after the
+				// goto, if we simply follow the goto without a new block then
+				// we have a problem to find the bb split point (operations.pc
+				// might be original pc and not the operation index)
+				BB nextBB = this.cfg.getTargetBb(pc, pcBbs);
+				if (nextBB == null) {
+					nextBB = this.cfg.newBb(pc);
+				} else {
+					pc = operations.length; // next open pc
+				}
+				bb.addSucc(nextBB, null);
+				bb = nextBB;
 				break;
 			}
 			case Opcode.JCMP: {
