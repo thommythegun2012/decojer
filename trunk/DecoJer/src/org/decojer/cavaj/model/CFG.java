@@ -240,24 +240,16 @@ public class CFG {
 			return null;
 		}
 
+		final int bbPc = targetBb.getOpPc();
 		final List<Operation> operations = targetBb.getOperations();
-
-		int i = 0;
-		// find operation index in basic block with given pc
-		while (i < operations.size()) {
-			if (operations.get(i).getPc() == pc) {
-				break;
-			}
-			++i;
-		}
 
 		// first operation in basic block has target pc, return basic block,
 		// no split necessary
-		if (i == 0) {
+		if (pc == bbPc) {
 			return targetBb;
 		}
 		// split basic block, new incoming block, adapt basic block pcs
-		final BB splitSourceBb = newBb(targetBb.getOpPc());
+		final BB splitSourceBb = newBb(bbPc);
 		targetBb.setOpPc(pc);
 		if (this.startBb == targetBb) {
 			this.startBb = splitSourceBb;
@@ -268,10 +260,10 @@ public class CFG {
 		splitSourceBb.addSucc(targetBb, null);
 
 		// move operations, change pc map
-		while (i-- > 0) {
+		for (int i = pc; i-- > bbPc;) {
 			final Operation vmOperation = operations.remove(0);
 			splitSourceBb.addOperation(vmOperation);
-			pcBbs[vmOperation.getPc()] = splitSourceBb;
+			pcBbs[i] = splitSourceBb;
 		}
 		return targetBb;
 	}
