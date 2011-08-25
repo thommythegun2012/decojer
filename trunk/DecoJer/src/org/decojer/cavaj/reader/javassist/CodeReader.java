@@ -44,6 +44,10 @@ public class CodeReader {
 		this.code = code;
 	}
 
+	public boolean isNext() {
+		return this.pc < this.code.length;
+	}
+
 	public int readSignedByte() {
 		return this.code[this.pc++];
 	}

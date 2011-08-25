@@ -166,7 +166,21 @@ public class TrInitControlFlowGraph {
 			}
 			case Opcode.SWITCH: {
 				final SWITCH op = (SWITCH) operation;
-				pc = op.getDefaultPc();
+				/*
+				 * // case pc -> values final HashMap<Integer, List<Integer>>
+				 * casePc2Values = (HashMap<Integer, List<Integer>>) oValue; for
+				 * (final Map.Entry<Integer, List<Integer>> casePc2ValuesEntry :
+				 * casePc2Values .entrySet()) { final int caseBranch =
+				 * casePc2ValuesEntry.getKey(); final List<Integer> values =
+				 * casePc2ValuesEntry.getValue(); final int casePc = opPc +
+				 * caseBranch; BB caseBb = this.cfg.getTargetBb(casePc, pcBbs);
+				 * if (caseBb == null) { caseBb = this.cfg.newBb(casePc);
+				 * pcBbs.put(casePc, caseBb); openPcs.add(casePc); }
+				 * bb.addSucc(caseBb, values); }
+				 */
+				// next open pc
+				pc = operations.length; // next open pc
+
 				break;
 			}
 			case Opcode.RET:
