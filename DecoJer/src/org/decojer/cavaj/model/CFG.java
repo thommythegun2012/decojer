@@ -222,52 +222,6 @@ public class CFG {
 		return this.startBb;
 	}
 
-	/**
-	 * Get target basic block. Split if necessary, but keep outgoing part same
-	 * (for later adding of outging edges).
-	 * 
-	 * @param pc
-	 *            target pc
-	 * @param pcBbs
-	 *            map: pc -> basic block
-	 * @return target basic block
-	 */
-	public BB getTargetBb(final int pc, final BB[] pcBbs) {
-		// operation with pc must be in this basic block
-		final BB targetBb = pcBbs[pc];
-		// no basic block found for pc yet
-		if (targetBb == null) {
-			return null;
-		}
-
-		final int bbPc = targetBb.getOpPc();
-		final List<Operation> operations = targetBb.getOperations();
-
-		// first operation in basic block has target pc, return basic block,
-		// no split necessary
-		if (pc == bbPc) {
-			return targetBb;
-		}
-		// split basic block, new incoming block, adapt basic block pcs
-		final BB splitSourceBb = newBb(bbPc);
-		targetBb.setOpPc(pc);
-		if (this.startBb == targetBb) {
-			this.startBb = splitSourceBb;
-		}
-		// first preserve predecessors...
-		targetBb.movePredBbs(splitSourceBb);
-		// ...then add connection
-		splitSourceBb.addSucc(targetBb, null);
-
-		// move operations, change pc map
-		for (int i = pc; i-- > bbPc;) {
-			final Operation vmOperation = operations.remove(0);
-			splitSourceBb.addOperation(vmOperation);
-			pcBbs[i] = splitSourceBb;
-		}
-		return targetBb;
-	}
-
 	private BB intersectIDoms(final BB b1, final BB b2) {
 		BB finger1 = b1;
 		BB finger2 = b2;
@@ -321,6 +275,16 @@ public class CFG {
 	 */
 	public void setOperations(final Operation[] operations) {
 		this.operations = operations;
+	}
+
+	/**
+	 * Set start basic block.
+	 * 
+	 * @param startBb
+	 *            start basic block
+	 */
+	public void setStartBb(final BB startBb) {
+		this.startBb = startBb;
 	}
 
 }

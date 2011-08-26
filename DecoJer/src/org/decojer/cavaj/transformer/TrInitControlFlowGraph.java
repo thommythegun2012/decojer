@@ -69,22 +69,66 @@ public class TrInitControlFlowGraph {
 
 	private final CFG cfg;
 
+	/**
+	 * Remember visited pcs and related basic block.
+	 */
+	private BB[] pc2Bbs;
+
 	private TrInitControlFlowGraph(final CFG cfg) {
 		this.cfg = cfg;
 	}
 
-	private CFG getCfg() {
-		return this.cfg;
+	/**
+	 * Get target basic block. Split if necessary, but keep outgoing part same
+	 * (for later adding of outging edges).
+	 * 
+	 * @param pc
+	 *            target pc
+	 * @return target basic block
+	 */
+	private BB getTargetBb(final int pc) {
+		// operation with pc must be in this basic block
+		final BB targetBb = this.pc2Bbs[pc];
+		// no basic block found for pc yet
+		if (targetBb == null) {
+			return null;
+		}
+
+		final int bbPc = targetBb.getOpPc();
+		final List<Operation> operations = targetBb.getOperations();
+
+		// first operation in basic block has target pc, return basic block,
+		// no split necessary
+		if (pc == bbPc) {
+			return targetBb;
+		}
+		// split basic block, new incoming block, adapt basic block pcs
+		final BB splitSourceBb = this.cfg.newBb(bbPc);
+		targetBb.setOpPc(pc);
+		if (this.cfg.getStartBb() == targetBb) {
+			this.cfg.setStartBb(splitSourceBb);
+		}
+		// first preserve predecessors...
+		targetBb.movePredBbs(splitSourceBb);
+		// ...then add connection
+		splitSourceBb.addSucc(targetBb, null);
+
+		// move operations, change pc map
+		for (int i = pc; i-- > bbPc;) {
+			final Operation vmOperation = operations.remove(0);
+			splitSourceBb.addOperation(vmOperation);
+			this.pc2Bbs[i] = splitSourceBb;
+		}
+		return targetBb;
 	}
 
 	private void transform() {
-		final Operation[] operations = getCfg().getOperations();
+		final Operation[] operations = this.cfg.getOperations();
+		this.pc2Bbs = new BB[operations.length];
 
 		// start with this basic block, may not remain the start basic block
 		// (splitting)
 		BB bb = this.cfg.getStartBb();
-		// remember visited pcs via BBNode
-		final BB[] pcBbs = new BB[operations.length];
 		// remember open pcs
 		final Stack<Integer> openPcs = new Stack<Integer>();
 
@@ -96,16 +140,16 @@ public class TrInitControlFlowGraph {
 					break;
 				}
 				pc = openPcs.pop();
-				bb = pcBbs[pc];
+				bb = this.pc2Bbs[pc];
 			} else {
 				// next pc allready in flow?
-				final BB nextBB = this.cfg.getTargetBb(pc, pcBbs);
+				final BB nextBB = getTargetBb(pc);
 				if (nextBB != null) {
 					bb.addSucc(nextBB, null);
 					pc = operations.length; // next open pc
 					continue;
 				}
-				pcBbs[pc] = bb;
+				this.pc2Bbs[pc] = bb;
 			}
 
 			final Operation operation = operations[pc++];
@@ -118,7 +162,7 @@ public class TrInitControlFlowGraph {
 				// goto, if we simply follow the goto without a new block then
 				// we have a problem to find the bb split point (operations.pc
 				// might be original pc and not the operation index)
-				BB nextBB = this.cfg.getTargetBb(pc, pcBbs);
+				BB nextBB = getTargetBb(pc);
 				if (nextBB == null) {
 					nextBB = this.cfg.newBb(pc);
 				} else {
@@ -134,14 +178,14 @@ public class TrInitControlFlowGraph {
 				if (targetPc == pc) {
 					System.out.println("### BRANCH_IFCMP (Empty): " + targetPc);
 				} else {
-					BB targetBB = this.cfg.getTargetBb(targetPc, pcBbs);
+					BB targetBB = getTargetBb(targetPc);
 					if (targetBB == null) {
 						targetBB = this.cfg.newBb(targetPc);
-						pcBbs[targetPc] = targetBB;
+						this.pc2Bbs[targetPc] = targetBB;
 						openPcs.add(targetPc);
 					}
 					bb.addSucc(targetBB, Boolean.TRUE);
-					BB nextBB = this.cfg.getTargetBb(pc, pcBbs);
+					BB nextBB = getTargetBb(pc);
 					if (nextBB == null) {
 						nextBB = this.cfg.newBb(pc);
 					} else {
@@ -158,14 +202,14 @@ public class TrInitControlFlowGraph {
 				if (targetPc == pc) {
 					System.out.println("### BRANCH_IF (Empty): " + targetPc);
 				} else {
-					BB targetBB = this.cfg.getTargetBb(targetPc, pcBbs);
+					BB targetBB = getTargetBb(targetPc);
 					if (targetBB == null) {
 						targetBB = this.cfg.newBb(targetPc);
-						pcBbs[targetPc] = targetBB;
+						this.pc2Bbs[targetPc] = targetBB;
 						openPcs.add(targetPc);
 					}
 					bb.addSucc(targetBB, Boolean.TRUE);
-					BB nextBB = this.cfg.getTargetBb(pc, pcBbs);
+					BB nextBB = getTargetBb(pc);
 					if (nextBB == null) {
 						nextBB = this.cfg.newBb(pc);
 					} else {
