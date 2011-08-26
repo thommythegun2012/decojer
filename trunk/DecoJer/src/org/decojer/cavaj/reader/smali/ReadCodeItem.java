@@ -38,6 +38,7 @@ import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
 import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
+import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.GOTO;
 import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
@@ -45,6 +46,8 @@ import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCND;
 import org.decojer.cavaj.model.vm.intermediate.operations.JSR;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
+import org.decojer.cavaj.model.vm.intermediate.operations.MUL;
+import org.decojer.cavaj.model.vm.intermediate.operations.NEW;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
 import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
 import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
@@ -56,6 +59,7 @@ import org.jf.dexlib.DebugInfoItem;
 import org.jf.dexlib.FieldIdItem;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.StringIdItem;
+import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
 import org.jf.dexlib.Code.Format.Instruction10t;
@@ -102,6 +106,25 @@ public class ReadCodeItem {
 		assert du != null;
 
 		this.du = du;
+	}
+
+	private int getPcIndex(final int pc) {
+		final Integer index = this.pc2index.get(pc);
+		if (index != null) {
+			return index;
+		}
+		final int unresolvedIndex = -1 - this.pc2unresolved.size();
+		this.pc2index.put(pc, unresolvedIndex);
+		return unresolvedIndex;
+	}
+
+	private ArrayList<Object> getPcUnresolved(final int pc) {
+		ArrayList<Object> unresolved = this.pc2unresolved.get(pc);
+		if (unresolved == null) {
+			unresolved = new ArrayList<Object>();
+			this.pc2unresolved.put(pc, unresolved);
+		}
+		return unresolved;
 	}
 
 	/**
@@ -176,46 +199,108 @@ public class ReadCodeItem {
 			final Object oValue = null;
 
 			switch (instruction.opcode) {
+			/*******
+			 * ADD *
+			 *******/
 			case ADD_DOUBLE:
+				type = DataType.T_DOUBLE;
+				// fall through
 			case ADD_FLOAT:
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+				}
+				// fall through
 			case ADD_INT:
-			case ADD_LONG: {
-				// C := A + B
-				final Instruction23x instr = (Instruction23x) instruction;
-				System.out
-						.println("  A: " + instr.getRegisterA() + "  B: "
-								+ instr.getRegisterB() + "  C: "
-								+ instr.getRegisterC());
+				if (type < 0) {
+					type = DataType.T_INT;
+				}
+				// fall through
+			case ADD_LONG:
+				if (type < 0) {
+					type = DataType.T_LONG;
+				}
+				{
+					// C := A + B
+					final Instruction23x instr = (Instruction23x) instruction;
+
+					this.operations.add(new LOAD(opPc, opCode, opLine, type,
+							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opCode, opLine, type,
+							instr.getRegisterB()));
+
+					this.operations.add(new ADD(opPc, opCode, opLine, type));
+
+					this.operations.add(new STORE(opPc, opCode, opLine, type,
+							instr.getRegisterC()));
+				}
 				break;
-			}
 			case ADD_DOUBLE_2ADDR:
+				type = DataType.T_DOUBLE;
+				// fall through
 			case ADD_FLOAT_2ADDR:
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+				}
+				// fall through
 			case ADD_INT_2ADDR:
-			case ADD_LONG_2ADDR: {
-				// A := A + B
-				final Instruction12x instr = (Instruction12x) instruction;
-				System.out.println("  A: " + instr.getRegisterA() + "  B: "
-						+ instr.getRegisterB());
+				if (type < 0) {
+					type = DataType.T_INT;
+				}
+				// fall through
+			case ADD_LONG_2ADDR:
+				if (type < 0) {
+					type = DataType.T_LONG;
+				}
+				{
+					// A := A + B
+					final Instruction12x instr = (Instruction12x) instruction;
+
+					this.operations.add(new LOAD(opPc, opCode, opLine, type,
+							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opCode, opLine, type,
+							instr.getRegisterB()));
+
+					this.operations.add(new ADD(opPc, opCode, opLine, type));
+
+					this.operations.add(new STORE(opPc, opCode, opLine, type,
+							instr.getRegisterA()));
+				}
 				break;
-			}
 			case ADD_INT_LIT8: {
 				// B := A + literal
 				final Instruction22b instr = (Instruction22b) instruction;
-				System.out
-						.println("  literal: " + instr.getLiteral() + "  A: "
-								+ instr.getRegisterA() + "  B: "
-								+ instr.getRegisterB());
+
+				this.operations.add(new LOAD(opPc, opCode, opLine,
+						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new PUSH(opPc, opCode, opLine,
+						DataType.T_INT, instr.getLiteral()));
+
+				this.operations.add(new ADD(opPc, opCode, opLine,
+						DataType.T_INT));
+
+				this.operations.add(new STORE(opPc, opCode, opLine,
+						DataType.T_INT, instr.getRegisterB()));
 				break;
 			}
 			case ADD_INT_LIT16: {
 				// B := A + literal
 				final Instruction22s instr = (Instruction22s) instruction;
-				System.out
-						.println("  literal: " + instr.getLiteral() + "  A: "
-								+ instr.getRegisterA() + "  B: "
-								+ instr.getRegisterB());
+
+				this.operations.add(new LOAD(opPc, opCode, opLine,
+						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new PUSH(opPc, opCode, opLine,
+						DataType.T_INT, instr.getLiteral()));
+
+				this.operations.add(new MUL(opPc, opCode, opLine,
+						DataType.T_INT));
+
+				this.operations.add(new STORE(opPc, opCode, opLine,
+						DataType.T_INT, instr.getRegisterB()));
 				break;
 			}
+			/*********
+			 * ALOAD *
+			 *********/
 			case AGET:
 			case AGET_BOOLEAN:
 			case AGET_BYTE:
@@ -231,6 +316,19 @@ public class ReadCodeItem {
 								+ instr.getRegisterC());
 				break;
 			}
+			/*******
+			 * AND *
+			 *******/
+			case AND_INT:
+			case AND_LONG:
+			case AND_INT_2ADDR:
+			case AND_LONG_2ADDR:
+			case AND_INT_LIT8:
+			case AND_INT_LIT16:
+				break;
+			/**********
+			 * ASTORE *
+			 **********/
 			case APUT:
 			case APUT_BOOLEAN:
 			case APUT_BYTE:
@@ -278,6 +376,9 @@ public class ReadCodeItem {
 						DataType.T_STRING, instr.getRegisterA()));
 				break;
 			}
+			/*******
+			 * DIV *
+			 *******/
 			case DIV_DOUBLE:
 			case DIV_FLOAT:
 			case DIV_INT:
@@ -318,31 +419,79 @@ public class ReadCodeItem {
 								+ instr.getRegisterB());
 				break;
 			}
+			/********
+			 * GOTO *
+			 ********/
 			case GOTO: {
 				final Instruction10t instr = (Instruction10t) instruction;
-				if (instr.getTargetAddressOffset() >= 0) {
-					LOGGER.warning("Positive GOTO offset is uncommon in dalvik?!");
+				final GOTO op = new GOTO(opPc, opCode, opLine);
+				final int targetPc = opPc + instr.getTargetAddressOffset();
+				final int pcIndex = getPcIndex(targetPc);
+				op.setTargetPc(pcIndex);
+				if (pcIndex < 0) {
+					getPcUnresolved(targetPc).add(op);
 				}
-				System.out.println("  targetOff: "
-						+ instr.getTargetAddressOffset());
+				this.operations.add(op);
 				break;
 			}
+			/********
+			 * JCMP *
+			 ********/
 			case IF_EQ:
+				type = DataType.T_INT;
+				iValue = CompareType.T_EQ;
+				// fall through
 			case IF_GE:
+				if (type < 0) {
+					type = DataType.T_INT;
+					iValue = CompareType.T_GE;
+				}
+				// fall through
 			case IF_GT:
+				if (type < 0) {
+					type = DataType.T_INT;
+					iValue = CompareType.T_GT;
+				}
+				// fall through
 			case IF_LE:
+				if (type < 0) {
+					type = DataType.T_INT;
+					iValue = CompareType.T_LE;
+				}
+				// fall through
 			case IF_LT:
-			case IF_NE: {
-				// IF A cond B JMP offset
-				final Instruction22t instr = (Instruction22t) instruction;
-				// offset can be negative and positive
-				System.out
-						.println("  targetOff: "
-								+ instr.getTargetAddressOffset() + "  A: "
-								+ instr.getRegisterA() + "  B: "
-								+ instr.getRegisterB());
+				if (type < 0) {
+					type = DataType.T_INT;
+					iValue = CompareType.T_LT;
+				}
+				// fall through
+			case IF_NE:
+				if (type < 0) {
+					type = DataType.T_INT;
+					iValue = CompareType.T_NE;
+				}
+				{
+					// IF A cond B JMP offset
+					final Instruction22t instr = (Instruction22t) instruction;
+
+					this.operations.add(new LOAD(opPc, opCode, opLine, -1,
+							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opCode, opLine, -1,
+							instr.getRegisterB()));
+
+					final JCMP op = new JCMP(opPc, opCode, opLine, type, iValue);
+					final int targetPc = opPc + instr.getTargetAddressOffset();
+					final int pcIndex = getPcIndex(targetPc);
+					op.setTargetPc(pcIndex);
+					if (pcIndex < 0) {
+						getPcUnresolved(targetPc).add(op);
+					}
+					this.operations.add(op);
+				}
 				break;
-			}
+			/********
+			 * JCND *
+			 ********/
 			case IF_EQZ:
 				type = DataType.T_INT;
 				iValue = CompareType.T_EQ;
@@ -371,22 +520,28 @@ public class ReadCodeItem {
 					iValue = CompareType.T_LT;
 				}
 				// fall through
-			case IF_NEZ: {
+			case IF_NEZ:
 				if (type < 0) {
 					type = DataType.T_INT;
 					iValue = CompareType.T_NE;
 				}
-				// IF A cond 0 JMP offset
-				final Instruction21t instr = (Instruction21t) instruction;
-				// offset can be negative and positive
-				System.out.println("  targetOff: "
-						+ instr.getTargetAddressOffset() + "  A: "
-						+ instr.getRegisterA());
+				{
+					// IF A cond 0 JMP offset
+					final Instruction21t instr = (Instruction21t) instruction;
 
-				// TODO this and GOTO...than test(ZZZ) should work
+					this.operations.add(new LOAD(opPc, opCode, opLine, -1,
+							instr.getRegisterA()));
 
+					final JCND op = new JCND(opPc, opCode, opLine, type, iValue);
+					final int targetPc = opPc + instr.getTargetAddressOffset();
+					final int pcIndex = getPcIndex(targetPc);
+					op.setTargetPc(pcIndex);
+					if (pcIndex < 0) {
+						getPcUnresolved(targetPc).add(op);
+					}
+					this.operations.add(op);
+				}
 				break;
-			}
 			case INT_TO_BYTE:
 			case INT_TO_CHAR:
 			case INT_TO_DOUBLE:
@@ -398,6 +553,9 @@ public class ReadCodeItem {
 						+ instr.getRegisterB());
 				break;
 			}
+			/**********
+			 * INVOKE *
+			 **********/
 			case INVOKE_DIRECT:
 				// constructor or supermethod callout
 			case INVOKE_INTERFACE:
@@ -469,57 +627,132 @@ public class ReadCodeItem {
 				System.out.println("  A: " + instr.getRegisterA());
 				break;
 			}
+			/*******
+			 * MUL *
+			 *******/
 			case MUL_DOUBLE:
+				type = DataType.T_DOUBLE;
+				// fall through
 			case MUL_FLOAT:
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+				}
+				// fall through
 			case MUL_INT:
-			case MUL_LONG: {
-				// C := A * B
-				final Instruction23x instr = (Instruction23x) instruction;
-				System.out
-						.println("  A: " + instr.getRegisterA() + "  B: "
-								+ instr.getRegisterB() + "  C: "
-								+ instr.getRegisterC());
+				if (type < 0) {
+					type = DataType.T_INT;
+				}
+				// fall through
+			case MUL_LONG:
+				if (type < 0) {
+					type = DataType.T_LONG;
+				}
+				{
+					// C := A * B
+					final Instruction23x instr = (Instruction23x) instruction;
+
+					this.operations.add(new LOAD(opPc, opCode, opLine, type,
+							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opCode, opLine, type,
+							instr.getRegisterB()));
+
+					this.operations.add(new MUL(opPc, opCode, opLine, type));
+
+					this.operations.add(new STORE(opPc, opCode, opLine, type,
+							instr.getRegisterC()));
+				}
 				break;
-			}
 			case MUL_DOUBLE_2ADDR:
+				type = DataType.T_DOUBLE;
+				// fall through
 			case MUL_FLOAT_2ADDR:
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+				}
+				// fall through
 			case MUL_INT_2ADDR:
-			case MUL_LONG_2ADDR: {
-				// A := A * B
-				final Instruction12x instr = (Instruction12x) instruction;
-				System.out.println("  A: " + instr.getRegisterA() + "  B: "
-						+ instr.getRegisterB());
+				if (type < 0) {
+					type = DataType.T_INT;
+				}
+				// fall through
+			case MUL_LONG_2ADDR:
+				if (type < 0) {
+					type = DataType.T_LONG;
+				}
+				{
+					// A := A * B
+					final Instruction12x instr = (Instruction12x) instruction;
+
+					this.operations.add(new LOAD(opPc, opCode, opLine, type,
+							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opCode, opLine, type,
+							instr.getRegisterB()));
+
+					this.operations.add(new MUL(opPc, opCode, opLine, type));
+
+					this.operations.add(new STORE(opPc, opCode, opLine, type,
+							instr.getRegisterA()));
+				}
 				break;
-			}
 			case MUL_INT_LIT8: {
 				// B := A * literal
 				final Instruction22b instr = (Instruction22b) instruction;
-				System.out
-						.println("  literal: " + instr.getLiteral() + "  A: "
-								+ instr.getRegisterA() + "  B: "
-								+ instr.getRegisterB());
+
+				this.operations.add(new LOAD(opPc, opCode, opLine,
+						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new PUSH(opPc, opCode, opLine,
+						DataType.T_INT, instr.getLiteral()));
+
+				this.operations.add(new MUL(opPc, opCode, opLine,
+						DataType.T_INT));
+
+				this.operations.add(new STORE(opPc, opCode, opLine,
+						DataType.T_INT, instr.getRegisterB()));
 				break;
 			}
 			case MUL_INT_LIT16: {
 				// B := A * literal
 				final Instruction22s instr = (Instruction22s) instruction;
-				System.out
-						.println("  literal: " + instr.getLiteral() + "  A: "
-								+ instr.getRegisterA() + "  B: "
-								+ instr.getRegisterB());
+
+				this.operations.add(new LOAD(opPc, opCode, opLine,
+						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new PUSH(opPc, opCode, opLine,
+						DataType.T_INT, instr.getLiteral()));
+
+				this.operations.add(new MUL(opPc, opCode, opLine,
+						DataType.T_INT));
+
+				this.operations.add(new STORE(opPc, opCode, opLine,
+						DataType.T_INT, instr.getRegisterB()));
 				break;
 			}
+			/*******
+			 * NEW *
+			 *******/
 			case NEW_INSTANCE: {
+				// A := new referencedItem
 				final Instruction21c instr = (Instruction21c) instruction;
-				System.out.println("  refItem: " + instr.getReferencedItem()
-						+ "  A: " + instr.getRegisterA());
+
+				final T t = this.du.getDescT(((TypeIdItem) instr
+						.getReferencedItem()).getTypeDescriptor());
+				this.operations.add(new NEW(opPc, opCode, opLine, t));
+				this.operations.add(new STORE(opPc, opCode, opLine,
+						DataType.T_AREF, instr.getRegisterA()));
 				break;
 			}
+			/**********
+			 * RETURN *
+			 **********/
 			case RETURN:
 			case RETURN_OBJECT:
 			case RETURN_WIDE: {
+				// return A
 				final Instruction11x instr = (Instruction11x) instruction;
-				System.out.println("  A: " + instr.getRegisterA());
+
+				this.operations.add(new LOAD(opPc, opCode, opLine, -1, instr
+						.getRegisterA()));
+				cfg.getStartBb().addOperation(
+						new RETURN(opPc, opCode, opLine, DataType.T_AREF));
 				break;
 			}
 			case RETURN_VOID: {
