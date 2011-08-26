@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
@@ -38,12 +37,18 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.DataType;
 import org.decojer.cavaj.model.vm.intermediate.Exc;
+import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
+import org.decojer.cavaj.model.vm.intermediate.operations.GOTO;
 import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
+import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
+import org.decojer.cavaj.model.vm.intermediate.operations.JCND;
+import org.decojer.cavaj.model.vm.intermediate.operations.JSR;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
 import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
 import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
+import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.CodeItem.EncodedTypeAddrPair;
 import org.jf.dexlib.CodeItem.TryItem;
@@ -81,6 +86,12 @@ public class ReadCodeItem {
 
 	private MD md;
 
+	final ArrayList<Operation> operations = new ArrayList<Operation>();
+
+	private final HashMap<Integer, Integer> pc2index = new HashMap<Integer, Integer>();
+
+	private final HashMap<Integer, ArrayList<Object>> pc2unresolved = new HashMap<Integer, ArrayList<Object>>();
+
 	/**
 	 * Constructor.
 	 * 
@@ -103,6 +114,10 @@ public class ReadCodeItem {
 	 */
 	public void initAndVisit(final MD md, final CodeItem codeItem) {
 		this.md = md;
+
+		this.operations.clear();
+		this.pc2index.clear();
+		this.pc2unresolved.clear();
 
 		final M m = md.getM();
 
@@ -140,9 +155,9 @@ public class ReadCodeItem {
 		// dynamic: (6 register)
 		// work_register1...work_register_2...this...param1...param2...param3
 
-		final BB bb = cfg.getStartBb();
-
 		for (int opPc = 0, opLine = -1, i = 0; i < instructions.length; ++i) {
+			visitPc(opPc);
+
 			final Instruction instruction = instructions[i];
 
 			final int opCode = instruction.opcode.value;
@@ -236,10 +251,10 @@ public class ReadCodeItem {
 				final Instruction11n instr = (Instruction11n) instruction;
 				System.out.println("  refItem: " + instr.getLiteral() + "  A: "
 						+ instr.getRegisterA());
-				bb.addOperation(new PUSH(opPc, opCode, opLine, DataType.T_INT,
-						(int) instr.getLiteral()));
-				bb.addOperation(new STORE(opPc, opCode, opLine, DataType.T_INT,
-						instr.getRegisterA()));
+				this.operations.add(new PUSH(opPc, opCode, opLine,
+						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new STORE(opPc, opCode, opLine,
+						DataType.T_INT, instr.getRegisterA()));
 				break;
 			}
 			case CONST_16:
@@ -257,9 +272,9 @@ public class ReadCodeItem {
 						+ "  A: " + instr.getRegisterA());
 				final StringIdItem stringIdItem = (StringIdItem) instr
 						.getReferencedItem();
-				bb.addOperation(new PUSH(opPc, opCode, opLine,
+				this.operations.add(new PUSH(opPc, opCode, opLine,
 						DataType.T_STRING, stringIdItem.getStringValue()));
-				bb.addOperation(new STORE(opPc, opCode, opLine,
+				this.operations.add(new STORE(opPc, opCode, opLine,
 						DataType.T_STRING, instr.getRegisterA()));
 				break;
 			}
@@ -413,26 +428,26 @@ public class ReadCodeItem {
 					invokeM.markAf(AF.STATIC);
 				}
 				if (instr.getRegCount() > 0) {
-					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-							.getRegisterD()));
+					this.operations.add(new LOAD(opPc, opCode, opLine, -1,
+							instr.getRegisterD()));
 				}
 				if (instr.getRegCount() > 1) {
-					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-							.getRegisterE()));
+					this.operations.add(new LOAD(opPc, opCode, opLine, -1,
+							instr.getRegisterE()));
 				}
 				if (instr.getRegCount() > 2) {
-					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-							.getRegisterF()));
+					this.operations.add(new LOAD(opPc, opCode, opLine, -1,
+							instr.getRegisterF()));
 				}
 				if (instr.getRegCount() > 3) {
-					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-							.getRegisterG()));
+					this.operations.add(new LOAD(opPc, opCode, opLine, -1,
+							instr.getRegisterG()));
 				}
 				if (instr.getRegCount() > 4) {
-					bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
-							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opCode, opLine, -1,
+							instr.getRegisterA()));
 				}
-				bb.addOperation(new INVOKE(opPc, opCode, opLine, invokeM,
+				this.operations.add(new INVOKE(opPc, opCode, opLine, invokeM,
 						instruction.opcode == Opcode.INVOKE_DIRECT));
 				break;
 			}
@@ -440,9 +455,9 @@ public class ReadCodeItem {
 				final Instruction12x instr = (Instruction12x) instruction;
 				System.out.print("  A: " + instr.getRegisterA());
 				System.out.println("  B: " + instr.getRegisterB());
-				bb.addOperation(new LOAD(opPc, opCode, opLine, -1, instr
+				this.operations.add(new LOAD(opPc, opCode, opLine, -1, instr
 						.getRegisterA()));
-				bb.addOperation(new STORE(opPc, opCode, opLine, -1, instr
+				this.operations.add(new STORE(opPc, opCode, opLine, -1, instr
 						.getRegisterB()));
 				break;
 			}
@@ -525,8 +540,8 @@ public class ReadCodeItem {
 				final F f = fieldRefT.getF(fieldIdItem.getFieldName()
 						.getStringValue(), fieldValueT);
 				f.markAf(AF.STATIC);
-				bb.addOperation(new GET(opPc, opCode, opLine, f));
-				bb.addOperation(new STORE(opPc, opCode, opLine,
+				this.operations.add(new GET(opPc, opCode, opLine, f));
+				this.operations.add(new STORE(opPc, opCode, opLine,
 						DataType.T_AREF, instr.getRegisterA()));
 				break;
 			}
@@ -591,7 +606,8 @@ public class ReadCodeItem {
 			}
 			opPc += instruction.getSize(opPc);
 		}
-		cfg.calculatePostorder();
+		cfg.setOperations(this.operations.toArray(new Operation[this.operations
+				.size()]));
 
 		final TryItem[] tryItems = codeItem.getTries();
 		if (tryItems != null && tryItems.length > 0) {
@@ -620,6 +636,54 @@ public class ReadCodeItem {
 				}
 			}
 			cfg.setExcs(excs.toArray(new Exc[excs.size()]));
+		}
+	}
+
+	private void visitPc(final int pc) {
+		final Integer pcIndex = this.pc2index.put(pc, this.operations.size());
+		if (pcIndex == null) {
+			// fresh new label, never referenced before
+			return;
+		}
+		if (pcIndex > 0) {
+			// visited before but is known?!
+			LOGGER.warning("Pc '" + pc + "' is not unique, has old opPc '"
+					+ this.operations.size() + "'!");
+			return;
+		}
+		final int labelUnknownIndex = pcIndex;
+		// unknown and has forward reference
+		for (final Object o : this.pc2unresolved.get(pc)) {
+			if (o instanceof GOTO) {
+				((GOTO) o).setTargetPc(this.operations.size());
+				continue;
+			}
+			if (o instanceof JCMP) {
+				((JCMP) o).setTargetPc(this.operations.size());
+				continue;
+			}
+			if (o instanceof JCND) {
+				((JCND) o).setTargetPc(this.operations.size());
+				continue;
+			}
+			if (o instanceof JSR) {
+				((JSR) o).setTargetPc(this.operations.size());
+				continue;
+			}
+			if (o instanceof SWITCH) {
+				final SWITCH op = (SWITCH) o;
+				if (labelUnknownIndex == op.getDefaultPc()) {
+					op.setDefaultPc(this.operations.size());
+				}
+				final int[] keyTargets = op.getCasePcs();
+				for (int i = keyTargets.length; i-- > 0;) {
+					if (labelUnknownIndex == keyTargets[i]) {
+						keyTargets[i] = this.operations.size();
+					}
+				}
+				continue;
+			}
+			// cannot happen for Exc / Var here
 		}
 	}
 
