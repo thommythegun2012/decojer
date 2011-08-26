@@ -28,14 +28,22 @@ import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class SWITCH extends Operation {
 
+	private int[] caseKeys;
+
+	private int[] casePcs;
+
 	private int defaultPc;
-
-	private int[] keys;
-
-	private int[] keyPcs;
 
 	public SWITCH(final int pc, final int code, final int line) {
 		super(pc, code, line);
+	}
+
+	public int[] getCaseKeys() {
+		return this.caseKeys;
+	}
+
+	public int[] getCasePcs() {
+		return this.casePcs;
 	}
 
 	public int getDefaultPc() {
@@ -47,29 +55,21 @@ public class SWITCH extends Operation {
 		return 1;
 	}
 
-	public int[] getKeys() {
-		return this.keys;
-	}
-
-	public int[] getKeyPcs() {
-		return this.keyPcs;
-	}
-
 	@Override
 	public int getOpcode() {
 		return Opcode.SWITCH;
 	}
 
+	public void setCaseKeys(final int[] caseKeys) {
+		this.caseKeys = caseKeys;
+	}
+
+	public void setCasePcs(final int[] casePcs) {
+		this.casePcs = casePcs;
+	}
+
 	public void setDefaultPc(final int defaultPc) {
 		this.defaultPc = defaultPc;
-	}
-
-	public void setKeys(final int[] keys) {
-		this.keys = keys;
-	}
-
-	public void setKeyPcs(final int[] keyPcs) {
-		this.keyPcs = keyPcs;
 	}
 
 }

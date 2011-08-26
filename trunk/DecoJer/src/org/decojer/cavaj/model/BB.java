@@ -103,13 +103,13 @@ public class BB {
 	public void addSucc(final BB succBb, final Object succValue) {
 		assert succBb != null;
 
-		final int thisOrder = getOrder();
-		final int succOrder = succBb.getOrder();
+		final int thisOrder = getOpPc();
+		final int succOrder = succBb.getOpPc();
 
 		// sort forward edges
 		for (int i = 0; i < this.succBbs.size(); ++i) {
 			final BB bb = this.succBbs.get(i);
-			final int order = bb.getOrder();
+			final int order = bb.getOpPc();
 			if (succOrder < order || thisOrder > order) {
 				// insert here and return
 				this.succBbs.add(i, succBb);

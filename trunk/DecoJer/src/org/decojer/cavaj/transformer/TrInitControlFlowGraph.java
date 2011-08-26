@@ -23,8 +23,11 @@
  */
 package org.decojer.cavaj.transformer;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
+import java.util.TreeMap;
 
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
@@ -222,21 +225,46 @@ public class TrInitControlFlowGraph {
 			}
 			case Opcode.SWITCH: {
 				final SWITCH op = (SWITCH) operation;
-				/*
-				 * // case pc -> values final HashMap<Integer, List<Integer>>
-				 * casePc2Values = (HashMap<Integer, List<Integer>>) oValue; for
-				 * (final Map.Entry<Integer, List<Integer>> casePc2ValuesEntry :
-				 * casePc2Values .entrySet()) { final int caseBranch =
-				 * casePc2ValuesEntry.getKey(); final List<Integer> values =
-				 * casePc2ValuesEntry.getValue(); final int casePc = opPc +
-				 * caseBranch; BB caseBb = this.cfg.getTargetBb(casePc, pcBbs);
-				 * if (caseBb == null) { caseBb = this.cfg.newBb(casePc);
-				 * pcBbs.put(casePc, caseBb); openPcs.add(casePc); }
-				 * bb.addSucc(caseBb, values); }
-				 */
-				// next open pc
-				pc = operations.length; // next open pc
 
+				// build map: unique case pc -> case keys
+				final TreeMap<Integer, List<Integer>> casePc2keys = new TreeMap<Integer, List<Integer>>();
+				List<Integer> keys;
+				final int[] caseKeys = op.getCaseKeys();
+				final int[] casePcs = op.getCasePcs();
+				for (int i = 0; i < caseKeys.length; ++i) {
+					final int casePc = casePcs[i];
+					keys = casePc2keys.get(casePc);
+					if (keys == null) {
+						keys = new ArrayList<Integer>();
+						casePc2keys.put(casePc, keys);
+					}
+					keys.add(caseKeys[i]);
+				}
+				// add default branch, can overlay with other cases, even JDK 6
+				// doesn't optimize this
+				final int defaultPc = op.getDefaultPc();
+				keys = casePc2keys.get(defaultPc);
+				if (keys == null) {
+					keys = new ArrayList<Integer>();
+					casePc2keys.put(defaultPc, keys);
+				}
+				keys.add(null);
+
+				// now add successors
+				for (final Map.Entry<Integer, List<Integer>> casePc2ValuesEntry : casePc2keys
+						.entrySet()) {
+					final int casePc = casePc2ValuesEntry.getKey();
+					keys = casePc2ValuesEntry.getValue();
+
+					BB caseBb = getTargetBb(casePc);
+					if (caseBb == null) {
+						caseBb = this.cfg.newBb(casePc);
+						this.pc2Bbs[casePc] = caseBb;
+						openPcs.add(casePc);
+					}
+					bb.addSucc(caseBb, keys);
+				}
+				pc = operations.length; // next open pc
 				break;
 			}
 			case Opcode.RET:
