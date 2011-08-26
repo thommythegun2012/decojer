@@ -127,7 +127,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	private final HashMap<Label, ArrayList<Object>> label2unresolved = new HashMap<Label, ArrayList<Object>>();
 
-	private int line;
+	private int line = -1;
 
 	private int maxLocals;
 
@@ -256,7 +256,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			this.operations.clear();
 			this.label2index.clear();
 			this.label2unresolved.clear();
-			this.line = 0;
+			this.line = -1;
 
 			if (this.excs.size() > 0) {
 				cfg.setExcs(this.excs.toArray(new Exc[this.excs.size()]));
@@ -1209,10 +1209,10 @@ public class ReadMethodVisitor implements MethodVisitor {
 				if (labelUnknownIndex == op.getDefaultPc()) {
 					op.setDefaultPc(this.operations.size());
 				}
-				final int[] keyTargets = op.getKeyPcs();
-				for (int i = keyTargets.length; i-- > 0;) {
-					if (labelUnknownIndex == keyTargets[i]) {
-						keyTargets[i] = this.operations.size();
+				final int[] casePcs = op.getCasePcs();
+				for (int i = casePcs.length; i-- > 0;) {
+					if (labelUnknownIndex == casePcs[i]) {
+						casePcs[i] = this.operations.size();
 					}
 				}
 				continue;
@@ -1313,7 +1313,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 	}
 
 	@Override
-	public void visitLookupSwitchInsn(final Label dflt, final int[] keys,
+	public void visitLookupSwitchInsn(final Label dflt, final int[] caseKeys,
 			final Label[] labels) {
 		final SWITCH op = new SWITCH(this.operations.size(),
 				Opcodes.LOOKUPSWITCH, this.line);
@@ -1324,15 +1324,15 @@ public class ReadMethodVisitor implements MethodVisitor {
 			getLabelUnresolved(dflt).add(op);
 		}
 		// keys
-		final int[] keyTargets = new int[labels.length];
+		final int[] casePcs = new int[labels.length];
 		for (int i = labels.length; i-- > 0;) {
-			keyTargets[i] = labelIndex = getLabelIndex(labels[i]);
+			casePcs[i] = labelIndex = getLabelIndex(labels[i]);
 			if (labelIndex < 0) {
 				getLabelUnresolved(labels[i]).add(op);
 			}
 		}
-		op.setKeys(keys);
-		op.setKeyPcs(keyTargets);
+		op.setCaseKeys(caseKeys);
+		op.setCasePcs(casePcs);
 		this.operations.add(op);
 	}
 
@@ -1436,8 +1436,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 				getLabelUnresolved(labels[i]).add(op);
 			}
 		}
-		op.setKeys(keys);
-		op.setKeyPcs(keyTargets);
+		op.setCaseKeys(keys);
+		op.setCasePcs(keyTargets);
 		this.operations.add(op);
 	}
 

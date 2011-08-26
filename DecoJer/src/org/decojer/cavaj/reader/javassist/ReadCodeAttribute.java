@@ -564,9 +564,9 @@ public class ReadCodeAttribute {
 				{
 					final GOTO op = new GOTO(opPc, opcode, line);
 					final int targetPc = opPc + iValue;
-					final int labelIndex = getPcIndex(targetPc);
-					op.setTargetPc(labelIndex);
-					if (labelIndex < 0) {
+					final int pcIndex = getPcIndex(targetPc);
+					op.setTargetPc(pcIndex);
+					if (pcIndex < 0) {
 						getPcUnresolved(targetPc).add(op);
 					}
 					this.operations.add(op);
@@ -680,9 +680,9 @@ public class ReadCodeAttribute {
 				{
 					final JCMP op = new JCMP(opPc, opcode, line, type, iValue);
 					final int targetPc = opPc + codeReader.readSignedShort();
-					final int labelIndex = getPcIndex(targetPc);
-					op.setTargetPc(labelIndex);
-					if (labelIndex < 0) {
+					final int pcIndex = getPcIndex(targetPc);
+					op.setTargetPc(pcIndex);
+					if (pcIndex < 0) {
 						getPcUnresolved(targetPc).add(op);
 					}
 					this.operations.add(op);
@@ -739,9 +739,9 @@ public class ReadCodeAttribute {
 				{
 					final JCND op = new JCND(opPc, opcode, line, type, iValue);
 					final int targetPc = opPc + codeReader.readSignedShort();
-					final int labelIndex = getPcIndex(targetPc);
-					op.setTargetPc(labelIndex);
-					if (labelIndex < 0) {
+					final int pcIndex = getPcIndex(targetPc);
+					op.setTargetPc(pcIndex);
+					if (pcIndex < 0) {
 						getPcUnresolved(targetPc).add(op);
 					}
 					this.operations.add(op);
@@ -761,9 +761,9 @@ public class ReadCodeAttribute {
 				{
 					final JSR op = new JSR(opPc, opcode, line);
 					final int targetPc = opPc + iValue;
-					final int labelIndex = getPcIndex(targetPc);
-					op.setTargetPc(labelIndex);
-					if (labelIndex < 0) {
+					final int pcIndex = getPcIndex(targetPc);
+					op.setTargetPc(pcIndex);
+					if (pcIndex < 0) {
 						getPcUnresolved(targetPc).add(op);
 					}
 					this.operations.add(op);
@@ -1525,28 +1525,28 @@ public class ReadCodeAttribute {
 				final SWITCH op = new SWITCH(opPc, Opcodes.LOOKUPSWITCH, line);
 				// default
 				int targetPc = opPc + codeReader.readUnsignedInt();
-				int labelIndex = getPcIndex(targetPc);
-				op.setDefaultPc(labelIndex);
-				if (labelIndex < 0) {
+				int pcIndex = getPcIndex(targetPc);
+				op.setDefaultPc(pcIndex);
+				if (pcIndex < 0) {
 					getPcUnresolved(targetPc).add(op);
 				}
 
 				// map entries number
 				final int npairs = codeReader.readUnsignedInt();
 
-				final int[] keys = new int[npairs];
-				final int[] keyTargets = new int[npairs];
+				final int[] caseKeys = new int[npairs];
+				final int[] casePcs = new int[npairs];
 
 				for (int i = 0; i < npairs; ++i) {
-					keys[i] = codeReader.readUnsignedInt();
+					caseKeys[i] = codeReader.readUnsignedInt();
 					targetPc = opPc + codeReader.readUnsignedInt();
-					keyTargets[i] = labelIndex = getPcIndex(targetPc);
-					if (labelIndex < 0) {
+					casePcs[i] = pcIndex = getPcIndex(targetPc);
+					if (pcIndex < 0) {
 						getPcUnresolved(targetPc).add(op);
 					}
 				}
-				op.setKeys(keys);
-				op.setKeyPcs(keyTargets);
+				op.setCaseKeys(caseKeys);
+				op.setCasePcs(casePcs);
 				this.operations.add(op);
 				break;
 			}
@@ -1558,9 +1558,9 @@ public class ReadCodeAttribute {
 				final SWITCH op = new SWITCH(opPc, Opcodes.LOOKUPSWITCH, line);
 				// default
 				int targetPc = opPc + codeReader.readUnsignedInt();
-				int labelIndex = getPcIndex(targetPc);
-				op.setDefaultPc(labelIndex);
-				if (labelIndex < 0) {
+				int pcIndex = getPcIndex(targetPc);
+				op.setDefaultPc(pcIndex);
+				if (pcIndex < 0) {
 					getPcUnresolved(targetPc).add(op);
 				}
 
@@ -1568,19 +1568,19 @@ public class ReadCodeAttribute {
 				final int caseLow = codeReader.readUnsignedInt();
 				final int caseHigh = codeReader.readUnsignedInt();
 
-				final int[] keys = new int[caseHigh - caseLow + 1];
-				final int[] keyTargets = new int[caseHigh - caseLow + 1];
+				final int[] caseKeys = new int[caseHigh - caseLow + 1];
+				final int[] casePcs = new int[caseHigh - caseLow + 1];
 
 				for (int i = 0, caseValue = caseLow; caseValue <= caseHigh; ++caseValue, ++i) {
-					keys[i] = caseValue;
+					caseKeys[i] = caseValue;
 					targetPc = opPc + codeReader.readUnsignedInt();
-					keyTargets[i] = labelIndex = getPcIndex(targetPc);
-					if (labelIndex < 0) {
+					casePcs[i] = pcIndex = getPcIndex(targetPc);
+					if (pcIndex < 0) {
 						getPcUnresolved(targetPc).add(op);
 					}
 				}
-				op.setKeys(keys);
-				op.setKeyPcs(keyTargets);
+				op.setCaseKeys(caseKeys);
+				op.setCasePcs(casePcs);
 				this.operations.add(op);
 				break;
 			}
@@ -1720,19 +1720,18 @@ public class ReadCodeAttribute {
 	}
 
 	private void visitPc(final int pc) {
-		final Integer labelIndex = this.pc2index
-				.put(pc, this.operations.size());
-		if (labelIndex == null) {
+		final Integer pcIndex = this.pc2index.put(pc, this.operations.size());
+		if (pcIndex == null) {
 			// fresh new label, never referenced before
 			return;
 		}
-		if (labelIndex > 0) {
+		if (pcIndex > 0) {
 			// visited before but is known?!
 			LOGGER.warning("Pc '" + pc + "' is not unique, has old opPc '"
 					+ this.operations.size() + "'!");
 			return;
 		}
-		final int labelUnknownIndex = labelIndex;
+		final int labelUnknownIndex = pcIndex;
 		// unknown and has forward reference
 		for (final Object o : this.pc2unresolved.get(pc)) {
 			if (o instanceof GOTO) {
@@ -1756,7 +1755,7 @@ public class ReadCodeAttribute {
 				if (labelUnknownIndex == op.getDefaultPc()) {
 					op.setDefaultPc(this.operations.size());
 				}
-				final int[] keyTargets = op.getKeyPcs();
+				final int[] keyTargets = op.getCasePcs();
 				for (int i = keyTargets.length; i-- > 0;) {
 					if (labelUnknownIndex == keyTargets[i]) {
 						keyTargets[i] = this.operations.size();
