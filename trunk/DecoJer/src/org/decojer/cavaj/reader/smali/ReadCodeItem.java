@@ -43,6 +43,8 @@ import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.AND;
 import org.decojer.cavaj.model.vm.intermediate.operations.ARRAYLENGTH;
 import org.decojer.cavaj.model.vm.intermediate.operations.ASTORE;
+import org.decojer.cavaj.model.vm.intermediate.operations.CHECKCAST;
+import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
 import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.GOTO;
@@ -56,6 +58,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.NEG;
 import org.decojer.cavaj.model.vm.intermediate.operations.NEW;
 import org.decojer.cavaj.model.vm.intermediate.operations.OR;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
+import org.decojer.cavaj.model.vm.intermediate.operations.PUT;
 import org.decojer.cavaj.model.vm.intermediate.operations.REM;
 import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
 import org.decojer.cavaj.model.vm.intermediate.operations.SHL;
@@ -63,6 +66,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.SHR;
 import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
 import org.decojer.cavaj.model.vm.intermediate.operations.SUB;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
+import org.decojer.cavaj.model.vm.intermediate.operations.THROW;
 import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.CodeItem.EncodedTypeAddrPair;
@@ -80,14 +84,24 @@ import org.jf.dexlib.Code.Format.Instruction11x;
 import org.jf.dexlib.Code.Format.Instruction12x;
 import org.jf.dexlib.Code.Format.Instruction20t;
 import org.jf.dexlib.Code.Format.Instruction21c;
+import org.jf.dexlib.Code.Format.Instruction21h;
 import org.jf.dexlib.Code.Format.Instruction21s;
 import org.jf.dexlib.Code.Format.Instruction21t;
 import org.jf.dexlib.Code.Format.Instruction22b;
+import org.jf.dexlib.Code.Format.Instruction22c;
 import org.jf.dexlib.Code.Format.Instruction22s;
 import org.jf.dexlib.Code.Format.Instruction22t;
+import org.jf.dexlib.Code.Format.Instruction22x;
 import org.jf.dexlib.Code.Format.Instruction23x;
 import org.jf.dexlib.Code.Format.Instruction30t;
+import org.jf.dexlib.Code.Format.Instruction31c;
+import org.jf.dexlib.Code.Format.Instruction31i;
+import org.jf.dexlib.Code.Format.Instruction31t;
+import org.jf.dexlib.Code.Format.Instruction32x;
 import org.jf.dexlib.Code.Format.Instruction35c;
+import org.jf.dexlib.Code.Format.Instruction51l;
+import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
 
 /**
@@ -507,48 +521,69 @@ public class ReadCodeItem {
 					this.operations.add(new ASTORE(opPc, opcode, line, type));
 				}
 				break;
-			case CONST_4: {
-				// A := literal
-				final Instruction11n instr = (Instruction11n) instruction;
-
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
-				break;
-			}
-			case CONST_16:
-			case CONST_WIDE_16: {
-				// A := literal
-				final Instruction21s instr = (Instruction21s) instruction;
-				System.out.println("  refItem: " + instr.getLiteral() + "  A: "
-						+ instr.getRegisterA());
-				break;
-			}
-			case CONST_STRING: {
-				// A := refItem
+			/**************
+			 * CHECKCAST *
+			 **************/
+			case CHECK_CAST: {
+				// A := (typeIdItem) A
 				final Instruction21c instr = (Instruction21c) instruction;
 
-				final StringIdItem stringIdItem = (StringIdItem) instr
-						.getReferencedItem();
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_STRING, stringIdItem.getStringValue()));
+				final T t = this.du.getDescT(((TypeIdItem) instr
+						.getReferencedItem()).getTypeDescriptor());
+				this.operations.add(new LOAD(opPc, opcode, line,
+						DataType.T_AREF, instr.getRegisterA()));
+
+				this.operations.add(new CHECKCAST(opPc, opcode, line, t));
+
 				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_STRING, instr.getRegisterA()));
+						DataType.T_AREF, instr.getRegisterA()));
 				break;
 			}
 			/*******
 			 * CMP *
 			 *******/
 			case CMPG_DOUBLE:
+				type = DataType.T_DOUBLE;
+				iValue = CMP.T_G;
+				// fall through
 			case CMPG_FLOAT:
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+					iValue = CMP.T_G;
+				}
+				// fall through
 			case CMPL_DOUBLE:
+				if (type < 0) {
+					type = DataType.T_DOUBLE;
+					iValue = CMP.T_L;
+				}
+				// fall through
 			case CMPL_FLOAT:
-			case CMP_LONG: {
-				final Instruction23x instr = (Instruction23x) instruction;
+				if (type < 0) {
+					type = DataType.T_FLOAT;
+					iValue = CMP.T_L;
+				}
+				// fall through
+			case CMP_LONG:
+				if (type < 0) {
+					type = DataType.T_LONG;
+					iValue = CMP.T_0;
+				}
+				{
+					// C := A CMP B
+					final Instruction23x instr = (Instruction23x) instruction;
 
+					this.operations.add(new LOAD(opPc, opcode, line, type,
+							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, type,
+							instr.getRegisterB()));
+
+					this.operations.add(new DIV(opPc, opcode, line, type));
+
+					this.operations.add(new STORE(opPc, opcode, line, type,
+							instr.getRegisterC()));
+				}
 				break;
-			}
 			/*******
 			 * DIV *
 			 *******/
@@ -648,6 +683,123 @@ public class ReadCodeItem {
 						DataType.T_INT, instr.getRegisterB()));
 				break;
 			}
+			/*******
+			 * GET *
+			 *******/
+			case IGET:
+			case IGET_VOLATILE:
+				type = DataType.T_INT;
+				// fall through
+			case IGET_BOOLEAN:
+				if (type < 0) {
+					type = DataType.T_BOOLEAN;
+				}
+				// fall through
+			case IGET_BYTE:
+				if (type < 0) {
+					type = DataType.T_BYTE;
+				}
+				// fall through
+			case IGET_CHAR:
+				if (type < 0) {
+					type = DataType.T_CHAR;
+				}
+				// fall through
+			case IGET_OBJECT:
+			case IGET_OBJECT_VOLATILE:
+				if (type < 0) {
+					type = DataType.T_AREF;
+				}
+				// fall through
+			case IGET_SHORT:
+				if (type < 0) {
+					type = DataType.T_SHORT;
+				}
+				// fall through
+			case IGET_WIDE:
+			case IGET_WIDE_VOLATILE:
+				if (type < 0) {
+					type = DataType.T_LONG; // TODO multi
+				}
+				// fall through
+				{
+					// A := B.fieldIdItem
+					final Instruction22c instr = (Instruction22c) instruction;
+
+					final FieldIdItem fieldIdItem = (FieldIdItem) instr
+							.getReferencedItem();
+					final T fieldRefT = this.du.getDescT(fieldIdItem
+							.getContainingClass().getTypeDescriptor());
+					final T fieldValueT = this.du.getDescT(fieldIdItem
+							.getFieldType().getTypeDescriptor());
+					final F f = fieldRefT.getF(fieldIdItem.getFieldName()
+							.getStringValue(), fieldValueT);
+
+					this.operations.add(new LOAD(opPc, opcode, line,
+							DataType.T_AREF, instr.getRegisterB()));
+
+					this.operations.add(new GET(opPc, opcode, line, f));
+
+					this.operations.add(new STORE(opPc, opcode, line, type,
+							instr.getRegisterA()));
+				}
+				break;
+			case SGET:
+			case SGET_VOLATILE:
+				type = DataType.T_INT;
+				// fall through
+			case SGET_BOOLEAN:
+				if (type < 0) {
+					type = DataType.T_BOOLEAN;
+				}
+				// fall through
+			case SGET_BYTE:
+				if (type < 0) {
+					type = DataType.T_BYTE;
+				}
+				// fall through
+			case SGET_CHAR:
+				if (type < 0) {
+					type = DataType.T_CHAR;
+				}
+				// fall through
+			case SGET_OBJECT:
+			case SGET_OBJECT_VOLATILE:
+				if (type < 0) {
+					type = DataType.T_AREF;
+				}
+				// fall through
+			case SGET_SHORT:
+				if (type < 0) {
+					type = DataType.T_SHORT;
+				}
+				// fall through
+			case SGET_WIDE:
+			case SGET_WIDE_VOLATILE:
+				if (type < 0) {
+					type = DataType.T_LONG; // TODO multi
+				}
+				// fall through
+				{
+					// A := fieldIdItem
+					final Instruction21c instr = (Instruction21c) instruction;
+
+					final FieldIdItem fieldIdItem = (FieldIdItem) instr
+							.getReferencedItem();
+					final T fieldRefT = this.du.getDescT(fieldIdItem
+							.getContainingClass().getTypeDescriptor());
+					final T fieldValueT = this.du.getDescT(fieldIdItem
+							.getFieldType().getTypeDescriptor());
+					final F f = fieldRefT.getF(fieldIdItem.getFieldName()
+							.getStringValue(), fieldValueT);
+					f.markAf(AF.STATIC);
+
+					this.operations.add(new GET(opPc, opcode, line, f));
+
+					this.operations.add(new STORE(opPc, opcode, line, type,
+							instr.getRegisterA()));
+				}
+				break;
 			/********
 			 * GOTO *
 			 ********/
@@ -859,25 +1011,101 @@ public class ReadCodeItem {
 						instruction.opcode == Opcode.INVOKE_DIRECT));
 				break;
 			}
-			case MOVE: {
-				// B := A
-				final Instruction12x instr = (Instruction12x) instruction;
+			/********
+			 * MOVE *
+			 ********/
+			case MOVE:
+				type = DataType.T_INT; // TODO multi
+				// fall through
+			case MOVE_OBJECT:
+				if (type < 0) {
+					type = DataType.T_AREF;
+				}
+				// fall through
+			case MOVE_WIDE:
+				if (type < 0) {
+					type = DataType.T_LONG; // TODO multi
+				}
+				{
+					// B := A
+					final Instruction12x instr = (Instruction12x) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line, -1, instr
-						.getRegisterA()));
-				this.operations.add(new STORE(opPc, opcode, line, -1, instr
-						.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, type,
+							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, type,
+							instr.getRegisterB()));
+				}
 				break;
-			}
+			case MOVE_16:
+				type = DataType.T_INT; // TODO multi
+				// fall through
+			case MOVE_OBJECT_16:
+				if (type < 0) {
+					type = DataType.T_AREF;
+				}
+				// fall through
+			case MOVE_WIDE_16:
+				if (type < 0) {
+					type = DataType.T_LONG; // TODO multi
+				}
+				{
+					// B := A
+					final Instruction32x instr = (Instruction32x) instruction;
+
+					this.operations.add(new LOAD(opPc, opcode, line, type,
+							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, type,
+							instr.getRegisterB()));
+				}
+				break;
+			case MOVE_FROM16:
+				type = DataType.T_INT; // TODO multi
+				// fall through
+			case MOVE_OBJECT_FROM16:
+				if (type < 0) {
+					type = DataType.T_AREF;
+				}
+				// fall through
+			case MOVE_WIDE_FROM16:
+				if (type < 0) {
+					type = DataType.T_LONG; // TODO multi
+				}
+				{
+					// B := A
+					final Instruction22x instr = (Instruction22x) instruction;
+
+					this.operations.add(new LOAD(opPc, opcode, line, type,
+							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, type,
+							instr.getRegisterB()));
+				}
+				break;
+			case MOVE_EXCEPTION:
+				if (type < 0) {
+					type = DataType.T_AREF;
+				}
+				// fall through
 			case MOVE_RESULT:
+				type = DataType.T_INT; // TODO multi
+				// fall through
 			case MOVE_RESULT_OBJECT:
-			case MOVE_RESULT_WIDE: {
-				// A := resultRegister
-				final Instruction11x instr = (Instruction11x) instruction;
+				if (type < 0) {
+					type = DataType.T_AREF;
+				}
+				// fall through
+			case MOVE_RESULT_WIDE:
+				// TODO doesn't follow a method? => POP
+				if (type < 0) {
+					type = DataType.T_LONG; // TODO multi
+				}
+				{
+					// A := resultRegister
+					final Instruction11x instr = (Instruction11x) instruction;
 
-				System.out.println("  A: " + instr.getRegisterA());
+					this.operations.add(new STORE(opPc, opcode, line, type,
+							instr.getRegisterA()));
+				}
 				break;
-			}
 			/*******
 			 * MUL *
 			 *******/
@@ -1014,7 +1242,7 @@ public class ReadCodeItem {
 			 * NEW *
 			 *******/
 			case NEW_INSTANCE: {
-				// A := new referencedItem
+				// A := new typeIdItem
 				final Instruction21c instr = (Instruction21c) instruction;
 
 				final T t = this.du.getDescT(((TypeIdItem) instr
@@ -1024,12 +1252,34 @@ public class ReadCodeItem {
 						DataType.T_AREF, instr.getRegisterA()));
 				break;
 			}
+			/************
+			 * NEWARRAY *
+			 ************/
+			case NEW_ARRAY: {
+				// B := new referencedItem[A]
+				final Instruction22c instr = (Instruction22c) instruction;
+
+				System.out.println("NEWARRAY: r" + instr.getRegisterB()
+						+ " = new " + instr.getReferencedItem() + "[r"
+						+ instr.getRegisterB() + "]");
+				break;
+			}
 			/*******
 			 * NOP *
 			 *******/
-			case NOP:
-				// ignore
+			case NOP: {
+				if (instruction instanceof PackedSwitchDataPseudoInstruction) {
+					final PackedSwitchDataPseudoInstruction instr = (PackedSwitchDataPseudoInstruction) instruction;
+					// instr.getFirstKey()
+					// instr.getTargets();
+				}
+				if (instruction instanceof SparseSwitchDataPseudoInstruction) {
+					final SparseSwitchDataPseudoInstruction instr = (SparseSwitchDataPseudoInstruction) instruction;
+					// instr.getKeys()
+					// instr.getTargets();
+				}
 				break;
+			}
 			/*******
 			 * NOT *
 			 *******/
@@ -1133,9 +1383,242 @@ public class ReadCodeItem {
 						DataType.T_INT, instr.getRegisterB()));
 				break;
 			}
+			/********
+			 * PUSH *
+			 ********/
+			case CONST: {
+				// A := literal
+				final Instruction31i instr = (Instruction31i) instruction;
+
+				this.operations.add(new PUSH(opPc, opcode, line,
+						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new STORE(opPc, opcode, line,
+						DataType.T_INT, instr.getRegisterA()));
+				break;
+			}
+			case CONST_4: {
+				// A := literal
+				final Instruction11n instr = (Instruction11n) instruction;
+
+				this.operations.add(new PUSH(opPc, opcode, line,
+						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new STORE(opPc, opcode, line,
+						DataType.T_INT, instr.getRegisterA()));
+				break;
+			}
+			case CONST_16:
+				type = DataType.T_INT; // TODO multi
+				// fall through
+			case CONST_WIDE_16:
+				if (type < 0) {
+					type = DataType.T_LONG;
+				}
+				{
+					// A := literal
+					final Instruction21s instr = (Instruction21s) instruction;
+
+					this.operations.add(new PUSH(opPc, opcode, line, type,
+							(int) instr.getLiteral()));
+					this.operations.add(new STORE(opPc, opcode, line, type,
+							instr.getRegisterA()));
+				}
+				break;
+			case CONST_WIDE_32: {
+				// A := literal
+				final Instruction31i instr = (Instruction31i) instruction;
+
+				this.operations.add(new PUSH(opPc, opcode, line, type, instr
+						.getLiteral()));
+				this.operations.add(new STORE(opPc, opcode, line,
+						DataType.T_LONG, instr.getRegisterA()));
+				break;
+			}
+			case CONST_WIDE: /* _64 */{
+				// A := literal
+				final Instruction51l instr = (Instruction51l) instruction;
+
+				this.operations.add(new PUSH(opPc, opcode, line, type, instr
+						.getLiteral()));
+				this.operations.add(new STORE(opPc, opcode, line,
+						DataType.T_LONG, instr.getRegisterA()));
+				break;
+			}
+			case CONST_HIGH16:
+				type = DataType.T_FLOAT;
+				// fall through
+			case CONST_WIDE_HIGH16:
+				if (type < 0) {
+					type = DataType.T_DOUBLE;
+				}
+				{
+					// A := literal
+					final Instruction21h instr = (Instruction21h) instruction;
+
+					this.operations.add(new PUSH(opPc, opcode, line, type,
+							(int) instr.getLiteral()));
+					this.operations.add(new STORE(opPc, opcode, line, type,
+							instr.getRegisterA()));
+				}
+				break;
+			case CONST_CLASS: {
+				// A := typeIdItem
+				final Instruction21c instr = (Instruction21c) instruction;
+
+				final T t = this.du.getDescT(((TypeIdItem) instr
+						.getReferencedItem()).getTypeDescriptor());
+				this.operations.add(new PUSH(opPc, opcode, line,
+						DataType.T_CLASS, t));
+				this.operations.add(new STORE(opPc, opcode, line,
+						DataType.T_CLASS, instr.getRegisterA()));
+				break;
+			}
+			case CONST_STRING: {
+				// A := refItem
+				final Instruction21c instr = (Instruction21c) instruction;
+
+				final StringIdItem stringIdItem = (StringIdItem) instr
+						.getReferencedItem();
+				this.operations.add(new PUSH(opPc, opcode, line,
+						DataType.T_STRING, stringIdItem.getStringValue()));
+				this.operations.add(new STORE(opPc, opcode, line,
+						DataType.T_STRING, instr.getRegisterA()));
+				break;
+			}
+			case CONST_STRING_JUMBO: {
+				// A := refItem
+				final Instruction31c instr = (Instruction31c) instruction;
+
+				final StringIdItem stringIdItem = (StringIdItem) instr
+						.getReferencedItem();
+				this.operations.add(new PUSH(opPc, opcode, line,
+						DataType.T_STRING, stringIdItem.getStringValue()));
+				this.operations.add(new STORE(opPc, opcode, line,
+						DataType.T_STRING, instr.getRegisterA()));
+				break;
+			}
 			/*******
-			 * REM *
+			 * PUT *
 			 *******/
+			case IPUT:
+			case IPUT_VOLATILE:
+				type = DataType.T_INT;
+				// fall through
+			case IPUT_BOOLEAN:
+				if (type < 0) {
+					type = DataType.T_BOOLEAN;
+				}
+				// fall through
+			case IPUT_BYTE:
+				if (type < 0) {
+					type = DataType.T_BYTE;
+				}
+				// fall through
+			case IPUT_CHAR:
+				if (type < 0) {
+					type = DataType.T_CHAR;
+				}
+				// fall through
+			case IPUT_OBJECT:
+			case IPUT_OBJECT_VOLATILE:
+				if (type < 0) {
+					type = DataType.T_AREF;
+				}
+				// fall through
+			case IPUT_SHORT:
+				if (type < 0) {
+					type = DataType.T_SHORT;
+				}
+				// fall through
+			case IPUT_WIDE:
+			case IPUT_WIDE_VOLATILE:
+				if (type < 0) {
+					type = DataType.T_LONG; // TODO multi
+				}
+				// case IPUT_OBJECT_QUICK:
+				// case IPUT_QUICK:
+				// case IPUT_WIDE_QUICK:
+				{
+					// B.fieldIdItem := A
+					final Instruction22c instr = (Instruction22c) instruction;
+
+					final FieldIdItem fieldIdItem = (FieldIdItem) instr
+							.getReferencedItem();
+					final T fieldRefT = this.du.getDescT(fieldIdItem
+							.getContainingClass().getTypeDescriptor());
+					final T fieldValueT = this.du.getDescT(fieldIdItem
+							.getFieldType().getTypeDescriptor());
+					final F f = fieldRefT.getF(fieldIdItem.getFieldName()
+							.getStringValue(), fieldValueT);
+
+					this.operations.add(new LOAD(opPc, opcode, line,
+							DataType.T_AREF, instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, type,
+							instr.getRegisterA()));
+
+					this.operations.add(new PUT(opPc, opcode, line, f));
+				}
+				break;
+			case SPUT:
+			case SPUT_VOLATILE:
+				type = DataType.T_INT;
+				// fall through
+			case SPUT_BOOLEAN:
+				if (type < 0) {
+					type = DataType.T_BOOLEAN;
+				}
+				// fall through
+			case SPUT_BYTE:
+				if (type < 0) {
+					type = DataType.T_BYTE;
+				}
+				// fall through
+			case SPUT_CHAR:
+				if (type < 0) {
+					type = DataType.T_CHAR;
+				}
+				// fall through
+			case SPUT_OBJECT:
+			case SPUT_OBJECT_VOLATILE:
+				if (type < 0) {
+					type = DataType.T_AREF;
+				}
+				// fall through
+			case SPUT_SHORT:
+				if (type < 0) {
+					type = DataType.T_SHORT;
+				}
+				// fall through
+			case SPUT_WIDE:
+			case SPUT_WIDE_VOLATILE:
+				if (type < 0) {
+					type = DataType.T_LONG; // TODO multi
+				}
+				// case IPUT_OBJECT_QUICK:
+				// case IPUT_QUICK:
+				// case IPUT_WIDE_QUICK:
+				{
+					// fieldIdItem := A
+					final Instruction21c instr = (Instruction21c) instruction;
+
+					final FieldIdItem fieldIdItem = (FieldIdItem) instr
+							.getReferencedItem();
+					final T fieldRefT = this.du.getDescT(fieldIdItem
+							.getContainingClass().getTypeDescriptor());
+					final T fieldValueT = this.du.getDescT(fieldIdItem
+							.getFieldType().getTypeDescriptor());
+					final F f = fieldRefT.getF(fieldIdItem.getFieldName()
+							.getStringValue(), fieldValueT);
+					f.markAf(AF.STATIC);
+
+					this.operations.add(new LOAD(opPc, opcode, line, type,
+							instr.getRegisterA()));
+
+					this.operations.add(new PUT(opPc, opcode, line, f));
+					break;
+				}
+				/*******
+				 * REM *
+				 *******/
 			case REM_DOUBLE:
 				type = DataType.T_DOUBLE;
 				// fall through
@@ -1260,24 +1743,6 @@ public class ReadCodeItem {
 			case RETURN_VOID: {
 				cfg.getStartBb().addOperation(
 						new RETURN(opPc, opcode, line, DataType.T_VOID));
-				break;
-			}
-			case SGET_OBJECT: {
-				final Instruction21c instr = (Instruction21c) instruction;
-				System.out.println("  " + instr.getReferencedItem() + "  A: "
-						+ instr.getRegisterA());
-				final FieldIdItem fieldIdItem = (FieldIdItem) instr
-						.getReferencedItem();
-				final T fieldRefT = this.du.getDescT(fieldIdItem
-						.getContainingClass().getTypeDescriptor());
-				final T fieldValueT = this.du.getDescT(fieldIdItem
-						.getFieldType().getTypeDescriptor());
-				final F f = fieldRefT.getF(fieldIdItem.getFieldName()
-						.getStringValue(), fieldValueT);
-				f.markAf(AF.STATIC);
-				this.operations.add(new GET(opPc, opcode, line, f));
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_AREF, instr.getRegisterA()));
 				break;
 			}
 			/*******
@@ -1537,6 +2002,38 @@ public class ReadCodeItem {
 							instr.getRegisterA()));
 				}
 				break;
+			/**********
+			 * SWITCH *
+			 **********/
+			case PACKED_SWITCH:
+			case SPARSE_SWITCH: {
+				// switch(A)
+				final Instruction31t instr = (Instruction31t) instruction;
+
+				final SWITCH op = new SWITCH(opPc, opcode, line);
+				final int targetPc = opPc + instr.getTargetAddressOffset();
+				final int pcIndex = getPcIndex(targetPc);
+				op.setDefaultPc(pcIndex);
+				if (pcIndex < 0) {
+					getPcUnresolved(targetPc).add(op);
+				}
+				// TODO cases?
+				this.operations.add(op);
+				break;
+			}
+			/*********
+			 * THROW *
+			 *********/
+			case THROW: {
+				// throw A
+				final Instruction11x instr = (Instruction11x) instruction;
+
+				this.operations.add(new LOAD(opPc, opcode, line,
+						DataType.T_AREF, instr.getRegisterA()));
+
+				this.operations.add(new THROW(opPc, opcode, line));
+				break;
+			}
 			/*******
 			 * XOR *
 			 *******/
@@ -1617,7 +2114,7 @@ public class ReadCodeItem {
 				break;
 			}
 			default:
-				throw new RuntimeException("Unknown jvm operation code '"
+				throw new RuntimeException("Unknown jvm operation code '0x"
 						+ Integer.toHexString(opcode) + "'!");
 			}
 			opPc += instruction.getSize(opPc);
@@ -1692,9 +2189,11 @@ public class ReadCodeItem {
 					op.setDefaultPc(this.operations.size());
 				}
 				final int[] keyTargets = op.getCasePcs();
-				for (int i = keyTargets.length; i-- > 0;) {
-					if (labelUnknownIndex == keyTargets[i]) {
-						keyTargets[i] = this.operations.size();
+				if (keyTargets != null) {
+					for (int i = keyTargets.length; i-- > 0;) {
+						if (labelUnknownIndex == keyTargets[i]) {
+							keyTargets[i] = this.operations.size();
+						}
 					}
 				}
 				continue;
