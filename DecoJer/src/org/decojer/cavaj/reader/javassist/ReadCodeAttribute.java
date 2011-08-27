@@ -215,9 +215,6 @@ public class ReadCodeAttribute {
 			Object oValue = null;
 
 			switch (opcode) {
-			case Opcode.NOP:
-				// nothing to do, ignore
-				break;
 			/*******
 			 * ADD *
 			 *******/
@@ -1014,6 +1011,12 @@ public class ReadCodeAttribute {
 						dimensions));
 				break;
 			}
+			/*******
+			 * NOP *
+			 *******/
+			case Opcode.NOP:
+				// ignore
+				break;
 			/******
 			 * OR *
 			 ******/
