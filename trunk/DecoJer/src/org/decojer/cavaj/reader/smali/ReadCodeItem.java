@@ -207,9 +207,9 @@ public class ReadCodeItem {
 		// work_register1...work_register_2...this...param1...param2...param3
 
 		for (int opPc = 0, line = -1, i = 0; i < instructions.length; ++i) {
-			visitPc(opPc);
-
 			final Instruction instruction = instructions[i];
+
+			visitPc(opPc, instruction);
 
 			final int opcode = instruction.opcode.value;
 			if (opLines != null && opLines.containsKey(opPc)) {
@@ -1267,19 +1267,9 @@ public class ReadCodeItem {
 			/*******
 			 * NOP *
 			 *******/
-			case NOP: {
-				if (instruction instanceof PackedSwitchDataPseudoInstruction) {
-					final PackedSwitchDataPseudoInstruction instr = (PackedSwitchDataPseudoInstruction) instruction;
-					// instr.getFirstKey()
-					// instr.getTargets();
-				}
-				if (instruction instanceof SparseSwitchDataPseudoInstruction) {
-					final SparseSwitchDataPseudoInstruction instr = (SparseSwitchDataPseudoInstruction) instruction;
-					// instr.getKeys()
-					// instr.getTargets();
-				}
+			case NOP:
+				// nothing
 				break;
-			}
 			/*******
 			 * NOT *
 			 *******/
@@ -2011,13 +2001,15 @@ public class ReadCodeItem {
 				final Instruction31t instr = (Instruction31t) instruction;
 
 				final SWITCH op = new SWITCH(opPc, opcode, line);
+				op.setDefaultPc(this.operations.size() + 1);
+
 				final int targetPc = opPc + instr.getTargetAddressOffset();
 				final int pcIndex = getPcIndex(targetPc);
-				op.setDefaultPc(pcIndex);
 				if (pcIndex < 0) {
 					getPcUnresolved(targetPc).add(op);
+				} else {
+					LOGGER.warning("Switch pseudo operation must have forward target!");
 				}
-				// TODO cases?
 				this.operations.add(op);
 				break;
 			}
@@ -2152,7 +2144,7 @@ public class ReadCodeItem {
 		}
 	}
 
-	private void visitPc(final int pc) {
+	private void visitPc(final int pc, final Instruction instruction) {
 		final Integer pcIndex = this.pc2index.put(pc, this.operations.size());
 		if (pcIndex == null) {
 			// fresh new label, never referenced before
@@ -2185,18 +2177,43 @@ public class ReadCodeItem {
 			}
 			if (o instanceof SWITCH) {
 				final SWITCH op = (SWITCH) o;
-				if (labelUnknownIndex == op.getDefaultPc()) {
-					op.setDefaultPc(this.operations.size());
-				}
-				final int[] keyTargets = op.getCasePcs();
-				if (keyTargets != null) {
-					for (int i = keyTargets.length; i-- > 0;) {
-						if (labelUnknownIndex == keyTargets[i]) {
-							keyTargets[i] = this.operations.size();
+
+				if (instruction instanceof PackedSwitchDataPseudoInstruction) {
+					final PackedSwitchDataPseudoInstruction instr = (PackedSwitchDataPseudoInstruction) instruction;
+					final int firstKey = instr.getFirstKey();
+					// absolute original pcs
+					final int[] targets = instr.getTargets();
+
+					final int[] caseKeys = new int[targets.length];
+					final int[] casePcs = new int[targets.length];
+					for (int t = 0; t < targets.length; ++t) {
+						caseKeys[t] = firstKey + t;
+						casePcs[t] = getPcIndex(targets[t]);
+						if (casePcs[t] < 0) {
+							getPcUnresolved(targets[t]).add(op);
 						}
 					}
+					op.setCaseKeys(caseKeys);
+					op.setCasePcs(casePcs);
 				}
-				continue;
+				if (instruction instanceof SparseSwitchDataPseudoInstruction) {
+					final SparseSwitchDataPseudoInstruction instr = (SparseSwitchDataPseudoInstruction) instruction;
+					final int[] keys = instr.getKeys();
+					// absolute original pcs
+					final int[] targets = instr.getTargets();
+
+					final int[] caseKeys = new int[targets.length];
+					final int[] casePcs = new int[targets.length];
+					for (int t = 0; t < targets.length; ++t) {
+						caseKeys[t] = keys[t];
+						casePcs[t] = getPcIndex(targets[t]);
+						if (casePcs[t] < 0) {
+							getPcUnresolved(targets[t]).add(op);
+						}
+					}
+					op.setCaseKeys(caseKeys);
+					op.setCasePcs(casePcs);
+				}
 			}
 			// cannot happen for Exc / Var here
 		}
