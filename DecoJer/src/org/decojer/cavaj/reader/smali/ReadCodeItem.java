@@ -53,6 +53,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCND;
 import org.decojer.cavaj.model.vm.intermediate.operations.JSR;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
+import org.decojer.cavaj.model.vm.intermediate.operations.MONITOR;
 import org.decojer.cavaj.model.vm.intermediate.operations.MUL;
 import org.decojer.cavaj.model.vm.intermediate.operations.NEG;
 import org.decojer.cavaj.model.vm.intermediate.operations.NEW;
@@ -1011,6 +1012,26 @@ public class ReadCodeItem {
 						instruction.opcode == Opcode.INVOKE_DIRECT));
 				break;
 			}
+			/***********
+			 * MONITOR *
+			 ***********/
+			case MONITOR_ENTER:
+				type = MONITOR.T_ENTER;
+				// fall through
+			case MONITOR_EXIT:
+				if (type < 0) {
+					type = MONITOR.T_EXIT;
+				}
+				{
+					// synchronized A
+					final Instruction11x instr = (Instruction11x) instruction;
+
+					this.operations.add(new LOAD(opPc, opcode, line, -1, instr
+							.getRegisterA()));
+
+					this.operations.add(new MONITOR(opPc, opcode, line, type));
+				}
+				break;
 			/********
 			 * MOVE *
 			 ********/
