@@ -185,7 +185,12 @@ public class TrJvmStruct2JavaAst {
 				final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
 						.fragments().get(0);
 				// only final, non static - no arrays, class types
-				if (value instanceof Double) {
+				if (value instanceof Boolean) {
+					variableDeclarationFragment
+							.setInitializer(ast
+									.newBooleanLiteral(((Boolean) value)
+											.booleanValue()));
+				} else if (value instanceof Double) {
 					variableDeclarationFragment.setInitializer(ast
 							.newNumberLiteral(value.toString() + 'D'));
 				} else if (value instanceof Float) {
