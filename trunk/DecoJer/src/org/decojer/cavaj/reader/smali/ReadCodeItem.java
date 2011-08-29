@@ -1442,9 +1442,10 @@ public class ReadCodeItem {
 			case CONST_WIDE_32: {
 				// A = literal
 				final Instruction31i instr = (Instruction31i) instruction;
+				// TODO multi
 
-				this.operations.add(new PUSH(opPc, opcode, line, type, instr
-						.getLiteral()));
+				this.operations.add(new PUSH(opPc, opcode, line,
+						DataType.T_LONG, instr.getLiteral()));
 
 				this.operations.add(new STORE(opPc, opcode, line,
 						DataType.T_LONG, instr.getRegisterA()));
@@ -1453,12 +1454,14 @@ public class ReadCodeItem {
 			case CONST_WIDE: /* _64 */{
 				// A = literal
 				final Instruction51l instr = (Instruction51l) instruction;
+				// TODO multi, longBitsToDouble later
 
-				this.operations.add(new PUSH(opPc, opcode, line, type, instr
-						.getLiteral()));
+				this.operations.add(new PUSH(opPc, opcode, line,
+						DataType.T_DOUBLE, Double.longBitsToDouble(instr
+								.getLiteral())));
 
 				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_LONG, instr.getRegisterA()));
+						DataType.T_DOUBLE, instr.getRegisterA()));
 				break;
 			}
 			case CONST_HIGH16:

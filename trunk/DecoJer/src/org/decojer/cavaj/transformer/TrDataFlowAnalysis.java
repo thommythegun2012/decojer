@@ -113,6 +113,8 @@ public class TrDataFlowAnalysis {
 
 	private T convertType(final int dataType) {
 		switch (dataType) {
+		case -1:
+			// normally don't care, for now object
 		case DataType.T_AREF:
 			return getCfg().getMd().getTd().getT().getDu()
 					.getT(Object.class.getName());
