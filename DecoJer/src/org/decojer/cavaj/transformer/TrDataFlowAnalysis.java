@@ -163,7 +163,9 @@ public class TrDataFlowAnalysis {
 
 	private Frame propagateFrames(final BB bb, final Frame frame) {
 		Frame opFrame = frame;
+		int nextOpPc = bb.getOpPc();
 		for (final Operation operation : bb.getOperations()) {
+			++nextOpPc;
 			operation.setFrame(opFrame);
 			switch (operation.getOpcode()) {
 			case Opcode.ADD: {
@@ -443,7 +445,7 @@ public class TrDataFlowAnalysis {
 				final Var pop = opFrame.stack.pop();
 
 				final int reg = op.getVarIndex();
-				final Var var = getCfg().getMd().getVar(reg, op.getPc() + 3);
+				final Var var = getCfg().getMd().getVar(reg, nextOpPc);
 
 				opFrame.vars[op.getVarIndex()] = var != null ? var : pop;
 				break;

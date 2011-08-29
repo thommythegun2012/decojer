@@ -192,7 +192,8 @@ public class MD implements BD, PD {
 		}
 		for (int i = vars.length; i-- > 0;) {
 			final Var var = vars[i];
-			if (var.getStartPc() <= pc && pc < var.getEndPc()) {
+			if (var.getStartPc() <= pc
+					&& (pc < var.getEndPc() || var.getEndPc() == 0)) {
 				return var;
 			}
 		}
@@ -242,6 +243,9 @@ public class MD implements BD, PD {
 			int reg = maxRegs;
 			for (int i = paramTs.length; i-- > 0;) {
 				final T paramT = paramTs[i];
+				if (paramT == T.LONG || paramT == T.DOUBLE) {
+					--reg;
+				}
 				// parameter name was encoded in extra debug info, copy names
 				// and parameter types to local vars
 				Var[] vars = this.varss[--reg];
@@ -305,7 +309,7 @@ public class MD implements BD, PD {
 				this.varss[reg++] = vars;
 			}
 			if (paramT == T.LONG || paramT == T.DOUBLE) {
-				reg++;
+				++reg;
 			}
 		}
 	}
