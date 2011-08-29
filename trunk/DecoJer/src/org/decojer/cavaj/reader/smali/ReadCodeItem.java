@@ -57,6 +57,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.MONITOR;
 import org.decojer.cavaj.model.vm.intermediate.operations.MUL;
 import org.decojer.cavaj.model.vm.intermediate.operations.NEG;
 import org.decojer.cavaj.model.vm.intermediate.operations.NEW;
+import org.decojer.cavaj.model.vm.intermediate.operations.NEWARRAY;
 import org.decojer.cavaj.model.vm.intermediate.operations.OR;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUT;
@@ -218,10 +219,6 @@ public class ReadCodeItem {
 				// available
 				line = opLines.get(opPc);
 			}
-
-			System.out.println("I" + opPc + " (" + line + "): "
-					+ instruction.opcode + "     "
-					+ instruction.getClass().getName());
 
 			int type = -1;
 			int iValue = 0;
@@ -1277,9 +1274,18 @@ public class ReadCodeItem {
 				// A = new referencedItem[B]
 				final Instruction22c instr = (Instruction22c) instruction;
 
-				System.out.println("NEWARRAY: r" + instr.getRegisterB()
-						+ " = new " + instr.getReferencedItem() + "[r"
-						+ instr.getRegisterB() + "]");
+				final T t = this.du.getDescT(((TypeIdItem) instr
+						.getReferencedItem()).getTypeDescriptor());
+				// contains dimensions via [
+
+				this.operations.add(new LOAD(opPc, opcode, line,
+						DataType.T_INT, instr.getRegisterB()));
+
+				this.operations.add(new NEWARRAY(opPc, opcode, line, t
+						.getBaseT(), t.getDim()));
+
+				this.operations.add(new STORE(opPc, opcode, line,
+						DataType.T_AREF, instr.getRegisterA()));
 				break;
 			}
 			/*******
