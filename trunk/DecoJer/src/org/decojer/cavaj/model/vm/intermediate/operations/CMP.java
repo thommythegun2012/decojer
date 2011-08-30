@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
@@ -36,12 +37,12 @@ public class CMP extends Operation {
 
 	private final int cmp;
 
-	private final int type;
+	private final T t;
 
-	public CMP(final int pc, final int code, final int line, final int type,
+	public CMP(final int pc, final int code, final int line, final T t,
 			final int cmp) {
 		super(pc, code, line);
-		this.type = type;
+		this.t = t;
 		this.cmp = cmp;
 	}
 
@@ -59,8 +60,8 @@ public class CMP extends Operation {
 		return Opcode.CMP;
 	}
 
-	public int getType() {
-		return this.type;
+	public T getT() {
+		return this.t;
 	}
 
 }

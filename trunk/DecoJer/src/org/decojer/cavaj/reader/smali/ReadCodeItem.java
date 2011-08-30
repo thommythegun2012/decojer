@@ -35,7 +35,6 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
-import org.decojer.cavaj.model.vm.intermediate.DataType;
 import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
@@ -220,239 +219,234 @@ public class ReadCodeItem {
 				line = opLines.get(opPc);
 			}
 
+			T t = null;
 			int type = -1;
 			int iValue = 0;
-			final int lValue = 0;
-			final Object oValue = null;
+			Object oValue = null;
 
 			switch (instruction.opcode) {
 			/*******
 			 * ADD *
 			 *******/
 			case ADD_DOUBLE:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case ADD_FLOAT:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case ADD_INT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case ADD_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = B + C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations.add(new ADD(opPc, opcode, line, type));
+					this.operations.add(new ADD(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case ADD_DOUBLE_2ADDR:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case ADD_FLOAT_2ADDR:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case ADD_INT_2ADDR:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case ADD_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A += B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations.add(new ADD(opPc, opcode, line, type));
+					this.operations.add(new ADD(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case ADD_INT_LIT8: {
 				// A = B + literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new ADD(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new ADD(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			case ADD_INT_LIT16: {
 				// A = B + literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new ADD(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new ADD(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			/*********
 			 * ALOAD *
 			 *********/
 			case AGET:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case AGET_BOOLEAN:
-				if (type < 0) {
-					type = DataType.T_BOOLEAN;
+				if (t == null) {
+					t = T.BOOLEAN;
 				}
 				// fall through
 			case AGET_BYTE:
-				if (type < 0) {
-					type = DataType.T_BYTE;
+				if (t == null) {
+					t = T.BYTE;
 				}
 				// fall through
 			case AGET_CHAR:
-				if (type < 0) {
-					type = DataType.T_CHAR;
+				if (t == null) {
+					t = T.CHAR;
 				}
 				// fall through
 			case AGET_OBJECT:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case AGET_SHORT:
-				if (type < 0) {
-					type = DataType.T_SHORT;
+				if (t == null) {
+					t = T.SHORT;
 				}
 				// fall through
 			case AGET_WIDE:
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO and T_DOUBLE, as multi?
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				{
 					// A = B[C]
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line,
-							DataType.T_AREF, instr.getRegisterB()));
-					// TODO array type?
-					this.operations.add(new LOAD(opPc, opcode, line,
-							DataType.T_INT, instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, T.AREF,
+							instr.getRegisterB())); // TODO array type?
+					this.operations.add(new LOAD(opPc, opcode, line, T.INT,
+							instr.getRegisterC()));
 
-					this.operations.add(new ALOAD(opPc, opcode, line, type));
+					this.operations.add(new ALOAD(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			/*******
 			 * AND *
 			 *******/
 			case AND_INT:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case AND_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = B & C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations.add(new AND(opPc, opcode, line, type));
+					this.operations.add(new AND(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case AND_INT_2ADDR:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case AND_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A &= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations.add(new AND(opPc, opcode, line, type));
+					this.operations.add(new AND(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case AND_INT_LIT8: {
 				// A = B & literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new AND(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new AND(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			case AND_INT_LIT16: {
 				// A = B & literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new AND(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new AND(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			/***************
@@ -462,63 +456,62 @@ public class ReadCodeItem {
 				// A = B.length
 				final Instruction12x instr = (Instruction12x) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_AREF, instr.getRegisterB()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.AREF, instr
+						.getRegisterB()));
 
 				this.operations.add(new ARRAYLENGTH(opPc, opcode, line));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			/**********
 			 * ASTORE *
 			 **********/
 			case APUT:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case APUT_BOOLEAN:
-				if (type < 0) {
-					type = DataType.T_BOOLEAN;
+				if (t == null) {
+					t = T.BOOLEAN;
 				}
 				// fall through
 			case APUT_BYTE:
-				if (type < 0) {
-					type = DataType.T_BYTE;
+				if (t == null) {
+					t = T.BYTE;
 				}
 				// fall through
 			case APUT_CHAR:
-				if (type < 0) {
-					type = DataType.T_CHAR;
+				if (t == null) {
+					t = T.CHAR;
 				}
 				// fall through
 			case APUT_OBJECT:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case APUT_SHORT:
-				if (type < 0) {
-					type = DataType.T_SHORT;
+				if (t == null) {
+					t = T.SHORT;
 				}
 				// fall through
 			case APUT_WIDE:
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO and T_DOUBLE, as multi?
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				{
 					// B[C] = A
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line,
-							DataType.T_AREF, instr.getRegisterB()));
-					// TODO array type?
-					this.operations.add(new LOAD(opPc, opcode, line,
-							DataType.T_INT, instr.getRegisterC()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, T.AREF,
+							instr.getRegisterB())); // TODO array type?
+					this.operations.add(new LOAD(opPc, opcode, line, T.INT,
+							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
 
-					this.operations.add(new ASTORE(opPc, opcode, line, type));
+					this.operations.add(new ASTORE(opPc, opcode, line, t));
 				}
 				break;
 			/**************
@@ -528,161 +521,158 @@ public class ReadCodeItem {
 				// A := (typeIdItem) A
 				final Instruction21c instr = (Instruction21c) instruction;
 
-				final T t = this.du.getDescT(((TypeIdItem) instr
-						.getReferencedItem()).getTypeDescriptor());
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_AREF, instr.getRegisterA()));
+				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem())
+						.getTypeDescriptor());
+
+				this.operations.add(new LOAD(opPc, opcode, line, T.AREF, instr
+						.getRegisterA()));
 
 				this.operations.add(new CHECKCAST(opPc, opcode, line, t));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_AREF, instr.getRegisterA()));
-				// TODO specific type?
+				this.operations.add(new STORE(opPc, opcode, line, t, instr
+						.getRegisterA()));
 				break;
 			}
 			/*******
 			 * CMP *
 			 *******/
 			case CMPG_DOUBLE:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				iValue = CMP.T_G;
 				// fall through
 			case CMPG_FLOAT:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = CMP.T_G;
 				}
 				// fall through
 			case CMPL_DOUBLE:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					iValue = CMP.T_L;
 				}
 				// fall through
 			case CMPL_FLOAT:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = CMP.T_L;
 				}
 				// fall through
 			case CMP_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					iValue = CMP.T_0;
 				}
 				{
 					// A = B CMP C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations.add(new CMP(opPc, opcode, line, type,
-							iValue));
+					this.operations.add(new CMP(opPc, opcode, line, t, iValue));
 
-					this.operations.add(new STORE(opPc, opcode, line,
-							DataType.T_INT, instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, T.INT,
+							instr.getRegisterA()));
 				}
 				break;
 			/*******
 			 * DIV *
 			 *******/
 			case DIV_DOUBLE:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case DIV_FLOAT:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case DIV_INT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case DIV_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = B / C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations.add(new DIV(opPc, opcode, line, type));
+					this.operations.add(new DIV(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case DIV_DOUBLE_2ADDR:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case DIV_FLOAT_2ADDR:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case DIV_INT_2ADDR:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case DIV_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A /= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations.add(new DIV(opPc, opcode, line, type));
+					this.operations.add(new DIV(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case DIV_INT_LIT8: {
 				// A = B / literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new DIV(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new DIV(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			case DIV_INT_LIT16: {
 				// A = B / literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new DIV(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new DIV(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			/*******
@@ -690,38 +680,38 @@ public class ReadCodeItem {
 			 *******/
 			case IGET:
 			case IGET_VOLATILE:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case IGET_BOOLEAN:
-				if (type < 0) {
-					type = DataType.T_BOOLEAN;
+				if (t == null) {
+					t = T.BOOLEAN;
 				}
 				// fall through
 			case IGET_BYTE:
-				if (type < 0) {
-					type = DataType.T_BYTE;
+				if (t == null) {
+					t = T.BYTE;
 				}
 				// fall through
 			case IGET_CHAR:
-				if (type < 0) {
-					type = DataType.T_CHAR;
+				if (t == null) {
+					t = T.CHAR;
 				}
 				// fall through
 			case IGET_OBJECT:
 			case IGET_OBJECT_VOLATILE:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case IGET_SHORT:
-				if (type < 0) {
-					type = DataType.T_SHORT;
+				if (t == null) {
+					t = T.SHORT;
 				}
 				// fall through
 			case IGET_WIDE:
 			case IGET_WIDE_VOLATILE:
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO multi
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				// fall through
 				{
@@ -730,56 +720,61 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr
 							.getReferencedItem();
-					final T fieldRefT = this.du.getDescT(fieldIdItem
+					final T ownerT = this.du.getDescT(fieldIdItem
 							.getContainingClass().getTypeDescriptor());
-					final T fieldValueT = this.du.getDescT(fieldIdItem
+					final T fieldT = this.du.getDescT(fieldIdItem
 							.getFieldType().getTypeDescriptor());
-					final F f = fieldRefT.getF(fieldIdItem.getFieldName()
-							.getStringValue(), fieldValueT);
+					final F f = ownerT.getF(fieldIdItem.getFieldName()
+							.getStringValue(), fieldT);
 
-					this.operations.add(new LOAD(opPc, opcode, line,
-							DataType.T_AREF, instr.getRegisterB()));
+					if (t != T.AREF && !t.equals(fieldT)) {
+						LOGGER.warning("IGET TODO Must check compatibility here? T '"
+								+ t + "' not of '" + fieldT + "'!");
+					}
+
+					this.operations.add(new LOAD(opPc, opcode, line, ownerT,
+							instr.getRegisterB()));
 
 					this.operations.add(new GET(opPc, opcode, line, f));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
+					this.operations.add(new STORE(opPc, opcode, line, fieldT,
 							instr.getRegisterA()));
 				}
 				break;
 			case SGET:
 			case SGET_VOLATILE:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case SGET_BOOLEAN:
-				if (type < 0) {
-					type = DataType.T_BOOLEAN;
+				if (t == null) {
+					t = T.BOOLEAN;
 				}
 				// fall through
 			case SGET_BYTE:
-				if (type < 0) {
-					type = DataType.T_BYTE;
+				if (t == null) {
+					t = T.BYTE;
 				}
 				// fall through
 			case SGET_CHAR:
-				if (type < 0) {
-					type = DataType.T_CHAR;
+				if (t == null) {
+					t = T.CHAR;
 				}
 				// fall through
 			case SGET_OBJECT:
 			case SGET_OBJECT_VOLATILE:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case SGET_SHORT:
-				if (type < 0) {
-					type = DataType.T_SHORT;
+				if (t == null) {
+					t = T.SHORT;
 				}
 				// fall through
 			case SGET_WIDE:
 			case SGET_WIDE_VOLATILE:
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO multi
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				// fall through
 				{
@@ -788,17 +783,22 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr
 							.getReferencedItem();
-					final T fieldRefT = this.du.getDescT(fieldIdItem
+					final T ownerT = this.du.getDescT(fieldIdItem
 							.getContainingClass().getTypeDescriptor());
-					final T fieldValueT = this.du.getDescT(fieldIdItem
+					final T fieldT = this.du.getDescT(fieldIdItem
 							.getFieldType().getTypeDescriptor());
-					final F f = fieldRefT.getF(fieldIdItem.getFieldName()
-							.getStringValue(), fieldValueT);
+					final F f = ownerT.getF(fieldIdItem.getFieldName()
+							.getStringValue(), fieldT);
 					f.markAf(AF.STATIC);
+
+					if (t != T.AREF && !t.equals(fieldT)) {
+						LOGGER.warning("SGET TODO Must check compatibility here? T '"
+								+ t + "' not of '" + fieldT + "'!");
+					}
 
 					this.operations.add(new GET(opPc, opcode, line, f));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
+					this.operations.add(new STORE(opPc, opcode, line, fieldT,
 							instr.getRegisterA()));
 				}
 				break;
@@ -808,23 +808,23 @@ public class ReadCodeItem {
 			case GOTO: {
 				final Instruction10t instr = (Instruction10t) instruction;
 
-				type = 0;
+				t = T.VOID;
 				iValue = instr.getTargetAddressOffset();
 			}
 			// fall through
 			case GOTO_16:
-				if (type < 0) {
+				if (t == null) {
 					final Instruction20t instr = (Instruction20t) instruction;
 
-					type = 0;
+					t = T.VOID;
 					iValue = instr.getTargetAddressOffset();
 				}
 				// fall through
 			case GOTO_32:
-				if (type < 0) {
+				if (t == null) {
 					final Instruction30t instr = (Instruction30t) instruction;
 
-					type = 0;
+					t = T.VOID;
 					instr.getTargetAddressOffset();
 				}
 				{
@@ -842,48 +842,48 @@ public class ReadCodeItem {
 			 * JCMP *
 			 ********/
 			case IF_EQ:
-				type = DataType.T_INT;
+				t = T.INT;
 				iValue = CompareType.T_EQ;
 				// fall through
 			case IF_GE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_GE;
 				}
 				// fall through
 			case IF_GT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_GT;
 				}
 				// fall through
 			case IF_LE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_LE;
 				}
 				// fall through
 			case IF_LT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_LT;
 				}
 				// fall through
 			case IF_NE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_NE;
 				}
 				{
 					// IF A cond B JMP offset
 					final Instruction22t instr = (Instruction22t) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, -1, instr
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
 							.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, -1, instr
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
 							.getRegisterB()));
 
-					final JCMP op = new JCMP(opPc, opcode, line, type, iValue);
+					final JCMP op = new JCMP(opPc, opcode, line, t, iValue);
 					final int targetPc = opPc + instr.getTargetAddressOffset();
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
@@ -897,46 +897,46 @@ public class ReadCodeItem {
 			 * JCND *
 			 ********/
 			case IF_EQZ:
-				type = DataType.T_INT;
+				t = T.INT;
 				iValue = CompareType.T_EQ;
 				// fall through
 			case IF_GEZ:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_GE;
 				}
 				// fall through
 			case IF_GTZ:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_GT;
 				}
 				// fall through
 			case IF_LEZ:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_LE;
 				}
 				// fall through
 			case IF_LTZ:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_LT;
 				}
 				// fall through
 			case IF_NEZ:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_NE;
 				}
 				{
 					// IF A cond 0 JMP offset
 					final Instruction21t instr = (Instruction21t) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, -1, instr
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
 							.getRegisterA()));
 
-					final JCND op = new JCND(opPc, opcode, line, type, iValue);
+					final JCND op = new JCND(opPc, opcode, line, t, iValue);
 					final int targetPc = opPc + instr.getTargetAddressOffset();
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
@@ -969,36 +969,43 @@ public class ReadCodeItem {
 
 				final MethodIdItem methodIdItem = (MethodIdItem) instr
 						.getReferencedItem();
-				final T invokeT = this.du.getDescT(methodIdItem
+				final T ownerT = this.du.getDescT(methodIdItem
 						.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
-					invokeT.markAf(AF.INTERFACE);
+					ownerT.markAf(AF.INTERFACE);
 				}
-				final M invokeM = invokeT.getM(methodIdItem.getMethodName()
+				final M invokeM = ownerT.getM(methodIdItem.getMethodName()
 						.getStringValue(), methodIdItem.getPrototype()
 						.getPrototypeString());
+				T[] paramTs = invokeM.getParamTs();
 				if (instruction.opcode == Opcode.INVOKE_STATIC) {
 					invokeM.markAf(AF.STATIC);
+				} else {
+					final T[] virtualParamTs = new T[paramTs.length + 1];
+					System.arraycopy(paramTs, 0, virtualParamTs, 1,
+							paramTs.length);
+					virtualParamTs[0] = ownerT;
+					paramTs = virtualParamTs;
 				}
 				if (instr.getRegCount() > 0) {
-					this.operations.add(new LOAD(opPc, opcode, line, -1, instr
-							.getRegisterD()));
+					this.operations.add(new LOAD(opPc, opcode, line,
+							paramTs[0], instr.getRegisterD()));
 				}
 				if (instr.getRegCount() > 1) {
-					this.operations.add(new LOAD(opPc, opcode, line, -1, instr
-							.getRegisterE()));
+					this.operations.add(new LOAD(opPc, opcode, line,
+							paramTs[1], instr.getRegisterE()));
 				}
 				if (instr.getRegCount() > 2) {
-					this.operations.add(new LOAD(opPc, opcode, line, -1, instr
-							.getRegisterF()));
+					this.operations.add(new LOAD(opPc, opcode, line,
+							paramTs[2], instr.getRegisterF()));
 				}
 				if (instr.getRegCount() > 3) {
-					this.operations.add(new LOAD(opPc, opcode, line, -1, instr
-							.getRegisterG()));
+					this.operations.add(new LOAD(opPc, opcode, line,
+							paramTs[3], instr.getRegisterG()));
 				}
 				if (instr.getRegCount() > 4) {
-					this.operations.add(new LOAD(opPc, opcode, line, -1, instr
-							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line,
+							paramTs[4], instr.getRegisterA()));
 				}
 				this.operations.add(new INVOKE(opPc, opcode, line, invokeM,
 						instruction.opcode == Opcode.INVOKE_DIRECT));
@@ -1011,15 +1018,15 @@ public class ReadCodeItem {
 				type = MONITOR.T_ENTER;
 				// fall through
 			case MONITOR_EXIT:
-				if (type < 0) {
+				if (t == null) {
 					type = MONITOR.T_EXIT;
 				}
 				{
 					// synchronized A
 					final Instruction11x instr = (Instruction11x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, -1, instr
-							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, T.AREF,
+							instr.getRegisterA()));
 
 					this.operations.add(new MONITOR(opPc, opcode, line, type));
 				}
@@ -1028,227 +1035,225 @@ public class ReadCodeItem {
 			 * MOVE *
 			 ********/
 			case MOVE:
-				type = DataType.T_INT; // TODO multi
+				t = T.INT; // TODO multi
 				// fall through
 			case MOVE_OBJECT:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case MOVE_WIDE:
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO multi
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				{
 					// A = B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case MOVE_16:
-				type = DataType.T_INT; // TODO multi
+				t = T.INT; // TODO multi
 				// fall through
 			case MOVE_OBJECT_16:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case MOVE_WIDE_16:
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO multi
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				{
 					// A = B
 					final Instruction32x instr = (Instruction32x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case MOVE_FROM16:
-				type = DataType.T_INT; // TODO multi
+				t = T.INT; // TODO multi
 				// fall through
 			case MOVE_OBJECT_FROM16:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case MOVE_WIDE_FROM16:
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO multi
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				{
 					// A = B
 					final Instruction22x instr = (Instruction22x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case MOVE_EXCEPTION:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = this.du.getT(Throwable.class);
 				}
 				// fall through
 			case MOVE_RESULT:
-				type = DataType.T_INT; // TODO multi
+				t = T.INT; // TODO multi
 				// fall through
 			case MOVE_RESULT_OBJECT:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case MOVE_RESULT_WIDE:
 				// TODO doesn't follow a method? => POP
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO multi
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				{
 					// A = resultRegister
 					final Instruction11x instr = (Instruction11x) instruction;
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			/*******
 			 * MUL *
 			 *******/
 			case MUL_DOUBLE:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case MUL_FLOAT:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case MUL_INT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case MUL_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = B * C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations.add(new MUL(opPc, opcode, line, type));
+					this.operations.add(new MUL(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case MUL_DOUBLE_2ADDR:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case MUL_FLOAT_2ADDR:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case MUL_INT_2ADDR:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case MUL_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A *= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations.add(new MUL(opPc, opcode, line, type));
+					this.operations.add(new MUL(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case MUL_INT_LIT8: {
 				// A = B * literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new MUL(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new MUL(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			case MUL_INT_LIT16: {
 				// A = B * literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new MUL(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new MUL(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			/*******
 			 * NEG *
 			 *******/
 			case NEG_DOUBLE:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case NEG_FLOAT:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case NEG_INT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case NEG_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = -B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line,
-							DataType.T_INT, instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations.add(new NEG(opPc, opcode, line, type));
+					this.operations.add(new NEG(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line,
-							DataType.T_INT, instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			/*******
@@ -1258,13 +1263,13 @@ public class ReadCodeItem {
 				// A = new typeIdItem
 				final Instruction21c instr = (Instruction21c) instruction;
 
-				final T t = this.du.getDescT(((TypeIdItem) instr
-						.getReferencedItem()).getTypeDescriptor());
+				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem())
+						.getTypeDescriptor());
 
 				this.operations.add(new NEW(opPc, opcode, line, t));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_AREF, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, t, instr
+						.getRegisterA()));
 				break;
 			}
 			/************
@@ -1274,18 +1279,18 @@ public class ReadCodeItem {
 				// A = new referencedItem[B]
 				final Instruction22c instr = (Instruction22c) instruction;
 
-				final T t = this.du.getDescT(((TypeIdItem) instr
-						.getReferencedItem()).getTypeDescriptor());
+				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem())
+						.getTypeDescriptor());
 				// contains dimensions via [
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
 
 				this.operations.add(new NEWARRAY(opPc, opcode, line, t
 						.getBaseT(), t.getDim()));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_AREF, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, t, instr
+						.getRegisterA()));
 				break;
 			}
 			/*******
@@ -1298,102 +1303,102 @@ public class ReadCodeItem {
 			 * NOT *
 			 *******/
 			case NOT_INT:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case NOT_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = ~B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new PUSH(opPc, opcode, line, type, -1));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new PUSH(opPc, opcode, line, t, -1));
 
 					// simulate with A ^ -1
-					this.operations.add(new XOR(opPc, opcode, line, type));
+					this.operations.add(new XOR(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			/*******
 			 * OR *
 			 *******/
 			case OR_INT:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case OR_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = B | C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations.add(new OR(opPc, opcode, line, type));
+					this.operations.add(new OR(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case OR_INT_2ADDR:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case OR_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A |= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations.add(new OR(opPc, opcode, line, type));
+					this.operations.add(new OR(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case OR_INT_LIT8: {
 				// A = B | literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations.add(new OR(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new OR(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			case OR_INT_LIT16: {
 				// A = B | literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations.add(new OR(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new OR(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			/********
@@ -1403,160 +1408,157 @@ public class ReadCodeItem {
 				// A = literal
 				final Instruction31i instr = (Instruction31i) instruction;
 
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
-
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
-				break;
+				t = T.INT;
+				iValue = instr.getRegisterA();
+				oValue = (int) instr.getLiteral();
 			}
-			case CONST_4: {
-				// A = literal
-				final Instruction11n instr = (Instruction11n) instruction;
+			// fall through
+			case CONST_4:
+				if (t == null) {
+					// A = literal
+					final Instruction11n instr = (Instruction11n) instruction;
 
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
-
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
-				break;
-			}
-			case CONST_16:
-				type = DataType.T_INT; // TODO multi
-				// fall through
-			case CONST_WIDE_16:
-				if (type < 0) {
-					type = DataType.T_LONG;
+					t = T.INT;
+					iValue = instr.getRegisterA();
+					oValue = (int) instr.getLiteral();
 				}
-				{
+				// fall through
+			case CONST_16:
+				if (t == null) {
 					// A = literal
 					final Instruction21s instr = (Instruction21s) instruction;
 
-					this.operations.add(new PUSH(opPc, opcode, line, type,
-							(int) instr.getLiteral()));
-
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					t = T.INT;
+					iValue = instr.getRegisterA();
+					oValue = (int) instr.getLiteral();
 				}
-				break;
-			case CONST_WIDE_32: {
-				// A = literal
-				final Instruction31i instr = (Instruction31i) instruction;
-				// TODO multi
-
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_LONG, instr.getLiteral()));
-
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_LONG, instr.getRegisterA()));
-				break;
-			}
-			case CONST_WIDE: /* _64 */{
-				// A = literal
-				final Instruction51l instr = (Instruction51l) instruction;
-				// TODO multi, longBitsToDouble later
-
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_DOUBLE, Double.longBitsToDouble(instr
-								.getLiteral())));
-
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_DOUBLE, instr.getRegisterA()));
-				break;
-			}
-			case CONST_HIGH16:
-				type = DataType.T_FLOAT;
 				// fall through
-			case CONST_WIDE_HIGH16:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+			case CONST_WIDE_16:
+				if (t == null) {
+					// A = literal
+					final Instruction21s instr = (Instruction21s) instruction;
+
+					t = T.LONG;
+					iValue = instr.getRegisterA();
+					oValue = (int) instr.getLiteral();
 				}
-				{
+				// fall through
+			case CONST_WIDE_32:
+				if (t == null) {
+					// A = literal
+					final Instruction31i instr = (Instruction31i) instruction;
+
+					t = T.LONG;
+					iValue = instr.getRegisterA();
+					oValue = (int) instr.getLiteral();
+				}
+				// fall through
+			case CONST_WIDE: /* _64 */
+				if (t == null) {
+					// A = literal
+					final Instruction51l instr = (Instruction51l) instruction;
+
+					t = T.multi(T.DOUBLE, T.LONG);
+					iValue = instr.getRegisterA();
+					oValue = instr.getLiteral();
+				}
+				// fall through
+			case CONST_HIGH16:
+				if (t == null) {
 					// A = literal
 					final Instruction21h instr = (Instruction21h) instruction;
 
-					this.operations.add(new PUSH(opPc, opcode, line, type,
-							(int) instr.getLiteral()));
+					t = T.FLOAT;
+					iValue = instr.getRegisterA();
+					oValue = (int) instr.getLiteral() << 16;
+				}
+				// fall through
+			case CONST_WIDE_HIGH16:
+				if (t == null) {
+					// A = literal
+					final Instruction21h instr = (Instruction21h) instruction;
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					t = T.DOUBLE;
+					iValue = instr.getRegisterA();
+					oValue = instr.getLiteral() << 48;
+				}
+				// fall through
+			case CONST_CLASS:
+				if (t == null) {
+					// A = literal
+					final Instruction21c instr = (Instruction21c) instruction;
+
+					t = this.du.getT(Class.class);
+					iValue = instr.getRegisterA();
+					oValue = this.du.getDescT(((TypeIdItem) instr
+							.getReferencedItem()).getTypeDescriptor());
+				}
+				// fall through
+			case CONST_STRING:
+				if (t == null) {
+					// A = literal
+					final Instruction21c instr = (Instruction21c) instruction;
+
+					t = this.du.getT(String.class);
+					iValue = instr.getRegisterA();
+					oValue = ((StringIdItem) instr.getReferencedItem())
+							.getStringValue();
+				}
+			case CONST_STRING_JUMBO:
+				if (t == null) {
+					// A = literal
+					final Instruction31c instr = (Instruction31c) instruction;
+
+					t = this.du.getT(String.class);
+					iValue = instr.getRegisterA();
+					oValue = ((StringIdItem) instr.getReferencedItem())
+							.getStringValue();
+				}
+				{
+					this.operations
+							.add(new PUSH(opPc, opcode, line, t, oValue));
+
+					this.operations
+							.add(new STORE(opPc, opcode, line, t, iValue));
 				}
 				break;
-			case CONST_CLASS: {
-				// A = typeIdItem
-				final Instruction21c instr = (Instruction21c) instruction;
-
-				final T t = this.du.getDescT(((TypeIdItem) instr
-						.getReferencedItem()).getTypeDescriptor());
-
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_CLASS, t));
-
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_CLASS, instr.getRegisterA()));
-				break;
-			}
-			case CONST_STRING: {
-				// A = stringIdItem
-				final Instruction21c instr = (Instruction21c) instruction;
-
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_STRING, ((StringIdItem) instr
-								.getReferencedItem()).getStringValue()));
-
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_STRING, instr.getRegisterA()));
-				break;
-			}
-			case CONST_STRING_JUMBO: {
-				// A = stringIdItem
-				final Instruction31c instr = (Instruction31c) instruction;
-
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_STRING, ((StringIdItem) instr
-								.getReferencedItem()).getStringValue()));
-
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_STRING, instr.getRegisterA()));
-				break;
-			}
 			/*******
 			 * PUT *
 			 *******/
 			case IPUT:
 			case IPUT_VOLATILE:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case IPUT_BOOLEAN:
-				if (type < 0) {
-					type = DataType.T_BOOLEAN;
+				if (t == null) {
+					t = T.BOOLEAN;
 				}
 				// fall through
 			case IPUT_BYTE:
-				if (type < 0) {
-					type = DataType.T_BYTE;
+				if (t == null) {
+					t = T.BYTE;
 				}
 				// fall through
 			case IPUT_CHAR:
-				if (type < 0) {
-					type = DataType.T_CHAR;
+				if (t == null) {
+					t = T.CHAR;
 				}
 				// fall through
 			case IPUT_OBJECT:
 			case IPUT_OBJECT_VOLATILE:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case IPUT_SHORT:
-				if (type < 0) {
-					type = DataType.T_SHORT;
+				if (t == null) {
+					t = T.SHORT;
 				}
 				// fall through
 			case IPUT_WIDE:
 			case IPUT_WIDE_VOLATILE:
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO multi
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				// case IPUT_OBJECT_QUICK:
 				// case IPUT_QUICK:
@@ -1567,16 +1569,21 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr
 							.getReferencedItem();
-					final T fieldRefT = this.du.getDescT(fieldIdItem
+					final T ownerT = this.du.getDescT(fieldIdItem
 							.getContainingClass().getTypeDescriptor());
-					final T fieldValueT = this.du.getDescT(fieldIdItem
+					final T fieldT = this.du.getDescT(fieldIdItem
 							.getFieldType().getTypeDescriptor());
-					final F f = fieldRefT.getF(fieldIdItem.getFieldName()
-							.getStringValue(), fieldValueT);
+					final F f = ownerT.getF(fieldIdItem.getFieldName()
+							.getStringValue(), fieldT);
 
-					this.operations.add(new LOAD(opPc, opcode, line,
-							DataType.T_AREF, instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
+					if (t != T.AREF && !t.equals(fieldT)) {
+						LOGGER.warning("IPUT TODO Must check compatibility here? T '"
+								+ t + "' not of '" + fieldT + "'!");
+					}
+
+					this.operations.add(new LOAD(opPc, opcode, line, ownerT,
+							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, fieldT,
 							instr.getRegisterA()));
 
 					this.operations.add(new PUT(opPc, opcode, line, f));
@@ -1584,38 +1591,38 @@ public class ReadCodeItem {
 				break;
 			case SPUT:
 			case SPUT_VOLATILE:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case SPUT_BOOLEAN:
-				if (type < 0) {
-					type = DataType.T_BOOLEAN;
+				if (t == null) {
+					t = T.BOOLEAN;
 				}
 				// fall through
 			case SPUT_BYTE:
-				if (type < 0) {
-					type = DataType.T_BYTE;
+				if (t == null) {
+					t = T.BYTE;
 				}
 				// fall through
 			case SPUT_CHAR:
-				if (type < 0) {
-					type = DataType.T_CHAR;
+				if (t == null) {
+					t = T.CHAR;
 				}
 				// fall through
 			case SPUT_OBJECT:
 			case SPUT_OBJECT_VOLATILE:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case SPUT_SHORT:
-				if (type < 0) {
-					type = DataType.T_SHORT;
+				if (t == null) {
+					t = T.SHORT;
 				}
 				// fall through
 			case SPUT_WIDE:
 			case SPUT_WIDE_VOLATILE:
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO multi
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				// case IPUT_OBJECT_QUICK:
 				// case IPUT_QUICK:
@@ -1626,15 +1633,20 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr
 							.getReferencedItem();
-					final T fieldRefT = this.du.getDescT(fieldIdItem
+					final T ownerT = this.du.getDescT(fieldIdItem
 							.getContainingClass().getTypeDescriptor());
-					final T fieldValueT = this.du.getDescT(fieldIdItem
+					final T fieldT = this.du.getDescT(fieldIdItem
 							.getFieldType().getTypeDescriptor());
-					final F f = fieldRefT.getF(fieldIdItem.getFieldName()
-							.getStringValue(), fieldValueT);
+					final F f = ownerT.getF(fieldIdItem.getFieldName()
+							.getStringValue(), fieldT);
 					f.markAf(AF.STATIC);
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
+					if (t != T.AREF && !t.equals(fieldT)) {
+						LOGGER.warning("SPUT TODO Must check compatibility here? T '"
+								+ t + "' not of '" + fieldT + "'!");
+					}
+
+					this.operations.add(new LOAD(opPc, opcode, line, fieldT,
 							instr.getRegisterA()));
 
 					this.operations.add(new PUT(opPc, opcode, line, f));
@@ -1644,386 +1656,376 @@ public class ReadCodeItem {
 			 * REM *
 			 *******/
 			case REM_DOUBLE:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case REM_FLOAT:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case REM_INT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case REM_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A := B % C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations.add(new REM(opPc, opcode, line, type));
+					this.operations.add(new REM(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case REM_DOUBLE_2ADDR:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case REM_FLOAT_2ADDR:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case REM_INT_2ADDR:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case REM_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A %= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations.add(new REM(opPc, opcode, line, type));
+					this.operations.add(new REM(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case REM_INT_LIT8: {
 				// A = B % literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new REM(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new REM(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			case REM_INT_LIT16: {
 				// A = B % literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new REM(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new REM(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			/**********
 			 * RETURN *
 			 **********/
 			case RETURN:
-				type = DataType.T_INT; // TODO Multi simple
+				t = T.INT; // TODO Multi simple
 				// fall through
 			case RETURN_OBJECT:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 				}
 				// fall through
 			case RETURN_WIDE:
-				if (type < 0) {
-					type = DataType.T_LONG; // TODO Multi double
+				if (t == null) {
+					t = T.multi(T.DOUBLE, T.LONG);
 				}
 				{
 					// return A
 					final Instruction11x instr = (Instruction11x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
 
-					this.operations.add(new RETURN(opPc, opcode, line, type));
+					this.operations.add(new RETURN(opPc, opcode, line, t));
 					break;
 				}
 			case RETURN_VOID: {
-				this.operations.add(new RETURN(opPc, opcode, line,
-						DataType.T_VOID));
+				this.operations.add(new RETURN(opPc, opcode, line, T.VOID));
 				break;
 			}
 			/*******
 			 * SHL *
 			 *******/
 			case SHL_INT:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case SHL_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A := B << C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations.add(new SHL(opPc, opcode, line, type));
+					this.operations.add(new SHL(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case SHL_INT_2ADDR:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case SHL_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A <<= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations.add(new SHL(opPc, opcode, line, type));
+					this.operations.add(new SHL(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case SHL_INT_LIT8: {
 				// A = B << literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new SHL(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new SHL(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			/*******
 			 * SHR *
 			 *******/
 			case SHR_INT:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case SHR_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = B >> C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations
-							.add(new SHR(opPc, opcode, line, type, false));
+					this.operations.add(new SHR(opPc, opcode, line, t, false));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case SHR_INT_2ADDR:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case SHR_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A >>= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations
-							.add(new SHR(opPc, opcode, line, type, false));
+					this.operations.add(new SHR(opPc, opcode, line, t, false));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case SHR_INT_LIT8: {
 				// A = B >> literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations.add(new SHR(opPc, opcode, line, DataType.T_INT,
-						false));
+				this.operations.add(new SHR(opPc, opcode, line, T.INT, false));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			case USHR_INT:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case USHR_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = B >>> C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations
-							.add(new SHR(opPc, opcode, line, type, true));
+					this.operations.add(new SHR(opPc, opcode, line, t, true));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case USHR_INT_2ADDR:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case USHR_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A >>>= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations
-							.add(new SHR(opPc, opcode, line, type, true));
+					this.operations.add(new SHR(opPc, opcode, line, t, true));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case USHR_INT_LIT8: {
 				// A = B >>> literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations.add(new SHR(opPc, opcode, line, DataType.T_INT,
-						true));
+				this.operations.add(new SHR(opPc, opcode, line, T.INT, true));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			/*******
 			 * SUB *
 			 *******/
 			case SUB_DOUBLE:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case SUB_FLOAT:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case SUB_INT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case SUB_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = B - C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations.add(new SUB(opPc, opcode, line, type));
+					this.operations.add(new SUB(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case SUB_DOUBLE_2ADDR:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case SUB_FLOAT_2ADDR:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case SUB_INT_2ADDR:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case SUB_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A -= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations.add(new SUB(opPc, opcode, line, type));
+					this.operations.add(new SUB(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			/**********
@@ -2054,8 +2056,10 @@ public class ReadCodeItem {
 				// throw A
 				final Instruction11x instr = (Instruction11x) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_AREF, instr.getRegisterA()));
+				t = this.du.getT(Throwable.class);
+
+				this.operations.add(new LOAD(opPc, opcode, line, t, instr
+						.getRegisterA()));
 
 				this.operations.add(new THROW(opPc, opcode, line));
 				break;
@@ -2064,79 +2068,77 @@ public class ReadCodeItem {
 			 * XOR *
 			 *******/
 			case XOR_INT:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case XOR_LONG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A = B ^ C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterC()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterC()));
 
-					this.operations.add(new XOR(opPc, opcode, line, type));
+					this.operations.add(new XOR(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case XOR_INT_2ADDR:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case XOR_LONG_2ADDR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				{
 					// A ^= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterA()));
-					this.operations.add(new LOAD(opPc, opcode, line, type,
-							instr.getRegisterB()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterA()));
+					this.operations.add(new LOAD(opPc, opcode, line, t, instr
+							.getRegisterB()));
 
-					this.operations.add(new XOR(opPc, opcode, line, type));
+					this.operations.add(new XOR(opPc, opcode, line, t));
 
-					this.operations.add(new STORE(opPc, opcode, line, type,
-							instr.getRegisterA()));
+					this.operations.add(new STORE(opPc, opcode, line, t, instr
+							.getRegisterA()));
 				}
 				break;
 			case XOR_INT_LIT8: {
 				// A = B ^ literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new XOR(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new XOR(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			case XOR_INT_LIT16: {
 				// A = B ^ literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.operations.add(new LOAD(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterB()));
-				this.operations.add(new PUSH(opPc, opcode, line,
-						DataType.T_INT, (int) instr.getLiteral()));
+				this.operations.add(new LOAD(opPc, opcode, line, T.INT, instr
+						.getRegisterB()));
+				this.operations.add(new PUSH(opPc, opcode, line, T.INT,
+						(int) instr.getLiteral()));
 
-				this.operations
-						.add(new XOR(opPc, opcode, line, DataType.T_INT));
+				this.operations.add(new XOR(opPc, opcode, line, T.INT));
 
-				this.operations.add(new STORE(opPc, opcode, line,
-						DataType.T_INT, instr.getRegisterA()));
+				this.operations.add(new STORE(opPc, opcode, line, T.INT, instr
+						.getRegisterA()));
 				break;
 			}
 			default:

@@ -32,6 +32,21 @@ import java.util.HashMap;
  */
 public class T {
 
+	public static class TT extends T {
+
+		public T[] ts;
+
+		protected TT(final T... ts) {
+			super("<multi>");
+			this.ts = ts;
+		}
+
+	}
+
+	/**
+	 * Any reference type.
+	 */
+	public static T AREF = new T("<aref>");
 	/**
 	 * Primitive type boolean.
 	 */
@@ -65,13 +80,18 @@ public class T {
 	 */
 	public static T SHORT = new T(short.class.getName());
 	/**
-	 * Primitive type void.
-	 */
-	public static T VOID = new T(void.class.getName());
-	/**
 	 * Artificial type 'uninit'.
 	 */
 	public static T UNINIT = new T("<uninit>");
+
+	/**
+	 * Primitive type void.
+	 */
+	public static T VOID = new T(void.class.getName());
+
+	public static TT multi(final T... ts) {
+		return new TT(ts);
+	}
 
 	private int accessFlags;
 

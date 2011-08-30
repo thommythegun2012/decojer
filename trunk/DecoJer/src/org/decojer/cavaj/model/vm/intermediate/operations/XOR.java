@@ -23,16 +23,17 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class XOR extends Operation {
 
-	private final int type;
+	private final T t;
 
-	public XOR(final int pc, final int code, final int line, final int type) {
+	public XOR(final int pc, final int code, final int line, final T t) {
 		super(pc, code, line);
-		this.type = type;
+		this.t = t;
 	}
 
 	@Override
@@ -45,8 +46,8 @@ public class XOR extends Operation {
 		return Opcode.XOR;
 	}
 
-	public int getType() {
-		return this.type;
+	public T getT() {
+		return this.t;
 	}
 
 }

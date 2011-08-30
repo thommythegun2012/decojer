@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
@@ -30,14 +31,14 @@ public class INC extends Operation {
 
 	private final int constValue;
 
-	private final int type;
+	private final T t;
 
 	private final int varIndex;
 
-	public INC(final int pc, final int code, final int line, final int type,
+	public INC(final int pc, final int code, final int line, final T t,
 			final int varIndex, final int constValue) {
 		super(pc, code, line);
-		this.type = type;
+		this.t = t;
 		this.varIndex = varIndex;
 		this.constValue = constValue;
 	}
@@ -56,8 +57,8 @@ public class INC extends Operation {
 		return Opcode.INC;
 	}
 
-	public int getType() {
-		return this.type;
+	public T getT() {
+		return this.t;
 	}
 
 	public int getVarIndex() {

@@ -127,6 +127,17 @@ public class DU {
 	/**
 	 * Get type declaration.
 	 * 
+	 * @param clazz
+	 *            class
+	 * @return type declaration
+	 */
+	public T getT(final Class<?> clazz) {
+		return getT(clazz.getName());
+	}
+
+	/**
+	 * Get type declaration.
+	 * 
 	 * @param name
 	 *            name
 	 * @return type declaration

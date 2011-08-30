@@ -36,7 +36,6 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.vm.intermediate.DataType;
 import org.decojer.cavaj.model.vm.intermediate.Frame;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
@@ -111,43 +110,6 @@ public class TrDataFlowAnalysis {
 		this.cfg = cfg;
 	}
 
-	private T convertType(final int dataType) {
-		switch (dataType) {
-		case -1:
-			// normally don't care, for now object
-		case DataType.T_AREF:
-			return getCfg().getMd().getTd().getT().getDu()
-					.getT(Object.class.getName());
-		case DataType.T_BOOLEAN:
-			return T.BOOLEAN;
-		case DataType.T_BYTE:
-			return T.BYTE;
-		case DataType.T_CHAR:
-			return T.CHAR;
-		case DataType.T_CLASS:
-			return getCfg().getMd().getTd().getT().getDu()
-					.getT(Class.class.getName());
-		case DataType.T_DOUBLE:
-			return T.DOUBLE;
-		case DataType.T_FLOAT:
-			return T.FLOAT;
-		case DataType.T_INT:
-			return T.INT;
-		case DataType.T_LONG:
-			return T.LONG;
-		case DataType.T_SHORT:
-			return T.SHORT;
-		case DataType.T_STRING:
-			return getCfg().getMd().getTd().getT().getDu()
-					.getT(String.class.getName());
-		case DataType.T_VOID:
-			return T.VOID;
-		default:
-			LOGGER.warning("Unknown convert type '" + dataType + "'!");
-		}
-		return null;
-	}
-
 	private Frame createMethodFrame() {
 		final MD md = getCfg().getMd();
 		final Frame frame = new Frame();
@@ -180,7 +142,7 @@ public class TrDataFlowAnalysis {
 			case Opcode.ALOAD: {
 				final ALOAD op = (ALOAD) operation;
 				opFrame = new Frame(opFrame);
-				opFrame.stack.push(new Var(convertType(op.getType())));
+				opFrame.stack.push(new Var(op.getT()));
 				break;
 			}
 			case Opcode.AND: {
@@ -224,7 +186,7 @@ public class TrDataFlowAnalysis {
 				final CONVERT op = (CONVERT) operation;
 				opFrame = new Frame(opFrame);
 				opFrame.stack.pop();
-				opFrame.stack.push(new Var(convertType(op.getToType())));
+				opFrame.stack.push(new Var(op.getToT()));
 				break;
 			}
 			case Opcode.DIV: {
@@ -414,7 +376,7 @@ public class TrDataFlowAnalysis {
 			case Opcode.PUSH: {
 				final PUSH op = (PUSH) operation;
 				opFrame = new Frame(opFrame);
-				opFrame.stack.push(new Var(convertType(op.getType())));
+				opFrame.stack.push(new Var(op.getT()));
 				break;
 			}
 			case Opcode.PUT: {
@@ -435,7 +397,7 @@ public class TrDataFlowAnalysis {
 			}
 			case Opcode.RETURN: {
 				final RETURN op = (RETURN) operation;
-				if (op.getType() != DataType.T_VOID) {
+				if (op.getT() != T.VOID) {
 					opFrame = new Frame(opFrame);
 					opFrame.stack.pop();
 				}

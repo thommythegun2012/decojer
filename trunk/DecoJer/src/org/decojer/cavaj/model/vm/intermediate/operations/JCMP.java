@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
@@ -31,14 +32,14 @@ public class JCMP extends Operation {
 
 	private final int cmpType;
 
+	private final T t;
+
 	private int targetPc;
 
-	private final int type;
-
-	public JCMP(final int pc, final int code, final int line, final int type,
+	public JCMP(final int pc, final int code, final int line, final T t,
 			final int cmpType) {
 		super(pc, code, line);
-		this.type = type;
+		this.t = t;
 		this.cmpType = cmpType;
 	}
 
@@ -56,12 +57,12 @@ public class JCMP extends Operation {
 		return Opcode.JCMP;
 	}
 
-	public int getTargetPc() {
-		return this.targetPc;
+	public T getT() {
+		return this.t;
 	}
 
-	public int getType() {
-		return this.type;
+	public int getTargetPc() {
+		return this.targetPc;
 	}
 
 	public void setTargetPc(final int targetPc) {

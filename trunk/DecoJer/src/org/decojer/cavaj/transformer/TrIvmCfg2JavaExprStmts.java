@@ -45,7 +45,6 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
-import org.decojer.cavaj.model.vm.intermediate.DataType;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
@@ -261,13 +260,28 @@ public class TrIvmCfg2JavaExprStmts {
 				final CONVERT op = (CONVERT) operation;
 				final CastExpression castExpression = getAst()
 						.newCastExpression();
-				// TODO same code like in NEWARRAY creation
-				final PrimitiveType.Code typeCode = new PrimitiveType.Code[] {
-						null, null, null, null, PrimitiveType.BOOLEAN,
-						PrimitiveType.CHAR, PrimitiveType.FLOAT,
-						PrimitiveType.DOUBLE, PrimitiveType.BYTE,
-						PrimitiveType.SHORT, PrimitiveType.INT,
-						PrimitiveType.LONG }[op.getToType()];
+				final T t = op.getToT();
+				final PrimitiveType.Code typeCode;
+				if (t == T.BOOLEAN) {
+					typeCode = PrimitiveType.BOOLEAN;
+				} else if (t == T.CHAR) {
+					typeCode = PrimitiveType.CHAR;
+				} else if (t == T.FLOAT) {
+					typeCode = PrimitiveType.FLOAT;
+				} else if (t == T.DOUBLE) {
+					typeCode = PrimitiveType.DOUBLE;
+				} else if (t == T.BYTE) {
+					typeCode = PrimitiveType.BYTE;
+				} else if (t == T.SHORT) {
+					typeCode = PrimitiveType.SHORT;
+				} else if (t == T.INT) {
+					typeCode = PrimitiveType.INT;
+				} else if (t == T.LONG) {
+					typeCode = PrimitiveType.LONG;
+				} else {
+					typeCode = null;
+				}
+
 				castExpression.setType(getAst().newPrimitiveType(typeCode));
 				castExpression.setExpression(wrap(bb.popExpression(),
 						priority(castExpression)));
@@ -636,40 +650,36 @@ public class TrIvmCfg2JavaExprStmts {
 			case Opcode.PUSH: {
 				final PUSH op = (PUSH) operation;
 				final Expression expr;
-				switch (op.getType()) {
-				case DataType.T_AREF:
+				final T t = op.getT();
+				if (t == T.AREF) {
 					if (op.getValue() == null) {
 						expr = getAst().newNullLiteral();
 					} else {
 						LOGGER.warning("No not null aref constants possible!");
 						expr = null;
 					}
-					break;
-				case DataType.T_DOUBLE:
-					expr = getAst().newNumberLiteral(
-							Double.toString((Double) op.getValue()));
-					break;
-				case DataType.T_INT:
-					expr = getAst().newNumberLiteral(
-							Integer.toString((Integer) op.getValue()));
-					break;
-				case DataType.T_LONG:
-					expr = getAst().newNumberLiteral(
-							Long.toString((Long) op.getValue()));
-					break;
-				case DataType.T_STRING:
-					expr = getAst().newStringLiteral();
-					((StringLiteral) expr).setLiteralValue((String) op
-							.getValue());
-					break;
-				case DataType.T_CLASS:
-					expr = getAst().newTypeLiteral();
-					((TypeLiteral) expr).setType(Types.convertType(
-							(T) op.getValue(), getTd(), getAst()));
-					break;
-				default:
-					LOGGER.warning("Unknown data type '" + op.getType() + "'!");
-					expr = null;
+				} else {
+					if (t == T.DOUBLE) {
+						expr = getAst().newNumberLiteral(
+								Double.toString((Double) op.getValue()));
+					} else if (t == T.INT) {
+						expr = getAst().newNumberLiteral(
+								Integer.toString((Integer) op.getValue()));
+					} else if (t == T.LONG) {
+						expr = getAst().newNumberLiteral(
+								Long.toString((Long) op.getValue()));
+					} else if (t.getName().equals(String.class.getName())) {
+						expr = getAst().newStringLiteral();
+						((StringLiteral) expr).setLiteralValue((String) op
+								.getValue());
+					} else if (t.getName().equals(Class.class.getName())) {
+						expr = getAst().newTypeLiteral();
+						((TypeLiteral) expr).setType(Types.convertType(
+								(T) op.getValue(), getTd(), getAst()));
+					} else {
+						LOGGER.warning("Unknown data type '" + op.getT() + "'!");
+						expr = null;
+					}
 				}
 				if (expr != null) {
 					bb.pushExpression(expr);
@@ -718,7 +728,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final RETURN op = (RETURN) operation;
 				final ReturnStatement returnStatement = getAst()
 						.newReturnStatement();
-				if (op.getType() != DataType.T_VOID) {
+				if (op.getT() != T.VOID) {
 					returnStatement.setExpression(wrap(bb.popExpression()));
 				}
 				statement = returnStatement;
