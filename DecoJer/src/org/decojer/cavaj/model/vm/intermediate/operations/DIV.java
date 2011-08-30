@@ -23,16 +23,17 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class DIV extends Operation {
 
-	private final int type;
+	private final T t;
 
-	public DIV(final int pc, final int code, final int line, final int type) {
+	public DIV(final int pc, final int code, final int line, final T t) {
 		super(pc, code, line);
-		this.type = type;
+		this.t = t;
 	}
 
 	@Override
@@ -45,8 +46,8 @@ public class DIV extends Operation {
 		return Opcode.DIV;
 	}
 
-	public int getType() {
-		return this.type;
+	public T getT() {
+		return this.t;
 	}
 
 }

@@ -23,19 +23,23 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class LOAD extends Operation {
 
-	private final int type;
+	private final T t;
 
 	private final int varIndex;
 
-	public LOAD(final int pc, final int code, final int line, final int type,
+	public LOAD(final int pc, final int code, final int line, final T t,
 			final int varIndex) {
 		super(pc, code, line);
-		this.type = type;
+
+		assert t != null;
+
+		this.t = t;
 		this.varIndex = varIndex;
 	}
 
@@ -49,8 +53,8 @@ public class LOAD extends Operation {
 		return Opcode.LOAD;
 	}
 
-	public int getType() {
-		return this.type;
+	public T getT() {
+		return this.t;
 	}
 
 	public int getVarIndex() {

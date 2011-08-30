@@ -23,24 +23,25 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class CONVERT extends Operation {
 
-	private final int fromType;
+	private final T fromT;
 
-	private final int toType;
+	private final T toT;
 
-	public CONVERT(final int pc, final int code, final int line,
-			final int fromType, final int toType) {
+	public CONVERT(final int pc, final int code, final int line, final T fromT,
+			final T toT) {
 		super(pc, code, line);
-		this.fromType = fromType;
-		this.toType = toType;
+		this.fromT = fromT;
+		this.toT = toT;
 	}
 
-	public int getFromType() {
-		return this.fromType;
+	public T getFromT() {
+		return this.fromT;
 	}
 
 	@Override
@@ -53,8 +54,8 @@ public class CONVERT extends Operation {
 		return Opcode.CONVERT;
 	}
 
-	public int getToType() {
-		return this.toType;
+	public T getToT() {
+		return this.toT;
 	}
 
 }

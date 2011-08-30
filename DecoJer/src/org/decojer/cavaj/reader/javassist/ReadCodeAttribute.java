@@ -47,7 +47,6 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
-import org.decojer.cavaj.model.vm.intermediate.DataType;
 import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.Var;
@@ -164,8 +163,8 @@ public class ReadCodeAttribute {
 		LocalVariableAttribute localVariableAttribute = null;
 		// contains signatures, names are same
 		LocalVariableAttribute localVariableTypeAttribute = null;
-		StackMap stackMap;
-		StackMapTable stackMapTable;
+		StackMap stackMap = null;
+		StackMapTable stackMapTable = null;
 		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) codeAttribute
 				.getAttributes()) {
 			final String attributeTag = attributeInfo.getName();
@@ -184,6 +183,8 @@ public class ReadCodeAttribute {
 						+ "' in '" + md + "'!");
 			}
 		}
+
+		LOGGER.fine("Stack info: " + stackMap + " : " + stackMapTable);
 
 		// read code
 		final CodeReader codeReader = new CodeReader(codeAttribute.getCode());
@@ -210,6 +211,7 @@ public class ReadCodeAttribute {
 			final int line = lineNumberAttribute == null ? -1
 					: lineNumberAttribute.toLineNumber(opPc);
 
+			T t = null;
 			int type = -1;
 			int iValue = Integer.MIN_VALUE;
 			Object oValue = null;
@@ -219,77 +221,77 @@ public class ReadCodeAttribute {
 			 * ADD *
 			 *******/
 			case Opcode.DADD:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case Opcode.FADD:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.IADD:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LADD:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new ADD(opPc, opcode, line, type));
+				this.operations.add(new ADD(opPc, opcode, line, t));
 				break;
 			/*********
 			 * ALOAD *
 			 *********/
 			case Opcode.AALOAD:
-				type = DataType.T_AREF;
+				t = T.AREF;
 				// fall through
 			case Opcode.BALOAD:
-				if (type < 0) {
-					type = DataType.T_BOOLEAN;
+				if (t == null) {
+					t = T.BOOLEAN;
 				}
 				// fall through
 			case Opcode.CALOAD:
-				if (type < 0) {
-					type = DataType.T_CHAR;
+				if (t == null) {
+					t = T.CHAR;
 				}
 				// fall through
 			case Opcode.DALOAD:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 				}
 				// fall through
 			case Opcode.FALOAD:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.IALOAD:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LALOAD:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				// fall through
 			case Opcode.SALOAD:
-				if (type < 0) {
-					type = DataType.T_SHORT;
+				if (t == null) {
+					t = T.SHORT;
 				}
-				this.operations.add(new ALOAD(opPc, opcode, line, type));
+				this.operations.add(new ALOAD(opPc, opcode, line, t));
 				break;
 			/*******
 			 * AND *
 			 *******/
 			case Opcode.IAND:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case Opcode.LAND:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new AND(opPc, opcode, line, type));
+				this.operations.add(new AND(opPc, opcode, line, t));
 				break;
 			/***************
 			 * ARRAYLENGTH *
@@ -301,43 +303,43 @@ public class ReadCodeAttribute {
 			 * ASTORE *
 			 **********/
 			case Opcode.AASTORE:
-				type = DataType.T_AREF;
+				t = T.AREF;
 				// fall through
 			case Opcode.BASTORE:
-				if (type < 0) {
-					type = DataType.T_BOOLEAN;
+				if (t == null) {
+					t = T.BOOLEAN;
 				}
 				// fall through
 			case Opcode.CASTORE:
-				if (type < 0) {
-					type = DataType.T_CHAR;
+				if (t == null) {
+					t = T.CHAR;
 				}
 				// fall through
 			case Opcode.DASTORE:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 				}
 				// fall through
 			case Opcode.FASTORE:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.IASTORE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LASTORE:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				// fall through
 			case Opcode.SASTORE:
-				if (type < 0) {
-					type = DataType.T_SHORT;
+				if (t == null) {
+					t = T.SHORT;
 				}
-				this.operations.add(new ASTORE(opPc, opcode, line, type));
+				this.operations.add(new ASTORE(opPc, opcode, line, t));
 				break;
 			/**************
 			 * CHECKCAST *
@@ -353,148 +355,148 @@ public class ReadCodeAttribute {
 			 * CMP *
 			 *******/
 			case Opcode.DCMPG:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				iValue = CMP.T_G;
 				// fall through
 			case Opcode.DCMPL:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					iValue = CMP.T_L;
 				}
 				// fall through
 			case Opcode.FCMPG:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = CMP.T_G;
 				}
 				// fall through
 			case Opcode.FCMPL:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = CMP.T_L;
 				}
 				// fall through
 			case Opcode.LCMP:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					iValue = CMP.T_0;
 				}
-				this.operations.add(new CMP(opPc, opcode, line, type, iValue));
+				this.operations.add(new CMP(opPc, opcode, line, t, iValue));
 				break;
 			/***********
 			 * CONVERT *
 			 ***********/
 			case Opcode.D2F:
-				type = DataType.T_DOUBLE;
-				iValue = DataType.T_FLOAT;
+				t = T.DOUBLE;
+				oValue = T.FLOAT;
 				// fall through
 			case Opcode.D2I:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
-					iValue = DataType.T_INT;
+				if (t == null) {
+					t = T.DOUBLE;
+					oValue = T.INT;
 				}
 				// fall through
 			case Opcode.D2L:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
-					iValue = DataType.T_LONG;
+				if (t == null) {
+					t = T.DOUBLE;
+					oValue = T.LONG;
 				}
 				// fall through
 			case Opcode.F2D:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
-					iValue = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.FLOAT;
+					oValue = T.DOUBLE;
 				}
 				// fall through
 			case Opcode.F2I:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
-					iValue = DataType.T_INT;
+				if (t == null) {
+					t = T.FLOAT;
+					oValue = T.INT;
 				}
 				// fall through
 			case Opcode.F2L:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
-					iValue = DataType.T_LONG;
+				if (t == null) {
+					t = T.FLOAT;
+					oValue = T.LONG;
 				}
 				// fall through
 			case Opcode.I2B:
-				if (type < 0) {
-					type = DataType.T_INT;
-					iValue = DataType.T_BYTE;
+				if (t == null) {
+					t = T.INT;
+					oValue = T.BYTE;
 				}
 				// fall through
 			case Opcode.I2C:
-				if (type < 0) {
-					type = DataType.T_INT;
-					iValue = DataType.T_CHAR;
+				if (t == null) {
+					t = T.INT;
+					oValue = T.CHAR;
 				}
 				// fall through
 			case Opcode.I2D:
-				if (type < 0) {
-					type = DataType.T_INT;
-					iValue = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.INT;
+					oValue = T.DOUBLE;
 				}
 				// fall through
 			case Opcode.I2F:
-				if (type < 0) {
-					type = DataType.T_INT;
-					iValue = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.INT;
+					oValue = T.FLOAT;
 				}
 				// fall through
 			case Opcode.I2L:
-				if (type < 0) {
-					type = DataType.T_INT;
-					iValue = DataType.T_LONG;
+				if (t == null) {
+					t = T.INT;
+					oValue = T.LONG;
 				}
 				// fall through
 			case Opcode.I2S:
-				if (type < 0) {
-					type = DataType.T_INT;
-					iValue = DataType.T_SHORT;
+				if (t == null) {
+					t = T.INT;
+					oValue = T.SHORT;
 				}
 				// fall through
 			case Opcode.L2D:
-				if (type < 0) {
-					type = DataType.T_LONG;
-					iValue = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.LONG;
+					oValue = T.DOUBLE;
 				}
 				// fall through
 			case Opcode.L2F:
-				if (type < 0) {
-					type = DataType.T_LONG;
-					iValue = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.LONG;
+					oValue = T.FLOAT;
 				}
 				// fall through
 			case Opcode.L2I:
-				if (type < 0) {
-					type = DataType.T_LONG;
-					iValue = DataType.T_INT;
+				if (t == null) {
+					t = T.LONG;
+					oValue = T.INT;
 				}
-				this.operations.add(new CONVERT(opPc, opcode, line, type,
-						iValue));
+				this.operations.add(new CONVERT(opPc, opcode, line, t,
+						(T) oValue));
 				break;
 			/*******
 			 * DIV *
 			 *******/
 			case Opcode.DDIV:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case Opcode.FDIV:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.IDIV:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LDIV:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new DIV(opPc, opcode, line, type));
+				this.operations.add(new DIV(opPc, opcode, line, t));
 				break;
 			/*******
 			 * DUP *
@@ -503,27 +505,27 @@ public class ReadCodeAttribute {
 				type = DUP.T_DUP;
 				// fall through
 			case Opcode.DUP_X1:
-				if (type < 0) {
+				if (t == null) {
 					type = DUP.T_DUP_X1;
 				}
 				// fall through
 			case Opcode.DUP_X2:
-				if (type < 0) {
+				if (t == null) {
 					type = DUP.T_DUP_X2;
 				}
 				// fall through
 			case Opcode.DUP2:
-				if (type < 0) {
+				if (t == null) {
 					type = DUP.T_DUP2;
 				}
 				// fall through
 			case Opcode.DUP2_X1:
-				if (type < 0) {
+				if (t == null) {
 					type = DUP.T_DUP2_X1;
 				}
 				// fall through
 			case Opcode.DUP2_X2:
-				if (type < 0) {
+				if (t == null) {
 					type = DUP.T_DUP2_X2;
 				}
 				this.operations.add(new DUP(opPc, opcode, line, type));
@@ -537,8 +539,7 @@ public class ReadCodeAttribute {
 
 				final T ownerT = readType(constPool
 						.getFieldrefClassName(cpFieldIndex));
-				final T t = du
-						.getDescT(constPool.getFieldrefType(cpFieldIndex));
+				t = du.getDescT(constPool.getFieldrefType(cpFieldIndex));
 				final F f = ownerT.getF(
 						constPool.getFieldrefName(cpFieldIndex), t);
 				if (opcode == Opcode.GETSTATIC) {
@@ -551,11 +552,11 @@ public class ReadCodeAttribute {
 			 * GOTO *
 			 ********/
 			case Opcode.GOTO:
-				type = 0;
+				t = T.VOID;
 				iValue = codeReader.readSignedShort();
 				// fall through
 			case Opcode.GOTO_W:
-				if (type < 0) {
+				if (t == null) {
 					iValue = codeReader.readSignedInt();
 				}
 				{
@@ -575,7 +576,7 @@ public class ReadCodeAttribute {
 			case Opcode.IINC: {
 				final int varIndex = codeReader.readUnsignedByte();
 				final int constValue = codeReader.readUnsignedByte();
-				this.operations.add(new INC(opPc, opcode, line, DataType.T_INT,
+				this.operations.add(new INC(opPc, opcode, line, T.INT,
 						varIndex, constValue));
 				break;
 			}
@@ -630,52 +631,52 @@ public class ReadCodeAttribute {
 			 * JCMP *
 			 ********/
 			case Opcode.IF_ACMPEQ:
-				type = DataType.T_AREF;
+				t = T.AREF;
 				iValue = CompareType.T_EQ;
 				// fall through
 			case Opcode.IF_ACMPNE:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 					iValue = CompareType.T_NE;
 				}
 				// fall through
 			case Opcode.IF_ICMPEQ:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_EQ;
 				}
 				// fall through
 			case Opcode.IF_ICMPGE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_GE;
 				}
 				// fall through
 			case Opcode.IF_ICMPGT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_GT;
 				}
 				// fall through
 			case Opcode.IF_ICMPLE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_LE;
 				}
 				// fall through
 			case Opcode.IF_ICMPLT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_LT;
 				}
 				// fall through
 			case Opcode.IF_ICMPNE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_NE;
 				}
 				{
-					final JCMP op = new JCMP(opPc, opcode, line, type, iValue);
+					final JCMP op = new JCMP(opPc, opcode, line, t, iValue);
 					final int targetPc = opPc + codeReader.readSignedShort();
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
@@ -689,52 +690,52 @@ public class ReadCodeAttribute {
 			 * JCND *
 			 ********/
 			case Opcode.IFNULL:
-				type = DataType.T_AREF;
+				t = T.AREF;
 				iValue = CompareType.T_EQ;
 				// fall through
 			case Opcode.IFNONNULL:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 					iValue = CompareType.T_NE;
 				}
 				// fall through
 			case Opcode.IFEQ:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_EQ;
 				}
 				// fall through
 			case Opcode.IFGE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_GE;
 				}
 				// fall through
 			case Opcode.IFGT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_GT;
 				}
 				// fall through
 			case Opcode.IFLE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_LE;
 				}
 				// fall through
 			case Opcode.IFLT:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_LT;
 				}
 				// fall through
 			case Opcode.IFNE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = CompareType.T_NE;
 				}
 				{
-					final JCND op = new JCND(opPc, opcode, line, type, iValue);
+					final JCND op = new JCND(opPc, opcode, line, t, iValue);
 					final int targetPc = opPc + codeReader.readSignedShort();
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
@@ -752,7 +753,7 @@ public class ReadCodeAttribute {
 				iValue = codeReader.readUnsignedShort();
 				// fall through
 			case Opcode.JSR_W:
-				if (type < 0) {
+				if (t == null) {
 					iValue = codeReader.readUnsignedInt();
 				}
 				{
@@ -770,150 +771,150 @@ public class ReadCodeAttribute {
 			 * LOAD *
 			 ********/
 			case Opcode.ALOAD:
-				type = DataType.T_AREF;
+				t = T.AREF;
 				// fall through
 			case Opcode.DLOAD:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 				}
 				// fall through
 			case Opcode.FLOAD:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.ILOAD:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LLOAD:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				iValue = wide ? codeReader.readUnsignedShort() : codeReader
 						.readUnsignedByte();
 				// fall through
 			case Opcode.ALOAD_0:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 					iValue = 0;
 				}
 				// fall through
 			case Opcode.DLOAD_0:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					iValue = 0;
 				}
 				// fall through
 			case Opcode.FLOAD_0:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = 0;
 				}
 				// fall through
 			case Opcode.ILOAD_0:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = 0;
 				}
 				// fall through
 			case Opcode.LLOAD_0:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					iValue = 0;
 				}
 				// fall through
 			case Opcode.ALOAD_1:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 					iValue = 1;
 				}
 				// fall through
 			case Opcode.DLOAD_1:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					iValue = 1;
 				}
 				// fall through
 			case Opcode.FLOAD_1:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = 1;
 				}
 				// fall through
 			case Opcode.ILOAD_1:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = 1;
 				}
 				// fall through
 			case Opcode.LLOAD_1:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					iValue = 1;
 				}
 				// fall through
 			case Opcode.ALOAD_2:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 					iValue = 2;
 				}
 				// fall through
 			case Opcode.DLOAD_2:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					iValue = 2;
 				}
 				// fall through
 			case Opcode.FLOAD_2:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = 2;
 				}
 				// fall through
 			case Opcode.ILOAD_2:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = 2;
 				}
 				// fall through
 			case Opcode.LLOAD_2:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					iValue = 2;
 				}
 				// fall through
 			case Opcode.ALOAD_3:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 					iValue = 3;
 				}
 				// fall through
 			case Opcode.DLOAD_3:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					iValue = 3;
 				}
 				// fall through
 			case Opcode.FLOAD_3:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = 3;
 				}
 				// fall through
 			case Opcode.ILOAD_3:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = 3;
 				}
 				// fall through
 			case Opcode.LLOAD_3: {
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					iValue = 3;
 				}
-				this.operations.add(new LOAD(opPc, opcode, line, type, iValue));
+				this.operations.add(new LOAD(opPc, opcode, line, t, iValue));
 				break;
 			}
 			/***********
@@ -923,7 +924,7 @@ public class ReadCodeAttribute {
 				type = MONITOR.T_ENTER;
 				// fall through
 			case Opcode.MONITOREXIT:
-				if (type < 0) {
+				if (t == null) {
 					type = MONITOR.T_EXIT;
 				}
 				this.operations.add(new MONITOR(opPc, opcode, line, type));
@@ -932,47 +933,47 @@ public class ReadCodeAttribute {
 			 * MUL *
 			 *******/
 			case Opcode.DMUL:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case Opcode.FMUL:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.IMUL:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LMUL:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new MUL(opPc, opcode, line, type));
+				this.operations.add(new MUL(opPc, opcode, line, t));
 				break;
 			/*******
 			 * NEG *
 			 *******/
 			case Opcode.DNEG:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 				}
 				// fall through
 			case Opcode.FNEG:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.INEG:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LNEG:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new NEG(opPc, opcode, line, type));
+				this.operations.add(new NEG(opPc, opcode, line, t));
 				break;
 			/*******
 			 * NEW *
@@ -1021,13 +1022,13 @@ public class ReadCodeAttribute {
 			 * OR *
 			 ******/
 			case Opcode.IOR:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case Opcode.LOR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new OR(opPc, opcode, line, type));
+				this.operations.add(new OR(opPc, opcode, line, t));
 				break;
 			/*******
 			 * POP *
@@ -1036,7 +1037,7 @@ public class ReadCodeAttribute {
 				type = POP.T_POP;
 				// fall through
 			case Opcode.POP2:
-				if (type < 0) {
+				if (t == null) {
 					type = POP.T_POP2;
 				}
 				this.operations.add(new POP(opPc, opcode, line, type));
@@ -1045,53 +1046,52 @@ public class ReadCodeAttribute {
 			 * PUSH *
 			 ********/
 			case Opcode.ACONST_NULL:
-				type = DataType.T_AREF;
-				oValue = null;
+				t = T.AREF;
 				// fall through
 			case Opcode.BIPUSH:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.BYTE;
 					oValue = codeReader.readSignedByte();
 				}
 				// fall through
 			case Opcode.SIPUSH:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.SHORT;
 					oValue = codeReader.readSignedShort();
 				}
 				// fall through
 			case Opcode.LDC:
-				if (type < 0) {
+				if (t == null) {
 					final int ldcValueIndex = codeReader.readUnsignedByte();
 					final int tag = constPool.getTag(ldcValueIndex);
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
-						type = DataType.T_CLASS;
+						t = du.getT(Class.class);
 						oValue = readType(constPool.getClassInfo(ldcValueIndex));
 						break;
 					case ConstPool.CONST_Double:
 						// Double / Long only with LDC2_W, but is OK here too
-						type = DataType.T_DOUBLE;
+						t = T.DOUBLE;
 						// fall through
 					case ConstPool.CONST_Float:
-						if (type < 0) {
-							type = DataType.T_FLOAT;
+						if (t == null) {
+							t = T.FLOAT;
 						}
 						// fall through
 					case ConstPool.CONST_Integer:
-						if (type < 0) {
-							type = DataType.T_INT;
+						if (t == null) {
+							t = T.INT;
 						}
 						// fall through
 					case ConstPool.CONST_Long:
 						// Double / Long only with LDC2_W, but is OK here too
-						if (type < 0) {
-							type = DataType.T_LONG;
+						if (t == null) {
+							t = T.LONG;
 						}
 						// fall through
 					case ConstPool.CONST_String:
-						if (type < 0) {
-							type = DataType.T_STRING;
+						if (t == null) {
+							t = du.getT(String.class);
 						}
 						oValue = constPool.getLdcValue(ldcValueIndex);
 						break;
@@ -1104,35 +1104,35 @@ public class ReadCodeAttribute {
 			case Opcode.LDC_W:
 				// fall through
 			case Opcode.LDC2_W:
-				if (type < 0) {
+				if (t == null) {
 					final int ldcValueIndex = codeReader.readUnsignedShort();
 					final int tag = constPool.getTag(ldcValueIndex);
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
-						type = DataType.T_CLASS;
+						t = du.getT(Class.class);
 						oValue = readType(constPool.getClassInfo(ldcValueIndex));
 						break;
 					case ConstPool.CONST_Double:
-						type = DataType.T_DOUBLE;
+						t = T.DOUBLE;
 						// fall through
 					case ConstPool.CONST_Float:
-						if (type < 0) {
-							type = DataType.T_FLOAT;
+						if (t == null) {
+							t = T.FLOAT;
 						}
 						// fall through
 					case ConstPool.CONST_Integer:
-						if (type < 0) {
-							type = DataType.T_INT;
+						if (t == null) {
+							t = T.INT;
 						}
 						// fall through
 					case ConstPool.CONST_Long:
-						if (type < 0) {
-							type = DataType.T_LONG;
+						if (t == null) {
+							t = T.LONG;
 						}
 						// fall through
 					case ConstPool.CONST_String:
-						if (type < 0) {
-							type = DataType.T_STRING;
+						if (t == null) {
+							t = du.getT(String.class);
 						}
 						oValue = constPool.getLdcValue(ldcValueIndex);
 						break;
@@ -1143,89 +1143,89 @@ public class ReadCodeAttribute {
 				}
 				// fall through
 			case Opcode.DCONST_0:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					oValue = 0D;
 				}
 				// fall through
 			case Opcode.FCONST_0:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					oValue = 0;
 				}
 				// fall through
 			case Opcode.ICONST_0:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					oValue = 0;
 				}
 				// fall through
 			case Opcode.LCONST_0:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					oValue = 0L;
 				}
 				// fall through
 			case Opcode.DCONST_1:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					oValue = 1D;
 				}
 				// fall through
 			case Opcode.FCONST_1:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					oValue = 1;
 				}
 				// fall through
 			case Opcode.ICONST_1:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					oValue = 1;
 				}
 				// fall through
 			case Opcode.LCONST_1:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					oValue = 1L;
 				}
 				// fall through
 			case Opcode.FCONST_2:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					oValue = 2;
 				}
 				// fall through
 			case Opcode.ICONST_2:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					oValue = 2;
 				}
 				// fall through
 			case Opcode.ICONST_3:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					oValue = 3;
 				}
 				// fall through
 			case Opcode.ICONST_4:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					oValue = 4;
 				}
 				// fall through
 			case Opcode.ICONST_5:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					oValue = 5;
 				}
 				// fall through
 			case Opcode.ICONST_M1:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					oValue = -1;
 				}
-				this.operations.add(new PUSH(opPc, opcode, line, type, oValue));
+				this.operations.add(new PUSH(opPc, opcode, line, t, oValue));
 				break;
 			/*******
 			 * PUT *
@@ -1236,8 +1236,7 @@ public class ReadCodeAttribute {
 
 				final T ownerT = readType(constPool
 						.getFieldrefClassName(cpFieldIndex));
-				final T t = du
-						.getDescT(constPool.getFieldrefType(cpFieldIndex));
+				t = du.getDescT(constPool.getFieldrefType(cpFieldIndex));
 				final F f = ownerT.getF(
 						constPool.getFieldrefName(cpFieldIndex), t);
 				if (opcode == Opcode.PUTSTATIC) {
@@ -1250,25 +1249,25 @@ public class ReadCodeAttribute {
 			 * REM *
 			 *******/
 			case Opcode.DREM:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 				}
 				// fall through
 			case Opcode.FREM:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.IREM:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LREM:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new REM(opPc, opcode, line, type));
+				this.operations.add(new REM(opPc, opcode, line, t));
 				break;
 			/*******
 			 * RET *
@@ -1283,233 +1282,232 @@ public class ReadCodeAttribute {
 			 * RETURN *
 			 **********/
 			case Opcode.ARETURN:
-				type = DataType.T_AREF;
+				t = T.AREF;
 				// fall through
 			case Opcode.DRETURN:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 				}
 				// fall through
 			case Opcode.FRETURN:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.IRETURN:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LRETURN:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				// fall through
 			case Opcode.RETURN:
-				if (type < 0) {
-					type = DataType.T_VOID;
+				if (t == null) {
+					t = T.VOID;
 				}
-				this.operations.add(new RETURN(opPc, opcode, line, type));
+				this.operations.add(new RETURN(opPc, opcode, line, t));
 				break;
 			/*********
 			 * STORE *
 			 *********/
 			case Opcode.ASTORE:
-				type = DataType.T_AREF;
+				t = T.AREF;
 				// fall through
 			case Opcode.DSTORE:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 				}
 				// fall through
 			case Opcode.FSTORE:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.ISTORE:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LSTORE:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
 				iValue = wide ? codeReader.readUnsignedShort() : codeReader
 						.readUnsignedByte();
 				// fall through
 			case Opcode.ASTORE_0:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 					iValue = 0;
 				}
 				// fall through
 			case Opcode.DSTORE_0:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					iValue = 0;
 				}
 				// fall through
 			case Opcode.FSTORE_0:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = 0;
 				}
 				// fall through
 			case Opcode.ISTORE_0:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = 0;
 				}
 				// fall through
 			case Opcode.LSTORE_0:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					iValue = 0;
 				}
 				// fall through
 			case Opcode.ASTORE_1:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 					iValue = 1;
 				}
 				// fall through
 			case Opcode.DSTORE_1:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					iValue = 1;
 				}
 				// fall through
 			case Opcode.FSTORE_1:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = 1;
 				}
 				// fall through
 			case Opcode.ISTORE_1:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = 1;
 				}
 				// fall through
 			case Opcode.LSTORE_1:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					iValue = 1;
 				}
 				// fall through
 			case Opcode.ASTORE_2:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 					iValue = 2;
 				}
 				// fall through
 			case Opcode.DSTORE_2:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					iValue = 2;
 				}
 				// fall through
 			case Opcode.FSTORE_2:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = 2;
 				}
 				// fall through
 			case Opcode.ISTORE_2:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = 2;
 				}
 				// fall through
 			case Opcode.LSTORE_2:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					iValue = 2;
 				}
 				// fall through
 			case Opcode.ASTORE_3:
-				if (type < 0) {
-					type = DataType.T_AREF;
+				if (t == null) {
+					t = T.AREF;
 					iValue = 3;
 				}
 				// fall through
 			case Opcode.DSTORE_3:
-				if (type < 0) {
-					type = DataType.T_DOUBLE;
+				if (t == null) {
+					t = T.DOUBLE;
 					iValue = 3;
 				}
 				// fall through
 			case Opcode.FSTORE_3:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 					iValue = 3;
 				}
 				// fall through
 			case Opcode.ISTORE_3:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 					iValue = 3;
 				}
 				// fall through
 			case Opcode.LSTORE_3: {
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 					iValue = 3;
 				}
-				this.operations
-						.add(new STORE(opPc, opcode, line, type, iValue));
+				this.operations.add(new STORE(opPc, opcode, line, t, iValue));
 				break;
 			}
 			/*******
 			 * SHL *
 			 *******/
 			case Opcode.ISHL:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case Opcode.LSHL:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new SHL(opPc, opcode, line, type));
+				this.operations.add(new SHL(opPc, opcode, line, t));
 				break;
 			/*******
 			 * SHR *
 			 *******/
 			case Opcode.ISHR:
 			case Opcode.IUSHR:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case Opcode.LSHR:
 			case Opcode.LUSHR:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new SHR(opPc, opcode, line, type,
+				this.operations.add(new SHR(opPc, opcode, line, t,
 						opcode == Opcode.IUSHR || opcode == Opcode.LUSHR));
 				break;
 			/*******
 			 * SUB *
 			 *******/
 			case Opcode.DSUB:
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 				// fall through
 			case Opcode.FSUB:
-				if (type < 0) {
-					type = DataType.T_FLOAT;
+				if (t == null) {
+					t = T.FLOAT;
 				}
 				// fall through
 			case Opcode.ISUB:
-				if (type < 0) {
-					type = DataType.T_INT;
+				if (t == null) {
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LSUB:
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new SUB(opPc, opcode, line, type));
+				this.operations.add(new SUB(opPc, opcode, line, t));
 				break;
 			/********
 			 * SWAP *
@@ -1597,13 +1595,13 @@ public class ReadCodeAttribute {
 			 * XOR *
 			 *******/
 			case Opcode.IXOR:
-				type = DataType.T_INT;
+				t = T.INT;
 				// fall through
 			case Opcode.LXOR: {
-				if (type < 0) {
-					type = DataType.T_LONG;
+				if (t == null) {
+					t = T.LONG;
 				}
-				this.operations.add(new XOR(opPc, opcode, line, type));
+				this.operations.add(new XOR(opPc, opcode, line, t));
 				break;
 			}
 			/*******

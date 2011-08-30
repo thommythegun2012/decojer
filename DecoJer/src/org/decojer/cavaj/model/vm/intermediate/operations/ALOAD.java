@@ -23,16 +23,17 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class ALOAD extends Operation {
 
-	private final int type;
+	private final T t;
 
-	public ALOAD(final int pc, final int code, final int line, final int type) {
+	public ALOAD(final int pc, final int code, final int line, final T t) {
 		super(pc, code, line);
-		this.type = type;
+		this.t = t;
 	}
 
 	@Override
@@ -45,8 +46,8 @@ public class ALOAD extends Operation {
 		return Opcode.ALOAD;
 	}
 
-	public int getType() {
-		return this.type;
+	public T getT() {
+		return this.t;
 	}
 
 }

@@ -23,22 +23,22 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
-import org.decojer.cavaj.model.vm.intermediate.DataType;
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class RETURN extends Operation {
 
-	private final int type;
+	private final T t;
 
-	public RETURN(final int pc, final int code, final int line, final int type) {
+	public RETURN(final int pc, final int code, final int line, final T t) {
 		super(pc, code, line);
-		this.type = type;
+		this.t = t;
 	}
 
 	@Override
 	public int getInStackSize() {
-		return this.type == DataType.T_VOID ? 0 : 1;
+		return this.t == T.VOID ? 0 : 1;
 	}
 
 	@Override
@@ -46,8 +46,8 @@ public class RETURN extends Operation {
 		return Opcode.RETURN;
 	}
 
-	public int getType() {
-		return this.type;
+	public T getT() {
+		return this.t;
 	}
 
 }

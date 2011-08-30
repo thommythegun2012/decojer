@@ -23,19 +23,20 @@
  */
 package org.decojer.cavaj.model.vm.intermediate.operations;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
 public class PUSH extends Operation {
 
-	private final int type;
+	private final T t;
 
 	private final Object value;
 
-	public PUSH(final int pc, final int code, final int line, final int type,
+	public PUSH(final int pc, final int code, final int line, final T t,
 			final Object value) {
 		super(pc, code, line);
-		this.type = type;
+		this.t = t;
 		this.value = value;
 	}
 
@@ -49,8 +50,8 @@ public class PUSH extends Operation {
 		return Opcode.PUSH;
 	}
 
-	public int getType() {
-		return this.type;
+	public T getT() {
+		return this.t;
 	}
 
 	public Object getValue() {

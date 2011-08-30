@@ -38,7 +38,6 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
-import org.decojer.cavaj.model.vm.intermediate.DataType;
 import org.decojer.cavaj.model.vm.intermediate.Exc;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.Var;
@@ -329,11 +328,12 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * INC *
 		 *******/
 		this.operations.add(new INC(this.operations.size(), Opcodes.IINC,
-				this.line, DataType.T_INT, var, increment));
+				this.line, T.INT, var, increment));
 	}
 
 	@Override
 	public void visitInsn(final int opcode) {
+		T t = null;
 		int type = -1;
 		int iValue = Integer.MIN_VALUE;
 		Object oValue = null;
@@ -346,80 +346,80 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * ADD *
 		 *******/
 		case Opcodes.DADD:
-			type = DataType.T_DOUBLE;
+			t = T.DOUBLE;
 			// fall through
 		case Opcodes.FADD:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.IADD:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LADD:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new ADD(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/*********
 		 * ALOAD *
 		 *********/
 		case Opcodes.AALOAD:
-			type = DataType.T_AREF;
+			t = T.AREF;
 			// fall through
 		case Opcodes.BALOAD:
-			if (type < 0) {
-				type = DataType.T_BOOLEAN;
+			if (t == null) {
+				t = T.BOOLEAN;
 			}
 			// fall through
 		case Opcodes.CALOAD:
-			if (type < 0) {
-				type = DataType.T_CHAR;
+			if (t == null) {
+				t = T.CHAR;
 			}
 			// fall through
 		case Opcodes.DALOAD:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.FALOAD:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.IALOAD:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LALOAD:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			// fall through
 		case Opcodes.SALOAD:
-			if (type < 0) {
-				type = DataType.T_SHORT;
+			if (t == null) {
+				t = T.SHORT;
 			}
 			this.operations.add(new ALOAD(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/*******
 		 * AND *
 		 *******/
 		case Opcodes.IAND:
-			type = DataType.T_INT;
+			t = T.INT;
 			// fall through
 		case Opcodes.LAND:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new AND(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/***************
 		 * ARRAYLENGTH *
@@ -432,193 +432,193 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * ASTORE *
 		 **********/
 		case Opcodes.AASTORE:
-			type = DataType.T_AREF;
+			t = T.AREF;
 			// fall through
 		case Opcodes.BASTORE:
-			if (type < 0) {
-				type = DataType.T_BOOLEAN;
+			if (t == null) {
+				t = T.BOOLEAN;
 			}
 			// fall through
 		case Opcodes.CASTORE:
-			if (type < 0) {
-				type = DataType.T_CHAR;
+			if (t == null) {
+				t = T.CHAR;
 			}
 			// fall through
 		case Opcodes.DASTORE:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.FASTORE:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.IASTORE:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LASTORE:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			// fall through
 		case Opcodes.SASTORE:
-			if (type < 0) {
-				type = DataType.T_SHORT;
+			if (t == null) {
+				t = T.SHORT;
 			}
 			this.operations.add(new ASTORE(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/*******
 		 * CMP *
 		 *******/
 		case Opcodes.DCMPG:
-			type = DataType.T_DOUBLE;
+			t = T.DOUBLE;
 			iValue = CMP.T_G;
 			// fall through
 		case Opcodes.DCMPL:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.DOUBLE;
 				iValue = CMP.T_L;
 			}
 			// fall through
 		case Opcodes.FCMPG:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 				iValue = CMP.T_G;
 			}
 			// fall through
 		case Opcodes.FCMPL:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 				iValue = CMP.T_L;
 			}
 			// fall through
 		case Opcodes.LCMP:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 				iValue = CMP.T_0;
 			}
 			this.operations.add(new CMP(this.operations.size(), opcode,
-					this.line, type, iValue));
+					this.line, t, iValue));
 			break;
 		/***********
 		 * CONVERT *
 		 ***********/
 		case Opcodes.D2F:
-			type = DataType.T_DOUBLE;
-			iValue = DataType.T_FLOAT;
+			t = T.DOUBLE;
+			oValue = T.FLOAT;
 			// fall through
 		case Opcodes.D2I:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
-				iValue = DataType.T_INT;
+			if (t == null) {
+				t = T.DOUBLE;
+				oValue = T.INT;
 			}
 			// fall through
 		case Opcodes.D2L:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
-				iValue = DataType.T_LONG;
+			if (t == null) {
+				t = T.DOUBLE;
+				oValue = T.LONG;
 			}
 			// fall through
 		case Opcodes.F2D:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
-				iValue = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.FLOAT;
+				oValue = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.F2I:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
-				iValue = DataType.T_INT;
+			if (t == null) {
+				t = T.FLOAT;
+				oValue = T.INT;
 			}
 			// fall through
 		case Opcodes.F2L:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
-				iValue = DataType.T_LONG;
+			if (t == null) {
+				t = T.FLOAT;
+				oValue = T.LONG;
 			}
 			// fall through
 		case Opcodes.I2B:
-			if (type < 0) {
-				type = DataType.T_INT;
-				iValue = DataType.T_BYTE;
+			if (t == null) {
+				t = T.INT;
+				oValue = T.BYTE;
 			}
 			// fall through
 		case Opcodes.I2C:
-			if (type < 0) {
-				type = DataType.T_INT;
-				iValue = DataType.T_CHAR;
+			if (t == null) {
+				t = T.INT;
+				oValue = T.CHAR;
 			}
 			// fall through
 		case Opcodes.I2D:
-			if (type < 0) {
-				type = DataType.T_INT;
-				iValue = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.INT;
+				oValue = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.I2F:
-			if (type < 0) {
-				type = DataType.T_INT;
-				iValue = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.INT;
+				oValue = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.I2L:
-			if (type < 0) {
-				type = DataType.T_INT;
-				iValue = DataType.T_LONG;
+			if (t == null) {
+				t = T.INT;
+				oValue = T.LONG;
 			}
 			// fall through
 		case Opcodes.I2S:
-			if (type < 0) {
-				type = DataType.T_INT;
-				iValue = DataType.T_SHORT;
+			if (t == null) {
+				t = T.INT;
+				oValue = T.SHORT;
 			}
 			// fall through
 		case Opcodes.L2D:
-			if (type < 0) {
-				type = DataType.T_LONG;
-				iValue = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.LONG;
+				oValue = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.L2F:
-			if (type < 0) {
-				type = DataType.T_LONG;
-				iValue = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.LONG;
+				oValue = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.L2I:
-			if (type < 0) {
-				type = DataType.T_LONG;
-				iValue = DataType.T_INT;
+			if (t == null) {
+				t = T.LONG;
+				oValue = T.INT;
 			}
 			this.operations.add(new CONVERT(this.operations.size(), opcode,
-					this.line, type, iValue));
+					this.line, t, (T) oValue));
 			break;
 		/*******
 		 * DIV *
 		 *******/
 		case Opcodes.DDIV:
-			type = DataType.T_DOUBLE;
+			t = T.DOUBLE;
 			// fall through
 		case Opcodes.FDIV:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.IDIV:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LDIV:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new DIV(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/*******
 		 * DUP *
@@ -627,27 +627,27 @@ public class ReadMethodVisitor implements MethodVisitor {
 			type = DUP.T_DUP;
 			// fall through
 		case Opcodes.DUP_X1:
-			if (type < 0) {
+			if (t == null) {
 				type = DUP.T_DUP_X1;
 			}
 			// fall through
 		case Opcodes.DUP_X2:
-			if (type < 0) {
+			if (t == null) {
 				type = DUP.T_DUP_X2;
 			}
 			// fall through
 		case Opcodes.DUP2:
-			if (type < 0) {
+			if (t == null) {
 				type = DUP.T_DUP2;
 			}
 			// fall through
 		case Opcodes.DUP2_X1:
-			if (type < 0) {
+			if (t == null) {
 				type = DUP.T_DUP2_X1;
 			}
 			// fall through
 		case Opcodes.DUP2_X2:
-			if (type < 0) {
+			if (t == null) {
 				type = DUP.T_DUP2_X2;
 			}
 			this.operations.add(new DUP(this.operations.size(), opcode,
@@ -660,7 +660,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			type = MONITOR.T_ENTER;
 			// fall through
 		case Opcodes.MONITOREXIT:
-			if (type < 0) {
+			if (t == null) {
 				type = MONITOR.T_EXIT;
 			}
 			this.operations.add(new MONITOR(this.operations.size(), opcode,
@@ -670,62 +670,62 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * MUL *
 		 *******/
 		case Opcodes.DMUL:
-			type = DataType.T_DOUBLE;
+			t = T.DOUBLE;
 			// fall through
 		case Opcodes.FMUL:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.IMUL:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LMUL:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new MUL(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/*******
 		 * NEG *
 		 *******/
 		case Opcodes.DNEG:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.FNEG:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.INEG:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LNEG:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new NEG(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/******
 		 * OR *
 		 ******/
 		case Opcodes.IOR:
-			type = DataType.T_INT;
+			t = T.INT;
 			// fall through
 		case Opcodes.LOR:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new OR(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/*******
 		 * POP *
@@ -734,7 +734,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			type = POP.T_POP;
 			// fall through
 		case Opcodes.POP2:
-			if (type < 0) {
+			if (t == null) {
 				type = POP.T_POP2;
 			}
 			this.operations.add(new POP(this.operations.size(), opcode,
@@ -744,201 +744,203 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * PUSH *
 		 ********/
 		case Opcodes.ACONST_NULL:
+			t = T.AREF;
+			// fall through
 		case Opcodes.DCONST_0:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.DOUBLE;
 				oValue = 0D;
 			}
 			// fall through
 		case Opcodes.FCONST_0:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 				oValue = 0;
 			}
 			// fall through
 		case Opcodes.ICONST_0:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				oValue = 0;
 			}
 			// fall through
 		case Opcodes.LCONST_0:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 				oValue = 0L;
 			}
 			// fall through
 		case Opcodes.DCONST_1:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.DOUBLE;
 				oValue = 1D;
 			}
 			// fall through
 		case Opcodes.FCONST_1:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 				oValue = 1;
 			}
 			// fall through
 		case Opcodes.ICONST_1:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				oValue = 1;
 			}
 			// fall through
 		case Opcodes.LCONST_1:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 				oValue = 1L;
 			}
 			// fall through
 		case Opcodes.FCONST_2:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 				oValue = 2;
 			}
 			// fall through
 		case Opcodes.ICONST_2:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				oValue = 2;
 			}
 			// fall through
 		case Opcodes.ICONST_3:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				oValue = 3;
 			}
 			// fall through
 		case Opcodes.ICONST_4:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				oValue = 4;
 			}
 			// fall through
 		case Opcodes.ICONST_5:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				oValue = 5;
 			}
 			// fall through
 		case Opcodes.ICONST_M1:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				oValue = -1;
 			}
 			this.operations.add(new PUSH(this.operations.size(), opcode,
-					this.line, type, oValue));
+					this.line, t, oValue));
 			break;
 		/*******
 		 * REM *
 		 *******/
 		case Opcodes.DREM:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.FREM:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.IREM:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LREM:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new REM(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/**********
 		 * RETURN *
 		 **********/
 		case Opcodes.ARETURN:
-			type = DataType.T_AREF;
+			t = T.AREF;
 			// fall through
 		case Opcodes.DRETURN:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.FRETURN:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.IRETURN:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LRETURN:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			// fall through
 		case Opcodes.RETURN:
-			if (type < 0) {
-				type = DataType.T_VOID;
+			if (t == null) {
+				t = T.VOID;
 			}
 			this.operations.add(new RETURN(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/*******
 		 * SHL *
 		 *******/
 		case Opcodes.ISHL:
-			type = DataType.T_INT;
+			t = T.INT;
 			// fall through
 		case Opcodes.LSHL:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new SHL(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/*******
 		 * SHR *
 		 *******/
 		case Opcodes.ISHR:
 		case Opcodes.IUSHR:
-			type = DataType.T_INT;
+			t = T.INT;
 			// fall through
 		case Opcodes.LSHR:
 		case Opcodes.LUSHR:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new SHR(this.operations.size(), opcode,
-					this.line, type, opcode == Opcodes.IUSHR
+					this.line, t, opcode == Opcodes.IUSHR
 							|| opcode == Opcodes.LUSHR));
 			break;
 		/*******
 		 * SUB *
 		 *******/
 		case Opcodes.DSUB:
-			type = DataType.T_DOUBLE;
+			t = T.DOUBLE;
 			// fall through
 		case Opcodes.FSUB:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.ISUB:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LSUB:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new SUB(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		/********
 		 * SWAP *
@@ -958,14 +960,14 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * XOR *
 		 *******/
 		case Opcodes.IXOR:
-			type = DataType.T_INT;
+			t = T.INT;
 			// fall through
 		case Opcodes.LXOR: {
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new XOR(this.operations.size(), opcode,
-					this.line, type));
+					this.line, t));
 			break;
 		}
 		default:
@@ -975,23 +977,21 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitIntInsn(final int opcode, final int operand) {
-		int type = -1;
+		T t = null;
 
 		switch (opcode) {
 		/********
 		 * PUSH *
 		 ********/
 		case Opcodes.BIPUSH:
-			if (type < 0) {
-				type = DataType.T_INT;
-			}
+			t = T.INT;
 			// fall through
 		case Opcodes.SIPUSH:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			this.operations.add(new PUSH(this.operations.size(), opcode,
-					this.line, type, operand));
+					this.line, t, operand));
 			break;
 		case Opcodes.NEWARRAY: {
 			final String typeName = new String[] { null, null, null, null,
@@ -1019,7 +1019,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitJumpInsn(final int opcode, final Label label) {
-		int type = -1;
+		T t = null;
 		int iValue = Integer.MIN_VALUE;
 
 		final int labelIndex = getLabelIndex(label);
@@ -1041,53 +1041,53 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * JCMP *
 		 ********/
 		case Opcodes.IF_ACMPEQ:
-			type = DataType.T_AREF;
+			t = T.AREF;
 			iValue = CompareType.T_EQ;
 			// fall through
 		case Opcodes.IF_ACMPNE:
-			if (type < 0) {
-				type = DataType.T_AREF;
+			if (t == null) {
+				t = T.AREF;
 				iValue = CompareType.T_NE;
 			}
 			// fall through
 		case Opcodes.IF_ICMPEQ:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_EQ;
 			}
 			// fall through
 		case Opcodes.IF_ICMPGE:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_GE;
 			}
 			// fall through
 		case Opcodes.IF_ICMPGT:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_GT;
 			}
 			// fall through
 		case Opcodes.IF_ICMPLE:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_LE;
 			}
 			// fall through
 		case Opcodes.IF_ICMPLT:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_LT;
 			}
 			// fall through
 		case Opcodes.IF_ICMPNE:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_NE;
 			}
 			{
 				final JCMP op = new JCMP(this.operations.size(), opcode,
-						this.line, type, iValue);
+						this.line, t, iValue);
 				op.setTargetPc(labelIndex);
 				if (labelIndex < 0) {
 					getLabelUnresolved(label).add(op);
@@ -1099,53 +1099,53 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * JCND *
 		 ********/
 		case Opcodes.IFNULL:
-			type = DataType.T_AREF;
+			t = T.AREF;
 			iValue = CompareType.T_EQ;
 			// fall through
 		case Opcodes.IFNONNULL:
-			if (type < 0) {
-				type = DataType.T_AREF;
+			if (t == null) {
+				t = T.AREF;
 				iValue = CompareType.T_NE;
 			}
 			// fall through
 		case Opcodes.IFEQ:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_EQ;
 			}
 			// fall through
 		case Opcodes.IFGE:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_GE;
 			}
 			// fall through
 		case Opcodes.IFGT:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_GT;
 			}
 			// fall through
 		case Opcodes.IFLE:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_LE;
 			}
 			// fall through
 		case Opcodes.IFLT:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_LT;
 			}
 			// fall through
 		case Opcodes.IFNE:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 				iValue = CompareType.T_NE;
 			}
 			{
 				final JCND op = new JCND(this.operations.size(), opcode,
-						this.line, type, iValue);
+						this.line, t, iValue);
 				op.setTargetPc(labelIndex);
 				if (labelIndex < 0) {
 					getLabelUnresolved(label).add(op);
@@ -1243,33 +1243,33 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitLdcInsn(final Object cst) {
-		int type = -1;
+		T t = null;
 		Object oValue = null;
 
 		/********
 		 * PUSH *
 		 ********/
 		if (cst instanceof Type) {
-			type = DataType.T_CLASS;
+			t = this.du.getT(Class.class);
 			oValue = this.du.getDescT(((Type) cst).getDescriptor());
 		} else {
 			if (cst instanceof Double) {
-				type = DataType.T_DOUBLE;
+				t = T.DOUBLE;
 			} else if (cst instanceof Float) {
-				type = DataType.T_FLOAT;
+				t = T.FLOAT;
 			} else if (cst instanceof Integer) {
-				type = DataType.T_INT;
+				t = T.INT;
 			} else if (cst instanceof Long) {
-				type = DataType.T_LONG;
+				t = T.LONG;
 			} else if (cst instanceof String) {
-				type = DataType.T_STRING;
+				t = this.du.getT(String.class);
 			} else {
 				LOGGER.warning("Unknown ldc insn cst '" + cst + "'!");
 			}
 			oValue = cst;
 		}
 		this.operations.add(new PUSH(this.operations.size(), Opcodes.LDC,
-				this.line, type, oValue));
+				this.line, t, oValue));
 	}
 
 	@Override
@@ -1509,64 +1509,64 @@ public class ReadMethodVisitor implements MethodVisitor {
 
 	@Override
 	public void visitVarInsn(final int opcode, final int var) {
-		int type = -1;
+		T t = null;
 
 		switch (opcode) {
 		/********
 		 * LOAD *
 		 ********/
 		case Opcodes.ALOAD:
-			type = DataType.T_AREF;
+			t = T.AREF;
 			// fall through
 		case Opcodes.DLOAD:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.FLOAD:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.ILOAD:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LLOAD:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new LOAD(this.operations.size(), opcode,
-					this.line, type, var));
+					this.line, t, var));
 			break;
 		/*********
 		 * STORE *
 		 *********/
 		case Opcodes.ASTORE:
-			type = DataType.T_AREF;
+			t = T.AREF;
 			// fall through
 		case Opcodes.DSTORE:
-			if (type < 0) {
-				type = DataType.T_DOUBLE;
+			if (t == null) {
+				t = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.FSTORE:
-			if (type < 0) {
-				type = DataType.T_FLOAT;
+			if (t == null) {
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.ISTORE:
-			if (type < 0) {
-				type = DataType.T_INT;
+			if (t == null) {
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LSTORE:
-			if (type < 0) {
-				type = DataType.T_LONG;
+			if (t == null) {
+				t = T.LONG;
 			}
 			this.operations.add(new STORE(this.operations.size(), opcode,
-					this.line, type, var));
+					this.line, t, var));
 			break;
 		/*******
 		 * RET *
