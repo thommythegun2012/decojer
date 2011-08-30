@@ -23,11 +23,17 @@
  */
 package org.decojer.cavaj.tool;
 
+import java.util.logging.Logger;
+
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.CharacterLiteral;
+import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.PrimitiveType;
+import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.TypeLiteral;
 
 /**
  * Helper functions for types.
@@ -35,6 +41,75 @@ import org.eclipse.jdt.core.dom.Type;
  * @author André Pankraz
  */
 public class Types {
+
+	private final static Logger LOGGER = Logger
+			.getLogger(Types.class.getName());
+
+	/**
+	 * Convert literal.
+	 * 
+	 * @param t
+	 *            literal type
+	 * @param value
+	 *            literal value
+	 * @param td
+	 *            type declaration context
+	 * @param ast
+	 *            abstract syntax tree
+	 * @return Eclipse literal expression
+	 */
+	public static Expression convertLiteral(final T t, final Object value,
+			final TD td, final AST ast) {
+		if (t == T.AREF) {
+			if (value == null) {
+				return ast.newNullLiteral();
+			}
+			LOGGER.warning("No not null aref constants possible!");
+			return null;
+		}
+		if (t == T.BOOLEAN) {
+			if (value instanceof Boolean) {
+				return ast.newBooleanLiteral(((Boolean) value).booleanValue());
+			} else {
+				return ast.newBooleanLiteral(((Integer) value).intValue() != 0);
+			}
+		}
+		if (t == T.BYTE) {
+			return ast.newNumberLiteral(value.toString());
+		}
+		if (t == T.CHAR) {
+			final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+			characterLiteral.setCharValue((char) ((Integer) value).intValue());
+			return characterLiteral;
+		}
+		if (t == T.DOUBLE) {
+			return ast.newNumberLiteral(value.toString() + 'D');
+		}
+		if (t == T.FLOAT) {
+			return ast.newNumberLiteral(value.toString() + 'F');
+		}
+		if (t == T.INT) {
+			return ast.newNumberLiteral(value.toString());
+		}
+		if (t == T.LONG) {
+			return ast.newNumberLiteral(value.toString() + 'L');
+		}
+		if (t == T.SHORT) {
+			return ast.newNumberLiteral(value.toString());
+		}
+		if (t.getName().equals(Class.class.getName())) {
+			final TypeLiteral typeLiteral = ast.newTypeLiteral();
+			typeLiteral.setType(convertType((T) value, td, ast));
+			return typeLiteral;
+		}
+		if (t.getName().equals(String.class.getName())) {
+			final StringLiteral stringLiteral = ast.newStringLiteral();
+			stringLiteral.setLiteralValue((String) value);
+			return stringLiteral;
+		}
+		LOGGER.warning("Unknown data type '" + t + "'!");
+		return null;
+	}
 
 	/**
 	 * Convert type.

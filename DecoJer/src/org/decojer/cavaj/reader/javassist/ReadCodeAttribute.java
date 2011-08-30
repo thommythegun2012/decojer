@@ -505,27 +505,27 @@ public class ReadCodeAttribute {
 				type = DUP.T_DUP;
 				// fall through
 			case Opcode.DUP_X1:
-				if (t == null) {
+				if (type == -1) {
 					type = DUP.T_DUP_X1;
 				}
 				// fall through
 			case Opcode.DUP_X2:
-				if (t == null) {
+				if (type == -1) {
 					type = DUP.T_DUP_X2;
 				}
 				// fall through
 			case Opcode.DUP2:
-				if (t == null) {
+				if (type == -1) {
 					type = DUP.T_DUP2;
 				}
 				// fall through
 			case Opcode.DUP2_X1:
-				if (t == null) {
+				if (type == -1) {
 					type = DUP.T_DUP2_X1;
 				}
 				// fall through
 			case Opcode.DUP2_X2:
-				if (t == null) {
+				if (type == -1) {
 					type = DUP.T_DUP2_X2;
 				}
 				this.operations.add(new DUP(opPc, opcode, line, type));
@@ -552,11 +552,11 @@ public class ReadCodeAttribute {
 			 * GOTO *
 			 ********/
 			case Opcode.GOTO:
-				t = T.VOID;
+				type = 0;
 				iValue = codeReader.readSignedShort();
 				// fall through
 			case Opcode.GOTO_W:
-				if (t == null) {
+				if (type == -1) {
 					iValue = codeReader.readSignedInt();
 				}
 				{
@@ -753,7 +753,7 @@ public class ReadCodeAttribute {
 				iValue = codeReader.readUnsignedShort();
 				// fall through
 			case Opcode.JSR_W:
-				if (t == null) {
+				if (type == -1) {
 					iValue = codeReader.readUnsignedInt();
 				}
 				{
@@ -924,7 +924,7 @@ public class ReadCodeAttribute {
 				type = MONITOR.T_ENTER;
 				// fall through
 			case Opcode.MONITOREXIT:
-				if (t == null) {
+				if (type == -1) {
 					type = MONITOR.T_EXIT;
 				}
 				this.operations.add(new MONITOR(opPc, opcode, line, type));
@@ -1037,7 +1037,7 @@ public class ReadCodeAttribute {
 				type = POP.T_POP;
 				// fall through
 			case Opcode.POP2:
-				if (t == null) {
+				if (type == -1) {
 					type = POP.T_POP2;
 				}
 				this.operations.add(new POP(opPc, opcode, line, type));

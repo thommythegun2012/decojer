@@ -101,13 +101,11 @@ import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
-import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
 import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
-import org.eclipse.jdt.core.dom.TypeLiteral;
 
 /**
  * Transform CFG IVM to HLL Expression Statements.
@@ -649,38 +647,8 @@ public class TrIvmCfg2JavaExprStmts {
 			}
 			case Opcode.PUSH: {
 				final PUSH op = (PUSH) operation;
-				final Expression expr;
-				final T t = op.getT();
-				if (t == T.AREF) {
-					if (op.getValue() == null) {
-						expr = getAst().newNullLiteral();
-					} else {
-						LOGGER.warning("No not null aref constants possible!");
-						expr = null;
-					}
-				} else {
-					if (t == T.DOUBLE) {
-						expr = getAst().newNumberLiteral(
-								Double.toString((Double) op.getValue()));
-					} else if (t == T.INT) {
-						expr = getAst().newNumberLiteral(
-								Integer.toString((Integer) op.getValue()));
-					} else if (t == T.LONG) {
-						expr = getAst().newNumberLiteral(
-								Long.toString((Long) op.getValue()));
-					} else if (t.getName().equals(String.class.getName())) {
-						expr = getAst().newStringLiteral();
-						((StringLiteral) expr).setLiteralValue((String) op
-								.getValue());
-					} else if (t.getName().equals(Class.class.getName())) {
-						expr = getAst().newTypeLiteral();
-						((TypeLiteral) expr).setType(Types.convertType(
-								(T) op.getValue(), getTd(), getAst()));
-					} else {
-						LOGGER.warning("Unknown data type '" + op.getT() + "'!");
-						expr = null;
-					}
-				}
+				final Expression expr = Types.convertLiteral(op.getT(),
+						op.getValue(), getTd(), getAst());
 				if (expr != null) {
 					bb.pushExpression(expr);
 				}
