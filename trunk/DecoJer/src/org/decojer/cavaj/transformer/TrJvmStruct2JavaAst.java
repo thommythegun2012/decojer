@@ -46,7 +46,6 @@ import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
-import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
@@ -56,7 +55,6 @@ import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
-import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -182,52 +180,13 @@ public class TrJvmStruct2JavaAst {
 			}
 			final Object value = fd.getValue();
 			if (value != null) {
-				final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
-						.fragments().get(0);
 				// only final, non static - no arrays, class types
-				if (value instanceof Boolean) {
-					variableDeclarationFragment
-							.setInitializer(ast
-									.newBooleanLiteral(((Boolean) value)
-											.booleanValue()));
-				} else if (value instanceof Double) {
-					variableDeclarationFragment.setInitializer(ast
-							.newNumberLiteral(value.toString() + 'D'));
-				} else if (value instanceof Float) {
-					variableDeclarationFragment.setInitializer(ast
-							.newNumberLiteral(value.toString() + 'F'));
-				} else if (value instanceof Integer) {
-					// also: int, short, byte, char, boolean
-					if (T.CHAR == f.getValueT()) {
-						final CharacterLiteral newCharacterLiteral = ast
-								.newCharacterLiteral();
-						newCharacterLiteral
-								.setCharValue((char) ((Integer) value)
-										.intValue());
-						variableDeclarationFragment
-								.setInitializer(newCharacterLiteral);
-					} else if (T.BOOLEAN == f.getValueT()) {
-						variableDeclarationFragment
-								.setInitializer(ast
-										.newBooleanLiteral(((Integer) value)
-												.intValue() == 1));
-					} else {
-						variableDeclarationFragment.setInitializer(ast
-								.newNumberLiteral(value.toString()));
-					}
-				} else if (value instanceof Long) {
-					variableDeclarationFragment.setInitializer(ast
-							.newNumberLiteral(value.toString() + 'L'));
-				} else if (value instanceof String) {
-					final StringLiteral newStringLiteral = ast
-							.newStringLiteral();
-					newStringLiteral.setLiteralValue((String) value);
-					variableDeclarationFragment
-							.setInitializer(newStringLiteral);
-				} else {
-					LOGGER.warning("Unknown constant attribute '"
-							+ value.getClass() + "' for field info '"
-							+ f.getName() + "'!");
+				final Expression expr = Types.convertLiteral(f.getValueT(),
+						value, td, ast);
+				if (expr != null) {
+					final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
+							.fragments().get(0);
+					variableDeclarationFragment.setInitializer(expr);
 				}
 			}
 			fd.setFieldDeclaration(fieldDeclaration);
