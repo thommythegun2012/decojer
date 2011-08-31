@@ -113,12 +113,11 @@ public class TrDataFlowAnalysis {
 	}
 
 	private Frame createMethodFrame() {
-		final MD md = getCfg().getMd();
 		final Frame frame = new Frame();
 		frame.stack = new Stack<Var>();
 		frame.vars = new Var[this.cfg.getMaxRegs()];
 		for (int i = frame.vars.length; i-- > 0;) {
-			frame.vars[i] = md.getVar(i, 0);
+			frame.vars[i] = this.cfg.getVar(i, 0);
 		}
 		return frame;
 	}
@@ -411,7 +410,7 @@ public class TrDataFlowAnalysis {
 				final Var pop = opFrame.stack.pop();
 
 				final int reg = op.getVarIndex();
-				final Var var = getCfg().getMd().getVar(reg, nextOpPc);
+				final Var var = this.cfg.getVar(reg, nextOpPc);
 
 				opFrame.vars[op.getVarIndex()] = var != null ? var : pop;
 				break;

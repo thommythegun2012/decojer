@@ -266,12 +266,12 @@ public class ReadMethodVisitor implements MethodVisitor {
 						.entrySet()) {
 					final int reg = entry.getKey();
 					for (final Var var : entry.getValue()) {
-						this.md.addVar(reg, var);
+						cfg.addVar(reg, var);
 					}
 				}
 				this.reg2vars.clear();
 			}
-			this.md.postProcessVars();
+			cfg.postProcessVars();
 		}
 	}
 

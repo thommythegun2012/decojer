@@ -207,16 +207,18 @@ public class ReadCodeAttribute {
 
 			visitPc(opPc);
 
-			final int opcode = codeReader.readUnsignedByte();
+			final int code = codeReader.readUnsignedByte();
 			final int line = lineNumberAttribute == null ? -1
 					: lineNumberAttribute.toLineNumber(opPc);
+
+			final int pc = this.operations.size();
 
 			T t = null;
 			int type = -1;
 			int iValue = Integer.MIN_VALUE;
 			Object oValue = null;
 
-			switch (opcode) {
+			switch (code) {
 			/*******
 			 * ADD *
 			 *******/
@@ -237,7 +239,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new ADD(opPc, opcode, line, t));
+				this.operations.add(new ADD(pc, code, line, t));
 				break;
 			/*********
 			 * ALOAD *
@@ -279,7 +281,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.SHORT;
 				}
-				this.operations.add(new ALOAD(opPc, opcode, line, t));
+				this.operations.add(new ALOAD(pc, code, line, t));
 				break;
 			/*******
 			 * AND *
@@ -291,13 +293,13 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new AND(opPc, opcode, line, t));
+				this.operations.add(new AND(pc, code, line, t));
 				break;
 			/***************
 			 * ARRAYLENGTH *
 			 ***************/
 			case Opcode.ARRAYLENGTH:
-				this.operations.add(new ARRAYLENGTH(opPc, opcode, line));
+				this.operations.add(new ARRAYLENGTH(pc, code, line));
 				break;
 			/**********
 			 * ASTORE *
@@ -339,7 +341,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.SHORT;
 				}
-				this.operations.add(new ASTORE(opPc, opcode, line, t));
+				this.operations.add(new ASTORE(pc, code, line, t));
 				break;
 			/**************
 			 * CHECKCAST *
@@ -347,7 +349,7 @@ public class ReadCodeAttribute {
 			case Opcode.CHECKCAST: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				// cp arrays: "[L<classname>;" instead of "<classname>"!!!
-				this.operations.add(new CHECKCAST(opPc, opcode, line,
+				this.operations.add(new CHECKCAST(pc, code, line,
 						readType(constPool.getClassInfo(cpClassIndex))));
 				break;
 			}
@@ -381,7 +383,7 @@ public class ReadCodeAttribute {
 					t = T.LONG;
 					iValue = CMP.T_0;
 				}
-				this.operations.add(new CMP(opPc, opcode, line, t, iValue));
+				this.operations.add(new CMP(pc, code, line, t, iValue));
 				break;
 			/***********
 			 * CONVERT *
@@ -473,8 +475,7 @@ public class ReadCodeAttribute {
 					t = T.LONG;
 					oValue = T.INT;
 				}
-				this.operations.add(new CONVERT(opPc, opcode, line, t,
-						(T) oValue));
+				this.operations.add(new CONVERT(pc, code, line, t, (T) oValue));
 				break;
 			/*******
 			 * DIV *
@@ -496,7 +497,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new DIV(opPc, opcode, line, t));
+				this.operations.add(new DIV(pc, code, line, t));
 				break;
 			/*******
 			 * DUP *
@@ -528,7 +529,7 @@ public class ReadCodeAttribute {
 				if (type == -1) {
 					type = DUP.T_DUP2_X2;
 				}
-				this.operations.add(new DUP(opPc, opcode, line, type));
+				this.operations.add(new DUP(pc, code, line, type));
 				break;
 			/*******
 			 * GET *
@@ -542,10 +543,10 @@ public class ReadCodeAttribute {
 				t = du.getDescT(constPool.getFieldrefType(cpFieldIndex));
 				final F f = ownerT.getF(
 						constPool.getFieldrefName(cpFieldIndex), t);
-				if (opcode == Opcode.GETSTATIC) {
+				if (code == Opcode.GETSTATIC) {
 					f.markAf(AF.STATIC);
 				}
-				this.operations.add(new GET(opPc, opcode, line, f));
+				this.operations.add(new GET(pc, code, line, f));
 				break;
 			}
 			/********
@@ -560,7 +561,7 @@ public class ReadCodeAttribute {
 					iValue = codeReader.readSignedInt();
 				}
 				{
-					final GOTO op = new GOTO(opPc, opcode, line);
+					final GOTO op = new GOTO(pc, code, line);
 					final int targetPc = opPc + iValue;
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
@@ -576,8 +577,8 @@ public class ReadCodeAttribute {
 			case Opcode.IINC: {
 				final int varIndex = codeReader.readUnsignedByte();
 				final int constValue = codeReader.readUnsignedByte();
-				this.operations.add(new INC(opPc, opcode, line, T.INT,
-						varIndex, constValue));
+				this.operations.add(new INC(pc, code, line, T.INT, varIndex,
+						constValue));
 				break;
 			}
 			/**************
@@ -585,7 +586,7 @@ public class ReadCodeAttribute {
 			 **************/
 			case Opcode.INSTANCEOF: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				this.operations.add(new INSTANCEOF(opPc, opcode, line,
+				this.operations.add(new INSTANCEOF(pc, code, line,
 						readType(constPool.getClassInfo(cpClassIndex))));
 				break;
 			}
@@ -605,8 +606,7 @@ public class ReadCodeAttribute {
 						constPool.getInterfaceMethodrefName(cpMethodIndex),
 						constPool.getInterfaceMethodrefType(cpMethodIndex));
 
-				this.operations.add(new INVOKE(opPc, opcode, line, invokeM,
-						false));
+				this.operations.add(new INVOKE(pc, code, line, invokeM, false));
 				break;
 			}
 			case Opcode.INVOKESPECIAL:
@@ -620,11 +620,11 @@ public class ReadCodeAttribute {
 				final M invokeM = invokeT.getM(
 						constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
-				if (opcode == Opcode.INVOKESTATIC) {
+				if (code == Opcode.INVOKESTATIC) {
 					invokeM.markAf(AF.STATIC);
 				}
-				this.operations.add(new INVOKE(opPc, opcode, line, invokeM,
-						opcode == Opcode.INVOKESPECIAL));
+				this.operations.add(new INVOKE(pc, code, line, invokeM,
+						code == Opcode.INVOKESPECIAL));
 				break;
 			}
 			/********
@@ -676,7 +676,7 @@ public class ReadCodeAttribute {
 					iValue = CompareType.T_NE;
 				}
 				{
-					final JCMP op = new JCMP(opPc, opcode, line, t, iValue);
+					final JCMP op = new JCMP(pc, code, line, t, iValue);
 					final int targetPc = opPc + codeReader.readSignedShort();
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
@@ -735,7 +735,7 @@ public class ReadCodeAttribute {
 					iValue = CompareType.T_NE;
 				}
 				{
-					final JCND op = new JCND(opPc, opcode, line, t, iValue);
+					final JCND op = new JCND(pc, code, line, t, iValue);
 					final int targetPc = opPc + codeReader.readSignedShort();
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
@@ -757,7 +757,7 @@ public class ReadCodeAttribute {
 					iValue = codeReader.readUnsignedInt();
 				}
 				{
-					final JSR op = new JSR(opPc, opcode, line);
+					final JSR op = new JSR(pc, code, line);
 					final int targetPc = opPc + iValue;
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
@@ -914,7 +914,7 @@ public class ReadCodeAttribute {
 					t = T.LONG;
 					iValue = 3;
 				}
-				this.operations.add(new LOAD(opPc, opcode, line, t, iValue));
+				this.operations.add(new LOAD(pc, code, line, t, iValue));
 				break;
 			}
 			/***********
@@ -927,7 +927,7 @@ public class ReadCodeAttribute {
 				if (type == -1) {
 					type = MONITOR.T_EXIT;
 				}
-				this.operations.add(new MONITOR(opPc, opcode, line, type));
+				this.operations.add(new MONITOR(pc, code, line, type));
 				break;
 			/*******
 			 * MUL *
@@ -949,7 +949,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new MUL(opPc, opcode, line, t));
+				this.operations.add(new MUL(pc, code, line, t));
 				break;
 			/*******
 			 * NEG *
@@ -973,15 +973,15 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new NEG(opPc, opcode, line, t));
+				this.operations.add(new NEG(pc, code, line, t));
 				break;
 			/*******
 			 * NEW *
 			 *******/
 			case Opcode.NEW: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				this.operations.add(new NEW(opPc, opcode, line,
-						readType(constPool.getClassInfo(cpClassIndex))));
+				this.operations.add(new NEW(pc, code, line, readType(constPool
+						.getClassInfo(cpClassIndex))));
 				break;
 			}
 			/************
@@ -989,7 +989,7 @@ public class ReadCodeAttribute {
 			 ************/
 			case Opcode.ANEWARRAY: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				this.operations.add(new NEWARRAY(opPc, opcode, line,
+				this.operations.add(new NEWARRAY(pc, code, line,
 						readType(constPool.getClassInfo(cpClassIndex)), 1));
 				break;
 			}
@@ -1000,14 +1000,14 @@ public class ReadCodeAttribute {
 						float.class.getName(), double.class.getName(),
 						byte.class.getName(), short.class.getName(),
 						int.class.getName(), long.class.getName() }[type];
-				this.operations.add(new NEWARRAY(opPc, opcode, line, du
+				this.operations.add(new NEWARRAY(pc, code, line, du
 						.getT(typeName), 1));
 				break;
 			}
 			case Opcode.MULTIANEWARRAY: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				final int dimensions = codeReader.readUnsignedByte();
-				this.operations.add(new NEWARRAY(opPc, opcode, line,
+				this.operations.add(new NEWARRAY(pc, code, line,
 						readType(constPool.getClassInfo(cpClassIndex)),
 						dimensions));
 				break;
@@ -1028,7 +1028,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new OR(opPc, opcode, line, t));
+				this.operations.add(new OR(pc, code, line, t));
 				break;
 			/*******
 			 * POP *
@@ -1040,7 +1040,7 @@ public class ReadCodeAttribute {
 				if (type == -1) {
 					type = POP.T_POP2;
 				}
-				this.operations.add(new POP(opPc, opcode, line, type));
+				this.operations.add(new POP(pc, code, line, type));
 				break;
 			/********
 			 * PUSH *
@@ -1225,7 +1225,7 @@ public class ReadCodeAttribute {
 					t = T.INT;
 					oValue = -1;
 				}
-				this.operations.add(new PUSH(opPc, opcode, line, t, oValue));
+				this.operations.add(new PUSH(pc, code, line, t, oValue));
 				break;
 			/*******
 			 * PUT *
@@ -1239,10 +1239,10 @@ public class ReadCodeAttribute {
 				t = du.getDescT(constPool.getFieldrefType(cpFieldIndex));
 				final F f = ownerT.getF(
 						constPool.getFieldrefName(cpFieldIndex), t);
-				if (opcode == Opcode.PUTSTATIC) {
+				if (code == Opcode.PUTSTATIC) {
 					f.markAf(AF.STATIC);
 				}
-				this.operations.add(new PUT(opPc, opcode, line, f));
+				this.operations.add(new PUT(pc, code, line, f));
 				break;
 			}
 			/*******
@@ -1267,7 +1267,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new REM(opPc, opcode, line, t));
+				this.operations.add(new REM(pc, code, line, t));
 				break;
 			/*******
 			 * RET *
@@ -1275,7 +1275,7 @@ public class ReadCodeAttribute {
 			case Opcode.RET: {
 				final int varIndex = wide ? codeReader.readUnsignedShort()
 						: codeReader.readUnsignedByte();
-				this.operations.add(new RET(opPc, opcode, line, varIndex));
+				this.operations.add(new RET(pc, code, line, varIndex));
 				break;
 			}
 			/**********
@@ -1308,7 +1308,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.VOID;
 				}
-				this.operations.add(new RETURN(opPc, opcode, line, t));
+				this.operations.add(new RETURN(pc, code, line, t));
 				break;
 			/*********
 			 * STORE *
@@ -1457,7 +1457,7 @@ public class ReadCodeAttribute {
 					t = T.LONG;
 					iValue = 3;
 				}
-				this.operations.add(new STORE(opPc, opcode, line, t, iValue));
+				this.operations.add(new STORE(pc, code, line, t, iValue));
 				break;
 			}
 			/*******
@@ -1470,7 +1470,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new SHL(opPc, opcode, line, t));
+				this.operations.add(new SHL(pc, code, line, t));
 				break;
 			/*******
 			 * SHR *
@@ -1484,8 +1484,8 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new SHR(opPc, opcode, line, t,
-						opcode == Opcode.IUSHR || opcode == Opcode.LUSHR));
+				this.operations.add(new SHR(pc, code, line, t,
+						code == Opcode.IUSHR || code == Opcode.LUSHR));
 				break;
 			/*******
 			 * SUB *
@@ -1507,13 +1507,13 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new SUB(opPc, opcode, line, t));
+				this.operations.add(new SUB(pc, code, line, t));
 				break;
 			/********
 			 * SWAP *
 			 ********/
 			case Opcode.SWAP:
-				this.operations.add(new SWAP(opPc, opcode, line));
+				this.operations.add(new SWAP(pc, code, line));
 				break;
 			/**********
 			 * SWITCH *
@@ -1523,7 +1523,7 @@ public class ReadCodeAttribute {
 				if (codeReader.pc % 4 > 0) {
 					codeReader.pc += 4 - codeReader.pc % 4;
 				}
-				final SWITCH op = new SWITCH(opPc, Opcodes.LOOKUPSWITCH, line);
+				final SWITCH op = new SWITCH(pc, Opcodes.LOOKUPSWITCH, line);
 				// default
 				int targetPc = opPc + codeReader.readUnsignedInt();
 				int pcIndex = getPcIndex(targetPc);
@@ -1556,7 +1556,7 @@ public class ReadCodeAttribute {
 				if (codeReader.pc % 4 > 0) {
 					codeReader.pc += 4 - codeReader.pc % 4;
 				}
-				final SWITCH op = new SWITCH(opPc, Opcodes.LOOKUPSWITCH, line);
+				final SWITCH op = new SWITCH(pc, Opcodes.LOOKUPSWITCH, line);
 				// default
 				int targetPc = opPc + codeReader.readUnsignedInt();
 				int pcIndex = getPcIndex(targetPc);
@@ -1589,7 +1589,7 @@ public class ReadCodeAttribute {
 			 * THROW *
 			 *********/
 			case Opcode.ATHROW:
-				this.operations.add(new THROW(opPc, opcode, line));
+				this.operations.add(new THROW(pc, code, line));
 				break;
 			/*******
 			 * XOR *
@@ -1601,7 +1601,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new XOR(opPc, opcode, line, t));
+				this.operations.add(new XOR(pc, code, line, t));
 				break;
 			}
 			/*******
@@ -1613,7 +1613,7 @@ public class ReadCodeAttribute {
 				continue;
 			default:
 				throw new RuntimeException("Unknown jvm operation code '"
-						+ opcode + "'!");
+						+ code + "'!");
 			}
 			// reset wide
 			wide = false;
@@ -1645,12 +1645,13 @@ public class ReadCodeAttribute {
 			}
 		}
 		readLocalVariables(localVariableAttribute, localVariableTypeAttribute);
-		md.postProcessVars();
+		cfg.postProcessVars();
 	}
 
 	private void readLocalVariables(
 			final LocalVariableAttribute localVariableAttribute,
 			final LocalVariableAttribute localVariableTypeAttribute) {
+		final CFG cfg = this.md.getCfg();
 		final HashMap<Integer, ArrayList<Var>> reg2vars = new HashMap<Integer, ArrayList<Var>>();
 		if (localVariableAttribute != null) {
 			final DU du = this.md.getTd().getT().getDu();
@@ -1681,7 +1682,7 @@ public class ReadCodeAttribute {
 						.entrySet()) {
 					final int reg = entry.getKey();
 					for (final Var var : entry.getValue()) {
-						this.md.addVar(reg, var);
+						cfg.addVar(reg, var);
 					}
 				}
 			}
@@ -1690,8 +1691,7 @@ public class ReadCodeAttribute {
 			// preserve order
 			final int tableLength = localVariableTypeAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final Var var = this.md.getVar(
-						localVariableTypeAttribute.index(i),
+				final Var var = cfg.getVar(localVariableTypeAttribute.index(i),
 						localVariableTypeAttribute.startPc(i));
 				if (var == null) {
 					LOGGER.warning("Local variable type attribute '"

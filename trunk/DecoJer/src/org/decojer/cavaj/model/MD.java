@@ -23,9 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.logging.Logger;
-
-import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
@@ -34,8 +31,6 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * @author André Pankraz
  */
 public class MD implements BD, PD {
-
-	private final static Logger LOGGER = Logger.getLogger(MD.class.getName());
 
 	private Object annotationDefaultValue;
 
@@ -57,8 +52,6 @@ public class MD implements BD, PD {
 
 	private final TD td;
 
-	private Var[][] varss;
-
 	/**
 	 * Constructor.
 	 * 
@@ -73,40 +66,6 @@ public class MD implements BD, PD {
 
 		this.m = m;
 		this.td = td;
-	}
-
-	/**
-	 * Add local variable.
-	 * 
-	 * Only basic checks, compare later with method parameters.
-	 * 
-	 * @param reg
-	 *            register
-	 * @param var
-	 *            local variable
-	 */
-	public void addVar(final int reg, final Var var) {
-		assert var != null;
-
-		Var[] vars = null;
-		if (this.varss == null) {
-			this.varss = new Var[reg + 1][];
-		} else if (reg >= this.varss.length) {
-			final Var[][] newVarss = new Var[reg + 1][];
-			System.arraycopy(this.varss, 0, newVarss, 0, this.varss.length);
-			this.varss = newVarss;
-		} else {
-			vars = this.varss[reg];
-		}
-		if (vars == null) {
-			vars = new Var[1];
-		} else {
-			final Var[] newVars = new Var[vars.length + 1];
-			System.arraycopy(vars, 0, newVars, 0, vars.length);
-			vars = newVars;
-		}
-		vars[vars.length - 1] = var;
-		this.varss[reg] = vars;
 	}
 
 	/**
@@ -173,34 +132,6 @@ public class MD implements BD, PD {
 	}
 
 	/**
-	 * Get local variable.
-	 * 
-	 * @param reg
-	 *            register
-	 * @param pc
-	 *            pc
-	 * 
-	 * @return local variable
-	 */
-	public Var getVar(final int reg, final int pc) {
-		if (this.varss == null || reg >= this.varss.length) {
-			return null;
-		}
-		final Var[] vars = this.varss[reg];
-		if (vars == null) {
-			return null;
-		}
-		for (int i = vars.length; i-- > 0;) {
-			final Var var = vars[i];
-			if (var.getStartPc() <= pc
-					&& (pc < var.getEndPc() || var.getEndPc() == 0)) {
-				return var;
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Get deprecated state (from deprecated attribute).
 	 * 
 	 * @return true - deprecated
@@ -216,102 +147,6 @@ public class MD implements BD, PD {
 	 */
 	public boolean isSynthetic() {
 		return this.synthetic;
-	}
-
-	/**
-	 * Post process local variables, e.g. extract method parameter. Better in
-	 * read step than in transformator for generic base model.
-	 */
-	public void postProcessVars() {
-		if (this.cfg == null) {
-			return;
-		}
-		final int maxRegs = this.cfg.getMaxRegs();
-		final T[] paramTs = this.m.getParamTs();
-
-		if (this.varss == null) {
-			this.varss = new Var[maxRegs][];
-		} else if (maxRegs < this.varss.length) {
-			LOGGER.warning("Max registers less than biggest register with local variable info!");
-		} else if (maxRegs > this.varss.length) {
-			final Var[][] newVarss = new Var[maxRegs][];
-			System.arraycopy(this.varss, 0, newVarss, 0, this.varss.length);
-			this.varss = newVarss;
-		}
-		if (this.td.isDalvik()) {
-			// Dalvik...function parameters right aligned
-			int reg = maxRegs;
-			for (int i = paramTs.length; i-- > 0;) {
-				final T paramT = paramTs[i];
-				if (paramT == T.LONG || paramT == T.DOUBLE) {
-					--reg;
-				}
-				// parameter name was encoded in extra debug info, copy names
-				// and parameter types to local vars
-				Var[] vars = this.varss[--reg];
-				if (vars != null) {
-					LOGGER.warning("Found local variable info for method parameter '"
-							+ reg + "'!");
-				}
-				// check
-				vars = new Var[1];
-				final Var var = new Var(paramT);
-				var.setName(this.m.getParamName(i));
-				vars[0] = var;
-				this.varss[reg] = vars;
-			}
-			if (!this.m.checkAf(AF.STATIC)) {
-				Var[] vars = this.varss[--reg];
-				if (vars != null) {
-					LOGGER.warning("Found local variable info for method parameter 'this'!");
-				}
-				// check
-				vars = new Var[1];
-				final Var var = new Var(this.td.getT());
-				var.setName("this");
-				vars[0] = var;
-				this.varss[reg] = vars;
-			}
-			return;
-		}
-		// JVM...function parameters left aligned
-		int reg = 0;
-		if (!this.m.checkAf(AF.STATIC)) {
-			Var[] vars = this.varss[reg];
-			if (vars != null) {
-				if (vars.length > 1) {
-					LOGGER.warning("Found multiple local variable info for method parameter 'this'!");
-				}
-				++reg;
-			} else {
-				vars = new Var[1];
-				final Var var = new Var(this.td.getT());
-				var.setName("this");
-				vars[0] = var;
-				this.varss[reg++] = vars;
-			}
-		}
-		for (int i = 0; i < paramTs.length; ++i) {
-			final T paramT = paramTs[i];
-			Var[] vars = this.varss[reg];
-			if (vars != null) {
-				if (vars.length > 1) {
-					LOGGER.warning("Found multiple local variable info for method parameter '"
-							+ reg + "'!");
-				}
-				this.m.setParamName(i, vars[0].getName());
-				++reg;
-			} else {
-				vars = new Var[1];
-				final Var var = new Var(paramT);
-				var.setName(this.m.getParamName(i));
-				vars[0] = var;
-				this.varss[reg++] = vars;
-			}
-			if (paramT == T.LONG || paramT == T.DOUBLE) {
-				++reg;
-			}
-		}
 	}
 
 	/**

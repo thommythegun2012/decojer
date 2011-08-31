@@ -52,11 +52,8 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitArguments(final int total, final int[] args) {
-		// init CFG with start BB
-		final CFG cfg = new CFG(this.md, total, -1);
+		final CFG cfg = new CFG(this.md, total, 0);
 		this.md.setCFG(cfg);
-
-		cfg.calculatePostorder();
 	}
 
 	@Override
@@ -110,7 +107,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitEnd() {
-		this.md.postProcessVars();
+		this.md.getCfg().postProcessVars();
 	}
 
 	@Override

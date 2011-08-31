@@ -50,4 +50,9 @@ public class NEW extends Operation {
 		return this.t;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + " " + this.t;
+	}
+
 }
