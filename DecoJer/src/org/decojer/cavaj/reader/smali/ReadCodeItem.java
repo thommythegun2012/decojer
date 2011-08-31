@@ -355,7 +355,7 @@ public class ReadCodeItem {
 				// fall through
 			case AGET_WIDE:
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				{
 					// A = B[C]
@@ -498,7 +498,7 @@ public class ReadCodeItem {
 				// fall through
 			case APUT_WIDE:
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				{
 					// B[C] = A
@@ -711,7 +711,7 @@ public class ReadCodeItem {
 			case IGET_WIDE:
 			case IGET_WIDE_VOLATILE:
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				// fall through
 				{
@@ -774,7 +774,7 @@ public class ReadCodeItem {
 			case SGET_WIDE:
 			case SGET_WIDE_VOLATILE:
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				// fall through
 				{
@@ -1044,7 +1044,7 @@ public class ReadCodeItem {
 				// fall through
 			case MOVE_WIDE:
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				{
 					// A = B
@@ -1066,7 +1066,7 @@ public class ReadCodeItem {
 				// fall through
 			case MOVE_WIDE_16:
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				{
 					// A = B
@@ -1088,7 +1088,7 @@ public class ReadCodeItem {
 				// fall through
 			case MOVE_WIDE_FROM16:
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				{
 					// A = B
@@ -1116,7 +1116,7 @@ public class ReadCodeItem {
 			case MOVE_RESULT_WIDE:
 				// TODO doesn't follow a method? => POP
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				{
 					// A = resultRegister
@@ -1404,31 +1404,41 @@ public class ReadCodeItem {
 			/********
 			 * PUSH *
 			 ********/
-			case CONST: {
+			case CONST_4: {
 				// A = literal
-				final Instruction31i instr = (Instruction31i) instruction;
+				final Instruction11n instr = (Instruction11n) instruction;
 
-				t = T.INT;
+				t = T.AINT;
 				iValue = instr.getRegisterA();
 				oValue = (int) instr.getLiteral();
 			}
 			// fall through
-			case CONST_4:
-				if (t == null) {
-					// A = literal
-					final Instruction11n instr = (Instruction11n) instruction;
-
-					t = T.INT;
-					iValue = instr.getRegisterA();
-					oValue = (int) instr.getLiteral();
-				}
-				// fall through
 			case CONST_16:
 				if (t == null) {
 					// A = literal
 					final Instruction21s instr = (Instruction21s) instruction;
 
-					t = T.INT;
+					t = T.AINT;
+					iValue = instr.getRegisterA();
+					oValue = (int) instr.getLiteral();
+				}
+				// fall through
+			case CONST_HIGH16:
+				if (t == null) {
+					// A = literal
+					final Instruction21h instr = (Instruction21h) instruction;
+
+					t = T.multi(T.INT, T.FLOAT);
+					iValue = instr.getRegisterA();
+					oValue = (int) instr.getLiteral() << 16;
+				}
+				// fall through
+			case CONST: /* 32 */
+				if (t == null) {
+					// A = literal
+					final Instruction31i instr = (Instruction31i) instruction;
+
+					t = T.multi(T.INT, T.FLOAT);
 					iValue = instr.getRegisterA();
 					oValue = (int) instr.getLiteral();
 				}
@@ -1438,39 +1448,9 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction21s instr = (Instruction21s) instruction;
 
-					t = T.LONG;
-					iValue = instr.getRegisterA();
-					oValue = (int) instr.getLiteral();
-				}
-				// fall through
-			case CONST_WIDE_32:
-				if (t == null) {
-					// A = literal
-					final Instruction31i instr = (Instruction31i) instruction;
-
-					t = T.LONG;
-					iValue = instr.getRegisterA();
-					oValue = (int) instr.getLiteral();
-				}
-				// fall through
-			case CONST_WIDE: /* _64 */
-				if (t == null) {
-					// A = literal
-					final Instruction51l instr = (Instruction51l) instruction;
-
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 					iValue = instr.getRegisterA();
 					oValue = instr.getLiteral();
-				}
-				// fall through
-			case CONST_HIGH16:
-				if (t == null) {
-					// A = literal
-					final Instruction21h instr = (Instruction21h) instruction;
-
-					t = T.FLOAT;
-					iValue = instr.getRegisterA();
-					oValue = (int) instr.getLiteral() << 16;
 				}
 				// fall through
 			case CONST_WIDE_HIGH16:
@@ -1478,9 +1458,29 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction21h instr = (Instruction21h) instruction;
 
-					t = T.DOUBLE;
+					t = T.WIDE;
 					iValue = instr.getRegisterA();
 					oValue = instr.getLiteral() << 48;
+				}
+				// fall through
+			case CONST_WIDE_32:
+				if (t == null) {
+					// A = literal
+					final Instruction31i instr = (Instruction31i) instruction;
+
+					t = T.WIDE;
+					iValue = instr.getRegisterA();
+					oValue = instr.getLiteral();
+				}
+				// fall through
+			case CONST_WIDE: /* _64 */
+				if (t == null) {
+					// A = literal
+					final Instruction51l instr = (Instruction51l) instruction;
+
+					t = T.WIDE;
+					iValue = instr.getRegisterA();
+					oValue = instr.getLiteral();
 				}
 				// fall through
 			case CONST_CLASS:
@@ -1558,7 +1558,7 @@ public class ReadCodeItem {
 			case IPUT_WIDE:
 			case IPUT_WIDE_VOLATILE:
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				// case IPUT_OBJECT_QUICK:
 				// case IPUT_QUICK:
@@ -1622,7 +1622,7 @@ public class ReadCodeItem {
 			case SPUT_WIDE:
 			case SPUT_WIDE_VOLATILE:
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				// case IPUT_OBJECT_QUICK:
 				// case IPUT_QUICK:
@@ -1762,7 +1762,7 @@ public class ReadCodeItem {
 				// fall through
 			case RETURN_WIDE:
 				if (t == null) {
-					t = T.multi(T.DOUBLE, T.LONG);
+					t = T.WIDE;
 				}
 				{
 					// return A

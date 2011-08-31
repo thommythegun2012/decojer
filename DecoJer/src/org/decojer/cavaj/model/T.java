@@ -44,10 +44,6 @@ public class T {
 	}
 
 	/**
-	 * Any reference type.
-	 */
-	public static T AREF = new T("<aref>");
-	/**
 	 * Primitive type boolean.
 	 */
 	public static T BOOLEAN = new T(boolean.class.getName());
@@ -80,14 +76,25 @@ public class T {
 	 */
 	public static T SHORT = new T(short.class.getName());
 	/**
-	 * Artificial type 'uninit'.
-	 */
-	public static T UNINIT = new T("<uninit>");
-
-	/**
 	 * Primitive type void.
 	 */
 	public static T VOID = new T(void.class.getName());
+	/**
+	 * Any reference type.
+	 */
+	public static T AREF = new T("<aref>");
+	/**
+	 * Any int (32 bit) type.
+	 */
+	public static T AINT = multi(BOOLEAN, CHAR, BYTE, SHORT, INT);
+	/**
+	 * Any wide (64 bit) type.
+	 */
+	public static T WIDE = multi(DOUBLE, LONG);
+	/**
+	 * Artificial type 'uninit'.
+	 */
+	public static T UNINIT = new T("<uninit>");
 
 	public static TT multi(final T... ts) {
 		return new TT(ts);
