@@ -32,8 +32,6 @@ public abstract class Operation {
 
 	private final int code;
 
-	private Frame frame;
-
 	private final int line;
 
 	private final int pc;
@@ -68,10 +66,6 @@ public abstract class Operation {
 		return this.code;
 	}
 
-	public Frame getFrame() {
-		return this.frame;
-	}
-
 	/**
 	 * Get in stack size.
 	 * 
@@ -104,29 +98,9 @@ public abstract class Operation {
 		return this.pc;
 	}
 
-	public String getVarName(final int varIndex) {
-		if (this.frame != null) {
-			final Var[] vars = this.frame.vars;
-			if (vars != null && varIndex < vars.length) {
-				final Var var = this.frame.vars[varIndex];
-				if (var != null) {
-					final String name = var.getName();
-					if (name != null) {
-						return name;
-					}
-				}
-			}
-		}
-		return "r" + varIndex;
-	}
-
 	@Override
 	public int hashCode() {
 		return getPc(); // super.hashCode();
-	}
-
-	public void setFrame(final Frame frame) {
-		this.frame = frame;
 	}
 
 	@Override

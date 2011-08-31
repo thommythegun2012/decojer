@@ -23,10 +23,6 @@
  */
 package org.decojer.cavaj.model.vm.intermediate;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
-
 import org.decojer.cavaj.model.T;
 
 /**
@@ -39,14 +35,14 @@ public class Var {
 	/**
 	 * Merge variables.
 	 * 
-	 * @param vars
-	 *            variables
+	 * @param var1
+	 *            variable
+	 * @param var2
+	 *            variable
 	 * @return variable
 	 */
-	public static Var merge(final Var... vars) {
-		final HashSet<T> ts = new HashSet<T>();
-		ts.addAll(vars[0].ts);
-		return new Var(ts);
+	public static Var merge(final Var var1, final Var var2) {
+		return var1; // TODO
 	}
 
 	private int endPc;
@@ -55,26 +51,16 @@ public class Var {
 
 	private int startPc;
 
-	private Set<T> ts = new HashSet<T>();
+	private T t;
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param ts
-	 *            types
+	 * @param t
+	 *            type
 	 */
-	public Var(final Set<T> ts) {
-		this.ts = ts;
-	}
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param ts
-	 *            types
-	 */
-	public Var(final T... ts) {
-		this.ts.addAll(Arrays.asList(ts));
+	public Var(final T t) {
+		this.t = t;
 	}
 
 	/**
@@ -105,12 +91,22 @@ public class Var {
 	}
 
 	/**
-	 * Get types.
+	 * Get type.
 	 * 
-	 * @return types
+	 * @return type
 	 */
-	public Set<T> getTs() {
-		return this.ts;
+	public T getT() {
+		return this.t;
+	}
+
+	/**
+	 * Merge type.
+	 * 
+	 * @param t
+	 *            type
+	 */
+	public void merge(final T t) {
+		this.t = t; // TODO
 	}
 
 	/**
@@ -147,11 +143,8 @@ public class Var {
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("Var");
 		sb.append("(").append(this.startPc).append(" - ").append(this.endPc)
-				.append(") ");
-		sb.append(this.name).append(": ");
-		for (final T t : this.ts) {
-			sb.append(t).append(" ");
-		}
+				.append(") ").append(this.name).append(": ").append(this.t)
+				.append(" ");
 		return sb.toString();
 	}
 

@@ -34,11 +34,24 @@ public class T {
 
 	public static class TT extends T {
 
+		private static String concat(final T[] ts) {
+			final StringBuilder sb = new StringBuilder("<");
+			for (final T t : ts) {
+				sb.append(t).append(" ");
+			}
+			sb.append(">");
+			return sb.toString();
+		}
+
 		public T[] ts;
 
 		protected TT(final T... ts) {
-			super("<multi>");
+			super(concat(ts));
 			this.ts = ts;
+		}
+
+		public T[] getTs() {
+			return this.ts;
 		}
 
 	}

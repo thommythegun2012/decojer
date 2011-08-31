@@ -195,7 +195,7 @@ public class ReadCodeItem {
 		}
 
 		// init CFG with start BB
-		final CFG cfg = new CFG(md, codeItem.getRegisterCount(), -1);
+		final CFG cfg = new CFG(md, codeItem.getRegisterCount(), 0);
 		md.setCFG(cfg);
 		md.postProcessVars();
 

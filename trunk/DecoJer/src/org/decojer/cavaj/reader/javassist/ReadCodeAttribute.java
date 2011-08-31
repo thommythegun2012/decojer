@@ -1699,7 +1699,7 @@ public class ReadCodeAttribute {
 							+ "' without local variable attribute!");
 					continue;
 				}
-				var.getTs().iterator().next()
+				var.getT()
 						.setSignature(localVariableTypeAttribute.signature(i));
 			}
 		}
