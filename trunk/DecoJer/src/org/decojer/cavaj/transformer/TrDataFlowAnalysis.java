@@ -68,6 +68,8 @@ import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUT;
 import org.decojer.cavaj.model.vm.intermediate.operations.REM;
 import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
+import org.decojer.cavaj.model.vm.intermediate.operations.SHL;
+import org.decojer.cavaj.model.vm.intermediate.operations.SHR;
 import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
 import org.decojer.cavaj.model.vm.intermediate.operations.SUB;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
@@ -402,6 +404,20 @@ public class TrDataFlowAnalysis {
 					opFrame = new Frame(opFrame);
 					opFrame.stack.pop();
 				}
+				break;
+			}
+			case Opcode.SHL: {
+				final SHL op = (SHL) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
+						opFrame.stack.pop()));
+				break;
+			}
+			case Opcode.SHR: {
+				final SHR op = (SHR) operation;
+				opFrame = new Frame(opFrame);
+				opFrame.stack.push(Var.merge(opFrame.stack.pop(),
+						opFrame.stack.pop()));
 				break;
 			}
 			case Opcode.STORE: {
