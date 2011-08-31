@@ -126,6 +126,10 @@ public class TrInitControlFlowGraph {
 	}
 
 	private void transform() {
+		// this.cfg.clear(); don't kill body here...
+		// set start BB, may change through splitting
+		this.cfg.setStartBb(this.cfg.newBb(0));
+
 		final Operation[] operations = this.cfg.getOperations();
 		this.pc2Bbs = new BB[operations.length];
 

@@ -60,6 +60,10 @@ public class Types {
 	 */
 	public static Expression convertLiteral(final T t, final Object value,
 			final TD td, final AST ast) {
+		if (t instanceof T.TT) {
+			LOGGER.warning("Multi-type '" + t + "'!");
+			return convertLiteral(((T.TT) t).getTs()[0], value, td, ast);
+		}
 		if (t == T.AREF) {
 			if (value == null) {
 				return ast.newNullLiteral();
@@ -108,7 +112,9 @@ public class Types {
 			return stringLiteral;
 		}
 		LOGGER.warning("Unknown data type '" + t + "'!");
-		return null;
+		final StringLiteral stringLiteral = ast.newStringLiteral();
+		stringLiteral.setLiteralValue(value.toString());
+		return stringLiteral;
 	}
 
 	/**

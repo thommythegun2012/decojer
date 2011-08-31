@@ -106,6 +106,8 @@ public class TrDataFlowAnalysis {
 
 	private final CFG cfg;
 
+	private Frame[] frames;
+
 	private TrDataFlowAnalysis(final CFG cfg) {
 		this.cfg = cfg;
 	}
@@ -129,8 +131,7 @@ public class TrDataFlowAnalysis {
 		Frame opFrame = frame;
 		int nextOpPc = bb.getOpPc();
 		for (final Operation operation : bb.getOperations()) {
-			++nextOpPc;
-			operation.setFrame(opFrame);
+			this.frames[nextOpPc++] = opFrame;
 			switch (operation.getOpcode()) {
 			case Opcode.ADD: {
 				final ADD op = (ADD) operation;
@@ -314,6 +315,7 @@ public class TrDataFlowAnalysis {
 				final LOAD op = (LOAD) operation;
 				opFrame = new Frame(opFrame);
 				final Var var = opFrame.vars[op.getVarIndex()];
+				var.merge(op.getT());
 				opFrame.stack.push(var);
 				break;
 			}
@@ -461,12 +463,14 @@ public class TrDataFlowAnalysis {
 
 	private void transform() {
 		Frame frame = createMethodFrame();
+		this.frames = new Frame[this.cfg.getOperations().length];
 
 		final List<BB> bbs = this.cfg.getPostorderedBbs();
 		for (int postorder = bbs.size(); postorder-- > 0;) {
 			final BB bb = bbs.get(postorder);
 			frame = propagateFrames(bb, frame);
 		}
+		this.cfg.setFrames(this.frames);
 	}
 
 }

@@ -79,7 +79,7 @@ public class FramesFigure extends Figure {
 		setLayoutManager(gridLayout);
 
 		for (final Operation operation : bb.getOperations()) {
-			final Frame frame = operation.getFrame();
+			final Frame frame = bb.getCfg().getFrame(operation);
 			add(new Label(operation.getClass().getSimpleName() + " "));
 			for (final Var var : frame.vars) {
 				final Label label = new Label(var == null ? "    "

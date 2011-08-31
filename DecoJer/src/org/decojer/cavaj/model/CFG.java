@@ -29,7 +29,9 @@ import java.util.List;
 import java.util.Set;
 
 import org.decojer.cavaj.model.vm.intermediate.Exc;
+import org.decojer.cavaj.model.vm.intermediate.Frame;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
+import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.eclipse.jdt.core.dom.Block;
 
 /**
@@ -54,6 +56,8 @@ public class CFG {
 
 	private final MD md;
 
+	private Frame[] frames;
+
 	private Operation[] operations;
 
 	/**
@@ -64,7 +68,7 @@ public class CFG {
 	private BB startBb;
 
 	/**
-	 * Constructor. Init start basic block, may change through splitting.
+	 * Constructor.
 	 * 
 	 * @param md
 	 *            method declaration
@@ -75,11 +79,12 @@ public class CFG {
 	 */
 	public CFG(final MD md, final int maxRegs, final int maxStack) {
 		assert md != null;
+		assert maxRegs >= 0;
+		assert maxStack >= 0;
 
 		this.md = md;
 		this.maxRegs = maxRegs;
 		this.maxStack = maxStack;
-		this.startBb = newBb(0);
 	}
 
 	private int _calculatePostorder(final int postorder, final BB bb,
@@ -139,6 +144,17 @@ public class CFG {
 	}
 
 	/**
+	 * Clear CFG.
+	 */
+	public void clear() {
+		this.block = null;
+		this.frames = null;
+		this.iDoms = null;
+		this.postorderedBbs = null;
+		this.startBb = null;
+	}
+
+	/**
 	 * Get Eclipse block.
 	 * 
 	 * @return Eclipse block
@@ -154,6 +170,23 @@ public class CFG {
 	 */
 	public Exc[] getExcs() {
 		return this.excs;
+	}
+
+	/**
+	 * Get frame for operation.
+	 * 
+	 * @param operation
+	 *            operation
+	 * @return frame
+	 */
+	public Frame getFrame(final Operation operation) {
+		// TODO what da hell, optimize!
+		for (int i = this.operations.length; i-- > 0;) {
+			if (this.operations[i] == operation) {
+				return this.frames[i];
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -222,6 +255,21 @@ public class CFG {
 		return this.startBb;
 	}
 
+	public String getVarName(final Operation operation, final int varIndex) {
+		final Frame frame = getFrame(operation);
+		final Var[] vars = frame.vars;
+		if (vars != null && varIndex < vars.length) {
+			final Var var = frame.vars[varIndex];
+			if (var != null) {
+				final String name = var.getName();
+				if (name != null) {
+					return name;
+				}
+			}
+		}
+		return "r" + varIndex;
+	}
+
 	private BB intersectIDoms(final BB b1, final BB b2) {
 		BB finger1 = b1;
 		BB finger2 = b2;
@@ -265,6 +313,16 @@ public class CFG {
 	 */
 	public void setExcs(final Exc[] excs) {
 		this.excs = excs;
+	}
+
+	/**
+	 * Set frames.
+	 * 
+	 * @param frames
+	 *            frames
+	 */
+	public void setFrames(final Frame[] frames) {
+		this.frames = frames;
 	}
 
 	/**
