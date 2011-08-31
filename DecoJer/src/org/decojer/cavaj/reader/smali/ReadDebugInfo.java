@@ -26,7 +26,7 @@ package org.decojer.cavaj.reader.smali;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.jf.dexlib.StringIdItem;
@@ -43,18 +43,18 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	private final static Logger LOGGER = Logger.getLogger(ReadDebugInfo.class
 			.getName());
 
-	private final MD md;
+	private final CFG cfg;
 
 	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param md
-	 *            method declaration
+	 * @param cfg
+	 *            CFG
 	 */
-	public ReadDebugInfo(final MD md) {
-		this.md = md;
+	public ReadDebugInfo(final CFG cfg) {
+		this.cfg = cfg;
 	}
 
 	/**
@@ -70,7 +70,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	public void ProcessEndLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
-		final Var var = this.md.getVar(registerNum, codeAddress);
+		final Var var = this.cfg.getVar(registerNum, codeAddress);
 		if (var == null) {
 			LOGGER.warning("ProcessEndLocal '" + registerNum
 					+ "' without ProcessStartLocal!");
@@ -131,7 +131,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	private void startLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
-		final T varT = this.md.getTd().getT().getDu()
+		final T varT = this.cfg.getMd().getTd().getT().getDu()
 				.getDescT(type.getTypeDescriptor());
 		if (signature != null) {
 			varT.setSignature(signature.getStringValue());
@@ -141,7 +141,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 		var.setStartPc(codeAddress);
 
-		this.md.addVar(registerNum, var);
+		this.cfg.addVar(registerNum, var);
 	}
 
 }

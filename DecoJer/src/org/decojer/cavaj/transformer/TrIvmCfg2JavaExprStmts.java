@@ -572,7 +572,8 @@ public class TrIvmCfg2JavaExprStmts {
 			case Opcode.LOAD: {
 				final LOAD op = (LOAD) operation;
 
-				final String name = this.cfg.getVarName(op, op.getVarIndex());
+				final String name = this.cfg.getVarName(op.getPc(),
+						op.getVarIndex());
 				if ("this".equals(name)) {
 					bb.pushExpression(getAst().newThisExpression());
 				} else {
@@ -712,7 +713,8 @@ public class TrIvmCfg2JavaExprStmts {
 				assignment.setRightHandSide(wrap(rightExpression,
 						priority(assignment)));
 
-				final String name = this.cfg.getVarName(op, op.getVarIndex());
+				final String name = this.cfg.getVarName(op.getPc() + 1,
+						op.getVarIndex());
 				assignment.setLeftHandSide(getAst().newSimpleName(name));
 				// inline assignment, DUP -> STORE
 				if (bb.getExpressionsSize() > 0
