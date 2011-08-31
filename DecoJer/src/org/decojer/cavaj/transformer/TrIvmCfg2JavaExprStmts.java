@@ -75,6 +75,8 @@ import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUT;
 import org.decojer.cavaj.model.vm.intermediate.operations.REM;
 import org.decojer.cavaj.model.vm.intermediate.operations.RETURN;
+import org.decojer.cavaj.model.vm.intermediate.operations.SHL;
+import org.decojer.cavaj.model.vm.intermediate.operations.SHR;
 import org.decojer.cavaj.model.vm.intermediate.operations.STORE;
 import org.decojer.cavaj.model.vm.intermediate.operations.SUB;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
@@ -703,6 +705,21 @@ public class TrIvmCfg2JavaExprStmts {
 				statement = returnStatement;
 				break;
 			}
+			case Opcode.SHL: {
+				final SHL op = (SHL) operation;
+				bb.pushExpression(newInfixExpression(
+						InfixExpression.Operator.LEFT_SHIFT,
+						bb.popExpression(), bb.popExpression()));
+				break;
+			}
+			case Opcode.SHR: {
+				final SHR op = (SHR) operation;
+				bb.pushExpression(newInfixExpression(
+						op.isUnsigned() ? InfixExpression.Operator.RIGHT_SHIFT_UNSIGNED
+								: InfixExpression.Operator.RIGHT_SHIFT_SIGNED,
+						bb.popExpression(), bb.popExpression()));
+				break;
+			}
 			case Opcode.STORE: {
 				final STORE op = (STORE) operation;
 
@@ -713,8 +730,11 @@ public class TrIvmCfg2JavaExprStmts {
 				assignment.setRightHandSide(wrap(rightExpression,
 						priority(assignment)));
 
-				final String name = this.cfg.getVarName(op.getPc() + 1,
+				String name = this.cfg.getVarName(op.getPc() + 1,
 						op.getVarIndex());
+				if ("this".equals(name)) {
+					name = "_this"; // TODO can happen before synchronized(this)
+				}
 				assignment.setLeftHandSide(getAst().newSimpleName(name));
 				// inline assignment, DUP -> STORE
 				if (bb.getExpressionsSize() > 0
