@@ -51,8 +51,6 @@ import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
-import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
-import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
 import org.decojer.editor.eclipse.util.FramesFigure;
 import org.decojer.editor.eclipse.util.MemoryStorage;
 import org.decojer.editor.eclipse.util.MemoryStorageEditorInput;
@@ -527,18 +525,8 @@ public class ClassEditor extends MultiPageEditorPart {
 		// if selection found => get matching CFG from CU with choosen
 		// decompiler step
 		try {
-			final DU du = DecoJer.createDu();
-			final TD td = du.read(this.fileName);
-			final CU cu = DecoJer.createCu(td);
-			if (!cu.addTd(cu.getStartTd())) {
-				// cannot add startTd with parents
-				cu.startTdOnly();
-			}
-			TrJvmStruct2JavaAst.transform(td); // could add tds
-
 			// nearly all of the following is very hacky...TODO OOOOOOOO
-			final TD methodTd = cu
-					.getTd(fullyQualifiedName.replace("$I_", "$"));
+			final TD td = this.cu.getTd(fullyQualifiedName.replace("$I_", "$"));
 
 			// constructor -> <init>
 			final String methodName = fullyQualifiedName.equals(elementName)
@@ -547,7 +535,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					: elementName;
 
 			final ArrayList<MD> mds = new ArrayList<MD>();
-			for (final BD bd : methodTd.getBds()) {
+			for (final BD bd : td.getBds()) {
 				if (!(bd instanceof MD)) {
 					continue;
 				}
@@ -600,11 +588,6 @@ public class ClassEditor extends MultiPageEditorPart {
 				}
 				if (i > 1) {
 					TrControlFlowAnalysis.transform(cfg);
-					try {
-						TrStructCfg2JavaControlFlowStmts.transform(cfg);
-					} catch (final Throwable e) {
-						e.printStackTrace();
-					}
 				}
 				initGraph(cfg);
 			}
