@@ -72,7 +72,6 @@ import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.CodeItem.EncodedTypeAddrPair;
 import org.jf.dexlib.CodeItem.TryItem;
-import org.jf.dexlib.DebugInfoItem;
 import org.jf.dexlib.FieldIdItem;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.StringIdItem;
@@ -103,7 +102,6 @@ import org.jf.dexlib.Code.Format.Instruction35c;
 import org.jf.dexlib.Code.Format.Instruction51l;
 import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
-import org.jf.dexlib.Debug.DebugInstructionIterator;
 
 /**
  * Read code item.
@@ -117,13 +115,13 @@ public class ReadCodeItem {
 
 	private final DU du;
 
-	private MD md;
-
 	final ArrayList<Operation> operations = new ArrayList<Operation>();
 
 	private final HashMap<Integer, Integer> pc2index = new HashMap<Integer, Integer>();
 
 	private final HashMap<Integer, ArrayList<Object>> pc2unresolved = new HashMap<Integer, ArrayList<Object>>();
+
+	private final ReadDebugInfo readDebugInfo;
 
 	/**
 	 * Constructor.
@@ -135,6 +133,7 @@ public class ReadCodeItem {
 		assert du != null;
 
 		this.du = du;
+		this.readDebugInfo = new ReadDebugInfo(du);
 	}
 
 	private int getPcIndex(final int pc) {
@@ -165,38 +164,14 @@ public class ReadCodeItem {
 	 *            code item
 	 */
 	public void initAndVisit(final MD md, final CodeItem codeItem) {
-		this.md = md;
-
 		this.operations.clear();
 		this.pc2index.clear();
 		this.pc2unresolved.clear();
 
-		final M m = md.getM();
-
 		final CFG cfg = new CFG(md, codeItem.getRegisterCount(), 0);
 		md.setCFG(cfg);
 
-		HashMap<Integer, Integer> opLines = null;
-
-		// must read debug info before operations because of line numbers
-		final DebugInfoItem debugInfo = codeItem.getDebugInfo();
-		if (debugInfo != null) {
-			final StringIdItem[] parameterNames = debugInfo.getParameterNames();
-			if (parameterNames != null && parameterNames.length > 0) {
-				for (int i = parameterNames.length; i-- > 0;) {
-					if (parameterNames[i] == null) {
-						// could happen, e.g. synthetic methods, inner <init>
-						// with outer type param
-						continue;
-					}
-					m.setParamName(i, parameterNames[i].getStringValue());
-				}
-			}
-			final ReadDebugInfo readDebugInfo = new ReadDebugInfo(cfg);
-			DebugInstructionIterator.DecodeInstructions(debugInfo,
-					codeItem.getRegisterCount(), readDebugInfo);
-			opLines = readDebugInfo.getOpLines();
-		}
+		this.readDebugInfo.initAndVisit(md, codeItem.getDebugInfo());
 		cfg.postProcessVars();
 
 		final Instruction[] instructions = codeItem.getInstructions();
@@ -213,12 +188,9 @@ public class ReadCodeItem {
 			visitPc(opPc, instruction);
 
 			final int code = instruction.opcode.value;
-			if (opLines != null && opLines.containsKey(opPc)) {
-				// opLine remains constant with increasing opPc till new info is
-				// available
-				line = opLines.get(opPc);
-			}
+			line = this.readDebugInfo.getLine(opPc);
 
+			// TODO multiple op adds could be a problem here, pc not like index
 			final int pc = this.operations.size();
 
 			T t = null;
