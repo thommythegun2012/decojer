@@ -45,8 +45,6 @@ public class BB {
 
 	private final List<Operation> operations = new ArrayList<Operation>();
 
-	private int opLine;
-
 	private int opPc;
 
 	private int postorder;
@@ -73,9 +71,6 @@ public class BB {
 	 *            operation
 	 */
 	public void addOperation(final Operation operation) {
-		if (this.operations.size() == 0) {
-			this.opLine = operation.getLine();
-		}
 		this.operations.add(operation);
 	}
 
@@ -186,7 +181,7 @@ public class BB {
 	 * @return operation line
 	 */
 	public int getOpLine() {
-		return this.opLine;
+		return this.cfg.getOperations()[this.opPc].getLine();
 	}
 
 	/**

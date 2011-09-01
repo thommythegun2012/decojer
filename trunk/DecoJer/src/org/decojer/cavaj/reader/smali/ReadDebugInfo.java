@@ -27,10 +27,15 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.CFG;
+import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.M;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Var;
+import org.jf.dexlib.DebugInfoItem;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
+import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Debug.DebugInstructionIterator.ProcessDecodedDebugInstructionDelegate;
 
 /**
@@ -43,18 +48,32 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	private final static Logger LOGGER = Logger.getLogger(ReadDebugInfo.class
 			.getName());
 
-	private final CFG cfg;
+	private CFG cfg;
+
+	private final DU du;
 
 	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param cfg
-	 *            CFG
+	 * @param du
+	 *            decompilation unit
 	 */
-	public ReadDebugInfo(final CFG cfg) {
-		this.cfg = cfg;
+	public ReadDebugInfo(final DU du) {
+		assert du != null;
+
+		this.du = du;
+	}
+
+	public int getLine(final int codeAddress) {
+		for (int i = codeAddress; i >= 0; --i) {
+			final Integer line = this.opLines.get(i);
+			if (line != null) {
+				return line;
+			}
+		}
+		return -1;
 	}
 
 	/**
@@ -66,10 +85,40 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		return this.opLines;
 	}
 
+	public void initAndVisit(final MD md, final DebugInfoItem debugInfo) {
+		this.opLines.clear();
+
+		// must read debug info before operations because of line numbers
+		if (debugInfo == null) {
+			return;
+		}
+
+		this.cfg = md.getCfg();
+
+		final M m = md.getM();
+		final StringIdItem[] parameterNames = debugInfo.getParameterNames();
+		if (parameterNames != null && parameterNames.length > 0) {
+			for (int i = parameterNames.length; i-- > 0;) {
+				if (parameterNames[i] == null) {
+					// could happen, e.g. synthetic methods, inner <init>
+					// with outer type param
+					continue;
+				}
+				m.setParamName(i, parameterNames[i].getStringValue());
+			}
+		}
+		DebugInstructionIterator.DecodeInstructions(debugInfo, md.getCfg()
+				.getMaxRegs(), this);
+	}
+
 	@Override
 	public void ProcessEndLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
+		System.out.println("*ProcessEndLocal: P" + codeAddress + " l"
+				+ getLine(codeAddress) + " N" + length + " r" + registerNum
+				+ " : " + name + " : " + type + " : " + signature);
+
 		final Var var = this.cfg.getVar(registerNum, codeAddress);
 		if (var == null) {
 			LOGGER.warning("ProcessEndLocal '" + registerNum
@@ -88,9 +137,9 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	public void ProcessRestartLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
-		System.out.println("*RestartLocal: I" + codeAddress + " l" + length
-				+ " r" + registerNum + " : " + name + " : " + type + " : "
-				+ signature);
+		System.out.println("*RestartLocal: P" + codeAddress + " l"
+				+ getLine(codeAddress) + " N" + length + " r" + registerNum
+				+ " : " + name + " : " + type + " : " + signature);
 		// TODO whats that?
 	}
 
@@ -131,8 +180,10 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	private void startLocal(final int codeAddress, final int length,
 			final int registerNum, final StringIdItem name,
 			final TypeIdItem type, final StringIdItem signature) {
-		final T varT = this.cfg.getMd().getTd().getT().getDu()
-				.getDescT(type.getTypeDescriptor());
+		System.out.println("*startLocal: P" + codeAddress + " l"
+				+ getLine(codeAddress) + " N" + length + " r" + registerNum
+				+ " : " + name + " : " + type + " : " + signature);
+		final T varT = this.du.getDescT(type.getTypeDescriptor());
 		if (signature != null) {
 			varT.setSignature(signature.getStringValue());
 		}
