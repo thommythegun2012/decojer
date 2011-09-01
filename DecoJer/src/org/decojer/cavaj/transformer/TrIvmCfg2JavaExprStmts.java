@@ -413,9 +413,9 @@ public class TrIvmCfg2JavaExprStmts {
 
 				final Expression methodExpression;
 				if (op.isDirect()) {
+					final Expression expression = bb.popExpression();
 					if ("<init>".equals(m.getName())) {
 						methodExpression = null;
-						final Expression expression = bb.popExpression();
 						if (expression instanceof ThisExpression) {
 							final SuperConstructorInvocation superConstructorInvocation = getAst()
 									.newSuperConstructorInvocation();
@@ -437,20 +437,16 @@ public class TrIvmCfg2JavaExprStmts {
 								+ expression);
 						break;
 					}
-					final Expression expression = bb.popExpression();
-
 					if (expression instanceof ThisExpression) {
 						final SuperMethodInvocation superMethodInvocation = getAst()
 								.newSuperMethodInvocation();
 						superMethodInvocation.setName(getAst().newSimpleName(
 								m.getName()));
 						superMethodInvocation.arguments().addAll(arguments);
-
 						methodExpression = superMethodInvocation;
-						break;
+					} else {
+						methodExpression = null;
 					}
-
-					methodExpression = null;
 				} else if (m.checkAf(AF.STATIC)) {
 					final MethodInvocation methodInvocation = getAst()
 							.newMethodInvocation();
