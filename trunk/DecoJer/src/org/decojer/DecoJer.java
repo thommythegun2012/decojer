@@ -96,9 +96,9 @@ public class DecoJer {
 
 			TrJvmStruct2JavaAst.transform(td); // could add tds
 
-			TrInitControlFlowGraph.transform(td);
-
 			TrDataFlowAnalysis.transform(td);
+
+			TrInitControlFlowGraph.transform(td);
 			TrIvmCfg2JavaExprStmts.transform(td);
 
 			TrControlFlowAnalysis.transform(td);

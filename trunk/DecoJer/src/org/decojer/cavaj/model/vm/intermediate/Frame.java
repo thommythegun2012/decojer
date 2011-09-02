@@ -52,4 +52,15 @@ public class Frame {
 		this.vars = frame.vars.clone();
 	}
 
+	/**
+	 * Merge this target frame to given frame.
+	 * 
+	 * @param frame
+	 *            frame
+	 * @return this target frame changed
+	 */
+	public boolean merge(final Frame frame) {
+		return true;
+	}
+
 }
