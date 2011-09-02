@@ -2008,6 +2008,9 @@ public class ReadCodeItem {
 				// switch(A)
 				final Instruction31t instr = (Instruction31t) instruction;
 
+				this.operations.add(new LOAD(pc, code, line, T.INT, instr
+						.getRegisterA()));
+
 				final SWITCH op = new SWITCH(pc, code, line);
 				op.setDefaultPc(this.operations.size() + 1);
 

@@ -580,8 +580,8 @@ public class ClassEditor extends MultiPageEditorPart {
 
 			final CFG cfg = md.getCfg();
 			if (cfg != null) {
-				TrInitControlFlowGraph.transform(td);
 				TrDataFlowAnalysis.transform(cfg);
+				TrInitControlFlowGraph.transform(td);
 				final int i = this.cfgViewModeCombo.getSelectionIndex();
 				if (i > 0) {
 					TrIvmCfg2JavaExprStmts.transform(cfg);
