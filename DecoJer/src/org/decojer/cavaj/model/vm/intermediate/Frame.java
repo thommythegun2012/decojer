@@ -60,7 +60,11 @@ public class Frame {
 	 * @return this target frame changed
 	 */
 	public boolean merge(final Frame frame) {
-		return true;
+		return false;
+	}
+
+	public Var peek() {
+		return this.stack.peek();
 	}
 
 }

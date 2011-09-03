@@ -1009,7 +1009,7 @@ public class ReadCodeItem {
 			 * MOVE *
 			 ********/
 			case MOVE:
-				t = T.INT; // TODO multi
+				t = T.AINT;
 				// fall through
 			case MOVE_OBJECT:
 				if (t == null) {
@@ -1031,7 +1031,7 @@ public class ReadCodeItem {
 				}
 				break;
 			case MOVE_16:
-				t = T.INT; // TODO multi
+				t = T.AINT;
 				// fall through
 			case MOVE_OBJECT_16:
 				if (t == null) {
@@ -1053,7 +1053,7 @@ public class ReadCodeItem {
 				}
 				break;
 			case MOVE_FROM16:
-				t = T.INT; // TODO multi
+				t = T.AINT;
 				// fall through
 			case MOVE_OBJECT_FROM16:
 				if (t == null) {
@@ -1080,7 +1080,7 @@ public class ReadCodeItem {
 				}
 				// fall through
 			case MOVE_RESULT:
-				t = T.INT; // TODO multi
+				t = T.AINT;
 				// fall through
 			case MOVE_RESULT_OBJECT:
 				if (t == null) {
@@ -1088,11 +1088,12 @@ public class ReadCodeItem {
 				}
 				// fall through
 			case MOVE_RESULT_WIDE:
-				// TODO doesn't follow a method? => POP
 				if (t == null) {
 					t = T.WIDE;
 				}
 				{
+					// TODO doesn't follow a method? => POP
+
 					// A = resultRegister
 					final Instruction11x instr = (Instruction11x) instruction;
 
