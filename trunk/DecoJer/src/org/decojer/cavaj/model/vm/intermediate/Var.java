@@ -106,7 +106,10 @@ public class Var {
 	 *            type
 	 */
 	public void merge(final T t) {
-		this.t = t; // TODO
+		if (this.t.equals(t)) {
+			return;
+		}
+		this.t = t;
 	}
 
 	/**

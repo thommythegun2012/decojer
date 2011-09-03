@@ -386,7 +386,30 @@ public class TrIvmCfg2JavaExprStmts {
 			}
 			case Opcode.INC: {
 				final INC op = (INC) operation;
-				op.getConstValue();
+				final int value = op.getConstValue();
+
+				if (bb.getExpressionsSize() == 0) {
+					if (value == 1 || value == -1) {
+						final PrefixExpression prefixExpression = getAst()
+								.newPrefixExpression();
+						prefixExpression
+								.setOperator(value == 1 ? PrefixExpression.Operator.INCREMENT
+										: PrefixExpression.Operator.DECREMENT);
+						final String name = this.cfg.getVarName(op.getPc() + 1,
+								op.getVarIndex());
+						prefixExpression.setOperand(getAst()
+								.newSimpleName(name));
+						statement = getAst().newExpressionStatement(
+								prefixExpression);
+					} else {
+						LOGGER.warning("INC with value '" + value + "'!");
+						// TODO
+					}
+				} else {
+					LOGGER.warning("Inline INC with value '" + value + "'!");
+					// TODO ... may be inline
+				}
+
 				break;
 			}
 			case Opcode.INSTANCEOF: {
@@ -646,8 +669,9 @@ public class TrIvmCfg2JavaExprStmts {
 			}
 			case Opcode.PUSH: {
 				final PUSH op = (PUSH) operation;
-				final Expression expr = Types.convertLiteral(op.getT(),
-						op.getValue(), getTd(), getAst());
+				final Expression expr = Types.convertLiteral(this.cfg
+						.getOutFrame(operation).peek().getT(), op.getValue(),
+						getTd(), getAst());
 				if (expr != null) {
 					bb.pushExpression(expr);
 				}

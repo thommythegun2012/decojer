@@ -65,4 +65,9 @@ public class INC extends Operation {
 		return this.varIndex;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + " " + getVarIndex();
+	}
+
 }

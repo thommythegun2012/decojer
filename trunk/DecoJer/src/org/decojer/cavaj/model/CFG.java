@@ -212,17 +212,6 @@ public class CFG {
 	}
 
 	/**
-	 * Get frame for operation.
-	 * 
-	 * @param pc
-	 *            pc
-	 * @return frame
-	 */
-	public Frame getFrame(final int pc) {
-		return this.frames[pc];
-	}
-
-	/**
 	 * Get immediate dominator (IDom) for basic block.
 	 * 
 	 * @param basicBlock
@@ -231,6 +220,24 @@ public class CFG {
 	 */
 	public BB getIDom(final BB basicBlock) {
 		return this.iDoms[basicBlock.getPostorder()];
+	}
+
+	/**
+	 * Get input frame for operation.
+	 * 
+	 * @param operation
+	 *            operation
+	 * @return input frame
+	 */
+	public Frame getInFrame(final Operation operation) {
+		// operation.pc may not be the operations index, could be an real pc
+		for (int pc = operation.getPc(); pc < this.operations.length; ++pc) {
+			if (this.operations[pc] == operation) {
+				return this.frames[pc];
+			}
+		}
+		assert false;
+		return null;
 	}
 
 	/**
@@ -267,6 +274,24 @@ public class CFG {
 	 */
 	public Operation[] getOperations() {
 		return this.operations;
+	}
+
+	/**
+	 * Get output frame for operation.
+	 * 
+	 * @param operation
+	 *            operation
+	 * @return output frame
+	 */
+	public Frame getOutFrame(final Operation operation) {
+		// operation.pc may not be the operations index, could be an real pc
+		for (int pc = operation.getPc(); pc < this.operations.length; ++pc) {
+			if (this.operations[pc] == operation) {
+				return this.frames[++pc];
+			}
+		}
+		assert false;
+		return null;
 	}
 
 	/**
