@@ -505,7 +505,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			final IInitializer method = (IInitializer) firstElement;
 			fullyQualifiedName = method.getDeclaringType()
 					.getFullyQualifiedName();
-			elementName = "<init>";
+			elementName = "<clinit>";
 			signature = "()V";
 		} else if (firstElement instanceof IMethod) {
 			final IMethod method = (IMethod) firstElement;
