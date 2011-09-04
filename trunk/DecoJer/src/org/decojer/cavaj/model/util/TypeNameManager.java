@@ -45,8 +45,6 @@ public class TypeNameManager {
 
 	private final CU cu;
 
-	private final Map<String, Map<String, Integer>> package2name2number = new HashMap<String, Map<String, Integer>>();
-
 	private String packagePrefix;
 
 	private final Map<String, Integer> packagesName2number = new HashMap<String, Integer>();

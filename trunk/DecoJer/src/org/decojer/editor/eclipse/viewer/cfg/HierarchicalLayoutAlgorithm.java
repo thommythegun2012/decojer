@@ -38,8 +38,19 @@ import org.eclipse.zest.layouts.algorithms.AbstractLayoutAlgorithm;
 import org.eclipse.zest.layouts.dataStructures.InternalNode;
 import org.eclipse.zest.layouts.dataStructures.InternalRelationship;
 
+/**
+ * Hierarchical layout algorithm for visualizing the Control Flow Graph.
+ * 
+ * @author André Pankraz
+ */
 public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param styles
+	 *            LayoutStyles
+	 */
 	public HierarchicalLayoutAlgorithm(final int styles) {
 		super(styles);
 	}
@@ -83,8 +94,8 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 		final DirectedGraphLayout directedGraphLayout = new DirectedGraphLayout();
 		directedGraphLayout.visit(graph);
 
-		for (final Iterator iterator = graph.nodes.iterator(); iterator
-				.hasNext();) {
+		for (@SuppressWarnings("rawtypes")
+		final Iterator iterator = graph.nodes.iterator(); iterator.hasNext();) {
 			final Node node = (Node) iterator.next();
 			final InternalNode internalNode = (InternalNode) node.data;
 			// For horizontal layout transpose the x and y coordinates

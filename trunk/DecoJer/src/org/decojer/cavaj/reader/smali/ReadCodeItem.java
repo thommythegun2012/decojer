@@ -44,9 +44,11 @@ import org.decojer.cavaj.model.vm.intermediate.operations.ARRAYLENGTH;
 import org.decojer.cavaj.model.vm.intermediate.operations.ASTORE;
 import org.decojer.cavaj.model.vm.intermediate.operations.CHECKCAST;
 import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
+import org.decojer.cavaj.model.vm.intermediate.operations.CONVERT;
 import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.GOTO;
+import org.decojer.cavaj.model.vm.intermediate.operations.INSTANCEOF;
 import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCND;
@@ -99,6 +101,7 @@ import org.jf.dexlib.Code.Format.Instruction31i;
 import org.jf.dexlib.Code.Format.Instruction31t;
 import org.jf.dexlib.Code.Format.Instruction32x;
 import org.jf.dexlib.Code.Format.Instruction35c;
+import org.jf.dexlib.Code.Format.Instruction3rc;
 import org.jf.dexlib.Code.Format.Instruction51l;
 import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
@@ -492,7 +495,7 @@ public class ReadCodeItem {
 			 * CHECKCAST *
 			 **************/
 			case CHECK_CAST: {
-				// A := (typeIdItem) A
+				// A = (typeIdItem) A
 				final Instruction21c instr = (Instruction21c) instruction;
 
 				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem())
@@ -550,6 +553,110 @@ public class ReadCodeItem {
 
 					this.operations.add(new STORE(pc, code, line, T.INT, instr
 							.getRegisterA()));
+				}
+				break;
+			/***********
+			 * CONVERT *
+			 ***********/
+			case DOUBLE_TO_FLOAT:
+				t = T.DOUBLE;
+				oValue = T.FLOAT;
+				// fall through
+			case DOUBLE_TO_INT:
+				if (t == null) {
+					t = T.DOUBLE;
+					oValue = T.INT;
+				}
+				// fall through
+			case DOUBLE_TO_LONG:
+				if (t == null) {
+					t = T.DOUBLE;
+					oValue = T.LONG;
+				}
+				// fall through
+			case INT_TO_BYTE:
+				if (t == null) {
+					t = T.INT;
+					oValue = T.BYTE;
+				}
+				// fall through
+			case INT_TO_CHAR:
+				if (t == null) {
+					t = T.INT;
+					oValue = T.CHAR;
+				}
+				// fall through
+			case INT_TO_DOUBLE:
+				if (t == null) {
+					t = T.INT;
+					oValue = T.DOUBLE;
+				}
+				// fall through
+			case INT_TO_FLOAT:
+				if (t == null) {
+					t = T.INT;
+					oValue = T.FLOAT;
+				}
+				// fall through
+			case INT_TO_LONG:
+				if (t == null) {
+					t = T.INT;
+					oValue = T.LONG;
+				}
+				// fall through
+			case INT_TO_SHORT:
+				if (t == null) {
+					t = T.INT;
+					oValue = T.SHORT;
+				}
+				// fall through
+			case FLOAT_TO_DOUBLE:
+				if (t == null) {
+					t = T.FLOAT;
+					oValue = T.DOUBLE;
+				}
+				// fall through
+			case FLOAT_TO_INT:
+				if (t == null) {
+					t = T.FLOAT;
+					oValue = T.INT;
+				}
+				// fall through
+			case FLOAT_TO_LONG:
+				if (t == null) {
+					t = T.FLOAT;
+					oValue = T.LONG;
+				}
+				// fall through
+			case LONG_TO_DOUBLE:
+				if (t == null) {
+					t = T.LONG;
+					oValue = T.DOUBLE;
+				}
+				// fall through
+			case LONG_TO_FLOAT:
+				if (t == null) {
+					t = T.LONG;
+					oValue = T.FLOAT;
+				}
+				// fall through
+			case LONG_TO_INT:
+				if (t == null) {
+					t = T.LONG;
+					oValue = T.INT;
+				}
+				{
+					// B = (totype) A
+					final Instruction12x instr = (Instruction12x) instruction;
+
+					this.operations.add(new LOAD(pc, code, line, t, instr
+							.getRegisterA()));
+
+					this.operations.add(new CONVERT(pc, code, line, t,
+							(T) oValue));
+
+					this.operations.add(new STORE(pc, code, line, (T) oValue,
+							instr.getRegisterA()));
 				}
 				break;
 			/*******
@@ -812,6 +919,27 @@ public class ReadCodeItem {
 					this.operations.add(op);
 				}
 				break;
+			/**************
+			 * INSTANCEOF *
+			 **************/
+			case INSTANCE_OF: {
+				// A = B instanceof referencedItem
+				final Instruction22c instr = (Instruction22c) instruction;
+
+				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem())
+						.getTypeDescriptor());
+
+				// not t, is unknown, result can be false
+				this.operations.add(new LOAD(pc, code, line, T.AREF, instr
+						.getRegisterB()));
+
+				this.operations.add(new INSTANCEOF(pc, code, line, t));
+
+				// hmmm, "spec" only says none-zero result, multi-type?
+				this.operations.add(new STORE(pc, code, line, T.BOOLEAN, instr
+						.getRegisterA()));
+				break;
+			}
 			/********
 			 * JCMP *
 			 ********/
@@ -920,24 +1048,14 @@ public class ReadCodeItem {
 					this.operations.add(op);
 				}
 				break;
-			case INT_TO_BYTE:
-			case INT_TO_CHAR:
-			case INT_TO_DOUBLE:
-			case INT_TO_FLOAT:
-			case INT_TO_LONG:
-			case INT_TO_SHORT: {
-				final Instruction12x instr = (Instruction12x) instruction;
-				System.out.println("  A: " + instr.getRegisterA() + "  B: "
-						+ instr.getRegisterB());
-				break;
-			}
 			/**********
 			 * INVOKE *
 			 **********/
 			case INVOKE_DIRECT:
-				// constructor or supermethod callout
+				// e.g. constructor callout
 			case INVOKE_INTERFACE:
 			case INVOKE_STATIC:
+			case INVOKE_SUPER:
 			case INVOKE_VIRTUAL: {
 				final Instruction35c instr = (Instruction35c) instruction;
 
@@ -961,6 +1079,11 @@ public class ReadCodeItem {
 					virtualParamTs[0] = ownerT;
 					paramTs = virtualParamTs;
 				}
+				if (instr.getRegCount() != paramTs.length) {
+					LOGGER.warning("Invoke parameter count not equal to register count!");
+				}
+				// TODO warning...long/double really has two registers
+				// here...bullsh! FIXME
 				if (instr.getRegCount() > 0) {
 					this.operations.add(new LOAD(pc, code, line, paramTs[0],
 							instr.getRegisterD()));
@@ -980,6 +1103,45 @@ public class ReadCodeItem {
 				if (instr.getRegCount() > 4) {
 					this.operations.add(new LOAD(pc, code, line, paramTs[4],
 							instr.getRegisterA()));
+				}
+				this.operations.add(new INVOKE(pc, code, line, invokeM,
+						instruction.opcode == Opcode.INVOKE_DIRECT));
+				break;
+			}
+			case INVOKE_DIRECT_RANGE:
+				// e.g. constructor callout
+			case INVOKE_INTERFACE_RANGE:
+			case INVOKE_STATIC_RANGE:
+			case INVOKE_SUPER_RANGE:
+			case INVOKE_VIRTUAL_RANGE: {
+				final Instruction3rc instr = (Instruction3rc) instruction;
+
+				final MethodIdItem methodIdItem = (MethodIdItem) instr
+						.getReferencedItem();
+				final T ownerT = this.du.getDescT(methodIdItem
+						.getContainingClass().getTypeDescriptor());
+				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
+					ownerT.markAf(AF.INTERFACE);
+				}
+				final M invokeM = ownerT.getM(methodIdItem.getMethodName()
+						.getStringValue(), methodIdItem.getPrototype()
+						.getPrototypeString());
+				T[] paramTs = invokeM.getParamTs();
+				if (instruction.opcode == Opcode.INVOKE_STATIC) {
+					invokeM.markAf(AF.STATIC);
+				} else {
+					final T[] virtualParamTs = new T[paramTs.length + 1];
+					System.arraycopy(paramTs, 0, virtualParamTs, 1,
+							paramTs.length);
+					virtualParamTs[0] = ownerT;
+					paramTs = virtualParamTs;
+				}
+				if (instr.getRegCount() != paramTs.length) {
+					LOGGER.warning("Invoke parameter count not equal to register count!");
+				}
+				for (int reg = instr.getStartRegister(), j = 0; j < paramTs.length; ++j) {
+					this.operations.add(new LOAD(pc, code, line, paramTs[j],
+							reg));
 				}
 				this.operations.add(new INVOKE(pc, code, line, invokeM,
 						instruction.opcode == Opcode.INVOKE_DIRECT));
@@ -2119,7 +2281,7 @@ public class ReadCodeItem {
 			}
 			default:
 				throw new RuntimeException("Unknown jvm operation code '0x"
-						+ Integer.toHexString(code) + "'!");
+						+ Integer.toHexString(code & 0xff) + "'!");
 			}
 			opPc += instruction.getSize(opPc);
 		}

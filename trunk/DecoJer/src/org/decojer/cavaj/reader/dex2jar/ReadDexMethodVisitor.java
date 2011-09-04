@@ -43,8 +43,6 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 
 	private A[] as;
 
-	private final DU du;
-
 	private MD md;
 
 	private A[][] paramAss;
@@ -62,7 +60,6 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 	public ReadDexMethodVisitor(final DU du) {
 		assert du != null;
 
-		this.du = du;
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
 	}
 

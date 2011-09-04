@@ -53,13 +53,6 @@ public class DU {
 	private final HashMap<String, T> ts = new HashMap<String, T>();
 
 	/**
-	 * Constructor.
-	 */
-	public DU() {
-		this.ts.put(void.class.getName(), new T(this, void.class.getName()));
-	}
-
-	/**
 	 * Add type declaration.
 	 * 
 	 * @param td
@@ -147,9 +140,8 @@ public class DU {
 		assert name.charAt(0) != 'L' : name;
 		assert name.indexOf('/') == -1 : name;
 
-		// TODO improve this lame code
-		if (name.equals(T.VOID.getName())) {
-			return T.VOID;
+		if (name.equals(T.BOOLEAN.getName())) {
+			return T.BOOLEAN;
 		} else if (name.equals(T.BYTE.getName())) {
 			return T.BYTE;
 		} else if (name.equals(T.CHAR.getName())) {
@@ -164,8 +156,8 @@ public class DU {
 			return T.LONG;
 		} else if (name.equals(T.SHORT.getName())) {
 			return T.SHORT;
-		} else if (name.equals(T.BOOLEAN.getName())) {
-			return T.BOOLEAN;
+		} else if (name.equals(T.VOID.getName())) {
+			return T.VOID;
 		}
 
 		T t = this.ts.get(name);
@@ -205,6 +197,19 @@ public class DU {
 		return this.tds.values();
 	}
 
+	/**
+	 * Read file. May be an archive with a file selector like this:
+	 * 
+	 * e.g. \jre\lib\rt.jar and /com/sun/xml/internal/fastinfoset/Decoder.class
+	 * 
+	 * @param file
+	 *            file
+	 * @param selector
+	 *            selector (in case of an archive)
+	 * @return type declaration (if single selector given)
+	 * @throws IOException
+	 *             read exception
+	 */
 	public TD read(final File file, final String selector) throws IOException {
 		final String fileName = file.getName();
 		if (fileName.endsWith(".class")) {
@@ -225,6 +230,17 @@ public class DU {
 		return read(fileName, new FileInputStream(file), selector);
 	}
 
+	/**
+	 * Read file. May be an archive with a file selector like this:
+	 * 
+	 * e.g. \jre\lib\rt.jar!/com/sun/xml/internal/fastinfoset/Decoder.class
+	 * 
+	 * @param fileName
+	 *            file name
+	 * @return type declaration (if single selector given)
+	 * @throws IOException
+	 *             read exception
+	 */
 	public TD read(final String fileName) throws IOException {
 		final int pos = fileName.indexOf('!');
 		if (pos == -1) {
@@ -235,6 +251,21 @@ public class DU {
 				fileName.substring(pos + 1));
 	}
 
+	/**
+	 * Read file. May be an archive with a file selector like this:
+	 * 
+	 * e.g. rt.jar and /com/sun/xml/internal/fastinfoset/Decoder.class
+	 * 
+	 * @param fileName
+	 *            file name
+	 * @param is
+	 *            input stream
+	 * @param selector
+	 *            selector (in case of an archive)
+	 * @return type declaration (if single selector given)
+	 * @throws IOException
+	 *             read exception
+	 */
 	public TD read(final String fileName, final InputStream is,
 			final String selector) throws IOException {
 		if (fileName.endsWith(".class")) {
