@@ -32,6 +32,11 @@ import java.util.HashMap;
  */
 public class T {
 
+	/**
+	 * Multi-type.
+	 * 
+	 * @author André Pankraz
+	 */
 	public static class TT extends T {
 
 		private static String concat(final T[] ts) {
@@ -43,13 +48,18 @@ public class T {
 			return sb.toString();
 		}
 
-		public T[] ts;
+		private final T[] ts;
 
 		protected TT(final T... ts) {
 			super(concat(ts));
 			this.ts = ts;
 		}
 
+		/**
+		 * Get types.
+		 * 
+		 * @return types
+		 */
 		public T[] getTs() {
 			return this.ts;
 		}
@@ -93,22 +103,29 @@ public class T {
 	 */
 	public static T VOID = new T(void.class.getName());
 	/**
-	 * Any reference type.
+	 * Artificial type 'any reference'.
 	 */
 	public static T AREF = new T("<aref>");
-	/**
-	 * Any int (32 bit) type.
-	 */
-	public static T AINT = multi(BOOLEAN, CHAR, BYTE, SHORT, INT);
-	/**
-	 * Any wide (64 bit) type.
-	 */
-	public static T WIDE = multi(DOUBLE, LONG);
 	/**
 	 * Artificial type 'uninit'.
 	 */
 	public static T UNINIT = new T("<uninit>");
+	/**
+	 * Multi-type 'any int (32 bit)'.
+	 */
+	public static T AINT = multi(BOOLEAN, CHAR, BYTE, SHORT, INT);
+	/**
+	 * Multi-type 'any wide (64 bit)'.
+	 */
+	public static T WIDE = multi(DOUBLE, LONG);
 
+	/**
+	 * Create multi-type.
+	 * 
+	 * @param ts
+	 *            types
+	 * @return multi-type
+	 */
 	public static TT multi(final T... ts) {
 		return new TT(ts);
 	}

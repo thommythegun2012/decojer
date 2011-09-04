@@ -41,8 +41,6 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 
 	private A[] as;
 
-	private final DU du;
-
 	private FD fd;
 
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
@@ -56,7 +54,6 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 	public ReadDexFieldVisitor(final DU du) {
 		assert du != null;
 
-		this.du = du;
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
 	}
 
