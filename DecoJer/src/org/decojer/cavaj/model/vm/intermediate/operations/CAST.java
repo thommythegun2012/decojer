@@ -27,21 +27,17 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
-public class CONVERT extends Operation {
+public class CAST extends Operation {
 
-	private final T fromT;
+	private final T t;
 
 	private final T toT;
 
-	public CONVERT(final int pc, final int code, final int line, final T fromT,
+	public CAST(final int pc, final int code, final int line, final T t,
 			final T toT) {
 		super(pc, code, line);
-		this.fromT = fromT;
+		this.t = t;
 		this.toT = toT;
-	}
-
-	public T getFromT() {
-		return this.fromT;
 	}
 
 	@Override
@@ -51,7 +47,11 @@ public class CONVERT extends Operation {
 
 	@Override
 	public int getOpcode() {
-		return Opcode.CONVERT;
+		return Opcode.CAST;
+	}
+
+	public T getT() {
+		return this.t;
 	}
 
 	public T getToT() {

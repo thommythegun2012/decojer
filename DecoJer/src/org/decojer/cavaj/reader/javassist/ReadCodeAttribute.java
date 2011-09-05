@@ -55,9 +55,8 @@ import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.AND;
 import org.decojer.cavaj.model.vm.intermediate.operations.ARRAYLENGTH;
 import org.decojer.cavaj.model.vm.intermediate.operations.ASTORE;
-import org.decojer.cavaj.model.vm.intermediate.operations.CHECKCAST;
+import org.decojer.cavaj.model.vm.intermediate.operations.CAST;
 import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
-import org.decojer.cavaj.model.vm.intermediate.operations.CONVERT;
 import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
 import org.decojer.cavaj.model.vm.intermediate.operations.DUP;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
@@ -343,54 +342,20 @@ public class ReadCodeAttribute {
 				}
 				this.operations.add(new ASTORE(pc, code, line, t));
 				break;
-			/**************
-			 * CHECKCAST *
-			 **************/
+			/********
+			 * CAST *
+			 ********/
 			case Opcode.CHECKCAST: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				// cp arrays: "[L<classname>;" instead of "<classname>"!!!
-				this.operations.add(new CHECKCAST(pc, code, line,
-						readType(constPool.getClassInfo(cpClassIndex))));
-				break;
+				t = T.AREF;
+				oValue = readType(constPool.getClassInfo(cpClassIndex));
 			}
-			/*******
-			 * CMP *
-			 *******/
-			case Opcode.DCMPG:
-				t = T.DOUBLE;
-				iValue = CMP.T_G;
-				// fall through
-			case Opcode.DCMPL:
+			// fall through
+			case Opcode.D2F:
 				if (t == null) {
 					t = T.DOUBLE;
-					iValue = CMP.T_L;
+					oValue = T.FLOAT;
 				}
-				// fall through
-			case Opcode.FCMPG:
-				if (t == null) {
-					t = T.FLOAT;
-					iValue = CMP.T_G;
-				}
-				// fall through
-			case Opcode.FCMPL:
-				if (t == null) {
-					t = T.FLOAT;
-					iValue = CMP.T_L;
-				}
-				// fall through
-			case Opcode.LCMP:
-				if (t == null) {
-					t = T.LONG;
-					iValue = CMP.T_0;
-				}
-				this.operations.add(new CMP(pc, code, line, t, iValue));
-				break;
-			/***********
-			 * CONVERT *
-			 ***********/
-			case Opcode.D2F:
-				t = T.DOUBLE;
-				oValue = T.FLOAT;
 				// fall through
 			case Opcode.D2I:
 				if (t == null) {
@@ -475,7 +440,39 @@ public class ReadCodeAttribute {
 					t = T.LONG;
 					oValue = T.INT;
 				}
-				this.operations.add(new CONVERT(pc, code, line, t, (T) oValue));
+				this.operations.add(new CAST(pc, code, line, t, (T) oValue));
+				break;
+			/*******
+			 * CMP *
+			 *******/
+			case Opcode.DCMPG:
+				t = T.DOUBLE;
+				iValue = CMP.T_G;
+				// fall through
+			case Opcode.DCMPL:
+				if (t == null) {
+					t = T.DOUBLE;
+					iValue = CMP.T_L;
+				}
+				// fall through
+			case Opcode.FCMPG:
+				if (t == null) {
+					t = T.FLOAT;
+					iValue = CMP.T_G;
+				}
+				// fall through
+			case Opcode.FCMPL:
+				if (t == null) {
+					t = T.FLOAT;
+					iValue = CMP.T_L;
+				}
+				// fall through
+			case Opcode.LCMP:
+				if (t == null) {
+					t = T.LONG;
+					iValue = CMP.T_0;
+				}
+				this.operations.add(new CMP(pc, code, line, t, iValue));
 				break;
 			/*******
 			 * DIV *

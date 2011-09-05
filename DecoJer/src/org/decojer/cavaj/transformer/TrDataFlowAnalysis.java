@@ -45,9 +45,8 @@ import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.AND;
 import org.decojer.cavaj.model.vm.intermediate.operations.ARRAYLENGTH;
 import org.decojer.cavaj.model.vm.intermediate.operations.ASTORE;
-import org.decojer.cavaj.model.vm.intermediate.operations.CHECKCAST;
+import org.decojer.cavaj.model.vm.intermediate.operations.CAST;
 import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
-import org.decojer.cavaj.model.vm.intermediate.operations.CONVERT;
 import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
 import org.decojer.cavaj.model.vm.intermediate.operations.DUP;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
@@ -186,10 +185,10 @@ public class TrDataFlowAnalysis {
 				frame.stack.pop();
 				break;
 			}
-			case Opcode.CHECKCAST: {
-				final CHECKCAST op = (CHECKCAST) operation;
+			case Opcode.CAST: {
+				final CAST op = (CAST) operation;
 				frame.stack.pop();
-				frame.stack.push(new Var(op.getT()));
+				frame.stack.push(new Var(op.getToT()));
 				break;
 			}
 			case Opcode.CMP: {
@@ -197,12 +196,6 @@ public class TrDataFlowAnalysis {
 				frame.stack.pop();
 				frame.stack.pop();
 				frame.stack.push(new Var(T.INT));
-				break;
-			}
-			case Opcode.CONVERT: {
-				final CONVERT op = (CONVERT) operation;
-				frame.stack.pop();
-				frame.stack.push(new Var(op.getToT()));
 				break;
 			}
 			case Opcode.DIV: {
