@@ -56,6 +56,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.CAST;
 import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
 import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
 import org.decojer.cavaj.model.vm.intermediate.operations.DUP;
+import org.decojer.cavaj.model.vm.intermediate.operations.FILLARRAY;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.INC;
 import org.decojer.cavaj.model.vm.intermediate.operations.INSTANCEOF;
@@ -322,6 +323,10 @@ public class TrIvmCfg2JavaExprStmts {
 					LOGGER.warning("Unknown dup type '" + op.getDupType()
 							+ "'!");
 				}
+				break;
+			}
+			case Opcode.FILLARRAY: {
+				final FILLARRAY op = (FILLARRAY) operation;
 				break;
 			}
 			case Opcode.GET: {
