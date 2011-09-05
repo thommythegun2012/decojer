@@ -205,14 +205,15 @@ public class TrIvmCfg2JavaExprStmts {
 				final Expression arrayRefExpression = bb.popExpression();
 				if (arrayRefExpression instanceof ArrayCreation) {
 					final ArrayCreation arrayCreation = (ArrayCreation) arrayRefExpression;
-					if (arrayCreation.getInitializer() == null) {
-						final ArrayInitializer arrayInitializer = getAst()
-								.newArrayInitializer();
+					ArrayInitializer arrayInitializer = arrayCreation
+							.getInitializer();
+					if (arrayInitializer == null) {
+						arrayInitializer = getAst().newArrayInitializer();
+						// TODO arrayCreation => switch to pure arrayInitializer
 						arrayCreation.setInitializer(arrayInitializer);
-						// TODO remove dimension? multi?
+						arrayCreation.dimensions().clear();
 					}
-					arrayCreation.getInitializer().expressions()
-							.add(wrap(rightExpression));
+					arrayInitializer.expressions().add(wrap(rightExpression));
 				} else {
 					final Assignment assignment = getAst().newAssignment();
 					// TODO a = a +/- 1 => a++ / a--
