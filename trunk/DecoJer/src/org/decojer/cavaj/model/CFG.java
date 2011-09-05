@@ -404,7 +404,7 @@ public class CFG {
 			int reg = this.maxRegs;
 			for (int i = paramTs.length; i-- > 0;) {
 				final T paramT = paramTs[i];
-				if (paramT == T.LONG || paramT == T.DOUBLE) {
+				if (paramT.isWide()) {
 					--reg;
 				}
 				// parameter name was encoded in extra debug info, copy names
@@ -469,7 +469,7 @@ public class CFG {
 				vars[0] = var;
 				this.varss[reg++] = vars;
 			}
-			if (paramT == T.LONG || paramT == T.DOUBLE) {
+			if (paramT.isWide()) {
 				++reg;
 			}
 		}

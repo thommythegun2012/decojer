@@ -46,9 +46,8 @@ import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.AND;
 import org.decojer.cavaj.model.vm.intermediate.operations.ARRAYLENGTH;
 import org.decojer.cavaj.model.vm.intermediate.operations.ASTORE;
-import org.decojer.cavaj.model.vm.intermediate.operations.CHECKCAST;
+import org.decojer.cavaj.model.vm.intermediate.operations.CAST;
 import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
-import org.decojer.cavaj.model.vm.intermediate.operations.CONVERT;
 import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
 import org.decojer.cavaj.model.vm.intermediate.operations.DUP;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
@@ -471,42 +470,9 @@ public class ReadMethodVisitor implements MethodVisitor {
 			this.operations.add(new ASTORE(this.operations.size(), opcode,
 					this.line, t));
 			break;
-		/*******
-		 * CMP *
-		 *******/
-		case Opcodes.DCMPG:
-			t = T.DOUBLE;
-			iValue = CMP.T_G;
-			// fall through
-		case Opcodes.DCMPL:
-			if (t == null) {
-				t = T.DOUBLE;
-				iValue = CMP.T_L;
-			}
-			// fall through
-		case Opcodes.FCMPG:
-			if (t == null) {
-				t = T.FLOAT;
-				iValue = CMP.T_G;
-			}
-			// fall through
-		case Opcodes.FCMPL:
-			if (t == null) {
-				t = T.FLOAT;
-				iValue = CMP.T_L;
-			}
-			// fall through
-		case Opcodes.LCMP:
-			if (t == null) {
-				t = T.LONG;
-				iValue = CMP.T_0;
-			}
-			this.operations.add(new CMP(this.operations.size(), opcode,
-					this.line, t, iValue));
-			break;
-		/***********
-		 * CONVERT *
-		 ***********/
+		/********
+		 * CAST *
+		 ********/
 		case Opcodes.D2F:
 			t = T.DOUBLE;
 			oValue = T.FLOAT;
@@ -594,8 +560,41 @@ public class ReadMethodVisitor implements MethodVisitor {
 				t = T.LONG;
 				oValue = T.INT;
 			}
-			this.operations.add(new CONVERT(this.operations.size(), opcode,
+			this.operations.add(new CAST(this.operations.size(), opcode,
 					this.line, t, (T) oValue));
+			break;
+		/*******
+		 * CMP *
+		 *******/
+		case Opcodes.DCMPG:
+			t = T.DOUBLE;
+			iValue = CMP.T_G;
+			// fall through
+		case Opcodes.DCMPL:
+			if (t == null) {
+				t = T.DOUBLE;
+				iValue = CMP.T_L;
+			}
+			// fall through
+		case Opcodes.FCMPG:
+			if (t == null) {
+				t = T.FLOAT;
+				iValue = CMP.T_G;
+			}
+			// fall through
+		case Opcodes.FCMPL:
+			if (t == null) {
+				t = T.FLOAT;
+				iValue = CMP.T_L;
+			}
+			// fall through
+		case Opcodes.LCMP:
+			if (t == null) {
+				t = T.LONG;
+				iValue = CMP.T_0;
+			}
+			this.operations.add(new CMP(this.operations.size(), opcode,
+					this.line, t, iValue));
 			break;
 		/*******
 		 * DIV *
@@ -1474,12 +1473,12 @@ public class ReadMethodVisitor implements MethodVisitor {
 		final T t = readType(type, this.du);
 
 		switch (opcode) {
-		/**************
-		 * CHECKCAST *
-		 **************/
+		/********
+		 * CAST *
+		 ********/
 		case Opcodes.CHECKCAST:
-			this.operations.add(new CHECKCAST(this.operations.size(), opcode,
-					this.line, t));
+			this.operations.add(new CAST(this.operations.size(), opcode,
+					this.line, T.AREF, t));
 			break;
 		/**************
 		 * INSTANCEOF *

@@ -357,6 +357,15 @@ public class T {
 	}
 
 	/**
+	 * Is wide type?
+	 * 
+	 * @return true - is wide type
+	 */
+	public boolean isWide() {
+		return this == T.DOUBLE || this == T.LONG;
+	}
+
+	/**
 	 * Mark access flag.
 	 * 
 	 * @param af

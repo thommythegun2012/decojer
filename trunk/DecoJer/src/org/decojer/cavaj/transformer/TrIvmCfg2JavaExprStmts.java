@@ -52,9 +52,8 @@ import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.AND;
 import org.decojer.cavaj.model.vm.intermediate.operations.ARRAYLENGTH;
 import org.decojer.cavaj.model.vm.intermediate.operations.ASTORE;
-import org.decojer.cavaj.model.vm.intermediate.operations.CHECKCAST;
+import org.decojer.cavaj.model.vm.intermediate.operations.CAST;
 import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
-import org.decojer.cavaj.model.vm.intermediate.operations.CONVERT;
 import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
 import org.decojer.cavaj.model.vm.intermediate.operations.DUP;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
@@ -100,7 +99,6 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PrefixExpression;
-import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
@@ -236,11 +234,11 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.CHECKCAST: {
-				final CHECKCAST op = (CHECKCAST) operation;
+			case Opcode.CAST: {
+				final CAST op = (CAST) operation;
 				final CastExpression castExpression = getAst()
 						.newCastExpression();
-				castExpression.setType(Types.convertType(op.getT(), getTd(),
+				castExpression.setType(Types.convertType(op.getToT(), getTd(),
 						getAst()));
 				castExpression.setExpression(wrap(bb.popExpression(),
 						priority(castExpression)));
@@ -254,38 +252,6 @@ public class TrIvmCfg2JavaExprStmts {
 				bb.pushExpression(newInfixExpression(
 						InfixExpression.Operator.LESS_EQUALS,
 						bb.popExpression(), bb.popExpression()));
-				break;
-			}
-			case Opcode.CONVERT: {
-				final CONVERT op = (CONVERT) operation;
-				final CastExpression castExpression = getAst()
-						.newCastExpression();
-				final T t = op.getToT();
-				final PrimitiveType.Code typeCode;
-				if (t == T.BOOLEAN) {
-					typeCode = PrimitiveType.BOOLEAN;
-				} else if (t == T.CHAR) {
-					typeCode = PrimitiveType.CHAR;
-				} else if (t == T.FLOAT) {
-					typeCode = PrimitiveType.FLOAT;
-				} else if (t == T.DOUBLE) {
-					typeCode = PrimitiveType.DOUBLE;
-				} else if (t == T.BYTE) {
-					typeCode = PrimitiveType.BYTE;
-				} else if (t == T.SHORT) {
-					typeCode = PrimitiveType.SHORT;
-				} else if (t == T.INT) {
-					typeCode = PrimitiveType.INT;
-				} else if (t == T.LONG) {
-					typeCode = PrimitiveType.LONG;
-				} else {
-					typeCode = null;
-				}
-
-				castExpression.setType(getAst().newPrimitiveType(typeCode));
-				castExpression.setExpression(wrap(bb.popExpression(),
-						priority(castExpression)));
-				bb.pushExpression(castExpression);
 				break;
 			}
 			case Opcode.DIV: {

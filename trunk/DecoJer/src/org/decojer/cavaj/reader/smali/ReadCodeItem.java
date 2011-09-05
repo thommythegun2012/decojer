@@ -25,6 +25,7 @@ package org.decojer.cavaj.reader.smali;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
@@ -42,10 +43,10 @@ import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.AND;
 import org.decojer.cavaj.model.vm.intermediate.operations.ARRAYLENGTH;
 import org.decojer.cavaj.model.vm.intermediate.operations.ASTORE;
-import org.decojer.cavaj.model.vm.intermediate.operations.CHECKCAST;
+import org.decojer.cavaj.model.vm.intermediate.operations.CAST;
 import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
-import org.decojer.cavaj.model.vm.intermediate.operations.CONVERT;
 import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
+import org.decojer.cavaj.model.vm.intermediate.operations.FILLARRAY;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.GOTO;
 import org.decojer.cavaj.model.vm.intermediate.operations.INSTANCEOF;
@@ -80,6 +81,8 @@ import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Code.Instruction;
 import org.jf.dexlib.Code.Opcode;
+import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
+import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction.ArrayElement;
 import org.jf.dexlib.Code.Format.Instruction10t;
 import org.jf.dexlib.Code.Format.Instruction11n;
 import org.jf.dexlib.Code.Format.Instruction11x;
@@ -491,9 +494,9 @@ public class ReadCodeItem {
 					this.operations.add(new ASTORE(pc, code, line, t));
 				}
 				break;
-			/**************
-			 * CHECKCAST *
-			 **************/
+			/********
+			 * CAST *
+			 ********/
 			case CHECK_CAST: {
 				// A = (typeIdItem) A
 				final Instruction21c instr = (Instruction21c) instruction;
@@ -504,60 +507,12 @@ public class ReadCodeItem {
 				this.operations.add(new LOAD(pc, code, line, T.AREF, instr
 						.getRegisterA()));
 
-				this.operations.add(new CHECKCAST(pc, code, line, t));
+				this.operations.add(new CAST(pc, code, line, T.AREF, t));
 
 				this.operations.add(new STORE(pc, code, line, t, instr
 						.getRegisterA()));
 				break;
 			}
-			/*******
-			 * CMP *
-			 *******/
-			case CMPG_DOUBLE:
-				t = T.DOUBLE;
-				iValue = CMP.T_G;
-				// fall through
-			case CMPG_FLOAT:
-				if (t == null) {
-					t = T.FLOAT;
-					iValue = CMP.T_G;
-				}
-				// fall through
-			case CMPL_DOUBLE:
-				if (t == null) {
-					t = T.DOUBLE;
-					iValue = CMP.T_L;
-				}
-				// fall through
-			case CMPL_FLOAT:
-				if (t == null) {
-					t = T.FLOAT;
-					iValue = CMP.T_L;
-				}
-				// fall through
-			case CMP_LONG:
-				if (t == null) {
-					t = T.LONG;
-					iValue = CMP.T_0;
-				}
-				{
-					// A = B CMP C
-					final Instruction23x instr = (Instruction23x) instruction;
-
-					this.operations.add(new LOAD(pc, code, line, t, instr
-							.getRegisterB()));
-					this.operations.add(new LOAD(pc, code, line, t, instr
-							.getRegisterC()));
-
-					this.operations.add(new CMP(pc, code, line, t, iValue));
-
-					this.operations.add(new STORE(pc, code, line, T.INT, instr
-							.getRegisterA()));
-				}
-				break;
-			/***********
-			 * CONVERT *
-			 ***********/
 			case DOUBLE_TO_FLOAT:
 				t = T.DOUBLE;
 				oValue = T.FLOAT;
@@ -652,11 +607,56 @@ public class ReadCodeItem {
 					this.operations.add(new LOAD(pc, code, line, t, instr
 							.getRegisterA()));
 
-					this.operations.add(new CONVERT(pc, code, line, t,
-							(T) oValue));
+					this.operations
+							.add(new CAST(pc, code, line, t, (T) oValue));
 
 					this.operations.add(new STORE(pc, code, line, (T) oValue,
 							instr.getRegisterA()));
+				}
+				break;
+			/*******
+			 * CMP *
+			 *******/
+			case CMPG_DOUBLE:
+				t = T.DOUBLE;
+				iValue = CMP.T_G;
+				// fall through
+			case CMPG_FLOAT:
+				if (t == null) {
+					t = T.FLOAT;
+					iValue = CMP.T_G;
+				}
+				// fall through
+			case CMPL_DOUBLE:
+				if (t == null) {
+					t = T.DOUBLE;
+					iValue = CMP.T_L;
+				}
+				// fall through
+			case CMPL_FLOAT:
+				if (t == null) {
+					t = T.FLOAT;
+					iValue = CMP.T_L;
+				}
+				// fall through
+			case CMP_LONG:
+				if (t == null) {
+					t = T.LONG;
+					iValue = CMP.T_0;
+				}
+				{
+					// A = B CMP C
+					final Instruction23x instr = (Instruction23x) instruction;
+
+					this.operations.add(new LOAD(pc, code, line, t, instr
+							.getRegisterB()));
+					this.operations.add(new LOAD(pc, code, line, t, instr
+							.getRegisterC()));
+
+					this.operations.add(new CMP(pc, code, line, t, iValue));
+
+					this.operations.add(new STORE(pc, code, line, T.INT, instr
+							.getRegisterA()));
 				}
 				break;
 			/*******
@@ -1079,31 +1079,32 @@ public class ReadCodeItem {
 					virtualParamTs[0] = ownerT;
 					paramTs = virtualParamTs;
 				}
-				if (instr.getRegCount() != paramTs.length) {
-					LOGGER.warning("Invoke parameter count not equal to register count!");
-				}
-				// TODO warning...long/double really has two registers
-				// here...bullsh! FIXME
+
+				final int[] regs = new int[instr.getRegCount()];
 				if (instr.getRegCount() > 0) {
-					this.operations.add(new LOAD(pc, code, line, paramTs[0],
-							instr.getRegisterD()));
+					regs[0] = instr.getRegisterD();
 				}
 				if (instr.getRegCount() > 1) {
-					this.operations.add(new LOAD(pc, code, line, paramTs[1],
-							instr.getRegisterE()));
+					regs[1] = instr.getRegisterE();
 				}
 				if (instr.getRegCount() > 2) {
-					this.operations.add(new LOAD(pc, code, line, paramTs[2],
-							instr.getRegisterF()));
+					regs[2] = instr.getRegisterF();
 				}
 				if (instr.getRegCount() > 3) {
-					this.operations.add(new LOAD(pc, code, line, paramTs[3],
-							instr.getRegisterG()));
+					regs[3] = instr.getRegisterG();
 				}
 				if (instr.getRegCount() > 4) {
-					this.operations.add(new LOAD(pc, code, line, paramTs[4],
-							instr.getRegisterA()));
+					regs[4] = instr.getRegisterA();
 				}
+
+				for (int reg = 0, j = 0; j < paramTs.length; ++reg, ++j) {
+					this.operations.add(new LOAD(pc, code, line, paramTs[j],
+							regs[reg]));
+					if (paramTs[j].isWide()) {
+						++reg;
+					}
+				}
+
 				this.operations.add(new INVOKE(pc, code, line, invokeM,
 						instruction.opcode == Opcode.INVOKE_DIRECT));
 				break;
@@ -1120,14 +1121,14 @@ public class ReadCodeItem {
 						.getReferencedItem();
 				final T ownerT = this.du.getDescT(methodIdItem
 						.getContainingClass().getTypeDescriptor());
-				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
+				if (instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE) {
 					ownerT.markAf(AF.INTERFACE);
 				}
 				final M invokeM = ownerT.getM(methodIdItem.getMethodName()
 						.getStringValue(), methodIdItem.getPrototype()
 						.getPrototypeString());
 				T[] paramTs = invokeM.getParamTs();
-				if (instruction.opcode == Opcode.INVOKE_STATIC) {
+				if (instruction.opcode == Opcode.INVOKE_STATIC_RANGE) {
 					invokeM.markAf(AF.STATIC);
 				} else {
 					final T[] virtualParamTs = new T[paramTs.length + 1];
@@ -1136,15 +1137,17 @@ public class ReadCodeItem {
 					virtualParamTs[0] = ownerT;
 					paramTs = virtualParamTs;
 				}
-				if (instr.getRegCount() != paramTs.length) {
-					LOGGER.warning("Invoke parameter count not equal to register count!");
-				}
-				for (int reg = instr.getStartRegister(), j = 0; j < paramTs.length; ++j) {
+
+				for (int reg = instr.getStartRegister(), j = 0; j < paramTs.length; ++reg, ++j) {
 					this.operations.add(new LOAD(pc, code, line, paramTs[j],
 							reg));
+					if (paramTs[j].isWide()) {
+						++reg;
+					}
 				}
+
 				this.operations.add(new INVOKE(pc, code, line, invokeM,
-						instruction.opcode == Opcode.INVOKE_DIRECT));
+						instruction.opcode == Opcode.INVOKE_DIRECT_RANGE));
 				break;
 			}
 			/***********
@@ -1428,6 +1431,24 @@ public class ReadCodeItem {
 
 				this.operations.add(new STORE(pc, code, line, t, instr
 						.getRegisterA()));
+				break;
+			}
+			case FILL_ARRAY_DATA: {
+				// fill_array_data(A) -> target
+				final Instruction31t instr = (Instruction31t) instruction;
+
+				this.operations.add(new LOAD(pc, code, line, T.AREF, instr
+						.getRegisterA()));
+
+				final FILLARRAY op = new FILLARRAY(pc, code, line);
+				final int targetPc = opPc + instr.getTargetAddressOffset();
+				final int pcIndex = getPcIndex(targetPc);
+				if (pcIndex < 0) {
+					getPcUnresolved(targetPc).add(op);
+				} else {
+					LOGGER.warning("Array pseudo operation must have forward target!");
+				}
+				this.operations.add(op);
 				break;
 			}
 			/*******
@@ -2393,8 +2414,55 @@ public class ReadCodeItem {
 				LOGGER.warning("Unresolved switch target isn't a SwitchDataPseudoInstruction!");
 				continue;
 			}
+			if (o instanceof FILLARRAY) {
+				final FILLARRAY op = (FILLARRAY) o;
+
+				if (instruction instanceof ArrayDataPseudoInstruction) {
+					final ArrayDataPseudoInstruction instr = (ArrayDataPseudoInstruction) instruction;
+					System.out.println("ArrayDataPseudoInstruction: "
+							+ instr.getElementCount() + " :w: "
+							+ instr.getElementWidth());
+					final Iterator<ArrayElement> elements = instr.getElements();
+					while (elements.hasNext()) {
+						final ArrayElement element = elements.next();
+						final byte[] b = element.buffer;
+						if (element.elementWidth == 1) {
+							System.out.println("  " + element.bufferIndex
+									+ " byte: " + b[0]);
+							continue;
+						}
+						if (element.elementWidth == 2) {
+							final short value = (short) ((b[0] & 0xFF) << 8 | b[1] & 0xFF);
+							System.out.println("  " + element.bufferIndex
+									+ " short: " + value);
+							continue;
+						}
+						if (element.elementWidth == 4) {
+							final int value = (b[0] & 0xFF) << 24
+									| (b[1] & 0xFF) << 16 | (b[2] & 0xFF) << 8
+									| b[3] & 0xFF;
+							System.out.println("  " + element.bufferIndex
+									+ " int: " + value);
+							continue;
+						}
+						if (element.elementWidth == 8) {
+							final long value = ((long) b[0] & 0xFF) << 56
+									| ((long) b[1] & 0xFF) << 48
+									| ((long) b[2] & 0xFF) << 40
+									| ((long) b[3] & 0xFF) << 32
+									| ((long) b[4] & 0xFF) << 24
+									| ((long) b[5] & 0xFF) << 16
+									| ((long) b[6] & 0xFF) << 8 | (long) b[7]
+									& 0xFF;
+							System.out.println("  " + element.bufferIndex
+									+ " long: " + value);
+							continue;
+						}
+					}
+					continue;
+				}
+			}
 			// cannot happen for Exc / Var here
 		}
 	}
-
 }

@@ -35,15 +35,15 @@ public interface Opcode {
 
 	int ASTORE = 5;
 
-	int CHECKCAST = 6;
+	int CAST = 6;
 
 	int CMP = 7;
 
-	int CONVERT = 8;
+	int DIV = 8;
 
-	int DIV = 9;
+	int DUP = 9;
 
-	int DUP = 10;
+	int FILLARRAY = 10;
 
 	int GET = 11;
 
