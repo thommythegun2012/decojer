@@ -43,4 +43,5 @@ public class DecTestFields {
 	}
 
 	private final int[][] referenceIntArrayNullTest = null;
+
 }
