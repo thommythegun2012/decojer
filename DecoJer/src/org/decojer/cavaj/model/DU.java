@@ -27,9 +27,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.Map.Entry;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -193,8 +194,8 @@ public class DU {
 	 * 
 	 * @return type declarations
 	 */
-	public Collection<TD> getTds() {
-		return this.tds.values();
+	public Set<Entry<String, TD>> getTds() {
+		return this.tds.entrySet();
 	}
 
 	/**
