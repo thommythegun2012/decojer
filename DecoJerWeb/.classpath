@@ -14,14 +14,13 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.osgi_3.7.0.v20110613.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.text_3.5.100.v20110505-0800.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/decojer.jar" sourcepath="/DecoJer"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/DecoJer"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/fast-md5.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/commons-io-2.0.1.jar" sourcepath="C:/Users/André Pankraz/.m2/repository/commons-io/commons-io/2.0.1/commons-io-2.0.1-sources.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/libxjava-cldc-0.3.jar" sourcepath="C:/Users/André Pankraz/.m2/repository/com/github/mcpat/libxjava/libxjava-cldc/0.3/libxjava-cldc-0.3-sources.jar"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/dex2jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/dex-reader-1.1.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-4.0_RC1.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-commons-4.0_RC1.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/dexlib-1.2.7-dev.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-3.3.1.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-4.0-all.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-commons-3.3.1.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
