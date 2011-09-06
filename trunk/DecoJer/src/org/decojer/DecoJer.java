@@ -27,7 +27,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -147,11 +149,14 @@ public class DecoJer {
 			throws IOException {
 		final ZipOutputStream zip = new ZipOutputStream(os);
 
-		for (final TD td : du.getTds()) {
-			if (td.getCu() != null) {
-				continue;
-			}
+		// TODO remove for garbage collection
+		final Iterator<Entry<String, TD>> tdIt = du.getTds().iterator();
+		while (tdIt.hasNext()) {
+			final TD td = tdIt.next().getValue();
 			try {
+				if (td.getCu() != null) {
+					continue;
+				}
 				final CU cu = createCu(td);
 				final String source = decompile(cu);
 				final String sourceFileName = cu.getSourceFileName();
@@ -161,9 +166,11 @@ public class DecoJer {
 						+ sourceFileName);
 				zip.putNextEntry(zipEntry);
 				zip.write(source.getBytes());
-			} catch (final Throwable e) {
+			} catch (final Throwable t) {
 				LOGGER.log(Level.WARNING, "Decompilation problems for '" + td
-						+ "'!", e);
+						+ "'!", t);
+			} finally {
+				tdIt.remove();
 			}
 		}
 		zip.finish();

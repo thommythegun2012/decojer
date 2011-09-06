@@ -169,8 +169,6 @@ public class FD implements BD, PD {
 	 *            Eclipse field declaration
 	 */
 	public void setFieldDeclaration(final BodyDeclaration fieldDeclaration) {
-		assert fieldDeclaration != null;
-
 		this.fieldDeclaration = fieldDeclaration;
 	}
 
