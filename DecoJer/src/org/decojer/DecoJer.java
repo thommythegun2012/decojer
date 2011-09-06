@@ -28,6 +28,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -50,6 +52,9 @@ import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
  * @author André Pankraz
  */
 public class DecoJer {
+
+	private final static Logger LOGGER = Logger.getLogger(DecoJer.class
+			.getName());
 
 	/**
 	 * Create compilation unit.
@@ -146,14 +151,20 @@ public class DecoJer {
 			if (td.getCu() != null) {
 				continue;
 			}
-			final CU cu = createCu(td);
-			final String source = decompile(cu);
-			final String sourceFileName = cu.getSourceFileName();
-			final String packagePath = td.getT().getPackageName()
-					.replace('.', '/') + '/';
-			final ZipEntry zipEntry = new ZipEntry(packagePath + sourceFileName);
-			zip.putNextEntry(zipEntry);
-			zip.write(source.getBytes());
+			try {
+				final CU cu = createCu(td);
+				final String source = decompile(cu);
+				final String sourceFileName = cu.getSourceFileName();
+				final String packagePath = td.getT().getPackageName()
+						.replace('.', '/') + '/';
+				final ZipEntry zipEntry = new ZipEntry(packagePath
+						+ sourceFileName);
+				zip.putNextEntry(zipEntry);
+				zip.write(source.getBytes());
+			} catch (final Throwable e) {
+				LOGGER.log(Level.WARNING, "Decompilation problems for '" + td
+						+ "'!", e);
+			}
 		}
 		zip.finish();
 	}

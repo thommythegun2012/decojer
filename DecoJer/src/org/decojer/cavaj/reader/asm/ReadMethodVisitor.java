@@ -626,27 +626,27 @@ public class ReadMethodVisitor implements MethodVisitor {
 			type = DUP.T_DUP;
 			// fall through
 		case Opcodes.DUP_X1:
-			if (t == null) {
+			if (type == -1) {
 				type = DUP.T_DUP_X1;
 			}
 			// fall through
 		case Opcodes.DUP_X2:
-			if (t == null) {
+			if (type == -1) {
 				type = DUP.T_DUP_X2;
 			}
 			// fall through
 		case Opcodes.DUP2:
-			if (t == null) {
+			if (type == -1) {
 				type = DUP.T_DUP2;
 			}
 			// fall through
 		case Opcodes.DUP2_X1:
-			if (t == null) {
+			if (type == -1) {
 				type = DUP.T_DUP2_X1;
 			}
 			// fall through
 		case Opcodes.DUP2_X2:
-			if (t == null) {
+			if (type == -1) {
 				type = DUP.T_DUP2_X2;
 			}
 			this.operations.add(new DUP(this.operations.size(), opcode,
@@ -659,7 +659,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			type = MONITOR.T_ENTER;
 			// fall through
 		case Opcodes.MONITOREXIT:
-			if (t == null) {
+			if (type == -1) {
 				type = MONITOR.T_EXIT;
 			}
 			this.operations.add(new MONITOR(this.operations.size(), opcode,
@@ -733,7 +733,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			type = POP.T_POP;
 			// fall through
 		case Opcodes.POP2:
-			if (t == null) {
+			if (type == -1) {
 				type = POP.T_POP2;
 			}
 			this.operations.add(new POP(this.operations.size(), opcode,
