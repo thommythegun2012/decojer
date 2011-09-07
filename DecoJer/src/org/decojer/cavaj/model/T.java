@@ -376,6 +376,22 @@ public class T {
 	}
 
 	/**
+	 * Merge type.
+	 * 
+	 * @param t
+	 *            type
+	 * @return merged type
+	 */
+	public T merge(final T t) {
+		if (t == this || t == null) {
+			return this;
+		}
+		// TODO
+		System.out.println("Merge: " + this + " -> " + t);
+		return this;
+	}
+
+	/**
 	 * Set access flags
 	 * 
 	 * @param accessFlags

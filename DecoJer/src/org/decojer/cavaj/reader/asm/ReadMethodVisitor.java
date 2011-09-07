@@ -1529,7 +1529,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			// fall through
 		case Opcodes.ILOAD:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 			}
 			// fall through
 		case Opcodes.LLOAD:
@@ -1557,7 +1557,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			// fall through
 		case Opcodes.ISTORE:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 			}
 			// fall through
 		case Opcodes.LSTORE:

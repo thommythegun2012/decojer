@@ -104,12 +104,15 @@ public class Var {
 	 * 
 	 * @param t
 	 *            type
+	 * @return true - changed (this)
 	 */
-	public void merge(final T t) {
-		if (this.t.equals(t)) {
-			return;
+	public boolean merge(final T t) {
+		final T mergedT = this.t.merge(t);
+		if (this.t == mergedT) {
+			return false;
 		}
-		this.t = t;
+		this.t = mergedT;
+		return true;
 	}
 
 	/**

@@ -53,11 +53,11 @@ public class Frame {
 	}
 
 	/**
-	 * Merge this target frame to given frame.
+	 * Merge frame.
 	 * 
 	 * @param frame
 	 *            frame
-	 * @return this target frame changed
+	 * @return true - changed (this)
 	 */
 	public boolean merge(final Frame frame) {
 		return false;
@@ -65,6 +65,25 @@ public class Frame {
 
 	public Var peek() {
 		return this.stack.peek();
+	}
+
+	/**
+	 * Pop variable from stack.
+	 * 
+	 * @return variable
+	 */
+	public Var pop() {
+		return this.stack.pop();
+	}
+
+	/**
+	 * Push variable to stack.
+	 * 
+	 * @param var
+	 *            variable
+	 */
+	public void push(final Var var) {
+		this.stack.push(var);
 	}
 
 }
