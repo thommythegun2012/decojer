@@ -27,6 +27,7 @@ import static org.decojer.cavaj.tool.Expressions.newPrefixExpression;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -88,6 +89,9 @@ public class TrStructCfg2JavaControlFlowStmts {
 	}
 
 	private final CFG cfg;
+
+	// TODO hack
+	private final HashSet<Struct> consumedStruct = new HashSet<Struct>();
 
 	private TrStructCfg2JavaControlFlowStmts(final CFG cfg) {
 		this.cfg = cfg;
@@ -335,6 +339,12 @@ public class TrStructCfg2JavaControlFlowStmts {
 							&& struct == succStruct.getParent().getParent()) {
 						succStruct = succStruct.getParent();
 					}
+					// TODO hack
+					if (this.consumedStruct.contains(succStruct)) {
+						return;
+					}
+					this.consumedStruct.add(succStruct);
+
 					// decompile sub structure into a statement
 					final Statement structStatement;
 					if (succStruct instanceof Catch) {
