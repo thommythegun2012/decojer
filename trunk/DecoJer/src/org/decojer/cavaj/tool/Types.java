@@ -75,37 +75,111 @@ public class Types {
 		if (t == T.BOOLEAN) {
 			if (value instanceof Boolean) {
 				return ast.newBooleanLiteral(((Boolean) value).booleanValue());
+			} else if (value instanceof Number) {
+				return ast.newBooleanLiteral(((Number) value).intValue() != 0);
 			} else {
-				return ast.newBooleanLiteral(((Integer) value).intValue() != 0);
+				LOGGER.warning("Boolean type with value '" + value
+						+ "' has type '" + value.getClass().getName() + "'!");
 			}
+			return ast.newBooleanLiteral(value instanceof String ? Boolean
+					.valueOf((String) value) : value != null);
 		}
 		if (t == T.BYTE) {
+			if (value instanceof Number) {
+				final byte b = ((Number) value).byteValue();
+				if (b == Byte.MAX_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Byte"),
+							ast.newSimpleName("MAX_VALUE"));
+				}
+				if (b == Byte.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Byte"),
+							ast.newSimpleName("MIN_VALUE"));
+				}
+			} else {
+				LOGGER.warning("Byte type with value '" + value
+						+ "' has type '" + value.getClass().getName() + "'!");
+			}
 			return ast.newNumberLiteral(value.toString());
 		}
 		if (t == T.CHAR) {
 			final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-			characterLiteral.setCharValue((char) ((Integer) value).intValue());
+			if (value instanceof Character || value instanceof Number) {
+				final char c = value instanceof Character ? (Character) value
+						: (char) ((Number) value).intValue();
+				switch (c) {
+				case Character.MAX_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MAX_VALUE"));
+				case Character.MIN_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MIN_VALUE"));
+				case Character.MAX_HIGH_SURROGATE:
+					if (td.getVersion() >= 49) {
+						return ast.newQualifiedName(
+								ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MAX_LOW_SURROGATE:
+					if (td.getVersion() >= 49) {
+						return ast.newQualifiedName(
+								ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_LOW_SURROGATE"));
+					}
+					break;
+				case Character.MIN_HIGH_SURROGATE:
+					if (td.getVersion() >= 49) {
+						return ast.newQualifiedName(
+								ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MIN_LOW_SURROGATE:
+					if (td.getVersion() >= 49) {
+						return ast.newQualifiedName(
+								ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_LOW_SURROGATE"));
+					}
+					break;
+				}
+			} else {
+				LOGGER.warning("Character type with value '" + value
+						+ "' has type '" + value.getClass().getName() + "'!");
+			}
+			characterLiteral.setCharValue(value instanceof String
+					&& ((String) value).length() > 0 ? ((String) value)
+					.charAt(0) : '?');
 			return characterLiteral;
 		}
 		if (t == T.DOUBLE) {
 			if (value instanceof Double) {
-				final Double d = (Double) value;
-				if (d.isNaN()) {
+				if (((Double) value).isNaN()) {
 					return ast.newQualifiedName(ast.newSimpleName("Double"),
 							ast.newSimpleName("NaN"));
-				} else if (d.isInfinite()) {
+				}
+				final double d = (Double) value;
+				if (d == Double.POSITIVE_INFINITY) {
 					return ast.newQualifiedName(ast.newSimpleName("Double"),
-							ast.newSimpleName(d < 0D ? "NEGATIVE_INFINITY"
-									: "POSITIVE_INFINITY"));
-				} else if (d == Double.MIN_NORMAL) {
+							ast.newSimpleName("POSITIVE_INFINITY"));
+				}
+				if (d == Double.NEGATIVE_INFINITY) {
 					return ast.newQualifiedName(ast.newSimpleName("Double"),
-							ast.newSimpleName("MIN_NORMAL"));
-				} else if (d == Double.MIN_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Double"),
-							ast.newSimpleName("MIN_VALUE"));
-				} else if (d == Double.MAX_VALUE) {
+							ast.newSimpleName("NEGATIVE_INFINITY"));
+				}
+				if (d == Double.MAX_VALUE) {
 					return ast.newQualifiedName(ast.newSimpleName("Double"),
 							ast.newSimpleName("MAX_VALUE"));
+				}
+				if (d == Double.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Double"),
+							ast.newSimpleName("MIN_VALUE"));
+				}
+				if (d == Double.MIN_NORMAL) {
+					if (td.getVersion() >= 50) {
+						return ast.newQualifiedName(
+								ast.newSimpleName("Double"),
+								ast.newSimpleName("MIN_NORMAL"));
+					}
 				}
 			} else {
 				LOGGER.warning("Double type with value '" + value
@@ -115,23 +189,32 @@ public class Types {
 		}
 		if (t == T.FLOAT) {
 			if (value instanceof Float) {
-				final Float f = (Float) value;
-				if (f.isNaN()) {
+				if (((Float) value).isNaN()) {
 					return ast.newQualifiedName(ast.newSimpleName("Float"),
 							ast.newSimpleName("NaN"));
-				} else if (f.isInfinite()) {
-					return ast.newQualifiedName(ast.newSimpleName("Float"), ast
-							.newSimpleName(f < 0F ? "NEGATIVE_INFINITY"
-									: "POSITIVE_INFINITY"));
-				} else if (f == Float.MIN_NORMAL) {
+				}
+				final float f = (Float) value;
+				if (f == Float.POSITIVE_INFINITY) {
 					return ast.newQualifiedName(ast.newSimpleName("Float"),
-							ast.newSimpleName("MIN_NORMAL"));
-				} else if (f == Float.MIN_VALUE) {
+							ast.newSimpleName("POSITIVE_INFINITY"));
+				}
+				if (f == Float.NEGATIVE_INFINITY) {
 					return ast.newQualifiedName(ast.newSimpleName("Float"),
-							ast.newSimpleName("MIN_VALUE"));
-				} else if (f == Float.MAX_VALUE) {
+							ast.newSimpleName("NEGATIVE_INFINITY"));
+				}
+				if (f == Float.MAX_VALUE) {
 					return ast.newQualifiedName(ast.newSimpleName("Float"),
 							ast.newSimpleName("MAX_VALUE"));
+				}
+				if (f == Float.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Float"),
+							ast.newSimpleName("MIN_VALUE"));
+				}
+				if (f == Float.MIN_NORMAL) {
+					if (td.getVersion() >= 50) {
+						return ast.newQualifiedName(ast.newSimpleName("Float"),
+								ast.newSimpleName("MIN_NORMAL"));
+					}
 				}
 			} else {
 				LOGGER.warning("Float type with value '" + value
@@ -140,12 +223,54 @@ public class Types {
 			return ast.newNumberLiteral(value.toString() + 'F');
 		}
 		if (t == T.INT) {
+			if (value instanceof Number) {
+				final int i = ((Number) value).intValue();
+				if (i == Integer.MAX_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Integer"),
+							ast.newSimpleName("MAX_VALUE"));
+				}
+				if (i == Integer.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Integer"),
+							ast.newSimpleName("MIN_VALUE"));
+				}
+			} else {
+				LOGGER.warning("Integer type with value '" + value
+						+ "' has type '" + value.getClass().getName() + "'!");
+			}
 			return ast.newNumberLiteral(value.toString());
 		}
 		if (t == T.LONG) {
+			if (value instanceof Long) {
+				final long l = (Long) value;
+				if (l == Long.MAX_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Long"),
+							ast.newSimpleName("MAX_VALUE"));
+				}
+				if (l == Long.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Long"),
+							ast.newSimpleName("MIN_VALUE"));
+				}
+			} else {
+				LOGGER.warning("Long type with value '" + value
+						+ "' has type '" + value.getClass().getName() + "'!");
+			}
 			return ast.newNumberLiteral(value.toString() + 'L');
 		}
 		if (t == T.SHORT) {
+			if (value instanceof Number) {
+				final short s = ((Number) value).shortValue();
+				if (s == Short.MAX_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Short"),
+							ast.newSimpleName("MAX_VALUE"));
+				}
+				if (s == Short.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Short"),
+							ast.newSimpleName("MIN_VALUE"));
+				}
+			} else {
+				LOGGER.warning("Short type with value '" + value
+						+ "' has type '" + value.getClass().getName() + "'!");
+			}
 			return ast.newNumberLiteral(value.toString());
 		}
 		if (t.getName().equals(Class.class.getName())) {
