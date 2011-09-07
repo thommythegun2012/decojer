@@ -229,7 +229,7 @@ public class DecoJer {
 	 */
 	public static void main(final String[] args) throws IOException {
 		final DU du = createDu();
-		switch (12) {
+		switch (3) {
 		case 0:
 			System.out
 					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestMethods.class"));
@@ -249,11 +249,11 @@ public class DecoJer {
 			break;
 		}
 		case 3: {
-			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
+			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1.jar");
 			decompile(
 					new FileOutputStream(
 							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.zip")),
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1_src.jar")),
 					du);
 			break;
 		}
