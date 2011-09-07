@@ -12,3 +12,9 @@ location: bound of type variable T
                 System.out.println(a + b);
                                    ^
 ###
+
+
+* new constants:
+  + Double.MIN_NORMAL, Float.MIN_NORMAL
+  + Double.MAX_EXPONENT, Float.MAX_EXPONENT
+  + Double.MIN_EXPONENT; Float.MIX_EXPONENT
