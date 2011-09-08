@@ -25,7 +25,6 @@ package org.decojer.cavaj.transformer;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Stack;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
@@ -119,11 +118,9 @@ public class TrDataFlowAnalysis {
 	}
 
 	private Frame createMethodFrame() {
-		final Frame frame = new Frame();
-		frame.stack = new Stack<Var>();
-		frame.vars = new Var[this.cfg.getMaxRegs()];
-		for (int i = frame.vars.length; i-- > 0;) {
-			frame.vars[i] = this.cfg.getVar(i, 0);
+		final Frame frame = new Frame(this.cfg.getMaxRegs());
+		for (int index = frame.getRegsSize(); index-- > 0;) {
+			frame.setReg(index, this.cfg.getVar(index, 0));
 		}
 		return frame;
 	}
@@ -216,7 +213,7 @@ public class TrDataFlowAnalysis {
 				final DUP op = (DUP) operation;
 				switch (op.getDupType()) {
 				case DUP.T_DUP:
-					frame.push(frame.stack.peek());
+					frame.push(frame.peek());
 					break;
 				case DUP.T_DUP_X1: {
 					final Var e1 = frame.pop();
@@ -329,7 +326,7 @@ public class TrDataFlowAnalysis {
 			}
 			case Opcode.LOAD: {
 				final LOAD op = (LOAD) operation;
-				final Var var = frame.vars[op.getVarIndex()];
+				final Var var = frame.getReg(op.getVarIndex());
 				var.merge(op.getT());
 				frame.push(var);
 				break;
@@ -427,7 +424,7 @@ public class TrDataFlowAnalysis {
 				final int reg = op.getVarIndex();
 				final Var var = this.cfg.getVar(reg, pc + 1);
 
-				frame.vars[op.getVarIndex()] = var != null ? var : pop;
+				frame.setReg(op.getVarIndex(), var != null ? var : pop);
 				break;
 			}
 			case Opcode.SUB: {

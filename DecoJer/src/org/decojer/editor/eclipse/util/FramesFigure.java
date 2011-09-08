@@ -81,16 +81,18 @@ public class FramesFigure extends Figure {
 		for (final Operation operation : bb.getOperations()) {
 			final Frame frame = bb.getCfg().getInFrame(operation);
 			add(new Label(operation.getClass().getSimpleName() + " "));
-			for (final Var var : frame.vars) {
+			final int regsSize = frame.getRegsSize();
+			for (int index = 0; index < regsSize; ++index) {
+				final Var var = frame.getReg(index);
 				final Label label = new Label(var == null ? "    "
 						: var.toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
-			for (int i = maxStack; i-- > 0;) {
-				final Label label = new Label(i >= frame.stack.size()
-						|| frame.stack.get(i) == null ? "    " : frame.stack
-						.get(i).toString());
+			for (int index = maxStack; index-- > 0;) {
+				final Label label = new Label(index >= frame.getStackTop()
+						|| frame.getStack(index) == null ? "    " : frame
+						.getStack(index).toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}

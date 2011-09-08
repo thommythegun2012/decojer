@@ -341,11 +341,11 @@ public class CFG {
 		return null;
 	}
 
-	public String getVarName(final int pc, final int varIndex) {
+	public String getVarName(final int pc, final int regIndex) {
 		final Frame frame = this.frames[pc];
-		final Var[] vars = frame.vars;
-		if (vars != null && varIndex < vars.length) {
-			final Var var = frame.vars[varIndex];
+		final int regsSize = frame.getRegsSize();
+		if (regIndex < regsSize) {
+			final Var var = frame.getReg(regIndex);
 			if (var != null) {
 				final String name = var.getName();
 				if (name != null) {
@@ -353,7 +353,7 @@ public class CFG {
 				}
 			}
 		}
-		return "r" + varIndex;
+		return "r" + regIndex;
 	}
 
 	private BB intersectIDoms(final BB b1, final BB b2) {
