@@ -1174,7 +1174,7 @@ public class ReadCodeItem {
 			 * MOVE *
 			 ********/
 			case MOVE:
-				t = T.AINT;
+				t = T.DINT;
 				// fall through
 			case MOVE_OBJECT:
 				if (t == null) {
@@ -1196,7 +1196,7 @@ public class ReadCodeItem {
 				}
 				break;
 			case MOVE_16:
-				t = T.AINT;
+				t = T.DINT;
 				// fall through
 			case MOVE_OBJECT_16:
 				if (t == null) {
@@ -1218,7 +1218,7 @@ public class ReadCodeItem {
 				}
 				break;
 			case MOVE_FROM16:
-				t = T.AINT;
+				t = T.DINT;
 				// fall through
 			case MOVE_OBJECT_FROM16:
 				if (t == null) {
@@ -1245,7 +1245,7 @@ public class ReadCodeItem {
 				}
 				// fall through
 			case MOVE_RESULT:
-				t = T.AINT;
+				t = T.DINT;
 				// fall through
 			case MOVE_RESULT_OBJECT:
 				if (t == null) {
@@ -1574,7 +1574,7 @@ public class ReadCodeItem {
 				// A = literal
 				final Instruction11n instr = (Instruction11n) instruction;
 
-				t = T.AINT;
+				t = T.DINT;
 				iValue = instr.getRegisterA();
 				oValue = (int) instr.getLiteral();
 			}
@@ -1584,7 +1584,7 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction21s instr = (Instruction21s) instruction;
 
-					t = T.AINT;
+					t = T.DINT;
 					iValue = instr.getRegisterA();
 					oValue = (int) instr.getLiteral();
 				}
@@ -1604,7 +1604,7 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction31i instr = (Instruction31i) instruction;
 
-					t = T.multi(T.INT, T.FLOAT);
+					t = T.DINT;
 					iValue = instr.getRegisterA();
 					oValue = (int) instr.getLiteral();
 				}

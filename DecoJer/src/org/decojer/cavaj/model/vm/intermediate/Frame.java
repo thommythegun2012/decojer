@@ -96,7 +96,7 @@ public class Frame {
 	 * @return stack size
 	 */
 	public int getStackTop() {
-		return this.stack.length;
+		return this.stackTop;
 	}
 
 	/**

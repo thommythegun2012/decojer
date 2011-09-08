@@ -759,7 +759,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			// fall through
 		case Opcodes.ICONST_0:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				oValue = 0;
 			}
 			// fall through
@@ -783,7 +783,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			// fall through
 		case Opcodes.ICONST_1:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				oValue = 1;
 			}
 			// fall through
@@ -801,31 +801,31 @@ public class ReadMethodVisitor implements MethodVisitor {
 			// fall through
 		case Opcodes.ICONST_2:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				oValue = 2;
 			}
 			// fall through
 		case Opcodes.ICONST_3:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				oValue = 3;
 			}
 			// fall through
 		case Opcodes.ICONST_4:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				oValue = 4;
 			}
 			// fall through
 		case Opcodes.ICONST_5:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				oValue = 5;
 			}
 			// fall through
 		case Opcodes.ICONST_M1:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				oValue = -1;
 			}
 			this.operations.add(new PUSH(this.operations.size(), opcode,
@@ -983,11 +983,11 @@ public class ReadMethodVisitor implements MethodVisitor {
 		 * PUSH *
 		 ********/
 		case Opcodes.BIPUSH:
-			t = T.INT;
+			t = T.AINT;
 			// fall through
 		case Opcodes.SIPUSH:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 			}
 			this.operations.add(new PUSH(this.operations.size(), opcode,
 					this.line, t, operand));
@@ -1257,7 +1257,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			} else if (cst instanceof Float) {
 				t = T.FLOAT;
 			} else if (cst instanceof Integer) {
-				t = T.INT;
+				t = T.AINT;
 			} else if (cst instanceof Long) {
 				t = T.LONG;
 			} else if (cst instanceof String) {
