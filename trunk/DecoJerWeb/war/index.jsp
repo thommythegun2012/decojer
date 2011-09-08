@@ -18,15 +18,16 @@
 	<p>This is currently only a test page! The Java Decompiler is not
 		yet finished. Currenty working on:</p>
 	<ul>
-		<li>Download JAR sources</li>
-		<li>Add Data Flow Analysis for proper variable Types and Names</li>
-		<li>Complete Control Flow Analysis, break support</li>
+	    <li>Use background tasks: I can only decompile 500 kB source code in 30 seconds, then we get a request timeout...</li>
+		<li>Add Data Flow Analysis: variable Types and Names, local declarations</li>
+		<li>Complete Control Flow Analysis: break support</li>
 		<li>Add Exceptions</li>
+		<li>Improve Android/Dalvik result: recognize temporary registers</li>
 	</ul>
 	<form action="<%=blobstoreService.createUploadUrl("/upload")%>"
 		method="post" enctype="multipart/form-data">
 		<input type="file" name="file"> <input type="submit"
-			value="Submit">
+			value="Submit"> Hint - use small files, megabyte archives not possible right now in less then 30 seconds
 	</form>
 	<%=Messages.getMessagesHtml(pageContext.getSession())%>
 	<%=Uploads.getUploadsHtml(request, pageContext.getSession())%>
