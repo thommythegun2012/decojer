@@ -23,6 +23,7 @@
  */
 package org.decojer.web.util;
 
+import java.io.BufferedInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -96,8 +97,8 @@ public class Uploads {
 			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
 					upload.getBlobKey());
 			final DU du = DecoJer.createDu();
-			final TD td = du.read(upload.getFilename(), blobstoreInputStream,
-					null);
+			final TD td = du.read(upload.getFilename(),
+					new BufferedInputStream(blobstoreInputStream), null);
 			final CU cu = DecoJer.createCu(td);
 			final String source = DecoJer.decompile(cu);
 			sb.append("<hr /><pre class=\"brush: java\">")
