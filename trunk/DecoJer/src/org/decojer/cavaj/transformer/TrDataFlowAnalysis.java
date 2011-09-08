@@ -424,6 +424,13 @@ public class TrDataFlowAnalysis {
 				final int reg = op.getVarIndex();
 				final Var var = this.cfg.getVar(reg, pc + 1);
 
+				if (var != null) {
+					// TODO
+					if (pop.merge(var.getT())) {
+						this.queue.add(var.getStartPc());
+					}
+				}
+
 				frame.setReg(op.getVarIndex(), var != null ? var : pop);
 				break;
 			}

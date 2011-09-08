@@ -152,12 +152,13 @@ public class Types {
 			return characterLiteral;
 		}
 		if (t == T.DOUBLE) {
-			if (value instanceof Double) {
-				if (((Double) value).isNaN()) {
+			if (value instanceof Double || value instanceof Long) {
+				final double d = value instanceof Double ? (Double) value
+						: Double.longBitsToDouble((Long) value);
+				if (Double.isNaN(d)) {
 					return ast.newQualifiedName(ast.newSimpleName("Double"),
 							ast.newSimpleName("NaN"));
 				}
-				final double d = (Double) value;
 				if (d == Double.POSITIVE_INFINITY) {
 					return ast.newQualifiedName(ast.newSimpleName("Double"),
 							ast.newSimpleName("POSITIVE_INFINITY"));
@@ -188,12 +189,13 @@ public class Types {
 			return ast.newNumberLiteral(value.toString() + 'D');
 		}
 		if (t == T.FLOAT) {
-			if (value instanceof Float) {
-				if (((Float) value).isNaN()) {
+			if (value instanceof Float || value instanceof Integer) {
+				final float f = value instanceof Float ? (Float) value : Float
+						.intBitsToFloat((Integer) value);
+				if (Float.isNaN(f)) {
 					return ast.newQualifiedName(ast.newSimpleName("Float"),
 							ast.newSimpleName("NaN"));
 				}
-				final float f = (Float) value;
 				if (f == Float.POSITIVE_INFINITY) {
 					return ast.newQualifiedName(ast.newSimpleName("Float"),
 							ast.newSimpleName("POSITIVE_INFINITY"));

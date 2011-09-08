@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model;
 
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 
 /**
  * Type.
@@ -64,6 +65,35 @@ public class T {
 			return this.ts;
 		}
 
+		@Override
+		public T merge(final T t) {
+			if (t == this || t == null) {
+				return this;
+			}
+			final LinkedHashSet<T> merged = new LinkedHashSet<T>();
+			for (final T st : this.ts) {
+				final T mt = t.merge(st); // t might be multi too
+				if (mt == T.BOGUS) {
+					continue;
+				}
+				if (mt instanceof TT) {
+					for (final T smt : ((TT) mt).getTs()) {
+						merged.add(smt);
+					}
+					continue;
+				}
+				merged.add(mt);
+			}
+			final int s = merged.size();
+			if (s == 0) {
+				return T.BOGUS;
+			}
+			if (s == 1) {
+				return merged.iterator().next();
+			}
+			// TODO equals old?
+			return new TT(merged.toArray(new T[s]));
+		}
 	}
 
 	/**
@@ -111,9 +141,17 @@ public class T {
 	 */
 	public static T UNINIT = new T("<uninit>");
 	/**
+	 * Artificial type 'bogus'.
+	 */
+	public static T BOGUS = new T("<bogus>");
+	/**
 	 * Multi-type 'any int (32 bit)'.
 	 */
 	public static T AINT = multi(BOOLEAN, CHAR, BYTE, SHORT, INT);
+	/**
+	 * Multi-type 'dalvik int (32 bit)', includes float.
+	 */
+	public static T DINT = multi(BOOLEAN, CHAR, BYTE, SHORT, INT, FLOAT);
 	/**
 	 * Multi-type 'any wide (64 bit)'.
 	 */
@@ -386,7 +424,13 @@ public class T {
 		if (t == this || t == null) {
 			return this;
 		}
-		// TODO
+		if (t instanceof TT) {
+			return t.merge(this);
+		}
+		if (isPrimitive() && t.isPrimitive()) {
+			// unequal primitives
+			return T.BOGUS;
+		}
 		System.out.println("Merge: " + this + " -> " + t);
 		return this;
 	}

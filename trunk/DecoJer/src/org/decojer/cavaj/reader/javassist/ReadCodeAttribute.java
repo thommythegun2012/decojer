@@ -1047,13 +1047,13 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.BIPUSH:
 				if (t == null) {
-					t = T.BYTE;
+					t = T.AINT;
 					oValue = codeReader.readSignedByte();
 				}
 				// fall through
 			case Opcode.SIPUSH:
 				if (t == null) {
-					t = T.SHORT;
+					t = T.AINT;
 					oValue = codeReader.readSignedShort();
 				}
 				// fall through
@@ -1077,7 +1077,7 @@ public class ReadCodeAttribute {
 						// fall through
 					case ConstPool.CONST_Integer:
 						if (t == null) {
-							t = T.INT;
+							t = T.AINT;
 						}
 						// fall through
 					case ConstPool.CONST_Long:
@@ -1119,7 +1119,7 @@ public class ReadCodeAttribute {
 						// fall through
 					case ConstPool.CONST_Integer:
 						if (t == null) {
-							t = T.INT;
+							t = T.AINT;
 						}
 						// fall through
 					case ConstPool.CONST_Long:
@@ -1153,7 +1153,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ICONST_0:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					oValue = 0;
 				}
 				// fall through
@@ -1177,7 +1177,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ICONST_1:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					oValue = 1;
 				}
 				// fall through
@@ -1195,31 +1195,31 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ICONST_2:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					oValue = 2;
 				}
 				// fall through
 			case Opcode.ICONST_3:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					oValue = 3;
 				}
 				// fall through
 			case Opcode.ICONST_4:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					oValue = 4;
 				}
 				// fall through
 			case Opcode.ICONST_5:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					oValue = 5;
 				}
 				// fall through
 			case Opcode.ICONST_M1:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					oValue = -1;
 				}
 				this.operations.add(new PUSH(pc, code, line, t, oValue));
