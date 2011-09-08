@@ -1451,6 +1451,14 @@ public class ReadCodeItem {
 				this.operations.add(op);
 				break;
 			}
+			case FILLED_NEW_ARRAY: {
+				// TODO and move-result-object
+				break;
+			}
+			case FILLED_NEW_ARRAY_RANGE: {
+				// TODO and move-result-object
+				break;
+			}
 			/*******
 			 * NOP *
 			 *******/
