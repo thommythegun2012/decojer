@@ -65,12 +65,22 @@ public class Types {
 			final T[] ts = ((T.TT) t).getTs();
 			return convertLiteral(ts[ts.length - 1], value, td, ast);
 		}
-		if (t == T.AREF) {
+		if (t.isReference() /* incl. T.AREF */) {
 			if (value == null) {
 				return ast.newNullLiteral();
 			}
-			LOGGER.warning("No not null aref constants possible!");
-			return null;
+			if (t.getName().equals(Class.class.getName())) {
+				final TypeLiteral typeLiteral = ast.newTypeLiteral();
+				typeLiteral.setType(convertType((T) value, td, ast));
+				return typeLiteral;
+			}
+			if (t.getName().equals(String.class.getName())) {
+				final StringLiteral stringLiteral = ast.newStringLiteral();
+				stringLiteral.setLiteralValue((String) value);
+				return stringLiteral;
+			}
+			LOGGER.warning("Unknown reference type '" + t + "'!");
+			return ast.newNullLiteral();
 		}
 		if (t == T.BOOLEAN) {
 			if (value instanceof Boolean) {
@@ -274,16 +284,6 @@ public class Types {
 						+ "' has type '" + value.getClass().getName() + "'!");
 			}
 			return ast.newNumberLiteral(value.toString());
-		}
-		if (t.getName().equals(Class.class.getName())) {
-			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-			typeLiteral.setType(convertType((T) value, td, ast));
-			return typeLiteral;
-		}
-		if (t.getName().equals(String.class.getName())) {
-			final StringLiteral stringLiteral = ast.newStringLiteral();
-			stringLiteral.setLiteralValue((String) value);
-			return stringLiteral;
 		}
 		LOGGER.warning("Unknown data type '" + t + "'!");
 		final StringLiteral stringLiteral = ast.newStringLiteral();

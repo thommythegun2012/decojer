@@ -107,7 +107,19 @@ public class Frame {
 	 * @return true - changed (this)
 	 */
 	public boolean merge(final Frame frame) {
-		return false;
+		boolean changed = false;
+		for (int reg = this.regs.length; reg-- > 0;) {
+			final Var var = this.regs[reg];
+			if (var == null) {
+				this.regs[reg] = frame.regs[reg];
+				continue;
+			}
+			changed |= var.merge(frame.regs[reg]);
+		}
+		for (int index = this.stackTop; index-- > 0;) {
+			changed |= this.stack[index].merge(frame.stack[index]);
+		}
+		return changed;
 	}
 
 	/**
