@@ -1109,7 +1109,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			// fall through
 		case Opcodes.IFEQ:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT; // for boolean too
 				iValue = CompareType.T_EQ;
 			}
 			// fall through
@@ -1139,7 +1139,7 @@ public class ReadMethodVisitor implements MethodVisitor {
 			// fall through
 		case Opcodes.IFNE:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT; // for boolean too
 				iValue = CompareType.T_NE;
 			}
 			{

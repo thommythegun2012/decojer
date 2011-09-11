@@ -698,7 +698,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IFEQ:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT; // for boolean too
 					iValue = CompareType.T_EQ;
 				}
 				// fall through
@@ -728,7 +728,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IFNE:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT; // for boolean too
 					iValue = CompareType.T_NE;
 				}
 				{

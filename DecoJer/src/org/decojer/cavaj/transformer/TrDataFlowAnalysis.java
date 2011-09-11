@@ -125,6 +125,16 @@ public class TrDataFlowAnalysis {
 		return frame;
 	}
 
+	/**
+	 * @param t
+	 * @param frame
+	 */
+	private void evalBinaryMath(final Frame frame, final T t) {
+		final Var var2 = pop(frame, t);
+		final Var var1 = pop(frame, t);
+		frame.push(var1);
+	}
+
 	private CFG getCfg() {
 		return this.cfg;
 	}
@@ -139,7 +149,7 @@ public class TrDataFlowAnalysis {
 		this.queue.add(targetPc);
 	}
 
-	private Var pop(final T t, final Frame frame) {
+	private Var pop(final Frame frame, final T t) {
 		final Var var = frame.pop();
 		if (var.merge(t)) {
 			// TODO check should not pe necessary
@@ -147,6 +157,13 @@ public class TrDataFlowAnalysis {
 				this.queue.add(var.getStartPc());
 			}
 		}
+		return var;
+	}
+
+	private Var push(final Frame frame, final T t, final int pc) {
+		final Var var = new Var(t);
+		var.setStartPc(pc);
+		frame.push(var);
 		return var;
 	}
 
@@ -165,48 +182,51 @@ public class TrDataFlowAnalysis {
 			switch (operation.getOpcode()) {
 			case Opcode.ADD: {
 				final ADD op = (ADD) operation;
-				frame.push(Var.merge(frame.pop(), frame.pop()));
+				evalBinaryMath(frame, op.getT());
 				break;
 			}
 			case Opcode.ALOAD: {
 				final ALOAD op = (ALOAD) operation;
-				frame.push(new Var(op.getT()));
+				pop(frame, T.INT);
+				pop(frame, T.AREF); // TODO op array type
+				// TODO
+				push(frame, op.getT(), pc);
 				break;
 			}
 			case Opcode.AND: {
 				final AND op = (AND) operation;
-				frame.push(Var.merge(frame.pop(), frame.pop()));
+				evalBinaryMath(frame, op.getT());
 				break;
 			}
 			case Opcode.ARRAYLENGTH: {
 				final ARRAYLENGTH op = (ARRAYLENGTH) operation;
-				frame.pop();
-				frame.push(new Var(T.INT));
+				pop(frame, T.AREF); // TODO op array type
+				push(frame, T.INT, pc);
 				break;
 			}
 			case Opcode.ASTORE: {
 				final ASTORE op = (ASTORE) operation;
-				frame.pop();
-				frame.pop();
-				frame.pop();
+				pop(frame, op.getT());
+				pop(frame, T.INT);
+				pop(frame, T.AREF); // TODO op array type
 				break;
 			}
 			case Opcode.CAST: {
 				final CAST op = (CAST) operation;
-				frame.pop();
-				frame.push(new Var(op.getToT()));
+				pop(frame, op.getT());
+				push(frame, op.getToT(), pc);
 				break;
 			}
 			case Opcode.CMP: {
 				final CMP op = (CMP) operation;
-				frame.pop();
-				frame.pop();
-				frame.push(new Var(T.INT));
+				pop(frame, op.getT());
+				pop(frame, op.getT());
+				push(frame, T.INT, pc);
 				break;
 			}
 			case Opcode.DIV: {
 				final DIV op = (DIV) operation;
-				frame.push(Var.merge(frame.pop(), frame.pop()));
+				evalBinaryMath(frame, op.getT());
 				break;
 			}
 			case Opcode.DUP: {
@@ -276,9 +296,9 @@ public class TrDataFlowAnalysis {
 				final GET op = (GET) operation;
 				final F f = op.getF();
 				if (!f.checkAf(AF.STATIC)) {
-					frame.pop();
+					pop(frame, f.getT());
 				}
-				frame.push(new Var(f.getValueT()));
+				push(frame, f.getValueT(), pc);
 				break;
 			}
 			case Opcode.GOTO: {
@@ -293,34 +313,34 @@ public class TrDataFlowAnalysis {
 			}
 			case Opcode.INSTANCEOF: {
 				final INSTANCEOF op = (INSTANCEOF) operation;
-				frame.pop();
-				frame.push(new Var(T.BOOLEAN));
+				pop(frame, T.AREF); // not op type
+				push(frame, T.BOOLEAN, pc);
 				break;
 			}
 			case Opcode.INVOKE: {
 				final INVOKE op = (INVOKE) operation;
 				final M m = op.getM();
-				if (!m.checkAf(AF.STATIC)) {
-					frame.pop();
-				}
 				for (int i = m.getParamTs().length; i-- > 0;) {
-					frame.pop();
+					pop(frame, m.getParamTs()[i]);
+				}
+				if (!m.checkAf(AF.STATIC)) {
+					pop(frame, m.getT());
 				}
 				if (m.getReturnT() != T.VOID) {
-					frame.push(new Var(m.getReturnT()));
+					push(frame, m.getReturnT(), pc);
 				}
 				break;
 			}
 			case Opcode.JCMP: {
 				final JCMP op = (JCMP) operation;
-				frame.pop();
-				frame.pop();
+				pop(frame, op.getT());
+				pop(frame, op.getT());
 				merge(frame, op.getTargetPc());
 				break;
 			}
 			case Opcode.JCND: {
 				final JCND op = (JCND) operation;
-				frame.pop();
+				pop(frame, op.getT());
 				merge(frame, op.getTargetPc());
 				break;
 			}
@@ -328,39 +348,39 @@ public class TrDataFlowAnalysis {
 				final LOAD op = (LOAD) operation;
 				final Var var = frame.getReg(op.getVarIndex());
 				var.merge(op.getT());
-				frame.push(var);
+				frame.push(var); // OK
 				break;
 			}
 			case Opcode.MONITOR: {
 				final MONITOR op = (MONITOR) operation;
-				frame.pop();
+				pop(frame, T.AREF);
 				break;
 			}
 			case Opcode.MUL: {
 				final MUL op = (MUL) operation;
-				frame.push(Var.merge(frame.pop(), frame.pop()));
+				evalBinaryMath(frame, op.getT());
 				break;
 			}
 			case Opcode.NEG: {
 				final NEG op = (NEG) operation;
-				// opFrame = new Frame(opFrame);
-				// no BOOL
+				final Var var = pop(frame, op.getT());
+				frame.push(var); // OK
 				break;
 			}
 			case Opcode.NEW: {
 				final NEW op = (NEW) operation;
-				frame.push(new Var(op.getT()));
+				push(frame, op.getT(), pc);
 				break;
 			}
 			case Opcode.NEWARRAY: {
 				final NEWARRAY op = (NEWARRAY) operation;
-				frame.pop(); // no BOOL
-				frame.push(new Var(op.getT())); // add dimension!
+				pop(frame, T.INT);
+				push(frame, op.getT(), pc); // add dimension!
 				break;
 			}
 			case Opcode.OR: {
 				final OR op = (OR) operation;
-				frame.push(Var.merge(frame.pop(), frame.pop()));
+				evalBinaryMath(frame, op.getT());
 				break;
 			}
 			case Opcode.POP: {
@@ -383,43 +403,43 @@ public class TrDataFlowAnalysis {
 			}
 			case Opcode.PUSH: {
 				final PUSH op = (PUSH) operation;
-				frame.push(new Var(op.getT()));
+				push(frame, op.getT(), pc);
 				break;
 			}
 			case Opcode.PUT: {
 				final PUT op = (PUT) operation;
 				final F f = op.getF();
-				frame.pop();
+				pop(frame, f.getValueT());
 				if (!f.checkAf(AF.STATIC)) {
-					frame.pop();
+					pop(frame, f.getT());
 				}
 				break;
 			}
 			case Opcode.REM: {
 				final REM op = (REM) operation;
-				frame.push(Var.merge(frame.pop(), frame.pop()));
+				evalBinaryMath(frame, op.getT());
 				break;
 			}
 			case Opcode.RETURN: {
 				final RETURN op = (RETURN) operation;
 				if (op.getT() != T.VOID) {
-					frame.pop();
+					pop(frame, op.getT()); // TODO method return
 				}
 				continue;
 			}
 			case Opcode.SHL: {
 				final SHL op = (SHL) operation;
-				frame.push(Var.merge(frame.pop(), frame.pop()));
+				evalBinaryMath(frame, op.getT());
 				break;
 			}
 			case Opcode.SHR: {
 				final SHR op = (SHR) operation;
-				frame.push(Var.merge(frame.pop(), frame.pop()));
+				evalBinaryMath(frame, op.getT());
 				break;
 			}
 			case Opcode.STORE: {
 				final STORE op = (STORE) operation;
-				final Var pop = frame.pop();
+				final Var pop = pop(frame, op.getT());
 
 				final int reg = op.getVarIndex();
 				final Var var = this.cfg.getVar(reg, pc + 1);
@@ -436,7 +456,7 @@ public class TrDataFlowAnalysis {
 			}
 			case Opcode.SUB: {
 				final SUB op = (SUB) operation;
-				frame.push(Var.merge(frame.pop(), frame.pop()));
+				evalBinaryMath(frame, op.getT());
 				break;
 			}
 			case Opcode.SWAP: {
@@ -449,7 +469,7 @@ public class TrDataFlowAnalysis {
 			}
 			case Opcode.SWITCH: {
 				final SWITCH op = (SWITCH) operation;
-				frame.pop();
+				pop(frame, T.INT);
 				merge(frame, op.getDefaultPc());
 				for (final int casePc : op.getCasePcs()) {
 					merge(frame, casePc);
@@ -458,12 +478,12 @@ public class TrDataFlowAnalysis {
 			}
 			case Opcode.THROW: {
 				final THROW op = (THROW) operation;
-				frame.pop();
+				pop(frame, T.AREF); // TODO Throwable
 				continue;
 			}
 			case Opcode.XOR: {
 				final XOR op = (XOR) operation;
-				frame.push(Var.merge(frame.pop(), frame.pop()));
+				evalBinaryMath(frame, op.getT());
 				break;
 			}
 			default:

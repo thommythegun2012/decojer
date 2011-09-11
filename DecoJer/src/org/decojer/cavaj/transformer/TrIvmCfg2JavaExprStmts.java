@@ -89,6 +89,7 @@ import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.ArrayCreation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.Assignment;
+import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.Expression;
@@ -1015,13 +1016,19 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				final Expression trueExpression = trueBb.peekExpression();
 				final Expression falseExpression = falseBb.peekExpression();
-				if (trueExpression instanceof NumberLiteral
-						&& falseExpression instanceof NumberLiteral) {
+				// TODO can delete Number later?
+				if ((trueExpression instanceof BooleanLiteral || trueExpression instanceof NumberLiteral)
+						&& (falseExpression instanceof BooleanLiteral || falseExpression instanceof NumberLiteral)) {
 					Expression expression = ((IfStatement) statement)
 							.getExpression();
 					((IfStatement) statement).setExpression(getAst()
 							.newBooleanLiteral(false)); // delete parent
-					if (((NumberLiteral) trueExpression).getToken().equals("0")) {
+					if (trueExpression instanceof BooleanLiteral
+							&& !((BooleanLiteral) trueExpression)
+									.booleanValue()
+							|| trueExpression instanceof NumberLiteral
+							&& ((NumberLiteral) trueExpression).getToken()
+									.equals("0")) {
 						expression = newPrefixExpression(
 								PrefixExpression.Operator.NOT, expression);
 					}

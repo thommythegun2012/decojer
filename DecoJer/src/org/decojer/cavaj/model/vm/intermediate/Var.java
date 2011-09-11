@@ -32,19 +32,6 @@ import org.decojer.cavaj.model.T;
  */
 public class Var {
 
-	/**
-	 * Merge variables.
-	 * 
-	 * @param var1
-	 *            variable
-	 * @param var2
-	 *            variable
-	 * @return variable
-	 */
-	public static Var merge(final Var var1, final Var var2) {
-		return var1; // TODO
-	}
-
 	private int endPc;
 
 	private String name;
@@ -113,6 +100,20 @@ public class Var {
 		}
 		this.t = mergedT;
 		return true;
+	}
+
+	/**
+	 * Merge type.
+	 * 
+	 * @param var
+	 *            variable
+	 * @return true - changed (this)
+	 */
+	public boolean merge(final Var var) {
+		if (var == null) {
+			return false;
+		}
+		return merge(var.getT());
 	}
 
 	/**

@@ -391,7 +391,19 @@ public class T {
 	 * @return true - is primitive
 	 */
 	public boolean isPrimitive() {
-		return this.du == null;
+		// TODO improve lame code
+		return this == T.BOOLEAN || this == T.BYTE || this == T.CHAR
+				|| this == T.DOUBLE || this == T.FLOAT || this == T.INT
+				|| this == T.LONG || this == T.SHORT;
+	}
+
+	/**
+	 * Is reference?
+	 * 
+	 * @return true - is reference
+	 */
+	public boolean isReference() {
+		return this == T.AREF || this.du != null;
 	}
 
 	/**
@@ -424,12 +436,19 @@ public class T {
 		if (t == this || t == null) {
 			return this;
 		}
+		// has priority, TT doesn't know merged super states
 		if (t instanceof TT) {
 			return t.merge(this);
 		}
-		if (isPrimitive() && t.isPrimitive()) {
-			// unequal primitives
+		if (!isReference() && !t.isReference()) {
+			// unequal primitives or special types cannot be equal
 			return T.BOGUS;
+		}
+		if (this == T.AREF && t.isReference()) {
+			return t;
+		}
+		if (t == T.AREF && isReference()) {
+			return this;
 		}
 		System.out.println("Merge: " + this + " -> " + t);
 		return this;
