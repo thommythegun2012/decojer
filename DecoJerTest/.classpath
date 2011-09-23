@@ -11,8 +11,8 @@
 	<classpathentry kind="lib" path="bin_jdk1.5.0"/>
 	<classpathentry kind="lib" path="bin_jdk1.5.0_22"/>
 	<classpathentry kind="lib" path="bin_jdk1.6.0"/>
-	<classpathentry kind="lib" path="bin_jdk1.6.0_26"/>
 	<classpathentry kind="lib" path="bin_j2sdk1.4.0"/>
 	<classpathentry kind="lib" path="bin_j2sdk1.4.2_19"/>
+	<classpathentry kind="lib" path="bin_jdk1.6.0_27"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
