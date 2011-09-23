@@ -15,12 +15,12 @@ The following details give an overview of the necessary steps to check out the s
 
 == Eclipse & Plugins ==
 
-  * Download *Eclipse for RCP* (Version 3.7, Indigo) from http://www.eclipse.org/downloads/
+  * Download *Eclipse for RCP* (Version 3.7.1, Indigo) from http://www.eclipse.org/downloads/
 
   * Install Plugins:
     * Install *AST View*:
       * add Update Manager http://www.eclipse.org/jdt/ui/update-site
-      * select _AST View for 3.5 and 3.6_
+      * select _AST View for 3.7.1 and 3.8_
     * Install *ZEST*
       * choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
       * select _Modeling_ / _Graphical Editing Framework Zest Visualization Toolkit SDK_
