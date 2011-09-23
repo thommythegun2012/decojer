@@ -16,6 +16,8 @@ del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.5.0_22\*.class
 del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0\*.class
 del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_27\*.class
 
+del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0\*.class
+
 
 "C:\Program Files\Java\jdk1.1.6\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.1.6
 
@@ -61,6 +63,13 @@ del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_27\*.class
 "C:\Program Files\Java\jdk1.6.0_27\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk2\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_27
 "C:\Program Files\Java\jdk1.6.0_27\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk5\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_27
 "C:\Program Files\Java\jdk1.6.0_27\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_27
+
+
+"C:\Program Files\Java\jdk1.7.0\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0
+"C:\Program Files\Java\jdk1.7.0\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk2\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0
+"C:\Program Files\Java\jdk1.7.0\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk5\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0
+"C:\Program Files\Java\jdk1.7.0\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0
+"C:\Program Files\Java\jdk1.7.0\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk7\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0
 
 
 mkdir D:\Data\Decomp\workspace\DecoJerTest\dex\bin
