@@ -23,7 +23,7 @@ The following details give an overview of the necessary steps to check out the s
       * select _AST View for 3.5 and 3.6_
     * Install *ZEST*
       * choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
-      * select _Graphical Editing Framework Zest Visualization Toolkit SDK_
+      * select _Modeling_ / _Graphical Editing Framework Zest Visualization Toolkit SDK_
     * Install *Subversive*:
       * choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
       * select _Collaboration_ / _Subversive SVN..._
