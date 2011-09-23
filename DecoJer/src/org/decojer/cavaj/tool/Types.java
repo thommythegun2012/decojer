@@ -112,10 +112,12 @@ public class Types {
 			return ast.newNumberLiteral(value.toString());
 		}
 		if (t == T.CHAR) {
-			final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-			if (value instanceof Character || value instanceof Number) {
+			if (value instanceof Character || value instanceof Number
+					|| value instanceof String
+					&& ((String) value).length() == 1) {
 				final char c = value instanceof Character ? (Character) value
-						: (char) ((Number) value).intValue();
+						: value instanceof Number ? (char) ((Number) value)
+								.intValue() : ((String) value).charAt(0);
 				switch (c) {
 				case Character.MAX_VALUE:
 					return ast.newQualifiedName(ast.newSimpleName("Character"),
@@ -152,14 +154,16 @@ public class Types {
 					}
 					break;
 				}
+				final CharacterLiteral characterLiteral = ast
+						.newCharacterLiteral();
+				characterLiteral.setCharValue(c);
+				return characterLiteral;
 			} else {
 				LOGGER.warning("Character type with value '" + value
 						+ "' has type '" + value.getClass().getName() + "'!");
 			}
-			characterLiteral.setCharValue(value instanceof String
-					&& ((String) value).length() > 0 ? ((String) value)
-					.charAt(0) : '?');
-			return characterLiteral;
+			// char is per default 'X'
+			return ast.newCharacterLiteral();
 		}
 		if (t == T.DOUBLE) {
 			if (value instanceof Double || value instanceof Long) {
