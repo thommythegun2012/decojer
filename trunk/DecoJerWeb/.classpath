@@ -2,7 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/javassist.jar" sourcepath="/javassist-3.14.0-GA"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.core.contenttype_3.4.100.v20110423-0524.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.core.jobs_3.5.100.v20110404.jar"/>
@@ -20,7 +19,8 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/dex-reader-1.1.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/dexlib-1.2.7-dev.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-3.3.1.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-4.0-all.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-commons-3.3.1.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-4.0-all.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
