@@ -8,10 +8,6 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.core.resources_3.7.100.v20110510-0712.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.core.runtime_3.7.0.v20110110.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.equinox.common_3.6.0.v20110523.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.equinox.preferences_3.4.0.v20110502.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.jdt.core_3.7.0.v_B61.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.osgi_3.7.0.v20110613.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.text_3.5.100.v20110505-0800.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/decojer.jar" sourcepath="/DecoJer"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/fast-md5.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/commons-io-2.0.1.jar" sourcepath="C:/Users/André Pankraz/.m2/repository/commons-io/commons-io/2.0.1/commons-io-2.0.1-sources.jar"/>
@@ -22,5 +18,9 @@
 	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-commons-3.3.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-4.0-all.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.equinox.preferences_3.4.1.R37x_v20110725.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.jdt.core_3.7.1.v_B76_R37x.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.osgi_3.7.1.R37x_v20110808-1106.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/org.eclipse.text_3.5.101.r371_v20110810-0800.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>
