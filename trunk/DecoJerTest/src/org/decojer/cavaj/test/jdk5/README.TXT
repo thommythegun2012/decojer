@@ -1,8 +1,7 @@
 Differences JDK 5 to previous
 
-* http://www.barrycornelius.com/papers/java5/onefile/
-
-
-* new constants:
-  + Double.SIZE, Float.SIZE
-  + Double.TYPE, Float.TYPE
+* new language features: http://www.barrycornelius.com/papers/java5/onefile/
+  + Switch with Enums
+  + new constants:
+    - Double.SIZE, Float.SIZE
+    - Double.TYPE, Float.TYPE
