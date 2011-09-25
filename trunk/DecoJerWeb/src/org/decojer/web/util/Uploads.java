@@ -34,7 +34,7 @@ import org.decojer.DecoJer;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.web.analyser.BlobInfo;
+import org.decojer.web.analyser.UploadInfo;
 
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
 
@@ -44,31 +44,31 @@ import com.google.appengine.api.blobstore.BlobstoreInputStream;
 public class Uploads {
 
 	public static void addUpload(final HttpServletRequest req,
-			final BlobInfo blobInfo) {
-		List<BlobInfo> uploads = getUploads(req.getSession());
+			final UploadInfo uploadInfo) {
+		List<UploadInfo> uploads = getUploads(req.getSession());
 		if (uploads == null) {
-			uploads = new ArrayList<BlobInfo>();
+			uploads = new ArrayList<UploadInfo>();
 		} else {
 			// to list end
-			uploads.remove(blobInfo);
+			uploads.remove(uploadInfo);
 		}
-		uploads.add(blobInfo);
+		uploads.add(uploadInfo);
 		req.getSession().setAttribute("blobKeys", uploads); // trigger update
 	}
 
-	public static List<BlobInfo> getUploads(final HttpSession httpSession) {
-		return (List<BlobInfo>) httpSession.getAttribute("blobKeys");
+	public static List<UploadInfo> getUploads(final HttpSession httpSession) {
+		return (List<UploadInfo>) httpSession.getAttribute("blobKeys");
 	}
 
 	public static String getUploadsHtml(final HttpServletRequest req,
 			final HttpSession httpSession) {
-		final List<BlobInfo> uploads = getUploads(httpSession);
+		final List<UploadInfo> uploads = getUploads(httpSession);
 		if (uploads == null || uploads.size() == 0) {
 			return "";
 		}
 		final StringBuilder sb = new StringBuilder("<ul>");
 		for (int i = 0; i < uploads.size(); ++i) {
-			final BlobInfo blobInfo = uploads.get(i);
+			final UploadInfo blobInfo = uploads.get(i);
 			sb.append("<li><a href='/decompile?u=").append(i)
 					.append("' target='_blank'>")
 					.append(blobInfo.getFilename()).append("</a>");
@@ -89,7 +89,7 @@ public class Uploads {
 		} catch (final NumberFormatException e) {
 			u = uploads.size() - 1;
 		}
-		final BlobInfo upload = uploads.get(u);
+		final UploadInfo upload = uploads.get(u);
 		if (!upload.getFilename().endsWith(".class")) {
 			return sb.toString();
 		}
@@ -109,4 +109,5 @@ public class Uploads {
 		}
 		return sb.toString();
 	}
+
 }

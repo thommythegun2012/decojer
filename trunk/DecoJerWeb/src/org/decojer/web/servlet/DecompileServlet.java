@@ -38,31 +38,37 @@ import org.decojer.DecoJer;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.web.analyser.BlobInfo;
+import org.decojer.web.analyser.UploadInfo;
 import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
 import org.decojer.web.util.Uploads;
 
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
 
+/**
+ * @author André Pankraz
+ */
 public class DecompileServlet extends HttpServlet {
 
 	private static Logger LOGGER = Logger.getLogger(DecompileServlet.class
 			.getName());
 
+	private static final long serialVersionUID = 7678690999538248908L;
+
 	@Override
 	protected void doGet(final HttpServletRequest req,
 			final HttpServletResponse res) throws ServletException, IOException {
-		final BlobInfo upload;
+		final UploadInfo uploadInfo;
 		try {
-			final List<BlobInfo> uploads = Uploads.getUploads(req.getSession());
-			upload = uploads.get(Integer.parseInt(req.getParameter("u")));
+			final List<UploadInfo> uploads = Uploads.getUploads(req
+					.getSession());
+			uploadInfo = uploads.get(Integer.parseInt(req.getParameter("u")));
 		} catch (final Exception e) {
 			Messages.addMessage(req, "Please Ma - Don't hack me!");
 			res.sendRedirect("/");
 			return;
 		}
-		final String filename = upload.getFilename();
+		final String filename = uploadInfo.getFilename();
 		if (filename.endsWith(".class")) {
 			final int pos = filename.lastIndexOf('.');
 			final String sourcename = filename.substring(0, pos) + ".java";
@@ -72,7 +78,7 @@ public class DecompileServlet extends HttpServlet {
 			res.setHeader("Content-Disposition", "attachment; filename=\""
 					+ sourcename + "\"");
 			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
-					upload.getBlobKey());
+					uploadInfo.getBlobKey());
 			final byte[] bytes = IOUtils.toBytes(blobstoreInputStream);
 			try {
 				final DU du = DecoJer.createDu();
@@ -95,7 +101,7 @@ public class DecompileServlet extends HttpServlet {
 			res.setHeader("Content-Disposition", "attachment; filename=\""
 					+ sourcename + "\"");
 			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
-					upload.getBlobKey());
+					uploadInfo.getBlobKey());
 			final byte[] bytes = IOUtils.toBytes(blobstoreInputStream);
 			try {
 				final DU du = DecoJer.createDu();
@@ -116,7 +122,7 @@ public class DecompileServlet extends HttpServlet {
 			res.setHeader("Content-Disposition", "attachment; filename=\""
 					+ sourcename + "\"");
 			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
-					upload.getBlobKey());
+					uploadInfo.getBlobKey());
 			final byte[] bytes = IOUtils.toBytes(blobstoreInputStream);
 			try {
 				final DU du = DecoJer.createDu();
