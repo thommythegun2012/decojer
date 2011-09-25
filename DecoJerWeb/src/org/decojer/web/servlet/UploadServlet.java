@@ -39,13 +39,13 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.decojer.web.analyser.AnalyseException;
 import org.decojer.web.analyser.BlobAnalyser;
-import org.decojer.web.analyser.BlobInfo;
 import org.decojer.web.analyser.ClassAnalyser;
 import org.decojer.web.analyser.DexAnalyser;
 import org.decojer.web.analyser.DexInfo;
 import org.decojer.web.analyser.JarAnalyser;
 import org.decojer.web.analyser.JarInfo;
 import org.decojer.web.analyser.TypeInfo;
+import org.decojer.web.analyser.UploadInfo;
 import org.decojer.web.util.EntityConstants;
 import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
@@ -85,9 +85,9 @@ public class UploadServlet extends HttpServlet {
 		// same target page in all cases
 		res.sendRedirect("/");
 		// check given upload BlobKey
-		final Map<String, BlobKey> blobs = this.blobstoreService
+		final Map<String, BlobKey> uploadedBlobs = this.blobstoreService
 				.getUploadedBlobs(req);
-		final BlobKey blobKey = blobs.get("file");
+		final BlobKey blobKey = uploadedBlobs.get("file");
 		if (blobKey == null) {
 			Messages.addMessage(req, "File was empty!");
 			return;
@@ -97,7 +97,7 @@ public class UploadServlet extends HttpServlet {
 			// attention: this servlet can rely on the existence of the
 			// current uploads blob meta data via datastoreService.get(), but
 			// the results from other queries are HA write lag dependend!
-			final BlobInfo blobInfo = BlobAnalyser.uniqueBlobInfo(
+			final UploadInfo blobInfo = BlobAnalyser.uniqueBlobInfo(
 					this.datastoreService, blobKey);
 			final List<TypeInfo> typeInfos = new ArrayList<TypeInfo>();
 			try {

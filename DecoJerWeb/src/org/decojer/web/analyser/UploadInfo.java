@@ -32,7 +32,7 @@ import org.decojer.web.util.EntityConstants;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.Entity;
 
-public class BlobInfo implements Serializable {
+public class UploadInfo implements Serializable {
 
 	private static final long serialVersionUID = 1521504215210091647L;
 
@@ -48,7 +48,7 @@ public class BlobInfo implements Serializable {
 
 	private int types;
 
-	public BlobInfo(final Entity blobInfoEntity,
+	public UploadInfo(final Entity blobInfoEntity,
 			final Set<BlobKey> duplicateBlobs) {
 		this.blobInfoEntity = blobInfoEntity;
 		this.duplicateBlobs = duplicateBlobs;
@@ -56,8 +56,8 @@ public class BlobInfo implements Serializable {
 
 	@Override
 	public boolean equals(final Object obj) {
-		return obj instanceof BlobInfo
-				&& this.blobInfoEntity.equals(((BlobInfo) obj)
+		return obj instanceof UploadInfo
+				&& this.blobInfoEntity.equals(((UploadInfo) obj)
 						.getBlobInfoEntity());
 	}
 
