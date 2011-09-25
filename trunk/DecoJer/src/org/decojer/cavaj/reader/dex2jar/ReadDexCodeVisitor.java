@@ -25,8 +25,8 @@ package org.decojer.cavaj.reader.dex2jar;
 
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.MD;
-import org.objectweb.asm.Label;
 
+import com.googlecode.dex2jar.DexLabel;
 import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.Method;
 import com.googlecode.dex2jar.visitors.DexCodeVisitor;
@@ -139,39 +139,40 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
+	public void visitJumpStmt(final int opcode, final DexLabel label) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visitJumpStmt(final int opcode, final int reg,
+			final DexLabel label) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void visitJumpStmt(final int opcode, final int a, final int b,
-			final Label label) {
+			final DexLabel label) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitJumpStmt(final int opcode, final int reg, final Label label) {
+	public void visitLabel(final DexLabel label) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitJumpStmt(final int opcode, final Label label) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visitLabel(final Label label) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visitLineNumber(final int line, final Label label) {
+	public void visitLineNumber(final int line, final DexLabel label) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void visitLocalVariable(final String name, final String type,
-			final String signature, final Label start, final Label end,
+			final String signature, final DexLabel start, final DexLabel end,
 			final int reg) {
 		// TODO Auto-generated method stub
 
@@ -179,7 +180,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitLookupSwitchStmt(final int opcode, final int aA,
-			final Label label, final int[] cases, final Label[] labels) {
+			final DexLabel label, final int[] cases, final DexLabel[] labels) {
 		// TODO Auto-generated method stub
 
 	}
@@ -224,15 +225,15 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitTableSwitchStmt(final int opcode, final int aA,
-			final Label label, final int first_case, final int last_case,
-			final Label[] labels) {
+			final DexLabel label, final int first_case, final int last_case,
+			final DexLabel[] labels) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitTryCatch(final Label start, final Label end,
-			final Label handler, final String type) {
+	public void visitTryCatch(final DexLabel start, final DexLabel end,
+			final DexLabel handler, final String type) {
 		// TODO Auto-generated method stub
 
 	}

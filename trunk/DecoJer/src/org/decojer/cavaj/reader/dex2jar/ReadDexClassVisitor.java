@@ -33,10 +33,10 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.objectweb.asm.AnnotationVisitor;
 
 import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.Method;
+import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 import com.googlecode.dex2jar.visitors.DexClassVisitor;
 import com.googlecode.dex2jar.visitors.DexFieldVisitor;
 import com.googlecode.dex2jar.visitors.DexMethodVisitor;
@@ -87,7 +87,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String name,
+	public DexAnnotationVisitor visitAnnotation(final String name,
 			final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];

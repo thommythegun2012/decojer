@@ -195,7 +195,6 @@ public class TrControlFlowAnalysis {
 	}
 
 	public static void transform(final TD td) {
-		// no parallelism! 2 shared instance variables: code and nextPc
 		final List<BD> bds = td.getBds();
 		for (int i = 0; i < bds.size(); ++i) {
 			final BD bd = bds.get(i);
@@ -203,7 +202,8 @@ public class TrControlFlowAnalysis {
 				continue;
 			}
 			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null) {
+			if (cfg == null || cfg.getOperations() == null
+					|| cfg.getOperations().length == 0) {
 				continue;
 			}
 			transform(cfg);

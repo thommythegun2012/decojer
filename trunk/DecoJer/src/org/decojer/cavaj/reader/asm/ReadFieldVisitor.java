@@ -29,16 +29,17 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.FD;
-import org.ow2.asm.AnnotationVisitor;
-import org.ow2.asm.Attribute;
-import org.ow2.asm.FieldVisitor;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * Read field visitor.
  * 
  * @author André Pankraz
  */
-public class ReadFieldVisitor implements FieldVisitor {
+public class ReadFieldVisitor extends FieldVisitor {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadFieldVisitor.class.getName());
@@ -56,6 +57,8 @@ public class ReadFieldVisitor implements FieldVisitor {
 	 *            decompilation unit
 	 */
 	public ReadFieldVisitor(final DU du) {
+		super(Opcodes.ASM4);
+
 		assert du != null;
 
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);

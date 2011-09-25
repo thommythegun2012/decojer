@@ -34,18 +34,19 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.ow2.asm.AnnotationVisitor;
-import org.ow2.asm.Attribute;
-import org.ow2.asm.ClassVisitor;
-import org.ow2.asm.FieldVisitor;
-import org.ow2.asm.MethodVisitor;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * Read class visitor.
  * 
  * @author André Pankraz
  */
-public class ReadClassVisitor implements ClassVisitor {
+public class ReadClassVisitor extends ClassVisitor {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadClassVisitor.class.getName());
@@ -69,6 +70,8 @@ public class ReadClassVisitor implements ClassVisitor {
 	 *            decompilation unit
 	 */
 	public ReadClassVisitor(final DU du) {
+		super(Opcodes.ASM4);
+
 		assert du != null;
 
 		this.du = du;
