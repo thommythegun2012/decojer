@@ -55,7 +55,7 @@ public class CU implements PD {
 	// Eclipse compilation unit
 	private final CompilationUnit compilationUnit;
 
-	private boolean ignoreSynthetic = true;
+	private boolean ignoreSynthetic = false;
 
 	private String sourceFileName;
 

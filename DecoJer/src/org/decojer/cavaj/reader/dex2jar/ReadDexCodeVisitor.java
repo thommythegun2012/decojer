@@ -164,6 +164,20 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
+	public void visitLineNumber(final int line, final Label label) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visitLocalVariable(final String name, final String type,
+			final String signature, final Label start, final Label end,
+			final int reg) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void visitLookupSwitchStmt(final int opcode, final int aA,
 			final Label label, final int[] cases, final Label[] labels) {
 		// TODO Auto-generated method stub
