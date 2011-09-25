@@ -133,7 +133,8 @@ public class TrIvmCfg2JavaExprStmts {
 				continue;
 			}
 			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null) {
+			if (cfg == null || cfg.getOperations() == null
+					|| cfg.getOperations().length == 0) {
 				continue;
 			}
 			transform(cfg);

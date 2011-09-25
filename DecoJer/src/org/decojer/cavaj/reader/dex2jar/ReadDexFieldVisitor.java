@@ -28,8 +28,8 @@ import java.lang.annotation.RetentionPolicy;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.FD;
-import org.objectweb.asm.AnnotationVisitor;
 
+import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 import com.googlecode.dex2jar.visitors.DexFieldVisitor;
 
 /**
@@ -69,7 +69,7 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String name,
+	public DexAnnotationVisitor visitAnnotation(final String name,
 			final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];

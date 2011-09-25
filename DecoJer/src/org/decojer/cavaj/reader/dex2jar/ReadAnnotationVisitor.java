@@ -31,17 +31,17 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Type;
 
+import com.googlecode.dex2jar.DexType;
 import com.googlecode.dex2jar.Field;
+import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 
 /**
  * Read annotation visitor.
  * 
  * @author André Pankraz
  */
-public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
+public abstract class ReadAnnotationVisitor implements DexAnnotationVisitor {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadAnnotationVisitor.class.getName());
@@ -64,20 +64,20 @@ public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
 	public void visit(final String name, final Object value) {
 		if (value instanceof Field) {
 			LOGGER.warning("Visit field value '" + name
-					+ "' should be visitEnum! Bug in older dex-reader.");
+					+ "' should be visitEnum! (bug in dex-reader-1.1)");
 			visitEnum(name, ((Field) value).getType(),
 					((Field) value).getName());
 			return;
 		}
-		if (value instanceof Type) {
-			add(name, this.du.getT(((Type) value).getClassName()));
+		if (value instanceof DexType) {
+			add(name, this.du.getDescT(((DexType) value).toString()));
 			return;
 		}
 		add(name, value);
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String name,
+	public DexAnnotationVisitor visitAnnotation(final String name,
 			final String desc) {
 		final ReadAnnotationMemberVisitor readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(
 				this.du);
@@ -86,7 +86,7 @@ public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitArray(final String name) {
+	public DexAnnotationVisitor visitArray(final String name) {
 		return new ReadAnnotationVisitor(this.du) {
 
 			private final List<Object> values = new ArrayList<Object>();

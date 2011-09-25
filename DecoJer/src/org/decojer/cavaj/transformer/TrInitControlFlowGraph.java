@@ -60,11 +60,9 @@ public class TrInitControlFlowGraph {
 				continue;
 			}
 			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null) {
+			if (cfg == null || cfg.getOperations() == null
+					|| cfg.getOperations().length == 0) {
 				continue;
-			}
-			if (cfg.getOperations() == null) {
-				continue; // TODO delete?
 			}
 			transform(cfg);
 		}

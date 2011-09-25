@@ -30,15 +30,16 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
-import org.ow2.asm.AnnotationVisitor;
-import org.ow2.asm.Type;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 /**
  * Read annotation visitor.
  * 
  * @author André Pankraz
  */
-public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
+public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 
 	protected final DU du;
 
@@ -49,6 +50,7 @@ public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
 	 *            decompilation unit
 	 */
 	public ReadAnnotationVisitor(final DU du) {
+		super(Opcodes.ASM4);
 		this.du = du;
 	}
 

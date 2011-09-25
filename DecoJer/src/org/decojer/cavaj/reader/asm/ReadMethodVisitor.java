@@ -79,20 +79,20 @@ import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
 import org.decojer.cavaj.model.vm.intermediate.operations.THROW;
 import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
-import org.ow2.asm.AnnotationVisitor;
-import org.ow2.asm.Attribute;
-import org.ow2.asm.Handle;
-import org.ow2.asm.Label;
-import org.ow2.asm.MethodVisitor;
-import org.ow2.asm.Opcodes;
-import org.ow2.asm.Type;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
+import org.objectweb.asm.Handle;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 /**
  * Read method visitor.
  * 
  * @author André Pankraz
  */
-public class ReadMethodVisitor implements MethodVisitor {
+public class ReadMethodVisitor extends MethodVisitor {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(ReadMethodVisitor.class.getName());
@@ -148,6 +148,8 @@ public class ReadMethodVisitor implements MethodVisitor {
 	 *            decompilation unit
 	 */
 	public ReadMethodVisitor(final DU du) {
+		super(Opcodes.ASM4);
+
 		assert du != null;
 
 		this.du = du;

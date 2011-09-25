@@ -24,20 +24,30 @@
 package org.decojer.cavaj.reader.asm;
 
 import org.decojer.cavaj.model.type.Type;
-import org.ow2.asm.AnnotationVisitor;
-import org.ow2.asm.Attribute;
-import org.ow2.asm.ClassVisitor;
-import org.ow2.asm.FieldVisitor;
-import org.ow2.asm.MethodVisitor;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Attribute;
+import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 /**
  * Analyse class visitor.
  * 
  * @author André Pankraz
  */
-public class AnalyseClassVisitor implements ClassVisitor {
+public class AnalyseClassVisitor extends ClassVisitor {
 
 	private Type type;
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param arg0
+	 */
+	public AnalyseClassVisitor() {
+		super(Opcodes.ASM4);
+	}
 
 	/**
 	 * Get type.

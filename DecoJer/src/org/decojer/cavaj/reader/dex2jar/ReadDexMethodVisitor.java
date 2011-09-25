@@ -28,9 +28,9 @@ import java.lang.annotation.RetentionPolicy;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
-import org.objectweb.asm.AnnotationVisitor;
 
 import com.googlecode.dex2jar.visitors.DexAnnotationAble;
+import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 import com.googlecode.dex2jar.visitors.DexCodeVisitor;
 import com.googlecode.dex2jar.visitors.DexMethodVisitor;
 
@@ -76,7 +76,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String name,
+	public DexAnnotationVisitor visitAnnotation(final String name,
 			final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
@@ -112,7 +112,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 		return new DexAnnotationAble() {
 
 			@Override
-			public AnnotationVisitor visitAnnotation(final String name,
+			public DexAnnotationVisitor visitAnnotation(final String name,
 					final boolean visible) {
 				A[] paramAs = null;
 				if (ReadDexMethodVisitor.this.paramAss == null) {

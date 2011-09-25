@@ -88,7 +88,6 @@ import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
 import org.decojer.cavaj.model.vm.intermediate.operations.THROW;
 import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
-import org.ow2.asm.Opcodes;
 
 /**
  * Read code attribute.
@@ -1520,7 +1519,7 @@ public class ReadCodeAttribute {
 				if (codeReader.pc % 4 > 0) {
 					codeReader.pc += 4 - codeReader.pc % 4;
 				}
-				final SWITCH op = new SWITCH(pc, Opcodes.LOOKUPSWITCH, line);
+				final SWITCH op = new SWITCH(pc, Opcode.LOOKUPSWITCH, line);
 				// default
 				int targetPc = opPc + codeReader.readUnsignedInt();
 				int pcIndex = getPcIndex(targetPc);
@@ -1553,7 +1552,7 @@ public class ReadCodeAttribute {
 				if (codeReader.pc % 4 > 0) {
 					codeReader.pc += 4 - codeReader.pc % 4;
 				}
-				final SWITCH op = new SWITCH(pc, Opcodes.LOOKUPSWITCH, line);
+				final SWITCH op = new SWITCH(pc, Opcode.TABLESWITCH, line);
 				// default
 				int targetPc = opPc + codeReader.readUnsignedInt();
 				int pcIndex = getPcIndex(targetPc);
