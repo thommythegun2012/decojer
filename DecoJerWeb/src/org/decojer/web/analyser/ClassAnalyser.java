@@ -33,6 +33,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
 
 public class ClassAnalyser {
 
@@ -41,7 +42,7 @@ public class ClassAnalyser {
 		final ClassReader classReader = new ClassReader(IOUtils.toBytes(is));
 		final TypeInfo typeInfo = new TypeInfo();
 		typeInfo.setSize(classReader.b.length);
-		classReader.accept(new ClassVisitor() {
+		classReader.accept(new ClassVisitor(Opcodes.ASM4) {
 
 			@Override
 			public void visit(final int version, final int access,
@@ -98,4 +99,5 @@ public class ClassAnalyser {
 		}, ClassReader.SKIP_FRAMES);
 		return typeInfo;
 	}
+
 }
