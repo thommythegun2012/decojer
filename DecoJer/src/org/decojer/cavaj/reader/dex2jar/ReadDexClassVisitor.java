@@ -52,7 +52,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	private final DU du;
 
-	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
+	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
 
 	private final ReadDexFieldVisitor readDexFieldVisitor;
 
@@ -70,7 +70,8 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 		assert du != null;
 
 		this.du = du;
-		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(
+				du);
 		this.readDexFieldVisitor = new ReadDexFieldVisitor(du);
 		this.readDexMethodVisitor = new ReadDexMethodVisitor(du);
 	}
@@ -96,10 +97,10 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
 			this.as = newAs;
 		}
-		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor
+		this.as[this.as.length - 1] = this.readDexAnnotationMemberVisitor
 				.init(name, visible ? RetentionPolicy.RUNTIME
 						: RetentionPolicy.CLASS);
-		return this.readAnnotationMemberVisitor;
+		return this.readDexAnnotationMemberVisitor;
 	}
 
 	@Override

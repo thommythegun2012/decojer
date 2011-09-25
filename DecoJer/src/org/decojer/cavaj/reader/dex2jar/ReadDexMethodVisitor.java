@@ -47,7 +47,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 
 	private A[][] paramAss;
 
-	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
+	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
 
 	private final ReadDexCodeVisitor readDexCodeVisitor = new ReadDexCodeVisitor();
 
@@ -60,7 +60,8 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 	public ReadDexMethodVisitor(final DU du) {
 		assert du != null;
 
-		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(
+				du);
 	}
 
 	/**
@@ -85,10 +86,10 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
 			this.as = newAs;
 		}
-		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor
+		this.as[this.as.length - 1] = this.readDexAnnotationMemberVisitor
 				.init(name, visible ? RetentionPolicy.RUNTIME
 						: RetentionPolicy.CLASS);
-		return this.readAnnotationMemberVisitor;
+		return this.readDexAnnotationMemberVisitor;
 	}
 
 	@Override
@@ -134,10 +135,10 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 					paramAs = newParamAs;
 				}
 				ReadDexMethodVisitor.this.paramAss[index] = paramAs;
-				paramAs[paramAs.length - 1] = ReadDexMethodVisitor.this.readAnnotationMemberVisitor
+				paramAs[paramAs.length - 1] = ReadDexMethodVisitor.this.readDexAnnotationMemberVisitor
 						.init(name, visible ? RetentionPolicy.RUNTIME
 								: RetentionPolicy.CLASS);
-				return ReadDexMethodVisitor.this.readAnnotationMemberVisitor;
+				return ReadDexMethodVisitor.this.readDexAnnotationMemberVisitor;
 			}
 
 		};

@@ -37,14 +37,14 @@ import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 
 /**
- * Read annotation visitor.
+ * Read DEX annotation visitor.
  * 
  * @author André Pankraz
  */
-public abstract class ReadAnnotationVisitor implements DexAnnotationVisitor {
+public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 
 	private final static Logger LOGGER = Logger
-			.getLogger(ReadAnnotationVisitor.class.getName());
+			.getLogger(ReadDexAnnotationVisitor.class.getName());
 
 	protected final DU du;
 
@@ -54,7 +54,7 @@ public abstract class ReadAnnotationVisitor implements DexAnnotationVisitor {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadAnnotationVisitor(final DU du) {
+	public ReadDexAnnotationVisitor(final DU du) {
 		this.du = du;
 	}
 
@@ -79,15 +79,15 @@ public abstract class ReadAnnotationVisitor implements DexAnnotationVisitor {
 	@Override
 	public DexAnnotationVisitor visitAnnotation(final String name,
 			final String desc) {
-		final ReadAnnotationMemberVisitor readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(
+		final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(
 				this.du);
-		add(name, readAnnotationMemberVisitor.init(desc, null));
-		return readAnnotationMemberVisitor;
+		add(name, readDexAnnotationMemberVisitor.init(desc, null));
+		return readDexAnnotationMemberVisitor;
 	}
 
 	@Override
 	public DexAnnotationVisitor visitArray(final String name) {
-		return new ReadAnnotationVisitor(this.du) {
+		return new ReadDexAnnotationVisitor(this.du) {
 
 			private final List<Object> values = new ArrayList<Object>();
 
@@ -98,7 +98,7 @@ public abstract class ReadAnnotationVisitor implements DexAnnotationVisitor {
 
 			@Override
 			public void visitEnd() {
-				ReadAnnotationVisitor.this.add(name,
+				ReadDexAnnotationVisitor.this.add(name,
 						this.values.toArray(new Object[this.values.size()]));
 			}
 

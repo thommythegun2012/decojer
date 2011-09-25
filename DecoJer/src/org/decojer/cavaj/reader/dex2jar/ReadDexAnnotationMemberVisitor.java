@@ -30,11 +30,11 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
- * Read annotation member visitor.
+ * Read DEX annotation member visitor.
  * 
  * @author André Pankraz
  */
-public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
+public class ReadDexAnnotationMemberVisitor extends ReadDexAnnotationVisitor {
 
 	private A a;
 
@@ -44,7 +44,7 @@ public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadAnnotationMemberVisitor(final DU du) {
+	public ReadDexAnnotationMemberVisitor(final DU du) {
 		super(du);
 	}
 

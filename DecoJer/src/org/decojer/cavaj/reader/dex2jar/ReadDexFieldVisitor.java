@@ -43,7 +43,7 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 
 	private FD fd;
 
-	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
+	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
 
 	/**
 	 * Constructor.
@@ -54,7 +54,8 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 	public ReadDexFieldVisitor(final DU du) {
 		assert du != null;
 
-		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(
+				du);
 	}
 
 	/**
@@ -78,10 +79,10 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
 			this.as = newAs;
 		}
-		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor
+		this.as[this.as.length - 1] = this.readDexAnnotationMemberVisitor
 				.init(name, visible ? RetentionPolicy.RUNTIME
 						: RetentionPolicy.CLASS);
-		return this.readAnnotationMemberVisitor;
+		return this.readDexAnnotationMemberVisitor;
 	}
 
 	@Override
