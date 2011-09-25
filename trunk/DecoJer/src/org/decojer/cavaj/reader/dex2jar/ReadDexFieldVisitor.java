@@ -70,7 +70,7 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 
 	@Override
 	public AnnotationVisitor visitAnnotation(final String name,
-			final boolean visitable) {
+			final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -78,8 +78,8 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
 			this.as = newAs;
 		}
-		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor.init(
-				name, visitable ? RetentionPolicy.RUNTIME
+		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor
+				.init(name, visible ? RetentionPolicy.RUNTIME
 						: RetentionPolicy.CLASS);
 		return this.readAnnotationMemberVisitor;
 	}

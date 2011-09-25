@@ -25,6 +25,7 @@ package org.decojer.cavaj.reader.dex2jar;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
@@ -41,6 +42,9 @@ import com.googlecode.dex2jar.Field;
  * @author André Pankraz
  */
 public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
+
+	private final static Logger LOGGER = Logger
+			.getLogger(ReadAnnotationVisitor.class.getName());
 
 	protected final DU du;
 
@@ -59,7 +63,8 @@ public abstract class ReadAnnotationVisitor implements AnnotationVisitor {
 	@Override
 	public void visit(final String name, final Object value) {
 		if (value instanceof Field) {
-			// Bug in dex2jar 1.1? should be visitEnum...
+			LOGGER.warning("Visit field value '" + name
+					+ "' should be visitEnum! Bug in older dex-reader.");
 			visitEnum(name, ((Field) value).getType(),
 					((Field) value).getName());
 			return;
