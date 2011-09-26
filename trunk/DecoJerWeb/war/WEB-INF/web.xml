@@ -9,6 +9,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-class>org.decojer.web.servlet.CleanupServlet</servlet-class>
 	</servlet>
 	<servlet>
+		<servlet-name>DecoJerQueue</servlet-name>
+		<servlet-class>org.decojer.web.servlet.DecoJerQueueServlet</servlet-class>
+	</servlet>
+	<servlet>
 		<servlet-name>Decompile</servlet-name>
 		<servlet-class>org.decojer.web.servlet.DecompileServlet</servlet-class>
 	</servlet>
@@ -19,6 +23,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>Cleanup</servlet-name>
 		<url-pattern>/cleanup</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>DecoJerQueue</servlet-name>
+		<url-pattern>/_ah/queue/decoJer</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>Decompile</servlet-name>
