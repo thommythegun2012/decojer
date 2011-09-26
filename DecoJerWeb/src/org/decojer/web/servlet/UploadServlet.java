@@ -51,6 +51,7 @@ import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
 import org.decojer.web.util.Uploads;
 
+import com.google.appengine.api.backends.BackendServiceFactory;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
 import com.google.appengine.api.blobstore.BlobstoreService;
@@ -62,8 +63,13 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Transaction;
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.appengine.api.taskqueue.TaskOptions.Method;
 
 /**
+ * Upload servlet.
+ * 
  * @author André Pankraz
  */
 public class UploadServlet extends HttpServlet {
@@ -92,6 +98,7 @@ public class UploadServlet extends HttpServlet {
 			Messages.addMessage(req, "File was empty!");
 			return;
 		}
+
 		try {
 			// read blob meta data for upload and find all duplicates;
 			// attention: this servlet can rely on the existence of the
@@ -230,17 +237,16 @@ public class UploadServlet extends HttpServlet {
 								EntityConstants.PROP_OLDEST,
 								blobInfo.getOldestDate());
 						puts.add(entity);
-						for (int i = 0; i < typeInfos.size(); ++i) {
-							final TypeInfo typeInfo = typeInfos.get(i);
-							final Entity typeEntity = new Entity(
-									EntityConstants.KIND_TYPE,
-									typeInfo.getName(), key);
-							typeEntity.setUnindexedProperty(
-									EntityConstants.PROP_SIGNATURE,
-									typeInfo.getSignature().replace(
-											"Ljava/lang/Object;", "@"));
-							puts.add(typeEntity);
-						}
+						/*
+						 * for (int i = 0; i < typeInfos.size(); ++i) { final
+						 * TypeInfo typeInfo = typeInfos.get(i); final Entity
+						 * typeEntity = new Entity( EntityConstants.KIND_TYPE,
+						 * typeInfo.getName(), key);
+						 * typeEntity.setUnindexedProperty(
+						 * EntityConstants.PROP_SIGNATURE,
+						 * typeInfo.getSignature().replace(
+						 * "Ljava/lang/Object;", "@")); puts.add(typeEntity); }
+						 */
 					}
 					this.datastoreService.put(puts);
 					tx.commit();
@@ -266,6 +272,14 @@ public class UploadServlet extends HttpServlet {
 					"Found " + typeInfos.size()
 							+ (typeInfos.size() == 1 ? " class." : " classes."));
 			Uploads.addUpload(req, blobInfo);
+
+			QueueFactory.getQueue("decoJer").add(
+					TaskOptions.Builder
+							.withMethod(Method.GET)
+							.param("key", keyName)
+							.header("Host",
+									BackendServiceFactory.getBackendService()
+											.getBackendAddress("worker")));
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING,
 					"Unexpected problem, couldn't evaluate upload: " + blobKey,
@@ -274,4 +288,5 @@ public class UploadServlet extends HttpServlet {
 					"Unexpected problem, couldn't evaluate upload!");
 		}
 	}
+
 }

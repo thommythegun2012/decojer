@@ -57,6 +57,8 @@ public interface EntityConstants {
 
 	String PROP_SIZE = "size";
 
+	String PROP_SOURCE = "source";
+
 	String PROP_TYPES = "types";
 
 	String PROP_UPLOAD = "upload";
