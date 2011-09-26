@@ -55,7 +55,7 @@ public class CU implements PD {
 	// Eclipse compilation unit
 	private final CompilationUnit compilationUnit;
 
-	private boolean ignoreSynthetic = false;
+	private boolean ignoreSynthetic = true;
 
 	private String sourceFileName;
 
@@ -81,7 +81,7 @@ public class CU implements PD {
 		this.startTd = startTd;
 
 		// initializes Eclipse AST
-		final ASTParser parser = ASTParser.newParser(AST.JLS3);
+		final ASTParser parser = ASTParser.newParser(AST.JLS4);
 		parser.setSource(new char[0]);
 		this.compilationUnit = (CompilationUnit) parser.createAST(null);
 		this.compilationUnit.recordModifications();
