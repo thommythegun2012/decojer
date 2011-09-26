@@ -26,6 +26,8 @@ package org.decojer.web.util;
 import java.io.BufferedInputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -35,13 +37,18 @@ import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
 import org.decojer.web.analyser.UploadInfo;
+import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
 
 /**
+ * Uploads.
+ * 
  * @author André Pankraz
  */
 public class Uploads {
+
+	private static Logger LOGGER = Logger.getLogger(Uploads.class.getName());
 
 	public static void addUpload(final HttpServletRequest req,
 			final UploadInfo uploadInfo) {
@@ -104,8 +111,13 @@ public class Uploads {
 			sb.append("<hr /><pre class=\"brush: java\">")
 					.append(source.replace("<", "&lt;"))
 					.append("</pre><script type=\"text/javascript\">SyntaxHighlighter.all()</script>");
-		} catch (final Exception e) {
-			e.printStackTrace();
+		} catch (final Throwable e) {
+			LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
+			final CompilerOptions compilerOptions = new CompilerOptions();
+			LOGGER.log(Level.WARNING, "  ### " + compilerOptions);
+			LOGGER.log(Level.WARNING, "  ### " + compilerOptions.getClass());
+			LOGGER.log(Level.WARNING, "  ### "
+					+ compilerOptions.ignoreMethodBodies);
 		}
 		return sb.toString();
 	}
