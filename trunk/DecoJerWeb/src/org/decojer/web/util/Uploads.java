@@ -37,7 +37,6 @@ import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
 import org.decojer.web.analyser.UploadInfo;
-import org.eclipse.jdt.internal.compiler.impl.CompilerOptions;
 
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
 
@@ -113,11 +112,6 @@ public class Uploads {
 					.append("</pre><script type=\"text/javascript\">SyntaxHighlighter.all()</script>");
 		} catch (final Throwable e) {
 			LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
-			final CompilerOptions compilerOptions = new CompilerOptions();
-			LOGGER.log(Level.WARNING, "  ### " + compilerOptions);
-			LOGGER.log(Level.WARNING, "  ### " + compilerOptions.getClass());
-			LOGGER.log(Level.WARNING, "  ### "
-					+ compilerOptions.ignoreMethodBodies);
 		}
 		return sb.toString();
 	}
