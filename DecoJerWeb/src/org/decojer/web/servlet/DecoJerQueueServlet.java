@@ -31,9 +31,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.channels.Channels;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.mail.Message;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -202,6 +208,25 @@ public class DecoJerQueueServlet extends HttpServlet {
 		}
 		entity.setUnindexedProperty(EntityConstants.PROP_SOURCE, sourceBlobKey);
 		this.datastoreService.put(entity);
+		sendEmail("Decompiled '" + filename + "'!");
+	}
+
+	private void sendEmail(final String msgBody) {
+		final Properties props = new Properties();
+		final Session session = Session.getDefaultInstance(props, null);
+		try {
+			final Message msg = new MimeMessage(session);
+			// from-account added as application administrator!
+			msg.setFrom(new InternetAddress("andrePankraz@decojer.org",
+					"DecoJer Admin"));
+			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(
+					"andrePankraz@googlemail.com", "André Pankraz"));
+			msg.setSubject("DecoJer worker");
+			msg.setText(msgBody);
+			Transport.send(msg);
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Could not send email!", e);
+		}
 	}
 
 }
