@@ -220,7 +220,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 			msg.setFrom(new InternetAddress("andrePankraz@decojer.org",
 					"DecoJer Admin"));
 			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(
-					"andrePankraz@googlemail.com", "André Pankraz"));
+					"andrePankraz@googlemail.com", "DecoJer Admin"));
 			msg.setSubject("DecoJer worker");
 			msg.setText(msgBody);
 			Transport.send(msg);
