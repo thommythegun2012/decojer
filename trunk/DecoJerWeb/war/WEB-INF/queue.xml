@@ -11,4 +11,15 @@
 			<task-age-limit>1h</task-age-limit>
 		</retry-parameters>
 	</queue>
+	<queue>
+		<name>frontendChannel</name>
+		<rate>1/s</rate>
+		<bucket-size>1</bucket-size>
+		<max-concurrent-requests>1</max-concurrent-requests>
+		<retry-parameters>
+			<task-retry-limit>3</task-retry-limit>
+			<min-backoff-seconds>4</min-backoff-seconds>
+			<task-age-limit>1h</task-age-limit>
+		</retry-parameters>
+	</queue>
 </queue-entries>
