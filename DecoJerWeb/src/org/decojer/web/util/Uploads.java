@@ -39,6 +39,7 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.web.analyser.UploadInfo;
 
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
+import com.google.appengine.api.channel.ChannelServiceFactory;
 
 /**
  * Uploads.
@@ -60,6 +61,20 @@ public class Uploads {
 		}
 		uploads.add(uploadInfo);
 		req.getSession().setAttribute("blobKeys", uploads); // trigger update
+	}
+
+	public static String getChannelKey(final HttpSession httpSession) {
+		return httpSession.getId();
+	}
+
+	public static String getChannelToken(final HttpSession httpSession) {
+		String channelToken = (String) httpSession.getAttribute("channelToken");
+		if (channelToken == null) {
+			channelToken = ChannelServiceFactory.getChannelService()
+					.createChannel(getChannelKey(httpSession));
+			httpSession.setAttribute("channelToken", channelToken);
+		}
+		return channelToken;
 	}
 
 	public static List<UploadInfo> getUploads(final HttpSession httpSession) {
@@ -86,6 +101,19 @@ public class Uploads {
 			sb.append("</li>");
 		}
 		sb.append("</ul>");
+
+		sb.append("<div id='progressbar'></div>")
+				.append("<script type='text/javascript' src='/_ah/channel/jsapi'></script>'")
+				.append("<script>")
+				.append("  onMessage = function(msg) { alert(msg.data); $('#progressbar').progressbar('option', 'value', 100); };")
+				.append("  channel = new goog.appengine.Channel('")
+				.append(getChannelToken(httpSession))
+				.append("');")
+				.append("  socket = channel.open();")
+				.append("  socket.onopen = function() { $('#progressbar').progressbar({ value: 1 }); };")
+				.append("  socket.onmessage = onMessage;") //
+				.append("</script>");
+
 		int u;
 		try {
 			u = Integer.parseInt(req.getParameter("u"));

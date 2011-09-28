@@ -93,8 +93,8 @@ public class UploadServlet extends HttpServlet {
 		// check given upload BlobKey
 		final Map<String, BlobKey> uploadedBlobs = this.blobstoreService
 				.getUploadedBlobs(req);
-		final BlobKey blobKey = uploadedBlobs.get("file");
-		if (blobKey == null) {
+		final BlobKey uploadBlobKey = uploadedBlobs.get("file");
+		if (uploadBlobKey == null) {
 			Messages.addMessage(req, "File was empty!");
 			return;
 		}
@@ -105,7 +105,7 @@ public class UploadServlet extends HttpServlet {
 			// current uploads blob meta data via datastoreService.get(), but
 			// the results from other queries are HA write lag dependend!
 			final UploadInfo blobInfo = BlobAnalyser.uniqueBlobInfo(
-					this.datastoreService, blobKey);
+					this.datastoreService, uploadBlobKey);
 			final List<TypeInfo> typeInfos = new ArrayList<TypeInfo>();
 			try {
 				// check file name extension
@@ -277,13 +277,15 @@ public class UploadServlet extends HttpServlet {
 					TaskOptions.Builder
 							.withMethod(Method.GET)
 							.param("key", keyName)
+							.param("channelKey",
+									Uploads.getChannelKey(req.getSession()))
 							.header("Host",
 									BackendServiceFactory.getBackendService()
 											.getBackendAddress("worker")));
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING,
-					"Unexpected problem, couldn't evaluate upload: " + blobKey,
-					e);
+					"Unexpected problem, couldn't evaluate upload: "
+							+ uploadBlobKey, e);
 			Messages.addMessage(req,
 					"Unexpected problem, couldn't evaluate upload!");
 		}

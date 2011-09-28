@@ -66,6 +66,9 @@ import com.google.appengine.api.files.AppEngineFile;
 import com.google.appengine.api.files.FileService;
 import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.api.files.FileWriteChannel;
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
+import com.google.appengine.api.taskqueue.TaskOptions.Method;
 
 /**
  * DecoJer queue servlet.
@@ -209,6 +212,19 @@ public class DecoJerQueueServlet extends HttpServlet {
 		entity.setUnindexedProperty(EntityConstants.PROP_SOURCE, sourceBlobKey);
 		this.datastoreService.put(entity);
 		sendEmail("Decompiled '" + filename + "'!");
+
+		final String channelKey = req.getParameter("channelKey");
+		if (channelKey != null) {
+			// can currently not send directly from backend:
+			// Open Issue 5123: Channel API Access from Backends
+			// http://code.google.com/p/googleappengine/issues/detail?id=5123
+			// ChannelServiceFactory.getChannelService().sendMessage(
+			// new ChannelMessage(channelKey, "Decompiled '" + filename
+			// + "'!"));
+			QueueFactory.getQueue("frontendChannel").add(
+					TaskOptions.Builder.withMethod(Method.GET).param(
+							"channelKey", channelKey));
+		}
 	}
 
 	private void sendEmail(final String msgBody) {
