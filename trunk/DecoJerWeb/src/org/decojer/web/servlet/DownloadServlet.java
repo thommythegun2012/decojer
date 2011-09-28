@@ -21,16 +21,37 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web.util;
+package org.decojer.web.servlet;
 
-public interface EntityConstants {
+import java.io.IOException;
 
-	String KIND_BLOBINFO = "__BlobInfo__";
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
-	String KIND_CLASS = "CLASS";
+import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 
-	String KIND_DEX = "DEX";
+/**
+ * Download servlet.
+ * 
+ * @author André Pankraz
+ */
+public class DownloadServlet extends HttpServlet {
 
-	String KIND_JAR = "JAR";
+	private static final long serialVersionUID = 5300494787189455066L;
+
+	private final BlobstoreService blobstoreService = BlobstoreServiceFactory
+			.getBlobstoreService();
+
+	@Override
+	protected void doGet(final HttpServletRequest req,
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
+		final BlobKey blobKey = new BlobKey(req.getParameter("blobKey"));
+		this.blobstoreService.serve(blobKey, resp);
+	}
 
 }
