@@ -50,7 +50,7 @@ import org.decojer.DecoJer;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.web.util.EntityConstants;
+import org.decojer.web.model.Upload;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
@@ -58,7 +58,6 @@ import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
@@ -77,16 +76,16 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
  */
 public class DecoJerQueueServlet extends HttpServlet {
 
+	private static final BlobstoreService BLOBSTORE_SERVICE = BlobstoreServiceFactory
+			.getBlobstoreService();
+
+	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
+			.getDatastoreService();
+
 	private static Logger LOGGER = Logger.getLogger(DecoJerQueueServlet.class
 			.getName());
 
 	private static final long serialVersionUID = -8624836355443861445L;
-
-	private final BlobstoreService blobstoreService = BlobstoreServiceFactory
-			.getBlobstoreService();
-
-	private final DatastoreService datastoreService = DatastoreServiceFactory
-			.getDatastoreService();
 
 	private final FileService fileService = FileServiceFactory.getFileService();
 
@@ -94,28 +93,25 @@ public class DecoJerQueueServlet extends HttpServlet {
 	protected void doGet(final HttpServletRequest req,
 			final HttpServletResponse resp) throws ServletException,
 			IOException {
-		final String keyName = req.getParameter("key");
-		final Key key = KeyFactory.createKey(EntityConstants.KIND_UPLOAD,
-				keyName);
+		final Key uploadKey = KeyFactory.createKey("UPLOAD",
+				req.getParameter("uploadKey"));
 
-		final Entity entity;
+		final Upload upload;
 		try {
-			entity = this.datastoreService.get(key);
+			upload = new Upload(DATASTORE_SERVICE.get(uploadKey));
 		} catch (final EntityNotFoundException e) {
-			LOGGER.warning("Upload entity with Key '" + key
+			LOGGER.warning("Upload entity with Key '" + uploadKey
 					+ "' not yet stored?");
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			return;
 		}
 
-		final BlobKey uploadBlobKey = (BlobKey) entity
-				.getProperty(EntityConstants.PROP_UPLOAD);
+		final BlobKey uploadBlobKey = upload.getUploadBlobKey();
 		final InputStream uploadInputStream = new BufferedInputStream(
 				new BlobstoreInputStream(uploadBlobKey));
 		final BlobKey sourceBlobKey;
 
-		final String filename = (String) entity
-				.getProperty(EntityConstants.PROP_FILENAME);
+		final String filename = upload.getFilename();
 
 		if (filename.endsWith(".class")) {
 			final int pos = filename.lastIndexOf('.');
@@ -205,12 +201,11 @@ public class DecoJerQueueServlet extends HttpServlet {
 					+ filename + "' in decoJer task!");
 			return;
 		}
-		if (entity.getProperty(EntityConstants.PROP_SOURCE) != null) {
-			this.blobstoreService.delete((BlobKey) entity
-					.getProperty(EntityConstants.PROP_SOURCE));
+		if (upload.getSourceBlobKey() != null) {
+			BLOBSTORE_SERVICE.delete(upload.getSourceBlobKey());
 		}
-		entity.setUnindexedProperty(EntityConstants.PROP_SOURCE, sourceBlobKey);
-		this.datastoreService.put(entity);
+		upload.setSourceBlobKey(sourceBlobKey);
+		DATASTORE_SERVICE.put(upload.getWrappedEntity());
 		sendEmail("Decompiled '" + filename + "'!");
 
 		final String channelKey = req.getParameter("channelKey");

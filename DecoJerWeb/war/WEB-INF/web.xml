@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
-	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	version="2.5">
 	<servlet>
 		<servlet-name>Cleanup</servlet-name>
 		<servlet-class>org.decojer.web.servlet.CleanupServlet</servlet-class>
 	</servlet>
 	<servlet>
-		<servlet-name>DecoJerQueue</servlet-name>
-		<servlet-class>org.decojer.web.servlet.DecoJerQueueServlet</servlet-class>
+		<servlet-name>Download</servlet-name>
+		<servlet-class>org.decojer.web.servlet.DownloadServlet</servlet-class>
 	</servlet>
 	<servlet>
-		<servlet-name>Decompile</servlet-name>
-		<servlet-class>org.decojer.web.servlet.DecompileServlet</servlet-class>
+		<servlet-name>DecoJerQueue</servlet-name>
+		<servlet-class>org.decojer.web.servlet.DecoJerQueueServlet</servlet-class>
 	</servlet>
 	<servlet>
 		<servlet-name>FrontendChannelQueue</servlet-name>
@@ -33,8 +32,8 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<url-pattern>/_ah/queue/decoJer</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
-		<servlet-name>Decompile</servlet-name>
-		<url-pattern>/decompile</url-pattern>
+		<servlet-name>Download</servlet-name>
+		<url-pattern>/download</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>FrontendChannelQueue</servlet-name>

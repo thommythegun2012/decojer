@@ -25,10 +25,8 @@ package org.decojer.web.servlet;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.ConcurrentModificationException;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,20 +36,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.decojer.web.analyser.AnalyseException;
-import org.decojer.web.analyser.BlobAnalyser;
 import org.decojer.web.analyser.ClassAnalyser;
 import org.decojer.web.analyser.DexAnalyser;
 import org.decojer.web.analyser.DexInfo;
 import org.decojer.web.analyser.JarAnalyser;
 import org.decojer.web.analyser.JarInfo;
 import org.decojer.web.analyser.TypeInfo;
-import org.decojer.web.analyser.UploadInfo;
-import org.decojer.web.util.EntityConstants;
+import org.decojer.web.model.Upload;
 import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
 import org.decojer.web.util.Uploads;
 
 import com.google.appengine.api.backends.BackendServiceFactory;
+import com.google.appengine.api.blobstore.BlobInfo;
+import com.google.appengine.api.blobstore.BlobInfoFactory;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
 import com.google.appengine.api.blobstore.BlobstoreService;
@@ -62,7 +60,6 @@ import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
@@ -74,53 +71,87 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
  */
 public class UploadServlet extends HttpServlet {
 
+	private static final BlobstoreService BLOBSTORE_SERVICE = BlobstoreServiceFactory
+			.getBlobstoreService();
+
+	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
+			.getDatastoreService();
+
+	private static final BlobInfoFactory DATASTORE_SERVICE_BLOBINFO_FACTORY = new BlobInfoFactory(
+			DATASTORE_SERVICE);
+
 	private static Logger LOGGER = Logger.getLogger(UploadServlet.class
 			.getName());
 
 	private static final long serialVersionUID = -6567596163814017159L;
 
-	private final BlobstoreService blobstoreService = BlobstoreServiceFactory
-			.getBlobstoreService();
-
-	private final DatastoreService datastoreService = DatastoreServiceFactory
-			.getDatastoreService();
-
 	@Override
 	public void doPost(final HttpServletRequest req,
-			final HttpServletResponse res) throws ServletException, IOException {
+			final HttpServletResponse resp) throws ServletException,
+			IOException {
 		// same target page in all cases
-		res.sendRedirect("/");
-		// check given upload BlobKey
-		final Map<String, BlobKey> uploadedBlobs = this.blobstoreService
+		resp.sendRedirect("/");
+
+		// check data from GAE upload service
+		final Map<String, BlobKey> uploadedBlobs = BLOBSTORE_SERVICE
 				.getUploadedBlobs(req);
 		final BlobKey uploadBlobKey = uploadedBlobs.get("file");
 		if (uploadBlobKey == null) {
-			Messages.addMessage(req, "File was empty!");
+			Messages.addMessage(req, "Upload was empty!");
 			return;
 		}
+		final BlobInfo uploadBlobInfo = DATASTORE_SERVICE_BLOBINFO_FACTORY
+				.loadBlobInfo(uploadBlobKey);
+		if (uploadBlobInfo == null) {
+			Messages.addMessage(req, "Missing upload information!");
+			return;
+		}
+		// blob is new, content might be a duplication, handle in each case!
+		// duplication indicated through equal hash and size
+		final Key uploadKey = KeyFactory.createKey(
+				"UPLOAD",
+				IOUtils.toKey(uploadBlobInfo.getMd5Hash(),
+						uploadBlobInfo.getSize()));
+		try {
+			final Upload upload = new Upload(DATASTORE_SERVICE.get(uploadKey));
+			// content is a duplication -> delete & update statistic,
+			// transaction not important -> statistic for rare event
+			upload.setRequested(uploadBlobInfo.getCreation());
+			upload.setRequests(upload.getRequests() + 1L);
+			BLOBSTORE_SERVICE.delete(uploadBlobKey);
+			DATASTORE_SERVICE.put(upload.getWrappedEntity());
+
+			Uploads.addUpload(req, upload);
+			return;
+		} catch (final EntityNotFoundException e) {
+			;
+		}
+		final Upload upload = new Upload(new Entity(uploadKey));
+		upload.setUploadBlobKey(uploadBlobKey);
+		upload.setFilename(uploadBlobInfo.getFilename());
+		upload.setCreated(uploadBlobInfo.getCreation());
+		upload.setRequested(uploadBlobInfo.getCreation());
+		upload.setRequests(1L);
 
 		try {
 			// read blob meta data for upload and find all duplicates;
 			// attention: this servlet can rely on the existence of the
 			// current uploads blob meta data via datastoreService.get(), but
 			// the results from other queries are HA write lag dependend!
-			final UploadInfo blobInfo = BlobAnalyser.uniqueBlobInfo(
-					this.datastoreService, uploadBlobKey);
 			final List<TypeInfo> typeInfos = new ArrayList<TypeInfo>();
 			try {
 				// check file name extension
-				final int pos = blobInfo.getFilename().lastIndexOf('.');
+				final int pos = upload.getFilename().lastIndexOf('.');
 				if (pos == -1) {
 					throw new AnalyseException("The file extension is missing.");
 				}
-				final String ext = blobInfo.getFilename().substring(pos + 1)
+				final String ext = upload.getFilename().substring(pos + 1)
 						.toLowerCase();
 				if ("class".equals(ext)) {
 					final TypeInfo typeInfo;
 					try {
 						typeInfo = ClassAnalyser
-								.analyse(new BlobstoreInputStream(blobInfo
-										.getBlobKey()));
+								.analyse(new BlobstoreInputStream(uploadBlobKey));
 					} catch (final Exception e) {
 						throw new AnalyseException(
 								"This isn't a valid Java Class like the file extension suggests.");
@@ -130,7 +161,7 @@ public class UploadServlet extends HttpServlet {
 					final JarInfo jarInfo;
 					try {
 						jarInfo = JarAnalyser.analyse(new BlobstoreInputStream(
-								blobInfo.getBlobKey()));
+								uploadBlobKey));
 					} catch (final Exception e) {
 						throw new AnalyseException(
 								"This isn't a valid Java Archive like the file extension suggests.");
@@ -147,7 +178,7 @@ public class UploadServlet extends HttpServlet {
 					final DexInfo dexInfo;
 					try {
 						dexInfo = DexAnalyser.analyse(new BlobstoreInputStream(
-								blobInfo.getBlobKey()));
+								uploadBlobKey));
 					} catch (final Exception e) {
 						throw new AnalyseException(
 								"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
@@ -175,108 +206,29 @@ public class UploadServlet extends HttpServlet {
 				if (typeInfos.size() == 0) {
 					throw new AnalyseException("Could not find any classes!");
 				}
-				blobInfo.setTypes(typeInfos.size());
+				upload.setTds((long) typeInfos.size());
 			} catch (final AnalyseException e) {
 				LOGGER.log(Level.INFO, e.getMessage());
 				Messages.addMessage(
 						req,
 						e.getMessage()
 								+ "  Please upload valid Java Classes or Archives (JAR) respectively Android / Dalvik Executable File (DEX).");
-				blobInfo.setError(e.getMessage());
+				upload.setError(e.getMessage());
 			}
-			final Set<BlobKey> deleteBlobs = blobInfo.getDuplicateBlobs();
-			if (blobInfo.getError() != null) {
-				deleteBlobs.add(blobInfo.getBlobKey());
-			}
-			// write upload entity, mark error uploads with §
-			String keyName = IOUtils.toKey(blobInfo.getMd5Hash(),
-					blobInfo.getSize());
-			if (blobInfo.getError() != null) {
-				keyName += "-";
-			}
-			final Key key = KeyFactory.createKey(EntityConstants.KIND_UPLOAD,
-					keyName);
-			int retries = 3;
-			while (true) {
-				final Transaction tx = this.datastoreService.beginTransaction();
-				try {
-					Entity entity;
-					final List<Entity> puts = new ArrayList<Entity>();
-					try {
-						// exists already? increase counter and newest
-						entity = this.datastoreService.get(key);
-						final Long deleted = (Long) entity
-								.getProperty(EntityConstants.PROP_DELETED);
-						entity.setUnindexedProperty(
-								EntityConstants.PROP_DELETED,
-								deleted == null ? deleteBlobs.size() : deleted
-										+ deleteBlobs.size());
-						entity.setProperty(EntityConstants.PROP_NEWEST,
-								blobInfo.getNewestDate());
-						puts.add(entity);
-					} catch (final EntityNotFoundException e) {
-						// create all stuff at once
-						entity = new Entity(key);
-						entity.setUnindexedProperty(
-								EntityConstants.PROP_DELETED,
-								deleteBlobs.size());
-						entity.setUnindexedProperty(
-								EntityConstants.PROP_ERROR,
-								blobInfo.getError() == null ? "" : blobInfo
-										.getError());
-						entity.setUnindexedProperty(
-								EntityConstants.PROP_UPLOAD,
-								blobInfo.getBlobKey());
-						entity.setProperty(EntityConstants.PROP_FILENAME,
-								blobInfo.getFilename());
-						entity.setUnindexedProperty(EntityConstants.PROP_TYPES,
-								blobInfo.getTypes());
-						entity.setProperty(EntityConstants.PROP_NEWEST,
-								blobInfo.getNewestDate());
-						entity.setUnindexedProperty(
-								EntityConstants.PROP_OLDEST,
-								blobInfo.getOldestDate());
-						puts.add(entity);
-						/*
-						 * for (int i = 0; i < typeInfos.size(); ++i) { final
-						 * TypeInfo typeInfo = typeInfos.get(i); final Entity
-						 * typeEntity = new Entity( EntityConstants.KIND_TYPE,
-						 * typeInfo.getName(), key);
-						 * typeEntity.setUnindexedProperty(
-						 * EntityConstants.PROP_SIGNATURE,
-						 * typeInfo.getSignature().replace(
-						 * "Ljava/lang/Object;", "@")); puts.add(typeEntity); }
-						 */
-					}
-					this.datastoreService.put(puts);
-					tx.commit();
-					break;
-				} catch (final ConcurrentModificationException ec) {
-					if (retries-- == 0) {
-						throw ec;
-					}
-				} finally {
-					if (tx.isActive()) {
-						tx.rollback();
-					}
-				}
-			}
-			LOGGER.info("Deleting '" + deleteBlobs.size() + "' uploads.");
-			this.blobstoreService.delete(deleteBlobs
-					.toArray(new BlobKey[deleteBlobs.size()]));
-			if (blobInfo.getError() != null) {
+			DATASTORE_SERVICE.put(upload.getWrappedEntity());
+			if (upload.getError() != null) {
 				return;
 			}
 			// add message and link
 			Messages.addMessage(req,
 					"Found " + typeInfos.size()
 							+ (typeInfos.size() == 1 ? " class." : " classes."));
-			Uploads.addUpload(req, blobInfo);
+			Uploads.addUpload(req, upload);
 
 			QueueFactory.getQueue("decoJer").add(
 					TaskOptions.Builder
 							.withMethod(Method.GET)
-							.param("key", keyName)
+							.param("uploadKey", uploadKey.getName())
 							.param("channelKey",
 									Uploads.getChannelKey(req.getSession()))
 							.header("Host",

@@ -36,7 +36,7 @@ import org.decojer.DecoJer;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.web.analyser.UploadInfo;
+import org.decojer.web.model.Upload;
 
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
 import com.google.appengine.api.channel.ChannelServiceFactory;
@@ -51,16 +51,16 @@ public class Uploads {
 	private static Logger LOGGER = Logger.getLogger(Uploads.class.getName());
 
 	public static void addUpload(final HttpServletRequest req,
-			final UploadInfo uploadInfo) {
-		List<UploadInfo> uploads = getUploads(req.getSession());
+			final Upload upload) {
+		List<Upload> uploads = getUploads(req.getSession());
 		if (uploads == null) {
-			uploads = new ArrayList<UploadInfo>();
+			uploads = new ArrayList<Upload>();
 		} else {
 			// to list end
-			uploads.remove(uploadInfo);
+			uploads.remove(upload);
 		}
-		uploads.add(uploadInfo);
-		req.getSession().setAttribute("blobKeys", uploads); // trigger update
+		uploads.add(upload);
+		req.getSession().setAttribute("uploads", uploads); // trigger update
 	}
 
 	public static String getChannelKey(final HttpSession httpSession) {
@@ -77,24 +77,25 @@ public class Uploads {
 		return channelToken;
 	}
 
-	public static List<UploadInfo> getUploads(final HttpSession httpSession) {
-		return (List<UploadInfo>) httpSession.getAttribute("blobKeys");
+	public static List<Upload> getUploads(final HttpSession httpSession) {
+		return (List<Upload>) httpSession.getAttribute("uploads");
 	}
 
 	public static String getUploadsHtml(final HttpServletRequest req,
 			final HttpSession httpSession) {
-		final List<UploadInfo> uploads = getUploads(httpSession);
+		final List<Upload> uploads = getUploads(httpSession);
 		if (uploads == null || uploads.size() == 0) {
 			return "";
 		}
+		final boolean channel = false;
 		final StringBuilder sb = new StringBuilder("<ul>");
 		for (int i = 0; i < uploads.size(); ++i) {
-			final UploadInfo blobInfo = uploads.get(i);
+			final Upload upload = uploads.get(i);
 			sb.append("<li><a href='/decompile?u=").append(i)
-					.append("' target='_blank'>")
-					.append(blobInfo.getFilename()).append("</a>");
-			if (blobInfo.getTypes() > 1) {
-				sb.append(" (").append(blobInfo.getTypes()).append(" classes)");
+					.append("' target='_blank'>").append(upload.getFilename())
+					.append("</a>");
+			if (upload.getTds() > 1) {
+				sb.append(" (").append(upload.getTds()).append(" classes)");
 			} else {
 				sb.append(" (<a href='/?u=").append(i).append("'>View</a>)");
 			}
@@ -102,10 +103,10 @@ public class Uploads {
 		}
 		sb.append("</ul>");
 
-		sb.append("<div id='progressbar'></div>")
-				.append("<script type='text/javascript' src='/_ah/channel/jsapi'></script>'")
+		sb.append(
+				"<script type='text/javascript' src='/_ah/channel/jsapi'></script>'")
 				.append("<script>")
-				.append("  onMessage = function(msg) { alert(msg.data); $('#progressbar').progressbar('option', 'value', 100); };")
+				.append("  onMessage = function(msg) { window.location.reload(); };")
 				.append("  channel = new goog.appengine.Channel('")
 				.append(getChannelToken(httpSession))
 				.append("');")
@@ -123,13 +124,13 @@ public class Uploads {
 		} catch (final NumberFormatException e) {
 			u = uploads.size() - 1;
 		}
-		final UploadInfo upload = uploads.get(u);
+		final Upload upload = uploads.get(u);
 		if (!upload.getFilename().endsWith(".class")) {
 			return sb.toString();
 		}
 		try {
 			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
-					upload.getBlobKey());
+					upload.getUploadBlobKey());
 			final DU du = DecoJer.createDu();
 			final TD td = du.read(upload.getFilename(),
 					new BufferedInputStream(blobstoreInputStream), null);
