@@ -17,9 +17,10 @@
 		<bucket-size>1</bucket-size>
 		<max-concurrent-requests>1</max-concurrent-requests>
 		<retry-parameters>
-			<task-retry-limit>3</task-retry-limit>
-			<min-backoff-seconds>4</min-backoff-seconds>
-			<task-age-limit>1h</task-age-limit>
+			<task-retry-limit>1</task-retry-limit>
+			<min-backoff-seconds>2</min-backoff-seconds>
+			<task-age-limit>1m</task-age-limit>
 		</retry-parameters>
+		<target>none</target>
 	</queue>
 </queue-entries>
