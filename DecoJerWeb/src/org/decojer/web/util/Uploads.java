@@ -23,23 +23,29 @@
  */
 package org.decojer.web.util;
 
-import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
-import org.decojer.DecoJer;
-import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.TD;
+import org.apache.commons.io.IOUtils;
 import org.decojer.web.model.Upload;
 
+import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.channel.ChannelServiceFactory;
+import com.google.appengine.api.datastore.DatastoreService;
+import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.Key;
 
 /**
  * Uploads.
@@ -48,19 +54,25 @@ import com.google.appengine.api.channel.ChannelServiceFactory;
  */
 public class Uploads {
 
+	private static final BlobstoreService BLOBSTORE_SERVICE = BlobstoreServiceFactory
+			.getBlobstoreService();
+
+	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
+			.getDatastoreService();
+
 	private static Logger LOGGER = Logger.getLogger(Uploads.class.getName());
 
-	public static void addUpload(final HttpServletRequest req,
-			final Upload upload) {
-		List<Upload> uploads = getUploads(req.getSession());
+	public static void addUploadKey(final HttpServletRequest req,
+			final Key uploadKey) {
+		List<Key> uploads = getUploadKeys(req.getSession());
 		if (uploads == null) {
-			uploads = new ArrayList<Upload>();
+			uploads = new ArrayList<Key>();
 		} else {
 			// to list end
-			uploads.remove(upload);
+			uploads.remove(uploadKey);
 		}
-		uploads.add(upload);
-		req.getSession().setAttribute("uploads", uploads); // trigger update
+		uploads.add(uploadKey);
+		req.getSession().setAttribute("uploadKeys", uploads); // trigger update
 	}
 
 	public static String getChannelKey(final HttpSession httpSession) {
@@ -77,70 +89,83 @@ public class Uploads {
 		return channelToken;
 	}
 
-	public static List<Upload> getUploads(final HttpSession httpSession) {
-		return (List<Upload>) httpSession.getAttribute("uploads");
+	public static List<Key> getUploadKeys(final HttpSession httpSession) {
+		return (List<Key>) httpSession.getAttribute("uploadKeys");
 	}
 
 	public static String getUploadsHtml(final HttpServletRequest req,
 			final HttpSession httpSession) {
-		final List<Upload> uploads = getUploads(httpSession);
-		if (uploads == null || uploads.size() == 0) {
+		final List<Key> uploadKeys = getUploadKeys(httpSession);
+		if (uploadKeys == null || uploadKeys.size() == 0) {
 			return "";
 		}
-		final boolean channel = false;
+		final Map<Key, Entity> uploadKeys2Entities = DATASTORE_SERVICE
+				.get(uploadKeys);
+		boolean channel = false;
 		final StringBuilder sb = new StringBuilder("<ul>");
-		for (int i = 0; i < uploads.size(); ++i) {
-			final Upload upload = uploads.get(i);
-			sb.append("<li><a href='/decompile?u=").append(i)
-					.append("' target='_blank'>").append(upload.getFilename())
-					.append("</a>");
+		for (final Key uploadKey : uploadKeys) {
+			final Upload upload = new Upload(uploadKeys2Entities.get(uploadKey));
+			final String filename = upload.getFilename();
+
+			if (upload.getSourceBlobKey() != null) {
+				String sourcename = filename;
+				if (filename.endsWith(".class")) {
+					sourcename = filename.substring(0, filename.length() - 5)
+							+ "java";
+				} else if (filename.endsWith(".jar")) {
+					sourcename = filename.substring(0, filename.length() - 4)
+							+ "_source.jar";
+				} else if (filename.endsWith(".dex")) {
+					sourcename = filename.substring(0, filename.length() - 4)
+							+ "_android_source.jar";
+				}
+
+				sb.append("<li><a href='/download/")
+						.append(URLEncoder.encode(sourcename))
+						.append("?u=")
+						.append(URLEncoder.encode(upload.getSourceBlobKey()
+								.getKeyString())).append("' target='_blank'>")
+						.append(upload.getFilename()).append("</a>");
+			} else if (upload.getError() != null) {
+				sb.append("<li>").append(filename).append(" ERROR");
+			} else {
+				channel = true;
+				sb.append("<li>").append(filename).append(" ...decompiling...");
+			}
 			if (upload.getTds() > 1) {
 				sb.append(" (").append(upload.getTds()).append(" classes)");
-			} else {
-				sb.append(" (<a href='/?u=").append(i).append("'>View</a>)");
+			} else if (upload.getSourceBlobKey() != null) {
+				sb.append(" (<a href='/?u=")
+						.append(URLEncoder.encode(upload.getSourceBlobKey()
+								.getKeyString())).append("'>View</a>)");
 			}
 			sb.append("</li>");
 		}
 		sb.append("</ul>");
 
-		sb.append(
-				"<script type='text/javascript' src='/_ah/channel/jsapi'></script>'")
-				.append("<script>")
-				.append("  onMessage = function(msg) { window.location.reload(); };")
-				.append("  channel = new goog.appengine.Channel('")
-				.append(getChannelToken(httpSession))
-				.append("');")
-				.append("  socket = channel.open();")
-				.append("  socket.onopen = function() { $('#progressbar').progressbar({ value: 1 }); };")
-				.append("  socket.onmessage = onMessage;") //
-				.append("</script>");
-
-		int u;
-		try {
-			u = Integer.parseInt(req.getParameter("u"));
-			if (u >= uploads.size()) {
-				return sb.toString();
-			}
-		} catch (final NumberFormatException e) {
-			u = uploads.size() - 1;
+		if (channel) {
+			sb.append(
+					"<script type='text/javascript' src='/_ah/channel/jsapi'></script>")
+					.append("<script>")
+					.append("  channel = new goog.appengine.Channel('")
+					.append(getChannelToken(httpSession))
+					.append("');")
+					.append("  socket = channel.open();")
+					.append("  socket.onmessage = function(msg) { window.location.reload(); };")
+					.append("</script>");
 		}
-		final Upload upload = uploads.get(u);
-		if (!upload.getFilename().endsWith(".class")) {
+
+		final String u = req.getParameter("u");
+		if (u == null) {
 			return sb.toString();
 		}
 		try {
-			final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
-					upload.getUploadBlobKey());
-			final DU du = DecoJer.createDu();
-			final TD td = du.read(upload.getFilename(),
-					new BufferedInputStream(blobstoreInputStream), null);
-			final CU cu = DecoJer.createCu(td);
-			final String source = DecoJer.decompile(cu);
 			sb.append("<hr /><pre class=\"brush: java\">")
-					.append(source.replace("<", "&lt;"))
+					.append(IOUtils.toString(new BlobstoreInputStream(
+							new BlobKey(u)), "UTF-8"))
 					.append("</pre><script type=\"text/javascript\">SyntaxHighlighter.all()</script>");
-		} catch (final Throwable e) {
-			LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
+		} catch (final IOException e) {
+			LOGGER.log(Level.WARNING, "Couldn't write source!", e);
 		}
 		return sb.toString();
 	}

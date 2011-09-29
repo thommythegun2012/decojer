@@ -50,7 +50,7 @@ public class DownloadServlet extends HttpServlet {
 	protected void doGet(final HttpServletRequest req,
 			final HttpServletResponse resp) throws ServletException,
 			IOException {
-		final BlobKey blobKey = new BlobKey(req.getParameter("blobKey"));
+		final BlobKey blobKey = new BlobKey(req.getParameter("u"));
 		this.blobstoreService.serve(blobKey, resp);
 	}
 

@@ -35,21 +35,23 @@ import com.google.appengine.api.datastore.Entity;
  */
 public class Upload {
 
-	private static final String PROP_CREATED = "created";
+	public static final String KIND = "UPLOAD";
 
-	private static final String PROP_ERROR = "error";
+	public static final String PROP_CREATED = "created";
 
-	private static final String PROP_FILENAME = "filename";
+	public static final String PROP_ERROR = "error";
 
-	private static final String PROP_REQUESTED = "requested";
+	public static final String PROP_FILENAME = "filename";
 
-	private static final String PROP_REQUESTS = "requests";
+	public static final String PROP_REQUESTED = "requested";
 
-	private static final String PROP_SOURCE_BLOB_KEY = "sourceBlobKey";
+	public static final String PROP_REQUESTS = "requests";
 
-	private static final String PROP_TDS = "tds";
+	public static final String PROP_SOURCE_BLOB_KEY = "sourceBlobKey";
 
-	private static final String PROP_UPLOAD_BLOB_KEY = "uploadBlobKey";
+	public static final String PROP_TDS = "tds";
+
+	public static final String PROP_UPLOAD_BLOB_KEY = "uploadBlobKey";
 
 	private final Entity entity;
 
