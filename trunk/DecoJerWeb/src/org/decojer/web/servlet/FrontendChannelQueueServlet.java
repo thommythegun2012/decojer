@@ -40,13 +40,14 @@ import com.google.appengine.api.channel.ChannelServiceFactory;
  */
 public class FrontendChannelQueueServlet extends HttpServlet {
 
+	private static final long serialVersionUID = -2779677034358018746L;
+
 	@Override
 	protected void doGet(final HttpServletRequest req,
 			final HttpServletResponse resp) throws ServletException,
 			IOException {
 		final String channelKey = req.getParameter("channelKey");
 		if (channelKey != null) {
-			System.out.println("#Channel_Send: " + channelKey);
 			ChannelServiceFactory.getChannelService().sendMessage(
 					new ChannelMessage(channelKey, "Decompiled!"));
 		}

@@ -25,8 +25,11 @@ package org.decojer.web.servlet;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,8 +61,11 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
+import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
@@ -92,152 +98,205 @@ public class UploadServlet extends HttpServlet {
 		// same target page in all cases
 		resp.sendRedirect("/");
 
-		// check data from GAE upload service
+		// check uploaded blob from GAE upload service
 		final Map<String, BlobKey> uploadedBlobs = BLOBSTORE_SERVICE
 				.getUploadedBlobs(req);
-		final BlobKey uploadBlobKey = uploadedBlobs.get("file");
-		if (uploadBlobKey == null) {
+		if (uploadedBlobs.get("file") == null) {
 			Messages.addMessage(req, "Upload was empty!");
 			return;
 		}
-		final BlobInfo uploadBlobInfo = DATASTORE_SERVICE_BLOBINFO_FACTORY
-				.loadBlobInfo(uploadBlobKey);
+		// uses DatastoreService.get(), seems to be no HA-lagging here
+		BlobInfo uploadBlobInfo = DATASTORE_SERVICE_BLOBINFO_FACTORY
+				.loadBlobInfo(uploadedBlobs.get("file"));
 		if (uploadBlobInfo == null) {
+			LOGGER.warning("Missing upload information for '"
+					+ uploadedBlobs.get("file") + "'!");
 			Messages.addMessage(req, "Missing upload information!");
 			return;
 		}
-		// blob is new, content might be a duplication, handle in each case!
-		// duplication indicated through equal hash and size
-		final Key uploadKey = KeyFactory.createKey(
-				"UPLOAD",
-				IOUtils.toKey(uploadBlobInfo.getMd5Hash(),
-						uploadBlobInfo.getSize()));
 		try {
-			final Upload upload = new Upload(DATASTORE_SERVICE.get(uploadKey));
-			// content is a duplication -> delete & update statistic,
-			// transaction not important -> statistic for rare event
-			upload.setRequested(uploadBlobInfo.getCreation());
-			upload.setRequests(upload.getRequests() + 1L);
-			BLOBSTORE_SERVICE.delete(uploadBlobKey);
-			DATASTORE_SERVICE.put(upload.getWrappedEntity());
+			// blob is new, but content might be duplication -> find oldest,
+			// duplication indicated through equal hash and size
+			final String md5Hash = uploadBlobInfo.getMd5Hash();
+			final Long size = uploadBlobInfo.getSize();
+			// because of lagging HA writes following query could even be empty
+			final Query duplicateQuery = new Query(BlobInfoFactory.KIND);
+			duplicateQuery.addFilter(BlobInfoFactory.MD5_HASH,
+					Query.FilterOperator.EQUAL, md5Hash);
+			duplicateQuery.addFilter(BlobInfoFactory.SIZE,
+					Query.FilterOperator.EQUAL, size);
+			final List<Entity> blobInfoEntities = DATASTORE_SERVICE.prepare(
+					duplicateQuery).asList(FetchOptions.Builder.withDefaults());
 
-			Uploads.addUpload(req, upload);
-			return;
-		} catch (final EntityNotFoundException e) {
-			;
-		}
-		final Upload upload = new Upload(new Entity(uploadKey));
-		upload.setUploadBlobKey(uploadBlobKey);
-		upload.setFilename(uploadBlobInfo.getFilename());
-		upload.setCreated(uploadBlobInfo.getCreation());
-		upload.setRequested(uploadBlobInfo.getCreation());
-		upload.setRequests(1L);
-
-		try {
-			// read blob meta data for upload and find all duplicates;
-			// attention: this servlet can rely on the existence of the
-			// current uploads blob meta data via datastoreService.get(), but
-			// the results from other queries are HA write lag dependend!
-			final List<TypeInfo> typeInfos = new ArrayList<TypeInfo>();
-			try {
-				// check file name extension
-				final int pos = upload.getFilename().lastIndexOf('.');
-				if (pos == -1) {
-					throw new AnalyseException("The file extension is missing.");
+			// now find and keep oldest entity, start with myself
+			// (uploadBlobInfo)
+			final Set<BlobKey> duplicateBlobKeys = new HashSet<BlobKey>();
+			Date lastAccess = uploadBlobInfo.getCreation();
+			for (final Entity blobInfoEntity : blobInfoEntities) {
+				final BlobInfo blobInfo = DATASTORE_SERVICE_BLOBINFO_FACTORY
+						.createBlobInfo(blobInfoEntity);
+				if (uploadBlobInfo.equals(blobInfo)) {
+					continue;
 				}
-				final String ext = upload.getFilename().substring(pos + 1)
-						.toLowerCase();
-				if ("class".equals(ext)) {
-					final TypeInfo typeInfo;
-					try {
-						typeInfo = ClassAnalyser
-								.analyse(new BlobstoreInputStream(uploadBlobKey));
-					} catch (final Exception e) {
-						throw new AnalyseException(
-								"This isn't a valid Java Class like the file extension suggests.");
-					}
-					typeInfos.add(typeInfo);
-				} else if ("jar".equals(ext)) {
-					final JarInfo jarInfo;
-					try {
-						jarInfo = JarAnalyser.analyse(new BlobstoreInputStream(
-								uploadBlobKey));
-					} catch (final Exception e) {
-						throw new AnalyseException(
-								"This isn't a valid Java Archive like the file extension suggests.");
-					}
-					LOGGER.info("JAR analyzed with " + jarInfo.typeInfos.size()
-							+ " types and " + jarInfo.checkFailures
-							+ " check failures.");
-					if (jarInfo.typeInfos.size() == 0) {
-						throw new AnalyseException(
-								"This isn't a valid Java Archive like the file extension suggests.");
-					}
-					typeInfos.addAll(jarInfo.typeInfos);
-				} else if ("dex".equals(ext)) {
-					final DexInfo dexInfo;
-					try {
-						dexInfo = DexAnalyser.analyse(new BlobstoreInputStream(
-								uploadBlobKey));
-					} catch (final Exception e) {
-						throw new AnalyseException(
-								"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
-					}
-					LOGGER.info("DEX analyzed with " + dexInfo.typeInfos.size()
-							+ " types.");
-					if (dexInfo.typeInfos.size() == 0) {
-						throw new AnalyseException(
-								"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
-					}
-					typeInfos.addAll(dexInfo.typeInfos);
-				} else if ("apk".equals(ext)) {
-					throw new AnalyseException(
-							"Sorry, because of quota limits the online version doesn't support the direct decompilation of Android Package Archives (APK). Please unzip and upload the contained 'classes.dex' Dalvik Executable File (DEX).");
-				} else if ("war".equals(ext)) {
-					throw new AnalyseException(
-							"Sorry, because of quota limits the online version doesn't support the direct decompilation of Web Application Archives (WAR), often containing multiple embedded Java Archives (JAR).");
-				} else if ("ear".equals(ext)) {
-					throw new AnalyseException(
-							"Sorry, because of quota limits the online version doesn't support the direct decompilation of Enterprise Application Archives (EAR), often containing multiple embedded Java Archives (JAR).");
+				// one must die now...
+				if (lastAccess.compareTo(blobInfo.getCreation()) < 0) {
+					lastAccess = blobInfo.getCreation();
+				}
+				if (uploadBlobInfo.getCreation().compareTo(
+						blobInfo.getCreation()) < 0) {
+					duplicateBlobKeys.add(blobInfo.getBlobKey());
 				} else {
-					throw new AnalyseException("The file extension '" + ext
-							+ "' is unknown.");
+					// change upload
+					duplicateBlobKeys.add(uploadBlobInfo.getBlobKey());
+					uploadBlobInfo = blobInfo;
 				}
-				if (typeInfos.size() == 0) {
-					throw new AnalyseException("Could not find any classes!");
-				}
-				upload.setTds((long) typeInfos.size());
-			} catch (final AnalyseException e) {
-				LOGGER.log(Level.INFO, e.getMessage());
-				Messages.addMessage(
-						req,
-						e.getMessage()
-								+ "  Please upload valid Java Classes or Archives (JAR) respectively Android / Dalvik Executable File (DEX).");
-				upload.setError(e.getMessage());
 			}
-			DATASTORE_SERVICE.put(upload.getWrappedEntity());
+			// short unique upload-entity key: base91(hash|size)
+			final Key uploadKey = KeyFactory.createKey(Upload.KIND,
+					IOUtils.toKey(md5Hash, size));
+			// none-transactional quick-check if upload-entity already exists
+			Upload upload;
+			try {
+				upload = new Upload(DATASTORE_SERVICE.get(uploadKey));
+			} catch (final EntityNotFoundException e) {
+				upload = new Upload(new Entity(uploadKey));
+				upload.setFilename(uploadBlobInfo.getFilename());
+				upload.setRequests(0L);
+			}
+			if (upload.getSourceBlobKey() == null) {
+				upload.setError(null);
+				// read blob meta data for upload and find all duplicates;
+				// attention: this servlet can rely on the existence of the
+				// current uploads blob meta data via datastoreService.get(),
+				// but results from other queries are HA write lag dependend!
+				final List<TypeInfo> typeInfos = new ArrayList<TypeInfo>();
+				try {
+					// check file name extension
+					final int pos = upload.getFilename().lastIndexOf('.');
+					if (pos == -1) {
+						throw new AnalyseException(
+								"The file extension is missing.");
+					}
+					final String ext = upload.getFilename().substring(pos + 1)
+							.toLowerCase();
+					if ("class".equals(ext)) {
+						final TypeInfo typeInfo;
+						try {
+							typeInfo = ClassAnalyser
+									.analyse(new BlobstoreInputStream(
+											uploadBlobInfo.getBlobKey()));
+						} catch (final Exception e) {
+							throw new AnalyseException(
+									"This isn't a valid Java Class like the file extension suggests.");
+						}
+						typeInfos.add(typeInfo);
+					} else if ("jar".equals(ext)) {
+						final JarInfo jarInfo;
+						try {
+							jarInfo = JarAnalyser
+									.analyse(new BlobstoreInputStream(
+											uploadBlobInfo.getBlobKey()));
+						} catch (final Exception e) {
+							throw new AnalyseException(
+									"This isn't a valid Java Archive like the file extension suggests.");
+						}
+						LOGGER.info("JAR analyzed with "
+								+ jarInfo.typeInfos.size() + " types and "
+								+ jarInfo.checkFailures + " check failures.");
+						if (jarInfo.typeInfos.size() == 0) {
+							throw new AnalyseException(
+									"This isn't a valid Java Archive like the file extension suggests.");
+						}
+						typeInfos.addAll(jarInfo.typeInfos);
+					} else if ("dex".equals(ext)) {
+						final DexInfo dexInfo;
+						try {
+							dexInfo = DexAnalyser
+									.analyse(new BlobstoreInputStream(
+											uploadBlobInfo.getBlobKey()));
+						} catch (final Exception e) {
+							throw new AnalyseException(
+									"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
+						}
+						LOGGER.info("DEX analyzed with "
+								+ dexInfo.typeInfos.size() + " types.");
+						if (dexInfo.typeInfos.size() == 0) {
+							throw new AnalyseException(
+									"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
+						}
+						typeInfos.addAll(dexInfo.typeInfos);
+					} else if ("apk".equals(ext)) {
+						throw new AnalyseException(
+								"Sorry, because of quota limits the online version doesn't support the direct decompilation of Android Package Archives (APK). Please unzip and upload the contained 'classes.dex' Dalvik Executable File (DEX).");
+					} else if ("war".equals(ext)) {
+						throw new AnalyseException(
+								"Sorry, because of quota limits the online version doesn't support the direct decompilation of Web Application Archives (WAR), often containing multiple embedded Java Archives (JAR).");
+					} else if ("ear".equals(ext)) {
+						throw new AnalyseException(
+								"Sorry, because of quota limits the online version doesn't support the direct decompilation of Enterprise Application Archives (EAR), often containing multiple embedded Java Archives (JAR).");
+					} else {
+						throw new AnalyseException("The file extension '" + ext
+								+ "' is unknown.");
+					}
+					if (typeInfos.size() == 0) {
+						throw new AnalyseException(
+								"Could not find any classes!");
+					}
+					upload.setTds((long) typeInfos.size());
+				} catch (final AnalyseException e) {
+					LOGGER.log(Level.INFO, e.getMessage());
+					Messages.addMessage(
+							req,
+							e.getMessage()
+									+ "  Please upload valid Java Classes or Archives (JAR) respectively Android / Dalvik Executable File (DEX).");
+					upload.setError(e.getMessage());
+				}
+			}
+			upload.setUploadBlobKey(uploadBlobInfo.getBlobKey());
+			upload.setCreated(uploadBlobInfo.getCreation());
+			upload.setRequested(lastAccess);
+			upload.setRequests(upload.getRequests() + 1L
+					+ duplicateBlobKeys.size());
+
+			final Transaction tx = DATASTORE_SERVICE.beginTransaction();
+			try {
+				DATASTORE_SERVICE.put(upload.getWrappedEntity());
+
+				if (upload.getError() == null
+						&& upload.getSourceBlobKey() == null) {
+					QueueFactory
+							.getQueue("decoJer")
+							.add(TaskOptions.Builder
+									.withMethod(Method.GET)
+									.param("uploadKey", uploadKey.getName())
+									.param("channelKey",
+											Uploads.getChannelKey(req
+													.getSession()))
+									.countdownMillis(2000)
+									.header("Host",
+											BackendServiceFactory
+													.getBackendService()
+													.getBackendAddress("worker")));
+				}
+			} finally {
+				tx.commit();
+			}
+			BLOBSTORE_SERVICE.delete(duplicateBlobKeys
+					.toArray(new BlobKey[duplicateBlobKeys.size()]));
+
 			if (upload.getError() != null) {
 				return;
 			}
 			// add message and link
-			Messages.addMessage(req,
-					"Found " + typeInfos.size()
-							+ (typeInfos.size() == 1 ? " class." : " classes."));
-			Uploads.addUpload(req, upload);
-
-			QueueFactory.getQueue("decoJer").add(
-					TaskOptions.Builder
-							.withMethod(Method.GET)
-							.param("uploadKey", uploadKey.getName())
-							.param("channelKey",
-									Uploads.getChannelKey(req.getSession()))
-							.header("Host",
-									BackendServiceFactory.getBackendService()
-											.getBackendAddress("worker")));
+			Messages.addMessage(req, "Found "
+					+ upload.getTds()
+					+ (upload.getTds().longValue() == 1L ? " class."
+							: " classes."));
+			Uploads.addUploadKey(req, uploadKey);
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING,
 					"Unexpected problem, couldn't evaluate upload: "
-							+ uploadBlobKey, e);
+							+ uploadBlobInfo.getBlobKey(), e);
 			Messages.addMessage(req,
 					"Unexpected problem, couldn't evaluate upload!");
 		}

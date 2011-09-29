@@ -61,6 +61,7 @@ import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
+import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.files.AppEngineFile;
 import com.google.appengine.api.files.FileService;
 import com.google.appengine.api.files.FileServiceFactory;
@@ -93,7 +94,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 	protected void doGet(final HttpServletRequest req,
 			final HttpServletResponse resp) throws ServletException,
 			IOException {
-		final Key uploadKey = KeyFactory.createKey("UPLOAD",
+		final Key uploadKey = KeyFactory.createKey(Upload.KIND,
 				req.getParameter("uploadKey"));
 
 		final Upload upload;
@@ -112,10 +113,11 @@ public class DecoJerQueueServlet extends HttpServlet {
 		final BlobKey sourceBlobKey;
 
 		final String filename = upload.getFilename();
+		String sourcename;
 
 		if (filename.endsWith(".class")) {
 			final int pos = filename.lastIndexOf('.');
-			final String sourcename = filename.substring(0, pos) + ".java";
+			sourcename = filename.substring(0, pos) + ".java";
 
 			String source;
 			try {
@@ -138,8 +140,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 			sourceBlobKey = this.fileService.getBlobKey(file);
 		} else if (filename.endsWith(".jar")) {
 			final int pos = filename.lastIndexOf('.');
-			final String sourcename = filename.substring(0, pos)
-					+ "_source.jar";
+			sourcename = filename.substring(0, pos) + "_source.jar";
 
 			final ByteArrayOutputStream sourceOutputStream = new ByteArrayOutputStream();
 			try {
@@ -168,8 +169,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 			sourceBlobKey = this.fileService.getBlobKey(file);
 		} else if (filename.endsWith(".dex")) {
 			final int pos = filename.lastIndexOf('.');
-			final String sourcename = filename.substring(0, pos)
-					+ "_android_source.jar";
+			sourcename = filename.substring(0, pos) + "_android_source.jar";
 
 			final ByteArrayOutputStream sourceOutputStream = new ByteArrayOutputStream();
 			try {
@@ -205,21 +205,26 @@ public class DecoJerQueueServlet extends HttpServlet {
 			BLOBSTORE_SERVICE.delete(upload.getSourceBlobKey());
 		}
 		upload.setSourceBlobKey(sourceBlobKey);
-		DATASTORE_SERVICE.put(upload.getWrappedEntity());
-		sendEmail("Decompiled '" + filename + "'!");
+		final Transaction tx = DATASTORE_SERVICE.beginTransaction();
+		try {
+			DATASTORE_SERVICE.put(upload.getWrappedEntity());
 
-		final String channelKey = req.getParameter("channelKey");
-		if (channelKey != null) {
-			// can currently not send directly from backend:
-			// Open Issue 5123: Channel API Access from Backends
-			// http://code.google.com/p/googleappengine/issues/detail?id=5123
-			// ChannelServiceFactory.getChannelService().sendMessage(
-			// new ChannelMessage(channelKey, "Decompiled '" + filename
-			// + "'!"));
-			QueueFactory.getQueue("frontendChannel").add(
-					TaskOptions.Builder.withMethod(Method.GET).param(
-							"channelKey", channelKey));
+			final String channelKey = req.getParameter("channelKey");
+			if (channelKey != null) {
+				// can currently not send directly from backend:
+				// Open Issue 5123: Channel API Access from Backends
+				// http://code.google.com/p/googleappengine/issues/detail?id=5123
+				// ChannelServiceFactory.getChannelService().sendMessage(
+				// new ChannelMessage(channelKey, "Decompiled '" + filename
+				// + "'!"));
+				QueueFactory.getQueue("frontendChannel").add(
+						TaskOptions.Builder.withMethod(Method.GET).param(
+								"channelKey", channelKey));
+			}
+		} finally {
+			tx.commit();
 		}
+		sendEmail("Decompiled '" + filename + "'!");
 	}
 
 	private void sendEmail(final String msgBody) {
