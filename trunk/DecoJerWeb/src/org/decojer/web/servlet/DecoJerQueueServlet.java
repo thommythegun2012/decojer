@@ -31,15 +31,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.channels.Channels;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.mail.Message;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -66,6 +60,8 @@ import com.google.appengine.api.files.AppEngineFile;
 import com.google.appengine.api.files.FileService;
 import com.google.appengine.api.files.FileServiceFactory;
 import com.google.appengine.api.files.FileWriteChannel;
+import com.google.appengine.api.mail.MailService;
+import com.google.appengine.api.mail.MailServiceFactory;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.taskqueue.TaskOptions.Method;
@@ -85,6 +81,9 @@ public class DecoJerQueueServlet extends HttpServlet {
 
 	private static Logger LOGGER = Logger.getLogger(DecoJerQueueServlet.class
 			.getName());
+
+	private static final MailService MAIL_SERVICE = MailServiceFactory
+			.getMailService();
 
 	private static final long serialVersionUID = -8624836355443861445L;
 
@@ -227,20 +226,12 @@ public class DecoJerQueueServlet extends HttpServlet {
 		sendEmail("Decompiled '" + filename + "'!");
 	}
 
-	private void sendEmail(final String msgBody) {
-		final Properties props = new Properties();
-		final Session session = Session.getDefaultInstance(props, null);
+	private void sendEmail(final String textBody) {
 		try {
-			final Message msg = new MimeMessage(session);
-			// from-account added as application administrator!
-			msg.setFrom(new InternetAddress("andrePankraz@decojer.org",
-					"DecoJer Admin"));
-			msg.addRecipient(Message.RecipientType.TO, new InternetAddress(
-					"andrePankraz@googlemail.com", "DecoJer Admin"));
-			msg.setSubject("DecoJer worker");
-			msg.setText(msgBody);
-			Transport.send(msg);
-		} catch (final Exception e) {
+			MAIL_SERVICE.sendToAdmins(new MailService.Message(
+					"andrePankraz@decojer.org", "andrePankraz@gmail.com",
+					"DecoJer worker", textBody));
+		} catch (final IOException e) {
 			LOGGER.log(Level.WARNING, "Could not send email!", e);
 		}
 	}
