@@ -228,10 +228,11 @@ public class DecoJerQueueServlet extends HttpServlet {
 
 	private void sendEmail(final String textBody) {
 		try {
-			MAIL_SERVICE.sendToAdmins(new MailService.Message(
+			// sendToAdmin with or without "to" doesn't work for me in 1.5.4
+			MAIL_SERVICE.send(new MailService.Message(
 					"andrePankraz@decojer.org", "andrePankraz@gmail.com",
 					"DecoJer worker", textBody));
-		} catch (final IOException e) {
+		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING, "Could not send email!", e);
 		}
 	}
