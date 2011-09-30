@@ -117,6 +117,22 @@ public class Var {
 	}
 
 	/**
+	 * Assign to type.
+	 * 
+	 * @param t
+	 *            type
+	 * @return true - changed (this)
+	 */
+	public boolean mergeTo(final T t) {
+		final T mergedT = this.t.mergeTo(t);
+		if (this.t == mergedT) {
+			return false;
+		}
+		this.t = mergedT;
+		return true;
+	}
+
+	/**
 	 * Set end pc.
 	 * 
 	 * @param endPc

@@ -172,6 +172,7 @@ public class DU {
 				t = new T(this, name);
 				t.setDim(dim);
 				t.setSuperT(baseT);
+				// TODO could set interfaces Cloneable/Serializable...
 			}
 			this.ts.put(name, t);
 		}

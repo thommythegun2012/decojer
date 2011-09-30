@@ -160,7 +160,7 @@ public class TrDataFlowAnalysis {
 		if (var.getEndPc() < this.pc) {
 			var.setEndPc(this.pc);
 		}
-		if (var.merge(t)) {
+		if (var.mergeTo(t)) {
 			this.queue.add(var.getStartPc());
 		}
 		return var;

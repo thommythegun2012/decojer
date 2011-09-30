@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 
@@ -54,23 +55,6 @@ public class T {
 		protected TT(final T... ts) {
 			super(concat(ts));
 			this.ts = ts;
-		}
-
-		public boolean canAssignFrom(final T t) {
-			if (t == this || t == null) {
-				return true;
-			}
-			System.out.println("AssignFromM: " + this + " <- " + t);
-			return true;
-		}
-
-		@Override
-		public boolean canAssignTo(final T t) {
-			if (t == this || t == null) {
-				return true;
-			}
-			System.out.println("AssignToM: " + this + " -> " + t);
-			return true;
 		}
 
 		/**
@@ -110,6 +94,11 @@ public class T {
 			}
 			// TODO equals old?
 			return new TT(merged.toArray(new T[s]));
+		}
+
+		@Override
+		public T mergeTo(final T t) {
+			return merge(t);
 		}
 
 	}
@@ -175,6 +164,8 @@ public class T {
 	 */
 	public static T WIDE = multi(DOUBLE, LONG);
 
+	private static final T[] NO_INTERFACES = new T[0];
+
 	/**
 	 * Create multi-type.
 	 * 
@@ -217,35 +208,6 @@ public class T {
 
 		this.du = null; // primitive
 		this.name = name;
-	}
-
-	/**
-	 * Check if instances from this type can be assigned to given type.
-	 * 
-	 * @param t
-	 *            type
-	 * @return true - can be assigned
-	 */
-	public boolean canAssignTo(final T t) {
-		if (t == this || t == null) {
-			return true;
-		}
-		// has priority, TT doesn't know merged super states
-		if (t instanceof TT) {
-			return ((TT) t).canAssignFrom(this);
-		}
-		if (!isReference() && !t.isReference()) {
-			// unequal primitives or special types cannot be equal
-			return false;
-		}
-		if (this == T.AREF && t.isReference()) {
-			return true;
-		}
-		if (t == T.AREF && isReference()) {
-			return true;
-		}
-		System.out.println("AssignTo: " + this + " -> " + t);
-		return true;
 	}
 
 	/**
@@ -352,6 +314,16 @@ public class T {
 	 * @return interface types
 	 */
 	public T[] getInterfaceTs() {
+		if (this.interfaceTs == null) {
+			if (isArray()) {
+				// TODO could set / cache this in du...
+				final T[] interfaceTs = new T[2];
+				interfaceTs[0] = this.du.getT(Cloneable.class.getName());
+				interfaceTs[1] = this.du.getT(Serializable.class.getName());
+				return interfaceTs;
+			}
+			init();
+		}
 		return this.interfaceTs;
 	}
 
@@ -417,10 +389,51 @@ public class T {
 	 * @return super type
 	 */
 	public T getSuperT() {
-		if (isArray()) {
+		if (this.superT == null) {
+			if (Object.class.getName().equals(getName())) {
+				return null;
+			}
+			init();
+		} else if (isArray()) {
 			return this.du.getT(Object.class.getName());
 		}
 		return this.superT;
+	}
+
+	private void init() {
+		if (this.interfaceTs == NO_INTERFACES) {
+			return;
+		}
+		// TODO for now...better together with setSuper...
+		if (this.superT != null) {
+			this.interfaceTs = NO_INTERFACES;
+			return;
+		}
+		// try simple class loading, may be we are lucky ;)
+		// later ask DecoJer-online and local type cache with context info
+		try {
+			final Class<?> clazz = getClass().getClassLoader().loadClass(
+					getName());
+			this.accessFlags = clazz.getModifiers();
+			final Class<?> superclass = clazz.getSuperclass();
+			if (superclass != null) {
+				this.superT = this.du.getT(superclass.getName());
+			}
+			final Class<?>[] interfaces = clazz.getInterfaces();
+			if (interfaces.length == 0) {
+				this.interfaceTs = NO_INTERFACES;
+				return;
+			}
+			final T[] interfaceTs = new T[interfaces.length];
+			for (int i = interfaces.length; i-- > 0;) {
+				interfaceTs[i] = this.du.getT(interfaces[i].getName());
+			}
+			this.interfaceTs = interfaceTs;
+		} catch (final ClassNotFoundException e) {
+			System.out.println("Couldn't load type : " + this);
+			this.interfaceTs = NO_INTERFACES;
+		}
+		return;
 	}
 
 	/**
@@ -487,7 +500,7 @@ public class T {
 		if (t instanceof TT) {
 			return t.merge(this);
 		}
-		if (!isReference() && !t.isReference()) {
+		if (!isReference() || !t.isReference()) {
 			// unequal primitives or special types cannot be equal
 			return T.BOGUS;
 		}
@@ -498,6 +511,60 @@ public class T {
 			return this;
 		}
 		System.out.println("Merge: " + this + " <-> " + t);
+		return this;
+	}
+
+	/**
+	 * Assign to type: Assign instances from this type to given (multi-)type,
+	 * reduce multis...
+	 * 
+	 * Like merge, but doesn't create new multi-types through common super type
+	 * search.
+	 * 
+	 * @param t
+	 *            type
+	 * @return t (reduced) type (or BOGUS for bytecode error)
+	 */
+	public T mergeTo(final T t) {
+		if (t == this || t == null) {
+			return this;
+		}
+		// has priority, TT doesn't know merged super states
+		if (t instanceof TT) {
+			return t.mergeTo(this);
+		}
+		if (!isReference() || !t.isReference()) {
+			// unequal primitives or special types cannot be equal
+			return T.BOGUS;
+		}
+		if (this == T.AREF && t.isReference()) {
+			return t;
+		}
+		if (t == T.AREF && isReference()) {
+			return this;
+		}
+
+		if (t.isArray()) {
+			if (!isArray()) {
+				return T.BOGUS;
+			}
+			if (getBaseT().subtypeOf(t.getBaseT())) {
+				return this;
+			}
+		}
+		if (subtypeOf(t)) {
+			return this;
+		}
+
+		final StringBuilder sb = new StringBuilder();
+		sb.append("AssignTo: " + this + " -> " + t + " (Super: " + getSuperT());
+		if (getInterfaceTs() != null) {
+			for (final T it : getInterfaceTs()) {
+				sb.append(", ").append(it.toString());
+			}
+		}
+		sb.append(")");
+		System.out.println(sb.toString());
 		return this;
 	}
 
@@ -549,6 +616,37 @@ public class T {
 	 */
 	public void setSuperT(final T superT) {
 		this.superT = superT;
+	}
+
+	private boolean subtypeOf(final T t) {
+		if (Object.class.getName().equals(t.getName())) {
+			return true;
+		}
+		// check one hierarchie up first
+		final T superT = getSuperT();
+		if (superT == t) {
+			return true;
+		}
+		final T[] interfaceTs = getInterfaceTs();
+		if (interfaceTs != null) {
+			for (final T interfaceT : interfaceTs) {
+				if (interfaceT == t) {
+					return true;
+				}
+			}
+		}
+		// now check further up
+		if (superT != null && superT.subtypeOf(t)) {
+			return true;
+		}
+		if (interfaceTs != null) {
+			for (final T interfaceT : interfaceTs) {
+				if (interfaceT.subtypeOf(t)) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 
 	@Override
