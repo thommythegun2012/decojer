@@ -56,6 +56,23 @@ public class T {
 			this.ts = ts;
 		}
 
+		public boolean canAssignFrom(final T t) {
+			if (t == this || t == null) {
+				return true;
+			}
+			System.out.println("AssignFromM: " + this + " <- " + t);
+			return true;
+		}
+
+		@Override
+		public boolean canAssignTo(final T t) {
+			if (t == this || t == null) {
+				return true;
+			}
+			System.out.println("AssignToM: " + this + " -> " + t);
+			return true;
+		}
+
 		/**
 		 * Get types.
 		 * 
@@ -94,6 +111,7 @@ public class T {
 			// TODO equals old?
 			return new TT(merged.toArray(new T[s]));
 		}
+
 	}
 
 	/**
@@ -199,6 +217,35 @@ public class T {
 
 		this.du = null; // primitive
 		this.name = name;
+	}
+
+	/**
+	 * Check if instances from this type can be assigned to given type.
+	 * 
+	 * @param t
+	 *            type
+	 * @return true - can be assigned
+	 */
+	public boolean canAssignTo(final T t) {
+		if (t == this || t == null) {
+			return true;
+		}
+		// has priority, TT doesn't know merged super states
+		if (t instanceof TT) {
+			return ((TT) t).canAssignFrom(this);
+		}
+		if (!isReference() && !t.isReference()) {
+			// unequal primitives or special types cannot be equal
+			return false;
+		}
+		if (this == T.AREF && t.isReference()) {
+			return true;
+		}
+		if (t == T.AREF && isReference()) {
+			return true;
+		}
+		System.out.println("AssignTo: " + this + " -> " + t);
+		return true;
 	}
 
 	/**
@@ -450,7 +497,7 @@ public class T {
 		if (t == T.AREF && isReference()) {
 			return this;
 		}
-		System.out.println("Merge: " + this + " -> " + t);
+		System.out.println("Merge: " + this + " <-> " + t);
 		return this;
 	}
 
