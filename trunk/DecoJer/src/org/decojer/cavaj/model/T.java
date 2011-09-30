@@ -24,8 +24,10 @@
 package org.decojer.cavaj.model;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.List;
 
 /**
  * Type.
@@ -67,11 +69,16 @@ public class T {
 		}
 
 		@Override
+		public boolean isMulti() {
+			return true;
+		}
+
+		@Override
 		public T merge(final T t) {
 			if (t == this || t == null) {
 				return this;
 			}
-			final LinkedHashSet<T> merged = new LinkedHashSet<T>();
+			final List<T> merged = new ArrayList<T>();
 			for (final T st : this.ts) {
 				final T mt = t.merge(st); // t might be multi too
 				if (mt == T.BOGUS) {
@@ -79,28 +86,57 @@ public class T {
 				}
 				if (mt instanceof TT) {
 					for (final T smt : ((TT) mt).getTs()) {
-						merged.add(smt);
+						if (!merged.contains(smt)) {
+							merged.add(smt);
+						}
 					}
 					continue;
 				}
-				merged.add(mt);
+				if (!merged.contains(mt)) {
+					merged.add(mt);
+				}
 			}
-			final int s = merged.size();
-			if (s == 0) {
+			if (merged.size() == 0) {
 				return T.BOGUS;
 			}
-			if (s == 1) {
-				return merged.iterator().next();
+			if (merged.size() == 1) {
+				return merged.get(0);
 			}
-			// TODO equals old?
-			return new TT(merged.toArray(new T[s]));
+			// TODO check equals
+			return new TT(merged.toArray(new T[merged.size()]));
 		}
 
 		@Override
 		public T mergeTo(final T t) {
-			return merge(t);
+			if (t == this || t == null) {
+				return this;
+			}
+			final List<T> merged = new ArrayList<T>();
+			for (final T st : this.ts) {
+				final T mt = st.mergeTo(t);
+				if (mt == T.BOGUS) {
+					continue;
+				}
+				// cannot switch to new type (super) or multi,
+				// only AREF -> concrete could happen
+				assert !(mt instanceof TT);
+				if (!merged.contains(mt)) {
+					merged.add(mt);
+				}
+			}
+			if (merged.size() == 0) {
+				return T.BOGUS;
+			}
+			if (merged.size() == 1) {
+				return merged.get(0);
+			}
+			// order cannot change, this equals is OK
+			final T[] retTs = merged.toArray(new T[merged.size()]);
+			if (Arrays.equals(this.ts, retTs)) {
+				return this;
+			}
+			return new TT(retTs);
 		}
-
 	}
 
 	/**
@@ -267,9 +303,9 @@ public class T {
 	}
 
 	/**
-	 * Get decompilation unit.
+	 * Get decompilation unit or null (for primitive and special types).
 	 * 
-	 * @return decompilation unit
+	 * @return decompilation unit or null
 	 */
 	public DU getDu() {
 		return this.du;
@@ -446,6 +482,15 @@ public class T {
 	}
 
 	/**
+	 * Is multi-type?
+	 * 
+	 * @return true - is multi-type
+	 */
+	public boolean isMulti() {
+		return false;
+	}
+
+	/**
 	 * Is primitive?
 	 * 
 	 * @return true - is primitive
@@ -496,7 +541,6 @@ public class T {
 		if (t == this || t == null) {
 			return this;
 		}
-		// has priority, TT doesn't know merged super states
 		if (t instanceof TT) {
 			return t.merge(this);
 		}
@@ -510,6 +554,23 @@ public class T {
 		if (t == T.AREF && isReference()) {
 			return this;
 		}
+
+		// TODO hack
+		if (isArray() && t.isArray()) {
+			if (this.superT.subtypeOf(t.superT)) {
+				return t;
+			}
+			if (t.superT.subtypeOf(this.superT)) {
+				return this;
+			}
+		}
+		if (subtypeOf(t)) {
+			return t;
+		}
+		if (t.subtypeOf(this)) {
+			return this;
+		}
+
 		System.out.println("Merge: " + this + " <-> " + t);
 		return this;
 	}
@@ -529,9 +590,13 @@ public class T {
 		if (t == this || t == null) {
 			return this;
 		}
-		// has priority, TT doesn't know merged super states
 		if (t instanceof TT) {
-			return t.mergeTo(this);
+			for (final T st : ((TT) t).getTs()) {
+				if (mergeTo(st) != T.BOGUS) {
+					return this;
+				}
+			}
+			return T.BOGUS;
 		}
 		if (!isReference() || !t.isReference()) {
 			// unequal primitives or special types cannot be equal
