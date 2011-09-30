@@ -1,5 +1,7 @@
 package org.decojer.cavaj.test;
 
+import java.io.Serializable;
+
 public class DecTestFields {
 
 	public final byte byteTest = 127;
@@ -32,6 +34,15 @@ public class DecTestFields {
 		System.out.println("TEST : " + String.class);
 		System.out.println("TEST : " + String[].class);
 		System.out.println("TEST : " + String[].class.getSuperclass());
+		System.out.println("TEST : " + String[].class.getInterfaces().length);
+		System.out.println("TEST : " + String[].class.getInterfaces()[0]);
+		System.out.println("TEST : " + String[].class.getInterfaces()[1]);
+		System.out.println("TEST : " + Class.class.getSuperclass());
+		System.out.println("TEST : " + Object.class.getSuperclass());
+		System.out.println("TEST : " + Object.class.getInterfaces().length);
+		System.out.println("TEST : " + Serializable.class.getSuperclass());
+		System.out.println("TEST : " + void.class);
+		System.out.println("TEST : " + void.class.getSuperclass());
 		System.out.println("TEST : " + int.class);
 		System.out.println("TEST : " + int.class.getSuperclass());
 		System.out.println("TEST : " + int[].class);
