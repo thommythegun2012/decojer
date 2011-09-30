@@ -442,9 +442,12 @@ public class TrDataFlowAnalysis {
 				break;
 			}
 			case Opcode.RETURN: {
-				final RETURN op = (RETURN) operation;
-				if (op.getT() != T.VOID) {
-					pop(frame, op.getT()); // TODO method return
+				assert operation instanceof RETURN;
+
+				// don't need op type here, could check, but why should we...
+				final T returnT = this.cfg.getMd().getM().getReturnT();
+				if (returnT != T.VOID) {
+					pop(frame, returnT);
 				}
 				continue;
 			}

@@ -638,37 +638,39 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IF_ICMPEQ:
 				if (t == null) {
-					t = T.INT;
+					// TODO this and all following JCMP/CND, boolean not
+					// possible?
+					t = T.AINT;
 					iValue = CompareType.T_EQ;
 				}
 				// fall through
 			case Opcode.IF_ICMPGE:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					iValue = CompareType.T_GE;
 				}
 				// fall through
 			case Opcode.IF_ICMPGT:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					iValue = CompareType.T_GT;
 				}
 				// fall through
 			case Opcode.IF_ICMPLE:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					iValue = CompareType.T_LE;
 				}
 				// fall through
 			case Opcode.IF_ICMPLT:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					iValue = CompareType.T_LT;
 				}
 				// fall through
 			case Opcode.IF_ICMPNE:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					iValue = CompareType.T_NE;
 				}
 				{
@@ -703,25 +705,25 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IFGE:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					iValue = CompareType.T_GE;
 				}
 				// fall through
 			case Opcode.IFGT:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					iValue = CompareType.T_GT;
 				}
 				// fall through
 			case Opcode.IFLE:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					iValue = CompareType.T_LE;
 				}
 				// fall through
 			case Opcode.IFLT:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 					iValue = CompareType.T_LT;
 				}
 				// fall through
@@ -1292,7 +1294,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IRETURN:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT;
 				}
 				// fall through
 			case Opcode.LRETURN:

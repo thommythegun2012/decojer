@@ -1917,7 +1917,7 @@ public class ReadCodeItem {
 			 * RETURN *
 			 **********/
 			case RETURN:
-				t = T.INT; // TODO Multi simple
+				t = T.DINT;
 				// fall through
 			case RETURN_OBJECT:
 				if (t == null) {

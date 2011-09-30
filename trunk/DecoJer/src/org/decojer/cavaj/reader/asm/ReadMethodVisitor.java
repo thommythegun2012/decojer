@@ -876,7 +876,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IRETURN:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 			}
 			// fall through
 		case Opcodes.LRETURN:
@@ -1053,37 +1053,38 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IF_ICMPEQ:
 			if (t == null) {
-				t = T.INT;
+				// TODO this and all following JCMP/CND, boolean not possible?
+				t = T.AINT;
 				iValue = CompareType.T_EQ;
 			}
 			// fall through
 		case Opcodes.IF_ICMPGE:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				iValue = CompareType.T_GE;
 			}
 			// fall through
 		case Opcodes.IF_ICMPGT:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				iValue = CompareType.T_GT;
 			}
 			// fall through
 		case Opcodes.IF_ICMPLE:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				iValue = CompareType.T_LE;
 			}
 			// fall through
 		case Opcodes.IF_ICMPLT:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				iValue = CompareType.T_LT;
 			}
 			// fall through
 		case Opcodes.IF_ICMPNE:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				iValue = CompareType.T_NE;
 			}
 			{
@@ -1117,25 +1118,25 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IFGE:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				iValue = CompareType.T_GE;
 			}
 			// fall through
 		case Opcodes.IFGT:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				iValue = CompareType.T_GT;
 			}
 			// fall through
 		case Opcodes.IFLE:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				iValue = CompareType.T_LE;
 			}
 			// fall through
 		case Opcodes.IFLT:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT;
 				iValue = CompareType.T_LT;
 			}
 			// fall through
