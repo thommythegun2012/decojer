@@ -513,7 +513,6 @@ public class TrIvmCfg2JavaExprStmts {
 				// check preceding CMP
 				if (expression instanceof InfixExpression
 						&& ((InfixExpression) expression).getOperator() == InfixExpression.Operator.LESS_EQUALS) {
-					expression = wrap(expression);
 					// preceding compare expression (CMP result: -1 / 0 / 1)
 					final InfixExpression.Operator operator;
 					switch (op.getCmpType()) {
@@ -541,10 +540,8 @@ public class TrIvmCfg2JavaExprStmts {
 						operator = null;
 					}
 					((InfixExpression) expression).setOperator(operator);
-				} else {
-					// TODO check if boolean type or number type!
+				} else if (this.cfg.getInFrame(operation).peek().getT() == T.BOOLEAN) {
 					// "!a" or "a == 0"?
-					// boolean:
 					switch (op.getCmpType()) {
 					case CompareType.T_EQ:
 						// "== 0" means "is false"
@@ -555,10 +552,43 @@ public class TrIvmCfg2JavaExprStmts {
 						// "!= 0" means "is true"
 						break;
 					default:
-						// TODO check more strange cases?
-						LOGGER.warning("TODO expression may simply not be a boolean! - Unknown cmp type '"
-								+ op.getCmpType() + "' for boolean expression!");
+						LOGGER.warning("Unknown cmp type '" + op.getCmpType()
+								+ "' for boolean expression '" + expression
+								+ "'!");
 					}
+				} else {
+					final InfixExpression.Operator operator;
+					switch (op.getCmpType()) {
+					case CompareType.T_EQ:
+						operator = InfixExpression.Operator.EQUALS;
+						break;
+					case CompareType.T_GE:
+						operator = InfixExpression.Operator.GREATER_EQUALS;
+						break;
+					case CompareType.T_GT:
+						operator = InfixExpression.Operator.GREATER;
+						break;
+					case CompareType.T_LE:
+						operator = InfixExpression.Operator.LESS_EQUALS;
+						break;
+					case CompareType.T_LT:
+						operator = InfixExpression.Operator.LESS;
+						break;
+					case CompareType.T_NE:
+						operator = InfixExpression.Operator.NOT_EQUALS;
+						break;
+					default:
+						LOGGER.warning("Unknown cmp type '" + op.getCmpType()
+								+ "' for 0-expression!");
+						operator = null;
+					}
+					final InfixExpression infixExpression = getAst()
+							.newInfixExpression();
+					infixExpression.setLeftOperand(expression);
+					infixExpression.setRightOperand(getAst().newNumberLiteral(
+							"0"));
+					infixExpression.setOperator(operator);
+					expression = infixExpression;
 				}
 				statement = getAst().newIfStatement();
 				((IfStatement) statement).setExpression(expression);

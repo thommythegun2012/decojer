@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -48,6 +49,8 @@ import org.decojer.cavaj.reader.SmaliReader;
 public class DU {
 
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
+
+	private T[] arrayInterfaceTs;
 
 	private final LinkedHashMap<String, TD> tds = new LinkedHashMap<String, TD>();
 
@@ -172,7 +175,11 @@ public class DU {
 				t = new T(this, name);
 				t.setDim(dim);
 				t.setSuperT(baseT);
-				// TODO could set interfaces Cloneable/Serializable...
+				if (this.arrayInterfaceTs == null) {
+					this.arrayInterfaceTs = new T[] { getT(Cloneable.class),
+							getT(Serializable.class) };
+				}
+				t.setInterfaceTs(this.arrayInterfaceTs);
 			}
 			this.ts.put(name, t);
 		}
