@@ -87,7 +87,7 @@ public class Var {
 	}
 
 	/**
-	 * Merge type.
+	 * Merge this type with given type (target type). Could produce multi-types.
 	 * 
 	 * @param t
 	 *            type
@@ -103,21 +103,8 @@ public class Var {
 	}
 
 	/**
-	 * Merge type.
-	 * 
-	 * @param var
-	 *            variable
-	 * @return true - changed (this)
-	 */
-	public boolean merge(final Var var) {
-		if (var == null) {
-			return false;
-		}
-		return merge(var.getT());
-	}
-
-	/**
-	 * Assign to type.
+	 * Merge this type to given type (target type). Can only reduce multi-types
+	 * (if overridden method called).
 	 * 
 	 * @param t
 	 *            type

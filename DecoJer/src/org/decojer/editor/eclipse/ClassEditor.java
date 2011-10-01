@@ -405,7 +405,6 @@ public class ClassEditor extends MultiPageEditorPart {
 				pageContainer = sashForm;
 			}
 		}
-		setPartName(editorInput.getName());
 		return pageContainer;
 	}
 
@@ -414,6 +413,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	 */
 	@Override
 	protected void createPages() {
+		setPartName(getEditorInput().getName());
 		if (this.archiveTree != null) {
 			// must happen delayed after added tab pane
 			((SashForm) this.archiveTree.getParent()).setWeights(new int[] { 1,

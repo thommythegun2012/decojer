@@ -146,6 +146,8 @@ public class TrDataFlowAnalysis {
 	}
 
 	private void merge(final Frame frame, final int targetPc) {
+		// IDEA currently frame is temporary type-holder only and targetFrame is
+		// the real stuff that adopts, see transform-idea
 		final Frame targetFrame = this.frames[targetPc];
 		if (targetFrame == null) {
 			this.frames[targetPc] = frame;
@@ -194,8 +196,13 @@ public class TrDataFlowAnalysis {
 		this.queue.add(0);
 		while (!this.queue.isEmpty()) {
 			this.pc = this.queue.removeFirst();
-			// frame will be modified and forward merged through operation
-			final Frame frame = new Frame(this.frames[this.pc]);
+			// first we copy the current in frame for the operation, then we
+			// calculate the type-changes through the operation and then we
+			// merge this calculated frame-types to the out frame
+
+			// IDEA why copy and change-detect copy-backs...would also work via
+			// direct updates of register / stack data - much cooler
+			final Frame frame = new Frame(this.frames[this.pc]); // shallow copy
 			final Operation operation = this.ops[this.pc];
 			switch (operation.getOpcode()) {
 			case Opcode.ADD: {
@@ -325,8 +332,9 @@ public class TrDataFlowAnalysis {
 				continue;
 			}
 			case Opcode.INC: {
-				final INC op = (INC) operation;
-				// no Bool!
+				assert operation instanceof INC;
+
+				// TODO reduce bool
 				break;
 			}
 			case Opcode.INSTANCEOF: {
@@ -371,7 +379,8 @@ public class TrDataFlowAnalysis {
 				break;
 			}
 			case Opcode.MONITOR: {
-				final MONITOR op = (MONITOR) operation;
+				assert operation instanceof MONITOR;
+
 				pop(frame, T.AREF);
 				break;
 			}
