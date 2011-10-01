@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -350,14 +349,8 @@ public class T {
 	 * @return interface types
 	 */
 	public T[] getInterfaceTs() {
+		// arrays have default interfaces, initialized in DU.getT()
 		if (this.interfaceTs == null) {
-			if (isArray()) {
-				// TODO could set / cache this in du...
-				final T[] interfaceTs = new T[2];
-				interfaceTs[0] = this.du.getT(Cloneable.class.getName());
-				interfaceTs[1] = this.du.getT(Serializable.class.getName());
-				return interfaceTs;
-			}
 			init();
 		}
 		return this.interfaceTs;
@@ -431,7 +424,7 @@ public class T {
 			}
 			init();
 		} else if (isArray()) {
-			return this.du.getT(Object.class.getName());
+			return this.du.getT(Object.class);
 		}
 		return this.superT;
 	}
