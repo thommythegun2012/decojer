@@ -100,24 +100,28 @@ public class Frame {
 	}
 
 	/**
-	 * Merge frame.
+	 * Merge this frame with given frame (target types).
 	 * 
 	 * @param frame
-	 *            frame
+	 *            frame (contains target types)
 	 * @return true - changed (this)
 	 */
 	public boolean merge(final Frame frame) {
 		boolean changed = false;
 		for (int reg = this.regs.length; reg-- > 0;) {
-			final Var var = this.regs[reg];
+			final Var var = frame.regs[reg];
 			if (var == null) {
-				this.regs[reg] = frame.regs[reg];
 				continue;
 			}
-			changed |= var.merge(frame.regs[reg]);
+			if (this.regs[reg] == null) {
+				this.regs[reg] = var;
+				changed = true;
+				continue;
+			}
+			changed |= this.regs[reg].merge(var.getT());
 		}
 		for (int index = this.stackTop; index-- > 0;) {
-			changed |= this.stack[index].merge(frame.stack[index]);
+			changed |= this.stack[index].merge(frame.stack[index].getT());
 		}
 		return changed;
 	}
