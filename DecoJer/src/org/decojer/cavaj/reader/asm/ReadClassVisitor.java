@@ -164,7 +164,7 @@ public class ReadClassVisitor extends ClassVisitor {
 		final T fieldT = this.du.getDescT(desc);
 		final F f = t.getF(name, fieldT);
 		f.setAccessFlags(access);
-		t.setSignature(signature);
+		f.setSignature(signature);
 
 		final FD fd = new FD(f, this.td);
 		fd.setValue(value);
@@ -198,7 +198,7 @@ public class ReadClassVisitor extends ClassVisitor {
 			}
 			m.setThrowsTs(throwsTs);
 		}
-		t.setSignature(signature);
+		m.setSignature(signature);
 
 		final MD md = new MD(m, this.td);
 
