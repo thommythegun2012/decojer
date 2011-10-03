@@ -63,6 +63,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.INSTANCEOF;
 import org.decojer.cavaj.model.vm.intermediate.operations.INVOKE;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCND;
+import org.decojer.cavaj.model.vm.intermediate.operations.JSR;
 import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.MONITOR;
 import org.decojer.cavaj.model.vm.intermediate.operations.MUL;
@@ -592,6 +593,11 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				statement = getAst().newIfStatement();
 				((IfStatement) statement).setExpression(expression);
+				break;
+			}
+			case Opcode.JSR: {
+				assert operation instanceof JSR;
+				// TODO
 				break;
 			}
 			case Opcode.LOAD: {

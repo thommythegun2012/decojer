@@ -123,15 +123,42 @@ public class TrDataFlowAnalysis {
 	private Frame createMethodFrame() {
 		final Frame frame = new Frame(this.cfg.getMaxRegs());
 		for (int index = frame.getRegsSize(); index-- > 0;) {
-			frame.setReg(index, this.cfg.getVar(index, 0));
+			final Var var = this.cfg.getVar(index, 0);
+			if (var == null) {
+				continue;
+			}
+			// copy to prevent merge override, TODO other too
+			final Var newVar = new Var(var.getT());
+			newVar.setStartPc(var.getStartPc());
+			newVar.setEndPc(var.getEndPc());
+			newVar.setName(var.getName());
+			frame.setReg(index, newVar);
 		}
 		return frame;
 	}
 
 	private void evalBinaryMath(final Frame frame, final T t) {
+		evalBinaryMath(frame, t, null);
+	}
+
+	private void evalBinaryMath(final Frame frame, final T t, final T pushT) {
 		final Var var2 = pop(frame, t);
 		final Var var1 = pop(frame, t);
-		push(frame, var1); // TODO new var with "parents"
+
+		final T resultT = var1.getT().merge(var2.getT());
+
+		if (var1.getT() != resultT) {
+			var1.merge(resultT);
+			this.queue.add(var1.getStartPc());
+		}
+		if (var2.getT() != resultT) {
+			var2.merge(resultT);
+			this.queue.add(var2.getStartPc());
+		}
+
+		if (pushT != T.VOID) {
+			push(frame, pushT == null ? resultT : pushT);
+		}
 	}
 
 	private Var getReg(final Frame frame, final int index, final T t) {
@@ -145,13 +172,12 @@ public class TrDataFlowAnalysis {
 		return var;
 	}
 
-	private void merge(final Frame frame, final int targetPc) {
-		// IDEA currently frame is temporary type-holder only and targetFrame is
-		// the real stuff that adopts, see transform-idea
+	private void merge(final Frame calculatedFrame, final int targetPc) {
 		final Frame targetFrame = this.frames[targetPc];
 		if (targetFrame == null) {
-			this.frames[targetPc] = frame;
-		} else if (!targetFrame.merge(frame)) {
+			// copy frame, could be cond or switch with multiple merge-targets
+			this.frames[targetPc] = new Frame(calculatedFrame);
+		} else if (!targetFrame.merge(calculatedFrame)) {
 			return;
 		}
 		this.queue.add(targetPc);
@@ -170,15 +196,17 @@ public class TrDataFlowAnalysis {
 
 	private Var push(final Frame frame, final T t) {
 		final Var var = new Var(t);
-		var.setStartPc(this.pc);
-		var.setEndPc(this.pc);
+		// known in follow frame! no push through control flow operations
+		var.setStartPc(this.pc + 1);
+		var.setEndPc(this.pc + 1);
 		frame.push(var);
 		return var;
 	}
 
 	private void push(final Frame frame, final Var var) {
-		if (var.getEndPc() < this.pc) {
-			var.setEndPc(this.pc);
+		if (var.getEndPc() <= this.pc) {
+			// known in follow frame! no push through control flow operations
+			var.setEndPc(this.pc + 1);
 		}
 		frame.push(var);
 	}
@@ -202,7 +230,9 @@ public class TrDataFlowAnalysis {
 
 			// IDEA why copy and change-detect copy-backs...would also work via
 			// direct updates of register / stack data - much cooler
-			final Frame frame = new Frame(this.frames[this.pc]); // shallow copy
+
+			// shallow copy of calculation frame
+			final Frame frame = new Frame(this.frames[this.pc]);
 			final Operation operation = this.ops[this.pc];
 			switch (operation.getOpcode()) {
 			case Opcode.ADD: {
@@ -244,9 +274,7 @@ public class TrDataFlowAnalysis {
 			}
 			case Opcode.CMP: {
 				final CMP op = (CMP) operation;
-				pop(frame, op.getT());
-				pop(frame, op.getT());
-				push(frame, T.INT);
+				evalBinaryMath(frame, op.getT(), T.INT);
 				break;
 			}
 			case Opcode.DIV: {
@@ -361,8 +389,7 @@ public class TrDataFlowAnalysis {
 			}
 			case Opcode.JCMP: {
 				final JCMP op = (JCMP) operation;
-				pop(frame, op.getT());
-				pop(frame, op.getT());
+				evalBinaryMath(frame, op.getT(), T.VOID);
 				merge(frame, op.getTargetPc());
 				break;
 			}

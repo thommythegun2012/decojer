@@ -44,7 +44,8 @@ public class Frame {
 	 */
 	public Frame(final Frame frame) {
 		this.regs = frame.regs.clone();
-		this.stack = frame.stack.clone();
+		this.stack = new Var[frame.stackTop];
+		System.arraycopy(frame.stack, 0, this.stack, 0, frame.stackTop);
 		this.stackTop = frame.stackTop;
 	}
 
@@ -102,14 +103,14 @@ public class Frame {
 	/**
 	 * Merge this frame with given frame (target types).
 	 * 
-	 * @param frame
+	 * @param calculatedFrame
 	 *            frame (contains target types)
 	 * @return true - changed (this)
 	 */
-	public boolean merge(final Frame frame) {
+	public boolean merge(final Frame calculatedFrame) {
 		boolean changed = false;
 		for (int reg = this.regs.length; reg-- > 0;) {
-			final Var var = frame.regs[reg];
+			final Var var = calculatedFrame.regs[reg];
 			if (var == null) {
 				continue;
 			}
@@ -121,7 +122,16 @@ public class Frame {
 			changed |= this.regs[reg].merge(var.getT());
 		}
 		for (int index = this.stackTop; index-- > 0;) {
-			changed |= this.stack[index].merge(frame.stack[index].getT());
+			final Var targetVar = this.stack[index];
+			final Var calculatedVar = calculatedFrame.stack[index];
+			if (targetVar == calculatedVar) {
+				continue;
+			}
+
+			// take new calculated var, override propagation
+			this.stack[index] = calculatedVar;
+			// TODO replace targetVar.getStartPc() - stack and requeue
+			changed |= calculatedVar.merge(targetVar.getT());
 		}
 		return changed;
 	}
