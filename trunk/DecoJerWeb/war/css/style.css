@@ -1,2 +1,10 @@
 @charset "utf-8";
 
+body {
+	font-family: arial, helvetica, sans-serif;
+	font-size: 80%;
+	color: black;
+	background-color: #EEF;
+	margin: 1em;
+	padding: 0;
+}
