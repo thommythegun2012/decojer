@@ -26,6 +26,18 @@ public abstract class DecTestMethods {
 		return a / (b / c);
 	}
 
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == this)
+			return true;
+		if (!(obj instanceof DecTestMethods))
+			return false;
+		DecTestMethods that = (DecTestMethods) obj;
+		if (that.hashCode() == this.hashCode())
+			return true;
+		return false;
+	}
+
 	public abstract int getIntTest(final String test) throws IOException,
 			IllegalArgumentException, NotSerializableException;
 
