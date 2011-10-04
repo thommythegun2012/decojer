@@ -756,7 +756,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.FCONST_0:
 			if (t == null) {
 				t = T.FLOAT;
-				oValue = 0;
+				oValue = 0F;
 			}
 			// fall through
 		case Opcodes.ICONST_0:
@@ -780,7 +780,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.FCONST_1:
 			if (t == null) {
 				t = T.FLOAT;
-				oValue = 1;
+				oValue = 1F;
 			}
 			// fall through
 		case Opcodes.ICONST_1:
@@ -798,7 +798,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.FCONST_2:
 			if (t == null) {
 				t = T.FLOAT;
-				oValue = 2;
+				oValue = 2F;
 			}
 			// fall through
 		case Opcodes.ICONST_2:

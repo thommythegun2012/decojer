@@ -541,6 +541,27 @@ public class TrIvmCfg2JavaExprStmts {
 						operator = null;
 					}
 					((InfixExpression) expression).setOperator(operator);
+				} else if (this.cfg.getInFrame(operation).peek().getT()
+						.isReference()) {
+					final InfixExpression.Operator operator;
+					switch (op.getCmpType()) {
+					case CompareType.T_EQ:
+						operator = InfixExpression.Operator.EQUALS;
+						break;
+					case CompareType.T_NE:
+						operator = InfixExpression.Operator.NOT_EQUALS;
+						break;
+					default:
+						LOGGER.warning("Unknown cmp type '" + op.getCmpType()
+								+ "' for null-expression!");
+						operator = null;
+					}
+					final InfixExpression infixExpression = getAst()
+							.newInfixExpression();
+					infixExpression.setLeftOperand(expression);
+					infixExpression.setRightOperand(getAst().newNullLiteral());
+					infixExpression.setOperator(operator);
+					expression = infixExpression;
 				} else if (this.cfg.getInFrame(operation).peek().getT() == T.BOOLEAN) {
 					// "!a" or "a == 0"?
 					switch (op.getCmpType()) {
