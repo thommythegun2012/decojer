@@ -1149,7 +1149,7 @@ public class ReadCodeAttribute {
 			case Opcode.FCONST_0:
 				if (t == null) {
 					t = T.FLOAT;
-					oValue = 0;
+					oValue = 0F;
 				}
 				// fall through
 			case Opcode.ICONST_0:
@@ -1173,7 +1173,7 @@ public class ReadCodeAttribute {
 			case Opcode.FCONST_1:
 				if (t == null) {
 					t = T.FLOAT;
-					oValue = 1;
+					oValue = 1F;
 				}
 				// fall through
 			case Opcode.ICONST_1:
@@ -1191,7 +1191,7 @@ public class ReadCodeAttribute {
 			case Opcode.FCONST_2:
 				if (t == null) {
 					t = T.FLOAT;
-					oValue = 2;
+					oValue = 2F;
 				}
 				// fall through
 			case Opcode.ICONST_2:
