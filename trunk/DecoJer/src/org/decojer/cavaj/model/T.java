@@ -349,10 +349,7 @@ public class T {
 	 * @return interface types
 	 */
 	public T[] getInterfaceTs() {
-		// arrays have default interfaces, initialized in DU.getT()
-		if (this.interfaceTs == null) {
-			init();
-		}
+		init();
 		return this.interfaceTs;
 	}
 
@@ -418,22 +415,18 @@ public class T {
 	 * @return super type
 	 */
 	public T getSuperT() {
-		if (this.superT == null) {
-			if (Object.class.getName().equals(getName())) {
-				return null;
-			}
-			init();
-		} else if (isArray()) {
+		init();
+		if (isArray()) {
 			return this.du.getT(Object.class);
 		}
 		return this.superT;
 	}
 
 	private void init() {
-		if (this.interfaceTs == NO_INTERFACES) {
-			return;
+		if (this.interfaceTs != null) {
+			return; // arrays return here because interface is set in du.getT()
 		}
-		// TODO for now...better together with setSuper...
+		// setSuper() in class read doesn't set interfaces if not known
 		if (this.superT != null) {
 			this.interfaceTs = NO_INTERFACES;
 			return;
@@ -550,10 +543,10 @@ public class T {
 
 		// TODO hack
 		if (isArray() && t.isArray()) {
-			if (this.superT.subtypeOf(t.superT)) {
+			if (getBaseT().subtypeOf(t.getBaseT())) {
 				return t;
 			}
-			if (t.superT.subtypeOf(this.superT)) {
+			if (t.getBaseT().subtypeOf(getBaseT())) {
 				return this;
 			}
 		}
@@ -564,7 +557,19 @@ public class T {
 			return this;
 		}
 
-		System.out.println("Merge: " + this + " <-> " + t);
+		final StringBuilder sb = new StringBuilder();
+		sb.append("Merge: " + this + " (Super: " + getSuperT());
+		if (getInterfaceTs() != null) {
+			for (final T it : getInterfaceTs()) {
+				sb.append(", ").append(it.toString());
+			}
+		}
+		sb.append(") <-> " + t + " (Super: " + t.getSuperT());
+		for (final T it : t.getInterfaceTs()) {
+			sb.append(", ").append(it.toString());
+		}
+		sb.append(")");
+		System.out.println(sb.toString());
 		return this;
 	}
 
@@ -615,11 +620,15 @@ public class T {
 		}
 
 		final StringBuilder sb = new StringBuilder();
-		sb.append("AssignTo: " + this + " -> " + t + " (Super: " + getSuperT());
+		sb.append("AssignTo: " + this + " (Super: " + getSuperT());
 		if (getInterfaceTs() != null) {
 			for (final T it : getInterfaceTs()) {
 				sb.append(", ").append(it.toString());
 			}
+		}
+		sb.append(") -> " + t + " (Super: " + t.getSuperT());
+		for (final T it : t.getInterfaceTs()) {
+			sb.append(", ").append(it.toString());
 		}
 		sb.append(")");
 		System.out.println(sb.toString());
