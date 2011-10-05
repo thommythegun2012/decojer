@@ -138,14 +138,14 @@ public class DecoJer {
 	 * Decompile all type declarations from decompilation unit into output
 	 * stream.
 	 * 
-	 * @param os
-	 *            output stream
 	 * @param du
 	 *            decompilation unit
+	 * @param os
+	 *            output stream
 	 * @throws IOException
 	 *             read exception
 	 */
-	public static void decompile(final OutputStream os, final DU du)
+	public static void decompile(final DU du, final OutputStream os)
 			throws IOException {
 		final ZipOutputStream zip = new ZipOutputStream(os);
 
@@ -170,7 +170,7 @@ public class DecoJer {
 				LOGGER.log(Level.WARNING, "Decompilation problems for '" + td
 						+ "'!", t);
 			} finally {
-				tdIt.remove();
+				tdIt.remove(); // TODO cleanup against memory leak in other way
 			}
 		}
 		zip.finish();
@@ -251,10 +251,10 @@ public class DecoJer {
 		case 3: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1.jar");
 			decompile(
+					du,
 					new FileOutputStream(
 							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1_src.jar")),
-					du);
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1_src.jar")));
 			break;
 		}
 		case 11: {
@@ -274,10 +274,10 @@ public class DecoJer {
 		case 13: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
 			decompile(
+					du,
 					new FileOutputStream(
 							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.zip")),
-					du);
+									"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.zip")));
 			break;
 		}
 		}

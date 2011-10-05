@@ -245,7 +245,7 @@ public class DU {
 	 * e.g. \jre\lib\rt.jar!/com/sun/xml/internal/fastinfoset/Decoder.class
 	 * 
 	 * @param fileName
-	 *            file name
+	 *            file name & optional selector
 	 * @return type declaration (if single selector given)
 	 * @throws IOException
 	 *             read exception
