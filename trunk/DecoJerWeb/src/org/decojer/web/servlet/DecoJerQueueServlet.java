@@ -131,7 +131,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 				if (sourcename == null) {
 					final int pos = filename.lastIndexOf('.');
 					sourcename = (pos == -1 ? filename : filename.substring(0,
-							pos)) + "java";
+							pos)) + ".java";
 				}
 				final AppEngineFile file = this.fileService.createNewBlobFile(
 						"text/x-java-source", sourcename);
