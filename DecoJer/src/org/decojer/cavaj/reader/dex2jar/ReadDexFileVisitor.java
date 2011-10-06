@@ -52,24 +52,12 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 	 * 
 	 * @param du
 	 *            decompilation unit
-	 * @param selector
-	 *            selector
 	 */
-	public ReadDexFileVisitor(final DU du, final String selector) {
+	public ReadDexFileVisitor(final DU du) {
 		assert du != null;
 
 		this.du = du;
 		this.readDexClassVisitor = new ReadDexClassVisitor(du);
-
-		if (selector != null && selector.endsWith(".class")) {
-			this.selectorMatch = "L"
-					+ selector.substring(selector.charAt(0) == '/' ? 1 : 0,
-							selector.length() - 6) + ";";
-			final int pos = this.selectorMatch.lastIndexOf('/');
-			if (pos != -1) {
-				this.selectorPrefix = this.selectorMatch.substring(0, pos + 1);
-			}
-		}
 	}
 
 	/**
@@ -79,6 +67,28 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 	 */
 	public TD getSelectorTd() {
 		return this.selectorTd;
+	}
+
+	/**
+	 * Init.
+	 * 
+	 * @param selector
+	 *            selector
+	 */
+	public void init(final String selector) {
+		if (selector != null && selector.endsWith(".class")) {
+			this.selectorMatch = "L"
+					+ selector.substring(selector.charAt(0) == '/' ? 1 : 0,
+							selector.length() - 6) + ";";
+			final int pos = this.selectorMatch.lastIndexOf('/');
+			if (pos != -1) {
+				this.selectorPrefix = this.selectorMatch.substring(0, pos + 1);
+			}
+		} else {
+			this.selectorMatch = null;
+			this.selectorPrefix = null;
+		}
+		this.selectorTd = null;
 	}
 
 	@Override

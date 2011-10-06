@@ -149,7 +149,6 @@ public class DecoJer {
 			throws IOException {
 		final ZipOutputStream zip = new ZipOutputStream(os);
 
-		// TODO remove for garbage collection
 		final Iterator<Entry<String, TD>> tdIt = du.getTds().iterator();
 		while (tdIt.hasNext()) {
 			final TD td = tdIt.next().getValue();

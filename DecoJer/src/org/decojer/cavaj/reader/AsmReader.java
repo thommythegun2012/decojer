@@ -23,114 +23,43 @@
  */
 package org.decojer.cavaj.reader;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.type.Type;
-import org.decojer.cavaj.model.type.Types;
-import org.decojer.cavaj.reader.asm.AnalyseClassVisitor;
 import org.decojer.cavaj.reader.asm.ReadClassVisitor;
-import org.objectweb.asm.ClassReader;
 
 /**
  * Reader from ObjectWeb ASM.
  * 
  * @author André Pankraz
  */
-public class AsmReader {
+public class AsmReader implements ClassReader {
 
-	private final static Logger LOGGER = Logger.getLogger(AsmReader.class
-			.getName());
-
-	/**
-	 * Analyse class input stream.
-	 * 
-	 * @param is
-	 *            class input stream
-	 * @return type type
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static Type analyse(final InputStream is) throws IOException {
-		final ClassReader classReader = new ClassReader(is);
-		final AnalyseClassVisitor analyseClassVisitor = new AnalyseClassVisitor();
-		classReader.accept(analyseClassVisitor, ClassReader.SKIP_CODE);
-		return analyseClassVisitor.getType();
-	}
+	private final ReadClassVisitor readClassVisitor;
 
 	/**
-	 * Analyse JAR input stream.
+	 * Constructor.
 	 * 
-	 * @param is
-	 *            JAR input stream
-	 * @return types
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static Types analyseJar(final InputStream is) throws IOException {
-		final ZipInputStream zip = new ZipInputStream(is);
-		final AnalyseClassVisitor analyseClassVisitor = new AnalyseClassVisitor();
-		final Types types = new Types();
-		int errors = 0;
-		for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
-				.getNextEntry()) {
-			final String name = zipEntry.getName();
-			if (!name.endsWith(".class")) {
-				continue;
-			}
-			try {
-				final ClassReader classReader = new ClassReader(zip);
-				classReader.accept(analyseClassVisitor, ClassReader.SKIP_CODE);
-				types.addType(analyseClassVisitor.getType());
-			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Couldn't analyse '" + name + "'!", e);
-				++errors;
-			}
-		}
-		types.setErrors(errors);
-		return types;
-	}
-
-	/**
-	 * Test it...
-	 * 
-	 * @param args
-	 *            args
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static void main(final String[] args) throws IOException {
-		final FileInputStream is = new FileInputStream(
-				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61.jar");
-		final Types types = analyseJar(is);
-		System.out.println("Ana: " + types.getTypes().size());
-	}
-
-	/**
-	 * Read class input stream.
-	 * 
-	 * @param is
-	 *            class input stream
 	 * @param du
 	 *            decompilation unit
-	 * @return type declaration
-	 * @throws IOException
-	 *             read exception
 	 */
-	public static TD read(final InputStream is, final DU du) throws IOException {
-		final ClassReader classReader = new ClassReader(is);
-		final ReadClassVisitor readClassVisitor = new ReadClassVisitor(du);
-		classReader.accept(readClassVisitor, 0);
-		final TD td = readClassVisitor.getTd();
-		du.addTd(td);
-		return td;
+	public AsmReader(final DU du) {
+		assert du != null;
+
+		this.readClassVisitor = new ReadClassVisitor(du);
+	}
+
+	@Override
+	public TD read(final InputStream is) throws IOException {
+		final org.objectweb.asm.ClassReader classReader = new org.objectweb.asm.ClassReader(
+				is);
+
+		this.readClassVisitor.init();
+		classReader.accept(this.readClassVisitor, 0);
+
+		return this.readClassVisitor.getTd();
 	}
 
 }

@@ -23,17 +23,16 @@
  */
 package org.decojer.editor.eclipse;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.decojer.DecoJer;
+import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
@@ -42,11 +41,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.type.Type;
-import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
-import org.decojer.cavaj.reader.AsmReader;
-import org.decojer.cavaj.reader.SmaliReader;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
@@ -127,8 +122,6 @@ public class ClassEditor extends MultiPageEditorPart {
 		return eclipseClassFile.getResource().getLocation().toOSString();
 	}
 
-	private String archiveFileName;
-
 	private Tree archiveTree;
 
 	private Button cfgAntialiasingCheckbox;
@@ -145,7 +138,7 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private DU du;
 
-	private String fileName;
+	private TD td;
 
 	private JavaOutlinePage javaOutlinePage;
 
@@ -267,8 +260,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		this.cu = null;
 		String sourceCode = null;
 		try {
-			final TD td = this.du.read(this.fileName);
-			this.cu = DecoJer.createCu(td);
+			this.cu = DecoJer.createCu(this.td);
 			sourceCode = DecoJer.decompile(this.cu);
 		} catch (final Throwable e) {
 			e.printStackTrace();
@@ -295,115 +287,90 @@ public class ClassEditor extends MultiPageEditorPart {
 		// add archive if necessary
 		Composite pageContainer = super.createPageContainer(parent);
 
-		this.du = DecoJer.createDu();
-
 		final IEditorInput editorInput = getEditorInput();
-		LOGGER.info("Editor Input: " + editorInput);
+
+		String fileName;
 		if (editorInput instanceof IClassFileEditorInput) {
 			// is a simple Eclipse-pre-analyzed class file, not an archive
 			final IClassFile classFile = ((IClassFileEditorInput) editorInput)
 					.getClassFile();
-			this.fileName = extractPath(classFile);
-			return pageContainer;
-		}
-		if (editorInput instanceof FileEditorInput) {
+			fileName = extractPath(classFile);
+		} else if (editorInput instanceof FileEditorInput) {
 			// could be a class file (not Eclipse-pre-analyzed) or an archive
 			final FileEditorInput fileEditorInput = (FileEditorInput) editorInput;
-			final IPath path = fileEditorInput.getPath();
-			final String pathName = path.toString();
+			final IPath filePath = fileEditorInput.getPath();
+			fileName = filePath.toString();
+		} else {
+			throw new DecoJerException("Unknown editor input type '"
+					+ editorInput + "'!");
+		}
 
-			Types types = null;
+		LOGGER.info("Editor Input: " + editorInput + " fileName: " + fileName);
 
-			if (pathName.endsWith(".class")) {
-				this.fileName = pathName;
-			} else if (pathName.endsWith(".jar")) {
-				this.archiveFileName = pathName;
-				try {
-					types = AsmReader.analyseJar(new FileInputStream(path
-							.toFile()));
-				} catch (final FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (final IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+		this.du = DecoJer.createDu();
+
+		try {
+			this.td = this.du.read(fileName);
+		} catch (final Exception e) {
+			LOGGER.log(Level.SEVERE, "Couldn't open file!", e);
+			return pageContainer;
+		}
+
+		if (this.td == null) {
+			final SashForm sashForm = new SashForm(pageContainer,
+					SWT.HORIZONTAL | SWT.BORDER | SWT.SMOOTH);
+
+			this.archiveTree = new Tree(sashForm, SWT.NONE);
+			for (final Entry<String, TD> type : this.du.getTds()) {
+				final TreeItem treeItem = new TreeItem(this.archiveTree,
+						SWT.NONE);
+				treeItem.setText(type.getKey());
+				if (this.td == null) {
+					this.archiveTree.setSelection(treeItem);
+					this.td = type.getValue();
 				}
-			} else if (pathName.endsWith(".dex")) {
-				this.archiveFileName = pathName;
-				try {
-					types = SmaliReader.analyse(new FileInputStream(path
-							.toFile()));
-				} catch (final FileNotFoundException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (final IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			} else {
-				LOGGER.severe("Unknown file editor input extension '"
-						+ pathName + "'!");
-				return pageContainer;
 			}
-			if (types != null) {
-				final SashForm sashForm = new SashForm(pageContainer,
-						SWT.HORIZONTAL | SWT.BORDER | SWT.SMOOTH);
+			this.archiveTree.addSelectionListener(new SelectionListener() {
 
-				this.archiveTree = new Tree(sashForm, SWT.NONE);
-				for (final Type type : types.getTypes()) {
-					final TreeItem treeItem = new TreeItem(this.archiveTree,
-							SWT.NONE);
-					treeItem.setText(type.getName());
-					if (this.fileName == null) {
-						this.archiveTree.setSelection(treeItem);
-						this.fileName = this.archiveFileName + "!"
-								+ treeItem.getText() + ".class";
-					}
+				@Override
+				public void widgetDefaultSelected(final SelectionEvent e) {
+					// OK
 				}
-				this.archiveTree.addSelectionListener(new SelectionListener() {
 
-					@Override
-					public void widgetDefaultSelected(final SelectionEvent e) {
-						// OK
+				@Override
+				public void widgetSelected(final SelectionEvent e) {
+					final TreeItem[] selections = ClassEditor.this.archiveTree
+							.getSelection();
+					if (selections.length != 1) {
+						return;
+					}
+					final TreeItem selection = selections[0];
+					ClassEditor.this.td = ClassEditor.this.du.getTd(selection
+							.getText());
+
+					ClassEditor.this.cu = null;
+					String sourceCode = null;
+					try {
+						ClassEditor.this.cu = DecoJer
+								.createCu(ClassEditor.this.td);
+						sourceCode = DecoJer.decompile(ClassEditor.this.cu);
+						ClassEditor.this.compilationUnitEditor.setInput(new MemoryStorageEditorInput(
+								new MemoryStorage(
+										sourceCode.getBytes(),
+										ClassEditor.this.cu == null
+												|| ClassEditor.this.cu
+														.getSourceFileName() == null ? null
+												: new Path(ClassEditor.this.cu
+														.getSourceFileName()))));
+					} catch (final Throwable e2) {
+						e2.printStackTrace();
+						sourceCode = "// Decompilation error!";
 					}
 
-					@Override
-					public void widgetSelected(final SelectionEvent e) {
-						final TreeItem[] selections = ClassEditor.this.archiveTree
-								.getSelection();
-						if (selections.length != 1) {
-							return;
-						}
-						final TreeItem selection = selections[0];
-						ClassEditor.this.fileName = ClassEditor.this.archiveFileName
-								+ "!" + selection.getText() + ".class";
+				}
 
-						ClassEditor.this.cu = null;
-						String sourceCode = null;
-						try {
-							final TD td = ClassEditor.this.du
-									.read(ClassEditor.this.fileName);
-							ClassEditor.this.cu = DecoJer.createCu(td);
-							sourceCode = DecoJer.decompile(ClassEditor.this.cu);
-							ClassEditor.this.compilationUnitEditor.setInput(new MemoryStorageEditorInput(
-									new MemoryStorage(
-											sourceCode.getBytes(),
-											ClassEditor.this.cu == null
-													|| ClassEditor.this.cu
-															.getSourceFileName() == null ? null
-													: new Path(
-															ClassEditor.this.cu
-																	.getSourceFileName()))));
-						} catch (final Throwable e2) {
-							e2.printStackTrace();
-							sourceCode = "// Decompilation error!";
-						}
-
-					}
-
-				});
-				pageContainer = sashForm;
-			}
+			});
+			pageContainer = sashForm;
 		}
 		return pageContainer;
 	}
@@ -423,7 +390,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		// for debugging purposes:
 		createControlFlowGraphViewer();
 		// initialization comes first, delivers IClassFileEditorInput
-		if (this.archiveFileName == null) {
+		if (this.archiveTree == null) {
 			createClassFileEditor();
 		}
 		createDecompilationUnitEditor();

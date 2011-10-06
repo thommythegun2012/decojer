@@ -1689,8 +1689,10 @@ public class ReadCodeAttribute {
 			// preserve order
 			final int tableLength = localVariableTypeAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final Var var = cfg.getVar(localVariableTypeAttribute.index(i),
-						localVariableTypeAttribute.startPc(i));
+				final Var var = cfg
+						.getVar(localVariableTypeAttribute.index(i),
+								this.pc2index.get(localVariableTypeAttribute
+										.startPc(i)));
 				if (var == null) {
 					LOGGER.warning("Local variable type attribute '"
 							+ localVariableTypeAttribute.index(i)

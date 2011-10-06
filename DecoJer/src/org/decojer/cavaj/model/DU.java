@@ -39,6 +39,8 @@ import java.util.zip.ZipInputStream;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.reader.AsmReader;
+import org.decojer.cavaj.reader.ClassReader;
+import org.decojer.cavaj.reader.DexReader;
 import org.decojer.cavaj.reader.SmaliReader;
 
 /**
@@ -51,6 +53,10 @@ public class DU {
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
 
 	private T[] arrayInterfaceTs;
+
+	private final ClassReader classReader = new AsmReader(this);
+
+	private final DexReader dexReader = new SmaliReader(this);
 
 	private final LinkedHashMap<String, TD> tds = new LinkedHashMap<String, TD>();
 
@@ -278,9 +284,9 @@ public class DU {
 	public TD read(final String fileName, final InputStream is,
 			final String selector) throws IOException {
 		if (fileName.endsWith(".class")) {
-			return AsmReader.read(is, this);
+			return this.classReader.read(is);
 		} else if (fileName.endsWith(".dex")) {
-			return SmaliReader.read(is, this, selector);
+			return this.dexReader.read(is, selector);
 		} else if (fileName.endsWith(".jar")) {
 			String selectorPrefix = null;
 			String selectorMatch = null;

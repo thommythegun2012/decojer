@@ -24,17 +24,13 @@
 package org.decojer.cavaj.reader;
 
 import java.io.DataInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import javassist.bytecode.AnnotationDefaultAttribute;
 import javassist.bytecode.AnnotationsAttribute;
@@ -78,8 +74,6 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.type.Type;
-import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.reader.javassist.ReadCodeAttribute;
 
 /**
@@ -87,97 +81,31 @@ import org.decojer.cavaj.reader.javassist.ReadCodeAttribute;
  * 
  * @author André Pankraz
  */
-public class JavassistReader {
+public class JavassistReader implements ClassReader {
 
 	private final static Logger LOGGER = Logger.getLogger(JavassistReader.class
 			.getName());
 
-	/**
-	 * Analyse class input stream.
-	 * 
-	 * @param is
-	 *            class input stream
-	 * @return type
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static Type analyse(final InputStream is) throws IOException {
-		final ClassFile classFile = new ClassFile(new DataInputStream(is));
-		final SignatureAttribute signatureAttribute = (SignatureAttribute) classFile
-				.getAttribute(SignatureAttribute.tag);
-		String signature;
-		if (signatureAttribute == null) {
-			final StringBuilder sb = new StringBuilder("L");
-			sb.append(classFile.getSuperclass()).append(";");
-			for (final String interfaceName : classFile.getInterfaces()) {
-				sb.append("L").append(interfaceName).append(";");
-			}
-			signature = sb.toString();
-		} else {
-			signature = signatureAttribute.getSignature();
-		}
-		final Type type = new Type(classFile.getName(), signature);
-		return type;
-	}
+	private final DU du;
+
+	private final ReadCodeAttribute readCodeAttribute;
 
 	/**
-	 * Analyse JAR input stream.
+	 * Constructor.
 	 * 
-	 * @param is
-	 *            JAR input stream
-	 * @return types
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static Types analyseJar(final InputStream is) throws IOException {
-		final ZipInputStream zip = new ZipInputStream(is);
-		final Types types = new Types();
-		int errors = 0;
-		for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
-				.getNextEntry()) {
-			final String name = zipEntry.getName();
-			if (!name.endsWith(".class")) {
-				continue;
-			}
-			try {
-				types.addType(analyse(zip));
-			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Couldn't analyse '" + name + "'!", e);
-				++errors;
-			}
-		}
-		types.setErrors(errors);
-		return types;
-	}
-
-	/**
-	 * Test it...
-	 * 
-	 * @param args
-	 *            args
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static void main(final String[] args) throws IOException {
-		final FileInputStream is = new FileInputStream(
-				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61.jar");
-		final Types types = analyseJar(is);
-		System.out.println("Ana: " + types.getTypes().size());
-	}
-
-	/**
-	 * Read class input stream.
-	 * 
-	 * @param is
-	 *            class input stream
 	 * @param du
 	 *            decompilation unit
-	 * @return type declaration
-	 * @throws IOException
-	 *             read exception
 	 */
+	public JavassistReader(final DU du) {
+		assert du != null;
+
+		this.du = du;
+		this.readCodeAttribute = new ReadCodeAttribute(du);
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
-	public static TD read(final InputStream is, final DU du) throws IOException {
+	public TD read(final InputStream is) throws IOException {
 		final ClassFile classFile = new ClassFile(new DataInputStream(is));
 
 		// only annotations with RetentionPolicy.CLASS or RUNTIME are visible
@@ -217,14 +145,14 @@ public class JavassistReader {
 			}
 		}
 
-		final T t = du.getT(classFile.getName());
+		final T t = this.du.getT(classFile.getName());
 		t.setAccessFlags(classFile.getAccessFlags());
-		t.setSuperT(du.getT(classFile.getSuperclass()));
+		t.setSuperT(this.du.getT(classFile.getSuperclass()));
 		final String[] interfaces = classFile.getInterfaces();
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
-				interfaceTs[i] = du.getT(interfaces[i]);
+				interfaceTs[i] = this.du.getT(interfaces[i]);
 			}
 			t.setInterfaceTs(interfaceTs);
 		}
@@ -236,7 +164,7 @@ public class JavassistReader {
 		td.setVersion(classFile.getMajorVersion());
 
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
-				annotationsAttributeRuntimeVisible, du);
+				annotationsAttributeRuntimeVisible);
 		if (as != null) {
 			td.setAs(as);
 		}
@@ -248,14 +176,16 @@ public class JavassistReader {
 		if (enclosingMethodAttribute != null) {
 			if (enclosingMethodAttribute.methodIndex() > 0) {
 				// is anonymous class, is in method
-				final T methodT = du.getT(enclosingMethodAttribute.className());
+				final T methodT = this.du.getT(enclosingMethodAttribute
+						.className());
 				td.setEnclosingM(methodT.getM(
 						enclosingMethodAttribute.methodName(),
 						enclosingMethodAttribute.methodDescriptor()));
 			}
 			if (enclosingMethodAttribute.classIndex() > 0) {
 				// is anonymous class, is in field initializer
-				td.setEnclosingT(du.getT(enclosingMethodAttribute.className()));
+				td.setEnclosingT(this.du.getT(enclosingMethodAttribute
+						.className()));
 			}
 		}
 		if (innerClassesAttribute != null) {
@@ -271,7 +201,8 @@ public class JavassistReader {
 				}
 				if (t.getName().equals(innerClassesAttribute.outerClass(i))) {
 					// has member types (really contained inner classes)
-					memberTs.add(du.getT(innerClassesAttribute.innerClass(i)));
+					memberTs.add(this.du.getT(innerClassesAttribute
+							.innerClass(i)));
 					continue;
 				}
 			}
@@ -298,29 +229,27 @@ public class JavassistReader {
 			td.getBds().add(readMethod(td, methodInfo));
 		}
 
-		du.addTd(td);
-
+		this.du.addTd(td);
 		return td;
 	}
 
 	@SuppressWarnings("unchecked")
-	private static A readAnnotation(final Annotation annotation,
-			final RetentionPolicy retentionPolicy, final DU du) {
-		final T t = du.getT(annotation.getTypeName());
+	private A readAnnotation(final Annotation annotation,
+			final RetentionPolicy retentionPolicy) {
+		final T t = this.du.getT(annotation.getTypeName());
 		final A a = new A(t, retentionPolicy);
 		if (annotation.getMemberNames() != null) {
 			for (final String name : (Set<String>) annotation.getMemberNames()) {
 				a.addMember(name,
-						readValue(annotation.getMemberValue(name), du));
+						readValue(annotation.getMemberValue(name), this.du));
 			}
 		}
 		return a;
 	}
 
-	private static A[] readAnnotations(
+	private A[] readAnnotations(
 			final AnnotationsAttribute annotationsAttributeRuntimeInvisible,
-			final AnnotationsAttribute annotationsAttributeRuntimeVisible,
-			final DU du) {
+			final AnnotationsAttribute annotationsAttributeRuntimeVisible) {
 		A[] as = null;
 		// Visible comes first in bytecode, but here we start with invisible
 		// because of array extension trick
@@ -329,8 +258,7 @@ public class JavassistReader {
 					.getAnnotations();
 			as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS,
-						du);
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS);
 			}
 		}
 		if (annotationsAttributeRuntimeVisible != null) {
@@ -345,15 +273,14 @@ public class JavassistReader {
 			}
 			// trick
 			for (int i = annotations.length; i-- > 0;) {
-				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME,
-						du);
+				as[i] = readAnnotation(annotations[i], RetentionPolicy.RUNTIME);
 			}
 		}
 		return as;
 	}
 
 	@SuppressWarnings("unchecked")
-	private static FD readField(final TD td, final FieldInfo fieldInfo) {
+	private FD readField(final TD td, final FieldInfo fieldInfo) {
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
 		ConstantAttribute constantAttribute = null;
@@ -395,7 +322,7 @@ public class JavassistReader {
 		final FD fd = new FD(f, td);
 
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
-				annotationsAttributeRuntimeVisible, du);
+				annotationsAttributeRuntimeVisible);
 		if (as != null) {
 			fd.setAs(as);
 		}
@@ -442,7 +369,7 @@ public class JavassistReader {
 	}
 
 	@SuppressWarnings("unchecked")
-	private static MD readMethod(final TD td, final MethodInfo methodInfo) {
+	private MD readMethod(final TD td, final MethodInfo methodInfo) {
 		AnnotationDefaultAttribute annotationDefaultAttribute = null;
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
@@ -515,13 +442,13 @@ public class JavassistReader {
 		}
 
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
-				annotationsAttributeRuntimeVisible, du);
+				annotationsAttributeRuntimeVisible);
 		if (as != null) {
 			md.setAs(as);
 		}
 
 		if (codeAttribute != null) {
-			new ReadCodeAttribute(du).initAndVisit(md, codeAttribute);
+			this.readCodeAttribute.initAndVisit(md, codeAttribute);
 		}
 
 		if (deprecatedAttribute != null) {
@@ -540,7 +467,7 @@ public class JavassistReader {
 				final A[] paramAs = paramAss[i] = new A[annotations.length];
 				for (int j = annotations.length; j-- > 0;) {
 					paramAs[j] = readAnnotation(annotations[j],
-							RetentionPolicy.CLASS, du);
+							RetentionPolicy.CLASS);
 				}
 			}
 		}
@@ -569,7 +496,7 @@ public class JavassistReader {
 				paramAss[i] = paramAs;
 				for (int j = annotations.length; j-- > 0;) {
 					paramAs[j] = readAnnotation(annotations[j],
-							RetentionPolicy.RUNTIME, du);
+							RetentionPolicy.RUNTIME);
 				}
 			}
 		}
@@ -582,11 +509,11 @@ public class JavassistReader {
 		return md;
 	}
 
-	private static Object readValue(final MemberValue memberValue, final DU du) {
+	private Object readValue(final MemberValue memberValue, final DU du) {
 		if (memberValue instanceof AnnotationMemberValue) {
 			// retention unknown for annotation constant
 			return readAnnotation(
-					((AnnotationMemberValue) memberValue).getValue(), null, du);
+					((AnnotationMemberValue) memberValue).getValue(), null);
 		}
 		if (memberValue instanceof ArrayMemberValue) {
 			final MemberValue[] values = ((ArrayMemberValue) memberValue)
