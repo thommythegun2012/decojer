@@ -24,18 +24,22 @@
 package org.decojer.cavaj.util;
 
 /**
+ * File magic numbers.
  * 
  * @author André Pankraz
  */
 public interface MagicNumbers {
 
-	// forth byte always 0x0A or 0x00 too?
-	byte[] MAGIC_NUMBER_DEX = { (byte) 0x64, (byte) 0x65, (byte) 0x78 };
+	int LENGTH = 4;
 
-	byte[] MAGIC_NUMBER_JAVA = { (byte) 0xCA, (byte) 0xFE, (byte) 0xBA,
-			(byte) 0xBE };
+	byte[] CLASS = { (byte) 0xCA, (byte) 0xFE, (byte) 0xBA, (byte) 0xBE };
 
-	byte[] MAGIC_NUMBER_ZIP = { (byte) 0x50, (byte) 0x4B, (byte) 0x03,
-			(byte) 0x04 };
+	// 64 65 79 0A 30 33 35 00 for odex file or
+	// 64 65 78 0A 30 33 35 00 for dex file ("dex\n035\0")
+	byte[] DEX = { (byte) 0x64, (byte) 0x65, (byte) 0x78, (byte) 0x0a };
+
+	byte[] ODEX = { (byte) 0x64, (byte) 0x65, (byte) 0x79, (byte) 0x0a };
+
+	byte[] ZIP = { (byte) 0x50, (byte) 0x4B, (byte) 0x03, (byte) 0x04 };
 
 }
