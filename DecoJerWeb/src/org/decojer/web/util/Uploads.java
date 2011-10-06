@@ -112,7 +112,7 @@ public class Uploads {
 				if (upload.getTds().longValue() == 1L) {
 					final int pos = filename.lastIndexOf('.');
 					sourcename = (pos == -1 ? filename : filename.substring(0,
-							pos)) + "java";
+							pos)) + ".java";
 				} else {
 					final int pos = filename.lastIndexOf('.');
 					sourcename = (pos == -1 ? filename : filename.substring(0,
