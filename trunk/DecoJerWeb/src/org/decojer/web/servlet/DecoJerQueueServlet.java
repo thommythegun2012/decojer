@@ -112,98 +112,79 @@ public class DecoJerQueueServlet extends HttpServlet {
 		final BlobKey sourceBlobKey;
 
 		final String filename = upload.getFilename();
-		String sourcename;
 
-		if (filename.endsWith(".class")) {
-			final int pos = filename.lastIndexOf('.');
-			sourcename = filename.substring(0, pos) + ".java";
+		final DU du = DecoJer.createDu();
+		TD td = du.read(uploadInputStream, filename, null);
 
+		upload.setTds((long) du.getTds().size());
+		if (td == null && upload.getTds().longValue() == 1L) {
+			td = du.getTds().iterator().next().getValue();
+		}
+
+		if (td != null) {
 			String source;
 			try {
-				final DU du = DecoJer.createDu();
-				final TD td = du.read(filename, uploadInputStream, null);
 				final CU cu = DecoJer.createCu(td);
 				source = DecoJer.decompile(cu);
-			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
-				return;
-			}
-			final AppEngineFile file = this.fileService.createNewBlobFile(
-					"text/x-java-source", sourcename);
-			final FileWriteChannel writeChannel = this.fileService
-					.openWriteChannel(file, true);
-			final Writer writer = Channels.newWriter(writeChannel, "UTF-8");
-			writer.write(source);
-			writer.close();
-			writeChannel.closeFinally();
-			sourceBlobKey = this.fileService.getBlobKey(file);
-		} else if (filename.endsWith(".jar")) {
-			final int pos = filename.lastIndexOf('.');
-			sourcename = filename.substring(0, pos) + "_source.jar";
 
-			final ByteArrayOutputStream sourceOutputStream = new ByteArrayOutputStream();
-			try {
-				final DU du = DecoJer.createDu();
-				du.read(filename, uploadInputStream, null);
-				DecoJer.decompile(sourceOutputStream, du);
-			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
-				return;
-			}
-			final AppEngineFile file = this.fileService.createNewBlobFile(
-					"application/java-archive", sourcename);
-			final FileWriteChannel writeChannel = this.fileService
-					.openWriteChannel(file, true);
-			final OutputStream fileOutputStream = Channels
-					.newOutputStream(writeChannel);
-			// don't hold file open for too long (around max. 30 seconds), else:
-			// "Caused by: com.google.apphosting.api.ApiProxy$ApplicationException: ApplicationError: 10: Unknown",
-			// don't use byte array directly, else file write request too large
-			// (BufferedOutputStream writes big data directly)
-			IOUtils.copy(
-					new ByteArrayInputStream(sourceOutputStream.toByteArray()),
-					fileOutputStream);
-			fileOutputStream.close();
-			writeChannel.closeFinally();
-			sourceBlobKey = this.fileService.getBlobKey(file);
-		} else if (filename.endsWith(".dex")) {
-			final int pos = filename.lastIndexOf('.');
-			sourcename = filename.substring(0, pos) + "_android_source.jar";
+				String sourcename = td.getSourceFileName();
+				if (sourcename == null) {
+					final int pos = filename.lastIndexOf('.');
+					sourcename = (pos == -1 ? filename : filename.substring(0,
+							pos)) + "java";
+				}
+				final AppEngineFile file = this.fileService.createNewBlobFile(
+						"text/x-java-source", sourcename);
+				final FileWriteChannel writeChannel = this.fileService
+						.openWriteChannel(file, true);
+				final Writer writer = Channels.newWriter(writeChannel, "UTF-8");
+				writer.write(source);
+				writer.close();
+				writeChannel.closeFinally();
 
-			final ByteArrayOutputStream sourceOutputStream = new ByteArrayOutputStream();
-			try {
-				final DU du = DecoJer.createDu();
-				du.read(filename, uploadInputStream, null);
-				DecoJer.decompile(sourceOutputStream, du);
+				if (upload.getSourceBlobKey() != null) {
+					BLOBSTORE_SERVICE.delete(upload.getSourceBlobKey());
+				}
+				upload.setSourceBlobKey(this.fileService.getBlobKey(file));
 			} catch (final Exception e) {
 				LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
-				return;
+				upload.setError(e.getMessage());
 			}
-			final AppEngineFile file = this.fileService.createNewBlobFile(
-					"application/java-archive", sourcename);
-			final FileWriteChannel writeChannel = this.fileService
-					.openWriteChannel(file, true);
-			final OutputStream fileOutputStream = Channels
-					.newOutputStream(writeChannel);
-			// don't hold file open for too long (around max. 30 seconds), else:
-			// "Caused by: com.google.apphosting.api.ApiProxy$ApplicationException: ApplicationError: 10: Unknown",
-			// don't use byte array directly, else file write request too large
-			// (BufferedOutputStream writes big data directly)
-			IOUtils.copy(
-					new ByteArrayInputStream(sourceOutputStream.toByteArray()),
-					fileOutputStream);
-			fileOutputStream.close();
-			writeChannel.closeFinally();
-			sourceBlobKey = this.fileService.getBlobKey(file);
 		} else {
-			LOGGER.warning("Unknown filename extension for filename '"
-					+ filename + "' in decoJer task!");
-			return;
+			final ByteArrayOutputStream sourceOutputStream = new ByteArrayOutputStream();
+			try {
+				DecoJer.decompile(du, sourceOutputStream);
+
+				final int pos = filename.lastIndexOf('.');
+				final String sourcename = (pos == -1 ? filename : filename
+						.substring(0, pos)) + "_source.zip";
+				final AppEngineFile file = this.fileService.createNewBlobFile(
+						"application/java-archive", sourcename);
+				final FileWriteChannel writeChannel = this.fileService
+						.openWriteChannel(file, true);
+				final OutputStream fileOutputStream = Channels
+						.newOutputStream(writeChannel);
+				// don't hold file open for too long (around max. 30 seconds),
+				// else:
+				// "Caused by: com.google.apphosting.api.ApiProxy$ApplicationException: ApplicationError: 10: Unknown",
+				// don't use byte array directly, else file write request too
+				// large
+				// (BufferedOutputStream writes big data directly)
+				IOUtils.copy(
+						new ByteArrayInputStream(sourceOutputStream
+								.toByteArray()), fileOutputStream);
+				fileOutputStream.close();
+				writeChannel.closeFinally();
+
+				if (upload.getSourceBlobKey() != null) {
+					BLOBSTORE_SERVICE.delete(upload.getSourceBlobKey());
+				}
+				upload.setSourceBlobKey(this.fileService.getBlobKey(file));
+			} catch (final Exception e) {
+				LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
+				upload.setError(e.getMessage());
+			}
 		}
-		if (upload.getSourceBlobKey() != null) {
-			BLOBSTORE_SERVICE.delete(upload.getSourceBlobKey());
-		}
-		upload.setSourceBlobKey(sourceBlobKey);
 		final Transaction tx = DATASTORE_SERVICE.beginTransaction();
 		try {
 			DATASTORE_SERVICE.put(upload.getWrappedEntity());

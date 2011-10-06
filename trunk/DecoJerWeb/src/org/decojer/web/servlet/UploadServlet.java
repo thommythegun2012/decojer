@@ -24,7 +24,6 @@
 package org.decojer.web.servlet;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -38,13 +37,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.decojer.web.analyser.AnalyseException;
-import org.decojer.web.analyser.ClassAnalyser;
-import org.decojer.web.analyser.DexAnalyser;
-import org.decojer.web.analyser.DexInfo;
-import org.decojer.web.analyser.JarAnalyser;
-import org.decojer.web.analyser.JarInfo;
-import org.decojer.web.analyser.TypeInfo;
+import org.decojer.DecoJer;
 import org.decojer.web.model.Upload;
 import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
@@ -169,88 +162,16 @@ public class UploadServlet extends HttpServlet {
 				// attention: this servlet can rely on the existence of the
 				// current uploads blob meta data via datastoreService.get(),
 				// but results from other queries are HA write lag dependend!
-				final List<TypeInfo> typeInfos = new ArrayList<TypeInfo>();
-				try {
-					// check file name extension
-					final int pos = upload.getFilename().lastIndexOf('.');
-					if (pos == -1) {
-						throw new AnalyseException(
-								"The file extension is missing.");
-					}
-					final String ext = upload.getFilename().substring(pos + 1)
-							.toLowerCase();
-					if ("class".equals(ext)) {
-						final TypeInfo typeInfo;
-						try {
-							typeInfo = ClassAnalyser
-									.analyse(new BlobstoreInputStream(
-											uploadBlobInfo.getBlobKey()));
-						} catch (final Exception e) {
-							throw new AnalyseException(
-									"This isn't a valid Java Class like the file extension suggests.");
-						}
-						typeInfos.add(typeInfo);
-					} else if ("jar".equals(ext)) {
-						final JarInfo jarInfo;
-						try {
-							jarInfo = JarAnalyser
-									.analyse(new BlobstoreInputStream(
-											uploadBlobInfo.getBlobKey()));
-						} catch (final Exception e) {
-							throw new AnalyseException(
-									"This isn't a valid Java Archive like the file extension suggests.");
-						}
-						LOGGER.info("JAR analyzed with "
-								+ jarInfo.typeInfos.size() + " types and "
-								+ jarInfo.checkFailures + " check failures.");
-						if (jarInfo.typeInfos.size() == 0) {
-							throw new AnalyseException(
-									"This isn't a valid Java Archive like the file extension suggests.");
-						}
-						typeInfos.addAll(jarInfo.typeInfos);
-					} else if ("dex".equals(ext)) {
-						final DexInfo dexInfo;
-						try {
-							dexInfo = DexAnalyser
-									.analyse(new BlobstoreInputStream(
-											uploadBlobInfo.getBlobKey()));
-						} catch (final Exception e) {
-							throw new AnalyseException(
-									"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
-						}
-						LOGGER.info("DEX analyzed with "
-								+ dexInfo.typeInfos.size() + " types.");
-						if (dexInfo.typeInfos.size() == 0) {
-							throw new AnalyseException(
-									"This isn't a valid Android / Dalvik Executable like the file extension suggests.");
-						}
-						typeInfos.addAll(dexInfo.typeInfos);
-					} else if ("apk".equals(ext)) {
-						throw new AnalyseException(
-								"Sorry, because of quota limits the online version doesn't support the direct decompilation of Android Package Archives (APK). Please unzip and upload the contained 'classes.dex' Dalvik Executable File (DEX).");
-					} else if ("war".equals(ext)) {
-						throw new AnalyseException(
-								"Sorry, because of quota limits the online version doesn't support the direct decompilation of Web Application Archives (WAR), often containing multiple embedded Java Archives (JAR).");
-					} else if ("ear".equals(ext)) {
-						throw new AnalyseException(
-								"Sorry, because of quota limits the online version doesn't support the direct decompilation of Enterprise Application Archives (EAR), often containing multiple embedded Java Archives (JAR).");
-					} else {
-						throw new AnalyseException("The file extension '" + ext
-								+ "' is unknown.");
-					}
-					if (typeInfos.size() == 0) {
-						throw new AnalyseException(
-								"Could not find any classes!");
-					}
-					upload.setTds((long) typeInfos.size());
-				} catch (final AnalyseException e) {
-					LOGGER.log(Level.INFO, e.getMessage());
+				final int artefacts = DecoJer.analyze(new BlobstoreInputStream(
+						uploadBlobInfo.getBlobKey()));
+				if (artefacts == 0) {
+					LOGGER.log(Level.INFO, "No artefacts.");
 					Messages.addMessage(
 							req,
-							e.getMessage()
-									+ "  Please upload valid Java Classes or Archives (JAR) respectively Android / Dalvik Executable File (DEX).");
-					upload.setError(e.getMessage());
+							"Please upload valid Java Classes or Archives (CLASS, JAR, EAR) respectively Android / Dalvik Executable File (DEX, APK).");
+					upload.setError("No artefacts.");
 				}
+				upload.setTds((long) artefacts);
 			}
 			upload.setUploadBlobKey(uploadBlobInfo.getBlobKey());
 			upload.setCreated(uploadBlobInfo.getCreation());
@@ -288,10 +209,12 @@ public class UploadServlet extends HttpServlet {
 				return;
 			}
 			// add message and link
-			Messages.addMessage(req, "Found "
-					+ upload.getTds()
-					+ (upload.getTds().longValue() == 1L ? " class."
-							: " classes."));
+			Messages.addMessage(
+					req,
+					"Found "
+							+ upload.getTds()
+							+ (upload.getTds().longValue() == 1L ? " readable artefact."
+									: " readable artefacts."));
 			Uploads.addUploadKey(req, uploadKey);
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING,

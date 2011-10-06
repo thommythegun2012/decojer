@@ -2,11 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/decojer.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/asm-4.0.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/commons-io-2.0.1.jar" sourcepath="C:/Users/André Pankraz/.m2/repository/commons-io/commons-io/2.0.1/commons-io-2.0.1-sources.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/dex-reader-1.2.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/dexlib-1.2.7-dev.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/javassist.jar" sourcepath="/javassist-3.14.0-GA"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/libxjava-cldc-0.3.jar" sourcepath="C:/Users/André Pankraz/.m2/repository/com/github/mcpat/libxjava/libxjava-cldc/0.3/libxjava-cldc-0.3-sources.jar"/>
 	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
