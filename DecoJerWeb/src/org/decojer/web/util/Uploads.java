@@ -108,36 +108,38 @@ public class Uploads {
 			final String filename = upload.getFilename();
 
 			if (upload.getSourceBlobKey() != null) {
-				String sourcename = filename;
-				if (filename.endsWith(".class")) {
-					sourcename = filename.substring(0, filename.length() - 5)
-							+ "java";
-				} else if (filename.endsWith(".jar")) {
-					sourcename = filename.substring(0, filename.length() - 4)
-							+ "_source.jar";
-				} else if (filename.endsWith(".dex")) {
-					sourcename = filename.substring(0, filename.length() - 4)
-							+ "_android_source.jar";
+				String sourcename;
+				if (upload.getTds().longValue() == 1L) {
+					final int pos = filename.lastIndexOf('.');
+					sourcename = (pos == -1 ? filename : filename.substring(0,
+							pos)) + "java";
+				} else {
+					final int pos = filename.lastIndexOf('.');
+					sourcename = (pos == -1 ? filename : filename.substring(0,
+							pos)) + "_source.zip";
 				}
-
 				sb.append("<li><a href='/download/")
 						.append(URLEncoder.encode(sourcename))
 						.append("?u=")
 						.append(URLEncoder.encode(upload.getSourceBlobKey()
 								.getKeyString())).append("' target='_blank'>")
-						.append(upload.getFilename()).append("</a>");
+						.append(sourcename).append("</a>");
+				if (upload.getTds() > 1) {
+					sb.append(" (").append(upload.getTds()).append(" classes)");
+				} else if (upload.getSourceBlobKey() != null) {
+					sb.append(" (<a href='/?u=")
+							.append(URLEncoder.encode(upload.getSourceBlobKey()
+									.getKeyString())).append("'>View</a>)");
+				}
 			} else if (upload.getError() != null) {
 				sb.append("<li>").append(filename).append(" ERROR");
 			} else {
 				channel = true;
 				sb.append("<li>").append(filename).append(" ...decompiling...");
-			}
-			if (upload.getTds() > 1) {
-				sb.append(" (").append(upload.getTds()).append(" classes)");
-			} else if (upload.getSourceBlobKey() != null) {
-				sb.append(" (<a href='/?u=")
-						.append(URLEncoder.encode(upload.getSourceBlobKey()
-								.getKeyString())).append("'>View</a>)");
+				if (upload.getTds() > 1) {
+					sb.append(" (").append(upload.getTds())
+							.append(" artefacts)");
+				}
 			}
 			sb.append("</li>");
 		}
