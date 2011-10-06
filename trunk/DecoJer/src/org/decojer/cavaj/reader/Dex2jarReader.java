@@ -23,14 +23,11 @@
  */
 package org.decojer.cavaj.reader;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.type.Types;
-import org.decojer.cavaj.reader.dex2jar.AnalyseDexFileVisitor;
 import org.decojer.cavaj.reader.dex2jar.ReadDexFileVisitor;
 
 import com.googlecode.dex2jar.reader.DexFileReader;
@@ -40,61 +37,31 @@ import com.googlecode.dex2jar.reader.DexFileReader;
  * 
  * @author André Pankraz
  */
-public class Dex2jarReader {
+public class Dex2jarReader implements DexReader {
+
+	private final ReadDexFileVisitor readDexFileVisitor;
 
 	/**
-	 * Analyse DEX input stream.
+	 * Constructor.
 	 * 
-	 * @param is
-	 *            DEX input stream
-	 * @return types
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static Types analyse(final InputStream is) throws IOException {
-		final DexFileReader dexFileReader = new DexFileReader(is);
-		final AnalyseDexFileVisitor analyseDexFileVisitor = new AnalyseDexFileVisitor();
-		dexFileReader.accept(analyseDexFileVisitor);
-		return analyseDexFileVisitor.getTypes();
-	}
-
-	/**
-	 * Test it...
-	 * 
-	 * @param args
-	 *            args
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static void main(final String[] args) throws IOException {
-		final FileInputStream is = new FileInputStream(
-				"D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
-		// final Types types = analyse(is);
-		// System.out.println("Ana: " + types.getTypes().size());
-		System.out.println("### START ###");
-		read(is, new DU(), null);
-	}
-
-	/**
-	 * Read DEX input stream.
-	 * 
-	 * @param is
-	 *            DEX input stream
 	 * @param du
 	 *            decompilation unit
-	 * @param selector
-	 *            selector
-	 * @return type declaration for selector
-	 * @throws IOException
-	 *             read exception
 	 */
-	public static TD read(final InputStream is, final DU du,
-			final String selector) throws IOException {
+	public Dex2jarReader(final DU du) {
+		assert du != null;
+
+		this.readDexFileVisitor = new ReadDexFileVisitor(du);
+	}
+
+	@Override
+	public TD read(final InputStream is, final String selector)
+			throws IOException {
 		final DexFileReader dexFileReader = new DexFileReader(is);
-		final ReadDexFileVisitor dexFileVisitor = new ReadDexFileVisitor(du,
-				selector);
-		dexFileReader.accept(dexFileVisitor);
-		return dexFileVisitor.getSelectorTd();
+
+		this.readDexFileVisitor.init(selector);
+		dexFileReader.accept(this.readDexFileVisitor);
+
+		return this.readDexFileVisitor.getSelectorTd();
 	}
 
 }

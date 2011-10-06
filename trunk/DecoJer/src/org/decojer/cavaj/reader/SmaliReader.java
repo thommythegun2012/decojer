@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.reader;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.RetentionPolicy;
@@ -43,8 +42,6 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.type.Type;
-import org.decojer.cavaj.model.type.Types;
 import org.decojer.cavaj.reader.smali.ReadCodeItem;
 import org.jf.dexlib.AnnotationDirectoryItem;
 import org.jf.dexlib.AnnotationDirectoryItem.FieldAnnotationIteratorDelegate;
@@ -90,70 +87,29 @@ import org.jf.dexlib.Util.ByteArrayInput;
  * 
  * @author André Pankraz
  */
-public class SmaliReader {
+public class SmaliReader implements DexReader {
 
 	private final static Logger LOGGER = Logger.getLogger(SmaliReader.class
 			.getName());
 
-	/**
-	 * Analyse DEX input stream.
-	 * 
-	 * @param is
-	 *            DEX input stream
-	 * @return types
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static Types analyse(final InputStream is) throws IOException {
-		final byte[] bytes = IOUtils.toByteArray(is);
-		final DexFile dexFile = new DexFile(new ByteArrayInput(bytes), false,
-				true); // fast
-		final Types types = new Types();
-		@SuppressWarnings("unchecked")
-		final Section<ClassDefItem> classDefItems = dexFile
-				.getSectionForType(ItemType.TYPE_CLASS_DEF_ITEM);
-		for (final ClassDefItem classDefItem : classDefItems.getItems()) {
-			final String typeDescriptor = classDefItem.getClassType()
-					.getTypeDescriptor();
-			System.out.println("TEST " + typeDescriptor);
-			types.addType(new Type(typeDescriptor.substring(1,
-					typeDescriptor.length() - 1), null));
-		}
-		return types;
-	}
+	private final DU du;
 
 	/**
-	 * Test it...
+	 * Constructor.
 	 * 
-	 * @param args
-	 *            args
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static void main(final String[] args) throws IOException {
-		final FileInputStream is = new FileInputStream(
-				"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2/classes.dex");
-		// final Types types = analyse(is);
-		// System.out.println("Ana: " + types.getTypes().size());
-		read(is, new DU(), null);
-	}
-
-	/**
-	 * Read DEX input stream.
-	 * 
-	 * @param is
-	 *            DEX input stream
 	 * @param du
 	 *            decompilation unit
-	 * @param selector
-	 *            selector
-	 * @return type declaration for selector
-	 * @throws IOException
-	 *             read exception
 	 */
+	public SmaliReader(final DU du) {
+		assert du != null;
+
+		this.du = du;
+	}
+
+	@Override
 	@SuppressWarnings("unchecked")
-	public static TD read(final InputStream is, final DU du,
-			final String selector) throws IOException {
+	public TD read(final InputStream is, final String selector)
+			throws IOException {
 		String selectorPrefix = null;
 		String selectorMatch = null;
 		if (selector != null && selector.endsWith(".class")) {
@@ -180,16 +136,16 @@ public class SmaliReader {
 							.indexOf('/', selectorPrefix.length()) != -1)) {
 				continue;
 			}
-			final T t = du.getDescT(typeDescriptor);
+			final T t = this.du.getDescT(typeDescriptor);
 			t.setAccessFlags(classDefItem.getAccessFlags());
-			t.setSuperT(du.getDescT(classDefItem.getSuperclass()
+			t.setSuperT(this.du.getDescT(classDefItem.getSuperclass()
 					.getTypeDescriptor()));
 			final TypeListItem interfaces = classDefItem.getInterfaces();
 			if (interfaces != null && interfaces.getTypeCount() > 0) {
 				final T[] interfaceTs = new T[interfaces.getTypeCount()];
 				for (int i = interfaces.getTypeCount(); i-- > 0;) {
-					interfaceTs[i] = du.getDescT(interfaces.getTypeIdItem(i)
-							.getTypeDescriptor());
+					interfaceTs[i] = this.du.getDescT(interfaces.getTypeIdItem(
+							i).getTypeDescriptor());
 				}
 				t.setInterfaceTs(interfaceTs);
 			}
@@ -217,7 +173,7 @@ public class SmaliReader {
 					final List<A> as = new ArrayList<A>();
 					for (final AnnotationItem annotation : classAnnotations
 							.getAnnotations()) {
-						final A a = readAnnotation(annotation, du);
+						final A a = readAnnotation(annotation);
 						if ("dalvik.annotation.AnnotationDefault".equals(a
 								.getT().getName())) {
 							// annotation default values, not encoded in
@@ -302,8 +258,7 @@ public class SmaliReader {
 								final List<A> as = new ArrayList<A>();
 								for (final AnnotationItem annotationItem : fieldAnnotations
 										.getAnnotations()) {
-									final A a = readAnnotation(annotationItem,
-											du);
+									final A a = readAnnotation(annotationItem);
 									if ("dalvik.annotation.Signature".equals(a
 											.getT().getName())) {
 										// signature, is encoded as annotation
@@ -338,8 +293,7 @@ public class SmaliReader {
 								final List<A> as = new ArrayList<A>();
 								for (final AnnotationItem annotationItem : methodAnnotations
 										.getAnnotations()) {
-									final A a = readAnnotation(annotationItem,
-											du);
+									final A a = readAnnotation(annotationItem);
 									if ("dalvik.annotation.Signature".equals(a
 											.getT().getName())) {
 										// signature, is encoded as annotation
@@ -391,8 +345,7 @@ public class SmaliReader {
 											.getAnnotations();
 									final A[] paramAs = paramAss[i] = new A[annotationItems.length];
 									for (int j = annotationItems.length; j-- > 0;) {
-										paramAs[j] = readAnnotation(
-												annotationItems[j], du);
+										paramAs[j] = readAnnotation(annotationItems[j]);
 									}
 								}
 								methodParamAs.put(method, paramAss);
@@ -417,27 +370,26 @@ public class SmaliReader {
 						methodParamAs);
 			}
 
-			du.addTd(td);
+			this.du.addTd(td);
 		}
 		return selectorTd;
 	}
 
-	private static A readAnnotation(
-			final AnnotationEncodedSubValue encodedValue,
-			final RetentionPolicy retentionPolicy, final DU du) {
-		final T t = du
-				.getDescT(encodedValue.annotationType.getTypeDescriptor());
+	private A readAnnotation(final AnnotationEncodedSubValue encodedValue,
+			final RetentionPolicy retentionPolicy) {
+		final T t = this.du.getDescT(encodedValue.annotationType
+				.getTypeDescriptor());
 		final A a = new A(t, retentionPolicy);
 		final StringIdItem[] names = encodedValue.names;
 		final EncodedValue[] values = encodedValue.values;
 		for (int i = 0; i < names.length; ++i) {
-			a.addMember(names[i].getStringValue(), readValue(values[i], du));
+			a.addMember(names[i].getStringValue(),
+					readValue(values[i], this.du));
 		}
 		return a;
 	}
 
-	private static A readAnnotation(final AnnotationItem annotationItem,
-			final DU du) {
+	private A readAnnotation(final AnnotationItem annotationItem) {
 		RetentionPolicy retentionPolicy;
 		switch (annotationItem.getVisibility()) {
 		case BUILD:
@@ -455,11 +407,10 @@ public class SmaliReader {
 					+ annotationItem.getVisibility().visibility + "'!");
 		}
 		return readAnnotation(annotationItem.getEncodedAnnotation(),
-				retentionPolicy, du);
+				retentionPolicy);
 	}
 
-	private static void readFields(final TD td,
-			final EncodedField[] staticFields,
+	private void readFields(final TD td, final EncodedField[] staticFields,
 			final EncodedField[] instanceFields,
 			final Map<FieldIdItem, String> fieldSignatures,
 			final EncodedArrayItem staticFieldInitializers,
@@ -516,8 +467,7 @@ public class SmaliReader {
 		}
 	}
 
-	private static void readMethods(final TD td,
-			final EncodedMethod[] directMethods,
+	private void readMethods(final TD td, final EncodedMethod[] directMethods,
 			final EncodedMethod[] virtualMethods,
 			final Map<MethodIdItem, String> methodSignatures,
 			final Map<MethodIdItem, T[]> methodThrowsTs,
@@ -584,11 +534,10 @@ public class SmaliReader {
 		}
 	}
 
-	private static Object readValue(final EncodedValue encodedValue, final DU du) {
+	private Object readValue(final EncodedValue encodedValue, final DU du) {
 		if (encodedValue instanceof AnnotationEncodedSubValue) {
 			// retention unknown for annotation constant
-			return readAnnotation((AnnotationEncodedValue) encodedValue, null,
-					du);
+			return readAnnotation((AnnotationEncodedValue) encodedValue, null);
 		}
 		if (encodedValue instanceof ArrayEncodedValue) {
 			final EncodedValue[] values = ((ArrayEncodedValue) encodedValue).values;

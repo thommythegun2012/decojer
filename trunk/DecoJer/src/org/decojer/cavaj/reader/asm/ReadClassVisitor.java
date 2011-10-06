@@ -98,6 +98,14 @@ public class ReadClassVisitor extends ClassVisitor {
 		return this.td;
 	}
 
+	/**
+	 * Init.
+	 */
+	public void init() {
+		this.as = null;
+		this.td = null;
+	}
+
 	@Override
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName,
@@ -123,9 +131,6 @@ public class ReadClassVisitor extends ClassVisitor {
 
 		this.td = new TD(t);
 		this.td.setVersion(version);
-
-		// init
-		this.as = null;
 	}
 
 	@Override
@@ -154,6 +159,7 @@ public class ReadClassVisitor extends ClassVisitor {
 		if (this.as != null) {
 			this.td.setAs(this.as);
 		}
+		this.du.addTd(this.td);
 	}
 
 	@Override
