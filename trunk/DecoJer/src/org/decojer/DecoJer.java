@@ -26,13 +26,17 @@ package org.decojer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PushbackInputStream;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.decojer.cavaj.model.CU;
@@ -47,6 +51,7 @@ import org.decojer.cavaj.transformer.TrMergeAll;
 import org.decojer.cavaj.transformer.TrQualifiedNames2Imports;
 import org.decojer.cavaj.transformer.TrRemoveEmptyConstructor;
 import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
+import org.decojer.cavaj.util.MagicNumbers;
 
 /**
  * DecoJer.
@@ -57,6 +62,42 @@ public class DecoJer {
 
 	private final static Logger LOGGER = Logger.getLogger(DecoJer.class
 			.getName());
+
+	/**
+	 * Analyze file.
+	 * 
+	 * @param is
+	 *            input stream
+	 * @return interesting artifacts
+	 * @throws IOException
+	 *             read exception
+	 */
+	public static int analyze(final InputStream is) throws IOException {
+		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
+		final int read = is.read(magicNumber, 0, magicNumber.length);
+		if (read < magicNumber.length) {
+			return 0;
+		}
+		if (Arrays.equals(magicNumber, MagicNumbers.CLASS)) {
+			return 1;
+		}
+		if (Arrays.equals(magicNumber, MagicNumbers.DEX)
+				|| Arrays.equals(magicNumber, MagicNumbers.ODEX)) {
+			return 1;
+		}
+		if (Arrays.equals(magicNumber, MagicNumbers.ZIP)) {
+			final PushbackInputStream pis = new PushbackInputStream(is, 4);
+			pis.unread(magicNumber, 0, magicNumber.length);
+			final ZipInputStream zip = new ZipInputStream(pis);
+			int nr = 0;
+			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
+					.getNextEntry()) {
+				nr += analyze(zip);
+			}
+			return nr;
+		}
+		return 0;
+	}
 
 	/**
 	 * Create compilation unit.
@@ -253,7 +294,7 @@ public class DecoJer {
 					du,
 					new FileOutputStream(
 							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1_src.jar")));
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1.jar_source.jar")));
 			break;
 		}
 		case 11: {

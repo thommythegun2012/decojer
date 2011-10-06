@@ -27,7 +27,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PushbackInputStream;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
@@ -42,6 +44,7 @@ import org.decojer.cavaj.reader.AsmReader;
 import org.decojer.cavaj.reader.ClassReader;
 import org.decojer.cavaj.reader.DexReader;
 import org.decojer.cavaj.reader.SmaliReader;
+import org.decojer.cavaj.util.MagicNumbers;
 
 /**
  * Decompilation unit.
@@ -235,14 +238,87 @@ public class DU {
 					continue;
 				}
 				try {
-					read(name, new FileInputStream(entry), null);
+					read(new FileInputStream(entry), name, null);
 				} catch (final Exception e) {
 					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!",
 							e);
 				}
 			}
 		}
-		return read(fileName, new FileInputStream(file), selector);
+		return read(new FileInputStream(file), fileName, selector);
+	}
+
+	/**
+	 * Read file. May be an archive with a file selector like this:
+	 * 
+	 * e.g. rt.jar and /com/sun/xml/internal/fastinfoset/Decoder.class
+	 * 
+	 * @param is
+	 *            input stream
+	 * @param fileName
+	 *            file name (or null, optional - we prefere magic numbers)
+	 * @param selector
+	 *            selector (in case of an archive)
+	 * @return type declaration (if single selector given)
+	 * @throws IOException
+	 *             read exception
+	 */
+	public TD read(final InputStream is, final String fileName,
+			final String selector) throws IOException {
+		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
+		final int read = is.read(magicNumber, 0, magicNumber.length);
+		if (read < magicNumber.length) {
+			return null;
+		}
+		if (Arrays.equals(magicNumber, MagicNumbers.CLASS)) {
+			final PushbackInputStream pis = new PushbackInputStream(is, 4);
+			pis.unread(magicNumber, 0, magicNumber.length);
+			return this.classReader.read(pis); // selector has no meaning here
+		}
+		if (Arrays.equals(magicNumber, MagicNumbers.DEX)
+				|| Arrays.equals(magicNumber, MagicNumbers.ODEX)) {
+			final PushbackInputStream pis = new PushbackInputStream(is, 4);
+			pis.unread(magicNumber, 0, magicNumber.length);
+			return this.dexReader.read(pis, selector);
+		}
+		if (Arrays.equals(magicNumber, MagicNumbers.ZIP)) {
+			String selectorPrefix = null;
+			String selectorMatch = null;
+			if (selector != null && selector.endsWith(".class")) {
+				selectorMatch = selector.charAt(0) == '/' ? selector
+						.substring(1) : selector;
+				final int pos = selectorMatch.lastIndexOf('/');
+				if (pos != -1) {
+					selectorPrefix = selectorMatch.substring(0, pos + 1);
+				}
+			}
+			TD selectorTd = null;
+
+			final PushbackInputStream pis = new PushbackInputStream(is, 4);
+			pis.unread(magicNumber, 0, magicNumber.length);
+			final ZipInputStream zip = new ZipInputStream(pis);
+			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
+					.getNextEntry()) {
+				final String name = zipEntry.getName();
+				if (name.endsWith(".class")
+						&& selectorPrefix != null
+						&& (!name.startsWith(selectorPrefix) || name.indexOf(
+								'/', selectorPrefix.length()) != -1)) {
+					continue;
+				}
+				try {
+					final TD td = read(zip, name, null);
+					if (name.equals(selectorMatch)) {
+						selectorTd = td;
+					}
+				} catch (final Exception e) {
+					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!",
+							e);
+				}
+			}
+			return selectorTd;
+		}
+		return null;
 	}
 
 	/**
@@ -264,69 +340,6 @@ public class DU {
 		// ...\jdk1.6.0_26\jre\lib\rt.jar!/com/sun/xml/internal/fastinfoset/Decoder.class
 		return read(new File(fileName.substring(0, pos)),
 				fileName.substring(pos + 1));
-	}
-
-	/**
-	 * Read file. May be an archive with a file selector like this:
-	 * 
-	 * e.g. rt.jar and /com/sun/xml/internal/fastinfoset/Decoder.class
-	 * 
-	 * @param fileName
-	 *            file name
-	 * @param is
-	 *            input stream
-	 * @param selector
-	 *            selector (in case of an archive)
-	 * @return type declaration (if single selector given)
-	 * @throws IOException
-	 *             read exception
-	 */
-	public TD read(final String fileName, final InputStream is,
-			final String selector) throws IOException {
-		if (fileName.endsWith(".class")) {
-			return this.classReader.read(is);
-		} else if (fileName.endsWith(".dex")) {
-			return this.dexReader.read(is, selector);
-		} else if (fileName.endsWith(".jar")) {
-			String selectorPrefix = null;
-			String selectorMatch = null;
-			if (selector != null && selector.endsWith(".class")) {
-				selectorMatch = selector.charAt(0) == '/' ? selector
-						.substring(1) : selector;
-				final int pos = selectorMatch.lastIndexOf('/');
-				if (pos != -1) {
-					selectorPrefix = selectorMatch.substring(0, pos + 1);
-				}
-			}
-			TD selectorTd = null;
-
-			final ZipInputStream zip = new ZipInputStream(is);
-			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
-					.getNextEntry()) {
-				final String name = zipEntry.getName();
-				if (!name.endsWith(".class")) {
-					continue;
-				}
-				if (selectorPrefix != null
-						&& (!name.startsWith(selectorPrefix) || name.indexOf(
-								'/', selectorPrefix.length()) != -1)) {
-					continue;
-				}
-				try {
-					final TD td = read(name, zip, null);
-					if (name.equals(selectorMatch)) {
-						selectorTd = td;
-					}
-				} catch (final Exception e) {
-					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!",
-							e);
-				}
-			}
-			return selectorTd;
-		} else {
-			throw new DecoJerException("Unknown file extension '" + fileName
-					+ "'!");
-		}
 	}
 
 }
