@@ -81,6 +81,25 @@ public abstract class DecTestInner {
 			}
 
 		};
+		final Object emptyObject = new Object() {
+
+		};
+		final Object overrideMdObject = new Object() {
+
+			public String toString() {
+				return super.toString() + " TEST";
+			}
+
+		};
+		final Object addMdObject = new Object() {
+
+			int[] test = new int[] { 1 };
+
+			public String test() {
+				return "TEST";
+			}
+
+		};
 	}
 
 	public void testInnerAnonymous() {

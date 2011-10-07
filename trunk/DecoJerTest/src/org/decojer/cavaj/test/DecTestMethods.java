@@ -26,7 +26,6 @@ public abstract class DecTestMethods {
 		return a / (b / c);
 	}
 
-	@Override
 	public boolean equals(Object obj) {
 		if (obj == this)
 			return true;
