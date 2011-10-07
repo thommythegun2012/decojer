@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
@@ -49,7 +50,6 @@ import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
 import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformer.TrMergeAll;
 import org.decojer.cavaj.transformer.TrQualifiedNames2Imports;
-import org.decojer.cavaj.transformer.TrRemoveEmptyConstructor;
 import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.util.MagicNumbers;
 
@@ -60,8 +60,7 @@ import org.decojer.cavaj.util.MagicNumbers;
  */
 public class DecoJer {
 
-	private final static Logger LOGGER = Logger.getLogger(DecoJer.class
-			.getName());
+	private final static Logger LOGGER = Logger.getLogger(DecoJer.class.getName());
 
 	/**
 	 * Analyze file.
@@ -138,22 +137,41 @@ public class DecoJer {
 			cu.startTdOnly();
 		}
 
+		final DU du = cu.getStartTd().getT().getDu();
+
 		final List<TD> tds = cu.getAllTds();
-		for (int i = 0; i < tds.size(); ++i) {
-			final TD td = tds.get(i);
+		final HashSet<TD> processedTds = new HashSet<TD>();
 
-			TrJvmStruct2JavaAst.transform(td); // could add tds
+		boolean changed;
+		do {
+			changed = false;
+			for (int i = 0; i < tds.size(); ++i) {
+				final TD td = tds.get(i);
+				if (processedTds.contains(td)) {
+					continue;
+				}
 
-			TrDataFlowAnalysis.transform(td);
+				TrJvmStruct2JavaAst.transform(td);
 
-			TrInitControlFlowGraph.transform(td);
-			TrIvmCfg2JavaExprStmts.transform(td);
+				TrInitControlFlowGraph.transform(td);
+				TrDataFlowAnalysis.transform(td);
 
-			TrControlFlowAnalysis.transform(td);
-			TrStructCfg2JavaControlFlowStmts.transform(td);
+				TrIvmCfg2JavaExprStmts.transform(td);
 
-			TrRemoveEmptyConstructor.transform(td);
-		}
+				TrControlFlowAnalysis.transform(td);
+				TrStructCfg2JavaControlFlowStmts.transform(td);
+
+				processedTds.add(td);
+			}
+			// many steps here can add type declarations through lazy finding
+			for (final Entry<String, TD> entry : du.getTds()) {
+				if (entry.getKey().startsWith(cu.getTds().get(0).getT().getName() + "$")) {
+					if (cu.addTd(entry.getValue())) {
+						changed = true;
+					}
+				}
+			}
+		} while (changed);
 		// TODO
 		// catch errors and in case of errors, do it again for startTd only,
 		// if all is OK, add main type siblings
@@ -176,8 +194,7 @@ public class DecoJer {
 	}
 
 	/**
-	 * Decompile all type declarations from decompilation unit into output
-	 * stream.
+	 * Decompile all type declarations from decompilation unit into output stream.
 	 * 
 	 * @param du
 	 *            decompilation unit
@@ -186,8 +203,7 @@ public class DecoJer {
 	 * @throws IOException
 	 *             read exception
 	 */
-	public static void decompile(final DU du, final OutputStream os)
-			throws IOException {
+	public static void decompile(final DU du, final OutputStream os) throws IOException {
 		final ZipOutputStream zip = new ZipOutputStream(os);
 
 		final Iterator<Entry<String, TD>> tdIt = du.getTds().iterator();
@@ -200,15 +216,12 @@ public class DecoJer {
 				final CU cu = createCu(td);
 				final String source = decompile(cu);
 				final String sourceFileName = cu.getSourceFileName();
-				final String packagePath = td.getT().getPackageName()
-						.replace('.', '/') + '/';
-				final ZipEntry zipEntry = new ZipEntry(packagePath
-						+ sourceFileName);
+				final String packagePath = td.getT().getPackageName().replace('.', '/') + '/';
+				final ZipEntry zipEntry = new ZipEntry(packagePath + sourceFileName);
 				zip.putNextEntry(zipEntry);
 				zip.write(source.getBytes());
 			} catch (final Throwable t) {
-				LOGGER.log(Level.WARNING, "Decompilation problems for '" + td
-						+ "'!", t);
+				LOGGER.log(Level.WARNING, "Decompilation problems for '" + td + "'!", t);
 			} finally {
 				tdIt.remove(); // TODO cleanup against memory leak in other way
 			}
@@ -238,8 +251,7 @@ public class DecoJer {
 		}
 		final String typeFileName = file.getName();
 		if (!typeFileName.endsWith(".class")) {
-			throw new DecoJerException("Must be a path to a class file: "
-					+ path);
+			throw new DecoJerException("Must be a path to a class file: " + path);
 		}
 		final DU du = createDu();
 		final TD td = du.read(path);
@@ -248,8 +260,8 @@ public class DecoJer {
 	}
 
 	/**
-	 * Decompile files (class file / archive / directory) and write source codes
-	 * into derived files (source file / archive / directory).
+	 * Decompile files (class file / archive / directory) and write source codes into derived files
+	 * (source file / archive / directory).
 	 * 
 	 * @param path
 	 *            path to class file / archive / directory, e.g.
@@ -272,12 +284,11 @@ public class DecoJer {
 		switch (3) {
 		case 0:
 			System.out
-					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestMethods.class"));
+					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestInner$1.class"));
 			break;
 		case 1: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
-			final CU cu = createCu(du
-					.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
+			final CU cu = createCu(du.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
 			System.out.println(decompile(cu));
 			break;
 		}
@@ -299,8 +310,7 @@ public class DecoJer {
 		}
 		case 11: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
-			final CU cu = createCu(du
-					.getTd("org.decojer.cavaj.test.jdk5.DecTestMethods"));
+			final CU cu = createCu(du.getTd("org.decojer.cavaj.test.jdk5.DecTestMethods"));
 			System.out.println(decompile(cu));
 			break;
 		}
@@ -313,11 +323,8 @@ public class DecoJer {
 		}
 		case 13: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
-			decompile(
-					du,
-					new FileOutputStream(
-							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.zip")));
+			decompile(du, new FileOutputStream(new File(
+					"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.zip")));
 			break;
 		}
 		}
