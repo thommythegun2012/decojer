@@ -41,6 +41,7 @@ import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
@@ -97,6 +98,7 @@ import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
+import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.InstanceofExpression;
@@ -111,6 +113,7 @@ import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 /**
  * Transform CFG IVM to HLL Expression Statements.
@@ -405,6 +408,10 @@ public class TrIvmCfg2JavaExprStmts {
 						if (expression instanceof ThisExpression) {
 							final SuperConstructorInvocation superConstructorInvocation = getAst()
 									.newSuperConstructorInvocation();
+							if (arguments.size() == 0) {
+								// implicit super callout, more checks possible but not necessary
+								break;
+							}
 							superConstructorInvocation.arguments().addAll(arguments);
 							bb.addStatement(superConstructorInvocation);
 							break;
@@ -725,11 +732,49 @@ public class TrIvmCfg2JavaExprStmts {
 			case Opcode.PUT: {
 				final PUT op = (PUT) operation;
 				final Expression rightExpression = bb.popExpression();
+				final F f = op.getF();
+				final M m = getMd().getM();
+				if (m.getT() == f.getT()) {
+					if (f.checkAf(AF.STATIC)) {
+						if ("<clinit>".equals(m.getName())) {
+							if (f.checkAf(AF.SYNTHETIC)) {
+								break;
+							}
+							// TODO more checks necessary (empty previous statements)
+							// TODO must kill inner class constructor argument
+							final FD fd = getTd().getFd(f.getName());
+							final FieldDeclaration fieldDeclaration = (FieldDeclaration) fd
+									.getFieldDeclaration();
+							if (fieldDeclaration != null) {
+								((VariableDeclarationFragment) fieldDeclaration.fragments().get(0))
+										.setInitializer(rightExpression);
+								break;
+							}
+						}
+					} else {
+						if ("<init>".equals(m.getName())) {
+							if (f.checkAf(AF.SYNTHETIC)) {
+								break;
+							}
+							// TODO more checks necessary (empty previous statements)
+							// TODO must kill inner class constructor argument
+							final FD fd = getTd().getFd(f.getName());
+							final FieldDeclaration fieldDeclaration = (FieldDeclaration) fd
+									.getFieldDeclaration();
+							if (fieldDeclaration != null) {
+								((VariableDeclarationFragment) fieldDeclaration.fragments().get(0))
+										.setInitializer(rightExpression);
+								break;
+							}
+						}
+					}
+				}
+
 				final Assignment assignment = getAst().newAssignment();
 				// TODO a = a +/- 1 => a++ / a--
 				// TODO a = a <op> expr => a <op>= expr
-				assignment.setRightHandSide(wrap(rightExpression, priority(assignment)));
-				final F f = op.getF();
+				assignment.setRightHandSide(rightExpression);
+
 				if (f.checkAf(AF.STATIC)) {
 					final Name name = getAst().newQualifiedName(
 							getTd().newTypeName(f.getT().getName()),

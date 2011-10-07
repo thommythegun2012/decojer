@@ -284,7 +284,7 @@ public class DecoJer {
 		switch (3) {
 		case 0:
 			System.out
-					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestInner$1.class"));
+					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"));
 			break;
 		case 1: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");

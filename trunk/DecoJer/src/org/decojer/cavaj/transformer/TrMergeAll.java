@@ -28,11 +28,13 @@ import java.util.List;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 public class TrMergeAll {
 
@@ -69,10 +71,23 @@ public class TrMergeAll {
 				continue;
 			}
 			if (bd instanceof MD) {
-				final BodyDeclaration methodDeclaration = ((MD) bd).getMethodDeclaration();
-				if (methodDeclaration != null) {
-					// e.g. bridge methods?
-					td.addBodyDeclaration(methodDeclaration);
+				final MD md = (MD) bd;
+				final M m = md.getM();
+				final BodyDeclaration methodDeclaration = md.getMethodDeclaration();
+				if (methodDeclaration instanceof MethodDeclaration) {
+					// ignore empty static initializer or constructor
+					if ("<clinit>".equals(m.getName()) || "<init>".equals(m.getName())
+							&& m.getAccessFlags() <= 1) {
+						// flags == 1 (public) for main types,
+						// access flags == 0 for inner types only?
+						if (((MethodDeclaration) methodDeclaration).getBody().statements().size() == 0) {
+							continue;
+						}
+					}
+					if (methodDeclaration != null) {
+						// e.g. bridge methods?
+						td.addBodyDeclaration(methodDeclaration);
+					}
 				}
 				continue;
 			}

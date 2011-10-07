@@ -35,8 +35,7 @@ import org.eclipse.jdt.core.dom.Name;
 /**
  * Type Declaration.
  * 
- * Names consist of dot-separated package names (for full name) and
- * dollar-separated type names.
+ * Names consist of dot-separated package names (for full name) and dollar-separated type names.
  * 
  * @author André Pankraz
  */
@@ -164,6 +163,22 @@ public class TD implements BD, PD {
 	 */
 	public T getEnclosingT() {
 		return this.enclosingT;
+	}
+
+	/**
+	 * Get field declaration for name.
+	 * 
+	 * @param name
+	 *            name
+	 * @return field declaration
+	 */
+	public FD getFd(final String name) {
+		for (final BD bd : this.bds) {
+			if (bd instanceof FD && name.equals(((FD) bd).getF().getName())) {
+				return (FD) bd;
+			}
+		}
+		return null;
 	}
 
 	/**
