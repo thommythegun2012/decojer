@@ -92,8 +92,7 @@ import org.eclipse.zest.core.widgets.ZestStyles;
 import org.eclipse.zest.layouts.LayoutStyles;
 
 /**
- * An example showing how to create a multi-page editor. This example has 3
- * pages:
+ * An example showing how to create a multi-page editor. This example has 3 pages:
  * <ul>
  * <li>page 0 contains a nested text editor.
  * <li>page 1 allows you to change the font used in page 2
@@ -103,8 +102,7 @@ import org.eclipse.zest.layouts.LayoutStyles;
 @SuppressWarnings("restriction")
 public class ClassEditor extends MultiPageEditorPart {
 
-	private final static Logger LOGGER = Logger.getLogger(ClassEditor.class
-			.getName());
+	private final static Logger LOGGER = Logger.getLogger(ClassEditor.class.getName());
 
 	private static String extractPath(final IClassFile eclipseClassFile) {
 		assert eclipseClassFile != null;
@@ -113,11 +111,9 @@ public class ClassEditor extends MultiPageEditorPart {
 			// is from JAR...
 			// example: sun/org/mozilla/javascript/internal/
 			final String jarPath = eclipseClassFile.getPath().toOSString();
-			final String packageName = eclipseClassFile.getParent()
-					.getElementName();
+			final String packageName = eclipseClassFile.getParent().getElementName();
 			final String typeName = eclipseClassFile.getElementName();
-			return jarPath + "!/" + packageName.replace('.', '/') + '/'
-					+ typeName;
+			return jarPath + "!/" + packageName.replace('.', '/') + '/' + typeName;
 		}
 		return eclipseClassFile.getResource().getLocation().toOSString();
 	}
@@ -142,10 +138,8 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private JavaOutlinePage javaOutlinePage;
 
-	private GraphNode addToGraph(final BB bb,
-			final IdentityHashMap<BB, GraphNode> map) {
-		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE,
-				bb.toString(), bb);
+	private GraphNode addToGraph(final BB bb, final IdentityHashMap<BB, GraphNode> map) {
+		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE, bb.toString(), bb);
 		final List<Operation> operations = bb.getOperations();
 		if (operations.size() != 0) {
 			node.setTooltip(new FramesFigure(bb));
@@ -163,12 +157,10 @@ public class ClassEditor extends MultiPageEditorPart {
 			if (succNode == null) {
 				succNode = addToGraph(succBB, map);
 			}
-			final GraphConnection connection = new GraphConnection(
-					this.cfgViewer, ZestStyles.CONNECTIONS_DIRECTED, node,
-					succNode);
+			final GraphConnection connection = new GraphConnection(this.cfgViewer,
+					ZestStyles.CONNECTIONS_DIRECTED, node, succNode);
 			if (this.cfgAntialiasingCheckbox.getSelection()) {
-				((Polyline) connection.getConnectionFigure())
-						.setAntialias(SWT.ON);
+				((Polyline) connection.getConnectionFigure()).setAntialias(SWT.ON);
 			}
 			final Object value = succValues.get(i);
 			if (value != null) {
@@ -188,8 +180,8 @@ public class ClassEditor extends MultiPageEditorPart {
 			addPage(0, this.classFileEditor, getEditorInput());
 			setPageText(0, "Class File Editor");
 		} catch (final PartInitException e) {
-			ErrorDialog.openError(getSite().getShell(),
-					"Error creating nested text editor", null, e.getStatus());
+			ErrorDialog.openError(getSite().getShell(), "Error creating nested text editor", null,
+					e.getStatus());
 		}
 	}
 
@@ -202,23 +194,21 @@ public class ClassEditor extends MultiPageEditorPart {
 		GridData gridData = new GridData();
 		this.cfgAntialiasingCheckbox.setLayoutData(gridData);
 		this.cfgAntialiasingCheckbox.setText("Antialiasing");
-		this.cfgAntialiasingCheckbox
-				.addSelectionListener(new SelectionListener() {
+		this.cfgAntialiasingCheckbox.addSelectionListener(new SelectionListener() {
 
-					@Override
-					public void widgetDefaultSelected(final SelectionEvent e) {
-						initGraph();
-					}
+			@Override
+			public void widgetDefaultSelected(final SelectionEvent e) {
+				initGraph();
+			}
 
-					@Override
-					public void widgetSelected(final SelectionEvent e) {
-						initGraph();
-					}
+			@Override
+			public void widgetSelected(final SelectionEvent e) {
+				initGraph();
+			}
 
-				});
+		});
 		this.cfgViewModeCombo = new Combo(composite, SWT.READ_ONLY);
-		this.cfgViewModeCombo.setItems(new String[] { "IVM CFG", "Java Expr",
-				"Control Flow" });
+		this.cfgViewModeCombo.setItems(new String[] { "IVM CFG", "Java Expr", "Control Flow" });
 		this.cfgViewModeCombo.setText("Control Flow");
 		this.cfgViewModeCombo.addSelectionListener(new SelectionListener() {
 
@@ -267,16 +257,13 @@ public class ClassEditor extends MultiPageEditorPart {
 			sourceCode = "// Decompilation error!";
 		}
 		try {
-			addPage(0,
-					this.compilationUnitEditor,
-					new MemoryStorageEditorInput(new MemoryStorage(sourceCode
-							.getBytes(), this.cu == null
-							|| this.cu.getSourceFileName() == null ? new Path(
-							"<Unknown>")
+			addPage(0, this.compilationUnitEditor, new MemoryStorageEditorInput(new MemoryStorage(
+					sourceCode.getBytes(),
+					this.cu == null || this.cu.getSourceFileName() == null ? new Path("<Unknown>")
 							: new Path(this.cu.getSourceFileName()))));
 		} catch (final PartInitException e) {
-			ErrorDialog.openError(getSite().getShell(),
-					"Error creating nested text editor", null, e.getStatus());
+			ErrorDialog.openError(getSite().getShell(), "Error creating nested text editor", null,
+					e.getStatus());
 		}
 		setPageText(0, "Source");
 	}
@@ -292,8 +279,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		String fileName;
 		if (editorInput instanceof IClassFileEditorInput) {
 			// is a simple Eclipse-pre-analyzed class file, not an archive
-			final IClassFile classFile = ((IClassFileEditorInput) editorInput)
-					.getClassFile();
+			final IClassFile classFile = ((IClassFileEditorInput) editorInput).getClassFile();
 			fileName = extractPath(classFile);
 		} else if (editorInput instanceof FileEditorInput) {
 			// could be a class file (not Eclipse-pre-analyzed) or an archive
@@ -301,8 +287,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			final IPath filePath = fileEditorInput.getPath();
 			fileName = filePath.toString();
 		} else {
-			throw new DecoJerException("Unknown editor input type '"
-					+ editorInput + "'!");
+			throw new DecoJerException("Unknown editor input type '" + editorInput + "'!");
 		}
 
 		LOGGER.info("Editor Input: " + editorInput + " fileName: " + fileName);
@@ -317,13 +302,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		}
 
 		if (this.td == null) {
-			final SashForm sashForm = new SashForm(pageContainer,
-					SWT.HORIZONTAL | SWT.BORDER | SWT.SMOOTH);
+			final SashForm sashForm = new SashForm(pageContainer, SWT.HORIZONTAL | SWT.BORDER
+					| SWT.SMOOTH);
 
 			this.archiveTree = new Tree(sashForm, SWT.NONE);
 			for (final Entry<String, TD> type : this.du.getTds()) {
-				final TreeItem treeItem = new TreeItem(this.archiveTree,
-						SWT.NONE);
+				final TreeItem treeItem = new TreeItem(this.archiveTree, SWT.NONE);
 				treeItem.setText(type.getKey());
 				if (this.td == null) {
 					this.archiveTree.setSelection(treeItem);
@@ -339,29 +323,23 @@ public class ClassEditor extends MultiPageEditorPart {
 
 				@Override
 				public void widgetSelected(final SelectionEvent e) {
-					final TreeItem[] selections = ClassEditor.this.archiveTree
-							.getSelection();
+					final TreeItem[] selections = ClassEditor.this.archiveTree.getSelection();
 					if (selections.length != 1) {
 						return;
 					}
 					final TreeItem selection = selections[0];
-					ClassEditor.this.td = ClassEditor.this.du.getTd(selection
-							.getText());
+					ClassEditor.this.td = ClassEditor.this.du.getTd(selection.getText());
 
 					ClassEditor.this.cu = null;
 					String sourceCode = null;
 					try {
-						ClassEditor.this.cu = DecoJer
-								.createCu(ClassEditor.this.td);
+						ClassEditor.this.cu = DecoJer.createCu(ClassEditor.this.td);
 						sourceCode = DecoJer.decompile(ClassEditor.this.cu);
-						ClassEditor.this.compilationUnitEditor.setInput(new MemoryStorageEditorInput(
-								new MemoryStorage(
-										sourceCode.getBytes(),
-										ClassEditor.this.cu == null
-												|| ClassEditor.this.cu
-														.getSourceFileName() == null ? null
-												: new Path(ClassEditor.this.cu
-														.getSourceFileName()))));
+						ClassEditor.this.compilationUnitEditor
+								.setInput(new MemoryStorageEditorInput(new MemoryStorage(sourceCode
+										.getBytes(), ClassEditor.this.cu == null
+										|| ClassEditor.this.cu.getSourceFileName() == null ? null
+										: new Path(ClassEditor.this.cu.getSourceFileName()))));
 					} catch (final Throwable e2) {
 						e2.printStackTrace();
 						sourceCode = "// Decompilation error!";
@@ -383,8 +361,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		setPartName(getEditorInput().getName());
 		if (this.archiveTree != null) {
 			// must happen delayed after added tab pane
-			((SashForm) this.archiveTree.getParent()).setWeights(new int[] { 1,
-					4 });
+			((SashForm) this.archiveTree.getParent()).setWeights(new int[] { 1, 4 });
 		}
 
 		// for debugging purposes:
@@ -405,9 +382,8 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	/**
-	 * Saves the multi-page editor's document as another file. Also updates the
-	 * text for page 0's tab, and updates this multi-page editor's input to
-	 * correspond to the nested editor's.
+	 * Saves the multi-page editor's document as another file. Also updates the text for page 0's
+	 * tab, and updates this multi-page editor's input to correspond to the nested editor's.
 	 */
 	@Override
 	public void doSaveAs() {
@@ -439,21 +415,18 @@ public class ClassEditor extends MultiPageEditorPart {
 				adapter = this.classFileEditor.getAdapter(required);
 			}
 			if (adapter instanceof JavaOutlinePage) {
-				if (this.javaOutlinePage != null
-						&& this.javaOutlinePage == adapter) {
+				if (this.javaOutlinePage != null && this.javaOutlinePage == adapter) {
 					return this.javaOutlinePage;
 				}
 				this.javaOutlinePage = (JavaOutlinePage) adapter;
-				this.javaOutlinePage
-						.addSelectionChangedListener(new ISelectionChangedListener() {
+				this.javaOutlinePage.addSelectionChangedListener(new ISelectionChangedListener() {
 
-							@Override
-							public void selectionChanged(
-									final SelectionChangedEvent event) {
-								initGraph();
-							}
+					@Override
+					public void selectionChanged(final SelectionChangedEvent event) {
+						initGraph();
+					}
 
-						});
+				});
 				return this.javaOutlinePage;
 			}
 		}
@@ -461,8 +434,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	private void initGraph() {
-		final TreeSelection treeSelection = (TreeSelection) this.javaOutlinePage
-				.getSelection();
+		final TreeSelection treeSelection = (TreeSelection) this.javaOutlinePage.getSelection();
 		final Object firstElement = treeSelection.getFirstElement();
 
 		String fullyQualifiedName;
@@ -470,14 +442,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		String signature;
 		if (firstElement instanceof IInitializer) {
 			final IInitializer method = (IInitializer) firstElement;
-			fullyQualifiedName = method.getDeclaringType()
-					.getFullyQualifiedName();
+			fullyQualifiedName = method.getDeclaringType().getFullyQualifiedName();
 			elementName = "<clinit>";
 			signature = "()V";
 		} else if (firstElement instanceof IMethod) {
 			final IMethod method = (IMethod) firstElement;
-			fullyQualifiedName = method.getDeclaringType()
-					.getFullyQualifiedName();
+			fullyQualifiedName = method.getDeclaringType().getFullyQualifiedName();
 			elementName = method.getElementName();
 			try {
 				signature = method.getSignature();
@@ -498,8 +468,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			// constructor -> <init>
 			final String methodName = fullyQualifiedName.equals(elementName)
 					|| fullyQualifiedName.endsWith("." + elementName)
-					|| fullyQualifiedName.endsWith("$" + elementName) ? "<init>"
-					: elementName;
+					|| fullyQualifiedName.endsWith("$" + elementName) ? "<init>" : elementName;
 
 			final ArrayList<MD> mds = new ArrayList<MD>();
 			for (final BD bd : td.getBds()) {
@@ -512,8 +481,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			}
 			MD md = null;
 			if (mds.size() == 0) {
-				LOGGER.warning("Unknown method dedclaration for '" + methodName
-						+ "'!");
+				LOGGER.warning("Unknown method declaration for '" + methodName + "'!");
 				return;
 			}
 			if (mds.size() == 1) {
@@ -521,11 +489,10 @@ public class ClassEditor extends MultiPageEditorPart {
 			} else if (mds.size() > 1) {
 				// not enough here...Q can come after all kind off stuff,
 				// parser!
-				final Pattern signaturePattern = Pattern.compile(signature
-						.replace("[", "\\[").replace("]", "\\]")
-						.replace("(Q", "(L[^;]*").replace(")Q", ")L[^;]*")
-						.replace(";Q", ";L[^;]*").replace("$", "\\$")
-						.replace("(", "\\(").replace(")", "\\)"));
+				final Pattern signaturePattern = Pattern.compile(signature.replace("[", "\\[")
+						.replace("]", "\\]").replace("(Q", "(L[^;]*").replace(")Q", ")L[^;]*")
+						.replace(";Q", ";L[^;]*").replace("$", "\\$").replace("(", "\\(")
+						.replace(")", "\\)"));
 
 				for (final MD checkMd : mds) {
 					final M m = checkMd.getM();
@@ -534,13 +501,12 @@ public class ClassEditor extends MultiPageEditorPart {
 						md = checkMd;
 						break;
 					}
-					LOGGER.info("Signature for method '" + methodName
-							+ "' doesn't match: " + signature + " : "
-							+ m.getDescriptor() + " : " + m.getSignature());
+					LOGGER.info("Signature for method '" + methodName + "' doesn't match: "
+							+ signature + " : " + m.getDescriptor() + " : " + m.getSignature());
 				}
 			}
 			if (md == null) {
-				LOGGER.warning("Unknown method dedclaration for '" + methodName
+				LOGGER.warning("Unknown method declaration for '" + methodName
 						+ "' and signature '" + signature + "'!");
 				return;
 			}
