@@ -39,8 +39,8 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
 /**
- * Compilation Unit. Can contain multiple type declarations, but only one with
- * type name equal to source file name can be public.
+ * Compilation Unit. Can contain multiple type declarations, but only one with type name equal to
+ * source file name can be public.
  * 
  * @author André Pankraz
  */
@@ -102,6 +102,10 @@ public class CU implements PD {
 	public boolean addTd(final TD td) {
 		assert td != null;
 
+		if (td.getPd() != null) {
+			return false;
+		}
+
 		final String typeName = td.getT().getName();
 
 		int pos = typeName.indexOf('$');
@@ -109,8 +113,7 @@ public class CU implements PD {
 			pos = typeName.length();
 		}
 
-		final TD rootTd = getStartTd().getT().getDu()
-				.getTd(typeName.substring(0, pos));
+		final TD rootTd = getStartTd().getT().getDu().getTd(typeName.substring(0, pos));
 		if (rootTd == null || rootTd.getPd() != null && rootTd.getPd() != this) {
 			return false;
 		}
@@ -123,8 +126,7 @@ public class CU implements PD {
 			if (pos == -1) {
 				pos = typeName.length();
 			}
-			final TD bd = getStartTd().getT().getDu()
-					.getTd(typeName.substring(0, pos));
+			final TD bd = getStartTd().getT().getDu().getTd(typeName.substring(0, pos));
 			if (bd == null) {
 				return false;
 			}
@@ -138,11 +140,8 @@ public class CU implements PD {
 			}
 			if (pbd != null) {
 				if (pbd != pd) {
-					throw new DecoJerException(
-							"Type declaration '"
-									+ bd.getT().getName()
-									+ "' allready belongs to other parent type declaration '"
-									+ pd + "'!");
+					throw new DecoJerException("Type declaration '" + bd.getT().getName()
+							+ "' already belongs to other parent type declaration '" + pd + "'!");
 				}
 			} else {
 				bd.setPd(pd);
@@ -169,8 +168,7 @@ public class CU implements PD {
 	 * @return true - success
 	 */
 	@SuppressWarnings("unchecked")
-	public boolean addTypeDeclaration(
-			final AbstractTypeDeclaration typeDeclaration) {
+	public boolean addTypeDeclaration(final AbstractTypeDeclaration typeDeclaration) {
 		assert typeDeclaration != null;
 
 		return getCompilationUnit().types().add(typeDeclaration);
@@ -303,8 +301,7 @@ public class CU implements PD {
 	private void setPackageName(final String packageName) {
 		assert packageName != null && packageName.length() != 0;
 
-		final PackageDeclaration newPackageDeclaration = getAst()
-				.newPackageDeclaration();
+		final PackageDeclaration newPackageDeclaration = getAst().newPackageDeclaration();
 		newPackageDeclaration.setName(getAst().newName(packageName));
 		this.compilationUnit.setPackage(newPackageDeclaration);
 		this.typeNameManager.setPackageName(packageName);

@@ -30,6 +30,8 @@ import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 public class TrMergeAll {
@@ -37,7 +39,9 @@ public class TrMergeAll {
 	public static void transform(final CU cu) {
 		final List<TD> tds = cu.getTds();
 		for (final TD td : tds) {
-			cu.addTypeDeclaration(td.getTypeDeclaration());
+			if (!td.isAnonymous()) {
+				cu.addTypeDeclaration((AbstractTypeDeclaration) td.getTypeDeclaration());
+			}
 			transform(td);
 		}
 	}
@@ -46,26 +50,29 @@ public class TrMergeAll {
 		final List<BD> bds = td.getBds();
 		for (final BD bd : bds) {
 			if (bd instanceof TD) {
-				td.addBodyDeclarartion(((TD) bd).getTypeDeclaration());
+				if (!((TD) bd).isAnonymous()) {
+					final ASTNode typeDeclaration = ((TD) bd).getTypeDeclaration();
+					if (typeDeclaration != null) {
+						td.addBodyDeclaration((AbstractTypeDeclaration) typeDeclaration);
+					}
+				}
 				transform((TD) bd);
 				continue;
 			}
 			if (bd instanceof FD) {
-				final BodyDeclaration fieldDeclaration = ((FD) bd)
-						.getFieldDeclaration();
+				final BodyDeclaration fieldDeclaration = ((FD) bd).getFieldDeclaration();
 				if (fieldDeclaration != null) {
 					// e.g. enum constant declarations? TODO later add here,
 					// because of line number sort?
-					td.addBodyDeclarartion(fieldDeclaration);
+					td.addBodyDeclaration(fieldDeclaration);
 				}
 				continue;
 			}
 			if (bd instanceof MD) {
-				final BodyDeclaration methodDeclaration = ((MD) bd)
-						.getMethodDeclaration();
+				final BodyDeclaration methodDeclaration = ((MD) bd).getMethodDeclaration();
 				if (methodDeclaration != null) {
 					// e.g. bridge methods?
-					td.addBodyDeclarartion(methodDeclaration);
+					td.addBodyDeclaration(methodDeclaration);
 				}
 				continue;
 			}

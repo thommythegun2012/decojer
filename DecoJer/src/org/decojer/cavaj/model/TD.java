@@ -26,7 +26,9 @@ package org.decojer.cavaj.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
+import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
@@ -70,7 +72,7 @@ public class TD implements BD, PD {
 	private final T t;
 
 	// Eclipse type declaration
-	private AbstractTypeDeclaration typeDeclaration; // anonymousClassDeclaration?
+	private ASTNode typeDeclaration; // anonymousClassDeclaration?
 
 	private int version;
 
@@ -95,10 +97,15 @@ public class TD implements BD, PD {
 	 * @return true - success
 	 */
 	@SuppressWarnings("unchecked")
-	public boolean addBodyDeclarartion(final BodyDeclaration bodyDeclaration) {
+	public boolean addBodyDeclaration(final BodyDeclaration bodyDeclaration) {
 		assert bodyDeclaration != null;
 
-		return getTypeDeclaration().bodyDeclarations().add(bodyDeclaration);
+		if (this.typeDeclaration instanceof AnonymousClassDeclaration) {
+			return ((AnonymousClassDeclaration) this.typeDeclaration).bodyDeclarations().add(
+					bodyDeclaration);
+		}
+		return ((AbstractTypeDeclaration) this.typeDeclaration).bodyDeclarations().add(
+				bodyDeclaration);
 	}
 
 	/**
@@ -200,7 +207,7 @@ public class TD implements BD, PD {
 	 * 
 	 * @return type declaration
 	 */
-	public AbstractTypeDeclaration getTypeDeclaration() {
+	public ASTNode getTypeDeclaration() {
 		return this.typeDeclaration;
 	}
 
@@ -211,6 +218,15 @@ public class TD implements BD, PD {
 	 */
 	public int getVersion() {
 		return this.version;
+	}
+
+	/**
+	 * Is anonymous type declaration?
+	 * 
+	 * @return true - is anonymous type declaration
+	 */
+	public boolean isAnonymous() {
+		return this.typeDeclaration instanceof AnonymousClassDeclaration;
 	}
 
 	/**
@@ -339,7 +355,7 @@ public class TD implements BD, PD {
 	 * @param typeDeclaration
 	 *            Eclipse type declaration
 	 */
-	public void setTypeDeclaration(final AbstractTypeDeclaration typeDeclaration) {
+	public void setTypeDeclaration(final ASTNode typeDeclaration) {
 		this.typeDeclaration = typeDeclaration;
 	}
 
