@@ -229,7 +229,7 @@ public class DecoJer {
 			} catch (final Throwable t) {
 				LOGGER.log(Level.WARNING, "Decompilation problems for '" + td + "'!", t);
 			} finally {
-				tdIt.remove(); // TODO cleanup against memory leak in other way
+				tdIt.remove(); // cannot use cu.clear() here because processed info lost then
 			}
 		}
 		zip.finish();

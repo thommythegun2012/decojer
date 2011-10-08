@@ -175,6 +175,18 @@ public class CU implements PD {
 	}
 
 	/**
+	 * Clear all generated data after read.
+	 */
+	public void clear() {
+		for (final TD td : getAllTds()) {
+			td.clear();
+		}
+		this.tds.clear();
+		this.allTds.clear();
+		this.typeNameManager.clear();
+	}
+
+	/**
 	 * Create source code.
 	 * 
 	 * @return source code
