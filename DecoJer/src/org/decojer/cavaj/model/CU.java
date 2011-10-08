@@ -189,7 +189,10 @@ public class CU implements PD {
 		} catch (final BadLocationException e) {
 			throw new DecoJerException("Couldn't create source code!", e);
 		}
-		return document.get() + this.comment;
+		if (this.comment != null) {
+			return document.get() + this.comment;
+		}
+		return document.get();
 	}
 
 	/**

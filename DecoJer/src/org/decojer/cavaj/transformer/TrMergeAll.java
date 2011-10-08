@@ -34,6 +34,7 @@ import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 public class TrMergeAll {
@@ -41,8 +42,13 @@ public class TrMergeAll {
 	public static void transform(final CU cu) {
 		final List<TD> tds = cu.getTds();
 		for (final TD td : tds) {
-			if (!td.isAnonymous()) {
-				cu.addTypeDeclaration((AbstractTypeDeclaration) td.getTypeDeclaration());
+			if (td.isAnonymous()) {
+				continue;
+			}
+			final ASTNode typeDeclaration = td.getTypeDeclaration();
+			// no package-info.java (typeDeclaration == null)
+			if (typeDeclaration instanceof AbstractTypeDeclaration) {
+				cu.addTypeDeclaration((AbstractTypeDeclaration) typeDeclaration);
 			}
 			transform(td);
 		}
@@ -72,22 +78,26 @@ public class TrMergeAll {
 			}
 			if (bd instanceof MD) {
 				final MD md = (MD) bd;
-				final M m = md.getM();
 				final BodyDeclaration methodDeclaration = md.getMethodDeclaration();
 				if (methodDeclaration instanceof MethodDeclaration) {
 					// ignore empty static initializer or constructor
-					if ("<clinit>".equals(m.getName()) || "<init>".equals(m.getName())
-							&& m.getAccessFlags() <= 1) {
+					final M m = md.getM();
+					if ("<init>".equals(m.getName()) && m.getAccessFlags() <= 1) {
 						// flags == 1 (public) for main types,
 						// access flags == 0 for inner types only?
 						if (((MethodDeclaration) methodDeclaration).getBody().statements().size() == 0) {
 							continue;
 						}
 					}
-					if (methodDeclaration != null) {
-						// e.g. bridge methods?
-						td.addBodyDeclaration(methodDeclaration);
+				} else if (methodDeclaration instanceof Initializer) {
+					// can only be <clinit>
+					if (((Initializer) methodDeclaration).getBody().statements().size() == 0) {
+						continue;
 					}
+				}
+				if (methodDeclaration != null) {
+					// e.g. bridge methods?
+					td.addBodyDeclaration(methodDeclaration);
 				}
 				continue;
 			}

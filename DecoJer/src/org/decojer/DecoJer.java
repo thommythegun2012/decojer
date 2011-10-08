@@ -216,8 +216,14 @@ public class DecoJer {
 				final CU cu = createCu(td);
 				final String source = decompile(cu);
 				final String sourceFileName = cu.getSourceFileName();
-				final String packagePath = td.getT().getPackageName().replace('.', '/') + '/';
-				final ZipEntry zipEntry = new ZipEntry(packagePath + sourceFileName);
+				final String packageName = td.getT().getPackageName();
+				String zipEntryName;
+				if (packageName != null && packageName.length() != 0) {
+					zipEntryName = packageName.replace('.', '/') + '/' + sourceFileName;
+				} else {
+					zipEntryName = sourceFileName;
+				}
+				final ZipEntry zipEntry = new ZipEntry(zipEntryName);
 				zip.putNextEntry(zipEntry);
 				zip.write(source.getBytes());
 			} catch (final Throwable t) {
@@ -281,7 +287,7 @@ public class DecoJer {
 	 */
 	public static void main(final String[] args) throws IOException {
 		final DU du = createDu();
-		switch (3) {
+		switch (13) {
 		case 0:
 			System.out
 					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"));
