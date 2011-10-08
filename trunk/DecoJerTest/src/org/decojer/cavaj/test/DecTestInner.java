@@ -15,6 +15,8 @@ public abstract class DecTestInner {
 
 		public Inner1() {
 			System.out.println("INNER1 CONSTRUCTOR " + Inner11.class);
+			Inner11 inner11 = new Inner11(this);
+			System.out.println("inner11 " + inner11);
 		}
 
 	}
