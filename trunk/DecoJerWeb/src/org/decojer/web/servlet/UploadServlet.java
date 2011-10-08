@@ -79,50 +79,45 @@ public class UploadServlet extends HttpServlet {
 	private static final BlobInfoFactory DATASTORE_SERVICE_BLOBINFO_FACTORY = new BlobInfoFactory(
 			DATASTORE_SERVICE);
 
-	private static Logger LOGGER = Logger.getLogger(UploadServlet.class
-			.getName());
+	private static Logger LOGGER = Logger.getLogger(UploadServlet.class.getName());
 
 	private static final long serialVersionUID = -6567596163814017159L;
 
 	@Override
-	public void doPost(final HttpServletRequest req,
-			final HttpServletResponse resp) throws ServletException,
-			IOException {
+	public void doPost(final HttpServletRequest req, final HttpServletResponse resp)
+			throws ServletException, IOException {
 		// same target page in all cases
 		resp.sendRedirect("/");
 
 		// check uploaded blob from GAE upload service
-		final Map<String, BlobKey> uploadedBlobs = BLOBSTORE_SERVICE
-				.getUploadedBlobs(req);
+		final Map<String, BlobKey> uploadedBlobs = BLOBSTORE_SERVICE.getUploadedBlobs(req);
 		if (uploadedBlobs.get("file") == null) {
 			Messages.addMessage(req, "Upload was empty!");
 			return;
 		}
 		// uses DatastoreService.get(), seems to be no HA-lagging here
-		BlobInfo uploadBlobInfo = DATASTORE_SERVICE_BLOBINFO_FACTORY
-				.loadBlobInfo(uploadedBlobs.get("file"));
+		BlobInfo uploadBlobInfo = DATASTORE_SERVICE_BLOBINFO_FACTORY.loadBlobInfo(uploadedBlobs
+				.get("file"));
 		if (uploadBlobInfo == null) {
-			LOGGER.warning("Missing upload information for '"
-					+ uploadedBlobs.get("file") + "'!");
+			LOGGER.warning("Missing upload information for '" + uploadedBlobs.get("file") + "'!");
 			Messages.addMessage(req, "Missing upload information!");
 			return;
 		}
+
 		try {
-			// blob is new, but content might be duplication -> find oldest,
-			// duplication indicated through equal hash and size
+			// blob is new, but content might be duplication -> find oldest, duplication indicated
+			// through equal hash and size
 			final String md5Hash = uploadBlobInfo.getMd5Hash();
 			final Long size = uploadBlobInfo.getSize();
+
 			// because of lagging HA writes following query could even be empty
 			final Query duplicateQuery = new Query(BlobInfoFactory.KIND);
-			duplicateQuery.addFilter(BlobInfoFactory.MD5_HASH,
-					Query.FilterOperator.EQUAL, md5Hash);
-			duplicateQuery.addFilter(BlobInfoFactory.SIZE,
-					Query.FilterOperator.EQUAL, size);
-			final List<Entity> blobInfoEntities = DATASTORE_SERVICE.prepare(
-					duplicateQuery).asList(FetchOptions.Builder.withDefaults());
+			duplicateQuery.addFilter(BlobInfoFactory.MD5_HASH, Query.FilterOperator.EQUAL, md5Hash);
+			duplicateQuery.addFilter(BlobInfoFactory.SIZE, Query.FilterOperator.EQUAL, size);
+			final List<Entity> blobInfoEntities = DATASTORE_SERVICE.prepare(duplicateQuery).asList(
+					FetchOptions.Builder.withDefaults());
 
-			// now find and keep oldest entity, start with myself
-			// (uploadBlobInfo)
+			// now find and keep oldest entity, start with myself (uploadBlobInfo)
 			final Set<BlobKey> duplicateBlobKeys = new HashSet<BlobKey>();
 			Date lastAccess = uploadBlobInfo.getCreation();
 			for (final Entity blobInfoEntity : blobInfoEntities) {
@@ -135,8 +130,7 @@ public class UploadServlet extends HttpServlet {
 				if (lastAccess.compareTo(blobInfo.getCreation()) < 0) {
 					lastAccess = blobInfo.getCreation();
 				}
-				if (uploadBlobInfo.getCreation().compareTo(
-						blobInfo.getCreation()) < 0) {
+				if (uploadBlobInfo.getCreation().compareTo(blobInfo.getCreation()) < 0) {
 					duplicateBlobKeys.add(blobInfo.getBlobKey());
 				} else {
 					// change upload
@@ -145,8 +139,7 @@ public class UploadServlet extends HttpServlet {
 				}
 			}
 			// short unique upload-entity key: base91(hash|size)
-			final Key uploadKey = KeyFactory.createKey(Upload.KIND,
-					IOUtils.toKey(md5Hash, size));
+			final Key uploadKey = KeyFactory.createKey(Upload.KIND, IOUtils.toKey(md5Hash, size));
 			// none-transactional quick-check if upload-entity already exists
 			Upload upload;
 			try {
@@ -156,14 +149,21 @@ public class UploadServlet extends HttpServlet {
 				upload.setFilename(uploadBlobInfo.getFilename());
 				upload.setRequests(0L);
 			}
+			if (upload.getSourceBlobKey() != null) {
+				try {
+					BLOBSTORE_SERVICE.fetchData(upload.getSourceBlobKey(), 0, 3);
+				} catch (final IllegalArgumentException e) {
+					upload.setSourceBlobKey(null);
+				}
+			}
 			if (upload.getSourceBlobKey() == null) {
 				upload.setError(null);
 				// read blob meta data for upload and find all duplicates;
 				// attention: this servlet can rely on the existence of the
 				// current uploads blob meta data via datastoreService.get(),
 				// but results from other queries are HA write lag dependend!
-				final int artefacts = DecoJer.analyze(new BlobstoreInputStream(
-						uploadBlobInfo.getBlobKey()));
+				final int artefacts = DecoJer.analyze(new BlobstoreInputStream(uploadBlobInfo
+						.getBlobKey()));
 				if (artefacts == 0) {
 					LOGGER.log(Level.INFO, "No artefacts.");
 					Messages.addMessage(
@@ -176,52 +176,42 @@ public class UploadServlet extends HttpServlet {
 			upload.setUploadBlobKey(uploadBlobInfo.getBlobKey());
 			upload.setCreated(uploadBlobInfo.getCreation());
 			upload.setRequested(lastAccess);
-			upload.setRequests(upload.getRequests() + 1L
-					+ duplicateBlobKeys.size());
+			upload.setRequests(upload.getRequests() + 1L + duplicateBlobKeys.size());
 
 			final Transaction tx = DATASTORE_SERVICE.beginTransaction();
 			try {
 				DATASTORE_SERVICE.put(upload.getWrappedEntity());
 
-				if (upload.getError() == null
-						&& upload.getSourceBlobKey() == null) {
-					QueueFactory
-							.getQueue("decoJer")
-							.add(TaskOptions.Builder
+				if (upload.getError() == null && upload.getSourceBlobKey() == null) {
+					QueueFactory.getQueue("decoJer").add(
+							TaskOptions.Builder
 									.withMethod(Method.GET)
 									.param("uploadKey", uploadKey.getName())
-									.param("channelKey",
-											Uploads.getChannelKey(req
-													.getSession()))
+									.param("channelKey", Uploads.getChannelKey(req.getSession()))
 									.countdownMillis(2000)
 									.header("Host",
-											BackendServiceFactory
-													.getBackendService()
+											BackendServiceFactory.getBackendService()
 													.getBackendAddress("worker")));
 				}
 			} finally {
 				tx.commit();
 			}
-			BLOBSTORE_SERVICE.delete(duplicateBlobKeys
-					.toArray(new BlobKey[duplicateBlobKeys.size()]));
+			BLOBSTORE_SERVICE
+					.delete(duplicateBlobKeys.toArray(new BlobKey[duplicateBlobKeys.size()]));
 
 			if (upload.getError() != null) {
 				return;
 			}
 			// add message and link
-			Messages.addMessage(
-					req,
-					"Found "
-							+ upload.getTds()
-							+ (upload.getTds().longValue() == 1L ? " readable artefact."
-									: " readable artefacts."));
+			Messages.addMessage(req, "Found "
+					+ upload.getTds()
+					+ (upload.getTds().longValue() == 1L ? " readable artefact."
+							: " readable artefacts."));
 			Uploads.addUploadKey(req, uploadKey);
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING,
-					"Unexpected problem, couldn't evaluate upload: "
-							+ uploadBlobInfo.getBlobKey(), e);
-			Messages.addMessage(req,
-					"Unexpected problem, couldn't evaluate upload!");
+			LOGGER.log(Level.WARNING, "Unexpected problem, couldn't evaluate upload: "
+					+ uploadBlobInfo.getBlobKey(), e);
+			Messages.addMessage(req, "Unexpected problem, couldn't evaluate upload!");
 		}
 	}
 
