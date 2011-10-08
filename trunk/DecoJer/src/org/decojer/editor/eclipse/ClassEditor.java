@@ -330,7 +330,10 @@ public class ClassEditor extends MultiPageEditorPart {
 					final TreeItem selection = selections[0];
 					ClassEditor.this.td = ClassEditor.this.du.getTd(selection.getText());
 
-					ClassEditor.this.cu = null;
+					if (ClassEditor.this.cu != null) {
+						ClassEditor.this.cu.clear();
+						ClassEditor.this.cu = null;
+					}
 					String sourceCode = null;
 					try {
 						ClassEditor.this.cu = DecoJer.createCu(ClassEditor.this.td);

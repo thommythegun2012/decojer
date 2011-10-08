@@ -34,8 +34,7 @@ import org.eclipse.jdt.core.dom.Name;
 /**
  * Type name manager.
  * 
- * Full names consist of dot-separated package names and dollar-separated type
- * names.
+ * Full names consist of dot-separated package names and dollar-separated type names.
  * 
  * @author André Pankraz
  */
@@ -61,6 +60,13 @@ public class TypeNameManager {
 		this.cu = cu;
 	}
 
+	/**
+	 * Clear all generated data after read.
+	 */
+	public void clear() {
+		this.packagesName2number.clear();
+	}
+
 	private AST getAST() {
 		return this.cu.getAst();
 	}
@@ -75,22 +81,19 @@ public class TypeNameManager {
 	public Name newTypeName(final String fullName) {
 		assert fullName != null;
 
-		if (this.packagePrefix != null
-				&& fullName.startsWith(this.packagePrefix)) {
+		if (this.packagePrefix != null && fullName.startsWith(this.packagePrefix)) {
 			// immediately remove this package prefix, save resources
 			int pos = fullName.indexOf('.', this.packagePrefix.length());
 			if (pos == -1) {
 				// if not in sub package
-				final String name = fullName.substring(this.packagePrefix
-						.length());
+				final String name = fullName.substring(this.packagePrefix.length());
 				Integer number = this.packagesName2number.get(name);
 				number = number == null ? 1 : number + 1;
 				this.packagesName2number.put(name, number);
 
 				if (!this.cu.isStartTdOnly()) {
 					// add TD to CU if main type name equal to any main TD in CU
-					final TD td = this.cu.getStartTd().getT().getDu()
-							.getTd(name);
+					final TD td = this.cu.getStartTd().getT().getDu().getTd(name);
 					if (td != null && td.getCu() == null) {
 						pos = name.indexOf('$');
 						if (pos != -1) {
@@ -114,8 +117,7 @@ public class TypeNameManager {
 			final int pos = fullName.indexOf('.', JAVA_LANG.length());
 			if (pos == -1) {
 				// if not in sub package
-				return getAST().newSimpleName(
-						fullName.substring(JAVA_LANG.length()));
+				return getAST().newSimpleName(fullName.substring(JAVA_LANG.length()));
 			}
 		}
 		// TODO build package histogram

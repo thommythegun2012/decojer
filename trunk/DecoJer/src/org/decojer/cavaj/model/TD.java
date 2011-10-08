@@ -108,6 +108,36 @@ public class TD implements BD, PD {
 	}
 
 	/**
+	 * Clear all generated data after read.
+	 */
+	public void clear() {
+		this.pd = null;
+		this.typeDeclaration = null;
+		for (int i = this.bds.size(); i-- > 0;) {
+			final BD bd = this.bds.get(i);
+			if (bd instanceof TD) {
+				((TD) bd).clear();
+				this.bds.remove(i);
+				continue;
+			}
+			if (bd instanceof FD) {
+				((FD) bd).setFieldDeclaration(null);
+				continue;
+			}
+			if (bd instanceof MD) {
+				((MD) bd).setMethodDeclaration(null);
+				final CFG cfg = ((MD) bd).getCfg();
+				if (cfg == null) {
+					continue;
+				}
+				cfg.setBlock(null);
+				cfg.setFrames(null);
+				cfg.setStartBb(null);
+			}
+		}
+	}
+
+	/**
 	 * Get annotations.
 	 * 
 	 * @return annotations
