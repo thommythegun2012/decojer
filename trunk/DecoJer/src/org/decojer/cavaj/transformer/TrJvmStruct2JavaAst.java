@@ -295,7 +295,7 @@ public class TrJvmStruct2JavaAst {
 		// decompile method signature (not necessary for Initializer)
 		if (methodDeclaration instanceof MethodDeclaration) {
 			new SignatureDecompiler(td, m.getDescriptor(), m.getSignature()).decompileMethodTypes(
-					(MethodDeclaration) methodDeclaration, m.getThrowsTs(), m.checkAf(AF.VARARGS));
+					(MethodDeclaration) methodDeclaration, m);
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(td,
 					m.getDescriptor(), m.getSignature());
@@ -323,6 +323,15 @@ public class TrJvmStruct2JavaAst {
 			// decompile method parameter annotations and names
 			final A[][] paramAs = md.getParamAss();
 			int param = 0;
+			if (((MethodDeclaration) methodDeclaration).isConstructor()) {
+				// ignore synthetic constructor parameter for inner classes:
+				// none-static inner classes get extra constructor argument,
+				// anonymous inner classes are static if context is static
+				// (see SignatureDecompiler.decompileMethodTypes)
+				if (!m.getT().checkAf(AF.STATIC)) {
+					++param;
+				}
+			}
 			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
 					.parameters()) {
 				// decompile parameter annotations
@@ -396,9 +405,8 @@ public class TrJvmStruct2JavaAst {
 					}
 				}
 			}
-			// no annotation type declaration or enum declaration => normal
-			// class or
-			// interface type declaration
+			// no annotation type declaration or enum declaration => normal class or interface type
+			// declaration
 			if (typeDeclaration == null) {
 				typeDeclaration = ast.newTypeDeclaration();
 
@@ -409,9 +417,8 @@ public class TrJvmStruct2JavaAst {
 			}
 			td.setTypeDeclaration(typeDeclaration);
 
-			// add annotation modifiers before other modifiers, order preserved
-			// in
-			// source code generation through eclipse.jdt
+			// add annotation modifiers before other modifiers, order preserved in source code
+			// generation through eclipse.jdt
 			if (td.getAs() != null) {
 				AnnotationsDecompiler.decompileAnnotations(td, typeDeclaration.modifiers(),
 						td.getAs());

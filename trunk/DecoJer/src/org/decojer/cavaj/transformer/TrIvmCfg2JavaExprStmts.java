@@ -418,6 +418,12 @@ public class TrIvmCfg2JavaExprStmts {
 						}
 						if (expression instanceof ClassInstanceCreation) {
 							final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) expression;
+							// ignore synthetic constructor parameter for inner classes:
+							// none-static inner classes get extra constructor argument,
+							// anonymous inner classes are static if context is static
+							// (see SignatureDecompiler.decompileMethodTypes)
+							// TODO
+
 							classInstanceCreation.arguments().addAll(arguments);
 							// normally there was a DUP in advance, don't use:
 							// basicBlock.pushExpression(classInstanceCreation);
@@ -756,6 +762,9 @@ public class TrIvmCfg2JavaExprStmts {
 							if (f.checkAf(AF.SYNTHETIC)) {
 								break;
 							}
+							// multiple constructors with different signatures possible, all of them
+							// contain the same field initializer code after super()
+
 							// TODO more checks necessary (empty previous statements)
 							// TODO must kill inner class constructor argument
 							final FD fd = getTd().getFd(f.getName());
