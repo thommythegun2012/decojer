@@ -400,10 +400,12 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				Collections.reverse(arguments);
 
+				final String mName = m.getName();
+
 				final Expression methodExpression;
 				if (op.isDirect()) {
 					final Expression expression = bb.popExpression();
-					if ("<init>".equals(m.getName())) {
+					if ("<init>".equals(mName)) {
 						methodExpression = null;
 						if (expression instanceof ThisExpression) {
 							final SuperConstructorInvocation superConstructorInvocation = getAst()
@@ -436,7 +438,7 @@ public class TrIvmCfg2JavaExprStmts {
 					if (expression instanceof ThisExpression) {
 						final SuperMethodInvocation superMethodInvocation = getAst()
 								.newSuperMethodInvocation();
-						superMethodInvocation.setName(getAst().newSimpleName(m.getName()));
+						superMethodInvocation.setName(getAst().newSimpleName(mName));
 						superMethodInvocation.arguments().addAll(arguments);
 						methodExpression = superMethodInvocation;
 					} else {
@@ -444,13 +446,62 @@ public class TrIvmCfg2JavaExprStmts {
 					}
 				} else if (m.checkAf(AF.STATIC)) {
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
-					methodInvocation.setName(getAst().newSimpleName(m.getName()));
+					methodInvocation.setName(getAst().newSimpleName(mName));
 					methodInvocation.arguments().addAll(arguments);
 					methodInvocation.setExpression(getTd().newTypeName(m.getT().getName()));
 					methodExpression = methodInvocation;
 				} else {
+					if ("toString".equals(mName)
+							&& ("java.lang.StringBuilder".equals(m.getT().getName()) || "java.lang.StringBuffer"
+									.equals(m.getT().getName()))) {
+						// jdk1.1.6:
+						// new
+						// StringBuffer(String.valueOf(super.toString())).append(" TEST").toString()
+						// jdk1.3:
+						// new StringBuffer().append(super.toString()).append(" TEST").toString();
+						// jdk1.5.0:
+						// new StringBuilder().append(super.toString()).append(" TEST").toString()
+						// Eclipse (constructor argument fail?):
+						// new
+						// StringBuilder(String.valueOf(super.toString())).append(" TEST").toString()
+						toString: try {
+							Expression stringExpression = null;
+							Expression appendExpression = bb.peekExpression();
+							do {
+								final MethodInvocation methodInvocation = (MethodInvocation) appendExpression;
+								if (!"append".equals(methodInvocation.getName().getIdentifier())
+										|| methodInvocation.arguments().size() != 1) {
+									break toString;
+								}
+								appendExpression = methodInvocation.getExpression();
+								if (stringExpression == null) {
+									stringExpression = (Expression) methodInvocation.arguments()
+											.get(0);
+									continue;
+								}
+								stringExpression = newInfixExpression(
+										InfixExpression.Operator.PLUS, stringExpression,
+										(Expression) methodInvocation.arguments().get(0));
+							} while (appendExpression instanceof MethodInvocation);
+							final ClassInstanceCreation builder = (ClassInstanceCreation) appendExpression;
+							// additional type check for pure append-chain not necessary
+							if (builder.arguments().size() > 1) {
+								break toString;
+							}
+							if (builder.arguments().size() == 1) {
+								stringExpression = newInfixExpression(
+										InfixExpression.Operator.PLUS, stringExpression,
+										(Expression) builder.arguments().get(0));
+							}
+							bb.popExpression();
+							bb.pushExpression(stringExpression);
+							break;
+						} catch (final Exception e) {
+							// String+String - StringBuilder deoptimization failed
+						}
+					}
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
-					methodInvocation.setName(getAst().newSimpleName(m.getName()));
+					methodInvocation.setName(getAst().newSimpleName(mName));
 					methodInvocation.arguments().addAll(arguments);
 					methodInvocation.setExpression(wrap(bb.popExpression(),
 							priority(methodInvocation)));
