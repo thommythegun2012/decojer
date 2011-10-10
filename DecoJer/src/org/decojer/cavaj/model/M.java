@@ -106,8 +106,8 @@ public class M {
 	 * @param signature
 	 *            signature
 	 */
-	public M(final T t, final String name, final String descriptor,
-			final T returnT, final T[] paramTs) {
+	public M(final T t, final String name, final String descriptor, final T returnT,
+			final T[] paramTs) {
 		assert t != null;
 		assert name != null;
 		assert descriptor != null;
@@ -276,7 +276,7 @@ public class M {
 
 	@Override
 	public String toString() {
-		return getT() + "->" + getName() + getDescriptor();
+		return getT() + "." + getName() + getDescriptor();
 	}
 
 }

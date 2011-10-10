@@ -48,6 +48,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.CAST;
 import org.decojer.cavaj.model.vm.intermediate.operations.CMP;
 import org.decojer.cavaj.model.vm.intermediate.operations.DIV;
 import org.decojer.cavaj.model.vm.intermediate.operations.DUP;
+import org.decojer.cavaj.model.vm.intermediate.operations.FILLARRAY;
 import org.decojer.cavaj.model.vm.intermediate.operations.GET;
 import org.decojer.cavaj.model.vm.intermediate.operations.GOTO;
 import org.decojer.cavaj.model.vm.intermediate.operations.INC;
@@ -83,8 +84,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
  */
 public class TrDataFlowAnalysis {
 
-	private final static Logger LOGGER = Logger
-			.getLogger(TrDataFlowAnalysis.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(TrDataFlowAnalysis.class.getName());
 
 	public static void transform(final CFG cfg) {
 		new TrDataFlowAnalysis(cfg).transform();
@@ -98,8 +98,7 @@ public class TrDataFlowAnalysis {
 				continue;
 			}
 			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.getOperations() == null
-					|| cfg.getOperations().length == 0) {
+			if (cfg == null || cfg.getOperations() == null || cfg.getOperations().length == 0) {
 				continue;
 			}
 			transform(cfg);
@@ -334,11 +333,16 @@ public class TrDataFlowAnalysis {
 					break;
 				}
 				default:
-					LOGGER.warning("Unknown dup type '" + op.getDupType()
-							+ "'!");
+					LOGGER.warning("Unknown dup type '" + op.getDupType() + "'!");
 				}
-			}
 				break;
+			}
+			case Opcode.FILLARRAY: {
+				assert operation instanceof FILLARRAY;
+
+				// TODO check stack has array...
+				break;
+			}
 			case Opcode.GET: {
 				final GET op = (GET) operation;
 				final F f = op.getF();
@@ -447,8 +451,7 @@ public class TrDataFlowAnalysis {
 					break;
 				}
 				default:
-					LOGGER.warning("Unknown pop type '" + op.getPopType()
-							+ "'!");
+					LOGGER.warning("Unknown pop type '" + op.getPopType() + "'!");
 				}
 				break;
 			}

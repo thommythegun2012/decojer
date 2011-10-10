@@ -92,6 +92,7 @@ import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.ArrayCreation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
+import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CastExpression;
@@ -325,8 +326,25 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case Opcode.FILLARRAY: {
-				assert operation instanceof FILLARRAY;
+				final FILLARRAY op = (FILLARRAY) operation;
 
+				final Expression arrayRefExpression = bb.popExpression();
+				// TODO bug...assignment happened already...pure type only here?
+
+				final T t = this.cfg.getOutFrame(operation).peek().getT();
+				final T baseT = t.getBaseT();
+
+				final ArrayCreation arrayCreation = getAst().newArrayCreation();
+				arrayCreation.setType((ArrayType) Types.convertType(t, getTd(), getAst()));
+
+				final ArrayInitializer arrayInitializer = getAst().newArrayInitializer();
+				for (final Object value : op.getValues()) {
+					arrayInitializer.expressions().add(
+							Types.convertLiteral(baseT, value, getTd(), getAst()));
+				}
+				arrayCreation.setInitializer(arrayInitializer);
+
+				bb.pushExpression(arrayCreation);
 				break;
 			}
 			case Opcode.GET: {
@@ -817,14 +835,18 @@ public class TrIvmCfg2JavaExprStmts {
 							// contain the same field initializer code after super()
 
 							// TODO more checks necessary (empty previous statements)
+							// ...may be not right here, empty-check not possible here, back BBs
+							// first
 							// TODO must kill inner class constructor argument
 							final FD fd = getTd().getFd(f.getName());
-							final FieldDeclaration fieldDeclaration = (FieldDeclaration) fd
-									.getFieldDeclaration();
-							if (fieldDeclaration != null) {
-								((VariableDeclarationFragment) fieldDeclaration.fragments().get(0))
-										.setInitializer(rightExpression);
-								break;
+							if (fd != null) { // null should not be possible...
+								final FieldDeclaration fieldDeclaration = (FieldDeclaration) fd
+										.getFieldDeclaration();
+								if (fieldDeclaration != null) {
+									((VariableDeclarationFragment) fieldDeclaration.fragments()
+											.get(0)).setInitializer(rightExpression);
+									break;
+								}
 							}
 						}
 					}

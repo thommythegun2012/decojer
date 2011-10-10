@@ -96,8 +96,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
  */
 public class ReadCodeAttribute {
 
-	private final static Logger LOGGER = Logger
-			.getLogger(ReadCodeAttribute.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(ReadCodeAttribute.class.getName());
 
 	private final DU du;
 
@@ -177,8 +176,7 @@ public class ReadCodeAttribute {
 			} else if (StackMapTable.tag.equals(attributeTag)) {
 				stackMapTable = (StackMapTable) attributeInfo;
 			} else {
-				LOGGER.warning("Unknown code attribute tag '" + attributeTag
-						+ "' in '" + md + "'!");
+				LOGGER.warning("Unknown code attribute tag '" + attributeTag + "' in '" + md + "'!");
 			}
 		}
 
@@ -188,16 +186,16 @@ public class ReadCodeAttribute {
 		final CodeReader codeReader = new CodeReader(codeAttribute.getCode());
 
 		// init CFG with start BB
-		final CFG cfg = new CFG(md, codeAttribute.getMaxLocals(),
-				codeAttribute.getMaxStack());
+		final CFG cfg = new CFG(md, codeAttribute.getMaxLocals(), codeAttribute.getMaxStack());
 		md.setCFG(cfg);
 
 		final DU du = md.getTd().getT().getDu();
 		final ConstPool constPool = codeAttribute.getConstPool();
 
-		// wide operation following?
-		// one of: iload, fload, aload, lload, dload, istore, fstore, astore,
-		// lstore, dstore, or ret
+		// wide operation following? one of:
+		// iload, fload, aload, lload, dload,
+		// istore, fstore, astore, lstore, dstore,
+		// ret, iinc
 		boolean wide = false;
 
 		while (codeReader.isNext()) {
@@ -206,8 +204,8 @@ public class ReadCodeAttribute {
 			visitPc(opPc);
 
 			final int code = codeReader.readUnsignedByte();
-			final int line = lineNumberAttribute == null ? -1
-					: lineNumberAttribute.toLineNumber(opPc);
+			final int line = lineNumberAttribute == null ? -1 : lineNumberAttribute
+					.toLineNumber(opPc);
 
 			final int pc = this.operations.size();
 
@@ -534,11 +532,9 @@ public class ReadCodeAttribute {
 			case Opcode.GETSTATIC: {
 				final int cpFieldIndex = codeReader.readUnsignedShort();
 
-				final T ownerT = readType(constPool
-						.getFieldrefClassName(cpFieldIndex));
+				final T ownerT = readType(constPool.getFieldrefClassName(cpFieldIndex));
 				t = du.getDescT(constPool.getFieldrefType(cpFieldIndex));
-				final F f = ownerT.getF(
-						constPool.getFieldrefName(cpFieldIndex), t);
+				final F f = ownerT.getF(constPool.getFieldrefName(cpFieldIndex), t);
 				if (code == Opcode.GETSTATIC) {
 					f.markAf(AF.STATIC);
 				}
@@ -571,10 +567,11 @@ public class ReadCodeAttribute {
 			 * INC *
 			 *******/
 			case Opcode.IINC: {
-				final int varIndex = codeReader.readUnsignedByte();
-				final int constValue = codeReader.readUnsignedByte();
-				this.operations.add(new INC(pc, code, line, T.INT, varIndex,
-						constValue));
+				final int varIndex = wide ? codeReader.readUnsignedShort() : codeReader
+						.readUnsignedByte();
+				final int constValue = wide ? codeReader.readUnsignedShort() : codeReader
+						.readUnsignedByte();
+				this.operations.add(new INC(pc, code, line, T.INT, varIndex, constValue));
 				break;
 			}
 			/**************
@@ -582,8 +579,8 @@ public class ReadCodeAttribute {
 			 **************/
 			case Opcode.INSTANCEOF: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				this.operations.add(new INSTANCEOF(pc, code, line,
-						readType(constPool.getClassInfo(cpClassIndex))));
+				this.operations.add(new INSTANCEOF(pc, code, line, readType(constPool
+						.getClassInfo(cpClassIndex))));
 				break;
 			}
 			/**********
@@ -595,11 +592,9 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
 
-				final T invokeT = readType(constPool
-						.getInterfaceMethodrefClassName(cpMethodIndex));
+				final T invokeT = readType(constPool.getInterfaceMethodrefClassName(cpMethodIndex));
 				invokeT.markAf(AF.INTERFACE);
-				final M invokeM = invokeT.getM(
-						constPool.getInterfaceMethodrefName(cpMethodIndex),
+				final M invokeM = invokeT.getM(constPool.getInterfaceMethodrefName(cpMethodIndex),
 						constPool.getInterfaceMethodrefType(cpMethodIndex));
 
 				this.operations.add(new INVOKE(pc, code, line, invokeM, false));
@@ -611,10 +606,8 @@ public class ReadCodeAttribute {
 			case Opcode.INVOKESTATIC: {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
-				final T invokeT = readType(constPool
-						.getMethodrefClassName(cpMethodIndex));
-				final M invokeM = invokeT.getM(
-						constPool.getMethodrefName(cpMethodIndex),
+				final T invokeT = readType(constPool.getMethodrefClassName(cpMethodIndex));
+				final M invokeM = invokeT.getM(constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
 				if (code == Opcode.INVOKESTATIC) {
 					invokeM.markAf(AF.STATIC);
@@ -790,8 +783,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				iValue = wide ? codeReader.readUnsignedShort() : codeReader
-						.readUnsignedByte();
+				iValue = wide ? codeReader.readUnsignedShort() : codeReader.readUnsignedByte();
 				// fall through
 			case Opcode.ALOAD_0:
 				if (t == null) {
@@ -987,27 +979,24 @@ public class ReadCodeAttribute {
 			 ************/
 			case Opcode.ANEWARRAY: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				this.operations.add(new NEWARRAY(pc, code, line,
-						readType(constPool.getClassInfo(cpClassIndex)), 1));
+				this.operations.add(new NEWARRAY(pc, code, line, readType(constPool
+						.getClassInfo(cpClassIndex)), 1));
 				break;
 			}
 			case Opcode.NEWARRAY: {
 				type = codeReader.readUnsignedByte();
 				final String typeName = new String[] { null, null, null, null,
-						boolean.class.getName(), char.class.getName(),
-						float.class.getName(), double.class.getName(),
-						byte.class.getName(), short.class.getName(),
+						boolean.class.getName(), char.class.getName(), float.class.getName(),
+						double.class.getName(), byte.class.getName(), short.class.getName(),
 						int.class.getName(), long.class.getName() }[type];
-				this.operations.add(new NEWARRAY(pc, code, line, du
-						.getT(typeName), 1));
+				this.operations.add(new NEWARRAY(pc, code, line, du.getT(typeName), 1));
 				break;
 			}
 			case Opcode.MULTIANEWARRAY: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				final int dimensions = codeReader.readUnsignedByte();
-				this.operations.add(new NEWARRAY(pc, code, line,
-						readType(constPool.getClassInfo(cpClassIndex)),
-						dimensions));
+				this.operations.add(new NEWARRAY(pc, code, line, readType(constPool
+						.getClassInfo(cpClassIndex)), dimensions));
 				break;
 			}
 			/*******
@@ -1094,8 +1083,7 @@ public class ReadCodeAttribute {
 						oValue = constPool.getLdcValue(ldcValueIndex);
 						break;
 					default:
-						throw new RuntimeException("Unknown Const Pool Tag "
-								+ tag + " for LDC!");
+						throw new RuntimeException("Unknown Const Pool Tag " + tag + " for LDC!");
 					}
 				}
 				// fall through
@@ -1135,8 +1123,7 @@ public class ReadCodeAttribute {
 						oValue = constPool.getLdcValue(ldcValueIndex);
 						break;
 					default:
-						throw new RuntimeException("Unknown Const Pool Tag "
-								+ tag + " for LDC!");
+						throw new RuntimeException("Unknown Const Pool Tag " + tag + " for LDC!");
 					}
 				}
 				// fall through
@@ -1232,11 +1219,9 @@ public class ReadCodeAttribute {
 			case Opcode.PUTSTATIC: {
 				final int cpFieldIndex = codeReader.readUnsignedShort();
 
-				final T ownerT = readType(constPool
-						.getFieldrefClassName(cpFieldIndex));
+				final T ownerT = readType(constPool.getFieldrefClassName(cpFieldIndex));
 				t = du.getDescT(constPool.getFieldrefType(cpFieldIndex));
-				final F f = ownerT.getF(
-						constPool.getFieldrefName(cpFieldIndex), t);
+				final F f = ownerT.getF(constPool.getFieldrefName(cpFieldIndex), t);
 				if (code == Opcode.PUTSTATIC) {
 					f.markAf(AF.STATIC);
 				}
@@ -1271,8 +1256,8 @@ public class ReadCodeAttribute {
 			 * RET *
 			 *******/
 			case Opcode.RET: {
-				final int varIndex = wide ? codeReader.readUnsignedShort()
-						: codeReader.readUnsignedByte();
+				final int varIndex = wide ? codeReader.readUnsignedShort() : codeReader
+						.readUnsignedByte();
 				this.operations.add(new RET(pc, code, line, varIndex));
 				break;
 			}
@@ -1333,8 +1318,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				iValue = wide ? codeReader.readUnsignedShort() : codeReader
-						.readUnsignedByte();
+				iValue = wide ? codeReader.readUnsignedShort() : codeReader.readUnsignedByte();
 				// fall through
 			case Opcode.ASTORE_0:
 				if (t == null) {
@@ -1482,8 +1466,8 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new SHR(pc, code, line, t,
-						code == Opcode.IUSHR || code == Opcode.LUSHR));
+				this.operations.add(new SHR(pc, code, line, t, code == Opcode.IUSHR
+						|| code == Opcode.LUSHR));
 				break;
 			/*******
 			 * SUB *
@@ -1610,15 +1594,13 @@ public class ReadCodeAttribute {
 				// just for once! reset wide after switch
 				continue;
 			default:
-				throw new RuntimeException("Unknown jvm operation code '"
-						+ code + "'!");
+				throw new RuntimeException("Unknown jvm operation code '" + code + "'!");
 			}
 			// reset wide
 			wide = false;
 		}
 		visitPc(codeReader.pc);
-		cfg.setOperations(this.operations.toArray(new Operation[this.operations
-				.size()]));
+		cfg.setOperations(this.operations.toArray(new Operation[this.operations.size()]));
 
 		final ExceptionTable exceptionTable = codeAttribute.getExceptionTable();
 		if (exceptionTable != null) {
@@ -1626,8 +1608,7 @@ public class ReadCodeAttribute {
 			// preserve order
 			final int exceptionTableSize = exceptionTable.size();
 			for (int i = 0; i < exceptionTableSize; ++i) {
-				final String catchName = constPool.getClassInfo(exceptionTable
-						.catchType(i));
+				final String catchName = constPool.getClassInfo(exceptionTable.catchType(i));
 				// no array possible, name is OK here
 				final T catchT = catchName == null ? null : du.getT(catchName);
 				final Exc exc = new Exc(catchT);
@@ -1646,8 +1627,7 @@ public class ReadCodeAttribute {
 		cfg.postProcessVars();
 	}
 
-	private void readLocalVariables(
-			final LocalVariableAttribute localVariableAttribute,
+	private void readLocalVariables(final LocalVariableAttribute localVariableAttribute,
 			final LocalVariableAttribute localVariableTypeAttribute) {
 		final CFG cfg = this.md.getCfg();
 		final HashMap<Integer, ArrayList<Var>> reg2vars = new HashMap<Integer, ArrayList<Var>>();
@@ -1656,15 +1636,13 @@ public class ReadCodeAttribute {
 			// preserve order
 			final int tableLength = localVariableAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final T varT = du
-						.getDescT(localVariableAttribute.descriptor(i));
+				final T varT = du.getDescT(localVariableAttribute.descriptor(i));
 				final Var var = new Var(varT);
 
 				var.setName(localVariableAttribute.variableName(i));
-				var.setStartPc(this.pc2index.get(localVariableAttribute
-						.startPc(i)));
-				var.setEndPc(this.pc2index.get(localVariableAttribute
-						.startPc(i) + localVariableAttribute.codeLength(i)));
+				var.setStartPc(this.pc2index.get(localVariableAttribute.startPc(i)));
+				var.setEndPc(this.pc2index.get(localVariableAttribute.startPc(i)
+						+ localVariableAttribute.codeLength(i)));
 
 				final int index = localVariableAttribute.index(i);
 
@@ -1676,8 +1654,7 @@ public class ReadCodeAttribute {
 				vars.add(var);
 			}
 			if (reg2vars.size() > 0) {
-				for (final Entry<Integer, ArrayList<Var>> entry : reg2vars
-						.entrySet()) {
+				for (final Entry<Integer, ArrayList<Var>> entry : reg2vars.entrySet()) {
 					final int reg = entry.getKey();
 					for (final Var var : entry.getValue()) {
 						cfg.addVar(reg, var);
@@ -1689,18 +1666,15 @@ public class ReadCodeAttribute {
 			// preserve order
 			final int tableLength = localVariableTypeAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final Var var = cfg
-						.getVar(localVariableTypeAttribute.index(i),
-								this.pc2index.get(localVariableTypeAttribute
-										.startPc(i)));
+				final Var var = cfg.getVar(localVariableTypeAttribute.index(i),
+						this.pc2index.get(localVariableTypeAttribute.startPc(i)));
 				if (var == null) {
 					LOGGER.warning("Local variable type attribute '"
 							+ localVariableTypeAttribute.index(i)
 							+ "' without local variable attribute!");
 					continue;
 				}
-				var.getT()
-						.setSignature(localVariableTypeAttribute.signature(i));
+				var.getT().setSignature(localVariableTypeAttribute.signature(i));
 			}
 		}
 	}
@@ -1728,8 +1702,8 @@ public class ReadCodeAttribute {
 		}
 		if (pcIndex > 0) {
 			// visited before but is known?!
-			LOGGER.warning("Pc '" + pc + "' is not unique, has old opPc '"
-					+ this.operations.size() + "'!");
+			LOGGER.warning("Pc '" + pc + "' is not unique, has old opPc '" + this.operations.size()
+					+ "'!");
 			return;
 		}
 		final int labelUnknownIndex = pcIndex;

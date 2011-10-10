@@ -110,8 +110,7 @@ public class DU {
 		case 'L': {
 			final int pos = desc.indexOf(';', 1);
 			if (pos == -1) {
-				throw new DecoJerException(
-						"Missing ';' in reference descriptor: " + desc);
+				throw new DecoJerException("Missing ';' in reference descriptor: " + desc);
 			}
 			return getT(desc.substring(1, pos).replace('/', '.'));
 		}
@@ -240,8 +239,7 @@ public class DU {
 				try {
 					read(new FileInputStream(entry), name, null);
 				} catch (final Exception e) {
-					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!",
-							e);
+					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!", e);
 				}
 			}
 		}
@@ -263,8 +261,8 @@ public class DU {
 	 * @throws IOException
 	 *             read exception
 	 */
-	public TD read(final InputStream is, final String fileName,
-			final String selector) throws IOException {
+	public TD read(final InputStream is, final String fileName, final String selector)
+			throws IOException {
 		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
 		final int read = is.read(magicNumber, 0, magicNumber.length);
 		if (read < magicNumber.length) {
@@ -285,8 +283,7 @@ public class DU {
 			String selectorPrefix = null;
 			String selectorMatch = null;
 			if (selector != null && selector.endsWith(".class")) {
-				selectorMatch = selector.charAt(0) == '/' ? selector
-						.substring(1) : selector;
+				selectorMatch = selector.charAt(0) == '/' ? selector.substring(1) : selector;
 				final int pos = selectorMatch.lastIndexOf('/');
 				if (pos != -1) {
 					selectorPrefix = selectorMatch.substring(0, pos + 1);
@@ -302,8 +299,8 @@ public class DU {
 				final String name = zipEntry.getName();
 				if (name.endsWith(".class")
 						&& selectorPrefix != null
-						&& (!name.startsWith(selectorPrefix) || name.indexOf(
-								'/', selectorPrefix.length()) != -1)) {
+						&& (!name.startsWith(selectorPrefix) || name.indexOf('/',
+								selectorPrefix.length()) != -1)) {
 					continue;
 				}
 				try {
@@ -312,8 +309,7 @@ public class DU {
 						selectorTd = td;
 					}
 				} catch (final Exception e) {
-					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!",
-							e);
+					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!", e);
 				}
 			}
 			return selectorTd;
@@ -338,8 +334,7 @@ public class DU {
 			return read(new File(fileName), null);
 		}
 		// ...\jdk1.6.0_26\jre\lib\rt.jar!/com/sun/xml/internal/fastinfoset/Decoder.class
-		return read(new File(fileName.substring(0, pos)),
-				fileName.substring(pos + 1));
+		return read(new File(fileName.substring(0, pos)), fileName.substring(pos + 1));
 	}
 
 }

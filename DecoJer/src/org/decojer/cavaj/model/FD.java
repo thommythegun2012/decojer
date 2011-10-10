@@ -192,4 +192,9 @@ public class FD implements BD, PD {
 		this.value = value;
 	}
 
+	@Override
+	public String toString() {
+		return getF().toString();
+	}
+
 }

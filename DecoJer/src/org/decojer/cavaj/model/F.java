@@ -125,8 +125,8 @@ public class F {
 	public void markAf(final AF af) {
 		// TODO many more checks
 		if (af == AF.ENUM) {
-			this.accessFlags = AF.PUBLIC.getValue() | AF.STATIC.getValue()
-					| AF.FINAL.getValue() | AF.ENUM.getValue();
+			this.accessFlags = AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
+					| AF.ENUM.getValue();
 			return;
 		}
 		this.accessFlags |= af.getValue();
@@ -154,7 +154,7 @@ public class F {
 
 	@Override
 	public String toString() {
-		return getT() + "->" + getName();
+		return getT() + "." + getName();
 	}
 
 }
