@@ -8,7 +8,9 @@ public class DecTestFields {
 
 	public final char charTest = 'c';
 
-	public final double doubleTest = .5432154321D;
+	public double doubleTest = .5432154321D; // not final!
+
+	public boolean dynamicBooleanTest = doubleTest > 1D;
 
 	public final static float floatTest = .54321F;
 
