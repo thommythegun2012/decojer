@@ -2252,20 +2252,20 @@ public class ReadCodeItem {
 							values[i] = b[bi];
 							continue;
 						case 2:
-							values[i] = (short) ((b[bi] & 0xFF) << 8 | b[bi + 1] & 0xFF);
+							values[i] = (short) ((b[bi + 1] & 0xFF) << 8 | b[bi] & 0xFF);
 							continue;
 						case 4:
-							values[i] = (b[bi] & 0xFF) << 24 | (b[bi + 1] & 0xFF) << 16
-									| (b[bi + 2] & 0xFF) << 8 | b[bi + 3] & 0xFF;
+							values[i] = (b[bi + 3] & 0xFF) << 24 | (b[bi + 2] & 0xFF) << 16
+									| (b[bi + 1] & 0xFF) << 8 | b[bi] & 0xFF;
 							continue;
 						case 8:
-							values[i] = ((long) b[bi] & 0xFF) << 56
-									| ((long) b[bi + 1] & 0xFF) << 48
-									| ((long) b[bi + 2] & 0xFF) << 40
-									| ((long) b[bi + 3] & 0xFF) << 32
-									| ((long) b[bi + 4] & 0xFF) << 24
-									| ((long) b[bi + 5] & 0xFF) << 16
-									| ((long) b[bi + 6] & 0xFF) << 8 | (long) b[bi + 7] & 0xFF;
+							values[i] = ((long) b[bi + 7] & 0xFF) << 56
+									| ((long) b[bi + 6] & 0xFF) << 48
+									| ((long) b[bi + 5] & 0xFF) << 40
+									| ((long) b[bi + 4] & 0xFF) << 32
+									| ((long) b[bi + 3] & 0xFF) << 24
+									| ((long) b[bi + 2] & 0xFF) << 16
+									| ((long) b[bi + 1] & 0xFF) << 8 | (long) b[bi] & 0xFF;
 							continue;
 						default:
 							LOGGER.warning("Unknown fill array element length '"

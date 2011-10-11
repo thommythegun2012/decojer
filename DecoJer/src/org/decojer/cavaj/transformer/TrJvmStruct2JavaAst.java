@@ -295,7 +295,7 @@ public class TrJvmStruct2JavaAst {
 		// decompile method signature (not necessary for Initializer)
 		if (methodDeclaration instanceof MethodDeclaration) {
 			new SignatureDecompiler(td, m.getDescriptor(), m.getSignature()).decompileMethodTypes(
-					(MethodDeclaration) methodDeclaration, m);
+					(MethodDeclaration) methodDeclaration, md);
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(td,
 					m.getDescriptor(), m.getSignature());
@@ -328,7 +328,7 @@ public class TrJvmStruct2JavaAst {
 				// none-static inner classes get extra constructor argument,
 				// anonymous inner classes are static if context is static
 				// (see SignatureDecompiler.decompileMethodTypes)
-				if (!m.getT().checkAf(AF.STATIC)) {
+				if (!m.getT().checkAf(AF.STATIC) && !(md.getTd().getPd() instanceof CU)) {
 					++param;
 				}
 			}

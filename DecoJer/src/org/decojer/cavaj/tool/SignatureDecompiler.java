@@ -28,7 +28,9 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.M;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.AST;
@@ -212,14 +214,15 @@ public class SignatureDecompiler {
 	 * 
 	 * @param methodDeclaration
 	 *            method declaration
-	 * @param m
-	 *            method
+	 * @param md
+	 *            method declaration
 	 */
 	@SuppressWarnings("unchecked")
-	public void decompileMethodTypes(final MethodDeclaration methodDeclaration, final M m) {
+	public void decompileMethodTypes(final MethodDeclaration methodDeclaration, final MD md) {
 		// method type parameters (full signature only):
 		// <T:Ljava/lang/Integer;U:Ljava/lang/Long;>(TT;TU;)V
 		// <U:TT;>(TT;TU;)V
+		final M m = md.getM();
 		decompileTypeParameters(methodDeclaration.typeParameters());
 		final List<Type> methodParameterTypes = decompileMethodParameterTypes();
 		if (methodParameterTypes != null) {
@@ -230,7 +233,8 @@ public class SignatureDecompiler {
 					// ignore synthetic constructor parameter for inner classes:
 					// none-static inner classes get extra constructor argument,
 					// anonymous inner classes are static if context is static
-					if (i == 0 && !m.getT().checkAf(AF.STATIC)) {
+					if (i == 0 && !m.getT().checkAf(AF.STATIC)
+							&& !(md.getTd().getPd() instanceof CU)) {
 						continue;
 					}
 				}

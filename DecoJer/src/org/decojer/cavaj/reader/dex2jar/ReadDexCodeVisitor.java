@@ -23,8 +23,16 @@
  */
 package org.decojer.cavaj.reader.dex2jar;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.logging.Logger;
+
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.vm.intermediate.Operation;
+import org.decojer.cavaj.model.vm.intermediate.operations.FILLARRAY;
+import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
 
 import com.googlecode.dex2jar.DexLabel;
 import com.googlecode.dex2jar.Field;
@@ -38,7 +46,30 @@ import com.googlecode.dex2jar.visitors.DexCodeVisitor;
  */
 public class ReadDexCodeVisitor implements DexCodeVisitor {
 
+	private final static Logger LOGGER = Logger.getLogger(ReadDexCodeVisitor.class.getName());
+
+	// operation index or temporary unknown index
+	private final HashMap<DexLabel, Integer> label2index = new HashMap<DexLabel, Integer>();
+
+	private final HashMap<DexLabel, ArrayList<Object>> label2unresolved = new HashMap<DexLabel, ArrayList<Object>>();
+
+	private int line = -1;
+
 	private MD md;
+
+	private final ArrayList<Operation> operations = new ArrayList<Operation>();
+
+	private int getLabelIndex(final DexLabel label) {
+		assert label != null;
+
+		final Integer index = this.label2index.get(label);
+		if (index != null) {
+			return index;
+		}
+		final int unresolvedIndex = -1 - this.label2unresolved.size();
+		this.label2index.put(label, unresolvedIndex);
+		return unresolvedIndex;
+	}
 
 	/**
 	 * Init and set method declaration.
@@ -57,50 +88,45 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitArrayStmt(final int opcode, final int formOrToReg,
-			final int arrayReg, final int indexReg) {
+	public void visitArrayStmt(final int opcode, final int formOrToReg, final int arrayReg,
+			final int indexReg) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitBinopLitXStmt(final int opcode, final int distReg,
-			final int srcReg, final int content) {
+	public void visitBinopLitXStmt(final int opcode, final int distReg, final int srcReg,
+			final int content) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitBinopStmt(final int opcode, final int toReg, final int r1,
-			final int r2) {
+	public void visitBinopStmt(final int opcode, final int toReg, final int r1, final int r2) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitClassStmt(final int opcode, final int a, final int b,
-			final String type) {
+	public void visitClassStmt(final int opcode, final int a, final int b, final String type) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitClassStmt(final int opcode, final int saveTo,
-			final String type) {
+	public void visitClassStmt(final int opcode, final int saveTo, final String type) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitCmpStmt(final int opcode, final int distReg, final int bB,
-			final int cC) {
+	public void visitCmpStmt(final int opcode, final int distReg, final int bB, final int cC) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitConstStmt(final int opcode, final int toReg,
-			final Object value) {
+	public void visitConstStmt(final int opcode, final int toReg, final Object value) {
 		// TODO Auto-generated method stub
 
 	}
@@ -111,29 +137,30 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitFieldStmt(final int opcode, final int fromOrToReg,
+	public void visitFieldStmt(final int opcode, final int fromOrToReg, final Field field) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visitFieldStmt(final int opcode, final int fromOrToReg, final int objReg,
 			final Field field) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitFieldStmt(final int opcode, final int fromOrToReg,
-			final int objReg, final Field field) {
-		// TODO Auto-generated method stub
+	public void visitFillArrayStmt(final int opcode, final int aA, final int elemWidth,
+			final int initLength, final Object[] values) {
+		this.operations.add(new LOAD(this.operations.size(), opcode, this.line, T.AREF, aA));
 
+		final FILLARRAY op = new FILLARRAY(this.operations.size(), opcode, this.line);
+		op.setValues(values);
+		this.operations.add(op);
 	}
 
 	@Override
-	public void visitFillArrayStmt(final int opcode, final int aA,
-			final int elemWidth, final int initLength, final Object[] values) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visitFilledNewArrayStmt(final int opcode, final int[] args,
-			final String type) {
+	public void visitFilledNewArrayStmt(final int opcode, final int[] args, final String type) {
 		// TODO Auto-generated method stub
 
 	}
@@ -145,15 +172,13 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitJumpStmt(final int opcode, final int reg,
-			final DexLabel label) {
+	public void visitJumpStmt(final int opcode, final int reg, final DexLabel label) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitJumpStmt(final int opcode, final int a, final int b,
-			final DexLabel label) {
+	public void visitJumpStmt(final int opcode, final int a, final int b, final DexLabel label) {
 		// TODO Auto-generated method stub
 
 	}
@@ -166,28 +191,29 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitLineNumber(final int line, final DexLabel label) {
+		final int labelIndex = getLabelIndex(label);
+		if (labelIndex < 0) {
+			LOGGER.warning("Line number '" + line + "' start label '" + label + "' unknown yet?");
+		}
+		this.line = line;
+	}
+
+	@Override
+	public void visitLocalVariable(final String name, final String type, final String signature,
+			final DexLabel start, final DexLabel end, final int reg) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitLocalVariable(final String name, final String type,
-			final String signature, final DexLabel start, final DexLabel end,
-			final int reg) {
+	public void visitLookupSwitchStmt(final int opcode, final int aA, final DexLabel label,
+			final int[] cases, final DexLabel[] labels) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitLookupSwitchStmt(final int opcode, final int aA,
-			final DexLabel label, final int[] cases, final DexLabel[] labels) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void visitMethodStmt(final int opcode, final int[] args,
-			final Method method) {
+	public void visitMethodStmt(final int opcode, final int[] args, final Method method) {
 		// TODO Auto-generated method stub
 
 	}
@@ -205,8 +231,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitMoveStmt(final int opcode, final int toReg,
-			final int fromReg) {
+	public void visitMoveStmt(final int opcode, final int toReg, final int fromReg) {
 		// TODO Auto-generated method stub
 
 	}
@@ -224,23 +249,21 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitTableSwitchStmt(final int opcode, final int aA,
-			final DexLabel label, final int first_case, final int last_case,
-			final DexLabel[] labels) {
+	public void visitTableSwitchStmt(final int opcode, final int aA, final DexLabel label,
+			final int first_case, final int last_case, final DexLabel[] labels) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitTryCatch(final DexLabel start, final DexLabel end,
-			final DexLabel handler, final String type) {
+	public void visitTryCatch(final DexLabel start, final DexLabel end, final DexLabel handler,
+			final String type) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitUnopStmt(final int opcode, final int toReg,
-			final int fromReg) {
+	public void visitUnopStmt(final int opcode, final int toReg, final int fromReg) {
 		// TODO Auto-generated method stub
 
 	}

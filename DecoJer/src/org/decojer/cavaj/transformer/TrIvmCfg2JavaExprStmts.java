@@ -469,7 +469,7 @@ public class TrIvmCfg2JavaExprStmts {
 					methodInvocation.setExpression(getTd().newTypeName(m.getT().getName()));
 					methodExpression = methodInvocation;
 				} else {
-					if ("toString".equals(mName)
+					stringAdd: if ("toString".equals(mName)
 							&& ("java.lang.StringBuilder".equals(m.getT().getName()) || "java.lang.StringBuffer"
 									.equals(m.getT().getName()))) {
 						// jdk1.1.6:
@@ -482,14 +482,14 @@ public class TrIvmCfg2JavaExprStmts {
 						// Eclipse (constructor argument fail?):
 						// new
 						// StringBuilder(String.valueOf(super.toString())).append(" TEST").toString()
-						toString: try {
+						try {
 							Expression stringExpression = null;
 							Expression appendExpression = bb.peekExpression();
 							do {
 								final MethodInvocation methodInvocation = (MethodInvocation) appendExpression;
 								if (!"append".equals(methodInvocation.getName().getIdentifier())
 										|| methodInvocation.arguments().size() != 1) {
-									break toString;
+									break stringAdd;
 								}
 								appendExpression = methodInvocation.getExpression();
 								if (stringExpression == null) {
@@ -504,7 +504,7 @@ public class TrIvmCfg2JavaExprStmts {
 							final ClassInstanceCreation builder = (ClassInstanceCreation) appendExpression;
 							// additional type check for pure append-chain not necessary
 							if (builder.arguments().size() > 1) {
-								break toString;
+								break stringAdd;
 							}
 							if (builder.arguments().size() == 1) {
 								stringExpression = newInfixExpression(
@@ -515,7 +515,7 @@ public class TrIvmCfg2JavaExprStmts {
 							bb.pushExpression(stringExpression);
 							break;
 						} catch (final Exception e) {
-							// String+String - StringBuilder deoptimization failed
+							// rewrite to string-add didn't work
 						}
 					}
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
@@ -809,49 +809,47 @@ public class TrIvmCfg2JavaExprStmts {
 				final Expression rightExpression = bb.popExpression();
 				final F f = op.getF();
 				final M m = getMd().getM();
-				if (m.getT() == f.getT()) {
+				fieldInit: if (m.getT() == f.getT()) {
+					// set local field, could be initializer
 					if (f.checkAf(AF.STATIC)) {
-						if ("<clinit>".equals(m.getName())) {
-							if (f.checkAf(AF.SYNTHETIC)) {
-								break;
-							}
-							// TODO more checks necessary (empty previous statements)
-							// TODO must kill inner class constructor argument
-							final FD fd = getTd().getFd(f.getName());
-							final FieldDeclaration fieldDeclaration = (FieldDeclaration) fd
-									.getFieldDeclaration();
-							if (fieldDeclaration != null) {
-								((VariableDeclarationFragment) fieldDeclaration.fragments().get(0))
-										.setInitializer(rightExpression);
-								break;
-							}
+						if (!"<clinit>".equals(m.getName())) {
+							break fieldInit;
 						}
 					} else {
-						if ("<init>".equals(m.getName())) {
-							if (f.checkAf(AF.SYNTHETIC)) {
-								break;
-							}
-							// multiple constructors with different signatures possible, all of them
-							// contain the same field initializer code after super()
-
-							// TODO more checks necessary (empty previous statements)
-							// ...may be not right here, empty-check not possible here, back BBs
-							// first
-							// TODO must kill inner class constructor argument
-							final FD fd = getTd().getFd(f.getName());
-							if (fd != null) { // null should not be possible...
-								final FieldDeclaration fieldDeclaration = (FieldDeclaration) fd
-										.getFieldDeclaration();
-								if (fieldDeclaration != null) {
-									((VariableDeclarationFragment) fieldDeclaration.fragments()
-											.get(0)).setInitializer(rightExpression);
-									break;
-								}
-							}
+						if (!"<init>".equals(m.getName())) {
+							break fieldInit;
+						}
+						if (!(bb.peekExpression() instanceof ThisExpression)) {
+							break fieldInit;
+						}
+						// multiple constructors with different signatures possible, all of them
+						// contain the same field initializer code after super() - simply overwrite
+					}
+					if (this.cfg.getStartBb() != bb) {
+						break fieldInit;
+					}
+					if (bb.getStatements().size() != 0) {
+						break fieldInit;
+					}
+					if (f.checkAf(AF.SYNTHETIC)) {
+						if (getCu().isIgnoreSynthetic()) {
+							break; // ignore such assignments completely
+						} else {
+							break fieldInit; // not as field initializer
 						}
 					}
+					try {
+						final FD fd = getTd().getFd(f.getName());
+						((VariableDeclarationFragment) ((FieldDeclaration) fd.getFieldDeclaration())
+								.fragments().get(0)).setInitializer(rightExpression);
+						if (!f.checkAf(AF.STATIC)) {
+							bb.popExpression();
+						}
+						break;
+					} catch (final Exception e) {
+						// rewrite to field-initializer didn't work
+					}
 				}
-
 				final Assignment assignment = getAst().newAssignment();
 				// TODO a = a +/- 1 => a++ / a--
 				// TODO a = a <op> expr => a <op>= expr
