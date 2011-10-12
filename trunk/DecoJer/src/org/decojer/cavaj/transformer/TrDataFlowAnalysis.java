@@ -23,8 +23,8 @@
  */
 package org.decojer.cavaj.transformer;
 
-import java.util.LinkedList;
 import java.util.List;
+import java.util.TreeSet;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
@@ -113,7 +113,10 @@ public class TrDataFlowAnalysis {
 
 	private int pc;
 
-	private final LinkedList<Integer> queue = new LinkedList<Integer>();
+	// sorted set superior to as a DFS queue here, because this algorithm has a stronger backward
+	// component then the normal data flow analysis,
+	// currently works with var.startPc, better would be an operation-postorder
+	private final TreeSet<Integer> queue = new TreeSet<Integer>();
 
 	private TrDataFlowAnalysis(final CFG cfg) {
 		this.cfg = cfg;
@@ -216,7 +219,7 @@ public class TrDataFlowAnalysis {
 		this.queue.clear();
 		this.queue.add(0);
 		while (!this.queue.isEmpty()) {
-			this.pc = this.queue.removeFirst();
+			this.pc = this.queue.pollFirst();
 			// first we copy the current in frame for the operation, then we
 			// calculate the type-changes through the operation and then we
 			// merge this calculated frame-types to the out frame
