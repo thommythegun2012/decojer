@@ -126,37 +126,6 @@ class DecTestInnerS {
 				System.out.println("InnerSInner1" + DecTestInner.class);
 			}
 
-			public void innerMethod(final int a, final int b) {
-				// final (and order var->class->instantiation) is important
-				class MethodInner {
-
-					public MethodInner(int c) {
-						// public
-						// DecTestInnerS$Inner1$Inner11$1MethodInner(org.decojer.cavaj.test.DecTestInnerS.Inner1.Inner11
-						// arg0, int c, int arg2, int arg3);
-						// constructor:
-						// none-static method: additional leading Inner11.this
-						// (cached as - $2 is inner level:
-						// final synthetic...InnerS$Inner1$Inner11 this$2;)
-						// used final outers: additional attached arguments
-						// (used directly in constructor or cached as:
-						// private final synthetic int val$a;)
-						// without debug-info may be undecideable what is real
-						// argument and what is compile-time added (if final
-						// only used in constructor)
-						System.out.println("MethodInner: " + (a + b + c));
-					}
-
-					private void syso() {
-						System.out.println("Syso: " + a);
-					}
-
-				}
-				// MethodInner.EnclosingMethod is set in each case,
-				// Inner11.InnerClasses doesn't show enclosing method name
-				new MethodInner(1);
-			}
-
 		}
 
 	}
