@@ -6,7 +6,6 @@
 <jsp:include page="WEB-INF/template/head.jsp" />
 <%@ page import="com.google.appengine.api.blobstore.*"%>
 <%@ page import="org.decojer.web.util.*"%>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%!BlobstoreService blobstoreService = BlobstoreServiceFactory
 			.getBlobstoreService();%>
 </head>
