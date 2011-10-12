@@ -286,8 +286,9 @@ public class DecoJer {
 	 *             read exception
 	 */
 	public static void main(final String[] args) throws IOException {
+		final long time = System.currentTimeMillis();
 		final DU du = createDu();
-		switch (13) {
+		switch (3) {
 		case 0:
 			System.out
 					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"));
@@ -334,6 +335,7 @@ public class DecoJer {
 			break;
 		}
 		}
+		System.out.println("TIME: " + (System.currentTimeMillis() - time) / 1000);
 	}
 
 	private DecoJer() {

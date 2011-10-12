@@ -28,6 +28,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.decojer.DecoJer;
+
 /**
  * Type.
  * 
@@ -201,6 +203,45 @@ public class T {
 
 	private static final T[] NO_INTERFACES = new T[0];
 
+	public static void main(final String[] args) {
+		final DU du = DecoJer.createDu();
+		final T i = du.getT(Integer.class);
+		final T l = du.getT(Long.class);
+
+		final T superT = i.getSuperT();
+		final T[] iIntTs = i.getInterfaceTs();
+
+		final T merge = i.merge(l);
+		// Merge: java.lang.Integer (Super: java.lang.Number, java.lang.Comparable) <->
+		// java.lang.Long (Super: java.lang.Number, java.lang.Comparable)
+		// result should be 1 class as first (maybe Object?) and interfaces
+		System.out.println("Merge: " + merge);
+	}
+
+	/**
+	 * Merge types.
+	 * 
+	 * @param t1
+	 *            type 1
+	 * @param t2
+	 *            type 2
+	 * @return merged type
+	 */
+	public static T merge(final T t1, final T t2) {
+		if (t1 == t2 || t2 == null) {
+			return t1;
+		}
+		if (t1 == null) {
+			return t2;
+		}
+
+		if (t1 instanceof TT) {
+			final T[] t1s = ((TT) t1).ts;
+		}
+
+		return t1;
+	}
+
 	/**
 	 * Create multi-type.
 	 * 
@@ -339,8 +380,8 @@ public class T {
 		if (pos == -1) {
 			return pName;
 		}
-		return Character.isJavaIdentifierStart(pName.charAt(pos + 1)) ? pName
-				.substring(pos + 1) : "I_" + pName.substring(pos + 1);
+		return Character.isJavaIdentifierStart(pName.charAt(pos + 1)) ? pName.substring(pos + 1)
+				: "I_" + pName.substring(pos + 1);
 	}
 
 	/**
@@ -434,8 +475,7 @@ public class T {
 		// try simple class loading, may be we are lucky ;)
 		// later ask DecoJer-online and local type cache with context info
 		try {
-			final Class<?> clazz = getClass().getClassLoader().loadClass(
-					getName());
+			final Class<?> clazz = getClass().getClassLoader().loadClass(getName());
 			this.accessFlags = clazz.getModifiers();
 			final Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null) {
@@ -483,9 +523,8 @@ public class T {
 	 */
 	public boolean isPrimitive() {
 		// TODO improve lame code
-		return this == T.BOOLEAN || this == T.BYTE || this == T.CHAR
-				|| this == T.DOUBLE || this == T.FLOAT || this == T.INT
-				|| this == T.LONG || this == T.SHORT;
+		return this == T.BOOLEAN || this == T.BYTE || this == T.CHAR || this == T.DOUBLE
+				|| this == T.FLOAT || this == T.INT || this == T.LONG || this == T.SHORT;
 	}
 
 	/**
@@ -574,11 +613,9 @@ public class T {
 	}
 
 	/**
-	 * Assign to type: Assign instances from this type to given (multi-)type,
-	 * reduce multis...
+	 * Assign to type: Assign instances from this type to given (multi-)type, reduce multis...
 	 * 
-	 * Like merge, but doesn't create new multi-types through common super type
-	 * search.
+	 * Like merge, but doesn't create new multi-types through common super type search.
 	 * 
 	 * @param t
 	 *            type
