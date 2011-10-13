@@ -85,10 +85,9 @@ public class BB {
 	}
 
 	/**
-	 * Add a basic block as successor with an edge value. This function is for
-	 * the initial creation of the control flow graph. The successors are
-	 * ordered after the basic block order index for order indexes greater than
-	 * this.
+	 * Add a basic block as successor with an edge value. This function is for the initial creation
+	 * of the control flow graph. The successors are ordered after the basic block order index for
+	 * order indexes greater than this.
 	 * 
 	 * @param succBb
 	 *            successor basic block
@@ -143,6 +142,11 @@ public class BB {
 		return this.cfg;
 	}
 
+	/**
+	 * Get expressions size.
+	 * 
+	 * @return expression size
+	 */
 	public int getExpressionsSize() {
 		return this.expressions.size();
 	}
@@ -194,11 +198,9 @@ public class BB {
 	}
 
 	/**
-	 * Get order index, may be line number if given or operation program
-	 * counter.
+	 * Get order index, may be line number if given or operation program counter.
 	 * 
-	 * @return order index, may be line number if given or operation program
-	 *         counter
+	 * @return order index, may be line number if given or operation program counter
 	 */
 	public int getOrder() {
 		final int opLine = getOpLine();
@@ -214,6 +216,11 @@ public class BB {
 		return this.postorder;
 	}
 
+	/**
+	 * Get predecessor basic blocks.
+	 * 
+	 * @return predecessor basic blocks
+	 */
 	public List<BB> getPredBbs() {
 		return this.predBbs;
 	}
@@ -241,10 +248,20 @@ public class BB {
 		return index == -1 ? null : this.succBbs.get(index);
 	}
 
+	/**
+	 * Get succcessor basic blocks.
+	 * 
+	 * @return succcessor basic blocks
+	 */
 	public List<BB> getSuccBbs() {
 		return this.succBbs;
 	}
 
+	/**
+	 * Get successor values.
+	 * 
+	 * @return successor values
+	 */
 	public List<Object> getSuccValues() {
 		return this.succValues;
 	}
@@ -342,6 +359,14 @@ public class BB {
 		this.struct = struct;
 	}
 
+	/**
+	 * Set value for given successor basic block.
+	 * 
+	 * @param succBB
+	 *            successor basic block
+	 * @param value
+	 *            successor value
+	 */
 	public void setSuccValue(final BB succBB, final Object value) {
 		final int index = this.succBbs.indexOf(succBB);
 		this.succValues.set(index, value);

@@ -44,8 +44,7 @@ import org.eclipse.draw2d.geometry.Insets;
  */
 public class FramesFigure extends Figure {
 
-	private static final GridData GRID_DATA = new GridData(
-			GridData.FILL_HORIZONTAL);
+	private static final GridData GRID_DATA = new GridData(GridData.FILL_HORIZONTAL);
 
 	private static final Border LEFT_BORDER = new AbstractBorder() {
 
@@ -55,8 +54,7 @@ public class FramesFigure extends Figure {
 		}
 
 		@Override
-		public void paint(final IFigure figure, final Graphics graphics,
-				final Insets insets) {
+		public void paint(final IFigure figure, final Graphics graphics, final Insets insets) {
 			tempRect.setBounds(getPaintRectangle(figure, insets));
 			tempRect.shrink(1, 0);
 			graphics.drawLine(tempRect.getTopLeft(), tempRect.getBottomLeft());
@@ -72,27 +70,39 @@ public class FramesFigure extends Figure {
 	 */
 	public FramesFigure(final BB bb) {
 		final int maxRegs = bb.getCfg().getMaxRegs();
-		final int maxStack = bb.getCfg().getMaxStack();
-		final GridLayout gridLayout = new GridLayout(1 + maxRegs + maxStack,
-				false);
+		int maxStack = 0;
+		// don't use bb.getCfg().getMaxRegs()
+		for (final Operation operation : bb.getOperations()) {
+			final Frame frame = bb.getCfg().getInFrame(operation);
+			if (frame == null) {
+				continue;
+			}
+			if (maxStack < frame.getStackTop()) {
+				maxStack = frame.getStackTop();
+			}
+		}
+
+		final GridLayout gridLayout = new GridLayout(1 + maxRegs + maxStack, false);
 		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = 0;
 		setLayoutManager(gridLayout);
 
 		for (final Operation operation : bb.getOperations()) {
-			final Frame frame = bb.getCfg().getInFrame(operation);
 			add(new Label(operation.getClass().getSimpleName() + " "));
+			final Frame frame = bb.getCfg().getInFrame(operation);
+			if (frame == null) {
+				continue;
+			}
 			final int regsSize = frame.getRegsSize();
 			for (int index = 0; index < regsSize; ++index) {
 				final Var var = frame.getReg(index);
-				final Label label = new Label(var == null ? "    "
-						: var.toString());
+				final Label label = new Label(var == null ? "    " : var.toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
 			for (int index = maxStack; index-- > 0;) {
 				final Label label = new Label(index >= frame.getStackTop()
-						|| frame.getStack(index) == null ? "    " : frame
-						.getStack(index).toString());
+						|| frame.getStack(index) == null ? "    " : frame.getStack(index)
+						.toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}

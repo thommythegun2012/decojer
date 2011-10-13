@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
@@ -126,8 +127,13 @@ public class TrIvmCfg2JavaExprStmts {
 	private final static Logger LOGGER = Logger.getLogger(TrIvmCfg2JavaExprStmts.class.getName());
 
 	public static void transform(final CFG cfg) {
-		new TrIvmCfg2JavaExprStmts(cfg).transform();
-		cfg.calculatePostorder(); // blocks deleted...
+		try {
+			new TrIvmCfg2JavaExprStmts(cfg).transform();
+			cfg.calculatePostorder(); // blocks deleted...
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+			cfg.setError(true);
+		}
 	}
 
 	public static void transform(final TD td) {
@@ -139,7 +145,7 @@ public class TrIvmCfg2JavaExprStmts {
 				continue;
 			}
 			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.getOperations() == null || cfg.getOperations().length == 0) {
+			if (cfg == null || cfg.isIgnore()) {
 				continue;
 			}
 			transform(cfg);

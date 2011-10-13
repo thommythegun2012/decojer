@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
@@ -48,8 +50,15 @@ import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
  */
 public class TrInitControlFlowGraph {
 
+	private final static Logger LOGGER = Logger.getLogger(TrInitControlFlowGraph.class.getName());
+
 	public static void transform(final CFG cfg) {
-		new TrInitControlFlowGraph(cfg).transform();
+		try {
+			new TrInitControlFlowGraph(cfg).transform();
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+			cfg.setError(true);
+		}
 	}
 
 	public static void transform(final TD td) {
@@ -60,8 +69,7 @@ public class TrInitControlFlowGraph {
 				continue;
 			}
 			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.getOperations() == null
-					|| cfg.getOperations().length == 0) {
+			if (cfg == null || cfg.isIgnore()) {
 				continue;
 			}
 			transform(cfg);
@@ -80,8 +88,8 @@ public class TrInitControlFlowGraph {
 	}
 
 	/**
-	 * Get target basic block. Split if necessary, but keep outgoing part same
-	 * (for later adding of outging edges).
+	 * Get target basic block. Split if necessary, but keep outgoing part same (for later adding of
+	 * outging edges).
 	 * 
 	 * @param pc
 	 *            target pc

@@ -41,14 +41,13 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
 import org.decojer.editor.eclipse.util.FramesFigure;
-import org.decojer.editor.eclipse.util.MemoryStorage;
 import org.decojer.editor.eclipse.util.MemoryStorageEditorInput;
+import org.decojer.editor.eclipse.util.StringMemoryStorage;
 import org.decojer.editor.eclipse.viewer.cfg.HierarchicalLayoutAlgorithm;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -140,8 +139,7 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private GraphNode addToGraph(final BB bb, final IdentityHashMap<BB, GraphNode> map) {
 		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE, bb.toString(), bb);
-		final List<Operation> operations = bb.getOperations();
-		if (operations.size() != 0) {
+		if (bb.getCfg() != null && bb.getCfg().getFrames() != null) {
 			node.setTooltip(new FramesFigure(bb));
 		} else if (bb.getStruct() != null) {
 			node.setTooltip(new Label(bb.getStruct().toString()));
@@ -252,15 +250,15 @@ public class ClassEditor extends MultiPageEditorPart {
 		try {
 			this.cu = DecoJer.createCu(this.td);
 			sourceCode = DecoJer.decompile(this.cu);
-		} catch (final Throwable e) {
-			e.printStackTrace();
+		} catch (final Throwable t) {
+			t.printStackTrace();
 			sourceCode = "// Decompilation error!";
 		}
 		try {
-			addPage(0, this.compilationUnitEditor, new MemoryStorageEditorInput(new MemoryStorage(
-					sourceCode.getBytes(),
-					this.cu == null || this.cu.getSourceFileName() == null ? new Path("<Unknown>")
-							: new Path(this.cu.getSourceFileName()))));
+			addPage(0, this.compilationUnitEditor,
+					new MemoryStorageEditorInput(new StringMemoryStorage(sourceCode,
+							this.cu == null || this.cu.getSourceFileName() == null ? new Path(
+									"<Unknown>") : new Path(this.cu.getSourceFileName()))));
 		} catch (final PartInitException e) {
 			ErrorDialog.openError(getSite().getShell(), "Error creating nested text editor", null,
 					e.getStatus());
@@ -338,13 +336,12 @@ public class ClassEditor extends MultiPageEditorPart {
 					try {
 						ClassEditor.this.cu = DecoJer.createCu(ClassEditor.this.td);
 						sourceCode = DecoJer.decompile(ClassEditor.this.cu);
-						ClassEditor.this.compilationUnitEditor
-								.setInput(new MemoryStorageEditorInput(new MemoryStorage(sourceCode
-										.getBytes(), ClassEditor.this.cu == null
+						ClassEditor.this.compilationUnitEditor.setInput(new MemoryStorageEditorInput(
+								new StringMemoryStorage(sourceCode, ClassEditor.this.cu == null
 										|| ClassEditor.this.cu.getSourceFileName() == null ? null
 										: new Path(ClassEditor.this.cu.getSourceFileName()))));
-					} catch (final Throwable e2) {
-						e2.printStackTrace();
+					} catch (final Throwable t) {
+						t.printStackTrace();
 						sourceCode = "// Decompilation error!";
 					}
 
@@ -517,7 +514,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			final CFG cfg = md.getCfg();
 			if (cfg != null) {
 				TrDataFlowAnalysis.transform(cfg);
-				TrInitControlFlowGraph.transform(td);
+				TrInitControlFlowGraph.transform(cfg);
 				final int i = this.cfgViewModeCombo.getSelectionIndex();
 				if (i > 0) {
 					TrIvmCfg2JavaExprStmts.transform(cfg);

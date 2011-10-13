@@ -26,6 +26,7 @@ package org.decojer.cavaj.reader.smali;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
@@ -61,6 +62,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.NEG;
 import org.decojer.cavaj.model.vm.intermediate.operations.NEW;
 import org.decojer.cavaj.model.vm.intermediate.operations.NEWARRAY;
 import org.decojer.cavaj.model.vm.intermediate.operations.OR;
+import org.decojer.cavaj.model.vm.intermediate.operations.POP;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUSH;
 import org.decojer.cavaj.model.vm.intermediate.operations.PUT;
 import org.decojer.cavaj.model.vm.intermediate.operations.REM;
@@ -187,15 +189,18 @@ public class ReadCodeItem {
 		// dynamic: (6 register)
 		// work_register1...work_register_2...this...param1...param2...param3
 
-		for (int opPc = 0, line = -1, i = 0; i < instructions.length; ++i) {
-			final Instruction instruction = instructions[i];
+		// invoke or fill-new-array result type
+		T moveInvokeResultT = null;
 
+		Instruction instruction;
+		for (int i = 0, opPc = 0, line = -1; i < instructions.length; ++i, opPc += instruction
+				.getSize(opPc)) {
+			instruction = instructions[i];
 			visitPc(opPc, instruction);
 
 			final int code = instruction.opcode.value;
 			line = this.readDebugInfo.getLine(opPc);
 
-			// TODO multiple op adds could be a problem here, pc not like index
 			final int pc = this.operations.size();
 
 			T t = null;
@@ -203,6 +208,50 @@ public class ReadCodeItem {
 			int iValue = 0;
 			Object oValue = null;
 
+			switch (instruction.opcode) {
+			case MOVE_RESULT:
+				// Move the single-word non-object result of the most recent invoke-kind into the
+				// indicated register. This must be done as the instruction immediately after an
+				// invoke-kind whose (single-word, non-object) result is not to be ignored;
+				// anywhere else is invalid.
+				t = T.DINT;
+				// fall through
+			case MOVE_RESULT_OBJECT:
+				// Move the object result of the most recent invoke-kind into the indicated
+				// register. This must be done as the instruction immediately after an invoke-kind
+				// or filled-new-array whose (object) result is not to be ignored; anywhere else
+				// is invalid.
+				if (t == null) {
+					t = T.AREF;
+				}
+				// fall through
+			case MOVE_RESULT_WIDE:
+				// Move the double-word result of the most recent invoke-kind into the indicated
+				// register pair. This must be done as the instruction immediately after an
+				// invoke-kind whose (double-word) result is not to be ignored; anywhere else is
+				// invalid.
+				if (t == null) {
+					t = T.WIDE;
+				}
+				{
+					// A = resultRegister
+					final Instruction11x instr = (Instruction11x) instruction;
+
+					this.operations.add(new STORE(pc, code, line, moveInvokeResultT, instr
+							.getRegisterA()));
+
+					moveInvokeResultT = null;
+					// just for once! reset wide after switch
+					continue;
+				}
+			}
+			if (moveInvokeResultT != null) {
+				if (moveInvokeResultT != T.VOID) {
+					// no POP2 with current wide handling
+					this.operations.add(new POP(pc, code, line, POP.T_POP));
+				}
+				moveInvokeResultT = null;
+			}
 			switch (instruction.opcode) {
 			/*******
 			 * ADD *
@@ -1041,6 +1090,8 @@ public class ReadCodeItem {
 
 				this.operations.add(new INVOKE(pc, code, line, invokeM,
 						instruction.opcode == Opcode.INVOKE_DIRECT));
+
+				moveInvokeResultT = invokeM.getReturnT();
 				break;
 			}
 			case INVOKE_DIRECT_RANGE:
@@ -1162,32 +1213,21 @@ public class ReadCodeItem {
 					this.operations.add(new STORE(pc, code, line, t, instr.getRegisterA()));
 				}
 				break;
-			case MOVE_EXCEPTION:
-				if (t == null) {
-					t = this.du.getT(Throwable.class);
-				}
-				// fall through
-			case MOVE_RESULT:
-				t = T.DINT;
-				// fall through
-			case MOVE_RESULT_OBJECT:
-				if (t == null) {
-					t = T.AREF;
-				}
-				// fall through
-			case MOVE_RESULT_WIDE:
-				if (t == null) {
-					t = T.WIDE;
-				}
-				{
-					// TODO doesn't follow a method? => POP
+			case MOVE_EXCEPTION: {
+				// Save a just-caught exception into the given register. This should be the first
+				// instruction of any exception handler whose caught exception is not to be
+				// ignored, and this instruction may only ever occur as the first instruction of an
+				// exception handler; anywhere else is invalid.
 
-					// A = resultRegister
-					final Instruction11x instr = (Instruction11x) instruction;
+				// TODO
 
-					this.operations.add(new STORE(pc, code, line, t, instr.getRegisterA()));
-				}
+				// A = resultRegister
+				final Instruction11x instr = (Instruction11x) instruction;
+
+				this.operations.add(new STORE(pc, code, line, this.du.getT(Throwable.class), instr
+						.getRegisterA()));
 				break;
+			}
 			/*******
 			 * MUL *
 			 *******/
@@ -2130,7 +2170,6 @@ public class ReadCodeItem {
 				throw new RuntimeException("Unknown jvm operation code '0x"
 						+ Integer.toHexString(code & 0xff) + "'!");
 			}
-			opPc += instruction.getSize(opPc);
 		}
 		cfg.setOperations(this.operations.toArray(new Operation[this.operations.size()]));
 
@@ -2194,17 +2233,27 @@ public class ReadCodeItem {
 			if (o instanceof SWITCH) {
 				final SWITCH op = (SWITCH) o;
 
+				// hack to get original op pc from index...argl... _not_ cool
+				final int index = op.getPc();
+				int switchOpPc = -1;
+				for (final Map.Entry<Integer, Integer> entry : this.pc2index.entrySet()) {
+					if (entry.getValue().intValue() == index) {
+						switchOpPc = entry.getKey();
+						break;
+					}
+				}
+
 				if (instruction instanceof PackedSwitchDataPseudoInstruction) {
 					final PackedSwitchDataPseudoInstruction instr = (PackedSwitchDataPseudoInstruction) instruction;
 					final int firstKey = instr.getFirstKey();
-					// absolute original pcs
+					// offsets to original switch pc
 					final int[] targets = instr.getTargets();
 
 					final int[] caseKeys = new int[targets.length];
 					final int[] casePcs = new int[targets.length];
 					for (int t = 0; t < targets.length; ++t) {
 						caseKeys[t] = firstKey + t;
-						casePcs[t] = getPcIndex(targets[t]);
+						casePcs[t] = getPcIndex(switchOpPc + targets[t]);
 						if (casePcs[t] < 0) {
 							getPcUnresolved(targets[t]).add(op);
 						}
@@ -2216,14 +2265,14 @@ public class ReadCodeItem {
 				if (instruction instanceof SparseSwitchDataPseudoInstruction) {
 					final SparseSwitchDataPseudoInstruction instr = (SparseSwitchDataPseudoInstruction) instruction;
 					final int[] keys = instr.getKeys();
-					// absolute original pcs
+					// offsets to original switch pc
 					final int[] targets = instr.getTargets();
 
 					final int[] caseKeys = new int[targets.length];
 					final int[] casePcs = new int[targets.length];
 					for (int t = 0; t < targets.length; ++t) {
 						caseKeys[t] = keys[t];
-						casePcs[t] = getPcIndex(targets[t]);
+						casePcs[t] = getPcIndex(switchOpPc + targets[t]);
 						if (casePcs[t] < 0) {
 							getPcUnresolved(targets[t]).add(op);
 						}

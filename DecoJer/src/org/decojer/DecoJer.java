@@ -150,7 +150,6 @@ public class DecoJer {
 				if (processedTds.contains(td)) {
 					continue;
 				}
-
 				TrJvmStruct2JavaAst.transform(td);
 
 				TrInitControlFlowGraph.transform(td);
@@ -225,7 +224,7 @@ public class DecoJer {
 				}
 				final ZipEntry zipEntry = new ZipEntry(zipEntryName);
 				zip.putNextEntry(zipEntry);
-				zip.write(source.getBytes());
+				zip.write(source.getBytes("UTF-8"));
 			} catch (final Throwable t) {
 				LOGGER.log(Level.WARNING, "Decompilation problems for '" + td + "'!", t);
 			} finally {

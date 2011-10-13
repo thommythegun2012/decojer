@@ -127,12 +127,9 @@ public class TD implements BD, PD {
 			if (bd instanceof MD) {
 				((MD) bd).setMethodDeclaration(null);
 				final CFG cfg = ((MD) bd).getCfg();
-				if (cfg == null) {
-					continue;
+				if (cfg != null) {
+					cfg.clear();
 				}
-				cfg.setBlock(null);
-				cfg.setFrames(null);
-				cfg.setStartBb(null);
 			}
 		}
 	}
