@@ -53,12 +53,7 @@ public class TrInitControlFlowGraph {
 	private final static Logger LOGGER = Logger.getLogger(TrInitControlFlowGraph.class.getName());
 
 	public static void transform(final CFG cfg) {
-		try {
-			new TrInitControlFlowGraph(cfg).transform();
-		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
-			cfg.setError(true);
-		}
+		new TrInitControlFlowGraph(cfg).transform();
 	}
 
 	public static void transform(final TD td) {
@@ -72,7 +67,12 @@ public class TrInitControlFlowGraph {
 			if (cfg == null || cfg.isIgnore()) {
 				continue;
 			}
-			transform(cfg);
+			try {
+				transform(cfg);
+			} catch (final Exception e) {
+				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+				cfg.setError(true);
+			}
 		}
 	}
 

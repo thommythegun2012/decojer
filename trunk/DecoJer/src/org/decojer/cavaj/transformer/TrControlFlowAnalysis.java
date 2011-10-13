@@ -189,12 +189,7 @@ public class TrControlFlowAnalysis {
 	}
 
 	public static void transform(final CFG cfg) {
-		try {
-			new TrControlFlowAnalysis(cfg).transform();
-		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
-			cfg.setError(true);
-		}
+		new TrControlFlowAnalysis(cfg).transform();
 	}
 
 	public static void transform(final TD td) {
@@ -208,7 +203,12 @@ public class TrControlFlowAnalysis {
 			if (cfg == null || cfg.isIgnore()) {
 				continue;
 			}
-			transform(cfg);
+			try {
+				transform(cfg);
+			} catch (final Exception e) {
+				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+				cfg.setError(true);
+			}
 		}
 	}
 
@@ -240,7 +240,7 @@ public class TrControlFlowAnalysis {
 		// smaller then
 		final boolean negated = firstValue == Boolean.FALSE;
 
-		if (!negated && getMd().getTd().getVersion() >= 50) {
+		if (!negated && this.cfg.getMd().getTd().getVersion() >= 50) {
 			log("Uncommon usage of unnegated conditional in JDK 6:\n" + cond);
 		}
 
@@ -521,24 +521,16 @@ public class TrControlFlowAnalysis {
 		}
 	}
 
-	private CFG getCfg() {
-		return this.cfg;
-	}
-
-	private MD getMd() {
-		return getCfg().getMd();
-	}
-
 	private void log(final String message) {
-		LOGGER.warning(getMd().toString() + ": " + message);
+		LOGGER.warning(this.cfg.getMd().toString() + ": " + message);
 	}
 
 	private void log(final String message, final Throwable e) {
-		LOGGER.log(Level.SEVERE, getMd().toString() + ": " + message, e);
+		LOGGER.log(Level.SEVERE, this.cfg.getMd().toString() + ": " + message, e);
 	}
 
 	private void transform() {
-		final List<BB> bbs = getCfg().getPostorderedBbs();
+		final List<BB> bbs = this.cfg.getPostorderedBbs();
 		// top down struct, find outer first
 		for (int postorder = bbs.size(); postorder-- > 0;) {
 			final BB bb = bbs.get(postorder);

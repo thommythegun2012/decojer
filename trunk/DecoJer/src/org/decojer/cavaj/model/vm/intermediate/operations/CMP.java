@@ -27,6 +27,11 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'CMP'.
+ * 
+ * @author André Pankraz
+ */
 public class CMP extends Operation {
 
 	public static final int T_0 = 0;
@@ -39,8 +44,7 @@ public class CMP extends Operation {
 
 	private final T t;
 
-	public CMP(final int pc, final int code, final int line, final T t,
-			final int cmp) {
+	public CMP(final int pc, final int code, final int line, final T t, final int cmp) {
 		super(pc, code, line);
 		this.t = t;
 		this.cmp = cmp;

@@ -28,14 +28,18 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'INVOKE'.
+ * 
+ * @author André Pankraz
+ */
 public class INVOKE extends Operation {
 
 	private final boolean direct;
 
 	private final M m;
 
-	public INVOKE(final int pc, final int code, final int line, final M m,
-			final boolean direct) {
+	public INVOKE(final int pc, final int code, final int line, final M m, final boolean direct) {
 		super(pc, code, line);
 		this.m = m;
 		this.direct = direct;

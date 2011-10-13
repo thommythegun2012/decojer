@@ -27,14 +27,18 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'SHR'.
+ * 
+ * @author André Pankraz
+ */
 public class SHR extends Operation {
 
 	private final T t;
 
 	private final boolean unsigned;
 
-	public SHR(final int pc, final int code, final int line, final T t,
-			final boolean unsigned) {
+	public SHR(final int pc, final int code, final int line, final T t, final boolean unsigned) {
 		super(pc, code, line);
 		this.t = t;
 		this.unsigned = unsigned;

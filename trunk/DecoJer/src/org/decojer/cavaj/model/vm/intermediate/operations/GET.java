@@ -28,6 +28,11 @@ import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'GET'.
+ * 
+ * @author André Pankraz
+ */
 public class GET extends Operation {
 
 	private final F f;

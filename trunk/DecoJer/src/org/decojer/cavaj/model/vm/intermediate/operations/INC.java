@@ -27,24 +27,25 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'INC'.
+ * 
+ * @author André Pankraz
+ */
 public class INC extends Operation {
 
-	private final int constValue;
+	private final int reg;
 
 	private final T t;
 
-	private final int varIndex;
+	private final int value;
 
-	public INC(final int pc, final int code, final int line, final T t,
-			final int varIndex, final int constValue) {
+	public INC(final int pc, final int code, final int line, final T t, final int reg,
+			final int value) {
 		super(pc, code, line);
 		this.t = t;
-		this.varIndex = varIndex;
-		this.constValue = constValue;
-	}
-
-	public int getConstValue() {
-		return this.constValue;
+		this.reg = reg;
+		this.value = value;
 	}
 
 	@Override
@@ -57,17 +58,21 @@ public class INC extends Operation {
 		return Opcode.INC;
 	}
 
+	public int getReg() {
+		return this.reg;
+	}
+
 	public T getT() {
 		return this.t;
 	}
 
-	public int getVarIndex() {
-		return this.varIndex;
+	public int getValue() {
+		return this.value;
 	}
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + getVarIndex();
+		return super.toString() + " " + getReg();
 	}
 
 }

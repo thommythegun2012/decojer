@@ -26,6 +26,11 @@ package org.decojer.cavaj.model.vm.intermediate.operations;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'THROW'.
+ * 
+ * @author André Pankraz
+ */
 public class THROW extends Operation {
 
 	public THROW(final int pc, final int code, final int line) {

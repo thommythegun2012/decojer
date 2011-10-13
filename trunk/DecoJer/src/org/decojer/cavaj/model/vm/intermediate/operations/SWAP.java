@@ -26,6 +26,11 @@ package org.decojer.cavaj.model.vm.intermediate.operations;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'SWAP'.
+ * 
+ * @author André Pankraz
+ */
 public class SWAP extends Operation {
 
 	public SWAP(final int pc, final int code, final int line) {

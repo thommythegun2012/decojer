@@ -27,20 +27,24 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'LOAD'.
+ * 
+ * @author André Pankraz
+ */
 public class LOAD extends Operation {
 
 	private final T t;
 
-	private final int varIndex;
+	private final int reg;
 
-	public LOAD(final int pc, final int code, final int line, final T t,
-			final int varIndex) {
+	public LOAD(final int pc, final int code, final int line, final T t, final int reg) {
 		super(pc, code, line);
 
 		assert t != null;
 
 		this.t = t;
-		this.varIndex = varIndex;
+		this.reg = reg;
 	}
 
 	@Override
@@ -53,17 +57,17 @@ public class LOAD extends Operation {
 		return Opcode.LOAD;
 	}
 
+	public int getReg() {
+		return this.reg;
+	}
+
 	public T getT() {
 		return this.t;
 	}
 
-	public int getVarIndex() {
-		return this.varIndex;
-	}
-
 	@Override
 	public String toString() {
-		return super.toString() + " " + getVarIndex();
+		return super.toString() + " " + getReg();
 	}
 
 }

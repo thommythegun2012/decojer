@@ -127,13 +127,8 @@ public class TrIvmCfg2JavaExprStmts {
 	private final static Logger LOGGER = Logger.getLogger(TrIvmCfg2JavaExprStmts.class.getName());
 
 	public static void transform(final CFG cfg) {
-		try {
-			new TrIvmCfg2JavaExprStmts(cfg).transform();
-			cfg.calculatePostorder(); // blocks deleted...
-		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
-			cfg.setError(true);
-		}
+		new TrIvmCfg2JavaExprStmts(cfg).transform();
+		cfg.calculatePostorder(); // blocks deleted...
 	}
 
 	public static void transform(final TD td) {
@@ -148,7 +143,12 @@ public class TrIvmCfg2JavaExprStmts {
 			if (cfg == null || cfg.isIgnore()) {
 				continue;
 			}
-			transform(cfg);
+			try {
+				transform(cfg);
+			} catch (final Exception e) {
+				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+				cfg.setError(true);
+			}
 		}
 	}
 
@@ -380,7 +380,7 @@ public class TrIvmCfg2JavaExprStmts {
 			}
 			case Opcode.INC: {
 				final INC op = (INC) operation;
-				final int value = op.getConstValue();
+				final int value = op.getValue();
 
 				if (bb.getExpressionsSize() == 0) {
 					if (value == 1 || value == -1) {
@@ -388,7 +388,7 @@ public class TrIvmCfg2JavaExprStmts {
 						prefixExpression
 								.setOperator(value == 1 ? PrefixExpression.Operator.INCREMENT
 										: PrefixExpression.Operator.DECREMENT);
-						final String name = this.cfg.getVarName(op.getPc() + 1, op.getVarIndex());
+						final String name = this.cfg.getVarName(op.getPc() + 1, op.getReg());
 						prefixExpression.setOperand(getAst().newSimpleName(name));
 						statement = getAst().newExpressionStatement(prefixExpression);
 					} else {
@@ -682,7 +682,7 @@ public class TrIvmCfg2JavaExprStmts {
 			case Opcode.LOAD: {
 				final LOAD op = (LOAD) operation;
 
-				final String name = this.cfg.getVarName(op.getPc(), op.getVarIndex());
+				final String name = this.cfg.getVarName(op.getPc(), op.getReg());
 				if ("this".equals(name)) {
 					bb.pushExpression(getAst().newThisExpression());
 				} else {
@@ -745,7 +745,7 @@ public class TrIvmCfg2JavaExprStmts {
 							if (td.getPd() == null) {
 								getCu().addTd(td);
 							}
-							td.setPd(getMd());
+							td.setPd(this.cfg.getMd());
 
 							final AnonymousClassDeclaration anonymousClassDeclaration = getAst()
 									.newAnonymousClassDeclaration();
@@ -814,7 +814,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final PUT op = (PUT) operation;
 				final Expression rightExpression = bb.popExpression();
 				final F f = op.getF();
-				final M m = getMd().getM();
+				final M m = this.cfg.getMd().getM();
 				fieldInit: if (m.getT() == f.getT()) {
 					// set local field, could be initializer
 					if (f.checkAf(AF.STATIC)) {
@@ -921,7 +921,7 @@ public class TrIvmCfg2JavaExprStmts {
 				// TODO a = a <op> expr => a <op>= expr
 				assignment.setRightHandSide(wrap(rightExpression, priority(assignment)));
 
-				String name = this.cfg.getVarName(op.getPc() + 1, op.getVarIndex());
+				String name = this.cfg.getVarName(op.getPc() + 1, op.getReg());
 				if ("this".equals(name)) {
 					name = "_this"; // TODO can happen before synchronized(this)
 				}
@@ -996,20 +996,12 @@ public class TrIvmCfg2JavaExprStmts {
 		return getCu().getAst();
 	}
 
-	private CFG getCfg() {
-		return this.cfg;
-	}
-
 	private CU getCu() {
 		return getTd().getCu();
 	}
 
-	private MD getMd() {
-		return getCfg().getMd();
-	}
-
 	private TD getTd() {
-		return getMd().getTd();
+		return this.cfg.getMd().getTd();
 	}
 
 	private void transform() {

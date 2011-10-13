@@ -27,14 +27,18 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'PUSH'.
+ * 
+ * @author André Pankraz
+ */
 public class PUSH extends Operation {
 
 	private final T t;
 
 	private final Object value;
 
-	public PUSH(final int pc, final int code, final int line, final T t,
-			final Object value) {
+	public PUSH(final int pc, final int code, final int line, final T t, final Object value) {
 		super(pc, code, line);
 		this.t = t;
 		this.value = value;
@@ -60,8 +64,7 @@ public class PUSH extends Operation {
 
 	@Override
 	public String toString() {
-		return super.toString() + " "
-				+ (this.value instanceof String ? "\"...\"" : this.value);
+		return super.toString() + " " + (this.value instanceof String ? "\"...\"" : this.value);
 	}
 
 }

@@ -27,14 +27,18 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'CAST'.
+ * 
+ * @author André Pankraz
+ */
 public class CAST extends Operation {
 
 	private final T t;
 
 	private final T toT;
 
-	public CAST(final int pc, final int code, final int line, final T t,
-			final T toT) {
+	public CAST(final int pc, final int code, final int line, final T t, final T toT) {
 		super(pc, code, line);
 		this.t = t;
 		this.toT = toT;

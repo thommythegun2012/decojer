@@ -26,6 +26,11 @@ package org.decojer.cavaj.model.vm.intermediate.operations;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'DUP'.
+ * 
+ * @author André Pankraz
+ */
 public class DUP extends Operation {
 
 	public static final int T_DUP = 0;

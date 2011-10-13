@@ -28,6 +28,11 @@ import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'PUT'.
+ * 
+ * @author André Pankraz
+ */
 public class PUT extends Operation {
 
 	private final F f;
