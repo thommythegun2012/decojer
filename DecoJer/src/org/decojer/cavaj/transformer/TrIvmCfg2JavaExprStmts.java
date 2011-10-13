@@ -50,6 +50,7 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
+import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
 import org.decojer.cavaj.model.vm.intermediate.operations.ALOAD;
 import org.decojer.cavaj.model.vm.intermediate.operations.AND;
@@ -388,7 +389,7 @@ public class TrIvmCfg2JavaExprStmts {
 						prefixExpression
 								.setOperator(value == 1 ? PrefixExpression.Operator.INCREMENT
 										: PrefixExpression.Operator.DECREMENT);
-						final String name = this.cfg.getVarName(op.getPc() + 1, op.getReg());
+						final String name = getVarName(op.getReg(), op.getPc());
 						prefixExpression.setOperand(getAst().newSimpleName(name));
 						statement = getAst().newExpressionStatement(prefixExpression);
 					} else {
@@ -682,7 +683,7 @@ public class TrIvmCfg2JavaExprStmts {
 			case Opcode.LOAD: {
 				final LOAD op = (LOAD) operation;
 
-				final String name = this.cfg.getVarName(op.getPc(), op.getReg());
+				final String name = getVarName(op.getReg(), op.getPc());
 				if ("this".equals(name)) {
 					bb.pushExpression(getAst().newThisExpression());
 				} else {
@@ -921,7 +922,9 @@ public class TrIvmCfg2JavaExprStmts {
 				// TODO a = a <op> expr => a <op>= expr
 				assignment.setRightHandSide(wrap(rightExpression, priority(assignment)));
 
-				String name = this.cfg.getVarName(op.getPc() + 1, op.getReg());
+				// TODO STORE.pc in DALVIK sucks now...multiple ops share pc
+				String name = getVarName(op.getReg(), operations.isEmpty() ? op.getPc() + 1
+						: operations.get(0).getPc());
 				if ("this".equals(name)) {
 					name = "_this"; // TODO can happen before synchronized(this)
 				}
@@ -1002,6 +1005,12 @@ public class TrIvmCfg2JavaExprStmts {
 
 	private TD getTd() {
 		return this.cfg.getMd().getTd();
+	}
+
+	private String getVarName(final int reg, final int pc) {
+		final Var var = this.cfg.getFrameVar(reg, pc);
+		final String name = var == null ? null : var.getName();
+		return name == null ? "r" + reg : name;
 	}
 
 	private void transform() {

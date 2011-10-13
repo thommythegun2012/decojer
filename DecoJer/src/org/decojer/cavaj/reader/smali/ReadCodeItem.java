@@ -178,6 +178,7 @@ public class ReadCodeItem {
 		final CFG cfg = new CFG(md, codeItem.getRegisterCount(), 0);
 		md.setCFG(cfg);
 
+		// TODO rewrite adresses! wrong now
 		this.readDebugInfo.initAndVisit(md, codeItem.getDebugInfo());
 		cfg.postProcessVars();
 

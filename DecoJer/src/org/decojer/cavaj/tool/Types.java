@@ -42,8 +42,7 @@ import org.eclipse.jdt.core.dom.TypeLiteral;
  */
 public class Types {
 
-	private final static Logger LOGGER = Logger
-			.getLogger(Types.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(Types.class.getName());
 
 	/**
 	 * Convert literal.
@@ -58,8 +57,8 @@ public class Types {
 	 *            abstract syntax tree
 	 * @return Eclipse literal expression
 	 */
-	public static Expression convertLiteral(final T t, final Object value,
-			final TD td, final AST ast) {
+	public static Expression convertLiteral(final T t, final Object value, final TD td,
+			final AST ast) {
 		if (t instanceof T.TT) {
 			LOGGER.warning("Multi-type '" + t + "'!");
 			final T[] ts = ((T.TT) t).getTs();
@@ -88,11 +87,11 @@ public class Types {
 			} else if (value instanceof Number) {
 				return ast.newBooleanLiteral(((Number) value).intValue() != 0);
 			} else {
-				LOGGER.warning("Boolean type with value '" + value
-						+ "' has type '" + value.getClass().getName() + "'!");
+				LOGGER.warning("Boolean type with value '" + value + "' has type '"
+						+ value.getClass().getName() + "'!");
 			}
-			return ast.newBooleanLiteral(value instanceof String ? Boolean
-					.valueOf((String) value) : value != null);
+			return ast.newBooleanLiteral(value instanceof String ? Boolean.valueOf((String) value)
+					: value != null);
 		}
 		if (t == T.BYTE) {
 			if (value instanceof Number) {
@@ -106,18 +105,17 @@ public class Types {
 							ast.newSimpleName("MIN_VALUE"));
 				}
 			} else {
-				LOGGER.warning("Byte type with value '" + value
-						+ "' has type '" + value.getClass().getName() + "'!");
+				LOGGER.warning("Byte type with value '" + value + "' has type '"
+						+ value.getClass().getName() + "'!");
 			}
 			return ast.newNumberLiteral(value.toString());
 		}
 		if (t == T.CHAR) {
-			if (value instanceof Character || value instanceof Number
-					|| value instanceof String
+			if (value instanceof Character || value instanceof Number || value instanceof String
 					&& ((String) value).length() == 1) {
 				final char c = value instanceof Character ? (Character) value
-						: value instanceof Number ? (char) ((Number) value)
-								.intValue() : ((String) value).charAt(0);
+						: value instanceof Number ? (char) ((Number) value).intValue()
+								: ((String) value).charAt(0);
 				switch (c) {
 				case Character.MAX_VALUE:
 					return ast.newQualifiedName(ast.newSimpleName("Character"),
@@ -127,48 +125,43 @@ public class Types {
 							ast.newSimpleName("MIN_VALUE"));
 				case Character.MAX_HIGH_SURROGATE:
 					if (td.getVersion() >= 49) {
-						return ast.newQualifiedName(
-								ast.newSimpleName("Character"),
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MAX_HIGH_SURROGATE"));
 					}
 					break;
 				case Character.MAX_LOW_SURROGATE:
 					if (td.getVersion() >= 49) {
-						return ast.newQualifiedName(
-								ast.newSimpleName("Character"),
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MAX_LOW_SURROGATE"));
 					}
 					break;
 				case Character.MIN_HIGH_SURROGATE:
 					if (td.getVersion() >= 49) {
-						return ast.newQualifiedName(
-								ast.newSimpleName("Character"),
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MIN_HIGH_SURROGATE"));
 					}
 					break;
 				case Character.MIN_LOW_SURROGATE:
 					if (td.getVersion() >= 49) {
-						return ast.newQualifiedName(
-								ast.newSimpleName("Character"),
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MIN_LOW_SURROGATE"));
 					}
 					break;
 				}
-				final CharacterLiteral characterLiteral = ast
-						.newCharacterLiteral();
+				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
 				characterLiteral.setCharValue(c);
 				return characterLiteral;
 			} else {
-				LOGGER.warning("Character type with value '" + value
-						+ "' has type '" + value.getClass().getName() + "'!");
+				LOGGER.warning("Character type with value '" + value + "' has type '"
+						+ value.getClass().getName() + "'!");
 			}
 			// char is per default 'X'
 			return ast.newCharacterLiteral();
 		}
 		if (t == T.DOUBLE) {
 			if (value instanceof Double || value instanceof Long) {
-				final double d = value instanceof Double ? (Double) value
-						: Double.longBitsToDouble((Long) value);
+				final double d = value instanceof Double ? (Double) value : Double
+						.longBitsToDouble((Long) value);
 				if (Double.isNaN(d)) {
 					return ast.newQualifiedName(ast.newSimpleName("Double"),
 							ast.newSimpleName("NaN"));
@@ -191,14 +184,14 @@ public class Types {
 				}
 				if (d == Double.MIN_NORMAL) {
 					if (td.getVersion() >= 50) {
-						return ast.newQualifiedName(
-								ast.newSimpleName("Double"),
+						return ast.newQualifiedName(ast.newSimpleName("Double"),
 								ast.newSimpleName("MIN_NORMAL"));
 					}
 				}
+				return ast.newNumberLiteral(Double.toString(d) + 'D');
 			} else {
-				LOGGER.warning("Double type with value '" + value
-						+ "' has type '" + value.getClass().getName() + "'!");
+				LOGGER.warning("Double type with value '" + value + "' has type '"
+						+ value.getClass().getName() + "'!");
 			}
 			return ast.newNumberLiteral(value.toString() + 'D');
 		}
@@ -232,9 +225,10 @@ public class Types {
 								ast.newSimpleName("MIN_NORMAL"));
 					}
 				}
+				return ast.newNumberLiteral(Float.toString(f) + 'D');
 			} else {
-				LOGGER.warning("Float type with value '" + value
-						+ "' has type '" + value.getClass().getName() + "'!");
+				LOGGER.warning("Float type with value '" + value + "' has type '"
+						+ value.getClass().getName() + "'!");
 			}
 			return ast.newNumberLiteral(value.toString() + 'F');
 		}
@@ -250,8 +244,8 @@ public class Types {
 							ast.newSimpleName("MIN_VALUE"));
 				}
 			} else {
-				LOGGER.warning("Integer type with value '" + value
-						+ "' has type '" + value.getClass().getName() + "'!");
+				LOGGER.warning("Integer type with value '" + value + "' has type '"
+						+ value.getClass().getName() + "'!");
 			}
 			return ast.newNumberLiteral(value.toString());
 		}
@@ -267,8 +261,8 @@ public class Types {
 							ast.newSimpleName("MIN_VALUE"));
 				}
 			} else {
-				LOGGER.warning("Long type with value '" + value
-						+ "' has type '" + value.getClass().getName() + "'!");
+				LOGGER.warning("Long type with value '" + value + "' has type '"
+						+ value.getClass().getName() + "'!");
 			}
 			return ast.newNumberLiteral(value.toString() + 'L');
 		}
@@ -284,8 +278,8 @@ public class Types {
 							ast.newSimpleName("MIN_VALUE"));
 				}
 			} else {
-				LOGGER.warning("Short type with value '" + value
-						+ "' has type '" + value.getClass().getName() + "'!");
+				LOGGER.warning("Short type with value '" + value + "' has type '"
+						+ value.getClass().getName() + "'!");
 			}
 			return ast.newNumberLiteral(value.toString());
 		}
