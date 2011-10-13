@@ -26,6 +26,11 @@ package org.decojer.cavaj.model.vm.intermediate.operations;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'SWITCH'.
+ * 
+ * @author André Pankraz
+ */
 public class SWITCH extends Operation {
 
 	private int[] caseKeys;

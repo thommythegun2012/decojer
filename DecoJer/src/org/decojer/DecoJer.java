@@ -49,7 +49,6 @@ import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
 import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformer.TrMergeAll;
-import org.decojer.cavaj.transformer.TrQualifiedNames2Imports;
 import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.util.MagicNumbers;
 
@@ -177,7 +176,6 @@ public class DecoJer {
 		// if all is OK and source attribute is OK, add source code siblings
 
 		TrMergeAll.transform(cu);
-		TrQualifiedNames2Imports.transform(cu);
 
 		if (cu.isStartTdOnly()) {
 			cu.setSourceFileName(cu.getStartTd().getT().getPName() + ".java");

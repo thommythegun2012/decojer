@@ -26,6 +26,11 @@ package org.decojer.cavaj.model.vm.intermediate.operations;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'POP'.
+ * 
+ * @author André Pankraz
+ */
 public class POP extends Operation {
 
 	public static final int T_POP = 0;

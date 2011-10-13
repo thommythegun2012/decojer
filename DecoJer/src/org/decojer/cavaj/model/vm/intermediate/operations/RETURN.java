@@ -27,6 +27,11 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'RETURN'.
+ * 
+ * @author André Pankraz
+ */
 public class RETURN extends Operation {
 
 	private final T t;

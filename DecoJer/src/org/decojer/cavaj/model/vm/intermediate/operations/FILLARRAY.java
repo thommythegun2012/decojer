@@ -26,6 +26,11 @@ package org.decojer.cavaj.model.vm.intermediate.operations;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'FILLARRAY'.
+ * 
+ * @author André Pankraz
+ */
 public class FILLARRAY extends Operation {
 
 	private Object[] values;

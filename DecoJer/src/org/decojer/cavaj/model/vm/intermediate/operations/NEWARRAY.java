@@ -27,14 +27,18 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'NEWARRAY'.
+ * 
+ * @author André Pankraz
+ */
 public class NEWARRAY extends Operation {
 
 	private final int dimensions;
 
 	private final T t;
 
-	public NEWARRAY(final int pc, final int code, final int line, final T t,
-			final int dimensions) {
+	public NEWARRAY(final int pc, final int code, final int line, final T t, final int dimensions) {
 		super(pc, code, line);
 		this.t = t;
 		this.dimensions = dimensions;

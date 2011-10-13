@@ -27,6 +27,11 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'OR'.
+ * 
+ * @author André Pankraz
+ */
 public class OR extends Operation {
 
 	private final T t;

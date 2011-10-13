@@ -26,6 +26,11 @@ package org.decojer.cavaj.model.vm.intermediate.operations;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'MONITOR'.
+ * 
+ * @author André Pankraz
+ */
 public class MONITOR extends Operation {
 
 	public static final int T_ENTER = 0;
@@ -34,8 +39,7 @@ public class MONITOR extends Operation {
 
 	private final int monitorType;
 
-	public MONITOR(final int pc, final int code, final int line,
-			final int monitorType) {
+	public MONITOR(final int pc, final int code, final int line, final int monitorType) {
 		super(pc, code, line);
 		this.monitorType = monitorType;
 	}
@@ -56,8 +60,7 @@ public class MONITOR extends Operation {
 
 	@Override
 	public String toString() {
-		return super.toString() + " "
-				+ new String[] { "ENTER", "EXIT" }[this.monitorType];
+		return super.toString() + " " + new String[] { "ENTER", "EXIT" }[this.monitorType];
 	}
 
 }

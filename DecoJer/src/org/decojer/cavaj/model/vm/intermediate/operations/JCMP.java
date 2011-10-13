@@ -28,6 +28,11 @@ import org.decojer.cavaj.model.vm.intermediate.CompareType;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'JCMP'.
+ * 
+ * @author André Pankraz
+ */
 public class JCMP extends Operation {
 
 	private final int cmpType;
@@ -36,8 +41,7 @@ public class JCMP extends Operation {
 
 	private int targetPc;
 
-	public JCMP(final int pc, final int code, final int line, final T t,
-			final int cmpType) {
+	public JCMP(final int pc, final int code, final int line, final T t, final int cmpType) {
 		super(pc, code, line);
 		this.t = t;
 		this.cmpType = cmpType;

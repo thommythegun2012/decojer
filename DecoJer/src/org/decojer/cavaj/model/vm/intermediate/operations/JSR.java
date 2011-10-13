@@ -26,6 +26,11 @@ package org.decojer.cavaj.model.vm.intermediate.operations;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'JSR'.
+ * 
+ * @author André Pankraz
+ */
 public class JSR extends Operation {
 
 	private int targetPc;

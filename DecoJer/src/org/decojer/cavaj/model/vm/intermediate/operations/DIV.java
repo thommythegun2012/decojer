@@ -27,6 +27,11 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'DIV'.
+ * 
+ * @author André Pankraz
+ */
 public class DIV extends Operation {
 
 	private final T t;

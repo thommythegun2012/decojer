@@ -26,6 +26,11 @@ package org.decojer.cavaj.model.vm.intermediate.operations;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'ARRAYLENGTH'.
+ * 
+ * @author André Pankraz
+ */
 public class ARRAYLENGTH extends Operation {
 
 	public ARRAYLENGTH(final int pc, final int code, final int line) {

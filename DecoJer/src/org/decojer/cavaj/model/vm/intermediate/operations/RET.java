@@ -26,13 +26,18 @@ package org.decojer.cavaj.model.vm.intermediate.operations;
 import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 
+/**
+ * Operation 'RET'.
+ * 
+ * @author André Pankraz
+ */
 public class RET extends Operation {
 
-	private final int varIndex;
+	private final int reg;
 
-	public RET(final int pc, final int code, final int line, final int varIndex) {
+	public RET(final int pc, final int code, final int line, final int reg) {
 		super(pc, code, line);
-		this.varIndex = varIndex;
+		this.reg = reg;
 	}
 
 	@Override
@@ -45,8 +50,8 @@ public class RET extends Operation {
 		return Opcode.RET;
 	}
 
-	public int getVarIndex() {
-		return this.varIndex;
+	public int getReg() {
+		return this.reg;
 	}
 
 }

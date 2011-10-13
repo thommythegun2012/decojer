@@ -88,12 +88,7 @@ public class TrDataFlowAnalysis {
 	private final static Logger LOGGER = Logger.getLogger(TrDataFlowAnalysis.class.getName());
 
 	public static void transform(final CFG cfg) {
-		try {
-			new TrDataFlowAnalysis(cfg).transform();
-		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
-			cfg.setError(true);
-		}
+		new TrDataFlowAnalysis(cfg).transform();
 	}
 
 	public static void transform(final TD td) {
@@ -107,7 +102,12 @@ public class TrDataFlowAnalysis {
 			if (cfg == null || cfg.isIgnore()) {
 				continue;
 			}
-			transform(cfg);
+			try {
+				transform(cfg);
+			} catch (final Exception e) {
+				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+				cfg.setError(true);
+			}
 		}
 	}
 
@@ -409,7 +409,7 @@ public class TrDataFlowAnalysis {
 			}
 			case Opcode.LOAD: {
 				final LOAD op = (LOAD) operation;
-				final Var var = getReg(frame, op.getVarIndex(), op.getT());
+				final Var var = getReg(frame, op.getReg(), op.getT());
 				push(frame, var); // OK
 				break;
 			}
@@ -508,7 +508,7 @@ public class TrDataFlowAnalysis {
 				final STORE op = (STORE) operation;
 				final Var pop = pop(frame, op.getT());
 
-				final int reg = op.getVarIndex();
+				final int reg = op.getReg();
 				final Var var = this.cfg.getVar(reg, this.pc + 1);
 
 				if (var != null) {
@@ -518,7 +518,7 @@ public class TrDataFlowAnalysis {
 					}
 				}
 
-				setReg(frame, op.getVarIndex(), var != null ? var : pop);
+				setReg(frame, op.getReg(), var != null ? var : pop);
 				break;
 			}
 			case Opcode.SUB: {
