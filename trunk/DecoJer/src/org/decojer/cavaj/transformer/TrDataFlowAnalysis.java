@@ -115,8 +115,6 @@ public class TrDataFlowAnalysis {
 
 	private Frame[] frames;
 
-	private Operation[] ops;
-
 	private int pc;
 
 	// sorted set superior to as a DFS queue here, because this algorithm has a stronger backward
@@ -218,8 +216,8 @@ public class TrDataFlowAnalysis {
 	}
 
 	private void transform() {
-		this.ops = this.cfg.getOperations();
-		this.frames = new Frame[this.ops.length];
+		final Operation[] operations = this.cfg.getOperations();
+		this.frames = new Frame[operations.length];
 		this.cfg.setFrames(this.frames); // assign early for debugging...
 		this.frames[0] = createMethodFrame();
 
@@ -236,7 +234,7 @@ public class TrDataFlowAnalysis {
 
 			// shallow copy of calculation frame
 			final Frame frame = new Frame(this.frames[this.pc]);
-			final Operation operation = this.ops[this.pc];
+			final Operation operation = operations[this.pc];
 			switch (operation.getOpcode()) {
 			case Opcode.ADD: {
 				final ADD op = (ADD) operation;
@@ -508,8 +506,8 @@ public class TrDataFlowAnalysis {
 				final STORE op = (STORE) operation;
 				final Var pop = pop(frame, op.getT());
 
-				final int reg = op.getReg();
-				final Var var = this.cfg.getVar(reg, this.pc + 1);
+				// TODO STORE.pc in DALVIK sucks now...multiple ops share pc
+				final Var var = this.cfg.getVar(op.getReg(), operations[this.pc + 1].getPc());
 
 				if (var != null) {
 					// TODO

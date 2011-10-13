@@ -223,6 +223,19 @@ public class CFG {
 	}
 
 	/**
+	 * Get local variable (from frame).
+	 * 
+	 * @param reg
+	 *            register
+	 * @param pc
+	 *            pc
+	 * @return local variable (from frame)
+	 */
+	public Var getFrameVar(final int reg, final int pc) {
+		return this.frames[pc].getReg(reg);
+	}
+
+	/**
 	 * Get immediate dominator (IDom) for basic block.
 	 * 
 	 * @param basicBlock
@@ -324,14 +337,14 @@ public class CFG {
 	}
 
 	/**
-	 * Get local variable.
+	 * Get local variable (from debug info).
 	 * 
 	 * @param reg
 	 *            register
 	 * @param pc
 	 *            pc
 	 * 
-	 * @return local variable
+	 * @return local variable (from debug info)
 	 */
 	public Var getVar(final int reg, final int pc) {
 		if (this.varss == null || reg >= this.varss.length) {
@@ -348,21 +361,6 @@ public class CFG {
 			}
 		}
 		return null;
-	}
-
-	public String getVarName(final int pc, final int regIndex) {
-		final Frame frame = this.frames[pc];
-		final int regsSize = frame.getRegsSize();
-		if (regIndex < regsSize) {
-			final Var var = frame.getReg(regIndex);
-			if (var != null) {
-				final String name = var.getName();
-				if (name != null) {
-					return name;
-				}
-			}
-		}
-		return "r" + regIndex;
 	}
 
 	private BB intersectIDoms(final BB b1, final BB b2) {
@@ -401,7 +399,7 @@ public class CFG {
 
 	/**
 	 * Post process local variables, e.g. extract method parameter. Better in read step than in
-	 * transformator for generic base model.
+	 * transformator for generic base model. Dalvik has parameter names separately encoded.
 	 */
 	public void postProcessVars() {
 		final M m = this.md.getM();

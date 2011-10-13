@@ -45,8 +45,7 @@ import org.jf.dexlib.Debug.DebugInstructionIterator.ProcessDecodedDebugInstructi
  */
 public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
-	private final static Logger LOGGER = Logger.getLogger(ReadDebugInfo.class
-			.getName());
+	private final static Logger LOGGER = Logger.getLogger(ReadDebugInfo.class.getName());
 
 	private CFG cfg;
 
@@ -107,22 +106,18 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 				m.setParamName(i, parameterNames[i].getStringValue());
 			}
 		}
-		DebugInstructionIterator.DecodeInstructions(debugInfo, md.getCfg()
-				.getMaxRegs(), this);
+		DebugInstructionIterator.DecodeInstructions(debugInfo, md.getCfg().getMaxRegs(), this);
 	}
 
 	@Override
-	public void ProcessEndLocal(final int codeAddress, final int length,
-			final int registerNum, final StringIdItem name,
-			final TypeIdItem type, final StringIdItem signature) {
-		System.out.println("*ProcessEndLocal: P" + codeAddress + " l"
-				+ getLine(codeAddress) + " N" + length + " r" + registerNum
-				+ " : " + name + " : " + type + " : " + signature);
+	public void ProcessEndLocal(final int codeAddress, final int length, final int registerNum,
+			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
+		System.out.println("*ProcessEndLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
+				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
 
 		final Var var = this.cfg.getVar(registerNum, codeAddress);
 		if (var == null) {
-			LOGGER.warning("ProcessEndLocal '" + registerNum
-					+ "' without ProcessStartLocal!");
+			LOGGER.warning("ProcessEndLocal '" + registerNum + "' without ProcessStartLocal!");
 			return;
 		}
 		var.setEndPc(codeAddress);
@@ -134,12 +129,10 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	}
 
 	@Override
-	public void ProcessRestartLocal(final int codeAddress, final int length,
-			final int registerNum, final StringIdItem name,
-			final TypeIdItem type, final StringIdItem signature) {
-		System.out.println("*RestartLocal: P" + codeAddress + " l"
-				+ getLine(codeAddress) + " N" + length + " r" + registerNum
-				+ " : " + name + " : " + type + " : " + signature);
+	public void ProcessRestartLocal(final int codeAddress, final int length, final int registerNum,
+			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
+		System.out.println("*RestartLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
+				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
 		// TODO whats that?
 	}
 
@@ -149,40 +142,35 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	}
 
 	@Override
-	public void ProcessSetFile(final int codeAddress, final int length,
-			final StringIdItem name) {
-		LOGGER.warning("Unknown stuff: ProcessSetFile: " + codeAddress + " : "
-				+ length + " : " + name);
+	public void ProcessSetFile(final int codeAddress, final int length, final StringIdItem name) {
+		LOGGER.warning("Unknown stuff: ProcessSetFile: " + codeAddress + " : " + length + " : "
+				+ name);
 	}
 
 	@Override
 	public void ProcessSetPrologueEnd(final int codeAddress) {
 		if (codeAddress != 0) {
-			LOGGER.warning("Unknown stuff: ProcessSetPrologueEnd: "
-					+ codeAddress);
+			LOGGER.warning("Unknown stuff: ProcessSetPrologueEnd: " + codeAddress);
 		}
 	}
 
 	@Override
-	public void ProcessStartLocal(final int codeAddress, final int length,
-			final int registerNum, final StringIdItem name,
-			final TypeIdItem type) {
+	public void ProcessStartLocal(final int codeAddress, final int length, final int registerNum,
+			final StringIdItem name, final TypeIdItem type) {
 		startLocal(codeAddress, length, registerNum, name, type, null);
 	}
 
 	@Override
-	public void ProcessStartLocalExtended(final int codeAddress,
-			final int length, final int registerNum, final StringIdItem name,
-			final TypeIdItem type, final StringIdItem signature) {
+	public void ProcessStartLocalExtended(final int codeAddress, final int length,
+			final int registerNum, final StringIdItem name, final TypeIdItem type,
+			final StringIdItem signature) {
 		startLocal(codeAddress, length, registerNum, name, type, signature);
 	}
 
-	private void startLocal(final int codeAddress, final int length,
-			final int registerNum, final StringIdItem name,
-			final TypeIdItem type, final StringIdItem signature) {
-		System.out.println("*startLocal: P" + codeAddress + " l"
-				+ getLine(codeAddress) + " N" + length + " r" + registerNum
-				+ " : " + name + " : " + type + " : " + signature);
+	private void startLocal(final int codeAddress, final int length, final int registerNum,
+			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
+		System.out.println("*startLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
+				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
 		final T varT = this.du.getDescT(type.getTypeDescriptor());
 		if (signature != null) {
 			varT.setSignature(signature.getStringValue());
