@@ -61,6 +61,8 @@ public class CFG {
 
 	private Frame[] frames;
 
+	private boolean error;
+
 	private Operation[] operations;
 
 	/**
@@ -92,8 +94,7 @@ public class CFG {
 		this.maxStack = maxStack;
 	}
 
-	private int _calculatePostorder(final int postorder, final BB bb,
-			final Set<BB> traversed) {
+	private int _calculatePostorder(final int postorder, final BB bb, final Set<BB> traversed) {
 		// DFS
 		traversed.add(bb);
 		int _postorder = postorder;
@@ -188,6 +189,7 @@ public class CFG {
 	public void clear() {
 		this.block = null;
 		this.frames = null;
+		this.error = false;
 		this.iDoms = null;
 		this.postorderedBbs = null;
 		this.startBb = null;
@@ -209,6 +211,15 @@ public class CFG {
 	 */
 	public Exc[] getExcs() {
 		return this.excs;
+	}
+
+	/**
+	 * Get frames.
+	 * 
+	 * @return frames
+	 */
+	public Object getFrames() {
+		return this.frames;
 	}
 
 	/**
@@ -304,8 +315,7 @@ public class CFG {
 	}
 
 	/**
-	 * Get start basic block. Should be the final block after all
-	 * transformations.
+	 * Get start basic block. Should be the final block after all transformations.
 	 * 
 	 * @return start basic block
 	 */
@@ -333,8 +343,7 @@ public class CFG {
 		}
 		for (int i = vars.length; i-- > 0;) {
 			final Var var = vars[i];
-			if (var.getStartPc() <= pc
-					&& (pc < var.getEndPc() || var.getEndPc() == 0)) {
+			if (var.getStartPc() <= pc && (pc < var.getEndPc() || var.getEndPc() == 0)) {
 				return var;
 			}
 		}
@@ -371,6 +380,15 @@ public class CFG {
 	}
 
 	/**
+	 * Should transformer ignore this?
+	 * 
+	 * @return true - ignore this
+	 */
+	public boolean isIgnore() {
+		return this.error || this.operations == null || this.operations.length == 0;
+	}
+
+	/**
 	 * New basic block.
 	 * 
 	 * @param opPc
@@ -382,8 +400,8 @@ public class CFG {
 	}
 
 	/**
-	 * Post process local variables, e.g. extract method parameter. Better in
-	 * read step than in transformator for generic base model.
+	 * Post process local variables, e.g. extract method parameter. Better in read step than in
+	 * transformator for generic base model.
 	 */
 	public void postProcessVars() {
 		final M m = this.md.getM();
@@ -411,8 +429,7 @@ public class CFG {
 				// and parameter types to local vars
 				Var[] vars = this.varss[--reg];
 				if (vars != null) {
-					LOGGER.warning("Found local variable info for method parameter '"
-							+ reg + "'!");
+					LOGGER.warning("Found local variable info for method parameter '" + reg + "'!");
 				}
 				// check
 				vars = new Var[1];
@@ -483,6 +500,16 @@ public class CFG {
 	 */
 	public void setBlock(final Block block) {
 		this.block = block;
+	}
+
+	/**
+	 * Set flag for error occured.
+	 * 
+	 * @param error
+	 *            error occured
+	 */
+	public void setError(final boolean error) {
+		this.error = error;
 	}
 
 	/**

@@ -50,11 +50,10 @@ import org.eclipse.jdt.core.dom.SwitchStatement;
  */
 public class TrControlFlowAnalysis {
 
-	private final static Logger LOGGER = Logger
-			.getLogger(TrControlFlowAnalysis.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(TrControlFlowAnalysis.class.getName());
 
-	private static boolean dfsFindInnerLoopMembers(final Loop loop,
-			final BB bb, final Set<BB> traversed) {
+	private static boolean dfsFindInnerLoopMembers(final Loop loop, final BB bb,
+			final Set<BB> traversed) {
 		// DFS
 		traversed.add(bb);
 		boolean loopSucc = false;
@@ -94,8 +93,7 @@ public class TrControlFlowAnalysis {
 			// find tail (no loopSucc!), pred member with biggest opPc
 			// TODO or biggest line number or further structure analyzis?
 			// TODO e.g. tail with >2 succ not possible, see warning
-			if (loop.getTail() == null
-					|| loop.getTail().getOrder() < bb.getOrder()) {
+			if (loop.getTail() == null || loop.getTail().getOrder() < bb.getOrder()) {
 				loop.setTail(bb);
 			}
 			return true;
@@ -104,8 +102,8 @@ public class TrControlFlowAnalysis {
 	}
 
 	// add successors till unknown predecessor node
-	private static void dfsFindTail(final List<BB> members,
-			final Set<BB> endNodes, final BB bb, final Struct struct) {
+	private static void dfsFindTail(final List<BB> members, final Set<BB> endNodes, final BB bb,
+			final Struct struct) {
 		// check important for switch fall-throughs with early member addition
 		if (!members.contains(bb)) {
 			if (bb.getPredBbs().size() <= 1) {
@@ -191,7 +189,12 @@ public class TrControlFlowAnalysis {
 	}
 
 	public static void transform(final CFG cfg) {
-		new TrControlFlowAnalysis(cfg).transform();
+		try {
+			new TrControlFlowAnalysis(cfg).transform();
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+			cfg.setError(true);
+		}
 	}
 
 	public static void transform(final TD td) {
@@ -202,8 +205,7 @@ public class TrControlFlowAnalysis {
 				continue;
 			}
 			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.getOperations() == null
-					|| cfg.getOperations().length == 0) {
+			if (cfg == null || cfg.isIgnore()) {
 				continue;
 			}
 			transform(cfg);
@@ -284,8 +286,7 @@ public class TrControlFlowAnalysis {
 		final Set<BB> secondEndNodes = new HashSet<BB>();
 		// don't follow back edges
 		if (headBb.getPostorder() >= secondBb.getPostorder()) {
-			dfsFindTail(secondMembers, secondEndNodes, secondBb,
-					cond.getParent());
+			dfsFindTail(secondMembers, secondEndNodes, secondBb, cond.getParent());
 		}
 		if (secondEndNodes.contains(firstBb)) {
 			// really bad, order is wrong!
@@ -310,15 +311,13 @@ public class TrControlFlowAnalysis {
 		// JDK 6: end node with smallest order could be the follow
 		BB firstEndNode = null;
 		for (final BB endNode : firstEndNodes) {
-			if (firstEndNode == null
-					|| firstEndNode.getOrder() > endNode.getOrder()) {
+			if (firstEndNode == null || firstEndNode.getOrder() > endNode.getOrder()) {
 				firstEndNode = endNode;
 			}
 		}
 		BB secondEndNode = null;
 		for (final BB endNode : secondEndNodes) {
-			if (secondEndNode == null
-					|| secondEndNode.getOrder() > endNode.getOrder()) {
+			if (secondEndNode == null || secondEndNode.getOrder() > endNode.getOrder()) {
 				secondEndNode = endNode;
 			}
 		}
@@ -348,8 +347,7 @@ public class TrControlFlowAnalysis {
 		// WHILE && FOR => only 1 head statement because of iteration back edge,
 		// FOR has trailing ExpressionStatements in the loop end node
 		final List<Statement> headStatements = headBb.getStatements();
-		if (headStatements.size() == 1
-				&& headStatements.get(0) instanceof IfStatement) {
+		if (headStatements.size() == 1 && headStatements.get(0) instanceof IfStatement) {
 			final BB trueSuccBb = headBb.getSuccBb(Boolean.TRUE);
 			final BB falseSuccBb = headBb.getSuccBb(Boolean.FALSE);
 			if (loop.isMember(trueSuccBb) && !loop.isMember(falseSuccBb)) {
@@ -453,13 +451,11 @@ public class TrControlFlowAnalysis {
 			return;
 		}
 		if (firstIndex == -1) {
-			log("Switch with head '"
-					+ headBb
+			log("Switch with head '" + headBb
 					+ "' has no case branch with 1 predecessor, necessary for first case!");
 			return;
 		} else if (firstIndex != 0) {
-			log("Switch with head '"
-					+ headBb
+			log("Switch with head '" + headBb
 					+ "' has no first case branch with 1 predecessor, reordering!");
 			final BB removedBb = succBbs.remove(firstIndex);
 			final Object removedValue = succValues.remove(firstIndex);
@@ -517,8 +513,7 @@ public class TrControlFlowAnalysis {
 			// TODO end node with smallest order could be the follow
 			BB switchEndNode = null;
 			for (final BB endNode : endNodes) {
-				if (switchEndNode == null
-						|| switchEndNode.getOrder() > endNode.getOrder()) {
+				if (switchEndNode == null || switchEndNode.getOrder() > endNode.getOrder()) {
 					switchEndNode = endNode;
 				}
 			}
@@ -543,37 +538,31 @@ public class TrControlFlowAnalysis {
 	}
 
 	private void transform() {
-		try {
-			final List<BB> bbs = getCfg().getPostorderedBbs();
-			// top down struct, find outer first
-			for (int postorder = bbs.size(); postorder-- > 0;) {
-				final BB bb = bbs.get(postorder);
-				// check loop first, could be a post / endless loop with
-				// additional
-				// sub struct heads
-				if (isLoopHead(bb)) {
-					final Loop loop = new Loop(bb);
-					findLoopMembers(loop);
-					if (loop.getType() == Loop.WHILE
-							|| loop.getType() == Loop.WHILENOT) {
-						// no additional struct head possible
-						continue;
-					}
-				}
-				if (isSwitchHead(bb)) {
-					final Switch switchStruct = new Switch(bb);
-					findSwitchMembers(switchStruct);
-					continue;
-				}
-				if (isCondHead(bb)) {
-					final Cond cond = new Cond(bb);
-					findCondMembers(cond);
+		final List<BB> bbs = getCfg().getPostorderedBbs();
+		// top down struct, find outer first
+		for (int postorder = bbs.size(); postorder-- > 0;) {
+			final BB bb = bbs.get(postorder);
+			// check loop first, could be a post / endless loop with
+			// additional
+			// sub struct heads
+			if (isLoopHead(bb)) {
+				final Loop loop = new Loop(bb);
+				findLoopMembers(loop);
+				if (loop.getType() == Loop.WHILE || loop.getType() == Loop.WHILENOT) {
+					// no additional struct head possible
 					continue;
 				}
 			}
-		} catch (final Exception e) {
-			log("Couldn't fully decompile CFG!", e);
-			// TODO integrate line comment, difficult in Eclipse AST?
+			if (isSwitchHead(bb)) {
+				final Switch switchStruct = new Switch(bb);
+				findSwitchMembers(switchStruct);
+				continue;
+			}
+			if (isCondHead(bb)) {
+				final Cond cond = new Cond(bb);
+				findCondMembers(cond);
+				continue;
+			}
 		}
 	}
 

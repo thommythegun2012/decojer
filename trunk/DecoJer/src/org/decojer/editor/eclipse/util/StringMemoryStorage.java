@@ -25,9 +25,9 @@ package org.decojer.editor.eclipse.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
-import org.eclipse.core.resources.IStorage;
-import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.resources.IEncodedStorage;
 import org.eclipse.core.runtime.IPath;
 
 /**
@@ -36,7 +36,7 @@ import org.eclipse.core.runtime.IPath;
  * @see StringInput
  * @author André Pankraz
  */
-public class MemoryStorage implements IStorage {
+public class StringMemoryStorage implements IEncodedStorage {
 
 	private final byte[] contents;
 
@@ -45,32 +45,48 @@ public class MemoryStorage implements IStorage {
 	/**
 	 * Constructor.
 	 * 
+	 * @param content
+	 *            Content
 	 * @param fullPath
 	 *            full path, important for faked compilation unit and outline
-	 * @param contents
-	 *            Content
 	 */
-	public MemoryStorage(final byte[] contents, final IPath fullPath) {
+	public StringMemoryStorage(final String content, final IPath fullPath) {
 		assert fullPath != null;
-		assert contents != null;
+		assert content != null;
 
 		this.fullPath = fullPath;
+		byte[] contents;
+		try {
+			contents = content.getBytes(getCharset());
+		} catch (final UnsupportedEncodingException e) {
+			// cannot really happen...
+			contents = content.getBytes();
+		}
 		this.contents = contents;
 	}
 
+	@Override
 	@SuppressWarnings("rawtypes")
 	public Object getAdapter(final Class adapter) {
 		return null;
 	}
 
-	public InputStream getContents() throws CoreException {
+	@Override
+	public String getCharset() {
+		return "UTF-8";
+	}
+
+	@Override
+	public InputStream getContents() {
 		return new ByteArrayInputStream(this.contents);
 	}
 
+	@Override
 	public IPath getFullPath() {
 		return this.fullPath;
 	}
 
+	@Override
 	public String getName() {
 		if (this.fullPath == null) {
 			return null;
@@ -79,6 +95,7 @@ public class MemoryStorage implements IStorage {
 		return lastSegment == null ? this.fullPath.toString() : lastSegment;
 	}
 
+	@Override
 	public boolean isReadOnly() {
 		return true;
 	}

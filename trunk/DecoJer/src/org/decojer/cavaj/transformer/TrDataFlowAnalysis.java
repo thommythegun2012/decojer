@@ -25,6 +25,7 @@ package org.decojer.cavaj.transformer;
 
 import java.util.List;
 import java.util.TreeSet;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
@@ -87,7 +88,12 @@ public class TrDataFlowAnalysis {
 	private final static Logger LOGGER = Logger.getLogger(TrDataFlowAnalysis.class.getName());
 
 	public static void transform(final CFG cfg) {
-		new TrDataFlowAnalysis(cfg).transform();
+		try {
+			new TrDataFlowAnalysis(cfg).transform();
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+			cfg.setError(true);
+		}
 	}
 
 	public static void transform(final TD td) {
@@ -98,7 +104,7 @@ public class TrDataFlowAnalysis {
 				continue;
 			}
 			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.getOperations() == null || cfg.getOperations().length == 0) {
+			if (cfg == null || cfg.isIgnore()) {
 				continue;
 			}
 			transform(cfg);
@@ -214,6 +220,7 @@ public class TrDataFlowAnalysis {
 	private void transform() {
 		this.ops = this.cfg.getOperations();
 		this.frames = new Frame[this.ops.length];
+		this.cfg.setFrames(this.frames); // assign early for debugging...
 		this.frames[0] = createMethodFrame();
 
 		this.queue.clear();
@@ -553,8 +560,6 @@ public class TrDataFlowAnalysis {
 			}
 			merge(frame, this.pc + 1);
 		}
-
-		this.cfg.setFrames(this.frames);
 	}
 
 }
