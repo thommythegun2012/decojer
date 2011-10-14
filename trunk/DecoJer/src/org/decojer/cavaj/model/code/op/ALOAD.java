@@ -40,8 +40,8 @@ public class ALOAD extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.ALOAD;
+	public Optype getOptype() {
+		return Optype.ALOAD;
 	}
 
 	public T getT() {

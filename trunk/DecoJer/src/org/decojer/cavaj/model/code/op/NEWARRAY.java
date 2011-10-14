@@ -52,8 +52,8 @@ public class NEWARRAY extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.NEWARRAY;
+	public Optype getOptype() {
+		return Optype.NEWARRAY;
 	}
 
 	public T getT() {

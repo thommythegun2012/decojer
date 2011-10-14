@@ -59,8 +59,8 @@ public class DUP extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.DUP;
+	public Optype getOptype() {
+		return Optype.DUP;
 	}
 
 	@Override

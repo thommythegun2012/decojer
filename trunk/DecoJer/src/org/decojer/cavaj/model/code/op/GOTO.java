@@ -37,8 +37,8 @@ public class GOTO extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.GOTO;
+	public Optype getOptype() {
+		return Optype.GOTO;
 	}
 
 	public int getTargetPc() {

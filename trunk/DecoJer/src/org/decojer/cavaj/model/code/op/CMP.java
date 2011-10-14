@@ -53,8 +53,8 @@ public class CMP extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.CMP;
+	public Optype getOptype() {
+		return Optype.CMP;
 	}
 
 	public T getT() {

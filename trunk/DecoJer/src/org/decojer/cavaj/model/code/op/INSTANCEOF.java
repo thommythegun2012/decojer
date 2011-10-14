@@ -40,8 +40,8 @@ public class INSTANCEOF extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.INSTANCEOF;
+	public Optype getOptype() {
+		return Optype.INSTANCEOF;
 	}
 
 	public T getT() {

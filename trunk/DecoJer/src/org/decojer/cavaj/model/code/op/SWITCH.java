@@ -53,8 +53,8 @@ public class SWITCH extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.SWITCH;
+	public Optype getOptype() {
+		return Optype.SWITCH;
 	}
 
 	public void setCaseKeys(final int[] caseKeys) {

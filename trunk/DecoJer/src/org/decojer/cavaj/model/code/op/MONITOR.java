@@ -46,8 +46,8 @@ public class MONITOR extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.MONITOR;
+	public Optype getOptype() {
+		return Optype.MONITOR;
 	}
 
 	@Override

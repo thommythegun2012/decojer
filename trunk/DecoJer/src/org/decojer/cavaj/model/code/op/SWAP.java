@@ -35,8 +35,8 @@ public class SWAP extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.SWAP;
+	public Optype getOptype() {
+		return Optype.SWAP;
 	}
 
 }

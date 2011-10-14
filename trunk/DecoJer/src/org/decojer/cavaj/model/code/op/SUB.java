@@ -40,8 +40,8 @@ public class SUB extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.SUB;
+	public Optype getOptype() {
+		return Optype.SUB;
 	}
 
 	public T getT() {

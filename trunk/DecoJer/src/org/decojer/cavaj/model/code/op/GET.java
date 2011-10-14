@@ -55,8 +55,8 @@ public class GET extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.GET;
+	public Optype getOptype() {
+		return Optype.GET;
 	}
 
 	@Override

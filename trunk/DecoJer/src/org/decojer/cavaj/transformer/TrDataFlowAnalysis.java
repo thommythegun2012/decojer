@@ -234,7 +234,7 @@ public class TrDataFlowAnalysis {
 			// shallow copy of calculation frame
 			final Frame frame = new Frame(this.frames[this.pc]);
 			final Operation operation = operations[this.pc];
-			switch (operation.getOpcode()) {
+			switch (operation.getOptype()) {
 			case ADD: {
 				final ADD op = (ADD) operation;
 				evalBinaryMath(frame, op.getT());

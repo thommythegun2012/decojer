@@ -35,8 +35,8 @@ public class THROW extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.THROW;
+	public Optype getOptype() {
+		return Optype.THROW;
 	}
 
 }

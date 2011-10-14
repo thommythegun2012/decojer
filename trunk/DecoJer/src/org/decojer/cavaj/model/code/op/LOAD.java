@@ -46,8 +46,8 @@ public class LOAD extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.LOAD;
+	public Optype getOptype() {
+		return Optype.LOAD;
 	}
 
 	public int getReg() {

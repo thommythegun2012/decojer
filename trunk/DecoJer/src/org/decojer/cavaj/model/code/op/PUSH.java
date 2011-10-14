@@ -43,8 +43,8 @@ public class PUSH extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.PUSH;
+	public Optype getOptype() {
+		return Optype.PUSH;
 	}
 
 	public T getT() {

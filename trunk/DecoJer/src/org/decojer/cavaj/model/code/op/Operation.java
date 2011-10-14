@@ -30,7 +30,7 @@ package org.decojer.cavaj.model.code.op;
  */
 public abstract class Operation {
 
-	private final int code;
+	private final int opcode;
 
 	private final int line;
 
@@ -40,30 +40,16 @@ public abstract class Operation {
 	 * Constructor.
 	 * 
 	 * @param pc
-	 *            (if possible original) pc
-	 * @param code
-	 *            (if possible original JVM or Dalvik) operation code
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
 	 * @param line
-	 *            operation line number
+	 *            line number
 	 */
-	public Operation(final int pc, final int code, final int line) {
+	public Operation(final int pc, final int opcode, final int line) {
 		this.pc = pc;
-		this.code = code;
+		this.opcode = opcode;
 		this.line = line;
-	}
-
-	@Override
-	public boolean equals(final Object ob) {
-		return ob instanceof Operation && getPc() == ((Operation) ob).getPc();
-	}
-
-	/**
-	 * Get (if possible original JVM or Dalvik) operation code.
-	 * 
-	 * @return operation code
-	 */
-	public int getCode() {
-		return this.code;
 	}
 
 	/**
@@ -72,7 +58,7 @@ public abstract class Operation {
 	 * @return input stack size
 	 */
 	public int getInStackSize() {
-		return getOpcode().getInStackSize();
+		return getOptype().getInStackSize();
 	}
 
 	/**
@@ -85,11 +71,20 @@ public abstract class Operation {
 	}
 
 	/**
+	 * Get (if possible original JVM or Dalvik) operation code.
+	 * 
+	 * @return operation code
+	 */
+	public int getOpcode() {
+		return this.opcode;
+	}
+
+	/**
 	 * Get operation code.
 	 * 
 	 * @return operation code
 	 */
-	public abstract Opcode getOpcode();
+	public abstract Optype getOptype();
 
 	/**
 	 * Get (if possible original) pc.
@@ -98,11 +93,6 @@ public abstract class Operation {
 	 */
 	public int getPc() {
 		return this.pc;
-	}
-
-	@Override
-	public int hashCode() {
-		return getPc(); // super.hashCode();
 	}
 
 	@Override

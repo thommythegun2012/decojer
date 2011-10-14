@@ -58,8 +58,8 @@ public class INVOKE extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.INVOKE;
+	public Optype getOptype() {
+		return Optype.INVOKE;
 	}
 
 	/**

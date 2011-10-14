@@ -45,8 +45,8 @@ public class RETURN extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.RETURN;
+	public Optype getOptype() {
+		return Optype.RETURN;
 	}
 
 	public T getT() {

@@ -38,8 +38,8 @@ public class RET extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.RET;
+	public Optype getOptype() {
+		return Optype.RET;
 	}
 
 	public int getReg() {

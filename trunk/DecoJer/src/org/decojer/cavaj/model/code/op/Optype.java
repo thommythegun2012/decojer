@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.model.code.op;
 
-public enum Opcode {
+public enum Optype {
 
 	ADD(2),
 
@@ -109,7 +109,7 @@ public enum Opcode {
 	 * Constructor.
 	 * 
 	 */
-	private Opcode(final int inStackSize) {
+	private Optype(final int inStackSize) {
 		this.inStackSize = inStackSize;
 	}
 

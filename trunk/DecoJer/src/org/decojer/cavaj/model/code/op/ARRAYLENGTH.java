@@ -35,8 +35,8 @@ public class ARRAYLENGTH extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.ARRAYLENGTH;
+	public Optype getOptype() {
+		return Optype.ARRAYLENGTH;
 	}
 
 }

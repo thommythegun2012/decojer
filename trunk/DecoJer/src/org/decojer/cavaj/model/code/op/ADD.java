@@ -40,8 +40,8 @@ public class ADD extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.ADD;
+	public Optype getOptype() {
+		return Optype.ADD;
 	}
 
 	public T getT() {

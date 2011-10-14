@@ -166,7 +166,7 @@ public class TrInitControlFlowGraph {
 
 			final Operation operation = operations[pc++];
 			bb.addOperation(operation);
-			switch (operation.getOpcode()) {
+			switch (operation.getOptype()) {
 			case GOTO: {
 				final GOTO op = (GOTO) operation;
 				pc = op.getTargetPc();

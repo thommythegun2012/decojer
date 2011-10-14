@@ -40,8 +40,8 @@ public class REM extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.REM;
+	public Optype getOptype() {
+		return Optype.REM;
 	}
 
 	public T getT() {

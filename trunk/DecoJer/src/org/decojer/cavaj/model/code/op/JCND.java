@@ -50,8 +50,8 @@ public class JCND extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.JCND;
+	public Optype getOptype() {
+		return Optype.JCND;
 	}
 
 	public T getT() {

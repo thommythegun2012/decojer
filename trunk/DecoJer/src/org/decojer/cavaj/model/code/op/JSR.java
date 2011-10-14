@@ -37,8 +37,8 @@ public class JSR extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.JSR;
+	public Optype getOptype() {
+		return Optype.JSR;
 	}
 
 	public int getTargetPc() {
