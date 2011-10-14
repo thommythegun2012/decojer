@@ -57,7 +57,7 @@ public class PUT extends Operation {
 	}
 
 	@Override
-	public int getOpcode() {
+	public Opcode getOpcode() {
 		return Opcode.PUT;
 	}
 

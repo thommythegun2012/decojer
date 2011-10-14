@@ -42,12 +42,7 @@ public class ASTORE extends Operation {
 	}
 
 	@Override
-	public int getInStackSize() {
-		return 3;
-	}
-
-	@Override
-	public int getOpcode() {
+	public Opcode getOpcode() {
 		return Opcode.ASTORE;
 	}
 

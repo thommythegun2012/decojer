@@ -67,11 +67,13 @@ public abstract class Operation {
 	}
 
 	/**
-	 * Get in stack size.
+	 * Get input stack size.
 	 * 
-	 * @return in stack size
+	 * @return input stack size
 	 */
-	public abstract int getInStackSize();
+	public int getInStackSize() {
+		return getOpcode().getInStackSize();
+	}
 
 	/**
 	 * Get operation line number (if debug info available).
@@ -87,7 +89,7 @@ public abstract class Operation {
 	 * 
 	 * @return operation code
 	 */
-	public abstract int getOpcode();
+	public abstract Opcode getOpcode();
 
 	/**
 	 * Get (if possible original) pc.

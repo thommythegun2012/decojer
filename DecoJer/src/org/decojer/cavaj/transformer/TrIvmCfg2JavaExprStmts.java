@@ -48,7 +48,6 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.vm.intermediate.CompareType;
-import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
@@ -170,14 +169,14 @@ public class TrIvmCfg2JavaExprStmts {
 			operations.remove(0);
 			Statement statement = null;
 			switch (operation.getOpcode()) {
-			case Opcode.ADD: {
+			case ADD: {
 				assert operation instanceof ADD;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.PLUS,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
-			case Opcode.ALOAD: {
+			case ALOAD: {
 				assert operation instanceof ALOAD;
 
 				final ArrayAccess arrayAccess = getAst().newArrayAccess();
@@ -186,14 +185,14 @@ public class TrIvmCfg2JavaExprStmts {
 				bb.pushExpression(arrayAccess);
 				break;
 			}
-			case Opcode.AND: {
+			case AND: {
 				assert operation instanceof AND;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.AND,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
-			case Opcode.ARRAYLENGTH: {
+			case ARRAYLENGTH: {
 				assert operation instanceof ARRAYLENGTH;
 
 				final Expression expression = bb.popExpression();
@@ -211,7 +210,7 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.ASTORE: {
+			case ASTORE: {
 				assert operation instanceof ASTORE;
 
 				final Expression rightExpression = bb.popExpression();
@@ -246,7 +245,7 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.CAST: {
+			case CAST: {
 				final CAST op = (CAST) operation;
 				final CastExpression castExpression = getAst().newCastExpression();
 				castExpression.setType(Types.convertType(op.getToT(), getTd(), getAst()));
@@ -254,7 +253,7 @@ public class TrIvmCfg2JavaExprStmts {
 				bb.pushExpression(castExpression);
 				break;
 			}
-			case Opcode.CMP: {
+			case CMP: {
 				assert operation instanceof CMP;
 
 				// pseudo expression for following JCND, not really the correct
@@ -263,14 +262,14 @@ public class TrIvmCfg2JavaExprStmts {
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
-			case Opcode.DIV: {
+			case DIV: {
 				assert operation instanceof DIV;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.DIVIDE,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
-			case Opcode.DUP: {
+			case DUP: {
 				final DUP op = (DUP) operation;
 				switch (op.getDupType()) {
 				case DUP.T_DUP:
@@ -332,7 +331,7 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.FILLARRAY: {
+			case FILLARRAY: {
 				final FILLARRAY op = (FILLARRAY) operation;
 
 				final Expression arrayRefExpression = bb.popExpression();
@@ -354,7 +353,7 @@ public class TrIvmCfg2JavaExprStmts {
 				bb.pushExpression(arrayCreation);
 				break;
 			}
-			case Opcode.GET: {
+			case GET: {
 				final GET op = (GET) operation;
 				final F f = op.getF();
 				if (f.checkAf(AF.STATIC)) {
@@ -370,7 +369,7 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.GOTO: {
+			case GOTO: {
 				// not really necessary, but important for
 				// 1) correct opPc blocks
 				// 2) line numbers
@@ -379,7 +378,7 @@ public class TrIvmCfg2JavaExprStmts {
 				// remember as pseudo statement? but problem with boolean ops
 				break;
 			}
-			case Opcode.INC: {
+			case INC: {
 				final INC op = (INC) operation;
 				final int value = op.getValue();
 
@@ -403,7 +402,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 				break;
 			}
-			case Opcode.INSTANCEOF: {
+			case INSTANCEOF: {
 				final INSTANCEOF op = (INSTANCEOF) operation;
 				final InstanceofExpression instanceofExpression = getAst()
 						.newInstanceofExpression();
@@ -414,7 +413,7 @@ public class TrIvmCfg2JavaExprStmts {
 				bb.pushExpression(instanceofExpression);
 				break;
 			}
-			case Opcode.INVOKE: {
+			case INVOKE: {
 				final INVOKE op = (INVOKE) operation;
 				final M m = op.getM();
 
@@ -542,7 +541,7 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.JCMP: {
+			case JCMP: {
 				final JCMP op = (JCMP) operation;
 				// invert all operators and switch out edge predicates
 				final InfixExpression.Operator operator;
@@ -574,7 +573,7 @@ public class TrIvmCfg2JavaExprStmts {
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
-			case Opcode.JCND: {
+			case JCND: {
 				final JCND op = (JCND) operation;
 				Expression expression = bb.popExpression();
 				// check preceding CMP
@@ -675,12 +674,12 @@ public class TrIvmCfg2JavaExprStmts {
 				((IfStatement) statement).setExpression(expression);
 				break;
 			}
-			case Opcode.JSR: {
+			case JSR: {
 				assert operation instanceof JSR;
 				// TODO
 				break;
 			}
-			case Opcode.LOAD: {
+			case LOAD: {
 				final LOAD op = (LOAD) operation;
 
 				final String name = getVarName(op.getReg(), op.getPc());
@@ -691,27 +690,27 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.MONITOR: {
+			case MONITOR: {
 				assert operation instanceof MONITOR;
 
 				bb.popExpression();
 				break;
 			}
-			case Opcode.MUL: {
+			case MUL: {
 				assert operation instanceof MUL;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.TIMES,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
-			case Opcode.NEG: {
+			case NEG: {
 				assert operation instanceof NEG;
 
 				bb.pushExpression(newPrefixExpression(PrefixExpression.Operator.MINUS,
 						bb.popExpression()));
 				break;
 			}
-			case Opcode.NEW: {
+			case NEW: {
 				final NEW op = (NEW) operation;
 
 				final ClassInstanceCreation classInstanceCreation = getAst()
@@ -766,7 +765,7 @@ public class TrIvmCfg2JavaExprStmts {
 				bb.pushExpression(classInstanceCreation);
 				break;
 			}
-			case Opcode.NEWARRAY: {
+			case NEWARRAY: {
 				final NEWARRAY op = (NEWARRAY) operation;
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
 				arrayCreation.setType(getAst().newArrayType(
@@ -775,14 +774,14 @@ public class TrIvmCfg2JavaExprStmts {
 				bb.pushExpression(arrayCreation);
 				break;
 			}
-			case Opcode.OR: {
+			case OR: {
 				assert operation instanceof OR;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.OR,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
-			case Opcode.POP: {
+			case POP: {
 				final POP op = (POP) operation;
 				switch (op.getPopType()) {
 				case POP.T_POP: {
@@ -802,7 +801,7 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.PUSH: {
+			case PUSH: {
 				final PUSH op = (PUSH) operation;
 				final Expression expr = Types.convertLiteral(this.cfg.getOutFrame(operation).peek()
 						.getT(), op.getValue(), getTd(), getAst());
@@ -811,7 +810,7 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.PUT: {
+			case PUT: {
 				final PUT op = (PUT) operation;
 				final Expression rightExpression = bb.popExpression();
 				final F f = op.getF();
@@ -882,14 +881,14 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.REM: {
+			case REM: {
 				assert operation instanceof REM;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.REMAINDER,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
-			case Opcode.RETURN: {
+			case RETURN: {
 				final RETURN op = (RETURN) operation;
 				final ReturnStatement returnStatement = getAst().newReturnStatement();
 				if (op.getT() != T.VOID) {
@@ -898,14 +897,14 @@ public class TrIvmCfg2JavaExprStmts {
 				statement = returnStatement;
 				break;
 			}
-			case Opcode.SHL: {
+			case SHL: {
 				assert operation instanceof SHL;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.LEFT_SHIFT,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
-			case Opcode.SHR: {
+			case SHR: {
 				final SHR op = (SHR) operation;
 				bb.pushExpression(newInfixExpression(
 						op.isUnsigned() ? InfixExpression.Operator.RIGHT_SHIFT_UNSIGNED
@@ -913,7 +912,7 @@ public class TrIvmCfg2JavaExprStmts {
 						bb.popExpression()));
 				break;
 			}
-			case Opcode.STORE: {
+			case STORE: {
 				final STORE op = (STORE) operation;
 
 				final Expression rightExpression = bb.popExpression();
@@ -938,14 +937,14 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				break;
 			}
-			case Opcode.SUB: {
+			case SUB: {
 				assert operation instanceof SUB;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.MINUS,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
-			case Opcode.SWAP: {
+			case SWAP: {
 				assert operation instanceof SWAP;
 
 				final Expression e1 = bb.popExpression();
@@ -954,7 +953,7 @@ public class TrIvmCfg2JavaExprStmts {
 				bb.pushExpression(e2);
 				break;
 			}
-			case Opcode.SWITCH: {
+			case SWITCH: {
 				assert operation instanceof SWITCH;
 
 				final SwitchStatement switchStatement = getAst().newSwitchStatement();
@@ -962,7 +961,7 @@ public class TrIvmCfg2JavaExprStmts {
 				statement = switchStatement;
 				break;
 			}
-			case Opcode.THROW: {
+			case THROW: {
 				assert operation instanceof THROW;
 
 				final ThrowStatement throwStatement = getAst().newThrowStatement();
@@ -970,7 +969,7 @@ public class TrIvmCfg2JavaExprStmts {
 				statement = throwStatement;
 				break;
 			}
-			case Opcode.XOR: {
+			case XOR: {
 				assert operation instanceof XOR;
 
 				final Expression expression = bb.popExpression();

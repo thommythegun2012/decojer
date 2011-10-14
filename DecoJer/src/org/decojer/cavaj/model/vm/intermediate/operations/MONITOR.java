@@ -44,17 +44,12 @@ public class MONITOR extends Operation {
 		this.monitorType = monitorType;
 	}
 
-	@Override
-	public int getInStackSize() {
-		return 1;
-	}
-
 	public int getMonitorType() {
 		return this.monitorType;
 	}
 
 	@Override
-	public int getOpcode() {
+	public Opcode getOpcode() {
 		return Opcode.MONITOR;
 	}
 
