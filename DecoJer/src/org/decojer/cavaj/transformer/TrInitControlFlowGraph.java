@@ -36,11 +36,11 @@ import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.vm.intermediate.Operation;
-import org.decojer.cavaj.model.vm.intermediate.operations.GOTO;
-import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
-import org.decojer.cavaj.model.vm.intermediate.operations.JCND;
-import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
+import org.decojer.cavaj.model.code.op.GOTO;
+import org.decojer.cavaj.model.code.op.JCMP;
+import org.decojer.cavaj.model.code.op.JCND;
+import org.decojer.cavaj.model.code.op.Operation;
+import org.decojer.cavaj.model.code.op.SWITCH;
 
 /**
  * Transform Init Control Flow Graph.

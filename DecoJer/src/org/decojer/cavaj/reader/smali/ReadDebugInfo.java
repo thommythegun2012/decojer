@@ -31,7 +31,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.vm.intermediate.Var;
+import org.decojer.cavaj.model.code.Var;
 import org.jf.dexlib.DebugInfoItem;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;

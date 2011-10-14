@@ -24,9 +24,9 @@
 package org.decojer.editor.eclipse.util;
 
 import org.decojer.cavaj.model.BB;
-import org.decojer.cavaj.model.vm.intermediate.Frame;
-import org.decojer.cavaj.model.vm.intermediate.Operation;
-import org.decojer.cavaj.model.vm.intermediate.Var;
+import org.decojer.cavaj.model.code.Frame;
+import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.op.Operation;
 import org.eclipse.draw2d.AbstractBorder;
 import org.eclipse.draw2d.Border;
 import org.eclipse.draw2d.Figure;

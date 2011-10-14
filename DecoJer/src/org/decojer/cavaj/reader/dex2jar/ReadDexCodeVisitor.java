@@ -30,9 +30,9 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.vm.intermediate.Operation;
-import org.decojer.cavaj.model.vm.intermediate.operations.FILLARRAY;
-import org.decojer.cavaj.model.vm.intermediate.operations.LOAD;
+import org.decojer.cavaj.model.code.op.FILLARRAY;
+import org.decojer.cavaj.model.code.op.LOAD;
+import org.decojer.cavaj.model.code.op.Operation;
 
 import com.googlecode.dex2jar.DexLabel;
 import com.googlecode.dex2jar.Field;
