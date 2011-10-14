@@ -61,7 +61,7 @@ import org.decojer.cavaj.model.code.op.NEG;
 import org.decojer.cavaj.model.code.op.NEW;
 import org.decojer.cavaj.model.code.op.NEWARRAY;
 import org.decojer.cavaj.model.code.op.OR;
-import org.decojer.cavaj.model.code.op.Operation;
+import org.decojer.cavaj.model.code.op.Op;
 import org.decojer.cavaj.model.code.op.POP;
 import org.decojer.cavaj.model.code.op.PUSH;
 import org.decojer.cavaj.model.code.op.PUT;
@@ -122,7 +122,7 @@ public class ReadCodeItem {
 
 	private final DU du;
 
-	final ArrayList<Operation> operations = new ArrayList<Operation>();
+	final ArrayList<Op> operations = new ArrayList<Op>();
 
 	private final HashMap<Integer, Integer> pc2index = new HashMap<Integer, Integer>();
 
@@ -2172,7 +2172,7 @@ public class ReadCodeItem {
 						+ Integer.toHexString(code & 0xff) + "'!");
 			}
 		}
-		cfg.setOperations(this.operations.toArray(new Operation[this.operations.size()]));
+		cfg.setOperations(this.operations.toArray(new Op[this.operations.size()]));
 
 		final TryItem[] tryItems = codeItem.getTries();
 		if (tryItems != null && tryItems.length > 0) {

@@ -28,11 +28,11 @@ package org.decojer.cavaj.model.code.op;
  * 
  * @author André Pankraz
  */
-public abstract class Operation {
+public abstract class Op {
 
 	private final int opcode;
 
-	private final int line;
+	final int line;
 
 	private final int pc;
 
@@ -46,7 +46,7 @@ public abstract class Operation {
 	 * @param line
 	 *            line number
 	 */
-	public Operation(final int pc, final int opcode, final int line) {
+	public Op(final int pc, final int opcode, final int line) {
 		this.pc = pc;
 		this.opcode = opcode;
 		this.line = line;

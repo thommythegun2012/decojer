@@ -25,14 +25,33 @@ package org.decojer.cavaj.model.code.op;
 
 import org.decojer.cavaj.model.T;
 
-public class STORE extends Operation {
+/**
+ * Operation 'STORE'.
+ * 
+ * @author André Pankraz
+ */
+public class STORE extends Op {
 
 	private final T t;
 
 	private final int reg;
 
-	public STORE(final int pc, final int code, final int line, final T t, final int reg) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param t
+	 *            type
+	 * @param reg
+	 *            register
+	 */
+	public STORE(final int pc, final int opcode, final int line, final T t, final int reg) {
+		super(pc, opcode, line);
 
 		assert t != null;
 
@@ -45,10 +64,20 @@ public class STORE extends Operation {
 		return Optype.STORE;
 	}
 
+	/**
+	 * Get register.
+	 * 
+	 * @return register
+	 */
 	public int getReg() {
 		return this.reg;
 	}
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}

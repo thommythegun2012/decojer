@@ -73,7 +73,7 @@ import org.decojer.cavaj.model.code.op.NEG;
 import org.decojer.cavaj.model.code.op.NEW;
 import org.decojer.cavaj.model.code.op.NEWARRAY;
 import org.decojer.cavaj.model.code.op.OR;
-import org.decojer.cavaj.model.code.op.Operation;
+import org.decojer.cavaj.model.code.op.Op;
 import org.decojer.cavaj.model.code.op.POP;
 import org.decojer.cavaj.model.code.op.PUSH;
 import org.decojer.cavaj.model.code.op.PUT;
@@ -160,9 +160,9 @@ public class TrIvmCfg2JavaExprStmts {
 
 	@SuppressWarnings("unchecked")
 	private boolean convertToHLLIntermediate(final BB bb) {
-		final List<Operation> operations = bb.getOperations();
+		final List<Op> operations = bb.getOperations();
 		while (operations.size() != 0) {
-			final Operation operation = operations.get(0);
+			final Op operation = operations.get(0);
 			if (operation.getInStackSize() > bb.getExpressionsSize()) {
 				return false;
 			}

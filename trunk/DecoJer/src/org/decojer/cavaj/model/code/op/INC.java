@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class INC extends Operation {
+public class INC extends Op {
 
 	private final int reg;
 
@@ -38,9 +38,25 @@ public class INC extends Operation {
 
 	private final int value;
 
-	public INC(final int pc, final int code, final int line, final T t, final int reg,
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param t
+	 *            type
+	 * @param reg
+	 *            register
+	 * @param value
+	 *            value
+	 */
+	public INC(final int pc, final int opcode, final int line, final T t, final int reg,
 			final int value) {
-		super(pc, code, line);
+		super(pc, opcode, line);
 		this.t = t;
 		this.reg = reg;
 		this.value = value;
@@ -51,14 +67,29 @@ public class INC extends Operation {
 		return Optype.INC;
 	}
 
+	/**
+	 * Get register.
+	 * 
+	 * @return register
+	 */
 	public int getReg() {
 		return this.reg;
 	}
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}
 
+	/**
+	 * Get value.
+	 * 
+	 * @return value
+	 */
 	public int getValue() {
 		return this.value;
 	}

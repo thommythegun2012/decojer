@@ -30,18 +30,37 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class NEWARRAY extends Operation {
+public class NEWARRAY extends Op {
 
 	private final int dimensions;
 
 	private final T t;
 
-	public NEWARRAY(final int pc, final int code, final int line, final T t, final int dimensions) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param t
+	 *            type
+	 * @param dimensions
+	 *            dimensions
+	 */
+	public NEWARRAY(final int pc, final int opcode, final int line, final T t, final int dimensions) {
+		super(pc, opcode, line);
 		this.t = t;
 		this.dimensions = dimensions;
 	}
 
+	/**
+	 * Get dimensions.
+	 * 
+	 * @return dimensions
+	 */
 	public int getDimensions() {
 		return this.dimensions;
 	}
@@ -56,6 +75,11 @@ public class NEWARRAY extends Operation {
 		return Optype.NEWARRAY;
 	}
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}

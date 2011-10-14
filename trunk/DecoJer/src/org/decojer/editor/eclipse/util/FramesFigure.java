@@ -26,7 +26,7 @@ package org.decojer.editor.eclipse.util;
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.Var;
-import org.decojer.cavaj.model.code.op.Operation;
+import org.decojer.cavaj.model.code.op.Op;
 import org.eclipse.draw2d.AbstractBorder;
 import org.eclipse.draw2d.Border;
 import org.eclipse.draw2d.Figure;
@@ -72,7 +72,7 @@ public class FramesFigure extends Figure {
 		final int maxRegs = bb.getCfg().getMaxRegs();
 		int maxStack = 0;
 		// don't use bb.getCfg().getMaxRegs()
-		for (final Operation operation : bb.getOperations()) {
+		for (final Op operation : bb.getOperations()) {
 			final Frame frame = bb.getCfg().getInFrame(operation);
 			if (frame == null) {
 				continue;
@@ -86,7 +86,7 @@ public class FramesFigure extends Figure {
 		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = 0;
 		setLayoutManager(gridLayout);
 
-		for (final Operation operation : bb.getOperations()) {
+		for (final Op operation : bb.getOperations()) {
 			add(new Label(operation.getClass().getSimpleName() + " "));
 			final Frame frame = bb.getCfg().getInFrame(operation);
 			if (frame == null) {

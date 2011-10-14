@@ -30,12 +30,24 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class NEG extends Operation {
+public class NEG extends Op {
 
 	private final T t;
 
-	public NEG(final int pc, final int code, final int line, final T t) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param t
+	 *            type
+	 */
+	public NEG(final int pc, final int opcode, final int line, final T t) {
+		super(pc, opcode, line);
 		this.t = t;
 	}
 
@@ -44,6 +56,11 @@ public class NEG extends Operation {
 		return Optype.NEG;
 	}
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}

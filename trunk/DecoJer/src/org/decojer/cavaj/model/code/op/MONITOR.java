@@ -28,7 +28,7 @@ package org.decojer.cavaj.model.code.op;
  * 
  * @author André Pankraz
  */
-public class MONITOR extends Operation {
+public class MONITOR extends Op {
 
 	public static final int T_ENTER = 0;
 
@@ -36,11 +36,28 @@ public class MONITOR extends Operation {
 
 	private final int monitorType;
 
-	public MONITOR(final int pc, final int code, final int line, final int monitorType) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param monitorType
+	 *            monitor type
+	 */
+	public MONITOR(final int pc, final int opcode, final int line, final int monitorType) {
+		super(pc, opcode, line);
 		this.monitorType = monitorType;
 	}
 
+	/**
+	 * Get monitor type.
+	 * 
+	 * @return monitor type
+	 */
 	public int getMonitorType() {
 		return this.monitorType;
 	}

@@ -31,14 +31,28 @@ import org.decojer.cavaj.model.M;
  * 
  * @author André Pankraz
  */
-public class INVOKE extends Operation {
+public class INVOKE extends Op {
 
 	private final boolean direct;
 
 	private final M m;
 
-	public INVOKE(final int pc, final int code, final int line, final M m, final boolean direct) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param m
+	 *            method
+	 * @param direct
+	 *            direct flag
+	 */
+	public INVOKE(final int pc, final int opcode, final int line, final M m, final boolean direct) {
+		super(pc, opcode, line);
 		this.m = m;
 		this.direct = direct;
 	}

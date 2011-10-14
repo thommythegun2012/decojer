@@ -28,12 +28,24 @@ package org.decojer.cavaj.model.code.op;
  * 
  * @author André Pankraz
  */
-public class RET extends Operation {
+public class RET extends Op {
 
 	private final int reg;
 
-	public RET(final int pc, final int code, final int line, final int reg) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param reg
+	 *            register
+	 */
+	public RET(final int pc, final int opcode, final int line, final int reg) {
+		super(pc, opcode, line);
 		this.reg = reg;
 	}
 
@@ -42,6 +54,11 @@ public class RET extends Operation {
 		return Optype.RET;
 	}
 
+	/**
+	 * Get register.
+	 * 
+	 * @return register
+	 */
 	public int getReg() {
 		return this.reg;
 	}

@@ -28,10 +28,20 @@ package org.decojer.cavaj.model.code.op;
  * 
  * @author André Pankraz
  */
-public class SWAP extends Operation {
+public class SWAP extends Op {
 
-	public SWAP(final int pc, final int code, final int line) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 */
+	public SWAP(final int pc, final int opcode, final int line) {
+		super(pc, opcode, line);
 	}
 
 	@Override
