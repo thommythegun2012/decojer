@@ -25,7 +25,7 @@ package org.decojer.editor.eclipse.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
 
 import org.eclipse.core.resources.IEncodedStorage;
 import org.eclipse.core.runtime.IPath;
@@ -37,6 +37,8 @@ import org.eclipse.core.runtime.IPath;
  * @author André Pankraz
  */
 public class StringMemoryStorage implements IEncodedStorage {
+
+	private static final Charset UTF8 = Charset.forName("utf-8");
 
 	private final byte[] contents;
 
@@ -55,14 +57,7 @@ public class StringMemoryStorage implements IEncodedStorage {
 		assert content != null;
 
 		this.fullPath = fullPath;
-		byte[] contents;
-		try {
-			contents = content.getBytes(getCharset());
-		} catch (final UnsupportedEncodingException e) {
-			// cannot really happen...
-			contents = content.getBytes();
-		}
-		this.contents = contents;
+		this.contents = content.getBytes(UTF8);
 	}
 
 	@Override
@@ -73,7 +68,7 @@ public class StringMemoryStorage implements IEncodedStorage {
 
 	@Override
 	public String getCharset() {
-		return "UTF-8";
+		return UTF8.name();
 	}
 
 	@Override

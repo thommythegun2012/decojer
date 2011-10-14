@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PushbackInputStream;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -60,6 +61,8 @@ import org.decojer.cavaj.util.MagicNumbers;
 public class DecoJer {
 
 	private final static Logger LOGGER = Logger.getLogger(DecoJer.class.getName());
+
+	private static final Charset UTF8 = Charset.forName("utf-8");
 
 	/**
 	 * Analyze file.
@@ -222,7 +225,7 @@ public class DecoJer {
 				}
 				final ZipEntry zipEntry = new ZipEntry(zipEntryName);
 				zip.putNextEntry(zipEntry);
-				zip.write(source.getBytes("UTF-8"));
+				zip.write(source.getBytes(UTF8));
 			} catch (final Throwable t) {
 				LOGGER.log(Level.WARNING, "Decompilation problems for '" + td + "'!", t);
 			} finally {
