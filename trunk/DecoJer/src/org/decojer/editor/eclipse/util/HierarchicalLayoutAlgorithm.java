@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.editor.eclipse.viewer.cfg;
+package org.decojer.editor.eclipse.util;
 
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -58,16 +58,15 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 	@Override
 	@SuppressWarnings("unchecked")
 	protected void applyLayoutInternal(final InternalNode[] entitiesToLayout,
-			final InternalRelationship[] relationshipsToConsider,
-			final double boundsX, final double boundsY,
-			final double boundsWidth, final double boundsHeight) {
+			final InternalRelationship[] relationshipsToConsider, final double boundsX,
+			final double boundsY, final double boundsWidth, final double boundsHeight) {
 		final IdentityHashMap<InternalNode, Node> mapping = new IdentityHashMap<InternalNode, Node>(
 				entitiesToLayout.length);
 		final DirectedGraph graph = new DirectedGraph();
 		for (final InternalNode internalNode : entitiesToLayout) {
 			final Node node = new Node(internalNode);
-			node.setSize(new Dimension((int) internalNode.getWidthInLayout(),
-					(int) internalNode.getHeightInLayout()));
+			node.setSize(new Dimension((int) internalNode.getWidthInLayout(), (int) internalNode
+					.getHeightInLayout()));
 			mapping.put(internalNode, node);
 			graph.nodes.add(node);
 		}
@@ -75,18 +74,17 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 			final Node source = mapping.get(relationship.getSource());
 			final Node dest = mapping.get(relationship.getDestination());
 			// this algorithm cannot handle cycles, ignore them here...
-			if (((GraphConnection) relationship.getLayoutRelationship()
-					.getGraphData()).getLineColor() == ColorConstants.red) {
+			if (((GraphConnection) relationship.getLayoutRelationship().getGraphData())
+					.getLineColor() == ColorConstants.red) {
 				continue;
 			}
 			// alternative way...
 			/*
 			 * final int sourcePostorder = ((BB) ((GraphNode) relationship
-			 * .getSource().getLayoutEntity().getGraphData()).getData())
-			 * .getPostorder(); final int destPostorder = ((BB) ((GraphNode)
-			 * relationship .getDestination().getLayoutEntity().getGraphData())
-			 * .getData()).getPostorder(); if (sourcePostorder <= destPostorder)
-			 * { continue; }
+			 * .getSource().getLayoutEntity().getGraphData()).getData()) .getPostorder(); final int
+			 * destPostorder = ((BB) ((GraphNode) relationship
+			 * .getDestination().getLayoutEntity().getGraphData()) .getData()).getPostorder(); if
+			 * (sourcePostorder <= destPostorder) { continue; }
 			 */
 			final Edge edge = new Edge(relationship, source, dest);
 			graph.edges.add(edge);
@@ -121,8 +119,7 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 	}
 
 	@Override
-	protected boolean isValidConfiguration(final boolean asynchronous,
-			final boolean continuous) {
+	protected boolean isValidConfiguration(final boolean asynchronous, final boolean continuous) {
 		return true;
 	}
 
@@ -135,16 +132,15 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 
 	@Override
 	protected void preLayoutAlgorithm(final InternalNode[] entitiesToLayout,
-			final InternalRelationship[] relationshipsToConsider,
-			final double x, final double y, final double width,
-			final double height) {
+			final InternalRelationship[] relationshipsToConsider, final double x, final double y,
+			final double width, final double height) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void setLayoutArea(final double x, final double y,
-			final double width, final double height) {
+	public void setLayoutArea(final double x, final double y, final double width,
+			final double height) {
 		// TODO Auto-generated method stub
 
 	}
