@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.tool;
+package org.decojer.cavaj.util;
 
 import java.util.logging.Logger;
 

@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.tool;
+package org.decojer.cavaj.util;
 
 import java.lang.reflect.Array;
 import java.util.List;
@@ -51,8 +51,7 @@ import org.eclipse.jdt.core.dom.TypeLiteral;
  */
 public class AnnotationsDecompiler {
 
-	private final static Logger LOGGER = Logger
-			.getLogger(AnnotationsDecompiler.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(AnnotationsDecompiler.class.getName());
 
 	/**
 	 * Decompile annotation.
@@ -64,8 +63,7 @@ public class AnnotationsDecompiler {
 	 * @return annotation node or null
 	 */
 	@SuppressWarnings("unchecked")
-	public static org.eclipse.jdt.core.dom.Annotation decompileAnnotation(
-			final TD td, final A a) {
+	public static org.eclipse.jdt.core.dom.Annotation decompileAnnotation(final TD td, final A a) {
 		final AST ast = td.getCu().getAst();
 		if (a == null) {
 			return null;
@@ -73,28 +71,24 @@ public class AnnotationsDecompiler {
 		final Set<String> memberNames = a.getMemberNames();
 		if (memberNames != null) {
 			// a single member name "value=" is optional
-			if (memberNames.size() == 1
-					&& "value".equals(memberNames.iterator().next())) {
-				final Expression expression = decompileAnnotationDefaultValue(
-						td, a.getMemberValue("value"));
+			if (memberNames.size() == 1 && "value".equals(memberNames.iterator().next())) {
+				final Expression expression = decompileAnnotationDefaultValue(td,
+						a.getMemberValue("value"));
 				if (expression != null) {
 					final SingleMemberAnnotation newSingleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
-					newSingleMemberAnnotation.setTypeName(td.newTypeName(a
-							.getT().getName()));
+					newSingleMemberAnnotation.setTypeName(td.newTypeName(a.getT().getName()));
 					newSingleMemberAnnotation.setValue(expression);
 					return newSingleMemberAnnotation;
 				}
 			}
-			final NormalAnnotation newNormalAnnotation = ast
-					.newNormalAnnotation();
+			final NormalAnnotation newNormalAnnotation = ast.newNormalAnnotation();
 			newNormalAnnotation.setTypeName(td.newTypeName(a.getT().getName()));
 			for (final String memberName : memberNames) {
-				final Expression expression = decompileAnnotationDefaultValue(
-						td, a.getMemberValue(memberName));
+				final Expression expression = decompileAnnotationDefaultValue(td,
+						a.getMemberValue(memberName));
 				if (expression != null) {
-					final MemberValuePair newMemberValuePair = ast
-							.newMemberValuePair();
+					final MemberValuePair newMemberValuePair = ast.newMemberValuePair();
 					newMemberValuePair.setName(ast.newSimpleName(memberName));
 					newMemberValuePair.setValue(expression);
 					newNormalAnnotation.values().add(newMemberValuePair);
@@ -119,8 +113,7 @@ public class AnnotationsDecompiler {
 	 * @return expression node or null
 	 */
 	@SuppressWarnings("unchecked")
-	public static Expression decompileAnnotationDefaultValue(final TD td,
-			final Object defaultValue) {
+	public static Expression decompileAnnotationDefaultValue(final TD td, final Object defaultValue) {
 		final AST ast = td.getCu().getAst();
 		if (defaultValue == null) {
 			return null;
@@ -133,13 +126,12 @@ public class AnnotationsDecompiler {
 			final int size = Array.getLength(defaultValue);
 			if (size == 1) {
 				// single entry autoboxing
-				return decompileAnnotationDefaultValue(td,
-						Array.get(defaultValue, 0));
+				return decompileAnnotationDefaultValue(td, Array.get(defaultValue, 0));
 			}
 			final ArrayInitializer arrayInitializer = ast.newArrayInitializer();
 			for (int i = 0; i < size; ++i) {
-				final Expression expression = decompileAnnotationDefaultValue(
-						td, Array.get(defaultValue, i));
+				final Expression expression = decompileAnnotationDefaultValue(td,
+						Array.get(defaultValue, i));
 				if (expression != null) {
 					arrayInitializer.expressions().add(expression);
 				}
@@ -190,8 +182,7 @@ public class AnnotationsDecompiler {
 			stringLiteral.setLiteralValue((String) defaultValue);
 			return stringLiteral;
 		}
-		LOGGER.warning("Unknown member value type '"
-				+ defaultValue.getClass().getName() + "'!");
+		LOGGER.warning("Unknown member value type '" + defaultValue.getClass().getName() + "'!");
 		final StringLiteral stringLiteral = ast.newStringLiteral();
 		stringLiteral.setLiteralValue(defaultValue.toString());
 		return stringLiteral;
@@ -208,14 +199,13 @@ public class AnnotationsDecompiler {
 	 *            annotations
 	 */
 	public static void decompileAnnotations(final TD td,
-			final List<org.eclipse.jdt.core.dom.Annotation> modifiers,
-			final A[] as) {
+			final List<org.eclipse.jdt.core.dom.Annotation> modifiers, final A[] as) {
 		if (as == null) {
 			return;
 		}
 		for (final A a : as) {
-			final org.eclipse.jdt.core.dom.Annotation decompileAnnotation = decompileAnnotation(
-					td, a);
+			final org.eclipse.jdt.core.dom.Annotation decompileAnnotation = decompileAnnotation(td,
+					a);
 			if (decompileAnnotation != null) {
 				modifiers.add(decompileAnnotation);
 			}

@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.tool;
+package org.decojer.cavaj.util;
 
 import java.util.logging.Logger;
 
@@ -38,18 +38,16 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 
 /**
- * Operator precedence helper class. Check:
- * http://www.uni-bonn.de/~manfear/javaoperators.php
+ * Operator precedence helper class. Check: http://www.uni-bonn.de/~manfear/javaoperators.php
  * 
  * @author André Pankraz
  */
 public class OperatorPrecedence {
 
-	private final static Logger LOGGER = Logger
-			.getLogger(OperatorPrecedence.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(OperatorPrecedence.class.getName());
 
-	private static final boolean[] IS_LEFT_ASSOC = { true, true, false, true,
-			true, true, true, true, true, true, true, true, true, false, false };
+	private static final boolean[] IS_LEFT_ASSOC = { true, true, false, true, true, true, true,
+			true, true, true, true, true, true, false, false };
 
 	/**
 	 * Is priority class left associative?
@@ -89,8 +87,7 @@ public class OperatorPrecedence {
 			return 1; // should be 2, but what of "new Bla().doSomething();"
 		}
 		if (expression instanceof InfixExpression) {
-			final InfixExpression.Operator operator = ((InfixExpression) expression)
-					.getOperator();
+			final InfixExpression.Operator operator = ((InfixExpression) expression).getOperator();
 			if (operator == InfixExpression.Operator.TIMES
 					|| operator == InfixExpression.Operator.DIVIDE
 					|| operator == InfixExpression.Operator.REMAINDER) {
@@ -129,8 +126,7 @@ public class OperatorPrecedence {
 			if (operator == InfixExpression.Operator.CONDITIONAL_OR) {
 				return 12;
 			}
-			LOGGER.warning("Unknown infix expression operator '" + operator
-					+ "'!");
+			LOGGER.warning("Unknown infix expression operator '" + operator + "'!");
 			return 0;
 		}
 		if (expression instanceof InstanceofExpression) {
