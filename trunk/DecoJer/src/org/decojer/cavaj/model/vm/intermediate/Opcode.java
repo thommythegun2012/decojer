@@ -23,84 +23,103 @@
  */
 package org.decojer.cavaj.model.vm.intermediate;
 
-public interface Opcode {
+public enum Opcode {
 
-	int ADD = 1;
+	ADD(2),
 
-	int ALOAD = 2;
+	ALOAD(2),
 
-	int AND = 3;
+	AND(2),
 
-	int ARRAYLENGTH = 4;
+	ARRAYLENGTH(1),
 
-	int ASTORE = 5;
+	ASTORE(3),
 
-	int CAST = 6;
+	CAST(1),
 
-	int CMP = 7;
+	CMP(2),
 
-	int DIV = 8;
+	DIV(2),
 
-	int DUP = 9;
+	DUP(-1),
 
-	int FILLARRAY = 10;
+	FILLARRAY(1),
 
-	int GET = 11;
+	GET(-1),
 
-	int GOTO = 12;
+	GOTO(0),
 
-	int INC = 13;
+	INC(0),
 
-	int INSTANCEOF = 14;
+	INSTANCEOF(1),
 
-	int INVOKE = 15;
+	INVOKE(-1),
 
-	int JCMP = 16;
+	JCMP(2),
 
-	int JCND = 17;
+	JCND(1),
 
-	int JSR = 18;
+	JSR(0),
 
-	int LOAD = 19;
+	LOAD(0),
 
-	int MONITOR = 20;
+	MONITOR(1),
 
-	int MUL = 21;
+	MUL(2),
 
-	int NEG = 22;
+	NEG(1),
 
-	int NEW = 23;
+	NEW(0),
 
-	int NEWARRAY = 24;
+	NEWARRAY(-1),
 
-	int OR = 25;
+	OR(2),
 
-	int POP = 26;
+	POP(-1),
 
-	int PUSH = 27;
+	PUSH(0),
 
-	int PUT = 28;
+	PUT(-1),
 
-	int REM = 29;
+	REM(2),
 
-	int RET = 30;
+	RET(1),
 
-	int RETURN = 31;
+	RETURN(-1),
 
-	int SHL = 32;
+	SHL(2),
 
-	int SHR = 33;
+	SHR(2),
 
-	int STORE = 34;
+	STORE(1),
 
-	int SUB = 35;
+	SUB(2),
 
-	int SWAP = 36;
+	SWAP(2),
 
-	int SWITCH = 37;
+	SWITCH(1),
 
-	int THROW = 38;
+	THROW(1),
 
-	int XOR = 39;
+	XOR(2);
+
+	private final int inStackSize;
+
+	/**
+	 * Constructor.
+	 * 
+	 */
+	private Opcode(final int inStackSize) {
+		this.inStackSize = inStackSize;
+	}
+
+	/**
+	 * Get input stack size.
+	 * 
+	 * @return input stack size
+	 */
+	public int getInStackSize() {
+		return this.inStackSize;
+	}
 
 }

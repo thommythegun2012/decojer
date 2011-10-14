@@ -60,7 +60,7 @@ public class INVOKE extends Operation {
 	}
 
 	@Override
-	public int getOpcode() {
+	public Opcode getOpcode() {
 		return Opcode.INVOKE;
 	}
 

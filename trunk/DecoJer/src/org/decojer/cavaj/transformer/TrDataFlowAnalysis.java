@@ -37,7 +37,6 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.vm.intermediate.Frame;
-import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.Var;
 import org.decojer.cavaj.model.vm.intermediate.operations.ADD;
@@ -236,54 +235,54 @@ public class TrDataFlowAnalysis {
 			final Frame frame = new Frame(this.frames[this.pc]);
 			final Operation operation = operations[this.pc];
 			switch (operation.getOpcode()) {
-			case Opcode.ADD: {
+			case ADD: {
 				final ADD op = (ADD) operation;
 				evalBinaryMath(frame, op.getT());
 				break;
 			}
-			case Opcode.ALOAD: {
+			case ALOAD: {
 				final ALOAD op = (ALOAD) operation;
 				pop(frame, T.INT); // index
 				pop(frame, T.AREF); // array
 				push(frame, op.getT()); // value
 				break;
 			}
-			case Opcode.AND: {
+			case AND: {
 				final AND op = (AND) operation;
 				evalBinaryMath(frame, op.getT());
 				break;
 			}
-			case Opcode.ARRAYLENGTH: {
+			case ARRAYLENGTH: {
 				assert operation instanceof ARRAYLENGTH;
 
 				pop(frame, T.AREF); // array
 				push(frame, T.INT); // length
 				break;
 			}
-			case Opcode.ASTORE: {
+			case ASTORE: {
 				final ASTORE op = (ASTORE) operation;
 				pop(frame, op.getT()); // value
 				pop(frame, T.INT); // index
 				pop(frame, T.AREF); // array
 				break;
 			}
-			case Opcode.CAST: {
+			case CAST: {
 				final CAST op = (CAST) operation;
 				pop(frame, op.getT());
 				push(frame, op.getToT());
 				break;
 			}
-			case Opcode.CMP: {
+			case CMP: {
 				final CMP op = (CMP) operation;
 				evalBinaryMath(frame, op.getT(), T.INT);
 				break;
 			}
-			case Opcode.DIV: {
+			case DIV: {
 				final DIV op = (DIV) operation;
 				evalBinaryMath(frame, op.getT());
 				break;
 			}
-			case Opcode.DUP: {
+			case DUP: {
 				final DUP op = (DUP) operation;
 				switch (op.getDupType()) {
 				case DUP.T_DUP:
@@ -345,13 +344,13 @@ public class TrDataFlowAnalysis {
 				}
 				break;
 			}
-			case Opcode.FILLARRAY: {
+			case FILLARRAY: {
 				assert operation instanceof FILLARRAY;
 
 				// TODO check stack has array...
 				break;
 			}
-			case Opcode.GET: {
+			case GET: {
 				final GET op = (GET) operation;
 				final F f = op.getF();
 				if (!f.checkAf(AF.STATIC)) {
@@ -360,18 +359,18 @@ public class TrDataFlowAnalysis {
 				push(frame, f.getValueT());
 				break;
 			}
-			case Opcode.GOTO: {
+			case GOTO: {
 				final GOTO op = (GOTO) operation;
 				merge(frame, op.getTargetPc());
 				continue;
 			}
-			case Opcode.INC: {
+			case INC: {
 				assert operation instanceof INC;
 
 				// TODO reduce bool
 				break;
 			}
-			case Opcode.INSTANCEOF: {
+			case INSTANCEOF: {
 				assert operation instanceof INSTANCEOF;
 
 				pop(frame, T.AREF);
@@ -379,7 +378,7 @@ public class TrDataFlowAnalysis {
 				push(frame, T.BOOLEAN);
 				break;
 			}
-			case Opcode.INVOKE: {
+			case INVOKE: {
 				final INVOKE op = (INVOKE) operation;
 				final M m = op.getM();
 				for (int i = m.getParamTs().length; i-- > 0;) {
@@ -393,47 +392,47 @@ public class TrDataFlowAnalysis {
 				}
 				break;
 			}
-			case Opcode.JCMP: {
+			case JCMP: {
 				final JCMP op = (JCMP) operation;
 				evalBinaryMath(frame, op.getT(), T.VOID);
 				merge(frame, op.getTargetPc());
 				break;
 			}
-			case Opcode.JCND: {
+			case JCND: {
 				final JCND op = (JCND) operation;
 				pop(frame, op.getT());
 				merge(frame, op.getTargetPc());
 				break;
 			}
-			case Opcode.LOAD: {
+			case LOAD: {
 				final LOAD op = (LOAD) operation;
 				final Var var = getReg(frame, op.getReg(), op.getT());
 				push(frame, var); // OK
 				break;
 			}
-			case Opcode.MONITOR: {
+			case MONITOR: {
 				assert operation instanceof MONITOR;
 
 				pop(frame, T.AREF);
 				break;
 			}
-			case Opcode.MUL: {
+			case MUL: {
 				final MUL op = (MUL) operation;
 				evalBinaryMath(frame, op.getT());
 				break;
 			}
-			case Opcode.NEG: {
+			case NEG: {
 				final NEG op = (NEG) operation;
 				final Var var = pop(frame, op.getT());
 				push(frame, var); // OK
 				break;
 			}
-			case Opcode.NEW: {
+			case NEW: {
 				final NEW op = (NEW) operation;
 				push(frame, op.getT());
 				break;
 			}
-			case Opcode.NEWARRAY: {
+			case NEWARRAY: {
 				final NEWARRAY op = (NEWARRAY) operation;
 				pop(frame, T.INT); // dimension
 				push(frame, T.AREF);
@@ -441,12 +440,12 @@ public class TrDataFlowAnalysis {
 				// dimension value!!! hmmmm
 				break;
 			}
-			case Opcode.OR: {
+			case OR: {
 				final OR op = (OR) operation;
 				evalBinaryMath(frame, op.getT());
 				break;
 			}
-			case Opcode.POP: {
+			case POP: {
 				final POP op = (POP) operation;
 				switch (op.getPopType()) {
 				case POP.T_POP: {
@@ -463,12 +462,12 @@ public class TrDataFlowAnalysis {
 				}
 				break;
 			}
-			case Opcode.PUSH: {
+			case PUSH: {
 				final PUSH op = (PUSH) operation;
 				push(frame, op.getT());
 				break;
 			}
-			case Opcode.PUT: {
+			case PUT: {
 				final PUT op = (PUT) operation;
 				final F f = op.getF();
 				pop(frame, f.getValueT());
@@ -477,12 +476,12 @@ public class TrDataFlowAnalysis {
 				}
 				break;
 			}
-			case Opcode.REM: {
+			case REM: {
 				final REM op = (REM) operation;
 				evalBinaryMath(frame, op.getT());
 				break;
 			}
-			case Opcode.RETURN: {
+			case RETURN: {
 				assert operation instanceof RETURN;
 
 				// don't need op type here, could check, but why should we...
@@ -492,17 +491,17 @@ public class TrDataFlowAnalysis {
 				}
 				continue;
 			}
-			case Opcode.SHL: {
+			case SHL: {
 				final SHL op = (SHL) operation;
 				evalBinaryMath(frame, op.getT());
 				break;
 			}
-			case Opcode.SHR: {
+			case SHR: {
 				final SHR op = (SHR) operation;
 				evalBinaryMath(frame, op.getT());
 				break;
 			}
-			case Opcode.STORE: {
+			case STORE: {
 				final STORE op = (STORE) operation;
 				final Var pop = pop(frame, op.getT());
 
@@ -519,12 +518,12 @@ public class TrDataFlowAnalysis {
 				setReg(frame, op.getReg(), var != null ? var : pop);
 				break;
 			}
-			case Opcode.SUB: {
+			case SUB: {
 				final SUB op = (SUB) operation;
 				evalBinaryMath(frame, op.getT());
 				break;
 			}
-			case Opcode.SWAP: {
+			case SWAP: {
 				assert operation instanceof SWAP;
 
 				final Var e1 = frame.pop();
@@ -533,7 +532,7 @@ public class TrDataFlowAnalysis {
 				frame.push(e2);
 				break;
 			}
-			case Opcode.SWITCH: {
+			case SWITCH: {
 				final SWITCH op = (SWITCH) operation;
 				pop(frame, T.INT);
 				merge(frame, op.getDefaultPc());
@@ -542,13 +541,13 @@ public class TrDataFlowAnalysis {
 				}
 				continue;
 			}
-			case Opcode.THROW: {
+			case THROW: {
 				assert operation instanceof THROW;
 
 				pop(frame, T.AREF); // TODO Throwable
 				continue;
 			}
-			case Opcode.XOR: {
+			case XOR: {
 				final XOR op = (XOR) operation;
 				evalBinaryMath(frame, op.getT());
 				break;

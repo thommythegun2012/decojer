@@ -36,7 +36,6 @@ import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.vm.intermediate.Opcode;
 import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.decojer.cavaj.model.vm.intermediate.operations.GOTO;
 import org.decojer.cavaj.model.vm.intermediate.operations.JCMP;
@@ -168,7 +167,7 @@ public class TrInitControlFlowGraph {
 			final Operation operation = operations[pc++];
 			bb.addOperation(operation);
 			switch (operation.getOpcode()) {
-			case Opcode.GOTO: {
+			case GOTO: {
 				final GOTO op = (GOTO) operation;
 				pc = op.getTargetPc();
 				// create new BB because we need the correct index after the
@@ -185,7 +184,7 @@ public class TrInitControlFlowGraph {
 				bb = nextBB;
 				break;
 			}
-			case Opcode.JCMP: {
+			case JCMP: {
 				final JCMP op = (JCMP) operation;
 				final int targetPc = op.getTargetPc();
 				if (targetPc == pc) {
@@ -209,7 +208,7 @@ public class TrInitControlFlowGraph {
 				}
 				break;
 			}
-			case Opcode.JCND: {
+			case JCND: {
 				final JCND op = (JCND) operation;
 				final int targetPc = op.getTargetPc();
 				if (targetPc == pc) {
@@ -233,7 +232,7 @@ public class TrInitControlFlowGraph {
 				}
 				break;
 			}
-			case Opcode.SWITCH: {
+			case SWITCH: {
 				final SWITCH op = (SWITCH) operation;
 
 				// build map: unique case pc -> case keys
@@ -277,9 +276,9 @@ public class TrInitControlFlowGraph {
 				pc = operations.length; // next open pc
 				break;
 			}
-			case Opcode.RET:
-			case Opcode.RETURN:
-			case Opcode.THROW:
+			case RET:
+			case RETURN:
+			case THROW:
 				pc = operations.length; // next open pc
 				break;
 			}

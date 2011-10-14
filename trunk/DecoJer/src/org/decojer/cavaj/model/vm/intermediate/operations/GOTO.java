@@ -40,12 +40,7 @@ public class GOTO extends Operation {
 	}
 
 	@Override
-	public int getInStackSize() {
-		return 0;
-	}
-
-	@Override
-	public int getOpcode() {
+	public Opcode getOpcode() {
 		return Opcode.GOTO;
 	}
 

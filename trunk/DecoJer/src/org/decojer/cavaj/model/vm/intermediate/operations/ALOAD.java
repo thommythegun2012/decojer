@@ -42,12 +42,7 @@ public class ALOAD extends Operation {
 	}
 
 	@Override
-	public int getInStackSize() {
-		return 2;
-	}
-
-	@Override
-	public int getOpcode() {
+	public Opcode getOpcode() {
 		return Opcode.ALOAD;
 	}
 

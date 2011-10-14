@@ -42,12 +42,7 @@ public class NEG extends Operation {
 	}
 
 	@Override
-	public int getInStackSize() {
-		return 1;
-	}
-
-	@Override
-	public int getOpcode() {
+	public Opcode getOpcode() {
 		return Opcode.NEG;
 	}
 

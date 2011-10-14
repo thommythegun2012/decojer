@@ -62,7 +62,7 @@ public class DUP extends Operation {
 	}
 
 	@Override
-	public int getOpcode() {
+	public Opcode getOpcode() {
 		return Opcode.DUP;
 	}
 
