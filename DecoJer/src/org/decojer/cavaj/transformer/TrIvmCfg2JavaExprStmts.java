@@ -168,7 +168,7 @@ public class TrIvmCfg2JavaExprStmts {
 			}
 			operations.remove(0);
 			Statement statement = null;
-			switch (operation.getOpcode()) {
+			switch (operation.getOptype()) {
 			case ADD: {
 				assert operation instanceof ADD;
 

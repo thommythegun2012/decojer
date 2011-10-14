@@ -47,8 +47,8 @@ public class POP extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.POP;
+	public Optype getOptype() {
+		return Optype.POP;
 	}
 
 	public int getPopType() {

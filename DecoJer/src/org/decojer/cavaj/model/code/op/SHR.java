@@ -43,8 +43,8 @@ public class SHR extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.SHR;
+	public Optype getOptype() {
+		return Optype.SHR;
 	}
 
 	public T getT() {

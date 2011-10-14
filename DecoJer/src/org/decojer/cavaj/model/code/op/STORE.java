@@ -41,8 +41,8 @@ public class STORE extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.STORE;
+	public Optype getOptype() {
+		return Optype.STORE;
 	}
 
 	public int getReg() {

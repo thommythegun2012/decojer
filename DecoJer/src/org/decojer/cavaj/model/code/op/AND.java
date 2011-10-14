@@ -40,8 +40,8 @@ public class AND extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.AND;
+	public Optype getOptype() {
+		return Optype.AND;
 	}
 
 	public T getT() {

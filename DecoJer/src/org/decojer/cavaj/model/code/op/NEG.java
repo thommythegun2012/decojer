@@ -40,8 +40,8 @@ public class NEG extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.NEG;
+	public Optype getOptype() {
+		return Optype.NEG;
 	}
 
 	public T getT() {

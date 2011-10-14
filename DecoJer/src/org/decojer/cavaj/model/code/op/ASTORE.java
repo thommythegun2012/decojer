@@ -40,8 +40,8 @@ public class ASTORE extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.ASTORE;
+	public Optype getOptype() {
+		return Optype.ASTORE;
 	}
 
 	public T getT() {

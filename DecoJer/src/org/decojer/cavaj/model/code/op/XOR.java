@@ -40,8 +40,8 @@ public class XOR extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.XOR;
+	public Optype getOptype() {
+		return Optype.XOR;
 	}
 
 	public T getT() {

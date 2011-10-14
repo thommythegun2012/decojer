@@ -50,8 +50,8 @@ public class JCMP extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.JCMP;
+	public Optype getOptype() {
+		return Optype.JCMP;
 	}
 
 	public T getT() {

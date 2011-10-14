@@ -47,8 +47,8 @@ public class INC extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.INC;
+	public Optype getOptype() {
+		return Optype.INC;
 	}
 
 	public int getReg() {

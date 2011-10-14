@@ -40,8 +40,8 @@ public class DIV extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.DIV;
+	public Optype getOptype() {
+		return Optype.DIV;
 	}
 
 	public T getT() {

@@ -40,8 +40,8 @@ public class MUL extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.MUL;
+	public Optype getOptype() {
+		return Optype.MUL;
 	}
 
 	public T getT() {

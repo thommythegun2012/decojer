@@ -40,8 +40,8 @@ public class SHL extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.SHL;
+	public Optype getOptype() {
+		return Optype.SHL;
 	}
 
 	public T getT() {

@@ -37,8 +37,8 @@ public class FILLARRAY extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.FILLARRAY;
+	public Optype getOptype() {
+		return Optype.FILLARRAY;
 	}
 
 	public Object[] getValues() {

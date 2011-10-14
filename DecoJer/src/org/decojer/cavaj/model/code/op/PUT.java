@@ -55,8 +55,8 @@ public class PUT extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.PUT;
+	public Optype getOptype() {
+		return Optype.PUT;
 	}
 
 	@Override

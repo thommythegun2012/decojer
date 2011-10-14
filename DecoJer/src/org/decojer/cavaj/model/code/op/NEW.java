@@ -40,8 +40,8 @@ public class NEW extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.NEW;
+	public Optype getOptype() {
+		return Optype.NEW;
 	}
 
 	public T getT() {

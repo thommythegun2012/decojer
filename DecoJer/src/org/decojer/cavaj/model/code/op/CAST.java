@@ -43,8 +43,8 @@ public class CAST extends Operation {
 	}
 
 	@Override
-	public Opcode getOpcode() {
-		return Opcode.CAST;
+	public Optype getOptype() {
+		return Optype.CAST;
 	}
 
 	public T getT() {
