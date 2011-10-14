@@ -23,10 +23,10 @@
  */
 package org.decojer.cavaj.transformer;
 
-import static org.decojer.cavaj.tool.Expressions.newInfixExpression;
-import static org.decojer.cavaj.tool.Expressions.newPrefixExpression;
-import static org.decojer.cavaj.tool.Expressions.wrap;
-import static org.decojer.cavaj.tool.OperatorPrecedence.priority;
+import static org.decojer.cavaj.util.Expressions.newInfixExpression;
+import static org.decojer.cavaj.util.Expressions.newPrefixExpression;
+import static org.decojer.cavaj.util.Expressions.wrap;
+import static org.decojer.cavaj.util.OperatorPrecedence.priority;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,7 +87,7 @@ import org.decojer.cavaj.model.vm.intermediate.operations.SWAP;
 import org.decojer.cavaj.model.vm.intermediate.operations.SWITCH;
 import org.decojer.cavaj.model.vm.intermediate.operations.THROW;
 import org.decojer.cavaj.model.vm.intermediate.operations.XOR;
-import org.decojer.cavaj.tool.Types;
+import org.decojer.cavaj.util.Types;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.ArrayAccess;

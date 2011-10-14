@@ -21,9 +21,9 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.tool;
+package org.decojer.cavaj.util;
 
-import static org.decojer.cavaj.tool.OperatorPrecedence.priority;
+import static org.decojer.cavaj.util.OperatorPrecedence.priority;
 
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.Expression;
@@ -39,8 +39,7 @@ import org.eclipse.jdt.core.dom.PrefixExpression;
 public class Expressions {
 
 	/**
-	 * New infix expression. Attention: First comes right expression, good for
-	 * stack simulation.
+	 * New infix expression. Attention: First comes right expression, good for stack simulation.
 	 * 
 	 * @param operator
 	 *            infix expression operator
@@ -50,11 +49,9 @@ public class Expressions {
 	 *            left operand expression
 	 * @return expression
 	 */
-	public static Expression newInfixExpression(
-			final InfixExpression.Operator operator,
+	public static Expression newInfixExpression(final InfixExpression.Operator operator,
 			final Expression rightOperand, final Expression leftOperand) {
-		final InfixExpression infixExpression = leftOperand.getAST()
-				.newInfixExpression();
+		final InfixExpression infixExpression = leftOperand.getAST().newInfixExpression();
 		infixExpression.setOperator(operator);
 		final int operatorPriority = priority(infixExpression);
 		infixExpression.setLeftOperand(wrap(leftOperand, operatorPriority));
@@ -62,8 +59,7 @@ public class Expressions {
 		final boolean assoc = operator == InfixExpression.Operator.PLUS
 				|| operator == InfixExpression.Operator.CONDITIONAL_AND
 				|| operator == InfixExpression.Operator.CONDITIONAL_OR;
-		infixExpression.setRightOperand(wrap(rightOperand, operatorPriority
-				- (assoc ? 0 : 1)));
+		infixExpression.setRightOperand(wrap(rightOperand, operatorPriority - (assoc ? 0 : 1)));
 		return infixExpression;
 	}
 
@@ -76,8 +72,8 @@ public class Expressions {
 	 *            operand expression
 	 * @return expression
 	 */
-	public static Expression newPrefixExpression(
-			final PrefixExpression.Operator operator, final Expression operand) {
+	public static Expression newPrefixExpression(final PrefixExpression.Operator operator,
+			final Expression operand) {
 		if (operator == PrefixExpression.Operator.NOT) {
 			// !!a => a
 			if (operand instanceof PrefixExpression) {
@@ -90,13 +86,11 @@ public class Expressions {
 			if (operand instanceof InfixExpression) {
 				final InfixExpression infixExpression = (InfixExpression) operand;
 				if (infixExpression.getOperator() == InfixExpression.Operator.EQUALS) {
-					infixExpression
-							.setOperator(InfixExpression.Operator.NOT_EQUALS);
+					infixExpression.setOperator(InfixExpression.Operator.NOT_EQUALS);
 					return infixExpression;
 				}
 				if (infixExpression.getOperator() == InfixExpression.Operator.GREATER) {
-					infixExpression
-							.setOperator(InfixExpression.Operator.LESS_EQUALS);
+					infixExpression.setOperator(InfixExpression.Operator.LESS_EQUALS);
 					return infixExpression;
 				}
 				if (infixExpression.getOperator() == InfixExpression.Operator.GREATER_EQUALS) {
@@ -104,24 +98,20 @@ public class Expressions {
 					return infixExpression;
 				}
 				if (infixExpression.getOperator() == InfixExpression.Operator.LESS) {
-					infixExpression
-							.setOperator(InfixExpression.Operator.GREATER_EQUALS);
+					infixExpression.setOperator(InfixExpression.Operator.GREATER_EQUALS);
 					return infixExpression;
 				}
 				if (infixExpression.getOperator() == InfixExpression.Operator.LESS_EQUALS) {
-					infixExpression
-							.setOperator(InfixExpression.Operator.GREATER);
+					infixExpression.setOperator(InfixExpression.Operator.GREATER);
 					return infixExpression;
 				}
 				if (infixExpression.getOperator() == InfixExpression.Operator.NOT_EQUALS) {
-					infixExpression
-							.setOperator(InfixExpression.Operator.EQUALS);
+					infixExpression.setOperator(InfixExpression.Operator.EQUALS);
 					return infixExpression;
 				}
 			}
 		}
-		final PrefixExpression prefixExpression = operand.getAST()
-				.newPrefixExpression();
+		final PrefixExpression prefixExpression = operand.getAST().newPrefixExpression();
 		prefixExpression.setOperator(operator);
 		prefixExpression.setOperand(wrap(operand, priority(prefixExpression)));
 		return prefixExpression;
@@ -139,8 +129,8 @@ public class Expressions {
 	}
 
 	/**
-	 * Wrap expression. Ensures that there is no parent set and adds parantheses
-	 * if necessary (compares operator priority).
+	 * Wrap expression. Ensures that there is no parent set and adds parantheses if necessary
+	 * (compares operator priority).
 	 * 
 	 * @param expression
 	 *            expression
@@ -148,16 +138,14 @@ public class Expressions {
 	 *            priority
 	 * @return expression
 	 */
-	public static Expression wrap(final Expression expression,
-			final int priority) {
+	public static Expression wrap(final Expression expression, final int priority) {
 		final Expression expressionP = expression.getParent() == null ? expression
-				: (Expression) ASTNode.copySubtree(expression.getAST(),
-						expression);
+				: (Expression) ASTNode.copySubtree(expression.getAST(), expression);
 		if (priority(expression) <= priority) {
 			return expressionP;
 		}
-		final ParenthesizedExpression parenthesizedExpression = expression
-				.getAST().newParenthesizedExpression();
+		final ParenthesizedExpression parenthesizedExpression = expression.getAST()
+				.newParenthesizedExpression();
 		parenthesizedExpression.setExpression(expressionP);
 		return parenthesizedExpression;
 	}

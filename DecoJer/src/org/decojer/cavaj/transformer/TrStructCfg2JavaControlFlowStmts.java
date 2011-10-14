@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.transformer;
 
-import static org.decojer.cavaj.tool.Expressions.newPrefixExpression;
+import static org.decojer.cavaj.util.Expressions.newPrefixExpression;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -123,10 +123,6 @@ public class TrStructCfg2JavaControlFlowStmts {
 
 	private void log(final String message) {
 		LOGGER.warning(getMd().toString() + ": " + message);
-	}
-
-	private void log(final String message, final Throwable e) {
-		LOGGER.log(Level.SEVERE, getMd().toString() + ": " + message, e);
 	}
 
 	@SuppressWarnings("unchecked")
