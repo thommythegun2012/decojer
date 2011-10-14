@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model.struct;
+package org.decojer.cavaj.model.code.struct;
 
 import java.util.List;
 import java.util.Map.Entry;
@@ -34,8 +34,7 @@ public class Switch extends Struct {
 
 	public static final int SWITCH_DEFAULT = 2;
 
-	public static final String[] TYPE_NAME = { "<UNKNOWN>", "SWITCH",
-			"SWITCH_DEFAULT" };
+	public static final String[] TYPE_NAME = { "<UNKNOWN>", "SWITCH", "SWITCH_DEFAULT" };
 
 	private int type;
 
@@ -48,8 +47,7 @@ public class Switch extends Struct {
 	}
 
 	public boolean isCase(final BB bb) {
-		for (final Entry<Object, List<BB>> entry : this.value2members
-				.entrySet()) {
+		for (final Entry<Object, List<BB>> entry : this.value2members.entrySet()) {
 			final List<BB> value = entry.getValue();
 			if (value.size() == 0) {
 				continue;

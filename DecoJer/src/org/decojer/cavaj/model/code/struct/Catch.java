@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model.struct;
+package org.decojer.cavaj.model.code.struct;
 
 import org.decojer.cavaj.model.BB;
 
