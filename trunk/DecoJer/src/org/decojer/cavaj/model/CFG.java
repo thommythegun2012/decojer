@@ -29,10 +29,10 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.vm.intermediate.Exc;
-import org.decojer.cavaj.model.vm.intermediate.Frame;
-import org.decojer.cavaj.model.vm.intermediate.Operation;
-import org.decojer.cavaj.model.vm.intermediate.Var;
+import org.decojer.cavaj.model.code.Exc;
+import org.decojer.cavaj.model.code.Frame;
+import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.op.Operation;
 import org.eclipse.jdt.core.dom.Block;
 
 /**
