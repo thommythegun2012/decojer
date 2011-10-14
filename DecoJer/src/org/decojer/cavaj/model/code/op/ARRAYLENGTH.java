@@ -28,10 +28,20 @@ package org.decojer.cavaj.model.code.op;
  * 
  * @author André Pankraz
  */
-public class ARRAYLENGTH extends Operation {
+public class ARRAYLENGTH extends Op {
 
-	public ARRAYLENGTH(final int pc, final int code, final int line) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 */
+	public ARRAYLENGTH(final int pc, final int opcode, final int line) {
+		super(pc, opcode, line);
 	}
 
 	@Override

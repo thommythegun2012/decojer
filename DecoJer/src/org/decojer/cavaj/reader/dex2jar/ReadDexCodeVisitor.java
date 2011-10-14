@@ -32,7 +32,7 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.op.FILLARRAY;
 import org.decojer.cavaj.model.code.op.LOAD;
-import org.decojer.cavaj.model.code.op.Operation;
+import org.decojer.cavaj.model.code.op.Op;
 
 import com.googlecode.dex2jar.DexLabel;
 import com.googlecode.dex2jar.Field;
@@ -57,7 +57,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	private MD md;
 
-	private final ArrayList<Operation> operations = new ArrayList<Operation>();
+	private final ArrayList<Op> operations = new ArrayList<Op>();
 
 	private int getLabelIndex(final DexLabel label) {
 		assert label != null;

@@ -28,12 +28,22 @@ package org.decojer.cavaj.model.code.op;
  * 
  * @author André Pankraz
  */
-public class JSR extends Operation {
+public class JSR extends Op {
 
 	private int targetPc;
 
-	public JSR(final int pc, final int code, final int line) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 */
+	public JSR(final int pc, final int opcode, final int line) {
+		super(pc, opcode, line);
 	}
 
 	@Override
@@ -41,10 +51,21 @@ public class JSR extends Operation {
 		return Optype.JSR;
 	}
 
+	/**
+	 * Get target pc.
+	 * 
+	 * @return target pc
+	 */
 	public int getTargetPc() {
 		return this.targetPc;
 	}
 
+	/**
+	 * Set target pc.
+	 * 
+	 * @param targetPc
+	 *            target pc
+	 */
 	public void setTargetPc(final int targetPc) {
 		this.targetPc = targetPc;
 	}

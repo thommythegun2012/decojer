@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
-import org.decojer.cavaj.model.code.op.Operation;
+import org.decojer.cavaj.model.code.op.Op;
 import org.decojer.cavaj.model.code.struct.Struct;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.Statement;
@@ -43,7 +43,7 @@ public class BB {
 
 	private final Stack<Expression> expressions = new Stack<Expression>();
 
-	private final List<Operation> operations = new ArrayList<Operation>();
+	private final List<Op> operations = new ArrayList<Op>();
 
 	private int opPc;
 
@@ -70,7 +70,7 @@ public class BB {
 	 * @param operation
 	 *            operation
 	 */
-	public void addOperation(final Operation operation) {
+	public void addOperation(final Op operation) {
 		this.operations.add(operation);
 	}
 
@@ -175,7 +175,7 @@ public class BB {
 	 * 
 	 * @return operations
 	 */
-	public List<Operation> getOperations() {
+	public List<Op> getOperations() {
 		return this.operations;
 	}
 

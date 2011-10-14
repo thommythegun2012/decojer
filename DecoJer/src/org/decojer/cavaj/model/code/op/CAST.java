@@ -30,14 +30,28 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class CAST extends Operation {
+public class CAST extends Op {
 
 	private final T t;
 
 	private final T toT;
 
-	public CAST(final int pc, final int code, final int line, final T t, final T toT) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param t
+	 *            type
+	 * @param toT
+	 *            to type
+	 */
+	public CAST(final int pc, final int opcode, final int line, final T t, final T toT) {
+		super(pc, opcode, line);
 		this.t = t;
 		this.toT = toT;
 	}
@@ -47,10 +61,20 @@ public class CAST extends Operation {
 		return Optype.CAST;
 	}
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}
 
+	/**
+	 * Get to type.
+	 * 
+	 * @return to type
+	 */
 	public T getToT() {
 		return this.toT;
 	}

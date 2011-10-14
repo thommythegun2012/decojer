@@ -28,7 +28,7 @@ package org.decojer.cavaj.model.code.op;
  * 
  * @author André Pankraz
  */
-public class POP extends Operation {
+public class POP extends Op {
 
 	public static final int T_POP = 0;
 
@@ -36,8 +36,20 @@ public class POP extends Operation {
 
 	private final int popType;
 
-	public POP(final int pc, final int code, final int line, final int popType) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param popType
+	 *            pop type
+	 */
+	public POP(final int pc, final int opcode, final int line, final int popType) {
+		super(pc, opcode, line);
 		this.popType = popType;
 	}
 
@@ -51,6 +63,11 @@ public class POP extends Operation {
 		return Optype.POP;
 	}
 
+	/**
+	 * Get pop type.
+	 * 
+	 * @return pop type
+	 */
 	public int getPopType() {
 		return this.popType;
 	}

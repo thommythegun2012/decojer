@@ -30,12 +30,24 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class NEW extends Operation {
+public class NEW extends Op {
 
 	private final T t;
 
-	public NEW(final int pc, final int code, final int line, final T t) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param t
+	 *            type
+	 */
+	public NEW(final int pc, final int opcode, final int line, final T t) {
+		super(pc, opcode, line);
 		this.t = t;
 	}
 
@@ -44,6 +56,11 @@ public class NEW extends Operation {
 		return Optype.NEW;
 	}
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}

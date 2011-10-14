@@ -32,7 +32,7 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.Var;
-import org.decojer.cavaj.model.code.op.Operation;
+import org.decojer.cavaj.model.code.op.Op;
 import org.eclipse.jdt.core.dom.Block;
 
 /**
@@ -63,7 +63,7 @@ public class CFG {
 
 	private boolean error;
 
-	private Operation[] operations;
+	private Op[] operations;
 
 	/**
 	 * Array with postordered basic blocks.
@@ -253,7 +253,7 @@ public class CFG {
 	 *            operation
 	 * @return input frame
 	 */
-	public Frame getInFrame(final Operation operation) {
+	public Frame getInFrame(final Op operation) {
 		// operation.pc may not be the operations index, could be an real pc
 		for (int pc = operation.getPc(); pc < this.operations.length; ++pc) {
 			if (this.operations[pc] == operation) {
@@ -296,7 +296,7 @@ public class CFG {
 	 * 
 	 * @return operations
 	 */
-	public Operation[] getOperations() {
+	public Op[] getOperations() {
 		return this.operations;
 	}
 
@@ -307,7 +307,7 @@ public class CFG {
 	 *            operation
 	 * @return output frame
 	 */
-	public Frame getOutFrame(final Operation operation) {
+	public Frame getOutFrame(final Op operation) {
 		// operation.pc may not be the operations index, could be an real pc
 		for (int pc = operation.getPc(); pc < this.operations.length; ++pc) {
 			if (this.operations[pc] == operation) {
@@ -536,7 +536,7 @@ public class CFG {
 	 * @param operations
 	 *            operations
 	 */
-	public void setOperations(final Operation[] operations) {
+	public void setOperations(final Op[] operations) {
 		this.operations = operations;
 	}
 

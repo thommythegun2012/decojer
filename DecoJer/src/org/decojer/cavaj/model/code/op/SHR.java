@@ -30,14 +30,28 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class SHR extends Operation {
+public class SHR extends Op {
 
 	private final T t;
 
 	private final boolean unsigned;
 
-	public SHR(final int pc, final int code, final int line, final T t, final boolean unsigned) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param t
+	 *            type
+	 * @param unsigned
+	 *            unsigned flag
+	 */
+	public SHR(final int pc, final int opcode, final int line, final T t, final boolean unsigned) {
+		super(pc, opcode, line);
 		this.t = t;
 		this.unsigned = unsigned;
 	}
@@ -47,10 +61,20 @@ public class SHR extends Operation {
 		return Optype.SHR;
 	}
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}
 
+	/**
+	 * Is unsigned?
+	 * 
+	 * @return true - is unsigned
+	 */
 	public boolean isUnsigned() {
 		return this.unsigned;
 	}

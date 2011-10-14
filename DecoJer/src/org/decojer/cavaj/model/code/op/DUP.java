@@ -28,7 +28,7 @@ package org.decojer.cavaj.model.code.op;
  * 
  * @author André Pankraz
  */
-public class DUP extends Operation {
+public class DUP extends Op {
 
 	public static final int T_DUP = 0;
 
@@ -44,11 +44,28 @@ public class DUP extends Operation {
 
 	private final int dupType;
 
-	public DUP(final int pc, final int code, final int line, final int dupType) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param dupType
+	 *            dup type
+	 */
+	public DUP(final int pc, final int opcode, final int line, final int dupType) {
+		super(pc, opcode, line);
 		this.dupType = dupType;
 	}
 
+	/**
+	 * Get dup type.
+	 * 
+	 * @return dup type
+	 */
 	public int getDupType() {
 		return this.dupType;
 	}

@@ -62,7 +62,7 @@ import org.decojer.cavaj.model.code.op.NEG;
 import org.decojer.cavaj.model.code.op.NEW;
 import org.decojer.cavaj.model.code.op.NEWARRAY;
 import org.decojer.cavaj.model.code.op.OR;
-import org.decojer.cavaj.model.code.op.Operation;
+import org.decojer.cavaj.model.code.op.Op;
 import org.decojer.cavaj.model.code.op.POP;
 import org.decojer.cavaj.model.code.op.PUSH;
 import org.decojer.cavaj.model.code.op.PUT;
@@ -215,7 +215,7 @@ public class TrDataFlowAnalysis {
 	}
 
 	private void transform() {
-		final Operation[] operations = this.cfg.getOperations();
+		final Op[] operations = this.cfg.getOperations();
 		this.frames = new Frame[operations.length];
 		this.cfg.setFrames(this.frames); // assign early for debugging...
 		this.frames[0] = createMethodFrame();
@@ -233,7 +233,7 @@ public class TrDataFlowAnalysis {
 
 			// shallow copy of calculation frame
 			final Frame frame = new Frame(this.frames[this.pc]);
-			final Operation operation = operations[this.pc];
+			final Op operation = operations[this.pc];
 			switch (operation.getOptype()) {
 			case ADD: {
 				final ADD op = (ADD) operation;

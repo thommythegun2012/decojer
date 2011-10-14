@@ -39,7 +39,7 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.op.GOTO;
 import org.decojer.cavaj.model.code.op.JCMP;
 import org.decojer.cavaj.model.code.op.JCND;
-import org.decojer.cavaj.model.code.op.Operation;
+import org.decojer.cavaj.model.code.op.Op;
 import org.decojer.cavaj.model.code.op.SWITCH;
 
 /**
@@ -103,7 +103,7 @@ public class TrInitControlFlowGraph {
 		}
 
 		final int bbPc = targetBb.getOpPc();
-		final List<Operation> operations = targetBb.getOperations();
+		final List<Op> operations = targetBb.getOperations();
 
 		// first operation in basic block has target pc, return basic block,
 		// no split necessary
@@ -123,7 +123,7 @@ public class TrInitControlFlowGraph {
 
 		// move operations, change pc map
 		for (int i = pc; i-- > bbPc;) {
-			final Operation vmOperation = operations.remove(0);
+			final Op vmOperation = operations.remove(0);
 			splitSourceBb.addOperation(vmOperation);
 			this.pc2Bbs[i] = splitSourceBb;
 		}
@@ -135,7 +135,7 @@ public class TrInitControlFlowGraph {
 		// set start BB, may change through splitting
 		this.cfg.setStartBb(this.cfg.newBb(0));
 
-		final Operation[] operations = this.cfg.getOperations();
+		final Op[] operations = this.cfg.getOperations();
 		this.pc2Bbs = new BB[operations.length];
 
 		// start with this basic block, may not remain the start basic block
@@ -164,7 +164,7 @@ public class TrInitControlFlowGraph {
 				this.pc2Bbs[pc] = bb;
 			}
 
-			final Operation operation = operations[pc++];
+			final Op operation = operations[pc++];
 			bb.addOperation(operation);
 			switch (operation.getOptype()) {
 			case GOTO: {

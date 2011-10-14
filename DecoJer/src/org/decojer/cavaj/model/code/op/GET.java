@@ -31,12 +31,24 @@ import org.decojer.cavaj.model.F;
  * 
  * @author André Pankraz
  */
-public class GET extends Operation {
+public class GET extends Op {
 
 	private final F f;
 
-	public GET(final int pc, final int code, final int line, final F f) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param f
+	 *            field
+	 */
+	public GET(final int pc, final int opcode, final int line, final F f) {
+		super(pc, opcode, line);
 		this.f = f;
 	}
 

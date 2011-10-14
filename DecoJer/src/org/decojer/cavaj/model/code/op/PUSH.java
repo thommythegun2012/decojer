@@ -30,14 +30,28 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class PUSH extends Operation {
+public class PUSH extends Op {
 
 	private final T t;
 
 	private final Object value;
 
-	public PUSH(final int pc, final int code, final int line, final T t, final Object value) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param t
+	 *            type
+	 * @param value
+	 *            value
+	 */
+	public PUSH(final int pc, final int opcode, final int line, final T t, final Object value) {
+		super(pc, opcode, line);
 		this.t = t;
 		this.value = value;
 	}
@@ -47,10 +61,20 @@ public class PUSH extends Operation {
 		return Optype.PUSH;
 	}
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}
 
+	/**
+	 * Get value
+	 * 
+	 * @return value
+	 */
 	public Object getValue() {
 		return this.value;
 	}

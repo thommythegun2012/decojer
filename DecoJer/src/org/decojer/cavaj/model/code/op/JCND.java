@@ -31,7 +31,7 @@ import org.decojer.cavaj.model.code.CompareType;
  * 
  * @author André Pankraz
  */
-public class JCND extends Operation {
+public class JCND extends Op {
 
 	private final int cmpType;
 
@@ -39,12 +39,31 @@ public class JCND extends Operation {
 
 	private int targetPc;
 
-	public JCND(final int pc, final int code, final int line, final T t, final int cmpType) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param t
+	 *            type
+	 * @param cmpType
+	 *            compare type
+	 */
+	public JCND(final int pc, final int opcode, final int line, final T t, final int cmpType) {
+		super(pc, opcode, line);
 		this.t = t;
 		this.cmpType = cmpType;
 	}
 
+	/**
+	 * Get compare type.
+	 * 
+	 * @return compare type
+	 */
 	public int getCmpType() {
 		return this.cmpType;
 	}
@@ -54,14 +73,30 @@ public class JCND extends Operation {
 		return Optype.JCND;
 	}
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}
 
+	/**
+	 * Get target pc.
+	 * 
+	 * @return target pc
+	 */
 	public int getTargetPc() {
 		return this.targetPc;
 	}
 
+	/**
+	 * Set target pc.
+	 * 
+	 * @param targetPc
+	 *            target pc
+	 */
 	public void setTargetPc(final int targetPc) {
 		this.targetPc = targetPc;
 	}

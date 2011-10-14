@@ -28,7 +28,7 @@ package org.decojer.cavaj.model.code.op;
  * 
  * @author André Pankraz
  */
-public class SWITCH extends Operation {
+public class SWITCH extends Op {
 
 	private int[] caseKeys;
 
@@ -36,8 +36,18 @@ public class SWITCH extends Operation {
 
 	private int defaultPc;
 
-	public SWITCH(final int pc, final int code, final int line) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 */
+	public SWITCH(final int pc, final int opcode, final int line) {
+		super(pc, opcode, line);
 	}
 
 	public int[] getCaseKeys() {

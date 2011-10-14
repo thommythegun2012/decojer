@@ -30,14 +30,28 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class LOAD extends Operation {
+public class LOAD extends Op {
 
 	private final T t;
 
 	private final int reg;
 
-	public LOAD(final int pc, final int code, final int line, final T t, final int reg) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 * @param t
+	 *            type
+	 * @param reg
+	 *            register
+	 */
+	public LOAD(final int pc, final int opcode, final int line, final T t, final int reg) {
+		super(pc, opcode, line);
 
 		assert t != null;
 
@@ -50,10 +64,20 @@ public class LOAD extends Operation {
 		return Optype.LOAD;
 	}
 
+	/**
+	 * Get register.
+	 * 
+	 * @return register
+	 */
 	public int getReg() {
 		return this.reg;
 	}
 
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}

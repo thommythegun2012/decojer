@@ -28,12 +28,22 @@ package org.decojer.cavaj.model.code.op;
  * 
  * @author André Pankraz
  */
-public class FILLARRAY extends Operation {
+public class FILLARRAY extends Op {
 
 	private Object[] values;
 
-	public FILLARRAY(final int pc, final int code, final int line) {
-		super(pc, code, line);
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            original pc
+	 * @param opcode
+	 *            original operation code
+	 * @param line
+	 *            line number
+	 */
+	public FILLARRAY(final int pc, final int opcode, final int line) {
+		super(pc, opcode, line);
 	}
 
 	@Override
@@ -41,10 +51,21 @@ public class FILLARRAY extends Operation {
 		return Optype.FILLARRAY;
 	}
 
+	/**
+	 * Get values.
+	 * 
+	 * @return values
+	 */
 	public Object[] getValues() {
 		return this.values;
 	}
 
+	/**
+	 * Set values.
+	 * 
+	 * @param values
+	 *            values
+	 */
 	public void setValues(final Object[] values) {
 		this.values = values;
 	}

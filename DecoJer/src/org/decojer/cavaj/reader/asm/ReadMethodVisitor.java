@@ -64,7 +64,7 @@ import org.decojer.cavaj.model.code.op.NEG;
 import org.decojer.cavaj.model.code.op.NEW;
 import org.decojer.cavaj.model.code.op.NEWARRAY;
 import org.decojer.cavaj.model.code.op.OR;
-import org.decojer.cavaj.model.code.op.Operation;
+import org.decojer.cavaj.model.code.op.Op;
 import org.decojer.cavaj.model.code.op.POP;
 import org.decojer.cavaj.model.code.op.PUSH;
 import org.decojer.cavaj.model.code.op.PUT;
@@ -132,7 +132,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private MD md;
 
-	private final ArrayList<Operation> operations = new ArrayList<Operation>();
+	private final ArrayList<Op> operations = new ArrayList<Op>();
 
 	private A[][] paramAss;
 
@@ -248,7 +248,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final CFG cfg = new CFG(this.md, this.maxLocals, this.maxStack);
 			this.md.setCFG(cfg);
 
-			cfg.setOperations(this.operations.toArray(new Operation[this.operations.size()]));
+			cfg.setOperations(this.operations.toArray(new Op[this.operations.size()]));
 			this.operations.clear();
 			this.label2index.clear();
 			this.label2unresolved.clear();
