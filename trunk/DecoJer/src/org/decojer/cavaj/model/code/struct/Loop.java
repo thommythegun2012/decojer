@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model.struct;
+package org.decojer.cavaj.model.code.struct;
 
 import org.decojer.cavaj.model.BB;
 
@@ -37,8 +37,8 @@ public class Loop extends Struct {
 
 	public static final int DO_WHILENOT = 5;
 
-	public static final String[] TYPE_NAME = { "<UNKNOWN>", "ENDLESS", "WHILE",
-			"WHILENOT", "DO_WHILE", "DO_WHILENOT" };
+	public static final String[] TYPE_NAME = { "<UNKNOWN>", "ENDLESS", "WHILE", "WHILENOT",
+			"DO_WHILE", "DO_WHILENOT" };
 
 	private BB tail;
 

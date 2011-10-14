@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model.struct;
+package org.decojer.cavaj.model.code.struct;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -127,8 +127,7 @@ public class Struct {
 		}
 		sb.append("\nMembers: ");
 		int i = 0;
-		for (final Entry<Object, List<BB>> entry : this.value2members
-				.entrySet()) {
+		for (final Entry<Object, List<BB>> entry : this.value2members.entrySet()) {
 			sb.append("\n  ");
 			if (i++ > 5) {
 				sb.append(this.value2members.size()).append(" switches");
