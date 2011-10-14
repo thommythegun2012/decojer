@@ -27,8 +27,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import org.decojer.cavaj.model.code.op.Operation;
 import org.decojer.cavaj.model.struct.Struct;
-import org.decojer.cavaj.model.vm.intermediate.Operation;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.Statement;
 
