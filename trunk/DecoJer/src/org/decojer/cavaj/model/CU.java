@@ -27,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.decojer.DecoJerException;
-import org.decojer.cavaj.model.util.TypeNameManager;
+import org.decojer.cavaj.util.TypeNameManager;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;

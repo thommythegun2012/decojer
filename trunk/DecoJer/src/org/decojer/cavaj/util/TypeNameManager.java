@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model.util;
+package org.decojer.cavaj.util;
 
 import java.util.HashMap;
 import java.util.Map;
