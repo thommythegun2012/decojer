@@ -355,6 +355,18 @@ public class TrJvmStruct2JavaAst {
 	public static void transform(final TD td) {
 		final T t = td.getT();
 		final CU cu = td.getCu();
+
+		if ("package-info".equals(t.getPName())) {
+			if (td.getAs() != null) {
+				// bug: https://bugs.eclipse.org/bugs/show_bug.cgi?id=361071
+				// org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteFlattener.visit(PackageDeclaration)
+				// bugfix in CU.createSourceCode()
+				AnnotationsDecompiler.decompileAnnotations(td, cu.getCompilationUnit().getPackage()
+						.annotations(), td.getAs());
+			}
+			return;
+		}
+
 		final AST ast = cu.getAst();
 
 		if (t.checkAf(AF.SYNTHETIC) || td.isSynthetic()) {
@@ -513,5 +525,4 @@ public class TrJvmStruct2JavaAst {
 		sb.append(" */");
 		cu.setComment(sb.toString());
 	}
-
 }
