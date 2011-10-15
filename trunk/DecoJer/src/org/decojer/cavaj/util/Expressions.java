@@ -53,7 +53,7 @@ public class Expressions {
 			final Expression rightOperand, final Expression leftOperand) {
 		final InfixExpression infixExpression = leftOperand.getAST().newInfixExpression();
 		infixExpression.setOperator(operator);
-		final int operatorPriority = priority(infixExpression);
+		final int operatorPriority = priority(infixExpression).getPriority();
 		infixExpression.setLeftOperand(wrap(leftOperand, operatorPriority));
 		// more operators possible, but PLUS... really necessary here?!
 		final boolean assoc = operator == InfixExpression.Operator.PLUS
@@ -128,6 +128,18 @@ public class Expressions {
 		return wrap(expression, Integer.MAX_VALUE);
 	}
 
+	private static Expression wrap(final Expression expression, final int priority) {
+		final Expression expressionP = expression.getParent() == null ? expression
+				: (Expression) ASTNode.copySubtree(expression.getAST(), expression);
+		if (priority(expression).getPriority() <= priority) {
+			return expressionP;
+		}
+		final ParenthesizedExpression parenthesizedExpression = expression.getAST()
+				.newParenthesizedExpression();
+		parenthesizedExpression.setExpression(expressionP);
+		return parenthesizedExpression;
+	}
+
 	/**
 	 * Wrap expression. Ensures that there is no parent set and adds parantheses if necessary
 	 * (compares operator priority).
@@ -138,16 +150,8 @@ public class Expressions {
 	 *            priority
 	 * @return expression
 	 */
-	public static Expression wrap(final Expression expression, final int priority) {
-		final Expression expressionP = expression.getParent() == null ? expression
-				: (Expression) ASTNode.copySubtree(expression.getAST(), expression);
-		if (priority(expression) <= priority) {
-			return expressionP;
-		}
-		final ParenthesizedExpression parenthesizedExpression = expression.getAST()
-				.newParenthesizedExpression();
-		parenthesizedExpression.setExpression(expressionP);
-		return parenthesizedExpression;
+	public static Expression wrap(final Expression expression, final Priority priority) {
+		return wrap(expression, priority.getPriority());
 	}
 
 }

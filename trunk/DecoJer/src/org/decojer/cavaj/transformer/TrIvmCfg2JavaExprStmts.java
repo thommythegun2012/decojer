@@ -26,7 +26,6 @@ package org.decojer.cavaj.transformer;
 import static org.decojer.cavaj.util.Expressions.newInfixExpression;
 import static org.decojer.cavaj.util.Expressions.newPrefixExpression;
 import static org.decojer.cavaj.util.Expressions.wrap;
-import static org.decojer.cavaj.util.OperatorPrecedence.priority;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -87,6 +86,7 @@ import org.decojer.cavaj.model.code.op.SWAP;
 import org.decojer.cavaj.model.code.op.SWITCH;
 import org.decojer.cavaj.model.code.op.THROW;
 import org.decojer.cavaj.model.code.op.XOR;
+import org.decojer.cavaj.util.Priority;
 import org.decojer.cavaj.util.Types;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
@@ -98,6 +98,7 @@ import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
+import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -181,7 +182,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 				final ArrayAccess arrayAccess = getAst().newArrayAccess();
 				arrayAccess.setIndex(wrap(bb.popExpression()));
-				arrayAccess.setArray(wrap(bb.popExpression(), priority(arrayAccess)));
+				arrayAccess.setArray(wrap(bb.popExpression(), Priority.ARRAY_INDEX));
 				bb.pushExpression(arrayAccess);
 				break;
 			}
@@ -204,7 +205,7 @@ public class TrIvmCfg2JavaExprStmts {
 					// FieldAccess or MethodInvocation:
 					// this.code.length, getInterfaces().length
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
-					fieldAccess.setExpression(wrap(expression, priority(fieldAccess)));
+					fieldAccess.setExpression(wrap(expression, Priority.MEMBER_ACCESS));
 					fieldAccess.setName(getAst().newSimpleName("length"));
 					bb.pushExpression(fieldAccess);
 				}
@@ -227,14 +228,14 @@ public class TrIvmCfg2JavaExprStmts {
 					}
 					arrayInitializer.expressions().add(wrap(rightExpression));
 				} else {
+					final ArrayAccess arrayAccess = getAst().newArrayAccess();
+					arrayAccess.setArray(wrap(arrayRefExpression, Priority.ARRAY_INDEX));
+					arrayAccess.setIndex(wrap(indexExpression));
 					final Assignment assignment = getAst().newAssignment();
+					assignment.setLeftHandSide(arrayAccess);
 					// TODO a = a +/- 1 => a++ / a--
 					// TODO a = a <op> expr => a <op>= expr
-					assignment.setRightHandSide(wrap(rightExpression, priority(assignment)));
-					final ArrayAccess arrayAccess = getAst().newArrayAccess();
-					arrayAccess.setArray(wrap(arrayRefExpression, priority(arrayAccess)));
-					arrayAccess.setIndex(wrap(indexExpression));
-					assignment.setLeftHandSide(arrayAccess);
+					assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 					// inline assignment, DUP(_X1) -> PUT
 					if (bb.getExpressionsSize() > 0 && bb.peekExpression() == rightExpression) {
 						bb.popExpression();
@@ -249,7 +250,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final CAST cop = (CAST) op;
 				final CastExpression castExpression = getAst().newCastExpression();
 				castExpression.setType(Types.convertType(cop.getToT(), getTd(), getAst()));
-				castExpression.setExpression(wrap(bb.popExpression(), priority(castExpression)));
+				castExpression.setExpression(wrap(bb.popExpression(), Priority.TYPE_CAST));
 				bb.pushExpression(castExpression);
 				break;
 			}
@@ -363,7 +364,7 @@ public class TrIvmCfg2JavaExprStmts {
 					bb.pushExpression(name);
 				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
-					fieldAccess.setExpression(wrap(bb.popExpression(), priority(fieldAccess)));
+					fieldAccess.setExpression(wrap(bb.popExpression(), Priority.MEMBER_ACCESS));
 					fieldAccess.setName(getAst().newSimpleName(f.getName()));
 					bb.pushExpression(fieldAccess);
 				}
@@ -406,8 +407,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final INSTANCEOF cop = (INSTANCEOF) op;
 				final InstanceofExpression instanceofExpression = getAst()
 						.newInstanceofExpression();
-				instanceofExpression.setLeftOperand(wrap(bb.popExpression(),
-						priority(instanceofExpression)));
+				instanceofExpression.setLeftOperand(wrap(bb.popExpression(), Priority.INSTANCEOF));
 				instanceofExpression.setRightOperand(Types.convertType(cop.getT(), getTd(),
 						getAst()));
 				bb.pushExpression(instanceofExpression);
@@ -470,9 +470,9 @@ public class TrIvmCfg2JavaExprStmts {
 					}
 				} else if (m.checkAf(AF.STATIC)) {
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
+					methodInvocation.setExpression(getTd().newTypeName(m.getT().getName()));
 					methodInvocation.setName(getAst().newSimpleName(mName));
 					methodInvocation.arguments().addAll(arguments);
-					methodInvocation.setExpression(getTd().newTypeName(m.getT().getName()));
 					methodExpression = methodInvocation;
 				} else {
 					stringAdd: if ("toString".equals(mName)
@@ -525,10 +525,9 @@ public class TrIvmCfg2JavaExprStmts {
 						}
 					}
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
+					methodInvocation.setExpression(wrap(bb.popExpression(), Priority.METHOD_CALL));
 					methodInvocation.setName(getAst().newSimpleName(mName));
 					methodInvocation.arguments().addAll(arguments);
-					methodInvocation.setExpression(wrap(bb.popExpression(),
-							priority(methodInvocation)));
 					methodExpression = methodInvocation;
 				}
 				if (methodExpression != null) {
@@ -847,7 +846,8 @@ public class TrIvmCfg2JavaExprStmts {
 					try {
 						final FD fd = getTd().getFd(f.getName());
 						((VariableDeclarationFragment) ((FieldDeclaration) fd.getFieldDeclaration())
-								.fragments().get(0)).setInitializer(rightExpression);
+								.fragments().get(0)).setInitializer(wrap(rightExpression,
+								Priority.ASSIGNMENT));
 						if (!f.checkAf(AF.STATIC)) {
 							bb.popExpression();
 						}
@@ -859,7 +859,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final Assignment assignment = getAst().newAssignment();
 				// TODO a = a +/- 1 => a++ / a--
 				// TODO a = a <op> expr => a <op>= expr
-				assignment.setRightHandSide(rightExpression);
+				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 
 				if (f.checkAf(AF.STATIC)) {
 					final Name name = getAst().newQualifiedName(
@@ -868,7 +868,7 @@ public class TrIvmCfg2JavaExprStmts {
 					assignment.setLeftHandSide(name);
 				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
-					fieldAccess.setExpression(wrap(bb.popExpression(), priority(fieldAccess)));
+					fieldAccess.setExpression(wrap(bb.popExpression(), Priority.MEMBER_ACCESS));
 					fieldAccess.setName(getAst().newSimpleName(f.getName()));
 					assignment.setLeftHandSide(fieldAccess);
 				}
@@ -919,7 +919,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final Assignment assignment = getAst().newAssignment();
 				// TODO a = a +/- 1 => a++ / a--
 				// TODO a = a <op> expr => a <op>= expr
-				assignment.setRightHandSide(wrap(rightExpression, priority(assignment)));
+				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 
 				// TODO STORE.pc in DALVIK sucks now...multiple ops share pc
 				String name = getVarName(cop.getReg(), ops.isEmpty() ? cop.getPc() + 1 : ops.get(0)
@@ -1063,11 +1063,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 					// rewrite AST
 					final Expression leftExpression = ((IfStatement) statement).getExpression();
-					((IfStatement) statement).setExpression(getAst().newBooleanLiteral(false)); // delete
-																								// parent
 					final Expression rightExpression = ((IfStatement) statement2).getExpression();
-					((IfStatement) statement2).setExpression(getAst().newBooleanLiteral(false)); // delete
-																									// parent
 					((IfStatement) statement).setExpression(newInfixExpression(
 							InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
 							newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
@@ -1092,11 +1088,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 					// rewrite AST
 					final Expression leftExpression = ((IfStatement) statement).getExpression();
-					((IfStatement) statement).setExpression(getAst().newBooleanLiteral(false)); // delete
-																								// parent
 					final Expression rightExpression = ((IfStatement) statement2).getExpression();
-					((IfStatement) statement2).setExpression(getAst().newBooleanLiteral(false)); // delete
-																									// parent
 					((IfStatement) statement).setExpression(newInfixExpression(
 							InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
 							leftExpression));
@@ -1129,11 +1121,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 					// rewrite AST
 					final Expression leftExpression = ((IfStatement) statement).getExpression();
-					((IfStatement) statement).setExpression(getAst().newBooleanLiteral(false)); // delete
-																								// parent
 					final Expression rightExpression = ((IfStatement) statement2).getExpression();
-					((IfStatement) statement2).setExpression(getAst().newBooleanLiteral(false)); // delete
-																									// parent
 					((IfStatement) statement).setExpression(newInfixExpression(
 							InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
 							leftExpression));
@@ -1156,11 +1144,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 					// rewrite AST
 					final Expression leftExpression = ((IfStatement) statement).getExpression();
-					((IfStatement) statement).setExpression(getAst().newBooleanLiteral(false)); // delete
-																								// parent
 					final Expression rightExpression = ((IfStatement) statement2).getExpression();
-					((IfStatement) statement2).setExpression(getAst().newBooleanLiteral(false)); // delete
-																									// parent
 					((IfStatement) statement).setExpression(newInfixExpression(
 							InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
 							newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
@@ -1195,35 +1179,49 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				final Expression trueExpression = trueBb.peekExpression();
 				final Expression falseExpression = falseBb.peekExpression();
-				// TODO can delete Number later?
+
+				Expression expression;
 				if ((trueExpression instanceof BooleanLiteral || trueExpression instanceof NumberLiteral)
 						&& (falseExpression instanceof BooleanLiteral || falseExpression instanceof NumberLiteral)) {
-					Expression expression = ((IfStatement) statement).getExpression();
-					((IfStatement) statement).setExpression(getAst().newBooleanLiteral(false)); // delete
-																								// parent
+					// expressions: expression ? true : false => a
+					// TODO NumberLiteral necessary until Data Flow Analysis works
+					expression = ((IfStatement) statement).getExpression();
+
+					// TODO Issue 4: DecTestFields for jdk 1.1.8 fails in methods
+
 					if (trueExpression instanceof BooleanLiteral
 							&& !((BooleanLiteral) trueExpression).booleanValue()
 							|| trueExpression instanceof NumberLiteral
 							&& ((NumberLiteral) trueExpression).getToken().equals("0")) {
 						expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
 					}
-					// is conditional expression, modify graph
-					// remove IfStatement
-					stmts.remove(stmts.size() - 1);
-					// push new conditional expression
-					// TODO here only "a ? true : false" as "a"
-					bb.pushExpression(expression);
-					// copy successor values to bbNode
-					bb.copyContent(trueBb2);
-					// again convert operations, stack underflow might be solved
-					changed = true;
-					// first preserve successors...
-					trueBb2.moveSuccBbs(bb);
-					// then remove basic blocks
-					trueBb.remove();
-					falseBb.remove();
-					trueBb2.remove();
+				} else {
+					// expressions: expression ? trueExpression : falseExpression
+					final ConditionalExpression conditionalExpression = getAst()
+							.newConditionalExpression();
+					expression = ((IfStatement) statement).getExpression();
+					conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
+					conditionalExpression.setThenExpression(wrap(trueExpression,
+							Priority.CONDITIONAL));
+					conditionalExpression.setElseExpression(wrap(falseExpression,
+							Priority.CONDITIONAL));
+					expression = conditionalExpression;
 				}
+				// is conditional expression, modify graph
+				// remove IfStatement
+				stmts.remove(stmts.size() - 1);
+				// push new conditional expression, here only "a ? true : false" as "a"
+				bb.pushExpression(expression);
+				// copy successor values to bbNode
+				bb.copyContent(trueBb2);
+				// again convert operations, stack underflow might be solved
+				changed = true;
+				// first preserve successors...
+				trueBb2.moveSuccBbs(bb);
+				// then remove basic blocks
+				trueBb.remove();
+				falseBb.remove();
+				trueBb2.remove();
 			}
 			if (changed) {
 				changed = false;
