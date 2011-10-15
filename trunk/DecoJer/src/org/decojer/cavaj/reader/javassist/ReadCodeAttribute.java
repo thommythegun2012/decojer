@@ -1681,9 +1681,11 @@ public class ReadCodeAttribute {
 		if (classInfo == null) {
 			return null;
 		}
+		assert classInfo.indexOf('/') == -1 : classInfo;
+
 		// strange behaviour for classinfo:
 		// arrays: normal descriptor (but with '.'):
-		// [[I, [Ljava/lang/String;
+		// [[I, [Ljava.lang.String;
 		if (classInfo.charAt(0) == '[') {
 			return this.du.getDescT(classInfo.replace('.', '/'));
 		}

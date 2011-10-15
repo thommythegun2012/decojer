@@ -98,21 +98,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private static final boolean TODOCODE = true;
 
-	private static T readType(final String classInfo, final DU du) {
-		if (classInfo == null) {
-			return null;
-		}
-		// strange behaviour for classinfo:
-		// arrays: normal descriptor:
-		// [[I, [Ljava/lang/String;
-		if (classInfo.charAt(0) == '[') {
-			return du.getDescT(classInfo);
-		}
-		// no arrays - class name (but with '/'):
-		// java/lang/StringBuilder
-		return du.getT(classInfo.replace('/', '.'));
-	}
-
 	private A[] as;
 
 	private final DU du;
@@ -195,6 +180,23 @@ public class ReadMethodVisitor extends MethodVisitor {
 	 */
 	public void init(final MD md) {
 		this.md = md;
+	}
+
+	private T readType(final String classInfo) {
+		if (classInfo == null) {
+			return null;
+		}
+		assert classInfo.indexOf('.') == -1 : classInfo;
+
+		// strange behaviour for classinfo:
+		// arrays: normal descriptor:
+		// [[I, [Ljava/lang/String;
+		if (classInfo.charAt(0) == '[') {
+			return this.du.getDescT(classInfo);
+		}
+		// no arrays - class name (but with '/'):
+		// java/lang/StringBuilder
+		return this.du.getT(classInfo.replace('/', '.'));
 	}
 
 	@Override
@@ -1317,7 +1319,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// constructor or supermethod callout
 		case Opcodes.INVOKEVIRTUAL:
 		case Opcodes.INVOKESTATIC: {
-			final T invokeT = readType(owner, this.du);
+			final T invokeT = readType(owner);
 			final M invokeM = invokeT.getM(name, desc);
 			if (opcode == Opcodes.INVOKEINTERFACE) {
 				invokeT.markAf(AF.INTERFACE);
@@ -1424,7 +1426,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitTypeInsn(final int opcode, final String type) {
 		// type: java/lang/StringBuilder, [[I
-		final T t = readType(type, this.du);
+		final T t = readType(type);
 
 		switch (opcode) {
 		/********

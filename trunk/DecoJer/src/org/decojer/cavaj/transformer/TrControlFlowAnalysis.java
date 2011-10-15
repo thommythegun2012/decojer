@@ -240,8 +240,8 @@ public class TrControlFlowAnalysis {
 		// smaller then
 		final boolean negated = firstValue == Boolean.FALSE;
 
-		if (!negated && this.cfg.getMd().getTd().getVersion() >= 50) {
-			log("Uncommon usage of unnegated conditional in JDK 6:\n" + cond);
+		if (!negated && this.cfg.getMd().getTd().getVersion() >= 49) {
+			log("Uncommon usage of unnegated conditional in >= JDK 5 code:\n" + cond);
 		}
 
 		final List<BB> firstMembers = new ArrayList<BB>();

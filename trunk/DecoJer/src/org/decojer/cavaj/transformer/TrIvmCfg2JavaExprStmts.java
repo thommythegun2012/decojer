@@ -107,10 +107,12 @@ import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.InstanceofExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.NullLiteral;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
 import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.SwitchStatement;
@@ -1180,15 +1182,11 @@ public class TrIvmCfg2JavaExprStmts {
 				final Expression trueExpression = trueBb.peekExpression();
 				final Expression falseExpression = falseBb.peekExpression();
 
-				Expression expression;
-				if ((trueExpression instanceof BooleanLiteral || trueExpression instanceof NumberLiteral)
+				Expression expression = ((IfStatement) statement).getExpression();
+				rewrite: if ((trueExpression instanceof BooleanLiteral || trueExpression instanceof NumberLiteral)
 						&& (falseExpression instanceof BooleanLiteral || falseExpression instanceof NumberLiteral)) {
 					// expressions: expression ? true : false => a
 					// TODO NumberLiteral necessary until Data Flow Analysis works
-					expression = ((IfStatement) statement).getExpression();
-
-					// TODO Issue 4: DecTestFields for jdk 1.1.8 fails in methods
-
 					if (trueExpression instanceof BooleanLiteral
 							&& !((BooleanLiteral) trueExpression).booleanValue()
 							|| trueExpression instanceof NumberLiteral
@@ -1196,10 +1194,53 @@ public class TrIvmCfg2JavaExprStmts {
 						expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
 					}
 				} else {
+					classLiteral: if (expression instanceof InfixExpression) {
+						// Class-literals unknown in pre JDK 1.5 bytecode
+						// (only primitive wrappers have constants like
+						// getstatic java.lang.Void.TYPE : java.lang.Class)
+						// ...construct Class-literals with synthetic local method:
+						// static synthetic java.lang.Class class$(java.lang.String x0);
+						// ...and cache this Class-literals in synthetic local fields:
+						// static synthetic java.lang.Class class$java$lang$String;
+						// static synthetic java.lang.Class array$$I;
+						// resulting conditional code:
+						// DecTestFields.array$$I != null ? DecTestFields.array$$I :
+						// (DecTestFields.array$$I = DecTestFields.class$("[[I"))
+						// ...convert too: int[][].class
+						final InfixExpression equalsExpression = (InfixExpression) expression;
+						if (!(equalsExpression.getRightOperand() instanceof NullLiteral)) {
+							break classLiteral;
+						}
+						try {
+							// JDK 1.1.6 and 1.4 differ in branch order
+							final Assignment assignment = (Assignment) (trueExpression instanceof Assignment ? trueExpression
+									: falseExpression);
+							final MethodInvocation methodInvocation = (MethodInvocation) assignment
+									.getRightHandSide();
+							if (!"class$".equals(methodInvocation.getName().getIdentifier())) {
+								break classLiteral;
+							}
+							if (getTd().getVersion() >= 49) {
+								LOGGER.warning("Unexpected class literal code with class$() in >= JDK 5 code!");
+							}
+							final String classInfo = ((StringLiteral) methodInvocation.arguments()
+									.get(0)).getLiteralValue();
+							// strange behaviour for classinfo:
+							// arrays: normal descriptor (but with '.')
+							// no arrays - class name
+							final DU du = getTd().getT().getDu();
+							final T literalT = classInfo.charAt(0) == '[' ? du.getDescT(classInfo
+									.replace('.', '/')) : du.getT(classInfo);
+							expression = Types.convertLiteral(du.getT(Class.class), literalT,
+									getTd(), getAst());
+							break rewrite;
+						} catch (final Exception e) {
+							// rewrite to class literal didn't work
+						}
+					}
 					// expressions: expression ? trueExpression : falseExpression
 					final ConditionalExpression conditionalExpression = getAst()
 							.newConditionalExpression();
-					expression = ((IfStatement) statement).getExpression();
 					conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
 					conditionalExpression.setThenExpression(wrap(trueExpression,
 							Priority.CONDITIONAL));

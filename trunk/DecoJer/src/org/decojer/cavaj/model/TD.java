@@ -254,7 +254,7 @@ public class TD implements BD, PD {
 	}
 
 	/**
-	 * Get Class file version (Java2 46 ... Java7 51).
+	 * Get Class file version (1.1 - 1.3: 45.3, 1.4: 46, 5: 49, 6: 50, 7: 51).
 	 * 
 	 * @return Class file version
 	 */
@@ -402,12 +402,14 @@ public class TD implements BD, PD {
 	}
 
 	/**
-	 * Set Class file version (Java2 46 ... Java7 51).
+	 * Set Class file version (1.1 - 1.3: 45.3, 1.4: 46, 5: 49, 6: 50, 7: 51).
 	 * 
 	 * @param version
 	 *            Class file version
 	 */
 	public void setVersion(final int version) {
+		assert version >= 45 && version < 60 : version;
+
 		this.version = version;
 	}
 

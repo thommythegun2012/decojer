@@ -485,15 +485,9 @@ public class TrJvmStruct2JavaAst {
 		sb.append(" * Class File Version: ").append(version).append(" (Java ");
 		switch (version) {
 		case 45:
-			sb.append("1.1");
+			sb.append("<= 1.3");
 			break;
 		case 46:
-			sb.append("1.2");
-			break;
-		case 47:
-			sb.append("1.3");
-			break;
-		case 48:
 			sb.append("1.4");
 			break;
 		case 49:
