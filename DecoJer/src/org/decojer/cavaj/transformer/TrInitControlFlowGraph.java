@@ -103,7 +103,7 @@ public class TrInitControlFlowGraph {
 		}
 
 		final int bbPc = targetBb.getOpPc();
-		final List<Op> operations = targetBb.getOperations();
+		final List<Op> ops = targetBb.getOps();
 
 		// first operation in basic block has target pc, return basic block,
 		// no split necessary
@@ -123,8 +123,7 @@ public class TrInitControlFlowGraph {
 
 		// move operations, change pc map
 		for (int i = pc; i-- > bbPc;) {
-			final Op vmOperation = operations.remove(0);
-			splitSourceBb.addOperation(vmOperation);
+			splitSourceBb.addOp(ops.remove(0));
 			this.pc2Bbs[i] = splitSourceBb;
 		}
 		return targetBb;
@@ -135,8 +134,8 @@ public class TrInitControlFlowGraph {
 		// set start BB, may change through splitting
 		this.cfg.setStartBb(this.cfg.newBb(0));
 
-		final Op[] operations = this.cfg.getOperations();
-		this.pc2Bbs = new BB[operations.length];
+		final Op[] ops = this.cfg.getOps();
+		this.pc2Bbs = new BB[ops.length];
 
 		// start with this basic block, may not remain the start basic block
 		// (splitting)
@@ -147,7 +146,7 @@ public class TrInitControlFlowGraph {
 		int pc = 0;
 		while (true) {
 			// next open pc?
-			if (pc >= operations.length) {
+			if (pc >= ops.length) {
 				if (openPcs.isEmpty()) {
 					break;
 				}
@@ -158,18 +157,18 @@ public class TrInitControlFlowGraph {
 				final BB nextBB = getTargetBb(pc);
 				if (nextBB != null) {
 					bb.addSucc(nextBB, null);
-					pc = operations.length; // next open pc
+					pc = ops.length; // next open pc
 					continue;
 				}
 				this.pc2Bbs[pc] = bb;
 			}
 
-			final Op operation = operations[pc++];
-			bb.addOperation(operation);
-			switch (operation.getOptype()) {
+			final Op op = ops[pc++];
+			bb.addOp(op);
+			switch (op.getOptype()) {
 			case GOTO: {
-				final GOTO op = (GOTO) operation;
-				pc = op.getTargetPc();
+				final GOTO cop = (GOTO) op;
+				pc = cop.getTargetPc();
 				// create new BB because we need the correct index after the
 				// goto, if we simply follow the goto without a new block then
 				// we have a problem to find the bb split point (operations.pc
@@ -178,15 +177,15 @@ public class TrInitControlFlowGraph {
 				if (nextBB == null) {
 					nextBB = this.cfg.newBb(pc);
 				} else {
-					pc = operations.length; // next open pc
+					pc = ops.length; // next open pc
 				}
 				bb.addSucc(nextBB, null);
 				bb = nextBB;
 				break;
 			}
 			case JCMP: {
-				final JCMP op = (JCMP) operation;
-				final int targetPc = op.getTargetPc();
+				final JCMP cop = (JCMP) op;
+				final int targetPc = cop.getTargetPc();
 				if (targetPc == pc) {
 					System.out.println("### BRANCH_IFCMP (Empty): " + targetPc);
 				} else {
@@ -201,7 +200,7 @@ public class TrInitControlFlowGraph {
 					if (nextBB == null) {
 						nextBB = this.cfg.newBb(pc);
 					} else {
-						pc = operations.length; // next open pc
+						pc = ops.length; // next open pc
 					}
 					bb.addSucc(nextBB, Boolean.FALSE);
 					bb = nextBB;
@@ -209,8 +208,8 @@ public class TrInitControlFlowGraph {
 				break;
 			}
 			case JCND: {
-				final JCND op = (JCND) operation;
-				final int targetPc = op.getTargetPc();
+				final JCND cop = (JCND) op;
+				final int targetPc = cop.getTargetPc();
 				if (targetPc == pc) {
 					System.out.println("### BRANCH_IF (Empty): " + targetPc);
 				} else {
@@ -225,7 +224,7 @@ public class TrInitControlFlowGraph {
 					if (nextBB == null) {
 						nextBB = this.cfg.newBb(pc);
 					} else {
-						pc = operations.length; // next open pc
+						pc = ops.length; // next open pc
 					}
 					bb.addSucc(nextBB, Boolean.FALSE);
 					bb = nextBB;
@@ -233,13 +232,13 @@ public class TrInitControlFlowGraph {
 				break;
 			}
 			case SWITCH: {
-				final SWITCH op = (SWITCH) operation;
+				final SWITCH cop = (SWITCH) op;
 
 				// build map: unique case pc -> case keys
 				final TreeMap<Integer, List<Integer>> casePc2keys = new TreeMap<Integer, List<Integer>>();
 				List<Integer> keys;
-				final int[] caseKeys = op.getCaseKeys();
-				final int[] casePcs = op.getCasePcs();
+				final int[] caseKeys = cop.getCaseKeys();
+				final int[] casePcs = cop.getCasePcs();
 				for (int i = 0; i < caseKeys.length; ++i) {
 					final int casePc = casePcs[i];
 					keys = casePc2keys.get(casePc);
@@ -251,7 +250,7 @@ public class TrInitControlFlowGraph {
 				}
 				// add default branch, can overlay with other cases, even JDK 6
 				// doesn't optimize this
-				final int defaultPc = op.getDefaultPc();
+				final int defaultPc = cop.getDefaultPc();
 				keys = casePc2keys.get(defaultPc);
 				if (keys == null) {
 					keys = new ArrayList<Integer>();
@@ -273,13 +272,13 @@ public class TrInitControlFlowGraph {
 					}
 					bb.addSucc(caseBb, keys);
 				}
-				pc = operations.length; // next open pc
+				pc = ops.length; // next open pc
 				break;
 			}
 			case RET:
 			case RETURN:
 			case THROW:
-				pc = operations.length; // next open pc
+				pc = ops.length; // next open pc
 				break;
 			}
 		}

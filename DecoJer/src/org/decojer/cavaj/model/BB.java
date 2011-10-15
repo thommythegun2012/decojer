@@ -43,7 +43,7 @@ public class BB {
 
 	private final Stack<Expression> expressions = new Stack<Expression>();
 
-	private final List<Op> operations = new ArrayList<Op>();
+	private final List<Op> ops = new ArrayList<Op>();
 
 	private int opPc;
 
@@ -67,11 +67,11 @@ public class BB {
 	/**
 	 * Add operation.
 	 * 
-	 * @param operation
+	 * @param op
 	 *            operation
 	 */
-	public void addOperation(final Op operation) {
-		this.operations.add(operation);
+	public void addOp(final Op op) {
+		this.ops.add(op);
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class BB {
 	}
 
 	public void copyContent(final BB bb) {
-		this.operations.addAll(bb.operations);
+		this.ops.addAll(bb.ops);
 		this.statements.addAll(bb.statements);
 		this.expressions.addAll(bb.expressions);
 	}
@@ -171,30 +171,30 @@ public class BB {
 	}
 
 	/**
+	 * Get first operation line.
+	 * 
+	 * @return first operation line
+	 */
+	public int getOpLine() {
+		return this.cfg.getOps()[this.opPc].getLine();
+	}
+
+	/**
+	 * Get first operation pc.
+	 * 
+	 * @return first operation pc
+	 */
+	public int getOpPc() {
+		return this.opPc;
+	}
+
+	/**
 	 * Get operations.
 	 * 
 	 * @return operations
 	 */
-	public List<Op> getOperations() {
-		return this.operations;
-	}
-
-	/**
-	 * Get operation line.
-	 * 
-	 * @return operation line
-	 */
-	public int getOpLine() {
-		return this.cfg.getOperations()[this.opPc].getLine();
-	}
-
-	/**
-	 * Get operation program counter.
-	 * 
-	 * @return operation program counter
-	 */
-	public int getOpPc() {
-		return this.opPc;
+	public List<Op> getOps() {
+		return this.ops;
 	}
 
 	/**
@@ -267,8 +267,7 @@ public class BB {
 	}
 
 	public boolean isExpression() {
-		return this.operations.size() == 0 && this.statements.size() == 0
-				&& this.expressions.size() == 1;
+		return this.ops.size() == 0 && this.statements.size() == 0 && this.expressions.size() == 1;
 	}
 
 	/**
@@ -380,8 +379,8 @@ public class BB {
 			sb.append("l ").append(getOpLine()).append(", ");
 		}
 		sb.append("pc ").append(getOpPc()).append(")");
-		if (this.operations.size() > 0) {
-			sb.append("\nOps: ").append(this.operations);
+		if (this.ops.size() > 0) {
+			sb.append("\nOps: ").append(this.ops);
 		}
 		if (this.expressions.size() > 0) {
 			sb.append("\nExprs: ").append(this.expressions);

@@ -57,7 +57,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	private MD md;
 
-	private final ArrayList<Op> operations = new ArrayList<Op>();
+	private final ArrayList<Op> ops = new ArrayList<Op>();
 
 	private int getLabelIndex(final DexLabel label) {
 		assert label != null;
@@ -152,11 +152,11 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	@Override
 	public void visitFillArrayStmt(final int opcode, final int aA, final int elemWidth,
 			final int initLength, final Object[] values) {
-		this.operations.add(new LOAD(this.operations.size(), opcode, this.line, T.AREF, aA));
+		this.ops.add(new LOAD(this.ops.size(), opcode, this.line, T.AREF, aA));
 
-		final FILLARRAY op = new FILLARRAY(this.operations.size(), opcode, this.line);
+		final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, this.line);
 		op.setValues(values);
-		this.operations.add(op);
+		this.ops.add(op);
 	}
 
 	@Override

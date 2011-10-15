@@ -63,7 +63,7 @@ public class CFG {
 
 	private boolean error;
 
-	private Op[] operations;
+	private Op[] ops;
 
 	/**
 	 * Array with postordered basic blocks.
@@ -249,14 +249,14 @@ public class CFG {
 	/**
 	 * Get input frame for operation.
 	 * 
-	 * @param operation
+	 * @param op
 	 *            operation
 	 * @return input frame
 	 */
-	public Frame getInFrame(final Op operation) {
+	public Frame getInFrame(final Op op) {
 		// operation.pc may not be the operations index, could be an real pc
-		for (int pc = operation.getPc(); pc < this.operations.length; ++pc) {
-			if (this.operations[pc] == operation) {
+		for (int pc = op.getPc(); pc < this.ops.length; ++pc) {
+			if (this.ops[pc] == op) {
 				return this.frames[pc];
 			}
 		}
@@ -296,21 +296,21 @@ public class CFG {
 	 * 
 	 * @return operations
 	 */
-	public Op[] getOperations() {
-		return this.operations;
+	public Op[] getOps() {
+		return this.ops;
 	}
 
 	/**
 	 * Get output frame for operation.
 	 * 
-	 * @param operation
+	 * @param op
 	 *            operation
 	 * @return output frame
 	 */
-	public Frame getOutFrame(final Op operation) {
+	public Frame getOutFrame(final Op op) {
 		// operation.pc may not be the operations index, could be an real pc
-		for (int pc = operation.getPc(); pc < this.operations.length; ++pc) {
-			if (this.operations[pc] == operation) {
+		for (int pc = op.getPc(); pc < this.ops.length; ++pc) {
+			if (this.ops[pc] == op) {
 				return this.frames[++pc];
 			}
 		}
@@ -383,7 +383,7 @@ public class CFG {
 	 * @return true - ignore this
 	 */
 	public boolean isIgnore() {
-		return this.error || this.operations == null || this.operations.length == 0;
+		return this.error || this.ops == null || this.ops.length == 0;
 	}
 
 	/**
@@ -533,11 +533,11 @@ public class CFG {
 	/**
 	 * Set operations.
 	 * 
-	 * @param operations
+	 * @param ops
 	 *            operations
 	 */
-	public void setOperations(final Op[] operations) {
-		this.operations = operations;
+	public void setOps(final Op[] ops) {
+		this.ops = ops;
 	}
 
 	/**
