@@ -201,10 +201,24 @@ public class CU implements PD {
 		} catch (final BadLocationException e) {
 			throw new DecoJerException("Couldn't create source code!", e);
 		}
-		if (this.comment != null) {
-			return document.get() + this.comment;
+		String sourceCode = document.get();
+		packageAnnotationBug: if (sourceCode.length() > 0 && sourceCode.charAt(0) == '@') {
+			// bugfix for: https://bugs.eclipse.org/bugs/show_bug.cgi?id=361071
+			// see TrJvmStruct2JavaAst.transform(TD)
+			final int pos = sourceCode.indexOf("package ");
+			if (pos < 2) {
+				break packageAnnotationBug;
+			}
+			final char ch = sourceCode.charAt(pos - 1);
+			if (Character.isWhitespace(ch)) {
+				break packageAnnotationBug;
+			}
+			sourceCode = sourceCode.substring(0, pos - 1) + "\n" + sourceCode.substring(pos);
 		}
-		return document.get();
+		if (this.comment != null) {
+			return sourceCode + this.comment;
+		}
+		return sourceCode;
 	}
 
 	/**
