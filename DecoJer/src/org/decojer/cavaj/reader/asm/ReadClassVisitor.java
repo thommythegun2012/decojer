@@ -48,8 +48,7 @@ import org.objectweb.asm.Opcodes;
  */
 public class ReadClassVisitor extends ClassVisitor {
 
-	private final static Logger LOGGER = Logger
-			.getLogger(ReadClassVisitor.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(ReadClassVisitor.class.getName());
 
 	private A[] as;
 
@@ -108,8 +107,7 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visit(final int version, final int access, final String name,
-			final String signature, final String superName,
-			final String[] interfaces) {
+			final String signature, final String superName, final String[] interfaces) {
 		// visit:
 		// com/thoughtworks/xstream/mapper/AnnotationMapper$UnprocessedTypesSet
 		// : Ljava/util/LinkedHashSet<Ljava/lang/Class<*>;>; :
@@ -130,12 +128,11 @@ public class ReadClassVisitor extends ClassVisitor {
 		}
 
 		this.td = new TD(t);
-		this.td.setVersion(version);
+		this.td.setVersion(version == 196653 /* bug mixup minor major */? 45 : version);
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String desc,
-			final boolean visible) {
+	public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -143,9 +140,8 @@ public class ReadClassVisitor extends ClassVisitor {
 			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
 			this.as = newAs;
 		}
-		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor
-				.init(desc, visible ? RetentionPolicy.RUNTIME
-						: RetentionPolicy.CLASS);
+		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor.init(desc,
+				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS);
 		return this.readAnnotationMemberVisitor;
 	}
 
@@ -163,8 +159,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public FieldVisitor visitField(final int access, final String name,
-			final String desc, final String signature, final Object value) {
+	public FieldVisitor visitField(final int access, final String name, final String desc,
+			final String signature, final Object value) {
 		final T t = this.td.getT();
 		// desc: Ljava/lang/Class;
 		final T fieldT = this.du.getDescT(desc);
@@ -182,16 +178,16 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public void visitInnerClass(final String name, final String outerName,
-			final String innerName, final int access) {
+	public void visitInnerClass(final String name, final String outerName, final String innerName,
+			final int access) {
 		// LOGGER.warning("### visitInner ### " + name + " : " + outerName +
 		// " : "
 		// + innerName + " : " + access);
 	}
 
 	@Override
-	public MethodVisitor visitMethod(final int access, final String name,
-			final String desc, final String signature, final String[] exceptions) {
+	public MethodVisitor visitMethod(final int access, final String name, final String desc,
+			final String signature, final String[] exceptions) {
 		final T t = this.td.getT();
 		// desc: (Ljava/lang/String;)I
 		final M m = t.getM(name, desc);
@@ -215,8 +211,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public void visitOuterClass(final String owner, final String name,
-			final String desc) {
+	public void visitOuterClass(final String owner, final String name, final String desc) {
 		// LOGGER.warning("### visitOuter ### " + owner + " : " + name + " : "
 		// + desc);
 	}

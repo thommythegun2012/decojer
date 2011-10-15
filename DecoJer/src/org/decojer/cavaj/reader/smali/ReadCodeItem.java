@@ -190,7 +190,7 @@ public class ReadCodeItem {
 		// dynamic: (6 register)
 		// work_register1...work_register_2...this...param1...param2...param3
 
-		// invoke or fill-new-array result type
+		// invoke(range) or fill-new-array result type
 		T moveInvokeResultT = null;
 
 		Instruction instruction;
@@ -238,6 +238,10 @@ public class ReadCodeItem {
 					// A = resultRegister
 					final Instruction11x instr = (Instruction11x) instruction;
 
+					if (moveInvokeResultT == null) {
+						throw new RuntimeException("Move result without previous result type!");
+					}
+
 					this.ops.add(new STORE(pc, code, line, moveInvokeResultT, instr.getRegisterA()));
 
 					moveInvokeResultT = null;
@@ -246,10 +250,10 @@ public class ReadCodeItem {
 				}
 			}
 			if (moveInvokeResultT != null) {
-				if (moveInvokeResultT != T.VOID) {
-					// no POP2 with current wide handling
-					this.ops.add(new POP(pc, code, line, POP.T_POP));
-				}
+				assert moveInvokeResultT != T.VOID;
+
+				// no POP2 with current wide handling
+				this.ops.add(new POP(pc, code, line, POP.T_POP));
 				moveInvokeResultT = null;
 			}
 			switch (instruction.opcode) {
@@ -1089,8 +1093,9 @@ public class ReadCodeItem {
 
 				this.ops.add(new INVOKE(pc, code, line, invokeM,
 						instruction.opcode == Opcode.INVOKE_DIRECT));
-
-				moveInvokeResultT = invokeM.getReturnT();
+				if (invokeM.getReturnT() != T.VOID) {
+					moveInvokeResultT = invokeM.getReturnT();
+				}
 				break;
 			}
 			case INVOKE_DIRECT_RANGE:
@@ -1128,6 +1133,9 @@ public class ReadCodeItem {
 
 				this.ops.add(new INVOKE(pc, code, line, invokeM,
 						instruction.opcode == Opcode.INVOKE_DIRECT_RANGE));
+				if (invokeM.getReturnT() != T.VOID) {
+					moveInvokeResultT = invokeM.getReturnT();
+				}
 				break;
 			}
 			/***********
