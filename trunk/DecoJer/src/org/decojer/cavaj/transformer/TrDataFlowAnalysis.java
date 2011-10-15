@@ -215,8 +215,8 @@ public class TrDataFlowAnalysis {
 	}
 
 	private void transform() {
-		final Op[] operations = this.cfg.getOperations();
-		this.frames = new Frame[operations.length];
+		final Op[] ops = this.cfg.getOps();
+		this.frames = new Frame[ops.length];
 		this.cfg.setFrames(this.frames); // assign early for debugging...
 		this.frames[0] = createMethodFrame();
 
@@ -233,58 +233,58 @@ public class TrDataFlowAnalysis {
 
 			// shallow copy of calculation frame
 			final Frame frame = new Frame(this.frames[this.pc]);
-			final Op operation = operations[this.pc];
-			switch (operation.getOptype()) {
+			final Op op = ops[this.pc];
+			switch (op.getOptype()) {
 			case ADD: {
-				final ADD op = (ADD) operation;
-				evalBinaryMath(frame, op.getT());
+				final ADD cop = (ADD) op;
+				evalBinaryMath(frame, cop.getT());
 				break;
 			}
 			case ALOAD: {
-				final ALOAD op = (ALOAD) operation;
+				final ALOAD cop = (ALOAD) op;
 				pop(frame, T.INT); // index
 				pop(frame, T.AREF); // array
-				push(frame, op.getT()); // value
+				push(frame, cop.getT()); // value
 				break;
 			}
 			case AND: {
-				final AND op = (AND) operation;
-				evalBinaryMath(frame, op.getT());
+				final AND cop = (AND) op;
+				evalBinaryMath(frame, cop.getT());
 				break;
 			}
 			case ARRAYLENGTH: {
-				assert operation instanceof ARRAYLENGTH;
+				assert op instanceof ARRAYLENGTH;
 
 				pop(frame, T.AREF); // array
 				push(frame, T.INT); // length
 				break;
 			}
 			case ASTORE: {
-				final ASTORE op = (ASTORE) operation;
-				pop(frame, op.getT()); // value
+				final ASTORE cop = (ASTORE) op;
+				pop(frame, cop.getT()); // value
 				pop(frame, T.INT); // index
 				pop(frame, T.AREF); // array
 				break;
 			}
 			case CAST: {
-				final CAST op = (CAST) operation;
-				pop(frame, op.getT());
-				push(frame, op.getToT());
+				final CAST cop = (CAST) op;
+				pop(frame, cop.getT());
+				push(frame, cop.getToT());
 				break;
 			}
 			case CMP: {
-				final CMP op = (CMP) operation;
-				evalBinaryMath(frame, op.getT(), T.INT);
+				final CMP cop = (CMP) op;
+				evalBinaryMath(frame, cop.getT(), T.INT);
 				break;
 			}
 			case DIV: {
-				final DIV op = (DIV) operation;
-				evalBinaryMath(frame, op.getT());
+				final DIV cop = (DIV) op;
+				evalBinaryMath(frame, cop.getT());
 				break;
 			}
 			case DUP: {
-				final DUP op = (DUP) operation;
-				switch (op.getDupType()) {
+				final DUP cop = (DUP) op;
+				switch (cop.getDupType()) {
 				case DUP.T_DUP:
 					frame.push(frame.peek());
 					break;
@@ -340,19 +340,19 @@ public class TrDataFlowAnalysis {
 					break;
 				}
 				default:
-					LOGGER.warning("Unknown dup type '" + op.getDupType() + "'!");
+					LOGGER.warning("Unknown dup type '" + cop.getDupType() + "'!");
 				}
 				break;
 			}
 			case FILLARRAY: {
-				assert operation instanceof FILLARRAY;
+				assert op instanceof FILLARRAY;
 
 				// TODO check stack has array...
 				break;
 			}
 			case GET: {
-				final GET op = (GET) operation;
-				final F f = op.getF();
+				final GET cop = (GET) op;
+				final F f = cop.getF();
 				if (!f.checkAf(AF.STATIC)) {
 					pop(frame, f.getT());
 				}
@@ -360,18 +360,18 @@ public class TrDataFlowAnalysis {
 				break;
 			}
 			case GOTO: {
-				final GOTO op = (GOTO) operation;
-				merge(frame, op.getTargetPc());
+				final GOTO cop = (GOTO) op;
+				merge(frame, cop.getTargetPc());
 				continue;
 			}
 			case INC: {
-				assert operation instanceof INC;
+				assert op instanceof INC;
 
 				// TODO reduce bool
 				break;
 			}
 			case INSTANCEOF: {
-				assert operation instanceof INSTANCEOF;
+				assert op instanceof INSTANCEOF;
 
 				pop(frame, T.AREF);
 				// operation contains check-type as argument, not important here
@@ -379,8 +379,8 @@ public class TrDataFlowAnalysis {
 				break;
 			}
 			case INVOKE: {
-				final INVOKE op = (INVOKE) operation;
-				final M m = op.getM();
+				final INVOKE cop = (INVOKE) op;
+				final M m = cop.getM();
 				for (int i = m.getParamTs().length; i-- > 0;) {
 					pop(frame, m.getParamTs()[i]);
 				}
@@ -393,47 +393,47 @@ public class TrDataFlowAnalysis {
 				break;
 			}
 			case JCMP: {
-				final JCMP op = (JCMP) operation;
-				evalBinaryMath(frame, op.getT(), T.VOID);
-				merge(frame, op.getTargetPc());
+				final JCMP cop = (JCMP) op;
+				evalBinaryMath(frame, cop.getT(), T.VOID);
+				merge(frame, cop.getTargetPc());
 				break;
 			}
 			case JCND: {
-				final JCND op = (JCND) operation;
-				pop(frame, op.getT());
-				merge(frame, op.getTargetPc());
+				final JCND cop = (JCND) op;
+				pop(frame, cop.getT());
+				merge(frame, cop.getTargetPc());
 				break;
 			}
 			case LOAD: {
-				final LOAD op = (LOAD) operation;
-				final Var var = getReg(frame, op.getReg(), op.getT());
+				final LOAD cop = (LOAD) op;
+				final Var var = getReg(frame, cop.getReg(), cop.getT());
 				push(frame, var); // OK
 				break;
 			}
 			case MONITOR: {
-				assert operation instanceof MONITOR;
+				assert op instanceof MONITOR;
 
 				pop(frame, T.AREF);
 				break;
 			}
 			case MUL: {
-				final MUL op = (MUL) operation;
-				evalBinaryMath(frame, op.getT());
+				final MUL cop = (MUL) op;
+				evalBinaryMath(frame, cop.getT());
 				break;
 			}
 			case NEG: {
-				final NEG op = (NEG) operation;
-				final Var var = pop(frame, op.getT());
+				final NEG cop = (NEG) op;
+				final Var var = pop(frame, cop.getT());
 				push(frame, var); // OK
 				break;
 			}
 			case NEW: {
-				final NEW op = (NEW) operation;
-				push(frame, op.getT());
+				final NEW cop = (NEW) op;
+				push(frame, cop.getT());
 				break;
 			}
 			case NEWARRAY: {
-				final NEWARRAY op = (NEWARRAY) operation;
+				final NEWARRAY cop = (NEWARRAY) op;
 				pop(frame, T.INT); // dimension
 				push(frame, T.AREF);
 				// TODO to get the real type -> would have to evaluate und check
@@ -441,13 +441,13 @@ public class TrDataFlowAnalysis {
 				break;
 			}
 			case OR: {
-				final OR op = (OR) operation;
-				evalBinaryMath(frame, op.getT());
+				final OR cop = (OR) op;
+				evalBinaryMath(frame, cop.getT());
 				break;
 			}
 			case POP: {
-				final POP op = (POP) operation;
-				switch (op.getPopType()) {
+				final POP cop = (POP) op;
+				switch (cop.getPopType()) {
 				case POP.T_POP: {
 					frame.pop();
 					break;
@@ -458,18 +458,18 @@ public class TrDataFlowAnalysis {
 					break;
 				}
 				default:
-					LOGGER.warning("Unknown pop type '" + op.getPopType() + "'!");
+					LOGGER.warning("Unknown pop type '" + cop.getPopType() + "'!");
 				}
 				break;
 			}
 			case PUSH: {
-				final PUSH op = (PUSH) operation;
-				push(frame, op.getT());
+				final PUSH cop = (PUSH) op;
+				push(frame, cop.getT());
 				break;
 			}
 			case PUT: {
-				final PUT op = (PUT) operation;
-				final F f = op.getF();
+				final PUT cop = (PUT) op;
+				final F f = cop.getF();
 				pop(frame, f.getValueT());
 				if (!f.checkAf(AF.STATIC)) {
 					pop(frame, f.getT());
@@ -477,12 +477,12 @@ public class TrDataFlowAnalysis {
 				break;
 			}
 			case REM: {
-				final REM op = (REM) operation;
-				evalBinaryMath(frame, op.getT());
+				final REM cop = (REM) op;
+				evalBinaryMath(frame, cop.getT());
 				break;
 			}
 			case RETURN: {
-				assert operation instanceof RETURN;
+				assert op instanceof RETURN;
 
 				// don't need op type here, could check, but why should we...
 				final T returnT = this.cfg.getMd().getM().getReturnT();
@@ -492,21 +492,21 @@ public class TrDataFlowAnalysis {
 				continue;
 			}
 			case SHL: {
-				final SHL op = (SHL) operation;
-				evalBinaryMath(frame, op.getT());
+				final SHL cop = (SHL) op;
+				evalBinaryMath(frame, cop.getT());
 				break;
 			}
 			case SHR: {
-				final SHR op = (SHR) operation;
-				evalBinaryMath(frame, op.getT());
+				final SHR cop = (SHR) op;
+				evalBinaryMath(frame, cop.getT());
 				break;
 			}
 			case STORE: {
-				final STORE op = (STORE) operation;
-				final Var pop = pop(frame, op.getT());
+				final STORE cop = (STORE) op;
+				final Var pop = pop(frame, cop.getT());
 
 				// TODO STORE.pc in DALVIK sucks now...multiple ops share pc
-				final Var var = this.cfg.getVar(op.getReg(), operations[this.pc + 1].getPc());
+				final Var var = this.cfg.getVar(cop.getReg(), ops[this.pc + 1].getPc());
 
 				if (var != null) {
 					// TODO
@@ -515,16 +515,16 @@ public class TrDataFlowAnalysis {
 					}
 				}
 
-				setReg(frame, op.getReg(), var != null ? var : pop);
+				setReg(frame, cop.getReg(), var != null ? var : pop);
 				break;
 			}
 			case SUB: {
-				final SUB op = (SUB) operation;
-				evalBinaryMath(frame, op.getT());
+				final SUB cop = (SUB) op;
+				evalBinaryMath(frame, cop.getT());
 				break;
 			}
 			case SWAP: {
-				assert operation instanceof SWAP;
+				assert op instanceof SWAP;
 
 				final Var e1 = frame.pop();
 				final Var e2 = frame.pop();
@@ -533,27 +533,27 @@ public class TrDataFlowAnalysis {
 				break;
 			}
 			case SWITCH: {
-				final SWITCH op = (SWITCH) operation;
+				final SWITCH cop = (SWITCH) op;
 				pop(frame, T.INT);
-				merge(frame, op.getDefaultPc());
-				for (final int casePc : op.getCasePcs()) {
+				merge(frame, cop.getDefaultPc());
+				for (final int casePc : cop.getCasePcs()) {
 					merge(frame, casePc);
 				}
 				continue;
 			}
 			case THROW: {
-				assert operation instanceof THROW;
+				assert op instanceof THROW;
 
 				pop(frame, T.AREF); // TODO Throwable
 				continue;
 			}
 			case XOR: {
-				final XOR op = (XOR) operation;
-				evalBinaryMath(frame, op.getT());
+				final XOR cop = (XOR) op;
+				evalBinaryMath(frame, cop.getT());
 				break;
 			}
 			default:
-				LOGGER.warning("Operation '" + operation + "' not handled!");
+				LOGGER.warning("Operation '" + op + "' not handled!");
 			}
 			merge(frame, this.pc + 1);
 		}

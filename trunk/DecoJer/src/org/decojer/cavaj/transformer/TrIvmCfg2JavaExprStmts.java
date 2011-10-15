@@ -160,24 +160,24 @@ public class TrIvmCfg2JavaExprStmts {
 
 	@SuppressWarnings("unchecked")
 	private boolean convertToHLLIntermediate(final BB bb) {
-		final List<Op> operations = bb.getOperations();
-		while (operations.size() != 0) {
-			final Op operation = operations.get(0);
-			if (operation.getInStackSize() > bb.getExpressionsSize()) {
+		final List<Op> ops = bb.getOps();
+		while (ops.size() != 0) {
+			final Op op = ops.get(0);
+			if (op.getInStackSize() > bb.getExpressionsSize()) {
 				return false;
 			}
-			operations.remove(0);
+			ops.remove(0);
 			Statement statement = null;
-			switch (operation.getOptype()) {
+			switch (op.getOptype()) {
 			case ADD: {
-				assert operation instanceof ADD;
+				assert op instanceof ADD;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.PLUS,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
 			case ALOAD: {
-				assert operation instanceof ALOAD;
+				assert op instanceof ALOAD;
 
 				final ArrayAccess arrayAccess = getAst().newArrayAccess();
 				arrayAccess.setIndex(wrap(bb.popExpression()));
@@ -186,14 +186,14 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case AND: {
-				assert operation instanceof AND;
+				assert op instanceof AND;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.AND,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
 			case ARRAYLENGTH: {
-				assert operation instanceof ARRAYLENGTH;
+				assert op instanceof ARRAYLENGTH;
 
 				final Expression expression = bb.popExpression();
 				if (expression instanceof Name) {
@@ -211,7 +211,7 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case ASTORE: {
-				assert operation instanceof ASTORE;
+				assert op instanceof ASTORE;
 
 				final Expression rightExpression = bb.popExpression();
 				final Expression indexExpression = bb.popExpression();
@@ -246,15 +246,15 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case CAST: {
-				final CAST op = (CAST) operation;
+				final CAST cop = (CAST) op;
 				final CastExpression castExpression = getAst().newCastExpression();
-				castExpression.setType(Types.convertType(op.getToT(), getTd(), getAst()));
+				castExpression.setType(Types.convertType(cop.getToT(), getTd(), getAst()));
 				castExpression.setExpression(wrap(bb.popExpression(), priority(castExpression)));
 				bb.pushExpression(castExpression);
 				break;
 			}
 			case CMP: {
-				assert operation instanceof CMP;
+				assert op instanceof CMP;
 
 				// pseudo expression for following JCND, not really the correct
 				// answer for -1, 0, 1
@@ -263,15 +263,15 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case DIV: {
-				assert operation instanceof DIV;
+				assert op instanceof DIV;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.DIVIDE,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
 			case DUP: {
-				final DUP op = (DUP) operation;
-				switch (op.getDupType()) {
+				final DUP cop = (DUP) op;
+				switch (cop.getDupType()) {
 				case DUP.T_DUP:
 					bb.pushExpression(bb.peekExpression());
 					break;
@@ -327,24 +327,24 @@ public class TrIvmCfg2JavaExprStmts {
 					break;
 				}
 				default:
-					LOGGER.warning("Unknown dup type '" + op.getDupType() + "'!");
+					LOGGER.warning("Unknown dup type '" + cop.getDupType() + "'!");
 				}
 				break;
 			}
 			case FILLARRAY: {
-				final FILLARRAY op = (FILLARRAY) operation;
+				final FILLARRAY cop = (FILLARRAY) op;
 
 				final Expression arrayRefExpression = bb.popExpression();
 				// TODO bug...assignment happened already...pure type only here?
 
-				final T t = this.cfg.getOutFrame(operation).peek().getT();
+				final T t = this.cfg.getOutFrame(op).peek().getT();
 				final T baseT = t.getBaseT();
 
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
 				arrayCreation.setType((ArrayType) Types.convertType(t, getTd(), getAst()));
 
 				final ArrayInitializer arrayInitializer = getAst().newArrayInitializer();
-				for (final Object value : op.getValues()) {
+				for (final Object value : cop.getValues()) {
 					arrayInitializer.expressions().add(
 							Types.convertLiteral(baseT, value, getTd(), getAst()));
 				}
@@ -354,8 +354,8 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case GET: {
-				final GET op = (GET) operation;
-				final F f = op.getF();
+				final GET cop = (GET) op;
+				final F f = cop.getF();
 				if (f.checkAf(AF.STATIC)) {
 					final Name name = getAst().newQualifiedName(
 							getTd().newTypeName(f.getT().getName()),
@@ -379,8 +379,8 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case INC: {
-				final INC op = (INC) operation;
-				final int value = op.getValue();
+				final INC cop = (INC) op;
+				final int value = cop.getValue();
 
 				if (bb.getExpressionsSize() == 0) {
 					if (value == 1 || value == -1) {
@@ -388,7 +388,7 @@ public class TrIvmCfg2JavaExprStmts {
 						prefixExpression
 								.setOperator(value == 1 ? PrefixExpression.Operator.INCREMENT
 										: PrefixExpression.Operator.DECREMENT);
-						final String name = getVarName(op.getReg(), op.getPc());
+						final String name = getVarName(cop.getReg(), cop.getPc());
 						prefixExpression.setOperand(getAst().newSimpleName(name));
 						statement = getAst().newExpressionStatement(prefixExpression);
 					} else {
@@ -403,19 +403,19 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case INSTANCEOF: {
-				final INSTANCEOF op = (INSTANCEOF) operation;
+				final INSTANCEOF cop = (INSTANCEOF) op;
 				final InstanceofExpression instanceofExpression = getAst()
 						.newInstanceofExpression();
 				instanceofExpression.setLeftOperand(wrap(bb.popExpression(),
 						priority(instanceofExpression)));
-				instanceofExpression
-						.setRightOperand(Types.convertType(op.getT(), getTd(), getAst()));
+				instanceofExpression.setRightOperand(Types.convertType(cop.getT(), getTd(),
+						getAst()));
 				bb.pushExpression(instanceofExpression);
 				break;
 			}
 			case INVOKE: {
-				final INVOKE op = (INVOKE) operation;
-				final M m = op.getM();
+				final INVOKE cop = (INVOKE) op;
+				final M m = cop.getM();
 
 				// read method invokation arguments
 				final List<Expression> arguments = new ArrayList<Expression>();
@@ -427,7 +427,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final String mName = m.getName();
 
 				final Expression methodExpression;
-				if (op.isDirect()) {
+				if (cop.isDirect()) {
 					final Expression expression = bb.popExpression();
 					if ("<init>".equals(mName)) {
 						methodExpression = null;
@@ -542,10 +542,10 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case JCMP: {
-				final JCMP op = (JCMP) operation;
+				final JCMP cop = (JCMP) op;
 				// invert all operators and switch out edge predicates
 				final InfixExpression.Operator operator;
-				switch (op.getCmpType()) {
+				switch (cop.getCmpType()) {
 				case CompareType.T_EQ:
 					operator = InfixExpression.Operator.EQUALS;
 					break;
@@ -565,7 +565,7 @@ public class TrIvmCfg2JavaExprStmts {
 					operator = InfixExpression.Operator.NOT_EQUALS;
 					break;
 				default:
-					LOGGER.warning("Unknown cmp type '" + op.getCmpType() + "'!");
+					LOGGER.warning("Unknown cmp type '" + cop.getCmpType() + "'!");
 					operator = null;
 				}
 				statement = getAst().newIfStatement();
@@ -574,14 +574,14 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case JCND: {
-				final JCND op = (JCND) operation;
+				final JCND cop = (JCND) op;
 				Expression expression = bb.popExpression();
 				// check preceding CMP
 				if (expression instanceof InfixExpression
 						&& ((InfixExpression) expression).getOperator() == InfixExpression.Operator.LESS_EQUALS) {
 					// preceding compare expression (CMP result: -1 / 0 / 1)
 					final InfixExpression.Operator operator;
-					switch (op.getCmpType()) {
+					switch (cop.getCmpType()) {
 					case CompareType.T_EQ:
 						operator = InfixExpression.Operator.EQUALS;
 						break;
@@ -601,13 +601,13 @@ public class TrIvmCfg2JavaExprStmts {
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
-						LOGGER.warning("Unknown cmp type '" + op.getCmpType() + "'!");
+						LOGGER.warning("Unknown cmp type '" + cop.getCmpType() + "'!");
 						operator = null;
 					}
 					((InfixExpression) expression).setOperator(operator);
-				} else if (this.cfg.getInFrame(operation).peek().getT().isReference()) {
+				} else if (this.cfg.getInFrame(op).peek().getT().isReference()) {
 					final InfixExpression.Operator operator;
-					switch (op.getCmpType()) {
+					switch (cop.getCmpType()) {
 					case CompareType.T_EQ:
 						operator = InfixExpression.Operator.EQUALS;
 						break;
@@ -615,7 +615,7 @@ public class TrIvmCfg2JavaExprStmts {
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
-						LOGGER.warning("Unknown cmp type '" + op.getCmpType()
+						LOGGER.warning("Unknown cmp type '" + cop.getCmpType()
 								+ "' for null-expression!");
 						operator = null;
 					}
@@ -624,9 +624,9 @@ public class TrIvmCfg2JavaExprStmts {
 					infixExpression.setRightOperand(getAst().newNullLiteral());
 					infixExpression.setOperator(operator);
 					expression = infixExpression;
-				} else if (this.cfg.getInFrame(operation).peek().getT() == T.BOOLEAN) {
+				} else if (this.cfg.getInFrame(op).peek().getT() == T.BOOLEAN) {
 					// "!a" or "a == 0"?
-					switch (op.getCmpType()) {
+					switch (cop.getCmpType()) {
 					case CompareType.T_EQ:
 						// "== 0" means "is false"
 						expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
@@ -635,12 +635,12 @@ public class TrIvmCfg2JavaExprStmts {
 						// "!= 0" means "is true"
 						break;
 					default:
-						LOGGER.warning("Unknown cmp type '" + op.getCmpType()
+						LOGGER.warning("Unknown cmp type '" + cop.getCmpType()
 								+ "' for boolean expression '" + expression + "'!");
 					}
 				} else {
 					final InfixExpression.Operator operator;
-					switch (op.getCmpType()) {
+					switch (cop.getCmpType()) {
 					case CompareType.T_EQ:
 						operator = InfixExpression.Operator.EQUALS;
 						break;
@@ -660,7 +660,7 @@ public class TrIvmCfg2JavaExprStmts {
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
-						LOGGER.warning("Unknown cmp type '" + op.getCmpType()
+						LOGGER.warning("Unknown cmp type '" + cop.getCmpType()
 								+ "' for 0-expression!");
 						operator = null;
 					}
@@ -675,14 +675,14 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case JSR: {
-				assert operation instanceof JSR;
+				assert op instanceof JSR;
 				// TODO
 				break;
 			}
 			case LOAD: {
-				final LOAD op = (LOAD) operation;
+				final LOAD cop = (LOAD) op;
 
-				final String name = getVarName(op.getReg(), op.getPc());
+				final String name = getVarName(cop.getReg(), cop.getPc());
 				if ("this".equals(name)) {
 					bb.pushExpression(getAst().newThisExpression());
 				} else {
@@ -691,33 +691,33 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case MONITOR: {
-				assert operation instanceof MONITOR;
+				assert op instanceof MONITOR;
 
 				bb.popExpression();
 				break;
 			}
 			case MUL: {
-				assert operation instanceof MUL;
+				assert op instanceof MUL;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.TIMES,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
 			case NEG: {
-				assert operation instanceof NEG;
+				assert op instanceof NEG;
 
 				bb.pushExpression(newPrefixExpression(PrefixExpression.Operator.MINUS,
 						bb.popExpression()));
 				break;
 			}
 			case NEW: {
-				final NEW op = (NEW) operation;
+				final NEW cop = (NEW) op;
 
 				final ClassInstanceCreation classInstanceCreation = getAst()
 						.newClassInstanceCreation();
 
 				final String thisName = getTd().getT().getName();
-				final T t = op.getT();
+				final T t = cop.getT();
 				final String newName = t.getName();
 				if (newName.startsWith(thisName) && newName.length() >= thisName.length() + 2
 						&& newName.charAt(thisName.length()) == '$') {
@@ -761,29 +761,29 @@ public class TrIvmCfg2JavaExprStmts {
 						// no int
 					}
 				}
-				classInstanceCreation.setType(Types.convertType(op.getT(), getTd(), getAst()));
+				classInstanceCreation.setType(Types.convertType(cop.getT(), getTd(), getAst()));
 				bb.pushExpression(classInstanceCreation);
 				break;
 			}
 			case NEWARRAY: {
-				final NEWARRAY op = (NEWARRAY) operation;
+				final NEWARRAY cop = (NEWARRAY) op;
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
 				arrayCreation.setType(getAst().newArrayType(
-						Types.convertType(op.getT(), getTd(), getAst())));
+						Types.convertType(cop.getT(), getTd(), getAst())));
 				arrayCreation.dimensions().add(bb.popExpression());
 				bb.pushExpression(arrayCreation);
 				break;
 			}
 			case OR: {
-				assert operation instanceof OR;
+				assert op instanceof OR;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.OR,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
 			case POP: {
-				final POP op = (POP) operation;
-				switch (op.getPopType()) {
+				final POP cop = (POP) op;
+				switch (cop.getPopType()) {
 				case POP.T_POP: {
 					final Expression expression = bb.popExpression();
 					statement = getAst().newExpressionStatement(expression);
@@ -797,23 +797,23 @@ public class TrIvmCfg2JavaExprStmts {
 					break;
 				}
 				default:
-					LOGGER.warning("Unknown pop type '" + op.getPopType() + "'!");
+					LOGGER.warning("Unknown pop type '" + cop.getPopType() + "'!");
 				}
 				break;
 			}
 			case PUSH: {
-				final PUSH op = (PUSH) operation;
-				final Expression expr = Types.convertLiteral(this.cfg.getOutFrame(operation).peek()
-						.getT(), op.getValue(), getTd(), getAst());
+				final PUSH cop = (PUSH) op;
+				final Expression expr = Types.convertLiteral(
+						this.cfg.getOutFrame(op).peek().getT(), cop.getValue(), getTd(), getAst());
 				if (expr != null) {
 					bb.pushExpression(expr);
 				}
 				break;
 			}
 			case PUT: {
-				final PUT op = (PUT) operation;
+				final PUT cop = (PUT) op;
 				final Expression rightExpression = bb.popExpression();
-				final F f = op.getF();
+				final F f = cop.getF();
 				final M m = this.cfg.getMd().getM();
 				fieldInit: if (m.getT() == f.getT()) {
 					// set local field, could be initializer
@@ -882,38 +882,38 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case REM: {
-				assert operation instanceof REM;
+				assert op instanceof REM;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.REMAINDER,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
 			case RETURN: {
-				final RETURN op = (RETURN) operation;
+				final RETURN cop = (RETURN) op;
 				final ReturnStatement returnStatement = getAst().newReturnStatement();
-				if (op.getT() != T.VOID) {
+				if (cop.getT() != T.VOID) {
 					returnStatement.setExpression(wrap(bb.popExpression()));
 				}
 				statement = returnStatement;
 				break;
 			}
 			case SHL: {
-				assert operation instanceof SHL;
+				assert op instanceof SHL;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.LEFT_SHIFT,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
 			case SHR: {
-				final SHR op = (SHR) operation;
+				final SHR cop = (SHR) op;
 				bb.pushExpression(newInfixExpression(
-						op.isUnsigned() ? InfixExpression.Operator.RIGHT_SHIFT_UNSIGNED
+						cop.isUnsigned() ? InfixExpression.Operator.RIGHT_SHIFT_UNSIGNED
 								: InfixExpression.Operator.RIGHT_SHIFT_SIGNED, bb.popExpression(),
 						bb.popExpression()));
 				break;
 			}
 			case STORE: {
-				final STORE op = (STORE) operation;
+				final STORE cop = (STORE) op;
 
 				final Expression rightExpression = bb.popExpression();
 				final Assignment assignment = getAst().newAssignment();
@@ -922,8 +922,8 @@ public class TrIvmCfg2JavaExprStmts {
 				assignment.setRightHandSide(wrap(rightExpression, priority(assignment)));
 
 				// TODO STORE.pc in DALVIK sucks now...multiple ops share pc
-				String name = getVarName(op.getReg(), operations.isEmpty() ? op.getPc() + 1
-						: operations.get(0).getPc());
+				String name = getVarName(cop.getReg(), ops.isEmpty() ? cop.getPc() + 1 : ops.get(0)
+						.getPc());
 				if ("this".equals(name)) {
 					name = "_this"; // TODO can happen before synchronized(this)
 				}
@@ -938,14 +938,14 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case SUB: {
-				assert operation instanceof SUB;
+				assert op instanceof SUB;
 
 				bb.pushExpression(newInfixExpression(InfixExpression.Operator.MINUS,
 						bb.popExpression(), bb.popExpression()));
 				break;
 			}
 			case SWAP: {
-				assert operation instanceof SWAP;
+				assert op instanceof SWAP;
 
 				final Expression e1 = bb.popExpression();
 				final Expression e2 = bb.popExpression();
@@ -954,7 +954,7 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case SWITCH: {
-				assert operation instanceof SWITCH;
+				assert op instanceof SWITCH;
 
 				final SwitchStatement switchStatement = getAst().newSwitchStatement();
 				switchStatement.setExpression(wrap(bb.popExpression()));
@@ -962,7 +962,7 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case THROW: {
-				assert operation instanceof THROW;
+				assert op instanceof THROW;
 
 				final ThrowStatement throwStatement = getAst().newThrowStatement();
 				throwStatement.setExpression(wrap(bb.popExpression()));
@@ -970,7 +970,7 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case XOR: {
-				assert operation instanceof XOR;
+				assert op instanceof XOR;
 
 				final Expression expression = bb.popExpression();
 				// "a ^ -1" => "~a"
@@ -985,7 +985,7 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			default:
-				throw new RuntimeException("Unknown intermediate vm operation '" + operation + "'!");
+				throw new RuntimeException("Unknown intermediate vm operation '" + op + "'!");
 			}
 			if (statement != null) {
 				bb.addStatement(statement);

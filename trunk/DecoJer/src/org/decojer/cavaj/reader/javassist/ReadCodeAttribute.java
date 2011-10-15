@@ -102,7 +102,7 @@ public class ReadCodeAttribute {
 
 	private MD md;
 
-	final ArrayList<Op> operations = new ArrayList<Op>();
+	final ArrayList<Op> ops = new ArrayList<Op>();
 
 	private final HashMap<Integer, Integer> pc2index = new HashMap<Integer, Integer>();
 
@@ -151,7 +151,7 @@ public class ReadCodeAttribute {
 	public void initAndVisit(final MD md, final CodeAttribute codeAttribute) {
 		this.md = md;
 
-		this.operations.clear();
+		this.ops.clear();
 		this.pc2index.clear();
 		this.pc2unresolved.clear();
 
@@ -207,7 +207,7 @@ public class ReadCodeAttribute {
 			final int line = lineNumberAttribute == null ? -1 : lineNumberAttribute
 					.toLineNumber(opPc);
 
-			final int pc = this.operations.size();
+			final int pc = this.ops.size();
 
 			T t = null;
 			int type = -1;
@@ -235,7 +235,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new ADD(pc, code, line, t));
+				this.ops.add(new ADD(pc, code, line, t));
 				break;
 			/*********
 			 * ALOAD *
@@ -277,7 +277,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.SHORT;
 				}
-				this.operations.add(new ALOAD(pc, code, line, t));
+				this.ops.add(new ALOAD(pc, code, line, t));
 				break;
 			/*******
 			 * AND *
@@ -289,13 +289,13 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new AND(pc, code, line, t));
+				this.ops.add(new AND(pc, code, line, t));
 				break;
 			/***************
 			 * ARRAYLENGTH *
 			 ***************/
 			case Opcode.ARRAYLENGTH:
-				this.operations.add(new ARRAYLENGTH(pc, code, line));
+				this.ops.add(new ARRAYLENGTH(pc, code, line));
 				break;
 			/**********
 			 * ASTORE *
@@ -337,7 +337,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.SHORT;
 				}
-				this.operations.add(new ASTORE(pc, code, line, t));
+				this.ops.add(new ASTORE(pc, code, line, t));
 				break;
 			/********
 			 * CAST *
@@ -437,7 +437,7 @@ public class ReadCodeAttribute {
 					t = T.LONG;
 					oValue = T.INT;
 				}
-				this.operations.add(new CAST(pc, code, line, t, (T) oValue));
+				this.ops.add(new CAST(pc, code, line, t, (T) oValue));
 				break;
 			/*******
 			 * CMP *
@@ -469,7 +469,7 @@ public class ReadCodeAttribute {
 					t = T.LONG;
 					iValue = CMP.T_0;
 				}
-				this.operations.add(new CMP(pc, code, line, t, iValue));
+				this.ops.add(new CMP(pc, code, line, t, iValue));
 				break;
 			/*******
 			 * DIV *
@@ -491,7 +491,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new DIV(pc, code, line, t));
+				this.ops.add(new DIV(pc, code, line, t));
 				break;
 			/*******
 			 * DUP *
@@ -523,7 +523,7 @@ public class ReadCodeAttribute {
 				if (type == -1) {
 					type = DUP.T_DUP2_X2;
 				}
-				this.operations.add(new DUP(pc, code, line, type));
+				this.ops.add(new DUP(pc, code, line, type));
 				break;
 			/*******
 			 * GET *
@@ -538,7 +538,7 @@ public class ReadCodeAttribute {
 				if (code == Opcode.GETSTATIC) {
 					f.markAf(AF.STATIC);
 				}
-				this.operations.add(new GET(pc, code, line, f));
+				this.ops.add(new GET(pc, code, line, f));
 				break;
 			}
 			/********
@@ -560,7 +560,7 @@ public class ReadCodeAttribute {
 					if (pcIndex < 0) {
 						getPcUnresolved(targetPc).add(op);
 					}
-					this.operations.add(op);
+					this.ops.add(op);
 				}
 				break;
 			/*******
@@ -571,7 +571,7 @@ public class ReadCodeAttribute {
 						.readUnsignedByte();
 				final int constValue = wide ? codeReader.readUnsignedShort() : codeReader
 						.readUnsignedByte();
-				this.operations.add(new INC(pc, code, line, T.INT, varIndex, constValue));
+				this.ops.add(new INC(pc, code, line, T.INT, varIndex, constValue));
 				break;
 			}
 			/**************
@@ -579,7 +579,7 @@ public class ReadCodeAttribute {
 			 **************/
 			case Opcode.INSTANCEOF: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				this.operations.add(new INSTANCEOF(pc, code, line, readType(constPool
+				this.ops.add(new INSTANCEOF(pc, code, line, readType(constPool
 						.getClassInfo(cpClassIndex))));
 				break;
 			}
@@ -597,7 +597,7 @@ public class ReadCodeAttribute {
 				final M invokeM = invokeT.getM(constPool.getInterfaceMethodrefName(cpMethodIndex),
 						constPool.getInterfaceMethodrefType(cpMethodIndex));
 
-				this.operations.add(new INVOKE(pc, code, line, invokeM, false));
+				this.ops.add(new INVOKE(pc, code, line, invokeM, false));
 				break;
 			}
 			case Opcode.INVOKESPECIAL:
@@ -612,8 +612,7 @@ public class ReadCodeAttribute {
 				if (code == Opcode.INVOKESTATIC) {
 					invokeM.markAf(AF.STATIC);
 				}
-				this.operations.add(new INVOKE(pc, code, line, invokeM,
-						code == Opcode.INVOKESPECIAL));
+				this.ops.add(new INVOKE(pc, code, line, invokeM, code == Opcode.INVOKESPECIAL));
 				break;
 			}
 			/********
@@ -674,7 +673,7 @@ public class ReadCodeAttribute {
 					if (pcIndex < 0) {
 						getPcUnresolved(targetPc).add(op);
 					}
-					this.operations.add(op);
+					this.ops.add(op);
 				}
 				break;
 			/********
@@ -733,7 +732,7 @@ public class ReadCodeAttribute {
 					if (pcIndex < 0) {
 						getPcUnresolved(targetPc).add(op);
 					}
-					this.operations.add(op);
+					this.ops.add(op);
 				}
 				break;
 			/*******
@@ -755,7 +754,7 @@ public class ReadCodeAttribute {
 					if (pcIndex < 0) {
 						getPcUnresolved(targetPc).add(op);
 					}
-					this.operations.add(op);
+					this.ops.add(op);
 				}
 				break;
 			/********
@@ -904,7 +903,7 @@ public class ReadCodeAttribute {
 					t = T.LONG;
 					iValue = 3;
 				}
-				this.operations.add(new LOAD(pc, code, line, t, iValue));
+				this.ops.add(new LOAD(pc, code, line, t, iValue));
 				break;
 			}
 			/***********
@@ -917,7 +916,7 @@ public class ReadCodeAttribute {
 				if (type == -1) {
 					type = MONITOR.T_EXIT;
 				}
-				this.operations.add(new MONITOR(pc, code, line, type));
+				this.ops.add(new MONITOR(pc, code, line, type));
 				break;
 			/*******
 			 * MUL *
@@ -939,7 +938,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new MUL(pc, code, line, t));
+				this.ops.add(new MUL(pc, code, line, t));
 				break;
 			/*******
 			 * NEG *
@@ -963,15 +962,14 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new NEG(pc, code, line, t));
+				this.ops.add(new NEG(pc, code, line, t));
 				break;
 			/*******
 			 * NEW *
 			 *******/
 			case Opcode.NEW: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				this.operations.add(new NEW(pc, code, line, readType(constPool
-						.getClassInfo(cpClassIndex))));
+				this.ops.add(new NEW(pc, code, line, readType(constPool.getClassInfo(cpClassIndex))));
 				break;
 			}
 			/************
@@ -979,7 +977,7 @@ public class ReadCodeAttribute {
 			 ************/
 			case Opcode.ANEWARRAY: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
-				this.operations.add(new NEWARRAY(pc, code, line, readType(constPool
+				this.ops.add(new NEWARRAY(pc, code, line, readType(constPool
 						.getClassInfo(cpClassIndex)), 1));
 				break;
 			}
@@ -989,13 +987,13 @@ public class ReadCodeAttribute {
 						boolean.class.getName(), char.class.getName(), float.class.getName(),
 						double.class.getName(), byte.class.getName(), short.class.getName(),
 						int.class.getName(), long.class.getName() }[type];
-				this.operations.add(new NEWARRAY(pc, code, line, du.getT(typeName), 1));
+				this.ops.add(new NEWARRAY(pc, code, line, du.getT(typeName), 1));
 				break;
 			}
 			case Opcode.MULTIANEWARRAY: {
 				final int cpClassIndex = codeReader.readUnsignedShort();
 				final int dimensions = codeReader.readUnsignedByte();
-				this.operations.add(new NEWARRAY(pc, code, line, readType(constPool
+				this.ops.add(new NEWARRAY(pc, code, line, readType(constPool
 						.getClassInfo(cpClassIndex)), dimensions));
 				break;
 			}
@@ -1015,7 +1013,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new OR(pc, code, line, t));
+				this.ops.add(new OR(pc, code, line, t));
 				break;
 			/*******
 			 * POP *
@@ -1027,7 +1025,7 @@ public class ReadCodeAttribute {
 				if (type == -1) {
 					type = POP.T_POP2;
 				}
-				this.operations.add(new POP(pc, code, line, type));
+				this.ops.add(new POP(pc, code, line, type));
 				break;
 			/********
 			 * PUSH *
@@ -1210,7 +1208,7 @@ public class ReadCodeAttribute {
 					t = T.AINT;
 					oValue = -1;
 				}
-				this.operations.add(new PUSH(pc, code, line, t, oValue));
+				this.ops.add(new PUSH(pc, code, line, t, oValue));
 				break;
 			/*******
 			 * PUT *
@@ -1225,7 +1223,7 @@ public class ReadCodeAttribute {
 				if (code == Opcode.PUTSTATIC) {
 					f.markAf(AF.STATIC);
 				}
-				this.operations.add(new PUT(pc, code, line, f));
+				this.ops.add(new PUT(pc, code, line, f));
 				break;
 			}
 			/*******
@@ -1250,7 +1248,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new REM(pc, code, line, t));
+				this.ops.add(new REM(pc, code, line, t));
 				break;
 			/*******
 			 * RET *
@@ -1258,7 +1256,7 @@ public class ReadCodeAttribute {
 			case Opcode.RET: {
 				final int varIndex = wide ? codeReader.readUnsignedShort() : codeReader
 						.readUnsignedByte();
-				this.operations.add(new RET(pc, code, line, varIndex));
+				this.ops.add(new RET(pc, code, line, varIndex));
 				break;
 			}
 			/**********
@@ -1291,7 +1289,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.VOID;
 				}
-				this.operations.add(new RETURN(pc, code, line, t));
+				this.ops.add(new RETURN(pc, code, line, t));
 				break;
 			/*********
 			 * STORE *
@@ -1439,7 +1437,7 @@ public class ReadCodeAttribute {
 					t = T.LONG;
 					iValue = 3;
 				}
-				this.operations.add(new STORE(pc, code, line, t, iValue));
+				this.ops.add(new STORE(pc, code, line, t, iValue));
 				break;
 			}
 			/*******
@@ -1452,7 +1450,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new SHL(pc, code, line, t));
+				this.ops.add(new SHL(pc, code, line, t));
 				break;
 			/*******
 			 * SHR *
@@ -1466,7 +1464,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new SHR(pc, code, line, t, code == Opcode.IUSHR
+				this.ops.add(new SHR(pc, code, line, t, code == Opcode.IUSHR
 						|| code == Opcode.LUSHR));
 				break;
 			/*******
@@ -1489,13 +1487,13 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new SUB(pc, code, line, t));
+				this.ops.add(new SUB(pc, code, line, t));
 				break;
 			/********
 			 * SWAP *
 			 ********/
 			case Opcode.SWAP:
-				this.operations.add(new SWAP(pc, code, line));
+				this.ops.add(new SWAP(pc, code, line));
 				break;
 			/**********
 			 * SWITCH *
@@ -1530,7 +1528,7 @@ public class ReadCodeAttribute {
 				}
 				op.setCaseKeys(caseKeys);
 				op.setCasePcs(casePcs);
-				this.operations.add(op);
+				this.ops.add(op);
 				break;
 			}
 			case Opcode.TABLESWITCH: {
@@ -1564,14 +1562,14 @@ public class ReadCodeAttribute {
 				}
 				op.setCaseKeys(caseKeys);
 				op.setCasePcs(casePcs);
-				this.operations.add(op);
+				this.ops.add(op);
 				break;
 			}
 			/*********
 			 * THROW *
 			 *********/
 			case Opcode.ATHROW:
-				this.operations.add(new THROW(pc, code, line));
+				this.ops.add(new THROW(pc, code, line));
 				break;
 			/*******
 			 * XOR *
@@ -1583,7 +1581,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.operations.add(new XOR(pc, code, line, t));
+				this.ops.add(new XOR(pc, code, line, t));
 				break;
 			}
 			/*******
@@ -1600,7 +1598,7 @@ public class ReadCodeAttribute {
 			wide = false;
 		}
 		visitPc(codeReader.pc);
-		cfg.setOperations(this.operations.toArray(new Op[this.operations.size()]));
+		cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 
 		final ExceptionTable exceptionTable = codeAttribute.getExceptionTable();
 		if (exceptionTable != null) {
@@ -1695,45 +1693,44 @@ public class ReadCodeAttribute {
 	}
 
 	private void visitPc(final int pc) {
-		final Integer pcIndex = this.pc2index.put(pc, this.operations.size());
+		final Integer pcIndex = this.pc2index.put(pc, this.ops.size());
 		if (pcIndex == null) {
 			// fresh new label, never referenced before
 			return;
 		}
 		if (pcIndex > 0) {
 			// visited before but is known?!
-			LOGGER.warning("Pc '" + pc + "' is not unique, has old opPc '" + this.operations.size()
-					+ "'!");
+			LOGGER.warning("Pc '" + pc + "' is not unique, has old opPc '" + this.ops.size() + "'!");
 			return;
 		}
 		final int labelUnknownIndex = pcIndex;
 		// unknown and has forward reference
 		for (final Object o : this.pc2unresolved.get(pc)) {
 			if (o instanceof GOTO) {
-				((GOTO) o).setTargetPc(this.operations.size());
+				((GOTO) o).setTargetPc(this.ops.size());
 				continue;
 			}
 			if (o instanceof JCMP) {
-				((JCMP) o).setTargetPc(this.operations.size());
+				((JCMP) o).setTargetPc(this.ops.size());
 				continue;
 			}
 			if (o instanceof JCND) {
-				((JCND) o).setTargetPc(this.operations.size());
+				((JCND) o).setTargetPc(this.ops.size());
 				continue;
 			}
 			if (o instanceof JSR) {
-				((JSR) o).setTargetPc(this.operations.size());
+				((JSR) o).setTargetPc(this.ops.size());
 				continue;
 			}
 			if (o instanceof SWITCH) {
 				final SWITCH op = (SWITCH) o;
 				if (labelUnknownIndex == op.getDefaultPc()) {
-					op.setDefaultPc(this.operations.size());
+					op.setDefaultPc(this.ops.size());
 				}
 				final int[] keyTargets = op.getCasePcs();
 				for (int i = keyTargets.length; i-- > 0;) {
 					if (labelUnknownIndex == keyTargets[i]) {
-						keyTargets[i] = this.operations.size();
+						keyTargets[i] = this.ops.size();
 					}
 				}
 				continue;
