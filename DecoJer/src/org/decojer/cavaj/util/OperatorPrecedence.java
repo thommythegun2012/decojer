@@ -23,18 +23,40 @@
  */
 package org.decojer.cavaj.util;
 
+import static org.decojer.cavaj.util.Priority.ADD_SUB;
+import static org.decojer.cavaj.util.Priority.AND;
+import static org.decojer.cavaj.util.Priority.ARRAY_INDEX;
+import static org.decojer.cavaj.util.Priority.ASSIGNMENT;
+import static org.decojer.cavaj.util.Priority.CONDITIONAL;
+import static org.decojer.cavaj.util.Priority.CONDITIONAL_AND;
+import static org.decojer.cavaj.util.Priority.CONDITIONAL_OR;
+import static org.decojer.cavaj.util.Priority.EQUALS;
+import static org.decojer.cavaj.util.Priority.INSTANCEOF;
+import static org.decojer.cavaj.util.Priority.LESS_OR_GREATER;
+import static org.decojer.cavaj.util.Priority.LITERAL;
+import static org.decojer.cavaj.util.Priority.MEMBER_ACCESS;
+import static org.decojer.cavaj.util.Priority.METHOD_CALL;
+import static org.decojer.cavaj.util.Priority.MULT_DIV;
+import static org.decojer.cavaj.util.Priority.OR;
+import static org.decojer.cavaj.util.Priority.PREFIX_OR_POSTFIX;
+import static org.decojer.cavaj.util.Priority.SHIFT;
+import static org.decojer.cavaj.util.Priority.TYPE_CAST;
+import static org.decojer.cavaj.util.Priority.XOR;
+
 import java.util.logging.Logger;
 
 import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
+import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.eclipse.jdt.core.dom.InstanceofExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
+import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 
 /**
@@ -61,81 +83,83 @@ public class OperatorPrecedence {
 	}
 
 	/**
-	 * Get priority for expression.
+	 * Get priority for expression. From http://bmanolov.free.fr/javaoperators.php
 	 * 
 	 * @param expression
 	 *            expression
 	 * @return priority
 	 */
-	public static int priority(final Expression expression) {
+	public static Priority priority(final Expression expression) {
 		if (expression instanceof ArrayAccess) {
-			return 1;
+			return ARRAY_INDEX;
 		}
 		if (expression instanceof MethodInvocation) {
-			return 1;
+			return METHOD_CALL;
 		}
 		if (expression instanceof FieldAccess) {
-			return 1;
+			return MEMBER_ACCESS;
 		}
-		if (expression instanceof PrefixExpression) {
-			return 2;
+		if (expression instanceof PrefixExpression || expression instanceof PostfixExpression) {
+			return PREFIX_OR_POSTFIX;
 		}
 		if (expression instanceof CastExpression) {
-			return 2;
+			return TYPE_CAST;
 		}
 		if (expression instanceof ClassInstanceCreation) {
-			return 1; // should be 2, but what of "new Bla().doSomething();"
+			return METHOD_CALL; // should be 2, but what of "new Bla().doSomething();"
 		}
 		if (expression instanceof InfixExpression) {
 			final InfixExpression.Operator operator = ((InfixExpression) expression).getOperator();
 			if (operator == InfixExpression.Operator.TIMES
 					|| operator == InfixExpression.Operator.DIVIDE
 					|| operator == InfixExpression.Operator.REMAINDER) {
-				return 3;
+				return MULT_DIV;
 			}
 			if (operator == Operator.PLUS || operator == Operator.MINUS) {
-				return 4;
+				return ADD_SUB;
 			}
 			if (operator == InfixExpression.Operator.LEFT_SHIFT
 					|| operator == InfixExpression.Operator.RIGHT_SHIFT_SIGNED
 					|| operator == InfixExpression.Operator.RIGHT_SHIFT_UNSIGNED) {
-				return 5;
+				return SHIFT;
 			}
 			if (operator == InfixExpression.Operator.LESS
 					|| operator == InfixExpression.Operator.LESS_EQUALS
 					|| operator == InfixExpression.Operator.GREATER
 					|| operator == InfixExpression.Operator.GREATER_EQUALS) {
-				return 6;
+				return LESS_OR_GREATER;
 			}
 			if (operator == InfixExpression.Operator.EQUALS
 					|| operator == InfixExpression.Operator.NOT_EQUALS) {
-				return 7;
+				return EQUALS;
 			}
 			if (operator == InfixExpression.Operator.AND) {
-				return 8;
+				return AND;
 			}
 			if (operator == InfixExpression.Operator.XOR) {
-				return 9;
+				return XOR;
 			}
 			if (operator == InfixExpression.Operator.OR) {
-				return 10;
+				return OR;
 			}
 			if (operator == InfixExpression.Operator.CONDITIONAL_AND) {
-				return 11;
+				return CONDITIONAL_AND;
 			}
 			if (operator == InfixExpression.Operator.CONDITIONAL_OR) {
-				return 12;
+				return CONDITIONAL_OR;
 			}
 			LOGGER.warning("Unknown infix expression operator '" + operator + "'!");
-			return 0;
+			return LITERAL;
 		}
 		if (expression instanceof InstanceofExpression) {
-			return 6;
+			return INSTANCEOF;
+		}
+		if (expression instanceof ConditionalExpression) {
+			return CONDITIONAL;
 		}
 		if (expression instanceof Assignment) {
-			return 14;
+			return ASSIGNMENT;
 		}
-		return 0;
+		return LITERAL;
 	}
-
 }
