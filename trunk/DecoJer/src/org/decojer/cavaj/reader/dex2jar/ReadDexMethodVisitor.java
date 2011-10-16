@@ -49,7 +49,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 
 	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
 
-	private final ReadDexCodeVisitor readDexCodeVisitor = new ReadDexCodeVisitor();
+	private final ReadDexCodeVisitor readDexCodeVisitor;
 
 	/**
 	 * Constructor.
@@ -61,6 +61,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 		assert du != null;
 
 		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(du);
+		this.readDexCodeVisitor = new ReadDexCodeVisitor(du);
 	}
 
 	/**
