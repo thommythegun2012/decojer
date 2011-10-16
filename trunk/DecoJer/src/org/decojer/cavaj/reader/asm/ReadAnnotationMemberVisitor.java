@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
- * Read annotation member visitor.
+ * ASM read annotation member visitor.
  * 
  * @author André Pankraz
  */

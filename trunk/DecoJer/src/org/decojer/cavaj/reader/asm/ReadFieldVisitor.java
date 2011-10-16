@@ -35,14 +35,13 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Opcodes;
 
 /**
- * Read field visitor.
+ * ASM read field visitor.
  * 
  * @author André Pankraz
  */
 public class ReadFieldVisitor extends FieldVisitor {
 
-	private final static Logger LOGGER = Logger
-			.getLogger(ReadFieldVisitor.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(ReadFieldVisitor.class.getName());
 
 	private A[] as;
 
@@ -85,8 +84,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String desc,
-			final boolean visible) {
+	public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -94,16 +92,15 @@ public class ReadFieldVisitor extends FieldVisitor {
 			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
 			this.as = newAs;
 		}
-		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor
-				.init(desc, visible ? RetentionPolicy.RUNTIME
-						: RetentionPolicy.CLASS);
+		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor.init(desc,
+				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS);
 		return this.readAnnotationMemberVisitor;
 	}
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
-		LOGGER.warning("Unknown field attribute tag '" + attr.type
-				+ "' for field info '" + this.fd.getTd() + "'!");
+		LOGGER.warning("Unknown field attribute tag '" + attr.type + "' for field info '"
+				+ this.fd.getTd() + "'!");
 	}
 
 	@Override

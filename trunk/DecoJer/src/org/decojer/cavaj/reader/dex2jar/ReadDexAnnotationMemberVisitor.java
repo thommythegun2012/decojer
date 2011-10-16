@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
- * Read DEX annotation member visitor.
+ * Dex2jar read annotation member visitor.
  * 
  * @author André Pankraz
  */

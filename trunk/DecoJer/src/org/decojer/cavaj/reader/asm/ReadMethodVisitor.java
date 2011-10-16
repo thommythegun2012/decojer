@@ -88,7 +88,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 /**
- * Read method visitor.
+ * ASM read method visitor.
  * 
  * @author André Pankraz
  */
@@ -104,8 +104,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private final ArrayList<Exc> excs = new ArrayList<Exc>();
 
-	// operation index or temporary unknown index
-	private final HashMap<Label, Integer> label2index = new HashMap<Label, Integer>();
+	private final HashMap<Label, Integer> label2pc = new HashMap<Label, Integer>();
 
 	private final HashMap<Label, ArrayList<Object>> label2unresolved = new HashMap<Label, ArrayList<Object>>();
 
@@ -140,19 +139,28 @@ public class ReadMethodVisitor extends MethodVisitor {
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
 	}
 
-	private int getLabelIndex(final Label label) {
-		assert label != null;
-
-		final Integer index = this.label2index.get(label);
-		if (index != null) {
-			return index;
-		}
-		final int unresolvedIndex = -1 - this.label2unresolved.size();
-		this.label2index.put(label, unresolvedIndex);
-		return unresolvedIndex;
+	/**
+	 * Get method declaration.
+	 * 
+	 * @return method declaration
+	 */
+	public MD getMd() {
+		return this.md;
 	}
 
-	private ArrayList<Object> getLabelUnresolved(final Label label) {
+	private int getPc(final Label label) {
+		assert label != null;
+
+		final Integer pc = this.label2pc.get(label);
+		if (pc != null) {
+			return pc;
+		}
+		final int unresolvedPc = -1 - this.label2unresolved.size();
+		this.label2pc.put(label, unresolvedPc);
+		return unresolvedPc;
+	}
+
+	private ArrayList<Object> getUnresolved(final Label label) {
 		assert label != null;
 
 		ArrayList<Object> unresolved = this.label2unresolved.get(label);
@@ -161,15 +169,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 			this.label2unresolved.put(label, unresolved);
 		}
 		return unresolved;
-	}
-
-	/**
-	 * Get method declaration.
-	 * 
-	 * @return method declaration
-	 */
-	public MD getMd() {
-		return this.md;
 	}
 
 	/**
@@ -252,7 +251,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 			cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 			this.ops.clear();
-			this.label2index.clear();
+			this.label2pc.clear();
 			this.label2unresolved.clear();
 			this.line = -1;
 
@@ -991,7 +990,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		T t = null;
 		Object oValue = null;
 
-		final int labelIndex = getLabelIndex(label);
+		final int targetPc = getPc(label);
 
 		switch (opcode) {
 		/********
@@ -999,9 +998,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 ********/
 		case Opcodes.GOTO: {
 			final GOTO op = new GOTO(this.ops.size(), opcode, this.line);
-			op.setTargetPc(labelIndex);
-			if (labelIndex < 0) {
-				getLabelUnresolved(label).add(op);
+			op.setTargetPc(targetPc);
+			if (targetPc < 0) {
+				getUnresolved(label).add(op);
 			}
 			this.ops.add(op);
 			break;
@@ -1056,11 +1055,10 @@ public class ReadMethodVisitor extends MethodVisitor {
 				oValue = CmpType.T_NE;
 			}
 			{
-				final JCMP op = new JCMP(this.ops.size(), opcode, this.line, t,
-						(CmpType) oValue);
-				op.setTargetPc(labelIndex);
-				if (labelIndex < 0) {
-					getLabelUnresolved(label).add(op);
+				final JCMP op = new JCMP(this.ops.size(), opcode, this.line, t, (CmpType) oValue);
+				op.setTargetPc(targetPc);
+				if (targetPc < 0) {
+					getUnresolved(label).add(op);
 				}
 				this.ops.add(op);
 			}
@@ -1114,11 +1112,10 @@ public class ReadMethodVisitor extends MethodVisitor {
 				oValue = CmpType.T_NE;
 			}
 			{
-				final JCND op = new JCND(this.ops.size(), opcode, this.line, t,
-						(CmpType) oValue);
-				op.setTargetPc(labelIndex);
-				if (labelIndex < 0) {
-					getLabelUnresolved(label).add(op);
+				final JCND op = new JCND(this.ops.size(), opcode, this.line, t, (CmpType) oValue);
+				op.setTargetPc(targetPc);
+				if (targetPc < 0) {
+					getUnresolved(label).add(op);
 				}
 				this.ops.add(op);
 			}
@@ -1128,9 +1125,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 *******/
 		case Opcodes.JSR: {
 			final JSR op = new JSR(this.ops.size(), opcode, this.line);
-			op.setTargetPc(labelIndex);
-			if (labelIndex < 0) {
-				getLabelUnresolved(label).add(op);
+			op.setTargetPc(targetPc);
+			if (targetPc < 0) {
+				getUnresolved(label).add(op);
 			}
 			this.ops.add(op);
 			break;
@@ -1142,18 +1139,17 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitLabel(final Label label) {
-		final Integer labelIndex = this.label2index.put(label, this.ops.size());
-		if (labelIndex == null) {
+		final Integer pc = this.label2pc.put(label, this.ops.size());
+		if (pc == null) {
 			// fresh new label, never referenced before
 			return;
 		}
-		if (labelIndex > 0) {
+		if (pc > 0) {
 			// visited before but is known?!
-			LOGGER.warning("Label '" + label + "' is not unique, has old opPc '" + this.ops.size()
+			LOGGER.warning("Label '" + label + "' is not unique, has old PC '" + this.ops.size()
 					+ "'!");
 			return;
 		}
-		final int labelUnknownIndex = labelIndex;
 		// unknown and has forward reference
 		for (final Object o : this.label2unresolved.get(label)) {
 			if (o instanceof GOTO) {
@@ -1174,12 +1170,12 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			if (o instanceof SWITCH) {
 				final SWITCH op = (SWITCH) o;
-				if (labelUnknownIndex == op.getDefaultPc()) {
+				if (pc == op.getDefaultPc()) {
 					op.setDefaultPc(this.ops.size());
 				}
 				final int[] casePcs = op.getCasePcs();
 				for (int i = casePcs.length; i-- > 0;) {
-					if (labelUnknownIndex == casePcs[i]) {
+					if (pc == casePcs[i]) {
 						casePcs[i] = this.ops.size();
 					}
 				}
@@ -1187,22 +1183,22 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			if (o instanceof Exc) {
 				final Exc op = (Exc) o;
-				if (labelUnknownIndex == op.getStartPc()) {
+				if (pc == op.getStartPc()) {
 					op.setStartPc(this.ops.size());
 				}
-				if (labelUnknownIndex == op.getEndPc()) {
+				if (pc == op.getEndPc()) {
 					op.setEndPc(this.ops.size());
 				}
-				if (labelUnknownIndex == op.getHandlerPc()) {
+				if (pc == op.getHandlerPc()) {
 					op.setHandlerPc(this.ops.size());
 				}
 			}
 			if (o instanceof Var) {
 				final Var op = (Var) o;
-				if (labelUnknownIndex == op.getStartPc()) {
+				if (pc == op.getStartPc()) {
 					op.setStartPc(this.ops.size());
 				}
-				if (labelUnknownIndex == op.getEndPc()) {
+				if (pc == op.getEndPc()) {
 					op.setEndPc(this.ops.size());
 				}
 			}
@@ -1241,8 +1237,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitLineNumber(final int line, final Label start) {
-		final int labelIndex = getLabelIndex(start);
-		if (labelIndex < 0) {
+		final int pc = getPc(start);
+		if (pc < 0) {
 			LOGGER.warning("Line number '" + line + "' start label '" + start + "' unknown yet?");
 		}
 		this.line = line;
@@ -1258,15 +1254,15 @@ public class ReadMethodVisitor extends MethodVisitor {
 		final Var var = new Var(varT);
 		var.setName(name);
 
-		int labelIndex = getLabelIndex(start);
-		var.setStartPc(labelIndex);
-		if (labelIndex < 0) {
-			getLabelUnresolved(start).add(var);
+		int pc = getPc(start);
+		var.setStartPc(pc);
+		if (pc < 0) {
+			getUnresolved(start).add(var);
 		}
-		labelIndex = getLabelIndex(end);
-		var.setEndPc(labelIndex);
-		if (labelIndex < 0) {
-			getLabelUnresolved(end).add(var);
+		pc = getPc(end);
+		var.setEndPc(pc);
+		if (pc < 0) {
+			getUnresolved(end).add(var);
 		}
 
 		ArrayList<Var> vars = this.reg2vars.get(index);
@@ -1281,17 +1277,17 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public void visitLookupSwitchInsn(final Label dflt, final int[] caseKeys, final Label[] labels) {
 		final SWITCH op = new SWITCH(this.ops.size(), Opcodes.LOOKUPSWITCH, this.line);
 		// default
-		int labelIndex = getLabelIndex(dflt);
-		op.setDefaultPc(labelIndex);
-		if (labelIndex < 0) {
-			getLabelUnresolved(dflt).add(op);
+		int targetPc = getPc(dflt);
+		op.setDefaultPc(targetPc);
+		if (targetPc < 0) {
+			getUnresolved(dflt).add(op);
 		}
 		// keys
 		final int[] casePcs = new int[labels.length];
 		for (int i = labels.length; i-- > 0;) {
-			casePcs[i] = labelIndex = getLabelIndex(labels[i]);
-			if (labelIndex < 0) {
-				getLabelUnresolved(labels[i]).add(op);
+			casePcs[i] = targetPc = getPc(labels[i]);
+			if (targetPc < 0) {
+				getUnresolved(labels[i]).add(op);
 			}
 		}
 		op.setCaseKeys(caseKeys);
@@ -1378,20 +1374,20 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final Label... labels) {
 		final SWITCH op = new SWITCH(this.ops.size(), Opcodes.TABLESWITCH, this.line);
 		// default
-		int labelIndex = getLabelIndex(dflt);
-		op.setDefaultPc(labelIndex);
-		if (labelIndex < 0) {
-			getLabelUnresolved(dflt).add(op);
+		int targetPc = getPc(dflt);
+		op.setDefaultPc(targetPc);
+		if (targetPc < 0) {
+			getUnresolved(dflt).add(op);
 		}
 		// keys
 		final int[] keys = new int[labels.length];
 		final int[] keyTargets = new int[labels.length];
 		for (int i = labels.length; i-- > 0;) {
 			keys[i] = min + i;
-			labelIndex = getLabelIndex(labels[i]);
-			keyTargets[i] = labelIndex;
-			if (labelIndex < 0) {
-				getLabelUnresolved(labels[i]).add(op);
+			targetPc = getPc(labels[i]);
+			keyTargets[i] = targetPc;
+			if (targetPc < 0) {
+				getUnresolved(labels[i]).add(op);
 			}
 		}
 		op.setCaseKeys(keys);
@@ -1406,20 +1402,20 @@ public class ReadMethodVisitor extends MethodVisitor {
 		final T catchT = type == null ? null : this.du.getT(type.replace('/', '.'));
 		final Exc exc = new Exc(catchT);
 
-		int labelIndex = getLabelIndex(start);
-		exc.setStartPc(labelIndex);
-		if (labelIndex < 0) {
-			getLabelUnresolved(start).add(exc);
+		int pc = getPc(start);
+		exc.setStartPc(pc);
+		if (pc < 0) {
+			getUnresolved(start).add(exc);
 		}
-		labelIndex = getLabelIndex(end);
-		exc.setEndPc(labelIndex);
-		if (labelIndex < 0) {
-			getLabelUnresolved(end).add(exc);
+		pc = getPc(end);
+		exc.setEndPc(pc);
+		if (pc < 0) {
+			getUnresolved(end).add(exc);
 		}
-		labelIndex = getLabelIndex(handler);
-		exc.setHandlerPc(labelIndex);
-		if (labelIndex < 0) {
-			getLabelUnresolved(handler).add(exc);
+		pc = getPc(handler);
+		exc.setHandlerPc(pc);
+		if (pc < 0) {
+			getUnresolved(handler).add(exc);
 		}
 
 		this.excs.add(exc);

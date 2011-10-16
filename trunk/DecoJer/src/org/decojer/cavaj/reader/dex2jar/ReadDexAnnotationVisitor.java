@@ -37,14 +37,13 @@ import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 
 /**
- * Read DEX annotation visitor.
+ * Dex2jar read annotation visitor.
  * 
  * @author André Pankraz
  */
 public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 
-	private final static Logger LOGGER = Logger
-			.getLogger(ReadDexAnnotationVisitor.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(ReadDexAnnotationVisitor.class.getName());
 
 	protected final DU du;
 
@@ -65,8 +64,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 		if (value instanceof Field) {
 			LOGGER.warning("Visit field value '" + name
 					+ "' should be visitEnum! (bug in dex-reader-1.1)");
-			visitEnum(name, ((Field) value).getType(),
-					((Field) value).getName());
+			visitEnum(name, ((Field) value).getType(), ((Field) value).getName());
 			return;
 		}
 		if (value instanceof DexType) {
@@ -77,8 +75,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 	}
 
 	@Override
-	public DexAnnotationVisitor visitAnnotation(final String name,
-			final String desc) {
+	public DexAnnotationVisitor visitAnnotation(final String name, final String desc) {
 		final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(
 				this.du);
 		add(name, readDexAnnotationMemberVisitor.init(desc, null));
@@ -111,8 +108,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 	}
 
 	@Override
-	public void visitEnum(final String name, final String desc,
-			final String value) {
+	public void visitEnum(final String name, final String desc, final String value) {
 		final T enumT = this.du.getDescT(desc);
 		final F enumF = enumT.getF(value, enumT);
 		enumF.markAf(AF.ENUM);
