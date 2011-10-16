@@ -128,7 +128,7 @@ public class ReadClassVisitor extends ClassVisitor {
 		}
 
 		this.td = new TD(t);
-		this.td.setVersion(version == 196653 /* bug mixup minor major */? 45 : version);
+		this.td.setVersion(version == 196653 /* asm-bug: mixup minor major for 45.3 */? 45 : version);
 	}
 
 	@Override
