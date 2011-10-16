@@ -21,17 +21,20 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model.code;
+package org.decojer.cavaj.model.code.op;
 
-public interface CompareType {
+public enum CompareType {
 
-	String[] NAME = { "EQ", "GE", "GT", "LE", "LT", "NE" };
+	T_EQ,
 
-	int T_EQ = 0;
-	int T_GE = 1;
-	int T_GT = 2;
-	int T_LE = 3;
-	int T_LT = 4;
-	int T_NE = 5;
+	T_GE,
+
+	T_GT,
+
+	T_LE,
+
+	T_LT,
+
+	T_NE;
 
 }

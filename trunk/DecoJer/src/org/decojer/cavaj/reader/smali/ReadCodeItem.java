@@ -36,7 +36,6 @@ import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.code.CompareType;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
@@ -45,6 +44,7 @@ import org.decojer.cavaj.model.code.op.ARRAYLENGTH;
 import org.decojer.cavaj.model.code.op.ASTORE;
 import org.decojer.cavaj.model.code.op.CAST;
 import org.decojer.cavaj.model.code.op.CMP;
+import org.decojer.cavaj.model.code.op.CompareType;
 import org.decojer.cavaj.model.code.op.DIV;
 import org.decojer.cavaj.model.code.op.FILLARRAY;
 import org.decojer.cavaj.model.code.op.GET;
@@ -938,36 +938,36 @@ public class ReadCodeItem {
 			 ********/
 			case IF_EQ:
 				t = T.INT;
-				iValue = CompareType.T_EQ;
+				oValue = CompareType.T_EQ;
 				// fall through
 			case IF_GE:
 				if (t == null) {
 					t = T.INT;
-					iValue = CompareType.T_GE;
+					oValue = CompareType.T_GE;
 				}
 				// fall through
 			case IF_GT:
 				if (t == null) {
 					t = T.INT;
-					iValue = CompareType.T_GT;
+					oValue = CompareType.T_GT;
 				}
 				// fall through
 			case IF_LE:
 				if (t == null) {
 					t = T.INT;
-					iValue = CompareType.T_LE;
+					oValue = CompareType.T_LE;
 				}
 				// fall through
 			case IF_LT:
 				if (t == null) {
 					t = T.INT;
-					iValue = CompareType.T_LT;
+					oValue = CompareType.T_LT;
 				}
 				// fall through
 			case IF_NE:
 				if (t == null) {
 					t = T.INT;
-					iValue = CompareType.T_NE;
+					oValue = CompareType.T_NE;
 				}
 				{
 					// IF A cond B JMP offset
@@ -976,7 +976,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
 					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
 
-					final JCMP op = new JCMP(pc, code, line, t, iValue);
+					final JCMP op = new JCMP(pc, code, line, t, (CompareType) oValue);
 					final int targetPc = opPc + instr.getTargetAddressOffset();
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
@@ -991,36 +991,36 @@ public class ReadCodeItem {
 			 ********/
 			case IF_EQZ:
 				t = T.INT;
-				iValue = CompareType.T_EQ;
+				oValue = CompareType.T_EQ;
 				// fall through
 			case IF_GEZ:
 				if (t == null) {
 					t = T.INT;
-					iValue = CompareType.T_GE;
+					oValue = CompareType.T_GE;
 				}
 				// fall through
 			case IF_GTZ:
 				if (t == null) {
 					t = T.INT;
-					iValue = CompareType.T_GT;
+					oValue = CompareType.T_GT;
 				}
 				// fall through
 			case IF_LEZ:
 				if (t == null) {
 					t = T.INT;
-					iValue = CompareType.T_LE;
+					oValue = CompareType.T_LE;
 				}
 				// fall through
 			case IF_LTZ:
 				if (t == null) {
 					t = T.INT;
-					iValue = CompareType.T_LT;
+					oValue = CompareType.T_LT;
 				}
 				// fall through
 			case IF_NEZ:
 				if (t == null) {
 					t = T.INT;
-					iValue = CompareType.T_NE;
+					oValue = CompareType.T_NE;
 				}
 				{
 					// IF A cond 0 JMP offset
@@ -1028,7 +1028,7 @@ public class ReadCodeItem {
 
 					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
 
-					final JCND op = new JCND(pc, code, line, t, iValue);
+					final JCND op = new JCND(pc, code, line, t, (CompareType) oValue);
 					final int targetPc = opPc + instr.getTargetAddressOffset();
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
