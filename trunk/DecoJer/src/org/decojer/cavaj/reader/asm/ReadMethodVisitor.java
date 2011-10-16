@@ -46,7 +46,7 @@ import org.decojer.cavaj.model.code.op.ARRAYLENGTH;
 import org.decojer.cavaj.model.code.op.ASTORE;
 import org.decojer.cavaj.model.code.op.CAST;
 import org.decojer.cavaj.model.code.op.CMP;
-import org.decojer.cavaj.model.code.op.CompareType;
+import org.decojer.cavaj.model.code.op.CmpType;
 import org.decojer.cavaj.model.code.op.DIV;
 import org.decojer.cavaj.model.code.op.DUP;
 import org.decojer.cavaj.model.code.op.GET;
@@ -1011,53 +1011,53 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 ********/
 		case Opcodes.IF_ACMPEQ:
 			t = T.AREF;
-			oValue = CompareType.T_EQ;
+			oValue = CmpType.T_EQ;
 			// fall through
 		case Opcodes.IF_ACMPNE:
 			if (t == null) {
 				t = T.AREF;
-				oValue = CompareType.T_NE;
+				oValue = CmpType.T_NE;
 			}
 			// fall through
 		case Opcodes.IF_ICMPEQ:
 			if (t == null) {
 				// TODO this and all following JCMP/CND, boolean not possible?
 				t = T.AINT;
-				oValue = CompareType.T_EQ;
+				oValue = CmpType.T_EQ;
 			}
 			// fall through
 		case Opcodes.IF_ICMPGE:
 			if (t == null) {
 				t = T.AINT;
-				oValue = CompareType.T_GE;
+				oValue = CmpType.T_GE;
 			}
 			// fall through
 		case Opcodes.IF_ICMPGT:
 			if (t == null) {
 				t = T.AINT;
-				oValue = CompareType.T_GT;
+				oValue = CmpType.T_GT;
 			}
 			// fall through
 		case Opcodes.IF_ICMPLE:
 			if (t == null) {
 				t = T.AINT;
-				oValue = CompareType.T_LE;
+				oValue = CmpType.T_LE;
 			}
 			// fall through
 		case Opcodes.IF_ICMPLT:
 			if (t == null) {
 				t = T.AINT;
-				oValue = CompareType.T_LT;
+				oValue = CmpType.T_LT;
 			}
 			// fall through
 		case Opcodes.IF_ICMPNE:
 			if (t == null) {
 				t = T.AINT;
-				oValue = CompareType.T_NE;
+				oValue = CmpType.T_NE;
 			}
 			{
 				final JCMP op = new JCMP(this.ops.size(), opcode, this.line, t,
-						(CompareType) oValue);
+						(CmpType) oValue);
 				op.setTargetPc(labelIndex);
 				if (labelIndex < 0) {
 					getLabelUnresolved(label).add(op);
@@ -1070,52 +1070,52 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 ********/
 		case Opcodes.IFNULL:
 			t = T.AREF;
-			oValue = CompareType.T_EQ;
+			oValue = CmpType.T_EQ;
 			// fall through
 		case Opcodes.IFNONNULL:
 			if (t == null) {
 				t = T.AREF;
-				oValue = CompareType.T_NE;
+				oValue = CmpType.T_NE;
 			}
 			// fall through
 		case Opcodes.IFEQ:
 			if (t == null) {
 				t = T.AINT; // for boolean too
-				oValue = CompareType.T_EQ;
+				oValue = CmpType.T_EQ;
 			}
 			// fall through
 		case Opcodes.IFGE:
 			if (t == null) {
 				t = T.AINT;
-				oValue = CompareType.T_GE;
+				oValue = CmpType.T_GE;
 			}
 			// fall through
 		case Opcodes.IFGT:
 			if (t == null) {
 				t = T.AINT;
-				oValue = CompareType.T_GT;
+				oValue = CmpType.T_GT;
 			}
 			// fall through
 		case Opcodes.IFLE:
 			if (t == null) {
 				t = T.AINT;
-				oValue = CompareType.T_LE;
+				oValue = CmpType.T_LE;
 			}
 			// fall through
 		case Opcodes.IFLT:
 			if (t == null) {
 				t = T.AINT;
-				oValue = CompareType.T_LT;
+				oValue = CmpType.T_LT;
 			}
 			// fall through
 		case Opcodes.IFNE:
 			if (t == null) {
 				t = T.AINT; // for boolean too
-				oValue = CompareType.T_NE;
+				oValue = CmpType.T_NE;
 			}
 			{
 				final JCND op = new JCND(this.ops.size(), opcode, this.line, t,
-						(CompareType) oValue);
+						(CmpType) oValue);
 				op.setTargetPc(labelIndex);
 				if (labelIndex < 0) {
 					getLabelUnresolved(label).add(op);

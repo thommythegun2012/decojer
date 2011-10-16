@@ -23,18 +23,41 @@
  */
 package org.decojer.cavaj.model.code.op;
 
-public enum CompareType {
+/**
+ * Compare types.
+ * 
+ * @author André Pankraz
+ */
+public enum CmpType {
 
+	/**
+	 * Equal.
+	 */
 	T_EQ,
 
+	/**
+	 * Greater or equal.
+	 */
 	T_GE,
 
+	/**
+	 * Greater than.
+	 */
 	T_GT,
 
+	/**
+	 * Less or equal.
+	 */
 	T_LE,
 
+	/**
+	 * Less than.
+	 */
 	T_LT,
 
+	/**
+	 * Not equal.
+	 */
 	T_NE;
 
 }
