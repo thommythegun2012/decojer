@@ -24,7 +24,6 @@
 package org.decojer.cavaj.model.code.op;
 
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.code.CompareType;
 
 /**
  * Operation 'JCND'.
@@ -33,7 +32,7 @@ import org.decojer.cavaj.model.code.CompareType;
  */
 public class JCND extends Op {
 
-	private final int cmpType;
+	private final CompareType cmpType;
 
 	private final T t;
 
@@ -53,7 +52,7 @@ public class JCND extends Op {
 	 * @param cmpType
 	 *            compare type
 	 */
-	public JCND(final int pc, final int opcode, final int line, final T t, final int cmpType) {
+	public JCND(final int pc, final int opcode, final int line, final T t, final CompareType cmpType) {
 		super(pc, opcode, line);
 		this.t = t;
 		this.cmpType = cmpType;
@@ -64,7 +63,7 @@ public class JCND extends Op {
 	 * 
 	 * @return compare type
 	 */
-	public int getCmpType() {
+	public CompareType getCmpType() {
 		return this.cmpType;
 	}
 
@@ -103,7 +102,7 @@ public class JCND extends Op {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + CompareType.NAME[this.cmpType];
+		return super.toString() + " " + this.cmpType;
 	}
 
 }

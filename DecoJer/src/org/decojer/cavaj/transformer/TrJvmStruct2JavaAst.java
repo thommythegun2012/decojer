@@ -109,16 +109,14 @@ public class TrJvmStruct2JavaAst {
 			fieldDeclaration.setJavadoc(newJavadoc);
 		}
 
-		// decompile annotations,
-		// add annotation modifiers before other modifiers, order preserved in
-		// source code generation through Eclipse JDT
+		// decompile annotations, add annotation modifiers before other modifiers, order preserved
+		// in source code generation through Eclipse JDT
 		if (fd.getAs() != null) {
 			AnnotationsDecompiler
 					.decompileAnnotations(td, fieldDeclaration.modifiers(), fd.getAs());
 		}
 
-		// decompile modifier flags,
-		// public is default for enum and interface
+		// decompile modifier flags, public is default for enum and interface
 		if (f.checkAf(AF.PUBLIC)
 				&& !isEnum
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
@@ -205,8 +203,7 @@ public class TrJvmStruct2JavaAst {
 			// this is the static initializer "static {}" => Initializer
 			methodDeclaration = ast.newInitializer();
 		} else if ("<init>".equals(name)) {
-			// this is the constructor => MethodDeclaration with type
-			// declaration name as name
+			// this is the constructor => MethodDeclaration with type declaration name as name
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setConstructor(true);
 			((MethodDeclaration) methodDeclaration)
@@ -306,8 +303,7 @@ public class TrJvmStruct2JavaAst {
 				((AnnotationTypeMemberDeclaration) methodDeclaration).setType(returnType);
 			}
 		}
-		// get method block,
-		// abstract and native methods have no block
+		// get method block, abstract and native methods have no block
 		// TODO double check this way?
 		if (md.getCfg() != null && !m.checkAf(AF.ABSTRACT) && !m.checkAf(AF.NATIVE)) {
 			if (methodDeclaration instanceof MethodDeclaration) {
@@ -406,9 +402,8 @@ public class TrJvmStruct2JavaAst {
 								+ "'!");
 					}
 					typeDeclaration = ast.newEnumDeclaration();
-					// enum declarations cannot extent other classes but
-					// Enum.class,
-					// but can have interfaces
+					// enum declarations cannot extent other classes but Enum.class, but can have
+					// interfaces
 					if (t.getInterfaceTs() != null) {
 						for (final T interfaceT : t.getInterfaceTs()) {
 							((EnumDeclaration) typeDeclaration).superInterfaceTypes().add(
@@ -449,9 +444,7 @@ public class TrJvmStruct2JavaAst {
 					((TypeDeclaration) typeDeclaration).setInterface(true);
 				}
 			} else if (!t.checkAf(AF.SUPER) && !td.isDalvik()) {
-				// modern invokesuper syntax, is always set in current JVM, but
-				// not
-				// in Dalvik
+				// modern invokesuper syntax, is always set in current JVM, but not in Dalvik
 				LOGGER.warning("Modern invokesuper syntax flag not set in type '" + td + "'!");
 			}
 			if (t.checkAf(AF.ABSTRACT)
@@ -461,11 +454,8 @@ public class TrJvmStruct2JavaAst {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 			}
 
-			// multiple CompilationUnit.TypeDeclaration in same AST (source
-			// file)
-			// possible, but only one of them is public and multiple class files
-			// are
-			// necessary
+			// multiple CompilationUnit.TypeDeclaration in same AST (source file) possible, but only
+			// one of them is public and multiple class files are necessary
 			typeDeclaration.setName(ast.newSimpleName(cu.isStartTdOnly() ? t.getPName() : t
 					.getIName()));
 

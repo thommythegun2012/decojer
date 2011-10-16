@@ -46,7 +46,6 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.code.CompareType;
 import org.decojer.cavaj.model.code.Var;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
@@ -547,22 +546,22 @@ public class TrIvmCfg2JavaExprStmts {
 				// invert all operators and switch out edge predicates
 				final InfixExpression.Operator operator;
 				switch (cop.getCmpType()) {
-				case CompareType.T_EQ:
+				case T_EQ:
 					operator = InfixExpression.Operator.EQUALS;
 					break;
-				case CompareType.T_GE:
+				case T_GE:
 					operator = InfixExpression.Operator.GREATER_EQUALS;
 					break;
-				case CompareType.T_GT:
+				case T_GT:
 					operator = InfixExpression.Operator.GREATER;
 					break;
-				case CompareType.T_LE:
+				case T_LE:
 					operator = InfixExpression.Operator.LESS_EQUALS;
 					break;
-				case CompareType.T_LT:
+				case T_LT:
 					operator = InfixExpression.Operator.LESS;
 					break;
-				case CompareType.T_NE:
+				case T_NE:
 					operator = InfixExpression.Operator.NOT_EQUALS;
 					break;
 				default:
@@ -583,22 +582,22 @@ public class TrIvmCfg2JavaExprStmts {
 					// preceding compare expression (CMP result: -1 / 0 / 1)
 					final InfixExpression.Operator operator;
 					switch (cop.getCmpType()) {
-					case CompareType.T_EQ:
+					case T_EQ:
 						operator = InfixExpression.Operator.EQUALS;
 						break;
-					case CompareType.T_GE:
+					case T_GE:
 						operator = InfixExpression.Operator.GREATER_EQUALS;
 						break;
-					case CompareType.T_GT:
+					case T_GT:
 						operator = InfixExpression.Operator.GREATER;
 						break;
-					case CompareType.T_LE:
+					case T_LE:
 						operator = InfixExpression.Operator.LESS_EQUALS;
 						break;
-					case CompareType.T_LT:
+					case T_LT:
 						operator = InfixExpression.Operator.LESS;
 						break;
-					case CompareType.T_NE:
+					case T_NE:
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
@@ -609,10 +608,10 @@ public class TrIvmCfg2JavaExprStmts {
 				} else if (this.cfg.getInFrame(op).peek().getT().isReference()) {
 					final InfixExpression.Operator operator;
 					switch (cop.getCmpType()) {
-					case CompareType.T_EQ:
+					case T_EQ:
 						operator = InfixExpression.Operator.EQUALS;
 						break;
-					case CompareType.T_NE:
+					case T_NE:
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
@@ -628,11 +627,11 @@ public class TrIvmCfg2JavaExprStmts {
 				} else if (this.cfg.getInFrame(op).peek().getT() == T.BOOLEAN) {
 					// "!a" or "a == 0"?
 					switch (cop.getCmpType()) {
-					case CompareType.T_EQ:
+					case T_EQ:
 						// "== 0" means "is false"
 						expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
 						break;
-					case CompareType.T_NE:
+					case T_NE:
 						// "!= 0" means "is true"
 						break;
 					default:
@@ -642,22 +641,22 @@ public class TrIvmCfg2JavaExprStmts {
 				} else {
 					final InfixExpression.Operator operator;
 					switch (cop.getCmpType()) {
-					case CompareType.T_EQ:
+					case T_EQ:
 						operator = InfixExpression.Operator.EQUALS;
 						break;
-					case CompareType.T_GE:
+					case T_GE:
 						operator = InfixExpression.Operator.GREATER_EQUALS;
 						break;
-					case CompareType.T_GT:
+					case T_GT:
 						operator = InfixExpression.Operator.GREATER;
 						break;
-					case CompareType.T_LE:
+					case T_LE:
 						operator = InfixExpression.Operator.LESS_EQUALS;
 						break;
-					case CompareType.T_LT:
+					case T_LT:
 						operator = InfixExpression.Operator.LESS;
 						break;
-					case CompareType.T_NE:
+					case T_NE:
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
