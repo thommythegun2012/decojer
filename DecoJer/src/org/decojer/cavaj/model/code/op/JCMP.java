@@ -32,7 +32,7 @@ import org.decojer.cavaj.model.T;
  */
 public class JCMP extends Op {
 
-	private final CompareType cmpType;
+	private final CmpType cmpType;
 
 	private final T t;
 
@@ -52,7 +52,7 @@ public class JCMP extends Op {
 	 * @param cmpType
 	 *            compare type
 	 */
-	public JCMP(final int pc, final int opcode, final int line, final T t, final CompareType cmpType) {
+	public JCMP(final int pc, final int opcode, final int line, final T t, final CmpType cmpType) {
 		super(pc, opcode, line);
 		this.t = t;
 		this.cmpType = cmpType;
@@ -63,7 +63,7 @@ public class JCMP extends Op {
 	 * 
 	 * @return compare type
 	 */
-	public CompareType getCmpType() {
+	public CmpType getCmpType() {
 		return this.cmpType;
 	}
 

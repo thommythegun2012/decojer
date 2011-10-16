@@ -55,7 +55,7 @@ import org.decojer.cavaj.model.code.op.ARRAYLENGTH;
 import org.decojer.cavaj.model.code.op.ASTORE;
 import org.decojer.cavaj.model.code.op.CAST;
 import org.decojer.cavaj.model.code.op.CMP;
-import org.decojer.cavaj.model.code.op.CompareType;
+import org.decojer.cavaj.model.code.op.CmpType;
 import org.decojer.cavaj.model.code.op.DIV;
 import org.decojer.cavaj.model.code.op.DUP;
 import org.decojer.cavaj.model.code.op.GET;
@@ -620,12 +620,12 @@ public class ReadCodeAttribute {
 			 ********/
 			case Opcode.IF_ACMPEQ:
 				t = T.AREF;
-				oValue = CompareType.T_EQ;
+				oValue = CmpType.T_EQ;
 				// fall through
 			case Opcode.IF_ACMPNE:
 				if (t == null) {
 					t = T.AREF;
-					oValue = CompareType.T_NE;
+					oValue = CmpType.T_NE;
 				}
 				// fall through
 			case Opcode.IF_ICMPEQ:
@@ -633,40 +633,40 @@ public class ReadCodeAttribute {
 					// TODO this and all following JCMP/CND, boolean not
 					// possible?
 					t = T.AINT;
-					oValue = CompareType.T_EQ;
+					oValue = CmpType.T_EQ;
 				}
 				// fall through
 			case Opcode.IF_ICMPGE:
 				if (t == null) {
 					t = T.AINT;
-					oValue = CompareType.T_GE;
+					oValue = CmpType.T_GE;
 				}
 				// fall through
 			case Opcode.IF_ICMPGT:
 				if (t == null) {
 					t = T.AINT;
-					oValue = CompareType.T_GT;
+					oValue = CmpType.T_GT;
 				}
 				// fall through
 			case Opcode.IF_ICMPLE:
 				if (t == null) {
 					t = T.AINT;
-					oValue = CompareType.T_LE;
+					oValue = CmpType.T_LE;
 				}
 				// fall through
 			case Opcode.IF_ICMPLT:
 				if (t == null) {
 					t = T.AINT;
-					oValue = CompareType.T_LT;
+					oValue = CmpType.T_LT;
 				}
 				// fall through
 			case Opcode.IF_ICMPNE:
 				if (t == null) {
 					t = T.AINT;
-					oValue = CompareType.T_NE;
+					oValue = CmpType.T_NE;
 				}
 				{
-					final JCMP op = new JCMP(pc, code, line, t, (CompareType) oValue);
+					final JCMP op = new JCMP(pc, code, line, t, (CmpType) oValue);
 					final int targetPc = opPc + codeReader.readSignedShort();
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
@@ -681,51 +681,51 @@ public class ReadCodeAttribute {
 			 ********/
 			case Opcode.IFNULL:
 				t = T.AREF;
-				oValue = CompareType.T_EQ;
+				oValue = CmpType.T_EQ;
 				// fall through
 			case Opcode.IFNONNULL:
 				if (t == null) {
 					t = T.AREF;
-					oValue = CompareType.T_NE;
+					oValue = CmpType.T_NE;
 				}
 				// fall through
 			case Opcode.IFEQ:
 				if (t == null) {
 					t = T.AINT; // for boolean too
-					oValue = CompareType.T_EQ;
+					oValue = CmpType.T_EQ;
 				}
 				// fall through
 			case Opcode.IFGE:
 				if (t == null) {
 					t = T.AINT;
-					oValue = CompareType.T_GE;
+					oValue = CmpType.T_GE;
 				}
 				// fall through
 			case Opcode.IFGT:
 				if (t == null) {
 					t = T.AINT;
-					oValue = CompareType.T_GT;
+					oValue = CmpType.T_GT;
 				}
 				// fall through
 			case Opcode.IFLE:
 				if (t == null) {
 					t = T.AINT;
-					oValue = CompareType.T_LE;
+					oValue = CmpType.T_LE;
 				}
 				// fall through
 			case Opcode.IFLT:
 				if (t == null) {
 					t = T.AINT;
-					oValue = CompareType.T_LT;
+					oValue = CmpType.T_LT;
 				}
 				// fall through
 			case Opcode.IFNE:
 				if (t == null) {
 					t = T.AINT; // for boolean too
-					oValue = CompareType.T_NE;
+					oValue = CmpType.T_NE;
 				}
 				{
-					final JCND op = new JCND(pc, code, line, t, (CompareType) oValue);
+					final JCND op = new JCND(pc, code, line, t, (CmpType) oValue);
 					final int targetPc = opPc + codeReader.readSignedShort();
 					final int pcIndex = getPcIndex(targetPc);
 					op.setTargetPc(pcIndex);
