@@ -254,7 +254,9 @@ public class TD implements BD, PD {
 	}
 
 	/**
-	 * Get Class file version (1.1 - 1.3: 45.3, 1.4: 46, 5: 49, 6: 50, 7: 51).
+	 * Get Class file version.
+	 * 
+	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51
 	 * 
 	 * @return Class file version
 	 */
@@ -402,7 +404,9 @@ public class TD implements BD, PD {
 	}
 
 	/**
-	 * Set Class file version (1.1 - 1.3: 45.3, 1.4: 46, 5: 49, 6: 50, 7: 51).
+	 * Set Class file version.
+	 * 
+	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51
 	 * 
 	 * @param version
 	 *            Class file version
