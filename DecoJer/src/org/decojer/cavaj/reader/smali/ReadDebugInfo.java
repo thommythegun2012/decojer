@@ -39,7 +39,7 @@ import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Debug.DebugInstructionIterator.ProcessDecodedDebugInstructionDelegate;
 
 /**
- * Read Dalvik Debug Info.
+ * Smali read debug info.
  * 
  * @author André Pankraz
  */
@@ -84,18 +84,26 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		return this.opLines;
 	}
 
-	public void initAndVisit(final MD md, final DebugInfoItem debugInfo) {
+	/**
+	 * Init and visit.
+	 * 
+	 * @param md
+	 *            method declaration
+	 * @param debugInfoItem
+	 *            Smail debug info item
+	 */
+	public void initAndVisit(final MD md, final DebugInfoItem debugInfoItem) {
 		this.opLines.clear();
 
 		// must read debug info before operations because of line numbers
-		if (debugInfo == null) {
+		if (debugInfoItem == null) {
 			return;
 		}
 
 		this.cfg = md.getCfg();
 
 		final M m = md.getM();
-		final StringIdItem[] parameterNames = debugInfo.getParameterNames();
+		final StringIdItem[] parameterNames = debugInfoItem.getParameterNames();
 		if (parameterNames != null && parameterNames.length > 0) {
 			for (int i = parameterNames.length; i-- > 0;) {
 				if (parameterNames[i] == null) {
@@ -106,7 +114,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 				m.setParamName(i, parameterNames[i].getStringValue());
 			}
 		}
-		DebugInstructionIterator.DecodeInstructions(debugInfo, md.getCfg().getMaxRegs(), this);
+		DebugInstructionIterator.DecodeInstructions(debugInfoItem, md.getCfg().getMaxRegs(), this);
 	}
 
 	@Override

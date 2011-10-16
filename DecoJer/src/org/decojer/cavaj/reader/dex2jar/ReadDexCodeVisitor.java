@@ -40,7 +40,7 @@ import com.googlecode.dex2jar.Method;
 import com.googlecode.dex2jar.visitors.DexCodeVisitor;
 
 /**
- * Read DEX code visitor.
+ * Dex2jar code visitor.
  * 
  * @author André Pankraz
  */
@@ -48,8 +48,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadDexCodeVisitor.class.getName());
 
-	// operation index or temporary unknown index
-	private final HashMap<DexLabel, Integer> label2index = new HashMap<DexLabel, Integer>();
+	private final HashMap<DexLabel, Integer> label2pc = new HashMap<DexLabel, Integer>();
 
 	private final HashMap<DexLabel, ArrayList<Object>> label2unresolved = new HashMap<DexLabel, ArrayList<Object>>();
 
@@ -59,16 +58,27 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	private final ArrayList<Op> ops = new ArrayList<Op>();
 
-	private int getLabelIndex(final DexLabel label) {
+	private int getPc(final DexLabel label) {
 		assert label != null;
 
-		final Integer index = this.label2index.get(label);
-		if (index != null) {
-			return index;
+		final Integer pc = this.label2pc.get(label);
+		if (pc != null) {
+			return pc;
 		}
-		final int unresolvedIndex = -1 - this.label2unresolved.size();
-		this.label2index.put(label, unresolvedIndex);
-		return unresolvedIndex;
+		final int unresolvedPc = -1 - this.label2unresolved.size();
+		this.label2pc.put(label, unresolvedPc);
+		return unresolvedPc;
+	}
+
+	private ArrayList<Object> getUnresolved(final DexLabel label) {
+		assert label != null;
+
+		ArrayList<Object> unresolved = this.label2unresolved.get(label);
+		if (unresolved == null) {
+			unresolved = new ArrayList<Object>();
+			this.label2unresolved.put(label, unresolved);
+		}
+		return unresolved;
 	}
 
 	/**
@@ -191,8 +201,8 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitLineNumber(final int line, final DexLabel label) {
-		final int labelIndex = getLabelIndex(label);
-		if (labelIndex < 0) {
+		final int pc = getPc(label);
+		if (pc < 0) {
 			LOGGER.warning("Line number '" + line + "' start label '" + label + "' unknown yet?");
 		}
 		this.line = line;

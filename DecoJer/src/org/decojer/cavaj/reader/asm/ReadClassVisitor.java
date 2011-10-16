@@ -42,7 +42,7 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 
 /**
- * Read class visitor.
+ * ASM read class visitor.
  * 
  * @author André Pankraz
  */

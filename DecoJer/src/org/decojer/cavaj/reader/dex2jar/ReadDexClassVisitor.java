@@ -42,7 +42,7 @@ import com.googlecode.dex2jar.visitors.DexFieldVisitor;
 import com.googlecode.dex2jar.visitors.DexMethodVisitor;
 
 /**
- * Read DEX class visitor.
+ * Dex2jar read class visitor.
  * 
  * @author André Pankraz
  */
@@ -70,8 +70,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 		assert du != null;
 
 		this.du = du;
-		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(
-				du);
+		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(du);
 		this.readDexFieldVisitor = new ReadDexFieldVisitor(du);
 		this.readDexMethodVisitor = new ReadDexMethodVisitor(du);
 	}
@@ -88,8 +87,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	@Override
-	public DexAnnotationVisitor visitAnnotation(final String name,
-			final boolean visible) {
+	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -97,9 +95,8 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
 			this.as = newAs;
 		}
-		this.as[this.as.length - 1] = this.readDexAnnotationMemberVisitor
-				.init(name, visible ? RetentionPolicy.RUNTIME
-						: RetentionPolicy.CLASS);
+		this.as[this.as.length - 1] = this.readDexAnnotationMemberVisitor.init(name,
+				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS);
 		return this.readDexAnnotationMemberVisitor;
 	}
 

@@ -35,7 +35,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 /**
- * Read annotation visitor.
+ * ASM read annotation visitor.
  * 
  * @author André Pankraz
  */
@@ -66,8 +66,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String name,
-			final String desc) {
+	public AnnotationVisitor visitAnnotation(final String name, final String desc) {
 		final ReadAnnotationMemberVisitor readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(
 				this.du);
 		add(name, readAnnotationMemberVisitor.init(desc, null));
@@ -100,8 +99,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	}
 
 	@Override
-	public void visitEnum(final String name, final String desc,
-			final String value) {
+	public void visitEnum(final String name, final String desc, final String value) {
 		final T enumT = this.du.getDescT(desc);
 		final F enumF = enumT.getF(value, enumT);
 		enumF.markAf(AF.ENUM);

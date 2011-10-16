@@ -112,7 +112,7 @@ import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 
 /**
- * Read code item.
+ * Smali read code item.
  * 
  * @author André Pankraz
  */
@@ -124,9 +124,9 @@ public class ReadCodeItem {
 
 	final ArrayList<Op> ops = new ArrayList<Op>();
 
-	private final HashMap<Integer, Integer> pc2index = new HashMap<Integer, Integer>();
+	private final HashMap<Integer, Integer> vmpc2pc = new HashMap<Integer, Integer>();
 
-	private final HashMap<Integer, ArrayList<Object>> pc2unresolved = new HashMap<Integer, ArrayList<Object>>();
+	private final HashMap<Integer, ArrayList<Object>> vmpc2unresolved = new HashMap<Integer, ArrayList<Object>>();
 
 	private final ReadDebugInfo readDebugInfo;
 
@@ -143,37 +143,37 @@ public class ReadCodeItem {
 		this.readDebugInfo = new ReadDebugInfo(du);
 	}
 
-	private int getPcIndex(final int pc) {
-		final Integer index = this.pc2index.get(pc);
-		if (index != null) {
-			return index;
+	private int getPc(final int vmpc) {
+		final Integer pc = this.vmpc2pc.get(vmpc);
+		if (pc != null) {
+			return pc;
 		}
-		final int unresolvedIndex = -1 - this.pc2unresolved.size();
-		this.pc2index.put(pc, unresolvedIndex);
-		return unresolvedIndex;
+		final int unresolvedPc = -1 - this.vmpc2unresolved.size();
+		this.vmpc2pc.put(vmpc, unresolvedPc);
+		return unresolvedPc;
 	}
 
-	private ArrayList<Object> getPcUnresolved(final int pc) {
-		ArrayList<Object> unresolved = this.pc2unresolved.get(pc);
+	private ArrayList<Object> getUnresolved(final int vmpc) {
+		ArrayList<Object> unresolved = this.vmpc2unresolved.get(vmpc);
 		if (unresolved == null) {
 			unresolved = new ArrayList<Object>();
-			this.pc2unresolved.put(pc, unresolved);
+			this.vmpc2unresolved.put(vmpc, unresolved);
 		}
 		return unresolved;
 	}
 
 	/**
-	 * Init and set method declaration.
+	 * Init and visit.
 	 * 
 	 * @param md
 	 *            method declaration
 	 * @param codeItem
-	 *            code item
+	 *            smali code item
 	 */
 	public void initAndVisit(final MD md, final CodeItem codeItem) {
 		this.ops.clear();
-		this.pc2index.clear();
-		this.pc2unresolved.clear();
+		this.vmpc2pc.clear();
+		this.vmpc2unresolved.clear();
 
 		final CFG cfg = new CFG(md, codeItem.getRegisterCount(), 0);
 		md.setCFG(cfg);
@@ -194,13 +194,13 @@ public class ReadCodeItem {
 		T moveInvokeResultT = null;
 
 		Instruction instruction;
-		for (int i = 0, opPc = 0, line = -1; i < instructions.length; ++i, opPc += instruction
-				.getSize(opPc)) {
+		for (int i = 0, vmpc = 0, line = -1; i < instructions.length; ++i, vmpc += instruction
+				.getSize(vmpc)) {
 			instruction = instructions[i];
-			visitPc(opPc, instruction);
+			visitVmpc(vmpc, instruction);
 
 			final int code = instruction.opcode.value;
-			line = this.readDebugInfo.getLine(opPc);
+			line = this.readDebugInfo.getLine(vmpc);
 
 			final int pc = this.ops.size();
 
@@ -906,11 +906,11 @@ public class ReadCodeItem {
 				}
 				{
 					final GOTO op = new GOTO(pc, code, line);
-					final int targetPc = opPc + iValue;
-					final int pcIndex = getPcIndex(targetPc);
-					op.setTargetPc(pcIndex);
-					if (pcIndex < 0) {
-						getPcUnresolved(targetPc).add(op);
+					final int targetVmpc = vmpc + iValue;
+					final int targetPc = getPc(targetVmpc);
+					op.setTargetPc(targetPc);
+					if (targetPc < 0) {
+						getUnresolved(targetVmpc).add(op);
 					}
 					this.ops.add(op);
 				}
@@ -977,11 +977,11 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
 
 					final JCMP op = new JCMP(pc, code, line, t, (CmpType) oValue);
-					final int targetPc = opPc + instr.getTargetAddressOffset();
-					final int pcIndex = getPcIndex(targetPc);
-					op.setTargetPc(pcIndex);
-					if (pcIndex < 0) {
-						getPcUnresolved(targetPc).add(op);
+					final int targetVmpc = vmpc + instr.getTargetAddressOffset();
+					final int targetPc = getPc(targetVmpc);
+					op.setTargetPc(targetPc);
+					if (targetPc < 0) {
+						getUnresolved(targetVmpc).add(op);
 					}
 					this.ops.add(op);
 				}
@@ -1029,11 +1029,11 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
 
 					final JCND op = new JCND(pc, code, line, t, (CmpType) oValue);
-					final int targetPc = opPc + instr.getTargetAddressOffset();
-					final int pcIndex = getPcIndex(targetPc);
-					op.setTargetPc(pcIndex);
-					if (pcIndex < 0) {
-						getPcUnresolved(targetPc).add(op);
+					final int targetVmpc = vmpc + instr.getTargetAddressOffset();
+					final int targetPc = getPc(targetVmpc);
+					op.setTargetPc(targetPc);
+					if (targetPc < 0) {
+						getUnresolved(targetVmpc).add(op);
 					}
 					this.ops.add(op);
 				}
@@ -1389,10 +1389,10 @@ public class ReadCodeItem {
 				this.ops.add(new LOAD(pc, code, line, T.AREF, instr.getRegisterA()));
 
 				final FILLARRAY op = new FILLARRAY(pc, code, line);
-				final int targetPc = opPc + instr.getTargetAddressOffset();
-				final int pcIndex = getPcIndex(targetPc);
-				if (pcIndex < 0) {
-					getPcUnresolved(targetPc).add(op);
+				final int targetVmpc = vmpc + instr.getTargetAddressOffset();
+				final int targetPc = getPc(targetVmpc);
+				if (targetPc < 0) {
+					getUnresolved(targetVmpc).add(op);
 				} else {
 					LOGGER.warning("Array pseudo operation must have forward target!");
 				}
@@ -2084,10 +2084,10 @@ public class ReadCodeItem {
 				final SWITCH op = new SWITCH(pc, code, line);
 				op.setDefaultPc(this.ops.size() + 1);
 
-				final int targetPc = opPc + instr.getTargetAddressOffset();
-				final int pcIndex = getPcIndex(targetPc);
-				if (pcIndex < 0) {
-					getPcUnresolved(targetPc).add(op);
+				final int targetVmpc = vmpc + instr.getTargetAddressOffset();
+				final int targetPc = getPc(targetVmpc);
+				if (targetPc < 0) {
+					getUnresolved(targetVmpc).add(op);
 				} else {
 					LOGGER.warning("Switch pseudo operation must have forward target!");
 				}
@@ -2206,20 +2206,20 @@ public class ReadCodeItem {
 		}
 	}
 
-	private void visitPc(final int pc, final Instruction instruction) {
-		final Integer pcIndex = this.pc2index.put(pc, this.ops.size());
-		if (pcIndex == null) {
+	private void visitVmpc(final int vmpc, final Instruction instruction) {
+		final Integer pc = this.vmpc2pc.put(vmpc, this.ops.size());
+		if (pc == null) {
 			// fresh new label, never referenced before
 			return;
 		}
-		if (pcIndex > 0) {
+		if (pc > 0) {
 			// visited before but is known?!
-			LOGGER.warning("Pc '" + pc + "' is not unique, has old opPc '" + this.ops.size() + "'!");
+			LOGGER.warning("VM PC '" + vmpc + "' is not unique, has old PC '" + this.ops.size()
+					+ "'!");
 			return;
 		}
-		// final int labelUnknownIndex = pcIndex;
 		// unknown and has forward reference
-		for (final Object o : this.pc2unresolved.get(pc)) {
+		for (final Object o : this.vmpc2unresolved.get(vmpc)) {
 			if (o instanceof GOTO) {
 				((GOTO) o).setTargetPc(this.ops.size());
 				continue;
@@ -2239,12 +2239,12 @@ public class ReadCodeItem {
 			if (o instanceof SWITCH) {
 				final SWITCH op = (SWITCH) o;
 
-				// hack to get original op pc from index...argl... _not_ cool
-				final int index = op.getPc();
-				int switchOpPc = -1;
-				for (final Map.Entry<Integer, Integer> entry : this.pc2index.entrySet()) {
-					if (entry.getValue().intValue() == index) {
-						switchOpPc = entry.getKey();
+				// hack to get VM PC from PC...argl... _not_ cool
+				final int switchPc = op.getPc();
+				int switchVmpc = -1;
+				for (final Map.Entry<Integer, Integer> entry : this.vmpc2pc.entrySet()) {
+					if (entry.getValue().intValue() == switchPc) {
+						switchVmpc = entry.getKey();
 						break;
 					}
 				}
@@ -2252,16 +2252,16 @@ public class ReadCodeItem {
 				if (instruction instanceof PackedSwitchDataPseudoInstruction) {
 					final PackedSwitchDataPseudoInstruction instr = (PackedSwitchDataPseudoInstruction) instruction;
 					final int firstKey = instr.getFirstKey();
-					// offsets to original switch pc
+					// offsets to switch VM PC
 					final int[] targets = instr.getTargets();
 
 					final int[] caseKeys = new int[targets.length];
 					final int[] casePcs = new int[targets.length];
 					for (int t = 0; t < targets.length; ++t) {
 						caseKeys[t] = firstKey + t;
-						casePcs[t] = getPcIndex(switchOpPc + targets[t]);
+						casePcs[t] = getPc(switchVmpc + targets[t]);
 						if (casePcs[t] < 0) {
-							getPcUnresolved(targets[t]).add(op);
+							getUnresolved(targets[t]).add(op);
 						}
 					}
 					op.setCaseKeys(caseKeys);
@@ -2271,16 +2271,16 @@ public class ReadCodeItem {
 				if (instruction instanceof SparseSwitchDataPseudoInstruction) {
 					final SparseSwitchDataPseudoInstruction instr = (SparseSwitchDataPseudoInstruction) instruction;
 					final int[] keys = instr.getKeys();
-					// offsets to original switch pc
+					// offsets to switch VM PC
 					final int[] targets = instr.getTargets();
 
 					final int[] caseKeys = new int[targets.length];
 					final int[] casePcs = new int[targets.length];
 					for (int t = 0; t < targets.length; ++t) {
 						caseKeys[t] = keys[t];
-						casePcs[t] = getPcIndex(switchOpPc + targets[t]);
+						casePcs[t] = getPc(switchVmpc + targets[t]);
 						if (casePcs[t] < 0) {
-							getPcUnresolved(targets[t]).add(op);
+							getUnresolved(targets[t]).add(op);
 						}
 					}
 					op.setCaseKeys(caseKeys);

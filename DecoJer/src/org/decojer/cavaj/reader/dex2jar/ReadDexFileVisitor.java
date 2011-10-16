@@ -31,7 +31,7 @@ import com.googlecode.dex2jar.visitors.DexClassVisitor;
 import com.googlecode.dex2jar.visitors.DexFileVisitor;
 
 /**
- * Read DEX file visitor.
+ * Dex2jar read file visitor.
  * 
  * @author André Pankraz
  */
@@ -78,8 +78,8 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 	public void init(final String selector) {
 		if (selector != null && selector.endsWith(".class")) {
 			this.selectorMatch = "L"
-					+ selector.substring(selector.charAt(0) == '/' ? 1 : 0,
-							selector.length() - 6) + ";";
+					+ selector.substring(selector.charAt(0) == '/' ? 1 : 0, selector.length() - 6)
+					+ ";";
 			final int pos = this.selectorMatch.lastIndexOf('/');
 			if (pos != -1) {
 				this.selectorPrefix = this.selectorMatch.substring(0, pos + 1);
@@ -92,17 +92,16 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 	}
 
 	@Override
-	public DexClassVisitor visit(final int access_flags,
-			final String className, final String superClass,
-			final String... interfaceNames) {
+	public DexClassVisitor visit(final int access_flags, final String className,
+			final String superClass, final String... interfaceNames) {
 		// Lorg/apache/commons/logging/impl/WeakHashtable; :
 		// Ljava/util/Hashtable; : null
-		System.out.println("## visit ## " + className + " : " + superClass
-				+ " : " + interfaceNames);
+		System.out
+				.println("## visit ## " + className + " : " + superClass + " : " + interfaceNames);
 
 		if (this.selectorPrefix != null
-				&& (!className.startsWith(this.selectorPrefix) || className
-						.indexOf('/', this.selectorPrefix.length()) != -1)) {
+				&& (!className.startsWith(this.selectorPrefix) || className.indexOf('/',
+						this.selectorPrefix.length()) != -1)) {
 			return null;
 		}
 
