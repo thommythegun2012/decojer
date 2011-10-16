@@ -25,14 +25,23 @@ package org.decojer.cavaj.reader.dex2jar;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.CFG;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.code.Exc;
+import org.decojer.cavaj.model.code.Var;
 import org.decojer.cavaj.model.code.op.FILLARRAY;
+import org.decojer.cavaj.model.code.op.GOTO;
+import org.decojer.cavaj.model.code.op.JCMP;
+import org.decojer.cavaj.model.code.op.JCND;
+import org.decojer.cavaj.model.code.op.JSR;
 import org.decojer.cavaj.model.code.op.LOAD;
 import org.decojer.cavaj.model.code.op.Op;
+import org.decojer.cavaj.model.code.op.SWITCH;
 
 import com.googlecode.dex2jar.DexLabel;
 import com.googlecode.dex2jar.Field;
@@ -48,15 +57,35 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadDexCodeVisitor.class.getName());
 
+	private final DU du;
+
+	private final ArrayList<Exc> excs = new ArrayList<Exc>();
+
 	private final HashMap<DexLabel, Integer> label2pc = new HashMap<DexLabel, Integer>();
 
 	private final HashMap<DexLabel, ArrayList<Object>> label2unresolved = new HashMap<DexLabel, ArrayList<Object>>();
 
 	private int line = -1;
 
+	private int maxLocals;
+
 	private MD md;
 
 	private final ArrayList<Op> ops = new ArrayList<Op>();
+
+	private final HashMap<Integer, ArrayList<Var>> reg2vars = new HashMap<Integer, ArrayList<Var>>();
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param du
+	 *            decompilation unit
+	 */
+	public ReadDexCodeVisitor(final DU du) {
+		assert du != null;
+
+		this.du = du;
+	}
 
 	private int getPc(final DexLabel label) {
 		assert label != null;
@@ -93,8 +122,8 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitArguments(final int total, final int[] args) {
-		final CFG cfg = new CFG(this.md, total, 0);
-		this.md.setCFG(cfg);
+		this.maxLocals = total;
+		// set varss
 	}
 
 	@Override
@@ -143,7 +172,31 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitEnd() {
-		this.md.getCfg().postProcessVars();
+		if (this.ops.size() > 0) {
+			final CFG cfg = new CFG(this.md, this.maxLocals, 0);
+			this.md.setCFG(cfg);
+
+			cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
+			this.ops.clear();
+			this.label2pc.clear();
+			this.label2unresolved.clear();
+			this.line = -1;
+
+			if (this.excs.size() > 0) {
+				cfg.setExcs(this.excs.toArray(new Exc[this.excs.size()]));
+				this.excs.clear();
+			}
+			if (this.reg2vars.size() > 0) {
+				for (final Entry<Integer, ArrayList<Var>> entry : this.reg2vars.entrySet()) {
+					final int reg = entry.getKey();
+					for (final Var var : entry.getValue()) {
+						cfg.addVar(reg, var);
+					}
+				}
+				this.reg2vars.clear();
+			}
+			cfg.postProcessVars();
+		}
 	}
 
 	@Override
@@ -195,16 +248,81 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitLabel(final DexLabel label) {
-		// TODO Auto-generated method stub
-
+		final Integer pc = this.label2pc.put(label, this.ops.size());
+		if (pc == null) {
+			// fresh new label, never referenced before
+			return;
+		}
+		if (pc > 0) {
+			// visited before but is known?!
+			LOGGER.warning("Label '" + label + "' is not unique, has old PC '" + this.ops.size()
+					+ "'!");
+			return;
+		}
+		// unknown and has forward reference
+		for (final Object o : this.label2unresolved.get(label)) {
+			if (o instanceof GOTO) {
+				((GOTO) o).setTargetPc(this.ops.size());
+				continue;
+			}
+			if (o instanceof JCMP) {
+				((JCMP) o).setTargetPc(this.ops.size());
+				continue;
+			}
+			if (o instanceof JCND) {
+				((JCND) o).setTargetPc(this.ops.size());
+				continue;
+			}
+			if (o instanceof JSR) {
+				((JSR) o).setTargetPc(this.ops.size());
+				continue;
+			}
+			if (o instanceof SWITCH) {
+				final SWITCH op = (SWITCH) o;
+				if (pc == op.getDefaultPc()) {
+					op.setDefaultPc(this.ops.size());
+				}
+				final int[] casePcs = op.getCasePcs();
+				for (int i = casePcs.length; i-- > 0;) {
+					if (pc == casePcs[i]) {
+						casePcs[i] = this.ops.size();
+					}
+				}
+				continue;
+			}
+			if (o instanceof Exc) {
+				final Exc op = (Exc) o;
+				if (pc == op.getStartPc()) {
+					op.setStartPc(this.ops.size());
+				}
+				if (pc == op.getEndPc()) {
+					op.setEndPc(this.ops.size());
+				}
+				if (pc == op.getHandlerPc()) {
+					op.setHandlerPc(this.ops.size());
+				}
+			}
+			if (o instanceof Var) {
+				final Var op = (Var) o;
+				if (pc == op.getStartPc()) {
+					op.setStartPc(this.ops.size());
+				}
+				if (pc == op.getEndPc()) {
+					op.setEndPc(this.ops.size());
+				}
+			}
+		}
 	}
 
 	@Override
 	public void visitLineNumber(final int line, final DexLabel label) {
-		final int pc = getPc(label);
-		if (pc < 0) {
-			LOGGER.warning("Line number '" + line + "' start label '" + label + "' unknown yet?");
-		}
+		// BUG in Dex2jar: visitLineNumber before visitLabel...not really helpful,
+		// should be ordered?! check! TODO could handle this in a more dynamic way
+
+		// final int pc = getPc(label);
+		// if (pc < 0) {
+		// LOGGER.warning("Line number '" + line + "' start label '" + label + "' unknown yet?");
+		// }
 		this.line = line;
 	}
 
@@ -268,8 +386,27 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	@Override
 	public void visitTryCatch(final DexLabel start, final DexLabel end, final DexLabel handler,
 			final String type) {
-		// TODO Auto-generated method stub
+		// type: Ljava/lang/Exception;
+		final T catchT = type == null ? null : this.du.getDescT(type);
+		final Exc exc = new Exc(catchT);
 
+		int pc = getPc(start);
+		exc.setStartPc(pc);
+		if (pc < 0) {
+			getUnresolved(start).add(exc);
+		}
+		pc = getPc(end);
+		exc.setEndPc(pc);
+		if (pc < 0) {
+			getUnresolved(end).add(exc);
+		}
+		pc = getPc(handler);
+		exc.setHandlerPc(pc);
+		if (pc < 0) {
+			getUnresolved(handler).add(exc);
+		}
+
+		this.excs.add(exc);
 	}
 
 	@Override
