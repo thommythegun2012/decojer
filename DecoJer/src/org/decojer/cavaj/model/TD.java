@@ -258,6 +258,9 @@ public class TD implements BD, PD {
 	 * 
 	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51
 	 * 
+	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
+	 * target option given
+	 * 
 	 * @return Class file version
 	 */
 	public int getVersion() {
@@ -407,6 +410,9 @@ public class TD implements BD, PD {
 	 * Set Class file version.
 	 * 
 	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51
+	 * 
+	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
+	 * target option given
 	 * 
 	 * @param version
 	 *            Class file version

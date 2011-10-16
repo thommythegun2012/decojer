@@ -225,37 +225,10 @@ public class CU implements PD {
 			sb.append(" * Dalvik File");
 		} else {
 			sb.append(" * Class File Version: ").append(version).append(" (Java ");
-			switch (version) {
-			// 1.0: 45.0, 1.1: 45.3, ignore minor for all other
-			case 45:
-				sb.append("1.1");
-				break;
-			case 46:
-				sb.append("1.2");
-				break;
-			case 47:
-				sb.append("1.3");
-				break;
-			case 48:
-				sb.append("1.4");
-				break;
-			case 49:
-				sb.append("5");
-				break;
-			case 50:
-				sb.append("6");
-				break;
-			case 51:
-				sb.append("7");
-				break;
-			case 52:
-				sb.append("8");
-				break;
-			default:
-				sb.append("TODO version unknown");
-				break;
+			if (version <= 48) {
+				sb.append("1.");
 			}
-			sb.append(')');
+			sb.append(version - 44).append(')');
 		}
 		sb.append('\n');
 		if (this.startTd.getSourceFileName() != null) {

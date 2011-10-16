@@ -128,7 +128,10 @@ public class ReadClassVisitor extends ClassVisitor {
 		}
 
 		this.td = new TD(t);
-		this.td.setVersion(version == 196653 /* asm-bug: mixup minor major for 45.3 */? 45 : version);
+		// fix ASM bug: mixup of minor and major (which is 196653),
+		// only JDK 1.1 class files use a minor number (45.3),
+		// JDK 1.1 - JDK 1.3 create this version without a target option
+		this.td.setVersion(version & 0xffff);
 	}
 
 	@Override
