@@ -42,9 +42,9 @@ public class JCMP extends Op {
 	 * Constructor.
 	 * 
 	 * @param pc
-	 *            original pc
+	 *            pc
 	 * @param opcode
-	 *            original operation code
+	 *            operation code
 	 * @param line
 	 *            line number
 	 * @param t

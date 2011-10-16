@@ -26,6 +26,10 @@ package org.decojer.cavaj.model.code.op;
 /**
  * Operation.
  * 
+ * The operation code is the VM Code (Class / Dalvik, so far it's possible with reader abstraction).
+ * Line numbers are only available if debug info given. The PC is the operation index, not the VM PC
+ * (that is not available with Label-based readers). But the original PC / read order is preserved!
+ * 
  * @author André Pankraz
  */
 public abstract class Op {
@@ -40,9 +44,9 @@ public abstract class Op {
 	 * Constructor.
 	 * 
 	 * @param pc
-	 *            original pc
+	 *            pc
 	 * @param opcode
-	 *            original operation code
+	 *            operation code
 	 * @param line
 	 *            line number
 	 */
@@ -62,16 +66,16 @@ public abstract class Op {
 	}
 
 	/**
-	 * Get operation line number (if debug info available).
+	 * Get line number.
 	 * 
-	 * @return operation line number
+	 * @return line number
 	 */
 	public int getLine() {
 		return this.line;
 	}
 
 	/**
-	 * Get (if possible original JVM or Dalvik) operation code.
+	 * Get operation code.
 	 * 
 	 * @return operation code
 	 */
@@ -80,14 +84,14 @@ public abstract class Op {
 	}
 
 	/**
-	 * Get operation code.
+	 * Get operation type.
 	 * 
-	 * @return operation code
+	 * @return operation type
 	 */
 	public abstract Optype getOptype();
 
 	/**
-	 * Get (if possible original) pc.
+	 * Get pc.
 	 * 
 	 * @return pc
 	 */
