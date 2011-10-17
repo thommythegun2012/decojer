@@ -831,10 +831,7 @@ public class TrIvmCfg2JavaExprStmts {
 						// multiple constructors with different signatures possible, all of them
 						// contain the same field initializer code after super() - simply overwrite
 					}
-					if (this.cfg.getStartBb() != bb) {
-						break fieldInit;
-					}
-					if (bb.getStatements().size() != 0) {
+					if (this.cfg.getStartBb() != bb || bb.getStatements().size() != 0) {
 						break fieldInit;
 					}
 					if (f.checkAf(AF.SYNTHETIC)) {
@@ -844,18 +841,21 @@ public class TrIvmCfg2JavaExprStmts {
 							break fieldInit; // not as field initializer
 						}
 					}
+					final FD fd = getTd().getFd(f.getName());
+					if (fd == null || !(fd.getFieldDeclaration() instanceof FieldDeclaration)) {
+						break fieldInit;
+					}
 					try {
-						final FD fd = getTd().getFd(f.getName());
 						((VariableDeclarationFragment) ((FieldDeclaration) fd.getFieldDeclaration())
 								.fragments().get(0)).setInitializer(wrap(rightExpression,
 								Priority.ASSIGNMENT));
 						if (!f.checkAf(AF.STATIC)) {
 							bb.popExpression();
 						}
-						break;
 					} catch (final Exception e) {
 						// rewrite to field-initializer didn't work
 					}
+					break;
 				}
 				final Assignment assignment = getAst().newAssignment();
 				// TODO a = a +/- 1 => a++ / a--
@@ -1210,18 +1210,37 @@ public class TrIvmCfg2JavaExprStmts {
 						if (!(equalsExpression.getRightOperand() instanceof NullLiteral)) {
 							break classLiteral;
 						}
-						try {
-							// JDK 1.1.6 and 1.4 differ in branch order
-							final Assignment assignment = (Assignment) (trueExpression instanceof Assignment ? trueExpression
-									: falseExpression);
-							final MethodInvocation methodInvocation = (MethodInvocation) assignment
-									.getRightHandSide();
-							if (!"class$".equals(methodInvocation.getName().getIdentifier())) {
+						final Assignment assignment;
+						if (equalsExpression.getOperator() == InfixExpression.Operator.EQUALS) {
+							// JDK < 1.3
+							if (!(trueExpression instanceof Assignment)) {
 								break classLiteral;
 							}
-							if (getTd().getVersion() >= 49) {
-								LOGGER.warning("Unexpected class literal code with class$() in >= JDK 5 code!");
+							assignment = (Assignment) trueExpression;
+						} else if (equalsExpression.getOperator() == InfixExpression.Operator.NOT_EQUALS) {
+							// JDK >= 1.3
+							if (!(falseExpression instanceof Assignment)) {
+								break classLiteral;
 							}
+							assignment = (Assignment) falseExpression;
+						} else {
+							break classLiteral;
+						}
+						if (!(assignment.getRightHandSide() instanceof MethodInvocation)) {
+							break classLiteral;
+						}
+						final MethodInvocation methodInvocation = (MethodInvocation) assignment
+								.getRightHandSide();
+						if (!"class$".equals(methodInvocation.getName().getIdentifier())) {
+							break classLiteral;
+						}
+						if (methodInvocation.arguments().size() != 1) {
+							break classLiteral;
+						}
+						if (getTd().getVersion() >= 49) {
+							LOGGER.warning("Unexpected class literal code with class$() in >= JDK 5 code!");
+						}
+						try {
 							final String classInfo = ((StringLiteral) methodInvocation.arguments()
 									.get(0)).getLiteralValue();
 							// strange behaviour for classinfo:

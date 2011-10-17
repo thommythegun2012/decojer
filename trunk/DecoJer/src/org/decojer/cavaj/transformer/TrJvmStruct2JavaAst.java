@@ -297,7 +297,11 @@ public class TrJvmStruct2JavaAst {
 			final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(td,
 					m.getDescriptor(), m.getSignature());
 			// should be empty, skip "()"
-			signatureDecompiler.decompileMethodParameterTypes();
+			final List<Type> methodParameterTypes = signatureDecompiler
+					.decompileMethodParameterTypes();
+
+			assert methodParameterTypes.size() == 0 : methodParameterTypes;
+
 			final Type returnType = signatureDecompiler.decompileType();
 			if (returnType != null) {
 				((AnnotationTypeMemberDeclaration) methodDeclaration).setType(returnType);

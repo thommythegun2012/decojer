@@ -338,9 +338,9 @@ public class CU implements PD {
 	private void setPackageName(final String packageName) {
 		assert packageName != null && packageName.length() != 0;
 
-		final PackageDeclaration newPackageDeclaration = getAst().newPackageDeclaration();
-		newPackageDeclaration.setName(getAst().newName(packageName));
-		this.compilationUnit.setPackage(newPackageDeclaration);
+		final PackageDeclaration packageDeclaration = getAst().newPackageDeclaration();
+		packageDeclaration.setName(getAst().newName(packageName));
+		this.compilationUnit.setPackage(packageDeclaration);
 		this.typeNameManager.setPackageName(packageName);
 	}
 

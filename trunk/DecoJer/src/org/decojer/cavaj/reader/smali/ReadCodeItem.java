@@ -803,22 +803,22 @@ public class ReadCodeItem {
 					final Instruction22c instr = (Instruction22c) instruction;
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
-					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
-							.getTypeDescriptor());
-					final T fieldT = this.du.getDescT(fieldIdItem.getFieldType()
-							.getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), fieldT);
 
-					if (t != T.AREF && !t.equals(fieldT)) {
+					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
+							.getTypeDescriptor());
+					if (t != T.AREF && !t.equals(valueT)) {
 						LOGGER.warning("IGET TODO Must check compatibility here? T '" + t
-								+ "' not of '" + fieldT + "'!");
+								+ "' not of '" + valueT + "'!");
 					}
 
-					this.ops.add(new LOAD(pc, code, line, ownerT, instr.getRegisterB()));
+					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
+					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+
+					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
 
 					this.ops.add(new GET(pc, code, line, f));
 
-					this.ops.add(new STORE(pc, code, line, fieldT, instr.getRegisterA()));
+					this.ops.add(new STORE(pc, code, line, valueT, instr.getRegisterA()));
 				}
 				break;
 			case SGET:
@@ -862,21 +862,21 @@ public class ReadCodeItem {
 					final Instruction21c instr = (Instruction21c) instruction;
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
-					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
-							.getTypeDescriptor());
-					final T fieldT = this.du.getDescT(fieldIdItem.getFieldType()
-							.getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), fieldT);
-					f.markAf(AF.STATIC);
 
-					if (t != T.AREF && !t.equals(fieldT)) {
+					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
+							.getTypeDescriptor());
+					if (t != T.AREF && !t.equals(valueT)) {
 						LOGGER.warning("SGET TODO Must check compatibility here? T '" + t
-								+ "' not of '" + fieldT + "'!");
+								+ "' not of '" + valueT + "'!");
 					}
+
+					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
+					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					f.markAf(AF.STATIC);
 
 					this.ops.add(new GET(pc, code, line, f));
 
-					this.ops.add(new STORE(pc, code, line, fieldT, instr.getRegisterA()));
+					this.ops.add(new STORE(pc, code, line, valueT, instr.getRegisterA()));
 				}
 				break;
 			/********
@@ -1050,12 +1050,11 @@ public class ReadCodeItem {
 				final Instruction35c instr = (Instruction35c) instruction;
 
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
-				final T ownerT = this.du.getDescT(methodIdItem.getContainingClass()
-						.getTypeDescriptor());
+				t = this.du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
-					ownerT.markAf(AF.INTERFACE);
+					t.markAf(AF.INTERFACE);
 				}
-				final M invokeM = ownerT.getM(methodIdItem.getMethodName().getStringValue(),
+				final M invokeM = t.getM(methodIdItem.getMethodName().getStringValue(),
 						methodIdItem.getPrototype().getPrototypeString());
 				T[] paramTs = invokeM.getParamTs();
 				if (instruction.opcode == Opcode.INVOKE_STATIC) {
@@ -1063,7 +1062,7 @@ public class ReadCodeItem {
 				} else {
 					final T[] virtualParamTs = new T[paramTs.length + 1];
 					System.arraycopy(paramTs, 0, virtualParamTs, 1, paramTs.length);
-					virtualParamTs[0] = ownerT;
+					virtualParamTs[0] = t;
 					paramTs = virtualParamTs;
 				}
 
@@ -1107,12 +1106,11 @@ public class ReadCodeItem {
 				final Instruction3rc instr = (Instruction3rc) instruction;
 
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
-				final T ownerT = this.du.getDescT(methodIdItem.getContainingClass()
-						.getTypeDescriptor());
+				t = this.du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE) {
-					ownerT.markAf(AF.INTERFACE);
+					t.markAf(AF.INTERFACE);
 				}
-				final M invokeM = ownerT.getM(methodIdItem.getMethodName().getStringValue(),
+				final M invokeM = t.getM(methodIdItem.getMethodName().getStringValue(),
 						methodIdItem.getPrototype().getPrototypeString());
 				T[] paramTs = invokeM.getParamTs();
 				if (instruction.opcode == Opcode.INVOKE_STATIC_RANGE) {
@@ -1120,7 +1118,7 @@ public class ReadCodeItem {
 				} else {
 					final T[] virtualParamTs = new T[paramTs.length + 1];
 					System.arraycopy(paramTs, 0, virtualParamTs, 1, paramTs.length);
-					virtualParamTs[0] = ownerT;
+					virtualParamTs[0] = t;
 					paramTs = virtualParamTs;
 				}
 
@@ -1664,19 +1662,19 @@ public class ReadCodeItem {
 					final Instruction22c instr = (Instruction22c) instruction;
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
-					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
-							.getTypeDescriptor());
-					final T fieldT = this.du.getDescT(fieldIdItem.getFieldType()
-							.getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), fieldT);
 
-					if (t != T.AREF && !t.equals(fieldT)) {
+					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
+							.getTypeDescriptor());
+					if (t != T.AREF && !t.equals(valueT)) {
 						LOGGER.warning("IPUT TODO Must check compatibility here? T '" + t
-								+ "' not of '" + fieldT + "'!");
+								+ "' not of '" + valueT + "'!");
 					}
 
-					this.ops.add(new LOAD(pc, code, line, ownerT, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, fieldT, instr.getRegisterA()));
+					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
+					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+
+					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(pc, code, line, valueT, instr.getRegisterA()));
 
 					this.ops.add(new PUT(pc, code, line, f));
 				}
@@ -1724,19 +1722,19 @@ public class ReadCodeItem {
 					final Instruction21c instr = (Instruction21c) instruction;
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
-					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
-							.getTypeDescriptor());
-					final T fieldT = this.du.getDescT(fieldIdItem.getFieldType()
-							.getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), fieldT);
-					f.markAf(AF.STATIC);
 
-					if (t != T.AREF && !t.equals(fieldT)) {
+					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
+							.getTypeDescriptor());
+					if (t != T.AREF && !t.equals(valueT)) {
 						LOGGER.warning("SPUT TODO Must check compatibility here? T '" + t
-								+ "' not of '" + fieldT + "'!");
+								+ "' not of '" + valueT + "'!");
 					}
 
-					this.ops.add(new LOAD(pc, code, line, fieldT, instr.getRegisterA()));
+					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
+					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					f.markAf(AF.STATIC);
+
+					this.ops.add(new LOAD(pc, code, line, valueT, instr.getRegisterA()));
 
 					this.ops.add(new PUT(pc, code, line, f));
 				}

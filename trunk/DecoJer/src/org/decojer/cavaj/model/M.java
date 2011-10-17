@@ -39,6 +39,7 @@ public class M {
 	private final String descriptor;
 
 	private final String name;
+
 	private String[] paramNames;
 
 	private final T[] paramTs;

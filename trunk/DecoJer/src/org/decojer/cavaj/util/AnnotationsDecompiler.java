@@ -75,15 +75,15 @@ public class AnnotationsDecompiler {
 				final Expression expression = decompileAnnotationDefaultValue(td,
 						a.getMemberValue("value"));
 				if (expression != null) {
-					final SingleMemberAnnotation newSingleMemberAnnotation = ast
+					final SingleMemberAnnotation singleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
-					newSingleMemberAnnotation.setTypeName(td.newTypeName(a.getT().getName()));
-					newSingleMemberAnnotation.setValue(expression);
-					return newSingleMemberAnnotation;
+					singleMemberAnnotation.setTypeName(td.newTypeName(a.getT().getName()));
+					singleMemberAnnotation.setValue(expression);
+					return singleMemberAnnotation;
 				}
 			}
-			final NormalAnnotation newNormalAnnotation = ast.newNormalAnnotation();
-			newNormalAnnotation.setTypeName(td.newTypeName(a.getT().getName()));
+			final NormalAnnotation normalAnnotation = ast.newNormalAnnotation();
+			normalAnnotation.setTypeName(td.newTypeName(a.getT().getName()));
 			for (final String memberName : memberNames) {
 				final Expression expression = decompileAnnotationDefaultValue(td,
 						a.getMemberValue(memberName));
@@ -91,16 +91,16 @@ public class AnnotationsDecompiler {
 					final MemberValuePair newMemberValuePair = ast.newMemberValuePair();
 					newMemberValuePair.setName(ast.newSimpleName(memberName));
 					newMemberValuePair.setValue(expression);
-					newNormalAnnotation.values().add(newMemberValuePair);
+					normalAnnotation.values().add(newMemberValuePair);
 				}
 			}
-			if (newNormalAnnotation.values().size() > 0) {
-				return newNormalAnnotation;
+			if (normalAnnotation.values().size() > 0) {
+				return normalAnnotation;
 			}
 		}
-		final MarkerAnnotation newMarkerAnnotation = ast.newMarkerAnnotation();
-		newMarkerAnnotation.setTypeName(td.newTypeName(a.getT().getName()));
-		return newMarkerAnnotation;
+		final MarkerAnnotation markerAnnotation = ast.newMarkerAnnotation();
+		markerAnnotation.setTypeName(td.newTypeName(a.getT().getName()));
+		return markerAnnotation;
 	}
 
 	/**
