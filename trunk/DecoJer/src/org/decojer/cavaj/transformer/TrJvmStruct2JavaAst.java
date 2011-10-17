@@ -328,9 +328,10 @@ public class TrJvmStruct2JavaAst {
 				// none-static inner classes get extra constructor argument,
 				// anonymous inner classes are static if context is static
 				// (see SignatureDecompiler.decompileMethodTypes)
-				if (!m.getT().checkAf(AF.STATIC) && !(md.getTd().getPd() instanceof CU)) {
-					++param;
-				}
+				/*
+				 * if (!m.getT().checkAf(AF.STATIC) && !(md.getTd().getPd() instanceof CU)) {
+				 * ++param; }
+				 */
 			}
 			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
 					.parameters()) {

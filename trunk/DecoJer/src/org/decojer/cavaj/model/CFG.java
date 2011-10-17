@@ -254,14 +254,7 @@ public class CFG {
 	 * @return input frame
 	 */
 	public Frame getInFrame(final Op op) {
-		// operation.pc may not be the operations index, could be an real pc
-		for (int pc = op.getPc(); pc < this.ops.length; ++pc) {
-			if (this.ops[pc] == op) {
-				return this.frames[pc];
-			}
-		}
-		assert false;
-		return null;
+		return this.frames[op.getPc()];
 	}
 
 	/**
@@ -301,21 +294,14 @@ public class CFG {
 	}
 
 	/**
-	 * Get output frame for operation.
+	 * Get output frame for operation. Doesn't (and must not) work for control flow statements.
 	 * 
 	 * @param op
 	 *            operation
 	 * @return output frame
 	 */
 	public Frame getOutFrame(final Op op) {
-		// operation.pc may not be the operations index, could be an real pc
-		for (int pc = op.getPc(); pc < this.ops.length; ++pc) {
-			if (this.ops[pc] == op) {
-				return this.frames[++pc];
-			}
-		}
-		assert false;
-		return null;
+		return this.frames[op.getPc() + 1];
 	}
 
 	/**

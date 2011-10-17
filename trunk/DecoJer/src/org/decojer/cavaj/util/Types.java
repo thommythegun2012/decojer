@@ -62,7 +62,7 @@ public class Types {
 		if (t instanceof T.TT) {
 			LOGGER.warning("Multi-type '" + t + "'!");
 			final T[] ts = ((T.TT) t).getTs();
-			return convertLiteral(ts[ts.length - 1], value, td, ast);
+			return convertLiteral(ts[0], value, td, ast);
 		}
 		if (t.isReference() /* incl. T.AREF */) {
 			if (value == null) {

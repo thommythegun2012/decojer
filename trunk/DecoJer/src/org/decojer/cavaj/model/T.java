@@ -179,27 +179,35 @@ public class T {
 	/**
 	 * Artificial type 'any reference'.
 	 */
-	public static T AREF = new T("<aref>");
+	public static T AREF = new T("AREF");
 	/**
 	 * Artificial type 'uninit'.
 	 */
-	public static T UNINIT = new T("<uninit>");
+	public static T UNINIT = new T("UNINIT");
 	/**
 	 * Artificial type 'bogus'.
 	 */
-	public static T BOGUS = new T("<bogus>");
+	public static T BOGUS = new T("BOGUS");
 	/**
 	 * Multi-type 'any int (32 bit)'.
 	 */
-	public static T AINT = multi(BOOLEAN, CHAR, BYTE, SHORT, INT);
+	public static TT AINT = multi(INT, SHORT, BYTE, CHAR, BOOLEAN);
+	/**
+	 * Multi-type 'implicit int (32 bit)'.
+	 * 
+	 * From VM Spec: Note that widening numeric conversions do not exist from integral types byte,
+	 * char, and short to type int. As noted in §3.11.1, values of type byte, char, and short are
+	 * internally widened to type int, making these conversions implicit.
+	 */
+	public static TT IINT = multi(INT, SHORT, BYTE, CHAR);
 	/**
 	 * Multi-type 'dalvik int (32 bit)', includes float.
 	 */
-	public static T DINT = multi(BOOLEAN, CHAR, BYTE, SHORT, INT, FLOAT);
+	public static TT DINT = multi(INT, SHORT, BYTE, CHAR, BOOLEAN, FLOAT);
 	/**
 	 * Multi-type 'any wide (64 bit)'.
 	 */
-	public static T WIDE = multi(DOUBLE, LONG);
+	public static TT WIDE = multi(DOUBLE, LONG);
 
 	private static final T[] NO_INTERFACES = new T[0];
 

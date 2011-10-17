@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
@@ -233,10 +232,10 @@ public class SignatureDecompiler {
 					// ignore synthetic constructor parameter for inner classes:
 					// none-static inner classes get extra constructor argument,
 					// anonymous inner classes are static if context is static
-					if (i == 0 && !m.getT().checkAf(AF.STATIC)
-							&& !(md.getTd().getPd() instanceof CU)) {
-						continue;
-					}
+					/*
+					 * if (i == 0 && !m.getT().checkAf(AF.STATIC) && !(md.getTd().getPd() instanceof
+					 * CU)) { continue; }
+					 */
 				}
 				final SingleVariableDeclaration singleVariableDeclaration = getAst()
 						.newSingleVariableDeclaration();

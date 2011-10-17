@@ -218,8 +218,8 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 		this.ops.add(new LOAD(this.ops.size(), opcode, this.line, T.AREF, aA));
 
 		final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, this.line);
-		op.setValues(values);
 		this.ops.add(op);
+		op.setValues(values);
 	}
 
 	@Override

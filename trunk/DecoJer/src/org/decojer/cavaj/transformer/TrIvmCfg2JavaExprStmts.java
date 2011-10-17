@@ -118,6 +118,7 @@ import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 /**
  * Transform CFG IVM to HLL Expression Statements.
@@ -433,24 +434,28 @@ public class TrIvmCfg2JavaExprStmts {
 					if ("<init>".equals(mName)) {
 						methodExpression = null;
 						if (expression instanceof ThisExpression) {
-							final SuperConstructorInvocation superConstructorInvocation = getAst()
-									.newSuperConstructorInvocation();
 							if (arguments.size() == 0) {
 								// implicit super callout, more checks possible but not necessary
 								break;
 							}
+							final SuperConstructorInvocation superConstructorInvocation = getAst()
+									.newSuperConstructorInvocation();
 							superConstructorInvocation.arguments().addAll(arguments);
 							bb.addStatement(superConstructorInvocation);
 							break;
 						}
 						if (expression instanceof ClassInstanceCreation) {
 							final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) expression;
+							if (classInstanceCreation.getAnonymousClassDeclaration() != null) {
+								// anonymous inner classes cannot have arguments, further checks not
+								// necessary
+								break;
+							}
 							// ignore synthetic constructor parameter for inner classes:
 							// none-static inner classes get extra constructor argument,
 							// anonymous inner classes are static if context is static
 							// (see SignatureDecompiler.decompileMethodTypes)
 							// TODO
-
 							classInstanceCreation.arguments().addAll(arguments);
 							// normally there was a DUP in advance, don't use:
 							// basicBlock.pushExpression(classInstanceCreation);
@@ -917,24 +922,37 @@ public class TrIvmCfg2JavaExprStmts {
 				final STORE cop = (STORE) op;
 
 				final Expression rightExpression = bb.popExpression();
-				final Assignment assignment = getAst().newAssignment();
-				// TODO a = a +/- 1 => a++ / a--
-				// TODO a = a <op> expr => a <op>= expr
-				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 
-				// TODO STORE.pc in DALVIK sucks now...multiple ops share pc
-				String name = getVarName(cop.getReg(), ops.isEmpty() ? cop.getPc() + 1 : ops.get(0)
-						.getPc());
-				if ("this".equals(name)) {
-					name = "_this"; // TODO can happen before synchronized(this)
-				}
-				assignment.setLeftHandSide(getAst().newSimpleName(name));
-				// inline assignment, DUP -> STORE
-				if (bb.getExpressionsSize() > 0 && bb.peekExpression() == rightExpression) {
-					bb.popExpression();
-					bb.pushExpression(assignment);
+				final Var var = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
+				if (var.getStartPc() == cop.getPc() + 1 && var.getName() != null) {
+					final VariableDeclarationFragment variableDeclarationFragment = getAst()
+							.newVariableDeclarationFragment();
+					variableDeclarationFragment.setName(getAst().newSimpleName(var.getName()));
+					variableDeclarationFragment.setInitializer(wrap(rightExpression,
+							Priority.ASSIGNMENT));
+					final VariableDeclarationStatement variableDeclarationStatement = getAst()
+							.newVariableDeclarationStatement(variableDeclarationFragment);
+					variableDeclarationStatement.setType(Types.convertType(var.getT(), getTd(),
+							getAst()));
+					statement = variableDeclarationStatement;
 				} else {
-					statement = getAst().newExpressionStatement(assignment);
+					final Assignment assignment = getAst().newAssignment();
+					// TODO a = a +/- 1 => a++ / a--
+					// TODO a = a <op> expr => a <op>= expr
+					assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
+
+					String name = getVarName(cop.getReg(), cop.getPc() + 1);
+					if ("this".equals(name)) {
+						name = "_this"; // TODO can happen before synchronized(this)
+					}
+					assignment.setLeftHandSide(getAst().newSimpleName(name));
+					// inline assignment, DUP -> STORE
+					if (bb.getExpressionsSize() > 0 && bb.peekExpression() == rightExpression) {
+						bb.popExpression();
+						bb.pushExpression(assignment);
+					} else {
+						statement = getAst().newExpressionStatement(assignment);
+					}
 				}
 				break;
 			}

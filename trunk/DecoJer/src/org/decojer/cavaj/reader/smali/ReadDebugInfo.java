@@ -23,10 +23,10 @@
  */
 package org.decojer.cavaj.reader.smali;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
@@ -47,11 +47,11 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadDebugInfo.class.getName());
 
-	private CFG cfg;
-
 	private final DU du;
 
 	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
+
+	private final HashMap<Integer, ArrayList<Var>> reg2vars = new HashMap<Integer, ArrayList<Var>>();
 
 	/**
 	 * Constructor.
@@ -65,8 +65,16 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		this.du = du;
 	}
 
-	public int getLine(final int codeAddress) {
-		for (int i = codeAddress; i >= 0; --i) {
+	/**
+	 * Get line for VM PC.
+	 * 
+	 * @param vmpc
+	 *            VM PC
+	 * @return line
+	 */
+	public int getLine(final int vmpc) {
+		// assume that the lines where ordered on read
+		for (int i = vmpc; i >= 0; --i) {
 			final Integer line = this.opLines.get(i);
 			if (line != null) {
 				return line;
@@ -76,12 +84,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	}
 
 	/**
-	 * Get operation lines.
+	 * Get register to variables map.
 	 * 
-	 * @return operation lines
+	 * @return register to variables map
 	 */
-	public HashMap<Integer, Integer> getOpLines() {
-		return this.opLines;
+	public HashMap<Integer, ArrayList<Var>> getReg2vars() {
+		return this.reg2vars;
 	}
 
 	/**
@@ -94,13 +102,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	 */
 	public void initAndVisit(final MD md, final DebugInfoItem debugInfoItem) {
 		this.opLines.clear();
+		this.reg2vars.clear();
 
 		// must read debug info before operations because of line numbers
 		if (debugInfoItem == null) {
 			return;
 		}
-
-		this.cfg = md.getCfg();
 
 		final M m = md.getM();
 		final StringIdItem[] parameterNames = debugInfoItem.getParameterNames();
@@ -123,12 +130,23 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		System.out.println("*ProcessEndLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
 				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
 
-		final Var var = this.cfg.getVar(registerNum, codeAddress);
-		if (var == null) {
-			LOGGER.warning("ProcessEndLocal '" + registerNum + "' without ProcessStartLocal!");
+		final ArrayList<Var> vars = this.reg2vars.get(registerNum);
+		if (vars == null) {
+			LOGGER.warning("ProcessEndLocal '" + registerNum + "' without any ProcessStartLocal!");
 			return;
 		}
-		var.setEndPc(codeAddress);
+		for (int i = vars.size(); i-- > 0;) {
+			final Var var = vars.get(i);
+			if (var.getEndPc() != -1) {
+				continue;
+			}
+			if (var.getStartPc() >= codeAddress) {
+				continue;
+			}
+			var.setEndPc(codeAddress);
+			return;
+		}
+		LOGGER.warning("ProcessEndLocal '" + registerNum + "' without ProcessStartLocal!");
 	}
 
 	@Override
@@ -179,6 +197,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
 		System.out.println("*startLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
 				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
+
 		final T varT = this.du.getDescT(type.getTypeDescriptor());
 		if (signature != null) {
 			varT.setSignature(signature.getStringValue());
@@ -187,8 +206,14 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		var.setName(name.getStringValue());
 
 		var.setStartPc(codeAddress);
+		var.setEndPc(-1);
 
-		this.cfg.addVar(registerNum, var);
+		ArrayList<Var> vars = this.reg2vars.get(registerNum);
+		if (vars == null) {
+			vars = new ArrayList<Var>();
+			this.reg2vars.put(registerNum, vars);
+		}
+		vars.add(var);
 	}
 
 }
