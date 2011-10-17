@@ -513,8 +513,12 @@ public class ClassEditor extends MultiPageEditorPart {
 
 			final CFG cfg = md.getCfg();
 			if (cfg != null) {
-				TrDataFlowAnalysis.transform(cfg);
 				TrInitControlFlowGraph.transform(cfg);
+				try {
+					TrDataFlowAnalysis.transform(cfg);
+				} catch (final Exception e) {
+					LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+				}
 				final int i = this.cfgViewModeCombo.getSelectionIndex();
 				if (i > 0) {
 					TrIvmCfg2JavaExprStmts.transform(cfg);

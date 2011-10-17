@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
@@ -37,6 +38,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.Exc;
+import org.decojer.cavaj.model.code.Var;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
 import org.decojer.cavaj.model.code.op.AND;
@@ -178,9 +180,8 @@ public class ReadCodeItem {
 		final CFG cfg = new CFG(md, codeItem.getRegisterCount(), 0);
 		md.setCFG(cfg);
 
-		// TODO rewrite adresses! wrong now
+		// read debug info here, need lines early, but handle read vars after code
 		this.readDebugInfo.initAndVisit(md, codeItem.getDebugInfo());
-		cfg.postProcessVars();
 
 		final Instruction[] instructions = codeItem.getInstructions();
 
@@ -199,10 +200,8 @@ public class ReadCodeItem {
 			instruction = instructions[i];
 			visitVmpc(vmpc, instruction);
 
-			final int code = instruction.opcode.value;
+			final int opcode = instruction.opcode.value;
 			line = this.readDebugInfo.getLine(vmpc);
-
-			final int pc = this.ops.size();
 
 			T t = null;
 			int type = -1;
@@ -242,7 +241,8 @@ public class ReadCodeItem {
 						throw new RuntimeException("Move result without previous result type!");
 					}
 
-					this.ops.add(new STORE(pc, code, line, moveInvokeResultT, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, moveInvokeResultT, instr
+							.getRegisterA()));
 
 					moveInvokeResultT = null;
 					// just for once! reset wide after switch
@@ -253,7 +253,7 @@ public class ReadCodeItem {
 				assert moveInvokeResultT != T.VOID;
 
 				// no POP2 with current wide handling
-				this.ops.add(new POP(pc, code, line, POP.T_POP));
+				this.ops.add(new POP(this.ops.size(), opcode, line, POP.T_POP));
 				moveInvokeResultT = null;
 			}
 			switch (instruction.opcode) {
@@ -281,12 +281,12 @@ public class ReadCodeItem {
 					// A = B + C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new ADD(pc, code, line, t));
+					this.ops.add(new ADD(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case ADD_DOUBLE_2ADDR:
@@ -310,36 +310,38 @@ public class ReadCodeItem {
 					// A += B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new ADD(pc, code, line, t));
+					this.ops.add(new ADD(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case ADD_INT_LIT8: {
 				// A = B + literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new ADD(pc, code, line, T.INT));
+				this.ops.add(new ADD(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			case ADD_INT_LIT16: {
 				// A = B + literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new ADD(pc, code, line, T.INT));
+				this.ops.add(new ADD(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			/*********
@@ -381,14 +383,15 @@ public class ReadCodeItem {
 					// A = B[C]
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, T.AREF, instr.getRegisterB())); // TODO
-																							// array
-																							// type?
-					this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterC()));
+					// TODO array type?
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr
+							.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr
+							.getRegisterC()));
 
-					this.ops.add(new ALOAD(pc, code, line, t));
+					this.ops.add(new ALOAD(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			/*******
@@ -405,12 +408,12 @@ public class ReadCodeItem {
 					// A = B & C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new AND(pc, code, line, t));
+					this.ops.add(new AND(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case AND_INT_2ADDR:
@@ -424,36 +427,38 @@ public class ReadCodeItem {
 					// A &= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new AND(pc, code, line, t));
+					this.ops.add(new AND(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case AND_INT_LIT8: {
 				// A = B & literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new AND(pc, code, line, T.INT));
+				this.ops.add(new AND(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			case AND_INT_LIT16: {
 				// A = B & literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new AND(pc, code, line, T.INT));
+				this.ops.add(new AND(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			/***************
@@ -463,11 +468,11 @@ public class ReadCodeItem {
 				// A = B.length
 				final Instruction12x instr = (Instruction12x) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.AREF, instr.getRegisterB()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr.getRegisterB()));
 
-				this.ops.add(new ARRAYLENGTH(pc, code, line));
+				this.ops.add(new ARRAYLENGTH(this.ops.size(), opcode, line));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			/**********
@@ -509,13 +514,14 @@ public class ReadCodeItem {
 					// B[C] = A
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, T.AREF, instr.getRegisterB())); // TODO
-																							// array
-																							// type?
-					this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterC()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
+					// TODO array type?
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr
+							.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr
+							.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
-					this.ops.add(new ASTORE(pc, code, line, t));
+					this.ops.add(new ASTORE(this.ops.size(), opcode, line, t));
 				}
 				break;
 			/********
@@ -527,11 +533,11 @@ public class ReadCodeItem {
 
 				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 
-				this.ops.add(new LOAD(pc, code, line, T.AREF, instr.getRegisterA()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr.getRegisterA()));
 
-				this.ops.add(new CAST(pc, code, line, T.AREF, t));
+				this.ops.add(new CAST(this.ops.size(), opcode, line, T.AREF, t));
 
-				this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				break;
 			}
 			case DOUBLE_TO_FLOAT:
@@ -625,11 +631,12 @@ public class ReadCodeItem {
 					// B = (totype) A
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
-					this.ops.add(new CAST(pc, code, line, t, (T) oValue));
+					this.ops.add(new CAST(this.ops.size(), opcode, line, t, (T) oValue));
 
-					this.ops.add(new STORE(pc, code, line, (T) oValue, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, (T) oValue, instr
+							.getRegisterA()));
 				}
 				break;
 			/*******
@@ -666,12 +673,13 @@ public class ReadCodeItem {
 					// A = B CMP C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new CMP(pc, code, line, t, iValue));
+					this.ops.add(new CMP(this.ops.size(), opcode, line, t, iValue));
 
-					this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr
+							.getRegisterA()));
 				}
 				break;
 			/*******
@@ -698,12 +706,12 @@ public class ReadCodeItem {
 					// A = B / C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new DIV(pc, code, line, t));
+					this.ops.add(new DIV(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case DIV_DOUBLE_2ADDR:
@@ -727,36 +735,38 @@ public class ReadCodeItem {
 					// A /= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new DIV(pc, code, line, t));
+					this.ops.add(new DIV(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case DIV_INT_LIT8: {
 				// A = B / literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new DIV(pc, code, line, T.INT));
+				this.ops.add(new DIV(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			case DIV_INT_LIT16: {
 				// A = B / literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new DIV(pc, code, line, T.INT));
+				this.ops.add(new DIV(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			/*******
@@ -814,11 +824,12 @@ public class ReadCodeItem {
 					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new GET(pc, code, line, f));
+					this.ops.add(new GET(this.ops.size(), opcode, line, f));
 
-					this.ops.add(new STORE(pc, code, line, valueT, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, valueT, instr
+							.getRegisterA()));
 				}
 				break;
 			case SGET:
@@ -874,9 +885,10 @@ public class ReadCodeItem {
 					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 					f.markAf(AF.STATIC);
 
-					this.ops.add(new GET(pc, code, line, f));
+					this.ops.add(new GET(this.ops.size(), opcode, line, f));
 
-					this.ops.add(new STORE(pc, code, line, valueT, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, valueT, instr
+							.getRegisterA()));
 				}
 				break;
 			/********
@@ -905,14 +917,14 @@ public class ReadCodeItem {
 					instr.getTargetAddressOffset();
 				}
 				{
-					final GOTO op = new GOTO(pc, code, line);
+					final GOTO op = new GOTO(this.ops.size(), opcode, line);
+					this.ops.add(op);
 					final int targetVmpc = vmpc + iValue;
 					final int targetPc = getPc(targetVmpc);
 					op.setTargetPc(targetPc);
 					if (targetPc < 0) {
 						getUnresolved(targetVmpc).add(op);
 					}
-					this.ops.add(op);
 				}
 				break;
 			/**************
@@ -925,12 +937,13 @@ public class ReadCodeItem {
 				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 
 				// not t, is unknown, result can be false
-				this.ops.add(new LOAD(pc, code, line, T.AREF, instr.getRegisterB()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr.getRegisterB()));
 
-				this.ops.add(new INSTANCEOF(pc, code, line, t));
+				this.ops.add(new INSTANCEOF(this.ops.size(), opcode, line, t));
 
 				// hmmm, "spec" only says none-zero result, multi-type?
-				this.ops.add(new STORE(pc, code, line, T.BOOLEAN, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.BOOLEAN, instr
+						.getRegisterA()));
 				break;
 			}
 			/********
@@ -973,17 +986,17 @@ public class ReadCodeItem {
 					// IF A cond B JMP offset
 					final Instruction22t instr = (Instruction22t) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					final JCMP op = new JCMP(pc, code, line, t, (CmpType) oValue);
+					final JCMP op = new JCMP(this.ops.size(), opcode, line, t, (CmpType) oValue);
+					this.ops.add(op);
 					final int targetVmpc = vmpc + instr.getTargetAddressOffset();
 					final int targetPc = getPc(targetVmpc);
 					op.setTargetPc(targetPc);
 					if (targetPc < 0) {
 						getUnresolved(targetVmpc).add(op);
 					}
-					this.ops.add(op);
 				}
 				break;
 			/********
@@ -1026,16 +1039,16 @@ public class ReadCodeItem {
 					// IF A cond 0 JMP offset
 					final Instruction21t instr = (Instruction21t) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
-					final JCND op = new JCND(pc, code, line, t, (CmpType) oValue);
+					final JCND op = new JCND(this.ops.size(), opcode, line, t, (CmpType) oValue);
+					this.ops.add(op);
 					final int targetVmpc = vmpc + instr.getTargetAddressOffset();
 					final int targetPc = getPc(targetVmpc);
 					op.setTargetPc(targetPc);
 					if (targetPc < 0) {
 						getUnresolved(targetVmpc).add(op);
 					}
-					this.ops.add(op);
 				}
 				break;
 			/**********
@@ -1084,13 +1097,15 @@ public class ReadCodeItem {
 				}
 
 				for (int reg = 0, j = 0; j < paramTs.length; ++reg, ++j) {
-					this.ops.add(new LOAD(pc, code, line, paramTs[j], regs[reg]));
+					// m(int) also accepts byte, short and char
+					this.ops.add(new LOAD(this.ops.size(), opcode, line,
+							paramTs[j] == T.INT ? T.IINT : paramTs[j], regs[reg]));
 					if (paramTs[j].isWide()) {
 						++reg;
 					}
 				}
 
-				this.ops.add(new INVOKE(pc, code, line, invokeM,
+				this.ops.add(new INVOKE(this.ops.size(), opcode, line, invokeM,
 						instruction.opcode == Opcode.INVOKE_DIRECT));
 				if (invokeM.getReturnT() != T.VOID) {
 					moveInvokeResultT = invokeM.getReturnT();
@@ -1123,13 +1138,15 @@ public class ReadCodeItem {
 				}
 
 				for (int reg = instr.getStartRegister(), j = 0; j < paramTs.length; ++reg, ++j) {
-					this.ops.add(new LOAD(pc, code, line, paramTs[j], reg));
+					// m(int) also accepts byte, short and char
+					this.ops.add(new LOAD(this.ops.size(), opcode, line,
+							paramTs[j] == T.INT ? T.IINT : paramTs[j], reg));
 					if (paramTs[j].isWide()) {
 						++reg;
 					}
 				}
 
-				this.ops.add(new INVOKE(pc, code, line, invokeM,
+				this.ops.add(new INVOKE(this.ops.size(), opcode, line, invokeM,
 						instruction.opcode == Opcode.INVOKE_DIRECT_RANGE));
 				if (invokeM.getReturnT() != T.VOID) {
 					moveInvokeResultT = invokeM.getReturnT();
@@ -1150,9 +1167,10 @@ public class ReadCodeItem {
 					// synchronized A
 					final Instruction11x instr = (Instruction11x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, T.AREF, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr
+							.getRegisterA()));
 
-					this.ops.add(new MONITOR(pc, code, line, type));
+					this.ops.add(new MONITOR(this.ops.size(), opcode, line, type));
 				}
 				break;
 			/********
@@ -1174,8 +1192,8 @@ public class ReadCodeItem {
 					// A = B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case MOVE_16:
@@ -1194,8 +1212,8 @@ public class ReadCodeItem {
 					// A = B
 					final Instruction32x instr = (Instruction32x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case MOVE_FROM16:
@@ -1214,8 +1232,8 @@ public class ReadCodeItem {
 					// A = B
 					final Instruction22x instr = (Instruction22x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case MOVE_EXCEPTION: {
@@ -1229,8 +1247,8 @@ public class ReadCodeItem {
 				// A = resultRegister
 				final Instruction11x instr = (Instruction11x) instruction;
 
-				this.ops.add(new STORE(pc, code, line, this.du.getT(Throwable.class), instr
-						.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line,
+						this.du.getT(Throwable.class), instr.getRegisterA()));
 				break;
 			}
 			/*******
@@ -1257,12 +1275,12 @@ public class ReadCodeItem {
 					// A = B * C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new MUL(pc, code, line, t));
+					this.ops.add(new MUL(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case MUL_DOUBLE_2ADDR:
@@ -1286,36 +1304,38 @@ public class ReadCodeItem {
 					// A *= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new MUL(pc, code, line, t));
+					this.ops.add(new MUL(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case MUL_INT_LIT8: {
 				// A = B * literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new MUL(pc, code, line, T.INT));
+				this.ops.add(new MUL(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			case MUL_INT_LIT16: {
 				// A = B * literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new MUL(pc, code, line, T.INT));
+				this.ops.add(new MUL(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			/*******
@@ -1342,11 +1362,11 @@ public class ReadCodeItem {
 					// A = -B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new NEG(pc, code, line, t));
+					this.ops.add(new NEG(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			/*******
@@ -1358,9 +1378,9 @@ public class ReadCodeItem {
 
 				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 
-				this.ops.add(new NEW(pc, code, line, t));
+				this.ops.add(new NEW(this.ops.size(), opcode, line, t));
 
-				this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				break;
 			}
 			/************
@@ -1373,20 +1393,21 @@ public class ReadCodeItem {
 				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 				// contains dimensions via [
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
 
-				this.ops.add(new NEWARRAY(pc, code, line, t.getBaseT(), t.getDim()));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, t.getBaseT(), t.getDim()));
 
-				this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				break;
 			}
 			case FILL_ARRAY_DATA: {
 				// fill_array_data(A) -> target
 				final Instruction31t instr = (Instruction31t) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.AREF, instr.getRegisterA()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr.getRegisterA()));
 
-				final FILLARRAY op = new FILLARRAY(pc, code, line);
+				final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, line);
+				this.ops.add(op);
 				final int targetVmpc = vmpc + instr.getTargetAddressOffset();
 				final int targetPc = getPc(targetVmpc);
 				if (targetPc < 0) {
@@ -1394,7 +1415,6 @@ public class ReadCodeItem {
 				} else {
 					LOGGER.warning("Array pseudo operation must have forward target!");
 				}
-				this.ops.add(op);
 				break;
 			}
 			case FILLED_NEW_ARRAY: {
@@ -1425,13 +1445,13 @@ public class ReadCodeItem {
 					// A = ~B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new PUSH(pc, code, line, t, -1));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new PUSH(this.ops.size(), opcode, line, t, -1));
 
 					// simulate with A ^ -1
-					this.ops.add(new XOR(pc, code, line, t));
+					this.ops.add(new XOR(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			/*******
@@ -1448,12 +1468,12 @@ public class ReadCodeItem {
 					// A = B | C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new OR(pc, code, line, t));
+					this.ops.add(new OR(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case OR_INT_2ADDR:
@@ -1467,36 +1487,38 @@ public class ReadCodeItem {
 					// A |= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new OR(pc, code, line, t));
+					this.ops.add(new OR(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case OR_INT_LIT8: {
 				// A = B | literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new OR(pc, code, line, T.INT));
+				this.ops.add(new OR(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			case OR_INT_LIT16: {
 				// A = B | literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new OR(pc, code, line, T.INT));
+				this.ops.add(new OR(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			/********
@@ -1611,9 +1633,9 @@ public class ReadCodeItem {
 					oValue = ((StringIdItem) instr.getReferencedItem()).getStringValue();
 				}
 				{
-					this.ops.add(new PUSH(pc, code, line, t, oValue));
+					this.ops.add(new PUSH(this.ops.size(), opcode, line, t, oValue));
 
-					this.ops.add(new STORE(pc, code, line, t, iValue));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, iValue));
 				}
 				break;
 			/*******
@@ -1673,10 +1695,11 @@ public class ReadCodeItem {
 					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, valueT, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, valueT, instr
+							.getRegisterA()));
 
-					this.ops.add(new PUT(pc, code, line, f));
+					this.ops.add(new PUT(this.ops.size(), opcode, line, f));
 				}
 				break;
 			case SPUT:
@@ -1734,9 +1757,10 @@ public class ReadCodeItem {
 					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 					f.markAf(AF.STATIC);
 
-					this.ops.add(new LOAD(pc, code, line, valueT, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, valueT, instr
+							.getRegisterA()));
 
-					this.ops.add(new PUT(pc, code, line, f));
+					this.ops.add(new PUT(this.ops.size(), opcode, line, f));
 				}
 				break;
 			/*******
@@ -1763,12 +1787,12 @@ public class ReadCodeItem {
 					// A := B % C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new REM(pc, code, line, t));
+					this.ops.add(new REM(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case REM_DOUBLE_2ADDR:
@@ -1792,36 +1816,38 @@ public class ReadCodeItem {
 					// A %= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new REM(pc, code, line, t));
+					this.ops.add(new REM(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case REM_INT_LIT8: {
 				// A = B % literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new REM(pc, code, line, T.INT));
+				this.ops.add(new REM(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			case REM_INT_LIT16: {
 				// A = B % literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new REM(pc, code, line, T.INT));
+				this.ops.add(new REM(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			/**********
@@ -1843,13 +1869,13 @@ public class ReadCodeItem {
 					// return A
 					final Instruction11x instr = (Instruction11x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
-					this.ops.add(new RETURN(pc, code, line, t));
+					this.ops.add(new RETURN(this.ops.size(), opcode, line, t));
 					break;
 				}
 			case RETURN_VOID: {
-				this.ops.add(new RETURN(pc, code, line, T.VOID));
+				this.ops.add(new RETURN(this.ops.size(), opcode, line, T.VOID));
 				break;
 			}
 			/*******
@@ -1866,12 +1892,12 @@ public class ReadCodeItem {
 					// A := B << C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new SHL(pc, code, line, t));
+					this.ops.add(new SHL(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case SHL_INT_2ADDR:
@@ -1885,24 +1911,25 @@ public class ReadCodeItem {
 					// A <<= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new SHL(pc, code, line, t));
+					this.ops.add(new SHL(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case SHL_INT_LIT8: {
 				// A = B << literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new SHL(pc, code, line, T.INT));
+				this.ops.add(new SHL(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			/*******
@@ -1919,12 +1946,12 @@ public class ReadCodeItem {
 					// A = B >> C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new SHR(pc, code, line, t, false));
+					this.ops.add(new SHR(this.ops.size(), opcode, line, t, false));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case SHR_INT_2ADDR:
@@ -1938,24 +1965,25 @@ public class ReadCodeItem {
 					// A >>= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new SHR(pc, code, line, t, false));
+					this.ops.add(new SHR(this.ops.size(), opcode, line, t, false));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case SHR_INT_LIT8: {
 				// A = B >> literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new SHR(pc, code, line, T.INT, false));
+				this.ops.add(new SHR(this.ops.size(), opcode, line, T.INT, false));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			case USHR_INT:
@@ -1969,12 +1997,12 @@ public class ReadCodeItem {
 					// A = B >>> C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new SHR(pc, code, line, t, true));
+					this.ops.add(new SHR(this.ops.size(), opcode, line, t, true));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case USHR_INT_2ADDR:
@@ -1988,24 +2016,25 @@ public class ReadCodeItem {
 					// A >>>= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new SHR(pc, code, line, t, true));
+					this.ops.add(new SHR(this.ops.size(), opcode, line, t, true));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case USHR_INT_LIT8: {
 				// A = B >>> literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new SHR(pc, code, line, T.INT, true));
+				this.ops.add(new SHR(this.ops.size(), opcode, line, T.INT, true));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			/*******
@@ -2032,12 +2061,12 @@ public class ReadCodeItem {
 					// A = B - C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new SUB(pc, code, line, t));
+					this.ops.add(new SUB(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case SUB_DOUBLE_2ADDR:
@@ -2061,12 +2090,12 @@ public class ReadCodeItem {
 					// A -= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new SUB(pc, code, line, t));
+					this.ops.add(new SUB(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			/**********
@@ -2077,11 +2106,11 @@ public class ReadCodeItem {
 				// switch(A)
 				final Instruction31t instr = (Instruction31t) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 
-				final SWITCH op = new SWITCH(pc, code, line);
-				op.setDefaultPc(this.ops.size() + 1);
-
+				final SWITCH op = new SWITCH(this.ops.size(), opcode, line);
+				this.ops.add(op);
+				op.setDefaultPc(this.ops.size());
 				final int targetVmpc = vmpc + instr.getTargetAddressOffset();
 				final int targetPc = getPc(targetVmpc);
 				if (targetPc < 0) {
@@ -2089,7 +2118,6 @@ public class ReadCodeItem {
 				} else {
 					LOGGER.warning("Switch pseudo operation must have forward target!");
 				}
-				this.ops.add(op);
 				break;
 			}
 			/*********
@@ -2101,9 +2129,9 @@ public class ReadCodeItem {
 
 				t = this.du.getT(Throwable.class);
 
-				this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
-				this.ops.add(new THROW(pc, code, line));
+				this.ops.add(new THROW(this.ops.size(), opcode, line));
 				break;
 			}
 			/*******
@@ -2120,12 +2148,12 @@ public class ReadCodeItem {
 					// A = B ^ C
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterC()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new XOR(pc, code, line, t));
+					this.ops.add(new XOR(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case XOR_INT_2ADDR:
@@ -2139,43 +2167,46 @@ public class ReadCodeItem {
 					// A ^= B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterA()));
-					this.ops.add(new LOAD(pc, code, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new XOR(pc, code, line, t));
+					this.ops.add(new XOR(this.ops.size(), opcode, line, t));
 
-					this.ops.add(new STORE(pc, code, line, t, instr.getRegisterA()));
+					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
 			case XOR_INT_LIT8: {
 				// A = B ^ literal
 				final Instruction22b instr = (Instruction22b) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new XOR(pc, code, line, T.INT));
+				this.ops.add(new XOR(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			case XOR_INT_LIT16: {
 				// A = B ^ literal
 				final Instruction22s instr = (Instruction22s) instruction;
 
-				this.ops.add(new LOAD(pc, code, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(pc, code, line, T.INT, (int) instr.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
 
-				this.ops.add(new XOR(pc, code, line, T.INT));
+				this.ops.add(new XOR(this.ops.size(), opcode, line, T.INT));
 
-				this.ops.add(new STORE(pc, code, line, T.INT, instr.getRegisterA()));
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
 			default:
 				throw new RuntimeException("Unknown jvm operation code '0x"
-						+ Integer.toHexString(code & 0xff) + "'!");
+						+ Integer.toHexString(opcode & 0xff) + "'!");
 			}
 		}
+		// TODO visitVmpc necessary???
 		cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 
 		final TryItem[] tryItems = codeItem.getTries();
@@ -2202,6 +2233,21 @@ public class ReadCodeItem {
 			}
 			cfg.setExcs(excs.toArray(new Exc[excs.size()]));
 		}
+		readLocalVariables(cfg, this.readDebugInfo);
+	}
+
+	private void readLocalVariables(final CFG cfg, final ReadDebugInfo readDebugInfo) {
+		final HashMap<Integer, ArrayList<Var>> reg2vars = readDebugInfo.getReg2vars();
+		for (final Entry<Integer, ArrayList<Var>> entry : reg2vars.entrySet()) {
+			final int reg = entry.getKey();
+			for (final Var var : entry.getValue()) {
+				var.setStartPc(this.vmpc2pc.get(var.getStartPc()));
+				final int vmpc = var.getEndPc();
+				var.setEndPc(vmpc == -1 ? this.ops.size() : this.vmpc2pc.get(vmpc));
+				cfg.addVar(reg, var);
+			}
+		}
+		cfg.postProcessVars();
 	}
 
 	private void visitVmpc(final int vmpc, final Instruction instruction) {
@@ -2238,7 +2284,7 @@ public class ReadCodeItem {
 				final SWITCH op = (SWITCH) o;
 
 				// hack to get VM PC from PC...argl... _not_ cool
-				final int switchPc = op.getPc();
+				final int switchPc = op.getPc() - 1;
 				int switchVmpc = -1;
 				for (final Map.Entry<Integer, Integer> entry : this.vmpc2pc.entrySet()) {
 					if (entry.getValue().intValue() == switchPc) {

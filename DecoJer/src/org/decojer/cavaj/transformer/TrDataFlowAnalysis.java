@@ -382,7 +382,8 @@ public class TrDataFlowAnalysis {
 				final INVOKE cop = (INVOKE) op;
 				final M m = cop.getM();
 				for (int i = m.getParamTs().length; i-- > 0;) {
-					pop(frame, m.getParamTs()[i]);
+					// m(int) also accepts byte, short and char
+					pop(frame, m.getParamTs()[i] == T.INT ? T.IINT : m.getParamTs()[i]);
 				}
 				if (!m.checkAf(AF.STATIC)) {
 					pop(frame, m.getT());

@@ -996,11 +996,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 ********/
 		case Opcodes.GOTO: {
 			final GOTO op = new GOTO(this.ops.size(), opcode, this.line);
+			this.ops.add(op);
 			op.setTargetPc(targetPc);
 			if (targetPc < 0) {
 				getUnresolved(label).add(op);
 			}
-			this.ops.add(op);
 			break;
 		}
 		/********
@@ -1054,11 +1054,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			{
 				final JCMP op = new JCMP(this.ops.size(), opcode, this.line, t, (CmpType) oValue);
+				this.ops.add(op);
 				op.setTargetPc(targetPc);
 				if (targetPc < 0) {
 					getUnresolved(label).add(op);
 				}
-				this.ops.add(op);
 			}
 			break;
 		/********
@@ -1111,11 +1111,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			{
 				final JCND op = new JCND(this.ops.size(), opcode, this.line, t, (CmpType) oValue);
+				this.ops.add(op);
 				op.setTargetPc(targetPc);
 				if (targetPc < 0) {
 					getUnresolved(label).add(op);
 				}
-				this.ops.add(op);
 			}
 			break;
 		/*******
@@ -1123,11 +1123,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 *******/
 		case Opcodes.JSR: {
 			final JSR op = new JSR(this.ops.size(), opcode, this.line);
+			this.ops.add(op);
 			op.setTargetPc(targetPc);
 			if (targetPc < 0) {
 				getUnresolved(label).add(op);
 			}
-			this.ops.add(op);
 			break;
 		}
 		default:
@@ -1274,6 +1274,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitLookupSwitchInsn(final Label dflt, final int[] caseKeys, final Label[] labels) {
 		final SWITCH op = new SWITCH(this.ops.size(), Opcodes.LOOKUPSWITCH, this.line);
+		this.ops.add(op);
 		// default
 		int targetPc = getPc(dflt);
 		op.setDefaultPc(targetPc);
@@ -1290,7 +1291,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 		}
 		op.setCaseKeys(caseKeys);
 		op.setCasePcs(casePcs);
-		this.ops.add(op);
 	}
 
 	@Override
@@ -1371,6 +1371,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public void visitTableSwitchInsn(final int min, final int max, final Label dflt,
 			final Label... labels) {
 		final SWITCH op = new SWITCH(this.ops.size(), Opcodes.TABLESWITCH, this.line);
+		this.ops.add(op);
 		// default
 		int targetPc = getPc(dflt);
 		op.setDefaultPc(targetPc);
@@ -1390,7 +1391,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 		}
 		op.setCaseKeys(keys);
 		op.setCasePcs(keyTargets);
-		this.ops.add(op);
 	}
 
 	@Override
