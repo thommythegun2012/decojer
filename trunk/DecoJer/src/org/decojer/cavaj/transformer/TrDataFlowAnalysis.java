@@ -455,7 +455,7 @@ public class TrDataFlowAnalysis {
 				}
 				case POP.T_POP2: {
 					frame.pop();
-					// should pop 2...add 2 for double/long
+					// don't do 2 POPs till real wide stack handling
 					break;
 				}
 				default:

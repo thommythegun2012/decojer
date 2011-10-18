@@ -55,7 +55,8 @@ public class POP extends Op {
 
 	@Override
 	public int getInStackSize() {
-		return new int[] { 1, 2 }[this.popType];
+		// don't do 2 POPs till real wide stack handling
+		return 1;
 	}
 
 	@Override

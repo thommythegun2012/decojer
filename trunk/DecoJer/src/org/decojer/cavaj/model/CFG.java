@@ -369,7 +369,7 @@ public class CFG {
 	 * @return true - ignore this
 	 */
 	public boolean isIgnore() {
-		return this.error || this.ops == null || this.ops.length == 0;
+		return this.error || this.ops == null || this.ops.length == 0 || this.block == null;
 	}
 
 	/**
