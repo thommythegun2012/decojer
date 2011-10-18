@@ -28,7 +28,6 @@ import static org.decojer.cavaj.util.Expressions.newPrefixExpression;
 import static org.decojer.cavaj.util.Expressions.wrap;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -797,8 +796,12 @@ public class TrIvmCfg2JavaExprStmts {
 				case POP.T_POP2: {
 					final Expression expression = bb.popExpression();
 					statement = getAst().newExpressionStatement(expression);
-					// CHECK pop another??? happens when? another statement?
-					bb.popExpression();
+					// don't do 2 POPs till real wide stack handling
+
+					final Var peek = this.cfg.getInFrame(op).peek();
+					if (!peek.getT().isMulti() && !peek.getT().isWide()) {
+						LOGGER.warning("POP2 for not wide in '" + this.cfg.getMd() + "'!");
+					}
 					break;
 				}
 				default:
@@ -1031,278 +1034,336 @@ public class TrIvmCfg2JavaExprStmts {
 		return name == null ? "r" + reg : name;
 	}
 
+	private boolean rewriteConditional(final BB bb) {
+		// IF ? T : F
+
+		// ....|..
+		// ....I..
+		// ..t/.\f
+		// ..T...F
+		// ...\./.
+		// ....B..
+
+		final List<BB> predBbs = bb.getPredBbs();
+		// ! has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
+		if (predBbs.size() < 2) {
+			return false;
+		}
+		BB ifBb = null;
+		for (final BB predBb : predBbs) {
+			if (predBb.getSuccBbs().size() != 1) {
+				return false;
+			}
+			if (predBb.getPredBbs().size() != 1) {
+				return false;
+			}
+			if (predBb.getExpressionsSize() != 1) {
+				return false;
+			}
+			if (predBb.getStatements().size() > 0) {
+				return false;
+			}
+			final BB newIfBb = predBb.getPredBbs().get(0);
+			if (ifBb == null || newIfBb.getPostorder() < ifBb.getPostorder()) {
+				ifBb = newIfBb;
+			}
+		}
+		if (ifBb.getSuccBbs().size() != 2) {
+			return false;
+		}
+		final List<Statement> statements = ifBb.getStatements();
+		if (statements.size() == 0) {
+			return false;
+		}
+		final Statement statement = statements.get(statements.size() - 1);
+		if (!(statement instanceof IfStatement)) {
+			return false;
+		}
+
+		final BB trueBb = ifBb.getSuccBb(Boolean.TRUE);
+		final BB falseBb = ifBb.getSuccBb(Boolean.FALSE);
+
+		final Expression trueExpression = trueBb.peekExpression();
+		final Expression falseExpression = falseBb.peekExpression();
+
+		Expression expression = ((IfStatement) statement).getExpression();
+		rewrite: if ((trueExpression instanceof BooleanLiteral || trueExpression instanceof NumberLiteral)
+				&& (falseExpression instanceof BooleanLiteral || falseExpression instanceof NumberLiteral)) {
+			// expressions: expression ? true : false => a
+			// TODO NumberLiteral necessary until Data Flow Analysis works
+			if (trueExpression instanceof BooleanLiteral
+					&& !((BooleanLiteral) trueExpression).booleanValue()
+					|| trueExpression instanceof NumberLiteral
+					&& ((NumberLiteral) trueExpression).getToken().equals("0")) {
+				expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
+			}
+		} else {
+			classLiteral: if (expression instanceof InfixExpression) {
+				// Class-literals unknown in pre JDK 1.5 bytecode
+				// (only primitive wrappers have constants like
+				// getstatic java.lang.Void.TYPE : java.lang.Class)
+				// ...construct Class-literals with synthetic local method:
+				// static synthetic java.lang.Class class$(java.lang.String x0);
+				// ...and cache this Class-literals in synthetic local fields:
+				// static synthetic java.lang.Class class$java$lang$String;
+				// static synthetic java.lang.Class array$$I;
+				// resulting conditional code:
+				// DecTestFields.array$$I != null ? DecTestFields.array$$I :
+				// (DecTestFields.array$$I = DecTestFields.class$("[[I"))
+				// ...convert too: int[][].class
+				final InfixExpression equalsExpression = (InfixExpression) expression;
+				if (!(equalsExpression.getRightOperand() instanceof NullLiteral)) {
+					break classLiteral;
+				}
+				final Assignment assignment;
+				if (equalsExpression.getOperator() == InfixExpression.Operator.EQUALS) {
+					// JDK < 1.3
+					if (!(trueExpression instanceof Assignment)) {
+						break classLiteral;
+					}
+					assignment = (Assignment) trueExpression;
+				} else if (equalsExpression.getOperator() == InfixExpression.Operator.NOT_EQUALS) {
+					// JDK >= 1.3
+					if (!(falseExpression instanceof Assignment)) {
+						break classLiteral;
+					}
+					assignment = (Assignment) falseExpression;
+				} else {
+					break classLiteral;
+				}
+				if (!(assignment.getRightHandSide() instanceof MethodInvocation)) {
+					break classLiteral;
+				}
+				final MethodInvocation methodInvocation = (MethodInvocation) assignment
+						.getRightHandSide();
+				if (!"class$".equals(methodInvocation.getName().getIdentifier())) {
+					break classLiteral;
+				}
+				if (methodInvocation.arguments().size() != 1) {
+					break classLiteral;
+				}
+				if (getTd().getVersion() >= 49) {
+					LOGGER.warning("Unexpected class literal code with class$() in >= JDK 5 code!");
+				}
+				try {
+					final String classInfo = ((StringLiteral) methodInvocation.arguments().get(0))
+							.getLiteralValue();
+					// strange behaviour for classinfo:
+					// arrays: normal descriptor (but with '.')
+					// no arrays - class name
+					final DU du = getTd().getT().getDu();
+					final T literalT = classInfo.charAt(0) == '[' ? du.getDescT(classInfo.replace(
+							'.', '/')) : du.getT(classInfo);
+					expression = Types.convertLiteral(du.getT(Class.class), literalT, getTd(),
+							getAst());
+					break rewrite;
+				} catch (final Exception e) {
+					// rewrite to class literal didn't work
+				}
+			}
+			// expressions: expression ? trueExpression : falseExpression
+			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
+			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
+			conditionalExpression.setThenExpression(wrap(trueExpression, Priority.CONDITIONAL));
+			conditionalExpression.setElseExpression(wrap(falseExpression, Priority.CONDITIONAL));
+			expression = conditionalExpression;
+		}
+
+		// is conditional expression, modify graph
+		// remove IfStatement
+		statements.remove(statements.size() - 1);
+
+		bb.copyContent(ifBb);
+		ifBb.movePredBbs(bb);
+		ifBb.remove();
+		if (this.cfg.getStartBb() == ifBb) {
+			this.cfg.setStartBb(bb);
+		}
+
+		// push new conditional expression, here only "a ? true : false" as "a"
+		bb.pushExpression(expression);
+		// then remove basic blocks
+		trueBb.remove();
+		falseBb.remove();
+
+		return true;
+	}
+
+	private boolean rewriteShortCircuitCompound(final BB bb) {
+		final List<BB> predBbs = bb.getPredBbs();
+		if (predBbs.size() != 1) {
+			return false;
+		}
+		if (bb.getSuccBbs().size() != 2) {
+			return false;
+		}
+		final List<Statement> bStatements = bb.getStatements();
+		if (bStatements.size() != 1) {
+			// must be single if statement for short-circuit compound boolean expression structure
+			return false;
+		}
+		final Statement bIfStatement = bStatements.get(bStatements.size() - 1);
+		if (!(bIfStatement instanceof IfStatement)) {
+			return false;
+		}
+
+		final BB bTrueBb = bb.getSuccBb(Boolean.TRUE);
+		final BB bFalseBb = bb.getSuccBb(Boolean.FALSE);
+		if (bTrueBb == null || bFalseBb == null) {
+			return false;
+		}
+
+		final BB aBb = predBbs.get(0);
+		if (aBb.getSuccBbs().size() != 2) {
+			return false;
+		}
+		final List<Statement> aStatements = aBb.getStatements();
+		if (aStatements.size() == 0) {
+			return false;
+		}
+		final Statement aIfStatement = aStatements.get(aStatements.size() - 1);
+		if (!(aIfStatement instanceof IfStatement)) {
+			return false;
+		}
+		final BB aTrueBb = aBb.getSuccBb(Boolean.TRUE);
+		final BB aFalseBb = aBb.getSuccBb(Boolean.FALSE);
+		if (aTrueBb == null || aFalseBb == null) {
+			return false;
+		}
+
+		if (aTrueBb == bb) {
+			if (aFalseBb == bTrueBb) {
+				// !A || B
+
+				// ....|..
+				// ....A..
+				// ..t/.\f
+				// ...B..|
+				// .f/.\t|
+				// ./...\|
+				// F.....T
+
+				// rewrite AST
+				final Expression leftExpression = ((IfStatement) aIfStatement).getExpression();
+				final Expression rightExpression = ((IfStatement) bIfStatement).getExpression();
+				((IfStatement) aIfStatement).setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
+						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
+				// rewrite CFG
+				bStatements.clear();
+				bb.copyContent(aBb);
+				aBb.movePredBbs(bb);
+				aBb.remove();
+				if (this.cfg.getStartBb() == aBb) {
+					this.cfg.setStartBb(bb);
+				}
+				return true;
+			}
+			if (aFalseBb == bFalseBb) {
+				// A && B
+
+				// ..|....
+				// ..A....
+				// f/.\t..
+				// |..B...
+				// |f/.\t.
+				// |/...\.
+				// F.....T
+
+				// rewrite AST
+				final Expression leftExpression = ((IfStatement) aIfStatement).getExpression();
+				final Expression rightExpression = ((IfStatement) bIfStatement).getExpression();
+				((IfStatement) aIfStatement).setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_AND, rightExpression, leftExpression));
+				// rewrite CFG
+				bStatements.clear();
+				bb.copyContent(aBb);
+				aBb.movePredBbs(bb);
+				aBb.remove();
+				if (this.cfg.getStartBb() == aBb) {
+					this.cfg.setStartBb(bb);
+				}
+				return true;
+			}
+		} else if (aFalseBb == bb) {
+			if (aTrueBb == bTrueBb) {
+				// A || B
+
+				// ....|..
+				// ....A..
+				// ..f/.\t
+				// ...B..|
+				// .f/.\t|
+				// ./...\|
+				// F.....T
+
+				// rewrite AST
+				final Expression leftExpression = ((IfStatement) aIfStatement).getExpression();
+				final Expression rightExpression = ((IfStatement) bIfStatement).getExpression();
+				((IfStatement) aIfStatement).setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_OR, rightExpression, leftExpression));
+				// rewrite CFG
+				bStatements.clear();
+				bb.copyContent(aBb);
+				aBb.movePredBbs(bb);
+				aBb.remove();
+				if (this.cfg.getStartBb() == aBb) {
+					this.cfg.setStartBb(bb);
+				}
+				return true;
+			}
+			if (aTrueBb == bFalseBb) {
+				// !A && B
+
+				// ..|....
+				// ..A....
+				// t/.\f..
+				// |..B...
+				// |f/.\t.
+				// |/...\.
+				// F.....T
+
+				// rewrite AST
+				final Expression leftExpression = ((IfStatement) aIfStatement).getExpression();
+				final Expression rightExpression = ((IfStatement) bIfStatement).getExpression();
+				((IfStatement) aIfStatement).setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
+						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
+				// rewrite CFG
+				bStatements.clear();
+				bb.copyContent(aBb);
+				aBb.movePredBbs(bb);
+				aBb.remove();
+				if (this.cfg.getStartBb() == aBb) {
+					this.cfg.setStartBb(bb);
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private void transform() {
 		final List<BB> postorderedBbs = this.cfg.getPostorderedBbs();
-		boolean changed = false;
-		// for all nodes in postorder
-		for (int i = 0; i < postorderedBbs.size(); ++i) {
+		// for all nodes in _reverse_ postorder,
+		// an alternative with clever optimization tricks is the backward mode, but we get problems
+		// with temporary registers then
+		for (int i = postorderedBbs.size(); i-- > 0;) {
 			final BB bb = postorderedBbs.get(i);
 			if (bb == null) {
 				continue;
 			}
-			// initially convert all operations to statements and
-			// expressions till possible stack underflow
-			convertToHLLIntermediate(bb);
-			if (bb.getSuccBbs().size() != 2) {
-				// must be 2-way
-				continue;
+			while (rewriteConditional(bb)) {
+				; // delete 3 superior nodes and pull info if applicable
 			}
-			final List<Statement> stmts = bb.getStatements();
-			if (stmts.size() == 0) {
-				// no statements converted yet, try later
-				continue;
+			// previous expressions merged into bb, now rewrite:
+			if (!convertToHLLIntermediate(bb)) {
+				// should never happen in forward mode
+				LOGGER.warning("Stack underflow  in '" + this.cfg.getMd() + "':\n" + bb);
 			}
-			final Object statement = stmts.get(stmts.size() - 1);
-			if (!(statement instanceof IfStatement)) {
-				continue;
-			}
-			// this can only be the last statement -> all operations converted
-			BB trueBb = bb.getSuccBb(Boolean.TRUE);
-			BB falseBb = bb.getSuccBb(Boolean.FALSE);
-			// check for short-circuit compound boolean expression structure
-			if (trueBb.getSuccBbs().size() == 2 && trueBb.getStatements().size() == 1
-					&& trueBb.getPredBbs().size() == 1) {
-				// another IfStatement in true direction
-				final Object statement2 = trueBb.getStatements().get(0);
-				if (!(statement2 instanceof IfStatement)) {
-					continue;
-				}
-				final BB trueBb2 = trueBb.getSuccBb(Boolean.TRUE);
-				final BB falseBb2 = trueBb.getSuccBb(Boolean.FALSE);
-				if (falseBb == trueBb2) {
-					// !A || B
-
-					// ....|..
-					// ....A..
-					// ..t/.\f
-					// ...B..|
-					// .f/.\t|
-					// ./...\|
-					// F.....T
-
-					// rewrite AST
-					final Expression leftExpression = ((IfStatement) statement).getExpression();
-					final Expression rightExpression = ((IfStatement) statement2).getExpression();
-					((IfStatement) statement).setExpression(newInfixExpression(
-							InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
-							newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
-					// rewrite CFG
-					trueBb.remove();
-					bb.setSuccValue(trueBb2, Boolean.TRUE);
-					bb.addSucc(falseBb2, Boolean.FALSE);
-					// for conditional expression stage
-					trueBb = trueBb2;
-					falseBb = falseBb2;
-					changed = true;
-				} else if (falseBb == falseBb2) {
-					// A && B
-
-					// ..|....
-					// ..A....
-					// f/.\t..
-					// |..B...
-					// |f/.\t.
-					// |/...\.
-					// F.....T
-
-					// rewrite AST
-					final Expression leftExpression = ((IfStatement) statement).getExpression();
-					final Expression rightExpression = ((IfStatement) statement2).getExpression();
-					((IfStatement) statement).setExpression(newInfixExpression(
-							InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
-							leftExpression));
-					// rewrite CFG
-					trueBb.remove();
-					bb.addSucc(trueBb2, Boolean.TRUE);
-					// for conditional expression stage
-					trueBb = trueBb2;
-					changed = true;
-				}
-			} else if (falseBb.getSuccBbs().size() == 2 && falseBb.getStatements().size() == 1
-					&& falseBb.getPredBbs().size() == 1) {
-				// another IfStatement in false direction
-				final Object statement2 = falseBb.getStatements().get(0);
-				if (!(statement2 instanceof IfStatement)) {
-					continue;
-				}
-				final BB trueBb2 = falseBb.getSuccBb(Boolean.TRUE);
-				final BB falseBb2 = falseBb.getSuccBb(Boolean.FALSE);
-				if (trueBb == trueBb2) {
-					// A || B
-
-					// ....|..
-					// ....A..
-					// ..f/.\t
-					// ...B..|
-					// .f/.\t|
-					// ./...\|
-					// F.....T
-
-					// rewrite AST
-					final Expression leftExpression = ((IfStatement) statement).getExpression();
-					final Expression rightExpression = ((IfStatement) statement2).getExpression();
-					((IfStatement) statement).setExpression(newInfixExpression(
-							InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
-							leftExpression));
-					// rewrite CFG
-					falseBb.remove();
-					bb.addSucc(falseBb2, Boolean.FALSE);
-					// for conditional expression stage
-					falseBb = falseBb2;
-					changed = true;
-				} else if (trueBb == falseBb2) {
-					// !A && B
-
-					// ..|....
-					// ..A....
-					// t/.\f..
-					// |..B...
-					// |f/.\t.
-					// |/...\.
-					// F.....T
-
-					// rewrite AST
-					final Expression leftExpression = ((IfStatement) statement).getExpression();
-					final Expression rightExpression = ((IfStatement) statement2).getExpression();
-					((IfStatement) statement).setExpression(newInfixExpression(
-							InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
-							newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
-					// rewrite CFG
-					falseBb.remove();
-					bb.setSuccValue(falseBb2, Boolean.FALSE);
-					bb.addSucc(trueBb2, Boolean.TRUE);
-					// for conditional expression stage
-					trueBb = trueBb2;
-					falseBb = falseBb2;
-					changed = true;
-				}
-			}
-			// check for conditional expression structure
-			if (trueBb.getPredBbs().size() == 1 && falseBb.getPredBbs().size() == 1
-					&& trueBb.isExpression() && falseBb.isExpression()) {
-				final Collection<BB> trueSuccessors = trueBb.getSuccBbs();
-				if (trueSuccessors.size() != 1) {
-					continue;
-				}
-				final Collection<BB> falseSuccessors = falseBb.getSuccBbs();
-				if (falseSuccessors.size() != 1) {
-					continue;
-				}
-				final BB trueBb2 = trueSuccessors.iterator().next();
-				final BB falseBb2 = falseSuccessors.iterator().next();
-				if (trueBb2 != falseBb2) {
-					continue;
-				}
-				if (trueBb2.getPredBbs().size() != 2) {
-					continue;
-				}
-				final Expression trueExpression = trueBb.peekExpression();
-				final Expression falseExpression = falseBb.peekExpression();
-
-				Expression expression = ((IfStatement) statement).getExpression();
-				rewrite: if ((trueExpression instanceof BooleanLiteral || trueExpression instanceof NumberLiteral)
-						&& (falseExpression instanceof BooleanLiteral || falseExpression instanceof NumberLiteral)) {
-					// expressions: expression ? true : false => a
-					// TODO NumberLiteral necessary until Data Flow Analysis works
-					if (trueExpression instanceof BooleanLiteral
-							&& !((BooleanLiteral) trueExpression).booleanValue()
-							|| trueExpression instanceof NumberLiteral
-							&& ((NumberLiteral) trueExpression).getToken().equals("0")) {
-						expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
-					}
-				} else {
-					classLiteral: if (expression instanceof InfixExpression) {
-						// Class-literals unknown in pre JDK 1.5 bytecode
-						// (only primitive wrappers have constants like
-						// getstatic java.lang.Void.TYPE : java.lang.Class)
-						// ...construct Class-literals with synthetic local method:
-						// static synthetic java.lang.Class class$(java.lang.String x0);
-						// ...and cache this Class-literals in synthetic local fields:
-						// static synthetic java.lang.Class class$java$lang$String;
-						// static synthetic java.lang.Class array$$I;
-						// resulting conditional code:
-						// DecTestFields.array$$I != null ? DecTestFields.array$$I :
-						// (DecTestFields.array$$I = DecTestFields.class$("[[I"))
-						// ...convert too: int[][].class
-						final InfixExpression equalsExpression = (InfixExpression) expression;
-						if (!(equalsExpression.getRightOperand() instanceof NullLiteral)) {
-							break classLiteral;
-						}
-						final Assignment assignment;
-						if (equalsExpression.getOperator() == InfixExpression.Operator.EQUALS) {
-							// JDK < 1.3
-							if (!(trueExpression instanceof Assignment)) {
-								break classLiteral;
-							}
-							assignment = (Assignment) trueExpression;
-						} else if (equalsExpression.getOperator() == InfixExpression.Operator.NOT_EQUALS) {
-							// JDK >= 1.3
-							if (!(falseExpression instanceof Assignment)) {
-								break classLiteral;
-							}
-							assignment = (Assignment) falseExpression;
-						} else {
-							break classLiteral;
-						}
-						if (!(assignment.getRightHandSide() instanceof MethodInvocation)) {
-							break classLiteral;
-						}
-						final MethodInvocation methodInvocation = (MethodInvocation) assignment
-								.getRightHandSide();
-						if (!"class$".equals(methodInvocation.getName().getIdentifier())) {
-							break classLiteral;
-						}
-						if (methodInvocation.arguments().size() != 1) {
-							break classLiteral;
-						}
-						if (getTd().getVersion() >= 49) {
-							LOGGER.warning("Unexpected class literal code with class$() in >= JDK 5 code!");
-						}
-						try {
-							final String classInfo = ((StringLiteral) methodInvocation.arguments()
-									.get(0)).getLiteralValue();
-							// strange behaviour for classinfo:
-							// arrays: normal descriptor (but with '.')
-							// no arrays - class name
-							final DU du = getTd().getT().getDu();
-							final T literalT = classInfo.charAt(0) == '[' ? du.getDescT(classInfo
-									.replace('.', '/')) : du.getT(classInfo);
-							expression = Types.convertLiteral(du.getT(Class.class), literalT,
-									getTd(), getAst());
-							break rewrite;
-						} catch (final Exception e) {
-							// rewrite to class literal didn't work
-						}
-					}
-					// expressions: expression ? trueExpression : falseExpression
-					final ConditionalExpression conditionalExpression = getAst()
-							.newConditionalExpression();
-					conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
-					conditionalExpression.setThenExpression(wrap(trueExpression,
-							Priority.CONDITIONAL));
-					conditionalExpression.setElseExpression(wrap(falseExpression,
-							Priority.CONDITIONAL));
-					expression = conditionalExpression;
-				}
-				// is conditional expression, modify graph
-				// remove IfStatement
-				stmts.remove(stmts.size() - 1);
-				// push new conditional expression, here only "a ? true : false" as "a"
-				bb.pushExpression(expression);
-				// copy successor values to bbNode
-				bb.copyContent(trueBb2);
-				// again convert operations, stack underflow might be solved
-				changed = true;
-				// first preserve successors...
-				trueBb2.moveSuccBbs(bb);
-				// then remove basic blocks
-				trueBb.remove();
-				falseBb.remove();
-				trueBb2.remove();
-			}
-			if (changed) {
-				changed = false;
-				--i;
+			// single IfStatement created? then check:
+			while (rewriteShortCircuitCompound(bb)) {
+				; // delete 1 superior node and pull info if applicable
 			}
 		}
 	}
