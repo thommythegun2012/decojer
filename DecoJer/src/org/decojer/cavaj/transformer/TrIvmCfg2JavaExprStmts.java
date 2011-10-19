@@ -471,7 +471,13 @@ public class TrIvmCfg2JavaExprStmts {
 						superMethodInvocation.arguments().addAll(arguments);
 						methodExpression = superMethodInvocation;
 					} else {
-						methodExpression = null;
+						// could simply be private method call in same object, nothing special in
+						// syntax
+						final MethodInvocation methodInvocation = getAst().newMethodInvocation();
+						methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
+						methodInvocation.setName(getAst().newSimpleName(mName));
+						methodInvocation.arguments().addAll(arguments);
+						methodExpression = methodInvocation;
 					}
 				} else if (m.checkAf(AF.STATIC)) {
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
@@ -1173,18 +1179,24 @@ public class TrIvmCfg2JavaExprStmts {
 		// remove IfStatement
 		statements.remove(statements.size() - 1);
 
-		bb.copyContent(ifBb);
-		ifBb.movePredBbs(bb);
-		ifBb.remove();
-		if (this.cfg.getStartBb() == ifBb) {
-			this.cfg.setStartBb(bb);
-		}
-
-		// push new conditional expression, here only "a ? true : false" as "a"
-		bb.pushExpression(expression);
-		// then remove basic blocks
 		trueBb.remove();
 		falseBb.remove();
+
+		if (bb.getPredBbs().size() != 0) {
+			ifBb.pushExpression(expression);
+			ifBb.addSucc(bb, null);
+		} else {
+			// pull
+			bb.copyContent(ifBb);
+			ifBb.movePredBbs(bb);
+			ifBb.remove();
+			if (this.cfg.getStartBb() == ifBb) {
+				this.cfg.setStartBb(bb);
+			}
+
+			// push new conditional expression, here only "a ? true : false" as "a"
+			bb.pushExpression(expression);
+		}
 
 		return true;
 	}
@@ -1354,7 +1366,8 @@ public class TrIvmCfg2JavaExprStmts {
 				continue;
 			}
 			while (rewriteConditional(bb)) {
-				; // delete 3 superior nodes and pull info if applicable
+				// delete superior nodes
+				// multiple iterations possible: a == null ? 0 : a.length() == 0 ? 0 : 1
 			}
 			// previous expressions merged into bb, now rewrite:
 			if (!convertToHLLIntermediate(bb)) {
@@ -1363,7 +1376,8 @@ public class TrIvmCfg2JavaExprStmts {
 			}
 			// single IfStatement created? then check:
 			while (rewriteShortCircuitCompound(bb)) {
-				; // delete 1 superior node and pull info if applicable
+				// delete superior nodes
+				// multiple iterations possible
 			}
 		}
 	}

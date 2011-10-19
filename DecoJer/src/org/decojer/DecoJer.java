@@ -288,7 +288,7 @@ public class DecoJer {
 	public static void main(final String[] args) throws IOException {
 		final long time = System.currentTimeMillis();
 		final DU du = createDu();
-		switch (3) {
+		switch (4) {
 		case 0:
 			System.out
 					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"));
@@ -307,12 +307,18 @@ public class DecoJer {
 			break;
 		}
 		case 3: {
-			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1.jar");
+			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
+			decompile(du, new FileOutputStream(new File(
+					"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.zip")));
+			break;
+		}
+		case 4: {
+			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61.jar");
 			decompile(
 					du,
 					new FileOutputStream(
 							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1.jar_source.jar")));
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61_source.zip")));
 			break;
 		}
 		case 11: {
@@ -332,6 +338,15 @@ public class DecoJer {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
 			decompile(du, new FileOutputStream(new File(
 					"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.zip")));
+			break;
+		}
+		case 14: {
+			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2.apk");
+			decompile(
+					du,
+					new FileOutputStream(
+							new File(
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2_source.zip")));
 			break;
 		}
 		}

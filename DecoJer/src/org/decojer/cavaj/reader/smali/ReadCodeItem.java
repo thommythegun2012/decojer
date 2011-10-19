@@ -1395,7 +1395,10 @@ public class ReadCodeItem {
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
 
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, t.getBaseT(), t.getDim()));
+				// not t.getDim() for NEWARRAY! reduce t by 1 dimension
+				// => int[][] intArray = new int[10][];
+				final T elemT = this.du.getT(t.getName().substring(0, t.getName().length() - 2));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, elemT, 1));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				break;
