@@ -347,7 +347,7 @@ public class TrDataFlowAnalysis {
 			case FILLARRAY: {
 				assert op instanceof FILLARRAY;
 
-				// TODO check stack has array...
+				pop(frame, T.AREF);
 				break;
 			}
 			case GET: {
@@ -435,10 +435,12 @@ public class TrDataFlowAnalysis {
 			}
 			case NEWARRAY: {
 				final NEWARRAY cop = (NEWARRAY) op;
-				pop(frame, T.INT); // dimension
-				push(frame, T.AREF);
-				// TODO to get the real type -> would have to evaluate und check
-				// dimension value!!! hmmmm
+				String name = cop.getT().getName();
+				for (int i = cop.getDimensions(); i-- > 0;) {
+					pop(frame, T.INT);
+					name += "[]";
+				}
+				push(frame, this.cfg.getMd().getTd().getT().getDu().getT(name));
 				break;
 			}
 			case OR: {
