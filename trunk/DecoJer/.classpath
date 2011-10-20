@@ -9,6 +9,6 @@
 	<classpathentry kind="lib" path="lib/slf4j-jdk14-1.6.1.jar"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="lib/dexlib-1.2.9-dev.jar"/>
+	<classpathentry kind="lib" path="lib/dexlib-1.2.9-dev.jar" sourcepath="/dexlib"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

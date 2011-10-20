@@ -48,6 +48,7 @@ import org.decojer.cavaj.model.code.op.CAST;
 import org.decojer.cavaj.model.code.op.CMP;
 import org.decojer.cavaj.model.code.op.CmpType;
 import org.decojer.cavaj.model.code.op.DIV;
+import org.decojer.cavaj.model.code.op.DUP;
 import org.decojer.cavaj.model.code.op.FILLARRAY;
 import org.decojer.cavaj.model.code.op.GET;
 import org.decojer.cavaj.model.code.op.GOTO;
@@ -195,18 +196,12 @@ public class ReadCodeItem {
 		T moveInvokeResultT = null;
 
 		Instruction instruction;
-		for (int i = 0, vmpc = 0, line = -1; i < instructions.length; ++i, vmpc += instruction
+		for (int i = 0, vmpc = 0, line = -1, opcode = -1; i < instructions.length; ++i, vmpc += instruction
 				.getSize(vmpc)) {
 			instruction = instructions[i];
-			visitVmpc(vmpc, instruction);
 
-			final int opcode = instruction.opcode.value;
-			line = this.readDebugInfo.getLine(vmpc);
-
+			// visit vmpc later, not for automatically generated follow POP!
 			T t = null;
-			int type = -1;
-			int iValue = 0;
-			Object oValue = null;
 
 			switch (instruction.opcode) {
 			case MOVE_RESULT:
@@ -234,28 +229,43 @@ public class ReadCodeItem {
 					t = T.WIDE;
 				}
 				{
+					// regular instruction, visit and remember vmpc here
+					visitVmpc(vmpc, instruction);
+
 					// A = resultRegister
 					final Instruction11x instr = (Instruction11x) instruction;
 
 					if (moveInvokeResultT == null) {
-						throw new RuntimeException("Move result without previous result type!");
+						LOGGER.warning("Move result without previous result type!");
+						moveInvokeResultT = T.AREF;
 					}
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, moveInvokeResultT, instr
 							.getRegisterA()));
 
 					moveInvokeResultT = null;
-					// just for once! reset wide after switch
+					// next instruction, done for this round
 					continue;
 				}
-			}
-			if (moveInvokeResultT != null) {
-				assert moveInvokeResultT != T.VOID;
+			default:
+				if (moveInvokeResultT != null) {
+					moveInvokeResultT = null;
 
-				// no POP2 with current wide handling
-				this.ops.add(new POP(this.ops.size(), opcode, line, POP.T_POP));
-				moveInvokeResultT = null;
+					// automatically generated follow instruction, don't visit and remember vmpc!!!
+
+					// no POP2 with current wide handling
+					this.ops.add(new POP(this.ops.size(), opcode, line, POP.T_POP));
+				}
 			}
+
+			visitVmpc(vmpc, instruction);
+			line = this.readDebugInfo.getLine(vmpc);
+			opcode = instruction.opcode.value;
+
+			int type = -1;
+			int iValue = 0;
+			Object oValue = null;
+
 			switch (instruction.opcode) {
 			/*******
 			 * ADD *
@@ -1421,11 +1431,71 @@ public class ReadCodeItem {
 				break;
 			}
 			case FILLED_NEW_ARRAY: {
-				// TODO and move-result-object
+				// A = new referencedItem[] {D, E, F, G, A}
+				final Instruction35c instr = (Instruction35c) instruction;
+
+				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				// contains dimensions via [
+
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, instr.getRegCount()));
+
+				// not t.getDim() for NEWARRAY! reduce t by 1 dimension
+				// => int[][] intArray = new int[10][];
+				final T elemT = this.du.getT(t.getName().substring(0, t.getName().length() - 2));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, elemT, 1));
+
+				final Object[] regs = new Object[instr.getRegCount()];
+				if (instr.getRegCount() > 0) {
+					regs[0] = instr.getRegisterD();
+				}
+				if (instr.getRegCount() > 1) {
+					regs[1] = instr.getRegisterE();
+				}
+				if (instr.getRegCount() > 2) {
+					regs[2] = instr.getRegisterF();
+				}
+				if (instr.getRegCount() > 3) {
+					regs[3] = instr.getRegisterG();
+				}
+				if (instr.getRegCount() > 4) {
+					regs[4] = instr.getRegisterA();
+				}
+
+				this.ops.add(new DUP(this.ops.size(), opcode, line, DUP.T_DUP));
+
+				final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, line);
+				this.ops.add(op);
+				op.setValues(regs);
+
+				moveInvokeResultT = t;
 				break;
 			}
 			case FILLED_NEW_ARRAY_RANGE: {
-				// TODO and move-result-object
+				// A = new referencedItem[] {D, E, F, G, A}
+				final Instruction3rc instr = (Instruction3rc) instruction;
+
+				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				// contains dimensions via [
+
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, instr.getRegCount()));
+
+				// not t.getDim() for NEWARRAY! reduce t by 1 dimension
+				// => int[][] intArray = new int[10][];
+				final T elemT = this.du.getT(t.getName().substring(0, t.getName().length() - 2));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, elemT, 1));
+
+				final Object[] regs = new Object[instr.getRegCount()];
+				for (int reg = instr.getStartRegister(), j = 0; j < instr.getRegCount(); ++reg, ++j) {
+					regs[j] = reg; // TODO wide?
+				}
+
+				this.ops.add(new DUP(this.ops.size(), opcode, line, DUP.T_DUP));
+
+				final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, line);
+				this.ops.add(op);
+				op.setValues(regs);
+
+				moveInvokeResultT = t;
 				break;
 			}
 			/*******

@@ -961,6 +961,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			this.ops.add(new PUSH(this.ops.size(), opcode, this.line, t, operand));
 			break;
+		/************
+		 * NEWARRAY *
+		 ************/
 		case Opcodes.NEWARRAY: {
 			final String typeName = new String[] { null, null, null, null, boolean.class.getName(),
 					char.class.getName(), float.class.getName(), double.class.getName(),

@@ -57,6 +57,7 @@ import org.decojer.cavaj.model.code.op.DIV;
 import org.decojer.cavaj.model.code.op.DUP;
 import org.decojer.cavaj.model.code.op.FILLARRAY;
 import org.decojer.cavaj.model.code.op.GET;
+import org.decojer.cavaj.model.code.op.GOTO;
 import org.decojer.cavaj.model.code.op.INC;
 import org.decojer.cavaj.model.code.op.INSTANCEOF;
 import org.decojer.cavaj.model.code.op.INVOKE;
@@ -336,23 +337,25 @@ public class TrIvmCfg2JavaExprStmts {
 			case FILLARRAY: {
 				final FILLARRAY cop = (FILLARRAY) op;
 
-				final Expression arrayRefExpression = bb.popExpression();
-				// TODO bug...assignment happened already...pure type only here?
-
-				final T t = this.cfg.getOutFrame(op).peek().getT();
+				final T t = this.cfg.getInFrame(op).peek().getT();
 				final T baseT = t.getBaseT();
 
-				final ArrayCreation arrayCreation = getAst().newArrayCreation();
-				arrayCreation.setType((ArrayType) Types.convertType(t, getTd(), getAst()));
+				Expression expression = bb.popExpression();
+				if (!(expression instanceof ArrayCreation)) {
+					// TODO Dalvik...assignment happened already...temporary register
+					expression = getAst().newArrayCreation();
+					((ArrayCreation) expression).setType((ArrayType) Types.convertType(t, getTd(),
+							getAst()));
+				}
 
 				final ArrayInitializer arrayInitializer = getAst().newArrayInitializer();
 				for (final Object value : cop.getValues()) {
 					arrayInitializer.expressions().add(
 							Types.convertLiteral(baseT, value, getTd(), getAst()));
 				}
-				arrayCreation.setInitializer(arrayInitializer);
+				((ArrayCreation) expression).setInitializer(arrayInitializer);
 
-				bb.pushExpression(arrayCreation);
+				bb.pushExpression(expression);
 				break;
 			}
 			case GET: {
@@ -780,7 +783,9 @@ public class TrIvmCfg2JavaExprStmts {
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
 				arrayCreation.setType(getAst().newArrayType(
 						Types.convertType(cop.getT(), getTd(), getAst())));
-				arrayCreation.dimensions().add(bb.popExpression());
+				for (int i = cop.getDimensions(); i-- > 0;) {
+					arrayCreation.dimensions().add(bb.popExpression());
+				}
 				bb.pushExpression(arrayCreation);
 				break;
 			}
@@ -1038,6 +1043,65 @@ public class TrIvmCfg2JavaExprStmts {
 		final Var var = this.cfg.getFrameVar(reg, pc);
 		final String name = var == null ? null : var.getName();
 		return name == null ? "r" + reg : name;
+	}
+
+	private boolean rewriteClassForNameCachedLiteral(final BB bb) {
+		// seen in JDK 1.2 Eclipse Core:
+		// DUP-POP conditional variant: GET class$0 DUP JCND_NE
+		// (_POP_ PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$0 GOTO)
+		final List<Op> ops = bb.getOps();
+		if (ops.size() != 6 || !(ops.get(0) instanceof POP) || !(ops.get(1) instanceof PUSH)
+				|| !(ops.get(2) instanceof INVOKE) || !(ops.get(3) instanceof DUP)
+				|| !(ops.get(4) instanceof PUT) || !(ops.get(5) instanceof GOTO)) {
+			return false;
+		}
+		if (bb.getPredBbs().size() != 1 || bb.getSuccBbs().size() != 1) {
+			return false;
+		}
+		final BB ifBb = bb.getPredBbs().get(0);
+		if (ifBb.getSuccBbs().size() != 2) {
+			return false;
+		}
+		final BB followBb = bb.getSuccBbs().get(0);
+		final BB trueBb = ifBb.getSuccBb(Boolean.TRUE);
+		final BB falseBb = ifBb.getSuccBb(Boolean.FALSE);
+		if (falseBb == bb && trueBb != followBb || trueBb == bb && falseBb != followBb) {
+			return false;
+		}
+
+		// TODO check, but is very rare:
+		// Expression QualifiedName: JDTCompilerAdapter.class$0 (or Simple?)
+		// IFStatement
+
+		Expression expression = ifBb.peekExpression();
+		final List<Statement> statements = ifBb.getStatements();
+
+		try {
+			final String classInfo = (String) ((PUSH) ops.get(1)).getValue();
+			// strange behaviour for classinfo:
+			// arrays: normal descriptor (but with '.')
+			// no arrays - class name
+			final DU du = getTd().getT().getDu();
+			final T literalT = classInfo.charAt(0) == '[' ? du
+					.getDescT(classInfo.replace('.', '/')) : du.getT(classInfo);
+			expression = Types.convertLiteral(du.getT(Class.class), literalT, getTd(), getAst());
+		} catch (final Exception e) {
+			// rewrite to class literal didn't work
+			return false;
+		}
+
+		ifBb.popExpression();
+		statements.remove(statements.size() - 1);
+
+		followBb.copyContent(ifBb);
+		ifBb.movePredBbs(followBb);
+		ifBb.remove();
+		if (this.cfg.getStartBb() == ifBb) {
+			this.cfg.setStartBb(followBb);
+		}
+		falseBb.remove();
+		followBb.pushExpression(expression);
+		return true;
 	}
 
 	private boolean rewriteConditional(final BB bb) {
@@ -1371,6 +1435,11 @@ public class TrIvmCfg2JavaExprStmts {
 			}
 			// previous expressions merged into bb, now rewrite:
 			if (!convertToHLLIntermediate(bb)) {
+				// DUP-POP conditional variant for pre JDK 5 cached class literals
+				if (rewriteClassForNameCachedLiteral(bb)) {
+					// delete myself and superior nodes
+					continue;
+				}
 				// should never happen in forward mode
 				LOGGER.warning("Stack underflow  in '" + this.cfg.getMd() + "':\n" + bb);
 			}

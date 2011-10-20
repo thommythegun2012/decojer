@@ -46,7 +46,7 @@ public class NEWARRAY extends Op {
 	 * @param line
 	 *            line number
 	 * @param t
-	 *            type
+	 *            type (could be an array type)
 	 * @param dimensions
 	 *            dimensions
 	 */
@@ -76,9 +76,9 @@ public class NEWARRAY extends Op {
 	}
 
 	/**
-	 * Get type.
+	 * Get base type (could be an array type).
 	 * 
-	 * @return type
+	 * @return base type (could be an array type)
 	 */
 	public T getT() {
 		return this.t;

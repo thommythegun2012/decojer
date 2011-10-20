@@ -192,11 +192,11 @@ public class ReadCodeAttribute {
 
 		while (codeReader.isNext()) {
 			final int vmpc = codeReader.pc;
-			visitVmpc(vmpc);
 
-			final int opcode = codeReader.readUnsignedByte();
+			visitVmpc(vmpc);
 			final int line = lineNumberAttribute == null ? -1 : lineNumberAttribute
 					.toLineNumber(vmpc);
+			final int opcode = codeReader.readUnsignedByte();
 
 			T t = null;
 			int type = -1;
