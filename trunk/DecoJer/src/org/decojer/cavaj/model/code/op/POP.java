@@ -55,7 +55,7 @@ public class POP extends Op {
 
 	@Override
 	public int getInStackSize() {
-		// don't do 2 POPs till real wide stack handling
+		// TODO? should be 2 for not-wide stack arguments, but we cannot know here...
 		return 1;
 	}
 

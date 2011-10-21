@@ -75,6 +75,11 @@ public class T {
 		}
 
 		@Override
+		public boolean isWide() {
+			return this == T.WIDE;
+		}
+
+		@Override
 		public T merge(final T t) {
 			if (t == this || t == null) {
 				return this;
