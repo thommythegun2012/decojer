@@ -150,7 +150,7 @@ public class TrIvmCfg2JavaExprStmts {
 			try {
 				transform(cfg);
 			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
 				cfg.setError(true);
 			}
 		}
@@ -833,7 +833,7 @@ public class TrIvmCfg2JavaExprStmts {
 						final Expression expression = bb.popExpression();
 						statement = getAst().newExpressionStatement(expression);
 
-						LOGGER.warning("TODO: POP2 for not wide in '" + this.cfg.getMd()
+						LOGGER.warning("TODO: POP2 for not wide in '" + this.cfg
 								+ "'! Statement output?");
 
 						bb.popExpression();
@@ -1500,7 +1500,7 @@ public class TrIvmCfg2JavaExprStmts {
 					continue;
 				}
 				// should never happen in forward mode
-				LOGGER.warning("Stack underflow  in '" + this.cfg.getMd() + "':\n" + bb);
+				LOGGER.warning("Stack underflow  in '" + this.cfg + "':\n" + bb);
 			}
 			// single IfStatement created? then check:
 			while (rewriteShortCircuitCompound(bb)) {

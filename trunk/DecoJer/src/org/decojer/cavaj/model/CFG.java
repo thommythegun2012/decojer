@@ -536,4 +536,9 @@ public class CFG {
 		this.startBb = startBb;
 	}
 
+	@Override
+	public String toString() {
+		return getMd().toString() + " (ops: " + this.ops.length + ", regs: " + this.maxRegs + ")";
+	}
+
 }
