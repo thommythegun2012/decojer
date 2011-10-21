@@ -437,6 +437,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		final TreeSelection treeSelection = (TreeSelection) this.javaOutlinePage.getSelection();
 		final Object firstElement = treeSelection.getFirstElement();
 
+		// get available selection information
 		String fullyQualifiedName;
 		String elementName;
 		String signature;
@@ -458,18 +459,23 @@ public class ClassEditor extends MultiPageEditorPart {
 		} else {
 			return;
 		}
-
-		// if selection found => get matching CFG from CU with choosen
-		// decompiler step
+		// find CFG
+		LOGGER.info("Find method declaration for declaring type '" + fullyQualifiedName
+				+ "' and element name '" + elementName + "' and signature '" + signature + "'!");
 		try {
-			// nearly all of the following is very hacky...TODO OOOOOOOO
-			final TD td = this.cu.getTd(fullyQualifiedName.replace("$I_", "$"));
+			// get declaring type,
+			// first undo T.getIName() trick for valid java source with incomplete decompilation
+			fullyQualifiedName = fullyQualifiedName.replace("$I_", "$");
+			if (elementName.startsWith("I_")) {
+				elementName = elementName.substring(2);
+			}
+			final TD td = this.cu.getTd(fullyQualifiedName);
 
-			// constructor -> <init>
+			// get method in declaring type,
+			// first check if selected method is a constructor, then method name is <init>
 			final String methodName = fullyQualifiedName.equals(elementName)
-					|| fullyQualifiedName.endsWith("." + elementName)
 					|| fullyQualifiedName.endsWith("$" + elementName) ? "<init>" : elementName;
-
+			// get all method declarations with this name
 			final ArrayList<MD> mds = new ArrayList<MD>();
 			for (final BD bd : td.getBds()) {
 				if (!(bd instanceof MD)) {
@@ -481,14 +487,27 @@ public class ClassEditor extends MultiPageEditorPart {
 			}
 			MD md = null;
 			if (mds.size() == 0) {
+				// shouldn't happen, after all we have decompiled this from the model
 				LOGGER.warning("Unknown method declaration for '" + methodName + "'!");
 				return;
 			}
 			if (mds.size() == 1) {
+				// only 1 possible method, signature check not really necessary
 				md = mds.get(0);
 			} else if (mds.size() > 1) {
-				// not enough here...Q can come after all kind off stuff,
-				// parser!
+				// multiple methods with different signatures,
+				// we now have to match against Eclipse-select Q-signatures (e.g. "QString;"):
+				// Q stands for unresolved type packages and is replaced by regexp L[^/;]*
+
+				// for this we must decompile the signature, Q-signatures can follow to any stuff
+				// like this characters: ();[
+				// but also to primitives like this: (IIQString;)V
+
+				// Eclipse-signature doesn't contain method parameter types but contains generics
+
+				// TODO
+
+				// not enough here...Q can come after all kind off stuff, parser!
 				final Pattern signaturePattern = Pattern.compile(signature.replace("[", "\\[")
 						.replace("]", "\\]").replace("(Q", "(L[^;]*").replace(")Q", ")L[^;]*")
 						.replace(";Q", ";L[^;]*").replace("$", "\\$").replace("(", "\\(")
@@ -501,8 +520,6 @@ public class ClassEditor extends MultiPageEditorPart {
 						md = checkMd;
 						break;
 					}
-					LOGGER.info("Signature for method '" + methodName + "' doesn't match: "
-							+ signature + " : " + m.getDescriptor() + " : " + m.getSignature());
 				}
 			}
 			if (md == null) {
@@ -512,22 +529,27 @@ public class ClassEditor extends MultiPageEditorPart {
 			}
 
 			final CFG cfg = md.getCfg();
-			if (cfg != null) {
-				TrInitControlFlowGraph.transform(cfg);
-				try {
-					TrDataFlowAnalysis.transform(cfg);
-				} catch (final Exception e) {
-					LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
-				}
-				final int i = this.cfgViewModeCombo.getSelectionIndex();
-				if (i > 0) {
-					TrIvmCfg2JavaExprStmts.transform(cfg);
-				}
-				if (i > 1) {
-					TrControlFlowAnalysis.transform(cfg);
-				}
-				initGraph(cfg);
+			if (cfg == null) {
+				return;
 			}
+
+			// retransform CFG until given transformation stage
+			TrInitControlFlowGraph.transform(cfg);
+			try {
+				TrDataFlowAnalysis.transform(cfg);
+			} catch (final Exception e) {
+				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
+			}
+			final int i = this.cfgViewModeCombo.getSelectionIndex();
+			if (i > 0) {
+				TrIvmCfg2JavaExprStmts.transform(cfg);
+			}
+			if (i > 1) {
+				TrControlFlowAnalysis.transform(cfg);
+			}
+
+			// build graph
+			initGraph(cfg);
 		} catch (final Throwable e) {
 			LOGGER.log(Level.WARNING, "Couldn't create graph!", e);
 		}

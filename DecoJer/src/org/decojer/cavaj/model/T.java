@@ -722,7 +722,8 @@ public class T {
 	 *            signature
 	 */
 	public void setSignature(final String signature) {
-		this.signature = signature;
+		// inner classes always with . here...bad for us?
+		this.signature = signature.replace('.', '$');
 	}
 
 	/**

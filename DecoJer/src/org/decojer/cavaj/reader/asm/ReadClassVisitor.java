@@ -124,7 +124,8 @@ public class ReadClassVisitor extends ClassVisitor {
 			t.setInterfaceTs(interfaceTs);
 		}
 		if (signature != null) {
-			t.setSignature(signature.replace('/', '.'));
+			// Lorg/decojer/cavaj/test/jdk5/DecTestMethodTypeParams.1Test;
+			t.setSignature(signature);
 		}
 
 		this.td = new TD(t);
