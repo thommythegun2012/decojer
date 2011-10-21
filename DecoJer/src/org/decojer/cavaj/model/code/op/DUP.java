@@ -72,7 +72,8 @@ public class DUP extends Op {
 
 	@Override
 	public int getInStackSize() {
-		return new int[] { 1, 2, 3, 2, 3, 4 }[this.dupType];
+		// TODO? should be 2, 3, 4 for not-wide stack arguments, but we cannot know here...
+		return new int[] { 1, 2, 3, 1, 2, 3 }[this.dupType];
 	}
 
 	@Override

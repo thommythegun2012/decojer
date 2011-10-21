@@ -171,6 +171,14 @@ public class TrDataFlowAnalysis {
 		return var;
 	}
 
+	private boolean isWide(final Op op) {
+		final Var var = this.cfg.getInFrame(op).peek();
+		if (var == null) {
+			return false;
+		}
+		return var.getT().isWide();
+	}
+
 	private void merge(final Frame calculatedFrame, final int targetPc) {
 		final Frame targetFrame = this.frames[targetPc];
 		if (targetFrame == null) {
@@ -285,10 +293,45 @@ public class TrDataFlowAnalysis {
 			case DUP: {
 				final DUP cop = (DUP) op;
 				switch (cop.getDupType()) {
+				case DUP.T_DUP2:
+					// Duplicate the top one or two operand stack values
+					// ..., value2, value1 => ..., value2, value1, value2, value1
+					// wide:
+					// ..., value => ..., value, value
+					if (!isWide(cop)) {
+						final Var e1 = frame.pop();
+						final Var e2 = frame.pop();
+						frame.push(e2);
+						frame.push(e1);
+						frame.push(e2);
+						frame.push(e1);
+						break;
+					}
+					// fall through for wide
 				case DUP.T_DUP:
+					// Duplicate the top operand stack value
 					frame.push(frame.peek());
 					break;
+				case DUP.T_DUP2_X1:
+					// Duplicate the top one or two operand stack values and insert two or three
+					// values down
+					// ..., value3, value2, value1 => ..., value2, value1, value3, value2, value1
+					// wide:
+					// ..., value2, value1 => ..., value1, value2, value1
+					if (!isWide(cop)) {
+						final Var e1 = frame.pop();
+						final Var e2 = frame.pop();
+						final Var e3 = frame.pop();
+						frame.push(e2);
+						frame.push(e1);
+						frame.push(e3);
+						frame.push(e2);
+						frame.push(e1);
+						break;
+					}
+					// fall through for wide
 				case DUP.T_DUP_X1: {
+					// Duplicate the top operand stack value and insert two values down
 					final Var e1 = frame.pop();
 					final Var e2 = frame.pop();
 					frame.push(e1);
@@ -296,44 +339,33 @@ public class TrDataFlowAnalysis {
 					frame.push(e1);
 					break;
 				}
+				case DUP.T_DUP2_X2:
+					// Duplicate the top one or two operand stack values and insert two, three, or
+					// four values down
+					// ..., value4, value3, value2, value1 => ..., value2, value1, value4, value3,
+					// value2, value1
+					// wide:
+					// ..., value3, value2, value1 => ..., value1, value3, value2, value1
+					if (!isWide(cop)) {
+						final Var e1 = frame.pop();
+						final Var e2 = frame.pop();
+						final Var e3 = frame.pop();
+						final Var e4 = frame.pop();
+						frame.push(e2);
+						frame.push(e1);
+						frame.push(e4);
+						frame.push(e3);
+						frame.push(e2);
+						frame.push(e1);
+						break;
+					}
+					// fall through for wide
 				case DUP.T_DUP_X2: {
+					// Duplicate the top operand stack value and insert two or three values down
 					final Var e1 = frame.pop();
 					final Var e2 = frame.pop();
 					final Var e3 = frame.pop();
 					frame.push(e1);
-					frame.push(e3);
-					frame.push(e2);
-					frame.push(e1);
-					break;
-				}
-				case DUP.T_DUP2: {
-					final Var e1 = frame.pop();
-					final Var e2 = frame.pop();
-					frame.push(e2);
-					frame.push(e1);
-					frame.push(e2);
-					frame.push(e1);
-					break;
-				}
-				case DUP.T_DUP2_X1: {
-					final Var e1 = frame.pop();
-					final Var e2 = frame.pop();
-					final Var e3 = frame.pop();
-					frame.push(e2);
-					frame.push(e1);
-					frame.push(e3);
-					frame.push(e2);
-					frame.push(e1);
-					break;
-				}
-				case DUP.T_DUP2_X2: {
-					final Var e1 = frame.pop();
-					final Var e2 = frame.pop();
-					final Var e3 = frame.pop();
-					final Var e4 = frame.pop();
-					frame.push(e2);
-					frame.push(e1);
-					frame.push(e4);
 					frame.push(e3);
 					frame.push(e2);
 					frame.push(e1);
@@ -451,15 +483,21 @@ public class TrDataFlowAnalysis {
 			case POP: {
 				final POP cop = (POP) op;
 				switch (cop.getPopType()) {
-				case POP.T_POP: {
+				case POP.T_POP2:
+					// Pop the top one or two operand stack values
+					// ..., value2, value1 => ...
+					// wide:
+					// ..., value => ...
+					if (!isWide(cop)) {
+						frame.pop();
+						frame.pop();
+						break;
+					}
+					// fall through for wide
+				case POP.T_POP:
+					// Pop the top operand stack value
 					frame.pop();
 					break;
-				}
-				case POP.T_POP2: {
-					frame.pop();
-					// don't do 2 POPs till real wide stack handling
-					break;
-				}
 				default:
 					LOGGER.warning("Unknown pop type '" + cop.getPopType() + "'!");
 				}
@@ -527,6 +565,9 @@ public class TrDataFlowAnalysis {
 				break;
 			}
 			case SWAP: {
+				// Swap the top two operand stack values
+				// ..., value2, value1 ..., value1, value2
+				// wide: not supported on JVM!
 				assert op instanceof SWAP;
 
 				final Var e1 = frame.pop();

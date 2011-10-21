@@ -108,6 +108,7 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NullLiteral;
 import org.eclipse.jdt.core.dom.NumberLiteral;
+import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
@@ -275,10 +276,45 @@ public class TrIvmCfg2JavaExprStmts {
 			case DUP: {
 				final DUP cop = (DUP) op;
 				switch (cop.getDupType()) {
+				case DUP.T_DUP2:
+					// Duplicate the top one or two operand stack values
+					// ..., value2, value1 => ..., value2, value1, value2, value1
+					// wide:
+					// ..., value => ..., value, value
+					if (!isWide(cop)) {
+						final Expression e1 = bb.popExpression();
+						final Expression e2 = bb.popExpression();
+						bb.pushExpression(e2);
+						bb.pushExpression(e1);
+						bb.pushExpression(e2);
+						bb.pushExpression(e1);
+						break;
+					}
+					// fall through for wide
 				case DUP.T_DUP:
+					// Duplicate the top operand stack value
 					bb.pushExpression(bb.peekExpression());
 					break;
+				case DUP.T_DUP2_X1:
+					// Duplicate the top one or two operand stack values and insert two or three
+					// values down
+					// ..., value3, value2, value1 => ..., value2, value1, value3, value2, value1
+					// wide:
+					// ..., value2, value1 => ..., value1, value2, value1
+					if (!isWide(cop)) {
+						final Expression e1 = bb.popExpression();
+						final Expression e2 = bb.popExpression();
+						final Expression e3 = bb.popExpression();
+						bb.pushExpression(e2);
+						bb.pushExpression(e1);
+						bb.pushExpression(e3);
+						bb.pushExpression(e2);
+						bb.pushExpression(e1);
+						break;
+					}
+					// fall through for wide
 				case DUP.T_DUP_X1: {
+					// Duplicate the top operand stack value and insert two values down
 					final Expression e1 = bb.popExpression();
 					final Expression e2 = bb.popExpression();
 					bb.pushExpression(e1);
@@ -286,44 +322,33 @@ public class TrIvmCfg2JavaExprStmts {
 					bb.pushExpression(e1);
 					break;
 				}
+				case DUP.T_DUP2_X2:
+					// Duplicate the top one or two operand stack values and insert two, three, or
+					// four values down
+					// ..., value4, value3, value2, value1 => ..., value2, value1, value4, value3,
+					// value2, value1
+					// wide:
+					// ..., value3, value2, value1 => ..., value1, value3, value2, value1
+					if (!isWide(cop)) {
+						final Expression e1 = bb.popExpression();
+						final Expression e2 = bb.popExpression();
+						final Expression e3 = bb.popExpression();
+						final Expression e4 = bb.popExpression();
+						bb.pushExpression(e2);
+						bb.pushExpression(e1);
+						bb.pushExpression(e4);
+						bb.pushExpression(e3);
+						bb.pushExpression(e2);
+						bb.pushExpression(e1);
+						break;
+					}
+					// fall through for wide
 				case DUP.T_DUP_X2: {
+					// Duplicate the top operand stack value and insert two or three values down
 					final Expression e1 = bb.popExpression();
 					final Expression e2 = bb.popExpression();
 					final Expression e3 = bb.popExpression();
 					bb.pushExpression(e1);
-					bb.pushExpression(e3);
-					bb.pushExpression(e2);
-					bb.pushExpression(e1);
-					break;
-				}
-				case DUP.T_DUP2: {
-					final Expression e1 = bb.popExpression();
-					final Expression e2 = bb.popExpression();
-					bb.pushExpression(e2);
-					bb.pushExpression(e1);
-					bb.pushExpression(e2);
-					bb.pushExpression(e1);
-					break;
-				}
-				case DUP.T_DUP2_X1: {
-					final Expression e1 = bb.popExpression();
-					final Expression e2 = bb.popExpression();
-					final Expression e3 = bb.popExpression();
-					bb.pushExpression(e2);
-					bb.pushExpression(e1);
-					bb.pushExpression(e3);
-					bb.pushExpression(e2);
-					bb.pushExpression(e1);
-					break;
-				}
-				case DUP.T_DUP2_X2: {
-					final Expression e1 = bb.popExpression();
-					final Expression e2 = bb.popExpression();
-					final Expression e3 = bb.popExpression();
-					final Expression e4 = bb.popExpression();
-					bb.pushExpression(e2);
-					bb.pushExpression(e1);
-					bb.pushExpression(e4);
 					bb.pushExpression(e3);
 					bb.pushExpression(e2);
 					bb.pushExpression(e1);
@@ -799,20 +824,26 @@ public class TrIvmCfg2JavaExprStmts {
 			case POP: {
 				final POP cop = (POP) op;
 				switch (cop.getPopType()) {
-				case POP.T_POP: {
-					final Expression expression = bb.popExpression();
-					statement = getAst().newExpressionStatement(expression);
-					break;
-				}
-				case POP.T_POP2: {
-					final Expression expression = bb.popExpression();
-					statement = getAst().newExpressionStatement(expression);
-					// don't do 2 POPs till real wide stack handling
+				case POP.T_POP2:
+					// Pop the top one or two operand stack values
+					// ..., value2, value1 => ...
+					// wide:
+					// ..., value => ...
+					if (!isWide(cop)) {
+						final Expression expression = bb.popExpression();
+						statement = getAst().newExpressionStatement(expression);
 
-					final Var peek = this.cfg.getInFrame(op).peek();
-					if (!peek.getT().isMulti() && !peek.getT().isWide()) {
-						LOGGER.warning("POP2 for not wide in '" + this.cfg.getMd() + "'!");
+						LOGGER.warning("TODO: POP2 for not wide in '" + this.cfg.getMd()
+								+ "'! Statement output?");
+
+						bb.popExpression();
+						break;
 					}
+					// fall through for wide
+				case POP.T_POP: {
+					// Pop the top operand stack value
+					final Expression expression = bb.popExpression();
+					statement = getAst().newExpressionStatement(expression);
 					break;
 				}
 				default:
@@ -896,6 +927,19 @@ public class TrIvmCfg2JavaExprStmts {
 				if (bb.getExpressionsSize() > 0 && bb.peekExpression() == rightExpression) {
 					bb.popExpression();
 					bb.pushExpression(assignment);
+				} else if (bb.getExpressionsSize() > 0
+						&& rightExpression instanceof InfixExpression
+						&& (((InfixExpression) rightExpression).getOperator() == InfixExpression.Operator.PLUS || ((InfixExpression) rightExpression)
+								.getOperator() == InfixExpression.Operator.MINUS)) {
+					// if i'm an peek-1 or peek+1 expression, than we can post-inc/dec
+					// TODO more checks!
+					final PostfixExpression postfixExpression = getAst().newPostfixExpression();
+					postfixExpression
+							.setOperator(((InfixExpression) rightExpression).getOperator() == InfixExpression.Operator.PLUS ? PostfixExpression.Operator.INCREMENT
+									: PostfixExpression.Operator.DECREMENT);
+					postfixExpression.setOperand(wrap(bb.popExpression(),
+							Priority.PREFIX_OR_POSTFIX));
+					bb.pushExpression(postfixExpression);
 				} else {
 					statement = getAst().newExpressionStatement(assignment);
 				}
@@ -936,9 +980,13 @@ public class TrIvmCfg2JavaExprStmts {
 				final STORE cop = (STORE) op;
 
 				final Expression rightExpression = bb.popExpression();
+				// inline assignment, DUP -> STORE
+				final boolean isInlineAssignment = bb.getExpressionsSize() > 0
+						&& bb.peekExpression() == rightExpression;
 
 				final Var var = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
-				if (var.getStartPc() == cop.getPc() + 1 && var.getName() != null) {
+				if (!isInlineAssignment && var.getStartPc() == cop.getPc() + 1
+						&& var.getName() != null) {
 					final VariableDeclarationFragment variableDeclarationFragment = getAst()
 							.newVariableDeclarationFragment();
 					variableDeclarationFragment.setName(getAst().newSimpleName(var.getName()));
@@ -961,7 +1009,7 @@ public class TrIvmCfg2JavaExprStmts {
 					}
 					assignment.setLeftHandSide(getAst().newSimpleName(name));
 					// inline assignment, DUP -> STORE
-					if (bb.getExpressionsSize() > 0 && bb.peekExpression() == rightExpression) {
+					if (isInlineAssignment) {
 						bb.popExpression();
 						bb.pushExpression(assignment);
 					} else {
@@ -978,6 +1026,9 @@ public class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case SWAP: {
+				// Swap the top two operand stack values
+				// ..., value2, value1 ..., value1, value2
+				// wide: not supported on JVM!
 				assert op instanceof SWAP;
 
 				final Expression e1 = bb.popExpression();
@@ -1043,6 +1094,14 @@ public class TrIvmCfg2JavaExprStmts {
 		final Var var = this.cfg.getFrameVar(reg, pc);
 		final String name = var == null ? null : var.getName();
 		return name == null ? "r" + reg : name;
+	}
+
+	private boolean isWide(final Op op) {
+		final Var var = this.cfg.getInFrame(op).peek();
+		if (var == null) {
+			return false;
+		}
+		return var.getT().isWide();
 	}
 
 	private boolean rewriteClassForNameCachedLiteral(final BB bb) {
