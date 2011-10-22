@@ -497,35 +497,92 @@ public class ClassEditor extends MultiPageEditorPart {
 			} else if (mds.size() > 1) {
 				// multiple methods with different signatures,
 				// we now have to match against Eclipse-select Q-signatures (e.g. "QString;"):
-				// Q stands for unresolved type packages and is replaced by regexp L[^/;]*
+				// Q stands for unresolved type packages and is replaced by regexp [LT][^;]*
 
 				// for this we must decompile the signature, Q-signatures can follow to any stuff
 				// like this characters: ();[
 				// but also to primitives like this: (IIQString;)V
 
 				// Eclipse-signature doesn't contain method parameter types but contains generics
-
-				// TODO
-
-				// not enough here...Q can come after all kind off stuff, parser!
-				final Pattern signaturePattern = Pattern.compile(signature.replace("[", "\\[")
-						.replace("]", "\\]").replace("(Q", "(L[^;]*").replace(")Q", ")L[^;]*")
-						.replace(";Q", ";L[^;]*").replace("$", "\\$").replace("(", "\\(")
-						.replace(")", "\\)"));
-
+				if (signature.charAt(0) != '(') {
+					LOGGER.warning("Eclipse-select signature '" + signature
+							+ "' doesn't start with '('");
+					return;
+				}
+				final StringBuilder sb = new StringBuilder("\\(");
+				boolean ret = false;
+				int pos = 0;
+				while (++pos < signature.length()) {
+					final char c = signature.charAt(pos);
+					switch (c) {
+					case ')':
+						if (ret) {
+							LOGGER.warning("Eclipse-select signature '" + signature
+									+ "' contains multiple ')'");
+							return;
+						}
+						ret = true;
+						sb.append("\\)");
+						continue;
+					case 'V':
+					case 'B':
+					case 'C':
+					case 'D':
+					case 'F':
+					case 'I':
+					case 'J':
+					case 'S':
+					case 'Z':
+						sb.append(c);
+						continue;
+					case '[':
+						// escape for regexp
+						sb.append("\\[");
+						continue;
+					case 'L': {
+						final int end = signature.indexOf(';', pos);
+						sb.append(signature.substring(pos, end + 1).replace("$", "\\$"));
+						pos = end;
+						continue;
+					}
+					case 'Q': {
+						final int end = signature.indexOf(';', pos);
+						sb.append("[LT][^;]*").append(
+								signature.substring(pos + 1, end + 1).replace("$", "\\$"));
+						pos = end;
+						continue;
+					}
+					}
+				}
+				if (!ret) {
+					LOGGER.warning("Eclipse-select signature '" + signature
+							+ "' doesn't start with '('");
+					return;
+				}
+				final Pattern signaturePattern = Pattern.compile(sb.toString());
 				for (final MD checkMd : mds) {
 					final M m = checkMd.getM();
-					final String descriptor = m.getDescriptor();
-					if (signaturePattern.matcher(descriptor).matches()) {
+					// exact match for descriptor
+					if (signaturePattern.matcher(m.getDescriptor()).matches()) {
+						md = checkMd;
+						break;
+					}
+					if (m.getSignature() == null) {
+						continue;
+					}
+					// ignore initial method parameters <T...;T...> and exceptions ^T...^T...;
+					// <T:Ljava/lang/Integer;E:Ljava/lang/RuntimeException;>(TT;TT;)V^TE;^Ljava/lang/RuntimeException;
+					if (signaturePattern.matcher(m.getSignature()).find()) {
 						md = checkMd;
 						break;
 					}
 				}
-			}
-			if (md == null) {
-				LOGGER.warning("Unknown method declaration for '" + methodName
-						+ "' and signature '" + signature + "'!");
-				return;
+				if (md == null) {
+					LOGGER.warning("Unknown method declaration for '" + methodName
+							+ "' and signature '" + signature + "'! Derived pattern:\n"
+							+ sb.toString());
+					return;
+				}
 			}
 
 			final CFG cfg = md.getCfg();

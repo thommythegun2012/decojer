@@ -214,6 +214,12 @@ public class T {
 	 */
 	public static TT WIDE = multi(DOUBLE, LONG);
 
+	/**
+	 * From Opcodes.T_BOOLEAN = 4 to T_LONG = 11.
+	 */
+	public static final T[] TYPES = new T[] { null, null, null, null, T.BOOLEAN, T.CHAR, T.FLOAT,
+			T.DOUBLE, T.BYTE, T.SHORT, T.INT, T.LONG };
+
 	private static final T[] NO_INTERFACES = new T[0];
 
 	public static void main(final String[] args) {

@@ -965,11 +965,7 @@ public class ReadCodeAttribute {
 				break;
 			case Opcode.NEWARRAY: {
 				type = codeReader.readUnsignedByte();
-				final String typeName = new String[] { null, null, null, null,
-						boolean.class.getName(), char.class.getName(), float.class.getName(),
-						double.class.getName(), byte.class.getName(), short.class.getName(),
-						int.class.getName(), long.class.getName() }[type];
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, this.du.getT(typeName), 1));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, T.TYPES[type], 1));
 				break;
 			}
 			case Opcode.MULTIANEWARRAY: {

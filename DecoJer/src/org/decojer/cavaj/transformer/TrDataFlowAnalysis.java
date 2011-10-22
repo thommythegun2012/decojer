@@ -472,7 +472,7 @@ public class TrDataFlowAnalysis {
 					pop(frame, T.INT);
 					name += "[]";
 				}
-				push(frame, this.cfg.getMd().getTd().getT().getDu().getT(name));
+				push(frame, this.cfg.getMd().getM().getT().getDu().getT(name));
 				break;
 			}
 			case OR: {

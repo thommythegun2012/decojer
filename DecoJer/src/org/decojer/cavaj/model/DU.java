@@ -81,7 +81,7 @@ public class DU {
 	 * Get type declaration.
 	 * 
 	 * @param desc
-	 *            descriptor
+	 *            descriptor (package/subpackage/Type$Inner)
 	 * @return type declaration
 	 */
 	public T getDescT(final String desc) {
@@ -144,7 +144,7 @@ public class DU {
 	 * Get type declaration.
 	 * 
 	 * @param name
-	 *            name
+	 *            name (package.subpackage.Type$Inner)
 	 * @return type declaration
 	 */
 	public T getT(final String name) {
