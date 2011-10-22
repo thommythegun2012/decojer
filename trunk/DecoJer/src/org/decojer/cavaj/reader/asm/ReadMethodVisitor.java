@@ -964,14 +964,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 		/************
 		 * NEWARRAY *
 		 ************/
-		case Opcodes.NEWARRAY: {
-			final String typeName = new String[] { null, null, null, null, boolean.class.getName(),
-					char.class.getName(), float.class.getName(), double.class.getName(),
-					byte.class.getName(), short.class.getName(), int.class.getName(),
-					long.class.getName() }[operand];
-			this.ops.add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du.getT(typeName), 1));
+		case Opcodes.NEWARRAY:
+			this.ops.add(new NEWARRAY(this.ops.size(), opcode, this.line, T.TYPES[operand], 1));
 			break;
-		}
 		default:
 			LOGGER.warning("Unknown int insn opcode '" + opcode + "'!");
 		}
