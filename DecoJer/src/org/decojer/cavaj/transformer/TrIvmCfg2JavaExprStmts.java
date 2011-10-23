@@ -223,27 +223,38 @@ public class TrIvmCfg2JavaExprStmts {
 					ArrayInitializer arrayInitializer = arrayCreation.getInitializer();
 					if (arrayInitializer == null) {
 						arrayInitializer = getAst().newArrayInitializer();
-						// TODO arrayCreation => switch to pure arrayInitializer
 						arrayCreation.setInitializer(arrayInitializer);
+						// TODO for higher performance and for full array creation removement we
+						// could defer the 0-fill and rewrite to the final A/STORE phase
+						final int size = Integer.parseInt(((NumberLiteral) arrayCreation
+								.dimensions().get(0)).getToken());
+						// not all indexes may be set, null/0/false in JDK 7 are not set, fill
+						for (int i = size; i-- > 0;) {
+							arrayInitializer.expressions().add(
+									Types.convertLiteral(bb.getCfg().getInFrame(op).peek().getT(),
+											null, getTd(), getAst()));
+						}
 						arrayCreation.dimensions().clear();
 					}
-					arrayInitializer.expressions().add(wrap(rightExpression));
+					final int index = Integer
+							.parseInt(((NumberLiteral) indexExpression).getToken());
+					arrayInitializer.expressions().set(index, wrap(rightExpression));
+					break;
+				}
+				final ArrayAccess arrayAccess = getAst().newArrayAccess();
+				arrayAccess.setArray(wrap(arrayRefExpression, Priority.ARRAY_INDEX));
+				arrayAccess.setIndex(wrap(indexExpression));
+				final Assignment assignment = getAst().newAssignment();
+				assignment.setLeftHandSide(arrayAccess);
+				// TODO a = a +/- 1 => a++ / a--
+				// TODO a = a <op> expr => a <op>= expr
+				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
+				// inline assignment, DUP(_X1) -> PUT
+				if (bb.getStackSize() > 0 && bb.peek() == rightExpression) {
+					bb.pop();
+					bb.push(assignment);
 				} else {
-					final ArrayAccess arrayAccess = getAst().newArrayAccess();
-					arrayAccess.setArray(wrap(arrayRefExpression, Priority.ARRAY_INDEX));
-					arrayAccess.setIndex(wrap(indexExpression));
-					final Assignment assignment = getAst().newAssignment();
-					assignment.setLeftHandSide(arrayAccess);
-					// TODO a = a +/- 1 => a++ / a--
-					// TODO a = a <op> expr => a <op>= expr
-					assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
-					// inline assignment, DUP(_X1) -> PUT
-					if (bb.getStackSize() > 0 && bb.peek() == rightExpression) {
-						bb.pop();
-						bb.push(assignment);
-					} else {
-						statement = getAst().newExpressionStatement(assignment);
-					}
+					statement = getAst().newExpressionStatement(assignment);
 				}
 				break;
 			}

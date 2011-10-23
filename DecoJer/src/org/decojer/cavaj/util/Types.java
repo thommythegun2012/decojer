@@ -84,12 +84,15 @@ public class Types {
 		if (t == T.BOOLEAN) {
 			if (value instanceof Boolean) {
 				return ast.newBooleanLiteral(((Boolean) value).booleanValue());
-			} else if (value instanceof Number) {
-				return ast.newBooleanLiteral(((Number) value).intValue() != 0);
-			} else {
-				LOGGER.warning("Boolean type with value '" + value + "' has type '"
-						+ value.getClass().getName() + "'!");
 			}
+			if (value instanceof Number) {
+				return ast.newBooleanLiteral(((Number) value).intValue() != 0);
+			}
+			if (value == null) {
+				return ast.newBooleanLiteral(false);
+			}
+			LOGGER.warning("Boolean type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
 			return ast.newBooleanLiteral(value instanceof String ? Boolean.valueOf((String) value)
 					: value != null);
 		}
@@ -104,10 +107,13 @@ public class Types {
 					return ast.newQualifiedName(ast.newSimpleName("Byte"),
 							ast.newSimpleName("MIN_VALUE"));
 				}
-			} else {
-				LOGGER.warning("Byte type with value '" + value + "' has type '"
-						+ value.getClass().getName() + "'!");
+				return ast.newNumberLiteral(Byte.toString(b));
 			}
+			if (value == null) {
+				return ast.newNumberLiteral(Byte.toString((byte) 0));
+			}
+			LOGGER.warning("Byte type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString());
 		}
 		if (t == T.CHAR) {
@@ -151,10 +157,14 @@ public class Types {
 				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
 				characterLiteral.setCharValue(c);
 				return characterLiteral;
-			} else {
-				LOGGER.warning("Character type with value '" + value + "' has type '"
-						+ value.getClass().getName() + "'!");
 			}
+			if (value == null) {
+				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+				characterLiteral.setCharValue((char) 0);
+				return characterLiteral;
+			}
+			LOGGER.warning("Character type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
 			// char is per default 'X'
 			return ast.newCharacterLiteral();
 		}
@@ -189,10 +199,12 @@ public class Types {
 					}
 				}
 				return ast.newNumberLiteral(Double.toString(d) + 'D');
-			} else {
-				LOGGER.warning("Double type with value '" + value + "' has type '"
-						+ value.getClass().getName() + "'!");
 			}
+			if (value == null) {
+				return ast.newNumberLiteral(Double.toString(0D) + 'D');
+			}
+			LOGGER.warning("Double type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString() + 'D');
 		}
 		if (t == T.FLOAT) {
@@ -225,11 +237,13 @@ public class Types {
 								ast.newSimpleName("MIN_NORMAL"));
 					}
 				}
-				return ast.newNumberLiteral(Float.toString(f) + 'D');
-			} else {
-				LOGGER.warning("Float type with value '" + value + "' has type '"
-						+ value.getClass().getName() + "'!");
+				return ast.newNumberLiteral(Float.toString(f) + 'F');
 			}
+			if (value == null) {
+				return ast.newNumberLiteral(Float.toString(0F) + 'F');
+			}
+			LOGGER.warning("Float type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString() + 'F');
 		}
 		if (t == T.INT) {
@@ -243,10 +257,13 @@ public class Types {
 					return ast.newQualifiedName(ast.newSimpleName("Integer"),
 							ast.newSimpleName("MIN_VALUE"));
 				}
-			} else {
-				LOGGER.warning("Integer type with value '" + value + "' has type '"
-						+ value.getClass().getName() + "'!");
+				return ast.newNumberLiteral(Integer.toString(i));
 			}
+			if (value == null) {
+				return ast.newNumberLiteral(Integer.toString(0));
+			}
+			LOGGER.warning("Integer type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString());
 		}
 		if (t == T.LONG) {
@@ -260,10 +277,13 @@ public class Types {
 					return ast.newQualifiedName(ast.newSimpleName("Long"),
 							ast.newSimpleName("MIN_VALUE"));
 				}
-			} else {
-				LOGGER.warning("Long type with value '" + value + "' has type '"
-						+ value.getClass().getName() + "'!");
+				return ast.newNumberLiteral(Long.toString(l) + 'L');
 			}
+			if (value == null) {
+				return ast.newNumberLiteral(Long.toString(0L) + 'L');
+			}
+			LOGGER.warning("Long type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString() + 'L');
 		}
 		if (t == T.SHORT) {
@@ -277,10 +297,13 @@ public class Types {
 					return ast.newQualifiedName(ast.newSimpleName("Short"),
 							ast.newSimpleName("MIN_VALUE"));
 				}
-			} else {
-				LOGGER.warning("Short type with value '" + value + "' has type '"
-						+ value.getClass().getName() + "'!");
+				return ast.newNumberLiteral(Short.toString(s));
 			}
+			if (value == null) {
+				return ast.newNumberLiteral(Short.toString((short) 0));
+			}
+			LOGGER.warning("Short type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString());
 		}
 		LOGGER.warning("Unknown data type '" + t + "'!");
