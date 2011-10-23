@@ -41,7 +41,7 @@ public class BB {
 
 	private final CFG cfg;
 
-	private final Stack<Expression> expressions = new Stack<Expression>();
+	private final Stack<Expression> stack = new Stack<Expression>();
 
 	private final List<Op> ops = new ArrayList<Op>();
 
@@ -85,9 +85,8 @@ public class BB {
 	}
 
 	/**
-	 * Add a basic block as successor with an edge value. This function is for the initial creation
-	 * of the control flow graph. The successors are ordered after the basic block order index for
-	 * order indexes greater than this.
+	 * Add successor basic block with an edge value. The successors are ordered after the basic
+	 * block order index for order indexes greater than this.
 	 * 
 	 * @param succBb
 	 *            successor basic block
@@ -118,19 +117,16 @@ public class BB {
 		succBb.predBbs.add(this);
 	}
 
-	public boolean containsExpression(final Expression expression) {
-		for (final Expression e : this.expressions) {
-			if (expression == e) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public void copyContent(final BB bb) {
+	/**
+	 * Copy content from basic block.
+	 * 
+	 * @param bb
+	 *            basic block
+	 */
+	public void copyContentFrom(final BB bb) {
 		this.ops.addAll(bb.ops);
 		this.statements.addAll(bb.statements);
-		this.expressions.addAll(bb.expressions);
+		this.stack.addAll(bb.stack);
 	}
 
 	/**
@@ -143,18 +139,9 @@ public class BB {
 	}
 
 	/**
-	 * Get expressions size.
+	 * Get final statement.
 	 * 
-	 * @return expression size
-	 */
-	public int getExpressionsSize() {
-		return this.expressions.size();
-	}
-
-	/**
-	 * Get final statement, often used.
-	 * 
-	 * @return last statement or null
+	 * @return final statement or null
 	 */
 	public Statement getFinalStatement() {
 		final int size = this.statements.size();
@@ -226,12 +213,33 @@ public class BB {
 	}
 
 	/**
-	 * Get statements.
+	 * Get expression stack size.
 	 * 
-	 * @return statements
+	 * @return expression stack size
 	 */
-	public List<Statement> getStatements() {
-		return this.statements;
+	public int getStackSize() {
+		return this.stack.size();
+	}
+
+	/**
+	 * Get statement.
+	 * 
+	 * @param index
+	 *            index
+	 * @return statement or null
+	 */
+	public Statement getStatement(final int index) {
+		final int size = this.statements.size();
+		return size <= index ? null : this.statements.get(index);
+	}
+
+	/**
+	 * Get number of statements.
+	 * 
+	 * @return number of statements
+	 */
+	public int getStatementsSize() {
+		return this.statements.size();
 	}
 
 	/**
@@ -243,6 +251,13 @@ public class BB {
 		return this.struct;
 	}
 
+	/**
+	 * Get succcessor basic block for given edge value.
+	 * 
+	 * @param value
+	 *            edge value
+	 * @return succcessor basic block
+	 */
 	public BB getSuccBb(final Object value) {
 		final int index = this.succValues.indexOf(value);
 		return index == -1 ? null : this.succBbs.get(index);
@@ -264,10 +279,6 @@ public class BB {
 	 */
 	public List<Object> getSuccValues() {
 		return this.succValues;
-	}
-
-	public boolean isExpression() {
-		return this.ops.size() == 0 && this.statements.size() == 0 && this.expressions.size() == 1;
 	}
 
 	/**
@@ -302,16 +313,32 @@ public class BB {
 		this.succValues.clear();
 	}
 
-	public Expression peekExpression() {
-		return this.expressions.peek();
+	/**
+	 * Peek expression from stack.
+	 * 
+	 * @return expression
+	 */
+	public Expression peek() {
+		return this.stack.peek();
 	}
 
-	public Expression popExpression() {
-		return this.expressions.pop();
+	/**
+	 * Pop expression from stack.
+	 * 
+	 * @return expression
+	 */
+	public Expression pop() {
+		return this.stack.pop();
 	}
 
-	public Expression pushExpression(final Expression expression) {
-		return this.expressions.push(expression);
+	/**
+	 * Push expression to stack.
+	 * 
+	 * @param expression
+	 *            expression
+	 */
+	public void push(final Expression expression) {
+		this.stack.push(expression);
 	}
 
 	/**
@@ -326,6 +353,30 @@ public class BB {
 			predBB.succBbs.remove(index);
 			predBB.succValues.remove(index);
 		}
+	}
+
+	/**
+	 * Remove final statement.
+	 * 
+	 * @param index
+	 *            index
+	 * @return statement or null
+	 */
+	public Statement removeFinalStatement() {
+		final int size = this.statements.size();
+		return size == 0 ? null : this.statements.remove(size - 1);
+	}
+
+	/**
+	 * Remove statement.
+	 * 
+	 * @param index
+	 *            index
+	 * @return statement or null
+	 */
+	public Statement removeStatement(final int index) {
+		final int size = this.statements.size();
+		return size <= index ? null : this.statements.remove(index);
 	}
 
 	/**
@@ -382,8 +433,8 @@ public class BB {
 		if (this.ops.size() > 0) {
 			sb.append("\nOps: ").append(this.ops);
 		}
-		if (this.expressions.size() > 0) {
-			sb.append("\nExprs: ").append(this.expressions);
+		if (this.stack.size() > 0) {
+			sb.append("\nExprs: ").append(this.stack);
 		}
 		if (this.statements.size() > 0) {
 			sb.append("\nStmts: ").append(this.statements);

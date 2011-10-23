@@ -40,7 +40,6 @@ import org.decojer.cavaj.model.code.struct.Loop;
 import org.decojer.cavaj.model.code.struct.Struct;
 import org.decojer.cavaj.model.code.struct.Switch;
 import org.eclipse.jdt.core.dom.IfStatement;
-import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 
 /**
@@ -346,8 +345,7 @@ public class TrControlFlowAnalysis {
 
 		// WHILE && FOR => only 1 head statement because of iteration back edge,
 		// FOR has trailing ExpressionStatements in the loop end node
-		final List<Statement> headStatements = headBb.getStatements();
-		if (headStatements.size() == 1 && headStatements.get(0) instanceof IfStatement) {
+		if (headBb.getStatementsSize() == 1 && headBb.getStatement(0) instanceof IfStatement) {
 			final BB trueSuccBb = headBb.getSuccBb(Boolean.TRUE);
 			final BB falseSuccBb = headBb.getSuccBb(Boolean.FALSE);
 			if (loop.isMember(trueSuccBb) && !loop.isMember(falseSuccBb)) {
@@ -523,10 +521,6 @@ public class TrControlFlowAnalysis {
 
 	private void log(final String message) {
 		LOGGER.warning(this.cfg.getMd().toString() + ": " + message);
-	}
-
-	private void log(final String message, final Throwable e) {
-		LOGGER.log(Level.SEVERE, this.cfg.getMd().toString() + ": " + message, e);
 	}
 
 	private void transform() {

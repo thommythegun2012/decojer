@@ -233,7 +233,7 @@ public class TrStructCfg2JavaControlFlowStmts {
 		case Loop.WHILENOT: {
 			final WhileStatement whileStatement = getAst().newWhileStatement();
 
-			final IfStatement statement = (IfStatement) headBb.getStatements().get(0);
+			final IfStatement statement = (IfStatement) headBb.getStatement(0);
 			final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 					statement.getExpression());
 			whileStatement.setExpression(negate ? newPrefixExpression(
@@ -343,18 +343,18 @@ public class TrStructCfg2JavaControlFlowStmts {
 						structStatement = transformCatch((Catch) succStruct);
 					} else if (succStruct instanceof Cond) {
 						// possible statements before cond in basic block
-						final List<Statement> succStatements = succBb.getStatements();
-						for (int i = 0; i < succStatements.size() - 1; ++i) {
-							statements.add(succStatements.get(i));
+						final int size = succBb.getStatementsSize() - 1;
+						for (int index = 0; index < size; ++index) {
+							statements.add(succBb.getStatement(index));
 						}
 						structStatement = transformCond((Cond) succStruct);
 					} else if (succStruct instanceof Loop) {
 						structStatement = transformLoop((Loop) succStruct);
 					} else if (succStruct instanceof Switch) {
 						// possible statements before switch in basic block
-						final List<Statement> succStatements = succBb.getStatements();
-						for (int i = 0; i < succStatements.size() - 1; ++i) {
-							statements.add(succStatements.get(i));
+						final int size = succBb.getStatementsSize() - 1;
+						for (int index = 0; index < size; ++index) {
+							statements.add(succBb.getStatement(index));
 						}
 						structStatement = transformSwitch((Switch) succStruct);
 					} else {
@@ -401,16 +401,19 @@ public class TrStructCfg2JavaControlFlowStmts {
 					if (findLoop.isTail(succBb)) {
 						if (findLoop.isPost()) {
 							if (struct == findLoop) {
-								final List<Statement> succStatements = succBb.getStatements();
-								for (int i = 0; i < succStatements.size() - 1; ++i) {
-									statements.add(succStatements.get(i));
+								final int size = succBb.getStatementsSize() - 1;
+								for (int index = 0; index < size; ++index) {
+									statements.add(succBb.getStatement(index));
 								}
 							} else {
 								statements.add(getAst().newContinueStatement());
 							}
 							return;
 						} else if (findLoop.isPre() || findLoop.isEndless()) {
-							statements.addAll(succBb.getStatements());
+							final int size = succBb.getStatementsSize();
+							for (int index = 0; index < size; ++index) {
+								statements.add(succBb.getStatement(index));
+							}
 						}
 						return;
 					}
@@ -425,9 +428,11 @@ public class TrStructCfg2JavaControlFlowStmts {
 				}
 			}
 
-			// simple sequence block, 0 statements possible with empty GOTO
-			// basic blocks
-			statements.addAll(succBb.getStatements());
+			// simple sequence block, 0 statements possible with empty GOTO basic blocks
+			final int size = succBb.getStatementsSize();
+			for (int index = 0; index < size; ++index) {
+				statements.add(succBb.getStatement(index));
+			}
 			final Collection<BB> successors = succBb.getSuccBbs();
 			// empty or 1 for no struct head!
 			if (successors.isEmpty()) {
