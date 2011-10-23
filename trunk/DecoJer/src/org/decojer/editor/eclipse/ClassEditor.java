@@ -266,6 +266,71 @@ public class ClassEditor extends MultiPageEditorPart {
 		setPageText(0, "Source");
 	}
 
+	private Pattern createEclipseSignaturePattern(final String signature) {
+		// create pattern to match against Eclipse-select Q-signatures (e.g. "QString;"):
+		// Q stands for unresolved type packages and is replaced by regexp [LT][^;]*
+
+		// for this we must decompile the signature, Q-signatures can follow to any stuff
+		// like this characters: ();[
+		// but also to primitives like this: (IIQString;)V
+
+		// Eclipse-signature doesn't contain method parameter types but contains generics
+		if (signature.charAt(0) != '(') {
+			LOGGER.warning("Eclipse-select signature '" + signature + "' doesn't start with '('");
+			return null;
+		}
+		final StringBuilder sb = new StringBuilder("\\(");
+		boolean ret = false;
+		int pos = 0;
+		while (++pos < signature.length()) {
+			final char c = signature.charAt(pos);
+			switch (c) {
+			case ')':
+				if (ret) {
+					LOGGER.warning("Eclipse-select signature '" + signature
+							+ "' contains multiple ')'");
+					return null;
+				}
+				ret = true;
+				sb.append("\\)");
+				continue;
+			case 'V':
+			case 'B':
+			case 'C':
+			case 'D':
+			case 'F':
+			case 'I':
+			case 'J':
+			case 'S':
+			case 'Z':
+				sb.append(c);
+				continue;
+			case '[':
+				// escape for regexp
+				sb.append("\\[");
+				continue;
+			case 'L': {
+				final int end = signature.indexOf(';', pos);
+				sb.append(signature.substring(pos, end + 1).replace("$", "\\$"));
+				pos = end;
+				continue;
+			}
+			case 'Q': {
+				final int end = signature.indexOf(';', pos);
+				sb.append("[LT][^;]*").append(
+						signature.substring(pos + 1, end + 1).replace("$", "\\$"));
+				pos = end;
+				continue;
+			}
+			}
+		}
+		if (!ret) {
+			LOGGER.warning("Eclipse-select signature '" + signature + "' doesn't start with '('");
+			return null;
+		}
+		return Pattern.compile(sb.toString());
+	}
+
 	@Override
 	protected Composite createPageContainer(final Composite parent) {
 		// method is called before createPages(): pre-analyze editor input and
@@ -504,62 +569,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				// but also to primitives like this: (IIQString;)V
 
 				// Eclipse-signature doesn't contain method parameter types but contains generics
-				if (signature.charAt(0) != '(') {
-					LOGGER.warning("Eclipse-select signature '" + signature
-							+ "' doesn't start with '('");
-					return;
-				}
-				final StringBuilder sb = new StringBuilder("\\(");
-				boolean ret = false;
-				int pos = 0;
-				while (++pos < signature.length()) {
-					final char c = signature.charAt(pos);
-					switch (c) {
-					case ')':
-						if (ret) {
-							LOGGER.warning("Eclipse-select signature '" + signature
-									+ "' contains multiple ')'");
-							return;
-						}
-						ret = true;
-						sb.append("\\)");
-						continue;
-					case 'V':
-					case 'B':
-					case 'C':
-					case 'D':
-					case 'F':
-					case 'I':
-					case 'J':
-					case 'S':
-					case 'Z':
-						sb.append(c);
-						continue;
-					case '[':
-						// escape for regexp
-						sb.append("\\[");
-						continue;
-					case 'L': {
-						final int end = signature.indexOf(';', pos);
-						sb.append(signature.substring(pos, end + 1).replace("$", "\\$"));
-						pos = end;
-						continue;
-					}
-					case 'Q': {
-						final int end = signature.indexOf(';', pos);
-						sb.append("[LT][^;]*").append(
-								signature.substring(pos + 1, end + 1).replace("$", "\\$"));
-						pos = end;
-						continue;
-					}
-					}
-				}
-				if (!ret) {
-					LOGGER.warning("Eclipse-select signature '" + signature
-							+ "' doesn't start with '('");
-					return;
-				}
-				final Pattern signaturePattern = Pattern.compile(sb.toString());
+				final Pattern signaturePattern = createEclipseSignaturePattern(signature);
 				for (final MD checkMd : mds) {
 					final M m = checkMd.getM();
 					// exact match for descriptor
@@ -580,7 +590,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				if (md == null) {
 					LOGGER.warning("Unknown method declaration for '" + methodName
 							+ "' and signature '" + signature + "'! Derived pattern:\n"
-							+ sb.toString());
+							+ signaturePattern.toString());
 					return;
 				}
 			}

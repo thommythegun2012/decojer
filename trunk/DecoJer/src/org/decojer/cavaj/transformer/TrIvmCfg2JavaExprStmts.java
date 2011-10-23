@@ -167,7 +167,7 @@ public class TrIvmCfg2JavaExprStmts {
 		final List<Op> ops = bb.getOps();
 		while (ops.size() != 0) {
 			final Op op = ops.get(0);
-			if (op.getInStackSize() > bb.getExpressionsSize()) {
+			if (op.getInStackSize() > bb.getStackSize()) {
 				return false;
 			}
 			ops.remove(0);
@@ -176,33 +176,31 @@ public class TrIvmCfg2JavaExprStmts {
 			case ADD: {
 				assert op instanceof ADD;
 
-				bb.pushExpression(newInfixExpression(InfixExpression.Operator.PLUS,
-						bb.popExpression(), bb.popExpression()));
+				bb.push(newInfixExpression(InfixExpression.Operator.PLUS, bb.pop(), bb.pop()));
 				break;
 			}
 			case ALOAD: {
 				assert op instanceof ALOAD;
 
 				final ArrayAccess arrayAccess = getAst().newArrayAccess();
-				arrayAccess.setIndex(wrap(bb.popExpression()));
-				arrayAccess.setArray(wrap(bb.popExpression(), Priority.ARRAY_INDEX));
-				bb.pushExpression(arrayAccess);
+				arrayAccess.setIndex(wrap(bb.pop()));
+				arrayAccess.setArray(wrap(bb.pop(), Priority.ARRAY_INDEX));
+				bb.push(arrayAccess);
 				break;
 			}
 			case AND: {
 				assert op instanceof AND;
 
-				bb.pushExpression(newInfixExpression(InfixExpression.Operator.AND,
-						bb.popExpression(), bb.popExpression()));
+				bb.push(newInfixExpression(InfixExpression.Operator.AND, bb.pop(), bb.pop()));
 				break;
 			}
 			case ARRAYLENGTH: {
 				assert op instanceof ARRAYLENGTH;
 
-				final Expression expression = bb.popExpression();
+				final Expression expression = bb.pop();
 				if (expression instanceof Name) {
 					// annotationsVisible.length
-					bb.pushExpression(getAst().newQualifiedName((Name) wrap(expression),
+					bb.push(getAst().newQualifiedName((Name) wrap(expression),
 							getAst().newSimpleName("length")));
 				} else {
 					// FieldAccess or MethodInvocation:
@@ -210,16 +208,16 @@ public class TrIvmCfg2JavaExprStmts {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
 					fieldAccess.setExpression(wrap(expression, Priority.MEMBER_ACCESS));
 					fieldAccess.setName(getAst().newSimpleName("length"));
-					bb.pushExpression(fieldAccess);
+					bb.push(fieldAccess);
 				}
 				break;
 			}
 			case ASTORE: {
 				assert op instanceof ASTORE;
 
-				final Expression rightExpression = bb.popExpression();
-				final Expression indexExpression = bb.popExpression();
-				final Expression arrayRefExpression = bb.popExpression();
+				final Expression rightExpression = bb.pop();
+				final Expression indexExpression = bb.pop();
+				final Expression arrayRefExpression = bb.pop();
 				if (arrayRefExpression instanceof ArrayCreation) {
 					final ArrayCreation arrayCreation = (ArrayCreation) arrayRefExpression;
 					ArrayInitializer arrayInitializer = arrayCreation.getInitializer();
@@ -240,9 +238,9 @@ public class TrIvmCfg2JavaExprStmts {
 					// TODO a = a <op> expr => a <op>= expr
 					assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 					// inline assignment, DUP(_X1) -> PUT
-					if (bb.getExpressionsSize() > 0 && bb.peekExpression() == rightExpression) {
-						bb.popExpression();
-						bb.pushExpression(assignment);
+					if (bb.getStackSize() > 0 && bb.peek() == rightExpression) {
+						bb.pop();
+						bb.push(assignment);
 					} else {
 						statement = getAst().newExpressionStatement(assignment);
 					}
@@ -253,8 +251,8 @@ public class TrIvmCfg2JavaExprStmts {
 				final CAST cop = (CAST) op;
 				final CastExpression castExpression = getAst().newCastExpression();
 				castExpression.setType(Types.convertType(cop.getToT(), getTd(), getAst()));
-				castExpression.setExpression(wrap(bb.popExpression(), Priority.TYPE_CAST));
-				bb.pushExpression(castExpression);
+				castExpression.setExpression(wrap(bb.pop(), Priority.TYPE_CAST));
+				bb.push(castExpression);
 				break;
 			}
 			case CMP: {
@@ -262,15 +260,13 @@ public class TrIvmCfg2JavaExprStmts {
 
 				// pseudo expression for following JCND, not really the correct
 				// answer for -1, 0, 1
-				bb.pushExpression(newInfixExpression(InfixExpression.Operator.LESS_EQUALS,
-						bb.popExpression(), bb.popExpression()));
+				bb.push(newInfixExpression(InfixExpression.Operator.LESS_EQUALS, bb.pop(), bb.pop()));
 				break;
 			}
 			case DIV: {
 				assert op instanceof DIV;
 
-				bb.pushExpression(newInfixExpression(InfixExpression.Operator.DIVIDE,
-						bb.popExpression(), bb.popExpression()));
+				bb.push(newInfixExpression(InfixExpression.Operator.DIVIDE, bb.pop(), bb.pop()));
 				break;
 			}
 			case DUP: {
@@ -282,18 +278,18 @@ public class TrIvmCfg2JavaExprStmts {
 					// wide:
 					// ..., value => ..., value, value
 					if (!isWide(cop)) {
-						final Expression e1 = bb.popExpression();
-						final Expression e2 = bb.popExpression();
-						bb.pushExpression(e2);
-						bb.pushExpression(e1);
-						bb.pushExpression(e2);
-						bb.pushExpression(e1);
+						final Expression e1 = bb.pop();
+						final Expression e2 = bb.pop();
+						bb.push(e2);
+						bb.push(e1);
+						bb.push(e2);
+						bb.push(e1);
 						break;
 					}
 					// fall through for wide
 				case DUP.T_DUP:
 					// Duplicate the top operand stack value
-					bb.pushExpression(bb.peekExpression());
+					bb.push(bb.peek());
 					break;
 				case DUP.T_DUP2_X1:
 					// Duplicate the top one or two operand stack values and insert two or three
@@ -302,24 +298,24 @@ public class TrIvmCfg2JavaExprStmts {
 					// wide:
 					// ..., value2, value1 => ..., value1, value2, value1
 					if (!isWide(cop)) {
-						final Expression e1 = bb.popExpression();
-						final Expression e2 = bb.popExpression();
-						final Expression e3 = bb.popExpression();
-						bb.pushExpression(e2);
-						bb.pushExpression(e1);
-						bb.pushExpression(e3);
-						bb.pushExpression(e2);
-						bb.pushExpression(e1);
+						final Expression e1 = bb.pop();
+						final Expression e2 = bb.pop();
+						final Expression e3 = bb.pop();
+						bb.push(e2);
+						bb.push(e1);
+						bb.push(e3);
+						bb.push(e2);
+						bb.push(e1);
 						break;
 					}
 					// fall through for wide
 				case DUP.T_DUP_X1: {
 					// Duplicate the top operand stack value and insert two values down
-					final Expression e1 = bb.popExpression();
-					final Expression e2 = bb.popExpression();
-					bb.pushExpression(e1);
-					bb.pushExpression(e2);
-					bb.pushExpression(e1);
+					final Expression e1 = bb.pop();
+					final Expression e2 = bb.pop();
+					bb.push(e1);
+					bb.push(e2);
+					bb.push(e1);
 					break;
 				}
 				case DUP.T_DUP2_X2:
@@ -330,28 +326,28 @@ public class TrIvmCfg2JavaExprStmts {
 					// wide:
 					// ..., value3, value2, value1 => ..., value1, value3, value2, value1
 					if (!isWide(cop)) {
-						final Expression e1 = bb.popExpression();
-						final Expression e2 = bb.popExpression();
-						final Expression e3 = bb.popExpression();
-						final Expression e4 = bb.popExpression();
-						bb.pushExpression(e2);
-						bb.pushExpression(e1);
-						bb.pushExpression(e4);
-						bb.pushExpression(e3);
-						bb.pushExpression(e2);
-						bb.pushExpression(e1);
+						final Expression e1 = bb.pop();
+						final Expression e2 = bb.pop();
+						final Expression e3 = bb.pop();
+						final Expression e4 = bb.pop();
+						bb.push(e2);
+						bb.push(e1);
+						bb.push(e4);
+						bb.push(e3);
+						bb.push(e2);
+						bb.push(e1);
 						break;
 					}
 					// fall through for wide
 				case DUP.T_DUP_X2: {
 					// Duplicate the top operand stack value and insert two or three values down
-					final Expression e1 = bb.popExpression();
-					final Expression e2 = bb.popExpression();
-					final Expression e3 = bb.popExpression();
-					bb.pushExpression(e1);
-					bb.pushExpression(e3);
-					bb.pushExpression(e2);
-					bb.pushExpression(e1);
+					final Expression e1 = bb.pop();
+					final Expression e2 = bb.pop();
+					final Expression e3 = bb.pop();
+					bb.push(e1);
+					bb.push(e3);
+					bb.push(e2);
+					bb.push(e1);
 					break;
 				}
 				default:
@@ -365,7 +361,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final T t = this.cfg.getInFrame(op).peek().getT();
 				final T baseT = t.getBaseT();
 
-				Expression expression = bb.popExpression();
+				Expression expression = bb.pop();
 				if (!(expression instanceof ArrayCreation)) {
 					// TODO Dalvik...assignment happened already...temporary register
 					expression = getAst().newArrayCreation();
@@ -380,7 +376,7 @@ public class TrIvmCfg2JavaExprStmts {
 				}
 				((ArrayCreation) expression).setInitializer(arrayInitializer);
 
-				bb.pushExpression(expression);
+				bb.push(expression);
 				break;
 			}
 			case GET: {
@@ -390,12 +386,12 @@ public class TrIvmCfg2JavaExprStmts {
 					final Name name = getAst().newQualifiedName(
 							getTd().newTypeName(f.getT().getName()),
 							getAst().newSimpleName(f.getName()));
-					bb.pushExpression(name);
+					bb.push(name);
 				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
-					fieldAccess.setExpression(wrap(bb.popExpression(), Priority.MEMBER_ACCESS));
+					fieldAccess.setExpression(wrap(bb.pop(), Priority.MEMBER_ACCESS));
 					fieldAccess.setName(getAst().newSimpleName(f.getName()));
-					bb.pushExpression(fieldAccess);
+					bb.push(fieldAccess);
 				}
 				break;
 			}
@@ -412,7 +408,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final INC cop = (INC) op;
 				final int value = cop.getValue();
 
-				if (bb.getExpressionsSize() == 0) {
+				if (bb.getStackSize() == 0) {
 					if (value == 1 || value == -1) {
 						final PrefixExpression prefixExpression = getAst().newPrefixExpression();
 						prefixExpression
@@ -436,10 +432,10 @@ public class TrIvmCfg2JavaExprStmts {
 				final INSTANCEOF cop = (INSTANCEOF) op;
 				final InstanceofExpression instanceofExpression = getAst()
 						.newInstanceofExpression();
-				instanceofExpression.setLeftOperand(wrap(bb.popExpression(), Priority.INSTANCEOF));
+				instanceofExpression.setLeftOperand(wrap(bb.pop(), Priority.INSTANCEOF));
 				instanceofExpression.setRightOperand(Types.convertType(cop.getT(), getTd(),
 						getAst()));
-				bb.pushExpression(instanceofExpression);
+				bb.push(instanceofExpression);
 				break;
 			}
 			case INVOKE: {
@@ -449,7 +445,7 @@ public class TrIvmCfg2JavaExprStmts {
 				// read method invokation arguments
 				final List<Expression> arguments = new ArrayList<Expression>();
 				for (int i = 0; i < m.getParamTs().length; ++i) {
-					arguments.add(wrap(bb.popExpression()));
+					arguments.add(wrap(bb.pop()));
 				}
 				Collections.reverse(arguments);
 
@@ -457,7 +453,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 				final Expression methodExpression;
 				if (cop.isDirect()) {
-					final Expression expression = bb.popExpression();
+					final Expression expression = bb.pop();
 					if ("<init>".equals(mName)) {
 						methodExpression = null;
 						if (expression instanceof ThisExpression) {
@@ -529,7 +525,7 @@ public class TrIvmCfg2JavaExprStmts {
 						// StringBuilder(String.valueOf(super.toString())).append(" TEST").toString()
 						try {
 							Expression stringExpression = null;
-							Expression appendExpression = bb.peekExpression();
+							Expression appendExpression = bb.peek();
 							do {
 								final MethodInvocation methodInvocation = (MethodInvocation) appendExpression;
 								if (!"append".equals(methodInvocation.getName().getIdentifier())
@@ -556,15 +552,15 @@ public class TrIvmCfg2JavaExprStmts {
 										InfixExpression.Operator.PLUS, stringExpression,
 										(Expression) builder.arguments().get(0));
 							}
-							bb.popExpression();
-							bb.pushExpression(stringExpression);
+							bb.pop();
+							bb.push(stringExpression);
 							break;
 						} catch (final Exception e) {
 							// rewrite to string-add didn't work
 						}
 					}
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
-					methodInvocation.setExpression(wrap(bb.popExpression(), Priority.METHOD_CALL));
+					methodInvocation.setExpression(wrap(bb.pop(), Priority.METHOD_CALL));
 					methodInvocation.setName(getAst().newSimpleName(mName));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
@@ -574,7 +570,7 @@ public class TrIvmCfg2JavaExprStmts {
 					if (void.class.getName().equals(returnType.getName())) {
 						statement = getAst().newExpressionStatement(methodExpression);
 					} else {
-						bb.pushExpression(methodExpression);
+						bb.push(methodExpression);
 					}
 				}
 				break;
@@ -607,13 +603,13 @@ public class TrIvmCfg2JavaExprStmts {
 					operator = null;
 				}
 				statement = getAst().newIfStatement();
-				((IfStatement) statement).setExpression(newInfixExpression(operator,
-						bb.popExpression(), bb.popExpression()));
+				((IfStatement) statement).setExpression(newInfixExpression(operator, bb.pop(),
+						bb.pop()));
 				break;
 			}
 			case JCND: {
 				final JCND cop = (JCND) op;
-				Expression expression = bb.popExpression();
+				Expression expression = bb.pop();
 				// check preceding CMP
 				if (expression instanceof InfixExpression
 						&& ((InfixExpression) expression).getOperator() == InfixExpression.Operator.LESS_EQUALS) {
@@ -722,30 +718,28 @@ public class TrIvmCfg2JavaExprStmts {
 
 				final String name = getVarName(cop.getReg(), cop.getPc());
 				if ("this".equals(name)) {
-					bb.pushExpression(getAst().newThisExpression());
+					bb.push(getAst().newThisExpression());
 				} else {
-					bb.pushExpression(getAst().newSimpleName(name));
+					bb.push(getAst().newSimpleName(name));
 				}
 				break;
 			}
 			case MONITOR: {
 				assert op instanceof MONITOR;
 
-				bb.popExpression();
+				bb.pop();
 				break;
 			}
 			case MUL: {
 				assert op instanceof MUL;
 
-				bb.pushExpression(newInfixExpression(InfixExpression.Operator.TIMES,
-						bb.popExpression(), bb.popExpression()));
+				bb.push(newInfixExpression(InfixExpression.Operator.TIMES, bb.pop(), bb.pop()));
 				break;
 			}
 			case NEG: {
 				assert op instanceof NEG;
 
-				bb.pushExpression(newPrefixExpression(PrefixExpression.Operator.MINUS,
-						bb.popExpression()));
+				bb.push(newPrefixExpression(PrefixExpression.Operator.MINUS, bb.pop()));
 				break;
 			}
 			case NEW: {
@@ -792,7 +786,7 @@ public class TrIvmCfg2JavaExprStmts {
 							classInstanceCreation
 									.setAnonymousClassDeclaration(anonymousClassDeclaration);
 
-							bb.pushExpression(classInstanceCreation);
+							bb.push(classInstanceCreation);
 							break;
 						}
 					} catch (final NumberFormatException e) {
@@ -800,7 +794,7 @@ public class TrIvmCfg2JavaExprStmts {
 					}
 				}
 				classInstanceCreation.setType(Types.convertType(cop.getT(), getTd(), getAst()));
-				bb.pushExpression(classInstanceCreation);
+				bb.push(classInstanceCreation);
 				break;
 			}
 			case NEWARRAY: {
@@ -809,16 +803,15 @@ public class TrIvmCfg2JavaExprStmts {
 				arrayCreation.setType(getAst().newArrayType(
 						Types.convertType(cop.getT(), getTd(), getAst())));
 				for (int i = cop.getDimensions(); i-- > 0;) {
-					arrayCreation.dimensions().add(bb.popExpression());
+					arrayCreation.dimensions().add(bb.pop());
 				}
-				bb.pushExpression(arrayCreation);
+				bb.push(arrayCreation);
 				break;
 			}
 			case OR: {
 				assert op instanceof OR;
 
-				bb.pushExpression(newInfixExpression(InfixExpression.Operator.OR,
-						bb.popExpression(), bb.popExpression()));
+				bb.push(newInfixExpression(InfixExpression.Operator.OR, bb.pop(), bb.pop()));
 				break;
 			}
 			case POP: {
@@ -830,19 +823,19 @@ public class TrIvmCfg2JavaExprStmts {
 					// wide:
 					// ..., value => ...
 					if (!isWide(cop)) {
-						final Expression expression = bb.popExpression();
+						final Expression expression = bb.pop();
 						statement = getAst().newExpressionStatement(expression);
 
 						LOGGER.warning("TODO: POP2 for not wide in '" + this.cfg
 								+ "'! Statement output?");
 
-						bb.popExpression();
+						bb.pop();
 						break;
 					}
 					// fall through for wide
 				case POP.T_POP: {
 					// Pop the top operand stack value
-					final Expression expression = bb.popExpression();
+					final Expression expression = bb.pop();
 					statement = getAst().newExpressionStatement(expression);
 					break;
 				}
@@ -856,13 +849,13 @@ public class TrIvmCfg2JavaExprStmts {
 				final Expression expr = Types.convertLiteral(
 						this.cfg.getOutFrame(op).peek().getT(), cop.getValue(), getTd(), getAst());
 				if (expr != null) {
-					bb.pushExpression(expr);
+					bb.push(expr);
 				}
 				break;
 			}
 			case PUT: {
 				final PUT cop = (PUT) op;
-				final Expression rightExpression = bb.popExpression();
+				final Expression rightExpression = bb.pop();
 				final F f = cop.getF();
 				final M m = this.cfg.getMd().getM();
 				fieldInit: if (m.getT() == f.getT()) {
@@ -875,13 +868,13 @@ public class TrIvmCfg2JavaExprStmts {
 						if (!"<init>".equals(m.getName())) {
 							break fieldInit;
 						}
-						if (!(bb.peekExpression() instanceof ThisExpression)) {
+						if (!(bb.peek() instanceof ThisExpression)) {
 							break fieldInit;
 						}
 						// multiple constructors with different signatures possible, all of them
 						// contain the same field initializer code after super() - simply overwrite
 					}
-					if (this.cfg.getStartBb() != bb || bb.getStatements().size() != 0) {
+					if (this.cfg.getStartBb() != bb || bb.getStatementsSize() != 0) {
 						break fieldInit;
 					}
 					if (f.checkAf(AF.SYNTHETIC)) {
@@ -900,7 +893,7 @@ public class TrIvmCfg2JavaExprStmts {
 								.fragments().get(0)).setInitializer(wrap(rightExpression,
 								Priority.ASSIGNMENT));
 						if (!f.checkAf(AF.STATIC)) {
-							bb.popExpression();
+							bb.pop();
 						}
 					} catch (final Exception e) {
 						// rewrite to field-initializer didn't work
@@ -919,15 +912,15 @@ public class TrIvmCfg2JavaExprStmts {
 					assignment.setLeftHandSide(name);
 				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
-					fieldAccess.setExpression(wrap(bb.popExpression(), Priority.MEMBER_ACCESS));
+					fieldAccess.setExpression(wrap(bb.pop(), Priority.MEMBER_ACCESS));
 					fieldAccess.setName(getAst().newSimpleName(f.getName()));
 					assignment.setLeftHandSide(fieldAccess);
 				}
 				// inline assignment, DUP(_X1) -> PUT
-				if (bb.getExpressionsSize() > 0 && bb.peekExpression() == rightExpression) {
-					bb.popExpression();
-					bb.pushExpression(assignment);
-				} else if (bb.getExpressionsSize() > 0
+				if (bb.getStackSize() > 0 && bb.peek() == rightExpression) {
+					bb.pop();
+					bb.push(assignment);
+				} else if (bb.getStackSize() > 0
 						&& rightExpression instanceof InfixExpression
 						&& (((InfixExpression) rightExpression).getOperator() == InfixExpression.Operator.PLUS || ((InfixExpression) rightExpression)
 								.getOperator() == InfixExpression.Operator.MINUS)) {
@@ -937,9 +930,8 @@ public class TrIvmCfg2JavaExprStmts {
 					postfixExpression
 							.setOperator(((InfixExpression) rightExpression).getOperator() == InfixExpression.Operator.PLUS ? PostfixExpression.Operator.INCREMENT
 									: PostfixExpression.Operator.DECREMENT);
-					postfixExpression.setOperand(wrap(bb.popExpression(),
-							Priority.PREFIX_OR_POSTFIX));
-					bb.pushExpression(postfixExpression);
+					postfixExpression.setOperand(wrap(bb.pop(), Priority.PREFIX_OR_POSTFIX));
+					bb.push(postfixExpression);
 				} else {
 					statement = getAst().newExpressionStatement(assignment);
 				}
@@ -948,15 +940,14 @@ public class TrIvmCfg2JavaExprStmts {
 			case REM: {
 				assert op instanceof REM;
 
-				bb.pushExpression(newInfixExpression(InfixExpression.Operator.REMAINDER,
-						bb.popExpression(), bb.popExpression()));
+				bb.push(newInfixExpression(InfixExpression.Operator.REMAINDER, bb.pop(), bb.pop()));
 				break;
 			}
 			case RETURN: {
 				final RETURN cop = (RETURN) op;
 				final ReturnStatement returnStatement = getAst().newReturnStatement();
 				if (cop.getT() != T.VOID) {
-					returnStatement.setExpression(wrap(bb.popExpression()));
+					returnStatement.setExpression(wrap(bb.pop()));
 				}
 				statement = returnStatement;
 				break;
@@ -964,25 +955,23 @@ public class TrIvmCfg2JavaExprStmts {
 			case SHL: {
 				assert op instanceof SHL;
 
-				bb.pushExpression(newInfixExpression(InfixExpression.Operator.LEFT_SHIFT,
-						bb.popExpression(), bb.popExpression()));
+				bb.push(newInfixExpression(InfixExpression.Operator.LEFT_SHIFT, bb.pop(), bb.pop()));
 				break;
 			}
 			case SHR: {
 				final SHR cop = (SHR) op;
-				bb.pushExpression(newInfixExpression(
+				bb.push(newInfixExpression(
 						cop.isUnsigned() ? InfixExpression.Operator.RIGHT_SHIFT_UNSIGNED
-								: InfixExpression.Operator.RIGHT_SHIFT_SIGNED, bb.popExpression(),
-						bb.popExpression()));
+								: InfixExpression.Operator.RIGHT_SHIFT_SIGNED, bb.pop(), bb.pop()));
 				break;
 			}
 			case STORE: {
 				final STORE cop = (STORE) op;
 
-				final Expression rightExpression = bb.popExpression();
+				final Expression rightExpression = bb.pop();
 				// inline assignment, DUP -> STORE
-				final boolean isInlineAssignment = bb.getExpressionsSize() > 0
-						&& bb.peekExpression() == rightExpression;
+				final boolean isInlineAssignment = bb.getStackSize() > 0
+						&& bb.peek() == rightExpression;
 
 				final Var var = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
 				if (!isInlineAssignment && var.getStartPc() == cop.getPc() + 1
@@ -1010,8 +999,8 @@ public class TrIvmCfg2JavaExprStmts {
 					assignment.setLeftHandSide(getAst().newSimpleName(name));
 					// inline assignment, DUP -> STORE
 					if (isInlineAssignment) {
-						bb.popExpression();
-						bb.pushExpression(assignment);
+						bb.pop();
+						bb.push(assignment);
 					} else {
 						statement = getAst().newExpressionStatement(assignment);
 					}
@@ -1021,8 +1010,7 @@ public class TrIvmCfg2JavaExprStmts {
 			case SUB: {
 				assert op instanceof SUB;
 
-				bb.pushExpression(newInfixExpression(InfixExpression.Operator.MINUS,
-						bb.popExpression(), bb.popExpression()));
+				bb.push(newInfixExpression(InfixExpression.Operator.MINUS, bb.pop(), bb.pop()));
 				break;
 			}
 			case SWAP: {
@@ -1031,17 +1019,17 @@ public class TrIvmCfg2JavaExprStmts {
 				// wide: not supported on JVM!
 				assert op instanceof SWAP;
 
-				final Expression e1 = bb.popExpression();
-				final Expression e2 = bb.popExpression();
-				bb.pushExpression(e1);
-				bb.pushExpression(e2);
+				final Expression e1 = bb.pop();
+				final Expression e2 = bb.pop();
+				bb.push(e1);
+				bb.push(e2);
 				break;
 			}
 			case SWITCH: {
 				assert op instanceof SWITCH;
 
 				final SwitchStatement switchStatement = getAst().newSwitchStatement();
-				switchStatement.setExpression(wrap(bb.popExpression()));
+				switchStatement.setExpression(wrap(bb.pop()));
 				statement = switchStatement;
 				break;
 			}
@@ -1049,22 +1037,20 @@ public class TrIvmCfg2JavaExprStmts {
 				assert op instanceof THROW;
 
 				final ThrowStatement throwStatement = getAst().newThrowStatement();
-				throwStatement.setExpression(wrap(bb.popExpression()));
+				throwStatement.setExpression(wrap(bb.pop()));
 				statement = throwStatement;
 				break;
 			}
 			case XOR: {
 				assert op instanceof XOR;
 
-				final Expression expression = bb.popExpression();
+				final Expression expression = bb.pop();
 				// "a ^ -1" => "~a"
 				if (expression instanceof NumberLiteral
 						&& ((NumberLiteral) expression).getToken().equals("-1")) {
-					bb.pushExpression(newPrefixExpression(PrefixExpression.Operator.COMPLEMENT,
-							bb.popExpression()));
+					bb.push(newPrefixExpression(PrefixExpression.Operator.COMPLEMENT, bb.pop()));
 				} else {
-					bb.pushExpression(newInfixExpression(InfixExpression.Operator.XOR, expression,
-							bb.popExpression()));
+					bb.push(newInfixExpression(InfixExpression.Operator.XOR, expression, bb.pop()));
 				}
 				break;
 			}
@@ -1132,9 +1118,7 @@ public class TrIvmCfg2JavaExprStmts {
 		// Expression QualifiedName: JDTCompilerAdapter.class$0 (or Simple?)
 		// IFStatement
 
-		Expression expression = ifBb.peekExpression();
-		final List<Statement> statements = ifBb.getStatements();
-
+		Expression expression = ifBb.peek();
 		try {
 			final String classInfo = (String) ((PUSH) ops.get(1)).getValue();
 			// strange behaviour for classinfo:
@@ -1149,17 +1133,17 @@ public class TrIvmCfg2JavaExprStmts {
 			return false;
 		}
 
-		ifBb.popExpression();
-		statements.remove(statements.size() - 1);
+		ifBb.pop();
+		ifBb.removeFinalStatement();
 
-		followBb.copyContent(ifBb);
+		followBb.copyContentFrom(ifBb);
 		ifBb.movePredBbs(followBb);
 		ifBb.remove();
 		if (this.cfg.getStartBb() == ifBb) {
 			this.cfg.setStartBb(followBb);
 		}
 		falseBb.remove();
-		followBb.pushExpression(expression);
+		followBb.push(expression);
 		return true;
 	}
 
@@ -1186,10 +1170,10 @@ public class TrIvmCfg2JavaExprStmts {
 			if (predBb.getPredBbs().size() != 1) {
 				return false;
 			}
-			if (predBb.getExpressionsSize() != 1) {
+			if (predBb.getStackSize() != 1) {
 				return false;
 			}
-			if (predBb.getStatements().size() > 0) {
+			if (predBb.getStatementsSize() > 0) {
 				return false;
 			}
 			final BB newIfBb = predBb.getPredBbs().get(0);
@@ -1200,11 +1184,10 @@ public class TrIvmCfg2JavaExprStmts {
 		if (ifBb.getSuccBbs().size() != 2) {
 			return false;
 		}
-		final List<Statement> statements = ifBb.getStatements();
-		if (statements.size() == 0) {
+		if (ifBb.getStatementsSize() == 0) {
 			return false;
 		}
-		final Statement statement = statements.get(statements.size() - 1);
+		final Statement statement = ifBb.getFinalStatement();
 		if (!(statement instanceof IfStatement)) {
 			return false;
 		}
@@ -1212,8 +1195,8 @@ public class TrIvmCfg2JavaExprStmts {
 		final BB trueBb = ifBb.getSuccBb(Boolean.TRUE);
 		final BB falseBb = ifBb.getSuccBb(Boolean.FALSE);
 
-		final Expression trueExpression = trueBb.peekExpression();
-		final Expression falseExpression = falseBb.peekExpression();
+		final Expression trueExpression = trueBb.peek();
+		final Expression falseExpression = falseBb.peek();
 
 		Expression expression = ((IfStatement) statement).getExpression();
 		rewrite: if ((trueExpression instanceof BooleanLiteral || trueExpression instanceof NumberLiteral)
@@ -1300,17 +1283,17 @@ public class TrIvmCfg2JavaExprStmts {
 
 		// is conditional expression, modify graph
 		// remove IfStatement
-		statements.remove(statements.size() - 1);
+		ifBb.removeFinalStatement();
 
 		trueBb.remove();
 		falseBb.remove();
 
 		if (bb.getPredBbs().size() != 0) {
-			ifBb.pushExpression(expression);
+			ifBb.push(expression);
 			ifBb.addSucc(bb, null);
 		} else {
 			// pull
-			bb.copyContent(ifBb);
+			bb.copyContentFrom(ifBb);
 			ifBb.movePredBbs(bb);
 			ifBb.remove();
 			if (this.cfg.getStartBb() == ifBb) {
@@ -1318,7 +1301,7 @@ public class TrIvmCfg2JavaExprStmts {
 			}
 
 			// push new conditional expression, here only "a ? true : false" as "a"
-			bb.pushExpression(expression);
+			bb.push(expression);
 		}
 
 		return true;
@@ -1332,12 +1315,11 @@ public class TrIvmCfg2JavaExprStmts {
 		if (bb.getSuccBbs().size() != 2) {
 			return false;
 		}
-		final List<Statement> bStatements = bb.getStatements();
-		if (bStatements.size() != 1) {
+		if (bb.getStatementsSize() != 1) {
 			// must be single if statement for short-circuit compound boolean expression structure
 			return false;
 		}
-		final Statement bIfStatement = bStatements.get(bStatements.size() - 1);
+		final Statement bIfStatement = bb.getStatement(0);
 		if (!(bIfStatement instanceof IfStatement)) {
 			return false;
 		}
@@ -1352,11 +1334,10 @@ public class TrIvmCfg2JavaExprStmts {
 		if (aBb.getSuccBbs().size() != 2) {
 			return false;
 		}
-		final List<Statement> aStatements = aBb.getStatements();
-		if (aStatements.size() == 0) {
+		if (aBb.getStatementsSize() == 0) {
 			return false;
 		}
-		final Statement aIfStatement = aStatements.get(aStatements.size() - 1);
+		final Statement aIfStatement = aBb.getFinalStatement();
 		if (!(aIfStatement instanceof IfStatement)) {
 			return false;
 		}
@@ -1385,8 +1366,8 @@ public class TrIvmCfg2JavaExprStmts {
 						InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
 						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
 				// rewrite CFG
-				bStatements.clear();
-				bb.copyContent(aBb);
+				bb.removeStatement(0);
+				bb.copyContentFrom(aBb);
 				aBb.movePredBbs(bb);
 				aBb.remove();
 				if (this.cfg.getStartBb() == aBb) {
@@ -1411,8 +1392,8 @@ public class TrIvmCfg2JavaExprStmts {
 				((IfStatement) aIfStatement).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_AND, rightExpression, leftExpression));
 				// rewrite CFG
-				bStatements.clear();
-				bb.copyContent(aBb);
+				bb.removeStatement(0);
+				bb.copyContentFrom(aBb);
 				aBb.movePredBbs(bb);
 				aBb.remove();
 				if (this.cfg.getStartBb() == aBb) {
@@ -1438,8 +1419,8 @@ public class TrIvmCfg2JavaExprStmts {
 				((IfStatement) aIfStatement).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_OR, rightExpression, leftExpression));
 				// rewrite CFG
-				bStatements.clear();
-				bb.copyContent(aBb);
+				bb.removeStatement(0);
+				bb.copyContentFrom(aBb);
 				aBb.movePredBbs(bb);
 				aBb.remove();
 				if (this.cfg.getStartBb() == aBb) {
@@ -1465,8 +1446,8 @@ public class TrIvmCfg2JavaExprStmts {
 						InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
 						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
 				// rewrite CFG
-				bStatements.clear();
-				bb.copyContent(aBb);
+				bb.removeStatement(0);
+				bb.copyContentFrom(aBb);
 				aBb.movePredBbs(bb);
 				aBb.remove();
 				if (this.cfg.getStartBb() == aBb) {
