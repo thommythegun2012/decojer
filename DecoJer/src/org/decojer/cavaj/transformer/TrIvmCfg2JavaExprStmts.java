@@ -889,10 +889,10 @@ public class TrIvmCfg2JavaExprStmts {
 						break fieldInit;
 					}
 					if (f.checkAf(AF.SYNTHETIC)) {
-						if (getCu().isIgnoreSynthetic()) {
-							break; // ignore such assignments completely
-						} else {
+						if (getCu().isDecompileUnknownSynthetic()) {
 							break fieldInit; // not as field initializer
+						} else {
+							break; // ignore such assignments completely
 						}
 					}
 					final FD fd = getTd().getFd(f.getName());

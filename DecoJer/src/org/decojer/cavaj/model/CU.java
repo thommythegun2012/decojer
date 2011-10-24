@@ -24,9 +24,11 @@
 package org.decojer.cavaj.model;
 
 import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
 
 import org.decojer.DecoJerException;
+import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.util.TypeNameManager;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -52,14 +54,12 @@ public class CU implements PD {
 	// Eclipse compilation unit
 	private final CompilationUnit compilationUnit;
 
-	private boolean ignoreSynthetic = true;
+	private final EnumSet<DFlag> dFlags = EnumSet.noneOf(DFlag.class);
 
 	private String sourceFileName;
 
 	// start type declaration
 	private final TD startTd;
-
-	private boolean startTdOnly;
 
 	// sub type declarations
 	private final List<TD> tds = new ArrayList<TD>();
@@ -318,21 +318,30 @@ public class CU implements PD {
 	}
 
 	/**
-	 * Get predicate, if ignore synthetic type declarations, methods or fields.
+	 * Decompile unknown synthetic type declarations, methods or fields?
 	 * 
-	 * @return true - ignore synthetic type declarations, methods or fields
+	 * @return true - decompile unknown synthetic type declarations, methods or fields
 	 */
-	public boolean isIgnoreSynthetic() {
-		return this.ignoreSynthetic;
+	public boolean isDecompileUnknownSynthetic() {
+		return this.dFlags.contains(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC);
 	}
 
 	/**
-	 * Get predicate, if decompile start type declaration only.
+	 * Ignore enum synthetic structures?
+	 * 
+	 * @return true - ignore enum synthetic structures
+	 */
+	public boolean isIgnoreEnum() {
+		return this.dFlags.contains(DFlag.IGNORE_ENUM);
+	}
+
+	/**
+	 * Decompile start type declaration only?
 	 * 
 	 * @return true - decompile start type declaration only
 	 */
 	public boolean isStartTdOnly() {
-		return this.startTdOnly;
+		return this.dFlags.contains(DFlag.START_TD_ONLY);
 	}
 
 	private void setPackageName(final String packageName) {
@@ -358,8 +367,7 @@ public class CU implements PD {
 	 * Decompile start type declaration only.
 	 */
 	public void startTdOnly() {
-		this.startTdOnly = true;
-		this.ignoreSynthetic = false;
+		this.dFlags.add(DFlag.START_TD_ONLY);
 		getStartTd().setPd(this);
 		getTds().add(getStartTd());
 		getAllTds().add(getStartTd());
