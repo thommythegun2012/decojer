@@ -522,8 +522,8 @@ public class TrIvmCfg2JavaExprStmts {
 					methodExpression = methodInvocation;
 				} else {
 					stringAdd: if ("toString".equals(mName)
-							&& ("java.lang.StringBuilder".equals(m.getT().getName()) || "java.lang.StringBuffer"
-									.equals(m.getT().getName()))) {
+							&& (StringBuilder.class.getName().equals(m.getT().getName()) || StringBuffer.class
+									.getName().equals(m.getT().getName()))) {
 						// jdk1.1.6:
 						// new
 						// StringBuffer(String.valueOf(super.toString())).append(" TEST").toString()
