@@ -289,10 +289,48 @@ public class TrJvmStruct2JavaAst {
 		 * if (m.checkAf(AF.CONSTRUCTOR)) { // nothing, Dalvik only? } if
 		 * (m.checkAf(AF.DECLARED_SYNCHRONIZED)) { // nothing, Dalvik only? }
 		 */
-		// decompile method signature (not necessary for Initializer)
 		if (methodDeclaration instanceof MethodDeclaration) {
 			new SignatureDecompiler(td, m.getDescriptor(), m.getSignature()).decompileMethodTypes(
 					(MethodDeclaration) methodDeclaration, md);
+			// decompile method parameter annotations and names
+			if (((MethodDeclaration) methodDeclaration).isConstructor()) {
+				// ignore synthetic constructor parameter for inner classes:
+				// none-static inner classes get extra constructor argument,
+				// anonymous inner classes are static if context is static
+				// (see SignatureDecompiler.decompileMethodTypes)
+				/*
+				 * if (!m.getT().checkAf(AF.STATIC) && !(md.getTd().getPd() instanceof CU)) {
+				 * ++param; }
+				 */
+			}
+			final A[][] paramAs = md.getParamAss();
+			int param = 0;
+			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
+					.parameters()) {
+				// decompile parameter annotations
+				if (paramAs != null && param < paramAs.length) {
+					AnnotationsDecompiler.decompileAnnotations(td,
+							singleVariableDeclaration.modifiers(), paramAs[param]);
+				}
+				singleVariableDeclaration.setName(ast.newSimpleName(m.getParamName(param++)));
+			}
+			if (!m.checkAf(AF.ABSTRACT) && !m.checkAf(AF.NATIVE)) {
+				// create method block for valid syntax, abstract and native methods have none
+				final Block block = ast.newBlock();
+				((MethodDeclaration) methodDeclaration).setBody(block);
+				if (md.getCfg() != null) {
+					// could have no CFG because of empty or incomplete read code attribute
+					md.getCfg().setBlock(block);
+				}
+			}
+		} else if (methodDeclaration instanceof Initializer) {
+			// Initializer (static{}) has block per default
+			assert ((Initializer) methodDeclaration).getBody() != null;
+
+			if (md.getCfg() != null) {
+				// could have no CFG because of empty or incomplete read code attribute
+				md.getCfg().setBlock(((Initializer) methodDeclaration).getBody());
+			}
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(td,
 					m.getDescriptor(), m.getSignature());
@@ -305,42 +343,6 @@ public class TrJvmStruct2JavaAst {
 			final Type returnType = signatureDecompiler.decompileType();
 			if (returnType != null) {
 				((AnnotationTypeMemberDeclaration) methodDeclaration).setType(returnType);
-			}
-		}
-		// get method block, abstract and native methods have no block
-		// TODO double check this way?
-		if (md.getCfg() != null && !m.checkAf(AF.ABSTRACT) && !m.checkAf(AF.NATIVE)) {
-			if (methodDeclaration instanceof MethodDeclaration) {
-				final Block block = ast.newBlock();
-				((MethodDeclaration) methodDeclaration).setBody(block);
-				md.getCfg().setBlock(block);
-			} else if (methodDeclaration instanceof Initializer) {
-				// Initializer (static{}) has block per default
-				md.getCfg().setBlock(((Initializer) methodDeclaration).getBody());
-			}
-		}
-		if (methodDeclaration instanceof MethodDeclaration) {
-			// decompile method parameter annotations and names
-			final A[][] paramAs = md.getParamAss();
-			int param = 0;
-			if (((MethodDeclaration) methodDeclaration).isConstructor()) {
-				// ignore synthetic constructor parameter for inner classes:
-				// none-static inner classes get extra constructor argument,
-				// anonymous inner classes are static if context is static
-				// (see SignatureDecompiler.decompileMethodTypes)
-				/*
-				 * if (!m.getT().checkAf(AF.STATIC) && !(md.getTd().getPd() instanceof CU)) {
-				 * ++param; }
-				 */
-			}
-			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
-					.parameters()) {
-				// decompile parameter annotations
-				if (paramAs != null && param < paramAs.length) {
-					AnnotationsDecompiler.decompileAnnotations(td,
-							singleVariableDeclaration.modifiers(), paramAs[param]);
-				}
-				singleVariableDeclaration.setName(ast.newSimpleName(m.getParamName(param++)));
 			}
 		}
 		md.setMethodDeclaration(methodDeclaration);
@@ -384,14 +386,13 @@ public class TrJvmStruct2JavaAst {
 				if (t.getSuperT() == null
 						|| !Object.class.getName().equals(t.getSuperT().getName())) {
 					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no super class '"
-							+ Object.class.getName() + "' but has '" + t.getSuperT().getName()
-							+ "'!");
+							+ Object.class.getName() + "' but has '" + t.getSuperT() + "'!");
 				}
 				if (t.getInterfaceTs().length != 1
 						|| !Annotation.class.getName().equals(t.getInterfaceTs()[0].getName())) {
 					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no interface '"
-							+ Annotation.class.getName() + "' but has '"
-							+ t.getInterfaceTs()[0].getName() + "'!");
+							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
+							+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
@@ -403,12 +404,10 @@ public class TrJvmStruct2JavaAst {
 					if (t.getSuperT() == null
 							|| !Enum.class.getName().equals(t.getSuperT().getName())) {
 						LOGGER.warning("Classfile with AccessFlag.ENUM has no super class '"
-								+ Enum.class.getName() + "' but has '" + t.getSuperT().getName()
-								+ "'!");
+								+ Enum.class.getName() + "' but has '" + t.getSuperT() + "'!");
 					}
 					typeDeclaration = ast.newEnumDeclaration();
-					// enum declarations cannot extent other classes but Enum.class, but can have
-					// interfaces
+					// enums cannot extend other classes than Enum.class, but can have interfaces
 					if (t.getInterfaceTs() != null) {
 						for (final T interfaceT : t.getInterfaceTs()) {
 							((EnumDeclaration) typeDeclaration).superInterfaceTypes().add(
