@@ -2,7 +2,7 @@ package org.decojer.cavaj.test.jdk5;
 
 public abstract class DecTestSwitchStmt {
 
-	public static void testSwitchEnum(final DecTestEnums e) {
+	public static void testSwitchEnum(final DecTestEnum e) {
 		switch (e) {
 		// no ENUM1
 		case ENUM2:
@@ -14,7 +14,7 @@ public abstract class DecTestSwitchStmt {
 		}
 	}
 
-	public static void testSwitchEnumDefault(final DecTestEnums e) {
+	public static void testSwitchEnumDefault(final DecTestEnum e) {
 		switch (e) {
 		// no ENUM1
 		case ENUM2:
@@ -31,7 +31,7 @@ public abstract class DecTestSwitchStmt {
 		}
 	}
 
-	public static void testSwitchEnumRev(final DecTestEnums e) {
+	public static void testSwitchEnumRev(final DecTestEnum e) {
 		switch (e) {
 		// no ENUM1
 		case ENUM4:
@@ -43,7 +43,7 @@ public abstract class DecTestSwitchStmt {
 		}
 	}
 
-	public static void testSwitchEnumRevDefault(final DecTestEnums e) {
+	public static void testSwitchEnumRevDefault(final DecTestEnum e) {
 		switch (e) {
 		// no ENUM1
 		case ENUM4:
