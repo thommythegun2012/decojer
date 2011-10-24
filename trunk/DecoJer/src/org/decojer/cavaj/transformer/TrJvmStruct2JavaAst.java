@@ -73,24 +73,30 @@ public class TrJvmStruct2JavaAst {
 	@SuppressWarnings("unchecked")
 	private static void decompileField(final FD fd, final CU cu) {
 		final F f = fd.getF();
+
+		if ((f.checkAf(AF.SYNTHETIC) || fd.isSynthetic()) && !cu.isDecompileUnknownSynthetic()) {
+			return;
+		}
+
+		final String name = f.getName();
 		final TD td = fd.getTd();
+
+		// enum synthetic fields
+		if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.getT().checkAf(AF.ENUM)
+				&& !cu.isIgnoreEnum()) {
+			// could extract this field name from initializer for more robustness
+			return;
+		}
 
 		final ASTNode typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
 
-		if (f.checkAf(AF.SYNTHETIC) || fd.isSynthetic()) {
-			if (cu.isIgnoreSynthetic()) {
-				return; // no source code ?
-			}
-		}
-
-		final boolean isEnum = f.checkAf(AF.ENUM);
+		final boolean isFieldEnum = f.checkAf(AF.ENUM);
 
 		// decompile BodyDeclaration, possible subtypes:
 		// FieldDeclaration, EnumConstantDeclaration
 		final BodyDeclaration fieldDeclaration;
-		final String name = f.getName();
-		if (isEnum) {
+		if (isFieldEnum) {
 			fieldDeclaration = ast.newEnumConstantDeclaration();
 			((EnumConstantDeclaration) fieldDeclaration).setName(ast.newSimpleName(name));
 		} else {
@@ -118,7 +124,7 @@ public class TrJvmStruct2JavaAst {
 
 		// decompile modifier flags, public is default for enum and interface
 		if (f.checkAf(AF.PUBLIC)
-				&& !isEnum
+				&& !isFieldEnum
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
@@ -131,14 +137,14 @@ public class TrJvmStruct2JavaAst {
 		}
 		// static is default for enum and interface
 		if (f.checkAf(AF.STATIC)
-				&& !isEnum
+				&& !isFieldEnum
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
 		// final is default for enum and interface
 		if (f.checkAf(AF.FINAL)
-				&& !isEnum
+				&& !isFieldEnum
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
@@ -182,23 +188,31 @@ public class TrJvmStruct2JavaAst {
 	@SuppressWarnings("unchecked")
 	private static void decompileMethod(final MD md, final CU cu) {
 		final M m = md.getM();
+
+		if ((m.checkAf(AF.SYNTHETIC) || md.isSynthetic()) && !cu.isDecompileUnknownSynthetic()) {
+			return;
+		}
+
+		final String name = m.getName();
+		final T[] paramTs = m.getParamTs();
 		final TD td = md.getTd();
+		final T t = td.getT();
+
+		// enum synthetic methods
+		if (("values".equals(name) && paramTs.length == 0 || "valueOf".equals(name)
+				&& paramTs.length == 1 && String.class.getName().equals(paramTs[0].getName()))
+				&& t.checkAf(AF.ENUM) && !cu.isIgnoreEnum()) {
+			return;
+		}
 
 		final ASTNode typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
-
-		if (m.checkAf(AF.SYNTHETIC) || md.isSynthetic()) {
-			if (cu.isIgnoreSynthetic()) {
-				return; // no source code ?
-			}
-		}
 
 		// decompile BodyDeclaration, possible subtypes:
 		// MethodDeclaration (method or constructor),
 		// AnnotationTypeMemberDeclaration (all methods in @interface) or
 		// Initializer (static {})
 		final BodyDeclaration methodDeclaration;
-		final String name = m.getName();
 		if ("<clinit>".equals(name)) {
 			// this is the static initializer "static {}" => Initializer
 			methodDeclaration = ast.newInitializer();
@@ -207,8 +221,7 @@ public class TrJvmStruct2JavaAst {
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setConstructor(true);
 			((MethodDeclaration) methodDeclaration)
-					.setName(ast.newSimpleName(cu.isStartTdOnly() ? td.getT().getPName() : td
-							.getT().getIName()));
+					.setName(ast.newSimpleName(cu.isStartTdOnly() ? t.getPName() : t.getIName()));
 		} else if (typeDeclaration instanceof AnnotationTypeDeclaration) {
 			// AnnotationTypeMemberDeclaration
 			methodDeclaration = ast.newAnnotationTypeMemberDeclaration();
@@ -270,7 +283,7 @@ public class TrJvmStruct2JavaAst {
 					.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
 		}
 		if (m.checkAf(AF.BRIDGE)) {
-			return; // TODO
+			// TODO
 		}
 		if (m.checkAf(AF.NATIVE)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.NATIVE_KEYWORD));
@@ -299,8 +312,7 @@ public class TrJvmStruct2JavaAst {
 				// anonymous inner classes are static if context is static
 				// (see SignatureDecompiler.decompileMethodTypes)
 				/*
-				 * if (!m.getT().checkAf(AF.STATIC) && !(md.getTd().getPd() instanceof CU)) {
-				 * ++param; }
+				 * if (!t.checkAf(AF.STATIC) && !(md.getTd().getPd() instanceof CU)) { ++param; }
 				 */
 			}
 			final A[][] paramAs = md.getParamAss();
@@ -360,23 +372,22 @@ public class TrJvmStruct2JavaAst {
 		final CU cu = td.getCu();
 
 		if ("package-info".equals(t.getPName())) {
+			// this is not a valid Java type name and is used for package annotations, we must
+			// handle this here, is "interface" in JDK 5, is "abstract synthetic interface" in JDK 7
+			if (!t.checkAf(AF.INTERFACE)) {
+				LOGGER.warning("Type declaration with name 'package-info' is not an interface!");
+			}
 			if (td.getAs() != null) {
-				// bug: https://bugs.eclipse.org/bugs/show_bug.cgi?id=361071
-				// org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteFlattener.visit(PackageDeclaration)
-				// bugfix in CU.createSourceCode()
 				AnnotationsDecompiler.decompileAnnotations(td, cu.getCompilationUnit().getPackage()
 						.annotations(), td.getAs());
 			}
 			return;
 		}
+		if ((t.checkAf(AF.SYNTHETIC) || td.isSynthetic()) && !cu.isDecompileUnknownSynthetic()) {
+			return;
+		}
 
 		final AST ast = cu.getAst();
-
-		if (t.checkAf(AF.SYNTHETIC) || td.isSynthetic()) {
-			if (cu.isIgnoreSynthetic()) {
-				return; // no source code ?
-			}
-		}
 
 		if (td.getTypeDeclaration() == null) {
 			AbstractTypeDeclaration typeDeclaration = null;
