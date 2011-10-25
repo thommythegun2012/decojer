@@ -6,7 +6,8 @@ import java.util.Map;
 
 public enum DecTestEnumStatus {
 
-	WAITING(0), READY(1), SKIPPED(-1), COMPLETED(5);
+	WAITING(0), READY(1), @Deprecated
+	SKIPPED(-1), COMPLETED(5);
 
 	private static final Map<Integer, DecTestEnumStatus> lookup = new HashMap<Integer, DecTestEnumStatus>();
 
