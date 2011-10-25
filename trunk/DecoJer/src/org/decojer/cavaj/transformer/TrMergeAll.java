@@ -70,8 +70,6 @@ public class TrMergeAll {
 			if (bd instanceof FD) {
 				final BodyDeclaration fieldDeclaration = ((FD) bd).getFieldDeclaration();
 				if (fieldDeclaration != null) {
-					// e.g. enum constant declarations? TODO later add here,
-					// because of line number sort?
 					td.addBodyDeclaration(fieldDeclaration);
 				}
 				continue;
