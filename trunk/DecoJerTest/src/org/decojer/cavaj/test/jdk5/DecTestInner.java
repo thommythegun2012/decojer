@@ -25,38 +25,50 @@ public abstract class DecTestInner {
 
 	}
 
-	protected class Inner2 {
+	protected static class Inner2 {
 
-		protected final class Inner11 {
+		protected static final class Inner21 {
 
-			public Inner11(final Inner2 innerO2,
+			// static classes only in static or top-level outer classes, enums
+			// are static
+			enum InnerEnum {
+
+				TEST
+
+			}
+
+			public Inner21(final Inner2 innerO2,
 					final DecTestInner.Inner2 inner2) {
-				System.out.println("INNER11 CONSTRUCTOR " + Inner1.class
+				System.out.println("INNER21 CONSTRUCTOR " + Inner1.class
 						+ innerO2 + inner2 + RUNNER.getClass());
 			}
 
 		}
 
+		public final class Inner22 {
+
+			Inner22() {
+				System.out.println("INNER22 CONSTRUCTOR " + InnerEnum.TEST);
+			}
+
+		}
+
 		public Inner2() {
-			System.out.println("INNER2 CONSTRUCTOR " + Inner3.class);
+			System.out.println("INNER2 CONSTRUCTOR " + Inner1.class);
 		}
 
 	}
 
-	private static final class Inner3 {
+	enum InnerEnum {
 
-		public Inner3() {
-			System.out.println("INNER3 CONSTRUCTOR " + Inner1.Inner11.class);
-		}
-
-		Inner2.Inner11 test() {
-			return null;
-		}
+		TEST
 
 	}
 
+	// inner has no this$0 because static field, but class is not static
 	private static Runnable RUNNER = new Runnable() {
 
+		// cannot contain static fields because anonymous classes not static
 		private final List<Runnable> RUNNER = new AbstractList<Runnable>() {
 
 			private final Runnable RUNNER = new Thread() {
@@ -64,7 +76,8 @@ public abstract class DecTestInner {
 				private final Runnable RUNNER = new Thread() {
 
 					public void run() {
-						System.out.println("INNER RUNNER" + Inner11.class);
+						System.out.println("INNER RUNNER" + Inner11.class
+								+ InnerEnum.TEST);
 					}
 
 				};
@@ -97,7 +110,7 @@ public abstract class DecTestInner {
 		final Runnable RUNNER = new Runnable() {
 
 			public void run() {
-				System.out.println("INNER RUNNER" + Inner2.Inner11.class);
+				System.out.println("INNER RUNNER" + Inner2.Inner22.class);
 			}
 
 		};
