@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
@@ -209,7 +210,8 @@ public class SignatureDecompiler {
 	}
 
 	/**
-	 * Decompile method types (parameter types, return type, exception types).
+	 * Decompile method parameters (parameter types, return type, exception types, annotations,
+	 * names).
 	 * 
 	 * @param methodDeclaration
 	 *            method declaration
@@ -217,43 +219,50 @@ public class SignatureDecompiler {
 	 *            method declaration
 	 */
 	@SuppressWarnings("unchecked")
-	public void decompileMethodTypes(final MethodDeclaration methodDeclaration, final MD md) {
+	public void decompileMethodParams(final MethodDeclaration methodDeclaration, final MD md) {
 		// method type parameters (full signature only):
 		// <T:Ljava/lang/Integer;U:Ljava/lang/Long;>(TT;TU;)V
 		// <U:TT;>(TT;TU;)V
 		final M m = md.getM();
 		decompileTypeParameters(methodDeclaration.typeParameters());
 		final List<Type> methodParameterTypes = decompileMethodParameterTypes();
+		final A[][] paramAs = md.getParamAss();
 		if (methodParameterTypes != null) {
 			final boolean varargs = m.checkAf(AF.VARARGS);
 			for (int i = 0; i < methodParameterTypes.size(); ++i) {
-				final Type methosParameterType = methodParameterTypes.get(i);
+				final Type methodParameterType = methodParameterTypes.get(i);
 				if (methodDeclaration.isConstructor()) {
-					// ignore synthetic constructor parameter for inner classes:
-					// none-static inner classes get extra constructor argument,
-					// anonymous inner classes are static if context is static
-					/*
-					 * if (i == 0 && !m.getT().checkAf(AF.STATIC) && !(md.getTd().getPd() instanceof
-					 * CU)) { continue; }
-					 */
+					// anonymous inner classes have no visible constructor
+
+					// method inner classes have extra trailing parameters for visible outer finals,
+					// that are used in other methods
+
+					// static inner classes can only have top-level or static outer,
+					// anonymous inner classes are static if context is static,
+					// enums are static and can not be anonymous or inner method
 				}
 				final SingleVariableDeclaration singleVariableDeclaration = getAst()
 						.newSingleVariableDeclaration();
+				if (paramAs != null && i < paramAs.length) {
+					AnnotationsDecompiler.decompileAnnotations(this.td,
+							singleVariableDeclaration.modifiers(), paramAs[i]);
+				}
 				// decompile varargs (flag set, ArrayType and last method param)
 				if (varargs && i == methodParameterTypes.size() - 1) {
-					if (methosParameterType instanceof ArrayType) {
+					if (methodParameterType instanceof ArrayType) {
 						singleVariableDeclaration.setVarargs(true);
 						singleVariableDeclaration.setType((Type) ASTNode.copySubtree(getAst(),
-								((ArrayType) methosParameterType).getComponentType()));
+								((ArrayType) methodParameterType).getComponentType()));
 					} else {
 						LOGGER.warning("Last method parameter is no ArrayType, but method '"
 								+ methodDeclaration.getName() + "' has vararg attribute!");
 						// try handling as normal type
-						singleVariableDeclaration.setType(methosParameterType);
+						singleVariableDeclaration.setType(methodParameterType);
 					}
 				} else {
-					singleVariableDeclaration.setType(methosParameterType);
+					singleVariableDeclaration.setType(methodParameterType);
 				}
+				singleVariableDeclaration.setName(this.ast.newSimpleName(m.getParamName(i)));
 				methodDeclaration.parameters().add(singleVariableDeclaration);
 			}
 		}
@@ -428,7 +437,7 @@ public class SignatureDecompiler {
 		}
 		++this.posFull;
 		while (this.signatureFull.charAt(this.posFull) != '>') {
-			final TypeParameter newTypeParameter = getAst().newTypeParameter();
+			final TypeParameter typeParameter = getAst().newTypeParameter();
 			// <T extends Map<? extends E, ? extends Object>, E>
 			// compiled to:
 			// <T::Ljava/util/Map<+TE;+Ljava/lang/Object;>;E:Ljava/lang/Object;>
@@ -440,7 +449,7 @@ public class SignatureDecompiler {
 			final int posFull1 = this.signatureFull.indexOf(':', this.posFull);
 			final int posFull2 = this.signatureFull.indexOf('>', this.posFull);
 			if (posFull1 != -1 && posFull1 < posFull2) {
-				newTypeParameter.setName(getAst().newSimpleName(
+				typeParameter.setName(getAst().newSimpleName(
 						this.signatureFull.substring(this.posFull, posFull1)));
 				this.posFull = posFull1;
 				// after first : follows an _optional_ single superclass bound,
@@ -454,15 +463,15 @@ public class SignatureDecompiler {
 					final Type type = decompileTypeFull();
 					// ignore simple type bounds <E extends java.lang.Object>
 					if (type != null && !"Object".equals(type.toString())) {
-						newTypeParameter.typeBounds().add(type);
+						typeParameter.typeBounds().add(type);
 					}
 				}
 			} else {
-				newTypeParameter.setName(getAst().newSimpleName(
+				typeParameter.setName(getAst().newSimpleName(
 						this.signatureFull.substring(this.posFull, posFull2)));
 				this.posFull = posFull2 + 1;
 			}
-			list.add(newTypeParameter);
+			list.add(typeParameter);
 		}
 		++this.posFull;
 	}

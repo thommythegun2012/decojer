@@ -94,10 +94,12 @@ import org.eclipse.jdt.core.dom.ArrayCreation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Assignment;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
+import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -887,6 +889,25 @@ public class TrIvmCfg2JavaExprStmts {
 					}
 					if (this.cfg.getStartBb() != bb || bb.getStatementsSize() != 0) {
 						break fieldInit;
+					}
+					if (f.getT().checkAf(AF.ENUM) && !getCu().isIgnoreEnum()) {
+						if (f.checkAf(AF.ENUM)) {
+							if (rightExpression instanceof ClassInstanceCreation
+									&& ((ClassInstanceCreation) rightExpression)
+											.getAnonymousClassDeclaration() != null) {
+								final FD fd = getTd().getFd(f.getName());
+								final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
+								((ClassInstanceCreation) rightExpression)
+										.setAnonymousClassDeclaration(null);
+								((EnumConstantDeclaration) fieldDeclaration)
+										.setAnonymousClassDeclaration(((ClassInstanceCreation) rightExpression)
+												.getAnonymousClassDeclaration());
+								break;
+							}
+						}
+						if ("$VALUES".equals(f.getName()) || "ENUM$VALUES".equals(f.getName())) {
+							break; // ignore such assignments completely
+						}
 					}
 					if (f.checkAf(AF.SYNTHETIC)) {
 						if (getCu().isDecompileUnknownSynthetic()) {

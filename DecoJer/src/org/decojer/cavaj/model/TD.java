@@ -30,6 +30,8 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
+import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
 /**
@@ -102,6 +104,13 @@ public class TD implements BD, PD {
 		if (this.typeDeclaration instanceof AnonymousClassDeclaration) {
 			return ((AnonymousClassDeclaration) this.typeDeclaration).bodyDeclarations().add(
 					bodyDeclaration);
+		}
+		if (bodyDeclaration instanceof EnumConstantDeclaration) {
+			if (this.typeDeclaration instanceof EnumDeclaration) {
+				return ((EnumDeclaration) this.typeDeclaration).enumConstants()
+						.add(bodyDeclaration);
+			}
+			return false;
 		}
 		return ((AbstractTypeDeclaration) this.typeDeclaration).bodyDeclarations().add(
 				bodyDeclaration);

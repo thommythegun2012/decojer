@@ -27,7 +27,6 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
@@ -55,7 +54,6 @@ import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
-import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
@@ -85,6 +83,10 @@ public class TrJvmStruct2JavaAst {
 		if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.getT().checkAf(AF.ENUM)
 				&& !cu.isIgnoreEnum()) {
 			// could extract this field name from initializer for more robustness
+			return;
+		}
+		if (name.startsWith("this$") && !cu.isStartTdOnly()) {
+			// cache for outer none-static context
 			return;
 		}
 
@@ -156,14 +158,8 @@ public class TrJvmStruct2JavaAst {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.TRANSIENT_KEYWORD));
 		}
 
-		if (fieldDeclaration instanceof EnumConstantDeclaration) {
-			if (!(typeDeclaration instanceof EnumDeclaration)) {
-				LOGGER.warning("No enum declaration for enum constant declaration '" + f.getName()
-						+ "'!");
-			} else {
-				((EnumDeclaration) typeDeclaration).enumConstants().add(fieldDeclaration);
-			}
-		} else if (fieldDeclaration instanceof FieldDeclaration) {
+		// not for enum constant declaration
+		if (fieldDeclaration instanceof FieldDeclaration) {
 			if (f.getSignature() != null) {
 				new SignatureDecompiler(td, null, f.getSignature())
 						.decompileFieldType((FieldDeclaration) fieldDeclaration);
@@ -181,8 +177,8 @@ public class TrJvmStruct2JavaAst {
 					variableDeclarationFragment.setInitializer(expr);
 				}
 			}
-			fd.setFieldDeclaration(fieldDeclaration);
 		}
+		fd.setFieldDeclaration(fieldDeclaration);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -299,33 +295,11 @@ public class TrJvmStruct2JavaAst {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
 		}
 		/*
-		 * if (m.checkAf(AF.CONSTRUCTOR)) { // nothing, Dalvik only? } if
-		 * (m.checkAf(AF.DECLARED_SYNCHRONIZED)) { // nothing, Dalvik only? }
+		 * AF.CONSTRUCTOR, AF.DECLARED_SYNCHRONIZED nothing, Dalvik only?
 		 */
 		if (methodDeclaration instanceof MethodDeclaration) {
-			new SignatureDecompiler(td, m.getDescriptor(), m.getSignature()).decompileMethodTypes(
+			new SignatureDecompiler(td, m.getDescriptor(), m.getSignature()).decompileMethodParams(
 					(MethodDeclaration) methodDeclaration, md);
-			// decompile method parameter annotations and names
-			if (((MethodDeclaration) methodDeclaration).isConstructor()) {
-				// ignore synthetic constructor parameter for inner classes:
-				// none-static inner classes get extra constructor argument,
-				// anonymous inner classes are static if context is static
-				// (see SignatureDecompiler.decompileMethodTypes)
-				/*
-				 * if (!t.checkAf(AF.STATIC) && !(md.getTd().getPd() instanceof CU)) { ++param; }
-				 */
-			}
-			final A[][] paramAs = md.getParamAss();
-			int param = 0;
-			for (final SingleVariableDeclaration singleVariableDeclaration : (List<SingleVariableDeclaration>) ((MethodDeclaration) methodDeclaration)
-					.parameters()) {
-				// decompile parameter annotations
-				if (paramAs != null && param < paramAs.length) {
-					AnnotationsDecompiler.decompileAnnotations(td,
-							singleVariableDeclaration.modifiers(), paramAs[param]);
-				}
-				singleVariableDeclaration.setName(ast.newSimpleName(m.getParamName(param++)));
-			}
 			if (!m.checkAf(AF.ABSTRACT) && !m.checkAf(AF.NATIVE)) {
 				// create method block for valid syntax, abstract and native methods have none
 				final Block block = ast.newBlock();
