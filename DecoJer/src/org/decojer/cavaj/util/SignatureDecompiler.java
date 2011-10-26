@@ -232,7 +232,20 @@ public class SignatureDecompiler {
 			for (int i = 0; i < methodParameterTypes.size(); ++i) {
 				final Type methodParameterType = methodParameterTypes.get(i);
 				if (methodDeclaration.isConstructor()) {
-					// anonymous inner classes have no visible constructor
+
+					if (i <= 1 && this.td.getT().checkAf(AF.ENUM)
+							&& !this.td.getCu().isIgnoreEnum()) {
+						// enum constructors have two leading synthetic parameters,
+						// enum classes are static and can not be anonymous or inner method
+						if (i == 0 && String.class.getName().equals(m.getParamTs()[0].getName())) {
+							continue;
+						}
+						if (i == 1 && m.getParamTs()[1] == T.INT) {
+							continue;
+						}
+					}
+					// anonymous inner classes cannot have visible Java constructors, don't handle
+					// here but ignore in merge all
 
 					// method inner classes have extra trailing parameters for visible outer finals,
 					// that are used in other methods
