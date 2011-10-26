@@ -6,8 +6,7 @@ import java.util.Map;
 
 public enum DecTestEnumStatus {
 
-	WAITING(0), READY(1), @Deprecated
-	SKIPPED(-1), COMPLETED(5);
+	WAITING(0), READY(1), SKIPPED(-1), COMPLETED(5, true);
 
 	private static final Map<Integer, DecTestEnumStatus> lookup = new HashMap<Integer, DecTestEnumStatus>();
 
@@ -23,6 +22,12 @@ public enum DecTestEnumStatus {
 	private int code;
 
 	private DecTestEnumStatus(int code) {
+		// cannot reference static fields in constructor, resulting synthetic
+		// code is using static initializer for itself
+		this.code = code;
+	}
+
+	private DecTestEnumStatus(int code, boolean state) {
 		// cannot reference static fields in constructor, resulting synthetic
 		// code is using static initializer for itself
 		this.code = code;
