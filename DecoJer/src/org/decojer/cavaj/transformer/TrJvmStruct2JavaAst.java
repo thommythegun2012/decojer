@@ -396,7 +396,7 @@ public class TrJvmStruct2JavaAst {
 					if (t.getInterfaceTs() != null) {
 						for (final T interfaceT : t.getInterfaceTs()) {
 							((EnumDeclaration) typeDeclaration).superInterfaceTypes().add(
-									ast.newSimpleType(ast.newName(interfaceT.getName())));
+									ast.newSimpleType(td.newTypeName(interfaceT.getName())));
 						}
 					}
 				}
