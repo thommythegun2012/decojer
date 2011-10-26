@@ -107,23 +107,41 @@ public class TypeNameManager {
 						}
 					}
 				}
-				// TODO replace $ with ., but correctly handle anonymous inner
-				// classes first, <init> not synthetic!
-				return getAST().newSimpleName(name);
+				return getAST().newName(replace(name));
 			}
 		}
 		if (fullName.startsWith(JAVA_LANG)) {
 			// immediately remove this package prefix, save resources
 			final int pos = fullName.indexOf('.', JAVA_LANG.length());
 			if (pos == -1) {
-				// if not in sub package
-				return getAST().newSimpleName(fullName.substring(JAVA_LANG.length()));
+				// if not in sub package,
+				// not newSimpleName, e.g. java.lang.Thread$State -> Thread.State
+				return getAST().newName(replace(fullName.substring(JAVA_LANG.length())));
 			}
 		}
 		// TODO build package histogram
-		// TODO replace $ with ., but correctly handle anonymous inner
-		// classes first
-		return getAST().newName(fullName);
+		return getAST().newName(replace(fullName));
+	}
+
+	private String replace(final String str) {
+		int pos2 = str.indexOf('$');
+		if (pos2 == -1) {
+			return str;
+		}
+		int pos1 = 0;
+		final StringBuilder sb = new StringBuilder();
+		while (pos2 != -1) {
+			sb.append(str.substring(pos1, pos2));
+			if (Character.isJavaIdentifierStart(str.charAt(pos2 + 1))) {
+				sb.append('.');
+			} else {
+				sb.append('$');
+			}
+			pos1 = pos2 + 1;
+			pos2 = str.indexOf('$', pos1);
+		}
+		sb.append(str.substring(pos1));
+		return sb.toString();
 	}
 
 	/**

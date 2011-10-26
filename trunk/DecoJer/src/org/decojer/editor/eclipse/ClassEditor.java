@@ -353,7 +353,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			throw new DecoJerException("Unknown editor input type '" + editorInput + "'!");
 		}
 
-		LOGGER.info("Editor Input: " + editorInput + " fileName: " + fileName);
+		LOGGER.fine("Editor Input: " + editorInput + " fileName: " + fileName);
 
 		this.du = DecoJer.createDu();
 
@@ -525,7 +525,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			return;
 		}
 		// find CFG
-		LOGGER.info("Find method declaration for declaring type '" + fullyQualifiedName
+		LOGGER.fine("Find method declaration for declaring type '" + fullyQualifiedName
 				+ "' and element name '" + elementName + "' and signature '" + signature + "'!");
 		try {
 			// get declaring type,

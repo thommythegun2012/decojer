@@ -228,7 +228,6 @@ public class SignatureDecompiler {
 		final List<Type> methodParameterTypes = decompileMethodParameterTypes();
 		final A[][] paramAs = md.getParamAss();
 		if (methodParameterTypes != null) {
-			final boolean varargs = m.checkAf(AF.VARARGS);
 			for (int i = 0; i < methodParameterTypes.size(); ++i) {
 				final Type methodParameterType = methodParameterTypes.get(i);
 				if (methodDeclaration.isConstructor()) {
@@ -261,7 +260,7 @@ public class SignatureDecompiler {
 							singleVariableDeclaration.modifiers(), paramAs[i]);
 				}
 				// decompile varargs (flag set, ArrayType and last method param)
-				if (varargs && i == methodParameterTypes.size() - 1) {
+				if (i == methodParameterTypes.size() - 1 && m.checkAf(AF.VARARGS)) {
 					if (methodParameterType instanceof ArrayType) {
 						singleVariableDeclaration.setVarargs(true);
 						singleVariableDeclaration.setType((Type) ASTNode.copySubtree(getAst(),
@@ -417,13 +416,10 @@ public class SignatureDecompiler {
 		}
 		case 'T': {
 			final int posFull1 = this.signatureFull.indexOf(';', this.posFull);
-			final SimpleType newSimpleType = getAst()
-					.newSimpleType(
-							getAst().newSimpleName(
-									this.signatureFull.substring(this.posFull, posFull1).replace(
-											'/', '.')));
+			final SimpleType simpleType = getAst().newSimpleType(
+					getAst().newSimpleName(this.signatureFull.substring(this.posFull, posFull1)));
 			this.posFull = posFull1 + 1;
-			return newSimpleType;
+			return simpleType;
 		}
 		default:
 			LOGGER.warning("Unknown type id '" + id + "' at position '" + --this.posFull
