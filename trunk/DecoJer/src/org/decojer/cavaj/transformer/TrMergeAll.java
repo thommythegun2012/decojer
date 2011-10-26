@@ -28,11 +28,11 @@ import java.util.List;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
+import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -77,15 +77,17 @@ public class TrMergeAll {
 			if (bd instanceof MD) {
 				final MD md = (MD) bd;
 				final BodyDeclaration methodDeclaration = md.getMethodDeclaration();
-				if (methodDeclaration instanceof MethodDeclaration) {
-					// ignore empty static initializer or constructor
-					final M m = md.getM();
-					if ("<init>".equals(m.getName()) && m.getAccessFlags() <= 1) {
-						// flags == 1 (public) for main types,
-						// access flags == 0 for inner types only?
-						if (((MethodDeclaration) methodDeclaration).getBody().statements().size() == 0) {
-							continue;
-						}
+				if (methodDeclaration instanceof MethodDeclaration
+						&& "<init>".equals(md.getM().getName())) {
+					if (td.getTypeDeclaration() instanceof AnonymousClassDeclaration) {
+						// anonymous inner classes cannot have visible Java constructors
+						continue;
+					}
+					// ignore empty default constructor
+					if (((MethodDeclaration) methodDeclaration).parameters().size() == 0
+							&& ((MethodDeclaration) methodDeclaration).getBody().statements()
+									.size() == 0) {
+						continue;
 					}
 				} else if (methodDeclaration instanceof Initializer) {
 					// can only be <clinit>

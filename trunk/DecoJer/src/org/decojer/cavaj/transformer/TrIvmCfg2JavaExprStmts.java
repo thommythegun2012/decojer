@@ -470,6 +470,28 @@ public class TrIvmCfg2JavaExprStmts {
 					if ("<init>".equals(mName)) {
 						methodExpression = null;
 						if (expression instanceof ThisExpression) {
+							enumConstructor: if (Enum.class.getName().equals(m.getT().getName())
+									&& !getCu().isIgnoreEnum()) {
+								if (arguments.size() < 2) {
+									LOGGER.warning("Super constructor invocation '" + m
+											+ "' for enum has less than 2 arguments!");
+									break enumConstructor;
+								}
+								if (!String.class.getName().equals(m.getParamTs()[0].getName())) {
+									LOGGER.warning("Super constructor invocation '"
+											+ m
+											+ "' for enum must contain string literal as first parameter!");
+									break enumConstructor;
+								}
+								if (m.getParamTs()[1] != T.INT) {
+									LOGGER.warning("Super constructor invocation '"
+											+ m
+											+ "' for enum must contain number literal as first parameter!");
+									break enumConstructor;
+								}
+								arguments.remove(0);
+								arguments.remove(0);
+							}
 							if (arguments.size() == 0) {
 								// implicit super callout, more checks possible but not necessary
 								break;
@@ -483,9 +505,8 @@ public class TrIvmCfg2JavaExprStmts {
 						if (expression instanceof ClassInstanceCreation) {
 							final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) expression;
 							if (classInstanceCreation.getAnonymousClassDeclaration() != null) {
-								// anonymous inner classes cannot have arguments, further checks not
-								// necessary
-								break;
+								// if none-static context remove initial this parameter or check
+								// this$0 in inner?
 							}
 							// ignore synthetic constructor parameter for inner classes:
 							// none-static inner classes get extra constructor argument,
@@ -887,23 +908,74 @@ public class TrIvmCfg2JavaExprStmts {
 						// multiple constructors with different signatures possible, all of them
 						// contain the same field initializer code after super() - simply overwrite
 					}
-					if (this.cfg.getStartBb() != bb || bb.getStatementsSize() != 0) {
+					if (this.cfg.getStartBb() != bb || bb.getStatementsSize() > 1) {
 						break fieldInit;
 					}
+					if (bb.getStatementsSize() == 1
+							&& !(bb.getStatement(0) instanceof SuperConstructorInvocation)) {
+						// initial super(<arguments>) is allowed
+						break fieldInit;
+					}
+					// TODO this checks are not enough, we must assure that we don't use method
+					// arguments here!!!
 					if (f.getT().checkAf(AF.ENUM) && !getCu().isIgnoreEnum()) {
 						if (f.checkAf(AF.ENUM)) {
-							if (rightExpression instanceof ClassInstanceCreation
-									&& ((ClassInstanceCreation) rightExpression)
-											.getAnonymousClassDeclaration() != null) {
-								final FD fd = getTd().getFd(f.getName());
-								final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
-								((ClassInstanceCreation) rightExpression)
-										.setAnonymousClassDeclaration(null);
-								((EnumConstantDeclaration) fieldDeclaration)
-										.setAnonymousClassDeclaration(((ClassInstanceCreation) rightExpression)
-												.getAnonymousClassDeclaration());
-								break;
+							// assignment to enum constant declaration
+							if (!(rightExpression instanceof ClassInstanceCreation)) {
+								LOGGER.warning("Assignment to enum field '" + f
+										+ "' is no class instance creation!");
+								break fieldInit;
 							}
+							final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) rightExpression;
+							// first two arguments must be String (== field name) and int (ordinal)
+							final List<Expression> arguments = classInstanceCreation.arguments();
+							if (arguments.size() < 2) {
+								LOGGER.warning("Class instance creation for enum field '" + f
+										+ "' has less than 2 arguments!");
+								break fieldInit;
+							}
+							if (!(arguments.get(0) instanceof StringLiteral)) {
+								LOGGER.warning("Class instance creation for enum field '" + f
+										+ "' must contain string literal as first parameter!");
+								break fieldInit;
+							}
+							final String literalValue = ((StringLiteral) arguments.get(0))
+									.getLiteralValue();
+							if (!literalValue.equals(f.getName())) {
+								LOGGER.warning("Class instance creation for enum field '"
+										+ f
+										+ "' must contain string literal equal to field name as first parameter!");
+								break fieldInit;
+							}
+							if (!(arguments.get(1) instanceof NumberLiteral)) {
+								LOGGER.warning("Class instance creation for enum field '" + f
+										+ "' must contain number literal as first parameter!");
+								break fieldInit;
+							}
+							final FD fd = getTd().getFd(f.getName());
+							final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
+							assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
+							final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
+
+							for (int i = arguments.size(); i-- > 2;) {
+								final Expression e = arguments.get(i);
+								e.delete();
+								enumConstantDeclaration.arguments().add(0, e);
+							}
+
+							final AnonymousClassDeclaration anonymousClassDeclaration = classInstanceCreation
+									.getAnonymousClassDeclaration();
+							if (anonymousClassDeclaration != null) {
+								anonymousClassDeclaration.delete();
+								enumConstantDeclaration
+										.setAnonymousClassDeclaration(anonymousClassDeclaration);
+								// normally contains one constructor, that calls a synthetic super
+								// constructor with the enum class as additional last parameter,
+								// this may contain field initializers, that we must keep,
+								// so we can only remove the constructor in final merge (because
+								// anonymous inner classes cannot hava visible Java constructor)
+							}
+							break;
 						}
 						if ("$VALUES".equals(f.getName()) || "ENUM$VALUES".equals(f.getName())) {
 							break; // ignore such assignments completely
