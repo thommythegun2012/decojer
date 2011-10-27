@@ -38,7 +38,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.Exc;
-import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
 import org.decojer.cavaj.model.code.op.AND;
@@ -122,7 +122,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
-	private final HashMap<Integer, ArrayList<Var>> reg2vars = new HashMap<Integer, ArrayList<Var>>();
+	private final HashMap<Integer, ArrayList<V>> reg2vars = new HashMap<Integer, ArrayList<V>>();
 
 	/**
 	 * Constructor.
@@ -260,9 +260,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 				this.excs.clear();
 			}
 			if (this.reg2vars.size() > 0) {
-				for (final Entry<Integer, ArrayList<Var>> entry : this.reg2vars.entrySet()) {
+				for (final Entry<Integer, ArrayList<V>> entry : this.reg2vars.entrySet()) {
 					final int reg = entry.getKey();
-					for (final Var var : entry.getValue()) {
+					for (final V var : entry.getValue()) {
 						cfg.addVar(reg, var);
 					}
 				}
@@ -1189,8 +1189,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 					op.setHandlerPc(this.ops.size());
 				}
 			}
-			if (o instanceof Var) {
-				final Var op = (Var) o;
+			if (o instanceof V) {
+				final V op = (V) o;
 				if (pc == op.getStartPc()) {
 					op.setStartPc(this.ops.size());
 				}
@@ -1247,7 +1247,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		if (signature != null) {
 			varT.setSignature(signature);
 		}
-		final Var var = new Var(varT);
+		final V var = new V(varT);
 		var.setName(name);
 
 		int pc = getPc(start);
@@ -1261,9 +1261,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			getUnresolved(end).add(var);
 		}
 
-		ArrayList<Var> vars = this.reg2vars.get(index);
+		ArrayList<V> vars = this.reg2vars.get(index);
 		if (vars == null) {
-			vars = new ArrayList<Var>();
+			vars = new ArrayList<V>();
 			this.reg2vars.put(index, vars);
 		}
 		vars.add(var);

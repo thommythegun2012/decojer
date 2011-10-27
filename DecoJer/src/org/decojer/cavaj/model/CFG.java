@@ -31,7 +31,7 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.Frame;
-import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.Op;
 import org.eclipse.jdt.core.dom.Block;
 
@@ -72,7 +72,7 @@ public class CFG {
 
 	private BB startBb;
 
-	private Var[][] varss;
+	private V[][] varss;
 
 	/**
 	 * Constructor.
@@ -119,23 +119,23 @@ public class CFG {
 	 * @param var
 	 *            local variable
 	 */
-	public void addVar(final int reg, final Var var) {
+	public void addVar(final int reg, final V var) {
 		assert var != null;
 
-		Var[] vars = null;
+		V[] vars = null;
 		if (this.varss == null) {
-			this.varss = new Var[reg + 1][];
+			this.varss = new V[reg + 1][];
 		} else if (reg >= this.varss.length) {
-			final Var[][] newVarss = new Var[reg + 1][];
+			final V[][] newVarss = new V[reg + 1][];
 			System.arraycopy(this.varss, 0, newVarss, 0, this.varss.length);
 			this.varss = newVarss;
 		} else {
 			vars = this.varss[reg];
 		}
 		if (vars == null) {
-			vars = new Var[1];
+			vars = new V[1];
 		} else {
-			final Var[] newVars = new Var[vars.length + 1];
+			final V[] newVars = new V[vars.length + 1];
 			System.arraycopy(vars, 0, newVars, 0, vars.length);
 			vars = newVars;
 		}
@@ -231,7 +231,7 @@ public class CFG {
 	 *            pc
 	 * @return local variable (from frame)
 	 */
-	public Var getFrameVar(final int reg, final int pc) {
+	public V getFrameVar(final int reg, final int pc) {
 		return this.frames[pc].get(reg);
 	}
 
@@ -332,16 +332,16 @@ public class CFG {
 	 * 
 	 * @return local variable (from debug info)
 	 */
-	public Var getVar(final int reg, final int pc) {
+	public V getVar(final int reg, final int pc) {
 		if (this.varss == null || reg >= this.varss.length) {
 			return null;
 		}
-		final Var[] vars = this.varss[reg];
+		final V[] vars = this.varss[reg];
 		if (vars == null) {
 			return null;
 		}
 		for (int i = vars.length; i-- > 0;) {
-			final Var var = vars[i];
+			final V var = vars[i];
 			if (var.getStartPc() <= pc && (pc < var.getEndPc() || var.getEndPc() == 0)) {
 				return var;
 			}
@@ -393,11 +393,11 @@ public class CFG {
 		final T[] paramTs = m.getParamTs();
 
 		if (this.varss == null) {
-			this.varss = new Var[this.maxRegs][];
+			this.varss = new V[this.maxRegs][];
 		} else if (this.maxRegs < this.varss.length) {
 			LOGGER.warning("Max registers less than biggest register with local variable info!");
 		} else if (this.maxRegs > this.varss.length) {
-			final Var[][] newVarss = new Var[this.maxRegs][];
+			final V[][] newVarss = new V[this.maxRegs][];
 			System.arraycopy(this.varss, 0, newVarss, 0, this.varss.length);
 			this.varss = newVarss;
 		}
@@ -411,25 +411,25 @@ public class CFG {
 				}
 				// parameter name was encoded in extra debug info, copy names
 				// and parameter types to local vars
-				Var[] vars = this.varss[--reg];
+				V[] vars = this.varss[--reg];
 				if (vars != null) {
 					LOGGER.warning("Found local variable info for method parameter '" + reg + "'!");
 				}
 				// check
-				vars = new Var[1];
-				final Var var = new Var(paramT);
+				vars = new V[1];
+				final V var = new V(paramT);
 				var.setName(m.getParamName(i));
 				vars[0] = var;
 				this.varss[reg] = vars;
 			}
 			if (!m.checkAf(AF.STATIC)) {
-				Var[] vars = this.varss[--reg];
+				V[] vars = this.varss[--reg];
 				if (vars != null) {
 					LOGGER.warning("Found local variable info for method parameter 'this'!");
 				}
 				// check
-				vars = new Var[1];
-				final Var var = new Var(td.getT());
+				vars = new V[1];
+				final V var = new V(td.getT());
 				var.setName("this");
 				vars[0] = var;
 				this.varss[reg] = vars;
@@ -439,15 +439,15 @@ public class CFG {
 		// JVM...function parameters left aligned
 		int reg = 0;
 		if (!m.checkAf(AF.STATIC)) {
-			Var[] vars = this.varss[reg];
+			V[] vars = this.varss[reg];
 			if (vars != null) {
 				if (vars.length > 1) {
 					LOGGER.warning("Found multiple local variable info for method parameter 'this'!");
 				}
 				++reg;
 			} else {
-				vars = new Var[1];
-				final Var var = new Var(td.getT());
+				vars = new V[1];
+				final V var = new V(td.getT());
 				var.setName("this");
 				vars[0] = var;
 				this.varss[reg++] = vars;
@@ -455,7 +455,7 @@ public class CFG {
 		}
 		for (int i = 0; i < paramTs.length; ++i) {
 			final T paramT = paramTs[i];
-			Var[] vars = this.varss[reg];
+			V[] vars = this.varss[reg];
 			if (vars != null) {
 				if (vars.length > 1) {
 					LOGGER.warning("Found multiple local variable info for method parameter '"
@@ -464,8 +464,8 @@ public class CFG {
 				m.setParamName(i, vars[0].getName());
 				++reg;
 			} else {
-				vars = new Var[1];
-				final Var var = new Var(paramT);
+				vars = new V[1];
+				final V var = new V(paramT);
 				var.setName(m.getParamName(i));
 				vars[0] = var;
 				this.varss[reg++] = vars;

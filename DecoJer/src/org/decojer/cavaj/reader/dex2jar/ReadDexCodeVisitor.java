@@ -33,7 +33,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.Exc;
-import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.FILLARRAY;
 import org.decojer.cavaj.model.code.op.GOTO;
 import org.decojer.cavaj.model.code.op.JCMP;
@@ -73,7 +73,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	private final ArrayList<Op> ops = new ArrayList<Op>();
 
-	private final HashMap<Integer, ArrayList<Var>> reg2vars = new HashMap<Integer, ArrayList<Var>>();
+	private final HashMap<Integer, ArrayList<V>> reg2vars = new HashMap<Integer, ArrayList<V>>();
 
 	/**
 	 * Constructor.
@@ -187,9 +187,9 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 				this.excs.clear();
 			}
 			if (this.reg2vars.size() > 0) {
-				for (final Entry<Integer, ArrayList<Var>> entry : this.reg2vars.entrySet()) {
+				for (final Entry<Integer, ArrayList<V>> entry : this.reg2vars.entrySet()) {
 					final int reg = entry.getKey();
-					for (final Var var : entry.getValue()) {
+					for (final V var : entry.getValue()) {
 						cfg.addVar(reg, var);
 					}
 				}
@@ -302,8 +302,8 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 					op.setHandlerPc(this.ops.size());
 				}
 			}
-			if (o instanceof Var) {
-				final Var op = (Var) o;
+			if (o instanceof V) {
+				final V op = (V) o;
 				if (pc == op.getStartPc()) {
 					op.setStartPc(this.ops.size());
 				}

@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class Var {
+public class V {
 
 	private int endPc;
 
@@ -46,7 +46,7 @@ public class Var {
 	 * @param t
 	 *            type
 	 */
-	public Var(final T t) {
+	public V(final T t) {
 		this.t = t;
 	}
 

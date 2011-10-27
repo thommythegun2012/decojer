@@ -31,7 +31,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.V;
 import org.jf.dexlib.DebugInfoItem;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
@@ -51,7 +51,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
 
-	private final HashMap<Integer, ArrayList<Var>> reg2vars = new HashMap<Integer, ArrayList<Var>>();
+	private final HashMap<Integer, ArrayList<V>> reg2vars = new HashMap<Integer, ArrayList<V>>();
 
 	/**
 	 * Constructor.
@@ -88,7 +88,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	 * 
 	 * @return register to variables map
 	 */
-	public HashMap<Integer, ArrayList<Var>> getReg2vars() {
+	public HashMap<Integer, ArrayList<V>> getReg2vars() {
 		return this.reg2vars;
 	}
 
@@ -130,13 +130,13 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		System.out.println("*ProcessEndLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
 				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
 
-		final ArrayList<Var> vars = this.reg2vars.get(registerNum);
+		final ArrayList<V> vars = this.reg2vars.get(registerNum);
 		if (vars == null) {
 			LOGGER.warning("ProcessEndLocal '" + registerNum + "' without any ProcessStartLocal!");
 			return;
 		}
 		for (int i = vars.size(); i-- > 0;) {
-			final Var var = vars.get(i);
+			final V var = vars.get(i);
 			if (var.getEndPc() != -1) {
 				continue;
 			}
@@ -202,15 +202,15 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		if (signature != null) {
 			varT.setSignature(signature.getStringValue());
 		}
-		final Var var = new Var(varT);
+		final V var = new V(varT);
 		var.setName(name.getStringValue());
 
 		var.setStartPc(codeAddress);
 		var.setEndPc(-1);
 
-		ArrayList<Var> vars = this.reg2vars.get(registerNum);
+		ArrayList<V> vars = this.reg2vars.get(registerNum);
 		if (vars == null) {
-			vars = new ArrayList<Var>();
+			vars = new ArrayList<V>();
 			this.reg2vars.put(registerNum, vars);
 		}
 		vars.add(var);
