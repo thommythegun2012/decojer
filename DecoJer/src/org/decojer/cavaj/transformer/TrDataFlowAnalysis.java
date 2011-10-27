@@ -570,6 +570,8 @@ public class TrDataFlowAnalysis {
 				final V debugV = this.cfg.getDebugV(cop.getReg(), this.pc + 1);
 				if (debugV != null) {
 					storeV = new V(debugV);
+					// TODO
+					v.merge(storeV.getT());
 				} else {
 					storeV = new V(v.getT());
 					storeV.setStartPc(this.pc + 1);
