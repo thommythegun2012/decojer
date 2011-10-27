@@ -12,7 +12,7 @@ public enum DecTestEnumToy {
 	@Deprecated
 	SOLDIER("YUP", 2) {
 
-		Class clazz = DecTestEnumToy.class;
+		Class clazz = String.class;
 
 		@Override
 		public void execute() {
