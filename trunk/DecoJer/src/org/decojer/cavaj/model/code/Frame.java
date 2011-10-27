@@ -37,7 +37,7 @@ public class Frame {
 	private V[] vs;
 
 	/**
-	 * Constructor.
+	 * Copy constructor.
 	 * 
 	 * @param frame
 	 *            copy frame

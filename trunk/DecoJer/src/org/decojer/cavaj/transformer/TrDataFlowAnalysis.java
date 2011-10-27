@@ -127,8 +127,11 @@ public class TrDataFlowAnalysis {
 
 	private Frame createMethodFrame() {
 		final Frame frame = new Frame(this.cfg.getMaxLocals());
-		for (int index = frame.getLocals(); index-- > 0;) {
-			frame.set(index, this.cfg.getVar(index, 0));
+		for (int i = frame.getLocals(); i-- > 0;) {
+			final V v = this.cfg.getDebugV(i, 0);
+			if (v != null) {
+				frame.set(i, new V(v));
+			}
 		}
 		return frame;
 	}
@@ -138,20 +141,20 @@ public class TrDataFlowAnalysis {
 	}
 
 	private void evalBinaryMath(final Frame frame, final T t, final T pushT) {
-		final V var2 = pop(frame, t);
-		final V var1 = pop(frame, t);
+		final V v2 = pop(frame, t);
+		final V v1 = pop(frame, t);
 
-		final T resultT = var1.getT().merge(var2.getT());
+		final T resultT = v1.getT().merge(v2.getT());
 
-		if (!var1.getT().isReference()) {
+		if (!v1.getT().isReference()) {
 			// (J)CMP EQ / NE
-			if (var1.getT() != resultT) {
-				var1.mergeTo(resultT);
-				this.queue.add(var1.getStartPc());
+			if (v1.getT() != resultT) {
+				v1.mergeTo(resultT);
+				this.queue.add(v1.getStartPc());
 			}
-			if (var2.getT() != resultT) {
-				var2.mergeTo(resultT);
-				this.queue.add(var2.getStartPc());
+			if (v2.getT() != resultT) {
+				v2.mergeTo(resultT);
+				this.queue.add(v2.getStartPc());
 			}
 		}
 
@@ -160,8 +163,8 @@ public class TrDataFlowAnalysis {
 		}
 	}
 
-	private V getReg(final Frame frame, final int index, final T t) {
-		final V v = frame.get(index);
+	private V get(final Frame frame, final int i, final T t) {
+		final V v = frame.get(i);
 		if (v.getEndPc() < this.pc) {
 			v.setEndPc(this.pc);
 		}
@@ -210,19 +213,19 @@ public class TrDataFlowAnalysis {
 		return v;
 	}
 
-	private void push(final Frame frame, final V var) {
-		if (var.getEndPc() <= this.pc) {
+	private void push(final Frame frame, final V v) {
+		if (v.getEndPc() <= this.pc) {
 			// known in follow frame! no push through control flow operations
-			var.setEndPc(this.pc + 1);
+			v.setEndPc(this.pc + 1);
 		}
-		frame.push(var);
+		frame.push(v);
 	}
 
-	private void setReg(final Frame frame, final int index, final V v) {
+	private void set(final Frame frame, final int i, final V v) {
 		if (v.getEndPc() <= this.pc) {
-			v.setEndPc(this.pc);
+			v.setEndPc(this.pc + 1);
 		}
-		frame.set(index, v);
+		frame.set(i, v);
 	}
 
 	private void transform() {
@@ -442,7 +445,7 @@ public class TrDataFlowAnalysis {
 			}
 			case LOAD: {
 				final LOAD cop = (LOAD) op;
-				final V v = getReg(frame, cop.getReg(), cop.getT());
+				final V v = get(frame, cop.getReg(), cop.getT());
 				push(frame, v); // OK
 				break;
 			}
@@ -547,19 +550,31 @@ public class TrDataFlowAnalysis {
 			}
 			case STORE: {
 				final STORE cop = (STORE) op;
-				final V pop = pop(frame, cop.getT());
+				final V v = pop(frame, cop.getT());
 
-				// TODO STORE.pc in DALVIK sucks now...multiple ops share pc
-				final V v = this.cfg.getVar(cop.getReg(), ops[this.pc + 1].getPc());
+				V storeV = frame.get(cop.getReg());
 
-				if (v != null) {
-					// TODO
-					if (pop.merge(v.getT())) {
-						this.queue.add(v.getStartPc());
+				if (storeV != null) {
+					if (this.pc <= storeV.getEndPc()) {
+						// TODO
+						if (v.merge(storeV.getT())) {
+							this.queue.add(storeV.getStartPc());
+						}
+						if (storeV.getEndPc() <= this.pc) {
+							storeV.setEndPc(this.pc + 1);
+						}
+						break;
 					}
+					// TODO could check assignable instead of merge
 				}
-
-				setReg(frame, cop.getReg(), v != null ? v : pop);
+				final V debugV = this.cfg.getDebugV(cop.getReg(), this.pc + 1);
+				if (debugV != null) {
+					storeV = new V(debugV);
+				} else {
+					storeV = new V(v.getT());
+					storeV.setStartPc(this.pc + 1);
+				}
+				set(frame, cop.getReg(), storeV);
 				break;
 			}
 			case SUB: {

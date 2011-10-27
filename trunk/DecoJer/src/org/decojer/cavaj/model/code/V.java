@@ -47,7 +47,24 @@ public class V {
 	 *            type
 	 */
 	public V(final T t) {
+		assert t != null;
+
 		this.t = t;
+	}
+
+	/**
+	 * Copy constructor.
+	 * 
+	 * @param v
+	 *            variable
+	 */
+	public V(final V v) {
+		assert v != null;
+
+		this.t = v.t;
+		this.name = v.name;
+		this.startPc = v.startPc;
+		this.endPc = v.endPc;
 	}
 
 	/**
@@ -151,9 +168,12 @@ public class V {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("Var");
-		sb.append("(").append(this.startPc).append(" - ").append(this.endPc).append(") ")
-				.append(this.name).append(": ").append(this.t).append(" ");
+		final StringBuilder sb = new StringBuilder("V: ");
+		if (this.t != null) {
+			sb.append("(").append(this.startPc).append(" - ").append(this.endPc).append(") ")
+					.append(this.name).append(": ");
+		}
+		sb.append(this.t).append(" ");
 		return sb.toString();
 	}
 

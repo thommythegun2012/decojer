@@ -332,7 +332,7 @@ public class CFG {
 	 * 
 	 * @return local variable (from debug info)
 	 */
-	public V getVar(final int reg, final int pc) {
+	public V getDebugV(final int reg, final int pc) {
 		if (this.vss == null || reg >= this.vss.length) {
 			return null;
 		}
