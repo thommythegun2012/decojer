@@ -69,9 +69,9 @@ public class FramesFigure extends Figure {
 	 *            basic block
 	 */
 	public FramesFigure(final BB bb) {
-		final int maxRegs = bb.getCfg().getMaxRegs();
+		final int maxLocals = bb.getCfg().getMaxLocals();
 		int maxStack = 0;
-		// don't use bb.getCfg().getMaxRegs()
+		// don't use bb.getCfg().getMaxLocals()
 		for (final Op operation : bb.getOps()) {
 			final Frame frame = bb.getCfg().getInFrame(operation);
 			if (frame == null) {
@@ -82,7 +82,7 @@ public class FramesFigure extends Figure {
 			}
 		}
 
-		final GridLayout gridLayout = new GridLayout(1 + maxRegs + maxStack, false);
+		final GridLayout gridLayout = new GridLayout(1 + maxLocals + maxStack, false);
 		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = 0;
 		setLayoutManager(gridLayout);
 
@@ -111,7 +111,7 @@ public class FramesFigure extends Figure {
 		for (int i = 0; i < maxStack; ++i) {
 			add(new Label("s" + i), GRID_DATA, 0);
 		}
-		for (int i = maxRegs; i-- > 0;) {
+		for (int i = maxLocals; i-- > 0;) {
 			add(new Label("r" + i), GRID_DATA, 0);
 		}
 		add(new Label(""), 0);
