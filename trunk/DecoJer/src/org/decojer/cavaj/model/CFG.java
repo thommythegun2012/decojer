@@ -232,7 +232,7 @@ public class CFG {
 	 * @return local variable (from frame)
 	 */
 	public Var getFrameVar(final int reg, final int pc) {
-		return this.frames[pc].getReg(reg);
+		return this.frames[pc].get(reg);
 	}
 
 	/**

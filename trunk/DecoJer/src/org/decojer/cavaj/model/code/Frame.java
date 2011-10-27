@@ -30,11 +30,11 @@ package org.decojer.cavaj.model.code;
  */
 public class Frame {
 
-	private final Var[] regs;
+	private final int locals;
 
-	private Var[] stack;
+	private int top;
 
-	private int stackTop;
+	private Var[] values;
 
 	/**
 	 * Constructor.
@@ -43,41 +43,41 @@ public class Frame {
 	 *            copy frame
 	 */
 	public Frame(final Frame frame) {
-		this.regs = frame.regs.clone();
-		this.stack = new Var[frame.stackTop];
-		System.arraycopy(frame.stack, 0, this.stack, 0, frame.stackTop);
-		this.stackTop = frame.stackTop;
+		this.locals = frame.locals;
+		this.top = frame.top;
+		this.values = new Var[this.locals + this.top];
+		System.arraycopy(frame.values, 0, this.values, 0, this.values.length);
 	}
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param regsSize
-	 *            registers size
+	 * @param locals
+	 *            locals
 	 */
-	public Frame(final int regsSize) {
-		this.regs = new Var[regsSize];
-		this.stack = new Var[0];
+	public Frame(final int locals) {
+		this.locals = locals;
+		this.values = new Var[locals];
 	}
 
 	/**
-	 * Get register variable.
+	 * Get local variable.
 	 * 
 	 * @param index
 	 *            index
 	 * @return variable
 	 */
-	public Var getReg(final int index) {
-		return this.regs[index];
+	public Var get(final int index) {
+		return this.values[index];
 	}
 
 	/**
-	 * Get registers size.
+	 * Get locals.
 	 * 
-	 * @return registers size
+	 * @return locals
 	 */
-	public int getRegsSize() {
-		return this.regs.length;
+	public int getLocals() {
+		return this.locals;
 	}
 
 	/**
@@ -88,7 +88,7 @@ public class Frame {
 	 * @return variable
 	 */
 	public Var getStack(final int index) {
-		return this.stack[index];
+		return this.values[this.locals + index];
 	}
 
 	/**
@@ -96,8 +96,8 @@ public class Frame {
 	 * 
 	 * @return stack size
 	 */
-	public int getStackTop() {
-		return this.stackTop;
+	public int getStackSize() {
+		return this.top;
 	}
 
 	/**
@@ -109,27 +109,27 @@ public class Frame {
 	 */
 	public boolean merge(final Frame calculatedFrame) {
 		boolean changed = false;
-		for (int reg = this.regs.length; reg-- > 0;) {
-			final Var var = calculatedFrame.regs[reg];
+		for (int reg = this.locals; reg-- > 0;) {
+			final Var var = calculatedFrame.values[reg];
 			if (var == null) {
 				continue;
 			}
-			if (this.regs[reg] == null) {
-				this.regs[reg] = var;
+			if (this.values[reg] == null) {
+				this.values[reg] = var;
 				changed = true;
 				continue;
 			}
-			changed |= this.regs[reg].merge(var.getT());
+			changed |= this.values[reg].merge(var.getT());
 		}
-		for (int index = this.stackTop; index-- > 0;) {
-			final Var targetVar = this.stack[index];
-			final Var calculatedVar = calculatedFrame.stack[index];
+		for (int index = this.top; index-- > 0;) {
+			final Var targetVar = this.values[this.locals + index];
+			final Var calculatedVar = calculatedFrame.values[this.locals + index];
 			if (targetVar == calculatedVar) {
 				continue;
 			}
 
 			// take new calculated var, override propagation
-			this.stack[index] = calculatedVar;
+			this.values[this.locals + index] = calculatedVar;
 			// TODO replace targetVar.getStartPc() - stack and requeue
 			changed |= calculatedVar.merge(targetVar.getT());
 		}
@@ -137,42 +137,42 @@ public class Frame {
 	}
 
 	/**
-	 * Peek variable from stack.
+	 * Peek stack variable.
 	 * 
-	 * @return variable
+	 * @return stack variable
 	 */
 	public Var peek() {
-		if (this.stackTop < 1) {
+		if (this.top < 1) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.stack[this.stackTop - 1];
+		return this.values[this.locals + this.top - 1];
 	}
 
 	/**
-	 * Pop variable from stack.
+	 * Pop stack variable.
 	 * 
 	 * @return variable
 	 */
 	public Var pop() {
-		if (this.stackTop < 1) {
+		if (this.top < 1) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.stack[--this.stackTop];
+		return this.values[this.locals + --this.top];
 	}
 
 	/**
-	 * Push variable to stack.
+	 * Push stack variable.
 	 * 
 	 * @param var
 	 *            variable
 	 */
 	public void push(final Var var) {
-		if (this.stackTop >= this.stack.length) {
-			final Var[] newStack = new Var[this.stackTop + 1];
-			System.arraycopy(this.stack, 0, newStack, 0, this.stackTop);
-			this.stack = newStack;
+		if (this.locals + this.top >= this.values.length) {
+			final Var[] newValues = new Var[this.locals + this.top + 1];
+			System.arraycopy(this.values, 0, newValues, 0, this.locals + this.top);
+			this.values = newValues;
 		}
-		this.stack[this.stackTop++] = var;
+		this.values[this.locals + this.top++] = var;
 	}
 
 	/**
@@ -183,8 +183,8 @@ public class Frame {
 	 * @param var
 	 *            variable
 	 */
-	public void setReg(final int index, final Var var) {
-		this.regs[index] = var;
+	public void set(final int index, final Var var) {
+		this.values[index] = var;
 	}
 
 }

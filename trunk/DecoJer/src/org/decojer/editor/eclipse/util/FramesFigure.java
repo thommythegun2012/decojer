@@ -77,8 +77,8 @@ public class FramesFigure extends Figure {
 			if (frame == null) {
 				continue;
 			}
-			if (maxStack < frame.getStackTop()) {
-				maxStack = frame.getStackTop();
+			if (maxStack < frame.getStackSize()) {
+				maxStack = frame.getStackSize();
 			}
 		}
 
@@ -92,15 +92,15 @@ public class FramesFigure extends Figure {
 			if (frame == null) {
 				continue;
 			}
-			final int regsSize = frame.getRegsSize();
+			final int regsSize = frame.getLocals();
 			for (int index = 0; index < regsSize; ++index) {
-				final Var var = frame.getReg(index);
+				final Var var = frame.get(index);
 				final Label label = new Label(var == null ? "    " : var.toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
 			for (int index = maxStack; index-- > 0;) {
-				final Label label = new Label(index >= frame.getStackTop()
+				final Label label = new Label(index >= frame.getStackSize()
 						|| frame.getStack(index) == null ? "    " : frame.getStack(index)
 						.toString());
 				label.setBorder(LEFT_BORDER);
