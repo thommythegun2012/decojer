@@ -161,22 +161,22 @@ public class TrDataFlowAnalysis {
 	}
 
 	private V getReg(final Frame frame, final int index, final T t) {
-		final V var = frame.get(index);
-		if (var.getEndPc() < this.pc) {
-			var.setEndPc(this.pc);
+		final V v = frame.get(index);
+		if (v.getEndPc() < this.pc) {
+			v.setEndPc(this.pc);
 		}
-		if (var.mergeTo(t)) {
-			this.queue.add(var.getStartPc());
+		if (v.mergeTo(t)) {
+			this.queue.add(v.getStartPc());
 		}
-		return var;
+		return v;
 	}
 
 	private boolean isWide(final Op op) {
-		final V var = this.cfg.getInFrame(op).peek();
-		if (var == null) {
+		final V v = this.cfg.getInFrame(op).peek();
+		if (v == null) {
 			return false;
 		}
-		return var.getT().isWide();
+		return v.getT().isWide();
 	}
 
 	private void merge(final Frame calculatedFrame, final int targetPc) {
@@ -191,23 +191,23 @@ public class TrDataFlowAnalysis {
 	}
 
 	private V pop(final Frame frame, final T t) {
-		final V var = frame.pop();
-		if (var.getEndPc() < this.pc) {
-			var.setEndPc(this.pc);
+		final V v = frame.pop();
+		if (v.getEndPc() < this.pc) {
+			v.setEndPc(this.pc);
 		}
-		if (var.mergeTo(t)) {
-			this.queue.add(var.getStartPc());
+		if (v.mergeTo(t)) {
+			this.queue.add(v.getStartPc());
 		}
-		return var;
+		return v;
 	}
 
 	private V push(final Frame frame, final T t) {
-		final V var = new V(t);
+		final V v = new V(t);
 		// known in follow frame! no push through control flow operations
-		var.setStartPc(this.pc + 1);
-		var.setEndPc(this.pc + 1);
-		frame.push(var);
-		return var;
+		v.setStartPc(this.pc + 1);
+		v.setEndPc(this.pc + 1);
+		frame.push(v);
+		return v;
 	}
 
 	private void push(final Frame frame, final V var) {
@@ -218,8 +218,11 @@ public class TrDataFlowAnalysis {
 		frame.push(var);
 	}
 
-	private void setReg(final Frame frame, final int index, final V var) {
-		frame.set(index, var);
+	private void setReg(final Frame frame, final int index, final V v) {
+		if (v.getEndPc() <= this.pc) {
+			v.setEndPc(this.pc);
+		}
+		frame.set(index, v);
 	}
 
 	private void transform() {
@@ -439,8 +442,8 @@ public class TrDataFlowAnalysis {
 			}
 			case LOAD: {
 				final LOAD cop = (LOAD) op;
-				final V var = getReg(frame, cop.getReg(), cop.getT());
-				push(frame, var); // OK
+				final V v = getReg(frame, cop.getReg(), cop.getT());
+				push(frame, v); // OK
 				break;
 			}
 			case MONITOR: {
@@ -456,8 +459,8 @@ public class TrDataFlowAnalysis {
 			}
 			case NEG: {
 				final NEG cop = (NEG) op;
-				final V var = pop(frame, cop.getT());
-				push(frame, var); // OK
+				final V v = pop(frame, cop.getT());
+				push(frame, v); // OK
 				break;
 			}
 			case NEW: {
@@ -547,16 +550,16 @@ public class TrDataFlowAnalysis {
 				final V pop = pop(frame, cop.getT());
 
 				// TODO STORE.pc in DALVIK sucks now...multiple ops share pc
-				final V var = this.cfg.getVar(cop.getReg(), ops[this.pc + 1].getPc());
+				final V v = this.cfg.getVar(cop.getReg(), ops[this.pc + 1].getPc());
 
-				if (var != null) {
+				if (v != null) {
 					// TODO
-					if (pop.merge(var.getT())) {
-						this.queue.add(var.getStartPc());
+					if (pop.merge(v.getT())) {
+						this.queue.add(v.getStartPc());
 					}
 				}
 
-				setReg(frame, cop.getReg(), var != null ? var : pop);
+				setReg(frame, cop.getReg(), v != null ? v : pop);
 				break;
 			}
 			case SUB: {

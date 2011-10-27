@@ -73,7 +73,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	private final ArrayList<Op> ops = new ArrayList<Op>();
 
-	private final HashMap<Integer, ArrayList<V>> reg2vars = new HashMap<Integer, ArrayList<V>>();
+	private final HashMap<Integer, ArrayList<V>> reg2vs = new HashMap<Integer, ArrayList<V>>();
 
 	/**
 	 * Constructor.
@@ -186,14 +186,14 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 				cfg.setExcs(this.excs.toArray(new Exc[this.excs.size()]));
 				this.excs.clear();
 			}
-			if (this.reg2vars.size() > 0) {
-				for (final Entry<Integer, ArrayList<V>> entry : this.reg2vars.entrySet()) {
+			if (this.reg2vs.size() > 0) {
+				for (final Entry<Integer, ArrayList<V>> entry : this.reg2vs.entrySet()) {
 					final int reg = entry.getKey();
 					for (final V var : entry.getValue()) {
 						cfg.addVar(reg, var);
 					}
 				}
-				this.reg2vars.clear();
+				this.reg2vs.clear();
 			}
 			cfg.postProcessVars();
 		}

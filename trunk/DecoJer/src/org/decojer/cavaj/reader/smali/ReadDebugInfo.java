@@ -51,7 +51,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
 
-	private final HashMap<Integer, ArrayList<V>> reg2vars = new HashMap<Integer, ArrayList<V>>();
+	private final HashMap<Integer, ArrayList<V>> reg2vs = new HashMap<Integer, ArrayList<V>>();
 
 	/**
 	 * Constructor.
@@ -88,8 +88,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	 * 
 	 * @return register to variables map
 	 */
-	public HashMap<Integer, ArrayList<V>> getReg2vars() {
-		return this.reg2vars;
+	public HashMap<Integer, ArrayList<V>> getReg2vs() {
+		return this.reg2vs;
 	}
 
 	/**
@@ -102,7 +102,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	 */
 	public void initAndVisit(final MD md, final DebugInfoItem debugInfoItem) {
 		this.opLines.clear();
-		this.reg2vars.clear();
+		this.reg2vs.clear();
 
 		// must read debug info before operations because of line numbers
 		if (debugInfoItem == null) {
@@ -121,7 +121,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 				m.setParamName(i, parameterNames[i].getStringValue());
 			}
 		}
-		DebugInstructionIterator.DecodeInstructions(debugInfoItem, md.getCfg().getMaxLocals(), this);
+		DebugInstructionIterator
+				.DecodeInstructions(debugInfoItem, md.getCfg().getMaxLocals(), this);
 	}
 
 	@Override
@@ -130,20 +131,20 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		System.out.println("*ProcessEndLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
 				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
 
-		final ArrayList<V> vars = this.reg2vars.get(registerNum);
-		if (vars == null) {
+		final ArrayList<V> vs = this.reg2vs.get(registerNum);
+		if (vs == null) {
 			LOGGER.warning("ProcessEndLocal '" + registerNum + "' without any ProcessStartLocal!");
 			return;
 		}
-		for (int i = vars.size(); i-- > 0;) {
-			final V var = vars.get(i);
-			if (var.getEndPc() != -1) {
+		for (int i = vs.size(); i-- > 0;) {
+			final V v = vs.get(i);
+			if (v.getEndPc() != -1) {
 				continue;
 			}
-			if (var.getStartPc() >= codeAddress) {
+			if (v.getStartPc() >= codeAddress) {
 				continue;
 			}
-			var.setEndPc(codeAddress);
+			v.setEndPc(codeAddress);
 			return;
 		}
 		LOGGER.warning("ProcessEndLocal '" + registerNum + "' without ProcessStartLocal!");
@@ -198,22 +199,22 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		System.out.println("*startLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
 				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
 
-		final T varT = this.du.getDescT(type.getTypeDescriptor());
+		final T vT = this.du.getDescT(type.getTypeDescriptor());
 		if (signature != null) {
-			varT.setSignature(signature.getStringValue());
+			vT.setSignature(signature.getStringValue());
 		}
-		final V var = new V(varT);
-		var.setName(name.getStringValue());
+		final V v = new V(vT);
+		v.setName(name.getStringValue());
 
-		var.setStartPc(codeAddress);
-		var.setEndPc(-1);
+		v.setStartPc(codeAddress);
+		v.setEndPc(-1);
 
-		ArrayList<V> vars = this.reg2vars.get(registerNum);
-		if (vars == null) {
-			vars = new ArrayList<V>();
-			this.reg2vars.put(registerNum, vars);
+		ArrayList<V> vs = this.reg2vs.get(registerNum);
+		if (vs == null) {
+			vs = new ArrayList<V>();
+			this.reg2vs.put(registerNum, vs);
 		}
-		vars.add(var);
+		vs.add(v);
 	}
 
 }

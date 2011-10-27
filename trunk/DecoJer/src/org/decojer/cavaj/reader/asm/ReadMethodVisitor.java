@@ -122,7 +122,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
-	private final HashMap<Integer, ArrayList<V>> reg2vars = new HashMap<Integer, ArrayList<V>>();
+	private final HashMap<Integer, ArrayList<V>> reg2vs = new HashMap<Integer, ArrayList<V>>();
 
 	/**
 	 * Constructor.
@@ -259,14 +259,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 				cfg.setExcs(this.excs.toArray(new Exc[this.excs.size()]));
 				this.excs.clear();
 			}
-			if (this.reg2vars.size() > 0) {
-				for (final Entry<Integer, ArrayList<V>> entry : this.reg2vars.entrySet()) {
+			if (this.reg2vs.size() > 0) {
+				for (final Entry<Integer, ArrayList<V>> entry : this.reg2vs.entrySet()) {
 					final int reg = entry.getKey();
 					for (final V var : entry.getValue()) {
 						cfg.addVar(reg, var);
 					}
 				}
-				this.reg2vars.clear();
+				this.reg2vs.clear();
 			}
 			cfg.postProcessVars();
 		}
@@ -1243,30 +1243,30 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitLocalVariable(final String name, final String desc, final String signature,
 			final Label start, final Label end, final int index) {
-		final T varT = this.du.getDescT(desc);
+		final T vT = this.du.getDescT(desc);
 		if (signature != null) {
-			varT.setSignature(signature);
+			vT.setSignature(signature);
 		}
-		final V var = new V(varT);
-		var.setName(name);
+		final V v = new V(vT);
+		v.setName(name);
 
 		int pc = getPc(start);
-		var.setStartPc(pc);
+		v.setStartPc(pc);
 		if (pc < 0) {
-			getUnresolved(start).add(var);
+			getUnresolved(start).add(v);
 		}
 		pc = getPc(end);
-		var.setEndPc(pc);
+		v.setEndPc(pc);
 		if (pc < 0) {
-			getUnresolved(end).add(var);
+			getUnresolved(end).add(v);
 		}
 
-		ArrayList<V> vars = this.reg2vars.get(index);
-		if (vars == null) {
-			vars = new ArrayList<V>();
-			this.reg2vars.put(index, vars);
+		ArrayList<V> vs = this.reg2vs.get(index);
+		if (vs == null) {
+			vs = new ArrayList<V>();
+			this.reg2vs.put(index, vs);
 		}
-		vars.add(var);
+		vs.add(v);
 	}
 
 	@Override

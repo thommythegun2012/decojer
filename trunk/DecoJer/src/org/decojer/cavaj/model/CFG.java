@@ -72,7 +72,7 @@ public class CFG {
 
 	private BB startBb;
 
-	private V[][] varss;
+	private V[][] vss;
 
 	/**
 	 * Constructor.
@@ -123,14 +123,14 @@ public class CFG {
 		assert var != null;
 
 		V[] vars = null;
-		if (this.varss == null) {
-			this.varss = new V[reg + 1][];
-		} else if (reg >= this.varss.length) {
+		if (this.vss == null) {
+			this.vss = new V[reg + 1][];
+		} else if (reg >= this.vss.length) {
 			final V[][] newVarss = new V[reg + 1][];
-			System.arraycopy(this.varss, 0, newVarss, 0, this.varss.length);
-			this.varss = newVarss;
+			System.arraycopy(this.vss, 0, newVarss, 0, this.vss.length);
+			this.vss = newVarss;
 		} else {
-			vars = this.varss[reg];
+			vars = this.vss[reg];
 		}
 		if (vars == null) {
 			vars = new V[1];
@@ -140,7 +140,7 @@ public class CFG {
 			vars = newVars;
 		}
 		vars[vars.length - 1] = var;
-		this.varss[reg] = vars;
+		this.vss[reg] = vars;
 	}
 
 	/**
@@ -333,17 +333,17 @@ public class CFG {
 	 * @return local variable (from debug info)
 	 */
 	public V getVar(final int reg, final int pc) {
-		if (this.varss == null || reg >= this.varss.length) {
+		if (this.vss == null || reg >= this.vss.length) {
 			return null;
 		}
-		final V[] vars = this.varss[reg];
-		if (vars == null) {
+		final V[] vs = this.vss[reg];
+		if (vs == null) {
 			return null;
 		}
-		for (int i = vars.length; i-- > 0;) {
-			final V var = vars[i];
-			if (var.getStartPc() <= pc && (pc < var.getEndPc() || var.getEndPc() == 0)) {
-				return var;
+		for (int i = vs.length; i-- > 0;) {
+			final V v = vs[i];
+			if (v.getStartPc() <= pc && (pc < v.getEndPc() || v.getEndPc() == 0)) {
+				return v;
 			}
 		}
 		return null;
@@ -392,14 +392,14 @@ public class CFG {
 		final TD td = this.md.getTd();
 		final T[] paramTs = m.getParamTs();
 
-		if (this.varss == null) {
-			this.varss = new V[this.maxLocals][];
-		} else if (this.maxLocals < this.varss.length) {
+		if (this.vss == null) {
+			this.vss = new V[this.maxLocals][];
+		} else if (this.maxLocals < this.vss.length) {
 			LOGGER.warning("Max registers less than biggest register with local variable info!");
-		} else if (this.maxLocals > this.varss.length) {
+		} else if (this.maxLocals > this.vss.length) {
 			final V[][] newVarss = new V[this.maxLocals][];
-			System.arraycopy(this.varss, 0, newVarss, 0, this.varss.length);
-			this.varss = newVarss;
+			System.arraycopy(this.vss, 0, newVarss, 0, this.vss.length);
+			this.vss = newVarss;
 		}
 		if (td.isDalvik()) {
 			// Dalvik...function parameters right aligned
@@ -411,64 +411,68 @@ public class CFG {
 				}
 				// parameter name was encoded in extra debug info, copy names
 				// and parameter types to local vars
-				V[] vars = this.varss[--reg];
-				if (vars != null) {
+				V[] vs = this.vss[--reg];
+				if (vs != null) {
 					LOGGER.warning("Found local variable info for method parameter '" + reg + "'!");
 				}
 				// check
-				vars = new V[1];
-				final V var = new V(paramT);
-				var.setName(m.getParamName(i));
-				vars[0] = var;
-				this.varss[reg] = vars;
+				vs = new V[1];
+				final V v = new V(paramT);
+				v.setName(m.getParamName(i));
+				v.setEndPc(this.ops.length);
+				vs[0] = v;
+				this.vss[reg] = vs;
 			}
 			if (!m.checkAf(AF.STATIC)) {
-				V[] vars = this.varss[--reg];
-				if (vars != null) {
+				V[] vs = this.vss[--reg];
+				if (vs != null) {
 					LOGGER.warning("Found local variable info for method parameter 'this'!");
 				}
 				// check
-				vars = new V[1];
-				final V var = new V(td.getT());
-				var.setName("this");
-				vars[0] = var;
-				this.varss[reg] = vars;
+				vs = new V[1];
+				final V v = new V(td.getT());
+				v.setName("this");
+				v.setEndPc(this.ops.length);
+				vs[0] = v;
+				this.vss[reg] = vs;
 			}
 			return;
 		}
 		// JVM...function parameters left aligned
 		int reg = 0;
 		if (!m.checkAf(AF.STATIC)) {
-			V[] vars = this.varss[reg];
-			if (vars != null) {
-				if (vars.length > 1) {
+			V[] vs = this.vss[reg];
+			if (vs != null) {
+				if (vs.length > 1) {
 					LOGGER.warning("Found multiple local variable info for method parameter 'this'!");
 				}
 				++reg;
 			} else {
-				vars = new V[1];
-				final V var = new V(td.getT());
-				var.setName("this");
-				vars[0] = var;
-				this.varss[reg++] = vars;
+				vs = new V[1];
+				final V v = new V(td.getT());
+				v.setName("this");
+				v.setEndPc(this.ops.length);
+				vs[0] = v;
+				this.vss[reg++] = vs;
 			}
 		}
 		for (int i = 0; i < paramTs.length; ++i) {
 			final T paramT = paramTs[i];
-			V[] vars = this.varss[reg];
-			if (vars != null) {
-				if (vars.length > 1) {
+			V[] vs = this.vss[reg];
+			if (vs != null) {
+				if (vs.length > 1) {
 					LOGGER.warning("Found multiple local variable info for method parameter '"
 							+ reg + "'!");
 				}
-				m.setParamName(i, vars[0].getName());
+				m.setParamName(i, vs[0].getName());
 				++reg;
 			} else {
-				vars = new V[1];
-				final V var = new V(paramT);
-				var.setName(m.getParamName(i));
-				vars[0] = var;
-				this.varss[reg++] = vars;
+				vs = new V[1];
+				final V v = new V(paramT);
+				v.setName(m.getParamName(i));
+				v.setEndPc(this.ops.length);
+				vs[0] = v;
+				this.vss[reg++] = vs;
 			}
 			if (paramT.isWide()) {
 				++reg;

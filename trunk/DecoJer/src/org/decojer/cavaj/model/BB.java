@@ -143,6 +143,17 @@ public class BB {
 	}
 
 	/**
+	 * Get local expression.
+	 * 
+	 * @param i
+	 *            index
+	 * @return expression
+	 */
+	public Expression get(final int i) {
+		return this.vs[i];
+	}
+
+	/**
 	 * Get control flow graph.
 	 * 
 	 * @return control flow graph
@@ -332,7 +343,7 @@ public class BB {
 	 * @return expression
 	 */
 	public Expression peek() {
-		if (this.top < 1) {
+		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		return this.vs[this.locals + this.top - 1];
@@ -344,7 +355,7 @@ public class BB {
 	 * @return expression
 	 */
 	public Expression pop() {
-		if (this.top < 1) {
+		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		return this.vs[this.locals + --this.top];
@@ -401,6 +412,18 @@ public class BB {
 	public Statement removeStatement(final int index) {
 		final int size = this.statements.size();
 		return size <= index ? null : this.statements.remove(index);
+	}
+
+	/**
+	 * Set local expression.
+	 * 
+	 * @param i
+	 *            index
+	 * @param v
+	 *            expression
+	 */
+	public void set(final int i, final Expression v) {
+		this.vs[i] = v;
 	}
 
 	/**

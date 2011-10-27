@@ -1605,31 +1605,31 @@ public class ReadCodeAttribute {
 	private void readLocalVariables(final CFG cfg,
 			final LocalVariableAttribute localVariableAttribute,
 			final LocalVariableAttribute localVariableTypeAttribute) {
-		final HashMap<Integer, ArrayList<V>> reg2vars = new HashMap<Integer, ArrayList<V>>();
+		final HashMap<Integer, ArrayList<V>> reg2vs = new HashMap<Integer, ArrayList<V>>();
 		if (localVariableAttribute != null) {
 			final DU du = cfg.getMd().getM().getT().getDu();
 			// preserve order
 			final int tableLength = localVariableAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final T varT = du.getDescT(localVariableAttribute.descriptor(i));
-				final V var = new V(varT);
+				final T vT = du.getDescT(localVariableAttribute.descriptor(i));
+				final V v = new V(vT);
 
-				var.setName(localVariableAttribute.variableName(i));
-				var.setStartPc(this.vmpc2pc.get(localVariableAttribute.startPc(i)));
-				var.setEndPc(this.vmpc2pc.get(localVariableAttribute.startPc(i)
+				v.setName(localVariableAttribute.variableName(i));
+				v.setStartPc(this.vmpc2pc.get(localVariableAttribute.startPc(i)));
+				v.setEndPc(this.vmpc2pc.get(localVariableAttribute.startPc(i)
 						+ localVariableAttribute.codeLength(i)));
 
 				final int index = localVariableAttribute.index(i);
 
-				ArrayList<V> vars = reg2vars.get(index);
-				if (vars == null) {
-					vars = new ArrayList<V>();
-					reg2vars.put(index, vars);
+				ArrayList<V> vs = reg2vs.get(index);
+				if (vs == null) {
+					vs = new ArrayList<V>();
+					reg2vs.put(index, vs);
 				}
-				vars.add(var);
+				vs.add(v);
 			}
-			if (reg2vars.size() > 0) {
-				for (final Entry<Integer, ArrayList<V>> entry : reg2vars.entrySet()) {
+			if (reg2vs.size() > 0) {
+				for (final Entry<Integer, ArrayList<V>> entry : reg2vs.entrySet()) {
 					final int reg = entry.getKey();
 					for (final V var : entry.getValue()) {
 						cfg.addVar(reg, var);
@@ -1641,15 +1641,15 @@ public class ReadCodeAttribute {
 			// preserve order
 			final int tableLength = localVariableTypeAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final V var = cfg.getVar(localVariableTypeAttribute.index(i),
+				final V v = cfg.getVar(localVariableTypeAttribute.index(i),
 						this.vmpc2pc.get(localVariableTypeAttribute.startPc(i)));
-				if (var == null) {
+				if (v == null) {
 					LOGGER.warning("Local variable type attribute '"
 							+ localVariableTypeAttribute.index(i)
 							+ "' without local variable attribute!");
 					continue;
 				}
-				var.getT().setSignature(localVariableTypeAttribute.signature(i));
+				v.getT().setSignature(localVariableTypeAttribute.signature(i));
 			}
 		}
 		cfg.postProcessVars();
