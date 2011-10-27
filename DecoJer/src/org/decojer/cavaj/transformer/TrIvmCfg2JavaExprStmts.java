@@ -750,6 +750,16 @@ public class TrIvmCfg2JavaExprStmts {
 			case LOAD: {
 				final LOAD cop = (LOAD) op;
 
+				final V v = this.cfg.getFrameVar(cop.getReg(), cop.getPc());
+				if (v.getName() == null) {
+					// temporary local
+					final Expression expression = bb.get(cop.getReg());
+					if (expression != null) {
+						bb.push(bb.get(cop.getReg()));
+						break;
+					}
+				}
+
 				final String name = getVarName(cop.getReg(), cop.getPc());
 				if ("this".equals(name)) {
 					bb.push(getAst().newThisExpression());
@@ -1073,41 +1083,49 @@ public class TrIvmCfg2JavaExprStmts {
 				final STORE cop = (STORE) op;
 
 				final Expression rightExpression = bb.pop();
+
 				// inline assignment, DUP -> STORE
 				final boolean isInlineAssignment = bb.getStackSize() > 0
 						&& bb.peek() == rightExpression;
+				final V v = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
 
-				final V var = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
-				if (!isInlineAssignment && var.getStartPc() == cop.getPc() + 1
-						&& var.getName() != null) {
-					final VariableDeclarationFragment variableDeclarationFragment = getAst()
-							.newVariableDeclarationFragment();
-					variableDeclarationFragment.setName(getAst().newSimpleName(var.getName()));
-					variableDeclarationFragment.setInitializer(wrap(rightExpression,
-							Priority.ASSIGNMENT));
-					final VariableDeclarationStatement variableDeclarationStatement = getAst()
-							.newVariableDeclarationStatement(variableDeclarationFragment);
-					variableDeclarationStatement.setType(Types.convertType(var.getT(), getTd(),
-							getAst()));
-					statement = variableDeclarationStatement;
+				if (v.getName() == null) {
+					// temporary local
+					// bb.set(cop.getReg(), rightExpression);
+					// break;
+					// TODO else not really necessary later if this is sure
 				} else {
-					final Assignment assignment = getAst().newAssignment();
-					// TODO a = a +/- 1 => a++ / a--
-					// TODO a = a <op> expr => a <op>= expr
-					assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
+					if (!isInlineAssignment && v.getStartPc() == cop.getPc() + 1) {
+						final VariableDeclarationFragment variableDeclarationFragment = getAst()
+								.newVariableDeclarationFragment();
+						variableDeclarationFragment.setName(getAst().newSimpleName(v.getName()));
+						variableDeclarationFragment.setInitializer(wrap(rightExpression,
+								Priority.ASSIGNMENT));
+						final VariableDeclarationStatement variableDeclarationStatement = getAst()
+								.newVariableDeclarationStatement(variableDeclarationFragment);
+						variableDeclarationStatement.setType(Types.convertType(v.getT(), getTd(),
+								getAst()));
+						statement = variableDeclarationStatement;
+						break;
+					}
+				}
 
-					String name = getVarName(cop.getReg(), cop.getPc() + 1);
-					if ("this".equals(name)) {
-						name = "_this"; // TODO can happen before synchronized(this)
-					}
-					assignment.setLeftHandSide(getAst().newSimpleName(name));
-					// inline assignment, DUP -> STORE
-					if (isInlineAssignment) {
-						bb.pop();
-						bb.push(assignment);
-					} else {
-						statement = getAst().newExpressionStatement(assignment);
-					}
+				final Assignment assignment = getAst().newAssignment();
+				// TODO a = a +/- 1 => a++ / a--
+				// TODO a = a <op> expr => a <op>= expr
+				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
+
+				String name = getVarName(cop.getReg(), cop.getPc() + 1);
+				if ("this".equals(name)) {
+					name = "_this"; // TODO can happen before synchronized(this)
+				}
+				assignment.setLeftHandSide(getAst().newSimpleName(name));
+				// inline assignment, DUP -> STORE
+				if (isInlineAssignment) {
+					bb.pop();
+					bb.push(assignment);
+				} else {
+					statement = getAst().newExpressionStatement(assignment);
 				}
 				break;
 			}
@@ -1181,17 +1199,17 @@ public class TrIvmCfg2JavaExprStmts {
 	}
 
 	private String getVarName(final int reg, final int pc) {
-		final V var = this.cfg.getFrameVar(reg, pc);
-		final String name = var == null ? null : var.getName();
+		final V v = this.cfg.getFrameVar(reg, pc);
+		final String name = v == null ? null : v.getName();
 		return name == null ? "r" + reg : name;
 	}
 
 	private boolean isWide(final Op op) {
-		final V var = this.cfg.getInFrame(op).peek();
-		if (var == null) {
+		final V v = this.cfg.getInFrame(op).peek();
+		if (v == null) {
 			return false;
 		}
-		return var.getT().isWide();
+		return v.getT().isWide();
 	}
 
 	private boolean rewriteClassForNameCachedLiteral(final BB bb) {

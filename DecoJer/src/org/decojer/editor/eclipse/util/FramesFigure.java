@@ -94,8 +94,8 @@ public class FramesFigure extends Figure {
 			}
 			final int regsSize = frame.getLocals();
 			for (int index = 0; index < regsSize; ++index) {
-				final V var = frame.get(index);
-				final Label label = new Label(var == null ? "    " : var.toString());
+				final V v = frame.get(index);
+				final Label label = new Label(v == null ? "    " : v.toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}

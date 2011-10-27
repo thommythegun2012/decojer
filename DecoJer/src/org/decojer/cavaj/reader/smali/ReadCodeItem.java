@@ -2279,7 +2279,7 @@ public class ReadCodeItem {
 						+ Integer.toHexString(opcode & 0xff) + "'!");
 			}
 		}
-		// TODO visitVmpc necessary???
+		visitVmpc(this.ops.size(), null);
 		cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 
 		final TryItem[] tryItems = codeItem.getTries();
@@ -2310,14 +2310,27 @@ public class ReadCodeItem {
 	}
 
 	private void readLocalVariables(final CFG cfg, final ReadDebugInfo readDebugInfo) {
-		final HashMap<Integer, ArrayList<V>> reg2vars = readDebugInfo.getReg2vars();
-		for (final Entry<Integer, ArrayList<V>> entry : reg2vars.entrySet()) {
+		final HashMap<Integer, ArrayList<V>> reg2vs = readDebugInfo.getReg2vs();
+		for (final Entry<Integer, ArrayList<V>> entry : reg2vs.entrySet()) {
 			final int reg = entry.getKey();
-			for (final V var : entry.getValue()) {
-				var.setStartPc(this.vmpc2pc.get(var.getStartPc()));
-				final int vmpc = var.getEndPc();
-				var.setEndPc(vmpc == -1 ? this.ops.size() : this.vmpc2pc.get(vmpc));
-				cfg.addVar(reg, var);
+			for (final V v : entry.getValue()) {
+				v.setStartPc(this.vmpc2pc.get(v.getStartPc()));
+				int vmpc = v.getEndPc();
+				if (vmpc == -1) {
+					// no pc set, full span
+					v.setEndPc(this.ops.size());
+				} else {
+					// TODO really necessary???
+					// find end, must find because multiple ops could be created
+					for (int i = 0; i < 10; ++i) {
+						final Integer pc = this.vmpc2pc.get(++vmpc);
+						if (pc != null) {
+							v.setEndPc(pc - 1);
+							break;
+						}
+					}
+				}
+				cfg.addVar(reg, v);
 			}
 		}
 		cfg.postProcessVars();
@@ -2330,9 +2343,7 @@ public class ReadCodeItem {
 			return;
 		}
 		if (pc > 0) {
-			// visited before but is known?!
-			LOGGER.warning("VM PC '" + vmpc + "' is not unique, has old PC '" + this.ops.size()
-					+ "'!");
+			// visited before, possible with NOP / pseudo operations
 			return;
 		}
 		// unknown and has forward reference

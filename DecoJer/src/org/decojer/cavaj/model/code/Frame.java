@@ -142,7 +142,7 @@ public class Frame {
 	 * @return variable
 	 */
 	public V peek() {
-		if (this.top < 1) {
+		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		return this.vs[this.locals + this.top - 1];
@@ -154,7 +154,7 @@ public class Frame {
 	 * @return variable
 	 */
 	public V pop() {
-		if (this.top < 1) {
+		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		return this.vs[this.locals + --this.top];
@@ -176,7 +176,7 @@ public class Frame {
 	}
 
 	/**
-	 * Set register variable.
+	 * Set local variable.
 	 * 
 	 * @param i
 	 *            index
