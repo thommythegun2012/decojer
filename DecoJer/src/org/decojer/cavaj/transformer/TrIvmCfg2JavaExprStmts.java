@@ -1115,10 +1115,7 @@ public class TrIvmCfg2JavaExprStmts {
 				// TODO a = a <op> expr => a <op>= expr
 				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 
-				String name = getVarName(cop.getReg(), cop.getPc() + 1);
-				if ("this".equals(name)) {
-					name = "_this"; // TODO can happen before synchronized(this)
-				}
+				final String name = getVarName(cop.getReg(), cop.getPc() + 1);
 				assignment.setLeftHandSide(getAst().newSimpleName(name));
 				// inline assignment, DUP -> STORE
 				if (isInlineAssignment) {
