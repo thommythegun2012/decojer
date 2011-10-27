@@ -38,7 +38,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.Exc;
-import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
 import org.decojer.cavaj.model.code.op.AND;
@@ -2310,10 +2310,10 @@ public class ReadCodeItem {
 	}
 
 	private void readLocalVariables(final CFG cfg, final ReadDebugInfo readDebugInfo) {
-		final HashMap<Integer, ArrayList<Var>> reg2vars = readDebugInfo.getReg2vars();
-		for (final Entry<Integer, ArrayList<Var>> entry : reg2vars.entrySet()) {
+		final HashMap<Integer, ArrayList<V>> reg2vars = readDebugInfo.getReg2vars();
+		for (final Entry<Integer, ArrayList<V>> entry : reg2vars.entrySet()) {
 			final int reg = entry.getKey();
-			for (final Var var : entry.getValue()) {
+			for (final V var : entry.getValue()) {
 				var.setStartPc(this.vmpc2pc.get(var.getStartPc()));
 				final int vmpc = var.getEndPc();
 				var.setEndPc(vmpc == -1 ? this.ops.size() : this.vmpc2pc.get(vmpc));

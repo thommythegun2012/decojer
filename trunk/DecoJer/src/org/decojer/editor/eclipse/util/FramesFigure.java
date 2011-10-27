@@ -25,7 +25,7 @@ package org.decojer.editor.eclipse.util;
 
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.code.Frame;
-import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.Op;
 import org.eclipse.draw2d.AbstractBorder;
 import org.eclipse.draw2d.Border;
@@ -94,7 +94,7 @@ public class FramesFigure extends Figure {
 			}
 			final int regsSize = frame.getLocals();
 			for (int index = 0; index < regsSize; ++index) {
-				final Var var = frame.get(index);
+				final V var = frame.get(index);
 				final Label label = new Label(var == null ? "    " : var.toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);

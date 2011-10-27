@@ -45,7 +45,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
 import org.decojer.cavaj.model.code.op.AND;
@@ -1077,7 +1077,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final boolean isInlineAssignment = bb.getStackSize() > 0
 						&& bb.peek() == rightExpression;
 
-				final Var var = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
+				final V var = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
 				if (!isInlineAssignment && var.getStartPc() == cop.getPc() + 1
 						&& var.getName() != null) {
 					final VariableDeclarationFragment variableDeclarationFragment = getAst()
@@ -1181,13 +1181,13 @@ public class TrIvmCfg2JavaExprStmts {
 	}
 
 	private String getVarName(final int reg, final int pc) {
-		final Var var = this.cfg.getFrameVar(reg, pc);
+		final V var = this.cfg.getFrameVar(reg, pc);
 		final String name = var == null ? null : var.getName();
 		return name == null ? "r" + reg : name;
 	}
 
 	private boolean isWide(final Op op) {
-		final Var var = this.cfg.getInFrame(op).peek();
+		final V var = this.cfg.getInFrame(op).peek();
 		if (var == null) {
 			return false;
 		}

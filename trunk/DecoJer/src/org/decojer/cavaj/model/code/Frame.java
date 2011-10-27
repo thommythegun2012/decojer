@@ -34,7 +34,7 @@ public class Frame {
 
 	private int top;
 
-	private Var[] values;
+	private V[] vs;
 
 	/**
 	 * Constructor.
@@ -45,8 +45,8 @@ public class Frame {
 	public Frame(final Frame frame) {
 		this.locals = frame.locals;
 		this.top = frame.top;
-		this.values = new Var[this.locals + this.top];
-		System.arraycopy(frame.values, 0, this.values, 0, this.values.length);
+		this.vs = new V[this.locals + this.top];
+		System.arraycopy(frame.vs, 0, this.vs, 0, this.vs.length);
 	}
 
 	/**
@@ -57,18 +57,18 @@ public class Frame {
 	 */
 	public Frame(final int locals) {
 		this.locals = locals;
-		this.values = new Var[locals];
+		this.vs = new V[locals];
 	}
 
 	/**
 	 * Get local variable.
 	 * 
-	 * @param index
+	 * @param i
 	 *            index
 	 * @return variable
 	 */
-	public Var get(final int index) {
-		return this.values[index];
+	public V get(final int i) {
+		return this.vs[i];
 	}
 
 	/**
@@ -83,12 +83,12 @@ public class Frame {
 	/**
 	 * Get stack variable.
 	 * 
-	 * @param index
+	 * @param i
 	 *            index
 	 * @return variable
 	 */
-	public Var getStack(final int index) {
-		return this.values[this.locals + index];
+	public V getStack(final int i) {
+		return this.vs[this.locals + i];
 	}
 
 	/**
@@ -110,26 +110,26 @@ public class Frame {
 	public boolean merge(final Frame calculatedFrame) {
 		boolean changed = false;
 		for (int reg = this.locals; reg-- > 0;) {
-			final Var var = calculatedFrame.values[reg];
-			if (var == null) {
+			final V v = calculatedFrame.vs[reg];
+			if (v == null) {
 				continue;
 			}
-			if (this.values[reg] == null) {
-				this.values[reg] = var;
+			if (this.vs[reg] == null) {
+				this.vs[reg] = v;
 				changed = true;
 				continue;
 			}
-			changed |= this.values[reg].merge(var.getT());
+			changed |= this.vs[reg].merge(v.getT());
 		}
-		for (int index = this.top; index-- > 0;) {
-			final Var targetVar = this.values[this.locals + index];
-			final Var calculatedVar = calculatedFrame.values[this.locals + index];
+		for (int i = this.top; i-- > 0;) {
+			final V targetVar = this.vs[this.locals + i];
+			final V calculatedVar = calculatedFrame.vs[this.locals + i];
 			if (targetVar == calculatedVar) {
 				continue;
 			}
 
-			// take new calculated var, override propagation
-			this.values[this.locals + index] = calculatedVar;
+			// take new calculated variable, override propagation
+			this.vs[this.locals + i] = calculatedVar;
 			// TODO replace targetVar.getStartPc() - stack and requeue
 			changed |= calculatedVar.merge(targetVar.getT());
 		}
@@ -139,13 +139,13 @@ public class Frame {
 	/**
 	 * Peek stack variable.
 	 * 
-	 * @return stack variable
+	 * @return variable
 	 */
-	public Var peek() {
+	public V peek() {
 		if (this.top < 1) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.values[this.locals + this.top - 1];
+		return this.vs[this.locals + this.top - 1];
 	}
 
 	/**
@@ -153,38 +153,38 @@ public class Frame {
 	 * 
 	 * @return variable
 	 */
-	public Var pop() {
+	public V pop() {
 		if (this.top < 1) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.values[this.locals + --this.top];
+		return this.vs[this.locals + --this.top];
 	}
 
 	/**
 	 * Push stack variable.
 	 * 
-	 * @param var
+	 * @param v
 	 *            variable
 	 */
-	public void push(final Var var) {
-		if (this.locals + this.top >= this.values.length) {
-			final Var[] newValues = new Var[this.locals + this.top + 1];
-			System.arraycopy(this.values, 0, newValues, 0, this.locals + this.top);
-			this.values = newValues;
+	public void push(final V v) {
+		if (this.locals + this.top >= this.vs.length) {
+			final V[] newValues = new V[this.locals + this.top + 1];
+			System.arraycopy(this.vs, 0, newValues, 0, this.locals + this.top);
+			this.vs = newValues;
 		}
-		this.values[this.locals + this.top++] = var;
+		this.vs[this.locals + this.top++] = v;
 	}
 
 	/**
 	 * Set register variable.
 	 * 
-	 * @param index
+	 * @param i
 	 *            index
-	 * @param var
+	 * @param v
 	 *            variable
 	 */
-	public void set(final int index, final Var var) {
-		this.values[index] = var;
+	public void set(final int i, final V v) {
+		this.vs[i] = v;
 	}
 
 }

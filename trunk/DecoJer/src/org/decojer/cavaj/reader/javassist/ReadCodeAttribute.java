@@ -47,7 +47,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.Exc;
-import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
 import org.decojer.cavaj.model.code.op.AND;
@@ -1605,14 +1605,14 @@ public class ReadCodeAttribute {
 	private void readLocalVariables(final CFG cfg,
 			final LocalVariableAttribute localVariableAttribute,
 			final LocalVariableAttribute localVariableTypeAttribute) {
-		final HashMap<Integer, ArrayList<Var>> reg2vars = new HashMap<Integer, ArrayList<Var>>();
+		final HashMap<Integer, ArrayList<V>> reg2vars = new HashMap<Integer, ArrayList<V>>();
 		if (localVariableAttribute != null) {
 			final DU du = cfg.getMd().getM().getT().getDu();
 			// preserve order
 			final int tableLength = localVariableAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
 				final T varT = du.getDescT(localVariableAttribute.descriptor(i));
-				final Var var = new Var(varT);
+				final V var = new V(varT);
 
 				var.setName(localVariableAttribute.variableName(i));
 				var.setStartPc(this.vmpc2pc.get(localVariableAttribute.startPc(i)));
@@ -1621,17 +1621,17 @@ public class ReadCodeAttribute {
 
 				final int index = localVariableAttribute.index(i);
 
-				ArrayList<Var> vars = reg2vars.get(index);
+				ArrayList<V> vars = reg2vars.get(index);
 				if (vars == null) {
-					vars = new ArrayList<Var>();
+					vars = new ArrayList<V>();
 					reg2vars.put(index, vars);
 				}
 				vars.add(var);
 			}
 			if (reg2vars.size() > 0) {
-				for (final Entry<Integer, ArrayList<Var>> entry : reg2vars.entrySet()) {
+				for (final Entry<Integer, ArrayList<V>> entry : reg2vars.entrySet()) {
 					final int reg = entry.getKey();
-					for (final Var var : entry.getValue()) {
+					for (final V var : entry.getValue()) {
 						cfg.addVar(reg, var);
 					}
 				}
@@ -1641,7 +1641,7 @@ public class ReadCodeAttribute {
 			// preserve order
 			final int tableLength = localVariableTypeAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final Var var = cfg.getVar(localVariableTypeAttribute.index(i),
+				final V var = cfg.getVar(localVariableTypeAttribute.index(i),
 						this.vmpc2pc.get(localVariableTypeAttribute.startPc(i)));
 				if (var == null) {
 					LOGGER.warning("Local variable type attribute '"

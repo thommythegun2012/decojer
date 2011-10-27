@@ -37,7 +37,7 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.Frame;
-import org.decojer.cavaj.model.code.Var;
+import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
 import org.decojer.cavaj.model.code.op.AND;
@@ -138,8 +138,8 @@ public class TrDataFlowAnalysis {
 	}
 
 	private void evalBinaryMath(final Frame frame, final T t, final T pushT) {
-		final Var var2 = pop(frame, t);
-		final Var var1 = pop(frame, t);
+		final V var2 = pop(frame, t);
+		final V var1 = pop(frame, t);
 
 		final T resultT = var1.getT().merge(var2.getT());
 
@@ -160,8 +160,8 @@ public class TrDataFlowAnalysis {
 		}
 	}
 
-	private Var getReg(final Frame frame, final int index, final T t) {
-		final Var var = frame.get(index);
+	private V getReg(final Frame frame, final int index, final T t) {
+		final V var = frame.get(index);
 		if (var.getEndPc() < this.pc) {
 			var.setEndPc(this.pc);
 		}
@@ -172,7 +172,7 @@ public class TrDataFlowAnalysis {
 	}
 
 	private boolean isWide(final Op op) {
-		final Var var = this.cfg.getInFrame(op).peek();
+		final V var = this.cfg.getInFrame(op).peek();
 		if (var == null) {
 			return false;
 		}
@@ -190,8 +190,8 @@ public class TrDataFlowAnalysis {
 		this.queue.add(targetPc);
 	}
 
-	private Var pop(final Frame frame, final T t) {
-		final Var var = frame.pop();
+	private V pop(final Frame frame, final T t) {
+		final V var = frame.pop();
 		if (var.getEndPc() < this.pc) {
 			var.setEndPc(this.pc);
 		}
@@ -201,8 +201,8 @@ public class TrDataFlowAnalysis {
 		return var;
 	}
 
-	private Var push(final Frame frame, final T t) {
-		final Var var = new Var(t);
+	private V push(final Frame frame, final T t) {
+		final V var = new V(t);
 		// known in follow frame! no push through control flow operations
 		var.setStartPc(this.pc + 1);
 		var.setEndPc(this.pc + 1);
@@ -210,7 +210,7 @@ public class TrDataFlowAnalysis {
 		return var;
 	}
 
-	private void push(final Frame frame, final Var var) {
+	private void push(final Frame frame, final V var) {
 		if (var.getEndPc() <= this.pc) {
 			// known in follow frame! no push through control flow operations
 			var.setEndPc(this.pc + 1);
@@ -218,7 +218,7 @@ public class TrDataFlowAnalysis {
 		frame.push(var);
 	}
 
-	private void setReg(final Frame frame, final int index, final Var var) {
+	private void setReg(final Frame frame, final int index, final V var) {
 		frame.set(index, var);
 	}
 
@@ -299,8 +299,8 @@ public class TrDataFlowAnalysis {
 					// wide:
 					// ..., value => ..., value, value
 					if (!isWide(cop)) {
-						final Var e1 = frame.pop();
-						final Var e2 = frame.pop();
+						final V e1 = frame.pop();
+						final V e2 = frame.pop();
 						frame.push(e2);
 						frame.push(e1);
 						frame.push(e2);
@@ -319,9 +319,9 @@ public class TrDataFlowAnalysis {
 					// wide:
 					// ..., value2, value1 => ..., value1, value2, value1
 					if (!isWide(cop)) {
-						final Var e1 = frame.pop();
-						final Var e2 = frame.pop();
-						final Var e3 = frame.pop();
+						final V e1 = frame.pop();
+						final V e2 = frame.pop();
+						final V e3 = frame.pop();
 						frame.push(e2);
 						frame.push(e1);
 						frame.push(e3);
@@ -332,8 +332,8 @@ public class TrDataFlowAnalysis {
 					// fall through for wide
 				case DUP.T_DUP_X1: {
 					// Duplicate the top operand stack value and insert two values down
-					final Var e1 = frame.pop();
-					final Var e2 = frame.pop();
+					final V e1 = frame.pop();
+					final V e2 = frame.pop();
 					frame.push(e1);
 					frame.push(e2);
 					frame.push(e1);
@@ -347,10 +347,10 @@ public class TrDataFlowAnalysis {
 					// wide:
 					// ..., value3, value2, value1 => ..., value1, value3, value2, value1
 					if (!isWide(cop)) {
-						final Var e1 = frame.pop();
-						final Var e2 = frame.pop();
-						final Var e3 = frame.pop();
-						final Var e4 = frame.pop();
+						final V e1 = frame.pop();
+						final V e2 = frame.pop();
+						final V e3 = frame.pop();
+						final V e4 = frame.pop();
 						frame.push(e2);
 						frame.push(e1);
 						frame.push(e4);
@@ -362,9 +362,9 @@ public class TrDataFlowAnalysis {
 					// fall through for wide
 				case DUP.T_DUP_X2: {
 					// Duplicate the top operand stack value and insert two or three values down
-					final Var e1 = frame.pop();
-					final Var e2 = frame.pop();
-					final Var e3 = frame.pop();
+					final V e1 = frame.pop();
+					final V e2 = frame.pop();
+					final V e3 = frame.pop();
 					frame.push(e1);
 					frame.push(e3);
 					frame.push(e2);
@@ -439,7 +439,7 @@ public class TrDataFlowAnalysis {
 			}
 			case LOAD: {
 				final LOAD cop = (LOAD) op;
-				final Var var = getReg(frame, cop.getReg(), cop.getT());
+				final V var = getReg(frame, cop.getReg(), cop.getT());
 				push(frame, var); // OK
 				break;
 			}
@@ -456,7 +456,7 @@ public class TrDataFlowAnalysis {
 			}
 			case NEG: {
 				final NEG cop = (NEG) op;
-				final Var var = pop(frame, cop.getT());
+				final V var = pop(frame, cop.getT());
 				push(frame, var); // OK
 				break;
 			}
@@ -544,10 +544,10 @@ public class TrDataFlowAnalysis {
 			}
 			case STORE: {
 				final STORE cop = (STORE) op;
-				final Var pop = pop(frame, cop.getT());
+				final V pop = pop(frame, cop.getT());
 
 				// TODO STORE.pc in DALVIK sucks now...multiple ops share pc
-				final Var var = this.cfg.getVar(cop.getReg(), ops[this.pc + 1].getPc());
+				final V var = this.cfg.getVar(cop.getReg(), ops[this.pc + 1].getPc());
 
 				if (var != null) {
 					// TODO
@@ -570,8 +570,8 @@ public class TrDataFlowAnalysis {
 				// wide: not supported on JVM!
 				assert op instanceof SWAP;
 
-				final Var e1 = frame.pop();
-				final Var e2 = frame.pop();
+				final V e1 = frame.pop();
+				final V e2 = frame.pop();
 				frame.push(e1);
 				frame.push(e2);
 				break;
