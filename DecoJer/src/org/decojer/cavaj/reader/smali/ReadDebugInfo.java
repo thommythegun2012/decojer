@@ -121,7 +121,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 				m.setParamName(i, parameterNames[i].getStringValue());
 			}
 		}
-		DebugInstructionIterator.DecodeInstructions(debugInfoItem, md.getCfg().getMaxRegs(), this);
+		DebugInstructionIterator.DecodeInstructions(debugInfoItem, md.getCfg().getMaxLocals(), this);
 	}
 
 	@Override

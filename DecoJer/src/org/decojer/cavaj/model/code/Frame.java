@@ -122,16 +122,16 @@ public class Frame {
 			changed |= this.vs[reg].merge(v.getT());
 		}
 		for (int i = this.top; i-- > 0;) {
-			final V targetVar = this.vs[this.locals + i];
-			final V calculatedVar = calculatedFrame.vs[this.locals + i];
-			if (targetVar == calculatedVar) {
+			final V targetV = this.vs[this.locals + i];
+			final V calculatedV = calculatedFrame.vs[this.locals + i];
+			if (targetV == calculatedV) {
 				continue;
 			}
 
 			// take new calculated variable, override propagation
-			this.vs[this.locals + i] = calculatedVar;
+			this.vs[this.locals + i] = calculatedV;
 			// TODO replace targetVar.getStartPc() - stack and requeue
-			changed |= calculatedVar.merge(targetVar.getT());
+			changed |= calculatedV.merge(targetV.getT());
 		}
 		return changed;
 	}
@@ -168,9 +168,9 @@ public class Frame {
 	 */
 	public void push(final V v) {
 		if (this.locals + this.top >= this.vs.length) {
-			final V[] newValues = new V[this.locals + this.top + 1];
-			System.arraycopy(this.vs, 0, newValues, 0, this.locals + this.top);
-			this.vs = newValues;
+			final V[] newVs = new V[this.locals + this.top + 1];
+			System.arraycopy(this.vs, 0, newVs, 0, this.locals + this.top);
+			this.vs = newVs;
 		}
 		this.vs[this.locals + this.top++] = v;
 	}

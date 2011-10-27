@@ -126,7 +126,7 @@ public class TrDataFlowAnalysis {
 	}
 
 	private Frame createMethodFrame() {
-		final Frame frame = new Frame(this.cfg.getMaxRegs());
+		final Frame frame = new Frame(this.cfg.getMaxLocals());
 		for (int index = frame.getLocals(); index-- > 0;) {
 			frame.set(index, this.cfg.getVar(index, 0));
 		}

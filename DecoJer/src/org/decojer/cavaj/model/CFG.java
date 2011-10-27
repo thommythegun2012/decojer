@@ -53,7 +53,7 @@ public class CFG {
 	 */
 	private BB[] iDoms;
 
-	private final int maxRegs;
+	private final int maxLocals;
 
 	private final int maxStack;
 
@@ -79,18 +79,18 @@ public class CFG {
 	 * 
 	 * @param md
 	 *            method declaration
-	 * @param maxRegs
-	 *            max register number
+	 * @param maxLocals
+	 *            max locals
 	 * @param maxStack
-	 *            max stack number
+	 *            max stack size
 	 */
-	public CFG(final MD md, final int maxRegs, final int maxStack) {
+	public CFG(final MD md, final int maxLocals, final int maxStack) {
 		assert md != null;
-		assert maxRegs >= 0;
+		assert maxLocals >= 0;
 		assert maxStack >= 0;
 
 		this.md = md;
-		this.maxRegs = maxRegs;
+		this.maxLocals = maxLocals;
 		this.maxStack = maxStack;
 	}
 
@@ -258,18 +258,18 @@ public class CFG {
 	}
 
 	/**
-	 * Get max register number.
+	 * Get max locals.
 	 * 
-	 * @return max register number
+	 * @return max locals
 	 */
-	public int getMaxRegs() {
-		return this.maxRegs;
+	public int getMaxLocals() {
+		return this.maxLocals;
 	}
 
 	/**
-	 * Get max stack number.
+	 * Get max stack size.
 	 * 
-	 * @return max stack number
+	 * @return max stack size
 	 */
 	public int getMaxStack() {
 		return this.maxStack;
@@ -393,17 +393,17 @@ public class CFG {
 		final T[] paramTs = m.getParamTs();
 
 		if (this.varss == null) {
-			this.varss = new V[this.maxRegs][];
-		} else if (this.maxRegs < this.varss.length) {
+			this.varss = new V[this.maxLocals][];
+		} else if (this.maxLocals < this.varss.length) {
 			LOGGER.warning("Max registers less than biggest register with local variable info!");
-		} else if (this.maxRegs > this.varss.length) {
-			final V[][] newVarss = new V[this.maxRegs][];
+		} else if (this.maxLocals > this.varss.length) {
+			final V[][] newVarss = new V[this.maxLocals][];
 			System.arraycopy(this.varss, 0, newVarss, 0, this.varss.length);
 			this.varss = newVarss;
 		}
 		if (td.isDalvik()) {
 			// Dalvik...function parameters right aligned
-			int reg = this.maxRegs;
+			int reg = this.maxLocals;
 			for (int i = paramTs.length; i-- > 0;) {
 				final T paramT = paramTs[i];
 				if (paramT.isWide()) {
@@ -538,7 +538,7 @@ public class CFG {
 
 	@Override
 	public String toString() {
-		return getMd().toString() + " (ops: " + this.ops.length + ", regs: " + this.maxRegs + ")";
+		return getMd().toString() + " (ops: " + this.ops.length + ", regs: " + this.maxLocals + ")";
 	}
 
 }

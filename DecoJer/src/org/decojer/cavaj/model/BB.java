@@ -25,7 +25,6 @@ package org.decojer.cavaj.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Stack;
 
 import org.decojer.cavaj.model.code.op.Op;
 import org.decojer.cavaj.model.code.struct.Struct;
@@ -41,7 +40,7 @@ public class BB {
 
 	private final CFG cfg;
 
-	private final Stack<Expression> stack = new Stack<Expression>();
+	private final int locals;
 
 	private final List<Op> ops = new ArrayList<Op>();
 
@@ -59,9 +58,15 @@ public class BB {
 
 	protected final List<Object> succValues = new ArrayList<Object>(0);
 
+	private int top; // stack top
+
+	private Expression[] vs;
+
 	protected BB(final CFG cfg, final int opPc) {
 		this.cfg = cfg;
 		this.opPc = opPc;
+		this.locals = cfg.getMaxLocals();
+		this.vs = new Expression[this.locals];
 	}
 
 	/**
@@ -126,7 +131,15 @@ public class BB {
 	public void copyContentFrom(final BB bb) {
 		this.ops.addAll(bb.ops);
 		this.statements.addAll(bb.statements);
-		this.stack.addAll(bb.stack);
+		if (bb.top > 0) {
+			if (this.locals + this.top + bb.top > this.vs.length) {
+				final Expression[] newVs = new Expression[this.locals + this.top + bb.top];
+				System.arraycopy(this.vs, 0, newVs, 0, this.locals + this.top);
+				this.vs = newVs;
+			}
+			System.arraycopy(bb.vs, bb.locals, this.vs, this.locals + this.top, bb.top);
+			this.top += bb.top;
+		}
 	}
 
 	/**
@@ -218,7 +231,7 @@ public class BB {
 	 * @return expression stack size
 	 */
 	public int getStackSize() {
-		return this.stack.size();
+		return this.top;
 	}
 
 	/**
@@ -314,31 +327,42 @@ public class BB {
 	}
 
 	/**
-	 * Peek expression from stack.
+	 * Peek stack expression.
 	 * 
 	 * @return expression
 	 */
 	public Expression peek() {
-		return this.stack.peek();
+		if (this.top < 1) {
+			throw new IndexOutOfBoundsException("Stack is empty!");
+		}
+		return this.vs[this.locals + this.top - 1];
 	}
 
 	/**
-	 * Pop expression from stack.
+	 * Pop stack expression.
 	 * 
 	 * @return expression
 	 */
 	public Expression pop() {
-		return this.stack.pop();
+		if (this.top < 1) {
+			throw new IndexOutOfBoundsException("Stack is empty!");
+		}
+		return this.vs[this.locals + --this.top];
 	}
 
 	/**
-	 * Push expression to stack.
+	 * Push stack expression.
 	 * 
-	 * @param expression
+	 * @param v
 	 *            expression
 	 */
-	public void push(final Expression expression) {
-		this.stack.push(expression);
+	public void push(final Expression v) {
+		if (this.locals + this.top >= this.vs.length) {
+			final Expression[] newVs = new Expression[this.locals + this.top + 1];
+			System.arraycopy(this.vs, 0, newVs, 0, this.locals + this.top);
+			this.vs = newVs;
+		}
+		this.vs[this.locals + this.top++] = v;
 	}
 
 	/**
@@ -433,8 +457,8 @@ public class BB {
 		if (this.ops.size() > 0) {
 			sb.append("\nOps: ").append(this.ops);
 		}
-		if (this.stack.size() > 0) {
-			sb.append("\nExprs: ").append(this.stack);
+		if (this.top > 0) {
+			sb.append("\nExprs: ").append(this.top);
 		}
 		if (this.statements.size() > 0) {
 			sb.append("\nStmts: ").append(this.statements);
