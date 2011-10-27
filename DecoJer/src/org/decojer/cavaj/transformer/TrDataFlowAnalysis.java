@@ -127,8 +127,8 @@ public class TrDataFlowAnalysis {
 
 	private Frame createMethodFrame() {
 		final Frame frame = new Frame(this.cfg.getMaxRegs());
-		for (int index = frame.getRegsSize(); index-- > 0;) {
-			frame.setReg(index, this.cfg.getVar(index, 0));
+		for (int index = frame.getLocals(); index-- > 0;) {
+			frame.set(index, this.cfg.getVar(index, 0));
 		}
 		return frame;
 	}
@@ -161,7 +161,7 @@ public class TrDataFlowAnalysis {
 	}
 
 	private Var getReg(final Frame frame, final int index, final T t) {
-		final Var var = frame.getReg(index);
+		final Var var = frame.get(index);
 		if (var.getEndPc() < this.pc) {
 			var.setEndPc(this.pc);
 		}
@@ -219,7 +219,7 @@ public class TrDataFlowAnalysis {
 	}
 
 	private void setReg(final Frame frame, final int index, final Var var) {
-		frame.setReg(index, var);
+		frame.set(index, var);
 	}
 
 	private void transform() {
