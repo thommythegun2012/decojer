@@ -470,14 +470,13 @@ public class TrIvmCfg2JavaExprStmts {
 					if ("<init>".equals(mName)) {
 						methodExpression = null;
 						if (expression instanceof ThisExpression) {
-							enumConstructor: if (Enum.class.getName().equals(m.getT().getName())
-									&& !getCu().isIgnoreEnum()) {
+							enumConstructor: if (m.getT().is(Enum.class) && !getCu().isIgnoreEnum()) {
 								if (arguments.size() < 2) {
 									LOGGER.warning("Super constructor invocation '" + m
 											+ "' for enum has less than 2 arguments!");
 									break enumConstructor;
 								}
-								if (!String.class.getName().equals(m.getParamTs()[0].getName())) {
+								if (!m.getParamTs()[0].is(String.class)) {
 									LOGGER.warning("Super constructor invocation '"
 											+ m
 											+ "' for enum must contain string literal as first parameter!");
@@ -545,8 +544,7 @@ public class TrIvmCfg2JavaExprStmts {
 					methodExpression = methodInvocation;
 				} else {
 					stringAdd: if ("toString".equals(mName)
-							&& (StringBuilder.class.getName().equals(m.getT().getName()) || StringBuffer.class
-									.getName().equals(m.getT().getName()))) {
+							&& (m.getT().is(StringBuilder.class) || m.getT().is(StringBuffer.class))) {
 						// jdk1.1.6:
 						// new
 						// StringBuffer(String.valueOf(super.toString())).append(" TEST").toString()
@@ -600,8 +598,8 @@ public class TrIvmCfg2JavaExprStmts {
 					methodExpression = methodInvocation;
 				}
 				if (methodExpression != null) {
-					final T returnType = m.getReturnT();
-					if (void.class.getName().equals(returnType.getName())) {
+					final T returnT = m.getReturnT();
+					if (returnT.is(void.class)) {
 						statement = getAst().newExpressionStatement(methodExpression);
 					} else {
 						bb.push(methodExpression);

@@ -78,6 +78,23 @@ public class DU {
 	}
 
 	/**
+	 * Get array type for base type.
+	 * 
+	 * @param baseT
+	 *            base type (could be array)
+	 * @param dim
+	 *            dimension
+	 * @return base type extended with dimensions
+	 */
+	public T getArrayT(final T baseT, final int dim) {
+		final StringBuffer name = new StringBuffer(baseT.getName());
+		for (int i = dim; i-- > 0;) {
+			name.append("[]");
+		}
+		return getT(name.toString());
+	}
+
+	/**
 	 * Get type declaration.
 	 * 
 	 * @param desc
@@ -119,12 +136,7 @@ public class DU {
 			while (desc.charAt(++dim) == '[') {
 				;
 			}
-			final T descT = getDescT(desc.substring(dim));
-			final StringBuilder sb = new StringBuilder(descT.getName());
-			for (int i = dim; i-- > 0;) {
-				sb.append("[]");
-			}
-			return getT(sb.toString());
+			return getArrayT(getDescT(desc.substring(dim)), dim);
 		}
 		throw new DecoJerException("Unknown descriptor: " + desc);
 	}
@@ -178,11 +190,7 @@ public class DU {
 			if (pos == -1) {
 				t = new T(this, name);
 			} else {
-				final T baseT = getT(name.substring(0, pos));
-				final int dim = (name.length() - pos) / 2;
-				t = new T(this, name);
-				t.setDim(dim);
-				t.setSuperT(baseT);
+				t = new T(this, getT(name.substring(0, pos)), (name.length() - pos) / 2);
 				if (this.arrayInterfaceTs == null) {
 					this.arrayInterfaceTs = new T[] { getT(Cloneable.class),
 							getT(Serializable.class) };

@@ -236,7 +236,7 @@ public class SignatureDecompiler {
 							&& !this.td.getCu().isIgnoreEnum()) {
 						// enum constructors have two leading synthetic parameters,
 						// enum classes are static and can not be anonymous or inner method
-						if (i == 0 && String.class.getName().equals(m.getParamTs()[0].getName())) {
+						if (i == 0 && m.getParamTs()[0].is(String.class)) {
 							continue;
 						}
 						if (i == 1 && m.getParamTs()[1] == T.INT) {
