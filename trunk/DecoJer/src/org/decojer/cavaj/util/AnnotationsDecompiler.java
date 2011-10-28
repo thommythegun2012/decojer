@@ -222,7 +222,7 @@ public class AnnotationsDecompiler {
 	public static boolean isDeprecatedAnnotation(final A[] as) {
 		if (as != null) {
 			for (final A a : as) {
-				if (Deprecated.class.getName().equals(a.getT().getName())) {
+				if (a.getT().is(Deprecated.class)) {
 					return true;
 				}
 			}

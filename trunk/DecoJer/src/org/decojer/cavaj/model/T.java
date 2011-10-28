@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -67,6 +68,41 @@ public class T {
 		 */
 		public T[] getTs() {
 			return this.ts;
+		}
+
+		@Override
+		public boolean is(final Class<?>... clazzes) {
+			if (this.ts.length != clazzes.length) {
+				return false;
+			}
+			loop: for (final T thisT : this.ts) {
+				for (final Class<?> clazz : clazzes) {
+					if (thisT.is(clazz)) {
+						continue loop;
+					}
+				}
+				return false;
+			}
+			return true;
+		}
+
+		@Override
+		public boolean is(final T... ts) {
+			if (ts.length == 1 && ts[0].isMulti()) {
+				return is(((TT) ts[0]).ts);
+			}
+			if (this.ts.length != ts.length) {
+				return false;
+			}
+			loop: for (final T thisT : this.ts) {
+				for (final T cmpT : ts) {
+					if (thisT == cmpT) {
+						continue loop;
+					}
+				}
+				return false;
+			}
+			return true;
 		}
 
 		@Override
@@ -143,6 +179,7 @@ public class T {
 			}
 			return new TT(retTs);
 		}
+
 	}
 
 	/**
@@ -224,41 +261,62 @@ public class T {
 
 	public static void main(final String[] args) {
 		final DU du = DecoJer.createDu();
-		final T i = du.getT(Integer.class);
-		final T l = du.getT(Long.class);
 
-		final T superT = i.getSuperT();
-		final T[] iIntTs = i.getInterfaceTs();
+		// primitives
+		T tm = T.INT.merge(null);
+		assert tm.is(T.INT);
 
-		final T merge = i.merge(l);
-		// Merge: java.lang.Integer (Super: java.lang.Number, java.lang.Comparable) <->
-		// java.lang.Long (Super: java.lang.Number, java.lang.Comparable)
-		// result should be 1 class as first (maybe Object?) and interfaces
-		System.out.println("Merge: " + merge);
-	}
+		tm = T.LONG.merge(T.LONG);
+		assert tm.is(T.LONG);
 
-	/**
-	 * Merge types.
-	 * 
-	 * @param t1
-	 *            type 1
-	 * @param t2
-	 *            type 2
-	 * @return merged type
-	 */
-	public static T merge(final T t1, final T t2) {
-		if (t1 == t2 || t2 == null) {
-			return t1;
-		}
-		if (t1 == null) {
-			return t2;
-		}
+		tm = T.DOUBLE.merge(T.AREF);
+		assert tm.is(T.BOGUS);
 
-		if (t1 instanceof TT) {
-			final T[] t1s = ((TT) t1).ts;
-		}
+		tm = T.CHAR.merge(T.SHORT);
+		assert tm.is(T.BOGUS) : tm;
 
-		return t1;
+		// multi and single primitive
+		tm = T.AINT.merge(T.CHAR);
+		assert tm.is(T.CHAR) : tm;
+
+		tm = T.INT.merge(T.DINT);
+		assert tm.is(T.INT) : tm;
+
+		// multi primitives
+		tm = T.AINT.merge(T.DINT);
+		assert tm.is(T.AINT) : tm;
+
+		tm = T.DINT.merge(T.IINT);
+		assert tm.is(T.IINT) : tm;
+
+		// primitive arrays
+		tm = du.getArrayT(T.INT, 1).merge(du.getArrayT(T.INT, 1));
+		assert tm.is(du.getArrayT(T.INT, 1)) : tm;
+
+		tm = du.getArrayT(T.INT, 2).merge(du.getArrayT(T.INT, 1));
+		assert tm.is(T.BOGUS) : tm;
+
+		tm = du.getArrayT(T.INT, 3).merge(du.getT(Object.class));
+		assert tm.is(du.getT(Object.class)) : tm;
+
+		tm = du.getArrayT(T.INT, 4).merge(du.getT(Cloneable.class));
+		assert tm.is(du.getT(Cloneable.class)) : tm;
+
+		tm = du.getT(Serializable.class).merge(du.getArrayT(T.INT, 5));
+		assert tm.is(du.getT(Serializable.class)) : tm;
+
+		// AREF and Object have different behaviour in merge!
+		tm = du.getArrayT(T.INT, 1).merge(T.AREF);
+		assert tm.is(du.getArrayT(T.INT, 1)) : tm;
+
+		tm = du.getArrayT(T.INT, 1).merge(du.getT(Object.class));
+		assert tm.is(du.getT(Object.class)) : tm;
+
+		// now TODO:
+		tm = du.getT(Integer.class).merge(du.getT(Long.class));
+		assert tm.is(Number.class, Comparable.class) : tm;
+
+		System.out.println("HURRAY: " + tm);
 	}
 
 	/**
@@ -296,6 +354,21 @@ public class T {
 
 		this.du = du;
 		this.name = name;
+	}
+
+	protected T(final DU du, final T baseT, final int dim) {
+		assert baseT != null;
+		assert baseT.dim == 0;
+		assert dim > 0;
+
+		this.du = du;
+		this.superT = baseT;
+		this.dim = dim;
+		final StringBuilder name = new StringBuilder(baseT.getName());
+		for (int i = dim; i-- > 0;) {
+			name.append("[]");
+		}
+		this.name = name.toString();
 	}
 
 	private T(final String name) {
@@ -518,6 +591,34 @@ public class T {
 	}
 
 	/**
+	 * Is type of class?
+	 * 
+	 * @param clazzes
+	 *            classes
+	 * @return true - type is of class
+	 */
+	public boolean is(final Class<?>... clazzes) {
+		if (clazzes.length != 1) {
+			return false;
+		}
+		return this.name.equals(clazzes[0].getName());
+	}
+
+	/**
+	 * Is type of types?
+	 * 
+	 * @param ts
+	 *            types
+	 * @return true - type is of types
+	 */
+	public boolean is(final T... ts) {
+		if (ts.length != 1) {
+			return false;
+		}
+		return this == ts[0];
+	}
+
+	/**
 	 * Is array?
 	 * 
 	 * @return true - is array
@@ -547,9 +648,9 @@ public class T {
 	}
 
 	/**
-	 * Is reference?
+	 * Is reference (array too)?
 	 * 
-	 * @return true - is reference
+	 * @return true - is reference (array too)
 	 */
 	public boolean isReference() {
 		return this == T.AREF || this.du != null;
@@ -592,22 +693,33 @@ public class T {
 			// unequal primitives or special types cannot be equal
 			return T.BOGUS;
 		}
-		if (this == T.AREF && t.isReference()) {
-			return t;
-		}
-		if (t == T.AREF && isReference()) {
+		// references (arrays too) only from here on
+		if (t == T.AREF) {
 			return this;
 		}
-
-		// TODO hack
-		if (isArray() && t.isArray()) {
-			if (getBaseT().subtypeOf(t.getBaseT())) {
-				return t;
-			}
-			if (t.getBaseT().subtypeOf(getBaseT())) {
-				return this;
-			}
+		if (this == T.AREF) {
+			return t;
 		}
+		if (this.dim > 0 && t.dim > 0) {
+			// one is array and other is Object/Cloneable/Serializable still possible
+			if (this.dim != t.dim) {
+				return BOGUS;
+			}
+			final T mT = getBaseT().merge(t.getBaseT());
+			if (mT == T.BOGUS) {
+				return mT;
+			}
+			if (mT.isMulti()) {
+				final T[] mTs = ((TT) mT).ts;
+				final T[] amTs = new T[mTs.length];
+				for (int i = mTs.length; i-- > 0;) {
+					amTs[i] = this.du.getArrayT(mTs[i], this.dim);
+				}
+				return new TT(amTs);
+			}
+			return this.du.getArrayT(mT, this.dim);
+		}
+
 		if (subtypeOf(t)) {
 			return t;
 		}
@@ -656,25 +768,35 @@ public class T {
 			// unequal primitives or special types cannot be equal
 			return T.BOGUS;
 		}
-		if (this == T.AREF && t.isReference()) {
-			return t;
-		}
-		if (t == T.AREF && isReference()) {
+		// references (arrays too) only from here on
+		if (t == T.AREF) {
 			return this;
 		}
-
-		if (t.isArray()) {
-			if (!isArray()) {
-				return T.BOGUS;
+		if (this == T.AREF) {
+			return t;
+		}
+		if (this.dim > 0 && t.dim > 0) {
+			// one is array and other is Object/Cloneable/Serializable still possible
+			if (this.dim != t.dim) {
+				return BOGUS;
 			}
-			if (getBaseT().subtypeOf(t.getBaseT())) {
-				return this;
+			final T mT = getBaseT().mergeTo(t.getBaseT());
+			if (mT == T.BOGUS) {
+				return mT;
 			}
+			if (mT.isMulti()) {
+				final T[] mTs = ((TT) mT).ts;
+				final T[] amTs = new T[mTs.length];
+				for (int i = mTs.length; i-- > 0;) {
+					amTs[i] = this.du.getArrayT(mTs[i], this.dim);
+				}
+				return new TT(amTs);
+			}
+			return this.du.getArrayT(mT, this.dim);
 		}
 		if (subtypeOf(t)) {
 			return this;
 		}
-
 		final StringBuilder sb = new StringBuilder();
 		sb.append("AssignTo: " + this + " (Super: " + getSuperT());
 		if (getInterfaceTs() != null) {
@@ -699,16 +821,6 @@ public class T {
 	 */
 	public void setAccessFlags(final int accessFlags) {
 		this.accessFlags = accessFlags;
-	}
-
-	/**
-	 * Set dimension.
-	 * 
-	 * @param dim
-	 *            dimension
-	 */
-	public void setDim(final int dim) {
-		this.dim = dim;
 	}
 
 	/**
@@ -743,7 +855,7 @@ public class T {
 	}
 
 	private boolean subtypeOf(final T t) {
-		if (Object.class.getName().equals(t.getName())) {
+		if (t.is(Object.class)) {
 			return true;
 		}
 		// check one hierarchie up first

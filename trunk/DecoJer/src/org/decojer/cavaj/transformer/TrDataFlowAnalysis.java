@@ -473,12 +473,12 @@ public class TrDataFlowAnalysis {
 			}
 			case NEWARRAY: {
 				final NEWARRAY cop = (NEWARRAY) op;
-				String name = cop.getT().getName();
 				for (int i = cop.getDimensions(); i-- > 0;) {
 					pop(frame, T.INT);
-					name += "[]";
 				}
-				push(frame, this.cfg.getMd().getM().getT().getDu().getT(name));
+				push(frame,
+						this.cfg.getMd().getM().getT().getDu()
+								.getArrayT(cop.getT(), cop.getDimensions()));
 				break;
 			}
 			case OR: {

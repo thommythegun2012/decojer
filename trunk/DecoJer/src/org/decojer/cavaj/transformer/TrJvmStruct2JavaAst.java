@@ -196,7 +196,7 @@ public class TrJvmStruct2JavaAst {
 
 		// enum synthetic methods
 		if (("values".equals(name) && paramTs.length == 0 || "valueOf".equals(name)
-				&& paramTs.length == 1 && String.class.getName().equals(paramTs[0].getName()))
+				&& paramTs.length == 1 && paramTs[0].is(String.class))
 				&& t.checkAf(AF.ENUM) && !cu.isIgnoreEnum()) {
 			return;
 		}
@@ -368,13 +368,11 @@ public class TrJvmStruct2JavaAst {
 
 			// annotation type declaration
 			if (t.checkAf(AF.ANNOTATION)) {
-				if (t.getSuperT() == null
-						|| !Object.class.getName().equals(t.getSuperT().getName())) {
+				if (t.getSuperT() == null || !t.getSuperT().is(Object.class)) {
 					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no super class '"
 							+ Object.class.getName() + "' but has '" + t.getSuperT() + "'!");
 				}
-				if (t.getInterfaceTs().length != 1
-						|| !Annotation.class.getName().equals(t.getInterfaceTs()[0].getName())) {
+				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
 							+ "'!");
@@ -386,8 +384,7 @@ public class TrJvmStruct2JavaAst {
 				if (typeDeclaration != null) {
 					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
-					if (t.getSuperT() == null
-							|| !Enum.class.getName().equals(t.getSuperT().getName())) {
+					if (t.getSuperT() == null || !t.getSuperT().is(Enum.class)) {
 						LOGGER.warning("Classfile with AccessFlag.ENUM has no super class '"
 								+ Enum.class.getName() + "' but has '" + t.getSuperT() + "'!");
 					}
