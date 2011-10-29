@@ -1238,12 +1238,8 @@ public class TrIvmCfg2JavaExprStmts {
 		Expression expression = ifBb.peek();
 		try {
 			final String classInfo = (String) ((PUSH) ops.get(1)).getValue();
-			// strange behaviour for classinfo:
-			// arrays: normal descriptor (but with '.')
-			// no arrays - class name
 			final DU du = getTd().getT().getDu();
-			final T literalT = classInfo.charAt(0) == '[' ? du
-					.getDescT(classInfo.replace('.', '/')) : du.getT(classInfo);
+			final T literalT = du.getT(classInfo);
 			expression = Types.convertLiteral(du.getT(Class.class), literalT, getTd(), getAst());
 		} catch (final Exception e) {
 			// rewrite to class literal didn't work
@@ -1377,12 +1373,8 @@ public class TrIvmCfg2JavaExprStmts {
 				try {
 					final String classInfo = ((StringLiteral) methodInvocation.arguments().get(0))
 							.getLiteralValue();
-					// strange behaviour for classinfo:
-					// arrays: normal descriptor (but with '.')
-					// no arrays - class name
 					final DU du = getTd().getT().getDu();
-					final T literalT = classInfo.charAt(0) == '[' ? du.getDescT(classInfo.replace(
-							'.', '/')) : du.getT(classInfo);
+					final T literalT = du.getT(classInfo);
 					expression = Types.convertLiteral(du.getT(Class.class), literalT, getTd(),
 							getAst());
 					break rewrite;

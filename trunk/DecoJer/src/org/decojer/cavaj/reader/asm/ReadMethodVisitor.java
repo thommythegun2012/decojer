@@ -181,23 +181,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 		this.md = md;
 	}
 
-	private T readType(final String classInfo) {
-		if (classInfo == null) {
-			return null;
-		}
-		assert classInfo.indexOf('.') == -1 : classInfo;
-
-		// strange behaviour for classinfo:
-		// arrays: normal descriptor:
-		// [[I, [Ljava/lang/String;
-		if (classInfo.charAt(0) == '[') {
-			return this.du.getDescT(classInfo);
-		}
-		// no arrays - class name (but with '/'):
-		// java/lang/StringBuilder
-		return this.du.getT(classInfo.replace('/', '.'));
-	}
-
 	@Override
 	public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
 		if (this.as == null) {
@@ -282,7 +265,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 *******/
 		case Opcodes.GETFIELD:
 		case Opcodes.GETSTATIC: {
-			final T t = this.du.getT(owner.replace('/', '.'));
+			final T t = this.du.getT(owner);
 			final F f = t.getF(name, this.du.getDescT(desc));
 			if (opcode == Opcodes.GETSTATIC) {
 				f.markAf(AF.STATIC);
@@ -295,7 +278,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 *******/
 		case Opcodes.PUTFIELD:
 		case Opcodes.PUTSTATIC: {
-			final T t = this.du.getT(owner.replace('/', '.'));
+			final T t = this.du.getT(owner);
 			final F f = t.getF(name, this.du.getDescT(desc));
 			if (opcode == Opcodes.PUTSTATIC) {
 				f.markAf(AF.STATIC);
@@ -1313,7 +1296,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// constructor or supermethod callout
 		case Opcodes.INVOKEVIRTUAL:
 		case Opcodes.INVOKESTATIC: {
-			final T invokeT = readType(owner);
+			final T invokeT = this.du.getT(owner);
 			final M invokeM = invokeT.getM(name, desc);
 			if (opcode == Opcodes.INVOKEINTERFACE) {
 				invokeT.markAf(AF.INTERFACE);
@@ -1395,7 +1378,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public void visitTryCatchBlock(final Label start, final Label end, final Label handler,
 			final String type) {
 		// type: java/lang/Exception
-		final T catchT = type == null ? null : this.du.getT(type.replace('/', '.'));
+		final T catchT = type == null ? null : this.du.getT(type);
 		final Exc exc = new Exc(catchT);
 
 		int pc = getPc(start);
@@ -1420,7 +1403,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitTypeInsn(final int opcode, final String type) {
 		// type: java/lang/StringBuilder, [[I
-		final T t = readType(type);
+		final T t = this.du.getT(type);
 
 		switch (opcode) {
 		/********

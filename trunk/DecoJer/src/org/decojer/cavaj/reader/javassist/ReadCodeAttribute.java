@@ -333,7 +333,7 @@ public class ReadCodeAttribute {
 			 ********/
 			case Opcode.CHECKCAST:
 				t = T.AREF;
-				oValue = readType(constPool.getClassInfo(codeReader.readUnsignedShort()));
+				oValue = this.du.getT(constPool.getClassInfo(codeReader.readUnsignedShort()));
 				// fall through
 			case Opcode.D2F:
 				if (t == null) {
@@ -519,7 +519,7 @@ public class ReadCodeAttribute {
 			case Opcode.GETSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
-				t = readType(constPool.getFieldrefClassName(fieldIndex));
+				t = this.du.getT(constPool.getFieldrefClassName(fieldIndex));
 				final F f = t.getF(constPool.getFieldrefName(fieldIndex),
 						this.du.getDescT(constPool.getFieldrefType(fieldIndex)));
 				if (opcode == Opcode.GETSTATIC) {
@@ -565,7 +565,7 @@ public class ReadCodeAttribute {
 			 * INSTANCEOF *
 			 **************/
 			case Opcode.INSTANCEOF:
-				this.ops.add(new INSTANCEOF(this.ops.size(), opcode, line, readType(constPool
+				this.ops.add(new INSTANCEOF(this.ops.size(), opcode, line, this.du.getT(constPool
 						.getClassInfo(codeReader.readUnsignedShort()))));
 				break;
 			/**********
@@ -577,7 +577,7 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
 
-				t = readType(constPool.getInterfaceMethodrefClassName(methodIndex));
+				t = this.du.getT(constPool.getInterfaceMethodrefClassName(methodIndex));
 				t.markAf(AF.INTERFACE);
 				final M m = t.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
@@ -590,7 +590,7 @@ public class ReadCodeAttribute {
 			case Opcode.INVOKESTATIC: {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
-				t = readType(constPool.getMethodrefClassName(cpMethodIndex));
+				t = this.du.getT(constPool.getMethodrefClassName(cpMethodIndex));
 				final M m = t.getM(constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
 				if (opcode == Opcode.INVOKESTATIC) {
@@ -953,14 +953,14 @@ public class ReadCodeAttribute {
 			 * NEW *
 			 *******/
 			case Opcode.NEW:
-				this.ops.add(new NEW(this.ops.size(), opcode, line, readType(constPool
+				this.ops.add(new NEW(this.ops.size(), opcode, line, this.du.getT(constPool
 						.getClassInfo(codeReader.readUnsignedShort()))));
 				break;
 			/************
 			 * NEWARRAY *
 			 ************/
 			case Opcode.ANEWARRAY:
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, readType(constPool
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, this.du.getT(constPool
 						.getClassInfo(codeReader.readUnsignedShort())), 1));
 				break;
 			case Opcode.NEWARRAY: {
@@ -971,7 +971,7 @@ public class ReadCodeAttribute {
 			case Opcode.MULTIANEWARRAY: {
 				final int classIndex = codeReader.readUnsignedShort();
 				final int dimensions = codeReader.readUnsignedByte();
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, readType(constPool
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, this.du.getT(constPool
 						.getClassInfo(classIndex)), dimensions));
 				break;
 			}
@@ -1030,7 +1030,7 @@ public class ReadCodeAttribute {
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
 						t = this.du.getT(Class.class);
-						oValue = readType(constPool.getClassInfo(ldcValueIndex));
+						oValue = this.du.getT(constPool.getClassInfo(ldcValueIndex));
 						break;
 					case ConstPool.CONST_Double:
 						// Double / Long only with LDC2_W, but is OK here too
@@ -1072,7 +1072,7 @@ public class ReadCodeAttribute {
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
 						t = this.du.getT(Class.class);
-						oValue = readType(constPool.getClassInfo(ldcValueIndex));
+						oValue = this.du.getT(constPool.getClassInfo(ldcValueIndex));
 						break;
 					case ConstPool.CONST_Double:
 						t = T.DOUBLE;
@@ -1195,7 +1195,7 @@ public class ReadCodeAttribute {
 			case Opcode.PUTSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
-				t = readType(constPool.getFieldrefClassName(fieldIndex));
+				t = this.du.getT(constPool.getFieldrefClassName(fieldIndex));
 				final F f = t.getF(constPool.getFieldrefName(fieldIndex),
 						this.du.getDescT(constPool.getFieldrefType(fieldIndex)));
 				if (opcode == Opcode.PUTSTATIC) {
@@ -1653,23 +1653,6 @@ public class ReadCodeAttribute {
 			}
 		}
 		cfg.postProcessVars();
-	}
-
-	private T readType(final String classInfo) {
-		if (classInfo == null) {
-			return null;
-		}
-		assert classInfo.indexOf('/') == -1 : classInfo;
-
-		// strange behaviour for classinfo:
-		// arrays: normal descriptor (but with '.'):
-		// [[I, [Ljava.lang.String;
-		if (classInfo.charAt(0) == '[') {
-			return this.du.getDescT(classInfo.replace('.', '/'));
-		}
-		// no arrays - class name:
-		// org.decojer.cavaj.test.DecTestInner$1$1$1
-		return this.du.getT(classInfo);
 	}
 
 	private void visitVmpc(final int vmpc) {

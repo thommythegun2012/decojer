@@ -25,7 +25,6 @@ package org.decojer.cavaj.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -121,23 +120,30 @@ public class T {
 			if (t == this || t == null) {
 				return this;
 			}
+			boolean changed = false;
 			final ArrayList<T> mergedTs = new ArrayList<T>();
 			for (final T iT : this.ts) {
-				final T mt = t.merge(iT); // t might be multi too
-				if (mt == T.BOGUS) {
-					continue;
+				final T mergedT = t.merge(iT); // t might be multi too
+				if (mergedT != iT) {
+					changed = true;
+					if (mergedT == T.BOGUS) {
+						continue;
+					}
 				}
-				if (mt instanceof TT) {
-					for (final T smt : ((TT) mt).getTs()) {
-						if (!mergedTs.contains(smt)) {
-							mergedTs.add(smt);
+				if (mergedT.isMulti()) {
+					for (final T iMergedT : ((TT) mergedT).getTs()) {
+						if (!mergedTs.contains(iMergedT)) {
+							mergedTs.add(iMergedT);
 						}
 					}
 					continue;
 				}
-				if (!mergedTs.contains(mt)) {
-					mergedTs.add(mt);
+				if (!mergedTs.contains(mergedT)) {
+					mergedTs.add(mergedT);
 				}
+			}
+			if (!changed) {
+				return this;
 			}
 			if (mergedTs.size() == 0) {
 				return T.BOGUS;
@@ -153,33 +159,35 @@ public class T {
 			if (t == this || t == null) {
 				return this;
 			}
-			final List<T> merged = new ArrayList<T>();
-			for (final T st : this.ts) {
-				final T mt = st.mergeTo(t);
-				if (mt == T.BOGUS) {
-					continue;
+			boolean changed = false;
+			final List<T> mergedTs = new ArrayList<T>();
+			for (final T iT : this.ts) {
+				final T mergedT = iT.mergeTo(t);
+				if (mergedT != iT) {
+					changed = true;
+					if (mergedT == T.BOGUS) {
+						continue;
+					}
 				}
-				// cannot switch to new type (super) or multi,
-				// only AREF -> concrete could happen
-				assert !(mt instanceof TT);
-				if (!merged.contains(mt)) {
-					merged.add(mt);
+				// cannot be a multi-type, result can only be iT / BOGUS or AREF could change to
+				// concrete type
+				assert !mergedT.isMulti();
+
+				if (!mergedTs.contains(mergedT)) {
+					mergedTs.add(mergedT);
 				}
 			}
-			if (merged.size() == 0) {
-				return T.BOGUS;
-			}
-			if (merged.size() == 1) {
-				return merged.get(0);
-			}
-			// order cannot change, this equals is OK
-			final T[] retTs = merged.toArray(new T[merged.size()]);
-			if (Arrays.equals(this.ts, retTs)) {
+			if (!changed) {
 				return this;
 			}
-			return new TT(retTs);
+			if (mergedTs.size() == 0) {
+				return T.BOGUS;
+			}
+			if (mergedTs.size() == 1) {
+				return mergedTs.get(0);
+			}
+			return new TT(mergedTs.toArray(new T[mergedTs.size()]));
 		}
-
 	}
 
 	/**
@@ -267,6 +275,20 @@ public class T {
 		final DU du = DecoJer.createDu();
 		T tm;
 
+		assert int.class.isAssignableFrom(int.class) == du.getT(int.class).isAssignableFrom(
+				du.getT(int.class));
+		assert int.class.isAssignableFrom(short.class) == du.getT(int.class).isAssignableFrom(
+				du.getT(short.class));
+		assert Object.class.isAssignableFrom(int[].class) == du.getT(Object.class)
+				.isAssignableFrom(du.getT(int[].class));
+
+		assert Object.class.isAssignableFrom(Serializable.class) == du.getT(Object.class)
+				.isAssignableFrom(du.getT(Serializable.class));
+		assert Object[].class.isAssignableFrom(Serializable[].class) == du.getT(Object[].class)
+				.isAssignableFrom(du.getT(Serializable[].class));
+		assert Number[].class.isAssignableFrom(Integer[].class) == du.getT(Number[].class)
+				.isAssignableFrom(du.getT(Integer[].class));
+
 		// mergeTo is like subtypeOf and reduces multi-types
 		tm = du.getT(Integer.class).mergeTo(du.getT(Number.class));
 		assert tm.is(Integer.class) : tm;
@@ -309,13 +331,16 @@ public class T {
 		assert tm.is(du.getArrayT(T.INT, 1)) : tm;
 
 		tm = du.getArrayT(T.INT, 2).merge(du.getArrayT(T.INT, 1));
-		assert tm.is(T.BOGUS) : tm;
+		assert tm.is(du.getT(Cloneable.class), du.getT(Serializable.class)) : tm;
 
 		tm = du.getArrayT(T.INT, 3).merge(du.getT(Object.class));
 		assert tm.is(du.getT(Object.class)) : tm;
 
 		tm = du.getArrayT(T.INT, 4).merge(du.getT(Cloneable.class));
 		assert tm.is(du.getT(Cloneable.class)) : tm;
+
+		tm = du.getArrayT(T.INT, 5).merge(du.getT(Serializable.class));
+		assert tm.is(du.getT(Serializable.class)) : tm;
 
 		tm = du.getT(Serializable.class).merge(du.getArrayT(T.INT, 5));
 		assert tm.is(du.getT(Serializable.class)) : tm;
@@ -644,6 +669,66 @@ public class T {
 	}
 
 	/**
+	 * Is this type instance assignable from given type instance?
+	 * 
+	 * @param t
+	 *            type
+	 * @return true - is assignable
+	 * 
+	 * @see Class#isAssignableFrom(Class)
+	 */
+	public boolean isAssignableFrom(final T t) {
+		assert t != null && !isMulti() && !t.isMulti();
+
+		// all instances are assignable to Object, even if only known by interface
+		if (t == this) {
+			return true;
+		}
+		if (!isReference() || !t.isReference()) {
+			// unequal primitives or special types cannot be equal
+			return false;
+		}
+		// references (arrays too) only from here on
+		if (t == T.AREF || this == T.AREF || this.is(Object.class)) {
+			return true;
+		}
+		if (this.dim > 0 && t.dim > 0) {
+			// one is array and other is Object/Cloneable/Serializable still possible
+			if (this.dim != t.dim) {
+				return false;
+			}
+			return getBaseT().isAssignableFrom(t.getBaseT());
+		}
+		// raise step by step in hierarchy...lazy fetch unknown super
+		final LinkedList<T> ts = new LinkedList<T>();
+		ts.add(t);
+		while (!ts.isEmpty()) {
+			final T iT = ts.pollFirst();
+			final T superT = iT.getSuperT();
+			if (superT == T.UNRESOLVABLE) {
+				// consider this OK for valid bytecode, wrong results possible for frame-local
+				// variables without debug information
+				return true;
+			}
+			if (superT == this) {
+				return true;
+			}
+			if (superT != null) {
+				ts.add(superT);
+			}
+			for (final T interfaceT : iT.getInterfaceTs()) {
+				if (interfaceT == this) {
+					return true;
+				}
+				if (interfaceT != null) {
+					ts.add(interfaceT);
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Is multi-type?
 	 * 
 	 * @return true - is multi-type
@@ -702,42 +787,16 @@ public class T {
 		if (t == this || t == null) {
 			return this;
 		}
-		if (t instanceof TT) {
+		if (t.isMulti()) {
 			return t.merge(this);
 		}
+		if (t.isAssignableFrom(this)) {
+			return t == AREF ? this : t;
+		}
 		if (!isReference() || !t.isReference()) {
-			// unequal primitives or special types cannot be equal
-			return T.BOGUS;
+			return BOGUS;
 		}
-		// references (arrays too) only from here on
-		if (t == T.AREF) {
-			return this;
-		}
-		if (this == T.AREF) {
-			return t;
-		}
-		if (this.dim > 0 && t.dim > 0) {
-			// one is array and other is Object/Cloneable/Serializable still possible
-			if (this.dim != t.dim) {
-				return BOGUS;
-			}
-			final T mT = getBaseT().merge(t.getBaseT());
-			if (mT == T.BOGUS) {
-				return mT;
-			}
-			if (mT.isMulti()) {
-				final T[] mTs = ((TT) mT).ts;
-				final T[] amTs = new T[mTs.length];
-				for (int i = mTs.length; i-- > 0;) {
-					amTs[i] = this.du.getArrayT(mTs[i], this.dim);
-				}
-				return new TT(amTs);
-			}
-			return this.du.getArrayT(mT, this.dim);
-		}
-		if (subtypeOf(t)) {
-			return t;
-		}
+		// find common supertypes, raise in t-hierarchy till assignable from this
 		final ArrayList<T> mergedTs = new ArrayList<T>();
 		// raise step by step in hierarchy...lazy fetch unknown super
 		final LinkedList<T> ts = new LinkedList<T>();
@@ -753,14 +812,20 @@ public class T {
 				}
 				continue;
 			}
-			if (subtypeOf(superT)) {
-				mergedTs.add(superT);
-			} else if (superT != null) {
-				ts.add(superT);
+			if (superT != null) {
+				if (superT.isAssignableFrom(this)) {
+					if (!mergedTs.contains(superT)) {
+						mergedTs.add(superT);
+					}
+				} else {
+					ts.add(superT);
+				}
 			}
 			for (final T interfaceT : iT.getInterfaceTs()) {
-				if (subtypeOf(interfaceT)) {
-					mergedTs.add(interfaceT);
+				if (interfaceT.isAssignableFrom(this)) {
+					if (!mergedTs.contains(interfaceT)) {
+						mergedTs.add(interfaceT);
+					}
 				} else if (interfaceT != null) {
 					ts.add(interfaceT);
 				}
@@ -780,6 +845,9 @@ public class T {
 			sb.append(")");
 			System.out.println(sb.toString());
 			return T.BOGUS;
+		}
+		if (mergedTs.size() > 1) {
+			mergedTs.remove(this.du.getT(Object.class));
 		}
 		if (mergedTs.size() == 1) {
 			return mergedTs.get(0);
@@ -802,59 +870,31 @@ public class T {
 		if (t == this || t == null) {
 			return this;
 		}
-		if (t instanceof TT) {
-			for (final T st : ((TT) t).getTs()) {
-				if (mergeTo(st) != T.BOGUS) {
+		if (t.isMulti()) {
+			for (final T iT : ((TT) t).getTs()) {
+				if (mergeTo(iT) != T.BOGUS) {
 					return this;
 				}
 			}
 			return T.BOGUS;
 		}
-		if (!isReference() || !t.isReference()) {
-			// unequal primitives or special types cannot be equal
-			return T.BOGUS;
-		}
-		// references (arrays too) only from here on
-		if (t == T.AREF) {
-			return this;
-		}
-		if (this == T.AREF) {
-			return t;
-		}
-		if (this.dim > 0 && t.dim > 0) {
-			// one is array and other is Object/Cloneable/Serializable still possible
-			if (this.dim != t.dim) {
-				return BOGUS;
-			}
-			final T mT = getBaseT().mergeTo(t.getBaseT());
-			if (mT == T.BOGUS) {
-				return mT;
-			}
-			if (mT.isMulti()) {
-				final T[] mTs = ((TT) mT).ts;
-				final T[] amTs = new T[mTs.length];
-				for (int i = mTs.length; i-- > 0;) {
-					amTs[i] = this.du.getArrayT(mTs[i], this.dim);
-				}
-				return new TT(amTs);
-			}
-			return this.du.getArrayT(mT, this.dim);
-		}
-		if (subtypeOf(t)) {
-			return this;
+		if (t.isAssignableFrom(this)) {
+			return this == AREF ? t : this;
 		}
 		// this should never happen...
-		final StringBuilder sb = new StringBuilder();
-		sb.append("MergeTo: " + this + " (Super: " + getSuperT());
-		for (final T it : getInterfaceTs()) {
-			sb.append(", ").append(it.toString());
+		if (isReference() && t.isReference()) {
+			final StringBuilder sb = new StringBuilder();
+			sb.append("MergeTo: " + this + " (Super: " + getSuperT());
+			for (final T it : getInterfaceTs()) {
+				sb.append(", ").append(it.toString());
+			}
+			sb.append(") -> " + t + " (Super: " + t.getSuperT());
+			for (final T it : t.getInterfaceTs()) {
+				sb.append(", ").append(it.toString());
+			}
+			sb.append(")");
+			System.out.println(sb.toString());
 		}
-		sb.append(") -> " + t + " (Super: " + t.getSuperT());
-		for (final T it : t.getInterfaceTs()) {
-			sb.append(", ").append(it.toString());
-		}
-		sb.append(")");
-		System.out.println(sb.toString());
 		return T.BOGUS;
 	}
 
@@ -897,43 +937,6 @@ public class T {
 	 */
 	public void setSuperT(final T superT) {
 		this.superT = superT;
-	}
-
-	private boolean subtypeOf(final T t) {
-		if (t == null) {
-			return false;
-		}
-		// all instances are assignable to Object, even if only known by interface
-		if (t == this || t.is(Object.class)) {
-			return true;
-		}
-		// raise step by step in hierarchy...lazy fetch unknown super
-		final LinkedList<T> ts = new LinkedList<T>();
-		ts.add(this);
-		while (!ts.isEmpty()) {
-			final T iT = ts.pollFirst();
-			final T superT = iT.getSuperT();
-			if (superT == T.UNRESOLVABLE) {
-				// consider this OK for valid bytecode, wrong results possible for frame-local
-				// variables without debug information
-				return true;
-			}
-			if (superT == t) {
-				return true;
-			}
-			if (superT != null) {
-				ts.add(superT);
-			}
-			for (final T interfaceT : iT.getInterfaceTs()) {
-				if (interfaceT == t) {
-					return true;
-				}
-				if (interfaceT != null) {
-					ts.add(interfaceT);
-				}
-			}
-		}
-		return false;
 	}
 
 	@Override

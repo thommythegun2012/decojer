@@ -103,7 +103,6 @@ public class DU {
 	 */
 	public T getDescT(final String desc) {
 		assert desc != null;
-		assert desc.indexOf('.') == -1 : desc;
 
 		switch (desc.charAt(0)) {
 		case 'V':
@@ -129,7 +128,7 @@ public class DU {
 			if (pos == -1) {
 				throw new DecoJerException("Missing ';' in reference descriptor: " + desc);
 			}
-			return getT(desc.substring(1, pos).replace('/', '.'));
+			return getT(desc.substring(1, pos));
 		}
 		case '[':
 			int dim = 0;
@@ -162,7 +161,11 @@ public class DU {
 	public T getT(final String name) {
 		assert name != null && name.length() > 0;
 		assert name.charAt(0) != 'L' : name;
-		assert name.indexOf('/') == -1 : name;
+
+		if (name.charAt(0) == '[') {
+			// Class.getName() explains this trick, fall back to descriptor
+			return getDescT(name);
+		}
 
 		if (name.equals(T.BOOLEAN.getName())) {
 			return T.BOOLEAN;
@@ -184,20 +187,21 @@ public class DU {
 			return T.VOID;
 		}
 
-		T t = this.ts.get(name);
+		final String normName = name.replace('/', '.');
+		T t = this.ts.get(normName);
 		if (t == null) {
-			final int pos = name.indexOf('[');
+			final int pos = normName.indexOf('[');
 			if (pos == -1) {
-				t = new T(this, name);
+				t = new T(this, normName);
 			} else {
-				t = new T(this, getT(name.substring(0, pos)), (name.length() - pos) / 2);
+				t = new T(this, getT(normName.substring(0, pos)), (normName.length() - pos) / 2);
 				if (this.arrayInterfaceTs == null) {
 					this.arrayInterfaceTs = new T[] { getT(Cloneable.class),
 							getT(Serializable.class) };
 				}
 				t.setInterfaceTs(this.arrayInterfaceTs);
 			}
-			this.ts.put(name, t);
+			this.ts.put(normName, t);
 		}
 		return t;
 	}
