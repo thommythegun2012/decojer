@@ -27,6 +27,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.decojer.DecoJer;
@@ -120,32 +121,31 @@ public class T {
 			if (t == this || t == null) {
 				return this;
 			}
-			final List<T> merged = new ArrayList<T>();
-			for (final T st : this.ts) {
-				final T mt = t.merge(st); // t might be multi too
+			final ArrayList<T> mergedTs = new ArrayList<T>();
+			for (final T iT : this.ts) {
+				final T mt = t.merge(iT); // t might be multi too
 				if (mt == T.BOGUS) {
 					continue;
 				}
 				if (mt instanceof TT) {
 					for (final T smt : ((TT) mt).getTs()) {
-						if (!merged.contains(smt)) {
-							merged.add(smt);
+						if (!mergedTs.contains(smt)) {
+							mergedTs.add(smt);
 						}
 					}
 					continue;
 				}
-				if (!merged.contains(mt)) {
-					merged.add(mt);
+				if (!mergedTs.contains(mt)) {
+					mergedTs.add(mt);
 				}
 			}
-			if (merged.size() == 0) {
+			if (mergedTs.size() == 0) {
 				return T.BOGUS;
 			}
-			if (merged.size() == 1) {
-				return merged.get(0);
+			if (mergedTs.size() == 1) {
+				return mergedTs.get(0);
 			}
-			// TODO check equals
-			return new TT(merged.toArray(new T[merged.size()]));
+			return new TT(mergedTs.toArray(new T[mergedTs.size()]));
 		}
 
 		@Override
@@ -227,6 +227,10 @@ public class T {
 	 */
 	public static T UNINIT = new T("UNINIT");
 	/**
+	 * Artificial type 'uninit'.
+	 */
+	public static T UNRESOLVABLE = new T("UNRESOLVABLE");
+	/**
 	 * Artificial type 'bogus'.
 	 */
 	public static T BOGUS = new T("BOGUS");
@@ -261,9 +265,20 @@ public class T {
 
 	public static void main(final String[] args) {
 		final DU du = DecoJer.createDu();
+		T tm;
+
+		// mergeTo is like subtypeOf and reduces multi-types
+		tm = du.getT(Integer.class).mergeTo(du.getT(Number.class));
+		assert tm.is(Integer.class) : tm;
+
+		tm = T.multi(du.getT(Integer.class), du.getT(Double.class)).mergeTo(
+				du.getT(Serializable.class));
+		assert tm.is(Integer.class, Double.class) : tm;
+
+		// merge is looking for smallest super types and creates multi-types
 
 		// primitives
-		T tm = T.INT.merge(null);
+		tm = T.INT.merge(null);
 		assert tm.is(T.INT);
 
 		tm = T.LONG.merge(T.LONG);
@@ -585,6 +600,7 @@ public class T {
 			this.interfaceTs = interfaceTs;
 		} catch (final ClassNotFoundException e) {
 			System.out.println("Couldn't load type : " + this);
+			this.superT = T.UNRESOLVABLE;
 			this.interfaceTs = NO_INTERFACES;
 		}
 		return;
@@ -653,7 +669,7 @@ public class T {
 	 * @return true - is reference (array too)
 	 */
 	public boolean isReference() {
-		return this == T.AREF || this.du != null;
+		return this == T.AREF || this.du != null; // included: dim > 0
 	}
 
 	/**
@@ -719,38 +735,68 @@ public class T {
 			}
 			return this.du.getArrayT(mT, this.dim);
 		}
-
 		if (subtypeOf(t)) {
 			return t;
 		}
-		if (t.subtypeOf(this)) {
-			return this;
+		final ArrayList<T> mergedTs = new ArrayList<T>();
+		// raise step by step in hierarchy...lazy fetch unknown super
+		final LinkedList<T> ts = new LinkedList<T>();
+		ts.add(t);
+		while (!ts.isEmpty()) {
+			final T iT = ts.pollFirst();
+			final T superT = iT.getSuperT();
+			if (superT == T.UNRESOLVABLE) {
+				if (mergedTs.isEmpty()) {
+					// Object always a valid response, wrong results possible for frame-local
+					// variables without debug information
+					mergedTs.add(this.du.getT(Object.class));
+				}
+				continue;
+			}
+			if (subtypeOf(superT)) {
+				mergedTs.add(superT);
+			} else if (superT != null) {
+				ts.add(superT);
+			}
+			for (final T interfaceT : iT.getInterfaceTs()) {
+				if (subtypeOf(interfaceT)) {
+					mergedTs.add(interfaceT);
+				} else if (interfaceT != null) {
+					ts.add(interfaceT);
+				}
+			}
 		}
-
-		final StringBuilder sb = new StringBuilder();
-		sb.append("Merge: " + this + " (Super: " + getSuperT());
-		if (getInterfaceTs() != null) {
+		if (mergedTs.size() == 0) {
+			// this should never happen...
+			final StringBuilder sb = new StringBuilder();
+			sb.append("Merge: " + this + " (Super: " + getSuperT());
 			for (final T it : getInterfaceTs()) {
 				sb.append(", ").append(it.toString());
 			}
+			sb.append(") <-> " + t + " (Super: " + t.getSuperT());
+			for (final T it : t.getInterfaceTs()) {
+				sb.append(", ").append(it.toString());
+			}
+			sb.append(")");
+			System.out.println(sb.toString());
+			return T.BOGUS;
 		}
-		sb.append(") <-> " + t + " (Super: " + t.getSuperT());
-		for (final T it : t.getInterfaceTs()) {
-			sb.append(", ").append(it.toString());
+		if (mergedTs.size() == 1) {
+			return mergedTs.get(0);
 		}
-		sb.append(")");
-		System.out.println(sb.toString());
-		return this;
+		return new TT(mergedTs.toArray(new T[mergedTs.size()]));
 	}
 
 	/**
-	 * Assign to type: Assign instances from this type to given (multi-)type, reduce multis...
+	 * Merge-to type. Check if instances from this type are assignable to the given type. For single
+	 * types this returns this or BOGUS. For multi-types it reduces the multi-type to all assignable
+	 * types (via polymorphism function).
 	 * 
-	 * Like merge, but doesn't create new multi-types through common super type search.
+	 * So unlike merge this doesn't search for common super types!
 	 * 
 	 * @param t
 	 *            type
-	 * @return t (reduced) type (or BOGUS for bytecode error)
+	 * @return t this or T.BOGUS
 	 */
 	public T mergeTo(final T t) {
 		if (t == this || t == null) {
@@ -797,12 +843,11 @@ public class T {
 		if (subtypeOf(t)) {
 			return this;
 		}
+		// this should never happen...
 		final StringBuilder sb = new StringBuilder();
-		sb.append("AssignTo: " + this + " (Super: " + getSuperT());
-		if (getInterfaceTs() != null) {
-			for (final T it : getInterfaceTs()) {
-				sb.append(", ").append(it.toString());
-			}
+		sb.append("MergeTo: " + this + " (Super: " + getSuperT());
+		for (final T it : getInterfaceTs()) {
+			sb.append(", ").append(it.toString());
 		}
 		sb.append(") -> " + t + " (Super: " + t.getSuperT());
 		for (final T it : t.getInterfaceTs()) {
@@ -810,7 +855,7 @@ public class T {
 		}
 		sb.append(")");
 		System.out.println(sb.toString());
-		return this;
+		return T.BOGUS;
 	}
 
 	/**
@@ -855,30 +900,36 @@ public class T {
 	}
 
 	private boolean subtypeOf(final T t) {
-		if (t.is(Object.class)) {
+		if (t == null) {
+			return false;
+		}
+		// all instances are assignable to Object, even if only known by interface
+		if (t == this || t.is(Object.class)) {
 			return true;
 		}
-		// check one hierarchie up first
-		final T superT = getSuperT();
-		if (superT == t) {
-			return true;
-		}
-		final T[] interfaceTs = getInterfaceTs();
-		if (interfaceTs != null) {
-			for (final T interfaceT : interfaceTs) {
+		// raise step by step in hierarchy...lazy fetch unknown super
+		final LinkedList<T> ts = new LinkedList<T>();
+		ts.add(this);
+		while (!ts.isEmpty()) {
+			final T iT = ts.pollFirst();
+			final T superT = iT.getSuperT();
+			if (superT == T.UNRESOLVABLE) {
+				// consider this OK for valid bytecode, wrong results possible for frame-local
+				// variables without debug information
+				return true;
+			}
+			if (superT == t) {
+				return true;
+			}
+			if (superT != null) {
+				ts.add(superT);
+			}
+			for (final T interfaceT : iT.getInterfaceTs()) {
 				if (interfaceT == t) {
 					return true;
 				}
-			}
-		}
-		// now check further up
-		if (superT != null && superT.subtypeOf(t)) {
-			return true;
-		}
-		if (interfaceTs != null) {
-			for (final T interfaceT : interfaceTs) {
-				if (interfaceT.subtypeOf(t)) {
-					return true;
+				if (interfaceT != null) {
+					ts.add(interfaceT);
 				}
 			}
 		}
