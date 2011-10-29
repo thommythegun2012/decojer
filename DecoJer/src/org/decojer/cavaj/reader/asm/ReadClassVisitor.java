@@ -113,13 +113,13 @@ public class ReadClassVisitor extends ClassVisitor {
 		// : Ljava/util/LinkedHashSet<Ljava/lang/Class<*>;>; :
 		// java/util/LinkedHashSet : [Ljava.lang.String;@1b9a2fd
 
-		final T t = this.du.getT(name.replace('/', '.'));
+		final T t = this.du.getT(name);
 		t.setAccessFlags(access);
-		t.setSuperT(this.du.getT(superName.replace('/', '.')));
+		t.setSuperT(this.du.getT(superName));
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
-				interfaceTs[i] = this.du.getT(interfaces[i].replace('/', '.'));
+				interfaceTs[i] = this.du.getT(interfaces[i]);
 			}
 			t.setInterfaceTs(interfaceTs);
 		}
@@ -200,7 +200,7 @@ public class ReadClassVisitor extends ClassVisitor {
 			final T[] throwsTs = new T[exceptions.length];
 			for (int i = exceptions.length; i-- > 0;) {
 				// e.g. java/io/IOException, without L...;
-				throwsTs[i] = this.du.getT(exceptions[i].replace('/', '.'));
+				throwsTs[i] = this.du.getT(exceptions[i]);
 			}
 			m.setThrowsTs(throwsTs);
 		}
