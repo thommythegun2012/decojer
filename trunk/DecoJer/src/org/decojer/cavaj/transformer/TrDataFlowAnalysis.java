@@ -144,22 +144,20 @@ public class TrDataFlowAnalysis {
 		final V v2 = pop(frame, t);
 		final V v1 = pop(frame, t);
 
-		final T resultT = v1.getT().merge(v2.getT());
-
-		if (!v1.getT().isReference()) {
+		if (v1.getT().isReference()) {
 			// (J)CMP EQ / NE
-			if (v1.getT() != resultT) {
-				v1.mergeTo(resultT);
-				this.queue.add(v1.getStartPc());
-			}
-			if (v2.getT() != resultT) {
-				v2.mergeTo(resultT);
-				this.queue.add(v2.getStartPc());
-			}
-		}
+			assert pushT == T.VOID;
 
+			return;
+		}
+		if (v1.merge(v2.getT())) {
+			this.queue.add(v1.getStartPc());
+		}
+		if (v2.mergeTo(v1.getT())) {
+			this.queue.add(v2.getStartPc());
+		}
 		if (pushT != T.VOID) {
-			push(frame, pushT == null ? resultT : pushT);
+			push(frame, pushT == null ? v1.getT() : pushT);
 		}
 	}
 
@@ -556,25 +554,30 @@ public class TrDataFlowAnalysis {
 
 				if (storeV != null) {
 					if (this.pc <= storeV.getEndPc()) {
-						// TODO
 						if (v.merge(storeV.getT())) {
+							this.queue.add(v.getStartPc());
+						}
+						// can happen for no debug info or temporary
+						if (storeV.mergeTo(v.getT())) {
 							this.queue.add(storeV.getStartPc());
 						}
-						if (storeV.getEndPc() <= this.pc) {
-							storeV.setEndPc(this.pc + 1);
-						}
+						// endPc update-check because of if-condition not reasonable
 						break;
 					}
-					// TODO could check assignable instead of merge
+					// TODO could check assignable instead of merge,
+					// or read in another branch? => merge
 				}
 				final V debugV = this.cfg.getDebugV(cop.getReg(), this.pc + 1);
 				if (debugV != null) {
 					storeV = new V(debugV);
-					// TODO
-					v.merge(storeV.getT());
+					if (v.mergeTo(storeV.getT())) {
+						this.queue.add(v.getStartPc());
+					}
 				} else {
+					// TODO could be tmp or none-debug-info?!
 					storeV = new V(v.getT());
 					storeV.setStartPc(this.pc + 1);
+					storeV.setEndPc(this.pc + 1);
 				}
 				set(frame, cop.getReg(), storeV);
 				break;
@@ -622,5 +625,4 @@ public class TrDataFlowAnalysis {
 			merge(frame, this.pc + 1);
 		}
 	}
-
 }
