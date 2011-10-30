@@ -352,9 +352,14 @@ public class T {
 		tm = du.getArrayT(T.INT, 1).merge(du.getT(Object.class));
 		assert tm.is(du.getT(Object.class)) : tm;
 
-		// now TODO:
 		tm = du.getT(Integer.class).merge(du.getT(Long.class));
 		assert tm.is(Number.class, Comparable.class) : tm;
+
+		tm = du.getT(Comparable.class).merge(du.getT(Object.class));
+		assert tm.is(Object.class) : tm;
+
+		tm = du.getT(Object.class).merge(du.getT(Serializable.class));
+		assert tm.is(Object.class) : tm;
 
 		System.out.println("HURRAY: " + tm);
 	}
@@ -832,19 +837,7 @@ public class T {
 			}
 		}
 		if (mergedTs.size() == 0) {
-			// this should never happen...
-			final StringBuilder sb = new StringBuilder();
-			sb.append("Merge: " + this + " (Super: " + getSuperT());
-			for (final T it : getInterfaceTs()) {
-				sb.append(", ").append(it.toString());
-			}
-			sb.append(") <-> " + t + " (Super: " + t.getSuperT());
-			for (final T it : t.getInterfaceTs()) {
-				sb.append(", ").append(it.toString());
-			}
-			sb.append(")");
-			System.out.println(sb.toString());
-			return T.BOGUS;
+			return this.du.getT(Object.class);
 		}
 		if (mergedTs.size() > 1) {
 			mergedTs.remove(this.du.getT(Object.class));
