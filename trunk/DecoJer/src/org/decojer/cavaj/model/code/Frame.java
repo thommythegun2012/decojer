@@ -101,37 +101,31 @@ public class Frame {
 	}
 
 	/**
-	 * Merge this frame with given frame (target types).
+	 * Merge this frame with given frame (calculated target types).
 	 * 
-	 * @param calculatedFrame
+	 * @param frame
 	 *            frame (contains target types)
 	 * @return true - changed (this)
 	 */
-	public boolean merge(final Frame calculatedFrame) {
+	public boolean merge(final Frame frame) {
 		boolean changed = false;
-		for (int reg = this.locals; reg-- > 0;) {
-			final V v = calculatedFrame.vs[reg];
+		for (int i = this.locals; i-- > 0;) {
+			final V v = frame.vs[i];
 			if (v == null) {
 				continue;
 			}
-			if (this.vs[reg] == null) {
-				this.vs[reg] = v;
+
+			if (this.vs[i] == null) {
+				this.vs[i] = v;
 				changed = true;
 				continue;
 			}
-			changed |= this.vs[reg].merge(v.getT());
+			changed |= this.vs[i].merge(v.getT());
 		}
 		for (int i = this.top; i-- > 0;) {
-			final V targetV = this.vs[this.locals + i];
-			final V calculatedV = calculatedFrame.vs[this.locals + i];
-			if (targetV == calculatedV) {
-				continue;
-			}
+			final V v = frame.vs[this.locals + i];
 
-			// take new calculated variable, override propagation
-			this.vs[this.locals + i] = calculatedV;
-			// TODO replace targetVar.getStartPc() - stack and requeue
-			changed |= calculatedV.merge(targetV.getT());
+			changed |= this.vs[this.locals + i].merge(v.getT());
 		}
 		return changed;
 	}
