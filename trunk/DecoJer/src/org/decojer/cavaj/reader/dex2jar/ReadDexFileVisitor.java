@@ -93,7 +93,7 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 
 	@Override
 	public DexClassVisitor visit(final int access_flags, final String className,
-			final String superClass, final String... interfaceNames) {
+			final String superClass, final String[] interfaceNames) {
 		// Lorg/apache/commons/logging/impl/WeakHashtable; :
 		// Ljava/util/Hashtable; : null
 		System.out
