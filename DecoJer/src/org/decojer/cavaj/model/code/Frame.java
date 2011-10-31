@@ -101,36 +101,6 @@ public class Frame {
 	}
 
 	/**
-	 * Merge this frame with given frame (calculated target types).
-	 * 
-	 * @param frame
-	 *            frame (contains target types)
-	 * @return true - changed (this)
-	 */
-	public boolean merge(final Frame frame) {
-		boolean changed = false;
-		for (int i = this.locals; i-- > 0;) {
-			final V v = frame.vs[i];
-			if (v == null) {
-				continue;
-			}
-
-			if (this.vs[i] == null) {
-				this.vs[i] = v;
-				changed = true;
-				continue;
-			}
-			changed |= this.vs[i].merge(v.getT());
-		}
-		for (int i = this.top; i-- > 0;) {
-			final V v = frame.vs[this.locals + i];
-
-			changed |= this.vs[this.locals + i].merge(v.getT());
-		}
-		return changed;
-	}
-
-	/**
 	 * Peek stack variable.
 	 * 
 	 * @return variable
@@ -179,6 +149,19 @@ public class Frame {
 	 */
 	public void set(final int i, final V v) {
 		this.vs[i] = v;
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder("Frame (").append(this.locals);
+		if (this.top != 0) {
+			sb.append(", ").append(this.top);
+		}
+		sb.append(") ");
+		for (int i = 0; i < this.vs.length; ++i) {
+			sb.append(this.vs[i]).append(", ");
+		}
+		return sb.substring(0, sb.length() - 2);
 	}
 
 }

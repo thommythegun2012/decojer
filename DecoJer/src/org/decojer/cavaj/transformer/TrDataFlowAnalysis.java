@@ -24,11 +24,11 @@
 package org.decojer.cavaj.transformer;
 
 import java.util.List;
-import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.F;
@@ -110,188 +110,78 @@ public class TrDataFlowAnalysis {
 		}
 	}
 
+	private boolean changed;
+
 	private final CFG cfg;
 
 	private Frame[] frames;
 
-	private int pc;
+	private Frame frame;
 
-	// sorted set superior to as a DFS queue here, because this algorithm has a stronger backward
-	// component then the normal data flow analysis,
-	// currently works with var.startPc, better would be an operation-postorder
-	private final TreeSet<Integer> queue = new TreeSet<Integer>();
+	private int pc;
 
 	private TrDataFlowAnalysis(final CFG cfg) {
 		this.cfg = cfg;
 	}
 
-	private Frame createMethodFrame() {
-		final Frame frame = new Frame(this.cfg.getMaxLocals());
-		for (int i = frame.getLocals(); i-- > 0;) {
-			final V v = this.cfg.getDebugV(i, 0);
-			if (v != null) {
-				frame.set(i, new V(v));
-			}
-		}
-		return frame;
-	}
-
-	private void evalBinaryMath(final Frame frame, final T t) {
-		evalBinaryMath(frame, t, null);
-	}
-
-	private void evalBinaryMath(final Frame frame, final T t, final T pushT) {
-		final V v2 = pop(frame, t);
-		final V v1 = pop(frame, t);
-
-		if (v1.getT().isReference()) {
-			// (J)CMP EQ / NE
-			assert pushT == T.VOID;
-
-			return;
-		}
-		if (v1.merge(v2.getT())) {
-			this.queue.add(v1.getStartPc());
-		}
-		if (v2.mergeTo(v1.getT())) {
-			this.queue.add(v2.getStartPc());
-		}
-		if (pushT != T.VOID) {
-			push(frame, pushT == null ? v1.getT() : pushT);
-		}
-	}
-
-	private V get(final Frame frame, final int i, final T t) {
-		final V v = frame.get(i);
-		if (v.getEndPc() < this.pc) {
-			v.setEndPc(this.pc);
-		}
-		if (v.mergeTo(t)) {
-			this.queue.add(v.getStartPc());
-		}
-		return v;
-	}
-
-	private boolean isWide(final Op op) {
-		final V v = this.cfg.getInFrame(op).peek();
-		if (v == null) {
-			return false;
-		}
-		return v.getT().isWide();
-	}
-
-	private void merge(final Frame calculatedFrame, final int targetPc) {
-		final Frame targetFrame = this.frames[targetPc];
-		if (targetFrame == null) {
-			// copy frame, could be cond or switch with multiple merge-targets
-			this.frames[targetPc] = new Frame(calculatedFrame);
-		} else if (!targetFrame.merge(calculatedFrame)) {
-			return;
-		}
-		this.queue.add(targetPc);
-	}
-
-	private V pop(final Frame frame, final T t) {
-		final V v = frame.pop();
-		if (v.getEndPc() < this.pc) {
-			v.setEndPc(this.pc);
-		}
-		if (v.mergeTo(t)) {
-			this.queue.add(v.getStartPc());
-		}
-		return v;
-	}
-
-	private V push(final Frame frame, final T t) {
-		final V v = new V(t);
-		// known in follow frame! no push through control flow operations
-		v.setStartPc(this.pc + 1);
-		v.setEndPc(this.pc + 1);
-		frame.push(v);
-		return v;
-	}
-
-	private void push(final Frame frame, final V v) {
-		if (v.getEndPc() <= this.pc) {
-			// known in follow frame! no push through control flow operations
-			v.setEndPc(this.pc + 1);
-		}
-		frame.push(v);
-	}
-
-	private void set(final Frame frame, final int i, final V v) {
-		if (v.getEndPc() <= this.pc) {
-			v.setEndPc(this.pc + 1);
-		}
-		frame.set(i, v);
-	}
-
-	private void transform() {
-		final Op[] ops = this.cfg.getOps();
-		this.frames = new Frame[ops.length];
-		this.cfg.setFrames(this.frames); // assign early for debugging...
-		this.frames[0] = createMethodFrame();
-
-		this.queue.clear();
-		this.queue.add(0);
-		while (!this.queue.isEmpty()) {
-			this.pc = this.queue.pollFirst();
+	private void analyze(final BB bb) {
+		for (final Op op : bb.getOps()) {
+			final int pc = op.getPc();
 			// first we copy the current in frame for the operation, then we
 			// calculate the type-changes through the operation and then we
 			// merge this calculated frame-types to the out frame
 
-			// IDEA why copy and change-detect copy-backs...would also work via
-			// direct updates of register / stack data - much cooler
-
 			// shallow copy of calculation frame
-			final Frame frame = new Frame(this.frames[this.pc]);
-			final Op op = ops[this.pc];
+			final Frame frame = new Frame(this.frames[pc]);
+			this.frame = frame;
+			this.pc = pc;
+
 			switch (op.getOptype()) {
 			case ADD: {
 				final ADD cop = (ADD) op;
-				evalBinaryMath(frame, cop.getT());
+				evalBinaryMath(cop.getT());
 				break;
 			}
 			case ALOAD: {
 				final ALOAD cop = (ALOAD) op;
-				pop(frame, T.INT); // index
-				pop(frame, T.AREF); // array
-				push(frame, cop.getT()); // value
+				pop(T.INT); // index
+				pop(T.AREF); // array
+				push(cop.getT()); // value
 				break;
 			}
 			case AND: {
 				final AND cop = (AND) op;
-				evalBinaryMath(frame, cop.getT());
+				evalBinaryMath(cop.getT());
 				break;
 			}
 			case ARRAYLENGTH: {
 				assert op instanceof ARRAYLENGTH;
 
-				pop(frame, T.AREF); // array
-				push(frame, T.INT); // length
+				pop(T.AREF); // array
+				push(T.INT); // length
 				break;
 			}
 			case ASTORE: {
 				final ASTORE cop = (ASTORE) op;
-				pop(frame, cop.getT()); // value
-				pop(frame, T.INT); // index
-				pop(frame, T.AREF); // array
+				pop(cop.getT()); // value
+				pop(T.INT); // index
+				pop(T.AREF); // array
 				break;
 			}
 			case CAST: {
 				final CAST cop = (CAST) op;
-				pop(frame, cop.getT());
-				push(frame, cop.getToT());
+				pop(cop.getT());
+				push(cop.getToT());
 				break;
 			}
 			case CMP: {
 				final CMP cop = (CMP) op;
-				evalBinaryMath(frame, cop.getT(), T.INT);
+				evalBinaryMath(cop.getT(), T.INT);
 				break;
 			}
 			case DIV: {
 				final DIV cop = (DIV) op;
-				evalBinaryMath(frame, cop.getT());
+				evalBinaryMath(cop.getT());
 				break;
 			}
 			case DUP: {
@@ -319,7 +209,8 @@ public class TrDataFlowAnalysis {
 				case DUP.T_DUP2_X1:
 					// Duplicate the top one or two operand stack values and insert two or three
 					// values down
-					// ..., value3, value2, value1 => ..., value2, value1, value3, value2, value1
+					// ..., value3, value2, value1 => ..., value2, value1, value3, value2,
+					// value1
 					// wide:
 					// ..., value2, value1 => ..., value1, value2, value1
 					if (!isWide(cop)) {
@@ -344,9 +235,11 @@ public class TrDataFlowAnalysis {
 					break;
 				}
 				case DUP.T_DUP2_X2:
-					// Duplicate the top one or two operand stack values and insert two, three, or
+					// Duplicate the top one or two operand stack values and insert two, three,
+					// or
 					// four values down
-					// ..., value4, value3, value2, value1 => ..., value2, value1, value4, value3,
+					// ..., value4, value3, value2, value1 => ..., value2, value1, value4,
+					// value3,
 					// value2, value1
 					// wide:
 					// ..., value3, value2, value1 => ..., value1, value3, value2, value1
@@ -383,21 +276,21 @@ public class TrDataFlowAnalysis {
 			case FILLARRAY: {
 				assert op instanceof FILLARRAY;
 
-				pop(frame, T.AREF);
+				pop(T.AREF);
 				break;
 			}
 			case GET: {
 				final GET cop = (GET) op;
 				final F f = cop.getF();
 				if (!f.checkAf(AF.STATIC)) {
-					pop(frame, f.getT());
+					pop(f.getT());
 				}
-				push(frame, f.getValueT());
+				push(f.getValueT());
 				break;
 			}
 			case GOTO: {
 				final GOTO cop = (GOTO) op;
-				merge(frame, cop.getTargetPc());
+				merge(cop.getTargetPc());
 				continue;
 			}
 			case INC: {
@@ -409,9 +302,9 @@ public class TrDataFlowAnalysis {
 			case INSTANCEOF: {
 				assert op instanceof INSTANCEOF;
 
-				pop(frame, T.AREF);
+				pop(T.AREF);
 				// operation contains check-type as argument, not important here
-				push(frame, T.BOOLEAN);
+				push(T.BOOLEAN);
 				break;
 			}
 			case INVOKE: {
@@ -419,69 +312,68 @@ public class TrDataFlowAnalysis {
 				final M m = cop.getM();
 				for (int i = m.getParamTs().length; i-- > 0;) {
 					// m(int) also accepts byte, short and char
-					pop(frame, m.getParamTs()[i] == T.INT ? T.IINT : m.getParamTs()[i]);
+					pop(m.getParamTs()[i] == T.INT ? T.IINT : m.getParamTs()[i]);
 				}
 				if (!m.checkAf(AF.STATIC)) {
-					pop(frame, m.getT());
+					pop(m.getT());
 				}
 				if (m.getReturnT() != T.VOID) {
-					push(frame, m.getReturnT());
+					push(m.getReturnT());
 				}
 				break;
 			}
 			case JCMP: {
 				final JCMP cop = (JCMP) op;
-				evalBinaryMath(frame, cop.getT(), T.VOID);
-				merge(frame, cop.getTargetPc());
+				evalBinaryMath(cop.getT(), T.VOID);
+				merge(cop.getTargetPc());
 				break;
 			}
 			case JCND: {
 				final JCND cop = (JCND) op;
-				pop(frame, cop.getT());
-				merge(frame, cop.getTargetPc());
+				pop(cop.getT());
+				merge(cop.getTargetPc());
 				break;
 			}
 			case LOAD: {
 				final LOAD cop = (LOAD) op;
-				final V v = get(frame, cop.getReg(), cop.getT());
-				push(frame, v); // OK
+				final V v = get(cop.getReg(), cop.getT());
+				push(v); // no copy is OK
 				break;
 			}
 			case MONITOR: {
 				assert op instanceof MONITOR;
 
-				pop(frame, T.AREF);
+				pop(T.AREF);
 				break;
 			}
 			case MUL: {
 				final MUL cop = (MUL) op;
-				evalBinaryMath(frame, cop.getT());
+				evalBinaryMath(cop.getT());
 				break;
 			}
 			case NEG: {
 				final NEG cop = (NEG) op;
-				final V v = pop(frame, cop.getT());
-				push(frame, v); // OK
+				final V v = pop(cop.getT());
+				push(v); // OK
 				break;
 			}
 			case NEW: {
 				final NEW cop = (NEW) op;
-				push(frame, cop.getT());
+				push(cop.getT());
 				break;
 			}
 			case NEWARRAY: {
 				final NEWARRAY cop = (NEWARRAY) op;
 				for (int i = cop.getDimensions(); i-- > 0;) {
-					pop(frame, T.INT);
+					pop(T.INT);
 				}
-				push(frame,
-						this.cfg.getMd().getM().getT().getDu()
-								.getArrayT(cop.getT(), cop.getDimensions()));
+				push(this.cfg.getMd().getM().getT().getDu()
+						.getArrayT(cop.getT(), cop.getDimensions()));
 				break;
 			}
 			case OR: {
 				final OR cop = (OR) op;
-				evalBinaryMath(frame, cop.getT());
+				evalBinaryMath(cop.getT());
 				break;
 			}
 			case POP: {
@@ -509,21 +401,21 @@ public class TrDataFlowAnalysis {
 			}
 			case PUSH: {
 				final PUSH cop = (PUSH) op;
-				push(frame, cop.getT());
+				push(cop.getT());
 				break;
 			}
 			case PUT: {
 				final PUT cop = (PUT) op;
 				final F f = cop.getF();
-				pop(frame, f.getValueT());
+				pop(f.getValueT());
 				if (!f.checkAf(AF.STATIC)) {
-					pop(frame, f.getT());
+					pop(f.getT());
 				}
 				break;
 			}
 			case REM: {
 				final REM cop = (REM) op;
-				evalBinaryMath(frame, cop.getT());
+				evalBinaryMath(cop.getT());
 				break;
 			}
 			case RETURN: {
@@ -532,59 +424,54 @@ public class TrDataFlowAnalysis {
 				// don't need op type here, could check, but why should we...
 				final T returnT = this.cfg.getMd().getM().getReturnT();
 				if (returnT != T.VOID) {
-					pop(frame, returnT);
+					pop(returnT);
 				}
 				continue;
 			}
 			case SHL: {
 				final SHL cop = (SHL) op;
-				evalBinaryMath(frame, cop.getT());
+				evalBinaryMath(cop.getT());
 				break;
 			}
 			case SHR: {
 				final SHR cop = (SHR) op;
-				evalBinaryMath(frame, cop.getT());
+				evalBinaryMath(cop.getT());
 				break;
 			}
 			case STORE: {
 				final STORE cop = (STORE) op;
-				final V v = pop(frame, cop.getT());
+				final V v = pop(cop.getT());
 
 				V storeV = frame.get(cop.getReg());
 
 				if (storeV != null) {
-					if (this.pc <= storeV.getEndPc()) {
-						if (v.merge(storeV.getT())) {
-							this.queue.add(v.getStartPc());
-						}
+					if (pc <= storeV.getEndPc()) {
+						final T mergedT = v.getT().merge(storeV.getT());
+						this.changed |= v.cmpSetT(mergedT);
 						// can happen for no debug info or temporary
-						if (storeV.mergeTo(v.getT())) {
-							this.queue.add(storeV.getStartPc());
-						}
+						this.changed |= storeV.cmpSetT(mergedT);
 						// endPc update-check because of if-condition not reasonable
 						break;
 					}
 					// TODO could check assignable instead of merge,
 					// or read in another branch? => merge
 				}
-				final V debugV = this.cfg.getDebugV(cop.getReg(), this.pc + 1);
+				final V debugV = this.cfg.getDebugV(cop.getReg(), pc + 1);
 				if (debugV != null) {
 					storeV = new V(debugV);
-					if (v.mergeTo(storeV.getT())) {
-						this.queue.add(v.getStartPc());
-					}
+					this.changed |= v.cmpSetT(v.getT().mergeTo(storeV.getT()));
 				} else {
 					// TODO could be tmp or none-debug-info?!
 					storeV = new V(v.getT());
-					storeV.setStartPc(this.pc + 1);
-					storeV.setEndPc(this.pc + 1);
+					storeV.setStartPc(pc + 1);
+					storeV.setEndPc(pc + 1);
 				}
-				set(frame, cop.getReg(), storeV);
+				set(cop.getReg(), storeV);
 				break;
 			}
 			case SUB: {
 				final SUB cop = (SUB) op;
-				evalBinaryMath(frame, cop.getT());
+				evalBinaryMath(cop.getT());
 				break;
 			}
 			case SWAP: {
@@ -601,28 +488,164 @@ public class TrDataFlowAnalysis {
 			}
 			case SWITCH: {
 				final SWITCH cop = (SWITCH) op;
-				pop(frame, T.INT);
-				merge(frame, cop.getDefaultPc());
+				pop(T.INT);
+				merge(cop.getDefaultPc());
 				for (final int casePc : cop.getCasePcs()) {
-					merge(frame, casePc);
+					merge(casePc);
 				}
 				continue;
 			}
 			case THROW: {
 				assert op instanceof THROW;
 
-				pop(frame, T.AREF); // TODO Throwable
+				pop(T.AREF); // TODO Throwable
 				continue;
 			}
 			case XOR: {
 				final XOR cop = (XOR) op;
-				evalBinaryMath(frame, cop.getT());
+				evalBinaryMath(cop.getT());
 				break;
 			}
 			default:
 				LOGGER.warning("Operation '" + op + "' not handled!");
 			}
-			merge(frame, this.pc + 1);
+			merge(pc + 1);
 		}
 	}
+
+	private Frame createMethodFrame() {
+		final Frame frame = new Frame(this.cfg.getMaxLocals());
+		for (int i = frame.getLocals(); i-- > 0;) {
+			final V v = this.cfg.getDebugV(i, 0);
+			if (v != null) {
+				frame.set(i, new V(v));
+			}
+		}
+		return frame;
+	}
+
+	private void evalBinaryMath(final T t) {
+		evalBinaryMath(t, null);
+	}
+
+	private void evalBinaryMath(final T t, final T pushT) {
+		final V v2 = pop(t);
+		final V v1 = pop(t);
+
+		if (v1.getT().isReference()) {
+			// (J)CMP EQ / NE
+			assert pushT == T.VOID;
+
+			return;
+		}
+		final T mergedT = v1.getT().merge(v2.getT());
+		this.changed |= v1.cmpSetT(mergedT);
+		this.changed |= v2.cmpSetT(mergedT);
+		if (pushT != T.VOID) {
+			push(pushT == null ? v1.getT() : pushT);
+		}
+	}
+
+	private V get(final int i, final T t) {
+		final V v = this.frame.get(i);
+		if (v.getEndPc() < this.pc) {
+			v.setEndPc(this.pc);
+		}
+		this.changed |= v.cmpSetT(v.getT().mergeTo(t));
+		return v;
+	}
+
+	private boolean isWide(final Op op) {
+		final V v = this.cfg.getInFrame(op).peek();
+		if (v == null) {
+			return false;
+		}
+		return v.getT().isWide();
+	}
+
+	private void merge(final int targetPc) {
+		final Frame targetFrame = this.frames[targetPc];
+		if (targetFrame == null) {
+			// copy frame, could be cond or switch with multiple merge-targets
+			this.frames[targetPc] = new Frame(this.frame);
+			this.changed = true;
+			return;
+		}
+		for (int i = this.frame.getLocals(); i-- > 0;) {
+			final V v = this.frame.get(i);
+			if (v == null) {
+				// TODO could check if we run into a variable through a real branch merge?
+				continue;
+			}
+			final V targetV = targetFrame.get(i);
+			// TODO sometimes we don't like to merge, if we merge we must also add dom
+			// declaration
+			if (targetV == null) {
+				targetFrame.set(i, v);
+				this.changed = true;
+				continue;
+			}
+			final T mergedT = targetV.getT().merge(v.getT());
+			this.changed |= targetV.cmpSetT(mergedT);
+			if (v.getStartPc() != targetPc) {
+				this.changed |= v.cmpSetT(mergedT);
+			}
+		}
+		for (int i = this.frame.getStackSize(); i-- > 0;) {
+			final V v = this.frame.getStack(i);
+			final V targetV = targetFrame.getStack(i);
+			final T mergedT = targetV.getT().merge(v.getT());
+			this.changed |= targetV.cmpSetT(mergedT);
+			if (v.getStartPc() != targetPc) {
+				this.changed |= v.cmpSetT(mergedT);
+			}
+		}
+	}
+
+	private V pop(final T t) {
+		final V v = this.frame.pop();
+		if (v.getEndPc() < this.pc) {
+			v.setEndPc(this.pc);
+		}
+		this.changed |= v.cmpSetT(v.getT().mergeTo(t));
+		return v;
+	}
+
+	private V push(final T t) {
+		final V v = new V(t);
+		// known in follow frame! no push through control flow operations
+		v.setStartPc(this.pc + 1);
+		v.setEndPc(this.pc + 1);
+		this.frame.push(v);
+		return v;
+	}
+
+	private void push(final V v) {
+		if (v.getEndPc() <= this.pc) {
+			// known in follow frame! no push through control flow operations
+			v.setEndPc(this.pc + 1);
+		}
+		this.frame.push(v);
+	}
+
+	private void set(final int i, final V v) {
+		if (v.getEndPc() <= this.pc) {
+			v.setEndPc(this.pc + 1);
+		}
+		this.frame.set(i, v);
+	}
+
+	private void transform() {
+		this.frames = new Frame[this.cfg.getOps().length];
+		this.cfg.setFrames(this.frames); // assign early for debugging...
+		this.frames[0] = createMethodFrame();
+		final List<BB> postorderedBbs = this.cfg.getPostorderedBbs();
+		do {
+			this.changed = false;
+			for (int i = postorderedBbs.size(); i-- > 0;) {
+				analyze(postorderedBbs.get(i));
+			}
+		} while (this.changed);
+	}
+
 }
