@@ -68,6 +68,21 @@ public class V {
 	}
 
 	/**
+	 * Set type.
+	 * 
+	 * @param t
+	 *            type
+	 * @return true - changed
+	 */
+	public boolean cmpSetT(final T t) {
+		if (this.t == t) {
+			return false;
+		}
+		this.t = t;
+		return true;
+	}
+
+	/**
 	 * Get emd pc.
 	 * 
 	 * @return end pc
@@ -101,39 +116,6 @@ public class V {
 	 */
 	public T getT() {
 		return this.t;
-	}
-
-	/**
-	 * Merge this type with given type (target type). Could produce multi-types.
-	 * 
-	 * @param t
-	 *            type
-	 * @return true - changed (this)
-	 */
-	public boolean merge(final T t) {
-		final T mergedT = this.t.merge(t);
-		if (this.t == mergedT) {
-			return false;
-		}
-		this.t = mergedT;
-		return true;
-	}
-
-	/**
-	 * Merge this type to given type (target type). Can only reduce multi-types (if overridden
-	 * method called).
-	 * 
-	 * @param t
-	 *            type
-	 * @return true - changed (this)
-	 */
-	public boolean mergeTo(final T t) {
-		final T mergedT = this.t.mergeTo(t);
-		if (this.t == mergedT) {
-			return false;
-		}
-		this.t = mergedT;
-		return true;
 	}
 
 	/**
