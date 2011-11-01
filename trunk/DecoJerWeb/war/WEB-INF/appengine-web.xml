@@ -3,12 +3,19 @@
 	<application>decojer</application>
 	<version>1</version>
 
-	<!-- Configure java.util.logging -->
+	<static-files>
+		<include path="/favicon.ico" expiration="4d 5h" />
+		<include path="/robots.txt" />
+		<include path="/css/*" />
+	</static-files>
+
 	<system-properties>
 		<property name="java.util.logging.config.file" value="WEB-INF/logging.properties" />
 	</system-properties>
 
 	<sessions-enabled>true</sessions-enabled>
+	<async-session-persistence enabled="true"
+		queue-name="default" />
 
 	<threadsafe>true</threadsafe>
 
