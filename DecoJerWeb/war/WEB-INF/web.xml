@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://java.sun.com/xml/ns/javaee" xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+	xmlns="http://java.sun.com/xml/ns/javaee"
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	version="2.5">
 	<servlet>
@@ -25,7 +25,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Cleanup</servlet-name>
-		<url-pattern>/cleanup</url-pattern>
+		<url-pattern>/admin/cleanup</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>DecoJerQueue</servlet-name>
@@ -46,4 +46,13 @@
 	<welcome-file-list>
 		<welcome-file>index.jsp</welcome-file>
 	</welcome-file-list>
+	<security-constraint>
+		<web-resource-collection>
+			<web-resource-name>Admin Pages</web-resource-name>
+			<url-pattern>/admin/*</url-pattern>
+		</web-resource-collection>
+		<auth-constraint>
+			<role-name>admin</role-name>
+		</auth-constraint>
+	</security-constraint>
 </web-app>

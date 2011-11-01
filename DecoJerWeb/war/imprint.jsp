@@ -1,7 +1,7 @@
 <jsp:directive.page contentType="text/html; charset=UTF-8"
-	language="java" pageEncoding="UTF-8" />
+	pageEncoding="UTF-8" />
 <!DOCTYPE HTML>
-<html lang="en">
+<html lang="en-us">
 <head>
 <jsp:include page="WEB-INF/template/head.jsp" />
 </head>
