@@ -1,12 +1,12 @@
-<jsp:directive.page contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8" />
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"
+	import="org.decojer.web.util.*"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<jsp:useBean id="merge" class="org.decojer.web.controller.Merge" />
+<jsp:setProperty name="merge" property="*" />
 <!DOCTYPE HTML>
 <html lang="en-us">
 <head>
 <jsp:include page="/WEB-INF/template/head.jsp" />
-<jsp:useBean id="merge" class="org.decojer.web.form.Merge" />
-<jsp:setProperty name="merge" property="*" />
 </head>
 <body>
 	<jsp:include page="/WEB-INF/template/header.jsp" />
@@ -18,7 +18,7 @@
 			type="submit" value="Submit">
 	</form>
 	<p>
-		<c:out value="${merge.mergeResponse}" escapeXml="true" />
+		<c:out value="${merge.mergedType}" escapeXml="true" />
 	</p>
 </body>
 </html>
