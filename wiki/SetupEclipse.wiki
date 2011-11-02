@@ -62,3 +62,8 @@ http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
       * _Eclipse Java Web Developer Tools_
       * _Eclipse Web Developer Tools_
       * _JavaScript Development Tools_
+
+  * Eclipse and Jasper / JSP / JSTL
+    * Eclipse has embedded Jasper which uses Eclipse AST API, rename: eclipse-SDK-3.7.1-win32\plugins\com.google.appengine.eclipse.sdkbundle_1.5.5.r37v201110112027\appengine-java-sdk-1.5.5\lib\tools\jsp\repackaged-appengine-jasper-jdt-6.0.29.bak
+    * GAE has JSTL installed, cannot put it in WEB-INF/lib, but Eclipse cannot find it under above tools folder -> again seperately in lib only to make Eclipse happy now
+    * don't use HTML 5 with JSP XML mode (is only better for XHTML)
