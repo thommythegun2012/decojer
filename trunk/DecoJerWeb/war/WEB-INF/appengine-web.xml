@@ -14,8 +14,11 @@
 	</system-properties>
 
 	<sessions-enabled>true</sessions-enabled>
-	<async-session-persistence enabled="true"
-		queue-name="default" />
+	<!-- async not possible, Exception: javax.servlet.ServletContext log: _ah_queue_deferred: 
+		Deferred task failed exception: com.google.apphosting.utils.servlet.DeferredTaskServlet$DeferredTaskException: 
+		java.lang.ClassCastException: com.google.apphosting.runtime.jetty.DeferredSessionTasks$DeferredSave 
+		cannot be cast to com.google.appengine.api.taskqueue.DeferredTask -->
+	<!-- async-session-persistence enabled="true" queue-name="default" -->
 
 	<threadsafe>true</threadsafe>
 
