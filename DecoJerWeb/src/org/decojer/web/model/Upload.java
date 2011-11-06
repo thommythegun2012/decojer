@@ -33,8 +33,11 @@ import com.google.appengine.api.datastore.Entity;
  * 
  * @author André Pankraz
  */
-public class Upload {
+public class Upload extends BaseEntity {
 
+	/**
+	 * Entity kind.
+	 */
 	public static final String KIND = "UPLOAD";
 
 	public static final String PROP_CREATED = "created";
@@ -53,22 +56,14 @@ public class Upload {
 
 	public static final String PROP_UPLOAD_BLOB_KEY = "uploadBlobKey";
 
-	private final Entity entity;
-
 	/**
 	 * Constructor.
 	 * 
 	 * @param entity
-	 *            wrapped entity
+	 *            entity
 	 */
 	public Upload(final Entity entity) {
-		this.entity = entity;
-	}
-
-	@Override
-	public boolean equals(final Object obj) {
-		return obj instanceof Upload
-				&& this.entity.equals(((Upload) obj).entity);
+		super(entity);
 	}
 
 	public Date getCreated() {
@@ -81,6 +76,11 @@ public class Upload {
 
 	public String getFilename() {
 		return (String) this.entity.getProperty(PROP_FILENAME);
+	}
+
+	@Override
+	public String getKind() {
+		return KIND;
 	}
 
 	public Date getRequested() {
@@ -101,15 +101,6 @@ public class Upload {
 
 	public BlobKey getUploadBlobKey() {
 		return (BlobKey) this.entity.getProperty(PROP_UPLOAD_BLOB_KEY);
-	}
-
-	public Entity getWrappedEntity() {
-		return this.entity;
-	}
-
-	@Override
-	public int hashCode() {
-		return this.entity.hashCode();
 	}
 
 	public void setCreated(final Date created) {

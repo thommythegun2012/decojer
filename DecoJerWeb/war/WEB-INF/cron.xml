@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cronentries>
+	<cron>
+		<url>/admin/maven.jsp</url>
+		<description>Import Maven Central RSS</description>
+		<schedule>every day 23:15</schedule>
+		<timezone>Europe/Berlin</timezone>
+		<target>worker</target>
+	</cron>
+</cronentries>
