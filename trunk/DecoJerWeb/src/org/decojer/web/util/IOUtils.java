@@ -29,6 +29,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 import com.github.libxjava.io.Base91;
 
@@ -37,12 +39,12 @@ import com.github.libxjava.io.Base91;
  */
 public class IOUtils {
 
-	private static final Base91 BASE91 = new Base91();
+	private static final Base91 BASE91 = new Base91(); // synchronized self-resetting, OK
 
 	private static final Charset CHARSET = Charset.forName("US-ASCII");
 
-	private static final char[] HEX_CHARS = { '0', '1', '2', '3', '4', '5',
-			'6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+	private static final char[] HEX_CHARS = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+			'a', 'b', 'c', 'd', 'e', 'f' };
 
 	public static byte[] base91Decode(final String str) {
 		return BASE91.decode(str.getBytes(CHARSET));
@@ -52,8 +54,7 @@ public class IOUtils {
 		return new String(BASE91.encode(bytes), CHARSET);
 	}
 
-	public static int copyStream(final InputStream is, final OutputStream os)
-			throws IOException {
+	public static int copy(final InputStream is, final OutputStream os) throws IOException {
 		final byte[] buffer = new byte[4096];
 		long count = 0;
 		int n = 0;
@@ -91,30 +92,32 @@ public class IOUtils {
 		return new String(hex);
 	}
 
-	public static void main(final String[] args) {
-		final byte[] test = new byte[256];
-		for (int i = 256; i-- > 0;) {
-			test[i] = (byte) i;
+	public static byte[] md5(final byte[] content) {
+		try {
+			final MessageDigest m = MessageDigest.getInstance("MD5");
+			return m.digest(content);
+		} catch (final NoSuchAlgorithmException e) {
+			throw new RuntimeException("Message digest algorithm 'MD5' unknown!", e);
 		}
-		final String base91Encode = base91Encode(test);
-		System.out.println("TEST: " + base91Encode);
-		final byte[] base91Decode = base91Decode(base91Encode);
-		System.out.println("TEST: " + hexEncode(base91Decode));
 	}
 
 	public static byte[] toBytes(final InputStream is) throws IOException {
 		final ByteArrayOutputStream os = new ByteArrayOutputStream(32486);
-		copyStream(is, os);
+		copy(is, os);
 		return os.toByteArray();
 	}
 
-	public static String toKey(final String md5Hash, final Long size)
-			throws IOException {
+	public static String toKey(final byte[] md5Hash, final long size) throws IOException {
 		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		final DataOutputStream dos = new DataOutputStream(bos);
-		dos.write(hexDecode(md5Hash));
+		dos.write(md5Hash);
 		dos.writeLong(size);
 		dos.close();
 		return base91Encode(bos.toByteArray());
 	}
+
+	public static String toKey(final String md5Hash, final long size) throws IOException {
+		return toKey(hexDecode(md5Hash), size);
+	}
+
 }

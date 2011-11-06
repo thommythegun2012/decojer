@@ -21,29 +21,19 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web.controller;
-
-import org.decojer.web.service.MavenService;
+package org.decojer.web.service;
 
 /**
- * Maven.
+ * Upload service.
  * 
  * @author André Pankraz
  */
-public class Maven {
+public class UploadService {
 
-	int importedArtifacts;
+	private static final UploadService INSTANCE = new UploadService();
 
-	public int getImportedArtifacts() {
-		return this.importedArtifacts;
-	}
-
-	public String getRss() {
-		return MavenService.getInstance().read();
-	}
-
-	public void importArtifacts() {
-		this.importedArtifacts = MavenService.getInstance().importMavenCentralRss();
+	public static UploadService getInstance() {
+		return INSTANCE;
 	}
 
 }

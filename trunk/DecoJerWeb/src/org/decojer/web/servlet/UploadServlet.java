@@ -39,6 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.decojer.DecoJer;
 import org.decojer.web.model.Upload;
+import org.decojer.web.service.BlobService;
 import org.decojer.web.util.IOUtils;
 import org.decojer.web.util.Messages;
 import org.decojer.web.util.Uploads;
@@ -54,10 +55,8 @@ import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.EntityNotFoundException;
-import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
-import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Transaction;
 import com.google.appengine.api.taskqueue.QueueFactory;
 import com.google.appengine.api.taskqueue.TaskOptions;
@@ -108,14 +107,11 @@ public class UploadServlet extends HttpServlet {
 			// blob is new, but content might be duplication -> find oldest, duplication indicated
 			// through equal hash and size
 			final String md5Hash = uploadBlobInfo.getMd5Hash();
-			final Long size = uploadBlobInfo.getSize();
+			final long size = uploadBlobInfo.getSize();
 
 			// because of lagging HA writes following query could even be empty
-			final Query duplicateQuery = new Query(BlobInfoFactory.KIND);
-			duplicateQuery.addFilter(BlobInfoFactory.MD5_HASH, Query.FilterOperator.EQUAL, md5Hash);
-			duplicateQuery.addFilter(BlobInfoFactory.SIZE, Query.FilterOperator.EQUAL, size);
-			final List<Entity> blobInfoEntities = DATASTORE_SERVICE.prepare(duplicateQuery).asList(
-					FetchOptions.Builder.withDefaults());
+			final List<Entity> blobInfoEntities = BlobService.getInstance().findBlobInfoEntities(
+					md5Hash, size);
 
 			// now find and keep oldest entity, start with myself (uploadBlobInfo)
 			final Set<BlobKey> duplicateBlobKeys = new HashSet<BlobKey>();
@@ -151,7 +147,7 @@ public class UploadServlet extends HttpServlet {
 			}
 			if (upload.getSourceBlobKey() != null) {
 				try {
-					BLOBSTORE_SERVICE.fetchData(upload.getSourceBlobKey(), 0, 3);
+					BLOBSTORE_SERVICE.fetchData(upload.getSourceBlobKey(), 0L, 3L);
 				} catch (final IllegalArgumentException e) {
 					upload.setSourceBlobKey(null);
 				}

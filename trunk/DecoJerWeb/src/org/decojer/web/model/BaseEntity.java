@@ -21,29 +21,52 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web.controller;
+package org.decojer.web.model;
 
-import org.decojer.web.service.MavenService;
+import com.google.appengine.api.datastore.Entity;
 
 /**
- * Maven.
- * 
  * @author André Pankraz
  */
-public class Maven {
+public abstract class BaseEntity {
 
-	int importedArtifacts;
+	protected final Entity entity;
 
-	public int getImportedArtifacts() {
-		return this.importedArtifacts;
+	/**
+	 * Constructor.
+	 * 
+	 * @param entity
+	 *            entity
+	 * 
+	 */
+	public BaseEntity(final Entity entity) {
+		this.entity = entity;
 	}
 
-	public String getRss() {
-		return MavenService.getInstance().read();
+	@Override
+	public boolean equals(final Object obj) {
+		return obj instanceof BaseEntity && this.entity.equals(((BaseEntity) obj).entity);
 	}
 
-	public void importArtifacts() {
-		this.importedArtifacts = MavenService.getInstance().importMavenCentralRss();
+	/**
+	 * Get entity kind.
+	 * 
+	 * @return entity kind
+	 */
+	public abstract String getKind();
+
+	/**
+	 * Get wrapped entity.
+	 * 
+	 * @return wrapped entity
+	 */
+	public Entity getWrappedEntity() {
+		return this.entity;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.entity.hashCode();
 	}
 
 }

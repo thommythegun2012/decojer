@@ -24,13 +24,9 @@
 package org.decojer.web.servlet;
 
 import java.io.BufferedInputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.nio.channels.Channels;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -39,12 +35,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.io.IOUtils;
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
 import org.decojer.web.model.Upload;
+import org.decojer.web.service.BlobService;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
@@ -56,10 +52,6 @@ import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Transaction;
-import com.google.appengine.api.files.AppEngineFile;
-import com.google.appengine.api.files.FileService;
-import com.google.appengine.api.files.FileServiceFactory;
-import com.google.appengine.api.files.FileWriteChannel;
 import com.google.appengine.api.mail.MailService;
 import com.google.appengine.api.mail.MailServiceFactory;
 import com.google.appengine.api.taskqueue.QueueFactory;
@@ -79,37 +71,29 @@ public class DecoJerQueueServlet extends HttpServlet {
 	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
 			.getDatastoreService();
 
-	private static Logger LOGGER = Logger.getLogger(DecoJerQueueServlet.class
-			.getName());
+	private static Logger LOGGER = Logger.getLogger(DecoJerQueueServlet.class.getName());
 
-	private static final MailService MAIL_SERVICE = MailServiceFactory
-			.getMailService();
+	private static final MailService MAIL_SERVICE = MailServiceFactory.getMailService();
 
 	private static final long serialVersionUID = -8624836355443861445L;
 
-	private final FileService fileService = FileServiceFactory.getFileService();
-
 	@Override
-	protected void doGet(final HttpServletRequest req,
-			final HttpServletResponse resp) throws ServletException,
-			IOException {
-		final Key uploadKey = KeyFactory.createKey(Upload.KIND,
-				req.getParameter("uploadKey"));
+	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
+			throws ServletException, IOException {
+		final Key uploadKey = KeyFactory.createKey(Upload.KIND, req.getParameter("uploadKey"));
 
 		final Upload upload;
 		try {
 			upload = new Upload(DATASTORE_SERVICE.get(uploadKey));
 		} catch (final EntityNotFoundException e) {
-			LOGGER.warning("Upload entity with Key '" + uploadKey
-					+ "' not yet stored?");
+			LOGGER.warning("Upload entity with Key '" + uploadKey + "' not yet stored?");
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			return;
 		}
 
 		final BlobKey uploadBlobKey = upload.getUploadBlobKey();
-		final InputStream uploadInputStream = new BufferedInputStream(
-				new BlobstoreInputStream(uploadBlobKey));
-		final BlobKey sourceBlobKey;
+		final InputStream uploadInputStream = new BufferedInputStream(new BlobstoreInputStream(
+				uploadBlobKey));
 
 		final String filename = upload.getFilename();
 
@@ -130,22 +114,14 @@ public class DecoJerQueueServlet extends HttpServlet {
 				String sourcename = td.getSourceFileName();
 				if (sourcename == null) {
 					final int pos = filename.lastIndexOf('.');
-					sourcename = (pos == -1 ? filename : filename.substring(0,
-							pos)) + ".java";
+					sourcename = (pos == -1 ? filename : filename.substring(0, pos)) + ".java";
 				}
-				final AppEngineFile file = this.fileService.createNewBlobFile(
-						"text/x-java-source", sourcename);
-				final FileWriteChannel writeChannel = this.fileService
-						.openWriteChannel(file, true);
-				final Writer writer = Channels.newWriter(writeChannel, "UTF-8");
-				writer.write(source);
-				writer.close();
-				writeChannel.closeFinally();
-
+				final BlobKey sourceBlobKey = BlobService.getInstance().createBlob(
+						"text/x-java-source", sourcename, source.getBytes("UTF-8"));
 				if (upload.getSourceBlobKey() != null) {
 					BLOBSTORE_SERVICE.delete(upload.getSourceBlobKey());
 				}
-				upload.setSourceBlobKey(this.fileService.getBlobKey(file));
+				upload.setSourceBlobKey(sourceBlobKey);
 			} catch (final Exception e) {
 				LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
 				upload.setError(e.getMessage());
@@ -156,30 +132,14 @@ public class DecoJerQueueServlet extends HttpServlet {
 				DecoJer.decompile(du, sourceOutputStream);
 
 				final int pos = filename.lastIndexOf('.');
-				final String sourcename = (pos == -1 ? filename : filename
-						.substring(0, pos)) + "_source.zip";
-				final AppEngineFile file = this.fileService.createNewBlobFile(
-						"application/java-archive", sourcename);
-				final FileWriteChannel writeChannel = this.fileService
-						.openWriteChannel(file, true);
-				final OutputStream fileOutputStream = Channels
-						.newOutputStream(writeChannel);
-				// don't hold file open for too long (around max. 30 seconds),
-				// else:
-				// "Caused by: com.google.apphosting.api.ApiProxy$ApplicationException: ApplicationError: 10: Unknown",
-				// don't use byte array directly, else file write request too
-				// large
-				// (BufferedOutputStream writes big data directly)
-				IOUtils.copy(
-						new ByteArrayInputStream(sourceOutputStream
-								.toByteArray()), fileOutputStream);
-				fileOutputStream.close();
-				writeChannel.closeFinally();
-
+				final String sourcename = (pos == -1 ? filename : filename.substring(0, pos))
+						+ "_source.zip";
+				final BlobKey sourceBlobKey = BlobService.getInstance().createBlob(
+						"application/java-archive", sourcename, sourceOutputStream.toByteArray());
 				if (upload.getSourceBlobKey() != null) {
 					BLOBSTORE_SERVICE.delete(upload.getSourceBlobKey());
 				}
-				upload.setSourceBlobKey(this.fileService.getBlobKey(file));
+				upload.setSourceBlobKey(sourceBlobKey);
 			} catch (final Exception e) {
 				LOGGER.log(Level.WARNING, "Problems with decompilation.", e);
 				upload.setError(e.getMessage());
@@ -198,8 +158,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 				// new ChannelMessage(channelKey, "Decompiled '" + filename
 				// + "'!"));
 				QueueFactory.getQueue("frontendChannel").add(
-						TaskOptions.Builder.withMethod(Method.GET).param(
-								"channelKey", channelKey));
+						TaskOptions.Builder.withMethod(Method.GET).param("channelKey", channelKey));
 			}
 		} finally {
 			tx.commit();
@@ -210,9 +169,8 @@ public class DecoJerQueueServlet extends HttpServlet {
 	private void sendEmail(final String textBody) {
 		try {
 			// sendToAdmin with or without "to" doesn't work for me in 1.5.4
-			MAIL_SERVICE.send(new MailService.Message(
-					"andrePankraz@decojer.org", "andrePankraz@gmail.com",
-					"DecoJer worker", textBody));
+			MAIL_SERVICE.send(new MailService.Message("andrePankraz@decojer.org",
+					"andrePankraz@gmail.com", "DecoJer worker", textBody));
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING, "Could not send email!", e);
 		}
