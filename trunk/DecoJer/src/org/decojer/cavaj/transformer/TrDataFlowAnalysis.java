@@ -640,12 +640,15 @@ public class TrDataFlowAnalysis {
 		this.cfg.setFrames(this.frames); // assign early for debugging...
 		this.frames[0] = createMethodFrame();
 		final List<BB> postorderedBbs = this.cfg.getPostorderedBbs();
+
+		int todoHackPreventLoop = 0;
+
 		do {
 			this.changed = false;
 			for (int i = postorderedBbs.size(); i-- > 0;) {
 				analyze(postorderedBbs.get(i));
 			}
-		} while (this.changed);
+		} while (this.changed && ++todoHackPreventLoop < 50);
 	}
 
 }

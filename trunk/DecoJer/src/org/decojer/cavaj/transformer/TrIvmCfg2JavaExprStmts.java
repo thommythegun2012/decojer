@@ -396,8 +396,7 @@ public class TrIvmCfg2JavaExprStmts {
 				final GET cop = (GET) op;
 				final F f = cop.getF();
 				if (f.checkAf(AF.STATIC)) {
-					final Name name = getAst().newQualifiedName(
-							getTd().newTypeName(f.getT().getName()),
+					final Name name = getAst().newQualifiedName(getTd().newTypeName(f.getT()),
 							getAst().newSimpleName(f.getName()));
 					bb.push(name);
 				} else {
@@ -538,7 +537,7 @@ public class TrIvmCfg2JavaExprStmts {
 					}
 				} else if (m.checkAf(AF.STATIC)) {
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
-					methodInvocation.setExpression(getTd().newTypeName(m.getT().getName()));
+					methodInvocation.setExpression(getTd().newTypeName(m.getT()));
 					methodInvocation.setName(getAst().newSimpleName(mName));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
@@ -791,22 +790,22 @@ public class TrIvmCfg2JavaExprStmts {
 						.newClassInstanceCreation();
 
 				final String thisName = getTd().getT().getName();
-				final T t = cop.getT();
-				final String newName = t.getName();
+				final T newT = cop.getT();
+				final String newName = newT.getName();
 				if (newName.startsWith(thisName) && newName.length() >= thisName.length() + 2
 						&& newName.charAt(thisName.length()) == '$') {
 					inner: try {
 						Integer.parseInt(newName.substring(thisName.length() + 1));
 
-						final DU du = t.getDu();
-						final TD td = du.getTd(newName);
-						if (td != null) {
+						final DU du = newT.getDu();
+						final TD newTd = du.getTd(newName);
+						if (newTd != null) {
 							// anonymous inner can only have a single interface
 							// (with generic super "Object") or a super class
-							final T[] interfaceTs = t.getInterfaceTs();
+							final T[] interfaceTs = newT.getInterfaceTs();
 							switch (interfaceTs.length) {
 							case 0:
-								classInstanceCreation.setType(Types.convertType(t.getSuperT(),
+								classInstanceCreation.setType(Types.convertType(newT.getSuperT(),
 										getTd(), getAst()));
 								break;
 							case 1:
@@ -816,14 +815,14 @@ public class TrIvmCfg2JavaExprStmts {
 							default:
 								break inner;
 							}
-							if (td.getPd() == null) {
-								getCu().addTd(td);
+							if (newTd.getPd() == null) {
+								getCu().addTd(newTd);
 							}
-							td.setPd(this.cfg.getMd());
+							newTd.setPd(this.cfg.getMd());
 
 							final AnonymousClassDeclaration anonymousClassDeclaration = getAst()
 									.newAnonymousClassDeclaration();
-							td.setTypeDeclaration(anonymousClassDeclaration);
+							newTd.setTypeDeclaration(anonymousClassDeclaration);
 
 							classInstanceCreation
 									.setAnonymousClassDeclaration(anonymousClassDeclaration);
@@ -835,7 +834,7 @@ public class TrIvmCfg2JavaExprStmts {
 						// no int
 					}
 				}
-				classInstanceCreation.setType(Types.convertType(cop.getT(), getTd(), getAst()));
+				classInstanceCreation.setType(Types.convertType(newT, getTd(), getAst()));
 				bb.push(classInstanceCreation);
 				break;
 			}
@@ -1018,8 +1017,7 @@ public class TrIvmCfg2JavaExprStmts {
 				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 
 				if (f.checkAf(AF.STATIC)) {
-					final Name name = getAst().newQualifiedName(
-							getTd().newTypeName(f.getT().getName()),
+					final Name name = getAst().newQualifiedName(getTd().newTypeName(f.getT()),
 							getAst().newSimpleName(f.getName()));
 					assignment.setLeftHandSide(name);
 				} else {

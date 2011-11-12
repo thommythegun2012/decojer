@@ -180,7 +180,6 @@ public class CU implements PD {
 		}
 		this.tds.clear();
 		this.allTds.clear();
-		this.typeNameManager.clear();
 	}
 
 	/**

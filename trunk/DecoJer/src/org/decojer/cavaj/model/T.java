@@ -514,7 +514,7 @@ public class T {
 	public String getIName() {
 		final String pName = getPName();
 		final int pos = pName.lastIndexOf('$');
-		if (pos == -1) {
+		if (pos == -1 || pos + 1 >= pName.length()) {
 			return pName;
 		}
 		return Character.isJavaIdentifierStart(pName.charAt(pos + 1)) ? pName.substring(pos + 1)

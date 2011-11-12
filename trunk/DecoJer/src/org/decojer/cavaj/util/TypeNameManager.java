@@ -23,9 +23,6 @@
  */
 package org.decojer.cavaj.util;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.AST;
@@ -46,8 +43,6 @@ public class TypeNameManager {
 
 	private String packagePrefix;
 
-	private final Map<String, Integer> packagesName2number = new HashMap<String, Integer>();
-
 	/**
 	 * Constructor.
 	 * 
@@ -60,13 +55,6 @@ public class TypeNameManager {
 		this.cu = cu;
 	}
 
-	/**
-	 * Clear all generated data after read.
-	 */
-	public void clear() {
-		this.packagesName2number.clear();
-	}
-
 	private AST getAST() {
 		return this.cu.getAst();
 	}
@@ -74,53 +62,48 @@ public class TypeNameManager {
 	/**
 	 * New type name.
 	 * 
-	 * @param fullName
-	 *            full type name
+	 * @param name
+	 *            type name
 	 * @return Eclipse type name
 	 */
-	public Name newTypeName(final String fullName) {
-		assert fullName != null;
+	public Name newTypeName(final String name) {
+		assert name != null;
 
-		if (this.packagePrefix != null && fullName.startsWith(this.packagePrefix)) {
-			// immediately remove this package prefix, save resources
-			int pos = fullName.indexOf('.', this.packagePrefix.length());
-			if (pos == -1) {
-				// if not in sub package
-				final String name = fullName.substring(this.packagePrefix.length());
-				Integer number = this.packagesName2number.get(name);
-				number = number == null ? 1 : number + 1;
-				this.packagesName2number.put(name, number);
-
-				if (!this.cu.isStartTdOnly()) {
-					// add TD to CU if main type name equal to any main TD in CU
-					final TD td = this.cu.getStartTd().getT().getDu().getTd(name);
-					if (td != null && td.getCu() == null) {
-						pos = name.indexOf('$');
-						if (pos != -1) {
-							final String mName = name.substring(0, pos);
-							for (final TD _td : this.cu.getTds()) {
-								if (mName.equals(_td.getT().getName())) {
-									this.cu.addTd(td);
-									break;
-								}
+		String javaName;
+		if (this.packagePrefix != null && name.startsWith(this.packagePrefix)
+				&& name.indexOf('.', this.packagePrefix.length()) == -1) {
+			if (!this.cu.isStartTdOnly()) {
+				// add TD to CU - if main type name part equal to any main TD in CU,
+				// anonymous inner classes need extra handling
+				final TD td = this.cu.getStartTd().getT().getDu().getTd(name);
+				if (td != null && td.getCu() == null) {
+					final int pos = name.indexOf('$');
+					if (pos != -1) {
+						final String mName = name.substring(0, pos);
+						for (final TD _td : this.cu.getTds()) {
+							if (mName.equals(_td.getT().getName())) {
+								this.cu.addTd(td);
+								break;
 							}
 						}
 					}
 				}
-				return getAST().newName(replace(name));
 			}
+			javaName = name.substring(this.packagePrefix.length());
 		}
-		if (fullName.startsWith(JAVA_LANG)) {
-			// immediately remove this package prefix, save resources
-			final int pos = fullName.indexOf('.', JAVA_LANG.length());
-			if (pos == -1) {
-				// if not in sub package,
-				// not newSimpleName, e.g. java.lang.Thread$State -> Thread.State
-				return getAST().newName(replace(fullName.substring(JAVA_LANG.length())));
-			}
+		if (name.startsWith(JAVA_LANG) && name.indexOf('.', JAVA_LANG.length()) == -1) {
+			// immediately remove this package prefix, save resources,
+			// not newSimpleName, e.g. java.lang.Thread$State -> Thread.State
+			javaName = name.substring(JAVA_LANG.length());
+		} else {
+			javaName = name;
 		}
-		// TODO build package histogram
-		return getAST().newName(replace(fullName));
+		try {
+			return getAST().newName(replace(javaName));
+		} catch (final IllegalArgumentException e) {
+			// could contain illegal keywords
+			return getAST().newName(javaName);
+		}
 	}
 
 	private String replace(final String str) {
@@ -130,7 +113,7 @@ public class TypeNameManager {
 		}
 		int pos1 = 0;
 		final StringBuilder sb = new StringBuilder();
-		while (pos2 != -1) {
+		while (pos2 != -1 && pos2 + 1 < str.length()) {
 			sb.append(str.substring(pos1, pos2));
 			if (Character.isJavaIdentifierStart(str.charAt(pos2 + 1))) {
 				sb.append('.');

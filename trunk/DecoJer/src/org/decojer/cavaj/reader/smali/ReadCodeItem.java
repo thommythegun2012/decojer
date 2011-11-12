@@ -2289,18 +2289,21 @@ public class ReadCodeItem {
 			for (int i = 0; i < tryItems.length; ++i) {
 				final TryItem tryItem = tryItems[i];
 				for (final EncodedTypeAddrPair handler : tryItem.encodedCatchHandler.handlers) {
-					final T catchT = this.du.getDescT(handler.exceptionType.getTypeDescriptor());
-					final Exc exc = new Exc(catchT);
-					exc.setStartPc(tryItem.getStartCodeAddress());
-					exc.setEndPc(tryItem.getStartCodeAddress() + tryItem.getTryLength());
-					exc.setHandlerPc(handler.getHandlerAddress());
+					final Exc exc = new Exc(this.du.getDescT(handler.exceptionType
+							.getTypeDescriptor()));
+					exc.setStartPc(this.vmpc2pc.get(tryItem.getStartCodeAddress()));
+					exc.setEndPc(this.vmpc2pc.get(tryItem.getStartCodeAddress()
+							+ tryItem.getTryLength()));
+					exc.setHandlerPc(this.vmpc2pc.get(handler.getHandlerAddress()));
 					excs.add(exc);
 				}
 				if (tryItem.encodedCatchHandler.getCatchAllHandlerAddress() != -1) {
 					final Exc exc = new Exc(null);
-					exc.setStartPc(tryItem.getStartCodeAddress());
-					exc.setEndPc(tryItem.getStartCodeAddress() + tryItem.getTryLength());
-					exc.setHandlerPc(tryItem.encodedCatchHandler.getCatchAllHandlerAddress());
+					exc.setStartPc(this.vmpc2pc.get(tryItem.getStartCodeAddress()));
+					exc.setEndPc(this.vmpc2pc.get(tryItem.getStartCodeAddress()
+							+ tryItem.getTryLength()));
+					exc.setHandlerPc(this.vmpc2pc.get(tryItem.encodedCatchHandler
+							.getCatchAllHandlerAddress()));
 					excs.add(exc);
 				}
 			}

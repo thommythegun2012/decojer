@@ -345,7 +345,7 @@ public class Types {
 		} else if (baseT == T.BOOLEAN) {
 			type = ast.newPrimitiveType(PrimitiveType.BOOLEAN);
 		} else {
-			type = ast.newSimpleType(td.newTypeName(baseT.getName()));
+			type = ast.newSimpleType(td.newTypeName(baseT));
 		}
 		if (t.isArray()) {
 			for (int i = t.getDim(); i-- > 0;) {
