@@ -26,6 +26,7 @@ package org.decojer.cavaj.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.decojer.cavaj.model.T.TT;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
@@ -313,16 +314,30 @@ public class TD implements BD, PD {
 	}
 
 	/**
-	 * New type name.
+	 * New type name (currently only for signatures).
 	 * 
 	 * @param fullName
-	 *            full name
+	 *            full type name
 	 * @return Eclipse type name
 	 */
 	public Name newTypeName(final String fullName) {
 		assert fullName != null;
 
 		return getCu().getTypeNameManager().newTypeName(fullName);
+	}
+
+	/**
+	 * New type name.
+	 * 
+	 * @param t
+	 *            type
+	 * @return Eclipse type name
+	 */
+	public Name newTypeName(final T t) {
+		assert t != null;
+
+		return getCu().getTypeNameManager().newTypeName(
+				t.isMulti() ? ((TT) t).getTs()[0].getName() : t.getName());
 	}
 
 	/**

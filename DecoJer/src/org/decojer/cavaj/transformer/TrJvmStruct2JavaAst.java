@@ -393,7 +393,7 @@ public class TrJvmStruct2JavaAst {
 					if (t.getInterfaceTs() != null) {
 						for (final T interfaceT : t.getInterfaceTs()) {
 							((EnumDeclaration) typeDeclaration).superInterfaceTypes().add(
-									ast.newSimpleType(td.newTypeName(interfaceT.getName())));
+									ast.newSimpleType(td.newTypeName(interfaceT)));
 						}
 					}
 				}
@@ -454,6 +454,7 @@ public class TrJvmStruct2JavaAst {
 			}
 		}
 
+		// TODO concurrent modification exc possible?!
 		for (final BD bd : td.getBds()) {
 			if (bd instanceof FD) {
 				decompileField((FD) bd, cu);

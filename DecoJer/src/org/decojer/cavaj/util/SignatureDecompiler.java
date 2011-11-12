@@ -115,7 +115,7 @@ public class SignatureDecompiler {
 					continue;
 				}
 				typeDeclaration.superInterfaceTypes().add(
-						getAst().newSimpleType(getTd().newTypeName(interfaceT.getName())));
+						getAst().newSimpleType(getTd().newTypeName(interfaceT)));
 			}
 		}
 	}
@@ -297,7 +297,7 @@ public class SignatureDecompiler {
 						continue;
 					}
 				}
-				methodDeclaration.thrownExceptions().add(getTd().newTypeName(throwT.getName()));
+				methodDeclaration.thrownExceptions().add(getTd().newTypeName(throwT));
 			}
 		}
 	}

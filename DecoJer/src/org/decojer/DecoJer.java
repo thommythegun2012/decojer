@@ -308,16 +308,25 @@ public class DecoJer {
 		case 3: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
 			decompile(du, new FileOutputStream(new File(
-					"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.zip")));
+					"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.jar")));
 			break;
 		}
 		case 4: {
+			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1.jar");
+			decompile(
+					du,
+					new FileOutputStream(
+							new File(
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1_source.jar")));
+			break;
+		}
+		case 5: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61.jar");
 			decompile(
 					du,
 					new FileOutputStream(
 							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61_source.zip")));
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61_source.jar")));
 			break;
 		}
 		case 11: {
@@ -336,7 +345,7 @@ public class DecoJer {
 		case 13: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
 			decompile(du, new FileOutputStream(new File(
-					"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.zip")));
+					"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.jar")));
 			break;
 		}
 		case 14: {
@@ -345,7 +354,7 @@ public class DecoJer {
 					du,
 					new FileOutputStream(
 							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2_source.zip")));
+									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2_source.jar")));
 			break;
 		}
 		}
