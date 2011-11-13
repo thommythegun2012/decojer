@@ -23,6 +23,7 @@
  */
 package org.decojer.web.model;
 
+import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Entity;
 
@@ -39,12 +40,12 @@ public class Pom extends BaseEntity {
 	public static final String KIND = "POM";
 
 	/**
-	 * Property "content".
+	 * Blob property "content".
 	 */
 	public static final String PROP_CONTENT = "content";
 
 	/**
-	 * Property "upload".
+	 * BlobKey property "upload".
 	 */
 	public static final String PROP_JAR = "jar";
 
@@ -68,12 +69,12 @@ public class Pom extends BaseEntity {
 	}
 
 	/**
-	 * Get JAR key (upload unique key).
+	 * Get JAR Blob Key.
 	 * 
-	 * @return JAR key (upload unique key)
+	 * @return JAR Blob Key
 	 */
-	public String getJar() {
-		return (String) this.entity.getProperty(PROP_JAR);
+	public BlobKey getJar() {
+		return (BlobKey) this.entity.getProperty(PROP_JAR);
 	}
 
 	@Override
@@ -92,13 +93,13 @@ public class Pom extends BaseEntity {
 	}
 
 	/**
-	 * Set JAR key (upload unique key).
+	 * Set JAR Blob Key.
 	 * 
-	 * @param jar
-	 *            JAR key (upload unique key)
+	 * @param blobKey
+	 *            JAR Blob Key
 	 */
-	public void setJar(final String jar) {
-		this.entity.setProperty(PROP_JAR, jar);
+	public void setJar(final BlobKey blobKey) {
+		this.entity.setProperty(PROP_JAR, blobKey);
 	}
 
 }

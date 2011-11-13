@@ -41,6 +41,7 @@ import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -74,6 +75,10 @@ public class MavenService {
 	private static final String URL_MAVEN_CENTRAL_FILE = "http://search.maven.org/remotecontent?filepath=";
 
 	private static final URL URL_MAVEN_CENTRAL_RSS;
+
+	private static final String URL_MAVEN_REPO1_FILE = "http://repo1.maven.org/maven2/";
+
+	private static final String URL_MAVEN_REPO2_FILE = "http://repo2.maven.org/maven2/";
 
 	private static final URLFetchService urlFetchService = URLFetchServiceFactory
 			.getURLFetchService();
@@ -141,29 +146,35 @@ public class MavenService {
 			}
 			byte[] md5Hash;
 			long size;
+			BlobKey blobKey;
 			try {
 				final String fileName = artifactId + '-' + version + ".jar";
-				final byte[] jarContent = readMavenCentralFile(groupId, artifactId, version,
-						fileName);
+				final byte[] jarContent = readMavenFile(groupId, artifactId, version, fileName);
+				if (jarContent == null) {
+					continue;
+				}
 				md5Hash = IOUtils.md5(jarContent);
 				size = jarContent.length;
 
 				final List<Entity> blobInfoEntities = BlobService.getInstance()
 						.findBlobInfoEntities(IOUtils.hexEncode(md5Hash), size);
 				if (blobInfoEntities.isEmpty()) {
-					BlobService.getInstance().createBlob("application/java-archive", fileName,
-							jarContent);
+					blobKey = BlobService.getInstance().createBlob("application/java-archive",
+							fileName, jarContent);
+				} else {
+					// TODO double stuff
+					continue;
 				}
 			} catch (final Exception e1) {
 				LOGGER.log(Level.WARNING, "Couldn't import POM JAR '" + pomId + "'!", e1);
 				continue;
 			}
 			try {
-				final byte[] pomContent = readMavenCentralFile(groupId, artifactId, version,
-						artifactId + '-' + version + ".pom");
+				final byte[] pomContent = readMavenFile(groupId, artifactId, version, artifactId
+						+ '-' + version + ".pom");
 				final Pom pom = new Pom(new Entity(pomKey));
 				pom.setContent(pomContent);
-				pom.setJar(IOUtils.toKey(md5Hash, size));
+				pom.setJar(blobKey);
 				DATASTORE_SERVICE.put(pom.getWrappedEntity());
 				++nr;
 			} catch (final Exception e1) {
@@ -183,34 +194,21 @@ public class MavenService {
 		return sb.toString();
 	}
 
-	public byte[] readMavenCentralFile(final String groupId, final String artifactId,
-			final String version, final String fileName) {
-		final String url = URL_MAVEN_CENTRAL_FILE + groupId.replace('.', '/') + '/' + artifactId
-				+ '/' + version + '/' + fileName;
-		try {
-			final HTTPResponse fetch = urlFetchService.fetch(new HTTPRequest(new URL(url),
-					HTTPMethod.GET, com.google.appengine.api.urlfetch.FetchOptions.Builder
-							.withDeadline(300))); // currently capped at 60 seconds
-			if (fetch.getResponseCode() != HttpServletResponse.SC_OK) {
-				throw new RuntimeException("Couldn't read Maven Central file '" + url
-						+ "'! Response code was '" + fetch.getResponseCode() + "'.");
-			}
-			return fetch.getContent();
-		} catch (final Exception e) {
-			throw new RuntimeException("Couldn't read Maven Central file '" + url + "'!", e);
-		}
-	}
-
 	public List<String> readMavenCentralRss() {
+		final HTTPResponse fetch;
 		try {
-			final HTTPResponse fetch = urlFetchService.fetch(new HTTPRequest(URL_MAVEN_CENTRAL_RSS,
-					HTTPMethod.GET, com.google.appengine.api.urlfetch.FetchOptions.Builder
-							.withDeadline(20)));
-			if (fetch.getResponseCode() != HttpServletResponse.SC_OK) {
-				throw new RuntimeException("Couldn't read Maven Central RSS! Response code was '"
-						+ fetch.getResponseCode() + "'.");
-			}
-			final ArrayList<String> pomIds = new ArrayList<String>();
+			// default is 5 seconds
+			fetch = urlFetchService.fetch(new HTTPRequest(URL_MAVEN_CENTRAL_RSS, HTTPMethod.GET,
+					com.google.appengine.api.urlfetch.FetchOptions.Builder.withDeadline(20)));
+		} catch (final Exception e) {
+			throw new RuntimeException("Couldn't read Maven Central RSS!", e);
+		}
+		if (fetch.getResponseCode() != HttpServletResponse.SC_OK) {
+			throw new RuntimeException("Couldn't read Maven Central RSS! Response code was '"
+					+ fetch.getResponseCode() + "'.");
+		}
+		final ArrayList<String> pomIds = new ArrayList<String>();
+		try {
 			final SAXParser parser = SAX_PARSER_FACTORY.newSAXParser();
 			parser.parse(new ByteArrayInputStream(fetch.getContent()), new DefaultHandler() {
 
@@ -249,13 +247,37 @@ public class MavenService {
 				}
 
 			});
-			if (pomIds.size() == 0) {
-				throw new RuntimeException("Couldn't read Maven Central RSS! Is empty.");
-			}
-			return pomIds;
 		} catch (final Exception e) {
-			throw new RuntimeException("Couldn't read Maven Central RSS!", e);
+			throw new RuntimeException("Couldn't parse Maven Central RSS!", e);
 		}
+		if (pomIds.size() == 0) {
+			throw new RuntimeException("Couldn't parse Maven Central RSS! Is empty.");
+		}
+		return pomIds;
+	}
+
+	public byte[] readMavenFile(final String groupId, final String artifactId,
+			final String version, final String fileName) {
+		final String url = URL_MAVEN_REPO1_FILE + groupId.replace('.', '/') + '/' + artifactId
+				+ '/' + version + '/' + fileName;
+		final HTTPResponse fetch;
+		try {
+			// currently capped at 60 seconds...but default is 5 seconds
+			fetch = urlFetchService.fetch(new HTTPRequest(new URL(url), HTTPMethod.GET,
+					com.google.appengine.api.urlfetch.FetchOptions.Builder.withDeadline(300)));
+		} catch (final Exception e) {
+			throw new RuntimeException("Couldn't read Maven Central file '" + url + "'!", e);
+		}
+		final int responseCode = fetch.getResponseCode();
+		if (responseCode == HttpServletResponse.SC_NOT_FOUND) {
+			// file doesn't exist
+			return null;
+		}
+		if (fetch.getResponseCode() != HttpServletResponse.SC_OK) {
+			throw new RuntimeException("Couldn't read Maven Central file '" + url
+					+ "'! Response code was '" + fetch.getResponseCode() + "'.");
+		}
+		return fetch.getContent();
 	}
 
 }
