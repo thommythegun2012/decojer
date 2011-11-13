@@ -23,7 +23,9 @@
  */
 package org.decojer.web.util;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -92,6 +94,22 @@ public class IOUtils {
 		return new String(hex);
 	}
 
+	public static void main(final String[] args) {
+		final String test = "bmm)5FZG)g%oKX;3;1PIAAAAAA7?JB";
+		try {
+			final byte[] base91Decode = base91Decode(test);
+			final byte[] md5bytes = new byte[16];
+			System.arraycopy(base91Decode, 0, md5bytes, 0, 16);
+			final String md5 = hexEncode(md5bytes);
+			final long size = new DataInputStream(new ByteArrayInputStream(base91Decode, 16, 8))
+					.readLong();
+			System.out.println("TEST: " + md5 + " : " + size);
+		} catch (final IOException e) {
+			e.printStackTrace();
+		}
+		// http://worker.decojer.appspot.com/admin/cleanup
+	}
+
 	public static byte[] md5(final byte[] content) {
 		try {
 			final MessageDigest m = MessageDigest.getInstance("MD5");
@@ -107,16 +125,29 @@ public class IOUtils {
 		return os.toByteArray();
 	}
 
-	public static String toKey(final byte[] md5Hash, final long size) throws IOException {
+	public static String toKey(final byte[] md5Hash, final long size) {
 		final ByteArrayOutputStream bos = new ByteArrayOutputStream();
 		final DataOutputStream dos = new DataOutputStream(bos);
-		dos.write(md5Hash);
-		dos.writeLong(size);
-		dos.close();
+		try {
+			dos.write(md5Hash);
+			boolean write = false;
+			for (int i = 56; i >= 0; i -= 8) {
+				final byte v = (byte) (size >>> i);
+				if (v != 0) {
+					write = true;
+				}
+				if (write) {
+					dos.writeByte(v);
+				}
+			}
+			dos.close();
+		} catch (final IOException e) {
+			throw new RuntimeException(e);
+		}
 		return base91Encode(bos.toByteArray());
 	}
 
-	public static String toKey(final String md5Hash, final long size) throws IOException {
+	public static String toKey(final String md5Hash, final long size) {
 		return toKey(hexDecode(md5Hash), size);
 	}
 

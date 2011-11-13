@@ -23,21 +23,24 @@
  */
 package org.decojer.web.servlet;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.decojer.web.util.IOUtils;
+
+import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.datastore.Query.FilterOperator;
 
 /**
  * @author André Pankraz
@@ -46,20 +49,46 @@ public class CleanupServlet extends HttpServlet {
 
 	private static final long serialVersionUID = -6567596163814017159L;
 
-	private final DatastoreService datastoreService = DatastoreServiceFactory
-			.getDatastoreService();
+	private final DatastoreService datastoreService = DatastoreServiceFactory.getDatastoreService();
 
 	@Override
-	public void doGet(final HttpServletRequest req,
-			final HttpServletResponse res) throws ServletException, IOException {
-		final Query query = new Query("TYPE").setKeysOnly();
-		final Iterator<Entity> asIterable = this.datastoreService
-				.prepare(query).asIterable().iterator();
-		final List<Key> list = new ArrayList<Key>();
-		while (asIterable.hasNext()) {
-			list.add(asIterable.next().getKey());
+	public void doGet(final HttpServletRequest req, final HttpServletResponse res)
+			throws ServletException, IOException {
+		final ServletOutputStream out = res.getOutputStream();
+		out.println("<ul>");
+
+		final Query pomQuery = new Query("POM");
+		for (final Entity entity : this.datastoreService.prepare(pomQuery).asIterable()) {
+			final String key = (String) entity.getProperty("jar");
+			if (key == null) {
+				continue;
+			}
+			try {
+				final byte[] base91Decode = IOUtils.base91Decode(key);
+				final byte[] md5bytes = new byte[16];
+				System.arraycopy(base91Decode, 0, md5bytes, 0, 16);
+				final String md5 = IOUtils.hexEncode(md5bytes);
+				final long size = new DataInputStream(new ByteArrayInputStream(base91Decode, 16, 8))
+						.readLong();
+				System.out.println("TEST: " + md5 + " : " + size);
+
+				final Query blobQuery = new Query("__BlobInfo__");
+				blobQuery.addFilter("md5_hash", FilterOperator.EQUAL, md5);
+				blobQuery.addFilter("size", FilterOperator.EQUAL, size);
+				final Entity blobEntity = this.datastoreService.prepare(blobQuery).asSingleEntity();
+				if (blobEntity != null) {
+					entity.removeProperty("jar");
+					entity.setProperty("jarBlob", new BlobKey(blobEntity.getKey().getName()));
+					this.datastoreService.put(entity);
+				}
+				out.println("<li>POM: " + blobEntity + "</li>");
+			} catch (final IOException e) {
+				e.printStackTrace();
+				out.println("<li>e: " + e + "<li>");
+			}
 		}
-		this.datastoreService.delete(list);
-		res.getOutputStream().println("DELETED: " + list.size());
+		out.println("</ul>");
+		out.flush();
 	}
+
 }
