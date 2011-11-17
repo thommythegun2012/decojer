@@ -6,7 +6,7 @@
 </head>
 <body>
 	<jsp:include page="WEB-INF/template/header.jsp" />
-	<h1>Imprint</h1>
+	<h2>Imprint</h2>
 	<section>
 		<h1>Published by:</h1>
 		<p>

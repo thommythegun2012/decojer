@@ -1,5 +1,5 @@
 /*
- * $Id: UploadServlet.java 57 2011-07-09 12:51:55Z andrePankraz@googlemail.com $
+ * $Id$
  *
  * This file is part of the DecoJer project.
  * Copyright (C) 2010-2011  André Pankraz
@@ -21,16 +21,9 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.web.servlet;
+package org.decojer.web.controller;
 
-import java.io.IOException;
 import java.util.HashSet;
-
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -41,31 +34,32 @@ import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.QueryResultList;
 
 /**
- * http://worker.decojer.appspot.com/admin/cleanup
+ * Merge.
  * 
  * @author André Pankraz
  */
-public class CleanupServlet extends HttpServlet {
+public class BlobStats {
 
 	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
 			.getDatastoreService();
 
 	private final static int PAGE_SIZE = 10;
 
-	private static final long serialVersionUID = -6567596163814017159L;
+	private String doubleHashes;
 
-	@Override
-	public void doGet(final HttpServletRequest req, final HttpServletResponse res)
-			throws ServletException, IOException {
-		final ServletOutputStream out = res.getOutputStream();
-		out.println("<ul>");
+	private int number;
 
-		final HashSet<String> stat = new HashSet<String>();
+	private long size;
+
+	public void calculateStats() {
+		final StringBuffer sb = new StringBuffer();
 		long size = 0;
 
 		final Query q = new Query("__BlobInfo__");
 		final PreparedQuery pq = DATASTORE_SERVICE.prepare(q);
 		final FetchOptions fetchOptions = FetchOptions.Builder.withLimit(PAGE_SIZE);
+
+		final HashSet<String> hashes = new HashSet<String>();
 
 		while (true) {
 			final QueryResultList<Entity> results = pq.asQueryResultList(fetchOptions);
@@ -73,11 +67,11 @@ public class CleanupServlet extends HttpServlet {
 				final String md5Hash = (String) entity.getProperty("md5_hash");
 				size += (Long) entity.getProperty("size");
 
-				if (stat.contains(md5Hash)) {
-					out.println("<li>" + md5Hash + "</li>");
+				if (hashes.contains(md5Hash)) {
+					sb.append(md5Hash).append(", ");
 					continue;
 				}
-				stat.add(md5Hash);
+				hashes.add(md5Hash);
 			}
 
 			if (results.size() < PAGE_SIZE || results.getCursor() == null) {
@@ -85,17 +79,21 @@ public class CleanupServlet extends HttpServlet {
 			}
 			fetchOptions.startCursor(results.getCursor());
 		}
+		this.doubleHashes = sb.length() < 2 ? null : sb.substring(0, sb.length() - 2);
+		this.number = hashes.size();
+		this.size = size;
+	}
 
-		/*
-		 * final byte[] base91Decode = IOUtils.base91Decode(key); final byte[] md5bytes = new
-		 * byte[16]; System.arraycopy(base91Decode, 0, md5bytes, 0, 16); final String md5 =
-		 * IOUtils.hexEncode(md5bytes); final long size = new DataInputStream(new
-		 * ByteArrayInputStream(base91Decode, 16, 8)) .readLong(); System.out.println("TEST: " + md5
-		 * + " : " + size);
-		 */
+	public String getDoubleHashes() {
+		return this.doubleHashes;
+	}
 
-		out.println("</ul><p>Sumsize: " + size + " Nr: " + stat.size() + "</p>");
-		out.flush();
+	public int getNumber() {
+		return this.number;
+	}
+
+	public long getSize() {
+		return this.size;
 	}
 
 }

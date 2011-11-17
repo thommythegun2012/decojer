@@ -10,7 +10,6 @@
 <head>
 <body>
 	<jsp:include page="/WEB-INF/template/header.jsp" />
-	<h1>DecoJer - A Java Decompiler</h1>
 	<p>This is currently only a test page! The Java Decompiler is not
 		yet finished. Currenty working on:</p>
 	<ul>
