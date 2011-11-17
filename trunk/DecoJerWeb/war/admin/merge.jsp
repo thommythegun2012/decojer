@@ -10,7 +10,6 @@
 </head>
 <body>
 	<jsp:include page="/WEB-INF/template/header.jsp" />
-	<h1>DecoJer - A Java Decompiler</h1>
 	<p>Merge:</p>
 	<form>
 		<input type="text" name="type1" value="${merge.type1}"><input
