@@ -23,6 +23,7 @@
  */
 package org.decojer.web.util;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -54,6 +55,27 @@ public class IO {
 
 	public static String base91Encode(final byte[] bytes) {
 		return new String(BASE91.encode(bytes), CHARSET);
+	}
+
+	public static boolean contentEquals(InputStream input1, InputStream input2) throws IOException {
+		if (!(input1 instanceof BufferedInputStream)) {
+			input1 = new BufferedInputStream(input1);
+		}
+		if (!(input2 instanceof BufferedInputStream)) {
+			input2 = new BufferedInputStream(input2);
+		}
+
+		int ch = input1.read();
+		while (-1 != ch) {
+			final int ch2 = input2.read();
+			if (ch != ch2) {
+				return false;
+			}
+			ch = input1.read();
+		}
+
+		final int ch2 = input2.read();
+		return ch2 == -1;
 	}
 
 	public static int copy(final InputStream is, final OutputStream os) throws IOException {

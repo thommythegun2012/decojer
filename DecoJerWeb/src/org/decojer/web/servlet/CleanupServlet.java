@@ -24,21 +24,20 @@
 package org.decojer.web.servlet;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.HashSet;
+import java.util.List;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
+import org.decojer.web.model.Pom;
+import org.decojer.web.service.MavenService;
+import org.decojer.web.util.DB;
+
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.QueryResultList;
 
 /**
  * http://worker.decojer.appspot.com/admin/cleanup
@@ -47,45 +46,42 @@ import com.google.appengine.api.datastore.QueryResultList;
  */
 public class CleanupServlet extends HttpServlet {
 
-	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
-			.getDatastoreService();
-
-	private final static int PAGE_SIZE = 10;
-
 	private static final long serialVersionUID = -6567596163814017159L;
 
 	@Override
 	public void doGet(final HttpServletRequest req, final HttpServletResponse res)
 			throws ServletException, IOException {
-		final ServletOutputStream out = res.getOutputStream();
+		final PrintWriter out = res.getWriter();
 		out.println("<ul>");
 
-		final HashSet<String> stat = new HashSet<String>();
-		long size = 0;
+		final MavenService mavenService = MavenService.getInstance();
+		final HashSet<String> done = new HashSet<String>();
 
-		final Query q = new Query("__BlobInfo__");
-		final PreparedQuery pq = DATASTORE_SERVICE.prepare(q);
-		final FetchOptions fetchOptions = FetchOptions.Builder.withLimit(PAGE_SIZE);
+		DB.iterate(Pom.KIND, new DB.Processor() {
 
-		while (true) {
-			final QueryResultList<Entity> results = pq.asQueryResultList(fetchOptions);
-			for (final Entity entity : results) {
-				final String md5Hash = (String) entity.getProperty("md5_hash");
-				size += (Long) entity.getProperty("size");
+			@Override
+			public void process(final Entity entity) {
+				final Pom pom = new Pom(entity);
+				final String groupId = pom.getGroupId();
+				final String artifactId = pom.getArtifactId();
 
-				if (stat.contains(md5Hash)) {
-					out.println("<li>" + md5Hash + "</li>");
-					continue;
+				final String doneId = groupId + ':' + artifactId;
+				if (done.contains(doneId)) {
+					return;
 				}
-				stat.add(md5Hash);
+				done.add(doneId);
+				out.println("<li>" + doneId + "</li>");
+				out.flush();
+				final List<String> versions = mavenService.fetchVersions(groupId, artifactId);
+				for (final String version : versions) {
+					if (mavenService.importPom(groupId, artifactId, version)) {
+						out.println("<li>Imported: " + doneId + ":" + version + "</li>");
+					}
+					out.flush();
+				}
 			}
 
-			if (results.size() < PAGE_SIZE || results.getCursor() == null) {
-				break;
-			}
-			fetchOptions.startCursor(results.getCursor());
-		}
-
+		});
 		/*
 		 * final byte[] base91Decode = IOUtils.base91Decode(key); final byte[] md5bytes = new
 		 * byte[16]; System.arraycopy(base91Decode, 0, md5bytes, 0, 16); final String md5 =
@@ -93,8 +89,7 @@ public class CleanupServlet extends HttpServlet {
 		 * ByteArrayInputStream(base91Decode, 16, 8)) .readLong(); System.out.println("TEST: " + md5
 		 * + " : " + size);
 		 */
-
-		out.println("</ul><p>Sumsize: " + size + " Nr: " + stat.size() + "</p>");
+		out.println("</ul>");
 		out.flush();
 	}
 

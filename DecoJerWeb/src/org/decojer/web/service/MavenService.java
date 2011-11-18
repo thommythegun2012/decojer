@@ -36,7 +36,6 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.decojer.web.model.Pom;
-import org.decojer.web.util.IO;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -72,13 +71,13 @@ public class MavenService {
 
 	private static final SAXParserFactory SAX_PARSER_FACTORY = SAXParserFactory.newInstance();
 
-	private static final String URL_MAVEN_CENTRAL_FILE = "http://search.maven.org/remotecontent?filepath=";
+	private static final String URL_CENTRAL_FILE = "http://search.maven.org/remotecontent?filepath=";
 
-	private static final URL URL_MAVEN_CENTRAL_RSS;
+	private static final URL URL_CENTRAL_RSS;
 
-	private static final String URL_MAVEN_REPO1_FILE = "http://repo1.maven.org/maven2/";
+	private static final String URL_REPO1_FILE = "http://repo1.maven.org/maven2/";
 
-	private static final String URL_MAVEN_REPO2_FILE = "http://repo2.maven.org/maven2/";
+	private static final String URL_REPO2_FILE = "http://repo2.maven.org/maven2/";
 	// same mirror: http://uk.maven.org/maven2/
 	// http://download.java.net/maven/2/
 	// http://www.jarvana.com/jarvana/browse
@@ -88,120 +87,31 @@ public class MavenService {
 
 	static {
 		try {
-			URL_MAVEN_CENTRAL_RSS = new URL(
-					"http://search.maven.org/remotecontent?filepath=rss.xml");
+			URL_CENTRAL_RSS = new URL("http://search.maven.org/remotecontent?filepath=rss.xml");
 		} catch (final MalformedURLException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
+	/**
+	 * Get instance.
+	 * 
+	 * @return instance
+	 */
 	public static MavenService getInstance() {
 		return INSTANCE;
 	}
 
-	public List<Pom> findPoms(final String groupId, final String artifactId) {
-		final Query pomVersionQuery = new Query(Pom.KIND);
-
-		final Key pomKey = KeyFactory.createKey(Pom.KIND, groupId + ":" + artifactId + ":");
-		final Key pomKey2 = KeyFactory.createKey(Pom.KIND, groupId + ":" + artifactId + ":\uFFFD");
-
-		pomVersionQuery.addFilter(Entity.KEY_RESERVED_PROPERTY,
-				Query.FilterOperator.GREATER_THAN_OR_EQUAL, pomKey);
-		pomVersionQuery.addFilter(Entity.KEY_RESERVED_PROPERTY, Query.FilterOperator.LESS_THAN,
-				pomKey2);
-
-		final List<Entity> entities = DATASTORE_SERVICE.prepare(pomVersionQuery).asList(
-				FetchOptions.Builder.withDefaults());
-		final ArrayList<Pom> poms = new ArrayList<Pom>(entities.size());
-		for (final Entity entity : entities) {
-			poms.add(new Pom(entity));
-		}
-		return poms;
-	}
-
-	public int importMavenCentralRss() {
-		final List<String> pomIds = readMavenCentralRss();
-		if (pomIds == null) {
-			return 0;
-		}
-		int nr = 0;
-		for (final String pomId : pomIds) {
-			final int artifactIdPos = pomId.indexOf(':');
-			if (artifactIdPos == -1) {
-				LOGGER.log(Level.WARNING, "Couldn't parse '" + pomId + "' from Maven Central RSS!");
-				continue;
-			}
-			final String groupId = pomId.substring(0, artifactIdPos);
-			final int versionPos = pomId.indexOf(':', artifactIdPos + 1);
-			if (versionPos == -1) {
-				LOGGER.log(Level.WARNING, "Couldn't parse '" + pomId + "' from Maven Central RSS!");
-				continue;
-			}
-			final String artifactId = pomId.substring(artifactIdPos + 1, versionPos);
-			final String version = pomId.substring(versionPos + 1);
-
-			final Key pomKey = KeyFactory.createKey(Pom.KIND, pomId);
-			try {
-				DATASTORE_SERVICE.get(pomKey);
-				continue; // is known, happy for now
-			} catch (final EntityNotFoundException e) {
-				// fall through
-			}
-			byte[] md5Hash;
-			long size;
-			BlobKey blobKey;
-			try {
-				final String fileName = artifactId + '-' + version + ".jar";
-				final byte[] jarContent = readMavenFile(groupId, artifactId, version, fileName);
-				if (jarContent == null) {
-					continue;
-				}
-				md5Hash = IO.md5(jarContent);
-				size = jarContent.length;
-
-				final List<Entity> blobInfoEntities = BlobService.getInstance()
-						.findBlobInfoEntities(IO.hexEncode(md5Hash), size);
-				if (blobInfoEntities.isEmpty()) {
-					blobKey = BlobService.getInstance().createBlob("application/java-archive",
-							fileName, jarContent);
-				} else {
-					// TODO double stuff
-					continue;
-				}
-			} catch (final Exception e1) {
-				LOGGER.log(Level.WARNING, "Couldn't import POM JAR '" + pomId + "'!", e1);
-				continue;
-			}
-			try {
-				final byte[] pomContent = readMavenFile(groupId, artifactId, version, artifactId
-						+ '-' + version + ".pom");
-				final Pom pom = new Pom(new Entity(pomKey));
-				pom.setContent(pomContent);
-				pom.setJar(blobKey);
-				DATASTORE_SERVICE.put(pom.getWrappedEntity());
-				++nr;
-			} catch (final Exception e1) {
-				LOGGER.log(Level.WARNING, "Couldn't import POM '" + pomId + "'!", e1);
-				continue;
-			}
-		}
-		return nr;
-	}
-
-	public String read() {
-		final List<String> artifacts = readMavenCentralRss();
-		final StringBuilder sb = new StringBuilder();
-		for (final String artifact : artifacts) {
-			sb.append("<br>").append(artifact).append("</br>");
-		}
-		return sb.toString();
-	}
-
-	public List<String> readMavenCentralRss() {
+	/**
+	 * Fetch Maven central RSS, deliver list with POM Ids (groupId:artifactId:version).
+	 * 
+	 * @return list with POM Ids (groupId:artifactId:version)
+	 */
+	public List<String> fetchCentralRss() {
 		final HTTPResponse fetch;
 		try {
 			// default is 5 seconds
-			fetch = urlFetchService.fetch(new HTTPRequest(URL_MAVEN_CENTRAL_RSS, HTTPMethod.GET,
+			fetch = urlFetchService.fetch(new HTTPRequest(URL_CENTRAL_RSS, HTTPMethod.GET,
 					com.google.appengine.api.urlfetch.FetchOptions.Builder.withDeadline(20)));
 		} catch (final Exception e) {
 			throw new RuntimeException("Couldn't read Maven Central RSS!", e);
@@ -259,10 +169,23 @@ public class MavenService {
 		return pomIds;
 	}
 
-	public byte[] readMavenFile(final String groupId, final String artifactId,
-			final String version, final String fileName) {
-		final String url = URL_MAVEN_REPO1_FILE + groupId.replace('.', '/') + '/' + artifactId
-				+ '/' + version + '/' + fileName;
+	/**
+	 * Fetch file content from repository.
+	 * 
+	 * @param groupId
+	 *            group id
+	 * @param artifactId
+	 *            artifact id
+	 * @param version
+	 *            version
+	 * @param fileName
+	 *            file name
+	 * @return file content
+	 */
+	public byte[] fetchFile(final String groupId, final String artifactId, final String version,
+			final String fileName) {
+		final String url = URL_REPO1_FILE + groupId.replace('.', '/') + '/' + artifactId + '/'
+				+ version + '/' + fileName;
 		final HTTPResponse fetch;
 		try {
 			// currently capped at 60 seconds...but default is 5 seconds
@@ -281,6 +204,180 @@ public class MavenService {
 					+ "'! Response code was '" + fetch.getResponseCode() + "'.");
 		}
 		return fetch.getContent();
+	}
+
+	/**
+	 * Fetch available POM versions.
+	 * 
+	 * @param groupId
+	 *            group id
+	 * @param artifactId
+	 *            artifact id
+	 * @return versions
+	 */
+	public List<String> fetchVersions(final String groupId, final String artifactId) {
+		final HTTPResponse fetch;
+		try {
+			// default is 5 seconds
+			fetch = urlFetchService.fetch(new HTTPRequest(new URL(URL_REPO1_FILE
+					+ groupId.replace('.', '/') + '/' + artifactId + "/maven-metadata.xml"),
+					HTTPMethod.GET, com.google.appengine.api.urlfetch.FetchOptions.Builder
+							.withDeadline(20)));
+		} catch (final Exception e) {
+			throw new RuntimeException("Couldn't read Maven Metadata!", e);
+		}
+		if (fetch.getResponseCode() != HttpServletResponse.SC_OK) {
+			throw new RuntimeException("Couldn't read Maven Metadata! Response code was '"
+					+ fetch.getResponseCode() + "'.");
+		}
+		final ArrayList<String> versions = new ArrayList<String>();
+		try {
+			final SAXParser parser = SAX_PARSER_FACTORY.newSAXParser();
+			parser.parse(new ByteArrayInputStream(fetch.getContent()), new DefaultHandler() {
+
+				boolean version = false;
+
+				@Override
+				public void characters(final char[] ch, final int start, final int length)
+						throws SAXException {
+					if (!this.version) {
+						return;
+					}
+					final String version = new String(ch, start, length);
+					versions.add(version);
+				}
+
+				@Override
+				public void endElement(final String uri, final String localName, final String qName)
+						throws SAXException {
+					if ("version".equals(qName)) {
+						this.version = false;
+						return;
+					}
+				}
+
+				@Override
+				public void startElement(final String uri, final String localName,
+						final String qName, final Attributes attributes) throws SAXException {
+					if ("version".equals(qName)) {
+						this.version = true;
+						return;
+					}
+				}
+
+			});
+		} catch (final Exception e) {
+			throw new RuntimeException("Couldn't parse Maven Metadata!", e);
+		}
+		if (versions.size() == 0) {
+			throw new RuntimeException("Couldn't parse Maven Metadata! Is empty.");
+		}
+		return versions;
+	}
+
+	public List<Pom> findPoms(final String groupId, final String artifactId) {
+		final Query pomVersionQuery = new Query(Pom.KIND);
+
+		final Key pomKey = KeyFactory.createKey(Pom.KIND, groupId + ":" + artifactId + ":");
+		final Key pomKey2 = KeyFactory.createKey(Pom.KIND, groupId + ":" + artifactId + ":\uFFFD");
+
+		pomVersionQuery.addFilter(Entity.KEY_RESERVED_PROPERTY,
+				Query.FilterOperator.GREATER_THAN_OR_EQUAL, pomKey);
+		pomVersionQuery.addFilter(Entity.KEY_RESERVED_PROPERTY, Query.FilterOperator.LESS_THAN,
+				pomKey2);
+
+		final List<Entity> entities = DATASTORE_SERVICE.prepare(pomVersionQuery).asList(
+				FetchOptions.Builder.withDefaults());
+		final ArrayList<Pom> poms = new ArrayList<Pom>(entities.size());
+		for (final Entity entity : entities) {
+			poms.add(new Pom(entity));
+		}
+		return poms;
+	}
+
+	/**
+	 * Fetch and import Central RSS.
+	 * 
+	 * @return imported files
+	 */
+	public int importCentralRss() {
+		final List<String> pomIds = fetchCentralRss();
+		if (pomIds == null) {
+			return 0;
+		}
+		int nr = 0;
+		for (final String pomId : pomIds) {
+			final int artifactIdPos = pomId.indexOf(':');
+			if (artifactIdPos == -1) {
+				LOGGER.log(Level.WARNING, "Couldn't parse '" + pomId + "' from Maven Central RSS!");
+				continue;
+			}
+			final String groupId = pomId.substring(0, artifactIdPos);
+			final int versionPos = pomId.indexOf(':', artifactIdPos + 1);
+			if (versionPos == -1) {
+				LOGGER.log(Level.WARNING, "Couldn't parse '" + pomId + "' from Maven Central RSS!");
+				continue;
+			}
+			final String artifactId = pomId.substring(artifactIdPos + 1, versionPos);
+			final String version = pomId.substring(versionPos + 1);
+
+			if (importPom(groupId, artifactId, version)) {
+				++nr;
+			}
+		}
+		return nr;
+	}
+
+	/**
+	 * Fetch and import POM.
+	 * 
+	 * @param groupId
+	 *            group id
+	 * @param artifactId
+	 *            artifact id
+	 * @param version
+	 *            version
+	 * @return true - new imported
+	 */
+	public boolean importPom(final String groupId, final String artifactId, final String version) {
+		final String pomId = groupId + ':' + artifactId + ':' + version;
+		final Key pomKey = KeyFactory.createKey(Pom.KIND, pomId);
+		try {
+			DATASTORE_SERVICE.get(pomKey);
+			return false; // is known, happy for now
+		} catch (final EntityNotFoundException e) {
+			// fall through
+		}
+		BlobKey blobKey;
+		try {
+			final String fileName = artifactId + '-' + version + ".jar";
+			final byte[] jarContent = fetchFile(groupId, artifactId, version, fileName);
+			if (jarContent == null) {
+				return false; // don't import JAR-less POMs for now
+			}
+			final Entity blobInfo = BlobService.getInstance().findBlobInfo(jarContent);
+			if (blobInfo == null) {
+				blobKey = BlobService.getInstance().createBlob("application/java-archive",
+						fileName, jarContent);
+			} else {
+				blobKey = new BlobKey(blobInfo.getKey().getName());
+			}
+		} catch (final Exception e1) {
+			LOGGER.log(Level.WARNING, "Couldn't import POM JAR '" + pomId + "'!", e1);
+			return false;
+		}
+		try {
+			final byte[] pomContent = fetchFile(groupId, artifactId, version, artifactId + '-'
+					+ version + ".pom");
+			final Pom pom = new Pom(new Entity(pomKey));
+			pom.setContent(pomContent);
+			pom.setJar(blobKey);
+			DATASTORE_SERVICE.put(pom.getWrappedEntity());
+			return true;
+		} catch (final Exception e1) {
+			LOGGER.log(Level.WARNING, "Couldn't import POM '" + pomId + "'!", e1);
+			return false;
+		}
 	}
 
 }

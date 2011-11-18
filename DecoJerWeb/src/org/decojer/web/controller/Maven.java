@@ -38,12 +38,8 @@ public class Maven {
 		return this.importedArtifacts;
 	}
 
-	public String getRss() {
-		return MavenService.getInstance().read();
-	}
-
-	public void importArtifacts() {
-		this.importedArtifacts = MavenService.getInstance().importMavenCentralRss();
+	public void importCentralRss() {
+		this.importedArtifacts = MavenService.getInstance().importCentralRss();
 	}
 
 }
