@@ -146,8 +146,8 @@ public class Uploads {
 			return sb.toString();
 		}
 		try {
-			final String source = new String(IOUtils.toBytes(new BlobstoreInputStream(
-					new BlobKey(u))), "UTF-8");
+			final String source = new String(IO.toBytes(new BlobstoreInputStream(new BlobKey(u))),
+					"UTF-8");
 
 			sb.append("<hr /><pre class=\"brush: java\">")
 					.append(source)

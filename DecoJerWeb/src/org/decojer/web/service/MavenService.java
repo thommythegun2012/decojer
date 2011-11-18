@@ -36,7 +36,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.decojer.web.model.Pom;
-import org.decojer.web.util.IOUtils;
+import org.decojer.web.util.IO;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -79,6 +79,9 @@ public class MavenService {
 	private static final String URL_MAVEN_REPO1_FILE = "http://repo1.maven.org/maven2/";
 
 	private static final String URL_MAVEN_REPO2_FILE = "http://repo2.maven.org/maven2/";
+	// same mirror: http://uk.maven.org/maven2/
+	// http://download.java.net/maven/2/
+	// http://www.jarvana.com/jarvana/browse
 
 	private static final URLFetchService urlFetchService = URLFetchServiceFactory
 			.getURLFetchService();
@@ -153,11 +156,11 @@ public class MavenService {
 				if (jarContent == null) {
 					continue;
 				}
-				md5Hash = IOUtils.md5(jarContent);
+				md5Hash = IO.md5(jarContent);
 				size = jarContent.length;
 
 				final List<Entity> blobInfoEntities = BlobService.getInstance()
-						.findBlobInfoEntities(IOUtils.hexEncode(md5Hash), size);
+						.findBlobInfoEntities(IO.hexEncode(md5Hash), size);
 				if (blobInfoEntities.isEmpty()) {
 					blobKey = BlobService.getInstance().createBlob("application/java-archive",
 							fileName, jarContent);
