@@ -40,7 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.decojer.DecoJer;
 import org.decojer.web.model.Upload;
 import org.decojer.web.service.BlobService;
-import org.decojer.web.util.IOUtils;
+import org.decojer.web.util.IO;
 import org.decojer.web.util.Messages;
 import org.decojer.web.util.Uploads;
 
@@ -135,7 +135,7 @@ public class UploadServlet extends HttpServlet {
 				}
 			}
 			// short unique upload-entity key: base91(hash|size)
-			final Key uploadKey = KeyFactory.createKey(Upload.KIND, IOUtils.toKey(md5Hash, size));
+			final Key uploadKey = KeyFactory.createKey(Upload.KIND, IO.toKey(md5Hash, size));
 			// none-transactional quick-check if upload-entity already exists
 			Upload upload;
 			try {

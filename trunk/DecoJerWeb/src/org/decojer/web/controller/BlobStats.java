@@ -23,77 +23,23 @@
  */
 package org.decojer.web.controller;
 
-import java.util.HashSet;
-
-import com.google.appengine.api.datastore.DatastoreService;
-import com.google.appengine.api.datastore.DatastoreServiceFactory;
-import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
-import com.google.appengine.api.datastore.PreparedQuery;
-import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.datastore.QueryResultList;
+import org.decojer.web.service.BlobService;
 
 /**
- * Merge.
+ * Blob statistics.
  * 
  * @author André Pankraz
  */
 public class BlobStats {
 
-	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
-			.getDatastoreService();
-
-	private final static int PAGE_SIZE = 10;
-
-	private String doubleHashes;
-
-	private int number;
-
-	private long size;
+	private BlobService.Stats stats;
 
 	public void calculateStats() {
-		final StringBuffer sb = new StringBuffer();
-		long size = 0;
-
-		final Query q = new Query("__BlobInfo__");
-		final PreparedQuery pq = DATASTORE_SERVICE.prepare(q);
-		final FetchOptions fetchOptions = FetchOptions.Builder.withLimit(PAGE_SIZE);
-
-		final HashSet<String> hashes = new HashSet<String>();
-
-		while (true) {
-			final QueryResultList<Entity> results = pq.asQueryResultList(fetchOptions);
-			for (final Entity entity : results) {
-				final String md5Hash = (String) entity.getProperty("md5_hash");
-				size += (Long) entity.getProperty("size");
-
-				if (hashes.contains(md5Hash)) {
-					sb.append(md5Hash).append(", ");
-					continue;
-				}
-				hashes.add(md5Hash);
-			}
-
-			if (results.size() < PAGE_SIZE || results.getCursor() == null) {
-				break;
-			}
-			fetchOptions.startCursor(results.getCursor());
-		}
-		this.doubleHashes = sb.length() < 2 ? null : sb.substring(0, sb.length() - 2);
-		this.number = hashes.size();
-		this.size = size;
+		this.stats = BlobService.getInstance().calculateStats();
 	}
 
-	public String getDoubleHashes() {
-		return this.doubleHashes;
-	}
-
-	public int getNumber() {
-		return this.number;
-	}
-
-	public long getSize() {
-		return this.size;
+	public BlobService.Stats getStats() {
+		return this.stats;
 	}
 
 }

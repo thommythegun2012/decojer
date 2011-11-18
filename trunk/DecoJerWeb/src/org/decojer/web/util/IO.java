@@ -39,7 +39,7 @@ import com.github.libxjava.io.Base91;
 /**
  * @author André Pankraz
  */
-public class IOUtils {
+public class IO {
 
 	private static final Base91 BASE91 = new Base91(); // synchronized self-resetting, OK
 
