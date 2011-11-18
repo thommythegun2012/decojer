@@ -49,6 +49,15 @@ public abstract class BaseEntity {
 	}
 
 	/**
+	 * Get id.
+	 * 
+	 * @return id
+	 */
+	public String getId() {
+		return this.entity.getKey().getName();
+	}
+
+	/**
 	 * Get entity kind.
 	 * 
 	 * @return entity kind

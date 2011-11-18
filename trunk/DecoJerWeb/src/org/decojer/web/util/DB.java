@@ -47,7 +47,7 @@ public class DB {
 	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
 			.getDatastoreService();
 
-	public static void process(final String kind, final int pageSize, final Processor processor) {
+	public static void iterate(final String kind, final int pageSize, final Processor processor) {
 		final Query q = new Query(kind);
 		final PreparedQuery pq = DATASTORE_SERVICE.prepare(q);
 		// pagination because of max. 30s database operation timeout
@@ -65,7 +65,7 @@ public class DB {
 	}
 
 	public static void iterate(final String kind, final Processor processor) {
-		process(kind, 100, processor);
+		iterate(kind, 100, processor);
 	}
 
 }

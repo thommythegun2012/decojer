@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <jsp:useBean id="maven" class="org.decojer.web.controller.Maven" />
 <%
-	maven.importArtifacts();
+	maven.importCentralRss();
 %>
 <!DOCTYPE HTML>
 <html lang="en-us">

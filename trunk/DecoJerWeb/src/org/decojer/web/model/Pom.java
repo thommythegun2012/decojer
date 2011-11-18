@@ -59,6 +59,18 @@ public class Pom extends BaseEntity {
 	}
 
 	/**
+	 * Get artifact id.
+	 * 
+	 * @return artifact id
+	 */
+	public String getArtifactId() {
+		final String id = getId();
+		final int pos = id.indexOf(':') + 1;
+		final int pos2 = id.indexOf(':', pos);
+		return id.substring(pos, pos2);
+	}
+
+	/**
 	 * Get POM content.
 	 * 
 	 * @return POM content
@@ -66,6 +78,17 @@ public class Pom extends BaseEntity {
 	public byte[] getContent() {
 		final Blob blob = (Blob) this.entity.getProperty(PROP_CONTENT);
 		return blob.getBytes();
+	}
+
+	/**
+	 * Get group id.
+	 * 
+	 * @return group id
+	 */
+	public String getGroupId() {
+		final String id = getId();
+		final int pos = id.indexOf(':');
+		return id.substring(0, pos);
 	}
 
 	/**
@@ -80,6 +103,18 @@ public class Pom extends BaseEntity {
 	@Override
 	public String getKind() {
 		return KIND;
+	}
+
+	/**
+	 * Get version.
+	 * 
+	 * @return version
+	 */
+	public String getVersion() {
+		final String id = getId();
+		int pos = id.indexOf(':') + 1;
+		pos = id.indexOf(':', pos);
+		return id.substring(pos);
 	}
 
 	/**
