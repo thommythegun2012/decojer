@@ -40,7 +40,7 @@ public class DB {
 
 	public interface Processor {
 
-		void process(Entity entity);
+		boolean process(Entity entity);
 
 	}
 
@@ -52,10 +52,12 @@ public class DB {
 		final PreparedQuery pq = DATASTORE_SERVICE.prepare(q);
 		// pagination because of max. 30s database operation timeout
 		final FetchOptions fetchOptions = FetchOptions.Builder.withLimit(pageSize);
-		while (true) {
+		outer: while (true) {
 			final QueryResultList<Entity> results = pq.asQueryResultList(fetchOptions);
 			for (final Entity entity : results) {
-				processor.process(entity);
+				if (!processor.process(entity)) {
+					break outer;
+				}
 			}
 			if (results.size() < pageSize || results.getCursor() == null) {
 				break;
