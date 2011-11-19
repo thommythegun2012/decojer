@@ -8,4 +8,12 @@
 			<dynamic>true</dynamic>
 		</options>
 	</backend>
+	<backend name="worker256">
+		<!-- class B2 default -->
+		<instances>1</instances>
+		<max-concurrent-requests>2</max-concurrent-requests>
+		<options>
+			<dynamic>true</dynamic>
+		</options>
+	</backend>
 </backends>
