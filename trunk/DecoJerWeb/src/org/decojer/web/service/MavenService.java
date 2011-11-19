@@ -27,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,6 +37,7 @@ import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
 import org.decojer.web.model.Pom;
+import org.decojer.web.util.DB;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
@@ -296,6 +298,43 @@ public class MavenService {
 	}
 
 	/**
+	 * Import all versions for POM.
+	 * 
+	 * @return imported POMs
+	 */
+	public int importAllVersions() {
+		final HashSet<String> done = new HashSet<String>();
+		final int[] nr = new int[1];
+
+		DB.iterate(Pom.KIND, new DB.Processor() {
+
+			@Override
+			public boolean process(final Entity entity) {
+				final Pom pom = new Pom(entity);
+				final String groupId = pom.getGroupId();
+				final String artifactId = pom.getArtifactId();
+
+				final String doneId = groupId + ':' + artifactId;
+				if (done.contains(doneId)) {
+					return true;
+				}
+				done.add(doneId);
+				final List<String> versions = fetchVersions(groupId, artifactId);
+				for (final String version : versions) {
+					if (importPom(groupId, artifactId, version) != null) {
+						if (++nr[0] >= 100) {
+							return false; // import max. 100
+						}
+					}
+				}
+				return true;
+			}
+
+		});
+		return nr[0];
+	}
+
+	/**
 	 * Fetch and import Central RSS.
 	 * 
 	 * @return imported files
@@ -319,12 +358,19 @@ public class MavenService {
 				continue;
 			}
 			final String artifactId = pomId.substring(artifactIdPos + 1, versionPos);
-			final String version = pomId.substring(versionPos + 1);
+			final String thisVersion = pomId.substring(versionPos + 1);
 
-			if (importPom(groupId, artifactId, version)) {
-				++nr;
+			final List<String> versions = fetchVersions(groupId, artifactId);
+			if (!versions.contains(thisVersion)) {
+				versions.add(thisVersion);
+			}
+			for (final String version : versions) {
+				if (importPom(groupId, artifactId, version) != null) {
+					++nr;
+				}
 			}
 		}
+		LOGGER.info("Imported " + nr + " POMs and JARs.");
 		return nr;
 	}
 
@@ -337,14 +383,14 @@ public class MavenService {
 	 *            artifact id
 	 * @param version
 	 *            version
-	 * @return true - new imported
+	 * @return imported POM or null
 	 */
-	public boolean importPom(final String groupId, final String artifactId, final String version) {
+	public Pom importPom(final String groupId, final String artifactId, final String version) {
 		final String pomId = groupId + ':' + artifactId + ':' + version;
 		final Key pomKey = KeyFactory.createKey(Pom.KIND, pomId);
 		try {
 			DATASTORE_SERVICE.get(pomKey);
-			return false; // is known, happy for now
+			return null; // is known, happy for now
 		} catch (final EntityNotFoundException e) {
 			// fall through
 		}
@@ -353,7 +399,7 @@ public class MavenService {
 			final String fileName = artifactId + '-' + version + ".jar";
 			final byte[] jarContent = fetchFile(groupId, artifactId, version, fileName);
 			if (jarContent == null) {
-				return false; // don't import JAR-less POMs for now
+				return null; // don't import JAR-less POMs for now
 			}
 			final Entity blobInfo = BlobService.getInstance().findBlobInfo(jarContent);
 			if (blobInfo == null) {
@@ -364,7 +410,7 @@ public class MavenService {
 			}
 		} catch (final Exception e1) {
 			LOGGER.log(Level.WARNING, "Couldn't import POM JAR '" + pomId + "'!", e1);
-			return false;
+			return null;
 		}
 		try {
 			final byte[] pomContent = fetchFile(groupId, artifactId, version, artifactId + '-'
@@ -373,10 +419,10 @@ public class MavenService {
 			pom.setContent(pomContent);
 			pom.setJar(blobKey);
 			DATASTORE_SERVICE.put(pom.getWrappedEntity());
-			return true;
+			return pom;
 		} catch (final Exception e1) {
 			LOGGER.log(Level.WARNING, "Couldn't import POM '" + pomId + "'!", e1);
-			return false;
+			return null;
 		}
 	}
 

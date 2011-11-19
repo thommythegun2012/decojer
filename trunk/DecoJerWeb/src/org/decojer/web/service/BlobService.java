@@ -105,10 +105,10 @@ public class BlobService {
 		final StringBuffer doubleHashes = new StringBuffer();
 		final HashSet<String> hashes = new HashSet<String>();
 
-		DB.iterate(BlobInfoFactory.KIND, new DB.Processor() {
+		DB.iterate(BlobInfoFactory.KIND, Integer.MAX_VALUE, new DB.Processor() {
 
 			@Override
-			public void process(final Entity entity) {
+			public boolean process(final Entity entity) {
 				stats.size += (Long) entity.getProperty(BlobInfoFactory.SIZE);
 				String md5Hash = (String) entity.getProperty(BlobInfoFactory.MD5_HASH);
 				if (md5Hash == null) {
@@ -127,9 +127,10 @@ public class BlobService {
 				}
 				if (hashes.contains(md5Hash)) {
 					doubleHashes.append(md5Hash).append(", ");
-					return;
+					return true;
 				}
 				hashes.add(md5Hash);
+				return true;
 			}
 
 		});

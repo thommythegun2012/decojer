@@ -25,19 +25,13 @@ package org.decojer.web.servlet;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.HashSet;
-import java.util.List;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.decojer.web.model.Pom;
 import org.decojer.web.service.MavenService;
-import org.decojer.web.util.DB;
-
-import com.google.appengine.api.datastore.Entity;
 
 /**
  * http://worker.decojer.appspot.com/admin/cleanup
@@ -52,36 +46,9 @@ public class CleanupServlet extends HttpServlet {
 	public void doGet(final HttpServletRequest req, final HttpServletResponse res)
 			throws ServletException, IOException {
 		final PrintWriter out = res.getWriter();
-		out.println("<ul>");
 
-		final MavenService mavenService = MavenService.getInstance();
-		final HashSet<String> done = new HashSet<String>();
+		out.println("Imported: " + MavenService.getInstance().importAllVersions());
 
-		DB.iterate(Pom.KIND, new DB.Processor() {
-
-			@Override
-			public void process(final Entity entity) {
-				final Pom pom = new Pom(entity);
-				final String groupId = pom.getGroupId();
-				final String artifactId = pom.getArtifactId();
-
-				final String doneId = groupId + ':' + artifactId;
-				if (done.contains(doneId)) {
-					return;
-				}
-				done.add(doneId);
-				out.println("<li>" + doneId + "</li>");
-				out.flush();
-				final List<String> versions = mavenService.fetchVersions(groupId, artifactId);
-				for (final String version : versions) {
-					if (mavenService.importPom(groupId, artifactId, version)) {
-						out.println("<li>Imported: " + doneId + ":" + version + "</li>");
-					}
-					out.flush();
-				}
-			}
-
-		});
 		/*
 		 * final byte[] base91Decode = IOUtils.base91Decode(key); final byte[] md5bytes = new
 		 * byte[16]; System.arraycopy(base91Decode, 0, md5bytes, 0, 16); final String md5 =
@@ -89,7 +56,6 @@ public class CleanupServlet extends HttpServlet {
 		 * ByteArrayInputStream(base91Decode, 16, 8)) .readLong(); System.out.println("TEST: " + md5
 		 * + " : " + size);
 		 */
-		out.println("</ul>");
 		out.flush();
 	}
 
