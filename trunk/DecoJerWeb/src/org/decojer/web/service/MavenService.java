@@ -24,15 +24,12 @@
 package org.decojer.web.service;
 
 import java.io.ByteArrayInputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
@@ -51,11 +48,6 @@ import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.urlfetch.HTTPMethod;
-import com.google.appengine.api.urlfetch.HTTPRequest;
-import com.google.appengine.api.urlfetch.HTTPResponse;
-import com.google.appengine.api.urlfetch.URLFetchService;
-import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 
 /**
  * Maven Service.
@@ -75,25 +67,15 @@ public class MavenService {
 
 	private static final String URL_CENTRAL_FILE = "http://search.maven.org/remotecontent?filepath=";
 
-	private static final URL URL_CENTRAL_RSS;
+	private static final String URL_CENTRAL_RSS = "http://search.maven.org/remotecontent?filepath=rss.xml";
 
 	private static final String URL_REPO1_FILE = "http://repo1.maven.org/maven2/";
 
 	private static final String URL_REPO2_FILE = "http://repo2.maven.org/maven2/";
+
 	// same mirror: http://uk.maven.org/maven2/
 	// http://download.java.net/maven/2/
 	// http://www.jarvana.com/jarvana/browse
-
-	private static final URLFetchService urlFetchService = URLFetchServiceFactory
-			.getURLFetchService();
-
-	static {
-		try {
-			URL_CENTRAL_RSS = new URL("http://search.maven.org/remotecontent?filepath=rss.xml");
-		} catch (final MalformedURLException e) {
-			throw new RuntimeException(e);
-		}
-	}
 
 	/**
 	 * Get instance.
@@ -110,22 +92,20 @@ public class MavenService {
 	 * @return list with POM Ids (groupId:artifactId:version)
 	 */
 	public List<String> fetchCentralRss() {
-		final HTTPResponse fetch;
+		final byte[] content;
 		try {
-			// default is 5 seconds
-			fetch = urlFetchService.fetch(new HTTPRequest(URL_CENTRAL_RSS, HTTPMethod.GET,
-					com.google.appengine.api.urlfetch.FetchOptions.Builder.withDeadline(20)));
+			content = URLFetchService.getInstance().fetchContent(URL_CENTRAL_RSS);
 		} catch (final Exception e) {
 			throw new RuntimeException("Couldn't read Maven Central RSS!", e);
 		}
-		if (fetch.getResponseCode() != HttpServletResponse.SC_OK) {
-			throw new RuntimeException("Couldn't read Maven Central RSS! Response code was '"
-					+ fetch.getResponseCode() + "'.");
+		if (content == null) {
+			throw new RuntimeException("Couldn't read Maven Central RSS! 404 for: "
+					+ URL_CENTRAL_RSS);
 		}
 		final ArrayList<String> pomIds = new ArrayList<String>();
 		try {
 			final SAXParser parser = SAX_PARSER_FACTORY.newSAXParser();
-			parser.parse(new ByteArrayInputStream(fetch.getContent()), new DefaultHandler() {
+			parser.parse(new ByteArrayInputStream(content), new DefaultHandler() {
 
 				boolean title = false;
 
@@ -188,24 +168,11 @@ public class MavenService {
 			final String fileName) {
 		final String url = URL_REPO1_FILE + groupId.replace('.', '/') + '/' + artifactId + '/'
 				+ version + '/' + fileName;
-		final HTTPResponse fetch;
 		try {
-			// currently capped at 60 seconds...but default is 5 seconds
-			fetch = urlFetchService.fetch(new HTTPRequest(new URL(url), HTTPMethod.GET,
-					com.google.appengine.api.urlfetch.FetchOptions.Builder.withDeadline(300)));
+			return URLFetchService.getInstance().fetchContent(url);
 		} catch (final Exception e) {
-			throw new RuntimeException("Couldn't read Maven Central file '" + url + "'!", e);
+			throw new RuntimeException("Couldn't read Maven Central file!", e);
 		}
-		final int responseCode = fetch.getResponseCode();
-		if (responseCode == HttpServletResponse.SC_NOT_FOUND) {
-			// file doesn't exist
-			return null;
-		}
-		if (fetch.getResponseCode() != HttpServletResponse.SC_OK) {
-			throw new RuntimeException("Couldn't read Maven Central file '" + url
-					+ "'! Response code was '" + fetch.getResponseCode() + "'.");
-		}
-		return fetch.getContent();
 	}
 
 	/**
@@ -218,24 +185,22 @@ public class MavenService {
 	 * @return versions
 	 */
 	public List<String> fetchVersions(final String groupId, final String artifactId) {
-		final HTTPResponse fetch;
+		final String url = URL_REPO1_FILE + groupId.replace('.', '/') + '/' + artifactId
+				+ "/maven-metadata.xml";
+		final byte[] content;
 		try {
-			// default is 5 seconds
-			fetch = urlFetchService.fetch(new HTTPRequest(new URL(URL_REPO1_FILE
-					+ groupId.replace('.', '/') + '/' + artifactId + "/maven-metadata.xml"),
-					HTTPMethod.GET, com.google.appengine.api.urlfetch.FetchOptions.Builder
-							.withDeadline(20)));
+			content = URLFetchService.getInstance().fetchContent(url);
 		} catch (final Exception e) {
 			throw new RuntimeException("Couldn't read Maven Metadata!", e);
 		}
-		if (fetch.getResponseCode() != HttpServletResponse.SC_OK) {
-			throw new RuntimeException("Couldn't read Maven Metadata! Response code was '"
-					+ fetch.getResponseCode() + "'.");
-		}
 		final ArrayList<String> versions = new ArrayList<String>();
+		if (content == null) {
+			LOGGER.info("Couldn't read Maven Metadata! 404 for: " + url);
+			return versions;
+		}
 		try {
 			final SAXParser parser = SAX_PARSER_FACTORY.newSAXParser();
-			parser.parse(new ByteArrayInputStream(fetch.getContent()), new DefaultHandler() {
+			parser.parse(new ByteArrayInputStream(content), new DefaultHandler() {
 
 				boolean version = false;
 
@@ -277,6 +242,15 @@ public class MavenService {
 		return versions;
 	}
 
+	/**
+	 * Find all POM entities for group id and artifact id.
+	 * 
+	 * @param groupId
+	 *            group id
+	 * @param artifactId
+	 *            artifact id
+	 * @return POM entities
+	 */
 	public List<Pom> findPoms(final String groupId, final String artifactId) {
 		final Query pomVersionQuery = new Query(Pom.KIND);
 
@@ -322,7 +296,7 @@ public class MavenService {
 				final List<String> versions = fetchVersions(groupId, artifactId);
 				for (final String version : versions) {
 					if (importPom(groupId, artifactId, version) != null) {
-						if (++nr[0] >= 1000) {
+						if (++nr[0] >= 10) {
 							return false; // import max. 1000
 						}
 					}
