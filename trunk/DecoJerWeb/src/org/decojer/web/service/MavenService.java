@@ -322,8 +322,8 @@ public class MavenService {
 				final List<String> versions = fetchVersions(groupId, artifactId);
 				for (final String version : versions) {
 					if (importPom(groupId, artifactId, version) != null) {
-						if (++nr[0] >= 100) {
-							return false; // import max. 100
+						if (++nr[0] >= 1000) {
+							return false; // import max. 1000
 						}
 					}
 				}
