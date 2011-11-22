@@ -1091,7 +1091,7 @@ public class TrIvmCfg2JavaExprStmts {
 					// break;
 					// TODO else not really necessary later if this is sure
 				} else {
-					if (!isInlineAssignment && v.getStartPc() == cop.getPc() + 1) {
+					if (!isInlineAssignment && v.getPcs()[0] /* TODO */== cop.getPc() + 1) {
 						final VariableDeclarationFragment variableDeclarationFragment = getAst()
 								.newVariableDeclarationFragment();
 						variableDeclarationFragment.setName(getAst().newSimpleName(v.getName()));

@@ -205,6 +205,33 @@ public class CFG {
 	}
 
 	/**
+	 * Get local variable (from debug info).
+	 * 
+	 * @param reg
+	 *            register
+	 * @param pc
+	 *            pc
+	 * 
+	 * @return local variable (from debug info)
+	 */
+	public V getDebugV(final int reg, final int pc) {
+		if (this.vss == null || reg >= this.vss.length) {
+			return null;
+		}
+		final V[] vs = this.vss[reg];
+		if (vs == null) {
+			return null;
+		}
+		for (int i = vs.length; i-- > 0;) {
+			final V v = vs[i];
+			if (v.validForPc(pc)) {
+				return v;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Get exception handlers.
 	 * 
 	 * @return exception handlers
@@ -322,33 +349,6 @@ public class CFG {
 		return this.startBb;
 	}
 
-	/**
-	 * Get local variable (from debug info).
-	 * 
-	 * @param reg
-	 *            register
-	 * @param pc
-	 *            pc
-	 * 
-	 * @return local variable (from debug info)
-	 */
-	public V getDebugV(final int reg, final int pc) {
-		if (this.vss == null || reg >= this.vss.length) {
-			return null;
-		}
-		final V[] vs = this.vss[reg];
-		if (vs == null) {
-			return null;
-		}
-		for (int i = vs.length; i-- > 0;) {
-			final V v = vs[i];
-			if (v.getStartPc() <= pc && (pc < v.getEndPc() || v.getEndPc() == 0)) {
-				return v;
-			}
-		}
-		return null;
-	}
-
 	private BB intersectIDoms(final BB b1, final BB b2) {
 		BB finger1 = b1;
 		BB finger2 = b2;
@@ -411,54 +411,39 @@ public class CFG {
 				}
 				// parameter name was encoded in extra debug info, copy names
 				// and parameter types to local vars
-				V[] vs = this.vss[--reg];
+				final V[] vs = this.vss[--reg];
 				if (vs != null) {
 					LOGGER.warning("Found local variable info for method parameter '" + reg + "'!");
 				}
-				// check
-				vs = new V[1];
-				final V v = new V(paramT);
-				v.setName(m.getParamName(i));
-				v.setEndPc(this.ops.length);
-				vs[0] = v;
-				this.vss[reg] = vs;
+				this.vss[reg] = new V[] { new V(paramT, m.getParamName(i), 0, this.ops.length) };
 			}
 			if (!m.checkAf(AF.STATIC)) {
-				V[] vs = this.vss[--reg];
+				final V[] vs = this.vss[--reg];
 				if (vs != null) {
-					LOGGER.warning("Found local variable info for method parameter 'this'!");
+					LOGGER.warning("Found local variable info for method parameter '" + reg
+							+ "' (this)!");
 				}
-				// check
-				vs = new V[1];
-				final V v = new V(td.getT());
-				v.setName("this");
-				v.setEndPc(this.ops.length);
-				vs[0] = v;
-				this.vss[reg] = vs;
+				this.vss[reg] = new V[] { new V(td.getT(), "this", 0, this.ops.length) };
 			}
 			return;
 		}
 		// JVM...function parameters left aligned
 		int reg = 0;
 		if (!m.checkAf(AF.STATIC)) {
-			V[] vs = this.vss[reg];
+			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				if (vs.length > 1) {
-					LOGGER.warning("Found multiple local variable info for method parameter 'this'!");
+					LOGGER.warning("Found multiple local variable info for method parameter '"
+							+ reg + "' (this)!");
 				}
 				++reg;
 			} else {
-				vs = new V[1];
-				final V v = new V(td.getT());
-				v.setName("this");
-				v.setEndPc(this.ops.length);
-				vs[0] = v;
-				this.vss[reg++] = vs;
+				this.vss[reg++] = new V[] { new V(td.getT(), "this", 0, this.ops.length) };
 			}
 		}
 		for (int i = 0; i < paramTs.length; ++i) {
 			final T paramT = paramTs[i];
-			V[] vs = this.vss[reg];
+			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				if (vs.length > 1) {
 					LOGGER.warning("Found multiple local variable info for method parameter '"
@@ -467,12 +452,7 @@ public class CFG {
 				m.setParamName(i, vs[0].getName());
 				++reg;
 			} else {
-				vs = new V[1];
-				final V v = new V(paramT);
-				v.setName(m.getParamName(i));
-				v.setEndPc(this.ops.length);
-				vs[0] = v;
-				this.vss[reg++] = vs;
+				this.vss[reg++] = new V[] { new V(paramT, m.getParamName(i), 0, this.ops.length) };
 			}
 			if (paramT.isWide()) {
 				++reg;

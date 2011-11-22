@@ -2317,18 +2317,20 @@ public class ReadCodeItem {
 		for (final Entry<Integer, ArrayList<V>> entry : reg2vs.entrySet()) {
 			final int reg = entry.getKey();
 			for (final V v : entry.getValue()) {
-				v.setStartPc(this.vmpc2pc.get(v.getStartPc()));
-				int vmpc = v.getEndPc();
-				if (vmpc == -1) {
-					// no pc set, full span
-					v.setEndPc(this.ops.size());
-				} else {
+				final int[] pcs = v.getPcs();
+				for (int i = pcs.length; i-- > 0;) {
+					if (pcs[i] == -1) {
+						// dalvik doesn't encode end pc if locals preserve till method end
+						pcs[i] = this.ops.size();
+						continue;
+					}
+					int vmpc = this.vmpc2pc.get(pcs[i]);
 					// TODO really necessary???
 					// find end, must find because multiple ops could be created
-					for (int i = 0; i < 10; ++i) {
+					for (int j = 0; j < 10; ++j) {
 						final Integer pc = this.vmpc2pc.get(++vmpc);
 						if (pc != null) {
-							v.setEndPc(pc - 1);
+							pcs[i] = pc - 1;
 							break;
 						}
 					}

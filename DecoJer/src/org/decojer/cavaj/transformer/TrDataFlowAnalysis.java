@@ -445,7 +445,7 @@ public class TrDataFlowAnalysis {
 				V storeV = frame.get(cop.getReg());
 
 				if (storeV != null) {
-					if (pc <= storeV.getEndPc()) {
+					if (storeV.validForPc(pc)) {
 						final T mergedT = v.getT().merge(storeV.getT());
 						this.changed |= v.cmpSetT(mergedT);
 						// can happen for no debug info or temporary
@@ -462,9 +462,7 @@ public class TrDataFlowAnalysis {
 					this.changed |= v.cmpSetT(v.getT().mergeTo(storeV.getT()));
 				} else {
 					// TODO could be tmp or none-debug-info?!
-					storeV = new V(v.getT());
-					storeV.setStartPc(pc + 1);
-					storeV.setEndPc(pc + 1);
+					storeV = new V(v.getT(), null, pc + 1, pc + 1);
 				}
 				set(cop.getReg(), storeV);
 				break;
@@ -548,8 +546,8 @@ public class TrDataFlowAnalysis {
 
 	private V get(final int i, final T t) {
 		final V v = this.frame.get(i);
-		if (v.getEndPc() < this.pc) {
-			v.setEndPc(this.pc);
+		if (v.getPcs()[1] /* TODO */< this.pc) {
+			v.getPcs()[1] = this.pc;
 		}
 		this.changed |= v.cmpSetT(v.getT().mergeTo(t));
 		return v;
@@ -561,6 +559,11 @@ public class TrDataFlowAnalysis {
 			return false;
 		}
 		return v.getT().isWide();
+	}
+
+	private void liveVariableAnalysis() {
+		// http://en.wikipedia.org/wiki/Liveness_analysis
+
 	}
 
 	private void merge(final int targetPc) {
@@ -587,7 +590,7 @@ public class TrDataFlowAnalysis {
 			}
 			final T mergedT = targetV.getT().merge(v.getT());
 			this.changed |= targetV.cmpSetT(mergedT);
-			if (v.getStartPc() != targetPc) {
+			if (v.getPcs()[0] /* TODO */!= targetPc) {
 				this.changed |= v.cmpSetT(mergedT);
 			}
 		}
@@ -596,7 +599,7 @@ public class TrDataFlowAnalysis {
 			final V targetV = targetFrame.getStack(i);
 			final T mergedT = targetV.getT().merge(v.getT());
 			this.changed |= targetV.cmpSetT(mergedT);
-			if (v.getStartPc() != targetPc) {
+			if (v.getPcs()[0] /* TODO */!= targetPc) {
 				this.changed |= v.cmpSetT(mergedT);
 			}
 		}
@@ -604,33 +607,31 @@ public class TrDataFlowAnalysis {
 
 	private V pop(final T t) {
 		final V v = this.frame.pop();
-		if (v.getEndPc() < this.pc) {
-			v.setEndPc(this.pc);
+		if (v.getPcs()[1] /* TODO */< this.pc) {
+			v.getPcs()[1] = this.pc;
 		}
 		this.changed |= v.cmpSetT(v.getT().mergeTo(t));
 		return v;
 	}
 
 	private V push(final T t) {
-		final V v = new V(t);
 		// known in follow frame! no push through control flow operations
-		v.setStartPc(this.pc + 1);
-		v.setEndPc(this.pc + 1);
+		final V v = new V(t, null, this.pc + 1, this.pc + 1);
 		this.frame.push(v);
 		return v;
 	}
 
 	private void push(final V v) {
-		if (v.getEndPc() <= this.pc) {
+		if (v.getPcs()[1] /* TODO */<= this.pc) {
 			// known in follow frame! no push through control flow operations
-			v.setEndPc(this.pc + 1);
+			v.getPcs()[1] = this.pc + 1;
 		}
 		this.frame.push(v);
 	}
 
 	private void set(final int i, final V v) {
-		if (v.getEndPc() <= this.pc) {
-			v.setEndPc(this.pc + 1);
+		if (v.getPcs()[1] /* TODO */<= this.pc) {
+			v.getPcs()[1] = this.pc + 1;
 		}
 		this.frame.set(i, v);
 	}

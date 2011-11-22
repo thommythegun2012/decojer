@@ -136,18 +136,18 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			LOGGER.warning("ProcessEndLocal '" + registerNum + "' without any ProcessStartLocal!");
 			return;
 		}
-		for (int i = vs.size(); i-- > 0;) {
-			final V v = vs.get(i);
-			if (v.getEndPc() != -1) {
-				continue;
-			}
-			if (v.getStartPc() >= codeAddress) {
-				continue;
-			}
-			v.setEndPc(codeAddress);
+		assert vs.size() != 0;
+
+		final V v = vs.get(vs.size() - 1);
+		final int[] pcs = v.getPcs();
+		assert pcs != null;
+		assert pcs.length >= 2;
+
+		if (pcs[pcs.length - 1] != -1) {
+			LOGGER.warning("ProcessEndLocal '" + registerNum + "' without ProcessStartLocal!");
 			return;
 		}
-		LOGGER.warning("ProcessEndLocal '" + registerNum + "' without ProcessStartLocal!");
+		pcs[pcs.length - 1] = codeAddress;
 	}
 
 	@Override
@@ -160,7 +160,25 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
 		System.out.println("*RestartLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
 				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
-		// TODO whats that?
+
+		final ArrayList<V> vs = this.reg2vs.get(registerNum);
+		if (vs == null) {
+			LOGGER.warning("ProcessRestartLocal '" + registerNum
+					+ "' without any ProcessStartLocal!");
+			return;
+		}
+		assert vs.size() != 0;
+
+		final V v = vs.get(vs.size() - 1);
+		final int[] pcs = v.getPcs();
+		assert pcs != null;
+		assert pcs.length >= 2;
+
+		if (pcs[pcs.length - 1] == -1) {
+			LOGGER.warning("ProcessRestartLocal '" + registerNum + "' without ProcessEndLocal!");
+			return;
+		}
+		v.addPcs(codeAddress, -1);
 	}
 
 	@Override
@@ -203,11 +221,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		if (signature != null) {
 			vT.setSignature(signature.getStringValue());
 		}
-		final V v = new V(vT);
-		v.setName(name.getStringValue());
-
-		v.setStartPc(codeAddress);
-		v.setEndPc(-1);
+		final V v = new V(vT, name.getStringValue(), codeAddress, -1);
 
 		ArrayList<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
