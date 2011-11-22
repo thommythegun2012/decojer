@@ -1612,12 +1612,10 @@ public class ReadCodeAttribute {
 			final int tableLength = localVariableAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
 				final T vT = du.getDescT(localVariableAttribute.descriptor(i));
-				final V v = new V(vT);
-
-				v.setName(localVariableAttribute.variableName(i));
-				v.setStartPc(this.vmpc2pc.get(localVariableAttribute.startPc(i)));
-				v.setEndPc(this.vmpc2pc.get(localVariableAttribute.startPc(i)
-						+ localVariableAttribute.codeLength(i)));
+				final V v = new V(vT, localVariableAttribute.variableName(i),
+						this.vmpc2pc.get(localVariableAttribute.startPc(i)),
+						this.vmpc2pc.get(localVariableAttribute.startPc(i)
+								+ localVariableAttribute.codeLength(i)));
 
 				final int index = localVariableAttribute.index(i);
 

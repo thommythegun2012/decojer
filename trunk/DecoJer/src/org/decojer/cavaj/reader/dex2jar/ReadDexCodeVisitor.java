@@ -303,12 +303,11 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 				}
 			}
 			if (o instanceof V) {
-				final V op = (V) o;
-				if (pc == op.getStartPc()) {
-					op.setStartPc(this.ops.size());
-				}
-				if (pc == op.getEndPc()) {
-					op.setEndPc(this.ops.size());
+				final int[] pcs = ((V) o).getPcs();
+				for (int i = pcs.length; i-- > 0;) {
+					if (pc == pcs[i]) {
+						pcs[i] = this.ops.size();
+					}
 				}
 			}
 		}
@@ -329,8 +328,28 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	@Override
 	public void visitLocalVariable(final String name, final String type, final String signature,
 			final DexLabel start, final DexLabel end, final int reg) {
-		// TODO Auto-generated method stub
+		final T vT = this.du.getDescT(type);
+		if (signature != null) {
+			vT.setSignature(signature);
+		}
+		final int startPc = getPc(start);
+		final int endPc = getPc(end);
 
+		final V v = new V(vT, name, startPc, endPc);
+
+		if (startPc < 0) {
+			getUnresolved(start).add(v);
+		}
+		if (endPc < 0) {
+			getUnresolved(end).add(v);
+		}
+
+		ArrayList<V> vs = this.reg2vs.get(reg);
+		if (vs == null) {
+			vs = new ArrayList<V>();
+			this.reg2vs.put(reg, vs);
+		}
+		vs.add(v);
 	}
 
 	@Override

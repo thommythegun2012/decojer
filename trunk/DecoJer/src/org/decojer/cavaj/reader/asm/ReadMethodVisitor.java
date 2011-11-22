@@ -1173,12 +1173,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 				}
 			}
 			if (o instanceof V) {
-				final V op = (V) o;
-				if (pc == op.getStartPc()) {
-					op.setStartPc(this.ops.size());
-				}
-				if (pc == op.getEndPc()) {
-					op.setEndPc(this.ops.size());
+				final int[] pcs = ((V) o).getPcs();
+				for (int i = pcs.length; i-- > 0;) {
+					if (pc == pcs[i]) {
+						pcs[i] = this.ops.size();
+					}
 				}
 			}
 		}
@@ -1230,17 +1229,15 @@ public class ReadMethodVisitor extends MethodVisitor {
 		if (signature != null) {
 			vT.setSignature(signature);
 		}
-		final V v = new V(vT);
-		v.setName(name);
+		final int startPc = getPc(start);
+		final int endPc = getPc(end);
 
-		int pc = getPc(start);
-		v.setStartPc(pc);
-		if (pc < 0) {
+		final V v = new V(vT, name, startPc, endPc);
+
+		if (startPc < 0) {
 			getUnresolved(start).add(v);
 		}
-		pc = getPc(end);
-		v.setEndPc(pc);
-		if (pc < 0) {
+		if (endPc < 0) {
 			getUnresolved(end).add(v);
 		}
 

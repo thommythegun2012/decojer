@@ -32,11 +32,9 @@ import org.decojer.cavaj.model.T;
  */
 public class V {
 
-	private int endPc;
-
 	private String name;
 
-	private int startPc;
+	private int[] pcs;
 
 	private T t;
 
@@ -45,11 +43,21 @@ public class V {
 	 * 
 	 * @param t
 	 *            type
+	 * @param name
+	 *            name
+	 * @param startPc
+	 *            start pc
+	 * @param endPc
+	 *            end pc
 	 */
-	public V(final T t) {
+	public V(final T t, final String name, final int startPc, final int endPc) {
 		assert t != null;
+		assert startPc >= 0 : startPc;
+		assert endPc == -1 || endPc >= startPc : endPc;
 
 		this.t = t;
+		this.name = name;
+		this.pcs = new int[] { startPc, endPc };
 	}
 
 	/**
@@ -63,8 +71,27 @@ public class V {
 
 		this.t = v.t;
 		this.name = v.name;
-		this.startPc = v.startPc;
-		this.endPc = v.endPc;
+		this.pcs = v.pcs; // TODO copy?
+	}
+
+	/**
+	 * Add pc range.
+	 * 
+	 * @param startPc
+	 *            start pc
+	 * @param endPc
+	 *            end pc
+	 */
+	public void addPcs(final int startPc, final int endPc) {
+		assert startPc >= 0 : startPc;
+		assert endPc == -1 || endPc >= startPc : endPc;
+
+		int p = this.pcs.length;
+		final int[] pcs = new int[p + 2];
+		System.arraycopy(this.pcs, 0, pcs, 0, p);
+		pcs[p++] = startPc;
+		pcs[p] = endPc;
+		this.pcs = pcs;
 	}
 
 	/**
@@ -83,15 +110,6 @@ public class V {
 	}
 
 	/**
-	 * Get emd pc.
-	 * 
-	 * @return end pc
-	 */
-	public int getEndPc() {
-		return this.endPc;
-	}
-
-	/**
 	 * Get name.
 	 * 
 	 * @return name
@@ -101,12 +119,12 @@ public class V {
 	}
 
 	/**
-	 * Get start pc.
+	 * Get start and end pcs
 	 * 
-	 * @return start pc
+	 * @return start and end pcs
 	 */
-	public int getStartPc() {
-		return this.startPc;
+	public int[] getPcs() {
+		return this.pcs;
 	}
 
 	/**
@@ -119,16 +137,6 @@ public class V {
 	}
 
 	/**
-	 * Set end pc.
-	 * 
-	 * @param endPc
-	 *            end pc
-	 */
-	public void setEndPc(final int endPc) {
-		this.endPc = endPc;
-	}
-
-	/**
 	 * Set name.
 	 * 
 	 * @param name
@@ -138,25 +146,40 @@ public class V {
 		this.name = name;
 	}
 
-	/**
-	 * Set start pc.
-	 * 
-	 * @param startPc
-	 *            start pc
-	 */
-	public void setStartPc(final int startPc) {
-		this.startPc = startPc;
-	}
-
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("V: ");
 		if (this.t != null) {
-			sb.append("(").append(this.startPc).append(" - ").append(this.endPc).append(") ")
-					.append(this.name).append(": ");
+			sb.append("(");
+			for (int i = 0;;) {
+				sb.append(this.pcs[i++]).append(" - ").append(this.pcs[i++]);
+				if (i == this.pcs.length) {
+					break;
+				}
+				sb.append(", ");
+			}
+			sb.append(") ");
+
+			sb.append(this.name).append(": ");
 		}
 		sb.append(this.t).append(" ");
 		return sb.toString();
+	}
+
+	/**
+	 * Is variable valid for pc?
+	 * 
+	 * @param pc
+	 *            pc
+	 * @return true - variable valid for pc
+	 */
+	public boolean validForPc(final int pc) {
+		for (int i = 0; i < this.pcs.length;) {
+			if (this.pcs[i++] <= pc && pc < this.pcs[i++]) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 }
