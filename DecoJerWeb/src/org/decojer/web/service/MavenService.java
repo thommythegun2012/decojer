@@ -294,10 +294,13 @@ public class MavenService {
 				}
 				done.add(doneId);
 				final List<String> versions = fetchVersions(groupId, artifactId);
+				for (final Pom knownPom : findPoms(groupId, artifactId)) {
+					versions.remove(knownPom.getVersion());
+				}
 				for (final String version : versions) {
 					if (importPom(groupId, artifactId, version) != null) {
-						if (++nr[0] >= 1000) {
-							return false; // import max. 1000
+						if (++nr[0] >= 500) {
+							return false; // import max. 500
 						}
 					}
 				}
@@ -305,6 +308,7 @@ public class MavenService {
 			}
 
 		});
+		LOGGER.info("Imported " + nr[0] + " POMs and JARs.");
 		return nr[0];
 	}
 
@@ -337,6 +341,9 @@ public class MavenService {
 			final List<String> versions = fetchVersions(groupId, artifactId);
 			if (!versions.contains(thisVersion)) {
 				versions.add(thisVersion);
+			}
+			for (final Pom knownPom : findPoms(groupId, artifactId)) {
+				versions.remove(knownPom.getVersion());
 			}
 			for (final String version : versions) {
 				if (importPom(groupId, artifactId, version) != null) {

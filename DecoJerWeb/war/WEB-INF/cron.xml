@@ -3,8 +3,8 @@
 	<cron>
 		<url>/admin/maven.jsp</url>
 		<description>Import Maven Central RSS</description>
-		<schedule>every 6 hours synchronized</schedule>
+		<schedule>every 8 hours synchronized</schedule>
 		<timezone>Europe/Berlin</timezone>
-		<target>worker</target>
+		<target>worker256</target>
 	</cron>
 </cronentries>

@@ -114,7 +114,7 @@ public class Pom extends BaseEntity {
 		final String id = getId();
 		int pos = id.indexOf(':') + 1;
 		pos = id.indexOf(':', pos);
-		return id.substring(pos);
+		return id.substring(pos + 1);
 	}
 
 	/**
