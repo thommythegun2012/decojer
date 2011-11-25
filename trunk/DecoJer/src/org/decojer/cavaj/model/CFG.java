@@ -376,7 +376,8 @@ public class CFG {
 	 * New basic block.
 	 * 
 	 * @param opPc
-	 *            operation pc
+	 *            first operation PC
+	 * 
 	 * @return basic block
 	 */
 	public BB newBb(final int opPc) {

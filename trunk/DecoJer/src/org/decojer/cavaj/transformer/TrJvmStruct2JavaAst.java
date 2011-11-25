@@ -454,8 +454,10 @@ public class TrJvmStruct2JavaAst {
 			}
 		}
 
-		// TODO concurrent modification exc possible?!
-		for (final BD bd : td.getBds()) {
+		final List<BD> bds = td.getBds();
+		// no foreach, concurrent modification through found inner classes possible
+		for (int i = 0; i < bds.size(); ++i) {
+			final BD bd = bds.get(i);
 			if (bd instanceof FD) {
 				decompileField((FD) bd, cu);
 			}

@@ -308,7 +308,9 @@ public class Types {
 		}
 		LOGGER.warning("Unknown data type '" + t + "'!");
 		final StringLiteral stringLiteral = ast.newStringLiteral();
-		stringLiteral.setLiteralValue(value.toString());
+		if (value != null) {
+			stringLiteral.setLiteralValue(value.toString());
+		}
 		return stringLiteral;
 	}
 

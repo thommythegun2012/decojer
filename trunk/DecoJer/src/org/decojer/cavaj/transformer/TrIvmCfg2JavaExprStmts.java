@@ -30,19 +30,16 @@ import static org.decojer.cavaj.util.Expressions.wrap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BB;
-import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.V;
@@ -132,30 +129,14 @@ public class TrIvmCfg2JavaExprStmts {
 
 	private final static Logger LOGGER = Logger.getLogger(TrIvmCfg2JavaExprStmts.class.getName());
 
+	/**
+	 * Transform CFG.
+	 * 
+	 * @param cfg
+	 *            CFG
+	 */
 	public static void transform(final CFG cfg) {
 		new TrIvmCfg2JavaExprStmts(cfg).transform();
-		cfg.calculatePostorder(); // blocks deleted...
-	}
-
-	public static void transform(final TD td) {
-		// no parallelism! 2 shared instance variables: code and nextPc
-		final List<BD> bds = td.getBds();
-		for (int i = 0; i < bds.size(); ++i) {
-			final BD bd = bds.get(i);
-			if (!(bd instanceof MD)) {
-				continue;
-			}
-			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.isIgnore()) {
-				continue;
-			}
-			try {
-				transform(cfg);
-			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
-				cfg.setError(true);
-			}
-		}
 	}
 
 	private final CFG cfg;
@@ -1596,6 +1577,7 @@ public class TrIvmCfg2JavaExprStmts {
 				// multiple iterations possible
 			}
 		}
+		this.cfg.calculatePostorder(); // blocks deleted...
 	}
 
 }
