@@ -28,14 +28,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 import java.util.TreeMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.BB;
-import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.op.GOTO;
 import org.decojer.cavaj.model.code.op.JCMP;
 import org.decojer.cavaj.model.code.op.JCND;
@@ -51,34 +47,20 @@ public class TrInitControlFlowGraph {
 
 	private final static Logger LOGGER = Logger.getLogger(TrInitControlFlowGraph.class.getName());
 
+	/**
+	 * Transform CFG.
+	 * 
+	 * @param cfg
+	 *            CFG
+	 */
 	public static void transform(final CFG cfg) {
 		new TrInitControlFlowGraph(cfg).transform();
-	}
-
-	public static void transform(final TD td) {
-		final List<BD> bds = td.getBds();
-		for (int i = 0; i < bds.size(); ++i) {
-			final BD bd = bds.get(i);
-			if (!(bd instanceof MD)) {
-				continue;
-			}
-			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.isIgnore()) {
-				continue;
-			}
-			try {
-				transform(cfg);
-			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
-				cfg.setError(true);
-			}
-		}
 	}
 
 	private final CFG cfg;
 
 	/**
-	 * Remember visited pcs and related basic block.
+	 * Remember BBs for PCs.
 	 */
 	private BB[] pc2Bbs;
 
@@ -87,63 +69,58 @@ public class TrInitControlFlowGraph {
 	}
 
 	/**
-	 * Get target basic block. Split if necessary, but keep outgoing part same (for later adding of
-	 * outging edges).
+	 * Get target BB for PC. Split if necessary.
 	 * 
 	 * @param pc
-	 *            target pc
-	 * @return target basic block
+	 *            target PC
+	 * @return target BB
 	 */
 	private BB getTargetBb(final int pc) {
-		// operation with pc must be in this basic block
-		final BB targetBb = this.pc2Bbs[pc];
-		// no basic block found for pc yet
-		if (targetBb == null) {
+		final BB bb = this.pc2Bbs[pc]; // get BB for target PC
+		if (bb == null) {
+			// PC not processed yet
 			return null;
 		}
-
-		final int bbPc = targetBb.getOpPc();
-		final List<Op> ops = targetBb.getOps();
-
-		// first operation in basic block has target pc, return basic block,
-		// no split necessary
-		if (pc == bbPc) {
-			return targetBb;
+		// found BB has target PC as first PC => return BB, no split necessary
+		if (bb.getOpPc() == pc) {
+			return bb;
 		}
+
 		// split basic block, new incoming block, adapt basic block pcs
-		final BB splitSourceBb = this.cfg.newBb(bbPc);
-		targetBb.setOpPc(pc);
-		if (this.cfg.getStartBb() == targetBb) {
-			this.cfg.setStartBb(splitSourceBb);
-		}
-		// first preserve predecessors...
-		targetBb.movePredBbs(splitSourceBb);
-		// ...then add connection
-		splitSourceBb.addSucc(targetBb, null);
+		final BB splitBb = this.cfg.newBb(pc);
+		// first preserve previous successors...
+		bb.moveSuccBbs(splitBb);
+		// ...then add new connection
+		bb.addSucc(splitBb, null);
 
-		// move operations, change pc map
-		for (int i = pc; i-- > bbPc;) {
-			splitSourceBb.addOp(ops.remove(0));
-			this.pc2Bbs[i] = splitSourceBb;
+		// move operations, update PC map, first find split point...
+		final List<Op> ops = bb.getOps();
+		int i;
+		for (i = ops.size(); i-- > 0;) {
+			if (ops.get(i).getPc() == pc) {
+				break;
+			}
 		}
-		return targetBb;
+		// ...now move all tail operations
+		while (i < ops.size()) {
+			final Op op = ops.remove(i);
+			splitBb.addOp(op);
+			this.pc2Bbs[op.getPc()] = splitBb;
+		}
+
+		return splitBb;
 	}
 
 	private void transform() {
-		// this.cfg.clear(); don't kill body here...
-		// set start BB, may change through splitting
-		this.cfg.setStartBb(this.cfg.newBb(0));
-
 		final Op[] ops = this.cfg.getOps();
 		this.pc2Bbs = new BB[ops.length];
+		final Stack<Integer> openPcs = new Stack<Integer>(); // remember open PCs
 
-		// start with this basic block, may not remain the start basic block
-		// (splitting)
-		BB bb = this.cfg.getStartBb();
-		// remember open pcs
-		final Stack<Integer> openPcs = new Stack<Integer>();
-
+		// start with PC 0 and new BB
 		int pc = 0;
+		BB bb = this.cfg.newBb(0);
+		this.cfg.setStartBb(bb);
+
 		while (true) {
 			if (pc >= ops.length) {
 				// next open pc?
@@ -169,20 +146,7 @@ public class TrInitControlFlowGraph {
 			case GOTO: {
 				final GOTO cop = (GOTO) op;
 				pc = cop.getTargetPc();
-				// create new BB because we need the correct index after the
-				// goto, if we simply follow the goto without a new block then
-				// we have a problem to find the bb split point (operations.pc
-				// might be original pc and not the operation index)
-				// TODO new BB still necessary, should be OK only to add GOTOs?!
-				BB nextBB = getTargetBb(pc);
-				if (nextBB == null) {
-					nextBB = this.cfg.newBb(pc);
-				} else {
-					pc = ops.length; // next open pc
-				}
-				bb.addSucc(nextBB, null);
-				bb = nextBB;
-				break;
+				continue;
 			}
 			case JCMP: {
 				final JCMP cop = (JCMP) op;
@@ -206,7 +170,7 @@ public class TrInitControlFlowGraph {
 					bb.addSucc(nextBB, Boolean.FALSE);
 					bb = nextBB;
 				}
-				break;
+				continue;
 			}
 			case JCND: {
 				final JCND cop = (JCND) op;
@@ -230,7 +194,7 @@ public class TrInitControlFlowGraph {
 					bb.addSucc(nextBB, Boolean.FALSE);
 					bb = nextBB;
 				}
-				break;
+				continue;
 			}
 			case SWITCH: {
 				final SWITCH cop = (SWITCH) op;
@@ -274,13 +238,12 @@ public class TrInitControlFlowGraph {
 					bb.addSucc(caseBb, keys);
 				}
 				pc = ops.length; // next open pc
-				break;
+				continue;
 			}
 			case RET:
 			case RETURN:
 			case THROW:
 				pc = ops.length; // next open pc
-				break;
 			}
 		}
 		this.cfg.calculatePostorder();

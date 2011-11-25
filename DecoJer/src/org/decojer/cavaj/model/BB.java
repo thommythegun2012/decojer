@@ -36,15 +36,16 @@ import org.eclipse.jdt.core.dom.Statement;
  * 
  * @author André Pankraz
  */
-public class BB {
+public final class BB {
 
 	private final CFG cfg;
 
-	private final int locals;
-
 	private final List<Op> ops = new ArrayList<Op>();
 
-	private int opPc;
+	/**
+	 * Must cache first PC separately because operations are removed through transformations.
+	 */
+	private final int opPc;
 
 	private int postorder;
 
@@ -65,8 +66,7 @@ public class BB {
 	protected BB(final CFG cfg, final int opPc) {
 		this.cfg = cfg;
 		this.opPc = opPc;
-		this.locals = cfg.getMaxLocals();
-		this.vs = new Expression[this.locals];
+		this.vs = new Expression[cfg.getMaxLocals()];
 	}
 
 	/**
@@ -132,12 +132,12 @@ public class BB {
 		this.ops.addAll(bb.ops);
 		this.statements.addAll(bb.statements);
 		if (bb.top > 0) {
-			if (this.locals + this.top + bb.top > this.vs.length) {
-				final Expression[] newVs = new Expression[this.locals + this.top + bb.top];
-				System.arraycopy(this.vs, 0, newVs, 0, this.locals + this.top);
+			if (getLocals() + this.top + bb.top > this.vs.length) {
+				final Expression[] newVs = new Expression[getLocals() + this.top + bb.top];
+				System.arraycopy(this.vs, 0, newVs, 0, getLocals() + this.top);
 				this.vs = newVs;
 			}
-			System.arraycopy(bb.vs, bb.locals, this.vs, this.locals + this.top, bb.top);
+			System.arraycopy(bb.vs, bb.getLocals(), this.vs, getLocals() + this.top, bb.top);
 			this.top += bb.top;
 		}
 	}
@@ -179,6 +179,10 @@ public class BB {
 	 */
 	public BB getIDom() {
 		return getCfg().getIDom(this);
+	}
+
+	private int getLocals() {
+		return this.cfg.getMaxLocals();
 	}
 
 	/**
@@ -346,7 +350,7 @@ public class BB {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.vs[this.locals + this.top - 1];
+		return this.vs[getLocals() + this.top - 1];
 	}
 
 	/**
@@ -358,7 +362,7 @@ public class BB {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.vs[this.locals + --this.top];
+		return this.vs[getLocals() + --this.top];
 	}
 
 	/**
@@ -368,12 +372,12 @@ public class BB {
 	 *            expression
 	 */
 	public void push(final Expression v) {
-		if (this.locals + this.top >= this.vs.length) {
-			final Expression[] newVs = new Expression[this.locals + this.top + 1];
-			System.arraycopy(this.vs, 0, newVs, 0, this.locals + this.top);
+		if (getLocals() + this.top >= this.vs.length) {
+			final Expression[] newVs = new Expression[getLocals() + this.top + 1];
+			System.arraycopy(this.vs, 0, newVs, 0, getLocals() + this.top);
 			this.vs = newVs;
 		}
-		this.vs[this.locals + this.top++] = v;
+		this.vs[getLocals() + this.top++] = v;
 	}
 
 	/**
@@ -424,16 +428,6 @@ public class BB {
 	 */
 	public void set(final int i, final Expression v) {
 		this.vs[i] = v;
-	}
-
-	/**
-	 * Set operation program counter.
-	 * 
-	 * @param opPc
-	 *            operation program counter
-	 */
-	public void setOpPc(final int opPc) {
-		this.opPc = opPc;
 	}
 
 	/**

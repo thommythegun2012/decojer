@@ -41,8 +41,11 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import org.decojer.cavaj.model.BD;
+import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
@@ -154,13 +157,28 @@ public class DecoJer {
 				}
 				TrJvmStruct2JavaAst.transform(td);
 
-				TrInitControlFlowGraph.transform(td);
-				TrDataFlowAnalysis.transform(td);
+				final List<BD> bds = td.getBds();
+				for (int j = 0; j < bds.size(); ++j) {
+					final BD bd = bds.get(j);
+					if (!(bd instanceof MD)) {
+						continue;
+					}
+					final CFG cfg = ((MD) bd).getCfg();
+					if (cfg == null || cfg.isIgnore()) {
+						continue;
+					}
+					try {
+						TrInitControlFlowGraph.transform(cfg);
+						TrDataFlowAnalysis.transform(cfg);
 
-				TrIvmCfg2JavaExprStmts.transform(td);
+						TrIvmCfg2JavaExprStmts.transform(cfg);
 
-				TrControlFlowAnalysis.transform(td);
-				TrStructCfg2JavaControlFlowStmts.transform(td);
+						TrControlFlowAnalysis.transform(cfg);
+						TrStructCfg2JavaControlFlowStmts.transform(cfg);
+					} catch (final Throwable e) {
+						LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+					}
+				}
 
 				processedTds.add(td);
 			}

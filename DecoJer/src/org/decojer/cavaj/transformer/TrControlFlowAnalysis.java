@@ -27,14 +27,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.BB;
-import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.struct.Cond;
 import org.decojer.cavaj.model.code.struct.Loop;
 import org.decojer.cavaj.model.code.struct.Struct;
@@ -187,28 +183,14 @@ public class TrControlFlowAnalysis {
 		return bb.getFinalStatement() instanceof SwitchStatement;
 	}
 
+	/**
+	 * Transform CFG.
+	 * 
+	 * @param cfg
+	 *            CFG
+	 */
 	public static void transform(final CFG cfg) {
 		new TrControlFlowAnalysis(cfg).transform();
-	}
-
-	public static void transform(final TD td) {
-		final List<BD> bds = td.getBds();
-		for (int i = 0; i < bds.size(); ++i) {
-			final BD bd = bds.get(i);
-			if (!(bd instanceof MD)) {
-				continue;
-			}
-			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.isIgnore()) {
-				continue;
-			}
-			try {
-				transform(cfg);
-			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
-				cfg.setError(true);
-			}
-		}
 	}
 
 	private final CFG cfg;

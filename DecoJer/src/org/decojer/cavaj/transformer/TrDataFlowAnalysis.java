@@ -24,18 +24,14 @@
 package org.decojer.cavaj.transformer;
 
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BB;
-import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
@@ -86,28 +82,14 @@ public class TrDataFlowAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrDataFlowAnalysis.class.getName());
 
+	/**
+	 * Transform CFG.
+	 * 
+	 * @param cfg
+	 *            CFG
+	 */
 	public static void transform(final CFG cfg) {
 		new TrDataFlowAnalysis(cfg).transform();
-	}
-
-	public static void transform(final TD td) {
-		final List<BD> bds = td.getBds();
-		for (int i = 0; i < bds.size(); ++i) {
-			final BD bd = bds.get(i);
-			if (!(bd instanceof MD)) {
-				continue;
-			}
-			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.isIgnore()) {
-				continue;
-			}
-			try {
-				transform(cfg);
-			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
-				cfg.setError(true);
-			}
-		}
 	}
 
 	private boolean changed;

@@ -29,11 +29,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.BB;
-import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.MD;
@@ -67,29 +65,14 @@ public class TrStructCfg2JavaControlFlowStmts {
 	private final static Logger LOGGER = Logger.getLogger(TrStructCfg2JavaControlFlowStmts.class
 			.getName());
 
+	/**
+	 * Transform CFG.
+	 * 
+	 * @param cfg
+	 *            CFG
+	 */
 	public static void transform(final CFG cfg) {
-		try {
-			new TrStructCfg2JavaControlFlowStmts(cfg).transform();
-		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
-			cfg.setError(true);
-		}
-	}
-
-	public static void transform(final TD td) {
-		// no parallelism! 2 shared instance variables: code and nextPc
-		final List<BD> bds = td.getBds();
-		for (int i = 0; i < bds.size(); ++i) {
-			final BD bd = bds.get(i);
-			if (!(bd instanceof MD)) {
-				continue;
-			}
-			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.isIgnore()) {
-				continue;
-			}
-			transform(cfg);
-		}
+		new TrStructCfg2JavaControlFlowStmts(cfg).transform();
 	}
 
 	private final CFG cfg;

@@ -594,28 +594,26 @@ public class ClassEditor extends MultiPageEditorPart {
 					return;
 				}
 			}
+			final int stage = this.cfgViewModeCombo.getSelectionIndex();
 
 			final CFG cfg = md.getCfg();
-			if (cfg == null) {
+			if (cfg == null || cfg.isIgnore()) {
 				return;
 			}
-
-			// retransform CFG until given transformation stage
-			TrInitControlFlowGraph.transform(cfg);
 			try {
+				// retransform CFG until given transformation stage
+				TrInitControlFlowGraph.transform(cfg);
 				TrDataFlowAnalysis.transform(cfg);
-			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg.getMd() + "'!", e);
-			}
-			final int i = this.cfgViewModeCombo.getSelectionIndex();
-			if (i > 0) {
-				TrIvmCfg2JavaExprStmts.transform(cfg);
-			}
-			if (i > 1) {
-				TrControlFlowAnalysis.transform(cfg);
-			}
 
-			// build graph
+				if (stage > 0) {
+					TrIvmCfg2JavaExprStmts.transform(cfg);
+				}
+				if (stage > 1) {
+					TrControlFlowAnalysis.transform(cfg);
+				}
+			} catch (final Throwable e) {
+				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+			}
 			initGraph(cfg);
 		} catch (final Throwable e) {
 			LOGGER.log(Level.WARNING, "Couldn't create graph!", e);
