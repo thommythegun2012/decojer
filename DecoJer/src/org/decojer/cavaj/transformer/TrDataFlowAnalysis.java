@@ -445,7 +445,7 @@ public class TrDataFlowAnalysis {
 				V storeV = frame.get(cop.getReg());
 
 				if (storeV != null) {
-					if (storeV.validForPc(pc)) {
+					if (storeV.validIn(pc)) {
 						final T mergedT = v.getT().merge(storeV.getT());
 						this.changed |= v.cmpSetT(mergedT);
 						// can happen for no debug info or temporary
@@ -559,11 +559,6 @@ public class TrDataFlowAnalysis {
 			return false;
 		}
 		return v.getT().isWide();
-	}
-
-	private void liveVariableAnalysis() {
-		// http://en.wikipedia.org/wiki/Liveness_analysis
-
 	}
 
 	private void merge(final int targetPc) {

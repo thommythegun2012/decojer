@@ -145,8 +145,8 @@ public class TrInitControlFlowGraph {
 
 		int pc = 0;
 		while (true) {
-			// next open pc?
 			if (pc >= ops.length) {
+				// next open pc?
 				if (openPcs.isEmpty()) {
 					break;
 				}
@@ -154,9 +154,9 @@ public class TrInitControlFlowGraph {
 				bb = this.pc2Bbs[pc];
 			} else {
 				// next pc allready in flow?
-				final BB nextBB = getTargetBb(pc);
-				if (nextBB != null) {
-					bb.addSucc(nextBB, null);
+				final BB nextBb = getTargetBb(pc);
+				if (nextBb != null) {
+					bb.addSucc(nextBb, null);
 					pc = ops.length; // next open pc
 					continue;
 				}
@@ -173,6 +173,7 @@ public class TrInitControlFlowGraph {
 				// goto, if we simply follow the goto without a new block then
 				// we have a problem to find the bb split point (operations.pc
 				// might be original pc and not the operation index)
+				// TODO new BB still necessary, should be OK only to add GOTOs?!
 				BB nextBB = getTargetBb(pc);
 				if (nextBB == null) {
 					nextBB = this.cfg.newBb(pc);
@@ -187,7 +188,7 @@ public class TrInitControlFlowGraph {
 				final JCMP cop = (JCMP) op;
 				final int targetPc = cop.getTargetPc();
 				if (targetPc == pc) {
-					System.out.println("### BRANCH_IFCMP (Empty): " + targetPc);
+					LOGGER.warning("Empty JCMP Branch: " + targetPc);
 				} else {
 					BB targetBB = getTargetBb(targetPc);
 					if (targetBB == null) {
@@ -211,7 +212,7 @@ public class TrInitControlFlowGraph {
 				final JCND cop = (JCND) op;
 				final int targetPc = cop.getTargetPc();
 				if (targetPc == pc) {
-					System.out.println("### BRANCH_IF (Empty): " + targetPc);
+					LOGGER.warning("Empty JCND Branch: " + targetPc);
 				} else {
 					BB targetBB = getTargetBb(targetPc);
 					if (targetBB == null) {
