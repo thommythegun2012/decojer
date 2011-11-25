@@ -29,6 +29,7 @@ import java.io.OutputStream;
 import java.nio.channels.Channels;
 import java.util.HashSet;
 import java.util.List;
+import java.util.logging.Logger;
 
 import org.decojer.web.util.DB;
 import org.decojer.web.util.IO;
@@ -36,6 +37,7 @@ import org.decojer.web.util.IO;
 import com.google.appengine.api.blobstore.BlobInfoFactory;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -83,12 +85,9 @@ public class BlobService {
 
 	}
 
-	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
-			.getDatastoreService();
-
-	private static final FileService FILE_SERVICE = FileServiceFactory.getFileService();
-
 	private static final BlobService INSTANCE = new BlobService();
+
+	private static Logger LOGGER = Logger.getLogger(BlobService.class.getName());
 
 	public static BlobService getInstance() {
 		return INSTANCE;
@@ -109,15 +108,25 @@ public class BlobService {
 
 			@Override
 			public boolean process(final Entity entity) {
-				stats.size += (Long) entity.getProperty(BlobInfoFactory.SIZE);
+				final long size = (Long) entity.getProperty(BlobInfoFactory.SIZE);
+				if (size > 20000000) {
+					LOGGER.info("Will delete JAR '" + entity.getProperty(BlobInfoFactory.FILENAME)
+							+ "'. This is with " + size
+							+ " bytes too large to be useful (max 20 MB).");
+					BlobstoreServiceFactory.getBlobstoreService().delete(
+							new BlobKey(entity.getKey().getName()));
+					return true;
+				}
+				stats.size += size;
 				String md5Hash = (String) entity.getProperty(BlobInfoFactory.MD5_HASH);
 				if (md5Hash == null) {
+					// can only happen and only work with development environment
 					try {
 						final BlobstoreInputStream blobstoreInputStream = new BlobstoreInputStream(
 								new BlobKey(entity.getKey().getName()));
 						md5Hash = IO.hexEncode(IO.md5(IO.toBytes(blobstoreInputStream)));
 						entity.setProperty(BlobInfoFactory.MD5_HASH, md5Hash);
-						DATASTORE_SERVICE.put(entity);
+						DatastoreServiceFactory.getDatastoreService().put(entity);
 						++stats.calculatedHashes;
 					} catch (final IOException e) {
 						throw new RuntimeException(
@@ -141,9 +150,10 @@ public class BlobService {
 	}
 
 	public BlobKey createBlob(final String mimeType, final String fileName, final byte[] content) {
+		final FileService fileService = FileServiceFactory.getFileService();
 		try {
-			final AppEngineFile file = FILE_SERVICE.createNewBlobFile(mimeType, fileName);
-			final FileWriteChannel writeChannel = FILE_SERVICE.openWriteChannel(file, true);
+			final AppEngineFile file = fileService.createNewBlobFile(mimeType, fileName);
+			final FileWriteChannel writeChannel = fileService.openWriteChannel(file, true);
 			final OutputStream fileOutputStream = Channels.newOutputStream(writeChannel);
 			// don't hold file open for too long (around max. 30 seconds), else:
 			// "Caused by: com.google.apphosting.api.ApiProxy$ApplicationException: ApplicationError: 10: Unknown",
@@ -157,13 +167,15 @@ public class BlobService {
 			} catch (final InterruptedException ie) {
 				// OK - sleep 5s for index updates
 			}
-			final BlobKey blobKey = FILE_SERVICE.getBlobKey(file);
+			final BlobKey blobKey = fileService.getBlobKey(file);
 			if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Development) {
 				if (blobKey == null) {
 					System.out.println("BlobKey is null? Severe Bug!");
 					return null;
 				}
-				final Entity entity = DATASTORE_SERVICE.get(KeyFactory.createKey(
+				final DatastoreService datastoreService = DatastoreServiceFactory
+						.getDatastoreService();
+				final Entity entity = datastoreService.get(KeyFactory.createKey(
 						BlobInfoFactory.KIND, blobKey.getKeyString()));
 				if (entity == null) {
 					System.out.println("NO INFO?");
@@ -172,7 +184,7 @@ public class BlobService {
 				final String md5Hash = (String) entity.getProperty(BlobInfoFactory.MD5_HASH);
 				if (md5Hash == null || md5Hash.length() == 0) {
 					entity.setProperty(BlobInfoFactory.MD5_HASH, IO.hexEncode(IO.md5(content)));
-					DATASTORE_SERVICE.put(entity);
+					datastoreService.put(entity);
 					System.out.println("WRITTEN HASH!");
 				}
 			}
@@ -207,7 +219,7 @@ public class BlobService {
 		final Query duplicateQuery = new Query(BlobInfoFactory.KIND);
 		duplicateQuery.addFilter(BlobInfoFactory.MD5_HASH, Query.FilterOperator.EQUAL, md5Hash);
 		duplicateQuery.addFilter(BlobInfoFactory.SIZE, Query.FilterOperator.EQUAL, size);
-		return DATASTORE_SERVICE.prepare(duplicateQuery)
+		return DatastoreServiceFactory.getDatastoreService().prepare(duplicateQuery)
 				.asList(FetchOptions.Builder.withDefaults());
 	}
 
