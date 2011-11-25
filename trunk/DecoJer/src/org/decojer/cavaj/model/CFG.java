@@ -224,7 +224,7 @@ public class CFG {
 		}
 		for (int i = vs.length; i-- > 0;) {
 			final V v = vs[i];
-			if (v.validForPc(pc)) {
+			if (v.validIn(pc)) {
 				return v;
 			}
 		}

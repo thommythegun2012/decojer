@@ -173,8 +173,9 @@ public class V {
 	 *            pc
 	 * @return true - variable valid for pc
 	 */
-	public boolean validForPc(final int pc) {
+	public boolean validIn(final int pc) {
 		for (int i = 0; i < this.pcs.length;) {
+			// end pc is first pc _after_ (multiple byte) operation (even after final return)
 			if (this.pcs[i++] <= pc && pc < this.pcs[i++]) {
 				return true;
 			}
