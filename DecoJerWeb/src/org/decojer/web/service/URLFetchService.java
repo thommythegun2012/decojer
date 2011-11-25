@@ -24,12 +24,15 @@
 package org.decojer.web.service;
 
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.urlfetch.HTTPMethod;
 import com.google.appengine.api.urlfetch.HTTPRequest;
 import com.google.appengine.api.urlfetch.HTTPResponse;
+import com.google.appengine.api.urlfetch.ResponseTooLargeException;
 import com.google.appengine.api.urlfetch.URLFetchServiceFactory;
 
 /**
@@ -41,8 +44,7 @@ public class URLFetchService {
 
 	private static final URLFetchService INSTANCE = new URLFetchService();
 
-	private static final com.google.appengine.api.urlfetch.URLFetchService URL_FETCH_SERVICE = URLFetchServiceFactory
-			.getURLFetchService();
+	private static Logger LOGGER = Logger.getLogger(URLFetchService.class.getName());
 
 	/**
 	 * Get instance.
@@ -58,23 +60,34 @@ public class URLFetchService {
 	 * 
 	 * @param url
 	 *            URL
-	 * @return content or null (for 404)
+	 * @param logNotFound
+	 *            true - log not found
+	 * @return content or null
 	 */
-	public byte[] fetchContent(final String url) {
+	public byte[] fetchContent(final String url, final boolean logNotFound) {
 		final HTTPResponse fetch;
 		try {
 			// default is 5 seconds, currently capped at 60 seconds
-			fetch = URL_FETCH_SERVICE.fetch(new HTTPRequest(new URL(url), HTTPMethod.GET,
-					com.google.appengine.api.urlfetch.FetchOptions.Builder.withDeadline(300)));
+			fetch = URLFetchServiceFactory.getURLFetchService().fetch(
+					new HTTPRequest(new URL(url), HTTPMethod.GET,
+							com.google.appengine.api.urlfetch.FetchOptions.Builder
+									.withDeadline(300)));
+		} catch (final ResponseTooLargeException e) {
+			LOGGER.info("Couldn't read URL '" + url + "'! Response too large.");
+			return null;
 		} catch (final Exception e) {
-			throw new RuntimeException("Couldn't read URL '" + url + "'!", e);
+			LOGGER.log(Level.INFO, "Couldn't read URL '" + url + "'!", e);
+			return null;
 		}
 		final int responseCode = fetch.getResponseCode();
 		if (responseCode == HttpServletResponse.SC_NOT_FOUND) {
+			if (logNotFound) {
+				LOGGER.info("Couldn't read URL '" + url + "'! Not found (404).");
+			}
 			return null;
 		}
 		if (responseCode != HttpServletResponse.SC_OK) {
-			throw new RuntimeException("Couldn't read URL '" + url + "'! Response code was '"
+			LOGGER.info("Couldn't read URL '" + url + "'! Response code was '"
 					+ fetch.getResponseCode() + "'.");
 		}
 		return fetch.getContent();

@@ -56,9 +56,6 @@ import com.google.appengine.api.datastore.Query;
  */
 public class MavenService {
 
-	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
-			.getDatastoreService();
-
 	private static final MavenService INSTANCE = new MavenService();
 
 	private static Logger LOGGER = Logger.getLogger(MavenService.class.getName());
@@ -89,20 +86,15 @@ public class MavenService {
 	/**
 	 * Fetch Maven central RSS, deliver list with POM Ids (groupId:artifactId:version).
 	 * 
-	 * @return list with POM Ids (groupId:artifactId:version)
+	 * @return list with POM Ids (groupId:artifactId:version), not null
 	 */
 	public List<String> fetchCentralRss() {
-		final byte[] content;
-		try {
-			content = URLFetchService.getInstance().fetchContent(URL_CENTRAL_RSS);
-		} catch (final Exception e) {
-			throw new RuntimeException("Couldn't read Maven Central RSS!", e);
-		}
-		if (content == null) {
-			throw new RuntimeException("Couldn't read Maven Central RSS! 404 for: "
-					+ URL_CENTRAL_RSS);
-		}
+		final byte[] content = URLFetchService.getInstance().fetchContent(URL_CENTRAL_RSS, true);
 		final ArrayList<String> pomIds = new ArrayList<String>();
+		if (content == null) {
+			LOGGER.warning("Couldn't read Maven Central RSS!");
+			return pomIds;
+		}
 		try {
 			final SAXParser parser = SAX_PARSER_FACTORY.newSAXParser();
 			parser.parse(new ByteArrayInputStream(content), new DefaultHandler() {
@@ -143,10 +135,11 @@ public class MavenService {
 
 			});
 		} catch (final Exception e) {
-			throw new RuntimeException("Couldn't parse Maven Central RSS!", e);
+			LOGGER.log(Level.WARNING, "Couldn't parse Maven Central RSS!", e);
+			return pomIds;
 		}
 		if (pomIds.size() == 0) {
-			throw new RuntimeException("Couldn't parse Maven Central RSS! Is empty.");
+			LOGGER.warning("Couldn't parse Maven Central RSS! Is empty.");
 		}
 		return pomIds;
 	}
@@ -162,17 +155,13 @@ public class MavenService {
 	 *            version
 	 * @param fileName
 	 *            file name
-	 * @return file content
+	 * @return file content or null
 	 */
 	public byte[] fetchFile(final String groupId, final String artifactId, final String version,
 			final String fileName) {
 		final String url = URL_REPO1_FILE + groupId.replace('.', '/') + '/' + artifactId + '/'
 				+ version + '/' + fileName;
-		try {
-			return URLFetchService.getInstance().fetchContent(url);
-		} catch (final Exception e) {
-			throw new RuntimeException("Couldn't read Maven Central file!", e);
-		}
+		return URLFetchService.getInstance().fetchContent(url, false);
 	}
 
 	/**
@@ -182,20 +171,14 @@ public class MavenService {
 	 *            group id
 	 * @param artifactId
 	 *            artifact id
-	 * @return versions
+	 * @return versions versions, not null
 	 */
 	public List<String> fetchVersions(final String groupId, final String artifactId) {
 		final String url = URL_REPO1_FILE + groupId.replace('.', '/') + '/' + artifactId
 				+ "/maven-metadata.xml";
-		final byte[] content;
-		try {
-			content = URLFetchService.getInstance().fetchContent(url);
-		} catch (final Exception e) {
-			throw new RuntimeException("Couldn't read Maven Metadata!", e);
-		}
+		final byte[] content = URLFetchService.getInstance().fetchContent(url, true);
 		final ArrayList<String> versions = new ArrayList<String>();
 		if (content == null) {
-			LOGGER.info("Couldn't read Maven Metadata! 404 for: " + url);
 			return versions;
 		}
 		try {
@@ -234,10 +217,11 @@ public class MavenService {
 
 			});
 		} catch (final Exception e) {
-			throw new RuntimeException("Couldn't parse Maven Metadata!", e);
+			LOGGER.log(Level.INFO, "Couldn't read Maven Metadata!", e);
+			return versions;
 		}
 		if (versions.size() == 0) {
-			throw new RuntimeException("Couldn't parse Maven Metadata! Is empty.");
+			LOGGER.info("Couldn't read Maven Metadata! Is empty");
 		}
 		return versions;
 	}
@@ -262,8 +246,8 @@ public class MavenService {
 		pomVersionQuery.addFilter(Entity.KEY_RESERVED_PROPERTY, Query.FilterOperator.LESS_THAN,
 				pomKey2);
 
-		final List<Entity> entities = DATASTORE_SERVICE.prepare(pomVersionQuery).asList(
-				FetchOptions.Builder.withDefaults());
+		final List<Entity> entities = DatastoreServiceFactory.getDatastoreService()
+				.prepare(pomVersionQuery).asList(FetchOptions.Builder.withDefaults());
 		final ArrayList<Pom> poms = new ArrayList<Pom>(entities.size());
 		for (final Entity entity : entities) {
 			poms.add(new Pom(entity));
@@ -318,12 +302,8 @@ public class MavenService {
 	 * @return imported files
 	 */
 	public int importCentralRss() {
-		final List<String> pomIds = fetchCentralRss();
-		if (pomIds == null) {
-			return 0;
-		}
 		int nr = 0;
-		for (final String pomId : pomIds) {
+		for (final String pomId : fetchCentralRss()) {
 			final int artifactIdPos = pomId.indexOf(':');
 			if (artifactIdPos == -1) {
 				LOGGER.log(Level.WARNING, "Couldn't parse '" + pomId + "' from Maven Central RSS!");
@@ -369,8 +349,9 @@ public class MavenService {
 	public Pom importPom(final String groupId, final String artifactId, final String version) {
 		final String pomId = groupId + ':' + artifactId + ':' + version;
 		final Key pomKey = KeyFactory.createKey(Pom.KIND, pomId);
+		final DatastoreService datastoreService = DatastoreServiceFactory.getDatastoreService();
 		try {
-			DATASTORE_SERVICE.get(pomKey);
+			datastoreService.get(pomKey);
 			return null; // is known, happy for now
 		} catch (final EntityNotFoundException e) {
 			// fall through
@@ -382,6 +363,11 @@ public class MavenService {
 			if (jarContent == null) {
 				return null; // don't import JAR-less POMs for now
 			}
+			if (jarContent.length > 20000000) {
+				LOGGER.info("Will ignore POM JAR '" + pomId + "'. This is with "
+						+ jarContent.length + " bytes too large to be useful (max 20 MB).");
+				return null;
+			}
 			final Entity blobInfo = BlobService.getInstance().findBlobInfo(jarContent);
 			if (blobInfo == null) {
 				blobKey = BlobService.getInstance().createBlob("application/java-archive",
@@ -389,8 +375,8 @@ public class MavenService {
 			} else {
 				blobKey = new BlobKey(blobInfo.getKey().getName());
 			}
-		} catch (final Exception e1) {
-			LOGGER.log(Level.WARNING, "Couldn't import POM JAR '" + pomId + "'!", e1);
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Couldn't import POM JAR '" + pomId + "'!", e);
 			return null;
 		}
 		try {
@@ -399,7 +385,7 @@ public class MavenService {
 			final Pom pom = new Pom(new Entity(pomKey));
 			pom.setContent(pomContent);
 			pom.setJar(blobKey);
-			DATASTORE_SERVICE.put(pom.getWrappedEntity());
+			datastoreService.put(pom.getWrappedEntity());
 			return pom;
 		} catch (final Exception e1) {
 			LOGGER.log(Level.WARNING, "Couldn't import POM '" + pomId + "'!", e1);
