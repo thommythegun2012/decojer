@@ -60,7 +60,7 @@ import org.eclipse.jdt.core.dom.WhileStatement;
  * 
  * @author André Pankraz
  */
-public class TrStructCfg2JavaControlFlowStmts {
+public final class TrStructCfg2JavaControlFlowStmts {
 
 	private final static Logger LOGGER = Logger.getLogger(TrStructCfg2JavaControlFlowStmts.class
 			.getName());
@@ -138,12 +138,12 @@ public class TrStructCfg2JavaControlFlowStmts {
 	private IfStatement transformCond(final Cond cond) {
 		final BB headBb = cond.getHead();
 
-		final IfStatement statement = (IfStatement) headBb.getFinalStatement();
+		final IfStatement statement = (IfStatement) headBb.getFinalStmt();
 		final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 				statement.getExpression());
 
-		final BB trueBb = headBb.getSuccBb(Boolean.TRUE);
-		final BB falseBb = headBb.getSuccBb(Boolean.FALSE);
+		final BB trueBb = headBb.getSuccTrue();
+		final BB falseBb = headBb.getSuccFalse();
 
 		boolean negate = true;
 		switch (cond.getType()) {
@@ -216,15 +216,14 @@ public class TrStructCfg2JavaControlFlowStmts {
 		case Loop.WHILENOT: {
 			final WhileStatement whileStatement = getAst().newWhileStatement();
 
-			final IfStatement statement = (IfStatement) headBb.getStatement(0);
+			final IfStatement statement = (IfStatement) headBb.getStmt(0);
 			final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 					statement.getExpression());
 			whileStatement.setExpression(negate ? newPrefixExpression(
 					PrefixExpression.Operator.NOT, expression) : expression);
 
 			final List<Statement> subStatements = new ArrayList<Statement>();
-			transformSequence(loop,
-					negate ? headBb.getSuccBb(Boolean.FALSE) : headBb.getSuccBb(Boolean.TRUE),
+			transformSequence(loop, negate ? headBb.getSuccFalse() : headBb.getSuccTrue(),
 					subStatements);
 
 			if (subStatements.size() == 1) {
@@ -244,7 +243,7 @@ public class TrStructCfg2JavaControlFlowStmts {
 			final List<Statement> subStatements = new ArrayList<Statement>();
 			transformSequence(loop, headBb, subStatements);
 
-			final Statement statement = tailBb.getFinalStatement();
+			final Statement statement = tailBb.getFinalStmt();
 			final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 					((IfStatement) statement).getExpression());
 			doStatement.setExpression(negate ? newPrefixExpression(PrefixExpression.Operator.NOT,
@@ -326,18 +325,18 @@ public class TrStructCfg2JavaControlFlowStmts {
 						structStatement = transformCatch((Catch) succStruct);
 					} else if (succStruct instanceof Cond) {
 						// possible statements before cond in basic block
-						final int size = succBb.getStatementsSize() - 1;
+						final int size = succBb.getStmts() - 1;
 						for (int index = 0; index < size; ++index) {
-							statements.add(succBb.getStatement(index));
+							statements.add(succBb.getStmt(index));
 						}
 						structStatement = transformCond((Cond) succStruct);
 					} else if (succStruct instanceof Loop) {
 						structStatement = transformLoop((Loop) succStruct);
 					} else if (succStruct instanceof Switch) {
 						// possible statements before switch in basic block
-						final int size = succBb.getStatementsSize() - 1;
+						final int size = succBb.getStmts() - 1;
 						for (int index = 0; index < size; ++index) {
-							statements.add(succBb.getStatement(index));
+							statements.add(succBb.getStmt(index));
 						}
 						structStatement = transformSwitch((Switch) succStruct);
 					} else {
@@ -384,18 +383,18 @@ public class TrStructCfg2JavaControlFlowStmts {
 					if (findLoop.isTail(succBb)) {
 						if (findLoop.isPost()) {
 							if (struct == findLoop) {
-								final int size = succBb.getStatementsSize() - 1;
+								final int size = succBb.getStmts() - 1;
 								for (int index = 0; index < size; ++index) {
-									statements.add(succBb.getStatement(index));
+									statements.add(succBb.getStmt(index));
 								}
 							} else {
 								statements.add(getAst().newContinueStatement());
 							}
 							return;
 						} else if (findLoop.isPre() || findLoop.isEndless()) {
-							final int size = succBb.getStatementsSize();
+							final int size = succBb.getStmts();
 							for (int index = 0; index < size; ++index) {
-								statements.add(succBb.getStatement(index));
+								statements.add(succBb.getStmt(index));
 							}
 						}
 						return;
@@ -412,9 +411,9 @@ public class TrStructCfg2JavaControlFlowStmts {
 			}
 
 			// simple sequence block, 0 statements possible with empty GOTO basic blocks
-			final int size = succBb.getStatementsSize();
+			final int size = succBb.getStmts();
 			for (int index = 0; index < size; ++index) {
-				statements.add(succBb.getStatement(index));
+				statements.add(succBb.getStmt(index));
 			}
 			final Collection<BB> successors = succBb.getSuccBbs();
 			// empty or 1 for no struct head!
@@ -429,7 +428,7 @@ public class TrStructCfg2JavaControlFlowStmts {
 	private Statement transformSwitch(final Switch switchStruct) {
 		final BB headBb = switchStruct.getHead();
 
-		final SwitchStatement statement = (SwitchStatement) headBb.getFinalStatement();
+		final SwitchStatement statement = (SwitchStatement) headBb.getFinalStmt();
 		final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 				statement.getExpression());
 

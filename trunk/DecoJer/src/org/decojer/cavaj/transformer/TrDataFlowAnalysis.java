@@ -78,7 +78,7 @@ import org.decojer.cavaj.model.code.op.XOR;
  * 
  * @author André Pankraz
  */
-public class TrDataFlowAnalysis {
+public final class TrDataFlowAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrDataFlowAnalysis.class.getName());
 
