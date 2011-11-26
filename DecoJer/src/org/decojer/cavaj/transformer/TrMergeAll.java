@@ -37,7 +37,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
-public class TrMergeAll {
+public final class TrMergeAll {
 
 	public static void transform(final CU cu) {
 		final List<TD> tds = cu.getTds();

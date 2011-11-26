@@ -35,15 +35,13 @@ import org.decojer.cavaj.model.code.struct.Cond;
 import org.decojer.cavaj.model.code.struct.Loop;
 import org.decojer.cavaj.model.code.struct.Struct;
 import org.decojer.cavaj.model.code.struct.Switch;
-import org.eclipse.jdt.core.dom.IfStatement;
-import org.eclipse.jdt.core.dom.SwitchStatement;
 
 /**
  * Transform Control Flow Analysis.
  * 
  * @author André Pankraz
  */
-public class TrControlFlowAnalysis {
+public final class TrControlFlowAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrControlFlowAnalysis.class.getName());
 
@@ -146,7 +144,7 @@ public class TrControlFlowAnalysis {
 	}
 
 	private static boolean isCondHead(final BB bb) {
-		if (!(bb.getFinalStatement() instanceof IfStatement)) {
+		if (!bb.isFinalStmtCond()) {
 			return false;
 		}
 		// check if condition is used for loop struct...
@@ -169,8 +167,7 @@ public class TrControlFlowAnalysis {
 	private static boolean isLoopHead(final BB bb) {
 		for (final BB predBb : bb.getPredBbs()) {
 			if (predBb.getPostorder() <= bb.getPostorder()) {
-				// must be a back edge (eg. self loop), in Java only possible
-				// for loop heads
+				// must be a back edge (eg. self loop), in Java only possible for loop heads
 				return true;
 			}
 		}
@@ -178,9 +175,9 @@ public class TrControlFlowAnalysis {
 	}
 
 	private static boolean isSwitchHead(final BB bb) {
-		// don't use successor number as indicator, normal switch with 2
-		// successors (JDK 6: 1 case and default) possible
-		return bb.getFinalStatement() instanceof SwitchStatement;
+		// don't use successor number as indicator, normal switch with 2 successors
+		// (JDK 6: 1 case and default) possible
+		return bb.isFinalStmtSwitch();
 	}
 
 	/**
@@ -327,19 +324,19 @@ public class TrControlFlowAnalysis {
 
 		// WHILE && FOR => only 1 head statement because of iteration back edge,
 		// FOR has trailing ExpressionStatements in the loop end node
-		if (headBb.getStatementsSize() == 1 && headBb.getStatement(0) instanceof IfStatement) {
-			final BB trueSuccBb = headBb.getSuccBb(Boolean.TRUE);
-			final BB falseSuccBb = headBb.getSuccBb(Boolean.FALSE);
-			if (loop.isMember(trueSuccBb) && !loop.isMember(falseSuccBb)) {
+		if (headBb.getStmts() == 1 && headBb.isFinalStmtCond()) {
+			final BB trueBb = headBb.getSuccTrue();
+			final BB falseBb = headBb.getSuccFalse();
+			if (loop.isMember(trueBb) && !loop.isMember(falseBb)) {
 				// JDK 6: true is member, opPc of pre head > next member,
 				// leading goto
 				headType = Loop.WHILE;
-				headFollow = falseSuccBb;
-			} else if (loop.isMember(falseSuccBb) && !loop.isMember(trueSuccBb)) {
+				headFollow = falseBb;
+			} else if (loop.isMember(falseBb) && !loop.isMember(trueBb)) {
 				// JDK 5: false is member, opPc of pre head < next member,
 				// trailing goto (negated, check class javascript.Decompiler)
 				headType = Loop.WHILENOT;
-				headFollow = trueSuccBb;
+				headFollow = trueBb;
 			}
 			// no proper pre head!
 		}
@@ -347,9 +344,9 @@ public class TrControlFlowAnalysis {
 		int tailType = 0;
 		BB tailFollow = null;
 
-		if (tailBb.getFinalStatement() instanceof IfStatement) {
-			final BB trueSuccBb = tailBb.getSuccBb(Boolean.TRUE);
-			final BB falseSuccBb = tailBb.getSuccBb(Boolean.FALSE);
+		if (tailBb.isFinalStmtCond()) {
+			final BB trueSuccBb = tailBb.getSuccTrue();
+			final BB falseSuccBb = tailBb.getSuccFalse();
 			if (loop.isHead(trueSuccBb)) {
 				tailType = Loop.DO_WHILE;
 				tailFollow = falseSuccBb;
@@ -507,12 +504,15 @@ public class TrControlFlowAnalysis {
 
 	private void transform() {
 		final List<BB> bbs = this.cfg.getPostorderedBbs();
-		// top down struct, find outer first
-		for (int postorder = bbs.size(); postorder-- > 0;) {
-			final BB bb = bbs.get(postorder);
-			// check loop first, could be a post / endless loop with
-			// additional
-			// sub struct heads
+		// for all nodes in _reverse_ postorder: find outer structs first
+		for (int i = bbs.size(); i-- > 0;) {
+			final BB bb = bbs.get(i);
+			// if (isCatchHead(bb)) {
+			// is also a loop header? => we have to check if for endless / post we enclose the
+			// tail too
+			// }
+
+			// check loop first, could be a post / endless loop with additional sub struct heads
 			if (isLoopHead(bb)) {
 				final Loop loop = new Loop(bb);
 				findLoopMembers(loop);

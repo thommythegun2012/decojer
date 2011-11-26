@@ -29,7 +29,9 @@ import java.util.List;
 import org.decojer.cavaj.model.code.op.Op;
 import org.decojer.cavaj.model.code.struct.Struct;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.SwitchStatement;
 
 /**
  * Basic Block.
@@ -51,7 +53,7 @@ public final class BB {
 
 	protected final List<BB> predBbs = new ArrayList<BB>(0);
 
-	private final List<Statement> statements = new ArrayList<Statement>();
+	private final List<Statement> stmts = new ArrayList<Statement>();
 
 	private Struct struct;
 
@@ -85,8 +87,8 @@ public final class BB {
 	 * @param statement
 	 *            statement
 	 */
-	public void addStatement(final Statement statement) {
-		this.statements.add(statement);
+	public void addStmt(final Statement statement) {
+		this.stmts.add(statement);
 	}
 
 	/**
@@ -130,7 +132,7 @@ public final class BB {
 	 */
 	public void copyContentFrom(final BB bb) {
 		this.ops.addAll(bb.ops);
-		this.statements.addAll(bb.statements);
+		this.stmts.addAll(bb.stmts);
 		if (bb.top > 0) {
 			if (getLocals() + this.top + bb.top > this.vs.length) {
 				final Expression[] newVs = new Expression[getLocals() + this.top + bb.top];
@@ -167,9 +169,8 @@ public final class BB {
 	 * 
 	 * @return final statement or null
 	 */
-	public Statement getFinalStatement() {
-		final int size = this.statements.size();
-		return size == 0 ? null : this.statements.get(size - 1);
+	public Statement getFinalStmt() {
+		return this.stmts.isEmpty() ? null : this.stmts.get(this.stmts.size() - 1);
 	}
 
 	/**
@@ -256,9 +257,9 @@ public final class BB {
 	 *            index
 	 * @return statement or null
 	 */
-	public Statement getStatement(final int index) {
-		final int size = this.statements.size();
-		return size <= index ? null : this.statements.get(index);
+	public Statement getStmt(final int index) {
+		final int size = this.stmts.size();
+		return size <= index ? null : this.stmts.get(index);
 	}
 
 	/**
@@ -266,8 +267,8 @@ public final class BB {
 	 * 
 	 * @return number of statements
 	 */
-	public int getStatementsSize() {
-		return this.statements.size();
+	public int getStmts() {
+		return this.stmts.size();
 	}
 
 	/**
@@ -280,18 +281,6 @@ public final class BB {
 	}
 
 	/**
-	 * Get succcessor basic block for given edge value.
-	 * 
-	 * @param value
-	 *            edge value
-	 * @return succcessor basic block
-	 */
-	public BB getSuccBb(final Object value) {
-		final int index = this.succValues.indexOf(value);
-		return index == -1 ? null : this.succBbs.get(index);
-	}
-
-	/**
 	 * Get succcessor basic blocks.
 	 * 
 	 * @return succcessor basic blocks
@@ -301,12 +290,56 @@ public final class BB {
 	}
 
 	/**
+	 * Get false successor (for conditional BBs only).
+	 * 
+	 * @return false successor, not null (assert)
+	 */
+	public BB getSuccFalse() {
+		final int index = this.succValues.indexOf(Boolean.FALSE);
+		assert index != -1;
+
+		return this.succBbs.get(index);
+	}
+
+	/**
+	 * Get true successor (for conditional BBs only).
+	 * 
+	 * @return true successor, not null (assert)
+	 */
+	public BB getSuccTrue() {
+		final int index = this.succValues.indexOf(Boolean.TRUE);
+		assert index != -1;
+
+		return this.succBbs.get(index);
+	}
+
+	/**
 	 * Get successor values.
 	 * 
 	 * @return successor values
 	 */
 	public List<Object> getSuccValues() {
 		return this.succValues;
+	}
+
+	/**
+	 * Is final statement conditional (IfStatement)?
+	 * 
+	 * @return true - final statement is conditional
+	 */
+	public boolean isFinalStmtCond() {
+		return this.stmts.isEmpty() ? false
+				: this.stmts.get(this.stmts.size() - 1) instanceof IfStatement;
+	}
+
+	/**
+	 * Is final statement switch (SwitchStatement)?
+	 * 
+	 * @return true - final statement is switch
+	 */
+	public boolean isFinalStmtSwitch() {
+		return this.stmts.isEmpty() ? false
+				: this.stmts.get(this.stmts.size() - 1) instanceof SwitchStatement;
 	}
 
 	/**
@@ -401,9 +434,8 @@ public final class BB {
 	 *            index
 	 * @return statement or null
 	 */
-	public Statement removeFinalStatement() {
-		final int size = this.statements.size();
-		return size == 0 ? null : this.statements.remove(size - 1);
+	public Statement removeFinalStmt() {
+		return this.stmts.isEmpty() ? null : this.stmts.remove(this.stmts.size() - 1);
 	}
 
 	/**
@@ -413,9 +445,9 @@ public final class BB {
 	 *            index
 	 * @return statement or null
 	 */
-	public Statement removeStatement(final int index) {
-		final int size = this.statements.size();
-		return size <= index ? null : this.statements.remove(index);
+	public Statement removeStmt(final int index) {
+		final int size = this.stmts.size();
+		return size <= index ? null : this.stmts.remove(index);
 	}
 
 	/**
@@ -477,8 +509,8 @@ public final class BB {
 		if (this.top > 0) {
 			sb.append("\nExprs: ").append(this.top);
 		}
-		if (this.statements.size() > 0) {
-			sb.append("\nStmts: ").append(this.statements);
+		if (this.stmts.size() > 0) {
+			sb.append("\nStmts: ").append(this.stmts);
 		}
 		if (this.succBbs.size() > 1) {
 			sb.append("\nSucc: ");

@@ -43,7 +43,7 @@ import org.decojer.cavaj.model.code.op.SWITCH;
  * 
  * @author André Pankraz
  */
-public class TrInitControlFlowGraph {
+public final class TrInitControlFlowGraph {
 
 	private final static Logger LOGGER = Logger.getLogger(TrInitControlFlowGraph.class.getName());
 

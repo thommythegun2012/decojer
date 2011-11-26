@@ -125,7 +125,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
  * 
  * @author André Pankraz
  */
-public class TrIvmCfg2JavaExprStmts {
+public final class TrIvmCfg2JavaExprStmts {
 
 	private final static Logger LOGGER = Logger.getLogger(TrIvmCfg2JavaExprStmts.class.getName());
 
@@ -478,7 +478,7 @@ public class TrIvmCfg2JavaExprStmts {
 							final SuperConstructorInvocation superConstructorInvocation = getAst()
 									.newSuperConstructorInvocation();
 							superConstructorInvocation.arguments().addAll(arguments);
-							bb.addStatement(superConstructorInvocation);
+							bb.addStmt(superConstructorInvocation);
 							break;
 						}
 						if (expression instanceof ClassInstanceCreation) {
@@ -896,11 +896,11 @@ public class TrIvmCfg2JavaExprStmts {
 						// multiple constructors with different signatures possible, all of them
 						// contain the same field initializer code after super() - simply overwrite
 					}
-					if (this.cfg.getStartBb() != bb || bb.getStatementsSize() > 1) {
+					if (this.cfg.getStartBb() != bb || bb.getStmts() > 1) {
 						break fieldInit;
 					}
-					if (bb.getStatementsSize() == 1
-							&& !(bb.getStatement(0) instanceof SuperConstructorInvocation)) {
+					if (bb.getStmts() == 1
+							&& !(bb.getStmt(0) instanceof SuperConstructorInvocation)) {
 						// initial super(<arguments>) is allowed
 						break fieldInit;
 					}
@@ -1154,7 +1154,7 @@ public class TrIvmCfg2JavaExprStmts {
 				throw new RuntimeException("Unknown intermediate vm operation '" + op + "'!");
 			}
 			if (statement != null) {
-				bb.addStatement(statement);
+				bb.addStmt(statement);
 			}
 		}
 		return true;
@@ -1204,8 +1204,8 @@ public class TrIvmCfg2JavaExprStmts {
 			return false;
 		}
 		final BB followBb = bb.getSuccBbs().get(0);
-		final BB trueBb = ifBb.getSuccBb(Boolean.TRUE);
-		final BB falseBb = ifBb.getSuccBb(Boolean.FALSE);
+		final BB trueBb = ifBb.getSuccTrue();
+		final BB falseBb = ifBb.getSuccFalse();
 		if (falseBb == bb && trueBb != followBb || trueBb == bb && falseBb != followBb) {
 			return false;
 		}
@@ -1226,7 +1226,7 @@ public class TrIvmCfg2JavaExprStmts {
 		}
 
 		ifBb.pop();
-		ifBb.removeFinalStatement();
+		ifBb.removeFinalStmt();
 
 		followBb.copyContentFrom(ifBb);
 		ifBb.movePredBbs(followBb);
@@ -1265,7 +1265,7 @@ public class TrIvmCfg2JavaExprStmts {
 			if (predBb.getStackSize() != 1) {
 				return false;
 			}
-			if (predBb.getStatementsSize() > 0) {
+			if (predBb.getStmts() > 0) {
 				return false;
 			}
 			final BB newIfBb = predBb.getPredBbs().get(0);
@@ -1273,24 +1273,17 @@ public class TrIvmCfg2JavaExprStmts {
 				ifBb = newIfBb;
 			}
 		}
-		if (ifBb.getSuccBbs().size() != 2) {
-			return false;
-		}
-		if (ifBb.getStatementsSize() == 0) {
-			return false;
-		}
-		final Statement statement = ifBb.getFinalStatement();
-		if (!(statement instanceof IfStatement)) {
+		if (!ifBb.isFinalStmtCond()) {
 			return false;
 		}
 
-		final BB trueBb = ifBb.getSuccBb(Boolean.TRUE);
-		final BB falseBb = ifBb.getSuccBb(Boolean.FALSE);
+		final BB trueBb = ifBb.getSuccTrue();
+		final BB falseBb = ifBb.getSuccFalse();
 
 		final Expression trueExpression = trueBb.peek();
 		final Expression falseExpression = falseBb.peek();
 
-		Expression expression = ((IfStatement) statement).getExpression();
+		Expression expression = ((IfStatement) ifBb.getFinalStmt()).getExpression();
 		rewrite: if ((trueExpression instanceof BooleanLiteral || trueExpression instanceof NumberLiteral)
 				&& (falseExpression instanceof BooleanLiteral || falseExpression instanceof NumberLiteral)) {
 			// expressions: expression ? true : false => a
@@ -1371,7 +1364,7 @@ public class TrIvmCfg2JavaExprStmts {
 
 		// is conditional expression, modify graph
 		// remove IfStatement
-		ifBb.removeFinalStatement();
+		ifBb.removeFinalStmt();
 
 		trueBb.remove();
 		falseBb.remove();
@@ -1400,40 +1393,19 @@ public class TrIvmCfg2JavaExprStmts {
 		if (predBbs.size() != 1) {
 			return false;
 		}
-		if (bb.getSuccBbs().size() != 2) {
+		// must be single if statement for short-circuit compound boolean expression structure
+		if (bb.getStmts() != 1 || !bb.isFinalStmtCond()) {
 			return false;
 		}
-		if (bb.getStatementsSize() != 1) {
-			// must be single if statement for short-circuit compound boolean expression structure
-			return false;
-		}
-		final Statement bIfStatement = bb.getStatement(0);
-		if (!(bIfStatement instanceof IfStatement)) {
-			return false;
-		}
-
-		final BB bTrueBb = bb.getSuccBb(Boolean.TRUE);
-		final BB bFalseBb = bb.getSuccBb(Boolean.FALSE);
-		if (bTrueBb == null || bFalseBb == null) {
-			return false;
-		}
+		final BB bTrueBb = bb.getSuccTrue();
+		final BB bFalseBb = bb.getSuccFalse();
 
 		final BB aBb = predBbs.get(0);
-		if (aBb.getSuccBbs().size() != 2) {
+		if (!aBb.isFinalStmtCond()) {
 			return false;
 		}
-		if (aBb.getStatementsSize() == 0) {
-			return false;
-		}
-		final Statement aIfStatement = aBb.getFinalStatement();
-		if (!(aIfStatement instanceof IfStatement)) {
-			return false;
-		}
-		final BB aTrueBb = aBb.getSuccBb(Boolean.TRUE);
-		final BB aFalseBb = aBb.getSuccBb(Boolean.FALSE);
-		if (aTrueBb == null || aFalseBb == null) {
-			return false;
-		}
+		final BB aTrueBb = aBb.getSuccTrue();
+		final BB aFalseBb = aBb.getSuccFalse();
 
 		if (aTrueBb == bb) {
 			if (aFalseBb == bTrueBb) {
@@ -1448,13 +1420,14 @@ public class TrIvmCfg2JavaExprStmts {
 				// F.....T
 
 				// rewrite AST
-				final Expression leftExpression = ((IfStatement) aIfStatement).getExpression();
-				final Expression rightExpression = ((IfStatement) bIfStatement).getExpression();
-				((IfStatement) aIfStatement).setExpression(newInfixExpression(
+				final Expression leftExpression = ((IfStatement) aBb.getFinalStmt())
+						.getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
+				((IfStatement) aBb.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
 						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
 				// rewrite CFG
-				bb.removeStatement(0);
+				bb.removeStmt(0);
 				bb.copyContentFrom(aBb);
 				aBb.movePredBbs(bb);
 				aBb.remove();
@@ -1475,12 +1448,13 @@ public class TrIvmCfg2JavaExprStmts {
 				// F.....T
 
 				// rewrite AST
-				final Expression leftExpression = ((IfStatement) aIfStatement).getExpression();
-				final Expression rightExpression = ((IfStatement) bIfStatement).getExpression();
-				((IfStatement) aIfStatement).setExpression(newInfixExpression(
+				final Expression leftExpression = ((IfStatement) aBb.getFinalStmt())
+						.getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
+				((IfStatement) aBb.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_AND, rightExpression, leftExpression));
 				// rewrite CFG
-				bb.removeStatement(0);
+				bb.removeStmt(0);
 				bb.copyContentFrom(aBb);
 				aBb.movePredBbs(bb);
 				aBb.remove();
@@ -1502,12 +1476,13 @@ public class TrIvmCfg2JavaExprStmts {
 				// F.....T
 
 				// rewrite AST
-				final Expression leftExpression = ((IfStatement) aIfStatement).getExpression();
-				final Expression rightExpression = ((IfStatement) bIfStatement).getExpression();
-				((IfStatement) aIfStatement).setExpression(newInfixExpression(
+				final Expression leftExpression = ((IfStatement) aBb.getFinalStmt())
+						.getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
+				((IfStatement) aBb.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_OR, rightExpression, leftExpression));
 				// rewrite CFG
-				bb.removeStatement(0);
+				bb.removeStmt(0);
 				bb.copyContentFrom(aBb);
 				aBb.movePredBbs(bb);
 				aBb.remove();
@@ -1528,13 +1503,14 @@ public class TrIvmCfg2JavaExprStmts {
 				// F.....T
 
 				// rewrite AST
-				final Expression leftExpression = ((IfStatement) aIfStatement).getExpression();
-				final Expression rightExpression = ((IfStatement) bIfStatement).getExpression();
-				((IfStatement) aIfStatement).setExpression(newInfixExpression(
+				final Expression leftExpression = ((IfStatement) aBb.getFinalStmt())
+						.getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
+				((IfStatement) aBb.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
 						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
 				// rewrite CFG
-				bb.removeStatement(0);
+				bb.removeStmt(0);
 				bb.copyContentFrom(aBb);
 				aBb.movePredBbs(bb);
 				aBb.remove();
@@ -1548,18 +1524,18 @@ public class TrIvmCfg2JavaExprStmts {
 	}
 
 	private void transform() {
-		final List<BB> postorderedBbs = this.cfg.getPostorderedBbs();
-		// for all nodes in _reverse_ postorder,
-		// an alternative with clever optimization tricks is the backward mode, but we get problems
-		// with temporary registers then
-		for (int i = postorderedBbs.size(); i-- > 0;) {
-			final BB bb = postorderedBbs.get(i);
+		final List<BB> bbs = this.cfg.getPostorderedBbs();
+		// for all nodes in _reverse_ postorder: is also backward possible with nice optimizations,
+		// but this way easier handling of dalvik temporary registers
+		for (int i = bbs.size(); i-- > 0;) {
+			final BB bb = bbs.get(i);
 			if (bb == null) {
+				// can happen if BB deleted through rewrite
 				continue;
 			}
 			while (rewriteConditional(bb)) {
-				// delete superior nodes
-				// multiple iterations possible: a == null ? 0 : a.length() == 0 ? 0 : 1
+				// delete superior BBs, multiple iterations possible:
+				// a == null ? 0 : a.length() == 0 ? 0 : 1
 			}
 			// previous expressions merged into bb, now rewrite:
 			if (!convertToHLLIntermediate(bb)) {
@@ -1573,11 +1549,10 @@ public class TrIvmCfg2JavaExprStmts {
 			}
 			// single IfStatement created? then check:
 			while (rewriteShortCircuitCompound(bb)) {
-				// delete superior nodes
-				// multiple iterations possible
+				// delete superior BBs, multiple iterations possible
 			}
 		}
-		this.cfg.calculatePostorder(); // blocks deleted...
+		this.cfg.calculatePostorder(); // BBs deleted...
 	}
 
 }

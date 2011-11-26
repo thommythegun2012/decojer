@@ -64,7 +64,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
  * 
  * @author André Pankraz
  */
-public class TrJvmStruct2JavaAst {
+public final class TrJvmStruct2JavaAst {
 
 	private final static Logger LOGGER = Logger.getLogger(TrJvmStruct2JavaAst.class.getName());
 

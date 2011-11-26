@@ -48,7 +48,7 @@ import org.decojer.cavaj.model.code.op.THROW;
  * 
  * @author André Pankraz
  */
-public class TrLiveVariableAnalysis {
+public final class TrLiveVariableAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrDataFlowAnalysis.class.getName());
 
