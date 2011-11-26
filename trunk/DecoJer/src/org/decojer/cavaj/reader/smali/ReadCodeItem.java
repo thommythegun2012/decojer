@@ -2314,9 +2314,9 @@ public class ReadCodeItem {
 
 	private void readLocalVariables(final CFG cfg, final ReadDebugInfo readDebugInfo) {
 		final HashMap<Integer, ArrayList<V>> reg2vs = readDebugInfo.getReg2vs();
-		for (final Entry<Integer, ArrayList<V>> entry : reg2vs.entrySet()) {
-			final int reg = entry.getKey();
-			for (final V v : entry.getValue()) {
+		for (final Entry<Integer, ArrayList<V>> reg2v : reg2vs.entrySet()) {
+			final int reg = reg2v.getKey();
+			for (final V v : reg2v.getValue()) {
 				final int[] pcs = v.getPcs();
 				for (int i = pcs.length; i-- > 0;) {
 					if (pcs[i] == -1) {
