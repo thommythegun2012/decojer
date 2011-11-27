@@ -92,36 +92,17 @@ public final class BB {
 	}
 
 	/**
-	 * Add successor BB with an edge value. The successors are ordered after the BB order index for
-	 * order indexes greater than this.
+	 * Add switch successors.
 	 * 
-	 * @param succ
-	 *            successor BB
-	 * @param succValue
-	 *            edge value
+	 * @param caseKeys
+	 *            case keys
+	 * @param caseSucc
+	 *            case successor
 	 */
-	public void addSucc(final BB succ, final Object succValue) {
-		assert succ != null;
-
-		final int thisOrder = getOpPc();
-		final int succOrder = succ.getOpPc();
-
-		// sort forward edges
-		for (int i = 0; i < this.succs.size(); ++i) {
-			final BB bb = this.succs.get(i);
-			final int order = bb.getOpPc();
-			if (succOrder < order || thisOrder > order) {
-				// insert here and return
-				this.succs.add(i, succ);
-				this.succValues.add(i, succValue);
-				succ.preds.add(this);
-				return;
-			}
-		}
-		// append and return
-		this.succs.add(succ);
-		this.succValues.add(succValue);
-		succ.preds.add(this);
+	public void addSwitchSucc(final List<Integer> caseKeys, final BB caseSucc) {
+		this.succValues.add(caseKeys);
+		this.succs.add(caseSucc);
+		caseSucc.preds.add(this);
 	}
 
 	/**
@@ -162,6 +143,18 @@ public final class BB {
 	 */
 	public CFG getCfg() {
 		return this.cfg;
+	}
+
+	/**
+	 * Get false successor (for conditional BBs only).
+	 * 
+	 * @return false successor (not null assertion)
+	 */
+	public BB getFalseSucc() {
+		final int index = this.succValues.indexOf(Boolean.FALSE);
+		assert index != -1;
+
+		return this.succs.get(index);
 	}
 
 	/**
@@ -281,25 +274,13 @@ public final class BB {
 	}
 
 	/**
-	 * Get single successor.
+	 * Get sequence successor. Returns null if last statement is a control flow statement.
 	 * 
-	 * @return single successor or null
+	 * @return sequence successor (or null)
 	 */
 	public BB getSucc() {
 		final int index = this.succValues.indexOf(null);
 		return index == -1 ? null : this.succs.get(index);
-	}
-
-	/**
-	 * Get false successor (for conditional BBs only).
-	 * 
-	 * @return false successor (not null assertion)
-	 */
-	public BB getSuccFalse() {
-		final int index = this.succValues.indexOf(Boolean.FALSE);
-		assert index != -1;
-
-		return this.succs.get(index);
 	}
 
 	/**
@@ -312,24 +293,24 @@ public final class BB {
 	}
 
 	/**
-	 * Get true successor (for conditional BBs only).
-	 * 
-	 * @return true successor (not null assertion)
-	 */
-	public BB getSuccTrue() {
-		final int index = this.succValues.indexOf(Boolean.TRUE);
-		assert index != -1;
-
-		return this.succs.get(index);
-	}
-
-	/**
 	 * Get successor values.
 	 * 
 	 * @return successor values
 	 */
 	public List<Object> getSuccValues() {
 		return this.succValues;
+	}
+
+	/**
+	 * Get true successor (for conditional BBs only).
+	 * 
+	 * @return true successor (not null assertion)
+	 */
+	public BB getTrueSucc() {
+		final int index = this.succValues.indexOf(Boolean.TRUE);
+		assert index != -1;
+
+		return this.succs.get(index);
 	}
 
 	/**
@@ -473,6 +454,23 @@ public final class BB {
 	}
 
 	/**
+	 * Set conditional successors.
+	 * 
+	 * @param trueSucc
+	 *            true successor
+	 * @param falseSucc
+	 *            false successor
+	 */
+	public void setCondSuccs(final BB trueSucc, final BB falseSucc) {
+		this.succs.add(trueSucc);
+		this.succValues.add(Boolean.TRUE);
+		trueSucc.preds.add(this);
+		this.succs.add(falseSucc);
+		this.succValues.add(Boolean.FALSE);
+		falseSucc.preds.add(this);
+	}
+
+	/**
 	 * Set postorder.
 	 * 
 	 * @param postorder
@@ -493,16 +491,16 @@ public final class BB {
 	}
 
 	/**
-	 * Set value for given successor BB.
+	 * Set successor.
 	 * 
 	 * @param succ
-	 *            successor BB
-	 * @param value
-	 *            successor value
+	 *            successor
 	 */
-	public void setSuccValue(final BB succ, final Object value) {
-		final int index = this.succs.indexOf(succ);
-		this.succValues.set(index, value);
+	public void setSucc(final BB succ) {
+		// append and return
+		this.succs.add(succ);
+		this.succValues.add(null);
+		succ.preds.add(this);
 	}
 
 	@Override

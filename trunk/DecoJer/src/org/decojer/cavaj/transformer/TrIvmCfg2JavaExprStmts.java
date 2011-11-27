@@ -1200,13 +1200,13 @@ public final class TrIvmCfg2JavaExprStmts {
 		if (followBb == null || bb.getPreds().size() != 1) {
 			return false;
 		}
-		final BB ifBb = bb.getPreds().get(0);
-		if (!ifBb.isFinalStmtCond()) {
+		final BB condHead = bb.getPreds().get(0);
+		if (!condHead.isFinalStmtCond()) {
 			return false;
 		}
-		final BB trueBb = ifBb.getSuccTrue();
-		final BB falseBb = ifBb.getSuccFalse();
-		if (falseBb == bb && trueBb != followBb || trueBb == bb && falseBb != followBb) {
+		final BB trueSucc = condHead.getTrueSucc();
+		final BB falseSucc = condHead.getFalseSucc();
+		if (falseSucc == bb && trueSucc != followBb || trueSucc == bb && falseSucc != followBb) {
 			return false;
 		}
 
@@ -1214,7 +1214,7 @@ public final class TrIvmCfg2JavaExprStmts {
 		// Expression QualifiedName: JDTCompilerAdapter.class$0 (or Simple?)
 		// IFStatement
 
-		Expression expression = ifBb.peek();
+		Expression expression = condHead.peek();
 		try {
 			final String classInfo = (String) ((PUSH) ops.get(1)).getValue();
 			final DU du = getTd().getT().getDu();
@@ -1225,16 +1225,16 @@ public final class TrIvmCfg2JavaExprStmts {
 			return false;
 		}
 
-		ifBb.pop();
-		ifBb.removeFinalStmt();
+		condHead.pop();
+		condHead.removeFinalStmt();
 
-		followBb.copyContentFrom(ifBb);
-		ifBb.movePreds(followBb);
-		ifBb.remove();
-		if (this.cfg.getStartBb() == ifBb) {
+		followBb.copyContentFrom(condHead);
+		condHead.movePreds(followBb);
+		condHead.remove();
+		if (this.cfg.getStartBb() == condHead) {
 			this.cfg.setStartBb(followBb);
 		}
-		falseBb.remove();
+		falseSucc.remove();
 		followBb.push(expression);
 		return true;
 	}
@@ -1253,7 +1253,7 @@ public final class TrIvmCfg2JavaExprStmts {
 		if (bb.getPreds().size() < 2) {
 			return false;
 		}
-		BB ifBb = null;
+		BB condHead = null;
 		for (final BB pred : bb.getPreds()) {
 			if (pred.getSucc() == null) {
 				return false;
@@ -1267,22 +1267,22 @@ public final class TrIvmCfg2JavaExprStmts {
 			if (pred.getStmts() > 0) {
 				return false;
 			}
-			final BB newIfBb = pred.getPreds().get(0);
-			if (ifBb == null || newIfBb.getPostorder() < ifBb.getPostorder()) {
-				ifBb = newIfBb;
+			final BB predPred = pred.getPreds().get(0);
+			if (condHead == null || predPred.getPostorder() < condHead.getPostorder()) {
+				condHead = predPred;
 			}
 		}
-		if (!ifBb.isFinalStmtCond()) {
+		if (!condHead.isFinalStmtCond()) {
 			return false;
 		}
 
-		final BB trueBb = ifBb.getSuccTrue();
-		final BB falseBb = ifBb.getSuccFalse();
+		final BB trueSucc = condHead.getTrueSucc();
+		final BB falseSucc = condHead.getFalseSucc();
 
-		final Expression trueExpression = trueBb.peek();
-		final Expression falseExpression = falseBb.peek();
+		final Expression trueExpression = trueSucc.peek();
+		final Expression falseExpression = falseSucc.peek();
 
-		Expression expression = ((IfStatement) ifBb.getFinalStmt()).getExpression();
+		Expression expression = ((IfStatement) condHead.getFinalStmt()).getExpression();
 		rewrite: if ((trueExpression instanceof BooleanLiteral || trueExpression instanceof NumberLiteral)
 				&& (falseExpression instanceof BooleanLiteral || falseExpression instanceof NumberLiteral)) {
 			// expressions: expression ? true : false => a
@@ -1363,20 +1363,20 @@ public final class TrIvmCfg2JavaExprStmts {
 
 		// is conditional expression, modify graph
 		// remove IfStatement
-		ifBb.removeFinalStmt();
+		condHead.removeFinalStmt();
 
-		trueBb.remove();
-		falseBb.remove();
+		trueSucc.remove();
+		falseSucc.remove();
 
 		if (bb.getPreds().size() != 0) {
-			ifBb.push(expression);
-			ifBb.addSucc(bb, null);
+			condHead.push(expression);
+			condHead.setSucc(bb);
 		} else {
 			// pull
-			bb.copyContentFrom(ifBb);
-			ifBb.movePreds(bb);
-			ifBb.remove();
-			if (this.cfg.getStartBb() == ifBb) {
+			bb.copyContentFrom(condHead);
+			condHead.movePreds(bb);
+			condHead.remove();
+			if (this.cfg.getStartBb() == condHead) {
 				this.cfg.setStartBb(bb);
 			}
 
@@ -1395,18 +1395,18 @@ public final class TrIvmCfg2JavaExprStmts {
 		if (bb.getStmts() != 1 || !bb.isFinalStmtCond()) {
 			return false;
 		}
-		final BB bTrueBb = bb.getSuccTrue();
-		final BB bFalseBb = bb.getSuccFalse();
+		final BB trueSucc = bb.getTrueSucc();
+		final BB falseSucc = bb.getFalseSucc();
 
-		final BB aBb = bb.getPreds().get(0);
-		if (!aBb.isFinalStmtCond()) {
+		final BB pred = bb.getPreds().get(0);
+		if (!pred.isFinalStmtCond()) {
 			return false;
 		}
-		final BB aTrueBb = aBb.getSuccTrue();
-		final BB aFalseBb = aBb.getSuccFalse();
+		final BB predTrueSucc = pred.getTrueSucc();
+		final BB predFalseSucc = pred.getFalseSucc();
 
-		if (aTrueBb == bb) {
-			if (aFalseBb == bTrueBb) {
+		if (predTrueSucc == bb) {
+			if (predFalseSucc == trueSucc) {
 				// !A || B
 
 				// ....|..
@@ -1418,23 +1418,23 @@ public final class TrIvmCfg2JavaExprStmts {
 				// F.....T
 
 				// rewrite AST
-				final Expression leftExpression = ((IfStatement) aBb.getFinalStmt())
+				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
 						.getExpression();
 				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) aBb.getFinalStmt()).setExpression(newInfixExpression(
+				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
 						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
 				// rewrite CFG
 				bb.removeStmt(0);
-				bb.copyContentFrom(aBb);
-				aBb.movePreds(bb);
-				aBb.remove();
-				if (this.cfg.getStartBb() == aBb) {
+				bb.copyContentFrom(pred);
+				pred.movePreds(bb);
+				pred.remove();
+				if (this.cfg.getStartBb() == pred) {
 					this.cfg.setStartBb(bb);
 				}
 				return true;
 			}
-			if (aFalseBb == bFalseBb) {
+			if (predFalseSucc == falseSucc) {
 				// A && B
 
 				// ..|....
@@ -1446,23 +1446,23 @@ public final class TrIvmCfg2JavaExprStmts {
 				// F.....T
 
 				// rewrite AST
-				final Expression leftExpression = ((IfStatement) aBb.getFinalStmt())
+				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
 						.getExpression();
 				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) aBb.getFinalStmt()).setExpression(newInfixExpression(
+				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_AND, rightExpression, leftExpression));
 				// rewrite CFG
 				bb.removeStmt(0);
-				bb.copyContentFrom(aBb);
-				aBb.movePreds(bb);
-				aBb.remove();
-				if (this.cfg.getStartBb() == aBb) {
+				bb.copyContentFrom(pred);
+				pred.movePreds(bb);
+				pred.remove();
+				if (this.cfg.getStartBb() == pred) {
 					this.cfg.setStartBb(bb);
 				}
 				return true;
 			}
-		} else if (aFalseBb == bb) {
-			if (aTrueBb == bTrueBb) {
+		} else if (predFalseSucc == bb) {
+			if (predTrueSucc == trueSucc) {
 				// A || B
 
 				// ....|..
@@ -1474,22 +1474,22 @@ public final class TrIvmCfg2JavaExprStmts {
 				// F.....T
 
 				// rewrite AST
-				final Expression leftExpression = ((IfStatement) aBb.getFinalStmt())
+				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
 						.getExpression();
 				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) aBb.getFinalStmt()).setExpression(newInfixExpression(
+				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_OR, rightExpression, leftExpression));
 				// rewrite CFG
 				bb.removeStmt(0);
-				bb.copyContentFrom(aBb);
-				aBb.movePreds(bb);
-				aBb.remove();
-				if (this.cfg.getStartBb() == aBb) {
+				bb.copyContentFrom(pred);
+				pred.movePreds(bb);
+				pred.remove();
+				if (this.cfg.getStartBb() == pred) {
 					this.cfg.setStartBb(bb);
 				}
 				return true;
 			}
-			if (aTrueBb == bFalseBb) {
+			if (predTrueSucc == falseSucc) {
 				// !A && B
 
 				// ..|....
@@ -1501,18 +1501,18 @@ public final class TrIvmCfg2JavaExprStmts {
 				// F.....T
 
 				// rewrite AST
-				final Expression leftExpression = ((IfStatement) aBb.getFinalStmt())
+				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
 						.getExpression();
 				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) aBb.getFinalStmt()).setExpression(newInfixExpression(
+				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
 						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
 				// rewrite CFG
 				bb.removeStmt(0);
-				bb.copyContentFrom(aBb);
-				aBb.movePreds(bb);
-				aBb.remove();
-				if (this.cfg.getStartBb() == aBb) {
+				bb.copyContentFrom(pred);
+				pred.movePreds(bb);
+				pred.remove();
+				if (this.cfg.getStartBb() == pred) {
 					this.cfg.setStartBb(bb);
 				}
 				return true;
