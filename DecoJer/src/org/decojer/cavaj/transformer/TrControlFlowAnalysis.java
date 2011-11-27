@@ -198,38 +198,40 @@ public final class TrControlFlowAnalysis {
 
 	private void findCondMembers(final Cond cond) {
 		final BB head = cond.getHead();
-
-		final BB trueSucc = head.getTrueSucc();
 		final BB falseSucc = head.getFalseSucc();
+		final BB trueSucc = head.getTrueSucc();
+		// if-statement compilation hasn't changed with JDK versions (unlike boolean expressions)
+		// means: negated if-expression, false successor contains if-body (PC & line before true),
+		// special unnegated cases (with JDK 5 compiler?):
+		// direct continue back-edges and break forward-edges (only possible with true)
 
-		// TODO check problem: direct true back-edge in JDK 6 possible, order
-		// smaller then
-		final boolean negated = trueSucc.getOpPc() > falseSucc.getOpPc();
-		if (!negated && this.cfg.getMd().getTd().getVersion() >= 49) {
-			log("Uncommon usage of unnegated conditional in >= JDK 5 code:\n" + cond);
+		// we have to check all possibilities anyway...but prefer normal variants
+
+		// check direct continue-back-edges first, no members
+		if (trueSucc.getPostorder() >= head.getPostorder()) {
+			// normal JDK continue-back-edge, only since JDK 5 (target-indepandant) compiler?
+			cond.setType(Cond.IF);
+			cond.setFollow(falseSucc);
+			return;
+		}
+		if (falseSucc.getPostorder() >= head.getPostorder()) {
+			// no JDK, not really possible with normal JCND / JCMP conditionals
+			log("Unexpected unnegated direct continue-back-edge.");
+			cond.setType(Cond.IFNOT);
+			cond.setFollow(falseSucc);
+			return;
 		}
 
+		final boolean negated = falseSucc.getOrder() < trueSucc.getOrder();
 		final BB firstSucc = negated ? falseSucc : trueSucc;
 		final BB secondSucc = negated ? trueSucc : falseSucc;
-
-		final Object firstValue = negated;
-		final Object secondValue = !negated;
+		final Boolean firstValue = negated;
+		final Boolean secondValue = !negated;
 
 		final List<BB> firstMembers = new ArrayList<BB>();
 		final Set<BB> firstEndNodes = new HashSet<BB>();
-		// don't follow back edges
-		if (head.getPostorder() >= firstSucc.getPostorder()) {
-			dfsFindTail(firstMembers, firstEndNodes, firstSucc, cond.getParent());
-		}
-		// possible conditional follow is back edge
-		if (head.getPostorder() < secondSucc.getPostorder()) {
-			// normal in JDK 6 bytecode, ifnot-expressions
-			cond.setType(negated ? Cond.IFNOT : Cond.IF);
-			for (final BB bb : firstMembers) {
-				cond.addMember(firstValue, bb);
-			}
-			return;
-		}
+		dfsFindTail(firstMembers, firstEndNodes, firstSucc, cond.getParent());
+
 		// no else basic blocks
 		if (firstEndNodes.contains(secondSucc)) {
 			// normal in JDK 6 bytecode, ifnot-expressions
@@ -255,14 +257,11 @@ public final class TrControlFlowAnalysis {
 
 		final List<BB> secondMembers = new ArrayList<BB>();
 		final Set<BB> secondEndNodes = new HashSet<BB>();
-		// don't follow back edges
-		if (head.getPostorder() >= secondSucc.getPostorder()) {
-			dfsFindTail(secondMembers, secondEndNodes, secondSucc, cond.getParent());
-		}
+		dfsFindTail(secondMembers, secondEndNodes, secondSucc, cond.getParent());
+
 		if (secondEndNodes.contains(firstSucc)) {
 			// really bad, order is wrong!
 			log("Order preservation not possible for cond:\n?" + cond);
-
 			cond.setType(negated ? Cond.IF : Cond.IFNOT);
 			for (final BB bb : secondMembers) {
 				cond.addMember(secondValue, bb);
@@ -317,6 +316,9 @@ public final class TrControlFlowAnalysis {
 
 		// WHILE && FOR => only 1 head statement because of iteration back edge,
 		// FOR has trailing ExpressionStatements in the loop end node
+
+		// TODO while (<inlineAssignment> > 0) - must inline agressively here
+
 		if (head.getStmts() == 1 && head.isFinalStmtCond()) {
 			final BB trueSucc = head.getTrueSucc();
 			final BB falseSucc = head.getFalseSucc();
