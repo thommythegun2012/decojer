@@ -87,11 +87,11 @@ public final class TrInitControlFlowGraph {
 		}
 
 		// split basic block, new incoming block, adapt basic block pcs
-		final BB splitBb = this.cfg.newBb(pc);
+		final BB split = this.cfg.newBb(pc);
 		// first preserve previous successors...
-		bb.moveSuccBbs(splitBb);
+		bb.moveSuccs(split);
 		// ...then add new connection
-		bb.addSucc(splitBb, null);
+		bb.addSucc(split, null);
 
 		// move operations, update PC map, first find split point...
 		final List<Op> ops = bb.getOps();
@@ -104,11 +104,11 @@ public final class TrInitControlFlowGraph {
 		// ...now move all tail operations
 		while (i < ops.size()) {
 			final Op op = ops.remove(i);
-			splitBb.addOp(op);
-			this.pc2Bbs[op.getPc()] = splitBb;
+			split.addOp(op);
+			this.pc2Bbs[op.getPc()] = split;
 		}
 
-		return splitBb;
+		return split;
 	}
 
 	private void transform() {

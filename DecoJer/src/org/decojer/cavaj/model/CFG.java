@@ -98,11 +98,11 @@ public class CFG {
 		// DFS
 		traversed.add(bb);
 		int _postorder = postorder;
-		for (final BB succBb : bb.getSuccBbs()) {
-			if (traversed.contains(succBb)) {
+		for (final BB succ : bb.getSuccs()) {
+			if (traversed.contains(succ)) {
 				continue;
 			}
-			_postorder = _calculatePostorder(_postorder, succBb, traversed);
+			_postorder = _calculatePostorder(_postorder, succ, traversed);
 		}
 		bb.setPostorder(_postorder);
 		this.postorderedBbs.add(bb);
@@ -156,15 +156,15 @@ public class CFG {
 			// start with rootNode, means this.postorderBBNodes.length - 1
 			for (; b-- > 0;) {
 				BB iDomNew = null;
-				for (final BB p : this.postorderedBbs.get(b).getPredBbs()) {
-					if (this.iDoms[p.getPostorder()] == null) {
+				for (final BB pred : this.postorderedBbs.get(b).getPreds()) {
+					if (this.iDoms[pred.getPostorder()] == null) {
 						continue;
 					}
 					if (iDomNew == null) {
-						iDomNew = p;
+						iDomNew = pred;
 						continue;
 					}
-					iDomNew = intersectIDoms(p, iDomNew);
+					iDomNew = intersectIDoms(pred, iDomNew);
 				}
 				if (this.iDoms[b] == iDomNew) {
 					continue;

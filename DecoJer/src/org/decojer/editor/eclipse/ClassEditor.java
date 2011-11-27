@@ -147,13 +147,15 @@ public class ClassEditor extends MultiPageEditorPart {
 			node.setTooltip(null);
 		}
 		map.put(bb, node);
-		final List<BB> succBBs = bb.getSuccBbs();
+
+		final List<BB> succs = bb.getSuccs();
 		final List<Object> succValues = bb.getSuccValues();
-		for (int i = 0; i < succBBs.size(); ++i) {
-			final BB succBB = succBBs.get(i);
-			GraphNode succNode = map.get(succBB);
+
+		for (int i = 0; i < succs.size(); ++i) {
+			final BB succ = succs.get(i);
+			GraphNode succNode = map.get(succ);
 			if (succNode == null) {
-				succNode = addToGraph(succBB, map);
+				succNode = addToGraph(succ, map);
 			}
 			final GraphConnection connection = new GraphConnection(this.cfgViewer,
 					ZestStyles.CONNECTIONS_DIRECTED, node, succNode);
@@ -164,7 +166,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			if (value != null) {
 				connection.setText(value.toString());
 			}
-			if (succBB.getPostorder() >= bb.getPostorder()) {
+			if (succ.getPostorder() >= bb.getPostorder()) {
 				connection.setCurveDepth(50);
 				connection.setLineColor(ColorConstants.red);
 			}

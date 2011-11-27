@@ -51,11 +51,11 @@ public final class TrControlFlowAnalysis {
 		traversed.add(bb);
 		boolean loopSucc = false;
 		boolean backEdge = false;
-		for (final BB succBb : bb.getSuccBbs()) {
+		for (final BB succ : bb.getSuccs()) {
 			// equal: check self back edge too
-			if (bb.getPostorder() <= succBb.getPostorder()) {
+			if (bb.getPostorder() <= succ.getPostorder()) {
 				// back edge (continue, tail, inner loop, outer label-continue)
-				if (succBb != loop.getHead()) {
+				if (succ != loop.getHead()) {
 					// unimportant back edge (inner loop, outer label-continue)
 					continue;
 				}
@@ -63,15 +63,15 @@ public final class TrControlFlowAnalysis {
 				// don't track this edge any further
 				continue;
 			}
-			if (loop.isMember(succBb)) {
+			if (loop.isMember(succ)) {
 				loopSucc = true;
 				continue;
 			}
-			if (traversed.contains(succBb)) {
+			if (traversed.contains(succ)) {
 				continue;
 			}
 			// DFS
-			if (dfsFindInnerLoopMembers(loop, succBb, traversed)) {
+			if (dfsFindInnerLoopMembers(loop, succ, traversed)) {
 				loopSucc = true;
 			}
 		}
@@ -99,17 +99,17 @@ public final class TrControlFlowAnalysis {
 			final Struct struct) {
 		// check important for switch fall-throughs with early member addition
 		if (!members.contains(bb)) {
-			if (bb.getPredBbs().size() <= 1) {
+			if (bb.getPreds().size() <= 1) {
 				// predecessor check unnecessary, but is also necessary as
 				// startup for branch member search
 				members.add(bb);
 			} else {
-				for (final BB predBb : bb.getPredBbs()) {
-					if (predBb.getPostorder() <= bb.getPostorder()) {
+				for (final BB pred : bb.getPreds()) {
+					if (pred.getPostorder() <= bb.getPostorder()) {
 						// ignore back edges
 						continue;
 					}
-					if (!members.contains(predBb)) {
+					if (!members.contains(pred)) {
 						endNodes.add(bb);
 						return;
 					}
@@ -118,28 +118,28 @@ public final class TrControlFlowAnalysis {
 				members.add(bb);
 			}
 		}
-		for (final BB succBb : bb.getSuccBbs()) {
-			if (members.contains(succBb)) {
+		for (final BB succ : bb.getSuccs()) {
+			if (members.contains(succ)) {
 				continue;
 			}
-			if (bb.getPostorder() <= succBb.getPostorder()) {
+			if (bb.getPostorder() <= succ.getPostorder()) {
 				// back edge to no-member successor, outer struct allready known
 				// TODO handle pre loop continue
 				continue;
 			}
-			// not from succBb, follow doesn't know
+			// not from succ, follow doesn't know
 			if (struct != null) {
-				if (struct instanceof Loop && ((Loop) struct).isTail(succBb)) {
+				if (struct instanceof Loop && ((Loop) struct).isTail(succ)) {
 					// TODO handle post loop continue
 					continue;
 				}
-				if (struct.isFollow(succBb)) {
+				if (struct.isFollow(succ)) {
 					// TODO handle break
 					continue;
 				}
 			}
 			// DFS
-			dfsFindTail(members, endNodes, succBb, struct);
+			dfsFindTail(members, endNodes, succ, struct);
 		}
 	}
 
@@ -165,8 +165,8 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private static boolean isLoopHead(final BB bb) {
-		for (final BB predBb : bb.getPredBbs()) {
-			if (predBb.getPostorder() <= bb.getPostorder()) {
+		for (final BB pred : bb.getPreds()) {
+			if (pred.getPostorder() <= bb.getPostorder()) {
 				// must be a back edge (eg. self loop), in Java only possible for loop heads
 				return true;
 			}
@@ -197,39 +197,32 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private void findCondMembers(final Cond cond) {
-		final BB headBb = cond.getHead();
+		final BB head = cond.getHead();
 
-		// cases with branches and values, in normal mode in correct order
-		final List<BB> succBbs = headBb.getSuccBbs();
-		final List<Object> succValues = headBb.getSuccValues();
-
-		assert succBbs.size() == 2;
-
-		final BB firstBb = succBbs.get(0);
-		final BB secondBb = succBbs.get(1);
-
-		final Object firstValue = succValues.get(0);
-		final Object secondValue = succValues.get(1);
-
-		assert firstValue == Boolean.TRUE && secondValue == Boolean.FALSE
-				|| firstValue == Boolean.FALSE && secondValue == Boolean.TRUE;
+		final BB trueBb = head.getSuccTrue();
+		final BB falseBb = head.getSuccFalse();
 
 		// TODO check problem: direct true back-edge in JDK 6 possible, order
 		// smaller then
-		final boolean negated = firstValue == Boolean.FALSE;
-
+		final boolean negated = trueBb.getOpPc() > falseBb.getOpPc();
 		if (!negated && this.cfg.getMd().getTd().getVersion() >= 49) {
 			log("Uncommon usage of unnegated conditional in >= JDK 5 code:\n" + cond);
 		}
 
+		final BB firstBb = negated ? falseBb : trueBb;
+		final BB secondBb = negated ? trueBb : falseBb;
+
+		final Object firstValue = negated;
+		final Object secondValue = !negated;
+
 		final List<BB> firstMembers = new ArrayList<BB>();
 		final Set<BB> firstEndNodes = new HashSet<BB>();
 		// don't follow back edges
-		if (headBb.getPostorder() >= firstBb.getPostorder()) {
+		if (head.getPostorder() >= firstBb.getPostorder()) {
 			dfsFindTail(firstMembers, firstEndNodes, firstBb, cond.getParent());
 		}
 		// possible conditional follow is back edge
-		if (headBb.getPostorder() < secondBb.getPostorder()) {
+		if (head.getPostorder() < secondBb.getPostorder()) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setType(negated ? Cond.IFNOT : Cond.IF);
 			for (final BB bb : firstMembers) {
@@ -263,7 +256,7 @@ public final class TrControlFlowAnalysis {
 		final List<BB> secondMembers = new ArrayList<BB>();
 		final Set<BB> secondEndNodes = new HashSet<BB>();
 		// don't follow back edges
-		if (headBb.getPostorder() >= secondBb.getPostorder()) {
+		if (head.getPostorder() >= secondBb.getPostorder()) {
 			dfsFindTail(secondMembers, secondEndNodes, secondBb, cond.getParent());
 		}
 		if (secondEndNodes.contains(firstBb)) {
@@ -312,21 +305,21 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private void findLoopMembers(final Loop loop) {
-		final BB headBb = loop.getHead();
+		final BB head = loop.getHead();
 
-		dfsFindInnerLoopMembers(loop, headBb, new HashSet<BB>());
+		dfsFindInnerLoopMembers(loop, head, new HashSet<BB>());
 
-		final BB tailBb = loop.getTail();
-		assert tailBb != null;
+		final BB tail = loop.getTail();
+		assert tail != null;
 
 		int headType = 0;
 		BB headFollow = null;
 
 		// WHILE && FOR => only 1 head statement because of iteration back edge,
 		// FOR has trailing ExpressionStatements in the loop end node
-		if (headBb.getStmts() == 1 && headBb.isFinalStmtCond()) {
-			final BB trueBb = headBb.getSuccTrue();
-			final BB falseBb = headBb.getSuccFalse();
+		if (head.getStmts() == 1 && head.isFinalStmtCond()) {
+			final BB trueBb = head.getSuccTrue();
+			final BB falseBb = head.getSuccFalse();
 			if (loop.isMember(trueBb) && !loop.isMember(falseBb)) {
 				// JDK 6: true is member, opPc of pre head > next member,
 				// leading goto
@@ -344,9 +337,9 @@ public final class TrControlFlowAnalysis {
 		int tailType = 0;
 		BB tailFollow = null;
 
-		if (tailBb.isFinalStmtCond()) {
-			final BB trueSuccBb = tailBb.getSuccTrue();
-			final BB falseSuccBb = tailBb.getSuccFalse();
+		if (tail.isFinalStmtCond()) {
+			final BB trueSuccBb = tail.getSuccTrue();
+			final BB falseSuccBb = tail.getSuccFalse();
 			if (loop.isHead(trueSuccBb)) {
 				tailType = Loop.DO_WHILE;
 				tailFollow = falseSuccBb;
@@ -387,32 +380,26 @@ public final class TrControlFlowAnalysis {
 		loop.setType(Loop.ENDLESS);
 	}
 
-	@SuppressWarnings("rawtypes")
 	private void findSwitchMembers(final Switch switchStruct) {
-		final BB headBb = switchStruct.getHead();
+		final BB head = switchStruct.getHead();
 
 		// cases with branches and values, in normal mode in correct order
-		final List<BB> succBbs = headBb.getSuccBbs();
-		final int succNumber = succBbs.size();
-		final List<Object> succValues = headBb.getSuccValues();
+		final List<BB> succs = head.getSuccs();
+		final List<Object> succValues = head.getSuccValues();
 
 		int defaultIndex = -1;
 		// first case can only have head as predecessor, else try case
 		// reordering; fall-through follow-cases can have multiple predecessors
 		int firstIndex = -1;
 		// short check and find first node with 1 predecessor und default case
+		final int succNumber = succs.size();
 		for (int i = 0; i < succNumber; ++i) {
-			final BB succBb = succBbs.get(i);
-			assert succBb != null;
-
-			final List<BB> predBbs = succBb.getPredBbs();
-			assert predBbs != null;
-
-			if (predBbs.size() == 1 && firstIndex == -1) {
+			final BB succ = succs.get(i);
+			final List<BB> preds = succ.getPreds();
+			if (preds.size() == 1 && firstIndex == -1) {
 				firstIndex = i;
 			}
-			assert predBbs.size() >= 1;
-			assert predBbs.contains(headBb);
+			assert preds.contains(head);
 
 			final Object succValue = succValues.get(i);
 			assert succValue instanceof List;
@@ -424,19 +411,19 @@ public final class TrControlFlowAnalysis {
 			}
 		}
 		if (defaultIndex == -1) {
-			log("Switch with head '" + headBb + "' has no default branch!");
+			log("Switch with head '" + head + "' has no default branch!");
 			return;
 		}
 		if (firstIndex == -1) {
-			log("Switch with head '" + headBb
+			log("Switch with head '" + head
 					+ "' has no case branch with 1 predecessor, necessary for first case!");
 			return;
 		} else if (firstIndex != 0) {
-			log("Switch with head '" + headBb
+			log("Switch with head '" + head
 					+ "' has no first case branch with 1 predecessor, reordering!");
-			final BB removedBb = succBbs.remove(firstIndex);
+			final BB removedBb = succs.remove(firstIndex);
 			final Object removedValue = succValues.remove(firstIndex);
-			succBbs.add(0, removedBb);
+			succs.add(0, removedBb);
 			succValues.add(0, removedValue);
 		}
 
@@ -446,8 +433,8 @@ public final class TrControlFlowAnalysis {
 			// not last case branch?
 			type = Switch.SWITCH_DEFAULT;
 		}
-		final BB defaultBb = succBbs.get(defaultIndex);
-		if (defaultBb.getPredBbs().size() == 1) {
+		final BB defaultBb = succs.get(defaultIndex);
+		if (defaultBb.getPreds().size() == 1) {
 			// no fall-through follow case and no switch follow
 			type = Switch.SWITCH_DEFAULT;
 		}
@@ -462,20 +449,20 @@ public final class TrControlFlowAnalysis {
 					break;
 				}
 			}
-			final BB succBb = succBbs.get(i);
+			final BB succ = succs.get(i);
 
 			final List<BB> members = new ArrayList<BB>();
 
-			final List<BB> predBbs = succBb.getPredBbs();
-			if (predBbs.size() > 1) {
+			final List<BB> preds = succ.getPreds();
+			if (preds.size() > 1) {
 				// fall-through follow case?
-				if (!endNodes.remove(succBb)) {
+				if (!endNodes.remove(succ)) {
 					log("TODO Case reordering necessary? No proper follow case!");
 				}
-				members.add(succBb);
+				members.add(succ);
 			}
 
-			dfsFindTail(members, endNodes, succBb, switchStruct.getParent());
+			dfsFindTail(members, endNodes, succ, switchStruct.getParent());
 			for (final BB bb : members) {
 				switchStruct.addMember(succValues.get(i), bb);
 			}
