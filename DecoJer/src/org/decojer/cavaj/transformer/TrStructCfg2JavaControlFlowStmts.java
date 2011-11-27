@@ -141,8 +141,8 @@ public final class TrStructCfg2JavaControlFlowStmts {
 		final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 				statement.getExpression());
 
-		final BB trueBb = head.getSuccTrue();
-		final BB falseBb = head.getSuccFalse();
+		final BB trueSucc = head.getTrueSucc();
+		final BB falseSucc = head.getFalseSucc();
 
 		boolean negate = true;
 		switch (cond.getType()) {
@@ -154,7 +154,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 					expression) : expression);
 
 			final List<Statement> subStatements = new ArrayList<Statement>();
-			transformSequence(cond, negate ? falseBb : trueBb, subStatements);
+			transformSequence(cond, negate ? falseSucc : trueSucc, subStatements);
 
 			if (subStatements.size() == 1) {
 				ifStatement.setThenStatement(subStatements.get(0));
@@ -173,7 +173,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 					expression) : expression);
 			{
 				final List<Statement> subStatements = new ArrayList<Statement>();
-				transformSequence(cond, negate ? falseBb : trueBb, subStatements);
+				transformSequence(cond, negate ? falseSucc : trueSucc, subStatements);
 
 				if (subStatements.size() == 1) {
 					ifStatement.setThenStatement(subStatements.get(0));
@@ -185,7 +185,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 			}
 			{
 				final List<Statement> subStatements = new ArrayList<Statement>();
-				transformSequence(cond, negate ? trueBb : falseBb, subStatements);
+				transformSequence(cond, negate ? trueSucc : falseSucc, subStatements);
 
 				if (subStatements.size() == 1) {
 					ifStatement.setElseStatement(subStatements.get(0));
@@ -222,7 +222,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 					PrefixExpression.Operator.NOT, expression) : expression);
 
 			final List<Statement> subStatements = new ArrayList<Statement>();
-			transformSequence(loop, negate ? head.getSuccFalse() : head.getSuccTrue(),
+			transformSequence(loop, negate ? head.getFalseSucc() : head.getTrueSucc(),
 					subStatements);
 
 			if (subStatements.size() == 1) {

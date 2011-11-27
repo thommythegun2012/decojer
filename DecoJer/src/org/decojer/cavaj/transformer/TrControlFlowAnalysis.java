@@ -199,18 +199,18 @@ public final class TrControlFlowAnalysis {
 	private void findCondMembers(final Cond cond) {
 		final BB head = cond.getHead();
 
-		final BB trueBb = head.getSuccTrue();
-		final BB falseBb = head.getSuccFalse();
+		final BB trueSucc = head.getTrueSucc();
+		final BB falseSucc = head.getFalseSucc();
 
 		// TODO check problem: direct true back-edge in JDK 6 possible, order
 		// smaller then
-		final boolean negated = trueBb.getOpPc() > falseBb.getOpPc();
+		final boolean negated = trueSucc.getOpPc() > falseSucc.getOpPc();
 		if (!negated && this.cfg.getMd().getTd().getVersion() >= 49) {
 			log("Uncommon usage of unnegated conditional in >= JDK 5 code:\n" + cond);
 		}
 
-		final BB firstBb = negated ? falseBb : trueBb;
-		final BB secondBb = negated ? trueBb : falseBb;
+		final BB firstSucc = negated ? falseSucc : trueSucc;
+		final BB secondSucc = negated ? trueSucc : falseSucc;
 
 		final Object firstValue = negated;
 		final Object secondValue = !negated;
@@ -218,11 +218,11 @@ public final class TrControlFlowAnalysis {
 		final List<BB> firstMembers = new ArrayList<BB>();
 		final Set<BB> firstEndNodes = new HashSet<BB>();
 		// don't follow back edges
-		if (head.getPostorder() >= firstBb.getPostorder()) {
-			dfsFindTail(firstMembers, firstEndNodes, firstBb, cond.getParent());
+		if (head.getPostorder() >= firstSucc.getPostorder()) {
+			dfsFindTail(firstMembers, firstEndNodes, firstSucc, cond.getParent());
 		}
 		// possible conditional follow is back edge
-		if (head.getPostorder() < secondBb.getPostorder()) {
+		if (head.getPostorder() < secondSucc.getPostorder()) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setType(negated ? Cond.IFNOT : Cond.IF);
 			for (final BB bb : firstMembers) {
@@ -231,13 +231,13 @@ public final class TrControlFlowAnalysis {
 			return;
 		}
 		// no else basic blocks
-		if (firstEndNodes.contains(secondBb)) {
+		if (firstEndNodes.contains(secondSucc)) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setType(negated ? Cond.IFNOT : Cond.IF);
 			for (final BB bb : firstMembers) {
 				cond.addMember(firstValue, bb);
 			}
-			cond.setFollow(secondBb);
+			cond.setFollow(secondSucc);
 			return;
 		}
 
@@ -249,17 +249,17 @@ public final class TrControlFlowAnalysis {
 			for (final BB bb : firstMembers) {
 				cond.addMember(firstValue, bb);
 			}
-			cond.setFollow(secondBb);
+			cond.setFollow(secondSucc);
 			return;
 		}
 
 		final List<BB> secondMembers = new ArrayList<BB>();
 		final Set<BB> secondEndNodes = new HashSet<BB>();
 		// don't follow back edges
-		if (head.getPostorder() >= secondBb.getPostorder()) {
-			dfsFindTail(secondMembers, secondEndNodes, secondBb, cond.getParent());
+		if (head.getPostorder() >= secondSucc.getPostorder()) {
+			dfsFindTail(secondMembers, secondEndNodes, secondSucc, cond.getParent());
 		}
-		if (secondEndNodes.contains(firstBb)) {
+		if (secondEndNodes.contains(firstSucc)) {
 			// really bad, order is wrong!
 			log("Order preservation not possible for cond:\n?" + cond);
 
@@ -267,7 +267,7 @@ public final class TrControlFlowAnalysis {
 			for (final BB bb : secondMembers) {
 				cond.addMember(secondValue, bb);
 			}
-			cond.setFollow(firstBb);
+			cond.setFollow(firstSucc);
 			return;
 		}
 
@@ -318,18 +318,18 @@ public final class TrControlFlowAnalysis {
 		// WHILE && FOR => only 1 head statement because of iteration back edge,
 		// FOR has trailing ExpressionStatements in the loop end node
 		if (head.getStmts() == 1 && head.isFinalStmtCond()) {
-			final BB trueBb = head.getSuccTrue();
-			final BB falseBb = head.getSuccFalse();
-			if (loop.isMember(trueBb) && !loop.isMember(falseBb)) {
+			final BB trueSucc = head.getTrueSucc();
+			final BB falseSucc = head.getFalseSucc();
+			if (loop.isMember(trueSucc) && !loop.isMember(falseSucc)) {
 				// JDK 6: true is member, opPc of pre head > next member,
 				// leading goto
 				headType = Loop.WHILE;
-				headFollow = falseBb;
-			} else if (loop.isMember(falseBb) && !loop.isMember(trueBb)) {
+				headFollow = falseSucc;
+			} else if (loop.isMember(falseSucc) && !loop.isMember(trueSucc)) {
 				// JDK 5: false is member, opPc of pre head < next member,
 				// trailing goto (negated, check class javascript.Decompiler)
 				headType = Loop.WHILENOT;
-				headFollow = trueBb;
+				headFollow = trueSucc;
 			}
 			// no proper pre head!
 		}
@@ -338,14 +338,14 @@ public final class TrControlFlowAnalysis {
 		BB tailFollow = null;
 
 		if (tail.isFinalStmtCond()) {
-			final BB trueSuccBb = tail.getSuccTrue();
-			final BB falseSuccBb = tail.getSuccFalse();
-			if (loop.isHead(trueSuccBb)) {
+			final BB trueSucc = tail.getTrueSucc();
+			final BB falseSucc = tail.getFalseSucc();
+			if (loop.isHead(trueSucc)) {
 				tailType = Loop.DO_WHILE;
-				tailFollow = falseSuccBb;
-			} else if (loop.isHead(falseSuccBb)) {
+				tailFollow = falseSucc;
+			} else if (loop.isHead(falseSucc)) {
 				tailType = Loop.DO_WHILENOT;
-				tailFollow = trueSuccBb;
+				tailFollow = trueSucc;
 			}
 		}
 

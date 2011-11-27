@@ -24,9 +24,9 @@
 package org.decojer.cavaj.transformer;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
@@ -75,7 +75,7 @@ public final class TrInitControlFlowGraph {
 	 *            target PC
 	 * @return target BB
 	 */
-	private BB getTargetBb(final int pc) {
+	private BB getTarget(final int pc) {
 		final BB bb = this.pc2Bbs[pc]; // get BB for target PC
 		if (bb == null) {
 			// PC not processed yet
@@ -90,8 +90,8 @@ public final class TrInitControlFlowGraph {
 		final BB split = this.cfg.newBb(pc);
 		// first preserve previous successors...
 		bb.moveSuccs(split);
-		// ...then add new connection
-		bb.addSucc(split, null);
+		// ...then set new successor
+		bb.setSucc(split);
 
 		// move operations, update PC map, first find split point...
 		final List<Op> ops = bb.getOps();
@@ -114,7 +114,7 @@ public final class TrInitControlFlowGraph {
 	private void transform() {
 		final Op[] ops = this.cfg.getOps();
 		this.pc2Bbs = new BB[ops.length];
-		final Stack<Integer> openPcs = new Stack<Integer>(); // remember open PCs
+		final LinkedList<Integer> openPcs = new LinkedList<Integer>(); // remember open PCs
 
 		// start with PC 0 and new BB
 		int pc = 0;
@@ -127,13 +127,13 @@ public final class TrInitControlFlowGraph {
 				if (openPcs.isEmpty()) {
 					break;
 				}
-				pc = openPcs.pop();
+				pc = openPcs.removeFirst();
 				bb = this.pc2Bbs[pc];
 			} else {
 				// next pc allready in flow?
-				final BB nextBb = getTargetBb(pc);
-				if (nextBb != null) {
-					bb.addSucc(nextBb, null);
+				final BB target = getTarget(pc);
+				if (target != null) {
+					bb.setSucc(target);
 					pc = ops.length; // next open pc
 					continue;
 				}
@@ -154,21 +154,20 @@ public final class TrInitControlFlowGraph {
 				if (targetPc == pc) {
 					LOGGER.warning("Empty JCMP Branch: " + targetPc);
 				} else {
-					BB targetBB = getTargetBb(targetPc);
-					if (targetBB == null) {
-						targetBB = this.cfg.newBb(targetPc);
-						this.pc2Bbs[targetPc] = targetBB;
+					BB trueSucc = getTarget(targetPc);
+					if (trueSucc == null) {
+						trueSucc = this.cfg.newBb(targetPc);
+						this.pc2Bbs[targetPc] = trueSucc;
 						openPcs.add(targetPc);
 					}
-					bb.addSucc(targetBB, Boolean.TRUE);
-					BB nextBB = getTargetBb(pc);
-					if (nextBB == null) {
-						nextBB = this.cfg.newBb(pc);
+					BB falseSucc = getTarget(pc);
+					if (falseSucc == null) {
+						falseSucc = this.cfg.newBb(pc);
 					} else {
 						pc = ops.length; // next open pc
 					}
-					bb.addSucc(nextBB, Boolean.FALSE);
-					bb = nextBB;
+					bb.setCondSuccs(trueSucc, falseSucc);
+					bb = falseSucc;
 				}
 				continue;
 			}
@@ -178,21 +177,20 @@ public final class TrInitControlFlowGraph {
 				if (targetPc == pc) {
 					LOGGER.warning("Empty JCND Branch: " + targetPc);
 				} else {
-					BB targetBB = getTargetBb(targetPc);
-					if (targetBB == null) {
-						targetBB = this.cfg.newBb(targetPc);
-						this.pc2Bbs[targetPc] = targetBB;
+					BB trueSucc = getTarget(targetPc);
+					if (trueSucc == null) {
+						trueSucc = this.cfg.newBb(targetPc);
+						this.pc2Bbs[targetPc] = trueSucc;
 						openPcs.add(targetPc);
 					}
-					bb.addSucc(targetBB, Boolean.TRUE);
-					BB nextBB = getTargetBb(pc);
-					if (nextBB == null) {
-						nextBB = this.cfg.newBb(pc);
+					BB falseSucc = getTarget(pc);
+					if (falseSucc == null) {
+						falseSucc = this.cfg.newBb(pc);
 					} else {
 						pc = ops.length; // next open pc
 					}
-					bb.addSucc(nextBB, Boolean.FALSE);
-					bb = nextBB;
+					bb.setCondSuccs(trueSucc, falseSucc);
+					bb = falseSucc;
 				}
 				continue;
 			}
@@ -213,8 +211,7 @@ public final class TrInitControlFlowGraph {
 					}
 					keys.add(caseKeys[i]);
 				}
-				// add default branch, can overlay with other cases, even JDK 6
-				// doesn't optimize this
+				// add default branch, can overlay with other cases, even JDK 6 doesn't optimize
 				final int defaultPc = cop.getDefaultPc();
 				keys = casePc2keys.get(defaultPc);
 				if (keys == null) {
@@ -229,13 +226,13 @@ public final class TrInitControlFlowGraph {
 					final int casePc = casePc2ValuesEntry.getKey();
 					keys = casePc2ValuesEntry.getValue();
 
-					BB caseBb = getTargetBb(casePc);
+					BB caseBb = getTarget(casePc);
 					if (caseBb == null) {
 						caseBb = this.cfg.newBb(casePc);
 						this.pc2Bbs[casePc] = caseBb;
 						openPcs.add(casePc);
 					}
-					bb.addSucc(caseBb, keys);
+					bb.addSwitchSucc(keys, caseBb);
 				}
 				pc = ops.length; // next open pc
 				continue;
