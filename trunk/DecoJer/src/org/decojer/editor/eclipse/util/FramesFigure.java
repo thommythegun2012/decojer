@@ -116,4 +116,5 @@ public class FramesFigure extends Figure {
 		}
 		add(new Label(""), 0);
 	}
+
 }

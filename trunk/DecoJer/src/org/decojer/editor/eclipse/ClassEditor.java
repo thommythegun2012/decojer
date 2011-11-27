@@ -139,10 +139,10 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private GraphNode addToGraph(final BB bb, final IdentityHashMap<BB, GraphNode> map) {
 		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE, bb.toString(), bb);
-		if (bb.getCfg() != null && bb.getCfg().getFrames() != null) {
-			node.setTooltip(new FramesFigure(bb));
-		} else if (bb.getStruct() != null) {
+		if (bb.getStruct() != null) {
 			node.setTooltip(new Label(bb.getStruct().toString()));
+		} else if (bb.getCfg().getFrames() != null) {
+			node.setTooltip(new FramesFigure(bb));
 		} else {
 			node.setTooltip(null);
 		}
