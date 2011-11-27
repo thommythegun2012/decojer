@@ -1196,14 +1196,14 @@ public final class TrIvmCfg2JavaExprStmts {
 				|| !(ops.get(4) instanceof PUT) || !(ops.get(5) instanceof GOTO)) {
 			return false;
 		}
-		if (bb.getPredBbs().size() != 1 || bb.getSuccBbs().size() != 1) {
+		final BB followBb = bb.getSucc();
+		if (followBb == null || bb.getPreds().size() != 1) {
 			return false;
 		}
-		final BB ifBb = bb.getPredBbs().get(0);
-		if (ifBb.getSuccBbs().size() != 2) {
+		final BB ifBb = bb.getPreds().get(0);
+		if (!ifBb.isFinalStmtCond()) {
 			return false;
 		}
-		final BB followBb = bb.getSuccBbs().get(0);
 		final BB trueBb = ifBb.getSuccTrue();
 		final BB falseBb = ifBb.getSuccFalse();
 		if (falseBb == bb && trueBb != followBb || trueBb == bb && falseBb != followBb) {
@@ -1229,7 +1229,7 @@ public final class TrIvmCfg2JavaExprStmts {
 		ifBb.removeFinalStmt();
 
 		followBb.copyContentFrom(ifBb);
-		ifBb.movePredBbs(followBb);
+		ifBb.movePreds(followBb);
 		ifBb.remove();
 		if (this.cfg.getStartBb() == ifBb) {
 			this.cfg.setStartBb(followBb);
@@ -1249,26 +1249,25 @@ public final class TrIvmCfg2JavaExprStmts {
 		// ...\./.
 		// ....B..
 
-		final List<BB> predBbs = bb.getPredBbs();
 		// ! has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
-		if (predBbs.size() < 2) {
+		if (bb.getPreds().size() < 2) {
 			return false;
 		}
 		BB ifBb = null;
-		for (final BB predBb : predBbs) {
-			if (predBb.getSuccBbs().size() != 1) {
+		for (final BB pred : bb.getPreds()) {
+			if (pred.getSucc() == null) {
 				return false;
 			}
-			if (predBb.getPredBbs().size() != 1) {
+			if (pred.getPreds().size() != 1) {
 				return false;
 			}
-			if (predBb.getStackSize() != 1) {
+			if (pred.getStackSize() != 1) {
 				return false;
 			}
-			if (predBb.getStmts() > 0) {
+			if (pred.getStmts() > 0) {
 				return false;
 			}
-			final BB newIfBb = predBb.getPredBbs().get(0);
+			final BB newIfBb = pred.getPreds().get(0);
 			if (ifBb == null || newIfBb.getPostorder() < ifBb.getPostorder()) {
 				ifBb = newIfBb;
 			}
@@ -1369,13 +1368,13 @@ public final class TrIvmCfg2JavaExprStmts {
 		trueBb.remove();
 		falseBb.remove();
 
-		if (bb.getPredBbs().size() != 0) {
+		if (bb.getPreds().size() != 0) {
 			ifBb.push(expression);
 			ifBb.addSucc(bb, null);
 		} else {
 			// pull
 			bb.copyContentFrom(ifBb);
-			ifBb.movePredBbs(bb);
+			ifBb.movePreds(bb);
 			ifBb.remove();
 			if (this.cfg.getStartBb() == ifBb) {
 				this.cfg.setStartBb(bb);
@@ -1389,8 +1388,7 @@ public final class TrIvmCfg2JavaExprStmts {
 	}
 
 	private boolean rewriteShortCircuitCompound(final BB bb) {
-		final List<BB> predBbs = bb.getPredBbs();
-		if (predBbs.size() != 1) {
+		if (bb.getPreds().size() != 1) {
 			return false;
 		}
 		// must be single if statement for short-circuit compound boolean expression structure
@@ -1400,7 +1398,7 @@ public final class TrIvmCfg2JavaExprStmts {
 		final BB bTrueBb = bb.getSuccTrue();
 		final BB bFalseBb = bb.getSuccFalse();
 
-		final BB aBb = predBbs.get(0);
+		final BB aBb = bb.getPreds().get(0);
 		if (!aBb.isFinalStmtCond()) {
 			return false;
 		}
@@ -1429,7 +1427,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				// rewrite CFG
 				bb.removeStmt(0);
 				bb.copyContentFrom(aBb);
-				aBb.movePredBbs(bb);
+				aBb.movePreds(bb);
 				aBb.remove();
 				if (this.cfg.getStartBb() == aBb) {
 					this.cfg.setStartBb(bb);
@@ -1456,7 +1454,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				// rewrite CFG
 				bb.removeStmt(0);
 				bb.copyContentFrom(aBb);
-				aBb.movePredBbs(bb);
+				aBb.movePreds(bb);
 				aBb.remove();
 				if (this.cfg.getStartBb() == aBb) {
 					this.cfg.setStartBb(bb);
@@ -1484,7 +1482,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				// rewrite CFG
 				bb.removeStmt(0);
 				bb.copyContentFrom(aBb);
-				aBb.movePredBbs(bb);
+				aBb.movePreds(bb);
 				aBb.remove();
 				if (this.cfg.getStartBb() == aBb) {
 					this.cfg.setStartBb(bb);
@@ -1512,7 +1510,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				// rewrite CFG
 				bb.removeStmt(0);
 				bb.copyContentFrom(aBb);
-				aBb.movePredBbs(bb);
+				aBb.movePreds(bb);
 				aBb.remove();
 				if (this.cfg.getStartBb() == aBb) {
 					this.cfg.setStartBb(bb);

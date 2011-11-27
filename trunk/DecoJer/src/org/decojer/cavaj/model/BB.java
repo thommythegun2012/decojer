@@ -34,7 +34,7 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 
 /**
- * Basic Block.
+ * Basic Block (BB).
  * 
  * @author André Pankraz
  */
@@ -51,15 +51,15 @@ public final class BB {
 
 	private int postorder;
 
-	protected final List<BB> predBbs = new ArrayList<BB>(0);
+	protected final List<BB> preds = new ArrayList<BB>(2);
 
 	private final List<Statement> stmts = new ArrayList<Statement>();
 
 	private Struct struct;
 
-	protected final List<BB> succBbs = new ArrayList<BB>(0);
+	protected final List<BB> succs = new ArrayList<BB>(2);
 
-	protected final List<Object> succValues = new ArrayList<Object>(0);
+	protected final List<Object> succValues = new ArrayList<Object>(2);
 
 	private int top; // stack top
 
@@ -84,51 +84,51 @@ public final class BB {
 	/**
 	 * Add statement.
 	 * 
-	 * @param statement
+	 * @param stmt
 	 *            statement
 	 */
-	public void addStmt(final Statement statement) {
-		this.stmts.add(statement);
+	public void addStmt(final Statement stmt) {
+		this.stmts.add(stmt);
 	}
 
 	/**
-	 * Add successor basic block with an edge value. The successors are ordered after the basic
-	 * block order index for order indexes greater than this.
+	 * Add successor BB with an edge value. The successors are ordered after the BB order index for
+	 * order indexes greater than this.
 	 * 
-	 * @param succBb
-	 *            successor basic block
+	 * @param succ
+	 *            successor BB
 	 * @param succValue
 	 *            edge value
 	 */
-	public void addSucc(final BB succBb, final Object succValue) {
-		assert succBb != null;
+	public void addSucc(final BB succ, final Object succValue) {
+		assert succ != null;
 
 		final int thisOrder = getOpPc();
-		final int succOrder = succBb.getOpPc();
+		final int succOrder = succ.getOpPc();
 
 		// sort forward edges
-		for (int i = 0; i < this.succBbs.size(); ++i) {
-			final BB bb = this.succBbs.get(i);
+		for (int i = 0; i < this.succs.size(); ++i) {
+			final BB bb = this.succs.get(i);
 			final int order = bb.getOpPc();
 			if (succOrder < order || thisOrder > order) {
 				// insert here and return
-				this.succBbs.add(i, succBb);
+				this.succs.add(i, succ);
 				this.succValues.add(i, succValue);
-				succBb.predBbs.add(this);
+				succ.preds.add(this);
 				return;
 			}
 		}
 		// append and return
-		this.succBbs.add(succBb);
+		this.succs.add(succ);
 		this.succValues.add(succValue);
-		succBb.predBbs.add(this);
+		succ.preds.add(this);
 	}
 
 	/**
-	 * Copy content from basic block.
+	 * Copy content from BB.
 	 * 
 	 * @param bb
-	 *            basic block
+	 *            BB
 	 */
 	public void copyContentFrom(final BB bb) {
 		this.ops.addAll(bb.ops);
@@ -156,9 +156,9 @@ public final class BB {
 	}
 
 	/**
-	 * Get control flow graph.
+	 * Get CFG.
 	 * 
-	 * @return control flow graph
+	 * @return CFG
 	 */
 	public CFG getCfg() {
 		return this.cfg;
@@ -224,7 +224,7 @@ public final class BB {
 	}
 
 	/**
-	 * Get poerstorder.
+	 * Get postorder.
 	 * 
 	 * @return postorder
 	 */
@@ -233,12 +233,12 @@ public final class BB {
 	}
 
 	/**
-	 * Get predecessor basic blocks.
+	 * Get predecessors.
 	 * 
-	 * @return predecessor basic blocks
+	 * @return predecessors
 	 */
-	public List<BB> getPredBbs() {
-		return this.predBbs;
+	public List<BB> getPreds() {
+		return this.preds;
 	}
 
 	/**
@@ -254,7 +254,7 @@ public final class BB {
 	 * Get statement.
 	 * 
 	 * @param index
-	 *            index
+	 *            statement index
 	 * @return statement or null
 	 */
 	public Statement getStmt(final int index) {
@@ -281,36 +281,46 @@ public final class BB {
 	}
 
 	/**
-	 * Get succcessor basic blocks.
+	 * Get single successor.
 	 * 
-	 * @return succcessor basic blocks
+	 * @return single successor or null
 	 */
-	public List<BB> getSuccBbs() {
-		return this.succBbs;
+	public BB getSucc() {
+		final int index = this.succValues.indexOf(null);
+		return index == -1 ? null : this.succs.get(index);
 	}
 
 	/**
 	 * Get false successor (for conditional BBs only).
 	 * 
-	 * @return false successor, not null (assert)
+	 * @return false successor (not null assertion)
 	 */
 	public BB getSuccFalse() {
 		final int index = this.succValues.indexOf(Boolean.FALSE);
 		assert index != -1;
 
-		return this.succBbs.get(index);
+		return this.succs.get(index);
+	}
+
+	/**
+	 * Get successors.
+	 * 
+	 * @return successors
+	 */
+	public List<BB> getSuccs() {
+		return this.succs;
 	}
 
 	/**
 	 * Get true successor (for conditional BBs only).
 	 * 
-	 * @return true successor, not null (assert)
+	 * @return true successor (not null assertion)
 	 */
 	public BB getSuccTrue() {
 		final int index = this.succValues.indexOf(Boolean.TRUE);
 		assert index != -1;
 
-		return this.succBbs.get(index);
+		return this.succs.get(index);
 	}
 
 	/**
@@ -343,34 +353,34 @@ public final class BB {
 	}
 
 	/**
-	 * Move predecessors to another basic block.
+	 * Move predecessors to target BB.
 	 * 
-	 * @param targetBB
-	 *            basic block
+	 * @param target
+	 *            BB
 	 */
-	public void movePredBbs(final BB targetBB) {
-		targetBB.predBbs.addAll(this.predBbs);
-		for (final BB predBB : this.predBbs) {
-			final int index = predBB.succBbs.indexOf(this);
-			predBB.succBbs.set(index, targetBB);
+	public void movePreds(final BB target) {
+		target.preds.addAll(this.preds);
+		for (final BB pred : this.preds) {
+			final int index = pred.succs.indexOf(this);
+			pred.succs.set(index, target);
 		}
-		this.predBbs.clear();
+		this.preds.clear();
 	}
 
 	/**
-	 * Move successors to another basic block.
+	 * Move successors to target BB.
 	 * 
-	 * @param targetBB
-	 *            basic block
+	 * @param target
+	 *            BB
 	 */
-	public void moveSuccBbs(final BB targetBB) {
-		targetBB.succBbs.addAll(this.succBbs);
-		targetBB.succValues.addAll(this.succValues);
-		for (final BB succBB : this.succBbs) {
-			final int index = succBB.predBbs.indexOf(this);
-			succBB.predBbs.set(index, targetBB);
+	public void moveSuccs(final BB target) {
+		target.succs.addAll(this.succs);
+		target.succValues.addAll(this.succValues);
+		for (final BB succ : this.succs) {
+			final int index = succ.preds.indexOf(this);
+			succ.preds.set(index, target);
 		}
-		this.succBbs.clear();
+		this.succs.clear();
 		this.succValues.clear();
 	}
 
@@ -414,16 +424,16 @@ public final class BB {
 	}
 
 	/**
-	 * Remove basic block from control flow graph.
+	 * Remove BB from CFG.
 	 */
 	public void remove() {
-		for (final BB succBB : this.succBbs) {
-			succBB.predBbs.remove(this);
+		for (final BB succ : this.succs) {
+			succ.preds.remove(this);
 		}
-		for (final BB predBB : this.predBbs) {
-			final int index = predBB.succBbs.indexOf(this);
-			predBB.succBbs.remove(index);
-			predBB.succValues.remove(index);
+		for (final BB pred : this.preds) {
+			final int index = pred.succs.indexOf(this);
+			pred.succs.remove(index);
+			pred.succValues.remove(index);
 		}
 	}
 
@@ -483,15 +493,15 @@ public final class BB {
 	}
 
 	/**
-	 * Set value for given successor basic block.
+	 * Set value for given successor BB.
 	 * 
-	 * @param succBB
-	 *            successor basic block
+	 * @param succ
+	 *            successor BB
 	 * @param value
 	 *            successor value
 	 */
-	public void setSuccValue(final BB succBB, final Object value) {
-		final int index = this.succBbs.indexOf(succBB);
+	public void setSuccValue(final BB succ, final Object value) {
+		final int index = this.succs.indexOf(succ);
 		this.succValues.set(index, value);
 	}
 
@@ -512,9 +522,9 @@ public final class BB {
 		if (this.stmts.size() > 0) {
 			sb.append("\nStmts: ").append(this.stmts);
 		}
-		if (this.succBbs.size() > 1) {
+		if (this.succs.size() > 1) {
 			sb.append("\nSucc: ");
-			for (final BB bb : this.succBbs) {
+			for (final BB bb : this.succs) {
 				sb.append(bb.getPostorder()).append(' ');
 			}
 		}
