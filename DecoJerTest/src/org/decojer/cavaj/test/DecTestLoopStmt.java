@@ -1,7 +1,17 @@
 package org.decojer.cavaj.test;
 
-
 public abstract class DecTestLoopStmt {
+
+	// from org.eclipse.jdt.core.compiler.CharOperation
+	public static final boolean contains(char character, char[][] array) {
+		for (int i = array.length; --i >= 0;) {
+			char[] subarray = array[i];
+			for (int j = subarray.length; --j >= 0;)
+				if (subarray[j] == character)
+					return true;
+		}
+		return false;
+	}
 
 	public static void testFor(final int a) {
 		for (int i = 0, j = 1; i < 10 && j < 10; i /= 2, j++) {
