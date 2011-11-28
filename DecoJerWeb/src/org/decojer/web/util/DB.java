@@ -23,6 +23,7 @@
  */
 package org.decojer.web.util;
 
+import com.google.appengine.api.datastore.Cursor;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -47,27 +48,27 @@ public class DB {
 	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
 			.getDatastoreService();
 
-	public static void iterate(final String kind, final int pageSize, final Processor processor) {
+	public static Cursor iterate(final String kind, final int pageSize, final Processor processor) {
 		final Query q = new Query(kind);
 		final PreparedQuery pq = DATASTORE_SERVICE.prepare(q);
 		// pagination because of max. 30s database operation timeout
 		final FetchOptions fetchOptions = FetchOptions.Builder.withLimit(pageSize);
-		outer: while (true) {
+		while (true) {
 			final QueryResultList<Entity> results = pq.asQueryResultList(fetchOptions);
 			for (final Entity entity : results) {
 				if (!processor.process(entity)) {
-					break outer;
+					return results.getCursor();
 				}
 			}
 			if (results.size() < pageSize || results.getCursor() == null) {
-				break;
+				return null;
 			}
 			fetchOptions.startCursor(results.getCursor());
 		}
 	}
 
-	public static void iterate(final String kind, final Processor processor) {
-		iterate(kind, 100, processor);
+	public static Cursor iterate(final String kind, final Processor processor) {
+		return iterate(kind, 100, processor);
 	}
 
 }
