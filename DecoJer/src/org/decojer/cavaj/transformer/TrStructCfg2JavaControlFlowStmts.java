@@ -442,7 +442,11 @@ public final class TrStructCfg2JavaControlFlowStmts {
 			}
 			for (int i = 0; i < size; ++i) {
 				final Object values = succValues.get(i);
-				for (final Object value : (List<Object>) values) {
+				if (!(values instanceof Integer[])) {
+					continue;
+				}
+
+				for (final Integer value : (Integer[]) values) {
 					final SwitchCase switchCase = getAst().newSwitchCase();
 					if (value == null) {
 						// necessary: expression initialized to null

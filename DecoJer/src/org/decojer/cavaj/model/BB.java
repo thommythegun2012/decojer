@@ -95,11 +95,11 @@ public final class BB {
 	 * Add switch successors.
 	 * 
 	 * @param caseKeys
-	 *            case keys
+	 *            case keys, null is default
 	 * @param caseSucc
 	 *            case successor
 	 */
-	public void addSwitchSucc(final List<Integer> caseKeys, final BB caseSucc) {
+	public void addSwitchSucc(final Integer[] caseKeys, final BB caseSucc) {
 		this.succValues.add(caseKeys);
 		this.succs.add(caseSucc);
 		caseSucc.preds.add(this);
