@@ -8,5 +8,7 @@
 	<classpathentry kind="lib" path="lib/jstl-impl-1.2.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/javaxdelta-2.0.1.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/trove-2.1.0.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/commons-io-2.1.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/guava-10.0.1.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

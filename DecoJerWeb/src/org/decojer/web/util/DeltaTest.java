@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import com.google.appengine.repackaged.com.google.common.io.Files;
+import com.google.common.io.Files;
 import com.nothome.delta.Delta;
 import com.nothome.delta.GDiffPatcher;
 
@@ -64,4 +64,5 @@ public class DeltaTest {
 
 		System.out.println("EQUALS: " + java.util.Arrays.equals(target, patchedSource));
 	}
+
 }
