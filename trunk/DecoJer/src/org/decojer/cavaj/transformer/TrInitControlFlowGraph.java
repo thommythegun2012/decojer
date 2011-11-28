@@ -232,7 +232,7 @@ public final class TrInitControlFlowGraph {
 						this.pc2Bbs[casePc] = caseBb;
 						openPcs.add(casePc);
 					}
-					bb.addSwitchSucc(keys, caseBb);
+					bb.addSwitchSucc(keys.toArray(new Integer[keys.size()]), caseBb);
 				}
 				pc = ops.length; // next open pc
 				continue;

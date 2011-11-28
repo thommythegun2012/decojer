@@ -24,6 +24,7 @@
 package org.decojer.cavaj.transformer;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -198,8 +199,10 @@ public final class TrControlFlowAnalysis {
 
 	private void findCondMembers(final Cond cond) {
 		final BB head = cond.getHead();
+
 		final BB falseSucc = head.getFalseSucc();
 		final BB trueSucc = head.getTrueSucc();
+
 		// if-statement compilation hasn't changed with JDK versions (unlike boolean expressions)
 		// means: negated if-expression, false successor contains if-body (PC & line before true),
 		// special unnegated cases (with JDK 5 compiler?):
@@ -394,8 +397,13 @@ public final class TrControlFlowAnalysis {
 		// reordering; fall-through follow-cases can have multiple predecessors
 		int firstIndex = -1;
 		// short check and find first node with 1 predecessor und default case
-		final int succNumber = succs.size();
-		for (int i = 0; i < succNumber; ++i) {
+		final int size = succs.size();
+		for (int i = 0; i < size; ++i) {
+			final Object values = succValues.get(i);
+			if (!(values instanceof Integer[])) {
+				continue;
+			}
+
 			final BB succ = succs.get(i);
 			final List<BB> preds = succ.getPreds();
 			if (preds.size() == 1 && firstIndex == -1) {
@@ -403,10 +411,7 @@ public final class TrControlFlowAnalysis {
 			}
 			assert preds.contains(head);
 
-			final Object succValue = succValues.get(i);
-			assert succValue instanceof List;
-
-			if (((List) succValue).contains(null)) {
+			if (Arrays.asList((Integer[]) values).contains(null)) {
 				assert defaultIndex == -1 : "Double Default Case!";
 
 				defaultIndex = i;
@@ -431,7 +436,7 @@ public final class TrControlFlowAnalysis {
 
 		// TODO currently only quick and dirty checks
 		int type = 0;
-		if (defaultIndex != succNumber - 1) {
+		if (defaultIndex != size - 1) {
 			// not last case branch?
 			type = Switch.SWITCH_DEFAULT;
 		}
@@ -442,8 +447,8 @@ public final class TrControlFlowAnalysis {
 		}
 
 		final Set<BB> endNodes = new HashSet<BB>();
-		for (int i = 0; i < succNumber; ++i) {
-			if (i == succNumber - 1) {
+		for (int i = 0; i < size; ++i) {
+			if (i == size - 1) {
 				if (type == 0) {
 					type = Switch.SWITCH;
 				}
@@ -468,7 +473,7 @@ public final class TrControlFlowAnalysis {
 			for (final BB bb : members) {
 				switchStruct.addMember(succValues.get(i), bb);
 			}
-			if (endNodes.contains(defaultBb) && i < succNumber - 2) {
+			if (endNodes.contains(defaultBb) && i < size - 2) {
 				type = Switch.SWITCH;
 			}
 		}
