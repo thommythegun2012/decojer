@@ -26,7 +26,7 @@ package org.decojer.cavaj.model.code.struct;
 import java.util.List;
 import java.util.Map.Entry;
 
-import org.decojer.cavaj.model.BB;
+import org.decojer.cavaj.model.code.BB;
 
 public class Switch extends Struct {
 

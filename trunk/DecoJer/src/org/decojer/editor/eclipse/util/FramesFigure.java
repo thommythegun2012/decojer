@@ -23,7 +23,7 @@
  */
 package org.decojer.editor.eclipse.util;
 
-import org.decojer.cavaj.model.BB;
+import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.Op;

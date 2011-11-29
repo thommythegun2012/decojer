@@ -31,12 +31,12 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;

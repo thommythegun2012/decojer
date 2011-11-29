@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.decojer.cavaj.model.BB;
+import org.decojer.cavaj.model.code.BB;
 
 public class Struct {
 

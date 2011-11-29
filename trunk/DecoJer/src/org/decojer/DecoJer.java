@@ -42,11 +42,11 @@ import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import org.decojer.cavaj.model.BD;
-import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrInitControlFlowGraph;

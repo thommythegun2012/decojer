@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.decojer.cavaj.model.T.TT;
+import org.decojer.cavaj.model.code.CFG;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;

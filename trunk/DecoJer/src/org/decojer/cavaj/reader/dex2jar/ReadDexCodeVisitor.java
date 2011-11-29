@@ -28,10 +28,10 @@ import java.util.HashMap;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.FILLARRAY;

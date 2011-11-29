@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
+import org.decojer.cavaj.model.code.CFG;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**

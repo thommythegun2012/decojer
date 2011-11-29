@@ -30,8 +30,8 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.BB;
-import org.decojer.cavaj.model.CFG;
+import org.decojer.cavaj.model.code.BB;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.op.GOTO;
 import org.decojer.cavaj.model.code.op.JCMP;
