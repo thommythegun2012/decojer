@@ -27,11 +27,11 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.BB;
-import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.code.BB;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;

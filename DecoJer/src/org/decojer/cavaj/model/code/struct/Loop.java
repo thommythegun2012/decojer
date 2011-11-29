@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.model.code.struct;
 
-import org.decojer.cavaj.model.BB;
+import org.decojer.cavaj.model.code.BB;
 
 public class Loop extends Struct {
 

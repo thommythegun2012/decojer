@@ -30,8 +30,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.BB;
-import org.decojer.cavaj.model.CFG;
+import org.decojer.cavaj.model.code.BB;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.struct.Cond;
 import org.decojer.cavaj.model.code.struct.Loop;
 import org.decojer.cavaj.model.code.struct.Struct;

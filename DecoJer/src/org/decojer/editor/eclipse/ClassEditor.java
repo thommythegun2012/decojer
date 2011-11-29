@@ -33,14 +33,14 @@ import java.util.regex.Pattern;
 
 import org.decojer.DecoJer;
 import org.decojer.DecoJerException;
-import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.BD;
-import org.decojer.cavaj.model.CFG;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.code.BB;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
