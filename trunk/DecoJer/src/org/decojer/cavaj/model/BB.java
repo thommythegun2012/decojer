@@ -72,6 +72,20 @@ public final class BB {
 	}
 
 	/**
+	 * Add catch successors.
+	 * 
+	 * @param handlerTypes
+	 *            handler types, null is any
+	 * @param handlerSucc
+	 *            handler successor
+	 */
+	public void addCatchSucc(final T[] handlerTypes, final BB handlerSucc) {
+		this.succValues.add(handlerTypes);
+		this.succs.add(handlerSucc);
+		handlerSucc.preds.add(this);
+	}
+
+	/**
 	 * Add operation.
 	 * 
 	 * @param op
@@ -93,6 +107,8 @@ public final class BB {
 
 	/**
 	 * Add switch successors.
+	 * 
+	 * TODO setSwitchSuccs() better?
 	 * 
 	 * @param caseKeys
 	 *            case keys, null is default
@@ -462,11 +478,12 @@ public final class BB {
 	 *            false successor
 	 */
 	public void setCondSuccs(final BB trueSucc, final BB falseSucc) {
-		this.succs.add(trueSucc);
 		this.succValues.add(Boolean.TRUE);
+		this.succs.add(trueSucc);
 		trueSucc.preds.add(this);
-		this.succs.add(falseSucc);
+
 		this.succValues.add(Boolean.FALSE);
+		this.succs.add(falseSucc);
 		falseSucc.preds.add(this);
 	}
 
@@ -497,9 +514,8 @@ public final class BB {
 	 *            successor
 	 */
 	public void setSucc(final BB succ) {
-		// append and return
-		this.succs.add(succ);
 		this.succValues.add(null);
+		this.succs.add(succ);
 		succ.preds.add(this);
 	}
 

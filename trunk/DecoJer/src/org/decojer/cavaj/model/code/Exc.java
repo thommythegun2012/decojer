@@ -124,4 +124,16 @@ public class Exc {
 		return sb.toString();
 	}
 
+	/**
+	 * Is variable valid for pc?
+	 * 
+	 * @param pc
+	 *            pc
+	 * @return true - variable valid for pc
+	 */
+	public boolean validIn(final int pc) {
+		// end pc is first pc _after_ (multiple byte) operation (even after final return)
+		return this.startPc <= pc && pc < this.endPc;
+	}
+
 }

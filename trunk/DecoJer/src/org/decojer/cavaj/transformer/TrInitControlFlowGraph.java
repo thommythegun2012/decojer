@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.BB;
 import org.decojer.cavaj.model.CFG;
+import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.op.GOTO;
 import org.decojer.cavaj.model.code.op.JCMP;
 import org.decojer.cavaj.model.code.op.JCND;
@@ -140,11 +141,25 @@ public final class TrInitControlFlowGraph {
 				this.pc2Bbs[pc] = bb;
 			}
 
+			final Exc[] excs = this.cfg.getExcs();
+			if (excs != null) {
+				// PC enters or leaves exception-catch?
+				final List<BB> succs = bb.getSuccs();
+				final List<Object> succValues = bb.getSuccValues();
+
+				for (final Exc exc : this.cfg.getExcs()) {
+					if (exc.validIn(pc)) {
+						exc.getT();
+					}
+				}
+			}
+
 			final Op op = ops[pc++];
 			bb.addOp(op);
 			switch (op.getOptype()) {
 			case GOTO: {
 				final GOTO cop = (GOTO) op;
+				// follow without new BB, lazy splitting
 				pc = cop.getTargetPc();
 				continue;
 			}
@@ -197,7 +212,7 @@ public final class TrInitControlFlowGraph {
 			case SWITCH: {
 				final SWITCH cop = (SWITCH) op;
 
-				// build map: unique case pc -> case keys
+				// build sorted map: unique case pc -> matching case keys
 				final TreeMap<Integer, List<Integer>> casePc2keys = new TreeMap<Integer, List<Integer>>();
 				List<Integer> keys;
 				final int[] caseKeys = cop.getCaseKeys();
