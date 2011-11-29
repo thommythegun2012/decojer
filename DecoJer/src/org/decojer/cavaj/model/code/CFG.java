@@ -100,7 +100,8 @@ public class CFG {
 		// DFS
 		traversed.add(bb);
 		int _postorder = postorder;
-		for (final BB succ : bb.getSuccs()) {
+		for (final E out : bb.getOuts()) {
+			final BB succ = out.getEnd();
 			if (traversed.contains(succ)) {
 				continue;
 			}
@@ -158,7 +159,8 @@ public class CFG {
 			// start with rootNode, means this.postorderBBNodes.length - 1
 			for (; b-- > 0;) {
 				BB iDomNew = null;
-				for (final BB pred : this.postorderedBbs.get(b).getPreds()) {
+				for (final E in : this.postorderedBbs.get(b).getIns()) {
+					final BB pred = in.getStart();
 					if (this.iDoms[pred.getPostorder()] == null) {
 						continue;
 					}
