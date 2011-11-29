@@ -32,6 +32,7 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.struct.Cond;
 import org.decojer.cavaj.model.code.struct.Loop;
 import org.decojer.cavaj.model.code.struct.Struct;
@@ -52,7 +53,8 @@ public final class TrControlFlowAnalysis {
 		traversed.add(bb);
 		boolean loopSucc = false;
 		boolean backEdge = false;
-		for (final BB succ : bb.getSuccs()) {
+		for (final E out : bb.getOuts()) {
+			final BB succ = out.getEnd();
 			// equal: check self back edge too
 			if (bb.getPostorder() <= succ.getPostorder()) {
 				// back edge (continue, tail, inner loop, outer label-continue)
@@ -100,12 +102,13 @@ public final class TrControlFlowAnalysis {
 			final Struct struct) {
 		// check important for switch fall-throughs with early member addition
 		if (!members.contains(bb)) {
-			if (bb.getPreds().size() <= 1) {
+			if (bb.getIns().size() <= 1) {
 				// predecessor check unnecessary, but is also necessary as
 				// startup for branch member search
 				members.add(bb);
 			} else {
-				for (final BB pred : bb.getPreds()) {
+				for (final E in : bb.getIns()) {
+					final BB pred = in.getStart();
 					if (pred.getPostorder() <= bb.getPostorder()) {
 						// ignore back edges
 						continue;
@@ -119,7 +122,8 @@ public final class TrControlFlowAnalysis {
 				members.add(bb);
 			}
 		}
-		for (final BB succ : bb.getSuccs()) {
+		for (final E out : bb.getOuts()) {
+			final BB succ = out.getEnd();
 			if (members.contains(succ)) {
 				continue;
 			}
@@ -166,8 +170,8 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private static boolean isLoopHead(final BB bb) {
-		for (final BB pred : bb.getPreds()) {
-			if (pred.getPostorder() <= bb.getPostorder()) {
+		for (final E in : bb.getIns()) {
+			if (in.getStart().getPostorder() <= bb.getPostorder()) {
 				// must be a back edge (eg. self loop), in Java only possible for loop heads
 				return true;
 			}
@@ -323,8 +327,8 @@ public final class TrControlFlowAnalysis {
 		// TODO while (<inlineAssignment> > 0) - must inline agressively here
 
 		if (head.getStmts() == 1 && head.isFinalStmtCond()) {
-			final BB trueSucc = head.getTrueSucc();
 			final BB falseSucc = head.getFalseSucc();
+			final BB trueSucc = head.getTrueSucc();
 			if (loop.isMember(trueSucc) && !loop.isMember(falseSucc)) {
 				// JDK 6: true is member, opPc of pre head > next member,
 				// leading goto
@@ -343,8 +347,8 @@ public final class TrControlFlowAnalysis {
 		BB tailFollow = null;
 
 		if (tail.isFinalStmtCond()) {
-			final BB trueSucc = tail.getTrueSucc();
 			final BB falseSucc = tail.getFalseSucc();
+			final BB trueSucc = tail.getTrueSucc();
 			if (loop.isHead(trueSucc)) {
 				tailType = Loop.DO_WHILE;
 				tailFollow = falseSucc;
@@ -389,27 +393,25 @@ public final class TrControlFlowAnalysis {
 		final BB head = switchStruct.getHead();
 
 		// cases with branches and values, in normal mode in correct order
-		final List<BB> succs = head.getSuccs();
-		final List<Object> succValues = head.getSuccValues();
+		final List<E> outs = head.getOuts();
 
 		int defaultIndex = -1;
 		// first case can only have head as predecessor, else try case
 		// reordering; fall-through follow-cases can have multiple predecessors
 		int firstIndex = -1;
 		// short check and find first node with 1 predecessor und default case
-		final int size = succs.size();
+		final int size = outs.size();
 		for (int i = 0; i < size; ++i) {
-			final Object values = succValues.get(i);
+			final Object values = outs.get(i).getValue();
 			if (!(values instanceof Integer[])) {
 				continue;
 			}
 
-			final BB succ = succs.get(i);
-			final List<BB> preds = succ.getPreds();
-			if (preds.size() == 1 && firstIndex == -1) {
+			final BB succ = outs.get(i).getEnd();
+			if (succ.getIns().size() == 1 && firstIndex == -1) {
 				firstIndex = i;
 			}
-			assert preds.contains(head);
+			// assert preds.contains(head);
 
 			if (Arrays.asList((Integer[]) values).contains(null)) {
 				assert defaultIndex == -1 : "Double Default Case!";
@@ -428,10 +430,8 @@ public final class TrControlFlowAnalysis {
 		} else if (firstIndex != 0) {
 			log("Switch with head '" + head
 					+ "' has no first case branch with 1 predecessor, reordering!");
-			final BB removedBb = succs.remove(firstIndex);
-			final Object removedValue = succValues.remove(firstIndex);
-			succs.add(0, removedBb);
-			succValues.add(0, removedValue);
+			final E removedOut = outs.remove(firstIndex);
+			outs.add(0, removedOut);
 		}
 
 		// TODO currently only quick and dirty checks
@@ -440,8 +440,8 @@ public final class TrControlFlowAnalysis {
 			// not last case branch?
 			type = Switch.SWITCH_DEFAULT;
 		}
-		final BB defaultBb = succs.get(defaultIndex);
-		if (defaultBb.getPreds().size() == 1) {
+		final BB defaultBb = outs.get(defaultIndex).getEnd();
+		if (defaultBb.getIns().size() == 1) {
 			// no fall-through follow case and no switch follow
 			type = Switch.SWITCH_DEFAULT;
 		}
@@ -456,12 +456,11 @@ public final class TrControlFlowAnalysis {
 					break;
 				}
 			}
-			final BB succ = succs.get(i);
+			final BB succ = outs.get(i).getEnd();
 
 			final List<BB> members = new ArrayList<BB>();
 
-			final List<BB> preds = succ.getPreds();
-			if (preds.size() > 1) {
+			if (succ.getIns().size() > 1) {
 				// fall-through follow case?
 				if (!endNodes.remove(succ)) {
 					log("TODO Case reordering necessary? No proper follow case!");
@@ -471,7 +470,7 @@ public final class TrControlFlowAnalysis {
 
 			dfsFindTail(members, endNodes, succ, switchStruct.getParent());
 			for (final BB bb : members) {
-				switchStruct.addMember(succValues.get(i), bb);
+				switchStruct.addMember(outs.get(i).getValue(), bb);
 			}
 			if (endNodes.contains(defaultBb) && i < size - 2) {
 				type = Switch.SWITCH;

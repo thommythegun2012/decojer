@@ -90,7 +90,7 @@ public final class TrInitControlFlowGraph {
 		// split basic block, new incoming block, adapt basic block pcs
 		final BB split = this.cfg.newBb(pc);
 		// first preserve previous successors...
-		bb.moveSuccs(split);
+		bb.moveOuts(split);
 		// ...then set new successor
 		bb.setSucc(split);
 
@@ -144,8 +144,8 @@ public final class TrInitControlFlowGraph {
 			final Exc[] excs = this.cfg.getExcs();
 			if (excs != null) {
 				// PC enters or leaves exception-catch?
-				final List<BB> succs = bb.getSuccs();
-				final List<Object> succValues = bb.getSuccValues();
+				// final List<BB> succs = bb.getSuccs();
+				// final List<Object> succValues = bb.getSuccValues();
 
 				for (final Exc exc : this.cfg.getExcs()) {
 					if (exc.validIn(pc)) {
@@ -181,7 +181,7 @@ public final class TrInitControlFlowGraph {
 					} else {
 						pc = ops.length; // next open pc
 					}
-					bb.setCondSuccs(trueSucc, falseSucc);
+					bb.setCondSuccs(falseSucc, trueSucc);
 					bb = falseSucc;
 				}
 				continue;
@@ -204,7 +204,7 @@ public final class TrInitControlFlowGraph {
 					} else {
 						pc = ops.length; // next open pc
 					}
-					bb.setCondSuccs(trueSucc, falseSucc);
+					bb.setCondSuccs(falseSucc, trueSucc);
 					bb = falseSucc;
 				}
 				continue;

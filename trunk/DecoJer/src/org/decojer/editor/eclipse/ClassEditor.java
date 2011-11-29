@@ -25,7 +25,6 @@ package org.decojer.editor.eclipse;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -41,6 +40,7 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
@@ -148,25 +148,20 @@ public class ClassEditor extends MultiPageEditorPart {
 		}
 		map.put(bb, node);
 
-		final List<BB> succs = bb.getSuccs();
-		final List<Object> succValues = bb.getSuccValues();
-
-		for (int i = 0; i < succs.size(); ++i) {
-			final BB succ = succs.get(i);
-			GraphNode succNode = map.get(succ);
+		for (final E out : bb.getOuts()) {
+			GraphNode succNode = map.get(out.getEnd());
 			if (succNode == null) {
-				succNode = addToGraph(succ, map);
+				succNode = addToGraph(out.getEnd(), map);
 			}
 			final GraphConnection connection = new GraphConnection(this.cfgViewer,
 					ZestStyles.CONNECTIONS_DIRECTED, node, succNode);
 			if (this.cfgAntialiasingCheckbox.getSelection()) {
 				((Polyline) connection.getConnectionFigure()).setAntialias(SWT.ON);
 			}
-			final Object value = succValues.get(i);
-			if (value != null) {
-				connection.setText(value.toString());
+			if (out.getValue() != null) {
+				connection.setText(out.getValue().toString());
 			}
-			if (succ.getPostorder() >= bb.getPostorder()) {
+			if (out.getEnd().getPostorder() >= bb.getPostorder()) {
 				connection.setCurveDepth(50);
 				connection.setLineColor(ColorConstants.red);
 			}

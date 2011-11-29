@@ -35,6 +35,7 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.struct.Catch;
 import org.decojer.cavaj.model.code.struct.Cond;
 import org.decojer.cavaj.model.code.struct.Loop;
@@ -141,8 +142,8 @@ public final class TrStructCfg2JavaControlFlowStmts {
 		final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 				statement.getExpression());
 
-		final BB trueSucc = head.getTrueSucc();
 		final BB falseSucc = head.getFalseSucc();
+		final BB trueSucc = head.getTrueSucc();
 
 		boolean negate = true;
 		switch (cond.getType()) {
@@ -433,15 +434,14 @@ public final class TrStructCfg2JavaControlFlowStmts {
 			final SwitchStatement switchStatement = getAst().newSwitchStatement();
 			switchStatement.setExpression(expression);
 
-			final List<BB> succs = head.getSuccs();
-			final List<Object> succValues = head.getSuccValues();
+			final List<E> outs = head.getOuts();
 
-			int size = succs.size();
+			int size = outs.size();
 			if (!defaultCase) {
 				--size;
 			}
 			for (int i = 0; i < size; ++i) {
-				final Object values = succValues.get(i);
+				final Object values = outs.get(i).getValue();
 				if (!(values instanceof Integer[])) {
 					continue;
 				}
@@ -458,7 +458,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 				}
 
 				final List<Statement> subStatements = new ArrayList<Statement>();
-				transformSequence(switchStruct, succs.get(i), subStatements);
+				transformSequence(switchStruct, outs.get(i).getEnd(), subStatements);
 				switchStatement.statements().addAll(subStatements);
 			}
 			// remove final break

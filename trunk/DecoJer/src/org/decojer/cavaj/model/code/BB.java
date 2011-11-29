@@ -35,7 +35,7 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 
 /**
- * Basic Block (BB).
+ * CFG Basic Block (BB).
  * 
  * @author André Pankraz
  */
@@ -52,15 +52,13 @@ public final class BB {
 
 	private int postorder;
 
-	protected final List<BB> preds = new ArrayList<BB>(2);
+	protected final ArrayList<E> ins = new ArrayList<E>(2);
 
 	private final List<Statement> stmts = new ArrayList<Statement>();
 
 	private Struct struct;
 
-	protected final List<BB> succs = new ArrayList<BB>(2);
-
-	protected final List<Object> succValues = new ArrayList<Object>(2);
+	protected final ArrayList<E> outs = new ArrayList<E>(2);
 
 	private int top; // stack top
 
@@ -81,9 +79,9 @@ public final class BB {
 	 *            handler successor
 	 */
 	public void addCatchSucc(final T[] handlerTypes, final BB handlerSucc) {
-		this.succValues.add(handlerTypes);
-		this.succs.add(handlerSucc);
-		handlerSucc.preds.add(this);
+		final E out = new E(this, handlerSucc, handlerTypes);
+		this.outs.add(out);
+		handlerSucc.ins.add(out);
 	}
 
 	/**
@@ -117,9 +115,9 @@ public final class BB {
 	 *            case successor
 	 */
 	public void addSwitchSucc(final Integer[] caseKeys, final BB caseSucc) {
-		this.succValues.add(caseKeys);
-		this.succs.add(caseSucc);
-		caseSucc.preds.add(this);
+		final E out = new E(this, caseSucc, caseKeys);
+		this.outs.add(out);
+		caseSucc.ins.add(out);
 	}
 
 	/**
@@ -163,15 +161,26 @@ public final class BB {
 	}
 
 	/**
-	 * Get false successor (for conditional BBs only).
+	 * Get false out edge.
 	 * 
-	 * @return false successor (not null assertion)
+	 * @return false out edge
+	 */
+	public E getFalseOut() {
+		for (final E out : this.outs) {
+			if (Boolean.FALSE == out.getValue()) {
+				return out;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Get false successor (for conditionals only, else exception).
+	 * 
+	 * @return false successor
 	 */
 	public BB getFalseSucc() {
-		final int index = this.succValues.indexOf(Boolean.FALSE);
-		assert index != -1;
-
-		return this.succs.get(index);
+		return getFalseOut().getEnd();
 	}
 
 	/**
@@ -190,6 +199,15 @@ public final class BB {
 	 */
 	public BB getIDom() {
 		return getCfg().getIDom(this);
+	}
+
+	/**
+	 * Get in edges.
+	 * 
+	 * @return in edges
+	 */
+	public List<E> getIns() {
+		return this.ins;
 	}
 
 	private int getLocals() {
@@ -234,21 +252,35 @@ public final class BB {
 	}
 
 	/**
+	 * Get sequence out edge. Returns null if last statement is a control flow statement.
+	 * 
+	 * @return out edge (or null)
+	 */
+	public E getOut() {
+		for (final E succ : this.outs) {
+			if (null == succ.getValue()) {
+				return succ;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Get out edges.
+	 * 
+	 * @return out edges
+	 */
+	public List<E> getOuts() {
+		return this.outs;
+	}
+
+	/**
 	 * Get postorder.
 	 * 
 	 * @return postorder
 	 */
 	public int getPostorder() {
 		return this.postorder;
-	}
-
-	/**
-	 * Get predecessors.
-	 * 
-	 * @return predecessors
-	 */
-	public List<BB> getPreds() {
-		return this.preds;
 	}
 
 	/**
@@ -291,43 +323,35 @@ public final class BB {
 	}
 
 	/**
-	 * Get sequence successor. Returns null if last statement is a control flow statement.
+	 * Get sequence successor.
 	 * 
-	 * @return sequence successor (or null)
+	 * @return sequence successor or null
 	 */
 	public BB getSucc() {
-		final int index = this.succValues.indexOf(null);
-		return index == -1 ? null : this.succs.get(index);
+		return getOut() == null ? null : getOut().getEnd();
 	}
 
 	/**
-	 * Get successors.
+	 * Get true out edge.
 	 * 
-	 * @return successors
+	 * @return true out edge
 	 */
-	public List<BB> getSuccs() {
-		return this.succs;
+	public E getTrueOut() {
+		for (final E succ : this.outs) {
+			if (Boolean.TRUE == succ.getValue()) {
+				return succ;
+			}
+		}
+		return null;
 	}
 
 	/**
-	 * Get successor values.
+	 * Get true successor (for conditionals only, else exception).
 	 * 
-	 * @return successor values
-	 */
-	public List<Object> getSuccValues() {
-		return this.succValues;
-	}
-
-	/**
-	 * Get true successor (for conditional BBs only).
-	 * 
-	 * @return true successor (not null assertion)
+	 * @return true successor
 	 */
 	public BB getTrueSucc() {
-		final int index = this.succValues.indexOf(Boolean.TRUE);
-		assert index != -1;
-
-		return this.succs.get(index);
+		return getTrueOut().getEnd();
 	}
 
 	/**
@@ -351,35 +375,31 @@ public final class BB {
 	}
 
 	/**
-	 * Move predecessors to target BB.
+	 * Move in edges to target BB.
 	 * 
 	 * @param target
-	 *            BB
+	 *            target BB
 	 */
-	public void movePreds(final BB target) {
-		target.preds.addAll(this.preds);
-		for (final BB pred : this.preds) {
-			final int index = pred.succs.indexOf(this);
-			pred.succs.set(index, target);
+	public void moveIns(final BB target) {
+		for (final E in : this.ins) {
+			in.setEnd(target);
+			target.ins.add(in);
 		}
-		this.preds.clear();
+		this.ins.clear();
 	}
 
 	/**
-	 * Move successors to target BB.
+	 * Move out edges to target BB.
 	 * 
 	 * @param target
-	 *            BB
+	 *            target BB
 	 */
-	public void moveSuccs(final BB target) {
-		target.succs.addAll(this.succs);
-		target.succValues.addAll(this.succValues);
-		for (final BB succ : this.succs) {
-			final int index = succ.preds.indexOf(this);
-			succ.preds.set(index, target);
+	public void moveOuts(final BB target) {
+		for (final E out : this.outs) {
+			out.setStart(target);
+			target.outs.add(out);
 		}
-		this.succs.clear();
-		this.succValues.clear();
+		this.outs.clear();
 	}
 
 	/**
@@ -425,13 +445,11 @@ public final class BB {
 	 * Remove BB from CFG.
 	 */
 	public void remove() {
-		for (final BB succ : this.succs) {
-			succ.preds.remove(this);
+		for (final E in : this.ins) {
+			in.getStart().outs.remove(in);
 		}
-		for (final BB pred : this.preds) {
-			final int index = pred.succs.indexOf(this);
-			pred.succs.remove(index);
-			pred.succValues.remove(index);
+		for (final E out : this.outs) {
+			out.getEnd().ins.remove(out);
 		}
 	}
 
@@ -473,19 +491,22 @@ public final class BB {
 	/**
 	 * Set conditional successors.
 	 * 
-	 * @param trueSucc
-	 *            true successor
 	 * @param falseSucc
 	 *            false successor
+	 * @param trueSucc
+	 *            true successor
 	 */
-	public void setCondSuccs(final BB trueSucc, final BB falseSucc) {
-		this.succValues.add(Boolean.TRUE);
-		this.succs.add(trueSucc);
-		trueSucc.preds.add(this);
+	public void setCondSuccs(final BB falseSucc, final BB trueSucc) {
+		assert getFalseOut() == null : getFalseOut();
+		assert getTrueOut() == null : getTrueOut();
 
-		this.succValues.add(Boolean.FALSE);
-		this.succs.add(falseSucc);
-		falseSucc.preds.add(this);
+		final E falseOut = new E(this, falseSucc, Boolean.FALSE);
+		this.outs.add(falseOut);
+		falseSucc.ins.add(falseOut);
+
+		final E trueOut = new E(this, trueSucc, Boolean.TRUE);
+		this.outs.add(trueOut);
+		trueSucc.ins.add(trueOut);
 	}
 
 	/**
@@ -515,9 +536,11 @@ public final class BB {
 	 *            successor
 	 */
 	public void setSucc(final BB succ) {
-		this.succValues.add(null);
-		this.succs.add(succ);
-		succ.preds.add(this);
+		assert getOut() == null : getOut();
+
+		final E e = new E(this, succ, null);
+		this.outs.add(e);
+		succ.ins.add(e);
 	}
 
 	@Override
@@ -537,10 +560,10 @@ public final class BB {
 		if (this.stmts.size() > 0) {
 			sb.append("\nStmts: ").append(this.stmts);
 		}
-		if (this.succs.size() > 1) {
+		if (this.outs.size() > 1) {
 			sb.append("\nSucc: ");
-			for (final BB bb : this.succs) {
-				sb.append(bb.getPostorder()).append(' ');
+			for (final E out : this.outs) {
+				sb.append(out.getEnd().getPostorder()).append(' ');
 			}
 		}
 		return sb.toString();
