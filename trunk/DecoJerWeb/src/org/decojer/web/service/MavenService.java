@@ -356,8 +356,14 @@ public class MavenService {
 		} catch (final EntityNotFoundException e) {
 			// fall through
 		}
-		BlobKey blobKey;
 		try {
+			final byte[] pomContent = fetchFile(groupId, artifactId, version, artifactId + '-'
+					+ version + ".pom");
+			if (pomContent == null) {
+				// even if JAR exists...cannot do anything with that
+				// (repository error, e.g. org.ujoframework:ujo-orm:0.92)
+				return null;
+			}
 			final String fileName = artifactId + '-' + version + ".jar";
 			final byte[] jarContent = fetchFile(groupId, artifactId, version, fileName);
 			if (jarContent == null) {
@@ -369,26 +375,20 @@ public class MavenService {
 				return null;
 			}
 			final Entity blobInfo = BlobService.getInstance().findBlobInfo(jarContent);
+			BlobKey blobKey;
 			if (blobInfo == null) {
 				blobKey = BlobService.getInstance().createBlob("application/java-archive",
 						fileName, jarContent);
 			} else {
 				blobKey = new BlobKey(blobInfo.getKey().getName());
 			}
-		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Couldn't import POM JAR '" + pomId + "'!", e);
-			return null;
-		}
-		try {
-			final byte[] pomContent = fetchFile(groupId, artifactId, version, artifactId + '-'
-					+ version + ".pom");
 			final Pom pom = new Pom(new Entity(pomKey));
 			pom.setContent(pomContent);
 			pom.setJar(blobKey);
 			datastoreService.put(pom.getWrappedEntity());
 			return pom;
-		} catch (final Exception e1) {
-			LOGGER.log(Level.WARNING, "Couldn't import POM '" + pomId + "'!", e1);
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Couldn't import POM JAR '" + pomId + "'!", e);
 			return null;
 		}
 	}
