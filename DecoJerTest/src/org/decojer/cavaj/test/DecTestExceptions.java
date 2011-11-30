@@ -2,21 +2,6 @@ package org.decojer.cavaj.test;
 
 public abstract class DecTestExceptions {
 
-	void doubleSameException() {
-		System.out.println("PRE");
-		try {
-			try {
-				System.out.println("IN");
-			} catch (final Exception e) {
-				System.out.println("EXC: " + e);
-				e.printStackTrace();
-			}
-		} catch (final Exception e2) {
-			System.out.println("EXC2: " + e2);
-		}
-		System.out.println("POST");
-	}
-
 	void exceptionFinally() {
 		System.out.println("PRE");
 		try {
@@ -43,7 +28,7 @@ public abstract class DecTestExceptions {
 			} catch (final OutOfMemoryError e) {
 				e.printStackTrace();
 			}
-		} catch (final Error e) {
+		} catch (final RuntimeException e) {
 			System.out.println("ERR: " + e);
 			e.printStackTrace();
 		}
