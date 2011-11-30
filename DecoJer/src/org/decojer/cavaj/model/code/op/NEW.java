@@ -67,7 +67,7 @@ public class NEW extends Op {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + this.t;
+		return super.toString() + " " + this.t.getIName();
 	}
 
 }

@@ -73,7 +73,7 @@ public class GET extends Op {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + this.f;
+		return super.toString() + " " + this.f.getName();
 	}
 
 }

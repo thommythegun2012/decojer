@@ -434,19 +434,14 @@ public final class TrStructCfg2JavaControlFlowStmts {
 			final SwitchStatement switchStatement = getAst().newSwitchStatement();
 			switchStatement.setExpression(expression);
 
-			final List<E> outs = head.getOuts();
+			final List<E> outs = head.getSwitchOuts();
 
 			int size = outs.size();
 			if (!defaultCase) {
 				--size;
 			}
 			for (int i = 0; i < size; ++i) {
-				final Object values = outs.get(i).getValue();
-				if (!(values instanceof Integer[])) {
-					continue;
-				}
-
-				for (final Integer value : (Integer[]) values) {
+				for (final Integer value : (Integer[]) outs.get(i).getValue()) {
 					final SwitchCase switchCase = getAst().newSwitchCase();
 					if (value == null) {
 						// necessary: expression initialized to null

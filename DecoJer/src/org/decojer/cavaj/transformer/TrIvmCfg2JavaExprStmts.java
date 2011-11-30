@@ -95,6 +95,7 @@ import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CastExpression;
+import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
@@ -111,6 +112,7 @@ import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
@@ -118,6 +120,8 @@ import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
+import org.eclipse.jdt.core.dom.TryStatement;
+import org.eclipse.jdt.core.dom.UnionType;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
@@ -1389,6 +1393,43 @@ public final class TrIvmCfg2JavaExprStmts {
 		return true;
 	}
 
+	@SuppressWarnings("unchecked")
+	private boolean rewriteHandler(final BB bb) {
+		final List<Op> ops = bb.getOps();
+		if (ops.isEmpty() || !(ops.get(0) instanceof STORE)) {
+			LOGGER.warning("First operation in handler isn't STORE: " + bb);
+			return false;
+		}
+		final T[] handlerTypes = (T[]) bb.getIns().get(0).getValue();
+		final boolean isFinally = 1 == handlerTypes.length && null == handlerTypes[0];
+
+		final STORE cop = (STORE) ops.remove(0);
+		final String name = getVarName(cop.getReg(), cop.getPc() + 1);
+
+		final TryStatement tryStatement = getAst().newTryStatement();
+		if (!isFinally) {
+			final CatchClause catchClause = getAst().newCatchClause();
+			final SingleVariableDeclaration singleVariableDeclaration = getAst()
+					.newSingleVariableDeclaration();
+			singleVariableDeclaration.setName(getAst().newSimpleName(name));
+			if (handlerTypes.length == 1) {
+				singleVariableDeclaration.setType(getAst().newSimpleType(
+						getTd().newTypeName(handlerTypes[0])));
+			} else {
+				// Multi-Catch
+				final UnionType unionType = getAst().newUnionType();
+				for (final T t : handlerTypes) {
+					unionType.types().add(getAst().newSimpleType(getTd().newTypeName(t)));
+				}
+				singleVariableDeclaration.setType(unionType);
+			}
+			catchClause.setException(singleVariableDeclaration);
+			tryStatement.catchClauses().add(catchClause);
+		}
+		bb.addStmt(tryStatement);
+		return true;
+	}
+
 	private boolean rewriteShortCircuitCompound(final BB bb) {
 		if (bb.getIns().size() != 1) {
 			return false;
@@ -1533,9 +1574,14 @@ public final class TrIvmCfg2JavaExprStmts {
 				// can happen if BB deleted through rewrite
 				continue;
 			}
-			while (rewriteConditional(bb)) {
-				// delete superior BBs, multiple iterations possible:
-				// a == null ? 0 : a.length() == 0 ? 0 : 1
+			final boolean handler = bb.isHandler();
+			if (handler) {
+				rewriteHandler(bb);
+			} else {
+				while (rewriteConditional(bb)) {
+					// delete superior BBs, multiple iterations possible:
+					// a == null ? 0 : a.length() == 0 ? 0 : 1
+				}
 			}
 			// previous expressions merged into bb, now rewrite:
 			if (!convertToHLLIntermediate(bb)) {
@@ -1547,9 +1593,11 @@ public final class TrIvmCfg2JavaExprStmts {
 				// should never happen in forward mode
 				LOGGER.warning("Stack underflow  in '" + this.cfg + "':\n" + bb);
 			}
-			// single IfStatement created? then check:
-			while (rewriteShortCircuitCompound(bb)) {
-				// delete superior BBs, multiple iterations possible
+			if (!handler) {
+				// single IfStatement created? then check:
+				while (rewriteShortCircuitCompound(bb)) {
+					// delete superior BBs, multiple iterations possible
+				}
 			}
 		}
 		this.cfg.calculatePostorder(); // BBs deleted...

@@ -152,6 +152,21 @@ public final class BB {
 	}
 
 	/**
+	 * Get catch out edges.
+	 * 
+	 * @return catch out edges
+	 */
+	public List<E> getCatchOuts() {
+		final ArrayList<E> catchOuts = new ArrayList<E>();
+		for (final E out : this.outs) {
+			if (out.isCatch()) {
+				catchOuts.add(out);
+			}
+		}
+		return catchOuts;
+	}
+
+	/**
 	 * Get CFG.
 	 * 
 	 * @return CFG
@@ -161,7 +176,7 @@ public final class BB {
 	}
 
 	/**
-	 * Get false out edge.
+	 * Get (conditional) false out edge.
 	 * 
 	 * @return false out edge
 	 */
@@ -175,9 +190,9 @@ public final class BB {
 	}
 
 	/**
-	 * Get false successor (for conditionals only, else exception).
+	 * Get false (branch) successor (for conditionals only, else exception).
 	 * 
-	 * @return false successor
+	 * @return false (branch) successor
 	 */
 	public BB getFalseSucc() {
 		return getFalseOut().getEnd();
@@ -257,9 +272,9 @@ public final class BB {
 	 * @return out edge (or null)
 	 */
 	public E getOut() {
-		for (final E succ : this.outs) {
-			if (null == succ.getValue()) {
-				return succ;
+		for (final E out : this.outs) {
+			if (null == out.getValue()) {
+				return out;
 			}
 		}
 		return null;
@@ -332,23 +347,38 @@ public final class BB {
 	}
 
 	/**
-	 * Get true out edge.
+	 * Get switch out edges.
+	 * 
+	 * @return switch out edges
+	 */
+	public List<E> getSwitchOuts() {
+		final ArrayList<E> switchOuts = new ArrayList<E>();
+		for (final E out : this.outs) {
+			if (out.isSwitch()) {
+				switchOuts.add(out);
+			}
+		}
+		return switchOuts;
+	}
+
+	/**
+	 * Get (conditional) true out edge.
 	 * 
 	 * @return true out edge
 	 */
 	public E getTrueOut() {
-		for (final E succ : this.outs) {
-			if (Boolean.TRUE == succ.getValue()) {
-				return succ;
+		for (final E out : this.outs) {
+			if (Boolean.TRUE == out.getValue()) {
+				return out;
 			}
 		}
 		return null;
 	}
 
 	/**
-	 * Get true successor (for conditionals only, else exception).
+	 * Get true (branch) successor (for conditionals only, else exception).
 	 * 
-	 * @return true successor
+	 * @return true (branch) successor
 	 */
 	public BB getTrueSucc() {
 		return getTrueOut().getEnd();
@@ -375,6 +405,20 @@ public final class BB {
 	}
 
 	/**
+	 * Is BB an exception handler?
+	 * 
+	 * @return true - BB is an exception handler
+	 */
+	public boolean isHandler() {
+		for (final E in : this.ins) {
+			if (in.isCatch()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Move in edges to target BB.
 	 * 
 	 * @param target
@@ -396,6 +440,9 @@ public final class BB {
 	 */
 	public void moveOuts(final BB target) {
 		for (final E out : this.outs) {
+			if (out.isCatch()) {
+				continue;
+			}
 			out.setStart(target);
 			target.outs.add(out);
 		}
@@ -492,9 +539,9 @@ public final class BB {
 	 * Set conditional successors.
 	 * 
 	 * @param falseSucc
-	 *            false successor
+	 *            false (branch) successor
 	 * @param trueSucc
-	 *            true successor
+	 *            true (branch) successor
 	 */
 	public void setCondSuccs(final BB falseSucc, final BB trueSucc) {
 		assert getFalseOut() == null : getFalseOut();

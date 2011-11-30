@@ -89,7 +89,7 @@ public class INVOKE extends Op {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + this.m;
+		return super.toString() + " " + this.m.getName();
 	}
 
 }

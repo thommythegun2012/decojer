@@ -269,12 +269,12 @@ public class CFG {
 	/**
 	 * Get immediate dominator (IDom) for basic block.
 	 * 
-	 * @param basicBlock
+	 * @param bb
 	 *            basic block
 	 * @return immediate domminator (IDom) for basic block
 	 */
-	public BB getIDom(final BB basicBlock) {
-		return this.iDoms[basicBlock.getPostorder()];
+	public BB getIDom(final BB bb) {
+		return this.iDoms[bb.getPostorder()];
 	}
 
 	/**
