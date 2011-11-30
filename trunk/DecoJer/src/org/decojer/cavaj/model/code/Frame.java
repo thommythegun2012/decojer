@@ -61,6 +61,13 @@ public class Frame {
 	}
 
 	/**
+	 * Clear stack.
+	 */
+	public void clearStack() {
+		this.top = 0;
+	}
+
+	/**
 	 * Get local variable.
 	 * 
 	 * @param i

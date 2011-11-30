@@ -54,11 +54,9 @@ public final class TrControlFlowAnalysis {
 		boolean loopSucc = false;
 		boolean backEdge = false;
 		for (final E out : bb.getOuts()) {
-			final BB succ = out.getEnd();
-			// equal: check self back edge too
-			if (bb.getPostorder() <= succ.getPostorder()) {
+			if (out.isBack()) {
 				// back edge (continue, tail, inner loop, outer label-continue)
-				if (succ != loop.getHead()) {
+				if (out.getEnd() != loop.getHead()) {
 					// unimportant back edge (inner loop, outer label-continue)
 					continue;
 				}
@@ -66,6 +64,7 @@ public final class TrControlFlowAnalysis {
 				// don't track this edge any further
 				continue;
 			}
+			final BB succ = out.getEnd();
 			if (loop.isMember(succ)) {
 				loopSucc = true;
 				continue;
@@ -108,12 +107,11 @@ public final class TrControlFlowAnalysis {
 				members.add(bb);
 			} else {
 				for (final E in : bb.getIns()) {
-					final BB pred = in.getStart();
-					if (pred.getPostorder() <= bb.getPostorder()) {
+					if (in.isBack()) {
 						// ignore back edges
 						continue;
 					}
-					if (!members.contains(pred)) {
+					if (!members.contains(in.getStart())) {
 						endNodes.add(bb);
 						return;
 					}
@@ -127,7 +125,7 @@ public final class TrControlFlowAnalysis {
 			if (members.contains(succ)) {
 				continue;
 			}
-			if (bb.getPostorder() <= succ.getPostorder()) {
+			if (out.isBack()) {
 				// back edge to no-member successor, outer struct allready known
 				// TODO handle pre loop continue
 				continue;
@@ -171,7 +169,7 @@ public final class TrControlFlowAnalysis {
 
 	private static boolean isLoopHead(final BB bb) {
 		for (final E in : bb.getIns()) {
-			if (in.getStart().getPostorder() <= bb.getPostorder()) {
+			if (in.isBack()) {
 				// must be a back edge (eg. self loop), in Java only possible for loop heads
 				return true;
 			}
@@ -393,7 +391,7 @@ public final class TrControlFlowAnalysis {
 		final BB head = switchStruct.getHead();
 
 		// cases with branches and values, in normal mode in correct order
-		final List<E> outs = head.getOuts();
+		final List<E> outs = head.getSwitchOuts();
 
 		int defaultIndex = -1;
 		// first case can only have head as predecessor, else try case
@@ -402,18 +400,13 @@ public final class TrControlFlowAnalysis {
 		// short check and find first node with 1 predecessor und default case
 		final int size = outs.size();
 		for (int i = 0; i < size; ++i) {
-			final Object values = outs.get(i).getValue();
-			if (!(values instanceof Integer[])) {
-				continue;
-			}
-
 			final BB succ = outs.get(i).getEnd();
 			if (succ.getIns().size() == 1 && firstIndex == -1) {
 				firstIndex = i;
 			}
 			// assert preds.contains(head);
 
-			if (Arrays.asList((Integer[]) values).contains(null)) {
+			if (Arrays.asList((Integer[]) outs.get(i).getValue()).contains(null)) {
 				assert defaultIndex == -1 : "Double Default Case!";
 
 				defaultIndex = i;

@@ -32,6 +32,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
@@ -490,6 +491,7 @@ public final class TrDataFlowAnalysis {
 				LOGGER.warning("Operation '" + op + "' not handled!");
 			}
 			merge(pc + 1);
+			mergeExc(this.cfg.getExcs());
 		}
 	}
 
@@ -578,6 +580,20 @@ public final class TrDataFlowAnalysis {
 			this.changed |= targetV.cmpSetT(mergedT);
 			if (v.getPcs()[0] /* TODO */!= targetPc) {
 				this.changed |= v.cmpSetT(mergedT);
+			}
+		}
+	}
+
+	private void mergeExc(final Exc[] excs) {
+		if (excs == null) {
+			return;
+		}
+		for (final Exc exc : excs) {
+			if (exc.validIn(this.pc)) {
+				this.frame.clearStack();
+				push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
+						.getT(Throwable.class) : exc.getT());
+				merge(exc.getHandlerPc());
 			}
 		}
 	}
