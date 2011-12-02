@@ -48,6 +48,8 @@ import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Key;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
+import com.google.appengine.api.mail.MailService;
+import com.google.appengine.api.mail.MailServiceFactory;
 
 /**
  * Maven Service.
@@ -332,6 +334,14 @@ public class MavenService {
 			}
 		}
 		LOGGER.info("Imported " + nr + " POMs and JARs.");
+		try {
+			// sendToAdmin with or without "to" doesn't work for me in 1.5.4
+			MailServiceFactory.getMailService().send(
+					new MailService.Message("andrePankraz@decojer.org", "andrePankraz@gmail.com",
+							"DecoJer Maven Import", "Imported " + nr + " POMs and JARs."));
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Could not send email!", e);
+		}
 		return nr;
 	}
 

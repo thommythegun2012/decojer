@@ -69,15 +69,6 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
  */
 public class UploadServlet extends HttpServlet {
 
-	private static final BlobstoreService BLOBSTORE_SERVICE = BlobstoreServiceFactory
-			.getBlobstoreService();
-
-	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
-			.getDatastoreService();
-
-	private static final BlobInfoFactory DATASTORE_SERVICE_BLOBINFO_FACTORY = new BlobInfoFactory(
-			DATASTORE_SERVICE);
-
 	private static Logger LOGGER = Logger.getLogger(UploadServlet.class.getName());
 
 	private static final long serialVersionUID = -6567596163814017159L;
@@ -88,15 +79,18 @@ public class UploadServlet extends HttpServlet {
 		// same target page in all cases
 		resp.sendRedirect("/");
 
+		final BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+		final DatastoreService datastoreService = DatastoreServiceFactory.getDatastoreService();
+		final BlobInfoFactory blobInfoFactory = new BlobInfoFactory(datastoreService);
+
 		// check uploaded blob from GAE upload service
-		final Map<String, BlobKey> uploadedBlobs = BLOBSTORE_SERVICE.getUploadedBlobs(req);
+		final Map<String, BlobKey> uploadedBlobs = blobstoreService.getUploadedBlobs(req);
 		if (uploadedBlobs.get("file") == null) {
 			Messages.addMessage(req, "Upload was empty!");
 			return;
 		}
 		// uses DatastoreService.get(), seems to be no HA-lagging here
-		BlobInfo uploadBlobInfo = DATASTORE_SERVICE_BLOBINFO_FACTORY.loadBlobInfo(uploadedBlobs
-				.get("file"));
+		BlobInfo uploadBlobInfo = blobInfoFactory.loadBlobInfo(uploadedBlobs.get("file"));
 		if (uploadBlobInfo == null) {
 			LOGGER.warning("Missing upload information for '" + uploadedBlobs.get("file") + "'!");
 			Messages.addMessage(req, "Missing upload information!");
@@ -117,8 +111,7 @@ public class UploadServlet extends HttpServlet {
 			final Set<BlobKey> duplicateBlobKeys = new HashSet<BlobKey>();
 			Date lastAccess = uploadBlobInfo.getCreation();
 			for (final Entity blobInfoEntity : blobInfoEntities) {
-				final BlobInfo blobInfo = DATASTORE_SERVICE_BLOBINFO_FACTORY
-						.createBlobInfo(blobInfoEntity);
+				final BlobInfo blobInfo = blobInfoFactory.createBlobInfo(blobInfoEntity);
 				if (uploadBlobInfo.equals(blobInfo)) {
 					continue;
 				}
@@ -139,7 +132,7 @@ public class UploadServlet extends HttpServlet {
 			// none-transactional quick-check if upload-entity already exists
 			Upload upload;
 			try {
-				upload = new Upload(DATASTORE_SERVICE.get(uploadKey));
+				upload = new Upload(datastoreService.get(uploadKey));
 			} catch (final EntityNotFoundException e) {
 				upload = new Upload(new Entity(uploadKey));
 				upload.setFilename(uploadBlobInfo.getFilename());
@@ -147,7 +140,7 @@ public class UploadServlet extends HttpServlet {
 			}
 			if (upload.getSourceBlobKey() != null) {
 				try {
-					BLOBSTORE_SERVICE.fetchData(upload.getSourceBlobKey(), 0L, 3L);
+					blobstoreService.fetchData(upload.getSourceBlobKey(), 0L, 3L);
 				} catch (final IllegalArgumentException e) {
 					upload.setSourceBlobKey(null);
 				}
@@ -174,9 +167,9 @@ public class UploadServlet extends HttpServlet {
 			upload.setRequested(lastAccess);
 			upload.setRequests(upload.getRequests() + 1L + duplicateBlobKeys.size());
 
-			final Transaction tx = DATASTORE_SERVICE.beginTransaction();
+			final Transaction tx = datastoreService.beginTransaction();
 			try {
-				DATASTORE_SERVICE.put(upload.getWrappedEntity());
+				datastoreService.put(upload.getWrappedEntity());
 
 				if (upload.getError() == null && upload.getSourceBlobKey() == null) {
 					QueueFactory.getQueue("decoJer").add(
@@ -192,7 +185,7 @@ public class UploadServlet extends HttpServlet {
 			} finally {
 				tx.commit();
 			}
-			BLOBSTORE_SERVICE
+			blobstoreService
 					.delete(duplicateBlobKeys.toArray(new BlobKey[duplicateBlobKeys.size()]));
 
 			if (upload.getError() != null) {
