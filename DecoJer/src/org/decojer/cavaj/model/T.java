@@ -430,7 +430,7 @@ public class T {
 	 *            access flag
 	 * @return true - is access flag
 	 */
-	public boolean checkAf(final AF af) {
+	public boolean check(final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;
 	}
 

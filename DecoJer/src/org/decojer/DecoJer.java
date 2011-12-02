@@ -47,6 +47,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
@@ -198,7 +199,7 @@ public class DecoJer {
 
 		TrMergeAll.transform(cu);
 
-		if (cu.isStartTdOnly()) {
+		if (cu.check(DFlag.START_TD_ONLY)) {
 			cu.setSourceFileName(cu.getStartTd().getT().getPName() + ".java");
 		} else {
 			final List<TD> rootTds = cu.getTds();

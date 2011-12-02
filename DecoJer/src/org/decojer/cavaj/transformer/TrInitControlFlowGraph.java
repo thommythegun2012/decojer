@@ -28,11 +28,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.op.GOTO;
 import org.decojer.cavaj.model.code.op.JCMP;
@@ -47,8 +47,6 @@ import org.decojer.cavaj.model.code.op.SWITCH;
  */
 public final class TrInitControlFlowGraph {
 
-	private final static Logger LOGGER = Logger.getLogger(TrInitControlFlowGraph.class.getName());
-
 	/**
 	 * Transform CFG.
 	 * 
@@ -60,6 +58,8 @@ public final class TrInitControlFlowGraph {
 	}
 
 	private final CFG cfg;
+
+	private boolean isIgnoreExceptions;
 
 	/**
 	 * Remember BBs for PCs.
@@ -76,7 +76,7 @@ public final class TrInitControlFlowGraph {
 	}
 
 	/**
-	 * Get target BB for PC. Split if necessary.
+	 * Get target BB for PC. Split or create new if necessary.
 	 * 
 	 * @param pc
 	 *            target PC
@@ -86,7 +86,8 @@ public final class TrInitControlFlowGraph {
 		final BB bb = this.pc2Bbs[pc]; // get BB for target PC
 		if (bb == null) {
 			// PC not processed yet
-			return null;
+			this.openPcs.add(pc);
+			return newBb(pc);
 		}
 		// found BB has target PC as first PC => return BB, no split necessary
 		if (bb.getOpPc() == pc) {
@@ -120,44 +121,43 @@ public final class TrInitControlFlowGraph {
 
 	private BB newBb(final int pc) {
 		final BB bb = this.cfg.newBb(pc);
-		final Exc[] excs = this.cfg.getExcs();
-		if (excs == null) {
-			return bb;
-		}
-		final TreeMap<Integer, List<T>> handlerPc2type = new TreeMap<Integer, List<T>>();
-		for (final Exc exc : this.cfg.getExcs()) {
-			if (exc.validIn(pc)) {
-				final int handlerPc = exc.getHandlerPc();
-				List<T> types = handlerPc2type.get(handlerPc);
-				if (types == null) {
-					types = new ArrayList<T>();
-					handlerPc2type.put(handlerPc, types);
+		this.pc2Bbs[pc] = bb;
+		if (!this.isIgnoreExceptions) {
+			final Exc[] excs = this.cfg.getExcs();
+			if (excs == null) {
+				return bb;
+			}
+			final TreeMap<Integer, List<T>> handlerPc2type = new TreeMap<Integer, List<T>>();
+			for (final Exc exc : this.cfg.getExcs()) {
+				if (exc.validIn(pc)) {
+					final int handlerPc = exc.getHandlerPc();
+					List<T> types = handlerPc2type.get(handlerPc);
+					if (types == null) {
+						types = new ArrayList<T>();
+						handlerPc2type.put(handlerPc, types);
+					}
+					types.add(exc.getT());
 				}
-				types.add(exc.getT());
 			}
-		}
-		// now add successors
-		for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
-			final int handlerPc = handlerPc2typeEntry.getKey();
-			final List<T> types = handlerPc2typeEntry.getValue();
-
-			BB handlerSucc = getTarget(handlerPc);
-			if (handlerSucc == null) {
-				handlerSucc = newBb(handlerPc);
-				this.pc2Bbs[handlerPc] = handlerSucc;
-				this.openPcs.add(handlerPc);
+			// now add successors
+			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
+				final List<T> types = handlerPc2typeEntry.getValue();
+				bb.addCatchSucc(types.toArray(new T[types.size()]),
+						getTarget(handlerPc2typeEntry.getKey()));
 			}
-			bb.addCatchSucc(types.toArray(new T[types.size()]), handlerSucc);
 		}
 		return bb;
 	}
 
 	private void transform() {
+		this.isIgnoreExceptions = this.cfg.getMd().getTd().getCu().check(DFlag.IGNORE_EXCEPTIONS);
+
 		final Op[] ops = this.cfg.getOps();
 		this.pc2Bbs = new BB[ops.length];
 
 		// start with PC 0 and new BB
-		int pc = 0;
+		this.openPcs.add(0);
+		int pc = ops.length;
 		BB bb = newBb(0);
 		this.cfg.setStartBb(bb);
 
@@ -169,33 +169,29 @@ public final class TrInitControlFlowGraph {
 				}
 				pc = this.openPcs.removeFirst();
 				bb = this.pc2Bbs[pc];
+			} else if (this.pc2Bbs[pc] != null) {
+				bb.setSucc(getTarget(pc));
+				pc = ops.length; // next open pc
+				continue;
 			} else {
-				// next pc allready in flow?
-				final BB target = getTarget(pc);
-				if (target != null) {
-					bb.setSucc(target);
-					pc = ops.length; // next open pc
-					continue;
-				}
 				this.pc2Bbs[pc] = bb;
 			}
-
-			// exception block changes in none-empty BB? split!
-			// TODO currently "change" simply means pc equal to start or end
-			// end directly after GOTO currently wrong
-			final Exc[] excs = this.cfg.getExcs();
-			if (excs != null && !bb.getOps().isEmpty()) {
-				for (final Exc exc : this.cfg.getExcs()) {
-					if (exc.getStartPc() == pc || exc.getEndPc() == pc) {
-						final BB succ = newBb(pc);
-						bb.setSucc(succ);
-						bb = succ;
-						this.pc2Bbs[pc] = bb;
-						break;
+			if (!this.isIgnoreExceptions) {
+				// exception block changes in none-empty BB? split!
+				// TODO currently "change" simply means pc equal to start or end
+				// end directly after GOTO currently wrong
+				final Exc[] excs = this.cfg.getExcs();
+				if (excs != null && !bb.getOps().isEmpty()) {
+					for (final Exc exc : this.cfg.getExcs()) {
+						if (exc.getStartPc() == pc || exc.getEndPc() == pc) {
+							final BB succ = newBb(pc);
+							bb.setSucc(succ);
+							bb = succ;
+							break;
+						}
 					}
 				}
 			}
-
 			final Op op = ops[pc++];
 			bb.addOp(op);
 			switch (op.getOptype()) {
@@ -207,48 +203,14 @@ public final class TrInitControlFlowGraph {
 			}
 			case JCMP: {
 				final JCMP cop = (JCMP) op;
-				final int targetPc = cop.getTargetPc();
-				if (targetPc == pc) {
-					LOGGER.warning("Empty JCMP Branch: " + targetPc);
-				} else {
-					BB trueSucc = getTarget(targetPc);
-					if (trueSucc == null) {
-						trueSucc = newBb(targetPc);
-						this.pc2Bbs[targetPc] = trueSucc;
-						this.openPcs.add(targetPc);
-					}
-					BB falseSucc = getTarget(pc);
-					if (falseSucc == null) {
-						falseSucc = newBb(pc);
-					} else {
-						pc = ops.length; // next open pc
-					}
-					bb.setCondSuccs(falseSucc, trueSucc);
-					bb = falseSucc;
-				}
+				bb.setCondSuccs(getTarget(pc), getTarget(cop.getTargetPc()));
+				pc = ops.length; // next open pc
 				continue;
 			}
 			case JCND: {
 				final JCND cop = (JCND) op;
-				final int targetPc = cop.getTargetPc();
-				if (targetPc == pc) {
-					LOGGER.warning("Empty JCND Branch: " + targetPc);
-				} else {
-					BB trueSucc = getTarget(targetPc);
-					if (trueSucc == null) {
-						trueSucc = newBb(targetPc);
-						this.pc2Bbs[targetPc] = trueSucc;
-						this.openPcs.add(targetPc);
-					}
-					BB falseSucc = getTarget(pc);
-					if (falseSucc == null) {
-						falseSucc = newBb(pc);
-					} else {
-						pc = ops.length; // next open pc
-					}
-					bb.setCondSuccs(falseSucc, trueSucc);
-					bb = falseSucc;
-				}
+				bb.setCondSuccs(getTarget(pc), getTarget(cop.getTargetPc()));
+				pc = ops.length; // next open pc
 				continue;
 			}
 			case SWITCH: {
@@ -280,21 +242,14 @@ public final class TrInitControlFlowGraph {
 				// now add successors
 				for (final Map.Entry<Integer, List<Integer>> casePc2keysEntry : casePc2keys
 						.entrySet()) {
-					final int casePc = casePc2keysEntry.getKey();
 					keys = casePc2keysEntry.getValue();
-
-					BB caseSucc = getTarget(casePc);
-					if (caseSucc == null) {
-						caseSucc = newBb(casePc);
-						this.pc2Bbs[casePc] = caseSucc;
-						this.openPcs.add(casePc);
-					}
-					bb.addSwitchSucc(keys.toArray(new Integer[keys.size()]), caseSucc);
+					bb.addSwitchSucc(keys.toArray(new Integer[keys.size()]),
+							getTarget(casePc2keysEntry.getKey()));
 				}
 				pc = ops.length; // next open pc
 				continue;
 			}
-			case RET:
+			case RET: // TODO back-edge?
 			case RETURN:
 			case THROW:
 				pc = ops.length; // next open pc

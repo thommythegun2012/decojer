@@ -422,7 +422,7 @@ public class CFG {
 				}
 				this.vss[reg] = new V[] { new V(paramT, m.getParamName(i), 0, this.ops.length) };
 			}
-			if (!m.checkAf(AF.STATIC)) {
+			if (!m.check(AF.STATIC)) {
 				final V[] vs = this.vss[--reg];
 				if (vs != null) {
 					LOGGER.warning("Found local variable info for method parameter '" + reg
@@ -434,7 +434,7 @@ public class CFG {
 		}
 		// JVM...function parameters left aligned
 		int reg = 0;
-		if (!m.checkAf(AF.STATIC)) {
+		if (!m.check(AF.STATIC)) {
 			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				if (vs.length > 1) {

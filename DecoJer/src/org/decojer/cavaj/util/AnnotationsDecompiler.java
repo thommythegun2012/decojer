@@ -159,7 +159,7 @@ public class AnnotationsDecompiler {
 		}
 		if (defaultValue instanceof F) {
 			final F f = (F) defaultValue;
-			if (!f.checkAf(AF.ENUM)) {
+			if (!f.check(AF.ENUM)) {
 				LOGGER.warning("Default value field must be enum!");
 			}
 			return ast.newQualifiedName(td.newTypeName(f.getT()), ast.newSimpleName(f.getName()));

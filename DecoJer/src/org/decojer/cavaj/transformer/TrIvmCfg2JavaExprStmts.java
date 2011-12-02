@@ -42,6 +42,7 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
@@ -381,7 +382,7 @@ public final class TrIvmCfg2JavaExprStmts {
 			case GET: {
 				final GET cop = (GET) op;
 				final F f = cop.getF();
-				if (f.checkAf(AF.STATIC)) {
+				if (f.check(AF.STATIC)) {
 					final Name name = getAst().newQualifiedName(getTd().newTypeName(f.getT()),
 							getAst().newSimpleName(f.getName()));
 					bb.push(name);
@@ -455,7 +456,8 @@ public final class TrIvmCfg2JavaExprStmts {
 					if ("<init>".equals(mName)) {
 						methodExpression = null;
 						if (expression instanceof ThisExpression) {
-							enumConstructor: if (m.getT().is(Enum.class) && !getCu().isIgnoreEnum()) {
+							enumConstructor: if (m.getT().is(Enum.class)
+									&& !getCu().check(DFlag.IGNORE_ENUM)) {
 								if (arguments.size() < 2) {
 									LOGGER.warning("Super constructor invocation '" + m
 											+ "' for enum has less than 2 arguments!");
@@ -521,7 +523,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						methodInvocation.arguments().addAll(arguments);
 						methodExpression = methodInvocation;
 					}
-				} else if (m.checkAf(AF.STATIC)) {
+				} else if (m.check(AF.STATIC)) {
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 					methodInvocation.setExpression(getTd().newTypeName(m.getT()));
 					methodInvocation.setName(getAst().newSimpleName(mName));
@@ -887,7 +889,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				final M m = this.cfg.getMd().getM();
 				fieldInit: if (m.getT() == f.getT()) {
 					// set local field, could be initializer
-					if (f.checkAf(AF.STATIC)) {
+					if (f.check(AF.STATIC)) {
 						if (!"<clinit>".equals(m.getName())) {
 							break fieldInit;
 						}
@@ -911,8 +913,8 @@ public final class TrIvmCfg2JavaExprStmts {
 					}
 					// TODO this checks are not enough, we must assure that we don't use method
 					// arguments here!!!
-					if (f.getT().checkAf(AF.ENUM) && !getCu().isIgnoreEnum()) {
-						if (f.checkAf(AF.ENUM)) {
+					if (f.getT().check(AF.ENUM) && !getCu().check(DFlag.IGNORE_ENUM)) {
+						if (f.check(AF.ENUM)) {
 							// assignment to enum constant declaration
 							if (!(rightExpression instanceof ClassInstanceCreation)) {
 								LOGGER.warning("Assignment to enum field '" + f
@@ -974,8 +976,8 @@ public final class TrIvmCfg2JavaExprStmts {
 							break; // ignore such assignments completely
 						}
 					}
-					if (f.checkAf(AF.SYNTHETIC)) {
-						if (getCu().isDecompileUnknownSynthetic()) {
+					if (f.check(AF.SYNTHETIC)) {
+						if (getCu().check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 							break fieldInit; // not as field initializer
 						} else {
 							break; // ignore such assignments completely
@@ -989,7 +991,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						((VariableDeclarationFragment) ((FieldDeclaration) fd.getFieldDeclaration())
 								.fragments().get(0)).setInitializer(wrap(rightExpression,
 								Priority.ASSIGNMENT));
-						if (!f.checkAf(AF.STATIC)) {
+						if (!f.check(AF.STATIC)) {
 							bb.pop();
 						}
 					} catch (final Exception e) {
@@ -1002,7 +1004,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				// TODO a = a <op> expr => a <op>= expr
 				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 
-				if (f.checkAf(AF.STATIC)) {
+				if (f.check(AF.STATIC)) {
 					final Name name = getAst().newQualifiedName(getTd().newTypeName(f.getT()),
 							getAst().newSimpleName(f.getName()));
 					assignment.setLeftHandSide(name);

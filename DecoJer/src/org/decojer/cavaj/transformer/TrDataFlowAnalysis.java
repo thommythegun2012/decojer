@@ -265,7 +265,7 @@ public final class TrDataFlowAnalysis {
 			case GET: {
 				final GET cop = (GET) op;
 				final F f = cop.getF();
-				if (!f.checkAf(AF.STATIC)) {
+				if (!f.check(AF.STATIC)) {
 					pop(f.getT());
 				}
 				push(f.getValueT());
@@ -297,7 +297,7 @@ public final class TrDataFlowAnalysis {
 					// m(int) also accepts byte, short and char
 					pop(m.getParamTs()[i] == T.INT ? T.IINT : m.getParamTs()[i]);
 				}
-				if (!m.checkAf(AF.STATIC)) {
+				if (!m.check(AF.STATIC)) {
 					pop(m.getT());
 				}
 				if (m.getReturnT() != T.VOID) {
@@ -391,7 +391,7 @@ public final class TrDataFlowAnalysis {
 				final PUT cop = (PUT) op;
 				final F f = cop.getF();
 				pop(f.getValueT());
-				if (!f.checkAf(AF.STATIC)) {
+				if (!f.check(AF.STATIC)) {
 					pop(f.getT());
 				}
 				break;

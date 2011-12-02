@@ -172,6 +172,17 @@ public class CU implements PD {
 	}
 
 	/**
+	 * Check decompile flag.
+	 * 
+	 * @param dFlag
+	 *            decompile flag
+	 * @return true - decompile flag is active
+	 */
+	public boolean check(final DFlag dFlag) {
+		return this.dFlags.contains(dFlag);
+	}
+
+	/**
 	 * Clear all generated data after read.
 	 */
 	public void clear() {
@@ -314,33 +325,6 @@ public class CU implements PD {
 
 	protected TypeNameManager getTypeNameManager() {
 		return this.typeNameManager;
-	}
-
-	/**
-	 * Decompile unknown synthetic type declarations, methods or fields?
-	 * 
-	 * @return true - decompile unknown synthetic type declarations, methods or fields
-	 */
-	public boolean isDecompileUnknownSynthetic() {
-		return this.dFlags.contains(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC);
-	}
-
-	/**
-	 * Ignore enum synthetic structures?
-	 * 
-	 * @return true - ignore enum synthetic structures
-	 */
-	public boolean isIgnoreEnum() {
-		return this.dFlags.contains(DFlag.IGNORE_ENUM);
-	}
-
-	/**
-	 * Decompile start type declaration only?
-	 * 
-	 * @return true - decompile start type declaration only
-	 */
-	public boolean isStartTdOnly() {
-		return this.dFlags.contains(DFlag.START_TD_ONLY);
 	}
 
 	private void setPackageName(final String packageName) {

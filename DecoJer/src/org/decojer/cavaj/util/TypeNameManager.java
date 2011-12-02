@@ -25,6 +25,7 @@ package org.decojer.cavaj.util;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.code.DFlag;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.Name;
 
@@ -72,7 +73,7 @@ public class TypeNameManager {
 		String javaName;
 		if (this.packagePrefix != null && name.startsWith(this.packagePrefix)
 				&& name.indexOf('.', this.packagePrefix.length()) == -1) {
-			if (!this.cu.isStartTdOnly()) {
+			if (!this.cu.check(DFlag.START_TD_ONLY)) {
 				// add TD to CU - if main type name part equal to any main TD in CU,
 				// anonymous inner classes need extra handling
 				final TD td = this.cu.getStartTd().getT().getDu().getTd(name);
