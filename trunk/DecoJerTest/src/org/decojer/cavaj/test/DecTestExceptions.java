@@ -35,6 +35,25 @@ public abstract class DecTestExceptions {
 		System.out.println("POST");
 	}
 
+	boolean returnInException(int a) {
+		System.out.println("PRE");
+		try {
+			if (a > -1) {
+				return false;
+			}
+			if (a > 1) {
+				System.out.println("INIF");
+				return true;
+			}
+			System.out.println("IN");
+			return a > 10;
+		} catch (final Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("POST");
+		return false;
+	}
+
 	void simpleException() {
 		System.out.println("PRE");
 		try {
