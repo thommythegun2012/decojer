@@ -30,10 +30,24 @@ package org.decojer.cavaj.model.code;
  */
 public enum DFlag {
 
+	/**
+	 * Ignore enum synthetic structures?
+	 */
 	IGNORE_ENUM,
 
+	/**
+	 * Ignore exceptions?
+	 */
+	IGNORE_EXCEPTIONS,
+
+	/**
+	 * Decompile unknown synthetic type declarations, methods or fields?
+	 */
 	DECOMPILE_UNKNOWN_SYNTHETIC,
 
+	/**
+	 * Decompile start type declaration only?
+	 */
 	START_TD_ONLY
 
 }

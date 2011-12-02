@@ -33,6 +33,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.code.DFlag;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ArrayType;
@@ -232,8 +233,8 @@ public class SignatureDecompiler {
 				final Type methodParameterType = methodParameterTypes.get(i);
 				if (methodDeclaration.isConstructor()) {
 
-					if (i <= 1 && this.td.getT().checkAf(AF.ENUM)
-							&& !this.td.getCu().isIgnoreEnum()) {
+					if (i <= 1 && this.td.getT().check(AF.ENUM)
+							&& !this.td.getCu().check(DFlag.IGNORE_ENUM)) {
 						// enum constructors have two leading synthetic parameters,
 						// enum classes are static and can not be anonymous or inner method
 						if (i == 0 && m.getParamTs()[0].is(String.class)) {
@@ -260,7 +261,7 @@ public class SignatureDecompiler {
 							singleVariableDeclaration.modifiers(), paramAs[i]);
 				}
 				// decompile varargs (flag set, ArrayType and last method param)
-				if (i == methodParameterTypes.size() - 1 && m.checkAf(AF.VARARGS)) {
+				if (i == methodParameterTypes.size() - 1 && m.check(AF.VARARGS)) {
 					if (methodParameterType instanceof ArrayType) {
 						singleVariableDeclaration.setVarargs(true);
 						singleVariableDeclaration.setType((Type) ASTNode.copySubtree(getAst(),
