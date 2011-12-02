@@ -157,10 +157,11 @@ public class BlobService {
 			final OutputStream fileOutputStream = Channels.newOutputStream(writeChannel);
 			// don't hold file open for too long (around max. 30 seconds), else:
 			// "Caused by: com.google.apphosting.api.ApiProxy$ApplicationException: ApplicationError: 10: Unknown",
-			// don't write byte array directly, else file write request too large
+			// don't write byte array directly (e.g. via nice
+			// writeChannel.write(ByteBuffer.wrap(content))), else file write request too large:
+			// "The request to API call file.Append() was too large."
 			// (wrapping with BufferedOutputStream doesn't help - writes big data directly)
 			IO.copy(new ByteArrayInputStream(content), fileOutputStream);
-			fileOutputStream.close();
 			writeChannel.closeFinally();
 			try {
 				Thread.sleep(5000);

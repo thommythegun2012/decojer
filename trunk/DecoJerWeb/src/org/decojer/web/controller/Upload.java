@@ -23,7 +23,6 @@
  */
 package org.decojer.web.controller;
 
-import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 
 /**
@@ -33,16 +32,13 @@ import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
  */
 public class Upload {
 
-	private static final BlobstoreService BLOBSTORE_SERVICE = BlobstoreServiceFactory
-			.getBlobstoreService();
-
 	/**
 	 * Get upload URL.
 	 * 
 	 * @return upload URL
 	 */
 	public String getUploadUrl() {
-		return BLOBSTORE_SERVICE.createUploadUrl("/upload");
+		return BlobstoreServiceFactory.getBlobstoreService().createUploadUrl("/upload");
 	}
 
 }

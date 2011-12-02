@@ -5,6 +5,6 @@
 		<description>Import Maven Central RSS</description>
 		<schedule>every 8 hours synchronized</schedule>
 		<timezone>Europe/Berlin</timezone>
-		<target>worker</target>
+		<target>worker256</target>
 	</cron>
 </cronentries>

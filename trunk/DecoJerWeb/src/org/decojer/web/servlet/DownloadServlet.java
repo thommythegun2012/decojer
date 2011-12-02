@@ -31,7 +31,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.google.appengine.api.blobstore.BlobKey;
-import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 
 /**
@@ -43,15 +42,11 @@ public class DownloadServlet extends HttpServlet {
 
 	private static final long serialVersionUID = 5300494787189455066L;
 
-	private final BlobstoreService blobstoreService = BlobstoreServiceFactory
-			.getBlobstoreService();
-
 	@Override
-	protected void doGet(final HttpServletRequest req,
-			final HttpServletResponse resp) throws ServletException,
-			IOException {
+	protected void doGet(final HttpServletRequest req, final HttpServletResponse resp)
+			throws ServletException, IOException {
 		final BlobKey blobKey = new BlobKey(req.getParameter("u"));
-		this.blobstoreService.serve(blobKey, resp);
+		BlobstoreServiceFactory.getBlobstoreService().serve(blobKey, resp);
 	}
 
 }

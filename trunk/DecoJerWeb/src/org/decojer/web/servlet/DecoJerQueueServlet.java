@@ -44,7 +44,6 @@ import org.decojer.web.service.BlobService;
 
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
-import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -65,15 +64,7 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
  */
 public class DecoJerQueueServlet extends HttpServlet {
 
-	private static final BlobstoreService BLOBSTORE_SERVICE = BlobstoreServiceFactory
-			.getBlobstoreService();
-
-	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
-			.getDatastoreService();
-
 	private static Logger LOGGER = Logger.getLogger(DecoJerQueueServlet.class.getName());
-
-	private static final MailService MAIL_SERVICE = MailServiceFactory.getMailService();
 
 	private static final long serialVersionUID = -8624836355443861445L;
 
@@ -82,9 +73,11 @@ public class DecoJerQueueServlet extends HttpServlet {
 			throws ServletException, IOException {
 		final Key uploadKey = KeyFactory.createKey(Upload.KIND, req.getParameter("uploadKey"));
 
+		final DatastoreService datastoreService = DatastoreServiceFactory.getDatastoreService();
+
 		final Upload upload;
 		try {
-			upload = new Upload(DATASTORE_SERVICE.get(uploadKey));
+			upload = new Upload(datastoreService.get(uploadKey));
 		} catch (final EntityNotFoundException e) {
 			LOGGER.warning("Upload entity with Key '" + uploadKey + "' not yet stored?");
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
@@ -119,7 +112,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 				final BlobKey sourceBlobKey = BlobService.getInstance().createBlob(
 						"text/x-java-source", sourcename, source.getBytes("UTF-8"));
 				if (upload.getSourceBlobKey() != null) {
-					BLOBSTORE_SERVICE.delete(upload.getSourceBlobKey());
+					BlobstoreServiceFactory.getBlobstoreService().delete(upload.getSourceBlobKey());
 				}
 				upload.setSourceBlobKey(sourceBlobKey);
 			} catch (final Exception e) {
@@ -137,7 +130,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 				final BlobKey sourceBlobKey = BlobService.getInstance().createBlob(
 						"application/java-archive", sourcename, sourceOutputStream.toByteArray());
 				if (upload.getSourceBlobKey() != null) {
-					BLOBSTORE_SERVICE.delete(upload.getSourceBlobKey());
+					BlobstoreServiceFactory.getBlobstoreService().delete(upload.getSourceBlobKey());
 				}
 				upload.setSourceBlobKey(sourceBlobKey);
 			} catch (final Exception e) {
@@ -145,9 +138,9 @@ public class DecoJerQueueServlet extends HttpServlet {
 				upload.setError(e.getMessage());
 			}
 		}
-		final Transaction tx = DATASTORE_SERVICE.beginTransaction();
+		final Transaction tx = datastoreService.beginTransaction();
 		try {
-			DATASTORE_SERVICE.put(upload.getWrappedEntity());
+			datastoreService.put(upload.getWrappedEntity());
 
 			final String channelKey = req.getParameter("channelKey");
 			if (channelKey != null) {
@@ -169,8 +162,9 @@ public class DecoJerQueueServlet extends HttpServlet {
 	private void sendEmail(final String textBody) {
 		try {
 			// sendToAdmin with or without "to" doesn't work for me in 1.5.4
-			MAIL_SERVICE.send(new MailService.Message("andrePankraz@decojer.org",
-					"andrePankraz@gmail.com", "DecoJer worker", textBody));
+			MailServiceFactory.getMailService().send(
+					new MailService.Message("andrePankraz@decojer.org", "andrePankraz@gmail.com",
+							"DecoJer worker", textBody));
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING, "Could not send email!", e);
 		}
