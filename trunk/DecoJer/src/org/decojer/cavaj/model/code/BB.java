@@ -433,7 +433,7 @@ public final class BB {
 	}
 
 	/**
-	 * Move out edges to target BB.
+	 * Move out edges (no catches) to target BB.
 	 * 
 	 * @param target
 	 *            target BB

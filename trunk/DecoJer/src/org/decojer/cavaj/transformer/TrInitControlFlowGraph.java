@@ -127,17 +127,19 @@ public final class TrInitControlFlowGraph {
 			if (excs == null) {
 				return bb;
 			}
+			// build sorted map: unique handler pc -> matching handler types
 			final TreeMap<Integer, List<T>> handlerPc2type = new TreeMap<Integer, List<T>>();
 			for (final Exc exc : this.cfg.getExcs()) {
-				if (exc.validIn(pc)) {
-					final int handlerPc = exc.getHandlerPc();
-					List<T> types = handlerPc2type.get(handlerPc);
-					if (types == null) {
-						types = new ArrayList<T>();
-						handlerPc2type.put(handlerPc, types);
-					}
-					types.add(exc.getT());
+				if (!exc.validIn(pc)) {
+					continue;
 				}
+				final int handlerPc = exc.getHandlerPc();
+				List<T> types = handlerPc2type.get(handlerPc);
+				if (types == null) {
+					types = new ArrayList<T>();
+					handlerPc2type.put(handlerPc, types);
+				}
+				types.add(exc.getT());
 			}
 			// now add successors
 			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
@@ -177,18 +179,25 @@ public final class TrInitControlFlowGraph {
 				this.pc2Bbs[pc] = bb;
 			}
 			if (!this.isIgnoreExceptions) {
-				// exception block changes in none-empty BB? split!
-				// TODO currently "change" simply means pc equal to start or end
-				// end directly after GOTO currently wrong
-				final Exc[] excs = this.cfg.getExcs();
-				if (excs != null && !bb.getOps().isEmpty()) {
+				// exception block changes in none-empty BB? -> split necessary!
+				if (!bb.getOps().isEmpty() && this.cfg.getExcs() != null) {
 					for (final Exc exc : this.cfg.getExcs()) {
-						if (exc.getStartPc() == pc || exc.getEndPc() == pc) {
-							final BB succ = newBb(pc);
-							bb.setSucc(succ);
-							bb = succ;
-							break;
+						if (exc.validIn(pc)) {
+							if (exc.validIn(bb.getOpPc())) {
+								// exception is valid - has been valid at BB entry -> OK
+								continue;
+							}
+						} else {
+							if (!exc.validIn(bb.getOpPc())) {
+								// exception isn't valid - hasn't bean valid at BB entry -> OK
+								continue;
+							}
 						}
+						// at least one exception has changed, now split
+						final BB succ = newBb(pc);
+						bb.setSucc(succ);
+						bb = succ;
+						break;
 					}
 				}
 			}
@@ -197,7 +206,7 @@ public final class TrInitControlFlowGraph {
 			switch (op.getOptype()) {
 			case GOTO: {
 				final GOTO cop = (GOTO) op;
-				// follow without new BB, lazy splitting, at target other catches possible!
+				// follow without new BB, lazy splitting, at target PC other catches possible!
 				pc = cop.getTargetPc();
 				continue;
 			}
