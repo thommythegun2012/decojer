@@ -24,7 +24,6 @@
 package org.decojer.web.util;
 
 import com.google.appengine.api.datastore.Cursor;
-import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.FetchOptions;
@@ -45,12 +44,9 @@ public class DB {
 
 	}
 
-	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
-			.getDatastoreService();
-
 	public static Cursor iterate(final String kind, final int pageSize, final Processor processor) {
 		final Query q = new Query(kind);
-		final PreparedQuery pq = DATASTORE_SERVICE.prepare(q);
+		final PreparedQuery pq = DatastoreServiceFactory.getDatastoreService().prepare(q);
 		// pagination because of max. 30s database operation timeout
 		final FetchOptions fetchOptions = FetchOptions.Builder.withLimit(pageSize);
 		while (true) {
