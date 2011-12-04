@@ -63,4 +63,9 @@ public class RET extends Op {
 		return this.reg;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + " " + getReg();
+	}
+
 }

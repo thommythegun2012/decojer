@@ -37,7 +37,10 @@ import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.op.GOTO;
 import org.decojer.cavaj.model.code.op.JCMP;
 import org.decojer.cavaj.model.code.op.JCND;
+import org.decojer.cavaj.model.code.op.JSR;
 import org.decojer.cavaj.model.code.op.Op;
+import org.decojer.cavaj.model.code.op.RET;
+import org.decojer.cavaj.model.code.op.STORE;
 import org.decojer.cavaj.model.code.op.SWITCH;
 
 /**
@@ -222,6 +225,13 @@ public final class TrInitControlFlowGraph {
 				pc = ops.length; // next open pc
 				continue;
 			}
+			case JSR: {
+				final JSR cop = (JSR) op;
+				getTarget(pc); // TODO remember map, link at end
+				bb.setSucc(getTarget(cop.getTargetPc()));
+				pc = ops.length; // next open pc
+				continue;
+			}
 			case SWITCH: {
 				final SWITCH cop = (SWITCH) op;
 
@@ -258,7 +268,23 @@ public final class TrInitControlFlowGraph {
 				pc = ops.length; // next open pc
 				continue;
 			}
-			case RET: // TODO back-edge?
+			case RET: {
+				final RET cop = (RET) op;
+				final int reg = cop.getReg();
+				// register should contain an address that follows the calling JSR instruction,
+				// JSR pushes this address onto the stack and calls the subroutine BB,
+				// normally the first subroutine instruction is a STORE
+				final BB prev = bb;
+				while (prev != null) {
+					final Op firstOp = prev.getOps().get(0);
+					if (firstOp instanceof STORE && ((STORE) firstOp).getReg() == reg) {
+
+						break;
+					}
+				}
+				pc = ops.length; // next open pc
+				continue;
+			}
 			case RETURN:
 			case THROW:
 				pc = ops.length; // next open pc

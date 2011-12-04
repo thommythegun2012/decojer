@@ -583,7 +583,7 @@ public final class BB {
 	 *            successor
 	 */
 	public void setSucc(final BB succ) {
-		assert getOut() == null : getOut();
+		// TODO RET assert getOut() == null : getOut();
 
 		final E e = new E(this, succ, null);
 		this.outs.add(e);
