@@ -32,7 +32,7 @@ import com.google.appengine.api.datastore.Entity;
  * 
  * @author André Pankraz
  */
-public class Pom2 extends BaseEntity {
+public class POM extends BaseEntity {
 
 	/**
 	 * Entity kind.
@@ -54,7 +54,7 @@ public class Pom2 extends BaseEntity {
 	 * 
 	 * @param entity
 	 */
-	public Pom2(final Entity entity) {
+	public POM(final Entity entity) {
 		super(entity);
 	}
 
