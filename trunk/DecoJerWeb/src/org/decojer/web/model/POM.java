@@ -23,6 +23,8 @@
  */
 package org.decojer.web.model;
 
+import java.util.logging.Logger;
+
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.Blob;
 import com.google.appengine.api.datastore.Entity;
@@ -38,6 +40,8 @@ public class POM extends BaseEntity {
 	 * Entity kind.
 	 */
 	public static final String KIND = "POM";
+
+	private static Logger LOGGER = Logger.getLogger(POM.class.getName());
 
 	/**
 	 * Blob property "content".
@@ -97,7 +101,12 @@ public class POM extends BaseEntity {
 	 * @return JAR Blob Key
 	 */
 	public BlobKey getJar() {
-		return (BlobKey) this.entity.getProperty(PROP_JAR);
+		final Object property = this.entity.getProperty(PROP_JAR);
+		if (!(property instanceof BlobKey)) {
+			LOGGER.warning("Property JAR = '" + property + "' isn't a BlobKey!");
+			return null;
+		}
+		return (BlobKey) property;
 	}
 
 	@Override

@@ -1,5 +1,9 @@
 <%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<jsp:useBean id="pomStats" class="org.decojer.web.controller.PomStats" />
+<%
+	pomStats.calculateStats();
+%>
 <!DOCTYPE HTML>
 <html lang="en-us">
 <head>
@@ -7,11 +11,8 @@
 </head>
 <body>
 	<jsp:include page="/WEB-INF/template/header.jsp" />
-	<ul>
-		<li><a href="/admin/blobStats.jsp">Blob Stats</a></li>
-		<li><a href="/admin/pomStats.jsp">POM Stats</a></li>
-		<li><a href="/admin/merge.jsp">Merge Test</a></li>
-		<li><a href="/admin/maven.jsp">Maven Import</a></li>
-	</ul>
+	<h2>POM Stats:</h2>
+	<p>Number: ${pomStats.stats.number}</p>
+	<p>Size: ${pomStats.stats.size}</p>
 </body>
 </html>

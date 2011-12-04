@@ -94,25 +94,25 @@ public class BlobService {
 	}
 
 	/**
-	 * Calculate blob statistics. Generate and persist MD5 if necessary (sometimes not generated
+	 * Calculate Blob statistics. Generate and persist MD5 if necessary (sometimes not generated
 	 * through backend at local development environment).
 	 * 
-	 * @return blob statistics
+	 * @return Blob statistics
 	 */
 	public Stats calculateStats() {
 		final Stats stats = new Stats();
 		final StringBuffer doubleHashes = new StringBuffer();
 		final HashSet<String> hashes = new HashSet<String>();
 
-		DB.iterate(BlobInfoFactory.KIND, Integer.MAX_VALUE, new DB.Processor() {
+		DB.iterate(BlobInfoFactory.KIND, new DB.Processor() {
 
 			@Override
 			public boolean process(final Entity entity) {
 				final long size = (Long) entity.getProperty(BlobInfoFactory.SIZE);
-				if (size > 20000000) {
+				if (size > 30000000) {
 					LOGGER.info("Will delete JAR '" + entity.getProperty(BlobInfoFactory.FILENAME)
 							+ "'. This is with " + size
-							+ " bytes too large to be useful (max 20 MB).");
+							+ " bytes too large to be useful (max 30 MB).");
 					BlobstoreServiceFactory.getBlobstoreService().delete(
 							new BlobKey(entity.getKey().getName()));
 					return true;

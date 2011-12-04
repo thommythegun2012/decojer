@@ -33,12 +33,14 @@ import java.util.logging.Logger;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
-import org.decojer.web.model.Pom;
+import org.decojer.web.model.POM;
 import org.decojer.web.util.DB;
 import org.xml.sax.Attributes;
 import org.xml.sax.SAXException;
 import org.xml.sax.helpers.DefaultHandler;
 
+import com.google.appengine.api.blobstore.BlobInfo;
+import com.google.appengine.api.blobstore.BlobInfoFactory;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
@@ -57,6 +59,22 @@ import com.google.appengine.api.mail.MailServiceFactory;
  * @author André Pankraz
  */
 public class MavenService {
+
+	public class Stats {
+
+		private int number;
+
+		private long size;
+
+		public int getNumber() {
+			return this.number;
+		}
+
+		public long getSize() {
+			return this.size;
+		}
+
+	}
 
 	private static final MavenService INSTANCE = new MavenService();
 
@@ -83,6 +101,36 @@ public class MavenService {
 	 */
 	public static MavenService getInstance() {
 		return INSTANCE;
+	}
+
+	/**
+	 * Calculate POM statistics. Delete POMs without JAR.
+	 * 
+	 * @return POM statistics
+	 */
+	public Stats calculateStats() {
+		final Stats stats = new Stats();
+		final DatastoreService datastoreService = DatastoreServiceFactory.getDatastoreService();
+		final BlobInfoFactory blobInfoFactory = new BlobInfoFactory(datastoreService);
+		DB.iterate(POM.KIND, new DB.Processor() {
+
+			@Override
+			public boolean process(final Entity entity) {
+				final POM pom = new POM(entity);
+				final BlobKey jar = pom.getJar();
+				final BlobInfo blobInfo = jar == null ? null : blobInfoFactory.loadBlobInfo(jar);
+				if (blobInfo == null) {
+					LOGGER.info("No JAR for POM '" + pom.getId() + "'! Delete.");
+					datastoreService.delete(entity.getKey());
+					return true;
+				}
+				stats.size += blobInfo.getSize();
+				++stats.number;
+				return true;
+			}
+
+		});
+		return stats;
 	}
 
 	/**
@@ -237,11 +285,11 @@ public class MavenService {
 	 *            artifact id
 	 * @return POM entities
 	 */
-	public List<Pom> findPoms(final String groupId, final String artifactId) {
-		final Query pomVersionQuery = new Query(Pom.KIND);
+	public List<POM> findPOMs(final String groupId, final String artifactId) {
+		final Query pomVersionQuery = new Query(POM.KIND);
 
-		final Key pomKey = KeyFactory.createKey(Pom.KIND, groupId + ":" + artifactId + ":");
-		final Key pomKey2 = KeyFactory.createKey(Pom.KIND, groupId + ":" + artifactId + ":\uFFFD");
+		final Key pomKey = KeyFactory.createKey(POM.KIND, groupId + ":" + artifactId + ":");
+		final Key pomKey2 = KeyFactory.createKey(POM.KIND, groupId + ":" + artifactId + ":\uFFFD");
 
 		pomVersionQuery.addFilter(Entity.KEY_RESERVED_PROPERTY,
 				Query.FilterOperator.GREATER_THAN_OR_EQUAL, pomKey);
@@ -250,9 +298,9 @@ public class MavenService {
 
 		final List<Entity> entities = DatastoreServiceFactory.getDatastoreService()
 				.prepare(pomVersionQuery).asList(FetchOptions.Builder.withDefaults());
-		final ArrayList<Pom> poms = new ArrayList<Pom>(entities.size());
+		final ArrayList<POM> poms = new ArrayList<POM>(entities.size());
 		for (final Entity entity : entities) {
-			poms.add(new Pom(entity));
+			poms.add(new POM(entity));
 		}
 		return poms;
 	}
@@ -266,11 +314,11 @@ public class MavenService {
 		final HashSet<String> done = new HashSet<String>();
 		final int[] nr = new int[1];
 
-		DB.iterate(Pom.KIND, new DB.Processor() {
+		DB.iterate(POM.KIND, new DB.Processor() {
 
 			@Override
 			public boolean process(final Entity entity) {
-				final Pom pom = new Pom(entity);
+				final POM pom = new POM(entity);
 				final String groupId = pom.getGroupId();
 				final String artifactId = pom.getArtifactId();
 
@@ -280,11 +328,11 @@ public class MavenService {
 				}
 				done.add(doneId);
 				final List<String> versions = fetchVersions(groupId, artifactId);
-				for (final Pom knownPom : findPoms(groupId, artifactId)) {
-					versions.remove(knownPom.getVersion());
+				for (final POM knownPOM : findPOMs(groupId, artifactId)) {
+					versions.remove(knownPOM.getVersion());
 				}
 				for (final String version : versions) {
-					if (importPom(groupId, artifactId, version) != null) {
+					if (importPOM(groupId, artifactId, version) != null) {
 						if (++nr[0] >= 500) {
 							return false; // import max. 500
 						}
@@ -324,11 +372,11 @@ public class MavenService {
 			if (!versions.contains(thisVersion)) {
 				versions.add(thisVersion);
 			}
-			for (final Pom knownPom : findPoms(groupId, artifactId)) {
-				versions.remove(knownPom.getVersion());
+			for (final POM knownPOM : findPOMs(groupId, artifactId)) {
+				versions.remove(knownPOM.getVersion());
 			}
 			for (final String version : versions) {
-				if (importPom(groupId, artifactId, version) != null) {
+				if (importPOM(groupId, artifactId, version) != null) {
 					++nr;
 				}
 			}
@@ -356,9 +404,9 @@ public class MavenService {
 	 *            version
 	 * @return imported POM or null
 	 */
-	public Pom importPom(final String groupId, final String artifactId, final String version) {
+	public POM importPOM(final String groupId, final String artifactId, final String version) {
 		final String pomId = groupId + ':' + artifactId + ':' + version;
-		final Key pomKey = KeyFactory.createKey(Pom.KIND, pomId);
+		final Key pomKey = KeyFactory.createKey(POM.KIND, pomId);
 		final DatastoreService datastoreService = DatastoreServiceFactory.getDatastoreService();
 		try {
 			datastoreService.get(pomKey);
@@ -379,9 +427,9 @@ public class MavenService {
 			if (jarContent == null) {
 				return null; // don't import JAR-less POMs for now
 			}
-			if (jarContent.length > 20000000) {
+			if (jarContent.length > 30000000) {
 				LOGGER.info("Will ignore POM JAR '" + pomId + "'. This is with "
-						+ jarContent.length + " bytes too large to be useful (max 20 MB).");
+						+ jarContent.length + " bytes too large to be useful (max 30 MB).");
 				return null;
 			}
 			final Entity blobInfo = BlobService.getInstance().findBlobInfo(jarContent);
@@ -392,7 +440,7 @@ public class MavenService {
 			} else {
 				blobKey = new BlobKey(blobInfo.getKey().getName());
 			}
-			final Pom pom = new Pom(new Entity(pomKey));
+			final POM pom = new POM(new Entity(pomKey));
 			pom.setContent(pomContent);
 			pom.setJar(blobKey);
 			datastoreService.put(pom.getWrappedEntity());
