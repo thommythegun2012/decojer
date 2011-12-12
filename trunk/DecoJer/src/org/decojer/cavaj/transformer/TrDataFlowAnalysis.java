@@ -52,6 +52,7 @@ import org.decojer.cavaj.model.code.op.INSTANCEOF;
 import org.decojer.cavaj.model.code.op.INVOKE;
 import org.decojer.cavaj.model.code.op.JCMP;
 import org.decojer.cavaj.model.code.op.JCND;
+import org.decojer.cavaj.model.code.op.JSR;
 import org.decojer.cavaj.model.code.op.LOAD;
 import org.decojer.cavaj.model.code.op.MONITOR;
 import org.decojer.cavaj.model.code.op.MUL;
@@ -64,6 +65,7 @@ import org.decojer.cavaj.model.code.op.POP;
 import org.decojer.cavaj.model.code.op.PUSH;
 import org.decojer.cavaj.model.code.op.PUT;
 import org.decojer.cavaj.model.code.op.REM;
+import org.decojer.cavaj.model.code.op.RET;
 import org.decojer.cavaj.model.code.op.RETURN;
 import org.decojer.cavaj.model.code.op.SHL;
 import org.decojer.cavaj.model.code.op.SHR;
@@ -317,6 +319,12 @@ public final class TrDataFlowAnalysis {
 				merge(cop.getTargetPc());
 				break;
 			}
+			case JSR: {
+				final JSR cop = (JSR) op;
+				push(T.ADDRESS);
+				merge(cop.getTargetPc());
+				continue;
+			}
 			case LOAD: {
 				final LOAD cop = (LOAD) op;
 				final V v = get(cop.getReg(), cop.getT());
@@ -399,6 +407,12 @@ public final class TrDataFlowAnalysis {
 			case REM: {
 				final REM cop = (REM) op;
 				evalBinaryMath(cop.getT());
+				break;
+			}
+			case RET: {
+				final RET cop = (RET) op;
+				get(cop.getReg(), T.ADDRESS);
+				// merge to many...
 				break;
 			}
 			case RETURN: {
@@ -591,6 +605,7 @@ public final class TrDataFlowAnalysis {
 		for (final Exc exc : excs) {
 			if (exc.validIn(this.pc)) {
 				this.frame.clearStack();
+				// null is <any> (finally) -> Throwable
 				push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
 						.getT(Throwable.class) : exc.getT());
 				merge(exc.getHandlerPc());

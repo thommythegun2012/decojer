@@ -227,6 +227,10 @@ public class T {
 	 */
 	public static T VOID = new T(void.class.getName());
 	/**
+	 * Artificial type 'address' for JSR follow pc.
+	 */
+	public static final T ADDRESS = new T("ADDRESS");
+	/**
 	 * Artificial type 'any reference'.
 	 */
 	public static T AREF = new T("AREF");
