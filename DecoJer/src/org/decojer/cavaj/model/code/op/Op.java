@@ -56,6 +56,11 @@ public abstract class Op {
 		this.line = line;
 	}
 
+	@Override
+	public boolean equals(final Object obj) {
+		return obj instanceof Op && this.pc == ((Op) obj).pc;
+	}
+
 	/**
 	 * Get input stack size.
 	 * 
@@ -96,6 +101,11 @@ public abstract class Op {
 	 * @return pc
 	 */
 	public int getPc() {
+		return this.pc;
+	}
+
+	@Override
+	public int hashCode() {
 		return this.pc;
 	}
 

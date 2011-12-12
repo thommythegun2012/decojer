@@ -24,16 +24,22 @@
 package org.decojer.cavaj.transformer;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
+import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.Exc;
+import org.decojer.cavaj.model.code.Sub;
 import org.decojer.cavaj.model.code.op.GOTO;
 import org.decojer.cavaj.model.code.op.JCMP;
 import org.decojer.cavaj.model.code.op.JCND;
@@ -50,6 +56,8 @@ import org.decojer.cavaj.model.code.op.SWITCH;
  */
 public final class TrInitControlFlowGraph {
 
+	private final static Logger LOGGER = Logger.getLogger(TrInitControlFlowGraph.class.getName());
+
 	/**
 	 * Transform CFG.
 	 * 
@@ -65,17 +73,71 @@ public final class TrInitControlFlowGraph {
 	private boolean isIgnoreExceptions;
 
 	/**
-	 * Remember BBs for PCs.
-	 */
-	private BB[] pc2Bbs;
-
-	/**
 	 * Remember open PCs.
 	 */
-	final LinkedList<Integer> openPcs = new LinkedList<Integer>();
+	private final LinkedList<Integer> openPcs = new LinkedList<Integer>();
+
+	/**
+	 * Remember open RETs.
+	 */
+	private LinkedList<RET> openRets;
+
+	/**
+	 * Remember BBs for PCs.
+	 */
+	private BB[] pc2bbs;
+
+	private Map<Integer, Sub> pc2sub;
 
 	private TrInitControlFlowGraph(final CFG cfg) {
 		this.cfg = cfg;
+	}
+
+	private boolean checkOpenRets() {
+		if (this.openRets == null) {
+			return false;
+		}
+		for (final RET ret : this.openRets) {
+			final BB subTail = this.pc2bbs[ret.getPc()];
+			// RET register should contain an address that follows the calling JSR instruction,
+			// JSR pushes this address onto the stack and calls the subroutine BB,
+			// normally the first subroutine instruction is a STORE
+			final Sub sub = findSub(ret.getReg(), subTail, new HashSet<BB>());
+			for (final JSR jsr : sub.getJsrs()) {
+				subTail.setSucc(getTarget(jsr.getPc() + 1));
+			}
+		}
+		this.openRets.clear();
+		return !this.openPcs.isEmpty();
+	}
+
+	private Sub findSub(final int reg, final BB bb, final Set<BB> traversed) {
+		for (final Op op : bb.getOps()) {
+			if (!(op instanceof STORE) || ((STORE) op).getReg() != reg) {
+				continue;
+			}
+			final Sub sub = this.pc2sub.get(bb.getOpPc());
+			if (sub != null) {
+				if (op.getPc() != bb.getOpPc()) {
+					LOGGER.warning("Subroutine for reg '" + reg
+							+ "' found, but STORE isn't first operation: " + sub);
+				}
+				return sub;
+			}
+			LOGGER.warning("Couldn't find subroutine for STORE: " + op);
+			return null;
+		}
+		traversed.add(bb);
+		for (final E in : bb.getIns()) {
+			if (traversed.contains(in.getStart())) {
+				continue;
+			}
+			final Sub sub = findSub(reg, in.getStart(), traversed);
+			if (sub != null) {
+				return sub;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -86,7 +148,7 @@ public final class TrInitControlFlowGraph {
 	 * @return target BB
 	 */
 	private BB getTarget(final int pc) {
-		final BB bb = this.pc2Bbs[pc]; // get BB for target PC
+		final BB bb = this.pc2bbs[pc]; // get BB for target PC
 		if (bb == null) {
 			// PC not processed yet
 			this.openPcs.add(pc);
@@ -116,7 +178,7 @@ public final class TrInitControlFlowGraph {
 		while (i < ops.size()) {
 			final Op op = ops.remove(i);
 			split.addOp(op);
-			this.pc2Bbs[op.getPc()] = split;
+			this.pc2bbs[op.getPc()] = split;
 		}
 
 		return split;
@@ -124,7 +186,7 @@ public final class TrInitControlFlowGraph {
 
 	private BB newBb(final int pc) {
 		final BB bb = this.cfg.newBb(pc);
-		this.pc2Bbs[pc] = bb;
+		this.pc2bbs[pc] = bb;
 		if (!this.isIgnoreExceptions) {
 			final Exc[] excs = this.cfg.getExcs();
 			if (excs == null) {
@@ -158,7 +220,7 @@ public final class TrInitControlFlowGraph {
 		this.isIgnoreExceptions = this.cfg.getMd().getTd().getCu().check(DFlag.IGNORE_EXCEPTIONS);
 
 		final Op[] ops = this.cfg.getOps();
-		this.pc2Bbs = new BB[ops.length];
+		this.pc2bbs = new BB[ops.length];
 
 		// start with PC 0 and new BB
 		this.openPcs.add(0);
@@ -169,17 +231,17 @@ public final class TrInitControlFlowGraph {
 		while (true) {
 			if (pc >= ops.length) {
 				// next open pc?
-				if (this.openPcs.isEmpty()) {
+				if (this.openPcs.isEmpty() && !checkOpenRets()) {
 					break;
 				}
 				pc = this.openPcs.removeFirst();
-				bb = this.pc2Bbs[pc];
-			} else if (this.pc2Bbs[pc] != null) {
+				bb = this.pc2bbs[pc];
+			} else if (this.pc2bbs[pc] != null) {
 				bb.setSucc(getTarget(pc));
 				pc = ops.length; // next open pc
 				continue;
 			} else {
-				this.pc2Bbs[pc] = bb;
+				this.pc2bbs[pc] = bb;
 			}
 			if (!this.isIgnoreExceptions) {
 				// exception block changes in none-empty BB? -> split necessary!
@@ -227,7 +289,17 @@ public final class TrInitControlFlowGraph {
 			}
 			case JSR: {
 				final JSR cop = (JSR) op;
-				getTarget(pc); // TODO remember map, link at end
+				if (this.pc2sub == null) {
+					this.pc2sub = new HashMap<Integer, Sub>();
+					this.pc2sub.put(cop.getTargetPc(), new Sub(cop));
+				} else {
+					Sub sub = this.pc2sub.get(cop.getTargetPc());
+					if (sub == null) {
+						this.pc2sub.put(cop.getTargetPc(), sub = new Sub(cop));
+					} else {
+						sub.addJsr(cop);
+					}
+				}
 				bb.setSucc(getTarget(cop.getTargetPc()));
 				pc = ops.length; // next open pc
 				continue;
@@ -270,18 +342,11 @@ public final class TrInitControlFlowGraph {
 			}
 			case RET: {
 				final RET cop = (RET) op;
-				final int reg = cop.getReg();
-				// register should contain an address that follows the calling JSR instruction,
-				// JSR pushes this address onto the stack and calls the subroutine BB,
-				// normally the first subroutine instruction is a STORE
-				final BB prev = bb;
-				while (prev != null) {
-					final Op firstOp = prev.getOps().get(0);
-					if (firstOp instanceof STORE && ((STORE) firstOp).getReg() == reg) {
-
-						break;
-					}
+				// remember because we don't know if we have all JSR pathes right now
+				if (this.openRets == null) {
+					this.openRets = new LinkedList<RET>();
 				}
+				this.openRets.add(cop);
 				pc = ops.length; // next open pc
 				continue;
 			}
