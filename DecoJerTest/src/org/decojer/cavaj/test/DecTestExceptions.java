@@ -2,6 +2,134 @@ package org.decojer.cavaj.test;
 
 public abstract class DecTestExceptions {
 
+	boolean breakNestedFinallyExceptionFinally(int a) {
+		System.out.println("PRE");
+		out: try {
+			System.out.println("TRY");
+		} catch (final Exception e) {
+			System.out.println("EXC" + e);
+		} finally {
+			System.out.println("FIN");
+			in: try {
+				System.out.println("IN_TRY");
+			} catch (final Error e) {
+				System.out.println("IN_ERR" + e);
+				if (a > 10) {
+					System.out.println("IN_ERR_BREAK_OUT");
+					break out;
+				}
+				if (a > 9) {
+					break out;
+				}
+				if (a > 5) {
+					System.out.println("IN_ERR_BREAK");
+					break in;
+				}
+				if (a > 0) {
+					System.out.println("IN_ERR_RET");
+					return true;
+				}
+				System.out.println("IN_ERR_TAIL");
+			} finally {
+				System.out.println("IN_FIN");
+				if (a > 10) {
+					System.out.println("IN_FIN_BREAK_OUT");
+					break out;
+				}
+				if (a > 9) {
+					break out;
+				}
+				if (a > 5) {
+					System.out.println("IN_FIN_BREAK");
+					break in;
+				}
+				if (a > 0) {
+					System.out.println("IN_FIN_RET");
+					return true;
+				}
+				System.out.println("IN_FIN_TAIL");
+			}
+			System.out.println("IN_FIN_TAIL");
+		}
+		System.out.println("POST");
+		return false;
+	}
+
+	boolean breakNestedTryExceptionFinally(int a) {
+		System.out.println("PRE");
+		out: try {
+			System.out.println("TRY");
+			in: try {
+				System.out.println("IN_TRY");
+			} catch (final Error e) {
+				System.out.println("IN_ERR" + e);
+				if (a > 10) {
+					System.out.println("IN_ERR_BREAK_OUT");
+					break out;
+				}
+				if (a > 9) {
+					break out;
+				}
+				if (a > 5) {
+					System.out.println("IN_ERR_BREAK");
+					break in;
+				}
+				if (a > 0) {
+					System.out.println("IN_ERR_RET");
+					return true;
+				}
+				System.out.println("IN_ERR_TAIL");
+			} finally {
+				System.out.println("IN_FIN");
+				if (a > 10) {
+					System.out.println("IN_FIN_BREAK_OUT");
+					break out;
+				}
+				if (a > 9) {
+					break out;
+				}
+				if (a > 5) {
+					System.out.println("IN_FIN_BREAK");
+					break in;
+				}
+				if (a > 0) {
+					System.out.println("IN_FIN_RET");
+					return true;
+				}
+				System.out.println("IN_FIN_TAIL");
+			}
+		} catch (final Exception e) {
+			System.out.println("EXC" + e);
+		} finally {
+			System.out.println("FIN");
+		}
+		System.out.println("POST");
+		return false;
+	}
+
+	boolean breakTrySimpleException(int a) {
+		System.out.println("PRE");
+		out: try {
+			System.out.println("TRY");
+			if (a > 10) {
+				System.out.println("TRY_BREAK");
+				break out;
+			}
+			if (a > 9) {
+				break out;
+			}
+			if (a > 0) {
+				System.out.println("TRY_RET");
+				return true;
+			}
+			System.out.println("TRY_TAIL");
+		} catch (final Exception e) {
+			System.out.println("EXC" + e);
+		}
+		System.out.println("POST");
+		return false;
+	}
+
 	void exception() {
 		System.out.println("PRE");
 		try {
@@ -28,7 +156,7 @@ public abstract class DecTestExceptions {
 		System.out.println("POST");
 	}
 
-	void innerException() {
+	void nestedTryException() {
 		System.out.println("PRE");
 		try {
 			try {
@@ -46,63 +174,17 @@ public abstract class DecTestExceptions {
 		System.out.println("POST");
 	}
 
-	void innerFinally() {
+	void nestedTryExceptionFinally() {
 		System.out.println("PRE");
 		try {
 			try {
 				System.out.println("TRY");
-			} catch (final Exception e) {
-				System.out.println("IN_EXC" + e);
-			} catch (final Error e) {
-				System.out.println("IN_ERR" + e);
-			} finally {
-				System.out.println("IN_FIN");
-			}
-		} catch (final Exception e) {
-			System.out.println("EXC" + e);
-		} catch (final Error e) {
-			System.out.println("ERR" + e);
-		} finally {
-			System.out.println("FIN");
-		}
-		System.out.println("POST");
-	}
-
-	void innerSimpleFinally() {
-		System.out.println("PRE");
-		try {
-			try {
-				System.out.println("TRY");
-			} finally {
-				System.out.println("IN_FINALLY");
-			}
-		} finally {
-			System.out.println("FIN");
-		}
-		System.out.println("POST");
-	}
-
-	boolean returnInInnerFinally(int a) {
-		System.out.println("PRE");
-		out: try {
-			try {
-				if (a > -1) {
-					return false;
-				}
-				if (a > 1) {
-					System.out.println("INIF");
-					return true;
-				}
-				System.out.println("TRY");
-				return a > 10;
 			} catch (final Exception e) {
 				System.out.println("IN_EXC" + e);
 			} catch (final Error e) {
 				System.out.println("IN_ERR" + e);
 			} finally {
 				System.out.println("IN_FIN");
-				if (a > 0)
-					break out;
 			}
 		} catch (final Exception e) {
 			System.out.println("EXC" + e);
@@ -112,26 +194,6 @@ public abstract class DecTestExceptions {
 			System.out.println("FIN");
 		}
 		System.out.println("POST");
-		return false;
-	}
-
-	boolean returnInSimpleException(int a) {
-		System.out.println("PRE");
-		try {
-			if (a > -1) {
-				return false;
-			}
-			if (a > 1) {
-				System.out.println("INIF");
-				return true;
-			}
-			System.out.println("TRY");
-			return a > 10;
-		} catch (final Exception e) {
-			System.out.println("EXC" + e);
-		}
-		System.out.println("POST");
-		return false;
 	}
 
 	void simpleException() {
@@ -148,6 +210,34 @@ public abstract class DecTestExceptions {
 		System.out.println("PRE");
 		try {
 			System.out.println("TRY");
+		} finally {
+			System.out.println("FIN");
+		}
+		System.out.println("POST");
+	}
+
+	void simpleNestedFinallyFinally() {
+		System.out.println("PRE");
+		try {
+			System.out.println("TRY");
+		} finally {
+			try {
+				System.out.println("FIN");
+			} finally {
+				System.out.println("IN_FINALLY");
+			}
+		}
+		System.out.println("POST");
+	}
+
+	void simpleNestedTryFinally() {
+		System.out.println("PRE");
+		try {
+			try {
+				System.out.println("TRY");
+			} finally {
+				System.out.println("IN_FINALLY");
+			}
 		} finally {
 			System.out.println("FIN");
 		}
