@@ -227,9 +227,11 @@ public class T {
 	 */
 	public static T VOID = new T(void.class.getName());
 	/**
-	 * Artificial type 'address' for JSR follow pc.
+	 * Artificial type 'return address' for JSR follow pc.
+	 * 
+	 * Spec: No return address (a value of type returnAddress) may be loaded from a local variable.
 	 */
-	public static final T ADDRESS = new T("ADDRESS");
+	public static final T RETURN_ADDRESS = new T("RETURN_ADDRESS");
 	/**
 	 * Artificial type 'any reference'.
 	 */

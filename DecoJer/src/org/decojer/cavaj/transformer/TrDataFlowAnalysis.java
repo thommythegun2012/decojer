@@ -321,7 +321,7 @@ public final class TrDataFlowAnalysis {
 			}
 			case JSR: {
 				final JSR cop = (JSR) op;
-				push(T.ADDRESS);
+				push(T.RETURN_ADDRESS);
 				merge(cop.getTargetPc());
 				continue;
 			}
@@ -411,7 +411,7 @@ public final class TrDataFlowAnalysis {
 			}
 			case RET: {
 				final RET cop = (RET) op;
-				get(cop.getReg(), T.ADDRESS);
+				get(cop.getReg(), T.RETURN_ADDRESS);
 				// merge to many...
 				break;
 			}
