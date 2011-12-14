@@ -288,6 +288,24 @@ public final class TrInitControlFlowGraph {
 				continue;
 			}
 			case JSR: {
+				// Spec:
+				// http://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html#9862
+
+				// No return address (a value of type returnAddress) may be loaded from a local
+				// variable.
+
+				// The instruction following each jsr or jsr_w instruction may be returned to only
+				// by a single ret instruction.
+
+				// No jsr or jsr_w instruction may be used to recursively call a subroutine if that
+				// subroutine is already present in the subroutine call chain. (Subroutines can be
+				// nested when using try-finally constructs from within a finally clause. For more
+				// information on Java virtual machine subroutines, see §4.9.6.)
+
+				// Each instance of type returnAddress can be returned to at most once. If a ret
+				// instruction returns to a point in the subroutine call chain above the ret
+				// instruction corresponding to a given instance of type returnAddress, then that
+				// instance can never be used as a return address.
 				final JSR cop = (JSR) op;
 				if (this.pc2sub == null) {
 					this.pc2sub = new HashMap<Integer, Sub>();
