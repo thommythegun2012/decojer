@@ -49,7 +49,7 @@ public abstract class DecTestExceptions {
 				}
 				System.out.println("IN_FIN_TAIL");
 			}
-			System.out.println("IN_FIN_TAIL");
+			System.out.println("FIN_TAIL");
 		}
 		System.out.println("POST");
 		return false;
@@ -98,6 +98,7 @@ public abstract class DecTestExceptions {
 				}
 				System.out.println("IN_FIN_TAIL");
 			}
+			System.out.println("TRY_TAIL");
 		} catch (final Exception e) {
 			System.out.println("EXC" + e);
 		} finally {
@@ -159,13 +160,15 @@ public abstract class DecTestExceptions {
 	void nestedTryException() {
 		System.out.println("PRE");
 		try {
+			System.out.println("TRY");
 			try {
-				System.out.println("TRY");
+				System.out.println("IN_TRY");
 			} catch (final Exception e) {
 				System.out.println("IN_EXC" + e);
 			} catch (final Error e) {
 				System.out.println("IN_ERR" + e);
 			}
+			System.out.println("TRY_TAIL");
 		} catch (final Exception e) {
 			System.out.println("EXC" + e);
 		} catch (final Error e) {
@@ -177,8 +180,9 @@ public abstract class DecTestExceptions {
 	void nestedTryExceptionFinally() {
 		System.out.println("PRE");
 		try {
+			System.out.println("TRY");
 			try {
-				System.out.println("TRY");
+				System.out.println("IN_TRY");
 			} catch (final Exception e) {
 				System.out.println("IN_EXC" + e);
 			} catch (final Error e) {
@@ -186,6 +190,7 @@ public abstract class DecTestExceptions {
 			} finally {
 				System.out.println("IN_FIN");
 			}
+			System.out.println("TRY_TAIL");
 		} catch (final Exception e) {
 			System.out.println("EXC" + e);
 		} catch (final Error e) {
@@ -233,11 +238,13 @@ public abstract class DecTestExceptions {
 	void simpleNestedTryFinally() {
 		System.out.println("PRE");
 		try {
+			System.out.println("TRY");
 			try {
-				System.out.println("TRY");
+				System.out.println("IN_TRY");
 			} finally {
 				System.out.println("IN_FINALLY");
 			}
+			System.out.println("TRY_TAIL");
 		} finally {
 			System.out.println("FIN");
 		}
