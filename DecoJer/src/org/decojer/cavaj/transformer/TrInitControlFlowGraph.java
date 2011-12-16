@@ -288,8 +288,8 @@ public final class TrInitControlFlowGraph {
 				continue;
 			}
 			case JSR: {
-				// Spec:
-				// http://java.sun.com/docs/books/jvms/second_edition/html/ClassFile.doc.html#9862
+				// Spec, JSR/RET is stack-like:
+				// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
 
 				// No return address (a value of type returnAddress) may be loaded from a local
 				// variable.
@@ -297,10 +297,10 @@ public final class TrInitControlFlowGraph {
 				// The instruction following each jsr or jsr_w instruction may be returned to only
 				// by a single ret instruction.
 
-				// No jsr or jsr_w instruction may be used to recursively call a subroutine if that
-				// subroutine is already present in the subroutine call chain. (Subroutines can be
-				// nested when using try-finally constructs from within a finally clause. For more
-				// information on Java virtual machine subroutines, see §4.9.6.)
+				// No jsr or jsr_w instruction that is returned to may be used to recursively call a
+				// subroutine if that subroutine is already present in the subroutine call chain.
+				// (Subroutines can be nested when using try-finally constructs from within a
+				// finally clause.)
 
 				// Each instance of type returnAddress can be returned to at most once. If a ret
 				// instruction returns to a point in the subroutine call chain above the ret
