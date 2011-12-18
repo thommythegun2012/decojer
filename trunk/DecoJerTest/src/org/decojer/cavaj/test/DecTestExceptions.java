@@ -251,4 +251,14 @@ public abstract class DecTestExceptions {
 		System.out.println("POST");
 	}
 
+	boolean whileFinally() {
+		while (true) {
+			try {
+				System.out.println("TEST");
+			} finally {
+				continue;
+			}
+		}
+	}
+
 }
