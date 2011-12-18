@@ -291,21 +291,48 @@ public final class TrInitControlFlowGraph {
 				// Spec, JSR/RET is stack-like:
 				// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
 
-				// No return address (a value of type returnAddress) may be loaded from a local
-				// variable.
-
-				// The instruction following each jsr or jsr_w instruction may be returned to only
+				// • No return address (a value of type returnAddress) may be loaded from a
+				// local variable.
+				// • The instruction following each jsr or jsr_w instruction may be returned to only
 				// by a single ret instruction.
-
-				// No jsr or jsr_w instruction that is returned to may be used to recursively call a
+				// • No jsr or jsr_w instruction that is returned to may be used to recursively call
+				// a
 				// subroutine if that subroutine is already present in the subroutine call chain.
 				// (Subroutines can be nested when using try-finally constructs from within a
 				// finally clause.)
-
-				// Each instance of type returnAddress can be returned to at most once. If a ret
+				// • Each instance of type returnAddress can be returned to at most once. If a ret
 				// instruction returns to a point in the subroutine call chain above the ret
-				// instruction corresponding to a given instance of type returnAddress, then that
+				// instruction
+				// corresponding to a given instance of type returnAddress, then that
 				// instance can never be used as a return address.
+
+				// Verifying code that contains a finally clause is complicated. The basic idea
+				// is the following:
+				// • Each instruction keeps track of the list of jsr targets needed to reach that
+				// instruction. For most code, this list is empty. For instructions inside code for
+				// the finally clause, it is of length one. For multiply nested finally code
+				// (extremely rare!), it may be longer than one.
+				// • For each instruction and each jsr needed to reach that instruction, a bit
+				// vector
+				// is maintained of all local variables accessed or modified since the execution of
+				// the jsr instruction.
+				// • When executing the ret instruction, which implements a return from a
+				// subroutine,
+				// there must be only one possible subroutine from which the instruction can
+				// be returning. Two different subroutines cannot “merge” their execution to a
+				// single ret instruction.
+				// • To perform the data-flow analysis on a ret instruction, a special procedure is
+				// used. Since the verifier knows the subroutine from which the instruction must
+				// be returning, it can find all the jsr instructions that call the subroutine and
+				// merge the state of the operand stack and local variable array at the time
+				// of the ret instruction into the operand stack and local variable array of the
+				// instructions following the jsr. Merging uses a special set of values for local
+				// variables:
+				// - For any local variable that the bit vector (constructed above) indicates has
+				// been accessed or modified by the subroutine, use the type of the local variable
+				// at the time of the ret.
+				// - For other local variables, use the type of the local variable before the jsr
+				// instruction.
 				final JSR cop = (JSR) op;
 				if (this.pc2sub == null) {
 					this.pc2sub = new HashMap<Integer, Sub>();
