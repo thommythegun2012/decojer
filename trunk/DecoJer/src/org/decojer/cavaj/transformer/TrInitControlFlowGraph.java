@@ -98,13 +98,13 @@ public final class TrInitControlFlowGraph {
 			return false;
 		}
 		for (final RET ret : this.openRets) {
-			final BB subTail = this.pc2bbs[ret.getPc()];
+			final BB subLast = this.pc2bbs[ret.getPc()];
 			// RET register should contain an address that follows the calling JSR instruction,
 			// JSR pushes this address onto the stack and calls the subroutine BB,
 			// normally the first subroutine instruction is a STORE
-			final Sub sub = findSub(ret.getReg(), subTail, new HashSet<BB>());
+			final Sub sub = findSub(ret.getReg(), subLast, new HashSet<BB>());
 			for (final JSR jsr : sub.getJsrs()) {
-				subTail.setSucc(getTarget(jsr.getPc() + 1));
+				subLast.setSucc(getTarget(jsr.getPc() + 1));
 			}
 		}
 		this.openRets.clear();
