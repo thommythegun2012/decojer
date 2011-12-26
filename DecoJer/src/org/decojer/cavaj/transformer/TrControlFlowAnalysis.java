@@ -47,6 +47,56 @@ public final class TrControlFlowAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrControlFlowAnalysis.class.getName());
 
+	// add successors till unknown predecessor node
+	private static void dfsFindFollows(final List<BB> members, final Set<BB> follows, final BB bb,
+			final Struct struct) {
+		// check important for switch fall-throughs with early member addition
+		if (!members.contains(bb)) {
+			if (bb.getIns().size() <= 1) {
+				// predecessor check unnecessary, but is also necessary as
+				// startup for branch member search
+				members.add(bb);
+			} else {
+				for (final E in : bb.getIns()) {
+					if (in.isBack()) {
+						// ignore back edges
+						continue;
+					}
+					if (!members.contains(in.getStart())) {
+						follows.add(bb);
+						return;
+					}
+				}
+				follows.remove(bb);
+				members.add(bb);
+			}
+		}
+		for (final E out : bb.getOuts()) {
+			final BB succ = out.getEnd();
+			if (members.contains(succ)) {
+				continue;
+			}
+			if (out.isBack()) {
+				// back edge to no-member successor, outer struct allready known
+				// TODO handle pre loop continue
+				continue;
+			}
+			// not from succ, follow doesn't know
+			if (struct != null) {
+				if (struct instanceof Loop && ((Loop) struct).isLast(succ)) {
+					// TODO handle post loop continue
+					continue;
+				}
+				if (struct.isFollow(succ)) {
+					// TODO handle break
+					continue;
+				}
+			}
+			// DFS
+			dfsFindFollows(members, follows, succ, struct);
+		}
+	}
+
 	private static boolean dfsFindInnerLoopMembers(final Loop loop, final BB bb,
 			final Set<BB> traversed) {
 		// DFS
@@ -88,62 +138,12 @@ public final class TrControlFlowAnalysis {
 			// find tail (no loopSucc!), pred member with biggest opPc
 			// TODO or biggest line number or further structure analyzis?
 			// TODO e.g. tail with >2 succ not possible, see warning
-			if (loop.getTail() == null || loop.getTail().getOrder() < bb.getOrder()) {
-				loop.setTail(bb);
+			if (loop.getLast() == null || loop.getLast().getOrder() < bb.getOrder()) {
+				loop.setLast(bb);
 			}
 			return true;
 		}
 		return false;
-	}
-
-	// add successors till unknown predecessor node
-	private static void dfsFindTail(final List<BB> members, final Set<BB> endNodes, final BB bb,
-			final Struct struct) {
-		// check important for switch fall-throughs with early member addition
-		if (!members.contains(bb)) {
-			if (bb.getIns().size() <= 1) {
-				// predecessor check unnecessary, but is also necessary as
-				// startup for branch member search
-				members.add(bb);
-			} else {
-				for (final E in : bb.getIns()) {
-					if (in.isBack()) {
-						// ignore back edges
-						continue;
-					}
-					if (!members.contains(in.getStart())) {
-						endNodes.add(bb);
-						return;
-					}
-				}
-				endNodes.remove(bb);
-				members.add(bb);
-			}
-		}
-		for (final E out : bb.getOuts()) {
-			final BB succ = out.getEnd();
-			if (members.contains(succ)) {
-				continue;
-			}
-			if (out.isBack()) {
-				// back edge to no-member successor, outer struct allready known
-				// TODO handle pre loop continue
-				continue;
-			}
-			// not from succ, follow doesn't know
-			if (struct != null) {
-				if (struct instanceof Loop && ((Loop) struct).isTail(succ)) {
-					// TODO handle post loop continue
-					continue;
-				}
-				if (struct.isFollow(succ)) {
-					// TODO handle break
-					continue;
-				}
-			}
-			// DFS
-			dfsFindTail(members, endNodes, succ, struct);
-		}
 	}
 
 	private static boolean isCondHead(final BB bb) {
@@ -159,7 +159,7 @@ public final class TrControlFlowAnalysis {
 				// no additional cond head possible
 				return false;
 			}
-			if (loop.isTail(bb) && loop.isPost()) {
+			if (loop.isLast(bb) && loop.isPost()) {
 				// no additional cond head possible
 				return false;
 			}
@@ -234,11 +234,11 @@ public final class TrControlFlowAnalysis {
 		final Boolean secondValue = !negated;
 
 		final List<BB> firstMembers = new ArrayList<BB>();
-		final Set<BB> firstEndNodes = new HashSet<BB>();
-		dfsFindTail(firstMembers, firstEndNodes, firstSucc, cond.getParent());
+		final Set<BB> firstFollows = new HashSet<BB>();
+		dfsFindFollows(firstMembers, firstFollows, firstSucc, cond.getParent());
 
 		// no else basic blocks
-		if (firstEndNodes.contains(secondSucc)) {
+		if (firstFollows.contains(secondSucc)) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setType(negated ? Cond.IFNOT : Cond.IF);
 			for (final BB bb : firstMembers) {
@@ -250,7 +250,7 @@ public final class TrControlFlowAnalysis {
 
 		// TODO only a trick for now, not ready!!!
 		// e.g. if-continues, if-returns, if-throws => no else necessary
-		if (firstEndNodes.size() == 0) {
+		if (firstFollows.size() == 0) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setType(negated ? Cond.IFNOT : Cond.IF);
 			for (final BB bb : firstMembers) {
@@ -261,10 +261,10 @@ public final class TrControlFlowAnalysis {
 		}
 
 		final List<BB> secondMembers = new ArrayList<BB>();
-		final Set<BB> secondEndNodes = new HashSet<BB>();
-		dfsFindTail(secondMembers, secondEndNodes, secondSucc, cond.getParent());
+		final Set<BB> secondFollows = new HashSet<BB>();
+		dfsFindFollows(secondMembers, secondFollows, secondSucc, cond.getParent());
 
-		if (secondEndNodes.contains(firstSucc)) {
+		if (secondFollows.contains(firstSucc)) {
 			// really bad, order is wrong!
 			log("Order preservation not possible for cond:\n?" + cond);
 			cond.setType(negated ? Cond.IF : Cond.IFNOT);
@@ -285,13 +285,13 @@ public final class TrControlFlowAnalysis {
 
 		// JDK 6: end node with smallest order could be the follow
 		BB firstEndNode = null;
-		for (final BB endNode : firstEndNodes) {
+		for (final BB endNode : firstFollows) {
 			if (firstEndNode == null || firstEndNode.getOrder() > endNode.getOrder()) {
 				firstEndNode = endNode;
 			}
 		}
 		BB secondEndNode = null;
-		for (final BB endNode : secondEndNodes) {
+		for (final BB endNode : secondFollows) {
 			if (secondEndNode == null || secondEndNode.getOrder() > endNode.getOrder()) {
 				secondEndNode = endNode;
 			}
@@ -313,7 +313,7 @@ public final class TrControlFlowAnalysis {
 
 		dfsFindInnerLoopMembers(loop, head, new HashSet<BB>());
 
-		final BB tail = loop.getTail();
+		final BB tail = loop.getLast();
 		assert tail != null;
 
 		int headType = 0;
@@ -369,7 +369,7 @@ public final class TrControlFlowAnalysis {
 		if (headType > 0 && tailType > 0) {
 			final List<BB> headMembers = new ArrayList<BB>();
 			final Set<BB> headEndNodes = new HashSet<BB>();
-			dfsFindTail(headMembers, headEndNodes, headFollow, loop.getParent());
+			dfsFindFollows(headMembers, headEndNodes, headFollow, loop.getParent());
 			if (headEndNodes.contains(tailFollow)) {
 				loop.setType(tailType);
 				loop.setFollow(tailFollow);
@@ -377,7 +377,7 @@ public final class TrControlFlowAnalysis {
 			}
 			final List<BB> tailMembers = new ArrayList<BB>();
 			final Set<BB> tailEndNodes = new HashSet<BB>();
-			dfsFindTail(tailMembers, tailEndNodes, tailFollow, loop.getParent());
+			dfsFindFollows(tailMembers, tailEndNodes, tailFollow, loop.getParent());
 			if (tailEndNodes.contains(headFollow)) {
 				loop.setType(headType);
 				loop.setFollow(headFollow);
@@ -461,7 +461,7 @@ public final class TrControlFlowAnalysis {
 				members.add(succ);
 			}
 
-			dfsFindTail(members, endNodes, succ, switchStruct.getParent());
+			dfsFindFollows(members, endNodes, succ, switchStruct.getParent());
 			for (final BB bb : members) {
 				switchStruct.addMember(outs.get(i).getValue(), bb);
 			}

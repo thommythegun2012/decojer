@@ -40,7 +40,7 @@ public class Loop extends Struct {
 	public static final String[] TYPE_NAME = { "<UNKNOWN>", "ENDLESS", "WHILE", "WHILENOT",
 			"DO_WHILE", "DO_WHILENOT" };
 
-	private BB tail;
+	private BB last;
 
 	private int type;
 
@@ -48,8 +48,8 @@ public class Loop extends Struct {
 		super(bb);
 	}
 
-	public BB getTail() {
-		return this.tail;
+	public BB getLast() {
+		return this.last;
 	}
 
 	public int getType() {
@@ -60,9 +60,13 @@ public class Loop extends Struct {
 		return this.type == ENDLESS;
 	}
 
+	public boolean isLast(final BB bb) {
+		return getLast() == bb;
+	}
+
 	@Override
 	public boolean isMember(final BB bb) {
-		return isTail(bb) || super.isMember(bb);
+		return isLast(bb) || super.isMember(bb);
 	}
 
 	public boolean isPost() {
@@ -73,13 +77,9 @@ public class Loop extends Struct {
 		return this.type == WHILE || this.type == WHILENOT;
 	}
 
-	public boolean isTail(final BB bb) {
-		return getTail() == bb;
-	}
-
-	public void setTail(final BB bb) {
+	public void setLast(final BB bb) {
 		// cannot add as member, tail could be equal to head!
-		this.tail = bb;
+		this.last = bb;
 		bb.setStruct(this);
 	}
 
@@ -90,7 +90,7 @@ public class Loop extends Struct {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(super.toString());
-		sb.append("\nTail: BB " + getTail().getPostorder());
+		sb.append("\nLast: BB " + getLast().getPostorder());
 		sb.append("\nType: " + TYPE_NAME[getType()]);
 		return sb.toString();
 	}

@@ -207,7 +207,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 	@SuppressWarnings("unchecked")
 	private Statement transformLoop(final Loop loop) {
 		final BB head = loop.getHead();
-		final BB tail = loop.getTail();
+		final BB tail = loop.getLast();
 
 		boolean negate = true;
 		switch (loop.getType()) {
@@ -380,7 +380,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 							return;
 						}
 					}
-					if (findLoop.isTail(succ)) {
+					if (findLoop.isLast(succ)) {
 						if (findLoop.isPost()) {
 							if (struct == findLoop) {
 								final int size = succ.getStmts() - 1;
