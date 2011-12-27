@@ -128,7 +128,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitArrayStmt(final int opcode, final int formOrToReg, final int arrayReg,
-			final int indexReg) {
+			final int indexReg, final int xt) {
 		// TODO Auto-generated method stub
 
 	}
@@ -141,7 +141,8 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitBinopStmt(final int opcode, final int toReg, final int r1, final int r2) {
+	public void visitBinopStmt(final int opcode, final int toReg, final int r1, final int r2,
+			final int xt) {
 		// TODO Auto-generated method stub
 
 	}
@@ -159,13 +160,14 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitCmpStmt(final int opcode, final int distReg, final int bB, final int cC) {
+	public void visitCmpStmt(final int opcode, final int distReg, final int bB, final int cC,
+			final int xt) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitConstStmt(final int opcode, final int toReg, final Object value) {
+	public void visitConstStmt(final int opcode, final int toReg, final Object value, final int xt) {
 		// TODO Auto-generated method stub
 
 	}
@@ -200,14 +202,15 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitFieldStmt(final int opcode, final int fromOrToReg, final Field field) {
+	public void visitFieldStmt(final int opcode, final int fromOrToReg, final Field field,
+			final int xt) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void visitFieldStmt(final int opcode, final int fromOrToReg, final int objReg,
-			final Field field) {
+			final Field field, final int xt) {
 		// TODO Auto-generated method stub
 
 	}
@@ -372,13 +375,13 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitMoveStmt(final int opcode, final int toReg) {
+	public void visitMoveStmt(final int opcode, final int toReg, final int fromReg) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitMoveStmt(final int opcode, final int toReg, final int fromReg) {
+	public void visitMoveStmt(final int opcode, final int toReg, final int fromReg, final int xt) {
 		// TODO Auto-generated method stub
 
 	}
@@ -390,7 +393,7 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitReturnStmt(final int opcode, final int reg) {
+	public void visitReturnStmt(final int opcode, final int reg, final int xt) {
 		// TODO Auto-generated method stub
 
 	}
@@ -429,7 +432,14 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
-	public void visitUnopStmt(final int opcode, final int toReg, final int fromReg) {
+	public void visitUnopStmt(final int opcode, final int toReg, final int fromReg, final int xt) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void visitUnopStmt(final int opcode, final int toReg, final int fromReg, final int xta,
+			final int xtb) {
 		// TODO Auto-generated method stub
 
 	}
