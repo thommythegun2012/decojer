@@ -69,7 +69,7 @@ public class FramesFigure extends Figure {
 	 *            basic block
 	 */
 	public FramesFigure(final BB bb) {
-		final int maxLocals = bb.getCfg().getMaxLocals();
+		final int maxLocals = bb.getCfg().getRegs();
 		int maxStack = 0;
 		// don't use bb.getCfg().getMaxLocals()
 		for (final Op operation : bb.getOps()) {

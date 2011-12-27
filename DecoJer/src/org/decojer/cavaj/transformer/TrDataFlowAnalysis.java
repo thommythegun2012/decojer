@@ -510,7 +510,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private Frame createMethodFrame() {
-		final Frame frame = new Frame(this.cfg.getMaxLocals());
+		final Frame frame = new Frame(this.cfg.getRegs());
 		for (int reg = frame.getRegs(); reg-- > 0;) {
 			final V v = this.cfg.getDebugV(reg, 0);
 			if (v != null) {

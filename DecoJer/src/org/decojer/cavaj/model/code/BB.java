@@ -67,7 +67,7 @@ public final class BB {
 	protected BB(final CFG cfg, final int opPc) {
 		this.cfg = cfg;
 		this.opPc = opPc;
-		this.vs = new Expression[cfg.getMaxLocals()];
+		this.vs = new Expression[cfg.getRegs()];
 	}
 
 	/**
@@ -226,7 +226,7 @@ public final class BB {
 	}
 
 	private int getLocals() {
-		return this.cfg.getMaxLocals();
+		return this.cfg.getRegs();
 	}
 
 	/**
