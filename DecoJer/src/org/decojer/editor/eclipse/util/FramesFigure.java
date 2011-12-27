@@ -92,9 +92,9 @@ public class FramesFigure extends Figure {
 			if (frame == null) {
 				continue;
 			}
-			final int regsSize = frame.getLocals();
-			for (int index = 0; index < regsSize; ++index) {
-				final V v = frame.get(index);
+			final int regs = frame.getRegs();
+			for (int reg = 0; reg < regs; ++reg) {
+				final V v = frame.get(reg);
 				final Label label = new Label(v == null ? "    " : v.toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);

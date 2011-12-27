@@ -30,7 +30,7 @@ package org.decojer.cavaj.model.code;
  */
 public class Frame {
 
-	private final int locals;
+	private final int regs;
 
 	private int top;
 
@@ -43,9 +43,9 @@ public class Frame {
 	 *            copy frame
 	 */
 	public Frame(final Frame frame) {
-		this.locals = frame.locals;
+		this.regs = frame.regs;
 		this.top = frame.top;
-		this.vs = new V[this.locals + this.top];
+		this.vs = new V[this.regs + this.top];
 		System.arraycopy(frame.vs, 0, this.vs, 0, this.vs.length);
 	}
 
@@ -56,7 +56,7 @@ public class Frame {
 	 *            locals
 	 */
 	public Frame(final int locals) {
-		this.locals = locals;
+		this.regs = locals;
 		this.vs = new V[locals];
 	}
 
@@ -68,23 +68,23 @@ public class Frame {
 	}
 
 	/**
-	 * Get local variable.
+	 * Get register variable.
 	 * 
-	 * @param i
-	 *            index
+	 * @param reg
+	 *            register
 	 * @return variable
 	 */
-	public V get(final int i) {
-		return this.vs[i];
+	public V get(final int reg) {
+		return this.vs[reg];
 	}
 
 	/**
-	 * Get locals.
+	 * Get register cound.
 	 * 
-	 * @return locals
+	 * @return register count
 	 */
-	public int getLocals() {
-		return this.locals;
+	public int getRegs() {
+		return this.regs;
 	}
 
 	/**
@@ -95,7 +95,7 @@ public class Frame {
 	 * @return variable
 	 */
 	public V getStack(final int i) {
-		return this.vs[this.locals + i];
+		return this.vs[this.regs + i];
 	}
 
 	/**
@@ -116,7 +116,7 @@ public class Frame {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.vs[this.locals + this.top - 1];
+		return this.vs[this.regs + this.top - 1];
 	}
 
 	/**
@@ -128,7 +128,7 @@ public class Frame {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.vs[this.locals + --this.top];
+		return this.vs[this.regs + --this.top];
 	}
 
 	/**
@@ -138,29 +138,29 @@ public class Frame {
 	 *            variable
 	 */
 	public void push(final V v) {
-		if (this.locals + this.top >= this.vs.length) {
-			final V[] newVs = new V[this.locals + this.top + 1];
-			System.arraycopy(this.vs, 0, newVs, 0, this.locals + this.top);
+		if (this.regs + this.top >= this.vs.length) {
+			final V[] newVs = new V[this.regs + this.top + 1];
+			System.arraycopy(this.vs, 0, newVs, 0, this.regs + this.top);
 			this.vs = newVs;
 		}
-		this.vs[this.locals + this.top++] = v;
+		this.vs[this.regs + this.top++] = v;
 	}
 
 	/**
-	 * Set local variable.
+	 * Set register variable.
 	 * 
-	 * @param i
-	 *            index
+	 * @param reg
+	 *            register
 	 * @param v
 	 *            variable
 	 */
-	public void set(final int i, final V v) {
-		this.vs[i] = v;
+	public void set(final int reg, final V v) {
+		this.vs[reg] = v;
 	}
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("Frame (").append(this.locals);
+		final StringBuilder sb = new StringBuilder("Frame (").append(this.regs);
 		if (this.top != 0) {
 			sb.append(", ").append(this.top);
 		}
