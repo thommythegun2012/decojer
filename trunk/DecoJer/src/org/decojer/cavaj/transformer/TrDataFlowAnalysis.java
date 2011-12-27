@@ -511,10 +511,10 @@ public final class TrDataFlowAnalysis {
 
 	private Frame createMethodFrame() {
 		final Frame frame = new Frame(this.cfg.getMaxLocals());
-		for (int i = frame.getLocals(); i-- > 0;) {
-			final V v = this.cfg.getDebugV(i, 0);
+		for (int reg = frame.getRegs(); reg-- > 0;) {
+			final V v = this.cfg.getDebugV(reg, 0);
 			if (v != null) {
-				frame.set(i, new V(v));
+				frame.set(reg, new V(v));
 			}
 		}
 		return frame;
@@ -567,17 +567,17 @@ public final class TrDataFlowAnalysis {
 			this.changed = true;
 			return;
 		}
-		for (int i = this.frame.getLocals(); i-- > 0;) {
-			final V v = this.frame.get(i);
+		for (int reg = this.frame.getRegs(); reg-- > 0;) {
+			final V v = this.frame.get(reg);
 			if (v == null) {
 				// TODO could check if we run into a variable through a real branch merge?
 				continue;
 			}
-			final V targetV = targetFrame.get(i);
+			final V targetV = targetFrame.get(reg);
 			// TODO sometimes we don't like to merge, if we merge we must also add dom
 			// declaration
 			if (targetV == null) {
-				targetFrame.set(i, v);
+				targetFrame.set(reg, v);
 				this.changed = true;
 				continue;
 			}
