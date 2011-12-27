@@ -163,16 +163,15 @@ public class M {
 	/**
 	 * Get parameter name.
 	 * 
-	 * @param reg
-	 *            register
+	 * @param i
+	 *            index
 	 * @return parameter name
 	 */
-	public String getParamName(final int reg) {
-		if (this.paramNames == null || reg >= this.paramNames.length
-				|| this.paramNames[reg] == null) {
-			return "arg" + reg;
+	public String getParamName(final int i) {
+		if (this.paramNames == null || i >= this.paramNames.length || this.paramNames[i] == null) {
+			return "arg" + i;
 		}
-		return this.paramNames[reg];
+		return this.paramNames[i];
 	}
 
 	/**
@@ -243,16 +242,16 @@ public class M {
 	/**
 	 * Set parameter name.
 	 * 
-	 * @param reg
-	 *            register
+	 * @param i
+	 *            index
 	 * @param name
 	 *            parameter name
 	 */
-	public void setParamName(final int reg, final String name) {
+	public void setParamName(final int i, final String name) {
 		if (this.paramNames == null) {
 			this.paramNames = new String[this.paramTs.length];
 		}
-		this.paramNames[reg] = name;
+		this.paramNames[i] = name;
 	}
 
 	/**
