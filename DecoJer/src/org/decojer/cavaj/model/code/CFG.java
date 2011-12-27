@@ -394,8 +394,8 @@ public class CFG {
 	 */
 	public void postProcessVars() {
 		final M m = this.md.getM();
-		final TD td = this.md.getTd();
 		final T[] paramTs = m.getParamTs();
+		final TD td = this.md.getTd();
 
 		if (this.vss == null) {
 			this.vss = new V[this.maxLocals][];
