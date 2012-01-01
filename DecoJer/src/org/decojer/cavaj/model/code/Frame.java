@@ -52,12 +52,12 @@ public class Frame {
 	/**
 	 * Constructor.
 	 * 
-	 * @param locals
-	 *            locals
+	 * @param regs
+	 *            register count (max locals)
 	 */
-	public Frame(final int locals) {
-		this.regs = locals;
-		this.vs = new V[locals];
+	public Frame(final int regs) {
+		this.regs = regs;
+		this.vs = new V[regs];
 	}
 
 	/**
@@ -65,6 +65,17 @@ public class Frame {
 	 */
 	public void clearStack() {
 		this.top = 0;
+	}
+
+	/**
+	 * Quick copy values from similar (previous) frame.
+	 * 
+	 * @param frame
+	 *            similar (previous) frame
+	 */
+	public void copy(final Frame frame) {
+		this.top = frame.top;
+		System.arraycopy(frame.vs, 0, this.vs, 0, this.vs.length);
 	}
 
 	/**
@@ -79,7 +90,7 @@ public class Frame {
 	}
 
 	/**
-	 * Get register cound.
+	 * Get register count.
 	 * 
 	 * @return register count
 	 */
