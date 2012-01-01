@@ -268,6 +268,8 @@ public final class TrInitControlFlowGraph {
 			}
 			final Op op = ops[pc++];
 			bb.addOp(op);
+			// TODO bug with back loops to same block, split must not change this BB!!!
+			// Resolve with new Merge/CFG-Analyzer
 			switch (op.getOptype()) {
 			case GOTO: {
 				final GOTO cop = (GOTO) op;
