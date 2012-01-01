@@ -196,7 +196,8 @@ public class ReadCodeItem {
 		T moveInvokeResultT = null;
 
 		Instruction instruction;
-		for (int i = 0, vmpc = 0, line = -1, opcode = -1; i < instructions.length; ++i, vmpc += instruction
+		int vmpc = 0;
+		for (int i = 0, line = -1, opcode = -1; i < instructions.length; ++i, vmpc += instruction
 				.getSize(vmpc)) {
 			instruction = instructions[i];
 
@@ -2279,7 +2280,7 @@ public class ReadCodeItem {
 						+ Integer.toHexString(opcode & 0xff) + "'!");
 			}
 		}
-		visitVmpc(this.ops.size(), null);
+		visitVmpc(vmpc, null);
 		cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 
 		final TryItem[] tryItems = codeItem.getTries();
