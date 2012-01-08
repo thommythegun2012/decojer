@@ -25,7 +25,7 @@ package org.decojer.editor.eclipse.util;
 
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.Frame;
-import org.decojer.cavaj.model.code.V;
+import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.op.Op;
 import org.eclipse.draw2d.AbstractBorder;
 import org.eclipse.draw2d.Border;
@@ -69,9 +69,8 @@ public class FramesFigure extends Figure {
 	 *            basic block
 	 */
 	public FramesFigure(final BB bb) {
-		final int maxLocals = bb.getCfg().getRegs();
-		int maxStack = 0;
-		// don't use bb.getCfg().getMaxLocals()
+		final int regs = bb.getCfg().getRegs();
+		int maxStack = 0; // don't use bb.getCfg().getMaxStack()
 		for (final Op operation : bb.getOps()) {
 			final Frame frame = bb.getCfg().getInFrame(operation);
 			if (frame == null) {
@@ -82,25 +81,21 @@ public class FramesFigure extends Figure {
 			}
 		}
 
-		final GridLayout gridLayout = new GridLayout(1 + maxLocals + maxStack, false);
+		final GridLayout gridLayout = new GridLayout(1 + regs + maxStack, false);
 		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = 0;
 		setLayoutManager(gridLayout);
 
 		for (final Op operation : bb.getOps()) {
-			add(new Label(operation.getClass().getSimpleName() + " "));
 			final Frame frame = bb.getCfg().getInFrame(operation);
-			if (frame == null) {
-				continue;
-			}
-			final int regs = frame.getRegs();
+			add(new Label(operation.getClass().getSimpleName() + (frame == null ? "?" : " ")));
 			for (int reg = 0; reg < regs; ++reg) {
-				final V v = frame.get(reg);
-				final Label label = new Label(v == null ? "    " : v.toString());
+				final R r = frame == null ? null : frame.get(reg);
+				final Label label = new Label(r == null ? "    " : r.toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
 			for (int index = maxStack; index-- > 0;) {
-				final Label label = new Label(index >= frame.getStackSize()
+				final Label label = new Label(frame == null || index >= frame.getStackSize()
 						|| frame.getStack(index) == null ? "    " : frame.getStack(index)
 						.toString());
 				label.setBorder(LEFT_BORDER);
@@ -111,7 +106,7 @@ public class FramesFigure extends Figure {
 		for (int i = 0; i < maxStack; ++i) {
 			add(new Label("s" + i), GRID_DATA, 0);
 		}
-		for (int i = maxLocals; i-- > 0;) {
+		for (int i = regs; i-- > 0;) {
 			add(new Label("r" + i), GRID_DATA, 0);
 		}
 		add(new Label(""), 0);

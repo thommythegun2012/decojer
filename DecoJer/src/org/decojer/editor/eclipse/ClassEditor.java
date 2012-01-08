@@ -43,8 +43,7 @@ import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
-import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
-import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
+import org.decojer.cavaj.transformer.TrDataFlowAnalysis2Cfg;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
 import org.decojer.editor.eclipse.util.FramesFigure;
 import org.decojer.editor.eclipse.util.HierarchicalLayoutAlgorithm;
@@ -134,9 +133,9 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private DU du;
 
-	private TD td;
-
 	private JavaOutlinePage javaOutlinePage;
+
+	private TD td;
 
 	private GraphNode addToGraph(final BB bb, final IdentityHashMap<BB, GraphNode> map) {
 		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE, bb.toString(), bb);
@@ -604,8 +603,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			}
 			try {
 				// retransform CFG until given transformation stage
-				TrInitControlFlowGraph.transform(cfg);
-				TrDataFlowAnalysis.transform(cfg);
+				TrDataFlowAnalysis2Cfg.transform(cfg);
 
 				if (stage > 0) {
 					TrIvmCfg2JavaExprStmts.transform(cfg);

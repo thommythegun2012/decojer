@@ -44,6 +44,7 @@ import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.code.E;
+import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
@@ -1186,11 +1187,11 @@ public final class TrIvmCfg2JavaExprStmts {
 	}
 
 	private boolean isWide(final Op op) {
-		final V v = this.cfg.getInFrame(op).peek();
-		if (v == null) {
+		final R r = this.cfg.getInFrame(op).peek();
+		if (r == null) {
 			return false;
 		}
-		return v.getT().isWide();
+		return r.getT().isWide();
 	}
 
 	private boolean rewriteClassForNameCachedLiteral(final BB bb) {

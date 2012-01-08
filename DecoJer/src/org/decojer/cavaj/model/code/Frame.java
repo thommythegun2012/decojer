@@ -32,9 +32,9 @@ public class Frame {
 
 	private final int regs;
 
-	private int top;
+	private R[] rs;
 
-	private V[] vs;
+	private int top;
 
 	/**
 	 * Copy constructor.
@@ -45,8 +45,8 @@ public class Frame {
 	public Frame(final Frame frame) {
 		this.regs = frame.regs;
 		this.top = frame.top;
-		this.vs = new V[this.regs + this.top];
-		System.arraycopy(frame.vs, 0, this.vs, 0, this.vs.length);
+		this.rs = new R[this.regs + this.top];
+		System.arraycopy(frame.rs, 0, this.rs, 0, this.rs.length);
 	}
 
 	/**
@@ -57,7 +57,7 @@ public class Frame {
 	 */
 	public Frame(final int regs) {
 		this.regs = regs;
-		this.vs = new V[regs];
+		this.rs = new R[regs];
 	}
 
 	/**
@@ -75,18 +75,18 @@ public class Frame {
 	 */
 	public void copy(final Frame frame) {
 		this.top = frame.top;
-		System.arraycopy(frame.vs, 0, this.vs, 0, this.vs.length);
+		System.arraycopy(frame.rs, 0, this.rs, 0, this.rs.length);
 	}
 
 	/**
-	 * Get register variable.
+	 * Get register.
 	 * 
 	 * @param reg
 	 *            register
-	 * @return variable
+	 * @return register
 	 */
-	public V get(final int reg) {
-		return this.vs[reg];
+	public R get(final int reg) {
+		return this.rs[reg];
 	}
 
 	/**
@@ -99,14 +99,14 @@ public class Frame {
 	}
 
 	/**
-	 * Get stack variable.
+	 * Get stack register.
 	 * 
 	 * @param i
-	 *            index
-	 * @return variable
+	 *            stack index
+	 * @return register
 	 */
-	public V getStack(final int i) {
-		return this.vs[this.regs + i];
+	public R getStack(final int i) {
+		return this.rs[this.regs + i];
 	}
 
 	/**
@@ -119,54 +119,66 @@ public class Frame {
 	}
 
 	/**
-	 * Peek stack variable.
+	 * Peek stack register.
 	 * 
-	 * @return variable
+	 * @return register
 	 */
-	public V peek() {
+	public R peek() {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.vs[this.regs + this.top - 1];
+		return this.rs[this.regs + this.top - 1];
 	}
 
 	/**
-	 * Pop stack variable.
+	 * Pop stack register.
 	 * 
-	 * @return variable
+	 * @return stack register
 	 */
-	public V pop() {
+	public R pop() {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.vs[this.regs + --this.top];
+		return this.rs[this.regs + --this.top];
 	}
 
 	/**
-	 * Push stack variable.
+	 * Push stack register.
 	 * 
-	 * @param v
-	 *            variable
+	 * @param r
+	 *            stack register
 	 */
-	public void push(final V v) {
-		if (this.regs + this.top >= this.vs.length) {
-			final V[] newVs = new V[this.regs + this.top + 1];
-			System.arraycopy(this.vs, 0, newVs, 0, this.regs + this.top);
-			this.vs = newVs;
+	public void push(final R r) {
+		if (this.regs + this.top >= this.rs.length) {
+			final R[] newRs = new R[this.regs + this.top + 1];
+			System.arraycopy(this.rs, 0, newRs, 0, this.regs + this.top);
+			this.rs = newRs;
 		}
-		this.vs[this.regs + this.top++] = v;
+		this.rs[this.regs + this.top++] = r;
 	}
 
 	/**
-	 * Set register variable.
+	 * Set register.
 	 * 
 	 * @param reg
+	 *            register index
+	 * @param r
 	 *            register
-	 * @param v
-	 *            variable
 	 */
-	public void set(final int reg, final V v) {
-		this.vs[reg] = v;
+	public void set(final int reg, final R r) {
+		this.rs[reg] = r;
+	}
+
+	/**
+	 * Set stack register.
+	 * 
+	 * @param i
+	 *            stack index
+	 * @param r
+	 *            register
+	 */
+	public void setStack(final int i, final R r) {
+		this.rs[this.regs + i] = r;
 	}
 
 	@Override
@@ -176,8 +188,8 @@ public class Frame {
 			sb.append(", ").append(this.top);
 		}
 		sb.append(") ");
-		for (int i = 0; i < this.vs.length; ++i) {
-			sb.append(this.vs[i]).append(", ");
+		for (int i = 0; i < this.rs.length; ++i) {
+			sb.append(this.rs[i]).append(", ");
 		}
 		return sb.substring(0, sb.length() - 2);
 	}

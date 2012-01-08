@@ -49,8 +49,7 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
-import org.decojer.cavaj.transformer.TrDataFlowAnalysis;
-import org.decojer.cavaj.transformer.TrInitControlFlowGraph;
+import org.decojer.cavaj.transformer.TrDataFlowAnalysis2Cfg;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
 import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformer.TrMergeAll;
@@ -169,8 +168,7 @@ public class DecoJer {
 						continue;
 					}
 					try {
-						TrInitControlFlowGraph.transform(cfg);
-						TrDataFlowAnalysis.transform(cfg);
+						TrDataFlowAnalysis2Cfg.transform(cfg);
 
 						TrIvmCfg2JavaExprStmts.transform(cfg);
 

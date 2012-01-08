@@ -25,38 +25,50 @@ package org.decojer.cavaj.transformer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.M;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
-import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.Exc;
+import org.decojer.cavaj.model.code.Frame;
+import org.decojer.cavaj.model.code.R;
+import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.code.Sub;
+import org.decojer.cavaj.model.code.V;
+import org.decojer.cavaj.model.code.op.GET;
 import org.decojer.cavaj.model.code.op.GOTO;
+import org.decojer.cavaj.model.code.op.INVOKE;
 import org.decojer.cavaj.model.code.op.JCMP;
 import org.decojer.cavaj.model.code.op.JCND;
 import org.decojer.cavaj.model.code.op.JSR;
+import org.decojer.cavaj.model.code.op.LOAD;
 import org.decojer.cavaj.model.code.op.Op;
+import org.decojer.cavaj.model.code.op.PUSH;
 import org.decojer.cavaj.model.code.op.RET;
+import org.decojer.cavaj.model.code.op.RETURN;
 import org.decojer.cavaj.model.code.op.STORE;
 import org.decojer.cavaj.model.code.op.SWITCH;
+import org.decojer.cavaj.model.code.op.THROW;
 
 /**
- * Transform Init Control Flow Graph.
+ * Transform Data Flow Analysis and building Control Flow Graph.
  * 
  * @author André Pankraz
  */
-public final class TrInitControlFlowGraph {
+public final class TrDataFlowAnalysis2Cfg {
 
-	private final static Logger LOGGER = Logger.getLogger(TrInitControlFlowGraph.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(TrDataFlowAnalysis2Cfg.class.getName());
 
 	/**
 	 * Transform CFG.
@@ -65,10 +77,17 @@ public final class TrInitControlFlowGraph {
 	 *            CFG
 	 */
 	public static void transform(final CFG cfg) {
-		new TrInitControlFlowGraph(cfg).transform();
+		new TrDataFlowAnalysis2Cfg(cfg).transform();
 	}
 
 	private final CFG cfg;
+
+	/**
+	 * Current frame.
+	 */
+	private Frame frame;
+
+	private Frame[] frames;
 
 	private boolean isIgnoreExceptions;
 
@@ -78,66 +97,55 @@ public final class TrInitControlFlowGraph {
 	private final LinkedList<Integer> openPcs = new LinkedList<Integer>();
 
 	/**
-	 * Remember open RETs.
-	 */
-	private LinkedList<RET> openRets;
-
-	/**
 	 * Remember BBs for PCs.
 	 */
 	private BB[] pc2bbs;
 
 	private Map<Integer, Sub> pc2sub;
 
-	private TrInitControlFlowGraph(final CFG cfg) {
+	private TrDataFlowAnalysis2Cfg(final CFG cfg) {
 		this.cfg = cfg;
 	}
 
-	private boolean checkOpenRets() {
-		if (this.openRets == null) {
-			return false;
-		}
-		for (final RET ret : this.openRets) {
-			final BB subLast = this.pc2bbs[ret.getPc()];
-			// RET register should contain an address that follows the calling JSR instruction,
-			// JSR pushes this address onto the stack and calls the subroutine BB,
-			// normally the first subroutine instruction is a STORE
-			final Sub sub = findSub(ret.getReg(), subLast, new HashSet<BB>());
-			for (final JSR jsr : sub.getJsrs()) {
-				subLast.setSucc(getTarget(jsr.getPc() + 1));
+	private Frame createInitialFrame() {
+		final Frame frame = new Frame(this.cfg.getRegs());
+		for (int reg = frame.getRegs(); reg-- > 0;) {
+			final V v = this.cfg.getDebugV(reg, 0);
+			if (v != null) {
+				frame.set(reg, new R(v.getT(), Kind.MERGE));
 			}
 		}
-		this.openRets.clear();
-		return !this.openPcs.isEmpty();
+		return frame;
 	}
 
-	private Sub findSub(final int reg, final BB bb, final Set<BB> traversed) {
-		for (final Op op : bb.getOps()) {
-			if (!(op instanceof STORE) || ((STORE) op).getReg() != reg) {
-				continue;
-			}
-			final Sub sub = this.pc2sub.get(bb.getOpPc());
-			if (sub != null) {
-				if (op.getPc() != bb.getOpPc()) {
-					LOGGER.warning("Subroutine for reg '" + reg
-							+ "' found, but STORE isn't first operation: " + sub);
-				}
-				return sub;
-			}
-			LOGGER.warning("Couldn't find subroutine for STORE: " + op);
-			return null;
+	private void evalBinaryMath(final T t) {
+		evalBinaryMath(t, null);
+	}
+
+	private void evalBinaryMath(final T t, final T pushT) {
+		final R r2 = pop(t);
+		final R r1 = pop(t);
+
+		if (r1.getT().isReference()) {
+			// (J)CMP EQ / NE
+			assert pushT == T.VOID;
+
+			return;
 		}
-		traversed.add(bb);
-		for (final E in : bb.getIns()) {
-			if (traversed.contains(in.getStart())) {
-				continue;
-			}
-			final Sub sub = findSub(reg, in.getStart(), traversed);
-			if (sub != null) {
-				return sub;
-			}
+		final T mergedT = r1.getT().merge(r2.getT());
+		// TODO reduce...
+		// r1.cmpSetT(mergedT);
+		// r2.cmpSetT(mergedT);
+		if (pushT != T.VOID) {
+			this.frame.push(pushT == null ? new R(r1.getT(), Kind.PUSH, r1) : new R(pushT,
+					Kind.PUSH));
 		}
-		return null;
+	}
+
+	private R get(final int i, final T t) {
+		final R r = this.frame.get(i);
+		// v.cmpSetT(v.getT().mergeTo(t));
+		return r;
 	}
 
 	/**
@@ -184,6 +192,54 @@ public final class TrInitControlFlowGraph {
 		return split;
 	}
 
+	private void merge(final int pc) {
+		final Frame oldFrame = this.frames[pc];
+		if (oldFrame == null) {
+			// copy frame, could be cond or switch with multiple merge-targets
+			this.frames[pc] = new Frame(this.frame);
+			return;
+		}
+		for (int reg = this.frame.getRegs(); reg-- > 0;) {
+			final R r = this.frame.get(reg);
+			if (r == null) {
+				continue;
+			}
+			final R oldR = oldFrame.get(reg);
+			if (r == oldR) {
+				continue;
+			}
+			if (oldR == null) {
+				oldFrame.set(reg, oldR);
+				continue;
+			}
+			final T t = oldR.getT().merge(r.getT());
+			final R mergeR = new R(t, Kind.MERGE, oldR, r);
+			// TODO forward replace in frames, replace ins/outs
+			oldFrame.set(reg, mergeR);
+		}
+		for (int i = this.frame.getStackSize(); i-- > 0;) {
+			final R r = this.frame.getStack(i);
+			if (r == null) {
+				System.out.println("SUCKER");
+				continue;
+			}
+			final R oldR = oldFrame.getStack(i);
+			if (r == oldR) {
+				continue;
+			}
+			if (oldR == null) {
+				System.out.println("SUCKER2");
+				continue;
+			}
+			final T t = oldR.getT().merge(r.getT());
+			oldR.setT(t);
+			r.setT(t);
+			final R mergeR = new R(t, Kind.MERGE, oldR, r);
+			// TODO forward replace in frames, replace ins/outs
+			oldFrame.setStack(i, mergeR);
+		}
+	}
+
 	private BB newBb(final int pc) {
 		final BB bb = this.cfg.newBb(pc);
 		this.pc2bbs[pc] = bb;
@@ -216,10 +272,21 @@ public final class TrInitControlFlowGraph {
 		return bb;
 	}
 
+	private R pop(final T t) {
+		final R r = this.frame.pop();
+		// v.cmpSetT(v.getT().mergeTo(t));
+		return r;
+	}
+
 	private void transform() {
-		this.isIgnoreExceptions = this.cfg.getMd().getTd().getCu().check(DFlag.IGNORE_EXCEPTIONS);
+		final MD md = this.cfg.getMd();
+		final DU du = md.getM().getT().getDu();
+		this.isIgnoreExceptions = md.getTd().getCu().check(DFlag.IGNORE_EXCEPTIONS);
 
 		final Op[] ops = this.cfg.getOps();
+		this.frames = new Frame[ops.length];
+		this.frames[0] = createInitialFrame();
+		this.cfg.setFrames(this.frames); // init early for analysis in Eclipse view
 		this.pc2bbs = new BB[ops.length];
 
 		// start with PC 0 and new BB
@@ -231,7 +298,7 @@ public final class TrInitControlFlowGraph {
 		while (true) {
 			if (pc >= ops.length) {
 				// next open pc?
-				if (this.openPcs.isEmpty() && !checkOpenRets()) {
+				if (this.openPcs.isEmpty()) {
 					break;
 				}
 				pc = this.openPcs.removeFirst();
@@ -266,25 +333,59 @@ public final class TrInitControlFlowGraph {
 					}
 				}
 			}
+			if (this.frames[pc] != null) {
+				this.frame = new Frame(this.frames[pc]);
+			}
 			final Op op = ops[pc++];
 			bb.addOp(op);
+
 			// TODO bug with back loops to same block, split must not change this BB!!!
 			// Resolve with new Merge/CFG-Analyzer
 			switch (op.getOptype()) {
+			case GET: {
+				final GET cop = (GET) op;
+				final F f = cop.getF();
+				if (!f.check(AF.STATIC)) {
+					pop(f.getT());
+				}
+				this.frame.push(new R(f.getValueT(), Kind.PUSH));
+				break;
+			}
 			case GOTO: {
 				final GOTO cop = (GOTO) op;
 				// follow without new BB, lazy splitting, at target PC other catches possible!
 				pc = cop.getTargetPc();
-				continue;
+				break;
+			}
+			case INVOKE: {
+				final INVOKE cop = (INVOKE) op;
+				final M m = cop.getM();
+				for (int i = m.getParamTs().length; i-- > 0;) {
+					// m(int) also accepts byte, short and char
+					pop(m.getParamTs()[i] == T.INT ? T.IINT : m.getParamTs()[i]);
+				}
+				if (!m.check(AF.STATIC)) {
+					pop(m.getT());
+				}
+				if (m.getReturnT() != T.VOID) {
+					this.frame.push(new R(m.getReturnT(), Kind.PUSH));
+				}
+				break;
 			}
 			case JCMP: {
 				final JCMP cop = (JCMP) op;
+				evalBinaryMath(cop.getT(), T.VOID);
+				merge(pc);
+				merge(cop.getTargetPc());
 				bb.setCondSuccs(getTarget(pc), getTarget(cop.getTargetPc()));
 				pc = ops.length; // next open pc
 				continue;
 			}
 			case JCND: {
 				final JCND cop = (JCND) op;
+				pop(cop.getT());
+				merge(pc);
+				merge(cop.getTargetPc());
 				bb.setCondSuccs(getTarget(pc), getTarget(cop.getTargetPc()));
 				pc = ops.length; // next open pc
 				continue;
@@ -292,49 +393,6 @@ public final class TrInitControlFlowGraph {
 			case JSR: {
 				// Spec, JSR/RET is stack-like:
 				// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
-
-				// • No return address (a value of type returnAddress) may be loaded from a
-				// local variable.
-				// • The instruction following each jsr or jsr_w instruction may be returned to only
-				// by a single ret instruction.
-				// • No jsr or jsr_w instruction that is returned to may be used to recursively call
-				// a
-				// subroutine if that subroutine is already present in the subroutine call chain.
-				// (Subroutines can be nested when using try-finally constructs from within a
-				// finally clause.)
-				// • Each instance of type returnAddress can be returned to at most once. If a ret
-				// instruction returns to a point in the subroutine call chain above the ret
-				// instruction
-				// corresponding to a given instance of type returnAddress, then that
-				// instance can never be used as a return address.
-
-				// Verifying code that contains a finally clause is complicated. The basic idea
-				// is the following:
-				// • Each instruction keeps track of the list of jsr targets needed to reach that
-				// instruction. For most code, this list is empty. For instructions inside code for
-				// the finally clause, it is of length one. For multiply nested finally code
-				// (extremely rare!), it may be longer than one.
-				// • For each instruction and each jsr needed to reach that instruction, a bit
-				// vector
-				// is maintained of all local variables accessed or modified since the execution of
-				// the jsr instruction.
-				// • When executing the ret instruction, which implements a return from a
-				// subroutine,
-				// there must be only one possible subroutine from which the instruction can
-				// be returning. Two different subroutines cannot “merge” their execution to a
-				// single ret instruction.
-				// • To perform the data-flow analysis on a ret instruction, a special procedure is
-				// used. Since the verifier knows the subroutine from which the instruction must
-				// be returning, it can find all the jsr instructions that call the subroutine and
-				// merge the state of the operand stack and local variable array at the time
-				// of the ret instruction into the operand stack and local variable array of the
-				// instructions following the jsr. Merging uses a special set of values for local
-				// variables:
-				// - For any local variable that the bit vector (constructed above) indicates has
-				// been accessed or modified by the subroutine, use the type of the local variable
-				// at the time of the ret.
-				// - For other local variables, use the type of the local variable before the jsr
-				// instruction.
 				final JSR cop = (JSR) op;
 				if (this.pc2sub == null) {
 					this.pc2sub = new HashMap<Integer, Sub>();
@@ -350,6 +408,12 @@ public final class TrInitControlFlowGraph {
 				bb.setSucc(getTarget(cop.getTargetPc()));
 				pc = ops.length; // next open pc
 				continue;
+			}
+			case LOAD: {
+				final LOAD cop = (LOAD) op;
+				final R r = get(cop.getReg(), cop.getT());
+				this.frame.push(new R(r.getT(), Kind.PUSH, r));
+				break;
 			}
 			case SWITCH: {
 				final SWITCH cop = (SWITCH) op;
@@ -387,20 +451,50 @@ public final class TrInitControlFlowGraph {
 				pc = ops.length; // next open pc
 				continue;
 			}
+			case PUSH: {
+				final PUSH cop = (PUSH) op;
+				this.frame.push(new R(cop.getT(), cop.getValue(), Kind.PUSH));
+				break;
+			}
 			case RET: {
 				final RET cop = (RET) op;
-				// remember because we don't know if we have all JSR pathes right now
-				if (this.openRets == null) {
-					this.openRets = new LinkedList<RET>();
-				}
-				this.openRets.add(cop);
+
+				// TODO
+
 				pc = ops.length; // next open pc
 				continue;
 			}
-			case RETURN:
-			case THROW:
+			case RETURN: {
+				assert op instanceof RETURN;
+
+				// don't need op type here, could check, but why should we...
+				final T returnT = md.getM().getReturnT();
+				if (returnT != T.VOID) {
+					pop(returnT); // reduce only
+				}
 				pc = ops.length; // next open pc
+				continue;
 			}
+			case STORE: {
+				final STORE cop = (STORE) op;
+				final R r = pop(cop.getT());
+				final R varR = this.frame.get(cop.getReg()); // potential var let
+				// TODO incompatible types? remove varR
+				if (varR == null) {
+					this.frame.set(cop.getReg(), new R(r.getT(), Kind.STORE, r));
+				} else {
+					this.frame.set(cop.getReg(), new R(r.getT(), Kind.STORE, r, varR));
+				}
+				break;
+			}
+			case THROW:
+				assert op instanceof THROW;
+
+				pop(du.getT(Throwable.class)); // reduce only
+				pc = ops.length; // next open pc
+				continue;
+			}
+			merge(pc);
 		}
 		this.cfg.calculatePostorder();
 	}
