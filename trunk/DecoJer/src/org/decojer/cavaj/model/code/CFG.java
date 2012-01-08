@@ -48,22 +48,20 @@ public class CFG {
 
 	private Block block;
 
+	private boolean error;
+
 	private Exc[] excs;
+
+	private Frame[] frames;
 
 	/**
 	 * Array with Immediate Dominators, index is postorder.
 	 */
 	private BB[] iDoms;
 
-	private final int regs;
-
 	private final int maxStack;
 
 	private final MD md;
-
-	private Frame[] frames;
-
-	private boolean error;
 
 	private Op[] ops;
 
@@ -71,6 +69,8 @@ public class CFG {
 	 * Array with postordered basic blocks.
 	 */
 	private List<BB> postorderedBbs;
+
+	private final int regs;
 
 	private BB startBb;
 
@@ -263,7 +263,7 @@ public class CFG {
 	 * @return local variable (from frame)
 	 */
 	public V getFrameVar(final int reg, final int pc) {
-		return this.frames[pc].get(reg);
+		return null; // TODO this.frames[pc].get(reg);
 	}
 
 	/**
