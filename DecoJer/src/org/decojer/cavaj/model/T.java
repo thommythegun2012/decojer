@@ -261,10 +261,6 @@ public class T {
 	 */
 	public static TT IINT = multi(INT, SHORT, BYTE, CHAR);
 	/**
-	 * Multi-type 'method int (32 bit)', no boolean or char in Java? TODO
-	 */
-	public static TT MINT = multi(INT, SHORT, BYTE);
-	/**
 	 * Multi-type 'dalvik int (32 bit)', includes float.
 	 */
 	public static TT DINT = multi(INT, SHORT, BYTE, CHAR, BOOLEAN, FLOAT);
