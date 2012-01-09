@@ -615,39 +615,37 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IF_ICMPEQ:
 				if (t == null) {
-					// TODO this and all following JCMP/CND, boolean not
-					// possible?
-					t = T.AINT;
+					t = T.INT;
 					oValue = CmpType.T_EQ;
 				}
 				// fall through
 			case Opcode.IF_ICMPGE:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					oValue = CmpType.T_GE;
 				}
 				// fall through
 			case Opcode.IF_ICMPGT:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					oValue = CmpType.T_GT;
 				}
 				// fall through
 			case Opcode.IF_ICMPLE:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					oValue = CmpType.T_LE;
 				}
 				// fall through
 			case Opcode.IF_ICMPLT:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					oValue = CmpType.T_LT;
 				}
 				// fall through
 			case Opcode.IF_ICMPNE:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					oValue = CmpType.T_NE;
 				}
 				{
@@ -676,37 +674,37 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IFEQ:
 				if (t == null) {
-					t = T.AINT; // for boolean too
+					t = T.INT; // for boolean too
 					oValue = CmpType.T_EQ;
 				}
 				// fall through
 			case Opcode.IFGE:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					oValue = CmpType.T_GE;
 				}
 				// fall through
 			case Opcode.IFGT:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					oValue = CmpType.T_GT;
 				}
 				// fall through
 			case Opcode.IFLE:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					oValue = CmpType.T_LE;
 				}
 				// fall through
 			case Opcode.IFLT:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					oValue = CmpType.T_LT;
 				}
 				// fall through
 			case Opcode.IFNE:
 				if (t == null) {
-					t = T.AINT; // for boolean too
+					t = T.INT;
 					oValue = CmpType.T_NE;
 				}
 				{
@@ -760,7 +758,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LLOAD:
@@ -789,7 +787,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_0:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					iValue = 0;
 				}
 				// fall through
@@ -819,7 +817,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_1:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					iValue = 1;
 				}
 				// fall through
@@ -849,7 +847,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_2:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					iValue = 2;
 				}
 				// fall through
@@ -879,7 +877,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_3:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					iValue = 3;
 				}
 				// fall through
@@ -1255,7 +1253,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IRETURN:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LRETURN:
@@ -1287,7 +1285,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 				}
 				// fall through
 			case Opcode.LSTORE:
@@ -1316,7 +1314,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_0:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					iValue = 0;
 				}
 				// fall through
@@ -1346,7 +1344,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_1:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					iValue = 1;
 				}
 				// fall through
@@ -1376,7 +1374,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_2:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					iValue = 2;
 				}
 				// fall through
@@ -1406,7 +1404,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_3:
 				if (t == null) {
-					t = T.AINT;
+					t = T.INT;
 					iValue = 3;
 				}
 				// fall through

@@ -30,6 +30,8 @@ package org.decojer.cavaj.model.code;
  */
 public class Frame {
 
+	private int pc;
+
 	private final int regs;
 
 	private R[] rs;
@@ -68,17 +70,6 @@ public class Frame {
 	}
 
 	/**
-	 * Quick copy values from similar (previous) frame.
-	 * 
-	 * @param frame
-	 *            similar (previous) frame
-	 */
-	public void copy(final Frame frame) {
-		this.top = frame.top;
-		System.arraycopy(frame.rs, 0, this.rs, 0, this.rs.length);
-	}
-
-	/**
 	 * Get register.
 	 * 
 	 * @param reg
@@ -86,7 +77,16 @@ public class Frame {
 	 * @return register
 	 */
 	public R get(final int reg) {
-		return this.rs[reg];
+		return reg >= this.rs.length ? null : this.rs[reg];
+	}
+
+	/**
+	 * Get frame pc.
+	 * 
+	 * @return frame pc
+	 */
+	public int getPc() {
+		return this.pc;
 	}
 
 	/**
@@ -106,7 +106,7 @@ public class Frame {
 	 * @return register
 	 */
 	public R getStack(final int i) {
-		return this.rs[this.regs + i];
+		return i >= this.top ? null : this.rs[this.regs + i];
 	}
 
 	/**
@@ -167,6 +167,16 @@ public class Frame {
 	 */
 	public void set(final int reg, final R r) {
 		this.rs[reg] = r;
+	}
+
+	/**
+	 * Set frame pc.
+	 * 
+	 * @param pc
+	 *            frame pc
+	 */
+	protected void setPc(final int pc) {
+		this.pc = pc;
 	}
 
 	/**

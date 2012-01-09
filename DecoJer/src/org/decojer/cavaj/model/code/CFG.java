@@ -245,6 +245,17 @@ public class CFG {
 	}
 
 	/**
+	 * Get frame for pc.
+	 * 
+	 * @param pc
+	 *            pc
+	 * @return frame
+	 */
+	public Frame getFrame(final int pc) {
+		return this.frames[pc];
+	}
+
+	/**
 	 * Get frames.
 	 * 
 	 * @return frames
@@ -351,6 +362,17 @@ public class CFG {
 	 */
 	public BB getStartBb() {
 		return this.startBb;
+	}
+
+	/**
+	 * Initialize frames.
+	 * 
+	 * @param frame
+	 *            initial frame
+	 */
+	public void initFrames(final Frame frame) {
+		this.frames = new Frame[this.ops.length];
+		this.frames[0] = frame;
 	}
 
 	private BB intersectIDoms(final BB b1, final BB b2) {
@@ -496,13 +518,17 @@ public class CFG {
 	}
 
 	/**
-	 * Set frames.
+	 * Set frame for pc.
 	 * 
-	 * @param frames
-	 *            frames
+	 * @param pc
+	 *            pc
+	 * @param frame
+	 *            frame
 	 */
-	public void setFrames(final Frame[] frames) {
-		this.frames = frames;
+	public void setFrame(final int pc, final Frame frame) {
+		final Frame setFrame = frame.getPc() == 0 ? frame : new Frame(frame);
+		setFrame.setPc(pc);
+		this.frames[pc] = setFrame;
 	}
 
 	/**

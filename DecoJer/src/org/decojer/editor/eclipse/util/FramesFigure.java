@@ -94,16 +94,15 @@ public class FramesFigure extends Figure {
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
-			for (int index = maxStack; index-- > 0;) {
-				final Label label = new Label(frame == null || index >= frame.getStackSize()
-						|| frame.getStack(index) == null ? "    " : frame.getStack(index)
-						.toString());
+			for (int i = 0; i < maxStack; ++i) {
+				final Label label = new Label(frame == null || i >= frame.getStackSize()
+						|| frame.getStack(i) == null ? "    " : frame.getStack(i).toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
 		}
 
-		for (int i = 0; i < maxStack; ++i) {
+		for (int i = maxStack; i-- > 0;) {
 			add(new Label("s" + i), GRID_DATA, 0);
 		}
 		for (int i = regs; i-- > 0;) {
