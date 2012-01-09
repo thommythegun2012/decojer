@@ -563,8 +563,16 @@ public final class TrDataFlowAnalysis2Cfg {
 				final INVOKE cop = (INVOKE) op;
 				final M m = cop.getM();
 				for (int i = m.getParamTs().length; i-- > 0;) {
-					// m(int) also accepts byte and short in Java, TODO check CHAR / BOOLEAN
-					pop(m.getParamTs()[i] == T.INT ? T.MINT : m.getParamTs()[i]);
+					// implicit conversation
+					// m(int) also accepts byte, short and char in Java (no bool)
+					// m(short) also accepts byte in Java
+					T paramT = m.getParamTs()[i];
+					if (paramT == T.INT) {
+						paramT = T.IINT;
+					} else if (paramT == T.SHORT) {
+						paramT = T.multi(T.SHORT, T.BYTE);
+					}
+					pop(paramT);
 				}
 				if (!m.check(AF.STATIC)) {
 					pop(m.getT());
