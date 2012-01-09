@@ -1239,9 +1239,6 @@ public final class TrIvmCfg2JavaExprStmts {
 		followBb.copyContentFrom(condHead);
 		condHead.moveIns(followBb);
 		condHead.remove();
-		if (this.cfg.getStartBb() == condHead) {
-			this.cfg.setStartBb(followBb);
-		}
 		falseSucc.remove();
 		followBb.push(expression);
 		return true;
@@ -1385,9 +1382,6 @@ public final class TrIvmCfg2JavaExprStmts {
 			bb.copyContentFrom(condHead);
 			condHead.moveIns(bb);
 			condHead.remove();
-			if (this.cfg.getStartBb() == condHead) {
-				this.cfg.setStartBb(bb);
-			}
 
 			// push new conditional expression, here only "a ? true : false" as "a"
 			bb.push(expression);
@@ -1475,9 +1469,6 @@ public final class TrIvmCfg2JavaExprStmts {
 				bb.copyContentFrom(pred);
 				pred.moveIns(bb);
 				pred.remove();
-				if (this.cfg.getStartBb() == pred) {
-					this.cfg.setStartBb(bb);
-				}
 				return true;
 			}
 			if (predFalseSucc == falseSucc) {
@@ -1502,9 +1493,6 @@ public final class TrIvmCfg2JavaExprStmts {
 				bb.copyContentFrom(pred);
 				pred.moveIns(bb);
 				pred.remove();
-				if (this.cfg.getStartBb() == pred) {
-					this.cfg.setStartBb(bb);
-				}
 				return true;
 			}
 		} else if (predFalseSucc == bb) {
@@ -1530,9 +1518,6 @@ public final class TrIvmCfg2JavaExprStmts {
 				bb.copyContentFrom(pred);
 				pred.moveIns(bb);
 				pred.remove();
-				if (this.cfg.getStartBb() == pred) {
-					this.cfg.setStartBb(bb);
-				}
 				return true;
 			}
 			if (predTrueSucc == falseSucc) {
@@ -1558,9 +1543,6 @@ public final class TrIvmCfg2JavaExprStmts {
 				bb.copyContentFrom(pred);
 				pred.moveIns(bb);
 				pred.remove();
-				if (this.cfg.getStartBb() == pred) {
-					this.cfg.setStartBb(bb);
-				}
 				return true;
 			}
 		}

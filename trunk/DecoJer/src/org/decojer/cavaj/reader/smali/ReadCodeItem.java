@@ -1108,9 +1108,7 @@ public class ReadCodeItem {
 				}
 
 				for (int reg = 0, j = 0; j < paramTs.length; ++reg, ++j) {
-					// m(int) also accepts byte, short and char
-					this.ops.add(new LOAD(this.ops.size(), opcode, line,
-							paramTs[j] == T.INT ? T.IINT : paramTs[j], regs[reg]));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramTs[j], regs[reg]));
 					if (paramTs[j].isWide()) {
 						++reg;
 					}
@@ -1149,9 +1147,7 @@ public class ReadCodeItem {
 				}
 
 				for (int reg = instr.getStartRegister(), j = 0; j < paramTs.length; ++reg, ++j) {
-					// m(int) also accepts byte, short and char
-					this.ops.add(new LOAD(this.ops.size(), opcode, line,
-							paramTs[j] == T.INT ? T.IINT : paramTs[j], reg));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramTs[j], reg));
 					if (paramTs[j].isWide()) {
 						++reg;
 					}

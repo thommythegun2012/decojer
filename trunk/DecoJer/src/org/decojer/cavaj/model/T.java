@@ -116,7 +116,7 @@ public class T {
 		}
 
 		@Override
-		public T merge(final T t) {
+		protected T merge(final T t) {
 			if (t == this || t == null) {
 				return this;
 			}
@@ -261,6 +261,10 @@ public class T {
 	 */
 	public static TT IINT = multi(INT, SHORT, BYTE, CHAR);
 	/**
+	 * Multi-type 'method int (32 bit)', no boolean or char in Java? TODO
+	 */
+	public static TT MINT = multi(INT, SHORT, BYTE);
+	/**
 	 * Multi-type 'dalvik int (32 bit)', includes float.
 	 */
 	public static TT DINT = multi(INT, SHORT, BYTE, CHAR, BOOLEAN, FLOAT);
@@ -368,6 +372,19 @@ public class T {
 		assert tm.is(Object.class) : tm;
 
 		System.out.println("HURRAY: " + tm);
+	}
+
+	/**
+	 * Merge types.
+	 * 
+	 * @param t1
+	 *            type 1
+	 * @param t2
+	 *            type 2
+	 * @return merged type
+	 */
+	public static T merge(final T t1, final T t2) {
+		return t1 == null ? t2 : t1.merge(t2);
 	}
 
 	/**
@@ -794,7 +811,7 @@ public class T {
 	 *            type
 	 * @return merged type
 	 */
-	public T merge(final T t) {
+	protected T merge(final T t) {
 		if (t == this || t == null) {
 			return this;
 		}
@@ -855,7 +872,7 @@ public class T {
 	}
 
 	/**
-	 * Merge-to type. Check if instances from this type are assignable to the given type. For single
+	 * Merge to type. Check if instances from this type are assignable to the given type. For single
 	 * types this returns this or BOGUS. For multi-types it reduces the multi-type to all assignable
 	 * types (via polymorphism function).
 	 * 

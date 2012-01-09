@@ -43,22 +43,22 @@ public final class BB {
 
 	private final CFG cfg;
 
-	private final List<Op> ops = new ArrayList<Op>();
+	protected final ArrayList<E> ins = new ArrayList<E>(2);
 
 	/**
 	 * Must cache first PC separately because operations are removed through transformations.
 	 */
-	private final int opPc;
+	private int opPc;
+
+	private final List<Op> ops = new ArrayList<Op>();
+
+	protected final ArrayList<E> outs = new ArrayList<E>(2);
 
 	private int postorder;
-
-	protected final ArrayList<E> ins = new ArrayList<E>(2);
 
 	private final List<Statement> stmts = new ArrayList<Statement>();
 
 	private Struct struct;
-
-	protected final ArrayList<E> outs = new ArrayList<E>(2);
 
 	private int top; // stack top
 
@@ -425,6 +425,9 @@ public final class BB {
 	 *            target BB
 	 */
 	public void moveIns(final BB target) {
+		if (this == this.cfg.getStartBb()) {
+			this.cfg.setStartBb(target);
+		}
 		for (final E in : this.ins) {
 			in.setEnd(target);
 			target.ins.add(in);
@@ -554,6 +557,15 @@ public final class BB {
 		final E trueOut = new E(this, trueSucc, Boolean.TRUE);
 		this.outs.add(trueOut);
 		trueSucc.ins.add(trueOut);
+	}
+
+	/**
+	 * Set first operation pc.
+	 * 
+	 * @opPc first operation pc
+	 */
+	public void setOpPc(final int opPc) {
+		this.opPc = opPc;
 	}
 
 	/**

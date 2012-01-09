@@ -24,7 +24,6 @@
 package org.decojer.cavaj.transformer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -40,26 +39,53 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
+import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.code.Sub;
 import org.decojer.cavaj.model.code.V;
+import org.decojer.cavaj.model.code.op.ADD;
+import org.decojer.cavaj.model.code.op.ALOAD;
+import org.decojer.cavaj.model.code.op.AND;
+import org.decojer.cavaj.model.code.op.ARRAYLENGTH;
+import org.decojer.cavaj.model.code.op.ASTORE;
+import org.decojer.cavaj.model.code.op.CAST;
+import org.decojer.cavaj.model.code.op.CMP;
+import org.decojer.cavaj.model.code.op.DIV;
+import org.decojer.cavaj.model.code.op.DUP;
+import org.decojer.cavaj.model.code.op.FILLARRAY;
 import org.decojer.cavaj.model.code.op.GET;
 import org.decojer.cavaj.model.code.op.GOTO;
+import org.decojer.cavaj.model.code.op.INC;
+import org.decojer.cavaj.model.code.op.INSTANCEOF;
 import org.decojer.cavaj.model.code.op.INVOKE;
 import org.decojer.cavaj.model.code.op.JCMP;
 import org.decojer.cavaj.model.code.op.JCND;
 import org.decojer.cavaj.model.code.op.JSR;
 import org.decojer.cavaj.model.code.op.LOAD;
+import org.decojer.cavaj.model.code.op.MONITOR;
+import org.decojer.cavaj.model.code.op.MUL;
+import org.decojer.cavaj.model.code.op.NEG;
+import org.decojer.cavaj.model.code.op.NEW;
+import org.decojer.cavaj.model.code.op.NEWARRAY;
+import org.decojer.cavaj.model.code.op.OR;
 import org.decojer.cavaj.model.code.op.Op;
+import org.decojer.cavaj.model.code.op.POP;
 import org.decojer.cavaj.model.code.op.PUSH;
+import org.decojer.cavaj.model.code.op.PUT;
+import org.decojer.cavaj.model.code.op.REM;
 import org.decojer.cavaj.model.code.op.RET;
 import org.decojer.cavaj.model.code.op.RETURN;
+import org.decojer.cavaj.model.code.op.SHL;
+import org.decojer.cavaj.model.code.op.SHR;
 import org.decojer.cavaj.model.code.op.STORE;
+import org.decojer.cavaj.model.code.op.SUB;
+import org.decojer.cavaj.model.code.op.SWAP;
 import org.decojer.cavaj.model.code.op.SWITCH;
 import org.decojer.cavaj.model.code.op.THROW;
+import org.decojer.cavaj.model.code.op.XOR;
 
 /**
  * Transform Data Flow Analysis and building Control Flow Graph.
@@ -86,8 +112,6 @@ public final class TrDataFlowAnalysis2Cfg {
 	 * Current frame.
 	 */
 	private Frame frame;
-
-	private Frame[] frames;
 
 	private boolean isIgnoreExceptions;
 
@@ -132,19 +156,18 @@ public final class TrDataFlowAnalysis2Cfg {
 
 			return;
 		}
-		final T mergedT = r1.getT().merge(r2.getT());
-		// TODO reduce...
-		// r1.cmpSetT(mergedT);
-		// r2.cmpSetT(mergedT);
+		final T mergeT = R.merge(r1, r2);
+		r1.mergeTo(mergeT);
+		r2.mergeTo(mergeT);
 		if (pushT != T.VOID) {
-			this.frame.push(pushT == null ? new R(r1.getT(), Kind.PUSH, r1) : new R(pushT,
-					Kind.PUSH));
+			this.frame.push(pushT == null ? new R(r1.getT(), Kind.CONST, r1) : new R(pushT,
+					Kind.CONST));
 		}
 	}
 
 	private R get(final int i, final T t) {
 		final R r = this.frame.get(i);
-		// v.cmpSetT(v.getT().mergeTo(t));
+		r.mergeTo(t == T.INT ? T.AINT : t);
 		return r;
 	}
 
@@ -167,36 +190,31 @@ public final class TrDataFlowAnalysis2Cfg {
 			return bb;
 		}
 
-		// split basic block, new incoming block, adapt basic block pcs
-		final BB split = newBb(pc);
-		// first preserve previous successors...
-		bb.moveOuts(split);
-		// ...then set new successor
-		bb.setSucc(split);
+		// split basic block, new incoming block, adapt basic block pcs,
+		// it's necessary to preserve the outgoing block for back edges to same BB!!!
+		final BB split = newBb(bb.getOpPc());
 
-		// move operations, update PC map, first find split point...
+		bb.moveIns(split);
+		split.setSucc(bb);
 		final List<Op> ops = bb.getOps();
-		int i;
-		for (i = ops.size(); i-- > 0;) {
-			if (ops.get(i).getPc() == pc) {
-				break;
-			}
-		}
-		// ...now move all tail operations
-		while (i < ops.size()) {
-			final Op op = ops.remove(i);
+		while (!ops.isEmpty() && ops.get(0).getPc() != pc) {
+			final Op op = ops.remove(0);
 			split.addOp(op);
 			this.pc2bbs[op.getPc()] = split;
 		}
+		bb.setOpPc(pc);
+		return bb;
+	}
 
-		return split;
+	private boolean isWide(final Op op) {
+		final R r = this.cfg.getInFrame(op).peek();
+		return r == null ? false : r.getT().isWide();
 	}
 
 	private void merge(final int pc) {
-		final Frame oldFrame = this.frames[pc];
+		final Frame oldFrame = this.cfg.getFrame(pc);
 		if (oldFrame == null) {
-			// copy frame, could be cond or switch with multiple merge-targets
-			this.frames[pc] = new Frame(this.frame);
+			this.cfg.setFrame(pc, this.frame);
 			return;
 		}
 		for (int reg = this.frame.getRegs(); reg-- > 0;) {
@@ -208,19 +226,14 @@ public final class TrDataFlowAnalysis2Cfg {
 			if (r == oldR) {
 				continue;
 			}
-			if (oldR == null) {
-				oldFrame.set(reg, oldR);
-				continue;
-			}
-			final T t = oldR.getT().merge(r.getT());
-			final R mergeR = new R(t, Kind.MERGE, oldR, r);
-			// TODO forward replace in frames, replace ins/outs
-			oldFrame.set(reg, mergeR);
+			// TODO what if we encounter alive new merge?
+			final R mergeR = oldR == null ? r : new R(R.merge(oldR, r), Kind.MERGE, oldR, r);
+			replace(this.pc2bbs[pc], reg, oldR, mergeR);
 		}
 		for (int i = this.frame.getStackSize(); i-- > 0;) {
 			final R r = this.frame.getStack(i);
 			if (r == null) {
-				System.out.println("SUCKER");
+				LOGGER.warning("Stack register is null!");
 				continue;
 			}
 			final R oldR = oldFrame.getStack(i);
@@ -228,15 +241,29 @@ public final class TrDataFlowAnalysis2Cfg {
 				continue;
 			}
 			if (oldR == null) {
-				System.out.println("SUCKER2");
+				LOGGER.warning("Stack register is null!");
 				continue;
 			}
-			final T t = oldR.getT().merge(r.getT());
-			oldR.setT(t);
-			r.setT(t);
-			final R mergeR = new R(t, Kind.MERGE, oldR, r);
-			// TODO forward replace in frames, replace ins/outs
-			oldFrame.setStack(i, mergeR);
+			final T mergeT = R.merge(oldR, r);
+			oldR.mergeTo(mergeT);
+			r.mergeTo(mergeT);
+			final R mergeR = new R(mergeT, Kind.MERGE, oldR, r);
+			replace(this.pc2bbs[pc], this.cfg.getRegs() + i, oldR, mergeR);
+		}
+	}
+
+	private void mergeExc(final Exc[] excs) {
+		if (excs == null) {
+			return;
+		}
+		for (final Exc exc : excs) {
+			if (exc.validIn(0/* TODO this.pc */)) {
+				this.frame.clearStack();
+				// null is <any> (finally) -> Throwable
+				push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
+						.getT(Throwable.class) : exc.getT());
+				merge(exc.getHandlerPc());
+			}
 		}
 	}
 
@@ -274,8 +301,32 @@ public final class TrDataFlowAnalysis2Cfg {
 
 	private R pop(final T t) {
 		final R r = this.frame.pop();
-		// v.cmpSetT(v.getT().mergeTo(t));
+		r.mergeTo(t == T.INT ? T.AINT : t);
 		return r;
+	}
+
+	private R push(final T t) {
+		final R r = new R(t, Kind.CONST);
+		this.frame.push(r);
+		return r;
+	}
+
+	private void replace(final BB bb, final int reg, final R oldR, final R r) {
+		for (final Op op : bb.getOps()) {
+			final Frame oldFrame = this.cfg.getInFrame(op);
+			final R oldFrameR = oldFrame.get(reg);
+			if (oldFrameR != oldR) {
+				// ins/outs
+
+				// oldR can be null...but add to ins?
+
+				return;
+			}
+			oldFrame.set(reg, r);
+		}
+		for (final E out : bb.getOuts()) {
+			replace(out.getEnd(), reg, oldR, r);
+		}
 	}
 
 	private void transform() {
@@ -284,9 +335,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		this.isIgnoreExceptions = md.getTd().getCu().check(DFlag.IGNORE_EXCEPTIONS);
 
 		final Op[] ops = this.cfg.getOps();
-		this.frames = new Frame[ops.length];
-		this.frames[0] = createInitialFrame();
-		this.cfg.setFrames(this.frames); // init early for analysis in Eclipse view
+		this.cfg.initFrames(createInitialFrame());
 		this.pc2bbs = new BB[ops.length];
 
 		// start with PC 0 and new BB
@@ -333,22 +382,161 @@ public final class TrDataFlowAnalysis2Cfg {
 					}
 				}
 			}
-			if (this.frames[pc] != null) {
-				this.frame = new Frame(this.frames[pc]);
-			}
+			this.frame = new Frame(this.cfg.getFrame(pc));
 			final Op op = ops[pc++];
 			bb.addOp(op);
 
-			// TODO bug with back loops to same block, split must not change this BB!!!
-			// Resolve with new Merge/CFG-Analyzer
 			switch (op.getOptype()) {
+			case ADD: {
+				final ADD cop = (ADD) op;
+				evalBinaryMath(cop.getT());
+				break;
+			}
+			case ALOAD: {
+				final ALOAD cop = (ALOAD) op;
+				pop(T.INT); // index
+				pop(T.AREF); // array
+				push(cop.getT()); // value
+				break;
+			}
+			case AND: {
+				final AND cop = (AND) op;
+				evalBinaryMath(cop.getT());
+				break;
+			}
+			case ARRAYLENGTH: {
+				assert op instanceof ARRAYLENGTH;
+
+				pop(T.AREF); // array
+				push(T.INT); // length
+				break;
+			}
+			case ASTORE: {
+				final ASTORE cop = (ASTORE) op;
+				pop(cop.getT()); // value
+				pop(T.INT); // index
+				pop(T.AREF); // array
+				break;
+			}
+			case CAST: {
+				final CAST cop = (CAST) op;
+				pop(cop.getT());
+				push(cop.getToT());
+				break;
+			}
+			case CMP: {
+				final CMP cop = (CMP) op;
+				evalBinaryMath(cop.getT(), T.INT);
+				break;
+			}
+			case DIV: {
+				final DIV cop = (DIV) op;
+				evalBinaryMath(cop.getT());
+				break;
+			}
+			case DUP: {
+				// TODO convert to MOVE?!
+				final DUP cop = (DUP) op;
+				switch (cop.getDupType()) {
+				case DUP.T_DUP2:
+					// Duplicate the top one or two operand stack values
+					// ..., value2, value1 => ..., value2, value1, value2, value1
+					// wide:
+					// ..., value => ..., value, value
+					if (!isWide(cop)) {
+						final R e1 = this.frame.pop();
+						final R e2 = this.frame.pop();
+						this.frame.push(e2);
+						this.frame.push(e1);
+						this.frame.push(e2);
+						this.frame.push(e1);
+						break;
+					}
+					// fall through for wide
+				case DUP.T_DUP:
+					// Duplicate the top operand stack value
+					this.frame.push(this.frame.peek());
+					break;
+				case DUP.T_DUP2_X1:
+					// Duplicate the top one or two operand stack values and insert two or three
+					// values down
+					// ..., value3, value2, value1 => ..., value2, value1, value3, value2,
+					// value1
+					// wide:
+					// ..., value2, value1 => ..., value1, value2, value1
+					if (!isWide(cop)) {
+						final R e1 = this.frame.pop();
+						final R e2 = this.frame.pop();
+						final R e3 = this.frame.pop();
+						this.frame.push(e2);
+						this.frame.push(e1);
+						this.frame.push(e3);
+						this.frame.push(e2);
+						this.frame.push(e1);
+						break;
+					}
+					// fall through for wide
+				case DUP.T_DUP_X1: {
+					// Duplicate the top operand stack value and insert two values down
+					final R e1 = this.frame.pop();
+					final R e2 = this.frame.pop();
+					this.frame.push(e1);
+					this.frame.push(e2);
+					this.frame.push(e1);
+					break;
+				}
+				case DUP.T_DUP2_X2:
+					// Duplicate the top one or two operand stack values and insert two, three,
+					// or
+					// four values down
+					// ..., value4, value3, value2, value1 => ..., value2, value1, value4,
+					// value3,
+					// value2, value1
+					// wide:
+					// ..., value3, value2, value1 => ..., value1, value3, value2, value1
+					if (!isWide(cop)) {
+						final R e1 = this.frame.pop();
+						final R e2 = this.frame.pop();
+						final R e3 = this.frame.pop();
+						final R e4 = this.frame.pop();
+						this.frame.push(e2);
+						this.frame.push(e1);
+						this.frame.push(e4);
+						this.frame.push(e3);
+						this.frame.push(e2);
+						this.frame.push(e1);
+						break;
+					}
+					// fall through for wide
+				case DUP.T_DUP_X2: {
+					// Duplicate the top operand stack value and insert two or three values down
+					final R e1 = this.frame.pop();
+					final R e2 = this.frame.pop();
+					final R e3 = this.frame.pop();
+					this.frame.push(e1);
+					this.frame.push(e3);
+					this.frame.push(e2);
+					this.frame.push(e1);
+					break;
+				}
+				default:
+					LOGGER.warning("Unknown dup type '" + cop.getDupType() + "'!");
+				}
+				break;
+			}
+			case FILLARRAY: {
+				assert op instanceof FILLARRAY;
+
+				pop(T.AREF);
+				break;
+			}
 			case GET: {
 				final GET cop = (GET) op;
 				final F f = cop.getF();
 				if (!f.check(AF.STATIC)) {
 					pop(f.getT());
 				}
-				this.frame.push(new R(f.getValueT(), Kind.PUSH));
+				push(f.getValueT());
 				break;
 			}
 			case GOTO: {
@@ -357,36 +545,50 @@ public final class TrDataFlowAnalysis2Cfg {
 				pc = cop.getTargetPc();
 				break;
 			}
+			case INC: {
+				assert op instanceof INC;
+
+				// TODO reduce bool
+				break;
+			}
+			case INSTANCEOF: {
+				assert op instanceof INSTANCEOF;
+
+				pop(T.AREF);
+				// operation contains check-type as argument, not important here
+				push(T.BOOLEAN);
+				break;
+			}
 			case INVOKE: {
 				final INVOKE cop = (INVOKE) op;
 				final M m = cop.getM();
 				for (int i = m.getParamTs().length; i-- > 0;) {
-					// m(int) also accepts byte, short and char
-					pop(m.getParamTs()[i] == T.INT ? T.IINT : m.getParamTs()[i]);
+					// m(int) also accepts byte and short in Java, TODO check CHAR / BOOLEAN
+					pop(m.getParamTs()[i] == T.INT ? T.MINT : m.getParamTs()[i]);
 				}
 				if (!m.check(AF.STATIC)) {
 					pop(m.getT());
 				}
 				if (m.getReturnT() != T.VOID) {
-					this.frame.push(new R(m.getReturnT(), Kind.PUSH));
+					push(m.getReturnT());
 				}
 				break;
 			}
 			case JCMP: {
 				final JCMP cop = (JCMP) op;
+				bb.setCondSuccs(getTarget(pc), getTarget(cop.getTargetPc()));
 				evalBinaryMath(cop.getT(), T.VOID);
 				merge(pc);
 				merge(cop.getTargetPc());
-				bb.setCondSuccs(getTarget(pc), getTarget(cop.getTargetPc()));
 				pc = ops.length; // next open pc
 				continue;
 			}
 			case JCND: {
 				final JCND cop = (JCND) op;
+				bb.setCondSuccs(getTarget(pc), getTarget(cop.getTargetPc()));
 				pop(cop.getT());
 				merge(pc);
 				merge(cop.getTargetPc());
-				bb.setCondSuccs(getTarget(pc), getTarget(cop.getTargetPc()));
 				pc = ops.length; // next open pc
 				continue;
 			}
@@ -394,25 +596,164 @@ public final class TrDataFlowAnalysis2Cfg {
 				// Spec, JSR/RET is stack-like:
 				// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
 				final JSR cop = (JSR) op;
-				if (this.pc2sub == null) {
-					this.pc2sub = new HashMap<Integer, Sub>();
-					this.pc2sub.put(cop.getTargetPc(), new Sub(cop));
-				} else {
-					Sub sub = this.pc2sub.get(cop.getTargetPc());
-					if (sub == null) {
-						this.pc2sub.put(cop.getTargetPc(), sub = new Sub(cop));
-					} else {
-						sub.addJsr(cop);
-					}
-				}
-				bb.setSucc(getTarget(cop.getTargetPc()));
+				/*
+				 * if (this.pc2sub == null) { this.pc2sub = new HashMap<Integer, Sub>();
+				 * this.pc2sub.put(cop.getTargetPc(), new Sub(cop)); } else { Sub sub =
+				 * this.pc2sub.get(cop.getTargetPc()); if (sub == null) {
+				 * this.pc2sub.put(cop.getTargetPc(), sub = new Sub(cop)); } else { sub.addJsr(cop);
+				 * } } bb.setSucc(getTarget(cop.getTargetPc()));
+				 */
+				// use target address instead of jsr follow because of merge:
+				this.frame.push(new R(T.RETURN_ADDRESS, cop.getTargetPc(), Kind.CONST));
+				merge(cop.getTargetPc());
 				pc = ops.length; // next open pc
 				continue;
 			}
 			case LOAD: {
 				final LOAD cop = (LOAD) op;
 				final R r = get(cop.getReg(), cop.getT());
-				this.frame.push(new R(r.getT(), Kind.PUSH, r));
+				// no previous for stack
+				this.frame.push(new R(r.getT(), r.getValue(), Kind.MOVE, r));
+				break;
+			}
+			case MONITOR: {
+				assert op instanceof MONITOR;
+
+				pop(T.AREF);
+				break;
+			}
+			case MUL: {
+				final MUL cop = (MUL) op;
+				evalBinaryMath(cop.getT());
+				break;
+			}
+			case NEG: {
+				final NEG cop = (NEG) op;
+				final R r = pop(cop.getT());
+				push(r.getT());
+				break;
+			}
+			case NEW: {
+				final NEW cop = (NEW) op;
+				push(cop.getT());
+				break;
+			}
+			case NEWARRAY: {
+				final NEWARRAY cop = (NEWARRAY) op;
+				for (int i = cop.getDimensions(); i-- > 0;) {
+					pop(T.INT);
+				}
+				push(this.cfg.getMd().getM().getT().getDu()
+						.getArrayT(cop.getT(), cop.getDimensions()));
+				break;
+			}
+			case OR: {
+				final OR cop = (OR) op;
+				evalBinaryMath(cop.getT());
+				break;
+			}
+			case POP: {
+				final POP cop = (POP) op;
+				switch (cop.getPopType()) {
+				case POP.T_POP2:
+					// Pop the top one or two operand stack values
+					// ..., value2, value1 => ...
+					// wide:
+					// ..., value => ...
+					if (!isWide(cop)) {
+						this.frame.pop();
+						this.frame.pop();
+						break;
+					}
+					// fall through for wide
+				case POP.T_POP:
+					// Pop the top operand stack value
+					this.frame.pop();
+					break;
+				default:
+					LOGGER.warning("Unknown pop type '" + cop.getPopType() + "'!");
+				}
+				break;
+			}
+			case PUSH: {
+				final PUSH cop = (PUSH) op;
+				// no previous for stack
+				this.frame.push(new R(cop.getT(), cop.getValue(), Kind.CONST));
+				// TODO check BYTE / SHORT value ranges!
+				break;
+			}
+			case PUT: {
+				final PUT cop = (PUT) op;
+				final F f = cop.getF();
+				pop(f.getValueT());
+				if (!f.check(AF.STATIC)) {
+					pop(f.getT());
+				}
+				break;
+			}
+			case REM: {
+				final REM cop = (REM) op;
+				evalBinaryMath(cop.getT());
+				break;
+			}
+			case RET: {
+				final RET cop = (RET) op;
+
+				get(cop.getReg(), T.RETURN_ADDRESS);
+				// TODO
+
+				pc = ops.length; // next open pc
+				continue;
+			}
+			case RETURN: {
+				assert op instanceof RETURN;
+
+				// don't need op type here, could check, but why should we...
+				final T returnT = md.getM().getReturnT();
+				if (returnT != T.VOID) {
+					pop(returnT); // reduce only
+				}
+				pc = ops.length; // next open pc
+				continue;
+			}
+			case SHL: {
+				final SHL cop = (SHL) op;
+				evalBinaryMath(cop.getT());
+				break;
+			}
+			case SHR: {
+				final SHR cop = (SHR) op;
+				evalBinaryMath(cop.getT());
+				break;
+			}
+			case STORE: {
+				final STORE cop = (STORE) op;
+				final R r = pop(cop.getT());
+				final R prevR = this.frame.get(cop.getReg());
+				// TODO incompatible types? remove prevR
+				if (prevR == null) {
+					this.frame.set(cop.getReg(), new R(r.getT(), r.getValue(), Kind.MOVE, r));
+				} else {
+					this.frame
+							.set(cop.getReg(), new R(r.getT(), r.getValue(), Kind.MOVE, r, prevR));
+				}
+				break;
+			}
+			case SUB: {
+				final SUB cop = (SUB) op;
+				evalBinaryMath(cop.getT());
+				break;
+			}
+			case SWAP: {
+				// Swap the top two operand stack values
+				// ..., value2, value1 ..., value1, value2
+				// wide: not supported on JVM!
+				assert op instanceof SWAP;
+
+				final R e1 = this.frame.pop();
+				final R e2 = this.frame.pop();
+				this.frame.push(e1);
+				this.frame.push(e2);
 				break;
 			}
 			case SWITCH: {
@@ -448,44 +789,14 @@ public final class TrDataFlowAnalysis2Cfg {
 					bb.addSwitchSucc(keys.toArray(new Integer[keys.size()]),
 							getTarget(casePc2keysEntry.getKey()));
 				}
-				pc = ops.length; // next open pc
-				continue;
-			}
-			case PUSH: {
-				final PUSH cop = (PUSH) op;
-				this.frame.push(new R(cop.getT(), cop.getValue(), Kind.PUSH));
-				break;
-			}
-			case RET: {
-				final RET cop = (RET) op;
 
-				// TODO
-
-				pc = ops.length; // next open pc
-				continue;
-			}
-			case RETURN: {
-				assert op instanceof RETURN;
-
-				// don't need op type here, could check, but why should we...
-				final T returnT = md.getM().getReturnT();
-				if (returnT != T.VOID) {
-					pop(returnT); // reduce only
+				pop(T.INT);
+				merge(cop.getDefaultPc());
+				for (final int casePc : cop.getCasePcs()) {
+					merge(casePc);
 				}
 				pc = ops.length; // next open pc
 				continue;
-			}
-			case STORE: {
-				final STORE cop = (STORE) op;
-				final R r = pop(cop.getT());
-				final R varR = this.frame.get(cop.getReg()); // potential var let
-				// TODO incompatible types? remove varR
-				if (varR == null) {
-					this.frame.set(cop.getReg(), new R(r.getT(), Kind.STORE, r));
-				} else {
-					this.frame.set(cop.getReg(), new R(r.getT(), Kind.STORE, r, varR));
-				}
-				break;
 			}
 			case THROW:
 				assert op instanceof THROW;
@@ -493,6 +804,13 @@ public final class TrDataFlowAnalysis2Cfg {
 				pop(du.getT(Throwable.class)); // reduce only
 				pc = ops.length; // next open pc
 				continue;
+			case XOR: {
+				final XOR cop = (XOR) op;
+				evalBinaryMath(cop.getT());
+				break;
+			}
+			default:
+				LOGGER.warning("Operation '" + op + "' not handled!");
 			}
 			merge(pc);
 		}

@@ -834,7 +834,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IRETURN:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LRETURN:
@@ -999,38 +999,37 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IF_ICMPEQ:
 			if (t == null) {
-				// TODO this and all following JCMP/CND, boolean not possible?
-				t = T.AINT;
+				t = T.INT;
 				oValue = CmpType.T_EQ;
 			}
 			// fall through
 		case Opcodes.IF_ICMPGE:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 				oValue = CmpType.T_GE;
 			}
 			// fall through
 		case Opcodes.IF_ICMPGT:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 				oValue = CmpType.T_GT;
 			}
 			// fall through
 		case Opcodes.IF_ICMPLE:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 				oValue = CmpType.T_LE;
 			}
 			// fall through
 		case Opcodes.IF_ICMPLT:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 				oValue = CmpType.T_LT;
 			}
 			// fall through
 		case Opcodes.IF_ICMPNE:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 				oValue = CmpType.T_NE;
 			}
 			{
@@ -1057,37 +1056,37 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IFEQ:
 			if (t == null) {
-				t = T.AINT; // for boolean too
+				t = T.INT;
 				oValue = CmpType.T_EQ;
 			}
 			// fall through
 		case Opcodes.IFGE:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 				oValue = CmpType.T_GE;
 			}
 			// fall through
 		case Opcodes.IFGT:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 				oValue = CmpType.T_GT;
 			}
 			// fall through
 		case Opcodes.IFLE:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 				oValue = CmpType.T_LE;
 			}
 			// fall through
 		case Opcodes.IFLT:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 				oValue = CmpType.T_LT;
 			}
 			// fall through
 		case Opcodes.IFNE:
 			if (t == null) {
-				t = T.AINT; // for boolean too
+				t = T.INT;
 				oValue = CmpType.T_NE;
 			}
 			{
@@ -1455,7 +1454,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.ILOAD:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LLOAD:
@@ -1482,7 +1481,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.ISTORE:
 			if (t == null) {
-				t = T.AINT;
+				t = T.INT;
 			}
 			// fall through
 		case Opcodes.LSTORE:

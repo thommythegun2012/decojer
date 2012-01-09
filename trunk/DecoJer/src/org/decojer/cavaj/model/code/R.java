@@ -32,14 +32,41 @@ import org.decojer.cavaj.model.T;
  */
 public class R {
 
+	/**
+	 * Register kind.
+	 * 
+	 * @author André Pankraz
+	 */
 	public enum Kind {
 
-		MERGE, // merge ins
+		/**
+		 * New r, maybe previous r.
+		 */
+		CONST,
 
-		PUSH, // no in
+		/**
+		 * Merge ins.
+		 */
+		MERGE,
 
-		STORE // previous r and new source r
+		/**
+		 * New r, maybe previous r.
+		 */
+		MOVE
 
+	}
+
+	/**
+	 * Merge register types.
+	 * 
+	 * @param t1
+	 *            register 1
+	 * @param t2
+	 *            register 2
+	 * @return merged register type
+	 */
+	public static T merge(final R r1, final R r2) {
+		return T.merge(r1.getT(), r2.getT());
 	}
 
 	private R[] ins;
@@ -52,10 +79,32 @@ public class R {
 
 	private final Object value;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param t
+	 *            register type
+	 * @param kind
+	 *            register kind
+	 * @param ins
+	 *            input registers
+	 */
 	public R(final T t, final Kind kind, final R... ins) {
 		this(t, null, kind, ins);
 	}
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param t
+	 *            register type
+	 * @param value
+	 *            register value
+	 * @param kind
+	 *            register kind
+	 * @param ins
+	 *            input registers
+	 */
 	public R(final T t, final Object value, final Kind kind, final R... ins) {
 		this.t = t;
 		this.value = value;
@@ -75,12 +124,60 @@ public class R {
 		}
 	}
 
+	/**
+	 * Get kind.
+	 * 
+	 * @return kind
+	 */
+	public Kind getKind() {
+		return this.kind;
+	}
+
+	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
 	public T getT() {
 		return this.t;
 	}
 
-	public void setT(final T t) {
-		this.t = t;
+	/**
+	 * Get value.
+	 * 
+	 * @return value
+	 */
+	public Object getValue() {
+		return this.value;
+	}
+
+	/**
+	 * Merge to type.
+	 * 
+	 * @param t
+	 *            type
+	 */
+	public void mergeTo(final T t) {
+		final T mergeTo = this.t.mergeTo(t);
+		if (this.t == mergeTo) {
+			return;
+		}
+		this.t = mergeTo;
+		if (this.outs != null) {
+			for (final R out : this.outs) {
+				out.mergeTo(mergeTo);
+			}
+		}
+		if (this.ins == null || this.ins.length == 0) {
+			return;
+		}
+		if (getKind() == Kind.CONST || getKind() == Kind.MOVE) {
+			this.ins[0].mergeTo(mergeTo);
+			return;
+		}
+		for (final R in : this.ins) {
+			in.mergeTo(mergeTo);
+		}
 	}
 
 	@Override
