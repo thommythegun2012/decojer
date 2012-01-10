@@ -59,9 +59,9 @@ public class R {
 	/**
 	 * Merge register types.
 	 * 
-	 * @param t1
+	 * @param r1
 	 *            register 1
-	 * @param t2
+	 * @param r2
 	 *            register 2
 	 * @return merged register type
 	 */
@@ -125,12 +125,47 @@ public class R {
 	}
 
 	/**
+	 * Add output register.
+	 * 
+	 * @param out
+	 *            output register
+	 */
+	public void addOut(final R out) {
+		if (this.outs == null) {
+			this.outs = new R[] { out };
+			return;
+		}
+		final R[] newOuts = new R[this.outs.length + 1];
+		System.arraycopy(this.outs, 0, newOuts, 0, this.outs.length);
+		newOuts[this.outs.length - 1] = out;
+		this.outs = newOuts;
+	}
+
+	/**
+	 * Get input registers.
+	 * 
+	 * @return input registers
+	 */
+	public R[] getIns() {
+		return this.ins;
+	}
+
+	/**
 	 * Get kind.
 	 * 
 	 * @return kind
 	 */
 	public Kind getKind() {
 		return this.kind;
+	}
+
+	/**
+	 * Get output registers.
+	 * 
+	 * @return output registers
+	 */
+	public R[] getOuts() {
+		return this.outs;
 	}
 
 	/**
@@ -178,6 +213,29 @@ public class R {
 		for (final R in : this.ins) {
 			in.mergeTo(mergeTo);
 		}
+	}
+
+	/**
+	 * Remove output register.
+	 * 
+	 * @param out
+	 *            output register
+	 * @return true - removed
+	 */
+	public boolean removeOut(final R out) {
+		if (this.outs == null) {
+			return false;
+		}
+		for (int i = this.outs.length; i-- > 0;) {
+			if (this.outs[i] == out) {
+				final R[] newOuts = new R[this.outs.length - 1];
+				System.arraycopy(this.outs, i + 1, newOuts, i, newOuts.length - i);
+				System.arraycopy(this.outs, 0, newOuts, 0, i);
+				this.outs = newOuts;
+				return true;
+			}
+		}
+		return false;
 	}
 
 	@Override
