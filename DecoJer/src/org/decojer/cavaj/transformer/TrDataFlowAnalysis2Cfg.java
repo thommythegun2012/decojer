@@ -313,16 +313,17 @@ public final class TrDataFlowAnalysis2Cfg {
 
 	private void replace(final BB bb, final int reg, final R oldR, final R r) {
 		for (final Op op : bb.getOps()) {
-			final Frame oldFrame = this.cfg.getInFrame(op);
-			final R oldFrameR = oldFrame.get(reg);
-			if (oldFrameR != oldR) {
-				// ins/outs
-
-				// oldR can be null...but add to ins?
-
+			final Frame frame = this.cfg.getInFrame(op);
+			final R frameR = frame.get(reg);
+			if (frameR != oldR && frameR != null) {
+				if (oldR.removeOut(frameR)) {
+					r.addOut(frameR);
+				} else {
+					System.out.println("LOOK AT THIS!");
+				}
 				return;
 			}
-			oldFrame.set(reg, r);
+			frame.set(reg, r);
 		}
 		for (final E out : bb.getOuts()) {
 			replace(out.getEnd(), reg, oldR, r);
@@ -820,6 +821,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			default:
 				LOGGER.warning("Operation '" + op + "' not handled!");
 			}
+			// TODO getTarget into already existing op must split before this merge!!!
 			merge(pc);
 		}
 		this.cfg.calculatePostorder();
