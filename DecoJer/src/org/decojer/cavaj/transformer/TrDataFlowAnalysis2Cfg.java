@@ -662,9 +662,28 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case PUSH: {
 				final PUSH cop = (PUSH) op;
+				T t = cop.getT();
+				if (t == T.AINT || t == T.DINT) {
+					final int value = (Integer) cop.getValue();
+					if (value < Short.MIN_VALUE || Short.MAX_VALUE < value) {
+						// no short
+						t = T.merge(t, T.multi(T.INT, T.BYTE, T.CHAR, T.BOOLEAN, T.FLOAT));
+					}
+					if (value < Character.MIN_VALUE || Character.MAX_VALUE < value) {
+						// no char
+						t = T.merge(t, T.multi(T.INT, T.SHORT, T.BYTE, T.BOOLEAN, T.FLOAT));
+					}
+					if (value < Byte.MIN_VALUE || Byte.MAX_VALUE < value) {
+						// no byte
+						t = T.merge(t, T.multi(T.INT, T.SHORT, T.CHAR, T.BOOLEAN, T.FLOAT));
+					}
+					if (value < 0 || 1 < value) {
+						// no bool
+						t = T.merge(t, T.multi(T.INT, T.SHORT, T.CHAR, T.BYTE, T.FLOAT));
+					}
+				}
 				// no previous for stack
-				this.frame.push(new R(cop.getT(), cop.getValue(), Kind.CONST));
-				// TODO check BYTE / SHORT value ranges!
+				this.frame.push(new R(t, cop.getValue(), Kind.CONST));
 				break;
 			}
 			case PUT: {
