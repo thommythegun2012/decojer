@@ -272,12 +272,8 @@ public final class TrIvmCfg2JavaExprStmts {
 			}
 			case DUP: {
 				final DUP cop = (DUP) op;
-				switch (cop.getDupType()) {
-				case DUP.T_DUP2:
-					// Duplicate the top one or two operand stack values
-					// ..., value2, value1 => ..., value2, value1, value2, value1
-					// wide:
-					// ..., value => ..., value, value
+				switch (cop.getKind()) {
+				case DUP2:
 					if (!isWide(cop)) {
 						final Expression e1 = bb.pop();
 						final Expression e2 = bb.pop();
@@ -288,16 +284,10 @@ public final class TrIvmCfg2JavaExprStmts {
 						break;
 					}
 					// fall through for wide
-				case DUP.T_DUP:
-					// Duplicate the top operand stack value
+				case DUP:
 					bb.push(bb.peek());
 					break;
-				case DUP.T_DUP2_X1:
-					// Duplicate the top one or two operand stack values and insert two or three
-					// values down
-					// ..., value3, value2, value1 => ..., value2, value1, value3, value2, value1
-					// wide:
-					// ..., value2, value1 => ..., value1, value2, value1
+				case DUP2_X1:
 					if (!isWide(cop)) {
 						final Expression e1 = bb.pop();
 						final Expression e2 = bb.pop();
@@ -310,8 +300,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						break;
 					}
 					// fall through for wide
-				case DUP.T_DUP_X1: {
-					// Duplicate the top operand stack value and insert two values down
+				case DUP_X1: {
 					final Expression e1 = bb.pop();
 					final Expression e2 = bb.pop();
 					bb.push(e1);
@@ -319,13 +308,7 @@ public final class TrIvmCfg2JavaExprStmts {
 					bb.push(e1);
 					break;
 				}
-				case DUP.T_DUP2_X2:
-					// Duplicate the top one or two operand stack values and insert two, three, or
-					// four values down
-					// ..., value4, value3, value2, value1 => ..., value2, value1, value4, value3,
-					// value2, value1
-					// wide:
-					// ..., value3, value2, value1 => ..., value1, value3, value2, value1
+				case DUP2_X2:
 					if (!isWide(cop)) {
 						final Expression e1 = bb.pop();
 						final Expression e2 = bb.pop();
@@ -340,8 +323,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						break;
 					}
 					// fall through for wide
-				case DUP.T_DUP_X2: {
-					// Duplicate the top operand stack value and insert two or three values down
+				case DUP_X2: {
 					final Expression e1 = bb.pop();
 					final Expression e2 = bb.pop();
 					final Expression e3 = bb.pop();
@@ -352,7 +334,7 @@ public final class TrIvmCfg2JavaExprStmts {
 					break;
 				}
 				default:
-					LOGGER.warning("Unknown dup type '" + cop.getDupType() + "'!");
+					LOGGER.warning("Unknown DUP type '" + cop.getKind() + "'!");
 				}
 				break;
 			}
@@ -846,31 +828,22 @@ public final class TrIvmCfg2JavaExprStmts {
 			}
 			case POP: {
 				final POP cop = (POP) op;
-				switch (cop.getPopType()) {
-				case POP.T_POP2:
-					// Pop the top one or two operand stack values
-					// ..., value2, value1 => ...
-					// wide:
-					// ..., value => ...
+				switch (cop.getKind()) {
+				case POP2:
 					if (!isWide(cop)) {
-						final Expression expression = bb.pop();
-						statement = getAst().newExpressionStatement(expression);
+						statement = getAst().newExpressionStatement(bb.pop());
 
 						LOGGER.warning("TODO: POP2 for not wide in '" + this.cfg
 								+ "'! Statement output?");
-
 						bb.pop();
 						break;
 					}
 					// fall through for wide
-				case POP.T_POP: {
-					// Pop the top operand stack value
-					final Expression expression = bb.pop();
-					statement = getAst().newExpressionStatement(expression);
+				case POP:
+					statement = getAst().newExpressionStatement(bb.pop());
 					break;
-				}
 				default:
-					LOGGER.warning("Unknown pop type '" + cop.getPopType() + "'!");
+					LOGGER.warning("Unknown POP type '" + cop.getKind() + "'!");
 				}
 				break;
 			}
@@ -1118,9 +1091,6 @@ public final class TrIvmCfg2JavaExprStmts {
 				break;
 			}
 			case SWAP: {
-				// Swap the top two operand stack values
-				// ..., value2, value1 ..., value1, value2
-				// wide: not supported on JVM!
 				assert op instanceof SWAP;
 
 				final Expression e1 = bb.pop();

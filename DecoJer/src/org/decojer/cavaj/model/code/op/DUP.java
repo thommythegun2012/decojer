@@ -30,19 +30,59 @@ package org.decojer.cavaj.model.code.op;
  */
 public class DUP extends Op {
 
-	public static final int T_DUP = 0;
+	/**
+	 * Dup kind.
+	 * 
+	 * @author André Pankraz
+	 */
+	public enum Kind {
 
-	public static final int T_DUP_X1 = 1;
+		/**
+		 * Duplicate the top operand stack value.
+		 */
+		DUP,
 
-	public static final int T_DUP_X2 = 2;
+		/**
+		 * Duplicate the top operand stack value and insert two values down.
+		 */
+		DUP_X1,
 
-	public static final int T_DUP2 = 3;
+		/**
+		 * Duplicate the top operand stack value and insert two or three values down.
+		 */
+		DUP_X2,
 
-	public static final int T_DUP2_X1 = 4;
+		/**
+		 * Duplicate the top one or two operand stack values:<br>
+		 * <code>..., value2, value1 => ..., value2,
+		 * value1, value2, value1</code><br>
+		 * wide:<br>
+		 * <code>..., value => ..., value, value</code>
+		 */
+		DUP2,
 
-	public static final int T_DUP2_X2 = 5;
+		/**
+		 * Duplicate the top one or two operand stack values and insert two or three values down:<br>
+		 * <code>..., value3, value2, value1 => ..., value2, value1, value3, value2, value1</code><br>
+		 * wide:<br>
+		 * <code>..., value2, value1 => ..., value1, value2, value1</code>
+		 */
+		DUP2_X1,
 
-	private final int dupType;
+		/**
+		 * Duplicate the top one or two operand stack values and insert two, three, or four values
+		 * down:<br>
+		 * <code>..., value4, value3, value2, value1 => ..., value2, value1, value4,
+		 * value3, value2, value1</code><br>
+		 * wide:<br>
+		 * <code>..., value3, value2, value1 => ..., value1, value3,
+		 * value2, value1</code>
+		 */
+		DUP2_X2
+
+	}
+
+	private final Kind kind;
 
 	/**
 	 * Constructor.
@@ -53,12 +93,20 @@ public class DUP extends Op {
 	 *            operation code
 	 * @param line
 	 *            line number
-	 * @param dupType
-	 *            dup type
+	 * @param kind
+	 *            dup kind
 	 */
-	public DUP(final int pc, final int opcode, final int line, final int dupType) {
+	public DUP(final int pc, final int opcode, final int line, final Kind kind) {
 		super(pc, opcode, line);
-		this.dupType = dupType;
+		this.kind = kind;
+	}
+
+	@Override
+	public int getInStackSize() {
+		// TODO? should be 2, 3, 4 for not-wide stack arguments, but we cannot know here...
+		// return new int[] { 1, 2, 3, 1, 2, 3 }[this.dupType];
+		// TODO change stack to 2 for wide!!!
+		return 1;
 	}
 
 	/**
@@ -66,14 +114,8 @@ public class DUP extends Op {
 	 * 
 	 * @return dup type
 	 */
-	public int getDupType() {
-		return this.dupType;
-	}
-
-	@Override
-	public int getInStackSize() {
-		// TODO? should be 2, 3, 4 for not-wide stack arguments, but we cannot know here...
-		return new int[] { 1, 2, 3, 1, 2, 3 }[this.dupType];
+	public Kind getKind() {
+		return this.kind;
 	}
 
 	@Override
@@ -83,8 +125,7 @@ public class DUP extends Op {
 
 	@Override
 	public String toString() {
-		return super.toString()
-				+ new String[] { "", "_X1", "_X2", "2", "2_X1", "2_X2" }[this.dupType];
+		return this.kind.toString();
 	}
 
 }

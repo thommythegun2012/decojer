@@ -44,7 +44,6 @@ import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.R.Kind;
-import org.decojer.cavaj.model.code.Sub;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
@@ -124,8 +123,6 @@ public final class TrDataFlowAnalysis2Cfg {
 	 * Remember BBs for PCs.
 	 */
 	private BB[] pc2bbs;
-
-	private Map<Integer, Sub> pc2sub;
 
 	private TrDataFlowAnalysis2Cfg(final CFG cfg) {
 		this.cfg = cfg;
@@ -212,52 +209,54 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private void merge(final int pc) {
-		final Frame oldFrame = this.cfg.getFrame(pc);
-		if (oldFrame == null) {
+		final Frame frame = this.cfg.getFrame(pc);
+		if (frame == null) {
 			this.cfg.setFrame(pc, this.frame);
 			return;
 		}
+		// TODO multi merge...handle via adding ins
 		for (int reg = this.frame.getRegs(); reg-- > 0;) {
-			final R r = this.frame.get(reg);
-			if (r == null) {
+			final R newR = this.frame.get(reg);
+			if (newR == null) {
 				continue;
 			}
-			final R oldR = oldFrame.get(reg);
-			if (r == oldR) {
+			final R oldR = frame.get(reg);
+			if (newR == oldR) {
 				continue;
 			}
 			// TODO what if we encounter alive new merge?
-			final R mergeR = oldR == null ? r : new R(R.merge(oldR, r), Kind.MERGE, oldR, r);
-			replace(this.pc2bbs[pc], reg, oldR, mergeR);
+			final R r = oldR == null ? newR : new R(R.merge(oldR, newR), Kind.MERGE, oldR, newR);
+			replace(this.pc2bbs[pc], reg, oldR, r);
 		}
 		for (int i = this.frame.getStackSize(); i-- > 0;) {
-			final R r = this.frame.getStack(i);
-			if (r == null) {
+			final R newR = this.frame.getStack(i);
+			if (newR == null) {
 				LOGGER.warning("Stack register is null!");
 				continue;
 			}
-			final R oldR = oldFrame.getStack(i);
-			if (r == oldR) {
+			final R oldR = frame.getStack(i);
+			if (newR == oldR) {
 				continue;
 			}
 			if (oldR == null) {
 				LOGGER.warning("Stack register is null!");
 				continue;
 			}
-			final T mergeT = R.merge(oldR, r);
+			final T mergeT = R.merge(oldR, newR);
 			oldR.mergeTo(mergeT);
-			r.mergeTo(mergeT);
-			final R mergeR = new R(mergeT, Kind.MERGE, oldR, r);
+			newR.mergeTo(mergeT);
+			final R mergeR = new R(mergeT, Kind.MERGE, oldR, newR);
 			replace(this.pc2bbs[pc], this.cfg.getRegs() + i, oldR, mergeR);
 		}
 	}
 
-	private void mergeExc(final Exc[] excs) {
+	private void mergeExc(final int pc) {
+		final Exc[] excs = this.cfg.getExcs();
 		if (excs == null) {
 			return;
 		}
 		for (final Exc exc : excs) {
-			if (exc.validIn(0/* TODO this.pc */)) {
+			if (exc.validIn(pc)) {
 				this.frame.clearStack();
 				// null is <any> (finally) -> Throwable
 				push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
@@ -316,11 +315,14 @@ public final class TrDataFlowAnalysis2Cfg {
 			final Frame frame = this.cfg.getInFrame(op);
 			final R frameR = frame.get(reg);
 			if (frameR != oldR && frameR != null) {
+				if (oldR == null) {
+					return;
+				}
 				if (oldR.removeOut(frameR)) {
 					r.addOut(frameR);
-				} else {
-					System.out.println("LOOK AT THIS!");
+					return;
 				}
+				System.out.println("LOOK AT THIS!");
 				return;
 			}
 			frame.set(reg, r);
@@ -340,8 +342,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		this.pc2bbs = new BB[ops.length];
 
 		// start with PC 0 and new BB
-		this.openPcs.add(0);
-		int pc = ops.length;
+		int pc = 0;
 		BB bb = newBb(0);
 		this.cfg.setStartBb(bb);
 
@@ -353,33 +354,29 @@ public final class TrDataFlowAnalysis2Cfg {
 				}
 				pc = this.openPcs.removeFirst();
 				bb = this.pc2bbs[pc];
-			} else if (this.pc2bbs[pc] != null) {
-				bb.setSucc(getTarget(pc));
-				pc = ops.length; // next open pc
-				continue;
 			} else {
 				this.pc2bbs[pc] = bb;
-			}
-			if (!this.isIgnoreExceptions) {
-				// exception block changes in none-empty BB? -> split necessary!
-				if (!bb.getOps().isEmpty() && this.cfg.getExcs() != null) {
-					for (final Exc exc : this.cfg.getExcs()) {
-						if (exc.validIn(pc)) {
-							if (exc.validIn(bb.getOpPc())) {
-								// exception is valid - has been valid at BB entry -> OK
-								continue;
+				if (!this.isIgnoreExceptions) {
+					// exception block changes in none-empty BB? -> split necessary!
+					if (!bb.getOps().isEmpty() && this.cfg.getExcs() != null) {
+						for (final Exc exc : this.cfg.getExcs()) {
+							if (exc.validIn(pc)) {
+								if (exc.validIn(bb.getOpPc())) {
+									// exception is valid - has been valid at BB entry -> OK
+									continue;
+								}
+							} else {
+								if (!exc.validIn(bb.getOpPc())) {
+									// exception isn't valid - hasn't bean valid at BB entry -> OK
+									continue;
+								}
 							}
-						} else {
-							if (!exc.validIn(bb.getOpPc())) {
-								// exception isn't valid - hasn't bean valid at BB entry -> OK
-								continue;
-							}
+							// at least one exception has changed, newBb() links exceptions
+							final BB succ = newBb(pc);
+							bb.setSucc(succ);
+							bb = succ;
+							break;
 						}
-						// at least one exception has changed, now split
-						final BB succ = newBb(pc);
-						bb.setSucc(succ);
-						bb = succ;
-						break;
 					}
 				}
 			}
@@ -436,14 +433,11 @@ public final class TrDataFlowAnalysis2Cfg {
 				break;
 			}
 			case DUP: {
-				// TODO convert to MOVE?!
+				// no new register necessary, simply duplicate...is like CFG branch
+				// TODO or MOVE for new if reg-bound merge-replace
 				final DUP cop = (DUP) op;
-				switch (cop.getDupType()) {
-				case DUP.T_DUP2:
-					// Duplicate the top one or two operand stack values
-					// ..., value2, value1 => ..., value2, value1, value2, value1
-					// wide:
-					// ..., value => ..., value, value
+				switch (cop.getKind()) {
+				case DUP2:
 					if (!isWide(cop)) {
 						final R e1 = this.frame.pop();
 						final R e2 = this.frame.pop();
@@ -454,17 +448,10 @@ public final class TrDataFlowAnalysis2Cfg {
 						break;
 					}
 					// fall through for wide
-				case DUP.T_DUP:
-					// Duplicate the top operand stack value
+				case DUP:
 					this.frame.push(this.frame.peek());
 					break;
-				case DUP.T_DUP2_X1:
-					// Duplicate the top one or two operand stack values and insert two or three
-					// values down
-					// ..., value3, value2, value1 => ..., value2, value1, value3, value2,
-					// value1
-					// wide:
-					// ..., value2, value1 => ..., value1, value2, value1
+				case DUP2_X1:
 					if (!isWide(cop)) {
 						final R e1 = this.frame.pop();
 						final R e2 = this.frame.pop();
@@ -477,8 +464,7 @@ public final class TrDataFlowAnalysis2Cfg {
 						break;
 					}
 					// fall through for wide
-				case DUP.T_DUP_X1: {
-					// Duplicate the top operand stack value and insert two values down
+				case DUP_X1: {
 					final R e1 = this.frame.pop();
 					final R e2 = this.frame.pop();
 					this.frame.push(e1);
@@ -486,15 +472,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					this.frame.push(e1);
 					break;
 				}
-				case DUP.T_DUP2_X2:
-					// Duplicate the top one or two operand stack values and insert two, three,
-					// or
-					// four values down
-					// ..., value4, value3, value2, value1 => ..., value2, value1, value4,
-					// value3,
-					// value2, value1
-					// wide:
-					// ..., value3, value2, value1 => ..., value1, value3, value2, value1
+				case DUP2_X2:
 					if (!isWide(cop)) {
 						final R e1 = this.frame.pop();
 						final R e2 = this.frame.pop();
@@ -509,8 +487,7 @@ public final class TrDataFlowAnalysis2Cfg {
 						break;
 					}
 					// fall through for wide
-				case DUP.T_DUP_X2: {
-					// Duplicate the top operand stack value and insert two or three values down
+				case DUP_X2: {
 					final R e1 = this.frame.pop();
 					final R e2 = this.frame.pop();
 					final R e3 = this.frame.pop();
@@ -521,7 +498,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					break;
 				}
 				default:
-					LOGGER.warning("Unknown dup type '" + cop.getDupType() + "'!");
+					LOGGER.warning("Unknown DUP type '" + cop.getKind() + "'!");
 				}
 				break;
 			}
@@ -547,9 +524,12 @@ public final class TrDataFlowAnalysis2Cfg {
 				break;
 			}
 			case INC: {
-				assert op instanceof INC;
-
-				// TODO reduce bool
+				final INC cop = (INC) op;
+				final R r = get(cop.getReg(), cop.getT());
+				this.frame.set(
+						cop.getReg(),
+						new R(r.getT(), r.getValue() instanceof Number ? ((Number) r.getValue())
+								.intValue() + cop.getValue() : null, Kind.MOVE, r));
 				break;
 			}
 			case INSTANCEOF: {
@@ -663,24 +643,20 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case POP: {
 				final POP cop = (POP) op;
-				switch (cop.getPopType()) {
-				case POP.T_POP2:
-					// Pop the top one or two operand stack values
-					// ..., value2, value1 => ...
-					// wide:
-					// ..., value => ...
+				// no new register or type reduction necessary, simply let it die off
+				switch (cop.getKind()) {
+				case POP2:
 					if (!isWide(cop)) {
 						this.frame.pop();
 						this.frame.pop();
 						break;
 					}
 					// fall through for wide
-				case POP.T_POP:
-					// Pop the top operand stack value
+				case POP:
 					this.frame.pop();
 					break;
 				default:
-					LOGGER.warning("Unknown pop type '" + cop.getPopType() + "'!");
+					LOGGER.warning("Unknown POP type '" + cop.getKind() + "'!");
 				}
 				break;
 			}
@@ -720,7 +696,8 @@ public final class TrDataFlowAnalysis2Cfg {
 				// don't need op type here, could check, but why should we...
 				final T returnT = md.getM().getReturnT();
 				if (returnT != T.VOID) {
-					pop(returnT); // reduce only
+					// just type reduction
+					pop(returnT);
 				}
 				pc = ops.length; // next open pc
 				continue;
@@ -754,15 +731,14 @@ public final class TrDataFlowAnalysis2Cfg {
 				break;
 			}
 			case SWAP: {
-				// Swap the top two operand stack values
-				// ..., value2, value1 ..., value1, value2
-				// wide: not supported on JVM!
 				assert op instanceof SWAP;
 
-				final R e1 = this.frame.pop();
-				final R e2 = this.frame.pop();
-				this.frame.push(e1);
-				this.frame.push(e2);
+				// no new register necessary, simply swap stack position
+				// TODO or MOVE if reg-bound merge-replace
+				final R r1 = this.frame.pop();
+				final R r2 = this.frame.pop();
+				this.frame.push(r1);
+				this.frame.push(r2);
 				break;
 			}
 			case SWITCH: {
@@ -810,7 +786,8 @@ public final class TrDataFlowAnalysis2Cfg {
 			case THROW:
 				assert op instanceof THROW;
 
-				pop(du.getT(Throwable.class)); // reduce only
+				// just type reduction
+				pop(du.getT(Throwable.class));
 				pc = ops.length; // next open pc
 				continue;
 			case XOR: {
@@ -821,8 +798,14 @@ public final class TrDataFlowAnalysis2Cfg {
 			default:
 				LOGGER.warning("Operation '" + op + "' not handled!");
 			}
-			// TODO getTarget into already existing op must split before this merge!!!
-			merge(pc);
+			if (this.pc2bbs[pc] != null) {
+				bb.setSucc(getTarget(pc));
+				merge(pc);
+				pc = ops.length; // next open pc
+			} else {
+				merge(pc);
+			}
+			mergeExc(op.getPc());
 		}
 		this.cfg.calculatePostorder();
 	}

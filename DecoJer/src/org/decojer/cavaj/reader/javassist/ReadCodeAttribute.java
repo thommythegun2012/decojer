@@ -484,33 +484,33 @@ public class ReadCodeAttribute {
 			 * DUP *
 			 *******/
 			case Opcode.DUP:
-				type = DUP.T_DUP;
+				oValue = DUP.Kind.DUP;
 				// fall through
 			case Opcode.DUP_X1:
-				if (type == -1) {
-					type = DUP.T_DUP_X1;
+				if (oValue == null) {
+					oValue = DUP.Kind.DUP_X1;
 				}
 				// fall through
 			case Opcode.DUP_X2:
-				if (type == -1) {
-					type = DUP.T_DUP_X2;
+				if (oValue == null) {
+					oValue = DUP.Kind.DUP_X2;
 				}
 				// fall through
 			case Opcode.DUP2:
-				if (type == -1) {
-					type = DUP.T_DUP2;
+				if (oValue == null) {
+					oValue = DUP.Kind.DUP2;
 				}
 				// fall through
 			case Opcode.DUP2_X1:
-				if (type == -1) {
-					type = DUP.T_DUP2_X1;
+				if (oValue == null) {
+					oValue = DUP.Kind.DUP2_X1;
 				}
 				// fall through
 			case Opcode.DUP2_X2:
-				if (type == -1) {
-					type = DUP.T_DUP2_X2;
+				if (oValue == null) {
+					oValue = DUP.Kind.DUP2_X2;
 				}
-				this.ops.add(new DUP(this.ops.size(), opcode, line, type));
+				this.ops.add(new DUP(this.ops.size(), opcode, line, (DUP.Kind) oValue));
 				break;
 			/*******
 			 * GET *
@@ -995,13 +995,13 @@ public class ReadCodeAttribute {
 			 * POP *
 			 *******/
 			case Opcode.POP:
-				type = POP.T_POP;
+				oValue = POP.Kind.POP;
 				// fall through
 			case Opcode.POP2:
-				if (type == -1) {
-					type = POP.T_POP2;
+				if (oValue == null) {
+					oValue = POP.Kind.POP2;
 				}
-				this.ops.add(new POP(this.ops.size(), opcode, line, type));
+				this.ops.add(new POP(this.ops.size(), opcode, line, (POP.Kind) oValue));
 				break;
 			/********
 			 * PUSH *

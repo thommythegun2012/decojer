@@ -591,33 +591,33 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * DUP *
 		 *******/
 		case Opcodes.DUP:
-			type = DUP.T_DUP;
+			oValue = DUP.Kind.DUP;
 			// fall through
 		case Opcodes.DUP_X1:
-			if (type == -1) {
-				type = DUP.T_DUP_X1;
+			if (oValue == null) {
+				oValue = DUP.Kind.DUP_X1;
 			}
 			// fall through
 		case Opcodes.DUP_X2:
-			if (type == -1) {
-				type = DUP.T_DUP_X2;
+			if (oValue == null) {
+				oValue = DUP.Kind.DUP_X2;
 			}
 			// fall through
 		case Opcodes.DUP2:
-			if (type == -1) {
-				type = DUP.T_DUP2;
+			if (oValue == null) {
+				oValue = DUP.Kind.DUP2;
 			}
 			// fall through
 		case Opcodes.DUP2_X1:
-			if (type == -1) {
-				type = DUP.T_DUP2_X1;
+			if (oValue == null) {
+				oValue = DUP.Kind.DUP2_X1;
 			}
 			// fall through
 		case Opcodes.DUP2_X2:
-			if (type == -1) {
-				type = DUP.T_DUP2_X2;
+			if (oValue == null) {
+				oValue = DUP.Kind.DUP2_X2;
 			}
-			this.ops.add(new DUP(this.ops.size(), opcode, this.line, type));
+			this.ops.add(new DUP(this.ops.size(), opcode, this.line, (DUP.Kind) oValue));
 			break;
 		/***********
 		 * MONITOR *
@@ -693,13 +693,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * POP *
 		 *******/
 		case Opcodes.POP:
-			type = POP.T_POP;
+			oValue = POP.Kind.POP;
 			// fall through
 		case Opcodes.POP2:
-			if (type == -1) {
-				type = POP.T_POP2;
+			if (oValue == null) {
+				oValue = POP.Kind.POP;
 			}
-			this.ops.add(new POP(this.ops.size(), opcode, this.line, type));
+			this.ops.add(new POP(this.ops.size(), opcode, this.line, (POP.Kind) oValue));
 			break;
 		/********
 		 * PUSH *

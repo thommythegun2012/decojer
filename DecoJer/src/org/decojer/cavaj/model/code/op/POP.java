@@ -30,11 +30,29 @@ package org.decojer.cavaj.model.code.op;
  */
 public class POP extends Op {
 
-	public static final int T_POP = 0;
+	/**
+	 * Pop kind.
+	 * 
+	 * @author André Pankraz
+	 */
+	public enum Kind {
 
-	public static final int T_POP2 = 1;
+		/**
+		 * Pop the top operand stack value.
+		 */
+		POP,
 
-	private final int popType;
+		/**
+		 * Pop the top one or two operand stack values:<br>
+		 * <code>..., value2, value1 => ...</code><br>
+		 * wide:<br>
+		 * <code>..., value => ...</code>
+		 */
+		POP2
+
+	}
+
+	private final Kind kind;
 
 	/**
 	 * Constructor.
@@ -45,12 +63,12 @@ public class POP extends Op {
 	 *            operation code
 	 * @param line
 	 *            line number
-	 * @param popType
-	 *            pop type
+	 * @param kind
+	 *            pop kind
 	 */
-	public POP(final int pc, final int opcode, final int line, final int popType) {
+	public POP(final int pc, final int opcode, final int line, final Kind kind) {
 		super(pc, opcode, line);
-		this.popType = popType;
+		this.kind = kind;
 	}
 
 	@Override
@@ -59,18 +77,18 @@ public class POP extends Op {
 		return 1;
 	}
 
+	/**
+	 * Get pop kind.
+	 * 
+	 * @return pop kind
+	 */
+	public Kind getKind() {
+		return this.kind;
+	}
+
 	@Override
 	public Optype getOptype() {
 		return Optype.POP;
-	}
-
-	/**
-	 * Get pop type.
-	 * 
-	 * @return pop type
-	 */
-	public int getPopType() {
-		return this.popType;
 	}
 
 }
