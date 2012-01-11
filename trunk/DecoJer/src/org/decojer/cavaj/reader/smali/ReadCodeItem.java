@@ -255,7 +255,7 @@ public class ReadCodeItem {
 					// automatically generated follow instruction, don't visit and remember vmpc!!!
 
 					// no POP2 with current wide handling
-					this.ops.add(new POP(this.ops.size(), opcode, line, POP.T_POP));
+					this.ops.add(new POP(this.ops.size(), opcode, line, POP.Kind.POP));
 				}
 			}
 
@@ -1458,7 +1458,7 @@ public class ReadCodeItem {
 					regs[4] = instr.getRegisterA();
 				}
 
-				this.ops.add(new DUP(this.ops.size(), opcode, line, DUP.T_DUP));
+				this.ops.add(new DUP(this.ops.size(), opcode, line, DUP.Kind.DUP));
 
 				final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, line);
 				this.ops.add(op);
@@ -1486,7 +1486,7 @@ public class ReadCodeItem {
 					regs[j] = reg; // TODO wide?
 				}
 
-				this.ops.add(new DUP(this.ops.size(), opcode, line, DUP.T_DUP));
+				this.ops.add(new DUP(this.ops.size(), opcode, line, DUP.Kind.DUP));
 
 				final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, line);
 				this.ops.add(op);

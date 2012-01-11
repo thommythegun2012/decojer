@@ -206,12 +206,15 @@ public class R {
 		if (this.ins == null || this.ins.length == 0) {
 			return;
 		}
-		if (getKind() == Kind.CONST || getKind() == Kind.MOVE) {
+		switch (getKind()) {
+		case CONST:
+		case MOVE:
 			this.ins[0].mergeTo(mergeTo);
 			return;
-		}
-		for (final R in : this.ins) {
-			in.mergeTo(mergeTo);
+		case MERGE:
+			for (final R in : this.ins) {
+				in.mergeTo(mergeTo);
+			}
 		}
 	}
 
