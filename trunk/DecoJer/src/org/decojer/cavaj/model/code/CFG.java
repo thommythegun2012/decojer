@@ -526,9 +526,8 @@ public class CFG {
 	 *            frame
 	 */
 	public void setFrame(final int pc, final Frame frame) {
-		final Frame setFrame = frame.getPc() == 0 ? frame : new Frame(frame);
-		setFrame.setPc(pc);
-		this.frames[pc] = setFrame;
+		frame.setPc(pc);
+		this.frames[pc] = frame;
 	}
 
 	/**
