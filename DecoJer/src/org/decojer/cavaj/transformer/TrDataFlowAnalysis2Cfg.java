@@ -211,7 +211,7 @@ public final class TrDataFlowAnalysis2Cfg {
 	private void merge(final int pc) {
 		final Frame frame = this.cfg.getFrame(pc);
 		if (frame == null) {
-			this.cfg.setFrame(pc, this.frame);
+			this.cfg.setFrame(pc, this.frame.getPc() != 0 ? new Frame(this.frame) : this.frame);
 			return;
 		}
 		// TODO multi merge...handle via adding ins
@@ -257,8 +257,11 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		for (final Exc exc : excs) {
 			if (exc.validIn(pc)) {
+				if (this.frame.getPc() != 0) {
+					this.frame = new Frame(this.frame);
+				}
 				this.frame.clearStack();
-				// null is <any> (finally) -> Throwable
+				// null is <any> (means Java finally) -> Throwable
 				push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
 						.getT(Throwable.class) : exc.getT());
 				merge(exc.getHandlerPc());
