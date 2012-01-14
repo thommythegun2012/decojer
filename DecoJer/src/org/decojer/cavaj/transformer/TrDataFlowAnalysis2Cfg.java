@@ -229,6 +229,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			replace(this.pc2bbs[pc], reg, oldR, r);
 		}
 		for (int i = this.frame.getStackSize(); i-- > 0;) {
+			// TODO handling for mergeExc with single stack exception value suboptimal
 			final R newR = this.frame.getStack(i);
 			if (newR == null) {
 				LOGGER.warning("Stack register is null!");
@@ -257,6 +258,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		for (final Exc exc : excs) {
 			if (exc.validIn(pc)) {
+				// TODO improve...because of one stack entry really new frame?!
 				if (this.frame.getPc() != 0) {
 					this.frame = new Frame(this.frame);
 				}
@@ -314,6 +316,7 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private void replace(final BB bb, final int reg, final R oldR, final R r) {
+		// TODO ops still empty? merge first anyway!
 		for (final Op op : bb.getOps()) {
 			final Frame frame = this.cfg.getInFrame(op);
 			final R frameR = frame.get(reg);
@@ -585,16 +588,10 @@ public final class TrDataFlowAnalysis2Cfg {
 				continue;
 			}
 			case JSR: {
+				final JSR cop = (JSR) op;
+				bb.setSucc(getTarget(cop.getTargetPc()));
 				// Spec, JSR/RET is stack-like:
 				// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
-				final JSR cop = (JSR) op;
-				/*
-				 * if (this.pc2sub == null) { this.pc2sub = new HashMap<Integer, Sub>();
-				 * this.pc2sub.put(cop.getTargetPc(), new Sub(cop)); } else { Sub sub =
-				 * this.pc2sub.get(cop.getTargetPc()); if (sub == null) {
-				 * this.pc2sub.put(cop.getTargetPc(), sub = new Sub(cop)); } else { sub.addJsr(cop);
-				 * } } bb.setSucc(getTarget(cop.getTargetPc()));
-				 */
 				// use target address instead of jsr follow because of merge:
 				this.frame.push(new R(T.RETURN_ADDRESS, cop.getTargetPc(), Kind.CONST));
 				merge(cop.getTargetPc());
