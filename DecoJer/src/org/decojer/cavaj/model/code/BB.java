@@ -527,6 +527,34 @@ public final class BB {
 	}
 
 	/**
+	 * Replace register for merging.
+	 * 
+	 * @param reg
+	 *            register index
+	 * @param oldR
+	 *            old register
+	 * @param r
+	 *            register
+	 */
+	public void replaceReg(final int reg, final R oldR, final R r) {
+		if (getOps().isEmpty()) {
+			// only known as target yet, still open, no outgoing
+			final Frame frame = this.cfg.getFrame(getOpPc());
+			frame.replaceReg(reg, oldR, r);
+			return;
+		}
+		for (final Op op : getOps()) {
+			final Frame frame = this.cfg.getInFrame(op);
+			if (!frame.replaceReg(reg, oldR, r)) {
+				return;
+			}
+		}
+		for (final E out : getOuts()) {
+			out.getEnd().replaceReg(reg, oldR, r);
+		}
+	}
+
+	/**
 	 * Set local expression.
 	 * 
 	 * @param i

@@ -705,7 +705,7 @@ public class T {
 		assert t != null && !isMulti() && !t.isMulti();
 
 		// all instances are assignable to Object, even if only known by interface
-		if (t == this) {
+		if (t == this || t == T.RETURN_ADDRESS && this == T.AREF) {
 			return true;
 		}
 		if (!isReference() || !t.isReference()) {

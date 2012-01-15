@@ -23,10 +23,7 @@
  */
 package org.decojer.cavaj.model.code;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import org.decojer.cavaj.model.code.op.JSR;
+import org.decojer.cavaj.model.code.op.RET;
 
 /**
  * Subroutine.
@@ -35,43 +32,35 @@ import org.decojer.cavaj.model.code.op.JSR;
  */
 public class Sub {
 
-	final Set<JSR> jsrs;
+	private final int pc;
+
+	private RET ret;
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param jsr
-	 *            JSR operation
+	 * @param pc
+	 *            pc
 	 */
-	public Sub(final JSR jsr) {
-		this.jsrs = new HashSet<JSR>(2);
-		this.jsrs.add(jsr);
+	public Sub(final int pc) {
+		this.pc = pc;
 	}
 
 	/**
-	 * Add JSR operation.
+	 * Get pc.
 	 * 
-	 * @param jsr
-	 *            JSR operation
+	 * @return pc
 	 */
-	public void addJsr(final JSR jsr) {
-		this.jsrs.add(jsr);
+	public int getPc() {
+		return this.pc;
 	}
 
-	/**
-	 * Get JSR operations.
-	 * 
-	 * @return JSR operations
-	 */
-	public Set<JSR> getJsrs() {
-		return this.jsrs;
+	public RET getRet() {
+		return this.ret;
 	}
 
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder("Sub: ");
-		sb.append(this.jsrs.iterator().next());
-		return sb.toString();
+	public void setRet(final RET ret) {
+		this.ret = ret;
 	}
 
 }
