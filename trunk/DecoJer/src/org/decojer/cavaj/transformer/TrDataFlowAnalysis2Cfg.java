@@ -39,11 +39,11 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
-import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.R.Kind;
+import org.decojer.cavaj.model.code.Sub;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.op.ADD;
 import org.decojer.cavaj.model.code.op.ALOAD;
@@ -226,7 +226,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			// TODO what if we encounter alive new merge?
 			final R r = oldR == null ? newR : new R(R.merge(oldR, newR), Kind.MERGE, oldR, newR);
-			replace(this.pc2bbs[pc], reg, oldR, r);
+			this.pc2bbs[pc].replaceReg(reg, oldR, r);
 		}
 		for (int i = this.frame.getStackSize(); i-- > 0;) {
 			// TODO handling for mergeExc with single stack exception value suboptimal
@@ -247,7 +247,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			oldR.mergeTo(mergeT);
 			newR.mergeTo(mergeT);
 			final R mergeR = new R(mergeT, Kind.MERGE, oldR, newR);
-			replace(this.pc2bbs[pc], this.cfg.getRegs() + i, oldR, mergeR);
+			this.pc2bbs[pc].replaceReg(this.cfg.getRegs() + i, oldR, mergeR);
 		}
 	}
 
@@ -269,6 +269,30 @@ public final class TrDataFlowAnalysis2Cfg {
 				merge(exc.getHandlerPc());
 			}
 		}
+	}
+
+	private void mergeJsr(final int pc) {
+		// Spec, JSR/RET is stack-like:
+		// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
+		// use common value (like Sub) instead of jsr-follow-address because of merge:
+		R subR = null;
+		final Frame targetFrame = this.cfg.getFrame(pc);
+		if (targetFrame != null) {
+			subR = targetFrame.get(this.frame.getRegs() + this.frame.getStackSize());
+			if (subR != null) {
+				if (!(subR.getValue() instanceof Sub)) {
+					LOGGER.warning("Wrong JSR Sub merge!");
+					return;
+				}
+				final Sub sub = (Sub) subR.getValue();
+				// TODO RET known? link!
+			}
+		}
+		if (subR == null) {
+			subR = new R(T.RETURN_ADDRESS, new Sub(pc), Kind.CONST);
+		}
+		this.frame.push(subR); // no copy necessary here
+		merge(pc);
 	}
 
 	private BB newBb(final int pc) {
@@ -313,29 +337,6 @@ public final class TrDataFlowAnalysis2Cfg {
 		final R r = new R(t, Kind.CONST);
 		this.frame.push(r);
 		return r;
-	}
-
-	private void replace(final BB bb, final int reg, final R oldR, final R r) {
-		// TODO ops still empty? merge first anyway!
-		for (final Op op : bb.getOps()) {
-			final Frame frame = this.cfg.getInFrame(op);
-			final R frameR = frame.get(reg);
-			if (frameR != oldR && frameR != null) {
-				if (oldR == null) {
-					return;
-				}
-				if (oldR.removeOut(frameR)) {
-					r.addOut(frameR);
-					return;
-				}
-				System.out.println("LOOK AT THIS!");
-				return;
-			}
-			frame.set(reg, r);
-		}
-		for (final E out : bb.getOuts()) {
-			replace(out.getEnd(), reg, oldR, r);
-		}
 	}
 
 	private void transform() {
@@ -386,9 +387,9 @@ public final class TrDataFlowAnalysis2Cfg {
 					}
 				}
 			}
-			this.frame = new Frame(this.cfg.getFrame(pc));
 			final Op op = ops[pc++];
 			bb.addOp(op);
+			this.frame = new Frame(this.cfg.getInFrame(op));
 
 			switch (op.getOptype()) {
 			case ADD: {
@@ -590,11 +591,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			case JSR: {
 				final JSR cop = (JSR) op;
 				bb.setSucc(getTarget(cop.getTargetPc()));
-				// Spec, JSR/RET is stack-like:
-				// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
-				// use target address instead of jsr follow because of merge:
-				this.frame.push(new R(T.RETURN_ADDRESS, cop.getTargetPc(), Kind.CONST));
-				merge(cop.getTargetPc());
+				mergeJsr(cop.getTargetPc());
 				pc = ops.length; // next open pc
 				continue;
 			}
@@ -733,6 +730,11 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case STORE: {
 				final STORE cop = (STORE) op;
+				// The astore instruction is used with an objectref of type returnAddress when
+				// implementing the finally clauses of the Java programming language (see Section
+				// 7.13, "Compiling finally"). The aload instruction cannot be used to load a value
+				// of type returnAddress from a local variable onto the operand stack. This
+				// asymmetry with the astore instruction is intentional.
 				final R r = pop(cop.getT());
 				final R prevR = this.frame.get(cop.getReg());
 				// TODO incompatible types? remove prevR
@@ -824,6 +826,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			} else {
 				merge(pc);
 			}
+			// TODO should work with in-frame? check_code uses new only +after <init>
 			mergeExc(op.getPc());
 		}
 		this.cfg.calculatePostorder();

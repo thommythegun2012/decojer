@@ -73,11 +73,11 @@ public class Frame {
 	 * Get register.
 	 * 
 	 * @param reg
-	 *            register
+	 *            register index
 	 * @return register
 	 */
 	public R get(final int reg) {
-		return reg >= this.rs.length ? null : this.rs[reg];
+		return this.rs[reg];
 	}
 
 	/**
@@ -158,6 +158,38 @@ public class Frame {
 	}
 
 	/**
+	 * Replace register for merging.
+	 * 
+	 * @param reg
+	 *            register index
+	 * @param oldR
+	 *            old register
+	 * @param r
+	 *            register
+	 * @return true - replaced
+	 */
+	public boolean replaceReg(final int reg, final R oldR, final R r) {
+		// stack value already used, no replace
+		if (reg >= getRegs() + getStackSize()) {
+			return false;
+		}
+		final R frameR = get(reg);
+		if (frameR != oldR && frameR != null) {
+			if (oldR == null) {
+				return false;
+			}
+			if (oldR.removeOut(frameR)) {
+				r.addOut(frameR);
+				return false;
+			}
+			System.out.println("LOOK AT THIS!");
+			return false;
+		}
+		set(reg, r);
+		return true;
+	}
+
+	/**
 	 * Set register.
 	 * 
 	 * @param reg
@@ -198,7 +230,8 @@ public class Frame {
 			sb.append(", ").append(this.top);
 		}
 		sb.append(") ");
-		for (int i = 0; i < this.rs.length; ++i) {
+		final int length = getRegs() + getStackSize(); // could be less than rs.length through pop
+		for (int i = 0; i < length; ++i) {
 			sb.append(this.rs[i]).append(", ");
 		}
 		return sb.substring(0, sb.length() - 2);
