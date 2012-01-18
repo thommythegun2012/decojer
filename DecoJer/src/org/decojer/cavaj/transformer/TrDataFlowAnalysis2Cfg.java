@@ -153,18 +153,16 @@ public final class TrDataFlowAnalysis2Cfg {
 
 			return;
 		}
-		final T mergeT = R.merge(r1, r2);
-		r1.mergeTo(mergeT);
-		r2.mergeTo(mergeT);
+		// TODO boolean input possible?
+		// no merge(To) for inputs, valid "int, shot, byte > char -> boolean (int)"
 		if (pushT != T.VOID) {
-			this.frame.push(pushT == null ? new R(r1.getT(), Kind.CONST, r1) : new R(pushT,
-					Kind.CONST));
+			this.frame.push(new R(pushT != null ? pushT : t, Kind.CONST, r1));
 		}
 	}
 
 	private R get(final int i, final T t) {
 		final R r = this.frame.get(i);
-		r.mergeTo(t == T.INT ? T.AINT : t);
+		r.mergeTo(t);
 		return r;
 	}
 
@@ -214,40 +212,31 @@ public final class TrDataFlowAnalysis2Cfg {
 			this.cfg.setFrame(pc, this.frame.getPc() != 0 ? new Frame(this.frame) : this.frame);
 			return;
 		}
-		// TODO multi merge...handle via adding ins
+		// only here can we create or enhance a merge registers
 		for (int reg = this.frame.getRegs(); reg-- > 0;) {
 			final R newR = this.frame.get(reg);
-			if (newR == null) {
-				continue;
-			}
 			final R oldR = frame.get(reg);
-			if (newR == oldR) {
+			if (newR == oldR || oldR == null) {
 				continue;
 			}
-			// TODO what if we encounter alive new merge?
-			final R r = oldR == null ? newR : new R(R.merge(oldR, newR), Kind.MERGE, oldR, newR);
+			final T t = R.merge(oldR, newR);
+			// merge enhance not possible without known start pc for oldR
+			final R r = t == null ? null : new R(R.merge(oldR, newR), Kind.MERGE, oldR, newR);
 			this.pc2bbs[pc].replaceReg(reg, oldR, r);
 		}
 		for (int i = this.frame.getStackSize(); i-- > 0;) {
 			// TODO handling for mergeExc with single stack exception value suboptimal
 			final R newR = this.frame.getStack(i);
-			if (newR == null) {
-				LOGGER.warning("Stack register is null!");
-				continue;
-			}
 			final R oldR = frame.getStack(i);
-			if (newR == oldR) {
+			if (newR == oldR || oldR == null) {
 				continue;
 			}
-			if (oldR == null) {
-				LOGGER.warning("Stack register is null!");
-				continue;
-			}
-			final T mergeT = R.merge(oldR, newR);
-			oldR.mergeTo(mergeT);
-			newR.mergeTo(mergeT);
-			final R mergeR = new R(mergeT, Kind.MERGE, oldR, newR);
-			this.pc2bbs[pc].replaceReg(this.cfg.getRegs() + i, oldR, mergeR);
+			final T t = R.merge(oldR, newR);
+			oldR.mergeTo(t);
+			newR.mergeTo(t);
+			// merge enhence not possible without known start pc for oldR
+			final R r = t == null ? null : new R(R.merge(oldR, newR), Kind.MERGE, oldR, newR);
+			this.pc2bbs[pc].replaceReg(this.cfg.getRegs() + i, oldR, r);
 		}
 	}
 
@@ -329,7 +318,7 @@ public final class TrDataFlowAnalysis2Cfg {
 
 	private R pop(final T t) {
 		final R r = this.frame.pop();
-		r.mergeTo(t == T.INT ? T.AINT : t);
+		r.mergeTo(t);
 		return r;
 	}
 
@@ -551,16 +540,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				final INVOKE cop = (INVOKE) op;
 				final M m = cop.getM();
 				for (int i = m.getParamTs().length; i-- > 0;) {
-					// implicit conversation
-					// m(int) also accepts byte, short and char in Java (no bool)
-					// m(short) also accepts byte in Java
-					T paramT = m.getParamTs()[i];
-					if (paramT == T.INT) {
-						paramT = T.IINT;
-					} else if (paramT == T.SHORT) {
-						paramT = T.multi(T.SHORT, T.BYTE);
-					}
-					pop(paramT);
+					pop(m.getParamTs()[i]);
 				}
 				if (!m.check(AF.STATIC)) {
 					pop(m.getT());
@@ -660,6 +640,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			case PUSH: {
 				final PUSH cop = (PUSH) op;
 				T t = cop.getT();
+				// hack for now...doesn't win coolness price...
 				if (t == T.AINT || t == T.DINT) {
 					final int value = (Integer) cop.getValue();
 					if (value < Short.MIN_VALUE || Short.MAX_VALUE < value) {
@@ -676,7 +657,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					}
 					if (value < 0 || 1 < value) {
 						// no bool
-						t = T.merge(t, T.multi(T.INT, T.SHORT, T.CHAR, T.BYTE, T.FLOAT));
+						t = T.merge(t, T.multi(T.INT, T.SHORT, T.BYTE, T.CHAR, T.FLOAT));
 					}
 				}
 				// no previous for stack

@@ -66,6 +66,9 @@ public class R {
 	 * @return merged register type
 	 */
 	public static T merge(final R r1, final R r2) {
+		if (r1 == null || r2 == null) {
+			return null;
+		}
 		return T.merge(r1.getT(), r2.getT());
 	}
 
@@ -112,33 +115,9 @@ public class R {
 		if (ins != null) {
 			this.ins = ins;
 			for (final R in : ins) {
-				final R[] inOuts = in.outs;
-				if (in.outs == null) {
-					in.outs = new R[] { this };
-				} else {
-					in.outs = new R[inOuts.length + 1];
-					System.arraycopy(inOuts, 0, in.outs, 0, inOuts.length);
-					in.outs[inOuts.length] = this;
-				}
+				linkIn(in);
 			}
 		}
-	}
-
-	/**
-	 * Add output register.
-	 * 
-	 * @param out
-	 *            output register
-	 */
-	public void addOut(final R out) {
-		if (this.outs == null) {
-			this.outs = new R[] { out };
-			return;
-		}
-		final R[] newOuts = new R[this.outs.length + 1];
-		System.arraycopy(this.outs, 0, newOuts, 0, this.outs.length);
-		newOuts[this.outs.length - 1] = out;
-		this.outs = newOuts;
 	}
 
 	/**
@@ -186,6 +165,17 @@ public class R {
 		return this.value;
 	}
 
+	private void linkIn(final R in) {
+		final R[] inOuts = in.outs;
+		if (in.outs == null) {
+			in.outs = new R[] { this };
+		} else {
+			in.outs = new R[inOuts.length + 1];
+			System.arraycopy(inOuts, 0, in.outs, 0, inOuts.length);
+			in.outs[inOuts.length] = this;
+		}
+	}
+
 	/**
 	 * Merge to type.
 	 * 
@@ -196,6 +186,8 @@ public class R {
 		final T mergeTo = this.t.mergeTo(t);
 		if (this.t == mergeTo) {
 			return;
+		} else if (null == mergeTo) {
+			System.out.println("NULL");
 		}
 		this.t = mergeTo;
 		if (this.outs != null) {
@@ -219,26 +211,39 @@ public class R {
 	}
 
 	/**
-	 * Remove output register.
+	 * Replace input register.
 	 * 
-	 * @param out
-	 *            output register
-	 * @return true - removed
+	 * @param oldIn
+	 *            old input register
+	 * @param in
+	 *            new input register
 	 */
-	public boolean removeOut(final R out) {
-		if (this.outs == null) {
-			return false;
-		}
-		for (int i = this.outs.length; i-- > 0;) {
-			if (this.outs[i] == out) {
-				final R[] newOuts = new R[this.outs.length - 1];
-				System.arraycopy(this.outs, i + 1, newOuts, i, newOuts.length - i);
-				System.arraycopy(this.outs, 0, newOuts, 0, i);
-				this.outs = newOuts;
-				return true;
+	public void replaceIn(final R oldIn, final R in) {
+		assert this.ins != null;
+
+		for (int i = this.ins.length; i-- > 0;) {
+			if (this.ins[i] == oldIn) {
+				if (in != null) {
+					this.ins[i] = in;
+					linkIn(in);
+					// oldIn dies anyway, no out remove necessary
+					return;
+				}
+				switch (getKind()) {
+				case CONST:
+				case MOVE:
+					if (this.ins.length < 2 || this.ins[1] != in) {
+						System.out.println("Register replace to null has wrong previous!");
+					}
+					this.ins = new R[] { this.ins[0] };
+					return;
+				case MERGE:
+					System.out.println("Register replace to null for merge not possible!");
+				}
+				return;
 			}
 		}
-		return false;
+		assert false;
 	}
 
 	@Override
