@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code;
 
+import org.decojer.cavaj.model.code.R.Kind;
+
 /**
  * Frame.
  * 
@@ -163,30 +165,28 @@ public class Frame {
 	 * @param reg
 	 *            register index
 	 * @param oldR
-	 *            old register
+	 *            old register, not null
 	 * @param r
 	 *            register
-	 * @return true - replaced
+	 * @return replaced register (oldR or mergedR or null)
 	 */
-	public boolean replaceReg(final int reg, final R oldR, final R r) {
+	public R replaceReg(final int reg, final R oldR, final R r) {
+		assert oldR != null : oldR;
+
 		// stack value already used, no replace
-		if (reg >= getRegs() + getStackSize()) {
-			return false;
+		if (reg >= this.regs + this.top) {
+			return null;
 		}
-		final R frameR = get(reg);
-		if (frameR != oldR && frameR != null) {
-			if (oldR == null) {
-				return false;
-			}
-			if (oldR.removeOut(frameR)) {
-				r.addOut(frameR);
-				return false;
-			}
-			System.out.println("LOOK AT THIS!");
-			return false;
+		final R frameR = this.rs[reg];
+		if (frameR == null) {
+			return null;
 		}
-		set(reg, r);
-		return true;
+		if (frameR != oldR && (r != null || frameR.getKind() != Kind.MERGE)) {
+			frameR.replaceIn(oldR, r);
+			return null;
+		}
+		this.rs[reg] = r;
+		return frameR;
 	}
 
 	/**

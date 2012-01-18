@@ -532,25 +532,24 @@ public final class BB {
 	 * @param reg
 	 *            register index
 	 * @param oldR
-	 *            old register
+	 *            old register, not null
 	 * @param r
 	 *            register
 	 */
 	public void replaceReg(final int reg, final R oldR, final R r) {
-		if (getOps().isEmpty()) {
-			// only known as target yet, still open, no outgoing
-			final Frame frame = this.cfg.getFrame(getOpPc());
-			frame.replaceReg(reg, oldR, r);
-			return;
+		assert oldR != null : oldR;
+
+		// could still have no operations
+		Frame frame = this.cfg.getFrame(getOpPc());
+		R replacedR = frame.replaceReg(reg, oldR, r);
+		for (int i = 1; replacedR != null && i < this.ops.size(); ++i) {
+			frame = this.cfg.getInFrame(this.ops.get(i));
+			replacedR = frame.replaceReg(reg, replacedR, r);
 		}
-		for (final Op op : getOps()) {
-			final Frame frame = this.cfg.getInFrame(op);
-			if (!frame.replaceReg(reg, oldR, r)) {
-				return;
+		if (replacedR != null) {
+			for (final E out : getOuts()) {
+				out.getEnd().replaceReg(reg, replacedR, r);
 			}
-		}
-		for (final E out : getOuts()) {
-			out.getEnd().replaceReg(reg, oldR, r);
 		}
 	}
 

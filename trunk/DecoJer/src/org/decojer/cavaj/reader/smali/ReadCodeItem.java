@@ -961,7 +961,7 @@ public class ReadCodeItem {
 			 * JCMP *
 			 ********/
 			case IF_EQ:
-				t = T.INT;
+				t = T.INT; // for all here: CMP?_FLOAT is extra
 				oValue = CmpType.T_EQ;
 				// fall through
 			case IF_GE:
@@ -1014,12 +1014,12 @@ public class ReadCodeItem {
 			 * JCND *
 			 ********/
 			case IF_EQZ:
-				t = T.INT;
+				t = T.RINT; // boolean too
 				oValue = CmpType.T_EQ;
 				// fall through
 			case IF_GEZ:
 				if (t == null) {
-					t = T.INT;
+					t = T.INT; // for all here: CMP?_FLOAT is extra
 					oValue = CmpType.T_GE;
 				}
 				// fall through
@@ -1041,9 +1041,9 @@ public class ReadCodeItem {
 					oValue = CmpType.T_LT;
 				}
 				// fall through
-			case IF_NEZ:
+			case IF_NEZ: // boolean too
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 					oValue = CmpType.T_NE;
 				}
 				{

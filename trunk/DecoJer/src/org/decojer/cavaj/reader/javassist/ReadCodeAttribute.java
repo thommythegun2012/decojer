@@ -674,7 +674,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IFEQ:
 				if (t == null) {
-					t = T.INT; // for boolean too
+					t = T.RINT; // boolean too
 					oValue = CmpType.T_EQ;
 				}
 				// fall through
@@ -704,7 +704,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IFNE:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT; // boolean too
 					oValue = CmpType.T_NE;
 				}
 				{
@@ -758,7 +758,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 				}
 				// fall through
 			case Opcode.LLOAD:
@@ -787,7 +787,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_0:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 					iValue = 0;
 				}
 				// fall through
@@ -817,7 +817,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_1:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 					iValue = 1;
 				}
 				// fall through
@@ -847,7 +847,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_2:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 					iValue = 2;
 				}
 				// fall through
@@ -877,7 +877,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_3:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 					iValue = 3;
 				}
 				// fall through
@@ -1253,7 +1253,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IRETURN:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 				}
 				// fall through
 			case Opcode.LRETURN:
@@ -1285,7 +1285,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 				}
 				// fall through
 			case Opcode.LSTORE:
@@ -1314,7 +1314,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_0:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 					iValue = 0;
 				}
 				// fall through
@@ -1344,7 +1344,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_1:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 					iValue = 1;
 				}
 				// fall through
@@ -1374,7 +1374,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_2:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 					iValue = 2;
 				}
 				// fall through
@@ -1404,7 +1404,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_3:
 				if (t == null) {
-					t = T.INT;
+					t = T.RINT;
 					iValue = 3;
 				}
 				// fall through

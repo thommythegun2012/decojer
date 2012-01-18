@@ -834,7 +834,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IRETURN:
 			if (t == null) {
-				t = T.INT;
+				t = T.RINT;
 			}
 			// fall through
 		case Opcodes.LRETURN:
@@ -1056,7 +1056,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IFEQ:
 			if (t == null) {
-				t = T.INT;
+				t = T.RINT; // boolean too
 				oValue = CmpType.T_EQ;
 			}
 			// fall through
@@ -1086,7 +1086,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IFNE:
 			if (t == null) {
-				t = T.INT;
+				t = T.RINT; // boolean too
 				oValue = CmpType.T_NE;
 			}
 			{
@@ -1454,7 +1454,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.ILOAD:
 			if (t == null) {
-				t = T.INT;
+				t = T.RINT;
 			}
 			// fall through
 		case Opcodes.LLOAD:
@@ -1481,7 +1481,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.ISTORE:
 			if (t == null) {
-				t = T.INT;
+				t = T.RINT;
 			}
 			// fall through
 		case Opcodes.LSTORE:

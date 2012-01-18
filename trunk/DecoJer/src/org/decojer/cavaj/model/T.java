@@ -117,7 +117,7 @@ public class T {
 
 		@Override
 		protected T merge(final T t) {
-			if (t == this || t == null) {
+			if (t == this) {
 				return this;
 			}
 			boolean changed = false;
@@ -126,7 +126,7 @@ public class T {
 				final T mergedT = t.merge(iT); // t might be multi too
 				if (mergedT != iT) {
 					changed = true;
-					if (mergedT == T.BOGUS) {
+					if (mergedT == null) {
 						continue;
 					}
 				}
@@ -145,8 +145,8 @@ public class T {
 			if (!changed) {
 				return this;
 			}
-			if (mergedTs.size() == 0) {
-				return T.BOGUS;
+			if (mergedTs.isEmpty()) {
+				return null;
 			}
 			if (mergedTs.size() == 1) {
 				return mergedTs.get(0);
@@ -156,7 +156,7 @@ public class T {
 
 		@Override
 		public T mergeTo(final T t) {
-			if (t == this || t == null) {
+			if (this == t) {
 				return this;
 			}
 			boolean changed = false;
@@ -165,11 +165,11 @@ public class T {
 				final T mergedT = iT.mergeTo(t);
 				if (mergedT != iT) {
 					changed = true;
-					if (mergedT == T.BOGUS) {
+					if (mergedT == null) {
 						continue;
 					}
 				}
-				// cannot be a multi-type, result can only be iT / BOGUS or AREF could change to
+				// cannot be a multi-type, result can only be iT / null or AREF could change to
 				// concrete type
 				assert !mergedT.isMulti();
 
@@ -180,8 +180,8 @@ public class T {
 			if (!changed) {
 				return this;
 			}
-			if (mergedTs.size() == 0) {
-				return T.BOGUS;
+			if (mergedTs.isEmpty()) {
+				return null;
 			}
 			if (mergedTs.size() == 1) {
 				return mergedTs.get(0);
@@ -245,25 +245,18 @@ public class T {
 	 */
 	public static T UNRESOLVABLE = new T("UNRESOLVABLE");
 	/**
-	 * Artificial type 'bogus'.
-	 */
-	public static T BOGUS = new T("BOGUS");
-	/**
 	 * Multi-type 'any int (32 bit)'.
 	 */
 	public static TT AINT = multi(INT, SHORT, BYTE, CHAR, BOOLEAN);
 	/**
-	 * Multi-type 'implicit int (32 bit)'.
-	 * 
-	 * From VM Spec: Note that widening numeric conversions do not exist from integral types byte,
-	 * char, and short to type int. As noted in §3.11.1, values of type byte, char, and short are
-	 * internally widened to type int, making these conversions implicit.
-	 */
-	public static TT IINT = multi(INT, SHORT, BYTE, CHAR);
-	/**
 	 * Multi-type 'dalvik int (32 bit)', includes float.
 	 */
 	public static TT DINT = multi(INT, SHORT, BYTE, CHAR, BOOLEAN, FLOAT);
+	/**
+	 * Multi-type 'read int (32 bit)', includes boolean for some JVM int operations, when normal
+	 * implicit widening not enough.
+	 */
+	public static TT RINT = multi(INT, BOOLEAN);
 	/**
 	 * Multi-type 'any wide (64 bit)'.
 	 */
@@ -305,18 +298,18 @@ public class T {
 
 		// merge is looking for smallest super types and creates multi-types
 
-		// primitives
-		tm = T.INT.merge(null);
-		assert tm.is(T.INT);
-
 		tm = T.LONG.merge(T.LONG);
 		assert tm.is(T.LONG);
 
+		// primitives
+		tm = T.INT.merge(null);
+		assert tm == null : tm;
+
 		tm = T.DOUBLE.merge(T.AREF);
-		assert tm.is(T.BOGUS);
+		assert tm == null : tm;
 
 		tm = T.CHAR.merge(T.SHORT);
-		assert tm.is(T.BOGUS) : tm;
+		assert tm == null : tm;
 
 		// multi and single primitive
 		tm = T.AINT.merge(T.CHAR);
@@ -328,9 +321,6 @@ public class T {
 		// multi primitives
 		tm = T.AINT.merge(T.DINT);
 		assert tm.is(T.AINT) : tm;
-
-		tm = T.DINT.merge(T.IINT);
-		assert tm.is(T.IINT) : tm;
 
 		// primitive arrays
 		tm = du.getArrayT(T.INT, 1).merge(du.getArrayT(T.INT, 1));
@@ -380,7 +370,7 @@ public class T {
 	 * @return merged type
 	 */
 	public static T merge(final T t1, final T t2) {
-		return t1 == null ? t2 : t1.merge(t2);
+		return t1 == null ? null : t1.merge(t2);
 	}
 
 	/**
@@ -705,9 +695,24 @@ public class T {
 		assert t != null && !isMulti() && !t.isMulti();
 
 		// all instances are assignable to Object, even if only known by interface
-		if (t == this || t == T.RETURN_ADDRESS && this == T.AREF) {
+		if (t == this) {
 			return true;
 		}
+		// From VM Spec: Note that widening numeric conversions do not exist from integral types
+		// byte, char, and short to type int. As noted in §3.11.1, values of type byte, char, and
+		// short are internally widened to type int, making these conversions implicit.
+		//
+		// General BOOLEAN widening wouldn't make sense, explicitely provide in IRETURN, ILOAD etc.
+		if (this == T.INT && (t == T.BYTE || t == T.SHORT || t == T.CHAR)) {
+			return true;
+		}
+		if (this == T.SHORT && t == T.BYTE) {
+			return true;
+		}
+		if (this == T.AREF && t == T.RETURN_ADDRESS) {
+			return true;
+		}
+
 		if (!isReference() || !t.isReference()) {
 			// unequal primitives or special types cannot be equal
 			return false;
@@ -808,7 +813,10 @@ public class T {
 	 * @return merged type
 	 */
 	protected T merge(final T t) {
-		if (t == this || t == null) {
+		if (t == null) {
+			return null;
+		}
+		if (t == this) {
 			return this;
 		}
 		if (t.isMulti()) {
@@ -818,7 +826,7 @@ public class T {
 			return t == AREF ? this : t;
 		}
 		if (!isReference() || !t.isReference()) {
-			return BOGUS;
+			return null;
 		}
 		// find common supertypes, raise in t-hierarchy till assignable from this
 		final ArrayList<T> mergedTs = new ArrayList<T>();
@@ -855,7 +863,7 @@ public class T {
 				}
 			}
 		}
-		if (mergedTs.size() == 0) {
+		if (mergedTs.isEmpty()) {
 			return this.du.getT(Object.class);
 		}
 		if (mergedTs.size() > 1) {
@@ -869,29 +877,29 @@ public class T {
 
 	/**
 	 * Merge to type. Check if instances from this type are assignable to the given type. For single
-	 * types this returns this or BOGUS. For multi-types it reduces the multi-type to all assignable
+	 * types this returns this or null. For multi-types it reduces the multi-type to all assignable
 	 * types (via polymorphism function).
 	 * 
 	 * So unlike merge this doesn't search for common super types!
 	 * 
 	 * @param t
 	 *            type
-	 * @return t this or T.BOGUS
+	 * @return t this or null
 	 */
 	public T mergeTo(final T t) {
-		if (t == this || t == null) {
+		if (this == t) {
 			return this;
 		}
 		if (t.isMulti()) {
 			for (final T iT : ((TT) t).getTs()) {
-				if (mergeTo(iT) != T.BOGUS) {
+				if (mergeTo(iT) != null) {
 					return this;
 				}
 			}
-			return T.BOGUS;
+			return null;
 		}
 		if (t.isAssignableFrom(this)) {
-			return this == AREF ? t : this;
+			return this != AREF ? this : t;
 		}
 		// this should never happen...
 		if (isReference() && t.isReference()) {
@@ -907,7 +915,7 @@ public class T {
 			sb.append(")");
 			System.out.println(sb.toString());
 		}
-		return T.BOGUS;
+		return null;
 	}
 
 	/**
