@@ -274,7 +274,7 @@ public class CFG {
 	 * @return local variable (from frame)
 	 */
 	public V getFrameVar(final int reg, final int pc) {
-		return null; // TODO this.frames[pc].get(reg);
+		return getDebugV(reg, pc); // hack TODO this.frames[pc].get(reg);
 	}
 
 	/**
