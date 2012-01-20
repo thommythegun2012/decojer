@@ -70,4 +70,9 @@ public class GOTO extends Op {
 		this.targetPc = targetPc;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + " " + this.targetPc;
+	}
+
 }

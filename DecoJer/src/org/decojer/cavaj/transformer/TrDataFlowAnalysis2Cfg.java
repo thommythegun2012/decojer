@@ -39,6 +39,7 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
+import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.R;
@@ -163,6 +164,8 @@ public final class TrDataFlowAnalysis2Cfg {
 	private R get(final int i, final T t) {
 		final R r = this.frame.get(i);
 		r.mergeTo(t);
+		// TODO should split new r here? mark previous alive...
+		// how can we find where this info goes to at merge replace?
 		return r;
 	}
 
@@ -681,8 +684,18 @@ public final class TrDataFlowAnalysis2Cfg {
 			case RET: {
 				final RET cop = (RET) op;
 
-				get(cop.getReg(), T.RETURN_ADDRESS);
-				// TODO
+				final R r = get(cop.getReg(), T.RETURN_ADDRESS);
+				final Sub sub = (Sub) r.getValue();
+				sub.setRet(cop);
+				final int subPc = sub.getPc();
+				final BB subBb = this.pc2bbs[subPc];
+				for (final E in : subBb.getIns()) {
+					final List<Op> jsrBb = in.getStart().getOps();
+					final Op jsr = jsrBb.get(jsrBb.size() - 1);
+					final int returnPc = jsr.getPc() + 1;
+					bb.setSucc(getTarget(returnPc));
+					mergeJsr(returnPc);
+				}
 
 				pc = ops.length; // next open pc
 				continue;

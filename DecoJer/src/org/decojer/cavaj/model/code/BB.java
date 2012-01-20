@@ -589,7 +589,8 @@ public final class BB {
 	/**
 	 * Set first operation pc.
 	 * 
-	 * @opPc first operation pc
+	 * @param opPc
+	 *            first operation pc
 	 */
 	public void setOpPc(final int opPc) {
 		this.opPc = opPc;
