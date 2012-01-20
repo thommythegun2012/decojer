@@ -102,7 +102,7 @@ public class JCMP extends Op {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + this.cmpType;
+		return super.toString() + " " + this.cmpType + " " + this.targetPc;
 	}
 
 }
