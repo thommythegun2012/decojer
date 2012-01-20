@@ -717,6 +717,13 @@ public final class TrDataFlowAnalysis2Cfg {
 				// of type returnAddress from a local variable onto the operand stack. This
 				// asymmetry with the astore instruction is intentional.
 				final R r = pop(cop.getT());
+
+				// TODO hack, check store type in debug variable
+				final V debugV = this.cfg.getDebugV(cop.getReg(), pc);
+				if (debugV != null) {
+					r.mergeTo(debugV.getT());
+				}
+
 				final R prevR = this.frame.get(cop.getReg());
 				// TODO incompatible types? remove prevR
 				if (prevR == null) {

@@ -719,7 +719,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				final LOAD cop = (LOAD) op;
 
 				final V v = this.cfg.getFrameVar(cop.getReg(), cop.getPc());
-				if (v.getName() == null) {
+				if (v == null || v.getName() == null) {
 					// temporary local
 					final Expression expression = bb.get(cop.getReg());
 					if (expression != null) {
@@ -1047,7 +1047,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						&& bb.peek() == rightExpression;
 				final V v = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
 
-				if (v.getName() == null) {
+				if (v == null /* tmp hack */|| v.getName() == null) {
 					// temporary local
 					// bb.set(cop.getReg(), rightExpression);
 					// break;
