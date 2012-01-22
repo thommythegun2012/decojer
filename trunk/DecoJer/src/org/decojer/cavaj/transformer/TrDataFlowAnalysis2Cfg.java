@@ -129,17 +129,6 @@ public final class TrDataFlowAnalysis2Cfg {
 		this.cfg = cfg;
 	}
 
-	private Frame createInitialFrame() {
-		final Frame frame = new Frame(this.cfg.getRegs());
-		for (int reg = frame.getRegs(); reg-- > 0;) {
-			final V v = this.cfg.getDebugV(reg, 0);
-			if (v != null) {
-				frame.set(reg, new R(v.getT(), Kind.MERGE));
-			}
-		}
-		return frame;
-	}
-
 	private void evalBinaryMath(final T t) {
 		evalBinaryMath(t, null);
 	}
@@ -157,7 +146,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		// TODO boolean input possible?
 		// no merge(To) for inputs, valid "int, shot, byte > char -> boolean (int)"
 		if (pushT != T.VOID) {
-			this.frame.push(new R(pushT != null ? pushT : t, Kind.CONST, r1));
+			this.frame.push(new R(this.frame.getPc(), pushT != null ? pushT : t, Kind.CONST, r1));
 		}
 	}
 
@@ -184,13 +173,13 @@ public final class TrDataFlowAnalysis2Cfg {
 			return newBb(pc);
 		}
 		// found BB has target PC as first PC => return BB, no split necessary
-		if (bb.getOpPc() == pc) {
+		if (bb.getPc() == pc) {
 			return bb;
 		}
 
 		// split basic block, new incoming block, adapt basic block pcs,
 		// it's necessary to preserve the outgoing block for back edges to same BB!!!
-		final BB split = newBb(bb.getOpPc());
+		final BB split = newBb(bb.getPc());
 
 		bb.moveIns(split);
 		split.setSucc(bb);
@@ -212,7 +201,7 @@ public final class TrDataFlowAnalysis2Cfg {
 	private void merge(final int pc) {
 		final Frame frame = this.cfg.getFrame(pc);
 		if (frame == null) {
-			this.cfg.setFrame(pc, this.frame.getPc() != 0 ? new Frame(this.frame) : this.frame);
+			this.cfg.setFrame(pc, this.frame);
 			return;
 		}
 		// only here can we create or enhance a merge registers
@@ -224,7 +213,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			final T t = R.merge(oldR, newR);
 			// merge enhance not possible without known start pc for oldR
-			final R r = t == null ? null : new R(R.merge(oldR, newR), Kind.MERGE, oldR, newR);
+			final R r = t == null ? null : new R(pc, R.merge(oldR, newR), Kind.MERGE, oldR, newR);
 			this.pc2bbs[pc].replaceReg(reg, oldR, r);
 		}
 		for (int i = this.frame.getStackSize(); i-- > 0;) {
@@ -238,7 +227,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			oldR.mergeTo(t);
 			newR.mergeTo(t);
 			// merge enhence not possible without known start pc for oldR
-			final R r = t == null ? null : new R(R.merge(oldR, newR), Kind.MERGE, oldR, newR);
+			final R r = t == null ? null : new R(pc, R.merge(oldR, newR), Kind.MERGE, oldR, newR);
 			this.pc2bbs[pc].replaceReg(this.cfg.getRegs() + i, oldR, r);
 		}
 	}
@@ -251,10 +240,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		for (final Exc exc : excs) {
 			if (exc.validIn(pc)) {
 				// TODO improve...because of one stack entry really new frame?!
-				if (this.frame.getPc() != 0) {
-					this.frame = new Frame(this.frame);
-				}
-				this.frame.clearStack();
+				this.frame.clearStack(); // TODO new Fram enecessary if before merge
 				// null is <any> (means Java finally) -> Throwable
 				push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
 						.getT(Throwable.class) : exc.getT());
@@ -281,7 +267,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 		}
 		if (subR == null) {
-			subR = new R(T.RETURN_ADDRESS, new Sub(pc), Kind.CONST);
+			subR = new R(pc, T.RETURN_ADDRESS, new Sub(pc), Kind.CONST);
 		}
 		this.frame.push(subR); // no copy necessary here
 		merge(pc);
@@ -326,18 +312,19 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private R push(final T t) {
-		final R r = new R(t, Kind.CONST);
+		final R r = new R(this.frame.getPc(), t, Kind.CONST);
 		this.frame.push(r);
 		return r;
 	}
 
 	private void transform() {
+		this.cfg.initFrames();
+
 		final MD md = this.cfg.getMd();
 		final DU du = md.getM().getT().getDu();
 		this.isIgnoreExceptions = md.getTd().getCu().check(DFlag.IGNORE_EXCEPTIONS);
 
 		final Op[] ops = this.cfg.getOps();
-		this.cfg.initFrames(createInitialFrame());
 		this.pc2bbs = new BB[ops.length];
 
 		// start with PC 0 and new BB
@@ -360,12 +347,12 @@ public final class TrDataFlowAnalysis2Cfg {
 					if (!bb.getOps().isEmpty() && this.cfg.getExcs() != null) {
 						for (final Exc exc : this.cfg.getExcs()) {
 							if (exc.validIn(pc)) {
-								if (exc.validIn(bb.getOpPc())) {
+								if (exc.validIn(bb.getPc())) {
 									// exception is valid - has been valid at BB entry -> OK
 									continue;
 								}
 							} else {
-								if (!exc.validIn(bb.getOpPc())) {
+								if (!exc.validIn(bb.getPc())) {
 									// exception isn't valid - hasn't bean valid at BB entry -> OK
 									continue;
 								}
@@ -525,10 +512,10 @@ public final class TrDataFlowAnalysis2Cfg {
 			case INC: {
 				final INC cop = (INC) op;
 				final R r = get(cop.getReg(), cop.getT());
-				this.frame.set(
-						cop.getReg(),
-						new R(r.getT(), r.getValue() instanceof Number ? ((Number) r.getValue())
-								.intValue() + cop.getValue() : null, Kind.MOVE, r));
+				this.frame.set(cop.getReg(),
+						new R(this.frame.getPc(), r.getT(),
+								r.getValue() instanceof Number ? ((Number) r.getValue()).intValue()
+										+ cop.getValue() : null, Kind.MOVE, r));
 				break;
 			}
 			case INSTANCEOF: {
@@ -582,7 +569,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				final LOAD cop = (LOAD) op;
 				final R r = get(cop.getReg(), cop.getT());
 				// no previous for stack
-				this.frame.push(new R(r.getT(), r.getValue(), Kind.MOVE, r));
+				this.frame.push(new R(this.frame.getPc(), r.getT(), r.getValue(), Kind.MOVE, r));
 				break;
 			}
 			case MONITOR: {
@@ -664,7 +651,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					}
 				}
 				// no previous for stack
-				this.frame.push(new R(t, cop.getValue(), Kind.CONST));
+				this.frame.push(new R(this.frame.getPc(), t, cop.getValue(), Kind.CONST));
 				break;
 			}
 			case PUT: {
@@ -740,10 +727,11 @@ public final class TrDataFlowAnalysis2Cfg {
 				final R prevR = this.frame.get(cop.getReg());
 				// TODO incompatible types? remove prevR
 				if (prevR == null) {
-					this.frame.set(cop.getReg(), new R(r.getT(), r.getValue(), Kind.MOVE, r));
+					this.frame.set(cop.getReg(), new R(this.frame.getPc(), r.getT(), r.getValue(),
+							Kind.MOVE, r));
 				} else {
-					this.frame
-							.set(cop.getReg(), new R(r.getT(), r.getValue(), Kind.MOVE, r, prevR));
+					this.frame.set(cop.getReg(), new R(this.frame.getPc(), r.getT(), r.getValue(),
+							Kind.MOVE, r, prevR));
 				}
 				break;
 			}

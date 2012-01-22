@@ -961,7 +961,7 @@ public class T {
 
 	@Override
 	public String toString() {
-		return getName();
+		return getIName();
 	}
 
 }

@@ -48,7 +48,7 @@ public final class BB {
 	/**
 	 * Must cache first PC separately because operations are removed through transformations.
 	 */
-	private int opPc;
+	private int pc;
 
 	private final List<Op> ops = new ArrayList<Op>();
 
@@ -66,7 +66,7 @@ public final class BB {
 
 	protected BB(final CFG cfg, final int opPc) {
 		this.cfg = cfg;
-		this.opPc = opPc;
+		this.pc = opPc;
 		this.vs = new Expression[cfg.getRegs()];
 	}
 
@@ -225,26 +225,17 @@ public final class BB {
 		return this.ins;
 	}
 
-	private int getLocals() {
-		return this.cfg.getRegs();
-	}
-
 	/**
 	 * Get first operation line.
 	 * 
 	 * @return first operation line
 	 */
-	public int getOpLine() {
-		return this.cfg.getOps()[this.opPc].getLine();
+	public int getLine() {
+		return this.cfg.getOps()[this.pc].getLine();
 	}
 
-	/**
-	 * Get first operation pc.
-	 * 
-	 * @return first operation pc
-	 */
-	public int getOpPc() {
-		return this.opPc;
+	private int getLocals() {
+		return this.cfg.getRegs();
 	}
 
 	/**
@@ -262,8 +253,8 @@ public final class BB {
 	 * @return order index, may be line number if given or operation program counter
 	 */
 	public int getOrder() {
-		final int opLine = getOpLine();
-		return opLine == -1 ? getOpPc() : opLine;
+		final int opLine = getLine();
+		return opLine == -1 ? getPc() : opLine;
 	}
 
 	/**
@@ -287,6 +278,15 @@ public final class BB {
 	 */
 	public List<E> getOuts() {
 		return this.outs;
+	}
+
+	/**
+	 * Get first operation pc.
+	 * 
+	 * @return first operation pc
+	 */
+	public int getPc() {
+		return this.pc;
 	}
 
 	/**
@@ -540,7 +540,7 @@ public final class BB {
 		assert oldR != null : oldR;
 
 		// could still have no operations
-		Frame frame = this.cfg.getFrame(getOpPc());
+		Frame frame = this.cfg.getFrame(getPc());
 		R replacedR = frame.replaceReg(reg, oldR, r);
 		for (int i = 1; replacedR != null && i < this.ops.size(); ++i) {
 			frame = this.cfg.getInFrame(this.ops.get(i));
@@ -593,7 +593,7 @@ public final class BB {
 	 *            first operation pc
 	 */
 	public void setOpPc(final int opPc) {
-		this.opPc = opPc;
+		this.pc = opPc;
 	}
 
 	/**
@@ -634,10 +634,10 @@ public final class BB {
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("BB ");
 		sb.append(getPostorder()).append(" (");
-		if (getOpLine() >= 0) {
-			sb.append("l ").append(getOpLine()).append(", ");
+		if (getLine() >= 0) {
+			sb.append("l ").append(getLine()).append(", ");
 		}
-		sb.append("pc ").append(getOpPc()).append(")");
+		sb.append("pc ").append(getPc()).append(")");
 		if (this.ops.size() > 0) {
 			sb.append("\nOps: ").append(this.ops);
 		}

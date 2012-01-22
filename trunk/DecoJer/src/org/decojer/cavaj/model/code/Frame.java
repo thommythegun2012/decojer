@@ -32,13 +32,25 @@ import org.decojer.cavaj.model.code.R.Kind;
  */
 public class Frame {
 
-	private int pc;
+	private final CFG cfg;
 
-	private final int regs;
+	private final int pc;
 
 	private R[] rs;
 
 	private int top;
+
+	/**
+	 * Constructor for first frame.
+	 * 
+	 * @param cfg
+	 *            CFG
+	 */
+	protected Frame(final CFG cfg) {
+		this.cfg = cfg;
+		this.pc = 0;
+		this.rs = new R[getRegs()];
+	}
 
 	/**
 	 * Copy constructor.
@@ -47,21 +59,25 @@ public class Frame {
 	 *            copy frame
 	 */
 	public Frame(final Frame frame) {
-		this.regs = frame.regs;
+		this.cfg = frame.cfg;
+		this.pc = frame.pc;
 		this.top = frame.top;
-		this.rs = new R[this.regs + this.top];
-		System.arraycopy(frame.rs, 0, this.rs, 0, this.rs.length);
+		this.rs = new R[frame.rs.length];
+		System.arraycopy(frame.rs, 0, this.rs, 0, frame.rs.length);
 	}
 
 	/**
-	 * Constructor.
+	 * Copy constructor.
 	 * 
-	 * @param regs
-	 *            register count (max locals)
+	 * @param frame
+	 *            copy frame
 	 */
-	public Frame(final int regs) {
-		this.regs = regs;
-		this.rs = new R[regs];
+	protected Frame(final int pc, final Frame frame) {
+		this.cfg = frame.cfg;
+		this.pc = pc;
+		this.top = frame.top;
+		this.rs = new R[frame.rs.length];
+		System.arraycopy(frame.rs, 0, this.rs, 0, frame.rs.length);
 	}
 
 	/**
@@ -97,7 +113,7 @@ public class Frame {
 	 * @return register count
 	 */
 	public int getRegs() {
-		return this.regs;
+		return this.cfg.getRegs();
 	}
 
 	/**
@@ -108,7 +124,7 @@ public class Frame {
 	 * @return register
 	 */
 	public R getStack(final int i) {
-		return i >= this.top ? null : this.rs[this.regs + i];
+		return i >= this.top ? null : this.rs[getRegs() + i];
 	}
 
 	/**
@@ -129,7 +145,7 @@ public class Frame {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.rs[this.regs + this.top - 1];
+		return this.rs[getRegs() + this.top - 1];
 	}
 
 	/**
@@ -141,7 +157,7 @@ public class Frame {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.rs[this.regs + --this.top];
+		return this.rs[getRegs() + --this.top];
 	}
 
 	/**
@@ -151,12 +167,12 @@ public class Frame {
 	 *            stack register
 	 */
 	public void push(final R r) {
-		if (this.regs + this.top >= this.rs.length) {
-			final R[] newRs = new R[this.regs + this.top + 1];
-			System.arraycopy(this.rs, 0, newRs, 0, this.regs + this.top);
+		if (getRegs() + this.top >= this.rs.length) {
+			final R[] newRs = new R[getRegs() + this.top + 1];
+			System.arraycopy(this.rs, 0, newRs, 0, getRegs() + this.top);
 			this.rs = newRs;
 		}
-		this.rs[this.regs + this.top++] = r;
+		this.rs[getRegs() + this.top++] = r;
 	}
 
 	/**
@@ -174,7 +190,7 @@ public class Frame {
 		assert oldR != null : oldR;
 
 		// stack value already used, no replace
-		if (reg >= this.regs + this.top) {
+		if (reg >= getRegs() + this.top) {
 			return null;
 		}
 		final R frameR = this.rs[reg];
@@ -202,16 +218,6 @@ public class Frame {
 	}
 
 	/**
-	 * Set frame pc.
-	 * 
-	 * @param pc
-	 *            frame pc
-	 */
-	protected void setPc(final int pc) {
-		this.pc = pc;
-	}
-
-	/**
 	 * Set stack register.
 	 * 
 	 * @param i
@@ -220,12 +226,12 @@ public class Frame {
 	 *            register
 	 */
 	public void setStack(final int i, final R r) {
-		this.rs[this.regs + i] = r;
+		this.rs[getRegs() + i] = r;
 	}
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("Frame (").append(this.regs);
+		final StringBuilder sb = new StringBuilder("Frame (").append(getRegs());
 		if (this.top != 0) {
 			sb.append(", ").append(this.top);
 		}
