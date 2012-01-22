@@ -46,7 +46,7 @@ Blog: http://blog.decojer.org/2011/07/virtual-machine-bytecode-reading-dom.html
 
  * in _/prj-smali/dexlib/src/main/java/org/jf/dexlib/DexFile.java_
 
-after
+between
 {{{
         } finally {
             if (inputStream != null) {
@@ -56,18 +56,21 @@ after
                 zipFile.close();
             }
         }
+        ReadContext readContext = new ReadContext();
 }}}
 insert
 {{{
+        }
         read(in);
     }
 
-	public DexFile(final Input in, boolean preserveSignedRegisters, boolean skipInstructions) {
-		this(preserveSignedRegisters, skipInstructions);
-		read(in);
-	}
+    public DexFile(final Input in, boolean preserveSignedRegisters, boolean skipInstructions) {
+            this(preserveSignedRegisters, skipInstructions);
+            read(in);
+    }
 
-	private void read(final Input in) {
+    private void read(final Input in) {
+        ReadContext readContext = new ReadContext();
 }}}
 
 = dex2jar =
