@@ -35,9 +35,9 @@ Blog: http://blog.decojer.org/2011/07/virtual-machine-bytecode-reading-dom.html
 
  == Checkout with Eclipse ==
  * install m2e, EGit
- * Clone e git repository...
- * Git Repositories: "dexlib" -> Import projects -> General
- * Navigator: "dexlib" -> Configure -> Convert to Maven project
+ * Clone a Git Repository... -> URI: https://code.google.com/p/smali/ -> Directory: D:\Data\Decomp\workspace\smali
+ * Git Repositories: "Working directory/dexlib" -> Import Projects... -> Import as general project
+ * Navigator: "dexlib" -> Configure -> Convert to Maven Project
  * # dexlib/mvn clean install
 
  == Patch for smali ==
