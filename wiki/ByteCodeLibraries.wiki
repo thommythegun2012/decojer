@@ -28,6 +28,10 @@ Blog: http://blog.decojer.org/2011/07/virtual-machine-bytecode-reading-dom.html
  * Version: 1.2.7-dev
  * http://code.google.com/p/smali/
  * git clone https://code.google.com/p/smali/
+ * Eclipse EGit:
+   * Clone e git repository...
+   * Git Repositories: "dexlib" -> Import projects -> General
+   * Navigator: "dexlib" -> Configure -> Convert to Maven project
 
  == Checkout with Eclipse ==
  * install m2e, EGit, m2e
