@@ -22,6 +22,10 @@ Blog: http://blog.decojer.org/2011/07/virtual-machine-bytecode-reading-dom.html
 
 = ASM =
 
+ * Version: 4.0
+ * Download project as archive from: http://asm.ow2.org/download/index.html
+ * svn co svn://svn.forge.objectweb.org/svnroot/asm/trunk
+
 = smali =
 
  * Sublib: dexlib
