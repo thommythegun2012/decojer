@@ -69,6 +69,6 @@ insert
 = dex2jar =
 
  * Sublib: dexreader
- * Version: 1.1-dev
+ * Version: 1.9-snapshot
  * http://code.google.com/p/dex2jar/
  * hg clone https://code.google.com/p/dex2jar/
