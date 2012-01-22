@@ -32,6 +32,20 @@ Blog: http://blog.decojer.org/2011/07/virtual-machine-bytecode-reading-dom.html
    * Clone e git repository...
    * Git Repositories: "dexlib" -> Import projects -> General
    * Navigator: "dexlib" -> Configure -> Convert to Maven project
+ * Patch: DexFile vor
+     ReadContext readContext = new ReadContext();
+{{{
+        }
+        read(in);
+    }
+
+	public DexFile(final Input in, boolean preserveSignedRegisters, boolean skipInstructions) {
+		this(preserveSignedRegisters, skipInstructions);
+		read(in);
+	}
+
+	private void read(final Input in) {
+}}}
 
  == Checkout with Eclipse ==
  * install m2e, EGit, m2e
