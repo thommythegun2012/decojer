@@ -239,12 +239,23 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		for (final Exc exc : excs) {
 			if (exc.validIn(pc)) {
-				// TODO improve...because of one stack entry really new frame?!
-				this.frame.clearStack(); // TODO new Fram enecessary if before merge
-				// null is <any> (means Java finally) -> Throwable
-				push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
-						.getT(Throwable.class) : exc.getT());
-				merge(exc.getHandlerPc());
+				this.frame = new Frame(this.cfg.getFrame(pc));
+				this.frame.clearStack();
+
+				final Frame handlerFrame = this.cfg.getFrame(exc.getHandlerPc());
+				if (handlerFrame == null) {
+					merge(exc.getHandlerPc());
+					this.frame = this.cfg.getFrame(exc.getHandlerPc());
+					// null is <any> (means Java finally) -> Throwable
+					push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
+							.getT(Throwable.class) : exc.getT());
+				} else {
+					if (handlerFrame.getStackSize() != 1) {
+						LOGGER.warning("Handler stack for exception merge not of size 1!");
+					}
+					this.frame.push(handlerFrame.peek()); // reuse exception register
+					merge(exc.getHandlerPc());
+				}
 			}
 		}
 	}
@@ -365,6 +376,9 @@ public final class TrDataFlowAnalysis2Cfg {
 						}
 					}
 				}
+			}
+			if (!this.isIgnoreExceptions) {
+				mergeExc(pc);
 			}
 			final Op op = ops[pc++];
 			bb.addOp(op);
@@ -815,8 +829,6 @@ public final class TrDataFlowAnalysis2Cfg {
 			} else {
 				merge(pc);
 			}
-			// TODO should work with in-frame? check_code uses new only +after <init>
-			mergeExc(op.getPc());
 		}
 		this.cfg.calculatePostorder();
 	}
