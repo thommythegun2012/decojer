@@ -78,6 +78,8 @@ public class R {
 
 	private R[] outs;
 
+	private final int pc;
+
 	private T t;
 
 	private final Object value;
@@ -85,6 +87,8 @@ public class R {
 	/**
 	 * Constructor.
 	 * 
+	 * @param pc
+	 *            register start pc
 	 * @param t
 	 *            register type
 	 * @param kind
@@ -92,13 +96,15 @@ public class R {
 	 * @param ins
 	 *            input registers
 	 */
-	public R(final T t, final Kind kind, final R... ins) {
-		this(t, null, kind, ins);
+	public R(final int pc, final T t, final Kind kind, final R... ins) {
+		this(pc, t, null, kind, ins);
 	}
 
 	/**
 	 * Constructor.
 	 * 
+	 * @param pc
+	 *            register start pc
 	 * @param t
 	 *            register type
 	 * @param value
@@ -108,7 +114,8 @@ public class R {
 	 * @param ins
 	 *            input registers
 	 */
-	public R(final T t, final Object value, final Kind kind, final R... ins) {
+	public R(final int pc, final T t, final Object value, final Kind kind, final R... ins) {
+		this.pc = pc;
 		this.t = t;
 		this.value = value;
 		this.kind = kind;
@@ -145,6 +152,16 @@ public class R {
 	 */
 	public R[] getOuts() {
 		return this.outs;
+	}
+
+	/**
+	 * Get register start pc. Method parameters (0) and merge event pcs can overlap with real
+	 * operation.
+	 * 
+	 * @return register start pc
+	 */
+	public int getPc() {
+		return this.pc;
 	}
 
 	/**
@@ -248,8 +265,8 @@ public class R {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("R: ");
-		sb.append(this.t);
+		final StringBuilder sb = new StringBuilder("R_").append(this.pc).append(": ")
+				.append(this.t);
 		return sb.toString();
 	}
 

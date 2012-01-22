@@ -34,6 +34,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.code.op.Op;
 import org.eclipse.jdt.core.dom.Block;
 
@@ -366,12 +367,16 @@ public class CFG {
 
 	/**
 	 * Initialize frames.
-	 * 
-	 * @param frame
-	 *            initial frame
 	 */
-	public void initFrames(final Frame frame) {
+	public void initFrames() {
 		this.frames = new Frame[this.ops.length];
+		final Frame frame = new Frame(this);
+		for (int reg = getRegs(); reg-- > 0;) {
+			final V v = getDebugV(reg, 0);
+			if (v != null) {
+				frame.set(reg, new R(0, v.getT(), Kind.CONST));
+			}
+		}
 		this.frames[0] = frame;
 	}
 
@@ -526,8 +531,7 @@ public class CFG {
 	 *            frame
 	 */
 	public void setFrame(final int pc, final Frame frame) {
-		frame.setPc(pc);
-		this.frames[pc] = frame;
+		this.frames[pc] = new Frame(pc, frame);
 	}
 
 	/**

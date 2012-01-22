@@ -281,7 +281,8 @@ public final class TrStructCfg2JavaControlFlowStmts {
 	private void transformSequence(final Struct struct, final BB bb,
 			final List<Statement> statements) {
 		BB succ = bb;
-		while (succ != null) {
+		int endlessHack = 0;
+		while (succ != null && endlessHack++ < 100) {
 			Struct succStruct = succ.getStruct();
 			// struct change? => sequence change!
 			if (struct != succStruct) {

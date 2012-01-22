@@ -87,7 +87,8 @@ public class FramesFigure extends Figure {
 
 		for (final Op operation : bb.getOps()) {
 			final Frame frame = bb.getCfg().getInFrame(operation);
-			add(new Label(operation.getClass().getSimpleName() + (frame == null ? "?" : " ")));
+			add(new Label(operation.getPc() + " " + operation.toString()
+					+ (frame == null ? "?" : " ")));
 			for (int reg = 0; reg < regs; ++reg) {
 				final R r = frame == null ? null : frame.get(reg);
 				final Label label = new Label(r == null ? "    " : r.toString());
