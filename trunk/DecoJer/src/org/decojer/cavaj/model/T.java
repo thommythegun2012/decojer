@@ -28,6 +28,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import org.decojer.DecoJer;
 
@@ -271,6 +272,10 @@ public class T {
 	private static final T[] NO_INTERFACES = new T[0];
 
 	public static void main(final String[] args) {
+		System.out.println("TEST: " + int.class.getGenericSuperclass());
+		System.out.println("TEST: " + Integer.class.getCanonicalName());
+		System.out.println("TEST: " + Map.Entry.class.getName());
+
 		final DU du = DecoJer.createDu();
 		T tm;
 

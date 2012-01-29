@@ -55,10 +55,21 @@ public class Sub {
 		return this.pc;
 	}
 
+	/**
+	 * Get RET operation.
+	 * 
+	 * @return RET operation
+	 */
 	public RET getRet() {
 		return this.ret;
 	}
 
+	/**
+	 * Set RET operation.
+	 * 
+	 * @param ret
+	 *            RET operation
+	 */
 	public void setRet(final RET ret) {
 		this.ret = ret;
 	}
