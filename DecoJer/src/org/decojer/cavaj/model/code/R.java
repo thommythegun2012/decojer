@@ -228,6 +228,16 @@ public class R {
 	}
 
 	/**
+	 * Read type.
+	 * 
+	 * @param t
+	 *            type
+	 */
+	public void read(final T t) {
+		mergeTo(t);
+	}
+
+	/**
 	 * Replace input register.
 	 * 
 	 * @param oldIn

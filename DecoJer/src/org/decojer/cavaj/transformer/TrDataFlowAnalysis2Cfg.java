@@ -152,9 +152,7 @@ public final class TrDataFlowAnalysis2Cfg {
 
 	private R get(final int i, final T t) {
 		final R r = this.frame.get(i);
-		r.mergeTo(t);
-		// TODO should split new r here? mark previous alive...
-		// how can we find where this info goes to at merge replace?
+		r.read(t);
 		return r;
 	}
 
@@ -260,30 +258,6 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 	}
 
-	private void mergeJsr(final int pc) {
-		// Spec, JSR/RET is stack-like:
-		// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
-		// use common value (like Sub) instead of jsr-follow-address because of merge:
-		R subR = null;
-		final Frame targetFrame = this.cfg.getFrame(pc);
-		if (targetFrame != null) {
-			subR = targetFrame.get(this.frame.getRegs() + this.frame.getStackSize());
-			if (subR != null) {
-				if (!(subR.getValue() instanceof Sub)) {
-					LOGGER.warning("Wrong JSR Sub merge!");
-					return;
-				}
-				final Sub sub = (Sub) subR.getValue();
-				// TODO RET known? link!
-			}
-		}
-		if (subR == null) {
-			subR = new R(pc, T.RETURN_ADDRESS, new Sub(pc), Kind.CONST);
-		}
-		this.frame.push(subR); // no copy necessary here
-		merge(pc);
-	}
-
 	private BB newBb(final int pc) {
 		final BB bb = this.cfg.newBb(pc);
 		this.pc2bbs[pc] = bb;
@@ -318,7 +292,7 @@ public final class TrDataFlowAnalysis2Cfg {
 
 	private R pop(final T t) {
 		final R r = this.frame.pop();
-		r.mergeTo(t);
+		r.read(t);
 		return r;
 	}
 
@@ -574,8 +548,40 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case JSR: {
 				final JSR cop = (JSR) op;
+				// Spec, JSR/RET is stack-like:
+				// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
 				bb.setSucc(getTarget(cop.getTargetPc()));
-				mergeJsr(cop.getTargetPc());
+				// use common value (like Sub) instead of jsr-follow-address because of merge
+				final Frame targetFrame = this.cfg.getFrame(cop.getTargetPc());
+				if (targetFrame != null) {
+					// JSR already visited, reuse Sub
+					if (this.frame.getStackSize() + 1 != targetFrame.getStackSize()) {
+						LOGGER.warning("Wrong JSR Sub merge! Stack size different.");
+						return;
+					}
+					final R subR = targetFrame.peek();
+					this.frame.push(subR);
+					merge(cop.getTargetPc());
+					// now check if RET in Sub already visited
+					if (!(subR.getValue() instanceof Sub)) {
+						LOGGER.warning("Wrong JSR Sub merge! No subroutine.");
+						return;
+					}
+					final Sub sub = (Sub) subR.getValue();
+					final RET ret = sub.getRet();
+					if (ret != null) {
+						// RET already visited, link RET BB to JSR follower and merge
+						this.frame = new Frame(this.cfg.getInFrame(ret));
+						// bytecode restriction: register can only be consumed once
+						this.frame.set(ret.getReg(), null);
+						final int returnPc = cop.getPc() + 1;
+						bb.setSucc(getTarget(returnPc));
+						merge(returnPc);
+					}
+				} else {
+					this.frame.push(new R(pc, T.RETURN_ADDRESS, new Sub(pc), Kind.CONST));
+					merge(cop.getTargetPc());
+				}
 				pc = ops.length; // next open pc
 				continue;
 			}
@@ -684,20 +690,25 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case RET: {
 				final RET cop = (RET) op;
-
-				final R r = get(cop.getReg(), T.RETURN_ADDRESS);
+				final R r = this.frame.get(cop.getReg());
+				r.read(T.RETURN_ADDRESS);
+				// bytecode restriction: register can only be consumed once
+				this.frame.set(cop.getReg(), null);
+				// bytecode restriction: only called via matching JSR, Sub known as register value
 				final Sub sub = (Sub) r.getValue();
+				// remember RET for later JSRs to this Sub
 				sub.setRet(cop);
+				// link RET BB to all yet known JSR followers and merge, Sub BB incomings are JSRs
 				final int subPc = sub.getPc();
 				final BB subBb = this.pc2bbs[subPc];
 				for (final E in : subBb.getIns()) {
 					final List<Op> jsrBb = in.getStart().getOps();
+					// JSR is last operation in previous BB
 					final Op jsr = jsrBb.get(jsrBb.size() - 1);
 					final int returnPc = jsr.getPc() + 1;
 					bb.setSucc(getTarget(returnPc));
-					mergeJsr(returnPc);
+					merge(returnPc);
 				}
-
 				pc = ops.length; // next open pc
 				continue;
 			}
