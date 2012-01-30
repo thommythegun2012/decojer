@@ -40,8 +40,6 @@ public class Frame {
 
 	private Sub[] subs;
 
-	private int top;
-
 	/**
 	 * Constructor for first frame.
 	 * 
@@ -63,9 +61,8 @@ public class Frame {
 	public Frame(final Frame frame) {
 		this.cfg = frame.cfg;
 		this.pc = frame.pc;
-		this.top = frame.top;
-		this.rs = new R[frame.rs.length];
-		System.arraycopy(frame.rs, 0, this.rs, 0, frame.rs.length);
+		this.rs = frame.rs;
+		this.subs = frame.subs;
 	}
 
 	/**
@@ -77,16 +74,17 @@ public class Frame {
 	protected Frame(final int pc, final Frame frame) {
 		this.cfg = frame.cfg;
 		this.pc = pc;
-		this.top = frame.top;
-		this.rs = new R[frame.rs.length];
-		System.arraycopy(frame.rs, 0, this.rs, 0, frame.rs.length);
+		this.rs = frame.rs;
+		this.subs = frame.subs;
 	}
 
 	/**
 	 * Clear stack.
 	 */
 	public void clearStack() {
-		this.top = 0;
+		final R[] newRs = new R[this.cfg.getRegs()];
+		System.arraycopy(this.rs, 0, newRs, 0, newRs.length);
+		this.rs = newRs;
 	}
 
 	/**
@@ -126,7 +124,10 @@ public class Frame {
 	 * @return register
 	 */
 	public R getStack(final int i) {
-		return i >= this.top ? null : this.rs[getRegs() + i];
+		if (i >= getStackSize()) {
+			throw new IndexOutOfBoundsException("Stack too small!");
+		}
+		return this.rs[getRegs() + i];
 	}
 
 	/**
@@ -135,7 +136,7 @@ public class Frame {
 	 * @return stack size
 	 */
 	public int getStackSize() {
-		return this.top;
+		return this.rs.length - this.cfg.getRegs();
 	}
 
 	/**
@@ -153,10 +154,10 @@ public class Frame {
 	 * @return register
 	 */
 	public R peek() {
-		if (this.top <= 0) {
+		if (getStackSize() == 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.rs[getRegs() + this.top - 1];
+		return this.rs[this.rs.length - 1];
 	}
 
 	/**
@@ -165,10 +166,14 @@ public class Frame {
 	 * @return stack register
 	 */
 	public R pop() {
-		if (this.top <= 0) {
+		if (getStackSize() == 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.rs[getRegs() + --this.top];
+		final R popR = this.rs[this.rs.length - 1];
+		final R[] newRs = new R[this.rs.length - 1];
+		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length - 1);
+		this.rs = newRs;
+		return popR;
 	}
 
 	/**
@@ -183,13 +188,14 @@ public class Frame {
 			return false;
 		}
 		for (int i = this.subs.length; i-- > 0;) {
-			if (this.subs[i] == sub) {
+			if (this.subs[i].equals(sub)) {
 				if (i == 0) {
 					this.subs = null;
+				} else {
+					final Sub[] newSubs = new Sub[i];
+					System.arraycopy(this.subs, 0, newSubs, 0, i);
+					this.subs = newSubs;
 				}
-				final Sub[] newSubs = new Sub[i];
-				System.arraycopy(this.subs, 0, newSubs, 0, i);
-				this.subs = newSubs;
 				return true;
 			}
 		}
@@ -203,12 +209,13 @@ public class Frame {
 	 *            stack register
 	 */
 	public void push(final R r) {
-		if (getRegs() + this.top >= this.rs.length) {
-			final R[] newRs = new R[getRegs() + this.top + 1];
-			System.arraycopy(this.rs, 0, newRs, 0, getRegs() + this.top);
-			this.rs = newRs;
+		if (getStackSize() >= this.cfg.getMaxStack() && this.cfg.getMaxStack() != 0) {
+			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		this.rs[getRegs() + this.top++] = r;
+		final R[] newRs = new R[this.rs.length + 1];
+		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
+		newRs[this.rs.length] = r;
+		this.rs = newRs;
 	}
 
 	/**
@@ -224,7 +231,7 @@ public class Frame {
 			return true;
 		}
 		for (int i = this.subs.length; i-- > 0;) {
-			if (this.subs[i] == sub) {
+			if (this.subs[i].equals(sub)) {
 				return false;
 			}
 		}
@@ -250,10 +257,10 @@ public class Frame {
 		assert oldR != null : oldR;
 
 		// stack value already used, no replace
-		if (reg >= getRegs() + this.top) {
+		if (reg >= this.rs.length) {
 			return null;
 		}
-		final R frameR = this.rs[reg];
+		final R frameR = get(reg);
 		if (frameR == null) {
 			return null;
 		}
@@ -261,7 +268,7 @@ public class Frame {
 			frameR.replaceIn(oldR, r);
 			return null;
 		}
-		this.rs[reg] = r;
+		set(reg, r);
 		return frameR;
 	}
 
@@ -274,7 +281,10 @@ public class Frame {
 	 *            register
 	 */
 	public void set(final int reg, final R r) {
-		this.rs[reg] = r;
+		final R[] newRs = new R[this.rs.length];
+		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
+		newRs[reg] = r;
+		this.rs = newRs;
 	}
 
 	/**
@@ -286,19 +296,21 @@ public class Frame {
 	 *            register
 	 */
 	public void setStack(final int i, final R r) {
-		this.rs[getRegs() + i] = r;
+		if (i >= getStackSize()) {
+			throw new IndexOutOfBoundsException("Stack too small!");
+		}
+		set(getRegs() + i, r);
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("Frame (").append(getRegs());
-		if (this.top != 0) {
-			sb.append(", ").append(this.top);
+		if (getStackSize() != 0) {
+			sb.append(", ").append(getStackSize());
 		}
 		sb.append(") ");
-		final int length = getRegs() + getStackSize(); // could be less than rs.length through pop
-		for (int i = 0; i < length; ++i) {
-			sb.append(this.rs[i]).append(", ");
+		for (final R r : this.rs) {
+			sb.append(r).append(", ");
 		}
 		return sb.substring(0, sb.length() - 2);
 	}
