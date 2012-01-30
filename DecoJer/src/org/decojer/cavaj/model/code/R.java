@@ -198,13 +198,14 @@ public class R {
 	 * 
 	 * @param t
 	 *            type
+	 * @return true - success
 	 */
-	public void mergeTo(final T t) {
+	public boolean mergeTo(final T t) {
 		final T mergeTo = this.t.mergeTo(t);
 		if (this.t == mergeTo) {
-			return;
+			return true;
 		} else if (null == mergeTo) {
-			System.out.println("NULL");
+			return false;
 		}
 		this.t = mergeTo;
 		if (this.outs != null) {
@@ -213,18 +214,19 @@ public class R {
 			}
 		}
 		if (this.ins == null || this.ins.length == 0) {
-			return;
+			return true;
 		}
 		switch (getKind()) {
 		case CONST:
 		case MOVE:
 			this.ins[0].mergeTo(mergeTo);
-			return;
+			return true;
 		case MERGE:
 			for (final R in : this.ins) {
 				in.mergeTo(mergeTo);
 			}
 		}
+		return true;
 	}
 
 	/**
@@ -232,9 +234,10 @@ public class R {
 	 * 
 	 * @param t
 	 *            type
+	 * @return true - success
 	 */
-	public void read(final T t) {
-		mergeTo(t);
+	public boolean read(final T t) {
+		return mergeTo(t);
 	}
 
 	/**
