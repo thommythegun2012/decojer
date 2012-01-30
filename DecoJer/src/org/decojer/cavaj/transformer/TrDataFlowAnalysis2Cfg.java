@@ -556,18 +556,23 @@ public final class TrDataFlowAnalysis2Cfg {
 				if (targetFrame != null) {
 					// JSR already visited, reuse Sub
 					if (this.frame.getStackSize() + 1 != targetFrame.getStackSize()) {
-						LOGGER.warning("Wrong JSR Sub merge! Stack size different.");
+						LOGGER.warning("Wrong JSR Sub merge! Subroutine stack size different.");
 						pc = ops.length; // next open pc
 						continue;
 					}
 					final R subR = targetFrame.peek();
 					// now check if RET in Sub already visited
 					if (!(subR.getValue() instanceof Sub)) {
-						LOGGER.warning("Wrong JSR Sub merge! No subroutine.");
+						LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
 						pc = ops.length; // next open pc
 						continue;
 					}
 					final Sub sub = (Sub) subR.getValue();
+					if (sub.getPc() != cop.getTargetPc()) {
+						LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
+						pc = ops.length; // next open pc
+						continue;
+					}
 					if (!this.frame.push(sub)) {
 						LOGGER.warning("Recursive call to jsr entry!");
 						pc = ops.length; // next open pc
@@ -575,6 +580,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					}
 					this.frame.push(subR);
 					merge(cop.getTargetPc());
+
 					final RET ret = sub.getRet();
 					if (ret != null) {
 						// RET already visited, link RET BB to JSR follower and merge
@@ -586,7 +592,7 @@ public final class TrDataFlowAnalysis2Cfg {
 						merge(returnPc);
 					}
 				} else {
-					final Sub sub = new Sub(pc);
+					final Sub sub = new Sub(cop.getTargetPc());
 					if (!this.frame.push(sub)) {
 						LOGGER.warning("Recursive call to jsr entry!");
 						pc = ops.length; // next open pc
@@ -705,7 +711,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				final RET cop = (RET) op;
 				final R r = this.frame.get(cop.getReg());
 				if (!r.read(T.RETURN_ADDRESS)) {
-					LOGGER.warning("Illegal return from subroutine! Couldn't read return address: "
+					LOGGER.warning("Illegal return from subroutine! No return address register: "
 							+ r);
 					pc = ops.length; // next open pc
 					continue;
@@ -715,13 +721,14 @@ public final class TrDataFlowAnalysis2Cfg {
 				// bytecode restriction: only called via matching JSR, Sub known as register value
 				final Sub sub = (Sub) r.getValue();
 				if (!this.frame.pop(sub)) {
-					LOGGER.warning("Illegal return from subroutine! Couldn't find in subroutine stack: "
+					LOGGER.warning("Illegal return from subroutine! Not in subroutine stack: "
 							+ sub);
 					pc = ops.length; // next open pc
 					continue;
 				}
 				// remember RET for later JSRs to this Sub
 				sub.setRet(cop);
+
 				// link RET BB to all yet known JSR followers and merge, Sub BB incomings are JSRs
 				final int subPc = sub.getPc();
 				final BB subBb = this.pc2bbs[subPc];

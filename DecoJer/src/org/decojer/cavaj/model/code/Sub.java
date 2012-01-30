@@ -46,6 +46,15 @@ public class Sub {
 		this.pc = pc;
 	}
 
+	@Override
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof Sub)) {
+			return false;
+		}
+		final Sub sub = (Sub) obj;
+		return this.pc == sub.pc;
+	}
+
 	/**
 	 * Get pc.
 	 * 
@@ -62,6 +71,11 @@ public class Sub {
 	 */
 	public RET getRet() {
 		return this.ret;
+	}
+
+	@Override
+	public int hashCode() {
+		return this.pc;
 	}
 
 	/**
