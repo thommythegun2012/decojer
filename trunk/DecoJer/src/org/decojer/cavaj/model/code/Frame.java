@@ -38,6 +38,8 @@ public class Frame {
 
 	private R[] rs;
 
+	private Sub[] subs;
+
 	private int top;
 
 	/**
@@ -137,6 +139,15 @@ public class Frame {
 	}
 
 	/**
+	 * Get subroutine count.
+	 * 
+	 * @return subroutine count
+	 */
+	public int getSubs() {
+		return this.subs == null ? 0 : this.subs.length;
+	}
+
+	/**
 	 * Peek stack register.
 	 * 
 	 * @return register
@@ -161,6 +172,31 @@ public class Frame {
 	}
 
 	/**
+	 * Pop subroutine from subroutine stack: Pop all subroutines till given one.
+	 * 
+	 * @param sub
+	 *            subroutine
+	 * @return true - success (found in stack, removed)
+	 */
+	public boolean pop(final Sub sub) {
+		if (this.subs == null) {
+			return false;
+		}
+		for (int i = this.subs.length; i-- > 0;) {
+			if (this.subs[i] == sub) {
+				if (i == 0) {
+					this.subs = null;
+				}
+				final Sub[] newSubs = new Sub[i];
+				System.arraycopy(this.subs, 0, newSubs, 0, i);
+				this.subs = newSubs;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Push stack register.
 	 * 
 	 * @param r
@@ -173,6 +209,30 @@ public class Frame {
 			this.rs = newRs;
 		}
 		this.rs[getRegs() + this.top++] = r;
+	}
+
+	/**
+	 * Push subroutine to subroutine stack.
+	 * 
+	 * @param sub
+	 *            subroutine
+	 * @return true - success (not in stack, added)
+	 */
+	public boolean push(final Sub sub) {
+		if (this.subs == null) {
+			this.subs = new Sub[] { sub };
+			return true;
+		}
+		for (int i = this.subs.length; i-- > 0;) {
+			if (this.subs[i] == sub) {
+				return false;
+			}
+		}
+		final Sub[] newSubs = new Sub[this.subs.length + 1];
+		System.arraycopy(this.subs, 0, newSubs, 0, this.subs.length);
+		newSubs[this.subs.length] = sub;
+		this.subs = newSubs;
+		return true;
 	}
 
 	/**

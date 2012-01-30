@@ -557,17 +557,24 @@ public final class TrDataFlowAnalysis2Cfg {
 					// JSR already visited, reuse Sub
 					if (this.frame.getStackSize() + 1 != targetFrame.getStackSize()) {
 						LOGGER.warning("Wrong JSR Sub merge! Stack size different.");
-						return;
+						pc = ops.length; // next open pc
+						continue;
 					}
 					final R subR = targetFrame.peek();
-					this.frame.push(subR);
-					merge(cop.getTargetPc());
 					// now check if RET in Sub already visited
 					if (!(subR.getValue() instanceof Sub)) {
 						LOGGER.warning("Wrong JSR Sub merge! No subroutine.");
-						return;
+						pc = ops.length; // next open pc
+						continue;
 					}
 					final Sub sub = (Sub) subR.getValue();
+					if (!this.frame.push(sub)) {
+						LOGGER.warning("Recursive call to jsr entry!");
+						pc = ops.length; // next open pc
+						continue;
+					}
+					this.frame.push(subR);
+					merge(cop.getTargetPc());
 					final RET ret = sub.getRet();
 					if (ret != null) {
 						// RET already visited, link RET BB to JSR follower and merge
@@ -579,7 +586,13 @@ public final class TrDataFlowAnalysis2Cfg {
 						merge(returnPc);
 					}
 				} else {
-					this.frame.push(new R(pc, T.RETURN_ADDRESS, new Sub(pc), Kind.CONST));
+					final Sub sub = new Sub(pc);
+					if (!this.frame.push(sub)) {
+						LOGGER.warning("Recursive call to jsr entry!");
+						pc = ops.length; // next open pc
+						continue;
+					}
+					this.frame.push(new R(pc, T.RETURN_ADDRESS, sub, Kind.CONST));
 					merge(cop.getTargetPc());
 				}
 				pc = ops.length; // next open pc
@@ -691,11 +704,22 @@ public final class TrDataFlowAnalysis2Cfg {
 			case RET: {
 				final RET cop = (RET) op;
 				final R r = this.frame.get(cop.getReg());
-				r.read(T.RETURN_ADDRESS);
+				if (!r.read(T.RETURN_ADDRESS)) {
+					LOGGER.warning("Illegal return from subroutine! Couldn't read return address: "
+							+ r);
+					pc = ops.length; // next open pc
+					continue;
+				}
 				// bytecode restriction: register can only be consumed once
 				this.frame.set(cop.getReg(), null);
 				// bytecode restriction: only called via matching JSR, Sub known as register value
 				final Sub sub = (Sub) r.getValue();
+				if (!this.frame.pop(sub)) {
+					LOGGER.warning("Illegal return from subroutine! Couldn't find in subroutine stack: "
+							+ sub);
+					pc = ops.length; // next open pc
+					continue;
+				}
 				// remember RET for later JSRs to this Sub
 				sub.setRet(cop);
 				// link RET BB to all yet known JSR followers and merge, Sub BB incomings are JSRs
