@@ -540,7 +540,7 @@ public final class BB {
 		assert oldR != null : oldR;
 
 		// could still have no operations
-		Frame frame = this.cfg.getFrame(getPc());
+		Frame frame = this.cfg.getFrame(this.pc);
 		R replacedR = frame.replaceReg(reg, oldR, r);
 		for (int i = 1; replacedR != null && i < this.ops.size(); ++i) {
 			frame = this.cfg.getInFrame(this.ops.get(i));

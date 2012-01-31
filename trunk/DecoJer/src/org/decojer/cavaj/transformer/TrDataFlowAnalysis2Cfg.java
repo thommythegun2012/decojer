@@ -553,30 +553,26 @@ public final class TrDataFlowAnalysis2Cfg {
 				bb.setSucc(getTarget(cop.getTargetPc()));
 				// use common value (like Sub) instead of jsr-follow-address because of merge
 				final Frame targetFrame = this.cfg.getFrame(cop.getTargetPc());
-				if (targetFrame != null) {
+				jsr: if (targetFrame != null) {
 					// JSR already visited, reuse Sub
 					if (this.frame.getStackSize() + 1 != targetFrame.getStackSize()) {
 						LOGGER.warning("Wrong JSR Sub merge! Subroutine stack size different.");
-						pc = ops.length; // next open pc
-						continue;
+						break jsr;
 					}
 					final R subR = targetFrame.peek();
 					// now check if RET in Sub already visited
 					if (!(subR.getValue() instanceof Sub)) {
 						LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
-						pc = ops.length; // next open pc
-						continue;
+						break jsr;
 					}
 					final Sub sub = (Sub) subR.getValue();
 					if (sub.getPc() != cop.getTargetPc()) {
 						LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
-						pc = ops.length; // next open pc
-						continue;
+						break jsr;
 					}
 					if (!this.frame.push(sub)) {
 						LOGGER.warning("Recursive call to jsr entry!");
-						pc = ops.length; // next open pc
-						continue;
+						break jsr;
 					}
 					this.frame.push(subR);
 					merge(cop.getTargetPc());
@@ -587,16 +583,16 @@ public final class TrDataFlowAnalysis2Cfg {
 						this.frame = new Frame(this.cfg.getInFrame(ret));
 						// bytecode restriction: register can only be consumed once
 						this.frame.set(ret.getReg(), null);
+						final BB retBb = this.pc2bbs[ret.getPc()];
 						final int returnPc = cop.getPc() + 1;
-						bb.setSucc(getTarget(returnPc));
+						retBb.setSucc(getTarget(returnPc));
 						merge(returnPc);
 					}
 				} else {
 					final Sub sub = new Sub(cop.getTargetPc());
 					if (!this.frame.push(sub)) {
 						LOGGER.warning("Recursive call to jsr entry!");
-						pc = ops.length; // next open pc
-						continue;
+						break jsr;
 					}
 					this.frame.push(new R(pc, T.RETURN_ADDRESS, sub, Kind.CONST));
 					merge(cop.getTargetPc());
