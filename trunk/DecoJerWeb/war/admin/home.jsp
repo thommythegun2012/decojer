@@ -11,7 +11,11 @@
 		<li><a href="/admin/blobStats.jsp">Blob Stats</a></li>
 		<li><a href="/admin/pomStats.jsp">POM Stats</a></li>
 		<li><a href="/admin/merge.jsp">Merge Test</a></li>
-		<li><a href="/admin/maven.jsp">Maven Import</a></li>
+		<li><a href="/admin/importCentralRss.jsp">Maven Import
+				Central RSS</a></li>
+		<li><a href="/admin/importCentralAll.jsp">Maven Import
+				Central All</a></li>
+		<li><a href="/admin/urlFetch.jsp">URL Fetch</a></li>
 	</ul>
 </body>
 </html>

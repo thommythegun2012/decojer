@@ -2,7 +2,7 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <jsp:useBean id="maven" class="org.decojer.web.controller.Maven" />
 <%
-	maven.importCentralRss();
+	maven.importCentralAll();
 %>
 <!DOCTYPE HTML>
 <html lang="en-us">
@@ -11,7 +11,7 @@
 </head>
 <body>
 	<jsp:include page="/WEB-INF/template/header.jsp" />
-	<h2>Import from Maven Central RSS</h2>
-	<p>Imported: ${maven.importedArtifacts}</p>
+	<h2>Check POMs and Import from Maven Central RSS</h2>
+	<p>Imported: ${maven.importResults.imported}</p>
 </body>
 </html>

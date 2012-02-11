@@ -4,10 +4,6 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	version="2.5">
 	<servlet>
-		<servlet-name>Cleanup</servlet-name>
-		<servlet-class>org.decojer.web.servlet.CleanupServlet</servlet-class>
-	</servlet>
-	<servlet>
 		<servlet-name>Download</servlet-name>
 		<servlet-class>org.decojer.web.servlet.DownloadServlet</servlet-class>
 	</servlet>
@@ -23,10 +19,6 @@
 		<servlet-name>Upload</servlet-name>
 		<servlet-class>org.decojer.web.servlet.UploadServlet</servlet-class>
 	</servlet>
-	<servlet-mapping>
-		<servlet-name>Cleanup</servlet-name>
-		<url-pattern>/admin/cleanup</url-pattern>
-	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>DecoJerQueue</servlet-name>
 		<url-pattern>/_ah/queue/decoJer</url-pattern>
