@@ -60,6 +60,28 @@ import com.google.appengine.api.mail.MailServiceFactory;
  */
 public class MavenService {
 
+	public class ImportResults {
+
+		private int checked;
+
+		private int imported;
+
+		private int known;
+
+		public int getChecked() {
+			return this.checked;
+		}
+
+		public int getImported() {
+			return this.imported;
+		}
+
+		public int getKnown() {
+			return this.known;
+		}
+
+	}
+
 	public class Stats {
 
 		private int number;
@@ -310,9 +332,9 @@ public class MavenService {
 	 * 
 	 * @return imported POMs
 	 */
-	public int importAllVersions() {
+	public ImportResults importCentralAll() {
 		final HashSet<String> done = new HashSet<String>();
-		final int[] nr = new int[1];
+		final ImportResults importResults = new ImportResults();
 
 		DB.iterate(POM.KIND, new DB.Processor() {
 
@@ -328,12 +350,14 @@ public class MavenService {
 				}
 				done.add(doneId);
 				final List<String> versions = fetchVersions(groupId, artifactId);
+				importResults.checked += versions.size();
 				for (final POM knownPOM : findPOMs(groupId, artifactId)) {
 					versions.remove(knownPOM.getVersion());
+					++importResults.known;
 				}
 				for (final String version : versions) {
 					if (importPOM(groupId, artifactId, version) != null) {
-						if (++nr[0] >= 500) {
+						if (++importResults.imported >= 500) {
 							return false; // import max. 500
 						}
 					}
@@ -342,8 +366,10 @@ public class MavenService {
 			}
 
 		});
-		LOGGER.info("Imported " + nr[0] + " POMs and JARs.");
-		return nr[0];
+		final String msg = "Checked " + importResults.checked + " entries, " + importResults.known
+				+ " known entries.\nImported " + importResults.imported + " POMs and JARs.";
+		LOGGER.info(msg);
+		return importResults;
 	}
 
 	/**
@@ -351,9 +377,11 @@ public class MavenService {
 	 * 
 	 * @return imported files
 	 */
-	public int importCentralRss() {
-		int nr = 0;
-		for (final String pomId : fetchCentralRss()) {
+	public ImportResults importCentralRss() {
+		final ImportResults importResults = new ImportResults();
+		final List<String> centralRss = fetchCentralRss();
+		importResults.checked = centralRss.size();
+		for (final String pomId : centralRss) {
 			final int artifactIdPos = pomId.indexOf(':');
 			if (artifactIdPos == -1) {
 				LOGGER.log(Level.WARNING, "Couldn't parse '" + pomId + "' from Maven Central RSS!");
@@ -371,26 +399,31 @@ public class MavenService {
 			final List<String> versions = fetchVersions(groupId, artifactId);
 			if (!versions.contains(thisVersion)) {
 				versions.add(thisVersion);
+			} else {
+				++importResults.known;
 			}
 			for (final POM knownPOM : findPOMs(groupId, artifactId)) {
 				versions.remove(knownPOM.getVersion());
 			}
 			for (final String version : versions) {
 				if (importPOM(groupId, artifactId, version) != null) {
-					++nr;
+					++importResults.imported;
 				}
 			}
 		}
-		LOGGER.info("Imported " + nr + " POMs and JARs.");
+		final String msg = "Central RSS with " + importResults.checked + " entries, "
+				+ importResults.known + " known entries.\nImported " + importResults.imported
+				+ " POMs and JARs.";
+		LOGGER.info(msg);
 		try {
 			// sendToAdmin with or without "to" doesn't work for me in 1.5.4
 			MailServiceFactory.getMailService().send(
 					new MailService.Message("andrePankraz@decojer.org", "andrePankraz@gmail.com",
-							"DecoJer Maven Import", "Imported " + nr + " POMs and JARs."));
+							"DecoJer Maven Import", msg));
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING, "Could not send email!", e);
 		}
-		return nr;
+		return importResults;
 	}
 
 	/**

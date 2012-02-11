@@ -23,28 +23,34 @@
  */
 package org.decojer.web.controller;
 
-import org.decojer.web.service.MavenService;
-import org.decojer.web.service.MavenService.ImportResults;
+import org.decojer.web.service.URLFetchService;
 
 /**
- * Maven.
+ * Merge.
  * 
  * @author André Pankraz
  */
-public class Maven {
+public class UrlFetch {
 
-	ImportResults importResults;
+	public String url;
 
-	public ImportResults getImportResults() {
-		return this.importResults;
+	public String getFetchResult() {
+		if (this.url == null) {
+			return "";
+		}
+		final byte[] fetchContent = URLFetchService.getInstance().fetchContent(this.url, true);
+		if (fetchContent == null) {
+			return "No result: " + this.url;
+		}
+		return new String(fetchContent);
 	}
 
-	public void importCentralAll() {
-		this.importResults = MavenService.getInstance().importCentralAll();
+	public String getUrl() {
+		return this.url;
 	}
 
-	public void importCentralRss() {
-		this.importResults = MavenService.getInstance().importCentralRss();
+	public void setUrl(final String url) {
+		this.url = url;
 	}
 
 }
