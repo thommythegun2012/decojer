@@ -47,6 +47,11 @@ public class FILLARRAY extends Op {
 	}
 
 	@Override
+	public int getInStackSize() {
+		return 1;
+	}
+
+	@Override
 	public Optype getOptype() {
 		return Optype.FILLARRAY;
 	}

@@ -57,6 +57,11 @@ public class PUSH extends Op {
 	}
 
 	@Override
+	public int getInStackSize() {
+		return 0;
+	}
+
+	@Override
 	public Optype getOptype() {
 		return Optype.PUSH;
 	}

@@ -38,47 +38,69 @@ public class DUP extends Op {
 	public enum Kind {
 
 		/**
-		 * Duplicate the top operand stack value.
+		 * Duplicate the top operand stack value:<br>
+		 * <code>..., value ..., value, value</code>
 		 */
-		DUP,
+		DUP(1),
 
 		/**
-		 * Duplicate the top operand stack value and insert two values down.
+		 * Duplicate the top operand stack value and insert two values down:<br>
+		 * <code>..., value2, value1 ..., value1, value2, value1</code>
 		 */
-		DUP_X1,
+		DUP_X1(2),
 
 		/**
-		 * Duplicate the top operand stack value and insert two or three values down.
+		 * Duplicate the top operand stack value and insert two or three values down:<br>
+		 * <code>.., value3, value2, value1 ..., value1, value3, value2, value1</code><br>
+		 * wide value2:<br>
+		 * <code>..., value2, value1 ..., value1, value2, value1</code>
 		 */
-		DUP_X2,
+		DUP_X2(3),
 
 		/**
 		 * Duplicate the top one or two operand stack values:<br>
-		 * <code>..., value2, value1 => ..., value2,
-		 * value1, value2, value1</code><br>
-		 * wide:<br>
+		 * <code>..., value2, value1 => ..., value2, value1, value2, value1</code><br>
+		 * wide value:<br>
 		 * <code>..., value => ..., value, value</code>
 		 */
-		DUP2,
+		DUP2(2),
 
 		/**
 		 * Duplicate the top one or two operand stack values and insert two or three values down:<br>
 		 * <code>..., value3, value2, value1 => ..., value2, value1, value3, value2, value1</code><br>
-		 * wide:<br>
+		 * wide value1:<br>
 		 * <code>..., value2, value1 => ..., value1, value2, value1</code>
 		 */
-		DUP2_X1,
+		DUP2_X1(3),
 
 		/**
 		 * Duplicate the top one or two operand stack values and insert two, three, or four values
 		 * down:<br>
-		 * <code>..., value4, value3, value2, value1 => ..., value2, value1, value4,
-		 * value3, value2, value1</code><br>
-		 * wide:<br>
-		 * <code>..., value3, value2, value1 => ..., value1, value3,
-		 * value2, value1</code>
+		 * <code>..., value4, value3, value2, value1 => ..., value2, value1, value4, value3, value2, value1</code>
+		 * <br>
+		 * wide value1:<br>
+		 * <code>..., value3, value2, value1 => ..., value1, value3, value2, value1</code><br>
+		 * wide value3:<br>
+		 * <code>..., value3, value2, value1 ..., value2, value1, value3, value2, value1</code><br>
+		 * wide value1, value2:<br>
+		 * <code>..., value2, value1 ..., value1, value2, value1</code><br>
 		 */
-		DUP2_X2
+		DUP2_X2(4);
+
+		private int inStackSize;
+
+		private Kind(final int inStackSize) {
+			this.inStackSize = inStackSize;
+		}
+
+		/**
+		 * Get input stack size.
+		 * 
+		 * @return input stack size
+		 */
+		public int getInStackSize() {
+			return this.inStackSize;
+		}
 
 	}
 
@@ -103,10 +125,7 @@ public class DUP extends Op {
 
 	@Override
 	public int getInStackSize() {
-		// TODO? should be 2, 3, 4 for not-wide stack arguments, but we cannot know here...
-		// return new int[] { 1, 2, 3, 1, 2, 3 }[this.dupType];
-		// TODO change stack to 2 for wide!!!
-		return 1;
+		return this.kind.getInStackSize();
 	}
 
 	/**

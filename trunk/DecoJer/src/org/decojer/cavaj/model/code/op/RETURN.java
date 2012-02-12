@@ -53,7 +53,7 @@ public class RETURN extends Op {
 
 	@Override
 	public int getInStackSize() {
-		return this.t == T.VOID ? 0 : 1;
+		return getT() == T.VOID ? 0 : getT().isWide() ? 2 : 1;
 	}
 
 	@Override

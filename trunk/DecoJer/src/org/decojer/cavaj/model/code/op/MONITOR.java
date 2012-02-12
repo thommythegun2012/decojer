@@ -53,6 +53,11 @@ public class MONITOR extends Op {
 		this.monitorType = monitorType;
 	}
 
+	@Override
+	public int getInStackSize() {
+		return 1;
+	}
+
 	/**
 	 * Get monitor type.
 	 * 

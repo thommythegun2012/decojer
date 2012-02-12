@@ -52,6 +52,11 @@ public class ASTORE extends Op {
 	}
 
 	@Override
+	public int getInStackSize() {
+		return getT().isWide() ? 4 : 3;
+	}
+
+	@Override
 	public Optype getOptype() {
 		return Optype.ASTORE;
 	}

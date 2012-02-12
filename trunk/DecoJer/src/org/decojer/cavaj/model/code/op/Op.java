@@ -66,9 +66,7 @@ public abstract class Op {
 	 * 
 	 * @return input stack size
 	 */
-	public int getInStackSize() {
-		return getOptype().getInStackSize();
-	}
+	public abstract int getInStackSize();
 
 	/**
 	 * Get line number.

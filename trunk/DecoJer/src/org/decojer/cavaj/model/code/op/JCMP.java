@@ -68,6 +68,13 @@ public class JCMP extends Op {
 	}
 
 	@Override
+	public int getInStackSize() {
+		assert !getT().isWide();
+
+		return 2;
+	}
+
+	@Override
 	public Optype getOptype() {
 		return Optype.JCMP;
 	}

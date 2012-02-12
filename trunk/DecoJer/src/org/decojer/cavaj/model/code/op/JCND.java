@@ -68,6 +68,13 @@ public class JCND extends Op {
 	}
 
 	@Override
+	public int getInStackSize() {
+		assert !getT().isWide();
+
+		return 1;
+	}
+
+	@Override
 	public Optype getOptype() {
 		return Optype.JCND;
 	}
