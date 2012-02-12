@@ -1073,23 +1073,6 @@ public class ReadCodeItem {
 			case INVOKE_VIRTUAL: {
 				final Instruction35c instr = (Instruction35c) instruction;
 
-				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
-				t = this.du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
-				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
-					t.markAf(AF.INTERFACE);
-				}
-				final M invokeM = t.getM(methodIdItem.getMethodName().getStringValue(),
-						methodIdItem.getPrototype().getPrototypeString());
-				T[] paramTs = invokeM.getParamTs();
-				if (instruction.opcode == Opcode.INVOKE_STATIC) {
-					invokeM.markAf(AF.STATIC);
-				} else {
-					final T[] virtualParamTs = new T[paramTs.length + 1];
-					System.arraycopy(paramTs, 0, virtualParamTs, 1, paramTs.length);
-					virtualParamTs[0] = t;
-					paramTs = virtualParamTs;
-				}
-
 				final int[] regs = new int[instr.getRegCount()];
 				if (instr.getRegCount() > 0) {
 					regs[0] = instr.getRegisterD();
@@ -1106,10 +1089,25 @@ public class ReadCodeItem {
 				if (instr.getRegCount() > 4) {
 					regs[4] = instr.getRegisterA();
 				}
+				int reg = 0;
 
-				for (int reg = 0, j = 0; j < paramTs.length; ++reg, ++j) {
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramTs[j], regs[reg]));
-					if (paramTs[j].isWide()) {
+				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
+				t = this.du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
+				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
+					t.markAf(AF.INTERFACE);
+				}
+				final M invokeM = t.getM(methodIdItem.getMethodName().getStringValue(),
+						methodIdItem.getPrototype().getPrototypeString());
+				if (instruction.opcode == Opcode.INVOKE_STATIC) {
+					invokeM.markAf(AF.STATIC);
+				} else {
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, regs[reg++]));
+				}
+
+				for (int j = 0; j < invokeM.getParams(); ++j) {
+					final T paramT = invokeM.getParamT(j);
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, regs[reg++]));
+					if (paramT.isWide()) {
 						++reg;
 					}
 				}
@@ -1129,6 +1127,8 @@ public class ReadCodeItem {
 			case INVOKE_VIRTUAL_RANGE: {
 				final Instruction3rc instr = (Instruction3rc) instruction;
 
+				int reg = instr.getStartRegister();
+
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				t = this.du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE) {
@@ -1136,19 +1136,16 @@ public class ReadCodeItem {
 				}
 				final M invokeM = t.getM(methodIdItem.getMethodName().getStringValue(),
 						methodIdItem.getPrototype().getPrototypeString());
-				T[] paramTs = invokeM.getParamTs();
 				if (instruction.opcode == Opcode.INVOKE_STATIC_RANGE) {
 					invokeM.markAf(AF.STATIC);
 				} else {
-					final T[] virtualParamTs = new T[paramTs.length + 1];
-					System.arraycopy(paramTs, 0, virtualParamTs, 1, paramTs.length);
-					virtualParamTs[0] = t;
-					paramTs = virtualParamTs;
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, reg++));
 				}
 
-				for (int reg = instr.getStartRegister(), j = 0; j < paramTs.length; ++reg, ++j) {
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramTs[j], reg));
-					if (paramTs[j].isWide()) {
+				for (int j = 0; j < invokeM.getParams(); ++j) {
+					final T paramT = invokeM.getParamT(j);
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, reg++));
+					if (paramT.isWide()) {
 						++reg;
 					}
 				}

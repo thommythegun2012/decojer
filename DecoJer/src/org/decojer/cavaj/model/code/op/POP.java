@@ -40,15 +40,30 @@ public class POP extends Op {
 		/**
 		 * Pop the top operand stack value.
 		 */
-		POP,
+		POP(1),
 
 		/**
 		 * Pop the top one or two operand stack values:<br>
 		 * <code>..., value2, value1 => ...</code><br>
-		 * wide:<br>
+		 * wide value:<br>
 		 * <code>..., value => ...</code>
 		 */
-		POP2
+		POP2(2);
+
+		private int inStackSize;
+
+		private Kind(final int inStackSize) {
+			this.inStackSize = inStackSize;
+		}
+
+		/**
+		 * Get input stack size.
+		 * 
+		 * @return input stack size
+		 */
+		public int getInStackSize() {
+			return this.inStackSize;
+		}
 
 	}
 
@@ -73,8 +88,7 @@ public class POP extends Op {
 
 	@Override
 	public int getInStackSize() {
-		// TODO? should be 2 for not-wide stack arguments, but we cannot know here...
-		return 1;
+		return this.kind.getInStackSize();
 	}
 
 	/**
@@ -89,6 +103,11 @@ public class POP extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.POP;
+	}
+
+	@Override
+	public String toString() {
+		return this.kind.toString();
 	}
 
 }

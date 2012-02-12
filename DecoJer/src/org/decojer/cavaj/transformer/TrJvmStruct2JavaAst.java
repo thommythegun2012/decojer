@@ -193,13 +193,12 @@ public final class TrJvmStruct2JavaAst {
 		}
 
 		final String name = m.getName();
-		final T[] paramTs = m.getParamTs();
 		final TD td = md.getTd();
 		final T t = td.getT();
 
 		// enum synthetic methods
-		if (("values".equals(name) && paramTs.length == 0 || "valueOf".equals(name)
-				&& paramTs.length == 1 && paramTs[0].is(String.class))
+		if (("values".equals(name) && m.getParams() == 0 || "valueOf".equals(name)
+				&& m.getParams() == 1 && m.getParamT(0).is(String.class))
 				&& t.check(AF.ENUM) && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}

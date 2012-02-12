@@ -52,6 +52,11 @@ public class AND extends Op {
 	}
 
 	@Override
+	public int getInStackSize() {
+		return getT().isWide() ? 4 : 2;
+	}
+
+	@Override
 	public Optype getOptype() {
 		return Optype.AND;
 	}

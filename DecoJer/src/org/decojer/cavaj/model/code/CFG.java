@@ -421,7 +421,6 @@ public class CFG {
 	 */
 	public void postProcessVars() {
 		final M m = this.md.getM();
-		final T[] paramTs = m.getParamTs();
 		final TD td = this.md.getTd();
 
 		if (this.vss == null) {
@@ -436,8 +435,8 @@ public class CFG {
 		if (td.isDalvik()) {
 			// Dalvik...function parameters right aligned
 			int reg = this.regs;
-			for (int i = paramTs.length; i-- > 0;) {
-				final T paramT = paramTs[i];
+			for (int i = m.getParams(); i-- > 0;) {
+				final T paramT = m.getParamT(i);
 				if (paramT.isWide()) {
 					--reg;
 				}
@@ -473,8 +472,8 @@ public class CFG {
 				this.vss[reg++] = new V[] { new V(td.getT(), "this", 0, this.ops.length) };
 			}
 		}
-		for (int i = 0; i < paramTs.length; ++i) {
-			final T paramT = paramTs[i];
+		for (int i = 0; i < m.getParams(); ++i) {
+			final T paramT = m.getParamT(i);
 			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				if (vs.length > 1) {

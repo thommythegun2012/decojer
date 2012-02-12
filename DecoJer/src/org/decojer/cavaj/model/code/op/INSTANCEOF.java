@@ -52,6 +52,11 @@ public class INSTANCEOF extends Op {
 	}
 
 	@Override
+	public int getInStackSize() {
+		return 1;
+	}
+
+	@Override
 	public Optype getOptype() {
 		return Optype.INSTANCEOF;
 	}

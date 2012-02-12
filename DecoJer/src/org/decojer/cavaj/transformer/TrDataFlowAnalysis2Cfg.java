@@ -156,6 +156,10 @@ public final class TrDataFlowAnalysis2Cfg {
 		return r;
 	}
 
+	private Frame getFrame(final int pc) {
+		return this.cfg.getFrame(pc);
+	}
+
 	/**
 	 * Get target BB for PC. Split or create new if necessary.
 	 * 
@@ -192,12 +196,12 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private boolean isWide(final Op op) {
-		final R r = this.cfg.getInFrame(op).peek();
+		final R r = getFrame(op.getPc()).peek();
 		return r == null ? false : r.getT().isWide();
 	}
 
 	private void merge(final int pc) {
-		final Frame frame = this.cfg.getFrame(pc);
+		final Frame frame = getFrame(pc);
 		if (frame == null) {
 			this.cfg.setFrame(pc, this.frame);
 			return;
@@ -237,13 +241,13 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		for (final Exc exc : excs) {
 			if (exc.validIn(pc)) {
-				this.frame = new Frame(this.cfg.getFrame(pc));
+				this.frame = new Frame(getFrame(pc));
 				this.frame.clearStack();
 
-				final Frame handlerFrame = this.cfg.getFrame(exc.getHandlerPc());
+				final Frame handlerFrame = getFrame(exc.getHandlerPc());
 				if (handlerFrame == null) {
 					merge(exc.getHandlerPc());
-					this.frame = this.cfg.getFrame(exc.getHandlerPc());
+					this.frame = getFrame(exc.getHandlerPc());
 					// null is <any> (means Java finally) -> Throwable
 					push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
 							.getT(Throwable.class) : exc.getT());
@@ -356,7 +360,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			final Op op = ops[pc++];
 			bb.addOp(op);
-			this.frame = new Frame(this.cfg.getInFrame(op));
+			this.frame = new Frame(getFrame(op.getPc()));
 
 			switch (op.getOptype()) {
 			case ADD: {
@@ -517,8 +521,8 @@ public final class TrDataFlowAnalysis2Cfg {
 			case INVOKE: {
 				final INVOKE cop = (INVOKE) op;
 				final M m = cop.getM();
-				for (int i = m.getParamTs().length; i-- > 0;) {
-					pop(m.getParamTs()[i]);
+				for (int i = m.getParams(); i-- > 0;) {
+					pop(m.getParamT(i));
 				}
 				if (!m.check(AF.STATIC)) {
 					pop(m.getT());
@@ -552,7 +556,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
 				bb.setSucc(getTarget(cop.getTargetPc()));
 				// use common value (like Sub) instead of jsr-follow-address because of merge
-				final Frame targetFrame = this.cfg.getFrame(cop.getTargetPc());
+				final Frame targetFrame = getFrame(cop.getTargetPc());
 				jsr: if (targetFrame != null) {
 					// JSR already visited, reuse Sub
 					if (this.frame.getStackSize() + 1 != targetFrame.getStackSize()) {
@@ -580,7 +584,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					final RET ret = sub.getRet();
 					if (ret != null) {
 						// RET already visited, link RET BB to JSR follower and merge
-						this.frame = new Frame(this.cfg.getInFrame(ret));
+						this.frame = new Frame(getFrame(ret.getPc()));
 						// bytecode restriction: register can only be consumed once
 						this.frame.set(ret.getReg(), null);
 						final BB retBb = this.pc2bbs[ret.getPc()];

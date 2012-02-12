@@ -48,6 +48,11 @@ public class SWAP extends Op {
 	}
 
 	@Override
+	public int getInStackSize() {
+		return 2;
+	}
+
+	@Override
 	public Optype getOptype() {
 		return Optype.SWAP;
 	}

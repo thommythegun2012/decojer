@@ -25,101 +25,82 @@ package org.decojer.cavaj.model.code.op;
 
 public enum Optype {
 
-	ADD(2),
+	ADD,
 
-	ALOAD(2),
+	ALOAD,
 
-	AND(2),
+	AND,
 
-	ARRAYLENGTH(1),
+	ARRAYLENGTH,
 
-	ASTORE(3),
+	ASTORE,
 
-	CAST(1),
+	CAST,
 
-	CMP(2),
+	CMP,
 
-	DIV(2),
+	DIV,
 
-	DUP(-1),
+	DUP,
 
-	FILLARRAY(1),
+	FILLARRAY,
 
-	GET(-1),
+	GET,
 
-	GOTO(0),
+	GOTO,
 
-	INC(0),
+	INC,
 
-	INSTANCEOF(1),
+	INSTANCEOF,
 
-	INVOKE(-1),
+	INVOKE,
 
-	JCMP(2),
+	JCMP,
 
-	JCND(1),
+	JCND,
 
-	JSR(0),
+	JSR,
 
-	LOAD(0),
+	LOAD,
 
-	MONITOR(1),
+	MONITOR,
 
-	MUL(2),
+	MUL,
 
-	NEG(1),
+	NEG,
 
-	NEW(0),
+	NEW,
 
-	NEWARRAY(-1),
+	NEWARRAY,
 
-	OR(2),
+	OR,
 
-	POP(-1),
+	POP,
 
-	PUSH(0),
+	PUSH,
 
-	PUT(-1),
+	PUT,
 
-	REM(2),
+	REM,
 
-	RET(1),
+	RET,
 
-	RETURN(-1),
+	RETURN,
 
-	SHL(2),
+	SHL,
 
-	SHR(2),
+	SHR,
 
-	STORE(1),
+	STORE,
 
-	SUB(2),
+	SUB,
 
-	SWAP(2),
+	SWAP,
 
-	SWITCH(1),
+	SWITCH,
 
-	THROW(1),
+	THROW,
 
-	XOR(2);
-
-	private final int inStackSize;
-
-	/**
-	 * Constructor.
-	 * 
-	 */
-	private Optype(final int inStackSize) {
-		this.inStackSize = inStackSize;
-	}
-
-	/**
-	 * Get input stack size.
-	 * 
-	 * @return input stack size
-	 */
-	public int getInStackSize() {
-		return this.inStackSize;
-	}
+	XOR
 
 }

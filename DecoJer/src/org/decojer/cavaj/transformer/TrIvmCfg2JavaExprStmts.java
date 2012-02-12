@@ -426,7 +426,7 @@ public final class TrIvmCfg2JavaExprStmts {
 
 				// read method invokation arguments
 				final List<Expression> arguments = new ArrayList<Expression>();
-				for (int i = 0; i < m.getParamTs().length; ++i) {
+				for (int i = m.getParams(); i-- > 0;) {
 					arguments.add(wrap(bb.pop()));
 				}
 				Collections.reverse(arguments);
@@ -446,13 +446,13 @@ public final class TrIvmCfg2JavaExprStmts {
 											+ "' for enum has less than 2 arguments!");
 									break enumConstructor;
 								}
-								if (!m.getParamTs()[0].is(String.class)) {
+								if (!m.getParamT(0).is(String.class)) {
 									LOGGER.warning("Super constructor invocation '"
 											+ m
 											+ "' for enum must contain string literal as first parameter!");
 									break enumConstructor;
 								}
-								if (m.getParamTs()[1] != T.INT) {
+								if (m.getParamT(1) != T.INT) {
 									LOGGER.warning("Super constructor invocation '"
 											+ m
 											+ "' for enum must contain number literal as first parameter!");

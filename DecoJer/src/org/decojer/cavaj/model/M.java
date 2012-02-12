@@ -161,10 +161,10 @@ public class M {
 	}
 
 	/**
-	 * Get parameter name.
+	 * Get parameter name for index.
 	 * 
 	 * @param i
-	 *            index
+	 *            index (starts with 0, double/long params count as 1)
 	 * @return parameter name
 	 */
 	public String getParamName(final int i) {
@@ -175,12 +175,23 @@ public class M {
 	}
 
 	/**
-	 * Get parameter types.
+	 * Get parameter number.
 	 * 
-	 * @return parameter types
+	 * @return parameter number (double/long params count as 1)
 	 */
-	public T[] getParamTs() {
-		return this.paramTs;
+	public int getParams() {
+		return this.paramTs.length;
+	}
+
+	/**
+	 * Get parameter type for index.
+	 * 
+	 * @param i
+	 *            index (starts with 0, double/long params count as 1)
+	 * @return parameter type
+	 */
+	public T getParamT(final int i) {
+		return this.paramTs[i];
 	}
 
 	/**
