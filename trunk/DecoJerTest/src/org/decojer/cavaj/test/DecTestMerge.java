@@ -1,5 +1,6 @@
 package org.decojer.cavaj.test;
 
+
 public class DecTestMerge {
 
 	public static byte testByte(byte b) {
