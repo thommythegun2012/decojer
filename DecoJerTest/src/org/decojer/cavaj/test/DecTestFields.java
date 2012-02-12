@@ -6,7 +6,7 @@ public class DecTestFields {
 
 	public final byte byteTest = 127;
 
-	public final char charTest = 'c';
+	public char charTest = 'c';
 
 	public double doubleTest = .5432154321D; // not final!
 
@@ -56,5 +56,9 @@ public class DecTestFields {
 	}
 
 	private final int[][] referenceIntArrayNullTest = null;
+
+	public char getCharTest() {
+		return charTest;
+	}
 
 }
