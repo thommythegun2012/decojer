@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code;
 
+import java.util.logging.Logger;
+
 import org.decojer.cavaj.model.code.R.Kind;
 
 /**
@@ -31,6 +33,8 @@ import org.decojer.cavaj.model.code.R.Kind;
  * @author André Pankraz
  */
 public class Frame {
+
+	private final static Logger LOGGER = Logger.getLogger(Frame.class.getName());
 
 	private final CFG cfg;
 
@@ -161,6 +165,19 @@ public class Frame {
 	}
 
 	/**
+	 * Peek stack register (not wide).
+	 * 
+	 * @return stack register
+	 */
+	public R peekSingle() {
+		final R s = peek();
+		if (s.isWide()) {
+			LOGGER.warning("Attempt to split long or double on the stack!");
+		}
+		return s;
+	}
+
+	/**
 	 * Pop stack register.
 	 * 
 	 * @return stack register
@@ -169,11 +186,11 @@ public class Frame {
 		if (getStackSize() == 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		final R popR = this.rs[this.rs.length - 1];
+		final R s = this.rs[this.rs.length - 1];
 		final R[] newRs = new R[this.rs.length - 1];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length - 1);
 		this.rs = newRs;
-		return popR;
+		return s;
 	}
 
 	/**
@@ -200,6 +217,19 @@ public class Frame {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Pop stack register (not wide).
+	 * 
+	 * @return stack register
+	 */
+	public R popSingle() {
+		final R s = pop();
+		if (s.isWide()) {
+			LOGGER.warning("Attempt to split long or double on the stack!");
+		}
+		return s;
 	}
 
 	/**

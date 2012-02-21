@@ -228,6 +228,14 @@ public class T {
 	 */
 	public static T VOID = new T(void.class.getName());
 	/**
+	 * Artificial type double part 2.
+	 */
+	public static T DOUBLE2 = new T("DOUBLE2");
+	/**
+	 * Artificial type long part 2.
+	 */
+	public static T LONG2 = new T("LONG2");
+	/**
 	 * Artificial type 'return address' for JSR follow pc.
 	 * 
 	 * Spec: No return address (a value of type returnAddress) may be loaded from a local variable.

@@ -182,6 +182,15 @@ public class R {
 		return this.value;
 	}
 
+	/**
+	 * Is wide type?
+	 * 
+	 * @return true - is wide type
+	 */
+	public boolean isWide() {
+		return this.t.isWide();
+	}
+
 	private void linkIn(final R in) {
 		final R[] inOuts = in.outs;
 		if (in.outs == null) {
