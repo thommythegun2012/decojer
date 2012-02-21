@@ -134,10 +134,10 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private void evalBinaryMath(final T t, final T pushT) {
-		final R r2 = pop(t);
-		final R r1 = pop(t);
+		final R s2 = pop(t);
+		final R s1 = pop(t);
 
-		if (r1.getT().isReference()) {
+		if (s1.getT().isReference()) {
 			// (J)CMP EQ / NE
 			assert pushT == T.VOID;
 
@@ -146,7 +146,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		// TODO boolean input possible?
 		// no merge(To) for inputs, valid "int, shot, byte > char -> boolean (int)"
 		if (pushT != T.VOID) {
-			this.frame.push(new R(this.frame.getPc(), pushT != null ? pushT : t, Kind.CONST, r1));
+			this.frame.push(new R(this.frame.getPc(), pushT != null ? pushT : t, Kind.CONST, s1));
 		}
 	}
 
@@ -295,15 +295,15 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private R pop(final T t) {
-		final R r = this.frame.pop();
-		r.read(t);
-		return r;
+		final R s = this.frame.pop();
+		s.read(t);
+		return s;
 	}
 
 	private R push(final T t) {
-		final R r = new R(this.frame.getPc(), t, Kind.CONST);
-		this.frame.push(r);
-		return r;
+		final R s = new R(this.frame.getPc(), t, Kind.CONST);
+		this.frame.push(s);
+		return s;
 	}
 
 	private void transform() {
@@ -411,68 +411,102 @@ public final class TrDataFlowAnalysis2Cfg {
 				break;
 			}
 			case DUP: {
-				// no new register necessary, simply duplicate...is like CFG branch
-				// TODO or MOVE for new if reg-bound merge-replace
 				final DUP cop = (DUP) op;
 				switch (cop.getKind()) {
-				case DUP2:
-					if (!isWide(cop)) {
-						final R e1 = this.frame.pop();
-						final R e2 = this.frame.pop();
-						this.frame.push(e2);
-						this.frame.push(e1);
-						this.frame.push(e2);
-						this.frame.push(e1);
-						break;
-					}
-					// fall through for wide
-				case DUP:
-					this.frame.push(this.frame.peek());
-					break;
-				case DUP2_X1:
-					if (!isWide(cop)) {
-						final R e1 = this.frame.pop();
-						final R e2 = this.frame.pop();
-						final R e3 = this.frame.pop();
-						this.frame.push(e2);
-						this.frame.push(e1);
-						this.frame.push(e3);
-						this.frame.push(e2);
-						this.frame.push(e1);
-						break;
-					}
-					// fall through for wide
-				case DUP_X1: {
-					final R e1 = this.frame.pop();
-					final R e2 = this.frame.pop();
-					this.frame.push(e1);
-					this.frame.push(e2);
-					this.frame.push(e1);
+				case DUP: {
+					final R s1 = this.frame.peekSingle();
+					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
 					break;
 				}
-				case DUP2_X2:
-					if (!isWide(cop)) {
-						final R e1 = this.frame.pop();
-						final R e2 = this.frame.pop();
-						final R e3 = this.frame.pop();
-						final R e4 = this.frame.pop();
-						this.frame.push(e2);
-						this.frame.push(e1);
-						this.frame.push(e4);
-						this.frame.push(e3);
-						this.frame.push(e2);
-						this.frame.push(e1);
+				case DUP_X1: {
+					final R s1 = this.frame.popSingle();
+					final R s2 = this.frame.popSingle();
+					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+					this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
+					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+					break;
+				}
+				case DUP_X2: {
+					final R s1 = this.frame.popSingle();
+					final R s2 = this.frame.pop();
+					if (!s2.isWide()) {
+						final R s3 = this.frame.popSingle();
+						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+						this.frame.push(new R(pc, s3.getT(), Kind.MOVE, s3));
+						this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
+						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
 						break;
 					}
-					// fall through for wide
-				case DUP_X2: {
-					final R e1 = this.frame.pop();
-					final R e2 = this.frame.pop();
-					final R e3 = this.frame.pop();
-					this.frame.push(e1);
-					this.frame.push(e3);
-					this.frame.push(e2);
-					this.frame.push(e1);
+					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+					this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
+					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+					break;
+				}
+				case DUP2: {
+					final R s1 = this.frame.peek();
+					if (!s1.isWide()) {
+						this.frame.popSingle();
+						final R s2 = this.frame.peekSingle();
+						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+						this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
+						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+						break;
+					}
+					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+					break;
+				}
+				case DUP2_X1: {
+					final R s1 = this.frame.pop();
+					if (!s1.isWide()) {
+						final R s2 = this.frame.popSingle();
+						final R s3 = this.frame.popSingle();
+						this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
+						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+						this.frame.push(new R(pc, s3.getT(), Kind.MOVE, s3));
+						this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
+						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+						break;
+					}
+					final R s3 = this.frame.pop();
+					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+					this.frame.push(new R(pc, s3.getT(), Kind.MOVE, s3));
+					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+					break;
+				}
+				case DUP2_X2: {
+					final R s1 = this.frame.pop();
+					if (!s1.isWide()) {
+						final R s2 = this.frame.popSingle();
+						final R s3 = this.frame.pop();
+						if (!s3.isWide()) {
+							final R s4 = this.frame.popSingle();
+							this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
+							this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+							this.frame.push(new R(pc, s4.getT(), Kind.MOVE, s4));
+							this.frame.push(new R(pc, s3.getT(), Kind.MOVE, s3));
+							this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
+							this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+							break;
+						}
+						this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
+						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+						this.frame.push(new R(pc, s3.getT(), Kind.MOVE, s3));
+						this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
+						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+						break;
+					}
+					final R s3 = this.frame.pop();
+					if (!s3.isWide()) {
+						final R s4 = this.frame.popSingle();
+						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+						this.frame.push(new R(pc, s4.getT(), Kind.MOVE, s4));
+						this.frame.push(new R(pc, s3.getT(), Kind.MOVE, s3));
+						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+						break;
+					}
+					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+					this.frame.push(new R(pc, s3.getT(), Kind.MOVE, s3));
+					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
 					break;
 				}
 				default:
@@ -651,15 +685,16 @@ public final class TrDataFlowAnalysis2Cfg {
 				final POP cop = (POP) op;
 				// no new register or type reduction necessary, simply let it die off
 				switch (cop.getKind()) {
+				case POP: {
+					this.frame.popSingle();
+					break;
+				}
 				case POP2:
-					if (!isWide(cop)) {
-						this.frame.pop();
-						this.frame.pop();
+					final R s1 = this.frame.pop();
+					if (!s1.isWide()) {
+						this.frame.popSingle();
 						break;
 					}
-					// fall through for wide
-				case POP:
-					this.frame.pop();
 					break;
 				default:
 					LOGGER.warning("Unknown POP type '" + cop.getKind() + "'!");
@@ -801,10 +836,10 @@ public final class TrDataFlowAnalysis2Cfg {
 
 				// no new register necessary, simply swap stack position
 				// TODO or MOVE if reg-bound merge-replace
-				final R r1 = this.frame.pop();
-				final R r2 = this.frame.pop();
-				this.frame.push(r1);
-				this.frame.push(r2);
+				final R s1 = this.frame.pop();
+				final R s2 = this.frame.pop();
+				this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+				this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
 				break;
 			}
 			case SWITCH: {
@@ -874,5 +909,4 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		this.cfg.calculatePostorder();
 	}
-
 }
