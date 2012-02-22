@@ -1546,7 +1546,7 @@ public final class TrIvmCfg2JavaExprStmts {
 					continue;
 				}
 				// should never happen in forward mode
-				LOGGER.warning("Stack underflow  in '" + this.cfg + "':\n" + bb);
+				LOGGER.warning("Stack underflow in '" + this.cfg + "':\n" + bb);
 			}
 			if (!handler) {
 				// single IfStatement created? then check:

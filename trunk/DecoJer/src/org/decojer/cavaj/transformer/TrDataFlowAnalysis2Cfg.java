@@ -195,11 +195,6 @@ public final class TrDataFlowAnalysis2Cfg {
 		return bb;
 	}
 
-	private boolean isWide(final Op op) {
-		final R r = getFrame(op.getPc()).peek();
-		return r == null ? false : r.getT().isWide();
-	}
-
 	private void merge(final int pc) {
 		final Frame frame = getFrame(pc);
 		if (frame == null) {
@@ -414,8 +409,8 @@ public final class TrDataFlowAnalysis2Cfg {
 				final DUP cop = (DUP) op;
 				switch (cop.getKind()) {
 				case DUP: {
-					final R s1 = this.frame.peekSingle();
-					this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+					final R s = this.frame.peekSingle();
+					this.frame.push(new R(pc, s.getT(), Kind.MOVE, s));
 					break;
 				}
 				case DUP_X1: {
@@ -445,9 +440,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				case DUP2: {
 					final R s1 = this.frame.peek();
 					if (!s1.isWide()) {
-						this.frame.popSingle();
-						final R s2 = this.frame.peekSingle();
-						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
+						final R s2 = this.frame.peekSingle(2);
 						this.frame.push(new R(pc, s2.getT(), Kind.MOVE, s2));
 						this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
 						break;
@@ -834,8 +827,6 @@ public final class TrDataFlowAnalysis2Cfg {
 			case SWAP: {
 				assert op instanceof SWAP;
 
-				// no new register necessary, simply swap stack position
-				// TODO or MOVE if reg-bound merge-replace
 				final R s1 = this.frame.pop();
 				final R s2 = this.frame.pop();
 				this.frame.push(new R(pc, s1.getT(), Kind.MOVE, s1));
