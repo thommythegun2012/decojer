@@ -99,6 +99,8 @@ public class Frame {
 	 * @return register
 	 */
 	public R get(final int reg) {
+		assert reg >= 0 : reg;
+
 		return this.rs[reg];
 	}
 
@@ -128,6 +130,8 @@ public class Frame {
 	 * @return register
 	 */
 	public R getStack(final int i) {
+		assert i >= 0 : i;
+
 		if (i >= getStackSize()) {
 			throw new IndexOutOfBoundsException("Stack too small!");
 		}
@@ -158,10 +162,26 @@ public class Frame {
 	 * @return register
 	 */
 	public R peek() {
-		if (getStackSize() == 0) {
+		if (0 == getStackSize()) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		return this.rs[this.rs.length - 1];
+	}
+
+	/**
+	 * Peek stack register.
+	 * 
+	 * @param i
+	 *            stack index, last is 1
+	 * @return register
+	 */
+	public R peek(final int i) {
+		assert i > 0;
+
+		if (i > getStackSize()) {
+			throw new IndexOutOfBoundsException("Stack is empty!");
+		}
+		return this.rs[this.rs.length - i];
 	}
 
 	/**
@@ -171,6 +191,21 @@ public class Frame {
 	 */
 	public R peekSingle() {
 		final R s = peek();
+		if (s.isWide()) {
+			LOGGER.warning("Attempt to split long or double on the stack!");
+		}
+		return s;
+	}
+
+	/**
+	 * Peek stack register (not wide).
+	 * 
+	 * @param i
+	 *            stack index, last is 1
+	 * @return stack register
+	 */
+	public R peekSingle(final int i) {
+		final R s = peek(i);
 		if (s.isWide()) {
 			LOGGER.warning("Attempt to split long or double on the stack!");
 		}
@@ -311,6 +346,8 @@ public class Frame {
 	 *            register
 	 */
 	public void set(final int reg, final R r) {
+		assert reg >= 0 : reg;
+
 		final R[] newRs = new R[this.rs.length];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
 		newRs[reg] = r;
@@ -326,6 +363,8 @@ public class Frame {
 	 *            register
 	 */
 	public void setStack(final int i, final R r) {
+		assert i >= 0 : i;
+
 		if (i >= getStackSize()) {
 			throw new IndexOutOfBoundsException("Stack too small!");
 		}
