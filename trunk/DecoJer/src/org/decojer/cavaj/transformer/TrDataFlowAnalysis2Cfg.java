@@ -151,47 +151,48 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 	}
 
-	private Frame frame(final int pc) {
-		return this.cfg.frame(pc);
-	}
-
 	private R get(final int i, final T t) {
 		final R r = this.frame.get(i);
 		r.read(t);
 		return r;
 	}
 
-	private void merge(final int pc) {
-		final Frame frame = frame(pc);
-		if (frame == null) {
-			this.cfg.setFrame(pc, this.frame);
+	private Frame getFrame(final int pc) {
+		return this.cfg.getFrame(pc);
+	}
+
+	private void merge(final int targetPc) {
+		final Frame targetFrame = getFrame(targetPc);
+		if (targetFrame == null) {
+			this.cfg.setFrame(targetPc, this.frame);
 			return;
 		}
 		// only here can we create or enhance a merge registers
-		for (int reg = this.frame.getRegs(); reg-- > 0;) {
+		for (int reg = targetFrame.getRegs(); reg-- > 0;) {
+			final R prevR = targetFrame.get(reg);
 			final R newR = this.frame.get(reg);
-			final R oldR = frame.get(reg);
-			if (newR == oldR || oldR == null) {
+			if (prevR == newR || prevR == null) {
 				continue;
 			}
-			final T t = R.merge(oldR, newR);
+			final T t = R.merge(prevR, newR);
 			// merge enhance not possible without known start pc for oldR
-			final R r = t == null ? null : new R(pc, t, Kind.MERGE, oldR, newR);
-			mergeReplaceReg(this.pc2bbs[pc], reg, oldR, r);
+			final R r = t == null ? null : new R(targetPc, t, Kind.MERGE, prevR, newR);
+			mergeReplaceReg(this.pc2bbs[targetPc], reg, prevR, r);
 		}
-		for (int i = this.frame.getStackSize(); i-- > 0;) {
-			// TODO handling for mergeExc with single stack exception value suboptimal
+		// TODO handling for mergeExc with single stack exception value suboptimal
+		for (int i = targetFrame.getStackSize(); i-- > 0;) {
+			final R prevR = targetFrame.getStack(i);
 			final R newR = this.frame.getStack(i);
-			final R oldR = frame.getStack(i);
-			if (newR == oldR || oldR == null) {
+			if (prevR == newR || prevR == null) {
 				continue;
 			}
-			final T t = R.merge(oldR, newR);
-			oldR.mergeTo(t);
+			final T t = R.merge(prevR, newR);
+			prevR.mergeTo(t);
 			newR.mergeTo(t);
 			// merge enhence not possible without known start pc for oldR
-			final R r = t == null ? null : new R(pc, R.merge(oldR, newR), Kind.MERGE, oldR, newR);
-			mergeReplaceReg(this.pc2bbs[pc], this.cfg.getRegs() + i, oldR, r);
+			final R r = t == null ? null : new R(targetPc, R.merge(prevR, newR), Kind.MERGE, prevR,
+					newR);
+			mergeReplaceReg(this.pc2bbs[targetPc], this.cfg.getRegs() + i, prevR, r);
 		}
 	}
 
@@ -202,13 +203,13 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		for (final Exc exc : excs) {
 			if (exc.validIn(pc)) {
-				this.frame = new Frame(frame(pc));
+				this.frame = new Frame(getFrame(pc));
 				this.frame.clearStack();
 
-				final Frame handlerFrame = frame(exc.getHandlerPc());
+				final Frame handlerFrame = getFrame(exc.getHandlerPc());
 				if (handlerFrame == null) {
 					merge(exc.getHandlerPc());
-					this.frame = frame(exc.getHandlerPc());
+					this.frame = getFrame(exc.getHandlerPc());
 					// null is <any> (means Java finally) -> Throwable
 					push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
 							.getT(Throwable.class) : exc.getT());
@@ -223,19 +224,19 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 	}
 
-	private void mergeReplaceReg(final BB bb, final int reg, final R oldR, final R r) {
-		assert oldR != null;
+	private void mergeReplaceReg(final BB bb, final int reg, final R prevR, final R newR) {
+		assert prevR != null;
 
 		// could still have no operations
-		Frame frame = this.cfg.frame(bb.getPc());
-		R replacedR = frame.replaceReg(reg, oldR, r);
+		Frame frame = this.cfg.getFrame(bb.getPc());
+		R replacedR = frame.replaceReg(reg, prevR, newR);
 		for (int i = 1; replacedR != null && i < bb.getOps(); ++i) {
-			frame = this.cfg.inFrame(bb.op(i));
-			replacedR = frame.replaceReg(reg, replacedR, r);
+			frame = this.cfg.getInFrame(bb.getOp(i));
+			replacedR = frame.replaceReg(reg, replacedR, newR);
 		}
 		if (replacedR != null) {
 			for (final E out : bb.getOuts()) {
-				mergeReplaceReg(out.getEnd(), reg, replacedR, r);
+				mergeReplaceReg(out.getEnd(), reg, replacedR, newR);
 			}
 		}
 	}
@@ -309,7 +310,7 @@ public final class TrDataFlowAnalysis2Cfg {
 
 		bb.moveIns(split);
 		split.setSucc(bb);
-		while (bb.getOps() > 0 && bb.op(0).getPc() != pc) {
+		while (bb.getOps() > 0 && bb.getOp(0).getPc() != pc) {
 			final Op op = bb.removeOp(0);
 			split.addOp(op);
 			this.pc2bbs[op.getPc()] = split;
@@ -370,9 +371,9 @@ public final class TrDataFlowAnalysis2Cfg {
 			if (!this.isIgnoreExceptions) {
 				mergeExc(pc);
 			}
-			final Op op = this.cfg.op(pc++);
+			final Op op = this.cfg.getOp(pc++);
 			bb.addOp(op);
-			this.frame = new Frame(frame(op.getPc()));
+			this.frame = new Frame(getFrame(op.getPc()));
 
 			switch (op.getOptype()) {
 			case ADD: {
@@ -600,7 +601,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
 				bb.setSucc(targetBb(cop.getTargetPc()));
 				// use common value (like Sub) instead of jsr-follow-address because of merge
-				final Frame targetFrame = frame(cop.getTargetPc());
+				final Frame targetFrame = getFrame(cop.getTargetPc());
 				jsr: if (targetFrame != null) {
 					// JSR already visited, reuse Sub
 					if (this.frame.getStackSize() + 1 != targetFrame.getStackSize()) {
@@ -628,7 +629,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					final RET ret = sub.getRet();
 					if (ret != null) {
 						// RET already visited, link RET BB to JSR follower and merge
-						this.frame = new Frame(frame(ret.getPc()));
+						this.frame = new Frame(getFrame(ret.getPc()));
 						// bytecode restriction: register can only be consumed once
 						this.frame.set(ret.getReg(), null);
 						final BB retBb = this.pc2bbs[ret.getPc()];
@@ -819,7 +820,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				final R r = pop(cop.getT());
 
 				// TODO hack, check store type in debug variable
-				final V debugV = this.cfg.debugV(cop.getReg(), pc);
+				final V debugV = this.cfg.getDebugV(cop.getReg(), pc);
 				if (debugV != null) {
 					r.mergeTo(debugV.getT());
 				}

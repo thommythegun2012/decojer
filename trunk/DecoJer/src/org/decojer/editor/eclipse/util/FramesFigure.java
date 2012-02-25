@@ -72,7 +72,7 @@ public class FramesFigure extends Figure {
 		final int regs = bb.getCfg().getRegs();
 		int maxStack = 0; // don't use bb.getCfg().getMaxStack()
 		for (int i = bb.getOps(); i-- > 0;) {
-			final Frame frame = bb.getCfg().inFrame(bb.op(i));
+			final Frame frame = bb.getCfg().getInFrame(bb.getOp(i));
 			if (frame == null) {
 				continue;
 			}
@@ -86,8 +86,8 @@ public class FramesFigure extends Figure {
 		setLayoutManager(gridLayout);
 
 		for (int i = 0; i < bb.getOps(); ++i) {
-			final Op op = bb.op(i);
-			final Frame frame = bb.getCfg().inFrame(op);
+			final Op op = bb.getOp(i);
+			final Frame frame = bb.getCfg().getInFrame(op);
 			add(new Label(op.getPc() + " " + op.toString() + (frame == null ? "?" : " ")));
 			for (int reg = 0; reg < regs; ++reg) {
 				final R r = frame == null ? null : frame.get(reg);

@@ -240,11 +240,22 @@ public final class BB {
 	 * @return first operation line
 	 */
 	public int getLine() {
-		return this.cfg.op(this.pc).getLine();
+		return this.cfg.getOp(this.pc).getLine();
 	}
 
 	private int getLocals() {
 		return this.cfg.getRegs();
+	}
+
+	/**
+	 * Get operation at index.
+	 * 
+	 * @param i
+	 *            operation index
+	 * @return operation
+	 */
+	public Op getOp(final int i) {
+		return this.ops.get(i);
 	}
 
 	/**
@@ -314,6 +325,18 @@ public final class BB {
 	 */
 	public int getStackSize() {
 		return this.top;
+	}
+
+	/**
+	 * Get statement at index.
+	 * 
+	 * @param i
+	 *            statement index
+	 * @return statement or null
+	 */
+	public Statement getStmt(final int i) {
+		final int size = this.stmts.size();
+		return size <= i ? null : this.stmts.get(i);
 	}
 
 	/**
@@ -447,17 +470,6 @@ public final class BB {
 			target.outs.add(out);
 		}
 		this.outs.clear();
-	}
-
-	/**
-	 * Get operation at index.
-	 * 
-	 * @param i
-	 *            operation index
-	 * @return operation
-	 */
-	public Op op(final int i) {
-		return this.ops.get(i);
 	}
 
 	/**
@@ -619,18 +631,6 @@ public final class BB {
 		final E e = new E(this, succ, null);
 		this.outs.add(e);
 		succ.ins.add(e);
-	}
-
-	/**
-	 * Get statement at index.
-	 * 
-	 * @param i
-	 *            statement index
-	 * @return statement or null
-	 */
-	public Statement stmt(final int i) {
-		final int size = this.stmts.size();
-		return size <= i ? null : this.stmts.get(i);
 	}
 
 	@Override
