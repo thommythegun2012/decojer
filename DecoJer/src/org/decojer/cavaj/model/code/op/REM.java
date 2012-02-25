@@ -30,9 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class REM extends Op {
-
-	private final T t;
+public class REM extends TypedOp {
 
 	/**
 	 * Constructor.
@@ -47,8 +45,7 @@ public class REM extends Op {
 	 *            type
 	 */
 	public REM(final int pc, final int opcode, final int line, final T t) {
-		super(pc, opcode, line);
-		this.t = t;
+		super(pc, opcode, line, t);
 	}
 
 	@Override
@@ -59,15 +56,6 @@ public class REM extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.REM;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 }

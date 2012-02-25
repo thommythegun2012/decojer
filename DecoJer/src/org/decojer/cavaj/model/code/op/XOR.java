@@ -30,9 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class XOR extends Op {
-
-	private final T t;
+public class XOR extends TypedOp {
 
 	/**
 	 * Constructor.
@@ -47,8 +45,7 @@ public class XOR extends Op {
 	 *            type
 	 */
 	public XOR(final int pc, final int opcode, final int line, final T t) {
-		super(pc, opcode, line);
-		this.t = t;
+		super(pc, opcode, line, t);
 	}
 
 	@Override
@@ -60,14 +57,4 @@ public class XOR extends Op {
 	public Optype getOptype() {
 		return Optype.XOR;
 	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
-	}
-
 }

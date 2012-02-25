@@ -46,6 +46,9 @@ public class RET extends Op {
 	 */
 	public RET(final int pc, final int opcode, final int line, final int reg) {
 		super(pc, opcode, line);
+
+		assert reg >= 0 : reg;
+
 		this.reg = reg;
 	}
 

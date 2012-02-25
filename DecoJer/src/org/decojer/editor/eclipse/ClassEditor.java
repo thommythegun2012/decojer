@@ -141,7 +141,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE, bb.toString(), bb);
 		if (bb.getStruct() != null) {
 			node.setTooltip(new Label(bb.getStruct().toString()));
-		} else if (bb.getCfg().getFrames() != null) {
+		} else if (bb.getCfg().isFrames()) {
 			node.setTooltip(new FramesFigure(bb));
 		} else {
 			node.setTooltip(null);

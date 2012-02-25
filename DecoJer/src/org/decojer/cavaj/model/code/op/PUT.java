@@ -49,6 +49,9 @@ public class PUT extends Op {
 	 */
 	public PUT(final int pc, final int opcode, final int line, final F f) {
 		super(pc, opcode, line);
+
+		assert f != null;
+
 		this.f = f;
 	}
 

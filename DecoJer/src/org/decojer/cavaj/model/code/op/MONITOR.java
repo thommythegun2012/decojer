@@ -50,6 +50,9 @@ public class MONITOR extends Op {
 	 */
 	public MONITOR(final int pc, final int opcode, final int line, final int monitorType) {
 		super(pc, opcode, line);
+
+		assert 0 <= monitorType && monitorType <= 1 : monitorType;
+
 		this.monitorType = monitorType;
 	}
 

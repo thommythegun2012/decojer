@@ -426,7 +426,7 @@ public class T {
 	protected T(final DU du, final T baseT, final int dim) {
 		assert baseT != null;
 		assert baseT.dim == 0;
-		assert dim > 0;
+		assert dim > 0 : dim;
 
 		this.du = du;
 		this.superT = baseT;

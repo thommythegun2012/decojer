@@ -157,7 +157,7 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private Frame getFrame(final int pc) {
-		return this.cfg.getFrame(pc);
+		return this.cfg.frame(pc);
 	}
 
 	/**
@@ -308,8 +308,8 @@ public final class TrDataFlowAnalysis2Cfg {
 		final DU du = md.getM().getT().getDu();
 		this.isIgnoreExceptions = md.getTd().getCu().check(DFlag.IGNORE_EXCEPTIONS);
 
-		final Op[] ops = this.cfg.getOps();
-		this.pc2bbs = new BB[ops.length];
+		final int ops = this.cfg.getOps();
+		this.pc2bbs = new BB[ops];
 
 		// start with PC 0 and new BB
 		int pc = 0;
@@ -317,7 +317,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		this.cfg.setStartBb(bb);
 
 		while (true) {
-			if (pc >= ops.length) {
+			if (pc >= ops) {
 				// next open pc?
 				if (this.openPcs.isEmpty()) {
 					break;
@@ -353,7 +353,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			if (!this.isIgnoreExceptions) {
 				mergeExc(pc);
 			}
-			final Op op = ops[pc++];
+			final Op op = this.cfg.op(pc++);
 			bb.addOp(op);
 			this.frame = new Frame(getFrame(op.getPc()));
 
@@ -565,7 +565,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				evalBinaryMath(cop.getT(), T.VOID);
 				merge(pc);
 				merge(cop.getTargetPc());
-				pc = ops.length; // next open pc
+				pc = ops; // next open pc
 				continue;
 			}
 			case JCND: {
@@ -574,7 +574,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				pop(cop.getT());
 				merge(pc);
 				merge(cop.getTargetPc());
-				pc = ops.length; // next open pc
+				pc = ops; // next open pc
 				continue;
 			}
 			case JSR: {
@@ -628,7 +628,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					this.frame.push(new R(pc, T.RETURN_ADDRESS, sub, Kind.CONST));
 					merge(cop.getTargetPc());
 				}
-				pc = ops.length; // next open pc
+				pc = ops; // next open pc
 				continue;
 			}
 			case LOAD: {
@@ -741,7 +741,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				if (!r.read(T.RETURN_ADDRESS)) {
 					LOGGER.warning("Illegal return from subroutine! No return address register: "
 							+ r);
-					pc = ops.length; // next open pc
+					pc = ops; // next open pc
 					continue;
 				}
 				// bytecode restriction: register can only be consumed once
@@ -751,7 +751,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				if (!this.frame.pop(sub)) {
 					LOGGER.warning("Illegal return from subroutine! Not in subroutine stack: "
 							+ sub);
-					pc = ops.length; // next open pc
+					pc = ops; // next open pc
 					continue;
 				}
 				// remember RET for later JSRs to this Sub
@@ -768,7 +768,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					bb.setSucc(getTarget(returnPc));
 					merge(returnPc);
 				}
-				pc = ops.length; // next open pc
+				pc = ops; // next open pc
 				continue;
 			}
 			case RETURN: {
@@ -780,7 +780,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					// just type reduction
 					pop(returnT);
 				}
-				pc = ops.length; // next open pc
+				pc = ops; // next open pc
 				continue;
 			}
 			case SHL: {
@@ -872,7 +872,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				for (final int casePc : cop.getCasePcs()) {
 					merge(casePc);
 				}
-				pc = ops.length; // next open pc
+				pc = ops; // next open pc
 				continue;
 			}
 			case THROW:
@@ -880,7 +880,7 @@ public final class TrDataFlowAnalysis2Cfg {
 
 				// just type reduction
 				pop(du.getT(Throwable.class));
-				pc = ops.length; // next open pc
+				pc = ops; // next open pc
 				continue;
 			case XOR: {
 				final XOR cop = (XOR) op;
@@ -893,11 +893,12 @@ public final class TrDataFlowAnalysis2Cfg {
 			if (this.pc2bbs[pc] != null) {
 				bb.setSucc(getTarget(pc));
 				merge(pc);
-				pc = ops.length; // next open pc
+				pc = ops; // next open pc
 			} else {
 				merge(pc);
 			}
 		}
 		this.cfg.calculatePostorder();
 	}
+
 }

@@ -62,6 +62,8 @@ public class FILLARRAY extends Op {
 	 * @return values
 	 */
 	public Object[] getValues() {
+		assert this.values != null;
+
 		return this.values;
 	}
 
@@ -72,6 +74,8 @@ public class FILLARRAY extends Op {
 	 *            values
 	 */
 	public void setValues(final Object[] values) {
+		assert values != null;
+
 		this.values = values;
 	}
 

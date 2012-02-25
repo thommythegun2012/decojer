@@ -62,6 +62,8 @@ public class GOTO extends Op {
 	 * @return target pc
 	 */
 	public int getTargetPc() {
+		assert this.targetPc >= 0 : this.targetPc;
+
 		return this.targetPc;
 	}
 
@@ -72,6 +74,8 @@ public class GOTO extends Op {
 	 *            target pc
 	 */
 	public void setTargetPc(final int targetPc) {
+		assert targetPc >= 0 : targetPc;
+
 		this.targetPc = targetPc;
 	}
 

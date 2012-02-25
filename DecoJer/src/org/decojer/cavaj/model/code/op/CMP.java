@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class CMP extends Op {
+public class CMP extends TypedOp {
 
 	public static final int T_0 = 0;
 
@@ -39,8 +39,6 @@ public class CMP extends Op {
 	public static final int T_L = 2;
 
 	private final int cmpType;
-
-	private final T t;
 
 	/**
 	 * Constructor.
@@ -57,8 +55,10 @@ public class CMP extends Op {
 	 *            compare type
 	 */
 	public CMP(final int pc, final int opcode, final int line, final T t, final int cmpType) {
-		super(pc, opcode, line);
-		this.t = t;
+		super(pc, opcode, line, t);
+
+		assert 0 <= cmpType && cmpType <= 2 : cmpType;
+
 		this.cmpType = cmpType;
 	}
 
@@ -79,15 +79,6 @@ public class CMP extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.CMP;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 }

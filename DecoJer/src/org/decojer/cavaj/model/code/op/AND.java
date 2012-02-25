@@ -30,9 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class AND extends Op {
-
-	private final T t;
+public class AND extends TypedOp {
 
 	/**
 	 * Constructor.
@@ -47,8 +45,7 @@ public class AND extends Op {
 	 *            type
 	 */
 	public AND(final int pc, final int opcode, final int line, final T t) {
-		super(pc, opcode, line);
-		this.t = t;
+		super(pc, opcode, line, t);
 	}
 
 	@Override
@@ -59,15 +56,6 @@ public class AND extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.AND;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 }

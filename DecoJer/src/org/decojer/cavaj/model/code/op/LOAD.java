@@ -30,9 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class LOAD extends Op {
-
-	private final T t;
+public class LOAD extends TypedOp {
 
 	private final int reg;
 
@@ -51,11 +49,10 @@ public class LOAD extends Op {
 	 *            register
 	 */
 	public LOAD(final int pc, final int opcode, final int line, final T t, final int reg) {
-		super(pc, opcode, line);
+		super(pc, opcode, line, t);
 
-		assert t != null;
+		assert reg >= 0 : reg;
 
-		this.t = t;
 		this.reg = reg;
 	}
 
@@ -76,15 +73,6 @@ public class LOAD extends Op {
 	 */
 	public int getReg() {
 		return this.reg;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 	@Override

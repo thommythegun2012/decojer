@@ -30,11 +30,9 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class JCMP extends Op {
+public class JCMP extends TypedOp {
 
 	private final CmpType cmpType;
-
-	private final T t;
 
 	private int targetPc;
 
@@ -53,8 +51,10 @@ public class JCMP extends Op {
 	 *            compare type
 	 */
 	public JCMP(final int pc, final int opcode, final int line, final T t, final CmpType cmpType) {
-		super(pc, opcode, line);
-		this.t = t;
+		super(pc, opcode, line, t);
+
+		assert cmpType != null;
+
 		this.cmpType = cmpType;
 	}
 
@@ -80,20 +80,13 @@ public class JCMP extends Op {
 	}
 
 	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
-	}
-
-	/**
 	 * get target pc.
 	 * 
 	 * @return target pc
 	 */
 	public int getTargetPc() {
+		assert this.targetPc >= 0 : this.targetPc;
+
 		return this.targetPc;
 	}
 
@@ -104,6 +97,8 @@ public class JCMP extends Op {
 	 *            target pc
 	 */
 	public void setTargetPc(final int targetPc) {
+		assert targetPc >= 0 : targetPc;
+
 		this.targetPc = targetPc;
 	}
 
