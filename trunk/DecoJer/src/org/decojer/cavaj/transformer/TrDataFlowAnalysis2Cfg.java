@@ -151,53 +151,18 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 	}
 
+	private Frame frame(final int pc) {
+		return this.cfg.frame(pc);
+	}
+
 	private R get(final int i, final T t) {
 		final R r = this.frame.get(i);
 		r.read(t);
 		return r;
 	}
 
-	private Frame getFrame(final int pc) {
-		return this.cfg.frame(pc);
-	}
-
-	/**
-	 * Get target BB for PC. Split or create new if necessary.
-	 * 
-	 * @param pc
-	 *            target PC
-	 * @return target BB
-	 */
-	private BB getTarget(final int pc) {
-		final BB bb = this.pc2bbs[pc]; // get BB for target PC
-		if (bb == null) {
-			// PC not processed yet
-			this.openPcs.add(pc);
-			return newBb(pc);
-		}
-		// found BB has target PC as first PC => return BB, no split necessary
-		if (bb.getPc() == pc) {
-			return bb;
-		}
-
-		// split basic block, new incoming block, adapt basic block pcs,
-		// it's necessary to preserve the outgoing block for back edges to same BB!!!
-		final BB split = newBb(bb.getPc());
-
-		bb.moveIns(split);
-		split.setSucc(bb);
-		final List<Op> ops = bb.getOps();
-		while (!ops.isEmpty() && ops.get(0).getPc() != pc) {
-			final Op op = ops.remove(0);
-			split.addOp(op);
-			this.pc2bbs[op.getPc()] = split;
-		}
-		bb.setOpPc(pc);
-		return bb;
-	}
-
 	private void merge(final int pc) {
-		final Frame frame = getFrame(pc);
+		final Frame frame = frame(pc);
 		if (frame == null) {
 			this.cfg.setFrame(pc, this.frame);
 			return;
@@ -211,8 +176,8 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			final T t = R.merge(oldR, newR);
 			// merge enhance not possible without known start pc for oldR
-			final R r = t == null ? null : new R(pc, R.merge(oldR, newR), Kind.MERGE, oldR, newR);
-			this.pc2bbs[pc].replaceReg(reg, oldR, r);
+			final R r = t == null ? null : new R(pc, t, Kind.MERGE, oldR, newR);
+			mergeReplaceReg(this.pc2bbs[pc], reg, oldR, r);
 		}
 		for (int i = this.frame.getStackSize(); i-- > 0;) {
 			// TODO handling for mergeExc with single stack exception value suboptimal
@@ -226,7 +191,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			newR.mergeTo(t);
 			// merge enhence not possible without known start pc for oldR
 			final R r = t == null ? null : new R(pc, R.merge(oldR, newR), Kind.MERGE, oldR, newR);
-			this.pc2bbs[pc].replaceReg(this.cfg.getRegs() + i, oldR, r);
+			mergeReplaceReg(this.pc2bbs[pc], this.cfg.getRegs() + i, oldR, r);
 		}
 	}
 
@@ -237,13 +202,13 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		for (final Exc exc : excs) {
 			if (exc.validIn(pc)) {
-				this.frame = new Frame(getFrame(pc));
+				this.frame = new Frame(frame(pc));
 				this.frame.clearStack();
 
-				final Frame handlerFrame = getFrame(exc.getHandlerPc());
+				final Frame handlerFrame = frame(exc.getHandlerPc());
 				if (handlerFrame == null) {
 					merge(exc.getHandlerPc());
-					this.frame = getFrame(exc.getHandlerPc());
+					this.frame = frame(exc.getHandlerPc());
 					// null is <any> (means Java finally) -> Throwable
 					push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
 							.getT(Throwable.class) : exc.getT());
@@ -254,6 +219,23 @@ public final class TrDataFlowAnalysis2Cfg {
 					this.frame.push(handlerFrame.peek()); // reuse exception register
 					merge(exc.getHandlerPc());
 				}
+			}
+		}
+	}
+
+	private void mergeReplaceReg(final BB bb, final int reg, final R oldR, final R r) {
+		assert oldR != null;
+
+		// could still have no operations
+		Frame frame = this.cfg.frame(bb.getPc());
+		R replacedR = frame.replaceReg(reg, oldR, r);
+		for (int i = 1; replacedR != null && i < bb.getOps(); ++i) {
+			frame = this.cfg.inFrame(bb.op(i));
+			replacedR = frame.replaceReg(reg, replacedR, r);
+		}
+		if (replacedR != null) {
+			for (final E out : bb.getOuts()) {
+				mergeReplaceReg(out.getEnd(), reg, replacedR, r);
 			}
 		}
 	}
@@ -284,7 +266,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
 				final List<T> types = handlerPc2typeEntry.getValue();
 				bb.addCatchSucc(types.toArray(new T[types.size()]),
-						getTarget(handlerPc2typeEntry.getKey()));
+						targetBb(handlerPc2typeEntry.getKey()));
 			}
 		}
 		return bb;
@@ -300,6 +282,40 @@ public final class TrDataFlowAnalysis2Cfg {
 		final R s = new R(this.frame.getPc(), t, Kind.CONST);
 		this.frame.push(s);
 		return s;
+	}
+
+	/**
+	 * Get target BB for PC. Split or create new if necessary.
+	 * 
+	 * @param pc
+	 *            target PC
+	 * @return target BB
+	 */
+	private BB targetBb(final int pc) {
+		final BB bb = this.pc2bbs[pc]; // get BB for target PC
+		if (bb == null) {
+			// PC not processed yet
+			this.openPcs.add(pc);
+			return newBb(pc);
+		}
+		// found BB has target PC as first PC => return BB, no split necessary
+		if (bb.getPc() == pc) {
+			return bb;
+		}
+
+		// split basic block, new incoming block, adapt basic block pcs,
+		// it's necessary to preserve the outgoing block for back edges to same BB!!!
+		final BB split = newBb(bb.getPc());
+
+		bb.moveIns(split);
+		split.setSucc(bb);
+		while (bb.getOps() > 0 && bb.op(0).getPc() != pc) {
+			final Op op = bb.removeOp(0);
+			split.addOp(op);
+			this.pc2bbs[op.getPc()] = split;
+		}
+		bb.setPc(pc);
+		return bb;
 	}
 
 	private void transform() {
@@ -329,7 +345,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				this.pc2bbs[pc] = bb;
 				if (!this.isIgnoreExceptions) {
 					// exception block changes in none-empty BB? -> split necessary!
-					if (!bb.getOps().isEmpty() && this.cfg.getExcs() != null) {
+					if (bb.getOps() > 0 && this.cfg.getExcs() != null) {
 						for (final Exc exc : this.cfg.getExcs()) {
 							if (exc.validIn(pc)) {
 								if (exc.validIn(bb.getPc())) {
@@ -356,7 +372,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			final Op op = this.cfg.op(pc++);
 			bb.addOp(op);
-			this.frame = new Frame(getFrame(op.getPc()));
+			this.frame = new Frame(frame(op.getPc()));
 
 			switch (op.getOptype()) {
 			case ADD: {
@@ -562,7 +578,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case JCMP: {
 				final JCMP cop = (JCMP) op;
-				bb.setCondSuccs(getTarget(pc), getTarget(cop.getTargetPc()));
+				bb.setCondSuccs(targetBb(pc), targetBb(cop.getTargetPc()));
 				evalBinaryMath(cop.getT(), T.VOID);
 				merge(pc);
 				merge(cop.getTargetPc());
@@ -571,7 +587,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case JCND: {
 				final JCND cop = (JCND) op;
-				bb.setCondSuccs(getTarget(pc), getTarget(cop.getTargetPc()));
+				bb.setCondSuccs(targetBb(pc), targetBb(cop.getTargetPc()));
 				pop(cop.getT());
 				merge(pc);
 				merge(cop.getTargetPc());
@@ -582,9 +598,9 @@ public final class TrDataFlowAnalysis2Cfg {
 				final JSR cop = (JSR) op;
 				// Spec, JSR/RET is stack-like:
 				// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
-				bb.setSucc(getTarget(cop.getTargetPc()));
+				bb.setSucc(targetBb(cop.getTargetPc()));
 				// use common value (like Sub) instead of jsr-follow-address because of merge
-				final Frame targetFrame = getFrame(cop.getTargetPc());
+				final Frame targetFrame = frame(cop.getTargetPc());
 				jsr: if (targetFrame != null) {
 					// JSR already visited, reuse Sub
 					if (this.frame.getStackSize() + 1 != targetFrame.getStackSize()) {
@@ -612,12 +628,12 @@ public final class TrDataFlowAnalysis2Cfg {
 					final RET ret = sub.getRet();
 					if (ret != null) {
 						// RET already visited, link RET BB to JSR follower and merge
-						this.frame = new Frame(getFrame(ret.getPc()));
+						this.frame = new Frame(frame(ret.getPc()));
 						// bytecode restriction: register can only be consumed once
 						this.frame.set(ret.getReg(), null);
 						final BB retBb = this.pc2bbs[ret.getPc()];
 						final int returnPc = cop.getPc() + 1;
-						retBb.setSucc(getTarget(returnPc));
+						retBb.setSucc(targetBb(returnPc));
 						merge(returnPc);
 					}
 				} else {
@@ -762,11 +778,10 @@ public final class TrDataFlowAnalysis2Cfg {
 				final int subPc = sub.getPc();
 				final BB subBb = this.pc2bbs[subPc];
 				for (final E in : subBb.getIns()) {
-					final List<Op> jsrBb = in.getStart().getOps();
 					// JSR is last operation in previous BB
-					final Op jsr = jsrBb.get(jsrBb.size() - 1);
+					final Op jsr = in.getStart().getFinalOp();
 					final int returnPc = jsr.getPc() + 1;
-					bb.setSucc(getTarget(returnPc));
+					bb.setSucc(targetBb(returnPc));
 					merge(returnPc);
 				}
 				pc = ops; // next open pc
@@ -804,7 +819,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				final R r = pop(cop.getT());
 
 				// TODO hack, check store type in debug variable
-				final V debugV = this.cfg.getDebugV(cop.getReg(), pc);
+				final V debugV = this.cfg.debugV(cop.getReg(), pc);
 				if (debugV != null) {
 					r.mergeTo(debugV.getT());
 				}
@@ -865,7 +880,7 @@ public final class TrDataFlowAnalysis2Cfg {
 						.entrySet()) {
 					keys = casePc2keysEntry.getValue();
 					bb.addSwitchSucc(keys.toArray(new Integer[keys.size()]),
-							getTarget(casePc2keysEntry.getKey()));
+							targetBb(casePc2keysEntry.getKey()));
 				}
 
 				pop(T.INT);
@@ -892,7 +907,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				LOGGER.warning("Operation '" + op + "' not handled!");
 			}
 			if (this.pc2bbs[pc] != null) {
-				bb.setSucc(getTarget(pc));
+				bb.setSucc(targetBb(pc));
 				merge(pc);
 				pc = ops; // next open pc
 			} else {

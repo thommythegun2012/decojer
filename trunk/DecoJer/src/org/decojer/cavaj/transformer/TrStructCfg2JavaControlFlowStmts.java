@@ -216,7 +216,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 		case Loop.WHILENOT: {
 			final WhileStatement whileStatement = getAst().newWhileStatement();
 
-			final IfStatement statement = (IfStatement) head.getStmt(0);
+			final IfStatement statement = (IfStatement) head.stmt(0);
 			final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 					statement.getExpression());
 			whileStatement.setExpression(negate ? newPrefixExpression(
@@ -327,8 +327,8 @@ public final class TrStructCfg2JavaControlFlowStmts {
 					} else if (succStruct instanceof Cond) {
 						// possible statements before cond in basic block
 						final int size = succ.getStmts() - 1;
-						for (int index = 0; index < size; ++index) {
-							statements.add(succ.getStmt(index));
+						for (int i = 0; i < size; ++i) {
+							statements.add(succ.stmt(i));
 						}
 						structStatement = transformCond((Cond) succStruct);
 					} else if (succStruct instanceof Loop) {
@@ -336,8 +336,8 @@ public final class TrStructCfg2JavaControlFlowStmts {
 					} else if (succStruct instanceof Switch) {
 						// possible statements before switch in basic block
 						final int size = succ.getStmts() - 1;
-						for (int index = 0; index < size; ++index) {
-							statements.add(succ.getStmt(index));
+						for (int i = 0; i < size; ++i) {
+							statements.add(succ.stmt(i));
 						}
 						structStatement = transformSwitch((Switch) succStruct);
 					} else {
@@ -385,8 +385,8 @@ public final class TrStructCfg2JavaControlFlowStmts {
 						if (findLoop.isPost()) {
 							if (struct == findLoop) {
 								final int size = succ.getStmts() - 1;
-								for (int index = 0; index < size; ++index) {
-									statements.add(succ.getStmt(index));
+								for (int i = 0; i < size; ++i) {
+									statements.add(succ.stmt(i));
 								}
 							} else {
 								statements.add(getAst().newContinueStatement());
@@ -394,8 +394,8 @@ public final class TrStructCfg2JavaControlFlowStmts {
 							return;
 						} else if (findLoop.isPre() || findLoop.isEndless()) {
 							final int size = succ.getStmts();
-							for (int index = 0; index < size; ++index) {
-								statements.add(succ.getStmt(index));
+							for (int i = 0; i < size; ++i) {
+								statements.add(succ.stmt(i));
 							}
 						}
 						return;
@@ -412,8 +412,8 @@ public final class TrStructCfg2JavaControlFlowStmts {
 			}
 			// simple sequence block, 0 statements possible with empty GOTO basic blocks
 			final int size = succ.getStmts();
-			for (int index = 0; index < size; ++index) {
-				statements.add(succ.getStmt(index));
+			for (int i = 0; i < size; ++i) {
+				statements.add(succ.stmt(i));
 			}
 			succ = succ.getSucc();
 		}

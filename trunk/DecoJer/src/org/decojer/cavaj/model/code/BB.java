@@ -199,6 +199,15 @@ public final class BB {
 	}
 
 	/**
+	 * Get final operation.
+	 * 
+	 * @return final operation or null
+	 */
+	public Op getFinalOp() {
+		return this.ops.isEmpty() ? null : this.ops.get(this.ops.size() - 1);
+	}
+
+	/**
 	 * Get final statement.
 	 * 
 	 * @return final statement or null
@@ -239,12 +248,12 @@ public final class BB {
 	}
 
 	/**
-	 * Get operations.
+	 * Get operation number.
 	 * 
-	 * @return operations
+	 * @return operation number
 	 */
-	public List<Op> getOps() {
-		return this.ops;
+	public int getOps() {
+		return this.ops.size();
 	}
 
 	/**
@@ -305,18 +314,6 @@ public final class BB {
 	 */
 	public int getStackSize() {
 		return this.top;
-	}
-
-	/**
-	 * Get statement.
-	 * 
-	 * @param index
-	 *            statement index
-	 * @return statement or null
-	 */
-	public Statement getStmt(final int index) {
-		final int size = this.stmts.size();
-		return size <= index ? null : this.stmts.get(index);
 	}
 
 	/**
@@ -453,6 +450,17 @@ public final class BB {
 	}
 
 	/**
+	 * Get operation at index.
+	 * 
+	 * @param i
+	 *            operation index
+	 * @return operation
+	 */
+	public Op op(final int i) {
+		return this.ops.get(i);
+	}
+
+	/**
 	 * Peek stack expression.
 	 * 
 	 * @return expression
@@ -513,42 +521,27 @@ public final class BB {
 	}
 
 	/**
-	 * Remove statement.
+	 * Remove operation at index.
 	 * 
-	 * @param index
-	 *            index
-	 * @return statement or null
+	 * @param i
+	 *            operation index
+	 * @return operation or null
 	 */
-	public Statement removeStmt(final int index) {
-		final int size = this.stmts.size();
-		return size <= index ? null : this.stmts.remove(index);
+	public Op removeOp(final int i) {
+		final int size = this.ops.size();
+		return size <= i ? null : this.ops.remove(i);
 	}
 
 	/**
-	 * Replace register for merging.
+	 * Remove statement at index.
 	 * 
-	 * @param reg
-	 *            register index
-	 * @param oldR
-	 *            old register, not null
-	 * @param r
-	 *            register
+	 * @param i
+	 *            statement index
+	 * @return statement or null
 	 */
-	public void replaceReg(final int reg, final R oldR, final R r) {
-		assert oldR != null : oldR;
-
-		// could still have no operations
-		Frame frame = this.cfg.frame(this.pc);
-		R replacedR = frame.replaceReg(reg, oldR, r);
-		for (int i = 1; replacedR != null && i < this.ops.size(); ++i) {
-			frame = this.cfg.getInFrame(this.ops.get(i));
-			replacedR = frame.replaceReg(reg, replacedR, r);
-		}
-		if (replacedR != null) {
-			for (final E out : getOuts()) {
-				out.getEnd().replaceReg(reg, replacedR, r);
-			}
-		}
+	public Statement removeStmt(final int i) {
+		final int size = this.stmts.size();
+		return size <= i ? null : this.stmts.remove(i);
 	}
 
 	/**
@@ -587,11 +580,11 @@ public final class BB {
 	/**
 	 * Set first operation pc.
 	 * 
-	 * @param opPc
+	 * @param pc
 	 *            first operation pc
 	 */
-	public void setOpPc(final int opPc) {
-		this.pc = opPc;
+	public void setPc(final int pc) {
+		this.pc = pc;
 	}
 
 	/**
@@ -626,6 +619,18 @@ public final class BB {
 		final E e = new E(this, succ, null);
 		this.outs.add(e);
 		succ.ins.add(e);
+	}
+
+	/**
+	 * Get statement at index.
+	 * 
+	 * @param i
+	 *            statement index
+	 * @return statement or null
+	 */
+	public Statement stmt(final int i) {
+		final int size = this.stmts.size();
+		return size <= i ? null : this.stmts.get(i);
 	}
 
 	@Override
