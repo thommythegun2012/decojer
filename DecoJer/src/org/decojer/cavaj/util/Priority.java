@@ -73,6 +73,8 @@ public enum Priority {
 	/**
 	 * Constructor.
 	 * 
+	 * @param priority
+	 *            priority
 	 */
 	private Priority(final int priority) {
 		this.priority = priority;

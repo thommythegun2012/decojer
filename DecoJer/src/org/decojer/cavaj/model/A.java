@@ -77,8 +77,6 @@ public class A {
 	/**
 	 * Get member value.
 	 * 
-	 * @param name
-	 *            name
 	 * @return value
 	 */
 	public Object getMemberValue() {
@@ -118,8 +116,7 @@ public class A {
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(getT().getName());
 		for (final String name : getMemberNames()) {
-			sb.append("  ").append(name).append("=")
-					.append(getMemberValue(name));
+			sb.append("  ").append(name).append("=").append(getMemberValue(name));
 		}
 		return sb.toString();
 	}

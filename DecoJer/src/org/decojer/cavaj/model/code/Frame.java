@@ -72,6 +72,8 @@ public class Frame {
 	/**
 	 * Copy constructor.
 	 * 
+	 * @param pc
+	 *            pc
 	 * @param frame
 	 *            copy frame
 	 */

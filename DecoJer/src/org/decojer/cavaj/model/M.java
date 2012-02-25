@@ -102,10 +102,6 @@ public class M {
 	 *            return type
 	 * @param paramTs
 	 *            parameter types
-	 * @param throwsTs
-	 *            throws types
-	 * @param signature
-	 *            signature
 	 */
 	public M(final T t, final String name, final String descriptor, final T returnT,
 			final T[] paramTs) {

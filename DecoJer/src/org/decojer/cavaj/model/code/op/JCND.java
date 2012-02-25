@@ -85,7 +85,8 @@ public class JCND extends TypedOp {
 	 * @return target pc
 	 */
 	public int getTargetPc() {
-		assert this.targetPc >= 0 : this.targetPc;
+		// pc can temporarily be negative because of reading unknown labels
+		// assert targetPc >= 0 : targetPc;
 
 		return this.targetPc;
 	}
@@ -97,7 +98,8 @@ public class JCND extends TypedOp {
 	 *            target pc
 	 */
 	public void setTargetPc(final int targetPc) {
-		assert targetPc >= 0 : targetPc;
+		// pc can temporarily be negative because of reading unknown labels
+		// assert targetPc >= 0 : targetPc;
 
 		this.targetPc = targetPc;
 	}
