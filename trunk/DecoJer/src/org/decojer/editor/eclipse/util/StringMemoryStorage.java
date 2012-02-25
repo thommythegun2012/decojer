@@ -33,7 +33,6 @@ import org.eclipse.core.runtime.IPath;
 /**
  * Memory Storage for Eclipse Editor Framework.
  * 
- * @see StringInput
  * @author André Pankraz
  */
 public class StringMemoryStorage implements IEncodedStorage {

@@ -42,10 +42,9 @@ import org.eclipse.ui.texteditor.ITextEditor;
 import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 
 /**
- * Manages the installation/deinstallation of global actions for multi-page
- * editors. Responsible for the redirection of global actions to the active
- * editor. Multi-page contributor replaces the contributors for the individual
- * editors in the multi-page editor.
+ * Manages the installation/deinstallation of global actions for multi-page editors. Responsible for
+ * the redirection of global actions to the active editor. Multi-page contributor replaces the
+ * contributors for the individual editors in the multi-page editor.
  */
 public class ClassEditorContributor extends MultiPageEditorActionBarContributor {
 	private IEditorPart activeEditorPart;
@@ -76,20 +75,22 @@ public class ClassEditorContributor extends MultiPageEditorActionBarContributor 
 		this.sampleAction = new Action() {
 			@Override
 			public void run() {
-				MessageDialog.openInformation(null, "DecoJer",
-						"Sample Action Executed");
+				MessageDialog.openInformation(null, "DecoJer", "Sample Action Executed");
 			}
 		};
 		this.sampleAction.setText("Sample Action");
 		this.sampleAction.setToolTipText("Sample Action tool tip");
-		this.sampleAction.setImageDescriptor(PlatformUI.getWorkbench()
-				.getSharedImages()
+		this.sampleAction.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages()
 				.getImageDescriptor(IDE.SharedImages.IMG_OBJS_TASK_TSK));
 	}
 
 	/**
 	 * Returns the action registed with the given text editor.
 	 * 
+	 * @param editor
+	 *            editor
+	 * @param actionID
+	 *            action ID
 	 * @return IAction or null if editor is null.
 	 */
 	protected IAction getAction(final ITextEditor editor, final String actionID) {
@@ -97,8 +98,7 @@ public class ClassEditorContributor extends MultiPageEditorActionBarContributor 
 	}
 
 	/*
-	 * (non-JavaDoc) Method declared in
-	 * AbstractMultiPageEditorActionBarContributor.
+	 * (non-JavaDoc) Method declared in AbstractMultiPageEditorActionBarContributor.
 	 */
 	@Override
 	public void setActivePage(final IEditorPart part) {
@@ -111,8 +111,7 @@ public class ClassEditorContributor extends MultiPageEditorActionBarContributor 
 		final IActionBars actionBars = getActionBars();
 		if (actionBars != null) {
 
-			final ITextEditor editor = part instanceof ITextEditor ? (ITextEditor) part
-					: null;
+			final ITextEditor editor = part instanceof ITextEditor ? (ITextEditor) part : null;
 
 			actionBars.setGlobalActionHandler(ActionFactory.DELETE.getId(),
 					getAction(editor, ITextEditorActionConstants.DELETE));
@@ -130,8 +129,7 @@ public class ClassEditorContributor extends MultiPageEditorActionBarContributor 
 					getAction(editor, ITextEditorActionConstants.SELECT_ALL));
 			actionBars.setGlobalActionHandler(ActionFactory.FIND.getId(),
 					getAction(editor, ITextEditorActionConstants.FIND));
-			actionBars.setGlobalActionHandler(
-					IDEActionFactory.BOOKMARK.getId(),
+			actionBars.setGlobalActionHandler(IDEActionFactory.BOOKMARK.getId(),
 					getAction(editor, IDEActionFactory.BOOKMARK.getId()));
 			actionBars.updateActionBars();
 		}

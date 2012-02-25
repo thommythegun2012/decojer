@@ -231,7 +231,7 @@ public final class BB {
 	 * @return first operation line
 	 */
 	public int getLine() {
-		return this.cfg.getOps()[this.pc].getLine();
+		return this.cfg.op(this.pc).getLine();
 	}
 
 	private int getLocals() {
@@ -506,8 +506,6 @@ public final class BB {
 	/**
 	 * Remove final statement.
 	 * 
-	 * @param index
-	 *            index
 	 * @return statement or null
 	 */
 	public Statement removeFinalStmt() {

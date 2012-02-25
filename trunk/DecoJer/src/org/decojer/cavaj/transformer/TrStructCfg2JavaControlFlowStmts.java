@@ -130,7 +130,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 	}
 
 	private IfStatement transformCatch(final Catch catchStruct) {
-		final BB head = catchStruct.getHead();
+		// final BB head = catchStruct.getHead();
 		return null;
 	}
 

@@ -134,7 +134,8 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private void evalBinaryMath(final T t, final T pushT) {
-		final R s2 = pop(t);
+		// final R s2 =
+		pop(t);
 		final R s1 = pop(t);
 
 		if (s1.getT().isReference()) {

@@ -60,7 +60,7 @@ public class NEW extends TypedOp {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + this.t.getIName();
+		return super.toString() + " " + getT().getIName();
 	}
 
 }
