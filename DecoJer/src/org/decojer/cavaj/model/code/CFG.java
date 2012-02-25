@@ -201,6 +201,15 @@ public class CFG {
 	}
 
 	/**
+	 * Get Eclipse block.
+	 * 
+	 * @return Eclipse block
+	 */
+	public Block getBlock() {
+		return this.block;
+	}
+
+	/**
 	 * Get local variable (from debug info).
 	 * 
 	 * @param reg
@@ -210,7 +219,7 @@ public class CFG {
 	 * 
 	 * @return local variable (from debug info)
 	 */
-	public V debugV(final int reg, final int pc) {
+	public V getDebugV(final int reg, final int pc) {
 		if (this.vss == null || reg >= this.vss.length) {
 			return null;
 		}
@@ -228,32 +237,23 @@ public class CFG {
 	}
 
 	/**
-	 * Get frame for pc.
-	 * 
-	 * @param pc
-	 *            pc
-	 * @return frame
-	 */
-	public Frame frame(final int pc) {
-		return this.frames[pc];
-	}
-
-	/**
-	 * Get Eclipse block.
-	 * 
-	 * @return Eclipse block
-	 */
-	public Block getBlock() {
-		return this.block;
-	}
-
-	/**
 	 * Get exception handlers.
 	 * 
 	 * @return exception handlers
 	 */
 	public Exc[] getExcs() {
 		return this.excs;
+	}
+
+	/**
+	 * Get frame for pc.
+	 * 
+	 * @param pc
+	 *            pc
+	 * @return frame
+	 */
+	public Frame getFrame(final int pc) {
+		return this.frames[pc];
 	}
 
 	/**
@@ -266,7 +266,7 @@ public class CFG {
 	 * @return local variable (from frame)
 	 */
 	public V getFrameVar(final int reg, final int pc) {
-		return debugV(reg, pc); // hack TODO this.frames[pc].get(reg);
+		return getDebugV(reg, pc); // hack TODO this.frames[pc].get(reg);
 	}
 
 	/**
@@ -278,6 +278,17 @@ public class CFG {
 	 */
 	public BB getIDom(final BB bb) {
 		return this.iDoms[bb.getPostorder()];
+	}
+
+	/**
+	 * Get input frame for operation.
+	 * 
+	 * @param op
+	 *            operation
+	 * @return input frame
+	 */
+	public Frame getInFrame(final Op op) {
+		return this.frames[op.getPc()];
 	}
 
 	/**
@@ -299,12 +310,34 @@ public class CFG {
 	}
 
 	/**
+	 * Get operation for pc.
+	 * 
+	 * @param pc
+	 *            pc
+	 * @return operation
+	 */
+	public Op getOp(final int pc) {
+		return this.ops[pc];
+	}
+
+	/**
 	 * Get operation number.
 	 * 
 	 * @return operation number
 	 */
 	public int getOps() {
 		return this.ops.length;
+	}
+
+	/**
+	 * Get output frame for operation. Doesn't (and must not) work for control flow statements.
+	 * 
+	 * @param op
+	 *            operation
+	 * @return output frame
+	 */
+	public Frame getOutFrame(final Op op) {
+		return this.frames[op.getPc() + 1];
 	}
 
 	/**
@@ -335,24 +368,13 @@ public class CFG {
 	}
 
 	/**
-	 * Get input frame for operation.
-	 * 
-	 * @param op
-	 *            operation
-	 * @return input frame
-	 */
-	public Frame inFrame(final Op op) {
-		return this.frames[op.getPc()];
-	}
-
-	/**
 	 * Initialize frames. Create first frame from method parameters.
 	 */
 	public void initFrames() {
 		this.frames = new Frame[this.ops.length];
 		final Frame frame = new Frame(this);
 		for (int reg = getRegs(); reg-- > 0;) {
-			final V v = debugV(reg, 0);
+			final V v = getDebugV(reg, 0);
 			if (v != null) {
 				frame.set(reg, new R(0, v.getT(), Kind.CONST));
 			}
@@ -402,28 +424,6 @@ public class CFG {
 	 */
 	public BB newBb(final int opPc) {
 		return new BB(this, opPc);
-	}
-
-	/**
-	 * Get operation for pc.
-	 * 
-	 * @param pc
-	 *            pc
-	 * @return operation
-	 */
-	public Op op(final int pc) {
-		return this.ops[pc];
-	}
-
-	/**
-	 * Get output frame for operation. Doesn't (and must not) work for control flow statements.
-	 * 
-	 * @param op
-	 *            operation
-	 * @return output frame
-	 */
-	public Frame outFrame(final Op op) {
-		return this.frames[op.getPc() + 1];
 	}
 
 	/**

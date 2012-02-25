@@ -155,7 +155,7 @@ public final class TrIvmCfg2JavaExprStmts {
 	@SuppressWarnings("unchecked")
 	private boolean convertToHLLIntermediate(final BB bb) {
 		while (bb.getOps() > 0) {
-			final Op op = bb.op(0);
+			final Op op = bb.getOp(0);
 			if (op.getInStackSize() > bb.getStackSize()) {
 				return false;
 			}
@@ -220,7 +220,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						// not all indexes may be set, null/0/false in JDK 7 are not set, fill
 						for (int i = size; i-- > 0;) {
 							arrayInitializer.expressions().add(
-									Types.convertLiteral(bb.getCfg().inFrame(op).peek().getT(),
+									Types.convertLiteral(bb.getCfg().getInFrame(op).peek().getT(),
 											null, getTd(), getAst()));
 						}
 						arrayCreation.dimensions().clear();
@@ -340,7 +340,7 @@ public final class TrIvmCfg2JavaExprStmts {
 			case FILLARRAY: {
 				final FILLARRAY cop = (FILLARRAY) op;
 
-				final T t = this.cfg.inFrame(op).peek().getT();
+				final T t = this.cfg.getInFrame(op).peek().getT();
 				final T baseT = t.getBaseT();
 
 				Expression expression = bb.pop();
@@ -640,7 +640,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						operator = null;
 					}
 					((InfixExpression) expression).setOperator(operator);
-				} else if (this.cfg.inFrame(op).peek().getT().isReference()) {
+				} else if (this.cfg.getInFrame(op).peek().getT().isReference()) {
 					final InfixExpression.Operator operator;
 					switch (cop.getCmpType()) {
 					case T_EQ:
@@ -659,7 +659,7 @@ public final class TrIvmCfg2JavaExprStmts {
 					infixExpression.setRightOperand(getAst().newNullLiteral());
 					infixExpression.setOperator(operator);
 					expression = infixExpression;
-				} else if (this.cfg.inFrame(op).peek().getT() == T.BOOLEAN) {
+				} else if (this.cfg.getInFrame(op).peek().getT() == T.BOOLEAN) {
 					// "!a" or "a == 0"?
 					switch (cop.getCmpType()) {
 					case T_EQ:
@@ -848,7 +848,7 @@ public final class TrIvmCfg2JavaExprStmts {
 			}
 			case PUSH: {
 				final PUSH cop = (PUSH) op;
-				final Expression expr = Types.convertLiteral(this.cfg.outFrame(op).peek().getT(),
+				final Expression expr = Types.convertLiteral(this.cfg.getOutFrame(op).peek().getT(),
 						cop.getValue(), getTd(), getAst());
 				if (expr != null) {
 					bb.push(expr);
@@ -880,7 +880,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						break fieldInit;
 					}
 					if (bb.getStmts() == 1
-							&& !(bb.stmt(0) instanceof SuperConstructorInvocation)) {
+							&& !(bb.getStmt(0) instanceof SuperConstructorInvocation)) {
 						// initial super(<arguments>) is allowed
 						break fieldInit;
 					}
@@ -1156,7 +1156,7 @@ public final class TrIvmCfg2JavaExprStmts {
 	}
 
 	private boolean isWide(final Op op) {
-		final R r = this.cfg.inFrame(op).peek();
+		final R r = this.cfg.getInFrame(op).peek();
 		if (r == null) {
 			return false;
 		}
@@ -1167,9 +1167,9 @@ public final class TrIvmCfg2JavaExprStmts {
 		// seen in JDK 1.2 Eclipse Core:
 		// DUP-POP conditional variant: GET class$0 DUP JCND_NE
 		// (_POP_ PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$0 GOTO)
-		if (bb.getOps() != 6 || !(bb.op(0) instanceof POP) || !(bb.op(1) instanceof PUSH)
-				|| !(bb.op(2) instanceof INVOKE) || !(bb.op(3) instanceof DUP)
-				|| !(bb.op(4) instanceof PUT) || !(bb.op(5) instanceof GOTO)) {
+		if (bb.getOps() != 6 || !(bb.getOp(0) instanceof POP) || !(bb.getOp(1) instanceof PUSH)
+				|| !(bb.getOp(2) instanceof INVOKE) || !(bb.getOp(3) instanceof DUP)
+				|| !(bb.getOp(4) instanceof PUT) || !(bb.getOp(5) instanceof GOTO)) {
 			return false;
 		}
 		final BB followBb = bb.getSucc();
@@ -1192,7 +1192,7 @@ public final class TrIvmCfg2JavaExprStmts {
 
 		Expression expression = condHead.peek();
 		try {
-			final String classInfo = (String) ((PUSH) bb.op(1)).getValue();
+			final String classInfo = (String) ((PUSH) bb.getOp(1)).getValue();
 			final DU du = getTd().getT().getDu();
 			final T literalT = du.getT(classInfo);
 			expression = Types.convertLiteral(du.getT(Class.class), literalT, getTd(), getAst());
@@ -1360,7 +1360,7 @@ public final class TrIvmCfg2JavaExprStmts {
 
 	@SuppressWarnings("unchecked")
 	private boolean rewriteHandler(final BB bb) {
-		if (bb.getOps() == 0 || !(bb.op(0) instanceof STORE)) {
+		if (bb.getOps() == 0 || !(bb.getOp(0) instanceof STORE)) {
 			LOGGER.warning("First operation in handler isn't STORE: " + bb);
 			return false;
 		}
@@ -1427,7 +1427,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				// rewrite AST
 				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
 						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.stmt(0)).getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
 				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
 						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
@@ -1452,7 +1452,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				// rewrite AST
 				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
 						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.stmt(0)).getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
 				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_AND, rightExpression, leftExpression));
 				// rewrite CFG
@@ -1477,7 +1477,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				// rewrite AST
 				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
 						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.stmt(0)).getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
 				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_OR, rightExpression, leftExpression));
 				// rewrite CFG
@@ -1501,7 +1501,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				// rewrite AST
 				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
 						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.stmt(0)).getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
 				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
 						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
