@@ -201,6 +201,33 @@ public class CFG {
 	}
 
 	/**
+	 * Get local variable (from debug info).
+	 * 
+	 * @param reg
+	 *            register
+	 * @param pc
+	 *            pc
+	 * 
+	 * @return local variable (from debug info)
+	 */
+	public V debugV(final int reg, final int pc) {
+		if (this.vss == null || reg >= this.vss.length) {
+			return null;
+		}
+		final V[] vs = this.vss[reg];
+		if (vs == null) {
+			return null;
+		}
+		for (int i = vs.length; i-- > 0;) {
+			final V v = vs[i];
+			if (v.validIn(pc)) {
+				return v;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Get frame for pc.
 	 * 
 	 * @param pc
@@ -218,33 +245,6 @@ public class CFG {
 	 */
 	public Block getBlock() {
 		return this.block;
-	}
-
-	/**
-	 * Get local variable (from debug info).
-	 * 
-	 * @param reg
-	 *            register
-	 * @param pc
-	 *            pc
-	 * 
-	 * @return local variable (from debug info)
-	 */
-	public V getDebugV(final int reg, final int pc) {
-		if (this.vss == null || reg >= this.vss.length) {
-			return null;
-		}
-		final V[] vs = this.vss[reg];
-		if (vs == null) {
-			return null;
-		}
-		for (int i = vs.length; i-- > 0;) {
-			final V v = vs[i];
-			if (v.validIn(pc)) {
-				return v;
-			}
-		}
-		return null;
 	}
 
 	/**
@@ -266,7 +266,7 @@ public class CFG {
 	 * @return local variable (from frame)
 	 */
 	public V getFrameVar(final int reg, final int pc) {
-		return getDebugV(reg, pc); // hack TODO this.frames[pc].get(reg);
+		return debugV(reg, pc); // hack TODO this.frames[pc].get(reg);
 	}
 
 	/**
@@ -278,17 +278,6 @@ public class CFG {
 	 */
 	public BB getIDom(final BB bb) {
 		return this.iDoms[bb.getPostorder()];
-	}
-
-	/**
-	 * Get input frame for operation.
-	 * 
-	 * @param op
-	 *            operation
-	 * @return input frame
-	 */
-	public Frame getInFrame(final Op op) {
-		return this.frames[op.getPc()];
 	}
 
 	/**
@@ -319,17 +308,6 @@ public class CFG {
 	}
 
 	/**
-	 * Get output frame for operation. Doesn't (and must not) work for control flow statements.
-	 * 
-	 * @param op
-	 *            operation
-	 * @return output frame
-	 */
-	public Frame getOutFrame(final Op op) {
-		return this.frames[op.getPc() + 1];
-	}
-
-	/**
 	 * Get postordered basic blocks.
 	 * 
 	 * @return postordered basic blocks
@@ -357,13 +335,24 @@ public class CFG {
 	}
 
 	/**
+	 * Get input frame for operation.
+	 * 
+	 * @param op
+	 *            operation
+	 * @return input frame
+	 */
+	public Frame inFrame(final Op op) {
+		return this.frames[op.getPc()];
+	}
+
+	/**
 	 * Initialize frames. Create first frame from method parameters.
 	 */
 	public void initFrames() {
 		this.frames = new Frame[this.ops.length];
 		final Frame frame = new Frame(this);
 		for (int reg = getRegs(); reg-- > 0;) {
-			final V v = getDebugV(reg, 0);
+			final V v = debugV(reg, 0);
 			if (v != null) {
 				frame.set(reg, new R(0, v.getT(), Kind.CONST));
 			}
@@ -424,6 +413,17 @@ public class CFG {
 	 */
 	public Op op(final int pc) {
 		return this.ops[pc];
+	}
+
+	/**
+	 * Get output frame for operation. Doesn't (and must not) work for control flow statements.
+	 * 
+	 * @param op
+	 *            operation
+	 * @return output frame
+	 */
+	public Frame outFrame(final Op op) {
+		return this.frames[op.getPc() + 1];
 	}
 
 	/**
@@ -533,7 +533,7 @@ public class CFG {
 	}
 
 	/**
-	 * Set frame for pc.
+	 * Set frame for pc. Copy frame.
 	 * 
 	 * @param pc
 	 *            pc

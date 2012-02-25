@@ -81,4 +81,9 @@ public class JSR extends Op {
 		this.targetPc = targetPc;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + " " + this.targetPc;
+	}
+
 }

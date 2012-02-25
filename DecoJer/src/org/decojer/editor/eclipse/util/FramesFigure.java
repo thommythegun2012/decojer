@@ -71,8 +71,8 @@ public class FramesFigure extends Figure {
 	public FramesFigure(final BB bb) {
 		final int regs = bb.getCfg().getRegs();
 		int maxStack = 0; // don't use bb.getCfg().getMaxStack()
-		for (final Op operation : bb.getOps()) {
-			final Frame frame = bb.getCfg().getInFrame(operation);
+		for (int i = bb.getOps(); i-- > 0;) {
+			final Frame frame = bb.getCfg().inFrame(bb.op(i));
 			if (frame == null) {
 				continue;
 			}
@@ -85,19 +85,19 @@ public class FramesFigure extends Figure {
 		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = 0;
 		setLayoutManager(gridLayout);
 
-		for (final Op operation : bb.getOps()) {
-			final Frame frame = bb.getCfg().getInFrame(operation);
-			add(new Label(operation.getPc() + " " + operation.toString()
-					+ (frame == null ? "?" : " ")));
+		for (int i = 0; i < bb.getOps(); ++i) {
+			final Op op = bb.op(i);
+			final Frame frame = bb.getCfg().inFrame(op);
+			add(new Label(op.getPc() + " " + op.toString() + (frame == null ? "?" : " ")));
 			for (int reg = 0; reg < regs; ++reg) {
 				final R r = frame == null ? null : frame.get(reg);
 				final Label label = new Label(r == null ? "    " : r.toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
-			for (int i = 0; i < maxStack; ++i) {
-				final Label label = new Label(frame == null || i >= frame.getStackSize()
-						|| frame.getStack(i) == null ? "    " : frame.getStack(i).toString());
+			for (int j = 0; j < maxStack; ++j) {
+				final Label label = new Label(frame == null || j >= frame.getStackSize()
+						|| frame.getStack(j) == null ? "    " : frame.getStack(j).toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
