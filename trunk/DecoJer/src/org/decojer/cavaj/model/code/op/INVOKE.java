@@ -53,6 +53,9 @@ public class INVOKE extends Op {
 	 */
 	public INVOKE(final int pc, final int opcode, final int line, final M m, final boolean direct) {
 		super(pc, opcode, line);
+
+		assert m != null;
+
 		this.m = m;
 		this.direct = direct;
 	}

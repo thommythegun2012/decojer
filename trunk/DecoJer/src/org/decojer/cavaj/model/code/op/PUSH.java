@@ -30,9 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class PUSH extends Op {
-
-	private final T t;
+public class PUSH extends TypedOp {
 
 	private final Object value;
 
@@ -51,9 +49,9 @@ public class PUSH extends Op {
 	 *            value
 	 */
 	public PUSH(final int pc, final int opcode, final int line, final T t, final Object value) {
-		super(pc, opcode, line);
-		this.t = t;
-		this.value = value;
+		super(pc, opcode, line, t);
+
+		this.value = value; // can be null
 	}
 
 	@Override
@@ -64,15 +62,6 @@ public class PUSH extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.PUSH;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 	/**

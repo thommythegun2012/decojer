@@ -23,14 +23,20 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import org.decojer.cavaj.model.T;
+
 /**
- * Operation 'JSR'.
+ * Operation.
+ * 
+ * The operation code is the VM Code (Class / Dalvik, so far it's possible with reader abstraction).
+ * Line numbers are only available if debug info given. The PC is the operation index, not the VM PC
+ * (that is not available with Label-based readers). But the original PC / read order is preserved!
  * 
  * @author André Pankraz
  */
-public class JSR extends Op {
+public abstract class TypedOp extends Op {
 
-	private int targetPc;
+	private final T t;
 
 	/**
 	 * Constructor.
@@ -41,42 +47,24 @@ public class JSR extends Op {
 	 *            operation code
 	 * @param line
 	 *            line number
+	 * @param t
+	 *            type
 	 */
-	public JSR(final int pc, final int opcode, final int line) {
+	public TypedOp(final int pc, final int opcode, final int line, final T t) {
 		super(pc, opcode, line);
-	}
 
-	@Override
-	public int getInStackSize() {
-		return 0;
-	}
+		assert t != null;
 
-	@Override
-	public Optype getOptype() {
-		return Optype.JSR;
+		this.t = t;
 	}
 
 	/**
-	 * Get target pc.
+	 * Get type.
 	 * 
-	 * @return target pc
+	 * @return type
 	 */
-	public int getTargetPc() {
-		assert this.targetPc >= 0 : this.targetPc;
-
-		return this.targetPc;
-	}
-
-	/**
-	 * Set target pc.
-	 * 
-	 * @param targetPc
-	 *            target pc
-	 */
-	public void setTargetPc(final int targetPc) {
-		assert targetPc >= 0 : targetPc;
-
-		this.targetPc = targetPc;
+	public T getT() {
+		return this.t;
 	}
 
 }

@@ -89,8 +89,8 @@ public class CFG {
 	 */
 	public CFG(final MD md, final int regs, final int maxStack) {
 		assert md != null;
-		assert regs >= 0;
-		assert maxStack >= 0;
+		assert regs >= 0 : regs;
+		assert maxStack >= 0 : maxStack;
 
 		this.md = md;
 		this.regs = regs;
@@ -201,6 +201,17 @@ public class CFG {
 	}
 
 	/**
+	 * Get frame for pc.
+	 * 
+	 * @param pc
+	 *            pc
+	 * @return frame
+	 */
+	public Frame frame(final int pc) {
+		return this.frames[pc];
+	}
+
+	/**
 	 * Get Eclipse block.
 	 * 
 	 * @return Eclipse block
@@ -243,26 +254,6 @@ public class CFG {
 	 */
 	public Exc[] getExcs() {
 		return this.excs;
-	}
-
-	/**
-	 * Get frame for pc.
-	 * 
-	 * @param pc
-	 *            pc
-	 * @return frame
-	 */
-	public Frame getFrame(final int pc) {
-		return this.frames[pc];
-	}
-
-	/**
-	 * Get frames.
-	 * 
-	 * @return frames
-	 */
-	public Object getFrames() {
-		return this.frames;
 	}
 
 	/**
@@ -319,12 +310,12 @@ public class CFG {
 	}
 
 	/**
-	 * Get operations.
+	 * Get operation number.
 	 * 
-	 * @return operations
+	 * @return operation number
 	 */
-	public Op[] getOps() {
-		return this.ops;
+	public int getOps() {
+		return this.ops.length;
 	}
 
 	/**
@@ -366,7 +357,7 @@ public class CFG {
 	}
 
 	/**
-	 * Initialize frames.
+	 * Initialize frames. Create first frame from method parameters.
 	 */
 	public void initFrames() {
 		this.frames = new Frame[this.ops.length];
@@ -395,6 +386,15 @@ public class CFG {
 	}
 
 	/**
+	 * Are frames initialized?
+	 * 
+	 * @return true - frames are initialized
+	 */
+	public boolean isFrames() {
+		return this.frames != null;
+	}
+
+	/**
 	 * Should transformer ignore this?
 	 * 
 	 * @return true - ignore this
@@ -413,6 +413,17 @@ public class CFG {
 	 */
 	public BB newBb(final int opPc) {
 		return new BB(this, opPc);
+	}
+
+	/**
+	 * Get operation for pc.
+	 * 
+	 * @param pc
+	 *            pc
+	 * @return operation
+	 */
+	public Op op(final int pc) {
+		return this.ops[pc];
 	}
 
 	/**

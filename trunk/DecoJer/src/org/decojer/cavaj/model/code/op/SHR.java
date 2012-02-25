@@ -30,9 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class SHR extends Op {
-
-	private final T t;
+public class SHR extends TypedOp {
 
 	private final boolean unsigned;
 
@@ -51,8 +49,7 @@ public class SHR extends Op {
 	 *            unsigned flag
 	 */
 	public SHR(final int pc, final int opcode, final int line, final T t, final boolean unsigned) {
-		super(pc, opcode, line);
-		this.t = t;
+		super(pc, opcode, line, t);
 		this.unsigned = unsigned;
 	}
 
@@ -64,15 +61,6 @@ public class SHR extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.SHR;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 	/**

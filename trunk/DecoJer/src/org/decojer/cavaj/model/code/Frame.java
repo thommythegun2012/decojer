@@ -319,7 +319,7 @@ public class Frame {
 	 * @return replaced register (oldR or mergedR or null)
 	 */
 	public R replaceReg(final int reg, final R oldR, final R r) {
-		assert oldR != null : oldR;
+		assert oldR != null;
 
 		// stack value already used, no replace
 		if (reg >= this.rs.length) {

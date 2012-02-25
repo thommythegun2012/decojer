@@ -30,9 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class DIV extends Op {
-
-	private final T t;
+public class DIV extends TypedOp {
 
 	/**
 	 * Constructor.
@@ -47,8 +45,7 @@ public class DIV extends Op {
 	 *            type
 	 */
 	public DIV(final int pc, final int opcode, final int line, final T t) {
-		super(pc, opcode, line);
-		this.t = t;
+		super(pc, opcode, line, t);
 	}
 
 	@Override
@@ -59,15 +56,6 @@ public class DIV extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.DIV;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 }

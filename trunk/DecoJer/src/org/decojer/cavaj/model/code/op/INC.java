@@ -30,11 +30,9 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class INC extends Op {
+public class INC extends TypedOp {
 
 	private final int reg;
-
-	private final T t;
 
 	private final int value;
 
@@ -56,8 +54,11 @@ public class INC extends Op {
 	 */
 	public INC(final int pc, final int opcode, final int line, final T t, final int reg,
 			final int value) {
-		super(pc, opcode, line);
-		this.t = t;
+		super(pc, opcode, line, t);
+
+		assert reg >= 0 : reg;
+		assert value != 0;
+
 		this.reg = reg;
 		this.value = value;
 	}
@@ -79,15 +80,6 @@ public class INC extends Op {
 	 */
 	public int getReg() {
 		return this.reg;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 	/**

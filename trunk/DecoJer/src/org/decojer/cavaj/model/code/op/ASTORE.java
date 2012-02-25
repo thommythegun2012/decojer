@@ -30,9 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class ASTORE extends Op {
-
-	private final T t;
+public class ASTORE extends TypedOp {
 
 	/**
 	 * Constructor.
@@ -47,8 +45,7 @@ public class ASTORE extends Op {
 	 *            type
 	 */
 	public ASTORE(final int pc, final int opcode, final int line, final T t) {
-		super(pc, opcode, line);
-		this.t = t;
+		super(pc, opcode, line, t);
 	}
 
 	@Override
@@ -59,15 +56,6 @@ public class ASTORE extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.ASTORE;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 }

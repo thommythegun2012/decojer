@@ -30,11 +30,9 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class NEWARRAY extends Op {
+public class NEWARRAY extends TypedOp {
 
 	private final int dimensions;
-
-	private final T t;
 
 	/**
 	 * Constructor.
@@ -51,8 +49,10 @@ public class NEWARRAY extends Op {
 	 *            dimensions
 	 */
 	public NEWARRAY(final int pc, final int opcode, final int line, final T t, final int dimensions) {
-		super(pc, opcode, line);
-		this.t = t;
+		super(pc, opcode, line, t);
+
+		assert dimensions > 0 : dimensions;
+
 		this.dimensions = dimensions;
 	}
 
@@ -73,15 +73,6 @@ public class NEWARRAY extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.NEWARRAY;
-	}
-
-	/**
-	 * Get element type (could be an array type).
-	 * 
-	 * @return element type (could be an array type)
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 }

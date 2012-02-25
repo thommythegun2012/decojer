@@ -34,9 +34,9 @@ package org.decojer.cavaj.model.code.op;
  */
 public abstract class Op {
 
-	private final int opcode;
-
 	final int line;
+
+	private final int opcode;
 
 	private final int pc;
 
@@ -51,6 +51,10 @@ public abstract class Op {
 	 *            line number
 	 */
 	public Op(final int pc, final int opcode, final int line) {
+		assert pc >= 0 : pc;
+		assert opcode >= 0 && opcode <= 255 : opcode;
+		assert line >= 0 : line;
+
 		this.pc = pc;
 		this.opcode = opcode;
 		this.line = line;
