@@ -202,6 +202,14 @@ public class R {
 		}
 	}
 
+	public void merge(final R r) {
+		mergeTo(r.getT());
+		final R[] newIns = new R[this.ins.length + 1];
+		System.arraycopy(this.ins, 0, newIns, 0, this.ins.length);
+		newIns[this.ins.length] = r;
+		this.ins = newIns;
+	}
+
 	/**
 	 * Merge to type.
 	 * 

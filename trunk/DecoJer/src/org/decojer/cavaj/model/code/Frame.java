@@ -85,25 +85,23 @@ public class Frame {
 	}
 
 	/**
-	 * Clear stack.
+	 * Clear stack registers.
 	 */
-	public void clearStack() {
+	public void clear() {
 		final R[] newRs = new R[this.cfg.getRegs()];
 		System.arraycopy(this.rs, 0, newRs, 0, newRs.length);
 		this.rs = newRs;
 	}
 
 	/**
-	 * Get register.
+	 * Get register (local or stack).
 	 * 
-	 * @param reg
+	 * @param index
 	 *            register index
-	 * @return register
+	 * @return register (local or stack)
 	 */
-	public R get(final int reg) {
-		assert reg >= 0 : reg;
-
-		return this.rs[reg];
+	public R get(final int index) {
+		return this.rs[index];
 	}
 
 	/**
@@ -116,9 +114,9 @@ public class Frame {
 	}
 
 	/**
-	 * Get register count.
+	 * Get local register number.
 	 * 
-	 * @return register count
+	 * @return local register number
 	 */
 	public int getRegs() {
 		return this.cfg.getRegs();
@@ -127,32 +125,29 @@ public class Frame {
 	/**
 	 * Get stack register.
 	 * 
-	 * @param i
+	 * @param index
 	 *            stack index
 	 * @return register
 	 */
-	public R getStack(final int i) {
-		assert i >= 0 : i;
+	public R getS(final int index) {
+		assert index < getStacks() : index;
 
-		if (i >= getStackSize()) {
-			throw new IndexOutOfBoundsException("Stack too small!");
-		}
-		return this.rs[getRegs() + i];
+		return this.rs[getRegs() + index];
 	}
 
 	/**
-	 * Get stack size.
+	 * Get stack register number (stack size).
 	 * 
-	 * @return stack size
+	 * @return stack register number (stack size)
 	 */
-	public int getStackSize() {
+	public int getStacks() {
 		return this.rs.length - this.cfg.getRegs();
 	}
 
 	/**
-	 * Get subroutine count.
+	 * Get subroutine number.
 	 * 
-	 * @return subroutine count
+	 * @return subroutine number
 	 */
 	public int getSubs() {
 		return this.subs == null ? 0 : this.subs.length;
@@ -164,7 +159,7 @@ public class Frame {
 	 * @return register
 	 */
 	public R peek() {
-		if (0 == getStackSize()) {
+		if (0 == getStacks()) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		return this.rs[this.rs.length - 1];
@@ -173,17 +168,14 @@ public class Frame {
 	/**
 	 * Peek stack register.
 	 * 
-	 * @param i
-	 *            stack index, last is 1
+	 * @param index
+	 *            reverse stack index, last is 1
 	 * @return register
 	 */
-	public R peek(final int i) {
-		assert i > 0;
+	public R peek(final int index) {
+		assert index <= getStacks() : index;
 
-		if (i > getStackSize()) {
-			throw new IndexOutOfBoundsException("Stack is empty!");
-		}
-		return this.rs[this.rs.length - i];
+		return this.rs[this.rs.length - index];
 	}
 
 	/**
@@ -202,12 +194,12 @@ public class Frame {
 	/**
 	 * Peek stack register (not wide).
 	 * 
-	 * @param i
-	 *            stack index, last is 1
+	 * @param index
+	 *            reverse stack index, last is 1
 	 * @return stack register
 	 */
-	public R peekSingle(final int i) {
-		final R s = peek(i);
+	public R peekSingle(final int index) {
+		final R s = peek(index);
 		if (s.isWide()) {
 			LOGGER.warning("Attempt to split long or double on the stack!");
 		}
@@ -220,7 +212,7 @@ public class Frame {
 	 * @return stack register
 	 */
 	public R pop() {
-		if (getStackSize() == 0) {
+		if (getStacks() == 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		final R s = this.rs[this.rs.length - 1];
@@ -231,13 +223,26 @@ public class Frame {
 	}
 
 	/**
+	 * Pop stack register (not wide).
+	 * 
+	 * @return stack register
+	 */
+	public R popSingle() {
+		final R s = pop();
+		if (s.isWide()) {
+			LOGGER.warning("Attempt to split long or double on the stack!");
+		}
+		return s;
+	}
+
+	/**
 	 * Pop subroutine from subroutine stack: Pop all subroutines till given one.
 	 * 
 	 * @param sub
 	 *            subroutine
 	 * @return true - success (found in stack, removed)
 	 */
-	public boolean pop(final Sub sub) {
+	public boolean popSub(final Sub sub) {
 		if (this.subs == null) {
 			return false;
 		}
@@ -257,31 +262,18 @@ public class Frame {
 	}
 
 	/**
-	 * Pop stack register (not wide).
-	 * 
-	 * @return stack register
-	 */
-	public R popSingle() {
-		final R s = pop();
-		if (s.isWide()) {
-			LOGGER.warning("Attempt to split long or double on the stack!");
-		}
-		return s;
-	}
-
-	/**
 	 * Push stack register.
 	 * 
-	 * @param r
+	 * @param s
 	 *            stack register
 	 */
-	public void push(final R r) {
-		if (getStackSize() >= this.cfg.getMaxStack() && this.cfg.getMaxStack() != 0) {
+	public void push(final R s) {
+		if (getStacks() >= this.cfg.getMaxStack() && this.cfg.getMaxStack() != 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		final R[] newRs = new R[this.rs.length + 1];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
-		newRs[this.rs.length] = r;
+		newRs[this.rs.length] = s;
 		this.rs = newRs;
 	}
 
@@ -292,7 +284,7 @@ public class Frame {
 	 *            subroutine
 	 * @return true - success (not in stack, added)
 	 */
-	public boolean push(final Sub sub) {
+	public boolean pushSub(final Sub sub) {
 		if (this.subs == null) {
 			this.subs = new Sub[] { sub };
 			return true;
@@ -312,7 +304,7 @@ public class Frame {
 	/**
 	 * Replace register for merging.
 	 * 
-	 * @param reg
+	 * @param index
 	 *            register index
 	 * @param oldR
 	 *            old register, not null
@@ -320,14 +312,14 @@ public class Frame {
 	 *            register
 	 * @return replaced register (oldR or mergedR or null)
 	 */
-	public R replaceReg(final int reg, final R oldR, final R r) {
+	public R replaceReg(final int index, final R oldR, final R r) {
 		assert oldR != null;
 
 		// stack value already used, no replace
-		if (reg >= this.rs.length) {
+		if (index >= this.rs.length) {
 			return null;
 		}
-		final R frameR = get(reg);
+		final R frameR = get(index);
 		if (frameR == null) {
 			return null;
 		}
@@ -335,49 +327,53 @@ public class Frame {
 			frameR.replaceIn(oldR, r);
 			return null;
 		}
-		set(reg, r);
+		set(index, r);
 		return frameR;
 	}
 
 	/**
-	 * Set register.
+	 * Set register (local or stack).
 	 * 
-	 * @param reg
+	 * @param i
 	 *            register index
 	 * @param r
-	 *            register
+	 *            register (local or stack)
 	 */
-	public void set(final int reg, final R r) {
-		assert reg >= 0 : reg;
-
+	public void set(final int i, final R r) {
 		final R[] newRs = new R[this.rs.length];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
-		newRs[reg] = r;
+		newRs[i] = r;
 		this.rs = newRs;
 	}
 
 	/**
 	 * Set stack register.
 	 * 
-	 * @param i
+	 * @param index
 	 *            stack index
-	 * @param r
-	 *            register
+	 * @param s
+	 *            stack register
 	 */
-	public void setStack(final int i, final R r) {
-		assert i >= 0 : i;
+	public void setS(final int index, final R s) {
+		assert index < getStacks() : index;
 
-		if (i >= getStackSize()) {
-			throw new IndexOutOfBoundsException("Stack too small!");
-		}
-		set(getRegs() + i, r);
+		set(getRegs() + index, s);
+	}
+
+	/**
+	 * Get register number (local or stack).
+	 * 
+	 * @return register number (local or stack)
+	 */
+	public int size() {
+		return this.rs.length;
 	}
 
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("Frame (").append(getRegs());
-		if (getStackSize() != 0) {
-			sb.append(", ").append(getStackSize());
+		if (getStacks() != 0) {
+			sb.append(", ").append(getStacks());
 		}
 		sb.append(") ");
 		for (final R r : this.rs) {
