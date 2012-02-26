@@ -167,32 +167,37 @@ public final class TrDataFlowAnalysis2Cfg {
 			this.cfg.setFrame(targetPc, this.frame);
 			return;
 		}
-		// only here can we create or enhance a merge registers
-		for (int reg = targetFrame.getRegs(); reg-- > 0;) {
-			final R prevR = targetFrame.get(reg);
-			final R newR = this.frame.get(reg);
-			if (prevR == newR || prevR == null) {
+		for (int i = targetFrame.size(); i-- > 0;) {
+			final R prevR = targetFrame.get(i);
+			final R newR = this.frame.get(i);
+			if (prevR == newR) {
+				continue;
+			}
+			// all following conditions can only happen on join => new BB start!
+			if (prevR == null) {
+				// previous register is null? merge to null => nothing to do
+				continue;
+			}
+			if (newR == null) {
+				// new register is null? merge to null => replace previous register from here
+				mergeReplaceReg(this.pc2bbs[targetPc], i, prevR, null);
+				continue;
+			}
+			// only here can we create or enhance a merge registers
+			if (prevR.getKind() == Kind.MERGE && prevR.getPc() == targetPc) {
+				// merge register already starts here, add new register
+				prevR.merge(newR);
 				continue;
 			}
 			final T t = R.merge(prevR, newR);
-			// merge enhance not possible without known start pc for oldR
-			final R r = t == null ? null : new R(targetPc, t, Kind.MERGE, prevR, newR);
-			mergeReplaceReg(this.pc2bbs[targetPc], reg, prevR, r);
-		}
-		// TODO handling for mergeExc with single stack exception value suboptimal
-		for (int i = targetFrame.getStackSize(); i-- > 0;) {
-			final R prevR = targetFrame.getStack(i);
-			final R newR = this.frame.getStack(i);
-			if (prevR == newR || prevR == null) {
+			if (t == null) {
+				// merge type is null? merge to null => replace previous register from here
+				mergeReplaceReg(this.pc2bbs[targetPc], i, prevR, null);
 				continue;
 			}
-			final T t = R.merge(prevR, newR);
-			prevR.mergeTo(t);
-			newR.mergeTo(t);
-			// merge enhence not possible without known start pc for oldR
-			final R r = t == null ? null : new R(targetPc, R.merge(prevR, newR), Kind.MERGE, prevR,
-					newR);
-			mergeReplaceReg(this.pc2bbs[targetPc], this.cfg.getRegs() + i, prevR, r);
+			// start new merge register
+			mergeReplaceReg(this.pc2bbs[targetPc], i, prevR, new R(targetPc, t, Kind.MERGE, prevR,
+					newR));
 		}
 	}
 
@@ -204,17 +209,18 @@ public final class TrDataFlowAnalysis2Cfg {
 		for (final Exc exc : excs) {
 			if (exc.validIn(pc)) {
 				this.frame = new Frame(getFrame(pc));
-				this.frame.clearStack();
+				this.frame.clear();
 
 				final Frame handlerFrame = getFrame(exc.getHandlerPc());
 				if (handlerFrame == null) {
+					// TODO handling for mergeExc with single stack exception value suboptimal
 					merge(exc.getHandlerPc());
 					this.frame = getFrame(exc.getHandlerPc());
 					// null is <any> (means Java finally) -> Throwable
 					push(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
 							.getT(Throwable.class) : exc.getT());
 				} else {
-					if (handlerFrame.getStackSize() != 1) {
+					if (handlerFrame.getStacks() != 1) {
 						LOGGER.warning("Handler stack for exception merge not of size 1!");
 					}
 					this.frame.push(handlerFrame.peek()); // reuse exception register
@@ -224,19 +230,19 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 	}
 
-	private void mergeReplaceReg(final BB bb, final int reg, final R prevR, final R newR) {
+	private void mergeReplaceReg(final BB bb, final int index, final R prevR, final R newR) {
 		assert prevR != null;
 
-		// could still have no operations
-		Frame frame = this.cfg.getFrame(bb.getPc());
-		R replacedR = frame.replaceReg(reg, prevR, newR);
+		// could have no operations yet (concurrent CFG building)
+		Frame frame = getFrame(bb.getPc());
+		R replacedR = frame.replaceReg(index, prevR, newR);
 		for (int i = 1; replacedR != null && i < bb.getOps(); ++i) {
 			frame = this.cfg.getInFrame(bb.getOp(i));
-			replacedR = frame.replaceReg(reg, replacedR, newR);
+			replacedR = frame.replaceReg(index, replacedR, newR);
 		}
 		if (replacedR != null) {
 			for (final E out : bb.getOuts()) {
-				mergeReplaceReg(out.getEnd(), reg, replacedR, newR);
+				mergeReplaceReg(out.getEnd(), index, replacedR, newR);
 			}
 		}
 	}
@@ -604,7 +610,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				final Frame targetFrame = getFrame(cop.getTargetPc());
 				jsr: if (targetFrame != null) {
 					// JSR already visited, reuse Sub
-					if (this.frame.getStackSize() + 1 != targetFrame.getStackSize()) {
+					if (this.frame.getStacks() + 1 != targetFrame.getStacks()) {
 						LOGGER.warning("Wrong JSR Sub merge! Subroutine stack size different.");
 						break jsr;
 					}
@@ -619,7 +625,7 @@ public final class TrDataFlowAnalysis2Cfg {
 						LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
 						break jsr;
 					}
-					if (!this.frame.push(sub)) {
+					if (!this.frame.pushSub(sub)) {
 						LOGGER.warning("Recursive call to jsr entry!");
 						break jsr;
 					}
@@ -639,7 +645,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					}
 				} else {
 					final Sub sub = new Sub(cop.getTargetPc());
-					if (!this.frame.push(sub)) {
+					if (!this.frame.pushSub(sub)) {
 						LOGGER.warning("Recursive call to jsr entry!");
 						break jsr;
 					}
@@ -766,7 +772,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				this.frame.set(cop.getReg(), null);
 				// bytecode restriction: only called via matching JSR, Sub known as register value
 				final Sub sub = (Sub) r.getValue();
-				if (!this.frame.pop(sub)) {
+				if (!this.frame.popSub(sub)) {
 					LOGGER.warning("Illegal return from subroutine! Not in subroutine stack: "
 							+ sub);
 					pc = ops; // next open pc
