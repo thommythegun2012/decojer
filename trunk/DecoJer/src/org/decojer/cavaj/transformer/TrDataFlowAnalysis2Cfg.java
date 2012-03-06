@@ -133,21 +133,21 @@ public final class TrDataFlowAnalysis2Cfg {
 		evalBinaryMath(t, null);
 	}
 
-	private void evalBinaryMath(final T t, final T pushT) {
-		// final R s2 =
-		pop(t);
+	private void evalBinaryMath(final T t, final T resultT) {
+		final R s2 = pop(t);
 		final R s1 = pop(t);
+
+		assert R.merge(s1, s2) != null;
 
 		if (s1.getT().isReference()) {
 			// (J)CMP EQ / NE
-			assert pushT == T.VOID;
+			assert T.VOID == resultT : resultT;
 
 			return;
 		}
-		// TODO boolean input possible?
-		// no merge(To) for inputs, valid "int, shot, byte > char -> boolean (int)"
-		if (pushT != T.VOID) {
-			this.frame.push(new R(this.frame.getPc(), pushT != null ? pushT : t, Kind.CONST, s1));
+		if (resultT != T.VOID) {
+			this.frame
+					.push(new R(this.frame.getPc(), resultT != null ? resultT : t, Kind.CONST, s1));
 		}
 	}
 
@@ -164,16 +164,19 @@ public final class TrDataFlowAnalysis2Cfg {
 	private void merge(final int targetPc) {
 		final Frame targetFrame = getFrame(targetPc);
 		if (targetFrame == null) {
+			// visit new frame, no merge
 			this.cfg.setFrame(targetPc, this.frame);
 			return;
 		}
+		// frame already visited, real merge necessary
 		for (int i = targetFrame.size(); i-- > 0;) {
 			final R prevR = targetFrame.get(i);
 			final R newR = this.frame.get(i);
 			if (prevR == newR) {
 				continue;
 			}
-			// all following conditions can only happen on join => new BB start!
+			// register merge necessary, all following conditions can only happen at BB join point,
+			// that means a new BB start!
 			if (prevR == null) {
 				// previous register is null? merge to null => nothing to do
 				continue;

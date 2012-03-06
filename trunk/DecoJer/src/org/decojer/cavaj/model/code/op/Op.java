@@ -48,12 +48,12 @@ public abstract class Op {
 	 * @param opcode
 	 *            operation code
 	 * @param line
-	 *            line number
+	 *            line number, -1 for no numbers
 	 */
 	public Op(final int pc, final int opcode, final int line) {
 		assert pc >= 0 : pc;
 		assert opcode >= 0 && opcode <= 255 : opcode;
-		assert line >= 0 : line;
+		assert line >= -1 : line;
 
 		this.pc = pc;
 		this.opcode = opcode;
@@ -75,7 +75,7 @@ public abstract class Op {
 	/**
 	 * Get line number.
 	 * 
-	 * @return line number
+	 * @return line number, -1 for no numbers
 	 */
 	public int getLine() {
 		return this.line;

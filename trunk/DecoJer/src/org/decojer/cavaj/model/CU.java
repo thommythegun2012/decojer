@@ -252,16 +252,18 @@ public class CU implements PD {
 	/**
 	 * Get all sub type declarations.
 	 * 
-	 * @return all sub type declarations, not null
+	 * @return all sub type declarations
 	 */
 	public List<TD> getAllTds() {
+		assert this.allTds != null;
+
 		return this.allTds;
 	}
 
 	/**
 	 * Get Eclipse abstract syntax tree.
 	 * 
-	 * @return Eclipse abstract syntax tree, not null
+	 * @return Eclipse abstract syntax tree
 	 */
 	public AST getAst() {
 		return getCompilationUnit().getAST();
@@ -270,9 +272,11 @@ public class CU implements PD {
 	/**
 	 * Get Eclipse compilation unit.
 	 * 
-	 * @return Eclipse compilation unit, not null
+	 * @return Eclipse compilation unit
 	 */
 	public CompilationUnit getCompilationUnit() {
+		assert this.compilationUnit != null;
+
 		return this.compilationUnit;
 	}
 
@@ -288,9 +292,11 @@ public class CU implements PD {
 	/**
 	 * Get start type declaration.
 	 * 
-	 * @return start type declaration, not null
+	 * @return start type declaration
 	 */
 	public TD getStartTd() {
+		assert this.startTd != null;
+
 		return this.startTd;
 	}
 
@@ -317,9 +323,11 @@ public class CU implements PD {
 	/**
 	 * Get sub type declarations.
 	 * 
-	 * @return sub type declarations, not null
+	 * @return sub type declarations
 	 */
 	public List<TD> getTds() {
+		assert this.tds != null;
+
 		return this.tds;
 	}
 

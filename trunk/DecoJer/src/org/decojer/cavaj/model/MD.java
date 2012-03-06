@@ -81,7 +81,7 @@ public class MD implements BD, PD {
 	/**
 	 * Get annotations.
 	 * 
-	 * @return annotations
+	 * @return annotations or null
 	 */
 	public A[] getAs() {
 		return this.as;
@@ -102,6 +102,8 @@ public class MD implements BD, PD {
 	 * @return method
 	 */
 	public M getM() {
+		assert this.m != null;
+
 		return this.m;
 	}
 
