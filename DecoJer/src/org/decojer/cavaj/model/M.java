@@ -153,6 +153,8 @@ public class M {
 	 * @return name
 	 */
 	public String getName() {
+		assert this.name != null;
+
 		return this.name;
 	}
 
@@ -214,13 +216,15 @@ public class M {
 	 * @return type
 	 */
 	public T getT() {
+		assert this.t != null;
+
 		return this.t;
 	}
 
 	/**
 	 * Get throws types.
 	 * 
-	 * @return throws types
+	 * @return throws types or null
 	 */
 	public T[] getThrowsTs() {
 		return this.throwsTs;

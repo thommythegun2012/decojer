@@ -71,7 +71,7 @@ public class FD implements BD, PD {
 	/**
 	 * Get annotations.
 	 * 
-	 * @return annotations
+	 * @return annotations or null
 	 */
 	public A[] getAs() {
 		return this.as;
@@ -83,6 +83,8 @@ public class FD implements BD, PD {
 	 * @return field
 	 */
 	public F getF() {
+		assert this.f != null;
+
 		return this.f;
 	}
 
@@ -107,16 +109,18 @@ public class FD implements BD, PD {
 	/**
 	 * Get type declaration.
 	 * 
-	 * @return type declaration, not null
+	 * @return type declaration
 	 */
 	public TD getTd() {
+		assert this.td != null;
+
 		return this.td;
 	}
 
 	/**
-	 * Get value, type Integer: int, short, byte, char, boolean.
+	 * Get value for constant attributes. Type Integer: int, short, byte, char, boolean.
 	 * 
-	 * @return value
+	 * @return value or null
 	 */
 	public Object getValue() {
 		return this.value;

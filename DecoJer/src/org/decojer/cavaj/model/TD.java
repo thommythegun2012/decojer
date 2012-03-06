@@ -148,7 +148,7 @@ public class TD implements BD, PD {
 	/**
 	 * Get annotations.
 	 * 
-	 * @return annotations
+	 * @return annotations or null
 	 */
 	public A[] getAs() {
 		return this.as;
@@ -157,9 +157,11 @@ public class TD implements BD, PD {
 	/**
 	 * Get body declarations.
 	 * 
-	 * @return body declarations, not null
+	 * @return body declarations
 	 */
 	public List<BD> getBds() {
+		assert this.bds != null;
+
 		return this.bds;
 	}
 

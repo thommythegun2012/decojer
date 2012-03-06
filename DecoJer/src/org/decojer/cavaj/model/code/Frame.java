@@ -304,30 +304,30 @@ public class Frame {
 	/**
 	 * Replace register for merging.
 	 * 
-	 * @param index
+	 * @param i
 	 *            register index
-	 * @param oldR
-	 *            old register, not null
-	 * @param r
-	 *            register
+	 * @param prevR
+	 *            previous register
+	 * @param newR
+	 *            new register or null
 	 * @return replaced register (oldR or mergedR or null)
 	 */
-	public R replaceReg(final int index, final R oldR, final R r) {
-		assert oldR != null;
+	public R replaceReg(final int i, final R prevR, final R newR) {
+		assert prevR != null;
 
 		// stack value already used, no replace
-		if (index >= this.rs.length) {
+		if (i >= this.rs.length) {
 			return null;
 		}
-		final R frameR = get(index);
+		final R frameR = get(i);
 		if (frameR == null) {
 			return null;
 		}
-		if (frameR != oldR && (r != null || frameR.getKind() != Kind.MERGE)) {
-			frameR.replaceIn(oldR, r);
+		if (frameR != prevR && (newR != null || frameR.getKind() != Kind.MERGE)) {
+			frameR.replaceIn(prevR, newR);
 			return null;
 		}
-		set(index, r);
+		set(i, newR);
 		return frameR;
 	}
 
