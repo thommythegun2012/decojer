@@ -34,9 +34,7 @@ The following details give an overview of the necessary steps to check out the s
 http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
 
   * add Subversion Repository Location https://decojer.googlecode.com/svn/
-    * checkout DecoJer and DecoJerTest
-  * add Subversion Repository Location svn://svn.forge.objectweb.org/svnroot/asm
-    * checkout tags/ASM_3_3_2_1497
+    * checkout DecoJer, optionally: DecoJerTest, DecoJerWeb
 
 == Additional Plugins for Dalvik ==
 
