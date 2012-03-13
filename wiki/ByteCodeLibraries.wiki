@@ -89,3 +89,4 @@ insert
  * Import existing projects:
   * org.eclipse.jdt.core
   * org.eclipse.jdt.ui
+ * observe bug: https://bugs.eclipse.org/bugs/show_bug.cgi?id=361071 
