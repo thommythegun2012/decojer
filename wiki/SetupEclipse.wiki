@@ -15,7 +15,7 @@ The following details give an overview of the necessary steps to check out the s
 
 == Eclipse & Plugins ==
 
-  * Download *Eclipse for RCP* (Version 3.7.1, Indigo) from http://www.eclipse.org/downloads/
+  * Download *Eclipse for RCP and RAP Developers* (Version 3.7.2, Indigo) from http://www.eclipse.org/downloads/
 
   * Install Plugins:
     * Install *AST View*:
