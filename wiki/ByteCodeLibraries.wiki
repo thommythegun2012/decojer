@@ -1,4 +1,4 @@
-#summary ByteCode Libraries
+#summary Source Code for ByteCode Libraries and Eclipse
 
 = Introduction =
 
@@ -79,3 +79,13 @@ insert
  * Version: 1.9-snapshot
  * http://code.google.com/p/dex2jar/
  * hg clone https://code.google.com/p/dex2jar/
+
+= Eclipse Source =
+
+ * Clone from Git:
+  * git://git.eclipse.org/gitroot/jdt/eclipse.jdt.core.git
+  * git://git.eclipse.org/gitroot/jdt/eclipse.jdt.ui.git
+ * for both: _master_ and _R3_7_maintenance_, checkout _R3_7_maintenance_
+ * Import existing projects:
+  * org.eclipse.jdt.core
+  * org.eclipse.jdt.ui
