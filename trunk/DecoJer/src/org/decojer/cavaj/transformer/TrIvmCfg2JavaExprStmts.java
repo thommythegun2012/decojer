@@ -156,7 +156,7 @@ public final class TrIvmCfg2JavaExprStmts {
 	private boolean convertToHLLIntermediate(final BB bb) {
 		while (bb.getOps() > 0) {
 			final Op op = bb.getOp(0);
-			if (op.getInStackSize() > bb.getStackSize()) {
+			if (!bb.hasStackSizeFor(op)) {
 				return false;
 			}
 			bb.removeOp(0);
@@ -848,8 +848,8 @@ public final class TrIvmCfg2JavaExprStmts {
 			}
 			case PUSH: {
 				final PUSH cop = (PUSH) op;
-				final Expression expr = Types.convertLiteral(this.cfg.getOutFrame(op).peek().getT(),
-						cop.getValue(), getTd(), getAst());
+				final Expression expr = Types.convertLiteral(
+						this.cfg.getOutFrame(op).peek().getT(), cop.getValue(), getTd(), getAst());
 				if (expr != null) {
 					bb.push(expr);
 				}
