@@ -382,4 +382,22 @@ public class Frame {
 		return sb.substring(0, sb.length() - 2);
 	}
 
+	/**
+	 * Get number of wide stack registers in given stack size.
+	 * 
+	 * @param stacks
+	 *            stack size
+	 * @return number of wide stack registers
+	 */
+	public int wideStacks(final int stacks) {
+		int wides = 0;
+		for (int j = stacks, i = 1; j-- > 0; ++i) {
+			if (peek(i).isWide()) {
+				--j;
+				++wides;
+			}
+		}
+		return wides;
+	}
+
 }

@@ -405,6 +405,17 @@ public final class BB {
 	}
 
 	/**
+	 * Has BB necessary stack size for given operation?
+	 * 
+	 * @param op
+	 *            operation
+	 * @return true - BB has necessary stack size
+	 */
+	public boolean hasStackSizeFor(final Op op) {
+		return op.getInStackSize() - this.cfg.getInFrame(op).wideStacks(op.getInStackSize()) <= getStackSize();
+	}
+
+	/**
 	 * Is final statement conditional (IfStatement)?
 	 * 
 	 * @return true - final statement is conditional
