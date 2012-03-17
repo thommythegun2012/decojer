@@ -39,7 +39,6 @@ import org.decojer.web.model.Upload;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
 import com.google.appengine.api.channel.ChannelServiceFactory;
-import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
 import com.google.appengine.api.datastore.Key;
@@ -50,9 +49,6 @@ import com.google.appengine.api.datastore.Key;
  * @author André Pankraz
  */
 public class Uploads {
-
-	private static final DatastoreService DATASTORE_SERVICE = DatastoreServiceFactory
-			.getDatastoreService();
 
 	private static Logger LOGGER = Logger.getLogger(Uploads.class.getName());
 
@@ -91,7 +87,8 @@ public class Uploads {
 		if (uploadKeys == null || uploadKeys.size() == 0) {
 			return "";
 		}
-		final Map<Key, Entity> uploadKeys2Entities = DATASTORE_SERVICE.get(uploadKeys);
+		final Map<Key, Entity> uploadKeys2Entities = DatastoreServiceFactory.getDatastoreService()
+				.get(uploadKeys);
 		boolean channel = false;
 		final StringBuilder sb = new StringBuilder("<ul>");
 		for (final Key uploadKey : uploadKeys) {

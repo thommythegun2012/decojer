@@ -32,10 +32,12 @@ import org.decojer.web.service.MavenService;
  */
 public class PomStats {
 
+	private final MavenService mavenService = MavenService.getInstance();
+
 	private MavenService.Stats stats;
 
 	public void calculateStats() {
-		this.stats = MavenService.getInstance().calculateStats();
+		this.stats = this.mavenService.calculateStats();
 	}
 
 	public MavenService.Stats getStats() {
