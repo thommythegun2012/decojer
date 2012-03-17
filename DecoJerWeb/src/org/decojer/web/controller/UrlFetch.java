@@ -34,11 +34,13 @@ public class UrlFetch {
 
 	public String url;
 
+	private final URLFetchService urlFetchService = URLFetchService.getInstance();
+
 	public String getFetchResult() {
 		if (this.url == null) {
 			return "";
 		}
-		final byte[] fetchContent = URLFetchService.getInstance().fetchContent(this.url, true);
+		final byte[] fetchContent = this.urlFetchService.fetchContent(this.url, true);
 		if (fetchContent == null) {
 			return "No result: " + this.url;
 		}

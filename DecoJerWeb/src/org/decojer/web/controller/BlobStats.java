@@ -32,10 +32,12 @@ import org.decojer.web.service.BlobService;
  */
 public class BlobStats {
 
+	private final BlobService blobService = BlobService.getInstance();
+
 	private BlobService.Stats stats;
 
 	public void calculateStats() {
-		this.stats = BlobService.getInstance().calculateStats();
+		this.stats = this.blobService.calculateStats();
 	}
 
 	public BlobService.Stats getStats() {

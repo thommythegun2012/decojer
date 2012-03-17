@@ -33,18 +33,20 @@ import org.decojer.web.service.MavenService.ImportResults;
  */
 public class Maven {
 
-	ImportResults importResults;
+	private ImportResults importResults;
+
+	private final MavenService mavenService = MavenService.getInstance();
 
 	public ImportResults getImportResults() {
 		return this.importResults;
 	}
 
 	public void importCentralAll() {
-		this.importResults = MavenService.getInstance().importCentralAll();
+		this.importResults = this.mavenService.importCentralAll();
 	}
 
 	public void importCentralRss() {
-		this.importResults = MavenService.getInstance().importCentralRss();
+		this.importResults = this.mavenService.importCentralRss();
 	}
 
 }
