@@ -23,6 +23,9 @@
  */
 package org.decojer.web.controller;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
@@ -34,8 +37,12 @@ import org.decojer.cavaj.model.T;
  */
 public class Merge {
 
+	@Getter
+	@Setter
 	public String type1;
 
+	@Getter
+	@Setter
 	public String type2;
 
 	public String getMergedType() {
@@ -51,22 +58,6 @@ public class Merge {
 			e.printStackTrace();
 			return "Error: " + e.getMessage();
 		}
-	}
-
-	public String getType1() {
-		return this.type1;
-	}
-
-	public String getType2() {
-		return this.type2;
-	}
-
-	public void setType1(final String type1) {
-		this.type1 = type1;
-	}
-
-	public void setType2(final String type2) {
-		this.type2 = type2;
 	}
 
 }

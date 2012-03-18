@@ -23,6 +23,8 @@
  */
 package org.decojer.web.controller;
 
+import lombok.Getter;
+
 import org.decojer.web.service.MavenService;
 
 /**
@@ -34,14 +36,11 @@ public class PomStats {
 
 	private final MavenService mavenService = MavenService.getInstance();
 
+	@Getter
 	private MavenService.Stats stats;
 
 	public void calculateStats() {
 		this.stats = this.mavenService.calculateStats();
-	}
-
-	public MavenService.Stats getStats() {
-		return this.stats;
 	}
 
 }

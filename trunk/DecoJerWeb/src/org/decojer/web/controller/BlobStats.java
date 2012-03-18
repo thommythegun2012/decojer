@@ -23,6 +23,8 @@
  */
 package org.decojer.web.controller;
 
+import lombok.Getter;
+
 import org.decojer.web.service.BlobService;
 
 /**
@@ -34,14 +36,11 @@ public class BlobStats {
 
 	private final BlobService blobService = BlobService.getInstance();
 
+	@Getter
 	private BlobService.Stats stats;
 
 	public void calculateStats() {
 		this.stats = this.blobService.calculateStats();
-	}
-
-	public BlobService.Stats getStats() {
-		return this.stats;
 	}
 
 }

@@ -23,6 +23,9 @@
  */
 package org.decojer.web.controller;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.web.service.URLFetchService;
 
 /**
@@ -30,8 +33,10 @@ import org.decojer.web.service.URLFetchService;
  * 
  * @author André Pankraz
  */
-public class UrlFetch {
+public class URLFetch {
 
+	@Getter
+	@Setter
 	public String url;
 
 	private final URLFetchService urlFetchService = URLFetchService.getInstance();
@@ -45,14 +50,6 @@ public class UrlFetch {
 			return "No result: " + this.url;
 		}
 		return new String(fetchContent);
-	}
-
-	public String getUrl() {
-		return this.url;
-	}
-
-	public void setUrl(final String url) {
-		this.url = url;
 	}
 
 }
