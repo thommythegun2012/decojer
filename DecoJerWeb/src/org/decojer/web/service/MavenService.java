@@ -33,6 +33,8 @@ import java.util.logging.Logger;
 import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 
+import lombok.Getter;
+
 import org.decojer.web.model.POM;
 import org.decojer.web.util.DB;
 import org.xml.sax.Attributes;
@@ -60,6 +62,7 @@ import com.google.appengine.api.mail.MailServiceFactory;
  */
 public class MavenService {
 
+	@Getter
 	public class ImportResults {
 
 		private int checked;
@@ -68,33 +71,14 @@ public class MavenService {
 
 		private int known;
 
-		public int getChecked() {
-			return this.checked;
-		}
-
-		public int getImported() {
-			return this.imported;
-		}
-
-		public int getKnown() {
-			return this.known;
-		}
-
 	}
 
+	@Getter
 	public class Stats {
 
 		private int number;
 
 		private long size;
-
-		public int getNumber() {
-			return this.number;
-		}
-
-		public long getSize() {
-			return this.size;
-		}
 
 	}
 

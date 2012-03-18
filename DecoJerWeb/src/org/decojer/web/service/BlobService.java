@@ -31,6 +31,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 
+import lombok.Getter;
+
 import org.decojer.web.util.DB;
 import org.decojer.web.util.IO;
 
@@ -57,6 +59,7 @@ import com.google.appengine.api.utils.SystemProperty;
  */
 public class BlobService {
 
+	@Getter
 	public class Stats {
 
 		private int calculatedHashes;
@@ -66,22 +69,6 @@ public class BlobService {
 		private int number;
 
 		private long size;
-
-		public int getCalculatedHashes() {
-			return this.calculatedHashes;
-		}
-
-		public String getDoubleHashes() {
-			return this.doubleHashes;
-		}
-
-		public int getNumber() {
-			return this.number;
-		}
-
-		public long getSize() {
-			return this.size;
-		}
 
 	}
 

@@ -23,6 +23,8 @@
  */
 package org.decojer.web.controller;
 
+import lombok.Getter;
+
 import org.decojer.web.service.MavenService;
 import org.decojer.web.service.MavenService.ImportResults;
 
@@ -33,13 +35,10 @@ import org.decojer.web.service.MavenService.ImportResults;
  */
 public class Maven {
 
+	@Getter
 	private ImportResults importResults;
 
 	private final MavenService mavenService = MavenService.getInstance();
-
-	public ImportResults getImportResults() {
-		return this.importResults;
-	}
 
 	public void importCentralAll() {
 		this.importResults = this.mavenService.importCentralAll();
