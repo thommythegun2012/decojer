@@ -29,6 +29,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
@@ -47,10 +50,14 @@ public class CFG {
 
 	private final static Logger LOGGER = Logger.getLogger(CFG.class.getName());
 
+	@Setter
 	private Block block;
 
+	@Setter
 	private boolean error;
 
+	@Getter
+	@Setter
 	private Exc[] excs;
 
 	private Frame[] frames;
@@ -62,8 +69,10 @@ public class CFG {
 
 	private final int maxStack;
 
+	@Getter
 	private final MD md;
 
+	@Setter
 	private Op[] ops;
 
 	/**
@@ -73,6 +82,8 @@ public class CFG {
 
 	private final int regs;
 
+	@Getter
+	@Setter
 	private BB startBb;
 
 	private V[][] vss;
@@ -237,15 +248,6 @@ public class CFG {
 	}
 
 	/**
-	 * Get exception handlers.
-	 * 
-	 * @return exception handlers
-	 */
-	public Exc[] getExcs() {
-		return this.excs;
-	}
-
-	/**
 	 * Get frame for pc.
 	 * 
 	 * @param pc
@@ -301,15 +303,6 @@ public class CFG {
 	}
 
 	/**
-	 * Get method declaration.
-	 * 
-	 * @return method declaration
-	 */
-	public MD getMd() {
-		return this.md;
-	}
-
-	/**
 	 * Get operation for pc.
 	 * 
 	 * @param pc
@@ -356,15 +349,6 @@ public class CFG {
 	 */
 	public int getRegs() {
 		return this.regs;
-	}
-
-	/**
-	 * Get start basic block. Should be the final block after all transformations.
-	 * 
-	 * @return start basic block
-	 */
-	public BB getStartBb() {
-		return this.startBb;
 	}
 
 	/**
@@ -503,36 +487,6 @@ public class CFG {
 	}
 
 	/**
-	 * Set block.
-	 * 
-	 * @param block
-	 *            block
-	 */
-	public void setBlock(final Block block) {
-		this.block = block;
-	}
-
-	/**
-	 * Set flag for error occured.
-	 * 
-	 * @param error
-	 *            error occured
-	 */
-	public void setError(final boolean error) {
-		this.error = error;
-	}
-
-	/**
-	 * Set exception handlers.
-	 * 
-	 * @param excs
-	 *            exception handlers
-	 */
-	public void setExcs(final Exc[] excs) {
-		this.excs = excs;
-	}
-
-	/**
 	 * Set frame for pc. Copy frame.
 	 * 
 	 * @param pc
@@ -542,26 +496,6 @@ public class CFG {
 	 */
 	public void setFrame(final int pc, final Frame frame) {
 		this.frames[pc] = new Frame(pc, frame);
-	}
-
-	/**
-	 * Set operations.
-	 * 
-	 * @param ops
-	 *            operations
-	 */
-	public void setOps(final Op[] ops) {
-		this.ops = ops;
-	}
-
-	/**
-	 * Set start basic block.
-	 * 
-	 * @param startBb
-	 *            start basic block
-	 */
-	public void setStartBb(final BB startBb) {
-		this.startBb = startBb;
 	}
 
 	@Override
