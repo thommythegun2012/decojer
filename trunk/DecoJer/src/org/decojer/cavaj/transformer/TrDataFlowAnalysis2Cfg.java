@@ -119,6 +119,11 @@ public final class TrDataFlowAnalysis2Cfg {
 	private final LinkedList<Integer> openPcs = new LinkedList<Integer>();
 
 	/**
+	 * Current PC.
+	 */
+	private int pc;
+
+	/**
 	 * Remember BBs for PCs.
 	 */
 	private BB[] pc2bbs;
@@ -150,7 +155,8 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private int execute(final Op op, final BB bb) {
-		final int nextPc = op.getPc() + 1;
+		this.frame = new Frame(getFrame(op.getPc()));
+		int nextPc = op.getPc() + 1;
 		switch (op.getOptype()) {
 		case ADD: {
 			final ADD cop = (ADD) op;
@@ -319,7 +325,8 @@ public final class TrDataFlowAnalysis2Cfg {
 		case GOTO: {
 			final GOTO cop = (GOTO) op;
 			// follow without new BB, lazy splitting, at target PC other catches possible!
-			return cop.getTargetPc();
+			nextPc = cop.getTargetPc();
+			break;
 		}
 		case INC: {
 			final INC cop = (INC) op;
@@ -663,6 +670,12 @@ public final class TrDataFlowAnalysis2Cfg {
 		default:
 			LOGGER.warning("Operation '" + op + "' not handled!");
 		}
+		if (this.pc2bbs[nextPc] != null) {
+			bb.setSucc(targetBb(nextPc));
+			merge(nextPc);
+			return -1;
+		}
+		merge(nextPc);
 		return nextPc;
 	}
 
@@ -680,7 +693,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		final Frame targetFrame = getFrame(pc);
 		if (targetFrame == null) {
 			// visit new frame, no merge
-			this.cfg.setFrame(pc, this.frame);
+			this.cfg.setFrame(pc, new Frame(this.frame));
 			return;
 		}
 		// frame already visited, real merge necessary
@@ -803,35 +816,35 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private R pushConst(final T t) {
-		final R s = new R(this.frame.getPc(), t, Kind.CONST);
+		final R s = new R(this.pc, t, Kind.CONST);
 		this.frame.push(s);
 		return s;
 	}
 
 	private R pushConst(final T t, final Object value) {
-		final R s = new R(this.frame.getPc(), t, value, Kind.CONST);
+		final R s = new R(this.pc, t, value, Kind.CONST);
 		this.frame.push(s);
 		return s;
 	}
 
 	private R pushMove(final R r) {
-		final R s = new R(this.frame.getPc(), r.getT(), r.getValue(), Kind.MOVE, r);
+		final R s = new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r);
 		this.frame.push(s);
 		return s;
 	}
 
 	private R setConst(final int i, final T t, final Object value) {
 		final R prevR = this.frame.get(i);
-		final R newR = prevR == null ? new R(this.frame.getPc(), t, value, Kind.CONST) : new R(
-				this.frame.getPc(), t, value, Kind.CONST, prevR);
+		final R newR = prevR == null ? new R(this.pc, t, value, Kind.CONST) : new R(this.pc, t,
+				value, Kind.CONST, prevR);
 		this.frame.set(i, newR);
 		return newR;
 	}
 
 	private R setMove(final int i, final R r) {
 		final R prevR = this.frame.get(i);
-		final R newR = prevR == null ? new R(this.frame.getPc(), r.getT(), r.getValue(), Kind.MOVE,
-				r) : new R(this.frame.getPc(), r.getT(), r.getValue(), Kind.MOVE, r, prevR);
+		final R newR = prevR == null ? new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r)
+				: new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r, prevR);
 		this.frame.set(i, newR);
 		return newR;
 	}
@@ -881,62 +894,48 @@ public final class TrDataFlowAnalysis2Cfg {
 		this.pc2bbs = new BB[this.cfg.getOps()];
 
 		// start with PC 0 and new BB
-		int pc = 0;
+		this.pc = 0;
 		BB bb = newBb(0);
 		this.cfg.setStartBb(bb);
 
 		while (true) {
-			if (pc < 0) {
+			if (this.pc < 0) {
 				// next open pc?
 				if (this.openPcs.isEmpty()) {
 					break;
 				}
-				pc = this.openPcs.removeFirst();
-				bb = this.pc2bbs[pc];
+				this.pc = this.openPcs.removeFirst();
+				bb = this.pc2bbs[this.pc];
 			} else {
-				this.pc2bbs[pc] = bb;
-				if (!this.isIgnoreExceptions) {
+				this.pc2bbs[this.pc] = bb;
+				if (!this.isIgnoreExceptions && bb.getOps() > 0 && this.cfg.getExcs() != null) {
 					// exception block changes in none-empty BB? -> split necessary!
-					if (bb.getOps() > 0 && this.cfg.getExcs() != null) {
-						for (final Exc exc : this.cfg.getExcs()) {
-							if (exc.validIn(pc)) {
-								if (exc.validIn(bb.getPc())) {
-									// exception is valid - has been valid at BB entry -> OK
-									continue;
-								}
-							} else {
-								if (!exc.validIn(bb.getPc())) {
-									// exception isn't valid - hasn't bean valid at BB entry -> OK
-									continue;
-								}
+					for (final Exc exc : this.cfg.getExcs()) {
+						if (exc.validIn(this.pc)) {
+							if (exc.validIn(bb.getPc())) {
+								// exception is valid - has been valid at BB entry -> OK
+								continue;
 							}
-							// at least one exception has changed, newBb() links exceptions
-							final BB succ = newBb(pc);
-							bb.setSucc(succ);
-							bb = succ;
-							break;
+						} else {
+							if (!exc.validIn(bb.getPc())) {
+								// exception isn't valid - hasn't bean valid at BB entry -> OK
+								continue;
+							}
 						}
+						// at least one exception has changed, newBb() links exceptions
+						final BB succ = newBb(this.pc);
+						bb.setSucc(succ);
+						bb = succ;
+						break;
 					}
 				}
 			}
 			if (!this.isIgnoreExceptions) {
-				mergeExc(pc);
+				mergeExc(this.pc);
 			}
-			final Op op = this.cfg.getOp(pc);
+			final Op op = this.cfg.getOp(this.pc);
 			bb.addOp(op);
-			this.frame = new Frame(getFrame(pc));
-			pc = execute(op, bb);
-			if (pc < 0) {
-				continue; // next open pc
-			}
-			if (this.pc2bbs[pc] != null) {
-				bb.setSucc(targetBb(pc));
-				merge(pc);
-				pc = -1; // next open pc
-				continue;
-			} else {
-				merge(pc);
-			}
+			this.pc = execute(op, bb);
 		}
 		this.cfg.calculatePostorder();
 	}
