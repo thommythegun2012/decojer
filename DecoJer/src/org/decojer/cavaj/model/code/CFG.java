@@ -67,6 +67,10 @@ public class CFG {
 	 */
 	private BB[] iDoms;
 
+	/**
+	 * Max stack size.
+	 */
+	@Getter
 	private final int maxStack;
 
 	@Getter
@@ -78,8 +82,13 @@ public class CFG {
 	/**
 	 * Array with postordered basic blocks.
 	 */
+	@Getter
 	private List<BB> postorderedBbs;
 
+	/**
+	 * Register count (max locals).
+	 */
+	@Getter
 	private final int regs;
 
 	@Getter
@@ -248,10 +257,10 @@ public class CFG {
 	}
 
 	/**
-	 * Get frame for pc.
+	 * Get frame for PC.
 	 * 
 	 * @param pc
-	 *            pc
+	 *            PC
 	 * @return frame
 	 */
 	public Frame getFrame(final int pc) {
@@ -264,7 +273,7 @@ public class CFG {
 	 * @param reg
 	 *            register
 	 * @param pc
-	 *            pc
+	 *            PC
 	 * @return local variable (from frame)
 	 */
 	public V getFrameVar(final int reg, final int pc) {
@@ -291,15 +300,6 @@ public class CFG {
 	 */
 	public Frame getInFrame(final Op op) {
 		return this.frames[op.getPc()];
-	}
-
-	/**
-	 * Get max stack size.
-	 * 
-	 * @return max stack size
-	 */
-	public int getMaxStack() {
-		return this.maxStack;
 	}
 
 	/**
@@ -331,24 +331,6 @@ public class CFG {
 	 */
 	public Frame getOutFrame(final Op op) {
 		return this.frames[op.getPc() + 1];
-	}
-
-	/**
-	 * Get postordered basic blocks.
-	 * 
-	 * @return postordered basic blocks
-	 */
-	public List<BB> getPostorderedBbs() {
-		return this.postorderedBbs;
-	}
-
-	/**
-	 * Get register count (max locals).
-	 * 
-	 * @return register count
-	 */
-	public int getRegs() {
-		return this.regs;
 	}
 
 	/**
@@ -487,15 +469,15 @@ public class CFG {
 	}
 
 	/**
-	 * Set frame for pc. Copy frame.
+	 * Set frame for PC.
 	 * 
 	 * @param pc
-	 *            pc
+	 *            PC
 	 * @param frame
 	 *            frame
 	 */
 	public void setFrame(final int pc, final Frame frame) {
-		this.frames[pc] = new Frame(pc, frame);
+		this.frames[pc] = frame;
 	}
 
 	@Override

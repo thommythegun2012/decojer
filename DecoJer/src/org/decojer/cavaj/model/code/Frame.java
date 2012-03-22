@@ -38,8 +38,6 @@ public class Frame {
 
 	private final CFG cfg;
 
-	private final int pc;
-
 	private R[] rs;
 
 	private Sub[] subs;
@@ -52,7 +50,6 @@ public class Frame {
 	 */
 	protected Frame(final CFG cfg) {
 		this.cfg = cfg;
-		this.pc = 0;
 		this.rs = new R[getRegs()];
 	}
 
@@ -64,22 +61,6 @@ public class Frame {
 	 */
 	public Frame(final Frame frame) {
 		this.cfg = frame.cfg;
-		this.pc = frame.pc;
-		this.rs = frame.rs;
-		this.subs = frame.subs;
-	}
-
-	/**
-	 * Copy constructor.
-	 * 
-	 * @param pc
-	 *            pc
-	 * @param frame
-	 *            copy frame
-	 */
-	protected Frame(final int pc, final Frame frame) {
-		this.cfg = frame.cfg;
-		this.pc = pc;
 		this.rs = frame.rs;
 		this.subs = frame.subs;
 	}
@@ -102,15 +83,6 @@ public class Frame {
 	 */
 	public R get(final int index) {
 		return this.rs[index];
-	}
-
-	/**
-	 * Get frame pc.
-	 * 
-	 * @return frame pc
-	 */
-	public int getPc() {
-		return this.pc;
 	}
 
 	/**
