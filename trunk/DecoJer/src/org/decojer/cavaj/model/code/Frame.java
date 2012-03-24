@@ -86,9 +86,9 @@ public class Frame {
 	}
 
 	/**
-	 * Get local register number.
+	 * Get register number (locals).
 	 * 
-	 * @return local register number
+	 * @return register number (locals)
 	 */
 	public int getRegs() {
 		return this.cfg.getRegs();
@@ -102,18 +102,9 @@ public class Frame {
 	 * @return register
 	 */
 	public R getS(final int index) {
-		assert index < getStacks() : index;
+		assert index < getTop() : index;
 
 		return this.rs[getRegs() + index];
-	}
-
-	/**
-	 * Get stack register number (stack size).
-	 * 
-	 * @return stack register number (stack size)
-	 */
-	public int getStacks() {
-		return this.rs.length - this.cfg.getRegs();
 	}
 
 	/**
@@ -126,12 +117,21 @@ public class Frame {
 	}
 
 	/**
+	 * Get stack register number (stack size).
+	 * 
+	 * @return stack register number (stack size)
+	 */
+	public int getTop() {
+		return this.rs.length - this.cfg.getRegs();
+	}
+
+	/**
 	 * Peek stack register.
 	 * 
 	 * @return register
 	 */
 	public R peek() {
-		if (0 == getStacks()) {
+		if (0 == getTop()) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		return this.rs[this.rs.length - 1];
@@ -140,14 +140,14 @@ public class Frame {
 	/**
 	 * Peek stack register.
 	 * 
-	 * @param index
+	 * @param i
 	 *            reverse stack index, last is 1
 	 * @return register
 	 */
-	public R peek(final int index) {
-		assert index <= getStacks() : index;
+	public R peek(final int i) {
+		assert i <= getTop() : i;
 
-		return this.rs[this.rs.length - index];
+		return this.rs[this.rs.length - i];
 	}
 
 	/**
@@ -166,12 +166,12 @@ public class Frame {
 	/**
 	 * Peek stack register (not wide).
 	 * 
-	 * @param index
+	 * @param i
 	 *            reverse stack index, last is 1
 	 * @return stack register
 	 */
-	public R peekSingle(final int index) {
-		final R s = peek(index);
+	public R peekSingle(final int i) {
+		final R s = peek(i);
 		if (s.isWide()) {
 			LOGGER.warning("Attempt to split long or double on the stack!");
 		}
@@ -184,7 +184,7 @@ public class Frame {
 	 * @return stack register
 	 */
 	public R pop() {
-		if (getStacks() == 0) {
+		if (getTop() == 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		final R s = this.rs[this.rs.length - 1];
@@ -240,7 +240,7 @@ public class Frame {
 	 *            stack register
 	 */
 	public void push(final R s) {
-		if (getStacks() >= this.cfg.getMaxStack() && this.cfg.getMaxStack() != 0) {
+		if (getTop() >= this.cfg.getMaxStack() && this.cfg.getMaxStack() != 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
 		final R[] newRs = new R[this.rs.length + 1];
@@ -321,15 +321,15 @@ public class Frame {
 	/**
 	 * Set stack register.
 	 * 
-	 * @param index
+	 * @param i
 	 *            stack index
 	 * @param s
 	 *            stack register
 	 */
-	public void setS(final int index, final R s) {
-		assert index < getStacks() : index;
+	public void setS(final int i, final R s) {
+		assert i < getTop() : i;
 
-		set(getRegs() + index, s);
+		set(getRegs() + i, s);
 	}
 
 	/**
@@ -344,8 +344,8 @@ public class Frame {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("Frame (").append(getRegs());
-		if (getStacks() != 0) {
-			sb.append(", ").append(getStacks());
+		if (getTop() != 0) {
+			sb.append(", ").append(getTop());
 		}
 		sb.append(") ");
 		for (final R r : this.rs) {

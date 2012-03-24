@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Field.
  * 
@@ -30,14 +33,24 @@ package org.decojer.cavaj.model;
  */
 public class F {
 
+	@Getter
+	@Setter
 	private int accessFlags;
 
+	@Getter
 	private final String name;
 
+	@Getter
+	@Setter
 	private String signature;
 
+	@Getter
 	private final T t;
 
+	/**
+	 * Value type.
+	 */
+	@Getter
 	private final T valueT;
 
 	/**
@@ -72,55 +85,6 @@ public class F {
 	}
 
 	/**
-	 * Get access flags.
-	 * 
-	 * @return access flags
-	 */
-	public int getAccessFlags() {
-		return this.accessFlags;
-	}
-
-	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	public String getName() {
-		assert this.name != null;
-
-		return this.name;
-	}
-
-	/**
-	 * Get signature.
-	 * 
-	 * @return signature or null
-	 */
-	public String getSignature() {
-		return this.signature;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		assert this.t != null;
-
-		return this.t;
-	}
-
-	/**
-	 * Get value type.
-	 * 
-	 * @return value type
-	 */
-	public T getValueT() {
-		return this.valueT;
-	}
-
-	/**
 	 * Mark access flag.
 	 * 
 	 * @param af
@@ -134,26 +98,6 @@ public class F {
 			return;
 		}
 		this.accessFlags |= af.getValue();
-	}
-
-	/**
-	 * Set access flags.
-	 * 
-	 * @param accessFlags
-	 *            access flags
-	 */
-	public void setAccessFlags(final int accessFlags) {
-		this.accessFlags = accessFlags;
-	}
-
-	/**
-	 * Set signature.
-	 * 
-	 * @param signature
-	 *            signature
-	 */
-	public void setSignature(final String signature) {
-		this.signature = signature;
 	}
 
 	@Override

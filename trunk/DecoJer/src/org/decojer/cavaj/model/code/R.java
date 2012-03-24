@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -72,17 +74,26 @@ public class R {
 		return T.merge(r1.getT(), r2.getT());
 	}
 
-	private R[] ins;
-
-	private final Kind kind;
-
-	private R[] outs;
-
+	/**
+	 * Register start pc. Method parameters (0) and merge event pcs can overlap with real operation.
+	 */
+	@Getter
 	private final int pc;
 
+	@Getter
+	private final Kind kind;
+
+	@Getter
+	private R[] outs;
+
+	@Getter
 	private T t;
 
+	@Getter
 	private final Object value;
+
+	@Getter
+	private R[] ins;
 
 	/**
 	 * Constructor.
@@ -125,61 +136,6 @@ public class R {
 				linkIn(in);
 			}
 		}
-	}
-
-	/**
-	 * Get input registers.
-	 * 
-	 * @return input registers
-	 */
-	public R[] getIns() {
-		return this.ins;
-	}
-
-	/**
-	 * Get kind.
-	 * 
-	 * @return kind
-	 */
-	public Kind getKind() {
-		return this.kind;
-	}
-
-	/**
-	 * Get output registers.
-	 * 
-	 * @return output registers
-	 */
-	public R[] getOuts() {
-		return this.outs;
-	}
-
-	/**
-	 * Get register start pc. Method parameters (0) and merge event pcs can overlap with real
-	 * operation.
-	 * 
-	 * @return register start pc
-	 */
-	public int getPc() {
-		return this.pc;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
-	}
-
-	/**
-	 * Get value.
-	 * 
-	 * @return value
-	 */
-	public Object getValue() {
-		return this.value;
 	}
 
 	/**

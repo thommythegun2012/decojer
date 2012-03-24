@@ -27,6 +27,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
+import lombok.Getter;
+
 /**
  * Annotation.
  * 
@@ -36,8 +38,10 @@ public class A {
 
 	private final LinkedHashMap<String, Object> members = new LinkedHashMap<String, Object>();
 
+	@Getter
 	private final RetentionPolicy retentionPolicy;
 
+	@Getter
 	private final T t;
 
 	/**
@@ -94,24 +98,6 @@ public class A {
 		return this.members.get(name);
 	}
 
-	/**
-	 * Get retention policy.
-	 * 
-	 * @return retention policy
-	 */
-	public RetentionPolicy getRetentionPolicy() {
-		return this.retentionPolicy;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return types
-	 */
-	public T getT() {
-		return this.t;
-	}
-
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(getT().getName());
@@ -120,4 +106,5 @@ public class A {
 		}
 		return sb.toString();
 	}
+
 }

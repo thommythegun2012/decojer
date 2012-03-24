@@ -393,8 +393,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 							}
 							return;
 						} else if (findLoop.isPre() || findLoop.isEndless()) {
-							final int size = succ.getStmts();
-							for (int i = 0; i < size; ++i) {
+							for (int i = 0; i < succ.getStmts(); ++i) {
 								statements.add(succ.getStmt(i));
 							}
 						}
@@ -411,8 +410,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 				}
 			}
 			// simple sequence block, 0 statements possible with empty GOTO basic blocks
-			final int size = succ.getStmts();
-			for (int i = 0; i < size; ++i) {
+			for (int i = 0; i < succ.getStmts(); ++i) {
 				statements.add(succ.getStmt(i));
 			}
 			succ = succ.getSucc();

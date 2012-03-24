@@ -385,7 +385,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			final Frame targetFrame = getFrame(cop.getTargetPc());
 			jsr: if (targetFrame != null) {
 				// JSR already visited, reuse Sub
-				if (this.frame.getStacks() + 1 != targetFrame.getStacks()) {
+				if (this.frame.getTop() + 1 != targetFrame.getTop()) {
 					LOGGER.warning("Wrong JSR Sub merge! Subroutine stack size different.");
 					break jsr;
 				}
@@ -750,7 +750,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					pushConst(exc.getT() == null ? this.cfg.getMd().getM().getT().getDu()
 							.getT(Throwable.class) : exc.getT());
 				} else {
-					if (handlerFrame.getStacks() != 1) {
+					if (handlerFrame.getTop() != 1) {
 						LOGGER.warning("Handler stack for exception merge not of size 1!");
 					}
 					this.frame.push(handlerFrame.peek()); // reuse exception register

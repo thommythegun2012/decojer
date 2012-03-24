@@ -23,19 +23,27 @@
  */
 package org.decojer.cavaj.model.code;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.T;
 
 /**
- * CFG Edge.
+ * Edge for CFG.
  * 
  * @author André Pankraz
  */
 public class E {
 
+	@Getter
+	@Setter
 	private BB start;
 
+	@Getter
+	@Setter
 	private BB end;
 
+	@Getter
 	private final Object value;
 
 	/**
@@ -52,33 +60,6 @@ public class E {
 		this.start = start;
 		this.end = end;
 		this.value = value;
-	}
-
-	/**
-	 * Get end basic block.
-	 * 
-	 * @return end basic block
-	 */
-	public BB getEnd() {
-		return this.end;
-	}
-
-	/**
-	 * Get start basic block.
-	 * 
-	 * @return start basic block
-	 */
-	public BB getStart() {
-		return this.start;
-	}
-
-	/**
-	 * Get value.
-	 * 
-	 * @return value
-	 */
-	public Object getValue() {
-		return this.value;
 	}
 
 	/**
@@ -116,26 +97,6 @@ public class E {
 	 */
 	public boolean isSwitch() {
 		return this.value instanceof Integer[];
-	}
-
-	/**
-	 * Set end basic block.
-	 * 
-	 * @param end
-	 *            end basic block
-	 */
-	public void setEnd(final BB end) {
-		this.end = end;
-	}
-
-	/**
-	 * Set start basic block.
-	 * 
-	 * @param start
-	 *            start basic block
-	 */
-	public void setStart(final BB start) {
-		this.start = start;
 	}
 
 }

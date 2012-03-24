@@ -239,7 +239,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				// TODO a = a <op> expr => a <op>= expr
 				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 				// inline assignment, DUP(_X1) -> PUT
-				if (bb.getStackSize() > 0 && bb.peek() == rightExpression) {
+				if (bb.getTop() > 0 && bb.peek() == rightExpression) {
 					bb.pop();
 					bb.push(assignment);
 				} else {
@@ -389,7 +389,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				final INC cop = (INC) op;
 				final int value = cop.getValue();
 
-				if (bb.getStackSize() == 0) {
+				if (bb.getTop() == 0) {
 					if (value == 1 || value == -1) {
 						final PrefixExpression prefixExpression = getAst().newPrefixExpression();
 						prefixExpression
@@ -988,10 +988,10 @@ public final class TrIvmCfg2JavaExprStmts {
 					assignment.setLeftHandSide(fieldAccess);
 				}
 				// inline assignment, DUP(_X1) -> PUT
-				if (bb.getStackSize() > 0 && bb.peek() == rightExpression) {
+				if (bb.getTop() > 0 && bb.peek() == rightExpression) {
 					bb.pop();
 					bb.push(assignment);
-				} else if (bb.getStackSize() > 0
+				} else if (bb.getTop() > 0
 						&& rightExpression instanceof InfixExpression
 						&& (((InfixExpression) rightExpression).getOperator() == InfixExpression.Operator.PLUS || ((InfixExpression) rightExpression)
 								.getOperator() == InfixExpression.Operator.MINUS)) {
@@ -1042,7 +1042,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				final Expression rightExpression = bb.pop();
 
 				// inline assignment, DUP -> STORE
-				final boolean isInlineAssignment = bb.getStackSize() > 0
+				final boolean isInlineAssignment = bb.getTop() > 0
 						&& bb.peek() == rightExpression;
 				final V v = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
 
@@ -1235,7 +1235,7 @@ public final class TrIvmCfg2JavaExprStmts {
 			if (pred.getIns().size() != 1) {
 				return false;
 			}
-			if (pred.getStackSize() != 1) {
+			if (pred.getTop() != 1) {
 				return false;
 			}
 			if (pred.getStmts() > 0) {

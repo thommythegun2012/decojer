@@ -30,6 +30,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.DecoJer;
 
 /**
@@ -397,23 +400,30 @@ public class T {
 		return new TT(ts);
 	}
 
+	@Setter
+	private T[] interfaceTs;
+
+	@Getter
+	private final String name;
+
+	@Getter
+	private String signature;
+
+	@Setter
+	private T superT;
+
+	@Getter
+	@Setter
 	private int accessFlags;
 
+	@Getter
 	private int dim;
 
 	private final DU du;
 
 	private final HashMap<String, F> fs = new HashMap<String, F>();
 
-	private T[] interfaceTs;
-
 	private final HashMap<String, M> ms = new HashMap<String, M>();
-
-	private final String name;
-
-	private String signature;
-
-	private T superT;
 
 	protected T(final DU du, final String name) {
 		assert du != null;
@@ -457,15 +467,6 @@ public class T {
 	}
 
 	/**
-	 * Get access flags.
-	 * 
-	 * @return access flags
-	 */
-	public int getAccessFlags() {
-		return this.accessFlags;
-	}
-
-	/**
 	 * Get base type.
 	 * 
 	 * @return base type
@@ -490,15 +491,6 @@ public class T {
 			return getBaseT().getDescriptorLength() + this.dim;
 		}
 		return getName().length() + 2; // L...;
-	}
-
-	/**
-	 * Get dimension.
-	 * 
-	 * @return dimension
-	 */
-	public int getDim() {
-		return this.dim;
 	}
 
 	/**
@@ -572,15 +564,6 @@ public class T {
 	}
 
 	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	public String getName() {
-		return this.name;
-	}
-
-	/**
 	 * Get package name.
 	 * 
 	 * @return package name
@@ -598,15 +581,6 @@ public class T {
 	public String getPName() {
 		final int pos = getName().lastIndexOf('.');
 		return pos == -1 ? getName() : getName().substring(pos + 1);
-	}
-
-	/**
-	 * Get signature.
-	 * 
-	 * @return signature
-	 */
-	public String getSignature() {
-		return this.signature;
 	}
 
 	/**
@@ -932,26 +906,6 @@ public class T {
 	}
 
 	/**
-	 * Set access flags
-	 * 
-	 * @param accessFlags
-	 *            access flags
-	 */
-	public void setAccessFlags(final int accessFlags) {
-		this.accessFlags = accessFlags;
-	}
-
-	/**
-	 * Set interface types.
-	 * 
-	 * @param interfaceTs
-	 *            interface types
-	 */
-	public void setInterfaceTs(final T[] interfaceTs) {
-		this.interfaceTs = interfaceTs;
-	}
-
-	/**
 	 * Set signature.
 	 * 
 	 * @param signature
@@ -960,16 +914,6 @@ public class T {
 	public void setSignature(final String signature) {
 		// inner classes always with . here...bad for us?
 		this.signature = signature.replace('.', '$');
-	}
-
-	/**
-	 * Set super type.
-	 * 
-	 * @param superT
-	 *            super type
-	 */
-	public void setSuperT(final T superT) {
-		this.superT = superT;
 	}
 
 	@Override
