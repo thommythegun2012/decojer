@@ -26,6 +26,9 @@ package org.decojer.cavaj.model.code;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.op.Op;
 import org.decojer.cavaj.model.code.struct.Struct;
@@ -35,39 +38,53 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 
 /**
- * CFG Basic Block (BB).
+ * Basic Block for CFG.
  * 
  * @author André Pankraz
  */
 public final class BB {
 
+	@Getter
 	private final CFG cfg;
 
-	protected final ArrayList<E> ins = new ArrayList<E>(2);
-
-	/**
-	 * Must cache first PC separately because operations are removed through transformations.
-	 */
-	private int pc;
+	@Getter
+	private final ArrayList<E> ins = new ArrayList<E>(2);
 
 	private final List<Op> ops = new ArrayList<Op>();
 
+	@Getter
 	protected final ArrayList<E> outs = new ArrayList<E>(2);
 
+	/**
+	 * Must cache and manage first operation PC separately because operations are removed through
+	 * Java statement transformations.
+	 */
+	@Getter
+	@Setter
+	private int pc;
+
+	@Getter
+	@Setter
 	private int postorder;
 
 	private final List<Statement> stmts = new ArrayList<Statement>();
 
+	@Getter
+	@Setter
 	private Struct struct;
 
-	private int top; // stack top
+	/**
+	 * Stack expression number (stack size).
+	 */
+	@Getter
+	private int top;
 
 	private Expression[] vs;
 
-	protected BB(final CFG cfg, final int opPc) {
+	protected BB(final CFG cfg, final int pc) {
 		this.cfg = cfg;
-		this.pc = opPc;
-		this.vs = new Expression[cfg.getRegs()];
+		this.pc = pc;
+		this.vs = new Expression[getRegs()];
 	}
 
 	/**
@@ -130,12 +147,12 @@ public final class BB {
 		this.ops.addAll(bb.ops);
 		this.stmts.addAll(bb.stmts);
 		if (bb.top > 0) {
-			if (getLocals() + this.top + bb.top > this.vs.length) {
-				final Expression[] newVs = new Expression[getLocals() + this.top + bb.top];
-				System.arraycopy(this.vs, 0, newVs, 0, getLocals() + this.top);
+			if (getRegs() + this.top + bb.top > this.vs.length) {
+				final Expression[] newVs = new Expression[getRegs() + this.top + bb.top];
+				System.arraycopy(this.vs, 0, newVs, 0, getRegs() + this.top);
 				this.vs = newVs;
 			}
-			System.arraycopy(bb.vs, bb.getLocals(), this.vs, getLocals() + this.top, bb.top);
+			System.arraycopy(bb.vs, bb.getRegs(), this.vs, getRegs() + this.top, bb.top);
 			this.top += bb.top;
 		}
 	}
@@ -164,15 +181,6 @@ public final class BB {
 			}
 		}
 		return catchOuts;
-	}
-
-	/**
-	 * Get CFG.
-	 * 
-	 * @return CFG
-	 */
-	public CFG getCfg() {
-		return this.cfg;
 	}
 
 	/**
@@ -226,25 +234,12 @@ public final class BB {
 	}
 
 	/**
-	 * Get in edges.
-	 * 
-	 * @return in edges
-	 */
-	public List<E> getIns() {
-		return this.ins;
-	}
-
-	/**
 	 * Get first operation line.
 	 * 
 	 * @return first operation line
 	 */
 	public int getLine() {
 		return this.cfg.getOp(this.pc).getLine();
-	}
-
-	private int getLocals() {
-		return this.cfg.getRegs();
 	}
 
 	/**
@@ -259,9 +254,9 @@ public final class BB {
 	}
 
 	/**
-	 * Get operation number.
+	 * Get operations number.
 	 * 
-	 * @return operation number
+	 * @return operations number
 	 */
 	public int getOps() {
 		return this.ops.size();
@@ -292,39 +287,12 @@ public final class BB {
 	}
 
 	/**
-	 * Get out edges.
+	 * Get register number (locals).
 	 * 
-	 * @return out edges
+	 * @return register number (locals)
 	 */
-	public List<E> getOuts() {
-		return this.outs;
-	}
-
-	/**
-	 * Get first operation pc.
-	 * 
-	 * @return first operation pc
-	 */
-	public int getPc() {
-		return this.pc;
-	}
-
-	/**
-	 * Get postorder.
-	 * 
-	 * @return postorder
-	 */
-	public int getPostorder() {
-		return this.postorder;
-	}
-
-	/**
-	 * Get expression stack size.
-	 * 
-	 * @return expression stack size
-	 */
-	public int getStackSize() {
-		return this.top;
+	public int getRegs() {
+		return this.cfg.getRegs();
 	}
 
 	/**
@@ -340,21 +308,12 @@ public final class BB {
 	}
 
 	/**
-	 * Get number of statements.
+	 * Get statements numer.
 	 * 
-	 * @return number of statements
+	 * @return statements number
 	 */
 	public int getStmts() {
 		return this.stmts.size();
-	}
-
-	/**
-	 * Get control flow structure.
-	 * 
-	 * @return control flow structure
-	 */
-	public Struct getStruct() {
-		return this.struct;
 	}
 
 	/**
@@ -412,7 +371,7 @@ public final class BB {
 	 * @return true - BB has necessary stack size
 	 */
 	public boolean hasStackSizeFor(final Op op) {
-		return op.getInStackSize() - this.cfg.getInFrame(op).wideStacks(op.getInStackSize()) <= getStackSize();
+		return op.getInStackSize() - this.cfg.getInFrame(op).wideStacks(op.getInStackSize()) <= getTop();
 	}
 
 	/**
@@ -492,7 +451,7 @@ public final class BB {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.vs[getLocals() + this.top - 1];
+		return this.vs[getRegs() + this.top - 1];
 	}
 
 	/**
@@ -504,7 +463,7 @@ public final class BB {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.vs[getLocals() + --this.top];
+		return this.vs[getRegs() + --this.top];
 	}
 
 	/**
@@ -514,12 +473,12 @@ public final class BB {
 	 *            expression
 	 */
 	public void push(final Expression v) {
-		if (getLocals() + this.top >= this.vs.length) {
-			final Expression[] newVs = new Expression[getLocals() + this.top + 1];
-			System.arraycopy(this.vs, 0, newVs, 0, getLocals() + this.top);
+		if (getRegs() + this.top >= this.vs.length) {
+			final Expression[] newVs = new Expression[getRegs() + this.top + 1];
+			System.arraycopy(this.vs, 0, newVs, 0, getRegs() + this.top);
 			this.vs = newVs;
 		}
-		this.vs[getLocals() + this.top++] = v;
+		this.vs[getRegs() + this.top++] = v;
 	}
 
 	/**
@@ -598,36 +557,6 @@ public final class BB {
 		final E trueOut = new E(this, trueSucc, Boolean.TRUE);
 		this.outs.add(trueOut);
 		trueSucc.ins.add(trueOut);
-	}
-
-	/**
-	 * Set first operation pc.
-	 * 
-	 * @param pc
-	 *            first operation pc
-	 */
-	public void setPc(final int pc) {
-		this.pc = pc;
-	}
-
-	/**
-	 * Set postorder.
-	 * 
-	 * @param postorder
-	 *            postorder
-	 */
-	public void setPostorder(final int postorder) {
-		this.postorder = postorder;
-	}
-
-	/**
-	 * Set control flow structure.
-	 * 
-	 * @param struct
-	 *            control flow structure
-	 */
-	public void setStruct(final Struct struct) {
-		this.struct = struct;
 	}
 
 	/**

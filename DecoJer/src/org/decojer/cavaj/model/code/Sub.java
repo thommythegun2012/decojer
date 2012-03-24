@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.code.op.RET;
 
 /**
@@ -32,8 +35,14 @@ import org.decojer.cavaj.model.code.op.RET;
  */
 public class Sub {
 
+	@Getter
 	private final int pc;
 
+	/**
+	 * RET operation.
+	 */
+	@Getter
+	@Setter
 	private RET ret;
 
 	/**
@@ -55,37 +64,9 @@ public class Sub {
 		return this.pc == sub.pc;
 	}
 
-	/**
-	 * Get pc.
-	 * 
-	 * @return pc
-	 */
-	public int getPc() {
-		return this.pc;
-	}
-
-	/**
-	 * Get RET operation.
-	 * 
-	 * @return RET operation
-	 */
-	public RET getRet() {
-		return this.ret;
-	}
-
 	@Override
 	public int hashCode() {
 		return this.pc;
-	}
-
-	/**
-	 * Set RET operation.
-	 * 
-	 * @param ret
-	 *            RET operation
-	 */
-	public void setRet(final RET ret) {
-		this.ret = ret;
 	}
 
 }

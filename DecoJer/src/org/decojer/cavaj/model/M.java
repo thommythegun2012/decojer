@@ -25,6 +25,9 @@ package org.decojer.cavaj.model;
 
 import java.util.ArrayList;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.DecoJerException;
 
 /**
@@ -34,22 +37,35 @@ import org.decojer.DecoJerException;
  */
 public class M {
 
+	@Getter
+	@Setter
 	private int accessFlags;
 
+	@Getter
 	private final String descriptor;
 
+	@Getter
 	private final String name;
 
 	private String[] paramNames;
 
 	private final T[] paramTs;
 
+	@Getter
 	private final T returnT;
 
+	@Getter
+	@Setter
 	private String signature;
 
+	@Getter
 	private final T t;
 
+	/**
+	 * Throw types or null.
+	 */
+	@Getter
+	@Setter
 	private T[] throwsTs;
 
 	/**
@@ -130,35 +146,6 @@ public class M {
 	}
 
 	/**
-	 * Get access flags.
-	 * 
-	 * @return access flags
-	 */
-	public int getAccessFlags() {
-		return this.accessFlags;
-	}
-
-	/**
-	 * Get descriptor.
-	 * 
-	 * @return descriptor
-	 */
-	public String getDescriptor() {
-		return this.descriptor;
-	}
-
-	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	public String getName() {
-		assert this.name != null;
-
-		return this.name;
-	}
-
-	/**
 	 * Get parameter name for index.
 	 * 
 	 * @param i
@@ -175,7 +162,7 @@ public class M {
 	/**
 	 * Get parameter number.
 	 * 
-	 * @return parameter number (double/long params count as 1)
+	 * @return parameter number
 	 */
 	public int getParams() {
 		return this.paramTs.length;
@@ -193,44 +180,6 @@ public class M {
 	}
 
 	/**
-	 * Get return type.
-	 * 
-	 * @return return type
-	 */
-	public T getReturnT() {
-		return this.returnT;
-	}
-
-	/**
-	 * Get signature.
-	 * 
-	 * @return signature or null
-	 */
-	public String getSignature() {
-		return this.signature;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		assert this.t != null;
-
-		return this.t;
-	}
-
-	/**
-	 * Get throws types.
-	 * 
-	 * @return throws types or null
-	 */
-	public T[] getThrowsTs() {
-		return this.throwsTs;
-	}
-
-	/**
 	 * Mark access flag.
 	 * 
 	 * @param af
@@ -238,16 +187,6 @@ public class M {
 	 */
 	public void markAf(final AF af) {
 		this.accessFlags |= af.getValue();
-	}
-
-	/**
-	 * Set access flags.
-	 * 
-	 * @param accessFlags
-	 *            access flags
-	 */
-	public void setAccessFlags(final int accessFlags) {
-		this.accessFlags = accessFlags;
 	}
 
 	/**
@@ -263,26 +202,6 @@ public class M {
 			this.paramNames = new String[this.paramTs.length];
 		}
 		this.paramNames[i] = name;
-	}
-
-	/**
-	 * Set signature.
-	 * 
-	 * @param signature
-	 *            signature
-	 */
-	public void setSignature(final String signature) {
-		this.signature = signature;
-	}
-
-	/**
-	 * Set throws types.
-	 * 
-	 * @param throwsTs
-	 *            throws types
-	 */
-	public void setThrowsTs(final T[] throwsTs) {
-		this.throwsTs = throwsTs;
 	}
 
 	@Override

@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -32,10 +35,17 @@ import org.decojer.cavaj.model.T;
  */
 public class V {
 
+	@Getter
+	@Setter
 	private String name;
 
+	/**
+	 * Start and end PCs.
+	 */
+	@Getter
 	private int[] pcs;
 
+	@Getter
 	private T t;
 
 	/**
@@ -107,43 +117,6 @@ public class V {
 		}
 		this.t = t;
 		return true;
-	}
-
-	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	public String getName() {
-		return this.name;
-	}
-
-	/**
-	 * Get start and end pcs
-	 * 
-	 * @return start and end pcs
-	 */
-	public int[] getPcs() {
-		return this.pcs;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
-	}
-
-	/**
-	 * Set name.
-	 * 
-	 * @param name
-	 *            name
-	 */
-	public void setName(final String name) {
-		this.name = name;
 	}
 
 	@Override

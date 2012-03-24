@@ -50,6 +50,10 @@ public class CFG {
 
 	private final static Logger LOGGER = Logger.getLogger(CFG.class.getName());
 
+	/**
+	 * Eclipse method block.
+	 */
+	@Getter
 	@Setter
 	private Block block;
 
@@ -218,15 +222,6 @@ public class CFG {
 		this.iDoms = null;
 		this.postorderedBbs = null;
 		this.startBb = null;
-	}
-
-	/**
-	 * Get Eclipse block.
-	 * 
-	 * @return Eclipse block
-	 */
-	public Block getBlock() {
-		return this.block;
 	}
 
 	/**
