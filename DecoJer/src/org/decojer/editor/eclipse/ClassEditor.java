@@ -42,6 +42,7 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
+import org.decojer.cavaj.transformer.TrCalculatePostorder;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis2Cfg;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
@@ -604,9 +605,11 @@ public class ClassEditor extends MultiPageEditorPart {
 			try {
 				// retransform CFG until given transformation stage
 				TrDataFlowAnalysis2Cfg.transform(cfg);
+				TrCalculatePostorder.transform(cfg);
 
 				if (stage > 0) {
 					TrIvmCfg2JavaExprStmts.transform(cfg);
+					TrCalculatePostorder.transform(cfg);
 				}
 				if (stage > 1) {
 					TrControlFlowAnalysis.transform(cfg);

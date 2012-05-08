@@ -42,7 +42,7 @@ public class R {
 	public enum Kind {
 
 		/**
-		 * New r, maybe previous r.
+		 * STORE_CONST. Maybe previous r.
 		 */
 		CONST,
 
@@ -52,10 +52,14 @@ public class R {
 		MERGE,
 
 		/**
-		 * New r, maybe previous r.
+		 * STORE_MOVE. New r, maybe previous r.
 		 */
-		MOVE
+		MOVE,
 
+		/**
+		 * Previous r.
+		 */
+		READ
 	}
 
 	/**
@@ -74,6 +78,18 @@ public class R {
 		return T.merge(r1.getT(), r2.getT());
 	}
 
+	@Getter
+	private R[] outs;
+
+	@Getter
+	private T t;
+
+	@Getter
+	private Object value;
+
+	@Getter
+	private R[] ins;
+
 	/**
 	 * Register start pc. Method parameters (0) and merge event pcs can overlap with real operation.
 	 */
@@ -82,18 +98,6 @@ public class R {
 
 	@Getter
 	private final Kind kind;
-
-	@Getter
-	private R[] outs;
-
-	@Getter
-	private T t;
-
-	@Getter
-	private final Object value;
-
-	@Getter
-	private R[] ins;
 
 	/**
 	 * Constructor.
@@ -136,6 +140,19 @@ public class R {
 				linkIn(in);
 			}
 		}
+	}
+
+	/**
+	 * Increment value.
+	 * 
+	 * @param inc
+	 *            increment
+	 */
+	public void inc(final int inc) {
+		if (getValue() == null) {
+			return;
+		}
+		this.value = ((Number) getValue()).intValue() + inc;
 	}
 
 	/**
@@ -251,9 +268,7 @@ public class R {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("R_").append(this.pc).append(": ")
-				.append(this.t);
-		return sb.toString();
+		return "R_" + this.pc + ": " + this.t;
 	}
 
 }
