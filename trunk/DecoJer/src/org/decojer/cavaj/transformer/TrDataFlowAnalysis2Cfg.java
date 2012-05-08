@@ -330,12 +330,8 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case INC: {
 			final INC cop = (INC) op;
-			final R r = get(cop.getReg(), cop.getT());
-			setConst(
-					cop.getReg(),
-					r.getT(),
-					r.getValue() instanceof Number ? ((Number) r.getValue()).intValue()
-							+ cop.getValue() : null);
+			final R r = read(cop.getReg(), cop.getT());
+			r.inc(cop.getValue());
 			break;
 		}
 		case INSTANCEOF: {
@@ -411,8 +407,10 @@ public final class TrDataFlowAnalysis2Cfg {
 				if (ret != null) {
 					// RET already visited, link RET BB to JSR follower and merge
 					this.frame = new Frame(getFrame(ret.getPc()));
-					// bytecode restriction: register can only be consumed once
-					setNull(ret.getReg());
+					if (sub != read(ret.getReg(), T.RETURN_ADDRESS).getValue()) {
+						// don't assert here, need this get for frames return-address-null update
+						LOGGER.warning("Incorrect sub!");
+					}
 					final BB retBb = this.pc2bbs[ret.getPc()];
 					final int returnPc = cop.getPc() + 1;
 					retBb.setSucc(getTargetBb(returnPc));
@@ -431,7 +429,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case LOAD: {
 			final LOAD cop = (LOAD) op;
-			final R r = get(cop.getReg(), cop.getT());
+			final R r = read(cop.getReg(), cop.getT());
 			// no previous for stack
 			pushMove(r);
 			break;
@@ -535,9 +533,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case RET: {
 			final RET cop = (RET) op;
-			final R r = get(cop.getReg(), T.RETURN_ADDRESS);
-			// bytecode restriction: register can only be consumed once
-			setNull(cop.getReg());
+			final R r = read(cop.getReg(), T.RETURN_ADDRESS);
 			// bytecode restriction: only called via matching JSR, Sub known as register value
 			final Sub sub = (Sub) r.getValue();
 			if (!this.frame.popSub(sub)) {
@@ -595,7 +591,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				r.mergeTo(debugV.getT());
 			}
 
-			setMove(cop.getReg(), r);
+			store(cop.getReg(), r);
 			break;
 		}
 		case SUB: {
@@ -675,14 +671,6 @@ public final class TrDataFlowAnalysis2Cfg {
 		return nextPc;
 	}
 
-	private R get(final int i, final T t) {
-		final R r = this.frame.get(i);
-		if (!r.read(t)) {
-			throw new RuntimeException("Incompatible local register type!");
-		}
-		return r;
-	}
-
 	private Frame getFrame(final int pc) {
 		return this.cfg.getFrame(pc);
 	}
@@ -724,11 +712,11 @@ public final class TrDataFlowAnalysis2Cfg {
 	private void merge(final int pc) {
 		final Frame targetFrame = getFrame(pc);
 		if (targetFrame == null) {
-			// visit new frame, no merge
-			this.cfg.setFrame(pc, new Frame(this.frame));
+			// first visit at target frame -> no BB join -> no type merge
+			setFrame(pc, new Frame(this.frame));
 			return;
 		}
-		// frame already visited, real merge necessary
+		// target frame already visited -> BB join -> type merge
 		for (int i = targetFrame.size(); i-- > 0;) {
 			final R prevR = targetFrame.get(i);
 			final R newR = this.frame.get(i);
@@ -867,24 +855,36 @@ public final class TrDataFlowAnalysis2Cfg {
 		return s;
 	}
 
-	private R setConst(final int i, final T t, final Object value) {
+	private R read(final int i, final T t) {
+		// start new register and TODO backpropagate alive for existing (read number)
 		final R prevR = this.frame.get(i);
-		final R newR = prevR == null ? new R(this.pc, t, value, Kind.CONST) : new R(this.pc, t,
-				value, Kind.CONST, prevR);
+		if (prevR == null) {
+			throw new RuntimeException("Cannot read register " + i + " (null) as type '" + t + "'!");
+		}
+		if (!prevR.read(t)) {
+			throw new RuntimeException("Cannot read register " + i + " (" + prevR + ") as type '"
+					+ t + "'!");
+		}
+		if (t == T.RETURN_ADDRESS) {
+			// bytecode restriction: internal return address type can only be read once
+			this.frame.set(i, null);
+			return prevR;
+		}
+		final R newR = new R(this.pc, prevR.getT(), prevR.getValue(), Kind.READ, prevR);
 		this.frame.set(i, newR);
-		return newR;
+		return prevR;
 	}
 
-	private R setMove(final int i, final R r) {
+	private void setFrame(final int pc, final Frame frame) {
+		this.cfg.setFrame(pc, frame);
+	}
+
+	private R store(final int i, final R r) {
 		final R prevR = this.frame.get(i);
 		final R newR = prevR == null ? new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r)
 				: new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r, prevR);
 		this.frame.set(i, newR);
 		return newR;
-	}
-
-	private void setNull(final int i) {
-		this.frame.set(i, null);
 	}
 
 	private void transform() {
@@ -937,7 +937,6 @@ public final class TrDataFlowAnalysis2Cfg {
 			bb.addOp(op);
 			this.pc = execute(op, bb);
 		}
-		this.cfg.calculatePostorder();
 	}
 
 }

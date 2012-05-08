@@ -1042,8 +1042,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				final Expression rightExpression = bb.pop();
 
 				// inline assignment, DUP -> STORE
-				final boolean isInlineAssignment = bb.getTop() > 0
-						&& bb.peek() == rightExpression;
+				final boolean isInlineAssignment = bb.getTop() > 0 && bb.peek() == rightExpression;
 				final V v = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
 
 				if (v == null /* tmp hack */|| v.getName() == null) {
@@ -1552,7 +1551,6 @@ public final class TrIvmCfg2JavaExprStmts {
 				}
 			}
 		}
-		this.cfg.calculatePostorder(); // BBs deleted...
 	}
 
 }
