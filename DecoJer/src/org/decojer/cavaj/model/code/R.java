@@ -47,6 +47,11 @@ public class R {
 		CONST,
 
 		/**
+		 * Previous r.
+		 */
+		LOAD,
+
+		/**
 		 * Merge ins.
 		 */
 		MERGE,
@@ -54,13 +59,12 @@ public class R {
 		/**
 		 * STORE_MOVE. New r, maybe previous r.
 		 */
-		MOVE,
+		MOVE
 
-		/**
-		 * Previous r.
-		 */
-		READ
 	}
+
+	@Getter
+	private final Kind kind;
 
 	/**
 	 * Merge register types.
@@ -95,9 +99,6 @@ public class R {
 	 */
 	@Getter
 	private final int pc;
-
-	@Getter
-	private final Kind kind;
 
 	/**
 	 * Constructor.
