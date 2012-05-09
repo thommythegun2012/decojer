@@ -330,7 +330,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case INC: {
 			final INC cop = (INC) op;
-			final R r = read(cop.getReg(), cop.getT());
+			final R r = load(cop.getReg(), cop.getT());
 			r.inc(cop.getValue());
 			break;
 		}
@@ -407,7 +407,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				if (ret != null) {
 					// RET already visited, link RET BB to JSR follower and merge
 					this.frame = new Frame(getFrame(ret.getPc()));
-					if (sub != read(ret.getReg(), T.RETURN_ADDRESS).getValue()) {
+					if (sub != load(ret.getReg(), T.RETURN_ADDRESS).getValue()) {
 						// don't assert here, need this get for frames return-address-null update
 						LOGGER.warning("Incorrect sub!");
 					}
@@ -429,7 +429,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case LOAD: {
 			final LOAD cop = (LOAD) op;
-			final R r = read(cop.getReg(), cop.getT());
+			final R r = load(cop.getReg(), cop.getT());
 			// no previous for stack
 			pushMove(r);
 			break;
@@ -533,7 +533,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case RET: {
 			final RET cop = (RET) op;
-			final R r = read(cop.getReg(), T.RETURN_ADDRESS);
+			final R r = load(cop.getReg(), T.RETURN_ADDRESS);
 			// bytecode restriction: only called via matching JSR, Sub known as register value
 			final Sub sub = (Sub) r.getValue();
 			if (!this.frame.popSub(sub)) {
@@ -709,6 +709,26 @@ public final class TrDataFlowAnalysis2Cfg {
 		return bb;
 	}
 
+	private R load(final int i, final T t) {
+		// start new register and TODO backpropagate alive for existing (read number)
+		final R prevR = this.frame.get(i);
+		if (prevR == null) {
+			throw new RuntimeException("Cannot load register " + i + " (null) as type '" + t + "'!");
+		}
+		if (!prevR.read(t)) {
+			throw new RuntimeException("Cannot load register " + i + " (" + prevR + ") as type '"
+					+ t + "'!");
+		}
+		if (t == T.RETURN_ADDRESS) {
+			// bytecode restriction: internal return address type can only be read once
+			this.frame.set(i, null);
+			return prevR;
+		}
+		final R newR = new R(this.pc, prevR.getT(), prevR.getValue(), Kind.LOAD, prevR);
+		this.frame.set(i, newR);
+		return prevR;
+	}
+
 	private void merge(final int pc) {
 		final Frame targetFrame = getFrame(pc);
 		if (targetFrame == null) {
@@ -853,26 +873,6 @@ public final class TrDataFlowAnalysis2Cfg {
 		final R s = new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r);
 		this.frame.push(s);
 		return s;
-	}
-
-	private R read(final int i, final T t) {
-		// start new register and TODO backpropagate alive for existing (read number)
-		final R prevR = this.frame.get(i);
-		if (prevR == null) {
-			throw new RuntimeException("Cannot read register " + i + " (null) as type '" + t + "'!");
-		}
-		if (!prevR.read(t)) {
-			throw new RuntimeException("Cannot read register " + i + " (" + prevR + ") as type '"
-					+ t + "'!");
-		}
-		if (t == T.RETURN_ADDRESS) {
-			// bytecode restriction: internal return address type can only be read once
-			this.frame.set(i, null);
-			return prevR;
-		}
-		final R newR = new R(this.pc, prevR.getT(), prevR.getValue(), Kind.READ, prevR);
-		this.frame.set(i, newR);
-		return prevR;
 	}
 
 	private void setFrame(final int pc, final Frame frame) {
