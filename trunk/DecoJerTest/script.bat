@@ -63,10 +63,10 @@ rem default target is 1.2 (46)
 "C:\Program Files\Java\jdk1.6.0\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk5\*.java -g:none -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0
 "C:\Program Files\Java\jdk1.6.0\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g:none -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0
 
-"C:\Program Files\Java\jdk1.6.0_31\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_c
-"C:\Program Files\Java\jdk1.6.0_31\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk2\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_c
-"C:\Program Files\Java\jdk1.6.0_31\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk5\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_c
-"C:\Program Files\Java\jdk1.6.0_31\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_c
+"C:\Program Files\Java\jdk1.6.0_32\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_c
+"C:\Program Files\Java\jdk1.6.0_32\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk2\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_c
+"C:\Program Files\Java\jdk1.6.0_32\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk5\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_c
+"C:\Program Files\Java\jdk1.6.0_32\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.6.0_c
 
 
 "C:\Program Files\Java\jdk1.7.0\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g:none -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0
@@ -75,21 +75,21 @@ rem default target is 1.2 (46)
 "C:\Program Files\Java\jdk1.7.0\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g:none -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0
 "C:\Program Files\Java\jdk1.7.0\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk7\*.java -g:none -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0
 
-"C:\Program Files\Java\jdk1.7.0_03\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0_c
-"C:\Program Files\Java\jdk1.7.0_03\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk2\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0_c
-"C:\Program Files\Java\jdk1.7.0_03\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk5\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0_c
-"C:\Program Files\Java\jdk1.7.0_03\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0_c
-"C:\Program Files\Java\jdk1.7.0_03\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk7\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_04\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_04\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk2\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_04\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk5\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_04\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_04\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk7\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.7.0_c
 
 
 mkdir D:\Data\Decomp\workspace\DecoJerTest\dex\bin
 
-"C:\Program Files\Java\jdk1.6.0_31\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\dex\bin
-"C:\Program Files\Java\jdk1.6.0_31\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk2\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\dex\bin
-"C:\Program Files\Java\jdk1.6.0_31\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk5\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\dex\bin
-"C:\Program Files\Java\jdk1.6.0_31\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\dex\bin
+"C:\Program Files\Java\jdk1.6.0_32\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\dex\bin
+"C:\Program Files\Java\jdk1.6.0_32\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk2\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\dex\bin
+"C:\Program Files\Java\jdk1.6.0_32\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk5\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\dex\bin
+"C:\Program Files\Java\jdk1.6.0_32\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\jdk6\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\dex\bin
 
-"C:\Program Files\Java\jdk1.6.0_31\bin\jar" -cf D:\Data\Decomp\workspace\DecoJerTest\dex\classes.jar -C D:\Data\Decomp\workspace\DecoJerTest\dex\bin org/decojer/cavaj/test
+"C:\Program Files\Java\jdk1.6.0_32\bin\jar" -cf D:\Data\Decomp\workspace\DecoJerTest\dex\classes.jar -C D:\Data\Decomp\workspace\DecoJerTest\dex\bin org/decojer/cavaj/test
 
 rmdir /S/Q D:\Data\Decomp\workspace\DecoJerTest\dex\bin
 
