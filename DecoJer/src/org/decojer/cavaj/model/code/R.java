@@ -42,29 +42,26 @@ public class R {
 	public enum Kind {
 
 		/**
-		 * STORE_CONST. Maybe previous r.
+		 * STORE_CONST.
 		 */
 		CONST,
 
 		/**
-		 * Previous r.
-		 */
-		LOAD,
-
-		/**
-		 * Merge ins.
+		 * Merge ins. Incomming registers.
 		 */
 		MERGE,
 
 		/**
-		 * STORE_MOVE. New r, maybe previous r.
+		 * STORE_MOVE. New register, maybe previous register.
 		 */
-		MOVE
+		MOVE,
+
+		/**
+		 * Previous register.
+		 */
+		READ
 
 	}
-
-	@Getter
-	private final Kind kind;
 
 	/**
 	 * Merge register types.
@@ -99,6 +96,9 @@ public class R {
 	 */
 	@Getter
 	private final int pc;
+
+	@Getter
+	private final Kind kind;
 
 	/**
 	 * Constructor.
