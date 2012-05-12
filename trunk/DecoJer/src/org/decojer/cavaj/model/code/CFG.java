@@ -33,6 +33,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
@@ -252,6 +253,15 @@ public class CFG {
 	}
 
 	/**
+	 * Get decompilation unit.
+	 * 
+	 * @return decompilation unit
+	 */
+	public DU getDu() {
+		return this.md.getTd().getT().getDu();
+	}
+
+	/**
 	 * Get frame for PC.
 	 * 
 	 * @param pc
@@ -326,6 +336,15 @@ public class CFG {
 	 */
 	public Frame getOutFrame(final Op op) {
 		return this.frames[op.getPc() + 1];
+	}
+
+	/**
+	 * Get type declaration.
+	 * 
+	 * @return type declaration
+	 */
+	public TD getTd() {
+		return this.md.getTd();
 	}
 
 	/**

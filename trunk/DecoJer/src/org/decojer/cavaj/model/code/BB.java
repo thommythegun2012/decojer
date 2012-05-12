@@ -409,7 +409,7 @@ public final class BB {
 	}
 
 	/**
-	 * Move in edges to target BB.
+	 * Move in edges to target BB. Adjust CFG start BB.
 	 * 
 	 * @param target
 	 *            target BB

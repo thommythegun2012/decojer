@@ -1605,11 +1605,10 @@ public class ReadCodeAttribute {
 			final LocalVariableAttribute localVariableTypeAttribute) {
 		final HashMap<Integer, ArrayList<V>> reg2vs = new HashMap<Integer, ArrayList<V>>();
 		if (localVariableAttribute != null) {
-			final DU du = cfg.getMd().getM().getT().getDu();
 			// preserve order
 			final int tableLength = localVariableAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final T vT = du.getDescT(localVariableAttribute.descriptor(i));
+				final T vT = cfg.getDu().getDescT(localVariableAttribute.descriptor(i));
 				final V v = new V(vT, localVariableAttribute.variableName(i),
 						this.vmpc2pc.get(localVariableAttribute.startPc(i)),
 						this.vmpc2pc.get(localVariableAttribute.startPc(i)

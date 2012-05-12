@@ -1145,7 +1145,7 @@ public final class TrIvmCfg2JavaExprStmts {
 	}
 
 	private TD getTd() {
-		return this.cfg.getMd().getTd();
+		return this.cfg.getTd();
 	}
 
 	private String getVarName(final int reg, final int pc) {
@@ -1192,9 +1192,8 @@ public final class TrIvmCfg2JavaExprStmts {
 		Expression expression = condHead.peek();
 		try {
 			final String classInfo = (String) ((PUSH) bb.getOp(1)).getValue();
-			final DU du = getTd().getT().getDu();
-			final T literalT = du.getT(classInfo);
-			expression = Types.convertLiteral(du.getT(Class.class), literalT, getTd(), getAst());
+			expression = Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg.getDu()
+					.getT(classInfo), getTd(), getAst());
 		} catch (final Exception e) {
 			// rewrite to class literal didn't work
 			return false;
@@ -1317,10 +1316,8 @@ public final class TrIvmCfg2JavaExprStmts {
 				try {
 					final String classInfo = ((StringLiteral) methodInvocation.arguments().get(0))
 							.getLiteralValue();
-					final DU du = getTd().getT().getDu();
-					final T literalT = du.getT(classInfo);
-					expression = Types.convertLiteral(du.getT(Class.class), literalT, getTd(),
-							getAst());
+					expression = Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg
+							.getDu().getT(classInfo), getTd(), getAst());
 					break rewrite;
 				} catch (final Exception e) {
 					// rewrite to class literal didn't work
