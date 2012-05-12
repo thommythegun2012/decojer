@@ -747,31 +747,34 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 	}
 
-	private void mergeExceptions(final int pc) {
+	private void mergeExceptions(final Op op) {
 		if (this.isIgnoreExceptions || this.cfg.getExcs() == null) {
 			return;
 		}
+		final int pc = op.getPc();
 		for (final Exc exc : this.cfg.getExcs()) {
 			if (!exc.validIn(pc)) {
 				continue;
 			}
 			this.frame = new Frame(this.cfg.getFrame(pc));
-			this.frame.clear();
 
+			// in handler start frame the stack just consists of exception type
+			this.frame.clear();
 			final Frame handlerFrame = this.cfg.getFrame(exc.getHandlerPc());
+			R excR;
 			if (handlerFrame == null) {
-				// TODO handling for mergeExc with single stack exception value suboptimal
-				merge(exc.getHandlerPc());
-				this.frame = this.cfg.getFrame(exc.getHandlerPc());
 				// null is <any> (means Java finally) -> Throwable
-				pushConst(exc.getT() == null ? this.cfg.getDu().getT(Throwable.class) : exc.getT());
+				excR = new R(exc.getHandlerPc(), exc.getT() == null ? this.cfg.getDu().getT(
+						Throwable.class) : exc.getT(), Kind.CONST);
 			} else {
 				if (handlerFrame.getTop() != 1) {
 					LOGGER.warning("Handler stack for exception merge not of size 1!");
 				}
-				this.frame.push(handlerFrame.peek()); // reuse exception register
-				merge(exc.getHandlerPc());
+				excR = handlerFrame.peek(); // reuse exception register
 			}
+			this.frame.push(excR);
+
+			merge(exc.getHandlerPc());
 		}
 	}
 
@@ -870,17 +873,19 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	/**
-	 * Exception block changes in none-empty BB? -> split necessary!
+	 * Exception block changes in BB? -> split necessary!
 	 * 
 	 * @param bb
 	 *            BB
-	 * @return original or splitted new BB
+	 * @return original BB or new BB for beginning exception block
 	 */
 	private BB splitExceptions(final BB bb) {
-		// exception block changes in none-empty BB? -> split necessary!
 		if (this.isIgnoreExceptions || this.cfg.getExcs() == null) {
 			return bb;
 		}
+		// could happen with GOTO-mode: create no entry in BB, currently unused
+		assert bb.getPc() == this.pc || bb.getOps() > 0;
+
 		for (final Exc exc : this.cfg.getExcs()) {
 			if (exc.validIn(this.pc)) {
 				if (exc.validIn(bb.getPc())) {
@@ -912,7 +917,7 @@ public final class TrDataFlowAnalysis2Cfg {
 	private void transform() {
 		this.cfg.initFrames();
 
-		this.isIgnoreExceptions = this.cfg.getTd().getCu().check(DFlag.IGNORE_EXCEPTIONS);
+		this.isIgnoreExceptions = this.cfg.getCu().check(DFlag.IGNORE_EXCEPTIONS);
 		this.pc2bbs = new BB[this.cfg.getOps()];
 
 		// start with PC 0 and new BB
@@ -932,8 +937,9 @@ public final class TrDataFlowAnalysis2Cfg {
 				bb = splitExceptions(bb);
 				this.pc2bbs[this.pc] = bb;
 			}
-			mergeExceptions(this.pc);
-			this.pc = executeMerge(this.cfg.getOp(this.pc), bb);
+			final Op op = this.cfg.getOp(this.pc);
+			this.pc = executeMerge(op, bb);
+			mergeExceptions(op); // execute has influence on this, read type reduce
 		}
 	}
 
