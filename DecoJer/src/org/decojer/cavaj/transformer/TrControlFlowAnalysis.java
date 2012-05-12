@@ -485,7 +485,7 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(this.cfg.getMd().toString() + ": " + message);
+		LOGGER.warning(this.cfg.getMd() + ": " + message);
 	}
 
 	private void transform() {
