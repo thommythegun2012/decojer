@@ -30,9 +30,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
@@ -85,39 +82,23 @@ public final class TrStructCfg2JavaControlFlowStmts {
 	}
 
 	private AST getAst() {
-		return getCu().getAst();
-	}
-
-	private CFG getCfg() {
-		return this.cfg;
-	}
-
-	private CU getCu() {
-		return getTd().getCu();
-	}
-
-	private MD getMd() {
-		return getCfg().getMd();
-	}
-
-	private TD getTd() {
-		return getMd().getTd();
+		return this.cfg.getCu().getAst();
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(getMd().toString() + ": " + message);
+		LOGGER.warning(this.cfg.getMd() + ": " + message);
 	}
 
 	@SuppressWarnings("unchecked")
 	public void transform() {
-		if (getCfg().getBlock() == null) {
+		if (this.cfg.getBlock() == null) {
 			// TODO can happen, e.g. if synthethic
 			return;
 		}
-		final List<Statement> statements = getCfg().getBlock().statements();
+		final List<Statement> statements = this.cfg.getBlock().statements();
 		statements.clear(); // possible in debug mode
 
-		transformSequence(null, getCfg().getStartBb(), statements);
+		transformSequence(null, this.cfg.getStartBb(), statements);
 
 		// remove final return
 		if (statements.size() > 0) {

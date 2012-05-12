@@ -33,6 +33,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
@@ -226,6 +227,15 @@ public class CFG {
 	}
 
 	/**
+	 * Get compilation unit.
+	 * 
+	 * @return compilation unit
+	 */
+	public CU getCu() {
+		return getTd().getCu();
+	}
+
+	/**
 	 * Get local variable (from debug info).
 	 * 
 	 * @param reg
@@ -258,7 +268,7 @@ public class CFG {
 	 * @return decompilation unit
 	 */
 	public DU getDu() {
-		return this.md.getTd().getT().getDu();
+		return getTd().getT().getDu();
 	}
 
 	/**
@@ -344,7 +354,7 @@ public class CFG {
 	 * @return type declaration
 	 */
 	public TD getTd() {
-		return this.md.getTd();
+		return getMd().getTd();
 	}
 
 	/**
