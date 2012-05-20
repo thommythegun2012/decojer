@@ -5,6 +5,8 @@
 <jsp:include page="/WEB-INF/template/body.jsp" />
 
 <ul>
+	<li><a href="/appstats">Appstats</a></li>
+	<li><a href="/admin/capabilities.jsp">Capabilities</a></li>
 	<li><a href="/admin/blobStats.jsp">Blob Stats</a></li>
 	<li><a href="/admin/pomStats.jsp">POM Stats</a></li>
 	<li><a href="/admin/merge.jsp">Merge Test</a></li>
