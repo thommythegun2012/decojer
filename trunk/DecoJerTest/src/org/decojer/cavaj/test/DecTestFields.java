@@ -6,25 +6,27 @@ public class DecTestFields {
 
 	public static void main(String[] args) {
 		System.out.println("TEST : " + String.class);
+		System.out.println("TEST : " + String.class.getSuperclass());
+		System.out.println("TEST : " + String.class.getInterfaces().length);
 		System.out.println("TEST : " + String[].class);
 		System.out.println("TEST : " + String[].class.getSuperclass());
 		System.out.println("TEST : " + String[].class.getInterfaces().length);
 		System.out.println("TEST : " + String[].class.getInterfaces()[0]);
 		System.out.println("TEST : " + String[].class.getInterfaces()[1]);
-		System.out.println("TEST : " + Class.class.getSuperclass());
 		System.out.println("TEST : " + Object.class.getSuperclass());
 		System.out.println("TEST : " + Object.class.getInterfaces().length);
 		System.out.println("TEST : " + Serializable.class.getSuperclass());
 		System.out.println("TEST : " + void.class);
 		System.out.println("TEST : " + void.class.getSuperclass());
+		System.out.println("TEST : " + byte.class);
+		System.out.println("TEST : " + byte.class.getSuperclass());
+		System.out.println("TEST : " + byte.class.getInterfaces().length);
 		System.out.println("TEST : " + int.class);
-		System.out.println("TEST : " + int.class.getSuperclass());
 		System.out.println("TEST : " + int[].class);
-		System.out.println("TEST : " + int[].class.getSuperclass());
 		System.out.println("TEST : " + int[][].class);
-		System.out.println("TEST : " + int[][].class.getSuperclass());
 		System.out.println("TEST : " + int.class.getClass());
-		System.out.println("TEST : " + int.class.getClass().getSuperclass());
+		System.out.println("TEST : "
+				+ int.class.getClass().getInterfaces().length);
 	}
 
 	boolean booleanTest = true;
