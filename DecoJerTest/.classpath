@@ -16,5 +16,7 @@
 	<classpathentry kind="lib" path="bin_jdk1.5.0_c"/>
 	<classpathentry kind="lib" path="bin_jdk1.6.0_c"/>
 	<classpathentry kind="lib" path="bin_jdk1.7.0_c"/>
+	<classpathentry kind="lib" path="lib/testng-6.5.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/DecoJer"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
