@@ -65,7 +65,16 @@ class TestT {
 	}
 
 	@Test
+	void testMergeRead() {
+		assertSame(T.INT, T.mergeRead(T.INT, T.INT));
+		assertSame(T.WIDE, T.mergeRead(T.LONG, T.DOUBLE));
+	}
+
+	@Test
 	void testMergeStore() {
+		assertSame(T.INT, T.mergeStore(T.INT, T.INT));
+		assertSame(T.LONG, T.mergeStore(T.WIDE, T.LONG));
+
 		assertNull(T.mergeStore(T.INT, T.SHORT));
 		assertSame(T.INT, T.mergeStore(T.INT, T.AINT));
 		assertSame(T.INT, T.mergeStore(T.AINT, T.HINT));
@@ -79,7 +88,8 @@ class TestT {
 		assertEquals("java.lang.Object", Object.class.getName());
 		assertEquals("java.lang.Object", objectT.getName());
 
-		// strange rule for Class.getName(): just arrays with descriptor syntax
+		// strange rule for Class.getName(): just arrays with descriptor syntax,
+		// but with dots
 		assertEquals("[[Ljava.lang.Object;", Object[][].class.getName());
 		// we handle that different
 		assertEquals("java.lang.Object[][]", du.getT(Object[][].class)
