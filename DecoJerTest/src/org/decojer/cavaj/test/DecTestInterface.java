@@ -1,6 +1,8 @@
 package org.decojer.cavaj.test;
 
-public interface DecTestInterface {
+import java.io.Serializable;
+
+public interface DecTestInterface extends Cloneable, Serializable {
 
 	int test();
 
