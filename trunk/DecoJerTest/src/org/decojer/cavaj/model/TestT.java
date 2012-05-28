@@ -38,12 +38,12 @@ class TestT {
 		// all Arrays have Cloneable & Serializable as Interfaces
 		Class<?>[] clazzes = int[].class.getInterfaces();
 		assertEquals(clazzes.length, 2);
-		assertSame(Cloneable.class, clazzes[0]);
-		assertSame(Serializable.class, clazzes[1]);
+		assertSame(clazzes[0], Cloneable.class);
+		assertSame(clazzes[1], Serializable.class);
 		T[] ts = du.getT(int[].class).getInterfaceTs();
 		assertEquals(ts.length, 2);
-		assertSame(du.getT(Cloneable.class), ts[0]);
-		assertSame(du.getT(Serializable.class), ts[1]);
+		assertSame(ts[0], du.getT(Cloneable.class));
+		assertSame(ts[1], du.getT(Serializable.class));
 	}
 
 	@Test
@@ -66,37 +66,46 @@ class TestT {
 
 	@Test
 	void testMergeRead() {
-		assertSame(T.INT, T.mergeRead(T.INT, T.INT));
-		assertSame(T.WIDE, T.mergeRead(T.LONG, T.DOUBLE));
+		assertSame(T.mergeRead(T.INT, T.INT), T.INT);
+		assertSame(T.mergeRead(T.LONG, T.DOUBLE), T.WIDE);
 	}
 
 	@Test
 	void testMergeStore() {
-		assertSame(T.INT, T.mergeStore(T.INT, T.INT));
-		assertSame(T.LONG, T.mergeStore(T.WIDE, T.LONG));
+		assertSame(T.mergeStore(T.INT, T.INT), T.INT);
+		assertSame(T.mergeStore(T.WIDE, T.LONG), T.LONG);
 
 		assertNull(T.mergeStore(T.INT, T.SHORT));
-		assertSame(T.INT, T.mergeStore(T.INT, T.AINT));
-		assertSame(T.INT, T.mergeStore(T.AINT, T.HINT));
+		assertSame(T.mergeStore(T.INT, T.AINT), T.INT);
+		assertSame(T.mergeStore(T.AINT, T.HINT), T.INT);
+
+		assertSame(T.mergeStore(objectT, objectT), objectT);
+		assertNull(T.mergeStore(objectT, T.INT));
+		assertSame(T.mergeStore(objectT, du.getT(Integer.class)), objectT);
 	}
 
 	@Test
 	void testName() {
-		assertEquals("int", int.class.getName());
-		assertEquals("int", du.getT(int.class).getName());
+		assertEquals(int.class.getName(), "int");
+		assertEquals(du.getT(int.class).getName(), "int");
 
-		assertEquals("java.lang.Object", Object.class.getName());
-		assertEquals("java.lang.Object", objectT.getName());
+		assertEquals(Object.class.getName(), "java.lang.Object");
+		assertEquals(objectT.getName(), "java.lang.Object");
 
 		// strange rule for Class.getName(): just arrays with descriptor syntax,
 		// but with dots
-		assertEquals("[[Ljava.lang.Object;", Object[][].class.getName());
+		assertEquals(Object[][].class.getName(), "[[Ljava.lang.Object;");
 		// we handle that different
-		assertEquals("java.lang.Object[][]", du.getT(Object[][].class)
-				.getName());
+		assertEquals(du.getT(Object[][].class).getName(),
+				"java.lang.Object[][]");
 
 		// multi-types just for primitives / internal
-		assertEquals("{boolean,char,byte,short,int}", T.AINT.getName());
+		assertEquals(T.AINT.getName(), "{boolean,char,byte,short,int}");
+	}
+
+	@Test
+	void testRead() {
+		assertSame(T.HINT.read(T.INT), T.INT);
 	}
 
 	@Test
@@ -107,8 +116,8 @@ class TestT {
 		assertNull(Object.class.getSuperclass());
 		assertNull(objectT.getSuperT());
 
-		assertSame(Object.class, int[].class.getSuperclass());
-		assertSame(objectT, du.getT(int[].class).getSuperT());
+		assertSame(int[].class.getSuperclass(), Object.class);
+		assertSame(du.getT(int[].class).getSuperT(), objectT);
 	}
 
 }
