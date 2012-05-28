@@ -35,12 +35,24 @@ class TestT {
 		assertEquals(Object.class.getInterfaces().length, 0);
 		assertEquals(objectT.getInterfaceTs().length, 0);
 
+		// Interface order is relevant
+		Class<?>[] clazzes = String.class.getInterfaces();
+		assertEquals(clazzes.length, 3);
+		assertSame(clazzes[0], Serializable.class);
+		assertSame(clazzes[1], Comparable.class);
+		assertSame(clazzes[2], CharSequence.class);
+		T[] ts = du.getT(String.class).getInterfaceTs();
+		assertEquals(ts.length, 3);
+		assertSame(ts[0], du.getT(Serializable.class));
+		assertSame(ts[1], du.getT(Comparable.class));
+		assertSame(ts[2], du.getT(CharSequence.class));
+
 		// all Arrays have Cloneable & Serializable as Interfaces
-		Class<?>[] clazzes = int[].class.getInterfaces();
+		clazzes = int[].class.getInterfaces();
 		assertEquals(clazzes.length, 2);
 		assertSame(clazzes[0], Cloneable.class);
 		assertSame(clazzes[1], Serializable.class);
-		T[] ts = du.getT(int[].class).getInterfaceTs();
+		ts = du.getT(int[].class).getInterfaceTs();
 		assertEquals(ts.length, 2);
 		assertSame(ts[0], du.getT(Cloneable.class));
 		assertSame(ts[1], du.getT(Serializable.class));
