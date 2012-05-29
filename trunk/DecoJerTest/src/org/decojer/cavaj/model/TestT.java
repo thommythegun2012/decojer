@@ -60,8 +60,85 @@ class TestT {
 
 	@Test
 	void testIsAssignableFrom() {
-		// missleading, assignableFrom() means is-superclass, for primitives too
+		assertTrue(int.class.isAssignableFrom(int.class));
+		assertTrue(T.INT.isAssignableFrom(T.INT));
+		// missleading, assignableFrom() means is-superclass, for primitives
+		// too! even though int=short/byte etc. is possible, false is returned!
+		// we copy this behavior for better testability
 		assertFalse(int.class.isAssignableFrom(byte.class));
+		assertFalse(T.INT.isAssignableFrom(T.BYTE));
+		assertTrue(int[].class.isAssignableFrom(int[].class));
+		assertTrue(du.getT(int[].class).isAssignableFrom(du.getT(int[].class)));
+		assertFalse(int[].class.isAssignableFrom(byte[].class));
+		assertFalse(du.getT(int[].class)
+				.isAssignableFrom(du.getT(byte[].class)));
+		assertFalse(int[].class.isAssignableFrom(int[][].class));
+		assertFalse(du.getT(int[].class).isAssignableFrom(
+				du.getT(int[][].class)));
+
+		assertFalse(Object.class.isAssignableFrom(byte.class));
+		assertFalse(objectT.isAssignableFrom(du.getT(byte.class)));
+		assertFalse(T.REF.isAssignableFrom(du.getT(byte.class)));
+		assertFalse(T.AREF.isAssignableFrom(du.getT(byte.class)));
+
+		assertTrue(Object.class.isAssignableFrom(Cloneable.class));
+		assertTrue(objectT.isAssignableFrom(du.getT(Cloneable.class)));
+		assertTrue(T.REF.isAssignableFrom(du.getT(Cloneable.class)));
+		assertTrue(T.AREF.isAssignableFrom(du.getT(Cloneable.class)));
+
+		assertTrue(Object.class.isAssignableFrom(Byte.class));
+		assertTrue(objectT.isAssignableFrom(du.getT(Byte.class)));
+		assertTrue(T.REF.isAssignableFrom(du.getT(Byte.class)));
+		assertTrue(T.AREF.isAssignableFrom(du.getT(Byte.class)));
+
+		assertTrue(Number.class.isAssignableFrom(Byte.class));
+		assertTrue(du.getT(Number.class).isAssignableFrom(du.getT(Byte.class)));
+		assertTrue(Comparable.class.isAssignableFrom(Byte.class));
+		assertTrue(du.getT(Comparable.class).isAssignableFrom(
+				du.getT(Byte.class)));
+		assertTrue(Serializable.class.isAssignableFrom(Byte.class));
+		assertTrue(du.getT(Serializable.class).isAssignableFrom(
+				du.getT(Byte.class)));
+
+		assertFalse(Cloneable.class.isAssignableFrom(Byte.class));
+		assertFalse(du.getT(Cloneable.class).isAssignableFrom(
+				du.getT(Byte.class)));
+
+		// arrays are REFs with {Object,Cloneable,Serializable}
+		assertTrue(Object.class.isAssignableFrom(byte[].class));
+		assertTrue(objectT.isAssignableFrom(du.getT(byte[].class)));
+		assertTrue(Cloneable.class.isAssignableFrom(byte[].class));
+		assertTrue(du.getT(Cloneable.class).isAssignableFrom(
+				du.getT(byte[].class)));
+		assertTrue(Serializable.class.isAssignableFrom(byte[][][].class));
+		assertTrue(du.getT(Serializable.class).isAssignableFrom(
+				du.getT(byte[][][].class)));
+
+		assertTrue(Serializable[][].class.isAssignableFrom(byte[][][].class));
+		assertTrue(du.getT(Serializable[][].class).isAssignableFrom(
+				du.getT(byte[][][].class)));
+		assertFalse(Serializable[][][].class.isAssignableFrom(byte[][][].class));
+		assertFalse(du.getT(Serializable[][][].class).isAssignableFrom(
+				du.getT(byte[][][].class)));
+
+		// covariant arrays
+		assertTrue(Number[].class.isAssignableFrom(Integer[].class));
+		assertTrue(du.getT(Number[].class).isAssignableFrom(
+				du.getT(Integer[].class)));
+		// this is the Array-Serializable
+		assertTrue(Serializable[][].class.isAssignableFrom(Byte[][][].class));
+		assertTrue(du.getT(Serializable[][].class).isAssignableFrom(
+				du.getT(Byte[][][].class)));
+		assertTrue(Cloneable[][].class.isAssignableFrom(Byte[][][].class));
+		assertTrue(du.getT(Cloneable[][].class).isAssignableFrom(
+				du.getT(Byte[][][].class)));
+		// this is the Number-Serializable...true!
+		assertTrue(Serializable[][][].class.isAssignableFrom(Byte[][][].class));
+		assertTrue(du.getT(Serializable[][][].class).isAssignableFrom(
+				du.getT(Byte[][][].class)));
+		assertFalse(Cloneable[][][].class.isAssignableFrom(Byte[][][].class));
+		assertFalse(du.getT(Cloneable[][][].class).isAssignableFrom(
+				du.getT(Byte[][][].class)));
 	}
 
 	@Test
@@ -127,6 +204,9 @@ class TestT {
 
 		assertNull(Object.class.getSuperclass());
 		assertNull(objectT.getSuperT());
+
+		assertNull(Cloneable.class.getSuperclass());
+		assertNull(du.getT(Cloneable.class).getSuperT());
 
 		assertSame(int[].class.getSuperclass(), Object.class);
 		assertSame(du.getT(int[].class).getSuperT(), objectT);
