@@ -81,15 +81,18 @@ class TestT {
 		assertFalse(T.REF.isAssignableFrom(du.getT(byte.class)));
 		assertFalse(T.AREF.isAssignableFrom(du.getT(byte.class)));
 
-		assertTrue(Object.class.isAssignableFrom(Cloneable.class));
-		assertTrue(objectT.isAssignableFrom(du.getT(Cloneable.class)));
-		assertTrue(T.REF.isAssignableFrom(du.getT(Cloneable.class)));
-		assertTrue(T.AREF.isAssignableFrom(du.getT(Cloneable.class)));
-
+		assertTrue(Object.class.isAssignableFrom(Object.class));
+		assertTrue(objectT.isAssignableFrom(du.getT(Object.class)));
+		assertTrue(T.REF.isAssignableFrom(du.getT(Object.class)));
+		assertTrue(T.AREF.isAssignableFrom(du.getT(Object.class)));
 		assertTrue(Object.class.isAssignableFrom(Byte.class));
 		assertTrue(objectT.isAssignableFrom(du.getT(Byte.class)));
 		assertTrue(T.REF.isAssignableFrom(du.getT(Byte.class)));
 		assertTrue(T.AREF.isAssignableFrom(du.getT(Byte.class)));
+		assertTrue(Object.class.isAssignableFrom(Cloneable.class));
+		assertTrue(objectT.isAssignableFrom(du.getT(Cloneable.class)));
+		assertTrue(T.REF.isAssignableFrom(du.getT(Cloneable.class)));
+		assertTrue(T.AREF.isAssignableFrom(du.getT(Cloneable.class)));
 
 		assertTrue(Number.class.isAssignableFrom(Byte.class));
 		assertTrue(du.getT(Number.class).isAssignableFrom(du.getT(Byte.class)));
@@ -205,8 +208,12 @@ class TestT {
 		assertNull(Object.class.getSuperclass());
 		assertNull(objectT.getSuperT());
 
+		// {Interface}.class.getSuperclass() returns null, but
+		// Object.class.isAssignableFrom({Interface}.class) is true!
+		// Generic Signatures contain Object as Super -> hence
+		// getSuperclass() has a historical glitch...we change that for us
 		assertNull(Cloneable.class.getSuperclass());
-		assertNull(du.getT(Cloneable.class).getSuperT());
+		assertSame(du.getT(Cloneable.class).getSuperT(), objectT);
 
 		assertSame(int[].class.getSuperclass(), Object.class);
 		assertSame(du.getT(int[].class).getSuperT(), objectT);
