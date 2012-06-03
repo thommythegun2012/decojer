@@ -145,6 +145,18 @@ class TestT {
 	}
 
 	@Test
+	void testIsMulti() {
+		assertFalse(T.INT.isMulti());
+		assertFalse(T.VOID.isMulti());
+		assertFalse(T.REF.isMulti());
+		assertFalse(T.RET.isMulti());
+
+		assertTrue(T.AINT.isMulti());
+		assertTrue(T.AREF.isMulti());
+		assertTrue(T.DINT.isMulti());
+	}
+
+	@Test
 	void testIsPrimitive() {
 		assertTrue(int.class.isPrimitive());
 		assertTrue(T.INT.isPrimitive());
@@ -157,23 +169,53 @@ class TestT {
 	}
 
 	@Test
-	void testMergeRead() {
-		assertSame(T.mergeRead(T.INT, T.INT), T.INT);
-		assertSame(T.mergeRead(T.LONG, T.DOUBLE), T.WIDE);
+	void testJoin() {
+		assertSame(T.join(T.INT, T.INT), T.INT);
+		assertSame(T.join(T.SHORT, T.SHORT), T.SHORT);
+		assertSame(T.join(T.BYTE, T.BYTE), T.BYTE);
+		assertSame(T.join(T.CHAR, T.CHAR), T.CHAR);
+
+		assertSame(T.join(T.INT, T.SHORT), T.INT);
+		assertSame(T.join(T.SHORT, T.INT), T.INT);
+		assertSame(T.join(T.INT, T.BYTE), T.INT);
+		assertSame(T.join(T.BYTE, T.INT), T.INT);
+		assertSame(T.join(T.INT, T.CHAR), T.INT);
+		assertSame(T.join(T.CHAR, T.INT), T.INT);
+		assertSame(T.join(T.SHORT, T.BYTE), T.SHORT);
+		assertSame(T.join(T.BYTE, T.SHORT), T.SHORT);
+
+		assertSame(T.join(T.BOOLEAN, T.BOOLEAN), T.BOOLEAN);
+		assertSame(T.join(T.FLOAT, T.FLOAT), T.FLOAT);
+		assertSame(T.join(T.LONG, T.LONG), T.LONG);
+		assertSame(T.join(T.DOUBLE, T.DOUBLE), T.DOUBLE);
+
+		assertNull(T.join(T.INT, T.BOOLEAN));
+		assertNull(T.join(T.BOOLEAN, T.INT));
+		assertNull(T.join(T.INT, T.FLOAT));
+		assertNull(T.join(T.FLOAT, T.INT));
+		assertNull(T.join(T.INT, T.LONG));
+		assertNull(T.join(T.LONG, T.INT));
+		assertNull(T.join(T.INT, T.DOUBLE));
+		assertNull(T.join(T.DOUBLE, T.INT));
+
+		assertSame(T.join(T.INT, T.AINT), T.INT);
+		assertSame(T.join(T.AINT, T.INT), T.INT);
+		assertSame(T.join(T.WIDE, T.LONG), T.LONG);
+		assertSame(T.join(T.LONG, T.WIDE), T.LONG);
+
+		assertSame(T.join(objectT, objectT), objectT);
+
+		assertNull(T.join(objectT, T.INT));
+		assertNull(T.join(T.INT, objectT));
+
+		assertSame(T.join(objectT, du.getT(Integer.class)), objectT);
+		assertSame(T.join(du.getT(Integer.class), objectT), objectT);
 	}
 
 	@Test
-	void testMergeStore() {
-		assertSame(T.mergeStore(T.INT, T.INT), T.INT);
-		assertSame(T.mergeStore(T.WIDE, T.LONG), T.LONG);
-
-		assertNull(T.mergeStore(T.INT, T.SHORT));
-		assertSame(T.mergeStore(T.INT, T.AINT), T.INT);
-		assertSame(T.mergeStore(T.AINT, T.HINT), T.INT);
-
-		assertSame(T.mergeStore(objectT, objectT), objectT);
-		assertNull(T.mergeStore(objectT, T.INT));
-		assertSame(T.mergeStore(objectT, du.getT(Integer.class)), objectT);
+	void testMergeUnion() {
+		assertSame(T.mergeUnion(T.INT, T.INT), T.INT);
+		assertSame(T.mergeUnion(T.LONG, T.DOUBLE), T.WIDE);
 	}
 
 	@Test
@@ -192,28 +234,28 @@ class TestT {
 				"java.lang.Object[][]");
 
 		// multi-types just for primitives / internal
-		assertEquals(T.AINT.getName(), "{boolean,char,byte,short,int}");
+		assertEquals(T.AINT.getName(), "{int,short,byte,char,boolean}");
 	}
 
 	@Test
 	void testRead() {
-		assertSame(T.HINT.read(T.INT), T.INT);
+		assertSame(T.INT.read(T.INT), T.INT);
+		assertNull(T.INT.read(T.BYTE));
+		assertSame(T.BYTE.read(T.INT), T.BYTE);
 	}
 
 	@Test
 	void testSuperclass() {
 		assertNull(int.class.getSuperclass());
 		assertNull(T.INT.getSuperT());
+		assertNull(byte.class.getSuperclass());
+		assertNull(T.BYTE.getSuperT());
 
 		assertNull(Object.class.getSuperclass());
 		assertNull(objectT.getSuperT());
 
-		// {Interface}.class.getSuperclass() returns null, but
-		// Object.class.isAssignableFrom({Interface}.class) is true!
-		// Generic Signatures contain Object as Super -> hence
-		// getSuperclass() has a historical glitch...we change that for us
 		assertNull(Cloneable.class.getSuperclass());
-		assertSame(du.getT(Cloneable.class).getSuperT(), objectT);
+		assertNull(du.getT(Cloneable.class).getSuperT());
 
 		assertSame(int[].class.getSuperclass(), Object.class);
 		assertSame(du.getT(int[].class).getSuperT(), objectT);
