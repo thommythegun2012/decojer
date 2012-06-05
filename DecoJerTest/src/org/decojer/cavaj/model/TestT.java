@@ -28,7 +28,18 @@ class TestT {
 	}
 
 	@Test
-	void testInterfaces() {
+	void getComponentType() {
+		assertEquals(int[].class.getComponentType(), int.class);
+		assertEquals(du.getT(int[].class).getComponentType(),
+				du.getT(int.class));
+
+		assertEquals(Object[][].class.getComponentType(), Object[].class);
+		assertEquals(du.getT(Object[][].class).getComponentType(),
+				du.getT(Object[].class));
+	}
+
+	@Test
+	void getInterfaces() {
 		assertEquals(int.class.getInterfaces().length, 0);
 		assertEquals(T.INT.getInterfaceTs().length, 0);
 
@@ -59,7 +70,61 @@ class TestT {
 	}
 
 	@Test
-	void testIsAssignableFrom() {
+	void getJvmIntT() {
+		assertSame(T.getJvmIntT(Short.MIN_VALUE - 1), T.INT);
+		assertSame(T.getJvmIntT(Short.MIN_VALUE), T.SHORT);
+		assertSame(T.getJvmIntT(Byte.MIN_VALUE - 1), T.SHORT);
+		assertSame(T.getJvmIntT(Byte.MIN_VALUE), T.BYTE);
+		assertSame(T.getJvmIntT(-1), T.BYTE);
+		assertEquals(T.getJvmIntT(0).getName(), "{byte,char,boolean}");
+		assertEquals(T.getJvmIntT(1).getName(), "{byte,char,boolean}");
+		assertEquals(T.getJvmIntT(2).getName(), "{byte,char}");
+		assertEquals(T.getJvmIntT(Byte.MAX_VALUE).getName(), "{byte,char}");
+		assertEquals(T.getJvmIntT(Byte.MAX_VALUE + 1).getName(), "{short,char}");
+		assertEquals(T.getJvmIntT(Short.MAX_VALUE).getName(), "{short,char}");
+		assertEquals(T.getJvmIntT(Short.MAX_VALUE + 1).getName(), "{int,char}");
+		assertEquals(T.getJvmIntT(Character.MAX_VALUE).getName(), "{int,char}");
+		assertSame(T.getJvmIntT(Character.MAX_VALUE + 1), T.INT);
+	}
+
+	@Test
+	void getName() {
+		assertEquals(int.class.getName(), "int");
+		assertEquals(du.getT(int.class).getName(), "int");
+
+		assertEquals(Object.class.getName(), "java.lang.Object");
+		assertEquals(objectT.getName(), "java.lang.Object");
+
+		// strange rule for Class.getName(): just arrays with descriptor syntax,
+		// but with dots
+		assertEquals(Object[][].class.getName(), "[[Ljava.lang.Object;");
+		// we handle that different
+		assertEquals(du.getT(Object[][].class).getName(),
+				"java.lang.Object[][]");
+
+		// multi-types just for primitives / internal
+		assertEquals(T.AINT.getName(), "{int,char,boolean}");
+	}
+
+	@Test
+	void getSuperclass() {
+		assertNull(int.class.getSuperclass());
+		assertNull(T.INT.getSuperT());
+		assertNull(byte.class.getSuperclass());
+		assertNull(T.BYTE.getSuperT());
+
+		assertNull(Object.class.getSuperclass());
+		assertNull(objectT.getSuperT());
+
+		assertNull(Cloneable.class.getSuperclass());
+		assertNull(du.getT(Cloneable.class).getSuperT());
+
+		assertSame(int[].class.getSuperclass(), Object.class);
+		assertSame(du.getT(int[].class).getSuperT(), objectT);
+	}
+
+	@Test
+	void isAssignableFrom() {
 		assertTrue(int.class.isAssignableFrom(int.class));
 		assertTrue(T.INT.isAssignableFrom(T.INT));
 		// missleading, assignableFrom() means is-superclass, for primitives
@@ -145,7 +210,15 @@ class TestT {
 	}
 
 	@Test
-	void testIsMulti() {
+	void isInterface() {
+		assertFalse(objectT.isInterface());
+		assertFalse(T.INT.isInterface());
+		assertFalse(du.getT(String.class).isInterface());
+		assertTrue(du.getT(Comparable.class).isInterface());
+	}
+
+	@Test
+	void isMulti() {
 		assertFalse(T.INT.isMulti());
 		assertFalse(T.VOID.isMulti());
 		assertFalse(T.REF.isMulti());
@@ -157,7 +230,15 @@ class TestT {
 	}
 
 	@Test
-	void testIsPrimitive() {
+	void isObject() {
+		assertTrue(objectT.isObject());
+		assertFalse(T.INT.isObject());
+		assertFalse(du.getT(String.class).isObject());
+		assertFalse(du.getT(Comparable.class).isObject());
+	}
+
+	@Test
+	void isPrimitive() {
 		assertTrue(int.class.isPrimitive());
 		assertTrue(T.INT.isPrimitive());
 
@@ -169,7 +250,7 @@ class TestT {
 	}
 
 	@Test
-	void testJoin() {
+	void join() {
 		assertSame(T.join(T.INT, T.INT), T.INT);
 		assertSame(T.join(T.SHORT, T.SHORT), T.SHORT);
 		assertSame(T.join(T.BYTE, T.BYTE), T.BYTE);
@@ -213,52 +294,16 @@ class TestT {
 	}
 
 	@Test
-	void testMergeUnion() {
-		assertSame(T.mergeUnion(T.INT, T.INT), T.INT);
-		assertSame(T.mergeUnion(T.LONG, T.DOUBLE), T.WIDE);
+	void mergeUnion() {
+		assertSame(T.union(T.INT, T.INT), T.INT);
+		assertSame(T.union(T.LONG, T.DOUBLE), T.WIDE);
 	}
 
 	@Test
-	void testName() {
-		assertEquals(int.class.getName(), "int");
-		assertEquals(du.getT(int.class).getName(), "int");
-
-		assertEquals(Object.class.getName(), "java.lang.Object");
-		assertEquals(objectT.getName(), "java.lang.Object");
-
-		// strange rule for Class.getName(): just arrays with descriptor syntax,
-		// but with dots
-		assertEquals(Object[][].class.getName(), "[[Ljava.lang.Object;");
-		// we handle that different
-		assertEquals(du.getT(Object[][].class).getName(),
-				"java.lang.Object[][]");
-
-		// multi-types just for primitives / internal
-		assertEquals(T.AINT.getName(), "{int,short,byte,char,boolean}");
-	}
-
-	@Test
-	void testRead() {
+	void read() {
 		assertSame(T.INT.read(T.INT), T.INT);
 		assertNull(T.INT.read(T.BYTE));
 		assertSame(T.BYTE.read(T.INT), T.BYTE);
-	}
-
-	@Test
-	void testSuperclass() {
-		assertNull(int.class.getSuperclass());
-		assertNull(T.INT.getSuperT());
-		assertNull(byte.class.getSuperclass());
-		assertNull(T.BYTE.getSuperT());
-
-		assertNull(Object.class.getSuperclass());
-		assertNull(objectT.getSuperT());
-
-		assertNull(Cloneable.class.getSuperclass());
-		assertNull(du.getT(Cloneable.class).getSuperT());
-
-		assertSame(int[].class.getSuperclass(), Object.class);
-		assertSame(du.getT(int[].class).getSuperT(), objectT);
 	}
 
 }
