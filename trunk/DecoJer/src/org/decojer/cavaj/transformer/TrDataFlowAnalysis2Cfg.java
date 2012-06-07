@@ -137,12 +137,12 @@ public final class TrDataFlowAnalysis2Cfg {
 	}
 
 	private void evalBinaryMath(final T t, final T resultT) {
-		final R s2 = pop(t);
-		final R s1 = pop(t);
+		final R s2 = pop(t, true);
+		final R s1 = pop(t, true);
 
 		assert R.merge(s1, s2) != null;
 
-		if (s1.getT().isReference()) {
+		if (s1.getT().isRef()) {
 			// (J)CMP EQ / NE
 			assert T.VOID == resultT : resultT;
 
@@ -166,8 +166,8 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case ALOAD: {
 			final ALOAD cop = (ALOAD) op;
-			pop(T.INT); // index
-			pop(T.AREF); // array
+			pop(T.INT, true); // index
+			pop(T.REF, true); // array
 			pushConst(cop.getT()); // value
 			break;
 		}
@@ -179,20 +179,20 @@ public final class TrDataFlowAnalysis2Cfg {
 		case ARRAYLENGTH: {
 			assert op instanceof ARRAYLENGTH;
 
-			pop(T.AREF); // array
+			pop(T.REF, true); // array
 			pushConst(T.INT); // length
 			break;
 		}
 		case ASTORE: {
 			final ASTORE cop = (ASTORE) op;
-			pop(cop.getT()); // value
-			pop(T.INT); // index
-			pop(T.AREF); // array
+			pop(cop.getT(), true); // value
+			pop(T.INT, true); // index
+			pop(T.REF, true); // array
 			break;
 		}
 		case CAST: {
 			final CAST cop = (CAST) op;
-			pop(cop.getT());
+			pop(cop.getT(), true);
 			pushConst(cop.getToT());
 			break;
 		}
@@ -225,7 +225,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			case DUP_X2: {
 				final R s1 = this.frame.popSingle();
 				final R s2 = this.frame.pop();
-				if (!s2.isWide()) {
+				if (!s2.getT().isWide()) {
 					final R s3 = this.frame.popSingle();
 					pushMove(s1);
 					pushMove(s3);
@@ -240,7 +240,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case DUP2: {
 				final R s1 = this.frame.peek();
-				if (!s1.isWide()) {
+				if (!s1.getT().isWide()) {
 					final R s2 = this.frame.peekSingle(2);
 					pushMove(s2);
 					pushMove(s1);
@@ -251,7 +251,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case DUP2_X1: {
 				final R s1 = this.frame.pop();
-				if (!s1.isWide()) {
+				if (!s1.getT().isWide()) {
 					final R s2 = this.frame.popSingle();
 					final R s3 = this.frame.popSingle();
 					pushMove(s2);
@@ -269,10 +269,10 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case DUP2_X2: {
 				final R s1 = this.frame.pop();
-				if (!s1.isWide()) {
+				if (!s1.getT().isWide()) {
 					final R s2 = this.frame.popSingle();
 					final R s3 = this.frame.pop();
-					if (!s3.isWide()) {
+					if (!s3.getT().isWide()) {
 						final R s4 = this.frame.popSingle();
 						pushMove(s2);
 						pushMove(s1);
@@ -290,7 +290,7 @@ public final class TrDataFlowAnalysis2Cfg {
 					break;
 				}
 				final R s3 = this.frame.pop();
-				if (!s3.isWide()) {
+				if (!s3.getT().isWide()) {
 					final R s4 = this.frame.popSingle();
 					pushMove(s1);
 					pushMove(s4);
@@ -311,14 +311,14 @@ public final class TrDataFlowAnalysis2Cfg {
 		case FILLARRAY: {
 			assert op instanceof FILLARRAY;
 
-			pop(T.AREF);
+			pop(T.REF, true);
 			break;
 		}
 		case GET: {
 			final GET cop = (GET) op;
 			final F f = cop.getF();
 			if (!f.check(AF.STATIC)) {
-				pop(f.getT());
+				pop(f.getT(), true);
 			}
 			pushConst(f.getValueT());
 			break;
@@ -331,14 +331,14 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case INC: {
 			final INC cop = (INC) op;
-			final R r = read(cop.getReg(), cop.getT());
+			final R r = read(cop.getReg(), cop.getT(), true);
 			r.inc(cop.getValue());
 			break;
 		}
 		case INSTANCEOF: {
 			assert op instanceof INSTANCEOF;
 
-			pop(T.AREF);
+			pop(T.REF, true);
 			// operation contains check-type as argument, not important here
 			pushConst(T.BOOLEAN);
 			break;
@@ -347,10 +347,10 @@ public final class TrDataFlowAnalysis2Cfg {
 			final INVOKE cop = (INVOKE) op;
 			final M m = cop.getM();
 			for (int i = m.getParams(); i-- > 0;) {
-				pop(m.getParamT(i));
+				pop(m.getParamT(i), true);
 			}
 			if (!m.check(AF.STATIC)) {
-				pop(m.getT());
+				pop(m.getT(), true);
 			}
 			if (m.getReturnT() != T.VOID) {
 				pushConst(m.getReturnT());
@@ -368,7 +368,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		case JCND: {
 			final JCND cop = (JCND) op;
 			bb.setCondSuccs(getTargetBb(nextPc), getTargetBb(cop.getTargetPc()));
-			pop(cop.getT());
+			pop(cop.getT(), true);
 			merge(nextPc);
 			merge(cop.getTargetPc());
 			return -1;
@@ -408,7 +408,7 @@ public final class TrDataFlowAnalysis2Cfg {
 				if (ret != null) {
 					// RET already visited, link RET BB to JSR follower and merge
 					this.frame = new Frame(this.cfg.getFrame(ret.getPc()));
-					if (sub != read(ret.getReg(), T.RETURN_ADDRESS).getValue()) {
+					if (sub != read(ret.getReg(), T.RET, true).getValue()) {
 						// don't assert here, need this get for frames return-address-null update
 						LOGGER.warning("Incorrect sub!");
 					}
@@ -423,14 +423,14 @@ public final class TrDataFlowAnalysis2Cfg {
 					LOGGER.warning("Recursive call to jsr entry!");
 					break jsr;
 				}
-				pushConst(T.RETURN_ADDRESS, sub);
+				pushConst(T.RET, sub);
 				merge(cop.getTargetPc());
 			}
 			return -1;
 		}
 		case LOAD: {
 			final LOAD cop = (LOAD) op;
-			final R r = read(cop.getReg(), cop.getT());
+			final R r = read(cop.getReg(), cop.getT(), false);
 			// no previous for stack
 			pushMove(r);
 			break;
@@ -438,7 +438,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		case MONITOR: {
 			assert op instanceof MONITOR;
 
-			pop(T.AREF);
+			pop(T.REF, true);
 			break;
 		}
 		case MUL: {
@@ -448,7 +448,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case NEG: {
 			final NEG cop = (NEG) op;
-			final R r = pop(cop.getT());
+			final R r = pop(cop.getT(), true);
 			pushConst(r.getT());
 			break;
 		}
@@ -460,7 +460,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		case NEWARRAY: {
 			final NEWARRAY cop = (NEWARRAY) op;
 			for (int i = cop.getDimensions(); i-- > 0;) {
-				pop(T.INT);
+				pop(T.INT, true);
 			}
 			pushConst(this.cfg.getDu().getArrayT(cop.getT(), cop.getDimensions()));
 			break;
@@ -480,7 +480,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			}
 			case POP2:
 				final R s1 = this.frame.pop();
-				if (!s1.isWide()) {
+				if (!s1.getT().isWide()) {
 					this.frame.popSingle();
 					break;
 				}
@@ -492,37 +492,16 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case PUSH: {
 			final PUSH cop = (PUSH) op;
-			T t = cop.getT();
-			// hack for now...doesn't win coolness price...
-			if (t == T.AINT || t == T.DINT) {
-				final int value = (Integer) cop.getValue();
-				if (value < Short.MIN_VALUE || Short.MAX_VALUE < value) {
-					// no short
-					t = T.merge(t, T.multi(T.INT, T.BYTE, T.CHAR, T.BOOLEAN, T.FLOAT));
-				}
-				if (value < Character.MIN_VALUE || Character.MAX_VALUE < value) {
-					// no char
-					t = T.merge(t, T.multi(T.INT, T.SHORT, T.BYTE, T.BOOLEAN, T.FLOAT));
-				}
-				if (value < Byte.MIN_VALUE || Byte.MAX_VALUE < value) {
-					// no byte
-					t = T.merge(t, T.multi(T.INT, T.SHORT, T.CHAR, T.BOOLEAN, T.FLOAT));
-				}
-				if (value < 0 || 1 < value) {
-					// no bool
-					t = T.merge(t, T.multi(T.INT, T.SHORT, T.BYTE, T.CHAR, T.FLOAT));
-				}
-			}
 			// no previous for stack
-			pushConst(t, cop.getValue());
+			pushConst(cop.getT(), cop.getValue());
 			break;
 		}
 		case PUT: {
 			final PUT cop = (PUT) op;
 			final F f = cop.getF();
-			pop(f.getValueT());
+			pop(f.getValueT(), true);
 			if (!f.check(AF.STATIC)) {
-				pop(f.getT());
+				pop(f.getT(), true);
 			}
 			break;
 		}
@@ -533,7 +512,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case RET: {
 			final RET cop = (RET) op;
-			final R r = read(cop.getReg(), T.RETURN_ADDRESS);
+			final R r = read(cop.getReg(), T.RET, true);
 			// bytecode restriction: only called via matching JSR, Sub known as register value
 			final Sub sub = (Sub) r.getValue();
 			if (!this.frame.popSub(sub)) {
@@ -556,13 +535,15 @@ public final class TrDataFlowAnalysis2Cfg {
 			return -1;
 		}
 		case RETURN: {
-			assert op instanceof RETURN;
+			final RETURN cop = (RETURN) op;
 
 			// don't need op type here, could check, but why should we...
-			final T returnT = this.cfg.getMd().getM().getReturnT();
+			final T returnT = cop.getT();
+
+			assert returnT == this.cfg.getMd().getM().getReturnT();
+
 			if (returnT != T.VOID) {
-				// just type reduction
-				pop(returnT);
+				pop(returnT, true); // just read type reduction
 			}
 			return -1;
 		}
@@ -583,15 +564,13 @@ public final class TrDataFlowAnalysis2Cfg {
 			// 7.13, "Compiling finally"). The aload instruction cannot be used to load a value
 			// of type returnAddress from a local variable onto the operand stack. This
 			// asymmetry with the astore instruction is intentional.
-			final R r = pop(cop.getT());
+			final R r = pop(cop.getT(), false);
 
-			// TODO hack, check store type in debug variable
+			final R storeR = store(cop.getReg(), r);
 			final V debugV = this.cfg.getDebugV(cop.getReg(), nextPc);
 			if (debugV != null) {
-				r.mergeTo(debugV.getT());
+				storeR.setRealT(debugV.getT());
 			}
-
-			store(cop.getReg(), r);
 			break;
 		}
 		case SUB: {
@@ -641,7 +620,7 @@ public final class TrDataFlowAnalysis2Cfg {
 						getTargetBb(casePc2keysEntry.getKey()));
 			}
 
-			pop(T.INT);
+			pop(T.INT, true);
 			merge(cop.getDefaultPc());
 			for (final int casePc : cop.getCasePcs()) {
 				merge(casePc);
@@ -652,7 +631,7 @@ public final class TrDataFlowAnalysis2Cfg {
 			assert op instanceof THROW;
 
 			// just type reduction
-			pop(this.cfg.getDu().getT(Throwable.class));
+			pop(this.cfg.getDu().getT(Throwable.class), true);
 			return -1;
 		case XOR: {
 			final XOR cop = (XOR) op;
@@ -827,10 +806,16 @@ public final class TrDataFlowAnalysis2Cfg {
 		return bb;
 	}
 
-	private R pop(final T t) {
+	private R pop(final T t, final boolean read) {
 		final R s = this.frame.pop();
-		if (!s.read(t)) {
-			throw new RuntimeException("Incompatible local register type!");
+		if (read) {
+			if (!s.read(t)) {
+				throw new RuntimeException("Incompatible local register type!");
+			}
+		} else {
+			if (!s.isAssignableTo(t)) {
+				throw new RuntimeException("Incompatible local register type!");
+			}
 		}
 		return s;
 	}
@@ -853,17 +838,24 @@ public final class TrDataFlowAnalysis2Cfg {
 		return s;
 	}
 
-	private R read(final int i, final T t) {
+	private R read(final int i, final T t, final boolean read) {
 		// start new register and TODO backpropagate alive for existing (read number)
 		final R prevR = this.frame.get(i);
 		if (prevR == null) {
 			throw new RuntimeException("Cannot read register " + i + " (null) as type '" + t + "'!");
 		}
-		if (!prevR.read(t)) {
-			throw new RuntimeException("Cannot read register " + i + " (" + prevR + ") as type '"
-					+ t + "'!");
+		if (read) {
+			if (!prevR.read(t)) {
+				throw new RuntimeException("Cannot read register " + i + " (" + prevR
+						+ ") as type '" + t + "'!");
+			}
+		} else {
+			if (!prevR.isAssignableTo(t)) {
+				throw new RuntimeException("Cannot read register " + i + " (" + prevR
+						+ ") as type '" + t + "'!");
+			}
 		}
-		if (t == T.RETURN_ADDRESS) {
+		if (t == T.RET) {
 			// bytecode restriction: internal return address type can only be read once
 			this.frame.set(i, null);
 			return prevR;

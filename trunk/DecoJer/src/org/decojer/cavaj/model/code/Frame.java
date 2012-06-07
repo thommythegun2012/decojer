@@ -157,7 +157,7 @@ public class Frame {
 	 */
 	public R peekSingle() {
 		final R s = peek();
-		if (s.isWide()) {
+		if (s.getT().isWide()) {
 			LOGGER.warning("Attempt to split long or double on the stack!");
 		}
 		return s;
@@ -172,7 +172,7 @@ public class Frame {
 	 */
 	public R peekSingle(final int i) {
 		final R s = peek(i);
-		if (s.isWide()) {
+		if (s.getT().isWide()) {
 			LOGGER.warning("Attempt to split long or double on the stack!");
 		}
 		return s;
@@ -201,7 +201,7 @@ public class Frame {
 	 */
 	public R popSingle() {
 		final R s = pop();
-		if (s.isWide()) {
+		if (s.getT().isWide()) {
 			LOGGER.warning("Attempt to split long or double on the stack!");
 		}
 		return s;
@@ -364,7 +364,7 @@ public class Frame {
 	public int wideStacks(final int stacks) {
 		int wides = 0;
 		for (int j = stacks, i = 1; j-- > 0; ++i) {
-			if (peek(i).isWide()) {
+			if (peek(i).getT().isWide()) {
 				--j;
 				++wides;
 			}

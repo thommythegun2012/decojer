@@ -59,12 +59,7 @@ public class Types {
 	 */
 	public static Expression convertLiteral(final T t, final Object value, final TD td,
 			final AST ast) {
-		if (t instanceof T.TT) {
-			LOGGER.warning("Multi-type '" + t + "'!");
-			final T[] ts = ((T.TT) t).getTs();
-			return convertLiteral(ts[0], value, td, ast);
-		}
-		if (t.isReference() /* incl. T.AREF */) {
+		if (t.isRef() /* incl. T.AREF */) {
 			if (value == null) {
 				return ast.newNullLiteral();
 			}
@@ -81,22 +76,50 @@ public class Types {
 			LOGGER.warning("Unknown reference type '" + t + "'!");
 			return ast.newNullLiteral();
 		}
-		if (t == T.BOOLEAN) {
-			if (value instanceof Boolean) {
-				return ast.newBooleanLiteral(((Boolean) value).booleanValue());
-			}
+		if (t.isMulti()) {
+			LOGGER.warning("Convert literal for multi-type '" + t + "'!");
+		}
+		if (t.is(T.INT)) {
 			if (value instanceof Number) {
-				return ast.newBooleanLiteral(((Number) value).intValue() != 0);
+				final int i = ((Number) value).intValue();
+				if (i == Integer.MAX_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Integer"),
+							ast.newSimpleName("MAX_VALUE"));
+				}
+				if (i == Integer.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Integer"),
+							ast.newSimpleName("MIN_VALUE"));
+				}
+				return ast.newNumberLiteral(Integer.toString(i));
 			}
 			if (value == null) {
-				return ast.newBooleanLiteral(false);
+				return ast.newNumberLiteral(Integer.toString(0));
 			}
-			LOGGER.warning("Boolean type with value '" + value + "' has type '"
+			LOGGER.warning("Integer type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
-			return ast.newBooleanLiteral(value instanceof String ? Boolean.valueOf((String) value)
-					: value != null);
+			return ast.newNumberLiteral(value.toString());
 		}
-		if (t == T.BYTE) {
+		if (t.is(T.SHORT)) {
+			if (value instanceof Number) {
+				final short s = ((Number) value).shortValue();
+				if (s == Short.MAX_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Short"),
+							ast.newSimpleName("MAX_VALUE"));
+				}
+				if (s == Short.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Short"),
+							ast.newSimpleName("MIN_VALUE"));
+				}
+				return ast.newNumberLiteral(Short.toString(s));
+			}
+			if (value == null) {
+				return ast.newNumberLiteral(Short.toString((short) 0));
+			}
+			LOGGER.warning("Short type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
+			return ast.newNumberLiteral(value.toString());
+		}
+		if (t.is(T.BYTE)) {
 			if (value instanceof Number) {
 				final byte b = ((Number) value).byteValue();
 				if (b == Byte.MAX_VALUE) {
@@ -116,7 +139,22 @@ public class Types {
 					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString());
 		}
-		if (t == T.CHAR) {
+		if (t.is(T.BOOLEAN)) {
+			if (value instanceof Boolean) {
+				return ast.newBooleanLiteral(((Boolean) value).booleanValue());
+			}
+			if (value instanceof Number) {
+				return ast.newBooleanLiteral(((Number) value).intValue() != 0);
+			}
+			if (value == null) {
+				return ast.newBooleanLiteral(false);
+			}
+			LOGGER.warning("Boolean type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
+			return ast.newBooleanLiteral(value instanceof String ? Boolean.valueOf((String) value)
+					: value != null);
+		}
+		if (t.is(T.CHAR)) {
 			if (value instanceof Character || value instanceof Number || value instanceof String
 					&& ((String) value).length() == 1) {
 				final char c = value instanceof Character ? (Character) value
@@ -168,46 +206,7 @@ public class Types {
 			// char is per default 'X'
 			return ast.newCharacterLiteral();
 		}
-		if (t == T.DOUBLE) {
-			if (value instanceof Double || value instanceof Long) {
-				final double d = value instanceof Double ? (Double) value : Double
-						.longBitsToDouble((Long) value);
-				if (Double.isNaN(d)) {
-					return ast.newQualifiedName(ast.newSimpleName("Double"),
-							ast.newSimpleName("NaN"));
-				}
-				if (d == Double.POSITIVE_INFINITY) {
-					return ast.newQualifiedName(ast.newSimpleName("Double"),
-							ast.newSimpleName("POSITIVE_INFINITY"));
-				}
-				if (d == Double.NEGATIVE_INFINITY) {
-					return ast.newQualifiedName(ast.newSimpleName("Double"),
-							ast.newSimpleName("NEGATIVE_INFINITY"));
-				}
-				if (d == Double.MAX_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Double"),
-							ast.newSimpleName("MAX_VALUE"));
-				}
-				if (d == Double.MIN_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Double"),
-							ast.newSimpleName("MIN_VALUE"));
-				}
-				if (d == Double.MIN_NORMAL) {
-					if (td.getVersion() >= 50) {
-						return ast.newQualifiedName(ast.newSimpleName("Double"),
-								ast.newSimpleName("MIN_NORMAL"));
-					}
-				}
-				return ast.newNumberLiteral(Double.toString(d) + 'D');
-			}
-			if (value == null) {
-				return ast.newNumberLiteral(Double.toString(0D) + 'D');
-			}
-			LOGGER.warning("Double type with value '" + value + "' has type '"
-					+ value.getClass().getName() + "'!");
-			return ast.newNumberLiteral(value.toString() + 'D');
-		}
-		if (t == T.FLOAT) {
+		if (t.is(T.FLOAT)) {
 			if (value instanceof Float || value instanceof Integer) {
 				final float f = value instanceof Float ? (Float) value : Float
 						.intBitsToFloat((Integer) value);
@@ -246,27 +245,7 @@ public class Types {
 					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString() + 'F');
 		}
-		if (t == T.INT) {
-			if (value instanceof Number) {
-				final int i = ((Number) value).intValue();
-				if (i == Integer.MAX_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Integer"),
-							ast.newSimpleName("MAX_VALUE"));
-				}
-				if (i == Integer.MIN_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Integer"),
-							ast.newSimpleName("MIN_VALUE"));
-				}
-				return ast.newNumberLiteral(Integer.toString(i));
-			}
-			if (value == null) {
-				return ast.newNumberLiteral(Integer.toString(0));
-			}
-			LOGGER.warning("Integer type with value '" + value + "' has type '"
-					+ value.getClass().getName() + "'!");
-			return ast.newNumberLiteral(value.toString());
-		}
-		if (t == T.LONG) {
+		if (t.is(T.LONG)) {
 			if (value instanceof Long) {
 				final long l = (Long) value;
 				if (l == Long.MAX_VALUE) {
@@ -286,25 +265,44 @@ public class Types {
 					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString() + 'L');
 		}
-		if (t == T.SHORT) {
-			if (value instanceof Number) {
-				final short s = ((Number) value).shortValue();
-				if (s == Short.MAX_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Short"),
+		if (t.is(T.DOUBLE)) {
+			if (value instanceof Double || value instanceof Long) {
+				final double d = value instanceof Double ? (Double) value : Double
+						.longBitsToDouble((Long) value);
+				if (Double.isNaN(d)) {
+					return ast.newQualifiedName(ast.newSimpleName("Double"),
+							ast.newSimpleName("NaN"));
+				}
+				if (d == Double.POSITIVE_INFINITY) {
+					return ast.newQualifiedName(ast.newSimpleName("Double"),
+							ast.newSimpleName("POSITIVE_INFINITY"));
+				}
+				if (d == Double.NEGATIVE_INFINITY) {
+					return ast.newQualifiedName(ast.newSimpleName("Double"),
+							ast.newSimpleName("NEGATIVE_INFINITY"));
+				}
+				if (d == Double.MAX_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Double"),
 							ast.newSimpleName("MAX_VALUE"));
 				}
-				if (s == Short.MIN_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Short"),
+				if (d == Double.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Double"),
 							ast.newSimpleName("MIN_VALUE"));
 				}
-				return ast.newNumberLiteral(Short.toString(s));
+				if (d == Double.MIN_NORMAL) {
+					if (td.getVersion() >= 50) {
+						return ast.newQualifiedName(ast.newSimpleName("Double"),
+								ast.newSimpleName("MIN_NORMAL"));
+					}
+				}
+				return ast.newNumberLiteral(Double.toString(d) + 'D');
 			}
 			if (value == null) {
-				return ast.newNumberLiteral(Short.toString((short) 0));
+				return ast.newNumberLiteral(Double.toString(0D) + 'D');
 			}
-			LOGGER.warning("Short type with value '" + value + "' has type '"
+			LOGGER.warning("Double type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
-			return ast.newNumberLiteral(value.toString());
+			return ast.newNumberLiteral(value.toString() + 'D');
 		}
 		LOGGER.warning("Unknown data type '" + t + "'!");
 		final StringLiteral stringLiteral = ast.newStringLiteral();

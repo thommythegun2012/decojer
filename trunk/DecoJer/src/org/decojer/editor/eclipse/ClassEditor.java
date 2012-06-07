@@ -615,6 +615,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					TrControlFlowAnalysis.transform(cfg);
 				}
 			} catch (final Throwable e) {
+				TrCalculatePostorder.transform(cfg);
 				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
 			}
 			initGraph(cfg);

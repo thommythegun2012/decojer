@@ -62,8 +62,8 @@ public class V {
 	 */
 	public V(final T t, final String name, final int startPc, final int endPc) {
 		assert t != null;
-		assert startPc >= 0 : startPc;
-		assert endPc == -1 || endPc >= startPc : endPc;
+		// assert startPc >= 0 : startPc;
+		// assert endPc == -1 || endPc >= startPc : endPc;
 
 		this.t = t;
 		this.name = name;

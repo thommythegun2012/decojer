@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.code;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
 
@@ -47,12 +48,12 @@ public class R {
 		CONST,
 
 		/**
-		 * Merge ins. Incomming registers.
+		 * Merge ins. Incoming registers.
 		 */
 		MERGE,
 
 		/**
-		 * STORE_MOVE. New register, maybe previous register.
+		 * STORE_MOVE. Source register, maybe previous register.
 		 */
 		MOVE,
 
@@ -63,6 +64,9 @@ public class R {
 
 	}
 
+	@Getter
+	private Object value;
+
 	/**
 	 * Merge register types.
 	 * 
@@ -70,23 +74,14 @@ public class R {
 	 *            register 1
 	 * @param r2
 	 *            register 2
-	 * @return merged register type
+	 * @return merged register type or null
 	 */
 	public static T merge(final R r1, final R r2) {
 		if (r1 == null || r2 == null) {
 			return null;
 		}
-		return T.merge(r1.getT(), r2.getT());
+		return T.join(r1.getT(), r2.getT());
 	}
-
-	@Getter
-	private R[] outs;
-
-	@Getter
-	private T t;
-
-	@Getter
-	private Object value;
 
 	@Getter
 	private R[] ins;
@@ -99,6 +94,18 @@ public class R {
 
 	@Getter
 	private final Kind kind;
+
+	@Getter
+	@Setter
+	private T realT;
+
+	@Getter
+	private R[] outs;
+
+	@Getter
+	private T t;
+
+	private T readT;
 
 	/**
 	 * Constructor.
@@ -157,12 +164,16 @@ public class R {
 	}
 
 	/**
-	 * Is wide type?
+	 * Is this type instance assignable from given type instance?
 	 * 
-	 * @return true - is wide type
+	 * Attention: Does work for primtives implicit conversion (byte 2 short 2 int, char 2 int).
+	 * 
+	 * @param t
+	 *            type
+	 * @return true - is assignable
 	 */
-	public boolean isWide() {
-		return this.t.isWide();
+	public boolean isAssignableTo(final T t) {
+		return this.t.read(t) != null;
 	}
 
 	private void linkIn(final R in) {
@@ -177,47 +188,14 @@ public class R {
 	}
 
 	public void merge(final R r) {
-		mergeTo(r.getT());
+		this.t = T.join(this.t, r.t);
 		final R[] newIns = new R[this.ins.length + 1];
 		System.arraycopy(this.ins, 0, newIns, 0, this.ins.length);
 		newIns[this.ins.length] = r;
 		this.ins = newIns;
-	}
-
-	/**
-	 * Merge to type.
-	 * 
-	 * @param t
-	 *            type
-	 * @return true - success
-	 */
-	public boolean mergeTo(final T t) {
-		final T mergeTo = this.t.mergeTo(t);
-		if (this.t == mergeTo) {
-			return true;
-		} else if (null == mergeTo) {
-			return false;
+		if (this.readT != null) {
+			r.read(this.readT);
 		}
-		this.t = mergeTo;
-		if (this.outs != null) {
-			for (final R out : this.outs) {
-				out.mergeTo(mergeTo);
-			}
-		}
-		if (this.ins == null || this.ins.length == 0) {
-			return true;
-		}
-		switch (getKind()) {
-		case CONST:
-		case MOVE:
-			this.ins[0].mergeTo(mergeTo);
-			return true;
-		case MERGE:
-			for (final R in : this.ins) {
-				in.mergeTo(mergeTo);
-			}
-		}
-		return true;
 	}
 
 	/**
@@ -228,7 +206,29 @@ public class R {
 	 * @return true - success
 	 */
 	public boolean read(final T t) {
-		return mergeTo(t);
+		final T reducedT = this.t.read(t);
+		if (reducedT == null) {
+			assert false;
+		}
+		if (this.t != reducedT) {
+			// possible primitive multitype reduction
+			this.t = reducedT;
+		}
+		switch (this.kind) {
+		case MERGE:
+			for (final R in : this.ins) {
+				// TODO endless loop in.read(t);
+			}
+			break;
+		case MOVE:
+		case READ:
+			this.ins[0].read(t);
+		}
+
+		// assert this.outs == null;
+
+		this.readT = T.union(this.readT, t);
+		return true;
 	}
 
 	/**

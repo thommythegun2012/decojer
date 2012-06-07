@@ -163,7 +163,7 @@ public class DU {
 		assert name.charAt(0) != 'L' : name;
 
 		if (name.charAt(0) == '[') {
-			// Class.getName() explains this trick, fall back to descriptor
+			// Class.getName() javadoc explains this trick, fall back to descriptor
 			return getDescT(name);
 		}
 
