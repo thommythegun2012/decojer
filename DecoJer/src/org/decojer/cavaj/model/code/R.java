@@ -64,6 +64,9 @@ public class R {
 
 	}
 
+	@Getter
+	private R[] outs;
+
 	/**
 	 * Merge register types.
 	 * 
@@ -101,9 +104,6 @@ public class R {
 	@Getter
 	@Setter
 	private T realT;
-
-	@Getter
-	private R[] outs;
 
 	private T readT;
 
@@ -267,7 +267,6 @@ public class R {
 				return;
 			}
 		}
-		assert false;
 	}
 
 	@Override
