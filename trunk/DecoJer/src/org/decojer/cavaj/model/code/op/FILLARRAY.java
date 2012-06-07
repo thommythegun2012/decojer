@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Operation 'FILLARRAY'.
  * 
@@ -30,6 +33,8 @@ package org.decojer.cavaj.model.code.op;
  */
 public class FILLARRAY extends Op {
 
+	@Getter
+	@Setter
 	private Object[] values;
 
 	/**
@@ -54,29 +59,6 @@ public class FILLARRAY extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.FILLARRAY;
-	}
-
-	/**
-	 * Get values.
-	 * 
-	 * @return values
-	 */
-	public Object[] getValues() {
-		assert this.values != null;
-
-		return this.values;
-	}
-
-	/**
-	 * Set values.
-	 * 
-	 * @param values
-	 *            values
-	 */
-	public void setValues(final Object[] values) {
-		assert values != null;
-
-		this.values = values;
 	}
 
 }

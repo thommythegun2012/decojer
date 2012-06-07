@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -32,6 +34,7 @@ import org.decojer.cavaj.model.T;
  */
 public class PUSH extends TypedOp {
 
+	@Getter
 	private final Object value;
 
 	/**
@@ -62,15 +65,6 @@ public class PUSH extends TypedOp {
 	@Override
 	public Optype getOptype() {
 		return Optype.PUSH;
-	}
-
-	/**
-	 * Get value
-	 * 
-	 * @return value
-	 */
-	public Object getValue() {
-		return this.value;
 	}
 
 	@Override

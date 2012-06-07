@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Operation 'JSR'.
  * 
@@ -30,6 +33,12 @@ package org.decojer.cavaj.model.code.op;
  */
 public class JSR extends Op {
 
+	/**
+	 * PC can temporarily be negative because of reading unknown labels assert targetPc >= 0 :
+	 * targetPc;
+	 */
+	@Getter
+	@Setter
 	private int targetPc;
 
 	/**
@@ -54,31 +63,6 @@ public class JSR extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.JSR;
-	}
-
-	/**
-	 * Get target pc.
-	 * 
-	 * @return target pc
-	 */
-	public int getTargetPc() {
-		// pc can temporarily be negative because of reading unknown labels
-		// assert targetPc >= 0 : targetPc;
-
-		return this.targetPc;
-	}
-
-	/**
-	 * Set target pc.
-	 * 
-	 * @param targetPc
-	 *            target pc
-	 */
-	public void setTargetPc(final int targetPc) {
-		// pc can temporarily be negative because of reading unknown labels
-		// assert targetPc >= 0 : targetPc;
-
-		this.targetPc = targetPc;
 	}
 
 	@Override

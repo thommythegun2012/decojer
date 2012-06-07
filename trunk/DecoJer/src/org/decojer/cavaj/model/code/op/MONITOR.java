@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 /**
  * Operation 'MONITOR'.
  * 
@@ -34,6 +36,7 @@ public class MONITOR extends Op {
 
 	public static final int T_EXIT = 1;
 
+	@Getter
 	private final int monitorType;
 
 	/**
@@ -59,15 +62,6 @@ public class MONITOR extends Op {
 	@Override
 	public int getInStackSize() {
 		return 1;
-	}
-
-	/**
-	 * Get monitor type.
-	 * 
-	 * @return monitor type
-	 */
-	public int getMonitorType() {
-		return this.monitorType;
 	}
 
 	@Override

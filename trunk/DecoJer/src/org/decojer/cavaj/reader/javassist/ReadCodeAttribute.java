@@ -1430,7 +1430,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.ops.add(new SHL(this.ops.size(), opcode, line, t));
+				this.ops.add(new SHL(this.ops.size(), opcode, line, t, T.INT));
 				break;
 			/*******
 			 * SHR *
@@ -1444,8 +1444,8 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.LONG;
 				}
-				this.ops.add(new SHR(this.ops.size(), opcode, line, t, opcode == Opcode.IUSHR
-						|| opcode == Opcode.LUSHR));
+				this.ops.add(new SHR(this.ops.size(), opcode, line, t, T.INT,
+						opcode == Opcode.IUSHR || opcode == Opcode.LUSHR));
 				break;
 			/*******
 			 * SUB *

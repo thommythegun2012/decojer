@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -32,6 +34,10 @@ import org.decojer.cavaj.model.T;
  */
 public class SHR extends TypedOp {
 
+	@Getter
+	private final T shiftT;
+
+	@Getter
 	private final boolean unsigned;
 
 	/**
@@ -45,11 +51,15 @@ public class SHR extends TypedOp {
 	 *            line number
 	 * @param t
 	 *            type
+	 * @param shiftT
+	 *            shift type
 	 * @param unsigned
 	 *            unsigned flag
 	 */
-	public SHR(final int pc, final int opcode, final int line, final T t, final boolean unsigned) {
+	public SHR(final int pc, final int opcode, final int line, final T t, final T shiftT,
+			final boolean unsigned) {
 		super(pc, opcode, line, t);
+		this.shiftT = shiftT;
 		this.unsigned = unsigned;
 	}
 
@@ -61,15 +71,6 @@ public class SHR extends TypedOp {
 	@Override
 	public Optype getOptype() {
 		return Optype.SHR;
-	}
-
-	/**
-	 * Is unsigned?
-	 * 
-	 * @return true - is unsigned
-	 */
-	public boolean isUnsigned() {
-		return this.unsigned;
 	}
 
 }

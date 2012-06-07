@@ -64,9 +64,6 @@ public class R {
 
 	}
 
-	@Getter
-	private Object value;
-
 	/**
 	 * Merge register types.
 	 * 
@@ -82,6 +79,12 @@ public class R {
 		}
 		return T.join(r1.getT(), r2.getT());
 	}
+
+	@Getter
+	private T t;
+
+	@Getter
+	private Object value;
 
 	@Getter
 	private R[] ins;
@@ -101,9 +104,6 @@ public class R {
 
 	@Getter
 	private R[] outs;
-
-	@Getter
-	private T t;
 
 	private T readT;
 
@@ -208,6 +208,9 @@ public class R {
 	public boolean read(final T t) {
 		final T reducedT = this.t.read(t);
 		if (reducedT == null) {
+			if (!this.t.isResolveable()) {
+				return true;
+			}
 			assert false;
 		}
 		if (this.t != reducedT) {

@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 
@@ -33,6 +35,7 @@ import org.decojer.cavaj.model.F;
  */
 public class GET extends Op {
 
+	@Getter
 	private final F f;
 
 	/**
@@ -53,15 +56,6 @@ public class GET extends Op {
 		assert f != null;
 
 		this.f = f;
-	}
-
-	/**
-	 * Get field.
-	 * 
-	 * @return field
-	 */
-	public F getF() {
-		return this.f;
 	}
 
 	@Override

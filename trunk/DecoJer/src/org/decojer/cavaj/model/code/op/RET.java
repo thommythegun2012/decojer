@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 /**
  * Operation 'RET'.
  * 
@@ -30,6 +32,7 @@ package org.decojer.cavaj.model.code.op;
  */
 public class RET extends Op {
 
+	@Getter
 	private final int reg;
 
 	/**
@@ -60,15 +63,6 @@ public class RET extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.RET;
-	}
-
-	/**
-	 * Get register.
-	 * 
-	 * @return register
-	 */
-	public int getReg() {
-		return this.reg;
 	}
 
 	@Override

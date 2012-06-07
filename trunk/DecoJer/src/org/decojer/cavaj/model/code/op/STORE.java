@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -32,6 +34,7 @@ import org.decojer.cavaj.model.T;
  */
 public class STORE extends TypedOp {
 
+	@Getter
 	private final int reg;
 
 	/**
@@ -65,15 +68,6 @@ public class STORE extends TypedOp {
 	@Override
 	public Optype getOptype() {
 		return Optype.STORE;
-	}
-
-	/**
-	 * Get register.
-	 * 
-	 * @return register
-	 */
-	public int getReg() {
-		return this.reg;
 	}
 
 	@Override

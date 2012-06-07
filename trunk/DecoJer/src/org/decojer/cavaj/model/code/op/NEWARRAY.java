@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -32,6 +34,7 @@ import org.decojer.cavaj.model.T;
  */
 public class NEWARRAY extends TypedOp {
 
+	@Getter
 	private final int dimensions;
 
 	/**
@@ -54,15 +57,6 @@ public class NEWARRAY extends TypedOp {
 		assert dimensions > 0 : dimensions;
 
 		this.dimensions = dimensions;
-	}
-
-	/**
-	 * Get dimensions.
-	 * 
-	 * @return dimensions
-	 */
-	public int getDimensions() {
-		return this.dimensions;
 	}
 
 	@Override

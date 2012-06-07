@@ -712,7 +712,9 @@ public class T {
 		if ((kind & Kind.REF.kind) == 0) {
 			return kind != 0;
 		}
-		if (null == this.du || this.is(Object.class)) {
+		// assignableFrom(T.REF) is true, null is T.REF!
+		// may be better to check for null const in R instead of this general answer
+		if (null == this.du || this.is(Object.class) || t.du == null) {
 			return true;
 		}
 		// raise step by step in hierarchy...lazy fetch unknown super

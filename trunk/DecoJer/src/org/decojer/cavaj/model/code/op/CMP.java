@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -38,6 +40,7 @@ public class CMP extends TypedOp {
 
 	public static final int T_L = 2;
 
+	@Getter
 	private final int cmpType;
 
 	/**
@@ -60,15 +63,6 @@ public class CMP extends TypedOp {
 		assert 0 <= cmpType && cmpType <= 2 : cmpType;
 
 		this.cmpType = cmpType;
-	}
-
-	/**
-	 * Get compare type.
-	 * 
-	 * @return compare type
-	 */
-	public int getCmpType() {
-		return this.cmpType;
 	}
 
 	@Override

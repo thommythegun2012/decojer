@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * Operation 'SWITCH'.
  * 
@@ -30,10 +33,16 @@ package org.decojer.cavaj.model.code.op;
  */
 public class SWITCH extends Op {
 
+	@Getter
+	@Setter
 	private int[] caseKeys;
 
+	@Getter
+	@Setter
 	private int[] casePcs;
 
+	@Getter
+	@Setter
 	private int defaultPc;
 
 	/**
@@ -50,18 +59,6 @@ public class SWITCH extends Op {
 		super(pc, opcode, line);
 	}
 
-	public int[] getCaseKeys() {
-		return this.caseKeys;
-	}
-
-	public int[] getCasePcs() {
-		return this.casePcs;
-	}
-
-	public int getDefaultPc() {
-		return this.defaultPc;
-	}
-
 	@Override
 	public int getInStackSize() {
 		return 1;
@@ -70,18 +67,6 @@ public class SWITCH extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.SWITCH;
-	}
-
-	public void setCaseKeys(final int[] caseKeys) {
-		this.caseKeys = caseKeys;
-	}
-
-	public void setCasePcs(final int[] casePcs) {
-		this.casePcs = casePcs;
-	}
-
-	public void setDefaultPc(final int defaultPc) {
-		this.defaultPc = defaultPc;
 	}
 
 }

@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -32,6 +34,7 @@ import org.decojer.cavaj.model.T;
  */
 public class CAST extends TypedOp {
 
+	@Getter
 	private final T toT;
 
 	/**
@@ -64,15 +67,6 @@ public class CAST extends TypedOp {
 	@Override
 	public Optype getOptype() {
 		return Optype.CAST;
-	}
-
-	/**
-	 * Get to type.
-	 * 
-	 * @return to type
-	 */
-	public T getToT() {
-		return this.toT;
 	}
 
 }
