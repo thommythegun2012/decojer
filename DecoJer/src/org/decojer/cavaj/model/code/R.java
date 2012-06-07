@@ -65,7 +65,7 @@ public class R {
 	}
 
 	@Getter
-	private R[] outs;
+	private R[] ins;
 
 	/**
 	 * Merge register types.
@@ -83,15 +83,6 @@ public class R {
 		return T.join(r1.getT(), r2.getT());
 	}
 
-	@Getter
-	private T t;
-
-	@Getter
-	private Object value;
-
-	@Getter
-	private R[] ins;
-
 	/**
 	 * Register start pc. Method parameters (0) and merge event pcs can overlap with real operation.
 	 */
@@ -104,6 +95,15 @@ public class R {
 	@Getter
 	@Setter
 	private T realT;
+
+	@Getter
+	private R[] outs;
+
+	@Getter
+	private T t;
+
+	@Getter
+	private Object value;
 
 	private T readT;
 
@@ -216,6 +216,11 @@ public class R {
 		if (this.t != reducedT) {
 			// possible primitive multitype reduction
 			this.t = reducedT;
+			if (this.outs != null) {
+				for (final R out : this.outs) {
+					out.readForwardPropagate(t);
+				}
+			}
 		}
 		switch (this.kind) {
 		case MERGE:
@@ -228,9 +233,27 @@ public class R {
 			this.ins[0].read(t);
 		}
 
-		// assert this.outs == null;
-
 		this.readT = T.union(this.readT, t);
+		return true;
+	}
+
+	private boolean readForwardPropagate(final T t) {
+		final T reducedT = this.t.read(t);
+		if (reducedT == null) {
+			if (!this.t.isResolveable()) {
+				return true;
+			}
+			assert false;
+		}
+		if (this.t != reducedT) {
+			// possible primitive multitype reduction
+			this.t = reducedT;
+			if (this.outs != null) {
+				for (final R out : this.outs) {
+					out.readForwardPropagate(t);
+				}
+			}
+		}
 		return true;
 	}
 
