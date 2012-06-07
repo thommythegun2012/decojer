@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.M;
 
@@ -33,8 +35,15 @@ import org.decojer.cavaj.model.M;
  */
 public class INVOKE extends Op {
 
+	/**
+	 * Is direct call?
+	 * 
+	 * Constructor or supermethod callout, JVM: SPECIAL, Dalvik: DIRECT.
+	 */
+	@Getter
 	private final boolean direct;
 
+	@Getter
 	private final M m;
 
 	/**
@@ -71,29 +80,9 @@ public class INVOKE extends Op {
 		return inStackSize;
 	}
 
-	/**
-	 * Get method.
-	 * 
-	 * @return method
-	 */
-	public M getM() {
-		return this.m;
-	}
-
 	@Override
 	public Optype getOptype() {
 		return Optype.INVOKE;
-	}
-
-	/**
-	 * Is direct call?
-	 * 
-	 * Constructor or supermethod callout, JVM: SPECIAL, Dalvik: DIRECT.
-	 * 
-	 * @return true - is direct
-	 */
-	public boolean isDirect() {
-		return this.direct;
 	}
 
 	@Override

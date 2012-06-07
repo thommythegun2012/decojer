@@ -57,4 +57,5 @@ public class XOR extends TypedOp {
 	public Optype getOptype() {
 		return Optype.XOR;
 	}
+
 }

@@ -862,7 +862,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new SHL(this.ops.size(), opcode, this.line, t));
+			this.ops.add(new SHL(this.ops.size(), opcode, this.line, t, T.INT));
 			break;
 		/*******
 		 * SHR *
@@ -876,8 +876,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new SHR(this.ops.size(), opcode, this.line, t, opcode == Opcodes.IUSHR
-					|| opcode == Opcodes.LUSHR));
+			this.ops.add(new SHR(this.ops.size(), opcode, this.line, t, T.INT,
+					opcode == Opcodes.IUSHR || opcode == Opcodes.LUSHR));
 			break;
 		/*******
 		 * SUB *

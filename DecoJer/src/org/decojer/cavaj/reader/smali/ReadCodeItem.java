@@ -1967,7 +1967,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new SHL(this.ops.size(), opcode, line, t));
+					this.ops.add(new SHL(this.ops.size(), opcode, line, t, T.INT));
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
@@ -1986,7 +1986,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new SHL(this.ops.size(), opcode, line, t));
+					this.ops.add(new SHL(this.ops.size(), opcode, line, t, T.INT));
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
@@ -1999,7 +1999,7 @@ public class ReadCodeItem {
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
 						.getLiteral()));
 
-				this.ops.add(new SHL(this.ops.size(), opcode, line, T.INT));
+				this.ops.add(new SHL(this.ops.size(), opcode, line, T.INT, T.INT));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
@@ -2021,7 +2021,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new SHR(this.ops.size(), opcode, line, t, false));
+					this.ops.add(new SHR(this.ops.size(), opcode, line, t, T.INT, false));
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
@@ -2040,7 +2040,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new SHR(this.ops.size(), opcode, line, t, false));
+					this.ops.add(new SHR(this.ops.size(), opcode, line, t, T.INT, false));
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
@@ -2053,7 +2053,7 @@ public class ReadCodeItem {
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
 						.getLiteral()));
 
-				this.ops.add(new SHR(this.ops.size(), opcode, line, T.INT, false));
+				this.ops.add(new SHR(this.ops.size(), opcode, line, T.INT, T.INT, false));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
@@ -2072,7 +2072,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterC()));
 
-					this.ops.add(new SHR(this.ops.size(), opcode, line, t, true));
+					this.ops.add(new SHR(this.ops.size(), opcode, line, t, T.INT, true));
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
@@ -2091,7 +2091,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
-					this.ops.add(new SHR(this.ops.size(), opcode, line, t, true));
+					this.ops.add(new SHR(this.ops.size(), opcode, line, t, T.INT, true));
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
@@ -2104,7 +2104,7 @@ public class ReadCodeItem {
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
 						.getLiteral()));
 
-				this.ops.add(new SHR(this.ops.size(), opcode, line, T.INT, true));
+				this.ops.add(new SHR(this.ops.size(), opcode, line, T.INT, T.INT, true));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;

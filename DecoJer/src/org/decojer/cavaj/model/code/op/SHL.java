@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -31,6 +33,9 @@ import org.decojer.cavaj.model.T;
  * @author André Pankraz
  */
 public class SHL extends TypedOp {
+
+	@Getter
+	private final T shiftT;
 
 	/**
 	 * Constructor.
@@ -43,9 +48,12 @@ public class SHL extends TypedOp {
 	 *            line number
 	 * @param t
 	 *            type
+	 * @param shiftT
+	 *            shift type
 	 */
-	public SHL(final int pc, final int opcode, final int line, final T t) {
+	public SHL(final int pc, final int opcode, final int line, final T t, final T shiftT) {
 		super(pc, opcode, line, t);
+		this.shiftT = shiftT;
 	}
 
 	@Override

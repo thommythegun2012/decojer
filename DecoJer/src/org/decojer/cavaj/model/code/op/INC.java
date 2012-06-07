@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -32,8 +34,10 @@ import org.decojer.cavaj.model.T;
  */
 public class INC extends TypedOp {
 
+	@Getter
 	private final int reg;
 
+	@Getter
 	private final int value;
 
 	/**
@@ -71,24 +75,6 @@ public class INC extends TypedOp {
 	@Override
 	public Optype getOptype() {
 		return Optype.INC;
-	}
-
-	/**
-	 * Get register.
-	 * 
-	 * @return register
-	 */
-	public int getReg() {
-		return this.reg;
-	}
-
-	/**
-	 * Get value.
-	 * 
-	 * @return value
-	 */
-	public int getValue() {
-		return this.value;
 	}
 
 	@Override

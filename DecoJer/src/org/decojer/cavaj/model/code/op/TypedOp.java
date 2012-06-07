@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -36,6 +38,7 @@ import org.decojer.cavaj.model.T;
  */
 public abstract class TypedOp extends Op {
 
+	@Getter
 	private final T t;
 
 	/**
@@ -56,15 +59,6 @@ public abstract class TypedOp extends Op {
 		assert t != null;
 
 		this.t = t;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this.t;
 	}
 
 }

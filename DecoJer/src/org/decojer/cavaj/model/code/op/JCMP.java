@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code.op;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -32,8 +35,15 @@ import org.decojer.cavaj.model.T;
  */
 public class JCMP extends TypedOp {
 
+	@Getter
 	private final CmpType cmpType;
 
+	/**
+	 * PC can temporarily be negative because of reading unknown labels assert targetPc >= 0 :
+	 * targetPc;
+	 */
+	@Getter
+	@Setter
 	private int targetPc;
 
 	/**
@@ -58,15 +68,6 @@ public class JCMP extends TypedOp {
 		this.cmpType = cmpType;
 	}
 
-	/**
-	 * Get compare type.
-	 * 
-	 * @return compare type
-	 */
-	public CmpType getCmpType() {
-		return this.cmpType;
-	}
-
 	@Override
 	public int getInStackSize() {
 		assert !getT().isWide();
@@ -77,31 +78,6 @@ public class JCMP extends TypedOp {
 	@Override
 	public Optype getOptype() {
 		return Optype.JCMP;
-	}
-
-	/**
-	 * get target pc.
-	 * 
-	 * @return target pc
-	 */
-	public int getTargetPc() {
-		// pc can temporarily be negative because of reading unknown labels
-		// assert targetPc >= 0 : targetPc;
-
-		return this.targetPc;
-	}
-
-	/**
-	 * Set target pc.
-	 * 
-	 * @param targetPc
-	 *            target pc
-	 */
-	public void setTargetPc(final int targetPc) {
-		// pc can temporarily be negative because of reading unknown labels
-		// assert targetPc >= 0 : targetPc;
-
-		this.targetPc = targetPc;
 	}
 
 	@Override

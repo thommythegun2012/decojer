@@ -549,12 +549,16 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case SHL: {
 			final SHL cop = (SHL) op;
-			evalBinaryMath(cop.getT());
+			pop(cop.getShiftT(), true);
+			pop(cop.getT(), true);
+			pushConst(cop.getT());
 			break;
 		}
 		case SHR: {
 			final SHR cop = (SHR) op;
-			evalBinaryMath(cop.getT());
+			pop(cop.getShiftT(), true);
+			pop(cop.getT(), true);
+			pushConst(cop.getT());
 			break;
 		}
 		case STORE: {
