@@ -46,6 +46,7 @@ import org.decojer.cavaj.transformer.TrCalculatePostorder;
 import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformer.TrDataFlowAnalysis2Cfg;
 import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
+import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
 import org.decojer.editor.eclipse.util.FramesFigure;
 import org.decojer.editor.eclipse.util.HierarchicalLayoutAlgorithm;
 import org.decojer.editor.eclipse.util.MemoryStorageEditorInput;
@@ -613,6 +614,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				}
 				if (stage > 1) {
 					TrControlFlowAnalysis.transform(cfg);
+					TrStructCfg2JavaControlFlowStmts.transform(cfg);
 				}
 			} catch (final Throwable e) {
 				TrCalculatePostorder.transform(cfg);
