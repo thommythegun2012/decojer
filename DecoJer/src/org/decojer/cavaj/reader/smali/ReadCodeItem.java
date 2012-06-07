@@ -56,7 +56,6 @@ import org.decojer.cavaj.model.code.op.INSTANCEOF;
 import org.decojer.cavaj.model.code.op.INVOKE;
 import org.decojer.cavaj.model.code.op.JCMP;
 import org.decojer.cavaj.model.code.op.JCND;
-import org.decojer.cavaj.model.code.op.JSR;
 import org.decojer.cavaj.model.code.op.LOAD;
 import org.decojer.cavaj.model.code.op.MONITOR;
 import org.decojer.cavaj.model.code.op.MUL;
@@ -210,7 +209,7 @@ public class ReadCodeItem {
 				// indicated register. This must be done as the instruction immediately after an
 				// invoke-kind whose (single-word, non-object) result is not to be ignored;
 				// anywhere else is invalid.
-				t = T.DINT;
+				t = T.SINGLE;
 				// fall through
 			case MOVE_RESULT_OBJECT:
 				// Move the object result of the most recent invoke-kind into the indicated
@@ -218,7 +217,7 @@ public class ReadCodeItem {
 				// or filled-new-array whose (object) result is not to be ignored; anywhere else
 				// is invalid.
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case MOVE_RESULT_WIDE:
@@ -238,7 +237,7 @@ public class ReadCodeItem {
 
 					if (moveInvokeResultT == null) {
 						LOGGER.warning("Move result without previous result type!");
-						moveInvokeResultT = T.AREF;
+						moveInvokeResultT = T.REF;
 					}
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, moveInvokeResultT, instr
@@ -378,7 +377,7 @@ public class ReadCodeItem {
 				// fall through
 			case AGET_OBJECT:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case AGET_SHORT:
@@ -395,7 +394,7 @@ public class ReadCodeItem {
 					final Instruction23x instr = (Instruction23x) instruction;
 
 					// TODO array type?
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr
 							.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr
 							.getRegisterC()));
@@ -479,7 +478,7 @@ public class ReadCodeItem {
 				// A = B.length
 				final Instruction12x instr = (Instruction12x) instruction;
 
-				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr.getRegisterB()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr.getRegisterB()));
 
 				this.ops.add(new ARRAYLENGTH(this.ops.size(), opcode, line));
 
@@ -509,7 +508,7 @@ public class ReadCodeItem {
 				// fall through
 			case APUT_OBJECT:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case APUT_SHORT:
@@ -526,7 +525,7 @@ public class ReadCodeItem {
 					final Instruction23x instr = (Instruction23x) instruction;
 
 					// TODO array type?
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr
 							.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr
 							.getRegisterC()));
@@ -544,9 +543,9 @@ public class ReadCodeItem {
 
 				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 
-				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr.getRegisterA()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr.getRegisterA()));
 
-				this.ops.add(new CAST(this.ops.size(), opcode, line, T.AREF, t));
+				this.ops.add(new CAST(this.ops.size(), opcode, line, T.REF, t));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				break;
@@ -805,7 +804,7 @@ public class ReadCodeItem {
 			case IGET_OBJECT:
 			case IGET_OBJECT_VOLATILE:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case IGET_SHORT:
@@ -827,7 +826,7 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (t != T.AREF && !t.equals(valueT)) {
+					if (t != T.REF && !t.equals(valueT)) {
 						LOGGER.warning("IGET TODO Must check compatibility here? T '" + t
 								+ "' not of '" + valueT + "'!");
 					}
@@ -865,7 +864,7 @@ public class ReadCodeItem {
 			case SGET_OBJECT:
 			case SGET_OBJECT_VOLATILE:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case SGET_SHORT:
@@ -887,7 +886,7 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (t != T.AREF && !t.equals(valueT)) {
+					if (t != T.REF && !t.equals(valueT)) {
 						LOGGER.warning("SGET TODO Must check compatibility here? T '" + t
 								+ "' not of '" + valueT + "'!");
 					}
@@ -948,11 +947,11 @@ public class ReadCodeItem {
 				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 
 				// not t, is unknown, result can be false
-				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr.getRegisterB()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr.getRegisterB()));
 
 				this.ops.add(new INSTANCEOF(this.ops.size(), opcode, line, t));
 
-				// hmmm, "spec" only says none-zero result, multi-type?
+				// hmmm, "spec" only says none-zero result, multitype?
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.BOOLEAN, instr
 						.getRegisterA()));
 				break;
@@ -961,7 +960,7 @@ public class ReadCodeItem {
 			 * JCMP *
 			 ********/
 			case IF_EQ:
-				t = T.INT; // for all here: CMP?_FLOAT is extra
+				t = T.INT;
 				oValue = CmpType.T_EQ;
 				// fall through
 			case IF_GE:
@@ -1014,12 +1013,12 @@ public class ReadCodeItem {
 			 * JCND *
 			 ********/
 			case IF_EQZ:
-				t = T.RINT; // boolean too
+				t = T.AINT; // boolean too, float separate
 				oValue = CmpType.T_EQ;
 				// fall through
 			case IF_GEZ:
 				if (t == null) {
-					t = T.INT; // for all here: CMP?_FLOAT is extra
+					t = T.INT;
 					oValue = CmpType.T_GE;
 				}
 				// fall through
@@ -1041,9 +1040,9 @@ public class ReadCodeItem {
 					oValue = CmpType.T_LT;
 				}
 				// fall through
-			case IF_NEZ: // boolean too
+			case IF_NEZ:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT; // boolean too
 					oValue = CmpType.T_NE;
 				}
 				{
@@ -1171,7 +1170,7 @@ public class ReadCodeItem {
 					// synchronized A
 					final Instruction11x instr = (Instruction11x) instruction;
 
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr
 							.getRegisterA()));
 
 					this.ops.add(new MONITOR(this.ops.size(), opcode, line, type));
@@ -1181,11 +1180,11 @@ public class ReadCodeItem {
 			 * MOVE *
 			 ********/
 			case MOVE:
-				t = T.DINT;
+				t = T.SINGLE;
 				// fall through
 			case MOVE_OBJECT:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case MOVE_WIDE:
@@ -1201,11 +1200,11 @@ public class ReadCodeItem {
 				}
 				break;
 			case MOVE_16:
-				t = T.DINT;
+				t = T.SINGLE;
 				// fall through
 			case MOVE_OBJECT_16:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case MOVE_WIDE_16:
@@ -1221,11 +1220,11 @@ public class ReadCodeItem {
 				}
 				break;
 			case MOVE_FROM16:
-				t = T.DINT;
+				t = T.SINGLE;
 				// fall through
 			case MOVE_OBJECT_FROM16:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case MOVE_WIDE_FROM16:
@@ -1411,7 +1410,7 @@ public class ReadCodeItem {
 				// fill_array_data(A) -> target
 				final Instruction31t instr = (Instruction31t) instruction;
 
-				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.AREF, instr.getRegisterA()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr.getRegisterA()));
 
 				final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, line);
 				this.ops.add(op);
@@ -1595,9 +1594,9 @@ public class ReadCodeItem {
 				// A = literal
 				final Instruction11n instr = (Instruction11n) instruction;
 
-				t = T.DINT;
+				oValue = iValue = (int) instr.getLiteral();
+				t = T.getDalvikIntT(iValue);
 				iValue = instr.getRegisterA();
-				oValue = (int) instr.getLiteral();
 			}
 			// fall through
 			case CONST_16:
@@ -1605,9 +1604,9 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction21s instr = (Instruction21s) instruction;
 
-					t = T.DINT;
+					oValue = iValue = (int) instr.getLiteral();
+					t = T.getDalvikIntT(iValue);
 					iValue = instr.getRegisterA();
-					oValue = (int) instr.getLiteral();
 				}
 				// fall through
 			case CONST_HIGH16:
@@ -1615,9 +1614,9 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction21h instr = (Instruction21h) instruction;
 
-					t = T.multi(T.INT, T.FLOAT);
+					oValue = iValue = (int) instr.getLiteral() << 16;
+					t = T.getDalvikIntT(iValue);
 					iValue = instr.getRegisterA();
-					oValue = (int) instr.getLiteral() << 16;
 				}
 				// fall through
 			case CONST: /* 32 */
@@ -1625,9 +1624,9 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction31i instr = (Instruction31i) instruction;
 
-					t = T.DINT;
+					oValue = iValue = (int) instr.getLiteral();
+					t = T.getDalvikIntT(iValue);
 					iValue = instr.getRegisterA();
-					oValue = (int) instr.getLiteral();
 				}
 				// fall through
 			case CONST_WIDE_16:
@@ -1635,9 +1634,9 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction21s instr = (Instruction21s) instruction;
 
+					oValue = instr.getLiteral();
 					t = T.WIDE;
 					iValue = instr.getRegisterA();
-					oValue = instr.getLiteral();
 				}
 				// fall through
 			case CONST_WIDE_HIGH16:
@@ -1645,9 +1644,9 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction21h instr = (Instruction21h) instruction;
 
+					oValue = instr.getLiteral() << 48;
 					t = T.WIDE;
 					iValue = instr.getRegisterA();
-					oValue = instr.getLiteral() << 48;
 				}
 				// fall through
 			case CONST_WIDE_32:
@@ -1655,9 +1654,9 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction31i instr = (Instruction31i) instruction;
 
+					oValue = instr.getLiteral();
 					t = T.WIDE;
 					iValue = instr.getRegisterA();
-					oValue = instr.getLiteral();
 				}
 				// fall through
 			case CONST_WIDE: /* _64 */
@@ -1665,9 +1664,9 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction51l instr = (Instruction51l) instruction;
 
+					oValue = instr.getLiteral();
 					t = T.WIDE;
 					iValue = instr.getRegisterA();
-					oValue = instr.getLiteral();
 				}
 				// fall through
 			case CONST_CLASS:
@@ -1675,10 +1674,10 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction21c instr = (Instruction21c) instruction;
 
-					t = this.du.getT(Class.class);
-					iValue = instr.getRegisterA();
 					oValue = this.du.getDescT(((TypeIdItem) instr.getReferencedItem())
 							.getTypeDescriptor());
+					t = this.du.getT(Class.class);
+					iValue = instr.getRegisterA();
 				}
 				// fall through
 			case CONST_STRING:
@@ -1686,18 +1685,18 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction21c instr = (Instruction21c) instruction;
 
+					oValue = ((StringIdItem) instr.getReferencedItem()).getStringValue();
 					t = this.du.getT(String.class);
 					iValue = instr.getRegisterA();
-					oValue = ((StringIdItem) instr.getReferencedItem()).getStringValue();
 				}
 			case CONST_STRING_JUMBO:
 				if (t == null) {
 					// A = literal
 					final Instruction31c instr = (Instruction31c) instruction;
 
+					oValue = ((StringIdItem) instr.getReferencedItem()).getStringValue();
 					t = this.du.getT(String.class);
 					iValue = instr.getRegisterA();
-					oValue = ((StringIdItem) instr.getReferencedItem()).getStringValue();
 				}
 				{
 					this.ops.add(new PUSH(this.ops.size(), opcode, line, t, oValue));
@@ -1730,7 +1729,7 @@ public class ReadCodeItem {
 			case IPUT_OBJECT:
 			case IPUT_OBJECT_VOLATILE:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case IPUT_SHORT:
@@ -1754,7 +1753,7 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (t != T.AREF && !t.equals(valueT)) {
+					if (t != T.REF && !t.equals(valueT)) {
 						LOGGER.warning("IPUT TODO Must check compatibility here? T '" + t
 								+ "' not of '" + valueT + "'!");
 					}
@@ -1791,7 +1790,7 @@ public class ReadCodeItem {
 			case SPUT_OBJECT:
 			case SPUT_OBJECT_VOLATILE:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case SPUT_SHORT:
@@ -1815,7 +1814,7 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (t != T.AREF && !t.equals(valueT)) {
+					if (t != T.REF && !t.equals(valueT)) {
 						LOGGER.warning("SPUT TODO Must check compatibility here? T '" + t
 								+ "' not of '" + valueT + "'!");
 					}
@@ -1921,11 +1920,11 @@ public class ReadCodeItem {
 			 * RETURN *
 			 **********/
 			case RETURN:
-				t = T.DINT;
+				t = T.SINGLE;
 				// fall through
 			case RETURN_OBJECT:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 				}
 				// fall through
 			case RETURN_WIDE:
@@ -1933,14 +1932,20 @@ public class ReadCodeItem {
 					t = T.WIDE;
 				}
 				{
+					if (!t.isAssignableFrom(md.getM().getReturnT())) {
+						LOGGER.warning("Incompatible operation return type '" + t
+								+ "' for method return type '" + md.getM().getReturnT() + "'!");
+					}
+					t = md.getM().getReturnT();
+
 					// return A
 					final Instruction11x instr = (Instruction11x) instruction;
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
 					this.ops.add(new RETURN(this.ops.size(), opcode, line, t));
-					break;
 				}
+				break;
 			case RETURN_VOID: {
 				this.ops.add(new RETURN(this.ops.size(), opcode, line, T.VOID));
 				break;
@@ -2357,10 +2362,6 @@ public class ReadCodeItem {
 			}
 			if (o instanceof JCND) {
 				((JCND) o).setTargetPc(this.ops.size());
-				continue;
-			}
-			if (o instanceof JSR) {
-				((JSR) o).setTargetPc(this.ops.size());
 				continue;
 			}
 			if (o instanceof SWITCH) {

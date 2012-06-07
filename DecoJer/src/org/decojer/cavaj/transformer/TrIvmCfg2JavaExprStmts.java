@@ -640,7 +640,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						operator = null;
 					}
 					((InfixExpression) expression).setOperator(operator);
-				} else if (this.cfg.getInFrame(op).peek().getT().isReference()) {
+				} else if (this.cfg.getInFrame(op).peek().getT().isRef()) {
 					final InfixExpression.Operator operator;
 					switch (cop.getCmpType()) {
 					case T_EQ:

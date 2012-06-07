@@ -38,22 +38,25 @@ import org.decojer.cavaj.model.code.op.FILLARRAY;
 import org.decojer.cavaj.model.code.op.GOTO;
 import org.decojer.cavaj.model.code.op.JCMP;
 import org.decojer.cavaj.model.code.op.JCND;
-import org.decojer.cavaj.model.code.op.JSR;
 import org.decojer.cavaj.model.code.op.LOAD;
 import org.decojer.cavaj.model.code.op.Op;
+import org.decojer.cavaj.model.code.op.RETURN;
 import org.decojer.cavaj.model.code.op.SWITCH;
+import org.decojer.cavaj.model.code.op.THROW;
 
 import com.googlecode.dex2jar.DexLabel;
+import com.googlecode.dex2jar.DexOpcodes;
 import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.Method;
-import com.googlecode.dex2jar.visitors.DexCodeVisitor;
+import com.googlecode.dex2jar.OdexOpcodes;
+import com.googlecode.dex2jar.visitors.OdexCodeVisitor;
 
 /**
  * Dex2jar code visitor.
  * 
  * @author André Pankraz
  */
-public class ReadDexCodeVisitor implements DexCodeVisitor {
+public class ReadDexCodeVisitor implements OdexCodeVisitor, DexOpcodes, OdexOpcodes {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadDexCodeVisitor.class.getName());
 
@@ -216,9 +219,16 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
+	public void visitFieldStmt(final int opcode, final int fromOrToReg, final int objReg,
+			final int fieldoff, final int xt) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void visitFillArrayStmt(final int opcode, final int aA, final int elemWidth,
 			final int initLength, final Object[] values) {
-		this.ops.add(new LOAD(this.ops.size(), opcode, this.line, T.AREF, aA));
+		this.ops.add(new LOAD(this.ops.size(), opcode, this.line, T.REF, aA));
 
 		final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, this.line);
 		this.ops.add(op);
@@ -274,10 +284,6 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 			}
 			if (o instanceof JCND) {
 				((JCND) o).setTargetPc(this.ops.size());
-				continue;
-			}
-			if (o instanceof JSR) {
-				((JSR) o).setTargetPc(this.ops.size());
 				continue;
 			}
 			if (o instanceof SWITCH) {
@@ -363,6 +369,12 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 	}
 
 	@Override
+	public void visitMethodStmt(final int opcode, final int[] args, final int a) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
 	public void visitMethodStmt(final int opcode, final int[] args, final Method method) {
 		// TODO Auto-generated method stub
 
@@ -388,14 +400,81 @@ public class ReadDexCodeVisitor implements DexCodeVisitor {
 
 	@Override
 	public void visitReturnStmt(final int opcode) {
-		// TODO Auto-generated method stub
-
+		if (opcode != OP_RETURN_VOID) {
+			LOGGER.warning("Unexpected opcode '" + opcode
+					+ "' for 'visitReturnStmt(VOID)'! Using operation 'RETURN' with type '"
+					+ T.VOID + "'.");
+		}
+		if (this.md.getM().getReturnT() != T.VOID) {
+			LOGGER.warning("Incompatible operation return type '" + T.VOID
+					+ "' for method return type '" + this.md.getM().getReturnT()
+					+ "'! Using return type '" + T.VOID + "'.");
+			// if we use the methods return type instead, stack may be incompatible...graceful
+			// fallback possible at all?
+		}
+		this.ops.add(new RETURN(this.ops.size(), opcode, this.line, T.VOID));
 	}
 
 	@Override
 	public void visitReturnStmt(final int opcode, final int reg, final int xt) {
-		// TODO Auto-generated method stub
+		switch (opcode) {
+		default:
+			LOGGER.warning("Unexpected opcode '" + opcode
+					+ "' for 'visitReturnStmt(RETURN|THROW)'! Using operation 'RETURN'.");
+		case OP_RETURN: {
+			T t;
+			switch (xt) {
+			case TYPE_SINGLE:
+				t = T.SINGLE;
+				break;
+			case TYPE_WIDE:
+				t = T.WIDE;
+				break;
+			case TYPE_OBJECT:
+				t = T.REF;
+				break;
+			default:
+				t = this.md.getM().getReturnT();
+				LOGGER.warning("Unknown operation return type '" + xt
+						+ "'! Using method return type '" + t + "'.");
+			}
+			if (!t.isAssignableFrom(this.md.getM().getReturnT())) {
+				LOGGER.warning("Incompatible operation return type '" + t
+						+ "' for method return type '" + this.md.getM().getReturnT() + "'!");
+			}
+			t = this.md.getM().getReturnT();
 
+			this.ops.add(new LOAD(this.ops.size(), opcode, this.line, t, reg));
+
+			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, t));
+			break;
+		}
+		case OP_THROW: {
+			// why is THROW mixed into this visit method?!
+			switch (xt) {
+			case TYPE_OBJECT:
+				break;
+			default:
+				LOGGER.warning("Unknown throw type '" + xt + "'! Using 'Throwable' type.");
+			}
+			this.ops.add(new LOAD(this.ops.size(), opcode, this.line,
+					this.du.getT(Throwable.class), reg));
+
+			this.ops.add(new THROW(this.ops.size(), opcode, this.line));
+		}
+		}
+	}
+
+	@Override
+	public void visitReturnStmt(final int opcode, final int cause, final Object ref) {
+		// ODEX only
+		if (opcode != OP_THROW_VERIFICATION_ERROR) {
+			LOGGER.warning("Unexpected opcode '"
+					+ opcode
+					+ "' for 'visitReturnStmt(OP_THROW_VERIFICATION_ERROR)'! Using operation 'THROW' with type '"
+					+ ref + "'.");
+		}
+		// TODO
 	}
 
 	@Override

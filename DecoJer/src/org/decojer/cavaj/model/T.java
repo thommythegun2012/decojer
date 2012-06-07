@@ -23,17 +23,14 @@
  */
 package org.decojer.cavaj.model;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
-
-import org.decojer.DecoJer;
 
 /**
  * Type.
@@ -42,342 +39,203 @@ import org.decojer.DecoJer;
  */
 public class T {
 
-	/**
-	 * Multi-type.
-	 * 
-	 * @author André Pankraz
-	 */
-	public static class TT extends T {
+	public enum Kind {
 
-		private static String concat(final T[] ts) {
-			final StringBuilder sb = new StringBuilder("<");
-			for (final T t : ts) {
-				sb.append(t).append(" ");
-			}
-			sb.append(">");
-			return sb.toString();
+		INT(1 << 0, int.class),
+
+		SHORT(1 << 1, short.class),
+
+		BYTE(1 << 2, byte.class),
+
+		CHAR(1 << 3, char.class),
+
+		BOOLEAN(1 << 4, boolean.class),
+
+		FLOAT(1 << 5, float.class),
+
+		LONG(1 << 6, long.class),
+
+		DOUBLE(1 << 7, double.class),
+
+		VOID(1 << 8, void.class),
+
+		REF(1 << 9),
+
+		RET(1 << 10),
+
+		LONG2(1 << 11),
+
+		DOUBLE2(1 << 12);
+
+		@Getter
+		private final Class<?> clazz;
+
+		@Getter
+		private final int kind;
+
+		private Kind(final int flag) {
+			this(flag, null);
 		}
 
-		private final T[] ts;
-
-		protected TT(final T... ts) {
-			super(concat(ts));
-			this.ts = ts;
+		private Kind(final int flag, final Class<?> clazz) {
+			this.clazz = clazz;
+			this.kind = flag;
 		}
 
-		/**
-		 * Get types.
-		 * 
-		 * @return types
-		 */
-		public T[] getTs() {
-			return this.ts;
+		public String getName() {
+			return this.clazz == null ? name() : this.clazz.getName();
 		}
 
-		@Override
-		public boolean is(final Class<?>... clazzes) {
-			if (this.ts.length != clazzes.length) {
-				return false;
-			}
-			loop: for (final T thisT : this.ts) {
-				for (final Class<?> clazz : clazzes) {
-					if (thisT.is(clazz)) {
-						continue loop;
-					}
-				}
-				return false;
-			}
-			return true;
-		}
-
-		@Override
-		public boolean is(final T... ts) {
-			if (ts.length == 1 && ts[0].isMulti()) {
-				return is(((TT) ts[0]).ts);
-			}
-			if (this.ts.length != ts.length) {
-				return false;
-			}
-			loop: for (final T thisT : this.ts) {
-				for (final T cmpT : ts) {
-					if (thisT == cmpT) {
-						continue loop;
-					}
-				}
-				return false;
-			}
-			return true;
-		}
-
-		@Override
-		public boolean isMulti() {
-			return true;
-		}
-
-		@Override
-		public boolean isWide() {
-			return this == T.WIDE;
-		}
-
-		@Override
-		protected T merge(final T t) {
-			if (t == this) {
-				return this;
-			}
-			boolean changed = false;
-			final ArrayList<T> mergedTs = new ArrayList<T>();
-			for (final T iT : this.ts) {
-				final T mergedT = t.merge(iT); // t might be multi too
-				if (mergedT != iT) {
-					changed = true;
-					if (mergedT == null) {
-						continue;
-					}
-				}
-				if (mergedT.isMulti()) {
-					for (final T iMergedT : ((TT) mergedT).getTs()) {
-						if (!mergedTs.contains(iMergedT)) {
-							mergedTs.add(iMergedT);
-						}
-					}
-					continue;
-				}
-				if (!mergedTs.contains(mergedT)) {
-					mergedTs.add(mergedT);
-				}
-			}
-			if (!changed) {
-				return this;
-			}
-			if (mergedTs.isEmpty()) {
-				return null;
-			}
-			if (mergedTs.size() == 1) {
-				return mergedTs.get(0);
-			}
-			return new TT(mergedTs.toArray(new T[mergedTs.size()]));
-		}
-
-		@Override
-		public T mergeTo(final T t) {
-			if (this == t) {
-				return this;
-			}
-			boolean changed = false;
-			final List<T> mergedTs = new ArrayList<T>();
-			for (final T iT : this.ts) {
-				final T mergedT = iT.mergeTo(t);
-				if (mergedT != iT) {
-					changed = true;
-					if (mergedT == null) {
-						continue;
-					}
-				}
-				// cannot be a multi-type, result can only be iT / null or AREF could change to
-				// concrete type
-				assert !mergedT.isMulti();
-
-				if (!mergedTs.contains(mergedT)) {
-					mergedTs.add(mergedT);
-				}
-			}
-			if (!changed) {
-				return this;
-			}
-			if (mergedTs.isEmpty()) {
-				return null;
-			}
-			if (mergedTs.size() == 1) {
-				return mergedTs.get(0);
-			}
-			return new TT(mergedTs.toArray(new T[mergedTs.size()]));
-		}
 	}
 
-	/**
-	 * Primitive type boolean.
-	 */
-	public static T BOOLEAN = new T(boolean.class.getName());
-	/**
-	 * Primitive type byte.
-	 */
-	public static T BYTE = new T(byte.class.getName());
-	/**
-	 * Primitive type char.
-	 */
-	public static T CHAR = new T(char.class.getName());
-	/**
-	 * Primitive type double.
-	 */
-	public static T DOUBLE = new T(double.class.getName());
-	/**
-	 * Primitive type float.
-	 */
-	public static T FLOAT = new T(float.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(T.class.getName());
+
+	private static final Map<Integer, T> KIND_2_TS = new HashMap<Integer, T>();
+
+	private static int[][] READ_INT = {
+	/* ___i */{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
+	/* __s_ */{ 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2 },
+	/* __si */{ 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3 },
+	/* _b__ */{ 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4 },
+	/* _b_i */{ 5, 4, 5, 4, 5, 4, 5, 0, 5, 4, 5, 4, 5, 4, 5 },
+	/* _bs_ */{ 6, 6, 6, 4, 6, 6, 6, 0, 6, 6, 6, 4, 6, 6, 6 },
+	/* _bsi */{ 7, 6, 7, 4, 7, 6, 7, 0, 7, 6, 7, 4, 7, 6, 7 },
+	/* c___ */{ 8, 0, 8, 0, 8, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8 },
+	/* c__i */{ 9, 0, 9, 0, 9, 0, 9, 8, 9, 8, 9, 8, 9, 8, 9 },
+	/* c_s_ */{ 10, 2, 10, 0, 10, 2, 10, 8, 10, 10, 10, 8, 10, 10, 10 },
+	/* c_si */{ 11, 2, 11, 0, 11, 2, 11, 8, 11, 10, 11, 8, 11, 10, 11 },
+	/* cb__ */{ 12, 4, 12, 4, 12, 4, 12, 8, 12, 12, 12, 12, 12, 12, 12 },
+	/* cb_i */{ 13, 4, 13, 4, 13, 4, 13, 8, 13, 12, 13, 12, 13, 12, 13 },
+	/* cbs_ */{ 14, 6, 14, 4, 14, 6, 14, 8, 14, 14, 14, 12, 14, 14, 14 },
+	/* cbsi */{ 15, 6, 15, 4, 15, 6, 15, 8, 15, 14, 15, 12, 15, 14, 15 } };
+
+	private static int[][] JOIN_INT = {
+	/* ___i */{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+	/* __s_ */{ 1, 2, 3, 2, 3, 2, 2, 1, 1, 3, 3, 3, 3, 3, 3 },
+	/* __si */{ 1, 3, 3, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 3, 3 },
+	/* _b__ */{ 1, 2, 3, 4, 5, 6, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
+	/* _b_i */{ 1, 3, 3, 5, 5, 7, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
+	/* _bs_ */{ 1, 2, 3, 6, 7, 7, 1, 1, 1, 3, 3, 7, 7, 7, 7 },
+	/* _bsi */{ 1, 3, 3, 7, 7, 7, 7, 1, 1, 3, 3, 7, 7, 7, 7 },
+
+	/* c___ */{ 1, 1, 1, 1, 1, 1, 1, 8, 9, 9, 9, 9, 9, 9, 9 },
+	/* c__i */{ 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9 },
+	/* c_s_ */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
+	/* c_si */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
+	/* cb__ */{ 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15 },
+	/* cb_i */{ 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15 },
+	/* cbs_ */{ 1, 3, 3, 7, 7, 7, 7, 9, 9, 11, 11, 15, 15, 15, 15 },
+	/* cbsi */{ 1, 3, 3, 7, 7, 7, 7, 9, 9, 11, 11, 15, 15, 15, 15 } };
+
 	/**
 	 * Primitive type int.
 	 */
-	public static T INT = new T(int.class.getName());
-	/**
-	 * Primitive type long.
-	 */
-	public static T LONG = new T(long.class.getName());
+	public static T INT = getT(Kind.INT);
 	/**
 	 * Primitive type short.
 	 */
-	public static T SHORT = new T(short.class.getName());
+	public static T SHORT = getT(Kind.SHORT);
+	/**
+	 * Primitive type byte.
+	 */
+	public static T BYTE = getT(Kind.BYTE);
+	/**
+	 * Primitive type char.
+	 */
+	public static T CHAR = getT(Kind.CHAR);
+	/**
+	 * Primitive type boolean.
+	 */
+	public static T BOOLEAN = getT(Kind.BOOLEAN);
+	/**
+	 * Primitive type float.
+	 */
+	public static T FLOAT = getT(Kind.FLOAT);
+	/**
+	 * Primitive type long.
+	 */
+	public static T LONG = getT(Kind.LONG);
+	/**
+	 * Primitive type double.
+	 */
+	public static T DOUBLE = getT(Kind.DOUBLE);
 	/**
 	 * Primitive type void.
 	 */
-	public static T VOID = new T(void.class.getName());
+	public static T VOID = getT(Kind.VOID);
+
 	/**
-	 * Artificial type double part 2.
+	 * Artificial type 'reference'.
 	 */
-	public static T DOUBLE2 = new T("DOUBLE2");
-	/**
-	 * Artificial type long part 2.
-	 */
-	public static T LONG2 = new T("LONG2");
+	public static T REF = getT(Kind.REF);
 	/**
 	 * Artificial type 'return address' for JSR follow pc.
 	 * 
 	 * Spec: No return address (a value of type returnAddress) may be loaded from a local variable.
 	 */
-	public static final T RETURN_ADDRESS = new T("RETURN_ADDRESS");
+	public static final T RET = getT(Kind.RET);
 	/**
-	 * Artificial type 'any reference'.
+	 * Artificial type long part 2.
 	 */
-	public static T AREF = new T("AREF");
+	public static T LONG2 = getT(Kind.LONG2);
 	/**
-	 * Artificial type 'uninit'.
+	 * Artificial type double part 2.
 	 */
-	public static T UNINIT = new T("UNINIT");
+	public static T DOUBLE2 = getT(Kind.DOUBLE2);
+
 	/**
-	 * Artificial type 'uninit'.
+	 * Multi-type 'any reference'.
 	 */
-	public static T UNRESOLVABLE = new T("UNRESOLVABLE");
+	public static T AREF = getT(Kind.REF, Kind.RET);
 	/**
-	 * Multi-type 'any int (32 bit)'.
+	 * Multi-type 'any JVM int'.
 	 */
-	public static TT AINT = multi(INT, SHORT, BYTE, CHAR, BOOLEAN);
+	public static T AINT = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN);
 	/**
-	 * Multi-type 'dalvik int (32 bit)', includes float.
+	 * Multi-type 'primitive'.
 	 */
-	public static TT DINT = multi(INT, SHORT, BYTE, CHAR, BOOLEAN, FLOAT);
+	public static T PRIMITIVE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
+			Kind.FLOAT, Kind.LONG, Kind.DOUBLE, Kind.VOID);
 	/**
-	 * Multi-type 'read int (32 bit)', includes boolean for some JVM int operations, when normal
-	 * implicit widening not enough.
+	 * Multi-type 'any single (32 bit)'.
 	 */
-	public static TT RINT = multi(INT, BOOLEAN);
+	public static T SINGLE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
+			Kind.FLOAT);
 	/**
 	 * Multi-type 'any wide (64 bit)'.
 	 */
-	public static TT WIDE = multi(DOUBLE, LONG);
+	public static T WIDE = getT(Kind.LONG, Kind.DOUBLE);
 
 	/**
-	 * From Opcodes.T_BOOLEAN = 4 to T_LONG = 11.
+	 * Translation from JVM Array Opcodes: T_BOOLEAN = 4 to T_LONG = 11.
 	 */
 	public static final T[] TYPES = new T[] { null, null, null, null, T.BOOLEAN, T.CHAR, T.FLOAT,
 			T.DOUBLE, T.BYTE, T.SHORT, T.INT, T.LONG };
 
 	private static final T[] NO_INTERFACES = new T[0];
 
-	public static void main(final String[] args) {
-		System.out.println("TEST: " + int.class.getGenericSuperclass());
-		System.out.println("TEST: " + Integer.class.getCanonicalName());
-		System.out.println("TEST: " + Map.Entry.class.getName());
+	private static int joinKinds(final int kind1, final int kind2) {
+		final int k1 = (kind1 & 0xF) - 1;
+		final int k2 = (kind2 & 0xF) - 1;
+		if (k1 >= 0 && k2 >= 0) {
+			return JOIN_INT[k1][k2] | kind1 & kind2;
+		}
+		return kind1 & kind2;
+	}
 
-		final DU du = DecoJer.createDu();
-		T tm;
-
-		assert int.class.isAssignableFrom(int.class) == du.getT(int.class).isAssignableFrom(
-				du.getT(int.class));
-		assert int.class.isAssignableFrom(short.class) == du.getT(int.class).isAssignableFrom(
-				du.getT(short.class));
-		assert Object.class.isAssignableFrom(int[].class) == du.getT(Object.class)
-				.isAssignableFrom(du.getT(int[].class));
-
-		assert Object.class.isAssignableFrom(Serializable.class) == du.getT(Object.class)
-				.isAssignableFrom(du.getT(Serializable.class));
-		assert Object[].class.isAssignableFrom(Serializable[].class) == du.getT(Object[].class)
-				.isAssignableFrom(du.getT(Serializable[].class));
-		assert Number[].class.isAssignableFrom(Integer[].class) == du.getT(Number[].class)
-				.isAssignableFrom(du.getT(Integer[].class));
-
-		// mergeTo is like subtypeOf and reduces multi-types
-		tm = du.getT(Integer.class).mergeTo(du.getT(Number.class));
-		assert tm.is(Integer.class) : tm;
-
-		tm = T.multi(du.getT(Integer.class), du.getT(Double.class)).mergeTo(
-				du.getT(Serializable.class));
-		assert tm.is(Integer.class, Double.class) : tm;
-
-		// merge is looking for smallest super types and creates multi-types
-
-		tm = T.LONG.merge(T.LONG);
-		assert tm.is(T.LONG);
-
-		// primitives
-		tm = T.INT.merge(null);
-		assert tm == null : tm;
-
-		tm = T.DOUBLE.merge(T.AREF);
-		assert tm == null : tm;
-
-		tm = T.CHAR.merge(T.SHORT);
-		assert tm == null : tm;
-
-		// multi and single primitive
-		tm = T.AINT.merge(T.CHAR);
-		assert tm.is(T.CHAR) : tm;
-
-		tm = T.INT.merge(T.DINT);
-		assert tm.is(T.INT) : tm;
-
-		// multi primitives
-		tm = T.AINT.merge(T.DINT);
-		assert tm.is(T.AINT) : tm;
-
-		// primitive arrays
-		tm = du.getArrayT(T.INT, 1).merge(du.getArrayT(T.INT, 1));
-		assert tm.is(du.getArrayT(T.INT, 1)) : tm;
-
-		tm = du.getArrayT(T.INT, 2).merge(du.getArrayT(T.INT, 1));
-		assert tm.is(du.getT(Cloneable.class), du.getT(Serializable.class)) : tm;
-
-		tm = du.getArrayT(T.INT, 3).merge(du.getT(Object.class));
-		assert tm.is(du.getT(Object.class)) : tm;
-
-		tm = du.getArrayT(T.INT, 4).merge(du.getT(Cloneable.class));
-		assert tm.is(du.getT(Cloneable.class)) : tm;
-
-		tm = du.getArrayT(T.INT, 5).merge(du.getT(Serializable.class));
-		assert tm.is(du.getT(Serializable.class)) : tm;
-
-		tm = du.getT(Serializable.class).merge(du.getArrayT(T.INT, 5));
-		assert tm.is(du.getT(Serializable.class)) : tm;
-
-		// AREF and Object have different behaviour in merge!
-		tm = du.getArrayT(T.INT, 1).merge(T.AREF);
-		assert tm.is(du.getArrayT(T.INT, 1)) : tm;
-
-		tm = du.getArrayT(T.INT, 1).merge(du.getT(Object.class));
-		assert tm.is(du.getT(Object.class)) : tm;
-
-		tm = du.getT(Integer.class).merge(du.getT(Long.class));
-		assert tm.is(Number.class, Comparable.class) : tm;
-
-		tm = du.getT(Comparable.class).merge(du.getT(Object.class));
-		assert tm.is(Object.class) : tm;
-
-		tm = du.getT(Object.class).merge(du.getT(Serializable.class));
-		assert tm.is(Object.class) : tm;
-
-		System.out.println("HURRAY: " + tm);
+	private static int readKinds(final int kind1, final int kind2) {
+		final int k1 = (kind1 & 0xF) - 1;
+		final int k2 = (kind2 & 0xF) - 1;
+		if (k1 >= 0 && k2 >= 0) {
+			return READ_INT[k1][k2] | kind1 & kind2;
+		}
+		return kind1 & kind2;
 	}
 
 	/**
-	 * Merge types.
+	 * Merge/union read/down/or types: Find common lower type. Use OR operation for kind.
+	 * 
+	 * If type is yet unknown, leave name empty.
 	 * 
 	 * @param t1
 	 *            type 1
@@ -385,30 +243,105 @@ public class T {
 	 *            type 2
 	 * @return merged type
 	 */
-	public static T merge(final T t1, final T t2) {
-		return t1 == null ? null : t1.merge(t2);
-	}
+	public static T union(final T t1, final T t2) {
+		if (t1 == t2) {
+			return t1;
+		}
+		if (t1 == null) {
+			return t2;
+		}
+		if (t2 == null) {
+			return t1;
+		}
+		final int kind = t1.kind | t2.kind;
+		if ((kind & Kind.REF.kind) == 0) {
+			return getT(kind);
+		}
 
-	/**
-	 * Create multi-type.
-	 * 
-	 * @param ts
-	 *            types
-	 * @return multi-type
-	 */
-	public static TT multi(final T... ts) {
-		return new TT(ts);
+		if (t1.du == null) {
+			return t2;
+		}
+		if (t2.du == null) {
+			return t1;
+		}
+		// TODO...bottom merge ref
+		return t1;
 	}
-
-	@Setter
-	private T[] interfaceTs;
 
 	@Getter
 	private final String name;
 
+	public static T getDalvikIntT(final int value) {
+		int kinds = T.FLOAT.kind;
+		if (value == 0 || value == 1) {
+			kinds |= T.BOOLEAN.kind;
+		}
+		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
+			kinds |= T.CHAR.kind;
+		}
+		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+			kinds |= T.BYTE.kind;
+		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+			kinds |= T.SHORT.kind;
+		} else {
+			kinds |= T.INT.kind;
+		}
+		return getT(kinds);
+	}
+
+	public static T getJvmIntT(final int value) {
+		int kinds = 0;
+		if (value == 0 || value == 1) {
+			kinds |= T.BOOLEAN.kind;
+		}
+		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
+			kinds |= T.CHAR.kind;
+		}
+		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+			kinds |= T.BYTE.kind;
+		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+			kinds |= T.SHORT.kind;
+		} else {
+			kinds |= T.INT.kind;
+		}
+		return getT(kinds);
+	}
+
+	private static T getT(final int kinds) {
+		if (kinds == 0) {
+			return null;
+		}
+		T t = KIND_2_TS.get(kinds);
+		if (t != null) {
+			return t;
+		}
+		final StringBuilder sb = new StringBuilder("{");
+		for (final Kind k : Kind.values()) {
+			if ((kinds & k.kind) != 0) {
+				sb.append(k.getName()).append(",");
+			}
+		}
+		t = new T(sb.substring(0, sb.length() - 1) + "}", kinds);
+		KIND_2_TS.put(kinds, t);
+		return t;
+	}
+
+	private static T getT(final Kind kind) {
+		T t = KIND_2_TS.get(kind.kind);
+		if (t != null) {
+			return t;
+		}
+		t = new T(kind.getName(), kind.kind);
+		KIND_2_TS.put(kind.kind, t);
+		return t;
+	}
+
 	@Getter
 	private String signature;
 
+	/**
+	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
+	 */
 	@Setter
 	private T superT;
 
@@ -416,12 +349,94 @@ public class T {
 	@Setter
 	private int accessFlags;
 
+	private static T getT(final Kind... kinds) {
+		// don't use types as input, restrict to kind-types
+		int flags = 0;
+		for (final Kind k : kinds) {
+			flags |= k.kind;
+		}
+		return getT(flags);
+	}
+
+	/**
+	 * Merge/join store/up/and types: Find common super type. Use AND operation for kind - primitive
+	 * multitypes: no conversion. No primitive reduction of source types, done through eventual
+	 * following register read. Resulting reference type contains one class and multiple interfaces.
+	 * 
+	 * If type is yet unknown, leave name empty.
+	 * 
+	 * @param t1
+	 *            type 1
+	 * @param t2
+	 *            type 2
+	 * @return merged type
+	 */
+	public static T join(final T t1, final T t2) {
+		if (t1 == t2) {
+			return t1;
+		}
+		if (t1 == null || t2 == null) {
+			return null;
+		}
+		final int kind = joinKinds(t1.kind, t2.kind);
+		if ((kind & Kind.REF.kind) == 0) {
+			return getT(kind);
+		}
+
+		assert t1.du != null;
+
+		if (t1.isAssignableFrom(t2)) {
+			return t1;
+		}
+
+		T superT = null;
+		// find common supertypes, raise in t-hierarchy till assignable from this
+		final ArrayList<T> interfaceTs = new ArrayList<T>();
+		// raise step by step in hierarchy...lazy fetch unknown super
+		final LinkedList<T> ts = new LinkedList<T>();
+		ts.add(t1);
+		while (!ts.isEmpty()) {
+			final T iT = ts.pollFirst();
+			if (superT == null && !iT.isInterface()) {
+				superT = iT.getSuperT();
+				if (superT != null) {
+					if (!superT.isAssignableFrom(t2)) {
+						ts.add(superT);
+						superT = null;
+					}
+				}
+			}
+			for (final T interfaceT : iT.getInterfaceTs()) {
+				if (interfaceT.isAssignableFrom(t2)) {
+					if (!interfaceTs.contains(interfaceT)) {
+						interfaceTs.add(interfaceT);
+					}
+				} else if (interfaceT != null) {
+					ts.add(interfaceT);
+				}
+			}
+		}
+
+		if (interfaceTs.isEmpty()) {
+			return superT;
+		}
+		if (interfaceTs.size() == 1 && superT.isObject()) {
+			return interfaceTs.get(0);
+		}
+		return new T(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
+	}
+
 	@Getter
 	private int dim;
+
+	@Setter
+	private T[] interfaceTs;
 
 	private final DU du;
 
 	private final HashMap<String, F> fs = new HashMap<String, F>();
+
+	private final int kind;
 
 	private final HashMap<String, M> ms = new HashMap<String, M>();
 
@@ -430,6 +445,7 @@ public class T {
 		assert name != null;
 
 		this.du = du;
+		this.kind = Kind.REF.kind;
 		this.name = name;
 	}
 
@@ -439,6 +455,7 @@ public class T {
 		assert dim > 0 : dim;
 
 		this.du = du;
+		this.kind = Kind.REF.kind;
 		this.superT = baseT;
 		this.dim = dim;
 		final StringBuilder name = new StringBuilder(baseT.getName());
@@ -448,11 +465,27 @@ public class T {
 		this.name = name.toString();
 	}
 
-	private T(final String name) {
-		assert name != null;
-
-		this.du = null; // primitive
+	private T(final String name, final int kind) {
+		this.du = null; // primitive or internal
 		this.name = name;
+		this.kind = kind;
+	}
+
+	private T(final T superT, final T[] interfaceTs) {
+		assert superT.du != null;
+		assert superT != null;
+		assert interfaceTs != null;
+
+		this.du = superT.du;
+		this.kind = Kind.REF.kind;
+		this.superT = superT;
+		this.interfaceTs = interfaceTs;
+		final StringBuilder sb = new StringBuilder("{");
+		sb.append(superT.getName()).append(",");
+		for (final T t : interfaceTs) {
+			sb.append(t.getName()).append(",");
+		}
+		this.name = sb.substring(0, sb.length() - 1) + "}";
 	}
 
 	/**
@@ -463,7 +496,7 @@ public class T {
 	 * @return true - is access flag
 	 */
 	public boolean check(final AF af) {
-		return (this.accessFlags & af.getValue()) != 0;
+		return isResolveable() && (this.accessFlags & af.getValue()) != 0;
 	}
 
 	/**
@@ -476,6 +509,21 @@ public class T {
 			return this.superT;
 		}
 		return this;
+	}
+
+	/**
+	 * Returns the type representing the component type of an array. If this type does not represent
+	 * an array type this method returns null.
+	 * 
+	 * @return the type representing the component type of this type if this type is an array
+	 * 
+	 * @see Class#isAssignableFrom(Class)
+	 */
+	public T getComponentType() {
+		if (this.dim == 0) {
+			return null;
+		}
+		return this.du.getArrayT(getBaseT(), this.dim - 1);
 	}
 
 	/**
@@ -526,6 +574,9 @@ public class T {
 	 * @return inner name
 	 */
 	public String getIName() {
+		if (this.name.startsWith("{")) {
+			return this.name;
+		}
 		final String pName = getPName();
 		final int pos = pName.lastIndexOf('$');
 		if (pos == -1 || pos + 1 >= pName.length()) {
@@ -541,8 +592,7 @@ public class T {
 	 * @return interface types
 	 */
 	public T[] getInterfaceTs() {
-		init();
-		return this.interfaceTs;
+		return isResolveable() ? this.interfaceTs : NO_INTERFACES;
 	}
 
 	/**
@@ -579,8 +629,11 @@ public class T {
 	 * @return primary name
 	 */
 	public String getPName() {
-		final int pos = getName().lastIndexOf('.');
-		return pos == -1 ? getName() : getName().substring(pos + 1);
+		if (this.name.startsWith("{")) {
+			return this.name;
+		}
+		final int pos = this.name.lastIndexOf('.');
+		return pos == -1 ? this.name : this.name.substring(pos + 1);
 	}
 
 	/**
@@ -589,47 +642,10 @@ public class T {
 	 * @return super type
 	 */
 	public T getSuperT() {
-		init();
 		if (isArray()) {
 			return this.du.getT(Object.class);
 		}
-		return this.superT;
-	}
-
-	private void init() {
-		if (this.interfaceTs != null) {
-			return; // arrays return here because interface is set in du.getT()
-		}
-		// setSuper() in class read doesn't set interfaces if not known
-		if (this.superT != null) {
-			this.interfaceTs = NO_INTERFACES;
-			return;
-		}
-		// try simple class loading, may be we are lucky ;)
-		// later ask DecoJer-online and local type cache with context info
-		try {
-			final Class<?> clazz = getClass().getClassLoader().loadClass(getName());
-			this.accessFlags = clazz.getModifiers();
-			final Class<?> superclass = clazz.getSuperclass();
-			if (superclass != null) {
-				this.superT = this.du.getT(superclass.getName());
-			}
-			final Class<?>[] interfaces = clazz.getInterfaces();
-			if (interfaces.length == 0) {
-				this.interfaceTs = NO_INTERFACES;
-				return;
-			}
-			final T[] interfaceTs = new T[interfaces.length];
-			for (int i = interfaces.length; i-- > 0;) {
-				interfaceTs[i] = this.du.getT(interfaces[i].getName());
-			}
-			this.interfaceTs = interfaceTs;
-		} catch (final ClassNotFoundException e) {
-			System.out.println("Couldn't load type : " + this);
-			this.superT = T.UNRESOLVABLE;
-			this.interfaceTs = NO_INTERFACES;
-		}
-		return;
+		return isResolveable() ? this.superT : null;
 	}
 
 	/**
@@ -654,8 +670,13 @@ public class T {
 	 * @return true - type is of types
 	 */
 	public boolean is(final T... ts) {
-		if (ts.length != 1) {
-			return false;
+		if (isMulti()) {
+			for (final T t : ts) {
+				if ((this.kind & t.kind) == 0) {
+					return false;
+				}
+			}
+			return true;
 		}
 		return this == ts[0];
 	}
@@ -672,6 +693,8 @@ public class T {
 	/**
 	 * Is this type instance assignable from given type instance?
 	 * 
+	 * Attention: Doesn't work for primtives implicit conversion (byte 2 short 2 int, char 2 int).
+	 * 
 	 * @param t
 	 *            type
 	 * @return true - is assignable
@@ -679,41 +702,18 @@ public class T {
 	 * @see Class#isAssignableFrom(Class)
 	 */
 	public boolean isAssignableFrom(final T t) {
-		assert t != null && !isMulti() && !t.isMulti();
-
-		// all instances are assignable to Object, even if only known by interface
-		if (t == this) {
+		if (this == t) {
 			return true;
 		}
-		// From VM Spec: Note that widening numeric conversions do not exist from integral types
-		// byte, char, and short to type int. As noted in §3.11.1, values of type byte, char, and
-		// short are internally widened to type int, making these conversions implicit.
-		//
-		// General BOOLEAN widening wouldn't make sense, explicitely provide in IRETURN, ILOAD etc.
-		if (this == T.INT && (t == T.BYTE || t == T.SHORT || t == T.CHAR)) {
-			return true;
-		}
-		if (this == T.SHORT && t == T.BYTE) {
-			return true;
-		}
-		if (this == T.AREF && t == T.RETURN_ADDRESS) {
-			return true;
-		}
-
-		if (!isReference() || !t.isReference()) {
-			// unequal primitives or special types cannot be equal
+		if (t == null) {
 			return false;
 		}
-		// references (arrays too) only from here on
-		if (t == T.AREF || this == T.AREF || this.is(Object.class)) {
-			return true;
+		final int kind = readKinds(t.kind, this.kind);
+		if ((kind & Kind.REF.kind) == 0) {
+			return kind != 0;
 		}
-		if (this.dim > 0 && t.dim > 0) {
-			// one is array and other is Object/Cloneable/Serializable still possible
-			if (this.dim != t.dim) {
-				return false;
-			}
-			return getBaseT().isAssignableFrom(t.getBaseT());
+		if (null == this.du || this.is(Object.class)) {
+			return true;
 		}
 		// raise step by step in hierarchy...lazy fetch unknown super
 		final LinkedList<T> ts = new LinkedList<T>();
@@ -721,36 +721,58 @@ public class T {
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();
 			final T superT = iT.getSuperT();
-			if (superT == T.UNRESOLVABLE) {
-				// consider this OK for valid bytecode, wrong results possible for frame-local
-				// variables without debug information
+			if (this == superT) {
 				return true;
 			}
-			if (superT == this) {
-				return true;
-			}
-			if (superT != null) {
+			if (null != superT) {
 				ts.add(superT);
 			}
 			for (final T interfaceT : iT.getInterfaceTs()) {
-				if (interfaceT == this) {
+				if (this == interfaceT) {
 					return true;
 				}
-				if (interfaceT != null) {
+				if (null != interfaceT) {
 					ts.add(interfaceT);
 				}
 			}
+		}
+		if (isArray() && t.isArray()) {
+			return getComponentType().isAssignableFrom(t.getComponentType());
 		}
 		return false;
 	}
 
 	/**
-	 * Is multi-type?
+	 * Is interface?
 	 * 
-	 * @return true - is multi-type
+	 * @return true - is interface
+	 */
+	public boolean isInterface() {
+		return check(AF.INTERFACE);
+	}
+
+	/**
+	 * Is multitype?
+	 * 
+	 * @return true - is multitype
 	 */
 	public boolean isMulti() {
-		return false;
+		int nr = this.kind - (this.kind >> 1 & 0x55555555);
+		nr = (nr & 0x33333333) + (nr >> 2 & 0x33333333);
+		nr = (nr + (nr >> 4) & 0x0F0F0F0F) * 0x01010101 >> 24;
+
+		assert nr > 0;
+
+		return nr > 1;
+	}
+
+	/**
+	 * Is object type?
+	 * 
+	 * @return true - is object type
+	 */
+	public boolean isObject() {
+		return Object.class.getName().equals(this.name);
 	}
 
 	/**
@@ -759,9 +781,7 @@ public class T {
 	 * @return true - is primitive
 	 */
 	public boolean isPrimitive() {
-		// TODO improve lame code
-		return this == T.BOOLEAN || this == T.BYTE || this == T.CHAR || this == T.DOUBLE
-				|| this == T.FLOAT || this == T.INT || this == T.LONG || this == T.SHORT;
+		return (this.kind & PRIMITIVE.kind) != 0;
 	}
 
 	/**
@@ -769,8 +789,54 @@ public class T {
 	 * 
 	 * @return true - is reference (array too)
 	 */
-	public boolean isReference() {
-		return this == T.AREF || this.du != null; // included: dim > 0
+	public boolean isRef() {
+		return (this.kind & REF.kind) != 0;
+	}
+
+	/**
+	 * Is unresolveable?
+	 * 
+	 * @return true - is unresolveable
+	 */
+	public boolean isResolveable() {
+		if (this.interfaceTs != null) {
+			return (this.accessFlags & AF.UNRESOLVEABLE.getValue()) == 0;
+		}
+		if (!isRef()) {
+			this.interfaceTs = NO_INTERFACES;
+			return true;
+		}
+		// setSuper() in class read doesn't set interfaces if not known
+		if (this.superT != null) {
+			this.interfaceTs = NO_INTERFACES;
+			return true;
+		}
+		// try simple class loading, may be we are lucky ;)
+		// TODO later ask DecoJer-online and local type cache with context info
+		try {
+			final Class<?> clazz = getClass().getClassLoader().loadClass(getName());
+			this.accessFlags = clazz.getModifiers();
+			final Class<?> superclass = clazz.getSuperclass();
+			if (superclass != null) {
+				this.superT = this.du.getT(superclass.getName());
+			}
+			final Class<?>[] interfaces = clazz.getInterfaces();
+			if (interfaces.length == 0) {
+				this.interfaceTs = NO_INTERFACES;
+			} else {
+				final T[] interfaceTs = new T[interfaces.length];
+				for (int i = interfaces.length; i-- > 0;) {
+					interfaceTs[i] = this.du.getT(interfaces[i].getName());
+				}
+				this.interfaceTs = interfaceTs;
+			}
+			return true;
+		} catch (final ClassNotFoundException e) {
+			LOGGER.warning("Couldn't load type : " + this);
+			this.interfaceTs = NO_INTERFACES;
+			markAf(AF.UNRESOLVEABLE);
+			return false;
+		}
 	}
 
 	/**
@@ -779,7 +845,7 @@ public class T {
 	 * @return true - is wide type
 	 */
 	public boolean isWide() {
-		return this == T.DOUBLE || this == T.LONG;
+		return (this.kind & WIDE.kind) != 0;
 	}
 
 	/**
@@ -793,114 +859,28 @@ public class T {
 	}
 
 	/**
-	 * Merge type.
+	 * Read with given type. There are 3 possible outcomes: Cannot read with given type, which
+	 * returns _null_. Can read with given type and primitive multitype reduction, which returns the
+	 * reduced new type. Can read without reduction, which returns unmodified _this_.
 	 * 
 	 * @param t
-	 *            type
-	 * @return merged type
+	 *            read type
+	 * @return null or reduced type or this
 	 */
-	protected T merge(final T t) {
-		if (t == null) {
-			return null;
-		}
-		if (t == this) {
-			return this;
-		}
-		if (t.isMulti()) {
-			return t.merge(this);
-		}
-		if (t.isAssignableFrom(this)) {
-			return t == AREF ? this : t;
-		}
-		if (!isReference() || !t.isReference()) {
-			return null;
-		}
-		// find common supertypes, raise in t-hierarchy till assignable from this
-		final ArrayList<T> mergedTs = new ArrayList<T>();
-		// raise step by step in hierarchy...lazy fetch unknown super
-		final LinkedList<T> ts = new LinkedList<T>();
-		ts.add(t);
-		while (!ts.isEmpty()) {
-			final T iT = ts.pollFirst();
-			final T superT = iT.getSuperT();
-			if (superT == T.UNRESOLVABLE) {
-				if (mergedTs.isEmpty()) {
-					// Object always a valid response, wrong results possible for frame-local
-					// variables without debug information
-					mergedTs.add(this.du.getT(Object.class));
-				}
-				continue;
-			}
-			if (superT != null) {
-				if (superT.isAssignableFrom(this)) {
-					if (!mergedTs.contains(superT)) {
-						mergedTs.add(superT);
-					}
-				} else {
-					ts.add(superT);
-				}
-			}
-			for (final T interfaceT : iT.getInterfaceTs()) {
-				if (interfaceT.isAssignableFrom(this)) {
-					if (!mergedTs.contains(interfaceT)) {
-						mergedTs.add(interfaceT);
-					}
-				} else if (interfaceT != null) {
-					ts.add(interfaceT);
-				}
-			}
-		}
-		if (mergedTs.isEmpty()) {
-			return this.du.getT(Object.class);
-		}
-		if (mergedTs.size() > 1) {
-			mergedTs.remove(this.du.getT(Object.class));
-		}
-		if (mergedTs.size() == 1) {
-			return mergedTs.get(0);
-		}
-		return new TT(mergedTs.toArray(new T[mergedTs.size()]));
-	}
-
-	/**
-	 * Merge to type. Check if instances from this type are assignable to the given type. For single
-	 * types this returns this or null. For multi-types it reduces the multi-type to all assignable
-	 * types (via polymorphism function).
-	 * 
-	 * So unlike merge this doesn't search for common super types!
-	 * 
-	 * @param t
-	 *            type
-	 * @return t this or null
-	 */
-	public T mergeTo(final T t) {
+	public T read(final T t) {
 		if (this == t) {
 			return this;
 		}
-		if (t.isMulti()) {
-			for (final T iT : ((TT) t).getTs()) {
-				if (mergeTo(iT) != null) {
-					return this;
-				}
-			}
+		if (t == null) {
 			return null;
 		}
-		if (t.isAssignableFrom(this)) {
-			return this != AREF ? this : t;
+		final int kind = readKinds(this.kind, t.kind);
+		if ((kind & Kind.REF.kind) == 0) {
+			return getT(kind);
 		}
-		// this should never happen...
-		if (isReference() && t.isReference()) {
-			final StringBuilder sb = new StringBuilder();
-			sb.append("MergeTo: " + this + " (Super: " + getSuperT());
-			for (final T it : getInterfaceTs()) {
-				sb.append(", ").append(it.toString());
-			}
-			sb.append(") -> " + t + " (Super: " + t.getSuperT());
-			for (final T it : t.getInterfaceTs()) {
-				sb.append(", ").append(it.toString());
-			}
-			sb.append(")");
-			System.out.println(sb.toString());
+
+		if (t.isAssignableFrom(this)) {
+			return this;
 		}
 		return null;
 	}

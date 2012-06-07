@@ -33,83 +33,87 @@ public enum AF {
 	/**
 	 * Public.
 	 */
-	PUBLIC(0x1, "public", true, true, true),
+	PUBLIC(1 << 0, "public", true, true, true),
 	/**
 	 * Private.
 	 */
-	PRIVATE(0x2, "private", true, true, true),
+	PRIVATE(1 << 1, "private", true, true, true),
 	/**
 	 * Protected.
 	 */
-	PROTECTED(0x4, "protected", true, true, true),
+	PROTECTED(1 << 2, "protected", true, true, true),
 	/**
 	 * Static.
 	 */
-	STATIC(0x8, "static", true, true, true),
+	STATIC(1 << 3, "static", true, true, true),
 	/**
 	 * Final.
 	 */
-	FINAL(0x10, "final", true, true, true),
+	FINAL(1 << 4, "final", true, true, true),
 	/**
 	 * Super. Modern invokesuper syntax, is always set in current java.
 	 */
-	SUPER(0x20, "super", true, false, false),
+	SUPER(1 << 5, "super", true, false, false),
 	/**
 	 * Synchronized.
 	 */
-	SYNCHRONIZED(0x20, "synchronized", false, false, true),
+	SYNCHRONIZED(1 << 5, "synchronized", false, false, true),
 	/**
 	 * Volatile.
 	 */
-	VOLATILE(0x40, "volatile", false, true, false),
+	VOLATILE(1 << 6, "volatile", false, true, false),
 	/**
 	 * Bridge.
 	 */
-	BRIDGE(0x40, "bridge", false, false, true),
+	BRIDGE(1 << 6, "bridge", false, false, true),
 	/**
 	 * Transient.
 	 */
-	TRANSIENT(0x80, "transient", false, true, false),
+	TRANSIENT(1 << 7, "transient", false, true, false),
 	/**
 	 * Varargs.
 	 */
-	VARARGS(0x80, "varargs", false, false, true),
+	VARARGS(1 << 7, "varargs", false, false, true),
 	/**
 	 * Native.
 	 */
-	NATIVE(0x100, "native", false, false, true),
+	NATIVE(1 << 8, "native", false, false, true),
 	/**
 	 * Interface.
 	 */
-	INTERFACE(0x200, "interface", true, false, false),
+	INTERFACE(1 << 9, "interface", true, false, false),
 	/**
 	 * Abstract.
 	 */
-	ABSTRACT(0x400, "abstract", true, false, true),
+	ABSTRACT(1 << 10, "abstract", true, false, true),
 	/**
 	 * Strictfp.
 	 */
-	STRICTFP(0x800, "strictfp", false, false, true),
+	STRICTFP(1 << 11, "strictfp", false, false, true),
 	/**
 	 * Synthetic.
 	 */
-	SYNTHETIC(0x1000, "synthetic", true, true, true),
+	SYNTHETIC(1 << 12, "synthetic", true, true, true),
 	/**
 	 * Annotation.
 	 */
-	ANNOTATION(0x2000, "annotation", true, false, false),
+	ANNOTATION(1 << 13, "annotation", true, false, false),
 	/**
 	 * Enum.
 	 */
-	ENUM(0x4000, "enum", true, true, false),
+	ENUM(1 << 14, "enum", true, true, false),
 	/**
 	 * Constructor. (Dalvik only)
 	 */
-	CONSTRUCTOR(0x10000, "constructor", false, false, true),
+	CONSTRUCTOR(1 << 16, "constructor", false, false, true),
 	/**
 	 * Declaraed synchronized. (Dalvik only)
 	 */
-	DECLARED_SYNCHRONIZED(0x20000, "declared-synchronized", false, false, true);
+	DECLARED_SYNCHRONIZED(1 << 17, "declared-synchronized", false, false, true),
+	/**
+	 * Unresolveable (internal).
+	 */
+	UNRESOLVEABLE(1 << 31, "_unresolveable", true, false, false);
 
 	private final boolean forType;
 
@@ -121,8 +125,8 @@ public enum AF {
 
 	private final int value;
 
-	private AF(final int value, final String name, final boolean forType,
-			final boolean forField, final boolean forMethod) {
+	private AF(final int value, final String name, final boolean forType, final boolean forField,
+			final boolean forMethod) {
 		this.value = value;
 		this.name = name;
 		this.forType = forType;

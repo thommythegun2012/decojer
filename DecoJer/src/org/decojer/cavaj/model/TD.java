@@ -26,7 +26,6 @@ package org.decojer.cavaj.model;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.decojer.cavaj.model.T.TT;
 import org.decojer.cavaj.model.code.CFG;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
@@ -339,8 +338,7 @@ public class TD implements BD, PD {
 	public Name newTypeName(final T t) {
 		assert t != null;
 
-		return getCu().getTypeNameManager().newTypeName(
-				t.isMulti() ? ((TT) t).getTs()[0].getName() : t.getName());
+		return getCu().getTypeNameManager().newTypeName(t.getName());
 	}
 
 	/**

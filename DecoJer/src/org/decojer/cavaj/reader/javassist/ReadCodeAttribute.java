@@ -230,7 +230,7 @@ public class ReadCodeAttribute {
 			 * ALOAD *
 			 *********/
 			case Opcode.AALOAD:
-				t = T.AREF;
+				t = T.REF;
 				// fall through
 			case Opcode.BALOAD:
 				if (t == null) {
@@ -290,7 +290,7 @@ public class ReadCodeAttribute {
 			 * ASTORE *
 			 **********/
 			case Opcode.AASTORE:
-				t = T.AREF;
+				t = T.REF;
 				// fall through
 			case Opcode.BASTORE:
 				if (t == null) {
@@ -332,7 +332,7 @@ public class ReadCodeAttribute {
 			 * CAST *
 			 ********/
 			case Opcode.CHECKCAST:
-				t = T.AREF;
+				t = T.REF;
 				oValue = this.du.getT(constPool.getClassInfo(codeReader.readUnsignedShort()));
 				// fall through
 			case Opcode.D2F:
@@ -604,12 +604,12 @@ public class ReadCodeAttribute {
 			 * JCMP *
 			 ********/
 			case Opcode.IF_ACMPEQ:
-				t = T.AREF;
+				t = T.REF;
 				oValue = CmpType.T_EQ;
 				// fall through
 			case Opcode.IF_ACMPNE:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 					oValue = CmpType.T_NE;
 				}
 				// fall through
@@ -663,18 +663,18 @@ public class ReadCodeAttribute {
 			 * JCND *
 			 ********/
 			case Opcode.IFNULL:
-				t = T.AREF;
+				t = T.REF;
 				oValue = CmpType.T_EQ;
 				// fall through
 			case Opcode.IFNONNULL:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 					oValue = CmpType.T_NE;
 				}
 				// fall through
 			case Opcode.IFEQ:
 				if (t == null) {
-					t = T.RINT; // boolean too
+					t = T.AINT; // boolean too
 					oValue = CmpType.T_EQ;
 				}
 				// fall through
@@ -704,7 +704,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IFNE:
 				if (t == null) {
-					t = T.RINT; // boolean too
+					t = T.AINT; // boolean too
 					oValue = CmpType.T_NE;
 				}
 				{
@@ -744,7 +744,7 @@ public class ReadCodeAttribute {
 			 * LOAD *
 			 ********/
 			case Opcode.ALOAD:
-				t = T.AREF;
+				t = T.REF;
 				// fall through
 			case Opcode.DLOAD:
 				if (t == null) {
@@ -758,7 +758,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 				}
 				// fall through
 			case Opcode.LLOAD:
@@ -769,7 +769,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ALOAD_0:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 					iValue = 0;
 				}
 				// fall through
@@ -787,7 +787,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_0:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 					iValue = 0;
 				}
 				// fall through
@@ -799,7 +799,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ALOAD_1:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 					iValue = 1;
 				}
 				// fall through
@@ -817,7 +817,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_1:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 					iValue = 1;
 				}
 				// fall through
@@ -829,7 +829,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ALOAD_2:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 					iValue = 2;
 				}
 				// fall through
@@ -847,7 +847,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_2:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 					iValue = 2;
 				}
 				// fall through
@@ -859,7 +859,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ALOAD_3:
 				if (t == null) {
-					t = T.AREF;
+					t = T.REF;
 					iValue = 3;
 				}
 				// fall through
@@ -877,7 +877,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ILOAD_3:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 					iValue = 3;
 				}
 				// fall through
@@ -1007,18 +1007,18 @@ public class ReadCodeAttribute {
 			 * PUSH *
 			 ********/
 			case Opcode.ACONST_NULL:
-				t = T.AREF;
+				t = T.REF;
 				// fall through
 			case Opcode.BIPUSH:
 				if (t == null) {
-					t = T.AINT;
-					oValue = codeReader.readSignedByte();
+					oValue = iValue = codeReader.readSignedByte();
+					t = T.getJvmIntT(iValue);
 				}
 				// fall through
 			case Opcode.SIPUSH:
 				if (t == null) {
-					t = T.AINT;
-					oValue = codeReader.readSignedShort();
+					oValue = iValue = codeReader.readSignedShort();
+					t = T.getJvmIntT(iValue);
 				}
 				// fall through
 			case Opcode.LDC:
@@ -1027,8 +1027,8 @@ public class ReadCodeAttribute {
 					final int tag = constPool.getTag(ldcValueIndex);
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
-						t = this.du.getT(Class.class);
 						oValue = this.du.getT(constPool.getClassInfo(ldcValueIndex));
+						t = this.du.getT(Class.class);
 						break;
 					case ConstPool.CONST_Double:
 						// Double / Long only with LDC2_W, but is OK here too
@@ -1041,7 +1041,7 @@ public class ReadCodeAttribute {
 						// fall through
 					case ConstPool.CONST_Integer:
 						if (t == null) {
-							t = T.AINT;
+							t = T.getJvmIntT((Integer) constPool.getLdcValue(ldcValueIndex));
 						}
 						// fall through
 					case ConstPool.CONST_Long:
@@ -1082,7 +1082,7 @@ public class ReadCodeAttribute {
 						// fall through
 					case ConstPool.CONST_Integer:
 						if (t == null) {
-							t = T.AINT;
+							t = T.getJvmIntT((Integer) constPool.getLdcValue(ldcValueIndex));
 						}
 						// fall through
 					case ConstPool.CONST_Long:
@@ -1115,7 +1115,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ICONST_0:
 				if (t == null) {
-					t = T.AINT;
+					t = T.getJvmIntT(0);
 					oValue = 0;
 				}
 				// fall through
@@ -1139,7 +1139,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ICONST_1:
 				if (t == null) {
-					t = T.AINT;
+					t = T.getJvmIntT(1);
 					oValue = 1;
 				}
 				// fall through
@@ -1157,31 +1157,31 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ICONST_2:
 				if (t == null) {
-					t = T.AINT;
+					t = T.getJvmIntT(2);
 					oValue = 2;
 				}
 				// fall through
 			case Opcode.ICONST_3:
 				if (t == null) {
-					t = T.AINT;
+					t = T.getJvmIntT(3);
 					oValue = 3;
 				}
 				// fall through
 			case Opcode.ICONST_4:
 				if (t == null) {
-					t = T.AINT;
+					t = T.getJvmIntT(4);
 					oValue = 4;
 				}
 				// fall through
 			case Opcode.ICONST_5:
 				if (t == null) {
-					t = T.AINT;
+					t = T.getJvmIntT(5);
 					oValue = 5;
 				}
 				// fall through
 			case Opcode.ICONST_M1:
 				if (t == null) {
-					t = T.AINT;
+					t = T.getJvmIntT(-1);
 					oValue = -1;
 				}
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, t, oValue));
@@ -1239,7 +1239,7 @@ public class ReadCodeAttribute {
 			 * RETURN *
 			 **********/
 			case Opcode.ARETURN:
-				t = T.AREF;
+				t = T.REF;
 				// fall through
 			case Opcode.DRETURN:
 				if (t == null) {
@@ -1253,7 +1253,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IRETURN:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 				}
 				// fall through
 			case Opcode.LRETURN:
@@ -1265,7 +1265,11 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.VOID;
 				}
-				this.ops.add(new RETURN(this.ops.size(), opcode, line, t));
+				if (!t.isAssignableFrom(md.getM().getReturnT())) {
+					LOGGER.warning("Incompatible operation return type '" + t
+							+ "' for method return type '" + md.getM().getReturnT() + "'!");
+				}
+				this.ops.add(new RETURN(this.ops.size(), opcode, line, md.getM().getReturnT()));
 				break;
 			/*********
 			 * STORE *
@@ -1285,7 +1289,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 				}
 				// fall through
 			case Opcode.LSTORE:
@@ -1314,7 +1318,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_0:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 					iValue = 0;
 				}
 				// fall through
@@ -1344,7 +1348,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_1:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 					iValue = 1;
 				}
 				// fall through
@@ -1374,7 +1378,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_2:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 					iValue = 2;
 				}
 				// fall through
@@ -1404,7 +1408,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.ISTORE_3:
 				if (t == null) {
-					t = T.RINT;
+					t = T.AINT;
 					iValue = 3;
 				}
 				// fall through

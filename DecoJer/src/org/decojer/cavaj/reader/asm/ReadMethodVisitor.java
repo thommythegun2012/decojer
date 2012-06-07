@@ -343,7 +343,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * ALOAD *
 		 *********/
 		case Opcodes.AALOAD:
-			t = T.AREF;
+			t = T.REF;
 			// fall through
 		case Opcodes.BALOAD:
 			if (t == null) {
@@ -403,7 +403,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * ASTORE *
 		 **********/
 		case Opcodes.AASTORE:
-			t = T.AREF;
+			t = T.REF;
 			// fall through
 		case Opcodes.BASTORE:
 			if (t == null) {
@@ -705,90 +705,90 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * PUSH *
 		 ********/
 		case Opcodes.ACONST_NULL:
-			t = T.AREF;
+			t = T.REF;
 			// fall through
 		case Opcodes.DCONST_0:
 			if (t == null) {
-				t = T.DOUBLE;
 				oValue = 0D;
+				t = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.FCONST_0:
 			if (t == null) {
-				t = T.FLOAT;
 				oValue = 0F;
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.ICONST_0:
 			if (t == null) {
-				t = T.AINT;
 				oValue = 0;
+				t = T.getJvmIntT(0);
 			}
 			// fall through
 		case Opcodes.LCONST_0:
 			if (t == null) {
-				t = T.LONG;
 				oValue = 0L;
+				t = T.LONG;
 			}
 			// fall through
 		case Opcodes.DCONST_1:
 			if (t == null) {
-				t = T.DOUBLE;
 				oValue = 1D;
+				t = T.DOUBLE;
 			}
 			// fall through
 		case Opcodes.FCONST_1:
 			if (t == null) {
-				t = T.FLOAT;
 				oValue = 1F;
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.ICONST_1:
 			if (t == null) {
-				t = T.AINT;
 				oValue = 1;
+				t = T.getJvmIntT(1);
 			}
 			// fall through
 		case Opcodes.LCONST_1:
 			if (t == null) {
-				t = T.LONG;
 				oValue = 1L;
+				t = T.LONG;
 			}
 			// fall through
 		case Opcodes.FCONST_2:
 			if (t == null) {
-				t = T.FLOAT;
 				oValue = 2F;
+				t = T.FLOAT;
 			}
 			// fall through
 		case Opcodes.ICONST_2:
 			if (t == null) {
-				t = T.AINT;
 				oValue = 2;
+				t = T.getJvmIntT(2);
 			}
 			// fall through
 		case Opcodes.ICONST_3:
 			if (t == null) {
-				t = T.AINT;
 				oValue = 3;
+				t = T.getJvmIntT(3);
 			}
 			// fall through
 		case Opcodes.ICONST_4:
 			if (t == null) {
-				t = T.AINT;
 				oValue = 4;
+				t = T.getJvmIntT(4);
 			}
 			// fall through
 		case Opcodes.ICONST_5:
 			if (t == null) {
-				t = T.AINT;
 				oValue = 5;
+				t = T.getJvmIntT(5);
 			}
 			// fall through
 		case Opcodes.ICONST_M1:
 			if (t == null) {
-				t = T.AINT;
 				oValue = -1;
+				t = T.getJvmIntT(-1);
 			}
 			this.ops.add(new PUSH(this.ops.size(), opcode, this.line, t, oValue));
 			break;
@@ -820,7 +820,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * RETURN *
 		 **********/
 		case Opcodes.ARETURN:
-			t = T.AREF;
+			t = T.REF;
 			// fall through
 		case Opcodes.DRETURN:
 			if (t == null) {
@@ -834,7 +834,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IRETURN:
 			if (t == null) {
-				t = T.RINT;
+				t = T.AINT;
 			}
 			// fall through
 		case Opcodes.LRETURN:
@@ -846,7 +846,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.VOID;
 			}
-			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, t));
+			if (!t.isAssignableFrom(this.md.getM().getReturnT())) {
+				LOGGER.warning("Incompatible operation return type '" + t
+						+ "' for method return type '" + this.md.getM().getReturnT() + "'!");
+			}
+			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, this.md.getM().getReturnT()));
 			break;
 		/*******
 		 * SHL *
@@ -929,20 +933,16 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitIntInsn(final int opcode, final int operand) {
-		T t = null;
+		final T t = null;
 
 		switch (opcode) {
 		/********
 		 * PUSH *
 		 ********/
 		case Opcodes.BIPUSH:
-			t = T.AINT;
-			// fall through
 		case Opcodes.SIPUSH:
-			if (t == null) {
-				t = T.AINT;
-			}
-			this.ops.add(new PUSH(this.ops.size(), opcode, this.line, t, operand));
+			this.ops.add(new PUSH(this.ops.size(), opcode, this.line, T.getJvmIntT(operand),
+					operand));
 			break;
 		/************
 		 * NEWARRAY *
@@ -988,12 +988,12 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * JCMP *
 		 ********/
 		case Opcodes.IF_ACMPEQ:
-			t = T.AREF;
+			t = T.REF;
 			oValue = CmpType.T_EQ;
 			// fall through
 		case Opcodes.IF_ACMPNE:
 			if (t == null) {
-				t = T.AREF;
+				t = T.REF;
 				oValue = CmpType.T_NE;
 			}
 			// fall through
@@ -1045,18 +1045,18 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * JCND *
 		 ********/
 		case Opcodes.IFNULL:
-			t = T.AREF;
+			t = T.REF;
 			oValue = CmpType.T_EQ;
 			// fall through
 		case Opcodes.IFNONNULL:
 			if (t == null) {
-				t = T.AREF;
+				t = T.REF;
 				oValue = CmpType.T_NE;
 			}
 			// fall through
 		case Opcodes.IFEQ:
 			if (t == null) {
-				t = T.RINT; // boolean too
+				t = T.AINT; // boolean too
 				oValue = CmpType.T_EQ;
 			}
 			// fall through
@@ -1086,7 +1086,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IFNE:
 			if (t == null) {
-				t = T.RINT; // boolean too
+				t = T.AINT; // boolean too
 				oValue = CmpType.T_NE;
 			}
 			{
@@ -1191,15 +1191,16 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * PUSH *
 		 ********/
 		if (cst instanceof Type) {
-			t = this.du.getT(Class.class);
 			oValue = this.du.getDescT(((Type) cst).getDescriptor());
+			t = this.du.getT(Class.class);
 		} else {
+			oValue = cst;
 			if (cst instanceof Double) {
 				t = T.DOUBLE;
 			} else if (cst instanceof Float) {
 				t = T.FLOAT;
 			} else if (cst instanceof Integer) {
-				t = T.AINT;
+				t = T.getJvmIntT((Integer) oValue);
 			} else if (cst instanceof Long) {
 				t = T.LONG;
 			} else if (cst instanceof String) {
@@ -1207,7 +1208,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 			} else {
 				LOGGER.warning("Unknown ldc insn cst '" + cst + "'!");
 			}
-			oValue = cst;
 		}
 		this.ops.add(new PUSH(this.ops.size(), Opcodes.LDC, this.line, t, oValue));
 	}
@@ -1406,7 +1406,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * CAST *
 		 ********/
 		case Opcodes.CHECKCAST:
-			this.ops.add(new CAST(this.ops.size(), opcode, this.line, T.AREF, t));
+			this.ops.add(new CAST(this.ops.size(), opcode, this.line, T.REF, t));
 			break;
 		/**************
 		 * INSTANCEOF *
@@ -1440,7 +1440,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * LOAD *
 		 ********/
 		case Opcodes.ALOAD:
-			t = T.AREF;
+			t = T.REF;
 			// fall through
 		case Opcodes.DLOAD:
 			if (t == null) {
@@ -1454,7 +1454,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.ILOAD:
 			if (t == null) {
-				t = T.RINT;
+				t = T.AINT;
 			}
 			// fall through
 		case Opcodes.LLOAD:
@@ -1481,7 +1481,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.ISTORE:
 			if (t == null) {
-				t = T.RINT;
+				t = T.AINT;
 			}
 			// fall through
 		case Opcodes.LSTORE:
