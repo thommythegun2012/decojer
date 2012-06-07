@@ -103,7 +103,7 @@ class TestT {
 				"java.lang.Object[][]");
 
 		// multi-types just for primitives / internal
-		assertEquals(T.AINT.getName(), "{int,char,boolean}");
+		assertEquals(T.AINT.getName(), "{int,short,byte,char,boolean}");
 	}
 
 	@Test
@@ -124,22 +124,18 @@ class TestT {
 	}
 
 	@Test
+	void is() {
+		assertTrue(T.AINT.is(T.INT, T.CHAR));
+		assertFalse(T.AINT.is(T.INT, T.FLOAT));
+		assertTrue(objectT.is(objectT));
+		assertFalse(objectT.is(du.getT(String.class)));
+		assertFalse(du.getT(String.class).is(objectT));
+	}
+
+	@Test
 	void isAssignableFrom() {
 		assertTrue(int.class.isAssignableFrom(int.class));
 		assertTrue(T.INT.isAssignableFrom(T.INT));
-		// missleading, assignableFrom() means is-superclass, for primitives
-		// too! even though int=short/byte etc. is possible, false is returned!
-		// we copy this behavior for better testability
-		assertFalse(int.class.isAssignableFrom(byte.class));
-		assertFalse(T.INT.isAssignableFrom(T.BYTE));
-		assertTrue(int[].class.isAssignableFrom(int[].class));
-		assertTrue(du.getT(int[].class).isAssignableFrom(du.getT(int[].class)));
-		assertFalse(int[].class.isAssignableFrom(byte[].class));
-		assertFalse(du.getT(int[].class)
-				.isAssignableFrom(du.getT(byte[].class)));
-		assertFalse(int[].class.isAssignableFrom(int[][].class));
-		assertFalse(du.getT(int[].class).isAssignableFrom(
-				du.getT(int[][].class)));
 
 		assertFalse(Object.class.isAssignableFrom(byte.class));
 		assertFalse(objectT.isAssignableFrom(du.getT(byte.class)));
@@ -189,6 +185,12 @@ class TestT {
 		assertFalse(du.getT(Serializable[][][].class).isAssignableFrom(
 				du.getT(byte[][][].class)));
 
+		assertTrue(int[].class.isAssignableFrom(int[].class));
+		assertTrue(du.getT(int[].class).isAssignableFrom(du.getT(int[].class)));
+		assertFalse(int[].class.isAssignableFrom(int[][].class));
+		assertFalse(du.getT(int[].class).isAssignableFrom(
+				du.getT(int[][].class)));
+
 		// covariant arrays
 		assertTrue(Number[].class.isAssignableFrom(Integer[].class));
 		assertTrue(du.getT(Number[].class).isAssignableFrom(
@@ -207,6 +209,16 @@ class TestT {
 		assertFalse(Cloneable[][][].class.isAssignableFrom(Byte[][][].class));
 		assertFalse(du.getT(Cloneable[][][].class).isAssignableFrom(
 				du.getT(Byte[][][].class)));
+
+		// missleading, assignableFrom() means is-superclass in JDK function,
+		// for primitives too! even though int=short/byte/char etc. is possible,
+		// false is returned!
+		// we change this behavior for the decompiler
+		assertFalse(int.class.isAssignableFrom(byte.class));
+		assertTrue(T.INT.isAssignableFrom(T.BYTE));
+
+		assertFalse(int[].class.isAssignableFrom(byte[].class));
+		assertTrue(du.getT(int[].class).isAssignableFrom(du.getT(byte[].class)));
 	}
 
 	@Test
@@ -226,7 +238,7 @@ class TestT {
 
 		assertTrue(T.AINT.isMulti());
 		assertTrue(T.AREF.isMulti());
-		assertTrue(T.DINT.isMulti());
+		assertTrue(T.SINGLE.isMulti());
 	}
 
 	@Test
@@ -247,6 +259,16 @@ class TestT {
 
 		assertFalse(int[].class.isPrimitive());
 		assertFalse(du.getT(int[].class).isPrimitive());
+	}
+
+	@Test
+	void isResolveable() {
+		assertTrue(objectT.isResolveable());
+		assertTrue(T.INT.isResolveable());
+		assertTrue(T.VOID.isResolveable());
+		assertTrue(du.getT(Character.class).isResolveable());
+		assertTrue(du.getT(Double[][].class).isResolveable());
+		assertFalse(du.getT("Test").isResolveable());
 	}
 
 	@Test
@@ -291,6 +313,13 @@ class TestT {
 
 		assertSame(T.join(objectT, du.getT(Integer.class)), objectT);
 		assertSame(T.join(du.getT(Integer.class), objectT), objectT);
+
+		T t = T.join(du.getT(Integer.class), du.getT(Long.class));
+		assertSame(t.getSuperT(), du.getT(Number.class));
+		assertEquals(t.getInterfaceTs().length, 1);
+		assertSame(t.getInterfaceTs()[0], du.getT(Comparable.class));
+		assertEquals(t.getName(), "{java.lang.Number,java.lang.Comparable}");
+		assertEquals(t.getIName(), "{java.lang.Number,java.lang.Comparable}");
 	}
 
 	@Test
@@ -304,6 +333,10 @@ class TestT {
 		assertSame(T.INT.read(T.INT), T.INT);
 		assertNull(T.INT.read(T.BYTE));
 		assertSame(T.BYTE.read(T.INT), T.BYTE);
+
+		assertSame(T.SINGLE.read(T.AINT), T.AINT);
+		assertSame(T.SINGLE.read(T.SINGLE), T.SINGLE);
+		assertNull(T.WIDE.read(T.SINGLE));
 	}
 
 }
