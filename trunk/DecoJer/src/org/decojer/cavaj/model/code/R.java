@@ -64,9 +64,6 @@ public class R {
 
 	}
 
-	@Getter
-	private R[] ins;
-
 	/**
 	 * Merge register types.
 	 * 
@@ -82,6 +79,12 @@ public class R {
 		}
 		return T.join(r1.getT(), r2.getT());
 	}
+
+	@Getter
+	private Object value;
+
+	@Getter
+	private R[] ins;
 
 	/**
 	 * Register start pc. Method parameters (0) and merge event pcs can overlap with real operation.
@@ -101,9 +104,6 @@ public class R {
 
 	@Getter
 	private T t;
-
-	@Getter
-	private Object value;
 
 	private T readT;
 
@@ -260,26 +260,26 @@ public class R {
 	/**
 	 * Replace input register.
 	 * 
-	 * @param oldIn
-	 *            old input register
-	 * @param in
+	 * @param prevIn
+	 *            previous input register
+	 * @param newIn
 	 *            new input register
 	 */
-	public void replaceIn(final R oldIn, final R in) {
+	public void replaceIn(final R prevIn, final R newIn) {
 		assert this.ins != null;
 
 		for (int i = this.ins.length; i-- > 0;) {
-			if (this.ins[i] == oldIn) {
-				if (in != null) {
-					this.ins[i] = in;
-					linkIn(in);
+			if (this.ins[i] == prevIn) {
+				if (newIn != null) {
+					this.ins[i] = newIn;
+					linkIn(newIn);
 					// oldIn dies anyway, no out remove necessary
 					return;
 				}
 				switch (getKind()) {
 				case CONST:
 				case MOVE:
-					if (this.ins.length < 2 || this.ins[1] != in) {
+					if (this.ins.length < 2 || this.ins[1] != newIn) {
 						System.out.println("Register replace to null has wrong previous!");
 					}
 					this.ins = new R[] { this.ins[0] };
