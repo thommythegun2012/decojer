@@ -773,7 +773,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		if (replacedR != null) {
 			for (final E out : bb.getOuts()) {
-				// backward merge in loop could create new merge necessity at start point!
+				// TODO backward merge in loop can create new merge necessity at start point!
 				mergeReplaceReg(out.getEnd(), i, replacedR, newR);
 			}
 		}

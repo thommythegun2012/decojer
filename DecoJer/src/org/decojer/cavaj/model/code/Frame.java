@@ -282,7 +282,7 @@ public class Frame {
 	 *            previous register
 	 * @param newR
 	 *            new register or null
-	 * @return replaced register (oldR or mergedR or null)
+	 * @return replaced register (prevR or mergedR or null)
 	 */
 	public R replaceReg(final int i, final R prevR, final R newR) {
 		assert prevR != null;
@@ -292,15 +292,20 @@ public class Frame {
 			return null;
 		}
 		final R frameR = get(i);
-		if (frameR == null) {
-			return null;
+		if (frameR == prevR) {
+			set(i, newR);
+			return prevR;
 		}
-		if (frameR != prevR && (newR != null || frameR.getKind() != Kind.MERGE)) {
+		if (newR == null) {
+			assert frameR.getKind() == Kind.MERGE : frameR.getKind();
+
+			set(i, null);
+			return frameR;
+		}
+		if (frameR != null) {
 			frameR.replaceIn(prevR, newR);
-			return null;
 		}
-		set(i, newR);
-		return frameR;
+		return null;
 	}
 
 	/**
