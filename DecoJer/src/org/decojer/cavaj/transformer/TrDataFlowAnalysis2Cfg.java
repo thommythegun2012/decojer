@@ -167,12 +167,8 @@ public final class TrDataFlowAnalysis2Cfg {
 		case ALOAD: {
 			final ALOAD cop = (ALOAD) op;
 			pop(T.INT, true); // index
-			final R aR = pop(T.REF, true); // array
-			final T aT = aR.getT().getComponentType();
-
-			assert cop.getT().isAssignableFrom(aT); // TODO more specific! no byte -> int
-
-			pushConst(aT); // value
+			final R aR = pop(this.cfg.getDu().getArrayT(cop.getT(), 1), true); // array
+			pushConst(aR.getT().getComponentType()); // value
 			break;
 		}
 		case AND: {
@@ -191,12 +187,10 @@ public final class TrDataFlowAnalysis2Cfg {
 			final ASTORE cop = (ASTORE) op;
 			final R vR = pop(cop.getT(), false); // value
 			pop(T.INT, true); // index
-			final R aR = pop(T.REF, true); // array
-			final T aT = aR.getT().getComponentType();
-			final boolean canRead = vR.read(aT);
-
-			assert canRead;
-
+			final R aR = pop(this.cfg.getDu().getArrayT(cop.getT(), 1), true); // array
+			if (!vR.read(aR.getT().getComponentType())) {
+				LOGGER.warning("Cannot store array value!");
+			}
 			break;
 		}
 		case CAST: {
