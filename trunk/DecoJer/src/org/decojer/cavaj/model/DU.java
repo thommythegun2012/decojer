@@ -185,6 +185,8 @@ public class DU {
 			return T.SHORT;
 		} else if (name.equals(T.VOID.getName())) {
 			return T.VOID;
+		} else if (name.equals(T.REF.getName())) {
+			return T.REF;
 		}
 
 		final String normName = name.replace('/', '.');
