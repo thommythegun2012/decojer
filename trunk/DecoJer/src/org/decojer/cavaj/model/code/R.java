@@ -64,6 +64,10 @@ public class R {
 
 	}
 
+	@Getter
+	@Setter
+	private T realT;
+
 	/**
 	 * Merge register types.
 	 * 
@@ -81,6 +85,12 @@ public class R {
 	}
 
 	@Getter
+	private R[] outs;
+
+	@Getter
+	private T t;
+
+	@Getter
 	private Object value;
 
 	@Getter
@@ -94,16 +104,6 @@ public class R {
 
 	@Getter
 	private final Kind kind;
-
-	@Getter
-	@Setter
-	private T realT;
-
-	@Getter
-	private R[] outs;
-
-	@Getter
-	private T t;
 
 	private T readT;
 
@@ -294,7 +294,7 @@ public class R {
 
 	@Override
 	public String toString() {
-		return "R_" + this.pc + ": " + this.t;
+		return "R" + this.pc + "_" + this.kind.name().substring(0, 2) + ": " + this.t;
 	}
 
 }
