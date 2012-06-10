@@ -167,8 +167,12 @@ public final class TrDataFlowAnalysis2Cfg {
 		case ALOAD: {
 			final ALOAD cop = (ALOAD) op;
 			pop(T.INT, true); // index
-			pop(T.REF, true); // array
-			pushConst(cop.getT()); // value
+			final R aR = pop(T.REF, true); // array
+			final T aT = aR.getT().getComponentType();
+
+			assert cop.getT().isAssignableFrom(aT); // TODO more specific! no byte -> int
+
+			pushConst(aT); // value
 			break;
 		}
 		case AND: {
@@ -185,9 +189,14 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		case ASTORE: {
 			final ASTORE cop = (ASTORE) op;
-			pop(cop.getT(), true); // value
+			final R vR = pop(cop.getT(), false); // value
 			pop(T.INT, true); // index
-			pop(T.REF, true); // array
+			final R aR = pop(T.REF, true); // array
+			final T aT = aR.getT().getComponentType();
+			final boolean canRead = vR.read(aT);
+
+			assert canRead;
+
 			break;
 		}
 		case CAST: {
@@ -773,6 +782,14 @@ public final class TrDataFlowAnalysis2Cfg {
 		}
 		if (replacedR != null) {
 			for (final E out : bb.getOuts()) {
+				// if (out.isBack()) {
+				// final BB loopHead = out.getEnd();
+				// final R testR = this.cfg.getFrame(loopHead.getPc()).get(i);
+				// if (testR == replacedR && testR.getPc() != loopHead.getPc()) {
+				// mergeReplaceReg(out.getEnd(), i, testR, new R(testR.getPc(), newR.getT(),
+				// Kind.MERGE, testR, newR));
+				// }
+				// }
 				// TODO backward merge in loop can create new merge necessity at start point!
 				mergeReplaceReg(out.getEnd(), i, replacedR, newR);
 			}

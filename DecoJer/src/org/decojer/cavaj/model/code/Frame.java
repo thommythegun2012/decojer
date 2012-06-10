@@ -300,7 +300,7 @@ public class Frame {
 			assert frameR.getKind() == Kind.MERGE : frameR.getKind();
 
 			set(i, null);
-			return frameR;
+			return frameR; // now replace merge register with null
 		}
 		if (frameR != null) {
 			frameR.replaceIn(prevR, newR);
