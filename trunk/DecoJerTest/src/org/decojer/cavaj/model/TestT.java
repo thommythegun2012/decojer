@@ -28,18 +28,23 @@ class TestT {
 	}
 
 	@Test
-	void getComponentType() {
+	void getComponentT() {
 		assertEquals(int[].class.getComponentType(), int.class);
-		assertEquals(du.getT(int[].class).getComponentType(),
-				du.getT(int.class));
+		assertEquals(du.getT(int[].class).getComponentT(), T.INT);
+
+		assertEquals(Object[].class.getComponentType(), Object.class);
+		assertEquals(du.getT(Object[].class).getComponentT(), objectT);
 
 		assertEquals(Object[][].class.getComponentType(), Object[].class);
-		assertEquals(du.getT(Object[][].class).getComponentType(),
+		assertEquals(du.getT(Object[][].class).getComponentT(),
 				du.getT(Object[].class));
+
+		assertNull(Object.class.getComponentType());
+		assertNull(objectT.getComponentT());
 	}
 
 	@Test
-	void getInterfaces() {
+	void getInterfaceTs() {
 		assertEquals(int.class.getInterfaces().length, 0);
 		assertEquals(T.INT.getInterfaceTs().length, 0);
 
@@ -107,7 +112,7 @@ class TestT {
 	}
 
 	@Test
-	void getSuperclass() {
+	void getSuperT() {
 		assertNull(int.class.getSuperclass());
 		assertNull(T.INT.getSuperT());
 		assertNull(byte.class.getSuperclass());
@@ -130,6 +135,24 @@ class TestT {
 		assertTrue(objectT.is(objectT));
 		assertFalse(objectT.is(du.getT(String.class)));
 		assertFalse(du.getT(String.class).is(objectT));
+	}
+
+	@Test
+	void isArray() {
+		assertFalse(int.class.isArray());
+		assertFalse(T.INT.isArray());
+
+		assertFalse(void.class.isArray());
+		assertFalse(T.VOID.isArray());
+
+		assertFalse(Object.class.isArray());
+		assertFalse(objectT.isArray());
+
+		assertTrue(int[].class.isArray());
+		assertTrue(du.getT(int[].class).isArray());
+
+		assertTrue(Object[][].class.isArray());
+		assertTrue(du.getT(Object[][].class).isArray());
 	}
 
 	@Test
@@ -176,6 +199,16 @@ class TestT {
 				du.getT(byte[].class)));
 		assertTrue(Serializable.class.isAssignableFrom(byte[][][].class));
 		assertTrue(du.getT(Serializable.class).isAssignableFrom(
+				du.getT(byte[][][].class)));
+
+		assertTrue(Object[].class.isAssignableFrom(byte[][][].class));
+		assertTrue(du.getT(Object[].class).isAssignableFrom(
+				du.getT(byte[][][].class)));
+		assertTrue(Object[][].class.isAssignableFrom(byte[][][].class));
+		assertTrue(du.getT(Object[][].class).isAssignableFrom(
+				du.getT(byte[][][].class)));
+
+		assertTrue(du.getArrayT(T.REF).isAssignableFrom(
 				du.getT(byte[][][].class)));
 
 		assertTrue(Serializable[][].class.isAssignableFrom(byte[][][].class));
