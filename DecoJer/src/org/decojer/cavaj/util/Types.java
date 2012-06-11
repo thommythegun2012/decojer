@@ -324,35 +324,41 @@ public class Types {
 	 * @return Eclipse type
 	 */
 	public static Type convertType(final T t, final TD td, final AST ast) {
-		Type type;
-		final T baseT = t.getBaseT();
-		if (baseT == T.VOID) {
-			type = ast.newPrimitiveType(PrimitiveType.VOID);
-		} else if (baseT == T.BYTE) {
-			type = ast.newPrimitiveType(PrimitiveType.BYTE);
-		} else if (baseT == T.CHAR) {
-			type = ast.newPrimitiveType(PrimitiveType.CHAR);
-		} else if (baseT == T.DOUBLE) {
-			type = ast.newPrimitiveType(PrimitiveType.DOUBLE);
-		} else if (baseT == T.FLOAT) {
-			type = ast.newPrimitiveType(PrimitiveType.FLOAT);
-		} else if (baseT == T.INT) {
-			type = ast.newPrimitiveType(PrimitiveType.INT);
-		} else if (baseT == T.LONG) {
-			type = ast.newPrimitiveType(PrimitiveType.LONG);
-		} else if (baseT == T.SHORT) {
-			type = ast.newPrimitiveType(PrimitiveType.SHORT);
-		} else if (baseT == T.BOOLEAN) {
-			type = ast.newPrimitiveType(PrimitiveType.BOOLEAN);
-		} else {
-			type = ast.newSimpleType(td.newTypeName(baseT));
+		final T componentT = t.getComponentT();
+		if (componentT != null) {
+			return ast.newArrayType(convertType(componentT, td, ast));
 		}
-		if (t.isArray()) {
-			for (int i = t.getDim(); i-- > 0;) {
-				type = ast.newArrayType(type);
-			}
+		if (t.isMulti()) {
+			LOGGER.warning("Convert type for multi-type '" + t + "'!");
 		}
-		return type;
+		if (t == T.INT) {
+			return ast.newPrimitiveType(PrimitiveType.INT);
+		}
+		if (t == T.SHORT) {
+			return ast.newPrimitiveType(PrimitiveType.SHORT);
+		}
+		if (t == T.BYTE) {
+			return ast.newPrimitiveType(PrimitiveType.BYTE);
+		}
+		if (t == T.CHAR) {
+			return ast.newPrimitiveType(PrimitiveType.CHAR);
+		}
+		if (t == T.BOOLEAN) {
+			return ast.newPrimitiveType(PrimitiveType.BOOLEAN);
+		}
+		if (t == T.FLOAT) {
+			return ast.newPrimitiveType(PrimitiveType.FLOAT);
+		}
+		if (t == T.LONG) {
+			return ast.newPrimitiveType(PrimitiveType.LONG);
+		}
+		if (t == T.DOUBLE) {
+			return ast.newPrimitiveType(PrimitiveType.DOUBLE);
+		}
+		if (t == T.VOID) {
+			return ast.newPrimitiveType(PrimitiveType.VOID);
+		}
+		return ast.newSimpleType(td.newTypeName(t));
 	}
 
 }
