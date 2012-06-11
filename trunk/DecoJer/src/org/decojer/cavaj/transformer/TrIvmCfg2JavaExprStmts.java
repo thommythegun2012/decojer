@@ -340,7 +340,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				final FILLARRAY cop = (FILLARRAY) op;
 
 				final T t = this.cfg.getInFrame(op).peek().getT();
-				final T baseT = t.getBaseT();
+				final T componentT = t.getComponentT();
 
 				Expression expression = bb.pop();
 				if (!(expression instanceof ArrayCreation)) {
@@ -353,7 +353,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				final ArrayInitializer arrayInitializer = getAst().newArrayInitializer();
 				for (final Object value : cop.getValues()) {
 					arrayInitializer.expressions().add(
-							Types.convertLiteral(baseT, value, this.cfg.getTd(), getAst()));
+							Types.convertLiteral(componentT, value, this.cfg.getTd(), getAst()));
 				}
 				((ArrayCreation) expression).setInitializer(arrayInitializer);
 

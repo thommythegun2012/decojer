@@ -78,20 +78,14 @@ public class DU {
 	}
 
 	/**
-	 * Get array type for base type.
+	 * Get array type for component type.
 	 * 
-	 * @param baseT
-	 *            base type (could be array)
-	 * @param dim
-	 *            dimension
-	 * @return base type extended with dimensions
+	 * @param componentT
+	 *            component type (could be an array type)
+	 * @return array type for component type
 	 */
-	public T getArrayT(final T baseT, final int dim) {
-		final StringBuffer name = new StringBuffer(baseT.getName());
-		for (int i = dim; i-- > 0;) {
-			name.append("[]");
-		}
-		return getT(name.toString());
+	public T getArrayT(final T componentT) {
+		return getT(componentT + "[]");
 	}
 
 	/**
@@ -105,24 +99,24 @@ public class DU {
 		assert desc != null;
 
 		switch (desc.charAt(0)) {
-		case 'V':
-			return T.VOID;
+		case 'I':
+			return T.INT;
+		case 'S':
+			return T.SHORT;
 		case 'B':
 			return T.BYTE;
 		case 'C':
 			return T.CHAR;
-		case 'D':
-			return T.DOUBLE;
-		case 'F':
-			return T.FLOAT;
-		case 'I':
-			return T.INT;
-		case 'J':
-			return T.LONG;
-		case 'S':
-			return T.SHORT;
 		case 'Z':
 			return T.BOOLEAN;
+		case 'F':
+			return T.FLOAT;
+		case 'J':
+			return T.LONG;
+		case 'D':
+			return T.DOUBLE;
+		case 'V':
+			return T.VOID;
 		case 'L': {
 			final int pos = desc.indexOf(';', 1);
 			if (pos == -1) {
@@ -135,7 +129,12 @@ public class DU {
 			while (desc.charAt(++dim) == '[') {
 				;
 			}
-			return getArrayT(getDescT(desc.substring(dim)), dim);
+			final T componentT = getDescT(desc.substring(dim));
+			final StringBuffer name = new StringBuffer(componentT.getName());
+			for (int i = dim; i-- > 0;) {
+				name.append("[]");
+			}
+			return getT(name.toString());
 		}
 		throw new DecoJerException("Unknown descriptor: " + desc);
 	}
@@ -167,36 +166,44 @@ public class DU {
 			return getDescT(name);
 		}
 
+		if (name.equals(T.INT.getName())) {
+			return T.INT;
+		}
+		if (name.equals(T.SHORT.getName())) {
+			return T.SHORT;
+		}
+		if (name.equals(T.BYTE.getName())) {
+			return T.BYTE;
+		}
+		if (name.equals(T.CHAR.getName())) {
+			return T.CHAR;
+		}
 		if (name.equals(T.BOOLEAN.getName())) {
 			return T.BOOLEAN;
-		} else if (name.equals(T.BYTE.getName())) {
-			return T.BYTE;
-		} else if (name.equals(T.CHAR.getName())) {
-			return T.CHAR;
-		} else if (name.equals(T.DOUBLE.getName())) {
-			return T.DOUBLE;
-		} else if (name.equals(T.FLOAT.getName())) {
+		}
+		if (name.equals(T.FLOAT.getName())) {
 			return T.FLOAT;
-		} else if (name.equals(T.INT.getName())) {
-			return T.INT;
-		} else if (name.equals(T.LONG.getName())) {
+		}
+		if (name.equals(T.LONG.getName())) {
 			return T.LONG;
-		} else if (name.equals(T.SHORT.getName())) {
-			return T.SHORT;
-		} else if (name.equals(T.VOID.getName())) {
+		}
+		if (name.equals(T.DOUBLE.getName())) {
+			return T.DOUBLE;
+		}
+		if (name.equals(T.VOID.getName())) {
 			return T.VOID;
-		} else if (name.equals(T.REF.getName())) {
+		}
+		if (name.equals(T.REF.getName())) {
+			// for artificial array types REF[]
 			return T.REF;
 		}
 
 		final String normName = name.replace('/', '.');
 		T t = this.ts.get(normName);
 		if (t == null) {
-			final int pos = normName.indexOf('[');
-			if (pos == -1) {
-				t = new T(this, normName);
-			} else {
-				t = new T(this, getT(normName.substring(0, pos)), (normName.length() - pos) / 2);
+			t = new T(this, normName);
+			if (normName.endsWith("[]")) {
+				t.setSuperT(getT(name.substring(0, name.length() - 2)));
 				if (this.arrayInterfaceTs == null) {
 					this.arrayInterfaceTs = new T[] { getT(Cloneable.class),
 							getT(Serializable.class) };

@@ -214,150 +214,6 @@ public class T {
 
 	private static final T[] NO_INTERFACES = new T[0];
 
-	private static int joinKinds(final int kind1, final int kind2) {
-		final int k1 = (kind1 & 0xF) - 1;
-		final int k2 = (kind2 & 0xF) - 1;
-		if (k1 >= 0 && k2 >= 0) {
-			return JOIN_INT[k1][k2] | kind1 & kind2;
-		}
-		return kind1 & kind2;
-	}
-
-	private static int readKinds(final int kind1, final int kind2) {
-		final int k1 = (kind1 & 0xF) - 1;
-		final int k2 = (kind2 & 0xF) - 1;
-		if (k1 >= 0 && k2 >= 0) {
-			return READ_INT[k1][k2] | kind1 & kind2;
-		}
-		return kind1 & kind2;
-	}
-
-	/**
-	 * Merge/union read/down/or types: Find common lower type. Use OR operation for kind.
-	 * 
-	 * If type is yet unknown, leave name empty.
-	 * 
-	 * @param t1
-	 *            type 1
-	 * @param t2
-	 *            type 2
-	 * @return merged type
-	 */
-	public static T union(final T t1, final T t2) {
-		if (t1 == t2) {
-			return t1;
-		}
-		if (t1 == null) {
-			return t2;
-		}
-		if (t2 == null) {
-			return t1;
-		}
-		final int kind = t1.kind | t2.kind;
-		if ((kind & Kind.REF.kind) == 0) {
-			return getT(kind);
-		}
-
-		if (t1.du == null) {
-			return t2;
-		}
-		if (t2.du == null) {
-			return t1;
-		}
-		// TODO...bottom merge ref
-		return t1;
-	}
-
-	@Getter
-	private final String name;
-
-	public static T getDalvikIntT(final int value) {
-		int kinds = T.FLOAT.kind;
-		if (value == 0 || value == 1) {
-			kinds |= T.BOOLEAN.kind;
-		}
-		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
-			kinds |= T.CHAR.kind;
-		}
-		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
-			kinds |= T.BYTE.kind;
-		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
-			kinds |= T.SHORT.kind;
-		} else {
-			kinds |= T.INT.kind;
-		}
-		return getT(kinds);
-	}
-
-	public static T getJvmIntT(final int value) {
-		int kinds = 0;
-		if (value == 0 || value == 1) {
-			kinds |= T.BOOLEAN.kind;
-		}
-		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
-			kinds |= T.CHAR.kind;
-		}
-		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
-			kinds |= T.BYTE.kind;
-		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
-			kinds |= T.SHORT.kind;
-		} else {
-			kinds |= T.INT.kind;
-		}
-		return getT(kinds);
-	}
-
-	private static T getT(final int kinds) {
-		if (kinds == 0) {
-			return null;
-		}
-		T t = KIND_2_TS.get(kinds);
-		if (t != null) {
-			return t;
-		}
-		final StringBuilder sb = new StringBuilder("{");
-		for (final Kind k : Kind.values()) {
-			if ((kinds & k.kind) != 0) {
-				sb.append(k.getName()).append(",");
-			}
-		}
-		t = new T(sb.substring(0, sb.length() - 1) + "}", kinds);
-		KIND_2_TS.put(kinds, t);
-		return t;
-	}
-
-	private static T getT(final Kind kind) {
-		T t = KIND_2_TS.get(kind.kind);
-		if (t != null) {
-			return t;
-		}
-		t = new T(kind.getName(), kind.kind);
-		KIND_2_TS.put(kind.kind, t);
-		return t;
-	}
-
-	@Getter
-	private String signature;
-
-	/**
-	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
-	 */
-	@Setter
-	private T superT;
-
-	@Getter
-	@Setter
-	private int accessFlags;
-
-	private static T getT(final Kind... kinds) {
-		// don't use types as input, restrict to kind-types
-		int flags = 0;
-		for (final Kind k : kinds) {
-			flags |= k.kind;
-		}
-		return getT(flags);
-	}
-
 	/**
 	 * Merge/join store/up/and types: Find common super type. Use AND operation for kind - primitive
 	 * multitypes: no conversion. No primitive reduction of source types, done through eventual
@@ -426,11 +282,152 @@ public class T {
 		return new T(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
 	}
 
+	private static int joinKinds(final int kind1, final int kind2) {
+		final int k1 = (kind1 & 0xF) - 1;
+		final int k2 = (kind2 & 0xF) - 1;
+		if (k1 >= 0 && k2 >= 0) {
+			return JOIN_INT[k1][k2] | kind1 & kind2;
+		}
+		return kind1 & kind2;
+	}
+
+	private static int readKinds(final int kind1, final int kind2) {
+		final int k1 = (kind1 & 0xF) - 1;
+		final int k2 = (kind2 & 0xF) - 1;
+		if (k1 >= 0 && k2 >= 0) {
+			return READ_INT[k1][k2] | kind1 & kind2;
+		}
+		return kind1 & kind2;
+	}
+
+	public static T getDalvikIntT(final int value) {
+		int kinds = T.FLOAT.kind;
+		if (value == 0 || value == 1) {
+			kinds |= T.BOOLEAN.kind;
+		}
+		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
+			kinds |= T.CHAR.kind;
+		}
+		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+			kinds |= T.BYTE.kind;
+		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+			kinds |= T.SHORT.kind;
+		} else {
+			kinds |= T.INT.kind;
+		}
+		return getT(kinds);
+	}
+
+	/**
+	 * Merge/union read/down/or types: Find common lower type. Use OR operation for kind.
+	 * 
+	 * If type is yet unknown, leave name empty.
+	 * 
+	 * @param t1
+	 *            type 1
+	 * @param t2
+	 *            type 2
+	 * @return merged type
+	 */
+	public static T union(final T t1, final T t2) {
+		if (t1 == t2) {
+			return t1;
+		}
+		if (t1 == null) {
+			return t2;
+		}
+		if (t2 == null) {
+			return t1;
+		}
+		final int kind = t1.kind | t2.kind;
+		if ((kind & Kind.REF.kind) == 0) {
+			return getT(kind);
+		}
+
+		if (t1.du == null) {
+			return t2;
+		}
+		if (t2.du == null) {
+			return t1;
+		}
+		// TODO...bottom merge ref
+		return t1;
+	}
+
 	@Getter
-	private int dim;
+	private final String name;
+
+	@Getter
+	private String signature;
+
+	/**
+	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
+	 */
+	@Setter
+	private T superT;
+
+	public static T getJvmIntT(final int value) {
+		int kinds = 0;
+		if (value == 0 || value == 1) {
+			kinds |= T.BOOLEAN.kind;
+		}
+		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
+			kinds |= T.CHAR.kind;
+		}
+		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+			kinds |= T.BYTE.kind;
+		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+			kinds |= T.SHORT.kind;
+		} else {
+			kinds |= T.INT.kind;
+		}
+		return getT(kinds);
+	}
+
+	private static T getT(final int kinds) {
+		if (kinds == 0) {
+			return null;
+		}
+		T t = KIND_2_TS.get(kinds);
+		if (t != null) {
+			return t;
+		}
+		final StringBuilder sb = new StringBuilder("{");
+		for (final Kind k : Kind.values()) {
+			if ((kinds & k.kind) != 0) {
+				sb.append(k.getName()).append(",");
+			}
+		}
+		t = new T(sb.substring(0, sb.length() - 1) + "}", kinds);
+		KIND_2_TS.put(kinds, t);
+		return t;
+	}
+
+	private static T getT(final Kind kind) {
+		T t = KIND_2_TS.get(kind.kind);
+		if (t != null) {
+			return t;
+		}
+		t = new T(kind.getName(), kind.kind);
+		KIND_2_TS.put(kind.kind, t);
+		return t;
+	}
+
+	@Getter
+	@Setter
+	private int accessFlags;
 
 	@Setter
 	private T[] interfaceTs;
+
+	private static T getT(final Kind... kinds) {
+		// don't use types as input, restrict to kind-types
+		int flags = 0;
+		for (final Kind k : kinds) {
+			flags |= k.kind;
+		}
+		return getT(flags);
+	}
 
 	private final DU du;
 
@@ -447,22 +444,6 @@ public class T {
 		this.du = du;
 		this.kind = Kind.REF.kind;
 		this.name = name;
-	}
-
-	protected T(final DU du, final T baseT, final int dim) {
-		assert baseT != null;
-		assert baseT.dim == 0;
-		assert dim > 0 : dim;
-
-		this.du = du;
-		this.kind = Kind.REF.kind;
-		this.superT = baseT;
-		this.dim = dim;
-		final StringBuilder name = new StringBuilder(baseT.getName());
-		for (int i = dim; i-- > 0;) {
-			name.append("[]");
-		}
-		this.name = name.toString();
 	}
 
 	private T(final String name, final int kind) {
@@ -500,30 +481,17 @@ public class T {
 	}
 
 	/**
-	 * Get base type.
+	 * Get component type of array type (null if no array type).
 	 * 
-	 * @return base type
-	 */
-	public T getBaseT() {
-		if (isArray()) {
-			return this.superT;
-		}
-		return this;
-	}
-
-	/**
-	 * Returns the type representing the component type of an array. If this type does not represent
-	 * an array type this method returns null.
-	 * 
-	 * @return the type representing the component type of this type if this type is an array
+	 * @return component type of array type (null if no array type)
 	 * 
 	 * @see Class#isAssignableFrom(Class)
 	 */
-	public T getComponentType() {
-		if (this.dim == 0) {
+	public T getComponentT() {
+		if (!isArray()) {
 			return null;
 		}
-		return this.du.getArrayT(getBaseT(), this.dim - 1);
+		return this.superT;
 	}
 
 	/**
@@ -536,7 +504,7 @@ public class T {
 			return 1;
 		}
 		if (isArray()) {
-			return getBaseT().getDescriptorLength() + this.dim;
+			return this.superT.getDescriptorLength() + 2;
 		}
 		return getName().length() + 2; // L...;
 	}
@@ -687,7 +655,7 @@ public class T {
 	 * @return true - is array
 	 */
 	public boolean isArray() {
-		return this.dim > 0;
+		return this.name.endsWith("[]");
 	}
 
 	/**
@@ -739,7 +707,7 @@ public class T {
 			}
 		}
 		if (isArray() && t.isArray()) {
-			return getComponentType().isAssignableFrom(t.getComponentType());
+			return getComponentT().isAssignableFrom(t.getComponentT());
 		}
 		return false;
 	}
