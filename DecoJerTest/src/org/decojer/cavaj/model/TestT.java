@@ -41,6 +41,9 @@ class TestT {
 
 		assertNull(Object.class.getComponentType());
 		assertNull(objectT.getComponentT());
+
+		assertSame(du.getArrayT(T.BYTE).getComponentT(), T.BYTE);
+		assertSame(du.getArrayT(T.SMALL).getComponentT(), T.SMALL);
 	}
 
 	@Test
@@ -210,6 +213,8 @@ class TestT {
 
 		assertTrue(du.getArrayT(T.REF).isAssignableFrom(
 				du.getT(byte[][][].class)));
+		assertTrue(du.getArrayT(T.SMALL)
+				.isAssignableFrom(du.getT(byte[].class)));
 
 		assertTrue(Serializable[][].class.isAssignableFrom(byte[][][].class));
 		assertTrue(du.getT(Serializable[][].class).isAssignableFrom(
