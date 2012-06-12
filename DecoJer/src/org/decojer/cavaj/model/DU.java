@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -65,6 +66,24 @@ public class DU {
 
 	private final HashMap<String, T> ts = new HashMap<String, T>();
 
+	public DU() {
+		// init type cache with primitives-/multi-types
+		try {
+			for (final Field f : T.class.getFields()) {
+				if (f.getType() != T.class) {
+					continue;
+				}
+				f.setAccessible(true);
+				final T t = (T) f.get(null);
+				this.ts.put(t.getName(), t);
+			}
+		} catch (final IllegalArgumentException e) {
+			throw new RuntimeException("Couldn't init decompilation unit!", e);
+		} catch (final IllegalAccessException e) {
+			throw new RuntimeException("Couldn't init decompilation unit!", e);
+		}
+	}
+
 	/**
 	 * Add type declaration.
 	 * 
@@ -85,7 +104,7 @@ public class DU {
 	 * @return array type for component type
 	 */
 	public T getArrayT(final T componentT) {
-		return getT(componentT + "[]");
+		return getT(componentT.getName() + "[]");
 	}
 
 	/**
@@ -165,39 +184,6 @@ public class DU {
 			// Class.getName() javadoc explains this trick, fall back to descriptor
 			return getDescT(name);
 		}
-
-		if (name.equals(T.INT.getName())) {
-			return T.INT;
-		}
-		if (name.equals(T.SHORT.getName())) {
-			return T.SHORT;
-		}
-		if (name.equals(T.BYTE.getName())) {
-			return T.BYTE;
-		}
-		if (name.equals(T.CHAR.getName())) {
-			return T.CHAR;
-		}
-		if (name.equals(T.BOOLEAN.getName())) {
-			return T.BOOLEAN;
-		}
-		if (name.equals(T.FLOAT.getName())) {
-			return T.FLOAT;
-		}
-		if (name.equals(T.LONG.getName())) {
-			return T.LONG;
-		}
-		if (name.equals(T.DOUBLE.getName())) {
-			return T.DOUBLE;
-		}
-		if (name.equals(T.VOID.getName())) {
-			return T.VOID;
-		}
-		if (name.equals(T.REF.getName())) {
-			// for artificial array types REF[]
-			return T.REF;
-		}
-
 		final String normName = name.replace('/', '.');
 		T t = this.ts.get(normName);
 		if (t == null) {
