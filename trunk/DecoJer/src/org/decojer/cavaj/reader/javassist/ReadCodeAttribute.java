@@ -234,7 +234,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.BALOAD:
 				if (t == null) {
-					t = T.BOOLEAN;
+					t = T.SMALL;
 				}
 				// fall through
 			case Opcode.CALOAD:
@@ -294,7 +294,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.BASTORE:
 				if (t == null) {
-					t = T.BOOLEAN;
+					t = T.SMALL;
 				}
 				// fall through
 			case Opcode.CASTORE:

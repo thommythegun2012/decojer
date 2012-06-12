@@ -197,6 +197,10 @@ public class T {
 	public static T PRIMITIVE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
 			Kind.FLOAT, Kind.LONG, Kind.DOUBLE, Kind.VOID);
 	/**
+	 * Multi-type 'any small (8 bit)'.
+	 */
+	public static T SMALL = getT(Kind.BYTE, Kind.BOOLEAN);
+	/**
 	 * Multi-type 'any single (32 bit)'.
 	 */
 	public static T SINGLE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
@@ -300,24 +304,6 @@ public class T {
 		return kind1 & kind2;
 	}
 
-	public static T getDalvikIntT(final int value) {
-		int kinds = T.FLOAT.kind;
-		if (value == 0 || value == 1) {
-			kinds |= T.BOOLEAN.kind;
-		}
-		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
-			kinds |= T.CHAR.kind;
-		}
-		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
-			kinds |= T.BYTE.kind;
-		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
-			kinds |= T.SHORT.kind;
-		} else {
-			kinds |= T.INT.kind;
-		}
-		return getT(kinds);
-	}
-
 	/**
 	 * Merge/union read/down/or types: Find common lower type. Use OR operation for kind.
 	 * 
@@ -357,14 +343,23 @@ public class T {
 	@Getter
 	private final String name;
 
-	@Getter
-	private String signature;
-
-	/**
-	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
-	 */
-	@Setter
-	private T superT;
+	public static T getDalvikIntT(final int value) {
+		int kinds = T.FLOAT.kind;
+		if (value == 0 || value == 1) {
+			kinds |= T.BOOLEAN.kind;
+		}
+		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
+			kinds |= T.CHAR.kind;
+		}
+		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+			kinds |= T.BYTE.kind;
+		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+			kinds |= T.SHORT.kind;
+		} else {
+			kinds |= T.INT.kind;
+		}
+		return getT(kinds);
+	}
 
 	public static T getJvmIntT(final int value) {
 		int kinds = 0;
@@ -403,6 +398,19 @@ public class T {
 		return t;
 	}
 
+	@Getter
+	private String signature;
+
+	/**
+	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
+	 */
+	@Setter
+	private T superT;
+
+	@Getter
+	@Setter
+	private int accessFlags;
+
 	private static T getT(final Kind kind) {
 		T t = KIND_2_TS.get(kind.kind);
 		if (t != null) {
@@ -413,13 +421,6 @@ public class T {
 		return t;
 	}
 
-	@Getter
-	@Setter
-	private int accessFlags;
-
-	@Setter
-	private T[] interfaceTs;
-
 	private static T getT(final Kind... kinds) {
 		// don't use types as input, restrict to kind-types
 		int flags = 0;
@@ -428,6 +429,9 @@ public class T {
 		}
 		return getT(flags);
 	}
+
+	@Setter
+	private T[] interfaceTs;
 
 	private final DU du;
 

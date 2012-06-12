@@ -347,7 +347,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.BALOAD:
 			if (t == null) {
-				t = T.BOOLEAN;
+				t = T.SMALL;
 			}
 			// fall through
 		case Opcodes.CALOAD:
@@ -407,7 +407,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.BASTORE:
 			if (t == null) {
-				t = T.BOOLEAN;
+				t = T.SMALL;
 			}
 			// fall through
 		case Opcodes.CASTORE:
