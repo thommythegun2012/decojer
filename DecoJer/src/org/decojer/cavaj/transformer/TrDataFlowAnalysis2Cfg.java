@@ -828,6 +828,7 @@ public final class TrDataFlowAnalysis2Cfg {
 		final R s = this.frame.pop();
 		if (read) {
 			if (!s.read(t)) {
+				// TODO problem with generic type reduction to classes, invoke interface allowed
 				throw new RuntimeException("Incompatible local register type!");
 			}
 		} else {

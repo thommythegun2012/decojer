@@ -64,9 +64,11 @@ public class R {
 
 	}
 
+	/**
+	 * Register start pc. Method parameters (0) and merge event pcs can overlap with real operation.
+	 */
 	@Getter
-	@Setter
-	private T realT;
+	private final int pc;
 
 	/**
 	 * Merge register types.
@@ -85,6 +87,13 @@ public class R {
 	}
 
 	@Getter
+	private final Kind kind;
+
+	@Getter
+	@Setter
+	private T realT;
+
+	@Getter
 	private R[] outs;
 
 	@Getter
@@ -95,15 +104,6 @@ public class R {
 
 	@Getter
 	private R[] ins;
-
-	/**
-	 * Register start pc. Method parameters (0) and merge event pcs can overlap with real operation.
-	 */
-	@Getter
-	private final int pc;
-
-	@Getter
-	private final Kind kind;
 
 	private T readT;
 
@@ -211,6 +211,7 @@ public class R {
 			if (!this.t.isResolveable()) {
 				return true;
 			}
+			// TODO problem with generic type reduction to classes, invoke interface allowed
 			assert false;
 		}
 		if (this.t != reducedT) {
