@@ -933,8 +933,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitIntInsn(final int opcode, final int operand) {
-		final T t = null;
-
 		switch (opcode) {
 		/********
 		 * PUSH *
