@@ -1224,6 +1224,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitLocalVariable(final String name, final String desc, final String signature,
 			final Label start, final Label end, final int index) {
+		// TODO this is wrong, desc gives the reduced raw class-type, signature gives the
+		// ParameterizedType with type arguments
 		final T vT = this.du.getDescT(desc);
 		if (signature != null) {
 			vT.setSignature(signature);

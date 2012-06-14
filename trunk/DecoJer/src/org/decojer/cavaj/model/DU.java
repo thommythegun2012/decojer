@@ -30,6 +30,7 @@ import java.io.InputStream;
 import java.io.PushbackInputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -70,10 +71,9 @@ public class DU {
 		// init type cache with primitives-/multi-types
 		try {
 			for (final Field f : T.class.getFields()) {
-				if (f.getType() != T.class) {
+				if ((f.getModifiers() & Modifier.PUBLIC) == 0 || f.getType() != T.class) {
 					continue;
 				}
-				f.setAccessible(true);
 				final T t = (T) f.get(null);
 				this.ts.put(t.getName(), t);
 			}
