@@ -659,7 +659,7 @@ public class T {
 	 * @return true - is array
 	 */
 	public boolean isArray() {
-		return this.name.endsWith("[]");
+		return this.name.charAt(this.name.length() - 1) == ']';
 	}
 
 	/**
