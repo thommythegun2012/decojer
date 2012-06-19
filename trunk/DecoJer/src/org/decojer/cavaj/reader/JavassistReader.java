@@ -83,8 +83,7 @@ import org.decojer.cavaj.reader.javassist.ReadCodeAttribute;
  */
 public class JavassistReader implements ClassReader {
 
-	private final static Logger LOGGER = Logger.getLogger(JavassistReader.class
-			.getName());
+	private final static Logger LOGGER = Logger.getLogger(JavassistReader.class.getName());
 
 	private final DU du;
 
@@ -120,8 +119,7 @@ public class JavassistReader implements ClassReader {
 		SignatureAttribute signatureAttribute = null;
 		SourceFileAttribute sourceFileAttribute = null;
 		SyntheticAttribute syntheticAttribute = null;
-		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) classFile
-				.getAttributes()) {
+		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) classFile.getAttributes()) {
 			final String attributeTag = attributeInfo.getName();
 			if (AnnotationsAttribute.invisibleTag.equals(attributeTag)) {
 				annotationsAttributeRuntimeInvisible = (AnnotationsAttribute) attributeInfo;
@@ -140,8 +138,7 @@ public class JavassistReader implements ClassReader {
 			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
 				syntheticAttribute = (SyntheticAttribute) attributeInfo;
 			} else {
-				LOGGER.warning("Unknown class attribute tag '" + attributeTag
-						+ "'!");
+				LOGGER.warning("Unknown class attribute tag '" + attributeTag + "'!");
 			}
 		}
 
@@ -176,16 +173,13 @@ public class JavassistReader implements ClassReader {
 		if (enclosingMethodAttribute != null) {
 			if (enclosingMethodAttribute.methodIndex() > 0) {
 				// is anonymous class, is in method
-				final T methodT = this.du.getT(enclosingMethodAttribute
-						.className());
-				td.setEnclosingM(methodT.getM(
-						enclosingMethodAttribute.methodName(),
+				final T methodT = this.du.getT(enclosingMethodAttribute.className());
+				td.setEnclosingM(methodT.getM(enclosingMethodAttribute.methodName(),
 						enclosingMethodAttribute.methodDescriptor()));
 			}
 			if (enclosingMethodAttribute.classIndex() > 0) {
 				// is anonymous class, is in field initializer
-				td.setEnclosingT(this.du.getT(enclosingMethodAttribute
-						.className()));
+				td.setEnclosingT(this.du.getT(enclosingMethodAttribute.className()));
 			}
 		}
 		if (innerClassesAttribute != null) {
@@ -201,8 +195,7 @@ public class JavassistReader implements ClassReader {
 				}
 				if (t.getName().equals(innerClassesAttribute.outerClass(i))) {
 					// has member types (really contained inner classes)
-					memberTs.add(this.du.getT(innerClassesAttribute
-							.innerClass(i)));
+					memberTs.add(this.du.getT(innerClassesAttribute.innerClass(i)));
 					continue;
 				}
 			}
@@ -219,13 +212,11 @@ public class JavassistReader implements ClassReader {
 			td.setSynthetic(true);
 		}
 
-		for (final FieldInfo fieldInfo : (List<FieldInfo>) classFile
-				.getFields()) {
+		for (final FieldInfo fieldInfo : (List<FieldInfo>) classFile.getFields()) {
 			td.getBds().add(readField(td, fieldInfo));
 		}
 
-		for (final MethodInfo methodInfo : (List<MethodInfo>) classFile
-				.getMethods()) {
+		for (final MethodInfo methodInfo : (List<MethodInfo>) classFile.getMethods()) {
 			td.getBds().add(readMethod(td, methodInfo));
 		}
 
@@ -234,36 +225,31 @@ public class JavassistReader implements ClassReader {
 	}
 
 	@SuppressWarnings("unchecked")
-	private A readAnnotation(final Annotation annotation,
-			final RetentionPolicy retentionPolicy) {
+	private A readAnnotation(final Annotation annotation, final RetentionPolicy retentionPolicy) {
 		final T t = this.du.getT(annotation.getTypeName());
 		final A a = new A(t, retentionPolicy);
 		if (annotation.getMemberNames() != null) {
 			for (final String name : (Set<String>) annotation.getMemberNames()) {
-				a.addMember(name,
-						readValue(annotation.getMemberValue(name), this.du));
+				a.addMember(name, readValue(annotation.getMemberValue(name), this.du));
 			}
 		}
 		return a;
 	}
 
-	private A[] readAnnotations(
-			final AnnotationsAttribute annotationsAttributeRuntimeInvisible,
+	private A[] readAnnotations(final AnnotationsAttribute annotationsAttributeRuntimeInvisible,
 			final AnnotationsAttribute annotationsAttributeRuntimeVisible) {
 		A[] as = null;
 		// Visible comes first in bytecode, but here we start with invisible
 		// because of array extension trick
 		if (annotationsAttributeRuntimeInvisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeInvisible
-					.getAnnotations();
+			final Annotation[] annotations = annotationsAttributeRuntimeInvisible.getAnnotations();
 			as = new A[annotations.length];
 			for (int i = annotations.length; i-- > 0;) {
 				as[i] = readAnnotation(annotations[i], RetentionPolicy.CLASS);
 			}
 		}
 		if (annotationsAttributeRuntimeVisible != null) {
-			final Annotation[] annotations = annotationsAttributeRuntimeVisible
-					.getAnnotations();
+			final Annotation[] annotations = annotationsAttributeRuntimeVisible.getAnnotations();
 			if (as == null) {
 				as = new A[annotations.length];
 			} else {
@@ -287,8 +273,7 @@ public class JavassistReader implements ClassReader {
 		DeprecatedAttribute deprecatedAttribute = null;
 		SignatureAttribute signatureAttribute = null;
 		SyntheticAttribute syntheticAttribute = null;
-		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) fieldInfo
-				.getAttributes()) {
+		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) fieldInfo.getAttributes()) {
 			final String attributeTag = attributeInfo.getName();
 			if (AnnotationsAttribute.invisibleTag.equals(attributeTag)) {
 				annotationsAttributeRuntimeInvisible = (AnnotationsAttribute) attributeInfo;
@@ -314,8 +299,7 @@ public class JavassistReader implements ClassReader {
 		final T fieldT = du.getDescT(fieldInfo.getDescriptor());
 		final F f = t.getF(fieldInfo.getName(), fieldT);
 		f.setAccessFlags(fieldInfo.getAccessFlags());
-		if (signatureAttribute != null
-				&& signatureAttribute.getSignature() != null) {
+		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
 			f.setSignature(signatureAttribute.getSignature());
 		}
 
@@ -351,8 +335,8 @@ public class JavassistReader implements ClassReader {
 				value = constPool.getStringInfo(index);
 				break;
 			default:
-				LOGGER.warning("Unknown constant attribute '" + tag
-						+ "' for field info '" + fieldInfo.getName() + "'!");
+				LOGGER.warning("Unknown constant attribute '" + tag + "' for field info '"
+						+ fieldInfo.getName() + "'!");
 			}
 			fd.setValue(value);
 		}
@@ -380,8 +364,7 @@ public class JavassistReader implements ClassReader {
 		ParameterAnnotationsAttribute parameterAnnotationsAttributeRuntimeVisible = null;
 		SignatureAttribute signatureAttribute = null;
 		SyntheticAttribute syntheticAttribute = null;
-		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) methodInfo
-				.getAttributes()) {
+		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) methodInfo.getAttributes()) {
 			final String attributeTag = attributeInfo.getName();
 			if (AnnotationDefaultAttribute.tag.equals(attributeTag)) {
 				annotationDefaultAttribute = (AnnotationDefaultAttribute) attributeInfo;
@@ -395,11 +378,9 @@ public class JavassistReader implements ClassReader {
 				deprecatedAttribute = (DeprecatedAttribute) attributeInfo;
 			} else if (ExceptionsAttribute.tag.equals(attributeTag)) {
 				exceptionsAttribute = (ExceptionsAttribute) attributeInfo;
-			} else if (ParameterAnnotationsAttribute.invisibleTag
-					.equals(attributeTag)) {
+			} else if (ParameterAnnotationsAttribute.invisibleTag.equals(attributeTag)) {
 				parameterAnnotationsAttributeRuntimeInvisible = (ParameterAnnotationsAttribute) attributeInfo;
-			} else if (ParameterAnnotationsAttribute.visibleTag
-					.equals(attributeTag)) {
+			} else if (ParameterAnnotationsAttribute.visibleTag.equals(attributeTag)) {
 				parameterAnnotationsAttributeRuntimeVisible = (ParameterAnnotationsAttribute) attributeInfo;
 			} else if (SignatureAttribute.tag.equals(attributeTag)) {
 				signatureAttribute = (SignatureAttribute) attributeInfo;
@@ -426,18 +407,15 @@ public class JavassistReader implements ClassReader {
 				m.setThrowsTs(throwsTs);
 			}
 		}
-		if (signatureAttribute != null
-				&& signatureAttribute.getSignature() != null) {
+		if (signatureAttribute != null) {
 			m.setSignature(signatureAttribute.getSignature());
 		}
 
 		final MD md = new MD(m, td);
 
 		if (annotationDefaultAttribute != null) {
-			final MemberValue defaultMemberValue = annotationDefaultAttribute
-					.getDefaultValue();
-			final Object annotationDefaultValue = readValue(defaultMemberValue,
-					du);
+			final MemberValue defaultMemberValue = annotationDefaultAttribute.getDefaultValue();
+			final Object annotationDefaultValue = readValue(defaultMemberValue, du);
 			md.setAnnotationDefaultValue(annotationDefaultValue);
 		}
 
@@ -466,8 +444,7 @@ public class JavassistReader implements ClassReader {
 				final Annotation[] annotations = annotationss[i];
 				final A[] paramAs = paramAss[i] = new A[annotations.length];
 				for (int j = annotations.length; j-- > 0;) {
-					paramAs[j] = readAnnotation(annotations[j],
-							RetentionPolicy.CLASS);
+					paramAs[j] = readAnnotation(annotations[j], RetentionPolicy.CLASS);
 				}
 			}
 		}
@@ -487,16 +464,13 @@ public class JavassistReader implements ClassReader {
 				if (paramAs == null) {
 					paramAs = new A[annotations.length];
 				} else {
-					final A[] newParamAs = new A[annotations.length
-							+ paramAs.length];
-					System.arraycopy(paramAs, 0, newParamAs,
-							annotations.length, paramAs.length);
+					final A[] newParamAs = new A[annotations.length + paramAs.length];
+					System.arraycopy(paramAs, 0, newParamAs, annotations.length, paramAs.length);
 					paramAs = newParamAs;
 				}
 				paramAss[i] = paramAs;
 				for (int j = annotations.length; j-- > 0;) {
-					paramAs[j] = readAnnotation(annotations[j],
-							RetentionPolicy.RUNTIME);
+					paramAs[j] = readAnnotation(annotations[j], RetentionPolicy.RUNTIME);
 				}
 			}
 		}
@@ -512,12 +486,10 @@ public class JavassistReader implements ClassReader {
 	private Object readValue(final MemberValue memberValue, final DU du) {
 		if (memberValue instanceof AnnotationMemberValue) {
 			// retention unknown for annotation constant
-			return readAnnotation(
-					((AnnotationMemberValue) memberValue).getValue(), null);
+			return readAnnotation(((AnnotationMemberValue) memberValue).getValue(), null);
 		}
 		if (memberValue instanceof ArrayMemberValue) {
-			final MemberValue[] values = ((ArrayMemberValue) memberValue)
-					.getValue();
+			final MemberValue[] values = ((ArrayMemberValue) memberValue).getValue();
 			final Object[] objects = new Object[values.length];
 			for (int i = values.length; i-- > 0;) {
 				objects[i] = readValue(values[i], du);
@@ -540,8 +512,7 @@ public class JavassistReader implements ClassReader {
 			return ((DoubleMemberValue) memberValue).getValue();
 		} else if (memberValue instanceof EnumMemberValue) {
 			final T enumT = du.getT(((EnumMemberValue) memberValue).getType());
-			final F enumF = enumT.getF(
-					((EnumMemberValue) memberValue).getValue(), enumT);
+			final F enumF = enumT.getF(((EnumMemberValue) memberValue).getValue(), enumT);
 			enumF.markAf(AF.ENUM);
 			return enumF;
 		}
@@ -560,8 +531,7 @@ public class JavassistReader implements ClassReader {
 		if (memberValue instanceof StringMemberValue) {
 			return ((StringMemberValue) memberValue).getValue();
 		}
-		LOGGER.warning("Unknown member value type '"
-				+ memberValue.getClass().getName() + "'!");
+		LOGGER.warning("Unknown member value type '" + memberValue.getClass().getName() + "'!");
 		return null;
 	}
 
