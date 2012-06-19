@@ -31,6 +31,7 @@ import java.io.PushbackInputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -42,10 +43,13 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.decojer.DecoJerException;
+import org.decojer.cavaj.model.type.ParamT;
+import org.decojer.cavaj.model.type.ParamT.TypeArg;
 import org.decojer.cavaj.reader.AsmReader;
 import org.decojer.cavaj.reader.ClassReader;
 import org.decojer.cavaj.reader.DexReader;
 import org.decojer.cavaj.reader.SmaliReader;
+import org.decojer.cavaj.util.Cursor;
 import org.decojer.cavaj.util.MagicNumbers;
 
 /**
@@ -115,47 +119,7 @@ public class DU {
 	 * @return type declaration
 	 */
 	public T getDescT(final String desc) {
-		assert desc != null;
-
-		switch (desc.charAt(0)) {
-		case 'I':
-			return T.INT;
-		case 'S':
-			return T.SHORT;
-		case 'B':
-			return T.BYTE;
-		case 'C':
-			return T.CHAR;
-		case 'Z':
-			return T.BOOLEAN;
-		case 'F':
-			return T.FLOAT;
-		case 'J':
-			return T.LONG;
-		case 'D':
-			return T.DOUBLE;
-		case 'V':
-			return T.VOID;
-		case 'L': {
-			final int pos = desc.indexOf(';', 1);
-			if (pos == -1) {
-				throw new DecoJerException("Missing ';' in reference descriptor: " + desc);
-			}
-			return getT(desc.substring(1, pos));
-		}
-		case '[':
-			int dim = 0;
-			while (desc.charAt(++dim) == '[') {
-				;
-			}
-			final T componentT = getDescT(desc.substring(dim));
-			final StringBuffer name = new StringBuffer(componentT.getName());
-			for (int i = dim; i-- > 0;) {
-				name.append("[]");
-			}
-			return getT(name.toString());
-		}
-		throw new DecoJerException("Unknown descriptor: " + desc);
+		return parseT(desc, new Cursor());
 	}
 
 	/**
@@ -219,6 +183,161 @@ public class DU {
 	 */
 	public Set<Entry<String, TD>> getTds() {
 		return this.tds.entrySet();
+	}
+
+	public T parseArrayT(final String desc, final Cursor c) {
+		assert desc.charAt(c.pos) == '[';
+
+		++c.pos;
+		return getArrayT(parseT(desc, c));
+	}
+
+	public T parseClassT(final String desc, final Cursor c) {
+		assert desc.charAt(c.pos) == 'L';
+
+		++c.pos;
+		final int pos = c.pos;
+		char t;
+		do {
+			t = desc.charAt(c.pos++);
+		} while (t != '<' && t != ';');
+		final T rawT = getT(desc.substring(pos, c.pos - 1));
+		if (t != '<') {
+			return rawT;
+		}
+		--c.pos;
+		final TypeArg[] typeArgs = parseTypeArgs(desc, c);
+		++c.pos;
+
+		// assert rawT.getTypeParams().length == typeArgs.length; // TODO
+
+		return new ParamT(rawT, typeArgs);
+	}
+
+	/**
+	 * Parse method parameter types.
+	 * 
+	 * @param desc
+	 *            descriptor
+	 * @param c
+	 *            c
+	 * @return method parameter types
+	 */
+	public T[] parseMethodParamTs(final String desc, final Cursor c) {
+		assert desc.charAt(c.pos) == '(';
+
+		++c.pos;
+		final ArrayList<T> ts = new ArrayList<T>();
+		while (desc.charAt(c.pos) != ')') {
+			ts.add(parseT(desc, c));
+		}
+		++c.pos;
+		return ts.toArray(new T[ts.size()]);
+	}
+
+	/**
+	 * Parse type in descriptor.
+	 * 
+	 * @param desc
+	 *            descriptor
+	 * @param c
+	 *            cursor
+	 * @return type
+	 */
+	public T parseT(final String desc, final Cursor c) {
+		switch (desc.charAt(c.pos++)) {
+		case 'I':
+			return T.INT;
+		case 'S':
+			return T.SHORT;
+		case 'B':
+			return T.BYTE;
+		case 'C':
+			return T.CHAR;
+		case 'Z':
+			return T.BOOLEAN;
+		case 'F':
+			return T.FLOAT;
+		case 'J':
+			return T.LONG;
+		case 'D':
+			return T.DOUBLE;
+		case 'V':
+			return T.VOID;
+		case 'L':
+			--c.pos;
+			return parseClassT(desc, c);
+		case '[':
+			--c.pos;
+			return parseArrayT(desc, c);
+		case 'T':
+			final int pos = desc.indexOf(';', c.pos);
+			if (pos == -1) {
+				throw new DecoJerException("Type variable descriptor '" + desc + "' at position '"
+						+ c.pos + "' must end with ';'!");
+			}
+			final T t = new T(this, desc.substring(c.pos, pos)); // TODO
+			c.pos = pos + 1;
+			return t;
+		}
+		throw new DecoJerException("Unknown type in '" + desc + "' at position '" + c.pos + "'!");
+	}
+
+	public TypeArg[] parseTypeArgs(final String desc, final Cursor c) {
+		assert desc.charAt(c.pos) == '<';
+
+		++c.pos;
+		final ArrayList<TypeArg> ts = new ArrayList<TypeArg>();
+		char t;
+		while ((t = desc.charAt(c.pos)) != '>') {
+			switch (t) {
+			case '+':
+				++c.pos;
+				ts.add(TypeArg.superOf(parseT(desc, c)));
+				break;
+			case '-':
+				++c.pos;
+				ts.add(TypeArg.subclassOf(parseT(desc, c)));
+				break;
+			case '*':
+				++c.pos;
+				ts.add(new TypeArg());
+				break;
+			default:
+				ts.add(new TypeArg(parseT(desc, c)));
+			}
+		}
+		++c.pos;
+		return ts.toArray(new TypeArg[ts.size()]);
+	}
+
+	public T[] parseTypeParams(final String desc, final Cursor c) {
+		if (desc.charAt(c.pos) != '<') {
+			return null;
+		}
+		++c.pos;
+		final ArrayList<T> ts = new ArrayList<T>();
+		while (desc.charAt(c.pos) != '>') {
+			final int pos = desc.indexOf(':', ++c.pos);
+			if (pos == -1) {
+				throw new DecoJerException("Type parameter name '" + desc + "' at position '"
+						+ c.pos + "' must end with ':'!");
+			}
+			final T typeParam = new T(this, desc.substring(c.pos, pos));
+			c.pos = pos + 1;
+			if (desc.charAt(c.pos) != ':') {
+				typeParam.setSuperT(parseT(desc, c));
+			}
+			final ArrayList<T> interfaceTs = new ArrayList<T>();
+			while (desc.charAt(c.pos) == ':') {
+				++c.pos;
+				interfaceTs.add(parseT(desc, c));
+			}
+			typeParam.setInterfaceTs(interfaceTs.toArray(new T[interfaceTs.size()]));
+			ts.add(typeParam);
+		}
+		++c.pos;
+		return ts.toArray(new T[ts.size()]);
 	}
 
 	/**

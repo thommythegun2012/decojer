@@ -33,7 +33,55 @@ import org.decojer.cavaj.model.T;
  * @author André Pankraz
  */
 @Getter
-public class ParamT {
+public class ParamT extends T {
+
+	@Getter
+	public static class TypeArg {
+
+		public enum Kind {
+
+			MATCH,
+
+			UNBOUND,
+
+			SUBCLASS_OF,
+
+			SUPER_OF
+
+		}
+
+		public static TypeArg subclassOf(final T t) {
+			assert t != null;
+
+			return new TypeArg(t, Kind.SUBCLASS_OF);
+		}
+
+		public static TypeArg superOf(final T t) {
+			assert t != null;
+
+			return new TypeArg(t, Kind.SUPER_OF);
+		}
+
+		private final Kind kind;
+
+		private final T t;
+
+		public TypeArg() {
+			this(null, Kind.UNBOUND);
+		}
+
+		public TypeArg(final T t) {
+			this(t, Kind.MATCH);
+
+			assert t != null;
+		}
+
+		public TypeArg(final T t, final Kind kind) {
+			this.t = t;
+			this.kind = kind;
+		}
+
+	}
 
 	/**
 	 * Generic object type with matching type parameters.
@@ -43,7 +91,7 @@ public class ParamT {
 	/**
 	 * Type arguments for type parameters.
 	 */
-	private final T[] typeArgs;
+	private final TypeArg[] typeArgs;
 
 	/**
 	 * Constructor.
@@ -53,8 +101,8 @@ public class ParamT {
 	 * @param typeArgs
 	 *            type arguments for type parameters
 	 */
-	public ParamT(final T genericT, final T[] typeArgs) {
-		assert genericT != null;
+	public ParamT(final T genericT, final TypeArg[] typeArgs) {
+		super(genericT.getDu(), genericT.getName() + "_G_"); // TODO
 
 		this.genericT = genericT;
 		this.typeArgs = typeArgs;

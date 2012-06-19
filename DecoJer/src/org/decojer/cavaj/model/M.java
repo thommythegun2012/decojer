@@ -23,12 +23,10 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.ArrayList;
-
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.DecoJerException;
+import org.decojer.cavaj.util.Cursor;
 
 /**
  * Method.
@@ -55,18 +53,10 @@ public class M {
 	private final T returnT;
 
 	@Getter
-	@Setter
 	private String signature;
 
 	@Getter
-	private final T t;
-
-	/**
-	 * Throw types or null.
-	 */
-	@Getter
-	@Setter
-	private T[] throwsTs;
+	private T[] typeParams;
 
 	/**
 	 * Constructor.
@@ -87,52 +77,20 @@ public class M {
 		this.name = name;
 		this.descriptor = descriptor;
 
-		if (descriptor.charAt(0) != '(') {
-			throw new DecoJerException("Method descriptor must start with '('!");
-		}
-		final int endPos = descriptor.indexOf(')', 1);
-		if (endPos == -1) {
-			throw new DecoJerException("Method descriptor must contain ')'!");
-		}
-		final ArrayList<T> paramTs = new ArrayList<T>();
-		final DU du = t.getDu();
-		for (int pos = 1; pos < endPos;) {
-			final T paramT = du.getDescT(descriptor.substring(pos));
-			pos += paramT.getDescriptorLength();
-			paramTs.add(paramT);
-		}
-		this.paramTs = paramTs.toArray(new T[paramTs.size()]);
-		this.returnT = du.getDescT(descriptor.substring(endPos + 1));
+		final Cursor c = new Cursor();
+		this.paramTs = t.getDu().parseMethodParamTs(descriptor, c);
+		this.returnT = t.getDu().parseT(descriptor, c);
 	}
+
+	@Getter
+	private final T t;
 
 	/**
-	 * Constructor.
-	 * 
-	 * @param t
-	 *            type
-	 * @param name
-	 *            name
-	 * @param descriptor
-	 *            descriptor
-	 * @param returnT
-	 *            return type
-	 * @param paramTs
-	 *            parameter types
+	 * Throw types or null.
 	 */
-	public M(final T t, final String name, final String descriptor, final T returnT,
-			final T[] paramTs) {
-		assert t != null;
-		assert name != null;
-		assert descriptor != null;
-		assert returnT != null;
-		assert paramTs != null;
-
-		this.t = t;
-		this.name = name;
-		this.descriptor = descriptor;
-		this.returnT = returnT;
-		this.paramTs = paramTs;
-	}
+	@Getter
+	@Setter
+	private T[] throwsTs;
 
 	/**
 	 * Check access flag.
@@ -202,6 +160,22 @@ public class M {
 			this.paramNames = new String[this.paramTs.length];
 		}
 		this.paramNames[i] = name;
+	}
+
+	public void setSignature(final String signature) {
+		if (signature == null) {
+			return;
+		}
+		this.signature = signature;
+
+		final Cursor c = new Cursor();
+		this.typeParams = this.t.getDu().parseTypeParams(signature, c);
+		final T[] paramTs = this.t.getDu().parseMethodParamTs(signature, c);
+		final T returnT = this.t.getDu().parseT(signature, c);
+
+		if (this.returnT != returnT) {
+			System.out.println("RETURN: " + returnT);
+		}
 	}
 
 	@Override
