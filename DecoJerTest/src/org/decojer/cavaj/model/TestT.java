@@ -29,15 +29,15 @@ class TestT {
 
 	@Test
 	void getComponentT() {
-		assertEquals(int[].class.getComponentType(), int.class);
-		assertEquals(du.getT(int[].class).getComponentT(), T.INT);
+		assertSame(int[].class.getComponentType(), int.class);
+		assertSame(du.getT(int[].class).getComponentT(), T.INT);
 
-		assertEquals(Object[].class.getComponentType(), Object.class);
-		assertEquals(du.getT(Object[].class).getComponentT(), objectT);
+		assertSame(Object[].class.getComponentType(), Object.class);
+		assertSame(du.getT(Object[].class).getComponentT(), objectT);
 
-		assertEquals(Object[][].class.getComponentType(), Object[].class);
+		assertSame(Object[][].class.getComponentType(), Object[].class);
 		assertEquals(du.getT(Object[][].class).getComponentT(),
-				du.getT(Object[].class));
+				du.getT(Object[].class)); // EQUALS!!!
 
 		assertNull(Object.class.getComponentType());
 		assertNull(objectT.getComponentT());
