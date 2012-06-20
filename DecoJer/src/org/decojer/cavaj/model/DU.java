@@ -43,6 +43,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import org.decojer.DecoJerException;
+import org.decojer.cavaj.model.type.ArrayT;
 import org.decojer.cavaj.model.type.ParamT;
 import org.decojer.cavaj.model.type.ParamT.TypeArg;
 import org.decojer.cavaj.reader.AsmReader;
@@ -108,7 +109,10 @@ public class DU {
 	 * @return array type for component type
 	 */
 	public T getArrayT(final T componentT) {
-		return getT(componentT.getName() + "[]");
+		if (this.arrayInterfaceTs == null) {
+			this.arrayInterfaceTs = new T[] { getT(Cloneable.class), getT(Serializable.class) };
+		}
+		return new ArrayT(componentT, getT(Object.class), this.arrayInterfaceTs);
 	}
 
 	/**
@@ -148,18 +152,14 @@ public class DU {
 			// Class.getName() javadoc explains this trick, fall back to descriptor
 			return getDescT(name);
 		}
+		if (name.charAt(name.length() - 1) == ']' && name.charAt(name.length() - 2) == '[') {
+			return getArrayT(getT(name.substring(0, name.length() - 2)));
+		}
 		final String normName = name.replace('/', '.');
+
 		T t = this.ts.get(normName);
 		if (t == null) {
 			t = new T(this, normName);
-			if (normName.endsWith("[]")) {
-				t.setSuperT(getT(name.substring(0, name.length() - 2)));
-				if (this.arrayInterfaceTs == null) {
-					this.arrayInterfaceTs = new T[] { getT(Cloneable.class),
-							getT(Serializable.class) };
-				}
-				t.setInterfaceTs(this.arrayInterfaceTs);
-			}
 			this.ts.put(normName, t);
 		}
 		return t;

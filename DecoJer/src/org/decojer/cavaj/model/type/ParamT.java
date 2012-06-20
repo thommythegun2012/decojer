@@ -81,6 +81,30 @@ public class ParamT extends T {
 			this.kind = kind;
 		}
 
+		@Override
+		public String toString() {
+			switch (this.kind) {
+			case MATCH:
+				return this.t.toString();
+			case SUBCLASS_OF:
+				return "? extends " + this.t.toString();
+			case SUPER_OF:
+				return "? super " + this.t.toString();
+			case UNBOUND:
+				return "?";
+			}
+			return "???";
+		}
+
+	}
+
+	private static String toString(final T genericT, final TypeArg[] typeArgs) {
+		final StringBuilder sb = new StringBuilder(genericT.getName()).append('<');
+		for (final TypeArg typeArg : typeArgs) {
+			sb.append(typeArg).append(',');
+		}
+		sb.setCharAt(sb.length() - 1, '>');
+		return sb.toString();
 	}
 
 	/**
@@ -102,7 +126,7 @@ public class ParamT extends T {
 	 *            type arguments for type parameters
 	 */
 	public ParamT(final T genericT, final TypeArg[] typeArgs) {
-		super(genericT.getDu(), genericT.getName() + "_G_"); // TODO
+		super(genericT.getDu(), toString(genericT, typeArgs));
 
 		this.genericT = genericT;
 		this.typeArgs = typeArgs;

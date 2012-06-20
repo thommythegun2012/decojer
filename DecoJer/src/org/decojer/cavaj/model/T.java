@@ -274,12 +274,6 @@ public class T {
 		return t1;
 	}
 
-	@Getter
-	private final String name;
-
-	@Getter
-	private String signature;
-
 	public static T getDalvikIntT(final int value) {
 		int kinds = T.FLOAT.kind;
 		if (value == 0 || value == 1) {
@@ -297,6 +291,12 @@ public class T {
 		}
 		return getT(kinds);
 	}
+
+	@Getter
+	private final String name;
+
+	@Getter
+	private String signature;
 
 	public static T getJvmIntT(final int value) {
 		int kinds = 0;
@@ -335,6 +335,16 @@ public class T {
 		return t;
 	}
 
+	private static T getT(final Kind kind) {
+		T t = KIND_2_TS.get(kind.kind);
+		if (t != null) {
+			return t;
+		}
+		t = new T(kind.getName(), kind.kind);
+		KIND_2_TS.put(kind.kind, t);
+		return t;
+	}
+
 	/**
 	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
 	 */
@@ -347,16 +357,6 @@ public class T {
 
 	@Setter
 	private T[] interfaceTs;
-
-	private static T getT(final Kind kind) {
-		T t = KIND_2_TS.get(kind.kind);
-		if (t != null) {
-			return t;
-		}
-		t = new T(kind.getName(), kind.kind);
-		KIND_2_TS.put(kind.kind, t);
-		return t;
-	}
 
 	private static T getT(final Kind... kinds) {
 		// don't use types as input, restrict to kind-types
@@ -489,6 +489,14 @@ public class T {
 		return isResolveable() && (this.accessFlags & af.getValue()) != 0;
 	}
 
+	@Override
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof T)) {
+			return false;
+		}
+		return getName().equals(((T) obj).getName());
+	}
+
 	/**
 	 * Get component type of array type (null if no array type).
 	 * 
@@ -497,10 +505,7 @@ public class T {
 	 * @see Class#isAssignableFrom(Class)
 	 */
 	public T getComponentT() {
-		if (!isArray()) {
-			return null;
-		}
-		return this.superT;
+		return null;
 	}
 
 	/**
@@ -604,10 +609,12 @@ public class T {
 	 * @return super type
 	 */
 	public T getSuperT() {
-		if (isArray()) {
-			return this.du.getT(Object.class);
-		}
 		return isResolveable() ? this.superT : null;
+	}
+
+	@Override
+	public int hashCode() {
+		return getName().hashCode();
 	}
 
 	/**
@@ -649,7 +656,7 @@ public class T {
 	 * @return true - is array
 	 */
 	public boolean isArray() {
-		return this.name.charAt(this.name.length() - 1) == ']';
+		return false;
 	}
 
 	/**

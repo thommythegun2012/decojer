@@ -33,7 +33,7 @@ import org.decojer.cavaj.model.T;
  * @author André Pankraz
  */
 @Getter
-public class ArrayT {
+public class ArrayT extends T {
 
 	/**
 	 * Component type (could be an array type, has one dimension less).
@@ -45,11 +45,22 @@ public class ArrayT {
 	 * 
 	 * @param componentT
 	 *            component type
+	 * @param arraySuperT
+	 *            array super type, should be <code>Object</code>
+	 * @param arrayInterfaceTs
+	 *            array interface types, should be <code>Cloneable, Serializable</code>
 	 */
-	public ArrayT(final T componentT) {
-		assert componentT != null;
+	public ArrayT(final T componentT, final T arraySuperT, final T[] arrayInterfaceTs) {
+		super(arraySuperT.getDu(), componentT.getName() + "[]");
 
 		this.componentT = componentT;
+		setSuperT(arraySuperT);
+		setInterfaceTs(arrayInterfaceTs);
+	}
+
+	@Override
+	public boolean isArray() {
+		return true;
 	}
 
 }
