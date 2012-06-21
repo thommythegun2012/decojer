@@ -220,7 +220,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						for (int i = size; i-- > 0;) {
 							arrayInitializer.expressions().add(
 									Types.convertLiteral(bb.getCfg().getInFrame(op).peek().getT(),
-											null, this.cfg.getTd(), getAst()));
+											null, this.cfg.getTd()));
 						}
 						arrayCreation.dimensions().clear();
 					}
@@ -249,7 +249,7 @@ public final class TrIvmCfg2JavaExprStmts {
 			case CAST: {
 				final CAST cop = (CAST) op;
 				final CastExpression castExpression = getAst().newCastExpression();
-				castExpression.setType(Types.convertType(cop.getToT(), this.cfg.getTd(), getAst()));
+				castExpression.setType(Types.convertType(cop.getToT(), this.cfg.getTd()));
 				castExpression.setExpression(wrap(bb.pop(), Priority.TYPE_CAST));
 				bb.push(castExpression);
 				break;
@@ -347,13 +347,13 @@ public final class TrIvmCfg2JavaExprStmts {
 					// TODO Dalvik...assignment happened already...temporary register
 					expression = getAst().newArrayCreation();
 					((ArrayCreation) expression).setType((ArrayType) Types.convertType(t,
-							this.cfg.getTd(), getAst()));
+							this.cfg.getTd()));
 				}
 
 				final ArrayInitializer arrayInitializer = getAst().newArrayInitializer();
 				for (final Object value : cop.getValues()) {
 					arrayInitializer.expressions().add(
-							Types.convertLiteral(componentT, value, this.cfg.getTd(), getAst()));
+							Types.convertLiteral(componentT, value, this.cfg.getTd()));
 				}
 				((ArrayCreation) expression).setInitializer(arrayInitializer);
 
@@ -414,8 +414,8 @@ public final class TrIvmCfg2JavaExprStmts {
 				final InstanceofExpression instanceofExpression = getAst()
 						.newInstanceofExpression();
 				instanceofExpression.setLeftOperand(wrap(bb.pop(), Priority.INSTANCEOF));
-				instanceofExpression.setRightOperand(Types.convertType(cop.getT(),
-						this.cfg.getTd(), getAst()));
+				instanceofExpression
+						.setRightOperand(Types.convertType(cop.getT(), this.cfg.getTd()));
 				bb.push(instanceofExpression);
 				break;
 			}
@@ -776,11 +776,11 @@ public final class TrIvmCfg2JavaExprStmts {
 							switch (interfaceTs.length) {
 							case 0:
 								classInstanceCreation.setType(Types.convertType(newT.getSuperT(),
-										this.cfg.getTd(), getAst()));
+										this.cfg.getTd()));
 								break;
 							case 1:
 								classInstanceCreation.setType(Types.convertType(interfaceTs[0],
-										this.cfg.getTd(), getAst()));
+										this.cfg.getTd()));
 								break;
 							default:
 								break inner;
@@ -804,7 +804,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						// no int
 					}
 				}
-				classInstanceCreation.setType(Types.convertType(newT, this.cfg.getTd(), getAst()));
+				classInstanceCreation.setType(Types.convertType(newT, this.cfg.getTd()));
 				bb.push(classInstanceCreation);
 				break;
 			}
@@ -812,7 +812,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				final NEWARRAY cop = (NEWARRAY) op;
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
 				arrayCreation.setType(getAst().newArrayType(
-						Types.convertType(cop.getT(), this.cfg.getTd(), getAst())));
+						Types.convertType(cop.getT(), this.cfg.getTd())));
 				for (int i = cop.getDimensions(); i-- > 0;) {
 					arrayCreation.dimensions().add(bb.pop());
 				}
@@ -849,8 +849,7 @@ public final class TrIvmCfg2JavaExprStmts {
 			case PUSH: {
 				final PUSH cop = (PUSH) op;
 				final Expression expr = Types.convertLiteral(
-						this.cfg.getOutFrame(op).peek().getT(), cop.getValue(), this.cfg.getTd(),
-						getAst());
+						this.cfg.getOutFrame(op).peek().getT(), cop.getValue(), this.cfg.getTd());
 				if (expr != null) {
 					bb.push(expr);
 				}
@@ -1062,7 +1061,7 @@ public final class TrIvmCfg2JavaExprStmts {
 						final VariableDeclarationStatement variableDeclarationStatement = getAst()
 								.newVariableDeclarationStatement(variableDeclarationFragment);
 						variableDeclarationStatement.setType(Types.convertType(v.getT(),
-								this.cfg.getTd(), getAst()));
+								this.cfg.getTd()));
 						statement = variableDeclarationStatement;
 						break;
 					}
@@ -1187,7 +1186,7 @@ public final class TrIvmCfg2JavaExprStmts {
 		try {
 			final String classInfo = (String) ((PUSH) bb.getOp(1)).getValue();
 			expression = Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg.getDu()
-					.getT(classInfo), this.cfg.getTd(), getAst());
+					.getT(classInfo), this.cfg.getTd());
 		} catch (final Exception e) {
 			// rewrite to class literal didn't work
 			return false;
@@ -1311,7 +1310,7 @@ public final class TrIvmCfg2JavaExprStmts {
 					final String classInfo = ((StringLiteral) methodInvocation.arguments().get(0))
 							.getLiteralValue();
 					expression = Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg
-							.getDu().getT(classInfo), this.cfg.getTd(), getAst());
+							.getDu().getT(classInfo), this.cfg.getTd());
 					break rewrite;
 				} catch (final Exception e) {
 					// rewrite to class literal didn't work

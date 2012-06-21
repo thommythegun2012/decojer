@@ -27,16 +27,21 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.type.ArrayT;
+import org.decojer.cavaj.model.type.ParamT;
+import org.decojer.cavaj.model.type.ParamT.TypeArg;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeLiteral;
+import org.eclipse.jdt.core.dom.WildcardType;
 
 /**
- * Helper functions for types.
+ * Helper functions for Types.
  * 
  * @author André Pankraz
  */
@@ -45,27 +50,25 @@ public final class Types {
 	private final static Logger LOGGER = Logger.getLogger(Types.class.getName());
 
 	/**
-	 * Convert literal.
+	 * Convert Literal to AST Expression.
 	 * 
 	 * @param t
-	 *            literal type
+	 *            Literal Type
 	 * @param value
-	 *            literal value
+	 *            Literal Value
 	 * @param td
-	 *            type declaration context
-	 * @param ast
-	 *            abstract syntax tree
-	 * @return Eclipse literal expression
+	 *            Type Declaration (context)
+	 * @return AST Expression
 	 */
-	public static Expression convertLiteral(final T t, final Object value, final TD td,
-			final AST ast) {
+	public static Expression convertLiteral(final T t, final Object value, final TD td) {
+		final AST ast = td.getCu().getAst();
 		if (t.isRef() /* incl. T.AREF */) {
 			if (value == null) {
 				return ast.newNullLiteral();
 			}
 			if (t.getName().equals(Class.class.getName())) {
 				final TypeLiteral typeLiteral = ast.newTypeLiteral();
-				typeLiteral.setType(convertType((T) value, td, ast));
+				typeLiteral.setType(convertType((T) value, td));
 				return typeLiteral;
 			}
 			if (t.getName().equals(String.class.getName())) {
@@ -313,49 +316,78 @@ public final class Types {
 	}
 
 	/**
-	 * Convert type.
+	 * Convert Type.
 	 * 
 	 * @param t
-	 *            type
+	 *            Type
 	 * @param td
-	 *            type declaration context
-	 * @param ast
-	 *            abstract syntax tree
-	 * @return Eclipse type
+	 *            Type Declaration (context)
+	 * @return AST Type
 	 */
-	public static Type convertType(final T t, final TD td, final AST ast) {
-		final T componentT = t.getComponentT();
-		if (componentT != null) {
-			return ast.newArrayType(convertType(componentT, td, ast));
+	@SuppressWarnings("unchecked")
+	public static Type convertType(final T t, final TD td) {
+		final AST ast = td.getCu().getAst();
+		if (t instanceof ArrayT) {
+			return ast.newArrayType(convertType(t.getComponentT(), td));
+		}
+		if (t instanceof ParamT) {
+			final ParameterizedType parameterizedType = ast.newParameterizedType(convertType(
+					((ParamT) t).getGenericT(), td));
+			for (final TypeArg typeArg : ((ParamT) t).getTypeArgs()) {
+				switch (typeArg.getKind()) {
+				case UNBOUND: {
+					parameterizedType.typeArguments().add(ast.newWildcardType());
+					break;
+				}
+				case SUBCLASS_OF: {
+					final WildcardType wildcardType = ast.newWildcardType();
+					// default...newWildcardType.setUpperBound(true);
+					wildcardType.setBound(Types.convertType(typeArg.getT(), td));
+					parameterizedType.typeArguments().add(wildcardType);
+					break;
+				}
+				case SUPER_OF: {
+					final WildcardType wildcardType = ast.newWildcardType();
+					wildcardType.setUpperBound(false);
+					wildcardType.setBound(Types.convertType(typeArg.getT(), td));
+					parameterizedType.typeArguments().add(wildcardType);
+					break;
+				}
+				default: {
+					parameterizedType.typeArguments().add(Types.convertType(typeArg.getT(), td));
+				}
+				}
+				return parameterizedType;
+			}
 		}
 		if (t.isMulti()) {
 			LOGGER.warning("Convert type for multi-type '" + t + "'!");
 		}
-		if (t == T.INT) {
+		if (t.is(T.INT)) {
 			return ast.newPrimitiveType(PrimitiveType.INT);
 		}
-		if (t == T.SHORT) {
+		if (t.is(T.SHORT)) {
 			return ast.newPrimitiveType(PrimitiveType.SHORT);
 		}
-		if (t == T.BYTE) {
+		if (t.is(T.BYTE)) {
 			return ast.newPrimitiveType(PrimitiveType.BYTE);
 		}
-		if (t == T.CHAR) {
+		if (t.is(T.CHAR)) {
 			return ast.newPrimitiveType(PrimitiveType.CHAR);
 		}
-		if (t == T.BOOLEAN) {
+		if (t.is(T.BOOLEAN)) {
 			return ast.newPrimitiveType(PrimitiveType.BOOLEAN);
 		}
-		if (t == T.FLOAT) {
+		if (t.is(T.FLOAT)) {
 			return ast.newPrimitiveType(PrimitiveType.FLOAT);
 		}
-		if (t == T.LONG) {
+		if (t.is(T.LONG)) {
 			return ast.newPrimitiveType(PrimitiveType.LONG);
 		}
-		if (t == T.DOUBLE) {
+		if (t.is(T.DOUBLE)) {
 			return ast.newPrimitiveType(PrimitiveType.DOUBLE);
 		}
-		if (t == T.VOID) {
+		if (t.is(T.VOID)) {
 			return ast.newPrimitiveType(PrimitiveType.VOID);
 		}
 		return ast.newSimpleType(td.newTypeName(t));

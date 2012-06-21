@@ -33,29 +33,24 @@ import org.decojer.cavaj.util.Cursor;
  * 
  * @author André Pankraz
  */
+@Getter
 public class M {
 
-	@Getter
 	@Setter
 	private int accessFlags;
 
-	@Getter
 	private final String descriptor;
 
-	@Getter
 	private final String name;
 
 	private String[] paramNames;
 
 	private final T[] paramTs;
 
-	@Getter
 	private final T returnT;
 
-	@Getter
 	private String signature;
 
-	@Getter
 	private T[] typeParams;
 
 	/**

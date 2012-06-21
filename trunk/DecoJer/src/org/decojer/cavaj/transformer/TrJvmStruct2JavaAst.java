@@ -27,6 +27,7 @@ import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
@@ -38,13 +39,13 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.util.AnnotationsDecompiler;
-import org.decojer.cavaj.util.SignatureDecompiler;
 import org.decojer.cavaj.util.Types;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
+import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
@@ -55,9 +56,11 @@ import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
+import org.eclipse.jdt.core.dom.TypeParameter;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 /**
@@ -109,6 +112,7 @@ public final class TrJvmStruct2JavaAst {
 			variableDeclarationFragment.setName(ast.newSimpleName(name));
 			fieldDeclaration = ast.newFieldDeclaration(variableDeclarationFragment);
 		}
+		fd.setFieldDeclaration(fieldDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
 		if (fd.isDeprecated() && !AnnotationsDecompiler.isDeprecatedAnnotation(fd.getAs())) {
@@ -162,17 +166,11 @@ public final class TrJvmStruct2JavaAst {
 
 		// not for enum constant declaration
 		if (fieldDeclaration instanceof FieldDeclaration) {
-			if (f.getSignature() != null) {
-				new SignatureDecompiler(td, null, f.getSignature())
-						.decompileFieldType((FieldDeclaration) fieldDeclaration);
-			} else {
-				((FieldDeclaration) fieldDeclaration).setType(Types.convertType(f.getValueT(), td,
-						ast));
-			}
+			((FieldDeclaration) fieldDeclaration).setType(Types.convertType(f.getValueT(), td));
 			final Object value = fd.getValue();
 			if (value != null) {
 				// only final, non static - no arrays, class types
-				final Expression expr = Types.convertLiteral(f.getValueT(), value, td, ast);
+				final Expression expr = Types.convertLiteral(f.getValueT(), value, td);
 				if (expr != null) {
 					final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
 							.fragments().get(0);
@@ -180,7 +178,6 @@ public final class TrJvmStruct2JavaAst {
 				}
 			}
 		}
-		fd.setFieldDeclaration(fieldDeclaration);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -224,8 +221,7 @@ public final class TrJvmStruct2JavaAst {
 			// AnnotationTypeMemberDeclaration
 			methodDeclaration = ast.newAnnotationTypeMemberDeclaration();
 			((AnnotationTypeMemberDeclaration) methodDeclaration).setName(ast.newSimpleName(name));
-
-			// check if default value (byte byteTest() default 2;)
+			// check if default value (e.g.: byte byteTest() default 2;)
 			if (md.getAnnotationDefaultValue() != null) {
 				final Expression expression = AnnotationsDecompiler
 						.decompileAnnotationDefaultValue(td, md.getAnnotationDefaultValue());
@@ -238,6 +234,7 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setName(ast.newSimpleName(name));
 		}
+		md.setMethodDeclaration(methodDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
 		if (md.isDeprecated() && !AnnotationsDecompiler.isDeprecatedAnnotation(md.getAs())) {
@@ -300,8 +297,9 @@ public final class TrJvmStruct2JavaAst {
 		 * AF.CONSTRUCTOR, AF.DECLARED_SYNCHRONIZED nothing, Dalvik only?
 		 */
 		if (methodDeclaration instanceof MethodDeclaration) {
-			new SignatureDecompiler(td, m.getDescriptor(), m.getSignature()).decompileMethodParams(
-					(MethodDeclaration) methodDeclaration, md);
+			decompileTypeParams(md.getM().getTypeParams(),
+					((MethodDeclaration) methodDeclaration).typeParameters(), td);
+			decompileMethodParams(md);
 			if (!m.check(AF.ABSTRACT) && !m.check(AF.NATIVE)) {
 				// create method block for valid syntax, abstract and native methods have none
 				final Block block = ast.newBlock();
@@ -320,20 +318,121 @@ public final class TrJvmStruct2JavaAst {
 				md.getCfg().setBlock(((Initializer) methodDeclaration).getBody());
 			}
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
-			final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(td,
-					m.getDescriptor(), m.getSignature());
-			// should be empty, skip "()"
-			final List<Type> methodParameterTypes = signatureDecompiler
-					.decompileMethodParameterTypes();
+			assert m.getParamTs().length == 0;
 
-			assert methodParameterTypes.size() == 0 : methodParameterTypes;
+			((AnnotationTypeMemberDeclaration) methodDeclaration).setType(Types.convertType(
+					m.getReturnT(), td));
+		}
+	}
 
-			final Type returnType = signatureDecompiler.decompileType();
-			if (returnType != null) {
-				((AnnotationTypeMemberDeclaration) methodDeclaration).setType(returnType);
+	/**
+	 * Decompile method parameters (parameter types, return type, exception types, annotations,
+	 * names).
+	 * 
+	 * @param md
+	 *            method declaration
+	 */
+	@SuppressWarnings("unchecked")
+	private static void decompileMethodParams(final MD md) {
+		// method type parameters (full signature only):
+		// <T:Ljava/lang/Integer;U:Ljava/lang/Long;>(TT;TU;)V
+		// <U:TT;>(TT;TU;)V
+		final MethodDeclaration methodDeclaration = (MethodDeclaration) md.getMethodDeclaration();
+		final TD td = md.getTd();
+		final M m = md.getM();
+		final AST ast = td.getCu().getAst();
+
+		final T[] paramTs = md.getM().getParamTs();
+		final A[][] paramAs = md.getParamAss();
+		for (int i = 0; i < paramTs.length; ++i) {
+			final Type methodParameterType = Types.convertType(paramTs[i], td);
+			if (methodDeclaration.isConstructor()) {
+
+				if (i <= 1 && td.getT().check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
+					// enum constructors have two leading synthetic parameters,
+					// enum classes are static and can not be anonymous or inner method
+					if (i == 0 && m.getParamT(0).is(String.class)) {
+						continue;
+					}
+					if (i == 1 && m.getParamT(1) == T.INT) {
+						continue;
+					}
+				}
+				// anonymous inner classes cannot have visible Java constructors, don't handle
+				// here but ignore in merge all
+
+				// method inner classes have extra trailing parameters for visible outer finals,
+				// that are used in other methods
+
+				// static inner classes can only have top-level or static outer,
+				// anonymous inner classes are static if context is static,
+				// enums are static and can not be anonymous or inner method
+			}
+			final SingleVariableDeclaration singleVariableDeclaration = ast
+					.newSingleVariableDeclaration();
+			if (paramAs != null && i < paramAs.length) {
+				AnnotationsDecompiler.decompileAnnotations(td,
+						singleVariableDeclaration.modifiers(), paramAs[i]);
+			}
+			// decompile varargs (flag set, ArrayType and last method param)
+			if (i == paramTs.length - 1 && m.check(AF.VARARGS)) {
+				if (methodParameterType instanceof ArrayType) {
+					singleVariableDeclaration.setVarargs(true);
+					singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
+							((ArrayType) methodParameterType).getComponentType()));
+				} else {
+					LOGGER.warning("Last method parameter is no ArrayType, but method '"
+							+ methodDeclaration.getName() + "' has vararg attribute!");
+					// try handling as normal type
+					singleVariableDeclaration.setType(methodParameterType);
+				}
+			} else {
+				singleVariableDeclaration.setType(methodParameterType);
+			}
+			singleVariableDeclaration.setName(ast.newSimpleName(m.getParamName(i)));
+			methodDeclaration.parameters().add(singleVariableDeclaration);
+		}
+		// decompile return type
+		methodDeclaration.setReturnType2(Types.convertType(m.getReturnT(), td));
+		// decompile exceptions
+		final T[] throwsTs = m.getThrowsTs();
+		if (throwsTs != null) {
+			for (final T throwT : throwsTs) {
+				// strange AST API?! thrownExceptions consist of List<Name>, not List<Type>
+				methodDeclaration.thrownExceptions().add(td.newTypeName(throwT));
 			}
 		}
-		md.setMethodDeclaration(methodDeclaration);
+	}
+
+	/**
+	 * Decompile Type Parameters.
+	 * 
+	 * @param typeParams
+	 *            Type Parameters
+	 * @param typeParameters
+	 *            AST Type Parameters
+	 * @param td
+	 *            Type Declaration
+	 */
+	@SuppressWarnings("unchecked")
+	private static void decompileTypeParams(final T[] typeParams,
+			final List<TypeParameter> typeParameters, final TD td) {
+		if (typeParams == null) {
+			return;
+		}
+		final AST ast = td.getCu().getAst();
+		for (final T typeParam : typeParams) {
+			final TypeParameter typeParameter = ast.newTypeParameter();
+			typeParameter.setName(ast.newSimpleName(typeParam.getName()));
+			final T superT = typeParam.getSuperT();
+			if (!superT.is(Object.class)) {
+				typeParameter.typeBounds().add(Types.convertType(typeParam.getSuperT(), td));
+			}
+			for (final T interfaceT : typeParam.getInterfaceTs()) {
+				typeParameter.typeBounds().add(Types.convertType(interfaceT, td));
+			}
+			typeParameters.add(typeParameter);
+		}
 	}
 
 	/**
@@ -405,11 +504,16 @@ public final class TrJvmStruct2JavaAst {
 			// declaration
 			if (typeDeclaration == null) {
 				typeDeclaration = ast.newTypeDeclaration();
-
-				final SignatureDecompiler signatureDecompiler = new SignatureDecompiler(td, "L"
-						+ t.getSuperT().getName() + ";", t.getSignature());
-				signatureDecompiler.decompileClassTypes((TypeDeclaration) typeDeclaration,
-						t.getInterfaceTs());
+				decompileTypeParams(t.getTypeParams(),
+						((TypeDeclaration) typeDeclaration).typeParameters(), td);
+				if (!t.getSuperT().is(Object.class)) {
+					((TypeDeclaration) typeDeclaration).setSuperclassType(Types.convertType(
+							t.getSuperT(), td));
+				}
+				for (final T interfaceT : t.getInterfaceTs()) {
+					((TypeDeclaration) typeDeclaration).superInterfaceTypes().add(
+							Types.convertType(interfaceT, td));
+				}
 			}
 			td.setTypeDeclaration(typeDeclaration);
 
