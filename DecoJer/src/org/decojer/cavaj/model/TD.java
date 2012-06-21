@@ -42,7 +42,7 @@ import org.eclipse.jdt.core.dom.Name;
  * 
  * @author André Pankraz
  */
-public class TD implements BD, PD {
+public final class TD implements BD, PD {
 
 	private A[] as;
 

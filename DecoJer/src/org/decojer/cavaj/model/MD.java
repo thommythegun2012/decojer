@@ -31,7 +31,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * 
  * @author André Pankraz
  */
-public class MD implements BD, PD {
+public final class MD implements BD, PD {
 
 	private Object annotationDefaultValue;
 

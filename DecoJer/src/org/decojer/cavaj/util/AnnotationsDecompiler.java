@@ -34,6 +34,7 @@ import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.Expression;
@@ -45,25 +46,25 @@ import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.TypeLiteral;
 
 /**
- * Annotations decompiler.
+ * Annotations Decompiler.
  * 
  * @author André Pankraz
  */
-public class AnnotationsDecompiler {
+public final class AnnotationsDecompiler {
 
 	private final static Logger LOGGER = Logger.getLogger(AnnotationsDecompiler.class.getName());
 
 	/**
-	 * Decompile annotation.
+	 * Decompile Annotation.
 	 * 
 	 * @param td
-	 *            type declaration
+	 *            Type Declaration
 	 * @param a
-	 *            annotation
-	 * @return annotation node or null
+	 *            Annotation
+	 * @return Annotation AST Node or <code>null</code>
 	 */
 	@SuppressWarnings("unchecked")
-	public static org.eclipse.jdt.core.dom.Annotation decompileAnnotation(final TD td, final A a) {
+	private static Annotation decompileAnnotation(final TD td, final A a) {
 		final AST ast = td.getCu().getAst();
 		if (a == null) {
 			return null;
@@ -104,13 +105,13 @@ public class AnnotationsDecompiler {
 	}
 
 	/**
-	 * Decompile annotation default value (value or default value literal).
+	 * Decompile Annotation Default Value (value or Default Value literal).
 	 * 
 	 * @param td
-	 *            type declaration
+	 *            Type Declaration
 	 * @param defaultValue
-	 *            default value
-	 * @return expression node or null
+	 *            Default Value
+	 * @return Expression AST Node or <code>null</code>
 	 */
 	@SuppressWarnings("unchecked")
 	public static Expression decompileAnnotationDefaultValue(final TD td, final Object defaultValue) {
@@ -188,23 +189,22 @@ public class AnnotationsDecompiler {
 	}
 
 	/**
-	 * Decompile annotations.
+	 * Decompile Annotations.
 	 * 
 	 * @param td
-	 *            type declaration
+	 *            Type Declaration
 	 * @param modifiers
-	 *            modifier nodes
+	 *            Annotation AST Nodes
 	 * @param as
-	 *            annotations
+	 *            Annotations
 	 */
-	public static void decompileAnnotations(final TD td,
-			final List<org.eclipse.jdt.core.dom.Annotation> modifiers, final A[] as) {
+	public static void decompileAnnotations(final TD td, final List<Annotation> modifiers,
+			final A[] as) {
 		if (as == null) {
 			return;
 		}
 		for (final A a : as) {
-			final org.eclipse.jdt.core.dom.Annotation decompileAnnotation = decompileAnnotation(td,
-					a);
+			final Annotation decompileAnnotation = decompileAnnotation(td, a);
 			if (decompileAnnotation != null) {
 				modifiers.add(decompileAnnotation);
 			}
@@ -212,11 +212,11 @@ public class AnnotationsDecompiler {
 	}
 
 	/**
-	 * Gets statement if annotations contain the deprecated annotation.
+	 * Do Annotations contain the Deprecated Annotation?
 	 * 
 	 * @param as
-	 *            annotations
-	 * @return true - annotations contain deprecated annotation.
+	 *            Annotations
+	 * @return true - Annotations contain the Deprecated Annotation
 	 */
 	public static boolean isDeprecatedAnnotation(final A[] as) {
 		if (as != null) {
@@ -227,6 +227,10 @@ public class AnnotationsDecompiler {
 			}
 		}
 		return false;
+	}
+
+	private AnnotationsDecompiler() {
+		// static helper class
 	}
 
 }

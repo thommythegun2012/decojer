@@ -46,7 +46,7 @@ import org.eclipse.text.edits.TextEdit;
  * 
  * @author André Pankraz
  */
-public class CU implements PD {
+public final class CU implements PD {
 
 	// all sub type declarations
 	private final List<TD> allTds = new ArrayList<TD>();

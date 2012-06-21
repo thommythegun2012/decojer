@@ -31,7 +31,7 @@ import org.eclipse.jdt.core.dom.Expression;
  * 
  * @author André Pankraz
  */
-public class FD implements BD, PD {
+public final class FD implements BD, PD {
 
 	private A[] as;
 

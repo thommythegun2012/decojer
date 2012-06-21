@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class Exc {
+public final class Exc {
 
 	private int endPc;
 

@@ -33,7 +33,7 @@ import org.decojer.cavaj.model.code.op.RET;
  * 
  * @author André Pankraz
  */
-public class Sub {
+public final class Sub {
 
 	@Getter
 	private final int pc;

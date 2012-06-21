@@ -64,7 +64,7 @@ import org.eclipse.jdt.core.dom.PrefixExpression;
  * 
  * @author André Pankraz
  */
-public class OperatorPrecedence {
+public final class OperatorPrecedence {
 
 	private final static Logger LOGGER = Logger.getLogger(OperatorPrecedence.class.getName());
 
@@ -161,6 +161,10 @@ public class OperatorPrecedence {
 			return ASSIGNMENT;
 		}
 		return LITERAL;
+	}
+
+	private OperatorPrecedence() {
+		// static helper class
 	}
 
 }
