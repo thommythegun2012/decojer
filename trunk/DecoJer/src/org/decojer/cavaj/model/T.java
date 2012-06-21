@@ -435,6 +435,9 @@ public class T {
 		return new T(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
 	}
 
+	/**
+	 * Type Parameters. (They define the useable Type Variables)
+	 */
 	@Getter
 	private T[] typeParams;
 
@@ -868,7 +871,20 @@ public class T {
 
 		final Cursor c = new Cursor();
 		this.typeParams = getDu().parseTypeParams(signature, c);
-		final T returnT = getDu().parseT(signature, c);
+		this.superT = getDu().parseT(signature, c); // TODO check
+		final ArrayList<T> interfaceTs = new ArrayList<T>();
+		while (true) {
+			final T t = getDu().parseT(signature, c);
+			if (t == null) {
+				break;
+			}
+			interfaceTs.add(t);
+		}
+		if (!interfaceTs.isEmpty()) {
+			assert this.interfaceTs.length == interfaceTs.size(); // TODO more checks
+
+			this.interfaceTs = interfaceTs.toArray(new T[interfaceTs.size()]);
+		}
 	}
 
 	@Override
