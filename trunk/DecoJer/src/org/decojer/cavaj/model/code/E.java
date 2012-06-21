@@ -33,7 +33,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class E {
+public final class E {
 
 	@Getter
 	@Setter

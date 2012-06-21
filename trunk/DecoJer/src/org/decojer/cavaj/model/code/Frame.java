@@ -32,7 +32,7 @@ import org.decojer.cavaj.model.code.R.Kind;
  * 
  * @author André Pankraz
  */
-public class Frame {
+public final class Frame {
 
 	private final static Logger LOGGER = Logger.getLogger(Frame.class.getName());
 

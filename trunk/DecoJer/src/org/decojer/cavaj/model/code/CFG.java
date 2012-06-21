@@ -48,7 +48,7 @@ import org.eclipse.jdt.core.dom.Block;
  * 
  * @author André Pankraz
  */
-public class CFG {
+public final class CFG {
 
 	private final static Logger LOGGER = Logger.getLogger(CFG.class.getName());
 

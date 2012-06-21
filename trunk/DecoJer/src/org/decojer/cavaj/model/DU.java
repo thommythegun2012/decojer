@@ -60,7 +60,7 @@ import org.decojer.cavaj.util.MagicNumbers;
  * 
  * @author André Pankraz
  */
-public class DU {
+public final class DU {
 
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
 

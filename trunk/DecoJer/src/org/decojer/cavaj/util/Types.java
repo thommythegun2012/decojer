@@ -40,7 +40,7 @@ import org.eclipse.jdt.core.dom.TypeLiteral;
  * 
  * @author André Pankraz
  */
-public class Types {
+public final class Types {
 
 	private final static Logger LOGGER = Logger.getLogger(Types.class.getName());
 
@@ -359,6 +359,10 @@ public class Types {
 			return ast.newPrimitiveType(PrimitiveType.VOID);
 		}
 		return ast.newSimpleType(td.newTypeName(t));
+	}
+
+	private Types() {
+		// static helper class
 	}
 
 }

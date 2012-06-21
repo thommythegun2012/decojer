@@ -33,7 +33,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class R {
+public final class R {
 
 	/**
 	 * Register kind.
@@ -65,12 +65,6 @@ public class R {
 	}
 
 	/**
-	 * Register start pc. Method parameters (0) and merge event pcs can overlap with real operation.
-	 */
-	@Getter
-	private final int pc;
-
-	/**
 	 * Merge register types.
 	 * 
 	 * @param r1
@@ -87,6 +81,15 @@ public class R {
 	}
 
 	@Getter
+	private R[] ins;
+
+	/**
+	 * Register start pc. Method parameters (0) and merge event pcs can overlap with real operation.
+	 */
+	@Getter
+	private final int pc;
+
+	@Getter
 	private final Kind kind;
 
 	@Getter
@@ -101,9 +104,6 @@ public class R {
 
 	@Getter
 	private Object value;
-
-	@Getter
-	private R[] ins;
 
 	private T readT;
 

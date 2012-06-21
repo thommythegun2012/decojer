@@ -36,7 +36,7 @@ import org.eclipse.jdt.core.dom.PrefixExpression;
  * 
  * @author André Pankraz
  */
-public class Expressions {
+public final class Expressions {
 
 	/**
 	 * New infix expression. Attention: First comes right expression, good for stack simulation.
@@ -152,6 +152,10 @@ public class Expressions {
 	 */
 	public static Expression wrap(final Expression expression, final Priority priority) {
 		return wrap(expression, priority.getPriority());
+	}
+
+	private Expressions() {
+		// static helper class
 	}
 
 }

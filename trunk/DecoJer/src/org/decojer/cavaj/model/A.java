@@ -34,7 +34,7 @@ import lombok.Getter;
  * 
  * @author André Pankraz
  */
-public class A {
+public final class A {
 
 	private final LinkedHashMap<String, Object> members = new LinkedHashMap<String, Object>();
 

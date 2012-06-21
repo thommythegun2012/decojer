@@ -24,11 +24,11 @@
 package org.decojer.cavaj.util;
 
 /**
- * Cursor for parsing, holds current position.
+ * Cursor for parsing, holds modifiable current position.
  * 
  * @author André Pankraz
  */
-public class Cursor {
+public final class Cursor {
 
 	public int pos;
 
