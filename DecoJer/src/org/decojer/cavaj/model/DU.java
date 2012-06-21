@@ -363,7 +363,7 @@ public final class DU {
 		++c.pos;
 		final ArrayList<T> ts = new ArrayList<T>();
 		while (s.charAt(c.pos) != '>') {
-			final int pos = s.indexOf(':', ++c.pos);
+			final int pos = s.indexOf(':', c.pos);
 			if (pos == -1) {
 				throw new DecoJerException("Type parameter name '" + s + "' at position '" + c.pos
 						+ "' must end with ':'!");
