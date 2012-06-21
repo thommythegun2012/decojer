@@ -28,15 +28,15 @@ import lombok.Getter;
 import org.decojer.cavaj.model.T;
 
 /**
- * Array type.
+ * Array Type.
  * 
  * @author André Pankraz
  */
 @Getter
-public class ArrayT extends T {
+public final class ArrayT extends T {
 
 	/**
-	 * Component type (could be an array type, has one dimension less).
+	 * Component Type (could be an Array Type too, has one dimension less).
 	 */
 	private final T componentT;
 
@@ -44,11 +44,11 @@ public class ArrayT extends T {
 	 * Constructor.
 	 * 
 	 * @param componentT
-	 *            component type
+	 *            Component Type
 	 * @param arraySuperT
-	 *            array super type, should be <code>Object</code>
+	 *            Array Super Type, should be <code>Object</code>
 	 * @param arrayInterfaceTs
-	 *            array interface types, should be <code>Cloneable, Serializable</code>
+	 *            Array Interface Types, should be <code>Cloneable, Serializable</code>
 	 */
 	public ArrayT(final T componentT, final T arraySuperT, final T[] arrayInterfaceTs) {
 		super(arraySuperT.getDu(), componentT.getName() + "[]");
