@@ -337,10 +337,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, DexOpcodes, OdexOpco
 	@Override
 	public void visitLocalVariable(final String name, final String type, final String signature,
 			final DexLabel start, final DexLabel end, final int reg) {
-		final T vT = this.du.getDescT(type);
-		if (signature != null) {
-			vT.setSignature(signature);
-		}
+		final T vT = this.du.getDescT(signature != null ? signature : type);
 		final int startPc = getPc(start);
 		final int endPc = getPc(end);
 

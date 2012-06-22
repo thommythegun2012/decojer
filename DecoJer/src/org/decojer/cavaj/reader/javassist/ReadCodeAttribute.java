@@ -1648,6 +1648,7 @@ public class ReadCodeAttribute {
 							+ "' without local variable attribute!");
 					continue;
 				}
+				// TODO wrong!
 				v.getT().setSignature(localVariableTypeAttribute.signature(i));
 			}
 		}

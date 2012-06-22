@@ -123,10 +123,7 @@ public class ReadClassVisitor extends ClassVisitor {
 			}
 			t.setInterfaceTs(interfaceTs);
 		}
-		if (signature != null) {
-			// Lorg/decojer/cavaj/test/jdk5/DecTestMethodTypeParams.1Test;
-			t.setSignature(signature);
-		}
+		t.setSignature(signature);
 
 		this.td = new TD(t);
 		// fix ASM bug: mixup of minor and major (which is 196653),

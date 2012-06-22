@@ -216,10 +216,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		System.out.println("*startLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
 				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
 
-		final T vT = this.du.getDescT(type.getTypeDescriptor());
-		if (signature != null) {
-			vT.setSignature(signature.getStringValue());
-		}
+		final T vT = this.du.getDescT(signature != null ? signature.getStringValue() : type
+				.getTypeDescriptor());
 		final V v = new V(vT, name.getStringValue(), codeAddress, -1);
 
 		ArrayList<V> vs = this.reg2vs.get(registerNum);

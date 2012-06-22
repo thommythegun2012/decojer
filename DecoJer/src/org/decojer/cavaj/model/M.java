@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.ArrayList;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,9 +47,9 @@ public class M {
 
 	private String[] paramNames;
 
-	private final T[] paramTs;
+	private T[] paramTs;
 
-	private final T returnT;
+	private T returnT;
 
 	private String signature;
 
@@ -73,19 +75,9 @@ public class M {
 		this.descriptor = descriptor;
 
 		final Cursor c = new Cursor();
-		this.paramTs = t.getDu().parseMethodParamTs(descriptor, c);
+		this.paramTs = parseMethodParamTs(descriptor, c);
 		this.returnT = t.getDu().parseT(descriptor, c);
 	}
-
-	@Getter
-	private final T t;
-
-	/**
-	 * Throw types or null.
-	 */
-	@Getter
-	@Setter
-	private T[] throwsTs;
 
 	/**
 	 * Check access flag.
@@ -111,6 +103,16 @@ public class M {
 		}
 		return this.paramNames[i];
 	}
+
+	@Getter
+	private final T t;
+
+	/**
+	 * Throw types or null.
+	 */
+	@Getter
+	@Setter
+	private T[] throwsTs;
 
 	/**
 	 * Get parameter number.
@@ -143,6 +145,48 @@ public class M {
 	}
 
 	/**
+	 * Parse Method Parameter Types from Signature.
+	 * 
+	 * @param s
+	 *            Signature
+	 * @param c
+	 *            Cursor
+	 * @return Method Parameter Types
+	 */
+	private T[] parseMethodParamTs(final String s, final Cursor c) {
+		assert s.charAt(c.pos) == '(';
+
+		++c.pos;
+		final ArrayList<T> ts = new ArrayList<T>();
+		while (s.charAt(c.pos) != ')') {
+			ts.add(this.t.getDu().parseT(s, c));
+		}
+		++c.pos;
+		return ts.toArray(new T[ts.size()]);
+	}
+
+	/**
+	 * Parse Throw Types from Signature.
+	 * 
+	 * @param s
+	 *            Signature
+	 * @param c
+	 *            Cursor
+	 * @return Throw Types or <code>null</code>
+	 */
+	private T[] parseThrowsTs(final String s, final Cursor c) {
+		if (c.pos >= s.length() || s.charAt(c.pos) != '^') {
+			return null;
+		}
+		final ArrayList<T> ts = new ArrayList<T>();
+		do {
+			++c.pos;
+			ts.add(this.t.getDu().parseT(s, c));
+		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
+		return ts.toArray(new T[ts.size()]);
+	}
+
+	/**
 	 * Set parameter name.
 	 * 
 	 * @param i
@@ -165,11 +209,18 @@ public class M {
 
 		final Cursor c = new Cursor();
 		this.typeParams = this.t.getDu().parseTypeParams(signature, c);
-		final T[] paramTs = this.t.getDu().parseMethodParamTs(signature, c);
+		// TODO more checks for following overrides
+		final T[] paramTs = parseMethodParamTs(signature, c);
+		if (paramTs.length != 0) {
+			this.paramTs = paramTs;
+		}
 		final T returnT = this.t.getDu().parseT(signature, c);
-
-		if (this.returnT != returnT) {
-			System.out.println("RETURN: " + returnT);
+		if (returnT != null) {
+			this.returnT = returnT;
+		}
+		final T[] throwsTs = parseThrowsTs(signature, c);
+		if (throwsTs != null) {
+			this.throwsTs = throwsTs;
 		}
 	}
 
