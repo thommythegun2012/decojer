@@ -235,27 +235,6 @@ public final class DU {
 	}
 
 	/**
-	 * Parse Method Parameter Types from Signature.
-	 * 
-	 * @param s
-	 *            Signature
-	 * @param c
-	 *            Cursor
-	 * @return Method Parameter Types
-	 */
-	public T[] parseMethodParamTs(final String s, final Cursor c) {
-		assert s.charAt(c.pos) == '(';
-
-		++c.pos;
-		final ArrayList<T> ts = new ArrayList<T>();
-		while (s.charAt(c.pos) != ')') {
-			ts.add(parseT(s, c));
-		}
-		++c.pos;
-		return ts.toArray(new T[ts.size()]);
-	}
-
-	/**
 	 * Parse Type from Signature.
 	 * 
 	 * @param s
@@ -329,11 +308,11 @@ public final class DU {
 			switch (t) {
 			case '+':
 				++c.pos;
-				ts.add(TypeArg.superOf(parseT(s, c)));
+				ts.add(TypeArg.subclassOf(parseT(s, c)));
 				break;
 			case '-':
 				++c.pos;
-				ts.add(TypeArg.subclassOf(parseT(s, c)));
+				ts.add(TypeArg.superOf(parseT(s, c)));
 				break;
 			case '*':
 				++c.pos;

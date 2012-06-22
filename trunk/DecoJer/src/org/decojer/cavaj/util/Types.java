@@ -357,8 +357,8 @@ public final class Types {
 					parameterizedType.typeArguments().add(Types.convertType(typeArg.getT(), td));
 				}
 				}
-				return parameterizedType;
 			}
+			return parameterizedType;
 		}
 		if (t.isMulti()) {
 			LOGGER.warning("Convert type for multi-type '" + t + "'!");
