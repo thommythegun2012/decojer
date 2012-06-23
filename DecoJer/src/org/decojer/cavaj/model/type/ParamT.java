@@ -140,4 +140,19 @@ public final class ParamT extends T {
 		this.typeArgs = typeArgs;
 	}
 
+	@Override
+	public T[] getInterfaceTs() {
+		return this.genericT.getInterfaceTs();
+	}
+
+	@Override
+	public T getSuperT() {
+		return this.genericT.getSuperT();
+	}
+
+	@Override
+	public boolean isResolveable() {
+		return this.genericT.isResolveable();
+	}
+
 }
