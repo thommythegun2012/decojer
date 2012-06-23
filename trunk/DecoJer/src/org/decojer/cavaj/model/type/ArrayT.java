@@ -39,6 +39,7 @@ public final class ArrayT extends T {
 	/**
 	 * Component Type (could be an Array Type too, has one dimension less).
 	 */
+	@Getter
 	private final T componentT;
 
 	/**
@@ -68,6 +69,11 @@ public final class ArrayT extends T {
 	@Override
 	public boolean isArray() {
 		return true;
+	}
+
+	@Override
+	public boolean isAssignableFrom(final T t) {
+		return t.isArray() && getComponentT().isAssignableFrom(t.getComponentT());
 	}
 
 	@Override
