@@ -342,9 +342,6 @@ public class T {
 		return t1;
 	}
 
-	@Getter
-	private final String name;
-
 	public static T getDalvikIntT(final int value) {
 		int kinds = T.FLOAT.kind;
 		if (value == 0 || value == 1) {
@@ -363,15 +360,8 @@ public class T {
 		return getT(kinds);
 	}
 
-	/**
-	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
-	 */
-	@Setter
-	private T superT;
-
 	@Getter
-	@Setter
-	private int accessFlags;
+	private final String name;
 
 	public static T getJvmIntT(final int value) {
 		int kinds = 0;
@@ -410,6 +400,19 @@ public class T {
 		return t;
 	}
 
+	/**
+	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
+	 */
+	@Setter
+	private T superT;
+
+	@Getter
+	@Setter
+	private int accessFlags;
+
+	@Setter
+	private T[] interfaceTs;
+
 	private static T getT(final Kind kind) {
 		T t = KIND_2_TS.get(kind.kind);
 		if (t != null) {
@@ -420,15 +423,6 @@ public class T {
 		return t;
 	}
 
-	@Setter
-	private T[] interfaceTs;
-
-	/**
-	 * Type Parameters. (They define the useable Type Variables)
-	 */
-	@Getter
-	private T[] typeParams;
-
 	private static T getT(final Kind... kinds) {
 		// don't use types as input, restrict to kind-types
 		int flags = 0;
@@ -437,6 +431,12 @@ public class T {
 		}
 		return getT(flags);
 	}
+
+	/**
+	 * Type Parameters. (They define the useable Type Variables)
+	 */
+	@Getter
+	private T[] typeParams;
 
 	private final DU du;
 
@@ -692,7 +692,7 @@ public class T {
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();
 			final T superT = iT.getSuperT();
-			if (this == superT) {
+			if (this == superT) { // TODO HashMap <- HashMap<String,E>
 				return true;
 			}
 			if (null != superT) {

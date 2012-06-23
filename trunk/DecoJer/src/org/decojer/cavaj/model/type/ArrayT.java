@@ -25,6 +25,7 @@ package org.decojer.cavaj.model.type;
 
 import lombok.Getter;
 
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
@@ -43,23 +44,34 @@ public final class ArrayT extends T {
 	/**
 	 * Constructor.
 	 * 
+	 * @param du
+	 *            Decompilation Unit
 	 * @param componentT
 	 *            Component Type
-	 * @param arraySuperT
-	 *            Array Super Type, should be <code>Object</code>
-	 * @param arrayInterfaceTs
-	 *            Array Interface Types, should be <code>Cloneable, Serializable</code>
 	 */
-	public ArrayT(final T componentT, final T arraySuperT, final T[] arrayInterfaceTs) {
-		super(arraySuperT.getDu(), componentT.getName() + "[]");
+	public ArrayT(final DU du, final T componentT) {
+		super(du, componentT.getName() + "[]");
 
 		this.componentT = componentT;
-		setSuperT(arraySuperT);
-		setInterfaceTs(arrayInterfaceTs);
+	}
+
+	@Override
+	public T[] getInterfaceTs() {
+		return getDu().getArrayInterfaceTs();
+	}
+
+	@Override
+	public T getSuperT() {
+		return getDu().getT(Object.class);
 	}
 
 	@Override
 	public boolean isArray() {
+		return true;
+	}
+
+	@Override
+	public boolean isResolveable() {
 		return true;
 	}
 

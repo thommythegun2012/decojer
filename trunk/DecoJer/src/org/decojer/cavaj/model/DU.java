@@ -103,6 +103,13 @@ public final class DU {
 		this.tds.put(td.getT().getName(), td);
 	}
 
+	public T[] getArrayInterfaceTs() {
+		if (this.arrayInterfaceTs == null) {
+			this.arrayInterfaceTs = new T[] { getT(Cloneable.class), getT(Serializable.class) };
+		}
+		return this.arrayInterfaceTs;
+	}
+
 	/**
 	 * Get array type for component type.
 	 * 
@@ -111,10 +118,7 @@ public final class DU {
 	 * @return array type for component type
 	 */
 	public T getArrayT(final T componentT) {
-		if (this.arrayInterfaceTs == null) {
-			this.arrayInterfaceTs = new T[] { getT(Cloneable.class), getT(Serializable.class) };
-		}
-		return new ArrayT(componentT, getT(Object.class), this.arrayInterfaceTs);
+		return new ArrayT(this, componentT);
 	}
 
 	/**
