@@ -85,7 +85,7 @@ public final class TrJvmStruct2JavaAst {
 		final TD td = fd.getTd();
 
 		// enum synthetic fields
-		if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.getT().check(AF.ENUM)
+		if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.check(AF.ENUM)
 				&& !cu.check(DFlag.IGNORE_ENUM)) {
 			// could extract this field name from initializer for more robustness
 			return;
@@ -191,7 +191,7 @@ public final class TrJvmStruct2JavaAst {
 
 		final String name = m.getName();
 		final TD td = md.getTd();
-		final T t = td.getT();
+		final TD t = td; // TODO
 
 		// enum synthetic methods
 		if (("values".equals(name) && m.getParams() == 0 || "valueOf".equals(name)
@@ -348,7 +348,7 @@ public final class TrJvmStruct2JavaAst {
 			final Type methodParameterType = Types.convertType(paramTs[i], td);
 			if (methodDeclaration.isConstructor()) {
 
-				if (i <= 1 && td.getT().check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
+				if (i <= 1 && td.check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
 					// enum constructors have two leading synthetic parameters,
 					// enum classes are static and can not be anonymous or inner method
 					if (i == 0 && m.getParamT(0).is(String.class)) {
@@ -443,7 +443,7 @@ public final class TrJvmStruct2JavaAst {
 	 */
 	@SuppressWarnings("unchecked")
 	public static void transform(final TD td) {
-		final T t = td.getT();
+		final TD t = td; // TODO
 		final CU cu = td.getCu();
 
 		if ("package-info".equals(t.getPName())) {

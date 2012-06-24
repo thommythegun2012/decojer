@@ -36,6 +36,7 @@ import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.V;
@@ -1290,7 +1291,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final T invokeT = this.du.getT(owner);
 			final M invokeM = invokeT.getM(name, desc);
 			if (opcode == Opcodes.INVOKEINTERFACE) {
-				invokeT.markAf(AF.INTERFACE);
+				((TD) invokeT).markAf(AF.INTERFACE);
 			}
 			if (opcode == Opcodes.INVOKESTATIC) {
 				invokeM.markAf(AF.STATIC);

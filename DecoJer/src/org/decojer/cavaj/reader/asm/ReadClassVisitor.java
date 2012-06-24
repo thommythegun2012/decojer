@@ -113,19 +113,19 @@ public class ReadClassVisitor extends ClassVisitor {
 		// : Ljava/util/LinkedHashSet<Ljava/lang/Class<*>;>; :
 		// java/util/LinkedHashSet : [Ljava.lang.String;@1b9a2fd
 
-		final T t = this.du.getT(name);
-		t.setAccessFlags(access);
-		t.setSuperT(this.du.getT(superName));
+		final TD td = (TD) this.du.getT(name);
+		td.setAccessFlags(access);
+		td.setSuperT(this.du.getT(superName));
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
 				interfaceTs[i] = this.du.getT(interfaces[i]);
 			}
-			t.setInterfaceTs(interfaceTs);
+			td.setInterfaceTs(interfaceTs);
 		}
-		t.setSignature(signature);
+		td.setSignature(signature);
 
-		this.td = new TD(t);
+		this.td = td;
 		// fix ASM bug: mixup of minor and major (which is 196653),
 		// only JDK 1.1 class files use a minor number (45.3),
 		// JDK 1.1 - JDK 1.3 create this version without a target option

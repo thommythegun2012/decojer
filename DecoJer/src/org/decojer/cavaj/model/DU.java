@@ -117,7 +117,7 @@ public final class DU {
 	 *            component type (could be an array type)
 	 * @return array type for component type
 	 */
-	public T getArrayT(final T componentT) {
+	public ArrayT getArrayT(final T componentT) {
 		return new ArrayT(this, componentT);
 	}
 
@@ -144,14 +144,15 @@ public final class DU {
 	}
 
 	/**
-	 * Get type declaration.
+	 * Get Type.
+	 * 
+	 * Works for Basic Types, Multi-Type Constants and Array Types, but not for Parameterized Types.
 	 * 
 	 * @param name
-	 *            name (package.subpackage.Type$Inner)
-	 * @return type declaration
+	 *            Type name (package.subpackage.Type$Inner or int)
+	 * @return Type
 	 */
 	public T getT(final String name) {
-		assert name != null && name.length() > 0;
 		assert name.charAt(0) != 'L' : name;
 
 		if (name.charAt(0) == '[') {
@@ -165,7 +166,8 @@ public final class DU {
 
 		T t = this.ts.get(normName);
 		if (t == null) {
-			t = new T(this, normName);
+			// can only be a TD...no int etc.
+			t = new TD(normName, this);
 			this.ts.put(normName, t);
 		}
 		return t;
@@ -282,7 +284,7 @@ public final class DU {
 				throw new DecoJerException("Type variable in '" + s + "' (" + c.pos
 						+ ") must end with ';'!");
 			}
-			final T t = new T(this, s.substring(c.pos, pos)); // TODO
+			final T t = new TD(s.substring(c.pos, pos), this); // TODO, really reuse?
 			c.pos = pos + 1;
 			return t;
 		}
@@ -351,7 +353,7 @@ public final class DU {
 				throw new DecoJerException("Type parameter name '" + s + "' at position '" + c.pos
 						+ "' must end with ':'!");
 			}
-			final T typeParam = new T(this, s.substring(c.pos, pos));
+			final TD typeParam = new TD(s.substring(c.pos, pos), this); // TODO really reuse?
 			c.pos = pos + 1;
 			if (s.charAt(c.pos) != ':') {
 				typeParam.setSuperT(parseT(s, c));

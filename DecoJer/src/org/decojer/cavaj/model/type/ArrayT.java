@@ -42,6 +42,9 @@ public final class ArrayT extends T {
 	@Getter
 	private final T componentT;
 
+	@Getter
+	private final DU du;
+
 	/**
 	 * Constructor.
 	 * 
@@ -51,9 +54,10 @@ public final class ArrayT extends T {
 	 *            Component Type
 	 */
 	public ArrayT(final DU du, final T componentT) {
-		super(du, componentT.getName() + "[]");
+		super(componentT.getName() + "[]");
 
 		this.componentT = componentT;
+		this.du = du;
 	}
 
 	@Override
@@ -74,11 +78,6 @@ public final class ArrayT extends T {
 	@Override
 	public boolean isAssignableFrom(final T t) {
 		return getComponentT().isAssignableFrom(t.getComponentT()); // assign from null is false
-	}
-
-	@Override
-	public boolean isResolveable() {
-		return true;
 	}
 
 }

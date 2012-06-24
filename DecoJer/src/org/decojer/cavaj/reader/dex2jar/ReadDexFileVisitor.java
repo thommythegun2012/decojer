@@ -105,18 +105,16 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 			return null;
 		}
 
-		final T t = this.du.getDescT(className);
-		t.setAccessFlags(access_flags);
-		t.setSuperT(this.du.getDescT(superClass));
+		final TD td = (TD) this.du.getDescT(className);
+		td.setAccessFlags(access_flags);
+		td.setSuperT(this.du.getDescT(superClass));
 		if (interfaceNames != null && interfaceNames.length > 0) {
 			final T[] interfaceTs = new T[interfaceNames.length];
 			for (int i = interfaceNames.length; i-- > 0;) {
 				interfaceTs[i] = this.du.getDescT(interfaceNames[i]);
 			}
-			t.setInterfaceTs(interfaceTs);
+			td.setInterfaceTs(interfaceTs);
 		}
-
-		final TD td = new TD(t);
 
 		if (className.equals(this.selectorMatch)) {
 			this.selectorTd = td;

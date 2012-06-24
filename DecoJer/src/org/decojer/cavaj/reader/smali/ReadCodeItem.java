@@ -36,6 +36,7 @@ import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.V;
@@ -1093,7 +1094,7 @@ public class ReadCodeItem {
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				t = this.du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
-					t.markAf(AF.INTERFACE);
+					((TD) t).markAf(AF.INTERFACE);
 				}
 				final M invokeM = t.getM(methodIdItem.getMethodName().getStringValue(),
 						methodIdItem.getPrototype().getPrototypeString());
@@ -1131,7 +1132,7 @@ public class ReadCodeItem {
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				t = this.du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE) {
-					t.markAf(AF.INTERFACE);
+					((TD) t).markAf(AF.INTERFACE);
 				}
 				final M invokeM = t.getM(methodIdItem.getMethodName().getStringValue(),
 						methodIdItem.getPrototype().getPrototypeString());
