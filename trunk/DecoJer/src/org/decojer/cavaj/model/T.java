@@ -27,19 +27,17 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import lombok.Getter;
-import lombok.Setter;
 
-import org.decojer.cavaj.util.Cursor;
+import org.decojer.cavaj.model.type.BaseT;
 
 /**
  * Type.
  * 
  * @author André Pankraz
  */
-public class T {
+public abstract class T {
 
 	public enum Kind {
 
@@ -89,8 +87,6 @@ public class T {
 		}
 
 	}
-
-	private final static Logger LOGGER = Logger.getLogger(T.class.getName());
 
 	private static final Map<Integer, T> KIND_2_TS = new HashMap<Integer, T>();
 
@@ -218,7 +214,63 @@ public class T {
 	public static final T[] TYPES = new T[] { null, null, null, null, T.BOOLEAN, T.CHAR, T.FLOAT,
 			T.DOUBLE, T.BYTE, T.SHORT, T.INT, T.LONG };
 
-	private static final T[] NO_INTERFACES = new T[0];
+	protected static final T[] NO_INTERFACES = new T[0];
+
+	public static BaseT getJvmIntT(final int value) {
+		int kinds = 0;
+		if (value == 0 || value == 1) {
+			kinds |= T.BOOLEAN.getKind();
+		}
+		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
+			kinds |= T.CHAR.getKind();
+		}
+		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+			kinds |= T.BYTE.getKind();
+		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+			kinds |= T.SHORT.getKind();
+		} else {
+			kinds |= T.INT.getKind();
+		}
+		return getT(kinds);
+	}
+
+	private static BaseT getT(final int kinds) {
+		if (kinds == 0) {
+			return null;
+		}
+		BaseT t = (BaseT) KIND_2_TS.get(kinds);
+		if (t != null) {
+			return t;
+		}
+		final StringBuilder sb = new StringBuilder("{");
+		for (final Kind k : Kind.values()) {
+			if ((kinds & k.kind) != 0) {
+				sb.append(k.getName()).append(",");
+			}
+		}
+		t = new BaseT(sb.substring(0, sb.length() - 1) + "}", kinds);
+		KIND_2_TS.put(kinds, t);
+		return t;
+	}
+
+	private static BaseT getT(final Kind kind) {
+		BaseT t = (BaseT) KIND_2_TS.get(kind.kind);
+		if (t != null) {
+			return t;
+		}
+		t = new BaseT(kind.getName(), kind.kind);
+		KIND_2_TS.put(kind.kind, t);
+		return t;
+	}
+
+	private static BaseT getT(final Kind... kinds) {
+		// don't use types as input, restrict to kind-types
+		int flags = 0;
+		for (final Kind k : kinds) {
+			flags |= k.kind;
+		}
+		return getT(flags);
+	}
 
 	/**
 	 * Merge/join store/up/and types: Find common super type. Use AND operation for kind - primitive
@@ -240,12 +292,12 @@ public class T {
 		if (t1 == null || t2 == null) {
 			return null;
 		}
-		final int kind = joinKinds(t1.kind, t2.kind);
+		final int kind = joinKinds(t1.getKind(), t2.getKind());
 		if ((kind & Kind.REF.kind) == 0) {
 			return getT(kind);
 		}
 
-		assert t1.du != null;
+		assert t1.getDu() != null;
 
 		if (t1.isAssignableFrom(t2)) {
 			return t1;
@@ -285,7 +337,7 @@ public class T {
 		if (interfaceTs.size() == 1 && superT.isObject()) {
 			return interfaceTs.get(0);
 		}
-		return new T(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
+		return new TD(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
 	}
 
 	private static int joinKinds(final int kind1, final int kind2) {
@@ -327,166 +379,48 @@ public class T {
 		if (t2 == null) {
 			return t1;
 		}
-		final int kind = t1.kind | t2.kind;
+		final int kind = t1.getKind() | t2.getKind();
 		if ((kind & Kind.REF.kind) == 0) {
 			return getT(kind);
 		}
 
-		if (t1.du == null) {
+		if (t1.getDu() == null) {
 			return t2;
 		}
-		if (t2.du == null) {
+		if (t2.getDu() == null) {
 			return t1;
 		}
 		// TODO...bottom merge ref
 		return t1;
 	}
 
-	public static T getDalvikIntT(final int value) {
-		int kinds = T.FLOAT.kind;
-		if (value == 0 || value == 1) {
-			kinds |= T.BOOLEAN.kind;
-		}
-		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
-			kinds |= T.CHAR.kind;
-		}
-		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
-			kinds |= T.BYTE.kind;
-		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
-			kinds |= T.SHORT.kind;
-		} else {
-			kinds |= T.INT.kind;
-		}
-		return getT(kinds);
-	}
-
 	@Getter
 	private final String name;
 
-	public static T getJvmIntT(final int value) {
-		int kinds = 0;
+	public static T getDalvikIntT(final int value) {
+		int kinds = T.FLOAT.getKind();
 		if (value == 0 || value == 1) {
-			kinds |= T.BOOLEAN.kind;
+			kinds |= T.BOOLEAN.getKind();
 		}
 		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
-			kinds |= T.CHAR.kind;
+			kinds |= T.CHAR.getKind();
 		}
 		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
-			kinds |= T.BYTE.kind;
+			kinds |= T.BYTE.getKind();
 		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
-			kinds |= T.SHORT.kind;
+			kinds |= T.SHORT.getKind();
 		} else {
-			kinds |= T.INT.kind;
+			kinds |= T.INT.getKind();
 		}
 		return getT(kinds);
 	}
 
-	private static T getT(final int kinds) {
-		if (kinds == 0) {
-			return null;
-		}
-		T t = KIND_2_TS.get(kinds);
-		if (t != null) {
-			return t;
-		}
-		final StringBuilder sb = new StringBuilder("{");
-		for (final Kind k : Kind.values()) {
-			if ((kinds & k.kind) != 0) {
-				sb.append(k.getName()).append(",");
-			}
-		}
-		t = new T(sb.substring(0, sb.length() - 1) + "}", kinds);
-		KIND_2_TS.put(kinds, t);
-		return t;
-	}
-
-	/**
-	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
-	 */
-	@Setter
-	private T superT;
-
-	@Getter
-	@Setter
-	private int accessFlags;
-
-	@Setter
-	private T[] interfaceTs;
-
-	private static T getT(final Kind kind) {
-		T t = KIND_2_TS.get(kind.kind);
-		if (t != null) {
-			return t;
-		}
-		t = new T(kind.getName(), kind.kind);
-		KIND_2_TS.put(kind.kind, t);
-		return t;
-	}
-
-	private static T getT(final Kind... kinds) {
-		// don't use types as input, restrict to kind-types
-		int flags = 0;
-		for (final Kind k : kinds) {
-			flags |= k.kind;
-		}
-		return getT(flags);
-	}
-
-	/**
-	 * Type Parameters. (They define the useable Type Variables)
-	 */
-	@Getter
-	private T[] typeParams;
-
-	private final DU du;
-
 	private final HashMap<String, F> fs = new HashMap<String, F>();
-
-	private final int kind;
 
 	private final HashMap<String, M> ms = new HashMap<String, M>();
 
-	protected T(final DU du, final String name) {
-		assert du != null;
-		assert name != null;
-
-		this.du = du;
-		this.kind = Kind.REF.kind;
+	protected T(final String name) {
 		this.name = name;
-	}
-
-	private T(final String name, final int kind) {
-		this.du = null; // primitive or internal
-		this.name = name;
-		this.kind = kind;
-	}
-
-	private T(final T superT, final T[] interfaceTs) {
-		assert superT.du != null;
-		assert superT != null;
-		assert interfaceTs != null;
-
-		this.du = superT.du;
-		this.kind = Kind.REF.kind;
-		this.superT = superT;
-		this.interfaceTs = interfaceTs;
-		final StringBuilder sb = new StringBuilder("{");
-		sb.append(superT.getName()).append(",");
-		for (final T t : interfaceTs) {
-			sb.append(t.getName()).append(",");
-		}
-		this.name = sb.substring(0, sb.length() - 1) + "}";
-	}
-
-	/**
-	 * Check access flag.
-	 * 
-	 * @param af
-	 *            access flag
-	 * @return true - is access flag
-	 */
-	public boolean check(final AF af) {
-		return isResolveable() && (this.accessFlags & af.getValue()) != 0;
 	}
 
 	@Override
@@ -514,7 +448,7 @@ public class T {
 	 * @return decompilation unit or null
 	 */
 	public DU getDu() {
-		return this.du;
+		return null;
 	}
 
 	/**
@@ -529,7 +463,7 @@ public class T {
 	public F getF(final String name, final T valueT) {
 		F f = this.fs.get(name);
 		if (f == null) {
-			f = new F(this, name, valueT);
+			f = new F((TD) this, name, valueT);
 			this.fs.put(name, f);
 		}
 		return f;
@@ -559,7 +493,16 @@ public class T {
 	 * @return interface types
 	 */
 	public T[] getInterfaceTs() {
-		return isResolveable() ? this.interfaceTs : NO_INTERFACES;
+		return NO_INTERFACES;
+	}
+
+	/**
+	 * Get Kind of Type.
+	 * 
+	 * @return Kind of Type
+	 */
+	public int getKind() {
+		return Kind.REF.getKind(); // only Base Types can be different, overwrite in BaseT
 	}
 
 	/**
@@ -609,7 +552,7 @@ public class T {
 	 * @return super type
 	 */
 	public T getSuperT() {
-		return isResolveable() ? this.superT : null;
+		return null;
 	}
 
 	@Override
@@ -641,7 +584,7 @@ public class T {
 	public boolean is(final T... ts) {
 		if (isMulti()) {
 			for (final T t : ts) {
-				if ((this.kind & t.kind) == 0) {
+				if ((getKind() & t.getKind()) == 0) {
 					return false;
 				}
 			}
@@ -651,12 +594,12 @@ public class T {
 	}
 
 	/**
-	 * Is array?
+	 * Is Array Type?
 	 * 
-	 * @return true - is array
+	 * @return true - is Array Type
 	 */
 	public boolean isArray() {
-		return false;
+		return false; // overwrite in ArrayT
 	}
 
 	/**
@@ -677,13 +620,13 @@ public class T {
 		if (t == null) {
 			return false;
 		}
-		final int kind = readKinds(t.kind, this.kind);
+		final int kind = readKinds(t.getKind(), getKind());
 		if ((kind & Kind.REF.kind) == 0) {
 			return kind != 0;
 		}
 		// assignableFrom(T.REF) is true, null is T.REF!
 		// may be better to check for null const in R instead of this general answer
-		if (null == this.du || this.is(Object.class) || t.du == null) {
+		if (null == getDu() || is(Object.class) || t.getDu() == null) {
 			return true;
 		}
 		// raise step by step in hierarchy...lazy fetch unknown super
@@ -710,55 +653,44 @@ public class T {
 		return false;
 	}
 
-	/**
-	 * Is interface?
-	 * 
-	 * @return true - is interface
-	 */
 	public boolean isInterface() {
-		return check(AF.INTERFACE);
+		return false;
 	}
 
 	/**
-	 * Is multitype?
+	 * Is Multi Type?
 	 * 
-	 * @return true - is multitype
+	 * @return true - is Multi Type
 	 */
 	public boolean isMulti() {
-		int nr = this.kind - (this.kind >> 1 & 0x55555555);
-		nr = (nr & 0x33333333) + (nr >> 2 & 0x33333333);
-		nr = (nr + (nr >> 4) & 0x0F0F0F0F) * 0x01010101 >> 24;
-
-		assert nr > 0;
-
-		return nr > 1;
+		return false; // only Base Types can be Multi Types, overwrite in BaseT
 	}
 
 	/**
-	 * Is object type?
+	 * Is Object Type?
 	 * 
-	 * @return true - is object type
+	 * @return true - is Object Type
 	 */
 	public boolean isObject() {
-		return Object.class.getName().equals(this.name);
+		return false; // only Class Types can be Object Type, overwrite in TD
 	}
 
 	/**
-	 * Is primitive?
+	 * Is Primitive?
 	 * 
-	 * @return true - is primitive
+	 * @return true - is Primitive
 	 */
 	public boolean isPrimitive() {
-		return (this.kind & PRIMITIVE.kind) != 0;
+		return false; // only Base Types can be Primitives, overwrite in BaseT
 	}
 
 	/**
-	 * Is reference (array too)?
+	 * Is Reference Type (includes Array Type, Param Type)?
 	 * 
-	 * @return true - is reference (array too)
+	 * @return true - is Reference Type
 	 */
 	public boolean isRef() {
-		return (this.kind & REF.kind) != 0;
+		return true; // only Base Types can be none-Refs, overwrite BaseT
 	}
 
 	/**
@@ -767,44 +699,7 @@ public class T {
 	 * @return true - is unresolveable
 	 */
 	public boolean isResolveable() {
-		if (this.interfaceTs != null) {
-			return (this.accessFlags & AF.UNRESOLVEABLE.getValue()) == 0;
-		}
-		if (!isRef()) {
-			this.interfaceTs = NO_INTERFACES;
-			return true;
-		}
-		// setSuper() in class read doesn't set interfaces if not known
-		if (this.superT != null) {
-			this.interfaceTs = NO_INTERFACES;
-			return true;
-		}
-		// try simple class loading, may be we are lucky ;)
-		// TODO later ask DecoJer-online and local type cache with context info
-		try {
-			final Class<?> clazz = getClass().getClassLoader().loadClass(getName());
-			this.accessFlags = clazz.getModifiers();
-			final Class<?> superclass = clazz.getSuperclass();
-			if (superclass != null) {
-				this.superT = this.du.getT(superclass.getName());
-			}
-			final Class<?>[] interfaces = clazz.getInterfaces();
-			if (interfaces.length == 0) {
-				this.interfaceTs = NO_INTERFACES;
-			} else {
-				final T[] interfaceTs = new T[interfaces.length];
-				for (int i = interfaces.length; i-- > 0;) {
-					interfaceTs[i] = this.du.getT(interfaces[i].getName());
-				}
-				this.interfaceTs = interfaceTs;
-			}
-			return true;
-		} catch (final ClassNotFoundException e) {
-			LOGGER.warning("Couldn't load type : " + this);
-			this.interfaceTs = NO_INTERFACES;
-			markAf(AF.UNRESOLVEABLE);
-			return false;
-		}
+		return true; // only Class Types can be unresolveable, overwrite TD
 	}
 
 	/**
@@ -813,17 +708,7 @@ public class T {
 	 * @return true - is wide type
 	 */
 	public boolean isWide() {
-		return (this.kind & WIDE.kind) != 0;
-	}
-
-	/**
-	 * Mark access flag.
-	 * 
-	 * @param af
-	 *            access flag
-	 */
-	public void markAf(final AF af) {
-		this.accessFlags |= af.getValue();
+		return false; // only Base Types can be wide, overwrite BaseT
 	}
 
 	/**
@@ -842,7 +727,7 @@ public class T {
 		if (t == null) {
 			return null;
 		}
-		final int kind = readKinds(this.kind, t.kind);
+		final int kind = readKinds(getKind(), t.getKind());
 		if ((kind & Kind.REF.kind) == 0) {
 			return getT(kind);
 		}
@@ -851,38 +736,6 @@ public class T {
 			return this;
 		}
 		return null;
-	}
-
-	/**
-	 * Set signature.
-	 * 
-	 * @param signature
-	 *            signature
-	 */
-	public void setSignature(final String signature) {
-		if (signature == null) {
-			return;
-		}
-		final Cursor c = new Cursor();
-		this.typeParams = getDu().parseTypeParams(signature, c);
-		// TODO more checks for following overrides
-		final T superT = getDu().parseT(signature, c);
-		if (superT != null) {
-			this.superT = superT;
-		}
-		final ArrayList<T> interfaceTs = new ArrayList<T>();
-		while (true) {
-			final T interfaceT = getDu().parseT(signature, c);
-			if (interfaceT == null) {
-				break;
-			}
-			interfaceTs.add(interfaceT);
-		}
-		if (!interfaceTs.isEmpty()) {
-			assert this.interfaceTs.length == interfaceTs.size();
-
-			this.interfaceTs = interfaceTs.toArray(new T[interfaceTs.size()]);
-		}
 	}
 
 	@Override

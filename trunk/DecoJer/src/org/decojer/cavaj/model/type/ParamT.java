@@ -134,7 +134,10 @@ public final class ParamT extends T {
 	 *            Type Arguments for matching Type Parameters
 	 */
 	public ParamT(final T genericT, final TypeArg[] typeArgs) {
-		super(genericT.getDu(), toString(genericT, typeArgs));
+		super(toString(genericT, typeArgs));
+
+		assert genericT != null;
+		assert typeArgs != null;
 
 		this.genericT = genericT;
 		this.typeArgs = typeArgs;

@@ -45,6 +45,7 @@ import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.V;
@@ -578,7 +579,7 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // reserved, unused
 
 				t = this.du.getT(constPool.getInterfaceMethodrefClassName(methodIndex));
-				t.markAf(AF.INTERFACE);
+				((TD) t).markAf(AF.INTERFACE);
 				final M m = t.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m, false));
@@ -1649,7 +1650,7 @@ public class ReadCodeAttribute {
 					continue;
 				}
 				// TODO wrong!
-				v.getT().setSignature(localVariableTypeAttribute.signature(i));
+				// v.getT().setSignature(localVariableTypeAttribute.signature(i));
 			}
 		}
 		cfg.postProcessVars();

@@ -142,22 +142,21 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 
-		final T t = this.du.getT(classFile.getName());
-		t.setAccessFlags(classFile.getAccessFlags());
-		t.setSuperT(this.du.getT(classFile.getSuperclass()));
+		final TD td = (TD) this.du.getT(classFile.getName());
+		td.setAccessFlags(classFile.getAccessFlags());
+		td.setSuperT(this.du.getT(classFile.getSuperclass()));
 		final String[] interfaces = classFile.getInterfaces();
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
 				interfaceTs[i] = this.du.getT(interfaces[i]);
 			}
-			t.setInterfaceTs(interfaceTs);
+			td.setInterfaceTs(interfaceTs);
 		}
 		if (signatureAttribute != null) {
-			t.setSignature(signatureAttribute.getSignature());
+			td.setSignature(signatureAttribute.getSignature());
 		}
 
-		final TD td = new TD(t);
 		td.setVersion(classFile.getMajorVersion());
 
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
@@ -188,12 +187,12 @@ public class JavassistReader implements ClassReader {
 			final int tableLength = innerClassesAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
 				// outer class info not known in Dalvik and derivable
-				if (t.getName().equals(innerClassesAttribute.innerClass(i))) {
+				if (td.getName().equals(innerClassesAttribute.innerClass(i))) {
 					// is inner type, this attributes is senseless?
 					// inner name from naming rules and flags are known
 					continue;
 				}
-				if (t.getName().equals(innerClassesAttribute.outerClass(i))) {
+				if (td.getName().equals(innerClassesAttribute.outerClass(i))) {
 					// has member types (really contained inner classes)
 					memberTs.add(this.du.getT(innerClassesAttribute.innerClass(i)));
 					continue;

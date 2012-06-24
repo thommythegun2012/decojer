@@ -45,7 +45,7 @@ public class F {
 	private String signature;
 
 	@Getter
-	private final T t;
+	private final TD t;
 
 	/**
 	 * Value type.
@@ -63,7 +63,7 @@ public class F {
 	 * @param valueT
 	 *            value type
 	 */
-	protected F(final T t, final String name, final T valueT) {
+	protected F(final TD t, final String name, final T valueT) {
 		assert t != null;
 		assert name != null;
 		assert valueT != null;

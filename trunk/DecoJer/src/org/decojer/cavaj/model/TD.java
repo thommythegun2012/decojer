@@ -25,8 +25,13 @@ package org.decojer.cavaj.model;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
+
+import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.util.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
@@ -42,7 +47,43 @@ import org.eclipse.jdt.core.dom.Name;
  * 
  * @author André Pankraz
  */
-public final class TD implements BD, PD {
+public final class TD extends T implements BD, PD {
+
+	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
+
+	private static String toString(final T superT, final T[] interfaceTs) {
+		final StringBuilder sb = new StringBuilder("{");
+		if (superT != null) {
+			sb.append(superT.getName()).append(',');
+		}
+		for (final T interfaceT : interfaceTs) {
+			sb.append(interfaceT.getName()).append(",");
+		}
+		sb.setCharAt(sb.length() - 1, '}');
+		return sb.toString();
+	}
+
+	@Getter
+	@Setter
+	private int accessFlags;
+
+	@Getter
+	private final DU du;
+
+	/**
+	 * Type Parameters. (They define the useable Type Variables)
+	 */
+	@Getter
+	private T[] typeParams;
+
+	/**
+	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
+	 */
+	@Setter
+	private T superT;
+
+	@Setter
+	private T[] interfaceTs;
 
 	private A[] as;
 
@@ -70,24 +111,33 @@ public final class TD implements BD, PD {
 	// synthetic state (from synthetic attribute)
 	private boolean synthetic;
 
-	// type
-	private final T t;
+	private int version;
 
 	// Eclipse type declaration
 	private ASTNode typeDeclaration; // anonymousClassDeclaration?
 
-	private int version;
-
 	/**
 	 * Constructor.
 	 * 
-	 * @param t
-	 *            type
+	 * @param name
+	 *            Type Name
+	 * @param du
+	 *            Decompilation Unit
 	 */
-	public TD(final T t) {
-		assert t != null;
+	protected TD(final String name, final DU du) {
+		super(name);
 
-		this.t = t;
+		assert du != null;
+
+		this.du = du;
+	}
+
+	protected TD(final T superT, final T[] interfaceTs) {
+		super(toString(superT, interfaceTs));
+
+		this.du = superT.getDu();
+		this.superT = superT;
+		this.interfaceTs = interfaceTs;
 	}
 
 	/**
@@ -115,6 +165,17 @@ public final class TD implements BD, PD {
 		}
 		return ((AbstractTypeDeclaration) this.typeDeclaration).bodyDeclarations().add(
 				bodyDeclaration);
+	}
+
+	/**
+	 * Check access flag.
+	 * 
+	 * @param af
+	 *            access flag
+	 * @return true - is access flag
+	 */
+	public boolean check(final AF af) {
+		return isResolveable() && (this.accessFlags & af.getValue()) != 0;
 	}
 
 	/**
@@ -221,6 +282,21 @@ public final class TD implements BD, PD {
 	}
 
 	/**
+	 * Get interface types.
+	 * 
+	 * @return interface types
+	 */
+	@Override
+	public T[] getInterfaceTs() {
+		return isResolveable() ? this.interfaceTs : T.NO_INTERFACES;
+	}
+
+	@Override
+	public int getKind() {
+		return Kind.REF.getKind();
+	}
+
+	/**
 	 * Get member types (really contained inner classes).
 	 * 
 	 * @return member types
@@ -248,12 +324,22 @@ public final class TD implements BD, PD {
 	}
 
 	/**
+	 * Get super type.
+	 * 
+	 * @return super type
+	 */
+	@Override
+	public T getSuperT() {
+		return isResolveable() ? this.superT : null;
+	}
+
+	/**
 	 * Get type.
 	 * 
 	 * @return type
 	 */
 	public T getT() {
-		return this.t;
+		return this;
 	}
 
 	/**
@@ -307,12 +393,85 @@ public final class TD implements BD, PD {
 	}
 
 	/**
+	 * Is interface?
+	 * 
+	 * @return true - is interface
+	 */
+	@Override
+	public boolean isInterface() {
+		return check(AF.INTERFACE);
+	}
+
+	@Override
+	public boolean isObject() {
+		return Object.class.getName().equals(getName());
+	}
+
+	/**
+	 * Is unresolveable?
+	 * 
+	 * @return true - is unresolveable
+	 */
+	@Override
+	public boolean isResolveable() {
+		if (this.interfaceTs != null) {
+			// don't use check(AF.UNRESOLVEABLE) -> endless loop
+			return (this.accessFlags & AF.UNRESOLVEABLE.getValue()) == 0;
+		}
+		if (!isRef()) {
+			this.interfaceTs = NO_INTERFACES;
+			return true;
+		}
+		// setSuper() in class read doesn't set interfaces if not known
+		if (this.superT != null) {
+			this.interfaceTs = NO_INTERFACES;
+			return true;
+		}
+		// try simple class loading, may be we are lucky ;)
+		// TODO later ask DecoJer-online and local type cache with context info
+		try {
+			final Class<?> clazz = getClass().getClassLoader().loadClass(getName());
+			this.accessFlags = clazz.getModifiers();
+			final Class<?> superclass = clazz.getSuperclass();
+			if (superclass != null) {
+				this.superT = getDu().getT(superclass.getName());
+			}
+			final Class<?>[] interfaces = clazz.getInterfaces();
+			if (interfaces.length == 0) {
+				this.interfaceTs = NO_INTERFACES;
+			} else {
+				final T[] interfaceTs = new T[interfaces.length];
+				for (int i = interfaces.length; i-- > 0;) {
+					interfaceTs[i] = getDu().getT(interfaces[i].getName());
+				}
+				this.interfaceTs = interfaceTs;
+			}
+			return true;
+		} catch (final ClassNotFoundException e) {
+			LOGGER.warning("Couldn't load type : " + this);
+			this.interfaceTs = NO_INTERFACES;
+			markAf(AF.UNRESOLVEABLE);
+			return false;
+		}
+	}
+
+	/**
 	 * Get synthetic state (from synthetic attribute).
 	 * 
 	 * @return true - synthetic
 	 */
 	public boolean isSynthetic() {
 		return this.synthetic;
+	}
+
+	/**
+	 * Mark access flag.
+	 * 
+	 * @param af
+	 *            access flag
+	 */
+	public void markAf(final AF af) {
+		this.accessFlags |= af.getValue();
 	}
 
 	/**
@@ -402,6 +561,38 @@ public final class TD implements BD, PD {
 	}
 
 	/**
+	 * Set signature.
+	 * 
+	 * @param signature
+	 *            signature
+	 */
+	public void setSignature(final String signature) {
+		if (signature == null) {
+			return;
+		}
+		final Cursor c = new Cursor();
+		this.typeParams = getDu().parseTypeParams(signature, c);
+		// TODO more checks for following overrides
+		final T superT = getDu().parseT(signature, c);
+		if (superT != null) {
+			this.superT = superT;
+		}
+		final ArrayList<T> interfaceTs = new ArrayList<T>();
+		while (true) {
+			final T interfaceT = getDu().parseT(signature, c);
+			if (interfaceT == null) {
+				break;
+			}
+			interfaceTs.add(interfaceT);
+		}
+		if (!interfaceTs.isEmpty()) {
+			assert this.interfaceTs.length == interfaceTs.size();
+
+			this.interfaceTs = interfaceTs.toArray(new T[interfaceTs.size()]);
+		}
+	}
+
+	/**
 	 * Set source file name (from source file attribute).
 	 * 
 	 * @param sourceFileName
@@ -446,11 +637,6 @@ public final class TD implements BD, PD {
 		assert version >= 45 && version < 60 : version;
 
 		this.version = version;
-	}
-
-	@Override
-	public String toString() {
-		return getT().toString();
 	}
 
 }

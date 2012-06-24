@@ -133,9 +133,9 @@ public class SmaliReader implements DexReader {
 							selectorPrefix.length()) != -1)) {
 				continue;
 			}
-			final T t = this.du.getDescT(typeDescriptor);
-			t.setAccessFlags(classDefItem.getAccessFlags());
-			t.setSuperT(this.du.getDescT(classDefItem.getSuperclass().getTypeDescriptor()));
+			final TD td = (TD) this.du.getDescT(typeDescriptor);
+			td.setAccessFlags(classDefItem.getAccessFlags());
+			td.setSuperT(this.du.getDescT(classDefItem.getSuperclass().getTypeDescriptor()));
 			final TypeListItem interfaces = classDefItem.getInterfaces();
 			if (interfaces != null && interfaces.getTypeCount() > 0) {
 				final T[] interfaceTs = new T[interfaces.getTypeCount()];
@@ -143,10 +143,8 @@ public class SmaliReader implements DexReader {
 					interfaceTs[i] = this.du.getDescT(interfaces.getTypeIdItem(i)
 							.getTypeDescriptor());
 				}
-				t.setInterfaceTs(interfaceTs);
+				td.setInterfaceTs(interfaceTs);
 			}
-
-			final TD td = new TD(t);
 
 			if (typeDescriptor.equals(selectorMatch)) {
 				selectorTd = td;
@@ -182,7 +180,7 @@ public class SmaliReader implements DexReader {
 							for (int i = 0; i < signature.length; ++i) {
 								sb.append(signature[i]);
 							}
-							t.setSignature(sb.toString());
+							td.setSignature(sb.toString());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
