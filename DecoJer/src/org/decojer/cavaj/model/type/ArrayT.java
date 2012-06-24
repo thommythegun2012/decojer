@@ -73,7 +73,7 @@ public final class ArrayT extends T {
 
 	@Override
 	public boolean isAssignableFrom(final T t) {
-		return t.isArray() && getComponentT().isAssignableFrom(t.getComponentT());
+		return getComponentT().isAssignableFrom(t.getComponentT()); // assign from null is false
 	}
 
 	@Override

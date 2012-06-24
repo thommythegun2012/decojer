@@ -707,9 +707,6 @@ public class T {
 				}
 			}
 		}
-		if (isArray() && t.isArray()) {
-			return getComponentT().isAssignableFrom(t.getComponentT());
-		}
 		return false;
 	}
 
