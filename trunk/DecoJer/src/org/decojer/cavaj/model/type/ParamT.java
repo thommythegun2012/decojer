@@ -142,17 +142,22 @@ public final class ParamT extends T {
 
 	@Override
 	public T[] getInterfaceTs() {
-		return this.genericT.getInterfaceTs();
+		return getGenericT().getInterfaceTs();
 	}
 
 	@Override
 	public T getSuperT() {
-		return this.genericT.getSuperT();
+		return getGenericT().getSuperT();
+	}
+
+	@Override
+	public boolean isAssignableFrom(final T t) {
+		return getGenericT().isAssignableFrom(t); // TODO _and_ test args?!
 	}
 
 	@Override
 	public boolean isResolveable() {
-		return this.genericT.isResolveable();
+		return getGenericT().isResolveable();
 	}
 
 }
