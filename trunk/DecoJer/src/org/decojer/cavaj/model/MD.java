@@ -23,34 +23,78 @@
  */
 package org.decojer.cavaj.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.code.CFG;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
- * Method declaration.
+ * Method Declaration.
  * 
  * @author André Pankraz
  */
 public final class MD implements BD, PD {
 
+	/**
+	 * Annotation Default Value.
+	 */
+	@Getter
+	@Setter
 	private Object annotationDefaultValue;
 
+	/**
+	 * Annotations.
+	 */
+	@Getter
+	@Setter
 	private A[] as;
 
+	/**
+	 * Control Flow Graph.
+	 */
+	@Getter
+	@Setter
 	private CFG cfg;
 
-	// deprecated state (from deprecated attribute)
+	/**
+	 * Deprecated State (from Deprecated Attribute).
+	 */
+	@Getter
+	@Setter
 	private boolean deprecated;
 
+	/**
+	 * Method.
+	 */
+	@Getter
 	private final M m;
 
+	/**
+	 * AST Method Declaration.
+	 */
+	@Getter
+	@Setter
 	private BodyDeclaration methodDeclaration;
 
+	/**
+	 * Method Parameter Annotations.
+	 */
+	@Getter
+	@Setter
 	private A[][] paramAss;
 
-	// synthetic state (from synthetic attribute)
+	/**
+	 * Synthetic State (from Synthetic Attribute)
+	 */
+	@Getter
+	@Setter
 	private boolean synthetic;
 
+	/**
+	 * Owner Type Declaration.
+	 */
+	@Getter
 	private final TD td;
 
 	/**
@@ -67,159 +111,6 @@ public final class MD implements BD, PD {
 
 		this.m = m;
 		this.td = td;
-	}
-
-	/**
-	 * Get annotation default value.
-	 * 
-	 * @return annotation default value
-	 */
-	public Object getAnnotationDefaultValue() {
-		return this.annotationDefaultValue;
-	}
-
-	/**
-	 * Get annotations.
-	 * 
-	 * @return annotations or null
-	 */
-	public A[] getAs() {
-		return this.as;
-	}
-
-	/**
-	 * Get control flow graph.
-	 * 
-	 * @return control flow graph or null
-	 */
-	public CFG getCfg() {
-		return this.cfg;
-	}
-
-	/**
-	 * Get method.
-	 * 
-	 * @return method
-	 */
-	public M getM() {
-		assert this.m != null;
-
-		return this.m;
-	}
-
-	/**
-	 * Get Eclipse method declaration.
-	 * 
-	 * @return Eclipse method declaration
-	 */
-	public BodyDeclaration getMethodDeclaration() {
-		return this.methodDeclaration;
-	}
-
-	/**
-	 * Get parameter annotations.
-	 * 
-	 * @return parameter annotations
-	 */
-	public A[][] getParamAss() {
-		return this.paramAss;
-	}
-
-	/**
-	 * Get type declaration.
-	 * 
-	 * @return type declaration
-	 */
-	public TD getTd() {
-		return this.td;
-	}
-
-	/**
-	 * Get deprecated state (from deprecated attribute).
-	 * 
-	 * @return true - deprecated
-	 */
-	public boolean isDeprecated() {
-		return this.deprecated;
-	}
-
-	/**
-	 * Get synthetic state (from synthetic attribute).
-	 * 
-	 * @return true - synthetic
-	 */
-	public boolean isSynthetic() {
-		return this.synthetic;
-	}
-
-	/**
-	 * Set annotation default value.
-	 * 
-	 * @param annotationDefaultValue
-	 *            annotation default value
-	 */
-	public void setAnnotationDefaultValue(final Object annotationDefaultValue) {
-		this.annotationDefaultValue = annotationDefaultValue;
-	}
-
-	/**
-	 * Set annotations.
-	 * 
-	 * @param as
-	 *            annotations
-	 */
-	public void setAs(final A[] as) {
-		this.as = as;
-	}
-
-	/**
-	 * Set control flow graph.
-	 * 
-	 * @param cfg
-	 *            control flow graph
-	 */
-	public void setCFG(final CFG cfg) {
-		this.cfg = cfg;
-	}
-
-	/**
-	 * Set deprecated state (from deprecated attribute).
-	 * 
-	 * @param deprecated
-	 *            true - deprecated
-	 */
-	public void setDeprecated(final boolean deprecated) {
-		this.deprecated = deprecated;
-	}
-
-	/**
-	 * Set Eclipse method declaration.
-	 * 
-	 * @param methodDeclaration
-	 *            Eclipse method declaration
-	 */
-	public void setMethodDeclaration(final BodyDeclaration methodDeclaration) {
-		this.methodDeclaration = methodDeclaration;
-	}
-
-	/**
-	 * Set parameter annotations.
-	 * 
-	 * @param paramAss
-	 *            parameter annotations
-	 */
-	public void setParamAss(final A[][] paramAss) {
-		this.paramAss = paramAss;
-	}
-
-	/**
-	 * Set synthetic state (from synthetic attribute).
-	 * 
-	 * @param synthetic
-	 *            true - synthetic
-	 */
-	public void setSynthetic(final boolean synthetic) {
-		this.synthetic = synthetic;
 	}
 
 	@Override

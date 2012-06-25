@@ -179,7 +179,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, DexOpcodes, OdexOpco
 	public void visitEnd() {
 		if (this.ops.size() > 0) {
 			final CFG cfg = new CFG(this.md, this.maxLocals, 0);
-			this.md.setCFG(cfg);
+			this.md.setCfg(cfg);
 
 			cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 			this.ops.clear();

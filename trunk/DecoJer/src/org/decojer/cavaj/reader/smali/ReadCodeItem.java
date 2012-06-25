@@ -179,7 +179,7 @@ public class ReadCodeItem {
 		this.vmpc2unresolved.clear();
 
 		final CFG cfg = new CFG(md, codeItem.getRegisterCount(), 0);
-		md.setCFG(cfg);
+		md.setCfg(cfg);
 
 		// read debug info here, need lines early, but handle read vars after code
 		this.readDebugInfo.initAndVisit(md, codeItem.getDebugInfo());

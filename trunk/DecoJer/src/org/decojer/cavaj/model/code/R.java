@@ -64,6 +64,9 @@ public final class R {
 
 	}
 
+	@Getter
+	private Object value;
+
 	/**
 	 * Merge register types.
 	 * 
@@ -101,9 +104,6 @@ public final class R {
 
 	@Getter
 	private T t;
-
-	@Getter
-	private Object value;
 
 	private T readT;
 
@@ -227,6 +227,7 @@ public final class R {
 		case MERGE:
 			for (final R in : this.ins) {
 				// TODO endless loop in.read(t);
+				System.out.println(in);
 			}
 			break;
 		case MOVE:

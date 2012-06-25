@@ -23,33 +23,64 @@
  */
 package org.decojer.cavaj.model;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.eclipse.jdt.core.dom.BodyDeclaration;
-import org.eclipse.jdt.core.dom.Expression;
 
 /**
- * Field declaration.
+ * Field Declaration.
  * 
  * @author André Pankraz
  */
 public final class FD implements BD, PD {
 
+	/**
+	 * Annotations.
+	 */
+	@Getter
+	@Setter
 	private A[] as;
 
-	// deprecated state (from deprecated attribute)
+	/**
+	 * Deprecated State (from Deprecated Attribute).
+	 */
+	@Getter
+	@Setter
 	private boolean deprecated;
 
+	/**
+	 * Field.
+	 */
+	@Getter
 	private final F f;
 
+	/**
+	 * AST Field Declaration.
+	 */
+	@Getter
+	@Setter
 	private BodyDeclaration fieldDeclaration;
 
-	private Expression initializer;
-
-	// synthetic state (from synthetic attribute)
+	/**
+	 * Synthetic State (from Synthetic Attribute).
+	 */
+	@Getter
+	@Setter
 	private boolean synthetic;
 
+	/**
+	 * Owner Type Declaration.
+	 */
+	@Getter
 	private final TD td;
 
-	// value, type Integer: int, short, byte, char, boolean
+	/**
+	 * Value for constant attributes or <code>null</code>. Type Integer: int, short, byte, char,
+	 * boolean.
+	 */
+	@Getter
+	@Setter
 	private Object value;
 
 	/**
@@ -66,134 +97,6 @@ public final class FD implements BD, PD {
 
 		this.f = f;
 		this.td = td;
-	}
-
-	/**
-	 * Get annotations.
-	 * 
-	 * @return annotations or null
-	 */
-	public A[] getAs() {
-		return this.as;
-	}
-
-	/**
-	 * Get field.
-	 * 
-	 * @return field
-	 */
-	public F getF() {
-		assert this.f != null;
-
-		return this.f;
-	}
-
-	/**
-	 * Get Eclipse field declaration.
-	 * 
-	 * @return Eclipse field declaration
-	 */
-	public BodyDeclaration getFieldDeclaration() {
-		return this.fieldDeclaration;
-	}
-
-	/**
-	 * Get initializer expression.
-	 * 
-	 * @return initializer expression
-	 */
-	public Expression getInitializer() {
-		return this.initializer;
-	}
-
-	/**
-	 * Get type declaration.
-	 * 
-	 * @return type declaration
-	 */
-	public TD getTd() {
-		assert this.td != null;
-
-		return this.td;
-	}
-
-	/**
-	 * Get value for constant attributes. Type Integer: int, short, byte, char, boolean.
-	 * 
-	 * @return value or null
-	 */
-	public Object getValue() {
-		return this.value;
-	}
-
-	/**
-	 * Get deprecated state (from deprecated attribute).
-	 * 
-	 * @return true - deprecated
-	 */
-	public boolean isDeprecated() {
-		return this.deprecated;
-	}
-
-	/**
-	 * Get synthetic state (from synthetic attribute).
-	 * 
-	 * @return true - synthetic
-	 */
-	public boolean isSynthetic() {
-		return this.synthetic;
-	}
-
-	/**
-	 * Set annotations.
-	 * 
-	 * @param as
-	 *            annotations
-	 */
-	public void setAs(final A[] as) {
-		this.as = as;
-	}
-
-	/**
-	 * Set deprecated state (from deprecated attribute).
-	 * 
-	 * @param deprecated
-	 *            true - deprecated
-	 */
-	public void setDeprecated(final boolean deprecated) {
-		this.deprecated = deprecated;
-	}
-
-	/**
-	 * Set Eclipse field declaration.
-	 * 
-	 * (FieldDeclaration or EnumConstantDeclaration)
-	 * 
-	 * @param fieldDeclaration
-	 *            Eclipse field declaration
-	 */
-	public void setFieldDeclaration(final BodyDeclaration fieldDeclaration) {
-		this.fieldDeclaration = fieldDeclaration;
-	}
-
-	/**
-	 * Set synthetic state (from synthetic attribute).
-	 * 
-	 * @param synthetic
-	 *            true - synthetic
-	 */
-	public void setSynthetic(final boolean synthetic) {
-		this.synthetic = synthetic;
-	}
-
-	/**
-	 * Set value.
-	 * 
-	 * @param value
-	 *            value
-	 */
-	public void setValue(final Object value) {
-		this.value = value;
 	}
 
 	@Override
