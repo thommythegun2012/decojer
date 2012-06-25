@@ -452,18 +452,18 @@ public abstract class T {
 	}
 
 	/**
-	 * Get field.
+	 * Get Field.
 	 * 
 	 * @param name
-	 *            name
+	 *            Field Name
 	 * @param valueT
-	 *            value type
-	 * @return field
+	 *            Value Type
+	 * @return Field
 	 */
 	public F getF(final String name, final T valueT) {
 		F f = this.fs.get(name);
 		if (f == null) {
-			f = new F((TD) this, name, valueT);
+			f = new F(this, name, valueT);
 			this.fs.put(name, f);
 		}
 		return f;
@@ -488,9 +488,9 @@ public abstract class T {
 	}
 
 	/**
-	 * Get interface types.
+	 * Get Interface Types.
 	 * 
-	 * @return interface types
+	 * @return Interface Types
 	 */
 	public T[] getInterfaceTs() {
 		return NO_INTERFACES;
@@ -506,13 +506,13 @@ public abstract class T {
 	}
 
 	/**
-	 * Get method.
+	 * Get Method.
 	 * 
 	 * @param name
-	 *            name
+	 *            Method Name
 	 * @param descriptor
-	 *            descriptor
-	 * @return method
+	 *            Method Descriptor
+	 * @return Method
 	 */
 	public M getM(final String name, final String descriptor) {
 		M m = this.ms.get(name + descriptor);
@@ -547,9 +547,9 @@ public abstract class T {
 	}
 
 	/**
-	 * Get super type.
+	 * Get Super Type.
 	 * 
-	 * @return super type
+	 * @return Super Type
 	 */
 	public T getSuperT() {
 		return null;

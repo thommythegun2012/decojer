@@ -54,7 +54,7 @@ import org.decojer.cavaj.util.Cursor;
 import org.decojer.cavaj.util.MagicNumbers;
 
 /**
- * Decompilation unit.
+ * Decompilation Unit.
  * 
  * Contains the global Type Pool (like <code>ClassLoader</code>) and Loader.
  * 

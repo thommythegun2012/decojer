@@ -51,6 +51,13 @@ public final class TD extends T implements BD, PD {
 
 	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
 
+	/**
+	 * Is Anonymous, enclosing Type Declaration.
+	 */
+	@Getter
+	@Setter
+	private T enclosingT;
+
 	private static String toString(final T superT, final T[] interfaceTs) {
 		final StringBuilder sb = new StringBuilder("{");
 		if (superT != null) {
@@ -63,7 +70,46 @@ public final class TD extends T implements BD, PD {
 		return sb.toString();
 	}
 
+	/**
+	 * Deprecated State (from Deprecated Attribute).
+	 */
 	@Getter
+	@Setter
+	private boolean deprecated;
+
+	/**
+	 * Source File Name (from Source File Attribute).
+	 */
+	@Getter
+	@Setter
+	private String sourceFileName;
+
+	/**
+	 * Parent Declaration.
+	 */
+	@Getter
+	@Setter
+	private PD pd;
+
+	@Setter
+	private T[] interfaceTs;
+
+	/**
+	 * AST Type Declaration.
+	 */
+	@Getter
+	@Setter
+	private ASTNode typeDeclaration;
+
+	/**
+	 * All Body Declarations: inner Type/Method/Field Declarations.
+	 */
+	@Getter
+	private final List<BD> bds = new ArrayList<BD>();
+
+	/**
+	 * Access Flags.
+	 */
 	@Setter
 	private int accessFlags;
 
@@ -77,44 +123,50 @@ public final class TD extends T implements BD, PD {
 	private T[] typeParams;
 
 	/**
-	 * Super type or base type for arrays or null for none-refs and unresolveable refs.
+	 * Super Type.
 	 */
 	@Setter
 	private T superT;
 
+	/**
+	 * Member Types (really contained Inner Classes).
+	 */
+	@Getter
 	@Setter
-	private T[] interfaceTs;
-
-	private A[] as;
-
-	// all body declarations: inner type/method/field declarations
-	private final List<BD> bds = new ArrayList<BD>();
-
-	// deprecated state (from deprecated attribute)
-	private boolean deprecated;
-
-	// is anonymous, enclosing method
-	private M enclosingM;
-
-	// is anonymous, enclosing type
-	private T enclosingT;
-
-	// member types (really contained inner classes)
 	private T[] memberTs;
 
-	// parent declaration
-	private PD pd;
+	/**
+	 * Annotations.
+	 */
+	@Getter
+	@Setter
+	private A[] as;
 
-	// from source file attribute
-	private String sourceFileName;
-
-	// synthetic state (from synthetic attribute)
+	/**
+	 * Synthetic State (from Synthetic Attribute).
+	 */
+	@Setter
+	@Getter
 	private boolean synthetic;
 
-	private int version;
+	/**
+	 * Is Anonymous, enclosing Method Declaration.
+	 */
+	@Getter
+	@Setter
+	private M enclosingM;
 
-	// Eclipse type declaration
-	private ASTNode typeDeclaration; // anonymousClassDeclaration?
+	/**
+	 * Class file version.
+	 * 
+	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51
+	 * 
+	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
+	 * target option given.
+	 */
+	@Getter
+	@Setter
+	private int version; // anonymousClassDeclaration?
 
 	/**
 	 * Constructor.
@@ -206,29 +258,9 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
-	 * Get annotations.
+	 * Get Compilation Unit.
 	 * 
-	 * @return annotations or null
-	 */
-	public A[] getAs() {
-		return this.as;
-	}
-
-	/**
-	 * Get body declarations.
-	 * 
-	 * @return body declarations
-	 */
-	public List<BD> getBds() {
-		assert this.bds != null;
-
-		return this.bds;
-	}
-
-	/**
-	 * Get compilation unit.
-	 * 
-	 * @return compilation unit
+	 * @return Compilation Unit
 	 */
 	public CU getCu() {
 		final PD pd = getPd();
@@ -248,25 +280,7 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
-	 * Get enclosing method.
-	 * 
-	 * @return enclosing method
-	 */
-	public M getEnclosingM() {
-		return this.enclosingM;
-	}
-
-	/**
-	 * Get enclosing type.
-	 * 
-	 * @return enclosing type
-	 */
-	public T getEnclosingT() {
-		return this.enclosingT;
-	}
-
-	/**
-	 * Get field declaration for name.
+	 * Get Field Declaration for name.
 	 * 
 	 * @param name
 	 *            name
@@ -281,11 +295,6 @@ public final class TD extends T implements BD, PD {
 		return null;
 	}
 
-	/**
-	 * Get interface types.
-	 * 
-	 * @return interface types
-	 */
 	@Override
 	public T[] getInterfaceTs() {
 		return isResolveable() ? this.interfaceTs : T.NO_INTERFACES;
@@ -296,38 +305,6 @@ public final class TD extends T implements BD, PD {
 		return Kind.REF.getKind();
 	}
 
-	/**
-	 * Get member types (really contained inner classes).
-	 * 
-	 * @return member types
-	 */
-	public T[] getMemberTs() {
-		return this.memberTs;
-	}
-
-	/**
-	 * Get parent declaration.
-	 * 
-	 * @return parent declaration or null if no inner class
-	 */
-	public PD getPd() {
-		return this.pd;
-	}
-
-	/**
-	 * Get source file name (from source file attribute).
-	 * 
-	 * @return source file name or null
-	 */
-	public String getSourceFileName() {
-		return this.sourceFileName;
-	}
-
-	/**
-	 * Get super type.
-	 * 
-	 * @return super type
-	 */
 	@Override
 	public T getSuperT() {
 		return isResolveable() ? this.superT : null;
@@ -340,29 +317,6 @@ public final class TD extends T implements BD, PD {
 	 */
 	public T getT() {
 		return this;
-	}
-
-	/**
-	 * Get Eclipse type declaration.
-	 * 
-	 * @return type declaration
-	 */
-	public ASTNode getTypeDeclaration() {
-		return this.typeDeclaration;
-	}
-
-	/**
-	 * Get Class file version.
-	 * 
-	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51
-	 * 
-	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
-	 * target option given
-	 * 
-	 * @return Class file version
-	 */
-	public int getVersion() {
-		return this.version;
 	}
 
 	/**
@@ -383,20 +337,6 @@ public final class TD extends T implements BD, PD {
 		return this.version == 0;
 	}
 
-	/**
-	 * Get deprecated state (from deprecated attribute).
-	 * 
-	 * @return true - deprecated
-	 */
-	public boolean isDeprecated() {
-		return this.deprecated;
-	}
-
-	/**
-	 * Is interface?
-	 * 
-	 * @return true - is interface
-	 */
 	@Override
 	public boolean isInterface() {
 		return check(AF.INTERFACE);
@@ -456,15 +396,6 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
-	 * Get synthetic state (from synthetic attribute).
-	 * 
-	 * @return true - synthetic
-	 */
-	public boolean isSynthetic() {
-		return this.synthetic;
-	}
-
-	/**
 	 * Mark access flag.
 	 * 
 	 * @param af
@@ -501,66 +432,6 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
-	 * Set annotations.
-	 * 
-	 * @param as
-	 *            annotations
-	 */
-	public void setAs(final A[] as) {
-		this.as = as;
-	}
-
-	/**
-	 * Set deprecated state (from deprecated attribute).
-	 * 
-	 * @param deprecated
-	 *            true - deprecated
-	 */
-	public void setDeprecated(final boolean deprecated) {
-		this.deprecated = deprecated;
-	}
-
-	/**
-	 * Set enclosing method.
-	 * 
-	 * @param enclosingM
-	 *            enclosing method
-	 */
-	public void setEnclosingM(final M enclosingM) {
-		this.enclosingM = enclosingM;
-	}
-
-	/**
-	 * Set enclosing type.
-	 * 
-	 * @param enclosingT
-	 *            enclosing type
-	 */
-	public void setEnclosingT(final T enclosingT) {
-		this.enclosingT = enclosingT;
-	}
-
-	/**
-	 * Set member types (really contained inner classes).
-	 * 
-	 * @param memberTs
-	 *            member types
-	 */
-	public void setMemberTs(final T[] memberTs) {
-		this.memberTs = memberTs;
-	}
-
-	/**
-	 * Set parent declaration.
-	 * 
-	 * @param pd
-	 *            parent declaration
-	 */
-	public void setPd(final PD pd) {
-		this.pd = pd;
-	}
-
-	/**
 	 * Set signature.
 	 * 
 	 * @param signature
@@ -590,53 +461,6 @@ public final class TD extends T implements BD, PD {
 
 			this.interfaceTs = interfaceTs.toArray(new T[interfaceTs.size()]);
 		}
-	}
-
-	/**
-	 * Set source file name (from source file attribute).
-	 * 
-	 * @param sourceFileName
-	 *            source file name
-	 */
-	public void setSourceFileName(final String sourceFileName) {
-		this.sourceFileName = sourceFileName;
-	}
-
-	/**
-	 * Set synthetic state (from synthetic attribute).
-	 * 
-	 * @param synthetic
-	 *            true - synthetic
-	 */
-	public void setSynthetic(final boolean synthetic) {
-		this.synthetic = synthetic;
-	}
-
-	/**
-	 * Set Eclipse type declaration.
-	 * 
-	 * @param typeDeclaration
-	 *            Eclipse type declaration
-	 */
-	public void setTypeDeclaration(final ASTNode typeDeclaration) {
-		this.typeDeclaration = typeDeclaration;
-	}
-
-	/**
-	 * Set Class file version.
-	 * 
-	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51
-	 * 
-	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
-	 * target option given
-	 * 
-	 * @param version
-	 *            Class file version
-	 */
-	public void setVersion(final int version) {
-		assert version >= 45 && version < 60 : version;
-
-		this.version = version;
 	}
 
 }

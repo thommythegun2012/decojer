@@ -27,6 +27,9 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.util.TypeNameManager;
@@ -51,26 +54,41 @@ public final class CU implements PD {
 	// all sub type declarations
 	private final List<TD> allTds = new ArrayList<TD>();
 
-	// Eclipse compilation unit
+	/**
+	 * AST Compilation Unit.
+	 */
+	@Getter
 	private final CompilationUnit compilationUnit;
 
 	private final EnumSet<DFlag> dFlags = EnumSet.noneOf(DFlag.class);
 
+	/**
+	 * Source File Name.
+	 */
+	@Getter
+	@Setter
 	private String sourceFileName;
 
-	// start type declaration
+	/**
+	 * Start Type Declaration.
+	 */
+	@Getter
 	private final TD startTd;
 
-	// sub type declarations
+	/**
+	 * Sub Type Declarations.
+	 */
+	@Getter
 	private final List<TD> tds = new ArrayList<TD>();
 
+	@Getter
 	private final TypeNameManager typeNameManager = new TypeNameManager(this);
 
 	/**
 	 * Constructor.
 	 * 
 	 * @param startTd
-	 *            start type declaration
+	 *            Start Type Declaration
 	 */
 	public CU(final TD startTd) {
 		assert startTd != null;
@@ -90,10 +108,10 @@ public final class CU implements PD {
 	}
 
 	/**
-	 * Add type declaration and add all parents.
+	 * Add Type Declaration and add all parents.
 	 * 
 	 * @param td
-	 *            type declaration
+	 *            Type Declaration
 	 * @return true - success (or allready included)
 	 */
 	public boolean addTd(final TD td) {
@@ -158,10 +176,10 @@ public final class CU implements PD {
 	}
 
 	/**
-	 * Add Eclipse type declaration.
+	 * Add AST Type Declaration.
 	 * 
 	 * @param typeDeclaration
-	 *            Eclipse type declaration
+	 *            AST Type Declaration
 	 * @return true - success
 	 */
 	@SuppressWarnings("unchecked")
@@ -270,37 +288,6 @@ public final class CU implements PD {
 	}
 
 	/**
-	 * Get Eclipse compilation unit.
-	 * 
-	 * @return Eclipse compilation unit
-	 */
-	public CompilationUnit getCompilationUnit() {
-		assert this.compilationUnit != null;
-
-		return this.compilationUnit;
-	}
-
-	/**
-	 * Get source file name.
-	 * 
-	 * @return source file name
-	 */
-	public String getSourceFileName() {
-		return this.sourceFileName;
-	}
-
-	/**
-	 * Get start type declaration.
-	 * 
-	 * @return start type declaration
-	 */
-	public TD getStartTd() {
-		assert this.startTd != null;
-
-		return this.startTd;
-	}
-
-	/**
 	 * Get type declaration with name or full name.
 	 * 
 	 * @param name
@@ -320,21 +307,6 @@ public final class CU implements PD {
 		return null;
 	}
 
-	/**
-	 * Get sub type declarations.
-	 * 
-	 * @return sub type declarations
-	 */
-	public List<TD> getTds() {
-		assert this.tds != null;
-
-		return this.tds;
-	}
-
-	protected TypeNameManager getTypeNameManager() {
-		return this.typeNameManager;
-	}
-
 	private void setPackageName(final String packageName) {
 		assert packageName != null && packageName.length() != 0;
 
@@ -342,16 +314,6 @@ public final class CU implements PD {
 		packageDeclaration.setName(getAst().newName(packageName));
 		this.compilationUnit.setPackage(packageDeclaration);
 		this.typeNameManager.setPackageName(packageName);
-	}
-
-	/**
-	 * Set source file name.
-	 * 
-	 * @param sourceFileName
-	 *            source file name
-	 */
-	public void setSourceFileName(final String sourceFileName) {
-		this.sourceFileName = sourceFileName;
 	}
 
 	/**

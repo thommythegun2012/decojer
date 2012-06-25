@@ -180,7 +180,7 @@ public class ReadCodeAttribute {
 		LOGGER.fine("Stack info: " + stackMap + " : " + stackMapTable);
 
 		final CFG cfg = new CFG(md, codeAttribute.getMaxLocals(), codeAttribute.getMaxStack());
-		md.setCFG(cfg);
+		md.setCfg(cfg);
 
 		final CodeReader codeReader = new CodeReader(codeAttribute.getCode());
 		final ConstPool constPool = codeAttribute.getConstPool();
