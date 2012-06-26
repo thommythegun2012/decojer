@@ -184,40 +184,24 @@ public class SmaliReader implements DexReader {
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
-							// is anonymous class, is in field initializer
 							td.setEnclosingT((T) a.getMemberValue());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingMethod".equals(a.getT().getName())) {
-							// is anonymous class, is in method
 							td.setEnclosingM((M) a.getMemberValue());
 							continue;
 						}
-						// Dalvik has not all inner class info from JVM:
-						// outer class info not known in Dalvik and derivable,
-						// no access flags for member classes,
-						// no info for arbitrary accessed inner classes
-
-						// InnerClass for
-						// 'org.decojer.cavaj.test.DecTestInner$Inner1$Inner11':
-						// dalvik.annotation.InnerClass accessFlags=20
-						// name=Inner11
-						// InnerClass for
-						// 'org.decojer.cavaj.test.DecTestInner$Inner1':
-						// dalvik.annotation.InnerClass accessFlags=1
-						// name=Inner1
-						// MemberClasses for
-						// 'org.decojer.cavaj.test.DecTestInner$Inner1':
-						// dalvik.annotation.MemberClasses
-						// value=[Ljava.lang.Object;@170bea5
-						// org.decojer.cavaj.test.DecTestInner$Inner1$Inner11
+						// Dalvik has not all Inner Class Info from JVM Bytecode:
+						// Outer Class info not known in Dalvik and is derivable anyway,
+						// no Access Flags for Member Classes,
+						// no info for arbitrary accessed and nested Inner Classes
 						if ("dalvik.annotation.InnerClass".equals(a.getT().getName())) {
-							// is inner type, this attributes is senseless?
-							// inner name from naming rules and flags are known
+							// is Inner Class, this Attributes is senseless?
+							// inner name (from naming rules) and flags are known
 							continue;
 						}
 						if ("dalvik.annotation.MemberClasses".equals(a.getT().getName())) {
-							// has member types (really contained inner classes)
+							// has Member Classes (really contained Inner Classes)
 							final Object[] memberValue = (Object[]) a.getMemberValue();
 							final T[] memberTs = new T[memberValue.length];
 							System.arraycopy(memberValue, 0, memberTs, 0, memberValue.length);

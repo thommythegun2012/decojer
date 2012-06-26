@@ -52,11 +52,10 @@ public final class TD extends T implements BD, PD {
 	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
 
 	/**
-	 * Is Anonymous, enclosing Type Declaration.
+	 * Super Type.
 	 */
-	@Getter
 	@Setter
-	private T enclosingT;
+	private T superT;
 
 	private static String toString(final T superT, final T[] interfaceTs) {
 		final StringBuilder sb = new StringBuilder("{");
@@ -69,6 +68,55 @@ public final class TD extends T implements BD, PD {
 		sb.setCharAt(sb.length() - 1, '}');
 		return sb.toString();
 	}
+
+	/**
+	 * Member Types (really contained Inner Classes).
+	 */
+	@Getter
+	@Setter
+	private T[] memberTs;
+
+	/**
+	 * Annotations.
+	 */
+	@Getter
+	@Setter
+	private A[] as;
+
+	/**
+	 * Synthetic State (from Synthetic Attribute).
+	 */
+	@Setter
+	@Getter
+	private boolean synthetic;
+
+	/**
+	 * Enclosing Method for this Anonymous Inner Class.
+	 */
+	@Getter
+	@Setter
+	private M enclosingM;
+
+	/**
+	 * Class file version.
+	 * 
+	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51
+	 * 
+	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
+	 * target option given.
+	 */
+	@Getter
+	@Setter
+	private int version;
+
+	/**
+	 * Enclosing Type for this Anynomous Inner Class (must be in Field Initializer).
+	 * 
+	 * TODO combine both enclosing, only one possible...need TD and M(D?!) supertype for this
+	 */
+	@Getter
+	@Setter
+	private T enclosingT;
 
 	/**
 	 * Deprecated State (from Deprecated Attribute).
@@ -120,53 +168,7 @@ public final class TD extends T implements BD, PD {
 	 * Type Parameters. (They define the useable Type Variables)
 	 */
 	@Getter
-	private T[] typeParams;
-
-	/**
-	 * Super Type.
-	 */
-	@Setter
-	private T superT;
-
-	/**
-	 * Member Types (really contained Inner Classes).
-	 */
-	@Getter
-	@Setter
-	private T[] memberTs;
-
-	/**
-	 * Annotations.
-	 */
-	@Getter
-	@Setter
-	private A[] as;
-
-	/**
-	 * Synthetic State (from Synthetic Attribute).
-	 */
-	@Setter
-	@Getter
-	private boolean synthetic;
-
-	/**
-	 * Is Anonymous, enclosing Method Declaration.
-	 */
-	@Getter
-	@Setter
-	private M enclosingM;
-
-	/**
-	 * Class file version.
-	 * 
-	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51
-	 * 
-	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
-	 * target option given.
-	 */
-	@Getter
-	@Setter
-	private int version; // anonymousClassDeclaration?
+	private T[] typeParams; // anonymousClassDeclaration?
 
 	/**
 	 * Constructor.

@@ -170,15 +170,13 @@ public class JavassistReader implements ClassReader {
 		}
 
 		if (enclosingMethodAttribute != null) {
+			if (enclosingMethodAttribute.classIndex() > 0) {
+				td.setEnclosingT(this.du.getT(enclosingMethodAttribute.className()));
+			}
 			if (enclosingMethodAttribute.methodIndex() > 0) {
-				// is anonymous class, is in method
 				final T methodT = this.du.getT(enclosingMethodAttribute.className());
 				td.setEnclosingM(methodT.getM(enclosingMethodAttribute.methodName(),
 						enclosingMethodAttribute.methodDescriptor()));
-			}
-			if (enclosingMethodAttribute.classIndex() > 0) {
-				// is anonymous class, is in field initializer
-				td.setEnclosingT(this.du.getT(enclosingMethodAttribute.className()));
 			}
 		}
 		if (innerClassesAttribute != null) {
@@ -186,14 +184,12 @@ public class JavassistReader implements ClassReader {
 			// preserve order
 			final int tableLength = innerClassesAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				// outer class info not known in Dalvik and derivable
-				if (td.getName().equals(innerClassesAttribute.innerClass(i))) {
-					// is inner type, this attributes is senseless?
-					// inner name from naming rules and flags are known
-					continue;
-				}
+				// Dalvik has not all Inner Class Info from JVM Bytecode:
+				// Outer Class info not known in Dalvik and is derivable anyway,
+				// no Access Flags for Member Classes,
+				// no info for arbitrarily accessed and nested Inner Classes
 				if (td.getName().equals(innerClassesAttribute.outerClass(i))) {
-					// has member types (really contained inner classes)
+					// Attribute describes direct Member / Inner Class
 					memberTs.add(this.du.getT(innerClassesAttribute.innerClass(i)));
 					continue;
 				}
