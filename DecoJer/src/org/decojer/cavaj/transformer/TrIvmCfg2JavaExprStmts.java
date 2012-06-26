@@ -886,7 +886,8 @@ public final class TrIvmCfg2JavaExprStmts {
 					}
 					// TODO this checks are not enough, we must assure that we don't use method
 					// arguments here!!!
-					if (f.getT().check(AF.ENUM) && !this.cfg.getCu().check(DFlag.IGNORE_ENUM)) {
+					if (((TD) f.getT()).check(AF.ENUM)
+							&& !this.cfg.getCu().check(DFlag.IGNORE_ENUM)) {
 						if (f.check(AF.ENUM)) {
 							// assignment to enum constant declaration
 							if (!(rightExpression instanceof ClassInstanceCreation)) {

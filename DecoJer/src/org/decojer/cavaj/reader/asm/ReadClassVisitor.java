@@ -62,6 +62,8 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	private TD td;
 
+	private T[] memberTs;
+
 	/**
 	 * Constructor.
 	 * 
@@ -102,6 +104,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	 */
 	public void init() {
 		this.as = null;
+		this.memberTs = null;
 		this.td = null;
 	}
 
@@ -156,6 +159,9 @@ public class ReadClassVisitor extends ClassVisitor {
 		if (this.as != null) {
 			this.td.setAs(this.as);
 		}
+		if (this.memberTs != null) {
+			this.td.setMemberTs(this.memberTs);
+		}
 		this.du.addTd(this.td);
 	}
 
@@ -181,9 +187,21 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public void visitInnerClass(final String name, final String outerName, final String innerName,
 			final int access) {
-		// LOGGER.warning("### visitInner ### " + name + " : " + outerName +
-		// " : "
-		// + innerName + " : " + access);
+		// Dalvik has not all Inner Class Info from JVM Bytecode:
+		// Outer Class info not known in Dalvik and is derivable anyway,
+		// no Access Flags for Member Classes,
+		// no info for arbitrarily accessed and nested Inner Classes
+		if (this.td.getName().equals(outerName)) {
+			// has Member Classes (really contained Inner Classes)
+			if (this.memberTs == null) {
+				this.memberTs = new T[1];
+			} else {
+				final T[] newMemberTs = new T[this.as.length + 1];
+				System.arraycopy(this.as, 0, newMemberTs, 0, this.as.length);
+				this.memberTs = newMemberTs;
+			}
+			this.memberTs[this.memberTs.length - 1] = this.du.getT(name);
+		}
 	}
 
 	@Override
@@ -213,8 +231,12 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visitOuterClass(final String owner, final String name, final String desc) {
-		// LOGGER.warning("### visitOuter ### " + owner + " : " + name + " : "
-		// + desc);
+		final T ownerT = this.du.getT(owner);
+		if (name == null) {
+			this.td.setEnclosingT(ownerT);
+			return;
+		}
+		this.td.setEnclosingM(ownerT.getM(name, desc));
 	}
 
 	@Override
