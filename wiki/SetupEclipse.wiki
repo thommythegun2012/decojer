@@ -52,7 +52,8 @@ http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
 
   * Install Web Development Plugins:
     * Install *Google Plugin for Eclipse*:
-      * Add Update Manager: http://dl.google.com/eclipse/plugin/3.7
+      * Add Update Manager: http://dl.google.com/eclipse/plugin/4.2
+      * for Eclipse 3.7.2: http://dl.google.com/eclipse/plugin/3.7
       * select all items
       * (see under http://code.google.com/intl/de-DE/eclipse/docs/download.html)
     * Install *Eclipse WTP Plugins* (we use Eclipse for RCP!)
