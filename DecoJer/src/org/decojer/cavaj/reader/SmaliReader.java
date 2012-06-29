@@ -43,12 +43,11 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.reader.smali.ReadCodeItem;
 import org.jf.dexlib.AnnotationDirectoryItem;
-import org.jf.dexlib.AnnotationDirectoryItem.FieldAnnotationIteratorDelegate;
-import org.jf.dexlib.AnnotationDirectoryItem.MethodAnnotationIteratorDelegate;
-import org.jf.dexlib.AnnotationDirectoryItem.ParameterAnnotationIteratorDelegate;
+import org.jf.dexlib.AnnotationDirectoryItem.FieldAnnotation;
+import org.jf.dexlib.AnnotationDirectoryItem.MethodAnnotation;
+import org.jf.dexlib.AnnotationDirectoryItem.ParameterAnnotation;
 import org.jf.dexlib.AnnotationItem;
 import org.jf.dexlib.AnnotationSetItem;
-import org.jf.dexlib.AnnotationSetRefList;
 import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.ClassDataItem.EncodedField;
 import org.jf.dexlib.ClassDataItem.EncodedMethod;
@@ -177,8 +176,8 @@ public class SmaliReader implements DexReader {
 							// array value
 							final Object[] signature = (Object[]) a.getMemberValue();
 							final StringBuilder sb = new StringBuilder();
-							for (int i = 0; i < signature.length; ++i) {
-								sb.append(signature[i]);
+							for (final Object element : signature) {
+								sb.append(element);
 							}
 							td.setSignature(sb.toString());
 							continue;
@@ -214,94 +213,76 @@ public class SmaliReader implements DexReader {
 						td.setAs(as.toArray(new A[as.size()]));
 					}
 				}
-				annotations.iterateFieldAnnotations(new FieldAnnotationIteratorDelegate() {
-
-					@Override
-					public void processFieldAnnotations(final FieldIdItem field,
-							final AnnotationSetItem fieldAnnotations) {
-						final List<A> as = new ArrayList<A>();
-						for (final AnnotationItem annotationItem : fieldAnnotations
-								.getAnnotations()) {
-							final A a = readAnnotation(annotationItem);
-							if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
-								// signature, is encoded as annotation
-								// with string array value
-								final Object[] signature = (Object[]) a.getMemberValue();
-								final StringBuilder sb = new StringBuilder();
-								for (int i = 0; i < signature.length; ++i) {
-									sb.append(signature[i]);
-								}
-								fieldSignatures.put(field, sb.toString());
-								continue;
-							} else {
-								as.add(a);
+				for (final FieldAnnotation fieldAnnotation : annotations.getFieldAnnotations()) {
+					final List<A> as = new ArrayList<A>();
+					for (final AnnotationItem annotationItem : fieldAnnotation.annotationSet
+							.getAnnotations()) {
+						final A a = readAnnotation(annotationItem);
+						if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
+							// signature, is encoded as annotation
+							// with string array value
+							final Object[] signature = (Object[]) a.getMemberValue();
+							final StringBuilder sb = new StringBuilder();
+							for (final Object element : signature) {
+								sb.append(element);
 							}
-						}
-						if (as.size() > 0) {
-							fieldAs.put(field, as.toArray(new A[as.size()]));
+							fieldSignatures.put(fieldAnnotation.field, sb.toString());
+							continue;
+						} else {
+							as.add(a);
 						}
 					}
-
-				});
-				annotations.iterateMethodAnnotations(new MethodAnnotationIteratorDelegate() {
-
-					@Override
-					public void processMethodAnnotations(final MethodIdItem method,
-							final AnnotationSetItem methodAnnotations) {
-						final List<A> as = new ArrayList<A>();
-						for (final AnnotationItem annotationItem : methodAnnotations
-								.getAnnotations()) {
-							final A a = readAnnotation(annotationItem);
-							if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
-								// signature, is encoded as annotation
-								// with string array value
-								final Object[] signature = (Object[]) a.getMemberValue();
-								final StringBuilder sb = new StringBuilder();
-								for (int i = 0; i < signature.length; ++i) {
-									sb.append(signature[i]);
-								}
-								methodSignatures.put(method, sb.toString());
-								continue;
-							} else if ("dalvik.annotation.Throws".equals(a.getT().getName())) {
-								// throws, is encoded as annotation with
-								// type array value
-								final Object[] throwables = (Object[]) a.getMemberValue();
-								final T[] throwsTs = new T[throwables.length];
-								for (int i = throwables.length; i-- > 0;) {
-									throwsTs[i] = (T) throwables[i];
-								}
-								methodThrowsTs.put(method, throwsTs);
-								continue;
-							} else {
-								as.add(a);
+					if (as.size() > 0) {
+						fieldAs.put(fieldAnnotation.field, as.toArray(new A[as.size()]));
+					}
+				}
+				for (final MethodAnnotation methodAnnotation : annotations.getMethodAnnotations()) {
+					final List<A> as = new ArrayList<A>();
+					for (final AnnotationItem annotationItem : methodAnnotation.annotationSet
+							.getAnnotations()) {
+						final A a = readAnnotation(annotationItem);
+						if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
+							// signature, is encoded as annotation
+							// with string array value
+							final Object[] signature = (Object[]) a.getMemberValue();
+							final StringBuilder sb = new StringBuilder();
+							for (final Object element : signature) {
+								sb.append(element);
 							}
-						}
-						if (as.size() > 0) {
-							methodAs.put(method, as.toArray(new A[as.size()]));
+							methodSignatures.put(methodAnnotation.method, sb.toString());
+							continue;
+						} else if ("dalvik.annotation.Throws".equals(a.getT().getName())) {
+							// throws, is encoded as annotation with
+							// type array value
+							final Object[] throwables = (Object[]) a.getMemberValue();
+							final T[] throwsTs = new T[throwables.length];
+							for (int i = throwables.length; i-- > 0;) {
+								throwsTs[i] = (T) throwables[i];
+							}
+							methodThrowsTs.put(methodAnnotation.method, throwsTs);
+							continue;
+						} else {
+							as.add(a);
 						}
 					}
-
-				});
-				annotations.iterateParameterAnnotations(new ParameterAnnotationIteratorDelegate() {
-
-					@Override
-					public void processParameterAnnotations(final MethodIdItem method,
-							final AnnotationSetRefList parameterAnnotations) {
-						final AnnotationSetItem[] annotationSets = parameterAnnotations
-								.getAnnotationSets();
-						final A[][] paramAss = new A[annotationSets.length][];
-						for (int i = annotationSets.length; i-- > 0;) {
-							final AnnotationItem[] annotationItems = annotationSets[i]
-									.getAnnotations();
-							final A[] paramAs = paramAss[i] = new A[annotationItems.length];
-							for (int j = annotationItems.length; j-- > 0;) {
-								paramAs[j] = readAnnotation(annotationItems[j]);
-							}
-						}
-						methodParamAs.put(method, paramAss);
+					if (as.size() > 0) {
+						methodAs.put(methodAnnotation.method, as.toArray(new A[as.size()]));
 					}
-
-				});
+				}
+				for (final ParameterAnnotation paramAnnotation : annotations
+						.getParameterAnnotations()) {
+					final AnnotationSetItem[] annotationSets = paramAnnotation.annotationSet
+							.getAnnotationSets();
+					final A[][] paramAss = new A[annotationSets.length][];
+					for (int i = annotationSets.length; i-- > 0;) {
+						final AnnotationItem[] annotationItems = annotationSets[i].getAnnotations();
+						final A[] paramAs = paramAss[i] = new A[annotationItems.length];
+						for (int j = annotationItems.length; j-- > 0;) {
+							paramAs[j] = readAnnotation(annotationItems[j]);
+						}
+					}
+					methodParamAs.put(paramAnnotation.method, paramAss);
+				}
 			}
 
 			if (classDefItem.getSourceFile() != null) {
@@ -354,8 +335,9 @@ public class SmaliReader implements DexReader {
 		return readAnnotation(annotationItem.getEncodedAnnotation(), retentionPolicy);
 	}
 
-	private void readFields(final TD td, final EncodedField[] staticFields,
-			final EncodedField[] instanceFields, final Map<FieldIdItem, String> fieldSignatures,
+	private void readFields(final TD td, final List<EncodedField> staticFields,
+			final List<EncodedField> instanceFields,
+			final Map<FieldIdItem, String> fieldSignatures,
 			final EncodedArrayItem staticFieldInitializers, final Map<FieldIdItem, A[]> fieldAs) {
 		final T t = td.getT();
 		final DU du = t.getDu();
@@ -368,8 +350,8 @@ public class SmaliReader implements DexReader {
 		final EncodedValue[] staticFieldValues = staticFieldInitializers == null ? new EncodedValue[0]
 				: staticFieldInitializers.getEncodedArray().values;
 
-		for (int i = 0; i < staticFields.length; ++i) {
-			final EncodedField encodedField = staticFields[i];
+		for (int i = 0; i < staticFields.size(); ++i) {
+			final EncodedField encodedField = staticFields.get(i);
 			final FieldIdItem field = encodedField.field;
 
 			final T fieldT = du.getDescT(field.getFieldType().getTypeDescriptor());
@@ -387,8 +369,7 @@ public class SmaliReader implements DexReader {
 			fd.setAs(fieldAs.get(field));
 			td.getBds().add(fd);
 		}
-		for (int i = 0; i < instanceFields.length; ++i) {
-			final EncodedField encodedField = instanceFields[i];
+		for (final EncodedField encodedField : instanceFields) {
 			final FieldIdItem field = encodedField.field;
 
 			final T fieldT = du.getDescT(field.getFieldType().getTypeDescriptor());
@@ -407,14 +388,14 @@ public class SmaliReader implements DexReader {
 		}
 	}
 
-	private void readMethods(final TD td, final EncodedMethod[] directMethods,
-			final EncodedMethod[] virtualMethods, final Map<MethodIdItem, String> methodSignatures,
+	private void readMethods(final TD td, final List<EncodedMethod> directMethods,
+			final List<EncodedMethod> virtualMethods,
+			final Map<MethodIdItem, String> methodSignatures,
 			final Map<MethodIdItem, T[]> methodThrowsTs, final A annotationDefaultValues,
 			final Map<MethodIdItem, A[]> methodAs, final Map<MethodIdItem, A[][]> methodParamAs) {
 		final T t = td.getT();
 
-		for (int i = 0; i < directMethods.length; ++i) {
-			final EncodedMethod encodedMethod = directMethods[i];
+		for (final EncodedMethod encodedMethod : directMethods) {
 			final MethodIdItem method = encodedMethod.method;
 
 			// getResourceAsStream :
@@ -438,8 +419,7 @@ public class SmaliReader implements DexReader {
 
 			td.getBds().add(md);
 		}
-		for (int i = 0; i < virtualMethods.length; ++i) {
-			final EncodedMethod encodedMethod = virtualMethods[i];
+		for (final EncodedMethod encodedMethod : virtualMethods) {
 			final MethodIdItem method = encodedMethod.method;
 
 			// getResourceAsStream :
