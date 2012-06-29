@@ -2,15 +2,15 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: DecoJer
 Bundle-SymbolicName: DecoJer; singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 1.0.0
 Bundle-Activator: org.decojer.editor.eclipse.Activator
 Require-Bundle: org.eclipse.ui,
  org.eclipse.core.runtime,
+ org.eclipse.jface.text,
  org.eclipse.core.resources,
  org.eclipse.ui.editors,
  org.eclipse.ui.ide,
  org.eclipse.ui.views,
- org.eclipse.jface.text,
  org.eclipse.jdt,
  org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
@@ -23,7 +23,7 @@ Bundle-ClassPath: .,
  lib/asm-4.0.jar,
  lib/javassist.jar,
  lib/dex-reader-1.10-SNAPSHOT.jar,
- lib/dexlib-1.3.3-dev.jar,
+ lib/dexlib-1.3.4-dev.jar,
  lib/guava-11.0.1.jar,
  lib/commons-io-2.1.jar
 Export-Package: com.google.common.annotations,
@@ -71,6 +71,7 @@ Export-Package: com.google.common.annotations,
  org.decojer.cavaj.model.code,
  org.decojer.cavaj.model.code.op,
  org.decojer.cavaj.model.code.struct,
+ org.decojer.cavaj.model.type,
  org.decojer.cavaj.reader,
  org.decojer.cavaj.reader.asm,
  org.decojer.cavaj.reader.dex2jar,
