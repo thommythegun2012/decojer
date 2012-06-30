@@ -121,9 +121,47 @@ class DecTestInnerS {
 				class MethodInner {
 
 					public MethodInner(int c) {
+						// JDK 7, beware Signature!:
+						// Method descriptor #27
+						// (Lorg/decojer/cavaj/test/jdk2/DecTestInnerS$Inner1$Inner11;III)V
+						// Signature: (I)V
+						// Stack: 4, Locals: 5
 						// public
-						// DecTestInnerS$Inner1$Inner11$1MethodInner(org.decojer.cavaj.test.DecTestInnerS.Inner1.Inner11
+						// DecTestInnerS$Inner1$Inner11$1MethodInner(org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11
 						// arg0, int c, int arg2, int arg3);
+						// 0 aload_0 [this]
+						// 1 aload_1 [arg0]
+						// 2 putfield
+						// org.decojer.cavaj.test.jdk2.DecTestInnerS$Inner1$Inner11$1MethodInner.this$0
+						// :
+						// org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11
+						// [1]
+						// 5 aload_0 [this]
+						// 6 iload_3 [arg2]
+						// 7 putfield
+						// org.decojer.cavaj.test.jdk2.DecTestInnerS$Inner1$Inner11$1MethodInner.val$a
+						// : int [2]
+						// 10 aload_0 [this]
+						// 11 iload 4 [arg3]
+						// 13 putfield
+						// org.decojer.cavaj.test.jdk2.DecTestInnerS$Inner1$Inner11$1MethodInner.val$b
+						// : int [3]
+						// 16 aload_0 [this]
+						// 17 invokespecial java.lang.Object() [4]
+
+						// JDK 2:
+						// Method descriptor #28 (III)V
+						// Stack: 4, Locals: 4
+						// public DecTestInnerS$1$MethodInner(int val$a, int
+						// val$b, int c);
+						// 0 aload_0 [this]
+						// 1 invokespecial java.lang.Object() [11]
+						// 4 aload_0 [this]
+						// 5 iload_1 [val$a]
+						// 6 putfield
+						// org.decojer.cavaj.test.jdk2.DecTestInnerS$1$MethodInner.val$a
+						// : int [17]
+
 						// constructor:
 						// none-static method: additional leading Inner11.this
 						// (cached as - $2 is inner level:
