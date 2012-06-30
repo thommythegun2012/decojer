@@ -47,6 +47,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadDebugInfo.class.getName());
 
+	private final static boolean DEBUG = false;
+
 	private final DU du;
 
 	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
@@ -127,8 +129,11 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	@Override
 	public void ProcessEndLocal(final int codeAddress, final int length, final int registerNum,
 			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
-		System.out.println("*ProcessEndLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
-				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
+		if (DEBUG) {
+			System.out.println("*ProcessEndLocal: P" + codeAddress + " l" + getLine(codeAddress)
+					+ " N" + length + " r" + registerNum + " : " + name + " : " + type + " : "
+					+ signature);
+		}
 
 		final ArrayList<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
@@ -157,8 +162,11 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	@Override
 	public void ProcessRestartLocal(final int codeAddress, final int length, final int registerNum,
 			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
-		System.out.println("*RestartLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
-				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
+		if (DEBUG) {
+			System.out.println("*RestartLocal: P" + codeAddress + " l" + getLine(codeAddress)
+					+ " N" + length + " r" + registerNum + " : " + name + " : " + type + " : "
+					+ signature);
+		}
 
 		final ArrayList<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
@@ -213,8 +221,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private void startLocal(final int codeAddress, final int length, final int registerNum,
 			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
-		System.out.println("*startLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
-				+ length + " r" + registerNum + " : " + name + " : " + type + " : " + signature);
+		if (DEBUG) {
+			System.out
+					.println("*startLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
+							+ length + " r" + registerNum + " : " + name + " : " + type + " : "
+							+ signature);
+		}
 
 		final T vT = this.du.getDescT(signature != null ? signature.getStringValue() : type
 				.getTypeDescriptor());

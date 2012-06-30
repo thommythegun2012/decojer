@@ -376,7 +376,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				final TreeItem treeItem = new TreeItem(this.archiveTree, SWT.NONE);
 				treeItem.setText(type.getKey());
 				if (this.td == null) {
-					this.archiveTree.setSelection(treeItem);
+					this.archiveTree.select(treeItem);
 					this.td = type.getValue();
 				}
 			}
@@ -416,6 +416,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				}
 
 			});
+			this.archiveTree.pack(); // necessary for correct selection box for first item
 			pageContainer = sashForm;
 		}
 		return pageContainer;

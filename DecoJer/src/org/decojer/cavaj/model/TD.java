@@ -52,10 +52,10 @@ public final class TD extends T implements BD, PD {
 	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
 
 	/**
-	 * Super Type.
+	 * All Body Declarations: inner Type/Method/Field Declarations.
 	 */
-	@Setter
-	private T superT;
+	@Getter
+	private final List<BD> bds = new ArrayList<BD>();
 
 	private static String toString(final T superT, final T[] interfaceTs) {
 		final StringBuilder sb = new StringBuilder("{");
@@ -68,6 +68,27 @@ public final class TD extends T implements BD, PD {
 		sb.setCharAt(sb.length() - 1, '}');
 		return sb.toString();
 	}
+
+	/**
+	 * Access Flags.
+	 */
+	@Setter
+	private int accessFlags;
+
+	@Getter
+	private final DU du;
+
+	/**
+	 * Type Parameters. (They define the useable Type Variables)
+	 */
+	@Getter
+	private T[] typeParams;
+
+	/**
+	 * Super Type.
+	 */
+	@Setter
+	private T superT;
 
 	/**
 	 * Member Types (really contained Inner Classes).
@@ -147,28 +168,7 @@ public final class TD extends T implements BD, PD {
 	 */
 	@Getter
 	@Setter
-	private ASTNode typeDeclaration;
-
-	/**
-	 * All Body Declarations: inner Type/Method/Field Declarations.
-	 */
-	@Getter
-	private final List<BD> bds = new ArrayList<BD>();
-
-	/**
-	 * Access Flags.
-	 */
-	@Setter
-	private int accessFlags;
-
-	@Getter
-	private final DU du;
-
-	/**
-	 * Type Parameters. (They define the useable Type Variables)
-	 */
-	@Getter
-	private T[] typeParams; // anonymousClassDeclaration?
+	private ASTNode typeDeclaration; // anonymousClassDeclaration?
 
 	/**
 	 * Constructor.
@@ -445,7 +445,8 @@ public final class TD extends T implements BD, PD {
 		}
 		final Cursor c = new Cursor();
 		this.typeParams = getDu().parseTypeParams(signature, c);
-		// TODO more checks for following overrides
+
+		// TODO more checks for following overrides:
 		final T superT = getDu().parseT(signature, c);
 		if (superT != null) {
 			this.superT = superT;
@@ -459,9 +460,12 @@ public final class TD extends T implements BD, PD {
 			interfaceTs.add(interfaceT);
 		}
 		if (!interfaceTs.isEmpty()) {
-			assert this.interfaceTs.length == interfaceTs.size();
-
-			this.interfaceTs = interfaceTs.toArray(new T[interfaceTs.size()]);
+			if (this.interfaceTs.length != interfaceTs.size()) {
+				LOGGER.info("Not matching Signature '" + signature + "' for Type Declaration: "
+						+ this);
+			} else {
+				this.interfaceTs = interfaceTs.toArray(new T[interfaceTs.size()]);
+			}
 		}
 	}
 

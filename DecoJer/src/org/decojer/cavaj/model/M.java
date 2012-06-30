@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model;
 
 import java.util.ArrayList;
+import java.util.logging.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -36,6 +37,8 @@ import org.decojer.cavaj.util.Cursor;
  * @author André Pankraz
  */
 public class M {
+
+	private final static Logger LOGGER = Logger.getLogger(M.class.getName());
 
 	@Setter
 	private int accessFlags;
@@ -214,10 +217,23 @@ public class M {
 
 		final Cursor c = new Cursor();
 		this.typeParams = this.t.getDu().parseTypeParams(signature, c);
-		// TODO more checks for following overrides
+
+		// TODO more checks for following overrides:
 		final T[] paramTs = parseMethodParamTs(signature, c);
 		if (paramTs.length != 0) {
-			this.paramTs = paramTs;
+			if (this.paramTs.length != paramTs.length) {
+				// can happen with Sun JVM:
+				// see org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11.1.InnerMethod
+				// or org.decojer.cavaj.test.jdk5.DecTestEnumStatus
+				// Signature since JDK 5 exists but doesn't contain synthetic parameters,
+				// e.g. outer context for methods in inner classes: (I)V instead of (Lthis;_I_II)V
+				// or enum constructor parameters arg0: String, arg1: int
+
+				// ignore for now? Eclipse Compiler doesn't generate this
+				LOGGER.info("Not matching Signature '" + signature + "' for Method " + this);
+			} else {
+				this.paramTs = paramTs;
+			}
 		}
 		final T returnT = this.t.getDu().parseT(signature, c);
 		if (returnT != null) {

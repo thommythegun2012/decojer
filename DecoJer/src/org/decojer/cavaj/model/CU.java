@@ -231,6 +231,7 @@ public final class CU implements PD {
 		packageAnnotationBug: if (this.compilationUnit.getPackage() != null
 				&& this.compilationUnit.getPackage().annotations().size() > 0) {
 			// bugfix for: https://bugs.eclipse.org/bugs/show_bug.cgi?id=361071
+			// for Eclipse 4.2 still necessary
 			// see TrJvmStruct2JavaAst.transform(TD)
 			final int pos = sourceCode.indexOf("package ");
 			if (pos < 2) {

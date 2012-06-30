@@ -785,7 +785,7 @@ public class ReadCodeItem {
 			 *******/
 			case IGET:
 			case IGET_VOLATILE:
-				t = T.INT;
+				t = T.SINGLE; // int & float
 				// fall through
 			case IGET_BOOLEAN:
 				if (t == null) {
@@ -827,9 +827,9 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (t != T.REF && !t.equals(valueT)) {
-						LOGGER.warning("IGET TODO Must check compatibility here? T '" + t
-								+ "' not of '" + valueT + "'!");
+					if (!t.isAssignableFrom(valueT)) {
+						LOGGER.warning("Incompatible IGET Value Type! Cannot assign '" + valueT
+								+ "' to '" + t + "'.");
 					}
 
 					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
@@ -845,7 +845,7 @@ public class ReadCodeItem {
 				break;
 			case SGET:
 			case SGET_VOLATILE:
-				t = T.INT;
+				t = T.SINGLE; // int & float
 				// fall through
 			case SGET_BOOLEAN:
 				if (t == null) {
@@ -887,9 +887,9 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (t != T.REF && !t.equals(valueT)) {
-						LOGGER.warning("SGET TODO Must check compatibility here? T '" + t
-								+ "' not of '" + valueT + "'!");
+					if (!t.isAssignableFrom(valueT)) {
+						LOGGER.warning("Incompatible SGET Value Type! Cannot assign '" + valueT
+								+ "' to '" + t + "'.");
 					}
 
 					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
@@ -1710,7 +1710,7 @@ public class ReadCodeItem {
 			 *******/
 			case IPUT:
 			case IPUT_VOLATILE:
-				t = T.INT;
+				t = T.SINGLE; // int & float
 				// fall through
 			case IPUT_BOOLEAN:
 				if (t == null) {
@@ -1754,9 +1754,9 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (t != T.REF && !t.equals(valueT)) {
-						LOGGER.warning("IPUT TODO Must check compatibility here? T '" + t
-								+ "' not of '" + valueT + "'!");
+					if (!t.isAssignableFrom(valueT)) {
+						LOGGER.warning("Incompatible SPUT Value Type! Cannot assign '" + valueT
+								+ "' to '" + t + "'.");
 					}
 
 					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
@@ -1771,7 +1771,7 @@ public class ReadCodeItem {
 				break;
 			case SPUT:
 			case SPUT_VOLATILE:
-				t = T.INT;
+				t = T.SINGLE; // int & float
 				// fall through
 			case SPUT_BOOLEAN:
 				if (t == null) {
@@ -1815,9 +1815,9 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (t != T.REF && !t.equals(valueT)) {
-						LOGGER.warning("SPUT TODO Must check compatibility here? T '" + t
-								+ "' not of '" + valueT + "'!");
+					if (!t.isAssignableFrom(valueT)) {
+						LOGGER.warning("Incompatible IPUT Value Type! Cannot assign '" + valueT
+								+ "' to '" + t + "'.");
 					}
 
 					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
@@ -2286,8 +2286,7 @@ public class ReadCodeItem {
 		if (tryItems != null && tryItems.length > 0) {
 			final ArrayList<Exc> excs = new ArrayList<Exc>();
 			// preserve order
-			for (int i = 0; i < tryItems.length; ++i) {
-				final TryItem tryItem = tryItems[i];
+			for (final TryItem tryItem : tryItems) {
 				for (final EncodedTypeAddrPair handler : tryItem.encodedCatchHandler.handlers) {
 					final Exc exc = new Exc(this.du.getDescT(handler.exceptionType
 							.getTypeDescriptor()));
