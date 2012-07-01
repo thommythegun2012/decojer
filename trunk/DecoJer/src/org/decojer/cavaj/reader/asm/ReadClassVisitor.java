@@ -196,8 +196,8 @@ public class ReadClassVisitor extends ClassVisitor {
 			if (this.memberTs == null) {
 				this.memberTs = new T[1];
 			} else {
-				final T[] newMemberTs = new T[this.as.length + 1];
-				System.arraycopy(this.as, 0, newMemberTs, 0, this.as.length);
+				final T[] newMemberTs = new T[this.memberTs.length + 1];
+				System.arraycopy(this.memberTs, 0, newMemberTs, 0, this.memberTs.length);
 				this.memberTs = newMemberTs;
 			}
 			this.memberTs[this.memberTs.length - 1] = this.du.getT(name);
