@@ -359,7 +359,7 @@ public class ReadCodeItem {
 			 * ALOAD *
 			 *********/
 			case AGET:
-				t = T.INT;
+				t = T.SINGLE; // int & float
 				// fall through
 			case AGET_BOOLEAN:
 				if (t == null) {
@@ -394,9 +394,8 @@ public class ReadCodeItem {
 					// A = B[C]
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					// TODO array type?
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr
-							.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, this.du.getArrayT(t),
+							instr.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr
 							.getRegisterC()));
 
@@ -490,7 +489,7 @@ public class ReadCodeItem {
 			 * ASTORE *
 			 **********/
 			case APUT:
-				t = T.INT;
+				t = T.SINGLE; // int & float
 				// fall through
 			case APUT_BOOLEAN:
 				if (t == null) {
@@ -525,9 +524,8 @@ public class ReadCodeItem {
 					// B[C] = A
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					// TODO array type?
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr
-							.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, this.du.getArrayT(t),
+							instr.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr
 							.getRegisterC()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
@@ -1754,9 +1752,9 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (!t.isAssignableFrom(valueT)) {
-						LOGGER.warning("Incompatible SPUT Value Type! Cannot assign '" + valueT
-								+ "' to '" + t + "'.");
+					if (!valueT.isAssignableFrom(t)) {
+						LOGGER.warning("Incompatible SPUT Value Type! Cannot assign '" + t
+								+ "' to '" + valueT + "'.");
 					}
 
 					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
@@ -1815,9 +1813,9 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (!t.isAssignableFrom(valueT)) {
-						LOGGER.warning("Incompatible IPUT Value Type! Cannot assign '" + valueT
-								+ "' to '" + t + "'.");
+					if (!valueT.isAssignableFrom(t)) {
+						LOGGER.warning("Incompatible IPUT Value Type! Cannot assign '" + t
+								+ "' to '" + valueT + "'.");
 					}
 
 					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
