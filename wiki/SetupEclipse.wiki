@@ -29,6 +29,9 @@ The following details give an overview of the necessary steps to check out the s
       * for Eclipse 3.7.2: Subversion compatible to new 1.7 repository: http://download.eclipse.org/technology/subversive/0.7/update-site/
       * select _Collaboration_ / _Subversive SVN..._
       * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.7 for Win32
+    * Install *TestNG*:
+      * add Update Manager http://beust.com/eclipse
+      * select TestNG
 
 == Checkout Source Code ==
 
