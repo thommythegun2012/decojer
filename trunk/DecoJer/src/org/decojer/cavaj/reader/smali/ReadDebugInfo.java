@@ -123,6 +123,9 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 				m.setParamName(i, parameterNames[i].getStringValue());
 			}
 		}
+		if (DEBUG) {
+			System.out.println("****DecodeDebugInstructions: " + md);
+		}
 		DebugInstructionIterator.DecodeInstructions(debugInfoItem, md.getCfg().getRegs(), this);
 	}
 
@@ -157,6 +160,9 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	@Override
 	public void ProcessLineEmit(final int codeAddress, final int line) {
 		this.opLines.put(codeAddress, line);
+		if (DEBUG) {
+			System.out.println("*EmitLine: P" + codeAddress + " l" + line);
+		}
 	}
 
 	@Override
