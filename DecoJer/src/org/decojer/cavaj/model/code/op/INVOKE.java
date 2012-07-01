@@ -87,7 +87,7 @@ public class INVOKE extends Op {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + this.m.getName();
+		return super.toString() + " " + this.m.getName() + this.m.getDescriptor();
 	}
 
 }
