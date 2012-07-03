@@ -168,10 +168,9 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public FieldVisitor visitField(final int access, final String name, final String desc,
 			final String signature, final Object value) {
-		final T t = this.td.getT();
 		// desc: Ljava/lang/Class;
 		final T fieldT = this.du.getDescT(desc);
-		final F f = t.getF(name, fieldT);
+		final F f = this.td.getF(name, fieldT);
 		f.setAccessFlags(access);
 		f.setSignature(signature);
 
@@ -207,9 +206,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name, final String desc,
 			final String signature, final String[] exceptions) {
-		final T t = this.td.getT();
 		// desc: (Ljava/lang/String;)I
-		final M m = t.getM(name, desc);
+		final M m = this.td.getM(name, desc);
 		m.setAccessFlags(access);
 		if (exceptions != null && exceptions.length > 0) {
 			final T[] throwsTs = new T[exceptions.length];

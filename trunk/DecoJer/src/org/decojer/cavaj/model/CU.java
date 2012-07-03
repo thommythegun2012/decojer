@@ -101,7 +101,7 @@ public final class CU implements PD {
 		this.compilationUnit = (CompilationUnit) parser.createAST(null);
 		this.compilationUnit.recordModifications();
 
-		final String packageName = getStartTd().getT().getPackageName();
+		final String packageName = getStartTd().getPackageName();
 		if (packageName != null && packageName.length() != 0) {
 			setPackageName(packageName);
 		}
@@ -121,14 +121,14 @@ public final class CU implements PD {
 			return false;
 		}
 
-		final String typeName = td.getT().getName();
+		final String typeName = td.getName();
 
 		int pos = typeName.indexOf('$');
 		if (pos == -1) {
 			pos = typeName.length();
 		}
 
-		final TD rootTd = getStartTd().getT().getDu().getTd(typeName.substring(0, pos));
+		final TD rootTd = getStartTd().getDu().getTd(typeName.substring(0, pos));
 		if (rootTd == null || rootTd.getPd() != null && rootTd.getPd() != this) {
 			return false;
 		}
@@ -141,7 +141,7 @@ public final class CU implements PD {
 			if (pos == -1) {
 				pos = typeName.length();
 			}
-			final TD bd = getStartTd().getT().getDu().getTd(typeName.substring(0, pos));
+			final TD bd = getStartTd().getDu().getTd(typeName.substring(0, pos));
 			if (bd == null) {
 				return false;
 			}
@@ -155,7 +155,7 @@ public final class CU implements PD {
 			}
 			if (pbd != null) {
 				if (pbd != pd) {
-					throw new DecoJerException("Type declaration '" + bd.getT().getName()
+					throw new DecoJerException("Type declaration '" + bd.getName()
 							+ "' already belongs to other parent type declaration '" + pd + "'!");
 				}
 			} else {
@@ -298,10 +298,10 @@ public final class CU implements PD {
 	public TD getTd(final String name) {
 		String n = name;
 		if (n.indexOf('.') == -1) {
-			n = getStartTd().getT().getPackageName() + '.' + n;
+			n = getStartTd().getPackageName() + '.' + n;
 		}
 		for (final TD td : getAllTds()) {
-			if (n.equals(td.getT().getName())) {
+			if (n.equals(td.getName())) {
 				return td;
 			}
 		}

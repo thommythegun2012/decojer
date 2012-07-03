@@ -288,11 +288,8 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 
-		final T t = td.getT();
-		final DU du = t.getDu();
-
-		final T fieldT = du.getDescT(fieldInfo.getDescriptor());
-		final F f = t.getF(fieldInfo.getName(), fieldT);
+		final T fieldT = this.du.getDescT(fieldInfo.getDescriptor());
+		final F f = td.getF(fieldInfo.getName(), fieldT);
 		f.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
 			f.setSignature(signatureAttribute.getSignature());
@@ -387,17 +384,14 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 
-		final T t = td.getT();
-		final DU du = t.getDu();
-
-		final M m = t.getM(methodInfo.getName(), methodInfo.getDescriptor());
+		final M m = td.getM(methodInfo.getName(), methodInfo.getDescriptor());
 		m.setAccessFlags(methodInfo.getAccessFlags());
 		if (exceptionsAttribute != null) {
 			final String[] exceptions = exceptionsAttribute.getExceptions();
 			if (exceptions != null && exceptions.length > 0) {
 				final T[] throwsTs = new T[exceptions.length];
 				for (int i = exceptions.length; i-- > 0;) {
-					throwsTs[i] = du.getT(exceptions[i]);
+					throwsTs[i] = this.du.getT(exceptions[i]);
 				}
 				m.setThrowsTs(throwsTs);
 			}
@@ -410,7 +404,7 @@ public class JavassistReader implements ClassReader {
 
 		if (annotationDefaultAttribute != null) {
 			final MemberValue defaultMemberValue = annotationDefaultAttribute.getDefaultValue();
-			final Object annotationDefaultValue = readValue(defaultMemberValue, du);
+			final Object annotationDefaultValue = readValue(defaultMemberValue, this.du);
 			md.setAnnotationDefaultValue(annotationDefaultValue);
 		}
 

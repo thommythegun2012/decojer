@@ -76,13 +76,13 @@ public class TypeNameManager {
 			if (!this.cu.check(DFlag.START_TD_ONLY)) {
 				// add TD to CU - if main type name part equal to any main TD in CU,
 				// anonymous inner classes need extra handling
-				final TD td = this.cu.getStartTd().getT().getDu().getTd(name);
+				final TD td = this.cu.getStartTd().getDu().getTd(name);
 				if (td != null && td.getCu() == null) {
 					final int pos = name.indexOf('$');
 					if (pos != -1) {
 						final String mName = name.substring(0, pos);
 						for (final TD _td : this.cu.getTds()) {
-							if (mName.equals(_td.getT().getName())) {
+							if (mName.equals(_td.getName())) {
 								this.cu.addTd(td);
 								break;
 							}

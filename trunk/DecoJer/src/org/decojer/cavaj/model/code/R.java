@@ -64,6 +64,9 @@ public final class R {
 
 	}
 
+	@Getter
+	private R[] outs;
+
 	/**
 	 * Merge register types.
 	 * 
@@ -101,9 +104,6 @@ public final class R {
 	@Getter
 	@Setter
 	private T realT;
-
-	@Getter
-	private R[] outs;
 
 	private T readT;
 
@@ -227,6 +227,9 @@ public final class R {
 		case MERGE:
 			for (final R in : this.ins) {
 				// TODO endless loop in.read(t);
+				if (in != null) {
+					;
+				}
 			}
 			break;
 		case MOVE:

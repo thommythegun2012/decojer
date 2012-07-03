@@ -143,7 +143,7 @@ public class DecoJer {
 			cu.startTdOnly();
 		}
 
-		final DU du = cu.getStartTd().getT().getDu();
+		final DU du = cu.getStartTd().getDu();
 
 		final List<TD> tds = cu.getAllTds();
 		final HashSet<TD> processedTds = new HashSet<TD>();
@@ -186,7 +186,7 @@ public class DecoJer {
 			}
 			// many steps here can add type declarations through lazy finding
 			for (final Entry<String, TD> entry : du.getTds()) {
-				if (entry.getKey().startsWith(cu.getTds().get(0).getT().getName() + "$")) {
+				if (entry.getKey().startsWith(cu.getTds().get(0).getName() + "$")) {
 					if (cu.addTd(entry.getValue())) {
 						changed = true;
 					}
@@ -201,13 +201,13 @@ public class DecoJer {
 		TrMergeAll.transform(cu);
 
 		if (cu.check(DFlag.START_TD_ONLY)) {
-			cu.setSourceFileName(cu.getStartTd().getT().getPName() + ".java");
+			cu.setSourceFileName(cu.getStartTd().getPName() + ".java");
 		} else {
 			final List<TD> rootTds = cu.getTds();
 			final TD td = rootTds.get(0);
 			// if (td.getSourceFileName() != null) {
 			// cu.setSourceFileName(td.getSourceFileName());
-			cu.setSourceFileName(td.getT().getPName() + ".java");
+			cu.setSourceFileName(td.getPName() + ".java");
 		}
 		return cu.createSourceCode();
 	}
@@ -235,7 +235,7 @@ public class DecoJer {
 				final CU cu = createCu(td);
 				final String source = decompile(cu);
 				final String sourceFileName = cu.getSourceFileName();
-				final String packageName = td.getT().getPackageName();
+				final String packageName = td.getPackageName();
 				String zipEntryName;
 				if (packageName != null && packageName.length() != 0) {
 					zipEntryName = packageName.replace('.', '/') + '/' + sourceFileName;

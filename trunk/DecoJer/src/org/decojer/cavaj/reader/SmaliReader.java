@@ -339,9 +339,6 @@ public class SmaliReader implements DexReader {
 			final List<EncodedField> instanceFields,
 			final Map<FieldIdItem, String> fieldSignatures,
 			final EncodedArrayItem staticFieldInitializers, final Map<FieldIdItem, A[]> fieldAs) {
-		final T t = td.getT();
-		final DU du = t.getDu();
-
 		// static field initializer values are packed away into a different
 		// section, both arrays (encoded fields and static field values) are
 		// sorted in same order, there could be less static field values if
@@ -354,8 +351,8 @@ public class SmaliReader implements DexReader {
 			final EncodedField encodedField = staticFields.get(i);
 			final FieldIdItem field = encodedField.field;
 
-			final T fieldT = du.getDescT(field.getFieldType().getTypeDescriptor());
-			final F f = t.getF(field.getFieldName().getStringValue(), fieldT);
+			final T fieldT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
+			final F f = td.getF(field.getFieldName().getStringValue(), fieldT);
 			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
 				f.setSignature(fieldSignatures.get(field));
@@ -363,7 +360,7 @@ public class SmaliReader implements DexReader {
 
 			final FD fd = new FD(f, td);
 			if (staticFieldValues.length > i) {
-				fd.setValue(readValue(staticFieldValues[i], du));
+				fd.setValue(readValue(staticFieldValues[i], this.du));
 			}
 
 			fd.setAs(fieldAs.get(field));
@@ -372,8 +369,8 @@ public class SmaliReader implements DexReader {
 		for (final EncodedField encodedField : instanceFields) {
 			final FieldIdItem field = encodedField.field;
 
-			final T fieldT = du.getDescT(field.getFieldType().getTypeDescriptor());
-			final F f = t.getF(field.getFieldName().getStringValue(), fieldT);
+			final T fieldT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
+			final F f = td.getF(field.getFieldName().getStringValue(), fieldT);
 			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
 				f.setSignature(fieldSignatures.get(field));
@@ -393,14 +390,12 @@ public class SmaliReader implements DexReader {
 			final Map<MethodIdItem, String> methodSignatures,
 			final Map<MethodIdItem, T[]> methodThrowsTs, final A annotationDefaultValues,
 			final Map<MethodIdItem, A[]> methodAs, final Map<MethodIdItem, A[][]> methodParamAs) {
-		final T t = td.getT();
-
 		for (final EncodedMethod encodedMethod : directMethods) {
 			final MethodIdItem method = encodedMethod.method;
 
 			// getResourceAsStream :
 			// (Ljava/lang/String;)Ljava/io/InputStream;
-			final M m = t.getM(method.getMethodName().getStringValue(), method.getPrototype()
+			final M m = td.getM(method.getMethodName().getStringValue(), method.getPrototype()
 					.getPrototypeString());
 			m.setAccessFlags(encodedMethod.accessFlags);
 			m.setThrowsTs(methodThrowsTs.get(method));
@@ -414,7 +409,7 @@ public class SmaliReader implements DexReader {
 			md.setParamAss(methodParamAs.get(method));
 
 			if (encodedMethod.codeItem != null) {
-				new ReadCodeItem(td.getT().getDu()).initAndVisit(md, encodedMethod.codeItem);
+				new ReadCodeItem(this.du).initAndVisit(md, encodedMethod.codeItem);
 			}
 
 			td.getBds().add(md);
@@ -424,7 +419,7 @@ public class SmaliReader implements DexReader {
 
 			// getResourceAsStream :
 			// (Ljava/lang/String;)Ljava/io/InputStream;
-			final M m = t.getM(method.getMethodName().getStringValue(), method.getPrototype()
+			final M m = td.getM(method.getMethodName().getStringValue(), method.getPrototype()
 					.getPrototypeString());
 			m.setAccessFlags(encodedMethod.accessFlags);
 			m.setThrowsTs(methodThrowsTs.get(method));
@@ -442,7 +437,7 @@ public class SmaliReader implements DexReader {
 
 			final CodeItem codeItem = encodedMethod.codeItem;
 			if (codeItem != null) {
-				new ReadCodeItem(td.getT().getDu()).initAndVisit(md, encodedMethod.codeItem);
+				new ReadCodeItem(this.du).initAndVisit(md, encodedMethod.codeItem);
 			}
 
 			td.getBds().add(md);
