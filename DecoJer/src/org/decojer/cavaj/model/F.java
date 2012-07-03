@@ -29,6 +29,18 @@ import lombok.Setter;
 /**
  * Field.
  * 
+ * Unique identifier is: "name + descriptor"
+ * 
+ * value type is also important, experiment with:
+ * 
+ * Field descriptor #77 Ljava/util/ArrayList;<br>
+ * Signature: Ljava/util/ArrayList<Ljava/lang/Integer;>;<br>
+ * public java.util.ArrayList test;
+ * 
+ * works: getfield org.decojer.cavaj.test.DecTestFields.test : java.util.ArrayList [19]<br>
+ * doesn't work: getfield org.decojer.cavaj.test.DecTestFields.test : java.util.List [19]<br>
+ * throws: NoSuchFieldError extends IncompatibleClassChangeError
+ * 
  * @author André Pankraz
  */
 public class F {
