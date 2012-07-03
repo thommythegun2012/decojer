@@ -268,7 +268,7 @@ public final class CFG {
 	 * @return decompilation unit
 	 */
 	public DU getDu() {
-		return getTd().getT().getDu();
+		return getTd().getDu();
 	}
 
 	/**
@@ -455,7 +455,7 @@ public final class CFG {
 					LOGGER.warning("Found local variable info for method parameter '" + reg
 							+ "' (this)!");
 				}
-				this.vss[reg] = new V[] { new V(td.getT(), "this", 0, this.ops.length) };
+				this.vss[reg] = new V[] { new V(td, "this", 0, this.ops.length) };
 			}
 			return;
 		}
@@ -470,7 +470,7 @@ public final class CFG {
 				}
 				++reg;
 			} else {
-				this.vss[reg++] = new V[] { new V(td.getT(), "this", 0, this.ops.length) };
+				this.vss[reg++] = new V[] { new V(td, "this", 0, this.ops.length) };
 			}
 		}
 		for (int i = 0; i < m.getParams(); ++i) {

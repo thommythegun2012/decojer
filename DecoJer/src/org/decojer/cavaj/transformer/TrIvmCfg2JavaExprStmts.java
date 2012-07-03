@@ -759,7 +759,7 @@ public final class TrIvmCfg2JavaExprStmts {
 				final ClassInstanceCreation classInstanceCreation = getAst()
 						.newClassInstanceCreation();
 
-				final String thisName = this.cfg.getTd().getT().getName();
+				final String thisName = this.cfg.getTd().getName();
 				final T newT = cop.getT();
 				final String newName = newT.getName();
 				if (newName.startsWith(thisName) && newName.length() >= thisName.length() + 2

@@ -100,7 +100,7 @@ public final class DU {
 	public void addTd(final TD td) {
 		assert td != null;
 
-		this.tds.put(td.getT().getName(), td);
+		this.tds.put(td.getName(), td);
 	}
 
 	public T[] getArrayInterfaceTs() {

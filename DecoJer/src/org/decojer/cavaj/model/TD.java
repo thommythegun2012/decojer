@@ -51,12 +51,6 @@ public final class TD extends T implements BD, PD {
 
 	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
 
-	/**
-	 * All Body Declarations: inner Type/Method/Field Declarations.
-	 */
-	@Getter
-	private final List<BD> bds = new ArrayList<BD>();
-
 	private static String toString(final T superT, final T[] interfaceTs) {
 		final StringBuilder sb = new StringBuilder("{");
 		if (superT != null) {
@@ -68,6 +62,19 @@ public final class TD extends T implements BD, PD {
 		sb.setCharAt(sb.length() - 1, '}');
 		return sb.toString();
 	}
+
+	/**
+	 * AST Type Declaration.
+	 */
+	@Getter
+	@Setter
+	private ASTNode typeDeclaration;
+
+	/**
+	 * All Body Declarations: inner Type/Method/Field Declarations.
+	 */
+	@Getter
+	private final List<BD> bds = new ArrayList<BD>();
 
 	/**
 	 * Access Flags.
@@ -161,14 +168,7 @@ public final class TD extends T implements BD, PD {
 	private PD pd;
 
 	@Setter
-	private T[] interfaceTs;
-
-	/**
-	 * AST Type Declaration.
-	 */
-	@Getter
-	@Setter
-	private ASTNode typeDeclaration; // anonymousClassDeclaration?
+	private T[] interfaceTs; // anonymousClassDeclaration?
 
 	/**
 	 * Constructor.
@@ -310,15 +310,6 @@ public final class TD extends T implements BD, PD {
 	@Override
 	public T getSuperT() {
 		return isResolveable() ? this.superT : null;
-	}
-
-	/**
-	 * Get type.
-	 * 
-	 * @return type
-	 */
-	public T getT() {
-		return this;
 	}
 
 	/**

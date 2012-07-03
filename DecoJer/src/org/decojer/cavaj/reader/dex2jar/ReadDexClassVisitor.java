@@ -109,10 +109,9 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexFieldVisitor visitField(final int accessFlags, final Field field, final Object value) {
-		final T t = this.td.getT();
 		// desc: Ljava/lang/ref/ReferenceQueue;
 		final T fieldT = this.du.getDescT(field.getType());
-		final F f = t.getF(field.getName(), fieldT);
+		final F f = this.td.getF(field.getName(), fieldT);
 		f.setAccessFlags(accessFlags);
 		// TODO signature in annotation
 
@@ -127,9 +126,8 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexMethodVisitor visitMethod(final int accessFlags, final Method method) {
-		final T t = this.td.getT();
 		// desc: (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-		final M m = t.getM(method.getName(), method.getDesc());
+		final M m = this.td.getM(method.getName(), method.getDesc());
 		m.setAccessFlags(accessFlags);
 		// TODO throws in annotation
 
