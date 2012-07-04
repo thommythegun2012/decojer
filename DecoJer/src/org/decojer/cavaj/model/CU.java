@@ -44,7 +44,7 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
 /**
- * Compilation Unit. Can contain multiple type declarations, but only one with type name equal to
+ * Compilation unit. Can contain multiple type declarations, but only one with type name equal to
  * source file name can be public.
  * 
  * @author André Pankraz
@@ -55,7 +55,7 @@ public final class CU implements PD {
 	private final List<TD> allTds = new ArrayList<TD>();
 
 	/**
-	 * AST Compilation Unit.
+	 * AST compilation unit.
 	 */
 	@Getter
 	private final CompilationUnit compilationUnit;
@@ -63,20 +63,20 @@ public final class CU implements PD {
 	private final EnumSet<DFlag> dFlags = EnumSet.noneOf(DFlag.class);
 
 	/**
-	 * Source File Name.
+	 * Source file name.
 	 */
 	@Getter
 	@Setter
 	private String sourceFileName;
 
 	/**
-	 * Start Type Declaration.
+	 * Start type declaration.
 	 */
 	@Getter
 	private final TD startTd;
 
 	/**
-	 * Sub Type Declarations.
+	 * Sub type declarations.
 	 */
 	@Getter
 	private final List<TD> tds = new ArrayList<TD>();
@@ -88,14 +88,14 @@ public final class CU implements PD {
 	 * Constructor.
 	 * 
 	 * @param startTd
-	 *            Start Type Declaration
+	 *            start type declaration
 	 */
 	public CU(final TD startTd) {
 		assert startTd != null;
 
 		this.startTd = startTd;
 
-		// initializes Eclipse AST
+		// initializes AST
 		final ASTParser parser = ASTParser.newParser(AST.JLS4);
 		parser.setSource(new char[0]);
 		this.compilationUnit = (CompilationUnit) parser.createAST(null);
@@ -108,10 +108,10 @@ public final class CU implements PD {
 	}
 
 	/**
-	 * Add Type Declaration and add all parents.
+	 * Add type declaration and add all parents.
 	 * 
 	 * @param td
-	 *            Type Declaration
+	 *            type declaration
 	 * @return true - success (or allready included)
 	 */
 	public boolean addTd(final TD td) {
@@ -176,10 +176,10 @@ public final class CU implements PD {
 	}
 
 	/**
-	 * Add AST Type Declaration.
+	 * Add AST type declaration.
 	 * 
 	 * @param typeDeclaration
-	 *            AST Type Declaration
+	 *            AST type declaration
 	 * @return true - success
 	 */
 	@SuppressWarnings("unchecked")
@@ -280,9 +280,9 @@ public final class CU implements PD {
 	}
 
 	/**
-	 * Get Eclipse abstract syntax tree.
+	 * Get abstract syntax tree.
 	 * 
-	 * @return Eclipse abstract syntax tree
+	 * @return abstract syntax tree
 	 */
 	public AST getAst() {
 		return getCompilationUnit().getAST();
@@ -293,7 +293,7 @@ public final class CU implements PD {
 	 * 
 	 * @param name
 	 *            name or full name
-	 * @return type declaration or null
+	 * @return type declaration or <code>null</code>
 	 */
 	public TD getTd(final String name) {
 		String n = name;

@@ -24,7 +24,7 @@
 package org.decojer.cavaj.model;
 
 /**
- * Parent Declaration.
+ * Parent declaration.
  * 
  * @author André Pankraz
  */

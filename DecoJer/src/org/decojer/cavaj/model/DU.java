@@ -54,9 +54,9 @@ import org.decojer.cavaj.util.Cursor;
 import org.decojer.cavaj.util.MagicNumbers;
 
 /**
- * Decompilation Unit.
+ * Decompilation unit.
  * 
- * Contains the global Type Pool (like <code>ClassLoader</code>) and Loader.
+ * Contains the global type pool (like <code>ClassLoader</code>) and loader.
  * 
  * @author André Pankraz
  */
@@ -122,46 +122,52 @@ public final class DU {
 	}
 
 	/**
-	 * Get type declaration.
+	 * Get type for descriptor.
 	 * 
 	 * @param desc
 	 *            descriptor (package/subpackage/Type$Inner)
-	 * @return type declaration
+	 * @return type
 	 */
 	public T getDescT(final String desc) {
 		return parseT(desc, new Cursor());
 	}
 
 	/**
-	 * Get type declaration.
+	 * Get type for class.
 	 * 
 	 * @param clazz
 	 *            class
-	 * @return type declaration
+	 * @return type
 	 */
 	public T getT(final Class<?> clazz) {
 		return getT(clazz.getName());
 	}
 
 	/**
-	 * Get Type.
+	 * Get type for type name.
 	 * 
-	 * Works for Basic Types, Multi-Type Constants and Array Types, but not for Parameterized Types.
+	 * Works for basic types, predefined multi-type constants, type declarations and array types,
+	 * but not for Parameterized Types.
+	 * 
+	 * Works also for class names, where array types are presented by internal descriptor names.
 	 * 
 	 * @param name
-	 *            Type name (package.subpackage.Type$Inner or int)
-	 * @return Type
+	 *            type name
+	 * @return type
+	 * @see java.lang.Class#getName()
 	 */
 	public T getT(final String name) {
 		assert name.charAt(0) != 'L' : name;
 
 		if (name.charAt(0) == '[') {
-			// Class.getName() javadoc explains this trick, fall back to descriptor
+			// java.lang.Class#getName() Javadoc explains this trick, fall back to descriptor
 			return getDescT(name);
 		}
+
 		if (name.charAt(name.length() - 1) == ']' && name.charAt(name.length() - 2) == '[') {
 			return getArrayT(getT(name.substring(0, name.length() - 2)));
 		}
+		// some calling bytecode libraries don't convert this, homogenize
 		final String normName = name.replace('/', '.');
 
 		T t = this.ts.get(normName);
@@ -174,10 +180,10 @@ public final class DU {
 	}
 
 	/**
-	 * Get type declaration.
+	 * Get type declaration for type name.
 	 * 
 	 * @param name
-	 *            name
+	 *            type name
 	 * @return type declaration
 	 */
 	public TD getTd(final String name) {
@@ -194,13 +200,13 @@ public final class DU {
 	}
 
 	/**
-	 * Parse Array Type from Signature.
+	 * Parse array type from signature.
 	 * 
 	 * @param s
-	 *            Signature
+	 *            signature
 	 * @param c
-	 *            Cursor
-	 * @return Array Type
+	 *            cursor
+	 * @return array type
 	 */
 	public T parseArrayT(final String s, final Cursor c) {
 		assert s.charAt(c.pos) == '[';
@@ -210,13 +216,13 @@ public final class DU {
 	}
 
 	/**
-	 * Parse Class Type from Signature.
+	 * Parse class type from signature.
 	 * 
 	 * @param s
-	 *            Signature
+	 *            signature
 	 * @param c
-	 *            Cursor
-	 * @return Class Tyoe
+	 *            cursor
+	 * @return class type
 	 */
 	public T parseClassT(final String s, final Cursor c) {
 		assert s.charAt(c.pos) == 'L';
@@ -241,13 +247,13 @@ public final class DU {
 	}
 
 	/**
-	 * Parse Type from Signature.
+	 * Parse type from signature.
 	 * 
 	 * @param s
-	 *            Signature
+	 *            signature
 	 * @param c
-	 *            Cursor
-	 * @return Type or <code>null</code> for Signature end
+	 *            cursor
+	 * @return type or <code>null</code> for signature end
 	 */
 	public T parseT(final String s, final Cursor c) {
 		if (s.length() <= c.pos) {
@@ -292,16 +298,16 @@ public final class DU {
 	}
 
 	/**
-	 * Parse Type Arguments from Signature.
+	 * Parse type arguments from signature.
 	 * 
 	 * We don't follow the often used <code>WildcardType</code> paradigma. Wildcards are only
-	 * allowed in the context of Parameterized Types and aren't useable as standalone Types.
+	 * allowed in the context of parameterized types and aren't useable as standalone types.
 	 * 
 	 * @param s
-	 *            Signature
+	 *            signature
 	 * @param c
-	 *            Cursor
-	 * @return Type Arguments or null
+	 *            cursor
+	 * @return type arguments or null
 	 */
 	private TypeArg[] parseTypeArgs(final String s, final Cursor c) {
 		if (s.charAt(c.pos) != '<') {
@@ -333,13 +339,13 @@ public final class DU {
 	}
 
 	/**
-	 * Parse Type Parameters from Signature.
+	 * Parse type parameters from signature.
 	 * 
 	 * @param s
-	 *            Signature
+	 *            signature
 	 * @param c
-	 *            Cursor
-	 * @return Type Parameters or null
+	 *            cursor
+	 * @return type parameters or <code>null</code>
 	 */
 	public T[] parseTypeParams(final String s, final Cursor c) {
 		if (s.charAt(c.pos) != '<') {

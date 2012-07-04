@@ -30,14 +30,14 @@ import org.decojer.cavaj.model.code.CFG;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
- * Method Declaration.
+ * Method declaration.
  * 
  * @author André Pankraz
  */
 public final class MD implements BD, PD {
 
 	/**
-	 * Annotation Default Value.
+	 * Annotation default value.
 	 */
 	@Getter
 	@Setter
@@ -51,14 +51,14 @@ public final class MD implements BD, PD {
 	private A[] as;
 
 	/**
-	 * Control Flow Graph.
+	 * Control flow graph.
 	 */
 	@Getter
 	@Setter
 	private CFG cfg;
 
 	/**
-	 * Deprecated State (from Deprecated Attribute).
+	 * Deprecated state (from deprecated attribute).
 	 */
 	@Getter
 	@Setter
@@ -71,28 +71,28 @@ public final class MD implements BD, PD {
 	private final M m;
 
 	/**
-	 * AST Method Declaration.
+	 * AST method declaration.
 	 */
 	@Getter
 	@Setter
 	private BodyDeclaration methodDeclaration;
 
 	/**
-	 * Method Parameter Annotations.
+	 * Method parameter annotations.
 	 */
 	@Getter
 	@Setter
 	private A[][] paramAss;
 
 	/**
-	 * Synthetic State (from Synthetic Attribute)
+	 * Synthetic state (from synthetic attribute)
 	 */
 	@Getter
 	@Setter
 	private boolean synthetic;
 
 	/**
-	 * Owner Type Declaration.
+	 * Owner type declaration.
 	 */
 	@Getter
 	private final TD td;

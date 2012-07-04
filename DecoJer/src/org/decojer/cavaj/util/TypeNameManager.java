@@ -65,7 +65,7 @@ public class TypeNameManager {
 	 * 
 	 * @param name
 	 *            type name
-	 * @return Eclipse type name
+	 * @return AST type name
 	 */
 	public Name newTypeName(final String name) {
 		assert name != null;

@@ -29,7 +29,7 @@ import lombok.Setter;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
- * Field Declaration.
+ * Field declaration.
  * 
  * @author André Pankraz
  */
@@ -43,7 +43,7 @@ public final class FD implements BD, PD {
 	private A[] as;
 
 	/**
-	 * Deprecated State (from Deprecated Attribute).
+	 * Deprecated state (from deprecated attribute).
 	 */
 	@Getter
 	@Setter
@@ -56,21 +56,21 @@ public final class FD implements BD, PD {
 	private final F f;
 
 	/**
-	 * AST Field Declaration.
+	 * AST field declaration.
 	 */
 	@Getter
 	@Setter
 	private BodyDeclaration fieldDeclaration;
 
 	/**
-	 * Synthetic State (from Synthetic Attribute).
+	 * Synthetic state (from synthetic attribute).
 	 */
 	@Getter
 	@Setter
 	private boolean synthetic;
 
 	/**
-	 * Owner Type Declaration.
+	 * Owner type declaration.
 	 */
 	@Getter
 	private final TD td;

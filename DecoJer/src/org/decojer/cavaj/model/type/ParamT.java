@@ -28,7 +28,7 @@ import lombok.Getter;
 import org.decojer.cavaj.model.T;
 
 /**
- * Parameterized Type.
+ * Parameterized type.
  * 
  * @author André Pankraz
  */
@@ -36,10 +36,10 @@ import org.decojer.cavaj.model.T;
 public final class ParamT extends T {
 
 	/**
-	 * Type Argument.
+	 * Type argument.
 	 * 
 	 * We don't follow the often used <code>WildcardType</code> paradigma. Wildcards are only
-	 * allowed in the context of Parameterized Types and aren't useable as standalone Types.
+	 * allowed in the context of parameterized types and aren't useable as standalone Types.
 	 * 
 	 * @author André Pankraz
 	 */
@@ -116,12 +116,12 @@ public final class ParamT extends T {
 	}
 
 	/**
-	 * Generic Type with matching Type Parameters.
+	 * Generic type with matching type parameters.
 	 */
 	private final T genericT;
 
 	/**
-	 * Type Arguments for matching Type Parameters.
+	 * Type arguments for matching type parameters.
 	 */
 	private final TypeArg[] typeArgs;
 
@@ -129,9 +129,9 @@ public final class ParamT extends T {
 	 * Constructor.
 	 * 
 	 * @param genericT
-	 *            Generic Type with matching Type Parameters
+	 *            generic type with matching type parameters
 	 * @param typeArgs
-	 *            Type Arguments for matching Type Parameters
+	 *            type arguments for matching type parameters
 	 */
 	public ParamT(final T genericT, final TypeArg[] typeArgs) {
 		super(toString(genericT, typeArgs));
