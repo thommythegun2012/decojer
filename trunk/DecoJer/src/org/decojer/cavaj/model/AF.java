@@ -24,7 +24,7 @@
 package org.decojer.cavaj.model;
 
 /**
- * Access Flag.
+ * Access flag.
  * 
  * @author André Pankraz
  */

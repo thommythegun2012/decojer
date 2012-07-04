@@ -28,7 +28,7 @@ import lombok.Getter;
 import org.decojer.cavaj.model.T;
 
 /**
- * Base Type (Primitives and Artificial / Internal VM Types).
+ * Base type (primitives and artificial / internal VM types).
  * 
  * @author André Pankraz
  */
@@ -41,9 +41,9 @@ public class BaseT extends T {
 	 * Constructor.
 	 * 
 	 * @param name
-	 *            Type Name
+	 *            type name
 	 * @param kind
-	 *            Type Kind
+	 *            type kind
 	 */
 	public BaseT(final String name, final int kind) {
 		super(name);

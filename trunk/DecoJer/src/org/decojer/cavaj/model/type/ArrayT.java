@@ -29,7 +29,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
- * Array Type.
+ * Array type.
  * 
  * @author André Pankraz
  */
@@ -37,7 +37,7 @@ import org.decojer.cavaj.model.T;
 public final class ArrayT extends T {
 
 	/**
-	 * Component Type (could be an Array Type too, has one dimension less).
+	 * Component type (could be an array type too, has one dimension less).
 	 */
 	@Getter
 	private final T componentT;
@@ -49,9 +49,9 @@ public final class ArrayT extends T {
 	 * Constructor.
 	 * 
 	 * @param du
-	 *            Decompilation Unit
+	 *            decompilation unit
 	 * @param componentT
-	 *            Component Type
+	 *            component type
 	 */
 	public ArrayT(final DU du, final T componentT) {
 		super(componentT.getName() + "[]");

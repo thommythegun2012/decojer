@@ -394,9 +394,6 @@ public abstract class T {
 		return t1;
 	}
 
-	@Getter
-	private final String name;
-
 	public static T getDalvikIntT(final int value) {
 		int kinds = T.FLOAT.getKind();
 		if (value == 0 || value == 1) {
@@ -414,6 +411,9 @@ public abstract class T {
 		}
 		return getT(kinds);
 	}
+
+	@Getter
+	private final String name;
 
 	private final HashMap<String, F> fs = new HashMap<String, F>();
 
@@ -452,13 +452,13 @@ public abstract class T {
 	}
 
 	/**
-	 * Get Field.
+	 * Get field.
 	 * 
 	 * @param name
-	 *            Field Name
+	 *            field name
 	 * @param valueT
-	 *            Value Type
-	 * @return Field
+	 *            value type
+	 * @return field
 	 */
 	public F getF(final String name, final T valueT) {
 		F f = this.fs.get(name);
@@ -488,31 +488,31 @@ public abstract class T {
 	}
 
 	/**
-	 * Get Interface Types.
+	 * Get interface types.
 	 * 
-	 * @return Interface Types
+	 * @return interface types
 	 */
 	public T[] getInterfaceTs() {
 		return NO_INTERFACES;
 	}
 
 	/**
-	 * Get Kind of Type.
+	 * Get kind.
 	 * 
-	 * @return Kind of Type
+	 * @return kind
 	 */
 	public int getKind() {
-		return Kind.REF.getKind(); // only Base Types can be different, overwrite in BaseT
+		return Kind.REF.getKind(); // only base types can be different, overwrite in BaseT
 	}
 
 	/**
-	 * Get Method.
+	 * Get method.
 	 * 
 	 * @param name
-	 *            Method Name
+	 *            method name
 	 * @param descriptor
-	 *            Method Descriptor
-	 * @return Method
+	 *            method descriptor
+	 * @return method
 	 */
 	public M getM(final String name, final String descriptor) {
 		M m = this.ms.get(name + descriptor);
@@ -547,9 +547,9 @@ public abstract class T {
 	}
 
 	/**
-	 * Get Super Type.
+	 * Get super type.
 	 * 
-	 * @return Super Type
+	 * @return super type
 	 */
 	public T getSuperT() {
 		return null;
@@ -658,39 +658,39 @@ public abstract class T {
 	}
 
 	/**
-	 * Is Multi Type?
+	 * Is multi type?
 	 * 
-	 * @return true - is Multi Type
+	 * @return true - is multi type
 	 */
 	public boolean isMulti() {
-		return false; // only Base Types can be Multi Types, overwrite in BaseT
+		return false; // only base types can be multi types, overwrite in BaseT
 	}
 
 	/**
-	 * Is Object Type?
+	 * Is Object type?
 	 * 
-	 * @return true - is Object Type
+	 * @return true - is Object type
 	 */
 	public boolean isObject() {
-		return false; // only Class Types can be Object Type, overwrite in TD
+		return false; // only Class Types can be Object type, overwrite in TD
 	}
 
 	/**
-	 * Is Primitive?
+	 * Is primitive?
 	 * 
-	 * @return true - is Primitive
+	 * @return true - is primitive
 	 */
 	public boolean isPrimitive() {
 		return false; // only Base Types can be Primitives, overwrite in BaseT
 	}
 
 	/**
-	 * Is Reference Type (includes Array Type, Param Type)?
+	 * Is reference type (includes array type, parameterized type)?
 	 * 
-	 * @return true - is Reference Type
+	 * @return true - is reference type
 	 */
 	public boolean isRef() {
-		return true; // only Base Types can be none-Refs, overwrite BaseT
+		return true; // only base types can be none-refs, overwrite BaseT
 	}
 
 	/**
@@ -699,7 +699,7 @@ public abstract class T {
 	 * @return true - is unresolveable
 	 */
 	public boolean isResolveable() {
-		return true; // only Class Types can be unresolveable, overwrite TD
+		return true; // only class types can be unresolveable, overwrite TD
 	}
 
 	/**
@@ -708,7 +708,7 @@ public abstract class T {
 	 * @return true - is wide type
 	 */
 	public boolean isWide() {
-		return false; // only Base Types can be wide, overwrite BaseT
+		return false; // only base types can be wide, overwrite BaseT
 	}
 
 	/**

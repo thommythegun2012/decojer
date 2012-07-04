@@ -153,13 +153,13 @@ public class M {
 	}
 
 	/**
-	 * Parse Method Parameter Types from Signature.
+	 * Parse method parameter types from signature.
 	 * 
 	 * @param s
-	 *            Signature
+	 *            signature
 	 * @param c
-	 *            Cursor
-	 * @return Method Parameter Types
+	 *            cursor
+	 * @return method parameter types
 	 */
 	private T[] parseMethodParamTs(final String s, final Cursor c) {
 		assert s.charAt(c.pos) == '(';
@@ -229,7 +229,7 @@ public class M {
 				// e.g. outer context for methods in inner classes: (I)V instead of (Lthis;_I_II)V
 				// or enum constructor parameters arg0: String, arg1: int
 
-				// ignore for now? Eclipse Compiler doesn't generate this
+				// ignore for now? Eclipse Compiler doesn't generate this information
 				LOGGER.info("Not matching Signature '" + signature + "' for Method " + this);
 			} else {
 				this.paramTs = paramTs;

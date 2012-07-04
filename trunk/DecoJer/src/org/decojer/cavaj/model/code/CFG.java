@@ -44,7 +44,7 @@ import org.decojer.cavaj.model.code.op.Op;
 import org.eclipse.jdt.core.dom.Block;
 
 /**
- * Control Flow Graph.
+ * Control flow graph.
  * 
  * @author André Pankraz
  */
@@ -53,7 +53,7 @@ public final class CFG {
 	private final static Logger LOGGER = Logger.getLogger(CFG.class.getName());
 
 	/**
-	 * Eclipse method block.
+	 * AST method block.
 	 */
 	@Getter
 	@Setter
@@ -69,7 +69,7 @@ public final class CFG {
 	private Frame[] frames;
 
 	/**
-	 * Array with Immediate Dominators, index is postorder.
+	 * Array with immediate dominators, index is postorder.
 	 */
 	private BB[] iDoms;
 

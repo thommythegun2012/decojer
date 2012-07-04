@@ -24,12 +24,18 @@
 package org.decojer.cavaj.model;
 
 /**
- * Body Declaration.
+ * Body declaration.
  * 
  * @author André Pankraz
  */
 public interface BD {
 
+	/**
+	 * Set annotations.
+	 * 
+	 * @param as
+	 *            annotations
+	 */
 	void setAs(final A[] as);
 
 }

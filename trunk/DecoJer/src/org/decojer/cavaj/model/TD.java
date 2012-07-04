@@ -41,7 +41,7 @@ import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
 /**
- * Type Declaration.
+ * Type declaration.
  * 
  * Names consist of dot-separated package names (for full name) and dollar-separated type names.
  * 
@@ -64,41 +64,19 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
-	 * AST Type Declaration.
-	 */
-	@Getter
-	@Setter
-	private ASTNode typeDeclaration;
-
-	/**
-	 * All Body Declarations: inner Type/Method/Field Declarations.
-	 */
-	@Getter
-	private final List<BD> bds = new ArrayList<BD>();
-
-	/**
-	 * Access Flags.
-	 */
-	@Setter
-	private int accessFlags;
-
-	@Getter
-	private final DU du;
-
-	/**
-	 * Type Parameters. (They define the useable Type Variables)
+	 * Type parameters. (They define the useable type variables)
 	 */
 	@Getter
 	private T[] typeParams;
 
 	/**
-	 * Super Type.
+	 * Super type.
 	 */
 	@Setter
 	private T superT;
 
 	/**
-	 * Member Types (really contained Inner Classes).
+	 * Member types (really contained inner classes).
 	 */
 	@Getter
 	@Setter
@@ -112,14 +90,14 @@ public final class TD extends T implements BD, PD {
 	private A[] as;
 
 	/**
-	 * Synthetic State (from Synthetic Attribute).
+	 * Synthetic state (from synthetic attribute).
 	 */
 	@Setter
 	@Getter
 	private boolean synthetic;
 
 	/**
-	 * Enclosing Method for this Anonymous Inner Class.
+	 * Enclosing method for this anonymous inner class.
 	 */
 	@Getter
 	@Setter
@@ -138,7 +116,7 @@ public final class TD extends T implements BD, PD {
 	private int version;
 
 	/**
-	 * Enclosing Type for this Anynomous Inner Class (must be in Field Initializer).
+	 * Enclosing type for this anynomous inner class (must be in field initializer).
 	 * 
 	 * TODO combine both enclosing, only one possible...need TD and M(D?!) supertype for this
 	 */
@@ -161,22 +139,44 @@ public final class TD extends T implements BD, PD {
 	private String sourceFileName;
 
 	/**
-	 * Parent Declaration.
+	 * Parent declaration.
 	 */
 	@Getter
 	@Setter
 	private PD pd;
 
 	@Setter
-	private T[] interfaceTs; // anonymousClassDeclaration?
+	private T[] interfaceTs;
+
+	/**
+	 * AST type declaration.
+	 */
+	@Getter
+	@Setter
+	private ASTNode typeDeclaration;
+
+	/**
+	 * All body declarations: inner type / method / field declarations.
+	 */
+	@Getter
+	private final List<BD> bds = new ArrayList<BD>();
+
+	/**
+	 * Access flags.
+	 */
+	@Setter
+	private int accessFlags;
+
+	@Getter
+	private final DU du; // anonymousClassDeclaration?
 
 	/**
 	 * Constructor.
 	 * 
 	 * @param name
-	 *            Type Name
+	 *            type name
 	 * @param du
-	 *            Decompilation Unit
+	 *            decompilation unit
 	 */
 	protected TD(final String name, final DU du) {
 		super(name);
@@ -195,10 +195,10 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
-	 * Add Eclipse body declarations.
+	 * Add AST body declarations.
 	 * 
 	 * @param bodyDeclaration
-	 *            Eclipse body declaration
+	 *            AST body declaration
 	 * 
 	 * @return true - success
 	 */
@@ -260,9 +260,9 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
-	 * Get Compilation Unit.
+	 * Get compilation unit.
 	 * 
-	 * @return Compilation Unit
+	 * @return compilation unit
 	 */
 	public CU getCu() {
 		final PD pd = getPd();
@@ -282,7 +282,7 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
-	 * Get Field Declaration for name.
+	 * Get field declaration for name.
 	 * 
 	 * @param name
 	 *            name
@@ -324,7 +324,7 @@ public final class TD extends T implements BD, PD {
 	/**
 	 * Is Dalvik?
 	 * 
-	 * @return true is Dalvik
+	 * @return true - is Dalvik
 	 */
 	public boolean isDalvik() {
 		return this.version == 0;
@@ -403,7 +403,7 @@ public final class TD extends T implements BD, PD {
 	 * 
 	 * @param fullName
 	 *            full type name
-	 * @return Eclipse type name
+	 * @return AST type name
 	 */
 	public Name newTypeName(final String fullName) {
 		assert fullName != null;
@@ -416,7 +416,7 @@ public final class TD extends T implements BD, PD {
 	 * 
 	 * @param t
 	 *            type
-	 * @return Eclipse type name
+	 * @return AST type name
 	 */
 	public Name newTypeName(final T t) {
 		assert t != null;

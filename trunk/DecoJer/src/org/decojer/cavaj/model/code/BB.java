@@ -38,7 +38,7 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 
 /**
- * Basic Block for CFG.
+ * Basic block for CFG.
  * 
  * @author André Pankraz
  */
