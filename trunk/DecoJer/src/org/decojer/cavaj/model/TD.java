@@ -51,6 +51,9 @@ public final class TD extends T implements BD, PD {
 
 	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
 
+	@Getter
+	private final DU du;
+
 	private static String toString(final T superT, final T[] interfaceTs) {
 		final StringBuilder sb = new StringBuilder("{");
 		if (superT != null) {
@@ -166,9 +169,6 @@ public final class TD extends T implements BD, PD {
 	 */
 	@Setter
 	private int accessFlags;
-
-	@Getter
-	private final DU du; // anonymousClassDeclaration?
 
 	/**
 	 * Constructor.

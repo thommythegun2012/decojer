@@ -184,10 +184,10 @@ public class JavassistReader implements ClassReader {
 			// preserve order
 			final int tableLength = innerClassesAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				// Dalvik has not all Inner Class Info from JVM Bytecode:
-				// Outer Class info not known in Dalvik and is derivable anyway,
-				// no Access Flags for Member Classes,
-				// no info for arbitrarily accessed and nested Inner Classes
+				// Dalvik has not all inner class info from JVM Bytecode:
+				// outer class info not known in Dalvik and is derivable anyway,
+				// no access flags for member classes,
+				// no info for arbitrarily accessed and nested inner classes
 				if (td.getName().equals(innerClassesAttribute.outerClass(i))) {
 					// Attribute describes direct Member / Inner Class
 					memberTs.add(this.du.getT(innerClassesAttribute.innerClass(i)));
@@ -288,8 +288,8 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 
-		final T fieldT = this.du.getDescT(fieldInfo.getDescriptor());
-		final F f = td.getF(fieldInfo.getName(), fieldT);
+		final T valueT = this.du.getDescT(fieldInfo.getDescriptor());
+		final F f = td.getF(fieldInfo.getName(), valueT);
 		f.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
 			f.setSignature(signatureAttribute.getSignature());

@@ -169,8 +169,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	public FieldVisitor visitField(final int access, final String name, final String desc,
 			final String signature, final Object value) {
 		// desc: Ljava/lang/Class;
-		final T fieldT = this.du.getDescT(desc);
-		final F f = this.td.getF(name, fieldT);
+		final T valueT = this.du.getDescT(desc);
+		final F f = this.td.getF(name, valueT);
 		f.setAccessFlags(access);
 		f.setSignature(signature);
 
@@ -186,10 +186,10 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public void visitInnerClass(final String name, final String outerName, final String innerName,
 			final int access) {
-		// Dalvik has not all Inner Class Info from JVM Bytecode:
-		// Outer Class info not known in Dalvik and is derivable anyway,
-		// no Access Flags for Member Classes,
-		// no info for arbitrarily accessed and nested Inner Classes
+		// Dalvik has not all inner class info from JVM Bytecode:
+		// outer class info not known in Dalvik and is derivable anyway,
+		// no access flags for member classes,
+		// no info for arbitrarily accessed and nested inner classes
 		if (this.td.getName().equals(outerName)) {
 			// has Member Classes (really contained Inner Classes)
 			if (this.memberTs == null) {

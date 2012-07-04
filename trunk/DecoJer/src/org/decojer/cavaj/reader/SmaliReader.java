@@ -190,12 +190,12 @@ public class SmaliReader implements DexReader {
 							td.setEnclosingM((M) a.getMemberValue());
 							continue;
 						}
-						// Dalvik has not all Inner Class Info from JVM Bytecode:
-						// Outer Class info not known in Dalvik and is derivable anyway,
-						// no Access Flags for Member Classes,
-						// no info for arbitrary accessed and nested Inner Classes
+						// Dalvik has not all inner class info from JVM Bytecode:
+						// outer class info not known in Dalvik and is derivable anyway,
+						// no access flags for member classes,
+						// no info for arbitrary accessed and nested inner classes
 						if ("dalvik.annotation.InnerClass".equals(a.getT().getName())) {
-							// is Inner Class, this Attributes is senseless?
+							// is inner class, this attributes is senseless?
 							// inner name (from naming rules) and flags are known
 							continue;
 						}
@@ -351,8 +351,8 @@ public class SmaliReader implements DexReader {
 			final EncodedField encodedField = staticFields.get(i);
 			final FieldIdItem field = encodedField.field;
 
-			final T fieldT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
-			final F f = td.getF(field.getFieldName().getStringValue(), fieldT);
+			final T valueT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
+			final F f = td.getF(field.getFieldName().getStringValue(), valueT);
 			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
 				f.setSignature(fieldSignatures.get(field));
