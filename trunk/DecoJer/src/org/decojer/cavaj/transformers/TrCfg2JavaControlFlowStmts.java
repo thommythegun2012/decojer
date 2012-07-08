@@ -53,13 +53,15 @@ import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
 /**
- * Transform final CFG Basic Block to AST Block. Ignore final empty return statements.
+ * Transformer "Structured CFG to Java Control Flow Statements ASTs".
+ * 
+ * Ignore final empty return statements.
  * 
  * @author André Pankraz
  */
-public final class TrStructCfg2JavaControlFlowStmts {
+public final class TrCfg2JavaControlFlowStmts {
 
-	private final static Logger LOGGER = Logger.getLogger(TrStructCfg2JavaControlFlowStmts.class
+	private final static Logger LOGGER = Logger.getLogger(TrCfg2JavaControlFlowStmts.class
 			.getName());
 
 	/**
@@ -69,7 +71,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 	 *            CFG
 	 */
 	public static void transform(final CFG cfg) {
-		new TrStructCfg2JavaControlFlowStmts(cfg).transform();
+		new TrCfg2JavaControlFlowStmts(cfg).transform();
 	}
 
 	private final CFG cfg;
@@ -77,7 +79,7 @@ public final class TrStructCfg2JavaControlFlowStmts {
 	// TODO hack
 	private final HashSet<Struct> consumedStruct = new HashSet<Struct>();
 
-	private TrStructCfg2JavaControlFlowStmts(final CFG cfg) {
+	private TrCfg2JavaControlFlowStmts(final CFG cfg) {
 		this.cfg = cfg;
 	}
 

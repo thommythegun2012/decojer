@@ -26,7 +26,7 @@ package org.decojer.cavaj.transformers;
 import org.decojer.cavaj.model.code.CFG;
 
 /**
- * Transform Calculate Postorder.
+ * Transformer "Calculate postorder".
  * 
  * @author André Pankraz
  */
