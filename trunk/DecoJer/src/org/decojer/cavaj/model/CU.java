@@ -32,7 +32,7 @@ import lombok.Setter;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.code.DFlag;
-import org.decojer.cavaj.util.TypeNameManager;
+import org.decojer.cavaj.utils.TypeNameManager;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;

@@ -30,7 +30,7 @@ import java.util.Map;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.type.BaseT;
+import org.decojer.cavaj.model.types.BaseT;
 
 /**
  * Type.

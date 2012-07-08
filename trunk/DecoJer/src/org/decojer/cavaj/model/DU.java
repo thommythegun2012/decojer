@@ -45,15 +45,15 @@ import java.util.zip.ZipInputStream;
 import lombok.Getter;
 
 import org.decojer.DecoJerException;
-import org.decojer.cavaj.model.type.ArrayT;
-import org.decojer.cavaj.model.type.ParamT;
-import org.decojer.cavaj.model.type.ParamT.TypeArg;
-import org.decojer.cavaj.reader.AsmReader;
-import org.decojer.cavaj.reader.ClassReader;
-import org.decojer.cavaj.reader.DexReader;
-import org.decojer.cavaj.reader.SmaliReader;
-import org.decojer.cavaj.util.Cursor;
-import org.decojer.cavaj.util.MagicNumbers;
+import org.decojer.cavaj.model.types.ArrayT;
+import org.decojer.cavaj.model.types.ParamT;
+import org.decojer.cavaj.model.types.ParamT.TypeArg;
+import org.decojer.cavaj.readers.AsmReader;
+import org.decojer.cavaj.readers.ClassReader;
+import org.decojer.cavaj.readers.DexReader;
+import org.decojer.cavaj.readers.SmaliReader;
+import org.decojer.cavaj.utils.Cursor;
+import org.decojer.cavaj.utils.MagicNumbers;
 
 /**
  * Decompilation unit.

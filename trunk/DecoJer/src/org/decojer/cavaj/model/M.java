@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.util.Cursor;
+import org.decojer.cavaj.utils.Cursor;
 
 /**
  * Method.

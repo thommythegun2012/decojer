@@ -31,7 +31,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.code.CFG;
-import org.decojer.cavaj.util.Cursor;
+import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
