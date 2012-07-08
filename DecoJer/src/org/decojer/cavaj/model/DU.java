@@ -43,6 +43,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.types.ArrayT;
@@ -66,12 +67,14 @@ public final class DU {
 
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
 
-	private T[] arrayInterfaceTs;
+	@Getter
+	private final T[] arrayInterfaceTs;
 
 	private final ClassReader classReader = new AsmReader(this);
 
 	@Getter
-	private final HashMap<String, CU> cus = new HashMap<String, CU>();
+	@Setter
+	private HashMap<String, CU> cus;
 
 	private final DexReader dexReader = new SmaliReader(this);
 
@@ -95,13 +98,7 @@ public final class DU {
 		} catch (final IllegalAccessException e) {
 			throw new RuntimeException("Couldn't init decompilation unit!", e);
 		}
-	}
-
-	public T[] getArrayInterfaceTs() {
-		if (this.arrayInterfaceTs == null) {
-			this.arrayInterfaceTs = new T[] { getT(Cloneable.class), getT(Serializable.class) };
-		}
-		return this.arrayInterfaceTs;
+		this.arrayInterfaceTs = new T[] { getT(Cloneable.class), getT(Serializable.class) };
 	}
 
 	/**

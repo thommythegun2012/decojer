@@ -23,11 +23,21 @@
  */
 package org.decojer.cavaj.transformers;
 
+import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.TD;
+
 /**
  * Transformer: Identify and create compilation units.
  * 
  * @author André Pankraz
  */
 public class TrCreateCompilationUnits {
+
+	public static void transform(final DU du) {
+		for (final TD td : du.getTds()) {
+			System.out.println("TD Source: " + td.getSourceFileName());
+		}
+		du.setCus(null);
+	}
 
 }

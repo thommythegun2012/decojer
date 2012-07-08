@@ -47,12 +47,13 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
-import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
-import org.decojer.cavaj.transformers.TrDataFlowAnalysis2Cfg;
+import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
+import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
+import org.decojer.cavaj.transformers.TrCreateCompilationUnits;
+import org.decojer.cavaj.transformers.TrDataFlowAnalysis2Cfg;
 import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformers.TrMergeAll;
-import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.utils.MagicNumbers;
 
 /**
@@ -222,6 +223,8 @@ public class DecoJer {
 	 */
 	public static void decompile(final DU du, final OutputStream os) throws IOException {
 		final ZipOutputStream zip = new ZipOutputStream(os);
+
+		TrCreateCompilationUnits.transform(du); // TODO
 
 		for (final TD td : du.getTds()) {
 			CU cu;
