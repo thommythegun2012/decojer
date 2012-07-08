@@ -40,7 +40,7 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.R.Kind;
-import org.decojer.cavaj.model.code.op.Op;
+import org.decojer.cavaj.model.code.ops.Op;
 import org.eclipse.jdt.core.dom.Block;
 
 /**

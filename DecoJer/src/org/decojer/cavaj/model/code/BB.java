@@ -30,8 +30,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.code.op.Op;
-import org.decojer.cavaj.model.code.struct.Struct;
+import org.decojer.cavaj.model.code.ops.Op;
+import org.decojer.cavaj.model.code.structs.Struct;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Statement;

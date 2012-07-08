@@ -46,14 +46,14 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
-import org.decojer.cavaj.transformer.TrCalculatePostorder;
-import org.decojer.cavaj.transformer.TrControlFlowAnalysis;
-import org.decojer.cavaj.transformer.TrDataFlowAnalysis2Cfg;
-import org.decojer.cavaj.transformer.TrIvmCfg2JavaExprStmts;
-import org.decojer.cavaj.transformer.TrJvmStruct2JavaAst;
-import org.decojer.cavaj.transformer.TrMergeAll;
-import org.decojer.cavaj.transformer.TrStructCfg2JavaControlFlowStmts;
-import org.decojer.cavaj.util.MagicNumbers;
+import org.decojer.cavaj.transformers.TrCalculatePostorder;
+import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
+import org.decojer.cavaj.transformers.TrDataFlowAnalysis2Cfg;
+import org.decojer.cavaj.transformers.TrIvmCfg2JavaExprStmts;
+import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
+import org.decojer.cavaj.transformers.TrMergeAll;
+import org.decojer.cavaj.transformers.TrStructCfg2JavaControlFlowStmts;
+import org.decojer.cavaj.utils.MagicNumbers;
 
 /**
  * DecoJer.

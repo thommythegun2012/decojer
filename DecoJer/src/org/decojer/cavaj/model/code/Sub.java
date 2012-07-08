@@ -26,7 +26,7 @@ package org.decojer.cavaj.model.code;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.code.op.RET;
+import org.decojer.cavaj.model.code.ops.RET;
 
 /**
  * Subroutine.
