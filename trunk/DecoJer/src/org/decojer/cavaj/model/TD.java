@@ -51,9 +51,6 @@ public final class TD extends T implements BD, PD {
 
 	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
 
-	@Getter
-	private final DU du;
-
 	private static String toString(final T superT, final T[] interfaceTs) {
 		final StringBuilder sb = new StringBuilder("{");
 		if (superT != null) {
@@ -65,6 +62,15 @@ public final class TD extends T implements BD, PD {
 		sb.setCharAt(sb.length() - 1, '}');
 		return sb.toString();
 	}
+
+	/**
+	 * Access flags.
+	 */
+	@Setter
+	private int accessFlags;
+
+	@Getter
+	private final DU du;
 
 	/**
 	 * Type parameters. (They define the useable type variables)
@@ -134,6 +140,10 @@ public final class TD extends T implements BD, PD {
 	@Setter
 	private boolean deprecated;
 
+	@Getter
+	@Setter
+	private String readFileName;
+
 	/**
 	 * Source File Name (from Source File Attribute).
 	 */
@@ -163,12 +173,6 @@ public final class TD extends T implements BD, PD {
 	 */
 	@Getter
 	private final List<BD> bds = new ArrayList<BD>();
-
-	/**
-	 * Access flags.
-	 */
-	@Setter
-	private int accessFlags;
 
 	/**
 	 * Constructor.

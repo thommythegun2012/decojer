@@ -830,10 +830,12 @@ public class ReadCodeItem {
 								+ "' to '" + t + "'.");
 					}
 
-					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					final TD ownerTd = this.du.getDescTd(fieldIdItem.getContainingClass()
+							.getTypeDescriptor());
+					final F f = ownerTd.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerTd, instr
+							.getRegisterB()));
 
 					this.ops.add(new GET(this.ops.size(), opcode, line, f));
 
@@ -1090,16 +1092,17 @@ public class ReadCodeItem {
 				int reg = 0;
 
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
-				t = this.du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
+				final T ownerT = this.du.getDescT(methodIdItem.getContainingClass()
+						.getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
-					((TD) t).markAf(AF.INTERFACE);
+					((TD) ownerT).markAf(AF.INTERFACE);
 				}
-				final M invokeM = t.getM(methodIdItem.getMethodName().getStringValue(),
+				final M invokeM = ownerT.getM(methodIdItem.getMethodName().getStringValue(),
 						methodIdItem.getPrototype().getPrototypeString());
 				if (instruction.opcode == Opcode.INVOKE_STATIC) {
 					invokeM.markAf(AF.STATIC);
 				} else {
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, regs[reg++]));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, regs[reg++]));
 				}
 
 				for (int j = 0; j < invokeM.getParams(); ++j) {
@@ -1128,16 +1131,17 @@ public class ReadCodeItem {
 				int reg = instr.getStartRegister();
 
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
-				t = this.du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
+				final T ownerT = this.du.getDescT(methodIdItem.getContainingClass()
+						.getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE) {
-					((TD) t).markAf(AF.INTERFACE);
+					((TD) ownerT).markAf(AF.INTERFACE);
 				}
-				final M invokeM = t.getM(methodIdItem.getMethodName().getStringValue(),
+				final M invokeM = ownerT.getM(methodIdItem.getMethodName().getStringValue(),
 						methodIdItem.getPrototype().getPrototypeString());
 				if (instruction.opcode == Opcode.INVOKE_STATIC_RANGE) {
 					invokeM.markAf(AF.STATIC);
 				} else {
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, reg++));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, reg++));
 				}
 
 				for (int j = 0; j < invokeM.getParams(); ++j) {
@@ -1753,14 +1757,16 @@ public class ReadCodeItem {
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
 					if (!valueT.isAssignableFrom(t)) {
-						LOGGER.warning("Incompatible SPUT Value Type! Cannot assign '" + t
+						LOGGER.warning("Incompatible IPUT Value Type! Cannot assign '" + t
 								+ "' to '" + valueT + "'.");
 					}
 
-					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					final TD ownerTd = this.du.getDescTd(fieldIdItem.getContainingClass()
+							.getTypeDescriptor());
+					final F f = ownerTd.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerTd, instr
+							.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, valueT, instr
 							.getRegisterA()));
 
@@ -1814,12 +1820,13 @@ public class ReadCodeItem {
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
 					if (!valueT.isAssignableFrom(t)) {
-						LOGGER.warning("Incompatible IPUT Value Type! Cannot assign '" + t
+						LOGGER.warning("Incompatible SPUT Value Type! Cannot assign '" + t
 								+ "' to '" + valueT + "'.");
 					}
 
-					t = this.du.getDescT(fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = t.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					final TD ownerTd = this.du.getDescTd(fieldIdItem.getContainingClass()
+							.getTypeDescriptor());
+					final F f = ownerTd.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 					f.markAf(AF.STATIC);
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, valueT, instr

@@ -578,9 +578,10 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
 
-				t = this.du.getT(constPool.getInterfaceMethodrefClassName(methodIndex));
-				((TD) t).markAf(AF.INTERFACE);
-				final M m = t.getM(constPool.getInterfaceMethodrefName(methodIndex),
+				final TD ownerTd = this.du.getTd(constPool
+						.getInterfaceMethodrefClassName(methodIndex));
+				ownerTd.markAf(AF.INTERFACE);
+				final M m = ownerTd.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m, false));
 				break;
@@ -591,8 +592,8 @@ public class ReadCodeAttribute {
 			case Opcode.INVOKESTATIC: {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
-				t = this.du.getT(constPool.getMethodrefClassName(cpMethodIndex));
-				final M m = t.getM(constPool.getMethodrefName(cpMethodIndex),
+				final T ownerT = this.du.getTd(constPool.getMethodrefClassName(cpMethodIndex));
+				final M m = ownerT.getM(constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
 				if (opcode == Opcode.INVOKESTATIC) {
 					m.markAf(AF.STATIC);

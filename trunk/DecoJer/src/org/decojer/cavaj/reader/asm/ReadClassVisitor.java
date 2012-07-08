@@ -26,6 +26,8 @@ package org.decojer.cavaj.reader.asm;
 import java.lang.annotation.RetentionPolicy;
 import java.util.logging.Logger;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
@@ -60,6 +62,7 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	private final ReadMethodVisitor readMethodVisitor;
 
+	@Getter
 	private TD td;
 
 	private T[] memberTs;
@@ -82,24 +85,6 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	/**
-	 * Get decompilation unit.
-	 * 
-	 * @return decompilation unit
-	 */
-	public DU getDu() {
-		return this.du;
-	}
-
-	/**
-	 * Get type declaration.
-	 * 
-	 * @return type declaration
-	 */
-	public TD getTd() {
-		return this.td;
-	}
-
-	/**
 	 * Init.
 	 */
 	public void init() {
@@ -111,24 +96,18 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName, final String[] interfaces) {
-		// visit:
-		// com/thoughtworks/xstream/mapper/AnnotationMapper$UnprocessedTypesSet
-		// : Ljava/util/LinkedHashSet<Ljava/lang/Class<*>;>; :
-		// java/util/LinkedHashSet : [Ljava.lang.String;@1b9a2fd
-
-		final TD td = (TD) this.du.getT(name);
-		td.setAccessFlags(access);
-		td.setSuperT(this.du.getT(superName));
+		this.td = this.du.getTd(name);
+		this.td.setAccessFlags(access);
+		this.td.setSuperT(this.du.getT(superName));
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
 				interfaceTs[i] = this.du.getT(interfaces[i]);
 			}
-			td.setInterfaceTs(interfaceTs);
+			this.td.setInterfaceTs(interfaceTs);
 		}
-		td.setSignature(signature);
+		this.td.setSignature(signature);
 
-		this.td = td;
 		// fix ASM bug: mixup of minor and major (which is 196653),
 		// only JDK 1.1 class files use a minor number (45.3),
 		// JDK 1.1 - JDK 1.3 create this version without a target option
@@ -162,13 +141,11 @@ public class ReadClassVisitor extends ClassVisitor {
 		if (this.memberTs != null) {
 			this.td.setMemberTs(this.memberTs);
 		}
-		this.du.addTd(this.td);
 	}
 
 	@Override
 	public FieldVisitor visitField(final int access, final String name, final String desc,
 			final String signature, final Object value) {
-		// desc: Ljava/lang/Class;
 		final T valueT = this.du.getDescT(desc);
 		final F f = this.td.getF(name, valueT);
 		f.setAccessFlags(access);
@@ -206,7 +183,6 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name, final String desc,
 			final String signature, final String[] exceptions) {
-		// desc: (Ljava/lang/String;)I
 		final M m = this.td.getM(name, desc);
 		m.setAccessFlags(access);
 		if (exceptions != null && exceptions.length > 0) {
@@ -240,7 +216,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public void visitSource(final String source, final String debug) {
 		if (debug != null) {
-			// what is that?
+			// TODO need an example, really useful in the wild?
+			// JVM spec: 4.7.11 The SourceDebugExtension Attribute
 			LOGGER.warning("### visitSource debug? ###: " + debug);
 		}
 		this.td.setSourceFileName(source);

@@ -141,8 +141,7 @@ public class JavassistReader implements ClassReader {
 				LOGGER.warning("Unknown class attribute tag '" + attributeTag + "'!");
 			}
 		}
-
-		final TD td = (TD) this.du.getT(classFile.getName());
+		final TD td = this.du.getTd(classFile.getName());
 		td.setAccessFlags(classFile.getAccessFlags());
 		td.setSuperT(this.du.getT(classFile.getSuperclass()));
 		final String[] interfaces = classFile.getInterfaces();
@@ -156,26 +155,22 @@ public class JavassistReader implements ClassReader {
 		if (signatureAttribute != null) {
 			td.setSignature(signatureAttribute.getSignature());
 		}
-
 		td.setVersion(classFile.getMajorVersion());
-
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
 				annotationsAttributeRuntimeVisible);
 		if (as != null) {
 			td.setAs(as);
 		}
-
 		if (deprecatedAttribute != null) {
 			td.setDeprecated(true);
 		}
-
 		if (enclosingMethodAttribute != null) {
 			if (enclosingMethodAttribute.classIndex() > 0) {
 				td.setEnclosingT(this.du.getT(enclosingMethodAttribute.className()));
 			}
 			if (enclosingMethodAttribute.methodIndex() > 0) {
-				final T methodT = this.du.getT(enclosingMethodAttribute.className());
-				td.setEnclosingM(methodT.getM(enclosingMethodAttribute.methodName(),
+				final T ownerT = this.du.getT(enclosingMethodAttribute.className());
+				td.setEnclosingM(ownerT.getM(enclosingMethodAttribute.methodName(),
 						enclosingMethodAttribute.methodDescriptor()));
 			}
 		}
@@ -198,24 +193,18 @@ public class JavassistReader implements ClassReader {
 				td.setMemberTs(memberTs.toArray(new T[memberTs.size()]));
 			}
 		}
-
 		if (sourceFileAttribute != null) {
 			td.setSourceFileName(sourceFileAttribute.getFileName());
 		}
-
 		if (syntheticAttribute != null) {
 			td.setSynthetic(true);
 		}
-
 		for (final FieldInfo fieldInfo : (List<FieldInfo>) classFile.getFields()) {
 			td.getBds().add(readField(td, fieldInfo));
 		}
-
 		for (final MethodInfo methodInfo : (List<MethodInfo>) classFile.getMethods()) {
 			td.getBds().add(readMethod(td, methodInfo));
 		}
-
-		this.du.addTd(td);
 		return td;
 	}
 

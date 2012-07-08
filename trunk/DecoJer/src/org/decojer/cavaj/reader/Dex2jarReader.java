@@ -25,6 +25,7 @@ package org.decojer.cavaj.reader;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
@@ -54,14 +55,13 @@ public class Dex2jarReader implements DexReader {
 	}
 
 	@Override
-	public TD read(final InputStream is, final String selector)
-			throws IOException {
+	public List<TD> read(final InputStream is, final String selector) throws IOException {
 		final DexFileReader dexFileReader = new DexFileReader(is);
 
 		this.readDexFileVisitor.init(selector);
 		dexFileReader.accept(this.readDexFileVisitor);
 
-		return this.readDexFileVisitor.getSelectorTd();
+		return this.readDexFileVisitor.getTds();
 	}
 
 }
