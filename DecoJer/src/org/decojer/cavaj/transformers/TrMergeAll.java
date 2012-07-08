@@ -38,7 +38,7 @@ import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 /**
- * Transformer "Merge all".
+ * Transformer: Merge all.
  * 
  * @author André Pankraz
  */

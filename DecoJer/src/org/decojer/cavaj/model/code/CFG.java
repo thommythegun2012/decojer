@@ -23,10 +23,7 @@
  */
 package org.decojer.cavaj.model.code;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Logger;
 
 import lombok.Getter;
@@ -89,6 +86,7 @@ public final class CFG {
 	 * Array with postordered basic blocks.
 	 */
 	@Getter
+	@Setter
 	private List<BB> postorderedBbs;
 
 	/**
@@ -121,22 +119,6 @@ public final class CFG {
 		this.md = md;
 		this.regs = regs;
 		this.maxStack = maxStack;
-	}
-
-	private int _calculatePostorder(final int postorder, final BB bb, final Set<BB> traversed) {
-		// DFS
-		traversed.add(bb);
-		int _postorder = postorder;
-		for (final E out : bb.getOuts()) {
-			final BB succ = out.getEnd();
-			if (traversed.contains(succ)) {
-				continue;
-			}
-			_postorder = _calculatePostorder(_postorder, succ, traversed);
-		}
-		bb.setPostorder(_postorder);
-		this.postorderedBbs.add(bb);
-		return _postorder + 1;
 	}
 
 	/**
@@ -204,14 +186,6 @@ public final class CFG {
 				changed = true;
 			}
 		}
-	}
-
-	/**
-	 * Calculate postorder.
-	 */
-	public void calculatePostorder() {
-		this.postorderedBbs = new ArrayList<BB>();
-		_calculatePostorder(0, this.startBb, new HashSet<BB>());
 	}
 
 	/**

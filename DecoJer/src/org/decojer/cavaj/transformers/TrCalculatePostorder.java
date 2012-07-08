@@ -23,10 +23,17 @@
  */
 package org.decojer.cavaj.transformers;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.code.E;
 
 /**
- * Transformer "Calculate postorder".
+ * Transformer: Calculate postorder for basic blocks of CFG.
  * 
  * @author André Pankraz
  */
@@ -39,7 +46,46 @@ public final class TrCalculatePostorder {
 	 *            CFG
 	 */
 	public static void transform(final CFG cfg) {
-		cfg.calculatePostorder();
+		new TrCalculatePostorder(cfg).transform();
+	}
+
+	private final CFG cfg;
+
+	private List<BB> postorderedBbs;
+
+	private Set<BB> traversed;
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param cfg
+	 *            CFG
+	 */
+	private TrCalculatePostorder(final CFG cfg) {
+		this.cfg = cfg;
+	}
+
+	private int calculatePostorder(final int postorder, final BB bb) {
+		// DFS
+		this.traversed.add(bb);
+		int _postorder = postorder;
+		for (final E out : bb.getOuts()) {
+			final BB succ = out.getEnd();
+			if (this.traversed.contains(succ)) {
+				continue;
+			}
+			_postorder = calculatePostorder(_postorder, succ);
+		}
+		bb.setPostorder(_postorder);
+		this.postorderedBbs.add(bb);
+		return _postorder + 1;
+	}
+
+	public void transform() {
+		this.postorderedBbs = new ArrayList<BB>();
+		this.traversed = new HashSet<BB>();
+		calculatePostorder(0, this.cfg.getStartBb());
+		this.cfg.setPostorderedBbs(this.postorderedBbs);
 	}
 
 }

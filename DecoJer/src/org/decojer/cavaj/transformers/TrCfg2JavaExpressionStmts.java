@@ -127,7 +127,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 /**
- * Transformer "CFG to Java Expression Statements ASTs".
+ * Transformer: CFG to Java Expression Statements ASTs.
  * 
  * @author André Pankraz
  */
