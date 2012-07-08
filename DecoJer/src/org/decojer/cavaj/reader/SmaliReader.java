@@ -107,7 +107,7 @@ public class SmaliReader implements DexReader {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public TD read(final InputStream is, final String selector) throws IOException {
+	public List<TD> read(final InputStream is, final String selector) throws IOException {
 		String selectorPrefix = null;
 		String selectorMatch = null;
 		if (selector != null && selector.endsWith(".class")) {
@@ -119,7 +119,7 @@ public class SmaliReader implements DexReader {
 				selectorPrefix = selectorMatch.substring(0, pos + 1);
 			}
 		}
-		TD selectorTd = null;
+		final List<TD> tds = new ArrayList<TD>();
 
 		final byte[] bytes = ByteStreams.toByteArray(is);
 		final DexFile dexFile = new DexFile(new ByteArrayInput(bytes), true, false);
@@ -127,12 +127,15 @@ public class SmaliReader implements DexReader {
 				.getSectionForType(ItemType.TYPE_CLASS_DEF_ITEM);
 		for (final ClassDefItem classDefItem : classDefItems.getItems()) {
 			final String typeDescriptor = classDefItem.getClassType().getTypeDescriptor();
+			// load full type declarations from complete package, to complex to decide here if
+			// really not part of the compilation unit
+			// TODO later load all type declarations, but not all bytecode details
 			if (selectorPrefix != null
 					&& (!typeDescriptor.startsWith(selectorPrefix) || typeDescriptor.indexOf('/',
 							selectorPrefix.length()) != -1)) {
 				continue;
 			}
-			final TD td = (TD) this.du.getDescT(typeDescriptor);
+			final TD td = this.du.getDescTd(typeDescriptor);
 			td.setAccessFlags(classDefItem.getAccessFlags());
 			td.setSuperT(this.du.getDescT(classDefItem.getSuperclass().getTypeDescriptor()));
 			final TypeListItem interfaces = classDefItem.getInterfaces();
@@ -144,11 +147,9 @@ public class SmaliReader implements DexReader {
 				}
 				td.setInterfaceTs(interfaceTs);
 			}
-
-			if (typeDescriptor.equals(selectorMatch)) {
-				selectorTd = td;
+			if (selectorMatch == null || selectorMatch.equals(typeDescriptor)) {
+				tds.add(td);
 			}
-
 			A annotationDefaultValues = null;
 			final Map<FieldIdItem, String> fieldSignatures = new HashMap<FieldIdItem, String>();
 			final Map<FieldIdItem, A[]> fieldAs = new HashMap<FieldIdItem, A[]>();
@@ -284,11 +285,9 @@ public class SmaliReader implements DexReader {
 					methodParamAs.put(paramAnnotation.method, paramAss);
 				}
 			}
-
 			if (classDefItem.getSourceFile() != null) {
 				td.setSourceFileName(classDefItem.getSourceFile().getStringValue());
 			}
-
 			final ClassDataItem classData = classDefItem.getClassData();
 			if (classData != null) {
 				readFields(td, classData.getStaticFields(), classData.getInstanceFields(),
@@ -297,10 +296,8 @@ public class SmaliReader implements DexReader {
 						methodSignatures, methodThrowsTs, annotationDefaultValues, methodAs,
 						methodParamAs);
 			}
-
-			this.du.addTd(td);
 		}
-		return selectorTd;
+		return tds;
 	}
 
 	private A readAnnotation(final AnnotationEncodedSubValue encodedValue,
@@ -369,8 +366,8 @@ public class SmaliReader implements DexReader {
 		for (final EncodedField encodedField : instanceFields) {
 			final FieldIdItem field = encodedField.field;
 
-			final T fieldT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
-			final F f = td.getF(field.getFieldName().getStringValue(), fieldT);
+			final T valueT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
+			final F f = td.getF(field.getFieldName().getStringValue(), valueT);
 			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
 				f.setSignature(fieldSignatures.get(field));

@@ -26,7 +26,7 @@ package org.decojer.editor.eclipse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
-import java.util.Map.Entry;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -361,7 +361,10 @@ public class ClassEditor extends MultiPageEditorPart {
 		this.du = DecoJer.createDu();
 
 		try {
-			this.td = this.du.read(fileName);
+			final List<TD> tds = this.du.read(fileName);
+			if (tds.size() == 1) {
+				this.td = tds.get(0);
+			}
 		} catch (final Exception e) {
 			LOGGER.log(Level.SEVERE, "Couldn't open file!", e);
 			return pageContainer;
@@ -372,12 +375,12 @@ public class ClassEditor extends MultiPageEditorPart {
 					| SWT.SMOOTH);
 
 			this.archiveTree = new Tree(sashForm, SWT.NONE);
-			for (final Entry<String, TD> type : this.du.getTds()) {
+			for (final TD td : this.du.getTds()) {
 				final TreeItem treeItem = new TreeItem(this.archiveTree, SWT.NONE);
-				treeItem.setText(type.getKey());
+				treeItem.setText(td.getName());
 				if (this.td == null) {
 					this.archiveTree.select(treeItem);
-					this.td = type.getValue();
+					this.td = td;
 				}
 			}
 			this.archiveTree.addSelectionListener(new SelectionListener() {
@@ -394,12 +397,11 @@ public class ClassEditor extends MultiPageEditorPart {
 						return;
 					}
 					final TreeItem selection = selections[0];
+					if (ClassEditor.this.td != null) {
+						ClassEditor.this.td.clear();
+					}
 					ClassEditor.this.td = ClassEditor.this.du.getTd(selection.getText());
 
-					if (ClassEditor.this.cu != null) {
-						ClassEditor.this.cu.clear();
-						ClassEditor.this.cu = null;
-					}
 					String sourceCode = null;
 					try {
 						ClassEditor.this.cu = DecoJer.createCu(ClassEditor.this.td);

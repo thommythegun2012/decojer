@@ -23,6 +23,11 @@
  */
 package org.decojer.cavaj.reader.dex2jar;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import lombok.Getter;
+
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -45,7 +50,8 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 
 	private String selectorMatch;
 
-	private TD selectorTd;
+	@Getter
+	private final List<TD> tds = new ArrayList<TD>();
 
 	/**
 	 * Constructor.
@@ -58,15 +64,6 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 
 		this.du = du;
 		this.readDexClassVisitor = new ReadDexClassVisitor(du);
-	}
-
-	/**
-	 * Get type declaration for selector.
-	 * 
-	 * @return type declaration for selector
-	 */
-	public TD getSelectorTd() {
-		return this.selectorTd;
 	}
 
 	/**
@@ -88,24 +85,21 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 			this.selectorMatch = null;
 			this.selectorPrefix = null;
 		}
-		this.selectorTd = null;
+		this.tds.clear();
 	}
 
 	@Override
 	public DexClassVisitor visit(final int access_flags, final String className,
 			final String superClass, final String[] interfaceNames) {
-		// Lorg/apache/commons/logging/impl/WeakHashtable; :
-		// Ljava/util/Hashtable; : null
-		System.out
-				.println("## visit ## " + className + " : " + superClass + " : " + interfaceNames);
-
+		// load full type declarations from complete package, to complex to decide here if
+		// really not part of the compilation unit
+		// TODO later load all type declarations, but not all bytecode details
 		if (this.selectorPrefix != null
 				&& (!className.startsWith(this.selectorPrefix) || className.indexOf('/',
 						this.selectorPrefix.length()) != -1)) {
 			return null;
 		}
-
-		final TD td = (TD) this.du.getDescT(className);
+		final TD td = this.du.getDescTd(className);
 		td.setAccessFlags(access_flags);
 		td.setSuperT(this.du.getDescT(superClass));
 		if (interfaceNames != null && interfaceNames.length > 0) {
@@ -115,13 +109,9 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 			}
 			td.setInterfaceTs(interfaceTs);
 		}
-
-		if (className.equals(this.selectorMatch)) {
-			this.selectorTd = td;
+		if (this.selectorMatch == null || this.selectorMatch.equals(className)) {
+			this.tds.add(td);
 		}
-
-		this.du.addTd(td);
-
 		this.readDexClassVisitor.init(td);
 		return this.readDexClassVisitor;
 	}

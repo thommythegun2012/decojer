@@ -32,9 +32,7 @@ import java.io.PushbackInputStream;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
@@ -185,9 +183,9 @@ public class DecoJer {
 				processedTds.add(td);
 			}
 			// many steps here can add type declarations through lazy finding
-			for (final Entry<String, TD> entry : du.getTds()) {
-				if (entry.getKey().startsWith(cu.getTds().get(0).getName() + "$")) {
-					if (cu.addTd(entry.getValue())) {
+			for (final TD td : du.getTds()) {
+				if (td.getName().startsWith(cu.getTds().get(0).getName() + "$")) {
+					if (cu.addTd(td)) {
 						changed = true;
 					}
 				}
@@ -225,14 +223,13 @@ public class DecoJer {
 	public static void decompile(final DU du, final OutputStream os) throws IOException {
 		final ZipOutputStream zip = new ZipOutputStream(os);
 
-		final Iterator<Entry<String, TD>> tdIt = du.getTds().iterator();
-		while (tdIt.hasNext()) {
-			final TD td = tdIt.next().getValue();
+		for (final TD td : du.getTds()) {
+			CU cu;
+			if (td.getCu() != null) {
+				continue;
+			}
+			cu = createCu(td);
 			try {
-				if (td.getCu() != null) {
-					continue;
-				}
-				final CU cu = createCu(td);
 				final String source = decompile(cu);
 				final String sourceFileName = cu.getSourceFileName();
 				final String packageName = td.getPackageName();
@@ -248,7 +245,7 @@ public class DecoJer {
 			} catch (final Throwable t) {
 				LOGGER.log(Level.WARNING, "Decompilation problems for '" + td + "'!", t);
 			} finally {
-				tdIt.remove(); // cannot use cu.clear() here because processed info lost then
+				cu.clear();
 			}
 		}
 		zip.finish();
@@ -264,22 +261,8 @@ public class DecoJer {
 	 *             read exception
 	 */
 	public static String decompile(final String path) throws IOException {
-		if (path == null) {
-			throw new DecoJerException("Path must not be null!");
-		}
-		final File file = new File(path);
-		if (!file.exists()) {
-			throw new DecoJerException("File not found: " + path);
-		}
-		if (file.isDirectory()) {
-			throw new DecoJerException("Directory path not supported: " + path);
-		}
-		final String typeFileName = file.getName();
-		if (!typeFileName.endsWith(".class")) {
-			throw new DecoJerException("Must be a path to a class file: " + path);
-		}
 		final DU du = createDu();
-		final TD td = du.read(path);
+		final TD td = du.read(path).get(0);
 		final CU cu = createCu(td);
 		return decompile(cu);
 	}
@@ -307,7 +290,7 @@ public class DecoJer {
 	public static void main(final String[] args) throws IOException {
 		final long time = System.currentTimeMillis();
 		final DU du = createDu();
-		switch (4) {
+		switch (5) {
 		case 0:
 			System.out
 					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"));
@@ -319,10 +302,8 @@ public class DecoJer {
 			break;
 		}
 		case 2: {
-			final TD td = du
-					.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar!/org/decojer/cavaj/test/jdk5/DecTestAnnotations.class");
-			final CU cu = createCu(td);
-			System.out.println(decompile(cu));
+			System.out
+					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar!/org/decojer/cavaj/test/jdk5/DecTestAnnotations.class"));
 			break;
 		}
 		case 3: {
@@ -356,10 +337,8 @@ public class DecoJer {
 			break;
 		}
 		case 12: {
-			final TD td = du
-					.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex!/org/decojer/cavaj/test/DecTestBooleanOperators.class");
-			final CU cu = createCu(td);
-			System.out.println(decompile(cu));
+			System.out
+					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex!/org/decojer/cavaj/test/DecTestBooleanOperators.class"));
 			break;
 		}
 		case 13: {

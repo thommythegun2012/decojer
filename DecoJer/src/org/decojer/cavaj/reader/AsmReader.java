@@ -53,8 +53,7 @@ public class AsmReader implements ClassReader {
 
 	@Override
 	public TD read(final InputStream is) throws IOException {
-		final org.objectweb.asm.ClassReader classReader = new org.objectweb.asm.ClassReader(
-				is);
+		final org.objectweb.asm.ClassReader classReader = new org.objectweb.asm.ClassReader(is);
 
 		this.readClassVisitor.init();
 		classReader.accept(this.readClassVisitor, 0);

@@ -38,6 +38,7 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.DFlag;
+import org.decojer.cavaj.model.type.ParamT;
 import org.decojer.cavaj.util.AnnotationsDecompiler;
 import org.decojer.cavaj.util.Types;
 import org.eclipse.jdt.core.dom.AST;
@@ -486,7 +487,8 @@ public final class TrJvmStruct2JavaAst {
 				if (typeDeclaration != null) {
 					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
-					if (t.getSuperT() == null || !t.getSuperT().is(Enum.class)) {
+					if (t.getSuperT() == null || !(t.getSuperT() instanceof ParamT)
+							|| !((ParamT) t.getSuperT()).getGenericT().is(Enum.class)) {
 						LOGGER.warning("Classfile with AccessFlag.ENUM has no super class '"
 								+ Enum.class.getName() + "' but has '" + t.getSuperT() + "'!");
 					}
@@ -573,5 +575,4 @@ public final class TrJvmStruct2JavaAst {
 			}
 		}
 	}
-
 }

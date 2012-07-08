@@ -33,14 +33,16 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map.Entry;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+
+import lombok.Getter;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.type.ArrayT;
@@ -68,11 +70,15 @@ public final class DU {
 
 	private final ClassReader classReader = new AsmReader(this);
 
+	@Getter
+	private final HashMap<String, CU> cus = new HashMap<String, CU>();
+
 	private final DexReader dexReader = new SmaliReader(this);
 
-	private final LinkedHashMap<String, TD> tds = new LinkedHashMap<String, TD>();
+	private final Map<String, T> ts = new HashMap<String, T>();
 
-	private final HashMap<String, T> ts = new HashMap<String, T>();
+	@Getter
+	private final List<TD> tds = new ArrayList<TD>();
 
 	public DU() {
 		// init type pool with primitives-/multi-types
@@ -89,18 +95,6 @@ public final class DU {
 		} catch (final IllegalAccessException e) {
 			throw new RuntimeException("Couldn't init decompilation unit!", e);
 		}
-	}
-
-	/**
-	 * Add type declaration.
-	 * 
-	 * @param td
-	 *            type declaration
-	 */
-	public void addTd(final TD td) {
-		assert td != null;
-
-		this.tds.put(td.getName(), td);
 	}
 
 	public T[] getArrayInterfaceTs() {
@@ -130,6 +124,17 @@ public final class DU {
 	 */
 	public T getDescT(final String desc) {
 		return parseT(desc, new Cursor());
+	}
+
+	/**
+	 * Get type declaration for descriptor.
+	 * 
+	 * @param desc
+	 *            descriptor (package/subpackage/Type$Inner)
+	 * @return type declaration
+	 */
+	public TD getDescTd(final String desc) {
+		return (TD) getDescT(desc);
 	}
 
 	/**
@@ -187,16 +192,7 @@ public final class DU {
 	 * @return type declaration
 	 */
 	public TD getTd(final String name) {
-		return this.tds.get(name);
-	}
-
-	/**
-	 * Get type declarations.
-	 * 
-	 * @return type declarations
-	 */
-	public Set<Entry<String, TD>> getTds() {
-		return this.tds.entrySet();
+		return (TD) getT(name);
 	}
 
 	/**
@@ -385,25 +381,30 @@ public final class DU {
 	 *            file
 	 * @param selector
 	 *            selector (in case of an archive)
-	 * @return type declaration (if single selector given)
+	 * @return type declarations
 	 * @throws IOException
 	 *             read exception
 	 */
-	public TD read(final File file, final String selector) throws IOException {
+	public List<TD> read(final File file, final String selector) throws IOException {
 		final String fileName = file.getName();
 		if (fileName.endsWith(".class")) {
-			// try reading whole package first
+			final List<TD> tds = new ArrayList<TD>();
+
+			// load full type declarations from complete package, to complex to decide here if
+			// really not part of the compilation unit
+			// TODO later load all type declarations, but not all bytecode details
 			for (final File entry : file.getParentFile().listFiles()) {
 				final String name = entry.getName();
-				if (!name.endsWith(".class") || name.equals(fileName)) {
+				if (!name.endsWith(".class")) {
 					continue;
 				}
 				try {
-					read(new FileInputStream(entry), name, null);
+					tds.addAll(read(new FileInputStream(entry), name, fileName));
 				} catch (final Exception e) {
 					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!", e);
 				}
 			}
+			return tds;
 		}
 		return read(new FileInputStream(file), fileName, selector);
 	}
@@ -419,11 +420,11 @@ public final class DU {
 	 *            file name (or null, optional - we prefere magic numbers)
 	 * @param selector
 	 *            selector (in case of an archive)
-	 * @return type declaration (if single selector given)
+	 * @return type declarations
 	 * @throws IOException
 	 *             read exception
 	 */
-	public TD read(final InputStream is, final String fileName, final String selector)
+	public List<TD> read(final InputStream is, final String fileName, final String selector)
 			throws IOException {
 		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
 		final int read = is.read(magicNumber, 0, magicNumber.length);
@@ -433,13 +434,21 @@ public final class DU {
 		if (Arrays.equals(magicNumber, MagicNumbers.CLASS)) {
 			final PushbackInputStream pis = new PushbackInputStream(is, 4);
 			pis.unread(magicNumber, 0, magicNumber.length);
-			return this.classReader.read(pis); // selector has no meaning here
+			// selector has no meaning here
+			final TD td = this.classReader.read(pis);
+			if (selector == null || fileName.equals(selector)) {
+				this.tds.add(td);
+				return Collections.singletonList(td);
+			}
+			return Collections.emptyList();
 		}
 		if (Arrays.equals(magicNumber, MagicNumbers.DEX)
 				|| Arrays.equals(magicNumber, MagicNumbers.ODEX)) {
 			final PushbackInputStream pis = new PushbackInputStream(is, 4);
 			pis.unread(magicNumber, 0, magicNumber.length);
-			return this.dexReader.read(pis, selector);
+			final List<TD> tds = this.dexReader.read(pis, selector);
+			this.tds.addAll(tds);
+			return tds;
 		}
 		if (Arrays.equals(magicNumber, MagicNumbers.ZIP)) {
 			String selectorPrefix = null;
@@ -451,7 +460,7 @@ public final class DU {
 					selectorPrefix = selectorMatch.substring(0, pos + 1);
 				}
 			}
-			TD selectorTd = null;
+			final List<TD> tds = new ArrayList<TD>();
 
 			final PushbackInputStream pis = new PushbackInputStream(is, 4);
 			pis.unread(magicNumber, 0, magicNumber.length);
@@ -459,6 +468,9 @@ public final class DU {
 			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
 					.getNextEntry()) {
 				final String name = zipEntry.getName();
+				// load full type declarations from complete package, to complex to decide here if
+				// really not part of the compilation unit
+				// TODO later load all type declarations, but not all bytecode details
 				if (name.endsWith(".class")
 						&& selectorPrefix != null
 						&& (!name.startsWith(selectorPrefix) || name.indexOf('/',
@@ -466,15 +478,15 @@ public final class DU {
 					continue;
 				}
 				try {
-					final TD td = read(zip, name, null);
-					if (name.equals(selectorMatch)) {
-						selectorTd = td;
+					final List<TD> readTds = read(zip, name, null);
+					if (readTds != null && (selectorMatch == null || selectorMatch.equals(name))) {
+						tds.addAll(readTds);
 					}
 				} catch (final Exception e) {
 					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!", e);
 				}
 			}
-			return selectorTd;
+			return tds;
 		}
 		return null;
 	}
@@ -486,11 +498,11 @@ public final class DU {
 	 * 
 	 * @param fileName
 	 *            file name & optional selector
-	 * @return type declaration (if single selector given)
+	 * @return type declarations
 	 * @throws IOException
 	 *             read exception
 	 */
-	public TD read(final String fileName) throws IOException {
+	public List<TD> read(final String fileName) throws IOException {
 		final int pos = fileName.indexOf('!');
 		if (pos == -1) {
 			return read(new File(fileName), null);

@@ -44,6 +44,6 @@ public interface ClassReader {
 	 * @throws IOException
 	 *             read exception
 	 */
-	TD read(InputStream is) throws IOException;
+	TD read(final InputStream is) throws IOException;
 
 }
