@@ -127,13 +127,14 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 /**
- * Transform CFG IVM to HLL Expression Statements.
+ * Transformer "CFG to Java Expression Statements ASTs".
  * 
  * @author André Pankraz
  */
-public final class TrIvmCfg2JavaExprStmts {
+public final class TrCfg2JavaExpressionStmts {
 
-	private final static Logger LOGGER = Logger.getLogger(TrIvmCfg2JavaExprStmts.class.getName());
+	private final static Logger LOGGER = Logger
+			.getLogger(TrCfg2JavaExpressionStmts.class.getName());
 
 	/**
 	 * Transform CFG.
@@ -142,12 +143,12 @@ public final class TrIvmCfg2JavaExprStmts {
 	 *            CFG
 	 */
 	public static void transform(final CFG cfg) {
-		new TrIvmCfg2JavaExprStmts(cfg).transform();
+		new TrCfg2JavaExpressionStmts(cfg).transform();
 	}
 
 	private final CFG cfg;
 
-	private TrIvmCfg2JavaExprStmts(final CFG cfg) {
+	private TrCfg2JavaExpressionStmts(final CFG cfg) {
 		this.cfg = cfg;
 	}
 

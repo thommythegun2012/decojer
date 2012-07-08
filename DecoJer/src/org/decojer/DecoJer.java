@@ -49,10 +49,10 @@ import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
 import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformers.TrDataFlowAnalysis2Cfg;
-import org.decojer.cavaj.transformers.TrIvmCfg2JavaExprStmts;
+import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
 import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformers.TrMergeAll;
-import org.decojer.cavaj.transformers.TrStructCfg2JavaControlFlowStmts;
+import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.utils.MagicNumbers;
 
 /**
@@ -170,11 +170,11 @@ public class DecoJer {
 						TrDataFlowAnalysis2Cfg.transform(cfg);
 						TrCalculatePostorder.transform(cfg);
 
-						TrIvmCfg2JavaExprStmts.transform(cfg);
+						TrCfg2JavaExpressionStmts.transform(cfg);
 						TrCalculatePostorder.transform(cfg);
 
 						TrControlFlowAnalysis.transform(cfg);
-						TrStructCfg2JavaControlFlowStmts.transform(cfg);
+						TrCfg2JavaControlFlowStmts.transform(cfg);
 					} catch (final Throwable e) {
 						LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
 					}

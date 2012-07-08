@@ -86,7 +86,7 @@ import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
 
 /**
- * Transform Data Flow Analysis and building Control Flow Graph.
+ * Transformer "Data Flow Analysis to CFG".
  * 
  * @author André Pankraz
  */

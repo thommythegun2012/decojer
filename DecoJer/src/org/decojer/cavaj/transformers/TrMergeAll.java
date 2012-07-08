@@ -37,6 +37,11 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
+/**
+ * Transformer "Merge all".
+ * 
+ * @author André Pankraz
+ */
 public final class TrMergeAll {
 
 	public static void transform(final CU cu) {
