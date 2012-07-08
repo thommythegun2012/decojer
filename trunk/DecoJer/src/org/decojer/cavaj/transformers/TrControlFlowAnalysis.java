@@ -39,7 +39,7 @@ import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.code.structs.Switch;
 
 /**
- * Transformer "Control Flow Analysis".
+ * Transformer: Control Flow Analysis.
  * 
  * @author André Pankraz
  */

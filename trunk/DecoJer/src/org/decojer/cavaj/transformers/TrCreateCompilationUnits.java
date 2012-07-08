@@ -24,10 +24,10 @@
 package org.decojer.cavaj.transformers;
 
 /**
- * Transformer "Identify compilation units".
+ * Transformer: Identify and create compilation units.
  * 
  * @author André Pankraz
  */
-public class TrIdentifyCus {
+public class TrCreateCompilationUnits {
 
 }

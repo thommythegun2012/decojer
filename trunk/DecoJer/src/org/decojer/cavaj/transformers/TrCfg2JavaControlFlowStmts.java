@@ -53,7 +53,7 @@ import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
 /**
- * Transformer "Structured CFG to Java Control Flow Statements ASTs".
+ * Transformer: Structured CFG to Java Control Flow Statements ASTs.
  * 
  * Ignore final empty return statements.
  * 

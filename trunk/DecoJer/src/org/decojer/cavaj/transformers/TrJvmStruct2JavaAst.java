@@ -65,7 +65,7 @@ import org.eclipse.jdt.core.dom.TypeParameter;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 /**
- * Transformer "JVM Struct to AST".
+ * Transformer: JVM Struct to AST.
  * 
  * @author André Pankraz
  */
