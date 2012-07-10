@@ -30,14 +30,9 @@ import java.util.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
-import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
-import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
 /**
@@ -62,6 +57,56 @@ public final class TD extends T implements BD, PD {
 		sb.setCharAt(sb.length() - 1, '}');
 		return sb.toString();
 	}
+
+	/**
+	 * Enclosing type for this anynomous inner class (must be in field initializer).
+	 * 
+	 * TODO combine both enclosing, only one possible...need TD and M(D?!) supertype for this
+	 */
+	@Getter
+	@Setter
+	private T enclosingT;
+
+	/**
+	 * Deprecated State (from Deprecated Attribute).
+	 */
+	@Getter
+	@Setter
+	private boolean deprecated;
+
+	@Getter
+	@Setter
+	private String readFileName;
+
+	/**
+	 * Source File Name (from Source File Attribute).
+	 */
+	@Getter
+	@Setter
+	private String sourceFileName;
+
+	/**
+	 * Parent declaration.
+	 */
+	@Getter
+	@Setter
+	private PD pd;
+
+	@Setter
+	private T[] interfaceTs;
+
+	/**
+	 * AST type declaration.
+	 */
+	@Getter
+	@Setter
+	private ASTNode typeDeclaration;
+
+	/**
+	 * All body declarations: inner type / method / field declarations.
+	 */
+	@Getter
+	private final List<BD> bds = new ArrayList<BD>();
 
 	/**
 	 * Access flags.
@@ -125,56 +170,6 @@ public final class TD extends T implements BD, PD {
 	private int version;
 
 	/**
-	 * Enclosing type for this anynomous inner class (must be in field initializer).
-	 * 
-	 * TODO combine both enclosing, only one possible...need TD and M(D?!) supertype for this
-	 */
-	@Getter
-	@Setter
-	private T enclosingT;
-
-	/**
-	 * Deprecated State (from Deprecated Attribute).
-	 */
-	@Getter
-	@Setter
-	private boolean deprecated;
-
-	@Getter
-	@Setter
-	private String readFileName;
-
-	/**
-	 * Source File Name (from Source File Attribute).
-	 */
-	@Getter
-	@Setter
-	private String sourceFileName;
-
-	/**
-	 * Parent declaration.
-	 */
-	@Getter
-	@Setter
-	private PD pd;
-
-	@Setter
-	private T[] interfaceTs;
-
-	/**
-	 * AST type declaration.
-	 */
-	@Getter
-	@Setter
-	private ASTNode typeDeclaration;
-
-	/**
-	 * All body declarations: inner type / method / field declarations.
-	 */
-	@Getter
-	private final List<BD> bds = new ArrayList<BD>();
-
-	/**
 	 * Constructor.
 	 * 
 	 * @param name
@@ -199,33 +194,6 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
-	 * Add AST body declarations.
-	 * 
-	 * @param bodyDeclaration
-	 *            AST body declaration
-	 * 
-	 * @return true - success
-	 */
-	@SuppressWarnings("unchecked")
-	public boolean addBodyDeclaration(final BodyDeclaration bodyDeclaration) {
-		assert bodyDeclaration != null;
-
-		if (this.typeDeclaration instanceof AnonymousClassDeclaration) {
-			return ((AnonymousClassDeclaration) this.typeDeclaration).bodyDeclarations().add(
-					bodyDeclaration);
-		}
-		if (bodyDeclaration instanceof EnumConstantDeclaration) {
-			if (this.typeDeclaration instanceof EnumDeclaration) {
-				return ((EnumDeclaration) this.typeDeclaration).enumConstants()
-						.add(bodyDeclaration);
-			}
-			return false;
-		}
-		return ((AbstractTypeDeclaration) this.typeDeclaration).bodyDeclarations().add(
-				bodyDeclaration);
-	}
-
-	/**
 	 * Check access flag.
 	 * 
 	 * @param af
@@ -239,27 +207,11 @@ public final class TD extends T implements BD, PD {
 	/**
 	 * Clear all generated data after read.
 	 */
+	@Override
 	public void clear() {
-		this.pd = null;
 		this.typeDeclaration = null;
-		for (int i = this.bds.size(); i-- > 0;) {
-			final BD bd = this.bds.get(i);
-			if (bd instanceof TD) {
-				((TD) bd).clear();
-				this.bds.remove(i);
-				continue;
-			}
-			if (bd instanceof FD) {
-				((FD) bd).setFieldDeclaration(null);
-				continue;
-			}
-			if (bd instanceof MD) {
-				((MD) bd).setMethodDeclaration(null);
-				final CFG cfg = ((MD) bd).getCfg();
-				if (cfg != null) {
-					cfg.clear();
-				}
-			}
+		for (final BD bd : this.bds) {
+			bd.clear();
 		}
 	}
 

@@ -135,6 +135,10 @@ public class TypeNameManager {
 	 *            package name
 	 */
 	public void setPackageName(final String packageName) {
+		if (packageName == null) {
+			this.packagePrefix = null;
+			return;
+		}
 		this.packagePrefix = packageName + ".";
 	}
 

@@ -1,7 +1,7 @@
 /*
  * $Id$
  *
- * This file is part of the DecoJer project.
+ * This file is part of the DecoJer projectd.
  * Copyright (C) 2010-2011  André Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
@@ -43,12 +43,14 @@ import org.decojer.cavaj.utils.AnnotationsDecompiler;
 import org.decojer.cavaj.utils.Types;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
 import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
@@ -57,6 +59,7 @@ import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
+import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TagElement;
 import org.eclipse.jdt.core.dom.Type;
@@ -197,7 +200,7 @@ public final class TrJvmStruct2JavaAst {
 		// enum synthetic methods
 		if (("values".equals(name) && m.getParams() == 0 || "valueOf".equals(name)
 				&& m.getParams() == 1 && m.getParamT(0).is(String.class))
-				&& t.check(AF.ENUM) && !cu.check(DFlag.IGNORE_ENUM)) {
+				&& td.check(AF.ENUM) && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
 
@@ -217,7 +220,7 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setConstructor(true);
 			((MethodDeclaration) methodDeclaration).setName(ast.newSimpleName(cu
-					.check(DFlag.START_TD_ONLY) ? t.getPName() : t.getIName()));
+					.check(DFlag.START_TD_ONLY) ? td.getPName() : td.getIName()));
 		} else if (typeDeclaration instanceof AnnotationTypeDeclaration) {
 			// AnnotationTypeMemberDeclaration
 			methodDeclaration = ast.newAnnotationTypeMemberDeclaration();
@@ -444,13 +447,28 @@ public final class TrJvmStruct2JavaAst {
 	 */
 	@SuppressWarnings("unchecked")
 	public static void transform(final TD td) {
-		final TD t = td; // TODO
 		final CU cu = td.getCu();
 
-		if ("package-info".equals(t.getPName())) {
+		// initializes AST for compilation unit
+		final ASTParser parser = ASTParser.newParser(AST.JLS4);
+		parser.setSource(new char[0]);
+		final CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
+		compilationUnit.recordModifications();
+		cu.setCompilationUnit(compilationUnit);
+
+		final AST ast = compilationUnit.getAST();
+
+		// decompile package name
+		final String packageName = td.getPackageName();
+		if (packageName != null) {
+			final PackageDeclaration packageDeclaration = ast.newPackageDeclaration();
+			packageDeclaration.setName(ast.newName(packageName));
+			compilationUnit.setPackage(packageDeclaration);
+		}
+		if ("package-info".equals(td.getPName())) {
 			// this is not a valid Java type name and is used for package annotations, we must
 			// handle this here, is "interface" in JDK 5, is "abstract synthetic interface" in JDK 7
-			if (!t.check(AF.INTERFACE)) {
+			if (!td.check(AF.INTERFACE)) {
 				LOGGER.warning("Type declaration with name 'package-info' is not an interface!");
 			}
 			if (td.getAs() != null) {
@@ -459,43 +477,41 @@ public final class TrJvmStruct2JavaAst {
 			}
 			return;
 		}
-		if ((t.check(AF.SYNTHETIC) || td.isSynthetic())
+		if ((td.check(AF.SYNTHETIC) || td.isSynthetic())
 				&& !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
-
-		final AST ast = cu.getAst();
 
 		if (td.getTypeDeclaration() == null) {
 			AbstractTypeDeclaration typeDeclaration = null;
 
 			// annotation type declaration
-			if (t.check(AF.ANNOTATION)) {
-				if (t.getSuperT() == null || !t.getSuperT().is(Object.class)) {
+			if (td.check(AF.ANNOTATION)) {
+				if (td.getSuperT() == null || !td.getSuperT().is(Object.class)) {
 					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no super class '"
-							+ Object.class.getName() + "' but has '" + t.getSuperT() + "'!");
+							+ Object.class.getName() + "' but has '" + td.getSuperT() + "'!");
 				}
-				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
+				if (td.getInterfaceTs().length != 1 || !td.getInterfaceTs()[0].is(Annotation.class)) {
 					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no interface '"
-							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
+							+ Annotation.class.getName() + "' but has '" + td.getInterfaceTs()[0]
 							+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
 			// enum declaration
-			if (t.check(AF.ENUM)) {
+			if (td.check(AF.ENUM)) {
 				if (typeDeclaration != null) {
 					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
-					if (t.getSuperT() == null || !(t.getSuperT() instanceof ParamT)
-							|| !((ParamT) t.getSuperT()).getGenericT().is(Enum.class)) {
+					if (td.getSuperT() == null || !(td.getSuperT() instanceof ParamT)
+							|| !((ParamT) td.getSuperT()).getGenericT().is(Enum.class)) {
 						LOGGER.warning("Classfile with AccessFlag.ENUM has no super class '"
-								+ Enum.class.getName() + "' but has '" + t.getSuperT() + "'!");
+								+ Enum.class.getName() + "' but has '" + td.getSuperT() + "'!");
 					}
 					typeDeclaration = ast.newEnumDeclaration();
 					// enums cannot extend other classes than Enum.class, but can have interfaces
-					if (t.getInterfaceTs() != null) {
-						for (final T interfaceT : t.getInterfaceTs()) {
+					if (td.getInterfaceTs() != null) {
+						for (final T interfaceT : td.getInterfaceTs()) {
 							((EnumDeclaration) typeDeclaration).superInterfaceTypes().add(
 									ast.newSimpleType(td.newTypeName(interfaceT)));
 						}
@@ -506,13 +522,13 @@ public final class TrJvmStruct2JavaAst {
 			// declaration
 			if (typeDeclaration == null) {
 				typeDeclaration = ast.newTypeDeclaration();
-				decompileTypeParams(t.getTypeParams(),
+				decompileTypeParams(td.getTypeParams(),
 						((TypeDeclaration) typeDeclaration).typeParameters(), td);
-				if (!t.getSuperT().is(Object.class)) {
+				if (!td.getSuperT().is(Object.class)) {
 					((TypeDeclaration) typeDeclaration).setSuperclassType(Types.convertType(
-							t.getSuperT(), td));
+							td.getSuperT(), td));
 				}
-				for (final T interfaceT : t.getInterfaceTs()) {
+				for (final T interfaceT : td.getInterfaceTs()) {
 					((TypeDeclaration) typeDeclaration).superInterfaceTypes().add(
 							Types.convertType(interfaceT, td));
 				}
@@ -527,32 +543,33 @@ public final class TrJvmStruct2JavaAst {
 			}
 
 			// decompile remaining modifier flags
-			if (t.check(AF.PUBLIC)) {
+			if (td.check(AF.PUBLIC)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 			}
-			if (t.check(AF.FINAL) && !(typeDeclaration instanceof EnumDeclaration)) {
+			if (td.check(AF.FINAL) && !(typeDeclaration instanceof EnumDeclaration)) {
 				// enum declaration is final by default
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 			}
-			if (t.check(AF.INTERFACE)) {
+			if (td.check(AF.INTERFACE)) {
 				if (typeDeclaration instanceof TypeDeclaration) {
 					((TypeDeclaration) typeDeclaration).setInterface(true);
 				}
-			} else if (!t.check(AF.SUPER) && !td.isDalvik()) {
+			} else if (!td.check(AF.SUPER) && !td.isDalvik()) {
 				// modern invokesuper syntax, is always set in current JVM, but not in Dalvik
 				LOGGER.warning("Modern invokesuper syntax flag not set in type '" + td + "'!");
 			}
-			if (t.check(AF.ABSTRACT)
+			if (td.check(AF.ABSTRACT)
 					&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
 					&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 							.isInterface())) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 			}
 
-			// multiple CompilationUnit.TypeDeclaration in same AST (source file) possible, but only
+			// multiple CompilationUnitd.TypeDeclaration in same AST (source file) possible, but
+			// only
 			// one of them is public and multiple class files are necessary
-			typeDeclaration.setName(ast.newSimpleName(cu.check(DFlag.START_TD_ONLY) ? t.getPName()
-					: t.getIName()));
+			typeDeclaration.setName(ast.newSimpleName(cu.check(DFlag.START_TD_ONLY) ? td.getPName()
+					: td.getIName()));
 
 			if (td.isDeprecated() && !AnnotationsDecompiler.isDeprecatedAnnotation(td.getAs())) {
 				final Javadoc newJavadoc = ast.newJavadoc();
@@ -575,4 +592,5 @@ public final class TrJvmStruct2JavaAst {
 			}
 		}
 	}
+
 }

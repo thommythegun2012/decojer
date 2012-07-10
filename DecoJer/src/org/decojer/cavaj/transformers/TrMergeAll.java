@@ -34,6 +34,8 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
+import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
@@ -44,6 +46,26 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
  */
 public final class TrMergeAll {
 
+	@SuppressWarnings("unchecked")
+	private static boolean addBodyDeclaration(final TD td, final BodyDeclaration bodyDeclaration) {
+		assert bodyDeclaration != null;
+
+		if (td.getTypeDeclaration() instanceof AnonymousClassDeclaration) {
+			return ((AnonymousClassDeclaration) td.getTypeDeclaration()).bodyDeclarations().add(
+					bodyDeclaration);
+		}
+		if (bodyDeclaration instanceof EnumConstantDeclaration) {
+			if (td.getTypeDeclaration() instanceof EnumDeclaration) {
+				return ((EnumDeclaration) td.getTypeDeclaration()).enumConstants().add(
+						bodyDeclaration);
+			}
+			return false;
+		}
+		return ((AbstractTypeDeclaration) td.getTypeDeclaration()).bodyDeclarations().add(
+				bodyDeclaration);
+	}
+
+	@SuppressWarnings("unchecked")
 	public static void transform(final CU cu) {
 		final List<TD> tds = cu.getTds();
 		for (final TD td : tds) {
@@ -53,7 +75,7 @@ public final class TrMergeAll {
 			final ASTNode typeDeclaration = td.getTypeDeclaration();
 			// no package-info.java (typeDeclaration == null)
 			if (typeDeclaration instanceof AbstractTypeDeclaration) {
-				cu.addTypeDeclaration((AbstractTypeDeclaration) typeDeclaration);
+				cu.getCompilationUnit().types().add(typeDeclaration);
 			}
 			transform(td);
 		}
@@ -66,7 +88,7 @@ public final class TrMergeAll {
 				if (!((TD) bd).isAnonymous()) {
 					final ASTNode typeDeclaration = ((TD) bd).getTypeDeclaration();
 					if (typeDeclaration != null) {
-						td.addBodyDeclaration((AbstractTypeDeclaration) typeDeclaration);
+						addBodyDeclaration(td, (AbstractTypeDeclaration) typeDeclaration);
 					}
 				}
 				transform((TD) bd);
@@ -75,7 +97,7 @@ public final class TrMergeAll {
 			if (bd instanceof FD) {
 				final BodyDeclaration fieldDeclaration = ((FD) bd).getFieldDeclaration();
 				if (fieldDeclaration != null) {
-					td.addBodyDeclaration(fieldDeclaration);
+					addBodyDeclaration(td, fieldDeclaration);
 				}
 				continue;
 			}
@@ -102,7 +124,7 @@ public final class TrMergeAll {
 				}
 				if (methodDeclaration != null) {
 					// e.g. bridge methods?
-					td.addBodyDeclaration(methodDeclaration);
+					addBodyDeclaration(td, methodDeclaration);
 				}
 				continue;
 			}
