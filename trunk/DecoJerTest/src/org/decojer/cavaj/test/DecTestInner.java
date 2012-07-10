@@ -6,71 +6,81 @@ public abstract class DecTestInner {
 
 		protected final class Inner11 {
 
+			public String test;
+
 			public Inner11(final Inner1 inner1) {
-				System.out.println("INNER11 CONSTRUCTOR " + Inner1.class
-						+ inner1 + RUNNER.getClass() + DecTestInnerS.class);
+				System.out.println(DecTestInner.this.test);
+				System.out.println(Inner1.this.test);
+			}
+
+			private void test() {
+				System.out.println(this.test);
+				System.out.println(Inner1.this.test);
 			}
 
 		}
+
+		public String test;
 
 		public Inner1() {
-			System.out.println("INNER1 CONSTRUCTOR " + Inner11.class);
 			Inner11 inner11 = new Inner11(this);
-			System.out.println("inner11 " + inner11);
+			System.out.println(inner11);
 		}
 
 	}
 
-	protected class Inner2 {
+	private static final class Inner2 {
 
-		protected final class Inner11 {
+		protected final class Inner21 {
 
-			public Inner11(final Inner2 innerO2,
-					final DecTestInner.Inner2 inner2) {
-				System.out.println("INNER11 CONSTRUCTOR " + Inner1.class
-						+ innerO2 + inner2 + RUNNER.getClass());
+			public String test;
+
+			public Inner21(final Inner2 inner2) {
+				// not possible DecTestInner.this.test
+				System.out.println(Inner2.this.test);
+			}
+
+			private void test() {
+				System.out.println(this.test);
+				System.out.println(Inner2.this.test);
 			}
 
 		}
 
+		public String test;
+
 		public Inner2() {
-			System.out.println("INNER2 CONSTRUCTOR " + Inner3.class);
+			Inner21 inner21 = new Inner21(this);
+			System.out.println(inner21);
 		}
 
 	}
 
-	private static final class Inner3 {
-
-		public Inner3() {
-			System.out.println("INNER3 CONSTRUCTOR " + Inner1.class);
-		}
-
-		Inner2.Inner11 test() {
-			return null;
-		}
-
-	}
+	public String test;
 
 	private static Runnable RUNNER = new Runnable() {
 
 		private final Runnable RUNNER = new Thread() {
 
+			// sttaic not possible in non-static inner
 			private final Runnable RUNNER = new Thread() {
 
 				public void run() {
-					System.out.println("INNER RUNNER" + Inner2.class);
+					// not in 1.2
+					System.out.println("this");
 				}
 
 			};
 
 			public void run() {
-				System.out.println("INNER RUNNER" + Inner3.class);
+				// not in 1.2
+				System.out.println("Inner2.Inner21.class");
 			}
 
 		};
 
 		public void run() {
-			System.out.println("INNER RUNNER");
+			System.out.println(this);
 		}
 
 	};
@@ -79,7 +89,7 @@ public abstract class DecTestInner {
 		final Runnable RUNNER = new Runnable() {
 
 			public void run() {
-				System.out.println("INNER RUNNER" + Inner2.class);
+				System.out.println(this);
 			}
 
 		};
@@ -123,7 +133,22 @@ class DecTestInnerS {
 		protected static final class Inner11 {
 
 			public Inner11(final Inner1 inner1) {
-				System.out.println("InnerSInner1" + DecTestInner.class);
+				System.out.println(inner1);
+				System.out.println(Inner11.class);
+			}
+
+			void test(final int a) {
+
+				class AInner1 {
+
+					void test() {
+						System.out.println("a=" + a);
+						// not in 1.2
+						System.out.println("DecTestInner.Inner1.Inner11.class");
+					}
+
+				}
+
 			}
 
 		}
