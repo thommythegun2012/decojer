@@ -1,107 +1,98 @@
 package org.decojer.cavaj.test.jdk5;
 
-import java.util.AbstractList;
-import java.util.List;
-
-import org.decojer.cavaj.test.jdk5.DecTestInner.Inner1.Inner11;
-
 public abstract class DecTestInner {
 
 	public class Inner1 {
 
 		protected final class Inner11 {
 
+			public String test;
+
 			public Inner11(final Inner1 inner1) {
-				System.out.println("INNER11 CONSTRUCTOR " + Inner1.class
-						+ inner1 + RUNNER.getClass() + DecTestInnerS.class
-						+ DecTestInnerS.Inner1.class);
+				System.out.println(DecTestInner.this.test);
+				System.out.println(Inner1.this.test);
+			}
+
+			private void test() {
+				System.out.println(this.test);
+				System.out.println(Inner1.this.test);
 			}
 
 		}
+
+		public String test;
 
 		public Inner1() {
-			System.out.println("INNER1 CONSTRUCTOR " + Inner11.class);
+			Inner11 inner11 = new Inner11(this);
+			System.out.println(inner11);
 		}
 
 	}
 
-	protected static class Inner2 {
+	private static final class Inner2 {
 
-		protected static final class Inner21 {
+		protected final class Inner21 {
 
-			// static classes only in static or top-level outer classes, enums
-			// are static
-			enum InnerEnum {
+			public String test;
 
-				TEST
-
+			public Inner21(final Inner2 inner2) {
+				// not possible DecTestInner.this.test
+				System.out.println(Inner2.this.test);
 			}
 
-			public Inner21(final Inner2 innerO2,
-					final DecTestInner.Inner2 inner2) {
-				System.out.println("INNER21 CONSTRUCTOR " + Inner1.class
-						+ innerO2 + inner2 + RUNNER.getClass());
-			}
-
-		}
-
-		public final class Inner22 {
-
-			Inner22() {
-				System.out.println("INNER22 CONSTRUCTOR " + InnerEnum.TEST);
+			private void test() {
+				System.out.println(this.test);
+				System.out.println(Inner2.this.test);
 			}
 
 		}
+
+		// static classes only in static or top-level outer classes, enums
+		// are static
+		enum Inner22 {
+
+			TEST
+
+		}
+
+		public String test;
 
 		public Inner2() {
-			System.out.println("INNER2 CONSTRUCTOR " + Inner1.class);
+			Inner21 inner21 = new Inner21(this);
+			System.out.println(inner21);
 		}
 
 	}
 
-	enum InnerEnum {
+	enum Inner3 {
 
 		TEST
 
 	}
 
-	// inner has no this$0 because static field, but class is not static
+	public String test;
+
 	private static Runnable RUNNER = new Runnable() {
 
-		// cannot contain static fields because anonymous classes not static
-		private final List<Runnable> RUNNER = new AbstractList<Runnable>() {
+		private final Runnable RUNNER = new Thread() {
 
+			// sttaic not possible in non-static inner
 			private final Runnable RUNNER = new Thread() {
 
-				private final Runnable RUNNER = new Thread() {
-
-					public void run() {
-						System.out.println("INNER RUNNER" + Inner11.class
-								+ InnerEnum.TEST);
-					}
-
-				};
-
 				public void run() {
-					System.out.println("INNER RUNNER" + Inner11.class);
+					System.out.println(this);
 				}
 
 			};
 
-			public Runnable get(final int index) {
-				System.out.println("INNER RUNNER");
-				return null;
+			public void run() {
+				System.out.println(Inner2.Inner21.class);
 			}
-
-			public int size() {
-				System.out.println("INNER RUNNER");
-				return 0;
-			};
 
 		};
 
 		public void run() {
-			System.out.println("INNER RUNNER");
+			System.out.println(this);
 		}
 
 	};
@@ -110,7 +101,26 @@ public abstract class DecTestInner {
 		final Runnable RUNNER = new Runnable() {
 
 			public void run() {
-				System.out.println("INNER RUNNER" + Inner2.Inner22.class);
+				System.out.println(this);
+			}
+
+		};
+		final Object emptyObject = new Object() {
+
+		};
+		final Object overrideMdObject = new Object() {
+
+			public String toString() {
+				return super.toString() + " TEST";
+			}
+
+		};
+		final Object addMdObject = new Object() {
+
+			int[] test = new int[] { 1 };
+
+			public String test() {
+				return "TEST";
 			}
 
 		};
@@ -118,14 +128,6 @@ public abstract class DecTestInner {
 
 	public void testInnerAnonymous() {
 		new Runnable() {
-
-			class Test {
-
-				void test() {
-					run();
-				}
-
-			}
 
 			public void run() {
 				System.out.println("INNER RUN");
@@ -138,12 +140,26 @@ public abstract class DecTestInner {
 
 class DecTestInnerS {
 
-	public class Inner1 {
+	public static class Inner1 {
 
-		protected final class Inner11 {
+		protected static final class Inner11 {
 
 			public Inner11(final Inner1 inner1) {
-				System.out.println("InnerSInner1" + DecTestInner.Inner2.class);
+				System.out.println(inner1);
+				System.out.println(Inner11.class);
+			}
+
+			void test(final int a) {
+
+				class AInner1 {
+
+					void test() {
+						System.out.println("a=" + a);
+						System.out.println(DecTestInner.Inner1.Inner11.class);
+					}
+
+				}
+
 			}
 
 		}
