@@ -34,10 +34,7 @@ import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.utils.TypeNameManager;
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTParser;
-import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
-import org.eclipse.jdt.core.dom.PackageDeclaration;
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.Document;
 import org.eclipse.text.edits.MalformedTreeException;
@@ -58,7 +55,8 @@ public final class CU implements PD {
 	 * AST compilation unit.
 	 */
 	@Getter
-	private final CompilationUnit compilationUnit;
+	@Setter
+	private CompilationUnit compilationUnit;
 
 	private final EnumSet<DFlag> dFlags = EnumSet.noneOf(DFlag.class);
 
@@ -94,17 +92,7 @@ public final class CU implements PD {
 		assert startTd != null;
 
 		this.startTd = startTd;
-
-		// initializes AST
-		final ASTParser parser = ASTParser.newParser(AST.JLS4);
-		parser.setSource(new char[0]);
-		this.compilationUnit = (CompilationUnit) parser.createAST(null);
-		this.compilationUnit.recordModifications();
-
-		final String packageName = getStartTd().getPackageName();
-		if (packageName != null && packageName.length() != 0) {
-			setPackageName(packageName);
-		}
+		getTypeNameManager().setPackageName(startTd.getPackageName());
 	}
 
 	/**
@@ -176,20 +164,6 @@ public final class CU implements PD {
 	}
 
 	/**
-	 * Add AST type declaration.
-	 * 
-	 * @param typeDeclaration
-	 *            AST type declaration
-	 * @return true - success
-	 */
-	@SuppressWarnings("unchecked")
-	public boolean addTypeDeclaration(final AbstractTypeDeclaration typeDeclaration) {
-		assert typeDeclaration != null;
-
-		return getCompilationUnit().types().add(typeDeclaration);
-	}
-
-	/**
 	 * Check decompile flag.
 	 * 
 	 * @param dFlag
@@ -204,11 +178,10 @@ public final class CU implements PD {
 	 * Clear all generated data after read.
 	 */
 	public void clear() {
+		this.compilationUnit = null;
 		for (final TD td : getAllTds()) {
 			td.clear();
 		}
-		this.tds.clear();
-		this.allTds.clear();
 	}
 
 	/**
@@ -306,15 +279,6 @@ public final class CU implements PD {
 			}
 		}
 		return null;
-	}
-
-	private void setPackageName(final String packageName) {
-		assert packageName != null && packageName.length() != 0;
-
-		final PackageDeclaration packageDeclaration = getAst().newPackageDeclaration();
-		packageDeclaration.setName(getAst().newName(packageName));
-		this.compilationUnit.setPackage(packageDeclaration);
-		this.typeNameManager.setPackageName(packageName);
 	}
 
 	/**

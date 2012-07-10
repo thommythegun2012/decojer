@@ -114,6 +114,14 @@ public final class MD implements BD, PD {
 	}
 
 	@Override
+	public void clear() {
+		this.methodDeclaration = null;
+		if (this.cfg != null) {
+			this.cfg.clear();
+		}
+	}
+
+	@Override
 	public String toString() {
 		return getM().toString();
 	}

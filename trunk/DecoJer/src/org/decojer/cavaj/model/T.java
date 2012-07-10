@@ -526,11 +526,11 @@ public abstract class T {
 	/**
 	 * Get package name.
 	 * 
-	 * @return package name
+	 * @return package name or <code>null</code> for no package
 	 */
 	public String getPackageName() {
 		final int pos = getName().lastIndexOf('.');
-		return pos == -1 ? "" : getName().substring(0, pos);
+		return pos == -1 ? null : getName().substring(0, pos);
 	}
 
 	/**

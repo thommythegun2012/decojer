@@ -38,4 +38,9 @@ public interface BD {
 	 */
 	void setAs(final A[] as);
 
+	/**
+	 * Clear all generated data after read.
+	 */
+	void clear();
+
 }

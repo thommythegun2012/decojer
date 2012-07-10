@@ -100,6 +100,11 @@ public final class FD implements BD, PD {
 	}
 
 	@Override
+	public void clear() {
+		this.fieldDeclaration = null;
+	}
+
+	@Override
 	public String toString() {
 		return getF().toString();
 	}

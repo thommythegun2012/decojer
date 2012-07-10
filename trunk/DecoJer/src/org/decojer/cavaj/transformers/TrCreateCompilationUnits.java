@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.transformers;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
 
@@ -34,8 +37,10 @@ import org.decojer.cavaj.model.TD;
 public class TrCreateCompilationUnits {
 
 	public static void transform(final DU du) {
+		final Map<String, TD> units = new HashMap<String, TD>();
 		for (final TD td : du.getTds()) {
 			System.out.println("TD Source: " + td.getSourceFileName());
+			final String packageName = td.getPackageName();
 		}
 		du.setCus(null);
 	}
