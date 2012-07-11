@@ -90,9 +90,9 @@ import org.decojer.cavaj.model.code.ops.XOR;
  * 
  * @author André Pankraz
  */
-public final class TrDataFlowAnalysis2Cfg {
+public final class TrDataFlowAnalysis {
 
-	private final static Logger LOGGER = Logger.getLogger(TrDataFlowAnalysis2Cfg.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(TrDataFlowAnalysis.class.getName());
 
 	/**
 	 * Transform CFG.
@@ -101,7 +101,7 @@ public final class TrDataFlowAnalysis2Cfg {
 	 *            CFG
 	 */
 	public static void transform(final CFG cfg) {
-		new TrDataFlowAnalysis2Cfg(cfg).transform();
+		new TrDataFlowAnalysis(cfg).transform();
 	}
 
 	private final CFG cfg;
@@ -128,7 +128,7 @@ public final class TrDataFlowAnalysis2Cfg {
 	 */
 	private BB[] pc2bbs;
 
-	private TrDataFlowAnalysis2Cfg(final CFG cfg) {
+	private TrDataFlowAnalysis(final CFG cfg) {
 		this.cfg = cfg;
 	}
 

@@ -51,7 +51,7 @@ import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
 import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformers.TrInnerClassesAnalysis;
-import org.decojer.cavaj.transformers.TrDataFlowAnalysis2Cfg;
+import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformers.TrMergeAll;
 import org.decojer.cavaj.utils.MagicNumbers;
@@ -168,7 +168,7 @@ public class DecoJer {
 						continue;
 					}
 					try {
-						TrDataFlowAnalysis2Cfg.transform(cfg);
+						TrDataFlowAnalysis.transform(cfg);
 						TrCalculatePostorder.transform(cfg);
 
 						TrCfg2JavaExpressionStmts.transform(cfg);
