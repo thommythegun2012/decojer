@@ -59,6 +59,42 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
+	 * Access flags.
+	 */
+	@Setter
+	private int accessFlags;
+
+	/**
+	 * Annotations.
+	 */
+	@Getter
+	@Setter
+	private A[] as;
+
+	/**
+	 * All body declarations: inner type / method / field declarations.
+	 */
+	@Getter
+	private final List<BD> bds = new ArrayList<BD>();
+
+	/**
+	 * Deprecated State (from Deprecated Attribute).
+	 */
+	@Getter
+	@Setter
+	private boolean deprecated;
+
+	@Getter
+	private final DU du;
+
+	/**
+	 * Enclosing method for this anonymous inner class.
+	 */
+	@Getter
+	@Setter
+	private M enclosingM;
+
+	/**
 	 * Enclosing type for this anynomous inner class (since Java 5).
 	 * 
 	 * This must be an field initializer (static or not) or static{ }. Real constructors have the
@@ -70,12 +106,22 @@ public final class TD extends T implements BD, PD {
 	@Setter
 	private T enclosingT;
 
+	@Setter
+	private T[] interfaceTs;
+
 	/**
-	 * Deprecated State (from Deprecated Attribute).
+	 * Member types (really contained inner classes).
 	 */
 	@Getter
 	@Setter
-	private boolean deprecated;
+	private T[] memberTs;
+
+	/**
+	 * Parent declaration.
+	 */
+	@Getter
+	@Setter
+	private PD pd;
 
 	@Getter
 	@Setter
@@ -89,62 +135,10 @@ public final class TD extends T implements BD, PD {
 	private String sourceFileName;
 
 	/**
-	 * Parent declaration.
-	 */
-	@Getter
-	@Setter
-	private PD pd;
-
-	@Setter
-	private T[] interfaceTs;
-
-	/**
-	 * AST type declaration.
-	 */
-	@Getter
-	@Setter
-	private ASTNode typeDeclaration;
-
-	/**
-	 * All body declarations: inner type / method / field declarations.
-	 */
-	@Getter
-	private final List<BD> bds = new ArrayList<BD>();
-
-	/**
-	 * Access flags.
-	 */
-	@Setter
-	private int accessFlags;
-
-	@Getter
-	private final DU du;
-
-	/**
-	 * Type parameters. (They define the useable type variables)
-	 */
-	@Getter
-	private T[] typeParams;
-
-	/**
 	 * Super type.
 	 */
 	@Setter
 	private T superT;
-
-	/**
-	 * Member types (really contained inner classes).
-	 */
-	@Getter
-	@Setter
-	private T[] memberTs;
-
-	/**
-	 * Annotations.
-	 */
-	@Getter
-	@Setter
-	private A[] as;
 
 	/**
 	 * Synthetic state (from synthetic attribute).
@@ -154,11 +148,17 @@ public final class TD extends T implements BD, PD {
 	private boolean synthetic;
 
 	/**
-	 * Enclosing method for this anonymous inner class.
+	 * AST type declaration.
 	 */
 	@Getter
 	@Setter
-	private M enclosingM;
+	private ASTNode typeDeclaration;
+
+	/**
+	 * Type parameters. (They define the useable type variables)
+	 */
+	@Getter
+	private T[] typeParams;
 
 	/**
 	 * Class file version.

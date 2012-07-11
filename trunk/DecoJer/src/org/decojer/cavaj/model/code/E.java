@@ -37,11 +37,11 @@ public final class E {
 
 	@Getter
 	@Setter
-	private BB start;
+	private BB end;
 
 	@Getter
 	@Setter
-	private BB end;
+	private BB start;
 
 	@Getter
 	private final Object value;
