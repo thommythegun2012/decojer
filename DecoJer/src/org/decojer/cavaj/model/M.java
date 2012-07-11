@@ -61,6 +61,16 @@ public class M {
 	private String signature;
 
 	@Getter
+	private final T t;
+
+	/**
+	 * Throws Types or <code>null</code>.
+	 */
+	@Getter
+	@Setter
+	private T[] throwsTs;
+
+	@Getter
 	private T[] typeParams;
 
 	/**
@@ -111,16 +121,6 @@ public class M {
 		}
 		return this.paramNames[i];
 	}
-
-	@Getter
-	private final T t;
-
-	/**
-	 * Throws Types or <code>null</code>.
-	 */
-	@Getter
-	@Setter
-	private T[] throwsTs;
 
 	/**
 	 * Get parameter number.

@@ -30,11 +30,11 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
 
 /**
- * Transformer: Identify and create compilation units.
+ * Transformer: Analyze inner classes and create compilation units.
  * 
  * @author André Pankraz
  */
-public class TrCreateCompilationUnits {
+public class TrInnerClassesAnalysis {
 
 	public static void transform(final DU du) {
 		final Map<String, TD> units = new HashMap<String, TD>();

@@ -78,10 +78,10 @@ public final class DU {
 
 	private final DexReader dexReader = new SmaliReader(this);
 
-	private final Map<String, T> ts = new HashMap<String, T>();
-
 	@Getter
 	private final List<TD> tds = new ArrayList<TD>();
+
+	private final Map<String, T> ts = new HashMap<String, T>();
 
 	public DU() {
 		// init type pool with primitives-/multi-types
