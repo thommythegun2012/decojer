@@ -208,9 +208,9 @@ public class ReadClassVisitor extends ClassVisitor {
 		final T ownerT = this.du.getT(owner);
 		if (name == null) {
 			this.td.setEnclosingT(ownerT);
-			return;
+		} else {
+			this.td.setEnclosingM(ownerT.getM(name, desc));
 		}
-		this.td.setEnclosingM(ownerT.getM(name, desc));
 	}
 
 	@Override

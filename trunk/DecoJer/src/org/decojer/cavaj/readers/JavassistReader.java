@@ -165,12 +165,11 @@ public class JavassistReader implements ClassReader {
 			td.setDeprecated(true);
 		}
 		if (enclosingMethodAttribute != null) {
-			if (enclosingMethodAttribute.classIndex() > 0) {
-				td.setEnclosingT(this.du.getT(enclosingMethodAttribute.className()));
-			}
-			if (enclosingMethodAttribute.methodIndex() > 0) {
-				final T ownerT = this.du.getT(enclosingMethodAttribute.className());
-				td.setEnclosingM(ownerT.getM(enclosingMethodAttribute.methodName(),
+			final T enclosingT = this.du.getT(enclosingMethodAttribute.className());
+			if (enclosingMethodAttribute.classIndex() == 0) {
+				td.setEnclosingT(enclosingT);
+			} else {
+				td.setEnclosingM(enclosingT.getM(enclosingMethodAttribute.methodName(),
 						enclosingMethodAttribute.methodDescriptor()));
 			}
 		}
