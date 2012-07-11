@@ -95,11 +95,9 @@ public final class TD extends T implements BD, PD {
 	private M enclosingM;
 
 	/**
-	 * Enclosing type for this anynomous inner class (since Java 5).
-	 * 
-	 * This must be an field initializer (static or not) or static{ }. Real constructors have the
-	 * "<init>" method.
-	 * 
+	 * Enclosing type for this anynomous inner class (since Java 5).<br>
+	 * {@link TD#enclosingM} not set: This must be an field initializer (static field or not) or
+	 * static initializer. Real constructors have the "<init>" method.<br>
 	 * TODO combine both enclosing, only one possible...need TD and M(D?!) supertype for this
 	 */
 	@Getter
