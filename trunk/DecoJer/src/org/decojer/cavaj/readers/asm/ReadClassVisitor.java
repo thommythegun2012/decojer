@@ -200,12 +200,8 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visitOuterClass(final String owner, final String name, final String desc) {
-		final T ownerT = this.du.getT(owner);
-		if (name == null) {
-			this.td.setEnclosingT(ownerT);
-		} else {
-			this.td.setEnclosingM(ownerT.getM(name, desc));
-		}
+		final TD enclosingTd = this.du.getTd(owner);
+		this.td.setEnclosingPd(name == null ? enclosingTd : enclosingTd.getMd(name, desc));
 	}
 
 	@Override
