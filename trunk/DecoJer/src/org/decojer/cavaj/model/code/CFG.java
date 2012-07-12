@@ -32,7 +32,6 @@ import lombok.Setter;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -395,9 +394,6 @@ public final class CFG {
 	 * transformator for generic base model. Dalvik has parameter names separately encoded.
 	 */
 	public void postProcessVars() {
-		final M m = this.md.getM();
-		final TD td = this.md.getTd();
-
 		if (this.vss == null) {
 			this.vss = new V[this.regs][];
 		} else if (this.regs < this.vss.length) {
@@ -407,11 +403,12 @@ public final class CFG {
 			System.arraycopy(this.vss, 0, newVarss, 0, this.vss.length);
 			this.vss = newVarss;
 		}
-		if (td.isDalvik()) {
+		final T[] paramTs = this.md.getParamTs();
+		if (this.md.getTd().isDalvik()) {
 			// Dalvik...function parameters right aligned
 			int reg = this.regs;
-			for (int i = m.getParams(); i-- > 0;) {
-				final T paramT = m.getParamT(i);
+			for (int i = paramTs.length; i-- > 0;) {
+				final T paramT = paramTs[i];
 				if (paramT.isWide()) {
 					--reg;
 				}
@@ -421,21 +418,21 @@ public final class CFG {
 				if (vs != null) {
 					LOGGER.warning("Found local variable info for method parameter '" + reg + "'!");
 				}
-				this.vss[reg] = new V[] { new V(paramT, m.getParamName(i), 0, this.ops.length) };
+				this.vss[reg] = new V[] { new V(paramT, this.md.getParamName(i), 0, this.ops.length) };
 			}
-			if (!m.check(AF.STATIC)) {
+			if (!this.md.check(AF.STATIC)) {
 				final V[] vs = this.vss[--reg];
 				if (vs != null) {
 					LOGGER.warning("Found local variable info for method parameter '" + reg
 							+ "' (this)!");
 				}
-				this.vss[reg] = new V[] { new V(td, "this", 0, this.ops.length) };
+				this.vss[reg] = new V[] { new V(this.md.getTd(), "this", 0, this.ops.length) };
 			}
 			return;
 		}
 		// JVM...function parameters left aligned
 		int reg = 0;
-		if (!m.check(AF.STATIC)) {
+		if (!this.md.check(AF.STATIC)) {
 			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				if (vs.length > 1) {
@@ -444,21 +441,22 @@ public final class CFG {
 				}
 				++reg;
 			} else {
-				this.vss[reg++] = new V[] { new V(td, "this", 0, this.ops.length) };
+				this.vss[reg++] = new V[] { new V(this.md.getTd(), "this", 0, this.ops.length) };
 			}
 		}
-		for (int i = 0; i < m.getParams(); ++i) {
-			final T paramT = m.getParamT(i);
+		for (int i = 0; i < paramTs.length; ++i) {
+			final T paramT = paramTs[i];
 			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				if (vs.length > 1) {
 					LOGGER.warning("Found multiple local variable info for method parameter '"
 							+ reg + "'!");
 				}
-				m.setParamName(i, vs[0].getName());
+				this.md.setParamName(i, vs[0].getName());
 				++reg;
 			} else {
-				this.vss[reg++] = new V[] { new V(paramT, m.getParamName(i), 0, this.ops.length) };
+				this.vss[reg++] = new V[] { new V(paramT, this.md.getParamName(i), 0,
+						this.ops.length) };
 			}
 			if (paramT.isWide()) {
 				++reg;

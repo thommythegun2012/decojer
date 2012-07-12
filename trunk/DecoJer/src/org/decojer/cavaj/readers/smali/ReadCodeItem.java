@@ -1105,8 +1105,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, regs[reg++]));
 				}
 
-				for (int j = 0; j < invokeM.getParams(); ++j) {
-					final T paramT = invokeM.getParamT(j);
+				for (final T paramT : invokeM.getParamTs()) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, regs[reg++]));
 					if (paramT.isWide()) {
 						++reg;
@@ -1144,8 +1143,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, reg++));
 				}
 
-				for (int j = 0; j < invokeM.getParams(); ++j) {
-					final T paramT = invokeM.getParamT(j);
+				for (final T paramT : invokeM.getParamTs()) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, reg++));
 					if (paramT.isWide()) {
 						++reg;
@@ -1938,11 +1936,11 @@ public class ReadCodeItem {
 					t = T.WIDE;
 				}
 				{
-					if (!t.isAssignableFrom(md.getM().getReturnT())) {
+					if (!t.isAssignableFrom(md.getReturnT())) {
 						LOGGER.warning("Incompatible operation return type '" + t
-								+ "' for method return type '" + md.getM().getReturnT() + "'!");
+								+ "' for method return type '" + md.getReturnT() + "'!");
 					}
-					t = md.getM().getReturnT();
+					t = md.getReturnT();
 
 					// return A
 					final Instruction11x instr = (Instruction11x) instruction;

@@ -104,8 +104,7 @@ public final class TrMergeAll {
 			if (bd instanceof MD) {
 				final MD md = (MD) bd;
 				final BodyDeclaration methodDeclaration = md.getMethodDeclaration();
-				if (methodDeclaration instanceof MethodDeclaration
-						&& "<init>".equals(md.getM().getName())) {
+				if (methodDeclaration instanceof MethodDeclaration && "<init>".equals(md.getName())) {
 					if (td.getTypeDeclaration() instanceof AnonymousClassDeclaration) {
 						// anonymous inner classes cannot have visible Java constructors
 						continue;

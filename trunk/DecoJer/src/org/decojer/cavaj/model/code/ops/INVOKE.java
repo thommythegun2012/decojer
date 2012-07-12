@@ -27,6 +27,7 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.M;
+import org.decojer.cavaj.model.T;
 
 /**
  * Operation 'INVOKE'.
@@ -71,9 +72,9 @@ public class INVOKE extends Op {
 
 	@Override
 	public int getInStackSize() {
-		int inStackSize = (this.m.check(AF.STATIC) ? 0 : 1) + this.m.getParams();
-		for (int i = this.m.getParams(); i-- > 0;) {
-			if (this.m.getParamT(i).isWide()) {
+		int inStackSize = (this.m.check(AF.STATIC) ? 0 : 1) + this.m.getParamTs().length;
+		for (final T paramT : this.m.getParamTs()) {
+			if (paramT.isWide()) {
 				++inStackSize;
 			}
 		}

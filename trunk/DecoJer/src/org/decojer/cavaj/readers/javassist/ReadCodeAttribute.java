@@ -1267,11 +1267,11 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.VOID;
 				}
-				if (!t.isAssignableFrom(md.getM().getReturnT())) {
+				if (!t.isAssignableFrom(md.getReturnT())) {
 					LOGGER.warning("Incompatible operation return type '" + t
-							+ "' for method return type '" + md.getM().getReturnT() + "'!");
+							+ "' for method return type '" + md.getReturnT() + "'!");
 				}
-				this.ops.add(new RETURN(this.ops.size(), opcode, line, md.getM().getReturnT()));
+				this.ops.add(new RETURN(this.ops.size(), opcode, line, md.getReturnT()));
 				break;
 			/*********
 			 * STORE *

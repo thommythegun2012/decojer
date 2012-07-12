@@ -36,7 +36,6 @@ import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.BB;
@@ -552,7 +551,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				if (!(bd instanceof MD)) {
 					continue;
 				}
-				if (methodName.equals(((MD) bd).getM().getName())) {
+				if (methodName.equals(((MD) bd).getName())) {
 					mds.add((MD) bd);
 				}
 			}
@@ -577,18 +576,17 @@ public class ClassEditor extends MultiPageEditorPart {
 				// Eclipse-signature doesn't contain method parameter types but contains generics
 				final Pattern signaturePattern = createEclipseSignaturePattern(signature);
 				for (final MD checkMd : mds) {
-					final M m = checkMd.getM();
 					// exact match for descriptor
-					if (signaturePattern.matcher(m.getDescriptor()).matches()) {
+					if (signaturePattern.matcher(checkMd.getDescriptor()).matches()) {
 						md = checkMd;
 						break;
 					}
-					if (m.getSignature() == null) {
+					if (checkMd.getSignature() == null) {
 						continue;
 					}
 					// ignore initial method parameters <T...;T...> and exceptions ^T...^T...;
 					// <T:Ljava/lang/Integer;E:Ljava/lang/RuntimeException;>(TT;TT;)V^TE;^Ljava/lang/RuntimeException;
-					if (signaturePattern.matcher(m.getSignature()).find()) {
+					if (signaturePattern.matcher(checkMd.getSignature()).find()) {
 						md = checkMd;
 						break;
 					}

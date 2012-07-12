@@ -402,9 +402,9 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, DexOpcodes, OdexOpco
 					+ "' for 'visitReturnStmt(VOID)'! Using operation 'RETURN' with type '"
 					+ T.VOID + "'.");
 		}
-		if (this.md.getM().getReturnT() != T.VOID) {
+		if (this.md.getReturnT() != T.VOID) {
 			LOGGER.warning("Incompatible operation return type '" + T.VOID
-					+ "' for method return type '" + this.md.getM().getReturnT()
+					+ "' for method return type '" + this.md.getReturnT()
 					+ "'! Using return type '" + T.VOID + "'.");
 			// if we use the methods return type instead, stack may be incompatible...graceful
 			// fallback possible at all?
@@ -431,15 +431,15 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, DexOpcodes, OdexOpco
 				t = T.REF;
 				break;
 			default:
-				t = this.md.getM().getReturnT();
+				t = this.md.getReturnT();
 				LOGGER.warning("Unknown operation return type '" + xt
 						+ "'! Using method return type '" + t + "'.");
 			}
-			if (!t.isAssignableFrom(this.md.getM().getReturnT())) {
+			if (!t.isAssignableFrom(this.md.getReturnT())) {
 				LOGGER.warning("Incompatible operation return type '" + t
-						+ "' for method return type '" + this.md.getM().getReturnT() + "'!");
+						+ "' for method return type '" + this.md.getReturnT() + "'!");
 			}
-			t = this.md.getM().getReturnT();
+			t = this.md.getReturnT();
 
 			this.ops.add(new LOAD(this.ops.size(), opcode, this.line, t, reg));
 

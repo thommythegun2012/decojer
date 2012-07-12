@@ -349,13 +349,12 @@ public class SmaliReader implements DexReader {
 			final FieldIdItem field = encodedField.field;
 
 			final T valueT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
-			final F f = td.getF(field.getFieldName().getStringValue(), valueT);
-			f.setAccessFlags(encodedField.accessFlags);
+			final FD fd = td.getFd(field.getFieldName().getStringValue(), valueT);
+			fd.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
-				f.setSignature(fieldSignatures.get(field));
+				fd.setSignature(fieldSignatures.get(field));
 			}
 
-			final FD fd = new FD(f, td);
 			if (staticFieldValues.length > i) {
 				fd.setValue(readValue(staticFieldValues[i], this.du));
 			}
@@ -367,13 +366,12 @@ public class SmaliReader implements DexReader {
 			final FieldIdItem field = encodedField.field;
 
 			final T valueT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
-			final F f = td.getF(field.getFieldName().getStringValue(), valueT);
-			f.setAccessFlags(encodedField.accessFlags);
+			final FD fd = td.getFd(field.getFieldName().getStringValue(), valueT);
+			fd.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
-				f.setSignature(fieldSignatures.get(field));
+				fd.setSignature(fieldSignatures.get(field));
 			}
 
-			final FD fd = new FD(f, td);
 			// there is no field initializer section for instance fields,
 			// only via constructor
 
@@ -392,13 +390,11 @@ public class SmaliReader implements DexReader {
 
 			// getResourceAsStream :
 			// (Ljava/lang/String;)Ljava/io/InputStream;
-			final M m = td.getM(method.getMethodName().getStringValue(), method.getPrototype()
+			final MD md = td.getMd(method.getMethodName().getStringValue(), method.getPrototype()
 					.getPrototypeString());
-			m.setAccessFlags(encodedMethod.accessFlags);
-			m.setThrowsTs(methodThrowsTs.get(method));
-			m.setSignature(methodSignatures.get(method));
-
-			final MD md = new MD(m, td);
+			md.setAccessFlags(encodedMethod.accessFlags);
+			md.setThrowsTs(methodThrowsTs.get(method));
+			md.setSignature(methodSignatures.get(method));
 
 			// no annotation default values
 
@@ -416,17 +412,14 @@ public class SmaliReader implements DexReader {
 
 			// getResourceAsStream :
 			// (Ljava/lang/String;)Ljava/io/InputStream;
-			final M m = td.getM(method.getMethodName().getStringValue(), method.getPrototype()
+			final MD md = td.getMd(method.getMethodName().getStringValue(), method.getPrototype()
 					.getPrototypeString());
-			m.setAccessFlags(encodedMethod.accessFlags);
-			m.setThrowsTs(methodThrowsTs.get(method));
-			m.setSignature(methodSignatures.get(method));
-
-			final MD md = new MD(m, td);
+			md.setAccessFlags(encodedMethod.accessFlags);
+			md.setThrowsTs(methodThrowsTs.get(method));
+			md.setSignature(methodSignatures.get(method));
 
 			if (annotationDefaultValues != null) {
-				md.setAnnotationDefaultValue(annotationDefaultValues.getMemberValue(md.getM()
-						.getName()));
+				md.setAnnotationDefaultValue(annotationDefaultValues.getMemberValue(md.getName()));
 			}
 
 			md.setAs(methodAs.get(method));

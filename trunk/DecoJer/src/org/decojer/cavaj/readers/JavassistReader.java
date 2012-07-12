@@ -70,7 +70,6 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -277,13 +276,11 @@ public class JavassistReader implements ClassReader {
 		}
 
 		final T valueT = this.du.getDescT(fieldInfo.getDescriptor());
-		final F f = td.getF(fieldInfo.getName(), valueT);
-		f.setAccessFlags(fieldInfo.getAccessFlags());
+		final FD fd = td.getFd(fieldInfo.getName(), valueT);
+		fd.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
-			f.setSignature(signatureAttribute.getSignature());
+			fd.setSignature(signatureAttribute.getSignature());
 		}
-
-		final FD fd = new FD(f, td);
 
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
 				annotationsAttributeRuntimeVisible);
@@ -372,8 +369,8 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 
-		final M m = td.getM(methodInfo.getName(), methodInfo.getDescriptor());
-		m.setAccessFlags(methodInfo.getAccessFlags());
+		final MD md = td.getMd(methodInfo.getName(), methodInfo.getDescriptor());
+		md.setAccessFlags(methodInfo.getAccessFlags());
 		if (exceptionsAttribute != null) {
 			final String[] exceptions = exceptionsAttribute.getExceptions();
 			if (exceptions != null && exceptions.length > 0) {
@@ -381,14 +378,12 @@ public class JavassistReader implements ClassReader {
 				for (int i = exceptions.length; i-- > 0;) {
 					throwsTs[i] = this.du.getT(exceptions[i]);
 				}
-				m.setThrowsTs(throwsTs);
+				md.setThrowsTs(throwsTs);
 			}
 		}
 		if (signatureAttribute != null) {
-			m.setSignature(signatureAttribute.getSignature());
+			md.setSignature(signatureAttribute.getSignature());
 		}
-
-		final MD md = new MD(m, td);
 
 		if (annotationDefaultAttribute != null) {
 			final MemberValue defaultMemberValue = annotationDefaultAttribute.getDefaultValue();
