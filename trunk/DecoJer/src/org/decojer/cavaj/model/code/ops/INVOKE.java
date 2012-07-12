@@ -27,6 +27,7 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.M;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 
 /**
@@ -39,7 +40,9 @@ public class INVOKE extends Op {
 	/**
 	 * Is direct call?
 	 * 
-	 * Constructor or supermethod callout, JVM: SPECIAL, Dalvik: DIRECT.
+	 * Constructor or supermethod (any super) or private method callout.
+	 * 
+	 * JVM: SPECIAL, Dalvik: DIRECT.
 	 */
 	@Getter
 	private final boolean direct;
@@ -65,6 +68,9 @@ public class INVOKE extends Op {
 		super(pc, opcode, line);
 
 		assert m != null;
+		// for all variants valid: any supermethod possible for direct / static / interface,
+		// for virtual anyway
+		assert !(m instanceof MD);
 
 		this.m = m;
 		this.direct = direct;

@@ -520,8 +520,8 @@ public class ReadCodeAttribute {
 			case Opcode.GETSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
-				t = this.du.getT(constPool.getFieldrefClassName(fieldIndex));
-				final F f = t.getF(constPool.getFieldrefName(fieldIndex),
+				final TD ownerTd = this.du.getTd(constPool.getFieldrefClassName(fieldIndex));
+				final F f = ownerTd.getF(constPool.getFieldrefName(fieldIndex),
 						this.du.getDescT(constPool.getFieldrefType(fieldIndex)));
 				if (opcode == Opcode.GETSTATIC) {
 					f.markAf(AF.STATIC);
@@ -573,7 +573,6 @@ public class ReadCodeAttribute {
 			 * INVOKE *
 			 **********/
 			case Opcode.INVOKEINTERFACE: {
-				// interface method callout
 				final int methodIndex = codeReader.readUnsignedShort();
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
@@ -587,9 +586,9 @@ public class ReadCodeAttribute {
 				break;
 			}
 			case Opcode.INVOKESPECIAL:
-				// constructor or supermethod callout
-			case Opcode.INVOKEVIRTUAL:
-			case Opcode.INVOKESTATIC: {
+				// Constructor or supermethod (any super) or private method callout.
+			case Opcode.INVOKESTATIC:
+			case Opcode.INVOKEVIRTUAL: {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
 				final T ownerT = this.du.getTd(constPool.getMethodrefClassName(cpMethodIndex));
@@ -1195,8 +1194,8 @@ public class ReadCodeAttribute {
 			case Opcode.PUTSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
-				t = this.du.getT(constPool.getFieldrefClassName(fieldIndex));
-				final F f = t.getF(constPool.getFieldrefName(fieldIndex),
+				final TD ownerTd = this.du.getTd(constPool.getFieldrefClassName(fieldIndex));
+				final F f = ownerTd.getF(constPool.getFieldrefName(fieldIndex),
 						this.du.getDescT(constPool.getFieldrefType(fieldIndex)));
 				if (opcode == Opcode.PUTSTATIC) {
 					f.markAf(AF.STATIC);

@@ -27,6 +27,7 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.FD;
 
 /**
  * Operation 'GET'.
@@ -54,6 +55,8 @@ public class GET extends Op {
 		super(pc, opcode, line);
 
 		assert f != null;
+		// for all variants valid: any superfield possible for static / instance
+		assert !(f instanceof FD);
 
 		this.f = f;
 	}
