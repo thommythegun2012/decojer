@@ -37,7 +37,6 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -184,11 +183,11 @@ public class SmaliReader implements DexReader {
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
-							td.setEnclosingT((T) a.getMemberValue());
+							td.setEnclosingPd((TD) a.getMemberValue());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingMethod".equals(a.getT().getName())) {
-							td.setEnclosingM((M) a.getMemberValue());
+							td.setEnclosingPd((MD) a.getMemberValue());
 							continue;
 						}
 						// Dalvik has not all inner class info from JVM Bytecode:

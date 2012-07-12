@@ -189,7 +189,6 @@ public final class TrJvmStruct2JavaAst {
 
 		final String name = md.getName();
 		final TD td = md.getTd();
-		final TD t = td; // TODO
 
 		// enum synthetic methods
 		if (("values".equals(name) && md.getParamTs().length == 0 || "valueOf".equals(name)

@@ -36,7 +36,7 @@ import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
 /**
- * Type declaration.
+ * Type declaration. This includes Java class and interface declarations.
  * 
  * Names consist of dot-separated package names (for full name) and dollar-separated type names.
  * 
@@ -88,21 +88,13 @@ public final class TD extends T implements BD, PD {
 	private final DU du;
 
 	/**
-	 * Enclosing method for this anonymous inner class.
+	 * Enclosing type or method declaration for this anynomous inner class (since Java 5).<br>
+	 * type declaration: This must be an field initializer (static field or not) or static
+	 * initializer. Real constructors have the "<init>" method.
 	 */
 	@Getter
 	@Setter
-	private M enclosingM;
-
-	/**
-	 * Enclosing type for this anynomous inner class (since Java 5).<br>
-	 * {@link TD#enclosingM} not set: This must be an field initializer (static field or not) or
-	 * static initializer. Real constructors have the "<init>" method.<br>
-	 * TODO combine both enclosing, only one possible...need TD and M(D?!) supertype for this
-	 */
-	@Getter
-	@Setter
-	private T enclosingT;
+	private PD enclosingPd;
 
 	@Setter
 	private T[] interfaceTs;
