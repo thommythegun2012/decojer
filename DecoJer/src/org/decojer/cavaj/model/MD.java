@@ -23,10 +23,14 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.ArrayList;
+import java.util.logging.Logger;
+
 import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
@@ -34,7 +38,9 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * 
  * @author André Pankraz
  */
-public final class MD implements BD, PD {
+public final class MD extends M implements BD, PD {
+
+	private final static Logger LOGGER = Logger.getLogger(MD.class.getName());
 
 	/**
 	 * Annotation default value.
@@ -64,11 +70,18 @@ public final class MD implements BD, PD {
 	@Setter
 	private boolean deprecated;
 
+	@Getter
+	private String signature;
+
 	/**
-	 * Method.
+	 * Throws Types or <code>null</code>.
 	 */
 	@Getter
-	private final M m;
+	@Setter
+	private T[] throwsTs;
+
+	@Getter
+	private T[] typeParams;
 
 	/**
 	 * AST method declaration.
@@ -91,26 +104,20 @@ public final class MD implements BD, PD {
 	@Setter
 	private boolean synthetic;
 
-	/**
-	 * Owner type declaration.
-	 */
-	@Getter
-	private final TD td;
+	private String[] paramNames;
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param m
-	 *            method
 	 * @param td
-	 *            type declaration
+	 *            owner type declaration
+	 * @param name
+	 *            method name
+	 * @param descriptor
+	 *            method descriptor
 	 */
-	public MD(final M m, final TD td) {
-		assert m != null;
-		assert td != null;
-
-		this.m = m;
-		this.td = td;
+	protected MD(final TD td, final String name, final String descriptor) {
+		super(td, name, descriptor);
 	}
 
 	@Override
@@ -121,9 +128,99 @@ public final class MD implements BD, PD {
 		}
 	}
 
-	@Override
-	public String toString() {
-		return getM().toString();
+	/**
+	 * Get parameter name for index.
+	 * 
+	 * @param i
+	 *            index (starts with 0, double/long params count as 1)
+	 * @return parameter name
+	 */
+	public String getParamName(final int i) {
+		if (this.paramNames == null || i >= this.paramNames.length || this.paramNames[i] == null) {
+			return "arg" + i;
+		}
+		return this.paramNames[i];
+	}
+
+	/**
+	 * Get owner type declaration.
+	 * 
+	 * @return owner type declaration
+	 */
+	public TD getTd() {
+		return (TD) getT();
+	}
+
+	/**
+	 * Parse Throw Types from Signature.
+	 * 
+	 * @param s
+	 *            Signature
+	 * @param c
+	 *            Cursor
+	 * @return Throw Types or <code>null</code>
+	 */
+	private T[] parseThrowsTs(final String s, final Cursor c) {
+		if (c.pos >= s.length() || s.charAt(c.pos) != '^') {
+			return null;
+		}
+		final ArrayList<T> ts = new ArrayList<T>();
+		do {
+			++c.pos;
+			ts.add(getT().getDu().parseT(s, c));
+		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
+		return ts.toArray(new T[ts.size()]);
+	}
+
+	/**
+	 * Set parameter name.
+	 * 
+	 * @param i
+	 *            index
+	 * @param name
+	 *            parameter name
+	 */
+	public void setParamName(final int i, final String name) {
+		if (this.paramNames == null) {
+			this.paramNames = new String[this.paramTs.length];
+		}
+		this.paramNames[i] = name;
+	}
+
+	public void setSignature(final String signature) {
+		if (signature == null) {
+			return;
+		}
+		this.signature = signature;
+
+		final Cursor c = new Cursor();
+		this.typeParams = getT().getDu().parseTypeParams(signature, c);
+
+		// TODO more checks for following overrides:
+		final T[] paramTs = parseMethodParamTs(signature, c);
+		if (paramTs.length != 0) {
+			if (this.paramTs.length != paramTs.length) {
+				// can happen with Sun JVM:
+				// see org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11.1.InnerMethod
+				// or org.decojer.cavaj.test.jdk5.DecTestEnumStatus
+				// Signature since JDK 5 exists but doesn't contain synthetic parameters,
+				// e.g. outer context for methods in inner classes: (I)V instead of (Lthis;_I_II)V
+				// or enum constructor parameters arg0: String, arg1: int
+
+				// ignore for now? Eclipse Compiler doesn't generate this information
+				LOGGER.info("Not matching Signature '" + signature + "' for Method " + this);
+			} else {
+				this.paramTs = paramTs;
+			}
+		}
+		final T returnT = getT().getDu().parseT(signature, c);
+		if (returnT != null) {
+			this.returnT = returnT;
+		}
+		final T[] throwsTs = parseThrowsTs(signature, c);
+		if (throwsTs != null) {
+			this.throwsTs = throwsTs;
+		}
 	}
 
 }

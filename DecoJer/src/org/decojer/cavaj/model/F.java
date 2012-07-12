@@ -53,16 +53,13 @@ public class F {
 	private final String name;
 
 	@Getter
-	private String signature;
-
-	@Getter
 	private final T t;
 
 	/**
 	 * Value Type.
 	 */
 	@Getter
-	private T valueT;
+	T valueT;
 
 	/**
 	 * Constructor.
@@ -109,16 +106,6 @@ public class F {
 			return;
 		}
 		this.accessFlags |= af.getValue();
-	}
-
-	public void setSignature(final String signature) {
-		if (signature == null) {
-			return;
-		}
-		this.signature = signature;
-
-		// TODO more checks for override:
-		this.valueT = this.t.getDu().getDescT(signature);
 	}
 
 	@Override

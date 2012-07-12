@@ -28,7 +28,6 @@ import java.util.HashMap;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.V;
@@ -111,7 +110,6 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			return;
 		}
 
-		final M m = md.getM();
 		final StringIdItem[] parameterNames = debugInfoItem.getParameterNames();
 		if (parameterNames != null && parameterNames.length > 0) {
 			for (int i = parameterNames.length; i-- > 0;) {
@@ -120,7 +118,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 					// with outer type param
 					continue;
 				}
-				m.setParamName(i, parameterNames[i].getStringValue());
+				md.setParamName(i, parameterNames[i].getStringValue());
 			}
 		}
 		if (DEBUG) {

@@ -33,7 +33,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * 
  * @author André Pankraz
  */
-public final class FD implements BD, PD {
+public final class FD extends F implements BD, PD {
 
 	/**
 	 * Annotations.
@@ -49,11 +49,8 @@ public final class FD implements BD, PD {
 	@Setter
 	private boolean deprecated;
 
-	/**
-	 * Field.
-	 */
 	@Getter
-	private final F f;
+	private String signature;
 
 	/**
 	 * AST field declaration.
@@ -70,12 +67,6 @@ public final class FD implements BD, PD {
 	private boolean synthetic;
 
 	/**
-	 * Owner type declaration.
-	 */
-	@Getter
-	private final TD td;
-
-	/**
 	 * Value for constant attributes or <code>null</code>. Type Integer: int, short, byte, char,
 	 * boolean.
 	 */
@@ -86,17 +77,15 @@ public final class FD implements BD, PD {
 	/**
 	 * Constructor.
 	 * 
-	 * @param f
-	 *            field
 	 * @param td
-	 *            type declaration
+	 *            owner type declaration
+	 * @param name
+	 *            field name
+	 * @param valueT
+	 *            field value type
 	 */
-	public FD(final F f, final TD td) {
-		assert f != null;
-		assert td != null;
-
-		this.f = f;
-		this.td = td;
+	protected FD(final TD td, final String name, final T valueT) {
+		super(td, name, valueT);
 	}
 
 	@Override
@@ -104,9 +93,23 @@ public final class FD implements BD, PD {
 		this.fieldDeclaration = null;
 	}
 
-	@Override
-	public String toString() {
-		return getF().toString();
+	/**
+	 * Get owner type declaration.
+	 * 
+	 * @return owner type declaration
+	 */
+	public TD getTd() {
+		return (TD) getT();
+	}
+
+	public void setSignature(final String signature) {
+		if (signature == null) {
+			return;
+		}
+		this.signature = signature;
+
+		// TODO more checks for override:
+		this.valueT = getT().getDu().getDescT(signature);
 	}
 
 }

@@ -30,9 +30,7 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -147,11 +145,10 @@ public class ReadClassVisitor extends ClassVisitor {
 	public FieldVisitor visitField(final int access, final String name, final String desc,
 			final String signature, final Object value) {
 		final T valueT = this.du.getDescT(desc);
-		final F f = this.td.getF(name, valueT);
-		f.setAccessFlags(access);
-		f.setSignature(signature);
+		final FD fd = this.td.getFd(name, valueT);
+		fd.setAccessFlags(access);
+		fd.setSignature(signature);
 
-		final FD fd = new FD(f, this.td);
 		fd.setValue(value);
 
 		this.td.getBds().add(fd);
@@ -183,19 +180,17 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name, final String desc,
 			final String signature, final String[] exceptions) {
-		final M m = this.td.getM(name, desc);
-		m.setAccessFlags(access);
+		final MD md = this.td.getMd(name, desc);
+		md.setAccessFlags(access);
 		if (exceptions != null && exceptions.length > 0) {
 			final T[] throwsTs = new T[exceptions.length];
 			for (int i = exceptions.length; i-- > 0;) {
 				// e.g. java/io/IOException, without L...;
 				throwsTs[i] = this.du.getT(exceptions[i]);
 			}
-			m.setThrowsTs(throwsTs);
+			md.setThrowsTs(throwsTs);
 		}
-		m.setSignature(signature);
-
-		final MD md = new MD(m, this.td);
+		md.setSignature(signature);
 
 		this.td.getBds().add(md);
 

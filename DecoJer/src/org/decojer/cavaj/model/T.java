@@ -216,6 +216,24 @@ public abstract class T {
 
 	protected static final T[] NO_INTERFACES = new T[0];
 
+	public static T getDalvikIntT(final int value) {
+		int kinds = T.FLOAT.getKind();
+		if (value == 0 || value == 1) {
+			kinds |= T.BOOLEAN.getKind();
+		}
+		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
+			kinds |= T.CHAR.getKind();
+		}
+		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+			kinds |= T.BYTE.getKind();
+		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+			kinds |= T.SHORT.getKind();
+		} else {
+			kinds |= T.INT.getKind();
+		}
+		return getT(kinds);
+	}
+
 	public static BaseT getJvmIntT(final int value) {
 		int kinds = 0;
 		if (value == 0 || value == 1) {
@@ -394,30 +412,10 @@ public abstract class T {
 		return t1;
 	}
 
-	public static T getDalvikIntT(final int value) {
-		int kinds = T.FLOAT.getKind();
-		if (value == 0 || value == 1) {
-			kinds |= T.BOOLEAN.getKind();
-		}
-		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
-			kinds |= T.CHAR.getKind();
-		}
-		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
-			kinds |= T.BYTE.getKind();
-		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
-			kinds |= T.SHORT.getKind();
-		} else {
-			kinds |= T.INT.getKind();
-		}
-		return getT(kinds);
-	}
-
 	@Getter
 	private final String name;
 
-	private final HashMap<String, F> fs = new HashMap<String, F>();
-
-	private final HashMap<String, M> ms = new HashMap<String, M>();
+	final HashMap<String, Object> member = new HashMap<String, Object>();
 
 	protected T(final String name) {
 		this.name = name;
@@ -457,14 +455,14 @@ public abstract class T {
 	 * @param name
 	 *            field name
 	 * @param valueT
-	 *            value type
+	 *            field value type
 	 * @return field
 	 */
 	public F getF(final String name, final T valueT) {
-		F f = this.fs.get(name);
+		F f = (F) this.member.get(name);
 		if (f == null) {
 			f = new F(this, name, valueT);
-			this.fs.put(name, f);
+			this.member.put(name, f);
 		}
 		return f;
 	}
@@ -515,10 +513,11 @@ public abstract class T {
 	 * @return method
 	 */
 	public M getM(final String name, final String descriptor) {
-		M m = this.ms.get(name + descriptor);
+		final String handle = name + descriptor;
+		M m = (M) this.member.get(handle);
 		if (m == null) {
 			m = new M(this, name, descriptor);
-			this.ms.put(name + descriptor, m);
+			this.member.put(handle, m);
 		}
 		return m;
 	}

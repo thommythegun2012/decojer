@@ -426,7 +426,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 				// read method invokation arguments
 				final List<Expression> arguments = new ArrayList<Expression>();
-				for (int i = m.getParams(); i-- > 0;) {
+				for (int i = m.getParamTs().length; i-- > 0;) {
 					arguments.add(wrap(bb.pop()));
 				}
 				Collections.reverse(arguments);
@@ -446,13 +446,13 @@ public final class TrCfg2JavaExpressionStmts {
 											+ "' for enum has less than 2 arguments!");
 									break enumConstructor;
 								}
-								if (!m.getParamT(0).is(String.class)) {
+								if (!m.getParamTs()[0].is(String.class)) {
 									LOGGER.warning("Super constructor invocation '"
 											+ m
 											+ "' for enum must contain string literal as first parameter!");
 									break enumConstructor;
 								}
-								if (m.getParamT(1) != T.INT) {
+								if (m.getParamTs()[1] != T.INT) {
 									LOGGER.warning("Super constructor invocation '"
 											+ m
 											+ "' for enum must contain number literal as first parameter!");
@@ -860,15 +860,14 @@ public final class TrCfg2JavaExpressionStmts {
 				final PUT cop = (PUT) op;
 				final Expression rightExpression = bb.pop();
 				final F f = cop.getF();
-				final M m = this.cfg.getMd().getM();
-				fieldInit: if (m.getT() == f.getT()) {
+				fieldInit: if (this.cfg.getMd().getT() == f.getT()) {
 					// set local field, could be initializer
 					if (f.check(AF.STATIC)) {
-						if (!"<clinit>".equals(m.getName())) {
+						if (!"<clinit>".equals(this.cfg.getMd().getName())) {
 							break fieldInit;
 						}
 					} else {
-						if (!"<init>".equals(m.getName())) {
+						if (!"<init>".equals(this.cfg.getMd().getName())) {
 							break fieldInit;
 						}
 						if (!(bb.peek() instanceof ThisExpression)) {
@@ -922,7 +921,7 @@ public final class TrCfg2JavaExpressionStmts {
 										+ "' must contain number literal as first parameter!");
 								break fieldInit;
 							}
-							final FD fd = this.cfg.getTd().getFd(f.getName());
+							final FD fd = this.cfg.getTd().getFd(f.getName(), f.getValueT());
 							final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
 							assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
 							final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
@@ -958,7 +957,7 @@ public final class TrCfg2JavaExpressionStmts {
 							break; // ignore such assignments completely
 						}
 					}
-					final FD fd = this.cfg.getTd().getFd(f.getName());
+					final FD fd = this.cfg.getTd().getFd(f.getName(), f.getValueT());
 					if (fd == null || !(fd.getFieldDeclaration() instanceof FieldDeclaration)) {
 						break fieldInit;
 					}

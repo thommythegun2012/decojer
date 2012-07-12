@@ -349,8 +349,8 @@ public final class TrDataFlowAnalysis {
 		case INVOKE: {
 			final INVOKE cop = (INVOKE) op;
 			final M m = cop.getM();
-			for (int i = m.getParams(); i-- > 0;) {
-				pop(m.getParamT(i), true);
+			for (final T paramT : m.getParamTs()) {
+				pop(paramT, true);
 			}
 			if (!m.check(AF.STATIC)) {
 				pop(m.getT(), true);
@@ -545,7 +545,7 @@ public final class TrDataFlowAnalysis {
 			// don't need op type here, could check, but why should we...
 			final T returnT = cop.getT();
 
-			assert returnT == this.cfg.getMd().getM().getReturnT();
+			assert returnT == this.cfg.getMd().getReturnT();
 
 			if (returnT != T.VOID) {
 				pop(returnT, true); // just read type reduction

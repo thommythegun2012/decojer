@@ -239,19 +239,21 @@ public final class TD extends T implements BD, PD {
 	}
 
 	/**
-	 * Get field declaration for name.
+	 * Get field declaration.
 	 * 
 	 * @param name
-	 *            name
+	 *            field name
+	 * @param valueT
+	 *            field value type
 	 * @return field declaration
 	 */
-	public FD getFd(final String name) {
-		for (final BD bd : this.bds) {
-			if (bd instanceof FD && name.equals(((FD) bd).getF().getName())) {
-				return (FD) bd;
-			}
+	public FD getFd(final String name, final T valueT) {
+		F f = (F) this.member.get(name);
+		if (f == null || !(f instanceof FD)) {
+			f = new FD(this, name, valueT);
+			this.member.put(name, f);
 		}
-		return null;
+		return (FD) f;
 	}
 
 	@Override
@@ -262,6 +264,25 @@ public final class TD extends T implements BD, PD {
 	@Override
 	public int getKind() {
 		return Kind.REF.getKind();
+	}
+
+	/**
+	 * Get method declaration.
+	 * 
+	 * @param name
+	 *            method name
+	 * @param descriptor
+	 *            method descriptor
+	 * @return method declaration
+	 */
+	public MD getMd(final String name, final String descriptor) {
+		final String handle = name + descriptor;
+		M m = (M) this.member.get(handle);
+		if (m == null || !(m instanceof MD)) {
+			m = new MD(this, name, descriptor);
+			this.member.put(handle, m);
+		}
+		return (MD) m;
 	}
 
 	@Override
