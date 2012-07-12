@@ -266,7 +266,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 *******/
 		case Opcodes.GETFIELD:
 		case Opcodes.GETSTATIC: {
-			final T ownerTd = this.du.getT(owner);
+			final TD ownerTd = this.du.getTd(owner);
 			final F f = ownerTd.getF(name, this.du.getDescT(desc));
 			if (opcode == Opcodes.GETSTATIC) {
 				f.markAf(AF.STATIC);
@@ -279,7 +279,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 *******/
 		case Opcodes.PUTFIELD:
 		case Opcodes.PUTSTATIC: {
-			final T ownerTd = this.du.getT(owner);
+			final TD ownerTd = this.du.getTd(owner);
 			final F f = ownerTd.getF(name, this.du.getDescT(desc));
 			if (opcode == Opcodes.PUTSTATIC) {
 				f.markAf(AF.STATIC);
@@ -1283,11 +1283,10 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * INVOKE *
 		 **********/
 		case Opcodes.INVOKEINTERFACE:
-			// interface method callout
 		case Opcodes.INVOKESPECIAL:
-			// constructor or supermethod callout
-		case Opcodes.INVOKEVIRTUAL:
-		case Opcodes.INVOKESTATIC: {
+			// Constructor or supermethod (any super) or private method callout.
+		case Opcodes.INVOKESTATIC:
+		case Opcodes.INVOKEVIRTUAL: {
 			final T ownerT = this.du.getT(owner);
 			final M invokeM = ownerT.getM(name, desc);
 			if (opcode == Opcodes.INVOKEINTERFACE) {
