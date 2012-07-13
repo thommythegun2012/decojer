@@ -23,8 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.ArrayList;
-
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -44,16 +43,21 @@ public class M {
 	private final String descriptor;
 
 	@Getter
+	private MD md;
+
+	@Getter
 	private final String name;
 
 	@Getter
-	T[] paramTs;
+	@Setter(AccessLevel.PROTECTED)
+	private T[] paramTs;
 
 	@Getter
 	private final T t;
 
 	@Getter
-	T returnT;
+	@Setter(AccessLevel.PROTECTED)
+	private T returnT;
 
 	/**
 	 * Constructor.
@@ -75,7 +79,7 @@ public class M {
 		this.descriptor = descriptor;
 
 		final Cursor c = new Cursor();
-		this.paramTs = parseMethodParamTs(descriptor, c);
+		this.paramTs = getT().getDu().parseMethodParamTs(descriptor, c);
 		this.returnT = getT().getDu().parseT(descriptor, c);
 	}
 
@@ -91,6 +95,19 @@ public class M {
 	}
 
 	/**
+	 * Create method declaration for this field.
+	 * 
+	 * @return method declaration
+	 */
+	public MD createMd() {
+		assert this.md != null;
+
+		this.md = new MD(this);
+		((TD) this.t).getBds().add(this.md);
+		return this.md;
+	}
+
+	/**
 	 * Mark access flag.
 	 * 
 	 * @param af
@@ -98,27 +115,6 @@ public class M {
 	 */
 	public void markAf(final AF af) {
 		this.accessFlags |= af.getValue();
-	}
-
-	/**
-	 * Parse method parameter types from signature.
-	 * 
-	 * @param s
-	 *            signature
-	 * @param c
-	 *            cursor
-	 * @return method parameter types
-	 */
-	T[] parseMethodParamTs(final String s, final Cursor c) {
-		assert s.charAt(c.pos) == '(';
-
-		++c.pos;
-		final ArrayList<T> ts = new ArrayList<T>();
-		while (s.charAt(c.pos) != ')') {
-			ts.add(getT().getDu().parseT(s, c));
-		}
-		++c.pos;
-		return ts.toArray(new T[ts.size()]);
 	}
 
 	@Override

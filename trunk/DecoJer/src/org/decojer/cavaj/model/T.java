@@ -450,7 +450,8 @@ public abstract class T {
 	}
 
 	/**
-	 * Get field.
+	 * Get field.<br>
+	 * Unique identifier is: "name + descriptor" ({@link F})
 	 * 
 	 * @param name
 	 *            field name
@@ -459,10 +460,12 @@ public abstract class T {
 	 * @return field
 	 */
 	public F getF(final String name, final T valueT) {
-		F f = (F) this.member.get(name);
+		// Unique identifier is: "name + descriptor" ({@link F})
+		final String handle = name + ":" + valueT.getName();
+		F f = (F) this.member.get(handle);
 		if (f == null) {
 			f = new F(this, name, valueT);
-			this.member.put(name, f);
+			this.member.put(handle, f);
 		}
 		return f;
 	}
@@ -504,7 +507,8 @@ public abstract class T {
 	}
 
 	/**
-	 * Get method.
+	 * Get method.<br>
+	 * Unique identifier is: "name + descriptor"
 	 * 
 	 * @param name
 	 *            method name

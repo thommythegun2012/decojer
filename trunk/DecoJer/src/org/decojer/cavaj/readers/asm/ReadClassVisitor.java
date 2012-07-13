@@ -30,7 +30,9 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -145,13 +147,13 @@ public class ReadClassVisitor extends ClassVisitor {
 	public FieldVisitor visitField(final int access, final String name, final String desc,
 			final String signature, final Object value) {
 		final T valueT = this.du.getDescT(desc);
-		final FD fd = this.td.getFd(name, valueT);
+		final F f = this.td.getF(name, valueT);
+		final FD fd = f.createFd();
+
 		fd.setAccessFlags(access);
 		fd.setSignature(signature);
 
 		fd.setValue(value);
-
-		this.td.getBds().add(fd);
 
 		this.readFieldVisitor.init(fd);
 		return this.readFieldVisitor;
@@ -180,7 +182,9 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name, final String desc,
 			final String signature, final String[] exceptions) {
-		final MD md = this.td.getMd(name, desc);
+		final M m = this.td.getM(name, desc);
+		final MD md = m.createMd();
+
 		md.setAccessFlags(access);
 		if (exceptions != null && exceptions.length > 0) {
 			final T[] throwsTs = new T[exceptions.length];
@@ -192,8 +196,6 @@ public class ReadClassVisitor extends ClassVisitor {
 		}
 		md.setSignature(signature);
 
-		this.td.getBds().add(md);
-
 		this.readMethodVisitor.init(md);
 		return this.readMethodVisitor;
 	}
@@ -201,7 +203,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public void visitOuterClass(final String owner, final String name, final String desc) {
 		final TD enclosingTd = this.du.getTd(owner);
-		this.td.setEnclosingPd(name == null ? enclosingTd : enclosingTd.getMd(name, desc));
+		this.td.setEnclosing(name == null ? enclosingTd : enclosingTd.getM(name, desc));
 	}
 
 	@Override

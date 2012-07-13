@@ -240,6 +240,27 @@ public final class DU {
 	}
 
 	/**
+	 * Parse method parameter types from signature.
+	 * 
+	 * @param s
+	 *            signature
+	 * @param c
+	 *            cursor
+	 * @return method parameter types
+	 */
+	public T[] parseMethodParamTs(final String s, final Cursor c) {
+		assert s.charAt(c.pos) == '(';
+
+		++c.pos;
+		final ArrayList<T> ts = new ArrayList<T>();
+		while (s.charAt(c.pos) != ')') {
+			ts.add(parseT(s, c));
+		}
+		++c.pos;
+		return ts.toArray(new T[ts.size()]);
+	}
+
+	/**
 	 * Parse type from signature.
 	 * 
 	 * @param s

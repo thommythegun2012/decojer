@@ -70,6 +70,7 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -165,8 +166,8 @@ public class JavassistReader implements ClassReader {
 		}
 		if (enclosingMethodAttribute != null) {
 			final TD enclosingTd = this.du.getTd(enclosingMethodAttribute.className());
-			td.setEnclosingPd(enclosingMethodAttribute.classIndex() == 0 ? enclosingTd
-					: enclosingTd.getMd(enclosingMethodAttribute.methodName(),
+			td.setEnclosing(enclosingMethodAttribute.classIndex() == 0 ? enclosingTd : enclosingTd
+					.getM(enclosingMethodAttribute.methodName(),
 							enclosingMethodAttribute.methodDescriptor()));
 		}
 		if (innerClassesAttribute != null) {
@@ -195,10 +196,10 @@ public class JavassistReader implements ClassReader {
 			td.setSynthetic(true);
 		}
 		for (final FieldInfo fieldInfo : (List<FieldInfo>) classFile.getFields()) {
-			td.getBds().add(readField(td, fieldInfo));
+			readField(td, fieldInfo);
 		}
 		for (final MethodInfo methodInfo : (List<MethodInfo>) classFile.getMethods()) {
-			td.getBds().add(readMethod(td, methodInfo));
+			readMethod(td, methodInfo);
 		}
 		return td;
 	}
@@ -273,7 +274,9 @@ public class JavassistReader implements ClassReader {
 		}
 
 		final T valueT = this.du.getDescT(fieldInfo.getDescriptor());
-		final FD fd = td.getFd(fieldInfo.getName(), valueT);
+		final F f = td.getF(fieldInfo.getName(), valueT);
+		final FD fd = f.createFd();
+
 		fd.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
 			fd.setSignature(signatureAttribute.getSignature());
@@ -366,7 +369,9 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 
-		final MD md = td.getMd(methodInfo.getName(), methodInfo.getDescriptor());
+		final M m = td.getM(methodInfo.getName(), methodInfo.getDescriptor());
+		final MD md = m.createMd();
+
 		md.setAccessFlags(methodInfo.getAccessFlags());
 		if (exceptionsAttribute != null) {
 			final String[] exceptions = exceptionsAttribute.getExceptions();

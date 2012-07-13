@@ -27,7 +27,6 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.FD;
 
 /**
  * Operation 'PUT'.
@@ -56,7 +55,6 @@ public class PUT extends Op {
 
 		assert f != null;
 		// for all variants valid: any superfield possible for static / instance
-		assert !(f instanceof FD);
 
 		this.f = f;
 	}

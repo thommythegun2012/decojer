@@ -94,7 +94,7 @@ public final class TD extends T implements BD, PD {
 	 */
 	@Getter
 	@Setter
-	private PD enclosingPd;
+	private Object enclosing;
 
 	@Setter
 	private T[] interfaceTs;
@@ -230,24 +230,6 @@ public final class TD extends T implements BD, PD {
 		return null;
 	}
 
-	/**
-	 * Get field declaration.
-	 * 
-	 * @param name
-	 *            field name
-	 * @param valueT
-	 *            field value type
-	 * @return field declaration
-	 */
-	public FD getFd(final String name, final T valueT) {
-		F f = (F) this.member.get(name);
-		if (f == null || !(f instanceof FD)) {
-			f = new FD(this, name, valueT);
-			this.member.put(name, f);
-		}
-		return (FD) f;
-	}
-
 	@Override
 	public T[] getInterfaceTs() {
 		return isResolveable() ? this.interfaceTs : T.NO_INTERFACES;
@@ -256,25 +238,6 @@ public final class TD extends T implements BD, PD {
 	@Override
 	public int getKind() {
 		return Kind.REF.getKind();
-	}
-
-	/**
-	 * Get method declaration.
-	 * 
-	 * @param name
-	 *            method name
-	 * @param descriptor
-	 *            method descriptor
-	 * @return method declaration
-	 */
-	public MD getMd(final String name, final String descriptor) {
-		final String handle = name + descriptor;
-		M m = (M) this.member.get(handle);
-		if (m == null || !(m instanceof MD)) {
-			m = new MD(this, name, descriptor);
-			this.member.put(handle, m);
-		}
-		return (MD) m;
 	}
 
 	@Override

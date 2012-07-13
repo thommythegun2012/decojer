@@ -37,6 +37,7 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -183,11 +184,11 @@ public class SmaliReader implements DexReader {
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
-							td.setEnclosingPd((TD) a.getMemberValue());
+							td.setEnclosing(a.getMemberValue());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingMethod".equals(a.getT().getName())) {
-							td.setEnclosingPd((MD) a.getMemberValue());
+							td.setEnclosing(a.getMemberValue());
 							continue;
 						}
 						// Dalvik has not all inner class info from JVM Bytecode:
@@ -348,7 +349,9 @@ public class SmaliReader implements DexReader {
 			final FieldIdItem field = encodedField.field;
 
 			final T valueT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
-			final FD fd = td.getFd(field.getFieldName().getStringValue(), valueT);
+			final F f = td.getF(field.getFieldName().getStringValue(), valueT);
+			final FD fd = f.createFd();
+
 			fd.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
 				fd.setSignature(fieldSignatures.get(field));
@@ -359,13 +362,14 @@ public class SmaliReader implements DexReader {
 			}
 
 			fd.setAs(fieldAs.get(field));
-			td.getBds().add(fd);
 		}
 		for (final EncodedField encodedField : instanceFields) {
 			final FieldIdItem field = encodedField.field;
 
 			final T valueT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
-			final FD fd = td.getFd(field.getFieldName().getStringValue(), valueT);
+			final F f = td.getF(field.getFieldName().getStringValue(), valueT);
+			final FD fd = f.createFd();
+
 			fd.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
 				fd.setSignature(fieldSignatures.get(field));
@@ -375,7 +379,6 @@ public class SmaliReader implements DexReader {
 			// only via constructor
 
 			fd.setAs(fieldAs.get(field));
-			td.getBds().add(fd);
 		}
 	}
 
@@ -389,8 +392,10 @@ public class SmaliReader implements DexReader {
 
 			// getResourceAsStream :
 			// (Ljava/lang/String;)Ljava/io/InputStream;
-			final MD md = td.getMd(method.getMethodName().getStringValue(), method.getPrototype()
+			final M m = td.getM(method.getMethodName().getStringValue(), method.getPrototype()
 					.getPrototypeString());
+			final MD md = m.createMd();
+
 			md.setAccessFlags(encodedMethod.accessFlags);
 			md.setThrowsTs(methodThrowsTs.get(method));
 			md.setSignature(methodSignatures.get(method));
@@ -403,16 +408,16 @@ public class SmaliReader implements DexReader {
 			if (encodedMethod.codeItem != null) {
 				new ReadCodeItem(this.du).initAndVisit(md, encodedMethod.codeItem);
 			}
-
-			td.getBds().add(md);
 		}
 		for (final EncodedMethod encodedMethod : virtualMethods) {
 			final MethodIdItem method = encodedMethod.method;
 
 			// getResourceAsStream :
 			// (Ljava/lang/String;)Ljava/io/InputStream;
-			final MD md = td.getMd(method.getMethodName().getStringValue(), method.getPrototype()
+			final M m = td.getM(method.getMethodName().getStringValue(), method.getPrototype()
 					.getPrototypeString());
+			final MD md = m.createMd();
+
 			md.setAccessFlags(encodedMethod.accessFlags);
 			md.setThrowsTs(methodThrowsTs.get(method));
 			md.setSignature(methodSignatures.get(method));
@@ -428,8 +433,6 @@ public class SmaliReader implements DexReader {
 			if (codeItem != null) {
 				new ReadCodeItem(this.du).initAndVisit(md, encodedMethod.codeItem);
 			}
-
-			td.getBds().add(md);
 		}
 	}
 
