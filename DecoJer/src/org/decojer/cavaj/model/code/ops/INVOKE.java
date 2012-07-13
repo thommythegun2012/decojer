@@ -27,7 +27,6 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 
 /**
@@ -70,7 +69,6 @@ public class INVOKE extends Op {
 		assert m != null;
 		// for all variants valid: any supermethod possible for direct / static / interface,
 		// for virtual anyway
-		assert !(m instanceof MD);
 
 		this.m = m;
 		this.direct = direct;

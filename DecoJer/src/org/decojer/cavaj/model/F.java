@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -50,6 +51,9 @@ public class F {
 	private int accessFlags;
 
 	@Getter
+	private FD fd;
+
+	@Getter
 	private final String name;
 
 	@Getter
@@ -59,7 +63,8 @@ public class F {
 	 * Value Type.
 	 */
 	@Getter
-	T valueT;
+	@Setter(AccessLevel.PROTECTED)
+	private T valueT;
 
 	/**
 	 * Constructor.
@@ -90,6 +95,19 @@ public class F {
 	 */
 	public boolean check(final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;
+	}
+
+	/**
+	 * Create field declaration for this field.
+	 * 
+	 * @return field declaration
+	 */
+	public FD createFd() {
+		assert this.fd != null;
+
+		this.fd = new FD(this);
+		((TD) this.t).getBds().add(this.fd);
+		return this.fd;
 	}
 
 	/**

@@ -38,7 +38,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * 
  * @author André Pankraz
  */
-public final class MD extends M implements BD, PD {
+public final class MD implements BD, PD {
 
 	private final static Logger LOGGER = Logger.getLogger(MD.class.getName());
 
@@ -69,6 +69,8 @@ public final class MD extends M implements BD, PD {
 	@Getter
 	@Setter
 	private boolean deprecated;
+
+	private final M m;
 
 	@Getter
 	private String signature;
@@ -109,15 +111,17 @@ public final class MD extends M implements BD, PD {
 	/**
 	 * Constructor.
 	 * 
-	 * @param td
-	 *            owner type declaration
-	 * @param name
-	 *            method name
-	 * @param descriptor
-	 *            method descriptor
+	 * @param m
+	 *            method
 	 */
-	protected MD(final TD td, final String name, final String descriptor) {
-		super(td, name, descriptor);
+	protected MD(final M m) {
+		assert m != null;
+
+		this.m = m;
+	}
+
+	public boolean check(final AF af) {
+		return this.m.check(af);
 	}
 
 	@Override
@@ -126,6 +130,14 @@ public final class MD extends M implements BD, PD {
 		if (this.cfg != null) {
 			this.cfg.clear();
 		}
+	}
+
+	public String getDescriptor() {
+		return this.m.getDescriptor();
+	}
+
+	public String getName() {
+		return this.m.getName();
 	}
 
 	/**
@@ -142,13 +154,21 @@ public final class MD extends M implements BD, PD {
 		return this.paramNames[i];
 	}
 
+	public T[] getParamTs() {
+		return this.m.getParamTs();
+	}
+
+	public T getReturnT() {
+		return this.m.getReturnT();
+	}
+
 	/**
 	 * Get owner type declaration.
 	 * 
 	 * @return owner type declaration
 	 */
 	public TD getTd() {
-		return (TD) getT();
+		return (TD) this.m.getT();
 	}
 
 	/**
@@ -167,9 +187,13 @@ public final class MD extends M implements BD, PD {
 		final ArrayList<T> ts = new ArrayList<T>();
 		do {
 			++c.pos;
-			ts.add(getT().getDu().parseT(s, c));
+			ts.add(getTd().getDu().parseT(s, c));
 		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
 		return ts.toArray(new T[ts.size()]);
+	}
+
+	public void setAccessFlags(final int accessFlags) {
+		this.m.setAccessFlags(accessFlags);
 	}
 
 	/**
@@ -182,7 +206,7 @@ public final class MD extends M implements BD, PD {
 	 */
 	public void setParamName(final int i, final String name) {
 		if (this.paramNames == null) {
-			this.paramNames = new String[this.paramTs.length];
+			this.paramNames = new String[getParamTs().length];
 		}
 		this.paramNames[i] = name;
 	}
@@ -194,12 +218,12 @@ public final class MD extends M implements BD, PD {
 		this.signature = signature;
 
 		final Cursor c = new Cursor();
-		this.typeParams = getT().getDu().parseTypeParams(signature, c);
+		this.typeParams = getTd().getDu().parseTypeParams(signature, c);
 
 		// TODO more checks for following overrides:
-		final T[] paramTs = parseMethodParamTs(signature, c);
+		final T[] paramTs = getTd().getDu().parseMethodParamTs(signature, c);
 		if (paramTs.length != 0) {
-			if (this.paramTs.length != paramTs.length) {
+			if (getParamTs().length != paramTs.length) {
 				// can happen with Sun JVM:
 				// see org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11.1.InnerMethod
 				// or org.decojer.cavaj.test.jdk5.DecTestEnumStatus
@@ -210,12 +234,12 @@ public final class MD extends M implements BD, PD {
 				// ignore for now? Eclipse Compiler doesn't generate this information
 				LOGGER.info("Not matching Signature '" + signature + "' for Method " + this);
 			} else {
-				this.paramTs = paramTs;
+				this.m.setParamTs(paramTs);
 			}
 		}
-		final T returnT = getT().getDu().parseT(signature, c);
+		final T returnT = getTd().getDu().parseT(signature, c);
 		if (returnT != null) {
-			this.returnT = returnT;
+			this.m.setReturnT(returnT);
 		}
 		final T[] throwsTs = parseThrowsTs(signature, c);
 		if (throwsTs != null) {

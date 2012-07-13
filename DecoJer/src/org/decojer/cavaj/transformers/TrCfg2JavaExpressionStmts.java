@@ -860,7 +860,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final PUT cop = (PUT) op;
 				final Expression rightExpression = bb.pop();
 				final F f = cop.getF();
-				fieldInit: if (this.cfg.getMd().getT() == f.getT()) {
+				fieldInit: if (this.cfg.getMd().getTd() == f.getT()) {
 					// set local field, could be initializer
 					if (f.check(AF.STATIC)) {
 						if (!"<clinit>".equals(this.cfg.getMd().getName())) {
@@ -921,7 +921,7 @@ public final class TrCfg2JavaExpressionStmts {
 										+ "' must contain number literal as first parameter!");
 								break fieldInit;
 							}
-							final FD fd = this.cfg.getTd().getFd(f.getName(), f.getValueT());
+							final FD fd = this.cfg.getTd().getF(f.getName(), f.getValueT()).getFd();
 							final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
 							assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
 							final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
@@ -957,7 +957,7 @@ public final class TrCfg2JavaExpressionStmts {
 							break; // ignore such assignments completely
 						}
 					}
-					final FD fd = this.cfg.getTd().getFd(f.getName(), f.getValueT());
+					final FD fd = this.cfg.getTd().getF(f.getName(), f.getValueT()).getFd();
 					if (fd == null || !(fd.getFieldDeclaration() instanceof FieldDeclaration)) {
 						break fieldInit;
 					}

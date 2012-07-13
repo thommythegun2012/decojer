@@ -27,7 +27,9 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -109,13 +111,13 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	public DexFieldVisitor visitField(final int accessFlags, final Field field, final Object value) {
 		// desc: Ljava/lang/ref/ReferenceQueue;
 		final T valueT = this.du.getDescT(field.getType());
-		final FD fd = this.td.getFd(field.getName(), valueT);
+		final F f = this.td.getF(field.getName(), valueT);
+		final FD fd = f.createFd();
+
 		fd.setAccessFlags(accessFlags);
 		// TODO signature in annotation
 
 		fd.setValue(value);
-
-		this.td.getBds().add(fd);
 
 		this.readDexFieldVisitor.init(fd);
 		return this.readDexFieldVisitor;
@@ -124,11 +126,11 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	@Override
 	public DexMethodVisitor visitMethod(final int accessFlags, final Method method) {
 		// desc: (Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;
-		final MD md = this.td.getMd(method.getName(), method.getDesc());
+		final M m = this.td.getM(method.getName(), method.getDesc());
+		final MD md = m.createMd();
+
 		md.setAccessFlags(accessFlags);
 		// TODO throws in annotation
-
-		this.td.getBds().add(md);
 
 		this.readDexMethodVisitor.init(md);
 		return this.readDexMethodVisitor;
