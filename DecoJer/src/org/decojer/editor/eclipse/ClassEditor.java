@@ -26,7 +26,6 @@ package org.decojer.editor.eclipse;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -135,8 +134,6 @@ public class ClassEditor extends MultiPageEditorPart {
 	private DU du;
 
 	private JavaOutlinePage javaOutlinePage;
-
-	private TD td;
 
 	private GraphNode addToGraph(final BB bb, final IdentityHashMap<BB, GraphNode> map) {
 		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE, bb.toString(), bb);
@@ -247,11 +244,9 @@ public class ClassEditor extends MultiPageEditorPart {
 
 		// create editor input, in-memory string with decompiled source
 
-		this.cu = null;
 		String sourceCode = null;
 		try {
-			this.cu = DecoJer.createCu(this.td);
-			sourceCode = DecoJer.decompile(this.cu);
+			sourceCode = this.cu.decompile();
 		} catch (final Throwable t) {
 			t.printStackTrace();
 			sourceCode = "// Decompilation error!";
@@ -360,26 +355,26 @@ public class ClassEditor extends MultiPageEditorPart {
 		this.du = DecoJer.createDu();
 
 		try {
-			final List<TD> tds = this.du.read(fileName);
-			if (tds.size() == 1) {
-				this.td = tds.get(0);
+			this.du.read(fileName);
+			if (this.du.getCus().size() == 1) {
+				this.cu = this.du.getCus().get(0);
 			}
 		} catch (final Exception e) {
 			LOGGER.log(Level.SEVERE, "Couldn't open file!", e);
 			return pageContainer;
 		}
 
-		if (this.td == null) {
+		if (this.cu == null) {
 			final SashForm sashForm = new SashForm(pageContainer, SWT.HORIZONTAL | SWT.BORDER
 					| SWT.SMOOTH);
 
 			this.archiveTree = new Tree(sashForm, SWT.NONE);
-			for (final TD td : this.du.getTds()) {
+			for (final CU cu : this.du.getCus()) {
 				final TreeItem treeItem = new TreeItem(this.archiveTree, SWT.NONE);
-				treeItem.setText(td.getName());
-				if (this.td == null) {
+				treeItem.setText(cu.getName());
+				if (this.cu == null) {
 					this.archiveTree.select(treeItem);
-					this.td = td;
+					this.cu = cu;
 				}
 			}
 			this.archiveTree.addSelectionListener(new SelectionListener() {
@@ -396,23 +391,19 @@ public class ClassEditor extends MultiPageEditorPart {
 						return;
 					}
 					final TreeItem selection = selections[0];
-					if (ClassEditor.this.td != null) {
-						ClassEditor.this.td.clear();
-					}
-					ClassEditor.this.td = ClassEditor.this.du.getTd(selection.getText());
+					ClassEditor.this.cu = ClassEditor.this.du.getTd(selection.getText()).getCu();
 
 					String sourceCode = null;
 					try {
-						ClassEditor.this.cu = DecoJer.createCu(ClassEditor.this.td);
-						sourceCode = DecoJer.decompile(ClassEditor.this.cu);
-						ClassEditor.this.compilationUnitEditor.setInput(new MemoryStorageEditorInput(
-								new StringMemoryStorage(sourceCode, ClassEditor.this.cu == null
-										|| ClassEditor.this.cu.getSourceFileName() == null ? null
-										: new Path(ClassEditor.this.cu.getSourceFileName()))));
+						sourceCode = ClassEditor.this.cu.decompile();
 					} catch (final Throwable t) {
 						t.printStackTrace();
 						sourceCode = "// Decompilation error!";
 					}
+					ClassEditor.this.compilationUnitEditor.setInput(new MemoryStorageEditorInput(
+							new StringMemoryStorage(sourceCode, ClassEditor.this.cu == null
+									|| ClassEditor.this.cu.getSourceFileName() == null ? null
+									: new Path(ClassEditor.this.cu.getSourceFileName()))));
 
 				}
 

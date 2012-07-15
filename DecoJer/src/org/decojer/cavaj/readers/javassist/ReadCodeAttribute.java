@@ -520,8 +520,8 @@ public class ReadCodeAttribute {
 			case Opcode.GETSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
-				final TD ownerTd = this.du.getTd(constPool.getFieldrefClassName(fieldIndex));
-				final F f = ownerTd.getF(constPool.getFieldrefName(fieldIndex),
+				final T ownerT = this.du.getT(constPool.getFieldrefClassName(fieldIndex));
+				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
 						this.du.getDescT(constPool.getFieldrefType(fieldIndex)));
 				if (opcode == Opcode.GETSTATIC) {
 					f.markAf(AF.STATIC);
@@ -577,10 +577,10 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
 
-				final TD ownerTd = this.du.getTd(constPool
-						.getInterfaceMethodrefClassName(methodIndex));
-				ownerTd.markAf(AF.INTERFACE);
-				final M m = ownerTd.getM(constPool.getInterfaceMethodrefName(methodIndex),
+				final T ownerT = this.du
+						.getT(constPool.getInterfaceMethodrefClassName(methodIndex));
+				((TD) ownerT).markAf(AF.INTERFACE);
+				final M m = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m, false));
 				break;
@@ -591,7 +591,7 @@ public class ReadCodeAttribute {
 			case Opcode.INVOKEVIRTUAL: {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
-				final T ownerT = this.du.getTd(constPool.getMethodrefClassName(cpMethodIndex));
+				final T ownerT = this.du.getT(constPool.getMethodrefClassName(cpMethodIndex));
 				final M m = ownerT.getM(constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
 				if (opcode == Opcode.INVOKESTATIC) {
@@ -1194,8 +1194,8 @@ public class ReadCodeAttribute {
 			case Opcode.PUTSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
-				final TD ownerTd = this.du.getTd(constPool.getFieldrefClassName(fieldIndex));
-				final F f = ownerTd.getF(constPool.getFieldrefName(fieldIndex),
+				final T ownerT = this.du.getT(constPool.getFieldrefClassName(fieldIndex));
+				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
 						this.du.getDescT(constPool.getFieldrefType(fieldIndex)));
 				if (opcode == Opcode.PUTSTATIC) {
 					f.markAf(AF.STATIC);

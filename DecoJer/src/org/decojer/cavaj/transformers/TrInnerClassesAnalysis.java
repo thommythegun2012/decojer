@@ -23,9 +23,12 @@
  */
 package org.decojer.cavaj.transformers;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
 
@@ -37,12 +40,39 @@ import org.decojer.cavaj.model.TD;
 public class TrInnerClassesAnalysis {
 
 	public static void transform(final DU du) {
-		final Map<String, TD> units = new HashMap<String, TD>();
+		final List<CU> cus = new ArrayList<CU>();
+		final Map<String, CU> sourceFileName2cu = new HashMap<String, CU>();
 		for (final TD td : du.getTds()) {
-			System.out.println("TD Source: " + td.getSourceFileName());
-			final String packageName = td.getPackageName();
+			final String name = td.getName();
+			final int pos = name.lastIndexOf('$');
+			// TODO inner/outer info
+			if (pos >= 0) {
+				// is inner name, check direct parent
+				final TD pd = du.getTd(name.substring(0, pos));
+				if (pd != null) {
+					pd.addTd(td);
+					// parent checked earlier or later
+					continue;
+				}
+				// no matching parent read till now...live with that, create cu, no source check
+				cus.add(new CU(td));
+				continue;
+			}
+			final String sourceFileName = td.getSourceFileName();
+			if (sourceFileName != null) {
+				final CU cu = sourceFileName2cu.get(sourceFileName);
+				if (cu != null) {
+					cu.addTd(td);
+					continue;
+				}
+			}
+			final CU cu = new CU(td);
+			if (sourceFileName != null) {
+				sourceFileName2cu.put(sourceFileName, cu);
+			}
+			cus.add(cu);
 		}
-		du.setCus(null);
+		du.setCus(cus);
 	}
 
 }

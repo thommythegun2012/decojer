@@ -96,7 +96,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName, final String[] interfaces) {
-		this.td = this.du.getTd(name);
+		this.td = (TD) this.du.getT(name);
 		this.td.setAccessFlags(access);
 		this.td.setSuperT(this.du.getT(superName));
 		if (interfaces != null && interfaces.length > 0) {
@@ -202,8 +202,8 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visitOuterClass(final String owner, final String name, final String desc) {
-		final TD enclosingTd = this.du.getTd(owner);
-		this.td.setEnclosing(name == null ? enclosingTd : enclosingTd.getM(name, desc));
+		final T enclosingT = this.du.getT(owner);
+		this.td.setEnclosing(name == null ? enclosingT : enclosingT.getM(name, desc));
 	}
 
 	@Override

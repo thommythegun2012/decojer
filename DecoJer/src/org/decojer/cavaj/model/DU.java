@@ -27,10 +27,12 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PushbackInputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -53,6 +56,7 @@ import org.decojer.cavaj.readers.AsmReader;
 import org.decojer.cavaj.readers.ClassReader;
 import org.decojer.cavaj.readers.DexReader;
 import org.decojer.cavaj.readers.SmaliReader;
+import org.decojer.cavaj.transformers.TrInnerClassesAnalysis;
 import org.decojer.cavaj.utils.Cursor;
 import org.decojer.cavaj.utils.MagicNumbers;
 
@@ -67,14 +71,15 @@ public final class DU {
 
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
 
+	private static final Charset UTF8 = Charset.forName("utf-8");
+
 	@Getter
 	private final T[] arrayInterfaceTs;
 
 	private final ClassReader classReader = new AsmReader(this);
 
-	@Getter
 	@Setter
-	private HashMap<String, CU> cus;
+	private List<CU> cus;
 
 	private final DexReader dexReader = new SmaliReader(this);
 
@@ -101,6 +106,51 @@ public final class DU {
 		this.arrayInterfaceTs = new T[] { getT(Cloneable.class), getT(Serializable.class) };
 	}
 
+	protected void createCus() {
+		TrInnerClassesAnalysis.transform(this);
+	}
+
+	public String decompile(final String typeDeclarationName) {
+		final T t = this.ts.get(typeDeclarationName);
+		if (t == null) {
+			return "<UNKNOWN>";
+		}
+		return ((TD) t).getCu().decompile();
+	}
+
+	/**
+	 * Decompile all type declarations from decompilation unit into output stream.
+	 * 
+	 * @param os
+	 *            output stream
+	 * @throws IOException
+	 *             read exception
+	 */
+	public void decompileAll(final OutputStream os) throws IOException {
+		final ZipOutputStream zip = new ZipOutputStream(os);
+		for (final CU cu : getCus()) {
+			try {
+				final String source = cu.decompile();
+				final String sourceFileName = cu.getSourceFileName();
+				final String packageName = cu.getPackageName();
+				String zipEntryName;
+				if (packageName != null && packageName.length() != 0) {
+					zipEntryName = packageName.replace('.', '/') + '/' + sourceFileName;
+				} else {
+					zipEntryName = sourceFileName;
+				}
+				final ZipEntry zipEntry = new ZipEntry(zipEntryName);
+				zip.putNextEntry(zipEntry);
+				zip.write(source.getBytes(UTF8));
+			} catch (final Throwable t) {
+				LOGGER.log(Level.WARNING, "Decompilation problems for '" + cu + "'!", t);
+			} finally {
+				cu.clear();
+			}
+		}
+		zip.finish();
+	}
+
 	/**
 	 * Get array type for component type.
 	 * 
@@ -112,6 +162,13 @@ public final class DU {
 		return new ArrayT(this, componentT);
 	}
 
+	public List<CU> getCus() {
+		if (this.cus == null) {
+			createCus();
+		}
+		return this.cus;
+	}
+
 	/**
 	 * Get type for descriptor.
 	 * 
@@ -121,17 +178,6 @@ public final class DU {
 	 */
 	public T getDescT(final String desc) {
 		return parseT(desc, new Cursor());
-	}
-
-	/**
-	 * Get type declaration for descriptor.
-	 * 
-	 * @param desc
-	 *            descriptor (package/subpackage/Type$Inner)
-	 * @return type declaration
-	 */
-	public TD getDescTd(final String desc) {
-		return (TD) getDescT(desc);
 	}
 
 	/**
@@ -159,6 +205,10 @@ public final class DU {
 	 * @see java.lang.Class#getName()
 	 */
 	public T getT(final String name) {
+		return getT(name, true);
+	}
+
+	private T getT(final String name, final boolean create) {
 		assert name.charAt(0) != 'L' : name;
 
 		if (name.charAt(0) == '[') {
@@ -173,7 +223,7 @@ public final class DU {
 		final String normName = name.replace('/', '.');
 
 		T t = this.ts.get(normName);
-		if (t == null) {
+		if (t == null && create) {
 			// can only be a TD...no int etc.
 			t = new TD(normName, this);
 			this.ts.put(normName, t);
@@ -189,7 +239,7 @@ public final class DU {
 	 * @return type declaration
 	 */
 	public TD getTd(final String name) {
-		return (TD) getT(name);
+		return (TD) getT(name, false);
 	}
 
 	/**

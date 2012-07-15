@@ -103,7 +103,7 @@ public class F {
 	 * @return field declaration
 	 */
 	public FD createFd() {
-		assert this.fd != null;
+		assert this.fd == null;
 
 		this.fd = new FD(this);
 		((TD) this.t).getBds().add(this.fd);

@@ -787,9 +787,9 @@ public final class TrCfg2JavaExpressionStmts {
 								break inner;
 							}
 							if (newTd.getPd() == null) {
-								this.cfg.getCu().addTd(newTd);
+								// TODO this.cfg.getCu().addTd(newTd);
 							}
-							newTd.setPd(this.cfg.getMd());
+							// TODO newTd.setPd(this.cfg.getMd());
 
 							final AnonymousClassDeclaration anonymousClassDeclaration = getAst()
 									.newAnonymousClassDeclaration();

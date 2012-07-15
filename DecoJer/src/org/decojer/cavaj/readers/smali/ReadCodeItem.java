@@ -830,11 +830,11 @@ public class ReadCodeItem {
 								+ "' to '" + t + "'.");
 					}
 
-					final TD ownerTd = this.du.getDescTd(fieldIdItem.getContainingClass()
+					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
 							.getTypeDescriptor());
-					final F f = ownerTd.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerTd, instr
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, instr
 							.getRegisterB()));
 
 					this.ops.add(new GET(this.ops.size(), opcode, line, f));
@@ -1760,11 +1760,11 @@ public class ReadCodeItem {
 								+ "' to '" + valueT + "'.");
 					}
 
-					final TD ownerTd = this.du.getDescTd(fieldIdItem.getContainingClass()
+					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
 							.getTypeDescriptor());
-					final F f = ownerTd.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerTd, instr
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, instr
 							.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, valueT, instr
 							.getRegisterA()));
@@ -1823,7 +1823,7 @@ public class ReadCodeItem {
 								+ "' to '" + valueT + "'.");
 					}
 
-					final T ownerT = this.du.getDescTd(fieldIdItem.getContainingClass()
+					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
 							.getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 					f.markAf(AF.STATIC);
