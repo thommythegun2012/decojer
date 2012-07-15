@@ -141,7 +141,7 @@ public class JavassistReader implements ClassReader {
 				LOGGER.warning("Unknown class attribute tag '" + attributeTag + "'!");
 			}
 		}
-		final TD td = this.du.getTd(classFile.getName());
+		final TD td = (TD) this.du.getT(classFile.getName());
 		td.setAccessFlags(classFile.getAccessFlags());
 		td.setSuperT(this.du.getT(classFile.getSuperclass()));
 		final String[] interfaces = classFile.getInterfaces();
@@ -165,8 +165,8 @@ public class JavassistReader implements ClassReader {
 			td.setDeprecated(true);
 		}
 		if (enclosingMethodAttribute != null) {
-			final TD enclosingTd = this.du.getTd(enclosingMethodAttribute.className());
-			td.setEnclosing(enclosingMethodAttribute.classIndex() == 0 ? enclosingTd : enclosingTd
+			final T enclosingT = this.du.getT(enclosingMethodAttribute.className());
+			td.setEnclosing(enclosingMethodAttribute.classIndex() == 0 ? enclosingT : enclosingT
 					.getM(enclosingMethodAttribute.methodName(),
 							enclosingMethodAttribute.methodDescriptor()));
 		}

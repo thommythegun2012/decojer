@@ -26,12 +26,22 @@ package org.decojer.cavaj.model;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.DecoJerException;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
+import org.decojer.cavaj.transformers.TrCalculatePostorder;
+import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
+import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
+import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
+import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
+import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
+import org.decojer.cavaj.transformers.TrMergeAll;
 import org.decojer.cavaj.utils.TypeNameManager;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -48,8 +58,7 @@ import org.eclipse.text.edits.TextEdit;
  */
 public final class CU implements PD {
 
-	// all sub type declarations
-	private final List<TD> allTds = new ArrayList<TD>();
+	private final static Logger LOGGER = Logger.getLogger(CU.class.getName());
 
 	/**
 	 * AST compilation unit.
@@ -60,6 +69,8 @@ public final class CU implements PD {
 
 	private final EnumSet<DFlag> dFlags = EnumSet.noneOf(DFlag.class);
 
+	private final TD mainTd;
+
 	/**
 	 * Source file name.
 	 */
@@ -68,16 +79,10 @@ public final class CU implements PD {
 	private String sourceFileName;
 
 	/**
-	 * Start type declaration.
-	 */
-	@Getter
-	private final TD startTd;
-
-	/**
 	 * Sub type declarations.
 	 */
 	@Getter
-	private final List<TD> tds = new ArrayList<TD>();
+	private final List<TD> tds = new ArrayList<TD>(2);
 
 	@Getter
 	private final TypeNameManager typeNameManager = new TypeNameManager(this);
@@ -85,14 +90,15 @@ public final class CU implements PD {
 	/**
 	 * Constructor.
 	 * 
-	 * @param startTd
-	 *            start type declaration
+	 * @param mainTd
+	 *            main type declaration
 	 */
-	public CU(final TD startTd) {
-		assert startTd != null;
+	public CU(final TD mainTd) {
+		assert mainTd != null;
 
-		this.startTd = startTd;
-		getTypeNameManager().setPackageName(startTd.getPackageName());
+		addTd(mainTd);
+		this.mainTd = mainTd;
+		getTypeNameManager().setPackageName(mainTd.getPackageName());
 	}
 
 	/**
@@ -100,67 +106,13 @@ public final class CU implements PD {
 	 * 
 	 * @param td
 	 *            type declaration
-	 * @return true - success (or allready included)
 	 */
-	public boolean addTd(final TD td) {
+	public void addTd(final TD td) {
 		assert td != null;
+		assert td.getPd() == null : td.getPd();
 
-		if (td.getPd() != null) {
-			return false;
-		}
-
-		final String typeName = td.getName();
-
-		int pos = typeName.indexOf('$');
-		if (pos == -1) {
-			pos = typeName.length();
-		}
-
-		final TD rootTd = getStartTd().getDu().getTd(typeName.substring(0, pos));
-		if (rootTd == null || rootTd.getPd() != null && rootTd.getPd() != this) {
-			return false;
-		}
-
-		TD pd = rootTd;
-		final List<TD> allTds = new ArrayList<TD>();
-
-		while (pos != typeName.length()) {
-			pos = typeName.indexOf('$', pos + 1);
-			if (pos == -1) {
-				pos = typeName.length();
-			}
-			final TD bd = getStartTd().getDu().getTd(typeName.substring(0, pos));
-			if (bd == null) {
-				return false;
-			}
-			// get possibly allready set parent
-			PD pbd = bd.getPd();
-			if (pbd instanceof FD) {
-				pbd = ((FD) pbd).getTd();
-			}
-			if (pbd instanceof MD) {
-				pbd = ((MD) pbd).getTd();
-			}
-			if (pbd != null) {
-				if (pbd != pd) {
-					throw new DecoJerException("Type declaration '" + bd.getName()
-							+ "' already belongs to other parent type declaration '" + pd + "'!");
-				}
-			} else {
-				bd.setPd(pd);
-				pd.getBds().add(bd);
-				allTds.add(bd);
-			}
-			pd = bd;
-		}
-
-		if (rootTd.getPd() == null) {
-			rootTd.setPd(this);
-			getTds().add(rootTd);
-			getAllTds().add(rootTd);
-		}
-		getAllTds().addAll(allTds);
-		return true;
+		td.setPd(this);
+		this.tds.add(td);
 	}
 
 	/**
@@ -179,7 +131,7 @@ public final class CU implements PD {
 	 */
 	public void clear() {
 		this.compilationUnit = null;
-		for (final TD td : getAllTds()) {
+		for (final TD td : getTds()) {
 			td.clear();
 		}
 	}
@@ -222,7 +174,7 @@ public final class CU implements PD {
 				.append(", a Java-bytecode decompiler.\n")
 				.append(" * DecoJer Copyright (C) 2009-2011 André Pankraz. All Rights Reserved.\n")
 				.append(" *\n");
-		final int version = this.startTd.getVersion();
+		final int version = this.mainTd.getVersion();
 		if (version == 0) {
 			sb.append(" * Dalvik File");
 		} else {
@@ -233,23 +185,58 @@ public final class CU implements PD {
 			sb.append(version - 44).append(')');
 		}
 		sb.append('\n');
-		if (this.startTd.getSourceFileName() != null) {
-			sb.append(" * Source File Name: ").append(this.startTd.getSourceFileName())
-					.append('\n');
+		if (this.mainTd.getSourceFileName() != null) {
+			sb.append(" * Source File Name: ").append(this.mainTd.getSourceFileName()).append('\n');
 		}
 		sb.append(" */");
 		return sb.toString();
 	}
 
 	/**
-	 * Get all sub type declarations.
+	 * Decompile compilation unit.
 	 * 
-	 * @return all sub type declarations
+	 * @return source code
 	 */
-	public List<TD> getAllTds() {
-		assert this.allTds != null;
+	public String decompile() {
+		for (final TD td : this.tds) {
+			TrJvmStruct2JavaAst.transform(td);
 
-		return this.allTds;
+			final List<BD> bds = td.getBds();
+			for (int j = 0; j < bds.size(); ++j) {
+				final BD bd = bds.get(j);
+				if (!(bd instanceof MD)) {
+					continue;
+				}
+				final CFG cfg = ((MD) bd).getCfg();
+				if (cfg == null || cfg.isIgnore()) {
+					continue;
+				}
+				try {
+					TrDataFlowAnalysis.transform(cfg);
+					TrCalculatePostorder.transform(cfg);
+
+					TrCfg2JavaExpressionStmts.transform(cfg);
+					TrCalculatePostorder.transform(cfg);
+
+					TrControlFlowAnalysis.transform(cfg);
+					TrCfg2JavaControlFlowStmts.transform(cfg);
+				} catch (final Throwable e) {
+					LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+				}
+			}
+		}
+		TrMergeAll.transform(this);
+
+		if (check(DFlag.START_TD_ONLY)) {
+			setSourceFileName(this.mainTd.getPName() + ".java");
+		} else {
+			final List<TD> rootTds = getTds();
+			final TD td = rootTds.get(0);
+			// if (td.getSourceFileName() != null) {
+			// cu.setSourceFileName(td.getSourceFileName());
+			setSourceFileName(td.getPName() + ".java");
+		}
+		return createSourceCode();
 	}
 
 	/**
@@ -262,6 +249,33 @@ public final class CU implements PD {
 	}
 
 	/**
+	 * Get decompilation unit.
+	 * 
+	 * @return decompilation unit
+	 */
+	public DU getDu() {
+		return this.mainTd.getDu();
+	}
+
+	/**
+	 * Get name.
+	 * 
+	 * @return name
+	 */
+	public String getName() {
+		return this.mainTd.getName();
+	}
+
+	/**
+	 * Get package name.
+	 * 
+	 * @return package name
+	 */
+	public String getPackageName() {
+		return this.mainTd.getPackageName();
+	}
+
+	/**
 	 * Get type declaration with name or full name.
 	 * 
 	 * @param name
@@ -271,24 +285,14 @@ public final class CU implements PD {
 	public TD getTd(final String name) {
 		String n = name;
 		if (n.indexOf('.') == -1) {
-			n = getStartTd().getPackageName() + '.' + n;
+			n = this.mainTd.getPackageName() + '.' + n;
 		}
-		for (final TD td : getAllTds()) {
+		for (final TD td : getTds()) {
 			if (n.equals(td.getName())) {
 				return td;
 			}
 		}
 		return null;
-	}
-
-	/**
-	 * Decompile start type declaration only.
-	 */
-	public void startTdOnly() {
-		this.dFlags.add(DFlag.START_TD_ONLY);
-		getStartTd().setPd(this);
-		getTds().add(getStartTd());
-		getAllTds().add(getStartTd());
 	}
 
 }

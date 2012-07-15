@@ -100,7 +100,7 @@ public class M {
 	 * @return method declaration
 	 */
 	public MD createMd() {
-		assert this.md != null;
+		assert this.md == null;
 
 		this.md = new MD(this);
 		((TD) this.t).getBds().add(this.md);

@@ -99,7 +99,7 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 						this.selectorPrefix.length()) != -1)) {
 			return null;
 		}
-		final TD td = this.du.getDescTd(className);
+		final TD td = (TD) this.du.getDescT(className);
 		td.setAccessFlags(access_flags);
 		td.setSuperT(this.du.getDescT(superClass));
 		if (interfaceNames != null && interfaceNames.length > 0) {

@@ -27,33 +27,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.PushbackInputStream;
-import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-import java.util.zip.ZipOutputStream;
 
-import org.decojer.cavaj.model.BD;
-import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.code.CFG;
-import org.decojer.cavaj.model.code.DFlag;
-import org.decojer.cavaj.transformers.TrCalculatePostorder;
-import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
-import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
-import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
-import org.decojer.cavaj.transformers.TrInnerClassesAnalysis;
-import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
-import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
-import org.decojer.cavaj.transformers.TrMergeAll;
 import org.decojer.cavaj.utils.MagicNumbers;
 
 /**
@@ -62,10 +41,6 @@ import org.decojer.cavaj.utils.MagicNumbers;
  * @author André Pankraz
  */
 public class DecoJer {
-
-	private final static Logger LOGGER = Logger.getLogger(DecoJer.class.getName());
-
-	private static final Charset UTF8 = Charset.forName("utf-8");
 
 	/**
 	 * Analyze file.
@@ -104,154 +79,12 @@ public class DecoJer {
 	}
 
 	/**
-	 * Create compilation unit.
-	 * 
-	 * @param startTd
-	 *            start type declaration
-	 * @return compilation unit
-	 */
-	public static CU createCu(final TD startTd) {
-		assert startTd != null;
-
-		return new CU(startTd);
-	}
-
-	/**
 	 * Create decompilation unit.
 	 * 
 	 * @return decompilation unit
 	 */
 	public static DU createDu() {
 		return new DU();
-	}
-
-	/**
-	 * Decompile compilation unit.
-	 * 
-	 * @param cu
-	 *            compilation unit
-	 * @return source code
-	 */
-	public static String decompile(final CU cu) {
-		if (cu == null) {
-			throw new DecoJerException("Compilation unit must not be null!");
-		}
-
-		if (!cu.addTd(cu.getStartTd())) {
-			// cannot add startTd with parents
-			cu.startTdOnly();
-		}
-
-		final DU du = cu.getStartTd().getDu();
-
-		final List<TD> tds = cu.getAllTds();
-		final HashSet<TD> processedTds = new HashSet<TD>();
-
-		boolean changed;
-		do {
-			changed = false;
-			for (int i = 0; i < tds.size(); ++i) {
-				final TD td = tds.get(i);
-				if (processedTds.contains(td)) {
-					continue;
-				}
-				TrJvmStruct2JavaAst.transform(td);
-
-				final List<BD> bds = td.getBds();
-				for (int j = 0; j < bds.size(); ++j) {
-					final BD bd = bds.get(j);
-					if (!(bd instanceof MD)) {
-						continue;
-					}
-					final CFG cfg = ((MD) bd).getCfg();
-					if (cfg == null || cfg.isIgnore()) {
-						continue;
-					}
-					try {
-						TrDataFlowAnalysis.transform(cfg);
-						TrCalculatePostorder.transform(cfg);
-
-						TrCfg2JavaExpressionStmts.transform(cfg);
-						TrCalculatePostorder.transform(cfg);
-
-						TrControlFlowAnalysis.transform(cfg);
-						TrCfg2JavaControlFlowStmts.transform(cfg);
-					} catch (final Throwable e) {
-						LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
-					}
-				}
-
-				processedTds.add(td);
-			}
-			// many steps here can add type declarations through lazy finding
-			for (final TD td : du.getTds()) {
-				if (td.getName().startsWith(cu.getTds().get(0).getName() + "$")) {
-					if (cu.addTd(td)) {
-						changed = true;
-					}
-				}
-			}
-		} while (changed);
-		// TODO
-		// catch errors and in case of errors, do it again for startTd only,
-		// if all is OK, add main type siblings
-		// if all is OK and source attribute is OK, add source code siblings
-
-		TrMergeAll.transform(cu);
-
-		if (cu.check(DFlag.START_TD_ONLY)) {
-			cu.setSourceFileName(cu.getStartTd().getPName() + ".java");
-		} else {
-			final List<TD> rootTds = cu.getTds();
-			final TD td = rootTds.get(0);
-			// if (td.getSourceFileName() != null) {
-			// cu.setSourceFileName(td.getSourceFileName());
-			cu.setSourceFileName(td.getPName() + ".java");
-		}
-		return cu.createSourceCode();
-	}
-
-	/**
-	 * Decompile all type declarations from decompilation unit into output stream.
-	 * 
-	 * @param du
-	 *            decompilation unit
-	 * @param os
-	 *            output stream
-	 * @throws IOException
-	 *             read exception
-	 */
-	public static void decompile(final DU du, final OutputStream os) throws IOException {
-		final ZipOutputStream zip = new ZipOutputStream(os);
-
-		TrInnerClassesAnalysis.transform(du); // TODO
-
-		for (final TD td : du.getTds()) {
-			CU cu;
-			if (td.getCu() != null) {
-				continue;
-			}
-			cu = createCu(td);
-			try {
-				final String source = decompile(cu);
-				final String sourceFileName = cu.getSourceFileName();
-				final String packageName = td.getPackageName();
-				String zipEntryName;
-				if (packageName != null && packageName.length() != 0) {
-					zipEntryName = packageName.replace('.', '/') + '/' + sourceFileName;
-				} else {
-					zipEntryName = sourceFileName;
-				}
-				final ZipEntry zipEntry = new ZipEntry(zipEntryName);
-				zip.putNextEntry(zipEntry);
-				zip.write(source.getBytes(UTF8));
-			} catch (final Throwable t) {
-				LOGGER.log(Level.WARNING, "Decompilation problems for '" + td + "'!", t);
-			} finally {
-				cu.clear();
-			}
-		}
-		zip.finish();
 	}
 
 	/**
@@ -265,21 +98,8 @@ public class DecoJer {
 	 */
 	public static String decompile(final String path) throws IOException {
 		final DU du = createDu();
-		final TD td = du.read(path).get(0);
-		final CU cu = createCu(td);
-		return decompile(cu);
-	}
-
-	/**
-	 * Decompile files (class file / archive / directory) and write source codes into derived files
-	 * (source file / archive / directory).
-	 * 
-	 * @param path
-	 *            path to class file / archive / directory, e.g.
-	 *            D:/.../[filename].jar!/.../...$[typename].class
-	 */
-	public static void decompileAll(final String path) {
-		// later...
+		du.read(path);
+		return du.getCus().get(0).decompile();
 	}
 
 	/**
@@ -300,8 +120,7 @@ public class DecoJer {
 			break;
 		case 1: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
-			final CU cu = createCu(du.getTd("org.decojer.cavaj.test.DecTestBooleanOperators"));
-			System.out.println(decompile(cu));
+			System.out.println(du.decompile("org.decojer.cavaj.test.DecTestBooleanOperators"));
 			break;
 		}
 		case 2: {
@@ -311,32 +130,27 @@ public class DecoJer {
 		}
 		case 3: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
-			decompile(du, new FileOutputStream(new File(
+			du.decompileAll(new FileOutputStream(new File(
 					"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.jar")));
 			break;
 		}
 		case 4: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1.jar");
-			decompile(
-					du,
-					new FileOutputStream(
-							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1_source.jar")));
+			du.decompileAll(new FileOutputStream(
+					new File(
+							"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1_source.jar")));
 			break;
 		}
 		case 5: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61.jar");
-			decompile(
-					du,
-					new FileOutputStream(
-							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61_source.jar")));
+			du.decompileAll(new FileOutputStream(
+					new File(
+							"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61_source.jar")));
 			break;
 		}
 		case 11: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
-			final CU cu = createCu(du.getTd("org.decojer.cavaj.test.jdk5.DecTestMethods"));
-			System.out.println(decompile(cu));
+			System.out.println(du.decompile("org.decojer.cavaj.test.jdk5.DecTestMethods"));
 			break;
 		}
 		case 12: {
@@ -346,17 +160,15 @@ public class DecoJer {
 		}
 		case 13: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex");
-			decompile(du, new FileOutputStream(new File(
+			du.decompileAll(new FileOutputStream(new File(
 					"D:/Data/Decomp/workspace/DecoJerTest/dex/classes_source.jar")));
 			break;
 		}
 		case 14: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2.apk");
-			decompile(
-					du,
-					new FileOutputStream(
-							new File(
-									"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2_source.jar")));
+			du.decompileAll(new FileOutputStream(
+					new File(
+							"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/ASTRO_File_Manager_2.5.2_source.jar")));
 			break;
 		}
 		}

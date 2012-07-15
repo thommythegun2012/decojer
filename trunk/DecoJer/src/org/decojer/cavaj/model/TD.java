@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -110,7 +111,7 @@ public final class TD extends T implements BD, PD {
 	 * Parent declaration.
 	 */
 	@Getter
-	@Setter
+	@Setter(AccessLevel.PROTECTED)
 	private PD pd;
 
 	@Getter
@@ -186,6 +187,11 @@ public final class TD extends T implements BD, PD {
 		this.interfaceTs = interfaceTs;
 	}
 
+	public void addTd(final TD td) {
+		td.setPd(this);
+		this.bds.add(td);
+	}
+
 	/**
 	 * Check access flag.
 	 * 
@@ -214,18 +220,20 @@ public final class TD extends T implements BD, PD {
 	 * @return compilation unit
 	 */
 	public CU getCu() {
-		final PD pd = getPd();
-		if (pd instanceof CU) {
-			return (CU) pd;
+		if (this.pd == null) {
+			this.du.createCus();
 		}
-		if (pd instanceof TD) {
-			return ((TD) pd).getCu();
+		if (this.pd instanceof CU) {
+			return (CU) this.pd;
 		}
-		if (pd instanceof MD) {
-			return ((MD) pd).getTd().getCu();
+		if (this.pd instanceof TD) {
+			return ((TD) this.pd).getCu();
 		}
-		if (pd instanceof FD) {
-			return ((FD) pd).getTd().getCu();
+		if (this.pd instanceof MD) {
+			return ((MD) this.pd).getTd().getCu();
+		}
+		if (this.pd instanceof FD) {
+			return ((FD) this.pd).getTd().getCu();
 		}
 		return null;
 	}

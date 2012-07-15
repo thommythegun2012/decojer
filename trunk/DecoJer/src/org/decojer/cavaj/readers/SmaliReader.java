@@ -135,7 +135,7 @@ public class SmaliReader implements DexReader {
 							selectorPrefix.length()) != -1)) {
 				continue;
 			}
-			final TD td = this.du.getDescTd(typeDescriptor);
+			final TD td = (TD) this.du.getDescT(typeDescriptor);
 			td.setAccessFlags(classDefItem.getAccessFlags());
 			td.setSuperT(this.du.getDescT(classDefItem.getSuperclass().getTypeDescriptor()));
 			final TypeListItem interfaces = classDefItem.getInterfaces();
