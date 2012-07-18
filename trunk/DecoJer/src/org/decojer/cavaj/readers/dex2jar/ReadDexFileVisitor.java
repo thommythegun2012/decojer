@@ -31,6 +31,7 @@ import lombok.Getter;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.types.ClassT;
 
 import com.googlecode.dex2jar.visitors.DexClassVisitor;
 import com.googlecode.dex2jar.visitors.DexFileVisitor;
@@ -99,7 +100,8 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 						this.selectorPrefix.length()) != -1)) {
 			return null;
 		}
-		final TD td = (TD) this.du.getDescT(className);
+		final ClassT t = (ClassT) this.du.getDescT(className);
+		final TD td = t.createTd();
 		td.setAccessFlags(access_flags);
 		td.setSuperT(this.du.getDescT(superClass));
 		if (interfaceNames != null && interfaceNames.length > 0) {

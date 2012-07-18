@@ -70,10 +70,10 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.readers.javassist.ReadCodeAttribute;
 
 /**
@@ -141,7 +141,8 @@ public class JavassistReader implements ClassReader {
 				LOGGER.warning("Unknown class attribute tag '" + attributeTag + "'!");
 			}
 		}
-		final TD td = (TD) this.du.getT(classFile.getName());
+		final ClassT t = (ClassT) this.du.getT(classFile.getName());
+		final TD td = t.createTd();
 		td.setAccessFlags(classFile.getAccessFlags());
 		td.setSuperT(this.du.getT(classFile.getSuperclass()));
 		final String[] interfaces = classFile.getInterfaces();
@@ -273,9 +274,7 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 
-		final T valueT = this.du.getDescT(fieldInfo.getDescriptor());
-		final F f = td.getF(fieldInfo.getName(), valueT);
-		final FD fd = f.createFd();
+		final FD fd = td.createFd(fieldInfo.getName(), this.du.getDescT(fieldInfo.getDescriptor()));
 
 		fd.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
@@ -369,8 +368,7 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 
-		final M m = td.getM(methodInfo.getName(), methodInfo.getDescriptor());
-		final MD md = m.createMd();
+		final MD md = td.createMd(methodInfo.getName(), methodInfo.getDescriptor());
 
 		md.setAccessFlags(methodInfo.getAccessFlags());
 		if (exceptionsAttribute != null) {

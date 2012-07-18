@@ -108,10 +108,14 @@ public final class CU implements PD {
 	 *            type declaration
 	 */
 	public void addTd(final TD td) {
-		assert td != null;
-		assert td.getPd() == null : td.getPd();
-
-		td.setPd(this);
+		if (td.pd != null) {
+			if (td.pd != this) {
+				LOGGER.warning("Cannot change parent declaration for '" + td + "' from '" + td.pd
+						+ "' to '" + this + "'!");
+			}
+			return;
+		}
+		td.pd = this;
 		this.tds.add(td);
 	}
 

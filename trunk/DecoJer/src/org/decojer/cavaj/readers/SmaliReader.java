@@ -37,10 +37,10 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.readers.smali.ReadCodeItem;
 import org.jf.dexlib.AnnotationDirectoryItem;
 import org.jf.dexlib.AnnotationDirectoryItem.FieldAnnotation;
@@ -135,7 +135,8 @@ public class SmaliReader implements DexReader {
 							selectorPrefix.length()) != -1)) {
 				continue;
 			}
-			final TD td = (TD) this.du.getDescT(typeDescriptor);
+			final ClassT t = (ClassT) this.du.getDescT(typeDescriptor);
+			final TD td = t.createTd();
 			td.setAccessFlags(classDefItem.getAccessFlags());
 			td.setSuperT(this.du.getDescT(classDefItem.getSuperclass().getTypeDescriptor()));
 			final TypeListItem interfaces = classDefItem.getInterfaces();
@@ -348,9 +349,8 @@ public class SmaliReader implements DexReader {
 			final EncodedField encodedField = staticFields.get(i);
 			final FieldIdItem field = encodedField.field;
 
-			final T valueT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
-			final F f = td.getF(field.getFieldName().getStringValue(), valueT);
-			final FD fd = f.createFd();
+			final FD fd = td.createFd(field.getFieldName().getStringValue(),
+					this.du.getDescT(field.getFieldType().getTypeDescriptor()));
 
 			fd.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
@@ -366,9 +366,8 @@ public class SmaliReader implements DexReader {
 		for (final EncodedField encodedField : instanceFields) {
 			final FieldIdItem field = encodedField.field;
 
-			final T valueT = this.du.getDescT(field.getFieldType().getTypeDescriptor());
-			final F f = td.getF(field.getFieldName().getStringValue(), valueT);
-			final FD fd = f.createFd();
+			final FD fd = td.createFd(field.getFieldName().getStringValue(),
+					this.du.getDescT(field.getFieldType().getTypeDescriptor()));
 
 			fd.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
@@ -390,11 +389,8 @@ public class SmaliReader implements DexReader {
 		for (final EncodedMethod encodedMethod : directMethods) {
 			final MethodIdItem method = encodedMethod.method;
 
-			// getResourceAsStream :
-			// (Ljava/lang/String;)Ljava/io/InputStream;
-			final M m = td.getM(method.getMethodName().getStringValue(), method.getPrototype()
-					.getPrototypeString());
-			final MD md = m.createMd();
+			final MD md = td.createMd(method.getMethodName().getStringValue(), method
+					.getPrototype().getPrototypeString());
 
 			md.setAccessFlags(encodedMethod.accessFlags);
 			md.setThrowsTs(methodThrowsTs.get(method));
@@ -412,11 +408,8 @@ public class SmaliReader implements DexReader {
 		for (final EncodedMethod encodedMethod : virtualMethods) {
 			final MethodIdItem method = encodedMethod.method;
 
-			// getResourceAsStream :
-			// (Ljava/lang/String;)Ljava/io/InputStream;
-			final M m = td.getM(method.getMethodName().getStringValue(), method.getPrototype()
-					.getPrototypeString());
-			final MD md = m.createMd();
+			final MD md = td.createMd(method.getMethodName().getStringValue(), method
+					.getPrototype().getPrototypeString());
 
 			md.setAccessFlags(encodedMethod.accessFlags);
 			md.setThrowsTs(methodThrowsTs.get(method));
