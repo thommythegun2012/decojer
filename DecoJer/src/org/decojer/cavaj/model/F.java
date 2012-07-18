@@ -98,19 +98,6 @@ public class F {
 	}
 
 	/**
-	 * Create field declaration for this field.
-	 * 
-	 * @return field declaration
-	 */
-	public FD createFd() {
-		assert this.fd == null;
-
-		this.fd = new FD(this);
-		((TD) this.t).getBds().add(this.fd);
-		return this.fd;
-	}
-
-	/**
 	 * Mark access flag.
 	 * 
 	 * @param af

@@ -26,6 +26,7 @@ package org.decojer.cavaj.model;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.decojer.cavaj.model.types.ClassT;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
@@ -33,14 +34,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * 
  * @author André Pankraz
  */
-public final class FD implements BD, PD {
-
-	/**
-	 * Annotations.
-	 */
-	@Getter
-	@Setter
-	private A[] as;
+public final class FD extends BD {
 
 	/**
 	 * Deprecated state (from deprecated attribute).
@@ -107,7 +101,7 @@ public final class FD implements BD, PD {
 	 * @return owner type declaration
 	 */
 	public TD getTd() {
-		return (TD) this.f.getT();
+		return ((ClassT) this.f.getT()).getTd();
 	}
 
 	public T getValueT() {

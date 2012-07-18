@@ -95,19 +95,6 @@ public class M {
 	}
 
 	/**
-	 * Create method declaration for this field.
-	 * 
-	 * @return method declaration
-	 */
-	public MD createMd() {
-		assert this.md == null;
-
-		this.md = new MD(this);
-		((TD) this.t).getBds().add(this.md);
-		return this.md;
-	}
-
-	/**
 	 * Mark access flag.
 	 * 
 	 * @param af

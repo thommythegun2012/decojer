@@ -30,12 +30,11 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.types.ClassT;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
@@ -96,7 +95,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName, final String[] interfaces) {
-		this.td = (TD) this.du.getT(name);
+		final ClassT t = (ClassT) this.du.getT(name);
+		this.td = t.createTd();
 		this.td.setAccessFlags(access);
 		this.td.setSuperT(this.du.getT(superName));
 		if (interfaces != null && interfaces.length > 0) {
@@ -146,9 +146,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public FieldVisitor visitField(final int access, final String name, final String desc,
 			final String signature, final Object value) {
-		final T valueT = this.du.getDescT(desc);
-		final F f = this.td.getF(name, valueT);
-		final FD fd = f.createFd();
+		final FD fd = this.td.createFd(name, this.du.getDescT(desc));
 
 		fd.setAccessFlags(access);
 		fd.setSignature(signature);
@@ -182,8 +180,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name, final String desc,
 			final String signature, final String[] exceptions) {
-		final M m = this.td.getM(name, desc);
-		final MD md = m.createMd();
+		final MD md = this.td.createMd(name, desc);
 
 		md.setAccessFlags(access);
 		if (exceptions != null && exceptions.length > 0) {

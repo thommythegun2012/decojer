@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
@@ -38,7 +39,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * 
  * @author André Pankraz
  */
-public final class MD implements BD, PD {
+public final class MD extends BD {
 
 	private final static Logger LOGGER = Logger.getLogger(MD.class.getName());
 
@@ -48,13 +49,6 @@ public final class MD implements BD, PD {
 	@Getter
 	@Setter
 	private Object annotationDefaultValue;
-
-	/**
-	 * Annotations.
-	 */
-	@Getter
-	@Setter
-	private A[] as;
 
 	/**
 	 * Control flow graph.
@@ -168,7 +162,7 @@ public final class MD implements BD, PD {
 	 * @return owner type declaration
 	 */
 	public TD getTd() {
-		return (TD) this.m.getT();
+		return ((ClassT) this.m.getT()).getTd();
 	}
 
 	/**

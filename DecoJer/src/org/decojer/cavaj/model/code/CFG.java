@@ -426,7 +426,7 @@ public final class CFG {
 					LOGGER.warning("Found local variable info for method parameter '" + reg
 							+ "' (this)!");
 				}
-				this.vss[reg] = new V[] { new V(this.md.getTd(), "this", 0, this.ops.length) };
+				this.vss[reg] = new V[] { new V(this.md.getTd().getT(), "this", 0, this.ops.length) };
 			}
 			return;
 		}
@@ -441,7 +441,8 @@ public final class CFG {
 				}
 				++reg;
 			} else {
-				this.vss[reg++] = new V[] { new V(this.md.getTd(), "this", 0, this.ops.length) };
+				this.vss[reg++] = new V[] { new V(this.md.getTd().getT(), "this", 0,
+						this.ops.length) };
 			}
 		}
 		for (int i = 0; i < paramTs.length; ++i) {

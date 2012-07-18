@@ -48,9 +48,9 @@ public class TrInnerClassesAnalysis {
 			// TODO inner/outer info
 			if (pos >= 0) {
 				// is inner name, check direct parent
-				final TD pd = du.getTd(name.substring(0, pos));
-				if (pd != null) {
-					pd.addTd(td);
+				final TD outerTd = du.getTd(name.substring(0, pos));
+				if (outerTd != null) {
+					outerTd.addBd(td);
 					// parent checked earlier or later
 					continue;
 				}

@@ -45,7 +45,6 @@ import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.V;
@@ -89,6 +88,7 @@ import org.decojer.cavaj.model.code.ops.SWAP;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
+import org.decojer.cavaj.model.types.ClassT;
 
 /**
  * Javassist read code attribute.
@@ -579,7 +579,7 @@ public class ReadCodeAttribute {
 
 				final T ownerT = this.du
 						.getT(constPool.getInterfaceMethodrefClassName(methodIndex));
-				((TD) ownerT).markAf(AF.INTERFACE);
+				((ClassT) ownerT).markAf(AF.INTERFACE);
 				final M m = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m, false));

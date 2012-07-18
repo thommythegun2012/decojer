@@ -33,7 +33,6 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
@@ -84,6 +83,7 @@ import org.decojer.cavaj.model.code.ops.SWAP;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
+import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Priority;
 import org.decojer.cavaj.utils.Types;
 import org.eclipse.jdt.core.dom.AST;
@@ -768,8 +768,7 @@ public final class TrCfg2JavaExpressionStmts {
 					inner: try {
 						Integer.parseInt(newName.substring(thisName.length() + 1));
 
-						final DU du = newT.getDu();
-						final TD newTd = du.getTd(newName);
+						final TD newTd = ((ClassT) newT).getTd();
 						if (newTd != null) {
 							// anonymous inner can only have a single interface
 							// (with generic super "Object") or a super class
@@ -860,7 +859,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final PUT cop = (PUT) op;
 				final Expression rightExpression = bb.pop();
 				final F f = cop.getF();
-				fieldInit: if (this.cfg.getMd().getTd() == f.getT()) {
+				fieldInit: if (this.cfg.getMd().getTd().getT() == f.getT()) {
 					// set local field, could be initializer
 					if (f.check(AF.STATIC)) {
 						if (!"<clinit>".equals(this.cfg.getMd().getName())) {
@@ -886,7 +885,7 @@ public final class TrCfg2JavaExpressionStmts {
 					}
 					// TODO this checks are not enough, we must assure that we don't use method
 					// arguments here!!!
-					if (((TD) f.getT()).check(AF.ENUM)
+					if (((ClassT) f.getT()).check(AF.ENUM)
 							&& !this.cfg.getCu().check(DFlag.IGNORE_ENUM)) {
 						if (f.check(AF.ENUM)) {
 							// assignment to enum constant declaration
@@ -921,7 +920,8 @@ public final class TrCfg2JavaExpressionStmts {
 										+ "' must contain number literal as first parameter!");
 								break fieldInit;
 							}
-							final FD fd = this.cfg.getTd().getF(f.getName(), f.getValueT()).getFd();
+							final FD fd = this.cfg.getTd().getT().getF(f.getName(), f.getValueT())
+									.getFd();
 							final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
 							assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
 							final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
@@ -957,7 +957,7 @@ public final class TrCfg2JavaExpressionStmts {
 							break; // ignore such assignments completely
 						}
 					}
-					final FD fd = this.cfg.getTd().getF(f.getName(), f.getValueT()).getFd();
+					final FD fd = this.cfg.getTd().getT().getF(f.getName(), f.getValueT()).getFd();
 					if (fd == null || !(fd.getFieldDeclaration() instanceof FieldDeclaration)) {
 						break fieldInit;
 					}

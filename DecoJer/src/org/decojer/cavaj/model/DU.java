@@ -50,6 +50,7 @@ import lombok.Setter;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.types.ArrayT;
+import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParamT.TypeArg;
 import org.decojer.cavaj.readers.AsmReader;
@@ -115,7 +116,7 @@ public final class DU {
 		if (t == null) {
 			return "<UNKNOWN>";
 		}
-		return ((TD) t).getCu().decompile();
+		return ((ClassT) t).getTd().getCu().decompile();
 	}
 
 	/**
@@ -225,7 +226,7 @@ public final class DU {
 		T t = this.ts.get(normName);
 		if (t == null && create) {
 			// can only be a TD...no int etc.
-			t = new TD(normName, this);
+			t = new ClassT(normName, this);
 			this.ts.put(normName, t);
 		}
 		return t;
@@ -239,7 +240,7 @@ public final class DU {
 	 * @return type declaration
 	 */
 	public TD getTd(final String name) {
-		return (TD) getT(name, false);
+		return ((ClassT) getT(name, false)).getTd();
 	}
 
 	/**
@@ -354,7 +355,7 @@ public final class DU {
 				throw new DecoJerException("Type variable in '" + s + "' (" + c.pos
 						+ ") must end with ';'!");
 			}
-			final T t = new TD(s.substring(c.pos, pos), this); // TODO, really reuse?
+			final T t = new ClassT(s.substring(c.pos, pos), this); // TODO, really reuse?
 			c.pos = pos + 1;
 			return t;
 		}
@@ -423,7 +424,8 @@ public final class DU {
 				throw new DecoJerException("Type parameter name '" + s + "' at position '" + c.pos
 						+ "' must end with ':'!");
 			}
-			final TD typeParam = new TD(s.substring(c.pos, pos), this); // TODO really reuse?
+			final ClassT typeParam = new ClassT(s.substring(c.pos, pos), this); // TODO really
+																				// reuse?
 			c.pos = pos + 1;
 			if (s.charAt(c.pos) != ':') {
 				typeParam.setSuperT(parseT(s, c));

@@ -31,6 +31,7 @@ import java.util.Map;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.types.BaseT;
+import org.decojer.cavaj.model.types.ClassT;
 
 /**
  * Type.
@@ -355,7 +356,7 @@ public abstract class T {
 		if (interfaceTs.size() == 1 && superT.isObject()) {
 			return interfaceTs.get(0);
 		}
-		return new TD(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
+		return new ClassT(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
 	}
 
 	private static int joinKinds(final int kind1, final int kind2) {
