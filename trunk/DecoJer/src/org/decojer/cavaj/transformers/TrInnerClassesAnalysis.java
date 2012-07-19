@@ -50,7 +50,7 @@ public class TrInnerClassesAnalysis {
 				// is inner name, check direct parent
 				final TD outerTd = du.getTd(name.substring(0, pos));
 				if (outerTd != null) {
-					outerTd.addBd(td);
+					outerTd.addTd(td);
 					// parent checked earlier or later
 					continue;
 				}

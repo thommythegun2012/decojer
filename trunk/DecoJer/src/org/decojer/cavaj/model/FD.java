@@ -36,13 +36,6 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  */
 public final class FD extends BD {
 
-	/**
-	 * Deprecated state (from deprecated attribute).
-	 */
-	@Getter
-	@Setter
-	private boolean deprecated;
-
 	private final F f;
 
 	@Getter
@@ -54,13 +47,6 @@ public final class FD extends BD {
 	@Getter
 	@Setter
 	private BodyDeclaration fieldDeclaration;
-
-	/**
-	 * Synthetic state (from synthetic attribute).
-	 */
-	@Getter
-	@Setter
-	private boolean synthetic;
 
 	/**
 	 * Value for constant attributes or <code>null</code>. Type Integer: int, short, byte, char,

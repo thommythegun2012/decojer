@@ -24,12 +24,21 @@
 package org.decojer.cavaj.model;
 
 import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
 
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.transformers.TrCalculatePostorder;
+import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
+import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
+import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
+import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
+import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
@@ -45,13 +54,6 @@ import org.eclipse.jdt.core.dom.Name;
 public final class TD extends BD {
 
 	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
-
-	/**
-	 * Deprecated State (from Deprecated Attribute).
-	 */
-	@Getter
-	@Setter
-	private boolean deprecated;
 
 	/**
 	 * Enclosing type or method declaration for this anynomous inner class (since Java 5).<br>
@@ -79,13 +81,6 @@ public final class TD extends BD {
 	@Getter
 	@Setter
 	private String sourceFileName;
-
-	/**
-	 * Synthetic state (from synthetic attribute).
-	 */
-	@Setter
-	@Getter
-	private boolean synthetic;
 
 	@Getter
 	private final ClassT t;
@@ -171,6 +166,34 @@ public final class TD extends BD {
 		final MD md = new MD(m);
 		addBd(md);
 		return md;
+	}
+
+	public void decompile() {
+		TrJvmStruct2JavaAst.transform(this);
+
+		final List<BD> bds = getBds();
+		for (int j = 0; j < bds.size(); ++j) {
+			final BD bd = bds.get(j);
+			if (!(bd instanceof MD)) {
+				continue;
+			}
+			final CFG cfg = ((MD) bd).getCfg();
+			if (cfg == null || cfg.isIgnore()) {
+				continue;
+			}
+			try {
+				TrDataFlowAnalysis.transform(cfg);
+				TrCalculatePostorder.transform(cfg);
+
+				TrCfg2JavaExpressionStmts.transform(cfg);
+				TrCalculatePostorder.transform(cfg);
+
+				TrControlFlowAnalysis.transform(cfg);
+				TrCfg2JavaControlFlowStmts.transform(cfg);
+			} catch (final Throwable e) {
+				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+			}
+		}
 	}
 
 	public DU getDu() {
