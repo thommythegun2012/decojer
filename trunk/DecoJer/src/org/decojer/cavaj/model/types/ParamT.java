@@ -30,9 +30,10 @@ import org.decojer.cavaj.model.T;
 /**
  * Parameterized type.
  * 
+ * @since J5
+ * 
  * @author André Pankraz
  */
-@Getter
 public final class ParamT extends T {
 
 	/**
@@ -118,11 +119,13 @@ public final class ParamT extends T {
 	/**
 	 * Generic type with matching type parameters.
 	 */
+	@Getter
 	private final T genericT;
 
 	/**
 	 * Type arguments for matching type parameters.
 	 */
+	@Getter
 	private final TypeArg[] typeArgs;
 
 	/**
@@ -135,9 +138,6 @@ public final class ParamT extends T {
 	 */
 	public ParamT(final T genericT, final TypeArg[] typeArgs) {
 		super(toString(genericT, typeArgs));
-
-		assert genericT != null;
-		assert typeArgs != null;
 
 		this.genericT = genericT;
 		this.typeArgs = typeArgs;
