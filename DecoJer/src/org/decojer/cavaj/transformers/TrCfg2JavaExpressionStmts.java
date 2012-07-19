@@ -785,7 +785,7 @@ public final class TrCfg2JavaExpressionStmts {
 							default:
 								break inner;
 							}
-							if (newTd.getPd() == null) {
+							if (newTd.getParent() == null) {
 								// TODO this.cfg.getCu().addTd(newTd);
 							}
 							// TODO newTd.setPd(this.cfg.getMd());

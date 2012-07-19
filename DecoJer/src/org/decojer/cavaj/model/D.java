@@ -23,36 +23,50 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
 import lombok.Getter;
-import lombok.Setter;
 
 /**
- * Body declaration.
+ * Declaration.
  * 
  * @author André Pankraz
  */
-public abstract class BD extends D {
+public abstract class D {
+
+	private final static Logger LOGGER = Logger.getLogger(BD.class.getName());
 
 	/**
-	 * Annotations.
+	 * All body declarations: inner type / method / field declarations.
 	 */
 	@Getter
-	@Setter
-	private A[] as;
+	private final List<BD> bds = new ArrayList<BD>();
 
 	/**
-	 * Deprecated State (from Deprecated Attribute).
+	 * Parent declaration.
 	 */
 	@Getter
-	@Setter
-	private boolean deprecated;
+	protected D parent;
 
 	/**
-	 * Synthetic state (from synthetic attribute).
+	 * Add body declaration.
+	 * 
+	 * @param bd
+	 *            bode declaration
 	 */
-	@Getter
-	@Setter
-	private boolean synthetic;
+	protected void addBd(final BD bd) {
+		if (bd.parent != null) {
+			if (bd.parent != this) {
+				LOGGER.warning("Cannot change parent declaration for '" + bd + "' from '"
+						+ bd.parent + "' to '" + this + "'!");
+			}
+			return;
+		}
+		bd.parent = this;
+		this.bds.add(bd);
+	}
 
 	/**
 	 * Add type declaration.
@@ -63,5 +77,31 @@ public abstract class BD extends D {
 	public void addTd(final TD td) {
 		addBd(td);
 	}
+
+	/**
+	 * Clear all generated data after read.
+	 */
+	public void clear() {
+		for (final BD bd : this.bds) {
+			bd.clear();
+		}
+	}
+
+	/**
+	 * Get compilation unit.
+	 * 
+	 * @return compilation unit
+	 */
+	public CU getCu() {
+		if (this.parent instanceof CU) {
+			return (CU) this.parent;
+		}
+		if (this.parent instanceof BD) {
+			return ((BD) this.parent).getCu();
+		}
+		return null;
+	}
+
+	public abstract String getName();
 
 }

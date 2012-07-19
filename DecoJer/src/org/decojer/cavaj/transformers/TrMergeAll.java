@@ -67,8 +67,8 @@ public final class TrMergeAll {
 
 	@SuppressWarnings("unchecked")
 	public static void transform(final CU cu) {
-		final List<TD> tds = cu.getTds();
-		for (final TD td : tds) {
+		for (final BD bd : cu.getBds()) {
+			final TD td = (TD) bd;
 			if (td.isAnonymous()) {
 				continue;
 			}

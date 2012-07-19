@@ -23,24 +23,13 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.DecoJerException;
-import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
-import org.decojer.cavaj.transformers.TrCalculatePostorder;
-import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
-import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
-import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
-import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
-import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformers.TrMergeAll;
 import org.decojer.cavaj.utils.TypeNameManager;
 import org.eclipse.jdt.core.dom.AST;
@@ -56,9 +45,7 @@ import org.eclipse.text.edits.TextEdit;
  * 
  * @author André Pankraz
  */
-public final class CU implements PD {
-
-	private final static Logger LOGGER = Logger.getLogger(CU.class.getName());
+public final class CU extends D {
 
 	/**
 	 * AST compilation unit.
@@ -78,12 +65,6 @@ public final class CU implements PD {
 	@Setter
 	private String sourceFileName;
 
-	/**
-	 * Sub type declarations.
-	 */
-	@Getter
-	private final List<TD> tds = new ArrayList<TD>(2);
-
 	@Getter
 	private final TypeNameManager typeNameManager = new TypeNameManager(this);
 
@@ -102,24 +83,6 @@ public final class CU implements PD {
 	}
 
 	/**
-	 * Add type declaration and add all parents.
-	 * 
-	 * @param td
-	 *            type declaration
-	 */
-	public void addTd(final TD td) {
-		if (td.pd != null) {
-			if (td.pd != this) {
-				LOGGER.warning("Cannot change parent declaration for '" + td + "' from '" + td.pd
-						+ "' to '" + this + "'!");
-			}
-			return;
-		}
-		td.pd = this;
-		this.tds.add(td);
-	}
-
-	/**
 	 * Check decompile flag.
 	 * 
 	 * @param dFlag
@@ -133,11 +96,10 @@ public final class CU implements PD {
 	/**
 	 * Clear all generated data after read.
 	 */
+	@Override
 	public void clear() {
 		this.compilationUnit = null;
-		for (final TD td : getTds()) {
-			td.clear();
-		}
+		super.clear();
 	}
 
 	/**
@@ -202,40 +164,15 @@ public final class CU implements PD {
 	 * @return source code
 	 */
 	public String decompile() {
-		for (final TD td : this.tds) {
-			TrJvmStruct2JavaAst.transform(td);
-
-			final List<BD> bds = td.getBds();
-			for (int j = 0; j < bds.size(); ++j) {
-				final BD bd = bds.get(j);
-				if (!(bd instanceof MD)) {
-					continue;
-				}
-				final CFG cfg = ((MD) bd).getCfg();
-				if (cfg == null || cfg.isIgnore()) {
-					continue;
-				}
-				try {
-					TrDataFlowAnalysis.transform(cfg);
-					TrCalculatePostorder.transform(cfg);
-
-					TrCfg2JavaExpressionStmts.transform(cfg);
-					TrCalculatePostorder.transform(cfg);
-
-					TrControlFlowAnalysis.transform(cfg);
-					TrCfg2JavaControlFlowStmts.transform(cfg);
-				} catch (final Throwable e) {
-					LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
-				}
-			}
+		for (final BD bd : getBds()) {
+			((TD) bd).decompile();
 		}
 		TrMergeAll.transform(this);
 
 		if (check(DFlag.START_TD_ONLY)) {
 			setSourceFileName(this.mainTd.getPName() + ".java");
 		} else {
-			final List<TD> rootTds = getTds();
-			final TD td = rootTds.get(0);
+			final TD td = (TD) getBds().get(0);
 			// if (td.getSourceFileName() != null) {
 			// cu.setSourceFileName(td.getSourceFileName());
 			setSourceFileName(td.getPName() + ".java");
@@ -266,6 +203,7 @@ public final class CU implements PD {
 	 * 
 	 * @return name
 	 */
+	@Override
 	public String getName() {
 		return this.mainTd.getName();
 	}
@@ -291,9 +229,9 @@ public final class CU implements PD {
 		if (n.indexOf('.') == -1) {
 			n = this.mainTd.getPackageName() + '.' + n;
 		}
-		for (final TD td : getTds()) {
-			if (n.equals(td.getName())) {
-				return td;
+		for (final BD bd : getBds()) {
+			if (n.equals(bd.getName())) {
+				return (TD) bd;
 			}
 		}
 		return null;

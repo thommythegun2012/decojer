@@ -57,13 +57,6 @@ public final class MD extends BD {
 	@Setter
 	private CFG cfg;
 
-	/**
-	 * Deprecated state (from deprecated attribute).
-	 */
-	@Getter
-	@Setter
-	private boolean deprecated;
-
 	private final M m;
 
 	@Getter
@@ -92,13 +85,6 @@ public final class MD extends BD {
 	@Getter
 	@Setter
 	private A[][] paramAss;
-
-	/**
-	 * Synthetic state (from synthetic attribute)
-	 */
-	@Getter
-	@Setter
-	private boolean synthetic;
 
 	private String[] paramNames;
 
