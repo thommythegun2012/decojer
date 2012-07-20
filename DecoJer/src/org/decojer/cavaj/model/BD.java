@@ -48,6 +48,12 @@ public abstract class BD extends D {
 	private boolean deprecated;
 
 	/**
+	 * Parent declaration.
+	 */
+	@Getter
+	protected D parent;
+
+	/**
 	 * Synthetic state (from synthetic attribute).
 	 */
 	@Getter
@@ -60,8 +66,24 @@ public abstract class BD extends D {
 	 * @param td
 	 *            type declaration
 	 */
+	@Override
 	public void addTd(final TD td) {
 		addBd(td);
+	}
+
+	/**
+	 * Get compilation unit.
+	 * 
+	 * @return compilation unit
+	 */
+	public CU getCu() {
+		if (this.parent instanceof CU) {
+			return (CU) this.parent;
+		}
+		if (this.parent instanceof BD) {
+			return ((BD) this.parent).getCu();
+		}
+		return null;
 	}
 
 }

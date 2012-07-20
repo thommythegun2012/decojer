@@ -45,12 +45,6 @@ public abstract class D {
 	private final List<BD> bds = new ArrayList<BD>();
 
 	/**
-	 * Parent declaration.
-	 */
-	@Getter
-	protected D parent;
-
-	/**
 	 * Add body declaration.
 	 * 
 	 * @param bd
@@ -85,21 +79,6 @@ public abstract class D {
 		for (final BD bd : this.bds) {
 			bd.clear();
 		}
-	}
-
-	/**
-	 * Get compilation unit.
-	 * 
-	 * @return compilation unit
-	 */
-	public CU getCu() {
-		if (this.parent instanceof CU) {
-			return (CU) this.parent;
-		}
-		if (this.parent instanceof BD) {
-			return ((BD) this.parent).getCu();
-		}
-		return null;
 	}
 
 	public abstract String getName();
