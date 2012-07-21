@@ -45,7 +45,6 @@ import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 
 import com.googlecode.dex2jar.DexLabel;
-import com.googlecode.dex2jar.DexOpcodes;
 import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.Method;
 import com.googlecode.dex2jar.OdexOpcodes;
@@ -56,7 +55,7 @@ import com.googlecode.dex2jar.visitors.OdexCodeVisitor;
  * 
  * @author André Pankraz
  */
-public class ReadDexCodeVisitor implements OdexCodeVisitor, DexOpcodes, OdexOpcodes {
+public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadDexCodeVisitor.class.getName());
 

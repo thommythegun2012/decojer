@@ -60,7 +60,6 @@ public class StringMemoryStorage implements IEncodedStorage {
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes")
 	public Object getAdapter(final Class adapter) {
 		return null;
 	}

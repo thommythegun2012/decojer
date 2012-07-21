@@ -136,6 +136,128 @@ public final class TrCfg2JavaExpressionStmts {
 	private final static Logger LOGGER = Logger
 			.getLogger(TrCfg2JavaExpressionStmts.class.getName());
 
+	private static boolean rewriteShortCircuitCompound(final BB bb) {
+		if (bb.getIns().size() != 1) {
+			return false;
+		}
+		// must be single if statement for short-circuit compound boolean expression structure
+		if (bb.getStmts() != 1 || !bb.isFinalStmtCond()) {
+			return false;
+		}
+		final BB trueSucc = bb.getTrueSucc();
+		final BB falseSucc = bb.getFalseSucc();
+
+		final BB pred = bb.getIns().get(0).getStart();
+		if (!pred.isFinalStmtCond()) {
+			return false;
+		}
+		final BB predTrueSucc = pred.getTrueSucc();
+		final BB predFalseSucc = pred.getFalseSucc();
+
+		if (predTrueSucc == bb) {
+			if (predFalseSucc == trueSucc) {
+				// !A || B
+
+				// ....|..
+				// ....A..
+				// ..t/.\f
+				// ...B..|
+				// .f/.\t|
+				// ./...\|
+				// F.....T
+
+				// rewrite AST
+				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
+						.getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
+				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
+						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
+				// rewrite CFG
+				bb.removeStmt(0);
+				bb.copyContentFrom(pred);
+				pred.moveIns(bb);
+				pred.remove();
+				return true;
+			}
+			if (predFalseSucc == falseSucc) {
+				// A && B
+
+				// ..|....
+				// ..A....
+				// f/.\t..
+				// |..B...
+				// |f/.\t.
+				// |/...\.
+				// F.....T
+
+				// rewrite AST
+				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
+						.getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
+				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_AND, rightExpression, leftExpression));
+				// rewrite CFG
+				bb.removeStmt(0);
+				bb.copyContentFrom(pred);
+				pred.moveIns(bb);
+				pred.remove();
+				return true;
+			}
+		} else if (predFalseSucc == bb) {
+			if (predTrueSucc == trueSucc) {
+				// A || B
+
+				// ....|..
+				// ....A..
+				// ..f/.\t
+				// ...B..|
+				// .f/.\t|
+				// ./...\|
+				// F.....T
+
+				// rewrite AST
+				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
+						.getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
+				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_OR, rightExpression, leftExpression));
+				// rewrite CFG
+				bb.removeStmt(0);
+				bb.copyContentFrom(pred);
+				pred.moveIns(bb);
+				pred.remove();
+				return true;
+			}
+			if (predTrueSucc == falseSucc) {
+				// !A && B
+
+				// ..|....
+				// ..A....
+				// t/.\f..
+				// |..B...
+				// |f/.\t.
+				// |/...\.
+				// F.....T
+
+				// rewrite AST
+				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
+						.getExpression();
+				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
+				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
+						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
+				// rewrite CFG
+				bb.removeStmt(0);
+				bb.copyContentFrom(pred);
+				pred.moveIns(bb);
+				pred.remove();
+				return true;
+			}
+		}
+		return false;
+	}
+
 	/**
 	 * Transform CFG.
 	 * 
@@ -152,7 +274,6 @@ public final class TrCfg2JavaExpressionStmts {
 		this.cfg = cfg;
 	}
 
-	@SuppressWarnings("unchecked")
 	private boolean convertToHLLIntermediate(final BB bb) {
 		while (bb.getOps() > 0) {
 			final Op op = bb.getOp(0);
@@ -1345,7 +1466,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
-	@SuppressWarnings("unchecked")
 	private boolean rewriteHandler(final BB bb) {
 		if (bb.getOps() == 0 || !(bb.getOp(0) instanceof STORE)) {
 			LOGGER.warning("First operation in handler isn't STORE: " + bb);
@@ -1379,128 +1499,6 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		bb.addStmt(tryStatement);
 		return true;
-	}
-
-	private boolean rewriteShortCircuitCompound(final BB bb) {
-		if (bb.getIns().size() != 1) {
-			return false;
-		}
-		// must be single if statement for short-circuit compound boolean expression structure
-		if (bb.getStmts() != 1 || !bb.isFinalStmtCond()) {
-			return false;
-		}
-		final BB trueSucc = bb.getTrueSucc();
-		final BB falseSucc = bb.getFalseSucc();
-
-		final BB pred = bb.getIns().get(0).getStart();
-		if (!pred.isFinalStmtCond()) {
-			return false;
-		}
-		final BB predTrueSucc = pred.getTrueSucc();
-		final BB predFalseSucc = pred.getFalseSucc();
-
-		if (predTrueSucc == bb) {
-			if (predFalseSucc == trueSucc) {
-				// !A || B
-
-				// ....|..
-				// ....A..
-				// ..t/.\f
-				// ...B..|
-				// .f/.\t|
-				// ./...\|
-				// F.....T
-
-				// rewrite AST
-				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
-						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
-						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
-				// rewrite CFG
-				bb.removeStmt(0);
-				bb.copyContentFrom(pred);
-				pred.moveIns(bb);
-				pred.remove();
-				return true;
-			}
-			if (predFalseSucc == falseSucc) {
-				// A && B
-
-				// ..|....
-				// ..A....
-				// f/.\t..
-				// |..B...
-				// |f/.\t.
-				// |/...\.
-				// F.....T
-
-				// rewrite AST
-				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
-						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_AND, rightExpression, leftExpression));
-				// rewrite CFG
-				bb.removeStmt(0);
-				bb.copyContentFrom(pred);
-				pred.moveIns(bb);
-				pred.remove();
-				return true;
-			}
-		} else if (predFalseSucc == bb) {
-			if (predTrueSucc == trueSucc) {
-				// A || B
-
-				// ....|..
-				// ....A..
-				// ..f/.\t
-				// ...B..|
-				// .f/.\t|
-				// ./...\|
-				// F.....T
-
-				// rewrite AST
-				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
-						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_OR, rightExpression, leftExpression));
-				// rewrite CFG
-				bb.removeStmt(0);
-				bb.copyContentFrom(pred);
-				pred.moveIns(bb);
-				pred.remove();
-				return true;
-			}
-			if (predTrueSucc == falseSucc) {
-				// !A && B
-
-				// ..|....
-				// ..A....
-				// t/.\f..
-				// |..B...
-				// |f/.\t.
-				// |/...\.
-				// F.....T
-
-				// rewrite AST
-				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
-						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
-						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
-				// rewrite CFG
-				bb.removeStmt(0);
-				bb.copyContentFrom(pred);
-				pred.moveIns(bb);
-				pred.remove();
-				return true;
-			}
-		}
-		return false;
 	}
 
 	private void transform() {

@@ -74,7 +74,6 @@ public final class TrJvmStruct2JavaAst {
 
 	private final static Logger LOGGER = Logger.getLogger(TrJvmStruct2JavaAst.class.getName());
 
-	@SuppressWarnings("unchecked")
 	private static void decompileField(final FD fd, final CU cu) {
 		if ((fd.check(AF.SYNTHETIC) || fd.isSynthetic())
 				&& !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
@@ -180,7 +179,6 @@ public final class TrJvmStruct2JavaAst {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private static void decompileMethod(final MD md, final CU cu) {
 		if ((md.check(AF.SYNTHETIC) || md.isSynthetic())
 				&& !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
@@ -329,7 +327,6 @@ public final class TrJvmStruct2JavaAst {
 	 * @param md
 	 *            method declaration
 	 */
-	@SuppressWarnings("unchecked")
 	private static void decompileMethodParams(final MD md) {
 		// method type parameters (full signature only):
 		// <T:Ljava/lang/Integer;U:Ljava/lang/Long;>(TT;TU;)V
@@ -410,7 +407,6 @@ public final class TrJvmStruct2JavaAst {
 	 * @param td
 	 *            Type Declaration
 	 */
-	@SuppressWarnings("unchecked")
 	private static void decompileTypeParams(final T[] typeParams,
 			final List<TypeParameter> typeParameters, final TD td) {
 		if (typeParams == null) {
@@ -437,7 +433,6 @@ public final class TrJvmStruct2JavaAst {
 	 * @param td
 	 *            type declaration
 	 */
-	@SuppressWarnings("unchecked")
 	public static void transform(final TD td) {
 		final CU cu = td.getCu();
 

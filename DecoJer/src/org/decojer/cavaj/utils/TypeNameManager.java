@@ -38,6 +38,27 @@ public class TypeNameManager {
 
 	private static final String JAVA_LANG = "java.lang.";
 
+	private static String replace(final String str) {
+		int pos2 = str.indexOf('$');
+		if (pos2 == -1) {
+			return str;
+		}
+		int pos1 = 0;
+		final StringBuilder sb = new StringBuilder();
+		while (pos2 != -1 && pos2 + 1 < str.length()) {
+			sb.append(str.substring(pos1, pos2));
+			if (Character.isJavaIdentifierStart(str.charAt(pos2 + 1))) {
+				sb.append('.');
+			} else {
+				sb.append('$');
+			}
+			pos1 = pos2 + 1;
+			pos2 = str.indexOf('$', pos1);
+		}
+		sb.append(str.substring(pos1));
+		return sb.toString();
+	}
+
 	private final CU cu;
 
 	private String packagePrefix;
@@ -94,27 +115,6 @@ public class TypeNameManager {
 			// could contain illegal keywords
 			return getAST().newName(javaName);
 		}
-	}
-
-	private String replace(final String str) {
-		int pos2 = str.indexOf('$');
-		if (pos2 == -1) {
-			return str;
-		}
-		int pos1 = 0;
-		final StringBuilder sb = new StringBuilder();
-		while (pos2 != -1 && pos2 + 1 < str.length()) {
-			sb.append(str.substring(pos1, pos2));
-			if (Character.isJavaIdentifierStart(str.charAt(pos2 + 1))) {
-				sb.append('.');
-			} else {
-				sb.append('$');
-			}
-			pos1 = pos2 + 1;
-			pos2 = str.indexOf('$', pos1);
-		}
-		sb.append(str.substring(pos1));
-		return sb.toString();
 	}
 
 	/**

@@ -344,7 +344,7 @@ public abstract class T {
 					if (!interfaceTs.contains(interfaceT)) {
 						interfaceTs.add(interfaceT);
 					}
-				} else if (interfaceT != null) {
+				} else {
 					ts.add(interfaceT);
 				}
 			}

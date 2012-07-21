@@ -31,13 +31,11 @@ import org.eclipse.ui.IStorageEditorInput;
 /**
  * Memory Storage Editor Input for Eclipse Editor Framework.
  * 
- * This wraps for instance a String Storage element which delivers an in-memory
- * String Input Stream.
+ * This wraps for instance a String Storage element which delivers an in-memory String Input Stream.
  * 
- * This way it isn't necassary to create a local temporary file containing the
- * decompiled source code. I don't know yet if this really works, there are
- * problems with empty outline views from the Compilation Unit Editor and with
- * gotos.
+ * This way it isn't necassary to create a local temporary file containing the decompiled source
+ * code. I don't know yet if this really works, there are problems with empty outline views from the
+ * Compilation Unit Editor and with gotos.
  * 
  * @author André Pankraz
  */
@@ -55,31 +53,37 @@ public class MemoryStorageEditorInput implements IStorageEditorInput {
 		this.storage = storage;
 	}
 
+	@Override
 	public boolean exists() {
 		return true;
 	}
 
-	@SuppressWarnings("rawtypes")
+	@Override
 	public Object getAdapter(final Class adapter) {
 		return null;
 	}
 
+	@Override
 	public ImageDescriptor getImageDescriptor() {
 		return null;
 	}
 
+	@Override
 	public String getName() {
 		return this.storage.getName();
 	}
 
+	@Override
 	public IPersistableElement getPersistable() {
 		return null;
 	}
 
+	@Override
 	public IStorage getStorage() {
 		return this.storage;
 	}
 
+	@Override
 	public String getToolTipText() {
 		return "StorageEditorInput: " + this.storage.getName();
 	}

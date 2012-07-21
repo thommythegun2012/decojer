@@ -155,7 +155,7 @@ public final class Types {
 			LOGGER.warning("Boolean type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
 			return ast.newBooleanLiteral(value instanceof String ? Boolean.valueOf((String) value)
-					: value != null);
+					: true /* value is not null here */);
 		}
 		if (t.is(T.CHAR)) {
 			if (value instanceof Character || value instanceof Number || value instanceof String
@@ -324,7 +324,6 @@ public final class Types {
 	 *            Type Declaration (context)
 	 * @return AST Type
 	 */
-	@SuppressWarnings("unchecked")
 	public static Type convertType(final T t, final TD td) {
 		final AST ast = td.getCu().getAst();
 		if (t instanceof ArrayT) {

@@ -116,6 +116,7 @@ public final class MD extends BD {
 		return this.m.getDescriptor();
 	}
 
+	@Override
 	public String getName() {
 		return this.m.getName();
 	}
