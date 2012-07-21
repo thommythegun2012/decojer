@@ -39,36 +39,59 @@ import org.decojer.cavaj.model.TD;
  */
 public class TrInnerClassesAnalysis {
 
-	public static void transform(final DU du) {
-		final List<CU> cus = new ArrayList<CU>();
-		final Map<String, CU> sourceFileName2cu = new HashMap<String, CU>();
+	private static TD findOuterTd(final TD td) {
+		final String name = td.getName();
+		final int pos = name.lastIndexOf('$');
+		return td.getDu().getTd(name.substring(0, pos));
+	}
+
+	private static List<TD> findTopTds(final DU du) {
+		final List<TD> tds = new ArrayList<TD>();
 		for (final TD td : du.getTds()) {
-			final String name = td.getName();
-			final int pos = name.lastIndexOf('$');
-			// TODO inner/outer info
-			if (pos >= 0) {
+			if (td.getName().lastIndexOf('$') >= 0) {
 				// is inner name, check direct parent
-				final TD outerTd = du.getTd(name.substring(0, pos));
+				final TD outerTd = findOuterTd(td);
 				if (outerTd != null) {
 					outerTd.addTd(td);
 					// parent checked earlier or later
 					continue;
 				}
-				// no matching parent read till now...live with that, create cu, no source check
-				cus.add(new CU(td));
+				// no matching parent read till now...live with that
+				tds.add(td);
 				continue;
 			}
-			final String sourceFileName = td.getSourceFileName();
-			if (sourceFileName != null) {
-				final CU cu = sourceFileName2cu.get(sourceFileName);
+			tds.add(td);
+		}
+		return tds;
+	}
+
+	private static String getSourceId(final TD mainTd) {
+		final String sourceFileName = mainTd.getSourceFileName();
+		if (sourceFileName == null) {
+			return null;
+		}
+		final String packageName = mainTd.getPackageName();
+		return packageName == null ? sourceFileName : packageName + "/" + sourceFileName;
+	}
+
+	public static void transform(final DU du) {
+		final List<TD> topTds = findTopTds(du);
+		final List<CU> cus = new ArrayList<CU>();
+		final Map<String, CU> sourceId2cu = new HashMap<String, CU>();
+		for (final TD topTd : topTds) {
+			final String sourceId = getSourceId(topTd);
+			if (sourceId != null) {
+				final CU cu = sourceId2cu.get(sourceId);
 				if (cu != null) {
-					cu.addTd(td);
+					cu.addTd(topTd);
 					continue;
 				}
 			}
-			final CU cu = new CU(td);
-			if (sourceFileName != null) {
-				sourceFileName2cu.put(sourceFileName, cu);
+			final String sourceFileName = sourceId != null ? topTd.getSourceFileName() : topTd
+					.getPName() + ".java";
+			final CU cu = new CU(topTd, sourceFileName);
+			if (sourceId != null) {
+				sourceId2cu.put(sourceId, cu);
 			}
 			cus.add(cu);
 		}

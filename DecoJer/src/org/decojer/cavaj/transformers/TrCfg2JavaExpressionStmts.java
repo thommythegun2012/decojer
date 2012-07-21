@@ -567,13 +567,11 @@ public final class TrCfg2JavaExpressionStmts {
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
 				}
-				if (methodExpression != null) {
-					final T returnT = m.getReturnT();
-					if (returnT.is(void.class)) {
-						statement = getAst().newExpressionStatement(methodExpression);
-					} else {
-						bb.push(methodExpression);
-					}
+				final T returnT = m.getReturnT();
+				if (returnT.is(void.class)) {
+					statement = getAst().newExpressionStatement(methodExpression);
+				} else {
+					bb.push(methodExpression);
 				}
 				break;
 			}
@@ -953,9 +951,8 @@ public final class TrCfg2JavaExpressionStmts {
 					if (f.check(AF.SYNTHETIC)) {
 						if (this.cfg.getCu().check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 							break fieldInit; // not as field initializer
-						} else {
-							break; // ignore such assignments completely
 						}
+						break; // ignore such assignments completely
 					}
 					final FD fd = this.cfg.getTd().getT().getF(f.getName(), f.getValueT()).getFd();
 					if (fd == null || !(fd.getFieldDeclaration() instanceof FieldDeclaration)) {

@@ -76,7 +76,7 @@ public final class TD extends BD {
 	private String readFileName;
 
 	/**
-	 * Source File Name (from Source File Attribute).
+	 * Source file name (from source file attribute).
 	 */
 	@Getter
 	@Setter
@@ -223,6 +223,7 @@ public final class TD extends BD {
 	 * 
 	 * @return name
 	 */
+	@Override
 	public String getName() {
 		return this.t.getName();
 	}
