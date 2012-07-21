@@ -132,6 +132,14 @@ class DecTestInnerS {
 
 		protected static final class Inner11 {
 
+			Object o2 = new Object() {
+
+				// not in 1.2
+				// class AInner {
+				// }
+
+			};
+
 			public Inner11(final Inner1 inner1) {
 				System.out.println(inner1);
 				System.out.println(Inner11.class);
@@ -139,7 +147,31 @@ class DecTestInnerS {
 
 			void test(final int a) {
 
-				class AInner1 {
+				class AInner {
+
+					void test() {
+						System.out.println("a=" + a);
+						// not in 1.2
+						System.out.println("DecTestInner.Inner1.Inner11.class");
+					}
+
+				}
+
+			}
+
+			void test2(final int a) {
+
+				class AInner {
+
+					void test() {
+						System.out.println("a=" + a);
+						// not in 1.2
+						System.out.println("DecTestInner.Inner1.Inner11.class");
+					}
+
+				}
+
+				class AInner2 {
 
 					void test() {
 						System.out.println("a=" + a);
