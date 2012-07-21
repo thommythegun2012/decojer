@@ -59,11 +59,10 @@ public final class CU extends D {
 	private final TD mainTd;
 
 	/**
-	 * Source file name.
+	 * Source file name (calculated).
 	 */
 	@Getter
-	@Setter
-	private String sourceFileName;
+	private final String sourceFileName;
 
 	@Getter
 	private final TypeNameManager typeNameManager = new TypeNameManager(this);
@@ -73,12 +72,16 @@ public final class CU extends D {
 	 * 
 	 * @param mainTd
 	 *            main type declaration
+	 * @param sourceFileName
+	 *            source file name
 	 */
-	public CU(final TD mainTd) {
+	public CU(final TD mainTd, final String sourceFileName) {
 		assert mainTd != null;
+		assert sourceFileName != null;
 
 		addTd(mainTd);
 		this.mainTd = mainTd;
+		this.sourceFileName = sourceFileName;
 		getTypeNameManager().setPackageName(mainTd.getPackageName());
 	}
 
@@ -168,15 +171,6 @@ public final class CU extends D {
 			((TD) bd).decompile();
 		}
 		TrMergeAll.transform(this);
-
-		if (check(DFlag.START_TD_ONLY)) {
-			setSourceFileName(this.mainTd.getPName() + ".java");
-		} else {
-			final TD td = (TD) getBds().get(0);
-			// if (td.getSourceFileName() != null) {
-			// cu.setSourceFileName(td.getSourceFileName());
-			setSourceFileName(td.getPName() + ".java");
-		}
 		return createSourceCode();
 	}
 

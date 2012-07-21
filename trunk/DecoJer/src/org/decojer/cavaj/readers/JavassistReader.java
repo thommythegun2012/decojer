@@ -103,7 +103,6 @@ public class JavassistReader implements ClassReader {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public TD read(final InputStream is) throws IOException {
 		final ClassFile classFile = new ClassFile(new DataInputStream(is));
 
@@ -205,13 +204,12 @@ public class JavassistReader implements ClassReader {
 		return td;
 	}
 
-	@SuppressWarnings("unchecked")
 	private A readAnnotation(final Annotation annotation, final RetentionPolicy retentionPolicy) {
 		final T t = this.du.getT(annotation.getTypeName());
 		final A a = new A(t, retentionPolicy);
 		if (annotation.getMemberNames() != null) {
 			for (final String name : (Set<String>) annotation.getMemberNames()) {
-				a.addMember(name, readValue(annotation.getMemberValue(name), this.du));
+				a.addMember(name, readValue(annotation.getMemberValue(name)));
 			}
 		}
 		return a;
@@ -246,7 +244,6 @@ public class JavassistReader implements ClassReader {
 		return as;
 	}
 
-	@SuppressWarnings("unchecked")
 	private FD readField(final TD td, final FieldInfo fieldInfo) {
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
@@ -328,7 +325,6 @@ public class JavassistReader implements ClassReader {
 		return fd;
 	}
 
-	@SuppressWarnings("unchecked")
 	private MD readMethod(final TD td, final MethodInfo methodInfo) {
 		AnnotationDefaultAttribute annotationDefaultAttribute = null;
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
@@ -387,7 +383,7 @@ public class JavassistReader implements ClassReader {
 
 		if (annotationDefaultAttribute != null) {
 			final MemberValue defaultMemberValue = annotationDefaultAttribute.getDefaultValue();
-			final Object annotationDefaultValue = readValue(defaultMemberValue, this.du);
+			final Object annotationDefaultValue = readValue(defaultMemberValue);
 			md.setAnnotationDefaultValue(annotationDefaultValue);
 		}
 
@@ -455,7 +451,7 @@ public class JavassistReader implements ClassReader {
 		return md;
 	}
 
-	private Object readValue(final MemberValue memberValue, final DU du) {
+	private Object readValue(final MemberValue memberValue) {
 		if (memberValue instanceof AnnotationMemberValue) {
 			// retention unknown for annotation constant
 			return readAnnotation(((AnnotationMemberValue) memberValue).getValue(), null);
@@ -464,7 +460,7 @@ public class JavassistReader implements ClassReader {
 			final MemberValue[] values = ((ArrayMemberValue) memberValue).getValue();
 			final Object[] objects = new Object[values.length];
 			for (int i = values.length; i-- > 0;) {
-				objects[i] = readValue(values[i], du);
+				objects[i] = readValue(values[i]);
 			}
 			return objects;
 		}
@@ -478,12 +474,12 @@ public class JavassistReader implements ClassReader {
 			return ((CharMemberValue) memberValue).getValue();
 		}
 		if (memberValue instanceof ClassMemberValue) {
-			return du.getT(((ClassMemberValue) memberValue).getValue());
+			return this.du.getT(((ClassMemberValue) memberValue).getValue());
 		}
 		if (memberValue instanceof DoubleMemberValue) {
 			return ((DoubleMemberValue) memberValue).getValue();
 		} else if (memberValue instanceof EnumMemberValue) {
-			final T enumT = du.getT(((EnumMemberValue) memberValue).getType());
+			final T enumT = this.du.getT(((EnumMemberValue) memberValue).getType());
 			final F enumF = enumT.getF(((EnumMemberValue) memberValue).getValue(), enumT);
 			enumF.markAf(AF.ENUM);
 			return enumF;

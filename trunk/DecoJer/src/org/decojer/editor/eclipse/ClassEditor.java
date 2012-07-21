@@ -103,6 +103,71 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private final static Logger LOGGER = Logger.getLogger(ClassEditor.class.getName());
 
+	private static Pattern createEclipseSignaturePattern(final String signature) {
+		// create pattern to match against Eclipse-select Q-signatures (e.g. "QString;"):
+		// Q stands for unresolved type packages and is replaced by regexp [LT][^;]*
+
+		// for this we must decompile the signature, Q-signatures can follow to any stuff
+		// like this characters: ();[
+		// but also to primitives like this: (IIQString;)V
+
+		// Eclipse-signature doesn't contain method parameter types but contains generics
+		if (signature.charAt(0) != '(') {
+			LOGGER.warning("Eclipse-select signature '" + signature + "' doesn't start with '('");
+			return null;
+		}
+		final StringBuilder sb = new StringBuilder("\\(");
+		boolean ret = false;
+		int pos = 0;
+		while (++pos < signature.length()) {
+			final char c = signature.charAt(pos);
+			switch (c) {
+			case ')':
+				if (ret) {
+					LOGGER.warning("Eclipse-select signature '" + signature
+							+ "' contains multiple ')'");
+					return null;
+				}
+				ret = true;
+				sb.append("\\)");
+				continue;
+			case 'V':
+			case 'B':
+			case 'C':
+			case 'D':
+			case 'F':
+			case 'I':
+			case 'J':
+			case 'S':
+			case 'Z':
+				sb.append(c);
+				continue;
+			case '[':
+				// escape for regexp
+				sb.append("\\[");
+				continue;
+			case 'L': {
+				final int end = signature.indexOf(';', pos);
+				sb.append(signature.substring(pos, end + 1).replace("$", "\\$"));
+				pos = end;
+				continue;
+			}
+			case 'Q': {
+				final int end = signature.indexOf(';', pos);
+				sb.append("[LT][^;]*").append(
+						signature.substring(pos + 1, end + 1).replace("$", "\\$"));
+				pos = end;
+				continue;
+			}
+			}
+		}
+		if (!ret) {
+			LOGGER.warning("Eclipse-select signature '" + signature + "' doesn't start with '('");
+			return null;
+		}
+		return Pattern.compile(sb.toString());
+	}
+
 	private static String extractPath(final IClassFile eclipseClassFile) {
 		assert eclipseClassFile != null;
 
@@ -129,11 +194,11 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private CompilationUnitEditor compilationUnitEditor;
 
-	private CU cu;
-
 	private DU du;
 
 	private JavaOutlinePage javaOutlinePage;
+
+	private CU selectedCu;
 
 	private GraphNode addToGraph(final BB bb, final IdentityHashMap<BB, GraphNode> map) {
 		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE, bb.toString(), bb);
@@ -246,86 +311,22 @@ public class ClassEditor extends MultiPageEditorPart {
 
 		String sourceCode = null;
 		try {
-			sourceCode = this.cu.decompile();
+			sourceCode = this.selectedCu.decompile();
 		} catch (final Throwable t) {
 			t.printStackTrace();
 			sourceCode = "// Decompilation error!";
 		}
 		try {
 			addPage(0, this.compilationUnitEditor,
-					new MemoryStorageEditorInput(new StringMemoryStorage(sourceCode,
-							this.cu == null || this.cu.getSourceFileName() == null ? new Path(
-									"<Unknown>") : new Path(this.cu.getSourceFileName()))));
+					new MemoryStorageEditorInput(
+							new StringMemoryStorage(sourceCode, this.selectedCu == null
+									|| this.selectedCu.getSourceFileName() == null ? new Path(
+									"<Unknown>") : new Path(this.selectedCu.getSourceFileName()))));
 		} catch (final PartInitException e) {
 			ErrorDialog.openError(getSite().getShell(), "Error creating nested text editor", null,
 					e.getStatus());
 		}
 		setPageText(0, "Source");
-	}
-
-	private Pattern createEclipseSignaturePattern(final String signature) {
-		// create pattern to match against Eclipse-select Q-signatures (e.g. "QString;"):
-		// Q stands for unresolved type packages and is replaced by regexp [LT][^;]*
-
-		// for this we must decompile the signature, Q-signatures can follow to any stuff
-		// like this characters: ();[
-		// but also to primitives like this: (IIQString;)V
-
-		// Eclipse-signature doesn't contain method parameter types but contains generics
-		if (signature.charAt(0) != '(') {
-			LOGGER.warning("Eclipse-select signature '" + signature + "' doesn't start with '('");
-			return null;
-		}
-		final StringBuilder sb = new StringBuilder("\\(");
-		boolean ret = false;
-		int pos = 0;
-		while (++pos < signature.length()) {
-			final char c = signature.charAt(pos);
-			switch (c) {
-			case ')':
-				if (ret) {
-					LOGGER.warning("Eclipse-select signature '" + signature
-							+ "' contains multiple ')'");
-					return null;
-				}
-				ret = true;
-				sb.append("\\)");
-				continue;
-			case 'V':
-			case 'B':
-			case 'C':
-			case 'D':
-			case 'F':
-			case 'I':
-			case 'J':
-			case 'S':
-			case 'Z':
-				sb.append(c);
-				continue;
-			case '[':
-				// escape for regexp
-				sb.append("\\[");
-				continue;
-			case 'L': {
-				final int end = signature.indexOf(';', pos);
-				sb.append(signature.substring(pos, end + 1).replace("$", "\\$"));
-				pos = end;
-				continue;
-			}
-			case 'Q': {
-				final int end = signature.indexOf(';', pos);
-				sb.append("[LT][^;]*").append(
-						signature.substring(pos + 1, end + 1).replace("$", "\\$"));
-				pos = end;
-				continue;
-			}
-			}
-		}
-		if (!ret) {
-			LOGGER.warning("Eclipse-select signature '" + signature + "' doesn't start with '('");
-			return null;
-		}
-		return Pattern.compile(sb.toString());
 	}
 
 	@Override
@@ -357,14 +358,14 @@ public class ClassEditor extends MultiPageEditorPart {
 		try {
 			this.du.read(fileName);
 			if (this.du.getCus().size() == 1) {
-				this.cu = this.du.getCus().get(0);
+				this.selectedCu = this.du.getCus().get(0);
 			}
 		} catch (final Exception e) {
 			LOGGER.log(Level.SEVERE, "Couldn't open file!", e);
 			return pageContainer;
 		}
 
-		if (this.cu == null) {
+		if (this.selectedCu == null) {
 			final SashForm sashForm = new SashForm(pageContainer, SWT.HORIZONTAL | SWT.BORDER
 					| SWT.SMOOTH);
 
@@ -372,9 +373,9 @@ public class ClassEditor extends MultiPageEditorPart {
 			for (final CU cu : this.du.getCus()) {
 				final TreeItem treeItem = new TreeItem(this.archiveTree, SWT.NONE);
 				treeItem.setText(cu.getName());
-				if (this.cu == null) {
+				if (this.selectedCu == null) {
 					this.archiveTree.select(treeItem);
-					this.cu = cu;
+					this.selectedCu = cu;
 				}
 			}
 			this.archiveTree.addSelectionListener(new SelectionListener() {
@@ -391,19 +392,27 @@ public class ClassEditor extends MultiPageEditorPart {
 						return;
 					}
 					final TreeItem selection = selections[0];
-					ClassEditor.this.cu = ClassEditor.this.du.getTd(selection.getText()).getCu();
+					if (ClassEditor.this.selectedCu != null) {
+						ClassEditor.this.selectedCu.clear();
+					}
+					ClassEditor.this.selectedCu = ClassEditor.this.du.getTd(selection.getText())
+							.getCu();
 
 					String sourceCode = null;
 					try {
-						sourceCode = ClassEditor.this.cu.decompile();
+						sourceCode = ClassEditor.this.selectedCu.decompile();
 					} catch (final Throwable t) {
 						t.printStackTrace();
 						sourceCode = "// Decompilation error!";
 					}
-					ClassEditor.this.compilationUnitEditor.setInput(new MemoryStorageEditorInput(
-							new StringMemoryStorage(sourceCode, ClassEditor.this.cu == null
-									|| ClassEditor.this.cu.getSourceFileName() == null ? null
-									: new Path(ClassEditor.this.cu.getSourceFileName()))));
+					ClassEditor.this.compilationUnitEditor
+							.setInput(new MemoryStorageEditorInput(
+									new StringMemoryStorage(sourceCode,
+											ClassEditor.this.selectedCu == null
+													|| ClassEditor.this.selectedCu
+															.getSourceFileName() == null ? null
+													: new Path(ClassEditor.this.selectedCu
+															.getSourceFileName()))));
 
 				}
 
@@ -455,7 +464,6 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	@Override
-	@SuppressWarnings("rawtypes")
 	public Object getAdapter(final Class required) {
 		if (IContentOutlinePage.class.equals(required)) {
 			// initialize the CompilationUnitEditor with the decompiled source
@@ -468,7 +476,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			// this case, also ask the ClassFileEditor, which has other problems
 			// and only delivers an Outline if the class is in the class path
 			Object adapter = null;
-			if ((this.cu != null && this.cu.getSourceFileName() != null || this.classFileEditor == null)
+			if ((this.selectedCu != null && this.selectedCu.getSourceFileName() != null || this.classFileEditor == null)
 					&& this.compilationUnitEditor != null) {
 				adapter = this.compilationUnitEditor.getAdapter(required);
 			}
@@ -530,7 +538,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			if (elementName.startsWith("I_")) {
 				elementName = elementName.substring(2);
 			}
-			final TD td = this.cu.getTd(fullyQualifiedName);
+			final TD td = this.selectedCu.getTd(fullyQualifiedName);
 
 			// get method in declaring type,
 			// first check if selected method is a constructor, then method name is <init>
