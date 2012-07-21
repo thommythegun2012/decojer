@@ -55,7 +55,6 @@ public class STORE extends TypedOp {
 		super(pc, opcode, line, t);
 
 		assert reg >= 0 : reg;
-		;
 
 		this.reg = reg;
 	}

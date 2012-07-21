@@ -106,7 +106,6 @@ public class SmaliReader implements DexReader {
 	}
 
 	@Override
-	@SuppressWarnings("unchecked")
 	public List<TD> read(final InputStream is, final String selector) throws IOException {
 		String selectorPrefix = null;
 		String selectorMatch = null;
@@ -230,9 +229,8 @@ public class SmaliReader implements DexReader {
 							}
 							fieldSignatures.put(fieldAnnotation.field, sb.toString());
 							continue;
-						} else {
-							as.add(a);
 						}
+						as.add(a);
 					}
 					if (as.size() > 0) {
 						fieldAs.put(fieldAnnotation.field, as.toArray(new A[as.size()]));

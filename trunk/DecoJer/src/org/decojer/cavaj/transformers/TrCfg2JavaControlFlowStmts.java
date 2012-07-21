@@ -91,7 +91,6 @@ public final class TrCfg2JavaControlFlowStmts {
 		LOGGER.warning(this.cfg.getMd() + ": " + message);
 	}
 
-	@SuppressWarnings("unchecked")
 	public void transform() {
 		if (this.cfg.getBlock() == null) {
 			// TODO can happen, e.g. if synthethic
@@ -117,7 +116,6 @@ public final class TrCfg2JavaControlFlowStmts {
 		return null;
 	}
 
-	@SuppressWarnings("unchecked")
 	private IfStatement transformCond(final Cond cond) {
 		final BB head = cond.getHead();
 
@@ -187,7 +185,6 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private Statement transformLoop(final Loop loop) {
 		final BB head = loop.getHead();
 		final BB tail = loop.getLast();
@@ -400,7 +397,6 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private Statement transformSwitch(final Switch switchStruct) {
 		final BB head = switchStruct.getHead();
 
@@ -428,7 +424,7 @@ public final class TrCfg2JavaControlFlowStmts {
 					if (value == null) {
 						// necessary: expression initialized to null
 						switchCase.setExpression(null);
-					} else if (value instanceof Integer) {
+					} else {
 						switchCase.setExpression(getAst().newNumberLiteral(value.toString()));
 					}
 					switchStatement.statements().add(switchCase);

@@ -63,7 +63,6 @@ public final class AnnotationsDecompiler {
 	 *            Annotation
 	 * @return Annotation AST Node or <code>null</code>
 	 */
-	@SuppressWarnings("unchecked")
 	private static Annotation decompileAnnotation(final TD td, final A a) {
 		final AST ast = td.getCu().getAst();
 		if (a == null) {
@@ -113,7 +112,6 @@ public final class AnnotationsDecompiler {
 	 *            Default Value
 	 * @return Expression AST Node or <code>null</code>
 	 */
-	@SuppressWarnings("unchecked")
 	public static Expression decompileAnnotationDefaultValue(final TD td, final Object defaultValue) {
 		final AST ast = td.getCu().getAst();
 		if (defaultValue == null) {

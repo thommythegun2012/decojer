@@ -64,9 +64,6 @@ public final class R {
 
 	}
 
-	@Getter
-	private R[] outs;
-
 	/**
 	 * Merge register types.
 	 * 
@@ -82,6 +79,9 @@ public final class R {
 		}
 		return T.join(r1.getT(), r2.getT());
 	}
+
+	@Getter
+	private R[] outs;
 
 	@Getter
 	private T t;
@@ -228,7 +228,7 @@ public final class R {
 			for (final R in : this.ins) {
 				// TODO endless loop in.read(t);
 				if (in != null) {
-					;
+					// TODO
 				}
 			}
 			break;

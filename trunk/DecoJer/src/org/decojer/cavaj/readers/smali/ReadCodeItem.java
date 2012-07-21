@@ -1165,7 +1165,7 @@ public class ReadCodeItem {
 				type = MONITOR.T_ENTER;
 				// fall through
 			case MONITOR_EXIT:
-				if (t == null) {
+				if (type == -1) {
 					type = MONITOR.T_EXIT;
 				}
 				{

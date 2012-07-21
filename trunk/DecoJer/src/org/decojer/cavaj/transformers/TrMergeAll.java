@@ -46,7 +46,6 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
  */
 public final class TrMergeAll {
 
-	@SuppressWarnings("unchecked")
 	private static boolean addBodyDeclaration(final TD td, final BodyDeclaration bodyDeclaration) {
 		assert bodyDeclaration != null;
 
@@ -65,7 +64,6 @@ public final class TrMergeAll {
 				bodyDeclaration);
 	}
 
-	@SuppressWarnings("unchecked")
 	public static void transform(final CU cu) {
 		for (final BD bd : cu.getBds()) {
 			final TD td = (TD) bd;

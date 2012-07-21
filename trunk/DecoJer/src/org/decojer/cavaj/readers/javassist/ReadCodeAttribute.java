@@ -146,7 +146,6 @@ public class ReadCodeAttribute {
 	 * @param codeAttribute
 	 *            Javassist code attribute
 	 */
-	@SuppressWarnings("unchecked")
 	public void initAndVisit(final MD md, final CodeAttribute codeAttribute) {
 		this.ops.clear();
 		this.vmpc2pc.clear();
@@ -928,9 +927,7 @@ public class ReadCodeAttribute {
 			 * NEG *
 			 *******/
 			case Opcode.DNEG:
-				if (t == null) {
-					t = T.DOUBLE;
-				}
+				t = T.DOUBLE;
 				// fall through
 			case Opcode.FNEG:
 				if (t == null) {
@@ -1207,9 +1204,7 @@ public class ReadCodeAttribute {
 			 * REM *
 			 *******/
 			case Opcode.DREM:
-				if (t == null) {
-					t = T.DOUBLE;
-				}
+				t = T.DOUBLE;
 				// fall through
 			case Opcode.FREM:
 				if (t == null) {
