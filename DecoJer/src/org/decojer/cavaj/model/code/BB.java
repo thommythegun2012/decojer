@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.code;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import lombok.Getter;
@@ -584,11 +585,12 @@ public final class BB {
 		if (this.ops.size() > 0) {
 			sb.append("\nOps: ").append(this.ops);
 		}
-		if (this.top > 0) {
-			sb.append("\nExprs: ").append(this.top);
-		}
 		if (this.stmts.size() > 0) {
 			sb.append("\nStmts: ").append(this.stmts);
+		}
+		if (this.top > 0) {
+			sb.append("\nStack: ").append(
+					Arrays.toString(Arrays.copyOfRange(this.vs, getRegs(), getRegs() + this.top)));
 		}
 		if (this.outs.size() > 1) {
 			sb.append("\nSucc: ");
