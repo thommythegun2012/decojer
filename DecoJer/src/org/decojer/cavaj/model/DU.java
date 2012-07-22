@@ -476,7 +476,12 @@ public final class DU {
 			}
 			return tds;
 		}
-		return read(new FileInputStream(file), fileName, selector);
+		final FileInputStream fileInputStream = new FileInputStream(file);
+		try {
+			return read(fileInputStream, fileName, selector);
+		} finally {
+			fileInputStream.close();
+		}
 	}
 
 	/**

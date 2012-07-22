@@ -23,9 +23,10 @@
  */
 package org.decojer.cavaj.model.types;
 
+import org.decojer.cavaj.model.T;
+
 import lombok.Getter;
 
-import org.decojer.cavaj.model.T;
 
 /**
  * Parameterized type.

@@ -235,6 +235,7 @@ public final class R {
 		case MOVE:
 		case READ:
 			this.ins[0].read(t);
+		case CONST:
 		}
 
 		this.readT = T.union(this.readT, t);
@@ -290,6 +291,7 @@ public final class R {
 					return;
 				case MERGE:
 					System.out.println("Register replace to null for merge not possible!");
+				case READ:
 				}
 				return;
 			}

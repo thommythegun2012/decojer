@@ -1356,7 +1356,7 @@ public final class TrCfg2JavaExpressionStmts {
 				condHead = predPred;
 			}
 		}
-		if (!condHead.isFinalStmtCond()) {
+		if (condHead == null || !condHead.isFinalStmtCond()) {
 			return false;
 		}
 

@@ -32,6 +32,7 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.types.BaseT;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.model.types.Kind;
 
 /**
  * Type.
@@ -39,55 +40,6 @@ import org.decojer.cavaj.model.types.ClassT;
  * @author André Pankraz
  */
 public abstract class T {
-
-	public enum Kind {
-
-		INT(1 << 0, int.class),
-
-		SHORT(1 << 1, short.class),
-
-		BYTE(1 << 2, byte.class),
-
-		CHAR(1 << 3, char.class),
-
-		BOOLEAN(1 << 4, boolean.class),
-
-		FLOAT(1 << 5, float.class),
-
-		LONG(1 << 6, long.class),
-
-		DOUBLE(1 << 7, double.class),
-
-		VOID(1 << 8, void.class),
-
-		REF(1 << 9),
-
-		RET(1 << 10),
-
-		LONG2(1 << 11),
-
-		DOUBLE2(1 << 12);
-
-		@Getter
-		private final Class<?> clazz;
-
-		@Getter
-		private final int kind;
-
-		private Kind(final int flag) {
-			this(flag, null);
-		}
-
-		private Kind(final int flag, final Class<?> clazz) {
-			this.clazz = clazz;
-			this.kind = flag;
-		}
-
-		public String getName() {
-			return this.clazz == null ? name() : this.clazz.getName();
-		}
-
-	}
 
 	private static final Map<Integer, T> KIND_2_TS = new HashMap<Integer, T>();
 
@@ -263,7 +215,7 @@ public abstract class T {
 		}
 		final StringBuilder sb = new StringBuilder("{");
 		for (final Kind k : Kind.values()) {
-			if ((kinds & k.kind) != 0) {
+			if ((kinds & k.getKind()) != 0) {
 				sb.append(k.getName()).append(",");
 			}
 		}
@@ -273,12 +225,12 @@ public abstract class T {
 	}
 
 	private static BaseT getT(final Kind kind) {
-		BaseT t = (BaseT) KIND_2_TS.get(kind.kind);
+		BaseT t = (BaseT) KIND_2_TS.get(kind.getKind());
 		if (t != null) {
 			return t;
 		}
-		t = new BaseT(kind.getName(), kind.kind);
-		KIND_2_TS.put(kind.kind, t);
+		t = new BaseT(kind.getName(), kind.getKind());
+		KIND_2_TS.put(kind.getKind(), t);
 		return t;
 	}
 
@@ -286,7 +238,7 @@ public abstract class T {
 		// don't use types as input, restrict to kind-types
 		int flags = 0;
 		for (final Kind k : kinds) {
-			flags |= k.kind;
+			flags |= k.getKind();
 		}
 		return getT(flags);
 	}
@@ -312,7 +264,7 @@ public abstract class T {
 			return null;
 		}
 		final int kind = joinKinds(t1.getKind(), t2.getKind());
-		if ((kind & Kind.REF.kind) == 0) {
+		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
 
@@ -353,7 +305,7 @@ public abstract class T {
 		if (interfaceTs.isEmpty()) {
 			return superT;
 		}
-		if (interfaceTs.size() == 1 && superT.isObject()) {
+		if (interfaceTs.size() == 1 && (superT == null || superT.isObject())) {
 			return interfaceTs.get(0);
 		}
 		return new ClassT(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
@@ -399,7 +351,7 @@ public abstract class T {
 			return t1;
 		}
 		final int kind = t1.getKind() | t2.getKind();
-		if ((kind & Kind.REF.kind) == 0) {
+		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
 
@@ -625,7 +577,7 @@ public abstract class T {
 			return false;
 		}
 		final int kind = readKinds(t.getKind(), getKind());
-		if ((kind & Kind.REF.kind) == 0) {
+		if ((kind & Kind.REF.getKind()) == 0) {
 			return kind != 0;
 		}
 		// assignableFrom(T.REF) is true, null is T.REF!
@@ -732,7 +684,7 @@ public abstract class T {
 			return null;
 		}
 		final int kind = readKinds(getKind(), t.getKind());
-		if ((kind & Kind.REF.kind) == 0) {
+		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
 

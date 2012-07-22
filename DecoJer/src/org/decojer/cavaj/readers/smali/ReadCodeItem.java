@@ -825,7 +825,7 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (!t.isAssignableFrom(valueT)) {
+					if (t == null || !t.isAssignableFrom(valueT)) {
 						LOGGER.warning("Incompatible IGET Value Type! Cannot assign '" + valueT
 								+ "' to '" + t + "'.");
 					}
@@ -887,7 +887,7 @@ public class ReadCodeItem {
 
 					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
 							.getTypeDescriptor());
-					if (!t.isAssignableFrom(valueT)) {
+					if (t == null || !t.isAssignableFrom(valueT)) {
 						LOGGER.warning("Incompatible SGET Value Type! Cannot assign '" + valueT
 								+ "' to '" + t + "'.");
 					}
@@ -1937,7 +1937,7 @@ public class ReadCodeItem {
 					t = T.WIDE;
 				}
 				{
-					if (!t.isAssignableFrom(md.getReturnT())) {
+					if (t == null || !t.isAssignableFrom(md.getReturnT())) {
 						LOGGER.warning("Incompatible operation return type '" + t
 								+ "' for method return type '" + md.getReturnT() + "'!");
 					}
