@@ -112,6 +112,7 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	private IfStatement transformCatch(final Catch catchStruct) {
+		log("TODO: " + catchStruct);
 		// final BB head = catchStruct.getHead();
 		return null;
 	}

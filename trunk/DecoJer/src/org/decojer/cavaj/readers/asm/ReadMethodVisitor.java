@@ -658,9 +658,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * NEG *
 		 *******/
 		case Opcodes.DNEG:
-			if (t == null) {
-				t = T.DOUBLE;
-			}
+			t = T.DOUBLE;
 			// fall through
 		case Opcodes.FNEG:
 			if (t == null) {
@@ -797,9 +795,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * REM *
 		 *******/
 		case Opcodes.DREM:
-			if (t == null) {
-				t = T.DOUBLE;
-			}
+			t = T.DOUBLE;
 			// fall through
 		case Opcodes.FREM:
 			if (t == null) {

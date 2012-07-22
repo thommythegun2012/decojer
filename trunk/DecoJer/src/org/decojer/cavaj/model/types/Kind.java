@@ -23,66 +23,58 @@
  */
 package org.decojer.cavaj.model.types;
 
-import org.decojer.cavaj.model.T;
-
 import lombok.Getter;
 
-
 /**
- * Base type (primitives and artificial / internal VM types).
+ * Kind of type.
  * 
  * @author André Pankraz
  */
-public class BaseT extends T {
+public enum Kind {
+
+	INT(1 << 0, int.class),
+
+	SHORT(1 << 1, short.class),
+
+	BYTE(1 << 2, byte.class),
+
+	CHAR(1 << 3, char.class),
+
+	BOOLEAN(1 << 4, boolean.class),
+
+	FLOAT(1 << 5, float.class),
+
+	LONG(1 << 6, long.class),
+
+	DOUBLE(1 << 7, double.class),
+
+	VOID(1 << 8, void.class),
+
+	REF(1 << 9),
+
+	RET(1 << 10),
+
+	LONG2(1 << 11),
+
+	DOUBLE2(1 << 12);
+
+	@Getter
+	private final Class<?> clazz;
 
 	@Getter
 	private final int kind;
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param name
-	 *            type name
-	 * @param kind
-	 *            type kind
-	 */
-	public BaseT(final String name, final int kind) {
-		super(name);
-
-		this.kind = kind;
+	private Kind(final int flag) {
+		this(flag, null);
 	}
 
-	@Override
-	public boolean isMulti() {
-		int nr = getKind() - (getKind() >> 1 & 0x55555555);
-		nr = (nr & 0x33333333) + (nr >> 2 & 0x33333333);
-		nr = (nr + (nr >> 4) & 0x0F0F0F0F) * 0x01010101 >> 24;
-
-		assert nr > 0;
-
-		return nr > 1;
+	private Kind(final int flag, final Class<?> clazz) {
+		this.clazz = clazz;
+		this.kind = flag;
 	}
 
-	@Override
-	public boolean isPrimitive() {
-		// not always true - consider REF/RET multitypes
-		return (getKind() & PRIMITIVE.getKind()) != 0;
-	}
-
-	@Override
-	public boolean isRef() {
-		// not always false - consider REF/RET multitypes
-		return (getKind() & REF.getKind()) != 0;
-	}
-
-	/**
-	 * Is wide type?
-	 * 
-	 * @return true - is wide type
-	 */
-	@Override
-	public boolean isWide() {
-		return (getKind() & WIDE.getKind()) != 0;
+	public String getName() {
+		return this.clazz == null ? name() : this.clazz.getName();
 	}
 
 }

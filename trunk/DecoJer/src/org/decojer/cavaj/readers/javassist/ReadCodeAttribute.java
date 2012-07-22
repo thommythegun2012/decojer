@@ -1261,7 +1261,7 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.VOID;
 				}
-				if (!t.isAssignableFrom(md.getReturnT())) {
+				if (t == null || !t.isAssignableFrom(md.getReturnT())) {
 					LOGGER.warning("Incompatible operation return type '" + t
 							+ "' for method return type '" + md.getReturnT() + "'!");
 				}

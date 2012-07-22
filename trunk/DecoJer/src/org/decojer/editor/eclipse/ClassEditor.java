@@ -597,6 +597,11 @@ public class ClassEditor extends MultiPageEditorPart {
 					return;
 				}
 			}
+			if (md == null) {
+				LOGGER.warning("Unknown method declaration for '" + methodName
+						+ "' and signature '" + signature + "'!");
+				return;
+			}
 			final int stage = this.cfgViewModeCombo.getSelectionIndex();
 
 			final CFG cfg = md.getCfg();
