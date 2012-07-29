@@ -165,12 +165,15 @@ public class JavassistReader implements ClassReader {
 			td.setDeprecated(true);
 		}
 		if (enclosingMethodAttribute != null) {
+			// enclosing class or method (unlike Dalvik only for anonymous inner classes)
 			final T enclosingT = this.du.getT(enclosingMethodAttribute.className());
 			td.setEnclosing(enclosingMethodAttribute.classIndex() == 0 ? enclosingT : enclosingT
 					.getM(enclosingMethodAttribute.methodName(),
 							enclosingMethodAttribute.methodDescriptor()));
 		}
 		if (innerClassesAttribute != null) {
+			// does contain lot of redundant information about all inner classes accessed in any
+			// way, Dalvik is packaged anyway - can reduce redundancy here
 			final List<T> memberTs = new ArrayList<T>();
 			// preserve order
 			final int tableLength = innerClassesAttribute.tableLength();

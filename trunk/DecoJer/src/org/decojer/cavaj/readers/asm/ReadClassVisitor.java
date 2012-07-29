@@ -165,7 +165,7 @@ public class ReadClassVisitor extends ClassVisitor {
 		// innerName: Inner1
 
 		// does contain lot of redundant information about all inner classes accessed in any way,
-		// Dalvik packaged anyway - can reduce redundancy here
+		// Dalvik is packaged anyway - can reduce redundancy here
 
 		final T innerT = this.du.getT(name);
 		if (this.td.getT() == innerT) {
