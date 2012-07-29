@@ -184,28 +184,37 @@ public class SmaliReader implements DexReader {
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
+							// enclosing class (for anonymous and unlike JVM also for normal inner
+							// classes)
 							td.setEnclosing(a.getMemberValue());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingMethod".equals(a.getT().getName())) {
+							// enclosing method (only for anonymous inner classes)
 							td.setEnclosing(a.getMemberValue());
 							continue;
 						}
-						// Dalvik has not all inner class info from JVM Bytecode:
-						// outer class info not known in Dalvik and is derivable anyway,
-						// no access flags for member classes,
-						// no info for arbitrary accessed and nested inner classes
 						if ("dalvik.annotation.InnerClass".equals(a.getT().getName())) {
-							// is inner class, this attributes is senseless?
-							// inner name (from naming rules) and flags are known
+							// inner class name (null for anonymous) and access flags
+							final String name = (String) a.getMemberValue("name");
+							if (name != null && name.indexOf('$') >= 0) {
+								// we need this info, such crap is a valid class name: $$$_Test$
+							}
+							final Integer accessFlags = (Integer) a.getMemberValue("accessFlags");
+							if (accessFlags != null) {
+								// hmmm...what should we do with this information?!
+							}
 							continue;
 						}
 						if ("dalvik.annotation.MemberClasses".equals(a.getT().getName())) {
-							// has Member Classes (really contained Inner Classes)
+							// contained none-anonymous inner classes
 							final Object[] memberValue = (Object[]) a.getMemberValue();
 							final T[] memberTs = new T[memberValue.length];
 							System.arraycopy(memberValue, 0, memberTs, 0, memberValue.length);
 							td.setMemberTs(memberTs);
+							for (final T it : memberTs) {
+								System.out.println("TEST" + it.getName());
+							}
 							continue;
 						}
 						as.add(a);

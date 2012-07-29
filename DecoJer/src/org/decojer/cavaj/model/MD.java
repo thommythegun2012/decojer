@@ -228,4 +228,9 @@ public final class MD extends BD {
 		}
 	}
 
+	@Override
+	public String toString() {
+		return this.m.toString();
+	}
+
 }

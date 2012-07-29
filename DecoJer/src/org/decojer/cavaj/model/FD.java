@@ -109,4 +109,9 @@ public final class FD extends BD {
 		this.f.setValueT(getTd().getDu().getDescT(signature));
 	}
 
+	@Override
+	public String toString() {
+		return this.f.toString();
+	}
+
 }
