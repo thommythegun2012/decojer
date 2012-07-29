@@ -126,7 +126,7 @@ public abstract class DecTestInner {
 
 }
 
-// in 1.2 bugs with $1
+// not in 1.2: DecTestInner$1
 class DecTestInner$ {
 
 	public static class Inner1 {

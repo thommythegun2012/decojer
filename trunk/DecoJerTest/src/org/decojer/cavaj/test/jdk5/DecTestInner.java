@@ -1,5 +1,6 @@
 package org.decojer.cavaj.test.jdk5;
 
+
 public abstract class DecTestInner {
 
 	public class Inner1 {
@@ -140,11 +141,12 @@ public abstract class DecTestInner {
 
 }
 
-class DecTestInnerS {
+// not in 1.2
+class DecTestInner$1 {
 
 	public static class Inner1 {
 
-		protected static final class Inner11 {
+		protected static final class $$$_Inner$1 {
 
 			Object o2 = new Object() {
 
@@ -154,9 +156,9 @@ class DecTestInnerS {
 
 			};
 
-			public Inner11(final Inner1 inner1) {
+			public $$$_Inner$1(final Inner1 inner1) {
 				System.out.println(inner1);
-				System.out.println(Inner11.class);
+				System.out.println($$$_Inner$1.class);
 			}
 
 			void test(final int a) {
