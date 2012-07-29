@@ -1332,16 +1332,18 @@ public final class TrCfg2JavaExpressionStmts {
 		// ...\./.
 		// ....B..
 
-		// ! has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
+		// this has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
+		// even more preds possible with boolean conditionals
 		if (bb.getIns().size() < 2) {
 			return false;
 		}
 		BB condHead = null;
 		for (final E in : bb.getIns()) {
 			final BB pred = in.getStart();
-			if (pred.getSucc() == null) {
-				return false;
-			}
+			// should be impossible?!
+			// if (pred.getSucc() == null) {
+			// return false;
+			// }
 			if (pred.getIns().size() != 1) {
 				return false;
 			}

@@ -437,6 +437,7 @@ public abstract class T {
 		if (pos == -1 || pos + 1 >= pName.length()) {
 			return pName;
 		}
+		// $ is valid type name!
 		return Character.isJavaIdentifierStart(pName.charAt(pos + 1)) ? pName.substring(pos + 1)
 				: "I_" + pName.substring(pos + 1);
 	}
