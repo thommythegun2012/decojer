@@ -56,26 +56,6 @@ public final class TD extends BD {
 	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
 
 	/**
-	 * Enclosing type or method declaration for this anynomous inner class (since Java 5).<br>
-	 * type declaration: This must be an field initializer (static field or not) or static
-	 * initializer. Real constructors have the "<init>" method.
-	 */
-	@Getter
-	@Setter
-	private Object enclosing;
-
-	/**
-	 * Member types (really contained inner classes).
-	 */
-	@Getter
-	@Setter
-	private T[] memberTs;
-
-	@Getter
-	@Setter
-	private String readFileName;
-
-	/**
 	 * Source file name (from source file attribute).
 	 */
 	@Getter
@@ -316,6 +296,38 @@ public final class TD extends BD {
 	 */
 	public void setAccessFlags(final int accessFlags) {
 		this.t.setAccessFlags(accessFlags);
+	}
+
+	/**
+	 * Set enclosing method (since JVM 5).
+	 * 
+	 * @param m
+	 *            method
+	 */
+	public void setEnclosingM(final M m) {
+		this.t.setEnclosingM(m);
+	}
+
+	/**
+	 * Set enclosing class type (since JVM 5).
+	 * 
+	 * @param t
+	 *            class type
+	 */
+	public void setEnclosingT(final ClassT t) {
+		this.t.setEnclosingT(t);
+	}
+
+	/**
+	 * Set inner info.
+	 * 
+	 * @param name
+	 *            inner name
+	 * @param accessFlags
+	 *            inner access flags
+	 */
+	public void setInnerInfo(final String name, final int accessFlags) {
+		this.t.setInnerInfo(name, accessFlags);
 	}
 
 	/**
