@@ -64,8 +64,6 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Getter
 	private TD td;
 
-	private T[] memberTs;
-
 	/**
 	 * Constructor.
 	 * 
@@ -88,7 +86,6 @@ public class ReadClassVisitor extends ClassVisitor {
 	 */
 	public void init() {
 		this.as = null;
-		this.memberTs = null;
 		this.td = null;
 	}
 
@@ -138,9 +135,6 @@ public class ReadClassVisitor extends ClassVisitor {
 		if (this.as != null) {
 			this.td.setAs(this.as);
 		}
-		if (this.memberTs != null) {
-			this.td.setMemberTs(this.memberTs);
-		}
 	}
 
 	@Override
@@ -160,38 +154,10 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public void visitInnerClass(final String name, final String outerName, final String innerName,
 			final int access) {
-		// name: org/decojer/cavaj/test/DecTestInner$$Inner1
-		// outerName: org/decojer/cavaj/test/DecTestInner$
-		// innerName: Inner1
-
-		// does contain lot of redundant information about all inner classes accessed in any way,
-		// Dalvik is packaged anyway - can reduce redundancy here
-
-		final T innerT = this.du.getT(name);
-		if (this.td.getT() == innerT) {
-			// inner class name (null for anonymous) and access flags (like Dalvik InnerClass
-			// annotation)
-		}
-
-		if (innerName == null) {
-			// anonymous
-		}
-		if (outerName == null) {
-			// anonymous for > jdk 1.2
-		} else {
-			final T outerT = this.du.getT(outerName);
-			if (this.td.getT() == outerT) {
-				// contained none-anonymous inner classes (like Dalvik MemberClasses annotation)
-				System.out.println("TEST: " + name + " : " + innerName);
-				if (this.memberTs == null) {
-					this.memberTs = new T[1];
-				} else {
-					final T[] newMemberTs = new T[this.memberTs.length + 1];
-					System.arraycopy(this.memberTs, 0, newMemberTs, 0, this.memberTs.length);
-					this.memberTs = newMemberTs;
-				}
-				this.memberTs[this.memberTs.length - 1] = this.du.getT(name);
-			}
+		final ClassT innerT = (ClassT) this.du.getT(name);
+		innerT.setInnerInfo(innerName, access);
+		if (outerName != null) {
+			innerT.setEnclosingT((ClassT) this.du.getT(outerName));
 		}
 	}
 
@@ -217,9 +183,12 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visitOuterClass(final String owner, final String name, final String desc) {
-		// enclosing class or method (unlike Dalvik only for anonymous inner classes)
-		final T enclosingT = this.du.getT(owner);
-		this.td.setEnclosing(name == null ? enclosingT : enclosingT.getM(name, desc));
+		final ClassT enclosingT = (ClassT) this.du.getT(owner);
+		if (name == null) {
+			this.td.setEnclosingT(enclosingT);
+		} else {
+			this.td.setEnclosingM(enclosingT.getM(name, desc));
+		}
 	}
 
 	@Override

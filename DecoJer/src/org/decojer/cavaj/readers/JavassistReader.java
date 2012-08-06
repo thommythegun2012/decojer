@@ -27,7 +27,6 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -165,31 +164,23 @@ public class JavassistReader implements ClassReader {
 			td.setDeprecated(true);
 		}
 		if (enclosingMethodAttribute != null) {
-			// enclosing class or method (unlike Dalvik only for anonymous inner classes)
-			final T enclosingT = this.du.getT(enclosingMethodAttribute.className());
-			td.setEnclosing(enclosingMethodAttribute.classIndex() == 0 ? enclosingT : enclosingT
-					.getM(enclosingMethodAttribute.methodName(),
-							enclosingMethodAttribute.methodDescriptor()));
+			final ClassT enclosingT = (ClassT) this.du.getT(enclosingMethodAttribute.className());
+			if (enclosingMethodAttribute.classIndex() == 0) {
+				td.setEnclosingT(enclosingT);
+			} else {
+				td.setEnclosingM(enclosingT.getM(enclosingMethodAttribute.methodName(),
+						enclosingMethodAttribute.methodDescriptor()));
+			}
 		}
 		if (innerClassesAttribute != null) {
-			// does contain lot of redundant information about all inner classes accessed in any
-			// way, Dalvik is packaged anyway - can reduce redundancy here
-			final List<T> memberTs = new ArrayList<T>();
-			// preserve order
 			final int tableLength = innerClassesAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				// Dalvik has not all inner class info from JVM Bytecode:
-				// outer class info not known in Dalvik and is derivable anyway,
-				// no access flags for member classes,
-				// no info for arbitrarily accessed and nested inner classes
-				if (td.getName().equals(innerClassesAttribute.outerClass(i))) {
-					// Attribute describes direct Member / Inner Class
-					memberTs.add(this.du.getT(innerClassesAttribute.innerClass(i)));
-					continue;
+				final ClassT innerT = (ClassT) this.du.getT(innerClassesAttribute.innerClass(i));
+				innerT.setInnerInfo(innerClassesAttribute.innerName(i),
+						innerClassesAttribute.accessFlags(i));
+				if (innerClassesAttribute.outerClass(i) != null) {
+					innerT.setEnclosingT((ClassT) this.du.getT(innerClassesAttribute.outerClass(i)));
 				}
-			}
-			if (memberTs.size() > 0) {
-				td.setMemberTs(memberTs.toArray(new T[memberTs.size()]));
 			}
 		}
 		if (sourceFileAttribute != null) {
