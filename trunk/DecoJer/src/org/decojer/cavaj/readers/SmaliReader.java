@@ -37,6 +37,7 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -173,8 +174,7 @@ public class SmaliReader implements DexReader {
 							continue;
 						}
 						if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
-							// signature, is encoded as annotation with string
-							// array value
+							// signature, is encoded as annotation with string array value
 							final Object[] signature = (Object[]) a.getMemberValue();
 							final StringBuilder sb = new StringBuilder();
 							for (final Object element : signature) {
@@ -184,36 +184,21 @@ public class SmaliReader implements DexReader {
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
-							// enclosing class (for anonymous and unlike JVM also for normal inner
-							// classes)
-							td.setEnclosing(a.getMemberValue());
+							td.setEnclosingT((ClassT) a.getMemberValue());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingMethod".equals(a.getT().getName())) {
-							// enclosing method (only for anonymous inner classes)
-							td.setEnclosing(a.getMemberValue());
+							td.setEnclosingM((M) a.getMemberValue());
 							continue;
 						}
 						if ("dalvik.annotation.InnerClass".equals(a.getT().getName())) {
-							// inner class name (null for anonymous) and access flags
-							final String name = (String) a.getMemberValue("name");
-							if (name != null && name.indexOf('$') >= 0) {
-								// we need this info, such crap is a valid class name: $$$_Test$
-							}
-							final Integer accessFlags = (Integer) a.getMemberValue("accessFlags");
-							if (accessFlags != null) {
-								// hmmm...what should we do with this information?!
-							}
+							td.setInnerInfo((String) a.getMemberValue("name"),
+									(Integer) a.getMemberValue("accessFlags"));
 							continue;
 						}
 						if ("dalvik.annotation.MemberClasses".equals(a.getT().getName())) {
-							// contained none-anonymous inner classes
-							final Object[] memberValue = (Object[]) a.getMemberValue();
-							final T[] memberTs = new T[memberValue.length];
-							System.arraycopy(memberValue, 0, memberTs, 0, memberValue.length);
-							td.setMemberTs(memberTs);
-							for (final T it : memberTs) {
-								System.out.println("TEST" + it.getName());
+							for (final Object v : (Object[]) a.getMemberValue()) {
+								((ClassT) v).setEnclosingT(td.getT());
 							}
 							continue;
 						}
