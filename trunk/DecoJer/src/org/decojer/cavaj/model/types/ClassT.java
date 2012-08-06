@@ -30,6 +30,7 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 
@@ -54,24 +55,6 @@ public class ClassT extends T {
 		return sb.toString();
 	}
 
-	@Setter
-	private T[] interfaceTs;
-
-	@Getter
-	private final DU du;
-
-	/**
-	 * Super type.
-	 */
-	@Setter
-	private T superT;
-
-	/**
-	 * Type parameters. (They define the useable type variables)
-	 */
-	@Setter
-	private T[] typeParams;
-
 	/**
 	 * Access flags.
 	 */
@@ -79,7 +62,30 @@ public class ClassT extends T {
 	private int accessFlags;
 
 	@Getter
+	private final DU du;
+
+	private Object enclosing;
+
+	@Getter
+	private String innerName;
+
+	@Setter
+	private T[] interfaceTs;
+
+	/**
+	 * Super type.
+	 */
+	@Setter
+	private T superT;
+
+	@Getter
 	private TD td;
+
+	/**
+	 * Type parameters. (They define the useable type variables)
+	 */
+	@Setter
+	private T[] typeParams;
 
 	/**
 	 * Constructor.
@@ -213,6 +219,64 @@ public class ClassT extends T {
 	 */
 	public void markAf(final AF af) {
 		this.accessFlags |= af.getValue();
+	}
+
+	/**
+	 * Set enclosing method (since JVM 5).
+	 * 
+	 * @param m
+	 *            method
+	 */
+	public void setEnclosingM(final M m) {
+		if (this.enclosing != null) {
+			if (this.enclosing != m) {
+				LOGGER.warning("Enclosing method cannot be changed from '" + this.enclosing
+						+ "' to '" + m + "'!");
+			}
+			return;
+		}
+		this.enclosing = m;
+	}
+
+	/**
+	 * Set enclosing class type (since JVM 5).
+	 * 
+	 * @param t
+	 *            class type
+	 */
+	public void setEnclosingT(final ClassT t) {
+		if (this.enclosing != null) {
+			if (this.enclosing != t) {
+				LOGGER.warning("Enclosing type cannot be changed from '" + this.enclosing
+						+ "' to '" + t + "'!");
+			}
+			return;
+		}
+		this.enclosing = t;
+	}
+
+	/**
+	 * Set inner info.
+	 * 
+	 * @param name
+	 *            inner name
+	 * @param accessFlags
+	 *            inner access flags
+	 */
+	public void setInnerInfo(final String name, final int accessFlags) {
+		if (this.innerName != null) {
+			if (!this.innerName.equals(name)) {
+				LOGGER.warning("Inner name cannot be changed from '" + this.innerName + "' to '"
+						+ name + "'!");
+			}
+			return;
+		}
+		this.innerName = name;
+		/*
+		 * if (this.accessFlags != 0) { if (this.accessFlags != accessFlags) {
+		 * LOGGER.warning("Inner access flags cannot be changed from '" + this.accessFlags +
+		 * "' to '" + accessFlags + "'!"); } return; } this.accessFlags = accessFlags;
+		 */
 	}
 
 }
