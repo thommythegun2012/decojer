@@ -126,10 +126,7 @@ public final class TD extends BD {
 	 * @return field declaration
 	 */
 	public FD createFd(final String name, final T valueT) {
-		final F f = this.t.getF(name, valueT);
-		final FD fd = new FD(f);
-		addBd(fd);
-		return fd;
+		return this.t.getF(name, valueT).createFd();
 	}
 
 	/**
@@ -142,10 +139,7 @@ public final class TD extends BD {
 	 * @return method declaration
 	 */
 	public MD createMd(final String name, final String descriptor) {
-		final M m = this.t.getM(name, descriptor);
-		final MD md = new MD(m);
-		addBd(md);
-		return md;
+		return this.t.getM(name, descriptor).createMd();
 	}
 
 	public void decompile() {
@@ -303,16 +297,20 @@ public final class TD extends BD {
 	 * 
 	 * @param m
 	 *            method
+	 * 
+	 * @see ClassT#setEnclosingT(ClassT)
 	 */
 	public void setEnclosingM(final M m) {
 		this.t.setEnclosingM(m);
 	}
 
 	/**
-	 * Set enclosing class type (since JVM 5).
+	 * Set enclosing class type (since JRE 5).
 	 * 
 	 * @param t
 	 *            class type
+	 * 
+	 * @see ClassT#setEnclosingT(ClassT)
 	 */
 	public void setEnclosingT(final ClassT t) {
 		this.t.setEnclosingT(t);
