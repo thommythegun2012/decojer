@@ -30,7 +30,10 @@ import java.util.Map;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.M;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.types.ClassT;
 
 /**
  * Transformer: Analyze inner classes and create compilation units.
@@ -39,26 +42,24 @@ import org.decojer.cavaj.model.TD;
  */
 public class TrInnerClassesAnalysis {
 
-	private static TD findOuterTd(final TD td) {
-		final String name = td.getName();
-		final int pos = name.lastIndexOf('$');
-		return td.getDu().getTd(name.substring(0, pos));
-	}
-
 	private static List<TD> findTopTds(final DU du) {
 		final List<TD> tds = new ArrayList<TD>();
 		for (final TD td : du.getTds()) {
-			if (td.getName().lastIndexOf('$') >= 0) {
-				// is inner name, check direct parent
-				final TD outerTd = findOuterTd(td);
-				if (outerTd != null) {
-					outerTd.addTd(td);
-					// parent checked earlier or later
+			final ClassT enclosingT = td.getT().getEnclosingT();
+			if (enclosingT != null) {
+				final TD enclosingTd = enclosingT.getTd();
+				if (enclosingTd != null) {
+					enclosingTd.addTd(td);
 					continue;
 				}
-				// no matching parent read till now...live with that
-				tds.add(td);
-				continue;
+			}
+			final M enclosingM = td.getT().getEnclosingM();
+			if (enclosingM != null) {
+				final MD enclosingMd = enclosingM.getMd();
+				if (enclosingMd != null) {
+					enclosingMd.addTd(td);
+					continue;
+				}
 			}
 			tds.add(td);
 		}

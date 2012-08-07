@@ -27,6 +27,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Cursor;
 
 /**
@@ -92,6 +93,19 @@ public class M {
 	 */
 	public boolean check(final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;
+	}
+
+	/**
+	 * Create method declaration for this method.
+	 * 
+	 * @return method declaration
+	 */
+	public MD createMd() {
+		assert this.md == null;
+
+		this.md = new MD(this);
+		((ClassT) this.t).getTd().addBd(this.md);
+		return this.md;
 	}
 
 	/**

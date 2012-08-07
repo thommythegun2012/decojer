@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.types;
 
+import java.lang.reflect.Method;
 import java.util.logging.Logger;
 
 import lombok.Getter;
@@ -42,6 +43,8 @@ import org.decojer.cavaj.model.TD;
 public class ClassT extends T {
 
 	private final static Logger LOGGER = Logger.getLogger(ClassT.class.getName());
+
+	private final static String ANONYMOUS = "<ANONYMOUS>";
 
 	private static String toString(final T superT, final T[] interfaceTs) {
 		final StringBuilder sb = new StringBuilder("{");
@@ -64,6 +67,11 @@ public class ClassT extends T {
 	@Getter
 	private final DU du;
 
+	/**
+	 * We mix here declaring classes info and enclosing method / classes info.
+	 * 
+	 * @see ClassT#setEnclosingT(ClassT)
+	 */
 	private Object enclosing;
 
 	@Getter
@@ -134,6 +142,29 @@ public class ClassT extends T {
 		return this.td;
 	}
 
+	/**
+	 * Get enclosing method (including constructor).
+	 * 
+	 * @return enclosing method
+	 * 
+	 * @see Class#getEnclosingMethod()
+	 * @see Class#getEnclosingConstructor()
+	 */
+	public M getEnclosingM() {
+		return isResolveable() && this.enclosing instanceof M ? (M) this.enclosing : null;
+	}
+
+	/**
+	 * Get enclosing type.
+	 * 
+	 * @return enclosing type
+	 * 
+	 * @see Class#getEnclosingClass()
+	 */
+	public ClassT getEnclosingT() {
+		return isResolveable() && this.enclosing instanceof ClassT ? (ClassT) this.enclosing : null;
+	}
+
 	@Override
 	public T[] getInterfaceTs() {
 		return isResolveable() ? this.interfaceTs : T.NO_INTERFACES;
@@ -151,6 +182,10 @@ public class ClassT extends T {
 
 	public T[] getTypeParams() {
 		return isResolveable() ? this.typeParams : null;
+	}
+
+	public boolean isAnonymousClass() {
+		return this.innerName == ANONYMOUS;
 	}
 
 	@Override
@@ -188,10 +223,12 @@ public class ClassT extends T {
 		try {
 			final Class<?> clazz = getClass().getClassLoader().loadClass(getName());
 			this.accessFlags = clazz.getModifiers();
+
 			final Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null) {
 				this.superT = getDu().getT(superclass.getName());
 			}
+
 			final Class<?>[] interfaces = clazz.getInterfaces();
 			if (interfaces.length == 0) {
 				this.interfaceTs = NO_INTERFACES;
@@ -202,6 +239,19 @@ public class ClassT extends T {
 				}
 				this.interfaceTs = interfaceTs;
 			}
+
+			final Method enclosingMethod = clazz.getEnclosingMethod();
+			if (enclosingMethod != null) {
+				final Class<?> declaringClass = enclosingMethod.getDeclaringClass();
+				final T methodT = this.du.getT(declaringClass);
+				// TODO difficult...have only generic types here, not original descriptor
+				this.enclosing = methodT.getM(enclosingMethod.getName(), "<TODO>");
+			}
+			final Class<?> enclosingClass = clazz.getEnclosingClass();
+			if (enclosingClass != null) {
+				this.enclosing = this.du.getT(enclosingClass);
+			}
+
 			return true;
 		} catch (final ClassNotFoundException e) {
 			LOGGER.warning("Couldn't load type : " + this);
@@ -226,6 +276,8 @@ public class ClassT extends T {
 	 * 
 	 * @param m
 	 *            method
+	 * 
+	 * @see ClassT#setEnclosingT(ClassT)
 	 */
 	public void setEnclosingM(final M m) {
 		if (this.enclosing != null) {
@@ -239,10 +291,29 @@ public class ClassT extends T {
 	}
 
 	/**
-	 * Set enclosing class type (since JVM 5).
+	 * Set enclosing class type (since JRE 5).
+	 * 
+	 * We mix here declaring classes info and enclosing method / classes info.
+	 * 
+	 * There are five kinds of classes (or interfaces):<br>
+	 * 
+	 * a) Top level classes<br>
+	 * b) Nested classes (static member classes)<br>
+	 * c) Inner classes (non-static member classes)<br>
+	 * d) Local classes (named classes declared within a method)<br>
+	 * e) Anonymous classes<br>
+	 * 
+	 * JVM Spec 4.8.6: A class must have an EnclosingMethod attribute if and only if it is a local
+	 * class or an anonymous class.<br>
+	 * 
+	 * but JRE < 5 has no enclosing method attribute,<br>
+	 * JRE 1.1 has normal outer for anonymous/local, like declaring for JRE 5,<br>
+	 * JRE 1.2 .. 1.4 has no outer info at all!!!
 	 * 
 	 * @param t
 	 *            class type
+	 * 
+	 * @see Class#getEnclosingClass()
 	 */
 	public void setEnclosingT(final ClassT t) {
 		if (this.enclosing != null) {
@@ -264,14 +335,15 @@ public class ClassT extends T {
 	 *            inner access flags
 	 */
 	public void setInnerInfo(final String name, final int accessFlags) {
+		final String innerName = name == null ? ANONYMOUS : name;
 		if (this.innerName != null) {
-			if (!this.innerName.equals(name)) {
+			if (!this.innerName.equals(innerName)) {
 				LOGGER.warning("Inner name cannot be changed from '" + this.innerName + "' to '"
 						+ name + "'!");
 			}
 			return;
 		}
-		this.innerName = name;
+		this.innerName = innerName;
 		/*
 		 * if (this.accessFlags != 0) { if (this.accessFlags != accessFlags) {
 		 * LOGGER.warning("Inner access flags cannot be changed from '" + this.accessFlags +

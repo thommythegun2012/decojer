@@ -23,10 +23,11 @@
  */
 package org.decojer.cavaj.model;
 
-
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+
+import org.decojer.cavaj.model.types.ClassT;
 
 /**
  * Field.
@@ -96,6 +97,19 @@ public class F {
 	 */
 	public boolean check(final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;
+	}
+
+	/**
+	 * Create field declaration for this field.
+	 * 
+	 * @return field declaration
+	 */
+	public FD createFd() {
+		assert this.fd == null;
+
+		this.fd = new FD(this);
+		((ClassT) this.t).getTd().addBd(this.fd);
+		return this.fd;
 	}
 
 	/**
