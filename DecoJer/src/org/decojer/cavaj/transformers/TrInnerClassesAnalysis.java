@@ -90,6 +90,7 @@ public class TrInnerClassesAnalysis {
 			}
 			final String sourceFileName = sourceId != null ? topTd.getSourceFileName() : topTd
 					.getPName() + ".java";
+			// TODO which one is really the top level class?
 			final CU cu = new CU(topTd, sourceFileName);
 			if (sourceId != null) {
 				sourceId2cu.put(sourceId, cu);
