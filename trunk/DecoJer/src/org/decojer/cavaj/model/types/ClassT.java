@@ -74,6 +74,25 @@ public class ClassT extends T {
 	 */
 	private Object enclosing;
 
+	/**
+	 * really necessary? TODO
+	 * 
+	 * @see Class#getSimpleName()
+	 */
+	// According to JLS3 "Binary Compatibility" (13.1) the binary
+	// name of non-package classes (not top level) is the binary
+	// name of the immediately enclosing class followed by a '$' followed by:
+	// (for nested and inner classes): the simple name.
+	// (for local classes): 1 or more digits followed by the simple name.
+	// (for anonymous classes): 1 or more digits.
+
+	// Since getSimpleBinaryName() will strip the binary name of
+	// the immediatly enclosing class, we are now looking at a
+	// string that matches the regular expression "\$[0-9]*"
+	// followed by a simple name (considering the simple of an
+	// anonymous class to be the empty string).
+
+	// Remove leading "\$[0-9]*" from the name
 	@Getter
 	private String innerName;
 
@@ -147,6 +166,7 @@ public class ClassT extends T {
 	 * 
 	 * @return enclosing method
 	 * 
+	 * @see ClassT#setEnclosingT(ClassT)
 	 * @see Class#getEnclosingMethod()
 	 * @see Class#getEnclosingConstructor()
 	 */
@@ -159,6 +179,7 @@ public class ClassT extends T {
 	 * 
 	 * @return enclosing type
 	 * 
+	 * @see ClassT#setEnclosingT(ClassT)
 	 * @see Class#getEnclosingClass()
 	 */
 	public ClassT getEnclosingT() {
@@ -293,8 +314,6 @@ public class ClassT extends T {
 	/**
 	 * Set enclosing class type (since JRE 5).
 	 * 
-	 * We mix here declaring classes info and enclosing method / classes info.
-	 * 
 	 * There are five kinds of classes (or interfaces):<br>
 	 * 
 	 * a) Top level classes<br>
@@ -306,9 +325,15 @@ public class ClassT extends T {
 	 * JVM Spec 4.8.6: A class must have an EnclosingMethod attribute if and only if it is a local
 	 * class or an anonymous class.<br>
 	 * 
-	 * but JRE < 5 has no enclosing method attribute,<br>
-	 * JRE 1.1 has normal outer for anonymous/local, like declaring for JRE 5,<br>
+	 * We mix declaring classes info and enclosing method / classes attribut info.<br>
+	 * 
+	 * JRE 5 has enclosing method attribute for local/anonymous, outer info only for declaring outer<br>
+	 * JRE < 5 has no enclosing method attribute and:<br>
+	 * JRE 1.1 has normal outer info for anonymous/local, like declaring for JRE 5,<br>
 	 * JRE 1.2 .. 1.4 has no outer info at all!!!
+	 * 
+	 * We cannot ignore this information and rely on naming rules, because the separator '$' is a
+	 * valid character in none-inner type names.
 	 * 
 	 * @param t
 	 *            class type
