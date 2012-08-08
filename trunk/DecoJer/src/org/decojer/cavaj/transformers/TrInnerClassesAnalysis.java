@@ -72,7 +72,7 @@ public class TrInnerClassesAnalysis {
 			return null;
 		}
 		final String packageName = mainTd.getPackageName();
-		return packageName == null ? sourceFileName : packageName + "/" + sourceFileName;
+		return packageName == null ? sourceFileName : packageName + "." + sourceFileName;
 	}
 
 	public static void transform(final DU du) {
@@ -90,7 +90,6 @@ public class TrInnerClassesAnalysis {
 			}
 			final String sourceFileName = sourceId != null ? topTd.getSourceFileName() : topTd
 					.getPName() + ".java";
-			// TODO which one is really the top level class?
 			final CU cu = new CU(topTd, sourceFileName);
 			if (sourceId != null) {
 				sourceId2cu.put(sourceId, cu);
