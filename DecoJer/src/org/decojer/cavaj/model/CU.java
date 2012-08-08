@@ -56,8 +56,6 @@ public final class CU extends D {
 
 	private final EnumSet<DFlag> dFlags = EnumSet.noneOf(DFlag.class);
 
-	private final TD mainTd;
-
 	/**
 	 * Source file name (calculated).
 	 */
@@ -70,19 +68,18 @@ public final class CU extends D {
 	/**
 	 * Constructor.
 	 * 
-	 * @param mainTd
+	 * @param td
 	 *            main type declaration
 	 * @param sourceFileName
 	 *            source file name
 	 */
-	public CU(final TD mainTd, final String sourceFileName) {
-		assert mainTd != null;
+	public CU(final TD td, final String sourceFileName) {
+		assert td != null;
 		assert sourceFileName != null;
 
-		addTd(mainTd);
-		this.mainTd = mainTd;
+		addTd(td);
 		this.sourceFileName = sourceFileName;
-		getTypeNameManager().setPackageName(mainTd.getPackageName());
+		getTypeNameManager().setPackageName(td.getPackageName());
 	}
 
 	/**
@@ -143,7 +140,7 @@ public final class CU extends D {
 				.append(", a Java-bytecode decompiler.\n")
 				.append(" * DecoJer Copyright (C) 2009-2011 André Pankraz. All Rights Reserved.\n")
 				.append(" *\n");
-		final int version = this.mainTd.getVersion();
+		final int version = getTd().getVersion();
 		if (version == 0) {
 			sb.append(" * Dalvik File");
 		} else {
@@ -154,8 +151,8 @@ public final class CU extends D {
 			sb.append(version - 44).append(')');
 		}
 		sb.append('\n');
-		if (this.mainTd.getSourceFileName() != null) {
-			sb.append(" * Source File Name: ").append(this.mainTd.getSourceFileName()).append('\n');
+		if (getTd().getSourceFileName() != null) {
+			sb.append(" * Source File Name: ").append(getTd().getSourceFileName()).append('\n');
 		}
 		sb.append(" */");
 		return sb.toString();
@@ -180,16 +177,10 @@ public final class CU extends D {
 	 * @return abstract syntax tree
 	 */
 	public AST getAst() {
-		return getCompilationUnit().getAST();
-	}
+		final AST ast = getCompilationUnit().getAST();
+		assert ast != null;
 
-	/**
-	 * Get decompilation unit.
-	 * 
-	 * @return decompilation unit
-	 */
-	public DU getDu() {
-		return this.mainTd.getDu();
+		return ast;
 	}
 
 	/**
@@ -199,7 +190,7 @@ public final class CU extends D {
 	 */
 	@Override
 	public String getName() {
-		return this.mainTd.getName();
+		return getPackageName() + "." + this.sourceFileName;
 	}
 
 	/**
@@ -208,7 +199,16 @@ public final class CU extends D {
 	 * @return package name
 	 */
 	public String getPackageName() {
-		return this.mainTd.getPackageName();
+		return getTd().getPackageName();
+	}
+
+	/**
+	 * Get first type declaration.
+	 * 
+	 * @return first type declaration
+	 */
+	public TD getTd() {
+		return (TD) getBds().get(0);
 	}
 
 	/**
@@ -221,7 +221,7 @@ public final class CU extends D {
 	public TD getTd(final String name) {
 		String n = name;
 		if (n.indexOf('.') == -1) {
-			n = this.mainTd.getPackageName() + '.' + n;
+			n = getPackageName() + '.' + n;
 		}
 		for (final BD bd : getBds()) {
 			if (n.equals(bd.getName())) {

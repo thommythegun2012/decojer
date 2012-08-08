@@ -395,8 +395,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					if (ClassEditor.this.selectedCu != null) {
 						ClassEditor.this.selectedCu.clear();
 					}
-					ClassEditor.this.selectedCu = ClassEditor.this.du.getTd(selection.getText())
-							.getCu();
+					ClassEditor.this.selectedCu = ClassEditor.this.du.getCu(selection.getText());
 
 					String sourceCode = null;
 					try {

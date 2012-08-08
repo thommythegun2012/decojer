@@ -163,6 +163,22 @@ public final class DU {
 		return new ArrayT(this, componentT);
 	}
 
+	/**
+	 * Get compilaton unit for name.
+	 * 
+	 * @param name
+	 *            compilation unit name
+	 * @return compilation unit or <code>null</code>
+	 */
+	public CU getCu(final String name) {
+		for (final CU cu : getCus()) {
+			if (cu.getName().equals(name)) {
+				return cu;
+			}
+		}
+		return null;
+	}
+
 	public List<CU> getCus() {
 		if (this.cus == null) {
 			createCus();

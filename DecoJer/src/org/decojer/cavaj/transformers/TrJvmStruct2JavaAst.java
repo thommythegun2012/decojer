@@ -436,22 +436,24 @@ public final class TrJvmStruct2JavaAst {
 	public static void transform(final TD td) {
 		final CU cu = td.getCu();
 
-		// initializes AST for compilation unit
-		final ASTParser parser = ASTParser.newParser(AST.JLS4);
-		parser.setSource(new char[0]);
-		final CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
-		compilationUnit.recordModifications();
-		cu.setCompilationUnit(compilationUnit);
-
-		final AST ast = compilationUnit.getAST();
-
-		// decompile package name
-		final String packageName = td.getPackageName();
-		if (packageName != null) {
-			final PackageDeclaration packageDeclaration = ast.newPackageDeclaration();
-			packageDeclaration.setName(ast.newName(packageName));
-			compilationUnit.setPackage(packageDeclaration);
+		if (cu.getCompilationUnit() == null) {
+			// initializes AST for compilation unit if still uninitialized
+			final ASTParser parser = ASTParser.newParser(AST.JLS4);
+			parser.setSource(new char[0]);
+			final CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
+			compilationUnit.recordModifications();
+			// decompile package name
+			final String packageName = td.getPackageName();
+			if (packageName != null) {
+				final PackageDeclaration packageDeclaration = compilationUnit.getAST()
+						.newPackageDeclaration();
+				packageDeclaration.setName(compilationUnit.getAST().newName(packageName));
+				compilationUnit.setPackage(packageDeclaration);
+			}
+			cu.setCompilationUnit(compilationUnit);
 		}
+		final AST ast = cu.getAst();
+
 		if ("package-info".equals(td.getPName())) {
 			// this is not a valid Java type name and is used for package annotations, we must
 			// handle this here, is "interface" in JDK 5, is "abstract synthetic interface" in JDK 7
