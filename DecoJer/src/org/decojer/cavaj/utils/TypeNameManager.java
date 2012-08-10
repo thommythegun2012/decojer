@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -24,6 +24,7 @@
 package org.decojer.cavaj.utils;
 
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.T;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.Name;
 
@@ -32,7 +33,7 @@ import org.eclipse.jdt.core.dom.Name;
  * 
  * Full names consist of dot-separated package names and dollar-separated type names.
  * 
- * @author André Pankraz
+ * @author AndrÃ© Pankraz
  */
 public class TypeNameManager {
 
@@ -82,13 +83,12 @@ public class TypeNameManager {
 	/**
 	 * New type name.
 	 * 
-	 * @param name
-	 *            type name
+	 * @param t
+	 *            type
 	 * @return AST type name
 	 */
-	public Name newTypeName(final String name) {
-		assert name != null;
-
+	public Name newTypeName(final T t) {
+		final String name = t.getName();
 		String javaName;
 		if (this.packagePrefix != null && name.startsWith(this.packagePrefix)
 				&& name.indexOf('.', this.packagePrefix.length()) == -1) {

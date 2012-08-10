@@ -164,7 +164,7 @@ public final class CU extends D {
 	 * @return source code
 	 */
 	public String decompile() {
-		for (final BD bd : getBds()) {
+		for (final BD bd : getAllTds()) {
 			((TD) bd).decompile();
 		}
 		TrMergeAll.transform(this);

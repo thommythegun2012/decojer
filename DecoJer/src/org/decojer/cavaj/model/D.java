@@ -44,6 +44,17 @@ public abstract class D {
 	@Getter
 	private final List<BD> bds = new ArrayList<BD>();
 
+	protected void _getAllTds(final ArrayList<TD> tds) {
+		for (final BD bd : this.bds) {
+			if (!(bd instanceof TD)) {
+				continue;
+			}
+			final TD td = (TD) bd;
+			tds.add(td);
+			td._getAllTds(tds);
+		}
+	}
+
 	/**
 	 * Add body declaration.
 	 * 
@@ -79,6 +90,12 @@ public abstract class D {
 		for (final BD bd : this.bds) {
 			bd.clear();
 		}
+	}
+
+	public List<TD> getAllTds() {
+		final ArrayList<TD> tds = new ArrayList<TD>();
+		_getAllTds(tds);
+		return tds;
 	}
 
 	public abstract String getName();

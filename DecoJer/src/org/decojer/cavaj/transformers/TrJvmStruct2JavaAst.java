@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer projectd.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -68,7 +68,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 /**
  * Transformer: JVM Struct to AST.
  * 
- * @author André Pankraz
+ * @author Andrï¿½ Pankraz
  */
 public final class TrJvmStruct2JavaAst {
 
@@ -211,7 +211,8 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setConstructor(true);
 			((MethodDeclaration) methodDeclaration).setName(ast.newSimpleName(cu
-					.check(DFlag.START_TD_ONLY) ? td.getPName() : td.getIName()));
+					.check(DFlag.START_TD_ONLY) || td.isAnonymous() ? td.getPName() : td
+					.getSimpleName()));
 		} else if (typeDeclaration instanceof AnnotationTypeDeclaration) {
 			// AnnotationTypeMemberDeclaration
 			methodDeclaration = ast.newAnnotationTypeMemberDeclaration();
@@ -555,10 +556,9 @@ public final class TrJvmStruct2JavaAst {
 			}
 
 			// multiple CompilationUnitd.TypeDeclaration in same AST (source file) possible, but
-			// only
-			// one of them is public and multiple class files are necessary
+			// only one of them is public and multiple class files are necessary
 			typeDeclaration.setName(ast.newSimpleName(cu.check(DFlag.START_TD_ONLY) ? td.getPName()
-					: td.getIName()));
+					: td.getSimpleName()));
 
 			if (td.isDeprecated() && !AnnotationsDecompiler.isDeprecatedAnnotation(td.getAs())) {
 				final Javadoc newJavadoc = ast.newJavadoc();
