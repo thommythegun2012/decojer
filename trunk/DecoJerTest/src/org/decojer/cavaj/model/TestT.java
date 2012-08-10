@@ -301,12 +301,12 @@ class TestT {
 
 	@Test
 	void isResolveable() {
-		assertTrue(objectT.isResolveable());
-		assertTrue(T.INT.isResolveable());
-		assertTrue(T.VOID.isResolveable());
-		assertTrue(du.getT(Character.class).isResolveable());
-		assertTrue(du.getT(Double[][].class).isResolveable());
-		assertFalse(du.getT("Test").isResolveable());
+		assertTrue(objectT.resolve());
+		assertTrue(T.INT.resolve());
+		assertTrue(T.VOID.resolve());
+		assertTrue(du.getT(Character.class).resolve());
+		assertTrue(du.getT(Double[][].class).resolve());
+		assertFalse(du.getT("Test").resolve());
 	}
 
 	@Test
@@ -357,7 +357,7 @@ class TestT {
 		assertEquals(t.getInterfaceTs().length, 1);
 		assertSame(t.getInterfaceTs()[0], du.getT(Comparable.class));
 		assertEquals(t.getName(), "{java.lang.Number,java.lang.Comparable}");
-		assertEquals(t.getIName(), "{java.lang.Number,java.lang.Comparable}");
+		assertEquals(t.getSimpleName(), "{java.lang.Number,java.lang.Comparable}");
 	}
 
 	@Test
