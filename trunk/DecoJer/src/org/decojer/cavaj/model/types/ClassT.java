@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.types;
 
 import java.lang.reflect.Method;
+import java.lang.reflect.TypeVariable;
 import java.util.logging.Logger;
 
 import lombok.Getter;
@@ -132,7 +133,10 @@ public class ClassT extends T {
 	 * @return true - is access flag
 	 */
 	public boolean check(final AF af) {
-		return resolve() && (this.accessFlags & af.getValue()) != 0;
+		if (this.accessFlags == 0) {
+			resolve();
+		}
+		return (this.accessFlags & af.getValue()) != 0;
 	}
 
 	/**
@@ -192,11 +196,16 @@ public class ClassT extends T {
 		if (this.superT == null) {
 			resolve();
 		}
+		// can be null, e.g. for Object.class
 		return this.superT == NONE ? null : this.superT;
 	}
 
+	@Override
 	public T[] getTypeParams() {
-		return resolve() ? this.typeParams : null;
+		if (this.typeParams == null) {
+			resolve();
+		}
+		return this.typeParams;
 	}
 
 	@Override
@@ -249,6 +258,15 @@ public class ClassT extends T {
 				this.interfaceTs = interfaceTs;
 			}
 
+			final TypeVariable<?>[] typeParameters = clazz.getTypeParameters();
+			if (typeParameters.length > 0) {
+				final T[] typeParams = new T[typeParameters.length];
+				for (int i = typeParameters.length; i-- > 0;) {
+					typeParams[i] = getDu().getT(typeParameters[i].getName());
+				}
+				this.typeParams = typeParams;
+			}
+
 			final Method enclosingMethod = clazz.getEnclosingMethod();
 			if (enclosingMethod != null) {
 				final Class<?> declaringClass = enclosingMethod.getDeclaringClass();
@@ -264,18 +282,25 @@ public class ClassT extends T {
 		} catch (final ClassNotFoundException e) {
 			markAf(AF.UNRESOLVEABLE);
 			this.interfaceTs = INTERFACES_NONE;
-			LOGGER.warning("Couldn't load type : " + this);
+			LOGGER.warning("Couldn't load type : " + getName());
 			return false;
 		} finally {
-			if (this.superT == null) {
-				this.superT = NONE;
-			}
-			if (this.interfaceTs == null) {
-				this.interfaceTs = INTERFACES_NONE;
-			}
-			if (this.enclosing == null) {
-				this.enclosing = NONE;
-			}
+			resolveFill();
+		}
+	}
+
+	public void resolveFill() {
+		if (this.superT == null) {
+			this.superT = NONE; // Object.class has no super!
+		}
+		if (this.interfaceTs == null) {
+			this.interfaceTs = INTERFACES_NONE;
+		}
+		if (this.typeParams == null) {
+			this.typeParams = TYPE_PARAMS_NONE;
+		}
+		if (this.enclosing == null) {
+			this.enclosing = NONE;
 		}
 	}
 

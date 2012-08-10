@@ -182,8 +182,8 @@ public final class TD extends BD {
 	/**
 	 * Get interface types.
 	 * 
-	 * @return interface types
-	 * @see ClassT#getInterfaceTs()
+	 * @return interface types, not <code>null</code>
+	 * @see T#getInterfaceTs()
 	 */
 	public T[] getInterfaceTs() {
 		return this.t.getInterfaceTs();
@@ -234,7 +234,7 @@ public final class TD extends BD {
 	 * Get super type.
 	 * 
 	 * @return super type
-	 * @see ClassT#getSuperT()
+	 * @see T#getSuperT()
 	 */
 	public T getSuperT() {
 		return this.t.getSuperT();
@@ -243,8 +243,8 @@ public final class TD extends BD {
 	/**
 	 * Get type parameters.
 	 * 
-	 * @return type parameters
-	 * @see ClassT#getTypeParams()
+	 * @return type parameters, not <code>null</code>
+	 * @see T#getTypeParams()
 	 */
 	public T[] getTypeParams() {
 		return this.t.getTypeParams();
@@ -254,7 +254,6 @@ public final class TD extends BD {
 	 * Returns <tt>true</tt> if and only if the underlying class is an anonymous class.
 	 * 
 	 * @return <tt>true</tt> if and only if this class is an anonymous class.
-	 * 
 	 * @see T#isAnonymous()
 	 */
 	public boolean isAnonymous() {
@@ -284,6 +283,14 @@ public final class TD extends BD {
 	}
 
 	/**
+	 * Resolve unfilled parameters.
+	 */
+	public void resolve() {
+		// has other name in ClassT
+		this.t.resolveFill();
+	}
+
+	/**
 	 * Set access flags.
 	 * 
 	 * @param accessFlags
@@ -298,7 +305,6 @@ public final class TD extends BD {
 	 * 
 	 * @param m
 	 *            method
-	 * 
 	 * @see ClassT#setEnclosingT(ClassT)
 	 */
 	public void setEnclosingM(final M m) {
@@ -387,7 +393,7 @@ public final class TD extends BD {
 
 	@Override
 	public String toString() {
-		return this.t.getName();
+		return this.t.toString();
 	}
 
 }

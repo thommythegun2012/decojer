@@ -28,7 +28,7 @@ import lombok.Getter;
 /**
  * Kind of type.
  * 
- * @author Andr� Pankraz
+ * @author André Pankraz
  */
 public enum Kind {
 
@@ -58,7 +58,9 @@ public enum Kind {
 
 	DOUBLE2(1 << 12),
 
-	NONE(1 << 13);
+	NONE(1 << 13),
+
+	UNRESOLVABLE(1 << 13);
 
 	@Getter
 	private final Class<?> clazz;

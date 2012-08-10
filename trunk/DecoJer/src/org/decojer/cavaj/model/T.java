@@ -136,7 +136,11 @@ public abstract class T {
 	/**
 	 * Artificial type 'none'.
 	 */
-	protected static T NONE = getT(Kind.NONE);
+	public static T NONE = getT(Kind.NONE);
+	/*
+	 * Artificial type 'unresolvable'.
+	 */
+	public static T UNRESOLVABLE = getT(Kind.UNRESOLVABLE);
 
 	/**
 	 * Multi-type 'any reference'.
@@ -171,7 +175,9 @@ public abstract class T {
 	public static final T[] TYPES = new T[] { null, null, null, null, T.BOOLEAN, T.CHAR, T.FLOAT,
 			T.DOUBLE, T.BYTE, T.SHORT, T.INT, T.LONG };
 
-	protected static final T[] INTERFACES_NONE = new T[0];
+	public static final T[] INTERFACES_NONE = new T[0];
+
+	public static final T[] TYPE_PARAMS_NONE = new T[0];
 
 	public static T getDalvikIntT(final int value) {
 		int kinds = T.FLOAT.getKind();
@@ -464,7 +470,7 @@ public abstract class T {
 	/**
 	 * Get interface types.
 	 * 
-	 * @return interface types
+	 * @return interface types, not <code>null</code>
 	 * @see Class#getInterfaces()
 	 */
 	public T[] getInterfaceTs() {
@@ -587,6 +593,16 @@ public abstract class T {
 	 */
 	public T getSuperT() {
 		return null;
+	}
+
+	/**
+	 * Get type parameters.
+	 * 
+	 * @return type parameters, not <code>null</code>
+	 * @see Class#getTypeParameters()
+	 */
+	public T[] getTypeParams() {
+		return TYPE_PARAMS_NONE;
 	}
 
 	@Override
@@ -785,7 +801,8 @@ public abstract class T {
 
 	@Override
 	public String toString() {
-		return getSimpleName();
+		// getSimpleName() not possible, potentially needs unresolved attributes, e.g. enclosing
+		return this.name;
 	}
 
 }

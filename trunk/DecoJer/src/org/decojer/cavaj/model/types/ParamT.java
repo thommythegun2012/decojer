@@ -23,17 +23,16 @@
  */
 package org.decojer.cavaj.model.types;
 
-import org.decojer.cavaj.model.T;
-
 import lombok.Getter;
 
+import org.decojer.cavaj.model.T;
 
 /**
  * Parameterized type.
  * 
  * @since J5
  * 
- * @author Andr� Pankraz
+ * @author André Pankraz
  */
 public final class ParamT extends T {
 
@@ -43,7 +42,7 @@ public final class ParamT extends T {
 	 * We don't follow the often used <code>WildcardType</code> paradigma. Wildcards are only
 	 * allowed in the context of parameterized types and aren't useable as standalone Types.
 	 * 
-	 * @author Andr� Pankraz
+	 * @author André Pankraz
 	 */
 	@Getter
 	public static final class TypeArg {
@@ -97,9 +96,9 @@ public final class ParamT extends T {
 			case MATCH:
 				return this.t.toString();
 			case SUBCLASS_OF:
-				return "? extends " + this.t.toString();
+				return "? extends " + this.t;
 			case SUPER_OF:
-				return "? super " + this.t.toString();
+				return "? super " + this.t;
 			case UNBOUND:
 				return "?";
 			}

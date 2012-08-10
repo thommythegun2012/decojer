@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -86,7 +86,7 @@ import com.google.common.io.ByteStreams;
 /**
  * Reader from Smali.
  * 
- * @author André Pankraz
+ * @author AndrÃ© Pankraz
  */
 public class SmaliReader implements DexReader {
 
@@ -305,6 +305,7 @@ public class SmaliReader implements DexReader {
 						methodSignatures, methodThrowsTs, annotationDefaultValues, methodAs,
 						methodParamAs);
 			}
+			td.resolve();
 		}
 		return tds;
 	}
