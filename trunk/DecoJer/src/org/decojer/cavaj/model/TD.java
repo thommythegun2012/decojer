@@ -40,8 +40,12 @@ import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.utils.Cursor;
+import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.Name;
+
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 
 /**
  * Type declaration. This includes Java class and interface declarations.
@@ -54,6 +58,8 @@ import org.eclipse.jdt.core.dom.Name;
 public final class TD extends BD {
 
 	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
+
+	private static final String JAVA_LANG = "java.lang";
 
 	/**
 	 * Source file name (from source file attribute).
@@ -277,9 +283,34 @@ public final class TD extends BD {
 	 * @return AST type name
 	 */
 	public Name newTypeName(final T t) {
-		return getCu().getAst().newName(t.getName());
-
-		// return getCu().getTypeNameManager().newTypeName(t);
+		final AST ast = getCu().getAst();
+		final String packageName = t.getPackageName();
+		if (!Objects.equal(getPackageName(), t.getPackageName())) {
+			if (JAVA_LANG.equals(packageName)) {
+				// ignore default package
+				return ast.newName(t.getPName());
+			}
+			// full name
+			// TODO later histogram for import candidates here?
+			return ast.newName(t.getName());
+		}
+		// ignore same package
+		if (t.getEnclosingT() == null) {
+			return ast.newName(t.getPName());
+		}
+		// convert inner classes separator '$' into '.',
+		// cannot use string replace because '$' is also a regular Java type name!
+		// find common name dominator and stop there, for relative inner names
+		final String name = getName();
+		final ArrayList<String> names = Lists.newArrayList(t.getSimpleName().length() == 0 ? "I_AN"
+				: t.getSimpleName());
+		T enclosingT = t.getEnclosingT();
+		while (enclosingT != null && !name.startsWith(enclosingT.getName())) {
+			names.add(enclosingT.getSimpleName().length() == 0 ? "I_AN" : enclosingT
+					.getSimpleName());
+			enclosingT = enclosingT.getEnclosingT();
+		}
+		return ast.newName(names.toArray(new String[names.size()]));
 	}
 
 	/**
