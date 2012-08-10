@@ -62,7 +62,7 @@ public abstract class DecTestInner {
 
 		private final Runnable RUNNER = new Thread() {
 
-			// sttaic not possible in non-static inner
+			// static not possible in non-static inner
 			private final Runnable RUNNER = new Thread() {
 
 				public void run() {
