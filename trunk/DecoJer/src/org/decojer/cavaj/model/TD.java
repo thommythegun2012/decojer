@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -41,15 +41,15 @@ import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.Name;
 
 /**
  * Type declaration. This includes Java class and interface declarations.
  * 
- * Names consist of dot-separated package names (for full name) and dollar-separated type names.
+ * Names consist of dot-separated package names (for full name) and dollar-separated type names (but
+ * dollar is a valid Java name char!)
  * 
- * @author André Pankraz
+ * @author AndrÃ© Pankraz
  */
 public final class TD extends BD {
 
@@ -170,23 +170,20 @@ public final class TD extends BD {
 		}
 	}
 
+	/**
+	 * Get decompilation unit.
+	 * 
+	 * @return decompilation unit
+	 */
 	public DU getDu() {
 		return this.t.getDu();
-	}
-
-	/**
-	 * Get inner name.
-	 * 
-	 * @return inner name
-	 */
-	public String getIName() {
-		return this.t.getIName();
 	}
 
 	/**
 	 * Get interface types.
 	 * 
 	 * @return interface types
+	 * @see ClassT#getInterfaceTs()
 	 */
 	public T[] getInterfaceTs() {
 		return this.t.getInterfaceTs();
@@ -196,6 +193,7 @@ public final class TD extends BD {
 	 * Get name.
 	 * 
 	 * @return name
+	 * @see T#getName()
 	 */
 	@Override
 	public String getName() {
@@ -206,6 +204,7 @@ public final class TD extends BD {
 	 * Get package name.
 	 * 
 	 * @return package name or <code>null</code> for no package
+	 * @see T#getPackageName()
 	 */
 	public String getPackageName() {
 		return this.t.getPackageName();
@@ -215,15 +214,27 @@ public final class TD extends BD {
 	 * Get primary name.
 	 * 
 	 * @return primary name
+	 * @see T#getPName()
 	 */
 	public String getPName() {
 		return this.t.getPName();
 	}
 
 	/**
+	 * Get inner name.
+	 * 
+	 * @return inner name
+	 * @see T#getSimpleName()
+	 */
+	public String getSimpleName() {
+		return this.t.getSimpleName();
+	}
+
+	/**
 	 * Get super type.
 	 * 
 	 * @return super type
+	 * @see ClassT#getSuperT()
 	 */
 	public T getSuperT() {
 		return this.t.getSuperT();
@@ -233,18 +244,21 @@ public final class TD extends BD {
 	 * Get type parameters.
 	 * 
 	 * @return type parameters
+	 * @see ClassT#getTypeParams()
 	 */
 	public T[] getTypeParams() {
 		return this.t.getTypeParams();
 	}
 
 	/**
-	 * Is anonymous type declaration?
+	 * Returns <tt>true</tt> if and only if the underlying class is an anonymous class.
 	 * 
-	 * @return true - is anonymous type declaration
+	 * @return <tt>true</tt> if and only if this class is an anonymous class.
+	 * 
+	 * @see T#isAnonymous()
 	 */
 	public boolean isAnonymous() {
-		return this.typeDeclaration instanceof AnonymousClassDeclaration;
+		return this.t.isAnonymous();
 	}
 
 	/**
@@ -257,19 +271,6 @@ public final class TD extends BD {
 	}
 
 	/**
-	 * New type name (currently only for signatures).
-	 * 
-	 * @param fullName
-	 *            full type name
-	 * @return AST type name
-	 */
-	public Name newTypeName(final String fullName) {
-		assert fullName != null;
-
-		return getCu().getTypeNameManager().newTypeName(fullName);
-	}
-
-	/**
 	 * New type name.
 	 * 
 	 * @param t
@@ -277,9 +278,9 @@ public final class TD extends BD {
 	 * @return AST type name
 	 */
 	public Name newTypeName(final T t) {
-		assert t != null;
+		return getCu().getAst().newName(t.getName());
 
-		return getCu().getTypeNameManager().newTypeName(t.getName());
+		// return getCu().getTypeNameManager().newTypeName(t);
 	}
 
 	/**

@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,13 +38,13 @@ import org.decojer.cavaj.model.TD;
 /**
  * Class type.
  * 
- * @author André Pankraz
+ * @author AndrÃ© Pankraz
  */
 public class ClassT extends T {
 
 	private final static Logger LOGGER = Logger.getLogger(ClassT.class.getName());
 
-	private final static String ANONYMOUS = "<ANONYMOUS>";
+	private final static String INNER_NAME_ANONYMOUS = "<ANONYMOUS>";
 
 	private static String toString(final T superT, final T[] interfaceTs) {
 		final StringBuilder sb = new StringBuilder("{");
@@ -75,24 +75,10 @@ public class ClassT extends T {
 	private Object enclosing;
 
 	/**
-	 * really necessary? TODO
+	 * Really necessary? Java compatibility rules enforce fix structure with enclosing types!
 	 * 
-	 * @see Class#getSimpleName()
+	 * @see T#getName()
 	 */
-	// According to JLS3 "Binary Compatibility" (13.1) the binary
-	// name of non-package classes (not top level) is the binary
-	// name of the immediately enclosing class followed by a '$' followed by:
-	// (for nested and inner classes): the simple name.
-	// (for local classes): 1 or more digits followed by the simple name.
-	// (for anonymous classes): 1 or more digits.
-
-	// Since getSimpleBinaryName() will strip the binary name of
-	// the immediatly enclosing class, we are now looking at a
-	// string that matches the regular expression "\$[0-9]*"
-	// followed by a simple name (considering the simple of an
-	// anonymous class to be the empty string).
-
-	// Remove leading "\$[0-9]*" from the name
 	@Getter
 	private String innerName;
 
@@ -146,7 +132,7 @@ public class ClassT extends T {
 	 * @return true - is access flag
 	 */
 	public boolean check(final AF af) {
-		return isResolveable() && (this.accessFlags & af.getValue()) != 0;
+		return resolve() && (this.accessFlags & af.getValue()) != 0;
 	}
 
 	/**
@@ -161,6 +147,13 @@ public class ClassT extends T {
 		return this.td;
 	}
 
+	private Object getEnclosing() {
+		if (this.enclosing == null) {
+			resolve();
+		}
+		return this.enclosing == NONE ? null : this.enclosing;
+	}
+
 	/**
 	 * Get enclosing method (including constructor).
 	 * 
@@ -171,24 +164,22 @@ public class ClassT extends T {
 	 * @see Class#getEnclosingConstructor()
 	 */
 	public M getEnclosingM() {
-		return isResolveable() && this.enclosing instanceof M ? (M) this.enclosing : null;
+		final Object enclosing = getEnclosing();
+		return enclosing instanceof M ? (M) enclosing : null;
 	}
 
-	/**
-	 * Get enclosing type.
-	 * 
-	 * @return enclosing type
-	 * 
-	 * @see ClassT#setEnclosingT(ClassT)
-	 * @see Class#getEnclosingClass()
-	 */
+	@Override
 	public ClassT getEnclosingT() {
-		return isResolveable() && this.enclosing instanceof ClassT ? (ClassT) this.enclosing : null;
+		final Object enclosing = getEnclosing();
+		return enclosing instanceof ClassT ? (ClassT) enclosing : null;
 	}
 
 	@Override
 	public T[] getInterfaceTs() {
-		return isResolveable() ? this.interfaceTs : T.NO_INTERFACES;
+		if (this.interfaceTs == null) {
+			resolve();
+		}
+		return this.interfaceTs;
 	}
 
 	@Override
@@ -198,15 +189,14 @@ public class ClassT extends T {
 
 	@Override
 	public T getSuperT() {
-		return isResolveable() ? this.superT : null;
+		if (this.superT == null) {
+			resolve();
+		}
+		return this.superT == NONE ? null : this.superT;
 	}
 
 	public T[] getTypeParams() {
-		return isResolveable() ? this.typeParams : null;
-	}
-
-	public boolean isAnonymousClass() {
-		return this.innerName == ANONYMOUS;
+		return resolve() ? this.typeParams : null;
 	}
 
 	@Override
@@ -220,24 +210,24 @@ public class ClassT extends T {
 	}
 
 	/**
+	 * Mark access flag.
+	 * 
+	 * @param af
+	 *            access flag
+	 */
+	public void markAf(final AF af) {
+		this.accessFlags |= af.getValue();
+	}
+
+	/**
 	 * Is unresolveable?
 	 * 
 	 * @return true - is unresolveable
 	 */
 	@Override
-	public boolean isResolveable() {
-		if (this.interfaceTs != null) {
-			// don't use check(AF.UNRESOLVEABLE) -> endless loop
-			return (this.accessFlags & AF.UNRESOLVEABLE.getValue()) == 0;
-		}
-		if (!isRef()) {
-			this.interfaceTs = NO_INTERFACES;
-			return true;
-		}
-		// setSuper() in class read doesn't set interfaces if not known
-		if (this.superT != null) {
-			this.interfaceTs = NO_INTERFACES;
-			return true;
+	public boolean resolve() {
+		if ((this.accessFlags & AF.UNRESOLVEABLE.getValue()) != 0) {
+			return false;
 		}
 		// try simple class loading, may be we are lucky ;)
 		// TODO later ask DecoJer-online and local type cache with context info
@@ -251,9 +241,7 @@ public class ClassT extends T {
 			}
 
 			final Class<?>[] interfaces = clazz.getInterfaces();
-			if (interfaces.length == 0) {
-				this.interfaceTs = NO_INTERFACES;
-			} else {
+			if (interfaces.length > 0) {
 				final T[] interfaceTs = new T[interfaces.length];
 				for (int i = interfaces.length; i-- > 0;) {
 					interfaceTs[i] = getDu().getT(interfaces[i].getName());
@@ -272,24 +260,23 @@ public class ClassT extends T {
 			if (enclosingClass != null) {
 				this.enclosing = this.du.getT(enclosingClass);
 			}
-
 			return true;
 		} catch (final ClassNotFoundException e) {
-			LOGGER.warning("Couldn't load type : " + this);
-			this.interfaceTs = NO_INTERFACES;
 			markAf(AF.UNRESOLVEABLE);
+			this.interfaceTs = INTERFACES_NONE;
+			LOGGER.warning("Couldn't load type : " + this);
 			return false;
+		} finally {
+			if (this.superT == null) {
+				this.superT = NONE;
+			}
+			if (this.interfaceTs == null) {
+				this.interfaceTs = INTERFACES_NONE;
+			}
+			if (this.enclosing == null) {
+				this.enclosing = NONE;
+			}
 		}
-	}
-
-	/**
-	 * Mark access flag.
-	 * 
-	 * @param af
-	 *            access flag
-	 */
-	public void markAf(final AF af) {
-		this.accessFlags |= af.getValue();
 	}
 
 	/**
@@ -360,7 +347,7 @@ public class ClassT extends T {
 	 *            inner access flags
 	 */
 	public void setInnerInfo(final String name, final int accessFlags) {
-		final String innerName = name == null ? ANONYMOUS : name;
+		final String innerName = name == null ? INNER_NAME_ANONYMOUS : name;
 		if (this.innerName != null) {
 			if (!this.innerName.equals(innerName)) {
 				LOGGER.warning("Inner name cannot be changed from '" + this.innerName + "' to '"

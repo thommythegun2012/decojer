@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  Andr� Pankraz
+ * Copyright (C) 2010-2011  Andr� Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -37,7 +37,7 @@ import org.decojer.cavaj.model.types.Kind;
 /**
  * Type.
  * 
- * @author Andr� Pankraz
+ * @author André Pankraz
  */
 public abstract class T {
 
@@ -133,6 +133,10 @@ public abstract class T {
 	 * Artificial type double part 2.
 	 */
 	public static T DOUBLE2 = getT(Kind.DOUBLE2);
+	/**
+	 * Artificial type 'none'.
+	 */
+	protected static T NONE = getT(Kind.NONE);
 
 	/**
 	 * Multi-type 'any reference'.
@@ -167,7 +171,7 @@ public abstract class T {
 	public static final T[] TYPES = new T[] { null, null, null, null, T.BOOLEAN, T.CHAR, T.FLOAT,
 			T.DOUBLE, T.BYTE, T.SHORT, T.INT, T.LONG };
 
-	protected static final T[] NO_INTERFACES = new T[0];
+	protected static final T[] INTERFACES_NONE = new T[0];
 
 	public static T getDalvikIntT(final int value) {
 		int kinds = T.FLOAT.getKind();
@@ -241,6 +245,17 @@ public abstract class T {
 			flags |= k.getKind();
 		}
 		return getT(flags);
+	}
+
+	/**
+	 * Character.isDigit answers <tt>true</tt> to some non-ascii digits. This one does not.
+	 * 
+	 * @param c
+	 *            character
+	 * @return <code>true</code> - is ascii digit
+	 */
+	private static boolean isAsciiDigit(final char c) {
+		return '0' <= c && c <= '9';
 	}
 
 	/**
@@ -365,6 +380,17 @@ public abstract class T {
 		return t1;
 	}
 
+	/**
+	 * Type name.
+	 * 
+	 * Names consist of '.'-separated package names (for full name) and '$'-separated type names
+	 * (but '$' is also a valid Java name char!)
+	 * 
+	 * Valid name chars contain also connecting characters and other, e.g.:
+	 * 
+	 * $ _ ¢ £ ¤ ¥ ؋ ৲ ৳ ৻ ૱ ௹ ฿ ៛ ‿ ⁀ ⁔ ₠ ₡ ₢ ₣ ₤ ₥ ₦ ₧ ₨ ₩ ₪ ₫ € ₭ ₮ ₯ ₰ ₱ ₲ ₳ ₴ ₵ ₶ ₷ ₸ ₹ ꠸ ﷼ ︳ ︴
+	 * ﹍ ﹎ ﹏ ﹩ ＄ ＿ ￠ ￡ ￥ ￦
+	 */
 	@Getter
 	private final String name;
 
@@ -403,6 +429,18 @@ public abstract class T {
 	}
 
 	/**
+	 * Get enclosing type.
+	 * 
+	 * @return enclosing type
+	 * 
+	 * @see ClassT#setEnclosingT(ClassT)
+	 * @see Class#getEnclosingClass()
+	 */
+	public ClassT getEnclosingT() {
+		return null;
+	}
+
+	/**
 	 * Get field.<br>
 	 * Unique identifier is: "name + descriptor" ({@link F})
 	 * 
@@ -424,31 +462,13 @@ public abstract class T {
 	}
 
 	/**
-	 * Get inner name.
-	 * 
-	 * @return inner name
-	 */
-	public String getIName() {
-		if (this.name.startsWith("{")) {
-			return this.name;
-		}
-		final String pName = getPName();
-		final int pos = pName.lastIndexOf('$');
-		if (pos == -1 || pos + 1 >= pName.length()) {
-			return pName;
-		}
-		// $ is valid type name!
-		return Character.isJavaIdentifierStart(pName.charAt(pos + 1)) ? pName.substring(pos + 1)
-				: "I_" + pName.substring(pos + 1);
-	}
-
-	/**
 	 * Get interface types.
 	 * 
 	 * @return interface types
+	 * @see Class#getInterfaces()
 	 */
 	public T[] getInterfaceTs() {
-		return NO_INTERFACES;
+		return INTERFACES_NONE;
 	}
 
 	/**
@@ -504,9 +524,66 @@ public abstract class T {
 	}
 
 	/**
+	 * Returns the "simple binary name" of the underlying class, i.e., the binary name without the
+	 * leading enclosing class name. Returns <tt>null</tt> if the underlying class is a top level
+	 * class.
+	 * 
+	 * @return simple binary name
+	 */
+	private String getSimpleBinaryName() {
+		final T enclosingT = getEnclosingT();
+		if (enclosingT != null) {
+			return getName().substring(enclosingT.getName().length());
+		}
+		return null;
+	}
+
+	/**
+	 * Get inner name.
+	 * 
+	 * @return inner name
+	 * @see Class#getSimpleName()
+	 */
+	public String getSimpleName() {
+		if (this.name.startsWith("{")) {
+			return this.name;
+		}
+
+		final String simpleName = getSimpleBinaryName();
+		if (simpleName == null) { // is top level class
+			return getPName();
+		}
+		// According to JLS3 "Binary Compatibility" (13.1) the binary
+		// name of non-package classes (not top level) is the binary
+		// name of the immediately enclosing class followed by a '$' followed by:
+		// (for nested and inner classes): the simple name.
+		// (for local classes): 1 or more digits followed by the simple name.
+		// (for anonymous classes): 1 or more digits.
+
+		// Since getSimpleBinaryName() will strip the binary name of
+		// the immediatly enclosing class, we are now looking at a
+		// string that matches the regular expression "\$[0-9]*"
+		// followed by a simple name (considering the simple of an
+		// anonymous class to be the empty string).
+
+		// Remove leading "\$[0-9]*" from the name
+		final int length = simpleName.length();
+		if (length < 1 || simpleName.charAt(0) != '$') {
+			throw new InternalError("Malformed class name");
+		}
+		int index = 1;
+		while (index < length && isAsciiDigit(simpleName.charAt(index))) {
+			index++;
+		}
+		// Eventually, this is the empty string iff this is an anonymous class
+		return simpleName.substring(index);
+	}
+
+	/**
 	 * Get super type.
 	 * 
 	 * @return super type
+	 * @see Class#getSuperclass()
 	 */
 	public T getSuperT() {
 		return null;
@@ -548,6 +625,17 @@ public abstract class T {
 			return true;
 		}
 		return this == ts[0];
+	}
+
+	/**
+	 * Returns <tt>true</tt> if and only if the underlying class is an anonymous class.
+	 * 
+	 * @return <tt>true</tt> if and only if this class is an anonymous class.
+	 * 
+	 * @see Class#isAnonymousClass()
+	 */
+	public boolean isAnonymous() {
+		return "".equals(getSimpleName());
 	}
 
 	/**
@@ -651,15 +739,6 @@ public abstract class T {
 	}
 
 	/**
-	 * Is unresolveable?
-	 * 
-	 * @return true - is unresolveable
-	 */
-	public boolean isResolveable() {
-		return true; // only class types can be unresolveable, overwrite TD
-	}
-
-	/**
 	 * Is wide type?
 	 * 
 	 * @return true - is wide type
@@ -695,9 +774,18 @@ public abstract class T {
 		return null;
 	}
 
+	/**
+	 * Is unresolveable?
+	 * 
+	 * @return true - is unresolveable
+	 */
+	public boolean resolve() {
+		return true; // only class types can be unresolveable, overwrite TD
+	}
+
 	@Override
 	public String toString() {
-		return getIName();
+		return getSimpleName();
 	}
 
 }

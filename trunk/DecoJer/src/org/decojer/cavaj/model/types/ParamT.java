@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -33,7 +33,7 @@ import lombok.Getter;
  * 
  * @since J5
  * 
- * @author André Pankraz
+ * @author Andrï¿½ Pankraz
  */
 public final class ParamT extends T {
 
@@ -43,7 +43,7 @@ public final class ParamT extends T {
 	 * We don't follow the often used <code>WildcardType</code> paradigma. Wildcards are only
 	 * allowed in the context of parameterized types and aren't useable as standalone Types.
 	 * 
-	 * @author André Pankraz
+	 * @author Andrï¿½ Pankraz
 	 */
 	@Getter
 	public static final class TypeArg {
@@ -160,8 +160,8 @@ public final class ParamT extends T {
 	}
 
 	@Override
-	public boolean isResolveable() {
-		return getGenericT().isResolveable();
+	public boolean resolve() {
+		return getGenericT().resolve();
 	}
 
 }

@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -28,7 +28,7 @@ import lombok.Getter;
 /**
  * Kind of type.
  * 
- * @author André Pankraz
+ * @author Andrï¿½ Pankraz
  */
 public enum Kind {
 
@@ -56,7 +56,9 @@ public enum Kind {
 
 	LONG2(1 << 11),
 
-	DOUBLE2(1 << 12);
+	DOUBLE2(1 << 12),
+
+	NONE(1 << 13);
 
 	@Getter
 	private final Class<?> clazz;
