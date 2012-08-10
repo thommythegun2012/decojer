@@ -7,6 +7,8 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
 
 import org.decojer.DecoJer;
 import org.testng.annotations.BeforeClass;
@@ -129,6 +131,24 @@ class TestT {
 
 		assertSame(int[].class.getSuperclass(), Object.class);
 		assertSame(du.getT(int[].class).getSuperT(), objectT);
+	}
+
+	@Test
+	void getTypeParameters() {
+		assertEquals(int.class.getTypeParameters().length, 0);
+		assertEquals(T.INT.getTypeParams().length, 0);
+
+		assertEquals(Object.class.getTypeParameters().length, 0);
+		assertEquals(objectT.getTypeParams().length, 0);
+
+		assertEquals(int[].class.getTypeParameters().length, 0);
+		assertEquals(du.getT(int[].class).getTypeParams().length, 0);
+
+		assertEquals(List.class.getTypeParameters().length, 1);
+		assertEquals(du.getT(List.class).getTypeParams().length, 1);
+
+		assertEquals(Map.class.getTypeParameters().length, 2);
+		assertEquals(du.getT(Map.class).getTypeParams().length, 2);
 	}
 
 	@Test
@@ -300,16 +320,6 @@ class TestT {
 	}
 
 	@Test
-	void isResolveable() {
-		assertTrue(objectT.resolve());
-		assertTrue(T.INT.resolve());
-		assertTrue(T.VOID.resolve());
-		assertTrue(du.getT(Character.class).resolve());
-		assertTrue(du.getT(Double[][].class).resolve());
-		assertFalse(du.getT("Test").resolve());
-	}
-
-	@Test
 	void join() {
 		assertSame(T.join(T.INT, T.INT), T.INT);
 		assertSame(T.join(T.SHORT, T.SHORT), T.SHORT);
@@ -357,7 +367,8 @@ class TestT {
 		assertEquals(t.getInterfaceTs().length, 1);
 		assertSame(t.getInterfaceTs()[0], du.getT(Comparable.class));
 		assertEquals(t.getName(), "{java.lang.Number,java.lang.Comparable}");
-		assertEquals(t.getSimpleName(), "{java.lang.Number,java.lang.Comparable}");
+		assertEquals(t.getSimpleName(),
+				"{java.lang.Number,java.lang.Comparable}");
 	}
 
 	@Test
@@ -375,6 +386,16 @@ class TestT {
 		assertSame(T.SINGLE.read(T.AINT), T.AINT);
 		assertSame(T.SINGLE.read(T.SINGLE), T.SINGLE);
 		assertNull(T.WIDE.read(T.SINGLE));
+	}
+
+	@Test
+	void resolve() {
+		assertTrue(objectT.resolve());
+		assertTrue(T.INT.resolve());
+		assertTrue(T.VOID.resolve());
+		assertTrue(du.getT(Character.class).resolve());
+		assertTrue(du.getT(Double[][].class).resolve());
+		assertFalse(du.getT("Test").resolve());
 	}
 
 }
