@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ package org.decojer.cavaj.model;
 /**
  * Access flag.
  * 
- * @author André Pankraz
+ * @author Andrï¿½ Pankraz
  */
 public enum AF {
 
@@ -37,19 +37,19 @@ public enum AF {
 	/**
 	 * Private.
 	 */
-	PRIVATE(1 << 1, "private", true, true, true),
+	PRIVATE(1 << 1, "private", true, true, true), // inner
 	/**
 	 * Protected.
 	 */
-	PROTECTED(1 << 2, "protected", true, true, true),
+	PROTECTED(1 << 2, "protected", true, true, true), // inner
 	/**
 	 * Static.
 	 */
-	STATIC(1 << 3, "static", true, true, true),
+	STATIC(1 << 3, "static", true, true, true), // inner
 	/**
 	 * Final.
 	 */
-	FINAL(1 << 4, "final", true, true, true),
+	FINAL(1 << 4, "final", true, true, true), // not for inner
 	/**
 	 * Super. Modern invokesuper syntax, is always set in current java.
 	 */

@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -53,9 +53,9 @@ import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParamT.TypeArg;
-import org.decojer.cavaj.readers.AsmReader;
 import org.decojer.cavaj.readers.ClassReader;
 import org.decojer.cavaj.readers.DexReader;
+import org.decojer.cavaj.readers.JavassistReader;
 import org.decojer.cavaj.readers.SmaliReader;
 import org.decojer.cavaj.transformers.TrInnerClassesAnalysis;
 import org.decojer.cavaj.utils.Cursor;
@@ -66,7 +66,7 @@ import org.decojer.cavaj.utils.MagicNumbers;
  * 
  * Contains the global type pool (like <code>ClassLoader</code>) and loader.
  * 
- * @author André Pankraz
+ * @author Andrï¿½ Pankraz
  */
 public final class DU {
 
@@ -77,7 +77,7 @@ public final class DU {
 	@Getter
 	private final T[] arrayInterfaceTs;
 
-	private final ClassReader classReader = new AsmReader(this);
+	private final ClassReader classReader = new JavassistReader(this);
 
 	@Setter
 	private List<CU> cus;

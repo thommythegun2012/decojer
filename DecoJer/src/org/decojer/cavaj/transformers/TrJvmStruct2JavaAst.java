@@ -68,7 +68,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 /**
  * Transformer: JVM Struct to AST.
  * 
- * @author Andr� Pankraz
+ * @author André Pankraz
  */
 public final class TrJvmStruct2JavaAst {
 
@@ -536,6 +536,15 @@ public final class TrJvmStruct2JavaAst {
 			if (td.check(AF.PUBLIC)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 			}
+			if (td.check(AF.PRIVATE)) {
+				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
+			}
+			if (td.check(AF.PROTECTED)) {
+				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
+			}
+			if (td.check(AF.STATIC)) {
+				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
+			}
 			if (td.check(AF.FINAL) && !(typeDeclaration instanceof EnumDeclaration)) {
 				// enum declaration is final by default
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
@@ -554,6 +563,7 @@ public final class TrJvmStruct2JavaAst {
 							.isInterface())) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 			}
+			// TODO STRICTFP@type if _all_ methods are strictfp, ignore there in this case
 
 			// multiple CompilationUnitd.TypeDeclaration in same AST (source file) possible, but
 			// only one of them is public and multiple class files are necessary
