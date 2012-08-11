@@ -495,7 +495,8 @@ public final class TrJvmStruct2JavaAst {
 				} else {
 					if (td.getSuperT() == null || !(td.getSuperT() instanceof ParamT)
 							|| !((ParamT) td.getSuperT()).getGenericT().is(Enum.class)) {
-						LOGGER.warning("Classfile with AccessFlag.ENUM has no super class '"
+						LOGGER.warning("Type '" + td
+								+ "' with AccessFlag.ENUM has no super class '"
 								+ Enum.class.getName() + "' but has '" + td.getSuperT() + "'!");
 					}
 					typeDeclaration = ast.newEnumDeclaration();
@@ -536,12 +537,15 @@ public final class TrJvmStruct2JavaAst {
 			if (td.check(AF.PUBLIC)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 			}
+			// for inner classes
 			if (td.check(AF.PRIVATE)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 			}
+			// for inner classes
 			if (td.check(AF.PROTECTED)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 			}
+			// for inner classes
 			if (td.check(AF.STATIC)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 			}
@@ -554,7 +558,8 @@ public final class TrJvmStruct2JavaAst {
 					((TypeDeclaration) typeDeclaration).setInterface(true);
 				}
 			} else if (!td.check(AF.SUPER) && !td.isDalvik()) {
-				// modern invokesuper syntax, is always set in current JVM, but not in Dalvik
+				// modern invokesuper syntax, is always set in current JVM, but not in Dalvik or
+				// inner classes info flags
 				LOGGER.warning("Modern invokesuper syntax flag not set in type '" + td + "'!");
 			}
 			if (td.check(AF.ABSTRACT)
@@ -565,10 +570,10 @@ public final class TrJvmStruct2JavaAst {
 			}
 			// TODO STRICTFP@type if _all_ methods are strictfp, ignore there in this case
 
-			// multiple CompilationUnitd.TypeDeclaration in same AST (source file) possible, but
+			// multiple CompilationUnit.TypeDeclaration in same AST (source file) possible, but
 			// only one of them is public and multiple class files are necessary
 			typeDeclaration.setName(ast.newSimpleName(cu.check(DFlag.START_TD_ONLY) ? td.getPName()
-					: td.getSimpleName()));
+					: td.getSimpleName().length() == 0 ? "I_AN" : td.getSimpleName()));
 
 			if (td.isDeprecated() && !AnnotationsDecompiler.isDeprecatedAnnotation(td.getAs())) {
 				final Javadoc newJavadoc = ast.newJavadoc();
