@@ -1,4 +1,4 @@
-Differences JDK 7 to previous
+Differences JRE 7 to previous
 
 * new language features:
   + Switch with Strings

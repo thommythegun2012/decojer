@@ -1,4 +1,4 @@
-Differences JDK 6 to previous
+Differences JRE 6 to previous
 
 * new language features:
   + new constants:

@@ -1,77 +1,86 @@
 package org.decojer.cavaj.test.jdk2;
 
-import org.decojer.cavaj.test.jdk2.DecTestInner.Inner1.Inner11;
-
 public abstract class DecTestInner {
 
 	public class Inner1 {
 
 		protected final class Inner11 {
 
+			public String test;
+
 			public Inner11(final Inner1 inner1) {
-				System.out.println("INNER11 CONSTRUCTOR " + Inner1.class
-						+ inner1 + RUNNER.getClass() + DecTestInnerS.class
-						+ DecTestInnerS.Inner1.class);
+				System.out.println(DecTestInner.this.test);
+				System.out.println(Inner1.this.test);
+			}
+
+			private void test() {
+				System.out.println(this.test);
+				System.out.println(Inner1.this.test);
 			}
 
 		}
+
+		public String test;
 
 		public Inner1() {
-			System.out.println("INNER1 CONSTRUCTOR " + Inner11.class);
+			Inner11 inner11 = new Inner11(this);
+			System.out.println(inner11);
 		}
 
 	}
 
-	protected class Inner2 {
+	private static final class Inner2 {
 
-		protected final class Inner11 {
+		protected final class Inner21 {
 
-			public Inner11(final Inner2 innerO2,
-					final DecTestInner.Inner2 inner2) {
-				System.out.println("INNER11 CONSTRUCTOR " + Inner1.class
-						+ innerO2 + inner2 + RUNNER.getClass());
+			public String test;
+
+			public Inner21(final Inner2 inner2) {
+				// not possible DecTestInner.this.test
+				System.out.println(Inner2.this.test);
+			}
+
+			private void test() {
+				System.out.println(this.test);
+				System.out.println(Inner2.this.test);
 			}
 
 		}
 
+		public String test;
+
 		public Inner2() {
-			System.out.println("INNER2 CONSTRUCTOR " + Inner3.class);
+			Inner21 inner21 = new Inner21(this);
+			System.out.println(inner21);
 		}
 
 	}
 
-	private static final class Inner3 {
-
-		public Inner3() {
-			System.out.println("INNER3 CONSTRUCTOR " + Inner1.Inner11.class);
-		}
-
-		Inner2.Inner11 test() {
-			return null;
-		}
-
-	}
+	public String test;
 
 	private static Runnable RUNNER = new Runnable() {
 
 		private final Runnable RUNNER = new Thread() {
 
+			// static not possible in non-static inner
 			private final Runnable RUNNER = new Thread() {
 
 				public void run() {
-					System.out.println("INNER RUNNER" + Inner11.class);
+					// not in 1.1:
+					System.out.println(this);
 				}
 
 			};
 
 			public void run() {
-				System.out.println("INNER RUNNER" + Inner11.class);
+				// not in 1.1:
+				System.out.println(Inner2.Inner21.class);
 			}
 
 		};
 
 		public void run() {
-			System.out.println("INNER RUNNER");
+			System.out.println(this);
 		}
 
 	};
@@ -80,7 +89,26 @@ public abstract class DecTestInner {
 		final Runnable RUNNER = new Runnable() {
 
 			public void run() {
-				System.out.println("INNER RUNNER" + Inner2.Inner11.class);
+				System.out.println(this);
+			}
+
+		};
+		final Object emptyObject = new Object() {
+
+		};
+		final Object overrideMdObject = new Object() {
+
+			public String toString() {
+				return super.toString() + " TEST";
+			}
+
+		};
+		final Object addMdObject = new Object() {
+
+			int[] test = new int[] { 1 };
+
+			public String test() {
+				return "TEST";
 			}
 
 		};
@@ -88,14 +116,6 @@ public abstract class DecTestInner {
 
 	public void testInnerAnonymous() {
 		new Runnable() {
-
-			class Test {
-
-				void test() {
-					run();
-				}
-
-			}
 
 			public void run() {
 				System.out.println("INNER RUN");
@@ -106,83 +126,62 @@ public abstract class DecTestInner {
 
 }
 
-class DecTestInnerS {
+// not in 1.2: DecTestInner$1
+class DecTestInner$ {
 
 	public static class Inner1 {
 
-		protected static final class Inner11 {
+		protected static final class $$$_Inner$1 {
 
-			public Inner11(final Inner1 inner1) {
-				System.out.println("InnerSInner1" + DecTestInner.Inner2.class);
+			Object o2 = new Object() {
+
+				// not in 1.2:
+				// class AInner {
+				// }
+
+			};
+
+			public $$$_Inner$1(final Inner1 inner1) {
+				System.out.println(inner1);
+				System.out.println($$$_Inner$1.class);
 			}
 
-			public void innerMethod(final int a, final int b) {
-				// final (and order var->class->instantiation) is important
-				class MethodInner {
+			void test(final int a) {
 
-					public MethodInner(int c) {
-						// JDK 7, beware Signature!:
-						// Method descriptor #27
-						// (Lorg/decojer/cavaj/test/jdk2/DecTestInnerS$Inner1$Inner11;III)V
-						// Signature: (I)V
-						// Stack: 4, Locals: 5
-						// public
-						// DecTestInnerS$Inner1$Inner11$1MethodInner(org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11
-						// arg0, int c, int arg2, int arg3);
-						// 0 aload_0 [this]
-						// 1 aload_1 [arg0]
-						// 2 putfield
-						// org.decojer.cavaj.test.jdk2.DecTestInnerS$Inner1$Inner11$1MethodInner.this$0
-						// :
-						// org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11
-						// [1]
-						// 5 aload_0 [this]
-						// 6 iload_3 [arg2]
-						// 7 putfield
-						// org.decojer.cavaj.test.jdk2.DecTestInnerS$Inner1$Inner11$1MethodInner.val$a
-						// : int [2]
-						// 10 aload_0 [this]
-						// 11 iload 4 [arg3]
-						// 13 putfield
-						// org.decojer.cavaj.test.jdk2.DecTestInnerS$Inner1$Inner11$1MethodInner.val$b
-						// : int [3]
-						// 16 aload_0 [this]
-						// 17 invokespecial java.lang.Object() [4]
+				class AInner {
 
-						// JDK 2:
-						// Method descriptor #28 (III)V
-						// Stack: 4, Locals: 4
-						// public DecTestInnerS$1$MethodInner(int val$a, int
-						// val$b, int c);
-						// 0 aload_0 [this]
-						// 1 invokespecial java.lang.Object() [11]
-						// 4 aload_0 [this]
-						// 5 iload_1 [val$a]
-						// 6 putfield
-						// org.decojer.cavaj.test.jdk2.DecTestInnerS$1$MethodInner.val$a
-						// : int [17]
-
-						// constructor:
-						// none-static method: additional leading Inner11.this
-						// (cached as - $2 is inner level:
-						// final synthetic...InnerS$Inner1$Inner11 this$2;)
-						// used final outers: additional attached arguments
-						// (used directly in constructor or cached as:
-						// private final synthetic int val$a;)
-						// without debug-info may be undecideable what is real
-						// argument and what is compile-time added (if final
-						// only used in constructor)
-						System.out.println("MethodInner: " + (a + b + c));
-					}
-
-					private void syso() {
-						System.out.println("Syso: " + a);
+					void test() {
+						System.out.println("a=" + a);
+						// not in 1.1:
+						System.out.println(DecTestInner.Inner1.Inner11.class);
 					}
 
 				}
-				// MethodInner.EnclosingMethod is set in each case,
-				// Inner11.InnerClasses doesn't show enclosing method name
-				new MethodInner(1);
+
+			}
+
+			void test2(final int a) {
+
+				class AInner {
+
+					void test() {
+						System.out.println("a=" + a);
+						// not in 1.1:
+						System.out.println(DecTestInner.Inner1.Inner11.class);
+					}
+
+				}
+
+				class AInner2 {
+
+					void test() {
+						System.out.println("a=" + a);
+						// not in 1.1:
+						System.out.println(DecTestInner.Inner1.Inner11.class);
+					}
+
+				}
+
 			}
 
 		}
