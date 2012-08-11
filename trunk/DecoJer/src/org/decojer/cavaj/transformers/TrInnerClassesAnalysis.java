@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,26 +38,27 @@ import org.decojer.cavaj.model.types.ClassT;
 /**
  * Transformer: Analyze inner classes and create compilation units.
  * 
- * @author André Pankraz
+ * @author Andrï¿½ Pankraz
  */
 public class TrInnerClassesAnalysis {
 
 	private static List<TD> findTopTds(final DU du) {
 		final List<TD> tds = new ArrayList<TD>();
 		for (final TD td : du.getTds()) {
-			final ClassT enclosingT = td.getT().getEnclosingT();
-			if (enclosingT != null) {
-				final TD enclosingTd = enclosingT.getTd();
-				if (enclosingTd != null) {
-					enclosingTd.addTd(td);
-					continue;
-				}
-			}
+			// first check enclosing method, potentially deeper nested than in type
 			final M enclosingM = td.getT().getEnclosingM();
 			if (enclosingM != null) {
 				final MD enclosingMd = enclosingM.getMd();
 				if (enclosingMd != null) {
 					enclosingMd.addTd(td);
+					continue;
+				}
+			}
+			final ClassT enclosingT = td.getT().getEnclosingT();
+			if (enclosingT != null) {
+				final TD enclosingTd = enclosingT.getTd();
+				if (enclosingTd != null) {
+					enclosingTd.addTd(td);
 					continue;
 				}
 			}

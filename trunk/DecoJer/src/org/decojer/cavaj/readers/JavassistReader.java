@@ -165,7 +165,7 @@ public class JavassistReader implements ClassReader {
 		}
 		if (enclosingMethodAttribute != null) {
 			final ClassT enclosingT = (ClassT) this.du.getT(enclosingMethodAttribute.className());
-			if (enclosingMethodAttribute.classIndex() == 0) {
+			if (enclosingMethodAttribute.methodIndex() == 0) {
 				td.setEnclosingT(enclosingT);
 			} else {
 				td.setEnclosingM(enclosingT.getM(enclosingMethodAttribute.methodName(),

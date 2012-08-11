@@ -45,8 +45,6 @@ public class ClassT extends T {
 
 	private final static Logger LOGGER = Logger.getLogger(ClassT.class.getName());
 
-	private final static String INNER_NAME_ANONYMOUS = "<ANONYMOUS>";
-
 	private static String toString(final T superT, final T[] interfaceTs) {
 		final StringBuilder sb = new StringBuilder("{");
 		if (superT != null) {
@@ -74,14 +72,6 @@ public class ClassT extends T {
 	 * @see ClassT#setEnclosingT(ClassT)
 	 */
 	private Object enclosing;
-
-	/**
-	 * Really necessary? Java compatibility rules enforce fix structure with enclosing types!
-	 * 
-	 * @see T#getName()
-	 */
-	@Getter
-	private String innerName;
 
 	@Setter
 	private T[] interfaceTs;
@@ -175,6 +165,10 @@ public class ClassT extends T {
 	@Override
 	public ClassT getEnclosingT() {
 		final Object enclosing = getEnclosing();
+		// like Class#getEnclosingClass()
+		if (enclosing instanceof M) {
+			return (ClassT) ((M) enclosing).getT();
+		}
 		return enclosing instanceof ClassT ? (ClassT) enclosing : null;
 	}
 
@@ -372,20 +366,24 @@ public class ClassT extends T {
 	 *            inner access flags
 	 */
 	public void setInnerInfo(final String name, final int accessFlags) {
-		final String innerName = name == null ? INNER_NAME_ANONYMOUS : name;
-		if (this.innerName != null) {
-			if (!this.innerName.equals(innerName)) {
-				LOGGER.warning("Inner name cannot be changed from '" + this.innerName + "' to '"
-						+ name + "'!");
+		// this inner access flags have exclusively following modifiers: PROTECTED, PRIVATE, STATIC,
+		// but not: SUPER
+		this.accessFlags = accessFlags | this.accessFlags & AF.SUPER.getValue();
+		// don't really need this info (@see T#getSimpleName()):
+		// According to JLS3 "Binary Compatibility" (13.1) the binary
+		// name of non-package classes (not top level) is the binary
+		// name of the immediately enclosing class followed by a '$' followed by:
+		// (for nested and inner classes): the simple name.
+		// (for local classes): 1 or more digits followed by the simple name.
+		// (for anonymous classes): 1 or more digits.
+		if (this.enclosing != null) {
+			final String simpleName = getSimpleName();
+			if (name == null && simpleName.isEmpty() || simpleName.equals(name)) {
+				return;
 			}
-			return;
+			LOGGER.warning("Inner name '" + name + "' is different from enclosing info '"
+					+ getSimpleName() + "'!");
 		}
-		this.innerName = innerName;
-		/*
-		 * if (this.accessFlags != 0) { if (this.accessFlags != accessFlags) {
-		 * LOGGER.warning("Inner access flags cannot be changed from '" + this.accessFlags +
-		 * "' to '" + accessFlags + "'!"); } return; } this.accessFlags = accessFlags;
-		 */
 	}
 
 }
