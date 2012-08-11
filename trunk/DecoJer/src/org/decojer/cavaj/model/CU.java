@@ -218,7 +218,8 @@ public final class CU extends D {
 		if (n.indexOf('.') == -1) {
 			n = getPackageName() + '.' + n;
 		}
-		for (final BD bd : getBds()) {
+		// would be faster to use a recursive searcher than aggregating TDs...
+		for (final BD bd : getAllTds()) {
 			if (n.equals(bd.getName())) {
 				return (TD) bd;
 			}

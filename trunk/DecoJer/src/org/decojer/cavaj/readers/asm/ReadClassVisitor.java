@@ -156,10 +156,11 @@ public class ReadClassVisitor extends ClassVisitor {
 	public void visitInnerClass(final String name, final String outerName, final String innerName,
 			final int access) {
 		final ClassT innerT = (ClassT) this.du.getT(name);
-		innerT.setInnerInfo(innerName, access);
 		if (outerName != null) {
+			// set enclosing first for better inner name check
 			innerT.setEnclosingT((ClassT) this.du.getT(outerName));
 		}
+		innerT.setInnerInfo(innerName, access);
 	}
 
 	@Override
