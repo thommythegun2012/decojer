@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  AndrÃ© Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -26,7 +26,7 @@ package org.decojer.cavaj.utils;
 /**
  * Cursor for parsing, holds modifiable current position.
  * 
- * @author André Pankraz
+ * @author AndrÃ© Pankraz
  */
 public final class Cursor {
 

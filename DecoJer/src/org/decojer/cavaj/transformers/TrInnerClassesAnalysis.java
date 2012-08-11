@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  Andr� Pankraz
+ * Copyright (C) 2010-2011  André Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -38,7 +38,7 @@ import org.decojer.cavaj.model.types.ClassT;
 /**
  * Transformer: Analyze inner classes and create compilation units.
  * 
- * @author Andr� Pankraz
+ * @author André Pankraz
  */
 public class TrInnerClassesAnalysis {
 

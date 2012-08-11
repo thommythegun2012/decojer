@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  Andr� Pankraz
+ * Copyright (C) 2010-2011  André Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,7 +40,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 /**
  * Transformer: Merge all.
  * 
- * @author Andr� Pankraz
+ * @author André Pankraz
  */
 public final class TrMergeAll {
 

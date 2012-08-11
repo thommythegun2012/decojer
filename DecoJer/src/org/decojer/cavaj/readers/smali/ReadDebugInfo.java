@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  AndrÃ© Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -40,7 +40,7 @@ import org.jf.dexlib.Debug.DebugInstructionIterator.ProcessDecodedDebugInstructi
 /**
  * Smali read debug info.
  * 
- * @author André Pankraz
+ * @author AndrÃ© Pankraz
  */
 public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
