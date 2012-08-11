@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -32,7 +32,7 @@ import lombok.Getter;
 /**
  * Declaration.
  * 
- * @author André Pankraz
+ * @author Andrï¿½ Pankraz
  */
 public abstract class D {
 
@@ -46,12 +46,10 @@ public abstract class D {
 
 	protected void _getAllTds(final ArrayList<TD> tds) {
 		for (final BD bd : this.bds) {
-			if (!(bd instanceof TD)) {
-				continue;
+			if (bd instanceof TD) {
+				tds.add((TD) bd);
 			}
-			final TD td = (TD) bd;
-			tds.add(td);
-			td._getAllTds(tds);
+			bd._getAllTds(tds);
 		}
 	}
 

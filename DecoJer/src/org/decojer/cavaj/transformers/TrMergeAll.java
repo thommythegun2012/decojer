@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.transformers;
 
-import java.util.List;
-
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.FD;
@@ -42,7 +40,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 /**
  * Transformer: Merge all.
  * 
- * @author André Pankraz
+ * @author Andrï¿½ Pankraz
  */
 public final class TrMergeAll {
 
@@ -80,8 +78,7 @@ public final class TrMergeAll {
 	}
 
 	private static void transform(final TD td) {
-		final List<BD> bds = td.getBds();
-		for (final BD bd : bds) {
+		for (final BD bd : td.getBds()) {
 			if (bd instanceof TD) {
 				if (!((TD) bd).isAnonymous()) {
 					final ASTNode typeDeclaration = ((TD) bd).getTypeDeclaration();
@@ -102,6 +99,21 @@ public final class TrMergeAll {
 			if (bd instanceof MD) {
 				final MD md = (MD) bd;
 				final BodyDeclaration methodDeclaration = md.getMethodDeclaration();
+				if (!md.getBds().isEmpty()) {
+					for (final BD innerTd : md.getBds()) {
+						if (!((TD) innerTd).isAnonymous()) {
+							final ASTNode typeDeclaration = ((TD) innerTd).getTypeDeclaration();
+							if (typeDeclaration != null) {
+								((MethodDeclaration) md.getMethodDeclaration())
+										.getBody()
+										.statements()
+										.add(typeDeclaration.getAST().newTypeDeclarationStatement(
+												(AbstractTypeDeclaration) typeDeclaration));
+							}
+						}
+						transform((TD) innerTd);
+					}
+				}
 				if (methodDeclaration instanceof MethodDeclaration && "<init>".equals(md.getName())) {
 					if (td.getTypeDeclaration() instanceof AnonymousClassDeclaration) {
 						// anonymous inner classes cannot have visible Java constructors

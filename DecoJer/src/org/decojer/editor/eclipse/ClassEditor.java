@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  Andrï¿½ Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -531,12 +531,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		LOGGER.fine("Find method declaration for declaring type '" + fullyQualifiedName
 				+ "' and element name '" + elementName + "' and signature '" + signature + "'!");
 		try {
-			// get declaring type,
-			// first undo T.getIName() trick for valid java source with incomplete decompilation
-			fullyQualifiedName = fullyQualifiedName.replace("$I_", "$");
-			if (elementName.startsWith("I_")) {
-				elementName = elementName.substring(2);
-			}
+			// get declaring type
 			final TD td = this.selectedCu.getTd(fullyQualifiedName);
 
 			// get method in declaring type,
