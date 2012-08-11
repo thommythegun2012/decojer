@@ -49,11 +49,11 @@ public enum AF {
 	/**
 	 * Final.
 	 */
-	FINAL(1 << 4, "final", true, true, true), // not for inner
+	FINAL(1 << 4, "final", true, true, true),
 	/**
 	 * Super. Modern invokesuper syntax, is always set in current java.
 	 */
-	SUPER(1 << 5, "super", true, false, false),
+	SUPER(1 << 5, "super", true, false, false), // not for inner
 	/**
 	 * Synchronized.
 	 */
