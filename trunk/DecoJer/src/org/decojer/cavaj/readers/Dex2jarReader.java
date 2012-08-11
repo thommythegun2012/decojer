@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  AndrÃ© Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -36,7 +36,7 @@ import com.googlecode.dex2jar.reader.DexFileReader;
 /**
  * Reader from Dex2Jar.
  * 
- * @author André Pankraz
+ * @author AndrÃ© Pankraz
  */
 public class Dex2jarReader implements DexReader {
 

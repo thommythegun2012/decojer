@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  AndrÃ© Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -34,7 +34,7 @@ import org.decojer.cavaj.model.T;
  * Line numbers are only available if debug info given. The PC is the operation index, not the VM PC
  * (that is not available with Label-based readers). But the original PC / read order is preserved!
  * 
- * @author André Pankraz
+ * @author AndrÃ© Pankraz
  */
 public abstract class TypedOp extends Op {
 

@@ -2,7 +2,7 @@
  * $Id$
  *
  * This file is part of the DecoJer project.
- * Copyright (C) 2010-2011  André Pankraz
+ * Copyright (C) 2010-2011  AndrÃ© Pankraz
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -129,7 +129,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 /**
  * Transformer: CFG to Java Expression Statements ASTs.
  * 
- * @author André Pankraz
+ * @author AndrÃ© Pankraz
  */
 public final class TrCfg2JavaExpressionStmts {
 
