@@ -66,14 +66,14 @@ public abstract class DecTestInner {
 			private final Runnable RUNNER = new Thread() {
 
 				public void run() {
-					// not in 1.2
+					// not in 1.1:
 					System.out.println(this);
 				}
 
 			};
 
 			public void run() {
-				// not in 1.2
+				// not in 1.1:
 				System.out.println(Inner2.Inner21.class);
 			}
 
@@ -126,7 +126,7 @@ public abstract class DecTestInner {
 
 }
 
-// not in 1.2
+// not in 1.2:
 class DecTestInner$1 {
 
 	public static class Inner1 {
@@ -135,7 +135,7 @@ class DecTestInner$1 {
 
 			Object o2 = new Object() {
 
-				// not in 1.2
+				// not in 1.2:
 				class AInner {
 				}
 
@@ -152,7 +152,7 @@ class DecTestInner$1 {
 
 					void test() {
 						System.out.println("a=" + a);
-						// not in 1.2
+						// not in 1.1:
 						System.out.println(DecTestInner.Inner1.Inner11.class);
 					}
 
@@ -166,7 +166,7 @@ class DecTestInner$1 {
 
 					void test() {
 						System.out.println("a=" + a);
-						// not in 1.2
+						// not in 1.1:
 						System.out.println(DecTestInner.Inner1.Inner11.class);
 					}
 
@@ -176,7 +176,7 @@ class DecTestInner$1 {
 
 					void test() {
 						System.out.println("a=" + a);
-						// not in 1.2
+						// not in 1.1:
 						System.out.println(DecTestInner.Inner1.Inner11.class);
 					}
 
