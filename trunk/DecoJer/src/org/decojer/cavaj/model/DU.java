@@ -35,6 +35,7 @@ import java.lang.reflect.Modifier;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -85,7 +86,7 @@ public final class DU {
 	private final DexReader dexReader = new SmaliReader(this);
 
 	@Getter
-	private final List<TD> tds = new ArrayList<TD>();
+	private final List<TD> selectedTds = new ArrayList<TD>();
 
 	private final Map<String, T> ts = new HashMap<String, T>();
 
@@ -257,6 +258,15 @@ public final class DU {
 	 */
 	public TD getTd(final String name) {
 		return ((ClassT) getT(name, false)).getTd();
+	}
+
+	/**
+	 * Get all types.
+	 * 
+	 * @return types
+	 */
+	public Collection<T> getTs() {
+		return this.ts.values();
 	}
 
 	/**
@@ -528,7 +538,7 @@ public final class DU {
 			// selector has no meaning here
 			final TD td = this.classReader.read(pis);
 			if (selector == null || fileName.equals(selector)) {
-				this.tds.add(td);
+				this.selectedTds.add(td);
 				return Collections.singletonList(td);
 			}
 			return Collections.emptyList();
@@ -538,7 +548,7 @@ public final class DU {
 			final PushbackInputStream pis = new PushbackInputStream(is, 4);
 			pis.unread(magicNumber, 0, magicNumber.length);
 			final List<TD> tds = this.dexReader.read(pis, selector);
-			this.tds.addAll(tds);
+			this.selectedTds.addAll(tds);
 			return tds;
 		}
 		if (Arrays.equals(magicNumber, MagicNumbers.ZIP)) {
