@@ -32,6 +32,7 @@ import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ClassT;
 
@@ -43,14 +44,26 @@ import org.decojer.cavaj.model.types.ClassT;
 public class TrInnerClassesAnalysis {
 
 	private static List<TD> findTopTds(final DU du) {
+		final List<TD> selectedTds = du.getSelectedTds();
 		final List<TD> tds = new ArrayList<TD>();
-		for (final TD td : du.getTds()) {
+		// separate all read tds, not just selected tds
+		for (final T t : du.getTs()) {
+			if (!(t instanceof ClassT)) {
+				continue;
+			}
+			final TD td = ((ClassT) t).getTd();
+			if (td == null) {
+				continue;
+			}
 			// first check enclosing method, potentially deeper nested than in type
 			final M enclosingM = td.getT().getEnclosingM();
 			if (enclosingM != null) {
 				final MD enclosingMd = enclosingM.getMd();
 				if (enclosingMd != null) {
 					enclosingMd.addTd(td);
+					if (selectedTds.contains(td)) {
+						selectedTds.add(enclosingMd.getTd());
+					}
 					continue;
 				}
 			}
@@ -59,10 +72,16 @@ public class TrInnerClassesAnalysis {
 				final TD enclosingTd = enclosingT.getTd();
 				if (enclosingTd != null) {
 					enclosingTd.addTd(td);
+					// TODO BUG up to root, may be we have allready checked them
+					if (selectedTds.contains(td)) {
+						selectedTds.add(enclosingTd);
+					}
 					continue;
 				}
 			}
-			tds.add(td);
+			if (selectedTds.contains(td)) {
+				tds.add(td);
+			}
 		}
 		return tds;
 	}

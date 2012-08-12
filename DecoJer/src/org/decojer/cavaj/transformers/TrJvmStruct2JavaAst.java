@@ -472,7 +472,8 @@ public final class TrJvmStruct2JavaAst {
 			return;
 		}
 
-		// STRICTFP@type only if _all_ methods are strictFp, ignore then in methods
+		// AF.STRICTFP is no valid inner modifier for bytecode, strictfp modifier at class generates
+		// strictfp modifier for all method in class -> check here and oppress then in methods
 		boolean strictFp = false;
 		for (final BD bd : td.getBds()) {
 			if (!(bd instanceof MD)) {
