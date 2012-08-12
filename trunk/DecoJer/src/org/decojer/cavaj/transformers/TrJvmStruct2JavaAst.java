@@ -179,7 +179,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 	}
 
-	private static void decompileMethod(final MD md, final CU cu) {
+	private static void decompileMethod(final MD md, final CU cu, final boolean strictFp) {
 		if ((md.check(AF.SYNTHETIC) || md.isSynthetic())
 				&& !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
@@ -286,7 +286,7 @@ public final class TrJvmStruct2JavaAst {
 						.isInterface())) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 		}
-		if (md.check(AF.STRICTFP)) {
+		if (md.check(AF.STRICTFP) && !strictFp) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
 		}
 		/*
@@ -472,6 +472,18 @@ public final class TrJvmStruct2JavaAst {
 			return;
 		}
 
+		// STRICTFP@type only if _all_ methods are strictFp, ignore then in methods
+		boolean strictFp = false;
+		for (final BD bd : td.getBds()) {
+			if (!(bd instanceof MD)) {
+				continue;
+			}
+			if (!((MD) bd).check(AF.STRICTFP)) {
+				break;
+			}
+			strictFp = true;
+		}
+
 		if (td.getTypeDeclaration() == null) {
 			AbstractTypeDeclaration typeDeclaration = null;
 
@@ -568,12 +580,13 @@ public final class TrJvmStruct2JavaAst {
 							.isInterface())) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 			}
-			// TODO STRICTFP@type if _all_ methods are strictfp, ignore there in this case
+			if (strictFp) {
+				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
+			}
 
-			// multiple CompilationUnit.TypeDeclaration in same AST (source file) possible, but
-			// only one of them is public and multiple class files are necessary
-			typeDeclaration.setName(ast.newSimpleName(cu.check(DFlag.START_TD_ONLY) ? td.getPName()
-					: td.getSimpleName().length() == 0 ? "I_AN" : td.getSimpleName()));
+			final String simpleName = td.getSimpleName();
+			typeDeclaration.setName(ast.newSimpleName(simpleName.length() > 0 ? simpleName : td
+					.getPName()));
 
 			if (td.isDeprecated() && !AnnotationsDecompiler.isDeprecatedAnnotation(td.getAs())) {
 				final Javadoc newJavadoc = ast.newJavadoc();
@@ -583,16 +596,12 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration.setJavadoc(newJavadoc);
 			}
 		}
-
-		final List<BD> bds = td.getBds();
-		// no foreach, concurrent modification through found inner classes possible
-		for (int i = 0; i < bds.size(); ++i) {
-			final BD bd = bds.get(i);
+		for (final BD bd : td.getBds()) {
 			if (bd instanceof FD) {
 				decompileField((FD) bd, cu);
 			}
 			if (bd instanceof MD) {
-				decompileMethod((MD) bd, cu);
+				decompileMethod((MD) bd, cu, strictFp);
 			}
 		}
 	}

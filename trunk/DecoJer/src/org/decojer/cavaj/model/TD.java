@@ -302,12 +302,13 @@ public final class TD extends BD {
 		// cannot use string replace because '$' is also a regular Java type name!
 		// find common name dominator and stop there, for relative inner names
 		final String name = getName();
-		final ArrayList<String> names = Lists.newArrayList(t.getSimpleName().length() == 0 ? "I_AN"
-				: t.getSimpleName());
+		String simpleName = t.getSimpleName();
+		final ArrayList<String> names = Lists.newArrayList(simpleName.length() > 0 ? simpleName : t
+				.getPName());
 		T enclosingT = t.getEnclosingT();
 		while (enclosingT != null && !name.startsWith(enclosingT.getName())) {
-			names.add(enclosingT.getSimpleName().length() == 0 ? "I_AN" : enclosingT
-					.getSimpleName());
+			simpleName = enclosingT.getSimpleName();
+			names.add(simpleName.length() > 0 ? simpleName : enclosingT.getPName());
 			enclosingT = enclosingT.getEnclosingT();
 		}
 		return ast.newName(names.toArray(new String[names.size()]));
