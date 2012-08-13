@@ -61,9 +61,6 @@ public class TrInnerClassesAnalysis {
 				final MD enclosingMd = enclosingM.getMd();
 				if (enclosingMd != null) {
 					enclosingMd.addTd(td);
-					if (selectedTds.contains(td)) {
-						selectedTds.add(enclosingMd.getTd());
-					}
 					continue;
 				}
 			}
@@ -72,16 +69,10 @@ public class TrInnerClassesAnalysis {
 				final TD enclosingTd = enclosingT.getTd();
 				if (enclosingTd != null) {
 					enclosingTd.addTd(td);
-					// TODO BUG up to root, may be we have allready checked them
-					if (selectedTds.contains(td)) {
-						selectedTds.add(enclosingTd);
-					}
 					continue;
 				}
 			}
-			if (selectedTds.contains(td)) {
-				tds.add(td);
-			}
+			tds.add(td);
 		}
 		return tds;
 	}
@@ -116,7 +107,17 @@ public class TrInnerClassesAnalysis {
 			}
 			cus.add(cu);
 		}
-		du.setCus(cus);
+		// not very optimized...but it works for now...
+		final List<CU> selectedCus = new ArrayList<CU>();
+		for (final CU cu : cus) {
+			for (final TD td : cu.getAllTds()) {
+				if (du.getSelectedTds().contains(td)) {
+					selectedCus.add(cu);
+					break;
+				}
+			}
+		}
+		du.setCus(selectedCus);
 	}
 
 }
