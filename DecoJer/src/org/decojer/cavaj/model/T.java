@@ -535,8 +535,11 @@ public abstract class T {
 	 * class.
 	 * 
 	 * @return simple binary name
+	 * @see Class#getSimpleName()
 	 */
 	private String getSimpleBinaryName() {
+		// TODO 1.1.6 bugs: outer class for anonymous doesn't follow compatibility rules!!!
+		// _must_ remember inner class name for local and anonymous classes!
 		final T enclosingT = getEnclosingT();
 		if (enclosingT != null) {
 			return getName().substring(enclosingT.getName().length());
