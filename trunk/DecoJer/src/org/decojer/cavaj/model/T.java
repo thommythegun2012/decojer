@@ -468,6 +468,19 @@ public abstract class T {
 	}
 
 	/**
+	 * Get inner name. Inner name is not necessary anymore for JRE >= 5 (see getSimpleClassName).<br>
+	 * 
+	 * JRE 5: <code>org.decojer.cavaj.test.DecTestInner$$Inner1$$$$_Inner$1$1AInner2</code><br>
+	 * Before JRE 5: <code>org.decojer.cavaj.test.DecTestInner$$1$AInner2</code>
+	 * 
+	 * @return inner name
+	 * @see T#getSimpleClassName()
+	 */
+	public String getInnerName() {
+		return null;
+	}
+
+	/**
 	 * Get interface types.
 	 * 
 	 * @return interface types, not <code>null</code>
@@ -534,12 +547,13 @@ public abstract class T {
 	 * leading enclosing class name. Returns <tt>null</tt> if the underlying class is a top level
 	 * class.
 	 * 
+	 * Works just for JRE >= 5.
+	 * 
 	 * @return simple binary name
+	 * @since 1.5
 	 * @see Class#getSimpleName()
 	 */
 	private String getSimpleBinaryName() {
-		// TODO 1.1.6 bugs: outer class for anonymous doesn't follow compatibility rules!!!
-		// _must_ remember inner class name for local and anonymous classes!
 		final T enclosingT = getEnclosingT();
 		if (enclosingT != null) {
 			return getName().substring(enclosingT.getName().length());
@@ -548,16 +562,15 @@ public abstract class T {
 	}
 
 	/**
-	 * Get inner name.
+	 * Get simple name, like appearing in Java source code.
 	 * 
-	 * @return inner name
+	 * Works just for JRE >= 5.
+	 * 
+	 * @return simple name
+	 * @since 1.5
 	 * @see Class#getSimpleName()
 	 */
-	public String getSimpleName() {
-		if (this.name.startsWith("{")) {
-			return this.name;
-		}
-
+	public String getSimpleClassName() {
 		final String simpleName = getSimpleBinaryName();
 		if (simpleName == null) { // is top level class
 			return getPName();
@@ -586,6 +599,24 @@ public abstract class T {
 		}
 		// Eventually, this is the empty string iff this is an anonymous class
 		return simpleName.substring(index);
+	}
+
+	/**
+	 * Get simple name, like appearing in Java source code.
+	 * 
+	 * Works for all Java versions, not just JRE >= 5.
+	 * 
+	 * @return simple name
+	 * @see Class#getSimpleName()
+	 */
+	public String getSimpleName() {
+		// The original Class-Function doesn't work for JRE < 5 because the naming rules changed,
+		// different solution here with inner name info
+		final String innerName = getInnerName();
+		if (innerName == null) {
+			return getPName();
+		}
+		return innerName;
 	}
 
 	/**
