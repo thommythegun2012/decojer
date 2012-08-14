@@ -240,7 +240,7 @@ public final class BB {
 	 * @return first operation line
 	 */
 	public int getLine() {
-		return this.cfg.getOp(this.pc).getLine();
+		return this.cfg.getOps()[this.pc].getLine();
 	}
 
 	/**

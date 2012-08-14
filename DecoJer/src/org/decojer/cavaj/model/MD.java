@@ -57,6 +57,7 @@ public final class MD extends BD {
 	@Setter
 	private CFG cfg;
 
+	@Getter
 	private final M m;
 
 	@Getter

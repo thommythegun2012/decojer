@@ -154,15 +154,7 @@ public class ClassT extends T {
 		return this.enclosing == NONE ? null : this.enclosing;
 	}
 
-	/**
-	 * Get enclosing method (including constructor).
-	 * 
-	 * @return enclosing method
-	 * 
-	 * @see ClassT#setEnclosingT(ClassT)
-	 * @see Class#getEnclosingMethod()
-	 * @see Class#getEnclosingConstructor()
-	 */
+	@Override
 	public M getEnclosingM() {
 		final Object enclosing = getEnclosing();
 		return enclosing instanceof M ? (M) enclosing : null;

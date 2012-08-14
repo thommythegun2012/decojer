@@ -36,6 +36,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  */
 public final class FD extends BD {
 
+	@Getter
 	private final F f;
 
 	@Getter

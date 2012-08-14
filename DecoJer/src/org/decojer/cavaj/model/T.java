@@ -435,6 +435,19 @@ public abstract class T {
 	}
 
 	/**
+	 * Get enclosing method (including constructor).
+	 * 
+	 * @return enclosing method
+	 * 
+	 * @see ClassT#setEnclosingT(ClassT)
+	 * @see Class#getEnclosingMethod()
+	 * @see Class#getEnclosingConstructor()
+	 */
+	public M getEnclosingM() {
+		return null; // overwrite in ClassT
+	}
+
+	/**
 	 * Get enclosing type.
 	 * 
 	 * @return enclosing type
@@ -443,7 +456,7 @@ public abstract class T {
 	 * @see Class#getEnclosingClass()
 	 */
 	public ClassT getEnclosingT() {
-		return null;
+		return null; // overwrite in ClassT
 	}
 
 	/**
@@ -477,7 +490,7 @@ public abstract class T {
 	 * @see T#getSimpleClassName()
 	 */
 	public String getInnerName() {
-		return null;
+		return null; // overwrite in ClassT
 	}
 
 	/**
@@ -627,6 +640,15 @@ public abstract class T {
 	 */
 	public T getSuperT() {
 		return null;
+	}
+
+	/**
+	 * Get type declaration.
+	 * 
+	 * @return type declaration
+	 */
+	public TD getTd() {
+		return null; // overwrite in ClassT
 	}
 
 	/**

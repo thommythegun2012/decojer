@@ -333,39 +333,23 @@ public final class TD extends BD {
 	}
 
 	/**
-	 * Set enclosing method (since JVM 5).
+	 * Set enclosing method declaration.
 	 * 
-	 * @param m
-	 *            method
-	 * @see ClassT#setEnclosingT(ClassT)
+	 * @param md
+	 *            method declaration
 	 */
-	public void setEnclosingM(final M m) {
-		this.t.setEnclosingM(m);
+	public void setEnclosingMD(final MD md) {
+		this.parent = md;
 	}
 
 	/**
-	 * Set enclosing class type (since JRE 5).
+	 * Set enclosing type declaration.
 	 * 
-	 * @param t
-	 *            class type
-	 * 
-	 * @see ClassT#setEnclosingT(ClassT)
+	 * @param td
+	 *            type declaration
 	 */
-	public void setEnclosingT(final ClassT t) {
-		this.t.setEnclosingT(t);
-	}
-
-	/**
-	 * Set inner info.
-	 * 
-	 * @param name
-	 *            inner name
-	 * @param accessFlags
-	 *            inner access flags
-	 * @see ClassT#setInnerInfo(String, int)
-	 */
-	public void setInnerInfo(final String name, final int accessFlags) {
-		this.t.setInnerInfo(name, accessFlags);
+	public void setEnclosingTD(final TD td) {
+		this.parent = td;
 	}
 
 	/**
