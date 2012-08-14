@@ -183,32 +183,16 @@ public class SmaliReader implements DexReader {
 							td.setSignature(sb.toString());
 							continue;
 						}
-						// @see Class#getEnclosingClass()
-
-						// There are five kinds of classes (or interfaces):
-						// a) Top level classes
-						// b) Nested classes (static member classes)
-						// c) Inner classes (non-static member classes)
-						// d) Local classes (named classes declared within a method)
-						// e) Anonymous classes
-
-						// JVM Spec 4.8.6: A class must have an EnclosingMethod
-						// attribute if and only if it is a local class or an
-						// anonymous class.
-
-						// but JRE < 5 has no enclosing method attribute,
-						// JRE 1.1 has normal outer for anonymous/local, like declaring for JRE 5,
-						// JRE 1.2 .. 1.4 has no outer info at all!!!
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
-							td.setEnclosingT((ClassT) a.getMemberValue());
+							t.setEnclosingT((ClassT) a.getMemberValue());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingMethod".equals(a.getT().getName())) {
-							td.setEnclosingM((M) a.getMemberValue());
+							t.setEnclosingM((M) a.getMemberValue());
 							continue;
 						}
 						if ("dalvik.annotation.InnerClass".equals(a.getT().getName())) {
-							td.setInnerInfo((String) a.getMemberValue("name"),
+							t.setInnerInfo((String) a.getMemberValue("name"),
 									(Integer) a.getMemberValue("accessFlags"));
 							continue;
 						}

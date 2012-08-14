@@ -185,27 +185,11 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visitOuterClass(final String owner, final String name, final String desc) {
-		// @see Class#getEnclosingClass()
-
-		// There are five kinds of classes (or interfaces):
-		// a) Top level classes
-		// b) Nested classes (static member classes)
-		// c) Inner classes (non-static member classes)
-		// d) Local classes (named classes declared within a method)
-		// e) Anonymous classes
-
-		// JVM Spec 4.8.6: A class must have an EnclosingMethod
-		// attribute if and only if it is a local class or an
-		// anonymous class.
-
-		// but JRE < 5 has no enclosing method attribute,
-		// JRE 1.1 has normal outer for anonymous/local, like declaring for JRE 5,
-		// JRE 1.2 .. 1.4 has no outer info at all!!!
 		final ClassT enclosingT = (ClassT) this.du.getT(owner);
 		if (name == null) {
-			this.td.setEnclosingT(enclosingT);
+			this.td.getT().setEnclosingT(enclosingT);
 		} else {
-			this.td.setEnclosingM(enclosingT.getM(name, desc));
+			this.td.getT().setEnclosingM(enclosingT.getM(name, desc));
 		}
 	}
 

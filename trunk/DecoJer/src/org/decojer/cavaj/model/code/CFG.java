@@ -78,6 +78,7 @@ public final class CFG {
 	@Getter
 	private final MD md;
 
+	@Getter
 	@Setter
 	private Op[] ops;
 
@@ -288,26 +289,6 @@ public final class CFG {
 	 */
 	public Frame getInFrame(final Op op) {
 		return this.frames[op.getPc()];
-	}
-
-	/**
-	 * Get operation for pc.
-	 * 
-	 * @param pc
-	 *            pc
-	 * @return operation
-	 */
-	public Op getOp(final int pc) {
-		return this.ops[pc];
-	}
-
-	/**
-	 * Get operation number.
-	 * 
-	 * @return operation number
-	 */
-	public int getOps() {
-		return this.ops.length;
 	}
 
 	/**

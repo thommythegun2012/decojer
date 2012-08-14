@@ -929,7 +929,9 @@ public final class TrDataFlowAnalysis {
 		this.cfg.initFrames();
 
 		this.isIgnoreExceptions = this.cfg.getCu().check(DFlag.IGNORE_EXCEPTIONS);
-		this.pc2bbs = new BB[this.cfg.getOps()];
+
+		final Op[] ops = this.cfg.getOps();
+		this.pc2bbs = new BB[ops.length];
 
 		// start with PC 0 and new BB
 		this.pc = 0;
@@ -948,7 +950,7 @@ public final class TrDataFlowAnalysis {
 				bb = splitExceptions(bb);
 				this.pc2bbs[this.pc] = bb;
 			}
-			final Op op = this.cfg.getOp(this.pc);
+			final Op op = ops[this.pc];
 			this.pc = executeMerge(op, bb);
 			mergeExceptions(op); // execute has influence on this, read type reduce
 		}
