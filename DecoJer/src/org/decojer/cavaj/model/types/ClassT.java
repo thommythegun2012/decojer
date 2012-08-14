@@ -73,6 +73,12 @@ public class ClassT extends T {
 	 */
 	private Object enclosing;
 
+	/**
+	 * @see T#getInnerName()
+	 */
+	@Getter
+	private String innerName;
+
 	@Setter
 	private T[] interfaceTs;
 
@@ -358,32 +364,22 @@ public class ClassT extends T {
 	}
 
 	/**
-	 * Set inner info.
+	 * Set inner info.<br>
+	 * Inner name: Can derive since JRE 5 from type names (compatibility rules), but not before.<br>
+	 * Inner access flags: Have _exclusively_ modifiers PROTECTED, PRIVATE, STATIC, but not SUPER
 	 * 
 	 * @param name
 	 *            inner name
 	 * @param accessFlags
 	 *            inner access flags
+	 * @see T#getInnerName()
 	 */
 	public void setInnerInfo(final String name, final int accessFlags) {
-		// this inner access flags have exclusively following modifiers: PROTECTED, PRIVATE, STATIC,
+		// inner access flags have _exclusively_ following modifiers: PROTECTED, PRIVATE, STATIC,
 		// but not: SUPER
 		this.accessFlags = accessFlags | this.accessFlags & AF.SUPER.getValue();
-		// don't really need this info (@see T#getSimpleName()):
-		// According to JLS3 "Binary Compatibility" (13.1) the binary
-		// name of non-package classes (not top level) is the binary
-		// name of the immediately enclosing class followed by a '$' followed by:
-		// (for nested and inner classes): the simple name.
-		// (for local classes): 1 or more digits followed by the simple name.
-		// (for anonymous classes): 1 or more digits.
-		if (this.enclosing != null) {
-			final String simpleName = getSimpleName();
-			if (name == null && simpleName.isEmpty() || simpleName.equals(name)) {
-				return;
-			}
-			LOGGER.warning("Inner name '" + name + "' is different from enclosing info '"
-					+ getSimpleName() + "'!");
-		}
+		// don't really need this info (@see T#getInnerName()) for JRE >= 5
+		this.innerName = name == null ? "" : name;
 	}
 
 }

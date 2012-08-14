@@ -362,6 +362,7 @@ public final class TD extends BD {
 	 *            inner name
 	 * @param accessFlags
 	 *            inner access flags
+	 * @see ClassT#setInnerInfo(String, int)
 	 */
 	public void setInnerInfo(final String name, final int accessFlags) {
 		this.t.setInnerInfo(name, accessFlags);

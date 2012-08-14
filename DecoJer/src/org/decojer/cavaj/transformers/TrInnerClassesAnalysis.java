@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
@@ -43,8 +44,9 @@ import org.decojer.cavaj.model.types.ClassT;
  */
 public class TrInnerClassesAnalysis {
 
+	private final static Logger LOGGER = Logger.getLogger(TrInnerClassesAnalysis.class.getName());
+
 	private static List<TD> findTopTds(final DU du) {
-		final List<TD> selectedTds = du.getSelectedTds();
 		final List<TD> tds = new ArrayList<TD>();
 		// separate all read tds, not just selected tds
 		for (final T t : du.getTs()) {
@@ -55,6 +57,19 @@ public class TrInnerClassesAnalysis {
 			if (td == null) {
 				continue;
 			}
+
+			// Inner name is not necessary anymore since JRE 5, see T#getInnerName(), but we
+			// validate the new "Binary Compatibility" rules here.
+			if (td.getVersion() >= 48 && t.getEnclosingT() != null) {
+				final String innerName = t.getInnerName();
+				final String simpleName = t.getSimpleClassName();
+				if (innerName == null && !simpleName.isEmpty() || innerName != null
+						&& !innerName.equals(simpleName)) {
+					LOGGER.warning("Inner name '" + innerName
+							+ "' is different from enclosing info '" + simpleName + "'!");
+				}
+			}
+
 			// first check enclosing method, potentially deeper nested than in type
 			final M enclosingM = td.getT().getEnclosingM();
 			if (enclosingM != null) {
