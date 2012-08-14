@@ -254,17 +254,6 @@ public abstract class T {
 	}
 
 	/**
-	 * Character.isDigit answers <tt>true</tt> to some non-ascii digits. This one does not.
-	 * 
-	 * @param c
-	 *            character
-	 * @return <code>true</code> - is ascii digit
-	 */
-	private static boolean isAsciiDigit(final char c) {
-		return '0' <= c && c <= '9';
-	}
-
-	/**
 	 * Merge/join store/up/and types: Find common super type. Use AND operation for kind - primitive
 	 * multitypes: no conversion. No primitive reduction of source types, done through eventual
 	 * following register read. Resulting reference type contains one class and multiple interfaces.
@@ -481,13 +470,21 @@ public abstract class T {
 	}
 
 	/**
-	 * Get inner name. Inner name is not necessary anymore for JRE >= 5 (see getSimpleClassName).<br>
+	 * Get inner name. Can derive for JRE > 5 from type names (compatibility rules), but not before.<br>
+	 * <br>
+	 * According to JLS3 "Binary Compatibility" (13.1) the binary name of non-package classes (not
+	 * top level) is the binary name of the immediately enclosing class followed by a '$' followed
+	 * by:<br>
+	 * (for nested and inner classes): the simple name.<br>
+	 * (for local classes): 1 or more digits followed by the simple name.<br>
+	 * (for anonymous classes): 1 or more digits.<br>
+	 * <br>
 	 * 
 	 * JRE 5: <code>org.decojer.cavaj.test.DecTestInner$$Inner1$$$$_Inner$1$1AInner2</code><br>
 	 * Before JRE 5: <code>org.decojer.cavaj.test.DecTestInner$$1$AInner2</code>
 	 * 
 	 * @return inner name
-	 * @see T#getSimpleClassName()
+	 * @see Class#getSimpleName()
 	 */
 	public String getInnerName() {
 		return null; // overwrite in ClassT
@@ -556,71 +553,13 @@ public abstract class T {
 	}
 
 	/**
-	 * Returns the "simple binary name" of the underlying class, i.e., the binary name without the
-	 * leading enclosing class name. Returns <tt>null</tt> if the underlying class is a top level
-	 * class.
-	 * 
-	 * Works just for JRE >= 5.
-	 * 
-	 * @return simple binary name
-	 * @since 1.5
-	 * @see Class#getSimpleName()
-	 */
-	private String getSimpleBinaryName() {
-		final T enclosingT = getEnclosingT();
-		if (enclosingT != null) {
-			return getName().substring(enclosingT.getName().length());
-		}
-		return null;
-	}
-
-	/**
 	 * Get simple name, like appearing in Java source code.
 	 * 
-	 * Works just for JRE >= 5.
-	 * 
-	 * @return simple name
-	 * @since 1.5
-	 * @see Class#getSimpleName()
-	 */
-	public String getSimpleClassName() {
-		final String simpleName = getSimpleBinaryName();
-		if (simpleName == null) { // is top level class
-			return getPName();
-		}
-		// According to JLS3 "Binary Compatibility" (13.1) the binary
-		// name of non-package classes (not top level) is the binary
-		// name of the immediately enclosing class followed by a '$' followed by:
-		// (for nested and inner classes): the simple name.
-		// (for local classes): 1 or more digits followed by the simple name.
-		// (for anonymous classes): 1 or more digits.
-
-		// Since getSimpleBinaryName() will strip the binary name of
-		// the immediatly enclosing class, we are now looking at a
-		// string that matches the regular expression "\$[0-9]*"
-		// followed by a simple name (considering the simple of an
-		// anonymous class to be the empty string).
-
-		// Remove leading "\$[0-9]*" from the name
-		final int length = simpleName.length();
-		if (length < 1 || simpleName.charAt(0) != '$') {
-			throw new InternalError("Malformed class name");
-		}
-		int index = 1;
-		while (index < length && isAsciiDigit(simpleName.charAt(index))) {
-			index++;
-		}
-		// Eventually, this is the empty string iff this is an anonymous class
-		return simpleName.substring(index);
-	}
-
-	/**
-	 * Get simple name, like appearing in Java source code.
-	 * 
-	 * Works for all Java versions, not just JRE >= 5.
+	 * Works for all Java versions, not just for JRE >= 5 like <tt>Class.getSimpleName()</tt>.
 	 * 
 	 * @return simple name
 	 * @see Class#getSimpleName()
+	 * @see T#getInnerName()
 	 */
 	public String getSimpleName() {
 		// The original Class-Function doesn't work for JRE < 5 because the naming rules changed,

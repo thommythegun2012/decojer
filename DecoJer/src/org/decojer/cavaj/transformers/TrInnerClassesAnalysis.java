@@ -51,6 +51,34 @@ public class TrInnerClassesAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrInnerClassesAnalysis.class.getName());
 
+	private static void checkBinaryCompatibilityNamingRules(final Collection<T> ts) {
+		for (final T t : ts) {
+			final TD td = t.getTd();
+			if (td == null) {
+				continue;
+			}
+			// Inner name is not necessary anymore since JRE 5, see T#getInnerName(), but we
+			// validate the new "Binary Compatibility" rules here.
+			if (td.getVersion() < 48 || t.getEnclosingT() == null) {
+				continue;
+			}
+			final String innerName = t.getInnerName();
+			final String simpleName = getSimpleClassName(t);
+			if (innerName == null && !simpleName.isEmpty() || innerName != null
+					&& !innerName.equals(simpleName)) {
+				LOGGER.warning("Inner name '" + innerName + "' is different from enclosing info '"
+						+ simpleName + "'!");
+			}
+		}
+	}
+
+	/**
+	 * All JREs < 5 have no enclosing method attribute and wrong (JRE 1) or missing (JRE 2...4)
+	 * informations. We are looking for explicit new-ops, this must be the parent method.
+	 * 
+	 * @param ts
+	 *            all types
+	 */
 	private static void findEnclosingMethods(final Collection<T> ts) {
 		for (final T t : ts) {
 			final TD td = t.getTd();
@@ -78,7 +106,8 @@ public class TrInnerClassesAnalysis {
 					if (!newT.isAnonymous()) {
 						continue;
 					}
-					if (!(newT instanceof ClassT)) {
+					final TD newTd = newT.getTd();
+					if (newTd == null) {
 						continue;
 					}
 					final M enclosingM = newT.getEnclosingM();
@@ -89,8 +118,7 @@ public class TrInnerClassesAnalysis {
 					if (enclosingT != null) {
 						// TODO check if equal
 					}
-					// TODO repair T or set TD?
-					enclosingMd.addTd(td); // TODO better setEnclosingMd() ???
+					enclosingMd.addTd(newTd);
 				}
 			}
 		}
@@ -104,18 +132,12 @@ public class TrInnerClassesAnalysis {
 			if (td == null) {
 				continue;
 			}
-			// Inner name is not necessary anymore since JRE 5, see T#getInnerName(), but we
-			// validate the new "Binary Compatibility" rules here.
-			if (td.getVersion() >= 48 && t.getEnclosingT() != null) {
-				final String innerName = t.getInnerName();
-				final String simpleName = t.getSimpleClassName();
-				if (innerName == null && !simpleName.isEmpty() || innerName != null
-						&& !innerName.equals(simpleName)) {
-					LOGGER.warning("Inner name '" + innerName
-							+ "' is different from enclosing info '" + simpleName + "'!");
+			if (td.isAnonymous()) {
+				if (!(td.getParent() instanceof MD)) {
+					LOGGER.warning("Parent of inner local/anonymous type '" + t + "' is 'null'!");
 				}
+				continue;
 			}
-
 			// first check enclosing method, potentially deeper nested than in type
 			final M enclosingM = t.getEnclosingM();
 			if (enclosingM != null) {
@@ -138,6 +160,69 @@ public class TrInnerClassesAnalysis {
 		return tds;
 	}
 
+	/**
+	 * Returns the "simple binary name" of the underlying class, i.e., the binary name without the
+	 * leading enclosing class name. Returns <tt>null</tt> if the underlying class is a top level
+	 * class.
+	 * 
+	 * Works just for JRE >= 5.
+	 * 
+	 * @param t
+	 *            type
+	 * @return simple binary name
+	 * @since 1.5
+	 * @see Class#getSimpleName()
+	 */
+	private static String getSimpleBinaryName(final T t) {
+		final T enclosingT = t.getEnclosingT();
+		if (enclosingT != null) {
+			return t.getName().substring(enclosingT.getName().length());
+		}
+		return null;
+	}
+
+	/**
+	 * Get simple name, like appearing in Java source code.
+	 * 
+	 * Works just for JRE >= 5.
+	 * 
+	 * @param t
+	 *            type
+	 * @return simple name
+	 * @since 1.5
+	 * @see Class#getSimpleName()
+	 */
+	private static String getSimpleClassName(final T t) {
+		final String simpleName = getSimpleBinaryName(t);
+		if (simpleName == null) { // is top level class
+			return t.getPName();
+		}
+		// According to JLS3 "Binary Compatibility" (13.1) the binary
+		// name of non-package classes (not top level) is the binary
+		// name of the immediately enclosing class followed by a '$' followed by:
+		// (for nested and inner classes): the simple name.
+		// (for local classes): 1 or more digits followed by the simple name.
+		// (for anonymous classes): 1 or more digits.
+
+		// Since getSimpleBinaryName() will strip the binary name of
+		// the immediatly enclosing class, we are now looking at a
+		// string that matches the regular expression "\$[0-9]*"
+		// followed by a simple name (considering the simple of an
+		// anonymous class to be the empty string).
+
+		// Remove leading "\$[0-9]*" from the name
+		final int length = simpleName.length();
+		if (length < 1 || simpleName.charAt(0) != '$') {
+			throw new InternalError("Malformed class name");
+		}
+		int index = 1;
+		while (index < length && isAsciiDigit(simpleName.charAt(index))) {
+			index++;
+		}
+		// Eventually, this is the empty string iff this is an anonymous class
+		return simpleName.substring(index);
+	}
+
 	private static String getSourceId(final TD mainTd) {
 		final String sourceFileName = mainTd.getSourceFileName();
 		if (sourceFileName == null) {
@@ -147,9 +232,21 @@ public class TrInnerClassesAnalysis {
 		return packageName == null ? sourceFileName : packageName + "." + sourceFileName;
 	}
 
+	/**
+	 * Character.isDigit answers <tt>true</tt> to some non-ascii digits. This one does not.
+	 * 
+	 * @param c
+	 *            character
+	 * @return <code>true</code> - is ascii digit
+	 */
+	private static boolean isAsciiDigit(final char c) {
+		return '0' <= c && c <= '9';
+	}
+
 	public static void transform(final DU du) {
 		final Collection<T> ts = du.getTs();
 
+		checkBinaryCompatibilityNamingRules(ts);
 		findEnclosingMethods(ts);
 		final List<TD> topTds = findTopTds(ts);
 

@@ -357,7 +357,7 @@ public class ClassT extends T {
 
 	/**
 	 * Set inner info.<br>
-	 * Inner name: Can derive since JRE 5 from type names (compatibility rules), but not before.<br>
+	 * Inner name: Can derive for JRE > 5 from type names (compatibility rules), but not before.<br>
 	 * Inner access flags: Have _exclusively_ modifiers PROTECTED, PRIVATE, STATIC, but not SUPER
 	 * 
 	 * @param name

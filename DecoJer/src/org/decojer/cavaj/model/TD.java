@@ -333,26 +333,6 @@ public final class TD extends BD {
 	}
 
 	/**
-	 * Set enclosing method declaration.
-	 * 
-	 * @param md
-	 *            method declaration
-	 */
-	public void setEnclosingMD(final MD md) {
-		this.parent = md;
-	}
-
-	/**
-	 * Set enclosing type declaration.
-	 * 
-	 * @param td
-	 *            type declaration
-	 */
-	public void setEnclosingTD(final TD td) {
-		this.parent = td;
-	}
-
-	/**
 	 * Set interface types.
 	 * 
 	 * @param interfaceTs
