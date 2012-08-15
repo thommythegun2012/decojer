@@ -349,8 +349,9 @@ public final class TrDataFlowAnalysis {
 		case INVOKE: {
 			final INVOKE cop = (INVOKE) op;
 			final M m = cop.getM();
-			for (final T paramT : m.getParamTs()) {
-				pop(paramT, true);
+			final T[] paramTs = m.getParamTs();
+			for (int i = m.getParamTs().length; i-- > 0;) {
+				pop(paramTs[i], true);
 			}
 			if (!m.check(AF.STATIC)) {
 				pop(m.getT(), true);

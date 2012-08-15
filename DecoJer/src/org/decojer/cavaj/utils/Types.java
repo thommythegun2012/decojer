@@ -79,9 +79,10 @@ public final class Types {
 			LOGGER.warning("Unknown reference type '" + t + "'!");
 			return ast.newNullLiteral();
 		}
-		if (t.isMulti()) {
-			LOGGER.warning("Convert literal for multi-type '" + t + "'!");
-		}
+		// if (t.isMulti()) {
+		// often not decideable, e.g. if byte or char
+		// LOGGER.warning("Convert literal for multi-type '" + t + "'!");
+		// }
 		if (t.is(T.INT)) {
 			if (value instanceof Number) {
 				final int i = ((Number) value).intValue();
