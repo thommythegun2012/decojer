@@ -37,6 +37,10 @@ import org.decojer.cavaj.utils.Cursor;
  */
 public class M {
 
+	public static final String CONSTRUCTOR_NAME = "<init>";
+
+	public static final String INITIALIZER_NAME = "<clinit>";
+
 	@Setter
 	private int accessFlags;
 
@@ -106,6 +110,24 @@ public class M {
 		this.md = new MD(this);
 		((ClassT) this.t).getTd().addBd(this.md);
 		return this.md;
+	}
+
+	/**
+	 * Is constructor?
+	 * 
+	 * @return <tt>true</tt> - is constructor
+	 */
+	public boolean isConstructor() {
+		return CONSTRUCTOR_NAME.equals(getName());
+	}
+
+	/**
+	 * Is initializer?
+	 * 
+	 * @return <tt>true</tt> - is constructor
+	 */
+	public boolean isInitializer() {
+		return INITIALIZER_NAME.equals(getName());
 	}
 
 	/**

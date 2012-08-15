@@ -35,6 +35,7 @@ import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.BB;
@@ -58,6 +59,7 @@ import org.eclipse.draw2d.Polyline;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IInitializer;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.ClassFileEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
@@ -462,6 +464,36 @@ public class ClassEditor extends MultiPageEditorPart {
 		setInput(editor.getEditorInput());
 	}
 
+	/**
+	 * Find type declaration for Eclipse type.
+	 * 
+	 * @param type
+	 *            Eclipse type
+	 * @return type declaration
+	 */
+	private TD findTdForType(final IType type) {
+		// type.getFullyQualifiedName() potentially follows a different naming strategy for inner
+		// classes than the internal model from the bytecode, hence we must iterate through the tree
+		final ArrayList<String> names = new ArrayList<String>();
+		IType iType = type;
+		do {
+			names.add(0, iType.getElementName());
+			iType = iType.getDeclaringType();
+		} while (iType != null);
+
+		// TODO doesn't work for inner local / anonymous classes yet, because no methods (must use
+		// getParent) and because of simple names '',
+		// we must synchroneausly step index-based through both models and ignore all without
+		// generated source code!!!
+
+		final TD td = this.selectedCu.getTd(names); // TODO delete this functions after fix
+		if (td == null) {
+			LOGGER.warning("Couldn't find type declaration for '" + type.getFullyQualifiedName()
+					+ "'!");
+		}
+		return td;
+	}
+
 	@Override
 	public Object getAdapter(final Class required) {
 		if (IContentOutlinePage.class.equals(required)) {
@@ -506,38 +538,40 @@ public class ClassEditor extends MultiPageEditorPart {
 		final Object firstElement = treeSelection.getFirstElement();
 
 		// get available selection information
-		String fullyQualifiedName;
-		String elementName;
+		TD td;
+		String methodName;
 		String signature;
 		if (firstElement instanceof IInitializer) {
 			final IInitializer method = (IInitializer) firstElement;
-			fullyQualifiedName = method.getDeclaringType().getFullyQualifiedName();
-			elementName = "<clinit>";
+			td = findTdForType(method.getDeclaringType());
+			methodName = M.INITIALIZER_NAME;
 			signature = "()V";
 		} else if (firstElement instanceof IMethod) {
 			final IMethod method = (IMethod) firstElement;
-			fullyQualifiedName = method.getDeclaringType().getFullyQualifiedName();
-			elementName = method.getElementName();
+			td = findTdForType(method.getDeclaringType());
+			try {
+				methodName = method.isConstructor() ? M.CONSTRUCTOR_NAME : method.getElementName();
+			} catch (final JavaModelException e) {
+				LOGGER.log(Level.SEVERE, "Couldn't check if Eclipse method '" + method
+						+ "' is an constructor!", e);
+				methodName = method.getElementName();
+			}
 			try {
 				signature = method.getSignature();
 			} catch (final JavaModelException e) {
-				e.printStackTrace();
+				LOGGER.log(Level.SEVERE, "Couldn't get signature for Eclipse method '" + method
+						+ "'!", e);
 				return;
 			}
 		} else {
 			return;
 		}
-		// find CFG
-		LOGGER.fine("Find method declaration for declaring type '" + fullyQualifiedName
-				+ "' and element name '" + elementName + "' and signature '" + signature + "'!");
+		if (td == null) {
+			return;
+		}
+		LOGGER.warning("Find method '" + td + "'.'" + methodName + "' with signature '" + signature
+				+ "'.");
 		try {
-			// get declaring type
-			final TD td = this.selectedCu.getTd(fullyQualifiedName);
-
-			// get method in declaring type,
-			// first check if selected method is a constructor, then method name is <init>
-			final String methodName = fullyQualifiedName.equals(elementName)
-					|| fullyQualifiedName.endsWith("$" + elementName) ? "<init>" : elementName;
 			// get all method declarations with this name
 			final ArrayList<MD> mds = new ArrayList<MD>();
 			for (final BD bd : td.getBds()) {

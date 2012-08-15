@@ -114,7 +114,7 @@ public final class TrMergeAll {
 						transform((TD) innerTd);
 					}
 				}
-				if (methodDeclaration instanceof MethodDeclaration && "<init>".equals(md.getName())) {
+				if (methodDeclaration instanceof MethodDeclaration && md.isConstructor()) {
 					if (td.getTypeDeclaration() instanceof AnonymousClassDeclaration) {
 						// anonymous inner classes cannot have visible Java constructors
 						continue;
@@ -125,8 +125,7 @@ public final class TrMergeAll {
 									.size() == 0) {
 						continue;
 					}
-				} else if (methodDeclaration instanceof Initializer) {
-					// can only be <clinit>
+				} else if (methodDeclaration instanceof Initializer /* md.isInitializer() is true */) {
 					if (((Initializer) methodDeclaration).getBody().statements().size() == 0) {
 						continue;
 					}
