@@ -203,11 +203,10 @@ public final class TrJvmStruct2JavaAst {
 		// AnnotationTypeMemberDeclaration (all methods in @interface) or
 		// Initializer (static {})
 		final BodyDeclaration methodDeclaration;
-		if ("<clinit>".equals(name)) {
-			// this is the static initializer "static {}" => Initializer
+		if (md.isInitializer()) {
 			methodDeclaration = ast.newInitializer();
-		} else if ("<init>".equals(name)) {
-			// this is the constructor => MethodDeclaration with type declaration name as name
+		} else if (md.isConstructor()) {
+			// MethodDeclaration with type declaration name as name
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setConstructor(true);
 			((MethodDeclaration) methodDeclaration).setName(ast.newSimpleName(cu

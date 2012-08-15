@@ -114,8 +114,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		if (parameterNames != null && parameterNames.length > 0) {
 			for (int i = parameterNames.length; i-- > 0;) {
 				if (parameterNames[i] == null) {
-					// could happen, e.g. synthetic methods, inner <init>
-					// with outer type param
+					// could happen, e.g. synthetic methods, inner constructor with outer type param
 					continue;
 				}
 				md.setParamName(i, parameterNames[i].getStringValue());

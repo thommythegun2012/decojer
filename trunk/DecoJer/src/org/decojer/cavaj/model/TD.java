@@ -247,6 +247,33 @@ public final class TD extends BD {
 	}
 
 	/**
+	 * Get type declaration with name path from index, recursive internal helper.
+	 * 
+	 * @param names
+	 *            name path
+	 * @param index
+	 *            index
+	 * @return type declaration
+	 * @see CU#getTd(ArrayList)
+	 */
+	protected TD getTd(final ArrayList<String> names, final int index) {
+		final String name = names.get(index);
+		for (final BD bd : getBds()) {
+			if (!(bd instanceof TD)) {
+				continue;
+			}
+			final TD td = (TD) bd;
+			if (name.equals(td.getSimpleName())) {
+				if (names.size() > index + 1) {
+					return td.getTd(names, index + 1);
+				}
+				return td;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Get type parameters.
 	 * 
 	 * @return type parameters, not <code>null</code>

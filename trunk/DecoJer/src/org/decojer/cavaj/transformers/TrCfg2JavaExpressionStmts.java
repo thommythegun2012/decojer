@@ -552,12 +552,10 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				Collections.reverse(arguments);
 
-				final String mName = m.getName();
-
 				final Expression methodExpression;
 				if (cop.isDirect()) {
 					final Expression expression = bb.pop();
-					if ("<init>".equals(mName)) {
+					if (m.isConstructor()) {
 						methodExpression = null;
 						if (expression instanceof ThisExpression) {
 							enumConstructor: if (m.getT().is(Enum.class)
@@ -608,14 +606,14 @@ public final class TrCfg2JavaExpressionStmts {
 							// basicBlock.pushExpression(classInstanceCreation);
 							break;
 						}
-						LOGGER.warning("Constructor method '<init> expects expression class 'ThisExpression' or 'ClassInstanceCreation' but is '"
+						LOGGER.warning("Constructor expects expression class 'ThisExpression' or 'ClassInstanceCreation' but is '"
 								+ expression.getClass() + "' with value: " + expression);
 						break;
 					}
 					if (expression instanceof ThisExpression) {
 						final SuperMethodInvocation superMethodInvocation = getAst()
 								.newSuperMethodInvocation();
-						superMethodInvocation.setName(getAst().newSimpleName(mName));
+						superMethodInvocation.setName(getAst().newSimpleName(m.getName()));
 						superMethodInvocation.arguments().addAll(arguments);
 						methodExpression = superMethodInvocation;
 					} else {
@@ -623,18 +621,18 @@ public final class TrCfg2JavaExpressionStmts {
 						// syntax
 						final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 						methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
-						methodInvocation.setName(getAst().newSimpleName(mName));
+						methodInvocation.setName(getAst().newSimpleName(m.getName()));
 						methodInvocation.arguments().addAll(arguments);
 						methodExpression = methodInvocation;
 					}
 				} else if (m.check(AF.STATIC)) {
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 					methodInvocation.setExpression(this.cfg.getTd().newTypeName(m.getT()));
-					methodInvocation.setName(getAst().newSimpleName(mName));
+					methodInvocation.setName(getAst().newSimpleName(m.getName()));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
 				} else {
-					stringAdd: if ("toString".equals(mName)
+					stringAdd: if ("toString".equals(m.getName())
 							&& (m.getT().is(StringBuilder.class) || m.getT().is(StringBuffer.class))) {
 						// jdk1.1.6:
 						// new
@@ -684,7 +682,7 @@ public final class TrCfg2JavaExpressionStmts {
 					}
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 					methodInvocation.setExpression(wrap(bb.pop(), Priority.METHOD_CALL));
-					methodInvocation.setName(getAst().newSimpleName(mName));
+					methodInvocation.setName(getAst().newSimpleName(m.getName()));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
 				}
@@ -981,11 +979,11 @@ public final class TrCfg2JavaExpressionStmts {
 				fieldInit: if (this.cfg.getMd().getTd().getT() == f.getT()) {
 					// set local field, could be initializer
 					if (f.check(AF.STATIC)) {
-						if (!"<clinit>".equals(this.cfg.getMd().getName())) {
+						if (!this.cfg.getMd().isInitializer()) {
 							break fieldInit;
 						}
 					} else {
-						if (!"<init>".equals(this.cfg.getMd().getName())) {
+						if (!this.cfg.getMd().isConstructor()) {
 							break fieldInit;
 						}
 						if (!(bb.peek() instanceof ThisExpression)) {

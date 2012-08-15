@@ -155,6 +155,26 @@ public final class MD extends BD {
 	}
 
 	/**
+	 * Is constructor?
+	 * 
+	 * @return <tt>true</tt> - is constructor
+	 * @see M#isConstructor()
+	 */
+	public boolean isConstructor() {
+		return this.m.isConstructor();
+	}
+
+	/**
+	 * Is initializer?
+	 * 
+	 * @return <tt>true</tt> - is initializer
+	 * @see M#isInitializer()
+	 */
+	public boolean isInitializer() {
+		return this.m.isInitializer();
+	}
+
+	/**
 	 * Parse Throw Types from Signature.
 	 * 
 	 * @param s
@@ -207,15 +227,15 @@ public final class MD extends BD {
 		final T[] paramTs = getTd().getDu().parseMethodParamTs(signature, c);
 		if (paramTs.length != 0) {
 			if (getParamTs().length != paramTs.length) {
-				// can happen with Sun JVM:
+				// can happen with Sun JVM for constructor:
 				// see org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11.1.InnerMethod
 				// or org.decojer.cavaj.test.jdk5.DecTestEnumStatus
 				// Signature since JDK 5 exists but doesn't contain synthetic parameters,
 				// e.g. outer context for methods in inner classes: (I)V instead of (Lthis;_I_II)V
 				// or enum constructor parameters arg0: String, arg1: int
-
-				// ignore for now? Eclipse Compiler doesn't generate this information
-				LOGGER.info("Not matching Signature '" + signature + "' for Method " + this);
+				if (!isConstructor()) {
+					LOGGER.info("Not matching Signature '" + signature + "' for Method " + this);
+				}
 			} else {
 				this.m.setParamTs(paramTs);
 			}
