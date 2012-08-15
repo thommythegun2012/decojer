@@ -43,6 +43,15 @@ public abstract class T {
 
 	private static final Map<Integer, T> KIND_2_TS = new HashMap<Integer, T>();
 
+	/**
+	 * Multitype READ target-multitype => reduced (left) multitype (according to Java-conversions),
+	 * e.g.:<br>
+	 * __s_ read ___i => __s_<br>
+	 * __s_ read __si => __s_<br>
+	 * __si read __s_ => __s_<br>
+	 * __s_ read _b__ => ____<br>
+	 * _bsi read c__i => _bsi
+	 */
 	private static int[][] READ_INT = {
 	/* ___i */{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
 	/* __s_ */{ 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2 },

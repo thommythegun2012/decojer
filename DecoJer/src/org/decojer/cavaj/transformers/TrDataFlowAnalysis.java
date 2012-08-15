@@ -140,9 +140,15 @@ public final class TrDataFlowAnalysis {
 		final R s2 = pop(t, true);
 		final R s1 = pop(t, true);
 
-		assert R.merge(s1, s2) != null;
+		// reduce to reasonable parameters pairs, e.g. BOOL, {SHORT,BOOL}-Constant -> both BOOL
+		// hence: T.INT not sufficient for boolean operators like OR
+		final T m = R.merge(s1, s2);
+		assert m != null;
 
-		if (s1.getT().isRef()) {
+		s2.read(m); // TODO no alive read trigger?!
+		s1.read(m);
+
+		if (m.isRef()) {
 			// (J)CMP EQ / NE
 			assert T.VOID == resultT : resultT;
 
@@ -150,7 +156,7 @@ public final class TrDataFlowAnalysis {
 		}
 		if (resultT != T.VOID) {
 			// TODO inputs really uninteresting?
-			pushConst(resultT != null ? resultT : t);
+			pushConst(resultT != null ? resultT : m);
 		}
 	}
 
@@ -173,7 +179,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case AND: {
 			final AND cop = (AND) op;
-			evalBinaryMath(cop.getT());
+			evalBinaryMath(cop.getT() == T.INT ? T.AINT : cop.getT()); // boolean too
 			break;
 		}
 		case ARRAYLENGTH: {
@@ -473,7 +479,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case OR: {
 			final OR cop = (OR) op;
-			evalBinaryMath(cop.getT());
+			evalBinaryMath(cop.getT() == T.INT ? T.AINT : cop.getT()); // boolean too
 			break;
 		}
 		case POP: {
@@ -645,7 +651,7 @@ public final class TrDataFlowAnalysis {
 			return -1;
 		case XOR: {
 			final XOR cop = (XOR) op;
-			evalBinaryMath(cop.getT());
+			evalBinaryMath(cop.getT() == T.INT ? T.AINT : cop.getT()); // boolean too
 			break;
 		}
 		default:
