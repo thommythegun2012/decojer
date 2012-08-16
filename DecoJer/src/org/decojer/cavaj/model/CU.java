@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.ArrayList;
 import java.util.EnumSet;
 
 import lombok.Getter;
@@ -205,51 +204,6 @@ public final class CU extends D {
 	 */
 	public TD getTd() {
 		return (TD) getBds().get(0);
-	}
-
-	/**
-	 * Get type declaration with name path.
-	 * 
-	 * @param names
-	 *            name path
-	 * @return type declaration
-	 */
-	public TD getTd(final ArrayList<String> names) {
-		final String name = names.get(0);
-		for (final BD bd : getBds()) {
-			if (!(bd instanceof TD)) {
-				continue;
-			}
-			final TD td = (TD) bd;
-			if (name.equals(td.getSimpleName())) {
-				if (names.size() > 1) {
-					return td.getTd(names, 1);
-				}
-				return td;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Get type declaration with name or full name.
-	 * 
-	 * @param name
-	 *            name or full name
-	 * @return type declaration or <code>null</code>
-	 */
-	public TD getTd(final String name) {
-		String n = name;
-		if (n.indexOf('.') == -1) {
-			n = getPackageName() + '.' + n;
-		}
-		// would be faster to use a recursive searcher than aggregating TDs...
-		for (final BD bd : getAllTds()) {
-			if (n.equals(bd.getName())) {
-				return (TD) bd;
-			}
-		}
-		return null;
 	}
 
 }
