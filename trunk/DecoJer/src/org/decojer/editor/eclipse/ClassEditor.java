@@ -34,7 +34,9 @@ import org.decojer.DecoJer;
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.D;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
@@ -57,10 +59,11 @@ import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.Polyline;
 import org.eclipse.jdt.core.IClassFile;
+import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IInitializer;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
-import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.ClassFileEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.IClassFileEditorInput;
@@ -467,31 +470,118 @@ public class ClassEditor extends MultiPageEditorPart {
 	/**
 	 * Find type declaration for Eclipse type.
 	 * 
-	 * @param type
-	 *            Eclipse type
-	 * @return type declaration
+	 * @param javaElement
+	 *            Eclipse Java element
+	 * @return declaration
 	 */
-	private TD findTdForType(final IType type) {
+	private D findDeclarationForJavaElement(final IJavaElement javaElement) {
 		// type.getFullyQualifiedName() potentially follows a different naming strategy for inner
 		// classes than the internal model from the bytecode, hence we must iterate through the tree
-		final ArrayList<String> names = new ArrayList<String>();
-		IType iType = type;
-		do {
-			names.add(0, iType.getElementName());
-			iType = iType.getDeclaringType();
-		} while (iType != null);
-
-		// TODO doesn't work for inner local / anonymous classes yet, because no methods (must use
-		// getParent) and because of simple names '',
-		// we must synchroneausly step index-based through both models and ignore all without
-		// generated source code!!!
-
-		final TD td = this.selectedCu.getTd(names); // TODO delete this functions after fix
-		if (td == null) {
-			LOGGER.warning("Couldn't find type declaration for '" + type.getFullyQualifiedName()
-					+ "'!");
+		final ArrayList<IJavaElement> path = new ArrayList<IJavaElement>();
+		for (IJavaElement element = javaElement; element != null; element = element.getParent()) {
+			path.add(0, element);
 		}
-		return td;
+		D d = this.selectedCu;
+		path: for (final IJavaElement element : path) {
+			if (element instanceof IType) {
+				final String typeName = element.getElementName();
+				// count anonymous!
+				int occurrenceCount = ((IType) element).getOccurrenceCount();
+				for (final BD bd : d.getBds()) {
+					if (bd instanceof TD && ((TD) bd).getSimpleName().equals(typeName)) {
+						if (--occurrenceCount == 0) {
+							d = bd;
+							continue path;
+						}
+					}
+				}
+				return null;
+			}
+			if (element instanceof IField) {
+				// TODO tricky...could be in initializer or constructor
+				final String fieldName = element.getElementName();
+				for (final BD bd : d.getBds()) {
+					if (bd instanceof FD && ((FD) bd).getName().equals(fieldName)) {
+						d = bd;
+						continue path;
+					}
+				}
+				return null;
+			}
+			if (element instanceof IInitializer) {
+				for (final BD bd : d.getBds()) {
+					if (bd instanceof MD && ((MD) bd).isInitializer()) {
+						d = bd;
+						continue path;
+					}
+				}
+				return null;
+			}
+			if (element instanceof IMethod) {
+				try {
+					final String methodName = ((IMethod) element).isConstructor() ? M.CONSTRUCTOR_NAME
+							: element.getElementName();
+					final String signature = ((IMethod) element).getSignature();
+					// get all method declarations with this name
+					final ArrayList<MD> mds = new ArrayList<MD>();
+					for (final BD bd : d.getBds()) {
+						if (bd instanceof MD && ((MD) bd).getName().equals(methodName)) {
+							mds.add((MD) bd);
+						}
+					}
+					if (mds.size() == 0) {
+						// shouldn't happen, after all we have decompiled this from the model
+						LOGGER.warning("Unknown method declaration for '" + methodName + "'!");
+						return null;
+					}
+					if (mds.size() == 1) {
+						// only 1 possible method, signature check not really necessary
+						d = mds.get(0);
+						continue path;
+					}
+					if (mds.size() > 1) {
+						// multiple methods with different signatures,
+						// we now have to match against Eclipse-select Q-signatures (e.g.
+						// "QString;"):
+						// Q stands for unresolved type packages and is replaced by regexp [LT][^;]*
+
+						// for this we must decompile the signature, Q-signatures can follow to any
+						// stuff
+						// like this characters: ();[
+						// but also to primitives like this: (IIQString;)V
+
+						// Eclipse-signature doesn't contain method parameter types but contains
+						// generics
+						final Pattern signaturePattern = createEclipseSignaturePattern(signature);
+						for (final MD checkMd : mds) {
+							// exact match for descriptor
+							if (signaturePattern.matcher(checkMd.getDescriptor()).matches()) {
+								d = checkMd;
+								continue path;
+							}
+							if (checkMd.getSignature() == null) {
+								continue;
+							}
+							// ignore initial method parameters <T...;T...> and exceptions
+							// ^T...^T...;
+							// <T:Ljava/lang/Integer;E:Ljava/lang/RuntimeException;>(TT;TT;)V^TE;^Ljava/lang/RuntimeException;
+							if (signaturePattern.matcher(checkMd.getSignature()).find()) {
+								d = checkMd;
+								continue path;
+							}
+						}
+						LOGGER.warning("Unknown method declaration for '" + methodName
+								+ "' and signature '" + signature + "'! Derived pattern:\n"
+								+ signaturePattern.toString());
+					}
+				} catch (final Exception e) {
+					LOGGER.log(Level.SEVERE,
+							"Couldn't get Eclipse Java element data for selection!", e);
+				}
+				return null;
+			}
+		}
+		return d;
 	}
 
 	@Override
@@ -535,104 +625,15 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private void initGraph() {
 		final TreeSelection treeSelection = (TreeSelection) this.javaOutlinePage.getSelection();
-		final Object firstElement = treeSelection.getFirstElement();
-
-		// get available selection information
-		TD td;
-		String methodName;
-		String signature;
-		if (firstElement instanceof IInitializer) {
-			final IInitializer method = (IInitializer) firstElement;
-			td = findTdForType(method.getDeclaringType());
-			methodName = M.INITIALIZER_NAME;
-			signature = "()V";
-		} else if (firstElement instanceof IMethod) {
-			final IMethod method = (IMethod) firstElement;
-			td = findTdForType(method.getDeclaringType());
-			try {
-				methodName = method.isConstructor() ? M.CONSTRUCTOR_NAME : method.getElementName();
-			} catch (final JavaModelException e) {
-				LOGGER.log(Level.SEVERE, "Couldn't check if Eclipse method '" + method
-						+ "' is an constructor!", e);
-				methodName = method.getElementName();
-			}
-			try {
-				signature = method.getSignature();
-			} catch (final JavaModelException e) {
-				LOGGER.log(Level.SEVERE, "Couldn't get signature for Eclipse method '" + method
-						+ "'!", e);
-				return;
-			}
-		} else {
+		final D d = findDeclarationForJavaElement((IJavaElement) treeSelection.getFirstElement());
+		if (d == null) {
+			LOGGER.warning("Unknown declaration for path '" + treeSelection.getFirstElement()
+					+ "'!");
 			return;
 		}
-		if (td == null) {
-			return;
-		}
-		LOGGER.warning("Find method '" + td + "'.'" + methodName + "' with signature '" + signature
-				+ "'.");
-		try {
-			// get all method declarations with this name
-			final ArrayList<MD> mds = new ArrayList<MD>();
-			for (final BD bd : td.getBds()) {
-				if (!(bd instanceof MD)) {
-					continue;
-				}
-				if (methodName.equals(((MD) bd).getName())) {
-					mds.add((MD) bd);
-				}
-			}
-			MD md = null;
-			if (mds.size() == 0) {
-				// shouldn't happen, after all we have decompiled this from the model
-				LOGGER.warning("Unknown method declaration for '" + methodName + "'!");
-				return;
-			}
-			if (mds.size() == 1) {
-				// only 1 possible method, signature check not really necessary
-				md = mds.get(0);
-			} else if (mds.size() > 1) {
-				// multiple methods with different signatures,
-				// we now have to match against Eclipse-select Q-signatures (e.g. "QString;"):
-				// Q stands for unresolved type packages and is replaced by regexp [LT][^;]*
-
-				// for this we must decompile the signature, Q-signatures can follow to any stuff
-				// like this characters: ();[
-				// but also to primitives like this: (IIQString;)V
-
-				// Eclipse-signature doesn't contain method parameter types but contains generics
-				final Pattern signaturePattern = createEclipseSignaturePattern(signature);
-				for (final MD checkMd : mds) {
-					// exact match for descriptor
-					if (signaturePattern.matcher(checkMd.getDescriptor()).matches()) {
-						md = checkMd;
-						break;
-					}
-					if (checkMd.getSignature() == null) {
-						continue;
-					}
-					// ignore initial method parameters <T...;T...> and exceptions ^T...^T...;
-					// <T:Ljava/lang/Integer;E:Ljava/lang/RuntimeException;>(TT;TT;)V^TE;^Ljava/lang/RuntimeException;
-					if (signaturePattern.matcher(checkMd.getSignature()).find()) {
-						md = checkMd;
-						break;
-					}
-				}
-				if (md == null) {
-					LOGGER.warning("Unknown method declaration for '" + methodName
-							+ "' and signature '" + signature + "'! Derived pattern:\n"
-							+ signaturePattern.toString());
-					return;
-				}
-			}
-			if (md == null) {
-				LOGGER.warning("Unknown method declaration for '" + methodName
-						+ "' and signature '" + signature + "'!");
-				return;
-			}
-			final int stage = this.cfgViewModeCombo.getSelectionIndex();
-
-			final CFG cfg = md.getCfg();
+		final int stage = this.cfgViewModeCombo.getSelectionIndex();
+		if (d instanceof MD) {
+			final CFG cfg = ((MD) d).getCfg();
 			if (cfg == null || cfg.isIgnore()) {
 				return;
 			}
@@ -654,8 +655,6 @@ public class ClassEditor extends MultiPageEditorPart {
 				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
 			}
 			initGraph(cfg);
-		} catch (final Throwable e) {
-			LOGGER.log(Level.WARNING, "Couldn't create graph!", e);
 		}
 	}
 
