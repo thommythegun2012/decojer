@@ -54,9 +54,9 @@ import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParamT.TypeArg;
+import org.decojer.cavaj.readers.AsmReader;
 import org.decojer.cavaj.readers.ClassReader;
 import org.decojer.cavaj.readers.DexReader;
-import org.decojer.cavaj.readers.JavassistReader;
 import org.decojer.cavaj.readers.SmaliReader;
 import org.decojer.cavaj.transformers.TrInnerClassesAnalysis;
 import org.decojer.cavaj.utils.Cursor;
@@ -78,7 +78,8 @@ public final class DU {
 	@Getter
 	private final T[] arrayInterfaceTs;
 
-	private final ClassReader classReader = new JavassistReader(this);
+	// AsmReader is >10 times faster than JavassistReader!
+	private final ClassReader classReader = new AsmReader(this);
 
 	@Setter
 	private List<CU> cus;
@@ -227,9 +228,13 @@ public final class DU {
 	}
 
 	private T getT(final String name, final boolean create) {
-		assert name.charAt(0) != 'L' : name;
-
-		if (name.charAt(0) == '[') {
+		final char c = name.charAt(0);
+		if (c == 'L') {
+			// class attribute info can contain both variants (incompatible bytecode generators),
+			// not allways fully validated through JVM
+			return getDescT(name);
+		}
+		if (c == '[') {
 			// java.lang.Class#getName() Javadoc explains this trick, fall back to descriptor
 			return getDescT(name);
 		}

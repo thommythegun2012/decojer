@@ -25,14 +25,19 @@ package org.decojer.cavaj.transformers;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.D;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
@@ -118,6 +123,18 @@ public class TrInnerClassesAnalysis {
 					if (enclosingT != null) {
 						// TODO check if equal
 					}
+					final D newParent = newTd.getParent();
+					if (newParent != null) {
+						// TODO can happen for each constructor if this is a field value!!!
+						if (newParent instanceof MD && ((MD) newParent).isConstructor()) {
+							// TODO should link to MDs parent, but might not be linked yet???
+							// parallel findTopTds necessary?
+							continue;
+						}
+						LOGGER.warning("New ananymous type declaration '" + newTd
+								+ "' already has parent '" + newParent + "'!");
+						continue;
+					}
 					enclosingMd.addTd(newTd);
 				}
 			}
@@ -133,10 +150,27 @@ public class TrInnerClassesAnalysis {
 				continue;
 			}
 			if (td.isAnonymous()) {
-				if (!(td.getParent() instanceof MD)) {
-					LOGGER.warning("Parent of inner local/anonymous type '" + t + "' is 'null'!");
+				if (td.getParent() != null) {
+					if (!(td.getParent() instanceof MD)) {
+						LOGGER.warning("Parent of inner local/anonymous type '" + t
+								+ "' is no method but '" + td.getParent() + "'!");
+					}
+					continue;
 				}
-				continue;
+				if (isEnumSwitchMap(td)) {
+					// use enclosingT info, should exist
+					final ClassT enclosingT = t.getEnclosingT();
+					if (enclosingT != null) {
+						final TD enclosingTd = enclosingT.getTd();
+						if (enclosingTd != null) {
+							enclosingTd.addTd(td);
+							continue;
+						}
+					}
+					LOGGER.warning("No enclosing type info for inner class with Enum Switch Map '"
+							+ t + "'!");
+				}
+				// use existing enclosing info
 			}
 			// first check enclosing method, potentially deeper nested than in type
 			final M enclosingM = t.getEnclosingM();
@@ -243,6 +277,30 @@ public class TrInnerClassesAnalysis {
 		return '0' <= c && c <= '9';
 	}
 
+	/**
+	 * Enum switches use static inner with static cached map, use enclosingT info.
+	 * 
+	 * @param td
+	 *            type declaration
+	 * @return true - is enum switch mal inner
+	 */
+	private static boolean isEnumSwitchMap(final TD td) {
+		for (final BD bd : td.getBds()) {
+			if (!(bd instanceof FD)) {
+				continue;
+			}
+			final FD fd = (FD) bd;
+			if (!fd.check(AF.STATIC)) {
+				continue;
+			}
+			if (!fd.getName().startsWith("$SwitchMap$")) {
+				continue;
+			}
+			return true;
+		}
+		return false;
+	}
+
 	public static void transform(final DU du) {
 		final Collection<T> ts = du.getTs();
 
@@ -279,6 +337,14 @@ public class TrInnerClassesAnalysis {
 				}
 			}
 		}
+		Collections.sort(selectedCus, new Comparator<CU>() {
+
+			@Override
+			public int compare(final CU cu1, final CU cu2) {
+				return cu1.getName().compareTo(cu2.getName());
+			}
+
+		});
 		du.setCus(selectedCus);
 	}
 
