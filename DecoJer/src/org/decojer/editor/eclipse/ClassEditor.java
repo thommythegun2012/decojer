@@ -359,13 +359,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		} else {
 			throw new DecoJerException("Unknown editor input type '" + editorInput + "'!");
 		}
-
-		LOGGER.fine("Editor Input: " + editorInput + " fileName: " + fileName);
-
 		this.du = DecoJer.createDu();
-
 		try {
+			final long currentTimeMillis = System.currentTimeMillis();
 			this.du.read(fileName);
+			LOGGER.info("Read time for '" + fileName + "' is "
+					+ (System.currentTimeMillis() - currentTimeMillis) + " ms");
 			if (this.du.getCus().size() == 1) {
 				this.selectedCu = this.du.getCus().get(0);
 			}
@@ -373,11 +372,9 @@ public class ClassEditor extends MultiPageEditorPart {
 			LOGGER.log(Level.SEVERE, "Couldn't open file!", e);
 			return pageContainer;
 		}
-
 		if (this.selectedCu == null) {
 			final SashForm sashForm = new SashForm(pageContainer, SWT.HORIZONTAL | SWT.BORDER
 					| SWT.SMOOTH);
-
 			this.archiveTree = new Tree(sashForm, SWT.NONE);
 			for (final CU cu : this.du.getCus()) {
 				final TreeItem treeItem = new TreeItem(this.archiveTree, SWT.NONE);
