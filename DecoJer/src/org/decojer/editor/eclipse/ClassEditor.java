@@ -58,12 +58,14 @@ import org.eclipse.core.runtime.Path;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.Polyline;
+import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IInitializer;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.ClassFileEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.IClassFileEditorInput;
@@ -204,6 +206,8 @@ public class ClassEditor extends MultiPageEditorPart {
 	private JavaOutlinePage javaOutlinePage;
 
 	private CU selectedCu;
+
+	private D selectedD;
 
 	private GraphNode addToGraph(final BB bb, final IdentityHashMap<BB, GraphNode> map) {
 		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE, bb.toString(), bb);
@@ -481,44 +485,61 @@ public class ClassEditor extends MultiPageEditorPart {
 		for (IJavaElement element = javaElement; element != null; element = element.getParent()) {
 			path.add(0, element);
 		}
-		D d = this.selectedCu;
-		path: for (final IJavaElement element : path) {
-			if (element instanceof IType) {
-				final String typeName = element.getElementName();
-				// count anonymous!
-				int occurrenceCount = ((IType) element).getOccurrenceCount();
-				for (final BD bd : d.getBds()) {
-					if (bd instanceof TD && ((TD) bd).getSimpleName().equals(typeName)) {
-						if (--occurrenceCount == 0) {
+		try {
+			D d = this.selectedCu;
+			path: for (final IJavaElement element : path) {
+				if (element instanceof IType) {
+					final String typeName = element.getElementName();
+					// count anonymous!
+					int occurrenceCount = ((IType) element).getOccurrenceCount();
+					for (final BD bd : d.getBds()) {
+						if (bd instanceof TD && ((TD) bd).getSimpleName().equals(typeName)) {
+							if (--occurrenceCount == 0) {
+								d = bd;
+								continue path;
+							}
+						}
+					}
+					return null;
+				}
+				if (element instanceof IField) {
+					if (Flags.isStatic(((IField) element).getFlags())) {
+						for (final BD bd : d.getBds()) {
+							if (bd instanceof MD && ((MD) bd).isInitializer()) {
+								d = bd;
+								continue path;
+							}
+						}
+						return null;
+					}
+					for (final BD bd : d.getBds()) {
+						if (bd instanceof MD && ((MD) bd).isConstructor()
+								&& ((MD) bd).getDescriptor().equals("()V")) {
 							d = bd;
 							continue path;
 						}
 					}
-				}
-				return null;
-			}
-			if (element instanceof IField) {
-				// TODO tricky...could be in initializer or constructor
-				final String fieldName = element.getElementName();
-				for (final BD bd : d.getBds()) {
-					if (bd instanceof FD && ((FD) bd).getName().equals(fieldName)) {
-						d = bd;
-						continue path;
+					// TODO this is the real valid code if TD-relink to fields works, see
+					// TrCfg2JavaExpressionStmts#convertToHLLIntermediate
+					final String fieldName = element.getElementName();
+					for (final BD bd : d.getBds()) {
+						if (bd instanceof FD && ((FD) bd).getName().equals(fieldName)) {
+							d = bd;
+							continue path;
+						}
 					}
+					return null;
 				}
-				return null;
-			}
-			if (element instanceof IInitializer) {
-				for (final BD bd : d.getBds()) {
-					if (bd instanceof MD && ((MD) bd).isInitializer()) {
-						d = bd;
-						continue path;
+				if (element instanceof IInitializer) {
+					for (final BD bd : d.getBds()) {
+						if (bd instanceof MD && ((MD) bd).isInitializer()) {
+							d = bd;
+							continue path;
+						}
 					}
+					return null;
 				}
-				return null;
-			}
-			if (element instanceof IMethod) {
-				try {
+				if (element instanceof IMethod) {
 					final String methodName = ((IMethod) element).isConstructor() ? M.CONSTRUCTOR_NAME
 							: element.getElementName();
 					final String signature = ((IMethod) element).getSignature();
@@ -529,28 +550,25 @@ public class ClassEditor extends MultiPageEditorPart {
 							mds.add((MD) bd);
 						}
 					}
-					if (mds.size() == 0) {
+					switch (mds.size()) {
+					case 0:
 						// shouldn't happen, after all we have decompiled this from the model
 						LOGGER.warning("Unknown method declaration for '" + methodName + "'!");
 						return null;
-					}
-					if (mds.size() == 1) {
+					case 1:
 						// only 1 possible method, signature check not really necessary
 						d = mds.get(0);
 						continue path;
-					}
-					if (mds.size() > 1) {
-						// multiple methods with different signatures,
-						// we now have to match against Eclipse-select Q-signatures (e.g.
-						// "QString;"):
+					default:
+						// multiple methods with different signatures, we now have to match against
+						// Eclipse-select Q-signatures (e.g. "QString;"):
 						// Q stands for unresolved type packages and is replaced by regexp [LT][^;]*
 
 						// for this we must decompile the signature, Q-signatures can follow to any
-						// stuff
-						// like this characters: ();[
+						// stuff like this characters: ();[
 						// but also to primitives like this: (IIQString;)V
 
-						// Eclipse-signature doesn't contain method parameter types but contains
+						// Eclipse-signature doesn't contain method parameter types but contain
 						// generics
 						final Pattern signaturePattern = createEclipseSignaturePattern(signature);
 						for (final MD checkMd : mds) {
@@ -573,29 +591,29 @@ public class ClassEditor extends MultiPageEditorPart {
 						LOGGER.warning("Unknown method declaration for '" + methodName
 								+ "' and signature '" + signature + "'! Derived pattern:\n"
 								+ signaturePattern.toString());
+						return null;
 					}
-				} catch (final Exception e) {
-					LOGGER.log(Level.SEVERE,
-							"Couldn't get Eclipse Java element data for selection!", e);
 				}
-				return null;
 			}
+			return d;
+		} catch (final JavaModelException e) {
+			LOGGER.log(Level.SEVERE, "Couldn't get Eclipse Java element data for selection!", e);
+			return null;
 		}
-		return d;
 	}
 
 	@Override
 	public Object getAdapter(final Class required) {
 		if (IContentOutlinePage.class.equals(required)) {
-			// initialize the CompilationUnitEditor with the decompiled source
-			// via a in-memory StorageEditorInput and ask this Editor for the
-			// IContentOutlinePage, this way we can also show inner classes
+			// initialize the CompilationUnitEditor with the decompiled source via a in-memory
+			// StorageEditorInput and ask this Editor for the IContentOutlinePage, this way we can
+			// also show inner classes
 
 			// for this the in-memory StorageEditorInput needs a fullPath!
 
-			// didn't work in older Eclipse? JavaOutlinePage.fInput == null in
-			// this case, also ask the ClassFileEditor, which has other problems
-			// and only delivers an Outline if the class is in the class path
+			// didn't work in older Eclipse? JavaOutlinePage.fInput == null in this case, also ask
+			// the ClassFileEditor, which has other problems and only delivers an Outline if the
+			// class is in the class path
 			Object adapter = null;
 			if ((this.selectedCu != null && this.selectedCu.getSourceFileName() != null || this.classFileEditor == null)
 					&& this.compilationUnitEditor != null) {
@@ -613,6 +631,15 @@ public class ClassEditor extends MultiPageEditorPart {
 
 					@Override
 					public void selectionChanged(final SelectionChangedEvent event) {
+						final TreeSelection treeSelection = (TreeSelection) event.getSelection();
+						final D d = findDeclarationForJavaElement((IJavaElement) treeSelection
+								.getFirstElement());
+						if (d == null) {
+							LOGGER.warning("Unknown declaration for path '"
+									+ treeSelection.getFirstElement() + "'!");
+							return;
+						}
+						ClassEditor.this.selectedD = d;
 						initGraph();
 					}
 
@@ -624,16 +651,9 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	private void initGraph() {
-		final TreeSelection treeSelection = (TreeSelection) this.javaOutlinePage.getSelection();
-		final D d = findDeclarationForJavaElement((IJavaElement) treeSelection.getFirstElement());
-		if (d == null) {
-			LOGGER.warning("Unknown declaration for path '" + treeSelection.getFirstElement()
-					+ "'!");
-			return;
-		}
-		final int stage = this.cfgViewModeCombo.getSelectionIndex();
-		if (d instanceof MD) {
-			final CFG cfg = ((MD) d).getCfg();
+		if (this.selectedD instanceof MD) {
+			final int stage = this.cfgViewModeCombo.getSelectionIndex();
+			final CFG cfg = ((MD) this.selectedD).getCfg();
 			if (cfg == null || cfg.isIgnore()) {
 				return;
 			}

@@ -1081,6 +1081,8 @@ public final class TrCfg2JavaExpressionStmts {
 						((VariableDeclarationFragment) ((FieldDeclaration) fd.getFieldDeclaration())
 								.fragments().get(0)).setInitializer(wrap(rightExpression,
 								Priority.ASSIGNMENT));
+						// TODO move anonymous TD to FD as child!!! important for ClassEditor
+						// select, if fixed change ClassEditor#findDeclarationForJavaElement too
 						if (!f.check(AF.STATIC)) {
 							bb.pop();
 						}
