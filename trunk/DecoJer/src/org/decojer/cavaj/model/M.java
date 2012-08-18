@@ -115,7 +115,7 @@ public class M {
 	/**
 	 * Is constructor?
 	 * 
-	 * @return <tt>true</tt> - is constructor
+	 * @return {@code true} - is constructor
 	 */
 	public boolean isConstructor() {
 		return CONSTRUCTOR_NAME.equals(getName());
@@ -124,7 +124,7 @@ public class M {
 	/**
 	 * Is initializer?
 	 * 
-	 * @return <tt>true</tt> - is constructor
+	 * @return {@code true} - is constructor
 	 */
 	public boolean isInitializer() {
 		return INITIALIZER_NAME.equals(getName());

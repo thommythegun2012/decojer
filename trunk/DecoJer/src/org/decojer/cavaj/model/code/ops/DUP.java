@@ -39,51 +39,51 @@ public class DUP extends Op {
 
 		/**
 		 * Duplicate the top operand stack value:<br>
-		 * <code>..., value ..., value, value</code>
+		 * {@code ..., value ..., value, value}
 		 */
 		DUP(1),
 
 		/**
 		 * Duplicate the top operand stack value and insert two values down:<br>
-		 * <code>..., value2, value1 ..., value1, value2, value1</code>
+		 * {@code ..., value2, value1 ..., value1, value2, value1}
 		 */
 		DUP_X1(2),
 
 		/**
 		 * Duplicate the top operand stack value and insert two or three values down:<br>
-		 * <code>.., value3, value2, value1 ..., value1, value3, value2, value1</code><br>
+		 * {@code .., value3, value2, value1 ..., value1, value3, value2, value1}<br>
 		 * wide value2:<br>
-		 * <code>..., value2, value1 ..., value1, value2, value1</code>
+		 * {@code ..., value2, value1 ..., value1, value2, value1}
 		 */
 		DUP_X2(3),
 
 		/**
 		 * Duplicate the top one or two operand stack values:<br>
-		 * <code>..., value2, value1 => ..., value2, value1, value2, value1</code><br>
+		 * {@code ..., value2, value1 => ..., value2, value1, value2, value1}<br>
 		 * wide value:<br>
-		 * <code>..., value => ..., value, value</code>
+		 * {@code ..., value => ..., value, value}
 		 */
 		DUP2(2),
 
 		/**
 		 * Duplicate the top one or two operand stack values and insert two or three values down:<br>
-		 * <code>..., value3, value2, value1 => ..., value2, value1, value3, value2, value1</code><br>
+		 * {@code ..., value3, value2, value1 => ..., value2, value1, value3, value2, value1}<br>
 		 * wide value1:<br>
-		 * <code>..., value2, value1 => ..., value1, value2, value1</code>
+		 * {@code ..., value2, value1 => ..., value1, value2, value1}
 		 */
 		DUP2_X1(3),
 
 		/**
 		 * Duplicate the top one or two operand stack values and insert two, three, or four values
 		 * down:<br>
-		 * <code>..., value4, value3, value2, value1 => ..., value2, value1, value4, value3, value2, value1</code>
+		 * {@code ..., value4, value3, value2, value1 => ..., value2, value1, value4, value3, value2, value1}
 		 * <br>
 		 * wide value1:<br>
-		 * <code>..., value3, value2, value1 => ..., value1, value3, value2, value1</code><br>
+		 * {@code ..., value3, value2, value1 => ..., value1, value3, value2, value1}<br>
 		 * wide value3:<br>
-		 * <code>..., value3, value2, value1 ..., value2, value1, value3, value2, value1</code><br>
+		 * {@code ..., value3, value2, value1 ..., value2, value1, value3, value2, value1}<br>
 		 * wide value1, value2:<br>
-		 * <code>..., value2, value1 ..., value1, value2, value1</code><br>
+		 * {@code ..., value2, value1 ..., value1, value2, value1}<br>
 		 */
 		DUP2_X2(4);
 

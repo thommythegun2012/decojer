@@ -62,7 +62,7 @@ public class TrInnerClassesAnalysis {
 			if (td == null) {
 				continue;
 			}
-			// Inner name is not necessary anymore since JRE 5, see T#getInnerName(), but we
+			// Inner name is not necessary anymore since JVM 5, see T#getInnerName(), but we
 			// validate the new "Binary Compatibility" rules here.
 			if (td.getVersion() < 48 || t.getEnclosingT() == null) {
 				continue;
@@ -78,7 +78,7 @@ public class TrInnerClassesAnalysis {
 	}
 
 	/**
-	 * All JREs < 5 have no enclosing method attribute and wrong (JRE 1) or missing (JRE 2...4)
+	 * All JVMs < 5 have no enclosing method attribute and wrong (JVM 1) or missing (JVM 2...4)
 	 * informations. We are looking for explicit new-ops, this must be the parent method.
 	 * 
 	 * @param ts
@@ -196,10 +196,10 @@ public class TrInnerClassesAnalysis {
 
 	/**
 	 * Returns the "simple binary name" of the underlying class, i.e., the binary name without the
-	 * leading enclosing class name. Returns <tt>null</tt> if the underlying class is a top level
+	 * leading enclosing class name. Returns {@code null} if the underlying class is a top level
 	 * class.
 	 * 
-	 * Works just for JRE >= 5.
+	 * Works just for JVM >= 5.
 	 * 
 	 * @param t
 	 *            type
@@ -218,7 +218,7 @@ public class TrInnerClassesAnalysis {
 	/**
 	 * Get simple name, like appearing in Java source code.
 	 * 
-	 * Works just for JRE >= 5.
+	 * Works just for JVM >= 5.
 	 * 
 	 * @param t
 	 *            type
@@ -267,11 +267,11 @@ public class TrInnerClassesAnalysis {
 	}
 
 	/**
-	 * Character.isDigit answers <tt>true</tt> to some non-ascii digits. This one does not.
+	 * Character.isDigit answers {@code true} to some non-ascii digits. This one does not.
 	 * 
 	 * @param c
 	 *            character
-	 * @return <code>true</code> - is ascii digit
+	 * @return {@code true} - is ascii digit
 	 */
 	private static boolean isAsciiDigit(final char c) {
 		return '0' <= c && c <= '9';

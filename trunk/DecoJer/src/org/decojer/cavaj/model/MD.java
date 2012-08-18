@@ -64,7 +64,7 @@ public final class MD extends BD {
 	private String signature;
 
 	/**
-	 * Throws Types or <code>null</code>.
+	 * Throws types or {@code null}.
 	 */
 	@Getter
 	@Setter
@@ -157,7 +157,7 @@ public final class MD extends BD {
 	/**
 	 * Is constructor?
 	 * 
-	 * @return <tt>true</tt> - is constructor
+	 * @return {@code true} - is constructor
 	 * @see M#isConstructor()
 	 */
 	public boolean isConstructor() {
@@ -167,7 +167,7 @@ public final class MD extends BD {
 	/**
 	 * Is initializer?
 	 * 
-	 * @return <tt>true</tt> - is initializer
+	 * @return {@code true} - is initializer
 	 * @see M#isInitializer()
 	 */
 	public boolean isInitializer() {
@@ -175,13 +175,13 @@ public final class MD extends BD {
 	}
 
 	/**
-	 * Parse Throw Types from Signature.
+	 * Parse throw types from signature.
 	 * 
 	 * @param s
-	 *            Signature
+	 *            signature
 	 * @param c
-	 *            Cursor
-	 * @return Throw Types or <code>null</code>
+	 *            cursor
+	 * @return throw types or {@code null}
 	 */
 	private T[] parseThrowsTs(final String s, final Cursor c) {
 		if (c.pos >= s.length() || s.charAt(c.pos) != '^') {
@@ -230,7 +230,7 @@ public final class MD extends BD {
 				// can happen with Sun JVM for constructor:
 				// see org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11.1.InnerMethod
 				// or org.decojer.cavaj.test.jdk5.DecTestEnumStatus
-				// Signature since JDK 5 exists but doesn't contain synthetic parameters,
+				// Signature since JVM 5 exists but doesn't contain synthetic parameters,
 				// e.g. outer context for methods in inner classes: (I)V instead of (Lthis;_I_II)V
 				// or enum constructor parameters arg0: String, arg1: int
 				if (!isConstructor()) {

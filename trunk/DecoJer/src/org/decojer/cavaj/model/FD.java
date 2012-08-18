@@ -50,8 +50,7 @@ public final class FD extends BD {
 	private BodyDeclaration fieldDeclaration;
 
 	/**
-	 * Value for constant attributes or <code>null</code>. Type Integer: int, short, byte, char,
-	 * boolean.
+	 * Value for constant attributes or {@code null}. Type Integer: int, short, byte, char, boolean.
 	 */
 	@Getter
 	@Setter

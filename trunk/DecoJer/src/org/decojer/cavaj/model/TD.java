@@ -188,7 +188,7 @@ public final class TD extends BD {
 	/**
 	 * Get interface types.
 	 * 
-	 * @return interface types, not <code>null</code>
+	 * @return interface types, not {@code null}
 	 * @see T#getInterfaceTs()
 	 */
 	public T[] getInterfaceTs() {
@@ -209,7 +209,7 @@ public final class TD extends BD {
 	/**
 	 * Get package name.
 	 * 
-	 * @return package name or <code>null</code> for no package
+	 * @return package name or {@code null} for no package
 	 * @see T#getPackageName()
 	 */
 	public String getPackageName() {
@@ -249,7 +249,7 @@ public final class TD extends BD {
 	/**
 	 * Get type parameters.
 	 * 
-	 * @return type parameters, not <code>null</code>
+	 * @return type parameters, not {@code null}
 	 * @see T#getTypeParams()
 	 */
 	public T[] getTypeParams() {
@@ -257,9 +257,9 @@ public final class TD extends BD {
 	}
 
 	/**
-	 * Returns <tt>true</tt> if and only if the underlying class is an anonymous class.
+	 * Returns {@code true} if and only if the underlying class is an anonymous class.
 	 * 
-	 * @return <tt>true</tt> if and only if this class is an anonymous class.
+	 * @return {@code true} if and only if this class is an anonymous class.
 	 * @see T#isAnonymous()
 	 */
 	public boolean isAnonymous() {

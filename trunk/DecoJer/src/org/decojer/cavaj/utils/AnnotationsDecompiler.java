@@ -61,7 +61,7 @@ public final class AnnotationsDecompiler {
 	 *            Type Declaration
 	 * @param a
 	 *            Annotation
-	 * @return Annotation AST Node or <code>null</code>
+	 * @return Annotation AST Node or {@code null}
 	 */
 	private static Annotation decompileAnnotation(final TD td, final A a) {
 		final AST ast = td.getCu().getAst();
@@ -110,7 +110,7 @@ public final class AnnotationsDecompiler {
 	 *            Type Declaration
 	 * @param defaultValue
 	 *            Default Value
-	 * @return Expression AST Node or <code>null</code>
+	 * @return Expression AST Node or {@code null}
 	 */
 	public static Expression decompileAnnotationDefaultValue(final TD td, final Object defaultValue) {
 		final AST ast = td.getCu().getAst();

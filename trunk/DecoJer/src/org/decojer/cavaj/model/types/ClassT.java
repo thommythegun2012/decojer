@@ -69,7 +69,7 @@ public class ClassT extends T {
 	/**
 	 * We mix here declaring classes info and enclosing method / classes info.
 	 * 
-	 * @see ClassT#setEnclosingT(ClassT)
+	 * @see ClassT#setEnclosingT(T)
 	 */
 	private Object enclosing;
 
@@ -296,7 +296,7 @@ public class ClassT extends T {
 	 * @param m
 	 *            method
 	 * 
-	 * @see ClassT#setEnclosingT(ClassT)
+	 * @see ClassT#setEnclosingT(T)
 	 */
 	public void setEnclosingM(final M m) {
 		if (this.enclosing != null) {
@@ -310,7 +310,7 @@ public class ClassT extends T {
 	}
 
 	/**
-	 * Set enclosing class type (since JRE 5).
+	 * Set enclosing class type (since JVM 5).
 	 * 
 	 * There are five kinds of classes (or interfaces):<br>
 	 * 
@@ -325,10 +325,10 @@ public class ClassT extends T {
 	 * 
 	 * We mix declaring classes info and enclosing method / classes attribut info.<br>
 	 * 
-	 * JRE 5 has enclosing method attribute for local/anonymous, outer info only for declaring outer<br>
-	 * JRE < 5 has no enclosing method attribute and:<br>
-	 * JRE 1.1 has normal outer info for anonymous/local, like declaring for JRE 5,<br>
-	 * JRE 1.2 .. 1.4 has no outer info at all!!!
+	 * JVM 5 has enclosing method attribute for local/anonymous, outer info only for declaring outer<br>
+	 * JVM < 5 has no enclosing method attribute and:<br>
+	 * JVM 1.1 has normal outer info for anonymous/local, like declaring for JVM 5,<br>
+	 * JVM 1.2 .. 1.4 has no outer info at all!!!
 	 * 
 	 * We cannot ignore this information and rely on naming rules, because the separator '$' is a
 	 * valid character in none-inner type names.
@@ -338,7 +338,7 @@ public class ClassT extends T {
 	 * 
 	 * @see Class#getEnclosingClass()
 	 */
-	public void setEnclosingT(final ClassT t) {
+	public void setEnclosingT(final T t) {
 		if (this.enclosing != null) {
 			if (this.enclosing != t) {
 				LOGGER.warning("Enclosing type cannot be changed from '" + this.enclosing
@@ -351,7 +351,7 @@ public class ClassT extends T {
 
 	/**
 	 * Set inner info.<br>
-	 * Inner name: Can derive for JRE > 5 from type names (compatibility rules), but not before.<br>
+	 * Inner name: Can derive for JVM > 5 from type names (compatibility rules), but not before.<br>
 	 * Inner access flags: Have _exclusively_ modifiers PROTECTED, PRIVATE, STATIC, but not SUPER
 	 * 
 	 * @param name
@@ -364,7 +364,7 @@ public class ClassT extends T {
 		// inner access flags have _exclusively_ following modifiers: PROTECTED, PRIVATE, STATIC,
 		// but not: SUPER
 		this.accessFlags = accessFlags | this.accessFlags & AF.SUPER.getValue();
-		// don't really need this info (@see T#getInnerName()) for JRE >= 5
+		// don't really need this info (@see T#getInnerName()) for JVM >= 5
 		this.innerName = name == null ? "" : name;
 	}
 
