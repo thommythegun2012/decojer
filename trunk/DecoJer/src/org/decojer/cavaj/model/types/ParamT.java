@@ -159,8 +159,8 @@ public final class ParamT extends T {
 	}
 
 	@Override
-	public boolean resolve() {
-		return getGenericT().resolve();
+	public boolean isResolvable() {
+		return getGenericT().isResolvable();
 	}
 
 }

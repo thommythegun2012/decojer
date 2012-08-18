@@ -210,6 +210,11 @@ public class ClassT extends T {
 		return Object.class.getName().equals(getName());
 	}
 
+	@Override
+	public boolean isResolvable() {
+		return getSuperT() != null || isObject();
+	}
+
 	/**
 	 * Mark access flag.
 	 * 
@@ -220,16 +225,7 @@ public class ClassT extends T {
 		this.accessFlags |= af.getValue();
 	}
 
-	/**
-	 * Is unresolveable?
-	 * 
-	 * @return true - is unresolveable
-	 */
-	@Override
-	public boolean resolve() {
-		if ((this.accessFlags & AF.UNRESOLVEABLE.getValue()) != 0) {
-			return false;
-		}
+	private boolean resolve() {
 		// try simple class loading, may be we are lucky ;)
 		// TODO later ask DecoJer-online and local type cache with context info
 		try {
@@ -272,9 +268,7 @@ public class ClassT extends T {
 			}
 			return true;
 		} catch (final ClassNotFoundException e) {
-			markAf(AF.UNRESOLVEABLE);
-			this.interfaceTs = INTERFACES_NONE;
-			LOGGER.warning("Couldn't load type : " + getName());
+			LOGGER.warning("Couldn't load type '" + getName() + "'!");
 			return false;
 		} finally {
 			resolveFill();

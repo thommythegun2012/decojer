@@ -208,7 +208,7 @@ public final class R {
 	public boolean read(final T t) {
 		final T reducedT = this.t.read(t);
 		if (reducedT == null) {
-			if (!this.t.resolve()) {
+			if (!this.t.isResolvable()) {
 				return true;
 			}
 			// TODO problem with generic type reduction to classes, invoke interface allowed
@@ -245,7 +245,7 @@ public final class R {
 	private boolean readForwardPropagate(final T t) {
 		final T reducedT = this.t.read(t);
 		if (reducedT == null) {
-			if (!this.t.resolve()) {
+			if (!this.t.isResolvable()) {
 				return true;
 			}
 			assert false;
