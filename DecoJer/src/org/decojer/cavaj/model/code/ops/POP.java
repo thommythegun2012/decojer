@@ -44,9 +44,9 @@ public class POP extends Op {
 
 		/**
 		 * Pop the top one or two operand stack values:<br>
-		 * <code>..., value2, value1 => ...</code><br>
+		 * {@code ..., value2, value1 => ...}<br>
 		 * wide value:<br>
-		 * <code>..., value => ...</code>
+		 * {@code ..., value => ...}
 		 */
 		POP2(2);
 

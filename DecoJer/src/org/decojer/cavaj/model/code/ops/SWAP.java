@@ -26,7 +26,7 @@ package org.decojer.cavaj.model.code.ops;
 /**
  * Operation 'SWAP'.<br>
  * Swap the top two operand stack values:<br>
- * <code>..., value2, value1  => ..., value1, value2</code><br>
+ * {@code ..., value2, value1  => ..., value1, value2}<br>
  * wide: not supported on JVM!
  * 
  * @author André Pankraz

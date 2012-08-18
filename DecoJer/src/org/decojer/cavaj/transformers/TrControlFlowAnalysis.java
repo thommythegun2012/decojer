@@ -179,7 +179,7 @@ public final class TrControlFlowAnalysis {
 
 	private static boolean isSwitchHead(final BB bb) {
 		// don't use successor number as indicator, normal switch with 2 successors
-		// (JDK 6: 1 case and default) possible
+		// (JVM 6: 1 case and default) possible
 		return bb.isFinalStmtSwitch();
 	}
 

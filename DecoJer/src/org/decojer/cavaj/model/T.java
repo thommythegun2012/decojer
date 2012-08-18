@@ -437,7 +437,7 @@ public abstract class T {
 	 * 
 	 * @return enclosing method
 	 * 
-	 * @see ClassT#setEnclosingT(ClassT)
+	 * @see ClassT#setEnclosingT(T)
 	 * @see Class#getEnclosingMethod()
 	 * @see Class#getEnclosingConstructor()
 	 */
@@ -450,7 +450,7 @@ public abstract class T {
 	 * 
 	 * @return enclosing type
 	 * 
-	 * @see ClassT#setEnclosingT(ClassT)
+	 * @see ClassT#setEnclosingT(T)
 	 * @see Class#getEnclosingClass()
 	 */
 	public ClassT getEnclosingT() {
@@ -479,7 +479,7 @@ public abstract class T {
 	}
 
 	/**
-	 * Get inner name. Can derive for JRE > 5 from type names (compatibility rules), but not before.<br>
+	 * Get inner name. Can derive for JVM > 5 from type names (compatibility rules), but not before.<br>
 	 * <br>
 	 * According to JLS3 "Binary Compatibility" (13.1) the binary name of non-package classes (not
 	 * top level) is the binary name of the immediately enclosing class followed by a '$' followed
@@ -489,8 +489,8 @@ public abstract class T {
 	 * (for anonymous classes): 1 or more digits.<br>
 	 * <br>
 	 * 
-	 * JRE 5: <code>org.decojer.cavaj.test.DecTestInner$$Inner1$$$$_Inner$1$1AInner2</code><br>
-	 * Before JRE 5: <code>org.decojer.cavaj.test.DecTestInner$$1$AInner2</code>
+	 * JVM 5: {@code org.decojer.cavaj.test.DecTestInner$$Inner1$$$$_Inner$1$1AInner2}<br>
+	 * Before JVM 5: {@code org.decojer.cavaj.test.DecTestInner$$1$AInner2}
 	 * 
 	 * @return inner name
 	 * @see Class#getSimpleName()
@@ -502,7 +502,7 @@ public abstract class T {
 	/**
 	 * Get interface types.
 	 * 
-	 * @return interface types, not <code>null</code>
+	 * @return interface types, not {@code null}
 	 * @see Class#getInterfaces()
 	 */
 	public T[] getInterfaceTs() {
@@ -541,7 +541,7 @@ public abstract class T {
 	/**
 	 * Get package name.
 	 * 
-	 * @return package name or <code>null</code> for no package
+	 * @return package name or {@code null} for no package
 	 */
 	public String getPackageName() {
 		final int pos = getName().lastIndexOf('.');
@@ -564,14 +564,14 @@ public abstract class T {
 	/**
 	 * Get simple name, like appearing in Java source code.
 	 * 
-	 * Works for all Java versions, not just for JRE >= 5 like <tt>Class.getSimpleName()</tt>.
+	 * Works for all Java versions, not just for JVM >= 5 like {@code Class.getSimpleName()}.
 	 * 
 	 * @return simple name
 	 * @see Class#getSimpleName()
 	 * @see T#getInnerName()
 	 */
 	public String getSimpleName() {
-		// The original Class-Function doesn't work for JRE < 5 because the naming rules changed,
+		// The original Class-Function doesn't work for JVM < 5 because the naming rules changed,
 		// different solution here with inner name info
 		final String innerName = getInnerName();
 		if (innerName == null) {
@@ -583,7 +583,7 @@ public abstract class T {
 	/**
 	 * Get super type.
 	 * 
-	 * @return super type, can be <tt>null</tt> for {@code Object} and primitives
+	 * @return super type, can be {@code null} for {@code Object} and primitives
 	 * @see Class#getSuperclass()
 	 */
 	public T getSuperT() {
@@ -602,7 +602,7 @@ public abstract class T {
 	/**
 	 * Get type parameters.
 	 * 
-	 * @return type parameters, not <code>null</code>
+	 * @return type parameters, not {@code null}
 	 * @see Class#getTypeParameters()
 	 */
 	public T[] getTypeParams() {
@@ -648,10 +648,9 @@ public abstract class T {
 	}
 
 	/**
-	 * Returns <tt>true</tt> if and only if the underlying class is an anonymous class.
+	 * Returns {@code true} if and only if the underlying class is an anonymous class.
 	 * 
-	 * @return <tt>true</tt> if and only if this class is an anonymous class.
-	 * 
+	 * @return {@code true} if and only if this class is an anonymous class.
 	 * @see Class#isAnonymousClass()
 	 */
 	public boolean isAnonymous() {

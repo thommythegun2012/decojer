@@ -178,7 +178,7 @@ public class JavassistReader implements ClassReader {
 				final ClassT innerT = (ClassT) this.du.getT(innerClassesAttribute.innerClass(i));
 				if (innerClassesAttribute.outerClass(i) != null) {
 					// set enclosing first for better inner name check
-					innerT.setEnclosingT((ClassT) this.du.getT(innerClassesAttribute.outerClass(i)));
+					innerT.setEnclosingT(this.du.getT(innerClassesAttribute.outerClass(i)));
 				}
 				innerT.setInnerInfo(innerClassesAttribute.innerName(i),
 						innerClassesAttribute.accessFlags(i));

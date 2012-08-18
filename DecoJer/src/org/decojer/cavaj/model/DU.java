@@ -65,7 +65,7 @@ import org.decojer.cavaj.utils.MagicNumbers;
 /**
  * Decompilation unit.
  * 
- * Contains the global type pool (like <code>ClassLoader</code>) and loader.
+ * Contains the global type pool (like {@code ClassLoader}) and loader.
  * 
  * @author André Pankraz
  */
@@ -74,6 +74,19 @@ public final class DU {
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
 
 	private static final Charset UTF8 = Charset.forName("utf-8");
+
+	/**
+	 * Get parameterized type for generic type and type arguments.
+	 * 
+	 * @param genericT
+	 *            generic type with matching type parameters
+	 * @param typeArgs
+	 *            type arguments for matching type parameters
+	 * @return parameterized type for generic type and type arguments
+	 */
+	public static ParamT getParamT(final T genericT, final TypeArg[] typeArgs) {
+		return new ParamT(genericT, typeArgs);
+	}
 
 	@Getter
 	private final T[] arrayInterfaceTs;
@@ -170,7 +183,7 @@ public final class DU {
 	 * 
 	 * @param name
 	 *            compilation unit name
-	 * @return compilation unit or <code>null</code>
+	 * @return compilation unit or {@code null}
 	 */
 	public CU getCu(final String name) {
 		for (final CU cu : getCus()) {
@@ -274,51 +287,33 @@ public final class DU {
 		return this.ts.values();
 	}
 
-	/**
-	 * Parse array type from signature.
-	 * 
-	 * @param s
-	 *            signature
-	 * @param c
-	 *            cursor
-	 * @return array type
-	 */
-	public T parseArrayT(final String s, final Cursor c) {
-		assert s.charAt(c.pos) == '[';
-
-		++c.pos;
-		return getArrayT(parseT(s, c));
-	}
-
-	/**
-	 * Parse class type from signature.
-	 * 
-	 * @param s
-	 *            signature
-	 * @param c
-	 *            cursor
-	 * @return class type
-	 */
-	public T parseClassT(final String s, final Cursor c) {
-		assert s.charAt(c.pos) == 'L';
-
-		++c.pos;
-		final int pos = c.pos;
-		char t;
-		do {
-			t = s.charAt(c.pos++);
-		} while (t != '<' && t != ';');
-		final T rawT = getT(s.substring(pos, c.pos - 1));
-		if (t != '<') {
-			return rawT;
+	private T parseClassT(final String s, final Cursor c, final T parentT) {
+		// PackageSpecifier_opt SimpleClassTypeSignature ClassTypeSignatureSuffix_*
+		final int start = c.pos;
+		char ch;
+		while ((ch = s.charAt(c.pos)) != '<' && ch != ';') {
+			++c.pos;
 		}
-		--c.pos;
+		T t;
+		if (parentT != null) {
+			// TODO big hmmm
+			t = getT(((ParamT) parentT).getGenericT().getName() + "$" + s.substring(start, c.pos));
+			// ??? ((ClassT) t).setEnclosingT(parentT);
+		} else {
+			t = getT(s.substring(start, c.pos));
+		}
 		final TypeArg[] typeArgs = parseTypeArgs(s, c);
-		++c.pos;
-
-		// assert rawT.getTypeParams().length == typeArgs.length; // TODO
-
-		return new ParamT(rawT, typeArgs);
+		if (typeArgs != null) {
+			t = getParamT(t, typeArgs);
+			// ClassTypeSignatureSuffix_*
+			// e.g.:
+			// Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;
+			while (s.charAt(c.pos) == '.') {
+				++c.pos;
+				t = parseClassT(s, c, t);
+			}
+		}
+		return t;
 	}
 
 	/**
@@ -331,8 +326,7 @@ public final class DU {
 	 * @return method parameter types
 	 */
 	public T[] parseMethodParamTs(final String s, final Cursor c) {
-		assert s.charAt(c.pos) == '(';
-
+		assert s.charAt(c.pos) == '(' : s.charAt(c.pos);
 		++c.pos;
 		final ArrayList<T> ts = new ArrayList<T>();
 		while (s.charAt(c.pos) != ')') {
@@ -349,7 +343,7 @@ public final class DU {
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @return type or <code>null</code> for signature end
+	 * @return type or {@code null} for signature end
 	 */
 	public T parseT(final String s, final Cursor c) {
 		if (s.length() <= c.pos) {
@@ -374,46 +368,49 @@ public final class DU {
 			return T.DOUBLE;
 		case 'V':
 			return T.VOID;
-		case 'L':
-			--c.pos;
-			return parseClassT(s, c);
+		case 'L': {
+			// ClassTypeSignature
+			final T t = parseClassT(s, c, null);
+			assert s.charAt(c.pos) == ';' : s.charAt(c.pos);
+			++c.pos;
+			return t;
+		}
 		case '[':
-			--c.pos;
-			return parseArrayT(s, c);
-		case 'T':
+			// ArrayTypeSignature
+			return getArrayT(parseT(s, c));
+		case 'T': {
 			final int pos = s.indexOf(';', c.pos);
-			if (pos == -1) {
-				throw new DecoJerException("Type variable in '" + s + "' (" + c.pos
-						+ ") must end with ';'!");
-			}
-			final T t = new ClassT(s.substring(c.pos, pos), this); // TODO, really reuse?
+			final T t = new ClassT(s.substring(c.pos, pos), this); // TODO hmmm
 			c.pos = pos + 1;
 			return t;
 		}
-		throw new DecoJerException("Unknown type in '" + s + "' (" + c.pos + ")!");
+		default:
+			throw new DecoJerException("Unknown type in '" + s + "' (" + c.pos + ")!");
+		}
 	}
 
 	/**
 	 * Parse type arguments from signature.
 	 * 
-	 * We don't follow the often used <code>WildcardType</code> paradigma. Wildcards are only
-	 * allowed in the context of parameterized types and aren't useable as standalone types.
+	 * We don't follow the often used {@code WildcardType} paradigma. Wildcards are only allowed in
+	 * the context of parameterized types and aren't useable as standalone types.
 	 * 
 	 * @param s
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @return type arguments or null
+	 * @return type arguments or {@code null}
 	 */
 	private TypeArg[] parseTypeArgs(final String s, final Cursor c) {
+		// TypeArguments_opt
 		if (s.charAt(c.pos) != '<') {
 			return null;
 		}
 		++c.pos;
 		final ArrayList<TypeArg> ts = new ArrayList<TypeArg>();
-		char t;
-		while ((t = s.charAt(c.pos)) != '>') {
-			switch (t) {
+		char ch;
+		while ((ch = s.charAt(c.pos)) != '>') {
+			switch (ch) {
 			case '+':
 				++c.pos;
 				ts.add(TypeArg.subclassOf(parseT(s, c)));
@@ -441,22 +438,19 @@ public final class DU {
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @return type parameters or <code>null</code>
+	 * @return type parameters or {@code null}
 	 */
 	public T[] parseTypeParams(final String s, final Cursor c) {
+		// TypeParams_opt
 		if (s.charAt(c.pos) != '<') {
-			return null;
+			return null; // optional
 		}
 		++c.pos;
 		final ArrayList<T> ts = new ArrayList<T>();
 		while (s.charAt(c.pos) != '>') {
 			final int pos = s.indexOf(':', c.pos);
-			if (pos == -1) {
-				throw new DecoJerException("Type parameter name '" + s + "' at position '" + c.pos
-						+ "' must end with ':'!");
-			}
-			final ClassT typeParam = new ClassT(s.substring(c.pos, pos), this); // TODO really
-																				// reuse?
+			// TODO hmmm
+			final ClassT typeParam = new ClassT(s.substring(c.pos, pos), this);
 			c.pos = pos + 1;
 			if (s.charAt(c.pos) != ':') {
 				typeParam.setSuperT(parseT(s, c));

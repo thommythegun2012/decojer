@@ -338,7 +338,7 @@ public final class TrCfg2JavaExpressionStmts {
 						// could defer the 0-fill and rewrite to the final A/STORE phase
 						final int size = Integer.parseInt(((NumberLiteral) arrayCreation
 								.dimensions().get(0)).getToken());
-						// not all indexes may be set, null/0/false in JDK 7 are not set, fill
+						// not all indexes may be set, null/0/false in JVM 7 are not set, fill
 						for (int i = size; i-- > 0;) {
 							arrayInitializer.expressions().add(
 									Types.convertLiteral(bb.getCfg().getInFrame(op).peek().getT(),
@@ -1381,7 +1381,7 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 		} else {
 			classLiteral: if (expression instanceof InfixExpression) {
-				// Class-literals unknown in pre JDK 1.5 bytecode
+				// Class-literals unknown in pre JVM 1.5 bytecode
 				// (only primitive wrappers have constants like
 				// getstatic java.lang.Void.TYPE : java.lang.Class)
 				// ...construct Class-literals with synthetic local method:
@@ -1399,13 +1399,13 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				final Assignment assignment;
 				if (equalsExpression.getOperator() == InfixExpression.Operator.EQUALS) {
-					// JDK < 1.3
+					// JVM < 1.3
 					if (!(trueExpression instanceof Assignment)) {
 						break classLiteral;
 					}
 					assignment = (Assignment) trueExpression;
 				} else if (equalsExpression.getOperator() == InfixExpression.Operator.NOT_EQUALS) {
-					// JDK >= 1.3
+					// JVM >= 1.3
 					if (!(falseExpression instanceof Assignment)) {
 						break classLiteral;
 					}
@@ -1425,7 +1425,7 @@ public final class TrCfg2JavaExpressionStmts {
 					break classLiteral;
 				}
 				if (this.cfg.getTd().getVersion() >= 49) {
-					LOGGER.warning("Unexpected class literal code with class$() in >= JDK 5 code!");
+					LOGGER.warning("Unexpected class literal code with class$() in >= JVM 5 code!");
 				}
 				try {
 					final String classInfo = ((StringLiteral) methodInvocation.arguments().get(0))
@@ -1524,7 +1524,7 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			// previous expressions merged into bb, now rewrite:
 			if (!convertToHLLIntermediate(bb)) {
-				// DUP-POP conditional variant for pre JDK 5 cached class literals
+				// DUP-POP conditional variant for pre JVM 5 cached class literals
 				if (rewriteClassForNameCachedLiteral(bb)) {
 					// delete myself and superior nodes
 					continue;

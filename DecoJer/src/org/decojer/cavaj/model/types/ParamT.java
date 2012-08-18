@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.T;
 /**
  * Parameterized type.
  * 
- * @since J5
+ * @since JVM 5
  * 
  * @author André Pankraz
  */
@@ -39,8 +39,8 @@ public final class ParamT extends T {
 	/**
 	 * Type argument.
 	 * 
-	 * We don't follow the often used <code>WildcardType</code> paradigma. Wildcards are only
-	 * allowed in the context of parameterized types and aren't useable as standalone Types.
+	 * We don't follow the often used {@code WildcardType} paradigma. Wildcards are only allowed in
+	 * the context of parameterized types and aren't useable as standalone Types.
 	 * 
 	 * @author André Pankraz
 	 */
