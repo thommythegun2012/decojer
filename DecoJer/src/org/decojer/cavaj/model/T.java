@@ -583,7 +583,7 @@ public abstract class T {
 	/**
 	 * Get super type.
 	 * 
-	 * @return super type
+	 * @return super type, can be <tt>null</tt> for {@code Object} and primitives
 	 * @see Class#getSuperclass()
 	 */
 	public T getSuperT() {
@@ -759,6 +759,15 @@ public abstract class T {
 	}
 
 	/**
+	 * Is resolveable?
+	 * 
+	 * @return true - is resolveable
+	 */
+	public boolean isResolvable() {
+		return true; // only class types can be unresolveable, overwrite TD
+	}
+
+	/**
 	 * Is wide type?
 	 * 
 	 * @return true - is wide type
@@ -792,15 +801,6 @@ public abstract class T {
 			return this;
 		}
 		return null;
-	}
-
-	/**
-	 * Is unresolveable?
-	 * 
-	 * @return true - is unresolveable
-	 */
-	public boolean resolve() {
-		return true; // only class types can be unresolveable, overwrite TD
 	}
 
 	@Override

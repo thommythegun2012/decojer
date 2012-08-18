@@ -109,11 +109,7 @@ public enum AF {
 	/**
 	 * Declaraed synchronized. (Dalvik only)
 	 */
-	DECLARED_SYNCHRONIZED(1 << 17, "declared-synchronized", false, false, true),
-	/**
-	 * Unresolveable (internal).
-	 */
-	UNRESOLVEABLE(1 << 31, "_unresolveable", true, false, false);
+	DECLARED_SYNCHRONIZED(1 << 17, "declared-synchronized", false, false, true);
 
 	private final boolean forType;
 
