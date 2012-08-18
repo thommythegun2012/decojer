@@ -320,6 +320,16 @@ class TestT {
 	}
 
 	@Test
+	void isResolvable() {
+		assertTrue(objectT.isResolvable());
+		assertTrue(T.INT.isResolvable());
+		assertTrue(T.VOID.isResolvable());
+		assertTrue(du.getT(Character.class).isResolvable());
+		assertTrue(du.getT(Double[][].class).isResolvable());
+		assertFalse(du.getT("Test").isResolvable());
+	}
+
+	@Test
 	void join() {
 		assertSame(T.join(T.INT, T.INT), T.INT);
 		assertSame(T.join(T.SHORT, T.SHORT), T.SHORT);
@@ -386,16 +396,6 @@ class TestT {
 		assertSame(T.SINGLE.read(T.AINT), T.AINT);
 		assertSame(T.SINGLE.read(T.SINGLE), T.SINGLE);
 		assertNull(T.WIDE.read(T.SINGLE));
-	}
-
-	@Test
-	void resolve() {
-		assertTrue(objectT.resolve());
-		assertTrue(T.INT.resolve());
-		assertTrue(T.VOID.resolve());
-		assertTrue(du.getT(Character.class).resolve());
-		assertTrue(du.getT(Double[][].class).resolve());
-		assertFalse(du.getT("Test").resolve());
 	}
 
 }
