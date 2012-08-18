@@ -398,4 +398,13 @@ class TestT {
 		assertNull(T.WIDE.read(T.SINGLE));
 	}
 
+	@Test
+	void test() {
+		// TODO not yet finalized...should keep upper type parameters
+		T t = du.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;");
+		assertEquals(
+				t.getName(),
+				"org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo<java.lang.Object>");
+	}
+
 }
