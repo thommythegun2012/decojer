@@ -778,16 +778,19 @@ public final class TrDataFlowAnalysis {
 	private void mergeReplaceReg(final BB bb, final int i, final R prevR, final R newR) {
 		assert prevR != null;
 
-		// BB possibly not visited yet => BB input frame known, but no operations exist
+		// BB possibly not visited yet => than: BB input frame known, but no operations exist
 		Frame frame = this.cfg.getInFrame(bb); // but BB input frame cannot be null here
 		R replacedR = frame.replaceReg(i, prevR, newR);
-		// replacement propagation to all yet known BB operations
-		for (int j = 1; replacedR != null && j < bb.getOps(); ++j) {
-			frame = this.cfg.getInFrame(bb.getOp(j));
-			replacedR = frame.replaceReg(i, replacedR, newR);
-		}
 		if (replacedR == null) {
 			return;
+		}
+		// replacement propagation to already known BB operations
+		for (int j = 1; j < bb.getOps(); ++j) {
+			frame = this.cfg.getInFrame(bb.getOp(j));
+			replacedR = frame.replaceReg(i, replacedR, newR);
+			if (replacedR == null) {
+				return;
+			}
 		}
 		// replacement propagation to next BB necessary
 		for (final E out : bb.getOuts()) {
