@@ -317,7 +317,6 @@ public class ClassEditor extends MultiPageEditorPart {
 		this.compilationUnitEditor = new CompilationUnitEditor();
 
 		// create editor input, in-memory string with decompiled source
-
 		String sourceCode = null;
 		try {
 			sourceCode = this.selectedCu.decompile();
@@ -510,8 +509,8 @@ public class ClassEditor extends MultiPageEditorPart {
 						return null;
 					}
 					for (final BD bd : d.getBds()) {
-						if (bd instanceof MD && ((MD) bd).isConstructor()
-								&& ((MD) bd).getDescriptor().equals("()V")) {
+						// descriptor not important, all constructors have same field initializers
+						if (bd instanceof MD && ((MD) bd).isConstructor()) {
 							d = bd;
 							continue path;
 						}
