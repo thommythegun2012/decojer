@@ -281,6 +281,17 @@ public final class CFG {
 	}
 
 	/**
+	 * Get input frame for basic block.
+	 * 
+	 * @param bb
+	 *            basic block
+	 * @return input frame
+	 */
+	public Frame getInFrame(final BB bb) {
+		return this.frames[bb.getPc()];
+	}
+
+	/**
 	 * Get input frame for operation.
 	 * 
 	 * @param op

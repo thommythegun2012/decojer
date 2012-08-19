@@ -162,7 +162,7 @@ public final class TrDataFlowAnalysis {
 
 	private int executeMerge(final Op op, final BB bb) {
 		bb.addOp(op);
-		this.frame = new Frame(this.cfg.getFrame(op.getPc()));
+		this.frame = new Frame(this.cfg.getInFrame(op));
 		int nextPc = op.getPc() + 1;
 		switch (op.getOptype()) {
 		case ADD: {
@@ -387,9 +387,10 @@ public final class TrDataFlowAnalysis {
 			final JSR cop = (JSR) op;
 			// Spec, JSR/RET is stack-like:
 			// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
-			bb.setSucc(getTargetBb(cop.getTargetPc()));
+			final BB targetBb = getTargetBb(cop.getTargetPc());
+			bb.setSucc(targetBb);
 			// use common value (like Sub) instead of jsr-follow-address because of merge
-			final Frame targetFrame = this.cfg.getFrame(cop.getTargetPc());
+			final Frame targetFrame = this.cfg.getInFrame(targetBb);
 			jsr: if (targetFrame != null) {
 				// JSR already visited, reuse Sub
 				if (this.frame.getTop() + 1 != targetFrame.getTop()) {
@@ -687,27 +688,29 @@ public final class TrDataFlowAnalysis {
 
 		// split basic block, new incoming block, adapt basic block pcs,
 		// it's necessary to preserve the outgoing block for back edges to same BB!!!
-		final BB splitBb = newBb(bb.getPc());
-
-		bb.moveIns(splitBb);
-		splitBb.setSucc(bb);
+		final BB newInBb = newBb(bb.getPc());
+		bb.moveIns(newInBb);
+		newInBb.setSucc(bb);
 		while (bb.getOps() > 0 && bb.getOp(0).getPc() != pc) {
 			final Op op = bb.removeOp(0);
-			splitBb.addOp(op);
-			this.pc2bbs[op.getPc()] = splitBb;
+			newInBb.addOp(op);
+			this.pc2bbs[op.getPc()] = newInBb;
 		}
-		bb.setPc(pc);
+		bb.setPc(pc); // necessary because we must preserve outgoing BB
 		return bb;
 	}
 
 	private void merge(final int pc) {
 		final Frame targetFrame = this.cfg.getFrame(pc);
 		if (targetFrame == null) {
-			// first visit at target frame -> no BB join -> no type merge
+			// first visit for this target frame -> no BB join -> no type merge
 			this.cfg.setFrame(pc, new Frame(this.frame));
 			return;
 		}
-		// target frame already visited -> BB join -> type merge
+		assert targetFrame.size() == this.frame.size();
+
+		// target frame has already been visited -> BB join -> type merge
+		final BB targetBb = this.pc2bbs[pc];
 		for (int i = targetFrame.size(); i-- > 0;) {
 			final R prevR = targetFrame.get(i);
 			final R newR = this.frame.get(i);
@@ -722,13 +725,13 @@ public final class TrDataFlowAnalysis {
 			}
 			if (newR == null) {
 				// new register is null? merge to null => replace previous register from here
-				mergeReplaceReg(this.pc2bbs[pc], i, prevR, null);
+				mergeReplaceReg(targetBb, i, prevR, null);
 				continue;
 			}
 			final T t = R.merge(prevR, newR);
 			if (t == null) {
 				// merge type is null? merge to null => replace previous register from here
-				mergeReplaceReg(this.pc2bbs[pc], i, prevR, null);
+				mergeReplaceReg(targetBb, i, prevR, null);
 				continue;
 			}
 			// only here can we create or enhance a merge registers
@@ -738,7 +741,7 @@ public final class TrDataFlowAnalysis {
 				continue;
 			}
 			// start new merge register
-			mergeReplaceReg(this.pc2bbs[pc], i, prevR, new R(pc, t, Kind.MERGE, prevR, newR));
+			mergeReplaceReg(targetBb, i, prevR, new R(pc, t, Kind.MERGE, prevR, newR));
 		}
 	}
 
@@ -746,12 +749,11 @@ public final class TrDataFlowAnalysis {
 		if (this.isIgnoreExceptions || this.cfg.getExcs() == null) {
 			return;
 		}
-		final int pc = op.getPc();
 		for (final Exc exc : this.cfg.getExcs()) {
-			if (!exc.validIn(pc)) {
+			if (!exc.validIn(op.getPc())) {
 				continue;
 			}
-			this.frame = new Frame(this.cfg.getFrame(pc));
+			this.frame = new Frame(this.cfg.getInFrame(op));
 
 			// in handler start frame the stack just consists of exception type
 			this.frame.clear();
@@ -776,26 +778,24 @@ public final class TrDataFlowAnalysis {
 	private void mergeReplaceReg(final BB bb, final int i, final R prevR, final R newR) {
 		assert prevR != null;
 
-		// could have no operations yet (concurrent CFG building)
-		Frame frame = this.cfg.getFrame(bb.getPc());
+		Frame frame = this.cfg.getInFrame(bb); // cannot be null, has already been visited
 		R replacedR = frame.replaceReg(i, prevR, newR);
 		for (int j = 1; replacedR != null && j < bb.getOps(); ++j) {
 			frame = this.cfg.getInFrame(bb.getOp(j));
 			replacedR = frame.replaceReg(i, replacedR, newR);
 		}
-		if (replacedR != null) {
-			for (final E out : bb.getOuts()) {
-				// if (out.isBack()) {
-				// final BB loopHead = out.getEnd();
-				// final R testR = this.cfg.getFrame(loopHead.getPc()).get(i);
-				// if (testR == replacedR && testR.getPc() != loopHead.getPc()) {
-				// mergeReplaceReg(out.getEnd(), i, testR, new R(testR.getPc(), newR.getT(),
-				// Kind.MERGE, testR, newR));
-				// }
-				// }
-				// TODO backward merge in loop can create new merge necessity at start point!
-				mergeReplaceReg(out.getEnd(), i, replacedR, newR);
+		if (replacedR == null) {
+			return;
+		}
+		// replacement propagation
+		for (final E out : bb.getOuts()) {
+			final BB outBb = out.getEnd();
+			if (this.cfg.getInFrame(outBb) == null) {
+				// TODO currently only possible for exceptions, link later when really visited?!
+				assert out.getValue() instanceof T[] : out.getValue().getClass();
+				continue;
 			}
+			mergeReplaceReg(outBb, i, replacedR, newR);
 		}
 	}
 
