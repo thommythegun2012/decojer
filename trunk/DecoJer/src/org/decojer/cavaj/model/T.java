@@ -33,6 +33,7 @@ import lombok.Getter;
 import org.decojer.cavaj.model.types.BaseT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.Kind;
+import org.decojer.cavaj.model.types.ParamT;
 
 /**
  * Type.
@@ -699,7 +700,8 @@ public abstract class T {
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();
 			final T superT = iT.getSuperT();
-			if (this == superT) { // TODO HashMap <- HashMap<String,E>
+			if (superT == this || superT instanceof ParamT
+					&& ((ParamT) superT).getGenericT() == this) {
 				return true;
 			}
 			if (null != superT) {
