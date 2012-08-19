@@ -25,8 +25,6 @@ package org.decojer.cavaj.model.code;
 
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.code.R.Kind;
-
 /**
  * Frame.
  * 
@@ -292,12 +290,13 @@ public final class Frame {
 			return null;
 		}
 		final R frameR = get(i);
-		if (frameR == prevR) {
+		if (prevR == frameR) {
 			set(i, newR);
 			return prevR;
 		}
 		if (newR == null) {
-			assert frameR.getKind() == Kind.MERGE : frameR.getKind();
+			// TODO currently only possible for exceptions, link later when really visited?!
+			// assert frameR.getKind() == Kind.MERGE : frameR.getKind();
 
 			set(i, null);
 			return frameR; // now replace merge register with null
