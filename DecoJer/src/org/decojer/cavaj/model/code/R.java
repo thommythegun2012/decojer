@@ -212,6 +212,9 @@ public final class R {
 				return true;
 			}
 			// TODO problem with generic type reduction to classes, invoke interface allowed
+
+			// TODO check org.decojer.cavaj.test.jdk6.DecTestMethodTypeParams:
+			// RETURN Long as TypeParam U - resolve to TypeArg <U extends Long>
 			assert false;
 		}
 		if (this.t != reducedT) {
