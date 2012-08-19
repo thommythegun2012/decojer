@@ -1530,6 +1530,7 @@ public final class TrCfg2JavaExpressionStmts {
 					continue;
 				}
 				// should never happen in forward mode
+				// TODO can currently happen with exceptions, RETURN x is not in catch!
 				LOGGER.warning("Stack underflow in '" + this.cfg + "':\n" + bb);
 			}
 			if (!handler) {
