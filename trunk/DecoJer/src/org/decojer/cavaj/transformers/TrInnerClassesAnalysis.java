@@ -301,6 +301,12 @@ public class TrInnerClassesAnalysis {
 		return false;
 	}
 
+	/**
+	 * Transform decompilation unit.
+	 * 
+	 * @param du
+	 *            decompilation unit
+	 */
 	public static void transform(final DU du) {
 		final Collection<T> ts = du.getTs();
 
