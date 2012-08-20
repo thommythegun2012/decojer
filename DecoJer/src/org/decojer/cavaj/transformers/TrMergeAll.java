@@ -62,6 +62,12 @@ public final class TrMergeAll {
 				bodyDeclaration);
 	}
 
+	/**
+	 * Transform compilation unit.
+	 * 
+	 * @param cu
+	 *            compilation unit
+	 */
 	public static void transform(final CU cu) {
 		for (final BD bd : cu.getBds()) {
 			final TD td = (TD) bd;
