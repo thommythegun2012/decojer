@@ -71,8 +71,11 @@ public class TrInnerClassesAnalysis {
 			final String simpleName = getSimpleClassName(t);
 			if (innerName == null && !simpleName.isEmpty() || innerName != null
 					&& !innerName.equals(simpleName)) {
-				LOGGER.warning("Inner name '" + innerName + "' is different from enclosing info '"
-						+ simpleName + "'!");
+				// TODO check oracle.net.aso.m in obfuscated
+				// .m2\repository\com\oracle\ojdbc6\11.2.0.1.0\ojdbc6-11.2.0.1.0.jar
+				// should be a local class with name "m" in constructor?
+				LOGGER.warning("Inner name '" + innerName + "' for type '" + t
+						+ "' is different from enclosing info '" + simpleName + "'!");
 			}
 		}
 	}
@@ -209,10 +212,13 @@ public class TrInnerClassesAnalysis {
 	 */
 	private static String getSimpleBinaryName(final T t) {
 		final T enclosingT = t.getEnclosingT();
-		if (enclosingT != null) {
-			return t.getName().substring(enclosingT.getName().length());
+		if (enclosingT == null) {
+			return null;
 		}
-		return null;
+		if (!t.getName().startsWith(enclosingT.getName())) {
+			return null;
+		}
+		return t.getName().substring(enclosingT.getName().length());
 	}
 
 	/**
