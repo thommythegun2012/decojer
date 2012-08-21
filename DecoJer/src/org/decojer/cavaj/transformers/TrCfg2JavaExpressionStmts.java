@@ -1469,15 +1469,27 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteHandler(final BB bb) {
-		if (bb.getOps() == 0 || !(bb.getOp(0) instanceof STORE)) {
-			LOGGER.warning("First operation in handler isn't STORE: " + bb);
-			return false;
+		// first operations usually are STRORE or POP (if exception not needed)
+		Op firstOp = null;
+		if (bb.getOps() == 0) {
+			LOGGER.warning("First operation in handler is null: " + bb);
+		} else {
+			firstOp = bb.getOp(0);
+		}
+		String name = null;
+		if (firstOp instanceof STORE) {
+			bb.removeOp(0);
+			final STORE cop = (STORE) firstOp;
+			name = getVarName(cop.getReg(), cop.getPc() + 1);
+		} else if (firstOp instanceof POP) {
+			bb.removeOp(0);
+			name = "e"; // TODO hmmm...free variable name needed...
+		} else {
+			LOGGER.warning("First operation in handler isn't STORE or POP: " + bb);
+			name = "e"; // TODO hmmm...free variable name needed...
 		}
 		final T[] handlerTypes = (T[]) bb.getIns().get(0).getValue();
 		final boolean isFinally = 1 == handlerTypes.length && null == handlerTypes[0];
-
-		final STORE cop = (STORE) bb.removeOp(0);
-		final String name = getVarName(cop.getReg(), cop.getPc() + 1);
 
 		final TryStatement tryStatement = getAst().newTryStatement();
 		if (!isFinally) {
