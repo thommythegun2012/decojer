@@ -1470,12 +1470,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private boolean rewriteHandler(final BB bb) {
 		// first operations usually are STRORE or POP (if exception not needed)
-		Op firstOp = null;
-		if (bb.getOps() == 0) {
-			LOGGER.warning("First operation in handler is null: " + bb);
-		} else {
-			firstOp = bb.getOp(0);
-		}
+		final Op firstOp = bb.getOps() == 0 ? null : bb.getOp(0);
 		String name = null;
 		if (firstOp instanceof STORE) {
 			bb.removeOp(0);
@@ -1485,7 +1480,7 @@ public final class TrCfg2JavaExpressionStmts {
 			bb.removeOp(0);
 			name = "e"; // TODO hmmm...free variable name needed...
 		} else {
-			LOGGER.warning("First operation in handler isn't STORE or POP: " + bb);
+			LOGGER.warning("First operation in handler '" + firstOp + "' isn't STORE or POP: " + bb);
 			name = "e"; // TODO hmmm...free variable name needed...
 		}
 		final T[] handlerTypes = (T[]) bb.getIns().get(0).getValue();
