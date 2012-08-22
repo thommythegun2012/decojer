@@ -161,7 +161,6 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private int executeMerge(final Op op, final BB bb) {
-		bb.addOp(op);
 		this.frame = new Frame(this.cfg.getInFrame(op));
 		int nextPc = op.getPc() + 1;
 		switch (op.getOptype()) {
@@ -797,7 +796,7 @@ public final class TrDataFlowAnalysis {
 			final BB outBb = out.getEnd();
 			if (this.cfg.getInFrame(outBb) == null) {
 				// TODO currently only possible for exceptions, link later when really visited?!
-				assert out.getValue() instanceof T[] : out.getValue().getClass();
+				assert out.isCatch();
 				continue;
 			}
 			mergeReplaceReg(outBb, i, replacedR, newR);
@@ -898,11 +897,13 @@ public final class TrDataFlowAnalysis {
 	/**
 	 * Exception block changes in BB? -> split necessary!
 	 * 
+	 * @param op
+	 *            operation
 	 * @param bb
 	 *            BB
 	 * @return original BB or new BB for beginning exception block
 	 */
-	private BB splitExceptions(final BB bb) {
+	private BB splitExceptions(final Op op, final BB bb) {
 		if (this.isIgnoreExceptions || this.cfg.getExcs() == null) {
 			return bb;
 		}
@@ -916,7 +917,10 @@ public final class TrDataFlowAnalysis {
 					continue;
 				}
 			} else {
-				if (!exc.validIn(bb.getPc())) {
+				// exception endPc is eclusive, but often points to final GOTO or RETURN in
+				// try-block, this is especially not usefull for returns with values!
+				if (!exc.validIn(bb.getPc()) || op.getPc() == exc.getEndPc()
+						&& (op instanceof GOTO || op instanceof RETURN)) {
 					// exception isn't valid - hasn't bean valid at BB entry -> OK
 					continue;
 				}
@@ -951,18 +955,21 @@ public final class TrDataFlowAnalysis {
 		this.cfg.setStartBb(bb);
 
 		while (true) {
+			final Op op;
 			if (this.pc < 0) {
 				// next open pc?
 				if (this.openPcs.isEmpty()) {
 					break;
 				}
 				this.pc = this.openPcs.removeFirst();
+				op = ops[this.pc];
 				bb = this.pc2bbs[this.pc];
 			} else {
-				bb = splitExceptions(bb);
+				op = ops[this.pc];
+				bb = splitExceptions(op, bb); // may change with exception boundary
 				this.pc2bbs[this.pc] = bb;
 			}
-			final Op op = ops[this.pc];
+			bb.addOp(op);
 			this.pc = executeMerge(op, bb);
 			mergeExceptions(op); // execute has influence on this, read type reduce
 		}
