@@ -211,6 +211,17 @@ public abstract class DecTestExceptions {
 		System.out.println("POST");
 	}
 
+	void simpleExceptionReturn() {
+		System.out.println("PRE");
+		try {
+			System.out.println("TRY");
+			return;
+		} catch (final Exception e) {
+			System.out.println("EXC" + e);
+		}
+		return;
+	}
+
 	void simpleFinally() {
 		System.out.println("PRE");
 		try {
