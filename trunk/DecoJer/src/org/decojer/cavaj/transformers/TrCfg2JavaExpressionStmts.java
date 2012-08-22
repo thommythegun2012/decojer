@@ -1469,7 +1469,10 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteHandler(final BB bb) {
-		// first operations usually are STRORE or POP (if exception not needed)
+		if (!bb.isHandler()) {
+			return false;
+		}
+		// first operations are usually STRORE or POP (if exception not needed)
 		final Op firstOp = bb.getOps() == 0 ? null : bb.getOp(0);
 		String name = null;
 		if (firstOp instanceof STORE) {
@@ -1520,10 +1523,8 @@ public final class TrCfg2JavaExpressionStmts {
 				// can happen if BB deleted through rewrite
 				continue;
 			}
-			final boolean handler = bb.isHandler();
-			if (handler) {
-				rewriteHandler(bb);
-			} else {
+			final boolean handler = rewriteHandler(bb);
+			if (!handler) {
 				while (rewriteConditional(bb)) {
 					// delete superior BBs, multiple iterations possible:
 					// a == null ? 0 : a.length() == 0 ? 0 : 1

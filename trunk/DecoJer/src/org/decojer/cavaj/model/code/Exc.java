@@ -132,7 +132,9 @@ public final class Exc {
 	 * @return true - variable valid for pc
 	 */
 	public boolean validIn(final int pc) {
-		// end pc is first pc _after_ (multiple byte) operation (even after final return)
+		// JVM Spec: "The start_pc is inclusive and end_pc is exclusive":
+		// end pc is first pc _after_ (multiple byte) operation (even after final return);
+		// one exception are final RETURNS in try!!!
 		return this.startPc <= pc && pc < this.endPc;
 	}
 
