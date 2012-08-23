@@ -248,6 +248,9 @@ class TestT {
 		assertFalse(int[].class.isAssignableFrom(int[][].class));
 		assertFalse(du.getT(int[].class).isAssignableFrom(
 				du.getT(int[][].class)));
+		assertFalse(int[][][].class.isAssignableFrom(int[].class));
+		assertFalse(du.getT(int[][][].class).isAssignableFrom(
+				du.getT(int[].class)));
 
 		// covariant arrays
 		assertTrue(Number[].class.isAssignableFrom(Integer[].class));
