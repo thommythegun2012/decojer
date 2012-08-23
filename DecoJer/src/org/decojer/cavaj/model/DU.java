@@ -449,18 +449,23 @@ public final class DU {
 		final ArrayList<T> ts = new ArrayList<T>();
 		while (s.charAt(c.pos) != '>') {
 			final int pos = s.indexOf(':', c.pos);
-			// TODO hmmm
+			// reuse ClassT for type parameter
 			final ClassT typeParam = new ClassT(s.substring(c.pos, pos), this);
 			c.pos = pos + 1;
 			if (s.charAt(c.pos) != ':') {
 				typeParam.setSuperT(parseT(s, c));
+			} else {
+				typeParam.setSuperT(getT(Object.class));
 			}
-			final ArrayList<T> interfaceTs = new ArrayList<T>();
-			while (s.charAt(c.pos) == ':') {
-				++c.pos;
-				interfaceTs.add(parseT(s, c));
+			if (s.charAt(c.pos) == ':') {
+				final ArrayList<T> interfaceTs = new ArrayList<T>();
+				do {
+					++c.pos;
+					interfaceTs.add(parseT(s, c));
+				} while (s.charAt(c.pos) == ':');
+				typeParam.setInterfaceTs(interfaceTs.toArray(new T[interfaceTs.size()]));
 			}
-			typeParam.setInterfaceTs(interfaceTs.toArray(new T[interfaceTs.size()]));
+			typeParam.resolved();
 			ts.add(typeParam);
 		}
 		++c.pos;

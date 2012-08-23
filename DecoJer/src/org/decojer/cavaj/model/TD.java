@@ -319,7 +319,7 @@ public final class TD extends BD {
 	 */
 	public void resolve() {
 		// has other name in ClassT
-		this.t.resolveFill();
+		this.t.resolved();
 	}
 
 	/**
