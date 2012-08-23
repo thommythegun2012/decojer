@@ -23,10 +23,9 @@
  */
 package org.decojer.cavaj.model.types;
 
-import org.decojer.cavaj.model.T;
-
 import lombok.Getter;
 
+import org.decojer.cavaj.model.T;
 
 /**
  * Base type (primitives and artificial / internal VM types).
@@ -50,6 +49,14 @@ public class BaseT extends T {
 		super(name);
 
 		this.kind = kind;
+	}
+
+	@Override
+	public int getStackSize() {
+		if (this.kind == Kind.VOID.getKind()) {
+			return 0;
+		}
+		return isWide() ? 2 : 1;
 	}
 
 	@Override

@@ -50,7 +50,7 @@ public class RETURN extends TypedOp {
 
 	@Override
 	public int getInStackSize() {
-		return getT() == T.VOID ? 0 : getT().isWide() ? 2 : 1;
+		return getT().getStackSize();
 	}
 
 	@Override

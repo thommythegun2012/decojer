@@ -585,6 +585,15 @@ public abstract class T {
 	}
 
 	/**
+	 * Get stack size.
+	 * 
+	 * @return stack size
+	 */
+	public int getStackSize() {
+		return 1;
+	}
+
+	/**
 	 * Get super type.
 	 * 
 	 * @return super type, can be {@code null} for {@code Object} and primitives

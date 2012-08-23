@@ -61,7 +61,7 @@ public class GET extends Op {
 
 	@Override
 	public int getInStackSize() {
-		return this.f.check(AF.STATIC) ? 0 : 1;
+		return getF().check(AF.STATIC) ? 0 : getF().getT().getStackSize();
 	}
 
 	@Override

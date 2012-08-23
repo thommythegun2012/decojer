@@ -61,7 +61,8 @@ public class PUT extends Op {
 
 	@Override
 	public int getInStackSize() {
-		return (this.f.check(AF.STATIC) ? 0 : 1) + (getF().getValueT().isWide() ? 2 : 1);
+		return (getF().check(AF.STATIC) ? 0 : getF().getT().getStackSize())
+				+ getF().getValueT().getStackSize();
 	}
 
 	@Override

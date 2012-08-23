@@ -65,7 +65,7 @@ public class SHR extends TypedOp {
 
 	@Override
 	public int getInStackSize() {
-		return getT().isWide() ? 4 : 2;
+		return getT().getStackSize() + getShiftT().getStackSize();
 	}
 
 	@Override

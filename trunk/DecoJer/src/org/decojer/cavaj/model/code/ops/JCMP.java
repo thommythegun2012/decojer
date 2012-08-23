@@ -70,9 +70,7 @@ public class JCMP extends TypedOp {
 
 	@Override
 	public int getInStackSize() {
-		assert !getT().isWide();
-
-		return 2;
+		return 2 * getT().getStackSize();
 	}
 
 	@Override

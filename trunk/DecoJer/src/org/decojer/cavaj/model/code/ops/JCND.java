@@ -70,9 +70,7 @@ public class JCND extends TypedOp {
 
 	@Override
 	public int getInStackSize() {
-		assert !getT().isWide();
-
-		return 1;
+		return getT().getStackSize();
 	}
 
 	@Override

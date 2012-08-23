@@ -67,7 +67,7 @@ public class CMP extends TypedOp {
 
 	@Override
 	public int getInStackSize() {
-		return getT().isWide() ? 4 : 2;
+		return 2 * getT().getStackSize();
 	}
 
 	@Override
