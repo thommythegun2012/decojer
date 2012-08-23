@@ -61,7 +61,7 @@ public class CAST extends TypedOp {
 
 	@Override
 	public int getInStackSize() {
-		return getT().isWide() ? 2 : 1;
+		return getT().getStackSize();
 	}
 
 	@Override

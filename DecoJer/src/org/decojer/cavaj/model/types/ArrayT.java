@@ -81,6 +81,9 @@ public final class ArrayT extends T {
 		if (super.isAssignableFrom(t)) {
 			return true;
 		}
+		if (t == null) {
+			return false;
+		}
 		return getComponentT().isAssignableFrom(t.getComponentT()); // assign from null is false
 	}
 

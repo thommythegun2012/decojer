@@ -50,7 +50,7 @@ public class ASTORE extends TypedOp {
 
 	@Override
 	public int getInStackSize() {
-		return getT().isWide() ? 4 : 3;
+		return 2 + getT().getStackSize();
 	}
 
 	@Override

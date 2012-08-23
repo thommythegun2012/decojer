@@ -76,11 +76,9 @@ public class INVOKE extends Op {
 
 	@Override
 	public int getInStackSize() {
-		int inStackSize = (this.m.check(AF.STATIC) ? 0 : 1) + this.m.getParamTs().length;
-		for (final T paramT : this.m.getParamTs()) {
-			if (paramT.isWide()) {
-				++inStackSize;
-			}
+		int inStackSize = getM().check(AF.STATIC) ? 0 : getM().getT().getStackSize();
+		for (final T paramT : getM().getParamTs()) {
+			inStackSize += paramT.getStackSize();
 		}
 		return inStackSize;
 	}
