@@ -97,6 +97,8 @@ public class ClassT extends T {
 	@Setter
 	private T[] typeParams;
 
+	public static final T[] INTERFACES_NONE_UNRESOLVED = new T[0];
+
 	/**
 	 * Constructor.
 	 * 
@@ -188,7 +190,7 @@ public class ClassT extends T {
 		if (this.superT == null) {
 			resolve();
 		}
-		// can be null, e.g. for Object.class
+		// can be null, e.g. for Object.class or Interfaces
 		return this.superT == NONE ? null : this.superT;
 	}
 
@@ -212,7 +214,7 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isResolvable() {
-		return getSuperT() != null || isObject();
+		return !check(AF.UNRESOLVABLE);
 	}
 
 	/**
@@ -236,7 +238,6 @@ public class ClassT extends T {
 			if (superclass != null) {
 				this.superT = getDu().getT(superclass.getName());
 			}
-
 			final Class<?>[] interfaces = clazz.getInterfaces();
 			if (interfaces.length > 0) {
 				final T[] interfaceTs = new T[interfaces.length];
@@ -245,7 +246,6 @@ public class ClassT extends T {
 				}
 				this.interfaceTs = interfaceTs;
 			}
-
 			final TypeVariable<?>[] typeParameters = clazz.getTypeParameters();
 			if (typeParameters.length > 0) {
 				final T[] typeParams = new T[typeParameters.length];
@@ -254,7 +254,6 @@ public class ClassT extends T {
 				}
 				this.typeParams = typeParams;
 			}
-
 			final Method enclosingMethod = clazz.getEnclosingMethod();
 			if (enclosingMethod != null) {
 				final Class<?> declaringClass = enclosingMethod.getDeclaringClass();
@@ -269,15 +268,16 @@ public class ClassT extends T {
 			return true;
 		} catch (final ClassNotFoundException e) {
 			LOGGER.warning("Couldn't load type '" + getName() + "'!");
+			markAf(AF.UNRESOLVABLE);
 			return false;
 		} finally {
-			resolveFill();
+			resolved();
 		}
 	}
 
-	public void resolveFill() {
+	public void resolved() {
 		if (this.superT == null) {
-			this.superT = NONE; // Object.class has no super!
+			this.superT = NONE; // Object/Interfaces have no super!
 		}
 		if (this.interfaceTs == null) {
 			this.interfaceTs = INTERFACES_NONE;

@@ -147,10 +147,6 @@ public abstract class T {
 	 * Artificial type 'none'.
 	 */
 	public static T NONE = getT(Kind.NONE);
-	/*
-	 * Artificial type 'unresolvable'.
-	 */
-	public static T UNRESOLVABLE = getT(Kind.UNRESOLVABLE);
 
 	/**
 	 * Multi-type 'any reference'.
@@ -399,7 +395,7 @@ public abstract class T {
 	@Getter
 	private final String name;
 
-	final HashMap<String, Object> member = new HashMap<String, Object>();
+	private HashMap<String, Object> member;
 
 	protected T(final String name) {
 		this.name = name;
@@ -471,10 +467,10 @@ public abstract class T {
 	public F getF(final String name, final T valueT) {
 		// Unique identifier is: "name + descriptor" ({@link F})
 		final String handle = name + ":" + valueT.getName();
-		F f = (F) this.member.get(handle);
+		F f = (F) getMember().get(handle);
 		if (f == null) {
 			f = new F(this, name, valueT);
-			this.member.put(handle, f);
+			getMember().put(handle, f);
 		}
 		return f;
 	}
@@ -531,12 +527,19 @@ public abstract class T {
 	 */
 	public M getM(final String name, final String descriptor) {
 		final String handle = name + descriptor;
-		M m = (M) this.member.get(handle);
+		M m = (M) getMember().get(handle);
 		if (m == null) {
 			m = new M(this, name, descriptor);
-			this.member.put(handle, m);
+			getMember().put(handle, m);
 		}
 		return m;
+	}
+
+	protected HashMap<String, Object> getMember() {
+		if (this.member == null) {
+			this.member = new HashMap<String, Object>();
+		}
+		return this.member;
 	}
 
 	/**
