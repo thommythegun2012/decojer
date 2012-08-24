@@ -284,11 +284,11 @@ public abstract class T {
 			return getT(kind);
 		}
 
-		assert t1.getDu() != null;
-
 		if (t1.isAssignableFrom(t2)) {
 			return t1;
 		}
+
+		assert t1.getDu() != null; // t1 could be a REF (PUSH null)
 
 		T superT = null;
 		// find common supertypes, raise in t-hierarchy till assignable from this
