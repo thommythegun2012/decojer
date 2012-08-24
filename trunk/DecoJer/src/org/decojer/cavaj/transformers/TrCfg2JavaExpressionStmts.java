@@ -512,6 +512,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final int value = cop.getValue();
 
 				if (bb.getTop() == 0) {
+					// TODO could be inline at begin!
 					if (value == 1 || value == -1) {
 						final PrefixExpression prefixExpression = getAst().newPrefixExpression();
 						prefixExpression
@@ -521,14 +522,17 @@ public final class TrCfg2JavaExpressionStmts {
 						prefixExpression.setOperand(getAst().newSimpleName(name));
 						statement = getAst().newExpressionStatement(prefixExpression);
 					} else {
-						LOGGER.warning("INC with value '" + value + "'!");
-						// TODO
+						final Assignment assignment = getAst().newAssignment();
+						assignment.setOperator(value >= 0 ? Assignment.Operator.PLUS_ASSIGN
+								: Assignment.Operator.MINUS_ASSIGN);
+						assignment.setRightHandSide(Types.convertLiteral(cop.getT(),
+								value >= 0 ? value : -value, this.cfg.getTd()));
+						statement = getAst().newExpressionStatement(assignment);
 					}
 				} else {
 					LOGGER.warning("Inline INC with value '" + value + "'!");
 					// TODO ... may be inline
 				}
-
 				break;
 			}
 			case INSTANCEOF: {
