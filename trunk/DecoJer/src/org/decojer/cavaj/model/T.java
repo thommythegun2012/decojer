@@ -682,7 +682,7 @@ public abstract class T {
 	/**
 	 * Is this type instance assignable from given type instance?
 	 * 
-	 * Attention: Doesn't work for primtives implicit conversion (byte 2 short 2 int, char 2 int).
+	 * Attention: Doesn't work for primitives implicit conversion (byte 2 short 2 int, char 2 int).
 	 * 
 	 * @param t
 	 *            type
@@ -691,7 +691,7 @@ public abstract class T {
 	 * @see Class#isAssignableFrom(Class)
 	 */
 	public boolean isAssignableFrom(final T t) {
-		if (this == t) {
+		if (this == t || t instanceof ParamT && this == ((ParamT) t).getGenericT()) {
 			return true;
 		}
 		if (t == null) {
@@ -712,15 +712,16 @@ public abstract class T {
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();
 			final T superT = iT.getSuperT();
-			if (superT == this || superT instanceof ParamT
-					&& ((ParamT) superT).getGenericT() == this) {
+			if (this == superT || superT instanceof ParamT
+					&& this == ((ParamT) superT).getGenericT()) {
 				return true;
 			}
 			if (null != superT) {
 				ts.add(superT);
 			}
 			for (final T interfaceT : iT.getInterfaceTs()) {
-				if (this == interfaceT) {
+				if (this == interfaceT || interfaceT instanceof ParamT
+						&& this == ((ParamT) interfaceT).getGenericT()) {
 					return true;
 				}
 				if (null != interfaceT) {

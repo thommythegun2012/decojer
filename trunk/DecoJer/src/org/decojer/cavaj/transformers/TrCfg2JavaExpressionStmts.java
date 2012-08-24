@@ -1500,13 +1500,13 @@ public final class TrCfg2JavaExpressionStmts {
 					.newSingleVariableDeclaration();
 			singleVariableDeclaration.setName(getAst().newSimpleName(name));
 			if (handlerTypes.length == 1) {
-				singleVariableDeclaration.setType(getAst().newSimpleType(
-						this.cfg.getTd().newTypeName(handlerTypes[0])));
+				singleVariableDeclaration.setType(Types.convertType(handlerTypes[0],
+						this.cfg.getTd()));
 			} else {
 				// Multi-Catch
 				final UnionType unionType = getAst().newUnionType();
 				for (final T t : handlerTypes) {
-					unionType.types().add(getAst().newSimpleType(this.cfg.getTd().newTypeName(t)));
+					unionType.types().add(Types.convertType(t, this.cfg.getTd()));
 				}
 				singleVariableDeclaration.setType(unionType);
 			}
