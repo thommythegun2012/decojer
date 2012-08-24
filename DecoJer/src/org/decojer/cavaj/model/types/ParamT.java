@@ -25,6 +25,7 @@ package org.decojer.cavaj.model.types;
 
 import lombok.Getter;
 
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
@@ -144,6 +145,11 @@ public final class ParamT extends T {
 	}
 
 	@Override
+	public DU getDu() {
+		return getGenericT().getDu();
+	}
+
+	@Override
 	public T[] getInterfaceTs() {
 		return getGenericT().getInterfaceTs();
 	}
@@ -155,7 +161,13 @@ public final class ParamT extends T {
 
 	@Override
 	public boolean isAssignableFrom(final T t) {
-		return getGenericT().isAssignableFrom(t); // TODO _and_ test args?!
+		if (super.isAssignableFrom(t)) {
+			return true;
+		}
+		if (t == null) {
+			return false;
+		}
+		return getGenericT().isAssignableFrom(t);
 	}
 
 	@Override

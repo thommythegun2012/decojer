@@ -77,7 +77,6 @@ public final class ArrayT extends T {
 
 	@Override
 	public boolean isAssignableFrom(final T t) {
-		// for t == REF, faster solution without this?!
 		if (super.isAssignableFrom(t)) {
 			return true;
 		}
