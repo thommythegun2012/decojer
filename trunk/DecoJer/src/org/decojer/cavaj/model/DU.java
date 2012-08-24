@@ -54,6 +54,7 @@ import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParamT.TypeArg;
+import org.decojer.cavaj.model.types.VarT;
 import org.decojer.cavaj.readers.AsmReader;
 import org.decojer.cavaj.readers.ClassReader;
 import org.decojer.cavaj.readers.DexReader;
@@ -380,7 +381,7 @@ public final class DU {
 			return getArrayT(parseT(s, c));
 		case 'T': {
 			final int pos = s.indexOf(';', c.pos);
-			final T t = new ClassT(s.substring(c.pos, pos), this); // TODO hmmm
+			final T t = new VarT(s.substring(c.pos, pos));
 			c.pos = pos + 1;
 			return t;
 		}

@@ -31,7 +31,7 @@ import org.decojer.cavaj.model.T;
 /**
  * Annotated type.
  * 
- * @since JVM 5, see JSR 308
+ * @since JVM 8, see JSR 308
  * 
  * @author André Pankraz
  */
