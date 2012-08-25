@@ -155,7 +155,7 @@ public enum AF {
 	/**
 	 * Is for field?
 	 * 
-	 * @return true - is for field
+	 * @return {@code true} - is for field
 	 */
 	public boolean isForField() {
 		return this.forField;
@@ -164,7 +164,7 @@ public enum AF {
 	/**
 	 * Is for method?
 	 * 
-	 * @return true - is for method
+	 * @return {@code true} - is for method
 	 */
 	public boolean isForMethod() {
 		return this.forMethod;
@@ -173,7 +173,7 @@ public enum AF {
 	/**
 	 * Is for type?
 	 * 
-	 * @return true - is for type
+	 * @return {@code true} - is for type
 	 */
 	public boolean isForType() {
 		return this.forType;

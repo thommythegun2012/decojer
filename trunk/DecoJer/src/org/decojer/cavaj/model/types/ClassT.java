@@ -128,7 +128,7 @@ public class ClassT extends T {
 	 * 
 	 * @param af
 	 *            access flag
-	 * @return true - is access flag
+	 * @return {@code true} - is access flag
 	 */
 	public boolean check(final AF af) {
 		if (this.accessFlags == 0) {
@@ -210,6 +210,16 @@ public class ClassT extends T {
 	@Override
 	public boolean isObject() {
 		return Object.class.getName().equals(getName());
+	}
+
+	@Override
+	public boolean isPrimitive() {
+		return false;
+	}
+
+	@Override
+	public boolean isRef() {
+		return true;
 	}
 
 	@Override

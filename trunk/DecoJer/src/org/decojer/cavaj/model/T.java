@@ -33,7 +33,6 @@ import lombok.Getter;
 import org.decojer.cavaj.model.types.BaseT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.Kind;
-import org.decojer.cavaj.model.types.ParamT;
 
 /**
  * Type.
@@ -502,18 +501,14 @@ public abstract class T {
 	 * @return interface types, not {@code null}
 	 * @see Class#getInterfaces()
 	 */
-	public T[] getInterfaceTs() {
-		return INTERFACES_NONE;
-	}
+	public abstract T[] getInterfaceTs();
 
 	/**
 	 * Get kind.
 	 * 
 	 * @return kind
 	 */
-	public int getKind() {
-		return Kind.REF.getKind(); // only base types can be different, overwrite in BaseT
-	}
+	public abstract int getKind();
 
 	/**
 	 * Get method.<br>
@@ -558,11 +553,20 @@ public abstract class T {
 	 * @return primary name
 	 */
 	public String getPName() {
-		if (this.name.startsWith("{")) {
-			return this.name;
+		if (getName().startsWith("{")) {
+			return getName();
 		}
-		final int pos = this.name.lastIndexOf('.');
-		return pos == -1 ? this.name : this.name.substring(pos + 1);
+		final int pos = getName().lastIndexOf('.');
+		return pos == -1 ? getName() : getName().substring(pos + 1);
+	}
+
+	/**
+	 * Get raw type for modifying types (annotation, parameterized, variable) or {@code this}.
+	 * 
+	 * @return raw type or {@code this}
+	 */
+	protected T getRawT() {
+		return this;
 	}
 
 	/**
@@ -599,9 +603,7 @@ public abstract class T {
 	 * @return super type, can be {@code null} for {@code Object} and primitives
 	 * @see Class#getSuperclass()
 	 */
-	public T getSuperT() {
-		return null;
-	}
+	public abstract T getSuperT();
 
 	/**
 	 * Get type declaration.
@@ -632,13 +634,13 @@ public abstract class T {
 	 * 
 	 * @param clazzes
 	 *            classes
-	 * @return true - type is of class
+	 * @return {@code true} - type is of class
 	 */
 	public boolean is(final Class<?>... clazzes) {
 		if (clazzes.length != 1) {
 			return false;
 		}
-		return this.name.equals(clazzes[0].getName());
+		return getName().equals(clazzes[0].getName());
 	}
 
 	/**
@@ -646,7 +648,7 @@ public abstract class T {
 	 * 
 	 * @param ts
 	 *            types
-	 * @return true - type is of types
+	 * @return {@code true} - type is of types
 	 */
 	public boolean is(final T... ts) {
 		if (isMulti()) {
@@ -673,7 +675,7 @@ public abstract class T {
 	/**
 	 * Is Array Type?
 	 * 
-	 * @return true - is Array Type
+	 * @return {@code true} - is Array Type
 	 */
 	public boolean isArray() {
 		return false; // overwrite in ArrayT
@@ -686,16 +688,16 @@ public abstract class T {
 	 * 
 	 * @param t
 	 *            type
-	 * @return true - is assignable
+	 * @return {@code true} - is assignable
 	 * 
 	 * @see Class#isAssignableFrom(Class)
 	 */
 	public boolean isAssignableFrom(final T t) {
-		if (this == t || t instanceof ParamT && this == ((ParamT) t).getGenericT()) {
-			return true;
-		}
 		if (t == null) {
 			return false;
+		}
+		if (this == t.getRawT()) {
+			return true;
 		}
 		final int kind = readKinds(t.getKind(), getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
@@ -712,34 +714,33 @@ public abstract class T {
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();
 			final T superT = iT.getSuperT();
-			if (this == superT || superT instanceof ParamT
-					&& this == ((ParamT) superT).getGenericT()) {
-				return true;
-			}
 			if (null != superT) {
+				if (this == superT.getRawT()) {
+					return true;
+				}
 				ts.add(superT);
 			}
 			for (final T interfaceT : iT.getInterfaceTs()) {
-				if (this == interfaceT || interfaceT instanceof ParamT
-						&& this == ((ParamT) interfaceT).getGenericT()) {
+				if (this == interfaceT.getRawT()) {
 					return true;
 				}
-				if (null != interfaceT) {
-					ts.add(interfaceT);
-				}
+				ts.add(interfaceT);
 			}
 		}
 		return false;
 	}
 
-	public boolean isInterface() {
-		return false;
-	}
+	/**
+	 * Is interface?
+	 * 
+	 * @return {@code true} - is interface
+	 */
+	public abstract boolean isInterface();
 
 	/**
 	 * Is multi type?
 	 * 
-	 * @return true - is multi type
+	 * @return {@code true} - is multi type
 	 */
 	public boolean isMulti() {
 		return false; // only base types can be multi types, overwrite in BaseT
@@ -748,61 +749,53 @@ public abstract class T {
 	/**
 	 * Is Object type?
 	 * 
-	 * @return true - is Object type
+	 * @return {@code true} - is Object type
 	 */
 	public boolean isObject() {
-		return false; // only Class Types can be Object type, overwrite in TD
+		return false; // only class types can be Object type, overwrite in ClassT
 	}
 
 	/**
 	 * Is primitive?
 	 * 
-	 * @return true - is primitive
+	 * @return {@code true} - is primitive
 	 */
-	public boolean isPrimitive() {
-		return false; // only Base Types can be Primitives, overwrite in BaseT
-	}
+	public abstract boolean isPrimitive();
 
 	/**
 	 * Is reference type (includes array type, parameterized type)?
 	 * 
-	 * @return true - is reference type
+	 * @return {@code true} - is reference type
 	 */
-	public boolean isRef() {
-		return true; // only base types can be none-refs, overwrite BaseT
-	}
+	public abstract boolean isRef();
 
 	/**
 	 * Is resolveable?
 	 * 
-	 * @return true - is resolveable
+	 * @return {@code true} - is resolveable
 	 */
-	public boolean isResolvable() {
-		return true; // only class types can be unresolveable, overwrite TD
-	}
+	public abstract boolean isResolvable();
 
 	/**
 	 * Is wide type?
 	 * 
-	 * @return true - is wide type
+	 * @return {@code true} - is wide type
 	 */
 	public boolean isWide() {
-		return false; // only base types can be wide, overwrite BaseT
+		return false; // only base types can be wide, overwrite in BaseT
 	}
 
 	/**
 	 * Read with given type. There are 3 possible outcomes: Cannot read with given type, which
-	 * returns _null_. Can read with given type and primitive multitype reduction, which returns the
-	 * reduced new type. Can read without reduction, which returns unmodified _this_.
+	 * returns {@code null}. Can read with given type and primitive multitype reduction, which
+	 * returns the reduced new type. Can read without reduction, which returns unmodified
+	 * {@code this}.
 	 * 
 	 * @param t
 	 *            read type
-	 * @return null or reduced type or this
+	 * @return {@code null} or reduced type or {@code this}
 	 */
 	public T read(final T t) {
-		if (this == t) {
-			return this;
-		}
 		if (t == null) {
 			return null;
 		}
@@ -810,7 +803,6 @@ public abstract class T {
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
-
 		if (t.isAssignableFrom(this)) {
 			return this;
 		}
@@ -820,7 +812,7 @@ public abstract class T {
 	@Override
 	public String toString() {
 		// getSimpleName() not possible, potentially needs unresolved attributes, e.g. enclosing
-		return this.name;
+		return getName();
 	}
 
 }

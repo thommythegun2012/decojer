@@ -25,7 +25,6 @@ package org.decojer.cavaj.model.types;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
@@ -35,7 +34,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public final class ParamT extends T {
+public final class ParamT extends ModT {
 
 	/**
 	 * Type argument.
@@ -118,12 +117,6 @@ public final class ParamT extends T {
 	}
 
 	/**
-	 * Generic type with matching type parameters.
-	 */
-	@Getter
-	private final T genericT;
-
-	/**
 	 * Type arguments for matching type parameters.
 	 */
 	@Getter
@@ -138,25 +131,18 @@ public final class ParamT extends T {
 	 *            type arguments for matching type parameters
 	 */
 	public ParamT(final T genericT, final TypeArg[] typeArgs) {
-		super(toString(genericT, typeArgs));
+		super(toString(genericT, typeArgs), genericT);
 
-		this.genericT = genericT;
 		this.typeArgs = typeArgs;
 	}
 
-	@Override
-	public DU getDu() {
-		return getGenericT().getDu();
-	}
-
-	@Override
-	public T[] getInterfaceTs() {
-		return getGenericT().getInterfaceTs();
-	}
-
-	@Override
-	public T getSuperT() {
-		return getGenericT().getSuperT();
+	/**
+	 * Get generic type.
+	 * 
+	 * @return generic type
+	 */
+	public T getGenericT() {
+		return getRawT();
 	}
 
 	@Override
@@ -167,12 +153,7 @@ public final class ParamT extends T {
 		if (t == null) {
 			return false;
 		}
-		return getGenericT().isAssignableFrom(t);
-	}
-
-	@Override
-	public boolean isResolvable() {
-		return getGenericT().isResolvable();
+		return getRawT().isAssignableFrom(t);
 	}
 
 }

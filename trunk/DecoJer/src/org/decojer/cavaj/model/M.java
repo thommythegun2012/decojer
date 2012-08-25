@@ -93,7 +93,7 @@ public class M {
 	 * 
 	 * @param af
 	 *            access flag
-	 * @return true - is access flag
+	 * @return {@code true} - is access flag
 	 */
 	public boolean check(final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;

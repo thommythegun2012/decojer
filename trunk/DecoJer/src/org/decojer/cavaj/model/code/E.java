@@ -65,7 +65,7 @@ public final class E {
 	/**
 	 * Is back edge?
 	 * 
-	 * @return true - is back edge
+	 * @return {@code true} - is back edge
 	 */
 	public boolean isBack() {
 		// equal: check self back edge too
@@ -75,7 +75,7 @@ public final class E {
 	/**
 	 * Is catch?
 	 * 
-	 * @return true - is catch
+	 * @return {@code true} - is catch
 	 */
 	public boolean isCatch() {
 		return this.value instanceof T[];
@@ -84,7 +84,7 @@ public final class E {
 	/**
 	 * Is conditional?
 	 * 
-	 * @return true - is conditional
+	 * @return {@code true} - is conditional
 	 */
 	public boolean isCond() {
 		return this.value instanceof Boolean;
@@ -93,7 +93,7 @@ public final class E {
 	/**
 	 * Is switch case?
 	 * 
-	 * @return true - is switch case
+	 * @return {@code true} - is switch case
 	 */
 	public boolean isSwitch() {
 		return this.value instanceof Integer[];

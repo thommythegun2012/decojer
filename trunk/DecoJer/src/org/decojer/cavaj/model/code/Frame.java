@@ -210,7 +210,7 @@ public final class Frame {
 	 * 
 	 * @param sub
 	 *            subroutine
-	 * @return true - success (found in stack, removed)
+	 * @return {@code true} - success (found in stack, removed)
 	 */
 	public boolean popSub(final Sub sub) {
 		if (this.subs == null) {
@@ -252,7 +252,7 @@ public final class Frame {
 	 * 
 	 * @param sub
 	 *            subroutine
-	 * @return true - success (not in stack, added)
+	 * @return {@code true} - success (not in stack, added)
 	 */
 	public boolean pushSub(final Sub sub) {
 		if (this.subs == null) {

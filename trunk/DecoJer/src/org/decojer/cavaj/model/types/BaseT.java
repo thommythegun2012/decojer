@@ -52,6 +52,11 @@ public class BaseT extends T {
 	}
 
 	@Override
+	public T[] getInterfaceTs() {
+		return INTERFACES_NONE;
+	}
+
+	@Override
 	public int getStackSize() {
 		if (this.kind == Kind.VOID.getKind()) {
 			return 0;
@@ -60,11 +65,20 @@ public class BaseT extends T {
 	}
 
 	@Override
+	public T getSuperT() {
+		return null;
+	}
+
+	@Override
+	public boolean isInterface() {
+		return false;
+	}
+
+	@Override
 	public boolean isMulti() {
 		int nr = getKind() - (getKind() >> 1 & 0x55555555);
 		nr = (nr & 0x33333333) + (nr >> 2 & 0x33333333);
 		nr = (nr + (nr >> 4) & 0x0F0F0F0F) * 0x01010101 >> 24;
-
 		assert nr > 0;
 
 		return nr > 1;
@@ -72,7 +86,7 @@ public class BaseT extends T {
 
 	@Override
 	public boolean isPrimitive() {
-		// not always true - consider REF/RET multitypes
+		// not always {@code true} - consider REF/RET multitypes
 		return (getKind() & PRIMITIVE.getKind()) != 0;
 	}
 
@@ -82,10 +96,15 @@ public class BaseT extends T {
 		return (getKind() & REF.getKind()) != 0;
 	}
 
+	@Override
+	public boolean isResolvable() {
+		return true;
+	}
+
 	/**
 	 * Is wide type?
 	 * 
-	 * @return true - is wide type
+	 * @return {@code true} - is wide type
 	 */
 	@Override
 	public boolean isWide() {

@@ -288,7 +288,7 @@ public class TrInnerClassesAnalysis {
 	 * 
 	 * @param td
 	 *            type declaration
-	 * @return true - is enum switch mal inner
+	 * @return {@code true} - is enum switch mal inner
 	 */
 	private static boolean isEnumSwitchMap(final TD td) {
 		for (final BD bd : td.getBds()) {

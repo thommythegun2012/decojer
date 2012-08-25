@@ -129,7 +129,7 @@ public final class Exc {
 	 * 
 	 * @param pc
 	 *            pc
-	 * @return true - variable valid for pc
+	 * @return {@code true} - variable valid for pc
 	 */
 	public boolean validIn(final int pc) {
 		// JVM Spec: "The start_pc is inclusive and end_pc is exclusive":

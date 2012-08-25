@@ -23,92 +23,73 @@
  */
 package org.decojer.cavaj.model.types;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
- * Array type.
+ * Modifying type.
  * 
  * @author André Pankraz
  */
-@Getter
-public final class ArrayT extends T {
+public abstract class ModT extends T {
 
-	/**
-	 * Component type (could be an array type too, has one dimension less).
-	 */
-	@Getter
-	private final T componentT;
+	@Getter(value = AccessLevel.PROTECTED)
+	// for VarT lazy resolving:
+	@Setter(value = AccessLevel.PROTECTED)
+	private T rawT;
 
-	@Getter
-	private final DU du;
+	protected ModT(final String name, final T rawT) {
+		super(name);
+		this.rawT = rawT;
+	}
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param du
-	 *            decompilation unit
-	 * @param componentT
-	 *            component type
-	 */
-	public ArrayT(final DU du, final T componentT) {
-		super(componentT.getName() + "[]");
-
-		this.componentT = componentT;
-		this.du = du;
+	@Override
+	public DU getDu() {
+		return getRawT().getDu();
 	}
 
 	@Override
 	public T[] getInterfaceTs() {
-		return getDu().getArrayInterfaceTs();
+		return getRawT().getInterfaceTs();
 	}
 
 	@Override
 	public int getKind() {
-		return Kind.REF.getKind();
+		return getRawT().getKind();
 	}
 
 	@Override
 	public T getSuperT() {
-		return getDu().getT(Object.class);
-	}
-
-	@Override
-	public boolean isArray() {
-		return true;
+		return getRawT().getSuperT();
 	}
 
 	@Override
 	public boolean isAssignableFrom(final T t) {
-		if (super.isAssignableFrom(t)) {
-			return true;
-		}
-		if (t == null) {
-			return false;
-		}
-		return getComponentT().isAssignableFrom(t.getComponentT()); // assign from null is false
+		return getRawT().isAssignableFrom(t);
 	}
 
 	@Override
 	public boolean isInterface() {
-		return false;
+		return getRawT().isInterface();
 	}
 
 	@Override
 	public boolean isPrimitive() {
-		return false;
+		return getRawT().isPrimitive();
 	}
 
 	@Override
 	public boolean isRef() {
-		return true;
+		return getRawT().isRef();
 	}
 
 	@Override
 	public boolean isResolvable() {
-		return getComponentT().isResolvable();
+		return getRawT().isResolvable();
 	}
 
 }

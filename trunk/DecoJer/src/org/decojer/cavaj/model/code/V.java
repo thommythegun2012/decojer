@@ -109,7 +109,7 @@ public final class V {
 	 * 
 	 * @param t
 	 *            type
-	 * @return true - changed
+	 * @return {@code true} - changed
 	 */
 	public boolean cmpSetT(final T t) {
 		if (this.t == t) {
@@ -144,7 +144,7 @@ public final class V {
 	 * 
 	 * @param pc
 	 *            pc
-	 * @return true - variable valid for pc
+	 * @return {@code true} - variable valid for pc
 	 */
 	public boolean validIn(final int pc) {
 		for (int i = 0; i < this.pcs.length;) {

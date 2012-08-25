@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class VarT extends T {
+public class VarT extends ModT {
 
 	/**
 	 * Constructor.
@@ -38,8 +38,8 @@ public class VarT extends T {
 	 * @param name
 	 *            type name
 	 */
-	public VarT(final String name) {
-		super(name);
+	public VarT(final String name, /* TODO */final T t) {
+		super(name, t);
 	}
 
 }
