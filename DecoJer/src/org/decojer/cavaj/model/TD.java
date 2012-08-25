@@ -107,7 +107,7 @@ public final class TD extends BD {
 	 * 
 	 * @param af
 	 *            access flag
-	 * @return true - is access flag
+	 * @return {@code true} - is access flag
 	 */
 	public boolean check(final AF af) {
 		return this.t.check(af);
@@ -269,7 +269,7 @@ public final class TD extends BD {
 	/**
 	 * Is Dalvik?
 	 * 
-	 * @return true - is Dalvik
+	 * @return {@code true} - is Dalvik
 	 */
 	public boolean isDalvik() {
 		return this.version == 0;

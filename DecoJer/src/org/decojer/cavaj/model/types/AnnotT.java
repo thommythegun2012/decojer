@@ -35,7 +35,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class AnnotT extends T {
+public class AnnotT extends ModT {
 
 	private static String toString(final T t, final A[] as) {
 		final StringBuilder sb = new StringBuilder(t.getName());
@@ -44,12 +44,6 @@ public class AnnotT extends T {
 		}
 		return sb.substring(0, sb.length() - 1);
 	}
-
-	/**
-	 * Type.
-	 */
-	@Getter
-	private final T t;
 
 	/**
 	 * Type annotations.
@@ -66,9 +60,8 @@ public class AnnotT extends T {
 	 *            type annotations
 	 */
 	public AnnotT(final T t, final A[] as) {
-		super(toString(t, as));
+		super(toString(t, as), t);
 
-		this.t = t;
 		this.as = as;
 	}
 

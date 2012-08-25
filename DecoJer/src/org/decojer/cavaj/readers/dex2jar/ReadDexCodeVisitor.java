@@ -434,12 +434,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 				LOGGER.warning("Unknown operation return type '" + xt
 						+ "'! Using method return type '" + t + "'.");
 			}
-			if (!t.isAssignableFrom(this.md.getReturnT())) {
-				LOGGER.warning("Incompatible operation return type '" + t
-						+ "' for method return type '" + this.md.getReturnT() + "'!");
-			}
-			t = this.md.getReturnT();
-
+			// cannot check assignable here...variable types could be unresolved
 			this.ops.add(new LOAD(this.ops.size(), opcode, this.line, t, reg));
 
 			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, t));

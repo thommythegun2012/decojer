@@ -381,7 +381,7 @@ public final class DU {
 			return getArrayT(parseT(s, c));
 		case 'T': {
 			final int pos = s.indexOf(';', c.pos);
-			final T t = new VarT(s.substring(c.pos, pos));
+			final T t = new VarT(s.substring(c.pos, pos), getT(Object.class));
 			c.pos = pos + 1;
 			return t;
 		}

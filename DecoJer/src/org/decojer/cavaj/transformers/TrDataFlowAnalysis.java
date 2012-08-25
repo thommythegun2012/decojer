@@ -549,11 +549,12 @@ public final class TrDataFlowAnalysis {
 		case RETURN: {
 			final RETURN cop = (RETURN) op;
 
-			// don't need op type here, could check, but why should we...
-			final T returnT = cop.getT();
+			final T returnT = this.cfg.getMd().getReturnT();
 
-			assert returnT == this.cfg.getMd().getReturnT();
-
+			if (!cop.getT().isAssignableFrom(returnT)) {
+				LOGGER.warning("Incompatible operation return type '" + cop.getT()
+						+ "' for method return type '" + returnT + "'!");
+			}
 			if (returnT != T.VOID) {
 				pop(returnT, true); // just read type reduction
 			}

@@ -214,7 +214,7 @@ public final class AnnotationsDecompiler {
 	 * 
 	 * @param as
 	 *            Annotations
-	 * @return true - Annotations contain the Deprecated Annotation
+	 * @return {@code true} - Annotations contain the Deprecated Annotation
 	 */
 	public static boolean isDeprecatedAnnotation(final A[] as) {
 		if (as != null) {

@@ -369,7 +369,7 @@ public final class BB {
 	 * 
 	 * @param op
 	 *            operation
-	 * @return true - BB has necessary stack size
+	 * @return {@code true} - BB has necessary stack size
 	 */
 	public boolean hasStackSizeFor(final Op op) {
 		return op.getInStackSize() - this.cfg.getInFrame(op).wideStacks(op.getInStackSize()) <= getTop();
@@ -378,7 +378,7 @@ public final class BB {
 	/**
 	 * Is final statement conditional (IfStatement)?
 	 * 
-	 * @return true - final statement is conditional
+	 * @return {@code true} - final statement is conditional
 	 */
 	public boolean isFinalStmtCond() {
 		return this.stmts.isEmpty() ? false
@@ -388,7 +388,7 @@ public final class BB {
 	/**
 	 * Is final statement switch (SwitchStatement)?
 	 * 
-	 * @return true - final statement is switch
+	 * @return {@code true} - final statement is switch
 	 */
 	public boolean isFinalStmtSwitch() {
 		return this.stmts.isEmpty() ? false
@@ -398,7 +398,7 @@ public final class BB {
 	/**
 	 * Is BB an exception handler?
 	 * 
-	 * @return true - BB is an exception handler
+	 * @return {@code true} - BB is an exception handler
 	 */
 	public boolean isHandler() {
 		for (final E in : this.ins) {

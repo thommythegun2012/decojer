@@ -354,7 +354,7 @@ public final class CFG {
 	/**
 	 * Are frames initialized?
 	 * 
-	 * @return true - frames are initialized
+	 * @return {@code true} - frames are initialized
 	 */
 	public boolean isFrames() {
 		return this.frames != null;
@@ -363,7 +363,7 @@ public final class CFG {
 	/**
 	 * Should transformer ignore this?
 	 * 
-	 * @return true - ignore this
+	 * @return {@code true} - ignore this
 	 */
 	public boolean isIgnore() {
 		return this.error || this.ops == null || this.ops.length == 0 || this.block == null;

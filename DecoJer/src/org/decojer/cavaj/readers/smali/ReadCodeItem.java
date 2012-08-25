@@ -1937,15 +1937,9 @@ public class ReadCodeItem {
 					t = T.WIDE;
 				}
 				{
-					if (t == null || !t.isAssignableFrom(md.getReturnT())) {
-						LOGGER.warning("Incompatible operation return type '" + t
-								+ "' for method return type '" + md.getReturnT() + "'!");
-					}
-					t = md.getReturnT();
-
 					// return A
 					final Instruction11x instr = (Instruction11x) instruction;
-
+					// cannot check assignable here...variable types could be unresolved
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
 					this.ops.add(new RETURN(this.ops.size(), opcode, line, t));

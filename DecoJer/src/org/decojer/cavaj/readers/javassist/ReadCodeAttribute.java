@@ -1261,11 +1261,8 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.VOID;
 				}
-				if (t == null || !t.isAssignableFrom(md.getReturnT())) {
-					LOGGER.warning("Incompatible operation return type '" + t
-							+ "' for method return type '" + md.getReturnT() + "'!");
-				}
-				this.ops.add(new RETURN(this.ops.size(), opcode, line, md.getReturnT()));
+				// cannot check assignable here...variable types could be unresolved
+				this.ops.add(new RETURN(this.ops.size(), opcode, line, t));
 				break;
 			/*********
 			 * STORE *

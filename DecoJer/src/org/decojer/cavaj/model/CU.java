@@ -82,7 +82,7 @@ public final class CU extends D {
 	 * 
 	 * @param dFlag
 	 *            decompile flag
-	 * @return true - decompile flag is active
+	 * @return {@code true} - decompile flag is active
 	 */
 	public boolean check(final DFlag dFlag) {
 		return this.dFlags.contains(dFlag);

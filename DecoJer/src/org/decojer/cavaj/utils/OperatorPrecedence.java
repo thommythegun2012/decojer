@@ -76,7 +76,7 @@ public final class OperatorPrecedence {
 	 * 
 	 * @param priority
 	 *            priority class
-	 * @return true - is left associative
+	 * @return {@code true} - is left associative
 	 */
 	public static boolean isLeftAssoc(final int priority) {
 		return IS_LEFT_ASSOC[priority];

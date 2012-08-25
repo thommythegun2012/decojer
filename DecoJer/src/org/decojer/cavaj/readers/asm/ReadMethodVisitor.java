@@ -843,11 +843,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.VOID;
 			}
-			if (!t.isAssignableFrom(this.md.getReturnT())) {
-				LOGGER.warning("Incompatible operation return type '" + t
-						+ "' for method return type '" + this.md.getReturnT() + "'!");
-			}
-			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, this.md.getReturnT()));
+			// cannot check assignable here...variable types could be unresolved
+			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, t));
 			break;
 		/*******
 		 * SHL *

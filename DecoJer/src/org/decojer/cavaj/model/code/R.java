@@ -170,7 +170,7 @@ public final class R {
 	 * 
 	 * @param t
 	 *            type
-	 * @return true - is assignable
+	 * @return {@code true} - is assignable
 	 */
 	public boolean isAssignableTo(final T t) {
 		return this.t.read(t) != null;
@@ -203,7 +203,7 @@ public final class R {
 	 * 
 	 * @param t
 	 *            type
-	 * @return true - success
+	 * @return {@code true} - success
 	 */
 	public boolean read(final T t) {
 		final T reducedT = this.t.read(t);
