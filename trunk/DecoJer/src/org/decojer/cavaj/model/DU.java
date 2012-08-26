@@ -32,7 +32,6 @@ import java.io.PushbackInputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -63,6 +62,8 @@ import org.decojer.cavaj.transformers.TrInnerClassesAnalysis;
 import org.decojer.cavaj.utils.Cursor;
 import org.decojer.cavaj.utils.MagicNumbers;
 
+import com.google.common.base.Charsets;
+
 /**
  * Decompilation unit.
  * 
@@ -73,8 +74,6 @@ import org.decojer.cavaj.utils.MagicNumbers;
 public final class DU {
 
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
-
-	private static final Charset UTF8 = Charset.forName("utf-8");
 
 	/**
 	 * Get parameterized type for generic type and type arguments.
@@ -158,7 +157,7 @@ public final class DU {
 				}
 				final ZipEntry zipEntry = new ZipEntry(zipEntryName);
 				zip.putNextEntry(zipEntry);
-				zip.write(source.getBytes(UTF8));
+				zip.write(source.getBytes(Charsets.UTF_8));
 			} catch (final Throwable t) {
 				LOGGER.log(Level.WARNING, "Decompilation problems for '" + cu + "'!", t);
 			} finally {

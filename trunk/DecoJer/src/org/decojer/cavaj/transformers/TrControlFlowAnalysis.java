@@ -83,7 +83,8 @@ public final class TrControlFlowAnalysis {
 			}
 			// not from succ, follow doesn't know
 			if (struct != null) {
-				if (struct instanceof Loop && ((Loop) struct).isLast(succ)) {
+				if (struct instanceof Loop && ((Loop) struct).isPost()
+						&& ((Loop) struct).isLast(succ)) {
 					// TODO handle post loop continue
 					continue;
 				}
@@ -106,11 +107,9 @@ public final class TrControlFlowAnalysis {
 		for (final E out : bb.getOuts()) {
 			if (out.isBack()) {
 				// back edge (continue, tail, inner loop, outer label-continue)
-				if (out.getEnd() != loop.getHead()) {
-					// unimportant back edge (inner loop, outer label-continue)
-					continue;
+				if (out.getEnd() == loop.getHead()) {
+					backEdge = true;
 				}
-				backEdge = true;
 				// don't track this edge any further
 				continue;
 			}
@@ -119,12 +118,11 @@ public final class TrControlFlowAnalysis {
 				loopSucc = true;
 				continue;
 			}
-			if (traversed.contains(succ)) {
-				continue;
-			}
-			// DFS
-			if (dfsFindInnerLoopMembers(loop, succ, traversed)) {
-				loopSucc = true;
+			if (!traversed.contains(succ)) {
+				// DFS
+				if (dfsFindInnerLoopMembers(loop, succ, traversed)) {
+					loopSucc = true;
+				}
 			}
 		}
 		if (loopSucc) {
@@ -199,8 +197,8 @@ public final class TrControlFlowAnalysis {
 		this.cfg = cfg;
 	}
 
-	private void findCondMembers(final Cond cond) {
-		final BB head = cond.getHead();
+	private Cond createCondStruct(final BB head) {
+		final Cond cond = new Cond(head);
 
 		final BB falseSucc = head.getFalseSucc();
 		final BB trueSucc = head.getTrueSucc();
@@ -217,14 +215,14 @@ public final class TrControlFlowAnalysis {
 			// normal JDK continue-back-edge, only since JDK 5 (target-indepandant) compiler?
 			cond.setType(Cond.IF);
 			cond.setFollow(falseSucc);
-			return;
+			return cond;
 		}
 		if (falseSucc.getPostorder() >= head.getPostorder()) {
 			// no JDK, not really possible with normal JCND / JCMP conditionals
 			log("Unexpected unnegated direct continue-back-edge.");
 			cond.setType(Cond.IFNOT);
 			cond.setFollow(falseSucc);
-			return;
+			return cond;
 		}
 
 		final boolean negated = falseSucc.getOrder() < trueSucc.getOrder();
@@ -245,7 +243,7 @@ public final class TrControlFlowAnalysis {
 				cond.addMember(firstValue, bb);
 			}
 			cond.setFollow(secondSucc);
-			return;
+			return cond;
 		}
 
 		// TODO only a trick for now, not ready!!!
@@ -257,7 +255,7 @@ public final class TrControlFlowAnalysis {
 				cond.addMember(firstValue, bb);
 			}
 			cond.setFollow(secondSucc);
-			return;
+			return cond;
 		}
 
 		final List<BB> secondMembers = new ArrayList<BB>();
@@ -272,7 +270,7 @@ public final class TrControlFlowAnalysis {
 				cond.addMember(secondValue, bb);
 			}
 			cond.setFollow(firstSucc);
-			return;
+			return cond;
 		}
 
 		// end nodes are follows or breaks, no continues, returns, throws
@@ -302,14 +300,15 @@ public final class TrControlFlowAnalysis {
 			// normal stuff
 			cond.setFollow(firstEndNode);
 			cond.setType(negated ? Cond.IFNOT_ELSE : Cond.IF_ELSE);
-			return;
+			return cond;
 		}
 		// only if unrelated conditional tails???
 		log("Unknown struct, no common follow for:\n" + cond);
+		return cond;
 	}
 
-	private void findLoopMembers(final Loop loop) {
-		final BB head = loop.getHead();
+	private Loop createLoopStruct(final BB head) {
+		final Loop loop = new Loop(head);
 
 		dfsFindInnerLoopMembers(loop, head, new HashSet<BB>());
 
@@ -359,12 +358,12 @@ public final class TrControlFlowAnalysis {
 		if (headType > 0 && tailType == 0) {
 			loop.setType(headType);
 			loop.setFollow(headFollow);
-			return;
+			return loop;
 		}
 		if (headType == 0 && tailType > 0) {
 			loop.setType(tailType);
 			loop.setFollow(tailFollow);
-			return;
+			return loop;
 		}
 		if (headType > 0 && tailType > 0) {
 			final List<BB> headMembers = new ArrayList<BB>();
@@ -373,7 +372,7 @@ public final class TrControlFlowAnalysis {
 			if (headEndNodes.contains(tailFollow)) {
 				loop.setType(tailType);
 				loop.setFollow(tailFollow);
-				return;
+				return loop;
 			}
 			final List<BB> tailMembers = new ArrayList<BB>();
 			final Set<BB> tailEndNodes = new HashSet<BB>();
@@ -381,14 +380,15 @@ public final class TrControlFlowAnalysis {
 			if (tailEndNodes.contains(headFollow)) {
 				loop.setType(headType);
 				loop.setFollow(headFollow);
-				return;
+				return loop;
 			}
 		}
 		loop.setType(Loop.ENDLESS);
+		return loop;
 	}
 
-	private void findSwitchMembers(final Switch switchStruct) {
-		final BB head = switchStruct.getHead();
+	private Switch createSwitchStruct(final BB head) {
+		final Switch switchStruct = new Switch(head);
 
 		// cases with branches and values, in normal mode in correct order
 		final List<E> outs = head.getSwitchOuts();
@@ -414,12 +414,12 @@ public final class TrControlFlowAnalysis {
 		}
 		if (defaultIndex == -1) {
 			log("Switch with head '" + head + "' has no default branch!");
-			return;
+			return switchStruct;
 		}
 		if (firstIndex == -1) {
 			log("Switch with head '" + head
 					+ "' has no case branch with 1 predecessor, necessary for first case!");
-			return;
+			return switchStruct;
 		} else if (firstIndex != 0) {
 			log("Switch with head '" + head
 					+ "' has no first case branch with 1 predecessor, reordering!");
@@ -482,6 +482,7 @@ public final class TrControlFlowAnalysis {
 			}
 			switchStruct.setFollow(switchEndNode);
 		}
+		return switchStruct;
 	}
 
 	private void log(final String message) {
@@ -500,21 +501,17 @@ public final class TrControlFlowAnalysis {
 
 			// check loop first, could be a post / endless loop with additional sub struct heads
 			if (isLoopHead(bb)) {
-				final Loop loop = new Loop(bb);
-				findLoopMembers(loop);
-				if (loop.getType() == Loop.WHILE || loop.getType() == Loop.WHILENOT) {
+				if (createLoopStruct(bb).isPre()) {
 					// no additional struct head possible
 					continue;
 				}
 			}
 			if (isSwitchHead(bb)) {
-				final Switch switchStruct = new Switch(bb);
-				findSwitchMembers(switchStruct);
+				createSwitchStruct(bb);
 				continue;
 			}
 			if (isCondHead(bb)) {
-				final Cond cond = new Cond(bb);
-				findCondMembers(cond);
+				createCondStruct(bb);
 				continue;
 			}
 		}
