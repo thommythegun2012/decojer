@@ -210,7 +210,7 @@ public final class DU {
 	 * @return type
 	 */
 	public T getDescT(final String desc) {
-		return parseT(desc, new Cursor());
+		return parseT(desc, new Cursor(), null);
 	}
 
 	/**
@@ -288,7 +288,20 @@ public final class DU {
 		return this.ts.values();
 	}
 
-	private T parseClassT(final String s, final Cursor c, final T parentT) {
+	/**
+	 * Parse class type.
+	 * 
+	 * @param s
+	 *            descriptor / signature
+	 * @param c
+	 *            cursor
+	 * @param parentT
+	 *            parent type??? TODO
+	 * @param enclosing
+	 *            enclosing type context
+	 * @return class type
+	 */
+	private T parseClassT(final String s, final Cursor c, final T parentT, final Object enclosing) {
 		// PackageSpecifier_opt SimpleClassTypeSignature ClassTypeSignatureSuffix_*
 		final int start = c.pos;
 		char ch;
@@ -303,7 +316,7 @@ public final class DU {
 		} else {
 			t = getT(s.substring(start, c.pos));
 		}
-		final TypeArg[] typeArgs = parseTypeArgs(s, c);
+		final TypeArg[] typeArgs = parseTypeArgs(s, c, enclosing);
 		if (typeArgs != null) {
 			t = getParamT(t, typeArgs);
 			// ClassTypeSignatureSuffix_*
@@ -311,7 +324,7 @@ public final class DU {
 			// Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;
 			while (s.charAt(c.pos) == '.') {
 				++c.pos;
-				t = parseClassT(s, c, t);
+				t = parseClassT(s, c, t, enclosing);
 			}
 		}
 		return t;
@@ -324,14 +337,16 @@ public final class DU {
 	 *            signature
 	 * @param c
 	 *            cursor
+	 * @param enclosing
+	 *            enclosing type context
 	 * @return method parameter types
 	 */
-	public T[] parseMethodParamTs(final String s, final Cursor c) {
+	public T[] parseMethodParamTs(final String s, final Cursor c, final Object enclosing) {
 		assert s.charAt(c.pos) == '(' : s.charAt(c.pos);
 		++c.pos;
 		final ArrayList<T> ts = new ArrayList<T>();
 		while (s.charAt(c.pos) != ')') {
-			ts.add(parseT(s, c));
+			ts.add(parseT(s, c, enclosing));
 		}
 		++c.pos;
 		return ts.toArray(new T[ts.size()]);
@@ -344,9 +359,11 @@ public final class DU {
 	 *            signature
 	 * @param c
 	 *            cursor
+	 * @param enclosing
+	 *            enclosing type context
 	 * @return type or {@code null} for signature end
 	 */
-	public T parseT(final String s, final Cursor c) {
+	public T parseT(final String s, final Cursor c, final Object enclosing) {
 		if (s.length() <= c.pos) {
 			return null;
 		}
@@ -371,17 +388,17 @@ public final class DU {
 			return T.VOID;
 		case 'L': {
 			// ClassTypeSignature
-			final T t = parseClassT(s, c, null);
+			final T t = parseClassT(s, c, null, enclosing);
 			assert s.charAt(c.pos) == ';' : s.charAt(c.pos);
 			++c.pos;
 			return t;
 		}
 		case '[':
 			// ArrayTypeSignature
-			return getArrayT(parseT(s, c));
+			return getArrayT(parseT(s, c, enclosing));
 		case 'T': {
 			final int pos = s.indexOf(';', c.pos);
-			final T t = new VarT(s.substring(c.pos, pos), getT(Object.class));
+			final T t = new VarT(s.substring(c.pos, pos));
 			c.pos = pos + 1;
 			return t;
 		}
@@ -400,9 +417,11 @@ public final class DU {
 	 *            signature
 	 * @param c
 	 *            cursor
+	 * @param enclosing
+	 *            enclosing type context
 	 * @return type arguments or {@code null}
 	 */
-	private TypeArg[] parseTypeArgs(final String s, final Cursor c) {
+	private TypeArg[] parseTypeArgs(final String s, final Cursor c, final Object enclosing) {
 		// TypeArguments_opt
 		if (s.charAt(c.pos) != '<') {
 			return null;
@@ -414,18 +433,18 @@ public final class DU {
 			switch (ch) {
 			case '+':
 				++c.pos;
-				ts.add(TypeArg.subclassOf(parseT(s, c)));
+				ts.add(TypeArg.subclassOf(parseT(s, c, enclosing)));
 				break;
 			case '-':
 				++c.pos;
-				ts.add(TypeArg.superOf(parseT(s, c)));
+				ts.add(TypeArg.superOf(parseT(s, c, enclosing)));
 				break;
 			case '*':
 				++c.pos;
 				ts.add(new TypeArg());
 				break;
 			default:
-				ts.add(new TypeArg(parseT(s, c)));
+				ts.add(new TypeArg(parseT(s, c, enclosing)));
 			}
 		}
 		++c.pos;
@@ -439,9 +458,11 @@ public final class DU {
 	 *            signature
 	 * @param c
 	 *            cursor
+	 * @param enclosing
+	 *            enclosing type context
 	 * @return type parameters or {@code null}
 	 */
-	public T[] parseTypeParams(final String s, final Cursor c) {
+	public T[] parseTypeParams(final String s, final Cursor c, final Object enclosing) {
 		// TypeParams_opt
 		if (s.charAt(c.pos) != '<') {
 			return null; // optional
@@ -454,7 +475,7 @@ public final class DU {
 			final ClassT typeParam = new ClassT(s.substring(c.pos, pos), this);
 			c.pos = pos + 1;
 			if (s.charAt(c.pos) != ':') {
-				typeParam.setSuperT(parseT(s, c));
+				typeParam.setSuperT(parseT(s, c, enclosing));
 			} else {
 				typeParam.setSuperT(getT(Object.class));
 			}
@@ -462,7 +483,7 @@ public final class DU {
 				final ArrayList<T> interfaceTs = new ArrayList<T>();
 				do {
 					++c.pos;
-					interfaceTs.add(parseT(s, c));
+					interfaceTs.add(parseT(s, c, enclosing));
 				} while (s.charAt(c.pos) == ':');
 				typeParam.setInterfaceTs(interfaceTs.toArray(new T[interfaceTs.size()]));
 			}

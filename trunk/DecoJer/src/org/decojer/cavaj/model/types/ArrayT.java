@@ -88,7 +88,7 @@ public final class ArrayT extends T {
 		if (t == null) {
 			return false;
 		}
-		return getComponentT().isAssignableFrom(t.getComponentT()); // assign from null is false
+		return this.componentT.isAssignableFrom(t.getComponentT()); // assign from null is false
 	}
 
 	@Override
@@ -108,7 +108,15 @@ public final class ArrayT extends T {
 
 	@Override
 	public boolean isResolvable() {
-		return getComponentT().isResolvable();
+		return this.componentT.isResolvable();
+	}
+
+	@Override
+	public T signatureExtend(final T reducedT) {
+		if (!reducedT.isArray()) {
+			return null;
+		}
+		return this.componentT.signatureExtend(reducedT.getComponentT()) != null ? this : null;
 	}
 
 }

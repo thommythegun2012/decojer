@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.logging.Logger;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -35,6 +37,8 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * @author André Pankraz
  */
 public final class FD extends BD {
+
+	private final static Logger LOGGER = Logger.getLogger(FD.class.getName());
 
 	@Getter
 	private final F f;
@@ -106,8 +110,13 @@ public final class FD extends BD {
 		}
 		this.signature = signature;
 
-		// TODO more checks for override:
-		this.f.setValueT(getTd().getDu().getDescT(signature));
+		final T valueT = getTd().getDu().getDescT(signature).signatureExtend(getValueT());
+		if (valueT == null) {
+			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getValue()
+					+ "' for field value: " + this);
+		} else {
+			this.f.setValueT(valueT);
+		}
 	}
 
 	@Override

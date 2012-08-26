@@ -85,7 +85,6 @@ public class ClassT extends T {
 	/**
 	 * Super type.
 	 */
-	@Setter
 	private T superT;
 
 	@Getter
@@ -375,7 +374,17 @@ public class ClassT extends T {
 		// but not: SUPER
 		this.accessFlags = accessFlags | this.accessFlags & AF.SUPER.getValue();
 		// don't really need this info (@see T#getInnerName()) for JVM >= 5
-		this.innerName = name == null ? "" : name;
+		this.innerName = name != null ? name : "";
+	}
+
+	/**
+	 * Set super type.
+	 * 
+	 * @param superT
+	 *            super type
+	 */
+	public void setSuperT(final T superT) {
+		this.superT = superT != null ? superT : NONE;
 	}
 
 }

@@ -84,8 +84,8 @@ public class M {
 		this.descriptor = descriptor;
 
 		final Cursor c = new Cursor();
-		this.paramTs = getT().getDu().parseMethodParamTs(descriptor, c);
-		this.returnT = getT().getDu().parseT(descriptor, c);
+		this.paramTs = getT().getDu().parseMethodParamTs(descriptor, c, this);
+		this.returnT = getT().getDu().parseT(descriptor, c, this);
 	}
 
 	/**

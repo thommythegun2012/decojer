@@ -315,6 +315,30 @@ public final class TD extends BD {
 	}
 
 	/**
+	 * Parse interface types from signature.
+	 * 
+	 * @param s
+	 *            signature
+	 * @param c
+	 *            cursor
+	 * @return interface types or {@code null}
+	 */
+	private T[] parseInterfaceTs(final String s, final Cursor c) {
+		if (c.pos >= s.length() || s.charAt(c.pos) != '^') {
+			return null;
+		}
+		final ArrayList<T> ts = new ArrayList<T>();
+		while (true) {
+			final T interfaceT = this.t.getDu().parseT(s, c, this.t);
+			if (interfaceT != null) {
+				break;
+			}
+			ts.add(interfaceT);
+		}
+		return ts.toArray(new T[ts.size()]);
+	}
+
+	/**
 	 * Resolve unfilled parameters.
 	 */
 	public void resolve() {
@@ -353,27 +377,30 @@ public final class TD extends BD {
 			return;
 		}
 		final Cursor c = new Cursor();
-		this.t.setTypeParams(getDu().parseTypeParams(signature, c));
+		this.t.setTypeParams(getDu().parseTypeParams(signature, c, this.t));
 
-		// TODO more checks for following overrides:
-		final T superT = getDu().parseT(signature, c);
-		if (superT != null) {
+		final T superT = getDu().parseT(signature, c, this.t).signatureExtend(getSuperT());
+		if (superT == null) {
+			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getSuperT()
+					+ "' for type super: " + this);
+		} else {
 			this.t.setSuperT(superT);
 		}
-		final ArrayList<T> interfaceTs = new ArrayList<T>();
-		while (true) {
-			final T interfaceT = getDu().parseT(signature, c);
-			if (interfaceT == null) {
-				break;
+		final T[] signInterfaceTs = parseInterfaceTs(signature, c);
+		if (signInterfaceTs != null) {
+			final T[] interfaceTs = getInterfaceTs();
+			if (interfaceTs.length != signInterfaceTs.length) {
+				LOGGER.info("Cannot reduce signature '" + signature
+						+ "' to types for type interfaces: " + this);
 			}
-			interfaceTs.add(interfaceT);
-		}
-		if (!interfaceTs.isEmpty()) {
-			if (this.t.getInterfaceTs().length != interfaceTs.size()) {
-				LOGGER.info("Not matching Signature '" + signature + "' for Type Declaration: "
-						+ this);
-			} else {
-				this.t.setInterfaceTs(interfaceTs.toArray(new T[interfaceTs.size()]));
+			for (int i = 0; i < interfaceTs.length; ++i) {
+				final T interfaceT = signInterfaceTs[i].signatureExtend(interfaceTs[i]);
+				if (interfaceT == null) {
+					LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
+							+ interfaceTs[i] + "' for type interface: " + this);
+					break;
+				}
+				interfaceTs[i] = interfaceT;
 			}
 		}
 	}
