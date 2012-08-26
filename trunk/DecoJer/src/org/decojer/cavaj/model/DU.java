@@ -92,7 +92,7 @@ public final class DU {
 	@Getter
 	private final T[] arrayInterfaceTs;
 
-	// AsmReader is >10 times faster than JavassistReader!
+	// AsmReader is >3 times faster than JavassistReader!
 	private final ClassReader classReader = new AsmReader(this);
 
 	@Setter
@@ -311,10 +311,11 @@ public final class DU {
 		T t;
 		if (parentT != null) {
 			// TODO big hmmm
-			t = getT(((ParamT) parentT).getGenericT().getName() + "$" + s.substring(start, c.pos));
+			t = getT(((ParamT) parentT).getGenericT().getName() + "$"
+					+ s.substring(start, c.pos).replace('.', '$'));
 			// ??? ((ClassT) t).setEnclosingT(parentT);
 		} else {
-			t = getT(s.substring(start, c.pos));
+			t = getT(s.substring(start, c.pos).replace('.', '$'));
 		}
 		final TypeArg[] typeArgs = parseTypeArgs(s, c, enclosing);
 		if (typeArgs != null) {
@@ -398,7 +399,7 @@ public final class DU {
 			return getArrayT(parseT(s, c, enclosing));
 		case 'T': {
 			final int pos = s.indexOf(';', c.pos);
-			final T t = new VarT(s.substring(c.pos, pos));
+			final T t = new VarT(s.substring(c.pos, pos), enclosing);
 			c.pos = pos + 1;
 			return t;
 		}

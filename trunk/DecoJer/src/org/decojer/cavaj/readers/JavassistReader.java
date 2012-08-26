@@ -86,7 +86,7 @@ public class JavassistReader implements ClassReader {
 
 	private final DU du;
 
-	private final ReadCodeAttribute readCodeAttribute;
+	private final ReadCodeAttribute readCodeAttribute = new ReadCodeAttribute();
 
 	/**
 	 * Constructor.
@@ -98,7 +98,6 @@ public class JavassistReader implements ClassReader {
 		assert du != null;
 
 		this.du = du;
-		this.readCodeAttribute = new ReadCodeAttribute(du);
 	}
 
 	@Override

@@ -89,6 +89,7 @@ import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.utils.Cursor;
 
 /**
  * Javassist read code attribute.
@@ -99,7 +100,7 @@ public class ReadCodeAttribute {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadCodeAttribute.class.getName());
 
-	private final DU du;
+	private MD md;
 
 	final ArrayList<Op> ops = new ArrayList<Op>();
 
@@ -107,16 +108,8 @@ public class ReadCodeAttribute {
 
 	private final HashMap<Integer, ArrayList<Object>> vmpc2unresolved = new HashMap<Integer, ArrayList<Object>>();
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param du
-	 *            decompilation unit
-	 */
-	public ReadCodeAttribute(final DU du) {
-		assert du != null;
-
-		this.du = du;
+	private DU getDu() {
+		return this.md.getTd().getDu();
 	}
 
 	private int getPc(final int vmpc) {
@@ -147,6 +140,8 @@ public class ReadCodeAttribute {
 	 *            Javassist code attribute
 	 */
 	public void initAndVisit(final MD md, final CodeAttribute codeAttribute) {
+		this.md = md;
+
 		this.ops.clear();
 		this.vmpc2pc.clear();
 		this.vmpc2unresolved.clear();
@@ -333,7 +328,7 @@ public class ReadCodeAttribute {
 			 ********/
 			case Opcode.CHECKCAST:
 				t = T.REF;
-				oValue = this.du.getT(constPool.getClassInfo(codeReader.readUnsignedShort()));
+				oValue = getDu().getT(constPool.getClassInfo(codeReader.readUnsignedShort()));
 				// fall through
 			case Opcode.D2F:
 				if (t == null) {
@@ -519,9 +514,9 @@ public class ReadCodeAttribute {
 			case Opcode.GETSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
-				final T ownerT = this.du.getT(constPool.getFieldrefClassName(fieldIndex));
+				final T ownerT = getDu().getT(constPool.getFieldrefClassName(fieldIndex));
 				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
-						this.du.getDescT(constPool.getFieldrefType(fieldIndex)));
+						getDu().getDescT(constPool.getFieldrefType(fieldIndex)));
 				if (opcode == Opcode.GETSTATIC) {
 					f.markAf(AF.STATIC);
 				}
@@ -565,8 +560,8 @@ public class ReadCodeAttribute {
 			 * INSTANCEOF *
 			 **************/
 			case Opcode.INSTANCEOF:
-				this.ops.add(new INSTANCEOF(this.ops.size(), opcode, line, this.du.getT(constPool
-						.getClassInfo(codeReader.readUnsignedShort()))));
+				this.ops.add(new INSTANCEOF(this.ops.size(), opcode, line, getDu().getT(
+						constPool.getClassInfo(codeReader.readUnsignedShort()))));
 				break;
 			/**********
 			 * INVOKE *
@@ -576,7 +571,7 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
 
-				final T ownerT = this.du
+				final T ownerT = getDu()
 						.getT(constPool.getInterfaceMethodrefClassName(methodIndex));
 				((ClassT) ownerT).markAf(AF.INTERFACE);
 				final M m = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
@@ -590,7 +585,7 @@ public class ReadCodeAttribute {
 			case Opcode.INVOKEVIRTUAL: {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
-				final T ownerT = this.du.getT(constPool.getMethodrefClassName(cpMethodIndex));
+				final T ownerT = getDu().getT(constPool.getMethodrefClassName(cpMethodIndex));
 				final M m = ownerT.getM(constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
 				if (opcode == Opcode.INVOKESTATIC) {
@@ -949,15 +944,15 @@ public class ReadCodeAttribute {
 			 * NEW *
 			 *******/
 			case Opcode.NEW:
-				this.ops.add(new NEW(this.ops.size(), opcode, line, this.du.getT(constPool
-						.getClassInfo(codeReader.readUnsignedShort()))));
+				this.ops.add(new NEW(this.ops.size(), opcode, line, getDu().getT(
+						constPool.getClassInfo(codeReader.readUnsignedShort()))));
 				break;
 			/************
 			 * NEWARRAY *
 			 ************/
 			case Opcode.ANEWARRAY:
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, this.du.getT(constPool
-						.getClassInfo(codeReader.readUnsignedShort())), 1));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, getDu().getT(
+						constPool.getClassInfo(codeReader.readUnsignedShort())), 1));
 				break;
 			case Opcode.NEWARRAY: {
 				type = codeReader.readUnsignedByte();
@@ -967,8 +962,8 @@ public class ReadCodeAttribute {
 			case Opcode.MULTIANEWARRAY: {
 				final int classIndex = codeReader.readUnsignedShort();
 				final int dimensions = codeReader.readUnsignedByte();
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, this.du.getT(constPool
-						.getClassInfo(classIndex)), dimensions));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, getDu().getT(
+						constPool.getClassInfo(classIndex)), dimensions));
 				break;
 			}
 			/*******
@@ -1025,8 +1020,8 @@ public class ReadCodeAttribute {
 					final int tag = constPool.getTag(ldcValueIndex);
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
-						oValue = this.du.getT(constPool.getClassInfo(ldcValueIndex));
-						t = this.du.getT(Class.class);
+						oValue = getDu().getT(constPool.getClassInfo(ldcValueIndex));
+						t = getDu().getT(Class.class);
 						break;
 					case ConstPool.CONST_Double:
 						// Double / Long only with LDC2_W, but is OK here too
@@ -1050,7 +1045,7 @@ public class ReadCodeAttribute {
 						// fall through
 					case ConstPool.CONST_String:
 						if (t == null) {
-							t = this.du.getT(String.class);
+							t = getDu().getT(String.class);
 						}
 						oValue = constPool.getLdcValue(ldcValueIndex);
 						break;
@@ -1067,8 +1062,8 @@ public class ReadCodeAttribute {
 					final int tag = constPool.getTag(ldcValueIndex);
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
-						t = this.du.getT(Class.class);
-						oValue = this.du.getT(constPool.getClassInfo(ldcValueIndex));
+						t = getDu().getT(Class.class);
+						oValue = getDu().getT(constPool.getClassInfo(ldcValueIndex));
 						break;
 					case ConstPool.CONST_Double:
 						t = T.DOUBLE;
@@ -1090,7 +1085,7 @@ public class ReadCodeAttribute {
 						// fall through
 					case ConstPool.CONST_String:
 						if (t == null) {
-							t = this.du.getT(String.class);
+							t = getDu().getT(String.class);
 						}
 						oValue = constPool.getLdcValue(ldcValueIndex);
 						break;
@@ -1191,9 +1186,9 @@ public class ReadCodeAttribute {
 			case Opcode.PUTSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
-				final T ownerT = this.du.getT(constPool.getFieldrefClassName(fieldIndex));
+				final T ownerT = getDu().getT(constPool.getFieldrefClassName(fieldIndex));
 				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
-						this.du.getDescT(constPool.getFieldrefType(fieldIndex)));
+						getDu().getDescT(constPool.getFieldrefType(fieldIndex)));
 				if (opcode == Opcode.PUTSTATIC) {
 					f.markAf(AF.STATIC);
 				}
@@ -1581,7 +1576,7 @@ public class ReadCodeAttribute {
 			for (int i = 0; i < exceptionTableSize; ++i) {
 				final String catchName = constPool.getClassInfo(exceptionTable.catchType(i));
 				// no array possible, name is OK here
-				final T catchT = catchName == null ? null : this.du.getT(catchName);
+				final T catchT = catchName == null ? null : getDu().getT(catchName);
 				final Exc exc = new Exc(catchT);
 
 				exc.setStartPc(this.vmpc2pc.get(exceptionTable.startPc(i)));
@@ -1641,8 +1636,15 @@ public class ReadCodeAttribute {
 							+ "' without local variable attribute!");
 					continue;
 				}
-				// TODO wrong!
-				// v.getT().setSignature(localVariableTypeAttribute.signature(i));
+				final String signature = localVariableTypeAttribute.signature(i);
+				final T sigT = this.md.getTd().getDu()
+						.parseT(signature, new Cursor(), this.md.getM()).signatureExtend(v.getT());
+				if (sigT == null) {
+					LOGGER.info("Cannot reduce signature '" + signature + "' to '" + v.getT()
+							+ "' for method (local variable '" + v.getName() + "') " + this.md);
+				} else {
+					v.cmpSetT(sigT);
+				}
 			}
 		}
 		cfg.postProcessVars();

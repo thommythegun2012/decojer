@@ -33,18 +33,23 @@ import org.decojer.cavaj.model.T;
 public class VarT extends ModT {
 
 	/**
-	 * We mix here declaring classes info and enclosing method / classes info.
+	 * Enclosing type context.
 	 */
-	private Object enclosing;
+	private final Object enclosing;
 
 	/**
 	 * Constructor.
 	 * 
 	 * @param name
 	 *            type name
+	 * @param enclosing
+	 *            enclosing type context
 	 */
-	public VarT(final String name) {
+	public VarT(final String name, final Object enclosing) {
 		super(name, null);
+
+		assert enclosing != null;
+		this.enclosing = enclosing;
 	}
 
 	public void setReducedT(final T t) {

@@ -43,6 +43,7 @@ import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.RETURN;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
+import org.decojer.cavaj.utils.Cursor;
 
 import com.googlecode.dex2jar.DexLabel;
 import com.googlecode.dex2jar.Field;
@@ -336,7 +337,17 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	@Override
 	public void visitLocalVariable(final String name, final String type, final String signature,
 			final DexLabel start, final DexLabel end, final int reg) {
-		final T vT = this.du.getDescT(signature != null ? signature : type);
+		T vT = this.du.getDescT(type);
+		if (signature != null) {
+			final T sigT = this.md.getTd().getDu().parseT(signature, new Cursor(), this.md.getM())
+					.signatureExtend(vT);
+			if (sigT == null) {
+				LOGGER.info("Cannot reduce signature '" + signature + "' to '" + vT
+						+ "' for method (local variable '" + name + "') " + this.md);
+			} else {
+				vT = sigT;
+			}
+		}
 		final int startPc = getPc(start);
 		final int endPc = getPc(end);
 

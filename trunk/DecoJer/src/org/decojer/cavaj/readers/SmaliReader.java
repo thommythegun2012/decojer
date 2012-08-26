@@ -94,6 +94,8 @@ public class SmaliReader implements DexReader {
 
 	private final DU du;
 
+	private final ReadCodeItem readCodeItem = new ReadCodeItem();
+
 	/**
 	 * Constructor.
 	 * 
@@ -395,7 +397,7 @@ public class SmaliReader implements DexReader {
 			md.setParamAss(methodParamAs.get(method));
 
 			if (encodedMethod.codeItem != null) {
-				new ReadCodeItem(this.du).initAndVisit(md, encodedMethod.codeItem);
+				this.readCodeItem.initAndVisit(md, encodedMethod.codeItem);
 			}
 		}
 		for (final EncodedMethod encodedMethod : virtualMethods) {
@@ -417,7 +419,7 @@ public class SmaliReader implements DexReader {
 
 			final CodeItem codeItem = encodedMethod.codeItem;
 			if (codeItem != null) {
-				new ReadCodeItem(this.du).initAndVisit(md, encodedMethod.codeItem);
+				this.readCodeItem.initAndVisit(md, encodedMethod.codeItem);
 			}
 		}
 	}

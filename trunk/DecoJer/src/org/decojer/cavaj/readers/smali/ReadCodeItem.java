@@ -123,7 +123,7 @@ public class ReadCodeItem {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadCodeItem.class.getName());
 
-	private final DU du;
+	private MD md;
 
 	final ArrayList<Op> ops = new ArrayList<Op>();
 
@@ -131,19 +131,10 @@ public class ReadCodeItem {
 
 	private final HashMap<Integer, ArrayList<Object>> vmpc2unresolved = new HashMap<Integer, ArrayList<Object>>();
 
-	private final ReadDebugInfo readDebugInfo;
+	private final ReadDebugInfo readDebugInfo = new ReadDebugInfo();
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param du
-	 *            decompilation unit
-	 */
-	public ReadCodeItem(final DU du) {
-		assert du != null;
-
-		this.du = du;
-		this.readDebugInfo = new ReadDebugInfo(du);
+	private DU getDu() {
+		return this.md.getTd().getDu();
 	}
 
 	private int getPc(final int vmpc) {
@@ -174,6 +165,8 @@ public class ReadCodeItem {
 	 *            smali code item
 	 */
 	public void initAndVisit(final MD md, final CodeItem codeItem) {
+		this.md = md;
+
 		this.ops.clear();
 		this.vmpc2pc.clear();
 		this.vmpc2unresolved.clear();
@@ -394,7 +387,7 @@ public class ReadCodeItem {
 					// A = B[C]
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, this.du.getArrayT(t),
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, getDu().getArrayT(t),
 							instr.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr
 							.getRegisterC()));
@@ -524,7 +517,7 @@ public class ReadCodeItem {
 					// B[C] = A
 					final Instruction23x instr = (Instruction23x) instruction;
 
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, this.du.getArrayT(t),
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, getDu().getArrayT(t),
 							instr.getRegisterB()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr
 							.getRegisterC()));
@@ -540,7 +533,7 @@ public class ReadCodeItem {
 				// A = (typeIdItem) A
 				final Instruction21c instr = (Instruction21c) instruction;
 
-				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr.getRegisterA()));
 
@@ -823,15 +816,15 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
 
-					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
-							.getTypeDescriptor());
+					final T valueT = getDu().getDescT(
+							fieldIdItem.getFieldType().getTypeDescriptor());
 					if (t == null || !t.isAssignableFrom(valueT)) {
 						LOGGER.warning("Incompatible IGET Value Type! Cannot assign '" + valueT
 								+ "' to '" + t + "'.");
 					}
 
-					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
-							.getTypeDescriptor());
+					final T ownerT = getDu().getDescT(
+							fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, instr
@@ -885,15 +878,15 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
 
-					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
-							.getTypeDescriptor());
+					final T valueT = getDu().getDescT(
+							fieldIdItem.getFieldType().getTypeDescriptor());
 					if (t == null || !t.isAssignableFrom(valueT)) {
 						LOGGER.warning("Incompatible SGET Value Type! Cannot assign '" + valueT
 								+ "' to '" + t + "'.");
 					}
 
-					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
-							.getTypeDescriptor());
+					final T ownerT = getDu().getDescT(
+							fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 					f.markAf(AF.STATIC);
 
@@ -946,7 +939,7 @@ public class ReadCodeItem {
 				// A = B instanceof referencedItem
 				final Instruction22c instr = (Instruction22c) instruction;
 
-				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 
 				// not t, is unknown, result can be false
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr.getRegisterB()));
@@ -1093,8 +1086,8 @@ public class ReadCodeItem {
 				int reg = 0;
 
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
-				final T ownerT = this.du.getDescT(methodIdItem.getContainingClass()
-						.getTypeDescriptor());
+				final T ownerT = getDu().getDescT(
+						methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
 					((ClassT) ownerT).markAf(AF.INTERFACE);
 				}
@@ -1131,8 +1124,8 @@ public class ReadCodeItem {
 				int reg = instr.getStartRegister();
 
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
-				final T ownerT = this.du.getDescT(methodIdItem.getContainingClass()
-						.getTypeDescriptor());
+				final T ownerT = getDu().getDescT(
+						methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE) {
 					((ClassT) ownerT).markAf(AF.INTERFACE);
 				}
@@ -1253,7 +1246,7 @@ public class ReadCodeItem {
 				final Instruction11x instr = (Instruction11x) instruction;
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line,
-						this.du.getT(Throwable.class), instr.getRegisterA()));
+						getDu().getT(Throwable.class), instr.getRegisterA()));
 				break;
 			}
 			/*******
@@ -1381,7 +1374,7 @@ public class ReadCodeItem {
 				// A = new typeIdItem
 				final Instruction21c instr = (Instruction21c) instruction;
 
-				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 
 				this.ops.add(new NEW(this.ops.size(), opcode, line, t));
 
@@ -1395,14 +1388,14 @@ public class ReadCodeItem {
 				// A = new referencedItem[B]
 				final Instruction22c instr = (Instruction22c) instruction;
 
-				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 				// contains dimensions via [
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
 
 				// not t.getDim() for NEWARRAY! reduce t by 1 dimension
 				// => int[][] intArray = new int[10][];
-				final T elemT = this.du.getT(t.getName().substring(0, t.getName().length() - 2));
+				final T elemT = getDu().getT(t.getName().substring(0, t.getName().length() - 2));
 				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, elemT, 1));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
@@ -1429,14 +1422,14 @@ public class ReadCodeItem {
 				// A = new referencedItem[] {D, E, F, G, A}
 				final Instruction35c instr = (Instruction35c) instruction;
 
-				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 				// contains dimensions via [
 
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, instr.getRegCount()));
 
 				// not t.getDim() for NEWARRAY! reduce t by 1 dimension
 				// => int[][] intArray = new int[10][];
-				final T elemT = this.du.getT(t.getName().substring(0, t.getName().length() - 2));
+				final T elemT = getDu().getT(t.getName().substring(0, t.getName().length() - 2));
 				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, elemT, 1));
 
 				final Object[] regs = new Object[instr.getRegCount()];
@@ -1469,14 +1462,14 @@ public class ReadCodeItem {
 				// A = new referencedItem[] {D, E, F, G, A}
 				final Instruction3rc instr = (Instruction3rc) instruction;
 
-				t = this.du.getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
 				// contains dimensions via [
 
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, instr.getRegCount()));
 
 				// not t.getDim() for NEWARRAY! reduce t by 1 dimension
 				// => int[][] intArray = new int[10][];
-				final T elemT = this.du.getT(t.getName().substring(0, t.getName().length() - 2));
+				final T elemT = getDu().getT(t.getName().substring(0, t.getName().length() - 2));
 				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, elemT, 1));
 
 				final Object[] regs = new Object[instr.getRegCount()];
@@ -1676,9 +1669,9 @@ public class ReadCodeItem {
 					// A = literal
 					final Instruction21c instr = (Instruction21c) instruction;
 
-					oValue = this.du.getDescT(((TypeIdItem) instr.getReferencedItem())
-							.getTypeDescriptor());
-					t = this.du.getT(Class.class);
+					oValue = getDu().getDescT(
+							((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+					t = getDu().getT(Class.class);
 					iValue = instr.getRegisterA();
 				}
 				// fall through
@@ -1688,7 +1681,7 @@ public class ReadCodeItem {
 					final Instruction21c instr = (Instruction21c) instruction;
 
 					oValue = ((StringIdItem) instr.getReferencedItem()).getStringValue();
-					t = this.du.getT(String.class);
+					t = getDu().getT(String.class);
 					iValue = instr.getRegisterA();
 				}
 			case CONST_STRING_JUMBO:
@@ -1697,7 +1690,7 @@ public class ReadCodeItem {
 					final Instruction31c instr = (Instruction31c) instruction;
 
 					oValue = ((StringIdItem) instr.getReferencedItem()).getStringValue();
-					t = this.du.getT(String.class);
+					t = getDu().getT(String.class);
 					iValue = instr.getRegisterA();
 				}
 				{
@@ -1753,15 +1746,15 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
 
-					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
-							.getTypeDescriptor());
+					final T valueT = getDu().getDescT(
+							fieldIdItem.getFieldType().getTypeDescriptor());
 					if (!valueT.isAssignableFrom(t)) {
 						LOGGER.warning("Incompatible IPUT Value Type! Cannot assign '" + t
 								+ "' to '" + valueT + "'.");
 					}
 
-					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
-							.getTypeDescriptor());
+					final T ownerT = getDu().getDescT(
+							fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, instr
@@ -1816,15 +1809,15 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
 
-					final T valueT = this.du.getDescT(fieldIdItem.getFieldType()
-							.getTypeDescriptor());
+					final T valueT = getDu().getDescT(
+							fieldIdItem.getFieldType().getTypeDescriptor());
 					if (!valueT.isAssignableFrom(t)) {
 						LOGGER.warning("Incompatible SPUT Value Type! Cannot assign '" + t
 								+ "' to '" + valueT + "'.");
 					}
 
-					final T ownerT = this.du.getDescT(fieldIdItem.getContainingClass()
-							.getTypeDescriptor());
+					final T ownerT = getDu().getDescT(
+							fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
 					f.markAf(AF.STATIC);
 
@@ -2198,7 +2191,7 @@ public class ReadCodeItem {
 				// throw A
 				final Instruction11x instr = (Instruction11x) instruction;
 
-				t = this.du.getT(Throwable.class);
+				t = getDu().getT(Throwable.class);
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
@@ -2286,8 +2279,8 @@ public class ReadCodeItem {
 			// preserve order
 			for (final TryItem tryItem : tryItems) {
 				for (final EncodedTypeAddrPair handler : tryItem.encodedCatchHandler.handlers) {
-					final Exc exc = new Exc(this.du.getDescT(handler.exceptionType
-							.getTypeDescriptor()));
+					final Exc exc = new Exc(getDu().getDescT(
+							handler.exceptionType.getTypeDescriptor()));
 					exc.setStartPc(this.vmpc2pc.get(tryItem.getStartCodeAddress()));
 					exc.setEndPc(this.vmpc2pc.get(tryItem.getStartCodeAddress()
 							+ tryItem.getTryLength()));
