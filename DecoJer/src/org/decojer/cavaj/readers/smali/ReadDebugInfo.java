@@ -27,10 +27,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.V;
+import org.decojer.cavaj.utils.Cursor;
 import org.jf.dexlib.DebugInfoItem;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
@@ -48,23 +48,11 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private final static boolean DEBUG = false;
 
-	private final DU du;
+	private MD md;
 
 	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
 
 	private final HashMap<Integer, ArrayList<V>> reg2vs = new HashMap<Integer, ArrayList<V>>();
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param du
-	 *            decompilation unit
-	 */
-	public ReadDebugInfo(final DU du) {
-		assert du != null;
-
-		this.du = du;
-	}
 
 	/**
 	 * Get line for VM PC.
@@ -102,6 +90,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	 *            Smail debug info item
 	 */
 	public void initAndVisit(final MD md, final DebugInfoItem debugInfoItem) {
+		this.md = md;
+
 		this.opLines.clear();
 		this.reg2vs.clear();
 
@@ -231,8 +221,18 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 							+ signature);
 		}
 
-		final T vT = this.du.getDescT(signature != null ? signature.getStringValue() : type
-				.getTypeDescriptor());
+		T vT = this.md.getTd().getDu().getDescT(type.getTypeDescriptor());
+		if (signature != null) {
+			final T sigT = this.md.getTd().getDu()
+					.parseT(signature.getStringValue(), new Cursor(), this.md.getM())
+					.signatureExtend(vT);
+			if (sigT == null) {
+				LOGGER.info("Cannot reduce signature '" + signature.getStringValue() + "' to '"
+						+ vT + "' for method (local variable '" + name + "') " + this.md);
+			} else {
+				vT = sigT;
+			}
+		}
 		final V v = new V(vT, name.getStringValue(), codeAddress, -1);
 
 		ArrayList<V> vs = this.reg2vs.get(registerNum);

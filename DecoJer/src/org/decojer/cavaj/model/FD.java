@@ -29,6 +29,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
@@ -110,7 +111,8 @@ public final class FD extends BD {
 		}
 		this.signature = signature;
 
-		final T valueT = getTd().getDu().getDescT(signature).signatureExtend(getValueT());
+		final T valueT = getTd().getDu().parseT(signature, new Cursor(), this.f)
+				.signatureExtend(getValueT());
 		if (valueT == null) {
 			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getValue()
 					+ "' for field value: " + this);

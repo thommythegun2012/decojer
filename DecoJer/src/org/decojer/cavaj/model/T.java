@@ -397,6 +397,8 @@ public abstract class T {
 	private HashMap<String, Object> member;
 
 	protected T(final String name) {
+		assert name != null;
+
 		this.name = name;
 	}
 
