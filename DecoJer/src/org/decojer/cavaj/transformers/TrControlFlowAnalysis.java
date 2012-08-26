@@ -263,8 +263,7 @@ public final class TrControlFlowAnalysis {
 		dfsFindFollows(secondMembers, secondFollows, secondSucc, cond.getParent());
 
 		if (secondFollows.contains(firstSucc)) {
-			// really bad, order is wrong!
-			log("Order preservation not possible for cond:\n?" + cond);
+			// also often in JDK 6 bytecode, especially in parent structs
 			cond.setType(negated ? Cond.IF : Cond.IFNOT);
 			for (final BB bb : secondMembers) {
 				cond.addMember(secondValue, bb);
