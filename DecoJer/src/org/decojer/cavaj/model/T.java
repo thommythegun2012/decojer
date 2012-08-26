@@ -272,11 +272,11 @@ public abstract class T {
 	 * @return merged type
 	 */
 	public static T join(final T t1, final T t2) {
-		if (t1 == t2) {
-			return t1;
-		}
 		if (t1 == null || t2 == null) {
 			return null;
+		}
+		if (t1.equals(t2)) {
+			return t1;
 		}
 		final int kind = joinKinds(t1.getKind(), t2.getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
@@ -356,13 +356,13 @@ public abstract class T {
 	 * @return merged type
 	 */
 	public static T union(final T t1, final T t2) {
-		if (t1 == t2) {
-			return t1;
-		}
 		if (t1 == null) {
 			return t2;
 		}
 		if (t2 == null) {
+			return t1;
+		}
+		if (t1.equals(t2)) {
 			return t1;
 		}
 		final int kind = t1.getKind() | t2.getKind();
@@ -402,10 +402,13 @@ public abstract class T {
 
 	@Override
 	public boolean equals(final Object obj) {
+		if (this == obj) {
+			return true;
+		}
 		if (!(obj instanceof T)) {
 			return false;
 		}
-		return getName().equals(((T) obj).getName());
+		return this.name.equals(((T) obj).name);
 	}
 
 	/**
@@ -543,8 +546,8 @@ public abstract class T {
 	 * @return package name or {@code null} for no package
 	 */
 	public String getPackageName() {
-		final int pos = getName().lastIndexOf('.');
-		return pos == -1 ? null : getName().substring(0, pos);
+		final int pos = this.name.lastIndexOf('.');
+		return pos == -1 ? null : this.name.substring(0, pos);
 	}
 
 	/**
@@ -553,11 +556,11 @@ public abstract class T {
 	 * @return primary name
 	 */
 	public String getPName() {
-		if (getName().startsWith("{")) {
+		if (this.name.startsWith("{")) {
 			return getName();
 		}
-		final int pos = getName().lastIndexOf('.');
-		return pos == -1 ? getName() : getName().substring(pos + 1);
+		final int pos = this.name.lastIndexOf('.');
+		return pos == -1 ? getName() : this.name.substring(pos + 1);
 	}
 
 	/**
@@ -626,7 +629,7 @@ public abstract class T {
 
 	@Override
 	public int hashCode() {
-		return getName().hashCode();
+		return this.name.hashCode();
 	}
 
 	/**
@@ -640,7 +643,7 @@ public abstract class T {
 		if (clazzes.length != 1) {
 			return false;
 		}
-		return getName().equals(clazzes[0].getName());
+		return this.name.equals(clazzes[0].getName());
 	}
 
 	/**
@@ -696,7 +699,7 @@ public abstract class T {
 		if (t == null) {
 			return false;
 		}
-		if (this == t.getRawT()) {
+		if (equals(t.getRawT())) {
 			return true;
 		}
 		final int kind = readKinds(t.getKind(), getKind());
@@ -714,14 +717,14 @@ public abstract class T {
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();
 			final T superT = iT.getSuperT();
-			if (null != superT) {
-				if (this == superT.getRawT()) {
+			if (superT != null) {
+				if (equals(superT.getRawT())) {
 					return true;
 				}
 				ts.add(superT);
 			}
 			for (final T interfaceT : iT.getInterfaceTs()) {
-				if (this == interfaceT.getRawT()) {
+				if (equals(interfaceT.getRawT())) {
 					return true;
 				}
 				ts.add(interfaceT);
@@ -807,6 +810,17 @@ public abstract class T {
 			return this;
 		}
 		return null;
+	}
+
+	/**
+	 * Extend type, especially variable types.
+	 * 
+	 * @param reducedT
+	 *            reduced type
+	 * @return extended signature type or {@code null}
+	 */
+	public T signatureExtend(final T reducedT) {
+		return equals(reducedT) ? this : null;
 	}
 
 	@Override

@@ -80,6 +80,7 @@ import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.utils.Cursor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.Handle;
@@ -1216,7 +1217,17 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitLocalVariable(final String name, final String desc, final String signature,
 			final Label start, final Label end, final int index) {
-		final T vT = this.du.getDescT(signature != null ? signature : desc);
+		T vT = this.du.getDescT(desc);
+		if (signature != null) {
+			final T sigT = this.du.parseT(signature, new Cursor(), this.md.getM()).signatureExtend(
+					vT);
+			if (sigT == null) {
+				LOGGER.info("Cannot reduce signature '" + signature + "' to '" + vT
+						+ "' for method (local variable '" + name + "') " + this.md);
+			} else {
+				vT = sigT;
+			}
+		}
 		final int startPc = getPc(start);
 		final int endPc = getPc(end);
 

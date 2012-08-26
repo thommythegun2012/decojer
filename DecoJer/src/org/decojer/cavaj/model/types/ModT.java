@@ -49,47 +49,52 @@ public abstract class ModT extends T {
 
 	@Override
 	public DU getDu() {
-		return getRawT().getDu();
+		return this.rawT.getDu();
 	}
 
 	@Override
 	public T[] getInterfaceTs() {
-		return getRawT().getInterfaceTs();
+		return this.rawT.getInterfaceTs();
 	}
 
 	@Override
 	public int getKind() {
-		return getRawT().getKind();
+		return this.rawT.getKind();
 	}
 
 	@Override
 	public T getSuperT() {
-		return getRawT().getSuperT();
+		return this.rawT.getSuperT();
 	}
 
 	@Override
 	public boolean isAssignableFrom(final T t) {
-		return getRawT().isAssignableFrom(t);
+		return this.rawT.isAssignableFrom(t);
 	}
 
 	@Override
 	public boolean isInterface() {
-		return getRawT().isInterface();
+		return this.rawT.isInterface();
 	}
 
 	@Override
 	public boolean isPrimitive() {
-		return getRawT().isPrimitive();
+		return this.rawT.isPrimitive();
 	}
 
 	@Override
 	public boolean isRef() {
-		return getRawT().isRef();
+		return this.rawT.isRef();
 	}
 
 	@Override
 	public boolean isResolvable() {
-		return getRawT().isResolvable();
+		return this.rawT.isResolvable();
+	}
+
+	@Override
+	public T signatureExtend(final T reducedT) {
+		return this.rawT.signatureExtend(reducedT) != null ? this : null;
 	}
 
 }

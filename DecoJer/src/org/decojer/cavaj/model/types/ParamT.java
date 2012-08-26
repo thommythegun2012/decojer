@@ -156,4 +156,9 @@ public final class ParamT extends ModT {
 		return getRawT().isAssignableFrom(t);
 	}
 
+	@Override
+	public T signatureExtend(final T reducedT) {
+		return getGenericT().equals(reducedT) ? this : null;
+	}
+
 }

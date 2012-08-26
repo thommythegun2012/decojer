@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model;
 
+import lombok.Getter;
+
 /**
  * Access flag.
  * 
@@ -115,14 +117,19 @@ public enum AF {
 	 */
 	UNRESOLVABLE(1 << 20, "<unresolvable>", true, true, true);
 
+	@Getter
 	private final boolean forType;
 
+	@Getter
 	private final boolean forField;
 
+	@Getter
 	private final boolean forMethod;
 
+	@Getter
 	private final String name;
 
+	@Getter
 	private final int value;
 
 	private AF(final int value, final String name, final boolean forType, final boolean forField,
@@ -132,51 +139,6 @@ public enum AF {
 		this.forType = forType;
 		this.forField = forField;
 		this.forMethod = forMethod;
-	}
-
-	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	public String getName() {
-		return this.name;
-	}
-
-	/**
-	 * Get value.
-	 * 
-	 * @return value
-	 */
-	public int getValue() {
-		return this.value;
-	}
-
-	/**
-	 * Is for field?
-	 * 
-	 * @return {@code true} - is for field
-	 */
-	public boolean isForField() {
-		return this.forField;
-	}
-
-	/**
-	 * Is for method?
-	 * 
-	 * @return {@code true} - is for method
-	 */
-	public boolean isForMethod() {
-		return this.forMethod;
-	}
-
-	/**
-	 * Is for type?
-	 * 
-	 * @return {@code true} - is for type
-	 */
-	public boolean isForType() {
-		return this.forType;
 	}
 
 }

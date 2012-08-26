@@ -190,7 +190,7 @@ public final class MD extends BD {
 		final ArrayList<T> ts = new ArrayList<T>();
 		do {
 			++c.pos;
-			ts.add(getTd().getDu().parseT(s, c));
+			ts.add(getTd().getDu().parseT(s, c, this.m));
 		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
 		return ts.toArray(new T[ts.size()]);
 	}
@@ -221,12 +221,12 @@ public final class MD extends BD {
 		this.signature = signature;
 
 		final Cursor c = new Cursor();
-		this.typeParams = getTd().getDu().parseTypeParams(signature, c);
+		this.typeParams = getTd().getDu().parseTypeParams(signature, c, this.m);
 
-		// TODO more checks for following overrides:
-		final T[] paramTs = getTd().getDu().parseMethodParamTs(signature, c);
-		if (paramTs.length != 0) {
-			if (getParamTs().length != paramTs.length) {
+		final T[] paramTs = getParamTs();
+		final T[] signParamTs = getTd().getDu().parseMethodParamTs(signature, c, this.m);
+		if (signParamTs.length != 0) {
+			if (paramTs.length != signParamTs.length) {
 				// can happen with Sun JVM for constructor:
 				// see org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11.1.InnerMethod
 				// or org.decojer.cavaj.test.jdk5.DecTestEnumStatus
@@ -234,19 +234,45 @@ public final class MD extends BD {
 				// e.g. outer context for methods in inner classes: (I)V instead of (Lthis;_I_II)V
 				// or enum constructor parameters arg0: String, arg1: int
 				if (!isConstructor()) {
-					LOGGER.info("Not matching Signature '" + signature + "' for Method " + this);
+					LOGGER.info("Cannot reduce signature '" + signature
+							+ "' to types for method params: " + this);
 				}
 			} else {
-				this.m.setParamTs(paramTs);
+				for (int i = 0; i < paramTs.length; ++i) {
+					final T paramT = signParamTs[i].signatureExtend(paramTs[i]);
+					if (paramT == null) {
+						LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
+								+ paramTs[i] + "' for method param: " + this);
+						break;
+					}
+					paramTs[i] = paramT;
+				}
 			}
 		}
-		final T returnT = getTd().getDu().parseT(signature, c);
-		if (returnT != null) {
+		final T returnT = getTd().getDu().parseT(signature, c, this.m)
+				.signatureExtend(getReturnT());
+		if (returnT == null) {
+			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
+					+ "' for method return: " + this);
+		} else {
 			this.m.setReturnT(returnT);
 		}
-		final T[] throwsTs = parseThrowsTs(signature, c);
-		if (throwsTs != null) {
-			this.throwsTs = throwsTs;
+		final T[] signThrowTs = parseThrowsTs(signature, c);
+		if (signThrowTs != null) {
+			final T[] throwsTs = getThrowsTs();
+			if (throwsTs.length != signThrowTs.length) {
+				LOGGER.info("Cannot reduce signature '" + signature
+						+ "' to types for method throws: " + this);
+			}
+			for (int i = 0; i < throwsTs.length; ++i) {
+				final T throwT = signThrowTs[i].signatureExtend(throwsTs[i]);
+				if (throwT == null) {
+					LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
+							+ throwsTs[i] + "' for method throw: " + this);
+					break;
+				}
+				throwsTs[i] = throwT;
+			}
 		}
 	}
 

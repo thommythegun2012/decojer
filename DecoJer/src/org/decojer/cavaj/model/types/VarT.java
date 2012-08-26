@@ -33,13 +33,28 @@ import org.decojer.cavaj.model.T;
 public class VarT extends ModT {
 
 	/**
+	 * We mix here declaring classes info and enclosing method / classes info.
+	 */
+	private Object enclosing;
+
+	/**
 	 * Constructor.
 	 * 
 	 * @param name
 	 *            type name
 	 */
-	public VarT(final String name, /* TODO */final T t) {
-		super(name, t);
+	public VarT(final String name) {
+		super(name, null);
+	}
+
+	public void setReducedT(final T t) {
+		setRawT(t);
+	}
+
+	@Override
+	public T signatureExtend(final T reducedT) {
+		setRawT(reducedT);
+		return this;
 	}
 
 }
