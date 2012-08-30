@@ -25,6 +25,11 @@ package org.decojer.cavaj.model.code.structs;
 
 import org.decojer.cavaj.model.code.BB;
 
+/**
+ * Conditional struct.
+ * 
+ * @author André Pankraz
+ */
 public class Cond extends Struct {
 
 	public static final int IF = 1;
@@ -39,14 +44,31 @@ public class Cond extends Struct {
 
 	private int type;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param head
+	 *            conditional head BB
+	 */
 	public Cond(final BB head) {
 		super(head);
 	}
 
+	/**
+	 * Get conditional type.
+	 * 
+	 * @return conditional type
+	 */
 	public int getType() {
 		return this.type;
 	}
 
+	/**
+	 * Set conditional type.
+	 * 
+	 * @param type
+	 *            conditional type
+	 */
 	public void setType(final int type) {
 		this.type = type;
 	}

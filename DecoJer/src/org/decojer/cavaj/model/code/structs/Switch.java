@@ -28,6 +28,11 @@ import java.util.Map.Entry;
 
 import org.decojer.cavaj.model.code.BB;
 
+/**
+ * Switch struct.
+ * 
+ * @author André Pankraz
+ */
 public class Switch extends Struct {
 
 	public static final int SWITCH = 1;
@@ -38,10 +43,21 @@ public class Switch extends Struct {
 
 	private int type;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param head
+	 *            switch head BB
+	 */
 	public Switch(final BB head) {
 		super(head);
 	}
 
+	/**
+	 * Get switch type.
+	 * 
+	 * @return switch type
+	 */
 	public int getType() {
 		return this.type;
 	}
@@ -59,6 +75,12 @@ public class Switch extends Struct {
 		return false;
 	}
 
+	/**
+	 * Set switch type.
+	 * 
+	 * @param type
+	 *            switch type
+	 */
 	public void setType(final int type) {
 		this.type = type;
 	}
