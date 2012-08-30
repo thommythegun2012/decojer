@@ -25,6 +25,11 @@ package org.decojer.cavaj.model.code.structs;
 
 import org.decojer.cavaj.model.code.BB;
 
+/**
+ * Loop struct.
+ * 
+ * @author André Pankraz
+ */
 public class Loop extends Struct {
 
 	public static final int ENDLESS = 1;
@@ -44,45 +49,121 @@ public class Loop extends Struct {
 
 	private int type;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param bb
+	 *            loop head BB
+	 */
 	public Loop(final BB bb) {
 		super(bb);
 	}
 
+	/**
+	 * Get last BB.
+	 * 
+	 * @return last BB
+	 */
 	public BB getLast() {
 		return this.last;
 	}
 
+	/**
+	 * Get loop type.
+	 * 
+	 * @return loop type (endless, do-while etc.)
+	 */
 	public int getType() {
 		return this.type;
 	}
 
+	/**
+	 * Is BB target for continue?
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is target for continue
+	 */
+	public boolean isContinueTarget(final BB bb) {
+		switch (this.type) {
+		case DO_WHILE:
+		case DO_WHILENOT:
+		case ENDLESS: // must reduce empty BBs to direct edges before!
+			return isHead(bb);
+		case WHILE:
+		case WHILENOT:
+			return isLast(bb);
+		}
+		return false;
+	}
+
+	/**
+	 * Is loop endless?
+	 * 
+	 * @return {@code true} - loop is endless
+	 */
 	public boolean isEndless() {
 		return this.type == ENDLESS;
 	}
 
+	/**
+	 * Is BB last?
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is last
+	 */
 	public boolean isLast(final BB bb) {
 		return getLast() == bb;
 	}
 
-	@Override
-	public boolean isMember(final BB bb) {
-		return isLast(bb) || super.isMember(bb);
+	/**
+	 * Is BB member or last?
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is member or last
+	 */
+	public boolean isMemberOrLast(final BB bb) {
+		return isLast(bb) || isMember(bb);
 	}
 
+	/**
+	 * Is loop post?
+	 * 
+	 * @return {@code true} - loop is post
+	 */
 	public boolean isPost() {
 		return this.type == DO_WHILE || this.type == DO_WHILENOT;
 	}
 
+	/**
+	 * Is loop pre?
+	 * 
+	 * @return {@code true} - loop is pre
+	 */
 	public boolean isPre() {
 		return this.type == WHILE || this.type == WHILENOT;
 	}
 
+	/**
+	 * Set last BB.
+	 * 
+	 * @param bb
+	 *            last BB
+	 */
 	public void setLast(final BB bb) {
 		// cannot add as member, tail could be equal to head!
 		this.last = bb;
 		bb.setStruct(this);
 	}
 
+	/**
+	 * Set loop type.
+	 * 
+	 * @param type
+	 *            loop type (endless, do-while etc.)
+	 */
 	public void setType(final int type) {
 		this.type = type;
 	}

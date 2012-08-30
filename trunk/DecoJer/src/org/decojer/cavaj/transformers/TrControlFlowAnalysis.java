@@ -114,7 +114,7 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			final BB succ = out.getEnd();
-			if (loop.isMember(succ)) {
+			if (loop.isMemberOrLast(succ)) {
 				loopSucc = true;
 				continue;
 			}
@@ -148,27 +148,27 @@ public final class TrControlFlowAnalysis {
 		if (!bb.isFinalStmtCond()) {
 			return false;
 		}
-		// check if condition is used for loop struct...
+		// check if conditional is already used for an enclosing loop struct
 		final Struct struct = bb.getStruct();
-		if (struct instanceof Loop) {
-			final Loop loop = (Loop) struct;
-
-			if (loop.isHead(bb) && loop.isPre()) {
-				// no additional cond head possible
-				return false;
-			}
-			if (loop.isLast(bb) && loop.isPost()) {
-				// no additional cond head possible
-				return false;
-			}
+		if (!(struct instanceof Loop)) {
+			return true;
+		}
+		// check if BB is target for continue is not sufficient: no endless here
+		final Loop loop = (Loop) struct;
+		if (loop.isPost()) {
+			return !loop.isLast(bb);
+		}
+		if (loop.isPre()) {
+			return !loop.isHead(bb); // false can never happen here, fail fast in transform()
 		}
 		return true;
 	}
 
 	private static boolean isLoopHead(final BB bb) {
+		// at least one incoming edge must be a back edge (self loop possible), in Java only
+		// possible for loop heads
 		for (final E in : bb.getIns()) {
 			if (in.isBack()) {
-				// must be a back edge (eg. self loop), in Java only possible for loop heads
 				return true;
 			}
 		}
@@ -325,12 +325,12 @@ public final class TrControlFlowAnalysis {
 		if (head.getStmts() == 1 && head.isFinalStmtCond()) {
 			final BB falseSucc = head.getFalseSucc();
 			final BB trueSucc = head.getTrueSucc();
-			if (loop.isMember(trueSucc) && !loop.isMember(falseSucc)) {
+			if (loop.isMemberOrLast(trueSucc) && !loop.isMemberOrLast(falseSucc)) {
 				// JDK 6: true is member, opPc of pre head > next member,
 				// leading goto
 				headType = Loop.WHILE;
 				headFollow = falseSucc;
-			} else if (loop.isMember(falseSucc) && !loop.isMember(trueSucc)) {
+			} else if (loop.isMemberOrLast(falseSucc) && !loop.isMemberOrLast(trueSucc)) {
 				// JDK 5: false is member, opPc of pre head < next member,
 				// trailing goto (negated, check class javascript.Decompiler)
 				headType = Loop.WHILENOT;
@@ -501,7 +501,7 @@ public final class TrControlFlowAnalysis {
 			// check loop first, could be a post / endless loop with additional sub struct heads
 			if (isLoopHead(bb)) {
 				if (createLoopStruct(bb).isPre()) {
-					// no additional struct head possible
+					// no additional struct head possible here, fail fast
 					continue;
 				}
 			}

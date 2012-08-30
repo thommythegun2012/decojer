@@ -25,8 +25,19 @@ package org.decojer.cavaj.model.code.structs;
 
 import org.decojer.cavaj.model.code.BB;
 
+/**
+ * Catch struct.
+ * 
+ * @author André Pankraz
+ */
 public class Catch extends Struct {
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param head
+	 *            catch head BB
+	 */
 	public Catch(final BB head) {
 		super(head);
 	}

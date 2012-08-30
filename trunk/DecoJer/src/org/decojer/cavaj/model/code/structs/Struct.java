@@ -31,6 +31,11 @@ import java.util.Map.Entry;
 
 import org.decojer.cavaj.model.code.BB;
 
+/**
+ * Struct.
+ * 
+ * @author André Pankraz
+ */
 public class Struct {
 
 	private BB follow;
@@ -43,14 +48,29 @@ public class Struct {
 
 	private final Struct parent;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param bb
+	 *            struct head BB
+	 */
 	public Struct(final BB bb) {
 		assert bb != null;
 
-		this.head = bb;
 		this.parent = bb.getStruct();
+		assert this != this.parent;
+
+		this.head = bb;
 		bb.setStruct(this);
 	}
 
+	/**
+	 * Add member BB.
+	 * 
+	 * @param bb
+	 *            member BB
+	 * @return {@code true} - added
+	 */
 	public boolean addMember(final BB bb) {
 		return addMember(null, bb);
 	}
@@ -73,10 +93,20 @@ public class Struct {
 		return true;
 	}
 
+	/**
+	 * Get follow BB.
+	 * 
+	 * @return follow BB
+	 */
 	public BB getFollow() {
 		return this.follow;
 	}
 
+	/**
+	 * Get struct head BB.
+	 * 
+	 * @return struct head BB
+	 */
 	public BB getHead() {
 		return this.head;
 	}
@@ -85,18 +115,55 @@ public class Struct {
 		return this.label;
 	}
 
+	/**
+	 * Get enclosing parent struct.
+	 * 
+	 * @return enclosing parent struct
+	 */
 	public Struct getParent() {
 		return this.parent;
 	}
 
+	/**
+	 * Is BB target for break?
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is target for break
+	 */
+	public boolean isBreakTarget(final BB bb) {
+		return isFollow(bb);
+	}
+
+	/**
+	 * Is BB follow?
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is follow
+	 */
 	public boolean isFollow(final BB bb) {
 		return getFollow() == bb;
 	}
 
+	/**
+	 * Is BB head?
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is head
+	 */
 	public boolean isHead(final BB bb) {
 		return getHead() == bb;
 	}
 
+	/**
+	 * Is BB member?
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is member
+	 */
 	public boolean isMember(final BB bb) {
 		return isMember(null, bb);
 	}
@@ -106,6 +173,12 @@ public class Struct {
 		return members != null && members.contains(bb);
 	}
 
+	/**
+	 * Set follow BB.
+	 * 
+	 * @param bb
+	 *            follow BB
+	 */
 	public void setFollow(final BB bb) {
 		this.follow = bb;
 	}
