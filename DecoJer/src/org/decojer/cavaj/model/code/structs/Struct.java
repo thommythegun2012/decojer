@@ -24,12 +24,14 @@
 package org.decojer.cavaj.model.code.structs;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.decojer.cavaj.model.code.BB;
+
+import com.google.common.collect.Maps;
 
 /**
  * Struct.
@@ -44,7 +46,7 @@ public class Struct {
 
 	private String label;
 
-	protected final Map<Object, List<BB>> value2members = new HashMap<Object, List<BB>>();
+	protected final Map<Object, List<BB>> value2members = Maps.newHashMap();
 
 	private final Struct parent;
 
@@ -125,6 +127,24 @@ public class Struct {
 	}
 
 	/**
+	 * Is BB a branching statement node (pre / endless loop head for continue, struct follow)?
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is a branching statement node
+	 */
+	public boolean isBranching(final BB bb) {
+		if (isBreakTarget(bb)) {
+			return true;
+		}
+		if (this.parent instanceof Loop) {
+			// scenario: isn't conditional follow, could still be a loop head
+			return this.parent.isBranching(bb);
+		}
+		return false;
+	}
+
+	/**
 	 * Is BB target for break?
 	 * 
 	 * @param bb
@@ -165,7 +185,12 @@ public class Struct {
 	 * @return {@code true} - BB is member
 	 */
 	public boolean isMember(final BB bb) {
-		return isMember(null, bb);
+		for (final Map.Entry<Object, List<BB>> members : this.value2members.entrySet()) {
+			if (members.getValue().contains(bb)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean isMember(final Object value, final BB bb) {
@@ -190,8 +215,8 @@ public class Struct {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
-		if (getParent() != null) {
-			sb.append(getParent()).append("\n\n");
+		if (this.parent != null) {
+			sb.append(this.parent).append("\n\n");
 		}
 		sb.append("--- ").append(getClass().getSimpleName()).append(" ---");
 		sb.append("\nHead: BB ").append(getHead().getPostorder());
@@ -207,7 +232,9 @@ public class Struct {
 				break;
 			}
 			if (entry.getKey() != null) {
-				sb.append(entry.getKey()).append(": ");
+				sb.append(
+						entry.getKey() instanceof Object[] ? Arrays.toString((Object[]) entry
+								.getKey()) : entry.getKey()).append(": ");
 			}
 			if (entry.getValue().size() > 20) {
 				sb.append(entry.getValue().size()).append(" BBs");

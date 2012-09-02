@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.transformers;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -47,59 +46,57 @@ public final class TrControlFlowAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrControlFlowAnalysis.class.getName());
 
-	// add successors till unknown predecessor node
-	private static void dfsFindFollows(final List<BB> members, final Set<BB> follows, final BB bb,
-			final Struct struct) {
-		// check important for switch fall-throughs with early member addition
-		if (!members.contains(bb)) {
-			if (bb.getIns().size() <= 1) {
-				// predecessor check unnecessary, but is also necessary as
-				// startup for branch member search
-				members.add(bb);
-			} else {
-				for (final E in : bb.getIns()) {
-					if (in.isBack()) {
-						// ignore back edges
+	/**
+	 * Add successors till unknown predecessor node. Check incoming edges before if this is a struct
+	 * member, switch-fall-throughs and other branches have different preconditions for first node!
+	 * 
+	 * @param struct
+	 *            current new struct
+	 * @param value
+	 *            branch value (true, false, case-value)
+	 * @param bb
+	 *            current BB
+	 * @param follows
+	 *            potential struct follow BBs (no continues or outer breaks)
+	 */
+	private static void dfsFindBranch(final Struct struct, final Object value, final BB bb,
+			final Set<BB> follows) {
+		struct.addMember(value, bb);
+		for (final E out : bb.getOuts()) {
+			if (out.isBack()) {
+				continue; // "continue" is no follow or member
+			}
+			final BB succ = out.getEnd();
+			if (struct.isMember(value, succ)) {
+				continue;
+			}
+			if (succ.getIns().size() != 1) {
+				for (final E in : succ.getIns()) {
+					final BB prev = in.getStart();
+					if (struct.isMember(value, prev)) {
+						// includes prev == bb,
+						// cannot check isHead here, "if" without "else" would include follow node
 						continue;
 					}
-					if (!members.contains(in.getStart())) {
-						follows.add(bb);
+
+					// TODO outer breaks (loop always?) and block splits?! they are no follows
+					if (succ.getStruct() != struct.getParent()
+							&& !struct.getParent().isBreakTarget(succ)) {
+						// leaving parent struct...
 						return;
 					}
+
+					follows.add(succ);
+					return; // stop DFS
 				}
-				follows.remove(bb);
-				members.add(bb);
-			}
-		}
-		for (final E out : bb.getOuts()) {
-			final BB succ = out.getEnd();
-			if (members.contains(succ)) {
-				continue;
-			}
-			if (out.isBack()) {
-				// back edge to no-member successor, outer struct allready known
-				// TODO handle pre loop continue
-				continue;
-			}
-			// not from succ, follow doesn't know
-			if (struct != null) {
-				if (struct instanceof Loop && ((Loop) struct).isPost()
-						&& ((Loop) struct).isLast(succ)) {
-					// TODO handle post loop continue
-					continue;
-				}
-				if (struct.isFollow(succ)) {
-					// TODO handle break
-					continue;
-				}
+				follows.remove(succ); // often does nothing
 			}
 			// DFS
-			dfsFindFollows(members, follows, succ, struct);
+			dfsFindBranch(struct, value, succ, follows);
 		}
 	}
 
-	private static boolean dfsFindInnerLoopMembers(final Loop loop, final BB bb,
-			final Set<BB> traversed) {
+	private static boolean dfsFindLoop(final Loop loop, final BB bb, final Set<BB> traversed) {
 		// DFS
 		traversed.add(bb);
 		boolean loopSucc = false;
@@ -114,13 +111,13 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			final BB succ = out.getEnd();
-			if (loop.isMemberOrLast(succ)) {
+			if (loop.isMember(succ)) {
 				loopSucc = true;
 				continue;
 			}
 			if (!traversed.contains(succ)) {
 				// DFS
-				if (dfsFindInnerLoopMembers(loop, succ, traversed)) {
+				if (dfsFindLoop(loop, succ, traversed)) {
 					loopSucc = true;
 				}
 			}
@@ -231,17 +228,15 @@ public final class TrControlFlowAnalysis {
 		final Boolean firstValue = negated;
 		final Boolean secondValue = !negated;
 
-		final List<BB> firstMembers = new ArrayList<BB>();
 		final Set<BB> firstFollows = new HashSet<BB>();
-		dfsFindFollows(firstMembers, firstFollows, firstSucc, cond.getParent());
+		if (firstSucc.getIns().size() == 1) {
+			dfsFindBranch(cond, firstValue, firstSucc, firstFollows);
+		}
 
 		// no else basic blocks
 		if (firstFollows.contains(secondSucc)) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setType(negated ? Cond.IFNOT : Cond.IF);
-			for (final BB bb : firstMembers) {
-				cond.addMember(firstValue, bb);
-			}
 			cond.setFollow(secondSucc);
 			return cond;
 		}
@@ -251,34 +246,23 @@ public final class TrControlFlowAnalysis {
 		if (firstFollows.size() == 0) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setType(negated ? Cond.IFNOT : Cond.IF);
-			for (final BB bb : firstMembers) {
-				cond.addMember(firstValue, bb);
-			}
 			cond.setFollow(secondSucc);
 			return cond;
 		}
 
-		final List<BB> secondMembers = new ArrayList<BB>();
 		final Set<BB> secondFollows = new HashSet<BB>();
-		dfsFindFollows(secondMembers, secondFollows, secondSucc, cond.getParent());
+		if (secondSucc.getIns().size() == 1) {
+			dfsFindBranch(cond, secondValue, secondSucc, secondFollows);
+		}
 
 		if (secondFollows.contains(firstSucc)) {
 			// also often in JDK 6 bytecode, especially in parent structs
 			cond.setType(negated ? Cond.IF : Cond.IFNOT);
-			for (final BB bb : secondMembers) {
-				cond.addMember(secondValue, bb);
-			}
 			cond.setFollow(firstSucc);
 			return cond;
 		}
 
 		// end nodes are follows or breaks, no continues, returns, throws
-		for (final BB bb : firstMembers) {
-			cond.addMember(firstValue, bb);
-		}
-		for (final BB bb : secondMembers) {
-			cond.addMember(secondValue, bb);
-		}
 
 		// JDK 6: end node with smallest order could be the follow
 		BB firstEndNode = null;
@@ -309,7 +293,7 @@ public final class TrControlFlowAnalysis {
 	private Loop createLoopStruct(final BB head) {
 		final Loop loop = new Loop(head);
 
-		dfsFindInnerLoopMembers(loop, head, new HashSet<BB>());
+		dfsFindLoop(loop, head, new HashSet<BB>());
 
 		final BB tail = loop.getLast();
 		assert tail != null;
@@ -325,12 +309,12 @@ public final class TrControlFlowAnalysis {
 		if (head.getStmts() == 1 && head.isFinalStmtCond()) {
 			final BB falseSucc = head.getFalseSucc();
 			final BB trueSucc = head.getTrueSucc();
-			if (loop.isMemberOrLast(trueSucc) && !loop.isMemberOrLast(falseSucc)) {
+			if (loop.isMember(trueSucc) && !loop.isMember(falseSucc)) {
 				// JDK 6: true is member, opPc of pre head > next member,
 				// leading goto
 				headType = Loop.WHILE;
 				headFollow = falseSucc;
-			} else if (loop.isMemberOrLast(falseSucc) && !loop.isMemberOrLast(trueSucc)) {
+			} else if (loop.isMember(falseSucc) && !loop.isMember(trueSucc)) {
 				// JDK 5: false is member, opPc of pre head < next member,
 				// trailing goto (negated, check class javascript.Decompiler)
 				headType = Loop.WHILENOT;
@@ -365,17 +349,15 @@ public final class TrControlFlowAnalysis {
 			return loop;
 		}
 		if (headType > 0 && tailType > 0) {
-			final List<BB> headMembers = new ArrayList<BB>();
 			final Set<BB> headEndNodes = new HashSet<BB>();
-			dfsFindFollows(headMembers, headEndNodes, headFollow, loop.getParent());
+			dfsFindBranch(loop, null, headFollow, headEndNodes);
 			if (headEndNodes.contains(tailFollow)) {
 				loop.setType(tailType);
 				loop.setFollow(tailFollow);
 				return loop;
 			}
-			final List<BB> tailMembers = new ArrayList<BB>();
 			final Set<BB> tailEndNodes = new HashSet<BB>();
-			dfsFindFollows(tailMembers, tailEndNodes, tailFollow, loop.getParent());
+			dfsFindBranch(loop, null, tailFollow, tailEndNodes);
 			if (tailEndNodes.contains(headFollow)) {
 				loop.setType(headType);
 				loop.setFollow(headFollow);
@@ -450,20 +432,14 @@ public final class TrControlFlowAnalysis {
 			}
 			final BB succ = outs.get(i).getEnd();
 
-			final List<BB> members = new ArrayList<BB>();
-
 			if (succ.getIns().size() > 1) {
 				// fall-through follow case?
 				if (!endNodes.remove(succ)) {
 					log("TODO Case reordering necessary? No proper follow case!");
 				}
-				members.add(succ);
 			}
 
-			dfsFindFollows(members, endNodes, succ, switchStruct.getParent());
-			for (final BB bb : members) {
-				switchStruct.addMember(outs.get(i).getValue(), bb);
-			}
+			dfsFindBranch(switchStruct, outs.get(i).getValue(), succ, endNodes);
 			if (endNodes.contains(defaultBb) && i < size - 2) {
 				type = Switch.SWITCH;
 			}
