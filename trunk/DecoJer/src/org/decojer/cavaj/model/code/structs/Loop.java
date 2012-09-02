@@ -77,6 +77,14 @@ public class Loop extends Struct {
 		return this.type;
 	}
 
+	@Override
+	public boolean isBranching(final BB bb) {
+		if (isContinueTarget(bb)) {
+			return true;
+		}
+		return super.isBranching(bb);
+	}
+
 	/**
 	 * Is BB target for continue?
 	 * 
@@ -117,15 +125,10 @@ public class Loop extends Struct {
 		return getLast() == bb;
 	}
 
-	/**
-	 * Is BB member or last?
-	 * 
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - BB is member or last
-	 */
-	public boolean isMemberOrLast(final BB bb) {
-		return isLast(bb) || isMember(bb);
+	@Override
+	public boolean isMember(final BB bb) {
+		// last BB for loops is separately stored but counts as normal member
+		return isLast(bb) || super.isMember(bb);
 	}
 
 	/**
