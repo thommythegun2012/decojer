@@ -274,20 +274,6 @@ public final class BB {
 	}
 
 	/**
-	 * Get sequence out edge. Returns null if last statement is a control flow statement.
-	 * 
-	 * @return out edge (or null)
-	 */
-	public E getOut() {
-		for (final E out : this.outs) {
-			if (null == out.getValue()) {
-				return out;
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Get register number (locals).
 	 * 
 	 * @return register number (locals)
@@ -315,15 +301,6 @@ public final class BB {
 	 */
 	public int getStmts() {
 		return this.stmts.size();
-	}
-
-	/**
-	 * Get sequence successor.
-	 * 
-	 * @return sequence successor or null
-	 */
-	public BB getSucc() {
-		return getOut() == null ? null : getOut().getEnd();
 	}
 
 	/**

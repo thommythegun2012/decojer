@@ -1282,12 +1282,14 @@ public final class TrCfg2JavaExpressionStmts {
 		// seen in JDK 1.2 Eclipse Core:
 		// DUP-POP conditional variant: GET class$0 DUP JCND_NE
 		// (_POP_ PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$0 GOTO)
+		if (bb.getOuts().size() != 1)
+			return false;
 		if (bb.getOps() != 6 || !(bb.getOp(0) instanceof POP) || !(bb.getOp(1) instanceof PUSH)
 				|| !(bb.getOp(2) instanceof INVOKE) || !(bb.getOp(3) instanceof DUP)
 				|| !(bb.getOp(4) instanceof PUT) || !(bb.getOp(5) instanceof GOTO)) {
 			return false;
 		}
-		final BB followBb = bb.getSucc();
+		final BB followBb = bb.getOuts().get(0).getEnd();
 		if (followBb == null || bb.getIns().size() != 1) {
 			return false;
 		}

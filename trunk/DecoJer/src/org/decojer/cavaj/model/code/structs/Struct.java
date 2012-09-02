@@ -205,6 +205,8 @@ public class Struct {
 	 *            follow BB
 	 */
 	public void setFollow(final BB bb) {
+		assert bb.getPostorder() < this.head.getPostorder();
+
 		this.follow = bb;
 	}
 
