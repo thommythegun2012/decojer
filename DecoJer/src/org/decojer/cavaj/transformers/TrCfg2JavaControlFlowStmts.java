@@ -185,7 +185,7 @@ public final class TrCfg2JavaControlFlowStmts {
 
 	private Statement transformLoop(final Loop loop) {
 		final BB head = loop.getHead();
-		final BB tail = loop.getLast();
+		final BB last = loop.getLast();
 
 		boolean negate = true;
 		switch (loop.getType()) {
@@ -221,7 +221,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			final List<Statement> subStatements = Lists.newArrayList();
 			transformSequence(loop, head, subStatements);
 
-			final Statement statement = tail.getFinalStmt();
+			final Statement statement = last.getFinalStmt();
 			final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 					((IfStatement) statement).getExpression());
 			doStatement.setExpression(negate ? newPrefixExpression(PrefixExpression.Operator.NOT,
@@ -288,7 +288,7 @@ public final class TrCfg2JavaControlFlowStmts {
 						} else if (findStruct instanceof Loop) {
 							statements.add(getAst().newBreakStatement());
 						} else if (findStruct instanceof Switch) {
-							// TODO final case without break
+							// final case-break in switches is removed later
 							statements.add(getAst().newBreakStatement());
 						}
 						return;
@@ -305,7 +305,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				// entering a new sub struct!
 				// enter this sub struct and come back...
 
-				// multiple overlaying heads possible (e.g. post-loop -> cond)!
+				// multiple overlaying heads possible (e.g. endless-loop -> post-loop -> cond),
 				// find topmost unused and use this as sub struct
 				Struct subStruct = bb.getStruct();
 				while (struct != subStruct.getParent()) {
@@ -315,76 +315,47 @@ public final class TrCfg2JavaControlFlowStmts {
 						return;
 					}
 				}
-
-				// decompile sub structure into a statement
-				final Statement structStatement;
-				if (subStruct instanceof Catch) {
-					structStatement = transformCatch((Catch) subStruct);
-				} else if (subStruct instanceof Cond) {
-					// possible statements before cond in basic block
-					final int size = bb.getStmts() - 1;
-					for (int i = 0; i < size; ++i) {
-						statements.add(bb.getStmt(i));
-					}
-					structStatement = transformCond((Cond) subStruct);
-				} else if (subStruct instanceof Loop) {
-					structStatement = transformLoop((Loop) subStruct);
-				} else if (subStruct instanceof Switch) {
-					// possible statements before switch in basic block
-					final int size = bb.getStmts() - 1;
-					for (int i = 0; i < size; ++i) {
-						statements.add(bb.getStmt(i));
-					}
-					structStatement = transformSwitch((Switch) subStruct);
-				} else {
-					log("Unknown struct:\n" + subStruct);
-					structStatement = null;
-				}
-				if (structStatement == null) {
-					log("Couldn't decompile sub struct:\n" + subStruct);
-				} else {
-					statements.add(structStatement);
-				}
-				bb = subStruct.getFollow();
+				bb = transformStruct(subStruct, statements);
 				continue;
 			}
 			// no struct change, but check loop and switch ends
 			for (Struct findStruct = struct; findStruct != null; findStruct = findStruct
 					.getParent()) {
 				if (findStruct instanceof Loop) {
-					final Loop findLoop = (Loop) findStruct;
+					final Loop loop = (Loop) findStruct;
 					// The continue statement skips the current iteration of a
-					// for, while , or do-while loop. The unlabeled form skips
+					// for, while or do-while loop. The unlabeled form skips
 					// to the end of the innermost loop's body and evaluates the
 					// boolean expression that controls the loop. A labeled
 					// continue statement skips the current iteration of an
 					// outer loop marked with the given label.
-
-					if (findLoop.isHead(bb)) {
-						if (struct != findLoop && (findLoop.isEndless() || findLoop.isPre())) {
+					if (loop.isHead(bb)) {
+						if (struct != loop && (loop.isEndless() || loop.isPre())) {
 							// only from sub structure
 							statements.add(getAst().newContinueStatement());
 							return;
 						}
+						// head == last possible for self loops
 					}
-					if (findLoop.isLast(bb)) {
-						if (findLoop.isPost()) {
-							if (struct == findLoop) {
-								final int size = bb.getStmts() - 1;
-								for (int i = 0; i < size; ++i) {
-									statements.add(bb.getStmt(i));
-								}
-							} else {
-								statements.add(getAst().newContinueStatement());
-							}
-							return;
-						} else if (findLoop.isPre() || findLoop.isEndless()) {
-							for (int i = 0; i < bb.getStmts(); ++i) {
+					if (!loop.isLast(bb)) {
+						continue;
+					}
+					if (loop.isPost()) {
+						if (struct == loop) {
+							final int size = bb.getStmts() - 1;
+							for (int i = 0; i < size; ++i) {
 								statements.add(bb.getStmt(i));
 							}
+						} else {
+							statements.add(getAst().newContinueStatement());
 						}
 						return;
+					} else if (loop.isPre() || loop.isEndless()) {
+						for (int i = 0; i < bb.getStmts(); ++i) {
+							statements.add(bb.getStmt(i));
+						}
 					}
+					return;
 				} else if (findStruct instanceof Switch) {
 					final Switch findSwitch = (Switch) findStruct;
 					if (findSwitch.isCase(bb)) {
@@ -402,8 +373,42 @@ public final class TrCfg2JavaControlFlowStmts {
 			if (bb.getOuts().size() != 1) {
 				return;
 			}
+			// follow back edges for continues
 			bb = bb.getOuts().get(0).getEnd();
 		}
+	}
+
+	private BB transformStruct(final Struct struct, final List<Statement> statements) {
+		// decompile sub structure into a statement
+		final Statement structStatement;
+		if (struct instanceof Catch) {
+			structStatement = transformCatch((Catch) struct);
+		} else if (struct instanceof Cond) {
+			// possible statements before cond in basic block
+			final int size = struct.getHead().getStmts() - 1;
+			for (int i = 0; i < size; ++i) {
+				statements.add(struct.getHead().getStmt(i));
+			}
+			structStatement = transformCond((Cond) struct);
+		} else if (struct instanceof Loop) {
+			structStatement = transformLoop((Loop) struct);
+		} else if (struct instanceof Switch) {
+			// possible statements before switch in basic block
+			final int size = struct.getHead().getStmts() - 1;
+			for (int i = 0; i < size; ++i) {
+				statements.add(struct.getHead().getStmt(i));
+			}
+			structStatement = transformSwitch((Switch) struct);
+		} else {
+			log("Unknown struct:\n" + struct);
+			structStatement = null;
+		}
+		if (structStatement == null) {
+			log("Couldn't decompile struct:\n" + struct);
+		} else {
+			statements.add(structStatement);
+		}
+		return struct.getFollow();
 	}
 
 	private Statement transformSwitch(final Switch switchStruct) {
