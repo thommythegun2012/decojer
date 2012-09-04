@@ -24,7 +24,6 @@
 package org.decojer.cavaj.transformers;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -36,6 +35,9 @@ import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.code.structs.Switch;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Transformer: Control Flow Analysis.
@@ -51,31 +53,31 @@ public final class TrControlFlowAnalysis {
 	 * member, switch-fall-throughs and other branches have different preconditions for first node!
 	 * 
 	 * @param struct
-	 *            current new struct
-	 * @param value
-	 *            branch value (true, false, case-value)
+	 *            enclosing struct
 	 * @param bb
 	 *            current BB
+	 * @param members
+	 *            found struct members
 	 * @param follows
-	 *            potential struct follow BBs (no continues or outer breaks)
+	 *            potential struct follows (no continues or outer breaks)
 	 */
-	private static void dfsFindBranch(final Struct struct, final Object value, final BB bb,
+	private static void findBranch(final Struct struct, final BB bb, final List<BB> members,
 			final Set<BB> follows) {
-		struct.addMember(value, bb);
+		members.add(bb);
 		for (final E out : bb.getOuts()) {
 			if (out.isBack()) {
 				continue; // "continue" is no follow or member
 			}
 			final BB succ = out.getEnd();
-			if (struct.isMember(value, succ)) {
+			if (members.contains(bb)) {
 				continue;
 			}
 			if (succ.getIns().size() != 1) {
 				for (final E in : succ.getIns()) {
 					final BB prev = in.getStart();
-					if (struct.isMember(value, prev)) {
+					if (members.contains(bb)) {
 						// includes prev == bb,
-						// cannot check isHead here, "if" without "else" would include follow node
+						// cannot check isHead(), "if" without "else" would include follow node
 						continue;
 					}
 
@@ -92,11 +94,11 @@ public final class TrControlFlowAnalysis {
 				follows.remove(succ); // often does nothing
 			}
 			// DFS
-			dfsFindBranch(struct, value, succ, follows);
+			findBranch(struct, succ, members, follows);
 		}
 	}
 
-	private static boolean dfsFindLoop(final Loop loop, final BB bb, final Set<BB> traversed) {
+	private static boolean findLoop(final Loop loop, final BB bb, final Set<BB> traversed) {
 		// DFS
 		traversed.add(bb);
 		boolean loopSucc = false;
@@ -117,7 +119,7 @@ public final class TrControlFlowAnalysis {
 			}
 			if (!traversed.contains(succ)) {
 				// DFS
-				if (dfsFindLoop(loop, succ, traversed)) {
+				if (findLoop(loop, succ, traversed)) {
 					loopSucc = true;
 				}
 			}
@@ -228,9 +230,9 @@ public final class TrControlFlowAnalysis {
 		final Boolean firstValue = negated;
 		final Boolean secondValue = !negated;
 
-		final Set<BB> firstFollows = new HashSet<BB>();
+		final Set<BB> firstFollows = Sets.newHashSet();
 		if (firstSucc.getIns().size() == 1) {
-			dfsFindBranch(cond, firstValue, firstSucc, firstFollows);
+			findBranch(cond, firstSucc, cond.getMembers(firstValue), firstFollows);
 		}
 
 		// no else basic blocks
@@ -250,9 +252,9 @@ public final class TrControlFlowAnalysis {
 			return cond;
 		}
 
-		final Set<BB> secondFollows = new HashSet<BB>();
+		final Set<BB> secondFollows = Sets.newHashSet();
 		if (secondSucc.getIns().size() == 1) {
-			dfsFindBranch(cond, secondValue, secondSucc, secondFollows);
+			findBranch(cond, secondSucc, cond.getMembers(secondValue), secondFollows);
 		}
 
 		if (secondFollows.contains(firstSucc)) {
@@ -293,7 +295,7 @@ public final class TrControlFlowAnalysis {
 	private Loop createLoopStruct(final BB head) {
 		final Loop loop = new Loop(head);
 
-		dfsFindLoop(loop, head, new HashSet<BB>());
+		findLoop(loop, head, Sets.<BB> newHashSet());
 
 		final BB tail = loop.getLast();
 		assert tail != null;
@@ -349,16 +351,18 @@ public final class TrControlFlowAnalysis {
 			return loop;
 		}
 		if (headType > 0 && tailType > 0) {
-			final Set<BB> headEndNodes = new HashSet<BB>();
-			dfsFindBranch(loop, null, headFollow, headEndNodes);
-			if (headEndNodes.contains(tailFollow)) {
+			final List<BB> headMembers = Lists.newArrayList();
+			final Set<BB> headFollows = Sets.newHashSet();
+			findBranch(loop, headFollow, headMembers, headFollows);
+			if (headFollows.contains(tailFollow)) {
 				loop.setType(tailType);
 				loop.setFollow(tailFollow);
 				return loop;
 			}
-			final Set<BB> tailEndNodes = new HashSet<BB>();
-			dfsFindBranch(loop, null, tailFollow, tailEndNodes);
-			if (tailEndNodes.contains(headFollow)) {
+			final List<BB> tailMembers = Lists.newArrayList();
+			final Set<BB> tailFollows = Sets.newHashSet();
+			findBranch(loop, tailFollow, tailMembers, tailFollows);
+			if (tailFollows.contains(headFollow)) {
 				loop.setType(headType);
 				loop.setFollow(headFollow);
 				return loop;
@@ -420,7 +424,7 @@ public final class TrControlFlowAnalysis {
 			type = Switch.SWITCH_DEFAULT;
 		}
 
-		final Set<BB> endNodes = new HashSet<BB>();
+		final Set<BB> endNodes = Sets.newHashSet();
 		for (int i = 0; i < size; ++i) {
 			if (i == size - 1) {
 				if (type == 0) {
@@ -439,7 +443,8 @@ public final class TrControlFlowAnalysis {
 				}
 			}
 
-			dfsFindBranch(switchStruct, outs.get(i).getValue(), succ, endNodes);
+			findBranch(switchStruct, succ, switchStruct.getMembers(outs.get(i).getValue()),
+					endNodes);
 			if (endNodes.contains(defaultBb) && i < size - 2) {
 				type = Switch.SWITCH;
 			}

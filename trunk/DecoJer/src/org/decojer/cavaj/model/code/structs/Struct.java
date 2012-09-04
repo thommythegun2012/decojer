@@ -54,7 +54,7 @@ public class Struct {
 	 * Constructor.
 	 * 
 	 * @param bb
-	 *            struct head BB
+	 *            struct head
 	 */
 	public Struct(final BB bb) {
 		assert bb != null;
@@ -67,47 +67,44 @@ public class Struct {
 	}
 
 	/**
-	 * Add member BB.
+	 * Add struct member (not head).
 	 * 
 	 * @param bb
-	 *            member BB
+	 *            struct member
 	 * @return {@code true} - added
 	 */
 	public boolean addMember(final BB bb) {
 		return addMember(null, bb);
 	}
 
+	/**
+	 * Add struct member for value (not head).
+	 * 
+	 * @param value
+	 *            value
+	 * @param bb
+	 *            struct member for value
+	 * @return {@code true} - added
+	 */
 	public boolean addMember(final Object value, final BB bb) {
-		assert bb != null;
 		assert bb != this.head;
 
-		List<BB> members = this.value2members.get(value);
-		if (members == null) {
-			members = new ArrayList<BB>();
-			this.value2members.put(value, members);
-		} else if (members.contains(bb)) {
-			return false;
-		}
-		// TODO only possible, if IDom-Add trick with all breaks
-		// assert bb.getStruct() == getParent();
-		members.add(bb);
-		bb.setStruct(this);
-		return true;
+		return getMembers(value).add(bb);
 	}
 
 	/**
-	 * Get follow BB.
+	 * Get struct follow.
 	 * 
-	 * @return follow BB
+	 * @return struct follow
 	 */
 	public BB getFollow() {
 		return this.follow;
 	}
 
 	/**
-	 * Get struct head BB.
+	 * Get struct head.
 	 * 
-	 * @return struct head BB
+	 * @return struct head
 	 */
 	public BB getHead() {
 		return this.head;
@@ -115,6 +112,32 @@ public class Struct {
 
 	public String getLabel() {
 		return this.label;
+	}
+
+	/**
+	 * Get struct members for value, changeable list!
+	 * 
+	 * @param value
+	 *            value
+	 * @return struct members, changeable list
+	 */
+	public List<BB> getMembers(final Object value) {
+		List<BB> members = this.value2members.get(value);
+		if (members == null) {
+			members = new ArrayList<BB>() {
+
+				private static final long serialVersionUID = 245251325232440102L;
+
+				@Override
+				public boolean add(final BB bb) {
+					bb.setStruct(Struct.this);
+					return super.add(bb);
+				}
+
+			};
+			this.value2members.put(value, members);
+		}
+		return members;
 	}
 
 	/**
@@ -145,46 +168,49 @@ public class Struct {
 	}
 
 	/**
-	 * Is BB target for break?
+	 * Is BB target for struct break?
 	 * 
 	 * @param bb
 	 *            BB
-	 * @return {@code true} - BB is target for break
+	 * @return {@code true} - BB is target for struct break
 	 */
 	public boolean isBreakTarget(final BB bb) {
 		return isFollow(bb);
 	}
 
 	/**
-	 * Is BB follow?
+	 * Is BB struct follow?
 	 * 
 	 * @param bb
 	 *            BB
-	 * @return {@code true} - BB is follow
+	 * @return {@code true} - BB is struct follow
 	 */
 	public boolean isFollow(final BB bb) {
 		return getFollow() == bb;
 	}
 
 	/**
-	 * Is BB head?
+	 * Is BB struct head?
 	 * 
 	 * @param bb
 	 *            BB
-	 * @return {@code true} - BB is head
+	 * @return {@code true} - BB is struct head
 	 */
 	public boolean isHead(final BB bb) {
 		return getHead() == bb;
 	}
 
 	/**
-	 * Is BB member?
+	 * Is BB struct member (includes struct head and loop last)?
 	 * 
 	 * @param bb
 	 *            BB
-	 * @return {@code true} - BB is member
+	 * @return {@code true} - BB is struct member
 	 */
 	public boolean isMember(final BB bb) {
+		if (isHead(bb)) {
+			return true;
+		}
 		for (final Map.Entry<Object, List<BB>> members : this.value2members.entrySet()) {
 			if (members.getValue().contains(bb)) {
 				return true;
@@ -193,16 +219,25 @@ public class Struct {
 		return false;
 	}
 
+	/**
+	 * Is BB struct member for value?
+	 * 
+	 * @param value
+	 *            value
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is struct member for value
+	 */
 	public boolean isMember(final Object value, final BB bb) {
 		final List<BB> members = this.value2members.get(value);
 		return members != null && members.contains(bb);
 	}
 
 	/**
-	 * Set follow BB.
+	 * Set follow.
 	 * 
 	 * @param bb
-	 *            follow BB
+	 *            follow
 	 */
 	public void setFollow(final BB bb) {
 		assert bb.getPostorder() < this.head.getPostorder();
