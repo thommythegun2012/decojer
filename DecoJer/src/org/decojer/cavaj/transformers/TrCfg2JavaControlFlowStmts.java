@@ -294,12 +294,14 @@ public final class TrCfg2JavaControlFlowStmts {
 						return;
 					}
 					if (findStruct.getParent() == bb.getStruct()) {
-						log("Struct leave without regular follow encounter:\n" + struct);
+						log("Struct leave in BB " + bb.getPostorder()
+								+ " without regular follow encounter:\n" + struct);
 						return;
 					}
 				}
 				if (!bb.getStruct().isHead(bb)) {
-					log("Struct change without regular follow or head encounter:\n" + struct);
+					log("Struct change in BB " + bb.getPostorder()
+							+ " without regular follow or head encounter:\n" + struct);
 					return;
 				}
 				// entering a new sub struct!
@@ -311,7 +313,8 @@ public final class TrCfg2JavaControlFlowStmts {
 				while (struct != subStruct.getParent()) {
 					subStruct = subStruct.getParent();
 					if (subStruct == null) {
-						log("Struct enter without regular head encounter:\n" + struct);
+						log("Struct enter in BB " + bb.getPostorder()
+								+ " without regular head encounter:\n" + struct);
 						return;
 					}
 				}
