@@ -63,35 +63,33 @@ public final class TrControlFlowAnalysis {
 	 */
 	private static void findBranch(final Struct struct, final BB bb, final List<BB> members,
 			final Set<BB> follows) {
+		if (bb.getIns().size() > 1) {
+			for (final E in : bb.getIns()) {
+				if (in.isBack()) {
+					continue; // ignore incoming back edges, loop belongs to branch
+				}
+				final BB prev = in.getStart();
+				if (members.contains(prev)) {
+					// includes prev == bb,
+					// cannot check isHead(), "if" without "else" would include follow node
+					continue;
+				}
+				follows.add(bb);
+				return; // stop DFS
+			}
+			follows.remove(bb); // often does nothing
+		}
+		assert !members.contains(bb);
+
 		members.add(bb);
+
 		for (final E out : bb.getOuts()) {
 			if (out.isBack()) {
-				continue; // "continue" is no follow or member
+				continue; // is no follow node
 			}
 			final BB succ = out.getEnd();
 			if (members.contains(succ)) {
 				continue;
-			}
-			if (succ.getIns().size() != 1) {
-				for (final E in : succ.getIns()) {
-					final BB prev = in.getStart();
-					if (members.contains(prev)) {
-						// includes prev == bb,
-						// cannot check isHead(), "if" without "else" would include follow node
-						continue;
-					}
-
-					// TODO outer breaks (loop always?) and block splits?! they are no follows
-					if (succ.getStruct() != struct.getParent()
-							&& !struct.getParent().isBreakTarget(succ)) {
-						// leaving parent struct...
-						return;
-					}
-
-					follows.add(succ);
-					return; // stop DFS
-				}
-				follows.remove(succ); // often does nothing
 			}
 			// DFS
 			findBranch(struct, succ, members, follows);
@@ -375,7 +373,7 @@ public final class TrControlFlowAnalysis {
 	private Switch createSwitchStruct(final BB head) {
 		final Switch switchStruct = new Switch(head);
 
-		// cases with branches and values, in normal mode in correct order
+		// cases with branches and values, normally in correct pc-order
 		final List<E> outs = head.getSwitchOuts();
 
 		int defaultIndex = -1;

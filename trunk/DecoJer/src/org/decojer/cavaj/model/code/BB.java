@@ -38,6 +38,8 @@ import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 
+import com.google.common.collect.Lists;
+
 /**
  * Basic block for CFG.
  * 
@@ -123,19 +125,30 @@ public final class BB {
 	}
 
 	/**
-	 * Add switch successors.
+	 * Add successor.
 	 * 
-	 * TODO setSwitchSuccs() better?
-	 * 
-	 * @param caseKeys
-	 *            case keys, null is default
-	 * @param caseSucc
-	 *            case successor
+	 * @param succ
+	 *            successor
+	 * @return out edge
 	 */
-	public void addSwitchSucc(final Integer[] caseKeys, final BB caseSucc) {
-		final E out = new E(this, caseSucc, caseKeys);
-		this.outs.add(out);
-		caseSucc.ins.add(out);
+	public final E addSucc(final BB succ) {
+		return addSucc(succ, null);
+	}
+
+	/**
+	 * Add successor.
+	 * 
+	 * @param succ
+	 *            successor
+	 * @param value
+	 *            value
+	 * @return out edge
+	 */
+	public final E addSucc(final BB succ, final Object value) {
+		final E e = new E(this, succ, value);
+		this.outs.add(e);
+		succ.ins.add(e);
+		return e;
 	}
 
 	/**
@@ -309,7 +322,7 @@ public final class BB {
 	 * @return switch out edges
 	 */
 	public List<E> getSwitchOuts() {
-		final ArrayList<E> switchOuts = new ArrayList<E>();
+		final List<E> switchOuts = Lists.newArrayList();
 		for (final E out : this.outs) {
 			if (out.isSwitch()) {
 				switchOuts.add(out);
@@ -514,41 +527,6 @@ public final class BB {
 	 */
 	public void set(final int i, final Expression v) {
 		this.vs[i] = v;
-	}
-
-	/**
-	 * Set conditional successors.
-	 * 
-	 * @param falseSucc
-	 *            false (branch) successor
-	 * @param trueSucc
-	 *            true (branch) successor
-	 */
-	public void setCondSuccs(final BB falseSucc, final BB trueSucc) {
-		assert getFalseOut() == null : getFalseOut();
-		assert getTrueOut() == null : getTrueOut();
-
-		final E falseOut = new E(this, falseSucc, Boolean.FALSE);
-		this.outs.add(falseOut);
-		falseSucc.ins.add(falseOut);
-
-		final E trueOut = new E(this, trueSucc, Boolean.TRUE);
-		this.outs.add(trueOut);
-		trueSucc.ins.add(trueOut);
-	}
-
-	/**
-	 * Set successor.
-	 * 
-	 * @param succ
-	 *            successor
-	 */
-	public void setSucc(final BB succ) {
-		// TODO RET assert getOut() == null : getOut();
-
-		final E e = new E(this, succ, null);
-		this.outs.add(e);
-		succ.ins.add(e);
 	}
 
 	@Override
