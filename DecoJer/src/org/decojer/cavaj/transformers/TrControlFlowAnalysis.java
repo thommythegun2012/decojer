@@ -69,13 +69,13 @@ public final class TrControlFlowAnalysis {
 				continue; // "continue" is no follow or member
 			}
 			final BB succ = out.getEnd();
-			if (members.contains(bb)) {
+			if (members.contains(succ)) {
 				continue;
 			}
 			if (succ.getIns().size() != 1) {
 				for (final E in : succ.getIns()) {
 					final BB prev = in.getStart();
-					if (members.contains(bb)) {
+					if (members.contains(prev)) {
 						// includes prev == bb,
 						// cannot check isHead(), "if" without "else" would include follow node
 						continue;
