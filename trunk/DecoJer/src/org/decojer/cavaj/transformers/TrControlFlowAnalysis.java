@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.transformers;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -373,52 +373,56 @@ public final class TrControlFlowAnalysis {
 	private Switch createSwitchStruct(final BB head) {
 		final Switch switchStruct = new Switch(head);
 
-		// cases with branches and values, normally in correct pc-order
 		final List<E> outs = head.getSwitchOuts();
+		final int size = outs.size();
+
+		if (head.isLine()) {
+			Collections.sort(outs, E.LINE_COMPARATOR);
+		}
 
 		int defaultIndex = -1;
-		// first case can only have head as predecessor, else try case
+		// first case can only have head as predecessor (no fall-through), elsewise try case
 		// reordering; fall-through follow-cases can have multiple predecessors
 		int firstIndex = -1;
-		// short check and find first node with 1 predecessor und default case
-		final int size = outs.size();
+
 		for (int i = 0; i < size; ++i) {
-			final BB succ = outs.get(i).getEnd();
-			if (succ.getIns().size() == 1 && firstIndex == -1) {
+			final E out = outs.get(i);
+			if (firstIndex == -1 && out.getEnd().getIns().size() == 1) {
 				firstIndex = i;
 			}
-			// assert preds.contains(head);
-
-			if (Arrays.asList((Integer[]) outs.get(i).getValue()).contains(null)) {
-				assert defaultIndex == -1 : "Double Default Case!";
+			for (final Integer value : (Integer[]) out.getValue()) {
+				if (value != null) {
+					continue;
+				}
+				// not possible through construction:
+				assert defaultIndex == -1 : "Double default case for switch head: " + head;
 
 				defaultIndex = i;
 			}
 		}
 		if (defaultIndex == -1) {
-			log("Switch with head '" + head + "' has no default branch!");
+			log("No default branch for switch head '" + head);
 			return switchStruct;
 		}
 		if (firstIndex == -1) {
-			log("Switch with head '" + head
-					+ "' has no case branch with 1 predecessor, necessary for first case!");
+			log("No case branch with 1 predecessor for switch head '" + head);
 			return switchStruct;
 		} else if (firstIndex != 0) {
-			log("Switch with head '" + head
-					+ "' has no first case branch with 1 predecessor, reordering!");
+			log("Reordering first case branch with 1 predecessor for switch head '" + head);
 			final E removedOut = outs.remove(firstIndex);
 			outs.add(0, removedOut);
 		}
 
-		// TODO currently only quick and dirty checks
+		// default necessary if: not last case and has no incomming fall-through
 		int type = 0;
 		if (defaultIndex != size - 1) {
-			// not last case branch?
+			// default is not last case
 			type = Switch.SWITCH_DEFAULT;
 		}
+		// TODO ??? hmmm:
 		final BB defaultBb = outs.get(defaultIndex).getEnd();
 		if (defaultBb.getIns().size() == 1) {
-			// no fall-through follow case and no switch follow
+			// default has no incoming fall-through
 			type = Switch.SWITCH_DEFAULT;
 		}
 

@@ -51,12 +51,17 @@ public final class BB {
 	private final CFG cfg;
 
 	@Getter
-	private final ArrayList<E> ins = new ArrayList<E>(2);
+	private final List<E> ins = new ArrayList<E>(2);
 
-	private final List<Op> ops = new ArrayList<Op>();
+	private final List<Op> ops = Lists.newArrayList();
 
+	/**
+	 * Cond / loop-back / switch case and catch outs, pc-ordered after initial read.
+	 * 
+	 * Pc-ordering at initial read automatically through read-order and some sorts at branches.
+	 */
 	@Getter
-	protected final ArrayList<E> outs = new ArrayList<E>(2);
+	protected final List<E> outs = new ArrayList<E>(2);
 
 	/**
 	 * Must cache and manage first operation PC separately because operations are removed through
@@ -70,7 +75,7 @@ public final class BB {
 	@Setter
 	private int postorder;
 
-	private final List<Statement> stmts = new ArrayList<Statement>();
+	private final List<Statement> stmts = new ArrayList<Statement>(4);
 
 	@Getter
 	@Setter
@@ -188,7 +193,7 @@ public final class BB {
 	 * @return catch out edges
 	 */
 	public List<E> getCatchOuts() {
-		final ArrayList<E> catchOuts = new ArrayList<E>();
+		final List<E> catchOuts = new ArrayList<E>(this.outs.size());
 		for (final E out : this.outs) {
 			if (out.isCatch()) {
 				catchOuts.add(out);
@@ -322,7 +327,7 @@ public final class BB {
 	 * @return switch out edges
 	 */
 	public List<E> getSwitchOuts() {
-		final List<E> switchOuts = Lists.newArrayList();
+		final List<E> switchOuts = new ArrayList<E>(this.outs.size());
 		for (final E out : this.outs) {
 			if (out.isSwitch()) {
 				switchOuts.add(out);
@@ -397,6 +402,15 @@ public final class BB {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Is line information available?
+	 * 
+	 * @return {@code true} - line information is available
+	 */
+	public boolean isLine() {
+		return getLine() >= 0;
 	}
 
 	/**

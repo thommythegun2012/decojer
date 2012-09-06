@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code;
 
+import java.util.Comparator;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,6 +36,20 @@ import org.decojer.cavaj.model.T;
  * @author André Pankraz
  */
 public final class E {
+
+	public static final Comparator<E> LINE_COMPARATOR = new Comparator<E>() {
+
+		@Override
+		public int compare(final E e1, final E e2) {
+			return compare(e1.getEnd().getLine(), e2.getEnd().getLine());
+		}
+
+		// since JDK 7...GAE not
+		private int compare(final int x, final int y) {
+			return x < y ? -1 : x == y ? 0 : 1;
+		}
+
+	};
 
 	@Getter
 	@Setter

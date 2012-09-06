@@ -55,9 +55,6 @@ public final class CFG {
 	@Setter
 	private Block block;
 
-	@Setter
-	private boolean error;
-
 	@Getter
 	@Setter
 	private Exc[] excs;
@@ -194,7 +191,6 @@ public final class CFG {
 	public void clear() {
 		this.block = null;
 		this.frames = null;
-		this.error = false;
 		this.iDoms = null;
 		this.postorderedBbs = null;
 		this.startBb = null;
@@ -366,7 +362,7 @@ public final class CFG {
 	 * @return {@code true} - ignore this
 	 */
 	public boolean isIgnore() {
-		return this.error || this.ops == null || this.ops.length == 0 || this.block == null;
+		return this.ops == null || this.ops.length == 0 || this.block == null;
 	}
 
 	/**
