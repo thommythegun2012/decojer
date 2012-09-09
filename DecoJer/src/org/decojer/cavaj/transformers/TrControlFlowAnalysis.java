@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.transformers;
 
-import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -47,54 +47,6 @@ import com.google.common.collect.Sets;
 public final class TrControlFlowAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrControlFlowAnalysis.class.getName());
-
-	/**
-	 * Add successors till unknown predecessor node. Check incoming edges before if this is a struct
-	 * member, switch-fall-throughs and other branches have different preconditions for first node!
-	 * 
-	 * @param struct
-	 *            enclosing struct
-	 * @param bb
-	 *            current BB
-	 * @param members
-	 *            found struct members
-	 * @param follows
-	 *            potential struct follows (no continues or outer breaks)
-	 */
-	private static void findBranch(final Struct struct, final BB bb, final List<BB> members,
-			final Set<BB> follows) {
-		if (bb.getIns().size() > 1) {
-			for (final E in : bb.getIns()) {
-				if (in.isBack()) {
-					continue; // ignore incoming back edges, loop belongs to branch
-				}
-				final BB prev = in.getStart();
-				if (members.contains(prev)) {
-					// includes prev == bb,
-					// cannot check isHead(), "if" without "else" would include follow node
-					continue;
-				}
-				follows.add(bb);
-				return; // stop DFS
-			}
-			follows.remove(bb); // often does nothing
-		}
-		assert !members.contains(bb);
-
-		members.add(bb);
-
-		for (final E out : bb.getOuts()) {
-			if (out.isBack()) {
-				continue; // is no follow node
-			}
-			final BB succ = out.getEnd();
-			if (members.contains(succ)) {
-				continue;
-			}
-			// DFS
-			findBranch(struct, succ, members, follows);
-		}
-	}
 
 	private static boolean findLoop(final Loop loop, final BB bb, final Set<BB> traversed) {
 		// DFS
@@ -290,6 +242,64 @@ public final class TrControlFlowAnalysis {
 		return cond;
 	}
 
+	private Cond createCondStruct2(final BB head) {
+		final Cond condStruct = new Cond(head);
+
+		final List<E> outs = head.getOuts();
+		final int size = outs.size();
+
+		E trueOut = null;
+		E falseOut = null;
+		for (int i = 0; i < size; ++i) {
+			final E condOut = outs.get(i);
+			if (!condOut.isSwitchCase()) {
+				continue;
+			}
+			if (((Boolean) condOut.getValue()).booleanValue()) {
+				assert trueOut == null;
+
+				trueOut = condOut;
+			} else {
+				assert falseOut == null;
+
+				falseOut = condOut;
+			}
+		}
+		if (trueOut == null || falseOut == null) {
+			log("Not a valid cond struct: " + head);
+			return condStruct;
+		}
+
+		final Set<BB> follows = Sets.newHashSet();
+
+		for (int i = 0; i < size; ++i) {
+			final E condOut = outs.get(i);
+			if (!condOut.isCond()) {
+				continue;
+			}
+			final BB condBb = condOut.getEnd();
+
+			final List<BB> members = condStruct.getMembers(condOut.getValue());
+			findBranch(condStruct, condBb, members, follows);
+
+			if (members.isEmpty()) {
+				if (follows.isEmpty()) {
+					// direct continue or break
+					continue;
+				}
+				if (follows.contains(condBb)) {
+
+				}
+			}
+			if (follows.isEmpty()) {
+				// continue or break with statements
+				// condBb.setF
+			}
+		}
+
+		return condStruct;
+	}
+
 	private Loop createLoopStruct(final BB head) {
 		final Loop loop = new Loop(head);
 
@@ -373,98 +383,150 @@ public final class TrControlFlowAnalysis {
 	private Switch createSwitchStruct(final BB head) {
 		final Switch switchStruct = new Switch(head);
 
-		final List<E> outs = head.getSwitchOuts();
+		final List<E> outs = head.getOuts();
 		final int size = outs.size();
 
-		if (head.isLine()) {
-			Collections.sort(outs, E.LINE_COMPARATOR);
+		int switchCases = 0;
+		for (int i = 0; i < size; ++i) {
+			if (outs.get(i).isSwitchCase()) {
+				++switchCases;
+			}
 		}
 
-		int defaultIndex = -1;
-		// first case can only have head as predecessor (no fall-through), elsewise try case
-		// reordering; fall-through follow-cases can have multiple predecessors
-		int firstIndex = -1;
+		final Set<BB> follows = Sets.newHashSet();
 
-		for (int i = 0; i < size; ++i) {
-			final E out = outs.get(i);
-			if (firstIndex == -1 && out.getEnd().getIns().size() == 1) {
-				firstIndex = i;
+		outer: for (int i = 0; i < size; ++i) {
+			final E caseOut = outs.get(i);
+			if (!caseOut.isSwitchCase()) {
+				continue;
 			}
-			for (final Integer value : (Integer[]) out.getValue()) {
-				if (value != null) {
+			final BB caseBb = caseOut.getEnd();
+
+			if (switchCases == 1 && (follows.isEmpty() || follows.contains(caseBb))) {
+				switchStruct.setType(Switch.SWITCH);
+				switchStruct.setFollow(caseBb);
+				return switchStruct;
+			}
+
+			final List<BB> members = switchStruct.getMembers(caseOut.getValue());
+			findBranch(switchStruct, caseBb, members, follows);
+
+			if (members.isEmpty()) {
+				if (follows.isEmpty()) {
+					// continue or break
 					continue;
 				}
-				// not possible through construction:
-				assert defaultIndex == -1 : "Double default case for switch head: " + head;
-
-				defaultIndex = i;
-			}
-		}
-		if (defaultIndex == -1) {
-			log("No default branch for switch head '" + head);
-			return switchStruct;
-		}
-		if (firstIndex == -1) {
-			log("No case branch with 1 predecessor for switch head '" + head);
-			return switchStruct;
-		} else if (firstIndex != 0) {
-			log("Reordering first case branch with 1 predecessor for switch head '" + head);
-			final E removedOut = outs.remove(firstIndex);
-			outs.add(0, removedOut);
-		}
-
-		// default necessary if: not last case and has no incomming fall-through
-		int type = 0;
-		if (defaultIndex != size - 1) {
-			// default is not last case
-			type = Switch.SWITCH_DEFAULT;
-		}
-		// TODO ??? hmmm:
-		final BB defaultBb = outs.get(defaultIndex).getEnd();
-		if (defaultBb.getIns().size() == 1) {
-			// default has no incoming fall-through
-			type = Switch.SWITCH_DEFAULT;
-		}
-
-		final Set<BB> endNodes = Sets.newHashSet();
-		for (int i = 0; i < size; ++i) {
-			if (i == size - 1) {
-				if (type == 0) {
-					type = Switch.SWITCH;
+				if (follows.contains(caseBb)) {
+					// first case can only have head as predecessor (no fall-through), elsewise try
+					// case reordering; fall-through follow-cases can have multiple predecessors
+					if (i == size - 1) { // endless-loop prevention
+						log("Fall-through case '" + caseOut + "' is empty: '" + head);
+					} else {
+						log("Fall-through case '" + caseOut + "' must be reordered: '" + head);
+						outs.remove(i--);
+						outs.add(caseOut); // as last for now
+					}
+					continue;
 				}
-				if (type == Switch.SWITCH) {
-					break;
-				}
+				log("Special case '" + caseOut + "' must be handled: '" + head);
+				continue;
 			}
-			final BB succ = outs.get(i).getEnd();
+			--switchCases;
+			if (follows.isEmpty()) {
+				continue;
+			}
+			// a follow has 2 incomings, one is head?
+			// => is switch-follow or fall-through must follow!
+			for (final Iterator<BB> it = follows.iterator(); it.hasNext();) {
+				final BB follow = it.next();
+				final List<E> ins = follow.getIns();
+				if (ins.size() >= 2) {
+					for (final E in : ins) {
+						if (in.getStart() == head) {
+							// switch-follow or fall-through found
+							if (in.isSwitchDefault()) {
+								// TODO not sufficient, count if a follow occurs multiple times!
+								continue;
+							}
+							final List<BB> followCaseMembers = switchStruct.getMembers(in
+									.getValue());
+							if (!followCaseMembers.isEmpty()) {
+								log("Fall-through case '" + caseOut
+										+ "' cannot be target of multiple fall-throughs: '" + head);
+							}
 
-			if (succ.getIns().size() > 1) {
-				// fall-through follow case?
-				if (!endNodes.remove(succ)) {
-					log("TODO Case reordering necessary? No proper follow case!");
-				}
-			}
+							followCaseMembers.add(follow);
+							it.remove(); // remove as struct follow
 
-			findBranch(switchStruct, succ, switchStruct.getMembers(outs.get(i).getValue()),
-					endNodes);
-			if (endNodes.contains(defaultBb) && i < size - 2) {
-				type = Switch.SWITCH;
-			}
-		}
-		switchStruct.setType(type);
-		if (type == Switch.SWITCH) {
-			switchStruct.setFollow(defaultBb);
-		} else {
-			// TODO end node with smallest order could be the follow
-			BB switchEndNode = null;
-			for (final BB endNode : endNodes) {
-				if (switchEndNode == null || switchEndNode.getOrder() > endNode.getOrder()) {
-					switchEndNode = endNode;
+							// move in to i + 1
+							outs.remove(in);
+							outs.add(i + 1, in);
+							continue outer;
+						}
+					}
 				}
 			}
-			switchStruct.setFollow(switchEndNode);
+
 		}
+		switchStruct.setType(Switch.SWITCH_DEFAULT);
+		// TODO end node with smallest order could be the follow
+		BB switchFollow = null;
+		for (final BB follow : follows) {
+			if (switchFollow == null || switchFollow.getOrder() > follow.getOrder()) {
+				switchFollow = follow;
+			}
+		}
+		switchStruct.setFollow(switchFollow);
 		return switchStruct;
+	}
+
+	/**
+	 * Add successors until unknown predecessors are encountered.
+	 * 
+	 * Check incoming edges first, because the start BB could be a direct continue or break!
+	 * 
+	 * Switch-case fall-throughs start with case BB as member.
+	 * 
+	 * @param struct
+	 *            enclosing struct
+	 * @param bb
+	 *            current BB
+	 * @param members
+	 *            found struct members
+	 * @param follows
+	 *            potential struct follows (no continues or breaks)
+	 */
+	private void findBranch(final Struct struct, final BB bb, final List<BB> members,
+			final Set<BB> follows) {
+		if (!members.contains(bb)) { // necessary check because of switch-case fall-throughs
+			if (bb.getIns().size() > 1) {
+				// is there a none-member prev?
+				for (final E in : bb.getIns()) {
+					if (in.isBack()) {
+						continue; // ignore incoming back edges, sub loop-heads belong to branch
+					}
+					final BB prev = in.getStart();
+					if (members.contains(prev)) {
+						continue;
+					}
+					if (struct.getParent() == null || struct.getParent().isMember(prev)) {
+						follows.add(bb); // TODO only 1 possible?
+						return;
+					}
+					// is break or continue, artificial block might be necessary!
+					log("Java has single-entry structs, not allowed - GOTO necessary");
+				}
+				follows.remove(bb); // all prev are now members, maybe we where already here
+			}
+			members.add(bb);
+		}
+		for (final E out : bb.getOuts()) {
+			final BB succ = out.getEnd();
+			if (!members.contains(succ)) {
+				// DFS
+				findBranch(struct, succ, members, follows);
+			}
+		}
 	}
 
 	private void log(final String message) {
@@ -476,11 +538,13 @@ public final class TrControlFlowAnalysis {
 		// for all nodes in _reverse_ postorder: find outer structs first
 		for (int i = bbs.size(); i-- > 0;) {
 			final BB bb = bbs.get(i);
+			if (this.cfg.isLineInfo()) {
+				bb.sortOuts();
+			}
 			// if (isCatchHead(bb)) {
 			// is also a loop header? => we have to check if for endless / post we enclose the
 			// tail too
 			// }
-
 			// check loop first, could be a post / endless loop with additional sub struct heads
 			if (isLoopHead(bb)) {
 				if (createLoopStruct(bb).isPre()) {

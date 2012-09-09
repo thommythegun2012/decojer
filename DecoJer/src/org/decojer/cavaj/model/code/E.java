@@ -78,6 +78,20 @@ public final class E {
 		this.value = value;
 	}
 
+	@Override
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof E)) {
+			return false;
+		}
+		final E e = (E) obj;
+		return this.start.equals(e.start) && this.end.equals(e.end);
+	}
+
+	@Override
+	public int hashCode() {
+		return this.start.hashCode() * 13 + this.end.hashCode();
+	}
+
 	/**
 	 * Is back edge?
 	 * 
@@ -111,8 +125,32 @@ public final class E {
 	 * 
 	 * @return {@code true} - is switch case
 	 */
-	public boolean isSwitch() {
+	public boolean isSwitchCase() {
 		return this.value instanceof Integer[];
+	}
+
+	/**
+	 * Is switch default in cases?
+	 * 
+	 * @return {@code true} - switch default is in cases
+	 */
+	public boolean isSwitchDefault() {
+		if (!(this.value instanceof Integer[])) {
+			return false;
+		}
+		final Integer[] iValues = (Integer[]) this.value;
+		for (int i = iValues.length; i-- > 0;) {
+			if (iValues[i] == null) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
+	public String toString() {
+		return this.start.getPostorder() + " -> " + this.end.getPostorder()
+				+ (this.value == null ? "" : " (" + this.value + ")");
 	}
 
 }

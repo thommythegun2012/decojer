@@ -25,12 +25,12 @@ package org.decojer.cavaj.model.code;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.eclipse.jdt.core.dom.Expression;
@@ -93,20 +93,6 @@ public final class BB {
 		this.cfg = cfg;
 		this.pc = pc;
 		this.vs = new Expression[getRegs()];
-	}
-
-	/**
-	 * Add catch successors.
-	 * 
-	 * @param handlerTypes
-	 *            handler types, null is any
-	 * @param handlerSucc
-	 *            handler successor
-	 */
-	public void addCatchSucc(final T[] handlerTypes, final BB handlerSucc) {
-		final E out = new E(this, handlerSucc, handlerTypes);
-		this.outs.add(out);
-		handlerSucc.ins.add(out);
 	}
 
 	/**
@@ -174,6 +160,14 @@ public final class BB {
 			System.arraycopy(bb.vs, bb.getRegs(), this.vs, getRegs() + this.top, bb.top);
 			this.top += bb.top;
 		}
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof BB)) {
+			return false;
+		}
+		return this.pc == ((BB) obj).pc;
 	}
 
 	/**
@@ -329,7 +323,7 @@ public final class BB {
 	public List<E> getSwitchOuts() {
 		final List<E> switchOuts = new ArrayList<E>(this.outs.size());
 		for (final E out : this.outs) {
-			if (out.isSwitch()) {
+			if (out.isSwitchCase()) {
 				switchOuts.add(out);
 			}
 		}
@@ -357,6 +351,11 @@ public final class BB {
 	 */
 	public BB getTrueSucc() {
 		return getTrueOut().getEnd();
+	}
+
+	@Override
+	public int hashCode() {
+		return this.pc;
 	}
 
 	/**
@@ -409,7 +408,7 @@ public final class BB {
 	 * 
 	 * @return {@code true} - line information is available
 	 */
-	public boolean isLine() {
+	public boolean isLineInfo() {
 		return getLine() >= 0;
 	}
 
@@ -541,6 +540,13 @@ public final class BB {
 	 */
 	public void set(final int i, final Expression v) {
 		this.vs[i] = v;
+	}
+
+	/**
+	 * Sort outs.
+	 */
+	public void sortOuts() {
+		Collections.sort(this.outs, E.LINE_COMPARATOR);
 	}
 
 	@Override

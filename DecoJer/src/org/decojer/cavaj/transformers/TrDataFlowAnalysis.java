@@ -135,6 +135,18 @@ public final class TrDataFlowAnalysis {
 		this.cfg = cfg;
 	}
 
+	private void addCondSucc(final BB bb, final int truePc, final int falsePc) {
+		// preserve pc-order as edge-order
+		if (falsePc < truePc) {
+			// usual case, if not a direct branching
+			bb.addSucc(getTargetBb(falsePc), Boolean.FALSE);
+			bb.addSucc(getTargetBb(truePc), Boolean.TRUE);
+			return;
+		}
+		bb.addSucc(getTargetBb(truePc), Boolean.TRUE);
+		bb.addSucc(getTargetBb(falsePc), Boolean.FALSE);
+	}
+
 	private void evalBinaryMath(final T t) {
 		evalBinaryMath(t, null);
 	}
@@ -371,8 +383,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case JCMP: {
 			final JCMP cop = (JCMP) op;
-			bb.addSucc(getTargetBb(nextPc), Boolean.FALSE);
-			bb.addSucc(getTargetBb(cop.getTargetPc()), Boolean.TRUE);
+			addCondSucc(bb, cop.getTargetPc(), nextPc);
 			evalBinaryMath(cop.getT(), T.VOID);
 			merge(nextPc);
 			merge(cop.getTargetPc());
@@ -380,8 +391,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case JCND: {
 			final JCND cop = (JCND) op;
-			bb.addSucc(getTargetBb(nextPc), Boolean.FALSE);
-			bb.addSucc(getTargetBb(cop.getTargetPc()), Boolean.TRUE);
+			addCondSucc(bb, cop.getTargetPc(), nextPc);
 			pop(cop.getT(), true);
 			merge(nextPc);
 			merge(cop.getTargetPc());
@@ -636,7 +646,7 @@ public final class TrDataFlowAnalysis {
 			}
 			keys.add(null);
 
-			// now add successors
+			// now add successors, preserve pc-order as edge-order
 			for (final Map.Entry<Integer, List<Integer>> casePc2keysEntry : casePc2keys.entrySet()) {
 				keys = casePc2keysEntry.getValue();
 				bb.addSucc(getTargetBb(casePc2keysEntry.getKey()),
@@ -835,8 +845,8 @@ public final class TrDataFlowAnalysis {
 			// now add successors
 			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
 				final List<T> types = handlerPc2typeEntry.getValue();
-				bb.addCatchSucc(types.toArray(new T[types.size()]),
-						getTargetBb(handlerPc2typeEntry.getKey()));
+				bb.addSucc(getTargetBb(handlerPc2typeEntry.getKey()), handlerPc2typeEntry
+						.getValue().toArray(new T[types.size()]));
 			}
 		}
 		return bb;
