@@ -366,6 +366,15 @@ public final class CFG {
 	}
 
 	/**
+	 * Is line information available?
+	 * 
+	 * @return {@code true} - line information is available
+	 */
+	public boolean isLineInfo() {
+		return this.startBb.isLineInfo();
+	}
+
+	/**
 	 * New basic block.
 	 * 
 	 * @param opPc

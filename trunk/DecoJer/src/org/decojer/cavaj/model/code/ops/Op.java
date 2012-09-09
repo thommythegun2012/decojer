@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import lombok.Getter;
+
 /**
  * Operation.
  * 
@@ -32,6 +34,7 @@ package org.decojer.cavaj.model.code.ops;
  * 
  * @author André Pankraz
  */
+@Getter
 public abstract class Op {
 
 	final int line;
@@ -73,42 +76,24 @@ public abstract class Op {
 	public abstract int getInStackSize();
 
 	/**
-	 * Get line number.
-	 * 
-	 * @return line number, -1 for no numbers
-	 */
-	public int getLine() {
-		return this.line;
-	}
-
-	/**
-	 * Get operation code.
-	 * 
-	 * @return operation code
-	 */
-	public int getOpcode() {
-		return this.opcode;
-	}
-
-	/**
 	 * Get operation type.
 	 * 
 	 * @return operation type
 	 */
 	public abstract Optype getOptype();
 
-	/**
-	 * Get pc.
-	 * 
-	 * @return pc
-	 */
-	public int getPc() {
-		return this.pc;
-	}
-
 	@Override
 	public int hashCode() {
 		return this.pc;
+	}
+
+	/**
+	 * Is line information available?
+	 * 
+	 * @return {@code true} - line information is available
+	 */
+	public boolean isLineInfo() {
+		return this.line >= 0;
 	}
 
 	@Override
