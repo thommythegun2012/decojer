@@ -424,6 +424,9 @@ public final class BB {
 			return false;
 		}
 		for (final E in : this.ins) {
+			if (in.isBack()) {
+				continue;
+			}
 			final BB pred = in.getStart();
 			if (bb == pred || isPred(pred)) {
 				return true;
