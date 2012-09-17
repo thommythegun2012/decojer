@@ -413,6 +413,37 @@ public final class BB {
 	}
 
 	/**
+	 * Is given BB predecessor of this BB? This excludes same BB!
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - given BB is predecessor of this BB
+	 */
+	public boolean isPred(final BB bb) {
+		if (this.pc >= bb.pc) {
+			return false;
+		}
+		for (final E in : this.ins) {
+			final BB pred = in.getStart();
+			if (bb == pred || isPred(pred)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Is given BB successor of this BB? This excludes same BB!
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - given BB is successor of this BB
+	 */
+	public boolean isSucc(final BB bb) {
+		return !isPred(bb);
+	}
+
+	/**
 	 * Move in edges to target BB. Adjust CFG start BB.
 	 * 
 	 * @param target
