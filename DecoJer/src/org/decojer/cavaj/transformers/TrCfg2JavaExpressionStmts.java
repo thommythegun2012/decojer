@@ -30,6 +30,7 @@ import static org.decojer.cavaj.utils.Expressions.wrap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.AF;
@@ -275,6 +276,7 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean convertToHLLIntermediate(final BB bb) {
+		boolean fieldInit = true; // small hack for now...later because of conditionals?
 		while (bb.getOps() > 0) {
 			final Op op = bb.getOp(0);
 			if (!bb.hasStackSizeFor(op)) {
@@ -592,6 +594,7 @@ public final class TrCfg2JavaExpressionStmts {
 									.newSuperConstructorInvocation();
 							superConstructorInvocation.arguments().addAll(arguments);
 							bb.addStmt(superConstructorInvocation);
+							fieldInit = true;
 							break;
 						}
 						if (expression instanceof ClassInstanceCreation) {
@@ -838,16 +841,17 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			case LOAD: {
 				final LOAD cop = (LOAD) op;
+				/*
+				 * final V v = this.cfg.getFrameVar(cop.getReg(), cop.getPc()); if (v == null ||
+				 * v.getName() == null) { // temporary local final Expression expression =
+				 * bb.get(cop.getReg()); if (expression != null) { bb.push(bb.get(cop.getReg()));
+				 * break; } }
+				 */
 
-				final V v = this.cfg.getFrameVar(cop.getReg(), cop.getPc());
-				if (v == null || v.getName() == null) {
-					// temporary local
-					final Expression expression = bb.get(cop.getReg());
-					if (expression != null) {
-						bb.push(bb.get(cop.getReg()));
-						break;
-					}
-				}
+				// must not access method parameters for fieldInits...
+				// TODO not enough, reads change PC -> not temporary if used multiple times
+				fieldInit &= cop.getReg() == 0 && this.cfg.getMd().isConstructor()
+						|| this.cfg.getInFrame(cop).get(cop.getReg()).getPc() != 0;
 
 				final String name = getVarName(cop.getReg(), cop.getPc());
 				if ("this".equals(name)) {
@@ -980,119 +984,8 @@ public final class TrCfg2JavaExpressionStmts {
 				final PUT cop = (PUT) op;
 				final Expression rightExpression = bb.pop();
 				final F f = cop.getF();
-				fieldInit: if (this.cfg.getMd().getTd().getT() == f.getT()) {
-					// set local field, could be initializer
-					if (f.check(AF.STATIC)) {
-						if (!this.cfg.getMd().isInitializer()) {
-							break fieldInit;
-						}
-					} else {
-						if (!this.cfg.getMd().isConstructor()) {
-							break fieldInit;
-						}
-						if (!(bb.peek() instanceof ThisExpression)) {
-							break fieldInit;
-						}
-						// multiple constructors with different signatures possible, all of them
-						// contain the same field initializer code after super() - simply overwrite
-					}
-					if (this.cfg.getStartBb() != bb || bb.getStmts() > 1) {
-						break fieldInit;
-					}
-					if (bb.getStmts() == 1
-							&& !(bb.getStmt(0) instanceof SuperConstructorInvocation)) {
-						// initial super(<arguments>) is allowed
-						break fieldInit;
-					}
-					// TODO this checks are not enough, we must assure that we don't use method
-					// arguments here!!!
-					if (((ClassT) f.getT()).check(AF.ENUM)
-							&& !this.cfg.getCu().check(DFlag.IGNORE_ENUM)) {
-						if (f.check(AF.ENUM)) {
-							// assignment to enum constant declaration
-							if (!(rightExpression instanceof ClassInstanceCreation)) {
-								LOGGER.warning("Assignment to enum field '" + f
-										+ "' is no class instance creation!");
-								break fieldInit;
-							}
-							final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) rightExpression;
-							// first two arguments must be String (== field name) and int (ordinal)
-							final List<Expression> arguments = classInstanceCreation.arguments();
-							if (arguments.size() < 2) {
-								LOGGER.warning("Class instance creation for enum field '" + f
-										+ "' has less than 2 arguments!");
-								break fieldInit;
-							}
-							if (!(arguments.get(0) instanceof StringLiteral)) {
-								LOGGER.warning("Class instance creation for enum field '" + f
-										+ "' must contain string literal as first parameter!");
-								break fieldInit;
-							}
-							final String literalValue = ((StringLiteral) arguments.get(0))
-									.getLiteralValue();
-							if (!literalValue.equals(f.getName())) {
-								LOGGER.warning("Class instance creation for enum field '"
-										+ f
-										+ "' must contain string literal equal to field name as first parameter!");
-								break fieldInit;
-							}
-							if (!(arguments.get(1) instanceof NumberLiteral)) {
-								LOGGER.warning("Class instance creation for enum field '" + f
-										+ "' must contain number literal as first parameter!");
-								break fieldInit;
-							}
-							final FD fd = this.cfg.getTd().getT().getF(f.getName(), f.getValueT())
-									.getFd();
-							final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
-							assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
-							final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
-
-							for (int i = arguments.size(); i-- > 2;) {
-								final Expression e = arguments.get(i);
-								e.delete();
-								enumConstantDeclaration.arguments().add(0, e);
-							}
-
-							final AnonymousClassDeclaration anonymousClassDeclaration = classInstanceCreation
-									.getAnonymousClassDeclaration();
-							if (anonymousClassDeclaration != null) {
-								anonymousClassDeclaration.delete();
-								enumConstantDeclaration
-										.setAnonymousClassDeclaration(anonymousClassDeclaration);
-								// normally contains one constructor, that calls a synthetic super
-								// constructor with the enum class as additional last parameter,
-								// this may contain field initializers, that we must keep,
-								// so we can only remove the constructor in final merge (because
-								// anonymous inner classes cannot hava visible Java constructor)
-							}
-							break;
-						}
-						if ("$VALUES".equals(f.getName()) || "ENUM$VALUES".equals(f.getName())) {
-							break; // ignore such assignments completely
-						}
-					}
-					if (f.check(AF.SYNTHETIC)) {
-						if (this.cfg.getCu().check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
-							break fieldInit; // not as field initializer
-						}
-						break; // ignore such assignments completely
-					}
-					final FD fd = this.cfg.getTd().getT().getF(f.getName(), f.getValueT()).getFd();
-					if (fd == null || !(fd.getFieldDeclaration() instanceof FieldDeclaration)) {
-						break fieldInit;
-					}
-					try {
-						((VariableDeclarationFragment) ((FieldDeclaration) fd.getFieldDeclaration())
-								.fragments().get(0)).setInitializer(wrap(rightExpression,
-								Priority.ASSIGNMENT));
-						// TODO move anonymous TD to FD as child!!! important for ClassEditor
-						// select, if fixed change ClassEditor#findDeclarationForJavaElement too
-						if (!f.check(AF.STATIC)) {
-							bb.pop();
-						}
-					} catch (final Exception e) {
-						// rewrite to field-initializer didn't work
-					}
+				if (fieldInit && this.cfg.getMd().getTd().getT() == f.getT()
+						&& rewriteFieldInit(bb, f, rightExpression)) {
 					break;
 				}
 				final Assignment assignment = getAst().newAssignment();
@@ -1472,6 +1365,117 @@ public final class TrCfg2JavaExpressionStmts {
 			bb.push(expression);
 		}
 
+		return true;
+	}
+
+	private boolean rewriteFieldInit(final BB bb, final F f, final Expression rightExpression) {
+		// set local field, could be initializer
+		if (f.check(AF.STATIC)) {
+			if (!this.cfg.getMd().isInitializer()) {
+				return false;
+			}
+		} else {
+			if (!this.cfg.getMd().isConstructor()) {
+				return false;
+			}
+			if (!(bb.peek() instanceof ThisExpression)) {
+				return false;
+			}
+			// multiple constructors with different signatures possible, all of them
+			// contain the same field initializer code after super() - simply overwrite
+		}
+		if (this.cfg.getStartBb() != bb || bb.getStmts() > 1) {
+			return false;
+		}
+		if (bb.getStmts() == 1 && !(bb.getStmt(0) instanceof SuperConstructorInvocation)) {
+			// initial super(<arguments>) is allowed
+			return false;
+		}
+		// TODO this checks are not enough, we must assure that we don't use method
+		// arguments here!!!
+		if (((ClassT) f.getT()).check(AF.ENUM) && !this.cfg.getCu().check(DFlag.IGNORE_ENUM)) {
+			if (f.check(AF.ENUM)) {
+				// assignment to enum constant declaration
+				if (!(rightExpression instanceof ClassInstanceCreation)) {
+					LOGGER.warning("Assignment to enum field '" + f
+							+ "' is no class instance creation!");
+					return false;
+				}
+				final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) rightExpression;
+				// first two arguments must be String (== field name) and int (ordinal)
+				final List<Expression> arguments = classInstanceCreation.arguments();
+				if (arguments.size() < 2) {
+					LOGGER.warning("Class instance creation for enum field '" + f
+							+ "' has less than 2 arguments!");
+					return false;
+				}
+				if (!(arguments.get(0) instanceof StringLiteral)) {
+					LOGGER.warning("Class instance creation for enum field '" + f
+							+ "' must contain string literal as first parameter!");
+					return false;
+				}
+				final String literalValue = ((StringLiteral) arguments.get(0)).getLiteralValue();
+				if (!literalValue.equals(f.getName())) {
+					LOGGER.warning("Class instance creation for enum field '"
+							+ f
+							+ "' must contain string literal equal to field name as first parameter!");
+					return false;
+				}
+				if (!(arguments.get(1) instanceof NumberLiteral)) {
+					LOGGER.warning("Class instance creation for enum field '" + f
+							+ "' must contain number literal as first parameter!");
+					return false;
+				}
+				final FD fd = this.cfg.getTd().getT().getF(f.getName(), f.getValueT()).getFd();
+				final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
+				assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
+				final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
+
+				for (int i = arguments.size(); i-- > 2;) {
+					final Expression e = arguments.get(i);
+					e.delete();
+					enumConstantDeclaration.arguments().add(0, e);
+				}
+
+				final AnonymousClassDeclaration anonymousClassDeclaration = classInstanceCreation
+						.getAnonymousClassDeclaration();
+				if (anonymousClassDeclaration != null) {
+					anonymousClassDeclaration.delete();
+					enumConstantDeclaration.setAnonymousClassDeclaration(anonymousClassDeclaration);
+					// normally contains one constructor, that calls a synthetic super
+					// constructor with the enum class as additional last parameter,
+					// this may contain field initializers, that we must keep,
+					// so we can only remove the constructor in final merge (because
+					// anonymous inner classes cannot hava visible Java constructor)
+				}
+				return true;
+			}
+			if ("$VALUES".equals(f.getName()) || "ENUM$VALUES".equals(f.getName())) {
+				return true; // ignore such assignments completely
+			}
+		}
+		if (f.check(AF.SYNTHETIC)) {
+			if (this.cfg.getCu().check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+				return false; // not as field initializer
+			}
+			return true; // ignore such assignments completely
+		}
+		final FD fd = this.cfg.getTd().getT().getF(f.getName(), f.getValueT()).getFd();
+		if (fd == null || !(fd.getFieldDeclaration() instanceof FieldDeclaration)) {
+			return false;
+		}
+		try {
+			((VariableDeclarationFragment) ((FieldDeclaration) fd.getFieldDeclaration())
+					.fragments().get(0)).setInitializer(wrap(rightExpression, Priority.ASSIGNMENT));
+			// TODO move anonymous TD to FD as child!!! important for ClassEditor
+			// select, if fixed change ClassEditor#findDeclarationForJavaElement too
+			if (!f.check(AF.STATIC)) {
+				bb.pop();
+			}
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Reewrite to field-initializer didn't work!", e);
+			return false;
+		}
 		return true;
 	}
 

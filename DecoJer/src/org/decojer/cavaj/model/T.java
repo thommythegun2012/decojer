@@ -470,7 +470,7 @@ public abstract class T {
 	 */
 	public F getF(final String name, final T valueT) {
 		// Unique identifier is: "name + descriptor" ({@link F})
-		final String handle = name + ":" + valueT.getName();
+		final String handle = name; // TODO signature change? + ":" + valueT.getName();
 		F f = (F) getMember().get(handle);
 		if (f == null) {
 			f = new F(this, name, valueT);
