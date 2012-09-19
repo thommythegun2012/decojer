@@ -125,8 +125,8 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private static boolean isSwitchHead(final BB bb) {
-		// don't use successor number as indicator, normal switch with 2 successors
-		// (JVM 6: 1 case and default) possible
+		// don't use successor number as indicator, switch with 2 successors
+		// (JVM 6: 1 case and default) possible, not optimized
 		return bb.isFinalStmtSwitch();
 	}
 
@@ -147,6 +147,64 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private Cond createCondStruct(final BB head) {
+		final Cond condStruct = new Cond(head);
+
+		final List<E> outs = head.getOuts();
+		final int size = outs.size();
+
+		E trueOut = null;
+		E falseOut = null;
+		for (int i = 0; i < size; ++i) {
+			final E condOut = outs.get(i);
+			if (!condOut.isSwitchCase()) {
+				continue;
+			}
+			if (((Boolean) condOut.getValue()).booleanValue()) {
+				assert trueOut == null;
+
+				trueOut = condOut;
+			} else {
+				assert falseOut == null;
+
+				falseOut = condOut;
+			}
+		}
+		if (trueOut == null || falseOut == null) {
+			log("Not a valid cond struct: " + head);
+			return condStruct;
+		}
+
+		final Set<BB> follows = Sets.newHashSet();
+
+		for (int i = 0; i < size; ++i) {
+			final E condOut = outs.get(i);
+			if (!condOut.isCond()) {
+				continue;
+			}
+			final BB condBb = condOut.getEnd();
+
+			final List<BB> members = condStruct.getMembers(condOut.getValue());
+			findBranch(condStruct, condBb, members, follows);
+
+			if (members.isEmpty()) {
+				if (follows.isEmpty()) {
+					// direct continue or break
+					continue;
+				}
+				if (follows.contains(condBb)) {
+
+				}
+			}
+			if (follows.isEmpty()) {
+				// continue or break with statements
+				// condBb.setF
+			}
+		}
+
+		return condStruct;
+	}
+
+	private Cond createCondStructOld(final BB head) {
 		final Cond cond = new Cond(head);
 
 		final BB falseSucc = head.getFalseSucc();
@@ -240,64 +298,6 @@ public final class TrControlFlowAnalysis {
 		// only if unrelated conditional tails???
 		log("Unknown struct, no common follow for:\n" + cond);
 		return cond;
-	}
-
-	private Cond createCondStruct2(final BB head) {
-		final Cond condStruct = new Cond(head);
-
-		final List<E> outs = head.getOuts();
-		final int size = outs.size();
-
-		E trueOut = null;
-		E falseOut = null;
-		for (int i = 0; i < size; ++i) {
-			final E condOut = outs.get(i);
-			if (!condOut.isSwitchCase()) {
-				continue;
-			}
-			if (((Boolean) condOut.getValue()).booleanValue()) {
-				assert trueOut == null;
-
-				trueOut = condOut;
-			} else {
-				assert falseOut == null;
-
-				falseOut = condOut;
-			}
-		}
-		if (trueOut == null || falseOut == null) {
-			log("Not a valid cond struct: " + head);
-			return condStruct;
-		}
-
-		final Set<BB> follows = Sets.newHashSet();
-
-		for (int i = 0; i < size; ++i) {
-			final E condOut = outs.get(i);
-			if (!condOut.isCond()) {
-				continue;
-			}
-			final BB condBb = condOut.getEnd();
-
-			final List<BB> members = condStruct.getMembers(condOut.getValue());
-			findBranch(condStruct, condBb, members, follows);
-
-			if (members.isEmpty()) {
-				if (follows.isEmpty()) {
-					// direct continue or break
-					continue;
-				}
-				if (follows.contains(condBb)) {
-
-				}
-			}
-			if (follows.isEmpty()) {
-				// continue or break with statements
-				// condBb.setF
-			}
-		}
-
-		return condStruct;
 	}
 
 	private Loop createLoopStruct(final BB head) {
@@ -541,10 +541,6 @@ public final class TrControlFlowAnalysis {
 			if (this.cfg.isLineInfo()) {
 				bb.sortOuts();
 			}
-			// if (isCatchHead(bb)) {
-			// is also a loop header? => we have to check if for endless / post we enclose the
-			// tail too
-			// }
 			// check loop first, could be a post / endless loop with additional sub struct heads
 			if (isLoopHead(bb)) {
 				if (createLoopStruct(bb).isPre()) {
@@ -557,7 +553,7 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			if (isCondHead(bb)) {
-				createCondStruct(bb);
+				createCondStructOld(bb);
 				continue;
 			}
 		}
