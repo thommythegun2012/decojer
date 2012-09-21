@@ -849,9 +849,8 @@ public final class TrCfg2JavaExpressionStmts {
 				 */
 
 				// must not access method parameters for fieldInits...
-				// TODO not enough, reads change PC -> not temporary if used multiple times
 				fieldInit &= cop.getReg() == 0 && this.cfg.getMd().isConstructor()
-						|| this.cfg.getInFrame(cop).get(cop.getReg()).getPc() != 0;
+						|| !this.cfg.getInFrame(cop).get(cop.getReg()).isMethodParam();
 
 				final String name = getVarName(cop.getReg(), cop.getPc());
 				if ("this".equals(name)) {

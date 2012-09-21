@@ -176,6 +176,23 @@ public final class R {
 		return this.t.read(t) != null;
 	}
 
+	/**
+	 * Is register a method parameter?
+	 * 
+	 * @return {@code true} - is method parameter
+	 */
+	public boolean isMethodParam() {
+		switch (this.kind) {
+		case CONST:
+		case MERGE:
+		case MOVE:
+			return this.pc == 0;
+		case READ:
+			return this.ins[0].isMethodParam();
+		}
+		return false;
+	}
+
 	private void linkIn(final R in) {
 		final R[] inOuts = in.outs;
 		if (in.outs == null) {
