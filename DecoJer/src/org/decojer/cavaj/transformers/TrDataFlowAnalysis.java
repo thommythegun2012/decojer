@@ -135,18 +135,6 @@ public final class TrDataFlowAnalysis {
 		this.cfg = cfg;
 	}
 
-	private void addCondSucc(final BB bb, final int truePc, final int falsePc) {
-		// preserve pc-order as edge-order
-		if (falsePc < truePc) {
-			// usual case, if not a direct branching
-			bb.addSucc(getTargetBb(falsePc), Boolean.FALSE);
-			bb.addSucc(getTargetBb(truePc), Boolean.TRUE);
-			return;
-		}
-		bb.addSucc(getTargetBb(truePc), Boolean.TRUE);
-		bb.addSucc(getTargetBb(falsePc), Boolean.FALSE);
-	}
-
 	private void evalBinaryMath(final T t) {
 		evalBinaryMath(t, null);
 	}
@@ -383,7 +371,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case JCMP: {
 			final JCMP cop = (JCMP) op;
-			addCondSucc(bb, cop.getTargetPc(), nextPc);
+			bb.setConds(getTargetBb(cop.getTargetPc()), getTargetBb(nextPc));
 			evalBinaryMath(cop.getT(), T.VOID);
 			merge(nextPc);
 			merge(cop.getTargetPc());
@@ -391,7 +379,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case JCND: {
 			final JCND cop = (JCND) op;
-			addCondSucc(bb, cop.getTargetPc(), nextPc);
+			bb.setConds(getTargetBb(cop.getTargetPc()), getTargetBb(nextPc));
 			pop(cop.getT(), true);
 			merge(nextPc);
 			merge(cop.getTargetPc());
@@ -402,7 +390,7 @@ public final class TrDataFlowAnalysis {
 			// Spec, JSR/RET is stack-like:
 			// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
 			final BB targetBb = getTargetBb(cop.getTargetPc());
-			bb.addSucc(targetBb);
+			bb.setSucc(targetBb);
 			// use common value (like Sub) instead of jsr-follow-address because of merge
 			final Frame targetFrame = this.cfg.getInFrame(targetBb);
 			jsr: if (targetFrame != null) {
@@ -439,7 +427,7 @@ public final class TrDataFlowAnalysis {
 					}
 					final BB retBb = this.pc2bbs[ret.getPc()];
 					final int returnPc = cop.getPc() + 1;
-					retBb.addSucc(getTargetBb(returnPc));
+					retBb.setSucc(getTargetBb(returnPc));
 					merge(returnPc);
 				}
 			} else {
@@ -556,7 +544,7 @@ public final class TrDataFlowAnalysis {
 				// JSR is last operation in previous BB
 				final Op jsr = in.getStart().getFinalOp();
 				final int returnPc = jsr.getPc() + 1;
-				bb.addSucc(getTargetBb(returnPc));
+				bb.setSucc(getTargetBb(returnPc));
 				merge(returnPc);
 			}
 			return -1;
@@ -649,7 +637,7 @@ public final class TrDataFlowAnalysis {
 			// now add successors, preserve pc-order as edge-order
 			for (final Map.Entry<Integer, List<Integer>> casePc2keysEntry : casePc2keys.entrySet()) {
 				keys = casePc2keysEntry.getValue();
-				bb.addSucc(getTargetBb(casePc2keysEntry.getKey()),
+				bb.addSwitchCase(getTargetBb(casePc2keysEntry.getKey()),
 						keys.toArray(new Integer[keys.size()]));
 			}
 
@@ -675,7 +663,7 @@ public final class TrDataFlowAnalysis {
 			LOGGER.warning("Operation '" + op + "' not handled!");
 		}
 		if (this.pc2bbs[nextPc] != null) {
-			bb.addSucc(getTargetBb(nextPc));
+			bb.setSucc(getTargetBb(nextPc));
 			merge(nextPc);
 			return -1;
 		}
@@ -706,7 +694,7 @@ public final class TrDataFlowAnalysis {
 		// it's necessary to preserve the outgoing block for back edges to same BB!!!
 		final BB newInBb = newBb(bb.getPc());
 		bb.moveIns(newInBb);
-		newInBb.addSucc(bb);
+		newInBb.setSucc(bb);
 		while (bb.getOps() > 0 && bb.getOp(0).getPc() != pc) {
 			final Op op = bb.removeOp(0);
 			newInBb.addOp(op);
@@ -845,7 +833,7 @@ public final class TrDataFlowAnalysis {
 			// now add successors
 			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
 				final List<T> types = handlerPc2typeEntry.getValue();
-				bb.addSucc(getTargetBb(handlerPc2typeEntry.getKey()), handlerPc2typeEntry
+				bb.addCatchHandler(getTargetBb(handlerPc2typeEntry.getKey()), handlerPc2typeEntry
 						.getValue().toArray(new T[types.size()]));
 			}
 		}
@@ -944,7 +932,7 @@ public final class TrDataFlowAnalysis {
 			}
 			// at least one exception has changed, newBb() links exceptions
 			final BB succBb = newBb(this.pc);
-			bb.addSucc(succBb);
+			bb.setSucc(succBb);
 			return succBb;
 		}
 		return bb;

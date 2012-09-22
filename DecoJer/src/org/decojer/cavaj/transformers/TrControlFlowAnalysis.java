@@ -94,7 +94,7 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private static boolean isCondHead(final BB bb) {
-		if (!bb.isFinalStmtCond()) {
+		if (!bb.isCondOrPreLoopHead()) {
 			return false;
 		}
 		// check if conditional is already used for an enclosing loop struct
@@ -111,23 +111,6 @@ public final class TrControlFlowAnalysis {
 			return !loop.isHead(bb); // false can never happen here, fail fast in transform()
 		}
 		return true;
-	}
-
-	private static boolean isLoopHead(final BB bb) {
-		// at least one incoming edge must be a back edge (self loop possible), in Java only
-		// possible for loop heads
-		for (final E in : bb.getIns()) {
-			if (in.isBack()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private static boolean isSwitchHead(final BB bb) {
-		// don't use successor number as indicator, switch with 2 successors
-		// (JVM 6: 1 case and default) possible, not optimized
-		return bb.isFinalStmtSwitch();
 	}
 
 	/**
@@ -316,7 +299,7 @@ public final class TrControlFlowAnalysis {
 
 		// TODO while (<inlineAssignment> > 0) - must inline agressively here
 
-		if (head.getStmts() == 1 && head.isFinalStmtCond()) {
+		if (head.getStmts() == 1 && head.isCondOrPreLoopHead()) {
 			final BB falseSucc = head.getFalseSucc();
 			final BB trueSucc = head.getTrueSucc();
 			if (loop.isMember(trueSucc) && !loop.isMember(falseSucc)) {
@@ -336,7 +319,7 @@ public final class TrControlFlowAnalysis {
 		int tailType = 0;
 		BB tailFollow = null;
 
-		if (tail.isFinalStmtCond()) {
+		if (tail.isCondOrPreLoopHead()) {
 			final BB falseSucc = tail.getFalseSucc();
 			final BB trueSucc = tail.getTrueSucc();
 			if (loop.isHead(trueSucc)) {
@@ -542,13 +525,13 @@ public final class TrControlFlowAnalysis {
 				bb.sortOuts();
 			}
 			// check loop first, could be a post / endless loop with additional sub struct heads
-			if (isLoopHead(bb)) {
+			if (bb.isLoopHead()) {
 				if (createLoopStruct(bb).isPre()) {
 					// no additional struct head possible here, fail fast
 					continue;
 				}
 			}
-			if (isSwitchHead(bb)) {
+			if (bb.isSwitchHead()) {
 				createSwitchStruct(bb);
 				continue;
 			}

@@ -31,6 +31,7 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.eclipse.jdt.core.dom.Expression;
@@ -51,7 +52,7 @@ public final class BB {
 	private final CFG cfg;
 
 	@Getter
-	private final List<E> ins = new ArrayList<E>(2);
+	private final List<E> ins = Lists.newArrayListWithCapacity(1);
 
 	private final List<Op> ops = Lists.newArrayList();
 
@@ -61,7 +62,7 @@ public final class BB {
 	 * Pc-ordering at initial read automatically through read-order and some sorts at branches.
 	 */
 	@Getter
-	protected final List<E> outs = new ArrayList<E>(2);
+	protected final List<E> outs = Lists.newArrayListWithCapacity(1);
 
 	/**
 	 * Must cache and manage first operation PC separately because operations are removed through
@@ -96,6 +97,19 @@ public final class BB {
 	}
 
 	/**
+	 * Add handler.
+	 * 
+	 * @param handler
+	 *            handler BB
+	 * @param catchTs
+	 *            catch types
+	 * @return out edge
+	 */
+	public E addCatchHandler(final BB handler, final T[] catchTs) {
+		return addSucc(handler, catchTs);
+	}
+
+	/**
 	 * Add operation.
 	 * 
 	 * @param op
@@ -119,27 +133,29 @@ public final class BB {
 	 * Add successor.
 	 * 
 	 * @param succ
-	 *            successor
-	 * @return out edge
-	 */
-	public final E addSucc(final BB succ) {
-		return addSucc(succ, null);
-	}
-
-	/**
-	 * Add successor.
-	 * 
-	 * @param succ
-	 *            successor
+	 *            successor BB
 	 * @param value
 	 *            value
 	 * @return out edge
 	 */
-	public final E addSucc(final BB succ, final Object value) {
+	private final E addSucc(final BB succ, final Object value) {
 		final E e = new E(this, succ, value);
 		this.outs.add(e);
 		succ.ins.add(e);
 		return e;
+	}
+
+	/**
+	 * Add switch case.
+	 * 
+	 * @param caseBb
+	 *            case BB
+	 * @param values
+	 *            Integer values
+	 * @return out edge
+	 */
+	public E addSwitchCase(final BB caseBb, final Integer[] values) {
+		return addSucc(caseBb, values);
 	}
 
 	/**
@@ -179,21 +195,6 @@ public final class BB {
 	 */
 	public Expression get(final int i) {
 		return this.vs[i];
-	}
-
-	/**
-	 * Get catch out edges.
-	 * 
-	 * @return catch out edges
-	 */
-	public List<E> getCatchOuts() {
-		final List<E> catchOuts = new ArrayList<E>(this.outs.size());
-		for (final E out : this.outs) {
-			if (out.isCatch()) {
-				catchOuts.add(out);
-			}
-		}
-		return catchOuts;
 	}
 
 	/**
@@ -286,6 +287,20 @@ public final class BB {
 	}
 
 	/**
+	 * Get unique (sequence) out edge.
+	 * 
+	 * @return out edge
+	 */
+	public E getOut() {
+		for (final E out : this.outs) {
+			if (out.isSequence()) {
+				return out;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Get register number (locals).
 	 * 
 	 * @return register number (locals)
@@ -313,21 +328,6 @@ public final class BB {
 	 */
 	public int getStmts() {
 		return this.stmts.size();
-	}
-
-	/**
-	 * Get switch out edges.
-	 * 
-	 * @return switch out edges
-	 */
-	public List<E> getSwitchOuts() {
-		final List<E> switchOuts = new ArrayList<E>(this.outs.size());
-		for (final E out : this.outs) {
-			if (out.isSwitchCase()) {
-				switchOuts.add(out);
-			}
-		}
-		return switchOuts;
 	}
 
 	/**
@@ -359,6 +359,29 @@ public final class BB {
 	}
 
 	/**
+	 * Is given BB predecessor of this BB? This excludes same BB!
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - given BB is predecessor of this BB
+	 */
+	public boolean hasPred(final BB bb) {
+		if (this.pc >= bb.pc) {
+			return false;
+		}
+		for (final E in : this.ins) {
+			if (in.isBack()) {
+				continue;
+			}
+			final BB pred = in.getStart();
+			if (bb == pred || hasPred(pred)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Has BB necessary stack size for given operation?
 	 * 
 	 * @param op
@@ -370,37 +393,41 @@ public final class BB {
 	}
 
 	/**
-	 * Is final statement conditional (IfStatement)?
+	 * Is BB a catch handler?
 	 * 
-	 * @return {@code true} - final statement is conditional
+	 * @return {@code true} - BB is a catch handler
 	 */
-	public boolean isFinalStmtCond() {
-		return this.stmts.isEmpty() ? false
-				: this.stmts.get(this.stmts.size() - 1) instanceof IfStatement;
-	}
-
-	/**
-	 * Is final statement switch (SwitchStatement)?
-	 * 
-	 * @return {@code true} - final statement is switch
-	 */
-	public boolean isFinalStmtSwitch() {
-		return this.stmts.isEmpty() ? false
-				: this.stmts.get(this.stmts.size() - 1) instanceof SwitchStatement;
-	}
-
-	/**
-	 * Is BB an exception handler?
-	 * 
-	 * @return {@code true} - BB is an exception handler
-	 */
-	public boolean isHandler() {
+	public boolean isCatchHandler() {
 		for (final E in : this.ins) {
 			if (in.isCatch()) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Is BB a catch try?
+	 * 
+	 * @return {@code true} - BB is a catch try
+	 */
+	public boolean isCatchTry() {
+		for (final E out : this.outs) {
+			if (out.isCatch()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Is conditional or pre loop head?
+	 * 
+	 * @return {@code true} - is conditional or pre loop head
+	 */
+	public boolean isCondOrPreLoopHead() {
+		return this.stmts.isEmpty() ? false
+				: this.stmts.get(this.stmts.size() - 1) instanceof IfStatement;
 	}
 
 	/**
@@ -412,23 +439,25 @@ public final class BB {
 		return getLine() >= 0;
 	}
 
-	/**
-	 * Is given BB predecessor of this BB? This excludes same BB!
-	 * 
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - given BB is predecessor of this BB
-	 */
-	public boolean isPred(final BB bb) {
-		if (this.pc >= bb.pc) {
-			return false;
-		}
+	public boolean isLoopHead() {
+		// at least one incoming edge must be a back edge (self loop possible), in Java only
+		// possible for loop heads
 		for (final E in : this.ins) {
 			if (in.isBack()) {
-				continue;
+				return true;
 			}
-			final BB pred = in.getStart();
-			if (bb == pred || isPred(pred)) {
+		}
+		return false;
+	}
+
+	/**
+	 * Is BB a sequence?
+	 * 
+	 * @return {@code true} - BB is a sequence
+	 */
+	public boolean isSequence() {
+		for (final E out : this.outs) {
+			if (out.isSequence()) {
 				return true;
 			}
 		}
@@ -443,7 +472,19 @@ public final class BB {
 	 * @return {@code true} - given BB is successor of this BB
 	 */
 	public boolean isSucc(final BB bb) {
-		return !isPred(bb);
+		return !hasPred(bb);
+	}
+
+	/**
+	 * Is switch head?
+	 * 
+	 * @return {@code true} - is switch head
+	 */
+	public boolean isSwitchHead() {
+		// don't use successor number as indicator, switch with 2 successors
+		// (JVM 6: 1 case and default) possible, not optimized
+		return this.stmts.isEmpty() ? false
+				: this.stmts.get(this.stmts.size() - 1) instanceof SwitchStatement;
 	}
 
 	/**
@@ -574,6 +615,37 @@ public final class BB {
 	 */
 	public void set(final int i, final Expression v) {
 		this.vs[i] = v;
+	}
+
+	/**
+	 * Add conditionals.
+	 * 
+	 * @param trueBb
+	 *            true BB
+	 * @param falseBb
+	 *            false BB
+	 */
+	public void setConds(final BB trueBb, final BB falseBb) {
+		// preserve pc-order as edge-order
+		if (falseBb.getPc() < trueBb.getPc()) {
+			// usual case, if not a direct branching
+			addSucc(falseBb, Boolean.FALSE);
+			addSucc(trueBb, Boolean.TRUE);
+			return;
+		}
+		addSucc(trueBb, Boolean.TRUE);
+		addSucc(falseBb, Boolean.FALSE);
+	}
+
+	/**
+	 * Set successor.
+	 * 
+	 * @param succ
+	 *            successor
+	 * @return out edge
+	 */
+	public final E setSucc(final BB succ) {
+		return addSucc(succ, null);
 	}
 
 	/**

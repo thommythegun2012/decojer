@@ -373,11 +373,12 @@ public final class TrCfg2JavaControlFlowStmts {
 			for (int i = 0; i < bb.getStmts(); ++i) {
 				statements.add(bb.getStmt(i));
 			}
-			if (bb.getOuts().size() != 1) {
+			final E out = bb.getOut();
+			if (out == null) {
 				return;
 			}
 			// follow back edges for continues
-			bb = bb.getOuts().get(0).getEnd();
+			bb = out.getEnd();
 		}
 	}
 
@@ -429,7 +430,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			final SwitchStatement switchStatement = getAst().newSwitchStatement();
 			switchStatement.setExpression(expression);
 
-			final List<E> outs = head.getSwitchOuts();
+			final List<E> outs = head.getOuts();
 
 			int size = outs.size();
 			if (!defaultCase) {
