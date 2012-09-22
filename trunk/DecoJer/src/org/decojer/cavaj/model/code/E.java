@@ -98,8 +98,8 @@ public final class E {
 	 * @return {@code true} - is back edge
 	 */
 	public boolean isBack() {
-		// equal: check self back edge too
-		return this.start.getPostorder() <= this.end.getPostorder();
+		// equal: check self back edge too, ignore catch handler self loops
+		return this.start.getPostorder() <= this.end.getPostorder() && !isCatch();
 	}
 
 	/**
@@ -121,6 +121,15 @@ public final class E {
 	}
 
 	/**
+	 * Is sequence?
+	 * 
+	 * @return {@code true} - is sequence
+	 */
+	public boolean isSequence() {
+		return this.value == null;
+	}
+
+	/**
 	 * Is switch case?
 	 * 
 	 * @return {@code true} - is switch case
@@ -135,7 +144,7 @@ public final class E {
 	 * @return {@code true} - switch default is in cases
 	 */
 	public boolean isSwitchDefault() {
-		if (!(this.value instanceof Integer[])) {
+		if (!isSwitchCase()) {
 			return false;
 		}
 		final Integer[] iValues = (Integer[]) this.value;

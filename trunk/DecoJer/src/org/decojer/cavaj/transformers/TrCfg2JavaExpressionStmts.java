@@ -142,14 +142,14 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		// must be single if statement for short-circuit compound boolean expression structure
-		if (bb.getStmts() != 1 || !bb.isFinalStmtCond()) {
+		if (bb.getStmts() != 1 || !bb.isCondOrPreLoopHead()) {
 			return false;
 		}
 		final BB trueSucc = bb.getTrueSucc();
 		final BB falseSucc = bb.getFalseSucc();
 
 		final BB pred = bb.getIns().get(0).getStart();
-		if (!pred.isFinalStmtCond()) {
+		if (!pred.isCondOrPreLoopHead()) {
 			return false;
 		}
 		final BB predTrueSucc = pred.getTrueSucc();
@@ -624,8 +624,7 @@ public final class TrCfg2JavaExpressionStmts {
 						superMethodInvocation.arguments().addAll(arguments);
 						methodExpression = superMethodInvocation;
 					} else {
-						// could simply be private method call in same object, nothing special in
-						// syntax
+						// could be private method call in same object, nothing special in syntax
 						final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 						methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
 						methodInvocation.setName(getAst().newSimpleName(m.getName()));
@@ -688,7 +687,10 @@ public final class TrCfg2JavaExpressionStmts {
 						}
 					}
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
-					methodInvocation.setExpression(wrap(bb.pop(), Priority.METHOD_CALL));
+					final Expression expression = bb.pop();
+					if (!(expression instanceof ThisExpression)) {
+						methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
+					}
 					methodInvocation.setName(getAst().newSimpleName(m.getName()));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
@@ -1174,7 +1176,7 @@ public final class TrCfg2JavaExpressionStmts {
 		// seen in JDK 1.2 Eclipse Core:
 		// DUP-POP conditional variant: GET class$0 DUP JCND_NE
 		// (_POP_ PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$0 GOTO)
-		if (bb.getOuts().size() != 1) {
+		if (!bb.isSequence()) {
 			return false;
 		}
 		if (bb.getOps() != 6 || !(bb.getOp(0) instanceof POP) || !(bb.getOp(1) instanceof PUSH)
@@ -1187,7 +1189,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final BB condHead = bb.getIns().get(0).getStart();
-		if (!condHead.isFinalStmtCond()) {
+		if (!condHead.isCondOrPreLoopHead()) {
 			return false;
 		}
 		final BB trueSucc = condHead.getTrueSucc();
@@ -1257,7 +1259,7 @@ public final class TrCfg2JavaExpressionStmts {
 				condHead = predPred;
 			}
 		}
-		if (condHead == null || !condHead.isFinalStmtCond()) {
+		if (condHead == null || !condHead.isCondOrPreLoopHead()) {
 			return false;
 		}
 
@@ -1353,7 +1355,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 		if (bb.getIns().size() != 0) {
 			condHead.push(expression);
-			condHead.addSucc(bb);
+			condHead.setSucc(bb);
 		} else {
 			// pull
 			bb.copyContentFrom(condHead);
@@ -1479,7 +1481,7 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteHandler(final BB bb) {
-		if (!bb.isHandler()) {
+		if (!bb.isCatchHandler()) {
 			return false;
 		}
 		// first operations are usually STRORE or POP (if exception not needed)
