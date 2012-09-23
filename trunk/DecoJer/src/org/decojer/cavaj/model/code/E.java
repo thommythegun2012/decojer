@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.code;
 
+import java.util.Arrays;
 import java.util.Comparator;
 
 import lombok.Getter;
@@ -85,6 +86,16 @@ public final class E {
 		}
 		final E e = (E) obj;
 		return this.start.equals(e.start) && this.end.equals(e.end);
+	}
+
+	public String getValueString() {
+		if (this.value == null) {
+			return "";
+		}
+		if (this.value instanceof Object[]) {
+			return Arrays.toString((Object[]) this.value);
+		}
+		return "(" + this.value + ")";
 	}
 
 	@Override
@@ -158,8 +169,7 @@ public final class E {
 
 	@Override
 	public String toString() {
-		return this.start.getPostorder() + " -> " + this.end.getPostorder()
-				+ (this.value == null ? "" : " (" + this.value + ")");
+		return this.start.getPostorder() + " -> " + this.end.getPostorder() + getValueString();
 	}
 
 }

@@ -422,30 +422,31 @@ public final class TrControlFlowAnalysis {
 			// => is switch-follow or fall-through must follow!
 			for (final Iterator<BB> it = follows.iterator(); it.hasNext();) {
 				final BB follow = it.next();
-				final List<E> ins = follow.getIns();
-				if (ins.size() >= 2) {
-					for (final E in : ins) {
-						if (in.getStart() == head) {
-							// switch-follow or fall-through found
-							if (in.isSwitchDefault()) {
-								// TODO not sufficient, count if a follow occurs multiple times!
-								continue;
-							}
-							final List<BB> followCaseMembers = switchStruct.getMembers(in
-									.getValue());
-							if (!followCaseMembers.isEmpty()) {
-								log("Fall-through case '" + caseOut
-										+ "' cannot be target of multiple fall-throughs: '" + head);
-							}
-
-							followCaseMembers.add(follow);
-							it.remove(); // remove as struct follow
-
-							// move in to i + 1
-							outs.remove(in);
-							outs.add(i + 1, in);
-							continue outer;
+				final List<E> followIns = follow.getIns();
+				if (followIns.size() >= 2) {
+					for (final E followIn : followIns) {
+						if (followIn == caseOut || followIn.getStart() != head) {
+							continue;
 						}
+						// switch-follow or fall-through found
+						if (followIn.isSwitchDefault()) {
+							// TODO not sufficient, count if a follow occurs multiple times!
+							continue;
+						}
+						final List<BB> followCaseMembers = switchStruct.getMembers(followIn
+								.getValue());
+						if (!followCaseMembers.isEmpty()) {
+							log("Fall-through case '" + caseOut
+									+ "' cannot be target of multiple fall-throughs: '" + head);
+						}
+
+						followCaseMembers.add(follow);
+						it.remove(); // remove as struct follow
+
+						// move in to i + 1
+						outs.remove(followIn);
+						outs.add(i + 1, followIn);
+						continue outer;
 					}
 				}
 			}
