@@ -65,64 +65,6 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private Cond createCondStruct(final BB head) {
-		final Cond condStruct = new Cond(head);
-
-		final List<E> outs = head.getOuts();
-		final int size = outs.size();
-
-		E trueOut = null;
-		E falseOut = null;
-		for (int i = 0; i < size; ++i) {
-			final E condOut = outs.get(i);
-			if (!condOut.isSwitchCase()) {
-				continue;
-			}
-			if (((Boolean) condOut.getValue()).booleanValue()) {
-				assert trueOut == null;
-
-				trueOut = condOut;
-			} else {
-				assert falseOut == null;
-
-				falseOut = condOut;
-			}
-		}
-		if (trueOut == null || falseOut == null) {
-			log("Not a valid cond struct: " + head);
-			return condStruct;
-		}
-
-		final Set<BB> follows = Sets.newHashSet();
-
-		for (int i = 0; i < size; ++i) {
-			final E condOut = outs.get(i);
-			if (!condOut.isCond()) {
-				continue;
-			}
-			final BB condBb = condOut.getEnd();
-
-			final List<BB> members = condStruct.getMembers(condOut.getValue());
-			findBranch(condStruct, condBb, members, follows);
-
-			if (members.isEmpty()) {
-				if (follows.isEmpty()) {
-					// direct continue or break
-					continue;
-				}
-				if (follows.contains(condBb)) {
-
-				}
-			}
-			if (follows.isEmpty()) {
-				// continue or break with statements
-				// condBb.setF
-			}
-		}
-
-		return condStruct;
-	}
-
-	private Cond createCondStructOld(final BB head) {
 		final Cond cond = new Cond(head);
 
 		final BB falseSucc = head.getFalseSucc();
@@ -150,36 +92,42 @@ public final class TrControlFlowAnalysis {
 		final Boolean secondValue = !negated;
 
 		final Set<BB> firstFollows = Sets.newHashSet();
+		final List<BB> firstMembers = Lists.newArrayList();
 		if (firstSucc.getIns().size() == 1) {
-			findBranch(cond, firstSucc, cond.getMembers(firstValue), firstFollows);
+			findBranch(cond, firstSucc, firstMembers, firstFollows);
 		}
 
-		// no else basic blocks
-		if (firstFollows.contains(secondSucc)) {
+		// no else basic blocks: normal if-block without else or
+		// if-continues, if-returns, if-throws => no else necessary
+		if (firstFollows.isEmpty() || firstFollows.contains(secondSucc)) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setType(negated ? Cond.IFNOT : Cond.IF);
 			cond.setFollow(secondSucc);
+			cond.addMembers(firstValue, firstMembers);
 			return cond;
 		}
-
-		// TODO only a trick for now, not ready!!!
 		// e.g. if-continues, if-returns, if-throws => no else necessary
 		if (firstFollows.isEmpty()) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setType(negated ? Cond.IFNOT : Cond.IF);
 			cond.setFollow(secondSucc);
+			cond.addMembers(firstValue, firstMembers);
 			return cond;
 		}
 
 		final Set<BB> secondFollows = Sets.newHashSet();
+		final List<BB> secondMembers = Lists.newArrayList();
 		if (secondSucc.getIns().size() == 1) {
-			findBranch(cond, secondSucc, cond.getMembers(secondValue), secondFollows);
+			findBranch(cond, secondSucc, secondMembers, secondFollows);
 		}
 
-		if (secondFollows.contains(firstSucc)) {
+		// no else basic blocks: normal if-block without else or
+		// if-continues, if-returns, if-throws => no else necessary
+		if (secondFollows.isEmpty() || secondFollows.contains(firstSucc)) {
 			// also often in JDK 6 bytecode, especially in parent structs
 			cond.setType(negated ? Cond.IF : Cond.IFNOT);
 			cond.setFollow(firstSucc);
+			cond.addMembers(secondValue, secondMembers);
 			return cond;
 		}
 
@@ -204,6 +152,8 @@ public final class TrControlFlowAnalysis {
 			// normal stuff
 			cond.setFollow(firstEndNode);
 			cond.setType(negated ? Cond.IFNOT_ELSE : Cond.IF_ELSE);
+			cond.addMembers(firstValue, firstMembers);
+			cond.addMembers(secondValue, secondMembers);
 			return cond;
 		}
 		// only if unrelated conditional tails???
@@ -306,7 +256,7 @@ public final class TrControlFlowAnalysis {
 
 		final Set<BB> follows = Sets.newHashSet();
 
-		outer: for (int i = 0; i < size; ++i) {
+		outer: for (int i = 0, hack = 100; i < size && hack-- > 0; ++i) {
 			final E caseOut = outs.get(i);
 			if (!caseOut.isSwitchCase()) {
 				continue;
@@ -438,6 +388,9 @@ public final class TrControlFlowAnalysis {
 			members.add(bb);
 		}
 		for (final E out : bb.getOuts()) {
+			if (out.isBack()) {
+				continue;
+			}
 			final BB succ = out.getEnd();
 			if (!members.contains(succ)) {
 				// DFS
@@ -475,7 +428,7 @@ public final class TrControlFlowAnalysis {
 		if (loopSucc) {
 			// back edge too? => must be a continue => normal member
 			if (loop.getHead() != bb) {
-				loop.addMember(bb);
+				loop.addMember(null, bb);
 			}
 			return true;
 		}
@@ -521,7 +474,7 @@ public final class TrControlFlowAnalysis {
 						continue;
 					}
 				}
-				createCondStructOld(bb);
+				createCondStruct(bb);
 				continue;
 			}
 		}
