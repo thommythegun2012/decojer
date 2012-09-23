@@ -93,26 +93,6 @@ public final class TrControlFlowAnalysis {
 		return false;
 	}
 
-	private static boolean isCondHead(final BB bb) {
-		if (!bb.isCondOrPreLoopHead()) {
-			return false;
-		}
-		// check if conditional is already used for an enclosing loop struct
-		final Struct struct = bb.getStruct();
-		if (!(struct instanceof Loop)) {
-			return true;
-		}
-		// check if BB is target for continue is not sufficient: no endless here
-		final Loop loop = (Loop) struct;
-		if (loop.isPost()) {
-			return !loop.isLast(bb);
-		}
-		if (loop.isPre()) {
-			return !loop.isHead(bb); // false can never happen here, fail fast in transform()
-		}
-		return true;
-	}
-
 	/**
 	 * Transform CFG.
 	 * 
@@ -536,7 +516,13 @@ public final class TrControlFlowAnalysis {
 				createSwitchStruct(bb);
 				continue;
 			}
-			if (isCondHead(bb)) {
+			if (bb.isCondOrPreLoopHead()) {
+				if (bb.getStruct() instanceof Loop) {
+					final Loop loopStruct = (Loop) bb.getStruct();
+					if (loopStruct.isPost() && loopStruct.isLast(bb)) {
+						continue;
+					}
+				}
 				createCondStructOld(bb);
 				continue;
 			}
