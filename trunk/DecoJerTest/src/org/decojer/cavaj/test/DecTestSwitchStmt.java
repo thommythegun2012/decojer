@@ -10,17 +10,11 @@ public abstract class DecTestSwitchStmt {
 			}
 		case 3000:
 			System.out.println(3000);
+		case 3001:
+			System.out.println(3001);
 		}
 		System.out.println("END SWITCH");
 	}
-
-	/*
-	 * handle LOAD => POP, no AssignmentExpression public static void
-	 * testEmpty(final int a) { switch (a) { } System.out.println("END SWITCH");
-	 * switch (a) { default: System.out.println("ONLY DEFAULT"); }
-	 * System.out.println("END SWITCH"); switch (a) { case 1:
-	 * System.out.println("SIMPLE CASE"); } System.out.println("END SWITCH"); }
-	 */
 
 	public static void testLookup(final int a) {
 		switch (a) {
