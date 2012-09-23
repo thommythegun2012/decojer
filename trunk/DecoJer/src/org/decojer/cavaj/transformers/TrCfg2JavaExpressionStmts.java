@@ -1069,6 +1069,7 @@ public final class TrCfg2JavaExpressionStmts {
 					// break;
 					// TODO else not really necessary later if this is sure
 				} else {
+					// TODO if () int i = 0 else int i = 1 ???
 					if (!isInlineAssignment && v.getPcs()[0] /* TODO */== cop.getPc() + 1) {
 						final VariableDeclarationFragment variableDeclarationFragment = getAst()
 								.newVariableDeclarationFragment();
@@ -1172,6 +1173,8 @@ public final class TrCfg2JavaExpressionStmts {
 		return r.getT().isWide();
 	}
 
+	// TODO PUSH and INVOKE catch java.lang.ClassNotFoundException! currently not working
+	// anymore with exceptions in CFG, see org.eclipse.jdt.core.JDTCompilerAdapter.execute
 	private boolean rewriteClassForNameCachedLiteral(final BB bb) {
 		// seen in JDK 1.2 Eclipse Core:
 		// DUP-POP conditional variant: GET class$0 DUP JCND_NE

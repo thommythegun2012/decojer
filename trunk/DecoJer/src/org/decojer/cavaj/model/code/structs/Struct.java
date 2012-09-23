@@ -25,6 +25,7 @@ package org.decojer.cavaj.model.code.structs;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -67,17 +68,6 @@ public class Struct {
 	}
 
 	/**
-	 * Add struct member (not head).
-	 * 
-	 * @param bb
-	 *            struct member
-	 * @return {@code true} - added
-	 */
-	public boolean addMember(final BB bb) {
-		return addMember(null, bb);
-	}
-
-	/**
 	 * Add struct member for value (not head).
 	 * 
 	 * @param value
@@ -90,6 +80,20 @@ public class Struct {
 		assert bb != this.head;
 
 		return getMembers(value).add(bb);
+	}
+
+	/**
+	 * Add struct members for value (not head).
+	 * 
+	 * @param value
+	 *            value
+	 * @param bbs
+	 *            struct members for value
+	 */
+	public void addMembers(final Object value, final Collection<BB> bbs) {
+		for (final BB bb : bbs) {
+			addMember(value, bb);
+		}
 	}
 
 	/**
