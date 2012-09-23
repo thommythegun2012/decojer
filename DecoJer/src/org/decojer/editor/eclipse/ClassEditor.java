@@ -24,7 +24,6 @@
 package org.decojer.editor.eclipse;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.IdentityHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -230,11 +229,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			if (this.cfgAntialiasingCheckbox.getSelection()) {
 				((Polyline) connection.getConnectionFigure()).setAntialias(SWT.ON);
 			}
-			if (out.getValue() instanceof Object[]) {
-				connection.setText(Arrays.toString((Object[]) out.getValue()));
-			} else if (out.getValue() != null) {
-				connection.setText(out.getValue().toString());
-			}
+			connection.setText(out.getValueString());
 			if (out.isBack()) {
 				connection.setCurveDepth(50);
 				connection.setLineColor(ColorConstants.red);
