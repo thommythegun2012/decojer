@@ -48,51 +48,6 @@ public final class TrControlFlowAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrControlFlowAnalysis.class.getName());
 
-	private static boolean findLoop(final Loop loop, final BB bb, final Set<BB> traversed) {
-		// DFS
-		traversed.add(bb);
-		boolean loopSucc = false;
-		boolean backEdge = false;
-		for (final E out : bb.getOuts()) {
-			if (out.isBack()) {
-				// back edge (continue, tail, inner loop, outer label-continue)
-				if (out.getEnd() == loop.getHead()) {
-					backEdge = true;
-				}
-				// don't track this edge any further
-				continue;
-			}
-			final BB succ = out.getEnd();
-			if (loop.isMember(succ)) {
-				loopSucc = true;
-				continue;
-			}
-			if (!traversed.contains(succ)) {
-				// DFS
-				if (findLoop(loop, succ, traversed)) {
-					loopSucc = true;
-				}
-			}
-		}
-		if (loopSucc) {
-			// back edge too? => must be a continue => normal member
-			if (loop.getHead() != bb) {
-				loop.addMember(bb);
-			}
-			return true;
-		}
-		if (backEdge) {
-			// find tail (no loopSucc!), pred member with biggest opPc
-			// TODO or biggest line number or further structure analyzis?
-			// TODO e.g. tail with >2 succ not possible, see warning
-			if (loop.getLast() == null || loop.getLast().getOrder() < bb.getOrder()) {
-				loop.setLast(bb);
-			}
-			return true;
-		}
-		return false;
-	}
-
 	/**
 	 * Transform CFG.
 	 * 
@@ -179,22 +134,15 @@ public final class TrControlFlowAnalysis {
 		// direct continue back-edges and break forward-edges (only possible with true)
 
 		// we have to check all possibilities anyway...but prefer normal variants
-
-		// check direct continue-back-edges first, no members
-		if (trueSucc.getPostorder() >= head.getPostorder()) {
-			// normal JDK continue-back-edge, only since JDK 5 (target-indepandant) compiler?
-			cond.setType(Cond.IF);
-			cond.setFollow(falseSucc);
-			return cond;
-		}
-		if (falseSucc.getPostorder() >= head.getPostorder()) {
-			// no JDK, not really possible with normal JCND / JCMP conditionals
-			log("Unexpected unnegated direct continue-back-edge.");
-			cond.setType(Cond.IFNOT);
-			cond.setFollow(falseSucc);
-			return cond;
-		}
-
+		/*
+		 * // check direct continue-back-edges first, no members if (trueSucc.getPostorder() >=
+		 * head.getPostorder()) { // normal JDK continue-back-edge, only since JDK 5
+		 * (target-indepandant) compiler? cond.setType(Cond.IF); cond.setFollow(falseSucc); return
+		 * cond; } if (falseSucc.getPostorder() >= head.getPostorder()) { // no JDK, not really
+		 * possible with normal JCND / JCMP conditionals
+		 * log("Unexpected unnegated direct continue-back-edge."); cond.setType(Cond.IFNOT);
+		 * cond.setFollow(falseSucc); return cond; }
+		 */
 		final boolean negated = falseSucc.getOrder() < trueSucc.getOrder();
 		final BB firstSucc = negated ? falseSucc : trueSucc;
 		final BB secondSucc = negated ? trueSucc : falseSucc;
@@ -216,7 +164,7 @@ public final class TrControlFlowAnalysis {
 
 		// TODO only a trick for now, not ready!!!
 		// e.g. if-continues, if-returns, if-throws => no else necessary
-		if (firstFollows.size() == 0) {
+		if (firstFollows.isEmpty()) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setType(negated ? Cond.IFNOT : Cond.IF);
 			cond.setFollow(secondSucc);
@@ -349,10 +297,10 @@ public final class TrControlFlowAnalysis {
 		final List<E> outs = head.getOuts();
 		final int size = outs.size();
 
-		int switchCases = 0;
+		int cases = 0;
 		for (int i = 0; i < size; ++i) {
 			if (outs.get(i).isSwitchCase()) {
-				++switchCases;
+				++cases;
 			}
 		}
 
@@ -365,7 +313,7 @@ public final class TrControlFlowAnalysis {
 			}
 			final BB caseBb = caseOut.getEnd();
 
-			if (switchCases == 1 && (follows.isEmpty() || follows.contains(caseBb))) {
+			if (cases == 1 && (follows.isEmpty() || follows.contains(caseBb))) {
 				switchStruct.setType(Switch.SWITCH);
 				switchStruct.setFollow(caseBb);
 				return switchStruct;
@@ -394,7 +342,7 @@ public final class TrControlFlowAnalysis {
 				log("Special case '" + caseOut + "' must be handled: '" + head);
 				continue;
 			}
-			--switchCases;
+			--cases;
 			if (follows.isEmpty()) {
 				continue;
 			}
@@ -473,7 +421,12 @@ public final class TrControlFlowAnalysis {
 					if (members.contains(prev)) {
 						continue;
 					}
+
 					if (struct.getParent() == null || struct.getParent().isMember(prev)) {
+						if (struct.getParent() instanceof Switch && struct.getParent().isFollow(bb)) {
+							// prefer direct breaks for switches
+							return;
+						}
 						follows.add(bb); // TODO only 1 possible?
 						return;
 					}
@@ -491,6 +444,51 @@ public final class TrControlFlowAnalysis {
 				findBranch(struct, succ, members, follows);
 			}
 		}
+	}
+
+	private boolean findLoop(final Loop loop, final BB bb, final Set<BB> traversed) {
+		// DFS
+		traversed.add(bb);
+		boolean loopSucc = false;
+		boolean backEdge = false;
+		for (final E out : bb.getOuts()) {
+			if (out.isBack()) {
+				// back edge (continue, tail, inner loop, outer label-continue)
+				if (out.getEnd() == loop.getHead()) {
+					backEdge = true;
+				}
+				// don't track this edge any further
+				continue;
+			}
+			final BB succ = out.getEnd();
+			if (loop.isMember(succ)) {
+				loopSucc = true;
+				continue;
+			}
+			if (!traversed.contains(succ)) {
+				// DFS
+				if (findLoop(loop, succ, traversed)) {
+					loopSucc = true;
+				}
+			}
+		}
+		if (loopSucc) {
+			// back edge too? => must be a continue => normal member
+			if (loop.getHead() != bb) {
+				loop.addMember(bb);
+			}
+			return true;
+		}
+		if (backEdge) {
+			// find tail (no loopSucc!), pred member with biggest opPc
+			// TODO or biggest line number or further structure analyzis?
+			// TODO e.g. tail with >2 succ not possible, see warning
+			if (loop.getLast() == null || loop.getLast().getOrder() < bb.getOrder()) {
+				loop.setLast(bb);
+			}
+			return true;
+		}
+		return false;
 	}
 
 	private void log(final String message) {
