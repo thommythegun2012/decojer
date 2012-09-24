@@ -158,26 +158,6 @@ public final class BB {
 		return addSucc(caseBb, values);
 	}
 
-	/**
-	 * Copy content from BB.
-	 * 
-	 * @param bb
-	 *            BB
-	 */
-	public void copyContentFrom(final BB bb) {
-		this.ops.addAll(bb.ops);
-		this.stmts.addAll(bb.stmts);
-		if (bb.top > 0) {
-			if (getRegs() + this.top + bb.top > this.vs.length) {
-				final Expression[] newVs = new Expression[getRegs() + this.top + bb.top];
-				System.arraycopy(this.vs, 0, newVs, 0, getRegs() + this.top);
-				this.vs = newVs;
-			}
-			System.arraycopy(bb.vs, bb.getRegs(), this.vs, getRegs() + this.top, bb.top);
-			this.top += bb.top;
-		}
-	}
-
 	@Override
 	public boolean equals(final Object obj) {
 		if (!(obj instanceof BB)) {
@@ -488,6 +468,32 @@ public final class BB {
 	}
 
 	/**
+	 * Copy content from BB.
+	 * 
+	 * @param bb
+	 *            BB
+	 */
+	public void joinPredBb(final BB bb) {
+		this.ops.addAll(0, bb.ops);
+		this.stmts.addAll(0, bb.stmts);
+		if (bb.top > 0) {
+			if (getRegs() + bb.top + this.top > this.vs.length) {
+				final Expression[] newVs = new Expression[getRegs() + bb.top + this.top];
+				System.arraycopy(this.vs, 0, newVs, 0, getRegs());
+				System.arraycopy(this.vs, getRegs(), newVs, getRegs() + bb.top, this.top);
+				this.vs = newVs;
+			} else {
+				// shift right
+				System.arraycopy(this.vs, getRegs(), this.vs, getRegs() + bb.top, this.top);
+			}
+			System.arraycopy(bb.vs, getRegs(), this.vs, getRegs(), bb.top);
+			this.top += bb.top;
+		}
+		bb.moveIns(this);
+		bb.remove();
+	}
+
+	/**
 	 * Move in edges to target BB. Adjust CFG start BB.
 	 * 
 	 * @param target
@@ -564,11 +570,15 @@ public final class BB {
 	 * Remove BB from CFG.
 	 */
 	public void remove() {
+		this.cfg.getPostorderedBbs().set(this.postorder, null);
 		for (final E in : this.ins) {
 			in.getStart().outs.remove(in);
 		}
 		for (final E out : this.outs) {
 			out.getEnd().ins.remove(out);
+			if (out.getEnd().ins.isEmpty()) {
+				out.getEnd().remove();
+			}
 		}
 	}
 

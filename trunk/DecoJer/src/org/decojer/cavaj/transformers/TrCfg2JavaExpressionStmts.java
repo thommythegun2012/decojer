@@ -176,9 +176,7 @@ public final class TrCfg2JavaExpressionStmts {
 						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
 				// rewrite CFG
 				bb.removeStmt(0);
-				bb.copyContentFrom(pred);
-				pred.moveIns(bb);
-				pred.remove();
+				bb.joinPredBb(pred);
 				return true;
 			}
 			if (predFalseSucc == falseSucc) {
@@ -200,9 +198,7 @@ public final class TrCfg2JavaExpressionStmts {
 						InfixExpression.Operator.CONDITIONAL_AND, rightExpression, leftExpression));
 				// rewrite CFG
 				bb.removeStmt(0);
-				bb.copyContentFrom(pred);
-				pred.moveIns(bb);
-				pred.remove();
+				bb.joinPredBb(pred);
 				return true;
 			}
 		} else if (predFalseSucc == bb) {
@@ -225,9 +221,7 @@ public final class TrCfg2JavaExpressionStmts {
 						InfixExpression.Operator.CONDITIONAL_OR, rightExpression, leftExpression));
 				// rewrite CFG
 				bb.removeStmt(0);
-				bb.copyContentFrom(pred);
-				pred.moveIns(bb);
-				pred.remove();
+				bb.joinPredBb(pred);
 				return true;
 			}
 			if (predTrueSucc == falseSucc) {
@@ -250,9 +244,7 @@ public final class TrCfg2JavaExpressionStmts {
 						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
 				// rewrite CFG
 				bb.removeStmt(0);
-				bb.copyContentFrom(pred);
-				pred.moveIns(bb);
-				pred.remove();
+				bb.joinPredBb(pred);
 				return true;
 			}
 		}
@@ -488,10 +480,11 @@ public final class TrCfg2JavaExpressionStmts {
 				final GET cop = (GET) op;
 				final F f = cop.getF();
 				if (f.check(AF.STATIC)) {
-					final Name name = getAst().newQualifiedName(
-							this.cfg.getTd().newTypeName(f.getT()),
-							getAst().newSimpleName(f.getName()));
-					bb.push(name);
+					if (rewriteCachedClassLiteral(f, bb)) {
+						break;
+					}
+					bb.push(getAst().newQualifiedName(this.cfg.getTd().newTypeName(f.getT()),
+							getAst().newSimpleName(f.getName())));
 				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
 					fieldAccess.setExpression(wrap(bb.pop(), Priority.MEMBER_ACCESS));
@@ -1173,57 +1166,90 @@ public final class TrCfg2JavaExpressionStmts {
 		return r.getT().isWide();
 	}
 
-	// TODO PUSH and INVOKE catch java.lang.ClassNotFoundException! currently not working
-	// anymore with exceptions in CFG, see org.eclipse.jdt.core.JDTCompilerAdapter.execute
-	private boolean rewriteClassForNameCachedLiteral(final BB bb) {
-		// seen in JDK 1.2 Eclipse Core:
-		// DUP-POP conditional variant: GET class$0 DUP JCND_NE
-		// (_POP_ PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$0 GOTO)
-		if (!bb.isSequence()) {
+	/**
+	 * Class Literal Caching (no direct Constant Pool Class Literals in 1.2).
+	 * 
+	 * Eclipse 1.2 JDT: org.eclipse.jdt.core.JDTCompilerAdapter.execute()
+	 * 
+	 * GET class$0 DUP JCND_NE // (_POP_ PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$0
+	 * GOTO)
+	 * 
+	 * @param f
+	 *            field for class literal caching
+	 * @param bb
+	 *            BB
+	 * 
+	 * @return {@code true} - rewritten
+	 */
+	private boolean rewriteCachedClassLiteral(final F f, final BB bb) {
+		if (!f.check(AF.SYNTHETIC)) {
 			return false;
 		}
-		if (bb.getOps() != 6 || !(bb.getOp(0) instanceof POP) || !(bb.getOp(1) instanceof PUSH)
-				|| !(bb.getOp(2) instanceof INVOKE) || !(bb.getOp(3) instanceof DUP)
-				|| !(bb.getOp(4) instanceof PUT) || !(bb.getOp(5) instanceof GOTO)) {
+		if (!f.getName().startsWith("class$")) {
 			return false;
 		}
-		final BB followBb = bb.getOuts().get(0).getEnd();
-		if (followBb == null || bb.getIns().size() != 1) {
-			return false;
-		}
-		final BB condHead = bb.getIns().get(0).getStart();
-		if (!condHead.isCondOrPreLoopHead()) {
-			return false;
-		}
-		final BB trueSucc = condHead.getTrueSucc();
-		final BB falseSucc = condHead.getFalseSucc();
-		if (falseSucc == bb && trueSucc != followBb || trueSucc == bb && falseSucc != followBb) {
-			return false;
-		}
-
-		// TODO check, but is very rare:
-		// Expression QualifiedName: JDTCompilerAdapter.class$0 (or Simple?)
-		// IFStatement
-
-		Expression expression = condHead.peek();
-		try {
-			final String classInfo = (String) ((PUSH) bb.getOp(1)).getValue();
-			expression = Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg.getDu()
-					.getT(classInfo), this.cfg.getTd());
+		rewrite: try {
+			if (bb.getOps() != 2) {
+				break rewrite;
+			}
+			if (!(bb.getOp(0) instanceof DUP)) {
+				break rewrite;
+			}
+			if (!(bb.getOp(1) instanceof JCND)) {
+				break rewrite;
+			}
+			final BB popBb = bb.getFalseOut().getEnd();
+			if (popBb.getOps() != 1) {
+				break rewrite;
+			}
+			if (!(popBb.getOp(0) instanceof POP)) {
+				break rewrite;
+			}
+			final BB pushBb = popBb.getOut().getEnd();
+			if (pushBb.getOps() != 2) {
+				break rewrite;
+			}
+			if (!(pushBb.getOp(0) instanceof PUSH)) {
+				break rewrite;
+			}
+			if (!(pushBb.getOp(1) instanceof INVOKE)) {
+				break rewrite;
+			}
+			final BB dupBb = pushBb.getOut().getEnd();
+			if (dupBb.getOps() != 3) {
+				break rewrite;
+			}
+			if (!(dupBb.getOp(0) instanceof DUP)) {
+				break rewrite;
+			}
+			if (!(dupBb.getOp(1) instanceof PUT)) {
+				break rewrite;
+			}
+			if (!(dupBb.getOp(2) instanceof GOTO)) {
+				break rewrite;
+			}
+			final BB followBb = dupBb.getOut().getEnd();
+			if (followBb != bb.getTrueOut().getEnd()) {
+				break rewrite;
+			}
+			final String classInfo = (String) ((PUSH) pushBb.getOp(0)).getValue();
+			followBb.push(Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg.getDu()
+					.getT(classInfo), this.cfg.getTd()));
+			bb.removeOp(0);
+			bb.removeOp(0);
+			bb.getOuts().remove(bb.getTrueOut());
+			popBb.remove();
+			pushBb.remove();
+			dupBb.remove();
+			followBb.joinPredBb(bb);
+			bb.setSucc(followBb);
+			return true;
 		} catch (final Exception e) {
-			// rewrite to class literal didn't work
+			LOGGER.log(Level.SEVERE, "Couldn't rewrite cached class literal '" + f + "'!", e);
 			return false;
 		}
-
-		condHead.pop();
-		condHead.removeFinalStmt();
-
-		followBb.copyContentFrom(condHead);
-		condHead.moveIns(followBb);
-		condHead.remove();
-		falseSucc.remove();
-		followBb.push(expression);
-		return true;
+		LOGGER.warning("Couldn't rewrite cached class literal '" + f + "'!");
+		return false;
 	}
 
 	private boolean rewriteConditional(final BB bb) {
@@ -1360,11 +1386,7 @@ public final class TrCfg2JavaExpressionStmts {
 			condHead.push(expression);
 			condHead.setSucc(bb);
 		} else {
-			// pull
-			bb.copyContentFrom(condHead);
-			condHead.moveIns(bb);
-			condHead.remove();
-
+			bb.joinPredBb(condHead);
 			// push new conditional expression, here only "a ? true : false" as "a"
 			bb.push(expression);
 		}
@@ -1500,6 +1522,7 @@ public final class TrCfg2JavaExpressionStmts {
 		} else {
 			LOGGER.warning("First operation in handler '" + firstOp + "' isn't STORE or POP: " + bb);
 			name = "e"; // TODO hmmm...free variable name needed...
+			bb.push(getAst().newSimpleName(name));
 		}
 		final T[] handlerTypes = (T[]) bb.getIns().get(0).getValue();
 		final boolean isFinally = 1 == handlerTypes.length && null == handlerTypes[0];
@@ -1547,11 +1570,6 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			// previous expressions merged into bb, now rewrite:
 			if (!convertToHLLIntermediate(bb)) {
-				// DUP-POP conditional variant for pre JVM 5 cached class literals
-				if (rewriteClassForNameCachedLiteral(bb)) {
-					// delete myself and superior nodes
-					continue;
-				}
 				// should never happen in forward mode
 				// TODO can currently happen with exceptions, RETURN x is not in catch!
 				LOGGER.warning("Stack underflow in '" + this.cfg + "':\n" + bb);
