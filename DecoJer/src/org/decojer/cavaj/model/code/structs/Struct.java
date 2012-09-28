@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.code.BB;
 
 import com.google.common.collect.Maps;
@@ -41,14 +44,19 @@ import com.google.common.collect.Maps;
  */
 public class Struct {
 
+	@Getter
 	private BB follow;
 
+	@Getter
 	private final BB head;
 
+	@Getter
+	@Setter
 	private String label;
 
 	protected final Map<Object, List<BB>> value2members = Maps.newHashMap();
 
+	@Getter
 	private final Struct parent;
 
 	/**
@@ -97,28 +105,6 @@ public class Struct {
 	}
 
 	/**
-	 * Get struct follow.
-	 * 
-	 * @return struct follow
-	 */
-	public BB getFollow() {
-		return this.follow;
-	}
-
-	/**
-	 * Get struct head.
-	 * 
-	 * @return struct head
-	 */
-	public BB getHead() {
-		return this.head;
-	}
-
-	public String getLabel() {
-		return this.label;
-	}
-
-	/**
 	 * Get struct members for value, changeable list!
 	 * 
 	 * @param value
@@ -142,15 +128,6 @@ public class Struct {
 			this.value2members.put(value, members);
 		}
 		return members;
-	}
-
-	/**
-	 * Get enclosing parent struct.
-	 * 
-	 * @return enclosing parent struct
-	 */
-	public Struct getParent() {
-		return this.parent;
 	}
 
 	/**
@@ -247,10 +224,6 @@ public class Struct {
 		assert bb.getPostorder() < this.head.getPostorder();
 
 		this.follow = bb;
-	}
-
-	public void setLabel(final String label) {
-		this.label = label;
 	}
 
 	@Override

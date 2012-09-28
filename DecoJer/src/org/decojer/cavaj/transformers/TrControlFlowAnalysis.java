@@ -93,7 +93,7 @@ public final class TrControlFlowAnalysis {
 
 		final Set<BB> firstFollows = Sets.newHashSet();
 		final List<BB> firstMembers = Lists.newArrayList();
-		if (firstSucc.getIns().size() == 1) {
+		if (firstSucc.getIns().size() == 1) { // TODO tss...backs?
 			findBranch(cond, firstSucc, firstMembers, firstFollows);
 		}
 
@@ -256,7 +256,9 @@ public final class TrControlFlowAnalysis {
 
 		final Set<BB> follows = Sets.newHashSet();
 
-		outer: for (int i = 0, hack = 100; i < size && hack-- > 0; ++i) {
+		// TODO check with org.eclipse.jdt.core.BindingKey.createWildcardTypeBindingKey(), explicit
+		// default return and real follow (not with head-connection)
+		for (int i = 0, hack = 100; i < size && hack-- > 0; ++i) {
 			final E caseOut = outs.get(i);
 			if (!caseOut.isSwitchCase()) {
 				continue;
@@ -272,14 +274,15 @@ public final class TrControlFlowAnalysis {
 			final List<BB> members = switchStruct.getMembers(caseOut.getValue());
 			findBranch(switchStruct, caseBb, members, follows);
 
+			--cases;
+			if (follows.isEmpty()) {
+				// continue or break
+				continue;
+			}
 			if (members.isEmpty()) {
-				if (follows.isEmpty()) {
-					// continue or break
-					continue;
-				}
 				if (follows.contains(caseBb)) {
-					// first case can only have head as predecessor (no fall-through), elsewise try
-					// case reordering; fall-through follow-cases can have multiple predecessors
+					// must be a fall-through case, where the first element hasn't been met yet,
+					// reorder
 					if (i == size - 1) { // endless-loop prevention
 						log("Fall-through case '" + caseOut + "' is empty: '" + head);
 					} else {
@@ -287,46 +290,50 @@ public final class TrControlFlowAnalysis {
 						outs.remove(i--);
 						outs.add(caseOut); // as last for now
 					}
+					++cases;
 					continue;
 				}
 				log("Special case '" + caseOut + "' must be handled: '" + head);
 				continue;
 			}
-			--cases;
-			if (follows.isEmpty()) {
-				continue;
-			}
-			// a follow has 2 incomings, one is head?
-			// => is switch-follow or fall-through must follow!
-			for (final Iterator<BB> it = follows.iterator(); it.hasNext();) {
+
+			fallThrough: for (final Iterator<BB> it = follows.iterator(); it.hasNext();) {
 				final BB follow = it.next();
 				final List<E> followIns = follow.getIns();
-				if (followIns.size() >= 2) {
-					for (final E followIn : followIns) {
-						if (followIn == caseOut || followIn.getStart() != head) {
-							continue;
-						}
-						// switch-follow or fall-through found
-						if (followIn.isSwitchDefault()) {
-							// TODO not sufficient, count if a follow occurs multiple times!
-							continue;
-						}
-						final List<BB> followCaseMembers = switchStruct.getMembers(followIn
-								.getValue());
-						if (!followCaseMembers.isEmpty()) {
-							log("Fall-through case '" + caseOut
-									+ "' cannot be target of multiple fall-throughs: '" + head);
-						}
+				if (!followIns.contains(head) || followIns.size() < 2) {
+					// no fall-through handling necessary
+					continue;
+				}
+				E fallThroughE = null;
+				// is a fall-through or switch-follow
+				for (final E followIn : followIns) {
+					assert followIn.hasPred(head); // should be excluded in findBranch()
 
-						followCaseMembers.add(follow);
-						it.remove(); // remove as struct follow
-
-						// move in to i + 1
-						outs.remove(followIn);
-						outs.add(i + 1, followIn);
-						continue outer;
+					if (followIn.getStart() == head) {
+						fallThroughE = followIn;
+						continue;
+					}
+					if (!members.contains(followIn)) {
+						continue fallThrough;
 					}
 				}
+				if (fallThroughE == null) {
+					continue;
+				}
+
+				final List<BB> followCaseMembers = switchStruct.getMembers(fallThroughE.getValue());
+				if (!followCaseMembers.isEmpty()) {
+					log("Fall-through case '" + caseOut
+							+ "' cannot be target of multiple fall-throughs: '" + head);
+				}
+
+				followCaseMembers.add(follow);
+				it.remove(); // remove as struct follow
+
+				// move in to i + 1
+				outs.remove(fallThroughE);
+				outs.add(i + 1, fallThroughE);
+				continue;
 			}
 
 		}
@@ -371,24 +378,39 @@ public final class TrControlFlowAnalysis {
 					if (members.contains(prev)) {
 						continue;
 					}
-
-					if (struct.getParent() == null || struct.getParent().isMember(prev)) {
-						if (struct.getParent() instanceof Switch && struct.getParent().isFollow(bb)) {
-							// prefer direct breaks for switches
-							return;
-						}
-						follows.add(bb); // TODO only 1 possible?
+					if (prev != struct.getHead() && !prev.hasPred(struct.getHead())) {
 						return;
 					}
-					// is break or continue, artificial block might be necessary!
-					log("Java has single-entry structs, not allowed - GOTO necessary");
+
+					if (follows.contains(bb)) {
+						return;
+					}
+					assert follows.size() <= 1; // TODO just one possible?!
+
+					for (final BB follow : follows) {
+						if (follow.getPostorder() > bb.getPostorder()) {
+							assert follow.hasSucc(bb);
+
+							continue;
+						}
+						if (follow.getPostorder() < bb.getPostorder()) {
+							assert follow.hasPred(bb); // TODO with catches
+														// possible...org.eclipse.jdt.core.CheckDebugAttributes.execute()
+
+							follows.clear(); // TODO just 1 possible?!
+							break;
+						}
+					}
+					follows.add(bb);
+					return;
 				}
 				follows.remove(bb); // all prev are now members, maybe we where already here
 			}
 			members.add(bb);
 		}
 		for (final E out : bb.getOuts()) {
-			if (out.isBack()) {
+			if (out.isBack() || out.isCatch()) { // TODO catches can create extra follows, what to
+													// do? just if all incoming are members?
 				continue;
 			}
 			final BB succ = out.getEnd();
