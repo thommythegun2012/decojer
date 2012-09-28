@@ -369,16 +369,16 @@ public final class TrControlFlowAnalysis {
 			final Set<BB> follows) {
 		if (!members.contains(bb)) { // necessary check because of switch-case fall-throughs
 			if (bb.getIns().size() > 1) {
-				// is there a none-member prev?
+				// is there a none-member pred?
 				for (final E in : bb.getIns()) {
 					if (in.isBack()) {
 						continue; // ignore incoming back edges, sub loop-heads belong to branch
 					}
-					final BB prev = in.getStart();
-					if (members.contains(prev)) {
+					final BB pred = in.getStart();
+					if (members.contains(pred)) {
 						continue;
 					}
-					if (prev != struct.getHead() && !prev.hasPred(struct.getHead())) {
+					if (pred != struct.getHead() && !pred.hasPred(struct.getHead())) {
 						return;
 					}
 
@@ -404,7 +404,7 @@ public final class TrControlFlowAnalysis {
 					follows.add(bb);
 					return;
 				}
-				follows.remove(bb); // all prev are now members, maybe we where already here
+				follows.remove(bb); // all pred are now members, maybe we where already here
 			}
 			members.add(bb);
 		}
