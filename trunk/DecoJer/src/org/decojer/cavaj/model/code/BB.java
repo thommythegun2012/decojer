@@ -339,22 +339,21 @@ public final class BB {
 	}
 
 	/**
-	 * Is given BB predecessor of this BB? This excludes same BB!
+	 * Has this BB given BB as predecessor? This excludes same BB!
 	 * 
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - given BB is predecessor of this BB
 	 */
 	public boolean hasPred(final BB bb) {
-		if (this.pc >= bb.pc) {
+		if (this.postorder >= bb.postorder) {
 			return false;
 		}
 		for (final E in : this.ins) {
 			if (in.isBack()) {
 				continue;
 			}
-			final BB pred = in.getStart();
-			if (bb == pred || hasPred(pred)) {
+			if (in.hasPred(bb)) {
 				return true;
 			}
 		}
@@ -370,6 +369,17 @@ public final class BB {
 	 */
 	public boolean hasStackSizeFor(final Op op) {
 		return op.getInStackSize() - this.cfg.getInFrame(op).wideStacks(op.getInStackSize()) <= getTop();
+	}
+
+	/**
+	 * Has this BB given BB as successor? This excludes same BB!
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - given BB is successor of this BB
+	 */
+	public boolean hasSucc(final BB bb) {
+		return !hasPred(bb);
 	}
 
 	/**
@@ -442,17 +452,6 @@ public final class BB {
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Is given BB successor of this BB? This excludes same BB!
-	 * 
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - given BB is successor of this BB
-	 */
-	public boolean isSucc(final BB bb) {
-		return !hasPred(bb);
 	}
 
 	/**
