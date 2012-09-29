@@ -1299,14 +1299,11 @@ public final class TrCfg2JavaExpressionStmts {
 		final Expression falseExpression = falseSucc.peek();
 
 		Expression expression = ((IfStatement) condHead.getFinalStmt()).getExpression();
-		rewrite: if ((trueExpression instanceof BooleanLiteral || trueExpression instanceof NumberLiteral)
-				&& (falseExpression instanceof BooleanLiteral || falseExpression instanceof NumberLiteral)) {
+		rewrite: if (trueExpression instanceof BooleanLiteral
+				&& falseExpression instanceof BooleanLiteral) {
 			// expressions: expression ? true : false => a
-			// TODO NumberLiteral necessary until Data Flow Analysis works
 			if (trueExpression instanceof BooleanLiteral
-					&& !((BooleanLiteral) trueExpression).booleanValue()
-					|| trueExpression instanceof NumberLiteral
-					&& ((NumberLiteral) trueExpression).getToken().equals("0")) {
+					&& !((BooleanLiteral) trueExpression).booleanValue()) {
 				expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
 			}
 		} else {
@@ -1374,15 +1371,9 @@ public final class TrCfg2JavaExpressionStmts {
 			conditionalExpression.setElseExpression(wrap(falseExpression, Priority.CONDITIONAL));
 			expression = conditionalExpression;
 		}
-
 		// is conditional expression, modify graph
-		// remove IfStatement
-		condHead.removeFinalStmt();
-
-		trueSucc.remove();
-		falseSucc.remove();
-
-		if (bb.getIns().size() != 0) {
+		condHead.removeFinalStmt(); // remove IfStatement
+		if (bb.getIns().size() > 2) {
 			condHead.push(expression);
 			condHead.setSucc(bb);
 		} else {
@@ -1390,7 +1381,8 @@ public final class TrCfg2JavaExpressionStmts {
 			// push new conditional expression, here only "a ? true : false" as "a"
 			bb.push(expression);
 		}
-
+		trueSucc.remove();
+		falseSucc.remove();
 		return true;
 	}
 

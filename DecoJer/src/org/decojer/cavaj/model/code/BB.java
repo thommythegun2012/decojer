@@ -574,9 +574,10 @@ public final class BB {
 			in.getStart().outs.remove(in);
 		}
 		for (final E out : this.outs) {
-			out.getEnd().ins.remove(out);
-			if (out.getEnd().ins.isEmpty()) {
-				out.getEnd().remove();
+			final BB succ = out.getEnd();
+			succ.ins.remove(out);
+			if (succ.ins.isEmpty() && this.cfg.getStartBb() != succ) {
+				succ.remove();
 			}
 		}
 	}
