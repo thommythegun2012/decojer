@@ -416,28 +416,20 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	private Statement transformSwitch(final Switch switchStruct) {
-		final BB head = switchStruct.getHead();
-
-		final SwitchStatement statement = (SwitchStatement) head.getFinalStmt();
-		final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
-				statement.getExpression());
-
-		boolean defaultCase = true;
 		switch (switchStruct.getType()) {
 		case Switch.SWITCH:
-			defaultCase = false;
 		case Switch.SWITCH_DEFAULT: {
-			final SwitchStatement switchStatement = getAst().newSwitchStatement();
-			switchStatement.setExpression(expression);
+			final BB head = switchStruct.getHead();
+			final SwitchStatement switchStatement = (SwitchStatement) head.getFinalStmt();
 
-			final List<E> outs = head.getOuts();
-
-			int size = outs.size();
-			if (!defaultCase) {
-				--size;
-			}
-			for (int i = 0; i < size; ++i) {
-				for (final Integer value : (Integer[]) outs.get(i).getValue()) {
+			for (final E out : head.getOuts()) {
+				if (!out.isSwitchCase()) {
+					continue;
+				}
+				for (final Integer value : (Integer[]) out.getValue()) {
+					if (out.isSwitchDefault() && switchStruct.getType() == Switch.SWITCH) {
+						continue;
+					}
 					final SwitchCase switchCase = getAst().newSwitchCase();
 					if (value == null) {
 						// necessary: expression initialized to null
@@ -447,9 +439,8 @@ public final class TrCfg2JavaControlFlowStmts {
 					}
 					switchStatement.statements().add(switchCase);
 				}
-
 				final List<Statement> subStatements = Lists.newArrayList();
-				transformSequence(switchStruct, outs.get(i).getEnd(), subStatements);
+				transformSequence(switchStruct, out.getEnd(), subStatements);
 				switchStatement.statements().addAll(subStatements);
 			}
 			// remove final break
