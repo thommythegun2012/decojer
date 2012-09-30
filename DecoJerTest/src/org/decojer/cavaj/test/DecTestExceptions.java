@@ -262,6 +262,18 @@ public abstract class DecTestExceptions {
 		System.out.println("POST");
 	}
 
+	void tryEndlessTry() {
+		try {
+			while (true) {
+				try {
+					System.out.println("TEST");
+				} catch (RuntimeException e) { /* ignore */
+				}
+			}
+		} catch (Exception e) { /* ignore */
+		}
+	}
+
 	boolean whileFinally() {
 		while (true) {
 			try {
