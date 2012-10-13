@@ -1,4 +1,7 @@
-Differences JRE 6 to previous
+Differences to previous
+
+* 1.6 reports encoding problems as errors instead of warnings. 
+
 
 * new language features:
   + new constants:
