@@ -15,23 +15,29 @@ The following details give an overview of the necessary steps to check out the s
 
 == Eclipse & Plugins ==
 
-  * Download *Eclipse for RCP and RAP Developers* (Version 3.7.2 or 4.2) from http://www.eclipse.org/downloads/
-
+  * Prepare Eclipse:
+    * download *Eclipse for RCP and RAP Developers* (Version 3.7.2 or 4.2.1) from http://www.eclipse.org/downloads/
+    * extract Eclipse
+    * increase Eclipse Memory in settings.xml, e.g. to _-Xms1200m_ and _-Xmx1200m_
+    * install *Lombok*:
+      * download from http://projectlombok.org/download.html
+      * start and select Eclipse folder
+    * start and _Check for Updates_ -> update if necessary
   * Install Plugins:
     * Install *AST View*:
       * add Update Manager http://www.eclipse.org/jdt/ui/update-site
-      * select _AST View for 3.7.1 and 3.8_
+      * select _AST View_ / _AST View_
     * Install *ZEST*
-      * choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
+      * choose Update Manager: Juno - http://download.eclipse.org/releases/juno
       * select _Modeling_ / _Graphical Editing Framework Zest Visualization Toolkit SDK_
     * Install *Subversive*:
       * choose Update Manager: Juno - http://download.eclipse.org/releases/juno
       * for Eclipse 3.7.2: Subversion compatible to new 1.7 repository: http://download.eclipse.org/technology/subversive/0.7/update-site/
       * select _Collaboration_ / _Subversive SVN..._
-      * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.7 for Win32
+      * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.7.4 for Win32
     * Install *TestNG*:
       * add Update Manager http://beust.com/eclipse
-      * select TestNG
+      * select _TestNG_ / _TestNG_
 
 == Checkout Source Code ==
 
@@ -59,7 +65,9 @@ http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
     * Install *Google Plugin for Eclipse*:
       * Add Update Manager: http://dl.google.com/eclipse/plugin/4.2
       * for Eclipse 3.7.2: http://dl.google.com/eclipse/plugin/3.7
-      * select all items
+      * select items:
+        * _Google Plugin for Eclipse (required)_ / _Google Plugin for Eclipse 4.2_
+        * _SDK_ / _Google App Engine Java SDK 1.7.2.1_
       * (see under http://code.google.com/intl/de-DE/eclipse/docs/download.html)
     * Install *Eclipse WTP Plugins* (we use Eclipse for RCP!)
       * choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
