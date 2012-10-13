@@ -1,4 +1,7 @@
-Differences JRE 7 to previous
+Differences to previous
+
+* 1.7 introduced try-with-resources, multi-catch, string switch, etc. 
+
 
 * new language features:
   + Switch with Strings

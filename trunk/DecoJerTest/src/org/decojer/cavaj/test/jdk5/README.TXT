@@ -1,4 +1,7 @@
-Differences JRE 5 to previous
+Differences to previous
+
+* 1.5 introduced generics, attributes, foreach, boxing, static import, covariant return, enums, varargs, et al.
+
 
 * new language features: http://www.barrycornelius.com/papers/java5/onefile/
   + Switch with Enums
