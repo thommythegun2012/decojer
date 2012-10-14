@@ -45,14 +45,7 @@ import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.V;
-import org.decojer.cavaj.model.code.ops.ADD;
-import org.decojer.cavaj.model.code.ops.ALOAD;
-import org.decojer.cavaj.model.code.ops.AND;
-import org.decojer.cavaj.model.code.ops.ARRAYLENGTH;
-import org.decojer.cavaj.model.code.ops.ASTORE;
 import org.decojer.cavaj.model.code.ops.CAST;
-import org.decojer.cavaj.model.code.ops.CMP;
-import org.decojer.cavaj.model.code.ops.DIV;
 import org.decojer.cavaj.model.code.ops.DUP;
 import org.decojer.cavaj.model.code.ops.FILLARRAY;
 import org.decojer.cavaj.model.code.ops.GET;
@@ -62,28 +55,16 @@ import org.decojer.cavaj.model.code.ops.INSTANCEOF;
 import org.decojer.cavaj.model.code.ops.INVOKE;
 import org.decojer.cavaj.model.code.ops.JCMP;
 import org.decojer.cavaj.model.code.ops.JCND;
-import org.decojer.cavaj.model.code.ops.JSR;
 import org.decojer.cavaj.model.code.ops.LOAD;
-import org.decojer.cavaj.model.code.ops.MONITOR;
-import org.decojer.cavaj.model.code.ops.MUL;
-import org.decojer.cavaj.model.code.ops.NEG;
 import org.decojer.cavaj.model.code.ops.NEW;
 import org.decojer.cavaj.model.code.ops.NEWARRAY;
-import org.decojer.cavaj.model.code.ops.OR;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.POP;
 import org.decojer.cavaj.model.code.ops.PUSH;
 import org.decojer.cavaj.model.code.ops.PUT;
-import org.decojer.cavaj.model.code.ops.REM;
 import org.decojer.cavaj.model.code.ops.RETURN;
-import org.decojer.cavaj.model.code.ops.SHL;
 import org.decojer.cavaj.model.code.ops.SHR;
 import org.decojer.cavaj.model.code.ops.STORE;
-import org.decojer.cavaj.model.code.ops.SUB;
-import org.decojer.cavaj.model.code.ops.SWAP;
-import org.decojer.cavaj.model.code.ops.SWITCH;
-import org.decojer.cavaj.model.code.ops.THROW;
-import org.decojer.cavaj.model.code.ops.XOR;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Priority;
 import org.decojer.cavaj.utils.Types;
@@ -270,22 +251,17 @@ public final class TrCfg2JavaExpressionStmts {
 	private boolean convertToHLLIntermediate(final BB bb) {
 		boolean fieldInit = true; // small hack for now...later because of conditionals?
 		while (bb.getOps() > 0) {
-			final Op op = bb.getOp(0);
-			if (!bb.hasStackSizeFor(op)) {
+			if (bb.isStackUnderflow()) {
 				return false;
 			}
-			bb.removeOp(0);
+			final Op op = bb.removeOp(0);
 			Statement statement = null;
 			switch (op.getOptype()) {
 			case ADD: {
-				assert op instanceof ADD;
-
 				bb.push(newInfixExpression(InfixExpression.Operator.PLUS, bb.pop(), bb.pop()));
 				break;
 			}
 			case ALOAD: {
-				assert op instanceof ALOAD;
-
 				final ArrayAccess arrayAccess = getAst().newArrayAccess();
 				arrayAccess.setIndex(wrap(bb.pop()));
 				arrayAccess.setArray(wrap(bb.pop(), Priority.ARRAY_INDEX));
@@ -293,14 +269,10 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case AND: {
-				assert op instanceof AND;
-
 				bb.push(newInfixExpression(InfixExpression.Operator.AND, bb.pop(), bb.pop()));
 				break;
 			}
 			case ARRAYLENGTH: {
-				assert op instanceof ARRAYLENGTH;
-
 				final Expression expression = bb.pop();
 				if (expression instanceof Name) {
 					// annotationsVisible.length
@@ -317,8 +289,6 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case ASTORE: {
-				assert op instanceof ASTORE;
-
 				final Expression rightExpression = bb.pop();
 				final Expression indexExpression = bb.pop();
 				final Expression arrayRefExpression = bb.pop();
@@ -371,16 +341,12 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case CMP: {
-				assert op instanceof CMP;
-
 				// pseudo expression for following JCND, not really the correct
 				// answer for -1, 0, 1
 				bb.push(newInfixExpression(InfixExpression.Operator.LESS_EQUALS, bb.pop(), bb.pop()));
 				break;
 			}
 			case DIV: {
-				assert op instanceof DIV;
-
 				bb.push(newInfixExpression(InfixExpression.Operator.DIVIDE, bb.pop(), bb.pop()));
 				break;
 			}
@@ -830,7 +796,6 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case JSR: {
-				assert op instanceof JSR;
 				// TODO
 				break;
 			}
@@ -856,20 +821,14 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case MONITOR: {
-				assert op instanceof MONITOR;
-
 				bb.pop();
 				break;
 			}
 			case MUL: {
-				assert op instanceof MUL;
-
 				bb.push(newInfixExpression(InfixExpression.Operator.TIMES, bb.pop(), bb.pop()));
 				break;
 			}
 			case NEG: {
-				assert op instanceof NEG;
-
 				bb.push(newPrefixExpression(PrefixExpression.Operator.MINUS, bb.pop()));
 				break;
 			}
@@ -939,8 +898,6 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case OR: {
-				assert op instanceof OR;
-
 				bb.push(newInfixExpression(InfixExpression.Operator.OR, bb.pop(), bb.pop()));
 				break;
 			}
@@ -1020,8 +977,6 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case REM: {
-				assert op instanceof REM;
-
 				bb.push(newInfixExpression(InfixExpression.Operator.REMAINDER, bb.pop(), bb.pop()));
 				break;
 			}
@@ -1035,8 +990,6 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case SHL: {
-				assert op instanceof SHL;
-
 				bb.push(newInfixExpression(InfixExpression.Operator.LEFT_SHIFT, bb.pop(), bb.pop()));
 				break;
 			}
@@ -1095,14 +1048,10 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case SUB: {
-				assert op instanceof SUB;
-
 				bb.push(newInfixExpression(InfixExpression.Operator.MINUS, bb.pop(), bb.pop()));
 				break;
 			}
 			case SWAP: {
-				assert op instanceof SWAP;
-
 				final Expression e1 = bb.pop();
 				final Expression e2 = bb.pop();
 				bb.push(e1);
@@ -1110,24 +1059,18 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case SWITCH: {
-				assert op instanceof SWITCH;
-
 				final SwitchStatement switchStatement = getAst().newSwitchStatement();
 				switchStatement.setExpression(wrap(bb.pop()));
 				statement = switchStatement;
 				break;
 			}
 			case THROW: {
-				assert op instanceof THROW;
-
 				final ThrowStatement throwStatement = getAst().newThrowStatement();
 				throwStatement.setExpression(wrap(bb.pop()));
 				statement = throwStatement;
 				break;
 			}
 			case XOR: {
-				assert op instanceof XOR;
-
 				final Expression expression = bb.pop();
 				// "a ^ -1" => "~a"
 				if (expression instanceof NumberLiteral
@@ -1447,6 +1390,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final FD fd = this.cfg.getTd().getT().getF(f.getName(), f.getValueT()).getFd();
 				final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
 				assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
+
 				final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
 
 				for (int i = arguments.size(); i-- > 2;) {

@@ -47,23 +47,19 @@ import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.ops.ADD;
 import org.decojer.cavaj.model.code.ops.ALOAD;
 import org.decojer.cavaj.model.code.ops.AND;
-import org.decojer.cavaj.model.code.ops.ARRAYLENGTH;
 import org.decojer.cavaj.model.code.ops.ASTORE;
 import org.decojer.cavaj.model.code.ops.CAST;
 import org.decojer.cavaj.model.code.ops.CMP;
 import org.decojer.cavaj.model.code.ops.DIV;
 import org.decojer.cavaj.model.code.ops.DUP;
-import org.decojer.cavaj.model.code.ops.FILLARRAY;
 import org.decojer.cavaj.model.code.ops.GET;
 import org.decojer.cavaj.model.code.ops.GOTO;
 import org.decojer.cavaj.model.code.ops.INC;
-import org.decojer.cavaj.model.code.ops.INSTANCEOF;
 import org.decojer.cavaj.model.code.ops.INVOKE;
 import org.decojer.cavaj.model.code.ops.JCMP;
 import org.decojer.cavaj.model.code.ops.JCND;
 import org.decojer.cavaj.model.code.ops.JSR;
 import org.decojer.cavaj.model.code.ops.LOAD;
-import org.decojer.cavaj.model.code.ops.MONITOR;
 import org.decojer.cavaj.model.code.ops.MUL;
 import org.decojer.cavaj.model.code.ops.NEG;
 import org.decojer.cavaj.model.code.ops.NEW;
@@ -80,9 +76,7 @@ import org.decojer.cavaj.model.code.ops.SHL;
 import org.decojer.cavaj.model.code.ops.SHR;
 import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.code.ops.SUB;
-import org.decojer.cavaj.model.code.ops.SWAP;
 import org.decojer.cavaj.model.code.ops.SWITCH;
-import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
 
 import com.google.common.collect.Lists;
@@ -185,8 +179,6 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case ARRAYLENGTH: {
-			assert op instanceof ARRAYLENGTH;
-
 			pop(T.REF, true); // array
 			pushConst(T.INT); // length
 			break;
@@ -320,8 +312,6 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case FILLARRAY: {
-			assert op instanceof FILLARRAY;
-
 			pop(T.REF, true);
 			break;
 		}
@@ -347,8 +337,6 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case INSTANCEOF: {
-			assert op instanceof INSTANCEOF;
-
 			pop(T.REF, true);
 			// operation contains check-type as argument, not important here
 			pushConst(T.BOOLEAN);
@@ -449,8 +437,6 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case MONITOR: {
-			assert op instanceof MONITOR;
-
 			pop(T.REF, true);
 			break;
 		}
@@ -599,8 +585,6 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case SWAP: {
-			assert op instanceof SWAP;
-
 			final R s1 = this.frame.pop();
 			final R s2 = this.frame.pop();
 			pushMove(s1);
@@ -649,8 +633,6 @@ public final class TrDataFlowAnalysis {
 			return -1;
 		}
 		case THROW:
-			assert op instanceof THROW;
-
 			// just type reduction
 			pop(this.cfg.getDu().getT(Throwable.class), true);
 			return -1;
@@ -802,6 +784,7 @@ public final class TrDataFlowAnalysis {
 			if (this.cfg.getInFrame(outBb) == null) {
 				// TODO currently only possible for exceptions, link later when really visited?!
 				assert out.isCatch();
+
 				continue;
 			}
 			mergeReplaceReg(outBb, i, replacedR, newR);

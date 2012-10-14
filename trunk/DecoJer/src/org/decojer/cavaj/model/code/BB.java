@@ -361,17 +361,6 @@ public final class BB {
 	}
 
 	/**
-	 * Has BB necessary stack size for given operation?
-	 * 
-	 * @param op
-	 *            operation
-	 * @return {@code true} - BB has necessary stack size
-	 */
-	public boolean hasStackSizeFor(final Op op) {
-		return op.getInStackSize() - this.cfg.getInFrame(op).wideStacks(op.getInStackSize()) <= getTop();
-	}
-
-	/**
 	 * Has this BB given BB as successor? This excludes same BB!
 	 * 
 	 * @param bb
@@ -452,6 +441,16 @@ public final class BB {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Has BB necessary stack size for first operation?
+	 * 
+	 * @return {@code true} - BB has necessary stack size for first operation
+	 */
+	public boolean isStackUnderflow() {
+		final Op op = getOp(0);
+		return op.getInStackSize() - this.cfg.getInFrame(op).wideStacks(op.getInStackSize()) > getTop();
 	}
 
 	/**
