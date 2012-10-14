@@ -41,6 +41,13 @@ public abstract class DecTestIfStmt {
 		System.out.println("TEST OUTER END");
 	}
 
+	public static void testIfCond(final int a, final int b) {
+		if (a > 0 ? a >= b : a < b) {
+			System.out.println("TEST a");
+		}
+		System.out.println("TEST END");
+	}
+
 	public static void testIfDoubleBoolean(final boolean b) {
 		if (b) {
 			System.out.println("TEST b");
