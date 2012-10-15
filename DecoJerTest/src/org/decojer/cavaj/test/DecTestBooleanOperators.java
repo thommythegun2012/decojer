@@ -23,6 +23,8 @@ public abstract class DecTestBooleanOperators {
 		// not flat graph in >= JDK 1.4 code...optimization
 		System.out.println("T6: " + (a || (b ? c : d > 2)));
 		System.out.println("T7: " + (a && (b ? c : d > 2)));
+		System.out.println("T8: "
+				+ (a && (b ? c && d < 1 : c || d > 2) ? 1L : 2D));
 	}
 
 }
