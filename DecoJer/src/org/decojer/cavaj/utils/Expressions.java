@@ -39,18 +39,18 @@ import org.eclipse.jdt.core.dom.PrefixExpression;
 public final class Expressions {
 
 	/**
-	 * New infix expression. Attention: First comes right expression, good for stack simulation.
+	 * New infix expression.
 	 * 
 	 * @param operator
 	 *            infix expression operator
-	 * @param rightOperand
-	 *            right operand expression
 	 * @param leftOperand
 	 *            left operand expression
+	 * @param rightOperand
+	 *            right operand expression
 	 * @return expression
 	 */
 	public static Expression newInfixExpression(final InfixExpression.Operator operator,
-			final Expression rightOperand, final Expression leftOperand) {
+			final Expression leftOperand, final Expression rightOperand) {
 		final InfixExpression infixExpression = leftOperand.getAST().newInfixExpression();
 		infixExpression.setOperator(operator);
 		final int operatorPriority = priority(infixExpression).getPriority();

@@ -87,6 +87,7 @@ import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
+import org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.eclipse.jdt.core.dom.InstanceofExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
@@ -117,6 +118,36 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(TrCfg2JavaExpressionStmts.class.getName());
+
+	private static Expression newInfixExpressionPop(final Operator operator, final BB bb) {
+		final Expression rightExpression = bb.pop();
+		return newInfixExpression(operator, bb.pop(), rightExpression);
+	}
+
+	private static boolean rewriteConditionalCompound(final BB bb) {
+		// Reorder following structures to a conditional, A and C are IfStatements:
+		//
+		// ...|...
+		// ...A...
+		// ../.\..
+		// .C...c.
+		// .|\./|../ (multiple further incomings possible)
+		// .|.x.|./
+		// .|/.\|/
+		// .B...b.
+		// .|...|.
+		//
+		// This should be the unique compound that leads to none-flat CFGs for forward-edges.
+		// The match root is B, because C/c must already be reduced to a single IfStatement.
+		for (final E in : bb.getIns()) {
+			final BB c1 = in.getStart();
+			if (c1.getStmts() != 1 || !c1.isCondOrPreLoopHead()) {
+				continue;
+			}
+
+		}
+		return false;
+	}
 
 	private static boolean rewriteShortCircuitCompound(final BB bb) {
 		if (bb.getIns().size() != 1) {
@@ -153,8 +184,9 @@ public final class TrCfg2JavaExpressionStmts {
 						.getExpression();
 				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
 				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_OR, rightExpression,
-						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
+						InfixExpression.Operator.CONDITIONAL_OR,
+						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
+						rightExpression));
 				// rewrite CFG
 				bb.removeStmt(0);
 				bb.joinPredBb(pred);
@@ -176,7 +208,7 @@ public final class TrCfg2JavaExpressionStmts {
 						.getExpression();
 				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
 				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_AND, rightExpression, leftExpression));
+						InfixExpression.Operator.CONDITIONAL_AND, leftExpression, rightExpression));
 				// rewrite CFG
 				bb.removeStmt(0);
 				bb.joinPredBb(pred);
@@ -199,7 +231,7 @@ public final class TrCfg2JavaExpressionStmts {
 						.getExpression();
 				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
 				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_OR, rightExpression, leftExpression));
+						InfixExpression.Operator.CONDITIONAL_OR, leftExpression, rightExpression));
 				// rewrite CFG
 				bb.removeStmt(0);
 				bb.joinPredBb(pred);
@@ -221,8 +253,9 @@ public final class TrCfg2JavaExpressionStmts {
 						.getExpression();
 				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
 				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_AND, rightExpression,
-						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression)));
+						InfixExpression.Operator.CONDITIONAL_AND,
+						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
+						rightExpression));
 				// rewrite CFG
 				bb.removeStmt(0);
 				bb.joinPredBb(pred);
@@ -258,7 +291,7 @@ public final class TrCfg2JavaExpressionStmts {
 			Statement statement = null;
 			switch (op.getOptype()) {
 			case ADD: {
-				bb.push(newInfixExpression(InfixExpression.Operator.PLUS, bb.pop(), bb.pop()));
+				bb.push(newInfixExpressionPop(InfixExpression.Operator.PLUS, bb));
 				break;
 			}
 			case ALOAD: {
@@ -269,7 +302,7 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case AND: {
-				bb.push(newInfixExpression(InfixExpression.Operator.AND, bb.pop(), bb.pop()));
+				bb.push(newInfixExpressionPop(InfixExpression.Operator.AND, bb));
 				break;
 			}
 			case ARRAYLENGTH: {
@@ -343,11 +376,11 @@ public final class TrCfg2JavaExpressionStmts {
 			case CMP: {
 				// pseudo expression for following JCND, not really the correct
 				// answer for -1, 0, 1
-				bb.push(newInfixExpression(InfixExpression.Operator.LESS_EQUALS, bb.pop(), bb.pop()));
+				bb.push(newInfixExpressionPop(InfixExpression.Operator.LESS_EQUALS, bb));
 				break;
 			}
 			case DIV: {
-				bb.push(newInfixExpression(InfixExpression.Operator.DIVIDE, bb.pop(), bb.pop()));
+				bb.push(newInfixExpressionPop(InfixExpression.Operator.DIVIDE, bb));
 				break;
 			}
 			case DUP: {
@@ -625,8 +658,9 @@ public final class TrCfg2JavaExpressionStmts {
 									continue;
 								}
 								stringExpression = newInfixExpression(
-										InfixExpression.Operator.PLUS, stringExpression,
-										(Expression) methodInvocation.arguments().get(0));
+										InfixExpression.Operator.PLUS,
+										(Expression) methodInvocation.arguments().get(0),
+										stringExpression);
 							} while (appendExpression instanceof MethodInvocation);
 							final ClassInstanceCreation builder = (ClassInstanceCreation) appendExpression;
 							// additional type check for pure append-chain not necessary
@@ -635,8 +669,8 @@ public final class TrCfg2JavaExpressionStmts {
 							}
 							if (builder.arguments().size() == 1) {
 								stringExpression = newInfixExpression(
-										InfixExpression.Operator.PLUS, stringExpression,
-										(Expression) builder.arguments().get(0));
+										InfixExpression.Operator.PLUS, (Expression) builder
+												.arguments().get(0), stringExpression);
 							}
 							bb.pop();
 							bb.push(stringExpression);
@@ -690,8 +724,7 @@ public final class TrCfg2JavaExpressionStmts {
 					operator = null;
 				}
 				statement = getAst().newIfStatement();
-				((IfStatement) statement).setExpression(newInfixExpression(operator, bb.pop(),
-						bb.pop()));
+				((IfStatement) statement).setExpression(newInfixExpressionPop(operator, bb));
 				break;
 			}
 			case JCND: {
@@ -825,7 +858,7 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case MUL: {
-				bb.push(newInfixExpression(InfixExpression.Operator.TIMES, bb.pop(), bb.pop()));
+				bb.push(newInfixExpressionPop(InfixExpression.Operator.TIMES, bb));
 				break;
 			}
 			case NEG: {
@@ -898,7 +931,7 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case OR: {
-				bb.push(newInfixExpression(InfixExpression.Operator.OR, bb.pop(), bb.pop()));
+				bb.push(newInfixExpressionPop(InfixExpression.Operator.OR, bb));
 				break;
 			}
 			case POP: {
@@ -977,7 +1010,7 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case REM: {
-				bb.push(newInfixExpression(InfixExpression.Operator.REMAINDER, bb.pop(), bb.pop()));
+				bb.push(newInfixExpressionPop(InfixExpression.Operator.REMAINDER, bb));
 				break;
 			}
 			case RETURN: {
@@ -990,14 +1023,14 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case SHL: {
-				bb.push(newInfixExpression(InfixExpression.Operator.LEFT_SHIFT, bb.pop(), bb.pop()));
+				bb.push(newInfixExpressionPop(InfixExpression.Operator.LEFT_SHIFT, bb));
 				break;
 			}
 			case SHR: {
 				final SHR cop = (SHR) op;
-				bb.push(newInfixExpression(
+				bb.push(newInfixExpressionPop(
 						cop.isUnsigned() ? InfixExpression.Operator.RIGHT_SHIFT_UNSIGNED
-								: InfixExpression.Operator.RIGHT_SHIFT_SIGNED, bb.pop(), bb.pop()));
+								: InfixExpression.Operator.RIGHT_SHIFT_SIGNED, bb));
 				break;
 			}
 			case STORE: {
@@ -1048,7 +1081,7 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case SUB: {
-				bb.push(newInfixExpression(InfixExpression.Operator.MINUS, bb.pop(), bb.pop()));
+				bb.push(newInfixExpressionPop(InfixExpression.Operator.MINUS, bb));
 				break;
 			}
 			case SWAP: {
@@ -1071,13 +1104,14 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case XOR: {
-				final Expression expression = bb.pop();
+				final Expression rightExpression = bb.pop();
 				// "a ^ -1" => "~a"
-				if (expression instanceof NumberLiteral
-						&& ((NumberLiteral) expression).getToken().equals("-1")) {
+				if (rightExpression instanceof NumberLiteral
+						&& ((NumberLiteral) rightExpression).getToken().equals("-1")) {
 					bb.push(newPrefixExpression(PrefixExpression.Operator.COMPLEMENT, bb.pop()));
 				} else {
-					bb.push(newInfixExpression(InfixExpression.Operator.XOR, expression, bb.pop()));
+					bb.push(newInfixExpression(InfixExpression.Operator.XOR, bb.pop(),
+							rightExpression));
 				}
 				break;
 			}
