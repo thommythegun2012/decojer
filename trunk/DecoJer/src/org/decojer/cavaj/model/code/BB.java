@@ -32,6 +32,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.code.ops.GOTO;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.eclipse.jdt.core.dom.Expression;
@@ -427,6 +428,19 @@ public final class BB {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Is BB relevant? Empty BBs or with single GOTO operation (after CFG building) arn't relevant.
+	 * 
+	 * We could exclude this BBs in CFG building, but may be they are an interesting info for
+	 * decompiling structures.
+	 * 
+	 * @return {@code true} - BB is empty
+	 */
+	public boolean isRelevant() {
+		return !this.stmts.isEmpty() || this.top > 0 || !this.ops.isEmpty()
+				&& !(this.ops.get(0) instanceof GOTO);
 	}
 
 	/**

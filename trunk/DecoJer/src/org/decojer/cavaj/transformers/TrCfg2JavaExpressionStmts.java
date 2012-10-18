@@ -140,7 +140,7 @@ public final class TrCfg2JavaExpressionStmts {
 		// This should be the unique compound that leads to none-flat CFGs for forward-edges.
 		// The match root is B, because C/c must already be reduced to a single IfStatement.
 		for (final E in : bb.getIns()) {
-			final BB c1 = in.getStart();
+			final BB c1 = in.getRelevantStart();
 			if (c1.getStmts() != 1 || !c1.isCondOrPreLoopHead()) {
 				continue;
 			}
@@ -1246,7 +1246,7 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		BB condHead = null;
 		for (final E in : bb.getIns()) {
-			final BB pred = in.getStart();
+			final BB pred = in.getRelevantStart();
 			// should be impossible?!
 			// if (pred.getSucc() == null) {
 			// return false;
@@ -1260,7 +1260,7 @@ public final class TrCfg2JavaExpressionStmts {
 			if (pred.getStmts() > 0) {
 				return false;
 			}
-			final BB predPred = pred.getIns().get(0).getStart();
+			final BB predPred = pred.getIns().get(0).getRelevantStart();
 			if (condHead == null || predPred.getPostorder() < condHead.getPostorder()) {
 				condHead = predPred;
 			}
