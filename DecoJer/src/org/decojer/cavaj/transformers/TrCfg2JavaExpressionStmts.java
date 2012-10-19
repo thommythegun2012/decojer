@@ -124,147 +124,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return newInfixExpression(operator, bb.pop(), rightExpression);
 	}
 
-	private static boolean rewriteConditionalCompound(final BB bb) {
-		// Reorder following structures to a conditional, A and C are IfStatements:
-		//
-		// ...|...
-		// ...A...
-		// ../.\..
-		// .C...c.
-		// .|\./|../ (multiple further incomings possible)
-		// .|.x.|./
-		// .|/.\|/
-		// .B...b.
-		// .|...|.
-		//
-		// This should be the unique compound that leads to none-flat CFGs for forward-edges.
-		// The match root is B, because C/c must already be reduced to a single IfStatement.
-		for (final E in : bb.getIns()) {
-			final BB c1 = in.getRelevantStart();
-			if (c1.getStmts() != 1 || !c1.isCondOrPreLoopHead()) {
-				continue;
-			}
-
-		}
-		return false;
-	}
-
-	private static boolean rewriteShortCircuitCompound(final BB bb) {
-		if (bb.getIns().size() != 1) {
-			return false;
-		}
-		// must be single if statement for short-circuit compound boolean expression structure
-		if (bb.getStmts() != 1 || !bb.isCondOrPreLoopHead()) {
-			return false;
-		}
-		final BB trueSucc = bb.getTrueSucc();
-		final BB falseSucc = bb.getFalseSucc();
-
-		final BB pred = bb.getIns().get(0).getStart();
-		if (!pred.isCondOrPreLoopHead()) {
-			return false;
-		}
-		final BB predTrueSucc = pred.getTrueSucc();
-		final BB predFalseSucc = pred.getFalseSucc();
-
-		if (predTrueSucc == bb) {
-			if (predFalseSucc == trueSucc) {
-				// !A || B
-
-				// ....|..
-				// ....A..
-				// ..t/.\f
-				// ...B..|
-				// .f/.\t|
-				// ./...\|
-				// F.....T
-
-				// rewrite AST
-				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
-						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_OR,
-						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
-						rightExpression));
-				// rewrite CFG
-				bb.removeStmt(0);
-				bb.joinPredBb(pred);
-				return true;
-			}
-			if (predFalseSucc == falseSucc) {
-				// A && B
-
-				// ..|....
-				// ..A....
-				// f/.\t..
-				// |..B...
-				// |f/.\t.
-				// |/...\.
-				// F.....T
-
-				// rewrite AST
-				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
-						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_AND, leftExpression, rightExpression));
-				// rewrite CFG
-				bb.removeStmt(0);
-				bb.joinPredBb(pred);
-				return true;
-			}
-		} else if (predFalseSucc == bb) {
-			if (predTrueSucc == trueSucc) {
-				// A || B
-
-				// ....|..
-				// ....A..
-				// ..f/.\t
-				// ...B..|
-				// .f/.\t|
-				// ./...\|
-				// F.....T
-
-				// rewrite AST
-				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
-						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_OR, leftExpression, rightExpression));
-				// rewrite CFG
-				bb.removeStmt(0);
-				bb.joinPredBb(pred);
-				return true;
-			}
-			if (predTrueSucc == falseSucc) {
-				// !A && B
-
-				// ..|....
-				// ..A....
-				// t/.\f..
-				// |..B...
-				// |f/.\t.
-				// |/...\.
-				// F.....T
-
-				// rewrite AST
-				final Expression leftExpression = ((IfStatement) pred.getFinalStmt())
-						.getExpression();
-				final Expression rightExpression = ((IfStatement) bb.getStmt(0)).getExpression();
-				((IfStatement) pred.getFinalStmt()).setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_AND,
-						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
-						rightExpression));
-				// rewrite CFG
-				bb.removeStmt(0);
-				bb.joinPredBb(pred);
-				return true;
-			}
-		}
-		return false;
-	}
-
 	/**
 	 * Transform CFG.
 	 * 
@@ -1229,15 +1088,127 @@ public final class TrCfg2JavaExpressionStmts {
 		return false;
 	}
 
+	private boolean rewriteCompound(final BB bb) {
+		for (final E in : bb.getIns()) {
+			final E c1Out1 = in.relevantIn();
+			if (c1Out1 == null || !c1Out1.isCond()) {
+				continue;
+			}
+			final BB c1 = c1Out1.getStart();
+			if (c1.getStmts() != 1 || !c1.isCondOrPreLoopHead() || c1.getTop() > 0) {
+				continue;
+			}
+			final E aOut1 = c1.getRelevantIn();
+			if (aOut1 == null || !aOut1.isCond()) {
+				continue;
+			}
+			final BB a = aOut1.getStart();
+			if (!a.isCondOrPreLoopHead()) {
+				continue;
+			}
+			// now we have the potential compound head, go down again and identify patterns,
+			// A and C are final IfStatements in patterns, C is empty apart from that
+			final E aOut2 = aOut1.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
+			final BB c2 = aOut2.relevantOut().getEnd();
+			if (c2 == bb) {
+				// This is a short circuit compound, example is A || C:
+				//
+				// ...|.....
+				// ...A.....
+				// .t/.\f...
+				// .|..C...../ (multiple further incomings possible)
+				// .|t/.\f../
+				// .|/...\./
+				// .B.....b.
+				// .|.....|.
+				//
+				// 4 combinations are possible for A -> B and C -> B:
+				// - tt is || (see above)
+				// - tf is ||^ or ^&& (how to decide optimally? TODO?)
+				// - ft is &&^ or ^|| (see above...)
+				// - ff is &&
+
+				// rewrite AST
+				final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
+				final Expression leftExpression = ifStatement.getExpression();
+				final Expression rightExpression = ((IfStatement) c1.removeStmt(0)).getExpression();
+				if (aOut2.isCondTrue()) {
+					if (c1Out1.isCondTrue()) {
+						ifStatement.setExpression(newInfixExpression(
+								InfixExpression.Operator.CONDITIONAL_OR, leftExpression,
+								rightExpression));
+					} else {
+						ifStatement
+								.setExpression(newInfixExpression(
+										InfixExpression.Operator.CONDITIONAL_OR,
+										leftExpression,
+										newPrefixExpression(PrefixExpression.Operator.NOT,
+												rightExpression)));
+					}
+				} else {
+					if (c1Out1.isCondTrue()) {
+						ifStatement
+								.setExpression(newInfixExpression(
+										InfixExpression.Operator.CONDITIONAL_AND,
+										leftExpression,
+										newPrefixExpression(PrefixExpression.Operator.NOT,
+												rightExpression)));
+					} else {
+						ifStatement.setExpression(newInfixExpression(
+								InfixExpression.Operator.CONDITIONAL_AND, leftExpression,
+								rightExpression));
+					}
+				}
+				c1.joinPredBb(a);
+				return true;
+			}
+			if (c2.getStmts() != 1 || !c2.isCondOrPreLoopHead() || c2.getTop() > 0) {
+				continue;
+			}
+			// This is a conditional compound (since JDK 4 with C/c is cond), example is A ? C : c:
+			//
+			// ...|...
+			// ...A...
+			// .t/.\f.
+			// .C...c.
+			// .|\./|../ (multiple further incomings possible)
+			// t|.x.|f/
+			// .|/.\|/
+			// .B...b.
+			// .|...|.
+			//
+			// This should be the unique structure that leads to none-flat CFGs for forward-edges.
+
+			// rewrite AST
+			final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
+			final Expression leftExpression = ((IfStatement) c1.removeStmt(0)).getExpression();
+			final Expression rightExpression = ((IfStatement) c2.removeStmt(0)).getExpression();
+			// TODO check true/false and PCs
+			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
+			conditionalExpression.setExpression(wrap(ifStatement.getExpression(),
+					Priority.CONDITIONAL));
+			conditionalExpression.setThenExpression(wrap(leftExpression, Priority.CONDITIONAL));
+			conditionalExpression.setElseExpression(wrap(rightExpression, Priority.CONDITIONAL));
+
+			ifStatement.setExpression(conditionalExpression);
+			c2.remove();
+			c1.joinPredBb(a);
+			return true;
+		}
+		return false;
+	}
+
+	// TODO combine into above matcher
 	private boolean rewriteConditional(final BB bb) {
 		// IF ? T : F
 
-		// ....|..
-		// ....I..
-		// ..t/.\f
-		// ..T...F
-		// ...\./.
-		// ....B..
+		// ...|...
+		// ...I...
+		// .t/.\f.
+		// .T...F.
+		// ..\./..
+		// ...B...
+		// ...|...
 
 		// this has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
 		// even more preds possible with boolean conditionals
@@ -1246,7 +1217,7 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		BB condHead = null;
 		for (final E in : bb.getIns()) {
-			final BB pred = in.getRelevantStart();
+			final BB pred = in.relevantIn().getStart();
 			// should be impossible?!
 			// if (pred.getSucc() == null) {
 			// return false;
@@ -1260,7 +1231,7 @@ public final class TrCfg2JavaExpressionStmts {
 			if (pred.getStmts() > 0) {
 				return false;
 			}
-			final BB predPred = pred.getIns().get(0).getRelevantStart();
+			final BB predPred = pred.getIns().get(0).relevantIn().getStart();
 			if (condHead == null || predPred.getPostorder() < condHead.getPostorder()) {
 				condHead = predPred;
 			}
@@ -1269,8 +1240,8 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 
-		final BB trueSucc = condHead.getTrueSucc();
-		final BB falseSucc = condHead.getFalseSucc();
+		final BB trueSucc = condHead.getTrueOut().relevantOut().getEnd();
+		final BB falseSucc = condHead.getFalseOut().relevantOut().getEnd();
 
 		final Expression trueExpression = trueSucc.peek();
 		final Expression falseExpression = falseSucc.peek();
@@ -1533,6 +1504,9 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			final boolean handler = rewriteHandler(bb);
 			if (!handler) {
+				while (rewriteCompound(bb)) {
+					// merge superior conditionals
+				}
 				while (rewriteConditional(bb)) {
 					// delete superior BBs, multiple iterations possible:
 					// a == null ? 0 : a.length() == 0 ? 0 : 1
@@ -1543,12 +1517,6 @@ public final class TrCfg2JavaExpressionStmts {
 				// should never happen in forward mode
 				// TODO can currently happen with exceptions, RETURN x is not in catch!
 				LOGGER.warning("Stack underflow in '" + this.cfg + "':\n" + bb);
-			}
-			if (!handler) {
-				// single IfStatement created? then check:
-				while (rewriteShortCircuitCompound(bb)) {
-					// delete superior BBs, multiple iterations possible
-				}
 			}
 		}
 	}

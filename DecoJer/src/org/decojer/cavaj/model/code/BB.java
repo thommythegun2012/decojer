@@ -291,6 +291,35 @@ public final class BB {
 	}
 
 	/**
+	 * Get relevant incoming edge.
+	 * 
+	 * @return relevant incoming edge
+	 * 
+	 * @see BB#isRelevant()
+	 */
+	public E getRelevantIn() {
+		if (this.ins.size() != 1) {
+			return null;
+		}
+		return this.ins.get(0).relevantIn();
+	}
+
+	/**
+	 * Get relevant outgoing edge.
+	 * 
+	 * @return relevant outgoing edge
+	 * 
+	 * @see BB#isRelevant()
+	 */
+	public E getRelevantOut() {
+		final E out = getOut(); // without catches etc.
+		if (out == null) {
+			return null;
+		}
+		return out.relevantOut();
+	}
+
+	/**
 	 * Get statement at index.
 	 * 
 	 * @param i
@@ -431,7 +460,10 @@ public final class BB {
 	}
 
 	/**
-	 * Is BB relevant? Empty BBs or with single GOTO operation (after CFG building) arn't relevant.
+	 * Is BB relevant?
+	 * 
+	 * Multiple incomings, none-empty BBs which are not single GOTO operations (after CFG building)
+	 * are relevant.
 	 * 
 	 * We could exclude this BBs in CFG building, but may be they are an interesting info for
 	 * decompiling structures.
@@ -439,7 +471,7 @@ public final class BB {
 	 * @return {@code true} - BB is empty
 	 */
 	public boolean isRelevant() {
-		return !this.stmts.isEmpty() || this.top > 0 || !this.ops.isEmpty()
+		return this.ins.size() > 1 || !this.stmts.isEmpty() || this.top > 0 || !this.ops.isEmpty()
 				&& !(this.ops.get(0) instanceof GOTO);
 	}
 
