@@ -25,7 +25,6 @@ package org.decojer.cavaj.model.code;
 
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -89,46 +88,6 @@ public final class E {
 		return this.start.equals(e.start) && this.end.equals(e.end);
 	}
 
-	/**
-	 * Get relevant end BB. Empty BBs or with single GOTO operation (after CFG building) arn't
-	 * relevant.
-	 * 
-	 * @return relevant end BB
-	 * 
-	 * @see BB#isRelevant()
-	 */
-	public BB getRelevantEnd() {
-		final BB end = getEnd();
-		if (end.isRelevant()) {
-			return end;
-		}
-		final List<E> outs = end.getOuts();
-		if (outs.size() == 1) {
-			return outs.get(0).getRelevantEnd();
-		}
-		return null;
-	}
-
-	/**
-	 * Get relevant start BB. Empty BBs or with single GOTO operation (after CFG building) arn't
-	 * relevant.
-	 * 
-	 * @return relevant end BB
-	 * 
-	 * @see BB#isRelevant()
-	 */
-	public BB getRelevantStart() {
-		final BB start = getStart();
-		if (start.isRelevant()) {
-			return start;
-		}
-		final List<E> ins = start.getIns();
-		if (ins.size() == 1) {
-			return ins.get(0).getRelevantStart();
-		}
-		return null;
-	}
-
 	public String getValueString() {
 		if (this.value == null) {
 			return "";
@@ -184,6 +143,24 @@ public final class E {
 	}
 
 	/**
+	 * Is conditional false?
+	 * 
+	 * @return {@code true} - is conditional false
+	 */
+	public boolean isCondFalse() {
+		return this.value == Boolean.FALSE;
+	}
+
+	/**
+	 * Is conditional true?
+	 * 
+	 * @return {@code true} - is conditional true
+	 */
+	public boolean isCondTrue() {
+		return this.value == Boolean.TRUE;
+	}
+
+	/**
 	 * Is sequence?
 	 * 
 	 * @return {@code true} - is sequence
@@ -217,6 +194,36 @@ public final class E {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Get relevant incoming edge, maybe {@code this}.
+	 * 
+	 * @return relevant incoming edge, maybe {@code this}
+	 * 
+	 * @see BB#isRelevant()
+	 */
+	public E relevantIn() {
+		final BB start = getStart();
+		if (start.isRelevant()) {
+			return this;
+		}
+		return start.getRelevantIn();
+	}
+
+	/**
+	 * Get relevant outgoing edge, maybe {@code this}.
+	 * 
+	 * @return relevant outgoing edge, maybe {@code this}
+	 * 
+	 * @see BB#isRelevant()
+	 */
+	public E relevantOut() {
+		final BB end = getEnd();
+		if (end.isRelevant()) {
+			return this;
+		}
+		return end.getRelevantOut();
 	}
 
 	@Override
