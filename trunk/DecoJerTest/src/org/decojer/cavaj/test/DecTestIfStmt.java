@@ -2,28 +2,83 @@ package org.decojer.cavaj.test;
 
 public abstract class DecTestIfStmt {
 
-	public static void ifConditionalAndCompound(boolean a, boolean b,
-			boolean c, int d) {
-		if (a ? b : c)
+	public static void ifConditionalCompound(final boolean a, final boolean b,
+			final boolean c, final boolean d) {
+		if (a && d ? b : c)
 			System.out.println("T1");
-		if (a || b ? c : d > 2)
+		if (a && (d ? b : c))
 			System.out.println("T2");
-		if (a && b ? c : d > 2)
+		if (a || d ? b : c)
 			System.out.println("T3");
-		if (b ? c : d > 2 || a)
+		if (a || (d ? b : c))
 			System.out.println("T4");
-		if (a ? d > 2 : d + 1 > 3)
+
+		if (a ? b && d : c)
 			System.out.println("T5");
-		// not flat graph in >= JDK 1.4 code...optimization
-		if (a || (b ? c : d > 2))
+		if (!a ? b || d : c)
 			System.out.println("T6");
-		if (a && (b ? c : d > 2))
+		if (a ? b || d : c)
 			System.out.println("T7");
-		if (a && (b ? c && d < 1 : c || d > 2))
+		if (!a ? b : c || d)
 			System.out.println("T8");
+
+		if (a && d ? b && d : c || d)
+			System.out.println("T9");
+		if (a || d ? b || d : c && d)
+			System.out.println("T10");
+
+		if (a && d ? true : c || d)
+			System.out.println("T11");
+		if (a && d ? b && d : false)
+			System.out.println("T12");
+		if (a || d ? false : c && d)
+			System.out.println("T13");
+		if (a || d ? b || d : true)
+			System.out.println("T14");
+
+		if (a && (d ? true : c || d))
+			System.out.println("T15");
+		if (a && (d ? b && d : false))
+			System.out.println("T16");
+		if (a || (d ? false : c && d))
+			System.out.println("T17");
+		if (a || (d ? b || d : true))
+			System.out.println("T18");
+
+		if (a && d ? a || d ? b && d : c || d : !b && c || d)
+			System.out.println("T19");
 	}
 
-	public static void testIf(final int a, final int b) {
+	public static void ifShortCircuitCompound(final boolean a, final boolean b,
+			final boolean c) {
+		if (a && b && c)
+			System.out.println("T1");
+		if (a && !b && c)
+			System.out.println("T2");
+		if (!(a && b && c))
+			System.out.println("T3");
+		if (a && b || c)
+			System.out.println("T4");
+		if (a && (b || c))
+			System.out.println("T5");
+		if (a && !(b || c))
+			System.out.println("T6");
+
+		if (a || b && c)
+			System.out.println("T7");
+		if ((a || b) && c)
+			System.out.println("T8");
+		if (!(a || b) && c)
+			System.out.println("T9");
+		if (a || b || c)
+			System.out.println("T10");
+		if (a || !b || c)
+			System.out.println("T11");
+		if (!(a || b || c))
+			System.out.println("T12");
+	}
+
+	public static void simpleIf(final int a, final int b) {
 		if (a > b) {
 			System.out.println("TEST a");
 		}
