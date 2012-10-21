@@ -85,6 +85,7 @@ public final class Expressions {
 			}
 			if (operand instanceof InfixExpression) {
 				final InfixExpression infixExpression = (InfixExpression) operand;
+				// TODO rewrite CONDITIONAL_AND/OR is complex because of changing operator priority
 				if (infixExpression.getOperator() == InfixExpression.Operator.EQUALS) {
 					infixExpression.setOperator(InfixExpression.Operator.NOT_EQUALS);
 					return infixExpression;
