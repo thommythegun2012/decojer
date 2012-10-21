@@ -3,49 +3,49 @@ package org.decojer.cavaj.test;
 public abstract class DecTestIfStmt {
 
 	public static void ifConditionalCompound(final boolean a, final boolean b,
-			final boolean c, final boolean d) {
-		if (a && d ? b : c)
+			final boolean c, final boolean d, final boolean e) {
+		if (a && d ? b : c && e)
 			System.out.println("T1");
-		if (a && (d ? b : c))
+		if (a && (d ? b : c) && e)
 			System.out.println("T2");
-		if (a || d ? b : c)
+		if (a || d ? b : c || e)
 			System.out.println("T3");
-		if (a || (d ? b : c))
+		if (a || (d ? b : c) || e)
 			System.out.println("T4");
 
-		if (a ? b && d : c)
+		if (a ? b && d : c || e)
 			System.out.println("T5");
-		if (!a ? b || d : c)
+		if (!a ? b || d : c && e)
 			System.out.println("T6");
-		if (a ? b || d : c)
+		if (a ? b || d && e : c)
 			System.out.println("T7");
-		if (!a ? b : c || d)
+		if (!a ? b : c || d && e)
 			System.out.println("T8");
 
-		if (a && d ? b && d : c || d)
+		if (a && d ? b && e : c || e)
 			System.out.println("T9");
-		if (a || d ? b || d : c && d)
+		if (a || d ? b || e : c && e)
 			System.out.println("T10");
 
-		if (a && d ? true : c || d)
+		if (a && d ? true : c || e)
 			System.out.println("T11");
-		if (a && d ? b && d : false)
+		if (a && d ? b && e : false)
 			System.out.println("T12");
-		if (a || d ? false : c && d)
+		if (a || d ? false : c && e)
 			System.out.println("T13");
-		if (a || d ? b || d : true)
+		if (a || d ? b || e : true)
 			System.out.println("T14");
 
-		if (a && (d ? true : c || d))
+		if (a && (d ? true : c || e))
 			System.out.println("T15");
-		if (a && (d ? b && d : false))
+		if (a && (d ? b && e : false))
 			System.out.println("T16");
-		if (a || (d ? false : c && d))
+		if (a || (d ? false : c && e))
 			System.out.println("T17");
-		if (a || (d ? b || d : true))
+		if (a || (d ? b || e : true))
 			System.out.println("T18");
 
-		if (a && d ? a || d ? b && d : c || d : !b && c || d)
+		if (a && d ? a || e ? b && e : c || e : !b && c || e)
 			System.out.println("T19");
 	}
 
