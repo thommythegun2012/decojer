@@ -1129,35 +1129,31 @@ public final class TrCfg2JavaExpressionStmts {
 				//
 				// 4 combinations are possible for A -> B and C -> B:
 				// - tt is || (see above)
-				// - tf is ||^ or ^&& (how to decide optimally? TODO?)
-				// - ft is &&^ or ^|| (see above...)
+				// - ft is ^||
+				// - tf is ^&&
 				// - ff is &&
 
 				// rewrite AST
 				final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
 				final Expression leftExpression = ifStatement.getExpression();
 				final Expression rightExpression = ((IfStatement) c1.removeStmt(0)).getExpression();
-				if (aOut2.isCondTrue()) {
-					if (c1Out1.isCondTrue()) {
+				if (c1Out1.isCondTrue() /* ?t */) {
+					if (aOut2.isCondTrue() /* tt */) {
 						ifStatement.setExpression(newInfixExpression(
 								InfixExpression.Operator.CONDITIONAL_OR, leftExpression,
 								rightExpression));
 					} else {
-						ifStatement
-								.setExpression(newInfixExpression(
-										InfixExpression.Operator.CONDITIONAL_OR,
-										leftExpression,
-										newPrefixExpression(PrefixExpression.Operator.NOT,
-												rightExpression)));
+						ifStatement.setExpression(newInfixExpression(
+								InfixExpression.Operator.CONDITIONAL_OR,
+								newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
+								rightExpression));
 					}
 				} else {
-					if (c1Out1.isCondTrue()) {
-						ifStatement
-								.setExpression(newInfixExpression(
-										InfixExpression.Operator.CONDITIONAL_AND,
-										leftExpression,
-										newPrefixExpression(PrefixExpression.Operator.NOT,
-												rightExpression)));
+					if (aOut2.isCondTrue() /* tf */) {
+						ifStatement.setExpression(newInfixExpression(
+								InfixExpression.Operator.CONDITIONAL_AND,
+								newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
+								rightExpression));
 					} else {
 						ifStatement.setExpression(newInfixExpression(
 								InfixExpression.Operator.CONDITIONAL_AND, leftExpression,
@@ -1523,7 +1519,7 @@ public final class TrCfg2JavaExpressionStmts {
 		} else {
 			return false;
 		}
-		// This is a short circuit compound, example is A || C:
+		// This is a short circuit compound, example is A || B:
 		//
 		// ...|.....
 		// ...A.....
@@ -1536,28 +1532,30 @@ public final class TrCfg2JavaExpressionStmts {
 		//
 		// 4 combinations are possible for A -> C and B -> C:
 		// - tt is || (see above)
-		// - tf is ||^ or ^&&
-		// - ft is &&^ or ^||
+		// - ft is ^||
+		// - tf is ^&&
 		// - ff is &&
 
 		// rewrite AST
 		final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
 		final Expression leftExpression = ifStatement.getExpression();
 		final Expression rightExpression = ((IfStatement) bb.removeStmt(0)).getExpression();
-		if (a_c.isCondTrue() /* t? */) {
-			if (bb_c_cond /* tt */) {
+		if (bb_c_cond /* ?t */) {
+			if (a_c.isCondTrue() /* tt */) {
 				ifStatement.setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_OR, leftExpression, rightExpression));
 			} else {
 				ifStatement.setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_OR, leftExpression,
-						newPrefixExpression(PrefixExpression.Operator.NOT, rightExpression)));
+						InfixExpression.Operator.CONDITIONAL_OR,
+						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
+						rightExpression));
 			}
 		} else {
-			if (bb_c_cond /* ft */) {
+			if (bb_c_cond /* tf */) {
 				ifStatement.setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_AND, leftExpression,
-						newPrefixExpression(PrefixExpression.Operator.NOT, rightExpression)));
+						InfixExpression.Operator.CONDITIONAL_AND,
+						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
+						rightExpression));
 			} else {
 				ifStatement.setExpression(newInfixExpression(
 						InfixExpression.Operator.CONDITIONAL_AND, leftExpression, rightExpression));
