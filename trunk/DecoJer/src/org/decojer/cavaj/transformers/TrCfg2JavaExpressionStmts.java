@@ -1089,6 +1089,9 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteCompound(final BB bb) {
+		if (bb.getIns().size() < 2) {
+			return false;
+		}
 		for (final E in : bb.getIns()) {
 			final E c1Out1 = in.relevantIn();
 			if (c1Out1 == null || !c1Out1.isCond()) {
@@ -1111,6 +1114,8 @@ public final class TrCfg2JavaExpressionStmts {
 			final E aOut2 = aOut1.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
 			final BB c2 = aOut2.relevantOut().getEnd();
 			if (c2 == bb) {
+				// TODO why do we need this...
+
 				// This is a short circuit compound, example is A || C:
 				//
 				// ...|.....
@@ -1248,10 +1253,13 @@ public final class TrCfg2JavaExpressionStmts {
 
 		Expression expression = ((IfStatement) condHead.getFinalStmt()).getExpression();
 		rewrite: if (trueExpression instanceof BooleanLiteral
-				&& falseExpression instanceof BooleanLiteral) {
-			// expressions: expression ? true : false => a
+				|| falseExpression instanceof BooleanLiteral) {
+			// expressions: expression ? true : false => a,
+			// accept if one is BooleanLiteral - merging didn't work ;)
 			if (trueExpression instanceof BooleanLiteral
-					&& !((BooleanLiteral) trueExpression).booleanValue()) {
+					&& !((BooleanLiteral) trueExpression).booleanValue()
+					|| trueExpression instanceof NumberLiteral
+					&& ((NumberLiteral) trueExpression).getToken().equals("0")) {
 				expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
 			}
 		} else {
@@ -1492,6 +1500,73 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
+	private boolean rewriteShortCircuitCompound(final BB bb) {
+		if (bb.getStmts() != 1 || !bb.isCondOrPreLoopHead() || bb.getTop() > 0
+				|| bb.getIns().size() != 1 || bb.getOuts().size() < 2) {
+			return false;
+		}
+		final E a_bb = bb.getRelevantIn();
+		if (a_bb == null || !a_bb.isCond()) {
+			return false;
+		}
+		final BB a = a_bb.getStart();
+		if (!a.isCondOrPreLoopHead()) {
+			return false;
+		}
+		final E a_c = a_bb.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
+		final BB c = a_c.relevantOut().getEnd();
+		boolean bb_c_cond;
+		if (c == bb.getTrueOut().relevantOut().getEnd()) {
+			bb_c_cond = true;
+		} else if (c == bb.getFalseOut().relevantOut().getEnd()) {
+			bb_c_cond = false;
+		} else {
+			return false;
+		}
+		// This is a short circuit compound, example is A || C:
+		//
+		// ...|.....
+		// ...A.....
+		// .t/.\f...
+		// .|..B...../ (multiple further incomings possible)
+		// .|t/.\f../
+		// .|/...\./
+		// .C.....c.
+		// .|.....|.
+		//
+		// 4 combinations are possible for A -> C and B -> C:
+		// - tt is || (see above)
+		// - tf is ||^ or ^&&
+		// - ft is &&^ or ^||
+		// - ff is &&
+
+		// rewrite AST
+		final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
+		final Expression leftExpression = ifStatement.getExpression();
+		final Expression rightExpression = ((IfStatement) bb.removeStmt(0)).getExpression();
+		if (a_c.isCondTrue() /* t? */) {
+			if (bb_c_cond /* tt */) {
+				ifStatement.setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_OR, leftExpression, rightExpression));
+			} else {
+				ifStatement.setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_OR, leftExpression,
+						newPrefixExpression(PrefixExpression.Operator.NOT, rightExpression)));
+			}
+		} else {
+			if (bb_c_cond /* ft */) {
+				ifStatement.setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_AND, leftExpression,
+						newPrefixExpression(PrefixExpression.Operator.NOT, rightExpression)));
+			} else {
+				ifStatement.setExpression(newInfixExpression(
+						InfixExpression.Operator.CONDITIONAL_AND, leftExpression, rightExpression));
+			}
+		}
+		bb.joinPredBb(a);
+		return true;
+	}
+
 	private void transform() {
 		final List<BB> bbs = this.cfg.getPostorderedBbs();
 		// for all nodes in _reverse_ postorder: is also backward possible with nice optimizations,
@@ -1517,6 +1592,11 @@ public final class TrCfg2JavaExpressionStmts {
 				// should never happen in forward mode
 				// TODO can currently happen with exceptions, RETURN x is not in catch!
 				LOGGER.warning("Stack underflow in '" + this.cfg + "':\n" + bb);
+			}
+			if (!handler) {
+				while (rewriteShortCircuitCompound(bb)) {
+					// merge superior conditionals
+				}
 			}
 		}
 	}
