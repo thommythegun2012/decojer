@@ -402,6 +402,23 @@ public final class BB {
 	}
 
 	/**
+	 * Is this BB before given BB?
+	 * 
+	 * @param bb
+	 *            given BB
+	 * @return {@code true} - this BB is before given BB
+	 */
+	public boolean isBefore(final BB bb) {
+		if (getLine() < bb.getLine()) {
+			return true;
+		}
+		if (getLine() == bb.getLine() && getPc() < bb.getPc()) {
+			return true;
+		}
+		return false;
+	}
+
+	/**
 	 * Is BB a catch handler?
 	 * 
 	 * @return {@code true} - BB is a catch handler
