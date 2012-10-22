@@ -88,6 +88,21 @@ public final class E {
 		return this.start.equals(e.start) && this.end.equals(e.end);
 	}
 
+	/**
+	 * Get relevant end BB.
+	 * 
+	 * @return relevant end BB
+	 * 
+	 * @see BB#isRelevant()
+	 */
+	public BB getRelevantEnd() {
+		final BB end = getEnd();
+		if (end.isRelevant()) {
+			return end;
+		}
+		return end.getRelevantOut().getRelevantEnd();
+	}
+
 	public String getValueString() {
 		if (this.value == null) {
 			return "";
@@ -218,7 +233,7 @@ public final class E {
 	 * 
 	 * @see BB#isRelevant()
 	 */
-	public E relevantOut() {
+	protected E relevantOut() {
 		final BB end = getEnd();
 		if (end.isRelevant()) {
 			return this;

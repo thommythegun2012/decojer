@@ -1024,11 +1024,11 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			// now we have the potential compound head, go down again and identify patterns
 			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
-			final BB x = a_x.relevantOut().getEnd();
+			final BB x = a_x.getRelevantEnd();
 			final E c_bb2 = c_bb.isCondTrue() ? c.getFalseOut() : c.getTrueOut();
-			final BB bb2 = c_bb2.relevantOut().getEnd();
+			final BB bb2 = c_bb2.getRelevantEnd();
 
-			if (x == bb || x == bb2) {
+			if (bb == x || bb2 == x) {
 				// Match pattern from both sides (b2 is right here) because of multiple compounds!
 				//
 				// This is a short circuit compound, example is A || C:
@@ -1036,10 +1036,10 @@ public final class TrCfg2JavaExpressionStmts {
 				// ...|.....
 				// ...A.....
 				// .t/.\f...
-				// .|..C...../ (multiple further incomings possible)
+				// .|..C....
 				// .|t/.\f../
 				// .|/...\./
-				// .B.....b.
+				// .B.....x. (bb and bb2 or vice versa! further incomings possible)
 				// .|.....|.
 				//
 				// 4 combinations are possible for A -> B and C -> B:
@@ -1052,7 +1052,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
 				final Expression leftExpression = ifStatement.getExpression();
 				final Expression rightExpression = ((IfStatement) c.removeStmt(0)).getExpression();
-				if (x == bb && c_bb.isCondTrue() || x == bb2 && c_bb2.isCondTrue() /* ?t */) {
+				if (bb == x && c_bb.isCondTrue() || bb2 == x && c_bb2.isCondTrue() /* ?t */) {
 					if (a_x.isCondTrue() /* tt */) {
 						ifStatement.setExpression(newInfixExpression(
 								InfixExpression.Operator.CONDITIONAL_OR, leftExpression,
@@ -1081,28 +1081,37 @@ public final class TrCfg2JavaExpressionStmts {
 			if (x.getStmts() != 1 || !x.isCondOrPreLoopHead() || x.getTop() > 0) {
 				continue;
 			}
-			// This is a conditional compound (since JDK 4 with C/c is cond), example is A ? C : c:
+			// if (bb != x.getTrueOut().getRelevantEnd() && bb != x.getFalseOut().getRelevantEnd())
+
+			// This is a conditional compound (since JDK 4 with C/x is cond), example is A ? C : x:
 			//
 			// ...|...
 			// ...A...
 			// .t/.\f.
-			// .C...c.
-			// .|\./|../ (multiple further incomings possible)
+			// .C...x.
+			// .|\./|.
 			// t|.x.|f/
 			// .|/.\|/
-			// .B...b.
+			// .B...b. (bb and bb2 or vice versa! further incomings possible)
 			// .|...|.
 			//
 			// This should be the unique structure that leads to none-flat CFGs for forward-edges.
 
 			// rewrite AST
 			final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
-			final Expression leftExpression = ((IfStatement) c.removeStmt(0)).getExpression();
-			final Expression rightExpression = ((IfStatement) x.removeStmt(0)).getExpression();
-			// TODO check true/false and PCs
+
+			Expression condExpression = ifStatement.getExpression();
+			Expression leftExpression = ((IfStatement) c.removeStmt(0)).getExpression();
+			Expression rightExpression = ((IfStatement) x.removeStmt(0)).getExpression();
+			if (a_c.isCondTrue() && c.getPc() > x.getPc() || a_c.isCondFalse()
+					&& c.getPc() < x.getPc()) {
+				condExpression = newPrefixExpression(PrefixExpression.Operator.NOT, condExpression);
+				final Expression expression = leftExpression;
+				leftExpression = rightExpression;
+				rightExpression = expression;
+			}
 			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
-			conditionalExpression.setExpression(wrap(ifStatement.getExpression(),
-					Priority.CONDITIONAL));
+			conditionalExpression.setExpression(wrap(condExpression, Priority.CONDITIONAL));
 			conditionalExpression.setThenExpression(wrap(leftExpression, Priority.CONDITIONAL));
 			conditionalExpression.setElseExpression(wrap(rightExpression, Priority.CONDITIONAL));
 
@@ -1201,141 +1210,136 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteConditionalCompoundValue(final BB bb) {
-		// IF ? T : F
-
-		// ...|...
-		// ...I...
-		// .t/.\f.
-		// .T...F.
-		// ..\./..
-		// ...B...
-		// ...|...
-
-		// this has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
-		// even more preds possible with boolean conditionals
 		if (bb.getIns().size() < 2) {
+			// this has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
+			// even more preds possible with boolean conditionals
 			return false;
 		}
-		BB condHead = null;
 		for (final E in : bb.getIns()) {
-			final BB pred = in.relevantIn().getStart();
-			// should be impossible?!
-			// if (pred.getSucc() == null) {
-			// return false;
-			// }
-			if (pred.getIns().size() != 1) {
-				return false;
+			final E c_bb = in.relevantIn();
+			if (c_bb == null) {
+				continue;
 			}
-			if (pred.getTop() != 1) {
-				return false;
+			final BB c = c_bb.getStart();
+			if (c.getIns().size() != 1 || c.getStmts() > 0 || c.getTop() != 1) {
+				continue;
 			}
-			if (pred.getStmts() > 0) {
-				return false;
+			final E a_c = c.getRelevantIn();
+			final BB a = a_c.getStart();
+			if (!a.isCondOrPreLoopHead()) {
+				continue;
 			}
-			final BB predPred = pred.getIns().get(0).relevantIn().getStart();
-			if (condHead == null || predPred.getPostorder() < condHead.getPostorder()) {
-				condHead = predPred;
+			// now we have the potential compound head, go down again and identify pattern
+			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
+			final BB x = a_x.getRelevantEnd();
+			if (x.getIns().size() != 1 || x.getStmts() > 0 || x.getTop() != 1) {
+				continue;
 			}
-		}
-		if (condHead == null || !condHead.isCondOrPreLoopHead()) {
-			return false;
-		}
+			// This is a conditional compound value, example is A ? C : x:
+			//
+			// A ? T : F
+			//
+			// ...|...
+			// ...A...
+			// .t/.\f.
+			// .C...x.
+			// ..\./..
+			// ...B...
+			// ...|...
 
-		final BB trueSucc = condHead.getTrueOut().relevantOut().getEnd();
-		final BB falseSucc = condHead.getFalseOut().relevantOut().getEnd();
+			final Expression cExpression = c.peek();
+			final Expression xExpression = x.peek();
 
-		final Expression trueExpression = trueSucc.peek();
-		final Expression falseExpression = falseSucc.peek();
-
-		Expression expression = ((IfStatement) condHead.getFinalStmt()).getExpression();
-		rewrite: if (trueExpression instanceof BooleanLiteral
-				|| falseExpression instanceof BooleanLiteral) {
-			// expressions: expression ? true : false => a,
-			// accept if one is BooleanLiteral - merging didn't work ;)
-			if (trueExpression instanceof BooleanLiteral
-					&& !((BooleanLiteral) trueExpression).booleanValue()
-					|| trueExpression instanceof NumberLiteral
-					&& ((NumberLiteral) trueExpression).getToken().equals("0")) {
-				expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
-			}
-		} else {
-			classLiteral: if (expression instanceof InfixExpression) {
-				// Class-literals unknown in pre JVM 1.5 bytecode
-				// (only primitive wrappers have constants like
-				// getstatic java.lang.Void.TYPE : java.lang.Class)
-				// ...construct Class-literals with synthetic local method:
-				// static synthetic java.lang.Class class$(java.lang.String x0);
-				// ...and cache this Class-literals in synthetic local fields:
-				// static synthetic java.lang.Class class$java$lang$String;
-				// static synthetic java.lang.Class array$$I;
-				// resulting conditional code:
-				// DecTestFields.array$$I != null ? DecTestFields.array$$I :
-				// (DecTestFields.array$$I = DecTestFields.class$("[[I"))
-				// ...convert too: int[][].class
-				final InfixExpression equalsExpression = (InfixExpression) expression;
-				if (!(equalsExpression.getRightOperand() instanceof NullLiteral)) {
-					break classLiteral;
+			Expression expression = ((IfStatement) a.removeFinalStmt()).getExpression();
+			rewrite: if (cExpression instanceof BooleanLiteral
+					|| xExpression instanceof BooleanLiteral) {
+				// expressions: expression ? true : false => a,
+				// accept if one is BooleanLiteral - merging didn't work ;)
+				if (cExpression instanceof BooleanLiteral
+						&& !((BooleanLiteral) cExpression).booleanValue()
+						|| cExpression instanceof NumberLiteral
+						&& ((NumberLiteral) cExpression).getToken().equals("0")) {
+					expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
 				}
-				final Assignment assignment;
-				if (equalsExpression.getOperator() == InfixExpression.Operator.EQUALS) {
-					// JVM < 1.3
-					if (!(trueExpression instanceof Assignment)) {
+			} else {
+				classLiteral: if (expression instanceof InfixExpression) {
+					// Class-literals unknown in pre JVM 1.5 bytecode
+					// (only primitive wrappers have constants like
+					// getstatic java.lang.Void.TYPE : java.lang.Class)
+					// ...construct Class-literals with synthetic local method:
+					// static synthetic java.lang.Class class$(java.lang.String x0);
+					// ...and cache this Class-literals in synthetic local fields:
+					// static synthetic java.lang.Class class$java$lang$String;
+					// static synthetic java.lang.Class array$$I;
+					// resulting conditional code:
+					// DecTestFields.array$$I != null ? DecTestFields.array$$I :
+					// (DecTestFields.array$$I = DecTestFields.class$("[[I"))
+					// ...convert too: int[][].class
+					final InfixExpression equalsExpression = (InfixExpression) expression;
+					if (!(equalsExpression.getRightOperand() instanceof NullLiteral)) {
 						break classLiteral;
 					}
-					assignment = (Assignment) trueExpression;
-				} else if (equalsExpression.getOperator() == InfixExpression.Operator.NOT_EQUALS) {
-					// JVM >= 1.3
-					if (!(falseExpression instanceof Assignment)) {
+					final Assignment assignment;
+					if (equalsExpression.getOperator() == InfixExpression.Operator.EQUALS) {
+						// JVM < 1.3
+						if (!(cExpression instanceof Assignment)) {
+							break classLiteral;
+						}
+						assignment = (Assignment) cExpression;
+					} else if (equalsExpression.getOperator() == InfixExpression.Operator.NOT_EQUALS) {
+						// JVM >= 1.3
+						if (!(xExpression instanceof Assignment)) {
+							break classLiteral;
+						}
+						assignment = (Assignment) xExpression;
+					} else {
 						break classLiteral;
 					}
-					assignment = (Assignment) falseExpression;
-				} else {
-					break classLiteral;
+					if (!(assignment.getRightHandSide() instanceof MethodInvocation)) {
+						break classLiteral;
+					}
+					final MethodInvocation methodInvocation = (MethodInvocation) assignment
+							.getRightHandSide();
+					if (!"class$".equals(methodInvocation.getName().getIdentifier())) {
+						break classLiteral;
+					}
+					if (methodInvocation.arguments().size() != 1) {
+						break classLiteral;
+					}
+					if (this.cfg.getTd().getVersion() >= 49) {
+						LOGGER.warning("Unexpected class literal code with class$() in >= JVM 5 code!");
+					}
+					try {
+						final String classInfo = ((StringLiteral) methodInvocation.arguments().get(
+								0)).getLiteralValue();
+						expression = Types.convertLiteral(this.cfg.getDu().getT(Class.class),
+								this.cfg.getDu().getT(classInfo), this.cfg.getTd());
+						break rewrite;
+					} catch (final Exception e) {
+						// rewrite to class literal didn't work
+					}
 				}
-				if (!(assignment.getRightHandSide() instanceof MethodInvocation)) {
-					break classLiteral;
-				}
-				final MethodInvocation methodInvocation = (MethodInvocation) assignment
-						.getRightHandSide();
-				if (!"class$".equals(methodInvocation.getName().getIdentifier())) {
-					break classLiteral;
-				}
-				if (methodInvocation.arguments().size() != 1) {
-					break classLiteral;
-				}
-				if (this.cfg.getTd().getVersion() >= 49) {
-					LOGGER.warning("Unexpected class literal code with class$() in >= JVM 5 code!");
-				}
-				try {
-					final String classInfo = ((StringLiteral) methodInvocation.arguments().get(0))
-							.getLiteralValue();
-					expression = Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg
-							.getDu().getT(classInfo), this.cfg.getTd());
-					break rewrite;
-				} catch (final Exception e) {
-					// rewrite to class literal didn't work
-				}
+				// expressions: expression ? trueExpression : falseExpression
+				final ConditionalExpression conditionalExpression = getAst()
+						.newConditionalExpression();
+				conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
+				conditionalExpression.setThenExpression(wrap(cExpression, Priority.CONDITIONAL));
+				conditionalExpression.setElseExpression(wrap(xExpression, Priority.CONDITIONAL));
+				expression = conditionalExpression;
 			}
-			// expressions: expression ? trueExpression : falseExpression
-			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
-			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
-			conditionalExpression.setThenExpression(wrap(trueExpression, Priority.CONDITIONAL));
-			conditionalExpression.setElseExpression(wrap(falseExpression, Priority.CONDITIONAL));
-			expression = conditionalExpression;
+			if (bb.getIns().size() > 2) {
+				a.push(expression);
+				a.setSucc(bb);
+			} else {
+				bb.joinPredBb(a);
+				// push new conditional expression, here only "a ? true : false" as "a"
+				bb.push(expression);
+			}
+			c.remove();
+			x.remove();
+			return true;
 		}
-		// is conditional expression, modify graph
-		condHead.removeFinalStmt(); // remove IfStatement
-		if (bb.getIns().size() > 2) {
-			condHead.push(expression);
-			condHead.setSucc(bb);
-		} else {
-			bb.joinPredBb(condHead);
-			// push new conditional expression, here only "a ? true : false" as "a"
-			bb.push(expression);
-		}
-		trueSucc.remove();
-		falseSucc.remove();
-		return true;
+		return false;
 	}
 
 	private boolean rewriteFieldInit(final BB bb, final F f, final Expression rightExpression) {
