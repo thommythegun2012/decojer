@@ -1002,6 +1002,118 @@ public final class TrCfg2JavaExpressionStmts {
 		return r.getT().isWide();
 	}
 
+	private boolean rewriteBooleanCompound(final BB bb) {
+		for (final E in : bb.getIns()) {
+			// all following patterns have the following base form:
+			// "A(final IfStmt) -> C(unique IfStmt) -> bb"
+			final E c_bb = in.relevantIn();
+			if (c_bb == null || !c_bb.isCond()) {
+				continue;
+			}
+			final BB c = c_bb.getStart();
+			if (c.getStmts() != 1 || !c.isCondOrPreLoopHead() || c.getTop() > 0) {
+				continue;
+			}
+			final E a_c = c.getRelevantIn();
+			if (a_c == null || !a_c.isCond()) {
+				continue;
+			}
+			final BB a = a_c.getStart();
+			if (!a.isCondOrPreLoopHead()) {
+				continue;
+			}
+			// now we have the potential compound head, go down again and identify patterns
+			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
+			final BB x = a_x.relevantOut().getEnd();
+			final E c_bb2 = c_bb.isCondTrue() ? c.getFalseOut() : c.getTrueOut();
+			final BB bb2 = c_bb2.relevantOut().getEnd();
+
+			if (x == bb || x == bb2) {
+				// Match pattern from both sides (b2 is right here) because of multiple compounds!
+				//
+				// This is a short circuit compound, example is A || C:
+				//
+				// ...|.....
+				// ...A.....
+				// .t/.\f...
+				// .|..C...../ (multiple further incomings possible)
+				// .|t/.\f../
+				// .|/...\./
+				// .B.....b.
+				// .|.....|.
+				//
+				// 4 combinations are possible for A -> B and C -> B:
+				// - tt is || (see above)
+				// - ft is ^||
+				// - tf is ^&&
+				// - ff is &&
+
+				// rewrite AST
+				final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
+				final Expression leftExpression = ifStatement.getExpression();
+				final Expression rightExpression = ((IfStatement) c.removeStmt(0)).getExpression();
+				if (x == bb && c_bb.isCondTrue() || x == bb2 && c_bb2.isCondTrue() /* ?t */) {
+					if (a_x.isCondTrue() /* tt */) {
+						ifStatement.setExpression(newInfixExpression(
+								InfixExpression.Operator.CONDITIONAL_OR, leftExpression,
+								rightExpression));
+					} else {
+						ifStatement.setExpression(newInfixExpression(
+								InfixExpression.Operator.CONDITIONAL_OR,
+								newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
+								rightExpression));
+					}
+				} else {
+					if (a_x.isCondTrue() /* tf */) {
+						ifStatement.setExpression(newInfixExpression(
+								InfixExpression.Operator.CONDITIONAL_AND,
+								newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
+								rightExpression));
+					} else {
+						ifStatement.setExpression(newInfixExpression(
+								InfixExpression.Operator.CONDITIONAL_AND, leftExpression,
+								rightExpression));
+					}
+				}
+				c.joinPredBb(a);
+				return true;
+			}
+			if (x.getStmts() != 1 || !x.isCondOrPreLoopHead() || x.getTop() > 0) {
+				continue;
+			}
+			// This is a conditional compound (since JDK 4 with C/c is cond), example is A ? C : c:
+			//
+			// ...|...
+			// ...A...
+			// .t/.\f.
+			// .C...c.
+			// .|\./|../ (multiple further incomings possible)
+			// t|.x.|f/
+			// .|/.\|/
+			// .B...b.
+			// .|...|.
+			//
+			// This should be the unique structure that leads to none-flat CFGs for forward-edges.
+
+			// rewrite AST
+			final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
+			final Expression leftExpression = ((IfStatement) c.removeStmt(0)).getExpression();
+			final Expression rightExpression = ((IfStatement) x.removeStmt(0)).getExpression();
+			// TODO check true/false and PCs
+			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
+			conditionalExpression.setExpression(wrap(ifStatement.getExpression(),
+					Priority.CONDITIONAL));
+			conditionalExpression.setThenExpression(wrap(leftExpression, Priority.CONDITIONAL));
+			conditionalExpression.setElseExpression(wrap(rightExpression, Priority.CONDITIONAL));
+
+			ifStatement.setExpression(conditionalExpression);
+			x.remove();
+			c.joinPredBb(a);
+			return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Class Literal Caching (no direct Constant Pool Class Literals in 1.2).
 	 * 
@@ -1088,119 +1200,7 @@ public final class TrCfg2JavaExpressionStmts {
 		return false;
 	}
 
-	private boolean rewriteCompound(final BB bb) {
-		if (bb.getIns().size() < 2) {
-			return false;
-		}
-		for (final E in : bb.getIns()) {
-			final E c1Out1 = in.relevantIn();
-			if (c1Out1 == null || !c1Out1.isCond()) {
-				continue;
-			}
-			final BB c1 = c1Out1.getStart();
-			if (c1.getStmts() != 1 || !c1.isCondOrPreLoopHead() || c1.getTop() > 0) {
-				continue;
-			}
-			final E aOut1 = c1.getRelevantIn();
-			if (aOut1 == null || !aOut1.isCond()) {
-				continue;
-			}
-			final BB a = aOut1.getStart();
-			if (!a.isCondOrPreLoopHead()) {
-				continue;
-			}
-			// now we have the potential compound head, go down again and identify patterns,
-			// A and C are final IfStatements in patterns, C is empty apart from that
-			final E aOut2 = aOut1.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
-			final BB c2 = aOut2.relevantOut().getEnd();
-			if (c2 == bb) {
-				// TODO why do we need this...
-
-				// This is a short circuit compound, example is A || C:
-				//
-				// ...|.....
-				// ...A.....
-				// .t/.\f...
-				// .|..C...../ (multiple further incomings possible)
-				// .|t/.\f../
-				// .|/...\./
-				// .B.....b.
-				// .|.....|.
-				//
-				// 4 combinations are possible for A -> B and C -> B:
-				// - tt is || (see above)
-				// - ft is ^||
-				// - tf is ^&&
-				// - ff is &&
-
-				// rewrite AST
-				final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
-				final Expression leftExpression = ifStatement.getExpression();
-				final Expression rightExpression = ((IfStatement) c1.removeStmt(0)).getExpression();
-				if (c1Out1.isCondTrue() /* ?t */) {
-					if (aOut2.isCondTrue() /* tt */) {
-						ifStatement.setExpression(newInfixExpression(
-								InfixExpression.Operator.CONDITIONAL_OR, leftExpression,
-								rightExpression));
-					} else {
-						ifStatement.setExpression(newInfixExpression(
-								InfixExpression.Operator.CONDITIONAL_OR,
-								newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
-								rightExpression));
-					}
-				} else {
-					if (aOut2.isCondTrue() /* tf */) {
-						ifStatement.setExpression(newInfixExpression(
-								InfixExpression.Operator.CONDITIONAL_AND,
-								newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
-								rightExpression));
-					} else {
-						ifStatement.setExpression(newInfixExpression(
-								InfixExpression.Operator.CONDITIONAL_AND, leftExpression,
-								rightExpression));
-					}
-				}
-				c1.joinPredBb(a);
-				return true;
-			}
-			if (c2.getStmts() != 1 || !c2.isCondOrPreLoopHead() || c2.getTop() > 0) {
-				continue;
-			}
-			// This is a conditional compound (since JDK 4 with C/c is cond), example is A ? C : c:
-			//
-			// ...|...
-			// ...A...
-			// .t/.\f.
-			// .C...c.
-			// .|\./|../ (multiple further incomings possible)
-			// t|.x.|f/
-			// .|/.\|/
-			// .B...b.
-			// .|...|.
-			//
-			// This should be the unique structure that leads to none-flat CFGs for forward-edges.
-
-			// rewrite AST
-			final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
-			final Expression leftExpression = ((IfStatement) c1.removeStmt(0)).getExpression();
-			final Expression rightExpression = ((IfStatement) c2.removeStmt(0)).getExpression();
-			// TODO check true/false and PCs
-			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
-			conditionalExpression.setExpression(wrap(ifStatement.getExpression(),
-					Priority.CONDITIONAL));
-			conditionalExpression.setThenExpression(wrap(leftExpression, Priority.CONDITIONAL));
-			conditionalExpression.setElseExpression(wrap(rightExpression, Priority.CONDITIONAL));
-
-			ifStatement.setExpression(conditionalExpression);
-			c2.remove();
-			c1.joinPredBb(a);
-			return true;
-		}
-		return false;
-	}
-
-	// TODO combine into above matcher
-	private boolean rewriteConditional(final BB bb) {
+	private boolean rewriteConditionalCompoundValue(final BB bb) {
 		// IF ? T : F
 
 		// ...|...
@@ -1496,75 +1496,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
-	private boolean rewriteShortCircuitCompound(final BB bb) {
-		if (bb.getStmts() != 1 || !bb.isCondOrPreLoopHead() || bb.getTop() > 0
-				|| bb.getIns().size() != 1 || bb.getOuts().size() < 2) {
-			return false;
-		}
-		final E a_bb = bb.getRelevantIn();
-		if (a_bb == null || !a_bb.isCond()) {
-			return false;
-		}
-		final BB a = a_bb.getStart();
-		if (!a.isCondOrPreLoopHead()) {
-			return false;
-		}
-		final E a_c = a_bb.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
-		final BB c = a_c.relevantOut().getEnd();
-		boolean bb_c_cond;
-		if (c == bb.getTrueOut().relevantOut().getEnd()) {
-			bb_c_cond = true;
-		} else if (c == bb.getFalseOut().relevantOut().getEnd()) {
-			bb_c_cond = false;
-		} else {
-			return false;
-		}
-		// This is a short circuit compound, example is A || B:
-		//
-		// ...|.....
-		// ...A.....
-		// .t/.\f...
-		// .|..B...../ (multiple further incomings possible)
-		// .|t/.\f../
-		// .|/...\./
-		// .C.....c.
-		// .|.....|.
-		//
-		// 4 combinations are possible for A -> C and B -> C:
-		// - tt is || (see above)
-		// - ft is ^||
-		// - tf is ^&&
-		// - ff is &&
-
-		// rewrite AST
-		final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
-		final Expression leftExpression = ifStatement.getExpression();
-		final Expression rightExpression = ((IfStatement) bb.removeStmt(0)).getExpression();
-		if (bb_c_cond /* ?t */) {
-			if (a_c.isCondTrue() /* tt */) {
-				ifStatement.setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_OR, leftExpression, rightExpression));
-			} else {
-				ifStatement.setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_OR,
-						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
-						rightExpression));
-			}
-		} else {
-			if (bb_c_cond /* tf */) {
-				ifStatement.setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_AND,
-						newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
-						rightExpression));
-			} else {
-				ifStatement.setExpression(newInfixExpression(
-						InfixExpression.Operator.CONDITIONAL_AND, leftExpression, rightExpression));
-			}
-		}
-		bb.joinPredBb(a);
-		return true;
-	}
-
 	private void transform() {
 		final List<BB> bbs = this.cfg.getPostorderedBbs();
 		// for all nodes in _reverse_ postorder: is also backward possible with nice optimizations,
@@ -1577,10 +1508,10 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			final boolean handler = rewriteHandler(bb);
 			if (!handler) {
-				while (rewriteCompound(bb)) {
+				while (rewriteBooleanCompound(bb)) {
 					// merge superior conditionals
 				}
-				while (rewriteConditional(bb)) {
+				while (rewriteConditionalCompoundValue(bb)) {
 					// delete superior BBs, multiple iterations possible:
 					// a == null ? 0 : a.length() == 0 ? 0 : 1
 				}
@@ -1590,11 +1521,6 @@ public final class TrCfg2JavaExpressionStmts {
 				// should never happen in forward mode
 				// TODO can currently happen with exceptions, RETURN x is not in catch!
 				LOGGER.warning("Stack underflow in '" + this.cfg + "':\n" + bb);
-			}
-			if (!handler) {
-				while (rewriteShortCircuitCompound(bb)) {
-					// merge superior conditionals
-				}
 			}
 		}
 	}
