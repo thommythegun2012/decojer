@@ -1100,21 +1100,29 @@ public final class TrCfg2JavaExpressionStmts {
 			// rewrite AST
 			final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
 
-			Expression condExpression = ifStatement.getExpression();
-			Expression leftExpression = ((IfStatement) c.removeStmt(0)).getExpression();
-			Expression rightExpression = ((IfStatement) x.removeStmt(0)).getExpression();
-			if (a_c.isCondTrue() && c.getPc() > x.getPc() || a_c.isCondFalse()
-					&& c.getPc() < x.getPc()) {
-				condExpression = newPrefixExpression(PrefixExpression.Operator.NOT, condExpression);
-				final Expression expression = leftExpression;
-				leftExpression = rightExpression;
-				rightExpression = expression;
+			Expression thenExpression = ((IfStatement) c.removeStmt(0)).getExpression();
+			Expression elseExpression = ((IfStatement) x.removeStmt(0)).getExpression();
+			Expression expression = ifStatement.getExpression();
+			// TODO check a_c true?!
+			if (a_c.isCondTrue() ^ c.isBefore(x)) {
+				expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
+				final Expression swapExpression = thenExpression;
+				thenExpression = elseExpression;
+				elseExpression = swapExpression;
 			}
 			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
-			conditionalExpression.setExpression(wrap(condExpression, Priority.CONDITIONAL));
-			conditionalExpression.setThenExpression(wrap(leftExpression, Priority.CONDITIONAL));
-			conditionalExpression.setElseExpression(wrap(rightExpression, Priority.CONDITIONAL));
-
+			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
+			if (c_bb.isCondTrue()) {
+				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
+				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
+			} else {
+				conditionalExpression.setThenExpression(wrap(
+						newPrefixExpression(PrefixExpression.Operator.NOT, thenExpression),
+						Priority.CONDITIONAL));
+				conditionalExpression.setElseExpression(wrap(
+						newPrefixExpression(PrefixExpression.Operator.NOT, elseExpression),
+						Priority.CONDITIONAL));
+			}
 			ifStatement.setExpression(conditionalExpression);
 			x.remove();
 			c.joinPredBb(a);
@@ -1235,9 +1243,10 @@ public final class TrCfg2JavaExpressionStmts {
 			if (x.getIns().size() != 1 || x.getStmts() > 0 || x.getTop() != 1) {
 				continue;
 			}
+			if (bb != x.getRelevantOut().getEnd()) {
+				continue;
+			}
 			// This is a conditional compound value, example is A ? C : x:
-			//
-			// A ? T : F
 			//
 			// ...|...
 			// ...A...
@@ -1247,18 +1256,19 @@ public final class TrCfg2JavaExpressionStmts {
 			// ...B...
 			// ...|...
 
-			final Expression cExpression = c.peek();
-			final Expression xExpression = x.peek();
-
+			Expression thenExpression = c.peek();
+			Expression elseExpression = x.peek();
 			Expression expression = ((IfStatement) a.removeFinalStmt()).getExpression();
-			rewrite: if (cExpression instanceof BooleanLiteral
-					|| xExpression instanceof BooleanLiteral) {
-				// expressions: expression ? true : false => a,
+
+			rewrite: if (thenExpression instanceof BooleanLiteral
+					|| elseExpression instanceof BooleanLiteral) {
+				// expression: A ? true : false => A,
 				// accept if one is BooleanLiteral - merging didn't work ;)
-				if (cExpression instanceof BooleanLiteral
-						&& !((BooleanLiteral) cExpression).booleanValue()
-						|| cExpression instanceof NumberLiteral
-						&& ((NumberLiteral) cExpression).getToken().equals("0")) {
+				final boolean cIsTrue = thenExpression instanceof BooleanLiteral
+						&& ((BooleanLiteral) thenExpression).booleanValue()
+						|| thenExpression instanceof NumberLiteral
+						&& ((NumberLiteral) thenExpression).getToken().equals("1");
+				if (a_c.isCondTrue() ^ cIsTrue) {
 					expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
 				}
 			} else {
@@ -1282,16 +1292,16 @@ public final class TrCfg2JavaExpressionStmts {
 					final Assignment assignment;
 					if (equalsExpression.getOperator() == InfixExpression.Operator.EQUALS) {
 						// JVM < 1.3
-						if (!(cExpression instanceof Assignment)) {
+						if (!(thenExpression instanceof Assignment)) {
 							break classLiteral;
 						}
-						assignment = (Assignment) cExpression;
+						assignment = (Assignment) thenExpression;
 					} else if (equalsExpression.getOperator() == InfixExpression.Operator.NOT_EQUALS) {
 						// JVM >= 1.3
-						if (!(xExpression instanceof Assignment)) {
+						if (!(elseExpression instanceof Assignment)) {
 							break classLiteral;
 						}
-						assignment = (Assignment) xExpression;
+						assignment = (Assignment) elseExpression;
 					} else {
 						break classLiteral;
 					}
@@ -1322,9 +1332,15 @@ public final class TrCfg2JavaExpressionStmts {
 				// expressions: expression ? trueExpression : falseExpression
 				final ConditionalExpression conditionalExpression = getAst()
 						.newConditionalExpression();
+				if (a_c.isCondTrue() ^ c.isBefore(x)) {
+					expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
+					final Expression swapExpression = thenExpression;
+					thenExpression = elseExpression;
+					elseExpression = swapExpression;
+				}
 				conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
-				conditionalExpression.setThenExpression(wrap(cExpression, Priority.CONDITIONAL));
-				conditionalExpression.setElseExpression(wrap(xExpression, Priority.CONDITIONAL));
+				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
+				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
 				expression = conditionalExpression;
 			}
 			if (bb.getIns().size() > 2) {
