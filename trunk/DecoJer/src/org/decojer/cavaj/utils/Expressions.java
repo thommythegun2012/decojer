@@ -75,46 +75,61 @@ public final class Expressions {
 	public static Expression newPrefixExpression(final PrefixExpression.Operator operator,
 			final Expression operand) {
 		if (operator == PrefixExpression.Operator.NOT) {
-			// !!a => a
-			if (operand instanceof PrefixExpression) {
-				final PrefixExpression prefixExpression = (PrefixExpression) operand;
-				if (prefixExpression.getOperator() == PrefixExpression.Operator.NOT) {
-					return (Expression) ASTNode.copySubtree(operand.getAST(),
-							prefixExpression.getOperand());
-				}
-			}
-			if (operand instanceof InfixExpression) {
-				final InfixExpression infixExpression = (InfixExpression) operand;
-				// TODO rewrite CONDITIONAL_AND/OR is complex because of changing operator priority
-				if (infixExpression.getOperator() == InfixExpression.Operator.EQUALS) {
-					infixExpression.setOperator(InfixExpression.Operator.NOT_EQUALS);
-					return infixExpression;
-				}
-				if (infixExpression.getOperator() == InfixExpression.Operator.GREATER) {
-					infixExpression.setOperator(InfixExpression.Operator.LESS_EQUALS);
-					return infixExpression;
-				}
-				if (infixExpression.getOperator() == InfixExpression.Operator.GREATER_EQUALS) {
-					infixExpression.setOperator(InfixExpression.Operator.LESS);
-					return infixExpression;
-				}
-				if (infixExpression.getOperator() == InfixExpression.Operator.LESS) {
-					infixExpression.setOperator(InfixExpression.Operator.GREATER_EQUALS);
-					return infixExpression;
-				}
-				if (infixExpression.getOperator() == InfixExpression.Operator.LESS_EQUALS) {
-					infixExpression.setOperator(InfixExpression.Operator.GREATER);
-					return infixExpression;
-				}
-				if (infixExpression.getOperator() == InfixExpression.Operator.NOT_EQUALS) {
-					infixExpression.setOperator(InfixExpression.Operator.EQUALS);
-					return infixExpression;
-				}
-			}
+			return not(operand);
 		}
 		final PrefixExpression prefixExpression = operand.getAST().newPrefixExpression();
 		prefixExpression.setOperator(operator);
 		prefixExpression.setOperand(wrap(operand, priority(prefixExpression)));
+		return prefixExpression;
+	}
+
+	/**
+	 * Not expression.
+	 * 
+	 * @param operand
+	 *            operand expression
+	 * @return !expression
+	 */
+	public static Expression not(final Expression operand) {
+		if (operand instanceof PrefixExpression) {
+			final PrefixExpression prefixExpression = (PrefixExpression) operand;
+			if (prefixExpression.getOperator() == PrefixExpression.Operator.NOT) {
+				// !!a => a
+				return (Expression) ASTNode.copySubtree(operand.getAST(),
+						prefixExpression.getOperand());
+			}
+		}
+		if (operand instanceof InfixExpression) {
+			final InfixExpression infixExpression = (InfixExpression) operand;
+			// TODO rewrite CONDITIONAL_AND/OR is complex because of changing operator priority
+			if (infixExpression.getOperator() == InfixExpression.Operator.EQUALS) {
+				infixExpression.setOperator(InfixExpression.Operator.NOT_EQUALS);
+				return infixExpression;
+			}
+			if (infixExpression.getOperator() == InfixExpression.Operator.GREATER) {
+				infixExpression.setOperator(InfixExpression.Operator.LESS_EQUALS);
+				return infixExpression;
+			}
+			if (infixExpression.getOperator() == InfixExpression.Operator.GREATER_EQUALS) {
+				infixExpression.setOperator(InfixExpression.Operator.LESS);
+				return infixExpression;
+			}
+			if (infixExpression.getOperator() == InfixExpression.Operator.LESS) {
+				infixExpression.setOperator(InfixExpression.Operator.GREATER_EQUALS);
+				return infixExpression;
+			}
+			if (infixExpression.getOperator() == InfixExpression.Operator.LESS_EQUALS) {
+				infixExpression.setOperator(InfixExpression.Operator.GREATER);
+				return infixExpression;
+			}
+			if (infixExpression.getOperator() == InfixExpression.Operator.NOT_EQUALS) {
+				infixExpression.setOperator(InfixExpression.Operator.EQUALS);
+				return infixExpression;
+			}
+		}
+		final PrefixExpression prefixExpression = operand.getAST().newPrefixExpression();
+		prefixExpression.setOperator(PrefixExpression.Operator.NOT);
+		prefixExpression.setOperand(wrap(operand, Priority.PREFIX_OR_POSTFIX));
 		return prefixExpression;
 	}
 

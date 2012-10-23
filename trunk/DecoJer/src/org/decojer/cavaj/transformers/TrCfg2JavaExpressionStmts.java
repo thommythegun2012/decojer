@@ -25,6 +25,7 @@ package org.decojer.cavaj.transformers;
 
 import static org.decojer.cavaj.utils.Expressions.newInfixExpression;
 import static org.decojer.cavaj.utils.Expressions.newPrefixExpression;
+import static org.decojer.cavaj.utils.Expressions.not;
 import static org.decojer.cavaj.utils.Expressions.wrap;
 
 import java.util.ArrayList;
@@ -642,7 +643,7 @@ public final class TrCfg2JavaExpressionStmts {
 					switch (cop.getCmpType()) {
 					case T_EQ:
 						// "== 0" means "is false"
-						expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
+						expression = not(expression);
 						break;
 					case T_NE:
 						// "!= 0" means "is true"
@@ -1059,15 +1060,13 @@ public final class TrCfg2JavaExpressionStmts {
 								rightExpression));
 					} else {
 						ifStatement.setExpression(newInfixExpression(
-								InfixExpression.Operator.CONDITIONAL_OR,
-								newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
+								InfixExpression.Operator.CONDITIONAL_OR, not(leftExpression),
 								rightExpression));
 					}
 				} else {
 					if (a_x.isCondTrue() /* tf */) {
 						ifStatement.setExpression(newInfixExpression(
-								InfixExpression.Operator.CONDITIONAL_AND,
-								newPrefixExpression(PrefixExpression.Operator.NOT, leftExpression),
+								InfixExpression.Operator.CONDITIONAL_AND, not(leftExpression),
 								rightExpression));
 					} else {
 						ifStatement.setExpression(newInfixExpression(
@@ -1105,7 +1104,7 @@ public final class TrCfg2JavaExpressionStmts {
 			Expression expression = ifStatement.getExpression();
 			// TODO check a_c true?!
 			if (a_c.isCondTrue() ^ c.isBefore(x)) {
-				expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
+				expression = not(expression);
 				final Expression swapExpression = thenExpression;
 				thenExpression = elseExpression;
 				elseExpression = swapExpression;
@@ -1116,11 +1115,9 @@ public final class TrCfg2JavaExpressionStmts {
 				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
 				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
 			} else {
-				conditionalExpression.setThenExpression(wrap(
-						newPrefixExpression(PrefixExpression.Operator.NOT, thenExpression),
+				conditionalExpression.setThenExpression(wrap(not(thenExpression),
 						Priority.CONDITIONAL));
-				conditionalExpression.setElseExpression(wrap(
-						newPrefixExpression(PrefixExpression.Operator.NOT, elseExpression),
+				conditionalExpression.setElseExpression(wrap(not(elseExpression),
 						Priority.CONDITIONAL));
 			}
 			ifStatement.setExpression(conditionalExpression);
@@ -1269,7 +1266,7 @@ public final class TrCfg2JavaExpressionStmts {
 						|| thenExpression instanceof NumberLiteral
 						&& ((NumberLiteral) thenExpression).getToken().equals("1");
 				if (a_c.isCondTrue() ^ cIsTrue) {
-					expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
+					expression = not(expression);
 				}
 			} else {
 				classLiteral: if (expression instanceof InfixExpression) {
@@ -1333,7 +1330,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final ConditionalExpression conditionalExpression = getAst()
 						.newConditionalExpression();
 				if (a_c.isCondTrue() ^ c.isBefore(x)) {
-					expression = newPrefixExpression(PrefixExpression.Operator.NOT, expression);
+					expression = not(expression);
 					final Expression swapExpression = thenExpression;
 					thenExpression = elseExpression;
 					elseExpression = swapExpression;

@@ -85,7 +85,7 @@ public final class TrControlFlowAnalysis {
 		 * log("Unexpected unnegated direct continue-back-edge."); cond.setType(Cond.IFNOT);
 		 * cond.setFollow(falseSucc); return cond; }
 		 */
-		final boolean negated = falseSucc.getOrder() < trueSucc.getOrder();
+		final boolean negated = falseSucc.isBefore(trueSucc);
 		final BB firstSucc = negated ? falseSucc : trueSucc;
 		final BB secondSucc = negated ? trueSucc : falseSucc;
 		final Boolean firstValue = negated;
@@ -136,13 +136,13 @@ public final class TrControlFlowAnalysis {
 		// JDK 6: end node with smallest order could be the follow
 		BB firstEndNode = null;
 		for (final BB endNode : firstFollows) {
-			if (firstEndNode == null || firstEndNode.getOrder() > endNode.getOrder()) {
+			if (firstEndNode == null || endNode.isBefore(firstEndNode)) {
 				firstEndNode = endNode;
 			}
 		}
 		BB secondEndNode = null;
 		for (final BB endNode : secondFollows) {
-			if (secondEndNode == null || secondEndNode.getOrder() > endNode.getOrder()) {
+			if (secondEndNode == null || endNode.isBefore(secondEndNode)) {
 				secondEndNode = endNode;
 			}
 		}
@@ -341,7 +341,7 @@ public final class TrControlFlowAnalysis {
 		// TODO end node with smallest order could be the follow
 		BB switchFollow = null;
 		for (final BB follow : follows) {
-			if (switchFollow == null || switchFollow.getOrder() > follow.getOrder()) {
+			if (switchFollow == null || follow.isBefore(switchFollow)) {
 				switchFollow = follow;
 			}
 		}
@@ -458,7 +458,7 @@ public final class TrControlFlowAnalysis {
 			// find tail (no loopSucc!), pred member with biggest opPc
 			// TODO or biggest line number or further structure analyzis?
 			// TODO e.g. tail with >2 succ not possible, see warning
-			if (loop.getLast() == null || loop.getLast().getOrder() < bb.getOrder()) {
+			if (loop.getLast() == null || loop.getLast().isBefore(bb)) {
 				loop.setLast(bb);
 			}
 			return true;

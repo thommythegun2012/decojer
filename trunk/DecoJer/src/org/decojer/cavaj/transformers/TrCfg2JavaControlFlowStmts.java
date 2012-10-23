@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.transformers;
 
-import static org.decojer.cavaj.utils.Expressions.newPrefixExpression;
+import static org.decojer.cavaj.utils.Expressions.not;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -43,7 +43,6 @@ import org.eclipse.jdt.core.dom.BreakStatement;
 import org.eclipse.jdt.core.dom.DoStatement;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IfStatement;
-import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchCase;
@@ -130,8 +129,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = false;
 		case Cond.IFNOT: {
 			final IfStatement ifStatement = getAst().newIfStatement();
-			ifStatement.setExpression(negate ? newPrefixExpression(PrefixExpression.Operator.NOT,
-					expression) : expression);
+			ifStatement.setExpression(negate ? not(expression) : expression);
 
 			final List<Statement> subStatements = Lists.newArrayList();
 			transformSequence(cond, negate ? falseSucc : trueSucc, subStatements);
@@ -149,8 +147,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = false;
 		case Cond.IFNOT_ELSE: {
 			final IfStatement ifStatement = getAst().newIfStatement();
-			ifStatement.setExpression(negate ? newPrefixExpression(PrefixExpression.Operator.NOT,
-					expression) : expression);
+			ifStatement.setExpression(negate ? not(expression) : expression);
 			{
 				final List<Statement> subStatements = Lists.newArrayList();
 				transformSequence(cond, negate ? falseSucc : trueSucc, subStatements);
@@ -197,8 +194,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			final IfStatement statement = (IfStatement) head.getStmt(0);
 			final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 					statement.getExpression());
-			whileStatement.setExpression(negate ? newPrefixExpression(
-					PrefixExpression.Operator.NOT, expression) : expression);
+			whileStatement.setExpression(negate ? not(expression) : expression);
 
 			final List<Statement> subStatements = Lists.newArrayList();
 			transformSequence(loop, negate ? head.getFalseSucc() : head.getTrueSucc(),
@@ -224,8 +220,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			final Statement statement = last.getFinalStmt();
 			final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
 					((IfStatement) statement).getExpression());
-			doStatement.setExpression(negate ? newPrefixExpression(PrefixExpression.Operator.NOT,
-					expression) : expression);
+			doStatement.setExpression(negate ? not(expression) : expression);
 
 			// has always block
 			((Block) doStatement.getBody()).statements().addAll(subStatements);
