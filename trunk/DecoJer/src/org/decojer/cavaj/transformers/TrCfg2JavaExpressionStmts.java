@@ -97,6 +97,8 @@ import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
+import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.StringLiteral;
@@ -106,6 +108,7 @@ import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
+import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.UnionType;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
@@ -958,8 +961,40 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case THROW: {
+				final Expression pop = bb.pop();
+				rewriteAssert: if (pop instanceof ClassInstanceCreation) {
+					// if (!DecTestAsserts.$assertionsDisabled && (l1 > 0L ? l1 >= l2 : l1 > l2))
+					// throw new AssertionError("complex expression " + l1 - l2);
+					final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) pop;
+					final Type type = classInstanceCreation.getType();
+					if (!(type instanceof SimpleType)) {
+						break rewriteAssert;
+					}
+					final Name name = ((SimpleType) type).getName();
+					if (!(name instanceof SimpleName)) {
+						break rewriteAssert;
+					}
+					if (!"AssertionError".equals(((SimpleName) name).getIdentifier())) {
+						break rewriteAssert;
+					}
+					final E in = bb.getRelevantIn();
+					if (in == null) {
+						break rewriteAssert;
+					}
+					final BB start = in.getStart();
+					if (!start.isCondOrPreLoopHead()) {
+						break rewriteAssert;
+					}
+					final IfStatement ifStatement = (IfStatement) start.getFinalStmt();
+					final Expression expression = ifStatement.getExpression();
+					// ... TODO single assert false
+					if (!(expression instanceof InfixExpression)) {
+						break rewriteAssert;
+					}
+					// ...TODO...to continue
+				}
 				final ThrowStatement throwStatement = getAst().newThrowStatement();
-				throwStatement.setExpression(wrap(bb.pop()));
+				throwStatement.setExpression(wrap(pop));
 				statement = throwStatement;
 				break;
 			}

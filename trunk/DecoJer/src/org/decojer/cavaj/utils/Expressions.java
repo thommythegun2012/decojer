@@ -101,12 +101,19 @@ public final class Expressions {
 	public static Expression not(final Expression operand) {
 		if (isNot(operand)) {
 			// !!a => a
-			return (Expression) ASTNode.copySubtree(operand.getAST(),
-					((PrefixExpression) operand).getOperand());
+			Expression expression = ((PrefixExpression) operand).getOperand();
+			if (expression instanceof ParenthesizedExpression) {
+				expression = ((ParenthesizedExpression) expression).getExpression();
+			}
+			return (Expression) ASTNode.copySubtree(operand.getAST(), expression);
+		}
+		if (operand instanceof ParenthesizedExpression) {
+			return not(((ParenthesizedExpression) operand).getExpression());
 		}
 		if (operand instanceof InfixExpression) {
 			final InfixExpression infixExpression = (InfixExpression) operand;
 			if (infixExpression.getOperator() == InfixExpression.Operator.EQUALS) {
+				// operator priority doesn't change here, reuse for all such cases...
 				infixExpression.setOperator(InfixExpression.Operator.NOT_EQUALS);
 				return infixExpression;
 			}
@@ -133,6 +140,7 @@ public final class Expressions {
 
 			if (infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND
 					|| infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_OR) {
+				// operator priorities change, don't reuse
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
@@ -141,7 +149,17 @@ public final class Expressions {
 			}
 		}
 		if (operand instanceof ConditionalExpression) {
-			// TODO...switch booleans?
+			// conditional has very low operator priority (before assignment), reuse possible
+			final ConditionalExpression conditionalExpression = (ConditionalExpression) operand;
+			final Expression thenExpression = not(conditionalExpression.getThenExpression());
+			if (conditionalExpression.getThenExpression() != thenExpression) {
+				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
+			}
+			final Expression elseExpression = not(conditionalExpression.getElseExpression());
+			if (conditionalExpression.getElseExpression() != elseExpression) {
+				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
+			}
+			return conditionalExpression;
 		}
 		final PrefixExpression prefixExpression = operand.getAST().newPrefixExpression();
 		prefixExpression.setOperator(PrefixExpression.Operator.NOT);
