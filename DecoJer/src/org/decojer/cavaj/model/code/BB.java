@@ -258,16 +258,6 @@ public final class BB {
 	}
 
 	/**
-	 * Get order index, may be line number if given or operation program counter.
-	 * 
-	 * @return order index, may be line number if given or operation program counter
-	 */
-	public int getOrder() {
-		final int opLine = getLine();
-		return opLine == -1 ? getPc() : opLine;
-	}
-
-	/**
 	 * Get unique (sequence) out edge.
 	 * 
 	 * @return out edge
