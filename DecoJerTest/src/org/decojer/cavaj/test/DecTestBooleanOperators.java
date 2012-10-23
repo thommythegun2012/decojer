@@ -48,6 +48,7 @@ public abstract class DecTestBooleanOperators {
 
 	public static void shortCircuitCompound(final boolean a, final boolean b,
 			final boolean c) {
+		// ^ is not short curcuit JCND but is XOR!
 		System.out.println(a && b && c);
 		System.out.println(a && !b && c);
 		System.out.println(!(a && b && c));
