@@ -26,6 +26,7 @@ package org.decojer.cavaj.utils;
 import static org.decojer.cavaj.utils.OperatorPrecedence.priority;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
@@ -37,6 +38,13 @@ import org.eclipse.jdt.core.dom.PrefixExpression;
  * @author André Pankraz
  */
 public final class Expressions {
+
+	private static boolean isNot(final Expression expression) {
+		if (!(expression instanceof PrefixExpression)) {
+			return false;
+		}
+		return ((PrefixExpression) expression).getOperator() == PrefixExpression.Operator.NOT;
+	}
 
 	/**
 	 * New infix expression.
@@ -91,17 +99,13 @@ public final class Expressions {
 	 * @return !expression
 	 */
 	public static Expression not(final Expression operand) {
-		if (operand instanceof PrefixExpression) {
-			final PrefixExpression prefixExpression = (PrefixExpression) operand;
-			if (prefixExpression.getOperator() == PrefixExpression.Operator.NOT) {
-				// !!a => a
-				return (Expression) ASTNode.copySubtree(operand.getAST(),
-						prefixExpression.getOperand());
-			}
+		if (isNot(operand)) {
+			// !!a => a
+			return (Expression) ASTNode.copySubtree(operand.getAST(),
+					((PrefixExpression) operand).getOperand());
 		}
 		if (operand instanceof InfixExpression) {
 			final InfixExpression infixExpression = (InfixExpression) operand;
-			// TODO rewrite CONDITIONAL_AND/OR is complex because of changing operator priority
 			if (infixExpression.getOperator() == InfixExpression.Operator.EQUALS) {
 				infixExpression.setOperator(InfixExpression.Operator.NOT_EQUALS);
 				return infixExpression;
@@ -126,6 +130,18 @@ public final class Expressions {
 				infixExpression.setOperator(InfixExpression.Operator.EQUALS);
 				return infixExpression;
 			}
+
+			if (infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND
+					|| infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_OR) {
+				return newInfixExpression(
+						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
+								: InfixExpression.Operator.CONDITIONAL_AND,
+						not(infixExpression.getLeftOperand()),
+						not(infixExpression.getRightOperand()));
+			}
+		}
+		if (operand instanceof ConditionalExpression) {
+			// TODO...switch booleans?
 		}
 		final PrefixExpression prefixExpression = operand.getAST().newPrefixExpression();
 		prefixExpression.setOperator(PrefixExpression.Operator.NOT);
