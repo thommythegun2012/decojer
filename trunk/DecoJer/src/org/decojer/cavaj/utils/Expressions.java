@@ -99,16 +99,12 @@ public final class Expressions {
 	 * @return !expression
 	 */
 	public static Expression not(final Expression operand) {
-		if (isNot(operand)) {
-			// !!a => a
-			Expression expression = ((PrefixExpression) operand).getOperand();
-			if (expression instanceof ParenthesizedExpression) {
-				expression = ((ParenthesizedExpression) expression).getExpression();
-			}
-			return (Expression) ASTNode.copySubtree(operand.getAST(), expression);
-		}
 		if (operand instanceof ParenthesizedExpression) {
 			return not(((ParenthesizedExpression) operand).getExpression());
+		}
+		if (isNot(operand)) {
+			// !!a => a
+			return unwrap(((PrefixExpression) operand).getOperand());
 		}
 		if (operand instanceof InfixExpression) {
 			final InfixExpression infixExpression = (InfixExpression) operand;
@@ -167,6 +163,13 @@ public final class Expressions {
 		return prefixExpression;
 	}
 
+	/**
+	 * Unwrap expression. Ensures that there is no parent set.
+	 * 
+	 * @param expression
+	 *            expression
+	 * @return unwrapped expression
+	 */
 	public static Expression unwrap(final Expression expression) {
 		Expression rawExpression;
 		if (expression instanceof ParenthesizedExpression) {
@@ -192,7 +195,8 @@ public final class Expressions {
 	}
 
 	private static Expression wrap(final Expression expression, final int priority) {
-		final Expression rawExpression = unwrap(expression);
+		final Expression rawExpression = expression.getParent() == null ? expression
+				: (Expression) ASTNode.copySubtree(expression.getAST(), expression);
 		if (priority(rawExpression).getPriority() <= priority) {
 			return rawExpression;
 		}

@@ -67,6 +67,7 @@ import org.decojer.cavaj.model.code.ops.RETURN;
 import org.decojer.cavaj.model.code.ops.SHR;
 import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.utils.OperatorPrecedence;
 import org.decojer.cavaj.utils.Priority;
 import org.decojer.cavaj.utils.Types;
 import org.eclipse.jdt.core.dom.AST;
@@ -123,6 +124,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(TrCfg2JavaExpressionStmts.class.getName());
+	private static final String Expression = null;
 
 	private static Expression newInfixExpressionPop(final Operator operator, final BB bb) {
 		final Expression rightExpression = bb.pop();
@@ -1560,13 +1562,18 @@ public final class TrCfg2JavaExpressionStmts {
 						|| methodInvocation.arguments().size() != 1) {
 					return false;
 				}
-				appendExpression = methodInvocation.getExpression();
-				if (stringExpression == null) {
-					stringExpression = (Expression) methodInvocation.arguments().get(0);
-					continue;
+				Expression appendArgumentExpression = (Expression) methodInvocation.arguments()
+						.get(0);
+				if (OperatorPrecedence.priority(appendArgumentExpression) == Priority.ADD_SUB) {
+					appendArgumentExpression = wrap(appendArgumentExpression, Priority.MULT_DIV);
 				}
-				stringExpression = newInfixExpression(InfixExpression.Operator.PLUS,
-						(Expression) methodInvocation.arguments().get(0), stringExpression);
+				if (stringExpression == null) {
+					stringExpression = appendArgumentExpression;
+				} else {
+					stringExpression = newInfixExpression(InfixExpression.Operator.PLUS,
+							appendArgumentExpression, stringExpression);
+				}
+				appendExpression = methodInvocation.getExpression();
 			} while (appendExpression instanceof MethodInvocation);
 			final ClassInstanceCreation builder = (ClassInstanceCreation) appendExpression;
 			// additional type check for pure append-chain not necessary
@@ -1574,14 +1581,19 @@ public final class TrCfg2JavaExpressionStmts {
 				if (builder.arguments().size() > 1) {
 					return false;
 				}
+				Expression appendArgumentExpression = (Expression) builder.arguments().get(0);
+				// TODO String.valueOf(...) as Start?
+				if (OperatorPrecedence.priority(appendArgumentExpression) == Priority.ADD_SUB) {
+					appendArgumentExpression = wrap(appendArgumentExpression, Priority.MULT_DIV);
+				}
 				stringExpression = newInfixExpression(InfixExpression.Operator.PLUS,
-						(Expression) builder.arguments().get(0), stringExpression);
+						appendArgumentExpression, stringExpression);
 			}
 			bb.pop();
 			bb.push(stringExpression);
 			return true;
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Rewrite to string-add didn't work!");
+			LOGGER.log(Level.WARNING, "Rewrite to string-add didn't work!", e);
 		}
 		return false;
 	}
