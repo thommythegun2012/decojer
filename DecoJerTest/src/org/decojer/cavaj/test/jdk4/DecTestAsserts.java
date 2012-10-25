@@ -11,7 +11,8 @@ public class DecTestAsserts {
 
 	public void testMessageAssert(final long l1, final long l2) {
 		assert l1 < 0 : l1;
-		assert l1 > 0 ? l1 < l2 : l1 > l2 : "complex expression " + (l1 - l2);
+		assert l1 > 0 ? l1 < l2 : l1 > l2 : (l1 >>> 1) + l2
+				+ "complex expression " + l1 * l2 + l1 + l2 + (l1 + l2);
 	}
 
 }
