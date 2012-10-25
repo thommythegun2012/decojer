@@ -167,6 +167,19 @@ public final class Expressions {
 		return prefixExpression;
 	}
 
+	public static Expression unwrap(final Expression expression) {
+		Expression rawExpression;
+		if (expression instanceof ParenthesizedExpression) {
+			rawExpression = ((ParenthesizedExpression) expression).getExpression();
+		} else {
+			if (expression.getParent() == null) {
+				return expression;
+			}
+			rawExpression = expression;
+		}
+		return (Expression) ASTNode.copySubtree(expression.getAST(), rawExpression);
+	}
+
 	/**
 	 * Wrap expression. Ensures that there is no parent set.
 	 * 
@@ -179,14 +192,13 @@ public final class Expressions {
 	}
 
 	private static Expression wrap(final Expression expression, final int priority) {
-		final Expression expressionP = expression.getParent() == null ? expression
-				: (Expression) ASTNode.copySubtree(expression.getAST(), expression);
-		if (priority(expression).getPriority() <= priority) {
-			return expressionP;
+		final Expression rawExpression = unwrap(expression);
+		if (priority(rawExpression).getPriority() <= priority) {
+			return rawExpression;
 		}
 		final ParenthesizedExpression parenthesizedExpression = expression.getAST()
 				.newParenthesizedExpression();
-		parenthesizedExpression.setExpression(expressionP);
+		parenthesizedExpression.setExpression(rawExpression);
 		return parenthesizedExpression;
 	}
 

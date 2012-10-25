@@ -75,6 +75,7 @@ import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.ArrayCreation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.ArrayType;
+import org.eclipse.jdt.core.dom.AssertStatement;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
@@ -493,54 +494,8 @@ public final class TrCfg2JavaExpressionStmts {
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
 				} else {
-					stringAdd: if ("toString".equals(m.getName())
-							&& (m.getT().is(StringBuilder.class) || m.getT().is(StringBuffer.class))) {
-						// jdk1.1.6:
-						// new
-						// StringBuffer(String.valueOf(super.toString())).append(" TEST").toString()
-						// jdk1.3:
-						// new StringBuffer().append(super.toString()).append(" TEST").toString();
-						// jdk1.5.0:
-						// new StringBuilder().append(super.toString()).append(" TEST").toString()
-						// Eclipse (constructor argument fail?):
-						// new
-						// StringBuilder(String.valueOf(super.toString())).append(" TEST").toString()
-						try {
-							Expression stringExpression = null;
-							Expression appendExpression = bb.peek();
-							do {
-								final MethodInvocation methodInvocation = (MethodInvocation) appendExpression;
-								if (!"append".equals(methodInvocation.getName().getIdentifier())
-										|| methodInvocation.arguments().size() != 1) {
-									break stringAdd;
-								}
-								appendExpression = methodInvocation.getExpression();
-								if (stringExpression == null) {
-									stringExpression = (Expression) methodInvocation.arguments()
-											.get(0);
-									continue;
-								}
-								stringExpression = newInfixExpression(
-										InfixExpression.Operator.PLUS,
-										(Expression) methodInvocation.arguments().get(0),
-										stringExpression);
-							} while (appendExpression instanceof MethodInvocation);
-							final ClassInstanceCreation builder = (ClassInstanceCreation) appendExpression;
-							// additional type check for pure append-chain not necessary
-							if (builder.arguments().size() > 1) {
-								break stringAdd;
-							}
-							if (builder.arguments().size() == 1) {
-								stringExpression = newInfixExpression(
-										InfixExpression.Operator.PLUS, (Expression) builder
-												.arguments().get(0), stringExpression);
-							}
-							bb.pop();
-							bb.push(stringExpression);
-							break;
-						} catch (final Exception e) {
-							// rewrite to string-add didn't work
-						}
+					if (rewriteStringAppend(m, bb)) {
+						break;
 					}
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 					final Expression expression = bb.pop();
@@ -961,40 +916,12 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case THROW: {
-				final Expression pop = bb.pop();
-				rewriteAssert: if (pop instanceof ClassInstanceCreation) {
-					// if (!DecTestAsserts.$assertionsDisabled && (l1 > 0L ? l1 >= l2 : l1 > l2))
-					// throw new AssertionError("complex expression " + l1 - l2);
-					final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) pop;
-					final Type type = classInstanceCreation.getType();
-					if (!(type instanceof SimpleType)) {
-						break rewriteAssert;
-					}
-					final Name name = ((SimpleType) type).getName();
-					if (!(name instanceof SimpleName)) {
-						break rewriteAssert;
-					}
-					if (!"AssertionError".equals(((SimpleName) name).getIdentifier())) {
-						break rewriteAssert;
-					}
-					final E in = bb.getRelevantIn();
-					if (in == null) {
-						break rewriteAssert;
-					}
-					final BB start = in.getStart();
-					if (!start.isCondOrPreLoopHead()) {
-						break rewriteAssert;
-					}
-					final IfStatement ifStatement = (IfStatement) start.getFinalStmt();
-					final Expression expression = ifStatement.getExpression();
-					// ... TODO single assert false
-					if (!(expression instanceof InfixExpression)) {
-						break rewriteAssert;
-					}
-					// ...TODO...to continue
+				final Expression exceptionExpression = bb.pop();
+				if (rewriteAssertStatement(exceptionExpression, bb)) {
+					break;
 				}
 				final ThrowStatement throwStatement = getAst().newThrowStatement();
-				throwStatement.setExpression(wrap(pop));
+				throwStatement.setExpression(wrap(exceptionExpression));
 				statement = throwStatement;
 				break;
 			}
@@ -1036,6 +963,67 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		return r.getT().isWide();
+	}
+
+	private boolean rewriteAssertStatement(final Expression exceptionExpression, final BB bb) {
+		// if (!DecTestAsserts.$assertionsDisabled && (l1 > 0L ? l1 >= l2 : l1 > l2))
+		// throw new AssertionError("complex expression " + l1 - l2);
+		if (!(exceptionExpression instanceof ClassInstanceCreation)) {
+			return false;
+		}
+		final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) exceptionExpression;
+		final Type type = classInstanceCreation.getType();
+		if (!(type instanceof SimpleType)) {
+			return false;
+		}
+		final Name name = ((SimpleType) type).getName();
+		if (!(name instanceof SimpleName)) {
+			return false;
+		}
+		if (!"AssertionError".equals(((SimpleName) name).getIdentifier())) {
+			return false;
+		}
+		final Expression messageExpression;
+		final List<Expression> arguments = classInstanceCreation.arguments();
+		if (arguments.isEmpty()) {
+			messageExpression = null;
+		} else {
+			if (arguments.size() > 1) {
+				return false;
+			}
+			messageExpression = arguments.get(0);
+		}
+		final E in = bb.getRelevantIn();
+		if (in == null) {
+			return false;
+		}
+		final BB start = in.getStart();
+		if (!start.isCondOrPreLoopHead()) {
+			return false;
+		}
+		final IfStatement ifStatement = (IfStatement) start.getFinalStmt();
+		Expression expression = ifStatement.getExpression();
+		Expression condExpression;
+		if (expression instanceof InfixExpression) {
+			final InfixExpression infixExpression = (InfixExpression) expression;
+			if (infixExpression.getOperator() != InfixExpression.Operator.CONDITIONAL_OR) {
+				return false;
+			}
+			expression = infixExpression.getLeftOperand();
+			condExpression = infixExpression.getRightOperand();
+		} else {
+			condExpression = null;
+		}
+		start.removeFinalStmt();
+		final AssertStatement assertStatement = getAst().newAssertStatement();
+		assertStatement.setExpression(condExpression == null ? getAst().newBooleanLiteral(false)
+				: wrap(condExpression));
+		if (messageExpression != null) {
+			assertStatement.setMessage(wrap(messageExpression));
+		}
+		start.addStmt(assertStatement);
+		start.getTrueSucc().joinPredBb(start);
+		return true;
 	}
 
 	private boolean rewriteBooleanCompound(final BB bb) {
@@ -1546,6 +1534,56 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		bb.addStmt(tryStatement);
 		return true;
+	}
+
+	private boolean rewriteStringAppend(final M m, final BB bb) {
+		if (!"toString".equals(m.getName())) {
+			return false;
+		}
+		if (!m.getT().is(StringBuilder.class) && !m.getT().is(StringBuffer.class)) {
+			return false;
+		}
+		// jdk1.1.6:
+		// new StringBuffer(String.valueOf(super.toString())).append(" TEST").toString()
+		// jdk1.3:
+		// new StringBuffer().append(super.toString()).append(" TEST").toString();
+		// jdk1.5.0:
+		// new StringBuilder().append(super.toString()).append(" TEST").toString()
+		// Eclipse (constructor argument fail?):
+		// new StringBuilder(String.valueOf(super.toString())).append(" TEST").toString()
+		try {
+			Expression stringExpression = null;
+			Expression appendExpression = bb.peek();
+			do {
+				final MethodInvocation methodInvocation = (MethodInvocation) appendExpression;
+				if (!"append".equals(methodInvocation.getName().getIdentifier())
+						|| methodInvocation.arguments().size() != 1) {
+					return false;
+				}
+				appendExpression = methodInvocation.getExpression();
+				if (stringExpression == null) {
+					stringExpression = (Expression) methodInvocation.arguments().get(0);
+					continue;
+				}
+				stringExpression = newInfixExpression(InfixExpression.Operator.PLUS,
+						(Expression) methodInvocation.arguments().get(0), stringExpression);
+			} while (appendExpression instanceof MethodInvocation);
+			final ClassInstanceCreation builder = (ClassInstanceCreation) appendExpression;
+			// additional type check for pure append-chain not necessary
+			if (!builder.arguments().isEmpty()) {
+				if (builder.arguments().size() > 1) {
+					return false;
+				}
+				stringExpression = newInfixExpression(InfixExpression.Operator.PLUS,
+						(Expression) builder.arguments().get(0), stringExpression);
+			}
+			bb.pop();
+			bb.push(stringExpression);
+			return true;
+		} catch (final Exception e) {
+			LOGGER.log(Level.WARNING, "Rewrite to string-add didn't work!");
+		}
+		return false;
 	}
 
 	private void transform() {
