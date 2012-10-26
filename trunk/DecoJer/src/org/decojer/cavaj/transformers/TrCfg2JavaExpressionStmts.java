@@ -124,7 +124,6 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private final static Logger LOGGER = Logger
 			.getLogger(TrCfg2JavaExpressionStmts.class.getName());
-	private static final String Expression = null;
 
 	private static Expression newInfixExpressionPop(final Operator operator, final BB bb) {
 		final Expression rightExpression = bb.pop();
