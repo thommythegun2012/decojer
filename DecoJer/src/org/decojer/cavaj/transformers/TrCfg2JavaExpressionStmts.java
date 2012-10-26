@@ -1556,7 +1556,8 @@ public final class TrCfg2JavaExpressionStmts {
 		try {
 			Expression stringExpression = null;
 			Expression appendExpression = bb.peek();
-			do {
+			while (appendExpression instanceof MethodInvocation) {
+				// no append as first method can happen with: i + ""
 				final MethodInvocation methodInvocation = (MethodInvocation) appendExpression;
 				if (!"append".equals(methodInvocation.getName().getIdentifier())
 						|| methodInvocation.arguments().size() != 1) {
@@ -1574,7 +1575,7 @@ public final class TrCfg2JavaExpressionStmts {
 							appendArgumentExpression, stringExpression);
 				}
 				appendExpression = methodInvocation.getExpression();
-			} while (appendExpression instanceof MethodInvocation);
+			}
 			final ClassInstanceCreation builder = (ClassInstanceCreation) appendExpression;
 			// additional type check for pure append-chain not necessary
 			if (!builder.arguments().isEmpty()) {
@@ -1587,7 +1588,8 @@ public final class TrCfg2JavaExpressionStmts {
 					appendArgumentExpression = wrap(appendArgumentExpression, Priority.MULT_DIV);
 				}
 				stringExpression = newInfixExpression(InfixExpression.Operator.PLUS,
-						appendArgumentExpression, stringExpression);
+						appendArgumentExpression, stringExpression != null ? stringExpression
+								: getAst().newStringLiteral());
 			}
 			bb.pop();
 			bb.push(stringExpression);
