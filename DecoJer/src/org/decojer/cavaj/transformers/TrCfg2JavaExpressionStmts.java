@@ -1552,11 +1552,13 @@ public final class TrCfg2JavaExpressionStmts {
 		// new StringBuilder().append(super.toString()).append(" TEST").toString()
 		// Eclipse (constructor argument fail?):
 		// new StringBuilder(String.valueOf(super.toString())).append(" TEST").toString()
+
+		// ..."" at the beginning or end are handled very differently...
 		try {
 			Expression stringExpression = null;
 			Expression appendExpression = bb.peek();
 			while (appendExpression instanceof MethodInvocation) {
-				// no append as first method can happen with: i + ""
+				// no append at all could happen with in Eclipse: i + ""
 				final MethodInvocation methodInvocation = (MethodInvocation) appendExpression;
 				if (!"append".equals(methodInvocation.getName().getIdentifier())
 						|| methodInvocation.arguments().size() != 1) {
@@ -1564,6 +1566,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				Expression appendArgumentExpression = (Expression) methodInvocation.arguments()
 						.get(0);
+				// parentheses necessary for arithmetic add after string: "s" + (l1 + l2)
 				if (OperatorPrecedence.priority(appendArgumentExpression) == Priority.ADD_SUB) {
 					appendArgumentExpression = wrap(appendArgumentExpression, Priority.MULT_DIV);
 				}
@@ -1575,17 +1578,31 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				appendExpression = methodInvocation.getExpression();
 			}
+			if (!(appendExpression instanceof ClassInstanceCreation)) {
+				return false;
+			}
 			final ClassInstanceCreation builder = (ClassInstanceCreation) appendExpression;
-			// additional type check for pure append-chain not necessary
+			// TODO "" + i isn't handled correctly!!! i+ "" too? cannot ignore this - conversion to
+			// String necessary after all arithmetic ops
 			if (!builder.arguments().isEmpty()) {
 				if (builder.arguments().size() > 1) {
 					return false;
 				}
 				Expression appendArgumentExpression = (Expression) builder.arguments().get(0);
-				// TODO String.valueOf(...) as Start?
-				if (OperatorPrecedence.priority(appendArgumentExpression) == Priority.ADD_SUB) {
-					appendArgumentExpression = wrap(appendArgumentExpression, Priority.MULT_DIV);
+				if (appendArgumentExpression instanceof MethodInvocation) {
+					final MethodInvocation methodInvocation = (MethodInvocation) appendArgumentExpression;
+					if (!"valueOf".equals(methodInvocation.getName().getIdentifier())
+							|| methodInvocation.arguments().size() != 1) {
+						return false;
+					}
+					final Expression methodExpression = methodInvocation.getExpression();
+					if (!(methodExpression instanceof SimpleName)
+							|| !"String".equals(((SimpleName) methodExpression).getIdentifier())) {
+						return false;
+					}
+					appendArgumentExpression = (Expression) methodInvocation.arguments().get(0);
 				}
+				// OK, no parentheses necessary for arithmetic add before string: l1 + l2 + "s"
 				stringExpression = newInfixExpression(InfixExpression.Operator.PLUS,
 						appendArgumentExpression, stringExpression != null ? stringExpression
 								: getAst().newStringLiteral());
