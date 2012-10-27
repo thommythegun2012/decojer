@@ -1567,6 +1567,9 @@ public final class TrCfg2JavaExpressionStmts {
 				Expression appendArgumentExpression = (Expression) methodInvocation.arguments()
 						.get(0);
 				// parentheses necessary for arithmetic add after string: "s" + (l1 + l2)
+				// TODO System.out.println(((double) i + d) + s); ...must handle this here too for
+				// JDK>=5 ...allready encountered append(String) here? must iterate from start?
+				// where is the info in AST?
 				if (OperatorPrecedence.priority(appendArgumentExpression) == Priority.ADD_SUB) {
 					appendArgumentExpression = wrap(appendArgumentExpression, Priority.MULT_DIV);
 				}
