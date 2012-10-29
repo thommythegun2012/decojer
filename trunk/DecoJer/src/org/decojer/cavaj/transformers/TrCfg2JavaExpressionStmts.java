@@ -1126,12 +1126,16 @@ public final class TrCfg2JavaExpressionStmts {
 			Expression thenExpression = ((IfStatement) c.removeStmt(0)).getExpression();
 			Expression elseExpression = ((IfStatement) x.removeStmt(0)).getExpression();
 			Expression expression = ifStatement.getExpression();
-			// TODO check a_c true?!
-			if (a_c.isCondTrue() ^ c.isBefore(x)) {
-				expression = not(expression);
+
+			if (!c.isBefore(x)) {
 				final Expression swapExpression = thenExpression;
 				thenExpression = elseExpression;
 				elseExpression = swapExpression;
+				if (a_c.isCondTrue()) {
+					expression = not(expression);
+				}
+			} else if (a_c.isCondFalse()) {
+				expression = not(expression);
 			}
 			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
 			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
@@ -1353,11 +1357,15 @@ public final class TrCfg2JavaExpressionStmts {
 				// expressions: expression ? trueExpression : falseExpression
 				final ConditionalExpression conditionalExpression = getAst()
 						.newConditionalExpression();
-				if (a_c.isCondTrue() ^ c.isBefore(x)) {
-					expression = not(expression);
+				if (!c.isBefore(x)) {
 					final Expression swapExpression = thenExpression;
 					thenExpression = elseExpression;
 					elseExpression = swapExpression;
+					if (a_c.isCondTrue()) {
+						expression = not(expression);
+					}
+				} else if (a_c.isCondFalse()) {
+					expression = not(expression);
 				}
 				conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
 				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
