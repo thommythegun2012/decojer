@@ -1162,7 +1162,10 @@ public final class TrCfg2JavaExpressionStmts {
 	 * Eclipse 1.2 JDT: org.eclipse.jdt.core.JDTCompilerAdapter.execute()
 	 * 
 	 * GET class$0 DUP JCND_NE // (_POP_ PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$0
-	 * GOTO)
+	 * GOTO .) .
+	 * 
+	 * GET class$java$lang$String JCND_NE // (PUSH "typeLiteral" INVOKE Class.forName DUP PUT
+	 * class$java$lang$String GOTO .) \\ (GET class$java$lang$String) .
 	 * 
 	 * @param f
 	 *            field for class literal caching
