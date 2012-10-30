@@ -8,3 +8,4 @@ Differences to previous
   + new constants:
     - Double.SIZE, Float.SIZE
     - Double.TYPE, Float.TYPE
+*  direct Constant Pool Class Literals without synthetic field with class$...
