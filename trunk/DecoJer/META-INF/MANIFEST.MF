@@ -24,7 +24,7 @@ Bundle-ClassPath: .,
  lib/javassist.jar,
  lib/dex-reader-1.11-SNAPSHOT.jar,
  lib/dexlib-1.4.1-dev.jar,
- lib/guava-13.0.jar,
+ lib/guava-13.0.1.jar,
  lib/commons-io-2.1.jar
 Export-Package: com.google.common.annotations,
  com.google.common.base,
