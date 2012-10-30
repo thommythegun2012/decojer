@@ -47,6 +47,7 @@ import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.ops.CAST;
+import org.decojer.cavaj.model.code.ops.CmpType;
 import org.decojer.cavaj.model.code.ops.DUP;
 import org.decojer.cavaj.model.code.ops.FILLARRAY;
 import org.decojer.cavaj.model.code.ops.GET;
@@ -344,8 +345,13 @@ public final class TrCfg2JavaExpressionStmts {
 				final GET cop = (GET) op;
 				final F f = cop.getF();
 				if (f.check(AF.STATIC)) {
-					if (rewriteCachedClassLiteral(f, bb)) {
-						break;
+					if (f.check(AF.SYNTHETIC)
+							&& (f.getName().startsWith("class$") || f.getName()
+									.startsWith("array$"))) {
+						if (rewriteCachedClassLiteral(bb)) {
+							break;
+						}
+						LOGGER.warning("Couldn't rewrite cached class literal '" + f + "'!");
 					}
 					bb.push(getAst().newQualifiedName(this.cfg.getTd().newTypeName(f.getT()),
 							getAst().newSimpleName(f.getName())));
@@ -495,8 +501,11 @@ public final class TrCfg2JavaExpressionStmts {
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
 				} else {
-					if (rewriteStringAppend(m, bb)) {
-						break;
+					if ("toString".equals(m.getName())
+							&& (m.getT().is(StringBuilder.class) || m.getT().is(StringBuffer.class))) {
+						if (rewriteStringAppend(bb)) {
+							break;
+						}
 					}
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 					final Expression expression = bb.pop();
@@ -1157,92 +1166,135 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	/**
-	 * Class Literal Caching (no direct Constant Pool Class Literals in 1.2).
+	 * Class Literal Caching (no direct Constant Pool Class Literals before JDK 5).
 	 * 
-	 * Eclipse 1.2 JDT: org.eclipse.jdt.core.JDTCompilerAdapter.execute()
-	 * 
-	 * GET class$0 DUP JCND_NE // (_POP_ PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$0
-	 * GOTO .) .
-	 * 
-	 * GET class$java$lang$String JCND_NE // (PUSH "typeLiteral" INVOKE Class.forName DUP PUT
-	 * class$java$lang$String GOTO .) \\ (GET class$java$lang$String) .
-	 * 
-	 * @param f
-	 *            field for class literal caching
 	 * @param bb
 	 *            BB
-	 * 
 	 * @return {@code true} - rewritten
 	 */
-	private boolean rewriteCachedClassLiteral(final F f, final BB bb) {
-		if (!f.check(AF.SYNTHETIC)) {
-			return false;
-		}
-		if (!f.getName().startsWith("class$")) {
-			return false;
-		}
-		rewrite: try {
+	private boolean rewriteCachedClassLiteral(final BB bb) {
+		// field-get for synthetic field which name starts with "class$" or "array$"
+		// (is class$<[0-9]+> for Eclipse or class$<classname> for JDK)
+
+		// I admit this function looks very ugly...more general pattern matching would be nice!
+		try {
+			if (bb.getOps() == 1) {
+				// try JDK style:
+				// GET class$java$lang$String JCND_NE
+				// (PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$java$lang$String GOTO #)
+				// GET class$java$lang$String #
+				if (!(bb.getOp(0) instanceof JCND)) {
+					return false;
+				}
+				// JDK 1 & 2 is EQ, 3 & 4 is NE, >=5 has direct Class Literals
+				final E initCacheOut = ((JCND) bb.getOp(0)).getCmpType() == CmpType.T_EQ ? bb
+						.getTrueOut() : bb.getFalseOut();
+
+				final BB pushBb = initCacheOut.getEnd();
+				if (pushBb.getOps() != 4 && pushBb.getOps() != 5) {
+					return false;
+				}
+				if (!(pushBb.getOp(0) instanceof PUSH)) {
+					return false;
+				}
+				if (!(pushBb.getOp(1) instanceof INVOKE)) {
+					return false;
+				}
+				if (!(pushBb.getOp(2) instanceof DUP)) {
+					return false;
+				}
+				if (!(pushBb.getOp(3) instanceof PUT)) {
+					return false;
+				}
+				if (pushBb.getOps() == 5 && !(pushBb.getOp(4) instanceof GOTO)) {
+					// JDK 3 & 4
+					return false;
+				}
+
+				final BB getBb = initCacheOut.isCondTrue() ? bb.getFalseOut().getEnd() : bb
+						.getTrueOut().getEnd();
+				if (getBb.getOps() != 1 && getBb.getOps() != 2) {
+					return false;
+				}
+				if (!(getBb.getOp(0) instanceof GET)) {
+					return false;
+				}
+				if (pushBb.getOps() == 2 && !(getBb.getOp(1) instanceof GOTO)) {
+					// JDK 1 & 2
+					return false;
+				}
+				final BB followBb = getBb.getOut().getEnd();
+				// can just happen for JDK<5: replace . -> /
+				final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace(
+						'.', '/');
+				followBb.push(Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg
+						.getDu().getT(classInfo), this.cfg.getTd()));
+				bb.removeOp(0);
+				followBb.joinPredBb(bb);
+				return true;
+			}
+			// try Eclipse style, ignore Exception-handling:
+			// (see Eclipse 1.2 JDT: org.eclipse.jdt.core.JDTCompilerAdapter.execute())
+			//
+			// GET class$0 DUP JCND_NE
+			// (_POP_ PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$0 GOTO #)
+			// #
 			if (bb.getOps() != 2) {
-				break rewrite;
+				return false;
 			}
 			if (!(bb.getOp(0) instanceof DUP)) {
-				break rewrite;
+				return false;
 			}
 			if (!(bb.getOp(1) instanceof JCND)) {
-				break rewrite;
+				return false;
 			}
 			final BB popBb = bb.getFalseOut().getEnd();
 			if (popBb.getOps() != 1) {
-				break rewrite;
+				return false;
 			}
 			if (!(popBb.getOp(0) instanceof POP)) {
-				break rewrite;
+				return false;
 			}
 			final BB pushBb = popBb.getOut().getEnd();
 			if (pushBb.getOps() != 2) {
-				break rewrite;
+				return false;
 			}
 			if (!(pushBb.getOp(0) instanceof PUSH)) {
-				break rewrite;
+				return false;
 			}
 			if (!(pushBb.getOp(1) instanceof INVOKE)) {
-				break rewrite;
+				return false;
 			}
 			final BB dupBb = pushBb.getOut().getEnd();
 			if (dupBb.getOps() != 3) {
-				break rewrite;
+				return false;
 			}
 			if (!(dupBb.getOp(0) instanceof DUP)) {
-				break rewrite;
+				return false;
 			}
 			if (!(dupBb.getOp(1) instanceof PUT)) {
-				break rewrite;
+				return false;
 			}
 			if (!(dupBb.getOp(2) instanceof GOTO)) {
-				break rewrite;
+				return false;
 			}
 			final BB followBb = dupBb.getOut().getEnd();
 			if (followBb != bb.getTrueOut().getEnd()) {
-				break rewrite;
+				return false;
 			}
-			final String classInfo = (String) ((PUSH) pushBb.getOp(0)).getValue();
+			// can just happen for JDK<5: replace . -> /
+			final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace('.',
+					'/');
 			followBb.push(Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg.getDu()
 					.getT(classInfo), this.cfg.getTd()));
 			bb.removeOp(0);
 			bb.removeOp(0);
-			bb.getOuts().remove(bb.getTrueOut());
-			popBb.remove();
-			pushBb.remove();
-			dupBb.remove();
 			followBb.joinPredBb(bb);
-			bb.setSucc(followBb);
 			return true;
 		} catch (final Exception e) {
-			LOGGER.log(Level.SEVERE, "Couldn't rewrite cached class literal '" + f + "'!", e);
+			LOGGER.log(Level.WARNING, "Rewrite to class-literal didn't work!", e);
 			return false;
 		}
-		LOGGER.warning("Couldn't rewrite cached class literal '" + f + "'!");
-		return false;
 	}
 
 	private boolean rewriteConditionalCompoundValue(final BB bb) {
@@ -1548,13 +1600,9 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
-	private boolean rewriteStringAppend(final M m, final BB bb) {
-		if (!"toString".equals(m.getName())) {
-			return false;
-		}
-		if (!m.getT().is(StringBuilder.class) && !m.getT().is(StringBuffer.class)) {
-			return false;
-		}
+	private boolean rewriteStringAppend(final BB bb) {
+		// method-invoke for StringBuffer.toString() or StringBuilder.toString()
+
 		// jdk1.1.6:
 		// new StringBuffer(String.valueOf(super.toString())).append(" TEST").toString()
 		// jdk1.3:
@@ -1626,8 +1674,8 @@ public final class TrCfg2JavaExpressionStmts {
 			return true;
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING, "Rewrite to string-add didn't work!", e);
+			return false;
 		}
-		return false;
 	}
 
 	private void transform() {
