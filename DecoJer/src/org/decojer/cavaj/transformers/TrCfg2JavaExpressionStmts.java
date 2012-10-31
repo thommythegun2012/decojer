@@ -223,7 +223,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// TODO a = a <op> expr => a <op>= expr
 				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 				// inline assignment, DUP(_X1) -> PUT
-				if (bb.getTop() > 0 && bb.peek() == rightExpression) {
+				if (!bb.isStackEmpty() && bb.peek() == rightExpression) {
 					bb.pop();
 					bb.push(assignment);
 				} else {
@@ -376,7 +376,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final INC cop = (INC) op;
 				final int value = cop.getValue();
 
-				if (bb.getTop() == 0) {
+				if (!bb.isStackEmpty()) {
 					// TODO could be inline at begin!
 					if (value == 1 || value == -1) {
 						final PrefixExpression prefixExpression = getAst().newPrefixExpression();
@@ -817,10 +817,10 @@ public final class TrCfg2JavaExpressionStmts {
 					assignment.setLeftHandSide(fieldAccess);
 				}
 				// inline assignment, DUP(_X1) -> PUT
-				if (bb.getTop() > 0 && bb.peek() == rightExpression) {
+				if (!bb.isStackEmpty() && bb.peek() == rightExpression) {
 					bb.pop();
 					bb.push(assignment);
-				} else if (bb.getTop() > 0
+				} else if (!bb.isStackEmpty()
 						&& rightExpression instanceof InfixExpression
 						&& (((InfixExpression) rightExpression).getOperator() == InfixExpression.Operator.PLUS || ((InfixExpression) rightExpression)
 								.getOperator() == InfixExpression.Operator.MINUS)) {
@@ -867,7 +867,8 @@ public final class TrCfg2JavaExpressionStmts {
 				final Expression rightExpression = bb.pop();
 
 				// inline assignment, DUP -> STORE
-				final boolean isInlineAssignment = bb.getTop() > 0 && bb.peek() == rightExpression;
+				final boolean isInlineAssignment = !bb.isStackEmpty()
+						&& bb.peek() == rightExpression;
 				final V v = this.cfg.getFrameVar(cop.getReg(), cop.getPc() + 1);
 
 				if (v == null /* tmp hack */|| v.getName() == null) {
@@ -1045,7 +1046,7 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final BB c = c_bb.getStart();
-			if (c.getStmts() != 1 || !c.isCondOrPreLoopHead() || c.getTop() > 0) {
+			if (c.getStmts() != 1 || !c.isCondOrPreLoopHead() || !c.isStackEmpty()) {
 				continue;
 			}
 			final E a_c = c.getRelevantIn();
@@ -1110,7 +1111,7 @@ public final class TrCfg2JavaExpressionStmts {
 				c.joinPredBb(a);
 				return true;
 			}
-			if (x.getStmts() != 1 || !x.isCondOrPreLoopHead() || x.getTop() > 0) {
+			if (x.getStmts() != 1 || !x.isCondOrPreLoopHead() || !x.isStackEmpty()) {
 				continue;
 			}
 			// if (bb != x.getTrueOut().getRelevantEnd() && bb != x.getFalseOut().getRelevantEnd())
@@ -1600,6 +1601,51 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
+	private boolean rewritePushJcnd(final BB bb) {
+		// in boolean compounds in JDK 1 & 2: PUSH true/false -> JCND
+		if (bb.getOps() == 0 || !bb.isStackEmpty()) {
+			return false;
+		}
+		final Op op = bb.getOp(0);
+		if (!(op instanceof JCND)) {
+			return false;
+		}
+		final CmpType cmpType = ((JCND) op).getCmpType();
+
+		for (final E in : bb.getIns()) {
+			final E c_bb = in.relevantIn();
+			if (c_bb == null || !c_bb.isSequence()) {
+				continue;
+			}
+			final BB a = c_bb.getStart();
+			if (a.isStackEmpty()) {
+				continue;
+			}
+			final Expression e = a.peek();
+			if (!(e instanceof BooleanLiteral) && !(e instanceof NumberLiteral)) {
+				continue;
+			}
+			boolean eIsTrue = e instanceof BooleanLiteral && ((BooleanLiteral) e).booleanValue()
+					|| e instanceof NumberLiteral && ((NumberLiteral) e).getToken().equals("1");
+			switch (cmpType) {
+			case T_EQ:
+				// "== 0" means "is false"
+				eIsTrue = !eIsTrue;
+				break;
+			case T_NE:
+				// "!= 0" means "is true"
+				break;
+			default:
+				LOGGER.warning("Unknown cmp type '" + cmpType + "'!");
+			}
+			a.pop();
+			a.setSucc(eIsTrue ? bb.getTrueSucc() : bb.getFalseSucc());
+			in.remove();
+			return true;
+		}
+		return false;
+	}
+
 	private boolean rewriteStringAppend(final BB bb) {
 		// method-invoke for StringBuffer.toString() or StringBuilder.toString()
 
@@ -1690,11 +1736,11 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			final boolean handler = rewriteHandler(bb);
 			if (!handler) {
-				while (rewriteBooleanCompound(bb)) {
-					// merge superior conditionals
-				}
-				while (rewriteConditionalCompoundValue(bb)) {
-					// delete superior BBs, multiple iterations possible:
+				// TODO rewritePushJcnd() as last...or we should check if all incomings are bool
+				// constants, not like "c ? true : a"
+				while (rewriteBooleanCompound(bb) || rewriteConditionalCompoundValue(bb)
+						|| rewritePushJcnd(bb)) {
+					// merge superior BBs, multiple iterations possible, e.g.:
 					// a == null ? 0 : a.length() == 0 ? 0 : 1
 				}
 			}

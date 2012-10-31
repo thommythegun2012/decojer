@@ -63,7 +63,7 @@ public final class BB {
 	 * Pc-ordering at initial read automatically through read-order and some sorts at branches.
 	 */
 	@Getter
-	protected final List<E> outs = Lists.newArrayListWithCapacity(1);
+	private final List<E> outs = Lists.newArrayListWithCapacity(1);
 
 	/**
 	 * Must cache and manage first operation PC separately because operations are removed through
@@ -497,6 +497,15 @@ public final class BB {
 	}
 
 	/**
+	 * Is stack empty?
+	 * 
+	 * @return {@code true} - stack is empty
+	 */
+	public boolean isStackEmpty() {
+		return this.top <= 0;
+	}
+
+	/**
 	 * Has BB necessary stack size for first operation?
 	 * 
 	 * @return {@code true} - BB has necessary stack size for first operation
@@ -504,6 +513,15 @@ public final class BB {
 	public boolean isStackUnderflow() {
 		final Op op = getOp(0);
 		return op.getInStackSize() - this.cfg.getInFrame(op).wideStacks(op.getInStackSize()) > getTop();
+	}
+
+	/**
+	 * Is start BB?
+	 * 
+	 * @return {@code true} - is start BB
+	 */
+	public boolean isStartBb() {
+		return this.cfg.getStartBb() == this;
 	}
 
 	/**
@@ -622,15 +640,11 @@ public final class BB {
 	 */
 	public void remove() {
 		this.cfg.getPostorderedBbs().set(this.postorder, null);
-		for (final E in : this.ins) {
-			in.getStart().outs.remove(in);
+		for (int i = this.ins.size(); i-- > 0;) {
+			this.ins.get(i).remove();
 		}
-		for (final E out : this.outs) {
-			final BB succ = out.getEnd();
-			succ.ins.remove(out);
-			if (succ.ins.isEmpty() && this.cfg.getStartBb() != succ) {
-				succ.remove();
-			}
+		for (int i = this.outs.size(); i-- > 0;) {
+			this.outs.get(i).remove();
 		}
 	}
 
