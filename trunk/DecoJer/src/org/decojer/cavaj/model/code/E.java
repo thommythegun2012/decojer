@@ -241,6 +241,17 @@ public final class E {
 		return end.getRelevantOut();
 	}
 
+	/**
+	 * Remove edge from CFG.
+	 */
+	public void remove() {
+		this.start.getOuts().remove(this);
+		this.end.getIns().remove(this);
+		if (this.end.getIns().isEmpty() && !this.end.isStartBb()) {
+			this.end.remove();
+		}
+	}
+
 	@Override
 	public String toString() {
 		return this.start.getPostorder() + " -> " + this.end.getPostorder() + getValueString();

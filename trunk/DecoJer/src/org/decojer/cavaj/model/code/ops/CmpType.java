@@ -58,6 +58,6 @@ public enum CmpType {
 	/**
 	 * Not equal.
 	 */
-	T_NE;
+	T_NE
 
 }
