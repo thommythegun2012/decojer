@@ -1114,7 +1114,21 @@ public final class TrCfg2JavaExpressionStmts {
 			if (x.getStmts() != 1 || !x.isCondOrPreLoopHead() || !x.isStackEmpty()) {
 				continue;
 			}
-			// if (bb != x.getTrueOut().getRelevantEnd() && bb != x.getFalseOut().getRelevantEnd())
+			// check cross...
+			E x_bb = x.getTrueOut();
+			if (x_bb.getRelevantEnd() == bb) {
+				if (x.getFalseOut().getRelevantEnd() != bb2) {
+					return false;
+				}
+			} else {
+				if (x_bb.getRelevantEnd() != bb2) {
+					return false;
+				}
+				x_bb = x.getFalseOut();
+				if (x_bb.getRelevantEnd() != bb) {
+					return false;
+				}
+			}
 
 			// This is a conditional compound (since JDK 4 with C/x is cond), example is A ? C : x:
 			//
@@ -1133,31 +1147,34 @@ public final class TrCfg2JavaExpressionStmts {
 			// rewrite AST
 			final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
 
-			Expression thenExpression = ((IfStatement) c.removeStmt(0)).getExpression();
-			Expression elseExpression = ((IfStatement) x.removeStmt(0)).getExpression();
 			Expression expression = ifStatement.getExpression();
-
-			if (!c.isBefore(x)) {
-				final Expression swapExpression = thenExpression;
-				thenExpression = elseExpression;
-				elseExpression = swapExpression;
-				if (a_c.isCondTrue()) {
+			Expression thenExpression;
+			Expression elseExpression;
+			if (c.isBefore(x)) {
+				if (a_c.isCondFalse()) {
 					expression = not(expression);
 				}
-			} else if (a_c.isCondFalse()) {
-				expression = not(expression);
+				thenExpression = ((IfStatement) c.removeStmt(0)).getExpression();
+				elseExpression = ((IfStatement) x.removeStmt(0)).getExpression();
+				if (c_bb.isCondTrue() ^ x_bb.isCondTrue()) {
+					// cross is true/false mix, for join we must inverse the none-join node x
+					elseExpression = not(thenExpression);
+				}
+			} else { /* x is before c */
+				if (a_x.isCondFalse()) {
+					expression = not(expression);
+				}
+				thenExpression = ((IfStatement) x.removeStmt(0)).getExpression();
+				elseExpression = ((IfStatement) c.removeStmt(0)).getExpression();
+				if (c_bb.isCondTrue() ^ x_bb.isCondTrue()) {
+					// cross is true/false mix, for join we must inverse the none-join node x
+					elseExpression = not(elseExpression);
+				}
 			}
 			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
 			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
-			if (c_bb.isCondTrue()) {
-				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
-				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
-			} else {
-				conditionalExpression.setThenExpression(wrap(not(thenExpression),
-						Priority.CONDITIONAL));
-				conditionalExpression.setElseExpression(wrap(not(elseExpression),
-						Priority.CONDITIONAL));
-			}
+			conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
+			conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
 			ifStatement.setExpression(conditionalExpression);
 			x.remove();
 			c.joinPredBb(a);
@@ -1341,8 +1358,8 @@ public final class TrCfg2JavaExpressionStmts {
 			Expression elseExpression = x.peek();
 			Expression expression = ((IfStatement) a.removeFinalStmt()).getExpression();
 
-			rewrite: if (thenExpression instanceof BooleanLiteral
-					|| elseExpression instanceof BooleanLiteral) {
+			rewrite: if ((thenExpression instanceof BooleanLiteral || thenExpression instanceof NumberLiteral)
+					&& (elseExpression instanceof BooleanLiteral || elseExpression instanceof NumberLiteral)) {
 				// expression: A ? true : false => A,
 				// accept if one is BooleanLiteral - merging didn't work ;)
 				final boolean cIsTrue = thenExpression instanceof BooleanLiteral
