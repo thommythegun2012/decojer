@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.transformers;
 
+import static org.decojer.cavaj.utils.Expressions.booleanFromLiteral;
 import static org.decojer.cavaj.utils.Expressions.newInfixExpression;
 import static org.decojer.cavaj.utils.Expressions.newPrefixExpression;
 import static org.decojer.cavaj.utils.Expressions.not;
@@ -80,7 +81,6 @@ import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.AssertStatement;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
-import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
@@ -1158,7 +1158,7 @@ public final class TrCfg2JavaExpressionStmts {
 				elseExpression = ((IfStatement) x.removeStmt(0)).getExpression();
 				if (c_bb.isCondTrue() ^ x_bb.isCondTrue()) {
 					// cross is true/false mix, for join we must inverse the none-join node x
-					elseExpression = not(thenExpression);
+					elseExpression = not(elseExpression);
 				}
 			} else { /* x is before c */
 				if (a_x.isCondFalse()) {
@@ -1168,7 +1168,7 @@ public final class TrCfg2JavaExpressionStmts {
 				elseExpression = ((IfStatement) c.removeStmt(0)).getExpression();
 				if (c_bb.isCondTrue() ^ x_bb.isCondTrue()) {
 					// cross is true/false mix, for join we must inverse the none-join node x
-					elseExpression = not(elseExpression);
+					thenExpression = not(thenExpression);
 				}
 			}
 			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
@@ -1357,16 +1357,13 @@ public final class TrCfg2JavaExpressionStmts {
 			Expression thenExpression = c.peek();
 			Expression elseExpression = x.peek();
 			Expression expression = ((IfStatement) a.removeFinalStmt()).getExpression();
+			final Boolean thenBooleanConst = booleanFromLiteral(thenExpression);
+			final Boolean elseBooleanConst = booleanFromLiteral(elseExpression);
 
-			rewrite: if ((thenExpression instanceof BooleanLiteral || thenExpression instanceof NumberLiteral)
-					&& (elseExpression instanceof BooleanLiteral || elseExpression instanceof NumberLiteral)) {
+			rewrite: if (thenBooleanConst != null && elseBooleanConst != null) {
 				// expression: A ? true : false => A,
 				// accept if one is BooleanLiteral - merging didn't work ;)
-				final boolean cIsTrue = thenExpression instanceof BooleanLiteral
-						&& ((BooleanLiteral) thenExpression).booleanValue()
-						|| thenExpression instanceof NumberLiteral
-						&& ((NumberLiteral) thenExpression).getToken().equals("1");
-				if (a_c.isCondTrue() ^ cIsTrue) {
+				if (a_c.isCondTrue() ^ thenBooleanConst) {
 					expression = not(expression);
 				}
 			} else {
@@ -1638,16 +1635,14 @@ public final class TrCfg2JavaExpressionStmts {
 			if (a.isStackEmpty()) {
 				continue;
 			}
-			final Expression e = a.peek();
-			if (!(e instanceof BooleanLiteral) && !(e instanceof NumberLiteral)) {
+			Boolean booleanConst = booleanFromLiteral(a.peek());
+			if (booleanConst == null) {
 				continue;
 			}
-			boolean eIsTrue = e instanceof BooleanLiteral && ((BooleanLiteral) e).booleanValue()
-					|| e instanceof NumberLiteral && ((NumberLiteral) e).getToken().equals("1");
 			switch (cmpType) {
 			case T_EQ:
 				// "== 0" means "is false"
-				eIsTrue = !eIsTrue;
+				booleanConst = !booleanConst;
 				break;
 			case T_NE:
 				// "!= 0" means "is true"
@@ -1656,7 +1651,7 @@ public final class TrCfg2JavaExpressionStmts {
 				LOGGER.warning("Unknown cmp type '" + cmpType + "'!");
 			}
 			a.pop();
-			a.setSucc(eIsTrue ? bb.getTrueSucc() : bb.getFalseSucc());
+			a.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
 			in.remove();
 			return true;
 		}

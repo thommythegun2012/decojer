@@ -26,9 +26,11 @@ package org.decojer.cavaj.utils;
 import static org.decojer.cavaj.utils.OperatorPrecedence.priority;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.InfixExpression;
+import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 
@@ -38,6 +40,35 @@ import org.eclipse.jdt.core.dom.PrefixExpression;
  * @author André Pankraz
  */
 public final class Expressions {
+
+	/**
+	 * Get boolean value from literal.
+	 * 
+	 * @param expression
+	 *            expression
+	 * @return {@code null} - no boolean literal, {@code Boolean#TRUE} - true, {@code Boolean#FALSE}
+	 *         - true
+	 */
+	public static Boolean booleanFromLiteral(final Expression expression) {
+		if (expression instanceof BooleanLiteral) {
+			return ((BooleanLiteral) expression).booleanValue();
+		}
+		if (!(expression instanceof NumberLiteral)) {
+			return null;
+		}
+		final String token = ((NumberLiteral) expression).getToken();
+		if (token.length() != 1) {
+			return null;
+		}
+		final char c = token.charAt(0);
+		if ('0' == c) {
+			return false;
+		}
+		if ('1' == c) {
+			return true;
+		}
+		return null;
+	}
 
 	private static boolean isNot(final Expression expression) {
 		if (!(expression instanceof PrefixExpression)) {
