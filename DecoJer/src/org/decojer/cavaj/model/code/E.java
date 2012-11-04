@@ -103,6 +103,36 @@ public final class E {
 		return end.getRelevantOut().getRelevantEnd();
 	}
 
+	/**
+	 * Get relevant incoming edge, maybe {@code this}.
+	 * 
+	 * @return relevant incoming edge, maybe {@code this}
+	 * 
+	 * @see BB#isRelevant()
+	 */
+	public E getRelevantIn() {
+		final BB start = getStart();
+		if (start.isRelevant()) {
+			return this;
+		}
+		return start.getRelevantIn();
+	}
+
+	/**
+	 * Get relevant outgoing edge, maybe {@code this}.
+	 * 
+	 * @return relevant outgoing edge, maybe {@code this}
+	 * 
+	 * @see BB#isRelevant()
+	 */
+	protected E getRelevantOut() {
+		final BB end = getEnd();
+		if (end.isRelevant()) {
+			return this;
+		}
+		return end.getRelevantOut();
+	}
+
 	public String getValueString() {
 		if (this.value == null) {
 			return "";
@@ -209,36 +239,6 @@ public final class E {
 			}
 		}
 		return false;
-	}
-
-	/**
-	 * Get relevant incoming edge, maybe {@code this}.
-	 * 
-	 * @return relevant incoming edge, maybe {@code this}
-	 * 
-	 * @see BB#isRelevant()
-	 */
-	public E relevantIn() {
-		final BB start = getStart();
-		if (start.isRelevant()) {
-			return this;
-		}
-		return start.getRelevantIn();
-	}
-
-	/**
-	 * Get relevant outgoing edge, maybe {@code this}.
-	 * 
-	 * @return relevant outgoing edge, maybe {@code this}
-	 * 
-	 * @see BB#isRelevant()
-	 */
-	protected E relevantOut() {
-		final BB end = getEnd();
-		if (end.isRelevant()) {
-			return this;
-		}
-		return end.getRelevantOut();
 	}
 
 	/**

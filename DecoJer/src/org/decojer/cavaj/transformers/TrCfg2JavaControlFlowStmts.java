@@ -368,7 +368,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			for (int i = 0; i < bb.getStmts(); ++i) {
 				statements.add(bb.getStmt(i));
 			}
-			final E out = bb.getOut();
+			final E out = bb.getSequenceOut();
 			if (out == null) {
 				return;
 			}
