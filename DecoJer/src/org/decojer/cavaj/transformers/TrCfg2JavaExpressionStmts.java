@@ -1323,7 +1323,7 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 	}
 
-	private boolean rewriteConditionalCompoundValue(final BB bb) {
+	private boolean rewriteConditionalValue(final BB bb) {
 		if (bb.getIns().size() < 2) {
 			// this has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
 			// even more preds possible with boolean conditionals
@@ -1639,11 +1639,11 @@ public final class TrCfg2JavaExpressionStmts {
 			if (c_bb == null || !c_bb.isSequence()) {
 				continue;
 			}
-			final BB a = c_bb.getStart();
-			if (a.isStackEmpty()) {
+			final BB c = c_bb.getStart();
+			if (c.isStackEmpty()) {
 				continue;
 			}
-			Boolean booleanConst = booleanFromLiteral(a.peek());
+			Boolean booleanConst = booleanFromLiteral(c.peek());
 			if (booleanConst == null) {
 				continue;
 			}
@@ -1658,8 +1658,8 @@ public final class TrCfg2JavaExpressionStmts {
 			default:
 				LOGGER.warning("Unknown cmp type '" + cmpType + "'!");
 			}
-			a.pop();
-			a.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
+			c.pop();
+			c.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
 			in.remove();
 			return true;
 		}
@@ -1754,20 +1754,16 @@ public final class TrCfg2JavaExpressionStmts {
 				// can happen if BB deleted through rewrite
 				continue;
 			}
-			final boolean handler = rewriteHandler(bb);
-			if (!handler) {
-				// TODO rewritePushJcnd() as last...or we should check if all incomings are bool
-				// constants, not like "c ? true : a"
-				while (rewriteBooleanCompound(bb) || rewriteConditionalCompoundValue(bb)
+			if (!rewriteHandler(bb)) { // handler BB cannot match following patterns
+				while (rewriteBooleanCompound(bb) || rewriteConditionalValue(bb)
 						|| rewritePushJcnd(bb)) {
 					// merge superior BBs, multiple iterations possible, e.g.:
 					// a == null ? 0 : a.length() == 0 ? 0 : 1
 				}
 			}
-			// previous expressions merged into bb, now rewrite:
+			// previous expressions merged into bb, now rewrite
 			if (!convertToHLLIntermediate(bb)) {
 				// should never happen in forward mode
-				// TODO can currently happen with exceptions, RETURN x is not in catch!
 				LOGGER.warning("Stack underflow in '" + this.cfg + "':\n" + bb);
 			}
 		}
