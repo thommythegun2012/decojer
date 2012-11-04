@@ -1118,15 +1118,15 @@ public final class TrCfg2JavaExpressionStmts {
 			E x_bb = x.getTrueOut();
 			if (x_bb.getRelevantEnd() == bb) {
 				if (x.getFalseOut().getRelevantEnd() != bb2) {
-					return false;
+					continue;
 				}
 			} else {
 				if (x_bb.getRelevantEnd() != bb2) {
-					return false;
+					continue;
 				}
 				x_bb = x.getFalseOut();
 				if (x_bb.getRelevantEnd() != bb) {
-					return false;
+					continue;
 				}
 			}
 
