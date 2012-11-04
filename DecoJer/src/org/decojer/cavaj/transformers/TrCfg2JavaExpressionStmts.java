@@ -150,8 +150,16 @@ public final class TrCfg2JavaExpressionStmts {
 	private boolean convertToHLLIntermediate(final BB bb) {
 		boolean fieldInit = true; // small hack for now...later because of conditionals?
 		while (bb.getOps() > 0) {
-			if (bb.isStackUnderflow()) {
-				return false;
+			while (bb.isStackUnderflow()) {
+				// try to pull previous single sequence nodes including stack
+				if (bb.getIns().isEmpty()) {
+					return true; // nothing to do...deleted node
+				}
+				final E in = bb.getRelevantIn();
+				if (in == null) {
+					return false; // multiple or conditional incomings -> real fail
+				}
+				bb.joinPredBb(in.getStart());
 			}
 			final Op op = bb.removeOp(0);
 			Statement statement = null;
