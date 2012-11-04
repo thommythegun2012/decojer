@@ -984,6 +984,22 @@ public final class TrCfg2JavaExpressionStmts {
 		return r.getT().isWide();
 	}
 
+	private boolean removeNoneRelevant(final BB bb) {
+		final E sequenceOut = bb.getSequenceOut();
+		if (sequenceOut == null) {
+			return false;
+		}
+		final BB sequenceSucc = sequenceOut.getEnd();
+		if (sequenceSucc.getIns().size() == 1) {
+
+		}
+		if (bb.getStmts() != 0 || bb.getTop() != 0) {
+			return false;
+		}
+
+		return false;
+	}
+
 	private boolean rewriteAssertStatement(final Expression exceptionExpression, final BB bb) {
 		// if (!DecTestAsserts.$assertionsDisabled && (l1 > 0L ? l1 >= l2 : l1 > l2))
 		// throw new AssertionError("complex expression " + l1 - l2);
@@ -1049,7 +1065,7 @@ public final class TrCfg2JavaExpressionStmts {
 		for (final E in : bb.getIns()) {
 			// all following patterns have the following base form:
 			// "A(final IfStmt) -> C(unique IfStmt) -> bb"
-			final E c_bb = in.relevantIn();
+			final E c_bb = in.getRelevantIn();
 			if (c_bb == null || !c_bb.isCond()) {
 				continue;
 			}
@@ -1249,7 +1265,7 @@ public final class TrCfg2JavaExpressionStmts {
 					// JDK 1 & 2
 					return false;
 				}
-				final BB followBb = getBb.getOut().getEnd();
+				final BB followBb = getBb.getSequenceOut().getEnd();
 				// can just happen for JDK<5: replace . -> /
 				final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace(
 						'.', '/');
@@ -1281,7 +1297,7 @@ public final class TrCfg2JavaExpressionStmts {
 			if (!(popBb.getOp(0) instanceof POP)) {
 				return false;
 			}
-			final BB pushBb = popBb.getOut().getEnd();
+			final BB pushBb = popBb.getSequenceOut().getEnd();
 			if (pushBb.getOps() != 2) {
 				return false;
 			}
@@ -1291,7 +1307,7 @@ public final class TrCfg2JavaExpressionStmts {
 			if (!(pushBb.getOp(1) instanceof INVOKE)) {
 				return false;
 			}
-			final BB dupBb = pushBb.getOut().getEnd();
+			final BB dupBb = pushBb.getSequenceOut().getEnd();
 			if (dupBb.getOps() != 3) {
 				return false;
 			}
@@ -1304,7 +1320,7 @@ public final class TrCfg2JavaExpressionStmts {
 			if (!(dupBb.getOp(2) instanceof GOTO)) {
 				return false;
 			}
-			final BB followBb = dupBb.getOut().getEnd();
+			final BB followBb = dupBb.getSequenceOut().getEnd();
 			if (followBb != bb.getTrueOut().getEnd()) {
 				return false;
 			}
@@ -1330,7 +1346,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		for (final E in : bb.getIns()) {
-			final E c_bb = in.relevantIn();
+			final E c_bb = in.getRelevantIn();
 			if (c_bb == null) {
 				continue;
 			}
@@ -1635,7 +1651,7 @@ public final class TrCfg2JavaExpressionStmts {
 		final CmpType cmpType = ((JCND) op).getCmpType();
 
 		for (final E in : bb.getIns()) {
-			final E c_bb = in.relevantIn();
+			final E c_bb = in.getRelevantIn();
 			if (c_bb == null || !c_bb.isSequence()) {
 				continue;
 			}
@@ -1659,6 +1675,7 @@ public final class TrCfg2JavaExpressionStmts {
 				LOGGER.warning("Unknown cmp type '" + cmpType + "'!");
 			}
 			c.pop();
+			// TODO kill empty node
 			c.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
 			in.remove();
 			return true;

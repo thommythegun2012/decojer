@@ -258,20 +258,6 @@ public final class BB {
 	}
 
 	/**
-	 * Get unique (sequence) out edge.
-	 * 
-	 * @return out edge
-	 */
-	public E getOut() {
-		for (final E out : this.outs) {
-			if (out.isSequence()) {
-				return out;
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Get register number (locals).
 	 * 
 	 * @return register number (locals)
@@ -291,7 +277,7 @@ public final class BB {
 		if (this.ins.size() != 1) {
 			return null;
 		}
-		return this.ins.get(0).relevantIn();
+		return this.ins.get(0).getRelevantIn();
 	}
 
 	/**
@@ -302,11 +288,26 @@ public final class BB {
 	 * @see BB#isRelevant()
 	 */
 	public E getRelevantOut() {
-		final E out = getOut(); // without catches etc.
+		final E out = getSequenceOut();
 		if (out == null) {
 			return null;
 		}
-		return out.relevantOut();
+		return out.getRelevantOut();
+	}
+
+	/**
+	 * Get sequence outgoing edge.
+	 * 
+	 * @return sequence outgoing edge
+	 */
+	public E getSequenceOut() {
+		for (final E out : this.outs) {
+			if (out.isSequence()) {
+				return out;
+			}
+			assert out.isCatch() : out; // no conditional etc.
+		}
+		return null;
 	}
 
 	/**
