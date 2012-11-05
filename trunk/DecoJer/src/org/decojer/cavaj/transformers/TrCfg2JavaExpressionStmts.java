@@ -152,8 +152,13 @@ public final class TrCfg2JavaExpressionStmts {
 		while (bb.getOps() > 0) {
 			while (bb.isStackUnderflow()) {
 				// try to pull previous single sequence nodes including stack
-				if (bb.getIns().isEmpty()) {
-					return true; // nothing to do...deleted node
+				while (rewriteConditionalValue(bb)) {
+					// nested possible
+				} // now we must pull created value down...
+				if (bb.getOp(0) instanceof JCND && rewriteUnderflowJcnd(bb)) {
+					// special handling for JCND, multiple predecessors possible and can be directly
+					// routed through this BB
+					return true; // deleted node
 				}
 				final E in = bb.getRelevantIn();
 				if (in == null) {
@@ -984,22 +989,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return r.getT().isWide();
 	}
 
-	private boolean removeNoneRelevant(final BB bb) {
-		final E sequenceOut = bb.getSequenceOut();
-		if (sequenceOut == null) {
-			return false;
-		}
-		final BB sequenceSucc = sequenceOut.getEnd();
-		if (sequenceSucc.getIns().size() == 1) {
-
-		}
-		if (bb.getStmts() != 0 || bb.getTop() != 0) {
-			return false;
-		}
-
-		return false;
-	}
-
 	private boolean rewriteAssertStatement(final Expression exceptionExpression, final BB bb) {
 		// if (!DecTestAsserts.$assertionsDisabled && (l1 > 0L ? l1 >= l2 : l1 > l2))
 		// throw new AssertionError("complex expression " + l1 - l2);
@@ -1466,14 +1455,8 @@ public final class TrCfg2JavaExpressionStmts {
 				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
 				expression = conditionalExpression;
 			}
-			if (bb.getIns().size() > 2) {
-				a.push(expression);
-				a.setSucc(bb);
-			} else {
-				bb.joinPredBb(a);
-				// push new conditional expression, here only "a ? true : false" as "a"
-				bb.push(expression);
-			}
+			a.push(expression);
+			a.setSucc(bb);
 			c.remove();
 			x.remove();
 			return true;
@@ -1639,50 +1622,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
-	private boolean rewritePushJcnd(final BB bb) {
-		// in boolean compounds in JDK 1 & 2: PUSH true/false -> JCND
-		if (bb.getOps() == 0 || !bb.isStackEmpty()) {
-			return false;
-		}
-		final Op op = bb.getOp(0);
-		if (!(op instanceof JCND)) {
-			return false;
-		}
-		final CmpType cmpType = ((JCND) op).getCmpType();
-
-		for (final E in : bb.getIns()) {
-			final E c_bb = in.getRelevantIn();
-			if (c_bb == null || !c_bb.isSequence()) {
-				continue;
-			}
-			final BB c = c_bb.getStart();
-			if (c.isStackEmpty()) {
-				continue;
-			}
-			Boolean booleanConst = booleanFromLiteral(c.peek());
-			if (booleanConst == null) {
-				continue;
-			}
-			switch (cmpType) {
-			case T_EQ:
-				// "== 0" means "is false"
-				booleanConst = !booleanConst;
-				break;
-			case T_NE:
-				// "!= 0" means "is true"
-				break;
-			default:
-				LOGGER.warning("Unknown cmp type '" + cmpType + "'!");
-			}
-			c.pop();
-			// TODO kill empty node
-			c.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
-			in.remove();
-			return true;
-		}
-		return false;
-	}
-
 	private boolean rewriteStringAppend(final BB bb) {
 		// method-invoke for StringBuffer.toString() or StringBuilder.toString()
 
@@ -1761,6 +1700,63 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 	}
 
+	private boolean rewriteUnderflowJcnd(final BB bb) {
+		// in boolean compounds in JDK 1 & 2: PUSH true/false -> JCND
+		assert bb.getOps() == 1 : bb.getOps();
+		assert bb.isStackEmpty() : bb.getTop();
+
+		final CmpType cmpType = ((JCND) bb.getOp(0)).getCmpType();
+
+		final List<E> ins = bb.getIns();
+		for (int i = ins.size(); i-- > 0;) {
+			final E in = ins.get(i);
+			final E c_bb = in.getRelevantIn();
+			if (c_bb == null || !c_bb.isSequence()) {
+				continue;
+			}
+			final BB c = c_bb.getStart();
+			if (c.isStackEmpty()) {
+				continue;
+			}
+			Expression expression = c.pop();
+			Boolean booleanConst = booleanFromLiteral(expression);
+			if (booleanConst != null) {
+				switch (cmpType) {
+				case T_EQ:
+					// "== 0" means "is false"
+					booleanConst = !booleanConst;
+					break;
+				case T_NE:
+					// "!= 0" means "is true"
+					break;
+				default:
+					LOGGER.warning("Unknown cmp type '" + cmpType + "'!");
+				}
+				c.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
+				in.remove();
+				continue;
+			}
+			switch (cmpType) {
+			case T_EQ:
+				// "== 0" means "is false"
+				expression = not(expression);
+				break;
+			case T_NE:
+				// "!= 0" means "is true"
+				break;
+			default:
+				LOGGER.warning("Unknown cmp type '" + cmpType + "' for boolean expression '"
+						+ expression + "'!");
+			}
+			final IfStatement statement = getAst().newIfStatement();
+			statement.setExpression(expression);
+			c.addStmt(statement);
+			c.setConds(bb.getTrueSucc(), bb.getFalseSucc());
+			in.remove();
+		}
+		return ins.isEmpty();
+	}
+
 	private void transform() {
 		final List<BB> bbs = this.cfg.getPostorderedBbs();
 		// for all nodes in _reverse_ postorder: is also backward possible with nice optimizations,
@@ -1771,11 +1767,10 @@ public final class TrCfg2JavaExpressionStmts {
 				// can happen if BB deleted through rewrite
 				continue;
 			}
-			if (!rewriteHandler(bb)) { // handler BB cannot match following patterns
-				while (rewriteBooleanCompound(bb) || rewriteConditionalValue(bb)
-						|| rewritePushJcnd(bb)) {
-					// merge superior BBs, multiple iterations possible, e.g.:
-					// a == null ? 0 : a.length() == 0 ? 0 : 1
+			if (!rewriteHandler(bb)) {
+				// handler BB cannot match following patterns
+				while (rewriteBooleanCompound(bb)) {
+					// nested possible
 				}
 			}
 			// previous expressions merged into bb, now rewrite
