@@ -955,10 +955,10 @@ public final class TrCfg2JavaExpressionStmts {
 				if (rightExpression instanceof NumberLiteral
 						&& ((NumberLiteral) rightExpression).getToken().equals("-1")) {
 					bb.push(newPrefixExpression(PrefixExpression.Operator.COMPLEMENT, bb.pop()));
-				} else {
-					bb.push(newInfixExpression(InfixExpression.Operator.XOR, bb.pop(),
-							rightExpression));
+					break;
 				}
+				// TODO "a ^ true" => "!a" found in JDK 1.2 bool expressions: XOR sync bool type
+				bb.push(newInfixExpression(InfixExpression.Operator.XOR, bb.pop(), rightExpression));
 				break;
 			}
 			default:
@@ -1732,7 +1732,11 @@ public final class TrCfg2JavaExpressionStmts {
 				default:
 					LOGGER.warning("Unknown cmp type '" + cmpType + "'!");
 				}
-				c.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
+				if (c.getStmts() == 0 && c.getTop() == 0) {
+					c.moveIns(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
+				} else {
+					c.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
+				}
 				in.remove();
 				continue;
 			}
