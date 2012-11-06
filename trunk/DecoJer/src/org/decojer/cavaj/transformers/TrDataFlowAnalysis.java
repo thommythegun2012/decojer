@@ -108,12 +108,12 @@ public final class TrDataFlowAnalysis {
 	 */
 	private Frame frame;
 
-	private boolean isIgnoreExceptions;
+	private final boolean isIgnoreExceptions;
 
 	/**
 	 * Remember open PCs.
 	 */
-	private final LinkedList<Integer> openPcs = new LinkedList<Integer>();
+	private LinkedList<Integer> openPcs;
 
 	/**
 	 * Current PC.
@@ -127,6 +127,7 @@ public final class TrDataFlowAnalysis {
 
 	private TrDataFlowAnalysis(final CFG cfg) {
 		this.cfg = cfg;
+		this.isIgnoreExceptions = this.cfg.getCu().check(DFlag.IGNORE_EXCEPTIONS);
 	}
 
 	private void evalBinaryMath(final T t) {
@@ -157,7 +158,7 @@ public final class TrDataFlowAnalysis {
 		}
 	}
 
-	private int executeMerge(final Op op, final BB bb) {
+	private int executeMerge(final BB bb, final Op op) {
 		this.frame = new Frame(this.cfg.getInFrame(op));
 		int nextPc = op.getPc() + 1;
 		switch (op.getOptype()) {
@@ -885,13 +886,13 @@ public final class TrDataFlowAnalysis {
 	/**
 	 * Exception block changes in BB? -> split necessary!
 	 * 
-	 * @param op
-	 *            operation
 	 * @param bb
 	 *            BB
+	 * @param op
+	 *            operation
 	 * @return original BB or new BB for beginning exception block
 	 */
-	private BB splitExceptions(final Op op, final BB bb) {
+	private BB splitExceptions(final BB bb, final Op op) {
 		if (this.isIgnoreExceptions || this.cfg.getExcs() == null) {
 			return bb;
 		}
@@ -932,14 +933,12 @@ public final class TrDataFlowAnalysis {
 	private void transform() {
 		this.cfg.initFrames();
 
-		this.isIgnoreExceptions = this.cfg.getCu().check(DFlag.IGNORE_EXCEPTIONS);
-
-		final Op[] ops = this.cfg.getOps();
-		this.pc2bbs = new BB[ops.length];
-
 		// start with PC 0 and new BB
 		this.pc = 0;
-		BB bb = newBb(0);
+		final Op[] ops = this.cfg.getOps();
+		this.pc2bbs = new BB[ops.length];
+		this.openPcs = new LinkedList<Integer>();
+		BB bb = newBb(0); // need pc2bb and openPcs
 		this.cfg.setStartBb(bb);
 
 		while (true) {
@@ -954,11 +953,11 @@ public final class TrDataFlowAnalysis {
 				bb = this.pc2bbs[this.pc];
 			} else {
 				op = ops[this.pc];
-				bb = splitExceptions(op, bb); // may change with exception boundary
+				bb = splitExceptions(bb, op); // may change with exception boundary
 				this.pc2bbs[this.pc] = bb;
 			}
 			bb.addOp(op);
-			this.pc = executeMerge(op, bb);
+			this.pc = executeMerge(bb, op);
 			mergeExceptions(op); // execute has influence on this, read type reduce
 		}
 	}
