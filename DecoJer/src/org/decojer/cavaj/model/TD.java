@@ -37,6 +37,7 @@ import org.decojer.cavaj.transformers.TrCalculatePostorder;
 import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
 import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
+import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
 import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.utils.Cursor;
@@ -164,6 +165,7 @@ public final class TD extends BD {
 			try {
 				TrDataFlowAnalysis.transform(cfg);
 				TrCalculatePostorder.transform(cfg);
+				TrDalvikRemoveTempRegs.transform(cfg);
 
 				TrCfg2JavaExpressionStmts.transform(cfg);
 				TrCalculatePostorder.transform(cfg);

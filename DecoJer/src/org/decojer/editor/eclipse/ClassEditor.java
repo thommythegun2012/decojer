@@ -46,6 +46,7 @@ import org.decojer.cavaj.transformers.TrCalculatePostorder;
 import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
 import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
+import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
 import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
 import org.decojer.editor.eclipse.utils.FramesFigure;
 import org.decojer.editor.eclipse.utils.HierarchicalLayoutAlgorithm;
@@ -654,6 +655,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				TrCalculatePostorder.transform(cfg);
 
 				if (stage > 0) {
+					TrDalvikRemoveTempRegs.transform(cfg);
 					TrCfg2JavaExpressionStmts.transform(cfg);
 					TrCalculatePostorder.transform(cfg);
 				}

@@ -23,11 +23,9 @@
  */
 package org.decojer.cavaj.transformers;
 
-import java.util.List;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.BD;
-import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.code.CFG;
 
 /**
  * Transformer: Dalvik Remove Temporary Registers.
@@ -39,22 +37,32 @@ public final class TrDalvikRemoveTempRegs {
 	private final static Logger LOGGER = Logger.getLogger(TrDalvikRemoveTempRegs.class.getName());
 
 	/**
-	 * Transform compilation unit.
+	 * Transform CFG.
 	 * 
-	 * @param cu
-	 *            compilation unit
+	 * @param cfg
+	 *            CFG
 	 */
-	public static void transform(final CU cu) {
-		final List<BD> bds = cu.getBds();
-		// TODO how to handle constraints (e.g. local TDs after final outer vars and befor using)
+	public static void transform(final CFG cfg) {
+		if (!cfg.getTd().isDalvik()) {
+			return;
+		}
+		new TrDalvikRemoveTempRegs(cfg).transform();
 	}
 
-	/*
-	 * TODO ZIP ZAP: PUSH v1 STORE r1 ... PUSH vn STORE rn, LOAD v1 ... LOAD vn, INVOKE => kill
-	 * STORES and LOADS PUSH 0 STORE r0
-	 */
-	/*
-	 * TODO PUSH 1 STORE r1 (final never rewritten) => direct constant replacement
-	 */
+	private final CFG cfg;
+
+	private TrDalvikRemoveTempRegs(final CFG cfg) {
+		this.cfg = cfg;
+	}
+
+	private void transform() {
+		/*
+		 * TODO ZIP ZAP: PUSH v1 STORE r1 ... PUSH vn STORE rn, LOAD v1 ... LOAD vn, INVOKE => kill
+		 * STORES and LOADS PUSH 0 STORE r0
+		 */
+		/*
+		 * TODO PUSH 1 STORE r1 (final never rewritten) => direct constant replacement
+		 */
+	}
 
 }
