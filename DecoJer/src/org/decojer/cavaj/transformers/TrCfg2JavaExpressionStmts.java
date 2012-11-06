@@ -389,7 +389,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final INC cop = (INC) op;
 				final int value = cop.getValue();
 
-				if (!bb.isStackEmpty()) {
+				if (bb.isStackEmpty()) {
 					// TODO could be inline at begin!
 					if (value == 1 || value == -1) {
 						final PrefixExpression prefixExpression = getAst().newPrefixExpression();
