@@ -326,7 +326,7 @@ public final class TrCfg2JavaExpressionStmts {
 					break;
 				}
 				default:
-					LOGGER.warning("Unknown DUP type '" + cop.getKind() + "'!");
+					log("Unknown DUP type '" + cop.getKind() + "'!");
 				}
 				break;
 			}
@@ -364,7 +364,7 @@ public final class TrCfg2JavaExpressionStmts {
 						if (rewriteCachedClassLiteral(bb)) {
 							break;
 						}
-						LOGGER.warning("Couldn't rewrite cached class literal '" + f + "'!");
+						log("Couldn't rewrite cached class literal '" + f + "'!");
 					}
 					bb.push(getAst().newQualifiedName(this.cfg.getTd().newTypeName(f.getT()),
 							getAst().newSimpleName(f.getName())));
@@ -408,7 +408,7 @@ public final class TrCfg2JavaExpressionStmts {
 						statement = getAst().newExpressionStatement(assignment);
 					}
 				} else {
-					LOGGER.warning("Inline INC with value '" + value + "'!");
+					log("Inline INC with value '" + value + "'!");
 					// TODO ... may be inline
 				}
 				break;
@@ -443,18 +443,18 @@ public final class TrCfg2JavaExpressionStmts {
 							enumConstructor: if (m.getT().is(Enum.class)
 									&& !this.cfg.getCu().check(DFlag.IGNORE_ENUM)) {
 								if (arguments.size() < 2) {
-									LOGGER.warning("Super constructor invocation '" + m
+									log("Super constructor invocation '" + m
 											+ "' for enum has less than 2 arguments!");
 									break enumConstructor;
 								}
 								if (!m.getParamTs()[0].is(String.class)) {
-									LOGGER.warning("Super constructor invocation '"
+									log("Super constructor invocation '"
 											+ m
 											+ "' for enum must contain string literal as first parameter!");
 									break enumConstructor;
 								}
 								if (m.getParamTs()[1] != T.INT) {
-									LOGGER.warning("Super constructor invocation '"
+									log("Super constructor invocation '"
 											+ m
 											+ "' for enum must contain number literal as first parameter!");
 									break enumConstructor;
@@ -489,7 +489,7 @@ public final class TrCfg2JavaExpressionStmts {
 							// basicBlock.pushExpression(classInstanceCreation);
 							break;
 						}
-						LOGGER.warning("Constructor expects expression class 'ThisExpression' or 'ClassInstanceCreation' but is '"
+						log("Constructor expects expression class 'ThisExpression' or 'ClassInstanceCreation' but is '"
 								+ expression.getClass() + "' with value: " + expression);
 						break;
 					}
@@ -561,7 +561,7 @@ public final class TrCfg2JavaExpressionStmts {
 					operator = InfixExpression.Operator.NOT_EQUALS;
 					break;
 				default:
-					LOGGER.warning("Unknown cmp type '" + cop.getCmpType() + "'!");
+					log("Unknown cmp type '" + cop.getCmpType() + "'!");
 					operator = null;
 				}
 				statement = getAst().newIfStatement();
@@ -596,7 +596,7 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
-						LOGGER.warning("Unknown cmp type '" + cop.getCmpType() + "'!");
+						log("Unknown cmp type '" + cop.getCmpType() + "'!");
 						operator = null;
 					}
 					((InfixExpression) expression).setOperator(operator);
@@ -610,8 +610,7 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
-						LOGGER.warning("Unknown cmp type '" + cop.getCmpType()
-								+ "' for null-expression!");
+						log("Unknown cmp type '" + cop.getCmpType() + "' for null-expression!");
 						operator = null;
 					}
 					final InfixExpression infixExpression = getAst().newInfixExpression();
@@ -630,8 +629,8 @@ public final class TrCfg2JavaExpressionStmts {
 						// "!= 0" means "is true"
 						break;
 					default:
-						LOGGER.warning("Unknown cmp type '" + cop.getCmpType()
-								+ "' for boolean expression '" + expression + "'!");
+						log("Unknown cmp type '" + cop.getCmpType() + "' for boolean expression '"
+								+ expression + "'!");
 					}
 				} else {
 					final InfixExpression.Operator operator;
@@ -655,8 +654,7 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
-						LOGGER.warning("Unknown cmp type '" + cop.getCmpType()
-								+ "' for 0-expression!");
+						log("Unknown cmp type '" + cop.getCmpType() + "' for 0-expression!");
 						operator = null;
 					}
 					final InfixExpression infixExpression = getAst().newInfixExpression();
@@ -782,8 +780,7 @@ public final class TrCfg2JavaExpressionStmts {
 					if (!isWide(cop)) {
 						statement = getAst().newExpressionStatement(bb.pop());
 
-						LOGGER.warning("TODO: POP2 for not wide in '" + this.cfg
-								+ "'! Statement output?");
+						log("TODO: POP2 for not wide in '" + this.cfg + "'! Statement output?");
 						bb.pop();
 						break;
 					}
@@ -792,7 +789,7 @@ public final class TrCfg2JavaExpressionStmts {
 					statement = getAst().newExpressionStatement(bb.pop());
 					break;
 				default:
-					LOGGER.warning("Unknown POP type '" + cop.getKind() + "'!");
+					log("Unknown POP type '" + cop.getKind() + "'!");
 				}
 				break;
 			}
@@ -987,6 +984,14 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		return r.getT().isWide();
+	}
+
+	private void log(final String message) {
+		LOGGER.log(Level.WARNING, this.cfg.getMd() + ": " + message);
+	}
+
+	private void log(final String message, final Throwable t) {
+		LOGGER.log(Level.WARNING, this.cfg.getMd() + ": " + message, t);
 	}
 
 	private boolean rewriteAssertStatement(final Expression exceptionExpression, final BB bb) {
@@ -1323,7 +1328,7 @@ public final class TrCfg2JavaExpressionStmts {
 			followBb.joinPredBb(bb);
 			return true;
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Rewrite to class-literal didn't work!", e);
+			log("Rewrite to class-literal didn't work!", e);
 			return false;
 		}
 	}
@@ -1425,7 +1430,7 @@ public final class TrCfg2JavaExpressionStmts {
 						break classLiteral;
 					}
 					if (this.cfg.getTd().getVersion() >= 49) {
-						LOGGER.warning("Unexpected class literal code with class$() in >= JVM 5 code!");
+						log("Unexpected class literal code with class$() in >= JVM 5 code!");
 					}
 					try {
 						final String classInfo = ((StringLiteral) methodInvocation.arguments().get(
@@ -1493,32 +1498,31 @@ public final class TrCfg2JavaExpressionStmts {
 			if (f.check(AF.ENUM)) {
 				// assignment to enum constant declaration
 				if (!(rightExpression instanceof ClassInstanceCreation)) {
-					LOGGER.warning("Assignment to enum field '" + f
-							+ "' is no class instance creation!");
+					log("Assignment to enum field '" + f + "' is no class instance creation!");
 					return false;
 				}
 				final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) rightExpression;
 				// first two arguments must be String (== field name) and int (ordinal)
 				final List<Expression> arguments = classInstanceCreation.arguments();
 				if (arguments.size() < 2) {
-					LOGGER.warning("Class instance creation for enum field '" + f
+					log("Class instance creation for enum field '" + f
 							+ "' has less than 2 arguments!");
 					return false;
 				}
 				if (!(arguments.get(0) instanceof StringLiteral)) {
-					LOGGER.warning("Class instance creation for enum field '" + f
+					log("Class instance creation for enum field '" + f
 							+ "' must contain string literal as first parameter!");
 					return false;
 				}
 				final String literalValue = ((StringLiteral) arguments.get(0)).getLiteralValue();
 				if (!literalValue.equals(f.getName())) {
-					LOGGER.warning("Class instance creation for enum field '"
+					log("Class instance creation for enum field '"
 							+ f
 							+ "' must contain string literal equal to field name as first parameter!");
 					return false;
 				}
 				if (!(arguments.get(1) instanceof NumberLiteral)) {
-					LOGGER.warning("Class instance creation for enum field '" + f
+					log("Class instance creation for enum field '" + f
 							+ "' must contain number literal as first parameter!");
 					return false;
 				}
@@ -1591,7 +1595,7 @@ public final class TrCfg2JavaExpressionStmts {
 			bb.removeOp(0);
 			name = "e"; // TODO hmmm...free variable name needed...
 		} else {
-			LOGGER.warning("First operation in handler '" + firstOp + "' isn't STORE or POP: " + bb);
+			log("First operation in handler '" + firstOp + "' isn't STORE or POP: " + bb);
 			name = "e"; // TODO hmmm...free variable name needed...
 			bb.push(getAst().newSimpleName(name));
 		}
@@ -1730,7 +1734,7 @@ public final class TrCfg2JavaExpressionStmts {
 					// "!= 0" means "is true"
 					break;
 				default:
-					LOGGER.warning("Unknown cmp type '" + cmpType + "'!");
+					log("Unknown cmp type '" + cmpType + "'!");
 				}
 				if (c.getStmts() == 0 && c.getTop() == 0) {
 					c.moveIns(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
@@ -1749,8 +1753,8 @@ public final class TrCfg2JavaExpressionStmts {
 				// "!= 0" means "is true"
 				break;
 			default:
-				LOGGER.warning("Unknown cmp type '" + cmpType + "' for boolean expression '"
-						+ expression + "'!");
+				log("Unknown cmp type '" + cmpType + "' for boolean expression '" + expression
+						+ "'!");
 			}
 			final IfStatement statement = getAst().newIfStatement();
 			statement.setExpression(expression);
@@ -1780,7 +1784,7 @@ public final class TrCfg2JavaExpressionStmts {
 			// previous expressions merged into bb, now rewrite
 			if (!convertToHLLIntermediate(bb)) {
 				// should never happen in forward mode
-				LOGGER.warning("Stack underflow in '" + this.cfg + "':\n" + bb);
+				log("Stack underflow in '" + this.cfg + "':\n" + bb);
 			}
 		}
 	}
