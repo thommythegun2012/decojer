@@ -93,6 +93,10 @@ public final class TrControlFlowAnalysis {
 
 		final Set<BB> firstFollows = Sets.newHashSet();
 		final List<BB> firstMembers = Lists.newArrayList();
+
+		// TODO JDK 1 && 2 create wrong line numbers for final return (see DecTestIfStmt)
+		// doesn't recognize structure yet...
+
 		if (firstSucc.getIns().size() == 1) { // TODO tss...backs?
 			findBranch(cond, firstSucc, firstMembers, firstFollows);
 		}
