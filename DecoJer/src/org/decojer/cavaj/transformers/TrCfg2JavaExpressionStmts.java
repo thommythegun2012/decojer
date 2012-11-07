@@ -1735,7 +1735,7 @@ public final class TrCfg2JavaExpressionStmts {
 				default:
 					log("Unknown cmp type '" + cmpType + "'!");
 				}
-				if (c.getStmts() == 0 && c.getTop() == 0) {
+				if (c.getStmts() == 0 && c.isStackEmpty()) {
 					c.moveIns(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
 				} else {
 					c.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());

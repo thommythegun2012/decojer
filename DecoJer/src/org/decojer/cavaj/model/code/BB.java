@@ -479,8 +479,15 @@ public final class BB {
 	 * @return {@code true} - BB is empty
 	 */
 	public boolean isRelevant() {
-		return this.ins.size() > 1 || !this.stmts.isEmpty() || this.top > 0 || !this.ops.isEmpty()
-				&& !(this.ops.get(0) instanceof GOTO);
+		if (this.ins.size() > 1 || !this.stmts.isEmpty() || !isStackEmpty() || !this.ops.isEmpty()) {
+			return true;
+		}
+		for (final Op op : this.ops) {
+			if (!(op instanceof GOTO)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**

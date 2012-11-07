@@ -164,16 +164,18 @@ public final class R {
 	}
 
 	/**
-	 * Is this type instance assignable from given type instance?
+	 * Is this type instance assignable to given type instance?
 	 * 
-	 * Attention: Does work for primtives implicit conversion (byte 2 short 2 int, char 2 int).
+	 * Shortcut for t.isAssignableFrom(r.getT()).
+	 * 
+	 * Attention: Does work for primitives implicit conversion (byte 2 short 2 int, char 2 int).
 	 * 
 	 * @param t
 	 *            type
 	 * @return {@code true} - is assignable
 	 */
 	public boolean isAssignableTo(final T t) {
-		return this.t.read(t) != null;
+		return t.isAssignableFrom(this.t);
 	}
 
 	/**
@@ -224,7 +226,7 @@ public final class R {
 	 */
 	public boolean read(final T t) {
 		final T reducedT = this.t.read(t);
-		if (reducedT == null) {
+		if (null == reducedT) {
 			if (!this.t.isResolvable()) {
 				return true;
 			}
