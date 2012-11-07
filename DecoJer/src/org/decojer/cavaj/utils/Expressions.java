@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.utils;
 
-import static org.decojer.cavaj.utils.OperatorPrecedence.priority;
-
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
@@ -92,7 +90,7 @@ public final class Expressions {
 			final Expression leftOperand, final Expression rightOperand) {
 		final InfixExpression infixExpression = leftOperand.getAST().newInfixExpression();
 		infixExpression.setOperator(operator);
-		final int operatorPriority = priority(infixExpression).getPriority();
+		final int operatorPriority = Priority.priority(infixExpression).getPriority();
 		infixExpression.setLeftOperand(wrap(leftOperand, operatorPriority));
 		// more operators possible, but PLUS... really necessary here?!
 		final boolean assoc = operator == InfixExpression.Operator.PLUS
@@ -118,7 +116,7 @@ public final class Expressions {
 		}
 		final PrefixExpression prefixExpression = operand.getAST().newPrefixExpression();
 		prefixExpression.setOperator(operator);
-		prefixExpression.setOperand(wrap(operand, priority(prefixExpression)));
+		prefixExpression.setOperand(wrap(operand, Priority.priority(prefixExpression)));
 		return prefixExpression;
 	}
 
@@ -228,7 +226,7 @@ public final class Expressions {
 	private static Expression wrap(final Expression expression, final int priority) {
 		final Expression rawExpression = expression.getParent() == null ? expression
 				: (Expression) ASTNode.copySubtree(expression.getAST(), expression);
-		if (priority(rawExpression).getPriority() <= priority) {
+		if (Priority.priority(rawExpression).getPriority() <= priority) {
 			return rawExpression;
 		}
 		final ParenthesizedExpression parenthesizedExpression = expression.getAST()

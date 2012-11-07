@@ -69,7 +69,6 @@ import org.decojer.cavaj.model.code.ops.RETURN;
 import org.decojer.cavaj.model.code.ops.SHR;
 import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.types.ClassT;
-import org.decojer.cavaj.utils.OperatorPrecedence;
 import org.decojer.cavaj.utils.Priority;
 import org.decojer.cavaj.utils.Types;
 import org.eclipse.jdt.core.dom.AST;
@@ -1655,8 +1654,8 @@ public final class TrCfg2JavaExpressionStmts {
 				// TODO System.out.println(((double) i + d) + s); ...must handle this here too for
 				// JDK>=5 ...allready encountered append(String) here? must iterate from start?
 				// where is the info in AST?
-				if (OperatorPrecedence.priority(appendArgumentExpression) == Priority.ADD_SUB) {
-					appendArgumentExpression = wrap(appendArgumentExpression, Priority.MULT_DIV);
+				if (Priority.priority(appendArgumentExpression) == Priority.ADD_SUB) {
+					appendArgumentExpression = wrap(appendArgumentExpression, Priority.MULT_DIV_MOD);
 				}
 				if (stringExpression == null) {
 					stringExpression = appendArgumentExpression;
