@@ -333,7 +333,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case INC: {
 			final INC cop = (INC) op;
-			final R r = read(cop.getReg(), cop.getT(), true);
+			final R r = getRead(cop.getReg(), cop.getT());
 			r.inc(cop.getValue());
 			break;
 		}
@@ -410,7 +410,7 @@ public final class TrDataFlowAnalysis {
 				if (ret != null) {
 					// RET already visited, link RET BB to JSR follower and merge
 					this.frame = new Frame(this.cfg.getFrame(ret.getPc()));
-					if (sub != read(ret.getReg(), T.RET, true).getValue()) {
+					if (sub != getRead(ret.getReg(), T.RET).getValue()) {
 						// don't assert here, need this get for frames return-address-null update
 						LOGGER.warning("Incorrect sub!");
 					}
@@ -432,7 +432,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case LOAD: {
 			final LOAD cop = (LOAD) op;
-			final R r = read(cop.getReg(), cop.getT(), false);
+			final R r = get(cop.getReg(), cop.getT());
 			// no previous for stack
 			pushMove(r);
 			break;
@@ -514,7 +514,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case RET: {
 			final RET cop = (RET) op;
-			final R r = read(cop.getReg(), T.RET, true);
+			final R r = getRead(cop.getReg(), T.RET);
 			// bytecode restriction: only called via matching JSR, Sub known as register value
 			final Sub sub = (Sub) r.getValue();
 			if (!this.frame.popSub(sub)) {
@@ -652,6 +652,31 @@ public final class TrDataFlowAnalysis {
 		}
 		merge(nextPc);
 		return nextPc;
+	}
+
+	private R get(final int i, final T t) {
+		// start new register and TODO backpropagate alive for existing (read number)
+		final R r = this.frame.get(i);
+		if (!r.isAssignableTo(t)) {
+			throw new RuntimeException("Incompatible type for register '" + i
+					+ "'! Cannot assign '" + r + "' to '" + t + "'.");
+		}
+		if (r.getT() == T.RET) {
+			// bytecode restriction: internal return address type can only be read once
+			this.frame.set(i, null);
+			return r;
+		}
+		this.frame.set(i, new R(this.pc, r.getT(), r.getValue(), Kind.READ, r));
+		return r;
+	}
+
+	private R getRead(final int i, final T t) {
+		final R r = get(i, t);
+		if (!r.read(t)) {
+			throw new RuntimeException("Incompatible type for register '" + i + "'! Cannot read '"
+					+ r + "' as '" + t + "'.");
+		}
+		return r;
 	}
 
 	/**
@@ -829,7 +854,7 @@ public final class TrDataFlowAnalysis {
 		if (!s.isAssignableTo(t)) {
 			// TODO bad infinispan.CacheImpl:...Incompatible local register type! Cannot assign
 			// 'R25_MO: javax.transaction.SystemException' to 'java.lang.Throwable'.
-			throw new RuntimeException("Incompatible local register type! Cannot assign '" + s
+			throw new RuntimeException("Incompatible type for stack register! Cannot assign '" + s
 					+ "' to '" + t + "'.");
 		}
 		return s;
@@ -837,9 +862,8 @@ public final class TrDataFlowAnalysis {
 
 	private R popRead(final T t) {
 		final R s = pop(t);
-		// TODO change to direct if pop problem resolved
 		if (!s.read(t)) {
-			throw new RuntimeException("Incompatible local register type! Cannot read '" + s
+			throw new RuntimeException("Incompatible type for stack register! Cannot read '" + s
 					+ "' as '" + t + "'.");
 		}
 		return s;
@@ -861,32 +885,6 @@ public final class TrDataFlowAnalysis {
 		final R s = new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r);
 		this.frame.push(s);
 		return s;
-	}
-
-	private R read(final int i, final T t, final boolean read) {
-		// start new register and TODO backpropagate alive for existing (read number)
-		final R prevR = this.frame.get(i);
-		if (prevR == null) {
-			throw new RuntimeException("Cannot read register " + i + " (null) as type '" + t + "'!");
-		}
-		if (read) {
-			if (!prevR.read(t)) {
-				throw new RuntimeException("Cannot read register " + i + " (" + prevR
-						+ ") as type '" + t + "'!");
-			}
-		} else {
-			if (!prevR.isAssignableTo(t)) {
-				throw new RuntimeException("Cannot read register " + i + " (" + prevR
-						+ ") as type '" + t + "'!");
-			}
-		}
-		if (t == T.RET) {
-			// bytecode restriction: internal return address type can only be read once
-			this.frame.set(i, null);
-			return prevR;
-		}
-		this.frame.set(i, new R(this.pc, prevR.getT(), prevR.getValue(), Kind.READ, prevR));
-		return prevR;
 	}
 
 	/**

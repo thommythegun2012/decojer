@@ -100,7 +100,7 @@ public final class Frame {
 	 * @return register
 	 */
 	public R getS(final int index) {
-		assert index < getTop() : index;
+		assert getTop() > index : index;
 
 		return this.rs[getRegs() + index];
 	}
@@ -124,14 +124,22 @@ public final class Frame {
 	}
 
 	/**
+	 * Is stack empty?
+	 * 
+	 * @return {@code true} - stack is empty
+	 */
+	public boolean isStackEmpty() {
+		return getTop() <= 0;
+	}
+
+	/**
 	 * Peek stack register.
 	 * 
 	 * @return register
 	 */
 	public R peek() {
-		if (0 == getTop()) {
-			throw new IndexOutOfBoundsException("Stack is empty!");
-		}
+		assert !isStackEmpty();
+
 		return this.rs[this.rs.length - 1];
 	}
 
@@ -143,7 +151,7 @@ public final class Frame {
 	 * @return register
 	 */
 	public R peek(final int i) {
-		assert i <= getTop() : i;
+		assert getTop() > i : i;
 
 		return this.rs[this.rs.length - i];
 	}
@@ -182,9 +190,8 @@ public final class Frame {
 	 * @return stack register
 	 */
 	public R pop() {
-		if (getTop() == 0) {
-			throw new IndexOutOfBoundsException("Stack is empty!");
-		}
+		assert !isStackEmpty();
+
 		final R s = this.rs[this.rs.length - 1];
 		final R[] newRs = new R[this.rs.length - 1];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length - 1);
@@ -238,9 +245,8 @@ public final class Frame {
 	 *            stack register
 	 */
 	public void push(final R s) {
-		if (getTop() >= this.cfg.getMaxStack() && this.cfg.getMaxStack() != 0) {
-			throw new IndexOutOfBoundsException("Stack is empty!");
-		}
+		assert getTop() < this.cfg.getMaxStack() || this.cfg.getMaxStack() == 0;
+
 		final R[] newRs = new R[this.rs.length + 1];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
 		newRs[this.rs.length] = s;
@@ -331,7 +337,7 @@ public final class Frame {
 	 *            stack register
 	 */
 	public void setS(final int i, final R s) {
-		assert i < getTop() : i;
+		assert getTop() > i : i;
 
 		set(getRegs() + i, s);
 	}
@@ -348,7 +354,7 @@ public final class Frame {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("Frame (").append(getRegs());
-		if (getTop() != 0) {
+		if (!isStackEmpty()) {
 			sb.append(", ").append(getTop());
 		}
 		sb.append(") ");

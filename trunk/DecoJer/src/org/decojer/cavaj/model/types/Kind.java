@@ -32,6 +32,8 @@ import lombok.Getter;
  */
 public enum Kind {
 
+	// don't change... needed for & 0xF in T.join/readKinds()
+
 	INT(1 << 0, int.class),
 
 	SHORT(1 << 1, short.class),
@@ -39,6 +41,8 @@ public enum Kind {
 	BYTE(1 << 2, byte.class),
 
 	CHAR(1 << 3, char.class),
+
+	// ...don't change previous
 
 	BOOLEAN(1 << 4, boolean.class),
 
