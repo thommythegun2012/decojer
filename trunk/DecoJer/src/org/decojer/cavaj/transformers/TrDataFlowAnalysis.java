@@ -135,8 +135,8 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void evalBinaryMath(final T t, final T resultT) {
-		final R s2 = pop(t, true);
-		final R s1 = pop(t, true);
+		final R s2 = pop(t);
+		final R s1 = pop(t);
 
 		// reduce to reasonable parameters pairs, e.g. BOOL, {SHORT,BOOL}-Constant -> both BOOL
 		// hence: T.INT not sufficient for boolean operators like OR
@@ -169,8 +169,8 @@ public final class TrDataFlowAnalysis {
 		}
 		case ALOAD: {
 			final ALOAD cop = (ALOAD) op;
-			pop(T.INT, true); // index
-			final R aR = pop(this.cfg.getDu().getArrayT(cop.getT()), true); // array
+			popRead(T.INT); // index
+			final R aR = popRead(this.cfg.getDu().getArrayT(cop.getT())); // array
 			pushConst(aR.getT().getComponentT()); // value
 			break;
 		}
@@ -180,15 +180,15 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case ARRAYLENGTH: {
-			pop(T.REF, true); // array
+			popRead(T.REF); // array
 			pushConst(T.INT); // length
 			break;
 		}
 		case ASTORE: {
 			final ASTORE cop = (ASTORE) op;
-			final R vR = pop(cop.getT(), false); // value
-			pop(T.INT, true); // index
-			final R aR = pop(this.cfg.getDu().getArrayT(cop.getT()), true); // array
+			final R vR = pop(cop.getT()); // value
+			popRead(T.INT); // index
+			final R aR = popRead(this.cfg.getDu().getArrayT(cop.getT())); // array
 			if (!vR.read(aR.getT().getComponentT())) {
 				LOGGER.warning("Cannot store array value!");
 			}
@@ -196,7 +196,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case CAST: {
 			final CAST cop = (CAST) op;
-			pop(cop.getT(), true);
+			popRead(cop.getT());
 			pushConst(cop.getToT());
 			break;
 		}
@@ -313,14 +313,14 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case FILLARRAY: {
-			pop(T.REF, true);
+			popRead(T.REF);
 			break;
 		}
 		case GET: {
 			final GET cop = (GET) op;
 			final F f = cop.getF();
 			if (!f.check(AF.STATIC)) {
-				pop(f.getT(), true);
+				popRead(f.getT());
 			}
 			pushConst(f.getValueT());
 			break;
@@ -338,7 +338,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case INSTANCEOF: {
-			pop(T.REF, true);
+			popRead(T.REF);
 			// operation contains check-type as argument, not important here
 			pushConst(T.BOOLEAN);
 			break;
@@ -348,10 +348,10 @@ public final class TrDataFlowAnalysis {
 			final M m = cop.getM();
 			final T[] paramTs = m.getParamTs();
 			for (int i = m.getParamTs().length; i-- > 0;) {
-				pop(paramTs[i], true);
+				popRead(paramTs[i]);
 			}
 			if (!m.check(AF.STATIC)) {
-				pop(m.getT(), true);
+				popRead(m.getT());
 			}
 			if (m.getReturnT() != T.VOID) {
 				pushConst(m.getReturnT());
@@ -369,7 +369,7 @@ public final class TrDataFlowAnalysis {
 		case JCND: {
 			final JCND cop = (JCND) op;
 			bb.setConds(getTargetBb(cop.getTargetPc()), getTargetBb(nextPc));
-			pop(cop.getT(), true);
+			popRead(cop.getT());
 			merge(nextPc);
 			merge(cop.getTargetPc());
 			return -1;
@@ -438,7 +438,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case MONITOR: {
-			pop(T.REF, true);
+			popRead(T.REF);
 			break;
 		}
 		case MUL: {
@@ -448,7 +448,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case NEG: {
 			final NEG cop = (NEG) op;
-			final R r = pop(cop.getT(), true);
+			final R r = popRead(cop.getT());
 			pushConst(r.getT());
 			break;
 		}
@@ -461,7 +461,7 @@ public final class TrDataFlowAnalysis {
 			final NEWARRAY cop = (NEWARRAY) op;
 			T t = cop.getT();
 			for (int i = cop.getDimensions(); i-- > 0;) {
-				pop(T.INT, true);
+				popRead(T.INT);
 				t = this.cfg.getDu().getArrayT(t);
 			}
 			pushConst(t);
@@ -501,9 +501,9 @@ public final class TrDataFlowAnalysis {
 		case PUT: {
 			final PUT cop = (PUT) op;
 			final F f = cop.getF();
-			pop(f.getValueT(), true);
+			popRead(f.getValueT());
 			if (!f.check(AF.STATIC)) {
-				pop(f.getT(), true);
+				popRead(f.getT());
 			}
 			break;
 		}
@@ -546,21 +546,21 @@ public final class TrDataFlowAnalysis {
 						+ "' for method return type '" + returnT + "'!");
 			}
 			if (returnT != T.VOID) {
-				pop(returnT, true); // just read type reduction
+				popRead(returnT); // just read type reduction
 			}
 			return -1;
 		}
 		case SHL: {
 			final SHL cop = (SHL) op;
-			pop(cop.getShiftT(), true);
-			pop(cop.getT(), true);
+			popRead(cop.getShiftT());
+			popRead(cop.getT());
 			pushConst(cop.getT());
 			break;
 		}
 		case SHR: {
 			final SHR cop = (SHR) op;
-			pop(cop.getShiftT(), true);
-			pop(cop.getT(), true);
+			popRead(cop.getShiftT());
+			popRead(cop.getT());
 			pushConst(cop.getT());
 			break;
 		}
@@ -571,7 +571,7 @@ public final class TrDataFlowAnalysis {
 			// 7.13, "Compiling finally"). The aload instruction cannot be used to load a value
 			// of type returnAddress from a local variable onto the operand stack. This
 			// asymmetry with the astore instruction is intentional.
-			final R r = pop(cop.getT(), false);
+			final R r = popRead(cop.getT());
 
 			final R storeR = store(cop.getReg(), r);
 			final V debugV = this.cfg.getDebugV(cop.getReg(), nextPc);
@@ -626,7 +626,7 @@ public final class TrDataFlowAnalysis {
 						keys.toArray(new Integer[keys.size()]));
 			}
 
-			pop(T.INT, true);
+			popRead(T.INT);
 			merge(cop.getDefaultPc());
 			for (final int casePc : cop.getCasePcs()) {
 				merge(casePc);
@@ -635,7 +635,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case THROW:
 			// just type reduction
-			pop(this.cfg.getDu().getT(Throwable.class), true);
+			popRead(this.cfg.getDu().getT(Throwable.class));
 			return -1;
 		case XOR: {
 			final XOR cop = (XOR) op;
@@ -824,17 +824,23 @@ public final class TrDataFlowAnalysis {
 		return bb;
 	}
 
-	private R pop(final T t, final boolean read) {
+	private R pop(final T t) {
 		final R s = this.frame.pop();
-		if (read) {
-			if (!s.read(t)) {
-				// TODO problem with generic type reduction to classes, invoke interface allowed
-				throw new RuntimeException("Incompatible local register type!");
-			}
-		} else {
-			if (!s.isAssignableTo(t)) {
-				throw new RuntimeException("Incompatible local register type!");
-			}
+		if (!s.isAssignableTo(t)) {
+			// TODO bad infinispan.CacheImpl:...Incompatible local register type! Cannot assign
+			// 'R25_MO: javax.transaction.SystemException' to 'java.lang.Throwable'.
+			throw new RuntimeException("Incompatible local register type! Cannot assign '" + s
+					+ "' to '" + t + "'.");
+		}
+		return s;
+	}
+
+	private R popRead(final T t) {
+		final R s = pop(t);
+		// TODO change to direct if pop problem resolved
+		if (!s.read(t)) {
+			throw new RuntimeException("Incompatible local register type! Cannot read '" + s
+					+ "' as '" + t + "'.");
 		}
 		return s;
 	}
