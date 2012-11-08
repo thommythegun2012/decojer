@@ -48,6 +48,11 @@ public final class R {
 		CONST,
 
 		/**
+		 * Previous register.
+		 */
+		LOAD,
+
+		/**
 		 * Merge ins. Incoming registers.
 		 */
 		MERGE,
@@ -55,12 +60,7 @@ public final class R {
 		/**
 		 * STORE_MOVE. Source register, maybe previous register.
 		 */
-		MOVE,
-
-		/**
-		 * Previous register.
-		 */
-		READ
+		MOVE
 
 	}
 
@@ -189,7 +189,7 @@ public final class R {
 		case MERGE:
 		case MOVE:
 			return this.pc == 0;
-		case READ:
+		case LOAD:
 			return this.ins[0].isMethodParam();
 		}
 		return false;
@@ -255,7 +255,7 @@ public final class R {
 			}
 			break;
 		case MOVE:
-		case READ:
+		case LOAD:
 			this.ins[0].read(t);
 		case CONST:
 		}
@@ -313,7 +313,7 @@ public final class R {
 					return;
 				case MERGE:
 					System.out.println("Register replace to null for merge not possible!");
-				case READ:
+				case LOAD:
 				}
 				return;
 			}
