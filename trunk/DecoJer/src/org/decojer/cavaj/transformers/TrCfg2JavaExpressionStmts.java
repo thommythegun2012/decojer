@@ -681,7 +681,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 				// must not access method parameters for fieldInits...
 				fieldInit &= cop.getReg() == 0 && this.cfg.getMd().isConstructor()
-						|| !this.cfg.getInFrame(cop).get(cop.getReg()).isMethodParam();
+						|| !this.cfg.getInFrame(cop).load(cop.getReg()).isMethodParam();
 
 				final String name = getVarName(cop.getReg(), cop.getPc());
 				if ("this".equals(name)) {

@@ -90,7 +90,7 @@ public class FramesFigure extends Figure {
 			final Frame frame = bb.getCfg().getInFrame(op);
 			add(new Label(op.getPc() + " " + op.toString() + (frame == null ? "?" : " ")));
 			for (int i = 0; i < regs; ++i) {
-				final R r = frame == null ? null : frame.get(i);
+				final R r = frame == null ? null : frame.load(i);
 				final Label label = new Label(r == null ? "    " : r.toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);

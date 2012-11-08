@@ -73,17 +73,6 @@ public final class Frame {
 	}
 
 	/**
-	 * Get register (local or stack).
-	 * 
-	 * @param index
-	 *            register index
-	 * @return register (local or stack)
-	 */
-	public R get(final int index) {
-		return this.rs[index];
-	}
-
-	/**
 	 * Get register number (locals).
 	 * 
 	 * @return register number (locals)
@@ -130,6 +119,17 @@ public final class Frame {
 	 */
 	public boolean isStackEmpty() {
 		return getTop() <= 0;
+	}
+
+	/**
+	 * Load register (local or stack).
+	 * 
+	 * @param index
+	 *            register index
+	 * @return register (local or stack)
+	 */
+	public R load(final int index) {
+		return this.rs[index];
 	}
 
 	/**
@@ -295,16 +295,16 @@ public final class Frame {
 		if (i >= this.rs.length) {
 			return null;
 		}
-		final R frameR = get(i);
+		final R frameR = load(i);
 		if (prevR == frameR) {
-			set(i, newR);
+			store(i, newR);
 			return prevR;
 		}
 		if (newR == null) {
 			// TODO currently only possible for exceptions, link later when really visited?!
 			// assert frameR.getKind() == Kind.MERGE : frameR.getKind();
 
-			set(i, null);
+			store(i, null);
 			return frameR; // now replace merge register with null
 		}
 		if (frameR != null) {
@@ -314,14 +314,23 @@ public final class Frame {
 	}
 
 	/**
-	 * Set register (local or stack).
+	 * Get register number (local or stack).
+	 * 
+	 * @return register number (local or stack)
+	 */
+	public int size() {
+		return this.rs.length;
+	}
+
+	/**
+	 * Store register (local or stack).
 	 * 
 	 * @param i
 	 *            register index
 	 * @param r
 	 *            register (local or stack)
 	 */
-	public void set(final int i, final R r) {
+	public void store(final int i, final R r) {
 		final R[] newRs = new R[this.rs.length];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
 		newRs[i] = r;
@@ -329,26 +338,17 @@ public final class Frame {
 	}
 
 	/**
-	 * Set stack register.
+	 * Store stack register.
 	 * 
 	 * @param i
 	 *            stack index
 	 * @param s
 	 *            stack register
 	 */
-	public void setS(final int i, final R s) {
+	public void storeS(final int i, final R s) {
 		assert getTop() > i : i;
 
-		set(getRegs() + i, s);
-	}
-
-	/**
-	 * Get register number (local or stack).
-	 * 
-	 * @return register number (local or stack)
-	 */
-	public int size() {
-		return this.rs.length;
+		store(getRegs() + i, s);
 	}
 
 	@Override

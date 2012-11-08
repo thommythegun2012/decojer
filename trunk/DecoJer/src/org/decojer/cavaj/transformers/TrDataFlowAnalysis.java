@@ -333,7 +333,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case INC: {
 			final INC cop = (INC) op;
-			final R r = getRead(cop.getReg(), cop.getT());
+			final R r = loadRead(cop.getReg(), cop.getT());
 			r.inc(cop.getValue());
 			break;
 		}
@@ -410,7 +410,7 @@ public final class TrDataFlowAnalysis {
 				if (ret != null) {
 					// RET already visited, link RET BB to JSR follower and merge
 					this.frame = new Frame(this.cfg.getFrame(ret.getPc()));
-					if (sub != getRead(ret.getReg(), T.RET).getValue()) {
+					if (sub != loadRead(ret.getReg(), T.RET).getValue()) {
 						// don't assert here, need this get for frames return-address-null update
 						LOGGER.warning("Incorrect sub!");
 					}
@@ -432,7 +432,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case LOAD: {
 			final LOAD cop = (LOAD) op;
-			final R r = get(cop.getReg(), cop.getT());
+			final R r = load(cop.getReg(), cop.getT());
 			// no previous for stack
 			pushMove(r);
 			break;
@@ -514,7 +514,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case RET: {
 			final RET cop = (RET) op;
-			final R r = getRead(cop.getReg(), T.RET);
+			final R r = loadRead(cop.getReg(), T.RET);
 			// bytecode restriction: only called via matching JSR, Sub known as register value
 			final Sub sub = (Sub) r.getValue();
 			if (!this.frame.popSub(sub)) {
@@ -654,31 +654,6 @@ public final class TrDataFlowAnalysis {
 		return nextPc;
 	}
 
-	private R get(final int i, final T t) {
-		// start new register and TODO backpropagate alive for existing (read number)
-		final R r = this.frame.get(i);
-		if (!r.isAssignableTo(t)) {
-			throw new RuntimeException("Incompatible type for register '" + i
-					+ "'! Cannot assign '" + r + "' to '" + t + "'.");
-		}
-		if (r.getT() == T.RET) {
-			// bytecode restriction: internal return address type can only be read once
-			this.frame.set(i, null);
-			return r;
-		}
-		this.frame.set(i, new R(this.pc, r.getT(), r.getValue(), Kind.READ, r));
-		return r;
-	}
-
-	private R getRead(final int i, final T t) {
-		final R r = get(i, t);
-		if (!r.read(t)) {
-			throw new RuntimeException("Incompatible type for register '" + i + "'! Cannot read '"
-					+ r + "' as '" + t + "'.");
-		}
-		return r;
-	}
-
 	/**
 	 * Get target BB for PC. Split or create new if necessary.
 	 * 
@@ -712,6 +687,31 @@ public final class TrDataFlowAnalysis {
 		return bb;
 	}
 
+	private R load(final int i, final T t) {
+		// start new register and TODO backpropagate alive for existing (read number)
+		final R r = this.frame.load(i);
+		if (!r.isAssignableTo(t)) {
+			throw new RuntimeException("Incompatible type for register '" + i
+					+ "'! Cannot assign '" + r + "' to '" + t + "'.");
+		}
+		if (r.getT() == T.RET) {
+			// bytecode restriction: internal return address type can only be read once
+			this.frame.store(i, null);
+			return r;
+		}
+		this.frame.store(i, new R(this.pc, r.getT(), r.getValue(), Kind.LOAD, r));
+		return r;
+	}
+
+	private R loadRead(final int i, final T t) {
+		final R r = load(i, t);
+		if (!r.read(t)) {
+			throw new RuntimeException("Incompatible type for register '" + i + "'! Cannot read '"
+					+ r + "' as '" + t + "'.");
+		}
+		return r;
+	}
+
 	private void merge(final int pc) {
 		final Frame targetFrame = this.cfg.getFrame(pc);
 		if (targetFrame == null) {
@@ -724,8 +724,8 @@ public final class TrDataFlowAnalysis {
 		// target frame has already been visited -> BB join -> type merge
 		final BB targetBb = this.pc2bbs[pc];
 		for (int i = targetFrame.size(); i-- > 0;) {
-			final R prevR = targetFrame.get(i);
-			final R newR = this.frame.get(i);
+			final R prevR = targetFrame.load(i);
+			final R newR = this.frame.load(i);
 			if (prevR == newR) {
 				continue;
 			}
@@ -927,10 +927,10 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R store(final int i, final R r) {
-		final R prevR = this.frame.get(i);
+		final R prevR = this.frame.load(i);
 		final R newR = prevR == null ? new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r)
 				: new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r, prevR);
-		this.frame.set(i, newR);
+		this.frame.store(i, newR);
 		return newR;
 	}
 
