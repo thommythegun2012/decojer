@@ -130,7 +130,11 @@ public final class TrDataFlowAnalysis {
 		this.isIgnoreExceptions = this.cfg.getCu().check(DFlag.IGNORE_EXCEPTIONS);
 	}
 
-	private void evalBinaryMath(final T t) {
+	private void evalBinaryIntBoolMath(final T t) {
+		evalBinaryMath(t == T.INT ? T.AINT : t, null);
+	}
+
+	private void evalBinaryIntMath(final T t) {
 		evalBinaryMath(t, null);
 	}
 
@@ -164,7 +168,7 @@ public final class TrDataFlowAnalysis {
 		switch (op.getOptype()) {
 		case ADD: {
 			final ADD cop = (ADD) op;
-			evalBinaryMath(cop.getT());
+			evalBinaryIntMath(cop.getT());
 			break;
 		}
 		case ALOAD: {
@@ -176,7 +180,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case AND: {
 			final AND cop = (AND) op;
-			evalBinaryMath(cop.getT() == T.INT ? T.AINT : cop.getT()); // boolean too
+			evalBinaryIntBoolMath(cop.getT());
 			break;
 		}
 		case ARRAYLENGTH: {
@@ -207,7 +211,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case DIV: {
 			final DIV cop = (DIV) op;
-			evalBinaryMath(cop.getT());
+			evalBinaryIntMath(cop.getT());
 			break;
 		}
 		case DUP: {
@@ -443,7 +447,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case MUL: {
 			final MUL cop = (MUL) op;
-			evalBinaryMath(cop.getT());
+			evalBinaryIntMath(cop.getT());
 			break;
 		}
 		case NEG: {
@@ -469,7 +473,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case OR: {
 			final OR cop = (OR) op;
-			evalBinaryMath(cop.getT() == T.INT ? T.AINT : cop.getT()); // boolean too
+			evalBinaryIntBoolMath(cop.getT());
 			break;
 		}
 		case POP: {
@@ -509,7 +513,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case REM: {
 			final REM cop = (REM) op;
-			evalBinaryMath(cop.getT());
+			evalBinaryIntMath(cop.getT());
 			break;
 		}
 		case RET: {
@@ -582,7 +586,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case SUB: {
 			final SUB cop = (SUB) op;
-			evalBinaryMath(cop.getT());
+			evalBinaryIntMath(cop.getT());
 			break;
 		}
 		case SWAP: {
@@ -639,7 +643,7 @@ public final class TrDataFlowAnalysis {
 			return -1;
 		case XOR: {
 			final XOR cop = (XOR) op;
-			evalBinaryMath(cop.getT() == T.INT ? T.AINT : cop.getT()); // boolean too
+			evalBinaryIntBoolMath(cop.getT());
 			break;
 		}
 		default:
