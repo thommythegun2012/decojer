@@ -245,7 +245,7 @@ public final class TrDataFlowAnalysis {
 			case DUP2: {
 				final R s1 = this.frame.peek();
 				if (!s1.getT().isWide()) {
-					final R s2 = this.frame.peekSingle(2);
+					final R s2 = this.frame.peekSingle(1);
 					pushMove(s2);
 					pushMove(s1);
 					break;
