@@ -82,19 +82,6 @@ public final class Frame {
 	}
 
 	/**
-	 * Get stack register.
-	 * 
-	 * @param index
-	 *            stack index
-	 * @return register
-	 */
-	public R getS(final int index) {
-		assert getTop() > index : index;
-
-		return this.rs[getRegs() + index];
-	}
-
-	/**
 	 * Get subroutine number.
 	 * 
 	 * @return subroutine number
@@ -124,12 +111,14 @@ public final class Frame {
 	/**
 	 * Load register (local or stack).
 	 * 
-	 * @param index
+	 * @param i
 	 *            register index
 	 * @return register (local or stack)
 	 */
-	public R load(final int index) {
-		return this.rs[index];
+	public R load(final int i) {
+		// stack allowed too: assert i < this.cfg.getRegs();
+
+		return this.rs[i];
 	}
 
 	/**
@@ -147,13 +136,13 @@ public final class Frame {
 	 * Peek stack register.
 	 * 
 	 * @param i
-	 *            reverse stack index, last is 1
+	 *            reverse stack index
 	 * @return register
 	 */
 	public R peek(final int i) {
-		assert getTop() > i : i;
+		assert i < getTop();
 
-		return this.rs[this.rs.length - i];
+		return this.rs[this.rs.length - i - 1];
 	}
 
 	/**
@@ -173,7 +162,7 @@ public final class Frame {
 	 * Peek stack register (not wide).
 	 * 
 	 * @param i
-	 *            reverse stack index, last is 1
+	 *            reverse stack index
 	 * @return stack register
 	 */
 	public R peekSingle(final int i) {
@@ -331,6 +320,8 @@ public final class Frame {
 	 *            register (local or stack)
 	 */
 	public void store(final int i, final R r) {
+		// stack allowed too: assert i < this.cfg.getRegs();
+
 		final R[] newRs = new R[this.rs.length];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
 		newRs[i] = r;
@@ -373,7 +364,7 @@ public final class Frame {
 	 */
 	public int wideStacks(final int stacks) {
 		int wides = 0;
-		for (int j = stacks, i = 1; j-- > 0; ++i) {
+		for (int j = stacks, i = 0; j-- > 0; ++i) {
 			if (peek(i).getT().isWide()) {
 				--j;
 				++wides;

@@ -95,9 +95,9 @@ public class FramesFigure extends Figure {
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
-			for (int i = 0; i < maxStack; ++i) {
+			for (int i = maxStack; i-- > 0;) {
 				final Label label = new Label(frame == null || i >= frame.getTop()
-						|| frame.getS(i) == null ? "    " : frame.getS(i).toString());
+						|| frame.peek(i) == null ? "    " : frame.peek(i).toString());
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
