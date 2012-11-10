@@ -143,23 +143,17 @@ public final class TrDataFlowAnalysis {
 		final R s1 = pop(t);
 
 		// reduce to reasonable parameters pairs, e.g. BOOL, {SHORT,BOOL}-Constant -> both BOOL
-		// hence: T.INT not sufficient for boolean operators like OR
+		// hence: T.INT not sufficient for int/boolean operators like OR
 		final T m = R.merge(s1, s2);
 		assert m != null;
 
-		s2.read(m); // TODO no alive read trigger?!
-		s1.read(m);
+		s2.read(m, false);
+		s1.read(m, false);
 
-		if (m.isRef()) {
-			// (J)CMP EQ / NE
-			assert T.VOID == resultT : resultT;
-
+		if (resultT == T.VOID) {
 			return;
 		}
-		if (resultT != T.VOID) {
-			// TODO inputs really uninteresting?
-			pushConst(resultT != null ? resultT : m);
-		}
+		pushConst(resultT != null ? resultT : m);
 	}
 
 	private int executeMerge(final BB bb, final Op op) {
@@ -190,10 +184,10 @@ public final class TrDataFlowAnalysis {
 		}
 		case ASTORE: {
 			final ASTORE cop = (ASTORE) op;
-			final R vR = pop(cop.getT()); // value
+			final R vR = pop(cop.getT()); // value, no read
 			popRead(T.INT); // index
 			final R aR = popRead(this.cfg.getDu().getArrayT(cop.getT())); // array
-			if (!vR.read(aR.getT().getComponentT())) {
+			if (!vR.read(aR.getT().getComponentT(), true)) {
 				LOGGER.warning("Cannot store array value!");
 			}
 			break;
@@ -694,7 +688,7 @@ public final class TrDataFlowAnalysis {
 	private R load(final int i, final T t) {
 		// start new register and TODO backpropagate alive for existing (read number)
 		final R r = this.frame.load(i);
-		if (!r.isAssignableTo(t)) {
+		if (!r.read(t, false)) {
 			throw new RuntimeException("Incompatible type for register '" + i
 					+ "'! Cannot assign '" + r + "' to '" + t + "'.");
 		}
@@ -709,7 +703,7 @@ public final class TrDataFlowAnalysis {
 
 	private R loadRead(final int i, final T t) {
 		final R r = load(i, t);
-		if (!r.read(t)) {
+		if (!r.read(t, true)) {
 			throw new RuntimeException("Incompatible type for register '" + i + "'! Cannot read '"
 					+ r + "' as '" + t + "'.");
 		}
@@ -855,7 +849,7 @@ public final class TrDataFlowAnalysis {
 
 	private R pop(final T t) {
 		final R s = this.frame.pop();
-		if (!s.isAssignableTo(t)) {
+		if (!s.read(t, false)) {
 			// TODO bad infinispan.CacheImpl:...Incompatible local register type! Cannot assign
 			// 'R25_MO: javax.transaction.SystemException' to 'java.lang.Throwable'.
 			throw new RuntimeException("Incompatible type for stack register! Cannot assign '" + s
@@ -866,7 +860,7 @@ public final class TrDataFlowAnalysis {
 
 	private R popRead(final T t) {
 		final R s = pop(t);
-		if (!s.read(t)) {
+		if (!s.read(t, true)) {
 			throw new RuntimeException("Incompatible type for stack register! Cannot read '" + s
 					+ "' as '" + t + "'.");
 		}
