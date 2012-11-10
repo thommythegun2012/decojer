@@ -164,21 +164,6 @@ public final class R {
 	}
 
 	/**
-	 * Is this type instance assignable to given type instance?
-	 * 
-	 * Shortcut for t.isAssignableFrom(r.getT()).
-	 * 
-	 * Attention: Does work for primitives implicit conversion (byte 2 short 2 int, char 2 int).
-	 * 
-	 * @param t
-	 *            type
-	 * @return {@code true} - is assignable
-	 */
-	public boolean isAssignableTo(final T t) {
-		return t.isAssignableFrom(this.t);
-	}
-
-	/**
 	 * Is register a method parameter?
 	 * 
 	 * @return {@code true} - is method parameter
@@ -213,7 +198,7 @@ public final class R {
 		newIns[this.ins.length] = r;
 		this.ins = newIns;
 		if (this.readT != null) {
-			r.read(this.readT);
+			r.read(this.readT, true);
 		}
 	}
 
@@ -222,9 +207,11 @@ public final class R {
 	 * 
 	 * @param t
 	 *            type
+	 * @param alive
+	 *            {@code true} - mark as alive
 	 * @return {@code true} - success
 	 */
-	public boolean read(final T t) {
+	public boolean read(final T t, final boolean alive) {
 		final T reducedT = this.t.read(t);
 		if (null == reducedT) {
 			if (!this.t.isResolvable()) {
@@ -256,11 +243,12 @@ public final class R {
 			break;
 		case MOVE:
 		case LOAD:
-			this.ins[0].read(t);
+			this.ins[0].read(t, alive);
 		case CONST:
 		}
-
-		this.readT = T.union(this.readT, t);
+		if (alive) {
+			this.readT = T.union(this.readT, t);
+		}
 		return true;
 	}
 
