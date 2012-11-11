@@ -85,6 +85,7 @@ public final class TrControlFlowAnalysis {
 		 * log("Unexpected unnegated direct continue-back-edge."); cond.setType(Cond.IFNOT);
 		 * cond.setFollow(falseSucc); return cond; }
 		 */
+		// JDK 1 && 2 create wrong line numbers for final return (see DecTestIfStmt)
 		final boolean negated = falseSucc.isBefore(trueSucc);
 		final BB firstSucc = negated ? falseSucc : trueSucc;
 		final BB secondSucc = negated ? trueSucc : falseSucc;
@@ -93,13 +94,7 @@ public final class TrControlFlowAnalysis {
 
 		final Set<BB> firstFollows = Sets.newHashSet();
 		final List<BB> firstMembers = Lists.newArrayList();
-
-		// TODO JDK 1 && 2 create wrong line numbers for final return (see DecTestIfStmt)
-		// doesn't recognize structure yet...
-
-		if (firstSucc.getIns().size() == 1) { // TODO tss...backs?
-			findBranch(cond, firstSucc, firstMembers, firstFollows);
-		}
+		findBranch(cond, firstSucc, firstMembers, firstFollows);
 
 		// no else basic blocks: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
@@ -121,9 +116,7 @@ public final class TrControlFlowAnalysis {
 
 		final Set<BB> secondFollows = Sets.newHashSet();
 		final List<BB> secondMembers = Lists.newArrayList();
-		if (secondSucc.getIns().size() == 1) {
-			findBranch(cond, secondSucc, secondMembers, secondFollows);
-		}
+		findBranch(cond, secondSucc, secondMembers, secondFollows);
 
 		// no else basic blocks: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
