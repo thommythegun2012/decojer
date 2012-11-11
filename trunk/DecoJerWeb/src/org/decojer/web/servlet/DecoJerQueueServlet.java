@@ -27,6 +27,7 @@ import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -91,20 +92,17 @@ public class DecoJerQueueServlet extends HttpServlet {
 		final String filename = upload.getFilename();
 
 		final DU du = DecoJer.createDu();
-		TD td = du.read(uploadInputStream, filename, null);
+		final List<TD> tds = du.read(uploadInputStream, filename, null);
+		final List<CU> cus = du.getCus();
+		upload.setTds((long) tds.size());
 
-		upload.setTds((long) du.getTds().size());
-		if (td == null && upload.getTds().longValue() == 1L) {
-			td = du.getTds().iterator().next().getValue();
-		}
-
-		if (td != null) {
+		if (cus.size() == 1L) {
+			final CU cu = cus.get(0);
 			String source;
 			try {
-				final CU cu = DecoJer.createCu(td);
-				source = DecoJer.decompile(cu);
+				source = cu.decompile();
 
-				String sourcename = td.getSourceFileName();
+				String sourcename = cu.getSourceFileName();
 				if (sourcename == null) {
 					final int pos = filename.lastIndexOf('.');
 					sourcename = (pos == -1 ? filename : filename.substring(0, pos)) + ".java";
@@ -122,7 +120,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 		} else {
 			final ByteArrayOutputStream sourceOutputStream = new ByteArrayOutputStream();
 			try {
-				DecoJer.decompile(du, sourceOutputStream);
+				du.decompileAll(sourceOutputStream);
 
 				final int pos = filename.lastIndexOf('.');
 				final String sourcename = (pos == -1 ? filename : filename.substring(0, pos))

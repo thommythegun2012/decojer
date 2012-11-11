@@ -53,7 +53,7 @@ public class Merge {
 		try {
 			final T t1 = du.getT(this.type1);
 			final T t2 = du.getT(this.type2);
-			return "Merged type: " + t1.merge(t2).toString();
+			return "Merged type: " + T.join(t1, t2).toString();
 		} catch (final Exception e) {
 			e.printStackTrace();
 			return "Error: " + e.getMessage();
