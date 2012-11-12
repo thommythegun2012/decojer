@@ -1160,7 +1160,7 @@ public final class TrCfg2JavaExpressionStmts {
 			// .|...|.
 			//
 			// Reduction of none-flat CFG for forward-edges into flat CFG.
-			// (There are other none-flat CFGs, e.g. String-Switch)
+			// (There are other none-flat CFGs, e.g. String-Switch with hash collision.)
 
 			// rewrite AST
 			final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
