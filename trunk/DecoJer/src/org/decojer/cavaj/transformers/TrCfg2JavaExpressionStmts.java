@@ -1159,7 +1159,8 @@ public final class TrCfg2JavaExpressionStmts {
 			// .B...b. (bb and bb2 or vice versa! further incomings possible)
 			// .|...|.
 			//
-			// This should be the unique structure that leads to none-flat CFGs for forward-edges.
+			// Reduction of none-flat CFG for forward-edges into flat CFG.
+			// (There are other none-flat CFGs, e.g. String-Switch)
 
 			// rewrite AST
 			final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
