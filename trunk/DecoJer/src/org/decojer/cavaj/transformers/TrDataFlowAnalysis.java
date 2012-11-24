@@ -190,7 +190,18 @@ public final class TrDataFlowAnalysis {
 			final ASTORE cop = (ASTORE) op;
 			final R vR = pop(cop.getT()); // value, no read
 			popRead(T.INT); // index
-			final R aR = popRead(this.cfg.getDu().getArrayT(cop.getT())); // array
+
+			// FIXME int[] = {byte,char}[], see ASTRecoveryPropagator.<init>
+			final R aR = popRead(this.cfg.getDu().getArrayT(vR.getT())); // array
+
+			// FIXME ASTORE aR is ...alive...
+			// class AnnotationBinding implements IAnnotationBinding {
+			// public IMemberValuePairBinding[] [More ...] getDeclaredMemberValuePairs()
+			// (pairs is derived more specific org.eclipse.jdt.core.dom.MemberValuePairBinding[]
+			// not
+			// org.eclipse.jdt.core.dom.IMemberValuePairBinding)
+			// pairs[counter++] = this.bindingResolver.getMemberValuePairBinding(valuePair);
+
 			if (!vR.read(aR.getT().getComponentT(), true)) {
 				LOGGER.warning("Cannot store array value!");
 			}
