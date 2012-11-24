@@ -134,6 +134,10 @@ public final class TrDataFlowAnalysis {
 		evalBinaryMath(t == T.INT ? T.AINT : t, null);
 	}
 
+	private void evalBinaryIntBoolMath(final T t, final T resultT) {
+		evalBinaryMath(t == T.INT ? T.AINT : t, resultT);
+	}
+
 	private void evalBinaryIntMath(final T t) {
 		evalBinaryMath(t, null);
 	}
@@ -359,7 +363,9 @@ public final class TrDataFlowAnalysis {
 		case JCMP: {
 			final JCMP cop = (JCMP) op;
 			bb.setConds(getTargetBb(cop.getTargetPc()), getTargetBb(nextPc));
-			evalBinaryMath(cop.getT(), T.VOID);
+			// possible: bool != bool
+			// see org.eclipse.jdt.core.dom.ASTMatcher.match(BooleanLiteral)
+			evalBinaryIntBoolMath(cop.getT(), T.VOID);
 			merge(nextPc);
 			merge(cop.getTargetPc());
 			return -1;
