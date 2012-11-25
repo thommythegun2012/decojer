@@ -282,12 +282,16 @@ public abstract class T {
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
-
 		if (t1.isAssignableFrom(t2)) {
 			return t1;
 		}
-
 		assert t1.getDu() != null; // t1 could be a REF (PUSH null)
+
+		if (t1.isArray() && t2.isArray()) {
+			// covariant arrays, but supertype is Object and not superXY[]
+			final T joinT = join(t1.getComponentT(), t2.getComponentT());
+			return t1.getDu().getArrayT(joinT);
+		}
 
 		T superT = null;
 		// find common supertypes, raise in t-hierarchy till assignable from this
