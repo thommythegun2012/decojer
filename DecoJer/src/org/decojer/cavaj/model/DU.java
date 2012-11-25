@@ -314,14 +314,15 @@ public final class DU {
 					+ s.substring(start, c.pos).replace('.', '$'));
 			// ??? ((ClassT) t).setEnclosingT(parentT);
 		} else {
-			t = getT(s.substring(start, c.pos).replace('.', '$'));
+			// org/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>
+			t = getT(s.substring(start, c.pos));
 		}
 		final TypeArg[] typeArgs = parseTypeArgs(s, c, enclosing);
 		if (typeArgs != null) {
 			t = getParamT(t, typeArgs);
 			// ClassTypeSignatureSuffix_*
 			// e.g.:
-			// Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;
+			// org/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>
 			while (s.charAt(c.pos) == '.') {
 				++c.pos;
 				t = parseClassT(s, c, t, enclosing);
