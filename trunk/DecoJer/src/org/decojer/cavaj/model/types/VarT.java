@@ -48,7 +48,9 @@ public class VarT extends ModT {
 	public VarT(final String name, final Object enclosing) {
 		super(name, null);
 
-		assert enclosing != null;
+		// TODO add this after we know what happens for:
+		// Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;
+		// assert enclosing != null;
 		this.enclosing = enclosing;
 	}
 

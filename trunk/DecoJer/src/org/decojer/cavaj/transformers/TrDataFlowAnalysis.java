@@ -188,20 +188,24 @@ public final class TrDataFlowAnalysis {
 		}
 		case ASTORE: {
 			final ASTORE cop = (ASTORE) op;
-			final R vR = pop(cop.getT()); // value, no read
+			final R vR = pop(cop.getT()); // value: no read here, more specific possible, see below
 			popRead(T.INT); // index
+			// don't use getArrayT(vR.getT()), wrong assignment direction for supertype,
+			// e.g. java.lang.Object[] <- java.io.PrintWriter[] or int[] <- {byte,char}[]
+			final R aR = popRead(this.cfg.getDu().getArrayT(cop.getT())); // array
 
-			// FIXME int[] = {byte,char}[], see ASTRecoveryPropagator.<init>
-			final R aR = popRead(this.cfg.getDu().getArrayT(vR.getT())); // array
+			// FIXME aR could be more specific as vR (e.g. interface[] i = new instance[]), we have
+			// to store-join types
 
 			// FIXME ASTORE aR is ...alive...
 			// class AnnotationBinding implements IAnnotationBinding {
-			// public IMemberValuePairBinding[] [More ...] getDeclaredMemberValuePairs()
+			// public IMemberValuePairBinding[] getDeclaredMemberValuePairs()
 			// (pairs is derived more specific org.eclipse.jdt.core.dom.MemberValuePairBinding[]
 			// not
 			// org.eclipse.jdt.core.dom.IMemberValuePairBinding)
 			// pairs[counter++] = this.bindingResolver.getMemberValuePairBinding(valuePair);
 
+			// more specific read possible here
 			if (!vR.read(aR.getT().getComponentT(), true)) {
 				LOGGER.warning("Cannot store array value!");
 			}
