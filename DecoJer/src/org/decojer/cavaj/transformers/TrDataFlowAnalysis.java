@@ -194,10 +194,11 @@ public final class TrDataFlowAnalysis {
 			// e.g. java.lang.Object[] <- java.io.PrintWriter[] or int[] <- {byte,char}[]
 			final R aR = popRead(this.cfg.getDu().getArrayT(cop.getT())); // array
 
-			// FIXME aR could be more specific as vR (e.g. interface[] i = new instance[]), we have
-			// to store-join types
+			// now a more specific value read is possible...
 
-			// FIXME ASTORE aR is ...alive...
+			// aR could be more specific than vR (e.g. interface[] i = new instance[]), we have to
+			// store-join types
+
 			// class AnnotationBinding implements IAnnotationBinding {
 			// public IMemberValuePairBinding[] getDeclaredMemberValuePairs()
 			// (pairs is derived more specific org.eclipse.jdt.core.dom.MemberValuePairBinding[]
@@ -206,7 +207,11 @@ public final class TrDataFlowAnalysis {
 			// pairs[counter++] = this.bindingResolver.getMemberValuePairBinding(valuePair);
 
 			// more specific read possible here
-			if (!vR.read(aR.getT().getComponentT(), true)) {
+			final T joinT = T.join(vR.getT(), aR.getT().getComponentT());
+			// FIXME replace vR with super?
+			// org.eclipse.jdt.internal.core.JavaElement.read(
+			// {java.lang.Object,org.eclipse.jdt.core.IJavaElement,org.eclipse.core.runtime.IAdaptable})
+			if (joinT == null || !vR.read(joinT, true)) {
 				LOGGER.warning("Cannot store array value!");
 			}
 			break;

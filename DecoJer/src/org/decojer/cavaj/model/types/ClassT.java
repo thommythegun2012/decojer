@@ -114,7 +114,7 @@ public class ClassT extends T {
 		this.du = du;
 	}
 
-	public ClassT(final T superT, final T[] interfaceTs) {
+	public ClassT(final T superT, final T... interfaceTs) {
 		super(toString(superT, interfaceTs));
 
 		this.du = superT.getDu();
