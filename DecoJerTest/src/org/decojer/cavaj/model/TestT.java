@@ -271,15 +271,18 @@ class TestT {
 		assertFalse(du.getT(Cloneable[][][].class).isAssignableFrom(
 				du.getT(Byte[][][].class)));
 
-		// missleading, assignableFrom() means is-superclass in JDK function,
+		// missleading, assignableFrom() means is-superclass-of in JDK function,
 		// for primitives too! even though int=short/byte/char etc. is possible,
 		// false is returned!
-		// we change this behavior for the decompiler
+		// we change this behavior for the decompiler:
 		assertFalse(int.class.isAssignableFrom(byte.class));
 		assertTrue(T.INT.isAssignableFrom(T.BYTE));
-
+		// cannot int = boolean
+		assertFalse(T.INT.isAssignableFrom(T.BOOLEAN));
+		// but this isn't covariant in the language:
 		assertFalse(int[].class.isAssignableFrom(byte[].class));
-		assertTrue(du.getT(int[].class).isAssignableFrom(du.getT(byte[].class)));
+		assertFalse(du.getT(int[].class)
+				.isAssignableFrom(du.getT(byte[].class)));
 	}
 
 	@Test
