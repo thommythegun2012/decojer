@@ -209,6 +209,7 @@ public final class TrDataFlowAnalysis {
 			// more specific read possible here
 			final T joinT = T.join(vR.getT(), aR.getT().getComponentT());
 			// FIXME replace vR with super?
+			// org.eclipse.jdt.internal.codeassist.InternalExtendedCompletionContext.getVisibleElements()
 			// org.eclipse.jdt.internal.core.JavaElement.read(
 			// {java.lang.Object,org.eclipse.jdt.core.IJavaElement,org.eclipse.core.runtime.IAdaptable})
 			if (joinT == null || !vR.read(joinT, true)) {
