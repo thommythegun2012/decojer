@@ -404,13 +404,13 @@ class TestT {
 
 	@Test
 	void read() {
-		assertSame(T.INT.read(T.INT), T.INT);
-		assertNull(T.INT.read(T.BYTE));
-		assertSame(T.BYTE.read(T.INT), T.BYTE);
+		assertSame(T.INT.assignTo(T.INT), T.INT);
+		assertNull(T.INT.assignTo(T.BYTE));
+		assertSame(T.BYTE.assignTo(T.INT), T.BYTE);
 
-		assertSame(T.SINGLE.read(T.AINT), T.AINT);
-		assertSame(T.SINGLE.read(T.SINGLE), T.SINGLE);
-		assertNull(T.WIDE.read(T.SINGLE));
+		assertSame(T.SINGLE.assignTo(T.AINT), T.AINT);
+		assertSame(T.SINGLE.assignTo(T.SINGLE), T.SINGLE);
+		assertNull(T.WIDE.assignTo(T.SINGLE));
 	}
 
 	@Test
