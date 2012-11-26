@@ -212,7 +212,7 @@ public final class R {
 	 * @return {@code true} - success
 	 */
 	public boolean read(final T t, final boolean alive) {
-		final T reducedT = this.t.read(t);
+		final T reducedT = this.t.assignTo(t); // primitive reduction for this.t possible
 		if (null == reducedT) {
 			if (!this.t.isResolvable()) {
 				return true;
@@ -253,7 +253,7 @@ public final class R {
 	}
 
 	private boolean readForwardPropagate(final T t) {
-		final T reducedT = this.t.read(t);
+		final T reducedT = this.t.assignTo(t);
 		if (reducedT == null) {
 			if (!this.t.isResolvable()) {
 				return true;

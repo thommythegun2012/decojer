@@ -52,7 +52,7 @@ public abstract class T {
 	 * __s_ read _b__ => ____<br>
 	 * _bsi read c__i => _bsi
 	 */
-	private static int[][] READ_INT = {
+	private static int[][] ASSIGN_TO_INT = {
 	/* ___i */{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
 	/* __s_ */{ 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2 },
 	/* __si */{ 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3 },
@@ -258,6 +258,15 @@ public abstract class T {
 		return getT(flags);
 	}
 
+	private static int isAssignableFrom(final int kind1, final int kind2) {
+		final int k1 = (kind1 & 0xF) - 1;
+		final int k2 = (kind2 & 0xF) - 1;
+		if (k1 >= 0 && k2 >= 0) {
+			return ASSIGN_TO_INT[k2][k1] | kind1 & kind2;
+		}
+		return kind1 & kind2;
+	}
+
 	/**
 	 * Merge/join store/up/and types: Find common super type. Use AND operation for kind - primitive
 	 * multitypes: no conversion. No primitive reduction of source types, done through eventual
@@ -339,15 +348,6 @@ public abstract class T {
 		return kind1 & kind2;
 	}
 
-	private static int readKinds(final int kind1, final int kind2) {
-		final int k1 = (kind1 & 0xF) - 1;
-		final int k2 = (kind2 & 0xF) - 1;
-		if (k1 >= 0 && k2 >= 0) {
-			return READ_INT[k1][k2] | kind1 & kind2;
-		}
-		return kind1 & kind2;
-	}
-
 	/**
 	 * Merge/union read/down/or types: Find common lower type. Use OR operation for kind.
 	 * 
@@ -404,6 +404,56 @@ public abstract class T {
 		assert name != null;
 
 		this.name = name;
+	}
+
+	/**
+	 * Assign from given type. There are 3 possible outcomes: Cannot assign from given type, which
+	 * returns {@code null}. Can assign from given type and primitive multitype reduction, which
+	 * returns the reduced new type. Can assign without reduction, which returns unmodified
+	 * {@code this}.
+	 * 
+	 * @param t
+	 *            assign from type
+	 * @return {@code null} or reduced type or {@code this}
+	 */
+	public T assignFrom(final T t) {
+		if (t == null) {
+			return null;
+		}
+		final int kind = isAssignableFrom(getKind(), t.getKind());
+		if ((kind & Kind.REF.getKind()) == 0) {
+			return getT(kind);
+		}
+		// FIXME join up / reduce for store overwrite!
+		if (isAssignableFrom(t)) {
+			return this;
+		}
+		return null;
+	}
+
+	/**
+	 * Assign to given type. There are 3 possible outcomes: Cannot assign to given type, which
+	 * returns {@code null}. Can assign to given type and primitive multitype reduction, which
+	 * returns the reduced new type. Can assign without reduction, which returns unmodified
+	 * {@code this}.
+	 * 
+	 * @param t
+	 *            assifgn to type
+	 * @return {@code null} or reduced type or {@code this}
+	 */
+	public T assignTo(final T t) {
+		if (t == null) {
+			return null;
+		}
+		final int kind = isAssignableFrom(t.getKind(), getKind());
+		if ((kind & Kind.REF.getKind()) == 0) {
+			return getT(kind);
+		}
+		// no type reduction, can assign types to different single supertypes / interfaces
+		if (t.isAssignableFrom(this)) {
+			return this;
+		}
+		return null;
 	}
 
 	@Override
@@ -708,7 +758,7 @@ public abstract class T {
 		if (equals(t.getRawT())) {
 			return true;
 		}
-		final int kind = readKinds(t.getKind(), getKind());
+		final int kind = isAssignableFrom(getKind(), t.getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return kind != 0;
 		}
@@ -792,30 +842,6 @@ public abstract class T {
 	 */
 	public boolean isWide() {
 		return false; // only base types can be wide, overwrite in BaseT
-	}
-
-	/**
-	 * Read with given type. There are 3 possible outcomes: Cannot read with given type, which
-	 * returns {@code null}. Can read with given type and primitive multitype reduction, which
-	 * returns the reduced new type. Can read without reduction, which returns unmodified
-	 * {@code this}.
-	 * 
-	 * @param t
-	 *            read type
-	 * @return {@code null} or reduced type or {@code this}
-	 */
-	public T read(final T t) {
-		if (t == null) {
-			return null;
-		}
-		final int kind = readKinds(getKind(), t.getKind());
-		if ((kind & Kind.REF.getKind()) == 0) {
-			return getT(kind);
-		}
-		if (t.isAssignableFrom(this)) {
-			return this;
-		}
-		return null;
 	}
 
 	/**
