@@ -39,8 +39,9 @@ class TestT {
 		assertSame(du.getT(Object[].class).getComponentT(), objectT);
 
 		assertSame(Object[][].class.getComponentType(), Object[].class);
+		// TODO same
 		assertEquals(du.getT(Object[][].class).getComponentT(),
-				du.getT(Object[].class)); // EQUALS!!!
+				du.getT(Object[].class));
 
 		assertNull(Object.class.getComponentType());
 		assertNull(objectT.getComponentT());
@@ -415,11 +416,12 @@ class TestT {
 
 	@Test
 	void test() {
-		// FIXME not yet finalized...should keep upper type parameters
+		// TODO not perfect right now...need some parent structure, but the
+		// often seen $ instead of . is a real pain...
 		T t = du.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;");
 		assertEquals(
 				t.getName(),
-				"org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo<java.lang.Object>");
+				"org.pushingpixels.trident.TimelinePropertyBuilder<T>$AbstractFieldInfo<java.lang.Object>");
 	}
 
 	@Test
