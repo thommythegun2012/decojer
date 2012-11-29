@@ -100,6 +100,22 @@ public class JavassistReader implements ClassReader {
 		this.du = du;
 	}
 
+	/**
+	 * Helper function to avoid constPool.getClassInfo(i), which replaces '/' with '.'. This leads
+	 * to problems with new signatures that contain '.' for nested classes.
+	 * 
+	 * @param constPool
+	 *            constant pool
+	 * @param index
+	 *            constant pool index for descriptor
+	 * @return type
+	 */
+	private T getT(final ConstPool constPool, final int index) {
+		final String desc = constPool.getClassInfoByDescriptor(index);
+		// TODO return type can also be arrayT, may be arrayT should extend classT?
+		return desc == null ? null : this.du.getDescT(desc);
+	}
+
 	@Override
 	public TD read(final InputStream is) throws IOException {
 		final ClassFile classFile = new ClassFile(new DataInputStream(is));
@@ -138,10 +154,13 @@ public class JavassistReader implements ClassReader {
 				LOGGER.warning("Unknown class attribute tag '" + attributeTag + "'!");
 			}
 		}
+		final ConstPool constPool = classFile.getConstPool();
+
 		final ClassT t = (ClassT) this.du.getT(classFile.getName());
 		final TD td = t.createTd();
 		td.setAccessFlags(classFile.getAccessFlags());
-		td.setSuperT(this.du.getT(classFile.getSuperclass()));
+		td.setSuperT(getT(constPool, classFile.getSuperclassId()));
+		// FIXME problem with / (avoid getClassInfo in Javassist)
 		final String[] interfaces = classFile.getInterfaces();
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
@@ -163,7 +182,8 @@ public class JavassistReader implements ClassReader {
 			td.setDeprecated(true);
 		}
 		if (enclosingMethodAttribute != null) {
-			final ClassT enclosingT = (ClassT) this.du.getT(enclosingMethodAttribute.className());
+			final ClassT enclosingT = (ClassT) getT(constPool,
+					enclosingMethodAttribute.classIndex());
 			if (enclosingMethodAttribute.methodIndex() == 0) {
 				t.setEnclosingT(enclosingT);
 			} else {
@@ -174,10 +194,11 @@ public class JavassistReader implements ClassReader {
 		if (innerClassesAttribute != null) {
 			final int tableLength = innerClassesAttribute.tableLength();
 			for (int i = 0; i < tableLength; ++i) {
-				final ClassT innerT = (ClassT) this.du.getT(innerClassesAttribute.innerClass(i));
-				if (innerClassesAttribute.outerClass(i) != null) {
+				final ClassT innerT = (ClassT) getT(constPool,
+						innerClassesAttribute.innerClassIndex(i));
+				if (innerClassesAttribute.outerClassIndex(i) != 0) {
 					// set enclosing first for better inner name check
-					innerT.setEnclosingT(this.du.getT(innerClassesAttribute.outerClass(i)));
+					innerT.setEnclosingT(getT(constPool, innerClassesAttribute.outerClassIndex(i)));
 				}
 				innerT.setInnerInfo(innerClassesAttribute.innerName(i),
 						innerClassesAttribute.accessFlags(i));
@@ -265,6 +286,7 @@ public class JavassistReader implements ClassReader {
 						+ "' for field info '" + fieldInfo.getName() + "'!");
 			}
 		}
+		final ConstPool constPool = fieldInfo.getConstPool();
 
 		final FD fd = td.createFd(fieldInfo.getName(), this.du.getDescT(fieldInfo.getDescriptor()));
 
@@ -283,7 +305,6 @@ public class JavassistReader implements ClassReader {
 			Object value = null;
 			// only final, non static - no arrays, class types
 			final int index = constantAttribute.getConstantValue();
-			final ConstPool constPool = constantAttribute.getConstPool();
 			final int tag = constPool.getTag(index);
 			switch (tag) {
 			case ConstPool.CONST_Double:
@@ -358,16 +379,17 @@ public class JavassistReader implements ClassReader {
 						+ "' for method info '" + methodInfo.getName() + "'!");
 			}
 		}
+		final ConstPool constPool = methodInfo.getConstPool();
 
 		final MD md = td.createMd(methodInfo.getName(), methodInfo.getDescriptor());
 
 		md.setAccessFlags(methodInfo.getAccessFlags());
 		if (exceptionsAttribute != null) {
-			final String[] exceptions = exceptionsAttribute.getExceptions();
+			final int[] exceptions = exceptionsAttribute.getExceptionIndexes();
 			if (exceptions != null && exceptions.length > 0) {
 				final T[] throwsTs = new T[exceptions.length];
 				for (int i = exceptions.length; i-- > 0;) {
-					throwsTs[i] = this.du.getT(exceptions[i]);
+					throwsTs[i] = getT(constPool, exceptions[i]);
 				}
 				md.setThrowsTs(throwsTs);
 			}

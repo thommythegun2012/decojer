@@ -245,13 +245,13 @@ public class ClassT extends T {
 
 			final Class<?> superclass = clazz.getSuperclass();
 			if (superclass != null) {
-				this.superT = getDu().getT(superclass.getName());
+				this.superT = getDu().getT(superclass);
 			}
 			final Class<?>[] interfaces = clazz.getInterfaces();
 			if (interfaces.length > 0) {
 				final T[] interfaceTs = new T[interfaces.length];
 				for (int i = interfaces.length; i-- > 0;) {
-					interfaceTs[i] = getDu().getT(interfaces[i].getName());
+					interfaceTs[i] = getDu().getT(interfaces[i]);
 				}
 				this.interfaceTs = interfaceTs;
 			}

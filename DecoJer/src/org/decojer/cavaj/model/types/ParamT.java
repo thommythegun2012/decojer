@@ -146,18 +146,7 @@ public final class ParamT extends ModT {
 	}
 
 	@Override
-	public boolean isAssignableFrom(final T t) {
-		if (super.isAssignableFrom(t)) {
-			return true;
-		}
-		if (t == null) {
-			return false;
-		}
-		return getRawT().isAssignableFrom(t);
-	}
-
-	@Override
-	public T signatureExtend(final T reducedT) {
+	public T setSignatureFor(final T reducedT) {
 		return getGenericT().equals(reducedT) ? this : null;
 	}
 

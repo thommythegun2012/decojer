@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.types;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -35,6 +37,7 @@ public class VarT extends ModT {
 	/**
 	 * Enclosing type context.
 	 */
+	@Getter
 	private final Object enclosing;
 
 	/**
@@ -51,6 +54,7 @@ public class VarT extends ModT {
 		// TODO add this after we know what happens for:
 		// Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;
 		// assert enclosing != null;
+
 		this.enclosing = enclosing;
 	}
 
@@ -59,7 +63,7 @@ public class VarT extends ModT {
 	}
 
 	@Override
-	public T signatureExtend(final T reducedT) {
+	public T setSignatureFor(final T reducedT) {
 		setRawT(reducedT);
 		return this;
 	}
