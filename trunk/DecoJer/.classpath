@@ -7,8 +7,8 @@
 	<classpathentry exported="true" kind="lib" path="lib/commons-io-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/lombok.jar"/>
 	<classpathentry kind="lib" path="lib/dex-reader-1.11-SNAPSHOT.jar"/>
-	<classpathentry kind="lib" path="lib/dexlib-1.4.1-dev.jar"/>
 	<classpathentry kind="lib" path="lib/asm-4.1.jar"/>
 	<classpathentry kind="lib" path="lib/guava-13.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/dexlib-1.4.2-dev.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
