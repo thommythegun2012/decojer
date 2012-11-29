@@ -1654,7 +1654,7 @@ public class ReadCodeAttribute {
 				final T sigT = this.md.getTd().getDu()
 						.parseT(signature, new Cursor(), this.md.getM()).setSignatureFor(v.getT());
 				if (sigT == null) {
-					LOGGER.info("Cannot reduce signature '" + signature + "' to '" + v.getT()
+					LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + v.getT()
 							+ "' for method (local variable '" + v.getName() + "') " + this.md);
 				} else {
 					v.cmpSetT(sigT);
