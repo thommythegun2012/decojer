@@ -220,7 +220,7 @@ public final class DU {
 	 * @return type
 	 */
 	public T getT(final Class<?> clazz) {
-		return getT(clazz.getName().replace('.', '/'));
+		return getT(clazz.getName());
 	}
 
 	/**
@@ -240,30 +240,35 @@ public final class DU {
 		return getT(name, true);
 	}
 
+	// Lorg/pushingpixels/substance/internal/animation/StateTransitionMultiTracker.1;
+	// org/pushingpixels/substance/internal/animation/StateTransitionMultiTracker.1
+	// org/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>
+	// org/infinispan/util/InfinispanCollections$EmptyReversibleOrderedSet.1
+	// [I
+	// java.lang.String[]
 	private T getT(final String name, final boolean create) {
 		final char c = name.charAt(0);
-		if (c == 'L') {
+		if (c == '[') {
+			// java.lang.Class#getName() Javadoc explains this trick, fall back to descriptor
+			return getDescT(name.replace('.', '/')); // wrong descriptor with . instead of /
+		}
+		if (c == 'L' && name.lastIndexOf(';') != -1) {
 			// shouldn't happen: but class attribute info can contain both variants (incompatible
 			// bytecode generators), not allways fully validated through JVM, fallback
 			return getDescT(name);
 		}
-		if (c == '[') {
-			// java.lang.Class#getName() Javadoc explains this trick, fall back to descriptor
-			return getDescT(name);
-		}
-		if (name.indexOf('.') != -1) {
-			System.out.println(". " + name);
+		if (name.indexOf('/') != -1) {
+			return parseClassT(name, new Cursor(), null, null);
 		}
 		if (name.charAt(name.length() - 1) == ']' && name.charAt(name.length() - 2) == '[') {
 			return getArrayT(getT(name.substring(0, name.length() - 2)));
 		}
-		final String normName = name.replace('/', '.');
 		// cache...
-		T t = this.ts.get(normName);
+		T t = this.ts.get(name);
 		if (t == null && create) {
 			// can only be a TD...no int etc.
-			t = new ClassT(normName, this);
-			this.ts.put(normName, t);
+			t = new ClassT(name, this);
+			this.ts.put(name, t);
 		}
 		return t;
 	}
@@ -309,29 +314,27 @@ public final class DU {
 		// ClassTypeSignatureSuffix: . SimpleClassTypeSignature
 		final int start = c.pos;
 		char ch;
-		while ((ch = s.charAt(c.pos)) != '<' && ch != ';') {
+		// PackageSpecifier_opt Identifier
+		while (s.length() > c.pos && (ch = s.charAt(c.pos)) != '<' && ch != '.' && ch != ';') {
+			// $ could be a regular identifier char, we cannot do anything about this here
 			++c.pos;
 		}
 		T t;
 		if (parentT != null) {
-			t = getT(((ParamT) parentT).getGenericT().getName().replace('.', '/') + "$"
-					+ s.substring(start, c.pos).replace('.', '$'));
-			// FIXME ((ClassT) t).setEnclosingT(parentT);
+			t = getT(parentT.getName() + "$" + s.substring(start, c.pos).replace('/', '.'));
+			// TODO check equals doesn't work yet... ((ClassT) t).setEnclosingT(parentT);
 		} else {
-			// org/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>
-			// org/infinispan/util/InfinispanCollections$EmptyReversibleOrderedSet.1
-			t = getT(s.substring(start, c.pos));
+			t = getT(s.substring(start, c.pos).replace('/', '.'));
 		}
+		// TypeArguments_opt
 		final TypeArg[] typeArgs = parseTypeArgs(s, c, enclosing);
 		if (typeArgs != null) {
 			t = getParamT(t, typeArgs);
-			// ClassTypeSignatureSuffix_*
-			// e.g.:
-			// org/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>
-			while (s.charAt(c.pos) == '.') {
-				++c.pos;
-				t = parseClassT(s, c, t, enclosing);
-			}
+		}
+		// ClassTypeSignatureSuffix_*
+		while (s.length() > c.pos && s.charAt(c.pos) == '.') {
+			++c.pos;
+			t = parseClassT(s, c, t, enclosing);
 		}
 		return t;
 	}
@@ -429,7 +432,7 @@ public final class DU {
 	 */
 	private TypeArg[] parseTypeArgs(final String s, final Cursor c, final Object enclosing) {
 		// TypeArguments_opt
-		if (s.charAt(c.pos) != '<') {
+		if (s.length() <= c.pos || s.charAt(c.pos) != '<') {
 			return null;
 		}
 		++c.pos;

@@ -342,7 +342,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 			final T sigT = this.md.getTd().getDu().parseT(signature, new Cursor(), this.md.getM())
 					.setSignatureFor(vT);
 			if (sigT == null) {
-				LOGGER.info("Cannot reduce signature '" + signature + "' to '" + vT
+				LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + vT
 						+ "' for method (local variable '" + name + "') " + this.md);
 			} else {
 				vT = sigT;
