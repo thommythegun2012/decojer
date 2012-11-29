@@ -93,8 +93,8 @@ public abstract class ModT extends T {
 	}
 
 	@Override
-	public T signatureExtend(final T reducedT) {
-		return this.rawT.signatureExtend(reducedT) != null ? this : null;
+	public T setSignatureFor(final T reducedT) {
+		return this.rawT.setSignatureFor(reducedT) != null ? this : null;
 	}
 
 }

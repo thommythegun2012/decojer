@@ -172,7 +172,6 @@ public class ReadClassVisitor extends ClassVisitor {
 		if (exceptions != null && exceptions.length > 0) {
 			final T[] throwsTs = new T[exceptions.length];
 			for (int i = exceptions.length; i-- > 0;) {
-				// e.g. java/io/IOException, without L...;
 				throwsTs[i] = this.du.getT(exceptions[i]);
 			}
 			md.setThrowsTs(throwsTs);

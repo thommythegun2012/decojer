@@ -220,7 +220,7 @@ public final class DU {
 	 * @return type
 	 */
 	public T getT(final Class<?> clazz) {
-		return getT(clazz.getName());
+		return getT(clazz.getName().replace('.', '/'));
 	}
 
 	/**
@@ -243,21 +243,22 @@ public final class DU {
 	private T getT(final String name, final boolean create) {
 		final char c = name.charAt(0);
 		if (c == 'L') {
-			// class attribute info can contain both variants (incompatible bytecode generators),
-			// not allways fully validated through JVM
+			// shouldn't happen: but class attribute info can contain both variants (incompatible
+			// bytecode generators), not allways fully validated through JVM, fallback
 			return getDescT(name);
 		}
 		if (c == '[') {
 			// java.lang.Class#getName() Javadoc explains this trick, fall back to descriptor
 			return getDescT(name);
 		}
-
+		if (name.indexOf('.') != -1) {
+			System.out.println(". " + name);
+		}
 		if (name.charAt(name.length() - 1) == ']' && name.charAt(name.length() - 2) == '[') {
 			return getArrayT(getT(name.substring(0, name.length() - 2)));
 		}
-		// some calling bytecode libraries don't convert this, homogenize
 		final String normName = name.replace('/', '.');
-
+		// cache...
 		T t = this.ts.get(normName);
 		if (t == null && create) {
 			// can only be a TD...no int etc.
@@ -301,7 +302,11 @@ public final class DU {
 	 * @return class type
 	 */
 	private T parseClassT(final String s, final Cursor c, final T parentT, final Object enclosing) {
-		// PackageSpecifier_opt SimpleClassTypeSignature ClassTypeSignatureSuffix_*
+		// ClassTypeSignature: L PackageSpecifier_opt SimpleClassTypeSignature
+		// ClassTypeSignatureSuffix_* ;
+		// PackageSpecifier: Identifier / PackageSpecifier_*
+		// SimpleClassTypeSignature: Identifier TypeArguments_opt
+		// ClassTypeSignatureSuffix: . SimpleClassTypeSignature
 		final int start = c.pos;
 		char ch;
 		while ((ch = s.charAt(c.pos)) != '<' && ch != ';') {
@@ -309,12 +314,12 @@ public final class DU {
 		}
 		T t;
 		if (parentT != null) {
-			// TODO big hmmm
-			t = getT(((ParamT) parentT).getGenericT().getName() + "$"
+			t = getT(((ParamT) parentT).getGenericT().getName().replace('.', '/') + "$"
 					+ s.substring(start, c.pos).replace('.', '$'));
-			// ??? ((ClassT) t).setEnclosingT(parentT);
+			// FIXME ((ClassT) t).setEnclosingT(parentT);
 		} else {
 			// org/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>
+			// org/infinispan/util/InfinispanCollections$EmptyReversibleOrderedSet.1
 			t = getT(s.substring(start, c.pos));
 		}
 		final TypeArg[] typeArgs = parseTypeArgs(s, c, enclosing);

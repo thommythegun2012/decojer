@@ -258,13 +258,13 @@ public abstract class T {
 		return getT(flags);
 	}
 
-	private static int isAssignableFrom(final int kind1, final int kind2) {
-		final int k1 = (kind1 & 0xF) - 1;
-		final int k2 = (kind2 & 0xF) - 1;
-		if (k1 >= 0 && k2 >= 0) {
-			return ASSIGN_TO_INT[k2][k1] | kind1 & kind2;
+	private static int isAssignableFrom(final int kindTo, final int kindFrom) {
+		final int kTo = (kindTo & 0xF) - 1;
+		final int kFrom = (kindFrom & 0xF) - 1;
+		if (kTo >= 0 && kFrom >= 0) {
+			return ASSIGN_TO_INT[kFrom][kTo] | kindTo & kindFrom;
 		}
-		return kind1 & kind2;
+		return kindTo & kindFrom;
 	}
 
 	/**
@@ -851,7 +851,7 @@ public abstract class T {
 	 *            reduced type
 	 * @return extended signature type or {@code null}
 	 */
-	public T signatureExtend(final T reducedT) {
+	public T setSignatureFor(final T reducedT) {
 		return equals(reducedT) ? this : null;
 	}
 

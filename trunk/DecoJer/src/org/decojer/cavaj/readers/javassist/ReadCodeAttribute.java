@@ -122,6 +122,22 @@ public class ReadCodeAttribute {
 		return unresolvedPc;
 	}
 
+	/**
+	 * Helper function to avoid constPool.getClassInfo(i), which replaces '/' with '.'. This leads
+	 * to problems with new signatures that contain '.' for nested classes.
+	 * 
+	 * @param constPool
+	 *            constant pool
+	 * @param index
+	 *            constant pool index for descriptor
+	 * @return type
+	 */
+	private T getT(final ConstPool constPool, final int index) {
+		final String desc = constPool.getClassInfoByDescriptor(index);
+		// TODO return type can also be arrayT, may be arrayT should extend classT?
+		return desc == null ? null : getDu().getDescT(desc);
+	}
+
 	private ArrayList<Object> getUnresolved(final int vmpc) {
 		ArrayList<Object> unresolved = this.vmpc2unresolved.get(vmpc);
 		if (unresolved == null) {
@@ -171,13 +187,14 @@ public class ReadCodeAttribute {
 				LOGGER.warning("Unknown code attribute tag '" + attributeTag + "' in '" + md + "'!");
 			}
 		}
-		LOGGER.fine("Stack info: " + stackMap + " : " + stackMapTable);
+		final ConstPool constPool = codeAttribute.getConstPool();
+
+		LOGGER.fine("Stack info: " + stackMap + " : " + stackMapTable); // no unused warning
 
 		final CFG cfg = new CFG(md, codeAttribute.getMaxLocals(), codeAttribute.getMaxStack());
 		md.setCfg(cfg);
 
 		final CodeReader codeReader = new CodeReader(codeAttribute.getCode());
-		final ConstPool constPool = codeAttribute.getConstPool();
 
 		// wide operation following? one of:
 		// iload, fload, aload, lload, dload,
@@ -328,7 +345,7 @@ public class ReadCodeAttribute {
 			 ********/
 			case Opcode.CHECKCAST:
 				t = T.REF;
-				oValue = getDu().getT(constPool.getClassInfo(codeReader.readUnsignedShort()));
+				oValue = getT(constPool, codeReader.readUnsignedShort());
 				// fall through
 			case Opcode.D2F:
 				if (t == null) {
@@ -514,7 +531,7 @@ public class ReadCodeAttribute {
 			case Opcode.GETSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
-				final T ownerT = getDu().getT(constPool.getFieldrefClassName(fieldIndex));
+				final T ownerT = getT(constPool, constPool.getFieldrefClass(fieldIndex));
 				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
 						getDu().getDescT(constPool.getFieldrefType(fieldIndex)));
 				if (opcode == Opcode.GETSTATIC) {
@@ -560,8 +577,8 @@ public class ReadCodeAttribute {
 			 * INSTANCEOF *
 			 **************/
 			case Opcode.INSTANCEOF:
-				this.ops.add(new INSTANCEOF(this.ops.size(), opcode, line, getDu().getT(
-						constPool.getClassInfo(codeReader.readUnsignedShort()))));
+				this.ops.add(new INSTANCEOF(this.ops.size(), opcode, line, getT(constPool,
+						codeReader.readUnsignedShort())));
 				break;
 			/**********
 			 * INVOKE *
@@ -571,8 +588,7 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // count, unused
 				codeReader.readUnsignedByte(); // reserved, unused
 
-				final T ownerT = getDu()
-						.getT(constPool.getInterfaceMethodrefClassName(methodIndex));
+				final T ownerT = getT(constPool, constPool.getInterfaceMethodrefClass(methodIndex));
 				((ClassT) ownerT).markAf(AF.INTERFACE);
 				final M m = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
@@ -585,7 +601,7 @@ public class ReadCodeAttribute {
 			case Opcode.INVOKEVIRTUAL: {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
-				final T ownerT = getDu().getT(constPool.getMethodrefClassName(cpMethodIndex));
+				final T ownerT = getT(constPool, constPool.getMethodrefClass(cpMethodIndex));
 				final M m = ownerT.getM(constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
 				if (opcode == Opcode.INVOKESTATIC) {
@@ -944,15 +960,15 @@ public class ReadCodeAttribute {
 			 * NEW *
 			 *******/
 			case Opcode.NEW:
-				this.ops.add(new NEW(this.ops.size(), opcode, line, getDu().getT(
-						constPool.getClassInfo(codeReader.readUnsignedShort()))));
+				this.ops.add(new NEW(this.ops.size(), opcode, line, getT(constPool,
+						codeReader.readUnsignedShort())));
 				break;
 			/************
 			 * NEWARRAY *
 			 ************/
 			case Opcode.ANEWARRAY:
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, getDu().getT(
-						constPool.getClassInfo(codeReader.readUnsignedShort())), 1));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, getT(constPool,
+						codeReader.readUnsignedShort()), 1));
 				break;
 			case Opcode.NEWARRAY: {
 				type = codeReader.readUnsignedByte();
@@ -962,8 +978,8 @@ public class ReadCodeAttribute {
 			case Opcode.MULTIANEWARRAY: {
 				final int classIndex = codeReader.readUnsignedShort();
 				final int dimensions = codeReader.readUnsignedByte();
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, getDu().getT(
-						constPool.getClassInfo(classIndex)), dimensions));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line,
+						getT(constPool, classIndex), dimensions));
 				break;
 			}
 			/*******
@@ -1020,7 +1036,7 @@ public class ReadCodeAttribute {
 					final int tag = constPool.getTag(ldcValueIndex);
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
-						oValue = getDu().getT(constPool.getClassInfo(ldcValueIndex));
+						oValue = getT(constPool, ldcValueIndex);
 						t = getDu().getT(Class.class);
 						break;
 					case ConstPool.CONST_Double:
@@ -1063,7 +1079,7 @@ public class ReadCodeAttribute {
 					switch (constPool.getTag(ldcValueIndex)) {
 					case ConstPool.CONST_Class:
 						t = getDu().getT(Class.class);
-						oValue = getDu().getT(constPool.getClassInfo(ldcValueIndex));
+						oValue = getT(constPool, ldcValueIndex);
 						break;
 					case ConstPool.CONST_Double:
 						t = T.DOUBLE;
@@ -1186,7 +1202,7 @@ public class ReadCodeAttribute {
 			case Opcode.PUTSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
-				final T ownerT = getDu().getT(constPool.getFieldrefClassName(fieldIndex));
+				final T ownerT = getT(constPool, constPool.getFieldrefClass(fieldIndex));
 				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
 						getDu().getDescT(constPool.getFieldrefType(fieldIndex)));
 				if (opcode == Opcode.PUTSTATIC) {
@@ -1574,9 +1590,7 @@ public class ReadCodeAttribute {
 			// preserve order
 			final int exceptionTableSize = exceptionTable.size();
 			for (int i = 0; i < exceptionTableSize; ++i) {
-				final String catchName = constPool.getClassInfo(exceptionTable.catchType(i));
-				// no array possible, name is OK here
-				final T catchT = catchName == null ? null : getDu().getT(catchName);
+				final T catchT = getT(constPool, exceptionTable.catchType(i));
 				final Exc exc = new Exc(catchT);
 
 				exc.setStartPc(this.vmpc2pc.get(exceptionTable.startPc(i)));
@@ -1638,7 +1652,7 @@ public class ReadCodeAttribute {
 				}
 				final String signature = localVariableTypeAttribute.signature(i);
 				final T sigT = this.md.getTd().getDu()
-						.parseT(signature, new Cursor(), this.md.getM()).signatureExtend(v.getT());
+						.parseT(signature, new Cursor(), this.md.getM()).setSignatureFor(v.getT());
 				if (sigT == null) {
 					LOGGER.info("Cannot reduce signature '" + signature + "' to '" + v.getT()
 							+ "' for method (local variable '" + v.getName() + "') " + this.md);

@@ -225,7 +225,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		if (signature != null) {
 			final T sigT = this.md.getTd().getDu()
 					.parseT(signature.getStringValue(), new Cursor(), this.md.getM())
-					.signatureExtend(vT);
+					.setSignatureFor(vT);
 			if (sigT == null) {
 				LOGGER.info("Cannot reduce signature '" + signature.getStringValue() + "' to '"
 						+ vT + "' for method (local variable '" + name + "') " + this.md);

@@ -1219,7 +1219,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final Label start, final Label end, final int index) {
 		T vT = this.du.getDescT(desc);
 		if (signature != null) {
-			final T sigT = this.du.parseT(signature, new Cursor(), this.md.getM()).signatureExtend(
+			final T sigT = this.du.parseT(signature, new Cursor(), this.md.getM()).setSignatureFor(
 					vT);
 			if (sigT == null) {
 				LOGGER.info("Cannot reduce signature '" + signature + "' to '" + vT
@@ -1279,9 +1279,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitMethodInsn(final int opcode, final String owner, final String name,
 			final String desc) {
-		// java/io/PrintStream : println : (Ljava/lang/String;)V
-		// [Lorg/decojer/cavaj/test/jdk5/DecTestEnums; : clone :
-		// ()Ljava/lang/Object;
 		switch (opcode) {
 		/**********
 		 * INVOKE *
@@ -1397,7 +1394,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitTypeInsn(final int opcode, final String type) {
-		// type: java/lang/StringBuilder, [[I
 		final T t = this.du.getT(type);
 
 		switch (opcode) {
