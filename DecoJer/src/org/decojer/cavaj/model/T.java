@@ -836,23 +836,26 @@ public abstract class T {
 	public abstract boolean isResolvable();
 
 	/**
+	 * Is extended signature type for given type?
+	 * 
+	 * @param t
+	 *            raw type
+	 * @return {@code true} - is extended signature type for given type
+	 */
+	public boolean isSignatureFor(final T t) {
+		// FIXME currently this are ClassT witout parent/enclosing...whats correct?
+		// 'Lcom/google/common/collect/ImmutableList<TE;>.SubList;' to type
+		// 'com.google.common.collect.ImmutableList$SubList'
+		return equals(t);
+	}
+
+	/**
 	 * Is wide type?
 	 * 
 	 * @return {@code true} - is wide type
 	 */
 	public boolean isWide() {
 		return false; // only base types can be wide, overwrite in BaseT
-	}
-
-	/**
-	 * Extend type, especially variable types.
-	 * 
-	 * @param reducedT
-	 *            reduced type
-	 * @return extended signature type or {@code null}
-	 */
-	public T setSignatureFor(final T reducedT) {
-		return equals(reducedT) ? this : null;
 	}
 
 	@Override

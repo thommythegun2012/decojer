@@ -1219,9 +1219,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final Label start, final Label end, final int index) {
 		T vT = this.du.getDescT(desc);
 		if (signature != null) {
-			final T sigT = this.du.parseT(signature, new Cursor(), this.md.getM()).setSignatureFor(
-					vT);
-			if (sigT == null) {
+			final T sigT = this.du.parseT(signature, new Cursor(), this.md.getM());
+			if (!sigT.isSignatureFor(vT)) {
 				LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + vT
 						+ "' for method (local variable '" + name + "') " + this.md);
 			} else {

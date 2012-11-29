@@ -58,14 +58,17 @@ public class VarT extends ModT {
 		this.enclosing = enclosing;
 	}
 
-	public void setReducedT(final T t) {
+	@Override
+	public boolean isSignatureFor(final T t) {
+		if (getRawT() != null) {
+			return getRawT().equals(t);
+		}
 		setRawT(t);
+		return true;
 	}
 
-	@Override
-	public T setSignatureFor(final T reducedT) {
-		setRawT(reducedT);
-		return this;
+	public void setReducedT(final T t) {
+		setRawT(t);
 	}
 
 }

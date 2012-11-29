@@ -239,8 +239,8 @@ public final class MD extends BD {
 				}
 			} else {
 				for (int i = 0; i < paramTs.length; ++i) {
-					final T paramT = signParamTs[i].setSignatureFor(paramTs[i]);
-					if (paramT == null) {
+					final T paramT = signParamTs[i];
+					if (!paramT.isSignatureFor(paramTs[i])) {
 						LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
 								+ paramTs[i] + "' for method param: " + this);
 						break;
@@ -249,9 +249,8 @@ public final class MD extends BD {
 				}
 			}
 		}
-		final T returnT = getTd().getDu().parseT(signature, c, this.m)
-				.setSignatureFor(getReturnT());
-		if (returnT == null) {
+		final T returnT = getTd().getDu().parseT(signature, c, this.m);
+		if (!returnT.isSignatureFor(getReturnT())) {
 			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
 					+ "' for method return: " + this);
 		} else {
@@ -265,8 +264,8 @@ public final class MD extends BD {
 						+ "' to types for method throws: " + this);
 			}
 			for (int i = 0; i < throwsTs.length; ++i) {
-				final T throwT = signThrowTs[i].setSignatureFor(throwsTs[i]);
-				if (throwT == null) {
+				final T throwT = signThrowTs[i];
+				if (!throwT.isSignatureFor(throwsTs[i])) {
 					LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
 							+ throwsTs[i] + "' for method throw: " + this);
 					break;
