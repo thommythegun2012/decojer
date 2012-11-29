@@ -464,7 +464,10 @@ public abstract class T {
 		if (!(obj instanceof T)) {
 			return false;
 		}
-		return this.name.equals(((T) obj).name);
+		// 'Lcom/google/common/collect/ImmutableList<TE;>.SubList;' to type
+		// 'com.google.common.collect.ImmutableList$SubList'
+		// FIXME currently this are ClassT without parent/enclosing...whats correct?
+		return this.name.replaceAll("<[^>]+>", "").equals(((T) obj).name);
 	}
 
 	/**
@@ -843,9 +846,9 @@ public abstract class T {
 	 * @return {@code true} - is extended signature type for given type
 	 */
 	public boolean isSignatureFor(final T t) {
-		// FIXME currently this are ClassT witout parent/enclosing...whats correct?
 		// 'Lcom/google/common/collect/ImmutableList<TE;>.SubList;' to type
 		// 'com.google.common.collect.ImmutableList$SubList'
+		// FIXME currently this are ClassT without parent/enclosing...whats correct?
 		return equals(t);
 	}
 

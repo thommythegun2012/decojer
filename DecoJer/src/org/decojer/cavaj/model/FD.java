@@ -113,7 +113,7 @@ public final class FD extends BD {
 
 		final T valueT = getTd().getDu().parseT(signature, new Cursor(), this.f);
 		if (!valueT.isSignatureFor(getValueT())) {
-			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getValue()
+			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getValueT()
 					+ "' for field value: " + this);
 		} else {
 			this.f.setValueT(valueT);
