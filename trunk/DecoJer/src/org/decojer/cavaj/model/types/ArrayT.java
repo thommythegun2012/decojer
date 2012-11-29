@@ -112,11 +112,11 @@ public final class ArrayT extends T {
 	}
 
 	@Override
-	public T setSignatureFor(final T reducedT) {
-		if (!reducedT.isArray()) {
-			return null;
+	public boolean isSignatureFor(final T t) {
+		if (!t.isArray()) {
+			return false;
 		}
-		return this.componentT.setSignatureFor(reducedT.getComponentT()) != null ? this : null;
+		return this.componentT.isSignatureFor(t.getComponentT());
 	}
 
 }

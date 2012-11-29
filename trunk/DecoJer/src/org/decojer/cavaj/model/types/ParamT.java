@@ -145,9 +145,4 @@ public final class ParamT extends ModT {
 		return getRawT();
 	}
 
-	@Override
-	public T setSignatureFor(final T reducedT) {
-		return getGenericT().equals(reducedT) ? this : null;
-	}
-
 }

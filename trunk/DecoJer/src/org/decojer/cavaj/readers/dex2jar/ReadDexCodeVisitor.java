@@ -339,9 +339,8 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 			final DexLabel start, final DexLabel end, final int reg) {
 		T vT = this.du.getDescT(type);
 		if (signature != null) {
-			final T sigT = this.md.getTd().getDu().parseT(signature, new Cursor(), this.md.getM())
-					.setSignatureFor(vT);
-			if (sigT == null) {
+			final T sigT = this.md.getTd().getDu().parseT(signature, new Cursor(), this.md.getM());
+			if (!sigT.isSignatureFor(vT)) {
 				LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + vT
 						+ "' for method (local variable '" + name + "') " + this.md);
 			} else {
