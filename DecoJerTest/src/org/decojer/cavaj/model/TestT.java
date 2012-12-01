@@ -420,6 +420,9 @@ class TestT {
 		assertEquals(
 				t.getName(),
 				"org.pushingpixels.trident.TimelinePropertyBuilder<T>$AbstractFieldInfo<java.lang.Object>");
+		assertTrue(t
+				.eraseTo(du
+						.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder$AbstractFieldInfo;")));
 	}
 
 	@Test
