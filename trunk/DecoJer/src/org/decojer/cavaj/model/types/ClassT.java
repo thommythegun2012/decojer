@@ -101,12 +101,12 @@ public class ClassT extends T {
 	/**
 	 * Constructor.
 	 * 
-	 * @param name
-	 *            type name
 	 * @param du
 	 *            decompilation unit
+	 * @param name
+	 *            type name
 	 */
-	public ClassT(final String name, final DU du) {
+	public ClassT(final DU du, final String name) {
 		super(name);
 
 		assert du != null;
@@ -114,6 +114,14 @@ public class ClassT extends T {
 		this.du = du;
 	}
 
+	/**
+	 * Constructor for anonymous multi class type.
+	 * 
+	 * @param superT
+	 *            super type
+	 * @param interfaceTs
+	 *            interface types
+	 */
 	public ClassT(final T superT, final T... interfaceTs) {
 		super(toString(superT, interfaceTs));
 
