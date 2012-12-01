@@ -357,10 +357,14 @@ public class ClassT extends T {
 	 */
 	public void setEnclosingT(final T t) {
 		if (this.enclosing != null) {
-			if (this.enclosing != t) {
-				LOGGER.warning("Enclosing type cannot be changed from '" + this.enclosing
-						+ "' to '" + t + "'!");
+			if (this.enclosing instanceof M && ((M) this.enclosing).getT() == t) {
+				return;
 			}
+			if (this.enclosing == t) {
+				return;
+			}
+			LOGGER.warning("Enclosing type cannot be changed from '" + this.enclosing + "' to '"
+					+ t + "'!");
 			return;
 		}
 		this.enclosing = t;
