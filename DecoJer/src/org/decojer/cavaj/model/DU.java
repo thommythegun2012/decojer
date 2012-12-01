@@ -75,19 +75,6 @@ public final class DU {
 
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
 
-	/**
-	 * Get parameterized type for generic type and type arguments.
-	 * 
-	 * @param genericT
-	 *            generic type with matching type parameters
-	 * @param typeArgs
-	 *            type arguments for matching type parameters
-	 * @return parameterized type for generic type and type arguments
-	 */
-	public static ParamT getParamT(final T genericT, final TypeArg[] typeArgs) {
-		return new ParamT(genericT, typeArgs);
-	}
-
 	@Getter
 	private final T[] arrayInterfaceTs;
 
@@ -175,7 +162,14 @@ public final class DU {
 	 * @return array type for component type
 	 */
 	public ArrayT getArrayT(final T componentT) {
-		return new ArrayT(this, componentT);
+		final ArrayT arrayT = new ArrayT(this, componentT);
+		final String name = arrayT.getName();
+		final T t = this.ts.get(name);
+		if (t != null) {
+			return (ArrayT) t;
+		}
+		this.ts.put(name, arrayT);
+		return arrayT;
 	}
 
 	/**
@@ -210,6 +204,26 @@ public final class DU {
 	 */
 	public T getDescT(final String desc) {
 		return parseT(desc, new Cursor(), null);
+	}
+
+	/**
+	 * Get parameterized type for generic type and type arguments.
+	 * 
+	 * @param genericT
+	 *            generic type with matching type parameters
+	 * @param typeArgs
+	 *            type arguments for matching type parameters
+	 * @return parameterized type for generic type and type arguments
+	 */
+	public ParamT getParamT(final T genericT, final TypeArg[] typeArgs) {
+		final ParamT arrayT = new ParamT(genericT, typeArgs);
+		final String name = arrayT.getName();
+		final T t = this.ts.get(name);
+		if (t != null) {
+			return (ParamT) t;
+		}
+		this.ts.put(name, arrayT);
+		return arrayT;
 	}
 
 	/**
@@ -267,7 +281,7 @@ public final class DU {
 		T t = this.ts.get(name);
 		if (t == null && create) {
 			// can only be a TD...no int etc.
-			t = new ClassT(name, this);
+			t = new ClassT(this, name);
 			this.ts.put(name, t);
 		}
 		return t;
@@ -407,6 +421,7 @@ public final class DU {
 			return getArrayT(parseT(s, c, enclosing));
 		case 'T': {
 			final int pos = s.indexOf(';', c.pos);
+			// FIXME new???
 			final T t = new VarT(s.substring(c.pos, pos), enclosing);
 			c.pos = pos + 1;
 			return t;
@@ -481,7 +496,7 @@ public final class DU {
 		while (s.charAt(c.pos) != '>') {
 			final int pos = s.indexOf(':', c.pos);
 			// reuse ClassT for type parameter
-			final ClassT typeParam = new ClassT(s.substring(c.pos, pos), this);
+			final ClassT typeParam = new ClassT(this, s.substring(c.pos, pos));
 			c.pos = pos + 1;
 			if (s.charAt(c.pos) != ':') {
 				typeParam.setSuperT(parseT(s, c, enclosing));
