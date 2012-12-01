@@ -164,6 +164,7 @@ public final class DU {
 	public ArrayT getArrayT(final T componentT) {
 		final ArrayT arrayT = new ArrayT(this, componentT);
 		final String name = arrayT.getName();
+		// FIXME cache doesn't work with VarT...E with different contexts!
 		final T t = this.ts.get(name);
 		if (t != null) {
 			return (ArrayT) t;
@@ -314,13 +315,13 @@ public final class DU {
 	 *            descriptor / signature
 	 * @param c
 	 *            cursor
-	 * @param enclosing
+	 * @param context
 	 *            enclosing type context
-	 * @param parentT
+	 * @param enclosing
 	 *            parent type (for recursion)
 	 * @return class type
 	 */
-	private T parseClassT(final String s, final Cursor c, final Object enclosing, final T parentT) {
+	private T parseClassT(final String s, final Cursor c, final Object context, final T enclosing) {
 		// ClassTypeSignature: L PackageSpecifier_opt SimpleClassTypeSignature
 		// ClassTypeSignatureSuffix_* ;
 		// PackageSpecifier: Identifier / PackageSpecifier_*
@@ -334,21 +335,22 @@ public final class DU {
 			++c.pos;
 		}
 		T t;
-		if (parentT != null) {
-			t = getT(parentT.getName() + "$" + s.substring(start, c.pos).replace('/', '.'));
-			// TODO check equals doesn't work yet... ((ClassT) t).setEnclosingT(parentT);
+		if (enclosing != null) {
+			t = getT(enclosing.getName() + "$" + s.substring(start, c.pos).replace('/', '.'));
+			// TODO check equals doesn't work yet...hmm what if after . is a $? should prevent this!
+			((ClassT) t).setEnclosingT(enclosing);
 		} else {
 			t = getT(s.substring(start, c.pos).replace('/', '.'));
 		}
 		// TypeArguments_opt
-		final TypeArg[] typeArgs = parseTypeArgs(s, c, enclosing);
+		final TypeArg[] typeArgs = parseTypeArgs(s, c, context);
 		if (typeArgs != null) {
 			t = getParamT(t, typeArgs);
 		}
 		// ClassTypeSignatureSuffix_*
-		while (s.length() > c.pos && s.charAt(c.pos) == '.') {
+		if (s.length() > c.pos && s.charAt(c.pos) == '.') {
 			++c.pos;
-			t = parseClassT(s, c, enclosing, t);
+			return parseClassT(s, c, context, t);
 		}
 		return t;
 	}
@@ -360,16 +362,16 @@ public final class DU {
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @param enclosing
+	 * @param context
 	 *            enclosing type context
 	 * @return method parameter types
 	 */
-	public T[] parseMethodParamTs(final String s, final Cursor c, final Object enclosing) {
+	public T[] parseMethodParamTs(final String s, final Cursor c, final Object context) {
 		assert s.charAt(c.pos) == '(' : s.charAt(c.pos);
 		++c.pos;
 		final ArrayList<T> ts = new ArrayList<T>();
 		while (s.charAt(c.pos) != ')') {
-			ts.add(parseT(s, c, enclosing));
+			ts.add(parseT(s, c, context));
 		}
 		++c.pos;
 		return ts.toArray(new T[ts.size()]);
@@ -382,11 +384,11 @@ public final class DU {
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @param enclosing
+	 * @param context
 	 *            enclosing type context
 	 * @return type or {@code null} for signature end
 	 */
-	public T parseT(final String s, final Cursor c, final Object enclosing) {
+	public T parseT(final String s, final Cursor c, final Object context) {
 		if (s.length() <= c.pos) {
 			return null;
 		}
@@ -411,18 +413,18 @@ public final class DU {
 			return T.VOID;
 		case 'L': {
 			// ClassTypeSignature
-			final T t = parseClassT(s, c, enclosing, null);
+			final T t = parseClassT(s, c, context, null);
 			assert s.charAt(c.pos) == ';' : s.charAt(c.pos);
 			++c.pos;
 			return t;
 		}
 		case '[':
 			// ArrayTypeSignature
-			return getArrayT(parseT(s, c, enclosing));
+			return getArrayT(parseT(s, c, context));
 		case 'T': {
 			final int pos = s.indexOf(';', c.pos);
 			// FIXME new???
-			final T t = new VarT(s.substring(c.pos, pos), enclosing);
+			final T t = new VarT(s.substring(c.pos, pos), context);
 			c.pos = pos + 1;
 			return t;
 		}
@@ -441,11 +443,11 @@ public final class DU {
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @param enclosing
+	 * @param context
 	 *            enclosing type context
 	 * @return type arguments or {@code null}
 	 */
-	private TypeArg[] parseTypeArgs(final String s, final Cursor c, final Object enclosing) {
+	private TypeArg[] parseTypeArgs(final String s, final Cursor c, final Object context) {
 		// TypeArguments_opt
 		if (s.length() <= c.pos || s.charAt(c.pos) != '<') {
 			return null;
@@ -457,18 +459,18 @@ public final class DU {
 			switch (ch) {
 			case '+':
 				++c.pos;
-				ts.add(TypeArg.subclassOf(parseT(s, c, enclosing)));
+				ts.add(TypeArg.subclassOf(parseT(s, c, context)));
 				break;
 			case '-':
 				++c.pos;
-				ts.add(TypeArg.superOf(parseT(s, c, enclosing)));
+				ts.add(TypeArg.superOf(parseT(s, c, context)));
 				break;
 			case '*':
 				++c.pos;
 				ts.add(new TypeArg());
 				break;
 			default:
-				ts.add(new TypeArg(parseT(s, c, enclosing)));
+				ts.add(new TypeArg(parseT(s, c, context)));
 			}
 		}
 		++c.pos;
@@ -482,11 +484,11 @@ public final class DU {
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @param enclosing
+	 * @param context
 	 *            enclosing type context
 	 * @return type parameters or {@code null}
 	 */
-	public T[] parseTypeParams(final String s, final Cursor c, final Object enclosing) {
+	public T[] parseTypeParams(final String s, final Cursor c, final Object context) {
 		// TypeParams_opt
 		if (s.charAt(c.pos) != '<') {
 			return null; // optional
@@ -499,7 +501,7 @@ public final class DU {
 			final ClassT typeParam = new ClassT(this, s.substring(c.pos, pos));
 			c.pos = pos + 1;
 			if (s.charAt(c.pos) != ':') {
-				typeParam.setSuperT(parseT(s, c, enclosing));
+				typeParam.setSuperT(parseT(s, c, context));
 			} else {
 				typeParam.setSuperT(getT(Object.class));
 			}
@@ -507,7 +509,7 @@ public final class DU {
 				final ArrayList<T> interfaceTs = new ArrayList<T>();
 				do {
 					++c.pos;
-					interfaceTs.add(parseT(s, c, enclosing));
+					interfaceTs.add(parseT(s, c, context));
 				} while (s.charAt(c.pos) == ':');
 				typeParam.setInterfaceTs(interfaceTs.toArray(new T[interfaceTs.size()]));
 			}

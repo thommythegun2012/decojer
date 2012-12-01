@@ -38,24 +38,24 @@ public class VarT extends ModT {
 	 * Enclosing type context.
 	 */
 	@Getter
-	private final Object enclosing;
+	private final Object context;
 
 	/**
 	 * Constructor.
 	 * 
 	 * @param name
 	 *            type name
-	 * @param enclosing
+	 * @param context
 	 *            enclosing type context
 	 */
-	public VarT(final String name, final Object enclosing) {
+	public VarT(final String name, final Object context) {
 		super(name, null);
 
 		// TODO add this after we know what happens for:
 		// Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;
 		// assert enclosing != null;
 
-		this.enclosing = enclosing;
+		this.context = context;
 	}
 
 	@Override
