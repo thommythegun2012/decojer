@@ -39,8 +39,7 @@ class TestT {
 		assertSame(du.getT(Object[].class).getComponentT(), objectT);
 
 		assertSame(Object[][].class.getComponentType(), Object[].class);
-		// TODO same
-		assertEquals(du.getT(Object[][].class).getComponentT(),
+		assertSame(du.getT(Object[][].class).getComponentT(),
 				du.getT(Object[].class));
 
 		assertNull(Object.class.getComponentType());
@@ -397,9 +396,8 @@ class TestT {
 		assertEquals(t.getSimpleName(),
 				"{java.lang.Number,java.lang.Comparable}");
 
-		// join shouldn't be Object, Cloneable, Serializable:
-		// FIXME assertSame would be nice
-		assertEquals(T.join(du.getT(Integer[].class), du.getT(Number[].class)),
+		// join shouldn't be Object, Cloneable, Serializable
+		assertSame(T.join(du.getT(Integer[].class), du.getT(Number[].class)),
 				du.getT(Number[].class));
 	}
 
