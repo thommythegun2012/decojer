@@ -59,7 +59,7 @@ public class VarT extends ModT {
 	}
 
 	@Override
-	public boolean isSignatureFor(final T t) {
+	public boolean eraseTo(final T t) {
 		if (getRawT() != null) {
 			return getRawT().equals(t);
 		}

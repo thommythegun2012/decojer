@@ -382,7 +382,7 @@ public final class TD extends BD {
 		this.t.setTypeParams(getDu().parseTypeParams(signature, c, this.t));
 
 		final T superT = getDu().parseT(signature, c, this.t);
-		if (!superT.isSignatureFor(getSuperT())) {
+		if (!superT.eraseTo(getSuperT())) {
 			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getSuperT()
 					+ "' for type super: " + this);
 		} else {
@@ -397,7 +397,7 @@ public final class TD extends BD {
 			}
 			for (int i = 0; i < interfaceTs.length; ++i) {
 				final T interfaceT = signInterfaceTs[i];
-				if (!interfaceT.isSignatureFor(interfaceTs[i])) {
+				if (!interfaceT.eraseTo(interfaceTs[i])) {
 					LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
 							+ interfaceTs[i] + "' for type interface: " + this);
 					break;

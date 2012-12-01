@@ -48,6 +48,11 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public boolean eraseTo(final T t) {
+		return this.rawT.eraseTo(t);
+	}
+
+	@Override
 	public DU getDu() {
 		return this.rawT.getDu();
 	}
@@ -90,11 +95,6 @@ public abstract class ModT extends T {
 	@Override
 	public boolean isResolvable() {
 		return this.rawT.isResolvable();
-	}
-
-	@Override
-	public boolean isSignatureFor(final T t) {
-		return this.rawT.isSignatureFor(t);
 	}
 
 }
