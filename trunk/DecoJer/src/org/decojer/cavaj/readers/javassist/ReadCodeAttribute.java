@@ -1653,7 +1653,7 @@ public class ReadCodeAttribute {
 				final String signature = localVariableTypeAttribute.signature(i);
 				final T sigT = this.md.getTd().getDu()
 						.parseT(signature, new Cursor(), this.md.getM());
-				if (!sigT.isSignatureFor(v.getT())) {
+				if (!sigT.eraseTo(v.getT())) {
 					LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + v.getT()
 							+ "' for method (local variable '" + v.getName() + "') " + this.md);
 				} else {

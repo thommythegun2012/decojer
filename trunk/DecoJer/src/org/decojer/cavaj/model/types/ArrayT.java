@@ -61,6 +61,14 @@ public final class ArrayT extends T {
 	}
 
 	@Override
+	public boolean eraseTo(final T t) {
+		if (!t.isArray()) {
+			return false;
+		}
+		return this.componentT.eraseTo(t.getComponentT());
+	}
+
+	@Override
 	public T[] getInterfaceTs() {
 		return getDu().getArrayInterfaceTs();
 	}
@@ -109,14 +117,6 @@ public final class ArrayT extends T {
 	@Override
 	public boolean isResolvable() {
 		return this.componentT.isResolvable();
-	}
-
-	@Override
-	public boolean isSignatureFor(final T t) {
-		if (!t.isArray()) {
-			return false;
-		}
-		return this.componentT.isSignatureFor(t.getComponentT());
 	}
 
 }

@@ -471,6 +471,29 @@ public abstract class T {
 	}
 
 	/**
+	 * Is extended signature type for given type? This function also makes changes to the types,
+	 * e.g. setting enclosed for the given type (signatures have more info about that because of '.'
+	 * instead of '$') or setting raw types for type variables.
+	 * 
+	 * JVM Spec: "A class type signature gives complete type information for a class or interface
+	 * type. The class type signature must be formulated such that it can be reliably mapped to the
+	 * binary name of the class it denotes by erasing any type arguments and converting each '.'
+	 * character in the signature to a '$' character."
+	 * 
+	 * The char '.' is already replaced by '$' in the name, '.' is used for folders instead of '/'.
+	 * 
+	 * @param t
+	 *            raw type
+	 * @return {@code true} - is extended signature type for given type
+	 */
+	public boolean eraseTo(final T t) {
+		// 'Lcom/google/common/collect/ImmutableList<TE;>.SubList;' to type
+		// 'com.google.common.collect.ImmutableList$SubList'
+		// FIXME currently this are ClassT without parent/enclosing...whats correct?
+		return equals(t);
+	}
+
+	/**
 	 * Get component type of array type (null if no array type).
 	 * 
 	 * @return component type of array type (null if no array type)
@@ -837,29 +860,6 @@ public abstract class T {
 	 * @return {@code true} - is resolveable
 	 */
 	public abstract boolean isResolvable();
-
-	/**
-	 * Is extended signature type for given type? This function also makes changes to the types,
-	 * e.g. setting enclosed for the given type (signatures have more info about that because of '.'
-	 * instead of '$') or setting raw types for type variables.
-	 * 
-	 * Spec: "A class type signature gives complete type information for a class or interface type.
-	 * The class type signature must be formulated such that it can be reliably mapped to the binary
-	 * name of the class it denotes by erasing any type arguments and converting each '.' character
-	 * in the signature to a '$' character."
-	 * 
-	 * The char '.' is already replaced by '$' in the name, '.' is used for folders instead of '/'.
-	 * 
-	 * @param t
-	 *            raw type
-	 * @return {@code true} - is extended signature type for given type
-	 */
-	public boolean isSignatureFor(final T t) {
-		// 'Lcom/google/common/collect/ImmutableList<TE;>.SubList;' to type
-		// 'com.google.common.collect.ImmutableList$SubList'
-		// FIXME currently this are ClassT without parent/enclosing...whats correct?
-		return equals(t);
-	}
 
 	/**
 	 * Is wide type?

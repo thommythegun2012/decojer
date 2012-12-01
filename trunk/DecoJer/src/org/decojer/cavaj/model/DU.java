@@ -314,13 +314,13 @@ public final class DU {
 	 *            descriptor / signature
 	 * @param c
 	 *            cursor
-	 * @param parentT
-	 *            parent type??? TODO
 	 * @param enclosing
 	 *            enclosing type context
+	 * @param parentT
+	 *            parent type (for recursion)
 	 * @return class type
 	 */
-	private T parseClassT(final String s, final Cursor c, final T parentT, final Object enclosing) {
+	private T parseClassT(final String s, final Cursor c, final Object enclosing, final T parentT) {
 		// ClassTypeSignature: L PackageSpecifier_opt SimpleClassTypeSignature
 		// ClassTypeSignatureSuffix_* ;
 		// PackageSpecifier: Identifier / PackageSpecifier_*
@@ -348,7 +348,7 @@ public final class DU {
 		// ClassTypeSignatureSuffix_*
 		while (s.length() > c.pos && s.charAt(c.pos) == '.') {
 			++c.pos;
-			t = parseClassT(s, c, t, enclosing);
+			t = parseClassT(s, c, enclosing, t);
 		}
 		return t;
 	}
@@ -411,7 +411,7 @@ public final class DU {
 			return T.VOID;
 		case 'L': {
 			// ClassTypeSignature
-			final T t = parseClassT(s, c, null, enclosing);
+			final T t = parseClassT(s, c, enclosing, null);
 			assert s.charAt(c.pos) == ';' : s.charAt(c.pos);
 			++c.pos;
 			return t;
