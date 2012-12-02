@@ -321,8 +321,12 @@ public final class DU {
 		}
 		T t;
 		if (enclosing != null) {
+
+			// FIXME this isn't a valid solution, we need NestedClassT because of things like
+			// de.test.A<de.test.B>.C, test with scala-lifts heavy type stuff!!!
+			// may be setEnclosing shortens the name? but whats with the cache in this case?
+
 			t = getT(enclosing.getName() + "$" + s.substring(start, c.pos).replace('/', '.'));
-			// TODO check equals doesn't work yet...hmm what if after . is a $? should prevent this!
 			((ClassT) t).setEnclosingT(enclosing);
 		} else {
 			t = getT(s.substring(start, c.pos).replace('/', '.'));
