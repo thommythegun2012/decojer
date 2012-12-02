@@ -297,7 +297,7 @@ public final class TD extends BD {
 			// FIXME ClassT: net.liftweb.common.Box<scala.runtime.Nothing$>$WithFilter ???
 			return ast.newName(t.getName());
 		}
-		// ignore same package
+		// ...ignore same package
 		if (t.getEnclosingT() == null) {
 			return ast.newName(t.getPName());
 		}
