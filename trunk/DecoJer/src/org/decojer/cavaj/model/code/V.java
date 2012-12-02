@@ -112,7 +112,7 @@ public final class V {
 	 * @return {@code true} - changed
 	 */
 	public boolean cmpSetT(final T t) {
-		if (this.t == t) {
+		if (this.t.equals(t)) {
 			return false;
 		}
 		this.t = t;

@@ -213,7 +213,7 @@ public final class R {
 	 */
 	public boolean read(final T t, final boolean alive) {
 		final T reducedT = this.t.assignTo(t); // primitive reduction for this.t possible
-		if (null == reducedT) {
+		if (reducedT == null) {
 			if (!this.t.isResolvable()) {
 				return true;
 			}
@@ -223,7 +223,7 @@ public final class R {
 			// RETURN Long as TypeParam U - resolve to TypeArg <U extends Long>
 			assert false;
 		}
-		if (this.t != reducedT) {
+		if (!this.t.equals(reducedT)) {
 			// possible primitive multitype reduction
 			this.t = reducedT;
 			if (this.outs != null) {
@@ -260,7 +260,7 @@ public final class R {
 			}
 			assert false;
 		}
-		if (this.t != reducedT) {
+		if (!this.t.equals(reducedT)) {
 			// possible primitive multitype reduction
 			this.t = reducedT;
 			if (this.outs != null) {
