@@ -631,7 +631,18 @@ public abstract class T {
 	 * @return package name or {@code null} for no package
 	 */
 	public String getPackageName() {
-		final int pos = this.name.lastIndexOf('.');
+		// TODO can be simplified later...< and $ no valid parts in ClassT, need NestedClassT
+		int pos = -1;
+		loop: for (int i = 0; i < this.name.length(); ++i) {
+			switch (this.name.charAt(i)) {
+			case '.':
+				pos = i;
+				continue;
+			case '<':
+			case '$':
+				break loop;
+			}
+		}
 		return pos == -1 ? null : this.name.substring(0, pos);
 	}
 
