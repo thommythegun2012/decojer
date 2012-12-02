@@ -65,7 +65,7 @@ public class Switch extends Struct {
 	public boolean isCase(final BB bb) {
 		for (final Entry<Object, List<BB>> entry : this.value2members.entrySet()) {
 			final List<BB> value = entry.getValue();
-			if (value.size() == 0) {
+			if (value.isEmpty()) {
 				continue;
 			}
 			if (value.get(0) == bb) {

@@ -185,7 +185,7 @@ public final class BB {
 	 */
 	public E getFalseOut() {
 		for (final E out : this.outs) {
-			if (Boolean.FALSE == out.getValue()) {
+			if (out.getValue() == Boolean.FALSE) {
 				return out;
 			}
 		}
@@ -577,7 +577,7 @@ public final class BB {
 	 *            target BB
 	 */
 	public void moveIns(final BB target) {
-		if (this == this.cfg.getStartBb()) {
+		if (this.cfg.getStartBb() == this) {
 			this.cfg.setStartBb(target);
 		}
 		for (final E in : this.ins) {

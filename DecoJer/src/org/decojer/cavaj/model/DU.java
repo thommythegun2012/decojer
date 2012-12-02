@@ -75,6 +75,19 @@ public final class DU {
 
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
 
+	/**
+	 * Get parameterized type for generic type and type arguments.
+	 * 
+	 * @param genericT
+	 *            generic type with matching type parameters
+	 * @param typeArgs
+	 *            type arguments for matching type parameters
+	 * @return parameterized type for generic type and type arguments
+	 */
+	public static ParamT getParamT(final T genericT, final TypeArg[] typeArgs) {
+		return new ParamT(genericT, typeArgs);
+	}
+
 	@Getter
 	private final T[] arrayInterfaceTs;
 
@@ -162,15 +175,7 @@ public final class DU {
 	 * @return array type for component type
 	 */
 	public ArrayT getArrayT(final T componentT) {
-		final ArrayT arrayT = new ArrayT(this, componentT);
-		final String name = arrayT.getName();
-		// FIXME cache doesn't work with VarT...E with different contexts!
-		final T t = this.ts.get(name);
-		if (t != null) {
-			return (ArrayT) t;
-		}
-		this.ts.put(name, arrayT);
-		return arrayT;
+		return new ArrayT(this, componentT);
 	}
 
 	/**
@@ -205,26 +210,6 @@ public final class DU {
 	 */
 	public T getDescT(final String desc) {
 		return parseT(desc, new Cursor(), null);
-	}
-
-	/**
-	 * Get parameterized type for generic type and type arguments.
-	 * 
-	 * @param genericT
-	 *            generic type with matching type parameters
-	 * @param typeArgs
-	 *            type arguments for matching type parameters
-	 * @return parameterized type for generic type and type arguments
-	 */
-	public ParamT getParamT(final T genericT, final TypeArg[] typeArgs) {
-		final ParamT arrayT = new ParamT(genericT, typeArgs);
-		final String name = arrayT.getName();
-		final T t = this.ts.get(name);
-		if (t != null) {
-			return (ParamT) t;
-		}
-		this.ts.put(name, arrayT);
-		return arrayT;
 	}
 
 	/**

@@ -464,6 +464,9 @@ public abstract class T {
 		if (!(obj instanceof T)) {
 			return false;
 		}
+		if (this.name.equals(((T) obj).name)) {
+			return true;
+		}
 		// 'Lcom/google/common/collect/ImmutableList<TE;>.SubList;' to type
 		// 'com.google.common.collect.ImmutableList$SubList'
 		// FIXME currently this are ClassT without parent/enclosing...whats correct?
@@ -744,7 +747,7 @@ public abstract class T {
 			}
 			return true;
 		}
-		return this == ts[0];
+		return equals(ts[0]);
 	}
 
 	/**
@@ -790,7 +793,7 @@ public abstract class T {
 		}
 		// assignableFrom(T.REF) is true, null is T.REF!
 		// may be better to check for null const in R instead of this general answer
-		if (null == getDu() || is(Object.class) || t.getDu() == null) {
+		if (getDu() == null || is(Object.class) || t.getDu() == null) {
 			return true;
 		}
 		// raise step by step in hierarchy...lazy fetch unknown super

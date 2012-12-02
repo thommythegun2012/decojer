@@ -1600,7 +1600,7 @@ public final class TrCfg2JavaExpressionStmts {
 			bb.push(getAst().newSimpleName(name));
 		}
 		final T[] handlerTypes = (T[]) bb.getIns().get(0).getValue();
-		final boolean isFinally = 1 == handlerTypes.length && null == handlerTypes[0];
+		final boolean isFinally = handlerTypes.length == 1 && handlerTypes[0] == null;
 
 		final TryStatement tryStatement = getAst().newTryStatement();
 		if (!isFinally) {
