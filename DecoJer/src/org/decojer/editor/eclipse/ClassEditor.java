@@ -402,7 +402,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					try {
 						sourceCode = ClassEditor.this.selectedCu.decompile();
 					} catch (final Throwable t) {
-						t.printStackTrace();
+						LOGGER.log(Level.SEVERE, "Decompilation error!", t);
 						sourceCode = "// Decompilation error!";
 					}
 					ClassEditor.this.compilationUnitEditor

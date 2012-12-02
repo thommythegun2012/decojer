@@ -294,6 +294,7 @@ public final class TD extends BD {
 			}
 			// full name
 			// TODO later histogram for import candidates here?
+			// FIXME ClassT: net.liftweb.common.Box<scala.runtime.Nothing$>$WithFilter ???
 			return ast.newName(t.getName());
 		}
 		// ignore same package
