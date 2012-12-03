@@ -41,12 +41,7 @@ import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
 import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.utils.Cursor;
-import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.Name;
-
-import com.google.common.base.Objects;
-import com.google.common.collect.Lists;
 
 /**
  * Type declaration. This includes Java class and interface declarations.
@@ -59,8 +54,6 @@ import com.google.common.collect.Lists;
 public final class TD extends BD {
 
 	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
-
-	private static final String JAVA_LANG = "java.lang";
 
 	/**
 	 * Source file name (from source file attribute).
@@ -275,46 +268,6 @@ public final class TD extends BD {
 	 */
 	public boolean isDalvik() {
 		return this.version == 0;
-	}
-
-	/**
-	 * New type name.
-	 * 
-	 * @param t
-	 *            type
-	 * @return AST type name
-	 */
-	public Name newTypeName(final T t) {
-		final AST ast = getCu().getAst();
-		final String packageName = t.getPackageName();
-		if (!Objects.equal(getPackageName(), t.getPackageName())) {
-			if (JAVA_LANG.equals(packageName)) {
-				// ignore default package
-				return ast.newName(t.getPName());
-			}
-			// full name
-			// TODO later histogram for import candidates here?
-			// FIXME ClassT: net.liftweb.common.Box<scala.runtime.Nothing$>$WithFilter ???
-			return ast.newName(t.getName());
-		}
-		// ...ignore same package
-		if (t.getEnclosingT() == null) {
-			return ast.newName(t.getPName());
-		}
-		// convert inner classes separator '$' into '.',
-		// cannot use string replace because '$' is also a regular Java type name!
-		// find common name dominator and stop there, for relative inner names
-		final String name = getName();
-		String simpleName = t.getSimpleName();
-		final ArrayList<String> names = Lists.newArrayList(simpleName.length() > 0 ? simpleName : t
-				.getPName());
-		T enclosingT = t.getEnclosingT();
-		while (enclosingT != null && !name.startsWith(enclosingT.getName())) {
-			simpleName = enclosingT.getSimpleName();
-			names.add(simpleName.length() > 0 ? simpleName : enclosingT.getPName());
-			enclosingT = enclosingT.getEnclosingT();
-		}
-		return ast.newName(names.toArray(new String[names.size()]));
 	}
 
 	/**

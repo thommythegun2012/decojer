@@ -50,9 +50,9 @@ import org.eclipse.jdt.core.dom.TypeLiteral;
  * 
  * @author André Pankraz
  */
-public final class AnnotationsDecompiler {
+public final class Annotations {
 
-	private final static Logger LOGGER = Logger.getLogger(AnnotationsDecompiler.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(Annotations.class.getName());
 
 	/**
 	 * Decompile Annotation.
@@ -77,13 +77,13 @@ public final class AnnotationsDecompiler {
 				if (expression != null) {
 					final SingleMemberAnnotation singleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
-					singleMemberAnnotation.setTypeName(td.newTypeName(a.getT()));
+					singleMemberAnnotation.setTypeName(Types.decompileName(a.getT(), td));
 					singleMemberAnnotation.setValue(expression);
 					return singleMemberAnnotation;
 				}
 			}
 			final NormalAnnotation normalAnnotation = ast.newNormalAnnotation();
-			normalAnnotation.setTypeName(td.newTypeName(a.getT()));
+			normalAnnotation.setTypeName(Types.decompileName(a.getT(), td));
 			for (final String memberName : memberNames) {
 				final Expression expression = decompileAnnotationDefaultValue(td,
 						a.getMemberValue(memberName));
@@ -99,7 +99,7 @@ public final class AnnotationsDecompiler {
 			}
 		}
 		final MarkerAnnotation markerAnnotation = ast.newMarkerAnnotation();
-		markerAnnotation.setTypeName(td.newTypeName(a.getT()));
+		markerAnnotation.setTypeName(Types.decompileName(a.getT(), td));
 		return markerAnnotation;
 	}
 
@@ -150,7 +150,7 @@ public final class AnnotationsDecompiler {
 		}
 		if (defaultValue instanceof T) {
 			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-			typeLiteral.setType(Types.convertType((T) defaultValue, td));
+			typeLiteral.setType(Types.decompileType((T) defaultValue, td));
 			return typeLiteral;
 		}
 		if (defaultValue instanceof Double) {
@@ -161,7 +161,8 @@ public final class AnnotationsDecompiler {
 			if (!f.check(AF.ENUM)) {
 				LOGGER.warning("Default value field must be enum!");
 			}
-			return ast.newQualifiedName(td.newTypeName(f.getT()), ast.newSimpleName(f.getName()));
+			return ast.newQualifiedName(Types.decompileName(f.getT(), td),
+					ast.newSimpleName(f.getName()));
 		}
 		if (defaultValue instanceof Float) {
 			return ast.newNumberLiteral(defaultValue.toString() + 'F');
@@ -227,7 +228,7 @@ public final class AnnotationsDecompiler {
 		return false;
 	}
 
-	private AnnotationsDecompiler() {
+	private Annotations() {
 		// static helper class
 	}
 

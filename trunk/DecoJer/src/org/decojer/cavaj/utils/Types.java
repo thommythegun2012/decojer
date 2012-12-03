@@ -23,22 +23,28 @@
  */
 package org.decojer.cavaj.utils;
 
+import java.util.ArrayList;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ArrayT;
+import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParamT.TypeArg;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeLiteral;
 import org.eclipse.jdt.core.dom.WildcardType;
+
+import com.google.common.base.Objects;
+import com.google.common.collect.Lists;
 
 /**
  * Helper functions for Types.
@@ -49,18 +55,20 @@ public final class Types {
 
 	private final static Logger LOGGER = Logger.getLogger(Types.class.getName());
 
+	private static final String JAVA_LANG = "java.lang";
+
 	/**
-	 * Convert Literal to AST Expression.
+	 * Decompile literal.
 	 * 
 	 * @param t
-	 *            Literal Type
+	 *            literal type
 	 * @param value
-	 *            Literal Value
+	 *            literal value
 	 * @param td
-	 *            Type Declaration (context)
+	 *            type declaration (context)
 	 * @return AST Expression
 	 */
-	public static Expression convertLiteral(final T t, final Object value, final TD td) {
+	public static Expression decompileLiteral(final T t, final Object value, final TD td) {
 		final AST ast = td.getCu().getAst();
 		if (t.isRef() /* incl. T.AREF */) {
 			if (value == null) {
@@ -68,7 +76,7 @@ public final class Types {
 			}
 			if (t.getName().equals(Class.class.getName())) {
 				final TypeLiteral typeLiteral = ast.newTypeLiteral();
-				typeLiteral.setType(convertType((T) value, td));
+				typeLiteral.setType(decompileType((T) value, td));
 				return typeLiteral;
 			}
 			if (t.getName().equals(String.class.getName())) {
@@ -317,21 +325,69 @@ public final class Types {
 	}
 
 	/**
-	 * Convert Type.
+	 * Decompile type name.
 	 * 
 	 * @param t
-	 *            Type
+	 *            type
 	 * @param td
-	 *            Type Declaration (context)
+	 *            type declaration (context)
+	 * @return AST type name
+	 */
+	public static Name decompileName(final T t, final TD td) {
+		final AST ast = td.getCu().getAst();
+		final String packageName = t.getPackageName();
+		if (t.getName().endsWith("Box$WithFilter")) {
+			System.out.println("STOP");
+		}
+		if (!Objects.equal(td.getPackageName(), t.getPackageName())) {
+			if (JAVA_LANG.equals(packageName)) {
+				// ignore default package
+				return ast.newName(t.getPName());
+			}
+			// full name
+			// TODO later histogram for import candidates here?
+			// FIXME ClassT: net.liftweb.common.Box<scala.runtime.Nothing$>$WithFilter ???
+			return ast.newName(t.getName());
+		}
+		// ...ignore same package
+		if (t.getEnclosingT() == null) {
+			return ast.newName(t.getPName());
+		}
+		// convert inner classes separator '$' into '.',
+		// cannot use string replace because '$' is also a regular Java type name!
+		// find common name dominator and stop there, for relative inner names
+		final String name = td.getName();
+		String simpleName = t.getSimpleName();
+		final ArrayList<String> names = Lists.newArrayList(simpleName.length() > 0 ? simpleName : t
+				.getPName());
+		T enclosingT = t.getEnclosingT();
+		while (enclosingT != null && !name.startsWith(enclosingT.getName())) {
+			simpleName = enclosingT.getSimpleName();
+			names.add(simpleName.length() > 0 ? simpleName : enclosingT.getPName());
+			enclosingT = enclosingT.getEnclosingT();
+		}
+		return ast.newName(names.toArray(new String[names.size()]));
+	}
+
+	/**
+	 * Decompile type.
+	 * 
+	 * @param t
+	 *            type
+	 * @param td
+	 *            type declaration (context)
 	 * @return AST Type
 	 */
-	public static Type convertType(final T t, final TD td) {
+	public static Type decompileType(final T t, final TD td) {
 		final AST ast = td.getCu().getAst();
 		if (t instanceof ArrayT) {
-			return ast.newArrayType(convertType(t.getComponentT(), td));
+			return ast.newArrayType(decompileType(t.getComponentT(), td));
+		}
+		if (t instanceof ClassT && ((ClassT) t).getEnclosingT() != null) {
+			// TODO
 		}
 		if (t instanceof ParamT) {
-			final ParameterizedType parameterizedType = ast.newParameterizedType(convertType(
+			final ParameterizedType parameterizedType = ast.newParameterizedType(decompileType(
 					((ParamT) t).getGenericT(), td));
 			for (final TypeArg typeArg : ((ParamT) t).getTypeArgs()) {
 				switch (typeArg.getKind()) {
@@ -342,19 +398,19 @@ public final class Types {
 				case SUBCLASS_OF: {
 					final WildcardType wildcardType = ast.newWildcardType();
 					// default...newWildcardType.setUpperBound(true);
-					wildcardType.setBound(Types.convertType(typeArg.getT(), td));
+					wildcardType.setBound(Types.decompileType(typeArg.getT(), td));
 					parameterizedType.typeArguments().add(wildcardType);
 					break;
 				}
 				case SUPER_OF: {
 					final WildcardType wildcardType = ast.newWildcardType();
 					wildcardType.setUpperBound(false);
-					wildcardType.setBound(Types.convertType(typeArg.getT(), td));
+					wildcardType.setBound(Types.decompileType(typeArg.getT(), td));
 					parameterizedType.typeArguments().add(wildcardType);
 					break;
 				}
 				default: {
-					parameterizedType.typeArguments().add(Types.convertType(typeArg.getT(), td));
+					parameterizedType.typeArguments().add(Types.decompileType(typeArg.getT(), td));
 				}
 				}
 			}
@@ -390,7 +446,7 @@ public final class Types {
 		if (t.is(T.VOID)) {
 			return ast.newPrimitiveType(PrimitiveType.VOID);
 		}
-		return ast.newSimpleType(td.newTypeName(t));
+		return ast.newSimpleType(Types.decompileName(t, td));
 	}
 
 	private Types() {

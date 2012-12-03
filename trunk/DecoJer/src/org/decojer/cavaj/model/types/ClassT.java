@@ -170,13 +170,13 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public ClassT getEnclosingT() {
+	public T getEnclosingT() {
 		final Object enclosing = getEnclosing();
 		// like Class#getEnclosingClass()
 		if (enclosing instanceof M) {
-			return (ClassT) ((M) enclosing).getT();
+			return ((M) enclosing).getT();
 		}
-		return enclosing instanceof ClassT ? (ClassT) enclosing : null;
+		return enclosing instanceof T ? (T) enclosing : null;
 	}
 
 	@Override
@@ -363,9 +363,12 @@ public class ClassT extends T {
 			if (this.enclosing.equals(t)) {
 				return;
 			}
-			LOGGER.warning("Enclosing type cannot be changed from '" + this.enclosing + "' to '"
-					+ t + "'!");
-			return;
+			// extend signature?
+			if (!this.enclosing.equals(t.getRawT())) {
+				LOGGER.warning("Enclosing type cannot be changed from '" + this.enclosing
+						+ "' to '" + t + "'!");
+				return;
+			}
 		}
 		this.enclosing = t;
 	}

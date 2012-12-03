@@ -216,8 +216,9 @@ public final class TrCfg2JavaExpressionStmts {
 						// not all indexes may be set, null/0/false in JVM 7 are not set, fill
 						for (int i = size; i-- > 0;) {
 							arrayInitializer.expressions().add(
-									Types.convertLiteral(bb.getCfg().getInFrame(op).peek().getT(),
-											null, this.cfg.getTd()));
+									Types.decompileLiteral(
+											bb.getCfg().getInFrame(op).peek().getT(), null,
+											this.cfg.getTd()));
 						}
 						arrayCreation.dimensions().clear();
 					}
@@ -246,7 +247,7 @@ public final class TrCfg2JavaExpressionStmts {
 			case CAST: {
 				final CAST cop = (CAST) op;
 				final CastExpression castExpression = getAst().newCastExpression();
-				castExpression.setType(Types.convertType(cop.getToT(), this.cfg.getTd()));
+				castExpression.setType(Types.decompileType(cop.getToT(), this.cfg.getTd()));
 				castExpression.setExpression(wrap(bb.pop(), Priority.TYPE_CAST));
 				bb.push(castExpression);
 				break;
@@ -339,14 +340,14 @@ public final class TrCfg2JavaExpressionStmts {
 				if (!(expression instanceof ArrayCreation)) {
 					// TODO Dalvik...assignment happened already...temporary register
 					expression = getAst().newArrayCreation();
-					((ArrayCreation) expression).setType((ArrayType) Types.convertType(t,
+					((ArrayCreation) expression).setType((ArrayType) Types.decompileType(t,
 							this.cfg.getTd()));
 				}
 
 				final ArrayInitializer arrayInitializer = getAst().newArrayInitializer();
 				for (final Object value : cop.getValues()) {
 					arrayInitializer.expressions().add(
-							Types.convertLiteral(componentT, value, this.cfg.getTd()));
+							Types.decompileLiteral(componentT, value, this.cfg.getTd()));
 				}
 				((ArrayCreation) expression).setInitializer(arrayInitializer);
 
@@ -365,7 +366,10 @@ public final class TrCfg2JavaExpressionStmts {
 						}
 						log("Couldn't rewrite cached class literal '" + f + "'!");
 					}
-					bb.push(getAst().newQualifiedName(this.cfg.getTd().newTypeName(f.getT()),
+					// Eclipse AST expects a Name for f.getT(), not a Type:
+					// is OK - f.getT() cannot be generic
+					bb.push(getAst().newQualifiedName(
+							Types.decompileName(f.getT(), this.cfg.getTd()),
 							getAst().newSimpleName(f.getName())));
 				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
@@ -402,7 +406,7 @@ public final class TrCfg2JavaExpressionStmts {
 						final Assignment assignment = getAst().newAssignment();
 						assignment.setOperator(value >= 0 ? Assignment.Operator.PLUS_ASSIGN
 								: Assignment.Operator.MINUS_ASSIGN);
-						assignment.setRightHandSide(Types.convertLiteral(cop.getT(),
+						assignment.setRightHandSide(Types.decompileLiteral(cop.getT(),
 								value >= 0 ? value : -value, this.cfg.getTd()));
 						statement = getAst().newExpressionStatement(assignment);
 					}
@@ -417,8 +421,8 @@ public final class TrCfg2JavaExpressionStmts {
 				final InstanceofExpression instanceofExpression = getAst()
 						.newInstanceofExpression();
 				instanceofExpression.setLeftOperand(wrap(bb.pop(), Priority.INSTANCEOF));
-				instanceofExpression
-						.setRightOperand(Types.convertType(cop.getT(), this.cfg.getTd()));
+				instanceofExpression.setRightOperand(Types.decompileType(cop.getT(),
+						this.cfg.getTd()));
 				bb.push(instanceofExpression);
 				break;
 			}
@@ -508,7 +512,7 @@ public final class TrCfg2JavaExpressionStmts {
 					}
 				} else if (m.check(AF.STATIC)) {
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
-					methodInvocation.setExpression(this.cfg.getTd().newTypeName(m.getT()));
+					methodInvocation.setExpression(Types.decompileName(m.getT(), this.cfg.getTd()));
 					methodInvocation.setName(getAst().newSimpleName(m.getName()));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
@@ -687,7 +691,8 @@ public final class TrCfg2JavaExpressionStmts {
 				if ("this".equals(name)) {
 					bb.push(getAst().newThisExpression());
 				} else {
-					bb.push(getAst().newSimpleName(name));
+					bb.push(getAst().newSimpleName(
+					/* scala */"default".equals(name) ? "_default" : name));
 				}
 				break;
 			}
@@ -724,11 +729,11 @@ public final class TrCfg2JavaExpressionStmts {
 							final T[] interfaceTs = newT.getInterfaceTs();
 							switch (interfaceTs.length) {
 							case 0:
-								classInstanceCreation.setType(Types.convertType(newT.getSuperT(),
+								classInstanceCreation.setType(Types.decompileType(newT.getSuperT(),
 										this.cfg.getTd()));
 								break;
 							case 1:
-								classInstanceCreation.setType(Types.convertType(interfaceTs[0],
+								classInstanceCreation.setType(Types.decompileType(interfaceTs[0],
 										this.cfg.getTd()));
 								break;
 							default:
@@ -753,7 +758,7 @@ public final class TrCfg2JavaExpressionStmts {
 						// no int
 					}
 				}
-				classInstanceCreation.setType(Types.convertType(newT, this.cfg.getTd()));
+				classInstanceCreation.setType(Types.decompileType(newT, this.cfg.getTd()));
 				bb.push(classInstanceCreation);
 				break;
 			}
@@ -761,7 +766,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final NEWARRAY cop = (NEWARRAY) op;
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
 				arrayCreation.setType(getAst().newArrayType(
-						Types.convertType(cop.getT(), this.cfg.getTd())));
+						Types.decompileType(cop.getT(), this.cfg.getTd())));
 				for (int i = cop.getDimensions(); i-- > 0;) {
 					arrayCreation.dimensions().add(bb.pop());
 				}
@@ -794,8 +799,8 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			case PUSH: {
 				final PUSH cop = (PUSH) op;
-				final Expression expr = Types.convertLiteral(
-						this.cfg.getOutFrame(op).peek().getT(), cop.getValue(), this.cfg.getTd());
+				final Expression expr = Types.decompileLiteral(this.cfg.getOutFrame(op).peek()
+						.getT(), cop.getValue(), this.cfg.getTd());
 				if (expr != null) {
 					bb.push(expr);
 				}
@@ -816,7 +821,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 				if (f.check(AF.STATIC)) {
 					final Name name = getAst().newQualifiedName(
-							this.cfg.getTd().newTypeName(f.getT()),
+							Types.decompileName(f.getT(), this.cfg.getTd()),
 							getAst().newSimpleName(f.getName()));
 					assignment.setLeftHandSide(name);
 				} else {
@@ -895,7 +900,7 @@ public final class TrCfg2JavaExpressionStmts {
 								Priority.ASSIGNMENT));
 						final VariableDeclarationStatement variableDeclarationStatement = getAst()
 								.newVariableDeclarationStatement(variableDeclarationFragment);
-						variableDeclarationStatement.setType(Types.convertType(v.getT(),
+						variableDeclarationStatement.setType(Types.decompileType(v.getT(),
 								this.cfg.getTd()));
 						statement = variableDeclarationStatement;
 						break;
@@ -1263,7 +1268,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// can just happen for JDK<5: replace . -> /
 				final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace(
 						'.', '/');
-				followBb.push(Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg
+				followBb.push(Types.decompileLiteral(this.cfg.getDu().getT(Class.class), this.cfg
 						.getDu().getT(classInfo), this.cfg.getTd()));
 				bb.removeOp(0);
 				followBb.joinPredBb(bb);
@@ -1321,8 +1326,8 @@ public final class TrCfg2JavaExpressionStmts {
 			// can just happen for JDK<5: replace . -> /
 			final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace('.',
 					'/');
-			followBb.push(Types.convertLiteral(this.cfg.getDu().getT(Class.class), this.cfg.getDu()
-					.getT(classInfo), this.cfg.getTd()));
+			followBb.push(Types.decompileLiteral(this.cfg.getDu().getT(Class.class), this.cfg
+					.getDu().getT(classInfo), this.cfg.getTd()));
 			bb.removeOp(0);
 			bb.removeOp(0);
 			followBb.joinPredBb(bb);
@@ -1435,7 +1440,7 @@ public final class TrCfg2JavaExpressionStmts {
 					try {
 						final String classInfo = ((StringLiteral) methodInvocation.arguments().get(
 								0)).getLiteralValue();
-						expression = Types.convertLiteral(this.cfg.getDu().getT(Class.class),
+						expression = Types.decompileLiteral(this.cfg.getDu().getT(Class.class),
 								this.cfg.getDu().getT(classInfo), this.cfg.getTd());
 						break rewrite;
 					} catch (final Exception e) {
@@ -1609,13 +1614,13 @@ public final class TrCfg2JavaExpressionStmts {
 					.newSingleVariableDeclaration();
 			singleVariableDeclaration.setName(getAst().newSimpleName(name));
 			if (handlerTypes.length == 1) {
-				singleVariableDeclaration.setType(Types.convertType(handlerTypes[0],
+				singleVariableDeclaration.setType(Types.decompileType(handlerTypes[0],
 						this.cfg.getTd()));
 			} else {
 				// Multi-Catch
 				final UnionType unionType = getAst().newUnionType();
 				for (final T t : handlerTypes) {
-					unionType.types().add(Types.convertType(t, this.cfg.getTd()));
+					unionType.types().add(Types.decompileType(t, this.cfg.getTd()));
 				}
 				singleVariableDeclaration.setType(unionType);
 			}

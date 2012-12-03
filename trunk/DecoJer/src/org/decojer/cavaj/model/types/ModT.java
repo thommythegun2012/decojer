@@ -37,7 +37,7 @@ import org.decojer.cavaj.model.T;
  */
 public abstract class ModT extends T {
 
-	@Getter(value = AccessLevel.PROTECTED)
+	@Getter
 	// for VarT lazy resolving:
 	@Setter(value = AccessLevel.PROTECTED)
 	private T rawT;
