@@ -537,7 +537,7 @@ public abstract class T {
 	 * @see ClassT#setEnclosingT(T)
 	 * @see Class#getEnclosingClass()
 	 */
-	public ClassT getEnclosingT() {
+	public T getEnclosingT() {
 		return null; // overwrite in ClassT
 	}
 
@@ -655,8 +655,8 @@ public abstract class T {
 		if (this.name.startsWith("{")) {
 			return getName();
 		}
-		final int pos = this.name.lastIndexOf('.');
-		return pos == -1 ? getName() : this.name.substring(pos + 1);
+		final int pos = getPackageName().length();
+		return pos == 0 ? getName() : this.name.substring(pos + 1);
 	}
 
 	/**
@@ -664,7 +664,7 @@ public abstract class T {
 	 * 
 	 * @return raw type or {@code this}
 	 */
-	protected T getRawT() {
+	public T getRawT() {
 		return this;
 	}
 

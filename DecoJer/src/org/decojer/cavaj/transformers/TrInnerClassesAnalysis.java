@@ -45,7 +45,6 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.ops.NEW;
 import org.decojer.cavaj.model.code.ops.Op;
-import org.decojer.cavaj.model.types.ClassT;
 
 /**
  * Transformer: Analyze inner classes and create compilation units.
@@ -162,7 +161,7 @@ public class TrInnerClassesAnalysis {
 				}
 				if (isEnumSwitchMap(td)) {
 					// use enclosingT info, should exist
-					final ClassT enclosingT = t.getEnclosingT();
+					final T enclosingT = t.getEnclosingT();
 					if (enclosingT != null) {
 						final TD enclosingTd = enclosingT.getTd();
 						if (enclosingTd != null) {
@@ -184,7 +183,7 @@ public class TrInnerClassesAnalysis {
 					continue;
 				}
 			}
-			final ClassT enclosingT = t.getEnclosingT();
+			final T enclosingT = t.getEnclosingT();
 			if (enclosingT != null) {
 				final TD enclosingTd = enclosingT.getTd();
 				if (enclosingTd != null) {

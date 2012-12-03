@@ -326,7 +326,8 @@ public final class DU {
 			// de.test.A<de.test.B>.C, test with scala-lifts heavy type stuff!!!
 			// may be setEnclosing shortens the name? but whats with the cache in this case?
 
-			t = getT(enclosing.getName() + "$" + s.substring(start, c.pos).replace('/', '.'));
+			t = getT(enclosing.getRawT().getName() + "$"
+					+ s.substring(start, c.pos).replace('/', '.'));
 			((ClassT) t).setEnclosingT(enclosing);
 		} else {
 			t = getT(s.substring(start, c.pos).replace('/', '.'));
@@ -412,7 +413,6 @@ public final class DU {
 			return getArrayT(parseT(s, c, context));
 		case 'T': {
 			final int pos = s.indexOf(';', c.pos);
-			// FIXME new???
 			final T t = new VarT(s.substring(c.pos, pos), context);
 			c.pos = pos + 1;
 			return t;

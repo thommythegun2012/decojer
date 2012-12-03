@@ -37,7 +37,7 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.types.ParamT;
-import org.decojer.cavaj.utils.AnnotationsDecompiler;
+import org.decojer.cavaj.utils.Annotations;
 import org.decojer.cavaj.utils.Types;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -114,7 +114,7 @@ public final class TrJvmStruct2JavaAst {
 		fd.setFieldDeclaration(fieldDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
-		if (fd.isDeprecated() && !AnnotationsDecompiler.isDeprecatedAnnotation(fd.getAs())) {
+		if (fd.isDeprecated() && !Annotations.isDeprecatedAnnotation(fd.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");
@@ -125,8 +125,7 @@ public final class TrJvmStruct2JavaAst {
 		// decompile annotations, add annotation modifiers before other modifiers, order preserved
 		// in source code generation through Eclipse JDT
 		if (fd.getAs() != null) {
-			AnnotationsDecompiler
-					.decompileAnnotations(td, fieldDeclaration.modifiers(), fd.getAs());
+			Annotations.decompileAnnotations(td, fieldDeclaration.modifiers(), fd.getAs());
 		}
 
 		// decompile modifier flags, public is default for enum and interface
@@ -165,11 +164,11 @@ public final class TrJvmStruct2JavaAst {
 
 		// not for enum constant declaration
 		if (fieldDeclaration instanceof FieldDeclaration) {
-			((FieldDeclaration) fieldDeclaration).setType(Types.convertType(fd.getValueT(), td));
+			((FieldDeclaration) fieldDeclaration).setType(Types.decompileType(fd.getValueT(), td));
 			final Object value = fd.getValue();
 			if (value != null) {
 				// only final, non static - no arrays, class types
-				final Expression expr = Types.convertLiteral(fd.getValueT(), value, td);
+				final Expression expr = Types.decompileLiteral(fd.getValueT(), value, td);
 				if (expr != null) {
 					final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
 							.fragments().get(0);
@@ -218,8 +217,8 @@ public final class TrJvmStruct2JavaAst {
 			((AnnotationTypeMemberDeclaration) methodDeclaration).setName(ast.newSimpleName(name));
 			// check if default value (e.g.: byte byteTest() default 2;)
 			if (md.getAnnotationDefaultValue() != null) {
-				final Expression expression = AnnotationsDecompiler
-						.decompileAnnotationDefaultValue(td, md.getAnnotationDefaultValue());
+				final Expression expression = Annotations.decompileAnnotationDefaultValue(td,
+						md.getAnnotationDefaultValue());
 				if (expression != null) {
 					((AnnotationTypeMemberDeclaration) methodDeclaration).setDefault(expression);
 				}
@@ -232,7 +231,7 @@ public final class TrJvmStruct2JavaAst {
 		md.setMethodDeclaration(methodDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
-		if (md.isDeprecated() && !AnnotationsDecompiler.isDeprecatedAnnotation(md.getAs())) {
+		if (md.isDeprecated() && !Annotations.isDeprecatedAnnotation(md.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");
@@ -244,8 +243,7 @@ public final class TrJvmStruct2JavaAst {
 		// add annotation modifiers before other modifiers, order preserved in
 		// source code generation through Eclipse JDT
 		if (md.getAs() != null) {
-			AnnotationsDecompiler.decompileAnnotations(td, methodDeclaration.modifiers(),
-					md.getAs());
+			Annotations.decompileAnnotations(td, methodDeclaration.modifiers(), md.getAs());
 		}
 
 		// decompile modifier flags,
@@ -315,7 +313,7 @@ public final class TrJvmStruct2JavaAst {
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			assert md.getParamTs().length == 0;
 
-			((AnnotationTypeMemberDeclaration) methodDeclaration).setType(Types.convertType(
+			((AnnotationTypeMemberDeclaration) methodDeclaration).setType(Types.decompileType(
 					md.getReturnT(), td));
 		}
 	}
@@ -338,7 +336,7 @@ public final class TrJvmStruct2JavaAst {
 		final T[] paramTs = md.getParamTs();
 		final A[][] paramAs = md.getParamAss();
 		for (int i = 0; i < paramTs.length; ++i) {
-			final Type methodParameterType = Types.convertType(paramTs[i], td);
+			final Type methodParameterType = Types.decompileType(paramTs[i], td);
 			if (methodDeclaration.isConstructor()) {
 
 				if (i <= 1 && td.check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
@@ -364,8 +362,8 @@ public final class TrJvmStruct2JavaAst {
 			final SingleVariableDeclaration singleVariableDeclaration = ast
 					.newSingleVariableDeclaration();
 			if (paramAs != null && i < paramAs.length) {
-				AnnotationsDecompiler.decompileAnnotations(td,
-						singleVariableDeclaration.modifiers(), paramAs[i]);
+				Annotations.decompileAnnotations(td, singleVariableDeclaration.modifiers(),
+						paramAs[i]);
 			}
 			// decompile varargs (flag set, ArrayType and last method param)
 			if (i == paramTs.length - 1 && md.check(AF.VARARGS)) {
@@ -382,17 +380,19 @@ public final class TrJvmStruct2JavaAst {
 			} else {
 				singleVariableDeclaration.setType(methodParameterType);
 			}
-			singleVariableDeclaration.setName(ast.newSimpleName(md.getParamName(i)));
+			singleVariableDeclaration.setName(ast.newSimpleName(/* scala */"default".equals(md
+					.getParamName(i)) ? "_default" : md.getParamName(i)));
 			methodDeclaration.parameters().add(singleVariableDeclaration);
 		}
 		// decompile return type
-		methodDeclaration.setReturnType2(Types.convertType(md.getReturnT(), td));
+		methodDeclaration.setReturnType2(Types.decompileType(md.getReturnT(), td));
 		// decompile exceptions
 		final T[] throwsTs = md.getThrowsTs();
 		if (throwsTs != null) {
 			for (final T throwT : throwsTs) {
-				// strange AST API?! thrownExceptions consist of List<Name>, not List<Type>
-				methodDeclaration.thrownExceptions().add(td.newTypeName(throwT));
+				// Eclipse AST expects a List<Name> for thrownExceptions, not a List<Type>:
+				// is OK - thrownExceptions cannot be generic
+				methodDeclaration.thrownExceptions().add(Types.decompileName(throwT, td));
 			}
 		}
 	}
@@ -418,10 +418,10 @@ public final class TrJvmStruct2JavaAst {
 			typeParameter.setName(ast.newSimpleName(typeParam.getName()));
 			final T superT = typeParam.getSuperT();
 			if (!superT.is(Object.class)) {
-				typeParameter.typeBounds().add(Types.convertType(typeParam.getSuperT(), td));
+				typeParameter.typeBounds().add(Types.decompileType(typeParam.getSuperT(), td));
 			}
 			for (final T interfaceT : typeParam.getInterfaceTs()) {
-				typeParameter.typeBounds().add(Types.convertType(interfaceT, td));
+				typeParameter.typeBounds().add(Types.decompileType(interfaceT, td));
 			}
 			typeParameters.add(typeParameter);
 		}
@@ -461,7 +461,7 @@ public final class TrJvmStruct2JavaAst {
 				LOGGER.warning("Type declaration with name 'package-info' is not an interface!");
 			}
 			if (td.getAs() != null) {
-				AnnotationsDecompiler.decompileAnnotations(td, cu.getCompilationUnit().getPackage()
+				Annotations.decompileAnnotations(td, cu.getCompilationUnit().getPackage()
 						.annotations(), td.getAs());
 			}
 			return;
@@ -516,7 +516,7 @@ public final class TrJvmStruct2JavaAst {
 					if (td.getInterfaceTs() != null) {
 						for (final T interfaceT : td.getInterfaceTs()) {
 							((EnumDeclaration) typeDeclaration).superInterfaceTypes().add(
-									Types.convertType(interfaceT, td));
+									Types.decompileType(interfaceT, td));
 						}
 					}
 				}
@@ -528,12 +528,12 @@ public final class TrJvmStruct2JavaAst {
 				decompileTypeParams(td.getTypeParams(),
 						((TypeDeclaration) typeDeclaration).typeParameters(), td);
 				if (!td.getSuperT().is(Object.class)) {
-					((TypeDeclaration) typeDeclaration).setSuperclassType(Types.convertType(
+					((TypeDeclaration) typeDeclaration).setSuperclassType(Types.decompileType(
 							td.getSuperT(), td));
 				}
 				for (final T interfaceT : td.getInterfaceTs()) {
 					((TypeDeclaration) typeDeclaration).superInterfaceTypes().add(
-							Types.convertType(interfaceT, td));
+							Types.decompileType(interfaceT, td));
 				}
 			}
 			td.setTypeDeclaration(typeDeclaration);
@@ -541,8 +541,7 @@ public final class TrJvmStruct2JavaAst {
 			// add annotation modifiers before other modifiers, order preserved in source code
 			// generation through eclipse.jdt
 			if (td.getAs() != null) {
-				AnnotationsDecompiler.decompileAnnotations(td, typeDeclaration.modifiers(),
-						td.getAs());
+				Annotations.decompileAnnotations(td, typeDeclaration.modifiers(), td.getAs());
 			}
 
 			// decompile remaining modifier flags
@@ -588,7 +587,7 @@ public final class TrJvmStruct2JavaAst {
 			typeDeclaration.setName(ast.newSimpleName(simpleName.length() > 0 ? simpleName : td
 					.getPName()));
 
-			if (td.isDeprecated() && !AnnotationsDecompiler.isDeprecatedAnnotation(td.getAs())) {
+			if (td.isDeprecated() && !Annotations.isDeprecatedAnnotation(td.getAs())) {
 				final Javadoc newJavadoc = ast.newJavadoc();
 				final TagElement newTagElement = ast.newTagElement();
 				newTagElement.setTagName("@deprecated");
