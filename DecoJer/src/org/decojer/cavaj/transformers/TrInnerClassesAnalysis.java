@@ -110,11 +110,11 @@ public class TrInnerClassesAnalysis {
 						continue;
 					}
 					final T newT = ((NEW) op).getT();
-					if (!newT.isAnonymous()) {
-						continue;
-					}
 					final TD newTd = newT.getTd();
 					if (newTd == null) {
+						continue;
+					}
+					if (!newT.isAnonymous()) {
 						continue;
 					}
 					final M enclosingM = newT.getEnclosingM();
