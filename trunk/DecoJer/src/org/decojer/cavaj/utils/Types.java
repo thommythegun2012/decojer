@@ -336,9 +336,7 @@ public final class Types {
 	public static Name decompileName(final T t, final TD td) {
 		final AST ast = td.getCu().getAst();
 		final String packageName = t.getPackageName();
-		if (t.getName().endsWith("Box$WithFilter")) {
-			System.out.println("STOP");
-		}
+		// check if not in same package...
 		if (!Objects.equal(td.getPackageName(), t.getPackageName())) {
 			if (JAVA_LANG.equals(packageName)) {
 				// ignore default package
@@ -349,10 +347,12 @@ public final class Types {
 			// FIXME ClassT: net.liftweb.common.Box<scala.runtime.Nothing$>$WithFilter ???
 			return ast.newName(t.getName());
 		}
-		// ...ignore same package
+		// ...is in same package, check if not enclosed...
 		if (t.getEnclosingT() == null) {
 			return ast.newName(t.getPName());
 		}
+		// ...is enclosed
+
 		// convert inner classes separator '$' into '.',
 		// cannot use string replace because '$' is also a regular Java type name!
 		// find common name dominator and stop there, for relative inner names
@@ -382,9 +382,6 @@ public final class Types {
 		final AST ast = td.getCu().getAst();
 		if (t instanceof ArrayT) {
 			return ast.newArrayType(decompileType(t.getComponentT(), td));
-		}
-		if (t instanceof ClassT && ((ClassT) t).getEnclosingT() != null) {
-			// TODO
 		}
 		if (t instanceof ParamT) {
 			final ParameterizedType parameterizedType = ast.newParameterizedType(decompileType(
@@ -445,6 +442,15 @@ public final class Types {
 		}
 		if (t.is(T.VOID)) {
 			return ast.newPrimitiveType(PrimitiveType.VOID);
+		}
+		if (t instanceof ClassT) {
+			final T enclosingT = ((ClassT) t).getEnclosingT();
+			if (enclosingT != null) {
+				// could be ParamT etc., not decompileable with Name as target
+				final Type qualifier = decompileType(enclosingT, td);
+				return ast.newQualifiedType(qualifier,
+						ast.newSimpleName(((ClassT) t).getInnerName()));
+			}
 		}
 		return ast.newSimpleType(Types.decompileName(t, td));
 	}
