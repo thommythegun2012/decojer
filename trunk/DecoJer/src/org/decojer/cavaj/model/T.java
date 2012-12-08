@@ -258,6 +258,10 @@ public abstract class T {
 		return getT(flags);
 	}
 
+	private static boolean isAsciiDigit(final char c) {
+		return '0' <= c && c <= '9';
+	}
+
 	private static int isAssignableFrom(final int kindTo, final int kindFrom) {
 		final int kTo = (kindTo & 0xF) - 1;
 		final int kFrom = (kindFrom & 0xF) - 1;
@@ -655,8 +659,14 @@ public abstract class T {
 		if (this.name.startsWith("{")) {
 			return getName();
 		}
-		final int pos = getPackageName().length();
-		return pos == 0 ? getName() : this.name.substring(pos + 1);
+		final String packageName = getPackageName();
+		if (packageName == null) {
+			return this.name;
+		}
+		if (packageName.length() == 0) {
+			return this.name;
+		}
+		return this.name.substring(packageName.length() + 1);
 	}
 
 	/**
@@ -669,7 +679,22 @@ public abstract class T {
 	}
 
 	/**
-	 * Get simple name, like appearing in Java source code.
+	 * Get simple identifier: Often needed for AST creation, if anonymous don't return empty name
+	 * but primary name.
+	 * 
+	 * @return simple identifier
+	 */
+	public String getSimpleIdentifier() {
+		final String simpleName = getSimpleName();
+		if (simpleName.isEmpty()) {
+			return getPName();
+		}
+		return simpleName;
+	}
+
+	/**
+	 * Returns the simple name of the underlying class type as given in the source code. Returns an
+	 * empty string if the underlying class is anonymous.
 	 * 
 	 * Works for all Java versions, not just for JVM >= 5 like {@code Class.getSimpleName()}.
 	 * 
@@ -680,11 +705,26 @@ public abstract class T {
 	public String getSimpleName() {
 		// The original Class-Function doesn't work for JVM < 5 because the naming rules changed,
 		// different solution here with inner name info
-		final String innerName = getInnerName();
+		String innerName = getInnerName();
 		if (innerName == null) {
-			return getPName();
+			final T enclosingT = getEnclosingT();
+			if (enclosingT == null) {
+				return getPName();
+			}
+			final String enclosingName = enclosingT.getName();
+			if (!getName().startsWith(enclosingName)
+					|| getName().charAt(enclosingName.length()) != '$') {
+				return getPName();
+			}
+			innerName = getName().substring(enclosingName.length() + 1);
 		}
-		return innerName;
+		final int length = innerName.length();
+		int index = 0;
+		while (index < length && isAsciiDigit(innerName.charAt(index))) {
+			index++;
+		}
+		// Eventually, this is the empty string iff this is an anonymous class
+		return innerName.substring(index);
 	}
 
 	/**
@@ -768,7 +808,7 @@ public abstract class T {
 	 * @see Class#isAnonymousClass()
 	 */
 	public boolean isAnonymous() {
-		return "".equals(getSimpleName());
+		return getSimpleName().isEmpty();
 	}
 
 	/**

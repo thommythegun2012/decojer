@@ -338,13 +338,12 @@ public final class Types {
 		final String packageName = t.getPackageName();
 		// check if not in same package...
 		if (!Objects.equal(td.getPackageName(), t.getPackageName())) {
+			// check if at least Java default package...
 			if (JAVA_LANG.equals(packageName)) {
-				// ignore default package
+				// ignore Java default package
 				return ast.newName(t.getPName());
 			}
-			// full name
-			// TODO later histogram for import candidates here?
-			// FIXME ClassT: net.liftweb.common.Box<scala.runtime.Nothing$>$WithFilter ???
+			// ...full name necessary
 			return ast.newName(t.getName());
 		}
 		// ...is in same package, check if not enclosed...
@@ -357,13 +356,10 @@ public final class Types {
 		// cannot use string replace because '$' is also a regular Java type name!
 		// find common name dominator and stop there, for relative inner names
 		final String name = td.getName();
-		String simpleName = t.getSimpleName();
-		final ArrayList<String> names = Lists.newArrayList(simpleName.length() > 0 ? simpleName : t
-				.getPName());
+		final ArrayList<String> names = Lists.newArrayList(t.getSimpleIdentifier());
 		T enclosingT = t.getEnclosingT();
 		while (enclosingT != null && !name.startsWith(enclosingT.getName())) {
-			simpleName = enclosingT.getSimpleName();
-			names.add(simpleName.length() > 0 ? simpleName : enclosingT.getPName());
+			names.add(enclosingT.getSimpleIdentifier());
 			enclosingT = enclosingT.getEnclosingT();
 		}
 		return ast.newName(names.toArray(new String[names.size()]));
@@ -448,8 +444,7 @@ public final class Types {
 			if (enclosingT != null) {
 				// could be ParamT etc., not decompileable with Name as target
 				final Type qualifier = decompileType(enclosingT, td);
-				return ast.newQualifiedType(qualifier,
-						ast.newSimpleName(((ClassT) t).getInnerName()));
+				return ast.newQualifiedType(qualifier, ast.newSimpleName(t.getSimpleIdentifier()));
 			}
 		}
 		return ast.newSimpleType(Types.decompileName(t, td));
