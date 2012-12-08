@@ -768,6 +768,9 @@ public final class TrDataFlowAnalysis {
 			final T t = R.merge(prevR, newR);
 			if (t == null) {
 				// merge type is null? merge to null => replace previous register from here
+
+				// FIXME dangerous if unknown super types...defer this op, remember merge register
+				// with 2 inputs and try join only on read/re-store
 				mergeReplaceReg(targetBb, i, prevR, null);
 				continue;
 			}
