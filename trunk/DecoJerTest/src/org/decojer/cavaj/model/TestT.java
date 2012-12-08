@@ -115,6 +115,20 @@ class TestT {
 
 		// multi-types just for primitives / internal
 		assertEquals(T.AINT.getName(), "{int,short,byte,char,boolean}");
+
+		assertEquals(Map.Entry.class.getName(), "java.util.Map$Entry");
+		assertEquals(du.getT(Map.Entry.class).getName(), "java.util.Map$Entry");
+	}
+
+	@Test
+	void getPName() {
+		assertEquals(du.getT(Map.Entry.class).getPName(), "Map$Entry");
+	}
+
+	@Test
+	void getSimpleName() {
+		assertEquals(Map.Entry.class.getSimpleName(), "Entry");
+		assertEquals(du.getT(Map.Entry.class).getSimpleName(), "Entry");
 	}
 
 	@Test
