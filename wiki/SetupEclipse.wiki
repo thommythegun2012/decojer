@@ -46,7 +46,7 @@ http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
   * add Subversion Repository Location https://decojer.googlecode.com/svn/
     * checkout DecoJer, optionally: DecoJerTest, DecoJerWeb
 
-  * because we are heaviliy dependant from Eclipse JDT - download plugin sources from http://download.eclipse.org/eclipse/downloads/drops4/R-4.2-201206081400/ and copy jdt-stuff into plugins
+  * because we are heaviliy dependant from Eclipse JDT - download plugin sources from http://download.eclipse.org/eclipse/downloads/drops4/R-4.2.1-201209141800/ and copy jdt-stuff into plugins
 
 == Additional Plugins for Dalvik ==
 
