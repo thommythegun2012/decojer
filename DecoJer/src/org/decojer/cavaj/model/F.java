@@ -75,17 +75,17 @@ public class F {
 	 *            type
 	 * @param name
 	 *            name
-	 * @param valueT
-	 *            value type
+	 * @param descriptor
+	 *            descriptor
 	 */
-	protected F(final T t, final String name, final T valueT) {
+	protected F(final T t, final String name, final String descriptor) {
 		assert t != null;
 		assert name != null;
-		assert valueT != null;
+		assert descriptor != null;
 
 		this.t = t;
 		this.name = name;
-		this.valueT = valueT;
+		this.valueT = t.getDu().getDescT(descriptor);
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class F {
 	 * @return field declaration
 	 */
 	public FD createFd() {
-		assert this.fd == null;
+		// assert this.fd == null;
 
 		this.fd = new FD(this);
 		((ClassT) this.t).getTd().addBd(this.fd);

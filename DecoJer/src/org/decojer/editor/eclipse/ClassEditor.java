@@ -363,7 +363,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			if (this.du.getCus().size() == 1) {
 				this.selectedCu = this.du.getCus().get(0);
 			}
-		} catch (final Exception e) {
+		} catch (final Throwable e) {
 			LOGGER.log(Level.SEVERE, "Couldn't open file!", e);
 			return pageContainer;
 		}

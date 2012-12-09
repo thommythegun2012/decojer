@@ -268,7 +268,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.GETFIELD:
 		case Opcodes.GETSTATIC: {
 			final T ownerT = this.du.getT(owner);
-			final F f = ownerT.getF(name, this.du.getDescT(desc));
+			final F f = ownerT.getF(name, desc);
 			if (opcode == Opcodes.GETSTATIC) {
 				f.markAf(AF.STATIC);
 			}
@@ -281,7 +281,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.PUTFIELD:
 		case Opcodes.PUTSTATIC: {
 			final T ownerT = this.du.getT(owner);
-			final F f = ownerT.getF(name, this.du.getDescT(desc));
+			final F f = ownerT.getF(name, desc);
 			if (opcode == Opcodes.PUTSTATIC) {
 				f.markAf(AF.STATIC);
 			}

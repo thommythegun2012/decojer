@@ -547,20 +547,21 @@ public abstract class T {
 
 	/**
 	 * Get field.<br>
-	 * Unique identifier is: "name + descriptor" ({@link F})
+	 * Unique identifier in JVM is: "name + descriptor" ({@link F})<br>
+	 * Even though the Java language has the field name as unique identifier, obfuscated code could
+	 * utilize the same name for different descriptors (see e.g. ojdbc6.jar).
 	 * 
 	 * @param name
 	 *            field name
-	 * @param valueT
-	 *            field value type
+	 * @param descriptor
+	 *            field descriptor
 	 * @return field
 	 */
-	public F getF(final String name, final T valueT) {
-		// Unique identifier is: "name + descriptor" ({@link F})
-		final String handle = name; // TODO signature change? + ":" + valueT.getName();
+	public F getF(final String name, final String descriptor) {
+		final String handle = name + ":" + descriptor;
 		F f = (F) getMember().get(handle);
 		if (f == null) {
-			f = new F(this, name, valueT);
+			f = new F(this, name, descriptor);
 			getMember().put(handle, f);
 		}
 		return f;
@@ -604,7 +605,7 @@ public abstract class T {
 
 	/**
 	 * Get method.<br>
-	 * Unique identifier is: "name + descriptor"
+	 * Unique identifier in JVM and Java language is: "name + descriptor"
 	 * 
 	 * @param name
 	 *            method name
