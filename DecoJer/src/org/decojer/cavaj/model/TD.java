@@ -181,6 +181,19 @@ public final class TD extends BD {
 	}
 
 	/**
+	 * Get enclosing type declaration.
+	 * 
+	 * @return enclosing type declaration
+	 * 
+	 * @see ClassT#setEnclosingT(T)
+	 * @see Class#getEnclosingClass()
+	 */
+	public TD getEnclosingTd() {
+		final T enclosingT = this.t.getEnclosingT();
+		return enclosingT == null ? null : enclosingT.getTd();
+	}
+
+	/**
 	 * Get interface types.
 	 * 
 	 * @return interface types, not {@code null}

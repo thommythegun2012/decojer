@@ -71,7 +71,7 @@ public final class TrMergeAll {
 	public static void transform(final CU cu) {
 		for (final BD bd : cu.getBds()) {
 			final TD td = (TD) bd;
-			if (td.isAnonymous()) {
+			if (td.isAnonymous() && td.getEnclosingTd() != null) {
 				continue;
 			}
 			final ASTNode typeDeclaration = td.getTypeDeclaration();
