@@ -32,9 +32,11 @@ import org.decojer.cavaj.model.types.ClassT;
 /**
  * Field.
  * 
- * Unique identifier is: "name + descriptor"
+ * Unique identifier is: "name + descriptor"<br>
+ * Even though the Java language has the field name as unique identifier, obfuscated code could
+ * utilize the same name for different descriptors (see e.g. ojdbc6.jar).
  * 
- * value type is also important, experiment with:
+ * Also, an experiment:
  * 
  * Field descriptor #77 Ljava/util/ArrayList;<br>
  * Signature: Ljava/util/ArrayList<Ljava/lang/Integer;>;<br>
@@ -105,7 +107,7 @@ public class F {
 	 * @return field declaration
 	 */
 	public FD createFd() {
-		// assert this.fd == null;
+		assert this.fd == null;
 
 		this.fd = new FD(this);
 		((ClassT) this.t).getTd().addBd(this.fd);
