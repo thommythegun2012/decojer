@@ -121,12 +121,12 @@ public final class TD extends BD {
 	 * 
 	 * @param name
 	 *            field name
-	 * @param valueT
-	 *            field value type
+	 * @param descriptor
+	 *            field descriptor
 	 * @return field declaration
 	 */
-	public FD createFd(final String name, final T valueT) {
-		return this.t.getF(name, valueT).createFd();
+	public FD createFd(final String name, final String descriptor) {
+		return this.t.getF(name, descriptor).createFd();
 	}
 
 	/**

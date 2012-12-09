@@ -107,7 +107,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexFieldVisitor visitField(final int accessFlags, final Field field, final Object value) {
-		final FD fd = this.td.createFd(field.getName(), this.du.getDescT(field.getType()));
+		final FD fd = this.td.createFd(field.getName(), field.getType());
 
 		fd.setAccessFlags(accessFlags);
 		// TODO signature in annotation

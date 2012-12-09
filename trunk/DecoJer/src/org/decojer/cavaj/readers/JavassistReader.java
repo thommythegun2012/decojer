@@ -288,7 +288,7 @@ public class JavassistReader implements ClassReader {
 		}
 		final ConstPool constPool = fieldInfo.getConstPool();
 
-		final FD fd = td.createFd(fieldInfo.getName(), this.du.getDescT(fieldInfo.getDescriptor()));
+		final FD fd = td.createFd(fieldInfo.getName(), fieldInfo.getDescriptor());
 
 		fd.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
@@ -496,8 +496,9 @@ public class JavassistReader implements ClassReader {
 		if (memberValue instanceof DoubleMemberValue) {
 			return ((DoubleMemberValue) memberValue).getValue();
 		} else if (memberValue instanceof EnumMemberValue) {
-			final T enumT = this.du.getT(((EnumMemberValue) memberValue).getType());
-			final F enumF = enumT.getF(((EnumMemberValue) memberValue).getValue(), enumT);
+			final String desc = ((EnumMemberValue) memberValue).getValue();
+			final T enumT = this.du.getDescT(desc);
+			final F enumF = enumT.getF(((EnumMemberValue) memberValue).getValue(), desc);
 			enumF.markAf(AF.ENUM);
 			return enumF;
 		}

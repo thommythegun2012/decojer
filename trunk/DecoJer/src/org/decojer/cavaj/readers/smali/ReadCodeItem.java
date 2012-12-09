@@ -816,23 +816,22 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
 
-					final T valueT = getDu().getDescT(
-							fieldIdItem.getFieldType().getTypeDescriptor());
-					if (t == null || !t.isAssignableFrom(valueT)) {
-						LOGGER.warning("Incompatible IGET Value Type! Cannot assign '" + valueT
-								+ "' to '" + t + "'.");
-					}
-
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
+							fieldIdItem.getFieldType().getTypeDescriptor());
+
+					if (!t.isAssignableFrom(f.getValueT())) {
+						LOGGER.warning("Incompatible IGET Value Type! Cannot assign '"
+								+ f.getValueT() + "' to '" + t + "'.");
+					}
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, instr
 							.getRegisterB()));
 
 					this.ops.add(new GET(this.ops.size(), opcode, line, f));
 
-					this.ops.add(new STORE(this.ops.size(), opcode, line, valueT, instr
+					this.ops.add(new STORE(this.ops.size(), opcode, line, f.getValueT(), instr
 							.getRegisterA()));
 				}
 				break;
@@ -878,21 +877,20 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
 
-					final T valueT = getDu().getDescT(
-							fieldIdItem.getFieldType().getTypeDescriptor());
-					if (t == null || !t.isAssignableFrom(valueT)) {
-						LOGGER.warning("Incompatible SGET Value Type! Cannot assign '" + valueT
-								+ "' to '" + t + "'.");
-					}
-
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
+							fieldIdItem.getFieldType().getTypeDescriptor());
 					f.markAf(AF.STATIC);
+
+					if (!t.isAssignableFrom(f.getValueT())) {
+						LOGGER.warning("Incompatible SGET Value Type! Cannot assign '"
+								+ f.getValueT() + "' to '" + t + "'.");
+					}
 
 					this.ops.add(new GET(this.ops.size(), opcode, line, f));
 
-					this.ops.add(new STORE(this.ops.size(), opcode, line, valueT, instr
+					this.ops.add(new STORE(this.ops.size(), opcode, line, f.getValueT(), instr
 							.getRegisterA()));
 				}
 				break;
@@ -1745,20 +1743,19 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
 
-					final T valueT = getDu().getDescT(
-							fieldIdItem.getFieldType().getTypeDescriptor());
-					if (!valueT.isAssignableFrom(t)) {
-						LOGGER.warning("Incompatible IPUT Value Type! Cannot assign '" + t
-								+ "' to '" + valueT + "'.");
-					}
-
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
+							fieldIdItem.getFieldType().getTypeDescriptor());
+
+					if (!f.getValueT().isAssignableFrom(t)) {
+						LOGGER.warning("Incompatible IPUT Value Type! Cannot assign '" + t
+								+ "' to '" + f.getValueT() + "'.");
+					}
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, instr
 							.getRegisterB()));
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, valueT, instr
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, f.getValueT(), instr
 							.getRegisterA()));
 
 					this.ops.add(new PUT(this.ops.size(), opcode, line, f));
@@ -1808,19 +1805,18 @@ public class ReadCodeItem {
 
 					final FieldIdItem fieldIdItem = (FieldIdItem) instr.getReferencedItem();
 
-					final T valueT = getDu().getDescT(
-							fieldIdItem.getFieldType().getTypeDescriptor());
-					if (!valueT.isAssignableFrom(t)) {
-						LOGGER.warning("Incompatible SPUT Value Type! Cannot assign '" + t
-								+ "' to '" + valueT + "'.");
-					}
-
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(), valueT);
+					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
+							fieldIdItem.getFieldType().getTypeDescriptor());
 					f.markAf(AF.STATIC);
 
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, valueT, instr
+					if (!f.getValueT().isAssignableFrom(t)) {
+						LOGGER.warning("Incompatible SPUT Value Type! Cannot assign '" + t
+								+ "' to '" + f.getValueT() + "'.");
+					}
+
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, f.getValueT(), instr
 							.getRegisterA()));
 
 					this.ops.add(new PUT(this.ops.size(), opcode, line, f));

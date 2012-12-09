@@ -533,7 +533,7 @@ public final class DU {
 				}
 				try {
 					tds.addAll(read(new FileInputStream(entry), name, fileName));
-				} catch (final Exception e) {
+				} catch (final Throwable e) {
 					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!", e);
 				}
 			}

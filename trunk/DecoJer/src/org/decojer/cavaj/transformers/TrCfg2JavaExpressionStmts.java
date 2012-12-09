@@ -1531,7 +1531,7 @@ public final class TrCfg2JavaExpressionStmts {
 							+ "' must contain number literal as first parameter!");
 					return false;
 				}
-				final FD fd = this.cfg.getTd().getT().getF(f.getName(), f.getValueT()).getFd();
+				final FD fd = f.getFd();
 				final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
 				assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
 
@@ -1566,7 +1566,7 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			return true; // ignore such assignments completely
 		}
-		final FD fd = this.cfg.getTd().getT().getF(f.getName(), f.getValueT()).getFd();
+		final FD fd = f.getFd();
 		if (fd == null || !(fd.getFieldDeclaration() instanceof FieldDeclaration)) {
 			return false;
 		}

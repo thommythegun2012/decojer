@@ -533,7 +533,7 @@ public class ReadCodeAttribute {
 
 				final T ownerT = getT(constPool, constPool.getFieldrefClass(fieldIndex));
 				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
-						getDu().getDescT(constPool.getFieldrefType(fieldIndex)));
+						constPool.getFieldrefType(fieldIndex));
 				if (opcode == Opcode.GETSTATIC) {
 					f.markAf(AF.STATIC);
 				}
@@ -1204,7 +1204,7 @@ public class ReadCodeAttribute {
 
 				final T ownerT = getT(constPool, constPool.getFieldrefClass(fieldIndex));
 				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
-						getDu().getDescT(constPool.getFieldrefType(fieldIndex)));
+						constPool.getFieldrefType(fieldIndex));
 				if (opcode == Opcode.PUTSTATIC) {
 					f.markAf(AF.STATIC);
 				}

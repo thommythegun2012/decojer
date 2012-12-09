@@ -344,8 +344,8 @@ public class SmaliReader implements DexReader {
 			final EncodedField encodedField = staticFields.get(i);
 			final FieldIdItem field = encodedField.field;
 
-			final FD fd = td.createFd(field.getFieldName().getStringValue(),
-					this.du.getDescT(field.getFieldType().getTypeDescriptor()));
+			final FD fd = td.createFd(field.getFieldName().getStringValue(), field.getFieldType()
+					.getTypeDescriptor());
 
 			fd.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
@@ -361,8 +361,8 @@ public class SmaliReader implements DexReader {
 		for (final EncodedField encodedField : instanceFields) {
 			final FieldIdItem field = encodedField.field;
 
-			final FD fd = td.createFd(field.getFieldName().getStringValue(),
-					this.du.getDescT(field.getFieldType().getTypeDescriptor()));
+			final FD fd = td.createFd(field.getFieldName().getStringValue(), field.getFieldType()
+					.getTypeDescriptor());
 
 			fd.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
@@ -451,9 +451,10 @@ public class SmaliReader implements DexReader {
 		}
 		if (encodedValue instanceof EnumEncodedValue) {
 			final FieldIdItem fieldidItem = ((EnumEncodedValue) encodedValue).value;
-			final T enumT = du.getDescT(fieldidItem.getFieldType().getTypeDescriptor());
+			final String desc = fieldidItem.getFieldType().getTypeDescriptor();
+			final T enumT = du.getDescT(desc);
 			final F enumF = enumT.getF(fieldidItem.getFieldName().getStringDataItem()
-					.getStringValue(), enumT);
+					.getStringValue(), desc);
 			enumF.markAf(AF.ENUM);
 			return enumF;
 		}

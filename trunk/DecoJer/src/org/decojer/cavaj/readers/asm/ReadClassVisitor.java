@@ -141,7 +141,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public FieldVisitor visitField(final int access, final String name, final String desc,
 			final String signature, final Object value) {
-		final FD fd = this.td.createFd(name, this.du.getDescT(desc));
+		final FD fd = this.td.createFd(name, desc);
 
 		fd.setAccessFlags(access);
 		fd.setSignature(signature);
