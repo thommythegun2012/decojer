@@ -424,7 +424,7 @@ public final class TrControlFlowAnalysis {
 		boolean loopSucc = false;
 		boolean backEdge = false;
 		for (final E out : bb.getOuts()) {
-			if (out.isBack()) {
+			if (out.isBack() && !out.isCatch()) {
 				// back edge (continue, tail, inner loop, outer label-continue)
 				if (out.getEnd() == loop.getHead()) {
 					backEdge = true;
