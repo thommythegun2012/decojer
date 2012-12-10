@@ -166,7 +166,7 @@ public final class E {
 	 */
 	public boolean isBack() {
 		// equal: check self back edge too, ignore catch handler self loops
-		return this.start.getPostorder() <= this.end.getPostorder() && !isCatch();
+		return this.start.getPostorder() <= this.end.getPostorder();
 	}
 
 	/**

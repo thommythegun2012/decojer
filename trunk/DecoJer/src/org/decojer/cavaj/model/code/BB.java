@@ -458,9 +458,9 @@ public final class BB {
 
 	public boolean isLoopHead() {
 		// at least one incoming edge must be a back edge (self loop possible), in Java only
-		// possible for loop heads
+		// possible for loop heads (exclude JVM self catches)
 		for (final E in : this.ins) {
-			if (in.isBack()) {
+			if (in.isBack() && !in.isCatch()) {
 				return true;
 			}
 		}
