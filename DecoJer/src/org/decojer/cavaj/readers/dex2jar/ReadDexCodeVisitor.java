@@ -418,7 +418,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 			// if we use the methods return type instead, stack may be incompatible...graceful
 			// fallback possible at all?
 		}
-		this.ops.add(new RETURN(this.ops.size(), opcode, this.line, T.VOID));
+		this.ops.add(new RETURN(this.ops.size(), opcode, this.line, this.md));
 	}
 
 	@Override
@@ -444,10 +444,11 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 				LOGGER.warning("Unknown operation return type '" + xt
 						+ "'! Using method return type '" + t + "'.");
 			}
-			// cannot check assignable here...variable types could be unresolved
-			this.ops.add(new LOAD(this.ops.size(), opcode, this.line, t, reg));
+			assert t.isAssignableFrom(this.md.getReturnT());
 
-			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, t));
+			this.ops.add(new LOAD(this.ops.size(), opcode, this.line, this.md.getReturnT(), reg));
+
+			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, this.md));
 			break;
 		}
 		case OP_THROW: {

@@ -563,13 +563,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case RETURN: {
 			final RETURN cop = (RETURN) op;
-
-			final T returnT = this.cfg.getMd().getReturnT();
-
-			if (!cop.getT().isAssignableFrom(returnT)) {
-				LOGGER.warning("Incompatible operation return type '" + cop.getT()
-						+ "' for method return type '" + returnT + "'!");
-			}
+			final T returnT = cop.getT();
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
 			}
