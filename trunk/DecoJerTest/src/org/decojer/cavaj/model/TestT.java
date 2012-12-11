@@ -350,13 +350,13 @@ class TestT {
 	}
 
 	@Test
-	void isResolvable() {
-		assertTrue(objectT.isResolvable());
-		assertTrue(T.INT.isResolvable());
-		assertTrue(T.VOID.isResolvable());
-		assertTrue(du.getT(Character.class).isResolvable());
-		assertTrue(du.getT(Double[][].class).isResolvable());
-		assertFalse(du.getT("Test").isResolvable());
+	void isUnresolvable() {
+		assertFalse(objectT.isUnresolvable());
+		assertFalse(T.INT.isUnresolvable());
+		assertFalse(T.VOID.isUnresolvable());
+		assertFalse(du.getT(Character.class).isUnresolvable());
+		assertFalse(du.getT(Double[][].class).isUnresolvable());
+		assertTrue(du.getT("Test").isUnresolvable());
 	}
 
 	@Test
