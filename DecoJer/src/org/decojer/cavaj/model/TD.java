@@ -108,6 +108,18 @@ public final class TD extends BD {
 	}
 
 	/**
+	 * This should be scala code.
+	 */
+	public void checkScala() {
+		if (getSourceFileName() != null) {
+			if (!getSourceFileName().endsWith(".scala")) {
+				LOGGER.warning("This should be a Scala source code!");
+			}
+			return;
+		}
+	}
+
+	/**
 	 * Clear all generated data after read.
 	 */
 	@Override

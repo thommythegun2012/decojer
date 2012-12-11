@@ -127,6 +127,10 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
+		if ("Scala".equals(attr.type) || "ScalaSig".equals(attr.type)) {
+			this.td.checkScala();
+			return;
+		}
 		LOGGER.warning("Unknown class attribute tag '" + attr.type + "'!");
 	}
 

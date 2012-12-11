@@ -262,7 +262,7 @@ public abstract class T {
 		return '0' <= c && c <= '9';
 	}
 
-	private static int isAssignableFrom(final int kindTo, final int kindFrom) {
+	private static int isAssignableToFrom(final int kindTo, final int kindFrom) {
 		final int kTo = (kindTo & 0xF) - 1;
 		final int kFrom = (kindFrom & 0xF) - 1;
 		if (kTo >= 0 && kFrom >= 0) {
@@ -424,7 +424,7 @@ public abstract class T {
 		if (t == null) {
 			return null;
 		}
-		final int kind = isAssignableFrom(getKind(), t.getKind());
+		final int kind = isAssignableToFrom(getKind(), t.getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
@@ -442,14 +442,14 @@ public abstract class T {
 	 * {@code this}.
 	 * 
 	 * @param t
-	 *            assifgn to type
+	 *            assign to type
 	 * @return {@code null} or reduced type or {@code this}
 	 */
 	public T assignTo(final T t) {
 		if (t == null) {
 			return null;
 		}
-		final int kind = isAssignableFrom(t.getKind(), getKind());
+		final int kind = isAssignableToFrom(t.getKind(), getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
@@ -839,7 +839,7 @@ public abstract class T {
 		if (equals(t.getRawT())) {
 			return true;
 		}
-		final int kind = isAssignableFrom(getKind(), t.getKind());
+		final int kind = isAssignableToFrom(getKind(), t.getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return kind != 0;
 		}

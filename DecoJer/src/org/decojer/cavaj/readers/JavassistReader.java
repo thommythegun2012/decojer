@@ -39,6 +39,7 @@ import javassist.bytecode.CodeAttribute;
 import javassist.bytecode.ConstPool;
 import javassist.bytecode.ConstantAttribute;
 import javassist.bytecode.DeprecatedAttribute;
+import javassist.bytecode.Descriptor;
 import javassist.bytecode.EnclosingMethodAttribute;
 import javassist.bytecode.ExceptionsAttribute;
 import javassist.bytecode.FieldInfo;
@@ -120,6 +121,22 @@ public class JavassistReader implements ClassReader {
 	public TD read(final InputStream is) throws IOException {
 		final ClassFile classFile = new ClassFile(new DataInputStream(is));
 
+		final ConstPool constPool = classFile.getConstPool();
+
+		final ClassT t = (ClassT) this.du.getT(classFile.getName());
+		final TD td = t.createTd();
+		td.setAccessFlags(classFile.getAccessFlags());
+		td.setSuperT(getT(constPool, classFile.getSuperclassId()));
+		// FIXME problem with / (avoid getClassInfo in Javassist)
+		final String[] interfaces = classFile.getInterfaces();
+		if (interfaces != null && interfaces.length > 0) {
+			final T[] interfaceTs = new T[interfaces.length];
+			for (int i = interfaces.length; i-- > 0;) {
+				interfaceTs[i] = this.du.getT(interfaces[i]);
+			}
+			td.setInterfaceTs(interfaceTs);
+		}
+
 		// only annotations with RetentionPolicy.CLASS or RUNTIME are visible
 		// here and can be decompiled, e.g. @SuppressWarnings not visible here,
 		// has @Retention(RetentionPolicy.SOURCE)
@@ -132,6 +149,7 @@ public class JavassistReader implements ClassReader {
 		SignatureAttribute signatureAttribute = null;
 		SourceFileAttribute sourceFileAttribute = null;
 		SyntheticAttribute syntheticAttribute = null;
+		boolean scalaAttributes = false;
 		for (final AttributeInfo attributeInfo : (List<AttributeInfo>) classFile.getAttributes()) {
 			final String attributeTag = attributeInfo.getName();
 			if (AnnotationsAttribute.invisibleTag.equals(attributeTag)) {
@@ -150,25 +168,13 @@ public class JavassistReader implements ClassReader {
 				sourceFileAttribute = (SourceFileAttribute) attributeInfo;
 			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
 				syntheticAttribute = (SyntheticAttribute) attributeInfo;
+			} else if ("Scala".equals(attributeTag) || "ScalaSig".equals(attributeTag)) {
+				scalaAttributes = true;
 			} else {
 				LOGGER.warning("Unknown class attribute tag '" + attributeTag + "'!");
 			}
 		}
-		final ConstPool constPool = classFile.getConstPool();
 
-		final ClassT t = (ClassT) this.du.getT(classFile.getName());
-		final TD td = t.createTd();
-		td.setAccessFlags(classFile.getAccessFlags());
-		td.setSuperT(getT(constPool, classFile.getSuperclassId()));
-		// FIXME problem with / (avoid getClassInfo in Javassist)
-		final String[] interfaces = classFile.getInterfaces();
-		if (interfaces != null && interfaces.length > 0) {
-			final T[] interfaceTs = new T[interfaces.length];
-			for (int i = interfaces.length; i-- > 0;) {
-				interfaceTs[i] = this.du.getT(interfaces[i]);
-			}
-			td.setInterfaceTs(interfaceTs);
-		}
 		if (signatureAttribute != null) {
 			td.setSignature(signatureAttribute.getSignature());
 		}
@@ -209,6 +215,9 @@ public class JavassistReader implements ClassReader {
 		}
 		if (syntheticAttribute != null) {
 			td.setSynthetic(true);
+		}
+		if (scalaAttributes) {
+			td.checkScala();
 		}
 		for (final FieldInfo fieldInfo : (List<FieldInfo>) classFile.getFields()) {
 			readField(td, fieldInfo);
@@ -496,7 +505,8 @@ public class JavassistReader implements ClassReader {
 		if (memberValue instanceof DoubleMemberValue) {
 			return ((DoubleMemberValue) memberValue).getValue();
 		} else if (memberValue instanceof EnumMemberValue) {
-			final String desc = ((EnumMemberValue) memberValue).getValue();
+			// TODO better direct access, Javassist missing method
+			final String desc = Descriptor.of(((EnumMemberValue) memberValue).getType());
 			final T enumT = this.du.getDescT(desc);
 			final F enumF = enumT.getF(((EnumMemberValue) memberValue).getValue(), desc);
 			enumF.markAf(AF.ENUM);
