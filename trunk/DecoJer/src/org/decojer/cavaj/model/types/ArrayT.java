@@ -115,8 +115,8 @@ public final class ArrayT extends T {
 	}
 
 	@Override
-	public boolean isResolvable() {
-		return this.componentT.isResolvable();
+	public boolean isUnresolvable() {
+		return this.componentT.isUnresolvable();
 	}
 
 }

@@ -914,7 +914,7 @@ public abstract class T {
 	 * 
 	 * @return {@code true} - is resolveable
 	 */
-	public abstract boolean isResolvable();
+	public abstract boolean isUnresolvable();
 
 	/**
 	 * Is wide type?

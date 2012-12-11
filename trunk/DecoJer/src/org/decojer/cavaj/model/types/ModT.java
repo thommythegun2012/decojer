@@ -93,8 +93,8 @@ public abstract class ModT extends T {
 	}
 
 	@Override
-	public boolean isResolvable() {
-		return this.rawT.isResolvable();
+	public boolean isUnresolvable() {
+		return this.rawT.isUnresolvable();
 	}
 
 }

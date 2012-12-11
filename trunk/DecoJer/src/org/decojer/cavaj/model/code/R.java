@@ -214,7 +214,7 @@ public final class R {
 	public boolean read(final T t, final boolean alive) {
 		final T reducedT = this.t.assignTo(t); // primitive reduction for this.t possible
 		if (reducedT == null) {
-			if (!this.t.isResolvable()) {
+			if (this.t.isUnresolvable()) {
 				return true;
 			}
 			// TODO problem with generic type reduction to classes, invoke interface allowed
@@ -255,7 +255,7 @@ public final class R {
 	private boolean readForwardPropagate(final T t) {
 		final T reducedT = this.t.assignTo(t);
 		if (reducedT == null) {
-			if (!this.t.isResolvable()) {
+			if (this.t.isUnresolvable()) {
 				return true;
 			}
 			assert false;
