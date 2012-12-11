@@ -821,10 +821,7 @@ public class ReadCodeItem {
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
 
-					if (!t.isAssignableFrom(f.getValueT())) {
-						LOGGER.warning("Incompatible IGET Value Type! Cannot assign '"
-								+ f.getValueT() + "' to '" + t + "'.");
-					}
+					assert t.isAssignableFrom(f.getValueT());
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, instr
 							.getRegisterB()));
@@ -883,10 +880,7 @@ public class ReadCodeItem {
 							fieldIdItem.getFieldType().getTypeDescriptor());
 					f.markAf(AF.STATIC);
 
-					if (!t.isAssignableFrom(f.getValueT())) {
-						LOGGER.warning("Incompatible SGET Value Type! Cannot assign '"
-								+ f.getValueT() + "' to '" + t + "'.");
-					}
+					assert t.isAssignableFrom(f.getValueT());
 
 					this.ops.add(new GET(this.ops.size(), opcode, line, f));
 
@@ -1748,10 +1742,7 @@ public class ReadCodeItem {
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
 
-					if (!f.getValueT().isAssignableFrom(t)) {
-						LOGGER.warning("Incompatible IPUT Value Type! Cannot assign '" + t
-								+ "' to '" + f.getValueT() + "'.");
-					}
+					assert f.getValueT().isAssignableFrom(t);
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, instr
 							.getRegisterB()));
@@ -1811,10 +1802,7 @@ public class ReadCodeItem {
 							fieldIdItem.getFieldType().getTypeDescriptor());
 					f.markAf(AF.STATIC);
 
-					if (!f.getValueT().isAssignableFrom(t)) {
-						LOGGER.warning("Incompatible SPUT Value Type! Cannot assign '" + t
-								+ "' to '" + f.getValueT() + "'.");
-					}
+					assert f.getValueT().isAssignableFrom(t);
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, f.getValueT(), instr
 							.getRegisterA()));
@@ -1925,16 +1913,18 @@ public class ReadCodeItem {
 					t = T.WIDE;
 				}
 				{
+					assert t.isAssignableFrom(md.getReturnT());
+
 					// return A
 					final Instruction11x instr = (Instruction11x) instruction;
-					// cannot check assignable here...variable types could be unresolved
+
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
-					this.ops.add(new RETURN(this.ops.size(), opcode, line, t));
+					this.ops.add(new RETURN(this.ops.size(), opcode, line, md));
 				}
 				break;
 			case RETURN_VOID: {
-				this.ops.add(new RETURN(this.ops.size(), opcode, line, T.VOID));
+				this.ops.add(new RETURN(this.ops.size(), opcode, line, md));
 				break;
 			}
 			/*******

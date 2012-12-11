@@ -844,8 +844,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.VOID;
 			}
-			// cannot check assignable here...variable types could be unresolved
-			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, t));
+			assert t.isAssignableFrom(this.md.getReturnT());
+
+			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, this.md));
 			break;
 		/*******
 		 * SHL *

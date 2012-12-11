@@ -1272,8 +1272,10 @@ public class ReadCodeAttribute {
 				if (t == null) {
 					t = T.VOID;
 				}
+				assert t.isAssignableFrom(md.getReturnT());
+
 				// cannot check assignable here...variable types could be unresolved
-				this.ops.add(new RETURN(this.ops.size(), opcode, line, t));
+				this.ops.add(new RETURN(this.ops.size(), opcode, line, md));
 				break;
 			/*********
 			 * STORE *

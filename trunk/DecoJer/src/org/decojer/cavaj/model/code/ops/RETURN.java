@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import lombok.Getter;
+
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 
 /**
@@ -30,7 +33,10 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class RETURN extends TypedOp {
+public class RETURN extends Op {
+
+	@Getter
+	private final MD md;
 
 	/**
 	 * Constructor.
@@ -41,21 +47,35 @@ public class RETURN extends TypedOp {
 	 *            operation code
 	 * @param line
 	 *            line number
-	 * @param t
-	 *            type
+	 * @param md
+	 *            method declaration
 	 */
-	public RETURN(final int pc, final int opcode, final int line, final T t) {
-		super(pc, opcode, line, t);
+	public RETURN(final int pc, final int opcode, final int line, final MD md) {
+		super(pc, opcode, line);
+
+		assert md != null;
+		// for all variants valid: any superfield possible for static / instance
+
+		this.md = md;
 	}
 
 	@Override
 	public int getInStackSize() {
-		return getT().getStackSize();
+		return getMd().getReturnT().getStackSize();
 	}
 
 	@Override
 	public Optype getOptype() {
 		return Optype.RETURN;
+	}
+
+	/**
+	 * Get return type.
+	 * 
+	 * @return return type
+	 */
+	public T getT() {
+		return getMd().getReturnT();
 	}
 
 }
