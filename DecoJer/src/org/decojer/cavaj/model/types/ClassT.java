@@ -231,7 +231,7 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isUnresolvable() {
-		return !check(AF.UNRESOLVABLE);
+		return check(AF.UNRESOLVABLE);
 	}
 
 	/**
