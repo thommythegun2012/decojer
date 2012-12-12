@@ -307,16 +307,19 @@ public abstract class T {
 		}
 
 		T superT = null;
-		// find common supertypes, raise in t-hierarchy till assignable from this
+		// find common supertypes, raise in t1-hierarchy till assignable from t2
 		final ArrayList<T> interfaceTs = new ArrayList<T>();
-		// raise step by step in hierarchy...lazy fetch unknown super
 		final LinkedList<T> ts = new LinkedList<T>();
 		ts.add(t1);
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();
 			if (superT == null && !iT.isInterface()) {
 				superT = iT.getSuperT();
-				if (superT != null) {
+				if (superT == null) {
+					if (iT.isUnresolvable()) {
+						superT = T.AREF;
+					}
+				} else {
 					if (!superT.isAssignableFrom(t2)) {
 						ts.add(superT);
 						superT = null;
@@ -848,13 +851,17 @@ public abstract class T {
 		if (getDu() == null || is(Object.class) || t.getDu() == null) {
 			return true;
 		}
-		// raise step by step in hierarchy...lazy fetch unknown super
+		// raise in t-hierarchy till equals to this type
 		final LinkedList<T> ts = new LinkedList<T>();
 		ts.add(t);
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();
 			final T superT = iT.getSuperT();
-			if (superT != null) {
+			if (superT == null) {
+				if (iT.isUnresolvable()) {
+					return true;
+				}
+			} else {
 				if (equals(superT.getRawT())) {
 					return true;
 				}
