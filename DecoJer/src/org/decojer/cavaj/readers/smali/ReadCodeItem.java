@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
@@ -876,9 +875,8 @@ public class ReadCodeItem {
 
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
+					final F f = ownerT.getStaticF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
-					f.markAf(AF.STATIC);
 
 					assert t.isAssignableFrom(f.getValueT());
 
@@ -1081,13 +1079,13 @@ public class ReadCodeItem {
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
-					((ClassT) ownerT).markAf(AF.INTERFACE);
+					((ClassT) ownerT).setInterface();
 				}
-				final M invokeM = ownerT.getM(methodIdItem.getMethodName().getStringValue(),
-						methodIdItem.getPrototype().getPrototypeString());
-				if (instruction.opcode == Opcode.INVOKE_STATIC) {
-					invokeM.markAf(AF.STATIC);
-				} else {
+				final M invokeM = instruction.opcode == Opcode.INVOKE_STATIC ? ownerT.getStaticM(
+						methodIdItem.getMethodName().getStringValue(), methodIdItem.getPrototype()
+								.getPrototypeString()) : ownerT.getM(methodIdItem.getMethodName()
+						.getStringValue(), methodIdItem.getPrototype().getPrototypeString());
+				if (instruction.opcode != Opcode.INVOKE_STATIC) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, regs[reg++]));
 				}
 
@@ -1119,13 +1117,14 @@ public class ReadCodeItem {
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE) {
-					((ClassT) ownerT).markAf(AF.INTERFACE);
+					((ClassT) ownerT).setInterface();
 				}
-				final M invokeM = ownerT.getM(methodIdItem.getMethodName().getStringValue(),
-						methodIdItem.getPrototype().getPrototypeString());
-				if (instruction.opcode == Opcode.INVOKE_STATIC_RANGE) {
-					invokeM.markAf(AF.STATIC);
-				} else {
+				final M invokeM = instruction.opcode == Opcode.INVOKE_STATIC_RANGE ? ownerT
+						.getStaticM(methodIdItem.getMethodName().getStringValue(), methodIdItem
+								.getPrototype().getPrototypeString()) : ownerT.getM(methodIdItem
+						.getMethodName().getStringValue(), methodIdItem.getPrototype()
+						.getPrototypeString());
+				if (instruction.opcode != Opcode.INVOKE_STATIC_RANGE) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, reg++));
 				}
 
@@ -1798,9 +1797,8 @@ public class ReadCodeItem {
 
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
+					final F f = ownerT.getStaticF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
-					f.markAf(AF.STATIC);
 
 					assert f.getValueT().isAssignableFrom(t);
 

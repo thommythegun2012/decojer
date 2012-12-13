@@ -73,10 +73,6 @@ public final class FD extends BD {
 		this.f = f;
 	}
 
-	public boolean check(final AF af) {
-		return this.f.check(af);
-	}
-
 	@Override
 	public void clear() {
 		this.fieldDeclaration = null;
@@ -99,6 +95,24 @@ public final class FD extends BD {
 
 	public T getValueT() {
 		return this.f.getValueT();
+	}
+
+	/**
+	 * Is enum field?
+	 * 
+	 * @return {@code true} - is enum field
+	 */
+	public boolean isEnum() {
+		return getF().isEnum();
+	}
+
+	/**
+	 * Is static field?
+	 * 
+	 * @return {@code true} - is static field
+	 */
+	public boolean isStatic() {
+		return getF().isStatic();
 	}
 
 	public void setAccessFlags(final int accessFlags) {

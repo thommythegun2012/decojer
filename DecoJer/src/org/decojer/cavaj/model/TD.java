@@ -97,17 +97,6 @@ public final class TD extends BD {
 	}
 
 	/**
-	 * Check access flag.
-	 * 
-	 * @param af
-	 *            access flag
-	 * @return {@code true} - is access flag
-	 */
-	public boolean check(final AF af) {
-		return this.t.check(af);
-	}
-
-	/**
 	 * This should be scala code.
 	 */
 	public void checkScala() {
@@ -293,6 +282,15 @@ public final class TD extends BD {
 	 */
 	public boolean isDalvik() {
 		return this.version == 0;
+	}
+
+	/**
+	 * Is enum type?
+	 * 
+	 * @return {@code true} - is enum type
+	 */
+	public boolean isEnum() {
+		return getT().isEnum();
 	}
 
 	/**

@@ -115,12 +115,30 @@ public class F {
 	}
 
 	/**
+	 * Is enum field?
+	 * 
+	 * @return {@code true} - is enum field
+	 */
+	public boolean isEnum() {
+		return check(AF.ENUM);
+	}
+
+	/**
+	 * Is static field?
+	 * 
+	 * @return {@code true} - is static field
+	 */
+	public boolean isStatic() {
+		return check(AF.STATIC);
+	}
+
+	/**
 	 * Mark access flag.
 	 * 
 	 * @param af
 	 *            access flag
 	 */
-	public void markAf(final AF af) {
+	protected void markAf(final AF af) {
 		// TODO many more checks
 		if (af == AF.ENUM) {
 			this.accessFlags = AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()

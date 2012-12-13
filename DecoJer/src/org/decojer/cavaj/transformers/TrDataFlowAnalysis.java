@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
@@ -342,7 +341,7 @@ public final class TrDataFlowAnalysis {
 		case GET: {
 			final GET cop = (GET) op;
 			final F f = cop.getF();
-			if (!f.check(AF.STATIC)) {
+			if (!f.isStatic()) {
 				popRead(f.getT());
 			}
 			pushConst(f.getValueT());
@@ -373,7 +372,7 @@ public final class TrDataFlowAnalysis {
 			for (int i = m.getParamTs().length; i-- > 0;) {
 				popRead(paramTs[i]);
 			}
-			if (!m.check(AF.STATIC)) {
+			if (!m.isStatic()) {
 				popRead(m.getT());
 			}
 			if (m.getReturnT() != T.VOID) {
@@ -527,7 +526,7 @@ public final class TrDataFlowAnalysis {
 			final PUT cop = (PUT) op;
 			final F f = cop.getF();
 			popRead(f.getValueT());
-			if (!f.check(AF.STATIC)) {
+			if (!f.isStatic()) {
 				popRead(f.getT());
 			}
 			break;

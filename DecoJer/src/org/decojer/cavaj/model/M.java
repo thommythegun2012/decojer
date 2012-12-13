@@ -131,12 +131,21 @@ public class M {
 	}
 
 	/**
+	 * Is static method?
+	 * 
+	 * @return {@code true} - is static method
+	 */
+	public boolean isStatic() {
+		return check(AF.STATIC);
+	}
+
+	/**
 	 * Mark access flag.
 	 * 
 	 * @param af
 	 *            access flag
 	 */
-	public void markAf(final AF af) {
+	protected void markAf(final AF af) {
 		this.accessFlags |= af.getValue();
 	}
 

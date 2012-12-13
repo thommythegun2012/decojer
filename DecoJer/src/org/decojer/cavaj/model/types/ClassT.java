@@ -209,6 +209,15 @@ public class ClassT extends T {
 		return this.typeParams;
 	}
 
+	/**
+	 * Is enum type?
+	 * 
+	 * @return {@code true} - is enum type
+	 */
+	public boolean isEnum() {
+		return check(AF.ENUM);
+	}
+
 	@Override
 	public boolean isInterface() {
 		return check(AF.INTERFACE);
@@ -240,7 +249,7 @@ public class ClassT extends T {
 	 * @param af
 	 *            access flag
 	 */
-	public void markAf(final AF af) {
+	protected void markAf(final AF af) {
 		this.accessFlags |= af.getValue();
 	}
 
@@ -390,6 +399,13 @@ public class ClassT extends T {
 		this.accessFlags = accessFlags | this.accessFlags & AF.SUPER.getValue();
 		// don't really need this info (@see T#getInnerName()) for JVM >= 5
 		this.innerName = name != null ? name : "";
+	}
+
+	/**
+	 * This must be an interface.
+	 */
+	public void setInterface() {
+		markAf(AF.INTERFACE);
 	}
 
 	/**

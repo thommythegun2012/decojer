@@ -357,7 +357,7 @@ public final class TrCfg2JavaExpressionStmts {
 			case GET: {
 				final GET cop = (GET) op;
 				final F f = cop.getF();
-				if (f.check(AF.STATIC)) {
+				if (f.isStatic()) {
 					if (f.check(AF.SYNTHETIC)
 							&& (f.getName().startsWith("class$") || f.getName()
 									.startsWith("array$"))) {
@@ -510,7 +510,7 @@ public final class TrCfg2JavaExpressionStmts {
 						methodInvocation.arguments().addAll(arguments);
 						methodExpression = methodInvocation;
 					}
-				} else if (m.check(AF.STATIC)) {
+				} else if (m.isStatic()) {
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 					methodInvocation.setExpression(Types.decompileName(m.getT(), this.cfg.getTd()));
 					methodInvocation.setName(getAst().newSimpleName(m.getName()));
@@ -819,7 +819,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// TODO a = a <op> expr => a <op>= expr
 				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 
-				if (f.check(AF.STATIC)) {
+				if (f.isStatic()) {
 					final Name name = getAst().newQualifiedName(
 							Types.decompileName(f.getT(), this.cfg.getTd()),
 							getAst().newSimpleName(f.getName()));
@@ -1476,7 +1476,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private boolean rewriteFieldInit(final BB bb, final F f, final Expression rightExpression) {
 		// set local field, could be initializer
-		if (f.check(AF.STATIC)) {
+		if (f.isStatic()) {
 			if (!this.cfg.getMd().isInitializer()) {
 				return false;
 			}
@@ -1499,8 +1499,8 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		// TODO this checks are not enough, we must assure that we don't use method
 		// arguments here!!!
-		if (((ClassT) f.getT()).check(AF.ENUM) && !this.cfg.getCu().check(DFlag.IGNORE_ENUM)) {
-			if (f.check(AF.ENUM)) {
+		if (((ClassT) f.getT()).isEnum() && !this.cfg.getCu().check(DFlag.IGNORE_ENUM)) {
+			if (f.isEnum()) {
 				// assignment to enum constant declaration
 				if (!(rightExpression instanceof ClassInstanceCreation)) {
 					log("Assignment to enum field '" + f + "' is no class instance creation!");
@@ -1575,7 +1575,7 @@ public final class TrCfg2JavaExpressionStmts {
 					.fragments().get(0)).setInitializer(wrap(rightExpression, Priority.ASSIGNMENT));
 			// TODO move anonymous TD to FD as child!!! important for ClassEditor
 			// select, if fixed change ClassEditor#findDeclarationForJavaElement too
-			if (!f.check(AF.STATIC)) {
+			if (!f.isStatic()) {
 				bb.pop();
 			}
 		} catch (final Exception e) {

@@ -25,7 +25,6 @@ package org.decojer.cavaj.model.code.ops;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 
 /**
@@ -61,7 +60,7 @@ public class PUT extends Op {
 
 	@Override
 	public int getInStackSize() {
-		return (getF().check(AF.STATIC) ? 0 : getF().getT().getStackSize())
+		return (getF().isStatic() ? 0 : getF().getT().getStackSize())
 				+ getF().getValueT().getStackSize();
 	}
 
