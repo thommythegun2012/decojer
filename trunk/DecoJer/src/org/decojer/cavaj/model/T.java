@@ -743,7 +743,7 @@ public abstract class T {
 	/**
 	 * Get super type.
 	 * 
-	 * @return super type, can be {@code null} for {@code Object} and primitives
+	 * @return super type, can be {@code null} for {@code Object}, interfaces and primitives
 	 * @see Class#getSuperclass()
 	 */
 	public abstract T getSuperT();
@@ -775,15 +775,12 @@ public abstract class T {
 	/**
 	 * Is type of class?
 	 * 
-	 * @param clazzes
-	 *            classes
+	 * @param klass
+	 *            class
 	 * @return {@code true} - type is of class
 	 */
-	public boolean is(final Class<?>... clazzes) {
-		if (clazzes.length != 1) {
-			return false;
-		}
-		return this.name.equals(clazzes[0].getName());
+	public boolean is(final Class<?> klass) {
+		return getName().equals(klass.getName());
 	}
 
 	/**
@@ -848,7 +845,7 @@ public abstract class T {
 		}
 		// assignableFrom(T.REF) is true, null is T.REF!
 		// may be better to check for null const in R instead of this general answer
-		if (getDu() == null || is(Object.class) || t.getDu() == null) {
+		if (getDu() == null || isObject() || t.getDu() == null) {
 			return true;
 		}
 		// raise in t-hierarchy till equals to this type

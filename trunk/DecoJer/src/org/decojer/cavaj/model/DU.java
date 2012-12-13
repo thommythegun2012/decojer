@@ -213,6 +213,15 @@ public final class DU {
 	}
 
 	/**
+	 * Get object type.
+	 * 
+	 * @return object type
+	 */
+	public ClassT getObjectT() {
+		return (ClassT) getT(Object.class);
+	}
+
+	/**
 	 * Get type for class.
 	 * 
 	 * @param clazz
@@ -488,7 +497,7 @@ public final class DU {
 			if (s.charAt(c.pos) != ':') {
 				typeParam.setSuperT(parseT(s, c, context));
 			} else {
-				typeParam.setSuperT(getT(Object.class));
+				typeParam.setSuperT(getObjectT());
 			}
 			if (s.charAt(c.pos) == ':') {
 				final ArrayList<T> interfaceTs = new ArrayList<T>();
