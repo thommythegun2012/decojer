@@ -33,7 +33,6 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
@@ -453,9 +452,8 @@ public class SmaliReader implements DexReader {
 			final FieldIdItem fieldidItem = ((EnumEncodedValue) encodedValue).value;
 			final String desc = fieldidItem.getFieldType().getTypeDescriptor();
 			final T enumT = du.getDescT(desc);
-			final F enumF = enumT.getF(fieldidItem.getFieldName().getStringDataItem()
+			final F enumF = enumT.getEnumF(fieldidItem.getFieldName().getStringDataItem()
 					.getStringValue(), desc);
-			enumF.markAf(AF.ENUM);
 			return enumF;
 		}
 		if (encodedValue instanceof FloatEncodedValue) {

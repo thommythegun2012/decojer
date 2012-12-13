@@ -66,7 +66,6 @@ import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
@@ -505,11 +504,10 @@ public class JavassistReader implements ClassReader {
 		if (memberValue instanceof DoubleMemberValue) {
 			return ((DoubleMemberValue) memberValue).getValue();
 		} else if (memberValue instanceof EnumMemberValue) {
-			// TODO better direct access, Javassist missing method
+			// TODO better direct access, but missing method in Javassist API
 			final String desc = Descriptor.of(((EnumMemberValue) memberValue).getType());
 			final T enumT = this.du.getDescT(desc);
-			final F enumF = enumT.getF(((EnumMemberValue) memberValue).getValue(), desc);
-			enumF.markAf(AF.ENUM);
+			final F enumF = enumT.getEnumF(((EnumMemberValue) memberValue).getValue(), desc);
 			return enumF;
 		}
 		if (memberValue instanceof FloatMemberValue) {

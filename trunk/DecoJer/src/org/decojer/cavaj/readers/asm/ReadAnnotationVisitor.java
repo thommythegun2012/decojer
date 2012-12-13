@@ -26,7 +26,6 @@ package org.decojer.cavaj.readers.asm;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
@@ -101,8 +100,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	@Override
 	public void visitEnum(final String name, final String desc, final String value) {
 		final T enumT = this.du.getDescT(desc);
-		final F enumF = enumT.getF(value, desc);
-		enumF.markAf(AF.ENUM);
+		final F enumF = enumT.getEnumF(value, desc);
 		add(name, enumF);
 	}
 
