@@ -414,6 +414,16 @@ public abstract class T {
 	}
 
 	/**
+	 * Type must be an interface or a class.
+	 * 
+	 * @param isInterface
+	 *            {@code true} - is interface
+	 */
+	public void assertInterface(final boolean isInterface) {
+		assert !isInterface;
+	}
+
+	/**
 	 * Assign from given type. There are 3 possible outcomes: Cannot assign from given type, which
 	 * returns {@code null}. Can assign from given type and primitive multitype reduction, which
 	 * returns the reduced new type. Can assign without reduction, which returns unmodified
@@ -504,48 +514,6 @@ public abstract class T {
 	}
 
 	/**
-	 * Get any field.<br>
-	 * Unique identifier in JVM is: "name + descriptor" ({@link F})<br>
-	 * Even though the Java language has the field name as unique identifier, obfuscated code could
-	 * utilize the same name for different descriptors (see e.g. ojdbc6.jar).
-	 * 
-	 * @param name
-	 *            field name
-	 * @param desc
-	 *            field descriptor
-	 * @return field
-	 */
-	private F getAnyF(final String name, final String desc) {
-		final String handle = name + ":" + desc;
-		F f = (F) getMember().get(handle);
-		if (f == null) {
-			f = new F(this, name, desc);
-			getMember().put(handle, f);
-		}
-		return f;
-	}
-
-	/**
-	 * Get method.<br>
-	 * Unique identifier in JVM and Java language is: "name + descriptor"
-	 * 
-	 * @param name
-	 *            method name
-	 * @param desc
-	 *            method descriptor
-	 * @return method
-	 */
-	private M getAnyM(final String name, final String desc) {
-		final String handle = name + desc;
-		M m = (M) getMember().get(handle);
-		if (m == null) {
-			m = new M(this, name, desc);
-			getMember().put(handle, m);
-		}
-		return m;
-	}
-
-	/**
 	 * Get component type of array type (null if no array type).
 	 * 
 	 * @return component type of array type (null if no array type)
@@ -598,26 +566,33 @@ public abstract class T {
 	 * @param desc
 	 *            field descriptor
 	 * @return enum field
-	 * @see #getAnyF(String, String)
 	 */
 	public F getEnumF(final String name, final String desc) {
-		final F f = getAnyF(name, desc);
+		final F f = getF(name, desc);
 		f.assertEnum();
 		return f;
 	}
 
 	/**
-	 * Get field (no static or enum).
+	 * Get field.<br>
+	 * Unique identifier in JVM is: "name + descriptor" ({@link F})<br>
+	 * Even though the Java language has the field name as unique identifier, obfuscated code could
+	 * utilize the same name for different descriptors (see e.g. ojdbc6.jar).
 	 * 
 	 * @param name
 	 *            field name
 	 * @param desc
 	 *            field descriptor
-	 * @return static field
-	 * @see #getAnyF(String, String)
+	 * @return field
 	 */
 	public F getF(final String name, final String desc) {
-		return getAnyF(name, desc);
+		final String handle = name + ":" + desc;
+		F f = (F) getMember().get(handle);
+		if (f == null) {
+			f = new F(this, name, desc);
+			getMember().put(handle, f);
+		}
+		return f;
 	}
 
 	/**
@@ -657,17 +632,23 @@ public abstract class T {
 	public abstract int getKind();
 
 	/**
-	 * Get method (no static).
+	 * Get method.<br>
+	 * Unique identifier in JVM and Java language is: "name + descriptor"
 	 * 
 	 * @param name
 	 *            method name
 	 * @param desc
 	 *            method descriptor
-	 * @return static method
-	 * @see #getAnyM(String, String)
+	 * @return method
 	 */
 	public M getM(final String name, final String desc) {
-		return getAnyM(name, desc);
+		final String handle = name + desc;
+		M m = (M) getMember().get(handle);
+		if (m == null) {
+			m = new M(this, name, desc);
+			getMember().put(handle, m);
+		}
+		return m;
 	}
 
 	protected HashMap<String, Object> getMember() {
@@ -782,38 +763,6 @@ public abstract class T {
 	 */
 	public int getStackSize() {
 		return 1;
-	}
-
-	/**
-	 * Get static field.
-	 * 
-	 * @param name
-	 *            field name
-	 * @param desc
-	 *            field descriptor
-	 * @return static field
-	 * @see #getAnyF(String, String)
-	 */
-	public F getStaticF(final String name, final String desc) {
-		final F f = getAnyF(name, desc);
-		f.assertStatic();
-		return f;
-	}
-
-	/**
-	 * Get static method.
-	 * 
-	 * @param name
-	 *            method name
-	 * @param desc
-	 *            method descriptor
-	 * @return static method
-	 * @see #getAnyM(String, String)
-	 */
-	public M getStaticM(final String name, final String desc) {
-		final M m = getAnyM(name, desc);
-		m.assertStatic();
-		return m;
 	}
 
 	/**
@@ -990,9 +939,16 @@ public abstract class T {
 	public abstract boolean isRef();
 
 	/**
-	 * Is resolveable?
+	 * Is resolved?
 	 * 
-	 * @return {@code true} - is resolveable
+	 * @return {@code true} - is resolved
+	 */
+	public abstract boolean isResolved();
+
+	/**
+	 * Is unresolveable?
+	 * 
+	 * @return {@code true} - is unresolveable
 	 */
 	public abstract boolean isUnresolvable();
 

@@ -50,9 +50,8 @@ import org.decojer.cavaj.model.types.ClassT;
  */
 public class F {
 
-	@Getter
 	@Setter
-	private int accessFlags;
+	private int accessFlags = AF.UNRESOLVED.getValue();
 
 	@Getter
 	private FD fd;
@@ -99,10 +98,22 @@ public class F {
 	}
 
 	/**
-	 * Field must be static.
+	 * Field must be static or dynamic.
+	 * 
+	 * @param isStatic
+	 *            {@code true} - is static
 	 */
-	public void assertStatic() {
-		this.accessFlags |= AF.STATIC.getValue();
+	public void assertStatic(final boolean isStatic) {
+		if (isStatic) {
+			if (isStatic()) {
+				return;
+			}
+			assert !isResolved();
+
+			this.accessFlags |= AF.STATIC.getValue();
+			return;
+		}
+		assert !isStatic();
 	}
 
 	/**
@@ -143,6 +154,15 @@ public class F {
 	 */
 	public boolean isEnum() {
 		return check(AF.ENUM);
+	}
+
+	/**
+	 * Is resolved?
+	 * 
+	 * @return {@code true} - is resolved
+	 */
+	public boolean isResolved() {
+		return !check(AF.UNRESOLVED);
 	}
 
 	/**

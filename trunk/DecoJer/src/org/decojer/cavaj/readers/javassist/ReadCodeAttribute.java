@@ -531,11 +531,9 @@ public class ReadCodeAttribute {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
 				final T ownerT = getT(constPool, constPool.getFieldrefClass(fieldIndex));
-				final F f = opcode == Opcode.GETSTATIC ? ownerT.getStaticF(
-						constPool.getFieldrefName(fieldIndex),
-						constPool.getFieldrefType(fieldIndex)) : ownerT.getF(
-						constPool.getFieldrefName(fieldIndex),
+				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
 						constPool.getFieldrefType(fieldIndex));
+				f.assertStatic(opcode == Opcode.GETSTATIC);
 				this.ops.add(new GET(this.ops.size(), opcode, line, f));
 				break;
 			}
@@ -588,9 +586,10 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // reserved, unused
 
 				final T ownerT = getT(constPool, constPool.getInterfaceMethodrefClass(methodIndex));
-				((ClassT) ownerT).assertInterface();
+				((ClassT) ownerT).assertInterface(true);
 				final M m = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
+				m.assertStatic(false);
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m, false));
 				break;
 			}
@@ -601,11 +600,10 @@ public class ReadCodeAttribute {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
 				final T ownerT = getT(constPool, constPool.getMethodrefClass(cpMethodIndex));
-				final M m = opcode == Opcode.INVOKESTATIC ? ownerT.getStaticM(
-						constPool.getMethodrefName(cpMethodIndex),
-						constPool.getMethodrefType(cpMethodIndex)) : ownerT.getM(
-						constPool.getMethodrefName(cpMethodIndex),
+				((ClassT) ownerT).assertInterface(false);
+				final M m = ownerT.getM(constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
+				m.assertStatic(opcode == Opcode.INVOKESTATIC);
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m,
 						opcode == Opcode.INVOKESPECIAL));
 				break;
@@ -1202,11 +1200,9 @@ public class ReadCodeAttribute {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
 				final T ownerT = getT(constPool, constPool.getFieldrefClass(fieldIndex));
-				final F f = opcode == Opcode.PUTSTATIC ? ownerT.getStaticF(
-						constPool.getFieldrefName(fieldIndex),
-						constPool.getFieldrefType(fieldIndex)) : ownerT.getF(
-						constPool.getFieldrefName(fieldIndex),
+				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
 						constPool.getFieldrefType(fieldIndex));
+				f.assertStatic(opcode == Opcode.PUTSTATIC);
 				this.ops.add(new PUT(this.ops.size(), opcode, line, f));
 				break;
 			}

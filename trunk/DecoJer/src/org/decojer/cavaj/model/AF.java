@@ -112,10 +112,15 @@ public enum AF {
 	 * Declaraed synchronized. (Dalvik only)
 	 */
 	DECLARED_SYNCHRONIZED(1 << 17, "declared-synchronized", false, false, true),
+
 	/**
 	 * Artificial flag 'unresolvable'.
 	 */
-	UNRESOLVABLE(1 << 20, "<unresolvable>", true, true, true);
+	UNRESOLVABLE(1 << 30, "<unresolvable>", true, true, true),
+	/**
+	 * Artificial flag 'unresoled'.
+	 */
+	UNRESOLVED(1 << 31, "<unresolved>", true, true, true);
 
 	@Getter
 	private final boolean forType;

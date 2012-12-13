@@ -819,6 +819,7 @@ public class ReadCodeItem {
 							fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
+					f.assertStatic(false);
 
 					assert t.isAssignableFrom(f.getValueT());
 
@@ -875,8 +876,9 @@ public class ReadCodeItem {
 
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getStaticF(fieldIdItem.getFieldName().getStringValue(),
+					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
+					f.assertStatic(true);
 
 					assert t.isAssignableFrom(f.getValueT());
 
@@ -1078,28 +1080,25 @@ public class ReadCodeItem {
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
-				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
-					((ClassT) ownerT).assertInterface();
-				}
-				final M invokeM = instruction.opcode == Opcode.INVOKE_STATIC ? ownerT.getStaticM(
-						methodIdItem.getMethodName().getStringValue(), methodIdItem.getPrototype()
-								.getPrototypeString()) : ownerT.getM(methodIdItem.getMethodName()
-						.getStringValue(), methodIdItem.getPrototype().getPrototypeString());
+				ownerT.assertInterface(instruction.opcode == Opcode.INVOKE_INTERFACE);
+				final M m = ownerT.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
+						.getPrototype().getPrototypeString());
+				m.assertStatic(instruction.opcode == Opcode.INVOKE_STATIC);
 				if (instruction.opcode != Opcode.INVOKE_STATIC) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, regs[reg++]));
 				}
 
-				for (final T paramT : invokeM.getParamTs()) {
+				for (final T paramT : m.getParamTs()) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, regs[reg++]));
 					if (paramT.isWide()) {
 						++reg;
 					}
 				}
 
-				this.ops.add(new INVOKE(this.ops.size(), opcode, line, invokeM,
+				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m,
 						instruction.opcode == Opcode.INVOKE_DIRECT));
-				if (invokeM.getReturnT() != T.VOID) {
-					moveInvokeResultT = invokeM.getReturnT();
+				if (m.getReturnT() != T.VOID) {
+					moveInvokeResultT = m.getReturnT();
 				}
 				break;
 			}
@@ -1116,29 +1115,26 @@ public class ReadCodeItem {
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
-				if (instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE) {
-					((ClassT) ownerT).assertInterface();
-				}
-				final M invokeM = instruction.opcode == Opcode.INVOKE_STATIC_RANGE ? ownerT
-						.getStaticM(methodIdItem.getMethodName().getStringValue(), methodIdItem
-								.getPrototype().getPrototypeString()) : ownerT.getM(methodIdItem
-						.getMethodName().getStringValue(), methodIdItem.getPrototype()
-						.getPrototypeString());
+				((ClassT) ownerT)
+						.assertInterface(instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE);
+				final M m = ownerT.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
+						.getPrototype().getPrototypeString());
+				m.assertStatic(instruction.opcode == Opcode.INVOKE_STATIC_RANGE);
 				if (instruction.opcode != Opcode.INVOKE_STATIC_RANGE) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, reg++));
 				}
 
-				for (final T paramT : invokeM.getParamTs()) {
+				for (final T paramT : m.getParamTs()) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, reg++));
 					if (paramT.isWide()) {
 						++reg;
 					}
 				}
 
-				this.ops.add(new INVOKE(this.ops.size(), opcode, line, invokeM,
+				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m,
 						instruction.opcode == Opcode.INVOKE_DIRECT_RANGE));
-				if (invokeM.getReturnT() != T.VOID) {
-					moveInvokeResultT = invokeM.getReturnT();
+				if (m.getReturnT() != T.VOID) {
+					moveInvokeResultT = m.getReturnT();
 				}
 				break;
 			}
@@ -1740,6 +1736,7 @@ public class ReadCodeItem {
 							fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
+					f.assertStatic(false);
 
 					assert f.getValueT().isAssignableFrom(t);
 
@@ -1797,8 +1794,9 @@ public class ReadCodeItem {
 
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getStaticF(fieldIdItem.getFieldName().getStringValue(),
+					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
+					f.assertStatic(true);
 
 					assert f.getValueT().isAssignableFrom(t);
 
