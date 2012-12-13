@@ -197,7 +197,7 @@ public class ClassT extends T {
 		if (this.superT == null) {
 			resolve();
 		}
-		// can be null, e.g. for Object.class or Interfaces
+		// can be null, e.g. for Object or Interfaces
 		return this.superT == NONE ? null : this.superT;
 	}
 
@@ -216,7 +216,7 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isObject() {
-		return Object.class.getName().equals(getName());
+		return is(Object.class);
 	}
 
 	@Override

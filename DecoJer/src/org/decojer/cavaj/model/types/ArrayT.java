@@ -80,7 +80,7 @@ public final class ArrayT extends T {
 
 	@Override
 	public T getSuperT() {
-		return getDu().getT(Object.class);
+		return getDu().getObjectT();
 	}
 
 	@Override

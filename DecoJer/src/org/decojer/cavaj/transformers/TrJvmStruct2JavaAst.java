@@ -417,7 +417,7 @@ public final class TrJvmStruct2JavaAst {
 			final TypeParameter typeParameter = ast.newTypeParameter();
 			typeParameter.setName(ast.newSimpleName(typeParam.getName()));
 			final T superT = typeParam.getSuperT();
-			if (!superT.is(Object.class)) {
+			if (!superT.isObject()) {
 				typeParameter.typeBounds().add(Types.decompileType(typeParam.getSuperT(), td));
 			}
 			for (final T interfaceT : typeParam.getInterfaceTs()) {
@@ -489,9 +489,9 @@ public final class TrJvmStruct2JavaAst {
 
 			// annotation type declaration
 			if (td.check(AF.ANNOTATION)) {
-				if (td.getSuperT() == null || !td.getSuperT().is(Object.class)) {
-					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no super class '"
-							+ Object.class.getName() + "' but has '" + td.getSuperT() + "'!");
+				if (td.getSuperT() == null || !td.getSuperT().isObject()) {
+					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no super class Object but has '"
+							+ td.getSuperT() + "'!");
 				}
 				if (td.getInterfaceTs().length != 1 || !td.getInterfaceTs()[0].is(Annotation.class)) {
 					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no interface '"
@@ -527,7 +527,7 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration = ast.newTypeDeclaration();
 				decompileTypeParams(td.getTypeParams(),
 						((TypeDeclaration) typeDeclaration).typeParameters(), td);
-				if (!td.getSuperT().is(Object.class)) {
+				if (!td.getSuperT().isObject()) {
 					((TypeDeclaration) typeDeclaration).setSuperclassType(Types.decompileType(
 							td.getSuperT(), td));
 				}
