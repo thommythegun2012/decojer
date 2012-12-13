@@ -1079,7 +1079,7 @@ public class ReadCodeItem {
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
-					((ClassT) ownerT).setInterface();
+					((ClassT) ownerT).assertInterface();
 				}
 				final M invokeM = instruction.opcode == Opcode.INVOKE_STATIC ? ownerT.getStaticM(
 						methodIdItem.getMethodName().getStringValue(), methodIdItem.getPrototype()
@@ -1117,7 +1117,7 @@ public class ReadCodeItem {
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE) {
-					((ClassT) ownerT).setInterface();
+					((ClassT) ownerT).assertInterface();
 				}
 				final M invokeM = instruction.opcode == Opcode.INVOKE_STATIC_RANGE ? ownerT
 						.getStaticM(methodIdItem.getMethodName().getStringValue(), methodIdItem

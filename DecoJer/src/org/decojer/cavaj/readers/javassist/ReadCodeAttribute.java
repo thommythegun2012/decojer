@@ -588,7 +588,7 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // reserved, unused
 
 				final T ownerT = getT(constPool, constPool.getInterfaceMethodrefClass(methodIndex));
-				((ClassT) ownerT).setInterface();
+				((ClassT) ownerT).assertInterface();
 				final M m = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m, false));

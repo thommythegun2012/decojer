@@ -102,6 +102,11 @@ public final class MD extends BD {
 	}
 
 	@Override
+	public void assertSynthetic() {
+		getM().assertSynthetic();
+	}
+
+	@Override
 	public void clear() {
 		this.methodDeclaration = null;
 		if (this.cfg != null) {
@@ -177,6 +182,15 @@ public final class MD extends BD {
 	 */
 	public boolean isStatic() {
 		return getM().isStatic();
+	}
+
+	/**
+	 * Is synthetic method?
+	 * 
+	 * @return {@code true} - is synthetic method
+	 */
+	public boolean isSynthetic() {
+		return getM().isSynthetic();
 	}
 
 	/**

@@ -99,13 +99,18 @@ public final class TD extends BD {
 	/**
 	 * This should be scala code.
 	 */
-	public void checkScala() {
+	public void assertScala() {
 		if (getSourceFileName() != null) {
 			if (!getSourceFileName().endsWith(".scala")) {
 				LOGGER.warning("This should be a Scala source code!");
 			}
 			return;
 		}
+	}
+
+	@Override
+	public void assertSynthetic() {
+		getT().assertSynthetic();
 	}
 
 	/**
@@ -291,6 +296,24 @@ public final class TD extends BD {
 	 */
 	public boolean isEnum() {
 		return getT().isEnum();
+	}
+
+	/**
+	 * Is interface?
+	 * 
+	 * @return {@code true} - is interface
+	 */
+	public boolean isInterface() {
+		return getT().isInterface();
+	}
+
+	/**
+	 * Is synthetic type?
+	 * 
+	 * @return {@code true} - is synthetic type
+	 */
+	public boolean isSynthetic() {
+		return getT().isSynthetic();
 	}
 
 	/**

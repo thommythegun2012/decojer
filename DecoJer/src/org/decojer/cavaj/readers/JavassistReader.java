@@ -135,7 +135,6 @@ public class JavassistReader implements ClassReader {
 			}
 			td.setInterfaceTs(interfaceTs);
 		}
-
 		// only annotations with RetentionPolicy.CLASS or RUNTIME are visible
 		// here and can be decompiled, e.g. @SuppressWarnings not visible here,
 		// has @Retention(RetentionPolicy.SOURCE)
@@ -173,7 +172,6 @@ public class JavassistReader implements ClassReader {
 				LOGGER.warning("Unknown class attribute tag '" + attributeTag + "'!");
 			}
 		}
-
 		if (signatureAttribute != null) {
 			td.setSignature(signatureAttribute.getSignature());
 		}
@@ -213,10 +211,10 @@ public class JavassistReader implements ClassReader {
 			td.setSourceFileName(sourceFileAttribute.getFileName());
 		}
 		if (syntheticAttribute != null) {
-			td.setSynthetic(true);
+			td.assertSynthetic();
 		}
 		if (scalaAttributes) {
-			td.checkScala();
+			td.assertScala();
 		}
 		for (final FieldInfo fieldInfo : (List<FieldInfo>) classFile.getFields()) {
 			readField(td, fieldInfo);
@@ -297,18 +295,15 @@ public class JavassistReader implements ClassReader {
 		final ConstPool constPool = fieldInfo.getConstPool();
 
 		final FD fd = td.createFd(fieldInfo.getName(), fieldInfo.getDescriptor());
-
 		fd.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
 			fd.setSignature(signatureAttribute.getSignature());
 		}
-
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
 				annotationsAttributeRuntimeVisible);
 		if (as != null) {
 			fd.setAs(as);
 		}
-
 		if (constantAttribute != null) {
 			Object value = null;
 			// only final, non static - no arrays, class types
@@ -337,15 +332,12 @@ public class JavassistReader implements ClassReader {
 			}
 			fd.setValue(value);
 		}
-
 		if (deprecatedAttribute != null) {
 			fd.setDeprecated(true);
 		}
-
 		if (syntheticAttribute != null) {
-			fd.setSynthetic(true);
+			fd.assertSynthetic();
 		}
-
 		return fd;
 	}
 
@@ -390,7 +382,6 @@ public class JavassistReader implements ClassReader {
 		final ConstPool constPool = methodInfo.getConstPool();
 
 		final MD md = td.createMd(methodInfo.getName(), methodInfo.getDescriptor());
-
 		md.setAccessFlags(methodInfo.getAccessFlags());
 		if (exceptionsAttribute != null) {
 			final int[] exceptions = exceptionsAttribute.getExceptionIndexes();
@@ -405,27 +396,22 @@ public class JavassistReader implements ClassReader {
 		if (signatureAttribute != null) {
 			md.setSignature(signatureAttribute.getSignature());
 		}
-
 		if (annotationDefaultAttribute != null) {
 			final MemberValue defaultMemberValue = annotationDefaultAttribute.getDefaultValue();
 			final Object annotationDefaultValue = readValue(defaultMemberValue);
 			md.setAnnotationDefaultValue(annotationDefaultValue);
 		}
-
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
 				annotationsAttributeRuntimeVisible);
 		if (as != null) {
 			md.setAs(as);
 		}
-
 		if (codeAttribute != null) {
 			this.readCodeAttribute.initAndVisit(md, codeAttribute);
 		}
-
 		if (deprecatedAttribute != null) {
 			md.setDeprecated(true);
 		}
-
 		A[][] paramAss = null;
 		// Visible comes first in bytecode, but here we start with invisible
 		// because of array extension trick
@@ -468,11 +454,9 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 		md.setParamAss(paramAss);
-
 		if (syntheticAttribute != null) {
-			md.setSynthetic(true);
+			md.assertSynthetic();
 		}
-
 		return md;
 	}
 

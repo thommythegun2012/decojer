@@ -91,6 +91,28 @@ public class F {
 	}
 
 	/**
+	 * Field must be an enum.
+	 */
+	public void assertEnum() {
+		this.accessFlags |= AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
+				| AF.ENUM.getValue();
+	}
+
+	/**
+	 * Field must be static.
+	 */
+	public void assertStatic() {
+		this.accessFlags |= AF.STATIC.getValue();
+	}
+
+	/**
+	 * Field must be synthetic (from synthetic declaration attribute).
+	 */
+	public void assertSynthetic() {
+		this.accessFlags |= AF.SYNTHETIC.getValue();
+	}
+
+	/**
 	 * Check access flag.
 	 * 
 	 * @param af
@@ -133,19 +155,12 @@ public class F {
 	}
 
 	/**
-	 * Mark access flag.
+	 * Is synthetic field?
 	 * 
-	 * @param af
-	 *            access flag
+	 * @return {@code true} - is synthetic field
 	 */
-	protected void markAf(final AF af) {
-		// TODO many more checks
-		if (af == AF.ENUM) {
-			this.accessFlags = AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
-					| AF.ENUM.getValue();
-			return;
-		}
-		this.accessFlags |= af.getValue();
+	public boolean isSynthetic() {
+		return check(AF.SYNTHETIC);
 	}
 
 	@Override
