@@ -27,7 +27,7 @@ class TestT {
 		// a decompilation unit is like a class loader, just for references with
 		// real classes / type declarations
 		du = DecoJer.createDu();
-		objectT = du.getT(Object.class);
+		objectT = du.getObjectT();
 	}
 
 	@Test
