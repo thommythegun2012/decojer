@@ -248,14 +248,14 @@ public class ClassT extends T {
 		// try simple class loading, may be we are lucky ;)
 		// TODO later ask DecoJer-online and local type cache with context info
 		try {
-			final Class<?> clazz = getClass().getClassLoader().loadClass(getName());
-			this.accessFlags = clazz.getModifiers();
+			final Class<?> klass = getClass().getClassLoader().loadClass(getName());
+			this.accessFlags = klass.getModifiers();
 
-			final Class<?> superclass = clazz.getSuperclass();
+			final Class<?> superclass = klass.getSuperclass();
 			if (superclass != null) {
 				this.superT = getDu().getT(superclass);
 			}
-			final Class<?>[] interfaces = clazz.getInterfaces();
+			final Class<?>[] interfaces = klass.getInterfaces();
 			if (interfaces.length > 0) {
 				final T[] interfaceTs = new T[interfaces.length];
 				for (int i = interfaces.length; i-- > 0;) {
@@ -263,7 +263,7 @@ public class ClassT extends T {
 				}
 				this.interfaceTs = interfaceTs;
 			}
-			final TypeVariable<?>[] typeParameters = clazz.getTypeParameters();
+			final TypeVariable<?>[] typeParameters = klass.getTypeParameters();
 			if (typeParameters.length > 0) {
 				final T[] typeParams = new T[typeParameters.length];
 				for (int i = typeParameters.length; i-- > 0;) {
@@ -271,14 +271,14 @@ public class ClassT extends T {
 				}
 				this.typeParams = typeParams;
 			}
-			final Method enclosingMethod = clazz.getEnclosingMethod();
+			final Method enclosingMethod = klass.getEnclosingMethod();
 			if (enclosingMethod != null) {
 				final Class<?> declaringClass = enclosingMethod.getDeclaringClass();
 				final T methodT = this.du.getT(declaringClass);
 				// TODO difficult...have only generic types here, not original descriptor
 				this.enclosing = methodT.getM(enclosingMethod.getName(), "<TODO>");
 			}
-			final Class<?> enclosingClass = clazz.getEnclosingClass();
+			final Class<?> enclosingClass = klass.getEnclosingClass();
 			if (enclosingClass != null) {
 				this.enclosing = this.du.getT(enclosingClass);
 			}

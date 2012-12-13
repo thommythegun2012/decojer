@@ -224,12 +224,12 @@ public final class DU {
 	/**
 	 * Get type for class.
 	 * 
-	 * @param clazz
+	 * @param klass
 	 *            class
 	 * @return type
 	 */
-	public T getT(final Class<?> clazz) {
-		return getT(clazz.getName());
+	public T getT(final Class<?> klass) {
+		return getT(klass.getName());
 	}
 
 	/**

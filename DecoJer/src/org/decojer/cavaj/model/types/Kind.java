@@ -65,7 +65,7 @@ public enum Kind {
 	NONE(1 << 13);
 
 	@Getter
-	private final Class<?> clazz;
+	private final Class<?> klass;
 
 	@Getter
 	private final int kind;
@@ -74,13 +74,13 @@ public enum Kind {
 		this(flag, null);
 	}
 
-	private Kind(final int flag, final Class<?> clazz) {
-		this.clazz = clazz;
+	private Kind(final int flag, final Class<?> klass) {
+		this.klass = klass;
 		this.kind = flag;
 	}
 
 	public String getName() {
-		return this.clazz == null ? name() : this.clazz.getName();
+		return this.klass == null ? name() : this.klass.getName();
 	}
 
 }
