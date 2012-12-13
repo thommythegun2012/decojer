@@ -78,7 +78,6 @@ import org.decojer.cavaj.model.code.ops.SWAP;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
-import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Cursor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
@@ -267,8 +266,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.GETFIELD:
 		case Opcodes.GETSTATIC: {
 			final T ownerT = this.du.getT(owner);
-			final F f = opcode == Opcodes.GETSTATIC ? ownerT.getStaticF(name, desc) : ownerT.getF(
-					name, desc);
+			final F f = ownerT.getF(name, desc);
+			f.assertStatic(opcode == Opcodes.GETSTATIC);
 			this.ops.add(new GET(this.ops.size(), opcode, this.line, f));
 			return;
 		}
@@ -278,8 +277,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.PUTFIELD:
 		case Opcodes.PUTSTATIC: {
 			final T ownerT = this.du.getT(owner);
-			final F f = opcode == Opcodes.GETSTATIC ? ownerT.getStaticF(name, desc) : ownerT.getF(
-					name, desc);
+			final F f = ownerT.getF(name, desc);
+			f.assertStatic(opcode == Opcodes.PUTSTATIC);
 			this.ops.add(new PUT(this.ops.size(), opcode, this.line, f));
 			return;
 		}
@@ -1284,12 +1283,10 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.INVOKESTATIC:
 		case Opcodes.INVOKEVIRTUAL: {
 			final T ownerT = this.du.getT(owner);
-			if (opcode == Opcodes.INVOKEINTERFACE) {
-				((ClassT) ownerT).assertInterface();
-			}
-			final M invokeM = opcode == Opcodes.INVOKESTATIC ? ownerT.getStaticM(name, desc)
-					: ownerT.getM(name, desc);
-			this.ops.add(new INVOKE(this.ops.size(), opcode, this.line, invokeM,
+			ownerT.assertInterface(opcode == Opcodes.INVOKEINTERFACE);
+			final M m = ownerT.getM(name, desc);
+			m.assertStatic(opcode == Opcodes.INVOKESTATIC);
+			this.ops.add(new INVOKE(this.ops.size(), opcode, this.line, m,
 					opcode == Opcodes.INVOKESPECIAL));
 			break;
 		}

@@ -61,7 +61,7 @@ public class ClassT extends T {
 	 * Access flags.
 	 */
 	@Setter
-	private int accessFlags;
+	private int accessFlags = AF.UNRESOLVED.getValue();
 
 	@Getter
 	private final DU du;
@@ -132,9 +132,22 @@ public class ClassT extends T {
 
 	/**
 	 * Type must be an interface.
+	 * 
+	 * @param isInterface
+	 *            {@code true} - is interface
 	 */
-	public void assertInterface() {
-		this.accessFlags |= AF.INTERFACE.getValue();
+	@Override
+	public void assertInterface(final boolean isInterface) {
+		if (isInterface) {
+			if (isInterface()) {
+				return;
+			}
+			assert !isResolved();
+
+			this.accessFlags |= AF.INTERFACE.getValue();
+			return;
+		}
+		assert !isInterface();
 	}
 
 	/**
@@ -152,9 +165,14 @@ public class ClassT extends T {
 	 * @return {@code true} - is access flag
 	 */
 	public boolean check(final AF af) {
-		if (this.accessFlags == 0) {
-			resolve();
+		if ((this.accessFlags & af.getValue()) != 0) {
+			return true;
 		}
+		// TODO hmmm...should use extra field or bitmask?
+		if (isResolved()) {
+			return false;
+		}
+		resolve();
 		return (this.accessFlags & af.getValue()) != 0;
 	}
 
@@ -252,6 +270,12 @@ public class ClassT extends T {
 		return true;
 	}
 
+	@Override
+	public boolean isResolved() {
+		// don't use check(), loop
+		return (this.accessFlags & AF.UNRESOLVED.getValue()) == 0;
+	}
+
 	/**
 	 * Is synthetic type?
 	 * 
@@ -263,10 +287,14 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isUnresolvable() {
-		return check(AF.UNRESOLVABLE);
+		// don't use check(), loop
+		return (this.accessFlags & AF.UNRESOLVABLE.getValue()) != 0;
 	}
 
 	private boolean resolve() {
+		if (isUnresolvable()) {
+			return false;
+		}
 		// try simple class loading, may be we are lucky ;)
 		// TODO later ask DecoJer-online and local type cache with context info
 		try {

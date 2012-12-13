@@ -42,7 +42,7 @@ public class M {
 	public static final String INITIALIZER_NAME = "<clinit>";
 
 	@Setter
-	private int accessFlags;
+	private int accessFlags = AF.UNRESOLVED.getValue();
 
 	@Getter
 	private final String descriptor;
@@ -89,10 +89,22 @@ public class M {
 	}
 
 	/**
-	 * Method must be static.
+	 * Method must be static or dynamic.
+	 * 
+	 * @param isStatic
+	 *            {@code true} - is static
 	 */
-	public void assertStatic() {
-		this.accessFlags |= AF.STATIC.getValue();
+	public void assertStatic(final boolean isStatic) {
+		if (isStatic) {
+			if (isStatic()) {
+				return;
+			}
+			assert !isResolved();
+
+			this.accessFlags |= AF.STATIC.getValue();
+			return;
+		}
+		assert !isStatic();
 	}
 
 	/**
@@ -142,6 +154,15 @@ public class M {
 	 */
 	public boolean isInitializer() {
 		return INITIALIZER_NAME.equals(getName());
+	}
+
+	/**
+	 * Is resolved?
+	 * 
+	 * @return {@code true} - is resolved
+	 */
+	public boolean isResolved() {
+		return !check(AF.UNRESOLVED);
 	}
 
 	/**
