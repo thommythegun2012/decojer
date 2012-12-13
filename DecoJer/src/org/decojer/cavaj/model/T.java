@@ -549,6 +549,21 @@ public abstract class T {
 	}
 
 	/**
+	 * Get enum field.
+	 * 
+	 * @param name
+	 *            field name
+	 * @param desc
+	 *            field descriptor
+	 * @return enum field
+	 */
+	public F getEnumF(final String name, final String desc) {
+		final F enumF = getF(name, desc);
+		enumF.markAf(AF.ENUM);
+		return enumF;
+	}
+
+	/**
 	 * Get field.<br>
 	 * Unique identifier in JVM is: "name + descriptor" ({@link F})<br>
 	 * Even though the Java language has the field name as unique identifier, obfuscated code could
@@ -556,15 +571,15 @@ public abstract class T {
 	 * 
 	 * @param name
 	 *            field name
-	 * @param descriptor
+	 * @param desc
 	 *            field descriptor
 	 * @return field
 	 */
-	public F getF(final String name, final String descriptor) {
-		final String handle = name + ":" + descriptor;
+	public F getF(final String name, final String desc) {
+		final String handle = name + ":" + desc;
 		F f = (F) getMember().get(handle);
 		if (f == null) {
-			f = new F(this, name, descriptor);
+			f = new F(this, name, desc);
 			getMember().put(handle, f);
 		}
 		return f;
