@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
@@ -358,7 +357,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final GET cop = (GET) op;
 				final F f = cop.getF();
 				if (f.isStatic()) {
-					if (f.check(AF.SYNTHETIC)
+					if (f.isSynthetic()
 							&& (f.getName().startsWith("class$") || f.getName()
 									.startsWith("array$"))) {
 						if (rewriteCachedClassLiteral(bb)) {
@@ -1560,7 +1559,7 @@ public final class TrCfg2JavaExpressionStmts {
 				return true; // ignore such assignments completely
 			}
 		}
-		if (f.check(AF.SYNTHETIC)) {
+		if (f.isSynthetic()) {
 			if (this.cfg.getCu().check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 				return false; // not as field initializer
 			}

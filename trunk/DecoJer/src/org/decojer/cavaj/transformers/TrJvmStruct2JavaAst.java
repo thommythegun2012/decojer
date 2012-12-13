@@ -80,11 +80,9 @@ public final class TrJvmStruct2JavaAst {
 	private static void decompileField(final FD fd, final CU cu) {
 		final F f = fd.getF();
 
-		if ((f.check(AF.SYNTHETIC) || fd.isSynthetic())
-				&& !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (fd.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
-
 		final String name = fd.getName();
 		final TD td = fd.getTd();
 
@@ -186,11 +184,9 @@ public final class TrJvmStruct2JavaAst {
 	private static void decompileMethod(final MD md, final CU cu, final boolean strictFp) {
 		final M m = md.getM();
 
-		if ((m.check(AF.SYNTHETIC) || md.isSynthetic())
-				&& !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (md.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
-
 		final String name = md.getName();
 		final TD td = md.getTd();
 
@@ -474,8 +470,7 @@ public final class TrJvmStruct2JavaAst {
 			}
 			return;
 		}
-		if ((t.check(AF.SYNTHETIC) || td.isSynthetic())
-				&& !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (td.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 
@@ -572,7 +567,7 @@ public final class TrJvmStruct2JavaAst {
 				// enum declaration is final by default
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 			}
-			if (t.check(AF.INTERFACE)) {
+			if (td.isInterface()) {
 				if (typeDeclaration instanceof TypeDeclaration) {
 					((TypeDeclaration) typeDeclaration).setInterface(true);
 				}

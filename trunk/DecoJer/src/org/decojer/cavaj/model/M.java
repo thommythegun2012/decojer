@@ -89,6 +89,20 @@ public class M {
 	}
 
 	/**
+	 * Method must be static.
+	 */
+	public void assertStatic() {
+		this.accessFlags |= AF.STATIC.getValue();
+	}
+
+	/**
+	 * Method must be synthetic (from synthetic declaration attribute).
+	 */
+	public void assertSynthetic() {
+		this.accessFlags |= AF.SYNTHETIC.getValue();
+	}
+
+	/**
 	 * Check access flag.
 	 * 
 	 * @param af
@@ -140,13 +154,12 @@ public class M {
 	}
 
 	/**
-	 * Mark access flag.
+	 * Is synthetic method?
 	 * 
-	 * @param af
-	 *            access flag
+	 * @return {@code true} - is synthetic method
 	 */
-	protected void markAf(final AF af) {
-		this.accessFlags |= af.getValue();
+	public boolean isSynthetic() {
+		return check(AF.SYNTHETIC);
 	}
 
 	@Override

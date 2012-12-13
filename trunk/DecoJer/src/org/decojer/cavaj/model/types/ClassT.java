@@ -131,6 +131,20 @@ public class ClassT extends T {
 	}
 
 	/**
+	 * Type must be an interface.
+	 */
+	public void assertInterface() {
+		this.accessFlags |= AF.INTERFACE.getValue();
+	}
+
+	/**
+	 * Type must be synthetic (from synthetic declaration attribute).
+	 */
+	public void assertSynthetic() {
+		this.accessFlags |= AF.SYNTHETIC.getValue();
+	}
+
+	/**
 	 * Check access flag.
 	 * 
 	 * @param af
@@ -238,19 +252,18 @@ public class ClassT extends T {
 		return true;
 	}
 
+	/**
+	 * Is synthetic type?
+	 * 
+	 * @return {@code true} - is synthetic type
+	 */
+	public boolean isSynthetic() {
+		return check(AF.SYNTHETIC);
+	}
+
 	@Override
 	public boolean isUnresolvable() {
 		return check(AF.UNRESOLVABLE);
-	}
-
-	/**
-	 * Mark access flag.
-	 * 
-	 * @param af
-	 *            access flag
-	 */
-	protected void markAf(final AF af) {
-		this.accessFlags |= af.getValue();
 	}
 
 	private boolean resolve() {
@@ -294,7 +307,7 @@ public class ClassT extends T {
 			return true;
 		} catch (final ClassNotFoundException e) {
 			LOGGER.warning("Couldn't load type '" + getName() + "'!");
-			markAf(AF.UNRESOLVABLE);
+			this.accessFlags |= AF.UNRESOLVABLE.getValue();
 			return false;
 		} finally {
 			resolved();
@@ -399,13 +412,6 @@ public class ClassT extends T {
 		this.accessFlags = accessFlags | this.accessFlags & AF.SUPER.getValue();
 		// don't really need this info (@see T#getInnerName()) for JVM >= 5
 		this.innerName = name != null ? name : "";
-	}
-
-	/**
-	 * This must be an interface.
-	 */
-	public void setInterface() {
-		markAf(AF.INTERFACE);
 	}
 
 	/**

@@ -1285,7 +1285,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.INVOKEVIRTUAL: {
 			final T ownerT = this.du.getT(owner);
 			if (opcode == Opcodes.INVOKEINTERFACE) {
-				((ClassT) ownerT).setInterface();
+				((ClassT) ownerT).assertInterface();
 			}
 			final M invokeM = opcode == Opcodes.INVOKESTATIC ? ownerT.getStaticM(name, desc)
 					: ownerT.getM(name, desc);

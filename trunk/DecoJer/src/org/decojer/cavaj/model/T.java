@@ -601,9 +601,9 @@ public abstract class T {
 	 * @see #getAnyF(String, String)
 	 */
 	public F getEnumF(final String name, final String desc) {
-		final F enumF = getAnyF(name, desc);
-		enumF.markAf(AF.ENUM);
-		return enumF;
+		final F f = getAnyF(name, desc);
+		f.assertEnum();
+		return f;
 	}
 
 	/**
@@ -617,8 +617,7 @@ public abstract class T {
 	 * @see #getAnyF(String, String)
 	 */
 	public F getF(final String name, final String desc) {
-		final F f = getAnyF(name, desc);
-		return f;
+		return getAnyF(name, desc);
 	}
 
 	/**
@@ -668,9 +667,7 @@ public abstract class T {
 	 * @see #getAnyM(String, String)
 	 */
 	public M getM(final String name, final String desc) {
-		final M m = getAnyM(name, desc);
-		m.markAf(AF.STATIC);
-		return m;
+		return getAnyM(name, desc);
 	}
 
 	protected HashMap<String, Object> getMember() {
@@ -799,7 +796,7 @@ public abstract class T {
 	 */
 	public F getStaticF(final String name, final String desc) {
 		final F f = getAnyF(name, desc);
-		f.markAf(AF.STATIC);
+		f.assertStatic();
 		return f;
 	}
 
@@ -815,7 +812,7 @@ public abstract class T {
 	 */
 	public M getStaticM(final String name, final String desc) {
 		final M m = getAnyM(name, desc);
-		m.markAf(AF.STATIC);
+		m.assertStatic();
 		return m;
 	}
 

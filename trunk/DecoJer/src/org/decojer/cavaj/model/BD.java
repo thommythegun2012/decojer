@@ -54,13 +54,6 @@ public abstract class BD extends D {
 	protected D parent;
 
 	/**
-	 * Synthetic state (from synthetic attribute).
-	 */
-	@Getter
-	@Setter
-	private boolean synthetic;
-
-	/**
 	 * Add type declaration.
 	 * 
 	 * @param td
@@ -70,6 +63,14 @@ public abstract class BD extends D {
 	public void addTd(final TD td) {
 		addBd(td);
 	}
+
+	/**
+	 * Declaration must be synthetic (from synthetic declaration attribute).
+	 * 
+	 * Since version 49 the ACC_SYNTHETIC attribute is the preferred solution. We simply put this
+	 * information into the access flags.
+	 */
+	public abstract void assertSynthetic();
 
 	/**
 	 * Get compilation unit.

@@ -74,6 +74,11 @@ public final class FD extends BD {
 	}
 
 	@Override
+	public void assertSynthetic() {
+		getF().assertSynthetic();
+	}
+
+	@Override
 	public void clear() {
 		this.fieldDeclaration = null;
 		super.clear();
@@ -113,6 +118,15 @@ public final class FD extends BD {
 	 */
 	public boolean isStatic() {
 		return getF().isStatic();
+	}
+
+	/**
+	 * Is synthetic field?
+	 * 
+	 * @return {@code true} - is synthetic field
+	 */
+	public boolean isSynthetic() {
+		return getF().isSynthetic();
 	}
 
 	public void setAccessFlags(final int accessFlags) {
