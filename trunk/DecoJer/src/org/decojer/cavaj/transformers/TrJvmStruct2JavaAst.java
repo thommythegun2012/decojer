@@ -31,11 +31,14 @@ import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.DFlag;
+import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.utils.Annotations;
 import org.decojer.cavaj.utils.Types;
@@ -75,7 +78,9 @@ public final class TrJvmStruct2JavaAst {
 	private final static Logger LOGGER = Logger.getLogger(TrJvmStruct2JavaAst.class.getName());
 
 	private static void decompileField(final FD fd, final CU cu) {
-		if ((fd.check(AF.SYNTHETIC) || fd.isSynthetic())
+		final F f = fd.getF();
+
+		if ((f.check(AF.SYNTHETIC) || fd.isSynthetic())
 				&& !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
@@ -84,7 +89,7 @@ public final class TrJvmStruct2JavaAst {
 		final TD td = fd.getTd();
 
 		// enum synthetic fields
-		if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.check(AF.ENUM)
+		if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.isEnum()
 				&& !cu.check(DFlag.IGNORE_ENUM)) {
 			// could extract this field name from initializer for more robustness
 			return;
@@ -97,7 +102,7 @@ public final class TrJvmStruct2JavaAst {
 		final ASTNode typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
 
-		final boolean isFieldEnum = fd.check(AF.ENUM);
+		final boolean isFieldEnum = fd.isEnum();
 
 		// decompile BodyDeclaration, possible subtypes:
 		// FieldDeclaration, EnumConstantDeclaration
@@ -129,36 +134,36 @@ public final class TrJvmStruct2JavaAst {
 		}
 
 		// decompile modifier flags, public is default for enum and interface
-		if (fd.check(AF.PUBLIC)
+		if (f.check(AF.PUBLIC)
 				&& !isFieldEnum
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
-		if (fd.check(AF.PRIVATE)) {
+		if (f.check(AF.PRIVATE)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		}
-		if (fd.check(AF.PROTECTED)) {
+		if (f.check(AF.PROTECTED)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
 		// static is default for enum and interface
-		if (fd.check(AF.STATIC)
+		if (f.check(AF.STATIC)
 				&& !isFieldEnum
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
 		// final is default for enum and interface
-		if (fd.check(AF.FINAL)
+		if (f.check(AF.FINAL)
 				&& !isFieldEnum
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
-		if (fd.check(AF.VOLATILE)) {
+		if (f.check(AF.VOLATILE)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.VOLATILE_KEYWORD));
 		}
-		if (fd.check(AF.TRANSIENT)) {
+		if (f.check(AF.TRANSIENT)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.TRANSIENT_KEYWORD));
 		}
 
@@ -179,7 +184,9 @@ public final class TrJvmStruct2JavaAst {
 	}
 
 	private static void decompileMethod(final MD md, final CU cu, final boolean strictFp) {
-		if ((md.check(AF.SYNTHETIC) || md.isSynthetic())
+		final M m = md.getM();
+
+		if ((m.check(AF.SYNTHETIC) || md.isSynthetic())
 				&& !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
@@ -190,7 +197,7 @@ public final class TrJvmStruct2JavaAst {
 		// enum synthetic methods
 		if (("values".equals(name) && md.getParamTs().length == 0 || "valueOf".equals(name)
 				&& md.getParamTs().length == 1 && md.getParamTs()[0].is(String.class))
-				&& td.check(AF.ENUM) && !cu.check(DFlag.IGNORE_ENUM)) {
+				&& td.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
 
@@ -248,42 +255,42 @@ public final class TrJvmStruct2JavaAst {
 
 		// decompile modifier flags,
 		// public is default for interface and annotation type declarations
-		if (md.check(AF.PUBLIC)
+		if (m.check(AF.PUBLIC)
 				&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
-		if (md.check(AF.PRIVATE)) {
+		if (m.check(AF.PRIVATE)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		}
-		if (md.check(AF.PROTECTED)) {
+		if (m.check(AF.PROTECTED)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
-		if (md.check(AF.STATIC)) {
+		if (m.check(AF.STATIC)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
-		if (md.check(AF.FINAL)) {
+		if (m.check(AF.FINAL)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
-		if (md.check(AF.SYNCHRONIZED)) {
+		if (m.check(AF.SYNCHRONIZED)) {
 			methodDeclaration.modifiers()
 					.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
 		}
-		if (md.check(AF.BRIDGE)) {
+		if (m.check(AF.BRIDGE)) {
 			// TODO
 		}
-		if (md.check(AF.NATIVE)) {
+		if (m.check(AF.NATIVE)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.NATIVE_KEYWORD));
 		}
 		// abstract is default for interface and annotation type declarations
-		if (md.check(AF.ABSTRACT)
+		if (m.check(AF.ABSTRACT)
 				&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
 				&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 						.isInterface())) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 		}
-		if (md.check(AF.STRICTFP) && !strictFp) {
+		if (m.check(AF.STRICTFP) && !strictFp) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
 		}
 		/*
@@ -293,7 +300,7 @@ public final class TrJvmStruct2JavaAst {
 			decompileTypeParams(md.getTypeParams(),
 					((MethodDeclaration) methodDeclaration).typeParameters(), td);
 			decompileMethodParams(md);
-			if (!md.check(AF.ABSTRACT) && !md.check(AF.NATIVE)) {
+			if (!m.check(AF.ABSTRACT) && !m.check(AF.NATIVE)) {
 				// create method block for valid syntax, abstract and native methods have none
 				final Block block = ast.newBlock();
 				((MethodDeclaration) methodDeclaration).setBody(block);
@@ -339,7 +346,7 @@ public final class TrJvmStruct2JavaAst {
 			final Type methodParameterType = Types.decompileType(paramTs[i], td);
 			if (methodDeclaration.isConstructor()) {
 
-				if (i <= 1 && td.check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
+				if (i <= 1 && td.isEnum() && !td.getCu().check(DFlag.IGNORE_ENUM)) {
 					// enum constructors have two leading synthetic parameters,
 					// enum classes are static and can not be anonymous or inner method
 					if (i == 0 && md.getParamTs()[0].is(String.class)) {
@@ -366,7 +373,7 @@ public final class TrJvmStruct2JavaAst {
 						paramAs[i]);
 			}
 			// decompile varargs (flag set, ArrayType and last method param)
-			if (i == paramTs.length - 1 && md.check(AF.VARARGS)) {
+			if (i == paramTs.length - 1 && md.getM().check(AF.VARARGS)) {
 				if (methodParameterType instanceof ArrayType) {
 					singleVariableDeclaration.setVarargs(true);
 					singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
@@ -434,6 +441,7 @@ public final class TrJvmStruct2JavaAst {
 	 *            type declaration
 	 */
 	public static void transform(final TD td) {
+		final ClassT t = td.getT();
 		final CU cu = td.getCu();
 
 		if (cu.getCompilationUnit() == null) {
@@ -457,7 +465,7 @@ public final class TrJvmStruct2JavaAst {
 		if ("package-info".equals(td.getPName())) {
 			// this is not a valid Java type name and is used for package annotations, we must
 			// handle this here, is "interface" in JDK 5, is "abstract synthetic interface" in JDK 7
-			if (!td.check(AF.INTERFACE)) {
+			if (!t.isInterface()) {
 				LOGGER.warning("Type declaration with name 'package-info' is not an interface!");
 			}
 			if (td.getAs() != null) {
@@ -466,7 +474,7 @@ public final class TrJvmStruct2JavaAst {
 			}
 			return;
 		}
-		if ((td.check(AF.SYNTHETIC) || td.isSynthetic())
+		if ((t.check(AF.SYNTHETIC) || td.isSynthetic())
 				&& !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
@@ -478,7 +486,7 @@ public final class TrJvmStruct2JavaAst {
 			if (!(bd instanceof MD)) {
 				continue;
 			}
-			if (!((MD) bd).check(AF.STRICTFP)) {
+			if (!((MD) bd).getM().check(AF.STRICTFP)) {
 				break;
 			}
 			strictFp = true;
@@ -488,7 +496,7 @@ public final class TrJvmStruct2JavaAst {
 			AbstractTypeDeclaration typeDeclaration = null;
 
 			// annotation type declaration
-			if (td.check(AF.ANNOTATION)) {
+			if (t.check(AF.ANNOTATION)) {
 				if (td.getSuperT() == null || !td.getSuperT().isObject()) {
 					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no super class Object but has '"
 							+ td.getSuperT() + "'!");
@@ -501,7 +509,7 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
 			// enum declaration
-			if (td.check(AF.ENUM)) {
+			if (td.isEnum()) {
 				if (typeDeclaration != null) {
 					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
@@ -545,35 +553,35 @@ public final class TrJvmStruct2JavaAst {
 			}
 
 			// decompile remaining modifier flags
-			if (td.check(AF.PUBLIC)) {
+			if (t.check(AF.PUBLIC)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 			}
 			// for inner classes
-			if (td.check(AF.PRIVATE)) {
+			if (t.check(AF.PRIVATE)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 			}
 			// for inner classes
-			if (td.check(AF.PROTECTED)) {
+			if (t.check(AF.PROTECTED)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 			}
 			// for inner classes
-			if (td.check(AF.STATIC)) {
+			if (t.check(AF.STATIC)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 			}
-			if (td.check(AF.FINAL) && !(typeDeclaration instanceof EnumDeclaration)) {
+			if (t.check(AF.FINAL) && !(typeDeclaration instanceof EnumDeclaration)) {
 				// enum declaration is final by default
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 			}
-			if (td.check(AF.INTERFACE)) {
+			if (t.check(AF.INTERFACE)) {
 				if (typeDeclaration instanceof TypeDeclaration) {
 					((TypeDeclaration) typeDeclaration).setInterface(true);
 				}
-			} else if (!td.check(AF.SUPER) && !td.isDalvik()) {
+			} else if (!t.check(AF.SUPER) && !td.isDalvik()) {
 				// modern invokesuper syntax, is always set in current JVM, but not in Dalvik or
 				// inner classes info flags
 				LOGGER.warning("Modern invokesuper syntax flag not set in type '" + td + "'!");
 			}
-			if (td.check(AF.ABSTRACT)
+			if (t.check(AF.ABSTRACT)
 					&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
 					&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 							.isInterface())) {

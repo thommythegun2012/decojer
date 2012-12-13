@@ -30,7 +30,6 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
@@ -268,10 +267,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.GETFIELD:
 		case Opcodes.GETSTATIC: {
 			final T ownerT = this.du.getT(owner);
-			final F f = ownerT.getF(name, desc);
-			if (opcode == Opcodes.GETSTATIC) {
-				f.markAf(AF.STATIC);
-			}
+			final F f = opcode == Opcodes.GETSTATIC ? ownerT.getStaticF(name, desc) : ownerT.getF(
+					name, desc);
 			this.ops.add(new GET(this.ops.size(), opcode, this.line, f));
 			return;
 		}
@@ -281,10 +278,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.PUTFIELD:
 		case Opcodes.PUTSTATIC: {
 			final T ownerT = this.du.getT(owner);
-			final F f = ownerT.getF(name, desc);
-			if (opcode == Opcodes.PUTSTATIC) {
-				f.markAf(AF.STATIC);
-			}
+			final F f = opcode == Opcodes.GETSTATIC ? ownerT.getStaticF(name, desc) : ownerT.getF(
+					name, desc);
 			this.ops.add(new PUT(this.ops.size(), opcode, this.line, f));
 			return;
 		}
@@ -1289,13 +1284,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.INVOKESTATIC:
 		case Opcodes.INVOKEVIRTUAL: {
 			final T ownerT = this.du.getT(owner);
-			final M invokeM = ownerT.getM(name, desc);
 			if (opcode == Opcodes.INVOKEINTERFACE) {
-				((ClassT) ownerT).markAf(AF.INTERFACE);
+				((ClassT) ownerT).setInterface();
 			}
-			if (opcode == Opcodes.INVOKESTATIC) {
-				invokeM.markAf(AF.STATIC);
-			}
+			final M invokeM = opcode == Opcodes.INVOKESTATIC ? ownerT.getStaticM(name, desc)
+					: ownerT.getM(name, desc);
 			this.ops.add(new INVOKE(this.ops.size(), opcode, this.line, invokeM,
 					opcode == Opcodes.INVOKESPECIAL));
 			break;

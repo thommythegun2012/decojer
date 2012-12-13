@@ -504,6 +504,48 @@ public abstract class T {
 	}
 
 	/**
+	 * Get any field.<br>
+	 * Unique identifier in JVM is: "name + descriptor" ({@link F})<br>
+	 * Even though the Java language has the field name as unique identifier, obfuscated code could
+	 * utilize the same name for different descriptors (see e.g. ojdbc6.jar).
+	 * 
+	 * @param name
+	 *            field name
+	 * @param desc
+	 *            field descriptor
+	 * @return field
+	 */
+	private F getAnyF(final String name, final String desc) {
+		final String handle = name + ":" + desc;
+		F f = (F) getMember().get(handle);
+		if (f == null) {
+			f = new F(this, name, desc);
+			getMember().put(handle, f);
+		}
+		return f;
+	}
+
+	/**
+	 * Get method.<br>
+	 * Unique identifier in JVM and Java language is: "name + descriptor"
+	 * 
+	 * @param name
+	 *            method name
+	 * @param desc
+	 *            method descriptor
+	 * @return method
+	 */
+	private M getAnyM(final String name, final String desc) {
+		final String handle = name + desc;
+		M m = (M) getMember().get(handle);
+		if (m == null) {
+			m = new M(this, name, desc);
+			getMember().put(handle, m);
+		}
+		return m;
+	}
+
+	/**
 	 * Get component type of array type (null if no array type).
 	 * 
 	 * @return component type of array type (null if no array type)
@@ -556,32 +598,26 @@ public abstract class T {
 	 * @param desc
 	 *            field descriptor
 	 * @return enum field
+	 * @see #getAnyF(String, String)
 	 */
 	public F getEnumF(final String name, final String desc) {
-		final F enumF = getF(name, desc);
+		final F enumF = getAnyF(name, desc);
 		enumF.markAf(AF.ENUM);
 		return enumF;
 	}
 
 	/**
-	 * Get field.<br>
-	 * Unique identifier in JVM is: "name + descriptor" ({@link F})<br>
-	 * Even though the Java language has the field name as unique identifier, obfuscated code could
-	 * utilize the same name for different descriptors (see e.g. ojdbc6.jar).
+	 * Get field (no static or enum).
 	 * 
 	 * @param name
 	 *            field name
 	 * @param desc
 	 *            field descriptor
-	 * @return field
+	 * @return static field
+	 * @see #getAnyF(String, String)
 	 */
 	public F getF(final String name, final String desc) {
-		final String handle = name + ":" + desc;
-		F f = (F) getMember().get(handle);
-		if (f == null) {
-			f = new F(this, name, desc);
-			getMember().put(handle, f);
-		}
+		final F f = getAnyF(name, desc);
 		return f;
 	}
 
@@ -622,22 +658,18 @@ public abstract class T {
 	public abstract int getKind();
 
 	/**
-	 * Get method.<br>
-	 * Unique identifier in JVM and Java language is: "name + descriptor"
+	 * Get method (no static).
 	 * 
 	 * @param name
 	 *            method name
-	 * @param descriptor
+	 * @param desc
 	 *            method descriptor
-	 * @return method
+	 * @return static method
+	 * @see #getAnyM(String, String)
 	 */
-	public M getM(final String name, final String descriptor) {
-		final String handle = name + descriptor;
-		M m = (M) getMember().get(handle);
-		if (m == null) {
-			m = new M(this, name, descriptor);
-			getMember().put(handle, m);
-		}
+	public M getM(final String name, final String desc) {
+		final M m = getAnyM(name, desc);
+		m.markAf(AF.STATIC);
 		return m;
 	}
 
@@ -753,6 +785,38 @@ public abstract class T {
 	 */
 	public int getStackSize() {
 		return 1;
+	}
+
+	/**
+	 * Get static field.
+	 * 
+	 * @param name
+	 *            field name
+	 * @param desc
+	 *            field descriptor
+	 * @return static field
+	 * @see #getAnyF(String, String)
+	 */
+	public F getStaticF(final String name, final String desc) {
+		final F f = getAnyF(name, desc);
+		f.markAf(AF.STATIC);
+		return f;
+	}
+
+	/**
+	 * Get static method.
+	 * 
+	 * @param name
+	 *            method name
+	 * @param desc
+	 *            method descriptor
+	 * @return static method
+	 * @see #getAnyM(String, String)
+	 */
+	public M getStaticM(final String name, final String desc) {
+		final M m = getAnyM(name, desc);
+		m.markAf(AF.STATIC);
+		return m;
 	}
 
 	/**

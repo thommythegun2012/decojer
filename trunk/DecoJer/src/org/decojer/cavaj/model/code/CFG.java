@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.MD;
@@ -417,7 +416,7 @@ public final class CFG {
 				}
 				this.vss[reg] = new V[] { new V(paramT, this.md.getParamName(i), 0, this.ops.length) };
 			}
-			if (!this.md.check(AF.STATIC)) {
+			if (!this.md.isStatic()) {
 				final V[] vs = this.vss[--reg];
 				if (vs != null) {
 					LOGGER.warning("Found local variable info for method parameter '" + reg
@@ -429,7 +428,7 @@ public final class CFG {
 		}
 		// JVM...function parameters left aligned
 		int reg = 0;
-		if (!this.md.check(AF.STATIC)) {
+		if (!this.md.isStatic()) {
 			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				if (vs.length > 1) {

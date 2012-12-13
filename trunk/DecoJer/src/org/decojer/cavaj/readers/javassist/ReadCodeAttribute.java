@@ -39,7 +39,6 @@ import javassist.bytecode.Opcode;
 import javassist.bytecode.StackMap;
 import javassist.bytecode.StackMapTable;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
@@ -532,11 +531,11 @@ public class ReadCodeAttribute {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
 				final T ownerT = getT(constPool, constPool.getFieldrefClass(fieldIndex));
-				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
+				final F f = opcode == Opcode.GETSTATIC ? ownerT.getStaticF(
+						constPool.getFieldrefName(fieldIndex),
+						constPool.getFieldrefType(fieldIndex)) : ownerT.getF(
+						constPool.getFieldrefName(fieldIndex),
 						constPool.getFieldrefType(fieldIndex));
-				if (opcode == Opcode.GETSTATIC) {
-					f.markAf(AF.STATIC);
-				}
 				this.ops.add(new GET(this.ops.size(), opcode, line, f));
 				break;
 			}
@@ -589,7 +588,7 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // reserved, unused
 
 				final T ownerT = getT(constPool, constPool.getInterfaceMethodrefClass(methodIndex));
-				((ClassT) ownerT).markAf(AF.INTERFACE);
+				((ClassT) ownerT).setInterface();
 				final M m = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m, false));
@@ -602,11 +601,11 @@ public class ReadCodeAttribute {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
 				final T ownerT = getT(constPool, constPool.getMethodrefClass(cpMethodIndex));
-				final M m = ownerT.getM(constPool.getMethodrefName(cpMethodIndex),
+				final M m = opcode == Opcode.INVOKESTATIC ? ownerT.getStaticM(
+						constPool.getMethodrefName(cpMethodIndex),
+						constPool.getMethodrefType(cpMethodIndex)) : ownerT.getM(
+						constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
-				if (opcode == Opcode.INVOKESTATIC) {
-					m.markAf(AF.STATIC);
-				}
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m,
 						opcode == Opcode.INVOKESPECIAL));
 				break;
@@ -1203,11 +1202,11 @@ public class ReadCodeAttribute {
 				final int fieldIndex = codeReader.readUnsignedShort();
 
 				final T ownerT = getT(constPool, constPool.getFieldrefClass(fieldIndex));
-				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
+				final F f = opcode == Opcode.PUTSTATIC ? ownerT.getStaticF(
+						constPool.getFieldrefName(fieldIndex),
+						constPool.getFieldrefType(fieldIndex)) : ownerT.getF(
+						constPool.getFieldrefName(fieldIndex),
 						constPool.getFieldrefType(fieldIndex));
-				if (opcode == Opcode.PUTSTATIC) {
-					f.markAf(AF.STATIC);
-				}
 				this.ops.add(new PUT(this.ops.size(), opcode, line, f));
 				break;
 			}

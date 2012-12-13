@@ -101,10 +101,6 @@ public final class MD extends BD {
 		this.m = m;
 	}
 
-	public boolean check(final AF af) {
-		return this.m.check(af);
-	}
-
 	@Override
 	public void clear() {
 		this.methodDeclaration = null;
@@ -172,6 +168,15 @@ public final class MD extends BD {
 	 */
 	public boolean isInitializer() {
 		return this.m.isInitializer();
+	}
+
+	/**
+	 * Is static method?
+	 * 
+	 * @return {@code true} - is static method
+	 */
+	public boolean isStatic() {
+		return getM().isStatic();
 	}
 
 	/**

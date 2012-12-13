@@ -25,7 +25,6 @@ package org.decojer.cavaj.model.code.ops;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
 
@@ -76,7 +75,7 @@ public class INVOKE extends Op {
 
 	@Override
 	public int getInStackSize() {
-		int inStackSize = getM().check(AF.STATIC) ? 0 : getM().getT().getStackSize();
+		int inStackSize = getM().isStatic() ? 0 : getM().getT().getStackSize();
 		for (final T paramT : getM().getParamTs()) {
 			inStackSize += paramT.getStackSize();
 		}
