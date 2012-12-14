@@ -129,43 +129,6 @@ public class ClassT extends T {
 	}
 
 	/**
-	 * Type must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
-	 */
-	public void setDeprecated() {
-		this.accessFlags |= AF.DEPRECATED.getValue();
-	}
-
-	/**
-	 * Type must be an interface or class.
-	 * 
-	 * @param f
-	 *            {@code true} - is interface
-	 */
-	@Override
-	public void setInterface(final boolean f) {
-		if (f) {
-			if ((this.accessFlags & AF.INTERFACE.getValue()) != 0) {
-				return;
-			}
-			assert (this.accessFlags & AF.INTERFACE_ASSERTED.getValue()) == 0;
-
-			this.accessFlags |= AF.INTERFACE.getValue() | AF.INTERFACE_ASSERTED.getValue();
-			return;
-		}
-		assert (this.accessFlags & AF.INTERFACE.getValue()) == 0;
-
-		this.accessFlags |= AF.INTERFACE_ASSERTED.getValue();
-		return;
-	}
-
-	/**
-	 * Type must be synthetic (from synthetic declaration attribute).
-	 */
-	public void setSynthetic() {
-		this.accessFlags |= AF.SYNTHETIC.getValue();
-	}
-
-	/**
 	 * Check access flag.
 	 * 
 	 * @param af
@@ -363,6 +326,13 @@ public class ClassT extends T {
 	}
 
 	/**
+	 * Type must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
+	 */
+	public void setDeprecated() {
+		this.accessFlags |= AF.DEPRECATED.getValue();
+	}
+
+	/**
 	 * Set enclosing method (since JVM 5).
 	 * 
 	 * @param m
@@ -448,6 +418,29 @@ public class ClassT extends T {
 	}
 
 	/**
+	 * Type must be an interface or class.
+	 * 
+	 * @param f
+	 *            {@code true} - is interface
+	 */
+	@Override
+	public void setInterface(final boolean f) {
+		if (f) {
+			if ((this.accessFlags & AF.INTERFACE.getValue()) != 0) {
+				return;
+			}
+			assert (this.accessFlags & AF.INTERFACE_ASSERTED.getValue()) == 0;
+
+			this.accessFlags |= AF.INTERFACE.getValue() | AF.INTERFACE_ASSERTED.getValue();
+			return;
+		}
+		assert (this.accessFlags & AF.INTERFACE.getValue()) == 0;
+
+		this.accessFlags |= AF.INTERFACE_ASSERTED.getValue();
+		return;
+	}
+
+	/**
 	 * Set super type.
 	 * 
 	 * @param superT
@@ -460,6 +453,13 @@ public class ClassT extends T {
 		}
 		superT.setInterface(false);
 		this.superT = superT;
+	}
+
+	/**
+	 * Type must be synthetic (from Synthetic attribute).
+	 */
+	public void setSynthetic() {
+		this.accessFlags |= AF.SYNTHETIC.getValue();
 	}
 
 }
