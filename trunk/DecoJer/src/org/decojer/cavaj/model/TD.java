@@ -332,17 +332,13 @@ public final class TD extends BD {
 	 * @return interface types or {@code null}
 	 */
 	private T[] parseInterfaceTs(final String s, final Cursor c) {
-		if (c.pos >= s.length() || s.charAt(c.pos) != '^') {
+		if (c.pos >= s.length() || s.charAt(c.pos) != 'L') {
 			return null;
 		}
 		final ArrayList<T> ts = new ArrayList<T>();
-		while (true) {
-			final T interfaceT = getT().getDu().parseT(s, c, getT());
-			if (interfaceT != null) {
-				break;
-			}
-			ts.add(interfaceT);
-		}
+		do {
+			ts.add(getT().getDu().parseT(s, c, getT()));
+		} while (c.pos < s.length() && s.charAt(c.pos) == 'L');
 		return ts.toArray(new T[ts.size()]);
 	}
 

@@ -181,10 +181,7 @@ public class M {
 	 * @return {@code true} - is static method
 	 */
 	public boolean isStatic() {
-		// if we call this method, this should always be asserted
-		assert (this.accessFlags & AF.STATIC_ASSERTED.getValue()) != 0;
-
-		return (this.accessFlags & AF.STATIC.getValue()) != 0;
+		return check(AF.STATIC);
 	}
 
 	/**
