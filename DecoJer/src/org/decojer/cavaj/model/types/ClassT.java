@@ -267,10 +267,7 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isInterface() {
-		// if we call this method, this should always be asserted
-		assert (this.accessFlags & AF.INTERFACE_ASSERTED.getValue()) != 0;
-
-		return (this.accessFlags & AF.INTERFACE.getValue()) != 0;
+		return check(AF.INTERFACE);
 	}
 
 	@Override
