@@ -41,13 +41,6 @@ public abstract class BD extends D {
 	private A[] as;
 
 	/**
-	 * Deprecated State (from Deprecated Attribute).
-	 */
-	@Getter
-	@Setter
-	private boolean deprecated;
-
-	/**
 	 * Parent declaration.
 	 */
 	@Getter
@@ -65,10 +58,27 @@ public abstract class BD extends D {
 	}
 
 	/**
-	 * Declaration must be synthetic (from synthetic declaration attribute).
+	 * Declaration must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
+	 * 
+	 * The Deprecated attribute is an optional fixed-length attribute in the attributes table of a
+	 * ClassFile, field_info or method_info structure. A class, interface, method, or field may be
+	 * marked using a Deprecated attribute to indicate that the class, interface, method, or field
+	 * has been superseded.
+	 * 
+	 * Since version 49 the Deprecated Annotation is the preferred solution and not the variant with
+	 * Javadoc @deprecated. We simply put this information into the access flags as internal flag.
+	 */
+	public abstract void assertDeprecated();
+
+	/**
+	 * Declaration must be synthetic (from Synthetic attribute).
+	 * 
+	 * The Synthetic attribute is a fixed-length attribute in the attributes table of a ClassFile,
+	 * field_info or method_info structure. A class member that does not appear in the source code
+	 * must be marked using a Synthetic attribute, or else it must have its ACC_SYNTHETIC flag set.
 	 * 
 	 * Since version 49 the ACC_SYNTHETIC attribute is the preferred solution. We simply put this
-	 * information into the access flags.
+	 * information into the access flags in both cases.
 	 */
 	public abstract void assertSynthetic();
 
@@ -86,5 +96,19 @@ public abstract class BD extends D {
 		}
 		return null;
 	}
+
+	/**
+	 * Is deprecated declaration, marked via Javadoc @deprecated?
+	 * 
+	 * @return {@code true} - is deprecated declaration
+	 */
+	public abstract boolean isDeprecated();
+
+	/**
+	 * Is synthetic declaration?
+	 * 
+	 * @return {@code true} - is synthetic declaration
+	 */
+	public abstract boolean isSynthetic();
 
 }

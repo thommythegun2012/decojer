@@ -102,6 +102,11 @@ public final class MD extends BD {
 	}
 
 	@Override
+	public void assertDeprecated() {
+		getM().assertDeprecated();
+	}
+
+	@Override
 	public void assertSynthetic() {
 		getM().assertSynthetic();
 	}
@@ -116,12 +121,12 @@ public final class MD extends BD {
 	}
 
 	public String getDescriptor() {
-		return this.m.getDescriptor();
+		return getM().getDescriptor();
 	}
 
 	@Override
 	public String getName() {
-		return this.m.getName();
+		return getM().getName();
 	}
 
 	/**
@@ -139,11 +144,11 @@ public final class MD extends BD {
 	}
 
 	public T[] getParamTs() {
-		return this.m.getParamTs();
+		return getM().getParamTs();
 	}
 
 	public T getReturnT() {
-		return this.m.getReturnT();
+		return getM().getReturnT();
 	}
 
 	/**
@@ -152,7 +157,7 @@ public final class MD extends BD {
 	 * @return owner type declaration
 	 */
 	public TD getTd() {
-		return ((ClassT) this.m.getT()).getTd();
+		return ((ClassT) getM().getT()).getTd();
 	}
 
 	/**
@@ -162,7 +167,12 @@ public final class MD extends BD {
 	 * @see M#isConstructor()
 	 */
 	public boolean isConstructor() {
-		return this.m.isConstructor();
+		return getM().isConstructor();
+	}
+
+	@Override
+	public boolean isDeprecated() {
+		return getM().isDeprecated();
 	}
 
 	/**
@@ -172,7 +182,7 @@ public final class MD extends BD {
 	 * @see M#isInitializer()
 	 */
 	public boolean isInitializer() {
-		return this.m.isInitializer();
+		return getM().isInitializer();
 	}
 
 	/**
@@ -184,11 +194,7 @@ public final class MD extends BD {
 		return getM().isStatic();
 	}
 
-	/**
-	 * Is synthetic method?
-	 * 
-	 * @return {@code true} - is synthetic method
-	 */
+	@Override
 	public boolean isSynthetic() {
 		return getM().isSynthetic();
 	}
@@ -209,13 +215,13 @@ public final class MD extends BD {
 		final ArrayList<T> ts = new ArrayList<T>();
 		do {
 			++c.pos;
-			ts.add(getTd().getDu().parseT(s, c, this.m));
+			ts.add(getTd().getDu().parseT(s, c, getM()));
 		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
 		return ts.toArray(new T[ts.size()]);
 	}
 
 	public void setAccessFlags(final int accessFlags) {
-		this.m.setAccessFlags(accessFlags);
+		getM().setAccessFlags(accessFlags);
 	}
 
 	/**
@@ -240,10 +246,10 @@ public final class MD extends BD {
 		this.signature = signature;
 
 		final Cursor c = new Cursor();
-		this.typeParams = getTd().getDu().parseTypeParams(signature, c, this.m);
+		this.typeParams = getTd().getDu().parseTypeParams(signature, c, getM());
 
 		final T[] paramTs = getParamTs();
-		final T[] signParamTs = getTd().getDu().parseMethodParamTs(signature, c, this.m);
+		final T[] signParamTs = getTd().getDu().parseMethodParamTs(signature, c, getM());
 		if (signParamTs.length != 0) {
 			if (paramTs.length != signParamTs.length) {
 				// can happen with Sun JVM for constructor:
@@ -268,12 +274,12 @@ public final class MD extends BD {
 				}
 			}
 		}
-		final T returnT = getTd().getDu().parseT(signature, c, this.m);
+		final T returnT = getTd().getDu().parseT(signature, c, getM());
 		if (!returnT.eraseTo(getReturnT())) {
 			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
 					+ "' for method return: " + this);
 		} else {
-			this.m.setReturnT(returnT);
+			getM().setReturnT(returnT);
 		}
 		final T[] signThrowTs = parseThrowsTs(signature, c);
 		if (signThrowTs != null) {
@@ -296,7 +302,7 @@ public final class MD extends BD {
 
 	@Override
 	public String toString() {
-		return this.m.toString();
+		return getM().toString();
 	}
 
 }

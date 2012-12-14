@@ -61,7 +61,7 @@ public class ClassT extends T {
 	 * Access flags.
 	 */
 	@Setter
-	private int accessFlags = AF.UNRESOLVED.getValue();
+	private int accessFlags;
 
 	@Getter
 	private final DU du;
@@ -96,8 +96,6 @@ public class ClassT extends T {
 	@Setter
 	private T[] typeParams;
 
-	public static final T[] INTERFACES_NONE_UNRESOLVED = new T[0];
-
 	/**
 	 * Constructor.
 	 * 
@@ -131,23 +129,33 @@ public class ClassT extends T {
 	}
 
 	/**
-	 * Type must be an interface.
+	 * Type must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
+	 */
+	public void assertDeprecated() {
+		this.accessFlags |= AF.DEPRECATED.getValue();
+	}
+
+	/**
+	 * Type must be an interface or class.
 	 * 
-	 * @param isInterface
+	 * @param f
 	 *            {@code true} - is interface
 	 */
 	@Override
-	public void assertInterface(final boolean isInterface) {
-		if (isInterface) {
-			if (isInterface()) {
+	public void assertInterface(final boolean f) {
+		if (f) {
+			if ((this.accessFlags & AF.INTERFACE.getValue()) != 0) {
 				return;
 			}
-			assert !isResolved();
+			assert (this.accessFlags & AF.INTERFACE_ASSERTED.getValue()) == 0;
 
-			this.accessFlags |= AF.INTERFACE.getValue();
+			this.accessFlags |= AF.INTERFACE.getValue() | AF.INTERFACE_ASSERTED.getValue();
 			return;
 		}
-		assert !isInterface();
+		assert (this.accessFlags & AF.INTERFACE.getValue()) == 0;
+
+		this.accessFlags |= AF.INTERFACE_ASSERTED.getValue();
+		return;
 	}
 
 	/**
@@ -168,11 +176,9 @@ public class ClassT extends T {
 		if ((this.accessFlags & af.getValue()) != 0) {
 			return true;
 		}
-		// TODO hmmm...should use extra field or bitmask?
-		if (isResolved()) {
+		if (isUnresolvable()) {
 			return false;
 		}
-		resolve();
 		return (this.accessFlags & af.getValue()) != 0;
 	}
 
@@ -189,8 +195,8 @@ public class ClassT extends T {
 	}
 
 	private Object getEnclosing() {
-		if (this.enclosing == null) {
-			resolve();
+		if (this.enclosing == null && isUnresolvable()) {
+			return null;
 		}
 		return this.enclosing == NONE ? null : this.enclosing;
 	}
@@ -213,8 +219,8 @@ public class ClassT extends T {
 
 	@Override
 	public T[] getInterfaceTs() {
-		if (this.interfaceTs == null) {
-			resolve();
+		if (this.interfaceTs == null && isUnresolvable()) {
+			return INTERFACES_NONE;
 		}
 		return this.interfaceTs;
 	}
@@ -226,8 +232,8 @@ public class ClassT extends T {
 
 	@Override
 	public T getSuperT() {
-		if (this.superT == null) {
-			resolve();
+		if (this.superT == null && isUnresolvable()) {
+			return null;
 		}
 		// can be null, e.g. for Object or Interfaces
 		return this.superT == NONE ? null : this.superT;
@@ -235,10 +241,19 @@ public class ClassT extends T {
 
 	@Override
 	public T[] getTypeParams() {
-		if (this.typeParams == null) {
-			resolve();
+		if (this.typeParams == null && isUnresolvable()) {
+			return TYPE_PARAMS_NONE;
 		}
 		return this.typeParams;
+	}
+
+	/**
+	 * Is deprecated type, marked via Javadoc @deprecated?
+	 * 
+	 * @return {@code true} - is deprecated type
+	 */
+	public boolean isDeprecated() {
+		return check(AF.DEPRECATED);
 	}
 
 	/**
@@ -252,7 +267,10 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isInterface() {
-		return check(AF.INTERFACE);
+		// if we call this method, this should always be asserted
+		assert (this.accessFlags & AF.INTERFACE_ASSERTED.getValue()) != 0;
+
+		return (this.accessFlags & AF.INTERFACE.getValue()) != 0;
 	}
 
 	@Override
@@ -270,12 +288,6 @@ public class ClassT extends T {
 		return true;
 	}
 
-	@Override
-	public boolean isResolved() {
-		// don't use check(), loop
-		return (this.accessFlags & AF.UNRESOLVED.getValue()) == 0;
-	}
-
 	/**
 	 * Is synthetic type?
 	 * 
@@ -287,62 +299,58 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isUnresolvable() {
-		// don't use check(), loop
-		return (this.accessFlags & AF.UNRESOLVABLE.getValue()) != 0;
-	}
-
-	private boolean resolve() {
-		if (isUnresolvable()) {
-			return false;
+		if ((this.accessFlags & AF.UNRESOLVABLE.getValue()) != 0) {
+			return true;
 		}
 		// try simple class loading, may be we are lucky ;)
 		// TODO later ask DecoJer-online and local type cache with context info
+		final Class<?> klass;
 		try {
-			final Class<?> klass = getClass().getClassLoader().loadClass(getName());
-			this.accessFlags = klass.getModifiers();
-
-			final Class<?> superclass = klass.getSuperclass();
-			if (superclass != null) {
-				this.superT = getDu().getT(superclass);
-			}
-			final Class<?>[] interfaces = klass.getInterfaces();
-			if (interfaces.length > 0) {
-				final T[] interfaceTs = new T[interfaces.length];
-				for (int i = interfaces.length; i-- > 0;) {
-					interfaceTs[i] = getDu().getT(interfaces[i]);
-				}
-				this.interfaceTs = interfaceTs;
-			}
-			final TypeVariable<?>[] typeParameters = klass.getTypeParameters();
-			if (typeParameters.length > 0) {
-				final T[] typeParams = new T[typeParameters.length];
-				for (int i = typeParameters.length; i-- > 0;) {
-					typeParams[i] = getDu().getT(typeParameters[i].getName());
-				}
-				this.typeParams = typeParams;
-			}
-			final Method enclosingMethod = klass.getEnclosingMethod();
-			if (enclosingMethod != null) {
-				final Class<?> declaringClass = enclosingMethod.getDeclaringClass();
-				final T methodT = this.du.getT(declaringClass);
-				// TODO difficult...have only generic types here, not original descriptor
-				this.enclosing = methodT.getM(enclosingMethod.getName(), "<TODO>");
-			}
-			final Class<?> enclosingClass = klass.getEnclosingClass();
-			if (enclosingClass != null) {
-				this.enclosing = this.du.getT(enclosingClass);
-			}
-			return true;
+			klass = getClass().getClassLoader().loadClass(getName());
 		} catch (final ClassNotFoundException e) {
 			LOGGER.warning("Couldn't load type '" + getName() + "'!");
 			this.accessFlags |= AF.UNRESOLVABLE.getValue();
-			return false;
-		} finally {
-			resolved();
+			return true;
 		}
+		this.accessFlags = klass.getModifiers();
+
+		final Class<?> superclass = klass.getSuperclass();
+		if (superclass != null) {
+			this.superT = getDu().getT(superclass);
+		}
+		final Class<?>[] interfaces = klass.getInterfaces();
+		if (interfaces.length > 0) {
+			final T[] interfaceTs = new T[interfaces.length];
+			for (int i = interfaces.length; i-- > 0;) {
+				interfaceTs[i] = getDu().getT(interfaces[i]);
+			}
+			this.interfaceTs = interfaceTs;
+		}
+		final TypeVariable<?>[] typeParameters = klass.getTypeParameters();
+		if (typeParameters.length > 0) {
+			final T[] typeParams = new T[typeParameters.length];
+			for (int i = typeParameters.length; i-- > 0;) {
+				typeParams[i] = getDu().getT(typeParameters[i].getName());
+			}
+			this.typeParams = typeParams;
+		}
+		final Method enclosingMethod = klass.getEnclosingMethod();
+		if (enclosingMethod != null) {
+			final Class<?> declaringClass = enclosingMethod.getDeclaringClass();
+			final T methodT = this.du.getT(declaringClass);
+			// TODO difficult...have only generic types here, not original descriptor
+			this.enclosing = methodT.getM(enclosingMethod.getName(), "<TODO>");
+		}
+		final Class<?> enclosingClass = klass.getEnclosingClass();
+		if (enclosingClass != null) {
+			this.enclosing = this.du.getT(enclosingClass);
+		}
+		resolved();
+		return false;
 	}
 
 	public void resolved() {
+		this.accessFlags |= AF.INTERFACE_ASSERTED.getValue();
 		if (this.superT == null) {
 			this.superT = NONE; // Object/Interfaces have no super!
 		}

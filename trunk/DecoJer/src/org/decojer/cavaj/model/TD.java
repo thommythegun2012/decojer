@@ -96,6 +96,11 @@ public final class TD extends BD {
 		this.t = t;
 	}
 
+	@Override
+	public void assertDeprecated() {
+		getT().assertDeprecated();
+	}
+
 	/**
 	 * This should be scala code.
 	 */
@@ -132,7 +137,7 @@ public final class TD extends BD {
 	 * @return field declaration
 	 */
 	public FD createFd(final String name, final String descriptor) {
-		return this.t.getF(name, descriptor).createFd();
+		return getT().getF(name, descriptor).createFd();
 	}
 
 	/**
@@ -145,7 +150,7 @@ public final class TD extends BD {
 	 * @return method declaration
 	 */
 	public MD createMd(final String name, final String descriptor) {
-		return this.t.getM(name, descriptor).createMd();
+		return getT().getM(name, descriptor).createMd();
 	}
 
 	public void decompile() {
@@ -183,7 +188,7 @@ public final class TD extends BD {
 	 * @return decompilation unit
 	 */
 	public DU getDu() {
-		return this.t.getDu();
+		return getT().getDu();
 	}
 
 	/**
@@ -195,7 +200,7 @@ public final class TD extends BD {
 	 * @see Class#getEnclosingClass()
 	 */
 	public TD getEnclosingTd() {
-		final T enclosingT = this.t.getEnclosingT();
+		final T enclosingT = getT().getEnclosingT();
 		return enclosingT == null ? null : enclosingT.getTd();
 	}
 
@@ -206,7 +211,7 @@ public final class TD extends BD {
 	 * @see T#getInterfaceTs()
 	 */
 	public T[] getInterfaceTs() {
-		return this.t.getInterfaceTs();
+		return getT().getInterfaceTs();
 	}
 
 	/**
@@ -217,7 +222,7 @@ public final class TD extends BD {
 	 */
 	@Override
 	public String getName() {
-		return this.t.getName();
+		return getT().getName();
 	}
 
 	/**
@@ -227,7 +232,7 @@ public final class TD extends BD {
 	 * @see T#getPackageName()
 	 */
 	public String getPackageName() {
-		return this.t.getPackageName();
+		return getT().getPackageName();
 	}
 
 	/**
@@ -237,7 +242,7 @@ public final class TD extends BD {
 	 * @see T#getPName()
 	 */
 	public String getPName() {
-		return this.t.getPName();
+		return getT().getPName();
 	}
 
 	/**
@@ -247,7 +252,7 @@ public final class TD extends BD {
 	 * @see T#getSimpleName()
 	 */
 	public String getSimpleName() {
-		return this.t.getSimpleName();
+		return getT().getSimpleName();
 	}
 
 	/**
@@ -257,7 +262,7 @@ public final class TD extends BD {
 	 * @see T#getSuperT()
 	 */
 	public T getSuperT() {
-		return this.t.getSuperT();
+		return getT().getSuperT();
 	}
 
 	/**
@@ -267,7 +272,7 @@ public final class TD extends BD {
 	 * @see T#getTypeParams()
 	 */
 	public T[] getTypeParams() {
-		return this.t.getTypeParams();
+		return getT().getTypeParams();
 	}
 
 	/**
@@ -277,7 +282,7 @@ public final class TD extends BD {
 	 * @see T#isAnonymous()
 	 */
 	public boolean isAnonymous() {
-		return this.t.isAnonymous();
+		return getT().isAnonymous();
 	}
 
 	/**
@@ -287,6 +292,11 @@ public final class TD extends BD {
 	 */
 	public boolean isDalvik() {
 		return this.version == 0;
+	}
+
+	@Override
+	public boolean isDeprecated() {
+		return getT().isDeprecated();
 	}
 
 	/**
@@ -307,11 +317,7 @@ public final class TD extends BD {
 		return getT().isInterface();
 	}
 
-	/**
-	 * Is synthetic type?
-	 * 
-	 * @return {@code true} - is synthetic type
-	 */
+	@Override
 	public boolean isSynthetic() {
 		return getT().isSynthetic();
 	}
@@ -331,7 +337,7 @@ public final class TD extends BD {
 		}
 		final ArrayList<T> ts = new ArrayList<T>();
 		while (true) {
-			final T interfaceT = this.t.getDu().parseT(s, c, this.t);
+			final T interfaceT = getT().getDu().parseT(s, c, getT());
 			if (interfaceT != null) {
 				break;
 			}
@@ -345,7 +351,7 @@ public final class TD extends BD {
 	 */
 	public void resolve() {
 		// has other name in ClassT
-		this.t.resolved();
+		getT().resolved();
 	}
 
 	/**
@@ -355,7 +361,7 @@ public final class TD extends BD {
 	 *            access flags
 	 */
 	public void setAccessFlags(final int accessFlags) {
-		this.t.setAccessFlags(accessFlags);
+		getT().setAccessFlags(accessFlags);
 	}
 
 	/**
@@ -365,7 +371,7 @@ public final class TD extends BD {
 	 *            interface types
 	 */
 	public void setInterfaceTs(final T[] interfaceTs) {
-		this.t.setInterfaceTs(interfaceTs);
+		getT().setInterfaceTs(interfaceTs);
 	}
 
 	/**
@@ -379,14 +385,14 @@ public final class TD extends BD {
 			return;
 		}
 		final Cursor c = new Cursor();
-		this.t.setTypeParams(getDu().parseTypeParams(signature, c, this.t));
+		getT().setTypeParams(getDu().parseTypeParams(signature, c, getT()));
 
-		final T superT = getDu().parseT(signature, c, this.t);
+		final T superT = getDu().parseT(signature, c, getT());
 		if (!superT.eraseTo(getSuperT())) {
 			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getSuperT()
 					+ "' for type super: " + this);
 		} else {
-			this.t.setSuperT(superT);
+			getT().setSuperT(superT);
 		}
 		final T[] signInterfaceTs = parseInterfaceTs(signature, c);
 		if (signInterfaceTs != null) {
@@ -414,12 +420,12 @@ public final class TD extends BD {
 	 *            super type
 	 */
 	public void setSuperT(final T superT) {
-		this.t.setSuperT(superT);
+		getT().setSuperT(superT);
 	}
 
 	@Override
 	public String toString() {
-		return this.t.toString();
+		return getT().toString();
 	}
 
 }

@@ -42,7 +42,7 @@ public class M {
 	public static final String INITIALIZER_NAME = "<clinit>";
 
 	@Setter
-	private int accessFlags = AF.UNRESOLVED.getValue();
+	private int accessFlags;
 
 	@Getter
 	private final String descriptor;
@@ -89,22 +89,32 @@ public class M {
 	}
 
 	/**
+	 * Method must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
+	 */
+	public void assertDeprecated() {
+		this.accessFlags |= AF.DEPRECATED.getValue();
+	}
+
+	/**
 	 * Method must be static or dynamic.
 	 * 
-	 * @param isStatic
+	 * @param f
 	 *            {@code true} - is static
 	 */
-	public void assertStatic(final boolean isStatic) {
-		if (isStatic) {
-			if (isStatic()) {
+	public void assertStatic(final boolean f) {
+		if (f) {
+			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
 				return;
 			}
-			assert !isResolved();
+			assert (this.accessFlags & AF.STATIC_ASSERTED.getValue()) == 0;
 
-			this.accessFlags |= AF.STATIC.getValue();
+			this.accessFlags |= AF.STATIC.getValue() | AF.STATIC_ASSERTED.getValue();
 			return;
 		}
-		assert !isStatic();
+		assert (this.accessFlags & AF.STATIC.getValue()) == 0;
+
+		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
+		return;
 	}
 
 	/**
@@ -148,6 +158,15 @@ public class M {
 	}
 
 	/**
+	 * Is deprecated method, marked via Javadoc @deprecated?
+	 * 
+	 * @return {@code true} - is deprecated method
+	 */
+	public boolean isDeprecated() {
+		return check(AF.DEPRECATED);
+	}
+
+	/**
 	 * Is initializer?
 	 * 
 	 * @return {@code true} - is constructor
@@ -157,21 +176,15 @@ public class M {
 	}
 
 	/**
-	 * Is resolved?
-	 * 
-	 * @return {@code true} - is resolved
-	 */
-	public boolean isResolved() {
-		return !check(AF.UNRESOLVED);
-	}
-
-	/**
 	 * Is static method?
 	 * 
 	 * @return {@code true} - is static method
 	 */
 	public boolean isStatic() {
-		return check(AF.STATIC);
+		// if we call this method, this should always be asserted
+		assert (this.accessFlags & AF.STATIC_ASSERTED.getValue()) != 0;
+
+		return (this.accessFlags & AF.STATIC.getValue()) != 0;
 	}
 
 	/**
