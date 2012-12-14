@@ -92,14 +92,14 @@ public class F {
 	/**
 	 * Field must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
 	 */
-	public void assertDeprecated() {
+	public void setDeprecated() {
 		this.accessFlags |= AF.DEPRECATED.getValue();
 	}
 
 	/**
 	 * Field must be an enum.
 	 */
-	public void assertEnum() {
+	public void setEnum() {
 		this.accessFlags |= AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
 				| AF.ENUM.getValue();
 	}
@@ -110,7 +110,7 @@ public class F {
 	 * @param f
 	 *            {@code true} - is static
 	 */
-	public void assertStatic(final boolean f) {
+	public void setStatic(final boolean f) {
 		if (f) {
 			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
 				return;
@@ -129,7 +129,7 @@ public class F {
 	/**
 	 * Field must be synthetic (from Synthetic attribute).
 	 */
-	public void assertSynthetic() {
+	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
 	}
 

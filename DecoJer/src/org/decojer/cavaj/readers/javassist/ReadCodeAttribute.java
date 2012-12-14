@@ -533,7 +533,7 @@ public class ReadCodeAttribute {
 				final T ownerT = getT(constPool, constPool.getFieldrefClass(fieldIndex));
 				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
 						constPool.getFieldrefType(fieldIndex));
-				f.assertStatic(opcode == Opcode.GETSTATIC);
+				f.setStatic(opcode == Opcode.GETSTATIC);
 				this.ops.add(new GET(this.ops.size(), opcode, line, f));
 				break;
 			}
@@ -586,10 +586,10 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // reserved, unused
 
 				final T ownerT = getT(constPool, constPool.getInterfaceMethodrefClass(methodIndex));
-				((ClassT) ownerT).assertInterface(true);
+				((ClassT) ownerT).setInterface(true);
 				final M m = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
-				m.assertStatic(false);
+				m.setStatic(false);
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m, false));
 				break;
 			}
@@ -600,10 +600,10 @@ public class ReadCodeAttribute {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
 				final T ownerT = getT(constPool, constPool.getMethodrefClass(cpMethodIndex));
-				((ClassT) ownerT).assertInterface(false);
+				((ClassT) ownerT).setInterface(false);
 				final M m = ownerT.getM(constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
-				m.assertStatic(opcode == Opcode.INVOKESTATIC);
+				m.setStatic(opcode == Opcode.INVOKESTATIC);
 				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m,
 						opcode == Opcode.INVOKESPECIAL));
 				break;
@@ -1202,7 +1202,7 @@ public class ReadCodeAttribute {
 				final T ownerT = getT(constPool, constPool.getFieldrefClass(fieldIndex));
 				final F f = ownerT.getF(constPool.getFieldrefName(fieldIndex),
 						constPool.getFieldrefType(fieldIndex));
-				f.assertStatic(opcode == Opcode.PUTSTATIC);
+				f.setStatic(opcode == Opcode.PUTSTATIC);
 				this.ops.add(new PUT(this.ops.size(), opcode, line, f));
 				break;
 			}

@@ -416,11 +416,11 @@ public abstract class T {
 	/**
 	 * Type must be an interface or a class.
 	 * 
-	 * @param isInterface
+	 * @param f
 	 *            {@code true} - is interface
 	 */
-	public void assertInterface(final boolean isInterface) {
-		assert !isInterface;
+	public void setInterface(final boolean f) {
+		assert !f;
 	}
 
 	/**
@@ -569,7 +569,7 @@ public abstract class T {
 	 */
 	public F getEnumF(final String name, final String desc) {
 		final F f = getF(name, desc);
-		f.assertEnum();
+		f.setEnum();
 		return f;
 	}
 

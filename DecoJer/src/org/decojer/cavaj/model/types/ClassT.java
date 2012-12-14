@@ -131,7 +131,7 @@ public class ClassT extends T {
 	/**
 	 * Type must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
 	 */
-	public void assertDeprecated() {
+	public void setDeprecated() {
 		this.accessFlags |= AF.DEPRECATED.getValue();
 	}
 
@@ -142,7 +142,7 @@ public class ClassT extends T {
 	 *            {@code true} - is interface
 	 */
 	@Override
-	public void assertInterface(final boolean f) {
+	public void setInterface(final boolean f) {
 		if (f) {
 			if ((this.accessFlags & AF.INTERFACE.getValue()) != 0) {
 				return;
@@ -161,7 +161,7 @@ public class ClassT extends T {
 	/**
 	 * Type must be synthetic (from synthetic declaration attribute).
 	 */
-	public void assertSynthetic() {
+	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
 	}
 
@@ -454,7 +454,12 @@ public class ClassT extends T {
 	 *            super type
 	 */
 	public void setSuperT(final T superT) {
-		this.superT = superT != null ? superT : NONE;
+		if (superT == null) {
+			this.superT = NONE;
+			return;
+		}
+		superT.setInterface(false);
+		this.superT = superT;
 	}
 
 }

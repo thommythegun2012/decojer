@@ -819,7 +819,7 @@ public class ReadCodeItem {
 							fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
-					f.assertStatic(false);
+					f.setStatic(false);
 
 					assert t.isAssignableFrom(f.getValueT());
 
@@ -878,7 +878,7 @@ public class ReadCodeItem {
 							fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
-					f.assertStatic(true);
+					f.setStatic(true);
 
 					assert t.isAssignableFrom(f.getValueT());
 
@@ -1080,10 +1080,10 @@ public class ReadCodeItem {
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
-				ownerT.assertInterface(instruction.opcode == Opcode.INVOKE_INTERFACE);
+				ownerT.setInterface(instruction.opcode == Opcode.INVOKE_INTERFACE);
 				final M m = ownerT.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
 						.getPrototype().getPrototypeString());
-				m.assertStatic(instruction.opcode == Opcode.INVOKE_STATIC);
+				m.setStatic(instruction.opcode == Opcode.INVOKE_STATIC);
 				if (instruction.opcode != Opcode.INVOKE_STATIC) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, regs[reg++]));
 				}
@@ -1116,10 +1116,10 @@ public class ReadCodeItem {
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
 				((ClassT) ownerT)
-						.assertInterface(instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE);
+						.setInterface(instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE);
 				final M m = ownerT.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
 						.getPrototype().getPrototypeString());
-				m.assertStatic(instruction.opcode == Opcode.INVOKE_STATIC_RANGE);
+				m.setStatic(instruction.opcode == Opcode.INVOKE_STATIC_RANGE);
 				if (instruction.opcode != Opcode.INVOKE_STATIC_RANGE) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, reg++));
 				}
@@ -1736,7 +1736,7 @@ public class ReadCodeItem {
 							fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
-					f.assertStatic(false);
+					f.setStatic(false);
 
 					assert f.getValueT().isAssignableFrom(t);
 
@@ -1796,7 +1796,7 @@ public class ReadCodeItem {
 							fieldIdItem.getContainingClass().getTypeDescriptor());
 					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
 							fieldIdItem.getFieldType().getTypeDescriptor());
-					f.assertStatic(true);
+					f.setStatic(true);
 
 					assert f.getValueT().isAssignableFrom(t);
 
