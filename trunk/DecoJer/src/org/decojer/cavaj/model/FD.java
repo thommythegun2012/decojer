@@ -74,13 +74,13 @@ public final class FD extends BD {
 	}
 
 	@Override
-	public void assertDeprecated() {
-		getF().assertDeprecated();
+	public void setDeprecated() {
+		getF().setDeprecated();
 	}
 
 	@Override
-	public void assertSynthetic() {
-		getF().assertSynthetic();
+	public void setSynthetic() {
+		getF().setSynthetic();
 	}
 
 	@Override

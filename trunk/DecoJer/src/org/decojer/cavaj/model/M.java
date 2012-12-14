@@ -91,7 +91,7 @@ public class M {
 	/**
 	 * Method must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
 	 */
-	public void assertDeprecated() {
+	public void setDeprecated() {
 		this.accessFlags |= AF.DEPRECATED.getValue();
 	}
 
@@ -101,7 +101,7 @@ public class M {
 	 * @param f
 	 *            {@code true} - is static
 	 */
-	public void assertStatic(final boolean f) {
+	public void setStatic(final boolean f) {
 		if (f) {
 			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
 				return;
@@ -120,7 +120,7 @@ public class M {
 	/**
 	 * Method must be synthetic (from synthetic declaration attribute).
 	 */
-	public void assertSynthetic() {
+	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
 	}
 

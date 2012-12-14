@@ -68,7 +68,7 @@ public abstract class BD extends D {
 	 * Since version 49 the Deprecated Annotation is the preferred solution and not the variant with
 	 * Javadoc @deprecated. We simply put this information into the access flags as internal flag.
 	 */
-	public abstract void assertDeprecated();
+	public abstract void setDeprecated();
 
 	/**
 	 * Declaration must be synthetic (from Synthetic attribute).
@@ -80,7 +80,7 @@ public abstract class BD extends D {
 	 * Since version 49 the ACC_SYNTHETIC attribute is the preferred solution. We simply put this
 	 * information into the access flags in both cases.
 	 */
-	public abstract void assertSynthetic();
+	public abstract void setSynthetic();
 
 	/**
 	 * Get compilation unit.

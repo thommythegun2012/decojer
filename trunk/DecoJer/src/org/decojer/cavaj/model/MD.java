@@ -102,13 +102,13 @@ public final class MD extends BD {
 	}
 
 	@Override
-	public void assertDeprecated() {
-		getM().assertDeprecated();
+	public void setDeprecated() {
+		getM().setDeprecated();
 	}
 
 	@Override
-	public void assertSynthetic() {
-		getM().assertSynthetic();
+	public void setSynthetic() {
+		getM().setSynthetic();
 	}
 
 	@Override

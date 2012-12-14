@@ -97,14 +97,14 @@ public final class TD extends BD {
 	}
 
 	@Override
-	public void assertDeprecated() {
-		getT().assertDeprecated();
+	public void setDeprecated() {
+		getT().setDeprecated();
 	}
 
 	/**
 	 * This should be scala code.
 	 */
-	public void assertScala() {
+	public void setScala() {
 		if (getSourceFileName() != null) {
 			if (!getSourceFileName().endsWith(".scala")) {
 				LOGGER.warning("This should be a Scala source code!");
@@ -114,8 +114,8 @@ public final class TD extends BD {
 	}
 
 	@Override
-	public void assertSynthetic() {
-		getT().assertSynthetic();
+	public void setSynthetic() {
+		getT().setSynthetic();
 	}
 
 	/**
