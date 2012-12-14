@@ -939,13 +939,6 @@ public abstract class T {
 	public abstract boolean isRef();
 
 	/**
-	 * Is resolved?
-	 * 
-	 * @return {@code true} - is resolved
-	 */
-	public abstract boolean isResolved();
-
-	/**
 	 * Is unresolveable?
 	 * 
 	 * @return {@code true} - is unresolveable

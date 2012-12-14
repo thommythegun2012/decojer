@@ -51,7 +51,7 @@ import org.decojer.cavaj.model.types.ClassT;
 public class F {
 
 	@Setter
-	private int accessFlags = AF.UNRESOLVED.getValue();
+	private int accessFlags;
 
 	@Getter
 	private FD fd;
@@ -90,6 +90,13 @@ public class F {
 	}
 
 	/**
+	 * Field must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
+	 */
+	public void assertDeprecated() {
+		this.accessFlags |= AF.DEPRECATED.getValue();
+	}
+
+	/**
 	 * Field must be an enum.
 	 */
 	public void assertEnum() {
@@ -100,24 +107,27 @@ public class F {
 	/**
 	 * Field must be static or dynamic.
 	 * 
-	 * @param isStatic
+	 * @param f
 	 *            {@code true} - is static
 	 */
-	public void assertStatic(final boolean isStatic) {
-		if (isStatic) {
-			if (isStatic()) {
+	public void assertStatic(final boolean f) {
+		if (f) {
+			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
 				return;
 			}
-			assert !isResolved();
+			assert (this.accessFlags & AF.STATIC_ASSERTED.getValue()) == 0;
 
-			this.accessFlags |= AF.STATIC.getValue();
+			this.accessFlags |= AF.STATIC.getValue() | AF.STATIC_ASSERTED.getValue();
 			return;
 		}
-		assert !isStatic();
+		assert (this.accessFlags & AF.STATIC.getValue()) == 0;
+
+		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
+		return;
 	}
 
 	/**
-	 * Field must be synthetic (from synthetic declaration attribute).
+	 * Field must be synthetic (from Synthetic attribute).
 	 */
 	public void assertSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
@@ -143,8 +153,17 @@ public class F {
 		assert this.fd == null;
 
 		this.fd = new FD(this);
-		((ClassT) this.t).getTd().addBd(this.fd);
+		((ClassT) getT()).getTd().addBd(this.fd);
 		return this.fd;
+	}
+
+	/**
+	 * Is deprecated field, marked via Javadoc @deprecated?
+	 * 
+	 * @return {@code true} - is deprecated field
+	 */
+	public boolean isDeprecated() {
+		return check(AF.DEPRECATED);
 	}
 
 	/**
@@ -157,21 +176,15 @@ public class F {
 	}
 
 	/**
-	 * Is resolved?
-	 * 
-	 * @return {@code true} - is resolved
-	 */
-	public boolean isResolved() {
-		return !check(AF.UNRESOLVED);
-	}
-
-	/**
 	 * Is static field?
 	 * 
 	 * @return {@code true} - is static field
 	 */
 	public boolean isStatic() {
-		return check(AF.STATIC);
+		// if we call this method, this should always be asserted
+		assert (this.accessFlags & AF.STATIC_ASSERTED.getValue()) != 0;
+
+		return (this.accessFlags & AF.STATIC.getValue()) != 0;
 	}
 
 	/**
@@ -183,9 +196,13 @@ public class F {
 		return check(AF.SYNTHETIC);
 	}
 
+	public boolean isUnresolvable() {
+		return true;
+	}
+
 	@Override
 	public String toString() {
-		return this.t + "." + this.name;
+		return getT() + "." + this.name;
 	}
 
 }

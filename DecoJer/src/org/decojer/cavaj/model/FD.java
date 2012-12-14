@@ -74,6 +74,11 @@ public final class FD extends BD {
 	}
 
 	@Override
+	public void assertDeprecated() {
+		getF().assertDeprecated();
+	}
+
+	@Override
 	public void assertSynthetic() {
 		getF().assertSynthetic();
 	}
@@ -86,7 +91,7 @@ public final class FD extends BD {
 
 	@Override
 	public String getName() {
-		return this.f.getName();
+		return getF().getName();
 	}
 
 	/**
@@ -95,11 +100,16 @@ public final class FD extends BD {
 	 * @return owner type declaration
 	 */
 	public TD getTd() {
-		return ((ClassT) this.f.getT()).getTd();
+		return ((ClassT) getF().getT()).getTd();
 	}
 
 	public T getValueT() {
-		return this.f.getValueT();
+		return getF().getValueT();
+	}
+
+	@Override
+	public boolean isDeprecated() {
+		return getF().isDeprecated();
 	}
 
 	/**
@@ -120,17 +130,13 @@ public final class FD extends BD {
 		return getF().isStatic();
 	}
 
-	/**
-	 * Is synthetic field?
-	 * 
-	 * @return {@code true} - is synthetic field
-	 */
+	@Override
 	public boolean isSynthetic() {
 		return getF().isSynthetic();
 	}
 
 	public void setAccessFlags(final int accessFlags) {
-		this.f.setAccessFlags(accessFlags);
+		getF().setAccessFlags(accessFlags);
 	}
 
 	public void setSignature(final String signature) {
@@ -139,18 +145,18 @@ public final class FD extends BD {
 		}
 		this.signature = signature;
 
-		final T valueT = getTd().getDu().parseT(signature, new Cursor(), this.f);
+		final T valueT = getTd().getDu().parseT(signature, new Cursor(), getF());
 		if (!valueT.eraseTo(getValueT())) {
 			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getValueT()
 					+ "' for field value: " + this);
 		} else {
-			this.f.setValueT(valueT);
+			getF().setValueT(valueT);
 		}
 	}
 
 	@Override
 	public String toString() {
-		return this.f.toString();
+		return getF().toString();
 	}
 
 }

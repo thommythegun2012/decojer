@@ -114,13 +114,21 @@ public enum AF {
 	DECLARED_SYNCHRONIZED(1 << 17, "declared-synchronized", false, false, true),
 
 	/**
+	 * Artificial flag 'interface_asserted' for type.
+	 */
+	INTERFACE_ASSERTED(1 << 29, "<interface_asserted>", true, false, false),
+	/**
+	 * Artificial flag 'static_asserted' for method or field.
+	 */
+	STATIC_ASSERTED(1 << 29, "<static_asserted>", false, true, true),
+	/**
+	 * Artificial flag 'deprecated'.
+	 */
+	DEPRECATED(1 << 30, "<deprecated>", true, true, true),
+	/**
 	 * Artificial flag 'unresolvable'.
 	 */
-	UNRESOLVABLE(1 << 30, "<unresolvable>", true, true, true),
-	/**
-	 * Artificial flag 'unresoled'.
-	 */
-	UNRESOLVED(1 << 31, "<unresolved>", true, true, true);
+	UNRESOLVABLE(1 << 31, "<unresolvable>", true, true, true);
 
 	@Getter
 	private final boolean forType;

@@ -182,7 +182,7 @@ public class JavassistReader implements ClassReader {
 			td.setAs(as);
 		}
 		if (deprecatedAttribute != null) {
-			td.setDeprecated(true);
+			td.assertDeprecated();
 		}
 		if (enclosingMethodAttribute != null) {
 			final ClassT enclosingT = (ClassT) getT(constPool,
@@ -333,7 +333,7 @@ public class JavassistReader implements ClassReader {
 			fd.setValue(value);
 		}
 		if (deprecatedAttribute != null) {
-			fd.setDeprecated(true);
+			fd.assertDeprecated();
 		}
 		if (syntheticAttribute != null) {
 			fd.assertSynthetic();
@@ -410,7 +410,7 @@ public class JavassistReader implements ClassReader {
 			this.readCodeAttribute.initAndVisit(md, codeAttribute);
 		}
 		if (deprecatedAttribute != null) {
-			md.setDeprecated(true);
+			md.assertDeprecated();
 		}
 		A[][] paramAss = null;
 		// Visible comes first in bytecode, but here we start with invisible

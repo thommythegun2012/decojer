@@ -97,11 +97,6 @@ public class BaseT extends T {
 	}
 
 	@Override
-	public boolean isResolved() {
-		return true;
-	}
-
-	@Override
 	public boolean isUnresolvable() {
 		return false;
 	}
