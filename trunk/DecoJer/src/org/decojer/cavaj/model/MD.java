@@ -102,6 +102,11 @@ public final class MD extends BD {
 	}
 
 	@Override
+	public boolean check(final AF af) {
+		return getM().check(af);
+	}
+
+	@Override
 	public void clear() {
 		this.methodDeclaration = null;
 		if (this.cfg != null) {
