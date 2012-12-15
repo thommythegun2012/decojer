@@ -96,6 +96,11 @@ public final class TD extends BD {
 		this.t = t;
 	}
 
+	@Override
+	public boolean check(final AF af) {
+		return getT().check(af);
+	}
+
 	/**
 	 * Clear all generated data after read.
 	 */

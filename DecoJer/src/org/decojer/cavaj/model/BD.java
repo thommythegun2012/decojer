@@ -58,29 +58,13 @@ public abstract class BD extends D {
 	}
 
 	/**
-	 * Declaration must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
+	 * Check access flag.
 	 * 
-	 * The Deprecated attribute is an optional fixed-length attribute in the attributes table of a
-	 * ClassFile, field_info or method_info structure. A class, interface, method, or field may be
-	 * marked using a Deprecated attribute to indicate that the class, interface, method, or field
-	 * has been superseded.
-	 * 
-	 * Since version 49 the Deprecated Annotation is the preferred solution and not the variant with
-	 * Javadoc @deprecated. We simply put this information into the access flags as internal flag.
+	 * @param af
+	 *            access flag
+	 * @return {@code true} - is access flag
 	 */
-	public abstract void setDeprecated();
-
-	/**
-	 * Declaration must be synthetic (from Synthetic attribute).
-	 * 
-	 * The Synthetic attribute is a fixed-length attribute in the attributes table of a ClassFile,
-	 * field_info or method_info structure. A class member that does not appear in the source code
-	 * must be marked using a Synthetic attribute, or else it must have its ACC_SYNTHETIC flag set.
-	 * 
-	 * Since version 49 the ACC_SYNTHETIC attribute is the preferred solution. We simply put this
-	 * information into the access flags in both cases.
-	 */
-	public abstract void setSynthetic();
+	public abstract boolean check(final AF af);
 
 	/**
 	 * Get compilation unit.
@@ -110,5 +94,30 @@ public abstract class BD extends D {
 	 * @return {@code true} - is synthetic declaration
 	 */
 	public abstract boolean isSynthetic();
+
+	/**
+	 * Declaration must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
+	 * 
+	 * The Deprecated attribute is an optional fixed-length attribute in the attributes table of a
+	 * ClassFile, field_info or method_info structure. A class, interface, method, or field may be
+	 * marked using a Deprecated attribute to indicate that the class, interface, method, or field
+	 * has been superseded.
+	 * 
+	 * Since version 49 the Deprecated Annotation is the preferred solution and not the variant with
+	 * Javadoc @deprecated. We simply put this information into the access flags as internal flag.
+	 */
+	public abstract void setDeprecated();
+
+	/**
+	 * Declaration must be synthetic (from Synthetic attribute).
+	 * 
+	 * The Synthetic attribute is a fixed-length attribute in the attributes table of a ClassFile,
+	 * field_info or method_info structure. A class member that does not appear in the source code
+	 * must be marked using a Synthetic attribute, or else it must have its ACC_SYNTHETIC flag set.
+	 * 
+	 * Since version 49 the ACC_SYNTHETIC attribute is the preferred solution. We simply put this
+	 * information into the access flags in both cases.
+	 */
+	public abstract void setSynthetic();
 
 }
