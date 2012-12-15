@@ -930,7 +930,7 @@ public abstract class T {
 	}
 
 	/**
-	 * Type must be an interface or a class.
+	 * Type must be an interface or a class (from usage, e.g. invoke/get/set).
 	 * 
 	 * @param f
 	 *            {@code true} - is interface

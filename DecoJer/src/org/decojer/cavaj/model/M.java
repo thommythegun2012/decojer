@@ -165,7 +165,7 @@ public class M {
 	}
 
 	/**
-	 * Method must be static or dynamic.
+	 * Method must be static or dynamic (from usage, e.g. invoke).
 	 * 
 	 * @param f
 	 *            {@code true} - is static
@@ -182,6 +182,7 @@ public class M {
 		}
 		assert (this.accessFlags & AF.STATIC.getValue()) == 0;
 
+		getT().setInterface(false);
 		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
 		return;
 	}

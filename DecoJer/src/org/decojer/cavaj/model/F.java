@@ -161,7 +161,7 @@ public class F {
 	}
 
 	/**
-	 * Field must be an enum.
+	 * Field must be an enum (from Annotations attribute).
 	 */
 	public void setEnum() {
 		getT().setInterface(false); // TODO we know even more, must be from Enum
@@ -170,7 +170,7 @@ public class F {
 	}
 
 	/**
-	 * Field must be static or dynamic.
+	 * Field must be static or dynamic (from usage, e.g. get/set).
 	 * 
 	 * @param f
 	 *            {@code true} - is static
@@ -187,6 +187,7 @@ public class F {
 		}
 		assert (this.accessFlags & AF.STATIC.getValue()) == 0;
 
+		getT().setInterface(false);
 		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
 		return;
 	}
