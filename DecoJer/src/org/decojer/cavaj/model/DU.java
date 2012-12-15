@@ -494,16 +494,20 @@ public final class DU {
 			// reuse ClassT for type parameter
 			final ClassT typeParam = new ClassT(this, s.substring(c.pos, pos));
 			c.pos = pos + 1;
-			if (s.charAt(c.pos) != ':') {
-				typeParam.setSuperT(parseT(s, c, context));
-			} else {
+			if (s.charAt(c.pos) == ':') {
 				typeParam.setSuperT(getObjectT());
+			} else {
+				final T superT = parseT(s, c, context);
+				superT.setInterface(false);
+				typeParam.setSuperT(superT);
 			}
 			if (s.charAt(c.pos) == ':') {
 				final ArrayList<T> interfaceTs = new ArrayList<T>();
 				do {
 					++c.pos;
-					interfaceTs.add(parseT(s, c, context));
+					final T interfaceT = parseT(s, c, context);
+					interfaceT.setInterface(true);
+					interfaceTs.add(interfaceT);
 				} while (s.charAt(c.pos) == ':');
 				typeParam.setInterfaceTs(interfaceTs.toArray(new T[interfaceTs.size()]));
 			}

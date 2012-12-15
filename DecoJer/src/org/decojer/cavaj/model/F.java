@@ -90,50 +90,6 @@ public class F {
 	}
 
 	/**
-	 * Field must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
-	 */
-	public void setDeprecated() {
-		this.accessFlags |= AF.DEPRECATED.getValue();
-	}
-
-	/**
-	 * Field must be an enum.
-	 */
-	public void setEnum() {
-		this.accessFlags |= AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
-				| AF.ENUM.getValue();
-	}
-
-	/**
-	 * Field must be static or dynamic.
-	 * 
-	 * @param f
-	 *            {@code true} - is static
-	 */
-	public void setStatic(final boolean f) {
-		if (f) {
-			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
-				return;
-			}
-			assert (this.accessFlags & AF.STATIC_ASSERTED.getValue()) == 0;
-
-			this.accessFlags |= AF.STATIC.getValue() | AF.STATIC_ASSERTED.getValue();
-			return;
-		}
-		assert (this.accessFlags & AF.STATIC.getValue()) == 0;
-
-		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
-		return;
-	}
-
-	/**
-	 * Field must be synthetic (from Synthetic attribute).
-	 */
-	public void setSynthetic() {
-		this.accessFlags |= AF.SYNTHETIC.getValue();
-	}
-
-	/**
 	 * Check access flag.
 	 * 
 	 * @param af
@@ -195,6 +151,51 @@ public class F {
 
 	public boolean isUnresolvable() {
 		return true;
+	}
+
+	/**
+	 * Field must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
+	 */
+	public void setDeprecated() {
+		this.accessFlags |= AF.DEPRECATED.getValue();
+	}
+
+	/**
+	 * Field must be an enum.
+	 */
+	public void setEnum() {
+		getT().setInterface(false); // TODO we know even more, must be from Enum
+		this.accessFlags |= AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
+				| AF.ENUM.getValue();
+	}
+
+	/**
+	 * Field must be static or dynamic.
+	 * 
+	 * @param f
+	 *            {@code true} - is static
+	 */
+	public void setStatic(final boolean f) {
+		if (f) {
+			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
+				return;
+			}
+			assert (this.accessFlags & AF.STATIC_ASSERTED.getValue()) == 0;
+
+			this.accessFlags |= AF.STATIC.getValue() | AF.STATIC_ASSERTED.getValue();
+			return;
+		}
+		assert (this.accessFlags & AF.STATIC.getValue()) == 0;
+
+		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
+		return;
+	}
+
+	/**
+	 * Field must be synthetic (from Synthetic attribute).
+	 */
+	public void setSynthetic() {
+		this.accessFlags |= AF.SYNTHETIC.getValue();
 	}
 
 	@Override

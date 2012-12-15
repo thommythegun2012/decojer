@@ -96,28 +96,6 @@ public final class TD extends BD {
 		this.t = t;
 	}
 
-	@Override
-	public void setDeprecated() {
-		getT().setDeprecated();
-	}
-
-	/**
-	 * This should be scala code.
-	 */
-	public void setScala() {
-		if (getSourceFileName() != null) {
-			if (!getSourceFileName().endsWith(".scala")) {
-				LOGGER.warning("This should be a Scala source code!");
-			}
-			return;
-		}
-	}
-
-	@Override
-	public void setSynthetic() {
-		getT().setSynthetic();
-	}
-
 	/**
 	 * Clear all generated data after read.
 	 */
@@ -337,7 +315,9 @@ public final class TD extends BD {
 		}
 		final ArrayList<T> ts = new ArrayList<T>();
 		do {
-			ts.add(getT().getDu().parseT(s, c, getT()));
+			final T interfaceT = getT().getDu().parseT(s, c, getT());
+			interfaceT.setInterface(true);
+			ts.add(interfaceT);
 		} while (c.pos < s.length() && s.charAt(c.pos) == 'L');
 		return ts.toArray(new T[ts.size()]);
 	}
@@ -360,6 +340,11 @@ public final class TD extends BD {
 		getT().setAccessFlags(accessFlags);
 	}
 
+	@Override
+	public void setDeprecated() {
+		getT().setDeprecated();
+	}
+
 	/**
 	 * Set interface types.
 	 * 
@@ -368,6 +353,18 @@ public final class TD extends BD {
 	 */
 	public void setInterfaceTs(final T[] interfaceTs) {
 		getT().setInterfaceTs(interfaceTs);
+	}
+
+	/**
+	 * This should be scala code.
+	 */
+	public void setScala() {
+		if (getSourceFileName() != null) {
+			if (!getSourceFileName().endsWith(".scala")) {
+				LOGGER.warning("This should be a Scala source code!");
+			}
+			return;
+		}
 	}
 
 	/**
@@ -384,6 +381,7 @@ public final class TD extends BD {
 		getT().setTypeParams(getDu().parseTypeParams(signature, c, getT()));
 
 		final T superT = getDu().parseT(signature, c, getT());
+		superT.setInterface(false);
 		if (!superT.eraseTo(getSuperT())) {
 			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getSuperT()
 					+ "' for type super: " + this);
@@ -417,6 +415,11 @@ public final class TD extends BD {
 	 */
 	public void setSuperT(final T superT) {
 		getT().setSuperT(superT);
+	}
+
+	@Override
+	public void setSynthetic() {
+		getT().setSynthetic();
 	}
 
 	@Override

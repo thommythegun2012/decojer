@@ -490,9 +490,10 @@ public class JavassistReader implements ClassReader {
 		} else if (memberValue instanceof EnumMemberValue) {
 			// TODO better direct access, but missing method in Javassist API
 			final String desc = Descriptor.of(((EnumMemberValue) memberValue).getType());
-			final T enumT = this.du.getDescT(desc);
-			final F enumF = enumT.getEnumF(((EnumMemberValue) memberValue).getValue(), desc);
-			return enumF;
+			final T ownerT = this.du.getDescT(desc);
+			final F f = ownerT.getF(((EnumMemberValue) memberValue).getValue(), desc);
+			f.setEnum();
+			return f;
 		}
 		if (memberValue instanceof FloatMemberValue) {
 			return ((FloatMemberValue) memberValue).getValue();

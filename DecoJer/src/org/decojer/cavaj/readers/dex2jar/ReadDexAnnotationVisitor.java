@@ -108,9 +108,10 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 
 	@Override
 	public void visitEnum(final String name, final String desc, final String value) {
-		final T enumT = this.du.getDescT(desc);
-		final F enumF = enumT.getEnumF(value, desc);
-		add(name, enumF);
+		final T ownerT = this.du.getDescT(desc);
+		final F f = ownerT.getF(value, desc);
+		f.setEnum();
+		add(name, f);
 	}
 
 }

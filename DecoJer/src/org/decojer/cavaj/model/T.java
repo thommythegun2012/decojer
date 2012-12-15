@@ -414,16 +414,6 @@ public abstract class T {
 	}
 
 	/**
-	 * Type must be an interface or a class.
-	 * 
-	 * @param f
-	 *            {@code true} - is interface
-	 */
-	public void setInterface(final boolean f) {
-		assert !f;
-	}
-
-	/**
 	 * Assign from given type. There are 3 possible outcomes: Cannot assign from given type, which
 	 * returns {@code null}. Can assign from given type and primitive multitype reduction, which
 	 * returns the reduced new type. Can assign without reduction, which returns unmodified
@@ -556,21 +546,6 @@ public abstract class T {
 	 */
 	public T getEnclosingT() {
 		return null; // overwrite in ClassT
-	}
-
-	/**
-	 * Get enum field.
-	 * 
-	 * @param name
-	 *            field name
-	 * @param desc
-	 *            field descriptor
-	 * @return enum field
-	 */
-	public F getEnumF(final String name, final String desc) {
-		final F f = getF(name, desc);
-		f.setEnum();
-		return f;
 	}
 
 	/**
@@ -952,6 +927,16 @@ public abstract class T {
 	 */
 	public boolean isWide() {
 		return false; // only base types can be wide, overwrite in BaseT
+	}
+
+	/**
+	 * Type must be an interface or a class.
+	 * 
+	 * @param f
+	 *            {@code true} - is interface
+	 */
+	public void setInterface(final boolean f) {
+		assert !f;
 	}
 
 	@Override
