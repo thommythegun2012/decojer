@@ -451,7 +451,6 @@ public class ClassT extends T {
 			this.superT = NONE;
 			return;
 		}
-		superT.setInterface(false);
 		this.superT = superT;
 	}
 

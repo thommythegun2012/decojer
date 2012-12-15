@@ -102,16 +102,6 @@ public final class MD extends BD {
 	}
 
 	@Override
-	public void setDeprecated() {
-		getM().setDeprecated();
-	}
-
-	@Override
-	public void setSynthetic() {
-		getM().setSynthetic();
-	}
-
-	@Override
 	public void clear() {
 		this.methodDeclaration = null;
 		if (this.cfg != null) {
@@ -215,13 +205,20 @@ public final class MD extends BD {
 		final ArrayList<T> ts = new ArrayList<T>();
 		do {
 			++c.pos;
-			ts.add(getTd().getDu().parseT(s, c, getM()));
+			final T throwT = getTd().getDu().parseT(s, c, getM());
+			throwT.setInterface(false); // TODO we know even more, must be from Throwable
+			ts.add(throwT);
 		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
 		return ts.toArray(new T[ts.size()]);
 	}
 
 	public void setAccessFlags(final int accessFlags) {
 		getM().setAccessFlags(accessFlags);
+	}
+
+	@Override
+	public void setDeprecated() {
+		getM().setDeprecated();
 	}
 
 	/**
@@ -298,6 +295,11 @@ public final class MD extends BD {
 				throwsTs[i] = throwT;
 			}
 		}
+	}
+
+	@Override
+	public void setSynthetic() {
+		getM().setSynthetic();
 	}
 
 	@Override

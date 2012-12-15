@@ -451,10 +451,11 @@ public class SmaliReader implements DexReader {
 		if (encodedValue instanceof EnumEncodedValue) {
 			final FieldIdItem fieldidItem = ((EnumEncodedValue) encodedValue).value;
 			final String desc = fieldidItem.getFieldType().getTypeDescriptor();
-			final T enumT = du.getDescT(desc);
-			final F enumF = enumT.getEnumF(fieldidItem.getFieldName().getStringDataItem()
-					.getStringValue(), desc);
-			return enumF;
+			final T ownerT = du.getDescT(desc);
+			final F f = ownerT.getF(
+					fieldidItem.getFieldName().getStringDataItem().getStringValue(), desc);
+			f.setEnum();
+			return f;
 		}
 		if (encodedValue instanceof FloatEncodedValue) {
 			return ((FloatEncodedValue) encodedValue).value;
