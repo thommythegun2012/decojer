@@ -45,9 +45,6 @@ public final class FD extends BD {
 	@Getter(AccessLevel.PRIVATE)
 	private final F f;
 
-	@Getter
-	private String signature;
-
 	/**
 	 * AST field declaration.
 	 */
@@ -113,11 +110,11 @@ public final class FD extends BD {
 		getF().setDeprecated();
 	}
 
+	@Override
 	public void setSignature(final String signature) {
 		if (signature == null) {
 			return;
 		}
-		this.signature = signature;
 
 		final T valueT = getTd().getDu().parseT(signature, new Cursor(), getF());
 		if (!valueT.eraseTo(getValueT())) {
