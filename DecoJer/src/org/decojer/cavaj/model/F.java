@@ -114,39 +114,12 @@ public class F {
 	}
 
 	/**
-	 * Is deprecated field, marked via Javadoc @deprecated?
-	 * 
-	 * @return {@code true} - is deprecated field
-	 */
-	public boolean isDeprecated() {
-		return check(AF.DEPRECATED);
-	}
-
-	/**
-	 * Is enum field?
-	 * 
-	 * @return {@code true} - is enum field
-	 */
-	public boolean isEnum() {
-		return check(AF.ENUM);
-	}
-
-	/**
 	 * Is static field?
 	 * 
 	 * @return {@code true} - is static field
 	 */
 	public boolean isStatic() {
 		return check(AF.STATIC);
-	}
-
-	/**
-	 * Is synthetic field?
-	 * 
-	 * @return {@code true} - is synthetic field
-	 */
-	public boolean isSynthetic() {
-		return check(AF.SYNTHETIC);
 	}
 
 	public boolean isUnresolvable() {

@@ -165,11 +165,6 @@ public final class MD extends BD {
 		return getM().isConstructor();
 	}
 
-	@Override
-	public boolean isDeprecated() {
-		return getM().isDeprecated();
-	}
-
 	/**
 	 * Is initializer?
 	 * 
@@ -187,11 +182,6 @@ public final class MD extends BD {
 	 */
 	public boolean isStatic() {
 		return getM().isStatic();
-	}
-
-	@Override
-	public boolean isSynthetic() {
-		return getM().isSynthetic();
 	}
 
 	/**
@@ -217,6 +207,7 @@ public final class MD extends BD {
 		return ts.toArray(new T[ts.size()]);
 	}
 
+	@Override
 	public void setAccessFlags(final int accessFlags) {
 		getM().setAccessFlags(accessFlags);
 	}

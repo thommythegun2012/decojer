@@ -136,12 +136,6 @@ public class ClassT extends T {
 	 * @return {@code true} - is access flag
 	 */
 	public boolean check(final AF af) {
-		if ((this.accessFlags & af.getValue()) != 0) {
-			return true;
-		}
-		if (isUnresolvable()) {
-			return false;
-		}
 		return (this.accessFlags & af.getValue()) != 0;
 	}
 

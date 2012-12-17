@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
@@ -357,7 +358,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final GET cop = (GET) op;
 				final F f = cop.getF();
 				if (f.isStatic()) {
-					if (f.isSynthetic()
+					if (f.check(AF.SYNTHETIC)
 							&& (f.getName().startsWith("class$") || f.getName()
 									.startsWith("array$"))) {
 						if (rewriteCachedClassLiteral(bb)) {
@@ -1499,7 +1500,7 @@ public final class TrCfg2JavaExpressionStmts {
 		// TODO this checks are not enough, we must assure that we don't use method
 		// arguments here!!!
 		if (((ClassT) f.getT()).isEnum() && !this.cfg.getCu().check(DFlag.IGNORE_ENUM)) {
-			if (f.isEnum()) {
+			if (f.check(AF.ENUM)) {
 				// assignment to enum constant declaration
 				if (!(rightExpression instanceof ClassInstanceCreation)) {
 					log("Assignment to enum field '" + f + "' is no class instance creation!");
@@ -1559,7 +1560,7 @@ public final class TrCfg2JavaExpressionStmts {
 				return true; // ignore such assignments completely
 			}
 		}
-		if (f.isSynthetic()) {
+		if (f.check(AF.SYNTHETIC)) {
 			if (this.cfg.getCu().check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 				return false; // not as field initializer
 			}

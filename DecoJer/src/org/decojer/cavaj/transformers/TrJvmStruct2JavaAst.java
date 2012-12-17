@@ -75,7 +75,7 @@ public final class TrJvmStruct2JavaAst {
 	private final static Logger LOGGER = Logger.getLogger(TrJvmStruct2JavaAst.class.getName());
 
 	private static void decompileField(final FD fd, final CU cu) {
-		if (fd.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (fd.check(AF.STATIC) && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 		final String name = fd.getName();
@@ -95,7 +95,7 @@ public final class TrJvmStruct2JavaAst {
 		final ASTNode typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
 
-		final boolean isFieldEnum = fd.isEnum();
+		final boolean isFieldEnum = fd.check(AF.ENUM);
 
 		// decompile BodyDeclaration, possible subtypes:
 		// FieldDeclaration, EnumConstantDeclaration
@@ -112,7 +112,7 @@ public final class TrJvmStruct2JavaAst {
 		fd.setFieldDeclaration(fieldDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
-		if (fd.isDeprecated() && !Annotations.isDeprecatedAnnotation(fd.getAs())) {
+		if (fd.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(fd.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");
@@ -177,7 +177,7 @@ public final class TrJvmStruct2JavaAst {
 	}
 
 	private static void decompileMethod(final MD md, final CU cu, final boolean strictFp) {
-		if (md.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (md.check(AF.SYNTHETIC) && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 		final String name = md.getName();
@@ -227,7 +227,7 @@ public final class TrJvmStruct2JavaAst {
 		md.setMethodDeclaration(methodDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
-		if (md.isDeprecated() && !Annotations.isDeprecatedAnnotation(md.getAs())) {
+		if (md.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(md.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");
@@ -462,7 +462,7 @@ public final class TrJvmStruct2JavaAst {
 			}
 			return;
 		}
-		if (td.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (td.check(AF.DEPRECATED) && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 
@@ -582,7 +582,7 @@ public final class TrJvmStruct2JavaAst {
 			typeDeclaration.setName(ast.newSimpleName(simpleName.length() > 0 ? simpleName : td
 					.getPName()));
 
-			if (td.isDeprecated() && !Annotations.isDeprecatedAnnotation(td.getAs())) {
+			if (td.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(td.getAs())) {
 				final Javadoc newJavadoc = ast.newJavadoc();
 				final TagElement newTagElement = ast.newTagElement();
 				newTagElement.setTagName("@deprecated");

@@ -82,18 +82,12 @@ public abstract class BD extends D {
 	}
 
 	/**
-	 * Is deprecated declaration, marked via Javadoc @deprecated?
+	 * Set access flags.
 	 * 
-	 * @return {@code true} - is deprecated declaration
+	 * @param accessFlags
+	 *            access flags
 	 */
-	public abstract boolean isDeprecated();
-
-	/**
-	 * Is synthetic declaration?
-	 * 
-	 * @return {@code true} - is synthetic declaration
-	 */
-	public abstract boolean isSynthetic();
+	public abstract void setAccessFlags(final int accessFlags);
 
 	/**
 	 * Declaration must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
