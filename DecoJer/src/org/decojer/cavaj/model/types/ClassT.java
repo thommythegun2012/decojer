@@ -304,7 +304,6 @@ public class ClassT extends T {
 	}
 
 	public void resolved() {
-		this.accessFlags |= AF.INTERFACE_ASSERTED.getValue();
 		if (this.superT == null) {
 			this.superT = NONE; // Object/Interfaces have no super!
 		}
