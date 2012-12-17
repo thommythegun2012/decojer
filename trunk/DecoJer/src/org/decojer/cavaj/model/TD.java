@@ -278,15 +278,6 @@ public final class TD extends BD {
 	}
 
 	/**
-	 * Is enum type?
-	 * 
-	 * @return {@code true} - is enum type
-	 */
-	public boolean isEnum() {
-		return getT().isEnum();
-	}
-
-	/**
 	 * Is interface?
 	 * 
 	 * @return {@code true} - is interface
@@ -357,12 +348,7 @@ public final class TD extends BD {
 		}
 	}
 
-	/**
-	 * Set signature.
-	 * 
-	 * @param signature
-	 *            signature
-	 */
+	@Override
 	public void setSignature(final String signature) {
 		if (signature == null) {
 			return;

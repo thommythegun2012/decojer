@@ -103,6 +103,14 @@ public abstract class BD extends D {
 	public abstract void setDeprecated();
 
 	/**
+	 * Set signature.
+	 * 
+	 * @param signature
+	 *            signature
+	 */
+	public abstract void setSignature(final String signature);
+
+	/**
 	 * Declaration must be synthetic (from Synthetic attribute).
 	 * 
 	 * The Synthetic attribute is a fixed-length attribute in the attributes table of a ClassFile,

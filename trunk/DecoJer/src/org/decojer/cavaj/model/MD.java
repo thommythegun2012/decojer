@@ -60,6 +60,9 @@ public final class MD extends BD {
 	@Getter
 	private final M m;
 
+	/**
+	 * Remember signature for Eclipse method finding.
+	 */
 	@Getter
 	private String signature;
 
@@ -70,6 +73,9 @@ public final class MD extends BD {
 	@Setter
 	private T[] throwsTs;
 
+	/**
+	 * Better in M, maybe later if necessary for static invokes.
+	 */
 	@Getter
 	private T[] typeParams;
 
@@ -232,13 +238,16 @@ public final class MD extends BD {
 		this.paramNames[i] = name;
 	}
 
+	@Override
 	public void setSignature(final String signature) {
 		if (signature == null) {
 			return;
 		}
+		// remember signature for Eclipse method finding...
 		this.signature = signature;
 
 		final Cursor c = new Cursor();
+		// typeParams better in M, maybe later if necessary for static invokes
 		this.typeParams = getTd().getDu().parseTypeParams(signature, c, getM());
 
 		final T[] paramTs = getParamTs();

@@ -82,7 +82,7 @@ public final class TrJvmStruct2JavaAst {
 		final TD td = fd.getTd();
 
 		// enum synthetic fields
-		if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.isEnum()
+		if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.check(AF.ENUM)
 				&& !cu.check(DFlag.IGNORE_ENUM)) {
 			// could extract this field name from initializer for more robustness
 			return;
@@ -186,7 +186,7 @@ public final class TrJvmStruct2JavaAst {
 		// enum synthetic methods
 		if (("values".equals(name) && md.getParamTs().length == 0 || "valueOf".equals(name)
 				&& md.getParamTs().length == 1 && md.getParamTs()[0].is(String.class))
-				&& td.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
+				&& td.check(AF.ENUM) && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
 
@@ -335,7 +335,7 @@ public final class TrJvmStruct2JavaAst {
 			final Type methodParameterType = Types.decompileType(paramTs[i], td);
 			if (methodDeclaration.isConstructor()) {
 
-				if (i <= 1 && td.isEnum() && !td.getCu().check(DFlag.IGNORE_ENUM)) {
+				if (i <= 1 && td.check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
 					// enum constructors have two leading synthetic parameters,
 					// enum classes are static and can not be anonymous or inner method
 					if (i == 0 && md.getParamTs()[0].is(String.class)) {
@@ -496,7 +496,7 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
 			// enum declaration
-			if (td.isEnum()) {
+			if (td.check(AF.ENUM)) {
 				if (typeDeclaration != null) {
 					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
