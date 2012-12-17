@@ -277,11 +277,6 @@ public final class TD extends BD {
 		return this.version == 0;
 	}
 
-	@Override
-	public boolean isDeprecated() {
-		return getT().isDeprecated();
-	}
-
 	/**
 	 * Is enum type?
 	 * 
@@ -298,11 +293,6 @@ public final class TD extends BD {
 	 */
 	public boolean isInterface() {
 		return getT().isInterface();
-	}
-
-	@Override
-	public boolean isSynthetic() {
-		return getT().isSynthetic();
 	}
 
 	/**
@@ -335,12 +325,7 @@ public final class TD extends BD {
 		getT().resolved();
 	}
 
-	/**
-	 * Set access flags.
-	 * 
-	 * @param accessFlags
-	 *            access flags
-	 */
+	@Override
 	public void setAccessFlags(final int accessFlags) {
 		getT().setAccessFlags(accessFlags);
 	}

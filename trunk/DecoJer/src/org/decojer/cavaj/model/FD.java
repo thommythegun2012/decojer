@@ -104,33 +104,6 @@ public final class FD extends BD {
 	}
 
 	@Override
-	public boolean isDeprecated() {
-		return getF().isDeprecated();
-	}
-
-	/**
-	 * Is enum field?
-	 * 
-	 * @return {@code true} - is enum field
-	 */
-	public boolean isEnum() {
-		return getF().isEnum();
-	}
-
-	/**
-	 * Is static field?
-	 * 
-	 * @return {@code true} - is static field
-	 */
-	public boolean isStatic() {
-		return getF().isStatic();
-	}
-
-	@Override
-	public boolean isSynthetic() {
-		return getF().isSynthetic();
-	}
-
 	public void setAccessFlags(final int accessFlags) {
 		getF().setAccessFlags(accessFlags);
 	}
