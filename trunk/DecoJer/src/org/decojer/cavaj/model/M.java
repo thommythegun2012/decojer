@@ -172,6 +172,7 @@ public class M {
 	 */
 	public void setStatic(final boolean f) {
 		if (f) {
+			getT().setInterface(false);
 			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
 				return;
 			}
@@ -182,7 +183,6 @@ public class M {
 		}
 		assert (this.accessFlags & AF.STATIC.getValue()) == 0;
 
-		getT().setInterface(false);
 		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
 		return;
 	}

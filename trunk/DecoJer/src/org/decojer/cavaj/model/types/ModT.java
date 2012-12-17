@@ -49,52 +49,57 @@ public abstract class ModT extends T {
 
 	@Override
 	public boolean eraseTo(final T t) {
-		return this.rawT.eraseTo(t);
+		return getRawT().eraseTo(t);
 	}
 
 	@Override
 	public DU getDu() {
-		return this.rawT.getDu();
+		return getRawT().getDu();
 	}
 
 	@Override
 	public T[] getInterfaceTs() {
-		return this.rawT.getInterfaceTs();
+		return getRawT().getInterfaceTs();
 	}
 
 	@Override
 	public int getKind() {
-		return this.rawT.getKind();
+		return getRawT().getKind();
 	}
 
 	@Override
 	public T getSuperT() {
-		return this.rawT.getSuperT();
+		return getRawT().getSuperT();
 	}
 
 	@Override
 	public boolean isAssignableFrom(final T t) {
-		return this.rawT.isAssignableFrom(t);
+		return getRawT().isAssignableFrom(t);
 	}
 
 	@Override
 	public boolean isInterface() {
-		return this.rawT.isInterface();
+		return getRawT().isInterface();
 	}
 
 	@Override
 	public boolean isPrimitive() {
-		return this.rawT.isPrimitive();
+		return getRawT().isPrimitive();
 	}
 
 	@Override
 	public boolean isRef() {
-		return this.rawT.isRef();
+		return getRawT().isRef();
 	}
 
 	@Override
 	public boolean isUnresolvable() {
-		return this.rawT.isUnresolvable();
+		return getRawT().isUnresolvable();
+	}
+
+	@Override
+	public void setInterface(final boolean f) {
+		getRawT().setInterface(f);
 	}
 
 }
