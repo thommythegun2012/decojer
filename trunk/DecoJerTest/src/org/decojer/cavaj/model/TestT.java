@@ -402,6 +402,9 @@ class TestT {
 		assertSame(T.join(objectT, du.getT(Integer.class)), objectT);
 		assertSame(T.join(du.getT(Integer.class), objectT), objectT);
 
+		assertSame(T.join(objectT, du.getT(Cloneable.class)), objectT);
+		assertSame(T.join(du.getT(Cloneable.class), objectT), objectT);
+
 		T t = T.join(du.getT(Integer.class), du.getT(Long.class));
 		assertSame(t.getSuperT(), du.getT(Number.class));
 		assertEquals(t.getInterfaceTs().length, 1);
