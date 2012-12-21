@@ -10,6 +10,9 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+import javax.lang.model.element.Element;
+import javax.lang.model.element.TypeElement;
+
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.types.ClassT;
 import org.testng.annotations.BeforeClass;
@@ -405,6 +408,16 @@ class TestT {
 		assertSame(T.join(objectT, du.getT(Cloneable.class)), objectT);
 		assertSame(T.join(du.getT(Cloneable.class), objectT), objectT);
 
+		assertSame(T.join(du.getT(Serializable.class), du.getT(Byte.class)),
+				du.getT(Serializable.class));
+		assertSame(T.join(du.getT(Byte.class), du.getT(Serializable.class)),
+				du.getT(Serializable.class));
+
+		assertSame(T.join(du.getT(Element.class), du.getT(TypeElement.class)),
+				du.getT(Element.class));
+		assertSame(T.join(du.getT(TypeElement.class), du.getT(Element.class)),
+				du.getT(Element.class));
+
 		T t = T.join(du.getT(Integer.class), du.getT(Long.class));
 		assertSame(t.getSuperT(), du.getT(Number.class));
 		assertEquals(t.getInterfaceTs().length, 1);
@@ -412,6 +425,8 @@ class TestT {
 		assertEquals(t.getName(), "{java.lang.Number,java.lang.Comparable}");
 		assertEquals(t.getSimpleName(),
 				"{java.lang.Number,java.lang.Comparable}");
+		// not same:
+		assertEquals(T.join(du.getT(Long.class), du.getT(Integer.class)), t);
 
 		// join shouldn't be Object, Cloneable, Serializable
 		assertEquals(T.join(du.getT(Integer[].class), du.getT(Number[].class)),
