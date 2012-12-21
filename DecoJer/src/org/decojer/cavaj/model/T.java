@@ -298,32 +298,34 @@ public abstract class T {
 		if (t1.isAssignableFrom(t2)) {
 			return t1;
 		}
-		assert t1.getDu() != null; // t1 could be a REF (PUSH null)
-
+		if (t2.isAssignableFrom(t1)) {
+			return t2;
+		}
 		if (t1.isArray() && t2.isArray()) {
 			// covariant arrays, but supertype is Object and not superXY[]
 			final T joinT = join(t1.getComponentT(), t2.getComponentT());
 			return t1.getDu().getArrayT(joinT);
 		}
-
 		// find common supertypes, raise in t1-hierarchy till assignable from t2
-		T superT;
-		if (t1.isInterface()) {
-			superT = t1.getDu().getObjectT();
-		} else {
-			superT = t1.getSuperT();
-			while (superT != null && !superT.isAssignableFrom(t2)) {
-				superT = superT.getSuperT();
-			}
-			if (superT == null) {
-				superT = T.AREF; // previous super must be isUnresolveable()
-			}
-		}
+		T superT = null;
 		final ArrayList<T> interfaceTs = new ArrayList<T>();
 		final LinkedList<T> ts = new LinkedList<T>();
 		ts.add(t1);
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();
+			if (superT == null) {
+				superT = iT.getSuperT();
+				if (superT == null) {
+					if (iT.isUnresolvable()) {
+						superT = T.AREF;
+					}
+				} else {
+					if (!superT.isAssignableFrom(t2)) {
+						ts.add(superT);
+						superT = null;
+					}
+				}
+			}
 			for (final T interfaceT : iT.getInterfaceTs()) {
 				if (interfaceT.isAssignableFrom(t2)) {
 					if (!interfaceTs.contains(interfaceT)) {
@@ -334,7 +336,6 @@ public abstract class T {
 				}
 			}
 		}
-
 		if (interfaceTs.isEmpty()) {
 			return superT;
 		}
