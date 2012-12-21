@@ -75,7 +75,7 @@ public final class TrJvmStruct2JavaAst {
 	private final static Logger LOGGER = Logger.getLogger(TrJvmStruct2JavaAst.class.getName());
 
 	private static void decompileField(final FD fd, final CU cu) {
-		if (fd.check(AF.STATIC) && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (fd.check(AF.SYNTHETIC) && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 		final String name = fd.getName();
