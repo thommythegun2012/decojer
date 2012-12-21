@@ -391,10 +391,28 @@ public final class TrCfg2JavaExpressionStmts {
 			case INC: {
 				final INC cop = (INC) op;
 				final int value = cop.getValue();
-
-				if (bb.isStackEmpty()) {
-					// TODO could be inline at begin!
-					if (value == 1 || value == -1) {
+				if (value == 1 || value == -1) {
+					// ++ / --
+					inlinePrefExp: if (!bb.isStackEmpty()) {
+						final Expression e = bb.peek();
+						if (!(e instanceof SimpleName)) {
+							break inlinePrefExp;
+						}
+						final String name = getVarName(cop.getReg(), cop.getPc());
+						if (!((SimpleName) e).getIdentifier().equals(name)) {
+							break inlinePrefExp;
+						}
+						final PostfixExpression prefixExpression = getAst().newPostfixExpression();
+						prefixExpression
+								.setOperator(value == 1 ? PostfixExpression.Operator.INCREMENT
+										: PostfixExpression.Operator.DECREMENT);
+						prefixExpression.setOperand(getAst().newSimpleName(name));
+						bb.pop();
+						bb.push(prefixExpression);
+						break;
+					}
+					// TODO better check: followed by LOAD reg? -> Expression instead of Statement
+					if (bb.isStackEmpty()) {
 						final PrefixExpression prefixExpression = getAst().newPrefixExpression();
 						prefixExpression
 								.setOperator(value == 1 ? PrefixExpression.Operator.INCREMENT
@@ -402,18 +420,24 @@ public final class TrCfg2JavaExpressionStmts {
 						final String name = getVarName(cop.getReg(), cop.getPc());
 						prefixExpression.setOperand(getAst().newSimpleName(name));
 						statement = getAst().newExpressionStatement(prefixExpression);
-					} else {
-						final Assignment assignment = getAst().newAssignment();
-						assignment.setOperator(value >= 0 ? Assignment.Operator.PLUS_ASSIGN
-								: Assignment.Operator.MINUS_ASSIGN);
-						assignment.setRightHandSide(Types.decompileLiteral(cop.getT(),
-								value >= 0 ? value : -value, this.cfg.getTd()));
-						statement = getAst().newExpressionStatement(assignment);
+						break;
 					}
-				} else {
-					log("Inline INC with value '" + value + "'!");
-					// TODO ... may be inline
+					log("Inline ++/--!");
+					break;
 				}
+				// TODO better check: followed by LOAD reg? -> Expression instead of Statement
+				if (bb.isStackEmpty()) {
+					// TODO could be inline at begin! do this eager because of for-loops / dalvik?
+					final Assignment assignment = getAst().newAssignment();
+					assignment.setOperator(value >= 0 ? Assignment.Operator.PLUS_ASSIGN
+							: Assignment.Operator.MINUS_ASSIGN);
+					assignment.setRightHandSide(Types.decompileLiteral(cop.getT(),
+							value >= 0 ? value : -value, this.cfg.getTd()));
+					statement = getAst().newExpressionStatement(assignment);
+					break;
+				}
+				log("Inline INC with value '" + value + "'!");
+				// TODO ...should be inlined and followed by a "LOAD reg"
 				break;
 			}
 			case INSTANCEOF: {
