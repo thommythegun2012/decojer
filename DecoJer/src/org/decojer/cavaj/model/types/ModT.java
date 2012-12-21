@@ -99,7 +99,9 @@ public abstract class ModT extends T {
 
 	@Override
 	public void setInterface(final boolean f) {
-		getRawT().setInterface(f);
+		if (getRawT() != null) {
+			getRawT().setInterface(f);
+		}
 	}
 
 }
