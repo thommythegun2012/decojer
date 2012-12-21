@@ -393,42 +393,27 @@ public final class TrCfg2JavaExpressionStmts {
 				final int value = cop.getValue();
 				if (value == 1 || value == -1) {
 					// ++ / --
-					inlinePrefExp: if (!bb.isStackEmpty()) {
-						final Expression e = bb.peek();
-						if (!(e instanceof SimpleName)) {
-							break inlinePrefExp;
-						}
-						final String name = getVarName(cop.getReg(), cop.getPc());
-						if (!((SimpleName) e).getIdentifier().equals(name)) {
-							break inlinePrefExp;
-						}
-						final PostfixExpression prefixExpression = getAst().newPostfixExpression();
-						prefixExpression
-								.setOperator(value == 1 ? PostfixExpression.Operator.INCREMENT
-										: PostfixExpression.Operator.DECREMENT);
-						prefixExpression.setOperand(getAst().newSimpleName(name));
-						bb.pop();
-						bb.push(prefixExpression);
+					if (rewriteInlinePrefixIncDec(bb, cop) || rewriteInlinePostfixIncDec(bb, cop)) {
 						break;
 					}
-					// TODO better check: followed by LOAD reg? -> Expression instead of Statement
 					if (bb.isStackEmpty()) {
 						final PrefixExpression prefixExpression = getAst().newPrefixExpression();
+						prefixExpression.setOperand(getVarExpression(cop.getReg(), cop.getPc()));
 						prefixExpression
-								.setOperator(value == 1 ? PrefixExpression.Operator.INCREMENT
+								.setOperator(cop.getValue() == 1 ? PrefixExpression.Operator.INCREMENT
 										: PrefixExpression.Operator.DECREMENT);
-						final String name = getVarName(cop.getReg(), cop.getPc());
-						prefixExpression.setOperand(getAst().newSimpleName(name));
 						statement = getAst().newExpressionStatement(prefixExpression);
 						break;
 					}
 					log("Inline ++/--!");
 					break;
 				}
-				// TODO better check: followed by LOAD reg? -> Expression instead of Statement
+				if (rewriteInlineRegAssignment(bb, cop)) {
+					break;
+				}
 				if (bb.isStackEmpty()) {
-					// TODO could be inline at begin! do this eager because of for-loops / dalvik?
 					final Assignment assignment = getAst().newAssignment();
+					assignment.setLeftHandSide(getVarExpression(cop.getReg(), cop.getPc()));
 					assignment.setOperator(value >= 0 ? Assignment.Operator.PLUS_ASSIGN
 							: Assignment.Operator.MINUS_ASSIGN);
 					assignment.setRightHandSide(Types.decompileLiteral(cop.getT(),
@@ -437,7 +422,6 @@ public final class TrCfg2JavaExpressionStmts {
 					break;
 				}
 				log("Inline INC with value '" + value + "'!");
-				// TODO ...should be inlined and followed by a "LOAD reg"
 				break;
 			}
 			case INSTANCEOF: {
@@ -711,13 +695,7 @@ public final class TrCfg2JavaExpressionStmts {
 				fieldInit &= cop.getReg() == 0 && this.cfg.getMd().isConstructor()
 						|| !this.cfg.getInFrame(cop).load(cop.getReg()).isMethodParam();
 
-				final String name = getVarName(cop.getReg(), cop.getPc());
-				if ("this".equals(name)) {
-					bb.push(getAst().newThisExpression());
-				} else {
-					bb.push(getAst().newSimpleName(
-					/* scala */"default".equals(name) ? "_default" : name));
-				}
+				bb.push(getVarExpression(cop.getReg(), cop.getPc()));
 				break;
 			}
 			case MONITOR: {
@@ -839,10 +817,6 @@ public final class TrCfg2JavaExpressionStmts {
 					break;
 				}
 				final Assignment assignment = getAst().newAssignment();
-				// TODO a = a +/- 1 => a++ / a--
-				// TODO a = a <op> expr => a <op>= expr
-				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
-
 				if (f.isStatic()) {
 					final Name name = getAst().newQualifiedName(
 							Types.decompileName(f.getT(), this.cfg.getTd()),
@@ -854,6 +828,9 @@ public final class TrCfg2JavaExpressionStmts {
 					fieldAccess.setName(getAst().newSimpleName(f.getName()));
 					assignment.setLeftHandSide(fieldAccess);
 				}
+				// TODO a = a +/- 1 => a++ / a--
+				// TODO a = a <op> expr => a <op>= expr
+				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
 				// inline assignment, DUP(_X1) -> PUT
 				if (!bb.isStackEmpty() && bb.peek() == rightExpression) {
 					bb.pop();
@@ -932,12 +909,10 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 
 				final Assignment assignment = getAst().newAssignment();
+				assignment.setLeftHandSide(getVarExpression(cop.getReg(), cop.getPc() + 1));
 				// TODO a = a +/- 1 => a++ / a--
 				// TODO a = a <op> expr => a <op>= expr
 				assignment.setRightHandSide(wrap(rightExpression, Priority.ASSIGNMENT));
-
-				final String name = getVarName(cop.getReg(), cop.getPc() + 1);
-				assignment.setLeftHandSide(getAst().newSimpleName(name));
 				// inline assignment, DUP -> STORE
 				if (isInlineAssignment) {
 					bb.pop();
@@ -1000,10 +975,24 @@ public final class TrCfg2JavaExpressionStmts {
 		return this.cfg.getCu().getAst();
 	}
 
+	private Expression getVarExpression(final int reg, final int pc) {
+		final String name = getVarName(reg, pc);
+		if ("this".equals(name)) {
+			return getAst().newThisExpression();
+		}
+		return getAst().newSimpleName(name);
+	}
+
 	private String getVarName(final int reg, final int pc) {
 		final V v = this.cfg.getFrameVar(reg, pc);
 		final String name = v == null ? null : v.getName();
-		return name == null ? "r" + reg : name;
+		if (name == null) {
+			return "r" + reg;
+		}
+		if (/* scala */"default".equals(name)) {
+			return "_" + name;
+		}
+		return name;
 	}
 
 	private boolean isWide(final Op op) {
@@ -1618,8 +1607,8 @@ public final class TrCfg2JavaExpressionStmts {
 		String name = null;
 		if (firstOp instanceof STORE) {
 			bb.removeOp(0);
-			final STORE cop = (STORE) firstOp;
-			name = getVarName(cop.getReg(), cop.getPc() + 1);
+			final STORE op = (STORE) firstOp;
+			name = getVarName(op.getReg(), op.getPc() + 1);
 		} else if (firstOp instanceof POP) {
 			bb.removeOp(0);
 			name = "e"; // TODO hmmm...free variable name needed...
@@ -1652,6 +1641,70 @@ public final class TrCfg2JavaExpressionStmts {
 			tryStatement.catchClauses().add(catchClause);
 		}
 		bb.addStmt(tryStatement);
+		return true;
+	}
+
+	private boolean rewriteInlinePostfixIncDec(final BB bb, final INC op) {
+		if (bb.isStackEmpty()) {
+			return false;
+		}
+		final Expression e = bb.peek();
+		if (!(e instanceof SimpleName)) {
+			return false;
+		}
+		final String name = getVarName(op.getReg(), op.getPc());
+		if (!((SimpleName) e).getIdentifier().equals(name)) {
+			return false;
+		}
+		final PostfixExpression prefixExpression = getAst().newPostfixExpression();
+		prefixExpression.setOperator(op.getValue() == 1 ? PostfixExpression.Operator.INCREMENT
+				: PostfixExpression.Operator.DECREMENT);
+		prefixExpression.setOperand(getAst().newSimpleName(name));
+		bb.pop();
+		bb.push(prefixExpression);
+		return true;
+	}
+
+	private boolean rewriteInlinePrefixIncDec(final BB bb, final INC op) {
+		if (bb.getOps() == 0) {
+			return false;
+		}
+		final Op nextOp = bb.getOp(0);
+		if (!(nextOp instanceof LOAD)) {
+			return false;
+		}
+		if (((LOAD) nextOp).getReg() != op.getReg()) {
+			return false;
+		}
+		final PrefixExpression prefixExpression = getAst().newPrefixExpression();
+		prefixExpression.setOperand(getVarExpression(op.getReg(), op.getPc()));
+		prefixExpression.setOperator(op.getValue() == 1 ? PrefixExpression.Operator.INCREMENT
+				: PrefixExpression.Operator.DECREMENT);
+		bb.removeOp(0);
+		bb.push(prefixExpression);
+		return true;
+	}
+
+	private boolean rewriteInlineRegAssignment(final BB bb, final INC op) {
+		if (bb.getOps() == 0) {
+			return false;
+		}
+		final Op nextOp = bb.getOp(0);
+		if (!(nextOp instanceof LOAD)) {
+			return false;
+		}
+		if (((LOAD) nextOp).getReg() != op.getReg()) {
+			return false;
+		}
+		final Assignment assignment = getAst().newAssignment();
+		assignment.setLeftHandSide(getVarExpression(op.getReg(), op.getPc()));
+		final int value = op.getValue();
+		assignment.setOperator(value >= 0 ? Assignment.Operator.PLUS_ASSIGN
+				: Assignment.Operator.MINUS_ASSIGN);
+		assignment.setRightHandSide(Types.decompileLiteral(op.getT(), value >= 0 ? value : -value,
+				this.cfg.getTd()));
+		bb.removeOp(0);
+		bb.push(assignment);
 		return true;
 	}
 
