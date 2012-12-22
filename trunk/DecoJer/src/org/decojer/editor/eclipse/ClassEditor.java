@@ -243,7 +243,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				break;
 			case '*':
 				++c.pos;
-				sb.append('*');
+				sb.append("\\*");
 				break;
 			default:
 				parseT(s, c, sb);
@@ -560,26 +560,28 @@ public class ClassEditor extends MultiPageEditorPart {
 					return null;
 				}
 				if (element instanceof IField) {
-					// for source code isEnum() doesn't automatically inply isStatic(), check both
-					if (Flags.isStatic(((IField) element).getFlags())
-							|| Flags.isEnum(((IField) element).getFlags())) {
+					// anonymous enum initializers are relocated, see FD#relocateTd();
+					// isEnum() doesn't imply isStatic() for source code
+					if (!Flags.isEnum(((IField) element).getFlags())) {
+						if (Flags.isStatic(((IField) element).getFlags())) {
+							for (final BD bd : d.getBds()) {
+								if (bd instanceof MD && ((MD) bd).isInitializer()) {
+									d = bd;
+									continue path;
+								}
+							}
+							return null;
+						}
 						for (final BD bd : d.getBds()) {
-							if (bd instanceof MD && ((MD) bd).isInitializer()) {
+							// descriptor not important, all constructors have same field
+							// initializers
+							if (bd instanceof MD && ((MD) bd).isConstructor()) {
 								d = bd;
 								continue path;
 							}
 						}
-						return null;
 					}
-					for (final BD bd : d.getBds()) {
-						// descriptor not important, all constructors have same field initializers
-						if (bd instanceof MD && ((MD) bd).isConstructor()) {
-							d = bd;
-							continue path;
-						}
-					}
-					// TODO delete above code, @see TrCfg2JavaExpressionStmts#rewriteFieldInit
-					// relocate field anonymous classes to fields
+					// TODO relocation of other anonymous field initializer TDs...difficult
 					final String fieldName = element.getElementName();
 					for (final BD bd : d.getBds()) {
 						if (bd instanceof FD && ((FD) bd).getName().equals(fieldName)) {

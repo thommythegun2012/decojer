@@ -29,6 +29,8 @@ import java.util.logging.Logger;
 
 import lombok.Getter;
 
+import org.eclipse.jdt.core.dom.ASTNode;
+
 /**
  * Declaration.
  * 
@@ -60,14 +62,14 @@ public abstract class D {
 	 *            bode declaration
 	 */
 	protected void addBd(final BD bd) {
-		if (bd.parent != null) {
-			if (bd.parent != this) {
+		if (bd.getParent() != null) {
+			if (bd.getParent() != this) {
 				LOGGER.warning("Cannot change parent declaration for '" + bd + "' from '"
-						+ bd.parent + "' to '" + this + "'!");
+						+ bd.getParent() + "' to '" + this + "'!");
 			}
 			return;
 		}
-		bd.parent = this;
+		bd.setParent(this);
 		this.bds.add(bd);
 	}
 
@@ -94,6 +96,30 @@ public abstract class D {
 		final ArrayList<TD> tds = new ArrayList<TD>();
 		_getAllTds(tds);
 		return tds;
+	}
+
+	public BD getBdForDeclaration(final ASTNode node) {
+		for (final BD bd : getBds()) {
+			// could also work with polymorphism here...but why pollute subclasses with helper
+			if (bd instanceof FD) {
+				if (((FD) bd).getFieldDeclaration() == node) {
+					return bd;
+				}
+			} else if (bd instanceof MD) {
+				if (((MD) bd).getMethodDeclaration() == node) {
+					return bd;
+				}
+			} else if (bd instanceof TD) {
+				if (((TD) bd).getTypeDeclaration() == node) {
+					return bd;
+				}
+			}
+			final BD retBd = bd.getBdForDeclaration(node);
+			if (retBd != null) {
+				return retBd;
+			}
+		}
+		return null;
 	}
 
 	public abstract String getName();

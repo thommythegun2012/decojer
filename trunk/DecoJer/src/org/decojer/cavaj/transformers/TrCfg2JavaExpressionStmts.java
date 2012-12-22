@@ -1555,9 +1555,6 @@ public final class TrCfg2JavaExpressionStmts {
 					e.delete();
 					enumConstantDeclaration.arguments().add(0, e);
 				}
-
-				// TODO move anonymous TD to FD as child!!! important for ClassEditor
-				// select, if fixed change ClassEditor#findDeclarationForJavaElement too
 				final AnonymousClassDeclaration anonymousClassDeclaration = classInstanceCreation
 						.getAnonymousClassDeclaration();
 				if (anonymousClassDeclaration != null) {
@@ -1567,7 +1564,8 @@ public final class TrCfg2JavaExpressionStmts {
 					// constructor with the enum class as additional last parameter,
 					// this may contain field initializers, that we must keep,
 					// so we can only remove the constructor in final merge (because
-					// anonymous inner classes cannot hava visible Java constructor)
+					// anonymous inner classes cannot have visible Java constructor)
+					fd.relocateTd((TD) fd.getCu().getBdForDeclaration(anonymousClassDeclaration));
 				}
 				return true;
 			}
@@ -1594,7 +1592,7 @@ public final class TrCfg2JavaExpressionStmts {
 				bb.pop();
 			}
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Reewrite to field-initializer didn't work!", e);
+			LOGGER.log(Level.WARNING, "Rewrite to field-initializer didn't work!", e);
 			return false;
 		}
 		return true;

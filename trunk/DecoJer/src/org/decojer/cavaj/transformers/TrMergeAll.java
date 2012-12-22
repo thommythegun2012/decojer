@@ -100,6 +100,11 @@ public final class TrMergeAll {
 				if (fieldDeclaration != null) {
 					addBodyDeclaration(td, fieldDeclaration);
 				}
+				if (!bd.getBds().isEmpty()) {
+					for (final BD innerTd : bd.getBds()) {
+						transform((TD) innerTd);
+					}
+				}
 				continue;
 			}
 			if (bd instanceof MD) {

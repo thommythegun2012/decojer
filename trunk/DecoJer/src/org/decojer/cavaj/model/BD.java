@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -44,7 +45,8 @@ public abstract class BD extends D {
 	 * Parent declaration.
 	 */
 	@Getter
-	protected D parent;
+	@Setter(AccessLevel.PROTECTED)
+	private D parent;
 
 	/**
 	 * Add type declaration.

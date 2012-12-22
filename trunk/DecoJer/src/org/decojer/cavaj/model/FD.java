@@ -100,6 +100,20 @@ public final class FD extends BD {
 		return getF().getValueT();
 	}
 
+	/**
+	 * Relocate type declaration to field declaration, e.g. anonymous enum fields.
+	 * 
+	 * @param td
+	 *            type declaration
+	 */
+	public void relocateTd(final TD td) {
+		if (td.getParent() != null) {
+			td.getParent().getBds().remove(td);
+			td.setParent(null);
+		}
+		addTd(td);
+	}
+
 	@Override
 	public void setAccessFlags(final int accessFlags) {
 		getF().setAccessFlags(accessFlags);
