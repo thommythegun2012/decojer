@@ -48,6 +48,7 @@ import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
 import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
 import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
+import org.decojer.cavaj.utils.Cursor;
 import org.decojer.editor.eclipse.utils.FramesFigure;
 import org.decojer.editor.eclipse.utils.HierarchicalLayoutAlgorithm;
 import org.decojer.editor.eclipse.utils.MemoryStorageEditorInput;
@@ -111,60 +112,11 @@ public class ClassEditor extends MultiPageEditorPart {
 	private final static Logger LOGGER = Logger.getLogger(ClassEditor.class.getName());
 
 	private static Pattern createEclipseMethodSignaturePattern(final String signature) {
+		final Cursor c = new Cursor();
+		final StringBuilder sb = new StringBuilder();
 		// never contains generic type parameters
-		if (signature.charAt(0) != '(') {
-			LOGGER.warning("Eclipse method signature '" + signature + "' doesn't start with '('!");
-			return null;
-		}
-		final StringBuilder sb = new StringBuilder("\\(");
-		boolean ret = false;
-		int pos = 0;
-		while (++pos < signature.length()) {
-			final char c = signature.charAt(pos);
-			switch (c) {
-			case ')':
-				if (ret) {
-					LOGGER.warning("Eclipse method signature '" + signature
-							+ "' contains multiple ')'!");
-					return null;
-				}
-				ret = true;
-				sb.append("\\)");
-				continue;
-			case 'V':
-			case 'B':
-			case 'C':
-			case 'D':
-			case 'F':
-			case 'I':
-			case 'J':
-			case 'S':
-			case 'Z':
-				sb.append(c);
-				continue;
-			case '[':
-				// escape for regexp
-				sb.append("\\[");
-				continue;
-			case 'L': {
-				final int end = signature.indexOf(';', pos);
-				sb.append(signature.substring(pos, end + 1).replace("$", "\\$"));
-				pos = end;
-				continue;
-			}
-			case 'Q': {
-				final int end = signature.indexOf(';', pos);
-				sb.append("[LT][^;]*").append(
-						signature.substring(pos + 1, end + 1).replace("$", "\\$"));
-				pos = end;
-				continue;
-			}
-			}
-		}
-		if (!ret) {
-			LOGGER.warning("Eclipse method signature '" + signature + "' doesn't contain ')'!");
-			return null;
-		}
+		parseMethodParamTs(signature, c, sb);
+		parseT(signature, c, sb);
 		return Pattern.compile(sb.toString());
 	}
 
@@ -180,6 +132,126 @@ public class ClassEditor extends MultiPageEditorPart {
 			return jarPath + "!/" + packageName.replace('.', '/') + '/' + typeName;
 		}
 		return eclipseClassFile.getResource().getLocation().toOSString();
+	}
+
+	private static void parseClassT(final String s, final Cursor c, final StringBuilder sb) {
+		// ClassTypeSignature: L PackageSpecifier_opt SimpleClassTypeSignature
+		// ClassTypeSignatureSuffix_* ;
+		// PackageSpecifier: Identifier / PackageSpecifier_*
+		// SimpleClassTypeSignature: Identifier TypeArguments_opt
+		// ClassTypeSignatureSuffix: . SimpleClassTypeSignature
+		final int start = c.pos;
+		char ch;
+		// PackageSpecifier_opt Identifier
+		while (s.length() > c.pos && (ch = s.charAt(c.pos)) != '<' && ch != ';') {
+			// $ could be a regular identifier char, we cannot do anything about this here
+			++c.pos;
+		}
+		sb.append(s.substring(start, c.pos));
+		// TypeArguments_opt
+		parseTypeArgs(s, c, sb);
+		// ClassTypeSignatureSuffix_*
+		if (s.length() > c.pos && s.charAt(c.pos) == '.') {
+			++c.pos;
+			sb.append("\\.");
+			parseClassT(s, c, sb);
+			return;
+		}
+		return;
+	}
+
+	private static void parseMethodParamTs(final String s, final Cursor c, final StringBuilder sb) {
+		assert s.charAt(c.pos) == '(' : s.charAt(c.pos);
+		++c.pos;
+		sb.append("\\(");
+		while (s.charAt(c.pos) != ')') {
+			parseT(s, c, sb);
+		}
+		++c.pos;
+		sb.append("\\)");
+		return;
+	}
+
+	private static void parseT(final String s, final Cursor c, final StringBuilder sb) {
+		if (s.length() <= c.pos) {
+			return;
+		}
+		final char ch = s.charAt(c.pos++);
+		switch (ch) {
+		case 'I':
+		case 'S':
+		case 'B':
+		case 'C':
+		case 'Z':
+		case 'F':
+		case 'J':
+		case 'D':
+		case 'V':
+			sb.append(ch);
+			return;
+		case 'L':
+			// ClassTypeSignature
+			sb.append('L');
+			parseClassT(s, c, sb);
+			assert s.charAt(c.pos) == ';' : s.charAt(c.pos);
+			++c.pos;
+			sb.append(';');
+			return;
+		case '[':
+			// ArrayTypeSignature
+			sb.append('[');
+			parseT(s, c, sb);
+			return;
+		case 'T': {
+			final int pos = s.indexOf(';', c.pos);
+			sb.append('T').append(s.substring(c.pos, pos + 1));
+			c.pos = pos + 1;
+			return;
+		}
+		case 'Q':
+			// ClassTypeSignature
+			sb.append("[LT][^<;]*");
+			parseClassT(s, c, sb);
+			assert s.charAt(c.pos) == ';' : s.charAt(c.pos);
+			++c.pos;
+			sb.append(';');
+			return;
+		default:
+			throw new DecoJerException("Unknown type in '" + s + "' (" + c.pos + ")!");
+		}
+	}
+
+	private static void parseTypeArgs(final String s, final Cursor c, final StringBuilder sb) {
+		// TypeArguments_opt
+		if (s.length() <= c.pos || s.charAt(c.pos) != '<') {
+			return;
+		}
+		++c.pos;
+		sb.append('<');
+		char ch;
+		while ((ch = s.charAt(c.pos)) != '>') {
+			switch (ch) {
+			case '+':
+				++c.pos;
+				sb.append("\\+");
+				parseT(s, c, sb);
+				break;
+			case '-':
+				++c.pos;
+				sb.append('-');
+				parseT(s, c, sb);
+				break;
+			case '*':
+				++c.pos;
+				sb.append('*');
+				break;
+			default:
+				parseT(s, c, sb);
+			}
+		}
+		++c.pos;
+		sb.append('>');
+		return;
 	}
 
 	private Tree archiveTree;
