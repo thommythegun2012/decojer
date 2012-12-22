@@ -110,17 +110,10 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private final static Logger LOGGER = Logger.getLogger(ClassEditor.class.getName());
 
-	private static Pattern createEclipseSignaturePattern(final String signature) {
-		// create pattern to match against Eclipse-select Q-signatures (e.g. "QString;"):
-		// Q stands for unresolved type packages and is replaced by regexp [LT][^;]*
-
-		// for this we must decompile the signature, Q-signatures can follow to any stuff
-		// like this characters: ();[
-		// but also to primitives like this: (IIQString;)V
-
-		// Eclipse-signature doesn't contain method parameter types but contains generics
+	private static Pattern createEclipseMethodSignaturePattern(final String signature) {
+		// never contains generic type parameters
 		if (signature.charAt(0) != '(') {
-			LOGGER.warning("Eclipse-select signature '" + signature + "' doesn't start with '('");
+			LOGGER.warning("Eclipse method signature '" + signature + "' doesn't start with '('!");
 			return null;
 		}
 		final StringBuilder sb = new StringBuilder("\\(");
@@ -131,8 +124,8 @@ public class ClassEditor extends MultiPageEditorPart {
 			switch (c) {
 			case ')':
 				if (ret) {
-					LOGGER.warning("Eclipse-select signature '" + signature
-							+ "' contains multiple ')'");
+					LOGGER.warning("Eclipse method signature '" + signature
+							+ "' contains multiple ')'!");
 					return null;
 				}
 				ret = true;
@@ -169,7 +162,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			}
 		}
 		if (!ret) {
-			LOGGER.warning("Eclipse-select signature '" + signature + "' doesn't start with '('");
+			LOGGER.warning("Eclipse method signature '" + signature + "' doesn't contain ')'!");
 			return null;
 		}
 		return Pattern.compile(sb.toString());
@@ -553,16 +546,16 @@ public class ClassEditor extends MultiPageEditorPart {
 						continue path;
 					default:
 						// multiple methods with different signatures, we now have to match against
-						// Eclipse-select Q-signatures (e.g. "QString;"):
+						// Eclipse method selection signatures with Q instead of L or T:
 						// Q stands for unresolved type packages and is replaced by regexp [LT][^;]*
 
 						// for this we must decompile the signature, Q-signatures can follow to any
 						// stuff like this characters: ();[
 						// but also to primitives like this: (IIQString;)V
 
-						// Eclipse-signature doesn't contain method parameter types but contain
-						// generics
-						final Pattern signaturePattern = createEclipseSignaturePattern(signature);
+						// Such signatures doesn't contain method parameter types but they contain
+						// generic type parameters.
+						final Pattern signaturePattern = createEclipseMethodSignaturePattern(signature);
 						for (final MD checkMd : mds) {
 							// exact match for descriptor
 							if (signaturePattern.matcher(checkMd.getDescriptor()).matches()) {
