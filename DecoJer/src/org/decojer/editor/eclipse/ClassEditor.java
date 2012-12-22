@@ -560,7 +560,9 @@ public class ClassEditor extends MultiPageEditorPart {
 					return null;
 				}
 				if (element instanceof IField) {
-					if (Flags.isStatic(((IField) element).getFlags())) {
+					// for source code isEnum() doesn't automatically inply isStatic(), check both
+					if (Flags.isStatic(((IField) element).getFlags())
+							|| Flags.isEnum(((IField) element).getFlags())) {
 						for (final BD bd : d.getBds()) {
 							if (bd instanceof MD && ((MD) bd).isInitializer()) {
 								d = bd;
@@ -576,8 +578,6 @@ public class ClassEditor extends MultiPageEditorPart {
 							continue path;
 						}
 					}
-					// TODO this is the real valid code if TD-relink to fields works, see
-					// TrCfg2JavaExpressionStmts#convertToHLLIntermediate
 					final String fieldName = element.getElementName();
 					for (final BD bd : d.getBds()) {
 						if (bd instanceof FD && ((FD) bd).getName().equals(fieldName)) {
