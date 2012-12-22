@@ -1556,6 +1556,8 @@ public final class TrCfg2JavaExpressionStmts {
 					enumConstantDeclaration.arguments().add(0, e);
 				}
 
+				// TODO move anonymous TD to FD as child!!! important for ClassEditor
+				// select, if fixed change ClassEditor#findDeclarationForJavaElement too
 				final AnonymousClassDeclaration anonymousClassDeclaration = classInstanceCreation
 						.getAnonymousClassDeclaration();
 				if (anonymousClassDeclaration != null) {

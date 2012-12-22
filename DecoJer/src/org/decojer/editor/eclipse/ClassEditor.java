@@ -578,6 +578,8 @@ public class ClassEditor extends MultiPageEditorPart {
 							continue path;
 						}
 					}
+					// TODO delete above code, @see TrCfg2JavaExpressionStmts#rewriteFieldInit
+					// relocate field anonymous classes to fields
 					final String fieldName = element.getElementName();
 					for (final BD bd : d.getBds()) {
 						if (bd instanceof FD && ((FD) bd).getName().equals(fieldName)) {
