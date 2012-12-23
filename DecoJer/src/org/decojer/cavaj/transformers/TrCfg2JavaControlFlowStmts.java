@@ -116,9 +116,8 @@ public final class TrCfg2JavaControlFlowStmts {
 	private IfStatement transformCond(final Cond cond) {
 		final BB head = cond.getHead();
 
-		final IfStatement statement = (IfStatement) head.getFinalStmt();
 		final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
-				statement.getExpression());
+				((IfStatement) head.getFinalStmt()).getExpression());
 
 		final BB falseSucc = head.getFalseSucc();
 		final BB trueSucc = head.getTrueSucc();
@@ -191,9 +190,8 @@ public final class TrCfg2JavaControlFlowStmts {
 		case Loop.WHILENOT: {
 			final WhileStatement whileStatement = getAst().newWhileStatement();
 
-			final IfStatement statement = (IfStatement) head.getStmt(0);
 			final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
-					statement.getExpression());
+					((IfStatement) head.getStmt(0)).getExpression());
 			whileStatement.setExpression(negate ? not(expression) : expression);
 
 			final List<Statement> subStatements = Lists.newArrayList();
@@ -217,9 +215,8 @@ public final class TrCfg2JavaControlFlowStmts {
 			final List<Statement> subStatements = Lists.newArrayList();
 			transformSequence(loop, head, subStatements);
 
-			final Statement statement = last.getFinalStmt();
 			final Expression expression = (Expression) ASTNode.copySubtree(getAst(),
-					((IfStatement) statement).getExpression());
+					((IfStatement) last.getFinalStmt()).getExpression());
 			doStatement.setExpression(negate ? not(expression) : expression);
 
 			// has always block
