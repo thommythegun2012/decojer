@@ -199,7 +199,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			return;
 		case '[':
 			// ArrayTypeSignature
-			sb.append('[');
+			sb.append("\\[");
 			parseT(s, c, sb);
 			return;
 		case 'T': {
