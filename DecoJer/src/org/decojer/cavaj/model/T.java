@@ -821,6 +821,19 @@ public abstract class T {
 	}
 
 	/**
+	 * Is this type instance assignable from given class?
+	 * 
+	 * @param klass
+	 *            class
+	 * @return {@code true} - is assignable
+	 * 
+	 * @see Class#isAssignableFrom(Class)
+	 */
+	public boolean isAssignableFrom(final Class<?> klass) {
+		return isAssignableFrom(getDu().getT(klass));
+	}
+
+	/**
 	 * Is this type instance assignable from given type instance?
 	 * 
 	 * Attention: Doesn't work for primitives implicit conversion (byte 2 short 2 int, char 2 int).

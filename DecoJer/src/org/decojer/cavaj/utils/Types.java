@@ -74,12 +74,12 @@ public final class Types {
 			if (value == null) {
 				return ast.newNullLiteral();
 			}
-			if (t.getName().equals(Class.class.getName())) {
+			if (value instanceof T && t.isAssignableFrom(Class.class)) {
 				final TypeLiteral typeLiteral = ast.newTypeLiteral();
 				typeLiteral.setType(decompileType((T) value, td));
 				return typeLiteral;
 			}
-			if (t.getName().equals(String.class.getName())) {
+			if (value instanceof String && t.isAssignableFrom(String.class)) {
 				final StringLiteral stringLiteral = ast.newStringLiteral();
 				stringLiteral.setLiteralValue((String) value);
 				return stringLiteral;
