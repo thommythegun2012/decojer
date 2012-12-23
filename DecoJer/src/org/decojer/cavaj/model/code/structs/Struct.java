@@ -230,9 +230,6 @@ public class Struct {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
-		if (this.parent != null) {
-			sb.append(this.parent).append("\n\n");
-		}
 		sb.append("--- ").append(getClass().getSimpleName()).append(" ---");
 		sb.append("\nHead: BB ").append(getHead().getPostorder());
 		if (this.follow != null) {
@@ -258,6 +255,9 @@ public class Struct {
 			for (final BB bb : entry.getValue()) {
 				sb.append("BB ").append(bb.getPostorder()).append("   ");
 			}
+		}
+		if (this.parent != null) {
+			sb.append("\n\n").append(this.parent);
 		}
 		return sb.toString();
 	}

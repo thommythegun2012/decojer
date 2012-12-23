@@ -389,7 +389,11 @@ public final class TrControlFlowAnalysis {
 			members.add(bb);
 		}
 		for (final E out : bb.getOuts()) {
-			if (out.isBack() || out.isCatch()) { // TODO catches can create extra follows?!
+			if (out.isCatch()) {
+				// exclude for now...to check: catch into outer handler or inner handler?
+				continue;
+			}
+			if (out.isBack()) {
 				continue;
 			}
 			final BB succ = out.getEnd();
@@ -406,7 +410,12 @@ public final class TrControlFlowAnalysis {
 		boolean loopSucc = false;
 		boolean backEdge = false;
 		for (final E out : bb.getOuts()) {
-			if (out.isBack() && !out.isCatch()) {
+			if (out.isCatch()) {
+				// exclude for now...if handler encloses whole inner loop sequence, the loop last
+				// could be overwritten with final ret-back in handler
+				continue;
+			}
+			if (out.isBack()) {
 				// back edge (continue, tail, inner loop, outer label-continue)
 				if (out.getEnd() == loop.getHead()) {
 					backEdge = true;
