@@ -357,6 +357,8 @@ public final class TrControlFlowAnalysis {
 	private void findBranch(final Struct struct, final BB bb, final List<BB> members,
 			final Set<BB> follows) {
 		if (!members.contains(bb)) { // necessary check because of switch-case fall-throughs
+			// TODO this is not sufficient...cond-follow with self-loop will be recognized as
+			// follow, see commons-io:FileUtils#decode()
 			if (bb.getIns().size() > 1) {
 				// is there a none-member pred?
 				for (final E in : bb.getIns()) {
@@ -367,7 +369,11 @@ public final class TrControlFlowAnalysis {
 					if (members.contains(pred)) {
 						continue;
 					}
-					if (pred != struct.getHead() && !pred.hasPred(struct.getHead())) {
+					if (pred == struct.getHead()) {
+						if (members.isEmpty()) {
+							continue;
+						}
+					} else if (!pred.hasPred(struct.getHead())) {
 						return;
 					}
 					if (follows.contains(bb)) {
