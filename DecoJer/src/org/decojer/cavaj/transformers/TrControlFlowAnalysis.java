@@ -105,14 +105,6 @@ public final class TrControlFlowAnalysis {
 			cond.addMembers(firstValue, firstMembers);
 			return cond;
 		}
-		// e.g. if-continues, if-returns, if-throws => no else necessary
-		if (firstFollows.isEmpty()) {
-			// normal in JDK 6 bytecode, ifnot-expressions
-			cond.setType(negated ? Cond.IFNOT : Cond.IF);
-			cond.setFollow(secondSucc);
-			cond.addMembers(firstValue, firstMembers);
-			return cond;
-		}
 
 		final Set<BB> secondFollows = Sets.newHashSet();
 		final List<BB> secondMembers = Lists.newArrayList();
@@ -128,7 +120,7 @@ public final class TrControlFlowAnalysis {
 			return cond;
 		}
 
-		// end nodes are follows or breaks, no continues, returns, throws
+		// end nodes are follows or breaks - no continues, returns, throws
 
 		// JDK 6: end node with smallest order could be the follow
 		BB firstEndNode = null;
@@ -378,26 +370,11 @@ public final class TrControlFlowAnalysis {
 					if (pred != struct.getHead() && !pred.hasPred(struct.getHead())) {
 						return;
 					}
-
 					if (follows.contains(bb)) {
 						return;
 					}
-					assert follows.size() <= 1; // TODO just one possible?!
-
-					for (final BB follow : follows) {
-						if (follow.getPostorder() > bb.getPostorder()) {
-							assert follow.hasSucc(bb);
-
-							continue;
-						}
-						if (follow.getPostorder() < bb.getPostorder()) {
-							assert follow.hasPred(bb); // TODO with catches
-														// possible...org.eclipse.jdt.core.CheckDebugAttributes.execute()
-
-							follows.clear(); // TODO just 1 possible?!
-							break;
-						}
-					}
+					// multiple follows during iteration possible, reduce after #findBranch() to
+					// single top follow
 					follows.add(bb);
 					return;
 				}
@@ -406,8 +383,7 @@ public final class TrControlFlowAnalysis {
 			members.add(bb);
 		}
 		for (final E out : bb.getOuts()) {
-			if (out.isBack() || out.isCatch()) { // TODO catches can create extra follows, what to
-													// do? just if all incoming are members?
+			if (out.isBack() || out.isCatch()) { // TODO catches can create extra follows?!
 				continue;
 			}
 			final BB succ = out.getEnd();
