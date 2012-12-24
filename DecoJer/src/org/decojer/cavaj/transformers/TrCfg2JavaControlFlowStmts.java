@@ -426,9 +426,10 @@ public final class TrCfg2JavaControlFlowStmts {
 					}
 					final SwitchCase switchCase = getAst().newSwitchCase();
 					if (value == null) {
-						// necessary: expression initialized to null
+						// necessary: expression initialized to null for default case
 						switchCase.setExpression(null);
 					} else {
+						// TODO convert to char for chars etc., where can we get this info? binding?
 						switchCase.setExpression(getAst().newNumberLiteral(value.toString()));
 					}
 					switchStatement.statements().add(switchCase);
