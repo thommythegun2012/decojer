@@ -625,9 +625,9 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = null;
 					}
 					final InfixExpression infixExpression = getAst().newInfixExpression();
-					infixExpression.setLeftOperand(expression);
-					infixExpression.setRightOperand(getAst().newNullLiteral());
 					infixExpression.setOperator(operator);
+					infixExpression.setLeftOperand(wrap(expression, Priority.EQUALS_NOT));
+					infixExpression.setRightOperand(getAst().newNullLiteral());
 					expression = infixExpression;
 				} else if (this.cfg.getInFrame(op).peek().getT() == T.BOOLEAN) {
 					// "!a" or "a == 0"?
@@ -669,9 +669,10 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = null;
 					}
 					final InfixExpression infixExpression = getAst().newInfixExpression();
-					infixExpression.setLeftOperand(expression);
-					infixExpression.setRightOperand(getAst().newNumberLiteral("0"));
 					infixExpression.setOperator(operator);
+					infixExpression.setLeftOperand(wrap(expression,
+							Priority.priority(infixExpression)));
+					infixExpression.setRightOperand(getAst().newNumberLiteral("0"));
 					expression = infixExpression;
 				}
 				statement = getAst().newIfStatement();
