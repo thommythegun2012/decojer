@@ -36,6 +36,7 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.Name;
+import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.StringLiteral;
@@ -57,6 +58,8 @@ public final class Types {
 
 	private static final String JAVA_LANG = "java.lang";
 
+	private static final String PROP_LITERAL_VALUE = "propLiteralValue";
+
 	/**
 	 * Decompile literal.
 	 * 
@@ -69,6 +72,12 @@ public final class Types {
 	 * @return AST Expression
 	 */
 	public static Expression decompileLiteral(final T t, final Object value, final TD td) {
+		final Expression e = decompileLiteral2(t, value, td);
+		e.setProperty(PROP_LITERAL_VALUE, value);
+		return e;
+	}
+
+	private static Expression decompileLiteral2(final T t, final Object value, final TD td) {
 		final AST ast = td.getCu().getAst();
 		if (t.isRef() /* incl. T.AREF */) {
 			if (value == null) {
@@ -87,10 +96,7 @@ public final class Types {
 			LOGGER.warning("Unknown reference type '" + t + "'!");
 			return ast.newNullLiteral();
 		}
-		// if (t.isMulti()) {
-		// often not decideable, e.g. if byte or char
-		// LOGGER.warning("Convert literal for multi-type '" + t + "'!");
-		// }
+		// TODO really prefer INT in undecideable multi-case?
 		if (t.is(T.INT)) {
 			if (value instanceof Number) {
 				final int i = ((Number) value).intValue();
@@ -448,6 +454,23 @@ public final class Types {
 			}
 		}
 		return ast.newSimpleType(Types.decompileName(t, td));
+	}
+
+	/**
+	 * Get original integer value for literal expression.
+	 * 
+	 * Sometimes we must backtranslate literal constants like Byte.MAX_VALUE.
+	 * 
+	 * @param e
+	 *            literal expression
+	 * @return integer for literal
+	 */
+	public static int getIntValue(final Expression e) {
+		final Object value = e.getProperty(PROP_LITERAL_VALUE);
+		if (value instanceof Number) {
+			return ((Number) value).intValue();
+		}
+		return Integer.parseInt(((NumberLiteral) e).getToken());
 	}
 
 	private Types() {
