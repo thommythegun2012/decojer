@@ -328,9 +328,11 @@ public final class TrCfg2JavaControlFlowStmts {
 						if (struct != loop && (loop.isEndless() || loop.isPre())) {
 							// only from sub structure
 							statements.add(getAst().newContinueStatement());
-							return;
 						}
-						// head == last possible for self loops
+						// encountered same loop head => e.g. direct backjump through last sub
+						// sequence in loop
+						return;
+						// head == last possible for self loops => fall through to next checks...
 					}
 					if (!loop.isLast(bb)) {
 						continue;
