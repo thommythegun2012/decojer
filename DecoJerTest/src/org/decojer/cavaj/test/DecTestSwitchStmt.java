@@ -2,6 +2,27 @@ package org.decojer.cavaj.test;
 
 public abstract class DecTestSwitchStmt {
 
+	public static void testChar(final char c) {
+		switch (c) {
+		case 'a':
+			System.out.println('a');
+			break;
+		case 'b':
+			System.out.println('b');
+			break;
+		case Character.MAX_HIGH_SURROGATE:
+		case Character.MAX_LOW_SURROGATE:
+		case Character.MAX_VALUE:
+		case Character.MIN_HIGH_SURROGATE:
+		case Character.MIN_LOW_SURROGATE:
+		case Character.MIN_VALUE:
+			System.out.println('?');
+			break;
+		default:
+			System.out.println("??");
+		}
+	}
+
 	public static void testDefaultIfBreak(final int a) {
 		switch (a) {
 		default:
