@@ -126,7 +126,7 @@ public final class TrCfg2JavaExpressionStmts {
 			.getLogger(TrCfg2JavaExpressionStmts.class.getName());
 
 	private static Expression newInfixExpressionPop(final Operator operator, final BB bb) {
-		final Expression rightExpression = bb.pop();
+		final Expression rightExpression = bb.pop(); // keep order
 		return newInfixExpression(operator, bb.pop(), rightExpression);
 	}
 
@@ -211,8 +211,8 @@ public final class TrCfg2JavaExpressionStmts {
 						arrayCreation.setInitializer(arrayInitializer);
 						// TODO for higher performance and for full array creation removement we
 						// could defer the 0-fill and rewrite to the final A/STORE phase
-						final int size = Integer.parseInt(((NumberLiteral) arrayCreation
-								.dimensions().get(0)).getToken());
+						final int size = Types.getIntValue((NumberLiteral) arrayCreation
+								.dimensions().get(0));
 						// not all indexes may be set, null/0/false in JVM 7 are not set, fill
 						for (int i = size; i-- > 0;) {
 							arrayInitializer.expressions().add(
@@ -222,9 +222,8 @@ public final class TrCfg2JavaExpressionStmts {
 						}
 						arrayCreation.dimensions().clear();
 					}
-					final int index = Integer
-							.parseInt(((NumberLiteral) indexExpression).getToken());
-					arrayInitializer.expressions().set(index, wrap(rightExpression));
+					arrayInitializer.expressions().set(Types.getIntValue(indexExpression),
+							wrap(rightExpression));
 					break;
 				}
 				final ArrayAccess arrayAccess = getAst().newArrayAccess();
@@ -771,7 +770,7 @@ public final class TrCfg2JavaExpressionStmts {
 				arrayCreation.setType(getAst().newArrayType(
 						Types.decompileType(cop.getT(), this.cfg.getTd())));
 				for (int i = cop.getDimensions(); i-- > 0;) {
-					arrayCreation.dimensions().add(bb.pop());
+					arrayCreation.dimensions().add(wrap(bb.pop()));
 				}
 				bb.push(arrayCreation);
 				break;
@@ -785,7 +784,7 @@ public final class TrCfg2JavaExpressionStmts {
 				switch (cop.getKind()) {
 				case POP2:
 					if (!isWide(cop)) {
-						statement = getAst().newExpressionStatement(bb.pop());
+						statement = getAst().newExpressionStatement(wrap(bb.pop()));
 
 						log("TODO: POP2 for not wide in '" + this.cfg + "'! Statement output?");
 						bb.pop();
@@ -793,7 +792,7 @@ public final class TrCfg2JavaExpressionStmts {
 					}
 					// fall through for wide
 				case POP:
-					statement = getAst().newExpressionStatement(bb.pop());
+					statement = getAst().newExpressionStatement(wrap(bb.pop()));
 					break;
 				default:
 					log("Unknown POP type '" + cop.getKind() + "'!");
@@ -855,6 +854,10 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			case REM: {
 				bb.push(newInfixExpressionPop(InfixExpression.Operator.REMAINDER, bb));
+				break;
+			}
+			case RET: {
+				// TODO
 				break;
 			}
 			case RETURN: {
