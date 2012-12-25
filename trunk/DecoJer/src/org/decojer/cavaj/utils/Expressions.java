@@ -193,45 +193,42 @@ public final class Expressions {
 	}
 
 	/**
-	 * Unwrap expression. Ensures that there is no parent set.
+	 * Unwrap expression, means remove parathesizes.
+	 * 
+	 * We don't remove parents here, copy lazy at wrap time again.
 	 * 
 	 * @param expression
 	 *            expression
 	 * @return unwrapped expression
 	 */
 	public static Expression unwrap(final Expression expression) {
-		Expression rawExpression;
-		if (expression instanceof ParenthesizedExpression) {
-			rawExpression = ((ParenthesizedExpression) expression).getExpression();
-		} else {
-			if (expression.getParent() == null) {
-				return expression;
-			}
-			rawExpression = expression;
+		Expression e = expression;
+		while (e instanceof ParenthesizedExpression) {
+			e = ((ParenthesizedExpression) e).getExpression();
 		}
-		return (Expression) ASTNode.copySubtree(expression.getAST(), rawExpression);
+		return e;
 	}
 
 	/**
-	 * Wrap expression. Ensures that there is no parent set.
+	 * Wrap expression. Ensures that there is no parent set and adds paranthesizes if necessary.
 	 * 
 	 * @param expression
 	 *            expression
 	 * @return wrapped expression
 	 */
 	public static Expression wrap(final Expression expression) {
-		return wrap(expression, Integer.MAX_VALUE);
+		return expression.getParent() == null ? expression : (Expression) ASTNode.copySubtree(
+				expression.getAST(), expression);
 	}
 
 	private static Expression wrap(final Expression expression, final int priority) {
-		final Expression rawExpression = expression.getParent() == null ? expression
-				: (Expression) ASTNode.copySubtree(expression.getAST(), expression);
-		if (Priority.priority(rawExpression).getPriority() <= priority) {
-			return rawExpression;
+		final Expression e = wrap(expression);
+		if (Priority.priority(e).getPriority() <= priority) {
+			return e;
 		}
 		final ParenthesizedExpression parenthesizedExpression = expression.getAST()
 				.newParenthesizedExpression();
-		parenthesizedExpression.setExpression(rawExpression);
+		parenthesizedExpression.setExpression(e);
 		return parenthesizedExpression;
 	}
 

@@ -365,6 +365,7 @@ public final class TrJvmStruct2JavaAst {
 			if (i == paramTs.length - 1 && md.check(AF.VARARGS)) {
 				if (methodParameterType instanceof ArrayType) {
 					singleVariableDeclaration.setVarargs(true);
+					// must copy because we cannot delete mandatory ArrayType.componentType
 					singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
 							((ArrayType) methodParameterType).getComponentType()));
 				} else {
