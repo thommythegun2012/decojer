@@ -901,13 +901,13 @@ public class ReadCodeAttribute {
 			 * MONITOR *
 			 ***********/
 			case Opcode.MONITORENTER:
-				type = MONITOR.T_ENTER;
+				oValue = MONITOR.Kind.ENTER;
 				// fall through
 			case Opcode.MONITOREXIT:
-				if (type == -1) {
-					type = MONITOR.T_EXIT;
+				if (oValue == null) {
+					oValue = MONITOR.Kind.EXIT;
 				}
-				this.ops.add(new MONITOR(this.ops.size(), opcode, line, type));
+				this.ops.add(new MONITOR(this.ops.size(), opcode, line, (MONITOR.Kind) oValue));
 				break;
 			/*******
 			 * MUL *

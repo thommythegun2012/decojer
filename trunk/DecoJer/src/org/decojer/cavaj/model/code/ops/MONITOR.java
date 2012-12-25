@@ -32,12 +32,26 @@ import lombok.Getter;
  */
 public class MONITOR extends Op {
 
-	public static final int T_ENTER = 0;
+	/**
+	 * Pop kind.
+	 * 
+	 * @author André Pankraz
+	 */
+	public enum Kind {
 
-	public static final int T_EXIT = 1;
+		/**
+		 * Enter monitor.
+		 */
+		ENTER,
+		/**
+		 * Exit monitor.
+		 */
+		EXIT
+
+	}
 
 	@Getter
-	private final int monitorType;
+	private final Kind kind;
 
 	/**
 	 * Constructor.
@@ -48,15 +62,13 @@ public class MONITOR extends Op {
 	 *            operation code
 	 * @param line
 	 *            line number
-	 * @param monitorType
-	 *            monitor type
+	 * @param kind
+	 *            monitor kind
 	 */
-	public MONITOR(final int pc, final int opcode, final int line, final int monitorType) {
+	public MONITOR(final int pc, final int opcode, final int line, final Kind kind) {
 		super(pc, opcode, line);
 
-		assert 0 <= monitorType && monitorType <= 1 : monitorType;
-
-		this.monitorType = monitorType;
+		this.kind = kind;
 	}
 
 	@Override
@@ -71,7 +83,7 @@ public class MONITOR extends Op {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + new String[] { "ENTER", "EXIT" }[this.monitorType];
+		return super.toString() + "_" + getKind();
 	}
 
 }
