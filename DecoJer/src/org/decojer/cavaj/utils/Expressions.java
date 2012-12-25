@@ -210,7 +210,7 @@ public final class Expressions {
 	}
 
 	/**
-	 * Wrap expression. Ensures that there is no parent set and adds paranthesizes if necessary.
+	 * Wrap expression. Ensures that there is no parent set.
 	 * 
 	 * @param expression
 	 *            expression
