@@ -305,7 +305,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitInsn(final int opcode) {
 		T t = null;
-		int type = -1;
 		int iValue = Integer.MIN_VALUE;
 		Object oValue = null;
 
@@ -619,13 +618,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * MONITOR *
 		 ***********/
 		case Opcodes.MONITORENTER:
-			type = MONITOR.T_ENTER;
+			oValue = MONITOR.Kind.ENTER;
 			// fall through
 		case Opcodes.MONITOREXIT:
-			if (type == -1) {
-				type = MONITOR.T_EXIT;
+			if (oValue == null) {
+				oValue = MONITOR.Kind.EXIT;
 			}
-			this.ops.add(new MONITOR(this.ops.size(), opcode, this.line, type));
+			this.ops.add(new MONITOR(this.ops.size(), opcode, this.line, (MONITOR.Kind) oValue));
 			break;
 		/*******
 		 * MUL *

@@ -379,6 +379,11 @@ public final class TrControlFlowAnalysis {
 					if (follows.contains(bb)) {
 						return;
 					}
+					if (bb.isCatchHandler()) {
+						// if all incoming catches are inside branch then the above pred-member
+						// check was allready sucessful, but we will never be a follow
+						return;
+					}
 					// multiple follows during iteration possible, reduce after #findBranch() to
 					// single top follow
 					follows.add(bb);
@@ -389,10 +394,6 @@ public final class TrControlFlowAnalysis {
 			members.add(bb);
 		}
 		for (final E out : bb.getOuts()) {
-			if (out.isCatch()) {
-				// exclude for now...to check: catch into outer handler or inner handler?
-				continue;
-			}
 			if (out.isBack()) {
 				continue;
 			}

@@ -255,7 +255,7 @@ public class ReadCodeItem {
 			line = this.readDebugInfo.getLine(vmpc);
 			opcode = instruction.opcode.value;
 
-			int type = -1;
+			final int type = -1;
 			int iValue = 0;
 			Object oValue = null;
 
@@ -1115,8 +1115,7 @@ public class ReadCodeItem {
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
-				((ClassT) ownerT)
-						.setInterface(instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE);
+				((ClassT) ownerT).setInterface(instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE);
 				final M m = ownerT.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
 						.getPrototype().getPrototypeString());
 				m.setStatic(instruction.opcode == Opcode.INVOKE_STATIC_RANGE);
@@ -1142,11 +1141,11 @@ public class ReadCodeItem {
 			 * MONITOR *
 			 ***********/
 			case MONITOR_ENTER:
-				type = MONITOR.T_ENTER;
+				oValue = MONITOR.Kind.ENTER;
 				// fall through
 			case MONITOR_EXIT:
-				if (type == -1) {
-					type = MONITOR.T_EXIT;
+				if (oValue == null) {
+					oValue = MONITOR.Kind.EXIT;
 				}
 				{
 					// synchronized A
@@ -1155,7 +1154,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr
 							.getRegisterA()));
 
-					this.ops.add(new MONITOR(this.ops.size(), opcode, line, type));
+					this.ops.add(new MONITOR(this.ops.size(), opcode, line, (MONITOR.Kind) oValue));
 				}
 				break;
 			/********

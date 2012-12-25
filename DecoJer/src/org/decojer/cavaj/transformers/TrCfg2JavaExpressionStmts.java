@@ -59,6 +59,7 @@ import org.decojer.cavaj.model.code.ops.INVOKE;
 import org.decojer.cavaj.model.code.ops.JCMP;
 import org.decojer.cavaj.model.code.ops.JCND;
 import org.decojer.cavaj.model.code.ops.LOAD;
+import org.decojer.cavaj.model.code.ops.MONITOR;
 import org.decojer.cavaj.model.code.ops.NEW;
 import org.decojer.cavaj.model.code.ops.NEWARRAY;
 import org.decojer.cavaj.model.code.ops.Op;
@@ -107,6 +108,7 @@ import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
 import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.SwitchStatement;
+import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
@@ -699,7 +701,23 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case MONITOR: {
-				bb.pop();
+				final MONITOR cop = (MONITOR) op;
+
+				switch (cop.getKind()) {
+				case ENTER:
+					final SynchronizedStatement synchronizedStatement = getAst()
+							.newSynchronizedStatement();
+					// TODO we get something like synchronized(r6=r4) for synchronized(r4), _tmp_
+					// monitor var is then r6 for exit
+					synchronizedStatement.setExpression(wrap(bb.pop()));
+					statement = synchronizedStatement;
+					break;
+				case EXIT:
+					bb.pop();
+					break;
+				default:
+					log("Unknown monitor kind '" + cop.getKind() + "'!");
+				}
 				break;
 			}
 			case MUL: {
