@@ -86,7 +86,9 @@ public final class TrControlFlowAnalysis {
 		 * cond.setFollow(falseSucc); return cond; }
 		 */
 		// JDK 1 && 2 create wrong line numbers for final return (see DecTestIfStmt)
-		final boolean negated = falseSucc.isBefore(trueSucc);
+
+		// second part is trick against things like iteration in loop last:
+		final boolean negated = falseSucc.isBefore(trueSucc) || trueSucc.isBefore(head);
 		final BB firstSucc = negated ? falseSucc : trueSucc;
 		final BB secondSucc = negated ? trueSucc : falseSucc;
 		final Boolean firstValue = negated;
@@ -100,7 +102,7 @@ public final class TrControlFlowAnalysis {
 		// if-continues, if-returns, if-throws => no else necessary
 		if (firstFollows.isEmpty() || firstFollows.contains(secondSucc)) {
 			// normal in JDK 6 bytecode, ifnot-expressions
-			cond.setType(negated ? Cond.IFNOT : Cond.IF);
+			cond.setKind(negated ? Cond.Kind.IFNOT : Cond.Kind.IF);
 			cond.setFollow(secondSucc);
 			cond.addMembers(firstValue, firstMembers);
 			return cond;
@@ -114,7 +116,7 @@ public final class TrControlFlowAnalysis {
 		// if-continues, if-returns, if-throws => no else necessary
 		if (secondFollows.isEmpty() || secondFollows.contains(firstSucc)) {
 			// also often in JDK 6 bytecode, especially in parent structs
-			cond.setType(negated ? Cond.IF : Cond.IFNOT);
+			cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
 			cond.setFollow(firstSucc);
 			cond.addMembers(secondValue, secondMembers);
 			return cond;
@@ -140,7 +142,7 @@ public final class TrControlFlowAnalysis {
 		if (firstEndNode == secondEndNode) {
 			// normal stuff
 			cond.setFollow(firstEndNode);
-			cond.setType(negated ? Cond.IFNOT_ELSE : Cond.IF_ELSE);
+			cond.setKind(negated ? Cond.Kind.IFNOT_ELSE : Cond.Kind.IF_ELSE);
 			cond.addMembers(firstValue, firstMembers);
 			cond.addMembers(secondValue, secondMembers);
 			return cond;
@@ -158,7 +160,7 @@ public final class TrControlFlowAnalysis {
 		final BB tail = loop.getLast();
 		assert tail != null;
 
-		int headType = 0;
+		Loop.Kind headKind = null;
 		BB headFollow = null;
 
 		// WHILE && FOR => only 1 head statement because of iteration back edge,
@@ -172,48 +174,48 @@ public final class TrControlFlowAnalysis {
 			if (loop.isMember(trueSucc) && !loop.isMember(falseSucc)) {
 				// JDK 6: true is member, opPc of pre head > next member,
 				// leading goto
-				headType = Loop.WHILE;
+				headKind = Loop.Kind.WHILE;
 				headFollow = falseSucc;
 			} else if (loop.isMember(falseSucc) && !loop.isMember(trueSucc)) {
 				// JDK 5: false is member, opPc of pre head < next member,
 				// trailing goto (negated, check class javascript.Decompiler)
-				headType = Loop.WHILENOT;
+				headKind = Loop.Kind.WHILENOT;
 				headFollow = trueSucc;
 			}
 			// no proper pre head!
 		}
 
-		int tailType = 0;
+		Loop.Kind tailKind = null;
 		BB tailFollow = null;
 
 		if (tail.isCondOrPreLoopHead()) {
 			final BB falseSucc = tail.getFalseSucc();
 			final BB trueSucc = tail.getTrueSucc();
 			if (loop.isHead(trueSucc)) {
-				tailType = Loop.DO_WHILE;
+				tailKind = Loop.Kind.DO_WHILE;
 				tailFollow = falseSucc;
 			} else if (loop.isHead(falseSucc)) {
-				tailType = Loop.DO_WHILENOT;
+				tailKind = Loop.Kind.DO_WHILENOT;
 				tailFollow = trueSucc;
 			}
 		}
 
-		if (headType > 0 && tailType == 0) {
-			loop.setType(headType);
+		if (headKind != null && tailKind == null) {
+			loop.setKind(headKind);
 			loop.setFollow(headFollow);
 			return loop;
 		}
-		if (headType == 0 && tailType > 0) {
-			loop.setType(tailType);
+		if (headKind == null && tailKind != null) {
+			loop.setKind(tailKind);
 			loop.setFollow(tailFollow);
 			return loop;
 		}
-		if (headType > 0 && tailType > 0) {
+		if (headKind != null && tailKind != null) {
 			final List<BB> headMembers = Lists.newArrayList();
 			final Set<BB> headFollows = Sets.newHashSet();
 			findBranch(loop, headFollow, headMembers, headFollows);
 			if (headFollows.contains(tailFollow)) {
-				loop.setType(tailType);
+				loop.setKind(tailKind);
 				loop.setFollow(tailFollow);
 				return loop;
 			}
@@ -221,12 +223,12 @@ public final class TrControlFlowAnalysis {
 			final Set<BB> tailFollows = Sets.newHashSet();
 			findBranch(loop, tailFollow, tailMembers, tailFollows);
 			if (tailFollows.contains(headFollow)) {
-				loop.setType(headType);
+				loop.setKind(headKind);
 				loop.setFollow(headFollow);
 				return loop;
 			}
 		}
-		loop.setType(Loop.ENDLESS);
+		loop.setKind(Loop.Kind.ENDLESS);
 		return loop;
 	}
 

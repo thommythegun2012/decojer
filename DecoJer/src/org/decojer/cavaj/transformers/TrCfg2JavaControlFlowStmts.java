@@ -122,11 +122,11 @@ public final class TrCfg2JavaControlFlowStmts {
 		final BB trueSucc = head.getTrueSucc();
 		boolean negate = false;
 
-		switch (cond.getType()) {
-		case Cond.IFNOT:
+		switch (cond.getKind()) {
+		case IFNOT:
 			ifStatement.setExpression(wrap(not(ifStatement.getExpression())));
 			negate = true;
-		case Cond.IF: {
+		case IF: {
 			final List<Statement> subStatements = Lists.newArrayList();
 			transformSequence(cond, negate ? falseSucc : trueSucc, subStatements);
 
@@ -139,10 +139,10 @@ public final class TrCfg2JavaControlFlowStmts {
 			}
 			return ifStatement;
 		}
-		case Cond.IFNOT_ELSE:
+		case IFNOT_ELSE:
 			ifStatement.setExpression(wrap(not(ifStatement.getExpression())));
 			negate = true;
-		case Cond.IF_ELSE: {
+		case IF_ELSE: {
 			{
 				final List<Statement> subStatements = Lists.newArrayList();
 				transformSequence(cond, negate ? falseSucc : trueSucc, subStatements);
@@ -170,7 +170,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			return ifStatement;
 		}
 		default:
-			log("Unknown cond type '" + cond.getType() + "'!");
+			log("Unknown cond type '" + cond.getKind() + "'!");
 			return null;
 		}
 	}
@@ -180,10 +180,10 @@ public final class TrCfg2JavaControlFlowStmts {
 		final BB last = loop.getLast();
 
 		boolean negate = true;
-		switch (loop.getType()) {
-		case Loop.WHILE:
+		switch (loop.getKind()) {
+		case WHILE:
 			negate = false;
-		case Loop.WHILENOT: {
+		case WHILENOT: {
 			final WhileStatement whileStatement = getAst().newWhileStatement();
 
 			final Expression expression = ((IfStatement) head.getStmt(0)).getExpression();
@@ -202,9 +202,9 @@ public final class TrCfg2JavaControlFlowStmts {
 			}
 			return whileStatement;
 		}
-		case Loop.DO_WHILE:
+		case DO_WHILE:
 			negate = false;
-		case Loop.DO_WHILENOT: {
+		case DO_WHILENOT: {
 			final DoStatement doStatement = getAst().newDoStatement();
 
 			final List<Statement> subStatements = Lists.newArrayList();
@@ -217,7 +217,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			((Block) doStatement.getBody()).statements().addAll(subStatements);
 			return doStatement;
 		}
-		case Loop.ENDLESS: {
+		case ENDLESS: {
 			final WhileStatement whileStatement = getAst().newWhileStatement();
 
 			whileStatement.setExpression(getAst().newBooleanLiteral(true));
@@ -235,7 +235,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			return whileStatement;
 		}
 		default:
-			log("Unknown loop type '" + loop.getType() + "'!");
+			log("Unknown loop type '" + loop.getKind() + "'!");
 			return null;
 		}
 	}
