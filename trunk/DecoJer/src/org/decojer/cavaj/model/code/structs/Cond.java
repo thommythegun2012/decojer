@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code.structs;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.code.BB;
 
 /**
@@ -32,17 +35,35 @@ import org.decojer.cavaj.model.code.BB;
  */
 public class Cond extends Struct {
 
-	public static final int IF = 1;
+	/**
+	 * Conditional kind.
+	 * 
+	 * @author André Pankraz
+	 */
+	public enum Kind {
 
-	public static final int IF_ELSE = 2;
+		/**
+		 * If condition.
+		 */
+		IF,
+		/**
+		 * If-else condition.
+		 */
+		IF_ELSE,
+		/**
+		 * Ifnot-condition.
+		 */
+		IFNOT,
+		/**
+		 * Ifnot-else condition.
+		 */
+		IFNOT_ELSE
 
-	public static final int IFNOT = 3;
+	}
 
-	public static final int IFNOT_ELSE = 4;
-
-	public static final String[] TYPE_NAME = { "<UNKNOWN>", "IF", "IF_ELSE", "IFNOT", "IFNOT_ELSE" };
-
-	private int type;
+	@Getter
+	@Setter
+	private Kind kind;
 
 	/**
 	 * Constructor.
@@ -54,29 +75,10 @@ public class Cond extends Struct {
 		super(head);
 	}
 
-	/**
-	 * Get conditional type.
-	 * 
-	 * @return conditional type
-	 */
-	public int getType() {
-		return this.type;
-	}
-
-	/**
-	 * Set conditional type.
-	 * 
-	 * @param type
-	 *            conditional type
-	 */
-	public void setType(final int type) {
-		this.type = type;
-	}
-
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(super.toString());
-		sb.append("\nType: " + TYPE_NAME[getType()]);
+		sb.append("\nKind: " + this.kind);
 		return sb.toString();
 	}
 

@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code.structs;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.code.BB;
 
 /**
@@ -32,22 +35,42 @@ import org.decojer.cavaj.model.code.BB;
  */
 public class Loop extends Struct {
 
-	public static final int ENDLESS = 1;
+	/**
+	 * Loop kind.
+	 * 
+	 * @author André Pankraz
+	 */
+	public enum Kind {
 
-	public static final int WHILE = 2;
+		/**
+		 * Endless loop.
+		 */
+		ENDLESS,
+		/**
+		 * While loop.
+		 */
+		WHILE,
+		/**
+		 * Whilenot loop.
+		 */
+		WHILENOT,
+		/**
+		 * Do-while loop.
+		 */
+		DO_WHILE,
+		/**
+		 * Do-whilenot loop.
+		 */
+		DO_WHILENOT
 
-	public static final int WHILENOT = 3;
+	}
 
-	public static final int DO_WHILE = 4;
-
-	public static final int DO_WHILENOT = 5;
-
-	public static final String[] TYPE_NAME = { "<UNKNOWN>", "ENDLESS", "WHILE", "WHILENOT",
-			"DO_WHILE", "DO_WHILENOT" };
-
+	@Getter
 	private BB last;
 
-	private int type;
+	@Getter
+	@Setter
+	private Kind kind;
 
 	/**
 	 * Constructor.
@@ -57,24 +80,6 @@ public class Loop extends Struct {
 	 */
 	public Loop(final BB bb) {
 		super(bb);
-	}
-
-	/**
-	 * Get last BB.
-	 * 
-	 * @return last BB
-	 */
-	public BB getLast() {
-		return this.last;
-	}
-
-	/**
-	 * Get loop type.
-	 * 
-	 * @return loop type (endless, do-while etc.)
-	 */
-	public int getType() {
-		return this.type;
 	}
 
 	@Override
@@ -93,7 +98,7 @@ public class Loop extends Struct {
 	 * @return {@code true} - BB is target for continue
 	 */
 	public boolean isContinueTarget(final BB bb) {
-		switch (this.type) {
+		switch (getKind()) {
 		case DO_WHILE:
 		case DO_WHILENOT:
 		case ENDLESS: // must reduce empty BBs to direct edges before!
@@ -111,7 +116,7 @@ public class Loop extends Struct {
 	 * @return {@code true} - loop is endless
 	 */
 	public boolean isEndless() {
-		return this.type == ENDLESS;
+		return getKind() == Kind.ENDLESS;
 	}
 
 	/**
@@ -137,7 +142,7 @@ public class Loop extends Struct {
 	 * @return {@code true} - loop is post
 	 */
 	public boolean isPost() {
-		return this.type == DO_WHILE || this.type == DO_WHILENOT;
+		return getKind() == Kind.DO_WHILE || getKind() == Kind.DO_WHILENOT;
 	}
 
 	/**
@@ -146,7 +151,7 @@ public class Loop extends Struct {
 	 * @return {@code true} - loop is pre
 	 */
 	public boolean isPre() {
-		return this.type == WHILE || this.type == WHILENOT;
+		return getKind() == Kind.WHILE || getKind() == Kind.WHILENOT;
 	}
 
 	/**
@@ -161,21 +166,11 @@ public class Loop extends Struct {
 		bb.setStruct(this);
 	}
 
-	/**
-	 * Set loop type.
-	 * 
-	 * @param type
-	 *            loop type (endless, do-while etc.)
-	 */
-	public void setType(final int type) {
-		this.type = type;
-	}
-
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(super.toString());
 		sb.append("\nLast: BB " + getLast().getPostorder());
-		sb.append("\nType: " + TYPE_NAME[getType()]);
+		sb.append("\nType: " + getKind());
 		return sb.toString();
 	}
 
