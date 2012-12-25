@@ -461,6 +461,8 @@ public final class Types {
 	 * 
 	 * Sometimes we must backtranslate literal constants like Byte.MAX_VALUE.
 	 * 
+	 * Potential problem: ASTNode#copySubtree() will forget additional properties.
+	 * 
 	 * @param e
 	 *            literal expression
 	 * @return integer for literal
