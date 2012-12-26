@@ -262,6 +262,17 @@ public abstract class DecTestExceptions {
 		System.out.println("POST");
 	}
 
+	void testEndlessCatch() {
+		while (true) {
+			try {
+				wait();
+				return;
+			} catch (InterruptedException e) {
+				System.out.println("INTER");
+			}
+		}
+	}
+
 	void tryEndlessTry() {
 		try {
 			while (true) {
