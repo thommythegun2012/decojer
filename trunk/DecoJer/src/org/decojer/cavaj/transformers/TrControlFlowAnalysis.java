@@ -257,7 +257,7 @@ public final class TrControlFlowAnalysis {
 			final BB caseBb = caseOut.getEnd();
 
 			if (cases == 1 && (follows.isEmpty() || follows.contains(caseBb))) {
-				switchStruct.setType(Switch.SWITCH);
+				switchStruct.setKind(Switch.Kind.NO_DEFAULT);
 				switchStruct.setFollow(caseBb);
 				return switchStruct;
 			}
@@ -328,7 +328,7 @@ public final class TrControlFlowAnalysis {
 			}
 
 		}
-		switchStruct.setType(Switch.SWITCH_DEFAULT);
+		switchStruct.setKind(Switch.Kind.WITH_DEFAULT);
 		// TODO end node with smallest order could be the follow
 		BB switchFollow = null;
 		for (final BB follow : follows) {

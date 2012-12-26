@@ -26,6 +26,9 @@ package org.decojer.cavaj.model.code.structs;
 import java.util.List;
 import java.util.Map.Entry;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.code.BB;
 
 /**
@@ -35,13 +38,27 @@ import org.decojer.cavaj.model.code.BB;
  */
 public class Switch extends Struct {
 
-	public static final int SWITCH = 1;
+	/**
+	 * Switch kind.
+	 * 
+	 * @author André Pankraz
+	 */
+	public enum Kind {
 
-	public static final int SWITCH_DEFAULT = 2;
+		/**
+		 * No-default switch.
+		 */
+		NO_DEFAULT,
+		/**
+		 * With-defaulte switch.
+		 */
+		WITH_DEFAULT
 
-	public static final String[] TYPE_NAME = { "<UNKNOWN>", "SWITCH", "SWITCH_DEFAULT" };
+	}
 
-	private int type;
+	@Getter
+	@Setter
+	private Kind kind;
 
 	/**
 	 * Constructor.
@@ -51,15 +68,6 @@ public class Switch extends Struct {
 	 */
 	public Switch(final BB head) {
 		super(head);
-	}
-
-	/**
-	 * Get switch type.
-	 * 
-	 * @return switch type
-	 */
-	public int getType() {
-		return this.type;
 	}
 
 	public boolean isCase(final BB bb) {
@@ -75,20 +83,10 @@ public class Switch extends Struct {
 		return false;
 	}
 
-	/**
-	 * Set switch type.
-	 * 
-	 * @param type
-	 *            switch type
-	 */
-	public void setType(final int type) {
-		this.type = type;
-	}
-
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(super.toString());
-		sb.append("\nType: " + TYPE_NAME[getType()]);
+		sb.append("\nType: " + getKind());
 		return sb.toString();
 	}
 
