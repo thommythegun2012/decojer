@@ -438,11 +438,11 @@ public final class BB {
 	}
 
 	/**
-	 * Is conditional or pre loop head?
+	 * Is conditional BB? (e.g. if or loop head)
 	 * 
-	 * @return {@code true} - is conditional or pre loop head
+	 * @return {@code true} - is conditional BB
 	 */
-	public boolean isCondOrPreLoopHead() {
+	public boolean isCond() {
 		return this.stmts.isEmpty() ? false
 				: this.stmts.get(this.stmts.size() - 1) instanceof IfStatement;
 	}
@@ -456,11 +456,32 @@ public final class BB {
 		return getLine() >= 0;
 	}
 
+	/**
+	 * Is loop head?
+	 * 
+	 * @return {@code true} - is loop head
+	 */
 	public boolean isLoopHead() {
 		// at least one incoming edge must be a back edge (self loop possible), in Java only
 		// possible for loop heads (exclude JVM self catches)
 		for (final E in : this.ins) {
 			if (in.isBack() && !in.isCatch()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Is loop last?
+	 * 
+	 * @return {@code true} - is loop last
+	 */
+	public boolean isLoopLast() {
+		// at least one outgoing edge must be a back edge (self loop possible), in Java only
+		// possible for implicit and explicit continues (exclude JVM self catches)
+		for (final E out : this.outs) {
+			if (out.isBack() && !out.isCatch()) {
 				return true;
 			}
 		}

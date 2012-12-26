@@ -163,12 +163,7 @@ public final class TrControlFlowAnalysis {
 		Loop.Kind headKind = null;
 		BB headFollow = null;
 
-		// WHILE && FOR => only 1 head statement because of iteration back edge,
-		// FOR has trailing ExpressionStatements in the loop end node
-
-		// TODO while (<inlineAssignment> > 0) - must inline agressively here
-
-		if (head.getStmts() == 1 && head.isCondOrPreLoopHead()) {
+		if (head.getStmts() == 1 && head.isCond()) {
 			final BB falseSucc = head.getFalseSucc();
 			final BB trueSucc = head.getTrueSucc();
 			if (loop.isMember(trueSucc) && !loop.isMember(falseSucc)) {
@@ -188,7 +183,7 @@ public final class TrControlFlowAnalysis {
 		Loop.Kind tailKind = null;
 		BB tailFollow = null;
 
-		if (tail.isCondOrPreLoopHead()) {
+		if (tail.isCond() && !tail.isLoopHead() && !head.isLoopLast()) {
 			final BB falseSucc = tail.getFalseSucc();
 			final BB trueSucc = tail.getTrueSucc();
 			if (loop.isHead(trueSucc)) {
@@ -480,7 +475,7 @@ public final class TrControlFlowAnalysis {
 				createSwitchStruct(bb);
 				continue;
 			}
-			if (bb.isCondOrPreLoopHead()) {
+			if (bb.isCond()) {
 				if (bb.getStruct() instanceof Loop) {
 					final Loop loopStruct = (Loop) bb.getStruct();
 					if (loopStruct.isPost() && loopStruct.isLast(bb)) {
