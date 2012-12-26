@@ -1066,7 +1066,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final BB start = in.getStart();
-		if (!start.isCondOrPreLoopHead()) {
+		if (!start.isCond()) {
 			return false;
 		}
 		final IfStatement ifStatement = (IfStatement) start.getFinalStmt();
@@ -1103,7 +1103,7 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final BB c = c_bb.getStart();
-			if (c.getStmts() != 1 || !c.isCondOrPreLoopHead() || !c.isStackEmpty()) {
+			if (c.getStmts() != 1 || !c.isCond() || !c.isStackEmpty()) {
 				continue;
 			}
 			final E a_c = c.getRelevantIn();
@@ -1111,14 +1111,18 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final BB a = a_c.getStart();
-			if (!a.isCondOrPreLoopHead()) {
+			if (!a.isCond()) {
 				continue;
 			}
 			// now we have the potential compound head, go down again and identify patterns
-			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
-			final BB x = a_x.getRelevantEnd();
 			final E c_bb2 = c_bb.isCondTrue() ? c.getFalseOut() : c.getTrueOut();
 			final BB bb2 = c_bb2.getRelevantEnd();
+			if (a == bb2) {
+				// C goes back to A is not allowed as pattern
+				continue;
+			}
+			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
+			final BB x = a_x.getRelevantEnd();
 
 			if (bb == x || bb2 == x) {
 				// Match pattern from both sides (b2 is right here) because of multiple compounds!
@@ -1168,7 +1172,7 @@ public final class TrCfg2JavaExpressionStmts {
 				c.joinPredBb(a);
 				return true;
 			}
-			if (x.getStmts() != 1 || !x.isCondOrPreLoopHead() || !x.isStackEmpty()) {
+			if (x.getStmts() != 1 || !x.isCond() || !x.isStackEmpty()) {
 				continue;
 			}
 			// check cross...
@@ -1390,7 +1394,7 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			final E a_c = c.getRelevantIn();
 			final BB a = a_c.getStart();
-			if (!a.isCondOrPreLoopHead()) {
+			if (!a.isCond()) {
 				continue;
 			}
 			// now we have the potential compound head, go down again and identify pattern
