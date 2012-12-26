@@ -406,9 +406,9 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	private Statement transformSwitch(final Switch switchStruct) {
-		switch (switchStruct.getType()) {
-		case Switch.SWITCH:
-		case Switch.SWITCH_DEFAULT: {
+		switch (switchStruct.getKind()) {
+		case NO_DEFAULT:
+		case WITH_DEFAULT: {
 			final BB head = switchStruct.getHead();
 			final SwitchStatement switchStatement = (SwitchStatement) head.getFinalStmt();
 
@@ -417,7 +417,7 @@ public final class TrCfg2JavaControlFlowStmts {
 					continue;
 				}
 				for (final Integer value : (Integer[]) out.getValue()) {
-					if (out.isSwitchDefault() && switchStruct.getType() == Switch.SWITCH) {
+					if (out.isSwitchDefault() && switchStruct.getKind() == Switch.Kind.NO_DEFAULT) {
 						continue;
 					}
 					final SwitchCase switchCase = getAst().newSwitchCase();
@@ -440,11 +440,10 @@ public final class TrCfg2JavaControlFlowStmts {
 			if (object instanceof BreakStatement) {
 				((BreakStatement) object).delete();
 			}
-
 			return switchStatement;
 		}
 		default:
-			log("Unknown switch type '" + switchStruct.getType() + "'!");
+			log("Unknown switch type '" + switchStruct.getKind() + "'!");
 			return null;
 		}
 	}
