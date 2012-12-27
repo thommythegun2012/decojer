@@ -23,11 +23,9 @@
  */
 package org.decojer.cavaj.transformers;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -45,6 +43,9 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.ops.NEW;
 import org.decojer.cavaj.model.code.ops.Op;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * Transformer: Analyze inner classes and create compilation units.
@@ -144,7 +145,7 @@ public class TrInnerClassesAnalysis {
 	}
 
 	private static List<TD> findTopTds(final Collection<T> ts) {
-		final List<TD> tds = new ArrayList<TD>();
+		final List<TD> tds = Lists.newArrayList();
 		// separate all read tds, not just selected tds
 		for (final T t : ts) {
 			final TD td = t.getTd();
@@ -319,8 +320,8 @@ public class TrInnerClassesAnalysis {
 		findEnclosingMethods(ts);
 		final List<TD> topTds = findTopTds(ts);
 
-		final List<CU> cus = new ArrayList<CU>();
-		final Map<String, CU> sourceId2cu = new HashMap<String, CU>();
+		final List<CU> cus = Lists.newArrayList();
+		final Map<String, CU> sourceId2cu = Maps.newHashMap();
 		for (final TD topTd : topTds) {
 			final String sourceId = getSourceId(topTd);
 			if (sourceId != null) {
@@ -339,7 +340,7 @@ public class TrInnerClassesAnalysis {
 			cus.add(cu);
 		}
 		// not very optimized...but it works for now...
-		final List<CU> selectedCus = new ArrayList<CU>();
+		final List<CU> selectedCus = Lists.newArrayList();
 		for (final CU cu : cus) {
 			for (final TD td : cu.getAllTds()) {
 				if (du.getSelectedTds().contains(td)) {
@@ -358,5 +359,4 @@ public class TrInnerClassesAnalysis {
 		});
 		du.setCus(selectedCus);
 	}
-
 }

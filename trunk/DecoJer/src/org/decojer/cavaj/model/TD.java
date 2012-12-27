@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -42,6 +41,8 @@ import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
 import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
+
+import com.google.common.collect.Lists;
 
 /**
  * Type declaration. This includes Java class and interface declarations.
@@ -299,7 +300,7 @@ public final class TD extends BD {
 		if (c.pos >= s.length() || s.charAt(c.pos) != 'L') {
 			return null;
 		}
-		final ArrayList<T> ts = new ArrayList<T>();
+		final List<T> ts = Lists.newArrayList();
 		do {
 			final T interfaceT = getT().getDu().parseT(s, c, getT());
 			interfaceT.setInterface(true);

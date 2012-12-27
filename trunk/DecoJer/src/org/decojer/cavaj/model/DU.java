@@ -32,11 +32,9 @@ import java.io.PushbackInputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -63,6 +61,8 @@ import org.decojer.cavaj.utils.Cursor;
 import org.decojer.cavaj.utils.MagicNumbers;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * Decompilation unit.
@@ -100,9 +100,9 @@ public final class DU {
 	private final DexReader dexReader = new SmaliReader(this);
 
 	@Getter
-	private final List<TD> selectedTds = new ArrayList<TD>();
+	private final List<TD> selectedTds = Lists.newArrayList();
 
-	private final Map<String, T> ts = new HashMap<String, T>();
+	private final Map<String, T> ts = Maps.newHashMap();
 
 	public DU() {
 		// init type pool with primitives-/multi-types
@@ -364,7 +364,7 @@ public final class DU {
 	public T[] parseMethodParamTs(final String s, final Cursor c, final Object context) {
 		assert s.charAt(c.pos) == '(' : s.charAt(c.pos);
 		++c.pos;
-		final ArrayList<T> ts = new ArrayList<T>();
+		final List<T> ts = Lists.newArrayList();
 		while (s.charAt(c.pos) != ')') {
 			ts.add(parseT(s, c, context));
 		}
@@ -447,7 +447,7 @@ public final class DU {
 			return null;
 		}
 		++c.pos;
-		final ArrayList<TypeArg> ts = new ArrayList<TypeArg>();
+		final List<TypeArg> ts = Lists.newArrayList();
 		char ch;
 		while ((ch = s.charAt(c.pos)) != '>') {
 			switch (ch) {
@@ -488,7 +488,7 @@ public final class DU {
 			return null; // optional
 		}
 		++c.pos;
-		final ArrayList<T> ts = new ArrayList<T>();
+		final List<T> ts = Lists.newArrayList();
 		while (s.charAt(c.pos) != '>') {
 			final int pos = s.indexOf(':', c.pos);
 			// reuse ClassT for type parameter
@@ -502,7 +502,7 @@ public final class DU {
 				typeParam.setSuperT(superT);
 			}
 			if (s.charAt(c.pos) == ':') {
-				final ArrayList<T> interfaceTs = new ArrayList<T>();
+				final List<T> interfaceTs = Lists.newArrayList();
 				do {
 					++c.pos;
 					final T interfaceT = parseT(s, c, context);
@@ -534,7 +534,7 @@ public final class DU {
 	public List<TD> read(final File file, final String selector) throws IOException {
 		final String fileName = file.getName();
 		if (fileName.endsWith(".class")) {
-			final List<TD> tds = new ArrayList<TD>();
+			final List<TD> tds = Lists.newArrayList();
 
 			// load full type declarations from complete package, to complex to decide here if
 			// really not part of the compilation unit
@@ -611,7 +611,7 @@ public final class DU {
 					selectorPrefix = selectorMatch.substring(0, pos + 1);
 				}
 			}
-			final List<TD> tds = new ArrayList<TD>();
+			final List<TD> tds = Lists.newArrayList();
 
 			final PushbackInputStream pis = new PushbackInputStream(is, 4);
 			pis.unread(magicNumber, 0, magicNumber.length);

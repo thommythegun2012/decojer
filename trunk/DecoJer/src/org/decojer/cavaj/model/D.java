@@ -23,13 +23,14 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
 import lombok.Getter;
 
 import org.eclipse.jdt.core.dom.ASTNode;
+
+import com.google.common.collect.Lists;
 
 /**
  * Declaration.
@@ -44,9 +45,9 @@ public abstract class D {
 	 * All body declarations: inner type / method / field declarations.
 	 */
 	@Getter
-	private final List<BD> bds = new ArrayList<BD>();
+	private final List<BD> bds = Lists.newArrayList();
 
-	protected void _getAllTds(final ArrayList<TD> tds) {
+	protected void _getAllTds(final List<TD> tds) {
 		for (final BD bd : this.bds) {
 			if (bd instanceof TD) {
 				tds.add((TD) bd);
@@ -93,7 +94,7 @@ public abstract class D {
 	}
 
 	public List<TD> getAllTds() {
-		final ArrayList<TD> tds = new ArrayList<TD>();
+		final List<TD> tds = Lists.newArrayList();
 		_getAllTds(tds);
 		return tds;
 	}

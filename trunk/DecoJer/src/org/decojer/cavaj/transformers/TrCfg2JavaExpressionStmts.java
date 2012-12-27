@@ -29,7 +29,6 @@ import static org.decojer.cavaj.utils.Expressions.newPrefixExpression;
 import static org.decojer.cavaj.utils.Expressions.not;
 import static org.decojer.cavaj.utils.Expressions.wrap;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
@@ -116,6 +115,8 @@ import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.UnionType;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+
+import com.google.common.collect.Lists;
 
 /**
  * Transformer: CFG to Java Expression Statements ASTs.
@@ -440,7 +441,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final M m = cop.getM();
 
 				// read method invokation arguments
-				final List<Expression> arguments = new ArrayList<Expression>();
+				final List<Expression> arguments = Lists.newArrayList();
 				for (int i = m.getParamTs().length; i-- > 0;) {
 					arguments.add(wrap(bb.pop()));
 				}

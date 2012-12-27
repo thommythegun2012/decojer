@@ -23,9 +23,8 @@
  */
 package org.decojer.cavaj.readers.javassist;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
@@ -90,6 +89,9 @@ import org.decojer.cavaj.model.code.ops.XOR;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Cursor;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 /**
  * Javassist read code attribute.
  * 
@@ -101,11 +103,11 @@ public class ReadCodeAttribute {
 
 	private MD md;
 
-	final ArrayList<Op> ops = new ArrayList<Op>();
+	final List<Op> ops = Lists.newArrayList();
 
-	private final HashMap<Integer, Integer> vmpc2pc = new HashMap<Integer, Integer>();
+	private final Map<Integer, Integer> vmpc2pc = Maps.newHashMap();
 
-	private final HashMap<Integer, ArrayList<Object>> vmpc2unresolved = new HashMap<Integer, ArrayList<Object>>();
+	private final Map<Integer, List<Object>> vmpc2unresolved = Maps.newHashMap();
 
 	private DU getDu() {
 		return this.md.getTd().getDu();
@@ -137,10 +139,10 @@ public class ReadCodeAttribute {
 		return desc == null ? null : getDu().getDescT(desc);
 	}
 
-	private ArrayList<Object> getUnresolved(final int vmpc) {
-		ArrayList<Object> unresolved = this.vmpc2unresolved.get(vmpc);
+	private List<Object> getUnresolved(final int vmpc) {
+		List<Object> unresolved = this.vmpc2unresolved.get(vmpc);
 		if (unresolved == null) {
-			unresolved = new ArrayList<Object>();
+			unresolved = Lists.newArrayList();
 			this.vmpc2unresolved.put(vmpc, unresolved);
 		}
 		return unresolved;
@@ -1583,7 +1585,7 @@ public class ReadCodeAttribute {
 
 		final ExceptionTable exceptionTable = codeAttribute.getExceptionTable();
 		if (exceptionTable != null) {
-			final ArrayList<Exc> excs = new ArrayList<Exc>();
+			final List<Exc> excs = Lists.newArrayList();
 			// preserve order
 			final int exceptionTableSize = exceptionTable.size();
 			for (int i = 0; i < exceptionTableSize; ++i) {
@@ -1606,7 +1608,7 @@ public class ReadCodeAttribute {
 	private void readLocalVariables(final CFG cfg,
 			final LocalVariableAttribute localVariableAttribute,
 			final LocalVariableAttribute localVariableTypeAttribute) {
-		final HashMap<Integer, ArrayList<V>> reg2vs = new HashMap<Integer, ArrayList<V>>();
+		final Map<Integer, List<V>> reg2vs = Maps.newHashMap();
 		if (localVariableAttribute != null) {
 			// preserve order
 			final int tableLength = localVariableAttribute.tableLength();
@@ -1619,15 +1621,15 @@ public class ReadCodeAttribute {
 
 				final int index = localVariableAttribute.index(i);
 
-				ArrayList<V> vs = reg2vs.get(index);
+				List<V> vs = reg2vs.get(index);
 				if (vs == null) {
-					vs = new ArrayList<V>();
+					vs = Lists.newArrayList();
 					reg2vs.put(index, vs);
 				}
 				vs.add(v);
 			}
 			if (reg2vs.size() > 0) {
-				for (final Entry<Integer, ArrayList<V>> entry : reg2vs.entrySet()) {
+				for (final Entry<Integer, List<V>> entry : reg2vs.entrySet()) {
 					final int reg = entry.getKey();
 					for (final V var : entry.getValue()) {
 						cfg.addVar(reg, var);
