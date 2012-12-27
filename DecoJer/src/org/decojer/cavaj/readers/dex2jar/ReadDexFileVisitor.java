@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.readers.dex2jar;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.Getter;
@@ -33,6 +32,7 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ClassT;
 
+import com.google.common.collect.Lists;
 import com.googlecode.dex2jar.visitors.DexClassVisitor;
 import com.googlecode.dex2jar.visitors.DexFileVisitor;
 
@@ -52,7 +52,7 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 	private String selectorMatch;
 
 	@Getter
-	private final List<TD> tds = new ArrayList<TD>();
+	private final List<TD> tds = Lists.newArrayList();
 
 	/**
 	 * Constructor.

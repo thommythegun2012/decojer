@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.utils;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.T;
@@ -362,7 +362,7 @@ public final class Types {
 		// cannot use string replace because '$' is also a regular Java type name!
 		// find common name dominator and stop there, for relative inner names
 		final String name = td.getName();
-		final ArrayList<String> names = Lists.newArrayList(t.getSimpleIdentifier());
+		final List<String> names = Lists.newArrayList(t.getSimpleIdentifier());
 		T enclosingT = t.getEnclosingT();
 		while (enclosingT != null && !name.startsWith(enclosingT.getName())) {
 			names.add(enclosingT.getSimpleIdentifier());
@@ -461,7 +461,9 @@ public final class Types {
 	 * 
 	 * Sometimes we must backtranslate literal constants like Byte.MAX_VALUE.
 	 * 
-	 * Potential problem: ASTNode#copySubtree() will forget additional properties.
+	 * Potential problem: ASTNode#copySubtree() will forget additional properties, but for the
+	 * backtranslate use case this isn't really expected. Fall back is cast to NumberLiteral and
+	 * Integer parsing.
 	 * 
 	 * @param e
 	 *            literal expression
@@ -472,6 +474,8 @@ public final class Types {
 		if (value instanceof Number) {
 			return ((Number) value).intValue();
 		}
+		assert false; // shouldn't really happen
+
 		return Integer.parseInt(((NumberLiteral) e).getToken());
 	}
 

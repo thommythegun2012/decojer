@@ -23,9 +23,11 @@
  */
 package org.decojer.cavaj.readers.smali;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Logger;
+
+import lombok.Getter;
 
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
@@ -36,6 +38,9 @@ import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.Debug.DebugInstructionIterator;
 import org.jf.dexlib.Debug.DebugInstructionIterator.ProcessDecodedDebugInstructionDelegate;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 /**
  * Smali read debug info.
@@ -50,9 +55,10 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private MD md;
 
-	private final HashMap<Integer, Integer> opLines = new HashMap<Integer, Integer>();
+	private final Map<Integer, Integer> opLines = Maps.newHashMap();
 
-	private final HashMap<Integer, ArrayList<V>> reg2vs = new HashMap<Integer, ArrayList<V>>();
+	@Getter
+	private final Map<Integer, List<V>> reg2vs = Maps.newHashMap();
 
 	/**
 	 * Get line for VM PC.
@@ -70,15 +76,6 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			}
 		}
 		return -1;
-	}
-
-	/**
-	 * Get register to variables map.
-	 * 
-	 * @return register to variables map
-	 */
-	public HashMap<Integer, ArrayList<V>> getReg2vs() {
-		return this.reg2vs;
 	}
 
 	/**
@@ -125,7 +122,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 					+ signature);
 		}
 
-		final ArrayList<V> vs = this.reg2vs.get(registerNum);
+		final List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
 			LOGGER.warning("ProcessEndLocal '" + registerNum + "' without any ProcessStartLocal!");
 			return;
@@ -161,7 +158,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 					+ signature);
 		}
 
-		final ArrayList<V> vs = this.reg2vs.get(registerNum);
+		final List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
 			LOGGER.warning("ProcessRestartLocal '" + registerNum
 					+ "' without any ProcessStartLocal!");
@@ -235,9 +232,9 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		}
 		final V v = new V(vT, name.getStringValue(), codeAddress, -1);
 
-		ArrayList<V> vs = this.reg2vs.get(registerNum);
+		List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
-			vs = new ArrayList<V>();
+			vs = Lists.newArrayList();
 			this.reg2vs.put(registerNum, vs);
 		}
 		vs.add(v);

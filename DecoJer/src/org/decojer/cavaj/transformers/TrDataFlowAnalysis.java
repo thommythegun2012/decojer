@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.transformers;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -855,7 +854,7 @@ public final class TrDataFlowAnalysis {
 				final int handlerPc = exc.getHandlerPc();
 				List<T> types = handlerPc2type.get(handlerPc);
 				if (types == null) {
-					types = new ArrayList<T>();
+					types = Lists.newArrayList();
 					handlerPc2type.put(handlerPc, types);
 				}
 				types.add(exc.getT());
@@ -962,7 +961,7 @@ public final class TrDataFlowAnalysis {
 		this.pc = 0;
 		final Op[] ops = this.cfg.getOps();
 		this.pc2bbs = new BB[ops.length];
-		this.openPcs = new LinkedList<Integer>();
+		this.openPcs = Lists.newLinkedList();
 		BB bb = newBb(0); // need pc2bb and openPcs
 		this.cfg.setStartBb(bb);
 

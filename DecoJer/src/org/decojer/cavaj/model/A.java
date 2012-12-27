@@ -27,8 +27,9 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.LinkedHashMap;
 import java.util.Set;
 
-
 import lombok.Getter;
+
+import com.google.common.collect.Maps;
 
 /**
  * Annotation.
@@ -37,7 +38,7 @@ import lombok.Getter;
  */
 public final class A {
 
-	private final LinkedHashMap<String, Object> members = new LinkedHashMap<String, Object>();
+	private final LinkedHashMap<String, Object> members = Maps.newLinkedHashMap();
 
 	@Getter
 	private final RetentionPolicy retentionPolicy;

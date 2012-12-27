@@ -23,9 +23,8 @@
  */
 package org.decojer.cavaj.readers.smali;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
@@ -113,6 +112,9 @@ import org.jf.dexlib.Code.Format.Instruction51l;
 import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
 import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 /**
  * Smali read code item.
  * 
@@ -124,11 +126,11 @@ public class ReadCodeItem {
 
 	private MD md;
 
-	final ArrayList<Op> ops = new ArrayList<Op>();
+	final List<Op> ops = Lists.newArrayList();
 
-	private final HashMap<Integer, Integer> vmpc2pc = new HashMap<Integer, Integer>();
+	private final Map<Integer, Integer> vmpc2pc = Maps.newHashMap();
 
-	private final HashMap<Integer, ArrayList<Object>> vmpc2unresolved = new HashMap<Integer, ArrayList<Object>>();
+	private final Map<Integer, List<Object>> vmpc2unresolved = Maps.newHashMap();
 
 	private final ReadDebugInfo readDebugInfo = new ReadDebugInfo();
 
@@ -146,10 +148,10 @@ public class ReadCodeItem {
 		return unresolvedPc;
 	}
 
-	private ArrayList<Object> getUnresolved(final int vmpc) {
-		ArrayList<Object> unresolved = this.vmpc2unresolved.get(vmpc);
+	private List<Object> getUnresolved(final int vmpc) {
+		List<Object> unresolved = this.vmpc2unresolved.get(vmpc);
 		if (unresolved == null) {
-			unresolved = new ArrayList<Object>();
+			unresolved = Lists.newArrayList();
 			this.vmpc2unresolved.put(vmpc, unresolved);
 		}
 		return unresolved;
@@ -2255,7 +2257,7 @@ public class ReadCodeItem {
 
 		final TryItem[] tryItems = codeItem.getTries();
 		if (tryItems != null && tryItems.length > 0) {
-			final ArrayList<Exc> excs = new ArrayList<Exc>();
+			final List<Exc> excs = Lists.newArrayList();
 			// preserve order
 			for (final TryItem tryItem : tryItems) {
 				for (final EncodedTypeAddrPair handler : tryItem.encodedCatchHandler.handlers) {
@@ -2283,8 +2285,8 @@ public class ReadCodeItem {
 	}
 
 	private void readLocalVariables(final CFG cfg, final ReadDebugInfo readDebugInfo) {
-		final HashMap<Integer, ArrayList<V>> reg2vs = readDebugInfo.getReg2vs();
-		for (final Entry<Integer, ArrayList<V>> reg2v : reg2vs.entrySet()) {
+		final Map<Integer, List<V>> reg2vs = readDebugInfo.getReg2vs();
+		for (final Entry<Integer, List<V>> reg2v : reg2vs.entrySet()) {
 			final int reg = reg2v.getKey();
 			for (final V v : reg2v.getValue()) {
 				final int[] pcs = v.getPcs();

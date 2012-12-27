@@ -23,14 +23,15 @@
  */
 package org.decojer.cavaj.transformers;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Transformer: Calculate postorder for basic blocks of CFG.
@@ -82,8 +83,8 @@ public final class TrCalculatePostorder {
 	}
 
 	public void transform() {
-		this.postorderedBbs = new ArrayList<BB>();
-		this.traversed = new HashSet<BB>();
+		this.postorderedBbs = Lists.newArrayList();
+		this.traversed = Sets.newHashSet();
 		calculatePostorder(0, this.cfg.getStartBb());
 		this.cfg.setPostorderedBbs(this.postorderedBbs);
 	}

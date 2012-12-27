@@ -23,9 +23,8 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 
 import lombok.Getter;
@@ -34,6 +33,9 @@ import org.decojer.cavaj.model.types.BaseT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.Kind;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 /**
  * Type.
  * 
@@ -41,7 +43,7 @@ import org.decojer.cavaj.model.types.Kind;
  */
 public abstract class T {
 
-	private static final Map<Integer, T> KIND_2_TS = new HashMap<Integer, T>();
+	private static final Map<Integer, T> KIND_2_TS = Maps.newHashMap();
 
 	/**
 	 * Multitype READ target-multitype => reduced (left) multitype (according to Java-conversions),
@@ -308,8 +310,8 @@ public abstract class T {
 		}
 		// find common supertypes, raise in t1-hierarchy till assignable from t2
 		T superT = null;
-		final ArrayList<T> interfaceTs = new ArrayList<T>();
-		final LinkedList<T> ts = new LinkedList<T>();
+		final List<T> interfaceTs = Lists.newArrayList();
+		final LinkedList<T> ts = Lists.newLinkedList();
 		ts.add(t1);
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();
@@ -404,7 +406,7 @@ public abstract class T {
 	@Getter
 	private final String name;
 
-	private HashMap<String, Object> member;
+	private Map<String, Object> member;
 
 	protected T(final String name) {
 		assert name != null;
@@ -625,9 +627,9 @@ public abstract class T {
 		return m;
 	}
 
-	protected HashMap<String, Object> getMember() {
+	protected Map<String, Object> getMember() {
 		if (this.member == null) {
-			this.member = new HashMap<String, Object>();
+			this.member = Maps.newHashMap();
 		}
 		return this.member;
 	}
@@ -861,7 +863,7 @@ public abstract class T {
 			return true;
 		}
 		// raise in t-hierarchy till equals to this type
-		final LinkedList<T> ts = new LinkedList<T>();
+		final LinkedList<T> ts = Lists.newLinkedList();
 		ts.add(t);
 		while (!ts.isEmpty()) {
 			final T iT = ts.pollFirst();

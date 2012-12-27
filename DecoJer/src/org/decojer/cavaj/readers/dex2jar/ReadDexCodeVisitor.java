@@ -23,8 +23,8 @@
  */
 package org.decojer.cavaj.readers.dex2jar;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
@@ -45,6 +45,8 @@ import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.utils.Cursor;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.googlecode.dex2jar.DexLabel;
 import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.Method;
@@ -62,11 +64,11 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	private final DU du;
 
-	private final ArrayList<Exc> excs = new ArrayList<Exc>();
+	private final List<Exc> excs = Lists.newArrayList();
 
-	private final HashMap<DexLabel, Integer> label2pc = new HashMap<DexLabel, Integer>();
+	private final Map<DexLabel, Integer> label2pc = Maps.newHashMap();
 
-	private final HashMap<DexLabel, ArrayList<Object>> label2unresolved = new HashMap<DexLabel, ArrayList<Object>>();
+	private final Map<DexLabel, List<Object>> label2unresolved = Maps.newHashMap();
 
 	private int line = -1;
 
@@ -74,9 +76,9 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	private MD md;
 
-	private final ArrayList<Op> ops = new ArrayList<Op>();
+	private final List<Op> ops = Lists.newArrayList();
 
-	private final HashMap<Integer, ArrayList<V>> reg2vs = new HashMap<Integer, ArrayList<V>>();
+	private final Map<Integer, List<V>> reg2vs = Maps.newHashMap();
 
 	/**
 	 * Constructor.
@@ -102,12 +104,12 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 		return unresolvedPc;
 	}
 
-	private ArrayList<Object> getUnresolved(final DexLabel label) {
+	private List<Object> getUnresolved(final DexLabel label) {
 		assert label != null;
 
-		ArrayList<Object> unresolved = this.label2unresolved.get(label);
+		List<Object> unresolved = this.label2unresolved.get(label);
 		if (unresolved == null) {
-			unresolved = new ArrayList<Object>();
+			unresolved = Lists.newArrayList();
 			this.label2unresolved.put(label, unresolved);
 		}
 		return unresolved;
@@ -192,7 +194,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 				this.excs.clear();
 			}
 			if (this.reg2vs.size() > 0) {
-				for (final Entry<Integer, ArrayList<V>> entry : this.reg2vs.entrySet()) {
+				for (final Entry<Integer, List<V>> entry : this.reg2vs.entrySet()) {
 					final int reg = entry.getKey();
 					for (final V var : entry.getValue()) {
 						cfg.addVar(reg, var);
@@ -359,9 +361,9 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 			getUnresolved(end).add(v);
 		}
 
-		ArrayList<V> vs = this.reg2vs.get(reg);
+		List<V> vs = this.reg2vs.get(reg);
 		if (vs == null) {
-			vs = new ArrayList<V>();
+			vs = Lists.newArrayList();
 			this.reg2vs.put(reg, vs);
 		}
 		vs.add(v);

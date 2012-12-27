@@ -25,7 +25,8 @@ package org.decojer.cavaj.readers.asm;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.logging.Logger;
 
@@ -87,6 +88,9 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 /**
  * ASM read method visitor.
  * 
@@ -102,11 +106,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private final DU du;
 
-	private final ArrayList<Exc> excs = new ArrayList<Exc>();
+	private final List<Exc> excs = Lists.newArrayList();
 
-	private final HashMap<Label, Integer> label2pc = new HashMap<Label, Integer>();
+	private final Map<Label, Integer> label2pc = Maps.newHashMap();
 
-	private final HashMap<Label, ArrayList<Object>> label2unresolved = new HashMap<Label, ArrayList<Object>>();
+	private final Map<Label, List<Object>> label2unresolved = Maps.newHashMap();
 
 	private int line = -1;
 
@@ -116,13 +120,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private MD md;
 
-	private final ArrayList<Op> ops = new ArrayList<Op>();
+	private final List<Op> ops = Lists.newArrayList();
 
 	private A[][] paramAss;
 
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
-	private final HashMap<Integer, ArrayList<V>> reg2vs = new HashMap<Integer, ArrayList<V>>();
+	private final Map<Integer, List<V>> reg2vs = Maps.newHashMap();
 
 	/**
 	 * Constructor.
@@ -160,12 +164,12 @@ public class ReadMethodVisitor extends MethodVisitor {
 		return unresolvedPc;
 	}
 
-	private ArrayList<Object> getUnresolved(final Label label) {
+	private List<Object> getUnresolved(final Label label) {
 		assert label != null;
 
-		ArrayList<Object> unresolved = this.label2unresolved.get(label);
+		List<Object> unresolved = this.label2unresolved.get(label);
 		if (unresolved == null) {
-			unresolved = new ArrayList<Object>();
+			unresolved = Lists.newArrayList();
 			this.label2unresolved.put(label, unresolved);
 		}
 		return unresolved;
@@ -243,7 +247,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				this.excs.clear();
 			}
 			if (this.reg2vs.size() > 0) {
-				for (final Entry<Integer, ArrayList<V>> entry : this.reg2vs.entrySet()) {
+				for (final Entry<Integer, List<V>> entry : this.reg2vs.entrySet()) {
 					final int reg = entry.getKey();
 					for (final V var : entry.getValue()) {
 						cfg.addVar(reg, var);
@@ -1233,9 +1237,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			getUnresolved(end).add(v);
 		}
 
-		ArrayList<V> vs = this.reg2vs.get(index);
+		List<V> vs = this.reg2vs.get(index);
 		if (vs == null) {
-			vs = new ArrayList<V>();
+			vs = Lists.newArrayList();
 			this.reg2vs.put(index, vs);
 		}
 		vs.add(v);

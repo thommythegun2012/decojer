@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.readers.asm;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.decojer.cavaj.model.DU;
@@ -32,6 +31,8 @@ import org.decojer.cavaj.model.T;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+
+import com.google.common.collect.Lists;
 
 /**
  * ASM read annotation visitor.
@@ -76,7 +77,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	public AnnotationVisitor visitArray(final String name) {
 		return new ReadAnnotationVisitor(this.du) {
 
-			private final List<Object> values = new ArrayList<Object>();
+			private final List<Object> values = Lists.newArrayList();
 
 			@Override
 			protected void add(final String name, final Object value) {

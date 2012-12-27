@@ -25,6 +25,7 @@ package org.decojer.editor.eclipse;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -97,6 +98,8 @@ import org.eclipse.zest.core.widgets.GraphConnection;
 import org.eclipse.zest.core.widgets.GraphNode;
 import org.eclipse.zest.core.widgets.ZestStyles;
 import org.eclipse.zest.layouts.LayoutStyles;
+
+import com.google.common.collect.Lists;
 
 /**
  * An example showing how to create a multi-page editor. This example has 3 pages:
@@ -538,7 +541,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	private D findDeclarationForJavaElement(final IJavaElement javaElement) {
 		// type.getFullyQualifiedName() potentially follows a different naming strategy for inner
 		// classes than the internal model from the bytecode, hence we must iterate through the tree
-		final ArrayList<IJavaElement> path = new ArrayList<IJavaElement>();
+		final List<IJavaElement> path = Lists.newArrayList();
 		for (IJavaElement element = javaElement; element != null; element = element.getParent()) {
 			path.add(0, element);
 		}
@@ -605,7 +608,7 @@ public class ClassEditor extends MultiPageEditorPart {
 							: element.getElementName();
 					final String signature = ((IMethod) element).getSignature();
 					// get all method declarations with this name
-					final ArrayList<MD> mds = new ArrayList<MD>();
+					final List<MD> mds = Lists.newArrayList();
 					for (final BD bd : d.getBds()) {
 						if (bd instanceof MD && ((MD) bd).getName().equals(methodName)) {
 							mds.add((MD) bd);

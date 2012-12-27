@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.readers.dex2jar;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -31,6 +30,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
 
+import com.google.common.collect.Lists;
 import com.googlecode.dex2jar.DexType;
 import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
@@ -85,7 +85,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 	public DexAnnotationVisitor visitArray(final String name) {
 		return new ReadDexAnnotationVisitor(this.du) {
 
-			private final List<Object> values = new ArrayList<Object>();
+			private final List<Object> values = Lists.newArrayList();
 
 			@Override
 			protected void add(final String name, final Object value) {

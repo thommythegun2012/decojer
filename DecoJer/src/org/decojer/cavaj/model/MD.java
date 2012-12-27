@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import lombok.Getter;
@@ -33,6 +33,8 @@ import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+
+import com.google.common.collect.Lists;
 
 /**
  * Method declaration.
@@ -203,7 +205,7 @@ public final class MD extends BD {
 		if (c.pos >= s.length() || s.charAt(c.pos) != '^') {
 			return null;
 		}
-		final ArrayList<T> ts = new ArrayList<T>();
+		final List<T> ts = Lists.newArrayList();
 		do {
 			++c.pos;
 			final T throwT = getTd().getDu().parseT(s, c, getM());

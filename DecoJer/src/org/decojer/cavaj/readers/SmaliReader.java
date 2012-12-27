@@ -26,8 +26,6 @@ package org.decojer.cavaj.readers;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.RetentionPolicy;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -80,6 +78,8 @@ import org.jf.dexlib.EncodedValue.StringEncodedValue;
 import org.jf.dexlib.EncodedValue.TypeEncodedValue;
 import org.jf.dexlib.Util.ByteArrayInput;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 
 /**
@@ -120,7 +120,7 @@ public class SmaliReader implements DexReader {
 				selectorPrefix = selectorMatch.substring(0, pos + 1);
 			}
 		}
-		final List<TD> tds = new ArrayList<TD>();
+		final List<TD> tds = Lists.newArrayList();
 
 		final byte[] bytes = ByteStreams.toByteArray(is);
 		final DexFile dexFile = new DexFile(new ByteArrayInput(bytes), true, false);
@@ -153,18 +153,18 @@ public class SmaliReader implements DexReader {
 				tds.add(td);
 			}
 			A annotationDefaultValues = null;
-			final Map<FieldIdItem, String> fieldSignatures = new HashMap<FieldIdItem, String>();
-			final Map<FieldIdItem, A[]> fieldAs = new HashMap<FieldIdItem, A[]>();
-			final Map<MethodIdItem, T[]> methodThrowsTs = new HashMap<MethodIdItem, T[]>();
-			final Map<MethodIdItem, String> methodSignatures = new HashMap<MethodIdItem, String>();
-			final Map<MethodIdItem, A[]> methodAs = new HashMap<MethodIdItem, A[]>();
-			final Map<MethodIdItem, A[][]> methodParamAs = new HashMap<MethodIdItem, A[][]>();
+			final Map<FieldIdItem, String> fieldSignatures = Maps.newHashMap();
+			final Map<FieldIdItem, A[]> fieldAs = Maps.newHashMap();
+			final Map<MethodIdItem, T[]> methodThrowsTs = Maps.newHashMap();
+			final Map<MethodIdItem, String> methodSignatures = Maps.newHashMap();
+			final Map<MethodIdItem, A[]> methodAs = Maps.newHashMap();
+			final Map<MethodIdItem, A[][]> methodParamAs = Maps.newHashMap();
 
 			final AnnotationDirectoryItem annotations = classDefItem.getAnnotations();
 			if (annotations != null) {
 				final AnnotationSetItem classAnnotations = annotations.getClassAnnotations();
 				if (classAnnotations != null) {
-					final List<A> as = new ArrayList<A>();
+					final List<A> as = Lists.newArrayList();
 					for (final AnnotationItem annotation : classAnnotations.getAnnotations()) {
 						final A a = readAnnotation(annotation);
 						if ("dalvik.annotation.AnnotationDefault".equals(a.getT().getName())) {
@@ -210,7 +210,7 @@ public class SmaliReader implements DexReader {
 					}
 				}
 				for (final FieldAnnotation fieldAnnotation : annotations.getFieldAnnotations()) {
-					final List<A> as = new ArrayList<A>();
+					final List<A> as = Lists.newArrayList();
 					for (final AnnotationItem annotationItem : fieldAnnotation.annotationSet
 							.getAnnotations()) {
 						final A a = readAnnotation(annotationItem);
@@ -232,7 +232,7 @@ public class SmaliReader implements DexReader {
 					}
 				}
 				for (final MethodAnnotation methodAnnotation : annotations.getMethodAnnotations()) {
-					final List<A> as = new ArrayList<A>();
+					final List<A> as = Lists.newArrayList();
 					for (final AnnotationItem annotationItem : methodAnnotation.annotationSet
 							.getAnnotations()) {
 						final A a = readAnnotation(annotationItem);
