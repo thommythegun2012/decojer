@@ -1640,7 +1640,8 @@ public final class TrCfg2JavaExpressionStmts {
 			bb.removeOp(0);
 			name = "e"; // TODO hmmm...free variable name needed...
 		} else {
-			log("First operation in handler '" + firstOp + "' isn't STORE or POP: " + bb);
+			log("First operation in handler '" + bb + "' isn't STORE or POP, but is '" + firstOp
+					+ "'!");
 			name = "e"; // TODO hmmm...free variable name needed...
 			bb.push(getAst().newSimpleName(name));
 		}
