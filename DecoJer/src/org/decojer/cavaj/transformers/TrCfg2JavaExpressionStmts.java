@@ -1390,6 +1390,7 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final BB c = c_bb.getStart();
+			// in Scala exists a more complex ternary variant with sub statements
 			if (c.getIns().size() != 1 || c.getStmts() > 0 || c.getTop() != 1) {
 				continue;
 			}
@@ -1893,7 +1894,8 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			// previous expressions merged into bb, now rewrite
 			if (!convertToHLLIntermediate(bb)) {
-				// should never happen in forward mode
+				// in Java should never happen in forward mode, but in Scala exists a more complex
+				// conditional value ternary variant with sub statements
 				log("Stack underflow in '" + this.cfg + "':\n" + bb);
 			}
 		}
