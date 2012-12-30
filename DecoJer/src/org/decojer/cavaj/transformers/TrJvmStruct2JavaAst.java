@@ -38,7 +38,7 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.utils.Annotations;
-import org.decojer.cavaj.utils.Types;
+import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -162,11 +162,12 @@ public final class TrJvmStruct2JavaAst {
 
 		// not for enum constant declaration
 		if (fieldDeclaration instanceof FieldDeclaration) {
-			((FieldDeclaration) fieldDeclaration).setType(Types.decompileType(fd.getValueT(), td));
+			((FieldDeclaration) fieldDeclaration).setType(Expressions.decompileType(fd.getValueT(),
+					td));
 			final Object value = fd.getValue();
 			if (value != null) {
 				// only final, non static - no arrays, class types
-				final Expression expr = Types.decompileLiteral(fd.getValueT(), value, td);
+				final Expression expr = Expressions.decompileLiteral(fd.getValueT(), value, td);
 				if (expr != null) {
 					final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
 							.fragments().get(0);
@@ -309,8 +310,8 @@ public final class TrJvmStruct2JavaAst {
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			assert md.getParamTs().length == 0;
 
-			((AnnotationTypeMemberDeclaration) methodDeclaration).setType(Types.decompileType(
-					md.getReturnT(), td));
+			((AnnotationTypeMemberDeclaration) methodDeclaration).setType(Expressions
+					.decompileType(md.getReturnT(), td));
 		}
 	}
 
@@ -332,7 +333,7 @@ public final class TrJvmStruct2JavaAst {
 		final T[] paramTs = md.getParamTs();
 		final A[][] paramAs = md.getParamAss();
 		for (int i = 0; i < paramTs.length; ++i) {
-			final Type methodParameterType = Types.decompileType(paramTs[i], td);
+			final Type methodParameterType = Expressions.decompileType(paramTs[i], td);
 			if (methodDeclaration.isConstructor()) {
 
 				if (i <= 1 && td.check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
@@ -382,14 +383,14 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration.parameters().add(singleVariableDeclaration);
 		}
 		// decompile return type
-		methodDeclaration.setReturnType2(Types.decompileType(md.getReturnT(), td));
+		methodDeclaration.setReturnType2(Expressions.decompileType(md.getReturnT(), td));
 		// decompile exceptions
 		final T[] throwsTs = md.getThrowsTs();
 		if (throwsTs != null) {
 			for (final T throwT : throwsTs) {
 				// Eclipse AST expects a List<Name> for thrownExceptions, not a List<Type>:
 				// is OK - thrownExceptions cannot be generic
-				methodDeclaration.thrownExceptions().add(Types.decompileName(throwT, td));
+				methodDeclaration.thrownExceptions().add(Expressions.decompileName(throwT, td));
 			}
 		}
 	}
@@ -415,10 +416,11 @@ public final class TrJvmStruct2JavaAst {
 			typeParameter.setName(ast.newSimpleName(typeParam.getName()));
 			final T superT = typeParam.getSuperT();
 			if (!superT.isObject()) {
-				typeParameter.typeBounds().add(Types.decompileType(typeParam.getSuperT(), td));
+				typeParameter.typeBounds()
+						.add(Expressions.decompileType(typeParam.getSuperT(), td));
 			}
 			for (final T interfaceT : typeParam.getInterfaceTs()) {
-				typeParameter.typeBounds().add(Types.decompileType(interfaceT, td));
+				typeParameter.typeBounds().add(Expressions.decompileType(interfaceT, td));
 			}
 			typeParameters.add(typeParameter);
 		}
@@ -512,7 +514,7 @@ public final class TrJvmStruct2JavaAst {
 					if (td.getInterfaceTs() != null) {
 						for (final T interfaceT : td.getInterfaceTs()) {
 							((EnumDeclaration) typeDeclaration).superInterfaceTypes().add(
-									Types.decompileType(interfaceT, td));
+									Expressions.decompileType(interfaceT, td));
 						}
 					}
 				}
@@ -524,12 +526,12 @@ public final class TrJvmStruct2JavaAst {
 				decompileTypeParams(td.getTypeParams(),
 						((TypeDeclaration) typeDeclaration).typeParameters(), td);
 				if (!td.getSuperT().isObject()) {
-					((TypeDeclaration) typeDeclaration).setSuperclassType(Types.decompileType(
-							td.getSuperT(), td));
+					((TypeDeclaration) typeDeclaration).setSuperclassType(Expressions
+							.decompileType(td.getSuperT(), td));
 				}
 				for (final T interfaceT : td.getInterfaceTs()) {
 					((TypeDeclaration) typeDeclaration).superInterfaceTypes().add(
-							Types.decompileType(interfaceT, td));
+							Expressions.decompileType(interfaceT, td));
 				}
 			}
 			td.setTypeDeclaration(typeDeclaration);

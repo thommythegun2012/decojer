@@ -306,7 +306,7 @@ public abstract class T {
 		if (t1.isArray() && t2.isArray()) {
 			// covariant arrays, but supertype is Object and not superXY[]
 			final T joinT = join(t1.getComponentT(), t2.getComponentT());
-			return t1.getDu().getArrayT(joinT);
+			return joinT == null ? null : t1.getDu().getArrayT(joinT);
 		}
 		// find common supertypes, raise in t1-hierarchy till assignable from t2
 		T superT = null;

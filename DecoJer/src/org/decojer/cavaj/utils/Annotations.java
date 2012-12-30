@@ -77,13 +77,13 @@ public final class Annotations {
 				if (expression != null) {
 					final SingleMemberAnnotation singleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
-					singleMemberAnnotation.setTypeName(Types.decompileName(a.getT(), td));
+					singleMemberAnnotation.setTypeName(Expressions.decompileName(a.getT(), td));
 					singleMemberAnnotation.setValue(expression);
 					return singleMemberAnnotation;
 				}
 			}
 			final NormalAnnotation normalAnnotation = ast.newNormalAnnotation();
-			normalAnnotation.setTypeName(Types.decompileName(a.getT(), td));
+			normalAnnotation.setTypeName(Expressions.decompileName(a.getT(), td));
 			for (final String memberName : memberNames) {
 				final Expression expression = decompileAnnotationDefaultValue(td,
 						a.getMemberValue(memberName));
@@ -99,7 +99,7 @@ public final class Annotations {
 			}
 		}
 		final MarkerAnnotation markerAnnotation = ast.newMarkerAnnotation();
-		markerAnnotation.setTypeName(Types.decompileName(a.getT(), td));
+		markerAnnotation.setTypeName(Expressions.decompileName(a.getT(), td));
 		return markerAnnotation;
 	}
 
@@ -150,7 +150,7 @@ public final class Annotations {
 		}
 		if (defaultValue instanceof T) {
 			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-			typeLiteral.setType(Types.decompileType((T) defaultValue, td));
+			typeLiteral.setType(Expressions.decompileType((T) defaultValue, td));
 			return typeLiteral;
 		}
 		if (defaultValue instanceof Double) {
@@ -161,7 +161,7 @@ public final class Annotations {
 			if (!f.check(AF.ENUM)) {
 				LOGGER.warning("Default value field must be enum!");
 			}
-			return ast.newQualifiedName(Types.decompileName(f.getT(), td),
+			return ast.newQualifiedName(Expressions.decompileName(f.getT(), td),
 					ast.newSimpleName(f.getName()));
 		}
 		if (defaultValue instanceof Float) {

@@ -331,6 +331,7 @@ public final class DU {
 		T t;
 		if (enclosing != null) {
 			// don't use getT() with cache, enclosing could be uncachable (like type var)
+			// FIXME if enclosing is ParamT we get problematic names...special InnerT for this case?
 			t = new ClassT(this, enclosing.getName() + "$"
 					+ s.substring(start, c.pos).replace('/', '.'));
 			((ClassT) t).setEnclosingT(enclosing);
