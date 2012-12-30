@@ -288,6 +288,15 @@ public final class TD extends BD {
 	}
 
 	/**
+	 * Is Scala source code?
+	 * 
+	 * @return {@code true} - is Scala source code
+	 */
+	public boolean isScala() {
+		return getSourceFileName().endsWith(".scala");
+	}
+
+	/**
 	 * Parse interface types from signature.
 	 * 
 	 * @param s
@@ -342,7 +351,7 @@ public final class TD extends BD {
 	 */
 	public void setScala() {
 		if (getSourceFileName() != null) {
-			if (!getSourceFileName().endsWith(".scala")) {
+			if (!isScala()) {
 				LOGGER.warning("This should be a Scala source code!");
 			}
 			return;

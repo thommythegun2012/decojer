@@ -69,8 +69,8 @@ import org.decojer.cavaj.model.code.ops.RETURN;
 import org.decojer.cavaj.model.code.ops.SHR;
 import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.utils.Expressions;
 import org.decojer.cavaj.utils.Priority;
-import org.decojer.cavaj.utils.Types;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.ArrayAccess;
@@ -157,10 +157,26 @@ public final class TrCfg2JavaExpressionStmts {
 				while (rewriteConditionalValue(bb)) {
 					// nested possible
 				} // now we must pull created value down...
-				if (bb.getOp(0) instanceof JCND && rewriteUnderflowJcnd(bb)) {
-					// special handling for JCND, multiple predecessors possible and can be directly
-					// routed through this BB
-					return true; // deleted node
+				if (bb.getIns().size() > 1) {
+					final Op op = bb.getOp(0);
+					if (op instanceof JCND) {
+						if (rewriteConditionalJcnd(bb)) {
+							// special handling for JCND, multiple predecessors possible and can be
+							// directly routed through this BB
+							return true; // deleted myself
+						}
+						return false;
+					} else if (op instanceof RETURN) {
+						if (rewriteConditionalReturn(bb)) {
+							// special handling for RETURN, multiple predecessors possible and can
+							// directly return value - should be Scala only code
+							if (!this.cfg.getTd().isScala()) {
+								log("Rewriting of conditional returns should only happen for Scala based classes!");
+							}
+							return true; // deleted myself
+						}
+						return false;
+					}
 				}
 				final E in = bb.getRelevantIn();
 				if (in == null) {
@@ -214,18 +230,17 @@ public final class TrCfg2JavaExpressionStmts {
 						arrayCreation.setInitializer(arrayInitializer);
 						// TODO for higher performance and for full array creation removement we
 						// could defer the 0-fill and rewrite to the final A/STORE phase
-						final int size = Types.getIntValue((NumberLiteral) arrayCreation
+						final int size = Expressions.getIntValue((NumberLiteral) arrayCreation
 								.dimensions().get(0));
 						// not all indexes may be set, null/0/false in JVM 7 are not set, fill
 						for (int i = size; i-- > 0;) {
 							arrayInitializer.expressions().add(
-									Types.decompileLiteral(
-											bb.getCfg().getInFrame(op).peek().getT(), null,
-											this.cfg.getTd()));
+									Expressions.decompileLiteral(bb.getCfg().getInFrame(op).peek()
+											.getT(), null, this.cfg.getTd()));
 						}
 						arrayCreation.dimensions().clear();
 					}
-					arrayInitializer.expressions().set(Types.getIntValue(indexExpression),
+					arrayInitializer.expressions().set(Expressions.getIntValue(indexExpression),
 							wrap(rightExpression));
 					break;
 				}
@@ -249,7 +264,7 @@ public final class TrCfg2JavaExpressionStmts {
 			case CAST: {
 				final CAST cop = (CAST) op;
 				final CastExpression castExpression = getAst().newCastExpression();
-				castExpression.setType(Types.decompileType(cop.getToT(), this.cfg.getTd()));
+				castExpression.setType(Expressions.decompileType(cop.getToT(), this.cfg.getTd()));
 				castExpression.setExpression(wrap(bb.pop(), Priority.TYPE_CAST));
 				bb.push(castExpression);
 				break;
@@ -342,14 +357,14 @@ public final class TrCfg2JavaExpressionStmts {
 				if (!(expression instanceof ArrayCreation)) {
 					// TODO Dalvik...assignment happened already...temporary register
 					expression = getAst().newArrayCreation();
-					((ArrayCreation) expression).setType((ArrayType) Types.decompileType(t,
+					((ArrayCreation) expression).setType((ArrayType) Expressions.decompileType(t,
 							this.cfg.getTd()));
 				}
 
 				final ArrayInitializer arrayInitializer = getAst().newArrayInitializer();
 				for (final Object value : cop.getValues()) {
 					arrayInitializer.expressions().add(
-							Types.decompileLiteral(componentT, value, this.cfg.getTd()));
+							Expressions.decompileLiteral(componentT, value, this.cfg.getTd()));
 				}
 				((ArrayCreation) expression).setInitializer(arrayInitializer);
 
@@ -371,7 +386,7 @@ public final class TrCfg2JavaExpressionStmts {
 					// Eclipse AST expects a Name for f.getT(), not a Type:
 					// is OK - f.getT() cannot be generic
 					bb.push(getAst().newQualifiedName(
-							Types.decompileName(f.getT(), this.cfg.getTd()),
+							Expressions.decompileName(f.getT(), this.cfg.getTd()),
 							getAst().newSimpleName(f.getName())));
 				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
@@ -418,7 +433,7 @@ public final class TrCfg2JavaExpressionStmts {
 					assignment.setLeftHandSide(getVarExpression(cop.getReg(), cop.getPc()));
 					assignment.setOperator(value >= 0 ? Assignment.Operator.PLUS_ASSIGN
 							: Assignment.Operator.MINUS_ASSIGN);
-					assignment.setRightHandSide(Types.decompileLiteral(cop.getT(),
+					assignment.setRightHandSide(Expressions.decompileLiteral(cop.getT(),
 							value >= 0 ? value : -value, this.cfg.getTd()));
 					statement = getAst().newExpressionStatement(assignment);
 					break;
@@ -431,7 +446,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final InstanceofExpression instanceofExpression = getAst()
 						.newInstanceofExpression();
 				instanceofExpression.setLeftOperand(wrap(bb.pop(), Priority.INSTANCEOF));
-				instanceofExpression.setRightOperand(Types.decompileType(cop.getT(),
+				instanceofExpression.setRightOperand(Expressions.decompileType(cop.getT(),
 						this.cfg.getTd()));
 				bb.push(instanceofExpression);
 				break;
@@ -522,7 +537,8 @@ public final class TrCfg2JavaExpressionStmts {
 					}
 				} else if (m.isStatic()) {
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
-					methodInvocation.setExpression(Types.decompileName(m.getT(), this.cfg.getTd()));
+					methodInvocation.setExpression(Expressions.decompileName(m.getT(),
+							this.cfg.getTd()));
 					methodInvocation.setName(getAst().newSimpleName(m.getName()));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
@@ -750,12 +766,12 @@ public final class TrCfg2JavaExpressionStmts {
 							final T[] interfaceTs = newT.getInterfaceTs();
 							switch (interfaceTs.length) {
 							case 0:
-								classInstanceCreation.setType(Types.decompileType(newT.getSuperT(),
-										this.cfg.getTd()));
+								classInstanceCreation.setType(Expressions.decompileType(
+										newT.getSuperT(), this.cfg.getTd()));
 								break;
 							case 1:
-								classInstanceCreation.setType(Types.decompileType(interfaceTs[0],
-										this.cfg.getTd()));
+								classInstanceCreation.setType(Expressions.decompileType(
+										interfaceTs[0], this.cfg.getTd()));
 								break;
 							default:
 								break inner;
@@ -779,7 +795,7 @@ public final class TrCfg2JavaExpressionStmts {
 						// no int
 					}
 				}
-				classInstanceCreation.setType(Types.decompileType(newT, this.cfg.getTd()));
+				classInstanceCreation.setType(Expressions.decompileType(newT, this.cfg.getTd()));
 				bb.push(classInstanceCreation);
 				break;
 			}
@@ -787,7 +803,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final NEWARRAY cop = (NEWARRAY) op;
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
 				arrayCreation.setType(getAst().newArrayType(
-						Types.decompileType(cop.getT(), this.cfg.getTd())));
+						Expressions.decompileType(cop.getT(), this.cfg.getTd())));
 				for (int i = cop.getDimensions(); i-- > 0;) {
 					arrayCreation.dimensions().add(wrap(bb.pop()));
 				}
@@ -820,8 +836,8 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			case PUSH: {
 				final PUSH cop = (PUSH) op;
-				final Expression expr = Types.decompileLiteral(this.cfg.getOutFrame(op).peek()
-						.getT(), cop.getValue(), this.cfg.getTd());
+				final Expression expr = Expressions.decompileLiteral(this.cfg.getOutFrame(op)
+						.peek().getT(), cop.getValue(), this.cfg.getTd());
 				if (expr != null) {
 					bb.push(expr);
 				}
@@ -838,7 +854,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final Assignment assignment = getAst().newAssignment();
 				if (f.isStatic()) {
 					final Name name = getAst().newQualifiedName(
-							Types.decompileName(f.getT(), this.cfg.getTd()),
+							Expressions.decompileName(f.getT(), this.cfg.getTd()),
 							getAst().newSimpleName(f.getName()));
 					assignment.setLeftHandSide(name);
 				} else {
@@ -924,7 +940,7 @@ public final class TrCfg2JavaExpressionStmts {
 								Priority.ASSIGNMENT));
 						final VariableDeclarationStatement variableDeclarationStatement = getAst()
 								.newVariableDeclarationStatement(variableDeclarationFragment);
-						variableDeclarationStatement.setType(Types.decompileType(v.getT(),
+						variableDeclarationStatement.setType(Expressions.decompileType(v.getT(),
 								this.cfg.getTd()));
 						statement = variableDeclarationStatement;
 						break;
@@ -1308,8 +1324,8 @@ public final class TrCfg2JavaExpressionStmts {
 				// can just happen for JDK<5: replace . -> /
 				final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace(
 						'.', '/');
-				followBb.push(Types.decompileLiteral(this.cfg.getDu().getT(Class.class), this.cfg
-						.getDu().getT(classInfo), this.cfg.getTd()));
+				followBb.push(Expressions.decompileLiteral(this.cfg.getDu().getT(Class.class),
+						this.cfg.getDu().getT(classInfo), this.cfg.getTd()));
 				bb.removeOp(0);
 				followBb.joinPredBb(bb);
 				return true;
@@ -1366,7 +1382,7 @@ public final class TrCfg2JavaExpressionStmts {
 			// can just happen for JDK<5: replace . -> /
 			final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace('.',
 					'/');
-			followBb.push(Types.decompileLiteral(this.cfg.getDu().getT(Class.class), this.cfg
+			followBb.push(Expressions.decompileLiteral(this.cfg.getDu().getT(Class.class), this.cfg
 					.getDu().getT(classInfo), this.cfg.getTd()));
 			bb.removeOp(0);
 			bb.removeOp(0);
@@ -1376,6 +1392,96 @@ public final class TrCfg2JavaExpressionStmts {
 			log("Rewrite to class-literal didn't work!", e);
 			return false;
 		}
+	}
+
+	private boolean rewriteConditionalJcnd(final BB bb) {
+		// in boolean compounds in JDK 1 & 2: PUSH true/false -> JCND,
+		// also found in Scala
+		assert bb.getOps() == 1 : bb.getOps();
+		assert bb.isStackEmpty() : bb.getTop();
+
+		final CmpType cmpType = ((JCND) bb.getOp(0)).getCmpType();
+
+		final List<E> ins = bb.getIns();
+		for (int i = ins.size(); i-- > 0;) {
+			final E in = ins.get(i);
+			final E c_bb = in.getRelevantIn();
+			if (c_bb == null || !c_bb.isSequence()) {
+				continue;
+			}
+			final BB c = c_bb.getStart();
+			if (c.isStackEmpty()) {
+				continue;
+			}
+			Expression expression = c.pop();
+			Boolean booleanConst = booleanFromLiteral(expression);
+			if (booleanConst != null) {
+				switch (cmpType) {
+				case T_EQ:
+					// "== 0" means "is false"
+					booleanConst = !booleanConst;
+					break;
+				case T_NE:
+					// "!= 0" means "is true"
+					break;
+				default:
+					log("Unknown cmp type '" + cmpType + "'!");
+				}
+				if (c.getStmts() == 0 && c.isStackEmpty()) {
+					c.moveIns(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
+				} else {
+					c.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
+				}
+				in.remove();
+				continue;
+			}
+			switch (cmpType) {
+			case T_EQ:
+				// "== 0" means "is false"
+				expression = not(expression);
+				break;
+			case T_NE:
+				// "!= 0" means "is true"
+				break;
+			default:
+				log("Unknown cmp type '" + cmpType + "' for boolean expression '" + expression
+						+ "'!");
+			}
+			final IfStatement statement = getAst().newIfStatement();
+			statement.setExpression(expression);
+			c.addStmt(statement);
+			c.setConds(bb.getTrueSucc(), bb.getFalseSucc());
+			in.remove();
+		}
+		return ins.isEmpty();
+	}
+
+	private boolean rewriteConditionalReturn(final BB bb) {
+		// Scala feature: return conditional value with additional statements in conditions
+
+		// TODO BB is NEW/NEW -> [INVOKE <init>(Lscala/Either;)V, RETURN]
+		assert bb.getIns().size() > 1;
+		assert bb.getOps() == 1 : bb.getOps();
+		assert bb.getOp(0) instanceof RETURN : bb.getOp(0);
+		assert bb.isStackEmpty() : bb.getTop();
+
+		final List<E> ins = bb.getIns();
+		for (int i = ins.size(); i-- > 0;) {
+			final E in = ins.get(i);
+			final E c_bb = in.getRelevantIn();
+			if (c_bb == null || !c_bb.isSequence()) {
+				continue;
+			}
+			final BB c = c_bb.getStart();
+			if (c.isStackEmpty()) {
+				continue;
+			}
+			final ReturnStatement cReturnStatement = getAst().newReturnStatement();
+			cReturnStatement.setExpression(wrap(c.pop()));
+			c.addStmt(cReturnStatement);
+			in.remove();
+		}
+		return ins.isEmpty();
 	}
 
 	private boolean rewriteConditionalValue(final BB bb) {
@@ -1391,7 +1497,7 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			final BB c = c_bb.getStart();
 			// in Scala exists a more complex ternary variant with sub statements
-			if (c.getIns().size() != 1 || c.getStmts() > 0 || c.getTop() != 1) {
+			if (c.getIns().size() != 1 || c.getStmts() != 0 || c.getTop() != 1) {
 				continue;
 			}
 			final E a_c = c.getRelevantIn();
@@ -1402,7 +1508,7 @@ public final class TrCfg2JavaExpressionStmts {
 			// now we have the potential compound head, go down again and identify pattern
 			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
 			final BB x = a_x.getRelevantEnd();
-			if (x.getIns().size() != 1 || x.getStmts() > 0 || x.getTop() != 1) {
+			if (x.getIns().size() != 1 || x.getStmts() != 0 || x.getTop() != 1) {
 				continue;
 			}
 			if (bb != x.getRelevantOut().getEnd()) {
@@ -1421,9 +1527,9 @@ public final class TrCfg2JavaExpressionStmts {
 			Expression thenExpression = c.peek();
 			Expression elseExpression = x.peek();
 			Expression expression = ((IfStatement) a.removeFinalStmt()).getExpression();
+
 			final Boolean thenBooleanConst = booleanFromLiteral(thenExpression);
 			final Boolean elseBooleanConst = booleanFromLiteral(elseExpression);
-
 			rewrite: if (thenBooleanConst != null && elseBooleanConst != null) {
 				// expression: A ? true : false => A,
 				// accept if one is BooleanLiteral - merging didn't work ;)
@@ -1481,8 +1587,9 @@ public final class TrCfg2JavaExpressionStmts {
 					try {
 						final String classInfo = ((StringLiteral) methodInvocation.arguments().get(
 								0)).getLiteralValue();
-						expression = Types.decompileLiteral(this.cfg.getDu().getT(Class.class),
-								this.cfg.getDu().getT(classInfo), this.cfg.getTd());
+						expression = Expressions.decompileLiteral(this.cfg.getDu()
+								.getT(Class.class), this.cfg.getDu().getT(classInfo), this.cfg
+								.getTd());
 						break rewrite;
 					} catch (final Exception e) {
 						// rewrite to class literal didn't work
@@ -1641,6 +1748,7 @@ public final class TrCfg2JavaExpressionStmts {
 			bb.removeOp(0);
 			name = "e"; // TODO hmmm...free variable name needed...
 		} else {
+			// TODO could also be: LOAD x, MONITOR_EXIT - THROW ...kill POP case above?
 			log("First operation in handler '" + bb + "' isn't STORE or POP, but is '" + firstOp
 					+ "'!");
 			name = "e"; // TODO hmmm...free variable name needed...
@@ -1656,13 +1764,13 @@ public final class TrCfg2JavaExpressionStmts {
 					.newSingleVariableDeclaration();
 			singleVariableDeclaration.setName(getAst().newSimpleName(name));
 			if (handlerTypes.length == 1) {
-				singleVariableDeclaration.setType(Types.decompileType(handlerTypes[0],
+				singleVariableDeclaration.setType(Expressions.decompileType(handlerTypes[0],
 						this.cfg.getTd()));
 			} else {
 				// Multi-Catch
 				final UnionType unionType = getAst().newUnionType();
 				for (final T t : handlerTypes) {
-					unionType.types().add(Types.decompileType(t, this.cfg.getTd()));
+					unionType.types().add(Expressions.decompileType(t, this.cfg.getTd()));
 				}
 				singleVariableDeclaration.setType(unionType);
 			}
@@ -1730,8 +1838,8 @@ public final class TrCfg2JavaExpressionStmts {
 		final int value = op.getValue();
 		assignment.setOperator(value >= 0 ? Assignment.Operator.PLUS_ASSIGN
 				: Assignment.Operator.MINUS_ASSIGN);
-		assignment.setRightHandSide(Types.decompileLiteral(op.getT(), value >= 0 ? value : -value,
-				this.cfg.getTd()));
+		assignment.setRightHandSide(Expressions.decompileLiteral(op.getT(), value >= 0 ? value
+				: -value, this.cfg.getTd()));
 		bb.removeOp(0);
 		bb.push(assignment);
 		return true;
@@ -1813,67 +1921,6 @@ public final class TrCfg2JavaExpressionStmts {
 			LOGGER.log(Level.WARNING, "Rewrite to string-add didn't work!", e);
 			return false;
 		}
-	}
-
-	private boolean rewriteUnderflowJcnd(final BB bb) {
-		// in boolean compounds in JDK 1 & 2: PUSH true/false -> JCND
-		assert bb.getOps() == 1 : bb.getOps();
-		assert bb.isStackEmpty() : bb.getTop();
-
-		final CmpType cmpType = ((JCND) bb.getOp(0)).getCmpType();
-
-		final List<E> ins = bb.getIns();
-		for (int i = ins.size(); i-- > 0;) {
-			final E in = ins.get(i);
-			final E c_bb = in.getRelevantIn();
-			if (c_bb == null || !c_bb.isSequence()) {
-				continue;
-			}
-			final BB c = c_bb.getStart();
-			if (c.isStackEmpty()) {
-				continue;
-			}
-			Expression expression = c.pop();
-			Boolean booleanConst = booleanFromLiteral(expression);
-			if (booleanConst != null) {
-				switch (cmpType) {
-				case T_EQ:
-					// "== 0" means "is false"
-					booleanConst = !booleanConst;
-					break;
-				case T_NE:
-					// "!= 0" means "is true"
-					break;
-				default:
-					log("Unknown cmp type '" + cmpType + "'!");
-				}
-				if (c.getStmts() == 0 && c.isStackEmpty()) {
-					c.moveIns(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
-				} else {
-					c.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
-				}
-				in.remove();
-				continue;
-			}
-			switch (cmpType) {
-			case T_EQ:
-				// "== 0" means "is false"
-				expression = not(expression);
-				break;
-			case T_NE:
-				// "!= 0" means "is true"
-				break;
-			default:
-				log("Unknown cmp type '" + cmpType + "' for boolean expression '" + expression
-						+ "'!");
-			}
-			final IfStatement statement = getAst().newIfStatement();
-			statement.setExpression(expression);
-			c.addStmt(statement);
-			c.setConds(bb.getTrueSucc(), bb.getFalseSucc());
-			in.remove();
-		}
-		return ins.isEmpty();
 	}
 
 	private void transform() {
