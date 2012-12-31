@@ -67,35 +67,6 @@ public final class Expressions {
 	private static final String PROP_LITERAL_VALUE = "propLiteralValue";
 
 	/**
-	 * Get boolean value from literal.
-	 * 
-	 * @param expression
-	 *            expression
-	 * @return {@code null} - no boolean literal, {@code Boolean#TRUE} - true, {@code Boolean#FALSE}
-	 *         - true
-	 */
-	public static Boolean booleanFromLiteral(final Expression expression) {
-		if (expression instanceof BooleanLiteral) {
-			return ((BooleanLiteral) expression).booleanValue();
-		}
-		if (!(expression instanceof NumberLiteral)) {
-			return null;
-		}
-		final String token = ((NumberLiteral) expression).getToken();
-		if (token.length() != 1) {
-			return null;
-		}
-		final char c = token.charAt(0);
-		if ('0' == c) {
-			return false;
-		}
-		if ('1' == c) {
-			return true;
-		}
-		return null;
-	}
-
-	/**
 	 * Decompile literal.
 	 * 
 	 * @param t
@@ -492,7 +463,32 @@ public final class Expressions {
 	}
 
 	/**
-	 * Get original integer value for literal expression.
+	 * Get boolean value from literal.
+	 * 
+	 * @param literal
+	 *            literal expression
+	 * @return {@code null} - no boolean literal, {@code Boolean#TRUE} - true, {@code Boolean#FALSE}
+	 *         - true
+	 */
+	public static Boolean getBooleanValue(final Expression literal) {
+		final Object value = literal.getProperty(PROP_LITERAL_VALUE);
+		if (value instanceof Boolean) {
+			return ((Boolean) value).booleanValue();
+		}
+		if (value instanceof Number) {
+			return ((Number) value).intValue() != 0;
+		}
+		if (literal instanceof BooleanLiteral) {
+			return ((BooleanLiteral) literal).booleanValue();
+		}
+		if (literal instanceof NumberLiteral) {
+			return Integer.getInteger(((NumberLiteral) literal).getToken()) != 0;
+		}
+		return null;
+	}
+
+	/**
+	 * Get original number value for literal expression.
 	 * 
 	 * Sometimes we must backtranslate literal constants like Byte.MAX_VALUE.
 	 * 
@@ -500,18 +496,19 @@ public final class Expressions {
 	 * backtranslate use case this isn't really expected. Fall back is cast to NumberLiteral and
 	 * Integer parsing.
 	 * 
-	 * @param e
+	 * @param literal
 	 *            literal expression
-	 * @return integer for literal
+	 * @return integer for literal or {@code null}
 	 */
-	public static int getIntValue(final Expression e) {
-		final Object value = e.getProperty(PROP_LITERAL_VALUE);
+	public static Number getNumberValue(final Expression literal) {
+		final Object value = literal.getProperty(PROP_LITERAL_VALUE);
 		if (value instanceof Number) {
-			return ((Number) value).intValue();
+			return (Number) value;
 		}
-		assert false; // shouldn't really happen
-
-		return Integer.parseInt(((NumberLiteral) e).getToken());
+		if (literal instanceof NumberLiteral) {
+			return Integer.getInteger(((NumberLiteral) literal).getToken());
+		}
+		return null;
 	}
 
 	private static boolean isNot(final Expression expression) {
@@ -663,8 +660,15 @@ public final class Expressions {
 	 * @return wrapped expression
 	 */
 	public static Expression wrap(final Expression expression) {
-		return expression.getParent() == null ? expression : (Expression) ASTNode.copySubtree(
-				expression.getAST(), expression);
+		if (expression.getParent() == null) {
+			return expression;
+		}
+		final Expression copy = (Expression) ASTNode.copySubtree(expression.getAST(), expression);
+		final Object property = expression.getProperty(PROP_LITERAL_VALUE);
+		if (property != null) {
+			copy.setProperty(PROP_LITERAL_VALUE, property);
+		}
+		return copy;
 	}
 
 	private static Expression wrap(final Expression expression, final int priority) {

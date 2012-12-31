@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.transformers;
 
-import static org.decojer.cavaj.utils.Expressions.booleanFromLiteral;
+import static org.decojer.cavaj.utils.Expressions.getBooleanValue;
 import static org.decojer.cavaj.utils.Expressions.newInfixExpression;
 import static org.decojer.cavaj.utils.Expressions.newPrefixExpression;
 import static org.decojer.cavaj.utils.Expressions.not;
@@ -230,17 +230,18 @@ public final class TrCfg2JavaExpressionStmts {
 						arrayCreation.setInitializer(arrayInitializer);
 						// TODO for higher performance and for full array creation removement we
 						// could defer the 0-fill and rewrite to the final A/STORE phase
-						final int size = Expressions.getIntValue((NumberLiteral) arrayCreation
-								.dimensions().get(0));
+						final Number size = Expressions
+								.getNumberValue((NumberLiteral) arrayCreation.dimensions().get(0));
 						// not all indexes may be set, null/0/false in JVM 7 are not set, fill
-						for (int i = size; i-- > 0;) {
+						for (int i = size.intValue(); i-- > 0;) {
 							arrayInitializer.expressions().add(
 									Expressions.decompileLiteral(bb.getCfg().getInFrame(op).peek()
 											.getT(), null, this.cfg.getTd()));
 						}
 						arrayCreation.dimensions().clear();
 					}
-					arrayInitializer.expressions().set(Expressions.getIntValue(indexExpression),
+					arrayInitializer.expressions().set(
+							Expressions.getNumberValue(indexExpression).intValue(),
 							wrap(rightExpression));
 					break;
 				}
@@ -1414,7 +1415,7 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			Expression expression = c.pop();
-			Boolean booleanConst = booleanFromLiteral(expression);
+			Boolean booleanConst = getBooleanValue(expression);
 			if (booleanConst != null) {
 				switch (cmpType) {
 				case T_EQ:
@@ -1528,8 +1529,8 @@ public final class TrCfg2JavaExpressionStmts {
 			Expression elseExpression = x.peek();
 			Expression expression = ((IfStatement) a.removeFinalStmt()).getExpression();
 
-			final Boolean thenBooleanConst = booleanFromLiteral(thenExpression);
-			final Boolean elseBooleanConst = booleanFromLiteral(elseExpression);
+			final Boolean thenBooleanConst = getBooleanValue(thenExpression);
+			final Boolean elseBooleanConst = getBooleanValue(elseExpression);
 			rewrite: if (thenBooleanConst != null && elseBooleanConst != null) {
 				// expression: A ? true : false => A,
 				// accept if one is BooleanLiteral - merging didn't work ;)
