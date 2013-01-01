@@ -402,7 +402,7 @@ public final class TrDataFlowAnalysis {
 
 			final int subPc = cop.getTargetPc();
 			// Spec, JSR/RET is stack-like:
-			// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
+			// http://docs.oracle.com/javase/specs/jvms/se7/jvms7.pdf
 			final BB subBb = getTargetBb(subPc);
 			bb.setSucc(subBb);
 			// use common value (like Sub) instead of jsr-follow-address because of merge
@@ -432,13 +432,14 @@ public final class TrDataFlowAnalysis {
 			if (ret != null) {
 				// RET already visited, link RET BB to JSR follower and merge
 				this.frame = new Frame(this.cfg.getFrame(ret.getPc()));
-				if (sub != loadRead(ret.getReg(), T.RET).getValue()) {
+				if (loadRead(ret.getReg(), T.RET).getValue() != sub) {
 					// don't assert here, need this get for frames return-address-null update
 					LOGGER.warning("Incorrect sub!");
 				}
 				final BB retBb = this.pc2bbs[ret.getPc()];
 				final int retPc = cop.getPc() + 1;
 				retBb.setSucc(getTargetBb(retPc));
+				// TODO rebuild frame for merge ret
 				merge(retPc);
 			}
 			return -1;
@@ -544,6 +545,7 @@ public final class TrDataFlowAnalysis {
 				final Op jsr = in.getStart().getFinalOp();
 				final int retPc = jsr.getPc() + 1;
 				bb.setSucc(getTargetBb(retPc));
+				// TODO rebuild frame for merge ret
 				merge(retPc);
 			}
 			return -1;
@@ -822,6 +824,8 @@ public final class TrDataFlowAnalysis {
 
 				continue;
 			}
+			// TODO BB has final RET? break forward replacement if jsrMerge and newR not in sub,
+			// -> check newR order > subBb order...not possible?!!!!
 			mergeReplaceReg(outBb, i, replacedR, newR);
 		}
 	}
