@@ -314,7 +314,7 @@ public final class CFG {
 	 * @return type declaration
 	 */
 	public TD getTd() {
-		return getMd().getTd();
+		return this.md.getTd();
 	}
 
 	/**
@@ -475,7 +475,7 @@ public final class CFG {
 
 	@Override
 	public String toString() {
-		return getMd().toString() + " (ops: " + this.ops.length + ", regs: " + this.regs + ")";
+		return this.md.toString() + " (ops: " + this.ops.length + ", regs: " + this.regs + ")";
 	}
 
 }

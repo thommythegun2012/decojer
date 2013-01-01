@@ -225,7 +225,7 @@ public final class BB {
 	 * @return immediate domminator (IDom)
 	 */
 	public BB getIDom() {
-		return getCfg().getIDom(this);
+		return this.cfg.getIDom(this);
 	}
 
 	/**
