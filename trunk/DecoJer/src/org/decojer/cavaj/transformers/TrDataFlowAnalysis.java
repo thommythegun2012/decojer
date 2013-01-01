@@ -399,57 +399,59 @@ public final class TrDataFlowAnalysis {
 		}
 		case JSR: {
 			final JSR cop = (JSR) op;
+
+			final int subPc = cop.getTargetPc();
 			// Spec, JSR/RET is stack-like:
 			// http://docs.oracle.com/javase/7/specs/jvms/JVMS-JavaSE7.pdf
-			final BB targetBb = getTargetBb(cop.getTargetPc());
-			bb.setSucc(targetBb);
+			final BB subBb = getTargetBb(subPc);
+			bb.setSucc(subBb);
 			// use common value (like Sub) instead of jsr-follow-address because of merge
-			final Frame targetFrame = this.cfg.getInFrame(targetBb);
-			jsr: if (targetFrame != null) {
-				// JSR already visited, reuse Sub
-				if (this.frame.getTop() + 1 != targetFrame.getTop()) {
-					LOGGER.warning("Wrong JSR Sub merge! Subroutine stack size different.");
-					break jsr;
-				}
-				final R subR = targetFrame.peek();
-				// now check if RET in Sub already visited
-				if (!(subR.getValue() instanceof Sub)) {
-					LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
-					break jsr;
-				}
-				final Sub sub = (Sub) subR.getValue();
-				if (sub.getPc() != cop.getTargetPc()) {
-					LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
-					break jsr;
-				}
+			final Frame subFrame = this.cfg.getFrame(subPc);
+			if (subFrame == null) {
+				final Sub sub = new Sub(subPc);
 				if (!this.frame.pushSub(sub)) {
 					LOGGER.warning("Recursive call to jsr entry!");
-					break jsr;
-				}
-				this.frame.push(subR);
-				merge(cop.getTargetPc());
-
-				final RET ret = sub.getRet();
-				if (ret != null) {
-					// RET already visited, link RET BB to JSR follower and merge
-					this.frame = new Frame(this.cfg.getFrame(ret.getPc()));
-					if (sub != loadRead(ret.getReg(), T.RET).getValue()) {
-						// don't assert here, need this get for frames return-address-null update
-						LOGGER.warning("Incorrect sub!");
-					}
-					final BB retBb = this.pc2bbs[ret.getPc()];
-					final int returnPc = cop.getPc() + 1;
-					retBb.setSucc(getTargetBb(returnPc));
-					merge(returnPc);
-				}
-			} else {
-				final Sub sub = new Sub(cop.getTargetPc());
-				if (!this.frame.pushSub(sub)) {
-					LOGGER.warning("Recursive call to jsr entry!");
-					break jsr;
+					return -1;
 				}
 				pushConst(T.RET, sub);
-				merge(cop.getTargetPc());
+				merge(subPc);
+				return -1;
+			}
+			// JSR already visited, reuse Sub
+			if (this.frame.getTop() + 1 != subFrame.getTop()) {
+				LOGGER.warning("Wrong JSR Sub merge! Subroutine stack size different.");
+				return -1;
+			}
+			final R subR = subFrame.peek();
+			// now check if RET in Sub already visited
+			if (!(subR.getValue() instanceof Sub)) {
+				LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
+				return -1;
+			}
+			final Sub sub = (Sub) subR.getValue();
+			if (sub.getPc() != cop.getTargetPc()) {
+				LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
+				return -1;
+			}
+			if (!this.frame.pushSub(sub)) {
+				LOGGER.warning("Recursive call to jsr entry!");
+				return -1;
+			}
+			this.frame.push(subR);
+			merge(subPc);
+
+			final RET ret = sub.getRet();
+			if (ret != null) {
+				// RET already visited, link RET BB to JSR follower and merge
+				this.frame = new Frame(this.cfg.getFrame(ret.getPc()));
+				if (sub != loadRead(ret.getReg(), T.RET).getValue()) {
+					// don't assert here, need this get for frames return-address-null update
+					LOGGER.warning("Incorrect sub!");
+				}
+				final BB retBb = this.pc2bbs[ret.getPc()];
+				final int retPc = cop.getPc() + 1;
+				retBb.setSucc(getTargetBb(retPc));
+				merge(retPc);
 			}
 			return -1;
 		}
@@ -553,9 +555,9 @@ public final class TrDataFlowAnalysis {
 			for (final E in : subBb.getIns()) {
 				// JSR is last operation in previous BB
 				final Op jsr = in.getStart().getFinalOp();
-				final int returnPc = jsr.getPc() + 1;
-				bb.setSucc(getTargetBb(returnPc));
-				merge(returnPc);
+				final int retPc = jsr.getPc() + 1;
+				bb.setSucc(getTargetBb(retPc));
+				merge(retPc);
 			}
 			return -1;
 		}
