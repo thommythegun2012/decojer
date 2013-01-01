@@ -173,6 +173,34 @@ public final class Frame {
 		return s;
 	}
 
+	public R peekSub(final int callerTop, final int subPc) {
+		// JSR already visited, reuse Sub
+		if (getTop() != callerTop + 1) {
+			LOGGER.warning("Wrong JSR Sub merge! Subroutine stack size different.");
+			return null;
+		}
+		final R subR = peek();
+		// currently not possible, register start pc is at operation pc, not the real store pc
+		// if (subR.getPc() != subPc) {
+		// LOGGER.warning("Wrong JSR Sub merge! Subroutine register has wrong start PC.");
+		// return null;
+		// }
+		// now check if RET in Sub already visited
+		if (!(subR.getValue() instanceof Sub)) {
+			LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
+			return null;
+		}
+		final Sub sub = (Sub) subR.getValue();
+		if (sub.getPc() != subPc) {
+			LOGGER.warning("Wrong JSR Sub merge! Subroutine has wrong start PC.");
+			return null;
+		}
+		if (this.subs[this.subs.length - 1] != sub) {
+			LOGGER.warning("Wrong JSR Sub merge! Subroutine register incompatible to subroutine stack.");
+		}
+		return subR;
+	}
+
 	/**
 	 * Pop stack register.
 	 * 
@@ -209,21 +237,21 @@ public final class Frame {
 	 * @return {@code true} - success (found in stack, removed)
 	 */
 	public boolean popSub(final Sub sub) {
-		if (this.subs == null) {
-			return false;
-		}
-		for (int i = this.subs.length; i-- > 0;) {
-			if (this.subs[i].equals(sub)) {
-				if (i == 0) {
-					this.subs = null;
-				} else {
-					final Sub[] newSubs = new Sub[i];
-					System.arraycopy(this.subs, 0, newSubs, 0, i);
-					this.subs = newSubs;
+		if (this.subs != null) {
+			for (int i = this.subs.length; i-- > 0;) {
+				if (this.subs[i].equals(sub)) {
+					if (i == 0) {
+						this.subs = null;
+					} else {
+						final Sub[] newSubs = new Sub[i];
+						System.arraycopy(this.subs, 0, newSubs, 0, i);
+						this.subs = newSubs;
+					}
+					return true;
 				}
-				return true;
 			}
 		}
+		LOGGER.warning("Illegal return from subroutine! Not in subroutine stack: " + sub);
 		return false;
 	}
 
@@ -256,6 +284,7 @@ public final class Frame {
 		}
 		for (int i = this.subs.length; i-- > 0;) {
 			if (this.subs[i].equals(sub)) {
+				LOGGER.warning("Recursive call to jsr entry!");
 				return false;
 			}
 		}
