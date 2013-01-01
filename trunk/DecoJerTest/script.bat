@@ -1,5 +1,5 @@
-rem del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.1.6\*.class
-rem del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.1.8\*.class
+del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.1.3\*.class
+del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.1.8\*.class
 
 del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.2.1\*.class
 del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.2.2\*.class
@@ -24,9 +24,9 @@ del /S/Q D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.8.0_c\*.class
 
 
 rem -g:none unknown
-rem "C:\Program Files (x86)\Java\jdk1.1.6\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.1.6
+"C:\Program Files (x86)\Java\jdk1.1.3\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.1.3
 
-rem "C:\Program Files (x86)\Java\jdk1.1.8\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.1.8
+"C:\Program Files (x86)\Java\jdk1.1.8\bin\javac" D:\Data\Decomp\workspace\DecoJerTest\src\org\decojer\cavaj\test\*.java -g -d D:\Data\Decomp\workspace\DecoJerTest\bin_jdk1.1.8
 
 
 rem default target is 1.1 (45.3)
