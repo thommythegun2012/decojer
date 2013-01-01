@@ -410,31 +410,19 @@ public final class TrDataFlowAnalysis {
 			if (subFrame == null) {
 				final Sub sub = new Sub(subPc);
 				if (!this.frame.pushSub(sub)) {
-					LOGGER.warning("Recursive call to jsr entry!");
 					return -1;
 				}
 				pushConst(T.RET, sub);
 				merge(subPc);
 				return -1;
 			}
-			// JSR already visited, reuse Sub
-			if (this.frame.getTop() + 1 != subFrame.getTop()) {
-				LOGGER.warning("Wrong JSR Sub merge! Subroutine stack size different.");
-				return -1;
-			}
-			final R subR = subFrame.peek();
-			// now check if RET in Sub already visited
-			if (!(subR.getValue() instanceof Sub)) {
-				LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
+			final R subR = subFrame.peekSub(this.frame.getTop(), subPc);
+			if (subR == null) {
 				return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
-			if (sub.getPc() != cop.getTargetPc()) {
-				LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
-				return -1;
-			}
+
 			if (!this.frame.pushSub(sub)) {
-				LOGGER.warning("Recursive call to jsr entry!");
 				return -1;
 			}
 			this.frame.push(subR);
@@ -543,7 +531,6 @@ public final class TrDataFlowAnalysis {
 			// bytecode restriction: only called via matching JSR, Sub known as register value
 			final Sub sub = (Sub) r.getValue();
 			if (!this.frame.popSub(sub)) {
-				LOGGER.warning("Illegal return from subroutine! Not in subroutine stack: " + sub);
 				return -1;
 			}
 			// remember RET for later JSRs to this Sub
