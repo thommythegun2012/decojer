@@ -525,7 +525,7 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration = ast.newTypeDeclaration();
 				decompileTypeParams(td.getTypeParams(),
 						((TypeDeclaration) typeDeclaration).typeParameters(), td);
-				if (!td.getSuperT().isObject()) {
+				if (td.getSuperT() != null && !td.getSuperT().isObject()) {
 					((TypeDeclaration) typeDeclaration).setSuperclassType(Expressions
 							.decompileType(td.getSuperT(), td));
 				}
