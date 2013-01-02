@@ -7,8 +7,10 @@
   * options.txt:
 {{{
 org.eclipse.equinox.p2.core/debug=true
-org.eclipse.equinox.p2.core/reconciler=true}}}
+org.eclipse.equinox.p2.core/reconciler=true
+}}}
 
   *
 {{{
-eclipse -clean -consoleLog -debug options.txt}}}
+eclipse -clean -consoleLog -debug options.txt
+}}}
