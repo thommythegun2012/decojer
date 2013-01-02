@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: DecoJer
-Bundle-SymbolicName: DecoJer; singleton:=true
+Bundle-SymbolicName: org.decojer.editor;singleton:=true
 Bundle-Version: 1.0.0.qualifier
 Bundle-Activator: org.decojer.editor.eclipse.Activator
 Require-Bundle: org.eclipse.ui,
@@ -25,7 +25,8 @@ Bundle-ClassPath: .,
  lib/dex-reader-1.11-SNAPSHOT.jar,
  lib/dexlib-1.4.2-dev.jar,
  lib/guava-13.0.1.jar,
- lib/commons-io-2.1.jar
+ lib/commons-io-2.1.jar,
+ lib/lombok.jar
 Export-Package: com.google.common.annotations,
  com.google.common.base,
  com.google.common.base.internal;x-internal:=true,
@@ -91,3 +92,4 @@ Export-Package: com.google.common.annotations,
  org.jf.dexlib.Util,
  org.objectweb.asm,
  org.objectweb.asm.signature
+Bundle-Vendor: André Pankraz
