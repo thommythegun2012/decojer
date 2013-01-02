@@ -256,6 +256,10 @@ public final class DU {
 	// [I
 	// java.lang.String[]
 	private T getT(final String name, final boolean create) {
+		if (name == null) {
+			// important for e.g. read Object.class: super is null
+			return null;
+		}
 		final char c = name.charAt(0);
 		if (c == '[') {
 			// java.lang.Class#getName() Javadoc explains this trick, fall back to descriptor
