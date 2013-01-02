@@ -23,7 +23,6 @@
  */
 package org.decojer.editor.eclipse;
 
-import java.util.ArrayList;
 import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -425,11 +424,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		this.du = DecoJer.createDu();
 		try {
 			final long currentTimeMillis = System.currentTimeMillis();
-			this.du.read(fileName);
+			final List<TD> selectedTds = this.du.read(fileName);
 			LOGGER.info("Read time for '" + fileName + "' is "
 					+ (System.currentTimeMillis() - currentTimeMillis) + " ms");
-			if (this.du.getCus().size() == 1) {
-				this.selectedCu = this.du.getCus().get(0);
+			this.du.getCus(); // resolve CUs
+			if (selectedTds.size() == 1) {
+				this.selectedCu = selectedTds.get(0).getCu();
 			}
 		} catch (final Throwable e) {
 			LOGGER.log(Level.SEVERE, "Couldn't open file!", e);
