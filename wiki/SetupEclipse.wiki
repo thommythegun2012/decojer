@@ -18,10 +18,21 @@ The following details give an overview of the necessary steps to check out the s
   * Prepare Eclipse:
     * download *Eclipse for RCP and RAP Developers* (Version 3.7.2 or 4.2.1) from http://www.eclipse.org/downloads/
     * extract Eclipse
-    * increase Eclipse Memory in settings.xml, e.g. to _-Xms1200m_ and _-Xmx1200m_
     * install *Lombok*:
       * download from http://projectlombok.org/download.html
       * start and select Eclipse folder
+    * set Eclipse encoding and increace memory settings in settings.xml, should now look like:
+{{{
+...
+-vmargs
+-javaagent:lombok.jar
+-Xbootclasspath/a:lombok.jar
+-Dosgi.requiredJavaVersion=1.5
+-Dhelp.lucene.tokenizer=standard
+-Dfile.encoding=UTF-8
+-Xms1200m
+-Xmx1200m
+}}}
     * start and _Check for Updates_ -> update if necessary
   * Install Plugins:
     * Install *AST View*:
