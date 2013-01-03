@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.editor.eclipse.utils;
+package org.decojer.editor.eclipse.du;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
