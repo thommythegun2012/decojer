@@ -21,7 +21,7 @@ The following details give an overview of the necessary steps to check out the s
     * install *Lombok*:
       * download from http://projectlombok.org/download.html
       * start and select Eclipse folder
-    * set Eclipse encoding and increace memory settings in settings.xml, should now look like:
+    * set Eclipse encoding (important for Plugin export) and increace memory settings in settings.xml, should now look like:
 {{{
 ...
 -vmargs
