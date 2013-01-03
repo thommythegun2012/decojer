@@ -84,6 +84,7 @@ import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
+import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldAccess;
@@ -469,6 +470,7 @@ public final class TrCfg2JavaExpressionStmts {
 					if (m.isConstructor()) {
 						methodExpression = null;
 						if (expression instanceof ThisExpression) {
+							fieldInit = true;
 							enumConstructor: if (m.getT().is(Enum.class)
 									&& !this.cfg.getCu().check(DFlag.IGNORE_ENUM)) {
 								if (arguments.size() < 2) {
@@ -491,6 +493,13 @@ public final class TrCfg2JavaExpressionStmts {
 								arguments.remove(0);
 								arguments.remove(0);
 							}
+							if (m.getT().is(this.cfg.getTd().getT())) {
+								final ConstructorInvocation constructorInvocation = getAst()
+										.newConstructorInvocation();
+								constructorInvocation.arguments().addAll(arguments);
+								bb.addStmt(constructorInvocation);
+								break;
+							}
 							if (arguments.size() == 0) {
 								// implicit super callout, more checks possible but not necessary
 								break;
@@ -499,7 +508,6 @@ public final class TrCfg2JavaExpressionStmts {
 									.newSuperConstructorInvocation();
 							superConstructorInvocation.arguments().addAll(arguments);
 							bb.addStmt(superConstructorInvocation);
-							fieldInit = true;
 							break;
 						}
 						if (expression instanceof ClassInstanceCreation) {

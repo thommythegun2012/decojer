@@ -84,6 +84,14 @@ public final class TrMergeAll {
 	}
 
 	private static void transform(final TD td) {
+		// multiple constructors? => no omissable default constructor
+		int constructors = 0;
+		for (final BD bd : td.getBds()) {
+			if (bd instanceof MD && ((MD) bd).isConstructor()) {
+				++constructors;
+			}
+		}
+
 		for (final BD bd : td.getBds()) {
 			if (bd instanceof TD) {
 				if (!((TD) bd).isAnonymous()) {
@@ -131,7 +139,8 @@ public final class TrMergeAll {
 						continue;
 					}
 					// ignore empty default constructor
-					if (((MethodDeclaration) methodDeclaration).parameters().size() == 0
+					if (constructors == 1
+							&& ((MethodDeclaration) methodDeclaration).parameters().size() == 0
 							&& ((MethodDeclaration) methodDeclaration).getBody().statements()
 									.size() == 0) {
 						continue;
