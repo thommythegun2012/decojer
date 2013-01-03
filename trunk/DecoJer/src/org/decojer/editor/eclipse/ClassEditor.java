@@ -23,7 +23,6 @@
  */
 package org.decojer.editor.eclipse;
 
-import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -39,26 +38,11 @@ import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.code.BB;
-import org.decojer.cavaj.model.code.CFG;
-import org.decojer.cavaj.model.code.E;
-import org.decojer.cavaj.transformers.TrCalculatePostorder;
-import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
-import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
-import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
-import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
-import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
 import org.decojer.cavaj.utils.Cursor;
-import org.decojer.editor.eclipse.utils.FramesFigure;
-import org.decojer.editor.eclipse.utils.HierarchicalLayoutAlgorithm;
-import org.decojer.editor.eclipse.utils.MemoryStorageEditorInput;
-import org.decojer.editor.eclipse.utils.StringMemoryStorage;
+import org.decojer.editor.eclipse.cfg.CfgViewer;
+import org.decojer.editor.eclipse.du.DecompilationUnitEditor;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.draw2d.ColorConstants;
-import org.eclipse.draw2d.Label;
-import org.eclipse.draw2d.Polyline;
 import org.eclipse.jdt.core.Flags;
 import org.eclipse.jdt.core.IClassFile;
 import org.eclipse.jdt.core.IField;
@@ -68,7 +52,6 @@ import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.internal.ui.javaeditor.ClassFileEditor;
-import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.jdt.internal.ui.javaeditor.IClassFileEditorInput;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jface.dialogs.ErrorDialog;
@@ -79,10 +62,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
@@ -92,11 +71,6 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiPageEditorPart;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
-import org.eclipse.zest.core.widgets.Graph;
-import org.eclipse.zest.core.widgets.GraphConnection;
-import org.eclipse.zest.core.widgets.GraphNode;
-import org.eclipse.zest.core.widgets.ZestStyles;
-import org.eclipse.zest.layouts.LayoutStyles;
 
 import com.google.common.collect.Lists;
 
@@ -258,55 +232,17 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private Tree archiveTree;
 
-	private Button cfgAntialiasingCheckbox;
-
-	private Graph cfgViewer;
-
-	private Combo cfgViewModeCombo;
+	private CfgViewer cfgViewer;
 
 	private ClassFileEditor classFileEditor;
 
-	private CompilationUnitEditor compilationUnitEditor;
+	private DecompilationUnitEditor decompilationUnitEditor;
 
 	private DU du;
 
 	private JavaOutlinePage javaOutlinePage;
 
 	private CU selectedCu;
-
-	private D selectedD;
-
-	private GraphNode addToGraph(final BB bb, final IdentityHashMap<BB, GraphNode> map) {
-		final GraphNode node = new GraphNode(this.cfgViewer, SWT.NONE, bb.toString(), bb);
-		if (bb.getStruct() != null) {
-			node.setTooltip(new Label(bb.getStruct().toString()));
-		} else if (bb.getCfg().isFrames()) {
-			node.setTooltip(new FramesFigure(bb));
-		} else {
-			node.setTooltip(null);
-		}
-		map.put(bb, node);
-
-		for (final E out : bb.getOuts()) {
-			GraphNode succNode = map.get(out.getEnd());
-			if (succNode == null) {
-				succNode = addToGraph(out.getEnd(), map);
-			}
-			final GraphConnection connection = new GraphConnection(this.cfgViewer,
-					ZestStyles.CONNECTIONS_DIRECTED, node, succNode);
-			if (this.cfgAntialiasingCheckbox.getSelection()) {
-				((Polyline) connection.getConnectionFigure()).setAntialias(SWT.ON);
-			}
-			connection.setText(out.getValueString());
-			if (out.isBack()) {
-				connection.setCurveDepth(50);
-				connection.setLineColor(ColorConstants.red);
-			} else if (out.isCatch()) {
-				connection.setLineColor(ColorConstants.yellow);
-			}
-		}
-		return node;
-	}
 
 	private void createClassFileEditor() {
 		this.classFileEditor = new ClassFileEditor();
@@ -320,79 +256,17 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	private void createControlFlowGraphViewer() {
-		final Composite composite = new Composite(getContainer(), SWT.NONE);
-		final GridLayout layout = new GridLayout(2, false);
-		composite.setLayout(layout);
-
-		this.cfgAntialiasingCheckbox = new Button(composite, SWT.CHECK);
-		GridData gridData = new GridData();
-		this.cfgAntialiasingCheckbox.setLayoutData(gridData);
-		this.cfgAntialiasingCheckbox.setText("Antialiasing");
-		this.cfgAntialiasingCheckbox.addSelectionListener(new SelectionListener() {
-
-			@Override
-			public void widgetDefaultSelected(final SelectionEvent e) {
-				initGraph();
-			}
-
-			@Override
-			public void widgetSelected(final SelectionEvent e) {
-				initGraph();
-			}
-
-		});
-		this.cfgViewModeCombo = new Combo(composite, SWT.READ_ONLY);
-		this.cfgViewModeCombo.setItems(new String[] { "IVM CFG", "Java Expr", "Control Flow" });
-		this.cfgViewModeCombo.setText("Control Flow");
-		this.cfgViewModeCombo.addSelectionListener(new SelectionListener() {
-
-			@Override
-			public void widgetDefaultSelected(final SelectionEvent e) {
-				initGraph();
-			}
-
-			@Override
-			public void widgetSelected(final SelectionEvent e) {
-				initGraph();
-			}
-
-		});
-		gridData = new GridData();
-		this.cfgViewModeCombo.setLayoutData(gridData);
-		// draw graph
-		// Graph will hold all other objects
-		this.cfgViewer = new Graph(composite, SWT.NONE);
-		gridData = new GridData();
-		gridData.horizontalSpan = 2;
-		gridData.horizontalAlignment = GridData.FILL;
-		gridData.grabExcessHorizontalSpace = true;
-		gridData.verticalAlignment = GridData.FILL;
-		gridData.grabExcessVerticalSpace = true;
-		this.cfgViewer.setLayoutData(gridData);
-		this.cfgViewer.setLayoutAlgorithm(new HierarchicalLayoutAlgorithm(
-				LayoutStyles.NO_LAYOUT_NODE_RESIZING), true);
-
-		addPage(0, composite);
+		this.cfgViewer = new CfgViewer(getContainer(), SWT.NONE);
+		addPage(0, this.cfgViewer);
 		setPageText(0, "CFG Viewer");
 	}
 
 	private void createDecompilationUnitEditor() {
-		this.compilationUnitEditor = new CompilationUnitEditor();
+		this.decompilationUnitEditor = new DecompilationUnitEditor();
 
-		// create editor input, in-memory string with decompiled source
-		String sourceCode = null;
 		try {
-			sourceCode = this.selectedCu.decompile();
-		} catch (final Throwable t) {
-			t.printStackTrace();
-			sourceCode = "// Decompilation error!";
-		}
-		try {
-			addPage(0, this.compilationUnitEditor,
-					new MemoryStorageEditorInput(
-							new StringMemoryStorage(sourceCode, this.selectedCu == null
-									|| this.selectedCu.getSourceFileName() == null ? new Path(
-									"<Unknown>") : new Path(this.selectedCu.getSourceFileName()))));
+			addPage(0, this.decompilationUnitEditor,
+					DecompilationUnitEditor.decompileToEditorInput(this.selectedCu));
 		} catch (final PartInitException e) {
 			ErrorDialog.openError(getSite().getShell(), "Error creating nested text editor", null,
 					e.getStatus());
@@ -465,22 +339,7 @@ public class ClassEditor extends MultiPageEditorPart {
 						ClassEditor.this.selectedCu.clear();
 					}
 					ClassEditor.this.selectedCu = ClassEditor.this.du.getCu(selection.getText());
-
-					String sourceCode = null;
-					try {
-						sourceCode = ClassEditor.this.selectedCu.decompile();
-					} catch (final Throwable t) {
-						LOGGER.log(Level.SEVERE, "Decompilation error!", t);
-						sourceCode = "// Decompilation error!";
-					}
-					ClassEditor.this.compilationUnitEditor
-							.setInput(new MemoryStorageEditorInput(
-									new StringMemoryStorage(sourceCode,
-											ClassEditor.this.selectedCu == null
-													|| ClassEditor.this.selectedCu
-															.getSourceFileName() == null ? null
-													: new Path(ClassEditor.this.selectedCu
-															.getSourceFileName()))));
+					ClassEditor.this.decompilationUnitEditor.setInput(ClassEditor.this.selectedCu);
 
 				}
 
@@ -680,8 +539,8 @@ public class ClassEditor extends MultiPageEditorPart {
 			// class is in the class path
 			Object adapter = null;
 			if ((this.selectedCu != null && this.selectedCu.getSourceFileName() != null || this.classFileEditor == null)
-					&& this.compilationUnitEditor != null) {
-				adapter = this.compilationUnitEditor.getAdapter(required);
+					&& this.decompilationUnitEditor != null) {
+				adapter = this.decompilationUnitEditor.getAdapter(required);
 			}
 			if (adapter == null && this.classFileEditor != null) {
 				adapter = this.classFileEditor.getAdapter(required);
@@ -703,8 +562,7 @@ public class ClassEditor extends MultiPageEditorPart {
 									+ treeSelection.getFirstElement() + "'!");
 							return;
 						}
-						ClassEditor.this.selectedD = d;
-						initGraph();
+						ClassEditor.this.cfgViewer.setlectD(d);
 					}
 
 				});
@@ -712,51 +570,6 @@ public class ClassEditor extends MultiPageEditorPart {
 			}
 		}
 		return super.getAdapter(required);
-	}
-
-	private void initGraph() {
-		if (this.selectedD instanceof MD) {
-			final int stage = this.cfgViewModeCombo.getSelectionIndex();
-			final CFG cfg = ((MD) this.selectedD).getCfg();
-			if (cfg == null || cfg.isIgnore()) {
-				return;
-			}
-			try {
-				// retransform CFG until given transformation stage
-				TrDataFlowAnalysis.transform(cfg);
-				TrCalculatePostorder.transform(cfg);
-
-				if (stage > 0) {
-					TrDalvikRemoveTempRegs.transform(cfg);
-					TrCfg2JavaExpressionStmts.transform(cfg);
-					TrCalculatePostorder.transform(cfg);
-				}
-				if (stage > 1) {
-					TrControlFlowAnalysis.transform(cfg);
-					TrCfg2JavaControlFlowStmts.transform(cfg);
-				}
-			} catch (final Throwable e) {
-				TrCalculatePostorder.transform(cfg);
-				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
-			}
-			initGraph(cfg);
-		}
-	}
-
-	private void initGraph(final CFG cfg) {
-		final Graph g = this.cfgViewer;
-		// dispose old graph content, first connections than nodes
-		Object[] objects = g.getConnections().toArray();
-		for (final Object object : objects) {
-			((GraphConnection) object).dispose();
-		}
-		objects = g.getNodes().toArray();
-		for (final Object object : objects) {
-			((GraphNode) object).dispose();
-		}
-		// add graph content
-		addToGraph(cfg.getStartBb(), new IdentityHashMap<BB, GraphNode>());
-		g.applyLayout();
 	}
 
 	@Override
