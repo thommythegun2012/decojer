@@ -165,6 +165,14 @@ public class DecTestFields {
 			"\"@left_shift_assign\"", "\">>=\"", "\"@right_shift_assign\"",
 			"\">>>=\"", "\"@right_unsigned_shift_assign\"" };
 
+	public DecTestFields() {
+		// keep this...
+	}
+
+	public DecTestFields(int intTest) {
+		this.intTest = intTest;
+	}
+
 	public char getCharTest() {
 		return charTest;
 	}
