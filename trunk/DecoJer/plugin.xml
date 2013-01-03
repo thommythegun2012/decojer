@@ -9,7 +9,6 @@
             contributorClass="org.decojer.editor.eclipse.ClassEditorContributor"
             default="true"
             extensions="class,class without source,jar,dex,apk"
-            icon="icons/sample.gif"
             id="decojer.editor.ClassEditor"
             name="Class Editor">
       </editor>
