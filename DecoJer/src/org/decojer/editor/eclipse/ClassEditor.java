@@ -99,15 +99,16 @@ public class ClassEditor extends MultiPageEditorPart {
 	private static String extractPath(final IClassFile eclipseClassFile) {
 		assert eclipseClassFile != null;
 
-		if (eclipseClassFile.getResource() == null) {
-			// is from JAR...
-			// example: sun/org/mozilla/javascript/internal/
-			final String jarPath = eclipseClassFile.getPath().toOSString();
-			final String packageName = eclipseClassFile.getParent().getElementName();
-			final String typeName = eclipseClassFile.getElementName();
-			return jarPath + "!/" + packageName.replace('.', '/') + '/' + typeName;
-		}
-		return eclipseClassFile.getResource().getLocation().toOSString();
+		// is from JAR...
+		// example: sun/org/mozilla/javascript/internal/
+		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
+				.getResource().getLocation().toOSString() : eclipseClassFile.getPath().toOSString();
+		assert jarPath != null;
+
+		final String packageName = eclipseClassFile.getParent().getElementName();
+		final String typeName = eclipseClassFile.getElementName();
+		return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
+				+ typeName;
 	}
 
 	private static void parseClassT(final String s, final Cursor c, final StringBuilder sb) {
