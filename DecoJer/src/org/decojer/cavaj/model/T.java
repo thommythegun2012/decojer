@@ -193,7 +193,10 @@ public abstract class T {
 
 	public static T getDalvikIntT(final int value) {
 		int kinds = T.FLOAT.getKind();
-		if (value == 0 || value == 1) {
+		if (value == 0) {
+			// as REF for const/4 v0, throw v0 (just from Proguard as obfuscated unreachable code?)
+			kinds |= T.REF.getKind() | T.BOOLEAN.getKind();
+		} else if (value == 1) {
 			kinds |= T.BOOLEAN.getKind();
 		}
 		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
