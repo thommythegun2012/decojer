@@ -942,9 +942,11 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R store(final int i, final R r) {
-		final R prevR = this.frame.load(i);
-		final R newR = prevR == null ? new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r)
-				: new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r, prevR);
+		// TODO not a good idea because of forward propagation issues
+		// final R prevR = this.frame.load(i);
+		// final R newR = prevR == null ? new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r)
+		// : new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r, prevR);
+		final R newR = new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r);
 		this.frame.store(i, newR);
 		return newR;
 	}

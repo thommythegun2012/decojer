@@ -215,6 +215,7 @@ public final class R {
 		final T reducedT = this.t.assignTo(t); // primitive reduction for this.t possible
 		if (reducedT == null) {
 			if (this.t.isUnresolvable()) {
+				// FIXME this is wrong if this.t is REF and t is INT or such
 				return true;
 			}
 			// TODO problem with generic type reduction to classes, invoke interface allowed

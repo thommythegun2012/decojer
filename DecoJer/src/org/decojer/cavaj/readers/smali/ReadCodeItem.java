@@ -948,8 +948,9 @@ public class ReadCodeItem {
 			/********
 			 * JCMP *
 			 ********/
+			// all IF_???: floats via CMP?_FLOAT
 			case IF_EQ:
-				t = T.INT;
+				t = T.AINTREF; // boolean and refcheck too
 				oValue = CmpType.T_EQ;
 				// fall through
 			case IF_GE:
@@ -978,7 +979,7 @@ public class ReadCodeItem {
 				// fall through
 			case IF_NE:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINTREF; // boolean and refcheck too
 					oValue = CmpType.T_NE;
 				}
 				{
