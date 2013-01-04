@@ -121,6 +121,10 @@ public final class Frame {
 		return this.rs[i];
 	}
 
+	private void log(final String message) {
+		LOGGER.warning(this.cfg.getMd() + ": " + message);
+	}
+
 	/**
 	 * Peek stack register.
 	 * 
@@ -153,7 +157,7 @@ public final class Frame {
 	public R peekSingle() {
 		final R s = peek();
 		if (s.getT().isWide()) {
-			LOGGER.warning("Attempt to split long or double on the stack!");
+			log("Peek attempt to split long or double on the stack!");
 		}
 		return s;
 	}
@@ -168,7 +172,7 @@ public final class Frame {
 	public R peekSingle(final int i) {
 		final R s = peek(i);
 		if (s.getT().isWide()) {
-			LOGGER.warning("Attempt to split long or double on the stack!");
+			log("Peek '" + i + "' attempts to split long or double on the stack!");
 		}
 		return s;
 	}
@@ -176,7 +180,7 @@ public final class Frame {
 	public R peekSub(final int callerTop, final int subPc) {
 		// JSR already visited, reuse Sub
 		if (getTop() != callerTop + 1) {
-			LOGGER.warning("Wrong JSR Sub merge! Subroutine stack size different.");
+			log("Wrong JSR Sub merge! Subroutine stack size different.");
 			return null;
 		}
 		final R subR = peek();
@@ -187,16 +191,16 @@ public final class Frame {
 		// }
 		// now check if RET in Sub already visited
 		if (!(subR.getValue() instanceof Sub)) {
-			LOGGER.warning("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
+			log("Wrong JSR Sub merge! Subroutine stack has wrong peek.");
 			return null;
 		}
 		final Sub sub = (Sub) subR.getValue();
 		if (sub.getPc() != subPc) {
-			LOGGER.warning("Wrong JSR Sub merge! Subroutine has wrong start PC.");
+			log("Wrong JSR Sub merge! Subroutine has wrong start PC.");
 			return null;
 		}
 		if (this.subs[this.subs.length - 1] != sub) {
-			LOGGER.warning("Wrong JSR Sub merge! Subroutine register incompatible to subroutine stack.");
+			log("Wrong JSR Sub merge! Subroutine register incompatible to subroutine stack.");
 		}
 		return subR;
 	}
@@ -224,7 +228,7 @@ public final class Frame {
 	public R popSingle() {
 		final R s = pop();
 		if (s.getT().isWide()) {
-			LOGGER.warning("Attempt to split long or double on the stack!");
+			log("Pop attempts to split long or double on the stack!");
 		}
 		return s;
 	}
@@ -251,7 +255,7 @@ public final class Frame {
 				}
 			}
 		}
-		LOGGER.warning("Illegal return from subroutine! Not in subroutine stack: " + sub);
+		log("Illegal return from subroutine! Not in subroutine stack: " + sub);
 		return false;
 	}
 
@@ -284,7 +288,7 @@ public final class Frame {
 		}
 		for (int i = this.subs.length; i-- > 0;) {
 			if (this.subs[i].equals(sub)) {
-				LOGGER.warning("Recursive call to jsr entry!");
+				log("Recursive call to jsr entry!");
 				return false;
 			}
 		}
