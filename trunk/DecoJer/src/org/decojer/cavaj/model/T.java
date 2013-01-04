@@ -158,6 +158,11 @@ public abstract class T {
 	 */
 	public static T AINT = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN);
 	/**
+	 * Multi-type 'any JVM int or ref (for null-checks)'.
+	 */
+	public static T AINTREF = getT(Kind.REF, Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR,
+			Kind.BOOLEAN);
+	/**
 	 * Multi-type 'primitive'.
 	 */
 	public static T PRIMITIVE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,

@@ -1001,8 +1001,9 @@ public class ReadCodeItem {
 			/********
 			 * JCND *
 			 ********/
+			// all IF_???: floats via CMP?_FLOAT
 			case IF_EQZ:
-				t = T.AINT; // boolean too, float separate
+				t = T.AINTREF; // boolean and nullcheck too
 				oValue = CmpType.T_EQ;
 				// fall through
 			case IF_GEZ:
@@ -1031,7 +1032,7 @@ public class ReadCodeItem {
 				// fall through
 			case IF_NEZ:
 				if (t == null) {
-					t = T.AINT; // boolean too
+					t = T.AINTREF; // boolean and nullcheck too
 					oValue = CmpType.T_NE;
 				}
 				{
