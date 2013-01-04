@@ -1396,6 +1396,9 @@ public class ReadCodeItem {
 
 				final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, line);
 				this.ops.add(op);
+
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.REF, instr.getRegisterA()));
+
 				final int targetVmpc = vmpc + instr.getTargetAddressOffset();
 				final int targetPc = getPc(targetVmpc);
 				if (targetPc < 0) {

@@ -357,7 +357,8 @@ public final class TrCfg2JavaExpressionStmts {
 
 				Expression expression = bb.pop();
 				if (!(expression instanceof ArrayCreation)) {
-					// TODO Dalvik...assignment happened already...temporary register
+					// LOAD 0, NEWARRAY, STORE 0, LOAD 0, FILLARRAY <end>
+					// TODO Dalvik: if STORE x / LOAD x are compressed then we shouldn't need this:
 					expression = getAst().newArrayCreation();
 					((ArrayCreation) expression).setType((ArrayType) Expressions.decompileType(t,
 							this.cfg.getTd()));

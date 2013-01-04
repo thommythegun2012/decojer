@@ -41,6 +41,7 @@ import org.decojer.cavaj.model.code.ops.JCND;
 import org.decojer.cavaj.model.code.ops.LOAD;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.RETURN;
+import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.utils.Cursor;
@@ -234,6 +235,9 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 		final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, this.line);
 		this.ops.add(op);
+
+		this.ops.add(new STORE(this.ops.size(), opcode, this.line, T.REF, aA));
+
 		op.setValues(values);
 	}
 

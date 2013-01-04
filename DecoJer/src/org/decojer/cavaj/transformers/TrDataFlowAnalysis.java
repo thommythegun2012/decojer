@@ -334,7 +334,9 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case FILLARRAY: {
-			popRead(T.REF);
+			final R r = this.frame.peek();
+			assert r.read(T.AREF, true);
+
 			break;
 		}
 		case GET: {
