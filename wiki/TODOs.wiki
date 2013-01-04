@@ -7,3 +7,6 @@ Eclipse Editor
   * open JAR: Bytecode View
   * open File@JAR: Switchable to Tree View
   * Save Source
+
+Dalvik
+  * initial temporary 0 and 1 are typeless constants (no bool backpropagation)...currently i havn't a good solution for this in the generic code
