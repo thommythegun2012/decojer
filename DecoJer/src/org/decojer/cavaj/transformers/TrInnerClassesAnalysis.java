@@ -74,7 +74,7 @@ public class TrInnerClassesAnalysis {
 				// TODO check oracle.net.aso.m in obfuscated
 				// .m2\repository\com\oracle\ojdbc6\11.2.0.1.0\ojdbc6-11.2.0.1.0.jar
 				// should be a local class with name "m" in constructor?
-				LOGGER.warning("Inner name '" + innerName + "' for type '" + t
+				log("Inner name '" + innerName + "' for type '" + t
 						+ "' is different from enclosing info '" + simpleName + "'!");
 			}
 		}
@@ -134,8 +134,8 @@ public class TrInnerClassesAnalysis {
 							// parallel findTopTds necessary?
 							continue;
 						}
-						LOGGER.warning("New ananymous type declaration '" + newTd
-								+ "' already has parent '" + newParent + "'!");
+						log("New ananymous type declaration '" + newTd + "' already has parent '"
+								+ newParent + "'!");
 						continue;
 					}
 					enclosingMd.addTd(newTd);
@@ -155,8 +155,8 @@ public class TrInnerClassesAnalysis {
 			if (td.isAnonymous()) {
 				if (td.getParent() != null) {
 					if (!(td.getParent() instanceof MD)) {
-						LOGGER.warning("Parent of inner local/anonymous type '" + t
-								+ "' is no method but '" + td.getParent() + "'!");
+						log("Parent of inner local/anonymous type '" + t + "' is no method but '"
+								+ td.getParent() + "'!");
 					}
 					continue;
 				}
@@ -170,8 +170,7 @@ public class TrInnerClassesAnalysis {
 							continue;
 						}
 					}
-					LOGGER.warning("No enclosing type info for inner class with Enum Switch Map '"
-							+ t + "'!");
+					log("No enclosing type info for inner class with Enum Switch Map '" + t + "'!");
 				}
 				// use existing enclosing info
 			}
@@ -305,6 +304,10 @@ public class TrInnerClassesAnalysis {
 			return true;
 		}
 		return false;
+	}
+
+	private static void log(final String message) {
+		LOGGER.warning(message);
 	}
 
 	/**
