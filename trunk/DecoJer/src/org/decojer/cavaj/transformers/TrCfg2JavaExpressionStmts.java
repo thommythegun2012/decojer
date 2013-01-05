@@ -1737,7 +1737,7 @@ public final class TrCfg2JavaExpressionStmts {
 				bb.pop();
 			}
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Rewrite to field-initializer didn't work!", e);
+			log("Rewrite to field-initializer didn't work!", e);
 			return false;
 		}
 		return true;
@@ -1928,7 +1928,7 @@ public final class TrCfg2JavaExpressionStmts {
 			bb.push(stringExpression);
 			return true;
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, "Rewrite to string-add didn't work!", e);
+			log("Rewrite to string-add didn't work!", e);
 			return false;
 		}
 	}

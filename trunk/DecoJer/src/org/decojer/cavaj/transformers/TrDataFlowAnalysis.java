@@ -41,7 +41,6 @@ import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.code.Sub;
-import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.ops.ADD;
 import org.decojer.cavaj.model.code.ops.ALOAD;
 import org.decojer.cavaj.model.code.ops.AND;
@@ -582,9 +581,9 @@ public final class TrDataFlowAnalysis {
 			// of type returnAddress from a local variable onto the operand stack. This
 			// asymmetry with the astore instruction is intentional.
 			final R r = popRead(cop.getT());
-
-			final R storeR = store(cop.getReg(), r);
-			final V debugV = this.cfg.getDebugV(cop.getReg(), nextPc);
+			store(cop.getReg(), r);
+			// final R storeR = store(cop.getReg(), r);
+			// final V debugV = this.cfg.getDebugV(cop.getReg(), nextPc);
 			// if (debugV != null) {
 			// storeR.setRealT(debugV.getT());
 			// }
@@ -653,7 +652,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		default:
-			LOGGER.warning("Operation '" + op + "' not handled!");
+			log("Operation '" + op + "' not handled!");
 		}
 		if (this.pc2bbs[nextPc] != null) {
 			bb.setSucc(getTargetBb(nextPc));
@@ -720,6 +719,10 @@ public final class TrDataFlowAnalysis {
 					+ r + "' as '" + t + "'.");
 		}
 		return r;
+	}
+
+	private void log(final String message) {
+		LOGGER.warning(this.cfg.getMd() + ": " + message);
 	}
 
 	private void merge(final int pc) {
@@ -790,7 +793,7 @@ public final class TrDataFlowAnalysis {
 						Throwable.class) : exc.getT(), Kind.CONST);
 			} else {
 				if (handlerFrame.getTop() != 1) {
-					LOGGER.warning("Handler stack for exception merge not of size 1!");
+					log("Handler stack for exception merge not of size 1!");
 				}
 				excR = handlerFrame.peek(); // reuse exception register
 			}
