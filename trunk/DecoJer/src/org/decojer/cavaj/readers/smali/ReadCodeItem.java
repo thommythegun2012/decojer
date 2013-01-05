@@ -2087,6 +2087,35 @@ public class ReadCodeItem {
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
+			/********
+			 * RSUB *
+			 ********/
+			case RSUB_INT: {
+				// A = literal - B
+				final Instruction22s instr = (Instruction22s) instruction;
+
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+
+				this.ops.add(new SUB(this.ops.size(), opcode, line, T.INT));
+
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
+			}
+				break;
+			case RSUB_INT_LIT8: {
+				// A = literal - B
+				final Instruction22b instr = (Instruction22b) instruction;
+
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
+						.getLiteral()));
+				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
+
+				this.ops.add(new SUB(this.ops.size(), opcode, line, T.INT));
+
+				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
+			}
+				break;
 			/*******
 			 * SUB *
 			 *******/
