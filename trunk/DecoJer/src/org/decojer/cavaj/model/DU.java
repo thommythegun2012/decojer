@@ -601,7 +601,7 @@ public final class DU {
 	 * @throws IOException
 	 *             read exception
 	 */
-	private List<TD> read(final InputStream is, final String fileName, final String selector)
+	public List<TD> read(final InputStream is, final String fileName, final String selector)
 			throws IOException {
 		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
 		final int read = is.read(magicNumber, 0, magicNumber.length);
