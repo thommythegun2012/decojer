@@ -585,9 +585,9 @@ public final class TrDataFlowAnalysis {
 
 			final R storeR = store(cop.getReg(), r);
 			final V debugV = this.cfg.getDebugV(cop.getReg(), nextPc);
-			if (debugV != null) {
-				storeR.setRealT(debugV.getT());
-			}
+			// if (debugV != null) {
+			// storeR.setRealT(debugV.getT());
+			// }
 			break;
 		}
 		case SUB: {
