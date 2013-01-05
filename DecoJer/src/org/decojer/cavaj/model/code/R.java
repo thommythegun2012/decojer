@@ -24,7 +24,6 @@
 package org.decojer.cavaj.model.code;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
 
@@ -100,10 +99,6 @@ public final class R {
 
 	@Getter
 	private final Kind kind;
-
-	@Getter
-	@Setter
-	private T realT;
 
 	private T readT;
 

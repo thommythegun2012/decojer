@@ -257,7 +257,6 @@ public class ReadCodeItem {
 			line = this.readDebugInfo.getLine(vmpc);
 			opcode = instruction.opcode.value;
 
-			final int type = -1;
 			int iValue = 0;
 			Object oValue = null;
 
