@@ -10,3 +10,16 @@ Eclipse Editor
 
 Dalvik
   * initial temporary 0 and 1 are typeless constants (no bool backpropagation)...currently i havn't a good solution for this in the generic code
+
+
+Web
+
+05.01.12
+
+Blob Stats:
+
+Double Hashes: ffaf5932fcd667088159617ce2072d38, 371ce66ec6edf334cd03a5c36f9f1958, ce83ef281361c29d7826c782cb475ee6, ffaf5932fcd667088159617ce2072d38, eda20137ad51c89953c56027fa1381bd, 5f079ab1450158d894d3dc332aa846f6, 54bbc08b6d3ce2f0ef4243f33c60940f
+
+Number: 126619
+
+Size: 38335640414
