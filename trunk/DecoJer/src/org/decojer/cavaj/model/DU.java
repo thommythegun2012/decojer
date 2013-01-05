@@ -532,11 +532,9 @@ public final class DU {
 	 *            file
 	 * @param selector
 	 *            selector (in case of an archive)
-	 * @return type declarations
-	 * @throws IOException
-	 *             read exception
+	 * @return type declarations, not null
 	 */
-	public List<TD> read(final File file, final String selector) throws IOException {
+	private List<TD> read(final File file, final String selector) {
 		final String fileName = file.getName();
 		if (fileName.endsWith(".class")) {
 			final List<TD> tds = Lists.newArrayList();
@@ -549,19 +547,42 @@ public final class DU {
 				if (!name.endsWith(".class")) {
 					continue;
 				}
+				FileInputStream is = null;
 				try {
-					tds.addAll(read(new FileInputStream(entry), name, fileName));
+					is = new FileInputStream(entry);
+					final List<TD> readTds = read(is, name, fileName);
+					if (readTds != null) {
+						tds.addAll(readTds);
+					}
 				} catch (final Throwable e) {
-					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!", e);
+					LOGGER.log(Level.WARNING, "Couldn't read file '" + name + "'!", e);
+				} finally {
+					if (is != null) {
+						try {
+							is.close();
+						} catch (final IOException e) {
+							// nothing
+						}
+					}
 				}
 			}
 			return tds;
 		}
-		final FileInputStream fileInputStream = new FileInputStream(file);
+		FileInputStream fileInputStream = null;
 		try {
+			fileInputStream = new FileInputStream(file);
 			return read(fileInputStream, fileName, selector);
+		} catch (final IOException e) {
+			LOGGER.warning("Couldn't read file '" + file + "'!");
+			return Lists.newArrayList();
 		} finally {
-			fileInputStream.close();
+			if (fileInputStream != null) {
+				try {
+					fileInputStream.close();
+				} catch (final IOException e) {
+					// nothing
+				}
+			}
 		}
 	}
 
@@ -576,11 +597,11 @@ public final class DU {
 	 *            file name (or null, optional - we prefere magic numbers)
 	 * @param selector
 	 *            selector (in case of an archive)
-	 * @return type declarations
+	 * @return type declarations or null
 	 * @throws IOException
 	 *             read exception
 	 */
-	public List<TD> read(final InputStream is, final String fileName, final String selector)
+	private List<TD> read(final InputStream is, final String fileName, final String selector)
 			throws IOException {
 		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
 		final int read = is.read(magicNumber, 0, magicNumber.length);
@@ -597,6 +618,8 @@ public final class DU {
 				return Collections.singletonList(td);
 			}
 			return Collections.emptyList();
+		} else if (fileName.endsWith(".class")) {
+			LOGGER.warning("Wrong magic number for file '" + fileName + "', isn't a JVM-Class!");
 		}
 		if (Arrays.equals(magicNumber, MagicNumbers.DEX)
 				|| Arrays.equals(magicNumber, MagicNumbers.ODEX)) {
@@ -605,6 +628,8 @@ public final class DU {
 			final List<TD> tds = this.dexReader.read(pis, selector);
 			this.selectedTds.addAll(tds);
 			return tds;
+		} else if (fileName.endsWith(".dex") || fileName.endsWith(".odex")) {
+			LOGGER.warning("Wrong magic number for file '" + fileName + "', isn't a Dalvik-Class!");
 		}
 		if (Arrays.equals(magicNumber, MagicNumbers.ZIP)) {
 			String selectorPrefix = null;
@@ -655,10 +680,8 @@ public final class DU {
 	 * @param fileName
 	 *            file name & optional selector
 	 * @return type declarations
-	 * @throws IOException
-	 *             read exception
 	 */
-	public List<TD> read(final String fileName) throws IOException {
+	public List<TD> read(final String fileName) {
 		final int pos = fileName.indexOf('!');
 		if (pos == -1) {
 			return read(new File(fileName), null);

@@ -67,6 +67,7 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiPageEditorPart;
@@ -75,12 +76,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import com.google.common.collect.Lists;
 
 /**
- * An example showing how to create a multi-page editor. This example has 3 pages:
- * <ul>
- * <li>page 0 contains a nested text editor.
- * <li>page 1 allows you to change the font used in page 2
- * <li>page 2 shows the words in page 0 in sorted order
- * </ul>
+ * Class editor.
  */
 @SuppressWarnings("restriction")
 public class ClassEditor extends MultiPageEditorPart {
@@ -277,78 +273,47 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	@Override
 	protected Composite createPageContainer(final Composite parent) {
-		// method is called before createPages(): pre-analyze editor input and
-		// add archive if necessary
-		Composite pageContainer = super.createPageContainer(parent);
-
-		final IEditorInput editorInput = getEditorInput();
-
-		String fileName;
-		if (editorInput instanceof IClassFileEditorInput) {
-			// is a simple Eclipse-pre-analyzed class file, not an archive
-			final IClassFile classFile = ((IClassFileEditorInput) editorInput).getClassFile();
-			fileName = extractPath(classFile);
-		} else if (editorInput instanceof FileEditorInput) {
-			// could be a class file (not Eclipse-pre-analyzed) or an archive
-			final FileEditorInput fileEditorInput = (FileEditorInput) editorInput;
-			final IPath filePath = fileEditorInput.getPath();
-			fileName = filePath.toString();
-		} else {
-			throw new DecoJerException("Unknown editor input type '" + editorInput + "'!");
-		}
-		this.du = DecoJer.createDu();
-		try {
-			final long currentTimeMillis = System.currentTimeMillis();
-			final List<TD> selectedTds = this.du.read(fileName);
-			LOGGER.info("Read time for '" + fileName + "' is "
-					+ (System.currentTimeMillis() - currentTimeMillis) + " ms");
-			this.du.getCus(); // resolve CUs
-			if (selectedTds.size() == 1) {
-				this.selectedCu = selectedTds.get(0).getCu();
-			}
-		} catch (final Throwable e) {
-			LOGGER.log(Level.SEVERE, "Couldn't open file!", e);
+		// method is called before createPages() - change pageContainer for archives
+		final Composite pageContainer = super.createPageContainer(parent);
+		if (this.selectedCu != null) {
 			return pageContainer;
 		}
-		if (this.selectedCu == null) {
-			final SashForm sashForm = new SashForm(pageContainer, SWT.HORIZONTAL | SWT.BORDER
-					| SWT.SMOOTH);
-			this.archiveTree = new Tree(sashForm, SWT.NONE);
-			for (final CU cu : this.du.getCus()) {
-				final TreeItem treeItem = new TreeItem(this.archiveTree, SWT.NONE);
-				treeItem.setText(cu.getName());
-				if (this.selectedCu == null) {
-					this.archiveTree.select(treeItem);
-					this.selectedCu = cu;
-				}
+		final SashForm sashForm = new SashForm(pageContainer, SWT.HORIZONTAL | SWT.BORDER
+				| SWT.SMOOTH);
+		this.archiveTree = new Tree(sashForm, SWT.NONE);
+		for (final CU cu : this.du.getCus()) {
+			final TreeItem treeItem = new TreeItem(this.archiveTree, SWT.NONE);
+			treeItem.setText(cu.getName());
+			if (this.selectedCu == null) {
+				this.archiveTree.select(treeItem);
+				this.selectedCu = cu;
 			}
-			this.archiveTree.addSelectionListener(new SelectionListener() {
-
-				@Override
-				public void widgetDefaultSelected(final SelectionEvent e) {
-					// OK
-				}
-
-				@Override
-				public void widgetSelected(final SelectionEvent e) {
-					final TreeItem[] selections = ClassEditor.this.archiveTree.getSelection();
-					if (selections.length != 1) {
-						return;
-					}
-					final TreeItem selection = selections[0];
-					if (ClassEditor.this.selectedCu != null) {
-						ClassEditor.this.selectedCu.clear();
-					}
-					ClassEditor.this.selectedCu = ClassEditor.this.du.getCu(selection.getText());
-					ClassEditor.this.decompilationUnitEditor.setInput(ClassEditor.this.selectedCu);
-
-				}
-
-			});
-			this.archiveTree.pack(); // necessary for correct selection box for first item
-			pageContainer = sashForm;
 		}
-		return pageContainer;
+		this.archiveTree.addSelectionListener(new SelectionListener() {
+
+			@Override
+			public void widgetDefaultSelected(final SelectionEvent e) {
+				// OK
+			}
+
+			@Override
+			public void widgetSelected(final SelectionEvent e) {
+				final TreeItem[] selections = ClassEditor.this.archiveTree.getSelection();
+				if (selections.length != 1) {
+					return;
+				}
+				final TreeItem selection = selections[0];
+				if (ClassEditor.this.selectedCu != null) {
+					ClassEditor.this.selectedCu.clear();
+				}
+				ClassEditor.this.selectedCu = ClassEditor.this.du.getCu(selection.getText());
+				ClassEditor.this.decompilationUnitEditor.setInput(ClassEditor.this.selectedCu);
+
+			}
+
+		});
+		this.archiveTree.pack(); // necessary for correct selection box for first item
+		return sashForm;
 	}
 
 	/**
@@ -571,6 +536,42 @@ public class ClassEditor extends MultiPageEditorPart {
 			}
 		}
 		return super.getAdapter(required);
+	}
+
+	@Override
+	public void init(final IEditorSite site, final IEditorInput input) throws PartInitException {
+		String fileName;
+		if (input instanceof IClassFileEditorInput) {
+			// is a simple Eclipse-pre-analyzed class file, not an archive
+			final IClassFile classFile = ((IClassFileEditorInput) input).getClassFile();
+			fileName = extractPath(classFile);
+		} else if (input instanceof FileEditorInput) {
+			// could be a class file (not Eclipse-pre-analyzed) or an archive
+			final FileEditorInput fileEditorInput = (FileEditorInput) input;
+			final IPath filePath = fileEditorInput.getPath();
+			fileName = filePath.toString();
+		} else {
+			throw new PartInitException("Unknown editor input type '"
+					+ input.getClass().getSimpleName() + "'!");
+		}
+		this.du = DecoJer.createDu();
+		final List<TD> selectedTds;
+		try {
+			final long currentTimeMillis = System.currentTimeMillis();
+			selectedTds = this.du.read(fileName);
+			LOGGER.info("Read '" + selectedTds.size() + "' TDs from file '" + fileName + "' in "
+					+ (System.currentTimeMillis() - currentTimeMillis) + " ms");
+		} catch (final Throwable e) {
+			throw new PartInitException("Couldn't read file '" + fileName + "'!", e);
+		}
+		final List<CU> cus = this.du.getCus();
+		if (cus.isEmpty()) {
+			throw new PartInitException("Couldn't find a class in file '" + fileName + "'!");
+		}
+		if (selectedTds.size() == 1) {
+			this.selectedCu = selectedTds.get(0).getCu();
+		}
+		super.init(site, input);
 	}
 
 	@Override
