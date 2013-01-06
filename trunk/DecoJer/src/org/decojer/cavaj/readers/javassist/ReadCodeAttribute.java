@@ -977,8 +977,14 @@ public class ReadCodeAttribute {
 			case Opcode.MULTIANEWARRAY: {
 				final int classIndex = codeReader.readUnsignedShort();
 				final int dimensions = codeReader.readUnsignedByte();
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line,
-						getT(constPool, classIndex), dimensions));
+				// operation works different from other newarrays, descriptor contains array with
+				// dimension > given sizes on stack, e.g.: new int[1][2][3][][], dimension is 3 and
+				// descriptor is [[[[[I, reduce!
+				t = getT(constPool, classIndex);
+				for (int i = dimensions; i-- > 0;) {
+					t = t.getComponentT();
+				}
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, t, dimensions));
 				break;
 			}
 			/*******
