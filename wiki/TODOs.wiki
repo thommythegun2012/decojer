@@ -30,3 +30,8 @@ Size: 38335640414
 
 SELECT * FROM UPLOAD where __key__= KEY('UPLOAD','a74@_)7FCDy@18}I(AqN>W@A')
 }}}
+
+Download big Blob file:
+{{{
+http://www.decojer.org/download/test.tst?u=AMIfv973hPWhetoX_Et1Gn8__ATu5hRHkKaWRnKDrXZfkeR1QSe13v84Sp05AOTtMsS1xeNtquTqv24jl21VJ_l1C7hOKvkT0ILOHS1SXdx3D1nf8L69rSPa1e64euvPAQbgzw4MtGOV9ehmTnrFOW1pe1aNpB8kxQ
+}}}
