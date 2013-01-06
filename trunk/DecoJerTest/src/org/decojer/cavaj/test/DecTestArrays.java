@@ -1,6 +1,6 @@
 package org.decojer.cavaj.test;
 
-public abstract class DecTestFillArrays {
+public abstract class DecTestArrays {
 
 	public static void testSimple() {
 		boolean[] boolsFull0 = new boolean[4];
@@ -22,6 +22,8 @@ public abstract class DecTestFillArrays {
 		boolean[] bools = { true, false, true, false };
 		boolean[] boolsEmpty = {};
 
+		boolean[][][][] boolNew = new boolean[10][][][];
+
 		char[] chars = { 'a', 'b', 'c' };
 		// 0x80 is int!
 		byte[] bytes = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0x7f };
@@ -36,9 +38,15 @@ public abstract class DecTestFillArrays {
 		String[] strings = { "test0", null, "test1", null, "test2" };
 	}
 
-	public void testMulti() {
+	public void testMultiFill() {
 		int[][] intssEmpty = { {} };
 		int[][] intss = { { 0, 1, 2, 3, 4 }, { 5, 6, 7, 8, 9, 0 }, { -1, 1 } };
+	}
+
+	public void testMultiNewArray() {
+		byte[][][][] a_2 = new byte[0][5][][];
+		char[][][][] a_3 = new char[-1][5][-100][];
+		Object[][][][] a_4 = new String[1][2][3][4];
 	}
 
 }
