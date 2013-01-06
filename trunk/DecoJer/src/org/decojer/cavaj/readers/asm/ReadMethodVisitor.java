@@ -938,7 +938,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * NEWARRAY *
 		 ************/
 		case Opcodes.NEWARRAY:
-			this.ops.add(new NEWARRAY(this.ops.size(), opcode, this.line, T.TYPES[operand], 1));
+			this.ops.add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du
+					.getArrayT(T.TYPES[operand]), 1));
 			break;
 		default:
 			LOGGER.warning("Unknown int insn opcode '" + opcode + "'!");
@@ -1304,12 +1305,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 ************/
 		// operation works different from other newarrays, descriptor contains array with
 		// dimension > given sizes on stack, e.g.: new int[1][2][3][][], dimension is 3 and
-		// descriptor is [[[[[I, reduce!
-		T t = this.du.getDescT(desc);
-		for (int i = dims; i-- > 0;) {
-			t = t.getComponentT();
-		}
-		this.ops.add(new NEWARRAY(this.ops.size(), Opcodes.MULTIANEWARRAY, this.line, t, dims));
+		// descriptor is [[[[[I
+		this.ops.add(new NEWARRAY(this.ops.size(), Opcodes.MULTIANEWARRAY, this.line, this.du
+				.getDescT(desc), dims));
 	}
 
 	@Override
@@ -1417,7 +1415,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * NEWARRAY *
 		 ************/
 		case Opcodes.ANEWARRAY:
-			this.ops.add(new NEWARRAY(this.ops.size(), opcode, this.line, t, 1));
+			this.ops.add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du.getArrayT(t), 1));
 			break;
 		default:
 			LOGGER.warning("Unknown var insn opcode '" + opcode + "'!");

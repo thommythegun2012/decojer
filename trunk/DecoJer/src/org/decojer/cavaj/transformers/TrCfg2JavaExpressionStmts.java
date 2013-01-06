@@ -812,11 +812,8 @@ public final class TrCfg2JavaExpressionStmts {
 			case NEWARRAY: {
 				final NEWARRAY cop = (NEWARRAY) op;
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
-				T t = cop.getT();
-				for (int i = cop.getDimensions(); i-- > 0;) {
-					t = this.cfg.getDu().getArrayT(t);
-				}
-				arrayCreation.setType((ArrayType) Expressions.decompileType(t, this.cfg.getTd()));
+				arrayCreation.setType((ArrayType) Expressions.decompileType(cop.getT(),
+						this.cfg.getTd()));
 				for (int i = cop.getDimensions(); i-- > 0;) {
 					arrayCreation.dimensions().add(wrap(bb.pop()));
 				}

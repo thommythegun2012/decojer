@@ -30,6 +30,9 @@ import org.decojer.cavaj.model.T;
 /**
  * Operation 'NEWARRAY'.
  * 
+ * This operation initializes array dimensions, which can be less then the given array type. The
+ * operation uses the array type, not the component type + dimension!
+ * 
  * @author André Pankraz
  */
 public class NEWARRAY extends TypedOp {
@@ -47,9 +50,9 @@ public class NEWARRAY extends TypedOp {
 	 * @param line
 	 *            line number
 	 * @param t
-	 *            element type (could be an array type)
+	 *            array type, not the component type reduced by dimensions!
 	 * @param dimensions
-	 *            dimensions
+	 *            dimensions for initialization, smaller than array type dimension!
 	 */
 	public NEWARRAY(final int pc, final int opcode, final int line, final T t, final int dimensions) {
 		super(pc, opcode, line, t);

@@ -1382,9 +1382,7 @@ public class ReadCodeItem {
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
 
-				// not t.getDim() for NEWARRAY! reduce t by 1 dimension
-				// => int[][] intArray = new int[10][];
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, t.getComponentT(), 1));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, t, 1));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				break;
@@ -1418,10 +1416,7 @@ public class ReadCodeItem {
 
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, instr.getRegCount()));
 
-				// not t.getDim() for NEWARRAY! reduce t by 1 dimension
-				// => int[][] intArray = new int[10][];
-				final T elemT = getDu().getT(t.getName().substring(0, t.getName().length() - 2));
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, elemT, 1));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, t, 1));
 
 				final Object[] regs = new Object[instr.getRegCount()];
 				if (instr.getRegCount() > 0) {
@@ -1458,10 +1453,7 @@ public class ReadCodeItem {
 
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, instr.getRegCount()));
 
-				// not t.getDim() for NEWARRAY! reduce t by 1 dimension
-				// => int[][] intArray = new int[10][];
-				final T elemT = getDu().getT(t.getName().substring(0, t.getName().length() - 2));
-				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, elemT, 1));
+				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, t, 1));
 
 				final Object[] regs = new Object[instr.getRegCount()];
 				for (int reg = instr.getStartRegister(), j = 0; j < instr.getRegCount(); ++reg, ++j) {
