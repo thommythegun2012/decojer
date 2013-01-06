@@ -693,7 +693,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.POP2:
 			if (oValue == null) {
-				oValue = POP.Kind.POP;
+				oValue = POP.Kind.POP2;
 			}
 			this.ops.add(new POP(this.ops.size(), opcode, this.line, (POP.Kind) oValue));
 			break;
