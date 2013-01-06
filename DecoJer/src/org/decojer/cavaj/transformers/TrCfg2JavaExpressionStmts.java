@@ -812,8 +812,11 @@ public final class TrCfg2JavaExpressionStmts {
 			case NEWARRAY: {
 				final NEWARRAY cop = (NEWARRAY) op;
 				final ArrayCreation arrayCreation = getAst().newArrayCreation();
-				arrayCreation.setType(getAst().newArrayType(
-						Expressions.decompileType(cop.getT(), this.cfg.getTd())));
+				T t = cop.getT();
+				for (int i = cop.getDimensions(); i-- > 0;) {
+					t = this.cfg.getDu().getArrayT(t);
+				}
+				arrayCreation.setType((ArrayType) Expressions.decompileType(t, this.cfg.getTd()));
 				for (int i = cop.getDimensions(); i-- > 0;) {
 					arrayCreation.dimensions().add(wrap(bb.pop()));
 				}
@@ -1747,7 +1750,7 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!bb.isCatchHandler()) {
 			return false;
 		}
-		// first operations are usually STRORE or POP (if exception not needed)
+		// first operations are usually STORE or POP (if exception not needed)
 		final Op firstOp = bb.getOps() == 0 ? null : bb.getOp(0);
 		String name = null;
 		if (firstOp instanceof STORE) {
@@ -1759,6 +1762,8 @@ public final class TrCfg2JavaExpressionStmts {
 			name = "e"; // TODO hmmm...free variable name needed...
 		} else {
 			// TODO could also be: LOAD x, MONITOR_EXIT - THROW ...kill POP case above?
+			// TODO or could be: DUP, STORE 0, INVOKE printStackTrace()V
+			// or whatever...need are much more generalized version!
 			log("First operation in handler '" + bb + "' isn't STORE or POP, but is '" + firstOp
 					+ "'!");
 			name = "e"; // TODO hmmm...free variable name needed...
