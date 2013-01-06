@@ -474,12 +474,10 @@ public final class TrDataFlowAnalysis {
 		}
 		case NEWARRAY: {
 			final NEWARRAY cop = (NEWARRAY) op;
-			T t = cop.getT();
 			for (int i = cop.getDimensions(); i-- > 0;) {
 				popRead(T.INT);
-				t = this.cfg.getDu().getArrayT(t);
 			}
-			pushConst(t);
+			pushConst(cop.getT());
 			break;
 		}
 		case OR: {
