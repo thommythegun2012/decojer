@@ -322,13 +322,14 @@ public final class Frame {
 			store(i, newR);
 			return prevR;
 		}
-		if (newR == null) {
-			// TODO currently only possible for exceptions, link later when really visited?!
-			// assert frameR.getKind() == Kind.MERGE : frameR.getKind();
+		// this is wrong...stop replacing if different register reached!
+		// if (newR == null) {
+		// TODO currently only possible for exceptions, link later when really visited?!
+		// assert frameR.getKind() == Kind.MERGE : frameR.getKind();
 
-			store(i, null);
-			return frameR; // now replace merge register with null
-		}
+		// store(i, null);
+		// return frameR; // now replace merge register with null
+		// }
 		if (frameR != null) {
 			frameR.replaceIn(prevR, newR);
 		}
