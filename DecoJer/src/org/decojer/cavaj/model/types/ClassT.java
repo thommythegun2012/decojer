@@ -262,7 +262,7 @@ public class ClassT extends T {
 		try {
 			klass = getClass().getClassLoader().loadClass(getName());
 		} catch (final ClassNotFoundException e) {
-			LOGGER.warning("Couldn't load type '" + getName() + "'!");
+			// LOGGER.warning("Couldn't load type '" + getName() + "'!");
 			this.accessFlags |= AF.UNRESOLVABLE.getValue();
 			return true;
 		}
