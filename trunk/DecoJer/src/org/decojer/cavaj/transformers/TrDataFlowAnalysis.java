@@ -148,8 +148,8 @@ public final class TrDataFlowAnalysis {
 		final T m = R.merge(s1, s2);
 		assert m != null;
 
-		s2.read(m, false);
-		s1.read(m, false);
+		s2.assignTo(m);
+		s1.assignTo(m);
 
 		if (resultT == T.VOID) {
 			return;
@@ -157,7 +157,8 @@ public final class TrDataFlowAnalysis {
 		pushConst(resultT != null ? resultT : m);
 	}
 
-	private int executeMerge(final BB bb, final Op op) {
+	private int execute(final BB bb, final Op op) {
+		bb.addOp(op);
 		this.frame = new Frame(this.cfg.getInFrame(op));
 		int nextPc = op.getPc() + 1;
 		switch (op.getOptype()) {
@@ -185,7 +186,8 @@ public final class TrDataFlowAnalysis {
 		}
 		case ASTORE: {
 			final ASTORE cop = (ASTORE) op;
-			final R vR = pop(cop.getT()); // value: no read here, more specific possible, see below
+			final R vR = popRead(cop.getT()); // value: no read here, more specific possible, see
+												// below
 			popRead(T.INT); // index
 			// don't use getArrayT(vR.getT()), wrong assignment direction for supertype,
 			// e.g. java.lang.Object[] <- java.io.PrintWriter[] or int[] <- {byte,char}[]
@@ -209,7 +211,7 @@ public final class TrDataFlowAnalysis {
 			// org.eclipse.jdt.internal.codeassist.InternalExtendedCompletionContext.getVisibleElements()
 			// org.eclipse.jdt.internal.core.JavaElement.read(
 			// {java.lang.Object,org.eclipse.jdt.core.IJavaElement,org.eclipse.core.runtime.IAdaptable})
-			if (joinT == null || !vR.read(joinT, true)) {
+			if (joinT == null || !vR.assignTo(joinT)) {
 				LOGGER.warning("Cannot store array value!");
 			}
 			break;
@@ -234,97 +236,97 @@ public final class TrDataFlowAnalysis {
 			final DUP cop = (DUP) op;
 			switch (cop.getKind()) {
 			case DUP: {
-				final R s = this.frame.peekSingle();
-				pushMove(s);
+				final R s = peekSingle();
+				push(s);
 				break;
 			}
 			case DUP_X1: {
-				final R s1 = this.frame.popSingle();
-				final R s2 = this.frame.popSingle();
-				pushMove(s1);
-				pushMove(s2);
-				pushMove(s1);
+				final R s1 = popSingle();
+				final R s2 = popSingle();
+				push(s1);
+				push(s2);
+				push(s1);
 				break;
 			}
 			case DUP_X2: {
-				final R s1 = this.frame.popSingle();
-				final R s2 = this.frame.pop();
+				final R s1 = popSingle();
+				final R s2 = pop();
 				if (!s2.getT().isWide()) {
-					final R s3 = this.frame.popSingle();
-					pushMove(s1);
-					pushMove(s3);
-					pushMove(s2);
-					pushMove(s1);
+					final R s3 = popSingle();
+					push(s1);
+					push(s3);
+					push(s2);
+					push(s1);
 					break;
 				}
-				pushMove(s1);
-				pushMove(s2);
-				pushMove(s1);
+				push(s1);
+				push(s2);
+				push(s1);
 				break;
 			}
 			case DUP2: {
-				final R s1 = this.frame.peek();
+				final R s1 = peek();
 				if (!s1.getT().isWide()) {
-					final R s2 = this.frame.peekSingle(1);
-					pushMove(s2);
-					pushMove(s1);
+					final R s2 = peekSingle(1);
+					push(s2);
+					push(s1);
 					break;
 				}
-				pushMove(s1);
+				push(s1);
 				break;
 			}
 			case DUP2_X1: {
-				final R s1 = this.frame.pop();
+				final R s1 = pop();
 				if (!s1.getT().isWide()) {
-					final R s2 = this.frame.popSingle();
-					final R s3 = this.frame.popSingle();
-					pushMove(s2);
-					pushMove(s1);
-					pushMove(s3);
-					pushMove(s2);
-					pushMove(s1);
+					final R s2 = popSingle();
+					final R s3 = popSingle();
+					push(s2);
+					push(s1);
+					push(s3);
+					push(s2);
+					push(s1);
 					break;
 				}
-				final R s3 = this.frame.pop();
-				pushMove(s1);
-				pushMove(s3);
-				pushMove(s1);
+				final R s3 = pop();
+				push(s1);
+				push(s3);
+				push(s1);
 				break;
 			}
 			case DUP2_X2: {
-				final R s1 = this.frame.pop();
+				final R s1 = pop();
 				if (!s1.getT().isWide()) {
-					final R s2 = this.frame.popSingle();
-					final R s3 = this.frame.pop();
+					final R s2 = popSingle();
+					final R s3 = pop();
 					if (!s3.getT().isWide()) {
-						final R s4 = this.frame.popSingle();
-						pushMove(s2);
-						pushMove(s1);
-						pushMove(s4);
-						pushMove(s3);
-						pushMove(s2);
-						pushMove(s1);
+						final R s4 = popSingle();
+						push(s2);
+						push(s1);
+						push(s4);
+						push(s3);
+						push(s2);
+						push(s1);
 						break;
 					}
-					pushMove(s2);
-					pushMove(s1);
-					pushMove(s3);
-					pushMove(s2);
-					pushMove(s1);
+					push(s2);
+					push(s1);
+					push(s3);
+					push(s2);
+					push(s1);
 					break;
 				}
-				final R s3 = this.frame.pop();
+				final R s3 = pop();
 				if (!s3.getT().isWide()) {
-					final R s4 = this.frame.popSingle();
-					pushMove(s1);
-					pushMove(s4);
-					pushMove(s3);
-					pushMove(s1);
+					final R s4 = popSingle();
+					push(s1);
+					push(s4);
+					push(s3);
+					push(s1);
 					break;
 				}
-				pushMove(s1);
-				pushMove(s3);
-				pushMove(s1);
+				push(s1);
+				push(s3);
+				push(s1);
 				break;
 			}
 			default:
@@ -333,9 +335,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case FILLARRAY: {
-			final R r = this.frame.peek();
-			assert r.read(T.AREF, true);
-
+			peek(T.AREF);
 			break;
 		}
 		case GET: {
@@ -449,7 +449,7 @@ public final class TrDataFlowAnalysis {
 			final LOAD cop = (LOAD) op;
 			final R r = load(cop.getReg(), cop.getT());
 			// no previous for stack
-			pushMove(r);
+			push(r);
 			break;
 		}
 		case MONITOR: {
@@ -490,13 +490,13 @@ public final class TrDataFlowAnalysis {
 			// no new register or type reduction necessary, simply let it die off
 			switch (cop.getKind()) {
 			case POP: {
-				this.frame.popSingle();
+				popSingle();
 				break;
 			}
 			case POP2:
-				final R s1 = this.frame.pop();
+				final R s1 = pop();
 				if (!s1.getT().isWide()) {
-					this.frame.popSingle();
+					popSingle();
 					break;
 				}
 				break;
@@ -593,10 +593,10 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case SWAP: {
-			final R s1 = this.frame.pop();
-			final R s2 = this.frame.pop();
-			pushMove(s1);
-			pushMove(s2);
+			final R s1 = pop();
+			final R s2 = pop();
+			push(s1);
+			push(s2);
 			break;
 		}
 		case SWITCH: {
@@ -697,25 +697,22 @@ public final class TrDataFlowAnalysis {
 	private R load(final int i, final T t) {
 		// start new register and TODO backpropagate alive for existing (read number)
 		final R r = this.frame.load(i);
-		if (!r.read(t, false)) {
+		if (!r.assignTo(t)) {
 			throw new RuntimeException("Incompatible type for register '" + i
 					+ "'! Cannot assign '" + r + "' to '" + t + "'.");
 		}
 		if (r.getT() == T.RET) {
 			// bytecode restriction: internal return address type can only be read once
 			this.frame.store(i, null);
-			return r;
 		}
-		this.frame.store(i, new R(this.pc, r.getT(), r.getValue(), Kind.LOAD, r));
 		return r;
 	}
 
 	private R loadRead(final int i, final T t) {
 		final R r = load(i, t);
-		if (!r.read(t, true)) {
-			throw new RuntimeException("Incompatible type for register '" + i + "'! Cannot read '"
-					+ r + "' as '" + t + "'.");
-		}
+
+		// TODO backpropagate alive
+
 		return r;
 	}
 
@@ -865,11 +862,38 @@ public final class TrDataFlowAnalysis {
 		return bb;
 	}
 
+	private R peek() {
+		return this.frame.peek();
+	}
+
+	private R peek(final T t) {
+		final R s = this.frame.peek();
+		if (!s.assignTo(t)) {
+			throw new RuntimeException("Incompatible type for stack register! Cannot assign '" + s
+					+ "' to '" + t + "'.");
+		}
+		return s;
+	}
+
+	private R peekSingle() {
+		return peekSingle(0);
+	}
+
+	private R peekSingle(final int i) {
+		final R s = this.frame.peek(i);
+		if (s.getT().isWide()) {
+			log("Peek '" + i + "' attempts to split long or double on the stack!");
+		}
+		return s;
+	}
+
+	private R pop() {
+		return this.frame.pop();
+	}
+
 	private R pop(final T t) {
 		final R s = this.frame.pop();
-		if (!s.read(t, false)) {
-			// TODO bad infinispan.CacheImpl:...Incompatible local register type! Cannot assign
-			// 'R25_MO: javax.transaction.SystemException' to 'java.lang.Throwable'.
+		if (!s.assignTo(t)) {
 			throw new RuntimeException("Incompatible type for stack register! Cannot assign '" + s
 					+ "' to '" + t + "'.");
 		}
@@ -878,29 +902,30 @@ public final class TrDataFlowAnalysis {
 
 	private R popRead(final T t) {
 		final R s = pop(t);
-		if (!s.read(t, true)) {
-			throw new RuntimeException("Incompatible type for stack register! Cannot read '" + s
-					+ "' as '" + t + "'.");
+
+		// TODO backpropagate alive
+
+		return s;
+	}
+
+	private R popSingle() {
+		final R s = this.frame.pop();
+		if (s.getT().isWide()) {
+			log("Pop attempts to split long or double on the stack!");
 		}
 		return s;
 	}
 
+	private R push(final R r) {
+		return this.frame.push(new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r));
+	}
+
 	private R pushConst(final T t) {
-		final R s = new R(this.pc, t, Kind.CONST);
-		this.frame.push(s);
-		return s;
+		return this.frame.push(new R(this.pc, t, Kind.CONST));
 	}
 
 	private R pushConst(final T t, final Object value) {
-		final R s = new R(this.pc, t, value, Kind.CONST);
-		this.frame.push(s);
-		return s;
-	}
-
-	private R pushMove(final R r) {
-		final R s = new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r);
-		this.frame.push(s);
-		return s;
+		return this.frame.push(new R(this.pc, t, value, Kind.CONST));
 	}
 
 	/**
@@ -943,13 +968,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R store(final int i, final R r) {
-		// TODO not a good idea because of forward propagation issues
-		// final R prevR = this.frame.load(i);
-		// final R newR = prevR == null ? new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r)
-		// : new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r, prevR);
-		final R newR = new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r);
-		this.frame.store(i, newR);
-		return newR;
+		return this.frame.store(i, new R(this.pc, r.getT(), r.getValue(), Kind.MOVE, r));
 	}
 
 	private void transform() {
@@ -978,8 +997,7 @@ public final class TrDataFlowAnalysis {
 				bb = splitExceptions(bb, op); // may change with exception boundary
 				this.pc2bbs[this.pc] = bb;
 			}
-			bb.addOp(op);
-			this.pc = executeMerge(bb, op);
+			this.pc = execute(bb, op);
 			mergeExceptions(op); // execute has influence on this, read type reduce
 		}
 	}

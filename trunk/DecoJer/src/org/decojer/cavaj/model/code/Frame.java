@@ -149,34 +149,6 @@ public final class Frame {
 		return this.rs[this.rs.length - i - 1];
 	}
 
-	/**
-	 * Peek stack register (not wide).
-	 * 
-	 * @return stack register
-	 */
-	public R peekSingle() {
-		final R s = peek();
-		if (s.getT().isWide()) {
-			log("Peek attempt to split long or double on the stack!");
-		}
-		return s;
-	}
-
-	/**
-	 * Peek stack register (not wide).
-	 * 
-	 * @param i
-	 *            reverse stack index
-	 * @return stack register
-	 */
-	public R peekSingle(final int i) {
-		final R s = peek(i);
-		if (s.getT().isWide()) {
-			log("Peek '" + i + "' attempts to split long or double on the stack!");
-		}
-		return s;
-	}
-
 	public R peekSub(final int callerTop, final int subPc) {
 		// JSR already visited, reuse Sub
 		if (getTop() != callerTop + 1) {
@@ -221,19 +193,6 @@ public final class Frame {
 	}
 
 	/**
-	 * Pop stack register (not wide).
-	 * 
-	 * @return stack register
-	 */
-	public R popSingle() {
-		final R s = pop();
-		if (s.getT().isWide()) {
-			log("Pop attempts to split long or double on the stack!");
-		}
-		return s;
-	}
-
-	/**
 	 * Pop subroutine from subroutine stack: Pop all subroutines till given one.
 	 * 
 	 * @param sub
@@ -264,14 +223,16 @@ public final class Frame {
 	 * 
 	 * @param s
 	 *            stack register
+	 * @return pushed register (for fluent API)
 	 */
-	public void push(final R s) {
+	public R push(final R s) {
 		assert getTop() < this.cfg.getMaxStack() || this.cfg.getMaxStack() == 0;
 
 		final R[] newRs = new R[this.rs.length + 1];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
 		newRs[this.rs.length] = s;
 		this.rs = newRs;
+		return s;
 	}
 
 	/**
@@ -352,14 +313,17 @@ public final class Frame {
 	 *            register index
 	 * @param r
 	 *            register (local or stack)
+	 * @return stored register (for fluent API)
 	 */
-	public void store(final int i, final R r) {
+	public R store(final int i, final R r) {
 		// stack allowed too: assert i < this.cfg.getRegs();
 
 		final R[] newRs = new R[this.rs.length];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
 		newRs[i] = r;
 		this.rs = newRs;
+
+		return r;
 	}
 
 	/**
