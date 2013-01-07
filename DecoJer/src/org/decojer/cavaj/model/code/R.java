@@ -47,11 +47,6 @@ public final class R {
 		CONST,
 
 		/**
-		 * Previous register.
-		 */
-		LOAD,
-
-		/**
 		 * Merge ins. Incoming registers.
 		 */
 		MERGE,
@@ -146,71 +141,16 @@ public final class R {
 	}
 
 	/**
-	 * Increment value.
-	 * 
-	 * @param inc
-	 *            increment
-	 */
-	public void inc(final int inc) {
-		if (getValue() == null) {
-			return;
-		}
-		this.value = ((Number) getValue()).intValue() + inc;
-	}
-
-	/**
-	 * Is register a method parameter?
-	 * 
-	 * @return {@code true} - is method parameter
-	 */
-	public boolean isMethodParam() {
-		switch (this.kind) {
-		case CONST:
-		case MERGE:
-		case MOVE:
-			return this.pc == 0;
-		case LOAD:
-			return this.ins[0].isMethodParam();
-		}
-		return false;
-	}
-
-	private void linkIn(final R in) {
-		final R[] inOuts = in.outs;
-		if (in.outs == null) {
-			in.outs = new R[] { this };
-		} else {
-			in.outs = new R[inOuts.length + 1];
-			System.arraycopy(inOuts, 0, in.outs, 0, inOuts.length);
-			in.outs[inOuts.length] = this;
-		}
-	}
-
-	public void merge(final R r) {
-		this.t = T.join(this.t, r.t);
-		final R[] newIns = new R[this.ins.length + 1];
-		System.arraycopy(this.ins, 0, newIns, 0, this.ins.length);
-		newIns[this.ins.length] = r;
-		this.ins = newIns;
-		if (this.readT != null) {
-			r.read(this.readT, true);
-		}
-	}
-
-	/**
 	 * Read type.
 	 * 
 	 * @param t
 	 *            type
-	 * @param alive
-	 *            {@code true} - mark as alive
 	 * @return {@code true} - success
 	 */
-	public boolean read(final T t, final boolean alive) {
+	public boolean assignTo(final T t) {
 		final T reducedT = this.t.assignTo(t); // primitive reduction for this.t possible
 		if (reducedT == null) {
-			if (this.t.isUnresolvable()) {
-				// FIXME this is wrong if this.t is REF and t is INT or such
+			if (this.t.isUnresolvable() && this.t != T.REF) {
 				return true;
 			}
 			// TODO problem with generic type reduction to classes, invoke interface allowed
@@ -238,14 +178,55 @@ public final class R {
 			}
 			break;
 		case MOVE:
-		case LOAD:
-			this.ins[0].read(t, alive);
+			this.ins[0].assignTo(t);
 		case CONST:
 		}
-		if (alive) {
-			this.readT = T.union(this.readT, t);
-		}
+		this.readT = T.union(this.readT, t);
 		return true;
+	}
+
+	/**
+	 * Increment value.
+	 * 
+	 * @param inc
+	 *            increment
+	 */
+	public void inc(final int inc) {
+		if (getValue() == null) {
+			return;
+		}
+		this.value = ((Number) getValue()).intValue() + inc;
+	}
+
+	/**
+	 * Is register a method parameter?
+	 * 
+	 * @return {@code true} - is method parameter
+	 */
+	public boolean isMethodParam() {
+		return this.pc == 0;
+	}
+
+	private void linkIn(final R in) {
+		final R[] inOuts = in.outs;
+		if (in.outs == null) {
+			in.outs = new R[] { this };
+		} else {
+			in.outs = new R[inOuts.length + 1];
+			System.arraycopy(inOuts, 0, in.outs, 0, inOuts.length);
+			in.outs[inOuts.length] = this;
+		}
+	}
+
+	public void merge(final R r) {
+		this.t = T.join(this.t, r.t);
+		final R[] newIns = new R[this.ins.length + 1];
+		System.arraycopy(this.ins, 0, newIns, 0, this.ins.length);
+		newIns[this.ins.length] = r;
+		this.ins = newIns;
+		if (this.readT != null) {
+			r.assignTo(this.readT);
+		}
 	}
 
 	private boolean readForwardPropagate(final T t) {
@@ -297,7 +278,6 @@ public final class R {
 					return;
 				case MERGE:
 					System.out.println("Register replace to null for merge not possible!");
-				case LOAD:
 				}
 				return;
 			}
