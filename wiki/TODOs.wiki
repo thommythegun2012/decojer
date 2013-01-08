@@ -12,6 +12,9 @@ Dalvik
   * initial temporary 0 and 1 are typeless constants (no bool backpropagation)...currently i havn't a good solution for this in the generic code
 
 
+2 x weblogic.wsee.async.AsyncResponseBean, 1 different in sub-jar!
+
+
 Web
 
 05.01.12
