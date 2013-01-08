@@ -1906,18 +1906,16 @@ public class ReadCodeItem {
 					t = T.WIDE;
 				}
 				{
-					assert t.isAssignableFrom(md.getReturnT());
-
 					// return A
 					final Instruction11x instr = (Instruction11x) instruction;
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
-					this.ops.add(new RETURN(this.ops.size(), opcode, line, md));
+					this.ops.add(new RETURN(this.ops.size(), opcode, line, t));
 				}
 				break;
 			case RETURN_VOID: {
-				this.ops.add(new RETURN(this.ops.size(), opcode, line, md));
+				this.ops.add(new RETURN(this.ops.size(), opcode, line, T.VOID));
 				break;
 			}
 			/*******
