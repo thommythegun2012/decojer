@@ -710,14 +710,40 @@ public final class TrDataFlowAnalysis {
 
 	private R loadRead(final int i, final T t) {
 		final R r = load(i, t);
-
-		// TODO backpropagate alive
-
+		markAlive(this.pc2bbs[this.pc], i);
 		return r;
 	}
 
 	private void log(final String message) {
 		LOGGER.warning(this.cfg.getMd() + ": " + message);
+	}
+
+	private void markAlive(final BB bb, final int i) {
+		for (int j = bb.getOps(); j-- > 0;) {
+			final Op op = bb.getOp(j);
+			final Frame frame = this.cfg.getInFrame(op);
+			if (frame.isAlive(i)) {
+				return;
+			}
+			frame.markAlive(i);
+			if (true) {
+				return;
+			}
+			final R r = frame.load(i);
+			if (r.getPc() == op.getPc()) {
+				// register created through current operation
+				switch (r.getKind()) {
+				case CONST:
+					break;
+				case MERGE:
+					// TODO ??? delete merge? may be overlaying in frame
+				case MOVE:
+					// TODO
+				}
+				return;
+			}
+		}
+		// TODO propagate to bb.ins
 	}
 
 	private void merge(final int pc) {
@@ -902,9 +928,9 @@ public final class TrDataFlowAnalysis {
 
 	private R popRead(final T t) {
 		final R s = pop(t);
-
-		// TODO backpropagate alive
-
+		// 2 tricks: current operation is last in current BB - operation propagation not necessary,
+		// pop first and than the frame size is the register index for the highest stack register
+		markAlive(this.pc2bbs[this.pc], this.frame.size());
 		return s;
 	}
 
