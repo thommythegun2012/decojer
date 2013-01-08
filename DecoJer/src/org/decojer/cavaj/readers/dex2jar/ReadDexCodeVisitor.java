@@ -417,14 +417,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 					+ "' for 'visitReturnStmt(VOID)'! Using operation 'RETURN' with type '"
 					+ T.VOID + "'.");
 		}
-		if (this.md.getReturnT() != T.VOID) {
-			LOGGER.warning("Incompatible operation return type '" + T.VOID
-					+ "' for method return type '" + this.md.getReturnT()
-					+ "'! Using return type '" + T.VOID + "'.");
-			// if we use the methods return type instead, stack may be incompatible...graceful
-			// fallback possible at all?
-		}
-		this.ops.add(new RETURN(this.ops.size(), opcode, this.line, this.md));
+		this.ops.add(new RETURN(this.ops.size(), opcode, this.line, T.VOID));
 	}
 
 	@Override
@@ -450,11 +443,9 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 				LOGGER.warning("Unknown operation return type '" + xt
 						+ "'! Using method return type '" + t + "'.");
 			}
-			assert t.isAssignableFrom(this.md.getReturnT());
+			this.ops.add(new LOAD(this.ops.size(), opcode, this.line, t, reg));
 
-			this.ops.add(new LOAD(this.ops.size(), opcode, this.line, this.md.getReturnT(), reg));
-
-			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, this.md));
+			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, t));
 			break;
 		}
 		case OP_THROW: {

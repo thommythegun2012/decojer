@@ -23,20 +23,18 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
-import lombok.Getter;
-
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 
 /**
- * Operation 'RETURN'.
+ * Operation 'RETURN'.<br>
+ * 
+ * We cannot precheck operation-type.isAssignableFrom(return-type) and just remember the method or
+ * method return type here because it's legal to have unreachable wrong returns! See e.g. final
+ * return in weblogic.cluster._RemoteClusterHealthCheckerImpl_Stub.checkClusterMembership()J
  * 
  * @author André Pankraz
  */
-public class RETURN extends Op {
-
-	@Getter
-	private final MD md;
+public class RETURN extends TypedOp {
 
 	/**
 	 * Constructor.
@@ -47,35 +45,21 @@ public class RETURN extends Op {
 	 *            operation code
 	 * @param line
 	 *            line number
-	 * @param md
-	 *            method declaration
+	 * @param t
+	 *            return type
 	 */
-	public RETURN(final int pc, final int opcode, final int line, final MD md) {
-		super(pc, opcode, line);
-
-		assert md != null;
-		// for all variants valid: any superfield possible for static / instance
-
-		this.md = md;
+	public RETURN(final int pc, final int opcode, final int line, final T t) {
+		super(pc, opcode, line, t);
 	}
 
 	@Override
 	public int getInStackSize() {
-		return getMd().getReturnT().getStackSize();
+		return getT().getStackSize();
 	}
 
 	@Override
 	public Optype getOptype() {
 		return Optype.RETURN;
-	}
-
-	/**
-	 * Get return type.
-	 * 
-	 * @return return type
-	 */
-	public T getT() {
-		return getMd().getReturnT();
 	}
 
 }

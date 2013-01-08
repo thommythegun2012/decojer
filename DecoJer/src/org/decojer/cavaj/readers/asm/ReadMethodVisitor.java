@@ -840,9 +840,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.VOID;
 			}
-			assert t.isAssignableFrom(this.md.getReturnT());
-
-			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, this.md));
+			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, t));
 			break;
 		/*******
 		 * SHL *

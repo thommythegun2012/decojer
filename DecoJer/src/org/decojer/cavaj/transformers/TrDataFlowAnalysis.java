@@ -551,7 +551,9 @@ public final class TrDataFlowAnalysis {
 		}
 		case RETURN: {
 			final RETURN cop = (RETURN) op;
-			final T returnT = cop.getT();
+			final T returnT = this.cfg.getMd().getReturnT();
+			assert cop.getT().isAssignableFrom(returnT);
+
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
 			}
