@@ -38,6 +38,8 @@ public final class Frame {
 
 	private R[] rs;
 
+	private boolean[] alive;
+
 	private Sub[] subs;
 
 	/**
@@ -100,6 +102,17 @@ public final class Frame {
 	}
 
 	/**
+	 * Is register alive?
+	 * 
+	 * @param i
+	 *            register index
+	 * @return {@code true} - is alive
+	 */
+	public boolean isAlive(final int i) {
+		return this.alive == null ? false : this.alive[i];
+	}
+
+	/**
 	 * Is stack empty?
 	 * 
 	 * @return {@code true} - stack is empty
@@ -123,6 +136,18 @@ public final class Frame {
 
 	private void log(final String message) {
 		LOGGER.warning(this.cfg.getMd() + ": " + message);
+	}
+
+	/**
+	 * Mark register as alive.
+	 * 
+	 * @param i
+	 *            register index
+	 */
+	public void markAlive(final int i) {
+		if (this.alive == null) {
+			this.alive = new boolean[this.rs.length];
+		}
 	}
 
 	/**
