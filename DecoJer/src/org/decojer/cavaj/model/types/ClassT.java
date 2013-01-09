@@ -79,7 +79,6 @@ public class ClassT extends T {
 	@Getter
 	private String innerName;
 
-	@Setter
 	private T[] interfaceTs;
 
 	/**
@@ -434,6 +433,19 @@ public class ClassT extends T {
 	}
 
 	/**
+	 * Set interface types.
+	 * 
+	 * @param interfaceTs
+	 *            interface types
+	 */
+	public void setInterfaceTs(final T[] interfaceTs) {
+		for (final T t : interfaceTs) {
+			t.setInterface(true);
+		}
+		this.interfaceTs = interfaceTs;
+	}
+
+	/**
 	 * Set super type.
 	 * 
 	 * @param superT
@@ -444,6 +456,7 @@ public class ClassT extends T {
 			this.superT = NONE;
 			return;
 		}
+		superT.setInterface(false);
 		this.superT = superT;
 	}
 
