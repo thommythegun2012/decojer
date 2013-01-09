@@ -180,7 +180,7 @@ public class UploadServlet extends HttpServlet {
 									.countdownMillis(2000)
 									.header("Host",
 											BackendServiceFactory.getBackendService()
-													.getBackendAddress("worker")));
+													.getBackendAddress("worker256")));
 				}
 			} finally {
 				tx.commit();
