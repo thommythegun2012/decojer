@@ -312,7 +312,8 @@ public final class TD extends BD {
 		final List<T> ts = Lists.newArrayList();
 		do {
 			final T interfaceT = getT().getDu().parseT(s, c, getT());
-			interfaceT.setInterface(true);
+			// not here...signature could be wrong (not bytecode checked), check erasure first
+			// interfaceT.setInterface(true);
 			ts.add(interfaceT);
 		} while (c.pos < s.length() && s.charAt(c.pos) == 'L');
 		return ts.toArray(new T[ts.size()]);
@@ -367,27 +368,33 @@ public final class TD extends BD {
 		getT().setTypeParams(getDu().parseTypeParams(signature, c, getT()));
 
 		final T superT = getDu().parseT(signature, c, getT());
-		superT.setInterface(false);
 		if (!superT.eraseTo(getSuperT())) {
-			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getSuperT()
-					+ "' for type super: " + this);
-		} else {
-			getT().setSuperT(superT);
+			LOGGER.info("Cannot reduce type '" + superT + "' to super type '" + getSuperT()
+					+ "' for type declaration '" + this + "' with signature: " + signature);
+			return;
 		}
+		getT().setSuperT(superT);
 		final T[] signInterfaceTs = parseInterfaceTs(signature, c);
 		if (signInterfaceTs != null) {
 			final T[] interfaceTs = getInterfaceTs();
 			if (interfaceTs.length != signInterfaceTs.length) {
-				LOGGER.info("Cannot reduce signature '" + signature
-						+ "' to types for type interfaces: " + this);
+				LOGGER.info("Cannot reduce super types for type declaration '" + this
+						+ "' with signature: " + signature);
+				return;
 			}
 			for (int i = 0; i < interfaceTs.length; ++i) {
 				final T interfaceT = signInterfaceTs[i];
 				if (!interfaceT.eraseTo(interfaceTs[i])) {
-					LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
-							+ interfaceTs[i] + "' for type interface: " + this);
-					break;
+					LOGGER.info("Cannot reduce type '" + interfaceT + "' to interface type '"
+							+ interfaceTs[i] + "' for type declaration '" + this
+							+ "' with signature: " + signature);
+					return;
 				}
+				// erasure works...now we are safe to assert interface...but should be anyway
+				// because erasure leads to right type, not necessary:
+				// interfaceT.setInterface(true);
+				assert interfaceT.isInterface();
+
 				interfaceTs[i] = interfaceT;
 			}
 		}

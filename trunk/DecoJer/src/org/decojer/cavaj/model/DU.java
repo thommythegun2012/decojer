@@ -503,7 +503,6 @@ public final class DU {
 				typeParam.setSuperT(getObjectT());
 			} else {
 				final T superT = parseT(s, c, context);
-				superT.setInterface(false);
 				typeParam.setSuperT(superT);
 			}
 			if (s.charAt(c.pos) == ':') {
@@ -511,7 +510,6 @@ public final class DU {
 				do {
 					++c.pos;
 					final T interfaceT = parseT(s, c, context);
-					interfaceT.setInterface(true);
 					interfaceTs.add(interfaceT);
 				} while (s.charAt(c.pos) == ':');
 				typeParam.setInterfaceTs(interfaceTs.toArray(new T[interfaceTs.size()]));
