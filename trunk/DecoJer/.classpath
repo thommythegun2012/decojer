@@ -6,7 +6,7 @@
 	<classpathentry kind="lib" path="lib/javassist.jar" sourcepath="/jvst"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-io-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/lombok.jar"/>
-	<classpathentry kind="lib" path="lib/dex-reader-1.11-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="lib/dex-reader-1.11-SNAPSHOT.jar" sourcepath="/dex2jar"/>
 	<classpathentry kind="lib" path="lib/asm-4.1.jar" sourcepath="/asm3"/>
 	<classpathentry kind="lib" path="lib/guava-13.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/dexlib-1.4.2-dev.jar" sourcepath="/dexlib"/>

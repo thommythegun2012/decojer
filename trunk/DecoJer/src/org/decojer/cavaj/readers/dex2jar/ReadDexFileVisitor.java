@@ -24,6 +24,7 @@
 package org.decojer.cavaj.readers.dex2jar;
 
 import java.util.List;
+import java.util.logging.Logger;
 
 import lombok.Getter;
 
@@ -42,6 +43,8 @@ import com.googlecode.dex2jar.visitors.DexFileVisitor;
  * @author André Pankraz
  */
 public class ReadDexFileVisitor implements DexFileVisitor {
+
+	private final static Logger LOGGER = Logger.getLogger(ReadDexFileVisitor.class.getName());
 
 	private final DU du;
 
@@ -101,6 +104,10 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 			return null;
 		}
 		final ClassT t = (ClassT) this.du.getDescT(className);
+		if (t.getTd() != null) {
+			LOGGER.warning("Type '" + t + "' already read!");
+			return null;
+		}
 		final TD td = t.createTd();
 		td.setAccessFlags(access_flags);
 		td.setSuperT(this.du.getDescT(superClass));

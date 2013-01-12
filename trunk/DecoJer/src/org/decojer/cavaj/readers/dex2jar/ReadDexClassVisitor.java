@@ -47,8 +47,6 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	private A[] as;
 
-	private final DU du;
-
 	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
 
 	private final ReadDexFieldVisitor readDexFieldVisitor;
@@ -66,7 +64,6 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	public ReadDexClassVisitor(final DU du) {
 		assert du != null;
 
-		this.du = du;
 		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(du);
 		this.readDexFieldVisitor = new ReadDexFieldVisitor(du);
 		this.readDexMethodVisitor = new ReadDexMethodVisitor(du);
