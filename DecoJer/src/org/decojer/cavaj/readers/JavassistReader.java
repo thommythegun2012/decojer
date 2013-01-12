@@ -123,6 +123,10 @@ public class JavassistReader implements ClassReader {
 		final ConstPool constPool = classFile.getConstPool();
 
 		final ClassT t = (ClassT) this.du.getT(classFile.getName());
+		if (t.getTd() != null) {
+			LOGGER.warning("Type '" + t + "' already read!");
+			return null;
+		}
 		final TD td = t.createTd();
 		td.setAccessFlags(classFile.getAccessFlags());
 		td.setSuperT(getT(constPool, classFile.getSuperclassId()));

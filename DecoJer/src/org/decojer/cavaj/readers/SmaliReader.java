@@ -137,6 +137,10 @@ public class SmaliReader implements DexReader {
 				continue;
 			}
 			final ClassT t = (ClassT) this.du.getDescT(typeDescriptor);
+			if (t.getTd() != null) {
+				LOGGER.warning("Type '" + t + "' already read!");
+				continue;
+			}
 			final TD td = t.createTd();
 			td.setAccessFlags(classDefItem.getAccessFlags());
 			td.setSuperT(this.du.getDescT(classDefItem.getSuperclass().getTypeDescriptor()));
