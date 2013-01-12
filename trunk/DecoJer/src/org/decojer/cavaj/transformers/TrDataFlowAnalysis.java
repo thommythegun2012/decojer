@@ -212,7 +212,7 @@ public final class TrDataFlowAnalysis {
 			// org.eclipse.jdt.internal.core.JavaElement.read(
 			// {java.lang.Object,org.eclipse.jdt.core.IJavaElement,org.eclipse.core.runtime.IAdaptable})
 			if (joinT == null || !vR.assignTo(joinT)) {
-				LOGGER.warning("Cannot store array value!");
+				log("Cannot store array value!");
 			}
 			break;
 		}
@@ -330,7 +330,7 @@ public final class TrDataFlowAnalysis {
 				break;
 			}
 			default:
-				LOGGER.warning("Unknown DUP type '" + cop.getKind() + "'!");
+				log("Unknown DUP type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -406,9 +406,10 @@ public final class TrDataFlowAnalysis {
 			// http://docs.oracle.com/javase/specs/jvms/se7/jvms7.pdf
 			final BB subBb = getTargetBb(subPc);
 			bb.setSucc(subBb);
-			// use common value (like Sub) instead of jsr-follow-address because of merge
+			// use common value (we take Sub) instead of jsr-follow-address because of merge
 			final Frame subFrame = this.cfg.getFrame(subPc);
 			if (subFrame == null) {
+				// never bean as this sub -> create new jsr-follow-address (Sub) and merge -> return
 				final Sub sub = new Sub(subPc);
 				if (!this.frame.pushSub(sub)) {
 					return -1;
@@ -417,32 +418,30 @@ public final class TrDataFlowAnalysis {
 				merge(subPc);
 				return -1;
 			}
+			// already visited this sub -> restore jsr-follow-address (Sub) and merge -> check RET
 			final R subR = subFrame.peekSub(this.frame.getTop(), subPc);
 			if (subR == null) {
 				return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
-
 			if (!this.frame.pushSub(sub)) {
 				return -1;
 			}
 			this.frame.push(subR);
 			merge(subPc);
-
+			// RET already visited -> link RET BB to JSR follower and merge
 			final RET ret = sub.getRet();
-			if (ret != null) {
-				// RET already visited, link RET BB to JSR follower and merge
-				this.frame = new Frame(this.cfg.getFrame(ret.getPc()));
-				if (loadRead(ret.getReg(), T.RET).getValue() != sub) {
-					// don't assert here, need this get for frames return-address-null update
-					LOGGER.warning("Incorrect sub!");
-				}
-				final BB retBb = this.pc2bbs[ret.getPc()];
-				final int retPc = cop.getPc() + 1;
-				retBb.setSucc(getTargetBb(retPc));
-				// TODO rebuild frame for merge ret
-				merge(retPc);
+			if (ret == null) {
+				return -1;
 			}
+			this.frame = new Frame(this.cfg.getFrame(ret.getPc()));
+			if (loadRead(ret.getReg(), T.RET).getValue() != sub) {
+				log("Incorrect sub!");
+			}
+			final BB retBb = this.pc2bbs[ret.getPc()];
+			final int retPc = cop.getPc() + 1;
+			retBb.setSucc(getTargetBb(retPc));
+			merge(retPc);
 			return -1;
 		}
 		case LOAD: {
@@ -501,7 +500,7 @@ public final class TrDataFlowAnalysis {
 				}
 				break;
 			default:
-				LOGGER.warning("Unknown POP type '" + cop.getKind() + "'!");
+				log("Unknown POP type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
