@@ -543,7 +543,6 @@ public final class TrDataFlowAnalysis {
 				final Op jsr = in.getStart().getFinalOp();
 				final int retPc = jsr.getPc() + 1;
 				bb.setSucc(getTargetBb(retPc));
-				// TODO rebuild frame for merge ret
 				merge(retPc);
 			}
 			return -1;
@@ -756,6 +755,8 @@ public final class TrDataFlowAnalysis {
 		}
 		assert targetFrame.size() == this.frame.size();
 
+		// TODO merge Sub
+
 		// target frame has already been visited -> BB join -> type merge
 		final BB targetBb = this.pc2bbs[pc];
 		for (int i = targetFrame.size(); i-- > 0;) {
@@ -842,6 +843,8 @@ public final class TrDataFlowAnalysis {
 				return;
 			}
 		}
+		// TODO check RET
+
 		// replacement propagation to next BB necessary
 		for (final E out : bb.getOuts()) {
 			final BB outBb = out.getEnd();
