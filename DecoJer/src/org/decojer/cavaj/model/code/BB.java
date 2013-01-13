@@ -34,6 +34,7 @@ import lombok.Setter;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.ops.GOTO;
 import org.decojer.cavaj.model.code.ops.Op;
+import org.decojer.cavaj.model.code.ops.RET;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IfStatement;
@@ -443,8 +444,7 @@ public final class BB {
 	 * @return {@code true} - is conditional BB
 	 */
 	public boolean isCond() {
-		return this.stmts.isEmpty() ? false
-				: this.stmts.get(this.stmts.size() - 1) instanceof IfStatement;
+		return getFinalStmt() instanceof IfStatement;
 	}
 
 	/**
@@ -509,6 +509,15 @@ public final class BB {
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Is sub-ret BB?
+	 * 
+	 * @return {@code true} - is sub-ret BB
+	 */
+	public boolean isRet() {
+		return getFinalOp() instanceof RET;
 	}
 
 	/**
