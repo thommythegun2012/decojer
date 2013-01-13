@@ -142,10 +142,9 @@ public class DecoJer {
 			break;
 		}
 		case 5: {
-			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61.jar");
-			du.decompileAll(new FileOutputStream(
-					new File(
-							"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/org.eclipse.jdt.core_3.7.0.v_B61_source.jar")));
+			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/weblogic.jar");
+			du.decompileAll(new FileOutputStream(new File(
+					"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/weblogic_source.jar")));
 			break;
 		}
 		case 11: {
