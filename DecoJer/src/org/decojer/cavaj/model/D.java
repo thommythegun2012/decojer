@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -45,7 +46,7 @@ public abstract class D {
 	 * All body declarations: inner type / method / field declarations.
 	 */
 	@Getter
-	private final List<BD> bds = Lists.newArrayList();
+	private final List<BD> bds = new ArrayList<BD>(4);
 
 	protected void _getAllTds(final List<TD> tds) {
 		for (final BD bd : this.bds) {

@@ -122,6 +122,8 @@ public final class TrDataFlowAnalysis {
 	 */
 	private BB[] pc2bbs;
 
+	private R load;
+
 	private TrDataFlowAnalysis(final CFG cfg) {
 		this.cfg = cfg;
 		this.isIgnoreExceptions = this.cfg.getCu().check(DFlag.IGNORE_EXCEPTIONS);
@@ -439,9 +441,25 @@ public final class TrDataFlowAnalysis {
 				log("Incorrect sub!");
 			}
 			final BB retBb = this.pc2bbs[ret.getPc()];
-			final int retPc = cop.getPc() + 1;
-			retBb.setSucc(getTargetBb(retPc));
-			merge(retPc);
+			final int jsrFollowPc = cop.getPc() + 1;
+			retBb.setSucc(getTargetBb(jsrFollowPc));
+			// modify RET frame for untouched
+			final Frame jsrFrame = this.cfg.getInFrame(cop);
+			for (int i = this.frame.size(); i-- > 0;) {
+				final R ri = this.frame.load(i);
+				// TODO merged to null...what now? fu...
+				if (ri != null) {
+					if (ri.getKind() != R.Kind.MERGE) {
+						continue;
+					}
+					if (ri.getPc() != subPc) {
+						continue;
+					}
+				}
+				// TODO check merge ins...
+				this.frame.store(i, jsrFrame.load(i));
+			}
+			merge(jsrFollowPc);
 			return -1;
 		}
 		case LOAD: {
@@ -541,9 +559,25 @@ public final class TrDataFlowAnalysis {
 			for (final E in : subBb.getIns()) {
 				// JSR is last operation in previous BB
 				final Op jsr = in.getStart().getFinalOp();
-				final int retPc = jsr.getPc() + 1;
-				bb.setSucc(getTargetBb(retPc));
-				merge(retPc);
+				final int jsrFollowPc = jsr.getPc() + 1;
+				bb.setSucc(getTargetBb(jsrFollowPc));
+				// modify RET frame for untouched
+				final Frame jsrFrame = this.cfg.getInFrame(jsr);
+				for (int i = this.frame.size(); i-- > 0;) {
+					final R ri = this.frame.load(i);
+					// TODO merged to null...what now? fu...
+					if (ri != null) {
+						if (ri.getKind() != R.Kind.MERGE) {
+							continue;
+						}
+						if (ri.getPc() != subPc) {
+							continue;
+						}
+					}
+					// TODO check merge ins...
+					this.frame.store(i, jsrFrame.load(i));
+				}
+				merge(jsrFollowPc);
 			}
 			return -1;
 		}
