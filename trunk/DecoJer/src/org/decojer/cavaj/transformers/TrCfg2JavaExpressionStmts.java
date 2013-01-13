@@ -177,7 +177,14 @@ public final class TrCfg2JavaExpressionStmts {
 							return true; // deleted myself
 						}
 						return false;
+					} else if (op instanceof STORE) {
+						// special trick for store <return_address> till finally is established
+						if (this.cfg.getFrame(op.getPc()).peek().getT() == T.RET) {
+							bb.removeOp(0);
+							continue;
+						}
 					}
+
 				}
 				final E in = bb.getRelevantIn();
 				if (in == null) {
@@ -708,7 +715,8 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case JSR: {
-				// TODO
+				// <finally> till JDK 6 (50), we don't really push something at the sub BB, we
+				// rewrite this or catch the stack underflow for the STORE
 				break;
 			}
 			case LOAD: {
@@ -1955,9 +1963,6 @@ public final class TrCfg2JavaExpressionStmts {
 			if (!convertToHLLIntermediate(bb)) {
 				// in Java should never happen in forward mode, but in Scala exists a more complex
 				// conditional value ternary variant with sub statements
-
-				// FIXME STORE <RET> is currently a stack underflow, rewrite before to finally?
-				// see with bsh.Interpreter
 				log("Stack underflow in '" + this.cfg + "':\n" + bb);
 			}
 		}
