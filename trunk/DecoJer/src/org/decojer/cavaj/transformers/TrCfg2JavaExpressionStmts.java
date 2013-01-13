@@ -1955,6 +1955,9 @@ public final class TrCfg2JavaExpressionStmts {
 			if (!convertToHLLIntermediate(bb)) {
 				// in Java should never happen in forward mode, but in Scala exists a more complex
 				// conditional value ternary variant with sub statements
+
+				// FIXME STORE <RET> is currently a stack underflow, rewrite before to finally?
+				// see with bsh.Interpreter
 				log("Stack underflow in '" + this.cfg + "':\n" + bb);
 			}
 		}
