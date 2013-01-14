@@ -630,10 +630,10 @@ public class ReadCodeItem {
 					oValue = T.INT;
 				}
 				{
-					// B = (totype) A
+					// A = (totype) B
 					final Instruction12x instr = (Instruction12x) instruction;
 
-					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
+					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
 					this.ops.add(new CAST(this.ops.size(), opcode, line, t, (T) oValue));
 
