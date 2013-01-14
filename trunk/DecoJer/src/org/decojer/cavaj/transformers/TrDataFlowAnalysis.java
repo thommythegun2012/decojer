@@ -122,8 +122,6 @@ public final class TrDataFlowAnalysis {
 	 */
 	private BB[] pc2bbs;
 
-	private R load;
-
 	private TrDataFlowAnalysis(final CFG cfg) {
 		this.cfg = cfg;
 		this.isIgnoreExceptions = this.cfg.getCu().check(DFlag.IGNORE_EXCEPTIONS);
@@ -721,7 +719,6 @@ public final class TrDataFlowAnalysis {
 		if (bb.getPc() == pc) {
 			return bb;
 		}
-
 		// split basic block, new incoming block, adapt basic block pcs,
 		// it's necessary to preserve the outgoing block for back edges to same BB!!!
 		final BB newInBb = newBb(bb.getPc());
