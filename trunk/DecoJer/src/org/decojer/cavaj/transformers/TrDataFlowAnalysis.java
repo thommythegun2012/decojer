@@ -129,6 +129,32 @@ public final class TrDataFlowAnalysis {
 		this.isIgnoreExceptions = this.cfg.getCu().check(DFlag.IGNORE_EXCEPTIONS);
 	}
 
+	private boolean changedInSub(final RET ret, final int i) {
+		final Frame retFrame = this.cfg.getFrame(ret.getPc());
+		final R retR = retFrame.load(ret.getReg());
+		final Sub sub = (Sub) retR.getValue();
+		final Frame subFrame = this.cfg.getFrame(sub.getPc());
+
+		final R regAtSub = subFrame.load(i);
+		final R regAtRet = retFrame.load(i);
+
+		if (regAtSub != regAtRet) {
+			return true;
+		}
+		// are equal...null or merge at sub pc?
+		if (regAtRet == null) {
+			return false;
+		}
+		if (regAtRet.getKind() != R.Kind.MERGE) {
+			return true;
+		}
+		if (regAtRet.getPc() != sub.getPc()) {
+			return true;
+		}
+		// TODO check merge-ins? check null-merges in sub?
+		return true;
+	}
+
 	private void evalBinaryIntBoolMath(final T t) {
 		evalBinaryMath(t == T.INT ? T.AINT : t, null);
 	}
@@ -401,9 +427,9 @@ public final class TrDataFlowAnalysis {
 			return -1;
 		}
 		case JSR: {
-			final JSR cop = (JSR) op;
+			final JSR jsr = (JSR) op;
 
-			final int subPc = cop.getTargetPc();
+			final int subPc = jsr.getTargetPc();
 			// Spec, JSR/RET is stack-like:
 			// http://docs.oracle.com/javase/specs/jvms/se7/jvms7.pdf
 			final BB subBb = getTargetBb(subPc);
@@ -441,23 +467,14 @@ public final class TrDataFlowAnalysis {
 				log("Incorrect sub!");
 			}
 			final BB retBb = this.pc2bbs[ret.getPc()];
-			final int jsrFollowPc = cop.getPc() + 1;
+			final int jsrFollowPc = jsr.getPc() + 1;
 			retBb.setSucc(getTargetBb(jsrFollowPc));
-			// modify RET frame for untouched
-			final Frame jsrFrame = this.cfg.getInFrame(cop);
+			// modify RET frame for untouched registers in sub
+			final Frame jsrFrame = this.cfg.getInFrame(jsr);
 			for (int i = this.frame.size(); i-- > 0;) {
-				final R ri = this.frame.load(i);
-				// TODO merged to null...what now? fu...
-				if (ri != null) {
-					if (ri.getKind() != R.Kind.MERGE) {
-						continue;
-					}
-					if (ri.getPc() != subPc) {
-						continue;
-					}
+				if (!changedInSub(ret, i)) {
+					this.frame.store(i, jsrFrame.load(i));
 				}
-				// TODO check merge ins...
-				this.frame.store(i, jsrFrame.load(i));
 			}
 			merge(jsrFollowPc);
 			return -1;
@@ -543,15 +560,15 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case RET: {
-			final RET cop = (RET) op;
-			final R r = loadRead(cop.getReg(), T.RET);
+			final RET ret = (RET) op;
+			final R r = loadRead(ret.getReg(), T.RET);
 			// bytecode restriction: only called via matching JSR, Sub known as register value
 			final Sub sub = (Sub) r.getValue();
 			if (!this.frame.popSub(sub)) {
 				return -1;
 			}
 			// remember RET for later JSRs to this Sub
-			sub.setRet(cop);
+			sub.setRet(ret);
 
 			// link RET BB to all yet known JSR followers and merge, Sub BB incomings are JSRs
 			final int subPc = sub.getPc();
@@ -561,21 +578,12 @@ public final class TrDataFlowAnalysis {
 				final Op jsr = in.getStart().getFinalOp();
 				final int jsrFollowPc = jsr.getPc() + 1;
 				bb.setSucc(getTargetBb(jsrFollowPc));
-				// modify RET frame for untouched
+				// modify RET frame for untouched registers in sub
 				final Frame jsrFrame = this.cfg.getInFrame(jsr);
 				for (int i = this.frame.size(); i-- > 0;) {
-					final R ri = this.frame.load(i);
-					// TODO merged to null...what now? fu...
-					if (ri != null) {
-						if (ri.getKind() != R.Kind.MERGE) {
-							continue;
-						}
-						if (ri.getPc() != subPc) {
-							continue;
-						}
+					if (!changedInSub(ret, i)) {
+						this.frame.store(i, jsrFrame.load(i));
 					}
-					// TODO check merge ins...
-					this.frame.store(i, jsrFrame.load(i));
 				}
 				merge(jsrFollowPc);
 			}
@@ -863,33 +871,37 @@ public final class TrDataFlowAnalysis {
 	private void mergeReplaceReg(final BB bb, final int i, final R prevR, final R newR) {
 		assert prevR != null;
 
-		// BB possibly not visited yet => than: BB input frame known, but no operations exist
-		Frame frame = this.cfg.getInFrame(bb); // but BB input frame cannot be null here
-		R replacedR = frame.replaceReg(i, prevR, newR);
+		// BB possibly not visited yet => than: BB input frame known, but no operations exist,
+		// but BB input frame cannot be null here
+		R replacedR = this.cfg.getInFrame(bb).replaceReg(i, prevR, newR);
 		if (replacedR == null) {
 			return;
 		}
 		// replacement propagation to already known BB operations
 		for (int j = 1; j < bb.getOps(); ++j) {
-			frame = this.cfg.getInFrame(bb.getOp(j));
+			final Frame frame = this.cfg.getInFrame(bb.getOp(j));
 			replacedR = frame.replaceReg(i, replacedR, newR);
 			if (replacedR == null) {
 				return;
 			}
 		}
-		// TODO check RET
-
+		// final operation is RET -> modify newR for untouched registers in sub
+		final boolean jumpOverSub;
+		final Op finalOp = bb.getFinalOp();
+		if (finalOp instanceof RET) {
+			jumpOverSub = !changedInSub((RET) finalOp, i);
+		} else {
+			jumpOverSub = false;
+		}
 		// replacement propagation to next BB necessary
 		for (final E out : bb.getOuts()) {
 			final BB outBb = out.getEnd();
-			if (this.cfg.getInFrame(outBb) == null) {
-				// TODO currently only possible for exceptions, link later when really visited?!
-				assert out.isCatch();
-
+			// final operation is RET -> modify newR for untouched registers in sub
+			if (jumpOverSub) {
+				final Frame jsrFrame = this.cfg.getFrame(outBb.getPc() - 1);
+				mergeReplaceReg(outBb, i, replacedR, jsrFrame.load(i));
 				continue;
 			}
-			// TODO BB has final RET? break forward replacement if jsrMerge and newR not in sub,
-			// -> check newR order > subBb order...not possible?!!!!
 			mergeReplaceReg(outBb, i, replacedR, newR);
 		}
 	}
