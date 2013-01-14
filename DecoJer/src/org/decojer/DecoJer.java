@@ -113,7 +113,7 @@ public class DecoJer {
 	public static void main(final String[] args) throws IOException {
 		final long time = System.currentTimeMillis();
 		final DU du = createDu();
-		switch (5) {
+		switch (4) {
 		case 0:
 			System.out
 					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"));
