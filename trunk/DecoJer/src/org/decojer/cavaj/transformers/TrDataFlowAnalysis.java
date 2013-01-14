@@ -893,6 +893,12 @@ public final class TrDataFlowAnalysis {
 		// replacement propagation to next BB necessary
 		for (final E out : bb.getOuts()) {
 			final BB outBb = out.getEnd();
+			if (this.cfg.getInFrame(outBb) == null) {
+				// possible for freshly splitted catch-handlers that havn't been visited yet
+				assert out.isCatch() : out;
+
+				continue;
+			}
 			// final operation is RET -> modify newR for untouched registers in sub
 			if (jumpOverSub) {
 				final Frame jsrFrame = this.cfg.getFrame(outBb.getPc() - 1);
