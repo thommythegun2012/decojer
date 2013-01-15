@@ -12,13 +12,6 @@ Dalvik
   * initial temporary 0 and 1 are typeless constants (no bool backpropagation)...currently i havn't a good solution for this in the generic code
 
 
-  * primary problem: Merge: null-const-T.REF and String[] -> REF
-  * But resolve follow error too: ALOAD RET creates following problem:
-    RET.getComponentType() should be RET for ALOAD? or read RET[] -> RET[]?
-WARNING: Cannot transform 'com.itextpdf.text.pdf.AcroFields.setListOption(Ljava/lang/String;[Ljava/lang/String;[Ljava/lang/String;)Z (ops: 124, regs: 10)'!
-java.lang.NullPointerException
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:151)
-
 Web
 
 05.01.12
