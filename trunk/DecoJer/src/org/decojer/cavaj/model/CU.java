@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model;
 
 import java.util.EnumSet;
+import java.util.logging.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -45,6 +46,8 @@ import org.eclipse.text.edits.TextEdit;
  * @author André Pankraz
  */
 public final class CU extends D {
+
+	private final static Logger LOGGER = Logger.getLogger(CU.class.getName());
 
 	/**
 	 * AST compilation unit.
@@ -111,6 +114,12 @@ public final class CU extends D {
 			throw new DecoJerException("Couldn't create source code!", e);
 		} catch (final BadLocationException e) {
 			throw new DecoJerException("Couldn't create source code!", e);
+		}
+		final int numberOfLines = document.getNumberOfLines();
+		if (numberOfLines == 4) {
+			// package + 2 empty lines + 1-line class
+			// TODO more checks necessary
+			LOGGER.warning("Couldn't format correctly '" + this + "'!");
 		}
 		String sourceCode = document.get();
 
@@ -204,6 +213,11 @@ public final class CU extends D {
 	 */
 	public TD getTd() {
 		return (TD) getBds().get(0);
+	}
+
+	@Override
+	public String toString() {
+		return getName();
 	}
 
 }
