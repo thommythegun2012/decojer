@@ -197,7 +197,7 @@ public final class TrDataFlowAnalysis {
 			final ALOAD cop = (ALOAD) op;
 			popRead(T.INT); // index
 			final R aR = popRead(this.cfg.getDu().getArrayT(cop.getT())); // array
-			pushConst(aR.getT().getComponentT()); // value
+			pushConst(aR.getT() == T.REF ? T.REF : aR.getT().getComponentT()); // value
 			break;
 		}
 		case AND: {

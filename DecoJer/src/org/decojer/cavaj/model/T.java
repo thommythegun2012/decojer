@@ -305,6 +305,12 @@ public abstract class T {
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
+		if (t1 == T.REF) {
+			return t2;
+		}
+		if (t2 == T.REF) {
+			return t1;
+		}
 		if (t1.isAssignableFrom(t2)) {
 			return t1;
 		}
