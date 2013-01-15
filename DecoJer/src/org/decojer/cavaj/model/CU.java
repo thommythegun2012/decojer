@@ -144,10 +144,10 @@ public final class CU extends D {
 				.append(", a Java-bytecode decompiler.\n")
 				.append(" * DecoJer Copyright (C) 2009-2011 André Pankraz. All Rights Reserved.\n")
 				.append(" *\n");
-		final int version = getTd().getVersion();
-		if (version == 0) {
+		if (getTd().isDalvik()) {
 			sb.append(" * Dalvik File");
 		} else {
+			final int version = getTd().getVersion();
 			sb.append(" * Class File Version: ").append(version).append(" (Java ");
 			if (version <= 48) {
 				sb.append("1.");
