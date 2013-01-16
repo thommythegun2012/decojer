@@ -301,6 +301,9 @@ public final class Frame {
 
 		// stack value already used, no replace
 		if (i >= this.rs.length) {
+			// TODO R14_CO replaced by R15_ME doesn't work, R15_MO is replaced,
+			// R14_CO.outs linked to both here, R15_MO.ins has to be replaced,
+			// org.pushingpixels.substance.internal.utils.SubstanceInternalFrameTitlePane$SubstanceTitlePaneLayout.layoutContainer
 			return null;
 		}
 		final R frameR = load(i);
@@ -308,14 +311,6 @@ public final class Frame {
 			store(i, newR);
 			return prevR;
 		}
-		// this is wrong...stop replacing if different register reached!
-		// if (newR == null) {
-		// TODO currently only possible for exceptions, link later when really visited?!
-		// assert frameR.getKind() == Kind.MERGE : frameR.getKind();
-
-		// store(i, null);
-		// return frameR; // now replace merge register with null
-		// }
 		if (frameR != null) {
 			frameR.replaceIn(prevR, newR);
 		}
