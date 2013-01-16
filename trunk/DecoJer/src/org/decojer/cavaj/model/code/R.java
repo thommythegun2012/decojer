@@ -23,7 +23,9 @@
  */
 package org.decojer.cavaj.model.code;
 
+import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
 
@@ -78,6 +80,7 @@ public final class R {
 	private R[] outs;
 
 	@Getter
+	@Setter(AccessLevel.PRIVATE)
 	private T t;
 
 	@Getter
@@ -129,14 +132,25 @@ public final class R {
 	 */
 	public R(final int pc, final T t, final Object value, final Kind kind, final R... ins) {
 		this.pc = pc;
-		this.t = t;
+		setT(t);
 		this.value = value;
 		this.kind = kind;
 		if (ins != null) {
 			this.ins = ins;
 			for (final R in : ins) {
-				linkIn(in);
+				in.addOut(this);
 			}
+		}
+	}
+
+	private void addOut(final R outR) {
+		if (this.outs == null) {
+			this.outs = new R[] { outR };
+		} else {
+			final R[] newOuts = new R[this.outs.length + 1];
+			System.arraycopy(this.outs, 0, newOuts, 0, this.outs.length);
+			newOuts[this.outs.length] = outR;
+			this.outs = newOuts;
 		}
 	}
 
@@ -161,7 +175,7 @@ public final class R {
 		}
 		if (!this.t.equals(reducedT)) {
 			// possible primitive multitype reduction
-			this.t = reducedT;
+			setT(reducedT);
 			if (this.outs != null) {
 				for (final R out : this.outs) {
 					out.readForwardPropagate(t);
@@ -207,19 +221,8 @@ public final class R {
 		return this.pc == 0;
 	}
 
-	private void linkIn(final R in) {
-		final R[] inOuts = in.outs;
-		if (in.outs == null) {
-			in.outs = new R[] { this };
-		} else {
-			in.outs = new R[inOuts.length + 1];
-			System.arraycopy(inOuts, 0, in.outs, 0, inOuts.length);
-			in.outs[inOuts.length] = this;
-		}
-	}
-
 	public void merge(final R r) {
-		this.t = T.join(this.t, r.t);
+		setT(T.join(this.t, r.t));
 		final R[] newIns = new R[this.ins.length + 1];
 		System.arraycopy(this.ins, 0, newIns, 0, this.ins.length);
 		newIns[this.ins.length] = r;
@@ -239,7 +242,7 @@ public final class R {
 		}
 		if (!this.t.equals(reducedT)) {
 			// possible primitive multitype reduction
-			this.t = reducedT;
+			setT(reducedT);
 			if (this.outs != null) {
 				for (final R out : this.outs) {
 					out.readForwardPropagate(t);
@@ -264,7 +267,7 @@ public final class R {
 			if (this.ins[i] == prevIn) {
 				if (newIn != null) {
 					this.ins[i] = newIn;
-					linkIn(newIn);
+					newIn.addOut(this);
 					// oldIn dies anyway, no out remove necessary
 					return;
 				}
