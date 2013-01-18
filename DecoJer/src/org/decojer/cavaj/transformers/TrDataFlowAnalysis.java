@@ -206,7 +206,9 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case ARRAYLENGTH: {
-			popRead(T.REF); // array
+			final R arrayR = popRead(T.REF); // array
+			assert arrayR.getT().isArray(); // TODO encode this like ANY[]?
+
 			pushConst(T.INT); // length
 			break;
 		}
@@ -1021,14 +1023,10 @@ public final class TrDataFlowAnalysis {
 		}
 		// stack value already used or new register from here on -> stop replace,
 		// but here we could have MOVEs or OPs into other registers
-
-		// TODO R14_CO replaced by R15_ME doesn't work, R15_MO is replaced,
-		// R14_CO.outs linked to both here, R15_MO.ins has to be replaced,
-		// org.pushingpixels.substance.internal.utils.SubstanceInternalFrameTitlePane$SubstanceTitlePaneLayout.layoutContainer
-
 		for (int j = frame.size(); j-- > 0;) {
 			final R frameR = frame.load(j);
 			if (frameR != null) {
+				// TODO not sufficient...setT() must forward the types
 				frameR.replaceIn(prevR, newR);
 			}
 		}
