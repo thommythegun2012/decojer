@@ -3,19 +3,19 @@
 = TODOs =
 
 
-18.01.2013 20:26:41 org.decojer.cavaj.model.TD decompile
-WARNUNG: Cannot transform 'org.pushingpixels.substance.internal.utils.SubstanceWidgetManager.register(Ljavax/swing/JRootPane;Z[Lorg/pushingpixels/substance/api/SubstanceConstants$SubstanceWidgetType;)V (ops: 122, regs: 10)'!
+18.01.2013 21:00:32 org.decojer.cavaj.model.TD decompile
+WARNUNG: Cannot transform 'org.pushingpixels.substance.api.ComponentState.getState(Ljavax/swing/ButtonModel;Ljavax/swing/JComponent;Z)Lorg/pushingpixels/substance/api/ComponentState; (ops: 139, regs: 9)'!
 java.lang.AssertionError
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:188)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.pop(TrDataFlowAnalysis.java:933)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.popRead(TrDataFlowAnalysis.java:941)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:199)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1103)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.evalBinaryMath(TrDataFlowAnalysis.java:175)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.evalBinaryIntBoolMath(TrDataFlowAnalysis.java:161)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:416)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1105)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:98)
 	at org.decojer.cavaj.model.TD.decompile(TD.java:154)
 	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
 	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
 	at org.decojer.DecoJer.main(DecoJer.java:139)
+
 
 
 Eclipse Editor
