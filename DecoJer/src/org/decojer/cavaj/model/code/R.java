@@ -44,7 +44,7 @@ public final class R {
 	public enum Kind {
 
 		/**
-		 * STORE_CONST.
+		 * Push const.
 		 */
 		CONST,
 
@@ -54,9 +54,13 @@ public final class R {
 		MERGE,
 
 		/**
-		 * STORE_MOVE. Source register, maybe previous register.
+		 * Store move. Source register, maybe previous register.
 		 */
-		MOVE
+		MOVE,
+		/**
+		 * READ.
+		 */
+		READ
 
 	}
 
@@ -143,6 +147,19 @@ public final class R {
 		}
 	}
 
+	public void addInMerge(final T t, final R r) {
+		assert getKind() == R.Kind.MERGE;
+
+		setT(t);
+		final R[] newIns = new R[this.ins.length + 1];
+		System.arraycopy(this.ins, 0, newIns, 0, this.ins.length);
+		newIns[this.ins.length] = r;
+		this.ins = newIns;
+		if (this.readT != null) {
+			r.assignTo(this.readT);
+		}
+	}
+
 	private void addOut(final R outR) {
 		if (this.outs == null) {
 			this.outs = new R[] { outR };
@@ -183,6 +200,8 @@ public final class R {
 			}
 		}
 		switch (this.kind) {
+		case CONST:
+			break;
 		case MERGE:
 			for (final R in : this.ins) {
 				// TODO endless loop in.read(t);
@@ -192,8 +211,8 @@ public final class R {
 			}
 			break;
 		case MOVE:
+		case READ:
 			this.ins[0].assignTo(t);
-		case CONST:
 		}
 		this.readT = T.union(this.readT, t);
 		return true;
@@ -219,17 +238,6 @@ public final class R {
 	 */
 	public boolean isMethodParam() {
 		return this.pc == 0;
-	}
-
-	public void merge(final R r) {
-		setT(T.join(this.t, r.t));
-		final R[] newIns = new R[this.ins.length + 1];
-		System.arraycopy(this.ins, 0, newIns, 0, this.ins.length);
-		newIns[this.ins.length] = r;
-		this.ins = newIns;
-		if (this.readT != null) {
-			r.assignTo(this.readT);
-		}
 	}
 
 	private boolean readForwardPropagate(final T t) {
@@ -259,32 +267,30 @@ public final class R {
 	 *            previous input register
 	 * @param newIn
 	 *            new input register
+	 * @return {@code true} - forward replace merge register to null
 	 */
-	public void replaceIn(final R prevIn, final R newIn) {
+	public boolean replaceIn(final R prevIn, final R newIn) {
 		assert this.ins != null;
 
 		for (int i = this.ins.length; i-- > 0;) {
-			if (this.ins[i] == prevIn) {
-				if (newIn != null) {
-					this.ins[i] = newIn;
-					newIn.addOut(this);
-					// oldIn dies anyway, no out remove necessary
-					return;
-				}
-				switch (getKind()) {
-				case CONST:
-				case MOVE:
-					if (this.ins.length < 2 || this.ins[1] != newIn) {
-						System.out.println("Register replace to null has wrong previous!");
-					}
-					this.ins = new R[] { this.ins[0] };
-					return;
-				case MERGE:
-					System.out.println("Register replace to null for merge not possible!");
-				}
-				return;
+			if (this.ins[i] != prevIn) {
+				continue;
 			}
+			if (newIn == null) {
+				// newIn == null!
+				if (getKind() == Kind.MERGE) {
+					return true; // forward replace to null
+				}
+				assert false; // not possible to read, move etc. null
+
+				return false;
+			}
+			this.ins[i] = newIn;
+			newIn.addOut(this);
+			// oldIn dies anyway, no out remove necessary
+			setT(newIn.getT());
 		}
+		return false;
 	}
 
 	@Override
