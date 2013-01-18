@@ -172,7 +172,7 @@ public final class TrDataFlowAnalysis {
 		// reduce to reasonable parameters pairs, e.g. BOOL, {SHORT,BOOL}-Constant -> both BOOL
 		// hence: T.INT not sufficient for int/boolean operators like OR
 		final T m = R.merge(s1, s2);
-		assert m != null;
+		assert m != null; // TODO ref1 == ref2 is allowed with result void (bool math)
 
 		s2.assignTo(m);
 		s1.assignTo(m);

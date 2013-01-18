@@ -332,8 +332,11 @@ public abstract class T {
 			if (superT == null) {
 				superT = iT.getSuperT();
 				if (superT == null) {
+					// TODO hmm really?
 					if (iT.isUnresolvable()) {
 						superT = T.AREF;
+					} else {
+						superT = t1.getDu().getObjectT();
 					}
 				} else {
 					if (!superT.isAssignableFrom(t2)) {
