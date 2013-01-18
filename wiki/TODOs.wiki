@@ -3,15 +3,47 @@
 = TODOs =
 
 
-18.01.2013 21:00:32 org.decojer.cavaj.model.TD decompile
-WARNUNG: Cannot transform 'org.pushingpixels.substance.api.ComponentState.getState(Ljavax/swing/ButtonModel;Ljavax/swing/JComponent;Z)Lorg/pushingpixels/substance/api/ComponentState; (ops: 139, regs: 9)'!
+
+WARNUNG: Cannot transform 'com.itextpdf.text.pdf.codec.TIFFDirectory.initialize(Lcom/itextpdf/text/pdf/RandomAccessFileOrArray;)V (ops: 364, regs: 22)'!
 java.lang.AssertionError
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.evalBinaryMath(TrDataFlowAnalysis.java:175)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.evalBinaryIntBoolMath(TrDataFlowAnalysis.java:161)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:416)
+	at org.decojer.cavaj.model.code.R.replaceIn(R.java:282)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.replaceFrameReg(TrDataFlowAnalysis.java:1030)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.replaceBbReg(TrDataFlowAnalysis.java:981)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:828)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:699)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1105)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:98)
 	at org.decojer.cavaj.model.TD.decompile(TD.java:154)
+	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
+	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
+	at org.decojer.DecoJer.main(DecoJer.java:139)
+
+
+
+
+WARNUNG: Cannot transform 'org.jfree.chart.axis.SegmentedTimeline.toMillisecond(J)J (ops: 88, regs: 9)'!
+java.lang.IllegalArgumentException
+	at org.eclipse.jdt.core.dom.ASTNode.checkNewChild(ASTNode.java:1905)
+	at org.eclipse.jdt.core.dom.ASTNode.preReplaceChild(ASTNode.java:1967)
+	at org.eclipse.jdt.core.dom.IfStatement.setThenStatement(IfStatement.java:279)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformCond(TrCfg2JavaControlFlowStmts.java:134)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:386)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:226)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:388)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:193)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:388)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:193)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:388)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:193)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:388)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:98)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:73)
+	at org.decojer.cavaj.model.TD.decompile(TD.java:162)
 	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
 	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
 	at org.decojer.DecoJer.main(DecoJer.java:139)
