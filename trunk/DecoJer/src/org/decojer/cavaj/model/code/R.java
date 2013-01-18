@@ -23,9 +23,7 @@
  */
 package org.decojer.cavaj.model.code;
 
-import lombok.AccessLevel;
 import lombok.Getter;
-import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
 
@@ -84,7 +82,6 @@ public final class R {
 	private R[] outs;
 
 	@Getter
-	@Setter(AccessLevel.PRIVATE)
 	private T t;
 
 	@Getter
@@ -136,7 +133,7 @@ public final class R {
 	 */
 	public R(final int pc, final T t, final Object value, final Kind kind, final R... ins) {
 		this.pc = pc;
-		setT(t);
+		this.t = t;
 		this.value = value;
 		this.kind = kind;
 		if (ins != null) {
@@ -235,9 +232,10 @@ public final class R {
 	 * Is register a method parameter?
 	 * 
 	 * @return {@code true} - is method parameter
+	 * @see CFG#initFrames()
 	 */
 	public boolean isMethodParam() {
-		return this.pc == 0;
+		return this.pc < 0;
 	}
 
 	private boolean readForwardPropagate(final T t) {
@@ -291,6 +289,30 @@ public final class R {
 			setT(newIn.getT());
 		}
 		return false;
+	}
+
+	private void setT(final T t) {
+		if (this.t == t) {
+			return;
+		}
+		assert !isMethodParam();
+
+		this.t = t;
+		if (this.outs != null) {
+			for (final R r : getOuts()) {
+				r.setT(t);
+			}
+		}
+
+		if (getKind() == Kind.MERGE) {
+			// TODO check alive
+			return;
+		}
+		if (this.ins != null) {
+			for (final R r : getIns()) {
+				r.setT(t);
+			}
+		}
 	}
 
 	@Override

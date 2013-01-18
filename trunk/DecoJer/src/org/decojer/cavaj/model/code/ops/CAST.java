@@ -69,4 +69,9 @@ public class CAST extends TypedOp {
 		return Optype.CAST;
 	}
 
+	@Override
+	public String toString() {
+		return super.toString() + " " + getToT();
+	}
+
 }
