@@ -2,23 +2,22 @@
 
 = TODOs =
 
-===why is STORE 4 in pc 15 not merged to int?===
 
-15.01.2013 15:49:23 org.decojer.cavaj.model.TD decompile
-WARNUNG: Cannot transform 'org.pushingpixels.substance.internal.utils.SubstanceInternalFrameTitlePane$SubstanceTitlePaneLayout.layoutContainer(Ljava/awt/Container;)V (ops: 156, regs: 9)'!
+
+18.01.2013 10:26:10 org.decojer.cavaj.model.TD decompile
+WARNUNG: Cannot transform 'org.pushingpixels.substance.internal.utils.SubstanceTitlePane$TitlePaneLayout.layoutContainer(Ljava/awt/Container;)V (ops: 241, regs: 9)'!
 java.lang.AssertionError
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:160)
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:181)
+	at org.decojer.cavaj.model.code.R.assignTo(R.java:191)
+	at org.decojer.cavaj.model.code.R.assignTo(R.java:215)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.evalBinaryMath(TrDataFlowAnalysis.java:178)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.evalBinaryIntMath(TrDataFlowAnalysis.java:165)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:193)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1079)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1107)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:98)
 	at org.decojer.cavaj.model.TD.decompile(TD.java:154)
 	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
 	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
 	at org.decojer.DecoJer.main(DecoJer.java:139)
-
 
 
 
