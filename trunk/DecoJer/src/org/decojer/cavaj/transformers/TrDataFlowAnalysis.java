@@ -743,6 +743,8 @@ public final class TrDataFlowAnalysis {
 		if (r.getT() == T.RET) {
 			// bytecode restriction: internal return address type can only be read once
 			this.frame.store(i, null);
+		} else {
+			this.frame.store(i, new R(this.pc, r.getT(), Kind.READ, r));
 		}
 		return r;
 	}
@@ -812,7 +814,7 @@ public final class TrDataFlowAnalysis {
 			}
 			if (newR == null) {
 				// new register is null? merge to null => replace previous register from here
-				mergeReplaceReg(targetBb, i, prevR, null);
+				replaceBbReg(targetBb, i, prevR, null);
 				continue;
 			}
 			final T t = R.merge(prevR, newR);
@@ -821,17 +823,17 @@ public final class TrDataFlowAnalysis {
 
 				// FIXME dangerous if unknown super types...defer this op, remember merge register
 				// with 2 inputs and try join only on read/re-store
-				mergeReplaceReg(targetBb, i, prevR, null);
+				replaceBbReg(targetBb, i, prevR, null);
 				continue;
 			}
 			// only here can we create or enhance a merge registers
 			if (prevR.getKind() == Kind.MERGE && prevR.getPc() == pc) {
 				// merge register already starts here, add new register
-				prevR.merge(newR);
+				prevR.addInMerge(t, newR);
 				continue;
 			}
 			// start new merge register
-			mergeReplaceReg(targetBb, i, prevR, new R(pc, t, Kind.MERGE, prevR, newR));
+			replaceBbReg(targetBb, i, prevR, new R(pc, t, Kind.MERGE, prevR, newR));
 		}
 	}
 
@@ -862,50 +864,6 @@ public final class TrDataFlowAnalysis {
 			this.frame.push(excR);
 
 			merge(exc.getHandlerPc());
-		}
-	}
-
-	private void mergeReplaceReg(final BB bb, final int i, final R prevR, final R newR) {
-		assert prevR != null;
-
-		// BB possibly not visited yet => than: BB input frame known, but no operations exist,
-		// but BB input frame cannot be null here
-		R replacedR = this.cfg.getInFrame(bb).replaceReg(i, prevR, newR);
-		if (replacedR == null) {
-			return;
-		}
-		// replacement propagation to already known BB operations
-		for (int j = 1; j < bb.getOps(); ++j) {
-			final Frame frame = this.cfg.getInFrame(bb.getOp(j));
-			replacedR = frame.replaceReg(i, replacedR, newR);
-			if (replacedR == null) {
-				return;
-			}
-		}
-		// final operation is RET -> modify newR for untouched registers in sub
-		final boolean jumpOverSub;
-		final Op finalOp = bb.getFinalOp();
-		if (finalOp instanceof RET) {
-			jumpOverSub = !changedInSub((RET) finalOp, i);
-		} else {
-			jumpOverSub = false;
-		}
-		// replacement propagation to next BB necessary
-		for (final E out : bb.getOuts()) {
-			final BB outBb = out.getEnd();
-			if (this.cfg.getInFrame(outBb) == null) {
-				// possible for freshly splitted catch-handlers that havn't been visited yet
-				assert out.isCatch() : out;
-
-				continue;
-			}
-			// final operation is RET -> modify newR for untouched registers in sub
-			if (jumpOverSub) {
-				final Frame jsrFrame = this.cfg.getFrame(outBb.getPc() - 1);
-				mergeReplaceReg(outBb, i, replacedR, jsrFrame.load(i));
-				continue;
-			}
-			mergeReplaceReg(outBb, i, replacedR, newR);
 		}
 	}
 
@@ -1005,6 +963,76 @@ public final class TrDataFlowAnalysis {
 
 	private R pushConst(final T t, final Object value) {
 		return this.frame.push(new R(this.pc, t, value, Kind.CONST));
+	}
+
+	private void replaceBbReg(final BB bb, final int i, final R prevR, final R newR) {
+		assert prevR != null;
+
+		// BB possibly not visited yet => than: BB input frame known, but no operations exist,
+		// but BB input frame cannot be null here
+		R replacedR = replaceFrameReg(bb.getPc(), i, prevR, newR);
+		if (replacedR == null) {
+			return;
+		}
+		// replacement propagation to already known BB operations
+		for (int j = 1; j < bb.getOps(); ++j) {
+			replacedR = replaceFrameReg(bb.getOp(j).getPc(), i, replacedR, newR);
+			if (replacedR == null) {
+				return;
+			}
+		}
+		// final operation is RET -> modify newR for untouched registers in sub
+		final boolean jumpOverSub;
+		final Op finalOp = bb.getFinalOp();
+		if (finalOp instanceof RET) {
+			jumpOverSub = !changedInSub((RET) finalOp, i);
+		} else {
+			jumpOverSub = false;
+		}
+		// replacement propagation to next BB necessary
+		for (final E out : bb.getOuts()) {
+			final BB outBb = out.getEnd();
+			if (this.cfg.getInFrame(outBb) == null) {
+				// possible for freshly splitted catch-handlers that havn't been visited yet
+				assert out.isCatch() : out;
+
+				continue;
+			}
+			// final operation is RET -> modify newR for untouched registers in sub
+			if (jumpOverSub) {
+				final Frame jsrFrame = this.cfg.getFrame(outBb.getPc() - 1);
+				replaceBbReg(outBb, i, replacedR, jsrFrame.load(i));
+				continue;
+			}
+			replaceBbReg(outBb, i, replacedR, newR);
+		}
+	}
+
+	private R replaceFrameReg(final int pc, final int i, final R prevR, final R newR) {
+		assert prevR != null;
+
+		final Frame frame = this.cfg.getFrame(pc);
+		if (i < frame.size()) {
+			final R frameR = frame.load(i);
+			if (prevR == frameR) {
+				frame.store(i, newR);
+				return prevR;
+			}
+		}
+		// stack value already used or new register from here on -> stop replace,
+		// but here we could have MOVEs or OPs into other registers
+
+		// TODO R14_CO replaced by R15_ME doesn't work, R15_MO is replaced,
+		// R14_CO.outs linked to both here, R15_MO.ins has to be replaced,
+		// org.pushingpixels.substance.internal.utils.SubstanceInternalFrameTitlePane$SubstanceTitlePaneLayout.layoutContainer
+
+		for (int j = frame.size(); j-- > 0;) {
+			final R frameR = frame.load(j);
+			if (frameR != null) {
+				frameR.replaceIn(prevR, newR);
+			}
+		}
+		return null;
 	}
 
 	/**

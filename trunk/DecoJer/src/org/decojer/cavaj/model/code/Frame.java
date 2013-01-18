@@ -286,38 +286,6 @@ public final class Frame {
 	}
 
 	/**
-	 * Replace register for merging.
-	 * 
-	 * @param i
-	 *            register index
-	 * @param prevR
-	 *            previous register
-	 * @param newR
-	 *            new register or null
-	 * @return replaced register (prevR or mergedR or null)
-	 */
-	public R replaceReg(final int i, final R prevR, final R newR) {
-		assert prevR != null;
-
-		// stack value already used, no replace
-		if (i >= this.rs.length) {
-			// TODO R14_CO replaced by R15_ME doesn't work, R15_MO is replaced,
-			// R14_CO.outs linked to both here, R15_MO.ins has to be replaced,
-			// org.pushingpixels.substance.internal.utils.SubstanceInternalFrameTitlePane$SubstanceTitlePaneLayout.layoutContainer
-			return null;
-		}
-		final R frameR = load(i);
-		if (prevR == frameR) {
-			store(i, newR);
-			return prevR;
-		}
-		if (frameR != null) {
-			frameR.replaceIn(prevR, newR);
-		}
-		return null;
-	}
-
-	/**
 	 * Get register number (local or stack).
 	 * 
 	 * @return register number (local or stack)
