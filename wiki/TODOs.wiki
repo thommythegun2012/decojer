@@ -3,26 +3,28 @@
 = TODOs =
 
 
-19.01.2013 13:36:43 org.decojer.cavaj.model.TD decompile
-WARNUNG: Cannot transform 'org.jdom.Verifier.isXMLLetter(C)Z (ops: 1787, regs: 1)'!
-java.lang.AssertionError
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:259)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:98)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:73)
-	at org.decojer.cavaj.model.TD.decompile(TD.java:162)
-	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
-	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
-	at org.decojer.DecoJer.main(DecoJer.java:139)
-19.01.2013 13:36:43 org.decojer.cavaj.model.TD decompile
-WARNUNG: Cannot transform 'org.jdom.Verifier.isXMLCombiningChar(C)Z (ops: 807, regs: 1)'!
-java.lang.AssertionError
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:259)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:98)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:73)
-	at org.decojer.cavaj.model.TD.decompile(TD.java:162)
-	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
-	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
-	at org.decojer.DecoJer.main(DecoJer.java:139)
+Jan 19, 2013 4:15:54 PM org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts log
+WARNING: org.apache.commons.io.FileUtils.decodeUrl(Ljava/lang/String;)Ljava/lang/String;: Struct leave in BB 15 without regular follow encounter:
+--- Cond ---
+Head: BB 17  Follow: BB 13
+Members: 
+  true: BB 16   BB 15   BB 12   BB 11   BB 10   BB 7   BB 3   BB 2   BB 1   BB 0   BB 6   BB 5   BB 4   BB 9   BB 8   BB 14   
+Kind: IFNOT
+
+--- Loop ---
+Head: BB 15  Follow: BB 14
+Members: 
+  BB 9   BB 10   BB 11   BB 12   
+Last: BB 4
+Type: WHILENOT
+
+--- Cond ---
+Head: BB 12  Follow: BB 4
+Members: 
+  true: BB 11   BB 10   BB 7   BB 3   BB 2   BB 1   BB 0   BB 6   BB 5   BB 9   BB 8   
+Kind: IFNOT
+Jan 19, 2013 4:15:54 PM org.decojer.cavaj.model.CU createSourceCode
+WARNING: Couldn't format correctly 'org.apache.commons.io.FileUtils.java'!
 
 
 
