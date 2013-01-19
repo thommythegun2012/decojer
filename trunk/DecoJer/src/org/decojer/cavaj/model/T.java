@@ -324,9 +324,12 @@ public abstract class T {
 			return t2;
 		}
 		if (t1.isArray() && t2.isArray()) {
-			// covariant arrays, but supertype is Object and not superXY[]
+			// covariant arrays, but super/int is {Object,Cloneable,Serializable}, not superXY[]
 			final T joinT = join(t1.getComponentT(), t2.getComponentT());
-			return joinT == null ? null : t1.getDu().getArrayT(joinT);
+			if (joinT == null) {
+				return new ClassT(t1.getDu().getObjectT(), t1.getDu().getArrayInterfaceTs());
+			}
+			return t1.getDu().getArrayT(joinT);
 		}
 		// find common supertypes, raise in t1-hierarchy till assignable from t2
 		T superT = null;
