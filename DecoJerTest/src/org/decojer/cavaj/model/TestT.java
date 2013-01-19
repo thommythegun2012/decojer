@@ -418,6 +418,13 @@ class TestT {
 		assertSame(T.join(du.getT(TypeElement.class), du.getT(Element.class)),
 				du.getT(Element.class));
 
+		assertSame(
+				T.join(du.getT(javax.swing.JComponent.class),
+						du.getT(javax.swing.MenuElement.class)), objectT);
+		assertSame(
+				T.join(du.getT(javax.swing.MenuElement.class),
+						du.getT(javax.swing.JComponent.class)), objectT);
+
 		T t = T.join(du.getT(Integer.class), du.getT(Long.class));
 		assertSame(t.getSuperT(), du.getT(Number.class));
 		assertEquals(t.getInterfaceTs().length, 1);
@@ -428,18 +435,15 @@ class TestT {
 		// not same:
 		assertEquals(T.join(du.getT(Long.class), du.getT(Integer.class)), t);
 
-		// join shouldn't be Object, Cloneable, Serializable
+		// covariant arrays, but super/int is {Object,Cloneable,Serializable},
+		// not superXY[]
+		assertEquals(T.join(du.getT(Integer[].class), du.getT(Long[].class))
+				.getName(), "{java.lang.Number,java.lang.Comparable}[]");
 		assertEquals(T.join(du.getT(Integer[].class), du.getT(Number[].class)),
 				du.getT(Number[].class));
-
-		assertSame(
-				T.join(du.getT(javax.swing.JComponent.class),
-						du.getT(javax.swing.MenuElement.class)), objectT);
-		assertSame(
-				T.join(du.getT(javax.swing.MenuElement.class),
-						du.getT(javax.swing.JComponent.class)), objectT);
-
-		// arrays are REFs with {Object,Cloneable,Serializable}
+		assertEquals(T.join(du.getT(byte[].class), du.getT(char[].class)),
+				du.getT(int[].class));
+		// but if we cannot join component types...
 		t = T.join(du.getT(byte[].class), du.getT(long[].class));
 		assertSame(t.getSuperT(), objectT);
 		assertEquals(t.getInterfaceTs().length, 2);
