@@ -431,6 +431,20 @@ class TestT {
 		// join shouldn't be Object, Cloneable, Serializable
 		assertEquals(T.join(du.getT(Integer[].class), du.getT(Number[].class)),
 				du.getT(Number[].class));
+
+		assertSame(
+				T.join(du.getT(javax.swing.JComponent.class),
+						du.getT(javax.swing.MenuElement.class)), objectT);
+		assertSame(
+				T.join(du.getT(javax.swing.MenuElement.class),
+						du.getT(javax.swing.JComponent.class)), objectT);
+
+		// arrays are REFs with {Object,Cloneable,Serializable}
+		t = T.join(du.getT(byte[].class), du.getT(long[].class));
+		assertSame(t.getSuperT(), objectT);
+		assertEquals(t.getInterfaceTs().length, 2);
+		assertSame(t.getInterfaceTs()[0], du.getT(Cloneable.class));
+		assertSame(t.getInterfaceTs()[1], du.getT(Serializable.class));
 	}
 
 	@Test
