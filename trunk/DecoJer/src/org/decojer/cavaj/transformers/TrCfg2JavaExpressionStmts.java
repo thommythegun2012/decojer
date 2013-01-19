@@ -238,8 +238,8 @@ public final class TrCfg2JavaExpressionStmts {
 						arrayCreation.setInitializer(arrayInitializer);
 						// TODO for higher performance and for full array creation removement we
 						// could defer the 0-fill and rewrite to the final A/STORE phase
-						final Number size = Expressions
-								.getNumberValue((NumberLiteral) arrayCreation.dimensions().get(0));
+						final Number size = Expressions.getNumberValue((Expression) arrayCreation
+								.dimensions().get(0));
 						// not all indexes may be set, null/0/false in JVM 7 are not set, fill
 						for (int i = size.intValue(); i-- > 0;) {
 							arrayInitializer.expressions().add(
