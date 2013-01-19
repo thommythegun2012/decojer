@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
@@ -196,7 +197,7 @@ public final class TrDataFlowAnalysis {
 		case ALOAD: {
 			final ALOAD cop = (ALOAD) op;
 			popRead(T.INT); // index
-			final R aR = popRead(this.cfg.getDu().getArrayT(cop.getT())); // array
+			final R aR = popRead(getDu().getArrayT(cop.getT())); // array
 			pushConst(aR.getT() == T.REF ? T.REF : aR.getT().getComponentT()); // value
 			break;
 		}
@@ -206,8 +207,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case ARRAYLENGTH: {
-			final R arrayR = popRead(T.REF); // array
-			assert arrayR.getT().isArray(); // TODO encode this like ANY[]?
+			popRead(getDu().getArrayT(T.ANY));
 
 			pushConst(T.INT); // length
 			break;
@@ -219,7 +219,7 @@ public final class TrDataFlowAnalysis {
 			popRead(T.INT); // index
 			// don't use getArrayT(vR.getT()), wrong assignment direction for supertype,
 			// e.g. java.lang.Object[] <- java.io.PrintWriter[] or int[] <- {byte,char}[]
-			final R aR = popRead(this.cfg.getDu().getArrayT(cop.getT())); // array
+			final R aR = popRead(getDu().getArrayT(cop.getT())); // array
 
 			// now a more specific value read is possible...
 
@@ -684,7 +684,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case THROW:
 			// just type reduction
-			popRead(this.cfg.getDu().getT(Throwable.class));
+			popRead(getDu().getT(Throwable.class));
 			return -1;
 		case XOR: {
 			final XOR cop = (XOR) op;
@@ -701,6 +701,10 @@ public final class TrDataFlowAnalysis {
 		}
 		merge(nextPc);
 		return nextPc;
+	}
+
+	private DU getDu() {
+		return this.cfg.getDu();
 	}
 
 	/**
@@ -855,8 +859,8 @@ public final class TrDataFlowAnalysis {
 			R excR;
 			if (handlerFrame == null) {
 				// null is <any> (means Java finally) -> Throwable
-				excR = new R(exc.getHandlerPc(), exc.getT() == null ? this.cfg.getDu().getT(
-						Throwable.class) : exc.getT(), Kind.CONST);
+				excR = new R(exc.getHandlerPc(), exc.getT() == null ? getDu().getT(Throwable.class)
+						: exc.getT(), Kind.CONST);
 			} else {
 				if (handlerFrame.getTop() != 1) {
 					log("Handler stack for exception merge not of size 1!");
