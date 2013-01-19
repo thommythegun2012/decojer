@@ -3,21 +3,16 @@
 = TODOs =
 
 
-
-WARNUNG: Cannot transform 'com.itextpdf.text.pdf.codec.TIFFDirectory.initialize(Lcom/itextpdf/text/pdf/RandomAccessFileOrArray;)V (ops: 364, regs: 22)'!
-java.lang.AssertionError
-	at org.decojer.cavaj.model.code.R.replaceIn(R.java:282)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.replaceFrameReg(TrDataFlowAnalysis.java:1030)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.replaceBbReg(TrDataFlowAnalysis.java:981)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:828)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:699)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1105)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:98)
-	at org.decojer.cavaj.model.TD.decompile(TD.java:154)
+19.01.2013 13:18:25 org.decojer.cavaj.model.TD decompile
+WARNUNG: Cannot transform 'com.itextpdf.text.pdf.codec.Base64.<clinit>()V (ops: 2311, regs: 0)'!
+java.lang.ClassCastException: org.eclipse.jdt.core.dom.QualifiedName cannot be cast to org.eclipse.jdt.core.dom.NumberLiteral
+	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.convertToHLLIntermediate(TrCfg2JavaExpressionStmts.java:242)
+	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.transform(TrCfg2JavaExpressionStmts.java:1963)
+	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.transform(TrCfg2JavaExpressionStmts.java:144)
+	at org.decojer.cavaj.model.TD.decompile(TD.java:158)
 	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
 	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
 	at org.decojer.DecoJer.main(DecoJer.java:139)
-
 
 
 
