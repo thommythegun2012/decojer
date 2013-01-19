@@ -150,6 +150,11 @@ public abstract class T {
 	public static T NONE = getT(Kind.NONE);
 
 	/**
+	 * Multi-type 'any (for array check)'.
+	 */
+	public static T ANY = getT(Kind.REF, Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
+			Kind.FLOAT, Kind.LONG, Kind.DOUBLE);
+	/**
 	 * Multi-type 'any reference'.
 	 */
 	public static T AREF = getT(Kind.REF, Kind.RET);
@@ -162,6 +167,7 @@ public abstract class T {
 	 */
 	public static T AINTREF = getT(Kind.REF, Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR,
 			Kind.BOOLEAN);
+
 	/**
 	 * Multi-type 'primitive'.
 	 */
