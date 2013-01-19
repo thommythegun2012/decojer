@@ -255,8 +255,8 @@ public final class TrCfg2JavaControlFlowStmts {
 			final List<Statement> statements) {
 		BB bb = firstBb;
 		int endlessHack = 0; // HACK
-		while (bb != null && endlessHack++ < 100) {
-			assert endlessHack < 100;
+		while (bb != null && endlessHack++ < 1000) {
+			assert endlessHack < 1000;
 
 			if (struct != bb.getStruct()) {
 				// leaving struct or entering a new sub struct!
