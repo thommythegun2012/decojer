@@ -326,10 +326,11 @@ public abstract class T {
 		if (t1.isArray() && t2.isArray()) {
 			// covariant arrays, but super/int is {Object,Cloneable,Serializable}, not superXY[]
 			final T joinT = join(t1.getComponentT(), t2.getComponentT());
-			if (joinT == null) {
-				return new ClassT(t1.getDu().getObjectT(), t1.getDu().getArrayInterfaceTs());
+			if (joinT != null) {
+				return t1.getDu().getArrayT(joinT);
 			}
-			return t1.getDu().getArrayT(joinT);
+			// could fall through here to general algorithm, but following is always same result
+			return new ClassT(t1.getDu().getObjectT(), t1.getDu().getArrayInterfaceTs());
 		}
 		// find common supertypes, raise in t1-hierarchy till assignable from t2
 		T superT = null;
