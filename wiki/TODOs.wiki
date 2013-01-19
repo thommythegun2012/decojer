@@ -3,45 +3,27 @@
 = TODOs =
 
 
-19.01.2013 13:18:25 org.decojer.cavaj.model.TD decompile
-WARNUNG: Cannot transform 'com.itextpdf.text.pdf.codec.Base64.<clinit>()V (ops: 2311, regs: 0)'!
-java.lang.ClassCastException: org.eclipse.jdt.core.dom.QualifiedName cannot be cast to org.eclipse.jdt.core.dom.NumberLiteral
-	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.convertToHLLIntermediate(TrCfg2JavaExpressionStmts.java:242)
-	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.transform(TrCfg2JavaExpressionStmts.java:1963)
-	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.transform(TrCfg2JavaExpressionStmts.java:144)
-	at org.decojer.cavaj.model.TD.decompile(TD.java:158)
-	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
-	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
-	at org.decojer.DecoJer.main(DecoJer.java:139)
-
-
-
-WARNUNG: Cannot transform 'org.jfree.chart.axis.SegmentedTimeline.toMillisecond(J)J (ops: 88, regs: 9)'!
-java.lang.IllegalArgumentException
-	at org.eclipse.jdt.core.dom.ASTNode.checkNewChild(ASTNode.java:1905)
-	at org.eclipse.jdt.core.dom.ASTNode.preReplaceChild(ASTNode.java:1967)
-	at org.eclipse.jdt.core.dom.IfStatement.setThenStatement(IfStatement.java:279)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformCond(TrCfg2JavaControlFlowStmts.java:134)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:386)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:226)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:388)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:193)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:388)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:193)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:388)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:193)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:388)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
+19.01.2013 13:36:43 org.decojer.cavaj.model.TD decompile
+WARNUNG: Cannot transform 'org.jdom.Verifier.isXMLLetter(C)Z (ops: 1787, regs: 1)'!
+java.lang.AssertionError
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:259)
 	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:98)
 	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:73)
 	at org.decojer.cavaj.model.TD.decompile(TD.java:162)
 	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
 	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
 	at org.decojer.DecoJer.main(DecoJer.java:139)
+19.01.2013 13:36:43 org.decojer.cavaj.model.TD decompile
+WARNUNG: Cannot transform 'org.jdom.Verifier.isXMLCombiningChar(C)Z (ops: 807, regs: 1)'!
+java.lang.AssertionError
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:259)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:98)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:73)
+	at org.decojer.cavaj.model.TD.decompile(TD.java:162)
+	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
+	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
+	at org.decojer.DecoJer.main(DecoJer.java:139)
+
 
 
 
