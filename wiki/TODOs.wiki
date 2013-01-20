@@ -2,45 +2,15 @@
 
 = TODOs =
 
-19.01.2013 19:46:39 org.decojer.cavaj.transformers.TrControlFlowAnalysis log
-WARNUNG: org.pushingpixels.substance.internal.ui.SubstanceTableUI.syncSelection(Z)V: Unknown struct, no common follow for:
---- Loop ---
-Head: BB 37  Follow: BB 36
-Members: 
-  BB 34   BB 35   
-Last: BB 33
-Type: WHILENOT
 
---- Loop ---
-Head: BB 34  Follow: BB 33
-Members: 
-  28 BBs
-Last: BB 4
-Type: WHILENOT
-
---- Cond ---
-Head: BB 32
-Members: 
-Kind: null
-19.01.2013 19:46:39 org.decojer.cavaj.model.TD decompile
-WARNUNG: Cannot transform 'org.pushingpixels.substance.internal.ui.SubstanceTableUI.syncSelection(Z)V (ops: 310, regs: 15)'!
-java.lang.NullPointerException
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformCond(TrCfg2JavaControlFlowStmts.java:125)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:386)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:193)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:388)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:193)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:388)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:307)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:98)
-	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:73)
-	at org.decojer.cavaj.model.TD.decompile(TD.java:162)
-	at org.decojer.cavaj.model.CU.decompile(CU.java:172)
-	at org.decojer.cavaj.model.DU.decompileAll(DU.java:149)
-	at org.decojer.DecoJer.main(DecoJer.java:139)
-
+WARNING: Cannot transform 'weblogic.transaction.internal.CoordinatorImpl_1035_WLStub.ackCommit(Ljavax/transaction/xa/Xid;Ljava/lang/String;)V (ops: 53, regs: 6)'!
+java.lang.AssertionError
+	at org.decojer.cavaj.model.code.R.assignTo(R.java:180)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.pop(TrDataFlowAnalysis.java:941)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.popRead(TrDataFlowAnalysis.java:949)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:689)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1111)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:99)
 
 
 Eclipse Editor
