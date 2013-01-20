@@ -79,27 +79,36 @@ public final class R {
 	}
 
 	@Getter
+	private R[] ins;
+
+	@Getter
+	private final Kind kind;
+
+	@Getter
 	private R[] outs;
 
+	/**
+	 * Register start PC, this is generally the previous changing operation.
+	 * 
+	 * Method parameter registers have -1 and merge registers have BB start as PC.
+	 */
+	@Getter
+	private final int pc;
+
+	/**
+	 * Upper bound of register type, reads lower the bound through type unions.
+	 */
+	@Getter
+	private T readT;
+
+	/**
+	 * Lower bound of register type, stores/merges rise the bound through type joins.
+	 */
 	@Getter
 	private T t;
 
 	@Getter
 	private Object value;
-
-	@Getter
-	private R[] ins;
-
-	/**
-	 * Register start pc. Method parameters (0) and merge event pcs can overlap with real operation.
-	 */
-	@Getter
-	private final int pc;
-
-	@Getter
-	private final Kind kind;
-
-	private T readT;
 
 	/**
 	 * Constructor.
@@ -157,13 +166,13 @@ public final class R {
 		}
 	}
 
-	private void addOut(final R outR) {
+	private void addOut(final R r) {
 		if (this.outs == null) {
-			this.outs = new R[] { outR };
+			this.outs = new R[] { r };
 		} else {
 			final R[] newOuts = new R[this.outs.length + 1];
 			System.arraycopy(this.outs, 0, newOuts, 0, this.outs.length);
-			newOuts[this.outs.length] = outR;
+			newOuts[this.outs.length] = r;
 			this.outs = newOuts;
 		}
 	}
@@ -305,7 +314,8 @@ public final class R {
 		}
 
 		if (getKind() == Kind.MERGE) {
-			// TODO check alive
+			// TODO isAlive, out-check not sufficient because outs could also be down the road with
+			// a read at start
 			return;
 		}
 		if (this.ins != null) {
