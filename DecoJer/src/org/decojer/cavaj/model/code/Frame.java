@@ -34,11 +34,11 @@ public final class Frame {
 
 	private final static Logger LOGGER = Logger.getLogger(Frame.class.getName());
 
+	private boolean[] alive;
+
 	private final CFG cfg;
 
 	private R[] rs;
-
-	private boolean[] alive;
 
 	private Sub[] subs;
 
