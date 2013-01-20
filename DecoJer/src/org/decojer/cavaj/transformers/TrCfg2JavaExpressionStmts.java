@@ -181,7 +181,15 @@ public final class TrCfg2JavaExpressionStmts {
 						// special trick for store <return_address> till finally is established
 						if (this.cfg.getFrame(op.getPc()).peek().getT() == T.RET) {
 							bb.removeOp(0);
-							continue;
+							if (bb.getOps() != 0) {
+								continue;
+							}
+							// i'm empty now...can delete myself (move ins to succ)
+							final E out = bb.getSequenceOut();
+							assert out != null;
+
+							bb.moveIns(out.getEnd());
+							return true;
 						}
 					}
 
