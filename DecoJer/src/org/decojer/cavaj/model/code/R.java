@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.code;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
 
@@ -63,22 +64,6 @@ public final class R {
 
 	}
 
-	/**
-	 * Merge register types.
-	 * 
-	 * @param r1
-	 *            register 1
-	 * @param r2
-	 *            register 2
-	 * @return merged register type or null
-	 */
-	public static T merge(final R r1, final R r2) {
-		if (r1 == null || r2 == null) {
-			return null;
-		}
-		return T.join(r1.getT(), r2.getT());
-	}
-
 	private R[] ins;
 
 	private final Kind kind;
@@ -105,6 +90,7 @@ public final class R {
 	/**
 	 * Register value, for constants as far as we can derive them easily.
 	 */
+	@Setter
 	private Object value;
 
 	/**
@@ -219,19 +205,6 @@ public final class R {
 		}
 		this.readT = T.union(this.readT, t);
 		return true;
-	}
-
-	/**
-	 * Increment value.
-	 * 
-	 * @param inc
-	 *            increment
-	 */
-	public void inc(final int inc) {
-		if (getValue() == null) {
-			return;
-		}
-		this.value = ((Number) getValue()).intValue() + inc;
 	}
 
 	/**
