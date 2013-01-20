@@ -32,6 +32,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
+@Getter
 public final class R {
 
 	/**
@@ -78,13 +79,10 @@ public final class R {
 		return T.join(r1.getT(), r2.getT());
 	}
 
-	@Getter
 	private R[] ins;
 
-	@Getter
 	private final Kind kind;
 
-	@Getter
 	private R[] outs;
 
 	/**
@@ -92,22 +90,21 @@ public final class R {
 	 * 
 	 * Method parameter registers have -1 and merge registers have BB start as PC.
 	 */
-	@Getter
 	private final int pc;
 
 	/**
 	 * Upper bound of register type, reads lower the bound through type unions.
 	 */
-	@Getter
 	private T readT;
 
 	/**
 	 * Lower bound of register type, stores/merges rise the bound through type joins.
 	 */
-	@Getter
 	private T t;
 
-	@Getter
+	/**
+	 * Register value, for constants as far as we can derive them easily.
+	 */
 	private Object value;
 
 	/**
