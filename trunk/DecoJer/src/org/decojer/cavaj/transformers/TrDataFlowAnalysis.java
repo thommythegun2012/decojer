@@ -172,7 +172,7 @@ public final class TrDataFlowAnalysis {
 
 		// reduce to reasonable parameters pairs, e.g. BOOL, {SHORT,BOOL}-Constant -> both BOOL
 		// hence: T.INT not sufficient for int/boolean operators like OR
-		final T m = R.merge(s1, s2);
+		final T m = T.join(s1.getT(), s2.getT());
 		assert m != null; // TODO ref1 == ref2 is allowed with result void (bool math)
 
 		s2.assignTo(m);
@@ -384,7 +384,9 @@ public final class TrDataFlowAnalysis {
 		case INC: {
 			final INC cop = (INC) op;
 			final R r = loadRead(cop.getReg(), cop.getT());
-			r.inc(cop.getValue());
+			if (r.getValue() != null) {
+				r.setValue(((Number) r.getValue()).intValue() + cop.getValue());
+			}
 			break;
 		}
 		case INSTANCEOF: {
@@ -823,7 +825,7 @@ public final class TrDataFlowAnalysis {
 				replaceBbReg(targetBb, i, prevR, null);
 				continue;
 			}
-			final T t = R.merge(prevR, newR);
+			final T t = T.join(prevR.getT(), newR.getT());
 			if (t == null) {
 				// merge type is null? merge to null => replace previous register from here
 
