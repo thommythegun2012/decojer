@@ -3,14 +3,12 @@
 = TODOs =
 
 
-WARNING: Cannot transform 'weblogic.transaction.internal.CoordinatorImpl_1035_WLStub.ackCommit(Ljavax/transaction/xa/Xid;Ljava/lang/String;)V (ops: 53, regs: 6)'!
-java.lang.AssertionError
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:180)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.pop(TrDataFlowAnalysis.java:941)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.popRead(TrDataFlowAnalysis.java:949)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:689)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1111)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:99)
+WARNUNG: com.itextpdf.text.pdf.ArabicLigaturizer.shapeToArabicDigitsWithContext([CIICZ)V: Fall-through case '5 -> 0[1, 2, 5, 6, 7, null]' must be reordered: 'BB 5 (l 573, pc 14)
+Stmts: [char ch=dest[i];
+, switch (BidiOrder.getDirection(ch)) {
+}
+]
+Succ: 0 1 2 4 
 
 
 Eclipse Editor
