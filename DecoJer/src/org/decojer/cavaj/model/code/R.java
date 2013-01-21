@@ -297,7 +297,8 @@ public final class R {
 
 	@Override
 	public String toString() {
-		return "R" + this.pc + "_" + this.kind.name().substring(0, 2) + ": " + this.t;
+		return "R" + this.pc + "_" + this.kind.name().substring(0, 2) + ": "
+				+ this.t.getSimpleName();
 	}
 
 }
