@@ -128,32 +128,6 @@ public final class TrDataFlowAnalysis {
 		this.isIgnoreExceptions = this.cfg.getCu().check(DFlag.IGNORE_EXCEPTIONS);
 	}
 
-	private boolean changedInSub(final RET ret, final int i) {
-		final Frame retFrame = this.cfg.getFrame(ret.getPc());
-		final R retR = retFrame.load(ret.getReg());
-		final Sub sub = (Sub) retR.getValue();
-		final Frame subFrame = this.cfg.getFrame(sub.getPc());
-
-		final R regAtSub = subFrame.load(i);
-		final R regAtRet = retFrame.load(i);
-
-		if (regAtSub != regAtRet) {
-			return true;
-		}
-		// are equal...null or merge at sub pc?
-		if (regAtRet == null) {
-			return false;
-		}
-		if (regAtRet.getKind() != R.Kind.MERGE) {
-			return true;
-		}
-		if (regAtRet.getPc() != sub.getPc()) {
-			return true;
-		}
-		// TODO check merge-ins? check null-merges in sub?
-		return true;
-	}
-
 	private void evalBinaryIntBoolMath(final T t) {
 		evalBinaryMath(t == T.INT ? T.AINT : t, null);
 	}
@@ -474,7 +448,7 @@ public final class TrDataFlowAnalysis {
 			// modify RET frame for untouched registers in sub
 			final Frame jsrFrame = this.cfg.getInFrame(jsr);
 			for (int i = this.frame.size(); i-- > 0;) {
-				if (!changedInSub(ret, i)) {
+				if (jumpOverSub(ret, i)) {
 					this.frame.store(i, jsrFrame.load(i));
 				}
 			}
@@ -583,7 +557,7 @@ public final class TrDataFlowAnalysis {
 				// modify RET frame for untouched registers in sub
 				final Frame jsrFrame = this.cfg.getInFrame(jsr);
 				for (int i = this.frame.size(); i-- > 0;) {
-					if (!changedInSub(ret, i)) {
+					if (jumpOverSub(ret, i)) {
 						this.frame.store(i, jsrFrame.load(i));
 					}
 				}
@@ -739,6 +713,33 @@ public final class TrDataFlowAnalysis {
 		}
 		bb.setPc(pc); // necessary because we must preserve outgoing BB
 		return bb;
+	}
+
+	private boolean jumpOverSub(final RET ret, final int i) {
+		final Frame retFrame = this.cfg.getFrame(ret.getPc());
+		final R retR = retFrame.load(ret.getReg());
+		final Sub sub = (Sub) retR.getValue();
+		final Frame subFrame = this.cfg.getFrame(sub.getPc());
+
+		final R regAtSub = subFrame.load(i);
+		final R regAtRet = retFrame.load(i);
+
+		if (regAtSub != regAtRet) {
+			return false;
+		}
+		// are equal...null or merge at sub pc?
+		if (regAtRet == null) {
+			return true;
+		}
+		// no initial merge? simply route through, even if not changed in sub
+		if (regAtRet.getKind() != R.Kind.MERGE) {
+			return false;
+		}
+		if (regAtRet.getPc() != sub.getPc()) {
+			return false;
+		}
+		// TODO check merge-ins? check null-merges in sub?
+		return true;
 	}
 
 	private R load(final int i, final T t) {
@@ -993,7 +994,7 @@ public final class TrDataFlowAnalysis {
 		final boolean jumpOverSub;
 		final Op finalOp = bb.getFinalOp();
 		if (finalOp instanceof RET) {
-			jumpOverSub = !changedInSub((RET) finalOp, i);
+			jumpOverSub = jumpOverSub((RET) finalOp, i);
 		} else {
 			jumpOverSub = false;
 		}
