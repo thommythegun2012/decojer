@@ -241,6 +241,7 @@ public final class TrControlFlowAnalysis {
 		}
 
 		final Set<BB> follows = Sets.newHashSet();
+		E defaultOut = null;
 
 		// TODO check with org.eclipse.jdt.core.BindingKey.createWildcardTypeBindingKey(), explicit
 		// default return and real follow (not with head-connection)
@@ -250,6 +251,13 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			final BB caseBb = caseOut.getEnd();
+			if (caseOut.isSwitchDefault()) {
+				defaultOut = caseOut;
+				// continue;
+				// we can ignore the default if:
+				// * incomings from different cases
+				// * previous follows exist...check late! might not always be last edge
+			}
 
 			if (cases == 1 && (follows.isEmpty() || follows.contains(caseBb))) {
 				switchStruct.setKind(Switch.Kind.NO_DEFAULT);
@@ -461,9 +469,7 @@ public final class TrControlFlowAnalysis {
 		// for all nodes in _reverse_ postorder: find outer structs first
 		for (int i = bbs.size(); i-- > 0;) {
 			final BB bb = bbs.get(i);
-			if (this.cfg.isLineInfo()) {
-				bb.sortOuts();
-			}
+			bb.sortOuts();
 			// check loop first, could be a post / endless loop with additional sub struct heads
 			if (bb.isLoopHead()) {
 				if (createLoopStruct(bb).isPre()) {

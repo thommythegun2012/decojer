@@ -766,6 +766,9 @@ public final class BB {
 	 * Sort outs.
 	 */
 	public void sortOuts() {
+		if (!getCfg().isLineInfo()) {
+			return;
+		}
 		Collections.sort(this.outs, E.LINE_COMPARATOR);
 	}
 
