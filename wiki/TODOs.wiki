@@ -3,12 +3,13 @@
 = TODOs =
 
 
-WARNUNG: com.itextpdf.text.pdf.ArabicLigaturizer.shapeToArabicDigitsWithContext([CIICZ)V: Fall-through case '5 -> 0[1, 2, 5, 6, 7, null]' must be reordered: 'BB 5 (l 573, pc 14)
-Stmts: [char ch=dest[i];
-, switch (BidiOrder.getDirection(ch)) {
+22.01.2013 21:59:53 org.decojer.cavaj.transformers.TrControlFlowAnalysis log
+WARNUNG: com.itextpdf.text.pdf.CFFFont$IndexOffsetItem.emit([B)V: Fall-through case '5 -> 3[3]' must be reordered: 'BB 5 (l 459, pc 0)
+Stmts: [int i=0;
+, switch (this.size) {
 }
 ]
-Succ: 0 1 2 4 
+Succ: 4 3 2 1 0 
 
 
 Eclipse Editor
