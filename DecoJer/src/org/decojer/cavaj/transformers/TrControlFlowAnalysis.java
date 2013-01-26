@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.transformers;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -35,6 +34,7 @@ import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.code.structs.Switch;
+import org.decojer.cavaj.model.code.structs.Switch.Kind;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -230,106 +230,95 @@ public final class TrControlFlowAnalysis {
 	private Switch createSwitchStruct(final BB head) {
 		final Switch switchStruct = new Switch(head);
 
-		final List<E> outs = head.getOuts();
-		final int size = outs.size();
-
-		int cases = 0;
-		for (int i = 0; i < size; ++i) {
-			if (outs.get(i).isSwitchCase()) {
-				++cases;
-			}
-		}
+		// for case reordering we need this as changeable lists
+		final List<E> caseOuts = head.getOuts();
+		final int size = caseOuts.size();
 
 		final Set<BB> follows = Sets.newHashSet();
-		E defaultOut = null;
 
-		// TODO check with org.eclipse.jdt.core.BindingKey.createWildcardTypeBindingKey(), explicit
-		// default return and real follow (not with head-connection)
-		for (int i = 0, hack = 100; i < size && hack-- > 0; ++i) {
-			final E caseOut = outs.get(i);
+		cases: for (int i = 0; i < size; ++i) {
+			final E caseOut = caseOuts.get(i);
 			if (!caseOut.isSwitchCase()) {
 				continue;
 			}
 			final BB caseBb = caseOut.getEnd();
-			if (caseOut.isSwitchDefault()) {
-				defaultOut = caseOut;
-				// continue;
-				// we can ignore the default if:
-				// * incomings from different cases
-				// * previous follows exist...check late! might not always be last edge
-			}
-
-			if (cases == 1 && (follows.isEmpty() || follows.contains(caseBb))) {
-				switchStruct.setKind(Switch.Kind.NO_DEFAULT);
-				switchStruct.setFollow(caseBb);
-				return switchStruct;
+			final List<E> ins = caseBb.getIns();
+			boolean isFallThrough = false;
+			if (ins.size() > 1) {
+				// are we a follow?
+				// - in this case _all_ incomings must come from _one_ previous case
+				// - then we have to...
+				// 1) insert current edge after previous case edge
+				// 2) remove this edge as potential switch follow
+				// 3) add current case BB explicitely as member
+				int prevCaseIndex = -1;
+				for (final E in : ins) {
+					if (in == caseOut) {
+						continue;
+					}
+					if (in.isBack()) {
+						continue;
+					}
+					// 1) is direct break or continue
+					// 2) is fall through in previous follow
+					// 3) is fall through in later follow
+					// 4) is incoming goto if nothing works anymore...
+					final BB prevBb = in.getStart();
+					for (int j = i; j-- > 0;) {
+						if (!switchStruct.isMember(caseOuts.get(j).getValue(), prevBb)) {
+							continue;
+						}
+						if (prevCaseIndex == j) {
+							continue;
+						}
+						if (prevCaseIndex == -1) {
+							prevCaseIndex = j;
+							continue;
+						}
+						// multiple previous cases => we cannot be a fall-through and are a
+						// real follow ... should just happen for _direct_ breaks or _empty_ default
+						if (caseOut.isSwitchDefault()) {
+							// TODO hmmm...could be a default with direct continue etc. -> no follow
+							// if other follows...
+							switchStruct.setKind(Kind.NO_DEFAULT);
+							switchStruct.setFollow(caseBb);
+						}
+						continue cases;
+					}
+					if (prevCaseIndex == -1) {
+						if (caseOut.isSwitchDefault()) {
+							switchStruct.setKind(Kind.NO_DEFAULT);
+							switchStruct.setFollow(caseBb);
+							continue cases;
+						}
+						// we cannot be a fall-through yet...may be later
+						caseOuts.remove(i--);
+						caseOuts.add(caseOut); // as last for now
+						continue cases;
+					}
+				}
+				if (prevCaseIndex < i - 1) {
+					caseOuts.remove(i);
+					caseOuts.add(prevCaseIndex + 1, caseOut);
+				}
+				if (caseOut.isSwitchDefault() && follows.size() == 1 && follows.contains(caseBb)) {
+					// TODO when we are the final fall-through without other follows...
+					switchStruct.setKind(Kind.NO_DEFAULT);
+					switchStruct.setFollow(caseBb);
+					continue cases;
+				}
+				isFallThrough = true;
 			}
 
 			final List<BB> members = switchStruct.getMembers(caseOut.getValue());
+			if (isFallThrough) {
+				follows.remove(caseBb);
+				members.add(caseBb);
+			}
 			findBranch(switchStruct, caseBb, members, follows);
-
-			--cases;
-			if (follows.isEmpty()) {
-				// continue or break
-				continue;
-			}
-			if (members.isEmpty()) {
-				if (follows.contains(caseBb)) {
-					// must be a fall-through case, where the first element hasn't been met yet,
-					// reorder
-					if (i == size - 1) { // endless-loop prevention
-						log("Fall-through case '" + caseOut + "' is empty: '" + head);
-					} else {
-						log("Fall-through case '" + caseOut + "' must be reordered: '" + head);
-						outs.remove(i--);
-						outs.add(caseOut); // as last for now
-					}
-					++cases;
-					continue;
-				}
-				log("Special case '" + caseOut + "' must be handled: '" + head);
-				continue;
-			}
-
-			fallThrough: for (final Iterator<BB> it = follows.iterator(); it.hasNext();) {
-				final BB follow = it.next();
-				final List<E> followIns = follow.getIns();
-				if (!followIns.contains(head) || followIns.size() < 2) {
-					// no fall-through handling necessary
-					continue;
-				}
-				E fallThroughE = null;
-				// is a fall-through or switch-follow
-				for (final E followIn : followIns) {
-					assert followIn.hasPred(head); // should be excluded in findBranch()
-
-					if (followIn.getStart() == head) {
-						fallThroughE = followIn;
-						continue;
-					}
-					if (!members.contains(followIn)) {
-						continue fallThrough;
-					}
-				}
-				if (fallThroughE == null) {
-					continue;
-				}
-
-				final List<BB> followCaseMembers = switchStruct.getMembers(fallThroughE.getValue());
-				if (!followCaseMembers.isEmpty()) {
-					log("Fall-through case '" + caseOut
-							+ "' cannot be target of multiple fall-throughs: '" + head);
-				}
-
-				followCaseMembers.add(follow);
-				it.remove(); // remove as struct follow
-
-				// move in to i + 1
-				outs.remove(fallThroughE);
-				outs.add(i + 1, fallThroughE);
-				continue;
-			}
-
+		}
+		if (switchStruct.getFollow() != null) {
+			return switchStruct;
 		}
 		switchStruct.setKind(Switch.Kind.WITH_DEFAULT);
 		// TODO end node with smallest order could be the follow
@@ -351,7 +340,7 @@ public final class TrControlFlowAnalysis {
 	 * Switch-case fall-throughs start with case BB as member.
 	 * 
 	 * @param struct
-	 *            enclosing struct
+	 *            struct
 	 * @param bb
 	 *            current BB
 	 * @param members
