@@ -113,18 +113,19 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		DebugInstructionIterator.DecodeInstructions(debugInfoItem, md.getCfg().getRegs(), this);
 	}
 
+	private void log(final String message) {
+		LOGGER.warning(this.md + ": " + message);
+	}
+
 	@Override
 	public void ProcessEndLocal(final int codeAddress, final int length, final int registerNum,
 			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
-		if (DEBUG) {
-			System.out.println("*ProcessEndLocal: P" + codeAddress + " l" + getLine(codeAddress)
-					+ " N" + length + " r" + registerNum + " : " + name + " : " + type + " : "
-					+ signature);
-		}
+		// log("*EndLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N" + length + " r"
+		// + registerNum + " : " + name + " : " + type + " : " + signature);
 
 		final List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
-			LOGGER.warning("ProcessEndLocal '" + registerNum + "' without any ProcessStartLocal!");
+			log("EndLocal '" + registerNum + "' without any StartLocal!");
 			return;
 		}
 		assert vs.size() != 0;
@@ -135,7 +136,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		assert pcs.length >= 2;
 
 		if (pcs[pcs.length - 1] != -1) {
-			LOGGER.warning("ProcessEndLocal '" + registerNum + "' without ProcessStartLocal!");
+			log("EndLocal '" + registerNum + "' without StartLocal!");
 			return;
 		}
 		pcs[pcs.length - 1] = codeAddress;
@@ -144,24 +145,18 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	@Override
 	public void ProcessLineEmit(final int codeAddress, final int line) {
 		this.opLines.put(codeAddress, line);
-		if (DEBUG) {
-			System.out.println("*EmitLine: P" + codeAddress + " l" + line);
-		}
+		// log("*EmitLine: P" + codeAddress + " l" + line);
 	}
 
 	@Override
 	public void ProcessRestartLocal(final int codeAddress, final int length, final int registerNum,
 			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
-		if (DEBUG) {
-			System.out.println("*RestartLocal: P" + codeAddress + " l" + getLine(codeAddress)
-					+ " N" + length + " r" + registerNum + " : " + name + " : " + type + " : "
-					+ signature);
-		}
+		// log("*RestartLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N" + length + " r"
+		// + registerNum + " : " + name + " : " + type + " : " + signature);
 
 		final List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
-			LOGGER.warning("ProcessRestartLocal '" + registerNum
-					+ "' without any ProcessStartLocal!");
+			log("RestartLocal '" + registerNum + "' without any StartLocal!");
 			return;
 		}
 		assert vs.size() != 0;
@@ -172,7 +167,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		assert pcs.length >= 2;
 
 		if (pcs[pcs.length - 1] == -1) {
-			LOGGER.warning("ProcessRestartLocal '" + registerNum + "' without ProcessEndLocal!");
+			log("RestartLocal '" + registerNum + "' without EndLocal!");
 			return;
 		}
 		v.addPcs(codeAddress, -1);
@@ -180,19 +175,18 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	@Override
 	public void ProcessSetEpilogueBegin(final int codeAddress) {
-		LOGGER.warning("Unknown stuff: ProcessSetEpilogueBegin: " + codeAddress);
+		log("Unknown stuff: SetEpilogueBegin: " + codeAddress);
 	}
 
 	@Override
 	public void ProcessSetFile(final int codeAddress, final int length, final StringIdItem name) {
-		LOGGER.warning("Unknown stuff: ProcessSetFile: " + codeAddress + " : " + length + " : "
-				+ name);
+		log("Unknown stuff: SetFile: " + codeAddress + " : " + length + " : " + name);
 	}
 
 	@Override
 	public void ProcessSetPrologueEnd(final int codeAddress) {
 		if (codeAddress != 0) {
-			LOGGER.warning("Unknown stuff: ProcessSetPrologueEnd: " + codeAddress);
+			log("Unknown stuff: SetPrologueEnd: " + codeAddress);
 		}
 	}
 
@@ -211,12 +205,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private void startLocal(final int codeAddress, final int length, final int registerNum,
 			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
-		if (DEBUG) {
-			System.out
-					.println("*startLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N"
-							+ length + " r" + registerNum + " : " + name + " : " + type + " : "
-							+ signature);
-		}
+		// log("*StartLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N" + length + " r"
+		// + registerNum + " : " + name + " : " + type + " : " + signature);
 
 		T vT = this.md.getTd().getDu().getDescT(type.getTypeDescriptor());
 		if (signature != null) {

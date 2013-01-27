@@ -375,6 +375,10 @@ public final class CFG {
 		return this.startBb.isLineInfo();
 	}
 
+	private void log(final String message) {
+		LOGGER.warning(getMd() + ": " + message);
+	}
+
 	/**
 	 * New basic block.
 	 * 
@@ -395,7 +399,7 @@ public final class CFG {
 		if (this.vss == null) {
 			this.vss = new V[this.regs][];
 		} else if (this.regs < this.vss.length) {
-			LOGGER.warning("Register count less than biggest register with local variable info!");
+			log("Register count less than biggest register with local variable info!");
 		} else if (this.regs > this.vss.length) {
 			final V[][] newVarss = new V[this.regs][];
 			System.arraycopy(this.vss, 0, newVarss, 0, this.vss.length);
@@ -414,15 +418,14 @@ public final class CFG {
 				// and parameter types to local vars
 				final V[] vs = this.vss[--reg];
 				if (vs != null) {
-					LOGGER.warning("Found local variable info for method parameter '" + reg + "'!");
+					log("Found local variable info for method parameter '" + reg + "'!");
 				}
 				this.vss[reg] = new V[] { new V(paramT, this.md.getParamName(i), 0, this.ops.length) };
 			}
 			if (!this.md.isStatic()) {
 				final V[] vs = this.vss[--reg];
 				if (vs != null) {
-					LOGGER.warning("Found local variable info for method parameter '" + reg
-							+ "' (this)!");
+					log("Found local variable info for method parameter '" + reg + "' (this)!");
 				}
 				this.vss[reg] = new V[] { new V(this.md.getTd().getT(), "this", 0, this.ops.length) };
 			}
@@ -434,8 +437,8 @@ public final class CFG {
 			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				if (vs.length > 1) {
-					LOGGER.warning("Found multiple local variable info for method parameter '"
-							+ reg + "' (this)!");
+					log("Found multiple local variable info for method parameter '" + reg
+							+ "' (this)!");
 				}
 				++reg;
 			} else {
@@ -448,8 +451,7 @@ public final class CFG {
 			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				if (vs.length > 1) {
-					LOGGER.warning("Found multiple local variable info for method parameter '"
-							+ reg + "'!");
+					log("Found multiple local variable info for method parameter '" + reg + "'!");
 				}
 				this.md.setParamName(i, vs[0].getName());
 				++reg;
