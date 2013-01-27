@@ -33,7 +33,6 @@ import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
-import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
 import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
@@ -185,7 +184,7 @@ public class CfgViewer extends Composite {
 				}
 				if (stage > 1) {
 					TrControlFlowAnalysis.transform(cfg);
-					TrCfg2JavaControlFlowStmts.transform(cfg);
+					// TrCfg2JavaControlFlowStmts.transform(cfg);
 				}
 			} catch (final Throwable e) {
 				TrCalculatePostorder.transform(cfg);
