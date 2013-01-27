@@ -414,18 +414,40 @@ public final class CFG {
 				if (paramT.isWide()) {
 					--reg;
 				}
-				// parameter name was encoded in extra debug info, copy names
-				// and parameter types to local vars
+				// parameter name is encoded in extra debug info, copy names and parameter types to
+				// local vars - sometimes jar2dex forgets to eliminate these infos, e.g.
+				// for synthetic this in <init> or for arguments with generic type like U, T
 				final V[] vs = this.vss[--reg];
 				if (vs != null) {
-					log("Found local variable info for method parameter '" + reg + "'!");
+					// this can happen, we can find local variable info for generic type parameters
+					// in Dalvik because they are not properly eliminated from JVM Bytecode, e.g. in
+					// DecTestMethodTypeParams.parameterizedStaticClassMethod:
+					// [pc: 0, pc: 15] local: a index: 0 type: T
+
+					// log("Found local variable info for method parameter '" + reg + "'!");
+
+					// this info is usually more detailed, can have multiple valid ranges and start
+					// at higher PCs, e.g. for inner
+
+					// nevertheless we simply overwrite it for now...
 				}
 				this.vss[reg] = new V[] { new V(paramT, this.md.getParamName(i), 0, this.ops.length) };
 			}
 			if (!this.md.isStatic()) {
 				final V[] vs = this.vss[--reg];
 				if (vs != null) {
-					log("Found local variable info for method parameter '" + reg + "' (this)!");
+					// this can happen, we can find local variable info for synthetic "this" in JVM
+					// ByteCode too, e.g. in DecTestMethodTypeParams.<init>:
+					// [pc: 0, pc: 5] local: this index: 0 type:
+					// org.decojer.cavaj.test.jdk5.DecTestMethodTypeParams<T>
+					// but also happens for none-generic, see e.g. DecTestField.<init>)
+
+					// log("Found local variable info for method parameter '" + reg + "' (this)!");
+
+					// this info is usually more detailed, can have multiple valid ranges and start
+					// at higher PCs, e.g. for inner
+
+					// nevertheless we simply overwrite it for now...
 				}
 				this.vss[reg] = new V[] { new V(this.md.getTd().getT(), "this", 0, this.ops.length) };
 			}

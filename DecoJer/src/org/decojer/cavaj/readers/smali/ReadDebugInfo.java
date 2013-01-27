@@ -207,6 +207,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
 		// log("*StartLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N" + length + " r"
 		// + registerNum + " : " + name + " : " + type + " : " + signature);
+		assert length > 0; // have no idea what this is
 
 		T vT = this.md.getTd().getDu().getDescT(type.getTypeDescriptor());
 		if (signature != null) {
