@@ -125,7 +125,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 		final List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
-			log("EndLocal '" + registerNum + "' without any StartLocal!");
+			log("*EndLocal without any StartLocal:  P" + codeAddress + " l" + getLine(codeAddress)
+					+ " N" + length + " r" + registerNum);
+
+			// don't know why, but happens sometimes, and all these are null then:
+			assert name == null && type == null && signature == null;
+
 			return;
 		}
 		assert vs.size() != 0;
@@ -136,7 +141,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		assert pcs.length >= 2;
 
 		if (pcs[pcs.length - 1] != -1) {
-			log("EndLocal '" + registerNum + "' without StartLocal!");
+			log("*EndLocal without StartLocal:  P" + codeAddress + " l" + getLine(codeAddress)
+					+ " N" + length + " r" + registerNum);
+
+			// don't know why, but happens sometimes, and all these are null then:
+			assert name == null && type == null && signature == null;
+
 			return;
 		}
 		pcs[pcs.length - 1] = codeAddress;
@@ -156,7 +166,11 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 		final List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
-			log("RestartLocal '" + registerNum + "' without any StartLocal!");
+			log("RestartLocal without any Start/EndLocal:  P" + codeAddress + " l"
+					+ getLine(codeAddress) + " N" + length + " r" + registerNum);
+			// don't know why, but happens sometimes, and all these are null then:
+			assert name == null && type == null && signature == null;
+
 			return;
 		}
 		assert vs.size() != 0;
@@ -167,7 +181,11 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		assert pcs.length >= 2;
 
 		if (pcs[pcs.length - 1] == -1) {
-			log("RestartLocal '" + registerNum + "' without EndLocal!");
+			log("RestartLocal without EndLocal:  P" + codeAddress + " l" + getLine(codeAddress)
+					+ " N" + length + " r" + registerNum);
+			// don't know why, but happens sometimes, and all these are null then:
+			assert name == null && type == null && signature == null;
+
 			return;
 		}
 		v.addPcs(codeAddress, -1);
