@@ -999,14 +999,18 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case SWITCH: {
+				final Expression switchExpression = bb.pop();
+				if (rewriteStringSwitch(bb, switchExpression)) {
+					break;
+				}
 				final SwitchStatement switchStatement = getAst().newSwitchStatement();
-				switchStatement.setExpression(wrap(bb.pop()));
+				switchStatement.setExpression(wrap(switchExpression));
 				statement = switchStatement;
 				break;
 			}
 			case THROW: {
 				final Expression exceptionExpression = bb.pop();
-				if (rewriteAssertStatement(exceptionExpression, bb)) {
+				if (rewriteAssertStatement(bb, exceptionExpression)) {
 					break;
 				}
 				final ThrowStatement throwStatement = getAst().newThrowStatement();
@@ -1076,7 +1080,7 @@ public final class TrCfg2JavaExpressionStmts {
 		LOGGER.log(Level.WARNING, this.cfg.getMd() + ": " + message, t);
 	}
 
-	private boolean rewriteAssertStatement(final Expression exceptionExpression, final BB bb) {
+	private boolean rewriteAssertStatement(final BB bb, final Expression exceptionExpression) {
 		// if (!DecTestAsserts.$assertionsDisabled && (l1 > 0L ? l1 >= l2 : l1 > l2))
 		// throw new AssertionError("complex expression " + l1 - l2);
 		if (!(exceptionExpression instanceof ClassInstanceCreation)) {
@@ -1949,6 +1953,18 @@ public final class TrCfg2JavaExpressionStmts {
 			log("Rewrite to string-add didn't work!", e);
 			return false;
 		}
+	}
+
+	private boolean rewriteStringSwitch(final BB bb, final Expression switchExpression) {
+		if (!(switchExpression instanceof MethodInvocation)) {
+			return false;
+		}
+		final MethodInvocation methodInvocation = (MethodInvocation) switchExpression;
+		if (!"hashCode".equals(methodInvocation.getName().getIdentifier())) {
+			return false;
+		}
+		// TODO we can either do it here or we do this in a special transformer, this is complex!
+		return false;
 	}
 
 	private void transform() {

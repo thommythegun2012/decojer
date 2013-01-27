@@ -243,6 +243,7 @@ public final class TrControlFlowAnalysis {
 			}
 			final BB caseBb = caseOut.getEnd();
 			final List<E> ins = caseBb.getIns();
+
 			boolean isFallThrough = false;
 			if (ins.size() > 1) {
 				// are we a follow?
