@@ -87,6 +87,7 @@ import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IfStatement;
@@ -97,6 +98,7 @@ import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NullLiteral;
 import org.eclipse.jdt.core.dom.NumberLiteral;
+import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.ReturnStatement;
@@ -1956,6 +1958,12 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteStringSwitch(final BB bb, final Expression switchExpression) {
+		// we shouldn't do this earlier at the operations level, because the switchExpression could
+		// be very complex (e.g. method call with conditional in Eclipse-Bytecode etc.),
+		// but for the following sub-conditions it's ok to rewrite on operations level,
+		// we are not very flexible here...the patterns are very special, but I don't know if more
+		// general pattern matching is even possible, kind of none-decidable?
+		// obfuscators or different compilers could currently easily sabotage this method...
 		if (!(switchExpression instanceof MethodInvocation)) {
 			return false;
 		}
@@ -1963,7 +1971,62 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!"hashCode".equals(methodInvocation.getName().getIdentifier())) {
 			return false;
 		}
-		// TODO we can either do it here or we do this in a special transformer, this is complex!
+		Expression stringSwitchExpression = methodInvocation.getExpression();
+		if (stringSwitchExpression instanceof SimpleName) {
+			// JDK-Bytecode mode
+			try {
+				final String tmpReg = ((SimpleName) stringSwitchExpression).getIdentifier();
+				if (bb.getStmts() < 2) {
+					return false;
+				}
+				// second: r2 = -1 (for first switch-result)
+				final Assignment assignment1 = (Assignment) ((ExpressionStatement) bb.getStmt(bb
+						.getStmts() - 1)).getExpression();
+				if (!"-1".equals(((NumberLiteral) assignment1.getRightHandSide()).getToken())) {
+					return false;
+				}
+				final String tmpOrdinalReg = ((SimpleName) assignment1.getLeftHandSide())
+						.getIdentifier();
+				// first: r1 = stringSwitchExpression
+				final Assignment assignment2 = (Assignment) ((ExpressionStatement) bb.getStmt(bb
+						.getStmts() - 2)).getExpression();
+				if (!((SimpleName) assignment2.getLeftHandSide()).getIdentifier().equals(tmpReg)) {
+					return false;
+				}
+				stringSwitchExpression = assignment2.getRightHandSide();
+
+				// TODO
+
+				final SwitchStatement switchStatement = getAst().newSwitchStatement();
+				switchStatement.setExpression(wrap(stringSwitchExpression));
+				bb.removeFinalStmt();
+				bb.removeFinalStmt();
+				bb.addStmt(switchStatement);
+				return true;
+			} catch (final ClassCastException e) {
+				// nothing
+			}
+			return false;
+		}
+		if (stringSwitchExpression instanceof ParenthesizedExpression) {
+			// more compact Eclipse-Bytecode mode
+			try {
+				final Assignment assignment = (Assignment) ((ParenthesizedExpression) stringSwitchExpression)
+						.getExpression();
+				final String tmpReg = ((SimpleName) assignment.getLeftHandSide()).getIdentifier();
+				stringSwitchExpression = assignment.getRightHandSide();
+
+				// TODO
+
+				final SwitchStatement switchStatement = getAst().newSwitchStatement();
+				switchStatement.setExpression(wrap(stringSwitchExpression));
+				bb.addStmt(switchStatement);
+				return true;
+			} catch (final ClassCastException e) {
+				// nothing
+			}
+			return false;
+		}
 		return false;
 	}
 
