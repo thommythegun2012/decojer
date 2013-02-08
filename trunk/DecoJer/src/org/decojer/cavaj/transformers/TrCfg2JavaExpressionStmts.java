@@ -101,6 +101,7 @@ import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
@@ -134,6 +135,25 @@ public final class TrCfg2JavaExpressionStmts {
 	private static Expression newInfixExpressionPop(final Operator operator, final BB bb) {
 		final Expression rightExpression = bb.pop(); // keep order
 		return newInfixExpression(operator, bb.pop(), rightExpression);
+	}
+
+	private static boolean rewriteSwitchChar(final BB bb) {
+		for (final E out : bb.getOuts()) {
+			if (!out.isSwitchCase()) {
+				continue;
+			}
+			final Object[] os = (Object[]) out.getValue();
+			for (int i = os.length; i-- > 0;) {
+				final Object o = os[i];
+				if (!(o instanceof Integer)) {
+					assert o == null; // default
+
+					continue;
+				}
+				os[i] = Character.valueOf((char) ((Integer) o).intValue());
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -1002,6 +1022,9 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			case SWITCH: {
 				final Expression switchExpression = bb.pop();
+				if (rewriteSwitchEnum(bb, switchExpression)) {
+					break;
+				}
 				if (rewriteSwitchString(bb, switchExpression)) {
 					break;
 				}
@@ -1965,20 +1988,41 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 	}
 
-	private boolean rewriteSwitchChar(final BB bb) {
-		for (final E out : bb.getOuts()) {
-			if (!out.isSwitchCase()) {
-				continue;
-			}
-			final Object[] o = (Object[]) out.getValue();
-			for (int i = o.length; i-- > 0;) {
-				if (!(o[i] instanceof Integer)) {
-					continue;
-				}
-				o[i] = Character.valueOf((char) ((Integer) o[i]).intValue());
-			}
+	private boolean rewriteSwitchEnum(final BB bb, final Expression switchExpression) {
+		if (!(switchExpression instanceof ArrayAccess)) {
+			return false;
 		}
-		return true;
+		final ArrayAccess arrayAccess = (ArrayAccess) switchExpression;
+		try {
+			final MethodInvocation indexMethodInvocation = (MethodInvocation) arrayAccess
+					.getIndex();
+			if (!"ordinal".equals(indexMethodInvocation.getName().getIdentifier())
+					|| !indexMethodInvocation.arguments().isEmpty()) {
+				return false;
+			}
+			final Expression enumSwitchExpression = indexMethodInvocation.getExpression();
+
+			final Expression array = arrayAccess.getArray();
+			if (array instanceof QualifiedName) {
+				// JDK-Bytecode mode: map in different class file
+
+				final SwitchStatement switchStatement = getAst().newSwitchStatement();
+				switchStatement.setExpression(wrap(enumSwitchExpression));
+				bb.addStmt(switchStatement);
+				return true;
+			}
+			if (array instanceof MethodInvocation) {
+				// Eclipse-Bytecode mode: map in same class file
+
+				final SwitchStatement switchStatement = getAst().newSwitchStatement();
+				switchStatement.setExpression(wrap(enumSwitchExpression));
+				bb.addStmt(switchStatement);
+				return true;
+			}
+		} catch (final ClassCastException e) {
+			// nothing
+		}
+		return false;
 	}
 
 	private boolean rewriteSwitchString(final BB bb, final Expression switchExpression) {
@@ -1992,12 +2036,13 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final MethodInvocation methodInvocation = (MethodInvocation) switchExpression;
-		if (!"hashCode".equals(methodInvocation.getName().getIdentifier())) {
+		if (!"hashCode".equals(methodInvocation.getName().getIdentifier())
+				|| !methodInvocation.arguments().isEmpty()) {
 			return false;
 		}
 		Expression stringSwitchExpression = methodInvocation.getExpression();
 		if (stringSwitchExpression instanceof SimpleName) {
-			// JDK-Bytecode mode
+			// JDK-Bytecode mode: 2 switches, first switch assigns index
 			try {
 				final String tmpReg = ((SimpleName) stringSwitchExpression).getIdentifier();
 				if (bb.getStmts() < 2) {
@@ -2032,7 +2077,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		if (stringSwitchExpression instanceof ParenthesizedExpression) {
-			// more compact Eclipse-Bytecode mode
+			// more compact Eclipse-Bytecode mode: one switch
 			try {
 				final Assignment assignment = (Assignment) ((ParenthesizedExpression) stringSwitchExpression)
 						.getExpression();
