@@ -181,7 +181,7 @@ public final class TrCfg2JavaExpressionStmts {
 						return false;
 					} else if (op instanceof STORE) {
 						// special trick for store <return_address> till finally is established
-						if (this.cfg.getFrame(op.getPc()).peek().getT() == T.RET) {
+						if (peekT(op) == T.RET) {
 							bb.removeOp(0);
 							if (bb.getOps() != 0) {
 								continue;
@@ -369,7 +369,7 @@ public final class TrCfg2JavaExpressionStmts {
 			case FILLARRAY: {
 				final FILLARRAY cop = (FILLARRAY) op;
 
-				final T t = this.cfg.getInFrame(op).peek().getT();
+				final T t = peekT(op);
 				final T componentT = t.getComponentT();
 
 				Expression expression = bb.pop();
@@ -656,7 +656,7 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = null;
 					}
 					((InfixExpression) expression).setOperator(operator);
-				} else if (this.cfg.getInFrame(op).peek().getT().isRef()) {
+				} else if (peekT(op).isRef()) {
 					final InfixExpression.Operator operator;
 					switch (cop.getCmpType()) {
 					case T_EQ:
@@ -674,7 +674,7 @@ public final class TrCfg2JavaExpressionStmts {
 					infixExpression.setLeftOperand(wrap(expression, Priority.EQUALS_NOT));
 					infixExpression.setRightOperand(getAst().newNullLiteral());
 					expression = infixExpression;
-				} else if (this.cfg.getInFrame(op).peek().getT() == T.BOOLEAN) {
+				} else if (peekT(op) == T.BOOLEAN) {
 					// "!a" or "a == 0"?
 					switch (cop.getCmpType()) {
 					case T_EQ:
@@ -740,7 +740,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 				// must not access method parameters for fieldInits...
 				fieldInit &= cop.getReg() == 0 && this.cfg.getMd().isConstructor()
-						|| !this.cfg.getInFrame(cop).load(cop.getReg()).isMethodParam();
+						|| !this.cfg.getInFrame(op).load(cop.getReg()).isMethodParam();
 
 				bb.push(getVarExpression(cop.getReg(), cop.getPc()));
 				break;
@@ -1002,8 +1002,12 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			case SWITCH: {
 				final Expression switchExpression = bb.pop();
-				if (rewriteStringSwitch(bb, switchExpression)) {
+				if (rewriteSwitchString(bb, switchExpression)) {
 					break;
+				}
+				final T t = peekT(op);
+				if (t == T.CHAR) {
+					rewriteSwitchChar(bb);
 				}
 				final SwitchStatement switchStatement = getAst().newSwitchStatement();
 				switchStatement.setExpression(wrap(switchExpression));
@@ -1080,6 +1084,10 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private void log(final String message, final Throwable t) {
 		LOGGER.log(Level.WARNING, this.cfg.getMd() + ": " + message, t);
+	}
+
+	private T peekT(final Op op) {
+		return this.cfg.getInFrame(op).peek().getT();
 	}
 
 	private boolean rewriteAssertStatement(final BB bb, final Expression exceptionExpression) {
@@ -1957,7 +1965,23 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 	}
 
-	private boolean rewriteStringSwitch(final BB bb, final Expression switchExpression) {
+	private boolean rewriteSwitchChar(final BB bb) {
+		for (final E out : bb.getOuts()) {
+			if (!out.isSwitchCase()) {
+				continue;
+			}
+			final Object[] o = (Object[]) out.getValue();
+			for (int i = o.length; i-- > 0;) {
+				if (!(o[i] instanceof Integer)) {
+					continue;
+				}
+				o[i] = Character.valueOf((char) ((Integer) o[i]).intValue());
+			}
+		}
+		return true;
+	}
+
+	private boolean rewriteSwitchString(final BB bb, final Expression switchExpression) {
 		// we shouldn't do this earlier at the operations level, because the switchExpression could
 		// be very complex (e.g. method call with conditional in Eclipse-Bytecode etc.),
 		// but for the following sub-conditions it's ok to rewrite on operations level,
@@ -1979,7 +2003,6 @@ public final class TrCfg2JavaExpressionStmts {
 				if (bb.getStmts() < 2) {
 					return false;
 				}
-				// second: r2 = -1 (for first switch-result)
 				final Assignment assignment1 = (Assignment) ((ExpressionStatement) bb.getStmt(bb
 						.getStmts() - 1)).getExpression();
 				if (!"-1".equals(((NumberLiteral) assignment1.getRightHandSide()).getToken())) {

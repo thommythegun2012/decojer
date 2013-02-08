@@ -648,7 +648,7 @@ public final class TrDataFlowAnalysis {
 			for (final Map.Entry<Integer, List<Integer>> casePc2keysEntry : casePc2keys.entrySet()) {
 				keys = casePc2keysEntry.getValue();
 				bb.addSwitchCase(getTargetBb(casePc2keysEntry.getKey()),
-						keys.toArray(new Integer[keys.size()]));
+						keys.toArray(new Object[keys.size()]));
 			}
 
 			popRead(T.INT);

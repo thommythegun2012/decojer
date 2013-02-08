@@ -156,7 +156,7 @@ public final class BB {
 	 *            Integer values
 	 * @return out edge
 	 */
-	public E addSwitchCase(final BB caseBb, final Integer[] values) {
+	public E addSwitchCase(final BB caseBb, final Object[] values) {
 		return addSucc(caseBb, values);
 	}
 
