@@ -227,7 +227,7 @@ public final class E {
 	 * @return {@code true} - is switch case
 	 */
 	public boolean isSwitchCase() {
-		return this.value instanceof Integer[];
+		return this.value instanceof Object[] && !isCatch();
 	}
 
 	/**
@@ -239,7 +239,7 @@ public final class E {
 		if (!isSwitchCase()) {
 			return false;
 		}
-		final Integer[] iValues = (Integer[]) this.value;
+		final Object[] iValues = (Object[]) this.value;
 		for (int i = iValues.length; i-- > 0;) {
 			if (iValues[i] == null) {
 				return true;

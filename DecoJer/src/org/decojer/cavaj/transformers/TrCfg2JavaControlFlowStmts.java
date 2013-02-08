@@ -29,6 +29,7 @@ import static org.decojer.cavaj.utils.Expressions.wrap;
 import java.util.List;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
@@ -37,6 +38,7 @@ import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.code.structs.Switch;
+import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BreakStatement;
@@ -416,7 +418,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				if (!out.isSwitchCase()) {
 					continue;
 				}
-				for (final Integer value : (Integer[]) out.getValue()) {
+				for (final Object value : (Object[]) out.getValue()) {
 					if (out.isSwitchDefault() && switchStruct.getKind() == Switch.Kind.NO_DEFAULT) {
 						continue;
 					}
@@ -425,8 +427,14 @@ public final class TrCfg2JavaControlFlowStmts {
 						// necessary: expression initialized to null for default case
 						switchCase.setExpression(null);
 					} else {
-						// TODO convert to char for chars etc., where can we get this info? binding?
-						switchCase.setExpression(getAst().newNumberLiteral(value.toString()));
+						final T t;
+						if (value instanceof Character) {
+							t = T.CHAR;
+						} else {
+							t = T.INT;
+						}
+						switchCase.setExpression(Expressions.decompileLiteral(t, value,
+								this.cfg.getTd()));
 					}
 					switchStatement.statements().add(switchCase);
 				}
