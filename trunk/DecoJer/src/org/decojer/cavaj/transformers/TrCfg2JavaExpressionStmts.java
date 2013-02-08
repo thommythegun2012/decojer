@@ -2005,6 +2005,11 @@ public final class TrCfg2JavaExpressionStmts {
 			final Expression array = arrayAccess.getArray();
 			if (array instanceof QualifiedName) {
 				// JDK-Bytecode mode: map in different class file
+				final String switchMapTypeName = this.cfg.getTd().getPackageName() + "."
+						+ ((SimpleName) ((QualifiedName) array).getQualifier()).getIdentifier();
+				final TD td = this.cfg.getDu().getTd(switchMapTypeName);
+
+				final SimpleName name = ((QualifiedName) array).getName();
 
 				final SwitchStatement switchStatement = getAst().newSwitchStatement();
 				switchStatement.setExpression(wrap(enumSwitchExpression));
