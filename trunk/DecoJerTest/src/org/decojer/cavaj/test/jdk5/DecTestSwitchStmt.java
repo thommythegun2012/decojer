@@ -1,5 +1,6 @@
 package org.decojer.cavaj.test.jdk5;
 
+
 public abstract class DecTestSwitchStmt {
 
 	public static void testChar(final char c) {
@@ -33,6 +34,17 @@ public abstract class DecTestSwitchStmt {
 		case ENUM4:
 			System.out.println("ENUM3/4");
 		}
+	}
+
+	public static void testSwitchEnum2(DecTestEnumToy e) {
+		switch (e) {
+		case DOLL:
+		default:
+			System.out.println("DOLL");
+		case SOLDIER:
+			System.out.println("SOLDIER");
+		}
+		System.out.println("DONE");
 	}
 
 	public static void testSwitchEnumDefault(final DecTestEnum e) {
