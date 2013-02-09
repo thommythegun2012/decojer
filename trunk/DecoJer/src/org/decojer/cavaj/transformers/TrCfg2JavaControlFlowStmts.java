@@ -23,7 +23,9 @@
  */
 package org.decojer.cavaj.transformers;
 
+import static org.decojer.cavaj.utils.Expressions.getOp;
 import static org.decojer.cavaj.utils.Expressions.not;
+import static org.decojer.cavaj.utils.Expressions.setOp;
 import static org.decojer.cavaj.utils.Expressions.wrap;
 
 import java.util.List;
@@ -33,6 +35,7 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
+import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.structs.Catch;
 import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
@@ -413,6 +416,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		case WITH_DEFAULT: {
 			final BB head = switchStruct.getHead();
 			final SwitchStatement switchStatement = (SwitchStatement) head.getFinalStmt();
+			final Op op = getOp(switchStatement);
 
 			for (final E out : head.getOuts()) {
 				if (!out.isSwitchCase()) {
@@ -422,7 +426,7 @@ public final class TrCfg2JavaControlFlowStmts {
 					if (out.isSwitchDefault() && switchStruct.getKind() == Switch.Kind.NO_DEFAULT) {
 						continue;
 					}
-					final SwitchCase switchCase = getAst().newSwitchCase();
+					final SwitchCase switchCase = setOp(getAst().newSwitchCase(), op);
 					if (value == null) {
 						// necessary: expression initialized to null for default case
 						switchCase.setExpression(null);
@@ -434,7 +438,7 @@ public final class TrCfg2JavaControlFlowStmts {
 							t = T.INT;
 						}
 						switchCase.setExpression(Expressions.decompileLiteral(t, value,
-								this.cfg.getTd()));
+								this.cfg.getTd(), op));
 					}
 					switchStatement.statements().add(switchCase);
 				}

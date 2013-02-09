@@ -167,7 +167,8 @@ public final class TrJvmStruct2JavaAst {
 			final Object value = fd.getValue();
 			if (value != null) {
 				// only final, non static - no arrays, class types
-				final Expression expr = Expressions.decompileLiteral(fd.getValueT(), value, td);
+				final Expression expr = Expressions.decompileLiteral(fd.getValueT(), value, td,
+						null);
 				if (expr != null) {
 					final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
 							.fragments().get(0);
