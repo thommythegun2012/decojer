@@ -64,7 +64,7 @@ public class TrInnerClassesAnalysis {
 			}
 			// Inner name is not necessary anymore since JVM 5, see T#getInnerName(), but we
 			// validate the new "Binary Compatibility" rules here.
-			if (td.getVersion() < 48 || t.getEnclosingT() == null) {
+			if (td.getVersion() < 49 || t.getEnclosingT() == null) {
 				continue;
 			}
 			final String innerName = t.getInnerName();

@@ -149,7 +149,7 @@ public final class CU extends D {
 		} else {
 			final int version = getTd().getVersion();
 			sb.append(" * Class File Version: ").append(version).append(" (Java ");
-			if (version <= 48) {
+			if (version < 49) {
 				sb.append("1.");
 			}
 			sb.append(version - 44).append(')');

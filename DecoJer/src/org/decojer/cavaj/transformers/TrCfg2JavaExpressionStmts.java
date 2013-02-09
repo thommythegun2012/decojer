@@ -585,11 +585,8 @@ public final class TrCfg2JavaExpressionStmts {
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
 				} else {
-					if ("toString".equals(m.getName())
-							&& (m.getT().is(StringBuilder.class) || m.getT().is(StringBuffer.class))) {
-						if (rewriteStringAppend(bb)) {
-							break;
-						}
+					if (rewriteStringAppend(bb, cop)) {
+						break;
 					}
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 					final Expression expression = bb.pop();
@@ -1339,7 +1336,10 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!f.getName().startsWith("class$") && !f.getName().startsWith("array$")) {
 			return false;
 		}
-		// this really should now be a cached class literal, giving warnings in other cases are OK
+		if (this.cfg.getTd().getVersion() >= 49) {
+			log("Class literal caching isn't necessary anymore in JDK 5!");
+		}
+		// now this really should be a cached class literal, giving warnings in other cases are OK
 		try {
 			if (bb.getOps() == 1) {
 				// JDK-Bytecode mode
@@ -1930,7 +1930,7 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
-	private boolean rewriteStringAppend(final BB bb) {
+	private boolean rewriteStringAppend(final BB bb, final INVOKE op) {
 		// method-invoke for StringBuffer.toString() or StringBuilder.toString()
 
 		// jdk1.1.6:
@@ -1943,6 +1943,12 @@ public final class TrCfg2JavaExpressionStmts {
 		// new StringBuilder(String.valueOf(super.toString())).append(" TEST").toString()
 
 		// ..."" at the beginning or end are handled very differently...
+
+		final M m = op.getM();
+		if (!"toString".equals(m.getName()) || !m.getT().is(StringBuilder.class)
+				&& !m.getT().is(StringBuffer.class)) {
+			return false;
+		}
 		try {
 			Expression stringExpression = null;
 			Expression appendExpression = bb.peek();
