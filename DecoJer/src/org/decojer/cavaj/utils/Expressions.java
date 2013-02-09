@@ -28,12 +28,14 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParamT.TypeArg;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
@@ -43,6 +45,7 @@ import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParameterizedType;
 import org.eclipse.jdt.core.dom.ParenthesizedExpression;
+import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.StringLiteral;
@@ -66,6 +69,8 @@ public final class Expressions {
 
 	private static final String PROP_LITERAL_VALUE = "propLiteralValue";
 
+	public static final String PROP_OP = "prop_op";
+
 	/**
 	 * Decompile literal.
 	 * 
@@ -75,10 +80,13 @@ public final class Expressions {
 	 *            literal value
 	 * @param td
 	 *            type declaration (context)
+	 * @param op
+	 *            originating operation
 	 * @return AST Expression
 	 */
-	public static Expression decompileLiteral(final T t, final Object value, final TD td) {
-		final Expression e = decompileLiteral2(t, value, td);
+	public static Expression decompileLiteral(final T t, final Object value, final TD td,
+			final Op op) {
+		final Expression e = setOp(decompileLiteral2(t, value, td), op);
 		e.setProperty(PROP_LITERAL_VALUE, value);
 		return e;
 	}
@@ -511,11 +519,38 @@ public final class Expressions {
 		return null;
 	}
 
-	private static boolean isNot(final Expression expression) {
-		if (!(expression instanceof PrefixExpression)) {
-			return false;
-		}
-		return ((PrefixExpression) expression).getOperator() == PrefixExpression.Operator.NOT;
+	/**
+	 * Get originating operation.
+	 * 
+	 * @param node
+	 *            AST node
+	 * @return originating operation
+	 */
+	public static Op getOp(final ASTNode node) {
+		return (Op) node.getProperty(PROP_OP);
+	}
+
+	/**
+	 * New assignment expression.
+	 * 
+	 * @param operator
+	 *            assignment expression operator
+	 * @param leftOperand
+	 *            left operand expression
+	 * @param rightOperand
+	 *            right operand expression
+	 * @param op
+	 *            originating operation
+	 * @return expression
+	 */
+	public static Assignment newAssignment(final Assignment.Operator operator,
+			final Expression leftOperand, final Expression rightOperand, final Op op) {
+		final Assignment assignment = setOp(leftOperand.getAST().newAssignment(), op);
+		assignment.setOperator(operator);
+		final int operatorPriority = Priority.priority(assignment).getPriority();
+		assignment.setLeftHandSide(wrap(leftOperand, operatorPriority));
+		assignment.setRightHandSide(wrap(rightOperand, operatorPriority));
+		return assignment;
 	}
 
 	/**
@@ -527,11 +562,13 @@ public final class Expressions {
 	 *            left operand expression
 	 * @param rightOperand
 	 *            right operand expression
+	 * @param op
+	 *            originating operation
 	 * @return expression
 	 */
-	public static Expression newInfixExpression(final InfixExpression.Operator operator,
-			final Expression leftOperand, final Expression rightOperand) {
-		final InfixExpression infixExpression = leftOperand.getAST().newInfixExpression();
+	public static InfixExpression newInfixExpression(final InfixExpression.Operator operator,
+			final Expression leftOperand, final Expression rightOperand, final Op op) {
+		final InfixExpression infixExpression = setOp(leftOperand.getAST().newInfixExpression(), op);
 		infixExpression.setOperator(operator);
 		final int operatorPriority = Priority.priority(infixExpression).getPriority();
 		infixExpression.setLeftOperand(wrap(leftOperand, operatorPriority));
@@ -544,20 +581,42 @@ public final class Expressions {
 	}
 
 	/**
+	 * New postfix expression.
+	 * 
+	 * @param operator
+	 *            postfix expression operator
+	 * @param operand
+	 *            operand expression
+	 * @param op
+	 *            originating operation
+	 * @return expression
+	 */
+	public static PostfixExpression newPostfixExpression(final PostfixExpression.Operator operator,
+			final Expression operand, final Op op) {
+		final PostfixExpression postfixExpression = setOp(operand.getAST().newPostfixExpression(),
+				op);
+		postfixExpression.setOperator(operator);
+		postfixExpression.setOperand(wrap(operand, Priority.priority(postfixExpression)));
+		return postfixExpression;
+	}
+
+	/**
 	 * New prefix expression.
 	 * 
 	 * @param operator
 	 *            prefix expression operator
 	 * @param operand
 	 *            operand expression
+	 * @param op
+	 *            originating operation
 	 * @return expression
 	 */
 	public static Expression newPrefixExpression(final PrefixExpression.Operator operator,
-			final Expression operand) {
+			final Expression operand, final Op op) {
 		if (operator == PrefixExpression.Operator.NOT) {
 			return not(operand);
 		}
-		final PrefixExpression prefixExpression = operand.getAST().newPrefixExpression();
+		final PrefixExpression prefixExpression = setOp(operand.getAST().newPrefixExpression(), op);
 		prefixExpression.setOperator(operator);
 		prefixExpression.setOperand(wrap(operand, Priority.priority(prefixExpression)));
 		return prefixExpression;
@@ -574,11 +633,12 @@ public final class Expressions {
 		if (operand instanceof ParenthesizedExpression) {
 			return not(((ParenthesizedExpression) operand).getExpression());
 		}
-		if (isNot(operand)) {
-			// !!a => a
-			return unwrap(((PrefixExpression) operand).getOperand());
-		}
-		if (operand instanceof InfixExpression) {
+		if (operand instanceof PrefixExpression) {
+			if (((PrefixExpression) operand).getOperator() == PrefixExpression.Operator.NOT) {
+				// !!a => a
+				return unwrap(((PrefixExpression) operand).getOperand());
+			}
+		} else if (operand instanceof InfixExpression) {
 			final InfixExpression infixExpression = (InfixExpression) operand;
 			if (infixExpression.getOperator() == InfixExpression.Operator.EQUALS) {
 				// operator priority doesn't change here, reuse for all such cases...
@@ -605,7 +665,6 @@ public final class Expressions {
 				infixExpression.setOperator(InfixExpression.Operator.EQUALS);
 				return infixExpression;
 			}
-
 			if (infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND
 					|| infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_OR) {
 				// operator priorities change, don't reuse
@@ -613,10 +672,9 @@ public final class Expressions {
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
 						not(infixExpression.getLeftOperand()),
-						not(infixExpression.getRightOperand()));
+						not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
-		}
-		if (operand instanceof ConditionalExpression) {
+		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible
 			final ConditionalExpression conditionalExpression = (ConditionalExpression) operand;
 			final Expression thenExpression = not(conditionalExpression.getThenExpression());
@@ -629,10 +687,27 @@ public final class Expressions {
 			}
 			return conditionalExpression;
 		}
-		final PrefixExpression prefixExpression = operand.getAST().newPrefixExpression();
+		final PrefixExpression prefixExpression = setOp(operand.getAST().newPrefixExpression(),
+				getOp(operand));
 		prefixExpression.setOperator(PrefixExpression.Operator.NOT);
-		prefixExpression.setOperand(wrap(operand, Priority.PREFIX_OR_POSTFIX));
+		prefixExpression.setOperand(wrap(operand, Priority.priority(prefixExpression)));
 		return prefixExpression;
+	}
+
+	/**
+	 * Set originating operation.
+	 * 
+	 * @param node
+	 *            AST node
+	 * @param op
+	 *            originating operation
+	 * @return expression
+	 */
+	public static <E extends ASTNode> E setOp(final E node, final Op op) {
+		if (op != null) {
+			node.setProperty(PROP_OP, op);
+		}
+		return node;
 	}
 
 	/**
@@ -663,10 +738,12 @@ public final class Expressions {
 		if (expression.getParent() == null) {
 			return expression;
 		}
-		final Expression copy = (Expression) ASTNode.copySubtree(expression.getAST(), expression);
-		final Object property = expression.getProperty(PROP_LITERAL_VALUE);
-		if (property != null) {
-			copy.setProperty(PROP_LITERAL_VALUE, property);
+		final Expression copy = setOp(
+				(Expression) ASTNode.copySubtree(expression.getAST(), expression),
+				getOp(expression));
+		final Object propLiteralValue = expression.getProperty(PROP_LITERAL_VALUE);
+		if (propLiteralValue != null) {
+			copy.setProperty(PROP_LITERAL_VALUE, propLiteralValue);
 		}
 		return copy;
 	}
@@ -676,8 +753,8 @@ public final class Expressions {
 		if (Priority.priority(e).getPriority() <= priority) {
 			return e;
 		}
-		final ParenthesizedExpression parenthesizedExpression = expression.getAST()
-				.newParenthesizedExpression();
+		final ParenthesizedExpression parenthesizedExpression = setOp(expression.getAST()
+				.newParenthesizedExpression(), getOp(expression));
 		parenthesizedExpression.setExpression(e);
 		return parenthesizedExpression;
 	}
