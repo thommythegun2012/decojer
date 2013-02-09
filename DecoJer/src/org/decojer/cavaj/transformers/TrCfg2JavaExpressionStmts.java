@@ -1346,7 +1346,7 @@ public final class TrCfg2JavaExpressionStmts {
 				if (rewriteCachedClassLiteralJdk(bb)) {
 					return true;
 				}
-			} else {
+			} else if (bb.getOps() == 2) {
 				// Eclipse-Bytecode mode
 				if (rewriteCachedClassLiteralEclipse(bb)) {
 					return true;
@@ -1361,7 +1361,8 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteCachedClassLiteralEclipse(final BB bb) {
-		// I admit this function looks very ugly...more general pattern matching would be nice!
+		// we are not very flexible here...the patterns are very special, but I don't know if more
+		// general pattern matching is even possible, kind of none-decidable?
 
 		// GET class$0 DUP JCND_NE
 		// (_POP_ PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$0 GOTO #)
@@ -1369,9 +1370,6 @@ public final class TrCfg2JavaExpressionStmts {
 
 		// ignore Exception-handling,
 		// (see Eclipse 1.2 JDT: org.eclipse.jdt.core.JDTCompilerAdapter.execute())
-		if (bb.getOps() != 2) {
-			return false;
-		}
 		if (!(bb.getOp(0) instanceof DUP)) {
 			return false;
 		}
@@ -1423,7 +1421,8 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteCachedClassLiteralJdk(final BB bb) {
-		// I admit this function looks very ugly...more general pattern matching would be nice!
+		// we are not very flexible here...the patterns are very special, but I don't know if more
+		// general pattern matching is even possible, kind of none-decidable?
 
 		// GET class$java$lang$String JCND_NE
 		// (PUSH "typeLiteral" INVOKE Class.forName DUP PUT class$java$lang$String GOTO #)
