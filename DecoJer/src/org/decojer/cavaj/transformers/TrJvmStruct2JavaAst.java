@@ -23,6 +23,10 @@
  */
 package org.decojer.cavaj.transformers;
 
+import static org.decojer.cavaj.utils.Expressions.decompileLiteral;
+import static org.decojer.cavaj.utils.Expressions.decompileType;
+import static org.decojer.cavaj.utils.Expressions.decompileTypeName;
+
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.logging.Logger;
@@ -38,7 +42,6 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.utils.Annotations;
-import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -162,13 +165,11 @@ public final class TrJvmStruct2JavaAst {
 
 		// not for enum constant declaration
 		if (fieldDeclaration instanceof FieldDeclaration) {
-			((FieldDeclaration) fieldDeclaration).setType(Expressions.decompileType(fd.getValueT(),
-					td));
+			((FieldDeclaration) fieldDeclaration).setType(decompileType(fd.getValueT(), td));
 			final Object value = fd.getValue();
 			if (value != null) {
 				// only final, non static - no arrays, class types
-				final Expression expr = Expressions.decompileLiteral(fd.getValueT(), value, td,
-						null);
+				final Expression expr = decompileLiteral(fd.getValueT(), value, td, null);
 				if (expr != null) {
 					final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
 							.fragments().get(0);
@@ -311,8 +312,8 @@ public final class TrJvmStruct2JavaAst {
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			assert md.getParamTs().length == 0;
 
-			((AnnotationTypeMemberDeclaration) methodDeclaration).setType(Expressions
-					.decompileType(md.getReturnT(), td));
+			((AnnotationTypeMemberDeclaration) methodDeclaration).setType(decompileType(
+					md.getReturnT(), td));
 		}
 	}
 
@@ -334,7 +335,7 @@ public final class TrJvmStruct2JavaAst {
 		final T[] paramTs = md.getParamTs();
 		final A[][] paramAs = md.getParamAss();
 		for (int i = 0; i < paramTs.length; ++i) {
-			final Type methodParameterType = Expressions.decompileType(paramTs[i], td);
+			final Type methodParameterType = decompileType(paramTs[i], td);
 			if (methodDeclaration.isConstructor()) {
 
 				if (i <= 1 && td.check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
@@ -384,14 +385,14 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration.parameters().add(singleVariableDeclaration);
 		}
 		// decompile return type
-		methodDeclaration.setReturnType2(Expressions.decompileType(md.getReturnT(), td));
+		methodDeclaration.setReturnType2(decompileType(md.getReturnT(), td));
 		// decompile exceptions
 		final T[] throwsTs = md.getThrowsTs();
 		if (throwsTs != null) {
 			for (final T throwT : throwsTs) {
 				// Eclipse AST expects a List<Name> for thrownExceptions, not a List<Type>:
 				// is OK - thrownExceptions cannot be generic
-				methodDeclaration.thrownExceptions().add(Expressions.decompileName(throwT, td));
+				methodDeclaration.thrownExceptions().add(decompileTypeName(throwT, td));
 			}
 		}
 	}
@@ -417,11 +418,10 @@ public final class TrJvmStruct2JavaAst {
 			typeParameter.setName(ast.newSimpleName(typeParam.getName()));
 			final T superT = typeParam.getSuperT();
 			if (!superT.isObject()) {
-				typeParameter.typeBounds()
-						.add(Expressions.decompileType(typeParam.getSuperT(), td));
+				typeParameter.typeBounds().add(decompileType(typeParam.getSuperT(), td));
 			}
 			for (final T interfaceT : typeParam.getInterfaceTs()) {
-				typeParameter.typeBounds().add(Expressions.decompileType(interfaceT, td));
+				typeParameter.typeBounds().add(decompileType(interfaceT, td));
 			}
 			typeParameters.add(typeParameter);
 		}
@@ -518,7 +518,7 @@ public final class TrJvmStruct2JavaAst {
 					if (td.getInterfaceTs() != null) {
 						for (final T interfaceT : td.getInterfaceTs()) {
 							((EnumDeclaration) typeDeclaration).superInterfaceTypes().add(
-									Expressions.decompileType(interfaceT, td));
+									decompileType(interfaceT, td));
 						}
 					}
 				}
@@ -530,12 +530,12 @@ public final class TrJvmStruct2JavaAst {
 				decompileTypeParams(td.getTypeParams(),
 						((TypeDeclaration) typeDeclaration).typeParameters(), td);
 				if (td.getSuperT() != null && !td.getSuperT().isObject()) {
-					((TypeDeclaration) typeDeclaration).setSuperclassType(Expressions
-							.decompileType(td.getSuperT(), td));
+					((TypeDeclaration) typeDeclaration).setSuperclassType(decompileType(
+							td.getSuperT(), td));
 				}
 				for (final T interfaceT : td.getInterfaceTs()) {
 					((TypeDeclaration) typeDeclaration).superInterfaceTypes().add(
-							Expressions.decompileType(interfaceT, td));
+							decompileType(interfaceT, td));
 				}
 			}
 			td.setTypeDeclaration(typeDeclaration);

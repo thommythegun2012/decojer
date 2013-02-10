@@ -67,9 +67,9 @@ public final class Expressions {
 
 	private static final String JAVA_LANG = "java.lang";
 
-	private static final String PROP_LITERAL_VALUE = "propLiteralValue";
+	public static final String PROP_OP = "propOp";
 
-	public static final String PROP_OP = "prop_op";
+	private static final String PROP_VALUE = "propValue";
 
 	/**
 	 * Decompile literal.
@@ -82,13 +82,11 @@ public final class Expressions {
 	 *            type declaration (context)
 	 * @param op
 	 *            originating operation
-	 * @return AST Expression
+	 * @return AST literal expression
 	 */
 	public static Expression decompileLiteral(final T t, final Object value, final TD td,
 			final Op op) {
-		final Expression e = setOp(decompileLiteral2(t, value, td), op);
-		e.setProperty(PROP_LITERAL_VALUE, value);
-		return e;
+		return setOp(setValue(decompileLiteral2(t, value, td), value), op);
 	}
 
 	private static Expression decompileLiteral2(final T t, final Object value, final TD td) {
@@ -345,47 +343,6 @@ public final class Expressions {
 	}
 
 	/**
-	 * Decompile type name.
-	 * 
-	 * @param t
-	 *            type
-	 * @param td
-	 *            type declaration (context)
-	 * @return AST type name
-	 */
-	public static Name decompileName(final T t, final TD td) {
-		final AST ast = td.getCu().getAst();
-		final String packageName = t.getPackageName();
-		// check if not in same package...
-		if (!Objects.equal(td.getPackageName(), t.getPackageName())) {
-			// check if at least Java default package...
-			if (JAVA_LANG.equals(packageName)) {
-				// ignore Java default package
-				return ast.newName(t.getPName());
-			}
-			// ...full name necessary
-			return ast.newName(t.getName());
-		}
-		// ...is in same package, check if not enclosed...
-		if (t.getEnclosingT() == null) {
-			return ast.newName(t.getPName());
-		}
-		// ...is enclosed
-
-		// convert inner classes separator '$' into '.',
-		// cannot use string replace because '$' is also a regular Java type name!
-		// find common name dominator and stop there, for relative inner names
-		final String name = td.getName();
-		final List<String> names = Lists.newArrayList(t.getSimpleIdentifier());
-		T enclosingT = t.getEnclosingT();
-		while (enclosingT != null && !name.startsWith(enclosingT.getName())) {
-			names.add(enclosingT.getSimpleIdentifier());
-			enclosingT = enclosingT.getEnclosingT();
-		}
-		return ast.newName(names.toArray(new String[names.size()]));
-	}
-
-	/**
 	 * Decompile type.
 	 * 
 	 * @param t
@@ -467,7 +424,48 @@ public final class Expressions {
 				return ast.newQualifiedType(qualifier, ast.newSimpleName(t.getSimpleIdentifier()));
 			}
 		}
-		return ast.newSimpleType(decompileName(t, td));
+		return ast.newSimpleType(decompileTypeName(t, td));
+	}
+
+	/**
+	 * Decompile type name.
+	 * 
+	 * @param t
+	 *            type
+	 * @param td
+	 *            type declaration (context)
+	 * @return AST type name
+	 */
+	public static Name decompileTypeName(final T t, final TD td) {
+		final AST ast = td.getCu().getAst();
+		final String packageName = t.getPackageName();
+		// check if not in same package...
+		if (!Objects.equal(td.getPackageName(), t.getPackageName())) {
+			// check if at least Java default package...
+			if (JAVA_LANG.equals(packageName)) {
+				// ignore Java default package
+				return ast.newName(t.getPName());
+			}
+			// ...full name necessary
+			return ast.newName(t.getName());
+		}
+		// ...is in same package, check if not enclosed...
+		if (t.getEnclosingT() == null) {
+			return ast.newName(t.getPName());
+		}
+		// ...is enclosed
+
+		// convert inner classes separator '$' into '.',
+		// cannot use string replace because '$' is also a regular Java type name!
+		// find common name dominator and stop there, for relative inner names
+		final String name = td.getName();
+		final List<String> names = Lists.newArrayList(t.getSimpleIdentifier());
+		T enclosingT = t.getEnclosingT();
+		while (enclosingT != null && !name.startsWith(enclosingT.getName())) {
+			names.add(enclosingT.getSimpleIdentifier());
+			enclosingT = enclosingT.getEnclosingT();
+		}
+		return ast.newName(names.toArray(new String[names.size()]));
 	}
 
 	/**
@@ -479,7 +477,7 @@ public final class Expressions {
 	 *         - true
 	 */
 	public static Boolean getBooleanValue(final Expression literal) {
-		final Object value = literal.getProperty(PROP_LITERAL_VALUE);
+		final Object value = getValue(literal);
 		if (value instanceof Boolean) {
 			return ((Boolean) value).booleanValue();
 		}
@@ -509,7 +507,7 @@ public final class Expressions {
 	 * @return integer for literal or {@code null}
 	 */
 	public static Number getNumberValue(final Expression literal) {
-		final Object value = literal.getProperty(PROP_LITERAL_VALUE);
+		final Object value = getValue(literal);
 		if (value instanceof Number) {
 			return (Number) value;
 		}
@@ -528,6 +526,20 @@ public final class Expressions {
 	 */
 	public static Op getOp(final ASTNode node) {
 		return (Op) node.getProperty(PROP_OP);
+	}
+
+	/**
+	 * Get originating literal value.
+	 * 
+	 * Cannot replace this through getInFrame(getOp()) because PUSH etc. just change unknown out
+	 * frame.
+	 * 
+	 * @param literal
+	 *            AST literal expression
+	 * @return originating literal value
+	 */
+	public static Object getValue(final Expression literal) {
+		return literal.getProperty(PROP_VALUE);
 	}
 
 	/**
@@ -711,6 +723,25 @@ public final class Expressions {
 	}
 
 	/**
+	 * Set originating literal value.
+	 * 
+	 * Cannot replace this through setOp() -> getInFrame(getOp()) because PUSH etc. just change
+	 * unknown out frame.
+	 * 
+	 * @param expression
+	 *            AST expression
+	 * @param value
+	 *            originating literal value
+	 * @return expression
+	 */
+	public static <E extends Expression> E setValue(final E expression, final Object value) {
+		if (value != null) {
+			expression.setProperty(PROP_VALUE, value);
+		}
+		return expression;
+	}
+
+	/**
 	 * Unwrap expression, means remove parathesizes.
 	 * 
 	 * We don't remove parents here, copy lazy at wrap time again.
@@ -738,14 +769,9 @@ public final class Expressions {
 		if (expression.getParent() == null) {
 			return expression;
 		}
-		final Expression copy = setOp(
-				(Expression) ASTNode.copySubtree(expression.getAST(), expression),
-				getOp(expression));
-		final Object propLiteralValue = expression.getProperty(PROP_LITERAL_VALUE);
-		if (propLiteralValue != null) {
-			copy.setProperty(PROP_LITERAL_VALUE, propLiteralValue);
-		}
-		return copy;
+		return setOp(
+				setValue((Expression) ASTNode.copySubtree(expression.getAST(), expression),
+						getValue(expression)), getOp(expression));
 	}
 
 	private static Expression wrap(final Expression expression, final int priority) {

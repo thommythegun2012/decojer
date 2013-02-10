@@ -24,9 +24,10 @@
 package org.decojer.cavaj.transformers;
 
 import static org.decojer.cavaj.utils.Expressions.decompileLiteral;
-import static org.decojer.cavaj.utils.Expressions.decompileName;
 import static org.decojer.cavaj.utils.Expressions.decompileType;
+import static org.decojer.cavaj.utils.Expressions.decompileTypeName;
 import static org.decojer.cavaj.utils.Expressions.getBooleanValue;
+import static org.decojer.cavaj.utils.Expressions.getNumberValue;
 import static org.decojer.cavaj.utils.Expressions.getOp;
 import static org.decojer.cavaj.utils.Expressions.newAssignment;
 import static org.decojer.cavaj.utils.Expressions.newInfixExpression;
@@ -78,7 +79,6 @@ import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.types.ClassT;
-import org.decojer.cavaj.utils.Expressions;
 import org.decojer.cavaj.utils.Priority;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
@@ -279,8 +279,8 @@ public final class TrCfg2JavaExpressionStmts {
 						arrayCreation.setInitializer(arrayInitializer);
 						// TODO for higher performance and for full array creation removement we
 						// could defer the 0-fill and rewrite to the final A/STORE phase
-						final Number size = Expressions.getNumberValue((Expression) arrayCreation
-								.dimensions().get(0));
+						final Number size = getNumberValue((Expression) arrayCreation.dimensions()
+								.get(0));
 						// not all indexes may be set, null/0/false in JVM 7 are not set, fill
 						for (int i = size.intValue(); i-- > 0;) {
 							arrayInitializer.expressions().add(
@@ -288,8 +288,7 @@ public final class TrCfg2JavaExpressionStmts {
 						}
 						arrayCreation.dimensions().clear();
 					}
-					arrayInitializer.expressions().set(
-							Expressions.getNumberValue(indexExpression).intValue(),
+					arrayInitializer.expressions().set(getNumberValue(indexExpression).intValue(),
 							wrap(rightOperand));
 					break;
 				}
@@ -428,7 +427,8 @@ public final class TrCfg2JavaExpressionStmts {
 					// Eclipse AST expects a Name for f.getT(), not a Type:
 					// is OK - f.getT() cannot be generic
 					bb.push(setOp(
-							getAst().newQualifiedName(decompileName(f.getT(), this.cfg.getTd()),
+							getAst().newQualifiedName(
+									decompileTypeName(f.getT(), this.cfg.getTd()),
 									getAst().newSimpleName(f.getName())), op));
 					break;
 				}
@@ -585,7 +585,7 @@ public final class TrCfg2JavaExpressionStmts {
 				} else if (m.isStatic()) {
 					final MethodInvocation methodInvocation = setOp(getAst().newMethodInvocation(),
 							op);
-					methodInvocation.setExpression(decompileName(m.getT(), this.cfg.getTd()));
+					methodInvocation.setExpression(decompileTypeName(m.getT(), this.cfg.getTd()));
 					methodInvocation.setName(getAst().newSimpleName(m.getName()));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
@@ -889,7 +889,7 @@ public final class TrCfg2JavaExpressionStmts {
 				Expression leftOperand;
 				if (f.isStatic()) {
 					leftOperand = getAst().newQualifiedName(
-							decompileName(f.getT(), this.cfg.getTd()),
+							decompileTypeName(f.getT(), this.cfg.getTd()),
 							getAst().newSimpleName(f.getName()));
 				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
@@ -2016,6 +2016,9 @@ public final class TrCfg2JavaExpressionStmts {
 				return false;
 			}
 			final Expression enumSwitchExpression = indexMethodInvocation.getExpression();
+
+			final T enumT = ((INVOKE) getOp(indexMethodInvocation)).getM().getT();
+			// TODO yey, have it...
 
 			final Expression array = arrayAccess.getArray();
 			if (array instanceof QualifiedName) {
