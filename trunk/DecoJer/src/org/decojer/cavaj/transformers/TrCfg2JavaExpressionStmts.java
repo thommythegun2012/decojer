@@ -2021,27 +2021,29 @@ public final class TrCfg2JavaExpressionStmts {
 			// TODO yey, have it...
 
 			final Expression array = arrayAccess.getArray();
-			if (array instanceof QualifiedName) {
+			final Op arrayOp = getOp(array);
+			if (arrayOp instanceof GET) {
 				// JDK-Bytecode mode: map in different class file
-				final String switchMapTypeName = this.cfg.getTd().getPackageName() + "."
-						+ ((SimpleName) ((QualifiedName) array).getQualifier()).getIdentifier();
-				final TD td = this.cfg.getDu().getTd(switchMapTypeName);
-				final String fieldName = ((QualifiedName) array).getName().getIdentifier();
-				// td.getT().getF(fieldName, "hmmm????").getFd();
+				assert array instanceof QualifiedName : array.getClass();
+
+				final F arrayF = ((GET) arrayOp).getF();
 
 				if (this.cfg.getTd().getVersion() < 49) {
-					log("Enumerations switches are not known before JVM 5! Rewriting anayway, check this.");
+					log("Enumerations switches are not known before JVM 5! Rewriting anyway, check this.");
 				}
 				final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
 				switchStatement.setExpression(wrap(enumSwitchExpression));
 				bb.addStmt(switchStatement);
 				return true;
 			}
-			if (array instanceof MethodInvocation) {
+			if (arrayOp instanceof INVOKE) {
 				// Eclipse-Bytecode mode: map in same class file
+				assert array instanceof MethodInvocation : array.getClass();
+
+				final M arrayM = ((INVOKE) arrayOp).getM();
 
 				if (this.cfg.getTd().getVersion() < 49) {
-					log("Enumerations switches are not known before JVM 5! Rewriting anayway, check this.");
+					log("Enumerations switches are not known before JVM 5! Rewriting anyway, check this.");
 				}
 				final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
 				switchStatement.setExpression(wrap(enumSwitchExpression));
@@ -2096,7 +2098,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// TODO
 
 				if (this.cfg.getTd().getVersion() < 51) {
-					log("String switches are not known before JVM 7! Rewriting anayway, check this.");
+					log("String switches are not known before JVM 7! Rewriting anyway, check this.");
 				}
 				final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
 				switchStatement.setExpression(wrap(stringSwitchExpression));
@@ -2120,7 +2122,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// TODO
 
 				if (this.cfg.getTd().getVersion() < 51) {
-					log("String switches are not known before JVM 7! Rewriting anayway, check this.");
+					log("String switches are not known before JVM 7! Rewriting anyway, check this.");
 				}
 				final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
 				switchStatement.setExpression(wrap(stringSwitchExpression));
