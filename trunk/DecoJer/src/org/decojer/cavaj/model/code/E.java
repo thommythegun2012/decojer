@@ -239,9 +239,9 @@ public final class E {
 		if (!isSwitchCase()) {
 			return false;
 		}
-		final Object[] iValues = (Object[]) this.value;
-		for (int i = iValues.length; i-- > 0;) {
-			if (iValues[i] == null) {
+		final Object[] caseValues = (Object[]) this.value;
+		for (int i = caseValues.length; i-- > 0;) {
+			if (caseValues[i] == null) {
 				return true;
 			}
 		}
