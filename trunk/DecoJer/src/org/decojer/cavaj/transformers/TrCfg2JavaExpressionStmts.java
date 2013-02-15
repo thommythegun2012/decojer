@@ -2030,7 +2030,8 @@ public final class TrCfg2JavaExpressionStmts {
 			final Expression array = arrayAccess.getArray();
 			final Op arrayOp = getOp(array);
 			if (arrayOp instanceof GET) {
-				// JDK-Bytecode mode: map in different class file - or general in initializer
+				// JDK-Bytecode mode: map in different class file - or general in a field with
+				// static initializer
 				assert array instanceof QualifiedName : array.getClass();
 
 				final F arrayF = ((GET) arrayOp).getF();
