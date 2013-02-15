@@ -56,7 +56,6 @@ import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.V;
-import org.decojer.cavaj.model.code.ops.ASTORE;
 import org.decojer.cavaj.model.code.ops.CAST;
 import org.decojer.cavaj.model.code.ops.CmpType;
 import org.decojer.cavaj.model.code.ops.DUP;
@@ -83,6 +82,7 @@ import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Priority;
+import org.decojer.cavaj.utils.SwitchTypes;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.ArrayAccess;
@@ -133,7 +133,6 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 /**
  * Transformer: CFG to Java Expression Statements ASTs.
@@ -149,120 +148,6 @@ public final class TrCfg2JavaExpressionStmts {
 			final Op op) {
 		final Expression rightOperand = bb.pop(); // keep order
 		return newInfixExpression(operator, bb.pop(), rightOperand, op);
-	}
-
-	private static boolean rewriteSwitchChar(final BB bb) {
-		for (final E out : bb.getOuts()) {
-			if (!out.isSwitchCase()) {
-				continue;
-			}
-			final Object[] caseValues = (Object[]) out.getValue();
-			for (int i = caseValues.length; i-- > 0;) {
-				final Object caseValue = caseValues[i];
-				if (!(caseValue instanceof Integer)) {
-					assert caseValue == null; // default
-
-					continue;
-				}
-				caseValues[i] = Character.valueOf((char) ((Integer) caseValue).intValue());
-			}
-		}
-		return true;
-	}
-
-	/**
-	 * Extract from bytecode for enumeration-switches the case value map: index to enum field.
-	 * 
-	 * @param md
-	 *            method containing the map.
-	 * @param enumT
-	 *            enum type for filtering
-	 * @return case value map: index to enum field
-	 */
-	private static Map<Integer, F> rewriteSwitchEnumExtractMap(final MD md, final T enumT) {
-		// very simplistic matcher and may have false positives with obfuscated / strange bytecode,
-		// works for JDK / Eclipse
-		final Map<Integer, F> index2enums = Maps.newHashMap();
-		final Op[] ops = md.getCfg().getOps();
-		final int length = ops.length - 3;
-		for (int i = 0; i < length; ++i) {
-			Op op = ops[i];
-			if (!(op instanceof GET)) {
-				continue;
-			}
-			final F f = ((GET) op).getF();
-			if (!f.getT().equals(enumT)) {
-				continue;
-			}
-			op = ops[i + 1];
-			if (!(op instanceof INVOKE)) {
-				continue;
-			}
-			final M m = ((INVOKE) op).getM();
-			if (!m.getT().equals(enumT)) {
-				continue;
-			}
-			if (!m.getName().equals("ordinal") || !m.getDescriptor().equals("()I")) {
-				continue;
-			}
-			op = ops[i + 2];
-			if (!(op instanceof PUSH)) {
-				continue;
-			}
-			final Object value = ((PUSH) op).getValue();
-			if (!(value instanceof Integer)) {
-				continue;
-			}
-			op = ops[i + 3];
-			if (!(op instanceof ASTORE)) {
-				continue;
-			}
-			index2enums.put((Integer) value, f);
-			i += 3;
-		}
-		return index2enums;
-	}
-
-	/**
-	 * Rewrite enumeration- or string-switches: Apply previously extracted case value maps to
-	 * bytecode case edges.
-	 * 
-	 * @param bb
-	 *            BB
-	 * @param index2enum
-	 *            case value map: index to value (enum field or string)
-	 * @return {@code true}- success
-	 */
-	private static boolean rewriteSwitchValues(final BB bb, final Map<Integer, ?> index2enum) {
-		for (final E out : bb.getOuts()) {
-			if (!out.isSwitchCase()) {
-				continue;
-			}
-			// check for all or nothing...
-			for (final Object caseValue : (Object[]) out.getValue()) {
-				if (!(caseValue instanceof Integer)) {
-					assert caseValue == null; // default
-
-					continue;
-				}
-				if (!index2enum.containsKey(caseValue)) {
-					return false;
-				}
-			}
-		}
-		for (final E out : bb.getOuts()) {
-			if (!out.isSwitchCase()) {
-				continue;
-			}
-			final Object[] caseValues = (Object[]) out.getValue();
-			for (int i = caseValues.length; i-- > 0;) {
-				final Integer caseValue = (Integer) caseValues[i];
-				if (caseValue != null) {
-					caseValues[i] = index2enum.get(caseValue);
-				}
-			}
-		}
-		return true;
 	}
 
 	/**
@@ -1114,7 +999,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				final T t = peekT(op);
 				if (t == T.CHAR) {
-					rewriteSwitchChar(bb);
+					SwitchTypes.rewriteCases2Char(bb);
 				}
 				final SwitchStatement switchStatement = getAst().newSwitchStatement();
 				switchStatement.setExpression(wrap(switchExpression));
@@ -2127,17 +2012,17 @@ public final class TrCfg2JavaExpressionStmts {
 
 				final F arrayF = ((GET) arrayOp).getF();
 				final MD md = arrayF.getFd().getParent().getInitializer();
-				index2enum = rewriteSwitchEnumExtractMap(md, enumT);
+				index2enum = SwitchTypes.extractIndex2Enum(md, enumT);
 			} else if (arrayOp instanceof INVOKE) {
 				// Eclipse-Bytecode mode: map in same class file
 				assert array instanceof MethodInvocation : array.getClass();
 
 				final M arrayM = ((INVOKE) arrayOp).getM();
-				index2enum = rewriteSwitchEnumExtractMap(arrayM.getMd(), enumT);
+				index2enum = SwitchTypes.extractIndex2Enum(arrayM.getMd(), enumT);
 			} else {
 				return false;
 			}
-			if (!rewriteSwitchValues(bb, index2enum)) {
+			if (!SwitchTypes.rewriteCaseValues(bb, index2enum)) {
 				return false;
 			}
 			if (this.cfg.getTd().getVersion() < 49) {
