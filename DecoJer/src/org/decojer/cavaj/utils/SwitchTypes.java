@@ -102,32 +102,6 @@ public class SwitchTypes {
 	}
 
 	/**
-	 * Rewrite char-switches.
-	 * 
-	 * @param bb
-	 *            BB
-	 * @return {@code true}- success
-	 */
-	public static boolean rewriteCases2Char(final BB bb) {
-		for (final E out : bb.getOuts()) {
-			if (!out.isSwitchCase()) {
-				continue;
-			}
-			final Object[] caseValues = (Object[]) out.getValue();
-			for (int i = caseValues.length; i-- > 0;) {
-				final Object caseValue = caseValues[i];
-				if (!(caseValue instanceof Integer)) {
-					assert caseValue == null; // default
-
-					continue;
-				}
-				caseValues[i] = Character.valueOf((char) ((Integer) caseValue).intValue());
-			}
-		}
-		return true;
-	}
-
-	/**
 	 * Rewrite enumeration- or string-switches: Apply previously extracted case value maps to
 	 * bytecode case edges.
 	 * 
@@ -135,7 +109,7 @@ public class SwitchTypes {
 	 *            BB
 	 * @param index2enum
 	 *            case value map: index to value (enum field or string)
-	 * @return {@code true}- success
+	 * @return {@code true} - success
 	 */
 	public static boolean rewriteCaseValues(final BB bb, final Map<Integer, ?> index2enum) {
 		for (final E out : bb.getOuts()) {
