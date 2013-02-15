@@ -47,7 +47,6 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.BB;
@@ -1988,37 +1987,35 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private boolean rewriteSwitchEnum(final BB bb, final SWITCH op,
 			final Expression switchExpression) {
+		// we shouldn't do this earlier at the operations level because the switchExpression could
+		// be very complex
 		if (!(switchExpression instanceof ArrayAccess)) {
 			return false;
 		}
 		final ArrayAccess arrayAccess = (ArrayAccess) switchExpression;
 		try {
-			final MethodInvocation indexMethodInvocation = (MethodInvocation) arrayAccess
+			final MethodInvocation ordinalMethodInvocation = (MethodInvocation) arrayAccess
 					.getIndex();
-			if (!"ordinal".equals(indexMethodInvocation.getName().getIdentifier())
-					|| !indexMethodInvocation.arguments().isEmpty()) {
+			final M ordinalM = ((INVOKE) getOp(ordinalMethodInvocation)).getM();
+			if (!"ordinal".equals(ordinalM.getName()) || !"()I".equals(ordinalM.getDescriptor())) {
 				return false;
 			}
-			final Expression enumSwitchExpression = indexMethodInvocation.getExpression();
-
-			final T enumT = ((INVOKE) getOp(indexMethodInvocation)).getM().getT();
-
 			final Map<Integer, F> index2enum;
 			final Expression array = arrayAccess.getArray();
 			final Op arrayOp = getOp(array);
 			if (arrayOp instanceof GET) {
-				// JDK-Bytecode mode: map in different class file
+				// JDK-Bytecode mode: map in different class file - or general in initializer
 				assert array instanceof QualifiedName : array.getClass();
 
 				final F arrayF = ((GET) arrayOp).getF();
-				final MD md = arrayF.getFd().getParent().getInitializer();
-				index2enum = SwitchTypes.extractIndex2Enum(md, enumT);
+				index2enum = SwitchTypes.extractIndex2Enum(arrayF.getFd().getParent()
+						.getInitializer(), ordinalM.getT());
 			} else if (arrayOp instanceof INVOKE) {
-				// Eclipse-Bytecode mode: map in same class file
+				// Eclipse-Bytecode mode: map in same class file - or general in a function
 				assert array instanceof MethodInvocation : array.getClass();
 
 				final M arrayM = ((INVOKE) arrayOp).getM();
-				index2enum = SwitchTypes.extractIndex2Enum(arrayM.getMd(), enumT);
+				index2enum = SwitchTypes.extractIndex2Enum(arrayM.getMd(), ordinalM.getT());
 			} else {
 				return false;
 			}
@@ -2029,7 +2026,7 @@ public final class TrCfg2JavaExpressionStmts {
 				log("Enumerations switches are not known before JVM 5! Rewriting anyway, check this.");
 			}
 			final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
-			switchStatement.setExpression(wrap(enumSwitchExpression));
+			switchStatement.setExpression(wrap(ordinalMethodInvocation.getExpression()));
 			bb.addStmt(switchStatement);
 			return true;
 		} catch (final ClassCastException e) {
@@ -2040,21 +2037,20 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private boolean rewriteSwitchString(final BB bb, final SWITCH op,
 			final Expression switchExpression) {
-		// we shouldn't do this earlier at the operations level, because the switchExpression could
-		// be very complex (e.g. method call with conditional in Eclipse-Bytecode etc.),
-		// but for the following sub-conditions it's ok to rewrite on operations level,
-		// we are not very flexible here...the patterns are very special, but I don't know if more
-		// general pattern matching is even possible, kind of none-decidable?
-		// obfuscators or different compilers could currently easily sabotage this method...
+		// we shouldn't do this earlier at the operations level because the switchExpression could
+		// be very complex (may be possible here because of single stack entry before patterns)
 		if (!(switchExpression instanceof MethodInvocation)) {
 			return false;
 		}
-		final MethodInvocation methodInvocation = (MethodInvocation) switchExpression;
-		if (!"hashCode".equals(methodInvocation.getName().getIdentifier())
-				|| !methodInvocation.arguments().isEmpty()) {
+		final MethodInvocation hashMethodInvocation = (MethodInvocation) switchExpression;
+		final M hashM = ((INVOKE) getOp(hashMethodInvocation)).getM();
+		if (!"hashCode".equals(hashM.getName()) || !"()I".equals(hashM.getDescriptor())) {
 			return false;
 		}
-		Expression stringSwitchExpression = methodInvocation.getExpression();
+		Expression stringSwitchExpression = hashMethodInvocation.getExpression();
+		// we are not very flexible here...the patterns are very special, but I don't know if more
+		// general pattern matching is even possible, kind of none-decidable?
+		// obfuscators or different compilers could currently easily sabotage this method...
 		if (stringSwitchExpression instanceof SimpleName) {
 			// JDK-Bytecode mode: 2 switches, first switch assigns index
 			try {
