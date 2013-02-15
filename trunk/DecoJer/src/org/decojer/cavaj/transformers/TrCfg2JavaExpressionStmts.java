@@ -150,6 +150,32 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	/**
+	 * Rewrite char-switches.
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - success
+	 */
+	private static boolean rewriteSwitchChar(final BB bb) {
+		for (final E out : bb.getOuts()) {
+			if (!out.isSwitchCase()) {
+				continue;
+			}
+			final Object[] caseValues = (Object[]) out.getValue();
+			for (int i = caseValues.length; i-- > 0;) {
+				final Object caseValue = caseValues[i];
+				if (!(caseValue instanceof Integer)) {
+					assert caseValue == null; // default
+
+					continue;
+				}
+				caseValues[i] = Character.valueOf((char) ((Integer) caseValue).intValue());
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Transform CFG.
 	 * 
 	 * @param cfg
@@ -998,7 +1024,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				final T t = peekT(op);
 				if (t == T.CHAR) {
-					SwitchTypes.rewriteCases2Char(bb);
+					rewriteSwitchChar(bb);
 				}
 				final SwitchStatement switchStatement = getAst().newSwitchStatement();
 				switchStatement.setExpression(wrap(switchExpression));
