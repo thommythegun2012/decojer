@@ -435,6 +435,10 @@ public final class TrCfg2JavaControlFlowStmts {
 						if (caseValue instanceof Character) {
 							switchCase.setExpression(decompileLiteral(T.CHAR, caseValue,
 									this.cfg.getTd(), op));
+						} else if (caseValue instanceof String) {
+							switchCase.setExpression(decompileLiteral(
+									this.cfg.getDu().getT(String.class), caseValue,
+									this.cfg.getTd(), op));
 						} else if (caseValue instanceof F) {
 							switchCase.setExpression(getAst().newSimpleName(
 									((F) caseValue).getName()));
