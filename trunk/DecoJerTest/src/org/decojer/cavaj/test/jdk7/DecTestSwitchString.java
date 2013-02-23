@@ -1,6 +1,6 @@
 package org.decojer.cavaj.test.jdk7;
 
-public abstract class DecTestSwitchStmt {
+public abstract class DecTestSwitchString {
 
 	public static void testSwitchString(final String s) {
 		switch (s) {
@@ -27,6 +27,19 @@ public abstract class DecTestSwitchStmt {
 		case "STR3":
 			System.out.println("STRING3");
 			break;
+		case "STR4":
+			System.out.println("STRING4");
+		}
+	}
+
+	public static void testSwitchStringDefault2(final String s) {
+		switch (s) {
+		case "STR0":
+			System.out.println("STRING3");
+		case "STR1":
+		case "STR2":
+		default:
+			System.out.println("default");
 		case "STR4":
 			System.out.println("STRING4");
 		}

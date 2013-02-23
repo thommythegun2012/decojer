@@ -1,7 +1,6 @@
 package org.decojer.cavaj.test.jdk5;
 
-
-public abstract class DecTestSwitchStmt {
+public abstract class DecTestSwitchEnum {
 
 	public static void testChar(final char c) {
 		switch (c) {
