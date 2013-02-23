@@ -24,6 +24,7 @@
 package org.decojer.cavaj.utils;
 
 import java.util.Map;
+import java.util.Stack;
 
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
@@ -32,8 +33,11 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.ops.ASTORE;
+import org.decojer.cavaj.model.code.ops.CmpType;
 import org.decojer.cavaj.model.code.ops.GET;
 import org.decojer.cavaj.model.code.ops.INVOKE;
+import org.decojer.cavaj.model.code.ops.JCND;
+import org.decojer.cavaj.model.code.ops.LOAD;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.PUSH;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
@@ -47,6 +51,70 @@ import com.google.common.collect.Maps;
  * @see TrCfg2JavaExpressionStmts
  */
 public class SwitchTypes {
+
+	public static class StringBB {
+
+		String str;
+
+		BB bb;
+
+		public StringBB(final String str, final BB bb) {
+			this.str = str;
+			this.bb = bb;
+		}
+
+	}
+
+	private static StringBB executeBbStringHashCond(final BB caseBb, final int stringReg,
+			final int hash) {
+		final Stack<Object> stack = new Stack<Object>();
+		String str = null;
+		for (int i = 0; i < caseBb.getOps(); ++i) {
+			final Op op = caseBb.getOp(i);
+			switch (op.getOptype()) {
+			case LOAD:
+				stack.push(((LOAD) op).getReg());
+				break;
+			case PUSH:
+				stack.push(((PUSH) op).getValue());
+				break;
+			case INVOKE:
+				final M m = ((INVOKE) op).getM();
+				if (!"equals".equals(m.getName())
+						|| !"(Ljava/lang/Object;)Z".equals(m.getDescriptor())) {
+					return null;
+				}
+				final Object value = stack.pop();
+				if (!(value instanceof String)) {
+					return null;
+				}
+				if (value.hashCode() != hash) {
+					return null;
+				}
+				final Object reg = stack.pop();
+				if ((Integer) reg != stringReg) {
+					return null;
+				}
+				stack.push(true);
+				str = (String) value;
+				break;
+			case JCND:
+				final Object equalsResult = stack.pop();
+				if (!(equalsResult instanceof Boolean)) {
+					return null;
+				}
+				boolean dir = ((Boolean) equalsResult).booleanValue();
+				if (((JCND) op).getCmpType() == CmpType.T_EQ) {
+					dir = !dir;
+				}
+				// we could/should also check the other direction for secure pattern?
+				return new StringBB(str, dir ? caseBb.getTrueSucc() : caseBb.getFalseSucc());
+			default:
+				return null;
+			}
+		}
+		return null;
+	}
 
 	/**
 	 * Extract from bytecode for enumeration-switches the case value map: index to enum field.
@@ -102,6 +170,40 @@ public class SwitchTypes {
 	}
 
 	/**
+	 * Extract from bytecode for string-switches the case value map: hash to BB.
+	 * 
+	 * @param bb
+	 *            BB
+	 * @param stringReg
+	 *            string register
+	 * @return case value map: hash to BB
+	 */
+	public static Map<Integer, StringBB> extractStringHash2bb(final BB bb, final int stringReg) {
+		final Map<Integer, StringBB> hash2bb = Maps.newHashMap();
+		for (final E out : bb.getOuts()) {
+			if (!out.isSwitchCase()) {
+				assert out.isCatch() : out;
+
+				continue;
+			}
+			final Object[] values = (Object[]) out.getValue();
+			assert values.length == 1 : values.length;
+
+			final Object value = values[0];
+			if (value == null) {
+				continue;
+			}
+			final StringBB nextBb = executeBbStringHashCond(out.getEnd(), stringReg,
+					(Integer) value);
+			if (nextBb == null) {
+				return null;
+			}
+			hash2bb.put((Integer) value, nextBb);
+		}
+		return hash2bb;
+	}
+
+	/**
 	 * Rewrite enumeration- or string-switches: Apply previously extracted case value maps to
 	 * bytecode case edges.
 	 * 
@@ -141,6 +243,23 @@ public class SwitchTypes {
 			}
 		}
 		return true;
+	}
+
+	public static void rewriteStringCase(final BB bb, final Map<Integer, StringBB> hash2bb) {
+		for (final E out : bb.getOuts()) {
+			if (!out.isSwitchCase()) {
+				continue;
+			}
+			final Object[] caseValues = (Object[]) out.getValue();
+			for (int i = caseValues.length; i-- > 0;) {
+				final Integer caseValue = (Integer) caseValues[i];
+				if (caseValue != null) {
+					final StringBB stringBB = hash2bb.get(caseValue);
+					caseValues[i] = stringBB.str;
+
+				}
+			}
+		}
 	}
 
 }

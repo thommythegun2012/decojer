@@ -82,6 +82,7 @@ import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Priority;
 import org.decojer.cavaj.utils.SwitchTypes;
+import org.decojer.cavaj.utils.SwitchTypes.StringBB;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.ArrayAccess;
@@ -2100,6 +2101,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				stringSwitchExpression = assignment2.getRightHandSide();
 
+				final Map<Integer, StringBB> hash2bb = SwitchTypes.extractStringHash2bb(bb, 1);
 				// TODO
 
 				if (this.cfg.getTd().getVersion() < 51) {
@@ -2124,7 +2126,11 @@ public final class TrCfg2JavaExpressionStmts {
 				final String tmpReg = ((SimpleName) assignment.getLeftHandSide()).getIdentifier();
 				stringSwitchExpression = assignment.getRightHandSide();
 
-				// TODO
+				final Map<Integer, StringBB> hash2bb = SwitchTypes.extractStringHash2bb(bb, 1);
+				if (hash2bb == null) {
+					return false;
+				}
+				SwitchTypes.rewriteStringCase(bb, hash2bb);
 
 				if (this.cfg.getTd().getVersion() < 51) {
 					log("String switches are not known before JVM 7! Rewriting anyway, check this.");
