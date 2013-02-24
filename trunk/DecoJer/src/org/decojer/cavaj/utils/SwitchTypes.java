@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.utils;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -107,6 +108,7 @@ public class SwitchTypes {
 				if (((JCND) op).getCmpType() == CmpType.T_EQ) {
 					dir = !dir;
 				}
+				// TODO not fully working, hash collisions chain ifs...
 				// we could/should also check the other direction for secure pattern?
 				return new StringBB(str, dir ? caseBb.getTrueSucc() : caseBb.getFalseSucc());
 			default:
@@ -246,19 +248,34 @@ public class SwitchTypes {
 	}
 
 	public static void rewriteStringCase(final BB bb, final Map<Integer, StringBB> hash2bb) {
-		for (final E out : bb.getOuts()) {
+		// delete all outgoing switch cases and replace with BB
+		final List<E> outs = bb.getOuts();
+		rewriteCase: for (int i = outs.size(); i-- > 0;) {
+			final E out = outs.get(i);
 			if (!out.isSwitchCase()) {
 				continue;
 			}
-			final Object[] caseValues = (Object[]) out.getValue();
-			for (int i = caseValues.length; i-- > 0;) {
-				final Integer caseValue = (Integer) caseValues[i];
-				if (caseValue != null) {
-					final StringBB stringBB = hash2bb.get(caseValue);
-					caseValues[i] = stringBB.str;
+			if (out.isSwitchDefault()) {
+				continue;
+			}
+			Object[] values = (Object[]) out.getValue();
+			assert values.length == 1 : values.length;
 
+			// TODO not fully working, hash collisions chain ifs...
+			final StringBB stringBb = hash2bb.get(values[0]);
+			for (final E in : stringBb.bb.getIns()) {
+				if (in.getStart() == bb) {
+					values = (Object[]) in.getValue();
+					final Object[] newValues = new Object[values.length + 1];
+					System.arraycopy(values, 0, newValues, 0, values.length);
+					newValues[values.length] = stringBb.str;
+					in.setValue(newValues);
+					out.remove();
+					continue rewriteCase;
 				}
 			}
+			values[0] = stringBb.str;
+			out.getEnd().moveIns(stringBb.bb);
 		}
 	}
 

@@ -236,7 +236,8 @@ public final class TrControlFlowAnalysis {
 
 		final Set<BB> follows = Sets.newHashSet();
 
-		cases: for (int i = 0; i < size; ++i) {
+		int hack = 10;
+		cases: for (int i = 0; i < size && hack > 0; ++i) {
 			final E caseOut = caseOuts.get(i);
 			if (!caseOut.isSwitchCase()) {
 				continue;
@@ -294,6 +295,7 @@ public final class TrControlFlowAnalysis {
 						}
 						// we cannot be a fall-through yet...may be later
 						caseOuts.remove(i--);
+						--hack;
 						caseOuts.add(caseOut); // as last for now
 						continue cases;
 					}
