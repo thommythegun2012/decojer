@@ -26,6 +26,7 @@ package org.decojer.cavaj.model.code;
 import java.util.Arrays;
 import java.util.Comparator;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -60,15 +61,16 @@ public final class E {
 	};
 
 	@Getter
-	@Setter
+	@Setter(AccessLevel.PROTECTED)
 	private BB end;
 
 	@Getter
-	@Setter
+	@Setter(AccessLevel.PROTECTED)
 	private BB start;
 
 	@Getter
-	private final Object value;
+	@Setter
+	private Object value;
 
 	/**
 	 * Constructor.
