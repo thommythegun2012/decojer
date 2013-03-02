@@ -78,7 +78,7 @@ http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
       * for Eclipse 3.7.2: http://dl.google.com/eclipse/plugin/3.7
       * select items:
         * _Google Plugin for Eclipse (required)_ / _Google Plugin for Eclipse 4.2_
-        * _SDK_ / _Google App Engine Java SDK 1.7.2.1_
+        * _SDK_ / _Google App Engine Java SDK 1.7.x_
       * (see under http://code.google.com/intl/de-DE/eclipse/docs/download.html)
     * Install *Eclipse WTP Plugins* (we use Eclipse for RCP!)
       * choose Update Manager: Indigo - http://download.eclipse.org/releases/indigo
