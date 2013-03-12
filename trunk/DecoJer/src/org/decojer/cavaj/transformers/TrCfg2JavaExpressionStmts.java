@@ -2035,14 +2035,14 @@ public final class TrCfg2JavaExpressionStmts {
 				assert array instanceof QualifiedName : array.getClass();
 
 				final F arrayF = ((GET) arrayOp).getF();
-				index2enum = SwitchTypes.extractIndex2Enum(arrayF.getFd().getParent()
+				index2enum = SwitchTypes.extractIndex2enum(arrayF.getFd().getParent()
 						.getInitializer(), ordinalM.getT());
 			} else if (arrayOp instanceof INVOKE) {
 				// Eclipse-Bytecode mode: map in same class file - or general in a function
 				assert array instanceof MethodInvocation : array.getClass();
 
 				final M arrayM = ((INVOKE) arrayOp).getM();
-				index2enum = SwitchTypes.extractIndex2Enum(arrayM.getMd(), ordinalM.getT());
+				index2enum = SwitchTypes.extractIndex2enum(arrayM.getMd(), ordinalM.getT());
 			} else {
 				return false;
 			}
@@ -2104,12 +2104,12 @@ public final class TrCfg2JavaExpressionStmts {
 				if (string2bb == null) {
 					return false;
 				}
-				// SwitchTypes.extractIndex2String(string2bb)
-				// TODO
-				// if (!SwitchTypes.rewriteCaseValues(bb, index2enum)) {
-				// return false;
-				// }
-
+				final Map<Integer, BB> index2string = SwitchTypes.extractIndex2string(string2bb);
+				if (index2string == null) {
+					SwitchTypes.rewriteCaseStrings(bb, string2bb);
+				} else if (!SwitchTypes.rewriteCaseValues(bb, index2string)) {
+					return false;
+				}
 				if (this.cfg.getTd().getVersion() < 51) {
 					log("String switches are not known before JVM 7! Rewriting anyway, check this.");
 				}

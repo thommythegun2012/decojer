@@ -120,7 +120,7 @@ public class SwitchTypes {
 	 *            enum type for filtering
 	 * @return case value map: index to enum field
 	 */
-	public static Map<Integer, F> extractIndex2Enum(final MD md, final T enumT) {
+	public static Map<Integer, F> extractIndex2enum(final MD md, final T enumT) {
 		// very simplistic matcher and may have false positives with obfuscated / strange bytecode,
 		// works for JDK / Eclipse
 		final Map<Integer, F> index2enums = Maps.newHashMap();
@@ -162,6 +162,18 @@ public class SwitchTypes {
 			i += 3;
 		}
 		return index2enums;
+	}
+
+	/**
+	 * Extract from bytecode for string-switches the case value map: index to string.
+	 * 
+	 * @param string2bb
+	 *            previously extracted map string to BB
+	 * @return case value map: index to string
+	 */
+	public static Map<Integer, BB> extractIndex2string(final Map<String, BB> string2bb) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	/**
