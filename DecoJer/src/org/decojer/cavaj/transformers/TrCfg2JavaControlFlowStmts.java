@@ -423,6 +423,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				if (!out.isSwitchCase()) {
 					continue;
 				}
+				boolean defaultAdded = false; // prevent [null, null] - double defaults
 				for (final Object caseValue : (Object[]) out.getValue()) {
 					if (out.isSwitchDefault() && switchStruct.getKind() == Switch.Kind.NO_DEFAULT) {
 						continue;
@@ -430,7 +431,11 @@ public final class TrCfg2JavaControlFlowStmts {
 					final SwitchCase switchCase = setOp(getAst().newSwitchCase(), op);
 					if (caseValue == null) {
 						// necessary: expression initialized to null for default case
+						if (defaultAdded) {
+							continue;
+						}
 						switchCase.setExpression(null);
+						defaultAdded = true;
 					} else {
 						if (caseValue instanceof Character) {
 							switchCase.setExpression(decompileLiteral(T.CHAR, caseValue,
