@@ -2075,6 +2075,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		Expression stringSwitchExpression = hashMethodInvocation.getExpression();
+		final BB defaultCase = bb.getSwitchDefaultOut().getRelevantEnd();
 		// we are not very flexible here...the patterns are very special, but I don't know if more
 		// general pattern matching is even possible, kind of none-decidable?
 		// obfuscators or different compilers could currently easily sabotage this method...
@@ -2100,24 +2101,34 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				stringSwitchExpression = assignment2.getRightHandSide();
 
-				final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, 1);
+				final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, 1, defaultCase);
 				if (string2bb == null) {
 					return false;
 				}
-				final Map<Integer, BB> index2string = SwitchTypes.extractIndex2string(string2bb);
+				final Map<Integer, String> index2string = SwitchTypes.extractIndex2string(
+						string2bb, 2, defaultCase);
 				if (index2string == null) {
-					SwitchTypes.rewriteCaseStrings(bb, string2bb);
-				} else if (!SwitchTypes.rewriteCaseValues(bb, index2string)) {
-					return false;
+					SwitchTypes.rewriteCaseStrings(bb, string2bb, defaultCase);
+					final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
+					switchStatement.setExpression(wrap(stringSwitchExpression));
+					bb.removeFinalStmt();
+					bb.removeFinalStmt();
+					bb.addStmt(switchStatement);
+				} else {
+					if (!SwitchTypes.rewriteCaseValues(defaultCase, index2string)) {
+						return false;
+					}
+					final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
+					switchStatement.setExpression(wrap(stringSwitchExpression));
+					bb.removeFinalStmt();
+					bb.removeFinalStmt();
+					defaultCase.removeOp(0);
+					defaultCase.joinPredBb(bb);
+					defaultCase.addStmt(switchStatement);
 				}
 				if (this.cfg.getTd().getVersion() < 51) {
 					log("String switches are not known before JVM 7! Rewriting anyway, check this.");
 				}
-				final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
-				switchStatement.setExpression(wrap(stringSwitchExpression));
-				bb.removeFinalStmt();
-				bb.removeFinalStmt();
-				bb.addStmt(switchStatement);
 				return true;
 			} catch (final ClassCastException e) {
 				// nothing
@@ -2132,11 +2143,11 @@ public final class TrCfg2JavaExpressionStmts {
 				final String tmpReg = ((SimpleName) assignment.getLeftHandSide()).getIdentifier();
 				stringSwitchExpression = assignment.getRightHandSide();
 
-				final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, 1);
+				final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, 1, defaultCase);
 				if (string2bb == null) {
 					return false;
 				}
-				SwitchTypes.rewriteCaseStrings(bb, string2bb);
+				SwitchTypes.rewriteCaseStrings(bb, string2bb, defaultCase);
 
 				if (this.cfg.getTd().getVersion() < 51) {
 					log("String switches are not known before JVM 7! Rewriting anyway, check this.");

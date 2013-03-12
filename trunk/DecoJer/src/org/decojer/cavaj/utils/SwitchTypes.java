@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.TreeMap;
 
+import org.apache.commons.lang3.ArrayUtils;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
@@ -42,6 +43,7 @@ import org.decojer.cavaj.model.code.ops.JCND;
 import org.decojer.cavaj.model.code.ops.LOAD;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.PUSH;
+import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
 import org.eclipse.jdt.annotation.Nullable;
 
@@ -57,7 +59,7 @@ import com.google.common.collect.Maps;
 public class SwitchTypes {
 
 	private static boolean executeBbStringHashCond(final BB caseBb, final int stringReg,
-			final int hash, final BB defaultBb, final Map<String, BB> string2bb) {
+			final int hash, final BB defaultCase, final Map<String, BB> string2bb) {
 		final Stack<Object> stack = new Stack<Object>();
 		String str = null;
 		for (int i = 0; i < caseBb.getOps(); ++i) {
@@ -100,10 +102,37 @@ public class SwitchTypes {
 				}
 				string2bb.put(str, dir ? caseBb.getTrueSucc() : caseBb.getFalseSucc());
 				final E out = dir ? caseBb.getFalseOut() : caseBb.getTrueOut();
-				if (out.getRelevantEnd() == defaultBb) {
+				if (out.getRelevantEnd() == defaultCase) {
 					return true;
 				}
-				return executeBbStringHashCond(out.getEnd(), stringReg, hash, defaultBb, string2bb);
+				return executeBbStringHashCond(out.getEnd(), stringReg, hash, defaultCase,
+						string2bb);
+			default:
+				return false;
+			}
+		}
+		return false;
+	}
+
+	private static boolean executeBbStringIndex(final BB caseBb, final int indexReg,
+			final String str, final BB defaultCase, final Map<Integer, String> index2string) {
+		final Stack<Object> stack = new Stack<Object>();
+		for (int i = 0; i < caseBb.getOps(); ++i) {
+			final Op op = caseBb.getOp(i);
+			switch (op.getOptype()) {
+			case PUSH:
+				stack.push(((PUSH) op).getValue());
+				break;
+			case STORE:
+				if (((STORE) op).getReg() != indexReg) {
+					return false;
+				}
+				final Object index = stack.pop();
+				if (!(index instanceof Integer)) {
+					return false;
+				}
+				index2string.put((Integer) index, str);
+				return true;
 			default:
 				return false;
 			}
@@ -169,11 +198,23 @@ public class SwitchTypes {
 	 * 
 	 * @param string2bb
 	 *            previously extracted map string to BB
+	 * @param indexReg
+	 *            index register
+	 * @param defaultCase
+	 *            default case
 	 * @return case value map: index to string
 	 */
-	public static Map<Integer, BB> extractIndex2string(final Map<String, BB> string2bb) {
-		// TODO Auto-generated method stub
-		return null;
+	@Nullable
+	public static Map<Integer, String> extractIndex2string(final Map<String, BB> string2bb,
+			final int indexReg, final BB defaultCase) {
+		final Map<Integer, String> index2string = Maps.newHashMap();
+		for (final Map.Entry<String, BB> string2bbEntry : string2bb.entrySet()) {
+			if (!executeBbStringIndex(string2bbEntry.getValue(), indexReg, string2bbEntry.getKey(),
+					defaultCase, index2string)) {
+				return null;
+			}
+		}
+		return index2string;
 	}
 
 	/**
@@ -183,14 +224,13 @@ public class SwitchTypes {
 	 *            switch head
 	 * @param stringReg
 	 *            string register
+	 * @param defaultCase
+	 *            default case
 	 * @return case value map: hash to BB
 	 */
 	@Nullable
-	public static Map<String, BB> extractString2bb(final BB switchHead, final int stringReg) {
-		final E defaultOut = switchHead.getSwitchDefaultOut();
-		if (defaultOut == null) {
-			return null;
-		}
+	public static Map<String, BB> extractString2bb(final BB switchHead, final int stringReg,
+			final BB defaultCase) {
 		// remember string order: linked!
 		final Map<String, BB> string2bb = Maps.newLinkedHashMap();
 		for (final E out : switchHead.getOuts()) {
@@ -206,15 +246,16 @@ public class SwitchTypes {
 			if (value == null) {
 				continue; // ignore default
 			}
-			if (!executeBbStringHashCond(out.getEnd(), stringReg, (Integer) value,
-					defaultOut.getRelevantEnd(), string2bb)) {
+			if (!executeBbStringHashCond(out.getEnd(), stringReg, (Integer) value, defaultCase,
+					string2bb)) {
 				return null;
 			}
 		}
 		return string2bb;
 	}
 
-	public static void rewriteCaseStrings(final BB switchHead, final Map<String, BB> string2bb) {
+	public static void rewriteCaseStrings(final BB switchHead, final Map<String, BB> string2bb,
+			final BB defaultCase) {
 		// remember old switch case edges, delete later
 		final List<E> outs = switchHead.getOuts();
 		int i = outs.size();
@@ -233,8 +274,7 @@ public class SwitchTypes {
 			caseValues.add(string2bbEntry.getKey());
 		}
 		// add default branch
-		final BB defaultBb = switchHead.getSwitchDefaultOut().getEnd();
-		final int defaultPc = defaultBb.getPc();
+		final int defaultPc = defaultCase.getPc();
 		List<String> caseValues = casePc2values.get(defaultPc);
 		if (caseValues == null) {
 			caseValues = Lists.newArrayList();
@@ -246,7 +286,7 @@ public class SwitchTypes {
 		for (final Map.Entry<Integer, List<String>> casePc2valuesEntry : casePc2values.entrySet()) {
 			caseValues = casePc2valuesEntry.getValue();
 			final String caseValue = caseValues.get(0);
-			switchHead.addSwitchCase(caseValue == null ? defaultBb : string2bb.get(caseValue),
+			switchHead.addSwitchCase(caseValue == null ? defaultCase : string2bb.get(caseValue),
 					caseValues.toArray(new Object[caseValues.size()]));
 		}
 
@@ -265,11 +305,12 @@ public class SwitchTypes {
 	 * 
 	 * @param switchHead
 	 *            switch head
-	 * @param index2enum
+	 * @param caseIndex2value
 	 *            case value map: index to value (enum field or string)
 	 * @return {@code true} - success
 	 */
-	public static boolean rewriteCaseValues(final BB switchHead, final Map<Integer, ?> index2enum) {
+	public static boolean rewriteCaseValues(final BB switchHead,
+			final Map<Integer, ?> caseIndex2value) {
 		for (final E out : switchHead.getOuts()) {
 			if (!out.isSwitchCase()) {
 				continue;
@@ -281,8 +322,11 @@ public class SwitchTypes {
 
 					continue;
 				}
-				if (!index2enum.containsKey(caseValue)) {
-					return false;
+				if (!caseIndex2value.containsKey(caseValue)) {
+					// OK for defaults, e.g. JDK-Bytecode string-switches create none-reachable keys
+					if (!out.isSwitchDefault()) {
+						return false;
+					}
 				}
 			}
 		}
@@ -292,10 +336,20 @@ public class SwitchTypes {
 			}
 			final Object[] caseValues = (Object[]) out.getValue();
 			for (int i = caseValues.length; i-- > 0;) {
-				final Integer caseValue = (Integer) caseValues[i];
-				if (caseValue != null) {
-					caseValues[i] = index2enum.get(caseValue);
+				final Integer caseIndex = (Integer) caseValues[i];
+				if (caseIndex == null) {
+					continue;
 				}
+				final Object caseValue = caseIndex2value.get(caseIndex);
+				// really handle this following? potential double defaults are also handled later
+				if (caseValue == null) {
+					if (caseValues.length == 1) {
+						out.remove();
+					}
+					out.setValue(ArrayUtils.remove(caseValues, i));
+					continue;
+				}
+				caseValues[i] = caseValue;
 			}
 		}
 		return true;
