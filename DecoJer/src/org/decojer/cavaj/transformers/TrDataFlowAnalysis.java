@@ -621,34 +621,35 @@ public final class TrDataFlowAnalysis {
 			final SWITCH cop = (SWITCH) op;
 
 			// build sorted map: unique case pc -> matching case keys
-			final TreeMap<Integer, List<Integer>> casePc2keys = Maps.newTreeMap();
+			final TreeMap<Integer, List<Integer>> casePc2values = Maps.newTreeMap();
 
 			// add case branches
 			final int[] caseKeys = cop.getCaseKeys();
 			final int[] casePcs = cop.getCasePcs();
 			for (int i = 0; i < caseKeys.length; ++i) {
 				final int casePc = casePcs[i];
-				List<Integer> keys = casePc2keys.get(casePc);
+				List<Integer> keys = casePc2values.get(casePc);
 				if (keys == null) {
 					keys = Lists.newArrayList();
-					casePc2keys.put(casePc, keys); // pc-sorted
+					casePc2values.put(casePc, keys); // pc-sorted
 				}
 				keys.add(caseKeys[i]);
 			}
 			// add default branch
 			final int defaultPc = cop.getDefaultPc();
-			List<Integer> keys = casePc2keys.get(defaultPc);
-			if (keys == null) {
-				keys = Lists.newArrayList();
-				casePc2keys.put(defaultPc, keys);
+			List<Integer> caseValues = casePc2values.get(defaultPc);
+			if (caseValues == null) {
+				caseValues = Lists.newArrayList();
+				casePc2values.put(defaultPc, caseValues);
 			}
-			keys.add(null);
+			caseValues.add(null);
 
 			// now add successors, preserve pc-order as edge-order
-			for (final Map.Entry<Integer, List<Integer>> casePc2keysEntry : casePc2keys.entrySet()) {
-				keys = casePc2keysEntry.getValue();
-				bb.addSwitchCase(getTargetBb(casePc2keysEntry.getKey()),
-						keys.toArray(new Object[keys.size()]));
+			for (final Map.Entry<Integer, List<Integer>> casePc2valuesEntry : casePc2values
+					.entrySet()) {
+				caseValues = casePc2valuesEntry.getValue();
+				bb.addSwitchCase(getTargetBb(casePc2valuesEntry.getKey()),
+						caseValues.toArray(new Object[caseValues.size()]));
 			}
 
 			popRead(T.INT);
