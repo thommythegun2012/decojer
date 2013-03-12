@@ -26,6 +26,7 @@ package org.decojer.cavaj.utils;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
+import java.util.TreeMap;
 
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
@@ -42,7 +43,9 @@ import org.decojer.cavaj.model.code.ops.LOAD;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.PUSH;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
+import org.eclipse.jdt.annotation.Nullable;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -53,21 +56,8 @@ import com.google.common.collect.Maps;
  */
 public class SwitchTypes {
 
-	public static class StringBB {
-
-		String str;
-
-		BB bb;
-
-		public StringBB(final String str, final BB bb) {
-			this.str = str;
-			this.bb = bb;
-		}
-
-	}
-
-	private static StringBB executeBbStringHashCond(final BB caseBb, final int stringReg,
-			final int hash) {
+	private static boolean executeBbStringHashCond(final BB caseBb, final int stringReg,
+			final int hash, final BB defaultBb, final Map<String, BB> string2bb) {
 		final Stack<Object> stack = new Stack<Object>();
 		String str = null;
 		for (int i = 0; i < caseBb.getOps(); ++i) {
@@ -83,18 +73,18 @@ public class SwitchTypes {
 				final M m = ((INVOKE) op).getM();
 				if (!"equals".equals(m.getName())
 						|| !"(Ljava/lang/Object;)Z".equals(m.getDescriptor())) {
-					return null;
+					return false;
 				}
 				final Object value = stack.pop();
 				if (!(value instanceof String)) {
-					return null;
+					return false;
 				}
 				if (value.hashCode() != hash) {
-					return null;
+					return false;
 				}
 				final Object reg = stack.pop();
 				if ((Integer) reg != stringReg) {
-					return null;
+					return false;
 				}
 				stack.push(true);
 				str = (String) value;
@@ -102,20 +92,23 @@ public class SwitchTypes {
 			case JCND:
 				final Object equalsResult = stack.pop();
 				if (!(equalsResult instanceof Boolean)) {
-					return null;
+					return false;
 				}
 				boolean dir = ((Boolean) equalsResult).booleanValue();
 				if (((JCND) op).getCmpType() == CmpType.T_EQ) {
 					dir = !dir;
 				}
-				// TODO not fully working, hash collisions chain ifs...
-				// we could/should also check the other direction for secure pattern?
-				return new StringBB(str, dir ? caseBb.getTrueSucc() : caseBb.getFalseSucc());
+				string2bb.put(str, dir ? caseBb.getTrueSucc() : caseBb.getFalseSucc());
+				final E out = dir ? caseBb.getFalseOut() : caseBb.getTrueOut();
+				if (out.getRelevantEnd() == defaultBb) {
+					return true;
+				}
+				return executeBbStringHashCond(out.getEnd(), stringReg, hash, defaultBb, string2bb);
 			default:
-				return null;
+				return false;
 			}
 		}
-		return null;
+		return false;
 	}
 
 	/**
@@ -174,49 +167,98 @@ public class SwitchTypes {
 	/**
 	 * Extract from bytecode for string-switches the case value map: hash to BB.
 	 * 
-	 * @param bb
-	 *            BB
+	 * @param switchHead
+	 *            switch head
 	 * @param stringReg
 	 *            string register
 	 * @return case value map: hash to BB
 	 */
-	public static Map<Integer, StringBB> extractStringHash2bb(final BB bb, final int stringReg) {
-		final Map<Integer, StringBB> hash2bb = Maps.newHashMap();
-		for (final E out : bb.getOuts()) {
+	@Nullable
+	public static Map<String, BB> extractString2bb(final BB switchHead, final int stringReg) {
+		final E defaultOut = switchHead.getSwitchDefaultOut();
+		if (defaultOut == null) {
+			return null;
+		}
+		// remember string order: linked!
+		final Map<String, BB> string2bb = Maps.newLinkedHashMap();
+		for (final E out : switchHead.getOuts()) {
 			if (!out.isSwitchCase()) {
-				assert out.isCatch() : out;
+				assert out.isCatch() : out; // just catch possible
 
 				continue;
 			}
 			final Object[] values = (Object[]) out.getValue();
-			assert values.length == 1 : values.length;
+			assert values.length == 1 : values.length; // just one hash possible
 
 			final Object value = values[0];
 			if (value == null) {
-				continue;
+				continue; // ignore default
 			}
-			final StringBB nextBb = executeBbStringHashCond(out.getEnd(), stringReg,
-					(Integer) value);
-			if (nextBb == null) {
+			if (!executeBbStringHashCond(out.getEnd(), stringReg, (Integer) value,
+					defaultOut.getRelevantEnd(), string2bb)) {
 				return null;
 			}
-			hash2bb.put((Integer) value, nextBb);
 		}
-		return hash2bb;
+		return string2bb;
+	}
+
+	public static void rewriteCaseStrings(final BB switchHead, final Map<String, BB> string2bb) {
+		// remember old switch case edges, delete later
+		final List<E> outs = switchHead.getOuts();
+		int i = outs.size();
+
+		// build sorted map: unique case pc -> matching case keys
+		final TreeMap<Integer, List<String>> casePc2values = Maps.newTreeMap();
+
+		// add case branches
+		for (final Map.Entry<String, BB> string2bbEntry : string2bb.entrySet()) {
+			final int casePc = string2bbEntry.getValue().getPc();
+			List<String> caseValues = casePc2values.get(casePc);
+			if (caseValues == null) {
+				caseValues = Lists.newArrayList();
+				casePc2values.put(casePc, caseValues); // pc-sorted
+			}
+			caseValues.add(string2bbEntry.getKey());
+		}
+		// add default branch
+		final BB defaultBb = switchHead.getSwitchDefaultOut().getEnd();
+		final int defaultPc = defaultBb.getPc();
+		List<String> caseValues = casePc2values.get(defaultPc);
+		if (caseValues == null) {
+			caseValues = Lists.newArrayList();
+			casePc2values.put(defaultPc, caseValues);
+		}
+		caseValues.add(null);
+
+		// now add successors, preserve pc-order as edge-order
+		for (final Map.Entry<Integer, List<String>> casePc2valuesEntry : casePc2values.entrySet()) {
+			caseValues = casePc2valuesEntry.getValue();
+			final String caseValue = caseValues.get(0);
+			switchHead.addSwitchCase(caseValue == null ? defaultBb : string2bb.get(caseValue),
+					caseValues.toArray(new Object[caseValues.size()]));
+		}
+
+		// delete all previous outgoing switch cases
+		for (; i-- > 0;) {
+			final E out = outs.get(i);
+			if (out.isSwitchCase()) {
+				out.remove();
+			}
+		}
 	}
 
 	/**
 	 * Rewrite enumeration- or string-switches: Apply previously extracted case value maps to
 	 * bytecode case edges.
 	 * 
-	 * @param bb
-	 *            BB
+	 * @param switchHead
+	 *            switch head
 	 * @param index2enum
 	 *            case value map: index to value (enum field or string)
 	 * @return {@code true} - success
 	 */
-	public static boolean rewriteCaseValues(final BB bb, final Map<Integer, ?> index2enum) {
-		for (final E out : bb.getOuts()) {
+	public static boolean rewriteCaseValues(final BB switchHead, final Map<Integer, ?> index2enum) {
+		for (final E out : switchHead.getOuts()) {
 			if (!out.isSwitchCase()) {
 				continue;
 			}
@@ -232,7 +274,7 @@ public class SwitchTypes {
 				}
 			}
 		}
-		for (final E out : bb.getOuts()) {
+		for (final E out : switchHead.getOuts()) {
 			if (!out.isSwitchCase()) {
 				continue;
 			}
@@ -245,38 +287,6 @@ public class SwitchTypes {
 			}
 		}
 		return true;
-	}
-
-	public static void rewriteStringCase(final BB bb, final Map<Integer, StringBB> hash2bb) {
-		// delete all outgoing switch cases and replace with BB
-		final List<E> outs = bb.getOuts();
-		rewriteCase: for (int i = outs.size(); i-- > 0;) {
-			final E out = outs.get(i);
-			if (!out.isSwitchCase()) {
-				continue;
-			}
-			if (out.isSwitchDefault()) {
-				continue;
-			}
-			Object[] values = (Object[]) out.getValue();
-			assert values.length == 1 : values.length;
-
-			// TODO not fully working, hash collisions chain ifs...
-			final StringBB stringBb = hash2bb.get(values[0]);
-			for (final E in : stringBb.bb.getIns()) {
-				if (in.getStart() == bb) {
-					values = (Object[]) in.getValue();
-					final Object[] newValues = new Object[values.length + 1];
-					System.arraycopy(values, 0, newValues, 0, values.length);
-					newValues[values.length] = stringBb.str;
-					in.setValue(newValues);
-					out.remove();
-					continue rewriteCase;
-				}
-			}
-			values[0] = stringBb.str;
-			out.getEnd().moveIns(stringBb.bb);
-		}
 	}
 
 }

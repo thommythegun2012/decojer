@@ -36,6 +36,7 @@ import org.decojer.cavaj.model.code.ops.GOTO;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.RET;
 import org.decojer.cavaj.model.code.structs.Struct;
+import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Statement;
@@ -180,12 +181,13 @@ public final class BB {
 	}
 
 	/**
-	 * Get (conditional) false out edge.
+	 * Get (conditional) false out.
 	 * 
-	 * @return false out edge
+	 * @return false out
 	 */
+	@Nullable
 	public E getFalseOut() {
-		for (final E out : this.outs) {
+		for (final E out : getOuts()) {
 			if (out.getValue() == Boolean.FALSE) {
 				return out;
 			}
@@ -194,19 +196,22 @@ public final class BB {
 	}
 
 	/**
-	 * Get false (branch) successor (for conditionals only, else exception).
+	 * Get (conditional) false successor.
 	 * 
-	 * @return false (branch) successor
+	 * @return false successor
 	 */
+	@Nullable
 	public BB getFalseSucc() {
-		return getFalseOut().getEnd();
+		final E out = getFalseOut();
+		return out == null ? null : out.getEnd();
 	}
 
 	/**
 	 * Get final operation.
 	 * 
-	 * @return final operation or null
+	 * @return final operation
 	 */
+	@Nullable
 	public Op getFinalOp() {
 		return this.ops.isEmpty() ? null : this.ops.get(this.ops.size() - 1);
 	}
@@ -214,8 +219,9 @@ public final class BB {
 	/**
 	 * Get final statement.
 	 * 
-	 * @return final statement or null
+	 * @return final statement
 	 */
+	@Nullable
 	public Statement getFinalStmt() {
 		return this.stmts.isEmpty() ? null : this.stmts.get(this.stmts.size() - 1);
 	}
@@ -268,45 +274,41 @@ public final class BB {
 	}
 
 	/**
-	 * Get relevant incoming edge.
+	 * Get relevant in.
 	 * 
-	 * @return relevant incoming edge
+	 * @return relevant in
 	 * 
 	 * @see BB#isRelevant()
 	 */
+	@Nullable
 	public E getRelevantIn() {
-		if (this.ins.size() != 1) {
-			return null;
-		}
-		return this.ins.get(0).getRelevantIn();
+		return getIns().size() != 1 ? null : getIns().get(0).getRelevantIn();
 	}
 
 	/**
-	 * Get relevant outgoing edge.
+	 * Get relevant out.
 	 * 
-	 * @return relevant outgoing edge
+	 * @return relevant out
 	 * 
 	 * @see BB#isRelevant()
 	 */
+	@Nullable
 	public E getRelevantOut() {
 		final E out = getSequenceOut();
-		if (out == null) {
-			return null;
-		}
-		return out.getRelevantOut();
+		return out == null ? null : out.getRelevantOut();
 	}
 
 	/**
-	 * Get sequence outgoing edge.
+	 * Get sequence out.
 	 * 
-	 * @return sequence outgoing edge
+	 * @return sequence out
 	 */
+	@Nullable
 	public E getSequenceOut() {
-		for (final E out : this.outs) {
+		for (final E out : getOuts()) {
 			if (out.isSequence()) {
 				return out;
 			}
-			assert out.isCatch() : out; // no conditional etc.
 		}
 		return null;
 	}
@@ -316,8 +318,9 @@ public final class BB {
 	 * 
 	 * @param i
 	 *            statement index
-	 * @return statement or null
+	 * @return statement
 	 */
+	@Nullable
 	public Statement getStmt(final int i) {
 		final int size = this.stmts.size();
 		return size <= i ? null : this.stmts.get(i);
@@ -333,10 +336,26 @@ public final class BB {
 	}
 
 	/**
-	 * Get (conditional) true out edge.
+	 * Get switch default out.
 	 * 
-	 * @return true out edge
+	 * @return switch default out
 	 */
+	@Nullable
+	public E getSwitchDefaultOut() {
+		for (final E out : getOuts()) {
+			if (out.isSwitchDefault()) {
+				return out;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Get (conditional) true out.
+	 * 
+	 * @return true out
+	 */
+	@Nullable
 	public E getTrueOut() {
 		for (final E out : this.outs) {
 			if (Boolean.TRUE == out.getValue()) {
@@ -347,12 +366,14 @@ public final class BB {
 	}
 
 	/**
-	 * Get true (branch) successor (for conditionals only, else exception).
+	 * Get (conditional) true successor.
 	 * 
-	 * @return true (branch) successor
+	 * @return true successor
 	 */
+	@Nullable
 	public BB getTrueSucc() {
-		return getTrueOut().getEnd();
+		final E out = getTrueOut();
+		return out == null ? null : out.getEnd();
 	}
 
 	@Override
@@ -500,7 +521,8 @@ public final class BB {
 	 * @return {@code true} - BB is empty
 	 */
 	public boolean isRelevant() {
-		if (this.ins.size() > 1 || !this.stmts.isEmpty() || !isStackEmpty() || !this.ops.isEmpty()) {
+		// for ops.isEmpty() -> later GOTO check
+		if (this.ins.size() > 1 || !this.stmts.isEmpty() || !isStackEmpty()) {
 			return true;
 		}
 		for (final Op op : this.ops) {
@@ -689,8 +711,9 @@ public final class BB {
 	/**
 	 * Remove final statement.
 	 * 
-	 * @return statement or null
+	 * @return statement
 	 */
+	@Nullable
 	public Statement removeFinalStmt() {
 		return this.stmts.isEmpty() ? null : this.stmts.remove(this.stmts.size() - 1);
 	}
@@ -700,8 +723,9 @@ public final class BB {
 	 * 
 	 * @param i
 	 *            operation index
-	 * @return operation or null
+	 * @return operation
 	 */
+	@Nullable
 	public Op removeOp(final int i) {
 		final int size = this.ops.size();
 		return size <= i ? null : this.ops.remove(i);
@@ -712,8 +736,9 @@ public final class BB {
 	 * 
 	 * @param i
 	 *            statement index
-	 * @return statement or null
+	 * @return statement
 	 */
+	@Nullable
 	public Statement removeStmt(final int i) {
 		final int size = this.stmts.size();
 		return size <= i ? null : this.stmts.remove(i);

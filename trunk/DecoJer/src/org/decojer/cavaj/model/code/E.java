@@ -105,11 +105,7 @@ public final class E {
 	 * @see BB#isRelevant()
 	 */
 	public BB getRelevantEnd() {
-		final BB end = getEnd();
-		if (end.isRelevant()) {
-			return end;
-		}
-		return end.getRelevantOut().getRelevantEnd();
+		return getRelevantOut().getEnd();
 	}
 
 	/**
@@ -121,10 +117,7 @@ public final class E {
 	 */
 	public E getRelevantIn() {
 		final BB start = getStart();
-		if (start.isRelevant()) {
-			return this;
-		}
-		return start.getRelevantIn();
+		return start.isRelevant() ? this : start.getRelevantIn();
 	}
 
 	/**
@@ -134,12 +127,20 @@ public final class E {
 	 * 
 	 * @see BB#isRelevant()
 	 */
-	protected E getRelevantOut() {
+	public E getRelevantOut() {
 		final BB end = getEnd();
-		if (end.isRelevant()) {
-			return this;
-		}
-		return end.getRelevantOut();
+		return end.isRelevant() ? this : end.getRelevantOut();
+	}
+
+	/**
+	 * Get relevant start BB.
+	 * 
+	 * @return relevant start BB
+	 * 
+	 * @see BB#isRelevant()
+	 */
+	public BB getRelevantStart() {
+		return getRelevantIn().getStart();
 	}
 
 	public String getValueString() {
