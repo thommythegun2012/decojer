@@ -2082,31 +2082,33 @@ public final class TrCfg2JavaExpressionStmts {
 		if (stringSwitchExpression instanceof SimpleName) {
 			// JDK-Bytecode mode: 2 switches, first switch assigns index
 			try {
-				final String tmpReg = ((SimpleName) stringSwitchExpression).getIdentifier();
+				final int tmpReg = ((LOAD) getOp(stringSwitchExpression)).getReg();
+
 				if (bb.getStmts() < 2) {
 					return false;
 				}
-				final Assignment assignment1 = (Assignment) ((ExpressionStatement) bb.getStmt(bb
-						.getStmts() - 1)).getExpression();
-				if (!"-1".equals(((NumberLiteral) assignment1.getRightHandSide()).getToken())) {
+				final Assignment indexAssignment = (Assignment) ((ExpressionStatement) bb
+						.getStmt(bb.getStmts() - 1)).getExpression();
+				if (!"-1".equals(((NumberLiteral) indexAssignment.getRightHandSide()).getToken())) {
 					return false;
 				}
-				final String tmpOrdinalReg = ((SimpleName) assignment1.getLeftHandSide())
-						.getIdentifier();
-				// first: r1 = stringSwitchExpression
-				final Assignment assignment2 = (Assignment) ((ExpressionStatement) bb.getStmt(bb
-						.getStmts() - 2)).getExpression();
-				if (!((SimpleName) assignment2.getLeftHandSide()).getIdentifier().equals(tmpReg)) {
-					return false;
-				}
-				stringSwitchExpression = assignment2.getRightHandSide();
+				final int indexReg = ((STORE) getOp(indexAssignment.getLeftHandSide())).getReg();
 
-				final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, 1, defaultCase);
+				// first: r1 = stringSwitchExpression
+				final Assignment assignment = (Assignment) ((ExpressionStatement) bb.getStmt(bb
+						.getStmts() - 2)).getExpression();
+				if (((STORE) getOp(assignment.getLeftHandSide())).getReg() != tmpReg) {
+					return false;
+				}
+				stringSwitchExpression = assignment.getRightHandSide();
+
+				final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, tmpReg,
+						defaultCase);
 				if (string2bb == null) {
 					return false;
 				}
 				final Map<Integer, String> index2string = SwitchTypes.extractIndex2string(
-						string2bb, 2, defaultCase);
+						string2bb, indexReg, defaultCase);
 				if (index2string == null) {
 					SwitchTypes.rewriteCaseStrings(bb, string2bb, defaultCase);
 					final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
@@ -2140,10 +2142,11 @@ public final class TrCfg2JavaExpressionStmts {
 			try {
 				final Assignment assignment = (Assignment) ((ParenthesizedExpression) stringSwitchExpression)
 						.getExpression();
-				final String tmpReg = ((SimpleName) assignment.getLeftHandSide()).getIdentifier();
+				final int tmpReg = ((STORE) getOp(assignment.getLeftHandSide())).getReg();
 				stringSwitchExpression = assignment.getRightHandSide();
 
-				final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, 1, defaultCase);
+				final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, tmpReg,
+						defaultCase);
 				if (string2bb == null) {
 					return false;
 				}
