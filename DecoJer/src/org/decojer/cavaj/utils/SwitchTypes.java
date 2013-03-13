@@ -58,6 +58,22 @@ import com.google.common.collect.Maps;
  */
 public class SwitchTypes {
 
+	/**
+	 * Is used for string-switches. Execute switch case BB to create the case value map: string to
+	 * BB.
+	 * 
+	 * @param caseBb
+	 *            case BB
+	 * @param stringReg
+	 *            string register
+	 * @param hash
+	 *            hash for string
+	 * @param defaultCase
+	 *            default case
+	 * @param string2bb
+	 *            case value map: string to BB
+	 * @return {@code true} - success
+	 */
 	private static boolean executeBbStringHashCond(final BB caseBb, final int stringReg,
 			final int hash, final BB defaultCase, final Map<String, BB> string2bb) {
 		final Stack<Object> stack = new Stack<Object>();
@@ -114,8 +130,26 @@ public class SwitchTypes {
 		return false;
 	}
 
+	/**
+	 * Is used for JDK-Bytecode mode string-switches. Execute switch case BB to create the case
+	 * value map: index to string.
+	 * 
+	 * @param caseBb
+	 *            case BB
+	 * @param indexReg
+	 *            index register
+	 * @param str
+	 *            string
+	 * @param defaultCase
+	 *            default case
+	 * @param index2string
+	 *            case value map: index to string
+	 * @return {@code true} - success
+	 */
 	private static boolean executeBbStringIndex(final BB caseBb, final int indexReg,
 			final String str, final BB defaultCase, final Map<Integer, String> index2string) {
+		assert defaultCase != null; // prevent warning for now, later check more
+
 		final Stack<Object> stack = new Stack<Object>();
 		for (int i = 0; i < caseBb.getOps(); ++i) {
 			final Op op = caseBb.getOp(i);
@@ -254,6 +288,21 @@ public class SwitchTypes {
 		return string2bb;
 	}
 
+	/**
+	 * Rewrite string-switches from hash to value: Apply previously extracted case value maps to
+	 * bytecode case edges.
+	 * 
+	 * This works differently to {@link #rewriteCaseValues(BB, Map)} because strings could yield to
+	 * same hashes and cases have to be restructered. It is more reasonable to add new case edges
+	 * and delete all previous case edges.
+	 * 
+	 * @param switchHead
+	 *            switch head
+	 * @param string2bb
+	 *            case value map: string to BB
+	 * @param defaultCase
+	 *            default case
+	 */
 	public static void rewriteCaseStrings(final BB switchHead, final Map<String, BB> string2bb,
 			final BB defaultCase) {
 		// remember old switch case edges, delete later
@@ -300,8 +349,8 @@ public class SwitchTypes {
 	}
 
 	/**
-	 * Rewrite enumeration- or string-switches: Apply previously extracted case value maps to
-	 * bytecode case edges.
+	 * Rewrite enumeration- or string-switches from index to value: Apply previously extracted case
+	 * value maps to bytecode case edges.
 	 * 
 	 * @param switchHead
 	 *            switch head
