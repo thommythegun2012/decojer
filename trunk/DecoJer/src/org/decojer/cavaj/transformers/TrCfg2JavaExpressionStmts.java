@@ -769,17 +769,22 @@ public final class TrCfg2JavaExpressionStmts {
 				final MONITOR cop = (MONITOR) op;
 
 				switch (cop.getKind()) {
-				case ENTER:
-					final SynchronizedStatement synchronizedStatement = getAst()
-							.newSynchronizedStatement();
-					// TODO we get something like synchronized(r6=r4) for synchronized(r4), _tmp_
-					// monitor var is then r6 for exit
+				case ENTER: {
+					final SynchronizedStatement synchronizedStatement = setOp(getAst()
+							.newSynchronizedStatement(), op);
 					synchronizedStatement.setExpression(wrap(bb.pop()));
 					statement = synchronizedStatement;
 					break;
-				case EXIT:
-					bb.pop();
+				}
+				case EXIT: {
+					// for now: same as ENTER, blocks don't work here,
+					// use getOp() to distinguish in control flow analysis
+					final SynchronizedStatement synchronizedStatement = setOp(getAst()
+							.newSynchronizedStatement(), op);
+					synchronizedStatement.setExpression(wrap(bb.pop()));
+					statement = synchronizedStatement;
 					break;
+				}
 				default:
 					log("Unknown monitor kind '" + cop.getKind() + "'!");
 				}
