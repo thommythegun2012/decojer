@@ -462,12 +462,14 @@ public final class TrControlFlowAnalysis {
 		for (int i = bbs.size(); i-- > 0;) {
 			final BB bb = bbs.get(i);
 			bb.sortOuts();
+
 			// check loop first, could be a post / endless loop with additional sub struct heads
 			if (bb.isLoopHead()) {
 				if (createLoopStruct(bb).isPre()) {
-					// no additional struct head possible here, fail fast
+					// exit: no additional struct head possible here
 					continue;
 				}
+				// fall through: additional sub struct heads possible
 			}
 			if (bb.isSwitchHead()) {
 				createSwitchStruct(bb);
@@ -477,10 +479,15 @@ public final class TrControlFlowAnalysis {
 				if (bb.getStruct() instanceof Loop) {
 					final Loop loopStruct = (Loop) bb.getStruct();
 					if (loopStruct.isPost() && loopStruct.isLast(bb)) {
+						// exit: conditional already used for post loops last condition
 						continue;
 					}
 				}
 				createCondStruct(bb);
+				continue;
+			}
+			if (bb.isSyncHead()) {
+				System.out.println("####SYNC_HEAD");
 				continue;
 			}
 		}

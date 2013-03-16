@@ -33,14 +33,18 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.ops.GOTO;
+import org.decojer.cavaj.model.code.ops.MONITOR;
+import org.decojer.cavaj.model.code.ops.MONITOR.Kind;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.RET;
 import org.decojer.cavaj.model.code.structs.Struct;
+import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.annotation.Nullable;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
+import org.eclipse.jdt.core.dom.SynchronizedStatement;
 
 import com.google.common.collect.Lists;
 
@@ -592,8 +596,41 @@ public final class BB {
 	public boolean isSwitchHead() {
 		// don't use successor number as indicator, switch with 2 successors
 		// (JVM 6: 1 case and default) possible, not optimized
-		return this.stmts.isEmpty() ? false
-				: this.stmts.get(this.stmts.size() - 1) instanceof SwitchStatement;
+		return getFinalStmt() instanceof SwitchStatement;
+	}
+
+	/**
+	 * Is sync head?
+	 * 
+	 * @return {@code true} - is sync head
+	 */
+	public boolean isSyncHead() {
+		final Statement statement = getFinalStmt();
+		if (!(statement instanceof SynchronizedStatement)) {
+			return false;
+		}
+		final Op op = Expressions.getOp(statement);
+		if (!(op instanceof MONITOR)) {
+			return false;
+		}
+		return ((MONITOR) op).getKind() == Kind.ENTER;
+	}
+
+	/**
+	 * Is sync last?
+	 * 
+	 * @return {@code true} - is sync last
+	 */
+	public boolean isSyncLast() {
+		final Statement statement = getFinalStmt();
+		if (!(statement instanceof SynchronizedStatement)) {
+			return false;
+		}
+		final Op op = Expressions.getOp(statement);
+		if (!(op instanceof MONITOR)) {
+			return false;
+		}
+		return ((MONITOR) op).getKind() == Kind.EXIT;
 	}
 
 	/**
