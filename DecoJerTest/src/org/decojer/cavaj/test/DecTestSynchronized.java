@@ -18,7 +18,7 @@ public abstract class DecTestSynchronized {
 
 	private final Object mutex = new Object();
 
-	public void sync() {
+	public void dynamicSync() {
 		System.out.println("Start");
 		synchronized (this) {
 			System.out.println("This mutex");
@@ -28,6 +28,49 @@ public abstract class DecTestSynchronized {
 			System.out.println("Mutex");
 		}
 		System.out.println("End");
+	}
+
+	public void emptySync() {
+		synchronized (this) {
+		}
+		synchronized (this) {
+			synchronized (mutex) {
+			}
+		}
+	}
+
+	public void innerExcSync() {
+		synchronized (this) {
+			try {
+				System.out.println("TRY");
+			} catch (final RuntimeException e) {
+				System.out.println("EXC");
+			} finally {
+				System.out.println("FIN");
+			}
+		}
+	}
+
+	public void nestedSync() {
+		synchronized (this) {
+			System.out.println("SYNC");
+			synchronized (mutex) {
+				System.out.println("NESTEDSYNC");
+			}
+			System.out.println("SYNC");
+		}
+	}
+
+	public void outerExcSync() {
+		try {
+			synchronized (this) {
+				System.out.println("TRY");
+			}
+		} catch (final RuntimeException e) {
+			System.out.println("EXC");
+		} finally {
+			System.out.println("FIN");
+		}
 	}
 
 }
