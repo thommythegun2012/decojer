@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.transformers;
 
+import static org.decojer.cavaj.utils.Expressions.getOp;
+
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -30,11 +32,13 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
+import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.code.structs.Switch;
 import org.decojer.cavaj.model.code.structs.Switch.Kind;
+import org.decojer.cavaj.model.code.structs.Sync;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -335,6 +339,18 @@ public final class TrControlFlowAnalysis {
 		return switchStruct;
 	}
 
+	private void createSyncStruct(final BB head) {
+		final Sync sync = new Sync(head);
+
+		// extract sync mutex
+		final Op op = getOp(head.getFinalStmt());
+		// this.cfg.getInFrame(op);
+		// really? enter and exit have to be the same! how to check? combinations:
+		// dup enter exit / dup store enter | store load enter -> load exit
+
+		// exit must backtrack state to register-read for synchronized-enter
+	}
+
 	/**
 	 * Add successors until unknown predecessors are encountered.
 	 * 
@@ -487,7 +503,7 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			if (bb.isSyncHead()) {
-				System.out.println("####SYNC_HEAD");
+				createSyncStruct(bb);
 				continue;
 			}
 		}
