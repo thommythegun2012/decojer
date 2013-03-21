@@ -54,6 +54,13 @@ public final class CFG {
 	@Setter
 	private Block block;
 
+	/**
+	 * From JVM Spec, Exceptions: At run time, when an exception is thrown, the Java Virtual Machine
+	 * searches the exception handlers of the current method in the order that they appear in the
+	 * corresponding exception handler table in the class file, starting from the beginning of that
+	 * table. Note that the Java Virtual Machine does not enforce nesting of or any ordering of the
+	 * exception table entries of a method.
+	 */
 	@Getter
 	@Setter
 	private Exc[] excs;
