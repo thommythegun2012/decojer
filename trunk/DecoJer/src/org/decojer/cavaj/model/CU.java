@@ -31,6 +31,7 @@ import lombok.Setter;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.code.DFlag;
+import org.decojer.cavaj.transformers.TrLineNumberAnalysis;
 import org.decojer.cavaj.transformers.TrMergeAll;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -171,6 +172,7 @@ public final class CU extends D {
 		for (final BD bd : getAllTds()) {
 			((TD) bd).decompile();
 		}
+		TrLineNumberAnalysis.transform(this);
 		TrMergeAll.transform(this);
 		return createSourceCode();
 	}

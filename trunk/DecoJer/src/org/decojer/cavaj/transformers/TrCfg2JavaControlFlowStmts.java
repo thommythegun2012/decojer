@@ -68,6 +68,7 @@ public final class TrCfg2JavaControlFlowStmts {
 
 	private final static Logger LOGGER = Logger.getLogger(TrCfg2JavaControlFlowStmts.class
 			.getName());
+	private static final String IfStatement = null;
 
 	/**
 	 * Transform CFG.
@@ -190,9 +191,11 @@ public final class TrCfg2JavaControlFlowStmts {
 		case WHILE:
 			negate = false;
 		case WHILENOT: {
-			final WhileStatement whileStatement = getAst().newWhileStatement();
+			final IfStatement ifStatement = (IfStatement) head.getStmt(0);
+			final WhileStatement whileStatement = setOp(getAst().newWhileStatement(),
+					getOp(ifStatement));
 
-			final Expression expression = ((IfStatement) head.getStmt(0)).getExpression();
+			final Expression expression = ifStatement.getExpression();
 			whileStatement.setExpression(wrap(negate ? not(expression) : expression));
 
 			final List<Statement> subStatements = Lists.newArrayList();
@@ -211,12 +214,13 @@ public final class TrCfg2JavaControlFlowStmts {
 		case DO_WHILE:
 			negate = false;
 		case DO_WHILENOT: {
-			final DoStatement doStatement = getAst().newDoStatement();
+			final IfStatement ifStatement = (IfStatement) last.getFinalStmt();
+			final DoStatement doStatement = setOp(getAst().newDoStatement(), getOp(ifStatement));
 
 			final List<Statement> subStatements = Lists.newArrayList();
 			transformSequence(loop, head, subStatements);
 
-			final Expression expression = ((IfStatement) last.getFinalStmt()).getExpression();
+			final Expression expression = ifStatement.getExpression();
 			doStatement.setExpression(wrap(negate ? not(expression) : expression));
 
 			// has always block
@@ -224,6 +228,8 @@ public final class TrCfg2JavaControlFlowStmts {
 			return doStatement;
 		}
 		case ENDLESS: {
+			// this while statement hasn't an operation, line number is before first statement,
+			// do { ... } while(true); wouldn't change the entry line part, always use while(true)
 			final WhileStatement whileStatement = getAst().newWhileStatement();
 
 			whileStatement.setExpression(getAst().newBooleanLiteral(true));
