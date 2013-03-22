@@ -43,6 +43,7 @@ import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.code.structs.Switch;
+import org.decojer.cavaj.model.code.structs.Sync;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BreakStatement;
@@ -53,6 +54,7 @@ import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchCase;
 import org.eclipse.jdt.core.dom.SwitchStatement;
+import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
 import com.google.common.collect.Lists;
@@ -62,13 +64,14 @@ import com.google.common.collect.Lists;
  * 
  * Ignore final empty return statements.
  * 
+ * TODO At most here should be used newBlock(), the other stuff could be shifted to analysis?!
+ * 
  * @author André Pankraz
  */
 public final class TrCfg2JavaControlFlowStmts {
 
 	private final static Logger LOGGER = Logger.getLogger(TrCfg2JavaControlFlowStmts.class
 			.getName());
-	private static final String IfStatement = null;
 
 	/**
 	 * Transform CFG.
@@ -386,28 +389,27 @@ public final class TrCfg2JavaControlFlowStmts {
 
 	private BB transformStruct(final Struct struct, final List<Statement> statements) {
 		// decompile sub structure into a statement
-		final Statement structStatement;
+		Statement structStatement;
 		if (struct instanceof Catch) {
 			structStatement = transformCatch((Catch) struct);
-		} else if (struct instanceof Cond) {
+		} else if (struct instanceof Loop) {
+			structStatement = transformLoop((Loop) struct);
+		} else {
 			// possible statements before cond in basic block
 			final int size = struct.getHead().getStmts() - 1;
 			for (int i = 0; i < size; ++i) {
 				statements.add(struct.getHead().getStmt(i));
 			}
-			structStatement = transformCond((Cond) struct);
-		} else if (struct instanceof Loop) {
-			structStatement = transformLoop((Loop) struct);
-		} else if (struct instanceof Switch) {
-			// possible statements before switch in basic block
-			final int size = struct.getHead().getStmts() - 1;
-			for (int i = 0; i < size; ++i) {
-				statements.add(struct.getHead().getStmt(i));
+			if (struct instanceof Cond) {
+				structStatement = transformCond((Cond) struct);
+			} else if (struct instanceof Switch) {
+				structStatement = transformSwitch((Switch) struct);
+			} else if (struct instanceof Sync) {
+				structStatement = transformSync((Sync) struct);
+			} else {
+				log("Unknown struct:\n" + struct);
+				structStatement = null;
 			}
-			structStatement = transformSwitch((Switch) struct);
-		} else {
-			log("Unknown struct:\n" + struct);
-			structStatement = null;
 		}
 		if (structStatement == null) {
 			log("Couldn't decompile struct:\n" + struct);
@@ -476,6 +478,15 @@ public final class TrCfg2JavaControlFlowStmts {
 			log("Unknown switch type '" + switchStruct.getKind() + "'!");
 			return null;
 		}
+	}
+
+	private Statement transformSync(final Sync sync) {
+		final BB head = sync.getHead();
+		final SynchronizedStatement synchronizedStatement = (SynchronizedStatement) head
+				.getFinalStmt();
+		transformSequence(sync, sync.getHead().getSequenceOut().getEnd(), synchronizedStatement
+				.getBody().statements());
+		return synchronizedStatement;
 	}
 
 }
