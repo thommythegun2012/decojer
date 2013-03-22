@@ -81,6 +81,9 @@ public final class TrLineNumberAnalysis {
 					for (final VariableDeclarationFragment fragment : (List<VariableDeclarationFragment>) ((FieldDeclaration) fieldDeclaration)
 							.fragments()) {
 						final Expression initializer = fragment.getInitializer();
+						if (initializer == null) {
+							continue;
+						}
 						final Op op = getOp(initializer);
 						if (op == null) {
 							continue;
