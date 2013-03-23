@@ -24,6 +24,7 @@
 package org.decojer.cavaj.transformers;
 
 import static org.decojer.cavaj.utils.Expressions.decompileLiteral;
+import static org.decojer.cavaj.utils.Expressions.decompileSimpleName;
 import static org.decojer.cavaj.utils.Expressions.decompileType;
 import static org.decojer.cavaj.utils.Expressions.decompileTypeName;
 
@@ -42,6 +43,7 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.utils.Annotations;
+import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
@@ -105,11 +107,11 @@ public final class TrJvmStruct2JavaAst {
 		final BodyDeclaration fieldDeclaration;
 		if (isFieldEnum) {
 			fieldDeclaration = ast.newEnumConstantDeclaration();
-			((EnumConstantDeclaration) fieldDeclaration).setName(ast.newSimpleName(name));
+			((EnumConstantDeclaration) fieldDeclaration).setName(decompileSimpleName(name, ast));
 		} else {
 			final VariableDeclarationFragment variableDeclarationFragment = ast
 					.newVariableDeclarationFragment();
-			variableDeclarationFragment.setName(ast.newSimpleName(name));
+			variableDeclarationFragment.setName(Expressions.decompileSimpleName(name, ast));
 			fieldDeclaration = ast.newFieldDeclaration(variableDeclarationFragment);
 		}
 		fd.setFieldDeclaration(fieldDeclaration);
@@ -207,13 +209,14 @@ public final class TrJvmStruct2JavaAst {
 			// MethodDeclaration with type declaration name as name
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setConstructor(true);
-			((MethodDeclaration) methodDeclaration).setName(ast.newSimpleName(cu
-					.check(DFlag.START_TD_ONLY) || td.isAnonymous() ? td.getPName() : td
-					.getSimpleName()));
+			((MethodDeclaration) methodDeclaration).setName(decompileSimpleName(
+					cu.check(DFlag.START_TD_ONLY) || td.isAnonymous() ? td.getPName() : td
+							.getSimpleName(), ast));
 		} else if (typeDeclaration instanceof AnnotationTypeDeclaration) {
 			// AnnotationTypeMemberDeclaration
 			methodDeclaration = ast.newAnnotationTypeMemberDeclaration();
-			((AnnotationTypeMemberDeclaration) methodDeclaration).setName(ast.newSimpleName(name));
+			((AnnotationTypeMemberDeclaration) methodDeclaration).setName(decompileSimpleName(name,
+					ast));
 			// check if default value (e.g.: byte byteTest() default 2;)
 			if (md.getAnnotationDefaultValue() != null) {
 				final Expression expression = Annotations.decompileAnnotationDefaultValue(td,
@@ -225,7 +228,7 @@ public final class TrJvmStruct2JavaAst {
 		} else {
 			// MethodDeclaration
 			methodDeclaration = ast.newMethodDeclaration();
-			((MethodDeclaration) methodDeclaration).setName(ast.newSimpleName(name));
+			((MethodDeclaration) methodDeclaration).setName(decompileSimpleName(name, ast));
 		}
 		md.setMethodDeclaration(methodDeclaration);
 
@@ -380,8 +383,7 @@ public final class TrJvmStruct2JavaAst {
 			} else {
 				singleVariableDeclaration.setType(methodParameterType);
 			}
-			singleVariableDeclaration.setName(ast.newSimpleName(/* scala */"default".equals(md
-					.getParamName(i)) ? "_default" : md.getParamName(i)));
+			singleVariableDeclaration.setName(decompileSimpleName(md.getParamName(i), ast));
 			methodDeclaration.parameters().add(singleVariableDeclaration);
 		}
 		// decompile return type
@@ -415,7 +417,7 @@ public final class TrJvmStruct2JavaAst {
 		final AST ast = td.getCu().getAst();
 		for (final T typeParam : typeParams) {
 			final TypeParameter typeParameter = ast.newTypeParameter();
-			typeParameter.setName(ast.newSimpleName(typeParam.getName()));
+			typeParameter.setName(decompileSimpleName(typeParam.getName(), ast));
 			final T superT = typeParam.getSuperT();
 			if (!superT.isObject()) {
 				typeParameter.typeBounds().add(decompileType(typeParam.getSuperT(), td));
@@ -586,8 +588,8 @@ public final class TrJvmStruct2JavaAst {
 			}
 
 			final String simpleName = td.getSimpleName();
-			typeDeclaration.setName(ast.newSimpleName(simpleName.length() > 0 ? simpleName : td
-					.getPName()));
+			typeDeclaration.setName(decompileSimpleName(
+					simpleName.length() > 0 ? simpleName : td.getPName(), ast));
 
 			if (td.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(td.getAs())) {
 				final Javadoc newJavadoc = ast.newJavadoc();

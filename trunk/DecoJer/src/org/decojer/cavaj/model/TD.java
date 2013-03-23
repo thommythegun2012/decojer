@@ -24,21 +24,12 @@
 package org.decojer.cavaj.model;
 
 import java.util.List;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.ClassT;
-import org.decojer.cavaj.transformers.TrCalculatePostorder;
-import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
-import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
-import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
-import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
-import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
-import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
 
@@ -135,35 +126,6 @@ public final class TD extends BD {
 	 */
 	public MD createMd(final String name, final String descriptor) {
 		return getT().getM(name, descriptor).createMd();
-	}
-
-	public void decompile() {
-		TrJvmStruct2JavaAst.transform(this);
-
-		final List<BD> bds = getBds();
-		for (int j = 0; j < bds.size(); ++j) {
-			final BD bd = bds.get(j);
-			if (!(bd instanceof MD)) {
-				continue;
-			}
-			final CFG cfg = ((MD) bd).getCfg();
-			if (cfg == null || cfg.isIgnore()) {
-				continue;
-			}
-			try {
-				TrDataFlowAnalysis.transform(cfg);
-				TrCalculatePostorder.transform(cfg);
-				TrDalvikRemoveTempRegs.transform(cfg);
-
-				TrCfg2JavaExpressionStmts.transform(cfg);
-				TrCalculatePostorder.transform(cfg);
-
-				TrControlFlowAnalysis.transform(cfg);
-				TrCfg2JavaControlFlowStmts.transform(cfg);
-			} catch (final Throwable e) {
-				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
-			}
-		}
 	}
 
 	/**

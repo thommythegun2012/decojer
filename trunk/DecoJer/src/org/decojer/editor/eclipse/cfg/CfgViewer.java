@@ -33,10 +33,6 @@ import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
-import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
-import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
-import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
-import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.Polyline;
@@ -173,19 +169,7 @@ public class CfgViewer extends Composite {
 				return;
 			}
 			try {
-				// retransform CFG until given transformation stage
-				TrDataFlowAnalysis.transform(cfg);
-				TrCalculatePostorder.transform(cfg);
-
-				if (stage > 0) {
-					TrDalvikRemoveTempRegs.transform(cfg);
-					TrCfg2JavaExpressionStmts.transform(cfg);
-					TrCalculatePostorder.transform(cfg);
-				}
-				if (stage > 1) {
-					TrControlFlowAnalysis.transform(cfg);
-					// TrCfg2JavaControlFlowStmts.transform(cfg);
-				}
+				cfg.decompile(stage);
 			} catch (final Throwable e) {
 				TrCalculatePostorder.transform(cfg);
 				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);

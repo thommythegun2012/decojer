@@ -24,6 +24,7 @@
 package org.decojer.cavaj.transformers;
 
 import static org.decojer.cavaj.utils.Expressions.decompileLiteral;
+import static org.decojer.cavaj.utils.Expressions.decompileSimpleName;
 import static org.decojer.cavaj.utils.Expressions.getOp;
 import static org.decojer.cavaj.utils.Expressions.not;
 import static org.decojer.cavaj.utils.Expressions.setOp;
@@ -284,7 +285,8 @@ public final class TrCfg2JavaControlFlowStmts {
 						// statement, but a labeled break terminates any outer struct
 						if (findStruct.getLabel() != null) {
 							final BreakStatement breakStatement = getAst().newBreakStatement();
-							breakStatement.setLabel(getAst().newSimpleName(findStruct.getLabel()));
+							breakStatement.setLabel(decompileSimpleName(findStruct.getLabel(),
+									getAst()));
 							statements.add(breakStatement);
 						} else if (findStruct instanceof Loop) {
 							statements.add(getAst().newBreakStatement());
@@ -453,8 +455,8 @@ public final class TrCfg2JavaControlFlowStmts {
 									this.cfg.getDu().getT(String.class), caseValue,
 									this.cfg.getTd(), op));
 						} else if (caseValue instanceof F) {
-							switchCase.setExpression(getAst().newSimpleName(
-									((F) caseValue).getName()));
+							switchCase.setExpression(decompileSimpleName(((F) caseValue).getName(),
+									getAst()));
 						} else {
 							switchCase.setExpression(decompileLiteral(T.INT, caseValue,
 									this.cfg.getTd(), op));

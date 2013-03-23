@@ -36,6 +36,12 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.code.ops.Op;
+import org.decojer.cavaj.transformers.TrCalculatePostorder;
+import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
+import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
+import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
+import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
+import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
 import org.eclipse.jdt.core.dom.Block;
 
 /**
@@ -200,6 +206,38 @@ public final class CFG {
 		this.iDoms = null;
 		this.postorderedBbs = null;
 		this.startBb = null;
+	}
+
+	/**
+	 * Decompile CFG.
+	 */
+	public void decompile() {
+		decompile(10);
+	}
+
+	/**
+	 * Decompile CFG.
+	 * 
+	 * @param stage
+	 *            stage
+	 */
+	public void decompile(final int stage) {
+		assert stage >= 0;
+
+		TrDataFlowAnalysis.transform(this);
+		TrCalculatePostorder.transform(this);
+		if (stage > 0) {
+			TrDalvikRemoveTempRegs.transform(this);
+
+			TrCfg2JavaExpressionStmts.transform(this);
+			TrCalculatePostorder.transform(this);
+		}
+		if (stage > 1) {
+			TrControlFlowAnalysis.transform(this);
+		}
+		if (stage > 2) {
+			TrCfg2JavaControlFlowStmts.transform(this);
+		}
 	}
 
 	/**

@@ -48,6 +48,7 @@ import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.PrimitiveType;
+import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeLiteral;
@@ -340,6 +341,14 @@ public final class Expressions {
 			stringLiteral.setLiteralValue(value.toString());
 		}
 		return stringLiteral;
+	}
+
+	public static SimpleName decompileSimpleName(final String identifier, final AST ast) {
+		String name = identifier.replace('.', '_');
+		if (/* scala */"default".equals(identifier)) {
+			name = "_default";
+		}
+		return ast.newSimpleName(name);
 	}
 
 	/**
