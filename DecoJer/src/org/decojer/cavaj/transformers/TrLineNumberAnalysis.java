@@ -56,13 +56,13 @@ public final class TrLineNumberAnalysis {
 		for (final Statement statement : (List<Statement>) block.statements()) {
 			final Op op = getOp(statement);
 			if (op == null) {
-				LOGGER.warning("Op is null for: '" + statement);
+				// LOGGER.warning("Op is null for: '" + statement);
 				// TODO can happen for while(true) {...}
 
 				// TODO what is with sub nodes? really decend here? simply fill?
 				continue;
 			}
-			LOGGER.info("LINE: " + op.getLine() + " / " + bd);
+			// LOGGER.info("LINE: " + op.getLine() + " / " + bd);
 		}
 	}
 
@@ -88,7 +88,7 @@ public final class TrLineNumberAnalysis {
 						if (op == null) {
 							continue;
 						}
-						LOGGER.info("LINE: " + op.getLine() + " / " + bd);
+						// LOGGER.info("LINE: " + op.getLine() + " / " + bd);
 					}
 				} else {
 					LOGGER.warning("Unknown field ASTNode type '" + fieldDeclaration.getClass()
