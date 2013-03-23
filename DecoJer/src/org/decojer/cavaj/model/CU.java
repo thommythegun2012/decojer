@@ -24,13 +24,17 @@
 package org.decojer.cavaj.model;
 
 import java.util.EnumSet;
+import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.DecoJerException;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
+import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformers.TrLineNumberAnalysis;
 import org.decojer.cavaj.transformers.TrMergeAll;
 import org.eclipse.jdt.core.dom.AST;
@@ -169,8 +173,25 @@ public final class CU extends D {
 	 * @return source code
 	 */
 	public String decompile() {
-		for (final BD bd : getAllTds()) {
-			((TD) bd).decompile();
+		for (final TD td : getAllTds()) {
+			TrJvmStruct2JavaAst.transform(td);
+
+			final List<BD> bds = td.getBds();
+			for (int j = 0; j < bds.size(); ++j) {
+				final BD bd = bds.get(j);
+				if (!(bd instanceof MD)) {
+					continue;
+				}
+				final CFG cfg = ((MD) bd).getCfg();
+				if (cfg == null || cfg.isIgnore()) {
+					continue;
+				}
+				try {
+					cfg.decompile();
+				} catch (final Throwable e) {
+					LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+				}
+			}
 		}
 		TrLineNumberAnalysis.transform(this);
 		TrMergeAll.transform(this);

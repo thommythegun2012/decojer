@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.utils;
 
+import static org.decojer.cavaj.utils.Expressions.decompileSimpleName;
 import static org.decojer.cavaj.utils.Expressions.decompileType;
 import static org.decojer.cavaj.utils.Expressions.decompileTypeName;
 
@@ -92,7 +93,7 @@ public final class Annotations {
 						a.getMemberValue(memberName));
 				if (expression != null) {
 					final MemberValuePair newMemberValuePair = ast.newMemberValuePair();
-					newMemberValuePair.setName(ast.newSimpleName(memberName));
+					newMemberValuePair.setName(decompileSimpleName(memberName, ast));
 					newMemberValuePair.setValue(expression);
 					normalAnnotation.values().add(newMemberValuePair);
 				}
@@ -165,7 +166,7 @@ public final class Annotations {
 				LOGGER.warning("Default value field must be enum!");
 			}
 			return ast.newQualifiedName(decompileTypeName(f.getT(), td),
-					ast.newSimpleName(f.getName()));
+					decompileSimpleName(f.getName(), ast));
 		}
 		if (defaultValue instanceof Float) {
 			return ast.newNumberLiteral(defaultValue.toString() + 'F');

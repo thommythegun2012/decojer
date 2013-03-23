@@ -24,6 +24,7 @@
 package org.decojer.cavaj.transformers;
 
 import static org.decojer.cavaj.utils.Expressions.decompileLiteral;
+import static org.decojer.cavaj.utils.Expressions.decompileSimpleName;
 import static org.decojer.cavaj.utils.Expressions.decompileType;
 import static org.decojer.cavaj.utils.Expressions.decompileTypeName;
 import static org.decojer.cavaj.utils.Expressions.getBooleanValue;
@@ -438,12 +439,12 @@ public final class TrCfg2JavaExpressionStmts {
 					bb.push(setOp(
 							getAst().newQualifiedName(
 									decompileTypeName(f.getT(), this.cfg.getTd()),
-									getAst().newSimpleName(f.getName())), op));
+									decompileSimpleName(f.getName(), getAst())), op));
 					break;
 				}
 				final FieldAccess fieldAccess = setOp(getAst().newFieldAccess(), op);
 				fieldAccess.setExpression(wrap(bb.pop(), Priority.MEMBER_ACCESS));
-				fieldAccess.setName(getAst().newSimpleName(f.getName()));
+				fieldAccess.setName(decompileSimpleName(f.getName(), getAst()));
 				bb.push(fieldAccess);
 				break;
 			}
@@ -579,7 +580,7 @@ public final class TrCfg2JavaExpressionStmts {
 					if (expression instanceof ThisExpression) {
 						final SuperMethodInvocation superMethodInvocation = setOp(getAst()
 								.newSuperMethodInvocation(), op);
-						superMethodInvocation.setName(getAst().newSimpleName(m.getName()));
+						superMethodInvocation.setName(decompileSimpleName(m.getName(), getAst()));
 						superMethodInvocation.arguments().addAll(arguments);
 						methodExpression = superMethodInvocation;
 					} else {
@@ -587,7 +588,7 @@ public final class TrCfg2JavaExpressionStmts {
 						final MethodInvocation methodInvocation = setOp(getAst()
 								.newMethodInvocation(), op);
 						methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
-						methodInvocation.setName(getAst().newSimpleName(m.getName()));
+						methodInvocation.setName(decompileSimpleName(m.getName(), getAst()));
 						methodInvocation.arguments().addAll(arguments);
 						methodExpression = methodInvocation;
 					}
@@ -595,7 +596,7 @@ public final class TrCfg2JavaExpressionStmts {
 					final MethodInvocation methodInvocation = setOp(getAst().newMethodInvocation(),
 							op);
 					methodInvocation.setExpression(decompileTypeName(m.getT(), this.cfg.getTd()));
-					methodInvocation.setName(getAst().newSimpleName(m.getName()));
+					methodInvocation.setName(decompileSimpleName(m.getName(), getAst()));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
 				} else {
@@ -608,7 +609,7 @@ public final class TrCfg2JavaExpressionStmts {
 					if (!(expression instanceof ThisExpression)) {
 						methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
 					}
-					methodInvocation.setName(getAst().newSimpleName(m.getName()));
+					methodInvocation.setName(decompileSimpleName(m.getName(), getAst()));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
 				}
@@ -904,11 +905,11 @@ public final class TrCfg2JavaExpressionStmts {
 				if (f.isStatic()) {
 					leftOperand = getAst().newQualifiedName(
 							decompileTypeName(f.getT(), this.cfg.getTd()),
-							getAst().newSimpleName(f.getName()));
+							decompileSimpleName(f.getName(), getAst()));
 				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
 					fieldAccess.setExpression(wrap(bb.pop(), Priority.MEMBER_ACCESS));
-					fieldAccess.setName(getAst().newSimpleName(f.getName()));
+					fieldAccess.setName(decompileSimpleName(f.getName(), getAst()));
 					leftOperand = fieldAccess;
 				}
 				final Assignment assignment = newAssignment(Assignment.Operator.ASSIGN,
@@ -982,7 +983,8 @@ public final class TrCfg2JavaExpressionStmts {
 					if (!isInlineAssignment && v.getPcs()[0] /* TODO */== cop.getPc() + 1) {
 						final VariableDeclarationFragment variableDeclarationFragment = getAst()
 								.newVariableDeclarationFragment();
-						variableDeclarationFragment.setName(getAst().newSimpleName(v.getName()));
+						variableDeclarationFragment.setName(decompileSimpleName(v.getName(),
+								getAst()));
 						variableDeclarationFragment.setInitializer(wrap(rightOperand,
 								Priority.ASSIGNMENT));
 						final VariableDeclarationStatement variableDeclarationStatement = getAst()
@@ -1078,7 +1080,7 @@ public final class TrCfg2JavaExpressionStmts {
 		if ("this".equals(name)) {
 			return setOp(getAst().newThisExpression(), op);
 		}
-		return setOp(getAst().newSimpleName(name), op);
+		return setOp(decompileSimpleName(name, getAst()), op);
 	}
 
 	private String getVarName(final int reg, final int pc) {
@@ -1848,7 +1850,7 @@ public final class TrCfg2JavaExpressionStmts {
 			log("First operation in handler '" + bb + "' isn't STORE or POP, but is '" + firstOp
 					+ "'!");
 			name = "e"; // TODO hmmm...free variable name needed...
-			bb.push(getAst().newSimpleName(name));
+			bb.push(decompileSimpleName(name, getAst()));
 		}
 		final T[] handlerTypes = (T[]) bb.getIns().get(0).getValue();
 		final boolean isFinally = handlerTypes.length == 1 && handlerTypes[0] == null;
@@ -1858,7 +1860,7 @@ public final class TrCfg2JavaExpressionStmts {
 			final CatchClause catchClause = getAst().newCatchClause();
 			final SingleVariableDeclaration singleVariableDeclaration = getAst()
 					.newSingleVariableDeclaration();
-			singleVariableDeclaration.setName(getAst().newSimpleName(name));
+			singleVariableDeclaration.setName(decompileSimpleName(name, getAst()));
 			if (handlerTypes.length == 1) {
 				singleVariableDeclaration.setType(decompileType(handlerTypes[0], this.cfg.getTd()));
 			} else {
@@ -1890,7 +1892,7 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		bb.pop();
 		bb.push(newPostfixExpression(op.getValue() == 1 ? PostfixExpression.Operator.INCREMENT
-				: PostfixExpression.Operator.DECREMENT, getAst().newSimpleName(name), op));
+				: PostfixExpression.Operator.DECREMENT, decompileSimpleName(name, getAst()), op));
 		return true;
 	}
 
