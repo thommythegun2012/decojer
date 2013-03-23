@@ -1089,9 +1089,6 @@ public final class TrCfg2JavaExpressionStmts {
 		if (name == null) {
 			return "r" + reg;
 		}
-		if (/* scala */"default".equals(name)) {
-			return "_" + name;
-		}
 		return name;
 	}
 
