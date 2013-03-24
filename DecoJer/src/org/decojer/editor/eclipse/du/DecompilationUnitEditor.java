@@ -40,6 +40,7 @@ public class DecompilationUnitEditor extends CompilationUnitEditor {
 		// create editor input, in-memory string with decompiled source
 		String sourceCode = null;
 		try {
+			cu.clear(); // even though cleared at deselection, sometimes necessary
 			sourceCode = cu.decompile();
 		} catch (final Throwable t) {
 			t.printStackTrace();
