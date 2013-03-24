@@ -36,6 +36,7 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
+import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
@@ -90,6 +91,8 @@ public final class TrLineNumberAnalysis {
 						}
 						// LOGGER.info("LINE: " + op.getLine() + " / " + bd);
 					}
+				} else if (fieldDeclaration instanceof EnumConstantDeclaration) {
+					// TODO
 				} else {
 					LOGGER.warning("Unknown field ASTNode type '" + fieldDeclaration.getClass()
 							+ "'!");
