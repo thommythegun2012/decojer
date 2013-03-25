@@ -571,6 +571,7 @@ public final class Expressions {
 	}
 
 	/**
+	 * New simple name.
 	 * 
 	 * @param identifier
 	 *            identifier
@@ -587,7 +588,7 @@ public final class Expressions {
 				// e.g. scala uses default as valid identifier
 				name = "_" + identifier;
 			} else {
-				// obfuscated code might run into this...
+				// obfuscated code might run into this...e.g. "a.123"
 				final StringBuilder sb = new StringBuilder(identifier.length());
 				for (int i = 0; i < identifier.length(); ++i) {
 					final char c = identifier.charAt(i);
