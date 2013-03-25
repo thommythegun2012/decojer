@@ -23,9 +23,9 @@
  */
 package org.decojer.cavaj.utils;
 
-import static org.decojer.cavaj.utils.Expressions.decompileSimpleName;
-import static org.decojer.cavaj.utils.Expressions.decompileType;
-import static org.decojer.cavaj.utils.Expressions.decompileTypeName;
+import static org.decojer.cavaj.utils.Expressions.newSimpleName;
+import static org.decojer.cavaj.utils.Expressions.newType;
+import static org.decojer.cavaj.utils.Expressions.newTypeName;
 
 import java.lang.reflect.Array;
 import java.util.List;
@@ -81,19 +81,19 @@ public final class Annotations {
 				if (expression != null) {
 					final SingleMemberAnnotation singleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
-					singleMemberAnnotation.setTypeName(decompileTypeName(a.getT(), td));
+					singleMemberAnnotation.setTypeName(newTypeName(a.getT(), td));
 					singleMemberAnnotation.setValue(expression);
 					return singleMemberAnnotation;
 				}
 			}
 			final NormalAnnotation normalAnnotation = ast.newNormalAnnotation();
-			normalAnnotation.setTypeName(decompileTypeName(a.getT(), td));
+			normalAnnotation.setTypeName(newTypeName(a.getT(), td));
 			for (final String memberName : memberNames) {
 				final Expression expression = decompileAnnotationDefaultValue(td,
 						a.getMemberValue(memberName));
 				if (expression != null) {
 					final MemberValuePair newMemberValuePair = ast.newMemberValuePair();
-					newMemberValuePair.setName(decompileSimpleName(memberName, ast));
+					newMemberValuePair.setName(newSimpleName(memberName, ast));
 					newMemberValuePair.setValue(expression);
 					normalAnnotation.values().add(newMemberValuePair);
 				}
@@ -103,7 +103,7 @@ public final class Annotations {
 			}
 		}
 		final MarkerAnnotation markerAnnotation = ast.newMarkerAnnotation();
-		markerAnnotation.setTypeName(decompileTypeName(a.getT(), td));
+		markerAnnotation.setTypeName(newTypeName(a.getT(), td));
 		return markerAnnotation;
 	}
 
@@ -154,7 +154,7 @@ public final class Annotations {
 		}
 		if (defaultValue instanceof T) {
 			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-			typeLiteral.setType(decompileType((T) defaultValue, td));
+			typeLiteral.setType(newType((T) defaultValue, td));
 			return typeLiteral;
 		}
 		if (defaultValue instanceof Double) {
@@ -165,8 +165,7 @@ public final class Annotations {
 			if (!f.check(AF.ENUM)) {
 				LOGGER.warning("Default value field must be enum!");
 			}
-			return ast.newQualifiedName(decompileTypeName(f.getT(), td),
-					decompileSimpleName(f.getName(), ast));
+			return ast.newQualifiedName(newTypeName(f.getT(), td), newSimpleName(f.getName(), ast));
 		}
 		if (defaultValue instanceof Float) {
 			return ast.newNumberLiteral(defaultValue.toString() + 'F');

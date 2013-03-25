@@ -23,9 +23,9 @@
  */
 package org.decojer.cavaj.transformers;
 
-import static org.decojer.cavaj.utils.Expressions.decompileLiteral;
-import static org.decojer.cavaj.utils.Expressions.decompileSimpleName;
 import static org.decojer.cavaj.utils.Expressions.getOp;
+import static org.decojer.cavaj.utils.Expressions.newLiteral;
+import static org.decojer.cavaj.utils.Expressions.newSimpleName;
 import static org.decojer.cavaj.utils.Expressions.not;
 import static org.decojer.cavaj.utils.Expressions.setOp;
 import static org.decojer.cavaj.utils.Expressions.wrap;
@@ -285,8 +285,7 @@ public final class TrCfg2JavaControlFlowStmts {
 						// statement, but a labeled break terminates any outer struct
 						if (findStruct.getLabel() != null) {
 							final BreakStatement breakStatement = getAst().newBreakStatement();
-							breakStatement.setLabel(decompileSimpleName(findStruct.getLabel(),
-									getAst()));
+							breakStatement.setLabel(newSimpleName(findStruct.getLabel(), getAst()));
 							statements.add(breakStatement);
 						} else if (findStruct instanceof Loop) {
 							statements.add(getAst().newBreakStatement());
@@ -448,18 +447,18 @@ public final class TrCfg2JavaControlFlowStmts {
 						defaultAdded = true;
 					} else {
 						if (caseValue instanceof Character) {
-							switchCase.setExpression(decompileLiteral(T.CHAR, caseValue,
+							switchCase.setExpression(newLiteral(T.CHAR, caseValue,
 									this.cfg.getTd(), op));
 						} else if (caseValue instanceof String) {
-							switchCase.setExpression(decompileLiteral(
+							switchCase.setExpression(newLiteral(
 									this.cfg.getDu().getT(String.class), caseValue,
 									this.cfg.getTd(), op));
 						} else if (caseValue instanceof F) {
-							switchCase.setExpression(decompileSimpleName(((F) caseValue).getName(),
+							switchCase.setExpression(newSimpleName(((F) caseValue).getName(),
 									getAst()));
 						} else {
-							switchCase.setExpression(decompileLiteral(T.INT, caseValue,
-									this.cfg.getTd(), op));
+							switchCase.setExpression(newLiteral(T.INT, caseValue, this.cfg.getTd(),
+									op));
 						}
 					}
 					switchStatement.statements().add(switchCase);
