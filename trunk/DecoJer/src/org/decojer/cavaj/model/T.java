@@ -726,9 +726,12 @@ public abstract class T {
 
 	/**
 	 * Returns the simple name of the underlying class type as given in the source code. Returns an
-	 * empty string if the underlying class is anonymous.
-	 * 
-	 * Works for all Java versions, not just for JVM >= 5 like {@code Class.getSimpleName()}.
+	 * empty string if the underlying class is anonymous.<br>
+	 * <br>
+	 * Works for all Java versions, not just for JVM >= 5 like {@code Class.getSimpleName()}.<br>
+	 * <br>
+	 * This is heavily dependant from {@link #getEnclosingT()}, which can be {@code null} for
+	 * obfuscate code! Hence this is not a reliable answer.
 	 * 
 	 * @return simple name
 	 * @see Class#getSimpleName()
@@ -831,7 +834,10 @@ public abstract class T {
 	}
 
 	/**
-	 * Returns {@code true} if and only if the underlying class is an anonymous class.
+	 * Returns {@code true} if and only if the underlying class is an anonymous class.<br>
+	 * <br>
+	 * This is heavily dependant from {@link #getEnclosingT()}, which can be {@code null} for
+	 * obfuscate code! Hence this is not a reliable answer.
 	 * 
 	 * @return {@code true} if and only if this class is an anonymous class.
 	 * @see Class#isAnonymousClass()

@@ -115,6 +115,11 @@ public class TrInnerClassesAnalysis {
 					if (newTd == null) {
 						continue;
 					}
+
+					// TODO the following function is dependant from enclosingT...if this is null,
+					// we will never be anonymous! we should repair enclosing info here, overwrite
+					// old read info?
+
 					if (!newT.isAnonymous()) {
 						continue;
 					}

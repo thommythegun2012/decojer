@@ -222,7 +222,10 @@ public final class TD extends BD {
 	}
 
 	/**
-	 * Returns {@code true} if and only if the underlying class is an anonymous class.
+	 * Returns {@code true} if and only if the underlying class is an anonymous class.<br>
+	 * <br>
+	 * This is heavily dependant from {@link T#getEnclosingT()}, which can be {@code null} for
+	 * obfuscate code! Hence this is not a reliable answer.
 	 * 
 	 * @return {@code true} if and only if this class is an anonymous class.
 	 * @see T#isAnonymous()

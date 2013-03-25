@@ -362,10 +362,12 @@ public class ClassT extends T {
 	 * JVM 5 has enclosing method attribute for local/anonymous, outer info only for declaring outer<br>
 	 * JVM < 5 has no enclosing method attribute and:<br>
 	 * JVM 1.1 has normal outer info for anonymous/local, like declaring for JVM 5,<br>
-	 * JVM 1.2 .. 1.4 has no outer info at all!!!
+	 * JVM 1.2 .. 1.4 has no outer info at all,<br>
+	 * obfuscated code could also strip all these info!!!
 	 * 
-	 * We cannot ignore this information and rely on naming rules, because the separator '$' is a
-	 * valid character in none-inner type names.
+	 * We can not ignore this information and rely on naming rules alone, because the separator '$'
+	 * is a valid character in none-inner type names. If we don't have this info, we need to check
+	 * the existence of the other types by other means.
 	 * 
 	 * @param t
 	 *            class type
