@@ -585,7 +585,7 @@ public final class Expressions {
 		} catch (final IllegalArgumentException e) {
 			String name;
 			if (JAVA_KEYWORDS.contains(identifier)) {
-				// e.g. scala uses default as valid identifier
+				// e.g. scala uses "default" as valid identifier
 				name = "_" + identifier;
 			} else {
 				// obfuscated code might run into this...e.g. "a.123"
