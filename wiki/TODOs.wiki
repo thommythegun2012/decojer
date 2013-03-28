@@ -2,6 +2,7 @@
 
 = TODOs =
 
+http://www.techempower.com/blog/2013/03/26/everything-about-java-8/
 
 22.01.2013 21:59:53 org.decojer.cavaj.transformers.TrControlFlowAnalysis log
 WARNUNG: com.itextpdf.text.pdf.CFFFont$IndexOffsetItem.emit([B)V: Fall-through case '5 -> 3[3]' must be reordered: 'BB 5 (l 459, pc 0)
