@@ -468,7 +468,9 @@ public final class TrDataFlowAnalysis {
 			popRead(T.REF);
 			merge(nextPc);
 			if (cop.getKind() == MONITOR.Kind.ENTER) {
-				// always split, even for trivial (empty) syncs
+				// always split, even for trivial / empty synchronize-blocks without
+				// rethrow-handlers: else we would be forced to check & remember header nodes and
+				// statement number for the later control flow analysis
 				bb.setSucc(getTargetBb(nextPc));
 				return -1;
 			}

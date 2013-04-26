@@ -422,10 +422,13 @@ public final class BB {
 	 * Is this BB before given BB?
 	 * 
 	 * @param bb
-	 *            given BB
-	 * @return {@code true} - this BB is before given BB
+	 *            given BB or {@code null}
+	 * @return {@code true} - this BB is before given BB, also for given BB as {@code null}
 	 */
 	public boolean isBefore(final BB bb) {
+		if (bb == null) {
+			return true;
+		}
 		if (getLine() < bb.getLine()) {
 			return true;
 		}

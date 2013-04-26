@@ -131,24 +131,24 @@ public final class TrControlFlowAnalysis {
 
 		// end nodes are follows or breaks - no continues, returns, throws
 
-		// JDK 6: end node with smallest order could be the follow
-		BB firstEndNode = null;
-		for (final BB endNode : firstFollows) {
-			if (firstEndNode == null || endNode.isBefore(firstEndNode)) {
-				firstEndNode = endNode;
+		// JDK 6: highest follow is potential branch follow
+		BB firstFollow = null;
+		for (final BB follow : firstFollows) {
+			if (follow.isBefore(firstFollow)) {
+				firstFollow = follow;
 			}
 		}
-		BB secondEndNode = null;
-		for (final BB endNode : secondFollows) {
-			if (secondEndNode == null || endNode.isBefore(secondEndNode)) {
-				secondEndNode = endNode;
+		BB secondFollow = null;
+		for (final BB follow : secondFollows) {
+			if (follow.isBefore(secondFollow)) {
+				secondFollow = follow;
 			}
 		}
 
 		// follow exists?
-		if (firstEndNode == secondEndNode) {
+		if (firstFollow == secondFollow) {
 			// normal stuff
-			cond.setFollow(firstEndNode);
+			cond.setFollow(firstFollow);
 			cond.setKind(negated ? Cond.Kind.IFNOT_ELSE : Cond.Kind.IF_ELSE);
 			cond.addMembers(firstValue, firstMembers);
 			cond.addMembers(secondValue, secondMembers);
@@ -331,10 +331,10 @@ public final class TrControlFlowAnalysis {
 			return switchStruct;
 		}
 		switchStruct.setKind(Switch.Kind.WITH_DEFAULT);
-		// TODO end node with smallest order could be the follow
+		// highest follow is switch struct follow
 		BB switchFollow = null;
 		for (final BB follow : follows) {
-			if (switchFollow == null || follow.isBefore(switchFollow)) {
+			if (follow.isBefore(switchFollow)) {
 				switchFollow = follow;
 			}
 		}
@@ -349,7 +349,7 @@ public final class TrControlFlowAnalysis {
 
 		final LinkedList<E> es = Lists.newLinkedList();
 		es.push(head.getSequenceOut());
-		BB follow = null;
+		BB syncFollow = null;
 		// TODO count nested monitors or track variables
 		bbs: while (!es.isEmpty()) {
 			final BB bb = es.poll().getEnd();
@@ -360,9 +360,9 @@ public final class TrControlFlowAnalysis {
 				}
 				final MONITOR op = (MONITOR) getOp(stmt);
 				if (op.getKind() == MONITOR.Kind.EXIT) {
-					if (!bb.isCatchHandler()
-							&& (follow == null || follow.getPostorder() > bb.getPostorder())) {
-						follow = bb;
+					// highest follow is sync struct follow
+					if (bb.isBefore(syncFollow) && !bb.isCatchHandler()) {
+						syncFollow = bb;
 					}
 					continue bbs;
 				}
@@ -372,7 +372,7 @@ public final class TrControlFlowAnalysis {
 				es.add(out);
 			}
 		}
-		sync.setFollow(follow);
+		sync.setFollow(syncFollow);
 	}
 
 	/**
@@ -481,9 +481,9 @@ public final class TrControlFlowAnalysis {
 			return true;
 		}
 		if (backEdge) {
-			// find tail (no loopSucc!), pred member with biggest opPc
 			// TODO or biggest line number or further structure analyzis?
 			// TODO e.g. tail with >2 succ not possible, see warning
+			// lowest last is loop struct last
 			if (loop.getLast() == null || loop.getLast().isBefore(bb)) {
 				loop.setLast(bb);
 			}
