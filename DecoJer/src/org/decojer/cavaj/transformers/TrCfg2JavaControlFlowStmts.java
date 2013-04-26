@@ -487,6 +487,11 @@ public final class TrCfg2JavaControlFlowStmts {
 				.getFinalStmt();
 		transformSequence(sync, sync.getHead().getSequenceOut().getEnd(), synchronizedStatement
 				.getBody().statements());
+
+		final BB follow = sync.getFollow();
+		if (follow.getStmt(0) instanceof SynchronizedStatement) {
+			follow.removeStmt(0);
+		}
 		return synchronizedStatement;
 	}
 

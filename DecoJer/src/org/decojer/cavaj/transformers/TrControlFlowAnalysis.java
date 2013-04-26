@@ -25,6 +25,7 @@ package org.decojer.cavaj.transformers;
 
 import static org.decojer.cavaj.utils.Expressions.getOp;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -32,13 +33,15 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
-import org.decojer.cavaj.model.code.ops.Op;
+import org.decojer.cavaj.model.code.ops.MONITOR;
 import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.code.structs.Switch;
 import org.decojer.cavaj.model.code.structs.Switch.Kind;
 import org.decojer.cavaj.model.code.structs.Sync;
+import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.SynchronizedStatement;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -340,15 +343,36 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private void createSyncStruct(final BB head) {
+		// Works even for trivial / empty sync sections, because BBs are always split behind
+		// MONITOR_ENTER (see Data Flow Analysis).
 		final Sync sync = new Sync(head);
 
-		// extract sync mutex
-		final Op op = getOp(head.getFinalStmt());
-		// this.cfg.getInFrame(op);
-		// really? enter and exit have to be the same! how to check? combinations:
-		// dup enter exit / dup store enter | store load enter -> load exit
-
-		// exit must backtrack state to register-read for synchronized-enter
+		final LinkedList<E> es = Lists.newLinkedList();
+		es.push(head.getSequenceOut());
+		BB follow = null;
+		// TODO count nested monitors or track variables
+		bbs: while (!es.isEmpty()) {
+			final BB bb = es.poll().getEnd();
+			for (int i = 0; i < bb.getStmts(); ++i) {
+				final Statement stmt = bb.getStmt(i);
+				if (!(stmt instanceof SynchronizedStatement)) {
+					continue;
+				}
+				final MONITOR op = (MONITOR) getOp(stmt);
+				if (op.getKind() == MONITOR.Kind.EXIT) {
+					if (!bb.isCatchHandler()
+							&& (follow == null || follow.getPostorder() > bb.getPostorder())) {
+						follow = bb;
+					}
+					continue bbs;
+				}
+			}
+			sync.addMember(null, bb);
+			for (final E out : bb.getOuts()) {
+				es.add(out);
+			}
+		}
+		sync.setFollow(follow);
 	}
 
 	/**
@@ -487,6 +511,10 @@ public final class TrControlFlowAnalysis {
 				}
 				// fall through: additional sub struct heads possible
 			}
+			if (bb.isSyncHead()) {
+				createSyncStruct(bb);
+				continue;
+			}
 			if (bb.isSwitchHead()) {
 				createSwitchStruct(bb);
 				continue;
@@ -500,10 +528,6 @@ public final class TrControlFlowAnalysis {
 					}
 				}
 				createCondStruct(bb);
-				continue;
-			}
-			if (bb.isSyncHead()) {
-				createSyncStruct(bb);
 				continue;
 			}
 		}

@@ -58,6 +58,7 @@ import org.decojer.cavaj.model.code.ops.JCMP;
 import org.decojer.cavaj.model.code.ops.JCND;
 import org.decojer.cavaj.model.code.ops.JSR;
 import org.decojer.cavaj.model.code.ops.LOAD;
+import org.decojer.cavaj.model.code.ops.MONITOR;
 import org.decojer.cavaj.model.code.ops.MUL;
 import org.decojer.cavaj.model.code.ops.NEG;
 import org.decojer.cavaj.model.code.ops.NEW;
@@ -463,7 +464,14 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case MONITOR: {
+			final MONITOR cop = (MONITOR) op;
 			popRead(T.REF);
+			merge(nextPc);
+			if (cop.getKind() == MONITOR.Kind.ENTER) {
+				// always split, even for trivial (empty) syncs
+				bb.setSucc(getTargetBb(nextPc));
+				return -1;
+			}
 			break;
 		}
 		case MUL: {
