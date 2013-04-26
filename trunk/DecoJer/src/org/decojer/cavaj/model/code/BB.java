@@ -602,6 +602,9 @@ public final class BB {
 	/**
 	 * Is sync head?
 	 * 
+	 * Works even for trivial / empty sync sections, because BBs are always split behind
+	 * MONITOR_ENTER (see Data Flow Analysis).
+	 * 
 	 * @return {@code true} - is sync head
 	 */
 	public boolean isSyncHead() {
@@ -614,23 +617,6 @@ public final class BB {
 			return false;
 		}
 		return ((MONITOR) op).getKind() == Kind.ENTER;
-	}
-
-	/**
-	 * Is sync last?
-	 * 
-	 * @return {@code true} - is sync last
-	 */
-	public boolean isSyncLast() {
-		final Statement statement = getFinalStmt();
-		if (!(statement instanceof SynchronizedStatement)) {
-			return false;
-		}
-		final Op op = Expressions.getOp(statement);
-		if (!(op instanceof MONITOR)) {
-			return false;
-		}
-		return ((MONITOR) op).getKind() == Kind.EXIT;
 	}
 
 	/**
