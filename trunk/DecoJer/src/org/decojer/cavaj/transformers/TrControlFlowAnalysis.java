@@ -346,30 +346,55 @@ public final class TrControlFlowAnalysis {
 		// Works even for trivial / empty sync sections, because BBs are always split behind
 		// MONITOR_ENTER (see Data Flow Analysis).
 		final Sync sync = new Sync(head);
+		// monitor enter-exit ranges are always paired, it's not necessary to track the register
+		class SyncE {
 
-		final LinkedList<E> es = Lists.newLinkedList();
-		es.push(head.getSequenceOut());
+			final E e;
+
+			final int level; // monitor level, top is 1, nested is 2, 3...
+
+			public SyncE(final E e, final int level) {
+				this.e = e;
+				this.level = level;
+			}
+
+		}
+		final LinkedList<SyncE> es = Lists.newLinkedList();
+		es.push(new SyncE(head.getSequenceOut(), 1));
 		BB syncFollow = null;
-		// TODO count nested monitors or track variables
 		bbs: while (!es.isEmpty()) {
-			final BB bb = es.poll().getEnd();
+			final SyncE syncE = es.poll();
+			final BB bb = syncE.e.getEnd();
+			int level = syncE.level;
 			for (int i = 0; i < bb.getStmts(); ++i) {
 				final Statement stmt = bb.getStmt(i);
 				if (!(stmt instanceof SynchronizedStatement)) {
 					continue;
 				}
 				final MONITOR op = (MONITOR) getOp(stmt);
-				if (op.getKind() == MONITOR.Kind.EXIT) {
+				switch (op.getKind()) {
+				case ENTER:
+					++level;
+					break;
+				case EXIT:
+					if (--level > 0) {
+						break;
+					}
 					// highest follow is sync struct follow
 					if (bb.isBefore(syncFollow) && !bb.isCatchHandler()) {
 						syncFollow = bb;
 					}
 					continue bbs;
+				default:
+					log("Unknown MONITOR type for operation '" + op + "'!");
 				}
 			}
 			sync.addMember(null, bb);
 			for (final E out : bb.getOuts()) {
-				es.add(out);
+				if (out.isBack()) {
+					continue;
+				}
+				es.add(new SyncE(out, level));
 			}
 		}
 		sync.setFollow(syncFollow);
