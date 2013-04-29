@@ -896,7 +896,7 @@ public final class TrDataFlowAnalysis {
 				return bb;
 			}
 			// build sorted map: unique handler pc -> matching handler types
-			final TreeMap<Integer, List<T>> handlerPc2type = new TreeMap<Integer, List<T>>();
+			final TreeMap<Integer, List<T>> handlerPc2type = Maps.newTreeMap();
 			for (final Exc exc : excs) {
 				if (!exc.validIn(pc)) {
 					continue;
