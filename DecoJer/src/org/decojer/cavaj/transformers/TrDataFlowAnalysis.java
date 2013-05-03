@@ -897,17 +897,29 @@ public final class TrDataFlowAnalysis {
 			}
 			// build sorted map: unique handler pc -> matching handler types
 			final TreeMap<Integer, List<T>> handlerPc2type = Maps.newTreeMap();
-			for (final Exc exc : excs) {
+			// remember handled exception types...see below
+			final List<T> handledTypes = Lists.newLinkedList();
+			excs: for (final Exc exc : excs) {
 				if (!exc.validIn(pc)) {
 					continue;
 				}
+				final T t = exc.getT();
+				// exception type has already been handled? exception handlers are ordered!
+				for (final T handledType : handledTypes) {
+					// cannot always work with unsufficient type information
+					if (handledType == null || handledType.isAssignableFrom(t)) {
+						continue excs;
+					}
+				}
+				handledTypes.add(t);
+				// extend sorted map for successors
 				final int handlerPc = exc.getHandlerPc();
 				List<T> types = handlerPc2type.get(handlerPc);
 				if (types == null) {
 					types = Lists.newArrayList();
 					handlerPc2type.put(handlerPc, types);
 				}
-				types.add(exc.getT());
+				types.add(t);
 			}
 			// now add successors
 			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
