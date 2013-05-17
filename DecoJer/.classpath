@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry exported="true" kind="lib" path="lib/guava-14.0.1.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/javassist.jar" sourcepath="/jvst"/>
@@ -11,5 +10,8 @@
 	<classpathentry kind="lib" path="lib/asm-4.1.jar" sourcepath="/asm3"/>
 	<classpathentry kind="lib" path="lib/dexlib-1.4.2-dev.jar" sourcepath="/dexlib"/>
 	<classpathentry kind="lib" path="lib/commons-lang3-3.1.jar" sourcepath="lib/commons-lang3-3.1-sources.jar"/>
+	<classpathentry kind="lib" path="lib/dexlib2-2.0b4-dev.jar" sourcepath="/dexlib2"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="lib/util-2.0b4-dev.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
