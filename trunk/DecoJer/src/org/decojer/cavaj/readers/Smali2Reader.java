@@ -27,32 +27,47 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.RetentionPolicy;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ClassT;
-import org.jf.dexlib.AnnotationDirectoryItem;
-import org.jf.dexlib.AnnotationDirectoryItem.FieldAnnotation;
-import org.jf.dexlib.AnnotationDirectoryItem.MethodAnnotation;
-import org.jf.dexlib.AnnotationDirectoryItem.ParameterAnnotation;
-import org.jf.dexlib.AnnotationItem;
-import org.jf.dexlib.AnnotationSetItem;
-import org.jf.dexlib.ClassDataItem;
-import org.jf.dexlib.FieldIdItem;
-import org.jf.dexlib.MethodIdItem;
+import org.jf.dexlib2.AnnotationVisibility;
 import org.jf.dexlib2.Opcodes;
+import org.jf.dexlib2.ValueType;
+import org.jf.dexlib2.base.BaseAnnotation;
+import org.jf.dexlib2.dexbacked.DexBackedAnnotation;
 import org.jf.dexlib2.dexbacked.DexBackedClassDef;
 import org.jf.dexlib2.dexbacked.DexBackedDexFile;
+import org.jf.dexlib2.dexbacked.DexBackedField;
+import org.jf.dexlib2.dexbacked.DexBackedMethod;
+import org.jf.dexlib2.iface.AnnotationElement;
+import org.jf.dexlib2.iface.reference.FieldReference;
+import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.value.ArrayEncodedValue;
+import org.jf.dexlib2.iface.value.BooleanEncodedValue;
+import org.jf.dexlib2.iface.value.ByteEncodedValue;
+import org.jf.dexlib2.iface.value.CharEncodedValue;
+import org.jf.dexlib2.iface.value.DoubleEncodedValue;
+import org.jf.dexlib2.iface.value.EncodedValue;
+import org.jf.dexlib2.iface.value.EnumEncodedValue;
+import org.jf.dexlib2.iface.value.FieldEncodedValue;
+import org.jf.dexlib2.iface.value.FloatEncodedValue;
+import org.jf.dexlib2.iface.value.IntEncodedValue;
+import org.jf.dexlib2.iface.value.LongEncodedValue;
+import org.jf.dexlib2.iface.value.MethodEncodedValue;
+import org.jf.dexlib2.iface.value.ShortEncodedValue;
+import org.jf.dexlib2.iface.value.StringEncodedValue;
+import org.jf.dexlib2.iface.value.TypeEncodedValue;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 
 /**
@@ -129,9 +144,9 @@ public class Smali2Reader implements DexReader {
 			final Set<String> interfaces = classDefItem.getInterfaces();
 			if (!interfaces.isEmpty()) {
 				final T[] interfaceTs = new T[interfaces.size()];
-				for (int i = interfaces.size(); i-- > 0;) {
-					interfaceTs[i] = this.du.getDescT(interfaces.getTypeIdItem(i)
-							.getTypeDescriptor());
+				int i = 0;
+				for (final String interfaceDesc : interfaces) {
+					interfaceTs[i++] = this.du.getDescT(interfaceDesc);
 				}
 				td.setInterfaceTs(interfaceTs);
 			}
@@ -139,146 +154,161 @@ public class Smali2Reader implements DexReader {
 				tds.add(td);
 			}
 			A annotationDefaultValues = null;
-			final Map<FieldIdItem, String> fieldSignatures = Maps.newHashMap();
-			final Map<FieldIdItem, A[]> fieldAs = Maps.newHashMap();
-			final Map<MethodIdItem, T[]> methodThrowsTs = Maps.newHashMap();
-			final Map<MethodIdItem, String> methodSignatures = Maps.newHashMap();
-			final Map<MethodIdItem, A[]> methodAs = Maps.newHashMap();
-			final Map<MethodIdItem, A[][]> methodParamAs = Maps.newHashMap();
-
-			final AnnotationDirectoryItem annotations = classDefItem.getAnnotations();
-			if (annotations != null) {
-				final AnnotationSetItem classAnnotations = annotations.getClassAnnotations();
-				if (classAnnotations != null) {
-					final List<A> as = Lists.newArrayList();
-					for (final AnnotationItem annotation : classAnnotations.getAnnotations()) {
-						final A a = readAnnotation(annotation);
-						if ("dalvik.annotation.AnnotationDefault".equals(a.getT().getName())) {
-							// annotation default values, not encoded in
-							// method annotations, but in global annotation with
-							// "field name" -> value
-							annotationDefaultValues = (A) a.getMemberValue();
-							continue;
-						}
-						if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
-							// signature, is encoded as annotation with string array value
-							final Object[] signature = (Object[]) a.getMemberValue();
-							final StringBuilder sb = new StringBuilder();
-							for (final Object element : signature) {
-								sb.append(element);
-							}
-							td.setSignature(sb.toString());
-							continue;
-						}
-						if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
-							t.setEnclosingT((ClassT) a.getMemberValue());
-							continue;
-						}
-						if ("dalvik.annotation.EnclosingMethod".equals(a.getT().getName())) {
-							t.setEnclosingM((M) a.getMemberValue());
-							continue;
-						}
-						if ("dalvik.annotation.InnerClass".equals(a.getT().getName())) {
-							t.setInnerInfo((String) a.getMemberValue("name"),
-									(Integer) a.getMemberValue("accessFlags"));
-							continue;
-						}
-						if ("dalvik.annotation.MemberClasses".equals(a.getT().getName())) {
-							for (final Object v : (Object[]) a.getMemberValue()) {
-								((ClassT) v).setEnclosingT(td.getT());
-							}
-							continue;
-						}
-						as.add(a);
+			final Set<? extends DexBackedAnnotation> annotations = classDefItem.getAnnotations();
+			if (!annotations.isEmpty()) {
+				final List<A> as = Lists.newArrayList();
+				for (final DexBackedAnnotation annotation : annotations) {
+					final A a = readAnnotation(annotation);
+					if ("dalvik.annotation.AnnotationDefault".equals(a.getT().getName())) {
+						// annotation default values, not encoded in
+						// method annotations, but in global annotation with
+						// "field name" -> value
+						annotationDefaultValues = (A) a.getMemberValue();
+						continue;
 					}
-					if (as.size() > 0) {
-						td.setAs(as.toArray(new A[as.size()]));
+					if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
+						// signature, is encoded as annotation with string array value
+						final Object[] signature = (Object[]) a.getMemberValue();
+						final StringBuilder sb = new StringBuilder();
+						for (final Object element : signature) {
+							sb.append(element);
+						}
+						td.setSignature(sb.toString());
+						continue;
 					}
+					if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
+						t.setEnclosingT((ClassT) a.getMemberValue());
+						continue;
+					}
+					if ("dalvik.annotation.EnclosingMethod".equals(a.getT().getName())) {
+						t.setEnclosingM((M) a.getMemberValue());
+						continue;
+					}
+					if ("dalvik.annotation.InnerClass".equals(a.getT().getName())) {
+						t.setInnerInfo((String) a.getMemberValue("name"),
+								(Integer) a.getMemberValue("accessFlags"));
+						continue;
+					}
+					if ("dalvik.annotation.MemberClasses".equals(a.getT().getName())) {
+						for (final Object v : (Object[]) a.getMemberValue()) {
+							((ClassT) v).setEnclosingT(td.getT());
+						}
+						continue;
+					}
+					as.add(a);
 				}
-				for (final FieldAnnotation fieldAnnotation : annotations.getFieldAnnotations()) {
-					final List<A> as = Lists.newArrayList();
-					for (final AnnotationItem annotationItem : fieldAnnotation.annotationSet
-							.getAnnotations()) {
-						final A a = readAnnotation(annotationItem);
-						if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
-							// signature, is encoded as annotation
-							// with string array value
-							final Object[] signature = (Object[]) a.getMemberValue();
-							final StringBuilder sb = new StringBuilder();
-							for (final Object element : signature) {
-								sb.append(element);
-							}
-							fieldSignatures.put(fieldAnnotation.field, sb.toString());
-							continue;
-						}
-						as.add(a);
-					}
-					if (as.size() > 0) {
-						fieldAs.put(fieldAnnotation.field, as.toArray(new A[as.size()]));
-					}
-				}
-				for (final MethodAnnotation methodAnnotation : annotations.getMethodAnnotations()) {
-					final List<A> as = Lists.newArrayList();
-					for (final AnnotationItem annotationItem : methodAnnotation.annotationSet
-							.getAnnotations()) {
-						final A a = readAnnotation(annotationItem);
-						if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
-							// signature, is encoded as annotation
-							// with string array value
-							final Object[] signature = (Object[]) a.getMemberValue();
-							final StringBuilder sb = new StringBuilder();
-							for (final Object element : signature) {
-								sb.append(element);
-							}
-							methodSignatures.put(methodAnnotation.method, sb.toString());
-							continue;
-						} else if ("dalvik.annotation.Throws".equals(a.getT().getName())) {
-							// throws, is encoded as annotation with
-							// type array value
-							final Object[] throwables = (Object[]) a.getMemberValue();
-							final T[] throwsTs = new T[throwables.length];
-							for (int i = throwables.length; i-- > 0;) {
-								throwsTs[i] = (T) throwables[i];
-							}
-							methodThrowsTs.put(methodAnnotation.method, throwsTs);
-							continue;
-						} else {
-							as.add(a);
-						}
-					}
-					if (as.size() > 0) {
-						methodAs.put(methodAnnotation.method, as.toArray(new A[as.size()]));
-					}
-				}
-				for (final ParameterAnnotation paramAnnotation : annotations
-						.getParameterAnnotations()) {
-					final AnnotationSetItem[] annotationSets = paramAnnotation.annotationSet
-							.getAnnotationSets();
-					final A[][] paramAss = new A[annotationSets.length][];
-					for (int i = annotationSets.length; i-- > 0;) {
-						final AnnotationItem[] annotationItems = annotationSets[i].getAnnotations();
-						final A[] paramAs = paramAss[i] = new A[annotationItems.length];
-						for (int j = annotationItems.length; j-- > 0;) {
-							paramAs[j] = readAnnotation(annotationItems[j]);
-						}
-					}
-					methodParamAs.put(paramAnnotation.method, paramAss);
+				if (as.size() > 0) {
+					td.setAs(as.toArray(new A[as.size()]));
 				}
 			}
 			if (classDefItem.getSourceFile() != null) {
-				td.setSourceFileName(classDefItem.getSourceFile().getStringValue());
+				td.setSourceFileName(classDefItem.getSourceFile());
 			}
-			final ClassDataItem classData = classDefItem.getClassData();
-			if (classData != null) {
-				readFields(td, classData.getStaticFields(), classData.getInstanceFields(),
-						fieldSignatures, classDefItem.getStaticFieldInitializers(), fieldAs);
-				readMethods(td, classData.getDirectMethods(), classData.getVirtualMethods(),
-						methodSignatures, methodThrowsTs, annotationDefaultValues, methodAs,
-						methodParamAs);
-			}
+			readFields(td, classDefItem.getStaticFields(), classDefItem.getInstanceFields());
+			readMethods(td, classDefItem.getDirectMethods(), classDefItem.getVirtualMethods(),
+					annotationDefaultValues);
 			td.resolve();
 		}
 		return tds;
+	}
+
+	private A readAnnotation(final BaseAnnotation annotation) {
+		RetentionPolicy retentionPolicy;
+		switch (annotation.getVisibility()) {
+		case AnnotationVisibility.BUILD:
+			retentionPolicy = RetentionPolicy.SOURCE;
+			break;
+		case AnnotationVisibility.RUNTIME:
+			retentionPolicy = RetentionPolicy.RUNTIME;
+			break;
+		case AnnotationVisibility.SYSTEM:
+			retentionPolicy = RetentionPolicy.CLASS;
+			break;
+		default:
+			retentionPolicy = null;
+			LOGGER.warning("Unknown annotation visibility '" + annotation.getVisibility() + "'!");
+		}
+		final T t = this.du.getDescT(annotation.getType());
+		final A a = new A(t, retentionPolicy);
+		for (final AnnotationElement element : annotation.getElements()) {
+			a.addMember(element.getName(), readValue(element.getValue(), this.du));
+		}
+		return a;
+	}
+
+	private void readFields(final TD td, final Iterable<? extends DexBackedField> staticFields,
+			final Iterable<? extends DexBackedField> instanceFields) {
+		for (final DexBackedField field : staticFields) {
+			System.out.println("FIELD: " + field);
+		}
+	}
+
+	private void readMethods(final TD td, final Iterable<? extends DexBackedMethod> directMethods,
+			final Iterable<? extends DexBackedMethod> virtualMethods,
+			final A annotationDefaultValues) {
+		for (final DexBackedMethod method : directMethods) {
+			System.out.println("METHOD: " + method);
+		}
+	}
+
+	private Object readValue(final EncodedValue encodedValue, final DU du) {
+		switch (encodedValue.getValueType()) {
+		case ValueType.ANNOTATION:
+			// retention unknown for annotation constant
+			return null; // readAnnotation((DexBackedAnnotationEncodedValue) encodedValue);
+		case ValueType.ARRAY: {
+			final List<? extends EncodedValue> values = ((ArrayEncodedValue) encodedValue)
+					.getValue();
+			final Object[] objects = new Object[values.size()];
+			for (int i = values.size(); i-- > 0;) {
+				objects[i] = readValue(values.get(i), du);
+			}
+			return objects;
+		}
+		case ValueType.BOOLEAN:
+			return ((BooleanEncodedValue) encodedValue).getValue();
+		case ValueType.BYTE:
+			return ((ByteEncodedValue) encodedValue).getValue();
+		case ValueType.CHAR:
+			return ((CharEncodedValue) encodedValue).getValue();
+		case ValueType.DOUBLE:
+			return ((DoubleEncodedValue) encodedValue).getValue();
+		case ValueType.ENUM: {
+			final FieldReference fieldReference = ((EnumEncodedValue) encodedValue).getValue();
+			final T ownerT = du.getDescT(fieldReference.getDefiningClass());
+			final F f = ownerT.getF(fieldReference.getName(), fieldReference.getType());
+			f.setEnum();
+			return f;
+		}
+		case ValueType.FIELD: {
+			final FieldReference fieldReference = ((FieldEncodedValue) encodedValue).getValue();
+			final T t = du.getDescT(fieldReference.getDefiningClass());
+			return t.getF(fieldReference.getName(), fieldReference.getType());
+		}
+		case ValueType.FLOAT:
+			return ((FloatEncodedValue) encodedValue).getValue();
+		case ValueType.INT:
+			return ((IntEncodedValue) encodedValue).getValue();
+		case ValueType.LONG:
+			return ((LongEncodedValue) encodedValue).getValue();
+		case ValueType.METHOD: {
+			final MethodReference methodReference = ((MethodEncodedValue) encodedValue).getValue();
+			final T t = du.getDescT(methodReference.getDefiningClass());
+			return t.getM(methodReference.getName(), null /* TODO implode types */);
+		}
+		case ValueType.NULL:
+			return null; // placeholder in constant array
+		case ValueType.SHORT:
+			return ((ShortEncodedValue) encodedValue).getValue();
+		case ValueType.STRING:
+			return ((StringEncodedValue) encodedValue).getValue();
+		case ValueType.TYPE:
+			return du.getDescT(((TypeEncodedValue) encodedValue).getValue());
+		default:
+			LOGGER.warning("Unknown encoded value type '" + encodedValue.getClass().getName()
+					+ "'!");
+			return null;
+		}
 	}
 
 }
