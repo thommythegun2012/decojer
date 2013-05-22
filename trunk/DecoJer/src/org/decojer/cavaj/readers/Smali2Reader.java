@@ -35,7 +35,9 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ClassT;
@@ -239,7 +241,12 @@ public class Smali2Reader implements DexReader {
 	private void readFields(final TD td, final Iterable<? extends DexBackedField> staticFields,
 			final Iterable<? extends DexBackedField> instanceFields) {
 		for (final DexBackedField field : staticFields) {
-			System.out.println("FIELD: " + field);
+			final FD fd = td.createFd(field.getName(), field.getType());
+			fd.setAccessFlags(field.getAccessFlags());
+		}
+		for (final DexBackedField field : instanceFields) {
+			final FD fd = td.createFd(field.getName(), field.getType());
+			fd.setAccessFlags(field.getAccessFlags());
 		}
 	}
 
@@ -247,7 +254,8 @@ public class Smali2Reader implements DexReader {
 			final Iterable<? extends DexBackedMethod> virtualMethods,
 			final A annotationDefaultValues) {
 		for (final DexBackedMethod method : directMethods) {
-			System.out.println("METHOD: " + method);
+			final MD md = td.createMd(method.getName(), null /* TODO implode types */);
+			md.setAccessFlags(method.getAccessFlags());
 		}
 	}
 
