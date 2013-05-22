@@ -55,7 +55,7 @@ import org.decojer.cavaj.model.types.VarT;
 import org.decojer.cavaj.readers.AsmReader;
 import org.decojer.cavaj.readers.ClassReader;
 import org.decojer.cavaj.readers.DexReader;
-import org.decojer.cavaj.readers.SmaliReader;
+import org.decojer.cavaj.readers.Smali2Reader;
 import org.decojer.cavaj.transformers.TrInnerClassesAnalysis;
 import org.decojer.cavaj.utils.Cursor;
 import org.decojer.cavaj.utils.MagicNumbers;
@@ -97,7 +97,7 @@ public final class DU {
 	@Setter
 	private List<CU> cus;
 
-	private final DexReader dexReader = new SmaliReader(this);
+	private final DexReader dexReader = new Smali2Reader(this);
 
 	@Getter
 	private final List<TD> selectedTds = Lists.newArrayList();
