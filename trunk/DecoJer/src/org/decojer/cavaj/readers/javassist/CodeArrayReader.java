@@ -24,11 +24,11 @@
 package org.decojer.cavaj.readers.javassist;
 
 /**
- * Code reader.
+ * Code array reader.
  * 
  * @author André Pankraz
  */
-public class CodeReader {
+public class CodeArrayReader {
 
 	public final byte[] code;
 
@@ -40,7 +40,7 @@ public class CodeReader {
 	 * @param code
 	 *            code
 	 */
-	public CodeReader(final byte[] code) {
+	public CodeArrayReader(final byte[] code) {
 		this.code = code;
 	}
 
@@ -54,8 +54,7 @@ public class CodeReader {
 
 	public int readSignedInt() {
 		return this.code[this.pc++] << 24 | (this.code[this.pc++] & 0xff) << 16
-				| (this.code[this.pc++] & 0xff) << 8 | this.code[this.pc++]
-				& 0xff;
+				| (this.code[this.pc++] & 0xff) << 8 | this.code[this.pc++] & 0xff;
 	}
 
 	public int readSignedShort() {
@@ -67,10 +66,8 @@ public class CodeReader {
 	}
 
 	public int readUnsignedInt() {
-		return (this.code[this.pc++] & 0xff) << 24
-				| (this.code[this.pc++] & 0xff) << 16
-				| (this.code[this.pc++] & 0xff) << 8 | this.code[this.pc++]
-				& 0xff;
+		return (this.code[this.pc++] & 0xff) << 24 | (this.code[this.pc++] & 0xff) << 16
+				| (this.code[this.pc++] & 0xff) << 8 | this.code[this.pc++] & 0xff;
 	}
 
 	public int readUnsignedShort() {

@@ -195,7 +195,7 @@ public class ReadCodeAttribute {
 		final CFG cfg = new CFG(md, codeAttribute.getMaxLocals(), codeAttribute.getMaxStack());
 		md.setCfg(cfg);
 
-		final CodeReader codeReader = new CodeReader(codeAttribute.getCode());
+		final CodeArrayReader codeReader = new CodeArrayReader(codeAttribute.getCode());
 
 		// wide operation following? one of:
 		// iload, fload, aload, lload, dload,
