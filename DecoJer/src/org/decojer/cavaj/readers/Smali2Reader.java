@@ -80,7 +80,14 @@ public class Smali2Reader implements DexReader {
 
 	private final static Logger LOGGER = Logger.getLogger(Smali2Reader.class.getName());
 
-	private static String desc(final MethodReference method) {
+	/**
+	 * Build method descriptor of method reference.
+	 * 
+	 * @param method
+	 *            method reference
+	 * @return method descriptor
+	 */
+	public static String desc(final MethodReference method) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append('(');
 		for (final CharSequence cs : method.getParameterTypes()) {
