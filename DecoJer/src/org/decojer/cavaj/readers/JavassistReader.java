@@ -410,9 +410,7 @@ public class JavassistReader implements ClassReader {
 		if (as != null) {
 			md.setAs(as);
 		}
-		if (codeAttribute != null) {
-			this.readCodeAttribute.initAndVisit(md, codeAttribute);
-		}
+		this.readCodeAttribute.initAndVisit(md, codeAttribute);
 		if (deprecatedAttribute != null) {
 			md.setDeprecated();
 		}

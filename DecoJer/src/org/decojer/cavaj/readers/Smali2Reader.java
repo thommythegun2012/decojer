@@ -39,6 +39,7 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.readers.smali2.ReadMethodImplementation;
 import org.jf.dexlib2.AnnotationVisibility;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ValueType;
@@ -91,6 +92,8 @@ public class Smali2Reader implements DexReader {
 	}
 
 	private final DU du;
+
+	private final ReadMethodImplementation readMethodImplementation = new ReadMethodImplementation();
 
 	/**
 	 * Constructor.
@@ -260,7 +263,6 @@ public class Smali2Reader implements DexReader {
 				fd.setAs(as.toArray(new A[as.size()]));
 			}
 		}
-
 		if (field.getInitialValue() != null) {
 			fd.setValue(readValue(field.getInitialValue(), this.du));
 		}
@@ -279,7 +281,6 @@ public class Smali2Reader implements DexReader {
 	private void readMethod(final TD td, final DexBackedMethod method,
 			final A annotationDefaultValues) {
 		final MD md = td.createMd(method.getName(), desc(method));
-
 		md.setAccessFlags(method.getAccessFlags());
 
 		final Set<? extends Annotation> annotations = method.getAnnotations();
@@ -318,11 +319,9 @@ public class Smali2Reader implements DexReader {
 				md.setAs(as.toArray(new A[as.size()]));
 			}
 		}
-
 		if (annotationDefaultValues != null) {
 			md.setAnnotationDefaultValue(annotationDefaultValues.getMemberValue(md.getName()));
 		}
-
 		final List<? extends Set<? extends DexBackedAnnotation>> parameterAnnotations = method
 				.getParameterAnnotations();
 		if (!parameterAnnotations.isEmpty()) {
@@ -338,6 +337,7 @@ public class Smali2Reader implements DexReader {
 			}
 			md.setParamAss(paramAss);
 		}
+		this.readMethodImplementation.initAndVisit(md, method.getImplementation());
 	}
 
 	private void readMethods(final TD td, final Iterable<? extends DexBackedMethod> directMethods,
