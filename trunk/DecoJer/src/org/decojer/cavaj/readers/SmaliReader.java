@@ -50,7 +50,6 @@ import org.jf.dexlib.ClassDataItem;
 import org.jf.dexlib.ClassDataItem.EncodedField;
 import org.jf.dexlib.ClassDataItem.EncodedMethod;
 import org.jf.dexlib.ClassDefItem;
-import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.DexFile;
 import org.jf.dexlib.EncodedArrayItem;
 import org.jf.dexlib.FieldIdItem;
@@ -399,9 +398,7 @@ public class SmaliReader implements DexReader {
 			md.setAs(methodAs.get(method));
 			md.setParamAss(methodParamAs.get(method));
 
-			if (encodedMethod.codeItem != null) {
-				this.readCodeItem.initAndVisit(md, encodedMethod.codeItem);
-			}
+			this.readCodeItem.initAndVisit(md, encodedMethod.codeItem);
 		}
 		for (final EncodedMethod encodedMethod : virtualMethods) {
 			final MethodIdItem method = encodedMethod.method;
@@ -420,10 +417,7 @@ public class SmaliReader implements DexReader {
 			md.setAs(methodAs.get(method));
 			md.setParamAss(methodParamAs.get(method));
 
-			final CodeItem codeItem = encodedMethod.codeItem;
-			if (codeItem != null) {
-				this.readCodeItem.initAndVisit(md, encodedMethod.codeItem);
-			}
+			this.readCodeItem.initAndVisit(md, encodedMethod.codeItem);
 		}
 	}
 

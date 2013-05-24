@@ -166,6 +166,9 @@ public class ReadCodeItem {
 	 *            smali code item
 	 */
 	public void initAndVisit(final MD md, final CodeItem codeItem) {
+		if (codeItem == null) {
+			return;
+		}
 		this.md = md;
 
 		this.ops.clear();
@@ -2458,4 +2461,5 @@ public class ReadCodeItem {
 			// cannot happen for Exc / Var here
 		}
 	}
+
 }
