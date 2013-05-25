@@ -33,6 +33,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.ops.ADD;
 import org.decojer.cavaj.model.code.ops.ALOAD;
 import org.decojer.cavaj.model.code.ops.AND;
@@ -74,7 +75,9 @@ import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.readers.Smali2Reader;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.Opcode;
+import org.jf.dexlib2.dexbacked.DexBackedExceptionHandler;
 import org.jf.dexlib2.dexbacked.DexBackedMethodImplementation;
+import org.jf.dexlib2.dexbacked.DexBackedTryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.debug.LineNumber;
 import org.jf.dexlib2.iface.debug.SetSourceFile;
@@ -2318,6 +2321,24 @@ public class ReadMethodImplementation {
 		visitVmpc(vmpc, null);
 		cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 
+		final List<? extends DexBackedTryBlock> tryBlocks = implementation.getTryBlocks();
+		if (!tryBlocks.isEmpty()) {
+			final List<Exc> excs = Lists.newArrayList();
+			// preserve order
+			for (final DexBackedTryBlock tryBlock : tryBlocks) {
+				for (final DexBackedExceptionHandler handler : tryBlock.getExceptionHandlers()) {
+					final String exceptionType = handler.getExceptionType();
+					final Exc exc = new Exc(exceptionType == null ? null : getDu().getDescT(
+							exceptionType));
+					exc.setStartPc(this.vmpc2pc.get(tryBlock.getStartCodeAddress()));
+					exc.setEndPc(this.vmpc2pc.get(tryBlock.getStartCodeAddress()
+							+ tryBlock.getCodeUnitCount()));
+					exc.setHandlerPc(this.vmpc2pc.get(handler.getHandlerCodeAddress()));
+					excs.add(exc);
+				}
+			}
+			cfg.setExcs(excs.toArray(new Exc[excs.size()]));
+		}
 		// TODO
 	}
 
