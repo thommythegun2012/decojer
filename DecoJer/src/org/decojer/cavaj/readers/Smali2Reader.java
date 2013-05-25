@@ -28,6 +28,7 @@ import java.io.InputStream;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
@@ -67,6 +68,7 @@ import org.jf.dexlib2.iface.value.MethodEncodedValue;
 import org.jf.dexlib2.iface.value.ShortEncodedValue;
 import org.jf.dexlib2.iface.value.StringEncodedValue;
 import org.jf.dexlib2.iface.value.TypeEncodedValue;
+import org.jf.util.ExceptionWithContext;
 
 import com.google.common.collect.Lists;
 import com.google.common.io.ByteStreams;
@@ -344,7 +346,11 @@ public class Smali2Reader implements DexReader {
 			}
 			md.setParamAss(paramAss);
 		}
-		this.readMethodImplementation.initAndVisit(md, method.getImplementation());
+		try {
+			this.readMethodImplementation.initAndVisit(md, method.getImplementation());
+		} catch (final ExceptionWithContext e) {
+			LOGGER.log(Level.WARNING, "Bytecode problems in method '" + md + "'!", e);
+		}
 	}
 
 	private void readMethods(final TD td, final Iterable<? extends DexBackedMethod> directMethods,

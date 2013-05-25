@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.readers.smali2;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -73,11 +72,6 @@ import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.readers.Smali2Reader;
-import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction;
-import org.jf.dexlib.Code.Format.ArrayDataPseudoInstruction.ArrayElement;
-import org.jf.dexlib.Code.Format.Instruction21h;
-import org.jf.dexlib.Code.Format.PackedSwitchDataPseudoInstruction;
-import org.jf.dexlib.Code.Format.SparseSwitchDataPseudoInstruction;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.dexbacked.DexBackedMethodImplementation;
@@ -85,12 +79,17 @@ import org.jf.dexlib2.iface.debug.DebugItem;
 import org.jf.dexlib2.iface.debug.LineNumber;
 import org.jf.dexlib2.iface.debug.SetSourceFile;
 import org.jf.dexlib2.iface.instruction.Instruction;
+import org.jf.dexlib2.iface.instruction.SwitchElement;
+import org.jf.dexlib2.iface.instruction.SwitchPayload;
+import org.jf.dexlib2.iface.instruction.formats.ArrayPayload;
 import org.jf.dexlib2.iface.instruction.formats.Instruction10t;
 import org.jf.dexlib2.iface.instruction.formats.Instruction11n;
 import org.jf.dexlib2.iface.instruction.formats.Instruction11x;
 import org.jf.dexlib2.iface.instruction.formats.Instruction12x;
 import org.jf.dexlib2.iface.instruction.formats.Instruction20t;
 import org.jf.dexlib2.iface.instruction.formats.Instruction21c;
+import org.jf.dexlib2.iface.instruction.formats.Instruction21ih;
+import org.jf.dexlib2.iface.instruction.formats.Instruction21lh;
 import org.jf.dexlib2.iface.instruction.formats.Instruction21s;
 import org.jf.dexlib2.iface.instruction.formats.Instruction21t;
 import org.jf.dexlib2.iface.instruction.formats.Instruction22b;
@@ -1630,9 +1629,9 @@ public class ReadMethodImplementation {
 			case CONST_HIGH16:
 				if (t == null) {
 					// A = literal
-					final Instruction21h instr = (Instruction21h) instruction;
+					final Instruction21ih instr = (Instruction21ih) instruction;
 
-					oValue = iValue = (int) instr.getLiteral() << 16;
+					oValue = iValue = instr.getNarrowLiteral();
 					t = T.getDalvikIntT(iValue);
 					iValue = instr.getRegisterA();
 				}
@@ -1660,9 +1659,9 @@ public class ReadMethodImplementation {
 			case CONST_WIDE_HIGH16:
 				if (t == null) {
 					// A = literal
-					final Instruction21h instr = (Instruction21h) instruction;
+					final Instruction21lh instr = (Instruction21lh) instruction;
 
-					oValue = instr.getLiteral() << 48;
+					oValue = instr.getWideLiteral();
 					t = T.WIDE;
 					iValue = instr.getRegisterA();
 				}
@@ -2305,6 +2304,11 @@ public class ReadMethodImplementation {
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
 			}
+			case ARRAY_PAYLOAD:
+			case PACKED_SWITCH_PAYLOAD:
+			case SPARSE_SWITCH_PAYLOAD:
+				// pseudo operations, that are handled in visitVmpc()
+				break;
 			default:
 				throw new RuntimeException("Unknown jvm operation '" + instruction.getOpcode()
 						+ "'!");
@@ -2345,6 +2349,21 @@ public class ReadMethodImplementation {
 				((JCND) o).setTargetPc(this.ops.size());
 				continue;
 			}
+			if (o instanceof FILLARRAY) {
+				final FILLARRAY op = (FILLARRAY) o;
+
+				if (instruction instanceof ArrayPayload) {
+					final ArrayPayload instr = (ArrayPayload) instruction;
+					final List<Number> arrayElements = instr.getArrayElements();
+
+					final Object[] values = new Object[arrayElements.size()];
+					for (int i = values.length; i-- > 0;) {
+						values[i] = arrayElements.get(i);
+					}
+					op.setValues(values);
+					continue;
+				}
+			}
 			if (o instanceof SWITCH) {
 				final SWITCH op = (SWITCH) o;
 
@@ -2358,38 +2377,18 @@ public class ReadMethodImplementation {
 					}
 				}
 
-				if (instruction instanceof PackedSwitchDataPseudoInstruction) {
-					final PackedSwitchDataPseudoInstruction instr = (PackedSwitchDataPseudoInstruction) instruction;
-					final int firstKey = instr.getFirstKey();
-					// offsets to switch VM PC
-					final int[] targets = instr.getTargets();
+				if (instruction instanceof SwitchPayload) {
+					final SwitchPayload instr = (SwitchPayload) instruction;
+					final List<? extends SwitchElement> switchElements = instr.getSwitchElements();
 
-					final int[] caseKeys = new int[targets.length];
-					final int[] casePcs = new int[targets.length];
-					for (int t = 0; t < targets.length; ++t) {
-						caseKeys[t] = firstKey + t;
-						casePcs[t] = getPc(switchVmpc + targets[t]);
-						if (casePcs[t] < 0) {
-							getUnresolved(targets[t]).add(op);
-						}
-					}
-					op.setCaseKeys(caseKeys);
-					op.setCasePcs(casePcs);
-					continue;
-				}
-				if (instruction instanceof SparseSwitchDataPseudoInstruction) {
-					final SparseSwitchDataPseudoInstruction instr = (SparseSwitchDataPseudoInstruction) instruction;
-					final int[] keys = instr.getKeys();
-					// offsets to switch VM PC
-					final int[] targets = instr.getTargets();
-
-					final int[] caseKeys = new int[targets.length];
-					final int[] casePcs = new int[targets.length];
-					for (int t = 0; t < targets.length; ++t) {
-						caseKeys[t] = keys[t];
-						casePcs[t] = getPc(switchVmpc + targets[t]);
-						if (casePcs[t] < 0) {
-							getUnresolved(targets[t]).add(op);
+					final int[] caseKeys = new int[switchElements.size()];
+					final int[] casePcs = new int[caseKeys.length];
+					for (int i = caseKeys.length; i-- > 0;) {
+						final SwitchElement switchElement = switchElements.get(i);
+						caseKeys[i] = switchElement.getKey();
+						casePcs[i] = getPc(switchVmpc + switchElement.getOffset());
+						if (casePcs[i] < 0) {
+							getUnresolved(switchElement.getOffset()).add(op);
 						}
 					}
 					op.setCaseKeys(caseKeys);
@@ -2398,47 +2397,6 @@ public class ReadMethodImplementation {
 				}
 				LOGGER.warning("Unresolved switch target isn't a SwitchDataPseudoInstruction!");
 				continue;
-			}
-			if (o instanceof FILLARRAY) {
-				final FILLARRAY op = (FILLARRAY) o;
-
-				if (instruction instanceof ArrayDataPseudoInstruction) {
-					final ArrayDataPseudoInstruction instr = (ArrayDataPseudoInstruction) instruction;
-					final Object[] values = new Object[instr.getElementCount()];
-					final Iterator<ArrayElement> elements = instr.getElements();
-					for (int i = 0; elements.hasNext(); ++i) {
-						final ArrayElement element = elements.next();
-						// strange API, b[] is same for elements, bi changes
-						final byte[] b = element.buffer;
-						final int bi = element.bufferIndex;
-						switch (element.elementWidth) {
-						case 1:
-							values[i] = b[bi];
-							continue;
-						case 2:
-							values[i] = (short) ((b[bi + 1] & 0xFF) << 8 | b[bi] & 0xFF);
-							continue;
-						case 4:
-							values[i] = (b[bi + 3] & 0xFF) << 24 | (b[bi + 2] & 0xFF) << 16
-									| (b[bi + 1] & 0xFF) << 8 | b[bi] & 0xFF;
-							continue;
-						case 8:
-							values[i] = ((long) b[bi + 7] & 0xFF) << 56
-									| ((long) b[bi + 6] & 0xFF) << 48
-									| ((long) b[bi + 5] & 0xFF) << 40
-									| ((long) b[bi + 4] & 0xFF) << 32
-									| ((long) b[bi + 3] & 0xFF) << 24
-									| ((long) b[bi + 2] & 0xFF) << 16
-									| ((long) b[bi + 1] & 0xFF) << 8 | (long) b[bi] & 0xFF;
-							continue;
-						default:
-							LOGGER.warning("Unknown fill array element length '"
-									+ element.elementWidth + "'!");
-						}
-					}
-					op.setValues(values);
-					continue;
-				}
 			}
 			// cannot happen for Exc / Var here
 		}
