@@ -25,6 +25,7 @@ package org.decojer.cavaj.readers.smali2;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.DU;
@@ -34,6 +35,7 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
+import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.ops.ADD;
 import org.decojer.cavaj.model.code.ops.ALOAD;
 import org.decojer.cavaj.model.code.ops.AND;
@@ -73,14 +75,20 @@ import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.readers.Smali2Reader;
+import org.decojer.cavaj.utils.Cursor;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.Opcode;
 import org.jf.dexlib2.dexbacked.DexBackedExceptionHandler;
 import org.jf.dexlib2.dexbacked.DexBackedMethodImplementation;
 import org.jf.dexlib2.dexbacked.DexBackedTryBlock;
 import org.jf.dexlib2.iface.debug.DebugItem;
+import org.jf.dexlib2.iface.debug.EndLocal;
+import org.jf.dexlib2.iface.debug.EpilogueBegin;
 import org.jf.dexlib2.iface.debug.LineNumber;
+import org.jf.dexlib2.iface.debug.PrologueEnd;
+import org.jf.dexlib2.iface.debug.RestartLocal;
 import org.jf.dexlib2.iface.debug.SetSourceFile;
+import org.jf.dexlib2.iface.debug.StartLocal;
 import org.jf.dexlib2.iface.instruction.Instruction;
 import org.jf.dexlib2.iface.instruction.SwitchElement;
 import org.jf.dexlib2.iface.instruction.SwitchPayload;
@@ -131,6 +139,8 @@ public class ReadMethodImplementation {
 	private final Map<Integer, Integer> opLines = Maps.newHashMap();
 
 	final List<Op> ops = Lists.newArrayList();
+
+	private final Map<Integer, List<V>> reg2vs = Maps.newHashMap();
 
 	private final Map<Integer, Integer> vmpc2pc = Maps.newHashMap();
 
@@ -193,6 +203,7 @@ public class ReadMethodImplementation {
 
 		this.ops.clear();
 		this.opLines.clear();
+		this.reg2vs.clear();
 		this.vmpc2pc.clear();
 		this.vmpc2unresolved.clear();
 
@@ -201,32 +212,118 @@ public class ReadMethodImplementation {
 
 		for (final DebugItem debugItem : implementation.getDebugItems()) {
 			final int codeAddress = debugItem.getCodeAddress();
+
 			switch (debugItem.getDebugItemType()) {
-			case DebugItemType.ADVANCE_LINE:
-				break;
-			case DebugItemType.ADVANCE_PC:
-				break;
-			case DebugItemType.END_LOCAL:
-				break;
-			case DebugItemType.END_SEQUENCE:
-				break;
-			case DebugItemType.EPILOGUE_BEGIN:
-				break;
+			case DebugItemType.START_LOCAL:
+			case DebugItemType.START_LOCAL_EXTENDED: {
+				final String name = ((StartLocal) debugItem).getName();
+				final String type = ((StartLocal) debugItem).getType();
+				final String signature = ((StartLocal) debugItem).getSignature();
+				final int registerNum = ((StartLocal) debugItem).getRegister();
+
+				T vT = this.md.getTd().getDu().getDescT(type);
+				if (signature != null) {
+					final T sigT = this.md.getTd().getDu()
+							.parseT(signature, new Cursor(), this.md.getM());
+					if (!sigT.eraseTo(vT)) {
+						LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + vT
+								+ "' for method (local variable '" + name + "') " + this.md);
+					} else {
+						vT = sigT;
+					}
+				}
+				final V v = new V(vT, name, codeAddress, -1);
+
+				List<V> vs = this.reg2vs.get(registerNum);
+				if (vs == null) {
+					vs = Lists.newArrayList();
+					this.reg2vs.put(registerNum, vs);
+				}
+				vs.add(v);
+				continue;
+			}
+			case DebugItemType.END_LOCAL: {
+				final String name = ((EndLocal) debugItem).getName();
+				final String type = ((EndLocal) debugItem).getType();
+				final String signature = ((EndLocal) debugItem).getSignature();
+				final int registerNum = ((EndLocal) debugItem).getRegister();
+
+				final List<V> vs = this.reg2vs.get(registerNum);
+				if (vs == null) {
+					log("EndLocal without any StartLocal:   p:" + codeAddress + " l:"
+							+ getLine(codeAddress) + " r:" + registerNum + " n:" + name + " t:"
+							+ type + " s:" + signature);
+					continue;
+				}
+				assert vs.size() != 0;
+
+				final V v = vs.get(vs.size() - 1);
+				final int[] pcs = v.getPcs();
+				assert pcs != null;
+				assert pcs.length >= 2;
+
+				if (pcs[pcs.length - 1] != -1) {
+					log("EndLocal without StartLocal:   p:" + codeAddress + " l:"
+							+ getLine(codeAddress) + " r:" + registerNum + " n:" + name + " t:"
+							+ type + " s:" + signature);
+					continue;
+				}
+				pcs[pcs.length - 1] = codeAddress;
+				continue;
+			}
+			case DebugItemType.RESTART_LOCAL: {
+				final String name = ((RestartLocal) debugItem).getName();
+				final String type = ((RestartLocal) debugItem).getType();
+				final String signature = ((RestartLocal) debugItem).getSignature();
+				final int registerNum = ((RestartLocal) debugItem).getRegister();
+
+				final List<V> vs = this.reg2vs.get(registerNum);
+				if (vs == null) {
+					log("RestartLocal without any Start/EndLocal:   p:" + codeAddress + " l:"
+							+ getLine(codeAddress) + " r:" + registerNum + " n:" + name + " t:"
+							+ type + " s:" + signature);
+					continue;
+				}
+				assert vs.size() != 0;
+
+				final V v = vs.get(vs.size() - 1);
+				final int[] pcs = v.getPcs();
+				assert pcs != null;
+				assert pcs.length >= 2;
+
+				if (pcs[pcs.length - 1] == -1) {
+					log("RestartLocal without EndLocal:   p:" + codeAddress + " l:"
+							+ getLine(codeAddress) + " r:" + registerNum + " n:" + name + " t:"
+							+ type + " s:" + signature);
+					continue;
+				}
+				v.addPcs(codeAddress, -1);
+				continue;
+			}
 			case DebugItemType.LINE_NUMBER:
 				this.opLines.put(codeAddress, ((LineNumber) debugItem).getLineNumber());
-				break;
+				continue;
 			case DebugItemType.PROLOGUE_END:
-				break;
-			case DebugItemType.RESTART_LOCAL:
-				break;
+				assert debugItem instanceof PrologueEnd : debugItem.getClass();
+
+				if (codeAddress != 0) {
+					log("Unknown stuff: SetPrologueEnd: " + codeAddress);
+				}
+				continue;
+			case DebugItemType.EPILOGUE_BEGIN:
+				assert debugItem instanceof EpilogueBegin : debugItem.getClass();
+
+				log("Unknown stuff: SetEpilogueBegin: " + codeAddress);
+				continue;
 			case DebugItemType.SET_SOURCE_FILE:
 				log("Unknown stuff: SetFile: " + codeAddress + " : "
 						+ ((SetSourceFile) debugItem).getSourceFile());
-				break;
-			case DebugItemType.START_LOCAL:
-				break;
-			case DebugItemType.START_LOCAL_EXTENDED:
-				break;
+				continue;
+			case DebugItemType.END_SEQUENCE:
+			case DebugItemType.ADVANCE_LINE:
+			case DebugItemType.ADVANCE_PC:
+				// handled internally
+				continue;
 			default:
 				log("Unknown debug item type '" + debugItem.getDebugItemType() + "'!");
 			}
@@ -2339,11 +2436,39 @@ public class ReadMethodImplementation {
 			}
 			cfg.setExcs(excs.toArray(new Exc[excs.size()]));
 		}
-		// TODO
+		readLocalVariables(cfg);
 	}
 
 	private void log(final String message) {
 		LOGGER.warning(this.md + ": " + message);
+	}
+
+	private void readLocalVariables(final CFG cfg) {
+		for (final Entry<Integer, List<V>> reg2v : this.reg2vs.entrySet()) {
+			final int reg = reg2v.getKey();
+			for (final V v : reg2v.getValue()) {
+				final int[] pcs = v.getPcs();
+				for (int i = pcs.length; i-- > 0;) {
+					if (pcs[i] == -1) {
+						// dalvik doesn't encode end pc if locals preserve till method end
+						pcs[i] = this.ops.size();
+						continue;
+					}
+					int vmpc = this.vmpc2pc.get(pcs[i]);
+					// TODO really necessary???
+					// find end, must find because multiple ops could be created
+					for (int j = 0; j < 10; ++j) {
+						final Integer pc = this.vmpc2pc.get(++vmpc);
+						if (pc != null) {
+							pcs[i] = pc - 1;
+							break;
+						}
+					}
+				}
+				cfg.addVar(reg, v);
+			}
+		}
+		cfg.postProcessVars();
 	}
 
 	private void visitVmpc(final int vmpc, final Instruction instruction) {

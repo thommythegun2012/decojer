@@ -349,7 +349,7 @@ public class Smali2Reader implements DexReader {
 		try {
 			this.readMethodImplementation.initAndVisit(md, method.getImplementation());
 		} catch (final ExceptionWithContext e) {
-			LOGGER.log(Level.WARNING, "Bytecode problems in method '" + md + "'!", e);
+			LOGGER.log(Level.WARNING, "Bytecode problems in method '" + md + "'! " + e.getMessage());
 		}
 	}
 
