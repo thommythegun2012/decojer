@@ -125,8 +125,9 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 		final List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
-			log("*EndLocal without any StartLocal:  P" + codeAddress + " l" + getLine(codeAddress)
-					+ " N" + length + " r" + registerNum);
+			log("EndLocal without any StartLocal:   p:" + codeAddress + " l:"
+					+ getLine(codeAddress) + " r:" + registerNum + " n:" + name + " t:" + type
+					+ " s:" + signature);
 
 			// don't know why, but happens sometimes, and all these are null then:
 			assert name == null && type == null && signature == null;
@@ -141,8 +142,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		assert pcs.length >= 2;
 
 		if (pcs[pcs.length - 1] != -1) {
-			log("*EndLocal without StartLocal:  P" + codeAddress + " l" + getLine(codeAddress)
-					+ " N" + length + " r" + registerNum);
+			log("EndLocal without StartLocal:   p:" + codeAddress + " l:" + getLine(codeAddress)
+					+ " r:" + registerNum + " n:" + name + " t:" + type + " s:" + signature);
 
 			// don't know why, but happens sometimes, and all these are null then:
 			assert name == null && type == null && signature == null;
@@ -166,8 +167,9 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 		final List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
-			log("RestartLocal without any Start/EndLocal:  P" + codeAddress + " l"
-					+ getLine(codeAddress) + " N" + length + " r" + registerNum);
+			log("RestartLocal without any Start/EndLocal:   p:" + codeAddress + " l:"
+					+ getLine(codeAddress) + " r:" + registerNum + " n:" + name + " t:" + type
+					+ " s:" + signature);
 			// don't know why, but happens sometimes, and all these are null then:
 			assert name == null && type == null && signature == null;
 
@@ -181,8 +183,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		assert pcs.length >= 2;
 
 		if (pcs[pcs.length - 1] == -1) {
-			log("RestartLocal without EndLocal:  P" + codeAddress + " l" + getLine(codeAddress)
-					+ " N" + length + " r" + registerNum);
+			log("RestartLocal without EndLocal:   p:" + codeAddress + " l:" + getLine(codeAddress)
+					+ " r:" + registerNum + " n:" + name + " t:" + type + " s:" + signature);
 			// don't know why, but happens sometimes, and all these are null then:
 			assert name == null && type == null && signature == null;
 
