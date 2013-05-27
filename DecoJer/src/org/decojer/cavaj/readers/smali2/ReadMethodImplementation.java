@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.readers.smali2;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -210,6 +211,11 @@ public class ReadMethodImplementation {
 		final CFG cfg = new CFG(md, implementation.getRegisterCount(), 0);
 		md.setCfg(cfg);
 
+		final Iterator<String> parameterNames = implementation.getParameterNames(null);
+		for (int i = 0; parameterNames.hasNext(); ++i) {
+			md.setParamName(i, parameterNames.next());
+		}
+
 		for (final DebugItem debugItem : implementation.getDebugItems()) {
 			final int codeAddress = debugItem.getCodeAddress();
 
@@ -250,6 +256,7 @@ public class ReadMethodImplementation {
 
 				final List<V> vs = this.reg2vs.get(registerNum);
 				if (vs == null) {
+					// TODO can happen if method parameter encounters post-dec/inc like c--?
 					log("EndLocal without any StartLocal:   p:" + codeAddress + " l:"
 							+ getLine(codeAddress) + " r:" + registerNum + " n:" + name + " t:"
 							+ type + " s:" + signature);
@@ -1202,19 +1209,19 @@ public class ReadMethodImplementation {
 				final int registerCount = instr.getRegisterCount();
 				final int[] regs = new int[registerCount];
 				if (registerCount > 0) {
-					regs[0] = instr.getRegisterD();
+					regs[0] = instr.getRegisterC();
 				}
 				if (registerCount > 1) {
-					regs[1] = instr.getRegisterE();
+					regs[1] = instr.getRegisterD();
 				}
 				if (registerCount > 2) {
-					regs[2] = instr.getRegisterF();
+					regs[2] = instr.getRegisterE();
 				}
 				if (registerCount > 3) {
-					regs[3] = instr.getRegisterG();
+					regs[3] = instr.getRegisterF();
 				}
 				if (registerCount > 4) {
-					regs[4] = instr.getRegisterC(); /* A -> C? */
+					regs[4] = instr.getRegisterG();
 				}
 				int reg = 0;
 
@@ -1558,19 +1565,19 @@ public class ReadMethodImplementation {
 
 				final Object[] regs = new Object[registerCount];
 				if (registerCount > 0) {
-					regs[0] = instr.getRegisterD();
+					regs[0] = instr.getRegisterC();
 				}
 				if (registerCount > 1) {
-					regs[1] = instr.getRegisterE();
+					regs[1] = instr.getRegisterD();
 				}
 				if (registerCount > 2) {
-					regs[2] = instr.getRegisterF();
+					regs[2] = instr.getRegisterE();
 				}
 				if (registerCount > 3) {
-					regs[3] = instr.getRegisterG();
+					regs[3] = instr.getRegisterF();
 				}
 				if (registerCount > 4) {
-					regs[4] = instr.getRegisterC(); // TODO A -> C?
+					regs[4] = instr.getRegisterG();
 				}
 
 				this.ops.add(new DUP(this.ops.size(), opcode, line, DUP.Kind.DUP));

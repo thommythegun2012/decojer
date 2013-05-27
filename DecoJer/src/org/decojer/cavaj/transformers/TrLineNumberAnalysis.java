@@ -34,6 +34,7 @@ import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.ops.Op;
+import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
@@ -110,6 +111,8 @@ public final class TrLineNumberAnalysis {
 					block = ((MethodDeclaration) methodDeclaration).getBody();
 				} else if (methodDeclaration instanceof Initializer) {
 					block = ((Initializer) methodDeclaration).getBody();
+				} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
+					continue;
 				} else {
 					LOGGER.warning("Unknown method ASTNode type '" + methodDeclaration.getClass()
 							+ "'!");
