@@ -53,6 +53,7 @@ import org.jf.dexlib2.iface.Annotation;
 import org.jf.dexlib2.iface.AnnotationElement;
 import org.jf.dexlib2.iface.reference.FieldReference;
 import org.jf.dexlib2.iface.reference.MethodReference;
+import org.jf.dexlib2.iface.value.AnnotationEncodedValue;
 import org.jf.dexlib2.iface.value.ArrayEncodedValue;
 import org.jf.dexlib2.iface.value.BooleanEncodedValue;
 import org.jf.dexlib2.iface.value.ByteEncodedValue;
@@ -238,9 +239,14 @@ public class Smali2Reader implements DexReader {
 			retentionPolicy = null;
 			LOGGER.warning("Unknown annotation visibility '" + annotation.getVisibility() + "'!");
 		}
-		final T t = this.du.getDescT(annotation.getType());
+		return readAnnotation(annotation.getType(), annotation.getElements(), retentionPolicy);
+	}
+
+	private A readAnnotation(final String type, final Set<? extends AnnotationElement> elements,
+			final RetentionPolicy retentionPolicy) {
+		final T t = this.du.getDescT(type);
 		final A a = new A(t, retentionPolicy);
-		for (final AnnotationElement element : annotation.getElements()) {
+		for (final AnnotationElement element : elements) {
 			a.addMember(element.getName(), readValue(element.getValue(), this.du));
 		}
 		return a;
@@ -368,7 +374,8 @@ public class Smali2Reader implements DexReader {
 		switch (encodedValue.getValueType()) {
 		case ValueType.ANNOTATION:
 			// retention unknown for annotation constant
-			return null; // readAnnotation((DexBackedAnnotationEncodedValue) encodedValue);
+			return readAnnotation(((AnnotationEncodedValue) encodedValue).getType(),
+					((AnnotationEncodedValue) encodedValue).getElements(), null);
 		case ValueType.ARRAY: {
 			final List<? extends EncodedValue> values = ((ArrayEncodedValue) encodedValue)
 					.getValue();
