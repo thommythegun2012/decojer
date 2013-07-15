@@ -16,7 +16,7 @@ The following details give an overview of the necessary steps to check out the s
 == Eclipse & Plugins ==
 
   * Prepare Eclipse:
-    * download *Eclipse for RCP and RAP Developers* (Version 3.7.2 or 4.2.2) from http://www.eclipse.org/downloads/
+    * download *Eclipse for RCP and RAP Developers* (Version 3.7.2 or 4.3) from http://www.eclipse.org/downloads/
     * extract Eclipse
     * install *Lombok*:
       * download from http://projectlombok.org/download.html
