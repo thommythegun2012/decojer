@@ -37,10 +37,10 @@ The following details give an overview of the necessary steps to check out the s
       * add Update Manager http://www.eclipse.org/jdt/ui/update-site
       * select _AST View_ / _AST View_
     * Install *ZEST*
-      * choose Update Manager: Juno - http://download.eclipse.org/releases/juno
+      * choose Update Manager: Kepler - http://download.eclipse.org/releases/kepler
       * select _Modeling_ / _Graphical Editing Framework Zest Visualization Toolkit SDK_
     * Install *Subversive*:
-      * choose Update Manager: Juno - http://download.eclipse.org/releases/juno
+      * choose Update Manager: Kepler - http://download.eclipse.org/releases/kepler
       * for Eclipse 3.7.2: Subversion compatible to new 1.7 repository: http://download.eclipse.org/technology/subversive/0.7/update-site/
       * select _Collaboration_ / _Subversive SVN..._
       * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.7.x for Win32
