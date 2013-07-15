@@ -25,13 +25,11 @@ The following details give an overview of the necessary steps to check out the s
 {{{
 ...
 -vmargs
--javaagent:lombok.jar
--Xbootclasspath/a:lombok.jar
--Dosgi.requiredJavaVersion=1.5
--Dhelp.lucene.tokenizer=standard
--Dfile.encoding=UTF-8
+-Dosgi.requiredJavaVersion=1.6
 -Xms1200m
 -Xmx1200m
+-javaagent:lombok.jar
+-Xbootclasspath/a:lombok.jar
 }}}
     * start and _Check for Updates_ -> update if necessary
   * Install Plugins:
