@@ -27,6 +27,7 @@ import org.decojer.cavaj.model.CU;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
 import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /**
  * Decompilation Unit Editor.
@@ -48,6 +49,19 @@ public class DecompilationUnitEditor extends CompilationUnitEditor {
 		}
 		return new MemoryStorageEditorInput(new StringMemoryStorage(sourceCode, cu == null
 				|| cu.getSourceFileName() == null ? null : new Path(cu.getSourceFileName())));
+	}
+
+	@Override
+	public Object getAdapter(final Class required) {
+		// overwrite because of fix for Eclipse since 3.9:
+		// new check JavaEditor.isCalledByOutline() doesn't work for us, call stack to high
+		if (IContentOutlinePage.class.equals(required)) {
+			if (this.fOutlinePage == null && getSourceViewer() != null /* && isCalledByOutline() */) {
+				this.fOutlinePage = createOutlinePage();
+			}
+			return this.fOutlinePage;
+		}
+		return super.getAdapter(required);
 	}
 
 	public void setInput(final CU cu) {
