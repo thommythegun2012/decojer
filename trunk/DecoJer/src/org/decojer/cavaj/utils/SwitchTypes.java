@@ -28,6 +28,8 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.TreeMap;
 
+import javax.annotation.Nullable;
+
 import org.apache.commons.lang3.ArrayUtils;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
@@ -45,7 +47,6 @@ import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.PUSH;
 import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
-import org.eclipse.jdt.annotation.Nullable;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
