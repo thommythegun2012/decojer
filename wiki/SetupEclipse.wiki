@@ -21,7 +21,7 @@ The following details give an overview of the necessary steps to check out the s
     * install *Lombok*:
       * download from http://projectlombok.org/download.html
       * start and select Eclipse folder
-    * set Eclipse encoding (important for Plugin export) and increace memory settings in settings.xml, should now look like:
+    * set Eclipse encoding (important for Plugin export) and increase memory settings in settings.xml, should now look like:
 {{{
 ...
 -vmargs
@@ -33,9 +33,6 @@ The following details give an overview of the necessary steps to check out the s
 }}}
     * start and _Check for Updates_ -> update if necessary
   * Install Plugins:
-    * Install *AST View*:
-      * add Update Manager http://www.eclipse.org/jdt/ui/update-site
-      * select _AST View_ / _AST View_
     * Install *ZEST*
       * choose Update Manager: Kepler - http://download.eclipse.org/releases/kepler
       * select _Modeling_ / _Graphical Editing Framework Zest Visualization Toolkit SDK_
@@ -44,6 +41,9 @@ The following details give an overview of the necessary steps to check out the s
       * for Eclipse 3.7.2: Subversion compatible to new 1.7 repository: http://download.eclipse.org/technology/subversive/0.7/update-site/
       * select _Collaboration_ / _Subversive SVN..._
       * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.7.x for Win32
+    * Install *AST View*:
+      * add Update Manager http://www.eclipse.org/jdt/ui/update-site
+      * select _AST View_ / _AST View_
     * Install *TestNG*:
       * add Update Manager http://beust.com/eclipse
       * select _TestNG_ / _TestNG_
