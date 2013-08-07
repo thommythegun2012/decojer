@@ -604,9 +604,10 @@ public final class TrCfg2JavaExpressionStmts {
 					final MethodInvocation methodInvocation = setOp(getAst().newMethodInvocation(),
 							op);
 					final Expression expression = bb.pop();
-					if (!(expression instanceof ThisExpression)) {
-						methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
-					}
+					// TODO need this for switch(this.ordinal) rewrites, delete later?
+					// if (!(expression instanceof ThisExpression)) {
+					methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
+					// }
 					methodInvocation.setName(newSimpleName(m.getName(), getAst()));
 					methodInvocation.arguments().addAll(arguments);
 					methodExpression = methodInvocation;
