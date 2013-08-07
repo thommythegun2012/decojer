@@ -1187,7 +1187,8 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final BB a = a_c.getStart();
-			if (!a.isCond()) {
+			if (!a.isCond() || a == c) {
+				// a == c check necessary because of loop with GOTO-BB, relevant ins jumps over this
 				continue;
 			}
 			// now we have the potential compound head, go down again and identify patterns
