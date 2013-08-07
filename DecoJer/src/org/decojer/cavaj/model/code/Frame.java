@@ -100,7 +100,7 @@ public final class Frame {
 	 * @return {@code true} - is alive
 	 */
 	public boolean isAlive(final int i) {
-		return this.alive == null ? false : this.alive[i];
+		return this.alive == null || this.alive.length <= i ? false : this.alive[i];
 	}
 
 	/**
@@ -130,15 +130,24 @@ public final class Frame {
 	}
 
 	/**
-	 * Mark register as alive.
+	 * Mark register (local or stack) as alive.
 	 * 
 	 * @param i
 	 *            register index
+	 * @return {@code true} - changed, was not alive
 	 */
-	public void markAlive(final int i) {
+	public boolean markAlive(final int i) {
 		if (this.alive == null) {
-			this.alive = new boolean[this.rs.length];
+			this.alive = new boolean[i + 1];
+		} else if (this.alive.length <= i) {
+			final boolean[] tmp = new boolean[i + 1];
+			System.arraycopy(this.alive, 0, tmp, 0, i);
+			this.alive = tmp;
+		} else if (this.alive[i]) {
+			return false;
 		}
+		this.alive[i] = true;
+		return true;
 	}
 
 	/**

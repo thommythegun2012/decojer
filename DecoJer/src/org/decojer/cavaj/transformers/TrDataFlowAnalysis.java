@@ -443,7 +443,7 @@ public final class TrDataFlowAnalysis {
 			if (loadRead(ret.getReg(), T.RET).getValue() != sub) {
 				log("Incorrect sub!");
 			}
-			final BB retBb = this.pc2bbs[ret.getPc()];
+			final BB retBb = getBb(ret.getPc());
 			final int jsrFollowPc = jsr.getPc() + 1;
 			retBb.setSucc(getTargetBb(jsrFollowPc));
 			// modify RET frame for untouched registers in sub
@@ -558,7 +558,7 @@ public final class TrDataFlowAnalysis {
 
 			// link RET BB to all yet known JSR followers and merge, Sub BB incomings are JSRs
 			final int subPc = sub.getPc();
-			final BB subBb = this.pc2bbs[subPc];
+			final BB subBb = getBb(subPc);
 			for (final E in : subBb.getIns()) {
 				// JSR is last operation in previous BB
 				final Op jsr = in.getStart().getFinalOp();
@@ -681,13 +681,17 @@ public final class TrDataFlowAnalysis {
 		default:
 			log("Operation '" + op + "' not handled!");
 		}
-		if (this.pc2bbs[nextPc] != null) {
+		if (getBb(nextPc) != null) {
 			bb.setSucc(getTargetBb(nextPc));
 			merge(nextPc);
 			return -1;
 		}
 		merge(nextPc);
 		return nextPc;
+	}
+
+	private BB getBb(final int pc) {
+		return this.pc2bbs[pc];
 	}
 
 	private DU getDu() {
@@ -702,7 +706,7 @@ public final class TrDataFlowAnalysis {
 	 * @return target BB
 	 */
 	private BB getTargetBb(final int pc) {
-		final BB bb = this.pc2bbs[pc]; // get BB for target PC
+		final BB bb = getBb(pc); // get BB for target PC
 		if (bb == null) {
 			// PC not processed yet
 			this.openPcs.add(pc);
@@ -720,7 +724,7 @@ public final class TrDataFlowAnalysis {
 		while (bb.getOps() > 0 && bb.getOp(0).getPc() != pc) {
 			final Op op = bb.removeOp(0);
 			newInBb.addOp(op);
-			this.pc2bbs[op.getPc()] = newInBb;
+			setBb(op.getPc(), newInBb);
 		}
 		bb.setPc(pc); // necessary because we must preserve outgoing BB
 		return bb;
@@ -771,7 +775,7 @@ public final class TrDataFlowAnalysis {
 
 	private R loadRead(final int i, final T t) {
 		final R r = load(i, t);
-		markAlive(this.pc2bbs[this.pc], i);
+		markAlive(getBb(this.pc), i);
 		return r;
 	}
 
@@ -783,10 +787,10 @@ public final class TrDataFlowAnalysis {
 		for (int j = bb.getOps(); j-- > 0;) {
 			final Op op = bb.getOp(j);
 			final Frame frame = this.cfg.getInFrame(op);
-			if (frame.isAlive(i)) {
+			if (!frame.markAlive(i)) {
 				return;
 			}
-			frame.markAlive(i);
+			// TODO now propagate...
 			if (true) {
 				return;
 			}
@@ -819,7 +823,7 @@ public final class TrDataFlowAnalysis {
 		// TODO merge Sub
 
 		// target frame has already been visited -> BB join -> type merge
-		final BB targetBb = this.pc2bbs[pc];
+		final BB targetBb = getBb(pc);
 		for (int i = targetFrame.size(); i-- > 0;) {
 			final R prevR = targetFrame.load(i);
 			final R newR = this.frame.load(i);
@@ -889,7 +893,7 @@ public final class TrDataFlowAnalysis {
 
 	private BB newBb(final int pc) {
 		final BB bb = this.cfg.newBb(pc);
-		this.pc2bbs[pc] = bb;
+		setBb(pc, bb);
 		if (!this.isIgnoreExceptions) {
 			final Exc[] excs = this.cfg.getExcs();
 			if (excs == null) {
@@ -973,7 +977,7 @@ public final class TrDataFlowAnalysis {
 		final R s = pop(t);
 		// 2 tricks: current operation is last in current BB - operation propagation not necessary,
 		// pop first and than the frame size is the register index for the highest stack register
-		markAlive(this.pc2bbs[this.pc], this.frame.size());
+		markAlive(getBb(this.pc), this.frame.size());
 		return s;
 	}
 
@@ -1063,6 +1067,10 @@ public final class TrDataFlowAnalysis {
 		return null;
 	}
 
+	private BB setBb(final int pc, final BB bb) {
+		return this.pc2bbs[pc] = bb;
+	}
+
 	/**
 	 * Exception block changes in BB? -> split necessary!
 	 * 
@@ -1126,11 +1134,11 @@ public final class TrDataFlowAnalysis {
 				}
 				this.pc = this.openPcs.removeFirst();
 				op = ops[this.pc];
-				bb = this.pc2bbs[this.pc];
+				bb = getBb(this.pc);
 			} else {
 				op = ops[this.pc];
 				bb = splitExceptions(bb, op); // may change with exception boundary
-				this.pc2bbs[this.pc] = bb;
+				setBb(this.pc, bb);
 			}
 			this.pc = execute(bb, op);
 			mergeExceptions(op); // execute has influence on this, read type reduce
