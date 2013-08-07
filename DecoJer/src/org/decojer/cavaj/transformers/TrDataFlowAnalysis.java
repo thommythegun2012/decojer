@@ -790,11 +790,11 @@ public final class TrDataFlowAnalysis {
 			if (!frame.markAlive(i)) {
 				return;
 			}
-			// TODO now propagate...
+			final R r = frame.load(i);
+			// TODO...
 			if (true) {
 				return;
 			}
-			final R r = frame.load(i);
 			if (r.getPc() == op.getPc()) {
 				// register created through current operation
 				switch (r.getKind()) {
