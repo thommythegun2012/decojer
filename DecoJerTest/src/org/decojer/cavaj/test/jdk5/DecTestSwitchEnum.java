@@ -1,6 +1,8 @@
 package org.decojer.cavaj.test.jdk5;
 
-public abstract class DecTestSwitchEnum {
+public enum DecTestSwitchEnum {
+
+	RED, GREEN;
 
 	public static void testChar(final char c) {
 		switch (c) {
@@ -90,6 +92,20 @@ public abstract class DecTestSwitchEnum {
 		case ENUM2:
 			System.out.println("ENUM2");
 		}
+	}
+
+	public void testSwitchThisEnum() {
+		switch (this) {
+		case RED:
+			System.out.println("RED");
+			break;
+		case GREEN:
+			System.out.println("GREEN");
+			break;
+		default:
+			throw new IllegalArgumentException();
+		}
+		System.out.println(" COLOR");
 	}
 
 }
