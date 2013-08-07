@@ -84,15 +84,6 @@ public final class Frame {
 	}
 
 	/**
-	 * Get subroutine number.
-	 * 
-	 * @return subroutine number
-	 */
-	public int getSubs() {
-		return this.subs == null ? 0 : this.subs.length;
-	}
-
-	/**
 	 * Get stack register number (stack size).
 	 * 
 	 * @return stack register number (stack size)
