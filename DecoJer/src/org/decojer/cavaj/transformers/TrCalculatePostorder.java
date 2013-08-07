@@ -34,7 +34,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
 /**
- * Transformer: Calculate postorder for basic blocks of CFG.
+ * Transformer: Calculate postorder for BBs of CFG.
  * 
  * @author André Pankraz
  */

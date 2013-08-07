@@ -712,7 +712,7 @@ public final class TrDataFlowAnalysis {
 		if (bb.getPc() == pc) {
 			return bb;
 		}
-		// split basic block, new incoming block, adapt basic block pcs,
+		// split BB, new incoming block, adapt BB pcs,
 		// it's necessary to preserve the outgoing block for back edges to same BB!!!
 		final BB newInBb = newBb(bb.getPc());
 		bb.moveIns(newInBb);

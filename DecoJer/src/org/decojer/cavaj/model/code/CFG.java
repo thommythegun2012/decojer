@@ -92,7 +92,7 @@ public final class CFG {
 	private Op[] ops;
 
 	/**
-	 * Array with postordered basic blocks.
+	 * Array with postordered BBs.
 	 */
 	@Getter
 	@Setter
@@ -310,21 +310,21 @@ public final class CFG {
 	}
 
 	/**
-	 * Get immediate dominator (IDom) for basic block.
+	 * Get immediate dominator (IDom) for BB.
 	 * 
 	 * @param bb
-	 *            basic block
-	 * @return immediate domminator (IDom) for basic block
+	 *            BB
+	 * @return immediate domminator (IDom) for BB
 	 */
 	public BB getIDom(final BB bb) {
 		return this.iDoms[bb.getPostorder()];
 	}
 
 	/**
-	 * Get input frame for basic block.
+	 * Get input frame for BB.
 	 * 
 	 * @param bb
-	 *            basic block
+	 *            BB
 	 * @return input frame
 	 */
 	public Frame getInFrame(final BB bb) {
@@ -425,12 +425,12 @@ public final class CFG {
 	}
 
 	/**
-	 * New basic block.
+	 * New BB.
 	 * 
 	 * @param opPc
 	 *            first operation PC
 	 * 
-	 * @return basic block
+	 * @return BB
 	 */
 	public BB newBb(final int opPc) {
 		return new BB(this, opPc);
