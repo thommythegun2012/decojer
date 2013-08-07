@@ -76,9 +76,9 @@ public final class E {
 	 * Constructor.
 	 * 
 	 * @param start
-	 *            start basic block
+	 *            start BB
 	 * @param end
-	 *            end basic block
+	 *            end BB
 	 * @param value
 	 *            value
 	 */

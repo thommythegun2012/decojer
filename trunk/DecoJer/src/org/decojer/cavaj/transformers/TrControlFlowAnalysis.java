@@ -105,7 +105,7 @@ public final class TrControlFlowAnalysis {
 		final List<BB> firstMembers = Lists.newArrayList();
 		findBranch(cond, firstSucc, firstMembers, firstFollows);
 
-		// no else basic blocks: normal if-block without else or
+		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
 		if (firstFollows.isEmpty() || firstFollows.contains(secondSucc)) {
 			// normal in JDK 6 bytecode, ifnot-expressions
@@ -119,7 +119,7 @@ public final class TrControlFlowAnalysis {
 		final List<BB> secondMembers = Lists.newArrayList();
 		findBranch(cond, secondSucc, secondMembers, secondFollows);
 
-		// no else basic blocks: normal if-block without else or
+		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
 		if (secondFollows.isEmpty() || secondFollows.contains(firstSucc)) {
 			// also often in JDK 6 bytecode, especially in parent structs

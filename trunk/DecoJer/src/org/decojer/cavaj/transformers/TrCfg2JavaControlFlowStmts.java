@@ -375,7 +375,7 @@ public final class TrCfg2JavaControlFlowStmts {
 					}
 				}
 			}
-			// simple sequence block, 0 statements possible with empty GOTO basic blocks
+			// simple sequence block, 0 statements possible with empty GOTO BBs
 			for (int i = 0; i < bb.getStmts(); ++i) {
 				statements.add(bb.getStmt(i));
 			}
@@ -396,7 +396,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		} else if (struct instanceof Loop) {
 			structStatement = transformLoop((Loop) struct);
 		} else {
-			// possible statements before cond in basic block
+			// possible statements before cond in BB
 			final int size = struct.getHead().getStmts() - 1;
 			for (int i = 0; i < size; ++i) {
 				statements.add(struct.getHead().getStmt(i));

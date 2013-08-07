@@ -66,7 +66,7 @@ public class FramesFigure extends Figure {
 	 * Constructor.
 	 * 
 	 * @param bb
-	 *            basic block
+	 *            BB
 	 */
 	public FramesFigure(final BB bb) {
 		final int regs = bb.getCfg().getRegs();
