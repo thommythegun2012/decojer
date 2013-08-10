@@ -367,7 +367,8 @@ public final class DU {
 	 * @return method parameter types
 	 */
 	public T[] parseMethodParamTs(final String s, final Cursor c, final Object context) {
-		assert s.charAt(c.pos) == '(' : s.charAt(c.pos);
+		assert s.charAt(c.pos) == '(' : "Signature '" + s + "', pos " + c.pos + ", char: "
+				+ s.charAt(c.pos);
 		++c.pos;
 		final List<T> ts = Lists.newArrayList();
 		while (s.charAt(c.pos) != ')') {
