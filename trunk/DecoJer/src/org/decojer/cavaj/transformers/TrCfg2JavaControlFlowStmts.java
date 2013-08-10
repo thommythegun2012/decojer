@@ -31,6 +31,7 @@ import static org.decojer.cavaj.utils.Expressions.setOp;
 import static org.decojer.cavaj.utils.Expressions.wrap;
 
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.F;
@@ -59,6 +60,7 @@ import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Transformer: Structured CFG to Java Control Flow Statements ASTs.
@@ -86,6 +88,8 @@ public final class TrCfg2JavaControlFlowStmts {
 
 	private final CFG cfg;
 
+	private final Set<Struct> traversedStructs = Sets.newHashSet();
+
 	private TrCfg2JavaControlFlowStmts(final CFG cfg) {
 		this.cfg = cfg;
 	}
@@ -103,6 +107,8 @@ public final class TrCfg2JavaControlFlowStmts {
 			// can happen, e.g. if synthethic
 			return;
 		}
+		this.traversedStructs.clear(); // possible in debug mode
+
 		final List<Statement> statements = this.cfg.getBlock().statements();
 		statements.clear(); // possible in debug mode
 
@@ -270,12 +276,9 @@ public final class TrCfg2JavaControlFlowStmts {
 	private void transformSequence(final Struct struct, final BB firstBb,
 			final List<Statement> statements) {
 		BB bb = firstBb;
-		int endlessHack = 0; // HACK
-		while (bb != null && endlessHack++ < 1000) {
-			assert endlessHack < 1000;
-
+		while (bb != null) {
+			// does BB leave current struct or enter a new sub struct?
 			if (struct != bb.getStruct()) {
-				// leaving struct or entering a new sub struct!
 				// check leaving with priority, can both happen in one BB
 				for (Struct findStruct = struct; findStruct != null; findStruct = findStruct
 						.getParent()) {
@@ -389,6 +392,11 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	private BB transformStruct(final Struct struct, final List<Statement> statements) {
+		if (!this.traversedStructs.add(struct)) {
+			log("Cannot transform struct twice:\n" + struct);
+			return null;
+		}
+
 		// decompile sub structure into a statement
 		Statement structStatement;
 		if (struct instanceof Catch) {
