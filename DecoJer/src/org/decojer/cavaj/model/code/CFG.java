@@ -234,6 +234,8 @@ public final class CFG {
 		}
 		if (stage > 1) {
 			TrControlFlowAnalysis.transform(this);
+		}
+		if (stage > 2) {
 			TrCfg2JavaControlFlowStmts.transform(this);
 		}
 	}

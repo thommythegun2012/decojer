@@ -98,8 +98,9 @@ public class CfgViewer extends Composite {
 
 		});
 		this.cfgViewModeCombo = new Combo(this, SWT.READ_ONLY);
-		this.cfgViewModeCombo.setItems(new String[] { "IVM CFG", "Java Expr", "Control Flow" });
-		this.cfgViewModeCombo.setText("Control Flow");
+		this.cfgViewModeCombo.setItems(new String[] { "Data Flow Analysis", "Java Expressions",
+				"Control Flow Analysis", "Control Flow Statements" });
+		this.cfgViewModeCombo.setText("Control Flow Statements");
 		this.cfgViewModeCombo.addSelectionListener(new SelectionListener() {
 
 			@Override

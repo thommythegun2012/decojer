@@ -229,6 +229,7 @@ public final class TrControlFlowAnalysis {
 				loop.setFollow(headFollow);
 				return loop;
 			}
+			// TODO more checks here, see http://code.google.com/p/decojer/issues/detail?id=15
 		}
 		loop.setKind(Loop.Kind.ENDLESS);
 		return loop;
