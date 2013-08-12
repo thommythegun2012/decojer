@@ -85,6 +85,7 @@ public final class DU {
 	 * @return parameterized type for generic type and type arguments
 	 */
 	public static ParamT getParamT(final T genericT, final TypeArg[] typeArgs) {
+		// cannot cache because of type variables
 		return new ParamT(genericT, typeArgs);
 	}
 
@@ -334,10 +335,8 @@ public final class DU {
 		}
 		T t;
 		if (enclosing != null) {
-			// don't use getT() with cache, enclosing could be uncachable (like type var)
-			// FIXME if enclosing is ParamT we get problematic names...special InnerT for this case?
-			t = new ClassT(this, enclosing.getName() + "$"
-					+ s.substring(start, c.pos).replace('/', '.'));
+			// can just happen for signatures, they have . instead of $ for enclosing
+			t = getT(enclosing.getName() + "$" + s.substring(start, c.pos).replace('/', '.'));
 			((ClassT) t).setEnclosingT(enclosing);
 		} else {
 			t = getT(s.substring(start, c.pos).replace('/', '.'));
