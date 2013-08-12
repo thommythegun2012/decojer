@@ -95,7 +95,7 @@ public final class TrJvmStruct2JavaAst {
 		if (name.startsWith("this$") && !cu.check(DFlag.START_TD_ONLY)) {
 			// cache for outer none-static context
 			return;
-		} 
+		}
 
 		final ASTNode typeDeclaration = td.getTypeDeclaration();
 		final AST ast = cu.getAst();
@@ -178,7 +178,7 @@ public final class TrJvmStruct2JavaAst {
 					variableDeclarationFragment.setInitializer(expr);
 				}
 			}
-		} 
+		}
 	}
 
 	private static void decompileMethod(final MD md, final CU cu, final boolean strictFp) {
@@ -578,6 +578,7 @@ public final class TrJvmStruct2JavaAst {
 			}
 			if (td.check(AF.ABSTRACT)
 					&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
+					&& !(typeDeclaration instanceof EnumDeclaration)
 					&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 							.isInterface())) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));

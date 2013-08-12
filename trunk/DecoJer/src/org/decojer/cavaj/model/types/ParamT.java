@@ -26,6 +26,7 @@ package org.decojer.cavaj.model.types;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.TD;
 
 /**
  * Parameterized type.
@@ -107,15 +108,6 @@ public final class ParamT extends ModT {
 
 	}
 
-	private static String toString(final T genericT, final TypeArg[] typeArgs) {
-		final StringBuilder sb = new StringBuilder(genericT.getName()).append('<');
-		for (final TypeArg typeArg : typeArgs) {
-			sb.append(typeArg).append(',');
-		}
-		sb.setCharAt(sb.length() - 1, '>');
-		return sb.toString();
-	}
-
 	/**
 	 * Type arguments for matching type parameters.
 	 */
@@ -131,7 +123,10 @@ public final class ParamT extends ModT {
 	 *            type arguments for matching type parameters
 	 */
 	public ParamT(final T genericT, final TypeArg[] typeArgs) {
-		super(toString(genericT, typeArgs), genericT);
+		super(genericT.getName(), genericT);
+		// we have to use the raw name here, not name<typeArgs>, else many enclosing-dependant stuff
+		// will not work, like getT() for enclosed, getSimpleName() etc.,
+		// cannot cache this anyway because of type variables
 
 		this.typeArgs = typeArgs;
 	}
@@ -143,6 +138,22 @@ public final class ParamT extends ModT {
 	 */
 	public T getGenericT() {
 		return getRawT();
+	}
+
+	@Override
+	public TD getTd() {
+		// the generic type has the type declaration...
+		return getGenericT().getTd();
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder(getGenericT().getName()).append('<');
+		for (final TypeArg typeArg : getTypeArgs()) {
+			sb.append(typeArg).append(',');
+		}
+		sb.setCharAt(sb.length() - 1, '>');
+		return sb.toString();
 	}
 
 }

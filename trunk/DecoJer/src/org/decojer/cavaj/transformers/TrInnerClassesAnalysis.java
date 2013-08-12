@@ -367,4 +367,5 @@ public class TrInnerClassesAnalysis {
 		});
 		du.setCus(selectedCus);
 	}
+
 }
