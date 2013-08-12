@@ -290,7 +290,7 @@ public class ClassT extends T {
 		}
 		final Class<?> enclosingClass = klass.getEnclosingClass();
 		if (enclosingClass != null) {
-			this.enclosing = this.du.getT(enclosingClass);
+			setEnclosingT(this.du.getT(enclosingClass));
 		}
 		final Method enclosingMethod = klass.getEnclosingMethod();
 		if (enclosingMethod != null) {
@@ -302,8 +302,8 @@ public class ClassT extends T {
 						new Class[0]);
 				method.setAccessible(true);
 				final Object[] info = (Object[]) method.invoke(klass, new Object[0]);
-				this.enclosing = methodT.getM(enclosingMethod.getName() /* also info[1] */,
-						(String) info[2]);
+				setEnclosingM(methodT.getM(enclosingMethod.getName() /* also info[1] */,
+						(String) info[2]));
 			} catch (final Exception e) {
 				LOGGER.log(Level.WARNING, "Couldn't get descriptor for class loaded method!", e);
 			}
@@ -344,11 +344,14 @@ public class ClassT extends T {
 	 */
 	public void setEnclosingM(final M m) {
 		if (this.enclosing != null) {
-			if (this.enclosing != m) {
+			if (this.enclosing.equals(m)) {
+				return;
+			}
+			if (!this.enclosing.equals(m.getT())) {
 				LOGGER.warning("Enclosing method cannot be changed from '" + this.enclosing
 						+ "' to '" + m + "'!");
+				return;
 			}
-			return;
 		}
 		this.enclosing = m;
 	}
@@ -386,10 +389,10 @@ public class ClassT extends T {
 	 */
 	public void setEnclosingT(final T t) {
 		if (this.enclosing != null) {
-			if (this.enclosing instanceof M && ((M) this.enclosing).getT().equals(t)) {
+			if (this.enclosing.equals(t)) {
 				return;
 			}
-			if (this.enclosing.equals(t)) {
+			if (this.enclosing instanceof M && ((M) this.enclosing).getT().equals(t)) {
 				return;
 			}
 			// extend signature?
