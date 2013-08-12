@@ -25,6 +25,7 @@ package org.decojer.cavaj.model.types;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import lombok.Getter;
@@ -287,16 +288,25 @@ public class ClassT extends T {
 			}
 			this.typeParams = typeParams;
 		}
+		final Class<?> enclosingClass = klass.getEnclosingClass();
+		if (enclosingClass != null) {
+			this.enclosing = this.du.getT(enclosingClass);
+		}
 		final Method enclosingMethod = klass.getEnclosingMethod();
 		if (enclosingMethod != null) {
 			final Class<?> declaringClass = enclosingMethod.getDeclaringClass();
 			final T methodT = this.du.getT(declaringClass);
-			// TODO difficult...have only generic types here, not original descriptor
-			this.enclosing = methodT.getM(enclosingMethod.getName(), "<TODO>");
-		}
-		final Class<?> enclosingClass = klass.getEnclosingClass();
-		if (enclosingClass != null) {
-			this.enclosing = this.du.getT(enclosingClass);
+			try {
+				// backcalculating desc is a bit too much trouble, easier for now this way...
+				final Method method = klass.getClass().getDeclaredMethod("getEnclosingMethod0",
+						new Class[0]);
+				method.setAccessible(true);
+				final Object[] info = (Object[]) method.invoke(klass, new Object[0]);
+				this.enclosing = methodT.getM(enclosingMethod.getName() /* also info[1] */,
+						(String) info[2]);
+			} catch (final Exception e) {
+				LOGGER.log(Level.WARNING, "Couldn't get descriptor for class loaded method!", e);
+			}
 		}
 		resolved();
 		return false;
