@@ -342,12 +342,13 @@ public final class TD extends BD {
 		final T[] signInterfaceTs = parseInterfaceTs(signature, c);
 		if (signInterfaceTs != null) {
 			final T[] interfaceTs = getInterfaceTs();
-			if (interfaceTs.length != signInterfaceTs.length) {
-				LOGGER.info("Cannot reduce super types for type declaration '" + this
+			if (signInterfaceTs.length > interfaceTs.length) {
+				// < can happen, e.g. scala-lift misses the final java.io.Serializable in signatures
+				LOGGER.info("Cannot reduce interface types for type declaration '" + this
 						+ "' with signature: " + signature);
 				return;
 			}
-			for (int i = 0; i < interfaceTs.length; ++i) {
+			for (int i = 0; i < signInterfaceTs.length; ++i) {
 				final T interfaceT = signInterfaceTs[i];
 				if (!interfaceT.eraseTo(interfaceTs[i])) {
 					LOGGER.info("Cannot reduce type '" + interfaceT + "' to interface type '"
