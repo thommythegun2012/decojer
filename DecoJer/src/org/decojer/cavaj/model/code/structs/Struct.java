@@ -221,10 +221,14 @@ public class Struct {
 	 *            follow
 	 */
 	public void setFollow(final BB bb) {
-		// this could be a direct back link when condition is at end of loop, not a valid check:
-		// assert bb.getPostorder() < this.head.getPostorder();
-
-		this.follow = bb;
+		// a direct back link at the end of a loop is not a valid follow, have to handle this
+		// differently or we will loop into loop create statements twice,
+		// dismiss such settings silently for now, else have to handle it at many places
+		if (bb == null || bb.getPostorder() >= this.head.getPostorder()) {
+			this.follow = null;
+		} else {
+			this.follow = bb;
+		}
 	}
 
 	@Override
