@@ -165,7 +165,6 @@ public final class TrControlFlowAnalysis {
 		findLoop(loop, head, Sets.<BB> newHashSet());
 
 		final BB tail = loop.getLast();
-		// FIXME tail == null can currently happen if endless-return-try-catch
 
 		Loop.Kind headKind = null;
 		BB headFollow = null;
@@ -190,7 +189,7 @@ public final class TrControlFlowAnalysis {
 		Loop.Kind tailKind = null;
 		BB tailFollow = null;
 
-		if (tail.isCond() && !tail.isLoopHead() && !head.isLoopLast()) {
+		if (tail != null && tail.isCond() && !tail.isLoopHead() && !head.isLoopLast()) {
 			final BB falseSucc = tail.getFalseSucc();
 			final BB trueSucc = tail.getTrueSucc();
 			if (loop.isHead(trueSucc)) {
