@@ -25,6 +25,7 @@ package org.decojer.cavaj.model.code;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -144,13 +145,15 @@ public final class E {
 	}
 
 	public String getValueString() {
+		final List<E> outs = getStart().getOuts();
+		final String prefix = outs.size() > 1 ? outs.indexOf(this) + " " : "";
 		if (this.value == null) {
-			return "";
+			return prefix + "";
 		}
 		if (this.value instanceof Object[]) {
-			return Arrays.toString((Object[]) this.value);
+			return prefix + Arrays.toString((Object[]) this.value);
 		}
-		return "(" + this.value + ")";
+		return prefix + "(" + this.value + ")";
 	}
 
 	@Override
