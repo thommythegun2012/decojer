@@ -126,8 +126,8 @@ public final class TrDataFlowAnalysis {
 	private BB[] pc2bbs;
 
 	private TrDataFlowAnalysis(final CFG cfg) {
-		this.cfg = cfg;
-		this.isIgnoreExceptions = this.cfg.getCu().check(DFlag.IGNORE_EXCEPTIONS);
+		getCfg() = cfg;
+		this.isIgnoreExceptions = getCfg().getCu().check(DFlag.IGNORE_EXCEPTIONS);
 	}
 
 	private void evalBinaryIntBoolMath(final T t) {
@@ -162,7 +162,7 @@ public final class TrDataFlowAnalysis {
 
 	private int execute(final BB bb, final Op op) {
 		bb.addOp(op);
-		this.frame = new Frame(this.cfg.getInFrame(op));
+		this.frame = new Frame(getCfg().getInFrame(op));
 		int nextPc = op.getPc() + 1;
 		switch (op.getOptype()) {
 		case ADD: {
@@ -413,7 +413,7 @@ public final class TrDataFlowAnalysis {
 			final BB subBb = getTargetBb(subPc);
 			bb.setSucc(subBb);
 			// use common value (we take Sub) instead of jsr-follow-address because of merge
-			final Frame subFrame = this.cfg.getFrame(subPc);
+			final Frame subFrame = getCfg().getFrame(subPc);
 			if (subFrame == null) {
 				// never bean as this sub -> create new jsr-follow-address (Sub) and merge -> return
 				final Sub sub = new Sub(subPc);
@@ -440,7 +440,7 @@ public final class TrDataFlowAnalysis {
 			if (ret == null) {
 				return -1;
 			}
-			this.frame = new Frame(this.cfg.getFrame(ret.getPc()));
+			this.frame = new Frame(getCfg().getFrame(ret.getPc()));
 			if (loadRead(ret.getReg(), T.RET).getValue() != sub) {
 				log("Incorrect sub!");
 			}
@@ -448,7 +448,7 @@ public final class TrDataFlowAnalysis {
 			final int jsrFollowPc = jsr.getPc() + 1;
 			retBb.setSucc(getTargetBb(jsrFollowPc));
 			// modify RET frame for untouched registers in sub
-			final Frame jsrFrame = this.cfg.getInFrame(jsr);
+			final Frame jsrFrame = getCfg().getInFrame(jsr);
 			for (int i = this.frame.size(); i-- > 0;) {
 				if (jumpOverSub(ret, i)) {
 					this.frame.store(i, jsrFrame.load(i));
@@ -566,7 +566,7 @@ public final class TrDataFlowAnalysis {
 				final int jsrFollowPc = jsr.getPc() + 1;
 				bb.setSucc(getTargetBb(jsrFollowPc));
 				// modify RET frame for untouched registers in sub
-				final Frame jsrFrame = this.cfg.getInFrame(jsr);
+				final Frame jsrFrame = getCfg().getInFrame(jsr);
 				for (int i = this.frame.size(); i-- > 0;) {
 					if (jumpOverSub(ret, i)) {
 						this.frame.store(i, jsrFrame.load(i));
@@ -578,7 +578,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case RETURN: {
 			final RETURN cop = (RETURN) op;
-			final T returnT = this.cfg.getMd().getReturnT();
+			final T returnT = getCfg().getMd().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT);
 
 			if (returnT != T.VOID) {
@@ -609,7 +609,7 @@ public final class TrDataFlowAnalysis {
 			// asymmetry with the astore instruction is intentional.
 
 			// use potentially known variable types, e.g. "boolean b = true"
-			final V debugV = this.cfg.getDebugV(cop.getReg(), nextPc);
+			final V debugV = getCfg().getDebugV(cop.getReg(), nextPc);
 			final R r = popRead(debugV != null ? debugV.getT() : cop.getT());
 			store(cop.getReg(), r);
 			break;
@@ -693,8 +693,12 @@ public final class TrDataFlowAnalysis {
 		return this.pc2bbs[pc];
 	}
 
+	private CFG getCfg() {
+		return this.cfg;
+	}
+
 	private DU getDu() {
-		return this.cfg.getDu();
+		return getCfg().getDu();
 	}
 
 	/**
@@ -730,10 +734,10 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private boolean jumpOverSub(final RET ret, final int i) {
-		final Frame retFrame = this.cfg.getFrame(ret.getPc());
+		final Frame retFrame = getCfg().getFrame(ret.getPc());
 		final R retR = retFrame.load(ret.getReg());
 		final Sub sub = (Sub) retR.getValue();
-		final Frame subFrame = this.cfg.getFrame(sub.getPc());
+		final Frame subFrame = getCfg().getFrame(sub.getPc());
 
 		final R regAtSub = subFrame.load(i);
 		final R regAtRet = retFrame.load(i);
@@ -779,13 +783,13 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(this.cfg.getMd() + ": " + message);
+		LOGGER.warning(getCfg().getMd() + ": " + message);
 	}
 
 	private void markAlive(final BB bb, final int i) {
 		for (int j = bb.getOps(); j-- > 0;) {
 			final Op op = bb.getOp(j);
-			final Frame frame = this.cfg.getInFrame(op);
+			final Frame frame = getCfg().getInFrame(op);
 			if (!frame.markAlive(i)) {
 				return;
 			}
@@ -811,10 +815,10 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void merge(final int pc) {
-		final Frame targetFrame = this.cfg.getFrame(pc);
+		final Frame targetFrame = getCfg().getFrame(pc);
 		if (targetFrame == null) {
 			// first visit for this target frame -> no BB join -> no type merge
-			this.cfg.setFrame(pc, new Frame(this.frame));
+			getCfg().setFrame(pc, new Frame(this.frame));
 			return;
 		}
 		assert targetFrame.size() == this.frame.size();
@@ -861,18 +865,18 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void mergeExceptions(final Op op) {
-		if (this.isIgnoreExceptions || this.cfg.getExcs() == null) {
+		if (this.isIgnoreExceptions || getCfg().getExcs() == null) {
 			return;
 		}
-		for (final Exc exc : this.cfg.getExcs()) {
+		for (final Exc exc : getCfg().getExcs()) {
 			if (!exc.validIn(op.getPc())) {
 				continue;
 			}
-			this.frame = new Frame(this.cfg.getInFrame(op));
+			this.frame = new Frame(getCfg().getInFrame(op));
 
 			// in handler start frame the stack just consists of exception type
 			this.frame.clear();
-			final Frame handlerFrame = this.cfg.getFrame(exc.getHandlerPc());
+			final Frame handlerFrame = getCfg().getFrame(exc.getHandlerPc());
 			R excR;
 			if (handlerFrame == null) {
 				// null is <any> (means Java finally) -> Throwable
@@ -891,10 +895,10 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private BB newBb(final int pc) {
-		final BB bb = this.cfg.newBb(pc);
+		final BB bb = getCfg().newBb(pc);
 		setBb(pc, bb);
 		if (!this.isIgnoreExceptions) {
-			final Exc[] excs = this.cfg.getExcs();
+			final Exc[] excs = getCfg().getExcs();
 			if (excs == null) {
 				return bb;
 			}
@@ -1019,7 +1023,7 @@ public final class TrDataFlowAnalysis {
 		// replacement propagation to next BB necessary
 		for (final E out : bb.getOuts()) {
 			final BB outBb = out.getEnd();
-			if (this.cfg.getInFrame(outBb) == null) {
+			if (getCfg().getInFrame(outBb) == null) {
 				// possible for freshly splitted catch-handlers that havn't been visited yet
 				assert out.isCatch() : out;
 
@@ -1027,7 +1031,7 @@ public final class TrDataFlowAnalysis {
 			}
 			// final operation is RET -> modify newR for untouched registers in sub
 			if (jumpOverSub) {
-				final Frame jsrFrame = this.cfg.getFrame(outBb.getPc() - 1);
+				final Frame jsrFrame = getCfg().getFrame(outBb.getPc() - 1);
 				replaceBbReg(outBb, i, replacedR, jsrFrame.load(i));
 				continue;
 			}
@@ -1038,7 +1042,7 @@ public final class TrDataFlowAnalysis {
 	private R replaceFrameReg(final int pc, final int i, final R prevR, final R newR) {
 		assert prevR != null;
 
-		final Frame frame = this.cfg.getFrame(pc);
+		final Frame frame = getCfg().getFrame(pc);
 		if (i < frame.size()) {
 			final R frameR = frame.load(i);
 			if (prevR == frameR) {
@@ -1072,13 +1076,13 @@ public final class TrDataFlowAnalysis {
 	 * @return original BB or new BB for beginning exception block
 	 */
 	private BB splitExceptions(final BB bb, final Op op) {
-		if (this.isIgnoreExceptions || this.cfg.getExcs() == null) {
+		if (this.isIgnoreExceptions || getCfg().getExcs() == null) {
 			return bb;
 		}
 		// could happen with GOTO-mode: create no entry in BB, currently unused
 		assert bb.getPc() == this.pc || bb.getOps() > 0;
 
-		for (final Exc exc : this.cfg.getExcs()) {
+		for (final Exc exc : getCfg().getExcs()) {
 			if (exc.validIn(this.pc)) {
 				if (exc.validIn(bb.getPc())) {
 					// exception is valid - has been valid at BB entry -> OK
@@ -1106,15 +1110,15 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void transform() {
-		this.cfg.initFrames();
+		getCfg().initFrames();
 
 		// start with PC 0 and new BB
 		this.pc = 0;
-		final Op[] ops = this.cfg.getOps();
+		final Op[] ops = getCfg().getOps();
 		this.pc2bbs = new BB[ops.length];
 		this.openPcs = Lists.newLinkedList();
 		BB bb = newBb(0); // need pc2bb and openPcs
-		this.cfg.setStartBb(bb);
+		getCfg().setStartBb(bb);
 
 		while (true) {
 			final Op op;
