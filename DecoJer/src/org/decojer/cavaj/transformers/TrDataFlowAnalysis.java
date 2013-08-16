@@ -42,6 +42,7 @@ import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.code.Sub;
+import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.ops.ADD;
 import org.decojer.cavaj.model.code.ops.ALOAD;
 import org.decojer.cavaj.model.code.ops.AND;
@@ -606,13 +607,11 @@ public final class TrDataFlowAnalysis {
 			// 7.13, "Compiling finally"). The aload instruction cannot be used to load a value
 			// of type returnAddress from a local variable onto the operand stack. This
 			// asymmetry with the astore instruction is intentional.
-			final R r = popRead(cop.getT());
+
+			// use potentially known variable types, e.g. "boolean b = true"
+			final V debugV = this.cfg.getDebugV(cop.getReg(), nextPc);
+			final R r = popRead(debugV != null ? debugV.getT() : cop.getT());
 			store(cop.getReg(), r);
-			// final R storeR = store(cop.getReg(), r);
-			// final V debugV = this.cfg.getDebugV(cop.getReg(), nextPc);
-			// if (debugV != null) {
-			// storeR.setRealT(debugV.getT());
-			// }
 			break;
 		}
 		case SUB: {
