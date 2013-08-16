@@ -126,7 +126,7 @@ public final class TrDataFlowAnalysis {
 	private BB[] pc2bbs;
 
 	private TrDataFlowAnalysis(final CFG cfg) {
-		getCfg() = cfg;
+		this.cfg = cfg;
 		this.isIgnoreExceptions = getCfg().getCu().check(DFlag.IGNORE_EXCEPTIONS);
 	}
 
