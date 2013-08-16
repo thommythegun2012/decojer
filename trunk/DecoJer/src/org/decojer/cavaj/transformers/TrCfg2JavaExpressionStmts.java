@@ -1842,8 +1842,7 @@ public final class TrCfg2JavaExpressionStmts {
 			// TODO could also be: LOAD x, MONITOR_EXIT - THROW ...kill POP case above?
 			// TODO or could be: DUP, STORE 0, INVOKE printStackTrace()V
 			// or whatever...need are much more generalized version!
-			log("First operation in handler '" + bb + "' isn't STORE or POP, but is '" + firstOp
-					+ "'!");
+			log("First operation in handler isn't STORE or POP, but is '" + firstOp + "': " + bb);
 			name = "e"; // TODO hmmm...free variable name needed...
 			bb.push(newSimpleName(name, getAst()));
 		}
