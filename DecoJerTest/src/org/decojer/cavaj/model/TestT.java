@@ -27,8 +27,6 @@ class TestT {
 
 	@BeforeClass
 	void _beforeClass() {
-		// a decompilation unit is like a class loader, just for references with
-		// real classes / type declarations
 		du = DecoJer.createDu();
 		objectT = du.getObjectT();
 	}
