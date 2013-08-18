@@ -11,10 +11,10 @@ import org.testng.annotations.Test;
 @Test
 class TestR {
 
-	DU du;
+	private DU du;
 
 	@BeforeClass
-	void beforeClass() {
+	void _beforeClass() {
 		// a decompilation unit is like a class loader, just for references with
 		// real classes / type declarations
 		du = DecoJer.createDu();
