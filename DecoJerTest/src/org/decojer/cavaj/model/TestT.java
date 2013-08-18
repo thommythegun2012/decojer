@@ -21,9 +21,17 @@ import org.testng.annotations.Test;
 @Test
 class TestT {
 
-	DU du;
+	private DU du;
 
-	T objectT;
+	private T objectT;
+
+	@BeforeClass
+	void _beforeClass() {
+		// a decompilation unit is like a class loader, just for references with
+		// real classes / type declarations
+		du = DecoJer.createDu();
+		objectT = du.getObjectT();
+	}
 
 	@Test
 	void assignTo() {
@@ -36,14 +44,6 @@ class TestT {
 		assertSame(T.SINGLE.assignTo(T.AINT), T.AINT);
 		assertSame(T.SINGLE.assignTo(T.SINGLE), T.SINGLE);
 		assertNull(T.WIDE.assignTo(T.SINGLE));
-	}
-
-	@BeforeClass
-	void beforeClass() {
-		// a decompilation unit is like a class loader, just for references with
-		// real classes / type declarations
-		du = DecoJer.createDu();
-		objectT = du.getObjectT();
 	}
 
 	@Test
