@@ -859,6 +859,11 @@ public final class TrDataFlowAnalysis {
 				prevR.addInMerge(t, newR);
 				continue;
 			}
+			// TODO check guava com.google.common.base.Absent.equals() for simple stuff,
+			// without this PUSH 0/1 in different conds that join will not back reduce bool
+			newR.assignTo(t);
+			prevR.assignTo(t);
+
 			// start new merge register
 			replaceBbReg(targetBb, i, prevR, new R(pc, t, Kind.MERGE, prevR, newR));
 		}
