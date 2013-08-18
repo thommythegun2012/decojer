@@ -26,7 +26,6 @@ package org.decojer.cavaj.model.types;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
 
 /**
  * Parameterized type.
@@ -141,14 +140,8 @@ public final class ParamT extends ModT {
 	}
 
 	@Override
-	public TD getTd() {
-		// the generic type has the type declaration...
-		return getGenericT().getTd();
-	}
-
-	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder(getGenericT().getName()).append('<');
+		final StringBuilder sb = new StringBuilder(getGenericT().toString()).append('<');
 		for (final TypeArg typeArg : getTypeArgs()) {
 			sb.append(typeArg).append(',');
 		}

@@ -28,7 +28,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.TD;
 
 /**
  * Modifying type.
@@ -58,6 +60,16 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public M getEnclosingM() {
+		return getRawT().getEnclosingM();
+	}
+
+	@Override
+	public T getEnclosingT() {
+		return getRawT().getEnclosingT();
+	}
+
+	@Override
 	public T[] getInterfaceTs() {
 		return getRawT().getInterfaceTs();
 	}
@@ -70,6 +82,11 @@ public abstract class ModT extends T {
 	@Override
 	public T getSuperT() {
 		return getRawT().getSuperT();
+	}
+
+	@Override
+	public TD getTd() {
+		return getRawT().getTd();
 	}
 
 	@Override
