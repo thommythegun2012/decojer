@@ -294,46 +294,25 @@ public final class Expressions {
 			LOGGER.warning("Unknown reference type '" + t + "'!");
 			return ast.newNullLiteral();
 		}
-		// TODO really prefer INT in undecideable multi-case?
-		if (t.is(T.INT)) {
-			if (value instanceof Number) {
-				final int i = ((Number) value).intValue();
-				if (i == Integer.MAX_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Integer"),
-							ast.newSimpleName("MAX_VALUE"));
-				}
-				if (i == Integer.MIN_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Integer"),
-							ast.newSimpleName("MIN_VALUE"));
-				}
-				return ast.newNumberLiteral(Integer.toString(i));
-			}
-			if (value == null) {
-				return ast.newNumberLiteral(Integer.toString(0));
-			}
-			LOGGER.warning("Integer type with value '" + value + "' has type '"
-					+ value.getClass().getName() + "'!");
-			return ast.newNumberLiteral(value.toString());
+		if (t.isMulti()) {
+			LOGGER.warning("Convert literal '" + value + "' for multi-type '" + t + "'!");
+			// prefer boolean for multi-type with 0 or 1, synchronous to newType()!
+			// prefer byte before char if no explicit char type given
 		}
-		if (t.is(T.SHORT)) {
+		if (t.is(T.BOOLEAN)) {
+			if (value instanceof Boolean) {
+				return ast.newBooleanLiteral(((Boolean) value).booleanValue());
+			}
 			if (value instanceof Number) {
-				final short s = ((Number) value).shortValue();
-				if (s == Short.MAX_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Short"),
-							ast.newSimpleName("MAX_VALUE"));
-				}
-				if (s == Short.MIN_VALUE) {
-					return ast.newQualifiedName(ast.newSimpleName("Short"),
-							ast.newSimpleName("MIN_VALUE"));
-				}
-				return ast.newNumberLiteral(Short.toString(s));
+				return ast.newBooleanLiteral(((Number) value).intValue() != 0);
 			}
 			if (value == null) {
-				return ast.newNumberLiteral(Short.toString((short) 0));
+				return ast.newBooleanLiteral(false);
 			}
-			LOGGER.warning("Short type with value '" + value + "' has type '"
+			LOGGER.warning("Boolean type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
-			return ast.newNumberLiteral(value.toString());
+			return ast.newBooleanLiteral(value instanceof String ? Boolean.valueOf((String) value)
+					: true /* value is not null here */);
 		}
 		if (t.is(T.BYTE)) {
 			if (value instanceof Number) {
@@ -354,21 +333,6 @@ public final class Expressions {
 			LOGGER.warning("Byte type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString());
-		}
-		if (t.is(T.BOOLEAN)) {
-			if (value instanceof Boolean) {
-				return ast.newBooleanLiteral(((Boolean) value).booleanValue());
-			}
-			if (value instanceof Number) {
-				return ast.newBooleanLiteral(((Number) value).intValue() != 0);
-			}
-			if (value == null) {
-				return ast.newBooleanLiteral(false);
-			}
-			LOGGER.warning("Boolean type with value '" + value + "' has type '"
-					+ value.getClass().getName() + "'!");
-			return ast.newBooleanLiteral(value instanceof String ? Boolean.valueOf((String) value)
-					: true /* value is not null here */);
 		}
 		if (t.is(T.CHAR)) {
 			if (value instanceof Character || value instanceof Number || value instanceof String
@@ -421,6 +385,46 @@ public final class Expressions {
 					+ value.getClass().getName() + "'!");
 			// char is per default 'X'
 			return ast.newCharacterLiteral();
+		}
+		if (t.is(T.SHORT)) {
+			if (value instanceof Number) {
+				final short s = ((Number) value).shortValue();
+				if (s == Short.MAX_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Short"),
+							ast.newSimpleName("MAX_VALUE"));
+				}
+				if (s == Short.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Short"),
+							ast.newSimpleName("MIN_VALUE"));
+				}
+				return ast.newNumberLiteral(Short.toString(s));
+			}
+			if (value == null) {
+				return ast.newNumberLiteral(Short.toString((short) 0));
+			}
+			LOGGER.warning("Short type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
+			return ast.newNumberLiteral(value.toString());
+		}
+		if (t.is(T.INT)) {
+			if (value instanceof Number) {
+				final int i = ((Number) value).intValue();
+				if (i == Integer.MAX_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Integer"),
+							ast.newSimpleName("MAX_VALUE"));
+				}
+				if (i == Integer.MIN_VALUE) {
+					return ast.newQualifiedName(ast.newSimpleName("Integer"),
+							ast.newSimpleName("MIN_VALUE"));
+				}
+				return ast.newNumberLiteral(Integer.toString(i));
+			}
+			if (value == null) {
+				return ast.newNumberLiteral(Integer.toString(0));
+			}
+			LOGGER.warning("Integer type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
+			return ast.newNumberLiteral(value.toString());
 		}
 		if (t.is(T.FLOAT)) {
 			if (value instanceof Float || value instanceof Integer) {
@@ -662,12 +666,11 @@ public final class Expressions {
 		}
 		if (t.isMulti()) {
 			LOGGER.warning("Convert type for multi-type '" + t + "'!");
+			// prefer boolean for multi-type with 0 or 1, synchronous to newLiteral()!
+			// prefer byte before char if no explicit char type given
 		}
-		if (t.is(T.INT)) {
-			return ast.newPrimitiveType(PrimitiveType.INT);
-		}
-		if (t.is(T.SHORT)) {
-			return ast.newPrimitiveType(PrimitiveType.SHORT);
+		if (t.is(T.BOOLEAN)) {
+			return ast.newPrimitiveType(PrimitiveType.BOOLEAN);
 		}
 		if (t.is(T.BYTE)) {
 			return ast.newPrimitiveType(PrimitiveType.BYTE);
@@ -675,8 +678,11 @@ public final class Expressions {
 		if (t.is(T.CHAR)) {
 			return ast.newPrimitiveType(PrimitiveType.CHAR);
 		}
-		if (t.is(T.BOOLEAN)) {
-			return ast.newPrimitiveType(PrimitiveType.BOOLEAN);
+		if (t.is(T.SHORT)) {
+			return ast.newPrimitiveType(PrimitiveType.SHORT);
+		}
+		if (t.is(T.INT)) {
+			return ast.newPrimitiveType(PrimitiveType.INT);
 		}
 		if (t.is(T.FLOAT)) {
 			return ast.newPrimitiveType(PrimitiveType.FLOAT);
