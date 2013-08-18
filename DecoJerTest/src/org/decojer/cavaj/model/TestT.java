@@ -25,6 +25,19 @@ class TestT {
 
 	T objectT;
 
+	@Test
+	void assignTo() {
+		assertSame(T.INT.assignTo(T.INT), T.INT);
+		assertNull(T.INT.assignTo(T.BYTE));
+		assertSame(T.BYTE.assignTo(T.INT), T.BYTE);
+
+		assertSame(T.AINT.assignTo(T.BOOLEAN), T.BOOLEAN);
+
+		assertSame(T.SINGLE.assignTo(T.AINT), T.AINT);
+		assertSame(T.SINGLE.assignTo(T.SINGLE), T.SINGLE);
+		assertNull(T.WIDE.assignTo(T.SINGLE));
+	}
+
 	@BeforeClass
 	void beforeClass() {
 		// a decompilation unit is like a class loader, just for references with
@@ -50,6 +63,21 @@ class TestT {
 
 		assertSame(du.getArrayT(T.BYTE).getComponentT(), T.BYTE);
 		assertSame(du.getArrayT(T.SMALL).getComponentT(), T.SMALL);
+	}
+
+	@Test
+	void getEnclosingT() {
+		T t = du.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;");
+		assertEquals(
+				t.toString(),
+				"org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo<java.lang.Object>");
+		assertEquals(t.getEnclosingT().toString(),
+				"org.pushingpixels.trident.TimelinePropertyBuilder<T>");
+		assertEquals(t.getName(),
+				"org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo");
+		assertTrue(t
+				.eraseTo(du
+						.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder$AbstractFieldInfo;")));
 	}
 
 	@Test
@@ -449,30 +477,6 @@ class TestT {
 		assertEquals(t.getInterfaceTs().length, 2);
 		assertSame(t.getInterfaceTs()[0], du.getT(Cloneable.class));
 		assertSame(t.getInterfaceTs()[1], du.getT(Serializable.class));
-	}
-
-	@Test
-	void read() {
-		assertSame(T.INT.assignTo(T.INT), T.INT);
-		assertNull(T.INT.assignTo(T.BYTE));
-		assertSame(T.BYTE.assignTo(T.INT), T.BYTE);
-
-		assertSame(T.SINGLE.assignTo(T.AINT), T.AINT);
-		assertSame(T.SINGLE.assignTo(T.SINGLE), T.SINGLE);
-		assertNull(T.WIDE.assignTo(T.SINGLE));
-	}
-
-	@Test
-	void test() {
-		// TODO not perfect right now...need some parent structure, but the
-		// often seen $ instead of . is a real pain...
-		T t = du.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;");
-		assertEquals(
-				t.getName(),
-				"org.pushingpixels.trident.TimelinePropertyBuilder<T>$AbstractFieldInfo<java.lang.Object>");
-		assertTrue(t
-				.eraseTo(du
-						.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder$AbstractFieldInfo;")));
 	}
 
 	@Test
