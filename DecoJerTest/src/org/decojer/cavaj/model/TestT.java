@@ -342,9 +342,15 @@ class TestT {
 
 	@Test
 	void isInterface() {
+		assertFalse(Object.class.isInterface());
 		assertFalse(objectT.isInterface());
+		assertFalse(int.class.isInterface());
 		assertFalse(T.INT.isInterface());
+		assertFalse(String.class.isInterface());
 		assertFalse(du.getT(String.class).isInterface());
+		assertFalse(String[].class.isInterface());
+		assertFalse(du.getT(String[].class).isInterface());
+		assertTrue(Comparable.class.isInterface());
 		assertTrue(du.getT(Comparable.class).isInterface());
 	}
 
