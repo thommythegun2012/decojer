@@ -137,6 +137,9 @@ public final class Frame {
 	 * @return {@code true} - changed, was not alive
 	 */
 	public boolean markAlive(final int i) {
+		if (i >= this.rs.length) {
+			return false;
+		}
 		if (this.alive == null) {
 			this.alive = new boolean[i + 1];
 		} else if (this.alive.length <= i) {
