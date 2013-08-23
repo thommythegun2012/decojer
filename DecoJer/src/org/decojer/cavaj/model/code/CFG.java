@@ -373,7 +373,7 @@ public final class CFG {
 		for (int reg = getRegs(); reg-- > 0;) {
 			final V v = getDebugV(reg, 0);
 			if (v != null) {
-				frame.store(reg, new R(-1, v.getT(), Kind.CONST));
+				frame.store(reg, new R(0, v.getT(), Kind.CONST));
 			}
 		}
 		this.frames[0] = frame;

@@ -794,29 +794,50 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void markAlive(final BB bb, final int i) {
+		int aliveI = i;
 		for (int j = bb.getOps(); j-- > 0;) {
 			final Op op = bb.getOp(j);
 			final Frame frame = getCfg().getInFrame(op);
-			if (!frame.markAlive(i)) {
+			if (!frame.markAlive(aliveI)) {
 				return;
 			}
-			final R r = frame.load(i);
-			if (r.getPc() + 1 != op.getPc()) {
+			final R r = frame.load(aliveI);
+			if (r.getPc() != op.getPc()) {
 				continue;
 			}
 			// current register created by current operation
 			switch (r.getKind()) {
 			case MERGE:
-			case MOVE:
-				for (final E in : bb.getIns()) {
-					markAlive(in.getStart(), i);
-				}
-			case CONST:
+				// simply continue with BB in loop
 				break;
+			case MOVE: {
+				// find new aliveI and continue...
+				final R[] inRs = r.getIns();
+				assert inRs.length == 1;
+
+				final R inR = inRs[0];
+				final Frame inFrame = getCfg().getFrame(inR.getPc());
+
+				int inI = inFrame.size();
+				for (; inI-- > 0;) {
+					if (inFrame.load(inI) == inR) {
+						break;
+					}
+				}
+				assert inI != -1;
+
+				aliveI = inI;
+				break;
+			}
+			case CONST:
+				return;
 			default:
 				assert false;
+				return;
 			}
-			return;
+		}
+		for (final E in : bb.getIns()) {
+			markAlive(in.getStart(), aliveI);
 		}
 	}
 
@@ -869,7 +890,10 @@ public final class TrDataFlowAnalysis {
 			// without this PUSH 0/1 in different conds that join will not back reduce bool
 			if (targetFrame.isAlive(i)) {
 				// make myself also alive...
-				markAlive(this.currentBb, i);
+				if (newR.getPc() != targetPc) {
+					// TODO too restrictive, what is with MOVE ins, new MOVE shadowed by MERGE?
+					markAlive(this.currentBb, i);
+				}
 				newR.assignTo(t);
 				prevR.assignTo(t);
 			}
@@ -996,15 +1020,16 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R push(final R r) {
-		return this.currentFrame.push(new R(this.currentPc, r.getT(), r.getValue(), Kind.MOVE, r));
+		return this.currentFrame.push(new R(this.currentPc + 1, r.getT(), r.getValue(), Kind.MOVE,
+				r));
 	}
 
 	private R pushConst(final T t) {
-		return this.currentFrame.push(new R(this.currentPc, t, Kind.CONST));
+		return this.currentFrame.push(new R(this.currentPc + 1, t, Kind.CONST));
 	}
 
 	private R pushConst(final T t, final Object value) {
-		return this.currentFrame.push(new R(this.currentPc, t, value, Kind.CONST));
+		return this.currentFrame.push(new R(this.currentPc + 1, t, value, Kind.CONST));
 	}
 
 	private void replaceBbReg(final BB bb, final int i, final R prevR, final R newR) {
@@ -1113,8 +1138,8 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R store(final int i, final R r) {
-		return this.currentFrame.store(i, new R(this.currentPc, r.getT(), r.getValue(), Kind.MOVE,
-				r));
+		return this.currentFrame.store(i, new R(this.currentPc + 1, r.getT(), r.getValue(),
+				Kind.MOVE, r));
 	}
 
 	private void transform() {
