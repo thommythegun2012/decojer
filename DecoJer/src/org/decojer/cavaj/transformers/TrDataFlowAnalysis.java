@@ -850,7 +850,7 @@ public final class TrDataFlowAnalysis {
 		}
 		assert targetFrame.size() == this.currentFrame.size();
 
-		// TODO merge Sub
+		// FIXME merge Sub
 
 		// target frame has already been visited -> BB join -> type merge
 		final BB targetBb = getBb(targetPc);
@@ -868,34 +868,35 @@ public final class TrDataFlowAnalysis {
 			}
 			if (newR == null) {
 				// new register is null? merge to null => replace previous register from here
+				assert !targetFrame.isAlive(i);
+
 				replaceBbReg(targetBb, i, prevR, null);
 				continue;
 			}
 			final T t = T.join(prevR.getT(), newR.getT());
 			if (t == null) {
 				// merge type is null? merge to null => replace previous register from here
+				assert !targetFrame.isAlive(i);
 
 				// FIXME dangerous if unknown super types...defer this op, remember merge register
 				// with 2 inputs and try join only on read/re-store
 				replaceBbReg(targetBb, i, prevR, null);
 				continue;
 			}
-			// only here can we create or enhance a merge registers
-			if (prevR.getKind() == Kind.MERGE && prevR.getPc() == targetPc) {
-				// merge register already starts here, add new register
-				prevR.addInMerge(t, newR);
-				continue;
-			}
-			// TODO check guava com.google.common.base.Absent.equals() for simple stuff,
-			// without this PUSH 0/1 in different conds that join will not back reduce bool
 			if (targetFrame.isAlive(i)) {
 				// make myself also alive...
 				if (newR.getPc() != targetPc) {
-					// TODO too restrictive, what is with MOVE ins, new MOVE shadowed by MERGE?
+					// FIXME too restrictive, what is with MOVE ins, new MOVE shadowed by MERGE?
 					markAlive(this.currentBb, i);
 				}
 				newR.assignTo(t);
 				prevR.assignTo(t);
+			}
+			// only here can we extend or create merge registers
+			if (prevR.getKind() == Kind.MERGE && prevR.getPc() == targetPc) {
+				// merge register already starts here, add new register
+				prevR.addInMerge(t, newR);
+				continue;
 			}
 			// start new merge register
 			replaceBbReg(targetBb, i, prevR, new R(targetPc, t, Kind.MERGE, prevR, newR));
