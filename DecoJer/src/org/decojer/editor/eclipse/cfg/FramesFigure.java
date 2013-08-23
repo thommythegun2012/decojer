@@ -90,14 +90,34 @@ public class FramesFigure extends Figure {
 			final Frame frame = bb.getCfg().getInFrame(op);
 			add(new Label(op.getPc() + " " + op.toString() + (frame == null ? "?" : " ")));
 			for (int i = 0; i < regs; ++i) {
-				final R r = frame == null ? null : frame.load(i);
-				final Label label = new Label(r == null ? "    " : r.toString());
+				String s;
+				if (frame != null) {
+					final R r = frame.load(i);
+					if (r == null) {
+						s = "";
+					} else {
+						s = (frame.isAlive(i) ? "A " : "") + r.toString();
+					}
+				} else {
+					s = "";
+				}
+				final Label label = new Label(s);
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
 			for (int i = maxStack; i-- > 0;) {
-				final Label label = new Label(frame == null || i >= frame.getTop()
-						|| frame.peek(i) == null ? "    " : frame.peek(i).toString());
+				String s;
+				if (frame != null) {
+					final R r = i < frame.getTop() ? frame.load(regs + i) : null;
+					if (r == null) {
+						s = "";
+					} else {
+						s = (frame.isAlive(regs + i) ? "A " : "") + r.toString();
+					}
+				} else {
+					s = "";
+				}
+				final Label label = new Label(s);
 				label.setBorder(LEFT_BORDER);
 				add(label);
 			}

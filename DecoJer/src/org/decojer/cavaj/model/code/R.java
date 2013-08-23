@@ -56,11 +56,7 @@ public final class R {
 		/**
 		 * Store move. Source register, maybe previous register.
 		 */
-		MOVE,
-		/**
-		 * READ.
-		 */
-		READ
+		MOVE
 
 	}
 
@@ -200,7 +196,6 @@ public final class R {
 			}
 			break;
 		case MOVE:
-		case READ:
 			this.ins[0].assignTo(t);
 		}
 		this.readT = T.union(this.readT, t);
