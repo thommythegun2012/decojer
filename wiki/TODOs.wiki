@@ -2,6 +2,26 @@
 
 = TODOs =
 
+
+23.08.2013 14:40:15 org.decojer.cavaj.model.CU decompile
+WARNUNG: Cannot transform 'org.decojer.cavaj.test.DecTestLoopStmt.contains(C[[C)Z (ops: 26, regs: 5)'!
+java.lang.NullPointerException
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:804)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:812)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.loadRead(TrDataFlowAnalysis.java:788)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:371)
+
+
+WARNUNG: Cannot transform 'com.google.common.base.Preconditions.format(Ljava/lang/String;[Ljava/lang/Object;)Ljava/lang/String; (ops: 94, regs: 6)'!
+java.lang.ArrayIndexOutOfBoundsException
+	at java.lang.System.arraycopy(Native Method)
+	at org.decojer.cavaj.model.code.Frame.markAlive(Frame.java:147)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:800)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.popRead(TrDataFlowAnalysis.java:986)
+
+
+
+
 http://www.techempower.com/blog/2013/03/26/everything-about-java-8/
 
 22.01.2013 21:59:53 org.decojer.cavaj.transformers.TrControlFlowAnalysis log
