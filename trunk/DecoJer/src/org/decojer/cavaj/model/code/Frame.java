@@ -144,7 +144,7 @@ public final class Frame {
 			this.alive = new boolean[i + 1];
 		} else if (this.alive.length <= i) {
 			final boolean[] tmp = new boolean[i + 1];
-			System.arraycopy(this.alive, 0, tmp, 0, i);
+			System.arraycopy(this.alive, 0, tmp, 0, this.alive.length);
 			this.alive = tmp;
 		} else if (this.alive[i]) {
 			return false;
