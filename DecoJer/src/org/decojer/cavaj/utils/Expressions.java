@@ -294,7 +294,7 @@ public final class Expressions {
 			LOGGER.warning("Unknown reference type '" + t + "'!");
 			return ast.newNullLiteral();
 		}
-		if (t.isMulti()) {
+		if (t.isMulti() && t.is(T.BOOLEAN)) {
 			LOGGER.warning("Convert literal '" + value + "' for multi-type '" + t + "'!");
 			// prefer boolean for multi-type with 0 or 1, synchronous to newType()!
 			// prefer byte before char if no explicit char type given
