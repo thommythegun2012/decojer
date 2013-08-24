@@ -2,6 +2,16 @@
 
 = TODOs =
 
+WARNUNG: Cannot transform 'com.google.common.base.FinalizableReferenceQueue.<init>()V (ops: 45, regs: 4)'!
+java.lang.AssertionError
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:871)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:694)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1174)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:101)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:227)
+
+
+
 http://www.techempower.com/blog/2013/03/26/everything-about-java-8/
 
 22.01.2013 21:59:53 org.decojer.cavaj.transformers.TrControlFlowAnalysis log
