@@ -27,8 +27,10 @@ import java.util.IdentityHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.D;
 import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
@@ -163,20 +165,32 @@ public class CfgViewer extends Composite {
 	}
 
 	public void initGraph() {
+		CFG cfg = null;
 		if (this.selectedD instanceof MD) {
-			final int stage = this.cfgViewModeCombo.getSelectionIndex();
-			final CFG cfg = ((MD) this.selectedD).getCfg();
-			if (cfg == null || cfg.isIgnore()) {
-				return;
+			cfg = ((MD) this.selectedD).getCfg();
+		} else if (this.selectedD instanceof TD) {
+			for (final BD bd : ((TD) this.selectedD).getBds()) {
+				if (bd instanceof MD && ((MD) bd).isConstructor()) {
+					cfg = ((MD) bd).getCfg();
+					if (cfg != null) {
+						break;
+					}
+				}
 			}
-			try {
-				cfg.decompile(stage);
-			} catch (final Throwable e) {
-				TrCalculatePostorder.transform(cfg);
-				LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
-			}
-			initGraph(cfg);
+		} else {
+			return;
 		}
+		if (cfg == null) {
+			return;
+		}
+		try {
+			final int stage = this.cfgViewModeCombo.getSelectionIndex();
+			cfg.decompile(stage);
+		} catch (final Throwable e) {
+			TrCalculatePostorder.transform(cfg);
+			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+		}
+		initGraph(cfg);
 	}
 
 	private void initGraph(final CFG cfg) {
