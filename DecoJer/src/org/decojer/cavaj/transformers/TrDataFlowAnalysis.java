@@ -837,7 +837,9 @@ public final class TrDataFlowAnalysis {
 			}
 		}
 		for (final E in : bb.getIns()) {
-			markAlive(in.getStart(), aliveI);
+			if (in.getStart() != bb) {
+				markAlive(in.getStart(), aliveI);
+			}
 		}
 	}
 
