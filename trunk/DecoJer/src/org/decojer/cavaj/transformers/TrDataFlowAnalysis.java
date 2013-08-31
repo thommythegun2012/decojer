@@ -911,7 +911,7 @@ public final class TrDataFlowAnalysis {
 			if (!exc.validIn(this.currentPc)) {
 				continue;
 			}
-			this.currentFrame = new Frame(getCfg().getInFrame(this.currentOp));
+			this.currentFrame = new Frame(getCfg().getFrame(this.currentPc));
 
 			// in handler start frame the stack just consists of exception type
 			this.currentFrame.clear();
