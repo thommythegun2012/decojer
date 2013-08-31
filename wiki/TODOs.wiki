@@ -2,12 +2,10 @@
 
 = TODOs =
 
-01.09.2013 00:13:09 org.decojer.cavaj.model.CU decompile
-WARNUNG: Cannot transform 'com.google.common.cache.LocalCache$Segment.lockedGetOrLoad(Ljava/lang/Object;ILcom/google/common/cache/CacheLoader;)Ljava/lang/Object; (ops: 200, regs: 20)'!
-java.lang.StackOverflowError
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:840)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:840)
-
+01.09.2013 00:29:14 org.decojer.cavaj.model.CU decompile
+WARNUNG: Cannot transform 'com.google.common.cache.Striped64.retryUpdate(JLcom/google/common/cache/Striped64$HashCode;Z)V (ops: 242, regs: 20)'!
+java.lang.NullPointerException
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:805)
 
 http://www.techempower.com/blog/2013/03/26/everything-about-java-8/
 
