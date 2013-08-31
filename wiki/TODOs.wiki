@@ -2,14 +2,11 @@
 
 = TODOs =
 
-WARNUNG: Cannot transform 'com.google.common.base.FinalizableReferenceQueue.<init>()V (ops: 45, regs: 4)'!
-java.lang.AssertionError
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:871)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:694)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1174)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:101)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:227)
-
+01.09.2013 00:13:09 org.decojer.cavaj.model.CU decompile
+WARNUNG: Cannot transform 'com.google.common.cache.LocalCache$Segment.lockedGetOrLoad(Ljava/lang/Object;ILcom/google/common/cache/CacheLoader;)Ljava/lang/Object; (ops: 200, regs: 20)'!
+java.lang.StackOverflowError
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:840)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:840)
 
 
 http://www.techempower.com/blog/2013/03/26/everything-about-java-8/
