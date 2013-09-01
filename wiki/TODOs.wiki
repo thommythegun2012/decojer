@@ -3,6 +3,22 @@
 = TODOs =
 
 
+
+01.09.2013 13:44:52 org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts log
+WARNUNG: com.google.common.collect.Lists.lastIndexOfImpl(Ljava/util/List;Ljava/lang/Object;)I: Struct leave in BB 2 without regular follow encounter:
+--- Loop ---
+Head: BB 3
+Members: 
+Last: BB 1
+Type: ENDLESS
+java.lang.NullPointerException
+	at org.decojer.cavaj.transformers.TrJvmStruct2JavaAst.decompileTypeParams(TrJvmStruct2JavaAst.java:421)
+	at org.decojer.cavaj.transformers.TrJvmStruct2JavaAst.transform(TrJvmStruct2JavaAst.java:531)
+	at org.decojer.cavaj.model.CU.decompile(CU.java:204)
+
+
+
+
  com.google.common.cache;
 public final class RemovalNotification
 
