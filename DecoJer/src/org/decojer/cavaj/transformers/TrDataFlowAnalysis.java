@@ -794,6 +794,9 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void markAlive(final BB bb, final int i) {
+		if (bb.getOps() == 0) {
+			return;
+		}
 		int aliveI = i;
 		for (int j = bb.getOps(); j-- > 0;) {
 			final Op op = bb.getOp(j);
