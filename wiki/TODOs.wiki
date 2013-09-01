@@ -3,6 +3,13 @@
 = TODOs =
 
 
+WARNUNG: Cannot transform 'com.google.common.collect.Lists.transform(Ljava/util/List;Lcom/google/common/base/Function;)Ljava/util/List; (ops: 15, regs: 2)'!
+java.lang.AssertionError
+	at org.decojer.cavaj.model.code.R.assignTo(R.java:176)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:898)
+
+
+
 
 WARNUNG: Cannot transform 'com.google.common.collect.MapMaker.makeComputingMap(Lcom/google/common/base/Function;)Ljava/util/concurrent/ConcurrentMap; (ops: 15, regs: 2)'!
 java.lang.AssertionError
