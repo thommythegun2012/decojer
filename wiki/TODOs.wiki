@@ -2,10 +2,13 @@
 
 = TODOs =
 
-01.09.2013 00:29:14 org.decojer.cavaj.model.CU decompile
-WARNUNG: Cannot transform 'com.google.common.cache.Striped64.retryUpdate(JLcom/google/common/cache/Striped64$HashCode;Z)V (ops: 242, regs: 20)'!
-java.lang.NullPointerException
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:805)
+
+ com.google.common.cache;
+public final class RemovalNotification
+
+01.09.2013 13:41:17 org.decojer.cavaj.utils.Expressions newLiteral2
+WARNUNG: Convert literal '0' for multi-type '{byte,char,boolean}'!
+
 
 http://www.techempower.com/blog/2013/03/26/everything-about-java-8/
 
