@@ -805,13 +805,14 @@ public final class TrDataFlowAnalysis {
 				return;
 			}
 			final R r = frame.load(aliveI);
-			if (r.getPc() != op.getPc()) {
+			if (r == null || r.getPc() != op.getPc()) {
 				continue;
 			}
 			// current register created by current operation
 			switch (r.getKind()) {
 			case MERGE:
 				// simply continue with BB in loop
+				// FIXME MERGE input could be same pc, prev STORE or MOVE!!!
 				break;
 			case MOVE: {
 				// find new aliveI and continue...
@@ -1176,8 +1177,9 @@ public final class TrDataFlowAnalysis {
 			}
 			this.currentBb.addOp(this.currentOp);
 			this.currentFrame = new Frame(getCfg().getInFrame(this.currentOp));
-			this.currentPc = execute();
-			mergeExceptions(); // execute has influence on this, read type reduction
+			final int nextPc = execute();
+			mergeExceptions();
+			this.currentPc = nextPc;
 		}
 	}
 
