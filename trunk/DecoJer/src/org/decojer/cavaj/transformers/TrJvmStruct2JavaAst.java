@@ -418,7 +418,7 @@ public final class TrJvmStruct2JavaAst {
 			final TypeParameter typeParameter = ast.newTypeParameter();
 			typeParameter.setName(newSimpleName(typeParam.getName(), ast));
 			final T superT = typeParam.getSuperT();
-			if (!superT.isObject()) {
+			if (superT != null && !superT.isObject()) {
 				typeParameter.typeBounds().add(newType(typeParam.getSuperT(), td));
 			}
 			for (final T interfaceT : typeParam.getInterfaceTs()) {
@@ -530,9 +530,9 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration = ast.newTypeDeclaration();
 				decompileTypeParams(td.getTypeParams(),
 						((TypeDeclaration) typeDeclaration).typeParameters(), td);
-				if (td.getSuperT() != null && !td.getSuperT().isObject()) {
-					((TypeDeclaration) typeDeclaration).setSuperclassType(newType(td.getSuperT(),
-							td));
+				final T superT = td.getSuperT();
+				if (superT != null && !superT.isObject()) {
+					((TypeDeclaration) typeDeclaration).setSuperclassType(newType(superT, td));
 				}
 				for (final T interfaceT : td.getInterfaceTs()) {
 					((TypeDeclaration) typeDeclaration).superInterfaceTypes().add(
