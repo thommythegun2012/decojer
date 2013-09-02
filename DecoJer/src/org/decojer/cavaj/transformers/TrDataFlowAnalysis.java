@@ -805,21 +805,44 @@ public final class TrDataFlowAnalysis {
 				return;
 			}
 			final R r = frame.load(aliveI);
-			if (r == null || r.getPc() != op.getPc()) {
+			if (r.getPc() != op.getPc()) {
+				// register doesn't change here...
 				continue;
 			}
-			// current register created by current operation
 			switch (r.getKind()) {
-			case MERGE:
-				// simply continue with BB in loop
-				// FIXME MERGE input could be same pc, prev STORE or MOVE!!!
-				break;
-			case MOVE: {
-				// find new aliveI and continue...
+			case CONST:
+				// register changes here, CONST is the final alive
+				return;
+			case MERGE: {
+				// register changes here, MERGE of multiple incoming registers from previous BBs
+				assert j == 0 : j; // should be first op in BB
+
+				// we could contain a wrapped CONST or MOVE with same register change PC...CONST
+				// wouldn't be a problem, but MOVE could change the back propagation index!
+				// so we could fan out into multiple register indices here!
 				final R[] inRs = r.getIns();
-				assert inRs.length == 1;
+				assert inRs.length > 1;
+
+				for (final R inR : inRs) {
+					if (inR.getPc() != op.getPc()) {
+						continue;
+					}
+					if (inR.getKind() != Kind.MOVE) {
+						continue;
+					}
+					// TODO find move alive i and back propagate
+				}
+				// TODO backpropagate if different PCs
+				break;
+			}
+			case MOVE: {
+				// register changes here, MOVE from different incoming register in same BB
+				final R[] inRs = r.getIns();
+				assert inRs.length == 1 : inRs.length;
 
 				final R inR = inRs[0];
+				// we can ask the initialization frame of the incoming register, must not be the
+				// previous frame of this MOVE register, register index doesn't change up to here
 				final Frame inFrame = getCfg().getFrame(inR.getPc());
 
 				int inI = inFrame.size();
@@ -833,13 +856,13 @@ public final class TrDataFlowAnalysis {
 				aliveI = inI;
 				break;
 			}
-			case CONST:
-				return;
 			default:
 				assert false;
+
 				return;
 			}
 		}
+		// backpropagate alive to previous BBs
 		for (final E in : bb.getIns()) {
 			if (in.getStart() != bb) {
 				markAlive(in.getStart(), aliveI);
