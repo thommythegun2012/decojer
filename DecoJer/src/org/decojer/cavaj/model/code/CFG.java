@@ -321,17 +321,6 @@ public final class CFG {
 	}
 
 	/**
-	 * Get input frame for BB.
-	 * 
-	 * @param bb
-	 *            BB
-	 * @return input frame
-	 */
-	public Frame getInFrame(final BB bb) {
-		return this.frames[bb.getPc()];
-	}
-
-	/**
 	 * Get input frame for operation.
 	 * 
 	 * @param op
@@ -343,7 +332,9 @@ public final class CFG {
 	}
 
 	/**
-	 * Get output frame for operation. Doesn't (and must not) work for control flow statements.
+	 * Get output frame for operation.
+	 * 
+	 * Doesn't (and isn't required to) work for control flow statements.
 	 * 
 	 * @param op
 	 *            operation
