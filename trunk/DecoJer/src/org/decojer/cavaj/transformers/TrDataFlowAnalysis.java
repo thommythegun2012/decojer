@@ -422,7 +422,7 @@ public final class TrDataFlowAnalysis {
 			final BB subBb = getTargetBb(subPc);
 			this.currentBb.setSucc(subBb);
 			// use common value (we take Sub) instead of jsr-follow-address because of merge
-			final Frame subFrame = getCfg().getFrame(subPc);
+			final Frame subFrame = getFrame(subPc);
 			if (subFrame == null) {
 				// never bean as this sub -> create new jsr-follow-address (Sub) and merge -> return
 				final Sub sub = new Sub(subPc);
@@ -449,7 +449,7 @@ public final class TrDataFlowAnalysis {
 			if (ret == null) {
 				return -1;
 			}
-			this.currentFrame = new Frame(getCfg().getFrame(ret.getPc()));
+			this.currentFrame = new Frame(getFrame(ret.getPc()));
 			if (loadRead(ret.getReg(), T.RET).getValue() != sub) {
 				log("Incorrect sub!");
 			}
@@ -710,6 +710,10 @@ public final class TrDataFlowAnalysis {
 		return getCfg().getDu();
 	}
 
+	private Frame getFrame(final int pc) {
+		return getCfg().getFrame(pc);
+	}
+
 	/**
 	 * Get target BB for PC. Split or create new if necessary.
 	 * 
@@ -743,10 +747,10 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private boolean jumpOverSub(final RET ret, final int i) {
-		final Frame retFrame = getCfg().getFrame(ret.getPc());
+		final Frame retFrame = getFrame(ret.getPc());
 		final R retR = retFrame.load(ret.getReg());
 		final Sub sub = (Sub) retR.getValue();
-		final Frame subFrame = getCfg().getFrame(sub.getPc());
+		final Frame subFrame = getFrame(sub.getPc());
 
 		final R regAtSub = subFrame.load(i);
 		final R regAtRet = retFrame.load(i);
@@ -843,7 +847,7 @@ public final class TrDataFlowAnalysis {
 				final R inR = inRs[0];
 				// we can ask the initialization frame of the incoming register, must not be the
 				// previous frame of this MOVE register, register index doesn't change up to here
-				final Frame inFrame = getCfg().getFrame(inR.getPc());
+				final Frame inFrame = getFrame(inR.getPc());
 
 				int inI = inFrame.size();
 				for (; inI-- > 0;) {
@@ -871,7 +875,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void merge(final int targetPc) {
-		final Frame targetFrame = getCfg().getFrame(targetPc);
+		final Frame targetFrame = getFrame(targetPc);
 		if (targetFrame == null) {
 			// first visit for this target frame -> no BB join -> no type merge
 			getCfg().setFrame(targetPc, new Frame(this.currentFrame));
@@ -940,11 +944,11 @@ public final class TrDataFlowAnalysis {
 			if (!exc.validIn(this.currentPc)) {
 				continue;
 			}
-			this.currentFrame = new Frame(getCfg().getFrame(this.currentPc));
+			this.currentFrame = new Frame(getFrame(this.currentPc));
 
 			// in handler start frame the stack just consists of exception type
 			this.currentFrame.clear();
-			final Frame handlerFrame = getCfg().getFrame(exc.getHandlerPc());
+			final Frame handlerFrame = getFrame(exc.getHandlerPc());
 			R excR;
 			if (handlerFrame == null) {
 				// null is <any> (means Java finally) -> Throwable
@@ -1089,7 +1093,7 @@ public final class TrDataFlowAnalysis {
 		// replacement propagation to next BB necessary
 		for (final E out : bb.getOuts()) {
 			final BB outBb = out.getEnd();
-			if (getCfg().getInFrame(outBb) == null) {
+			if (getFrame(outBb.getPc()) == null) {
 				// possible for freshly splitted catch-handlers that havn't been visited yet
 				assert out.isCatch() : out;
 
@@ -1097,7 +1101,7 @@ public final class TrDataFlowAnalysis {
 			}
 			// final operation is RET -> modify newR for untouched registers in sub
 			if (jumpOverSub) {
-				final Frame jsrFrame = getCfg().getFrame(outBb.getPc() - 1);
+				final Frame jsrFrame = getFrame(outBb.getPc() - 1);
 				replaceBbReg(outBb, i, replacedR, jsrFrame.load(i));
 				continue;
 			}
@@ -1108,7 +1112,7 @@ public final class TrDataFlowAnalysis {
 	private R replaceFrameReg(final int pc, final int i, final R prevR, final R newR) {
 		assert prevR != null;
 
-		final Frame frame = getCfg().getFrame(pc);
+		final Frame frame = getFrame(pc);
 		if (i < frame.size()) {
 			final R frameR = frame.load(i);
 			if (prevR == frameR) {
@@ -1199,7 +1203,7 @@ public final class TrDataFlowAnalysis {
 				setBb(this.currentPc, this.currentBb);
 			}
 			this.currentBb.addOp(this.currentOp);
-			this.currentFrame = new Frame(getCfg().getInFrame(this.currentOp));
+			this.currentFrame = new Frame(getFrame(this.currentPc)); // copy, merge to next PCs
 			final int nextPc = execute();
 			mergeExceptions();
 			this.currentPc = nextPc;
