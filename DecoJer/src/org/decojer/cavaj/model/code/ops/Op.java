@@ -25,6 +25,8 @@ package org.decojer.cavaj.model.code.ops;
 
 import lombok.Getter;
 
+import org.decojer.cavaj.model.code.Frame;
+
 /**
  * Operation.
  * 
@@ -74,6 +76,17 @@ public abstract class Op {
 	 * @return input stack size
 	 */
 	public abstract int getInStackSize();
+
+	/**
+	 * Get input stack size where wide registers are count as one.
+	 * 
+	 * @param frame
+	 *            operation frame
+	 * @return input stack size
+	 */
+	public int getInStackSize(final Frame frame) {
+		return getInStackSize() - frame.wideStacks(getInStackSize());
+	}
 
 	/**
 	 * Get operation type.
