@@ -424,7 +424,7 @@ public final class TrDataFlowAnalysis {
 			// use common value (we take Sub) instead of jsr-follow-address because of merge
 			final Frame subFrame = getFrame(subPc);
 			if (subFrame == null) {
-				// never bean as this sub -> create new jsr-follow-address (Sub) and merge -> return
+				// never been at this sub -> create new jsr-follow-address (Sub) and merge -> return
 				final Sub sub = new Sub(subPc);
 				if (!this.currentFrame.pushSub(sub)) {
 					return -1;
@@ -774,7 +774,6 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R load(final int i, final T t) {
-		// start new register and TODO backpropagate alive for existing (read number)
 		final R r = this.currentFrame.load(i);
 		if (!r.assignTo(t)) {
 			throw new RuntimeException("Incompatible type for register '" + i
@@ -789,7 +788,7 @@ public final class TrDataFlowAnalysis {
 
 	private R loadRead(final int i, final T t) {
 		final R r = load(i, t);
-		markAlive(getBb(this.currentPc), i);
+		markAlive(this.currentBb, i);
 		return r;
 	}
 
@@ -1041,7 +1040,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R popRead(final T t) {
-		markAlive(getBb(this.currentPc), this.currentFrame.size() - 1);
+		markAlive(this.currentBb, this.currentFrame.size() - 1);
 		return pop(t);
 	}
 
