@@ -49,6 +49,11 @@ public final class R {
 		CONST,
 
 		/**
+		 * Combine ins with math, e.g. AND for bool1||bool2 and int1|int2. Incoming registers.
+		 */
+		MATH,
+
+		/**
 		 * Merge ins. Incoming registers.
 		 */
 		MERGE,

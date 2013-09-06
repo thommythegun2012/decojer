@@ -368,7 +368,8 @@ public final class TrDataFlowAnalysis {
 		}
 		case INC: {
 			final INC cop = (INC) op;
-			final R r = loadRead(cop.getReg(), cop.getT());
+			// read-store necessary, so that we can change the const value
+			final R r = store(cop.getReg(), loadRead(cop.getReg(), cop.getT()));
 			if (r.getValue() != null) {
 				r.setValue(((Number) r.getValue()).intValue() + cop.getValue());
 			}
