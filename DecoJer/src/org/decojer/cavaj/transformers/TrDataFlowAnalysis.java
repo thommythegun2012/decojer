@@ -153,8 +153,8 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void evalBinaryMath(final T t, final T resultT) {
-		final R s2 = pop(t);
-		final R s1 = pop(t);
+		final R s2 = popRead(t);
+		final R s1 = popRead(t);
 
 		// reduce to reasonable parameters pairs, e.g. BOOL, {SHORT,BOOL}-Constant -> both BOOL
 		// hence: T.INT not sufficient for int/boolean operators like OR
@@ -429,7 +429,7 @@ public final class TrDataFlowAnalysis {
 				if (!this.currentFrame.pushSub(sub)) {
 					return -1;
 				}
-				this.currentFrame.push(new R(subPc, T.RET, Kind.CONST));
+				this.currentFrame.push(new R(subPc, T.RET, sub, Kind.CONST));
 				merge(subPc);
 				return -1;
 			}
@@ -867,6 +867,7 @@ public final class TrDataFlowAnalysis {
 		}
 		// backpropagate alive to previous BBs
 		for (final E in : bb.getIns()) {
+			// TODO conditionally jump oder JSR-RET!
 			if (in.getStart() != bb) {
 				markAlive(in.getStart(), aliveI);
 			}

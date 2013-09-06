@@ -143,18 +143,14 @@ public final class Expressions {
 	 *         - true
 	 */
 	public static Boolean getBooleanValue(final Expression literal) {
+		// don't add Number and NumberLiteral here or we run into problems for (test ? 4 : 0) etc.,
+		// improve data flow analysis instead
 		final Object value = getValue(literal);
 		if (value instanceof Boolean) {
 			return ((Boolean) value).booleanValue();
 		}
-		if (value instanceof Number) {
-			return ((Number) value).intValue() != 0;
-		}
 		if (literal instanceof BooleanLiteral) {
 			return ((BooleanLiteral) literal).booleanValue();
-		}
-		if (literal instanceof NumberLiteral) {
-			return Integer.getInteger(((NumberLiteral) literal).getToken()) != 0;
 		}
 		return null;
 	}
