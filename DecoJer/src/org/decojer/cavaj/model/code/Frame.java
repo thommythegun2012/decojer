@@ -62,6 +62,7 @@ public final class Frame {
 	public Frame(final Frame frame) {
 		this.cfg = frame.cfg;
 		this.subs = frame.subs;
+		// lazy copy in store etc.
 		this.rs = frame.rs;
 	}
 
@@ -319,6 +320,7 @@ public final class Frame {
 	public R store(final int i, final R r) {
 		// stack allowed too: assert i < this.cfg.getRegs();
 
+		// we have to lazy copy here because Frame-copy relies onto this
 		final R[] newRs = new R[this.rs.length];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
 		newRs[i] = r;
