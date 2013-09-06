@@ -827,6 +827,8 @@ public final class TrDataFlowAnalysis {
 				assert inRs.length > 1;
 
 				for (final R inR : inRs) {
+					inR.assignTo(r.getT());
+
 					if (inR.getPc() != op.getPc()) {
 						continue;
 					}
