@@ -54,24 +54,34 @@ public final class Frame {
 	}
 
 	/**
-	 * Copy constructor.
+	 * Copy constructor, without alive.
 	 * 
 	 * @param frame
 	 *            copy frame
 	 */
 	public Frame(final Frame frame) {
 		this.cfg = frame.cfg;
-		this.rs = frame.rs;
 		this.subs = frame.subs;
+		this.rs = frame.rs;
 	}
 
 	/**
-	 * Clear stack registers.
+	 * Copy constructor for exception frame, without stack and alive.
+	 * 
+	 * @param frame
+	 *            copy frame
+	 * @param exceptionS
+	 *            exception stack register
 	 */
-	public void clear() {
-		final R[] newRs = new R[this.cfg.getRegs()];
-		System.arraycopy(this.rs, 0, newRs, 0, newRs.length);
-		this.rs = newRs;
+	public Frame(final Frame frame, final R exceptionS) {
+		this.cfg = frame.cfg;
+		this.subs = frame.subs;
+
+		final int regs = this.cfg.getRegs();
+
+		this.rs = new R[regs + 1];
+		System.arraycopy(frame.rs, 0, this.rs, 0, regs);
+		this.rs[regs] = exceptionS;
 	}
 
 	/**

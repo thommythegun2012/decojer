@@ -943,10 +943,6 @@ public final class TrDataFlowAnalysis {
 			if (!exc.validIn(this.currentPc)) {
 				continue;
 			}
-			this.currentFrame = new Frame(getFrame(this.currentPc));
-
-			// in handler start frame the stack just consists of exception type
-			this.currentFrame.clear();
 			final Frame handlerFrame = getFrame(exc.getHandlerPc());
 			R excR;
 			if (handlerFrame == null) {
@@ -959,8 +955,7 @@ public final class TrDataFlowAnalysis {
 				}
 				excR = handlerFrame.peek(); // reuse exception register
 			}
-			this.currentFrame.push(excR);
-
+			this.currentFrame = new Frame(getFrame(this.currentPc), excR);
 			merge(exc.getHandlerPc());
 		}
 	}
