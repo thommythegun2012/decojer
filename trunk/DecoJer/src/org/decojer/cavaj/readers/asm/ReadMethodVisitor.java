@@ -383,7 +383,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * AND *
 		 *******/
 		case Opcodes.IAND:
-			t = T.INT;
+			t = T.AINT;
 			// fall through
 		case Opcodes.LAND:
 			if (t == null) {
@@ -677,7 +677,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * OR *
 		 ******/
 		case Opcodes.IOR:
-			t = T.INT;
+			t = T.AINT;
 			// fall through
 		case Opcodes.LOR:
 			if (t == null) {
@@ -907,7 +907,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * XOR *
 		 *******/
 		case Opcodes.IXOR:
-			t = T.INT;
+			t = T.AINT;
 			// fall through
 		case Opcodes.LXOR: {
 			if (t == null) {
@@ -988,7 +988,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IF_ICMPEQ:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT; // boolean too
 				oValue = CmpType.T_EQ;
 			}
 			// fall through
@@ -1018,7 +1018,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// fall through
 		case Opcodes.IF_ICMPNE:
 			if (t == null) {
-				t = T.INT;
+				t = T.AINT; // boolean too
 				oValue = CmpType.T_NE;
 			}
 			{

@@ -197,20 +197,20 @@ public abstract class T {
 
 	public static final T[] TYPE_PARAMS_NONE = new T[0];
 
-	public static T getDalvikIntT(final int value) {
+	public static T getDalvikIntT(final int literal) {
 		int kinds = T.FLOAT.getKind();
-		if (value == 0) {
+		if (literal == 0) {
 			// as REF for const/4 v0, throw v0 (just from Proguard as obfuscated unreachable code?)
 			kinds |= T.REF.getKind() | T.BOOLEAN.getKind();
-		} else if (value == 1) {
+		} else if (literal == 1) {
 			kinds |= T.BOOLEAN.getKind();
 		}
-		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
+		if (Character.MIN_VALUE <= literal && literal <= Character.MAX_VALUE) {
 			kinds |= T.CHAR.getKind();
 		}
-		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+		if (Byte.MIN_VALUE <= literal && literal <= Byte.MAX_VALUE) {
 			kinds |= T.BYTE.getKind();
-		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+		} else if (Short.MIN_VALUE <= literal && literal <= Short.MAX_VALUE) {
 			kinds |= T.SHORT.getKind();
 		} else {
 			kinds |= T.INT.getKind();
@@ -218,17 +218,17 @@ public abstract class T {
 		return getT(kinds);
 	}
 
-	public static BaseT getJvmIntT(final int value) {
+	public static BaseT getJvmIntT(final int literal) {
 		int kinds = 0;
-		if (value == 0 || value == 1) {
+		if (literal == 0 || literal == 1) {
 			kinds |= T.BOOLEAN.getKind();
 		}
-		if (Character.MIN_VALUE <= value && value <= Character.MAX_VALUE) {
+		if (Character.MIN_VALUE <= literal && literal <= Character.MAX_VALUE) {
 			kinds |= T.CHAR.getKind();
 		}
-		if (Byte.MIN_VALUE <= value && value <= Byte.MAX_VALUE) {
+		if (Byte.MIN_VALUE <= literal && literal <= Byte.MAX_VALUE) {
 			kinds |= T.BYTE.getKind();
-		} else if (Short.MIN_VALUE <= value && value <= Short.MAX_VALUE) {
+		} else if (Short.MIN_VALUE <= literal && literal <= Short.MAX_VALUE) {
 			kinds |= T.SHORT.getKind();
 		} else {
 			kinds |= T.INT.getKind();

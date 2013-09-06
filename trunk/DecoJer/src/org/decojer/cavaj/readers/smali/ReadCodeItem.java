@@ -328,10 +328,11 @@ public class ReadCodeItem {
 			case ADD_INT_LIT8: {
 				// A = B + literal
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new ADD(this.ops.size(), opcode, line, T.INT));
 
@@ -341,10 +342,11 @@ public class ReadCodeItem {
 			case ADD_INT_LIT16: {
 				// A = B + literal
 				final Instruction22s instr = (Instruction22s) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new ADD(this.ops.size(), opcode, line, T.INT));
 
@@ -404,7 +406,7 @@ public class ReadCodeItem {
 			 * AND *
 			 *******/
 			case AND_INT:
-				t = T.INT;
+				t = T.AINT;
 				// fall through
 			case AND_LONG:
 				if (t == null) {
@@ -423,7 +425,7 @@ public class ReadCodeItem {
 				}
 				break;
 			case AND_INT_2ADDR:
-				t = T.INT;
+				t = T.AINT;
 				// fall through
 			case AND_LONG_2ADDR:
 				if (t == null) {
@@ -444,12 +446,13 @@ public class ReadCodeItem {
 			case AND_INT_LIT8: {
 				// A = B & literal
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
-				this.ops.add(new AND(this.ops.size(), opcode, line, T.INT));
+				this.ops.add(new AND(this.ops.size(), opcode, line, T.AINT));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
@@ -457,12 +460,13 @@ public class ReadCodeItem {
 			case AND_INT_LIT16: {
 				// A = B & literal
 				final Instruction22s instr = (Instruction22s) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
-				this.ops.add(new AND(this.ops.size(), opcode, line, T.INT));
+				this.ops.add(new AND(this.ops.size(), opcode, line, T.AINT));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
@@ -751,10 +755,11 @@ public class ReadCodeItem {
 			case DIV_INT_LIT8: {
 				// A = B / literal
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new DIV(this.ops.size(), opcode, line, T.INT));
 
@@ -764,10 +769,11 @@ public class ReadCodeItem {
 			case DIV_INT_LIT16: {
 				// A = B / literal
 				final Instruction22s instr = (Instruction22s) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new DIV(this.ops.size(), opcode, line, T.INT));
 
@@ -1305,10 +1311,11 @@ public class ReadCodeItem {
 			case MUL_INT_LIT8: {
 				// A = B * literal
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new MUL(this.ops.size(), opcode, line, T.INT));
 
@@ -1318,10 +1325,11 @@ public class ReadCodeItem {
 			case MUL_INT_LIT16: {
 				// A = B * literal
 				final Instruction22s instr = (Instruction22s) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new MUL(this.ops.size(), opcode, line, T.INT));
 
@@ -1505,7 +1513,7 @@ public class ReadCodeItem {
 			 * OR *
 			 *******/
 			case OR_INT:
-				t = T.INT;
+				t = T.AINT;
 				// fall through
 			case OR_LONG:
 				if (t == null) {
@@ -1524,7 +1532,7 @@ public class ReadCodeItem {
 				}
 				break;
 			case OR_INT_2ADDR:
-				t = T.INT;
+				t = T.AINT;
 				// fall through
 			case OR_LONG_2ADDR:
 				if (t == null) {
@@ -1545,12 +1553,13 @@ public class ReadCodeItem {
 			case OR_INT_LIT8: {
 				// A = B | literal
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
-				this.ops.add(new OR(this.ops.size(), opcode, line, T.INT));
+				this.ops.add(new OR(this.ops.size(), opcode, line, T.AINT));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
@@ -1558,12 +1567,13 @@ public class ReadCodeItem {
 			case OR_INT_LIT16: {
 				// A = B | literal
 				final Instruction22s instr = (Instruction22s) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
-				this.ops.add(new OR(this.ops.size(), opcode, line, T.INT));
+				this.ops.add(new OR(this.ops.size(), opcode, line, T.AINT));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
@@ -1870,10 +1880,11 @@ public class ReadCodeItem {
 			case REM_INT_LIT8: {
 				// A = B % literal
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new REM(this.ops.size(), opcode, line, T.INT));
 
@@ -1883,10 +1894,11 @@ public class ReadCodeItem {
 			case REM_INT_LIT16: {
 				// A = B % literal
 				final Instruction22s instr = (Instruction22s) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new REM(this.ops.size(), opcode, line, T.INT));
 
@@ -1965,10 +1977,11 @@ public class ReadCodeItem {
 			case SHL_INT_LIT8: {
 				// A = B << literal
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new SHL(this.ops.size(), opcode, line, T.INT, T.INT));
 
@@ -2019,10 +2032,11 @@ public class ReadCodeItem {
 			case SHR_INT_LIT8: {
 				// A = B >> literal
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new SHR(this.ops.size(), opcode, line, T.INT, T.INT, false));
 
@@ -2070,10 +2084,11 @@ public class ReadCodeItem {
 			case USHR_INT_LIT8: {
 				// A = B >>> literal
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
 				this.ops.add(new SHR(this.ops.size(), opcode, line, T.INT, T.INT, true));
 
@@ -2086,9 +2101,10 @@ public class ReadCodeItem {
 			case RSUB_INT: {
 				// A = literal - B
 				final Instruction22s instr = (Instruction22s) instruction;
+				final int literal = (int) instr.getLiteral();
 
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
 
 				this.ops.add(new SUB(this.ops.size(), opcode, line, T.INT));
@@ -2099,9 +2115,10 @@ public class ReadCodeItem {
 			case RSUB_INT_LIT8: {
 				// A = literal - B
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
 
 				this.ops.add(new SUB(this.ops.size(), opcode, line, T.INT));
@@ -2210,7 +2227,7 @@ public class ReadCodeItem {
 			 * XOR *
 			 *******/
 			case XOR_INT:
-				t = T.INT;
+				t = T.AINT;
 				// fall through
 			case XOR_LONG:
 				if (t == null) {
@@ -2229,7 +2246,7 @@ public class ReadCodeItem {
 				}
 				break;
 			case XOR_INT_2ADDR:
-				t = T.INT;
+				t = T.AINT;
 				// fall through
 			case XOR_LONG_2ADDR:
 				if (t == null) {
@@ -2250,12 +2267,13 @@ public class ReadCodeItem {
 			case XOR_INT_LIT8: {
 				// A = B ^ literal
 				final Instruction22b instr = (Instruction22b) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
-				this.ops.add(new XOR(this.ops.size(), opcode, line, T.INT));
+				this.ops.add(new XOR(this.ops.size(), opcode, line, T.AINT));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
@@ -2263,12 +2281,13 @@ public class ReadCodeItem {
 			case XOR_INT_LIT16: {
 				// A = B ^ literal
 				final Instruction22s instr = (Instruction22s) instruction;
+				final int literal = (int) instr.getLiteral();
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
-				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, (int) instr
-						.getLiteral()));
+				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.getDalvikIntT(literal),
+						literal));
 
-				this.ops.add(new XOR(this.ops.size(), opcode, line, T.INT));
+				this.ops.add(new XOR(this.ops.size(), opcode, line, T.AINT));
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 				break;
