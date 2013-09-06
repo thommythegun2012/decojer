@@ -285,7 +285,7 @@ public class ReadCodeAttribute {
 			 * AND *
 			 *******/
 			case Opcode.IAND:
-				t = T.INT;
+				t = T.AINT;
 				// fall through
 			case Opcode.LAND:
 				if (t == null) {
@@ -625,7 +625,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IF_ICMPEQ:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT; // boolean too
 					oValue = CmpType.T_EQ;
 				}
 				// fall through
@@ -655,7 +655,7 @@ public class ReadCodeAttribute {
 				// fall through
 			case Opcode.IF_ICMPNE:
 				if (t == null) {
-					t = T.INT;
+					t = T.AINT; // boolean too
 					oValue = CmpType.T_NE;
 				}
 				{
@@ -995,7 +995,7 @@ public class ReadCodeAttribute {
 			 * OR *
 			 ******/
 			case Opcode.IOR:
-				t = T.INT;
+				t = T.AINT;
 				// fall through
 			case Opcode.LOR:
 				if (t == null) {
@@ -1559,7 +1559,7 @@ public class ReadCodeAttribute {
 			 * XOR *
 			 *******/
 			case Opcode.IXOR:
-				t = T.INT;
+				t = T.AINT;
 				// fall through
 			case Opcode.LXOR: {
 				if (t == null) {

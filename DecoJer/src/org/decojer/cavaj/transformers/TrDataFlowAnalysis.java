@@ -77,6 +77,7 @@ import org.decojer.cavaj.model.code.ops.SHR;
 import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.code.ops.SUB;
 import org.decojer.cavaj.model.code.ops.SWITCH;
+import org.decojer.cavaj.model.code.ops.TypedOp;
 import org.decojer.cavaj.model.code.ops.XOR;
 
 import com.google.common.collect.Lists;
@@ -140,34 +141,37 @@ public final class TrDataFlowAnalysis {
 		this.isIgnoreExceptions = getCfg().getCu().check(DFlag.IGNORE_EXCEPTIONS);
 	}
 
-	private void evalBinaryIntBoolMath(final T t) {
-		evalBinaryMath(t == T.INT ? T.AINT : t, null);
+	private void evalBinaryMath(final TypedOp op) {
+		evalBinaryMath(op, null);
 	}
 
-	private void evalBinaryIntBoolMath(final T t, final T resultT) {
-		evalBinaryMath(t == T.INT ? T.AINT : t, resultT);
-	}
+	private void evalBinaryMath(final TypedOp op, final T resultT) {
+		// AND, OR, XOR and JCMP can have T.BOOLEAN and T.INT!
+		final T t = op.getT();
 
-	private void evalBinaryIntMath(final T t) {
-		evalBinaryMath(t, null);
-	}
-
-	private void evalBinaryMath(final T t, final T resultT) {
 		final R s2 = popRead(t);
 		final R s1 = popRead(t);
 
+		// TODO calc value
+		// s1 and s2 can have values, e.g. in a loop with ++ and JCMP
+		// TODO merge delete value for loop, com.google.common.base.CharMatcher.setBits
+
 		// reduce to reasonable parameters pairs, e.g. BOOL, {SHORT,BOOL}-Constant -> both BOOL
-		// hence: T.INT not sufficient for int/boolean operators like OR
-		final T m = T.join(s1.getT(), s2.getT());
-		assert m != null; // TODO ref1 == ref2 is allowed with result void (bool math)
+		final T joinT = T.join(s1.getT(), s2.getT());
+		assert joinT != null; // TODO ref1 == ref2 is allowed with result void (bool math)
 
-		s2.assignTo(m);
-		s1.assignTo(m);
+		s2.assignTo(joinT);
+		s1.assignTo(joinT);
 
-		if (resultT == T.VOID) {
+		if (resultT != null) {
+			if (resultT != T.VOID) {
+				pushConst(resultT);
+			}
 			return;
 		}
-		pushConst(resultT != null ? resultT : m);
+		// TODO byte/short/char -> int
+		// TODO int | bool => R BOOLMATH
+		pushConst(joinT);
 	}
 
 	private int execute() {
@@ -175,8 +179,7 @@ public final class TrDataFlowAnalysis {
 		int nextPc = this.currentPc + 1;
 		switch (op.getOptype()) {
 		case ADD: {
-			final ADD cop = (ADD) op;
-			evalBinaryIntMath(cop.getT());
+			evalBinaryMath((ADD) op);
 			break;
 		}
 		case ALOAD: {
@@ -187,8 +190,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case AND: {
-			final AND cop = (AND) op;
-			evalBinaryIntBoolMath(cop.getT());
+			evalBinaryMath((AND) op);
 			break;
 		}
 		case ARRAYLENGTH: {
@@ -236,13 +238,11 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case CMP: {
-			final CMP cop = (CMP) op;
-			evalBinaryMath(cop.getT(), T.INT);
+			evalBinaryMath((CMP) op, T.INT);
 			break;
 		}
 		case DIV: {
-			final DIV cop = (DIV) op;
-			evalBinaryIntMath(cop.getT());
+			evalBinaryMath((DIV) op);
 			break;
 		}
 		case DUP: {
@@ -368,7 +368,8 @@ public final class TrDataFlowAnalysis {
 		}
 		case INC: {
 			final INC cop = (INC) op;
-			// read-store necessary, so that we can change the const value
+			// read-store necessary, so that we can change the const value,
+			// char c = this.c++; is possible, even though char c = this.c + 1 would complain
 			final R r = store(cop.getReg(), loadRead(cop.getReg(), cop.getT()));
 			if (r.getValue() != null) {
 				r.setValue(((Number) r.getValue()).intValue() + cop.getValue());
@@ -401,7 +402,7 @@ public final class TrDataFlowAnalysis {
 			this.currentBb.setConds(getTargetBb(cop.getTargetPc()), getTargetBb(nextPc));
 			// possible: bool != bool
 			// see org.eclipse.jdt.core.dom.ASTMatcher.match(BooleanLiteral)
-			evalBinaryIntBoolMath(cop.getT(), T.VOID);
+			evalBinaryMath(cop, T.VOID);
 			merge(nextPc);
 			merge(cop.getTargetPc());
 			return -1;
@@ -488,14 +489,14 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case MUL: {
-			final MUL cop = (MUL) op;
-			evalBinaryIntMath(cop.getT());
+			evalBinaryMath((MUL) op);
 			break;
 		}
 		case NEG: {
 			final NEG cop = (NEG) op;
-			final R r = popRead(cop.getT());
-			pushConst(r.getT());
+			popRead(cop.getT());
+			// TODO calc value
+			pushConst(cop.getT()); // not r.getT()
 			break;
 		}
 		case NEW: {
@@ -513,7 +514,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case OR: {
 			final OR cop = (OR) this.currentOp;
-			evalBinaryIntBoolMath(cop.getT());
+			evalBinaryMath(cop);
 			break;
 		}
 		case POP: {
@@ -552,8 +553,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case REM: {
-			final REM cop = (REM) op;
-			evalBinaryIntMath(cop.getT());
+			evalBinaryMath((REM) op);
 			break;
 		}
 		case RET: {
@@ -625,8 +625,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case SUB: {
-			final SUB cop = (SUB) op;
-			evalBinaryIntMath(cop.getT());
+			evalBinaryMath((SUB) op);
 			break;
 		}
 		case SWAP: {
@@ -684,7 +683,7 @@ public final class TrDataFlowAnalysis {
 			return -1;
 		case XOR: {
 			final XOR cop = (XOR) op;
-			evalBinaryIntBoolMath(cop.getT());
+			evalBinaryMath(cop);
 			break;
 		}
 		default:
@@ -870,7 +869,7 @@ public final class TrDataFlowAnalysis {
 		}
 		// backpropagate alive to previous BBs
 		for (final E in : bb.getIns()) {
-			// TODO conditionally jump oder JSR-RET!
+			// TODO conditionally jump over JSR-RET!
 			if (in.getStart() != bb) {
 				markAlive(in.getStart(), aliveI);
 			}
@@ -1059,7 +1058,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R pushConst(final T t) {
-		return this.currentFrame.push(new R(this.currentPc + 1, t, Kind.CONST));
+		return pushConst(t, null);
 	}
 
 	private R pushConst(final T t, final Object value) {

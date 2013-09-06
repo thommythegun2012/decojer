@@ -44,14 +44,14 @@ public final class R {
 	public enum Kind {
 
 		/**
+		 * Bool math ins, late decide boolean or int params (AND, OR, XOR). Incoming 2 registers.
+		 */
+		BOOLMATH,
+
+		/**
 		 * Push const.
 		 */
 		CONST,
-
-		/**
-		 * Combine ins with math, e.g. AND for bool1||bool2 and int1|int2. Incoming registers.
-		 */
-		MATH,
 
 		/**
 		 * Merge ins. Incoming registers.
@@ -59,7 +59,7 @@ public final class R {
 		MERGE,
 
 		/**
-		 * Store move. Source register, maybe previous register.
+		 * Store move. Source register.
 		 */
 		MOVE
 
@@ -81,7 +81,7 @@ public final class R {
 	/**
 	 * Upper bound of register type, reads lower the bound through type unions.
 	 */
-	private T readT;
+	// private T readT;
 
 	/**
 	 * Lower bound of register type, stores/merges rise the bound through type joins.
@@ -145,9 +145,6 @@ public final class R {
 		System.arraycopy(this.ins, 0, newIns, 0, this.ins.length);
 		newIns[this.ins.length] = r;
 		this.ins = newIns;
-		if (this.readT != null) {
-			r.assignTo(this.readT);
-		}
 	}
 
 	private void addOut(final R r) {
@@ -179,31 +176,23 @@ public final class R {
 			// TODO check org.decojer.cavaj.test.jdk6.DecTestMethodTypeParams:
 			// RETURN Long as TypeParam U - resolve to TypeArg <U extends Long>
 			assert false;
+
+			return false;
 		}
-		if (!this.t.equals(reducedT)) {
-			// possible primitive multitype reduction
-			setT(reducedT);
-			if (this.outs != null) {
-				for (final R out : this.outs) {
-					out.readForwardPropagate(t);
-				}
+		if (this.t.equals(reducedT)) {
+			return true;
+		}
+		// possible primitive multitype reduction
+		setT(reducedT);
+		if (this.outs != null) {
+			for (final R out : this.outs) {
+				out.readForwardPropagate(t);
 			}
 		}
-		switch (this.kind) {
-		case CONST:
-			break;
-		case MERGE:
-			for (final R in : this.ins) {
-				// TODO endless loop in.read(t);
-				if (in != null) {
-					// TODO
-				}
-			}
-			break;
-		case MOVE:
-			this.ins[0].assignTo(t);
+		for (final R in : this.ins) {
+			in.assignTo(reducedT);
 		}
-		this.readT = T.union(this.readT, t);
+		// TODO this.readT = T.union(this.readT, t);
 		return true;
 	}
 
