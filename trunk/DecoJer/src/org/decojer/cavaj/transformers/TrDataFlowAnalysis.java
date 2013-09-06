@@ -429,7 +429,7 @@ public final class TrDataFlowAnalysis {
 				if (!this.currentFrame.pushSub(sub)) {
 					return -1;
 				}
-				pushConst(T.RET, sub);
+				this.currentFrame.push(new R(subPc, T.RET, Kind.CONST));
 				merge(subPc);
 				return -1;
 			}
@@ -943,11 +943,12 @@ public final class TrDataFlowAnalysis {
 			if (!exc.validIn(this.currentPc)) {
 				continue;
 			}
-			final Frame handlerFrame = getFrame(exc.getHandlerPc());
+			final int handlerPc = exc.getHandlerPc();
+			final Frame handlerFrame = getFrame(handlerPc);
 			R excR;
 			if (handlerFrame == null) {
 				// null is <any> (means Java finally) -> Throwable
-				excR = new R(exc.getHandlerPc(), exc.getT() == null ? getDu().getT(Throwable.class)
+				excR = new R(handlerPc, exc.getT() == null ? getDu().getT(Throwable.class)
 						: exc.getT(), Kind.CONST);
 			} else {
 				if (handlerFrame.getTop() != 1) {
@@ -955,8 +956,9 @@ public final class TrDataFlowAnalysis {
 				}
 				excR = handlerFrame.peek(); // reuse exception register
 			}
+			// use current PC before operation for forwarding failed assignments -> null
 			this.currentFrame = new Frame(getFrame(this.currentPc), excR);
-			merge(exc.getHandlerPc());
+			merge(handlerPc);
 		}
 	}
 
