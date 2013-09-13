@@ -59,11 +59,13 @@ public final class R {
 		MERGE,
 
 		/**
-		 * Store move. Source register.
+		 * Store move. Incoming register.
 		 */
 		MOVE
 
 	}
+
+	private final int i;
 
 	private R[] ins;
 
@@ -97,6 +99,8 @@ public final class R {
 	/**
 	 * Constructor.
 	 * 
+	 * @param i
+	 *            register index
 	 * @param pc
 	 *            register start pc
 	 * @param t
@@ -106,13 +110,15 @@ public final class R {
 	 * @param ins
 	 *            input registers
 	 */
-	public R(final int pc, final T t, final Kind kind, final R... ins) {
-		this(pc, t, null, kind, ins);
+	public R(final int i, final int pc, final T t, final Kind kind, final R... ins) {
+		this(i, pc, t, null, kind, ins);
 	}
 
 	/**
 	 * Constructor.
 	 * 
+	 * @param i
+	 *            register index
 	 * @param pc
 	 *            register start pc
 	 * @param t
@@ -124,7 +130,9 @@ public final class R {
 	 * @param ins
 	 *            input registers
 	 */
-	public R(final int pc, final T t, final Object value, final Kind kind, final R... ins) {
+	public R(final int i, final int pc, final T t, final Object value, final Kind kind,
+			final R... ins) {
+		this.i = i;
 		this.pc = pc;
 		this.t = t;
 		this.value = value;
@@ -194,6 +202,19 @@ public final class R {
 		}
 		// TODO this.readT = T.union(this.readT, t);
 		return true;
+	}
+
+	/**
+	 * Get incoming register.
+	 * 
+	 * Should be a MOVE.
+	 * 
+	 * @return incoming register
+	 */
+	public R getIn() {
+		assert getKind() == Kind.MOVE && this.ins.length == 1;
+
+		return this.ins[0];
 	}
 
 	/**
