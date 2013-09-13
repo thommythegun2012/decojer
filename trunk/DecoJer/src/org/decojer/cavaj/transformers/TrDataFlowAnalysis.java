@@ -431,7 +431,8 @@ public final class TrDataFlowAnalysis {
 				if (!this.currentFrame.pushSub(sub)) {
 					return -1;
 				}
-				this.currentFrame.push(new R(subPc, T.RET, sub, Kind.CONST));
+				this.currentFrame.push(new R(this.currentFrame.size(), subPc, T.RET, sub,
+						Kind.CONST));
 				merge(subPc);
 				return -1;
 			}
@@ -803,19 +804,23 @@ public final class TrDataFlowAnalysis {
 		int aliveI = i;
 		for (int j = bb.getOps(); j-- > 0;) {
 			final Op op = bb.getOp(j);
+			final int pc = op.getPc();
 			final Frame frame = getCfg().getInFrame(op);
 			if (!frame.markAlive(aliveI)) {
 				return;
 			}
 			final R r = frame.load(aliveI);
-			if (r.getPc() != op.getPc()) {
+			if (r.getPc() != pc) {
 				// register doesn't change here...
 				continue;
 			}
 			switch (r.getKind()) {
-			case CONST:
-				// register changes here, CONST is the final alive
-				return;
+			case MOVE: {
+				// we also defer MOVE alive markings, to prevent DUP/POP stuff etc.???;
+				// register changes here, MOVE from different incoming register in same BB
+				aliveI = r.getIn().getI();
+				break;
+			}
 			case MERGE: {
 				// register changes here, MERGE of multiple incoming registers from previous BBs
 				assert j == 0 : j; // should be first op in BB
@@ -829,47 +834,27 @@ public final class TrDataFlowAnalysis {
 				for (final R inR : inRs) {
 					inR.assignTo(r.getT());
 
-					if (inR.getPc() != op.getPc()) {
+					if (inR.getPc() != pc) {
 						continue;
 					}
 					if (inR.getKind() != Kind.MOVE) {
 						continue;
 					}
-					// TODO find move alive i and back propagate
+					// such a MOVE is always from previous PCs BBs last operation
+					markAlive(getBb(inR.getPc() - 1), inR.getIn().getI());
 				}
-				// TODO backpropagate if different PCs
-				break;
-			}
-			case MOVE: {
-				// register changes here, MOVE from different incoming register in same BB
-				final R[] inRs = r.getIns();
-				assert inRs.length == 1 : inRs.length;
-
-				final R inR = inRs[0];
-				// we can ask the initialization frame of the incoming register, must not be the
-				// previous frame of this MOVE register, register index doesn't change up to here
-				final Frame inFrame = getFrame(inR.getPc());
-
-				int inI = inFrame.size();
-				for (; inI-- > 0;) {
-					if (inFrame.load(inI) == inR) {
-						break;
-					}
-				}
-				assert inI != -1;
-
-				aliveI = inI;
 				break;
 			}
 			default:
-				assert false;
-
+				// register changes here, is alive termination
 				return;
 			}
 		}
 		// backpropagate alive to previous BBs
 		for (final E in : bb.getIns()) {
 			// TODO conditionally jump over JSR-RET!
+			// TODO skip somehow ops with inR.getPc() == bb.getPc()
+
 			if (in.getStart() != bb) {
 				markAlive(in.getStart(), aliveI);
 			}
@@ -919,10 +904,11 @@ public final class TrDataFlowAnalysis {
 				continue;
 			}
 			if (targetFrame.isAlive(i)) {
-				// make myself also alive...
+				// register i for current BB must be alive too for merging
 				if (newR.getPc() != targetPc) {
-					// FIXME too restrictive, what is with MOVE ins, new MOVE shadowed by MERGE?
 					markAlive(this.currentBb, i);
+				} else if (newR.getKind() == Kind.MOVE) {
+					markAlive(this.currentBb, newR.getIn().getI());
 				}
 				newR.assignTo(t);
 				prevR.assignTo(t);
@@ -934,7 +920,7 @@ public final class TrDataFlowAnalysis {
 				continue;
 			}
 			// start new merge register
-			replaceBbReg(targetBb, i, prevR, new R(targetPc, t, Kind.MERGE, prevR, newR));
+			replaceBbReg(targetBb, i, prevR, new R(i, targetPc, t, Kind.MERGE, prevR, newR));
 		}
 	}
 
@@ -951,8 +937,8 @@ public final class TrDataFlowAnalysis {
 			R excR;
 			if (handlerFrame == null) {
 				// null is <any> (means Java finally) -> Throwable
-				excR = new R(handlerPc, exc.getT() == null ? getDu().getT(Throwable.class)
-						: exc.getT(), Kind.CONST);
+				excR = new R(getCfg().getRegs(), handlerPc, exc.getT() == null ? getDu().getT(
+						Throwable.class) : exc.getT(), Kind.CONST);
 			} else {
 				if (handlerFrame.getTop() != 1) {
 					log("Handler stack for exception merge not of size 1!");
@@ -1053,8 +1039,8 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R push(final R r) {
-		return this.currentFrame.push(new R(this.currentPc + 1, r.getT(), r.getValue(), Kind.MOVE,
-				r));
+		return this.currentFrame.push(new R(this.currentFrame.size(), this.currentPc + 1, r.getT(),
+				r.getValue(), Kind.MOVE, r));
 	}
 
 	private R pushConst(final T t) {
@@ -1062,7 +1048,8 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R pushConst(final T t, final Object value) {
-		return this.currentFrame.push(new R(this.currentPc + 1, t, value, Kind.CONST));
+		return this.currentFrame.push(new R(this.currentFrame.size(), this.currentPc + 1, t, value,
+				Kind.CONST));
 	}
 
 	private void replaceBbReg(final BB bb, final int i, final R prevR, final R newR) {
@@ -1171,7 +1158,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R store(final int i, final R r) {
-		return this.currentFrame.store(i, new R(this.currentPc + 1, r.getT(), r.getValue(),
+		return this.currentFrame.store(i, new R(i, this.currentPc + 1, r.getT(), r.getValue(),
 				Kind.MOVE, r));
 	}
 

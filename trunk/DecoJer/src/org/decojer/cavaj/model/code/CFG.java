@@ -361,10 +361,10 @@ public final class CFG {
 	public void initFrames() {
 		this.frames = new Frame[this.ops.length];
 		final Frame frame = new Frame(this);
-		for (int reg = getRegs(); reg-- > 0;) {
-			final V v = getDebugV(reg, 0);
+		for (int i = getRegs(); i-- > 0;) {
+			final V v = getDebugV(i, 0);
 			if (v != null) {
-				frame.store(reg, new R(0, v.getT(), Kind.CONST));
+				frame.store(i, new R(i, 0, v.getT(), Kind.CONST));
 			}
 		}
 		this.frames[0] = frame;
