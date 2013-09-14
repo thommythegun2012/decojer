@@ -3,6 +3,17 @@
 = TODOs =
 
 
+Catches have empty frame, but are nevertheless alive?
+
+
+WARNUNG: Cannot transform 'com.google.common.cache.LocalCache.getAll(Ljava/lang/Iterable;)Lcom/google/common/collect/ImmutableMap; (ops: 128, regs: 11)'!
+java.lang.NullPointerException
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:826)
+
+
+
+
+
 WARNUNG: Cannot transform 'com.google.common.collect.Lists.transform(Ljava/util/List;Lcom/google/common/base/Function;)Ljava/util/List; (ops: 15, regs: 2)'!
 java.lang.AssertionError
 	at org.decojer.cavaj.model.code.R.assignTo(R.java:176)
