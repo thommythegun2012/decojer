@@ -699,6 +699,59 @@ public final class TrDataFlowAnalysis {
 		return nextPc;
 	}
 
+	private void executeExceptions() {
+		if (isNoExceptions()) {
+			return;
+		}
+		if (this.currentBb.getOps() == 1) {
+			// build sorted map: unique handler pc -> matching handler types
+			final TreeMap<Integer, List<T>> handlerPc2type = Maps.newTreeMap();
+			for (final Exc exc : getCfg().getExcs()) {
+				if (!exc.validIn(this.currentPc)) {
+					continue;
+				}
+				// it would be nice to prone unreachable outer exception handlers here, but this
+				// is not possible because we very often havn't sufficient exception information
+				// (super classes etc.)
+				// extend sorted map for successors
+				final int handlerPc = exc.getHandlerPc();
+				List<T> types = handlerPc2type.get(handlerPc);
+				if (types == null) {
+					types = Lists.newArrayList();
+					handlerPc2type.put(handlerPc, types);
+				}
+				types.add(exc.getT());
+			}
+			// now add successors
+			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
+				final List<T> types = handlerPc2typeEntry.getValue();
+				this.currentBb.addCatchHandler(getTargetBb(handlerPc2typeEntry.getKey()),
+						handlerPc2typeEntry.getValue().toArray(new T[types.size()]));
+			}
+		}
+		for (final Exc exc : getCfg().getExcs()) {
+			if (!exc.validIn(this.currentPc)) {
+				continue;
+			}
+			final int handlerPc = exc.getHandlerPc();
+			final Frame handlerFrame = getFrame(handlerPc);
+			R excR;
+			if (handlerFrame == null) {
+				// null is <any> (means Java finally) -> Throwable
+				excR = new R(getCfg().getRegs(), handlerPc, exc.getT() == null ? getDu().getT(
+						Throwable.class) : exc.getT(), Kind.CONST);
+			} else {
+				if (handlerFrame.getTop() != 1) {
+					log("Handler stack for exception merge not of size 1!");
+				}
+				excR = handlerFrame.peek(); // reuse exception register
+			}
+			// use current PC before operation for forwarding failed assignments -> null
+			this.currentFrame = new Frame(getFrame(this.currentPc), excR);
+			merge(handlerPc);
+		}
+	}
+
 	private BB getBb(final int pc) {
 		return this.pc2bbs[pc];
 	}
@@ -745,6 +798,10 @@ public final class TrDataFlowAnalysis {
 		}
 		bb.setPc(pc); // necessary because we must preserve outgoing BB
 		return bb;
+	}
+
+	private boolean isNoExceptions() {
+		return this.isIgnoreExceptions || getCfg().getExcs() == null;
 	}
 
 	private boolean jumpOverSub(final RET ret, final int i) {
@@ -798,66 +855,77 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void markAlive(final BB bb, final int i) {
-		if (bb.getOps() == 0) {
-			return;
-		}
+		// mark this BB alive for register i;
+		// we defer MOVE alive markings, to prevent DUP/POP stuff etc.
 		int aliveI = i;
-		for (int j = bb.getOps(); j-- > 0;) {
+		for (int j = bb.getOps(); j-- > 1;) {
 			final Op op = bb.getOp(j);
 			final int pc = op.getPc();
-			final Frame frame = getCfg().getInFrame(op);
+			final Frame frame = getCfg().getFrame(pc);
 			if (!frame.markAlive(aliveI)) {
 				return;
 			}
 			final R r = frame.load(aliveI);
-			if (r.getPc() != pc) {
-				// register doesn't change here...
-				continue;
+			if (r.getPc() == pc) {
+				// register does change here...
+				if (r.getKind() == Kind.MOVE) {
+					// register changes here, MOVE from different incoming register in same BB
+					aliveI = r.getIn().getI();
+					continue;
+				}
+				assert r.getKind() != Kind.MERGE; // can only be first op in BB
+				// stop backpropagation here
+				return;
 			}
+		}
+		final int pc = bb.getPc();
+		final Frame frame = getCfg().getFrame(pc);
+		if (!frame.markAlive(aliveI)) {
+			return;
+		}
+
+		// now backpropagate to other BBs;
+		// MERGE could contain a wrapped CONST or MOVE with same register change PC...CONST
+		// wouldn't be a problem, but MOVE could change the back propagation index!
+		// so we could fan out into multiple register indices here!
+		R[] mergeIns = null;
+		final R r = frame.load(aliveI);
+		if (r.getPc() == pc) {
+			// different kinds possible, e.g. exceptions can split BBs
 			switch (r.getKind()) {
-			case MOVE: {
-				// we also defer MOVE alive markings, to prevent DUP/POP stuff etc.???;
-				// register changes here, MOVE from different incoming register in same BB
+			case MERGE:
+				// register does change at BB start, we are interested in a merge which could wrap
+				// other freshly changed registers; but could also be a CONST from method start or
+				// catched exception
+				mergeIns = r.getIns();
+				assert mergeIns.length > 1;
+
+				break;
+			case MOVE:
+				// register changes here, MOVE from different incoming register in different BB
 				aliveI = r.getIn().getI();
 				break;
-			}
-			case MERGE: {
-				// register changes here, MERGE of multiple incoming registers from previous BBs
-				assert j == 0 : j; // should be first op in BB
-
-				// we could contain a wrapped CONST or MOVE with same register change PC...CONST
-				// wouldn't be a problem, but MOVE could change the back propagation index!
-				// so we could fan out into multiple register indices here!
-				final R[] inRs = r.getIns();
-				assert inRs.length > 1;
-
-				for (final R inR : inRs) {
-					inR.assignTo(r.getT());
-
-					if (inR.getPc() != pc) {
-						continue;
-					}
-					if (inR.getKind() != Kind.MOVE) {
-						continue;
-					}
-					// such a MOVE is always from previous PCs BBs last operation
-					markAlive(getBb(inR.getPc() - 1), inR.getIn().getI());
-				}
-				break;
-			}
 			default:
-				// register changes here, is alive termination
+				// stop backpropagation here
 				return;
 			}
 		}
 		// backpropagate alive to previous BBs
-		for (final E in : bb.getIns()) {
+		marked: for (final E in : bb.getIns()) {
+			final BB predBb = in.getStart();
 			// TODO conditionally jump over JSR-RET!
-			// TODO skip somehow ops with inR.getPc() == bb.getPc()
-
-			if (in.getStart() != bb) {
-				markAlive(in.getStart(), aliveI);
+			if (mergeIns != null) {
+				final int opPc = predBb.getFinalOp().getPc() + 1;
+				for (final R inR : mergeIns) {
+					if (inR.getPc() == opPc) {
+						if (inR.getKind() == Kind.MOVE) {
+							markAlive(predBb, inR.getIn().getI());
+						}
+						continue marked;
+					}
+				}
 			}
+			markAlive(predBb, aliveI);
 		}
 	}
 
@@ -924,66 +992,9 @@ public final class TrDataFlowAnalysis {
 		}
 	}
 
-	private void mergeExceptions() {
-		if (this.isIgnoreExceptions || getCfg().getExcs() == null) {
-			return;
-		}
-		for (final Exc exc : getCfg().getExcs()) {
-			if (!exc.validIn(this.currentPc)) {
-				continue;
-			}
-			final int handlerPc = exc.getHandlerPc();
-			final Frame handlerFrame = getFrame(handlerPc);
-			R excR;
-			if (handlerFrame == null) {
-				// null is <any> (means Java finally) -> Throwable
-				excR = new R(getCfg().getRegs(), handlerPc, exc.getT() == null ? getDu().getT(
-						Throwable.class) : exc.getT(), Kind.CONST);
-			} else {
-				if (handlerFrame.getTop() != 1) {
-					log("Handler stack for exception merge not of size 1!");
-				}
-				excR = handlerFrame.peek(); // reuse exception register
-			}
-			// use current PC before operation for forwarding failed assignments -> null
-			this.currentFrame = new Frame(getFrame(this.currentPc), excR);
-			merge(handlerPc);
-		}
-	}
-
 	private BB newBb(final int pc) {
 		final BB bb = getCfg().newBb(pc);
 		setBb(pc, bb);
-		if (!this.isIgnoreExceptions) {
-			final Exc[] excs = getCfg().getExcs();
-			if (excs == null) {
-				return bb;
-			}
-			// build sorted map: unique handler pc -> matching handler types
-			final TreeMap<Integer, List<T>> handlerPc2type = Maps.newTreeMap();
-			for (final Exc exc : excs) {
-				if (!exc.validIn(pc)) {
-					continue;
-				}
-				// it would be nice to prone unreachable outer exception handlers here, but this
-				// is not possible because we very often havn't sufficient exception information
-				// (super classes etc.)
-				// extend sorted map for successors
-				final int handlerPc = exc.getHandlerPc();
-				List<T> types = handlerPc2type.get(handlerPc);
-				if (types == null) {
-					types = Lists.newArrayList();
-					handlerPc2type.put(handlerPc, types);
-				}
-				types.add(exc.getT());
-			}
-			// now add successors
-			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
-				final List<T> types = handlerPc2typeEntry.getValue();
-				bb.addCatchHandler(getTargetBb(handlerPc2typeEntry.getKey()), handlerPc2typeEntry
-						.getValue().toArray(new T[types.size()]));
-			}
-		}
 		return bb;
 	}
 
@@ -1128,7 +1139,7 @@ public final class TrDataFlowAnalysis {
 	 * @return original BB or new BB for beginning exception block
 	 */
 	private BB splitExceptions() {
-		if (this.isIgnoreExceptions || getCfg().getExcs() == null) {
+		if (isNoExceptions()) {
 			return this.currentBb;
 		}
 		// could happen with GOTO-mode: create no entry in BB, currently unused
@@ -1191,7 +1202,7 @@ public final class TrDataFlowAnalysis {
 			this.currentBb.addOp(this.currentOp);
 			this.currentFrame = new Frame(getFrame(this.currentPc)); // copy, merge to next PCs
 			final int nextPc = execute();
-			mergeExceptions();
+			executeExceptions();
 			this.currentPc = nextPc;
 		}
 	}
