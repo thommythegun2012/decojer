@@ -99,10 +99,10 @@ public final class R {
 	/**
 	 * Constructor.
 	 * 
-	 * @param i
-	 *            register index
 	 * @param pc
 	 *            register start pc
+	 * @param i
+	 *            register index
 	 * @param t
 	 *            register type
 	 * @param kind
@@ -110,17 +110,17 @@ public final class R {
 	 * @param ins
 	 *            input registers
 	 */
-	public R(final int i, final int pc, final T t, final Kind kind, final R... ins) {
-		this(i, pc, t, null, kind, ins);
+	public R(final int pc, final int i, final T t, final Kind kind, final R... ins) {
+		this(pc, i, t, null, kind, ins);
 	}
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param i
-	 *            register index
 	 * @param pc
 	 *            register start pc
+	 * @param i
+	 *            register index
 	 * @param t
 	 *            register type
 	 * @param value
@@ -130,10 +130,10 @@ public final class R {
 	 * @param ins
 	 *            input registers
 	 */
-	public R(final int i, final int pc, final T t, final Object value, final Kind kind,
+	public R(final int pc, final int i, final T t, final Object value, final Kind kind,
 			final R... ins) {
-		this.i = i;
 		this.pc = pc;
+		this.i = i;
 		this.t = t;
 		this.value = value;
 		this.kind = kind;

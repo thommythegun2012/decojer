@@ -431,7 +431,7 @@ public final class TrDataFlowAnalysis {
 				if (!this.currentFrame.pushSub(sub)) {
 					return -1;
 				}
-				this.currentFrame.push(new R(this.currentFrame.size(), subPc, T.RET, sub,
+				this.currentFrame.push(new R(subPc, this.currentFrame.size(), T.RET, sub,
 						Kind.CONST));
 				merge(subPc);
 				return -1;
@@ -738,7 +738,7 @@ public final class TrDataFlowAnalysis {
 			R excR;
 			if (handlerFrame == null) {
 				// null is <any> (means Java finally) -> Throwable
-				excR = new R(getCfg().getRegs(), handlerPc, exc.getT() == null ? getDu().getT(
+				excR = new R(handlerPc, getCfg().getRegs(), exc.getT() == null ? getDu().getT(
 						Throwable.class) : exc.getT(), Kind.CONST);
 			} else {
 				if (handlerFrame.getTop() != 1) {
@@ -958,7 +958,7 @@ public final class TrDataFlowAnalysis {
 				// new register is null? merge to null => replace previous register from here
 				assert !targetFrame.isAlive(i);
 
-				replaceBbReg(targetBb, i, prevR, null);
+				replaceBbReg(targetBb, prevR, null);
 				continue;
 			}
 			final T t = T.join(prevR.getT(), newR.getT());
@@ -968,7 +968,7 @@ public final class TrDataFlowAnalysis {
 
 				// FIXME dangerous if unknown super types...defer this op, remember merge register
 				// with 2 inputs and try join only on read/re-store
-				replaceBbReg(targetBb, i, prevR, null);
+				replaceBbReg(targetBb, prevR, null);
 				continue;
 			}
 			if (targetFrame.isAlive(i)) {
@@ -988,7 +988,7 @@ public final class TrDataFlowAnalysis {
 				continue;
 			}
 			// start new merge register
-			replaceBbReg(targetBb, i, prevR, new R(i, targetPc, t, Kind.MERGE, prevR, newR));
+			replaceBbReg(targetBb, prevR, new R(targetPc, i, t, Kind.MERGE, prevR, newR));
 		}
 	}
 
@@ -1050,7 +1050,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R push(final R r) {
-		return this.currentFrame.push(new R(this.currentFrame.size(), this.currentPc + 1, r.getT(),
+		return this.currentFrame.push(new R(this.currentPc + 1, this.currentFrame.size(), r.getT(),
 				r.getValue(), Kind.MOVE, r));
 	}
 
@@ -1059,22 +1059,22 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R pushConst(final T t, final Object value) {
-		return this.currentFrame.push(new R(this.currentFrame.size(), this.currentPc + 1, t, value,
+		return this.currentFrame.push(new R(this.currentPc + 1, this.currentFrame.size(), t, value,
 				Kind.CONST));
 	}
 
-	private void replaceBbReg(final BB bb, final int i, final R prevR, final R newR) {
+	private void replaceBbReg(final BB bb, final R prevR, final R newR) {
 		assert prevR != null;
 
 		// BB possibly not visited yet => than: BB input frame known, but no operations exist,
 		// but BB input frame cannot be null here
-		R replacedR = replaceFrameReg(bb.getPc(), i, prevR, newR);
+		R replacedR = replaceFrameReg(bb.getPc(), prevR, newR);
 		if (replacedR == null) {
 			return;
 		}
 		// replacement propagation to already known BB operations
 		for (int j = 1; j < bb.getOps(); ++j) {
-			replacedR = replaceFrameReg(bb.getOp(j).getPc(), i, replacedR, newR);
+			replacedR = replaceFrameReg(bb.getOp(j).getPc(), replacedR, newR);
 			if (replacedR == null) {
 				return;
 			}
@@ -1083,7 +1083,7 @@ public final class TrDataFlowAnalysis {
 		final boolean jumpOverSub;
 		final Op finalOp = bb.getFinalOp();
 		if (finalOp instanceof RET) {
-			jumpOverSub = jumpOverSub((RET) finalOp, i);
+			jumpOverSub = jumpOverSub((RET) finalOp, prevR.getI());
 		} else {
 			jumpOverSub = false;
 		}
@@ -1099,16 +1099,17 @@ public final class TrDataFlowAnalysis {
 			// final operation is RET -> modify newR for untouched registers in sub
 			if (jumpOverSub) {
 				final Frame jsrFrame = getFrame(outBb.getPc() - 1);
-				replaceBbReg(outBb, i, replacedR, jsrFrame.load(i));
+				replaceBbReg(outBb, replacedR, jsrFrame.load(prevR.getI()));
 				continue;
 			}
-			replaceBbReg(outBb, i, replacedR, newR);
+			replaceBbReg(outBb, replacedR, newR);
 		}
 	}
 
-	private R replaceFrameReg(final int pc, final int i, final R prevR, final R newR) {
+	private R replaceFrameReg(final int pc, final R prevR, final R newR) {
 		assert prevR != null;
 
+		final int i = prevR.getI();
 		final Frame frame = getFrame(pc);
 		if (i < frame.size()) {
 			final R frameR = frame.load(i);
@@ -1169,7 +1170,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R store(final int i, final R r) {
-		return this.currentFrame.store(i, new R(i, this.currentPc + 1, r.getT(), r.getValue(),
+		return this.currentFrame.store(i, new R(this.currentPc + 1, i, r.getT(), r.getValue(),
 				Kind.MOVE, r));
 	}
 
