@@ -224,7 +224,7 @@ public final class R {
 	 * @see CFG#initFrames()
 	 */
 	public boolean isMethodParam() {
-		return this.pc < 0;
+		return this.pc == 0;
 	}
 
 	private boolean readForwardPropagate(final T t) {
