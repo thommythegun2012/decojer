@@ -2,6 +2,13 @@
 
 = TODOs =
 
+* merge-replace register: can recursively create new merges
+* JSR-merge stuff
+* assign-to with "maybe"
+* loop recognition from bottum up
+
+
+= NOTICES =
 
 Catches have empty frame, but are nevertheless alive?
 
