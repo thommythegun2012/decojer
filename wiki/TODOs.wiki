@@ -83,3 +83,86 @@ Download big Blob file:
 {{{
 http://www.decojer.org/download/test.tst?u=AMIfv973hPWhetoX_Et1Gn8__ATu5hRHkKaWRnKDrXZfkeR1QSe13v84Sp05AOTtMsS1xeNtquTqv24jl21VJ_l1C7hOKvkT0ILOHS1SXdx3D1nf8L69rSPa1e64euvPAQbgzw4MtGOV9ehmTnrFOW1pe1aNpB8kxQ
 }}}
+
+
+TODOs
+
+md.setParamName besser als START_LOCAL mit pc 0?
+
+check:
+ // Compiled from TimelinePropertyBuilder.java (version 1.6 : 50.0, super bit)
+// Signature: Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;
+private class org.pushingpixels.trident.TimelinePropertyBuilder$GenericFieldInfo extends org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo {
+
+
+Aug 19, 2012 10:52:00 PM org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts transform
+WARNING: Stack underflow in 'org.eclipse.jdt.internal.formatter.comment.HTMLEntity2JavaReader.entity2Text(Ljava/lang/String;)Ljava/lang/String; (ops: 50, regs: 3)':
+BB 2 (l 79, pc 30)
+Ops: [RETURN]
+Aug 19, 2012 10:52:00 PM org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts rewriteHandler
+WARNING: First operation in handler isn't STORE: BB 1 (l 80, pc 31)
+Ops: [POP, GOTO 42]
+Aug 19, 2012 10:52:00 PM org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts transform
+WARNING: Stack underflow in 'org.eclipse.jdt.internal.formatter.comment.HTMLEntity2JavaReader.entity2Text(Ljava/lang/String;)Ljava/lang/String; (ops: 50, regs: 3)':
+BB 1 (l 80, pc 31)
+Ops: [POP, GOTO 42]
+
+
+Bug with split for same-BB-backlinks:
+
+com.itextpdf.text.pdf.PRTokeniser.nextToken()Z (ops: 466, regs: 6)
+
+BB 84 (l 489, pc 440)
+Stmts: [outBuf.append((char)ch);
+, ch=this.file.read();
+, if (!com.itextpdf.text.pdf.PRTokeniser.delims[ch + "1"]) {
+}
+]
+
+	* JSR adress -> stack-adress/STORE/RET register-address - better STORE handling for handler
+	* exception-ends sometimes earlier (RETURN, PUSH/RETURN)...stack underflow...pull incoming nodes?
+	* switch case reordering doesn't work anymore...should mark list unmodifiable? or better rely on E.isSwitch...
+	* must more agressively inline or i cannot recognize while() loops with expressions like (--i > 2)
+	* 
+		* load, iinc => i++
+		* iinc, load => --i
+		* load...dup / store => (i += 10)
+
+	* Maven Model 3.0.4 API direkt nutzen oder Maven Aether, welches auch Dependencies und Parents etc. auflöst
+	* must store register type independantly from register read types, later merge could lower type in hierarchy, merge & store goes top
+	* read types: store most specific, read goes bottom, forget nothing
+
+Facts
+
+	* exceptions have changed a lot over versions, especially finally:
+
+		* (GOTO -> JSR)...1.3 (first JSR then GOTO) -> 1.4 (GOTOs not in any-catch - splitted) -> 1.5 (no JSR, inlined finally-code copies)...
+		* since 1.5 any-catch (JDK, not Eclipse-compiler) has a strange self-catch, last remark:
+http://stackoverflow.com/questions/6386917/strange-exception-table-entry-produced-by-suns-javac
+		* Eclipse compiler has yet another form
+		* JSR-elimination-cost: http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.104.7844 
+		* Exceptions-Ends sometimes earlier if operation cannot generate exception. e.g. RETURN or PUSH -> RETURN
+
+	* jdk1.6.6 bytecode: all exception-handlers special ops like STORE, JSR, GOTO have the try-line as line number
+	* 1.6.0_32 and 1.7.0_04 changed something at inner classes bytecode
+	* Glossar:
+
+		* Catch -> Handler
+		* Switch -> Case
+		* Cond -> Branch
+
+
+Web
+
+	* Upload JAR: Create / check Maven dependencies
+	* Upload POM: Check / Show Dependencies
+	* Abonnement: POM-Update-Notifications
+
+Blob: Save Version Diffs for space saving if > 30% down
+
+1 GB => 10 cent / month
+100 GB are 10 Euro / month
+
+Obfuscator
+
+	* http://www.dzone.com/links/r/java_obfuscate_proguard_maven_configuration_skele.html 
