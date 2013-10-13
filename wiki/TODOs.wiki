@@ -2,10 +2,11 @@
 
 = TODOs =
 
-* merge-replace register: can recursively create new merges
-* JSR-merge stuff
-* assign-to with "maybe"
-* loop recognition from bottum up
+  merge-replace register
+    can recursively create new merges, back-branch algorithm
+  JSR-merge stuff
+  assign-to with "maybe"
+  loop recognition from bottum up
 
 
 = NOTICES =
