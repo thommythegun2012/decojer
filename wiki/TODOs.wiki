@@ -7,6 +7,8 @@
   * JSR-merge stuff
   * assign-to with "maybe"
   * loop recognition from bottum up
+  * ASM 5 / JDK 8
+  * Eclipse AST for JDK 8
 
 
 = NOTICES =
