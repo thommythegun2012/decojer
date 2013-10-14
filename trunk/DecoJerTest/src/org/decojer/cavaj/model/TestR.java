@@ -20,7 +20,7 @@ class TestR {
 
 	@Test
 	void testProps() {
-		R r = new R(1, T.INT, Kind.CONST);
+		R r = new R(1, 1, T.INT, Kind.CONST);
 
 		assertSame(r.getPc(), 1);
 		assertSame(r.getT(), T.INT);
