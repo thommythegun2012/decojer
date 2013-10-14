@@ -61,7 +61,7 @@ public class INC extends TypedOp {
 		super(pc, opcode, line, t);
 
 		assert reg >= 0 : reg;
-		assert value != 0;
+		// value can be 0, e.g. "j = j + 0" is possibly in bytecode
 
 		this.reg = reg;
 		this.value = value;
