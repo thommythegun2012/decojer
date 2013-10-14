@@ -936,11 +936,10 @@ public final class TrDataFlowAnalysis {
 			getCfg().setFrame(targetPc, new Frame(this.currentFrame));
 			return;
 		}
+		// target frame has already been visited before, hence this must be a BB start with multiple
+		// predecessors => register merge necessary
 		assert targetFrame.size() == this.currentFrame.size();
 
-		// FIXME merge Sub
-
-		// target frame has already been visited -> BB join -> type merge
 		final BB targetBb = getBb(targetPc);
 		for (int i = targetFrame.size(); i-- > 0;) {
 			final R prevR = targetFrame.load(i);
@@ -948,8 +947,6 @@ public final class TrDataFlowAnalysis {
 			if (prevR == newR) {
 				continue;
 			}
-			// register merge necessary, all following conditions can only happen at BB join point,
-			// that means a new BB start!
 			if (prevR == null) {
 				// previous register is null? merge to null => nothing to do
 				continue;
