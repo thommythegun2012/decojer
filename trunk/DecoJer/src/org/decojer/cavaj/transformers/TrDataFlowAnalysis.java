@@ -931,108 +931,6 @@ public final class TrDataFlowAnalysis {
 		}
 	}
 
-	private void merge(final BB targetBb, final int i, @Nullable final R newR) {
-		final List<BB> bbs = Lists.newArrayList(targetBb);
-		for (int j = bbs.size(); j-- > 0;) {
-			final BB bb = bbs.get(i);
-			final Frame targetFrame = getFrame(bb.getPc());
-			final R prevR = targetFrame.load(i);
-			if (prevR == newR || prevR == null) {
-				// previous register is null? merge to null => nothing to do
-				bbs.remove(j);
-				j = bbs.size();
-				continue;
-			}
-			if (newR == null) {
-				// new register is null? merge to null => replace previous register from here
-				assert !targetFrame.isAlive(i);
-
-				bbs.remove(j);
-				if (!replaceBbReg(bb, prevR, null)) {
-					continue;
-				}
-			} else {
-				if (prevR.getKind() == Kind.MERGE && prevR.getPc() == bb.getPc()) {
-					final T t = T.join(prevR.getT(), newR.getT());
-					if (t == null) {
-						// merge type is null? merge to null => replace previous register from here
-						assert !targetFrame.isAlive(i);
-
-						if (!replaceBbReg(bb, prevR, null)) {
-							continue;
-						}
-					}
-					if (targetFrame.isAlive(i)) {
-						// register i for current BB must be alive too for merging
-						if (newR.getPc() != bb.getPc()) {
-							markAlive(bb, i);
-						} else if (newR.getKind() == Kind.MOVE) {
-							markAlive(bb, newR.getIn().getI());
-						}
-						newR.assignTo(t);
-						prevR.assignTo(t);
-					}
-					prevR.addInMerge(t, newR);
-					continue;
-				}
-				// TODO check ins
-				if (j != 0) {
-
-				}
-
-				final T t = T.join(prevR.getT(), newR.getT());
-				if (t == null) {
-					// merge type is null? merge to null => replace previous register from here
-					assert !targetFrame.isAlive(i);
-
-					// FIXME dangerous if unknown super types...defer this op, remember merge
-					// register
-					// with 2 inputs and try join only on read/re-store
-					replaceBbReg(bb, prevR, null);
-					continue;
-				}
-				if (targetFrame.isAlive(i)) {
-					// register i for current BB must be alive too for merging
-					if (newR.getPc() != bb.getPc()) {
-						markAlive(bb, i);
-					} else if (newR.getKind() == Kind.MOVE) {
-						markAlive(bb, newR.getIn().getI());
-					}
-					newR.assignTo(t);
-					prevR.assignTo(t);
-				}
-				// start new merge register
-				merge(bb, i, new R(bb.getPc(), i, t, Kind.MERGE, prevR, newR));
-
-				// final operation is RET -> modify newR for untouched registers in sub
-				final boolean jumpOverSub;
-				final Op finalOp = bb.getFinalOp();
-				if (finalOp instanceof RET) {
-					jumpOverSub = jumpOverSub((RET) finalOp, prevR.getI());
-				} else {
-					jumpOverSub = false;
-				}
-				// replacement propagation to next BB necessary
-				for (final E out : bb.getOuts()) {
-					final BB outBb = out.getEnd();
-					if (getFrame(outBb.getPc()) == null) {
-						// possible for freshly splitted catch-handlers that havn't been visited yet
-						assert out.isCatch() : out;
-
-						continue;
-					}
-					// final operation is RET -> modify newR for untouched registers in sub
-					if (jumpOverSub) {
-						final Frame jsrFrame = getFrame(outBb.getPc() - 1);
-						replaceBbReg(outBb, prevR, jsrFrame.load(prevR.getI()));
-						continue;
-					}
-					replaceBbReg(outBb, prevR, newR);
-				}
-			}
-		}
-	}
-
 	private void merge(final int targetPc) {
 		final Frame targetFrame = getFrame(targetPc);
 		if (targetFrame == null) {
@@ -1046,7 +944,73 @@ public final class TrDataFlowAnalysis {
 
 		final BB targetBb = getBb(targetPc);
 		for (int i = targetFrame.size(); i-- > 0;) {
-			merge(targetBb, i, this.currentFrame.load(i));
+			mergeReg(targetBb, i, this.currentFrame.load(i));
+		}
+	}
+
+	private void mergeReg(final BB targetBb, final int i, @Nullable final R newR) {
+		final Frame targetFrame = getFrame(targetBb.getPc());
+		final R prevR = targetFrame.load(i);
+		if (prevR == newR || prevR == null) {
+			// previous register is null? merge to null => nothing to do
+			return;
+		}
+		if (newR == null) {
+			// new register is null? merge to null => replace previous register from here
+			assert !targetFrame.isAlive(i);
+
+			replaceBbRegDeep(targetBb, prevR, null);
+			return;
+		}
+		if (prevR.getKind() == Kind.MERGE && prevR.getPc() == targetBb.getPc()) {
+			final T t = T.join(prevR.getT(), newR.getT());
+			if (t == null) {
+				// merge type is null? merge to null => replace previous register from here
+				assert !targetFrame.isAlive(i);
+
+				replaceBbRegDeep(targetBb, prevR, null);
+				return;
+			}
+			if (targetFrame.isAlive(i)) {
+				// register i for current BB must be alive too for merging
+				if (newR.getPc() != targetBb.getPc()) {
+					markAlive(targetBb, i);
+				} else if (newR.getKind() == Kind.MOVE) {
+					markAlive(targetBb, newR.getIn().getI());
+				}
+				newR.assignTo(t);
+				prevR.assignTo(t);
+			}
+			prevR.addInMerge(t, newR);
+			return;
+		}
+		final T t = T.join(prevR.getT(), newR.getT());
+		if (t == null) {
+			// merge type is null? merge to null => replace previous register from here
+			assert !targetFrame.isAlive(i);
+
+			// FIXME dangerous if unknown super types...defer this op, remember merge
+			// register with 2 inputs and try join only on read/re-store
+			replaceBbRegDeep(targetBb, prevR, null);
+			return;
+		}
+		if (targetFrame.isAlive(i)) {
+			// register i for current BB must be alive too for merging
+			if (newR.getPc() != targetBb.getPc()) {
+				markAlive(targetBb, i);
+			} else if (newR.getKind() == Kind.MOVE) {
+				markAlive(targetBb, newR.getIn().getI());
+			}
+			newR.assignTo(t);
+			prevR.assignTo(t);
+		}
+		// start new merge register
+		final List<BB> endBbs = replaceBbRegDeep(targetBb, prevR, new R(targetBb.getPc(), i, t,
+				Kind.MERGE, prevR, newR));
+		if (endBbs != null) {
+			for (final BB endBb : endBbs) {
+				mergeReg(endBb, prevR.getI(), newR);
+			}
 		}
 	}
 
@@ -1121,7 +1085,44 @@ public final class TrDataFlowAnalysis {
 				Kind.CONST));
 	}
 
-	private boolean replaceBbReg(final BB bb, final R prevR, @Nullable final R newR) {
+	private List<BB> replaceBbRegDeep(final BB bb, final R prevR, @Nullable final R newR) {
+		assert newR == null || prevR.getI() == newR.getI() && newR.getKind() == Kind.MERGE : newR;
+
+		if (!replaceBbRegSingle(bb, prevR, newR)) {
+			return null;
+		}
+		final BB currentBb = bb;
+		final List<BB> endBbs = Lists.newArrayList();
+		for (int i = endBbs.size(); i-- > 0;) {
+
+			// final operation is RET & register untouched in sub => modify to state before sub
+			final boolean jumpOverSub;
+			final Op finalOp = currentBb.getFinalOp();
+			// TODO check JSR and RET, register same before and after??? replace RET
+			// TODO not same? overwrite RET
+			if (finalOp instanceof RET) {
+				jumpOverSub = jumpOverSub((RET) finalOp, prevR.getI());
+			} else {
+				jumpOverSub = false;
+			}
+			// replacement propagation to next BB necessary
+			for (final E out : currentBb.getOuts()) {
+				final BB outBb = out.getEnd();
+				if (getFrame(outBb.getPc()) == null) {
+					// possible for freshly splitted catch-handlers that havn't been visited yet
+					assert out.isCatch() : out;
+
+					continue;
+				}
+				// final operation is RET & register untouched in sub => modify to state before sub
+				replaceBbRegDeep(outBb, prevR,
+						jumpOverSub ? getFrame(outBb.getPc() - 1).load(prevR.getI()) : newR);
+			}
+		}
+		return endBbs;
+	}
+
+	private boolean replaceBbRegSingle(final BB bb, final R prevR, @Nullable final R newR) {
 		// BB possibly not visited yet => BB input frame known, but no operations exist,
 		// but BB input frame cannot be null here
 		if (!replaceFrameReg(bb.getPc(), prevR, newR)) {
