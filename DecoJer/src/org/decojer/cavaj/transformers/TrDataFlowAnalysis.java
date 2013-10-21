@@ -1005,11 +1005,11 @@ public final class TrDataFlowAnalysis {
 			prevR.assignTo(t);
 		}
 		// start new merge register
-		final List<BB> endBbs = replaceBbRegDeep(targetBb, prevR, new R(targetBb.getPc(), i, t,
-				Kind.MERGE, prevR, newR));
+		final R mergeR = new R(targetBb.getPc(), i, t, Kind.MERGE, prevR, newR);
+		final List<BB> endBbs = replaceBbRegDeep(targetBb, prevR, mergeR);
 		if (endBbs != null) {
 			for (final BB endBb : endBbs) {
-				mergeReg(endBb, prevR.getI(), newR);
+				mergeReg(endBb, prevR.getI(), mergeR);
 			}
 		}
 	}
