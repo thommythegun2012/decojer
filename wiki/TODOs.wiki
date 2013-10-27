@@ -9,6 +9,7 @@
   * loop recognition from bottum up
   * ASM 5 / JDK 8
   * Eclipse AST for JDK 8: http://www.oracle.com/technetwork/articles/java/lambda-1984522.html
+    * Lombok doesn't work yet in Test Eclipse for JDK 8
 
 
 = NOTICES =
