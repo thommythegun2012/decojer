@@ -935,7 +935,7 @@ public final class TrDataFlowAnalysis {
 		final Frame targetFrame = getFrame(targetPc);
 		if (targetFrame == null) {
 			// first visit for this target frame -> no BB join -> no type merge
-			getCfg().setFrame(targetPc, new Frame(this.currentFrame));
+			getCfg().setFrame(targetPc, this.currentFrame);
 			return;
 		}
 		// target frame has already been visited before, hence this must be a BB start with multiple
@@ -943,6 +943,8 @@ public final class TrDataFlowAnalysis {
 		assert targetFrame.size() == this.currentFrame.size();
 
 		final BB targetBb = getBb(targetPc);
+		assert targetBb != null;
+
 		for (int i = targetFrame.size(); i-- > 0;) {
 			mergeReg(targetBb, i, this.currentFrame.load(i));
 		}
@@ -1091,20 +1093,18 @@ public final class TrDataFlowAnalysis {
 		if (!replaceBbRegSingle(bb, prevR, newR)) {
 			return null;
 		}
+		// navigate to next BBs...replace branch as far as possible before creating/extending merges
 		final BB currentBb = bb;
 		final List<BB> endBbs = Lists.newArrayList();
 		for (int i = endBbs.size(); i-- > 0;) {
 
 			// final operation is RET & register untouched in sub => modify to state before sub
-			final boolean jumpOverSub;
-			final Op finalOp = currentBb.getFinalOp();
 			// TODO check JSR and RET, register same before and after??? replace RET
 			// TODO not same? overwrite RET
-			if (finalOp instanceof RET) {
-				jumpOverSub = jumpOverSub((RET) finalOp, prevR.getI());
-			} else {
-				jumpOverSub = false;
-			}
+			final boolean jumpOverSub;
+			final Op finalOp = currentBb.getFinalOp();
+			jumpOverSub = finalOp instanceof RET ? jumpOverSub((RET) finalOp, prevR.getI()) : false;
+
 			// replacement propagation to next BB necessary
 			for (final E out : currentBb.getOuts()) {
 				final BB outBb = out.getEnd();
@@ -1138,19 +1138,21 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private boolean replaceFrameReg(final int pc, final R prevR, @Nullable final R newR) {
+		// replace potential out registers before the current register, this function goes always
+		// one step further
+		for (final R out : prevR.getOuts()) {
+			if (out.getPc() == pc) {
+				// no complete merge handling here...what if we replace only one occurence in
+				// multi-merge of same register...handle in BB navigation: replaceBbRegDeep
+				out.replaceIn(prevR, newR);
+			}
+		}
 		final int i = prevR.getI();
 		final Frame frame = getFrame(pc);
 		if (i >= frame.size() || prevR != frame.load(i)) {
 			return false;
 		}
 		frame.store(i, newR);
-
-		for (final R out : prevR.getOuts()) {
-			if (out.getPc() == pc + 1) {
-				out.replaceIn(prevR, newR);
-			}
-		}
-
 		return true;
 	}
 

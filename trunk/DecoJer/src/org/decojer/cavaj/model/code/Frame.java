@@ -25,6 +25,8 @@ package org.decojer.cavaj.model.code;
 
 import java.util.logging.Logger;
 
+import lombok.Getter;
+
 /**
  * Frame.
  * 
@@ -38,6 +40,9 @@ public final class Frame {
 
 	private final CFG cfg;
 
+	@Getter
+	private int pc;
+
 	private R[] rs;
 
 	private Sub[] subs;
@@ -50,6 +55,7 @@ public final class Frame {
 	 */
 	protected Frame(final CFG cfg) {
 		this.cfg = cfg;
+		this.pc = 0;
 		this.rs = new R[getRegs()];
 	}
 
@@ -60,7 +66,20 @@ public final class Frame {
 	 *            copy frame
 	 */
 	public Frame(final Frame frame) {
+		this(frame, -1);
+	}
+
+	/**
+	 * Copy constructor, without alive.
+	 * 
+	 * @param frame
+	 *            copy frame
+	 * @param pc
+	 *            PC
+	 */
+	protected Frame(final Frame frame, final int pc) {
 		this.cfg = frame.cfg;
+		this.pc = pc;
 		this.subs = frame.subs;
 		// lazy copy in store etc.
 		this.rs = frame.rs;
@@ -297,6 +316,12 @@ public final class Frame {
 		newSubs[this.subs.length] = sub;
 		this.subs = newSubs;
 		return true;
+	}
+
+	protected void setPc(final int pc) {
+		assert this.pc == -1 : this.pc;
+
+		this.pc = pc;
 	}
 
 	/**
