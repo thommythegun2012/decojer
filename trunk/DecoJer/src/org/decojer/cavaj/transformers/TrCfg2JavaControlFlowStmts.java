@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
@@ -86,6 +89,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		new TrCfg2JavaControlFlowStmts(cfg).transform();
 	}
 
+	@Getter(value = AccessLevel.PRIVATE)
 	private final CFG cfg;
 
 	private final Set<Struct> traversedStructs = Sets.newHashSet();
@@ -95,24 +99,24 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	private AST getAst() {
-		return this.cfg.getCu().getAst();
+		return getCfg().getCu().getAst();
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(this.cfg.getMd() + ": " + message);
+		LOGGER.warning(getCfg().getMd() + ": " + message);
 	}
 
 	public void transform() {
-		if (this.cfg.getBlock() == null) {
+		if (getCfg().getBlock() == null) {
 			// can happen, e.g. if synthethic
 			return;
 		}
 		this.traversedStructs.clear(); // possible in debug mode
 
-		final List<Statement> statements = this.cfg.getBlock().statements();
+		final List<Statement> statements = getCfg().getBlock().statements();
 		statements.clear(); // possible in debug mode
 
-		transformSequence(null, this.cfg.getStartBb(), statements);
+		transformSequence(null, getCfg().getStartBb(), statements);
 
 		// remove final return
 		if (statements.size() > 0) {
@@ -456,16 +460,16 @@ public final class TrCfg2JavaControlFlowStmts {
 					} else {
 						if (caseValue instanceof Character) {
 							switchCase.setExpression(newLiteral(T.CHAR, caseValue,
-									this.cfg.getTd(), op));
+									getCfg().getTd(), op));
 						} else if (caseValue instanceof String) {
 							switchCase.setExpression(newLiteral(
-									this.cfg.getDu().getT(String.class), caseValue,
-									this.cfg.getTd(), op));
+									getCfg().getDu().getT(String.class), caseValue, getCfg()
+											.getTd(), op));
 						} else if (caseValue instanceof F) {
 							switchCase.setExpression(newSimpleName(((F) caseValue).getName(),
 									getAst()));
 						} else {
-							switchCase.setExpression(newLiteral(T.INT, caseValue, this.cfg.getTd(),
+							switchCase.setExpression(newLiteral(T.INT, caseValue, getCfg().getTd(),
 									op));
 						}
 					}

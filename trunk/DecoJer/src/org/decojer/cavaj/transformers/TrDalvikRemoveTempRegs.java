@@ -25,6 +25,9 @@ package org.decojer.cavaj.transformers;
 
 import java.util.logging.Logger;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+
 import org.decojer.cavaj.model.code.CFG;
 
 /**
@@ -49,6 +52,7 @@ public final class TrDalvikRemoveTempRegs {
 		new TrDalvikRemoveTempRegs(cfg).transform();
 	}
 
+	@Getter(value = AccessLevel.PRIVATE)
 	private final CFG cfg;
 
 	private TrDalvikRemoveTempRegs(final CFG cfg) {
@@ -56,7 +60,7 @@ public final class TrDalvikRemoveTempRegs {
 	}
 
 	private void transform() {
-		LOGGER.info("transform: " + this.cfg);
+		LOGGER.info("transform: " + getCfg());
 		/*
 		 * TODO ZIP ZAP: PUSH v1 STORE r1 ... PUSH vn STORE rn, LOAD v1 ... LOAD vn, INVOKE => kill
 		 * STORES and LOADS PUSH 0 STORE r0

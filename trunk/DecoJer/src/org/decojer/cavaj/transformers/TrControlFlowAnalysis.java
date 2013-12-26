@@ -30,6 +30,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
@@ -65,6 +68,7 @@ public final class TrControlFlowAnalysis {
 		new TrControlFlowAnalysis(cfg).transform();
 	}
 
+	@Getter(value = AccessLevel.PRIVATE)
 	private final CFG cfg;
 
 	private TrControlFlowAnalysis(final CFG cfg) {
@@ -518,11 +522,11 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(this.cfg.getMd() + ": " + message);
+		LOGGER.warning(getCfg().getMd() + ": " + message);
 	}
 
 	private void transform() {
-		final List<BB> bbs = this.cfg.getPostorderedBbs();
+		final List<BB> bbs = getCfg().getPostorderedBbs();
 		// for all nodes in _reverse_ postorder: find outer structs first
 		for (int i = bbs.size(); i-- > 0;) {
 			final BB bb = bbs.get(i);

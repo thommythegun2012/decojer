@@ -31,6 +31,9 @@ import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
@@ -104,6 +107,7 @@ public final class TrDataFlowAnalysis {
 		new TrDataFlowAnalysis(cfg).transform();
 	}
 
+	@Getter(value = AccessLevel.PRIVATE)
 	private final CFG cfg;
 
 	/**
@@ -756,10 +760,6 @@ public final class TrDataFlowAnalysis {
 
 	private BB getBb(final int pc) {
 		return this.pc2bbs[pc];
-	}
-
-	private CFG getCfg() {
-		return this.cfg;
 	}
 
 	private DU getDu() {
