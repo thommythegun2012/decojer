@@ -55,7 +55,8 @@ public final class TrLineNumberAnalysis {
 	private final static Logger LOGGER = Logger.getLogger(TrLineNumberAnalysis.class.getName());
 
 	private static void analyzeLines(final Block block, final BD bd) {
-		LOGGER.info("analyzeLines: " + bd);
+		assert bd != null;
+
 		for (final Statement statement : (List<Statement>) block.statements()) {
 			final Op op = getOp(statement);
 			if (op == null) {
