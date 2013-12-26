@@ -831,7 +831,7 @@ public class ReadCodeItem {
 							fieldIdItem.getFieldType().getTypeDescriptor());
 					f.setStatic(false);
 
-					assert t.isAssignableFrom(f.getValueT());
+					assert t != null && t.isAssignableFrom(f.getValueT());
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, instr
 							.getRegisterB()));
@@ -890,7 +890,7 @@ public class ReadCodeItem {
 							fieldIdItem.getFieldType().getTypeDescriptor());
 					f.setStatic(true);
 
-					assert t.isAssignableFrom(f.getValueT());
+					assert t != null && t.isAssignableFrom(f.getValueT());
 
 					this.ops.add(new GET(this.ops.size(), opcode, line, f));
 

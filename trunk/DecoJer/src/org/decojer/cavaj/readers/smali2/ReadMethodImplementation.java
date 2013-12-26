@@ -974,7 +974,7 @@ public class ReadMethodImplementation {
 					final F f = ownerT.getF(fieldReference.getName(), fieldReference.getType());
 					f.setStatic(false);
 
-					assert t.isAssignableFrom(f.getValueT());
+					assert t != null && t.isAssignableFrom(f.getValueT());
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, instr
 							.getRegisterB()));
@@ -1031,7 +1031,7 @@ public class ReadMethodImplementation {
 					final F f = ownerT.getF(fieldReference.getName(), fieldReference.getType());
 					f.setStatic(true);
 
-					assert t.isAssignableFrom(f.getValueT());
+					assert t != null && t.isAssignableFrom(f.getValueT());
 
 					this.ops.add(new GET(this.ops.size(), opcode, line, f));
 
