@@ -488,13 +488,19 @@ public final class TrDataFlowAnalysis {
 		case MONITOR: {
 			final MONITOR cop = (MONITOR) op;
 			popRead(T.REF);
-			merge(nextPc);
-			if (cop.getKind() == MONITOR.Kind.ENTER) {
+			switch (cop.getKind()) {
+			case ENTER: {
 				// always split, even for trivial / empty synchronize-blocks without
 				// rethrow-handlers: else we would be forced to check & remember header nodes and
 				// statement number for the later control flow analysis
 				this.currentBb.setSucc(getTargetBb(nextPc));
-				return -1;
+				merge(nextPc);
+				return -1; // switch current BB
+			}
+			case EXIT:
+				break;
+			default:
+				log("Unknown MONITOR type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -700,6 +706,7 @@ public final class TrDataFlowAnalysis {
 			log("Operation '" + op + "' not handled!");
 		}
 		if (getBb(nextPc) != null) {
+			// already have been here, switch current BB
 			this.currentBb.setSucc(getTargetBb(nextPc));
 			merge(nextPc);
 			return -1;
@@ -941,12 +948,13 @@ public final class TrDataFlowAnalysis {
 			getCfg().setFrame(targetPc, this.currentFrame);
 			return;
 		}
+		assert targetFrame.getPc() != this.currentFrame.getPc() : "merge is called twice";
 		// target frame has already been visited before, hence this must be a BB start with multiple
 		// predecessors => register merge necessary
-		assert targetFrame.size() == this.currentFrame.size();
+		assert targetFrame.size() == this.currentFrame.size() : "incompatible frame sizes";
 
 		final BB targetBb = getBb(targetPc);
-		assert targetBb != null;
+		assert targetBb != null && targetBb.getPc() == targetPc : "target PC is not start of a target BB";
 
 		for (int i = targetFrame.size(); i-- > 0;) {
 			mergeReg(targetBb, i, this.currentFrame.load(i));
