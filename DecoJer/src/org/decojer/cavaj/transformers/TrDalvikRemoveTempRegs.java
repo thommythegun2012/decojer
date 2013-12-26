@@ -56,6 +56,7 @@ public final class TrDalvikRemoveTempRegs {
 	}
 
 	private void transform() {
+		LOGGER.info("transform: " + this.cfg);
 		/*
 		 * TODO ZIP ZAP: PUSH v1 STORE r1 ... PUSH vn STORE rn, LOAD v1 ... LOAD vn, INVOKE => kill
 		 * STORES and LOADS PUSH 0 STORE r0
