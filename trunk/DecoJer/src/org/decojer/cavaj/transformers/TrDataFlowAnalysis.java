@@ -176,8 +176,11 @@ public final class TrDataFlowAnalysis {
 			return;
 		}
 		// TODO byte/short/char -> int
-		// TODO int | bool => R BOOLMATH
-		pushConst(joinT);
+		if (joinT.is(T.BOOLEAN, T.INT)) {
+			pushBoolmath(joinT, s1, s2);
+		} else {
+			pushConst(joinT);
+		}
 	}
 
 	private int execute() {
@@ -1076,6 +1079,11 @@ public final class TrDataFlowAnalysis {
 	private R push(final R r) {
 		return this.currentFrame.push(new R(this.currentPc + 1, this.currentFrame.size(), r.getT(),
 				r.getValue(), Kind.MOVE, r));
+	}
+
+	private R pushBoolmath(final T t, final R r1, final R r2) {
+		return this.currentFrame.push(new R(this.currentPc + 1, this.currentFrame.size(), t,
+				null /* TODO do something? */, Kind.BOOLMATH, r1, r2));
 	}
 
 	private R pushConst(final T t) {
