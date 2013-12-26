@@ -26,6 +26,9 @@ package org.decojer.cavaj.transformers;
 import java.util.List;
 import java.util.Set;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
@@ -50,6 +53,7 @@ public final class TrCalculatePostorder {
 		new TrCalculatePostorder(cfg).transform();
 	}
 
+	@Getter(value = AccessLevel.PRIVATE)
 	private final CFG cfg;
 
 	private List<BB> postorderedBbs;
@@ -85,8 +89,8 @@ public final class TrCalculatePostorder {
 	public void transform() {
 		this.postorderedBbs = Lists.newArrayList();
 		this.traversed = Sets.newHashSet();
-		calculatePostorder(0, this.cfg.getStartBb());
-		this.cfg.setPostorderedBbs(this.postorderedBbs);
+		calculatePostorder(0, getCfg().getStartBb());
+		getCfg().setPostorderedBbs(this.postorderedBbs);
 	}
 
 }

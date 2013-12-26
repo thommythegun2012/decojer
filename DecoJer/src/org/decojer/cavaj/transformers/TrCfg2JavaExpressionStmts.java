@@ -44,6 +44,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.AF;
@@ -189,7 +190,7 @@ public final class TrCfg2JavaExpressionStmts {
 		new TrCfg2JavaExpressionStmts(cfg).transform();
 	}
 
-	@Getter
+	@Getter(value = AccessLevel.PRIVATE)
 	private final CFG cfg;
 
 	private TrCfg2JavaExpressionStmts(final CFG cfg) {
