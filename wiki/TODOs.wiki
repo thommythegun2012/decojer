@@ -12,7 +12,8 @@
     * http://wiki.eclipse.org/JDT_Core/Java8
     * http://wiki.eclipse.org/JDT/Eclipse_Java_8_Support_%28BETA%29
     * Lombok doesn't work yet in Test Eclipse for JDK 8
-      http://code.google.com/p/projectlombok/issues/detail?id=597 
+      * http://code.google.com/p/projectlombok/issues/detail?id=597 
+      * https://bugs.eclipse.org/bugs/show_bug.cgi?id=424718
     * ASTView shows NullLiteral malformed for Lambda
 
 = NOTICES =
