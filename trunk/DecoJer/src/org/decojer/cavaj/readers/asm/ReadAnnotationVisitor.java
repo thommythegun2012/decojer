@@ -50,7 +50,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	 *            decompilation unit
 	 */
 	public ReadAnnotationVisitor(final DU du) {
-		super(Opcodes.ASM4);
+		super(Opcodes.ASM5);
 		this.du = du;
 	}
 

@@ -443,7 +443,7 @@ public final class TrJvmStruct2JavaAst {
 
 		if (cu.getCompilationUnit() == null) {
 			// initializes AST for compilation unit if still uninitialized
-			final ASTParser parser = ASTParser.newParser(AST.JLS4);
+			final ASTParser parser = ASTParser.newParser(AST.JLS8);
 			parser.setSource(new char[0]);
 			final CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
 			compilationUnit.recordModifications();
