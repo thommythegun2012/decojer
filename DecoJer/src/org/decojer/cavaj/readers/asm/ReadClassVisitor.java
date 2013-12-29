@@ -41,6 +41,7 @@ import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
 
 /**
  * ASM read class visitor.
@@ -205,6 +206,14 @@ public class ReadClassVisitor extends ClassVisitor {
 			LOGGER.warning("### visitSource debug? ###: " + debug);
 		}
 		this.td.setSourceFileName(source);
+	}
+
+	@Override
+	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
+			final String desc, final boolean visible) {
+		LOGGER.warning("### visitTypeAnnotation ###: " + typeRef + " : " + typePath + " : " + desc
+				+ " : " + visible);
+		return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
 	}
 
 }

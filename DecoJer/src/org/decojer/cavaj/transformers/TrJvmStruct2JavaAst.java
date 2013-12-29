@@ -240,14 +240,21 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration.setJavadoc(newJavadoc);
 		}
 
-		// decompile annotations,
+		// decompile annotations:
 		// add annotation modifiers before other modifiers, order preserved in
 		// source code generation through Eclipse JDT
 		if (md.getAs() != null) {
 			Annotations.decompileAnnotations(td, methodDeclaration.modifiers(), md.getAs());
 		}
 
-		// decompile modifier flags,
+		// decompile modifier flags:
+		// interfaces can have default methods since JVM 8
+		if (md.getTd().isInterface() && md.getCfg() != null) {
+			if (md.getTd().getVersion() < 52) {
+				log("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
+			}
+			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.DEFAULT_KEYWORD));
+		}
 		// public is default for interface and annotation type declarations
 		if (md.check(AF.PUBLIC)
 				&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
