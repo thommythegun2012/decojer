@@ -33,6 +33,7 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.TypePath;
 
 /**
  * ASM read field visitor.
@@ -105,6 +106,14 @@ public class ReadFieldVisitor extends FieldVisitor {
 		if (this.as != null) {
 			this.fd.setAs(this.as);
 		}
+	}
+
+	@Override
+	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
+			final String desc, final boolean visible) {
+		LOGGER.warning("### visitTypeAnnotation ###: " + typeRef + " : " + typePath + " : " + desc
+				+ " : " + visible);
+		return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
 	}
 
 }

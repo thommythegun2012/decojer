@@ -86,6 +86,8 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+import org.objectweb.asm.TypePath;
+import org.objectweb.asm.TypeReference;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -919,6 +921,20 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
+	public AnnotationVisitor visitInsnAnnotation(final int typeRef, final TypePath typePath,
+			final String desc, final boolean visible) {
+		LOGGER.warning("### visitInsnAnnotation ###: " + typeRef + " : " + typePath + " : " + desc
+				+ " : " + visible);
+		final TypeReference typeReference = new TypeReference(typeRef);
+		switch (typeReference.getSort()) {
+		default:
+			LOGGER.warning("Unknown type reference: 0x"
+					+ Integer.toHexString(typeReference.getSort()));
+		}
+		return super.visitInsnAnnotation(typeRef, typePath, desc, visible);
+	}
+
+	@Override
 	public void visitIntInsn(final int opcode, final int operand) {
 		switch (opcode) {
 		/********
@@ -1241,6 +1257,16 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
+	public AnnotationVisitor visitLocalVariableAnnotation(final int typeRef,
+			final TypePath typePath, final Label[] start, final Label[] end, final int[] index,
+			final String desc, final boolean visible) {
+		LOGGER.warning("### visitLocalVariableAnnotation ###: " + typeRef + " : " + typePath
+				+ " : " + desc + " : " + visible);
+		return super.visitLocalVariableAnnotation(typeRef, typePath, start, end, index, desc,
+				visible);
+	}
+
+	@Override
 	public void visitLookupSwitchInsn(final Label dflt, final int[] caseKeys, final Label[] labels) {
 		final SWITCH op = new SWITCH(this.ops.size(), Opcodes.LOOKUPSWITCH, this.line);
 		this.ops.add(op);
@@ -1269,8 +1295,16 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
+	@SuppressWarnings("deprecation")
 	public void visitMethodInsn(final int opcode, final String owner, final String name,
 			final String desc) {
+		LOGGER.warning("Shouldn't be called with ASM5!");
+		super.visitMethodInsn(opcode, owner, name, desc);
+	}
+
+	@Override
+	public void visitMethodInsn(final int opcode, final String owner, final String name,
+			final String desc, final boolean itf) {
 		switch (opcode) {
 		/**********
 		 * INVOKE *
@@ -1282,6 +1316,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.INVOKEVIRTUAL: {
 			final T ownerT = this.du.getT(owner);
 			ownerT.setInterface(opcode == Opcodes.INVOKEINTERFACE);
+			assert opcode != Opcodes.INVOKEINTERFACE || !itf;
+
 			final M m = ownerT.getM(name, desc);
 			m.setStatic(opcode == Opcodes.INVOKESTATIC);
 			this.ops.add(new INVOKE(this.ops.size(), opcode, this.line, m,
@@ -1303,6 +1339,12 @@ public class ReadMethodVisitor extends MethodVisitor {
 		// descriptor is [[[[[I
 		this.ops.add(new NEWARRAY(this.ops.size(), Opcodes.MULTIANEWARRAY, this.line, this.du
 				.getDescT(desc), dims));
+	}
+
+	@Override
+	public void visitParameter(final String name, final int access) {
+		LOGGER.warning("### visitParameter ###: " + name + " : " + access);
+		super.visitParameter(name, access);
 	}
 
 	@Override
@@ -1358,6 +1400,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
+	public AnnotationVisitor visitTryCatchAnnotation(final int typeRef, final TypePath typePath,
+			final String desc, final boolean visible) {
+		LOGGER.warning("### visitTryCatchAnnotation ###: " + typeRef + " : " + typePath + " : "
+				+ desc + " : " + visible);
+		return super.visitTryCatchAnnotation(typeRef, typePath, desc, visible);
+	}
+
+	@Override
 	public void visitTryCatchBlock(final Label start, final Label end, final Label handler,
 			final String type) {
 		// type: java/lang/Exception
@@ -1384,7 +1434,17 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
+	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
+			final String desc, final boolean visible) {
+		LOGGER.warning("### visitTypeAnnotation ###: " + typeRef + " : " + typePath + " : " + desc
+				+ " : " + visible);
+		return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
+	}
+
+	@Override
 	public void visitTypeInsn(final int opcode, final String type) {
+		// TODO previous visitTypeAnnotation?
+		LOGGER.warning("### visitTypeInsn ###: " + opcode + " : " + type);
 		final T t = this.du.getT(type);
 
 		switch (opcode) {
