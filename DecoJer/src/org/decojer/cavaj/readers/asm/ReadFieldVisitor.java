@@ -56,10 +56,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 	 *            decompilation unit
 	 */
 	public ReadFieldVisitor(final DU du) {
-		super(Opcodes.ASM4);
-
-		assert du != null;
-
+		super(Opcodes.ASM5);
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
 	}
 

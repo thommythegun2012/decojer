@@ -71,10 +71,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	 *            decompilation unit
 	 */
 	public ReadClassVisitor(final DU du) {
-		super(Opcodes.ASM4);
-
-		assert du != null;
-
+		super(Opcodes.ASM5);
 		this.du = du;
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
 		this.readFieldVisitor = new ReadFieldVisitor(du);

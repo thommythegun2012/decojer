@@ -134,10 +134,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	 *            decompilation unit
 	 */
 	public ReadMethodVisitor(final DU du) {
-		super(Opcodes.ASM4);
-
-		assert du != null;
-
+		super(Opcodes.ASM5);
 		this.du = du;
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
 	}
