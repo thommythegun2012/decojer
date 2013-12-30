@@ -251,7 +251,7 @@ public final class TrJvmStruct2JavaAst {
 		// interfaces can have default methods since JVM 8
 		if (md.getTd().isInterface() && md.getCfg() != null) {
 			if (md.getTd().getVersion() < 52) {
-				log("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
+				LOGGER.warning("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
 			}
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.DEFAULT_KEYWORD));
 		}
@@ -381,7 +381,7 @@ public final class TrJvmStruct2JavaAst {
 					singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
 							((ArrayType) methodParameterType).getComponentType()));
 				} else {
-					log("Last method parameter is no ArrayType, but method '"
+					LOGGER.warning("Last method parameter is no ArrayType, but method '"
 							+ methodDeclaration.getName() + "' has vararg attribute!");
 					// try handling as normal type
 					singleVariableDeclaration.setType(methodParameterType);
@@ -435,10 +435,6 @@ public final class TrJvmStruct2JavaAst {
 		}
 	}
 
-	private static void log(final String message) {
-		LOGGER.warning(message);
-	}
-
 	/**
 	 * Transform type declaration.
 	 * 
@@ -470,7 +466,7 @@ public final class TrJvmStruct2JavaAst {
 			// this is not a valid Java type name and is used for package annotations, we must
 			// handle this here, is "interface" in JDK 5, is "abstract synthetic interface" in JDK 7
 			if (!td.isInterface()) {
-				log("Type declaration with name 'package-info' is not an interface!");
+				LOGGER.warning("Type declaration with name 'package-info' is not an interface!");
 			}
 			if (td.getAs() != null) {
 				Annotations.decompileAnnotations(td, cu.getCompilationUnit().getPackage()
@@ -501,11 +497,11 @@ public final class TrJvmStruct2JavaAst {
 			// annotation type declaration
 			if (td.check(AF.ANNOTATION)) {
 				if (td.getSuperT() == null || !td.getSuperT().isObject()) {
-					log("Classfile with AccessFlag.ANNOTATION has no super class Object but has '"
+					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no super class Object but has '"
 							+ td.getSuperT() + "'!");
 				}
 				if (td.getInterfaceTs().length != 1 || !td.getInterfaceTs()[0].is(Annotation.class)) {
-					log("Classfile with AccessFlag.ANNOTATION has no interface '"
+					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + td.getInterfaceTs()[0]
 							+ "'!");
 				}
@@ -514,11 +510,12 @@ public final class TrJvmStruct2JavaAst {
 			// enum declaration
 			if (td.check(AF.ENUM)) {
 				if (typeDeclaration != null) {
-					log("Enum declaration cannot be an annotation type declaration! Ignoring.");
+					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
 					if (td.getSuperT() == null || !(td.getSuperT() instanceof ParamT)
 							|| !((ParamT) td.getSuperT()).getGenericT().is(Enum.class)) {
-						log("Type '" + td + "' with AccessFlag.ENUM has no super class '"
+						LOGGER.warning("Type '" + td
+								+ "' with AccessFlag.ENUM has no super class '"
 								+ Enum.class.getName() + "' but has '" + td.getSuperT() + "'!");
 					}
 					typeDeclaration = ast.newEnumDeclaration();
@@ -581,7 +578,7 @@ public final class TrJvmStruct2JavaAst {
 			} else if (!td.check(AF.SUPER) && !td.isDalvik()) {
 				// modern invokesuper syntax, is always set in current JVM, but not in Dalvik or
 				// inner classes info flags
-				log("Modern invokesuper syntax flag not set in type '" + td + "'!");
+				LOGGER.warning("Modern invokesuper syntax flag not set in type '" + td + "'!");
 			}
 			if (td.check(AF.ABSTRACT)
 					&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
