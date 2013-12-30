@@ -211,8 +211,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
-		LOGGER.warning("Unknown method attribute tag '" + attr.type + "' for field info '"
-				+ this.md.getTd() + "'!");
+		LOGGER.warning(getMd() + ": Unknown method attribute tag '" + attr.type
+				+ "' for field info '" + this.md.getTd() + "'!");
 	}
 
 	@Override
@@ -285,14 +285,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 			return;
 		}
 		default:
-			LOGGER.warning("Unknown field insn opcode '" + opcode + "'!");
+			LOGGER.warning(getMd() + ": Unknown field insn opcode '" + opcode + "'!");
 		}
 	}
 
 	@Override
 	public void visitFrame(final int type, final int nLocal, final Object[] local,
 			final int nStack, final Object[] stack) {
-		// LOGGER.info("### method visitFrame ### " + type + " : " + nLocal
+		// LOGGER.info(getMd() + ": " + type + " : " + nLocal
 		// + " : " + local + " : " + nStack + " : " + stack);
 	}
 
@@ -916,19 +916,18 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			LOGGER.warning("Unknown insn opcode '" + opcode + "'!");
+			LOGGER.warning(getMd() + ": Unknown insn opcode '" + opcode + "'!");
 		}
 	}
 
 	@Override
 	public AnnotationVisitor visitInsnAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		LOGGER.warning("### visitInsnAnnotation ###: " + typeRef + " : " + typePath + " : " + desc
-				+ " : " + visible);
+		LOGGER.warning(getMd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		default:
-			LOGGER.warning("Unknown type reference: 0x"
+			LOGGER.warning(getMd() + ": Unknown type reference: 0x"
 					+ Integer.toHexString(typeReference.getSort()));
 		}
 		return super.visitInsnAnnotation(typeRef, typePath, desc, visible);
@@ -953,7 +952,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 					.getArrayT(T.TYPES[operand]), 1));
 			break;
 		default:
-			LOGGER.warning("Unknown int insn opcode '" + opcode + "'!");
+			LOGGER.warning(getMd() + ": Unknown int insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -961,8 +960,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public void visitInvokeDynamicInsn(final String name, final String desc, final Handle bsm,
 			final Object... bsmArgs) {
 		if (TODOCODE) {
-			LOGGER.warning("### method visitInvokeDynamicInsn ### " + name + " : " + desc + " : "
-					+ bsm + " : " + bsmArgs);
+			LOGGER.warning(getMd() + ": " + name + " : " + desc + " : " + bsm + " : " + bsmArgs);
 		}
 	}
 
@@ -1113,7 +1111,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			LOGGER.warning("Unknown jump insn opcode '" + opcode + "'!");
+			LOGGER.warning(getMd() + ": Unknown jump insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1126,8 +1124,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		}
 		if (pc > 0) {
 			// visited before but is known?!
-			LOGGER.warning("Label '" + label + "' is not unique, has old PC '" + this.ops.size()
-					+ "'!");
+			LOGGER.warning(getMd() + ": Label '" + label + "' is not unique, has old PC '"
+					+ this.ops.size() + "'!");
 			return;
 		}
 		// unknown and has forward reference
@@ -1208,7 +1206,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			} else if (cst instanceof String) {
 				t = this.du.getT(String.class);
 			} else {
-				LOGGER.warning("Unknown ldc insn cst '" + cst + "'!");
+				LOGGER.warning(getMd() + ": Unknown ldc insn cst '" + cst + "'!");
 			}
 		}
 		this.ops.add(new PUSH(this.ops.size(), Opcodes.LDC, this.line, t, oValue));
@@ -1218,7 +1216,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public void visitLineNumber(final int line, final Label start) {
 		final int pc = getPc(start);
 		if (pc < 0) {
-			LOGGER.warning("Line number '" + line + "' start label '" + start + "' unknown yet?");
+			LOGGER.warning(getMd() + ": Line number '" + line + "' start label '" + start
+					+ "' unknown yet?");
 		}
 		this.line = line;
 	}
@@ -1230,8 +1229,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		if (signature != null) {
 			final T sigT = this.du.parseT(signature, new Cursor(), this.md.getM());
 			if (!sigT.eraseTo(vT)) {
-				LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + vT
-						+ "' for method (local variable '" + name + "') " + this.md);
+				LOGGER.info(getMd() + ": Cannot reduce signature '" + signature + "' to type '"
+						+ vT + "' for method (local variable '" + name + "') " + this.md);
 			} else {
 				vT = sigT;
 			}
@@ -1260,8 +1259,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public AnnotationVisitor visitLocalVariableAnnotation(final int typeRef,
 			final TypePath typePath, final Label[] start, final Label[] end, final int[] index,
 			final String desc, final boolean visible) {
-		LOGGER.warning("### visitLocalVariableAnnotation ###: " + typeRef + " : " + typePath
-				+ " : " + desc + " : " + visible);
+		LOGGER.warning(getMd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
 		return super.visitLocalVariableAnnotation(typeRef, typePath, start, end, index, desc,
 				visible);
 	}
@@ -1298,7 +1296,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@SuppressWarnings("deprecation")
 	public void visitMethodInsn(final int opcode, final String owner, final String name,
 			final String desc) {
-		LOGGER.warning("Shouldn't be called with ASM5!");
+		LOGGER.warning(getMd() + ": Shouldn't be called with ASM5!");
 		super.visitMethodInsn(opcode, owner, name, desc);
 	}
 
@@ -1325,7 +1323,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			LOGGER.warning("Unknown method insn opcode '" + opcode + "'!");
+			LOGGER.warning(getMd() + ": Unknown method insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1343,7 +1341,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitParameter(final String name, final int access) {
-		LOGGER.warning("### visitParameter ###: " + name + " : " + access);
+		LOGGER.warning(getMd() + ": " + name + " : " + access);
 		super.visitParameter(name, access);
 	}
 
@@ -1402,8 +1400,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public AnnotationVisitor visitTryCatchAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		LOGGER.warning("### visitTryCatchAnnotation ###: " + typeRef + " : " + typePath + " : "
-				+ desc + " : " + visible);
+		LOGGER.warning(getMd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
+		final TypeReference typeReference = new TypeReference(typeRef);
+		assert typeReference.getSort() == TypeReference.EXCEPTION_PARAMETER : Integer
+				.toHexString(typeReference.getSort());
+
+		LOGGER.warning(" " + typeReference.getExceptionIndex());
+		// TODO
 		return super.visitTryCatchAnnotation(typeRef, typePath, desc, visible);
 	}
 
@@ -1429,22 +1432,20 @@ public class ReadMethodVisitor extends MethodVisitor {
 		if (pc < 0) {
 			getUnresolved(handler).add(exc);
 		}
-
 		this.excs.add(exc);
 	}
 
 	@Override
 	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		LOGGER.warning("### visitTypeAnnotation ###: " + typeRef + " : " + typePath + " : " + desc
-				+ " : " + visible);
+		LOGGER.warning(getMd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
 		return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
 	}
 
 	@Override
 	public void visitTypeInsn(final int opcode, final String type) {
 		// TODO previous visitTypeAnnotation?
-		LOGGER.warning("### visitTypeInsn ###: " + opcode + " : " + type);
+		LOGGER.warning(getMd() + ": " + opcode + " : " + type);
 		final T t = this.du.getT(type);
 
 		switch (opcode) {
@@ -1473,7 +1474,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			this.ops.add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du.getArrayT(t), 1));
 			break;
 		default:
-			LOGGER.warning("Unknown var insn opcode '" + opcode + "'!");
+			LOGGER.warning(getMd() + ": Unknown var insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1544,7 +1545,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			LOGGER.warning("Unknown var insn opcode '" + opcode + "'!");
+			LOGGER.warning(getMd() + ": Unknown var insn opcode '" + opcode + "'!");
 		}
 	}
 

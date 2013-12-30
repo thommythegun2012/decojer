@@ -97,8 +97,8 @@ public class ReadFieldVisitor extends FieldVisitor {
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
-		LOGGER.warning("Unknown field attribute tag '" + attr.type + "' for field info '"
-				+ this.fd.getTd() + "'!");
+		LOGGER.warning(getFd() + ": Unknown field attribute tag '" + attr.type
+				+ "' for field info '" + this.fd.getTd() + "'!");
 	}
 
 	@Override
@@ -111,8 +111,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 	@Override
 	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		LOGGER.warning("### visitTypeAnnotation ###: " + typeRef + " : " + typePath + " : " + desc
-				+ " : " + visible);
+		LOGGER.warning(getFd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
 		return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
 	}
 
