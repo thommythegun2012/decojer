@@ -5,6 +5,10 @@ package org.decojer.cavaj.test.jdk8;
 @java.lang.annotation.Target(value = {
 		java.lang.annotation.ElementType.TYPE_USE,
 		java.lang.annotation.ElementType.TYPE_PARAMETER })
-public abstract @interface Nonempty {
+public @interface Size {
+
+	int max();
+
+	int min() default 0;
 
 }
