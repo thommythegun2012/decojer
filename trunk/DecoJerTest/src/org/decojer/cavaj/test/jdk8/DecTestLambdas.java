@@ -14,6 +14,16 @@ public abstract class DecTestLambdas {
 
 	}
 
+	public static void testCapture() {
+		final String greetings = "Hello";
+		final String space = " ";
+		final Test test = (String firstname, String lastname) -> {
+			return greetings + space + firstname + space + lastname;
+		};
+		System.out.println(test.hello("André", "Pankraz"));
+
+	}
+
 	public static void thread() {
 		new Thread(() -> {
 			System.out.println("Hello from a thread");
