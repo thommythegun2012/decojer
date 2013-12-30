@@ -37,6 +37,7 @@ import lombok.Getter;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
@@ -236,7 +237,7 @@ public final class TrDataFlowAnalysis {
 			// org.eclipse.jdt.internal.core.JavaElement.read(
 			// {java.lang.Object,org.eclipse.jdt.core.IJavaElement,org.eclipse.core.runtime.IAdaptable})
 			if (joinT == null || !vR.assignTo(joinT)) {
-				log("Cannot store array value!");
+				LOGGER.warning(getMd() + ": Cannot store array value!");
 			}
 			break;
 		}
@@ -352,7 +353,7 @@ public final class TrDataFlowAnalysis {
 				break;
 			}
 			default:
-				log("Unknown DUP type '" + cop.getKind() + "'!");
+				LOGGER.warning(getMd() + ": Unknown DUP type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -463,7 +464,7 @@ public final class TrDataFlowAnalysis {
 			}
 			this.currentFrame = new Frame(getFrame(ret.getPc()));
 			if (loadRead(ret.getReg(), T.RET).getValue() != sub) {
-				log("Incorrect sub!");
+				LOGGER.warning(getMd() + ": Incorrect sub!");
 			}
 			final BB retBb = getBb(ret.getPc());
 			final int jsrFollowPc = jsr.getPc() + 1;
@@ -500,7 +501,7 @@ public final class TrDataFlowAnalysis {
 			case EXIT:
 				break;
 			default:
-				log("Unknown MONITOR type '" + cop.getKind() + "'!");
+				LOGGER.warning(getMd() + ": Unknown MONITOR type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -549,7 +550,7 @@ public final class TrDataFlowAnalysis {
 				}
 				break;
 			default:
-				log("Unknown POP type '" + cop.getKind() + "'!");
+				LOGGER.warning(getMd() + ": Unknown POP type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -604,7 +605,7 @@ public final class TrDataFlowAnalysis {
 		}
 		case RETURN: {
 			final RETURN cop = (RETURN) op;
-			final T returnT = getCfg().getMd().getReturnT();
+			final T returnT = getMd().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT);
 
 			if (returnT != T.VOID) {
@@ -703,7 +704,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		default:
-			log("Operation '" + op + "' not handled!");
+			LOGGER.warning(getMd() + ": Operation '" + op + "' not handled!");
 		}
 		if (getBb(nextPc) != null) {
 			// already have been here, switch current BB
@@ -758,7 +759,7 @@ public final class TrDataFlowAnalysis {
 						Throwable.class) : exc.getT(), Kind.CONST);
 			} else {
 				if (handlerFrame.getTop() != 1) {
-					log("Handler stack for exception merge not of size 1!");
+					LOGGER.warning(getMd() + ": Handler stack for exception merge not of size 1!");
 				}
 				excR = handlerFrame.peek(); // reuse exception register
 			}
@@ -778,6 +779,10 @@ public final class TrDataFlowAnalysis {
 
 	private Frame getFrame(final int pc) {
 		return getCfg().getFrame(pc);
+	}
+
+	private MD getMd() {
+		return getCfg().getMd();
 	}
 
 	/**
@@ -860,10 +865,6 @@ public final class TrDataFlowAnalysis {
 		final R r = load(i, t);
 		markAlive(this.currentBb, i);
 		return r;
-	}
-
-	private void log(final String message) {
-		LOGGER.warning(getCfg().getMd() + ": " + message);
 	}
 
 	private void markAlive(final BB bb, final int i) {
@@ -1053,7 +1054,8 @@ public final class TrDataFlowAnalysis {
 	private R peekSingle(final int i) {
 		final R s = this.currentFrame.peek(i);
 		if (s.getT().isWide()) {
-			log("Peek '" + i + "' attempts to split long or double on the stack!");
+			LOGGER.warning(getMd() + ": Peek '" + i
+					+ "' attempts to split long or double on the stack!");
 		}
 		return s;
 	}
@@ -1079,7 +1081,7 @@ public final class TrDataFlowAnalysis {
 	private R popSingle() {
 		final R s = this.currentFrame.pop();
 		if (s.getT().isWide()) {
-			log("Pop attempts to split long or double on the stack!");
+			LOGGER.warning(getMd() + ": Pop attempts to split long or double on the stack!");
 		}
 		return s;
 	}

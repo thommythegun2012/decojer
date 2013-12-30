@@ -38,6 +38,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
@@ -102,8 +103,8 @@ public final class TrCfg2JavaControlFlowStmts {
 		return getCfg().getCu().getAst();
 	}
 
-	private void log(final String message) {
-		LOGGER.warning(getCfg().getMd() + ": " + message);
+	private MD getMd() {
+		return getCfg().getMd();
 	}
 
 	public void transform() {
@@ -129,7 +130,7 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	private IfStatement transformCatch(final Catch catchStruct) {
-		log("TODO: " + catchStruct);
+		LOGGER.warning(getMd() + ": TODO: " + catchStruct);
 		// final BB head = catchStruct.getHead();
 		return null;
 	}
@@ -191,7 +192,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			return ifStatement;
 		}
 		default:
-			log("Unknown cond type '" + cond.getKind() + "'!");
+			LOGGER.warning(getMd() + ": Unknown cond type '" + cond.getKind() + "'!");
 			return null;
 		}
 	}
@@ -261,7 +262,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			return whileStatement;
 		}
 		default:
-			log("Unknown loop type '" + loop.getKind() + "'!");
+			LOGGER.warning(getMd() + ": Unknown loop type '" + loop.getKind() + "'!");
 			return null;
 		}
 	}
@@ -303,13 +304,13 @@ public final class TrCfg2JavaControlFlowStmts {
 						return;
 					}
 					if (findStruct.getParent() == bb.getStruct()) {
-						log("Struct leave in BB " + bb.getPostorder()
+						LOGGER.warning(getMd() + ": Struct leave in BB " + bb.getPostorder()
 								+ " without regular follow encounter:\n" + struct);
 						return;
 					}
 				}
 				if (!bb.getStruct().isHead(bb)) {
-					log("Struct change in BB " + bb.getPostorder()
+					LOGGER.warning(getMd() + ": Struct change in BB " + bb.getPostorder()
 							+ " without regular follow or head encounter:\n" + struct);
 					return;
 				}
@@ -322,7 +323,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				while (struct != subStruct.getParent()) {
 					subStruct = subStruct.getParent();
 					if (subStruct == null) {
-						log("Struct enter in BB " + bb.getPostorder()
+						LOGGER.warning(getMd() + ": Struct enter in BB " + bb.getPostorder()
 								+ " without regular head encounter:\n" + struct);
 						return;
 					}
@@ -397,7 +398,7 @@ public final class TrCfg2JavaControlFlowStmts {
 
 	private BB transformStruct(final Struct struct, final List<Statement> statements) {
 		if (!this.traversedStructs.add(struct)) {
-			log("Cannot transform struct twice:\n" + struct);
+			LOGGER.warning(getMd() + ": Cannot transform struct twice:\n" + struct);
 			return null;
 		}
 
@@ -420,12 +421,12 @@ public final class TrCfg2JavaControlFlowStmts {
 			} else if (struct instanceof Sync) {
 				structStatement = transformSync((Sync) struct);
 			} else {
-				log("Unknown struct:\n" + struct);
+				LOGGER.warning(getMd() + ": Unknown struct:\n" + struct);
 				structStatement = null;
 			}
 		}
 		if (structStatement == null) {
-			log("Couldn't decompile struct:\n" + struct);
+			LOGGER.warning(getMd() + ": Couldn't decompile struct:\n" + struct);
 		} else {
 			statements.add(structStatement);
 		}
@@ -488,7 +489,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			return switchStatement;
 		}
 		default:
-			log("Unknown switch type '" + switchStruct.getKind() + "'!");
+			LOGGER.warning(getMd() + ": Unknown switch type '" + switchStruct.getKind() + "'!");
 			return null;
 		}
 	}
