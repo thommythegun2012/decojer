@@ -92,7 +92,7 @@ public class ReadClassVisitor extends ClassVisitor {
 			final String signature, final String superName, final String[] interfaces) {
 		final ClassT t = (ClassT) this.du.getT(name);
 		if (t.getTd() != null) {
-			LOGGER.warning("Type '" + t + "' already read!");
+			LOGGER.warning(getTd() + ": Type '" + t + "' already read!");
 			throw new AlreadyReadException();
 		}
 		this.td = t.createTd();
@@ -133,7 +133,7 @@ public class ReadClassVisitor extends ClassVisitor {
 			this.td.setScala();
 			return;
 		}
-		LOGGER.warning("Unknown class attribute tag '" + attr.type + "'!");
+		LOGGER.warning(getTd() + ": Unknown class attribute tag '" + attr.type + "'!");
 	}
 
 	@Override
@@ -203,7 +203,7 @@ public class ReadClassVisitor extends ClassVisitor {
 		if (debug != null) {
 			// TODO need an example, really useful in the wild?
 			// JVM spec: 4.7.11 The SourceDebugExtension Attribute
-			LOGGER.warning("### visitSource debug? ###: " + debug);
+			LOGGER.warning(getTd() + ": " + debug);
 		}
 		this.td.setSourceFileName(source);
 	}
@@ -211,8 +211,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		LOGGER.warning("### visitTypeAnnotation ###: " + typeRef + " : " + typePath + " : " + desc
-				+ " : " + visible);
+		LOGGER.warning(getTd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
 		return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
 	}
 
