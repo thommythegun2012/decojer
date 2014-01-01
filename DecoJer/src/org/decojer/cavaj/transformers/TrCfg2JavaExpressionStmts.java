@@ -149,6 +149,38 @@ public final class TrCfg2JavaExpressionStmts {
 	private final static Logger LOGGER = Logger
 			.getLogger(TrCfg2JavaExpressionStmts.class.getName());
 
+	private static boolean isLambdaBootstrapMethod(final M m) {
+		if (!m.getT().getName().equals("java.lang.invoke.LambdaMetafactory")) {
+			return false;
+		}
+		if (!m.getReturnT().getName().equals("java.lang.invoke.CallSite")) {
+			return false;
+		}
+		final T[] paramTs = m.getParamTs();
+		if (paramTs.length != 6) {
+			return false;
+		}
+		if (!paramTs[0].getName().equals("java.lang.invoke.MethodHandles$Lookup")) {
+			return false;
+		}
+		if (!paramTs[1].getName().equals("java.lang.String")) {
+			return false;
+		}
+		if (!paramTs[2].getName().equals("java.lang.invoke.MethodType")) {
+			return false;
+		}
+		if (!paramTs[3].getName().equals("java.lang.invoke.MethodType")) {
+			return false;
+		}
+		if (!paramTs[4].getName().equals("java.lang.invoke.MethodHandle")) {
+			return false;
+		}
+		if (!paramTs[5].getName().equals("java.lang.invoke.MethodType")) {
+			return false;
+		}
+		return true;
+	}
+
 	private static Expression newInfixExpressionPop(final Operator operator, final BB bb,
 			final Op op) {
 		final Expression rightOperand = bb.pop(); // keep order
@@ -601,13 +633,12 @@ public final class TrCfg2JavaExpressionStmts {
 						methodExpression = methodInvocation;
 					}
 				} else if (m.isDynamic()) {
-					final M bsM = cop.getBsM();
-					if (bsM.getT().getName().equals("java.lang.invoke.LambdaMetafactory")
-							&& bsM.getReturnT().getName().equals("java.lang.invoke.CallSite")
-							&& bsM.getParamTs().length == 6) {
+					if (isLambdaBootstrapMethod(cop.getBsM())) {
 						final Object[] bsArgs = cop.getBsArgs();
-						System.out.println("BSARGS: " + bsArgs);
 						methodExpression = getAst().newLambdaExpression();
+						final M lambdaM = (M) bsArgs[1];
+						// TODO connect stuff
+						System.out.println("Lambda: " + lambdaM.getMd());
 					} else {
 						final MethodInvocation methodInvocation = setOp(getAst()
 								.newMethodInvocation(), op);
