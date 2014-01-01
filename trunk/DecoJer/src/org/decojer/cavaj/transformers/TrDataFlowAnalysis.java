@@ -704,7 +704,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		default:
-			LOGGER.warning(getMd() + ": Operation '" + op + "' not handled!");
+			throw new RuntimeException("Unknown intermediate vm operation '" + op + "'!");
 		}
 		if (getBb(nextPc) != null) {
 			// already have been here, switch current BB

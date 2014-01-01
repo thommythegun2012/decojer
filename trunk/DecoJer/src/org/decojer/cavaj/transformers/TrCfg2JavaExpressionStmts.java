@@ -600,6 +600,21 @@ public final class TrCfg2JavaExpressionStmts {
 						methodInvocation.arguments().addAll(arguments);
 						methodExpression = methodInvocation;
 					}
+				} else if (m.isDynamic()) {
+					final M bsM = cop.getBsM();
+					if (bsM.getT().getName().equals("java.lang.invoke.LambdaMetafactory")
+							&& bsM.getReturnT().getName().equals("java.lang.invoke.CallSite")
+							&& bsM.getParamTs().length == 6) {
+						final Object[] bsArgs = cop.getBsArgs();
+						System.out.println("BSARGS: " + bsArgs);
+						methodExpression = getAst().newLambdaExpression();
+					} else {
+						final MethodInvocation methodInvocation = setOp(getAst()
+								.newMethodInvocation(), op);
+						methodInvocation.setName(newSimpleName(m.getName(), getAst()));
+						methodInvocation.arguments().addAll(arguments);
+						methodExpression = methodInvocation;
+					}
 				} else if (m.isStatic()) {
 					final MethodInvocation methodInvocation = setOp(getAst().newMethodInvocation(),
 							op);

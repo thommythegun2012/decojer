@@ -43,10 +43,12 @@ public class INVOKE extends Op {
 	 * JVM: SPECIAL, Dalvik: DIRECT.
 	 */
 	@Getter
-	private final boolean direct;
+	private static final Object[] EXTRA_MARKER_DIRECT = new Object[0];
 
 	@Getter
 	private final M m;
+
+	private final Object extra[];
 
 	/**
 	 * Constructor.
@@ -60,7 +62,7 @@ public class INVOKE extends Op {
 	 * @param m
 	 *            method
 	 * @param direct
-	 *            direct flag
+	 *            direct call
 	 */
 	public INVOKE(final int pc, final int opcode, final int line, final M m, final boolean direct) {
 		super(pc, opcode, line);
@@ -70,7 +72,57 @@ public class INVOKE extends Op {
 		// for virtual anyway
 
 		this.m = m;
-		this.direct = direct;
+		this.extra = direct ? EXTRA_MARKER_DIRECT : null;
+	}
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param pc
+	 *            pc
+	 * @param opcode
+	 *            operation code
+	 * @param line
+	 *            line number
+	 * @param m
+	 *            dynamic method
+	 * @param bsM
+	 *            bootstrap method (delivering callsite)
+	 * @param bsArgs
+	 *            bootstrap method arguments
+	 */
+	public INVOKE(final int pc, final int opcode, final int line, final M m, final M bsM,
+			final Object[] bsArgs) {
+		super(pc, opcode, line);
+
+		assert m != null;
+		assert m.isDynamic();
+		assert bsM != null;
+
+		this.m = m;
+		this.extra = new Object[1 + bsArgs.length];
+		this.extra[0] = bsM;
+		System.arraycopy(bsArgs, 0, this.extra, 1, bsArgs.length);
+	}
+
+	/**
+	 * Get bootstrap method arguments.
+	 * 
+	 * @return bootstrap method arguments
+	 */
+	public Object[] getBsArgs() {
+		final Object[] ret = new Object[this.extra.length - 1];
+		System.arraycopy(this.extra, 1, ret, 0, ret.length);
+		return ret;
+	}
+
+	/**
+	 * Get bootstrap method.
+	 * 
+	 * @return bootstrap method
+	 */
+	public M getBsM() {
+		return (M) this.extra[0];
 	}
 
 	@Override
@@ -85,6 +137,15 @@ public class INVOKE extends Op {
 	@Override
 	public Optype getOptype() {
 		return Optype.INVOKE;
+	}
+
+	/**
+	 * Is direct call?
+	 * 
+	 * @return is direct
+	 */
+	public boolean isDirect() {
+		return this.extra == EXTRA_MARKER_DIRECT;
 	}
 
 	@Override

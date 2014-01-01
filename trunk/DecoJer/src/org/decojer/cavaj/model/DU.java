@@ -214,6 +214,19 @@ public final class DU {
 	}
 
 	/**
+	 * Get dynamic method.
+	 * 
+	 * @param name
+	 *            name
+	 * @param descriptor
+	 *            descriptor
+	 * @return method
+	 */
+	public M getDynamicM(final String name, final String descriptor) {
+		return new M(this, name, descriptor);
+	}
+
+	/**
 	 * Get object type.
 	 * 
 	 * @return object type
