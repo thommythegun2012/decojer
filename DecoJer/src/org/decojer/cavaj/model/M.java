@@ -65,6 +65,29 @@ public class M {
 	private T returnT;
 
 	/**
+	 * Constructor for dynamic method.
+	 * 
+	 * @param du
+	 *            DU
+	 * @param name
+	 *            name
+	 * @param descriptor
+	 *            descriptor
+	 */
+	protected M(final DU du, final String name, final String descriptor) {
+		assert name != null;
+		assert descriptor != null;
+
+		this.t = null; // dynamic method
+		this.name = name;
+		this.descriptor = descriptor;
+
+		final Cursor c = new Cursor();
+		this.paramTs = du.parseMethodParamTs(descriptor, c, this);
+		this.returnT = du.parseT(descriptor, c, this);
+	}
+
+	/**
 	 * Constructor.
 	 * 
 	 * @param t
@@ -131,6 +154,15 @@ public class M {
 	}
 
 	/**
+	 * Is dynamic?
+	 * 
+	 * @return {@code true} - is dynamic
+	 */
+	public boolean isDynamic() {
+		return this.t == null;
+	}
+
+	/**
 	 * Is initializer?
 	 * 
 	 * @return {@code true} - is constructor
@@ -172,7 +204,9 @@ public class M {
 	 */
 	public void setStatic(final boolean f) {
 		if (f) {
-			getT().setInterface(false);
+			if (!isDynamic()) {
+				this.t.setInterface(false);
+			}
 			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
 				return;
 			}

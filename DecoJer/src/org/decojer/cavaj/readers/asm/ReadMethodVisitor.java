@@ -959,9 +959,21 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitInvokeDynamicInsn(final String name, final String desc, final Handle bsm,
 			final Object... bsmArgs) {
-		if (TODOCODE) {
-			LOGGER.warning(getMd() + ": " + name + " : " + desc + " : " + bsm + " : " + bsmArgs);
+		final M m = this.du.getDynamicM(name, desc);
+		m.setStatic(true); // HACK for now, BSM is always static?
+
+		final T bsOwnerT = this.du.getT(bsm.getOwner());
+		bsOwnerT.setInterface(bsm.getTag() == Opcodes.H_INVOKEINTERFACE);
+		final M bsM = bsOwnerT.getM(bsm.getName(), bsm.getDesc());
+		bsM.setStatic(bsm.getTag() == Opcodes.H_INVOKESTATIC);
+
+		final Object[] bsArgs = new Object[bsmArgs.length];
+		for (int i = 0; i < bsArgs.length; ++i) {
+			// TODO don't leak ASM types here...
+			LOGGER.warning("BsmArg: " + bsmArgs[i].getClass().getName());
+			bsArgs[i] = bsmArgs[i];
 		}
+		this.ops.add(new INVOKE(this.ops.size(), Opcodes.INVOKEVIRTUAL, this.line, m, bsM, bsArgs));
 	}
 
 	@Override
@@ -1314,7 +1326,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.INVOKEVIRTUAL: {
 			final T ownerT = this.du.getT(owner);
 			ownerT.setInterface(opcode == Opcodes.INVOKEINTERFACE);
-			assert opcode != Opcodes.INVOKEINTERFACE || !itf;
+			assert opcode != Opcodes.INVOKEINTERFACE || itf;
 
 			final M m = ownerT.getM(name, desc);
 			m.setStatic(opcode == Opcodes.INVOKESTATIC);
