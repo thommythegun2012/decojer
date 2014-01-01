@@ -9,12 +9,12 @@
   * loop recognition from bottum up
   * JDK 8
     * Eclipse AST for JDK 8: http://www.oracle.com/technetwork/articles/java/lambda-1984522.html
-    * http://wiki.eclipse.org/JDT_Core/Java8
-    * http://wiki.eclipse.org/JDT/Eclipse_Java_8_Support_%28BETA%29
-    * Lombok doesn't work yet in Test Eclipse for JDK 8
-      * http://code.google.com/p/projectlombok/issues/detail?id=597 
+      * http://wiki.eclipse.org/JDT_Core/Java8
+      * http://wiki.eclipse.org/JDT/Eclipse_Java_8_Support_%28BETA%29
+    * Lombok doesn't work yet ootB in Test Eclipse for JDK 8, fix via added method in Eclipse:
       * https://bugs.eclipse.org/bugs/show_bug.cgi?id=424718
-    * ASTView shows NullLiteral malformed for Lambda
+      * http://code.google.com/p/projectlombok/issues/detail?id=597 
+    * ASTView shows "NullLiteral malformed" for Lambda
 
 = NOTICES =
 
