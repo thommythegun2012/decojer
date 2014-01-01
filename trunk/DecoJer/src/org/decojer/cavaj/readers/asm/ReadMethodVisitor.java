@@ -967,8 +967,10 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitInvokeDynamicInsn(final String name, final String desc, final Handle bsm,
 			final Object... bsmArgs) {
+		/**********
+		 * INVOKE *
+		 **********/
 		final M m = this.du.getDynamicM(name, desc);
-		m.setStatic(true); // HACK for now, BSM is always static?
 		final M bsM = handle2m(bsm);
 		final Object[] bsArgs = new Object[bsmArgs.length];
 		for (int i = 0; i < bsArgs.length; ++i) {
@@ -1284,6 +1286,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitLookupSwitchInsn(final Label dflt, final int[] caseKeys, final Label[] labels) {
+		/**********
+		 * SWITCH *
+		 **********/
 		final SWITCH op = new SWITCH(this.ops.size(), Opcodes.LOOKUPSWITCH, this.line);
 		this.ops.add(op);
 		// default
@@ -1392,6 +1397,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitTableSwitchInsn(final int min, final int max, final Label dflt,
 			final Label... labels) {
+		/**********
+		 * SWITCH *
+		 **********/
 		final SWITCH op = new SWITCH(this.ops.size(), Opcodes.TABLESWITCH, this.line);
 		this.ops.add(op);
 		// default
