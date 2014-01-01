@@ -173,6 +173,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 		return unresolved;
 	}
 
+	private M handle2m(final Handle handle) {
+		final T ownerT = this.du.getT(handle.getOwner());
+		ownerT.setInterface(handle.getTag() == Opcodes.H_INVOKEINTERFACE);
+		final M m = ownerT.getM(handle.getName(), handle.getDesc());
+		m.setStatic(handle.getTag() == Opcodes.H_INVOKESTATIC);
+		return m;
+	}
+
 	/**
 	 * Init and set method declaration.
 	 * 
@@ -961,17 +969,15 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final Object... bsmArgs) {
 		final M m = this.du.getDynamicM(name, desc);
 		m.setStatic(true); // HACK for now, BSM is always static?
-
-		final T bsOwnerT = this.du.getT(bsm.getOwner());
-		bsOwnerT.setInterface(bsm.getTag() == Opcodes.H_INVOKEINTERFACE);
-		final M bsM = bsOwnerT.getM(bsm.getName(), bsm.getDesc());
-		bsM.setStatic(bsm.getTag() == Opcodes.H_INVOKESTATIC);
-
+		final M bsM = handle2m(bsm);
 		final Object[] bsArgs = new Object[bsmArgs.length];
 		for (int i = 0; i < bsArgs.length; ++i) {
-			// TODO don't leak ASM types here...
-			LOGGER.warning("BsmArg: " + bsmArgs[i].getClass().getName());
-			bsArgs[i] = bsmArgs[i];
+			// don't leak ASM types
+			Object arg = bsmArgs[i];
+			if (arg instanceof Handle) {
+				arg = handle2m((Handle) arg);
+			}
+			bsArgs[i] = arg;
 		}
 		this.ops.add(new INVOKE(this.ops.size(), Opcodes.INVOKEVIRTUAL, this.line, m, bsM, bsArgs));
 	}
