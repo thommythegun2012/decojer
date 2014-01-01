@@ -21,7 +21,6 @@ public abstract class DecTestLambdas {
 			return greetings + space + firstname + space + lastname;
 		};
 		System.out.println(test.hello("André", "Pankraz"));
-
 	}
 
 	public static void thread() {
