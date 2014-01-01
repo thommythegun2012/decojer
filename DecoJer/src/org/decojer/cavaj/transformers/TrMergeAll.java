@@ -91,7 +91,6 @@ public final class TrMergeAll {
 				++constructors;
 			}
 		}
-
 		for (final BD bd : td.getBds()) {
 			if (bd instanceof TD) {
 				if (!((TD) bd).isAnonymous()) {

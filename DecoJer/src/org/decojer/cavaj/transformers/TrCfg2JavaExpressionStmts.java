@@ -95,6 +95,7 @@ import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.AssertStatement;
 import org.eclipse.jdt.core.dom.Assignment;
+import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CastExpression;
@@ -111,6 +112,7 @@ import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.eclipse.jdt.core.dom.InstanceofExpression;
+import org.eclipse.jdt.core.dom.LambdaExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NullLiteral;
@@ -635,10 +637,30 @@ public final class TrCfg2JavaExpressionStmts {
 				} else if (m.isDynamic()) {
 					if (isLambdaBootstrapMethod(cop.getBsM())) {
 						final Object[] bsArgs = cop.getBsArgs();
-						methodExpression = getAst().newLambdaExpression();
+						final LambdaExpression lambdaExpression = getAst().newLambdaExpression();
+						// init lambda parameters
 						final M lambdaM = (M) bsArgs[1];
-						// TODO connect stuff
-						System.out.println("Lambda: " + lambdaM.getMd());
+						final MD lambdaMd = lambdaM.getMd();
+						final T[] paramTs = lambdaM.getParamTs();
+						// first m.paramTs.length parameters are for outer capture inits
+						for (int i = m.getParamTs().length; i < paramTs.length; ++i) {
+							final Type methodParameterType = newType(paramTs[i], this.cfg.getTd());
+							final SingleVariableDeclaration singleVariableDeclaration = getAst()
+									.newSingleVariableDeclaration();
+							singleVariableDeclaration.setType(methodParameterType);
+							singleVariableDeclaration.setName(newSimpleName(
+									lambdaMd.getParamName(i), getAst()));
+							lambdaExpression.parameters().add(singleVariableDeclaration);
+						}
+						// init lambda body
+						final CFG lambdaCfg = lambdaMd.getCfg();
+						if (lambdaCfg.getBlock() == null) {
+							// lambda method is synthetic: init block, could later add more checks
+							// and alternatives here if obfuscators play with these flags
+							lambdaCfg.setBlock((Block) lambdaExpression.getBody());
+							lambdaCfg.decompile();
+						}
+						methodExpression = lambdaExpression;
 					} else {
 						final MethodInvocation methodInvocation = setOp(getAst()
 								.newMethodInvocation(), op);
