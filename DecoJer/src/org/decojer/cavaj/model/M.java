@@ -85,6 +85,8 @@ public class M {
 		final Cursor c = new Cursor();
 		this.paramTs = du.parseMethodParamTs(descriptor, c, this);
 		this.returnT = du.parseT(descriptor, c, this);
+
+		setStatic(true); // dynamic callsite resolution, never reference on stack
 	}
 
 	/**
