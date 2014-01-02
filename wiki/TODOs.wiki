@@ -15,6 +15,8 @@
       * https://bugs.eclipse.org/bugs/show_bug.cgi?id=424718
       * http://code.google.com/p/projectlombok/issues/detail?id=597 
     * ASTView shows "NullLiteral malformed" for Lambda
+    * Type Annotations Examples:
+      * http://www.tutego.de/blog/javainsel/2012/02/erster-draft-fr-annotations-on-java-types-jsr-308/
 
 = NOTICES =
 
