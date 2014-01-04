@@ -11,12 +11,17 @@
     * Eclipse AST for JDK 8: http://www.oracle.com/technetwork/articles/java/lambda-1984522.html
       * http://wiki.eclipse.org/JDT_Core/Java8
       * http://wiki.eclipse.org/JDT/Eclipse_Java_8_Support_%28BETA%29
-    * Lombok doesn't work yet ootB in Test Eclipse for JDK 8, fix via added method in Eclipse:
-      * https://bugs.eclipse.org/bugs/show_bug.cgi?id=424718
-      * http://code.google.com/p/projectlombok/issues/detail?id=597 
-    * ASTView shows "NullLiteral malformed" for Lambda
-    * Type Annotations Examples:
-      * http://www.tutego.de/blog/javainsel/2012/02/erster-draft-fr-annotations-on-java-types-jsr-308/
+      * Lombok doesn't work yet ootB in Test Eclipse for JDK 8, fix via added method in Eclipse:
+        * https://bugs.eclipse.org/bugs/show_bug.cgi?id=424718
+        * http://code.google.com/p/projectlombok/issues/detail?id=597 
+      * ASTView shows "NullLiteral malformed" for Lambda
+    * Default Methods work, was easy change
+    * Lambdas work mostly
+      * change Parameter and Inner Classes Handling (like Anonymous)
+    * Type Annotations
+      * strange ASM 5 API, understand?
+      * Examples:
+        * http://www.tutego.de/blog/javainsel/2012/02/erster-draft-fr-annotations-on-java-types-jsr-308/
 
 = NOTICES =
 
