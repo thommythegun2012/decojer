@@ -543,11 +543,29 @@ public abstract class T {
 	}
 
 	/**
+	 * Get dimensions of array type (0 if no array type).
+	 * 
+	 * @return dimensions of array type (0 if no array type)
+	 */
+	public int getDimensions() {
+		return 0;
+	}
+
+	/**
 	 * Get decompilation unit or null (for primitive and special types).
 	 * 
 	 * @return decompilation unit or null
 	 */
 	public DU getDu() {
+		return null;
+	}
+
+	/**
+	 * Get element type of array type (null if no array type).
+	 * 
+	 * @return element type of array type (null if no array type)
+	 */
+	public T getElementT() {
 		return null;
 	}
 
