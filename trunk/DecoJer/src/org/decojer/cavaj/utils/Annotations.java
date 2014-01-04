@@ -195,12 +195,12 @@ public final class Annotations {
 	 * 
 	 * @param td
 	 *            Type Declaration
-	 * @param modifiers
+	 * @param annotations
 	 *            Annotation AST Nodes
 	 * @param as
 	 *            Annotations
 	 */
-	public static void decompileAnnotations(final TD td, final List<Annotation> modifiers,
+	public static void decompileAnnotations(final TD td, final List<Annotation> annotations,
 			final A[] as) {
 		if (as == null) {
 			return;
@@ -208,7 +208,7 @@ public final class Annotations {
 		for (final A a : as) {
 			final Annotation decompileAnnotation = decompileAnnotation(td, a);
 			if (decompileAnnotation != null) {
-				modifiers.add(decompileAnnotation);
+				annotations.add(decompileAnnotation);
 			}
 		}
 	}
