@@ -15,6 +15,9 @@
         * https://bugs.eclipse.org/bugs/show_bug.cgi?id=424718
         * http://code.google.com/p/projectlombok/issues/detail?id=597 
       * ASTView shows "NullLiteral malformed" for Lambda
+    * API >= AST.JLS8
+      * ArrayTypes are not recursive anymore, have dimension attribute and elementType instead of componentType
+      * method: thrownExceptionTypes instead of throwsExceptions (names)
     * Default Methods work, was easy change
     * Lambdas work mostly
       * change Parameter and Inner Classes Handling (like Anonymous)
