@@ -1,16 +1,17 @@
 package org.decojer.cavaj.test.jdk8;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class DecTestTypeAnnotations<U, @Nonnull V extends @Size(min = 1, max = 11) String>
+public class DecTestTypeAnnotations<U, @Nonnull V extends @Size(min = 1, max = 11) String & @Nonnull @Size(max = 12) CharSequence>
 		extends
-		@Nonnull HashMap<@Nonnull U, @Size(min = 1, max = 10) @Nonnull String>
-		implements @Nonnull Serializable {
+		@Nonnull HashMap<@Nonnull U, @Size(min = 1, max = 13) @Nonnull String>
+		implements @Nonnull @Size(max = 14) Serializable {
 
 	public static @Deprecated
-	Map<Short, @Nonnull @Size(max = 2) String> testStatic;
+	Map<Short, @Nonnull @Size(max = 15) String> testStatic;
 
 	public static String test() {
 		CharSequence str = "test";
@@ -18,30 +19,34 @@ public class DecTestTypeAnnotations<U, @Nonnull V extends @Size(min = 1, max = 1
 	}
 
 	public static @Nonnull
-	String testParam(@Nonnull @Size(max = 5) CharSequence str) {
-		return (@Nonnull @Size(min = 1, max = 10) String) str;
+	String testParam(@Nonnull @Size(max = 16) CharSequence str) {
+		return (@Nonnull @Size(min = 1, max = 17) String) str;
 	}
 
-	public static <U, @Nonnull @Size(max = 1) V extends @Size(max = 2) @Nonnull String, @Nonnull W> @Nonnull @Size(max = 3) V testTypeParam(
+	public static <U, @Nonnull @Size(max = 18) V extends @Size(max = 19) @Nonnull String, @Nonnull W> @Nonnull @Size(max = 20) V testTypeParam(
 			final @Nonnull U muh) {
 		@Size(max = 4)
 		@Nonnull
 		CharSequence str = "test";
-		return (@Nonnull @Size(max = 5) V) str;
+		return (@Nonnull @Size(max = 21) V) str;
 	}
 
 	public @Deprecated
-	Map<Short, @Nonnull @Size(max = 2) String> test;
+	Map<Short, @Nonnull @Size(max = 22) String> test;
 
-	public void testThrows() throws @Nonnull RuntimeException {
+	public void testThrows() throws IOException, @Nonnull RuntimeException,
+			@Size(max = 23) @Nonnull NullPointerException {
 		System.out.println("TEST");
 	}
 
 	public void testTryCatch() {
 		try {
 			System.out.println("TEST");
-		} catch (final @Size(max = 2) Exception e) {
+		} catch (final @Size(max = 24) NullPointerException e) {
 			System.out.println("CATCH");
+		} catch (final @Size(max = 25) RuntimeException
+				| @Size(max = 26) @Nonnull Error e) {
+			System.out.println("MULTI_CATCH");
 		}
 	}
 
