@@ -38,11 +38,11 @@ import org.decojer.cavaj.model.T;
 public class AnnotT extends ModT {
 
 	private static String toString(final T t, final A[] as) {
-		final StringBuilder sb = new StringBuilder(t.getName());
+		final StringBuilder sb = new StringBuilder();
 		for (final A a : as) {
 			sb.append('@').append(a).append(' ');
 		}
-		return sb.substring(0, sb.length() - 1);
+		return sb.append(t.getName()).toString();
 	}
 
 	/**

@@ -34,6 +34,7 @@ import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.types.AnnotT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
@@ -42,6 +43,7 @@ import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.TypePath;
+import org.objectweb.asm.TypeReference;
 
 /**
  * ASM read class visitor.
@@ -211,8 +213,32 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		LOGGER.warning(getTd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
-		return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
+		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
+				: RetentionPolicy.CLASS);
+		final A[] as = new A[] { a };
+		final TypeReference typeReference = new TypeReference(typeRef);
+		final int sort = typeReference.getSort();
+		switch (sort) {
+		case TypeReference.CLASS_EXTENDS: {
+			final int superTypeIndex = typeReference.getSuperTypeIndex();
+			if (typePath != null) {
+				LOGGER.warning(getTd() + ": CLASS_EXTENDS TypePath: " + typePath);
+			}
+			if (superTypeIndex == -1) {
+				// targets extends type
+				final T superT = getTd().getSuperT();
+				this.td.setSuperT(new AnnotT(superT, as));
+			} else {
+				final T[] interfaceTs = getTd().getInterfaceTs();
+				interfaceTs[superTypeIndex] = new AnnotT(interfaceTs[superTypeIndex], as);
+			}
+			break;
+		}
+		default:
+			LOGGER.warning(getTd() + ": 0x" + Integer.toHexString(sort) + " : " + typeRef + " : "
+					+ typePath + " : " + desc + " : " + visible);
+		}
+		return this.readAnnotationMemberVisitor;
 	}
 
 }
