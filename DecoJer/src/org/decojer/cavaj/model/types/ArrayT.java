@@ -69,6 +69,24 @@ public final class ArrayT extends T {
 	}
 
 	@Override
+	public int getDimensions() {
+		int dimensions = 0;
+		for (T elementT = this; elementT.isArray(); elementT = elementT.getComponentT()) {
+			++dimensions;
+		}
+		return dimensions;
+	}
+
+	@Override
+	public T getElementT() {
+		T elementT = this;
+		while (elementT.isArray()) {
+			elementT = elementT.getComponentT();
+		}
+		return elementT;
+	}
+
+	@Override
 	public T[] getInterfaceTs() {
 		return getDu().getArrayInterfaceTs();
 	}

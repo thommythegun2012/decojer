@@ -31,7 +31,6 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.ops.Op;
-import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParamT.TypeArg;
@@ -627,7 +626,10 @@ public final class Expressions {
 	 */
 	public static Type newType(final T t, final TD td) {
 		final AST ast = td.getCu().getAst();
-		if (t instanceof ArrayT) {
+		if (t.isArray()) {
+			if (ast.apiLevel() >= AST.JLS8) {
+				return ast.newArrayType(newType(t.getElementT(), td), t.getDimensions());
+			}
 			return ast.newArrayType(newType(t.getComponentT(), td));
 		}
 		if (t instanceof ParamT) {
