@@ -101,8 +101,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadMethodVisitor.class.getName());
 
-	private static final boolean TODOCODE = true;
-
 	private A[] as;
 
 	private final DU du;
