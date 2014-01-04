@@ -234,9 +234,29 @@ public class ReadClassVisitor extends ClassVisitor {
 			}
 			break;
 		}
+		case TypeReference.CLASS_TYPE_PARAMETER: {
+			final int typeParameterIndex = typeReference.getTypeParameterIndex();
+			LOGGER.warning(getTd() + ": CLASS_TYPE_PARAMETER typeParameterIndex: "
+					+ typeParameterIndex);
+			if (typePath != null) {
+				LOGGER.warning(getTd() + ": CLASS_TYPE_PARAMETER TypePath: " + typePath);
+			}
+			break;
+		}
+		case TypeReference.CLASS_TYPE_PARAMETER_BOUND: {
+			final int typeParameterIndex = typeReference.getTypeParameterIndex();
+			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
+			LOGGER.warning(getTd() + ": CLASS_TYPE_PARAMETER_BOUND typeParameterIndex: "
+					+ typeParameterIndex + " : typeParameterBoundIndex: " + typeParameterBoundIndex);
+			if (typePath != null) {
+				LOGGER.warning(getTd() + ": CLASS_EXTENDS TypePath: " + typePath);
+			}
+			break;
+		}
 		default:
-			LOGGER.warning(getTd() + ": 0x" + Integer.toHexString(sort) + " : " + typeRef + " : "
-					+ typePath + " : " + desc + " : " + visible);
+			LOGGER.warning(getTd() + ": Unknown type annotation ref sort '0x"
+					+ Integer.toHexString(sort) + "' : " + typeRef + " : " + typePath + " : "
+					+ desc + " : " + visible);
 		}
 		return this.readAnnotationMemberVisitor;
 	}

@@ -31,11 +31,13 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.ops.Op;
+import org.decojer.cavaj.model.types.AnnotT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParamT.TypeArg;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.AnnotatableType;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
@@ -626,6 +628,16 @@ public final class Expressions {
 	 */
 	public static Type newType(final T t, final TD td) {
 		final AST ast = td.getCu().getAst();
+		if (t instanceof AnnotT) {
+			final Type type = newType(t.getRawT(), td);
+			Type annotatableType = type;
+			if (annotatableType instanceof ParameterizedType) {
+				annotatableType = ((ParameterizedType) annotatableType).getType();
+			}
+			Annotations.decompileAnnotations(td, ((AnnotatableType) annotatableType).annotations(),
+					((AnnotT) t).getAs());
+			return type;
+		}
 		if (t.isArray()) {
 			if (ast.apiLevel() >= AST.JLS8) {
 				return ast.newArrayType(newType(t.getElementT(), td), t.getDimensions());
