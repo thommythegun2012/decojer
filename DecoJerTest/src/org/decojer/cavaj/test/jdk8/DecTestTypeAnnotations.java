@@ -1,6 +1,16 @@
 package org.decojer.cavaj.test.jdk8;
 
-public class DecTestTypeAnnotations {
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
+public class DecTestTypeAnnotations<U, @Nonnull V extends @Size(min = 1, max = 11) String>
+		extends
+		@Nonnull HashMap<@Nonnull U, @Size(min = 1, max = 10) @Nonnull String>
+		implements @Nonnull Serializable {
+
+	public static @Deprecated
+	Map<Short, @Nonnull @Size(max = 2) String> testStatic;
 
 	public static String test() {
 		CharSequence str = "test";
@@ -18,6 +28,13 @@ public class DecTestTypeAnnotations {
 		@Nonnull
 		CharSequence str = "test";
 		return (@Nonnull @Size(max = 5) V) str;
+	}
+
+	public @Deprecated
+	Map<Short, @Nonnull @Size(max = 2) String> test;
+
+	public void testThrows() throws @Nonnull RuntimeException {
+		System.out.println("TEST");
 	}
 
 	public void testTryCatch() {
