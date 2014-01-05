@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.readers.asm;
 
+import static org.decojer.cavaj.readers.asm.Utils.annotate;
+
 import java.lang.annotation.RetentionPolicy;
 import java.util.logging.Logger;
 
@@ -34,10 +36,7 @@ import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.types.AnnotT;
 import org.decojer.cavaj.model.types.ClassT;
-import org.decojer.cavaj.model.types.ParamT;
-import org.decojer.cavaj.model.types.ParamT.TypeArg;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.ClassVisitor;
@@ -55,18 +54,6 @@ import org.objectweb.asm.TypeReference;
 public class ReadClassVisitor extends ClassVisitor {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadClassVisitor.class.getName());
-
-	private static AnnotT annotate(final T t, final A a) {
-		if (!(t instanceof AnnotT)) {
-			return new AnnotT(t, new A[] { a });
-		}
-		// don't change annotation array (changes name), recreate type
-		final A[] oldAs = ((AnnotT) t).getAs();
-		final A[] as = new A[oldAs.length + 1];
-		System.arraycopy(oldAs, 0, as, 0, oldAs.length);
-		as[oldAs.length] = a;
-		return new AnnotT(((AnnotT) t).getRawT(), as);
-	}
 
 	private A[] as;
 
@@ -93,37 +80,6 @@ public class ReadClassVisitor extends ClassVisitor {
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
 		this.readFieldVisitor = new ReadFieldVisitor(du);
 		this.readMethodVisitor = new ReadMethodVisitor(du);
-	}
-
-	private T annotate(final T t, final A a, final TypePath typePath) {
-		if (typePath == null) {
-			return annotate(t, a);
-		}
-		T currentT = t;
-		for (int i = 0; i < typePath.getLength(); ++i) {
-			final boolean isLast = i != typePath.getLength() - 1;
-			final int arg = typePath.getStepArgument(i);
-			final int step = typePath.getStep(i);
-			switch (step) {
-			case TypePath.TYPE_ARGUMENT: {
-				if (currentT instanceof AnnotT) {
-					currentT = ((AnnotT) currentT).getRawT();
-				}
-				final TypeArg[] typeArgs = ((ParamT) currentT).getTypeArgs();
-				final TypeArg typeArg = typeArgs[arg];
-				if (!isLast) {
-					currentT = typeArg.getT();
-					continue;
-				}
-				typeArgs[arg] = new TypeArg(annotate(typeArg.getT(), a), typeArg.getKind());
-				break;
-			}
-			default:
-				LOGGER.warning(getTd() + ": Unknown type path step: 0x" + Integer.toHexString(step)
-						+ " : " + typePath.getStepArgument(i));
-			}
-		}
-		return t;
 	}
 
 	/**
@@ -261,14 +217,12 @@ public class ReadClassVisitor extends ClassVisitor {
 		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
 		final TypeReference typeReference = new TypeReference(typeRef);
-		final int sort = typeReference.getSort();
-		switch (sort) {
+		switch (typeReference.getSort()) {
 		case TypeReference.CLASS_EXTENDS: {
 			final int superTypeIndex = typeReference.getSuperTypeIndex();
 			if (superTypeIndex == -1) {
 				// annotation targets extends type
-				final T superT = getTd().getSuperT();
-				this.td.setSuperT(annotate(superT, a, typePath));
+				this.td.setSuperT(annotate(getTd().getSuperT(), a, typePath));
 			} else {
 				// annotation targets interface
 				final T[] interfaceTs = getTd().getInterfaceTs();
@@ -278,10 +232,6 @@ public class ReadClassVisitor extends ClassVisitor {
 		}
 		case TypeReference.CLASS_TYPE_PARAMETER: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
-			if (typePath != null) {
-				LOGGER.warning(getTd() + ": Type path for CLASS_TYPE_PARAMETER must be 0 but is: "
-						+ typePath);
-			}
 			final T[] typeParams = this.td.getTypeParams();
 			typeParams[typeParameterIndex] = annotate(typeParams[typeParameterIndex], a, typePath);
 			break;
@@ -289,6 +239,7 @@ public class ReadClassVisitor extends ClassVisitor {
 		case TypeReference.CLASS_TYPE_PARAMETER_BOUND: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
 			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
+			// TODO
 			LOGGER.warning(getTd() + ": CLASS_TYPE_PARAMETER_BOUND typeParameterIndex: "
 					+ typeParameterIndex + " : typeParameterBoundIndex: " + typeParameterBoundIndex);
 			if (typePath != null) {
@@ -298,8 +249,8 @@ public class ReadClassVisitor extends ClassVisitor {
 		}
 		default:
 			LOGGER.warning(getTd() + ": Unknown type annotation ref sort '0x"
-					+ Integer.toHexString(sort) + "' : " + typeRef + " : " + typePath + " : "
-					+ desc + " : " + visible);
+					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
+					+ typePath + " : " + desc + " : " + visible);
 		}
 		return this.readAnnotationMemberVisitor;
 	}
