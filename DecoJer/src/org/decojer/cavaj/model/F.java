@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -66,7 +65,7 @@ public class F {
 	 * Value Type.
 	 */
 	@Getter
-	@Setter(AccessLevel.PROTECTED)
+	@Setter
 	private T valueT;
 
 	/**

@@ -25,7 +25,6 @@ package org.decojer.cavaj.model;
 
 import java.util.logging.Logger;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -42,7 +41,7 @@ public final class FD extends BD {
 
 	private final static Logger LOGGER = Logger.getLogger(FD.class.getName());
 
-	@Getter(AccessLevel.PRIVATE)
+	@Getter
 	private final F f;
 
 	/**

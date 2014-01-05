@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.readers.asm;
 
+import static org.decojer.cavaj.readers.asm.Utils.annotate;
+
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Map;
@@ -1462,8 +1464,48 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		LOGGER.warning(getMd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
-		return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
+		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
+				: RetentionPolicy.CLASS);
+		final TypeReference typeReference = new TypeReference(typeRef);
+		switch (typeReference.getSort()) {
+		case TypeReference.METHOD_FORMAL_PARAMETER: {
+			final int formalParameterIndex = typeReference.getFormalParameterIndex();
+			final T[] paramTs = getMd().getParamTs();
+			paramTs[formalParameterIndex] = annotate(paramTs[formalParameterIndex], a, typePath);
+			break;
+		}
+		case TypeReference.METHOD_RETURN:
+			getMd().getM().setReturnT(annotate(getMd().getReturnT(), a, typePath));
+			break;
+		case TypeReference.METHOD_TYPE_PARAMETER: {
+			final int typeParameterIndex = typeReference.getTypeParameterIndex();
+			final T[] typeParams = getMd().getTypeParams();
+			typeParams[typeParameterIndex] = annotate(typeParams[typeParameterIndex], a, typePath);
+			break;
+		}
+		case TypeReference.METHOD_TYPE_PARAMETER_BOUND: {
+			final int typeParameterIndex = typeReference.getTypeParameterIndex();
+			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
+			// TODO
+			LOGGER.warning(getMd() + ": METHOD_TYPE_PARAMETER_BOUND typeParameterIndex: "
+					+ typeParameterIndex + " : typeParameterBoundIndex: " + typeParameterBoundIndex);
+			if (typePath != null) {
+				LOGGER.warning(getMd() + ": METHOD_TYPE_PARAMETER_BOUND TypePath: " + typePath);
+			}
+			break;
+		}
+		case TypeReference.THROWS: {
+			final int exceptionIndex = typeReference.getExceptionIndex();
+			final T[] throwsTs = getMd().getThrowsTs();
+			throwsTs[exceptionIndex] = annotate(throwsTs[exceptionIndex], a, typePath);
+			break;
+		}
+		default:
+			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
+					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
+					+ typePath + " : " + desc + " : " + visible);
+		}
+		return this.readAnnotationMemberVisitor;
 	}
 
 	@Override

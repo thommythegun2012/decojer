@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.readers.asm;
 
+import static org.decojer.cavaj.readers.asm.Utils.annotate;
+
 import java.lang.annotation.RetentionPolicy;
 import java.util.logging.Logger;
 
@@ -34,6 +36,7 @@ import org.objectweb.asm.Attribute;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.TypePath;
+import org.objectweb.asm.TypeReference;
 
 /**
  * ASM read field visitor.
@@ -111,8 +114,19 @@ public class ReadFieldVisitor extends FieldVisitor {
 	@Override
 	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		LOGGER.warning(getFd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
-		return super.visitTypeAnnotation(typeRef, typePath, desc, visible);
+		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
+				: RetentionPolicy.CLASS);
+		final TypeReference typeReference = new TypeReference(typeRef);
+		switch (typeReference.getSort()) {
+		case TypeReference.FIELD:
+			getFd().getF().setValueT(annotate(getFd().getValueT(), a, typePath));
+			break;
+		default:
+			LOGGER.warning(getFd() + ": Unknown type annotation ref sort '0x"
+					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
+					+ typePath + " : " + desc + " : " + visible);
+		}
+		return this.readAnnotationMemberVisitor;
 	}
 
 }
