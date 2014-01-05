@@ -635,7 +635,7 @@ public final class Expressions {
 				annotatableType = ((ParameterizedType) annotatableType).getType();
 			}
 			Annotations.decompileAnnotations(td, ((AnnotatableType) annotatableType).annotations(),
-					((AnnotT) t).getAs());
+					t);
 			return type;
 		}
 		if (t.isArray()) {

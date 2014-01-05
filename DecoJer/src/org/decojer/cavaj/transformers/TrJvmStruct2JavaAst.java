@@ -433,6 +433,7 @@ public final class TrJvmStruct2JavaAst {
 		for (final T typeParam : typeParams) {
 			final TypeParameter typeParameter = ast.newTypeParameter();
 			typeParameter.setName(newSimpleName(typeParam.getName(), ast));
+			Annotations.decompileAnnotations(td, typeParameter.annotations(), typeParam);
 			final T superT = typeParam.getSuperT();
 			if (superT != null && !superT.isObject()) {
 				typeParameter.typeBounds().add(newType(typeParam.getSuperT(), td));
