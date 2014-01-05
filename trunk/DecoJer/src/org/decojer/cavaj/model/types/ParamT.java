@@ -73,6 +73,7 @@ public final class ParamT extends ModT {
 
 		private final Kind kind;
 
+		// cannot be final because of later adding type arguments
 		private final T t;
 
 		public TypeArg() {
@@ -85,7 +86,7 @@ public final class ParamT extends ModT {
 			assert t != null;
 		}
 
-		private TypeArg(final T t, final Kind kind) {
+		public TypeArg(final T t, final Kind kind) {
 			this.t = t;
 			this.kind = kind;
 		}

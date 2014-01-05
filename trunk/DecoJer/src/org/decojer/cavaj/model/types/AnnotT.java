@@ -37,14 +37,6 @@ import org.decojer.cavaj.model.T;
  */
 public class AnnotT extends ModT {
 
-	private static String toString(final T t, final A[] as) {
-		final StringBuilder sb = new StringBuilder();
-		for (final A a : as) {
-			sb.append('@').append(a).append(' ');
-		}
-		return sb.append(t.getName()).toString();
-	}
-
 	/**
 	 * Type annotations.
 	 */
@@ -60,9 +52,21 @@ public class AnnotT extends ModT {
 	 *            type annotations
 	 */
 	public AnnotT(final T t, final A[] as) {
-		super(toString(t, as), t);
+		super(t.getName(), t);
+		// we have to use the raw name here, not @annotations name, else many enclosing-dependant
+		// stuff will not work, like getT() for enclosed, getSimpleName() etc.,
+		// cannot cache this anyway because of lazy application of type annotations
 
 		this.as = as;
+	}
+
+	@Override
+	public String toString() {
+		final StringBuilder sb = new StringBuilder();
+		for (final A a : this.as) {
+			sb.append('@').append(a).append(' ');
+		}
+		return sb.append(getRawT().getName()).toString();
 	}
 
 }
