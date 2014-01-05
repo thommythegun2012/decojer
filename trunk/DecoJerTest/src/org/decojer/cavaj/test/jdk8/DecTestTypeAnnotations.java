@@ -3,11 +3,12 @@ package org.decojer.cavaj.test.jdk8;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-public class DecTestTypeAnnotations<U, @Nonnull V extends @Size(min = 1, max = 11) String & @Nonnull @Size(max = 12) CharSequence>
+public class DecTestTypeAnnotations<U, @Nonnull V extends @Nonnull @Size(min = 1, max = 10) HashMap<String, @Nonnull @Size(max = 11) Integer> & @Size(max = 12) @Nonnull CharSequence>
 		extends
-		@Nonnull HashMap<@Nonnull U, @Size(min = 1, max = 13) @Nonnull String>
+		@Nonnull HashMap<@Nonnull U, @Size(max = 13) @Nonnull List<List<@Nonnull List<String>>>>
 		implements @Nonnull @Size(max = 14) Serializable {
 
 	public static @Deprecated
