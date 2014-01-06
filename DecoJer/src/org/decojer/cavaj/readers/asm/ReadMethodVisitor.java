@@ -80,6 +80,8 @@ import org.decojer.cavaj.model.code.ops.SWAP;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
+import org.decojer.cavaj.model.types.AnnotT;
+import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Cursor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
@@ -1486,11 +1488,18 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case TypeReference.METHOD_TYPE_PARAMETER_BOUND: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
 			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
-			// TODO
-			LOGGER.warning(getMd() + ": METHOD_TYPE_PARAMETER_BOUND typeParameterIndex: "
-					+ typeParameterIndex + " : typeParameterBoundIndex: " + typeParameterBoundIndex);
-			if (typePath != null) {
-				LOGGER.warning(getMd() + ": METHOD_TYPE_PARAMETER_BOUND TypePath: " + typePath);
+			T t = getMd().getTypeParams()[typeParameterIndex];
+			if (t instanceof AnnotT) {
+				t = ((AnnotT) t).getRawT();
+			}
+			if (typeParameterBoundIndex == 0) {
+				// 0: annotation targets extends type
+				((ClassT) t).setSuperT(annotate(t.getSuperT(), a, typePath));
+			} else {
+				// 1-based interface index
+				final T[] interfaceTs = t.getInterfaceTs();
+				interfaceTs[typeParameterBoundIndex - 1] = annotate(
+						interfaceTs[typeParameterBoundIndex - 1], a, typePath);
 			}
 			break;
 		}
