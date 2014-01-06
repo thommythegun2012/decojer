@@ -36,6 +36,7 @@ import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.types.AnnotT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
@@ -221,10 +222,10 @@ public class ReadClassVisitor extends ClassVisitor {
 		case TypeReference.CLASS_EXTENDS: {
 			final int superTypeIndex = typeReference.getSuperTypeIndex();
 			if (superTypeIndex == -1) {
-				// annotation targets extends type
-				this.td.setSuperT(annotate(getTd().getSuperT(), a, typePath));
+				// -1: annotation targets extends type
+				getTd().setSuperT(annotate(getTd().getSuperT(), a, typePath));
 			} else {
-				// annotation targets interface
+				// 0-based interface index
 				final T[] interfaceTs = getTd().getInterfaceTs();
 				interfaceTs[superTypeIndex] = annotate(interfaceTs[superTypeIndex], a, typePath);
 			}
@@ -232,18 +233,25 @@ public class ReadClassVisitor extends ClassVisitor {
 		}
 		case TypeReference.CLASS_TYPE_PARAMETER: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
-			final T[] typeParams = this.td.getTypeParams();
+			final T[] typeParams = getTd().getTypeParams();
 			typeParams[typeParameterIndex] = annotate(typeParams[typeParameterIndex], a, typePath);
 			break;
 		}
 		case TypeReference.CLASS_TYPE_PARAMETER_BOUND: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
 			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
-			// TODO
-			LOGGER.warning(getTd() + ": CLASS_TYPE_PARAMETER_BOUND typeParameterIndex: "
-					+ typeParameterIndex + " : typeParameterBoundIndex: " + typeParameterBoundIndex);
-			if (typePath != null) {
-				LOGGER.warning(getTd() + ": CLASS_TYPE_PARAMETER_BOUND TypePath: " + typePath);
+			T t = getTd().getTypeParams()[typeParameterIndex];
+			if (t instanceof AnnotT) {
+				t = ((AnnotT) t).getRawT();
+			}
+			if (typeParameterBoundIndex == 0) {
+				// 0: annotation targets extends type
+				((ClassT) t).setSuperT(annotate(t.getSuperT(), a, typePath));
+			} else {
+				// 1-based interface index
+				final T[] interfaceTs = t.getInterfaceTs();
+				interfaceTs[typeParameterBoundIndex - 1] = annotate(
+						interfaceTs[typeParameterBoundIndex - 1], a, typePath);
 			}
 			break;
 		}
@@ -254,5 +262,4 @@ public class ReadClassVisitor extends ClassVisitor {
 		}
 		return this.readAnnotationMemberVisitor;
 	}
-
 }
