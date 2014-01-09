@@ -102,10 +102,14 @@ public final class A {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder(getT().getName());
-		for (final String name : getMemberNames()) {
-			sb.append("  ").append(name).append("=").append(getMemberValue(name));
+		if (getMemberNames().isEmpty()) {
+			return getT().getName();
 		}
+		final StringBuilder sb = new StringBuilder(getT().getName()).append("(");
+		for (final String name : getMemberNames()) {
+			sb.append(name).append("=").append(getMemberValue(name)).append(",");
+		}
+		sb.setCharAt(sb.length() - 1, ')');
 		return sb.toString();
 	}
 

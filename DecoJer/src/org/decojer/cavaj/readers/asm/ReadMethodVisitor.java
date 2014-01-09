@@ -127,7 +127,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private A[][] paramAss;
 
-	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
+	private final ReadAnnotationMemberVisitor annotationVisitor;
 
 	private final Map<Integer, List<V>> reg2vs = Maps.newHashMap();
 
@@ -140,7 +140,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public ReadMethodVisitor(final DU du) {
 		super(Opcodes.ASM5);
 		this.du = du;
-		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+		this.annotationVisitor = new ReadAnnotationMemberVisitor(du);
 	}
 
 	/**
@@ -202,9 +202,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
 			this.as = newAs;
 		}
-		this.as[this.as.length - 1] = this.readAnnotationMemberVisitor.init(desc,
+		this.as[this.as.length - 1] = this.annotationVisitor.init(desc,
 				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS);
-		return this.readAnnotationMemberVisitor;
+		return this.annotationVisitor;
 	}
 
 	@Override
@@ -1281,9 +1281,40 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public AnnotationVisitor visitLocalVariableAnnotation(final int typeRef,
 			final TypePath typePath, final Label[] start, final Label[] end, final int[] index,
 			final String desc, final boolean visible) {
-		LOGGER.warning(getMd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
-		return super.visitLocalVariableAnnotation(typeRef, typePath, start, end, index, desc,
-				visible);
+		/*
+		 * 3.3.7: The table length field specifies the number of entries in the table array;
+		 * multiple entries are necessary because a compiler is permitted to break a single variable
+		 * into multiple live ranges with different local variable indices. The start pc and length
+		 * fields specify the variable’s live range in the bytecodes of the local variable’s
+		 * containing method (from offset start pc, inclusive, to offset start pc + length,
+		 * exclusive). The index field stores the local variable’s index in that method. These
+		 * fields are similar to those of the optional LocalVariableTable attribute [LBBY12,
+		 * §4.8.12]. Storing local variable type annotations in the class file raises certain
+		 * challenges. For example, live ranges are not isomorphic to local variables. Note that a
+		 * local variable with no live range might not appear in the class file; that is OK, because
+		 * it is irrelevant to the program. A Runtime[In]visibleTypeAnnotations attribute containing
+		 * a localvar target appears in the attributes table of a Code attribute.
+		 */
+		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
+				: RetentionPolicy.CLASS);
+		final TypeReference typeReference = new TypeReference(typeRef);
+		switch (typeReference.getSort()) {
+		case TypeReference.LOCAL_VARIABLE:
+			for (int i = index.length; i-- > 0;) {
+				final List<V> vs = this.reg2vs.get(i);
+				for (final V v : vs) {
+					final int[] pcs = v.getPcs();
+					System.out.println("TODO local var start-end : " + pcs + " : " + start);
+					v.setT(annotate(v.getT(), a, typePath));
+				}
+			}
+			break;
+		default:
+			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
+					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
+					+ typePath + " : " + desc + " : " + visible);
+		}
+		return this.annotationVisitor;
 	}
 
 	@Override
@@ -1391,9 +1422,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			paramAs = newParamAs;
 		}
 		this.paramAss[parameter] = paramAs;
-		paramAs[paramAs.length - 1] = this.readAnnotationMemberVisitor.init(desc,
+		paramAs[paramAs.length - 1] = this.annotationVisitor.init(desc,
 				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS);
-		return this.readAnnotationMemberVisitor;
+		return this.annotationVisitor;
 	}
 
 	@Override
@@ -1428,13 +1459,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public AnnotationVisitor visitTryCatchAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
+		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.EXCEPTION_PARAMETER: {
-			final int exceptionIndex = typeReference.getExceptionIndex();
-			final Exc exc = this.excs.get(exceptionIndex);
+			final int tryCatchBlockIndex = typeReference.getTryCatchBlockIndex();
+			final Exc exc = this.excs.get(tryCatchBlockIndex);
 			exc.setT(annotate(exc.getT(), a, typePath));
 			break;
 		}
@@ -1443,7 +1474,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}
-		return super.visitInsnAnnotation(typeRef, typePath, desc, visible);
+		return this.annotationVisitor;
 	}
 
 	@Override
@@ -1474,7 +1505,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
+		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
@@ -1522,7 +1553,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}
-		return this.readAnnotationMemberVisitor;
+		return this.annotationVisitor;
 	}
 
 	@Override
