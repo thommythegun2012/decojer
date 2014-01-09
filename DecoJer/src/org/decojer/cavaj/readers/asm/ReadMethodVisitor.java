@@ -938,8 +938,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.CAST: {
-			final CAST cop = (CAST) this.ops.get(this.ops.size() - 1);
-			cop.setToT(annotate(cop.getToT(), a, typePath));
+			// TODO JDK 8 has +1 index to Eclipse!
+			final Op op = this.ops.get(this.ops.size() - 1);
+			if (op instanceof CAST) {
+				((CAST) op).setToT(annotate(((CAST) op).getToT(), a, typePath));
+			}
 			break;
 		}
 		default:
