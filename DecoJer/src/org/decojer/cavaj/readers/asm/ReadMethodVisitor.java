@@ -933,14 +933,17 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public AnnotationVisitor visitInsnAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		LOGGER.warning(getMd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
+		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
+				: RetentionPolicy.CLASS);
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
+		case TypeReference.CAST:
 		default:
-			LOGGER.warning(getMd() + ": Unknown type reference: 0x"
-					+ Integer.toHexString(typeReference.getSort()));
+			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
+					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
+					+ typePath + " : " + desc + " : " + visible);
 		}
-		return super.visitInsnAnnotation(typeRef, typePath, desc, visible);
+		return this.annotationVisitor;
 	}
 
 	@Override
@@ -1558,8 +1561,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitTypeInsn(final int opcode, final String type) {
-		// TODO previous visitTypeAnnotation?
-		LOGGER.warning(getMd() + ": " + opcode + " : " + type);
 		final T t = this.du.getT(type);
 
 		switch (opcode) {
