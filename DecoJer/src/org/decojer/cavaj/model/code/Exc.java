@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.decojer.cavaj.model.T;
 
 /**
@@ -30,6 +33,8 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
+@Getter
+@Setter
 public final class Exc {
 
 	private int endPc;
@@ -38,7 +43,7 @@ public final class Exc {
 
 	private int startPc;
 
-	private final T t;
+	private T t; // null -> catch all
 
 	/**
 	 * Constructor.
@@ -48,72 +53,6 @@ public final class Exc {
 	 */
 	public Exc(final T t) {
 		this.t = t;
-	}
-
-	/**
-	 * Get end pc.
-	 * 
-	 * @return end pc
-	 */
-	public int getEndPc() {
-		return this.endPc;
-	}
-
-	/**
-	 * Get handler pc.
-	 * 
-	 * @return handler pc
-	 */
-	public int getHandlerPc() {
-		return this.handlerPc;
-	}
-
-	/**
-	 * Get start pc.
-	 * 
-	 * @return start pc
-	 */
-	public int getStartPc() {
-		return this.startPc;
-	}
-
-	/**
-	 * Get type (null => catch all).
-	 * 
-	 * @return type (null => catch all)
-	 */
-	public T getT() {
-		return this.t;
-	}
-
-	/**
-	 * Set end pc.
-	 * 
-	 * @param endPc
-	 *            end pc
-	 */
-	public void setEndPc(final int endPc) {
-		this.endPc = endPc;
-	}
-
-	/**
-	 * Set handler pc.
-	 * 
-	 * @param handlerPc
-	 *            handler pc
-	 */
-	public void setHandlerPc(final int handlerPc) {
-		this.handlerPc = handlerPc;
-	}
-
-	/**
-	 * Set start pc.
-	 * 
-	 * @param startPc
-	 *            start pc
-	 */
-	public void setStartPc(final int startPc) {
-		this.startPc = startPc;
 	}
 
 	@Override

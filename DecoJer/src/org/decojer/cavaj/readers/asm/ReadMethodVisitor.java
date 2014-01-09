@@ -1428,14 +1428,22 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public AnnotationVisitor visitTryCatchAnnotation(final int typeRef, final TypePath typePath,
 			final String desc, final boolean visible) {
-		LOGGER.warning(getMd() + ": " + typeRef + " : " + typePath + " : " + desc + " : " + visible);
+		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
+				: RetentionPolicy.CLASS);
 		final TypeReference typeReference = new TypeReference(typeRef);
-		assert typeReference.getSort() == TypeReference.EXCEPTION_PARAMETER : Integer
-				.toHexString(typeReference.getSort());
-
-		LOGGER.warning(" " + typeReference.getExceptionIndex());
-		// TODO
-		return super.visitTryCatchAnnotation(typeRef, typePath, desc, visible);
+		switch (typeReference.getSort()) {
+		case TypeReference.EXCEPTION_PARAMETER: {
+			final int exceptionIndex = typeReference.getExceptionIndex();
+			final Exc exc = this.excs.get(exceptionIndex);
+			exc.setT(annotate(exc.getT(), a, typePath));
+			break;
+		}
+		default:
+			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
+					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
+					+ typePath + " : " + desc + " : " + visible);
+		}
+		return super.visitInsnAnnotation(typeRef, typePath, desc, visible);
 	}
 
 	@Override
