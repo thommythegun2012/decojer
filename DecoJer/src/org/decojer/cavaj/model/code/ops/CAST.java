@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.code.ops;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
 
@@ -35,7 +36,8 @@ import org.decojer.cavaj.model.T;
 public class CAST extends TypedOp {
 
 	@Getter
-	private final T toT;
+	@Setter
+	private T toT;
 
 	/**
 	 * Constructor.

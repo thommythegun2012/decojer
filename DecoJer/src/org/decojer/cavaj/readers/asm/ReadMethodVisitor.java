@@ -937,7 +937,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 				: RetentionPolicy.CLASS);
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
-		case TypeReference.CAST:
+		case TypeReference.CAST: {
+			final CAST cop = (CAST) this.ops.get(this.ops.size() - 1);
+			cop.setToT(annotate(cop.getToT(), a, typePath));
+			break;
+		}
 		default:
 			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
