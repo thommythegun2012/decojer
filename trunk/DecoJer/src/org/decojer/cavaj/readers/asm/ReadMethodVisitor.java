@@ -1533,7 +1533,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		}
 		case TypeReference.METHOD_RECEIVER:
 			LOGGER.warning(getMd() + ": TODO METHOD_RECEIVER: " + desc);
-			// TODO thats for test(@annots this, ...)
+			// TODO thats for test(@annots this, ...) for none-static methods, not given as
+			// paramTs[0], where to add?
 			break;
 		case TypeReference.METHOD_RETURN:
 			getMd().getM().setReturnT(annotate(getMd().getReturnT(), a, typePath));
