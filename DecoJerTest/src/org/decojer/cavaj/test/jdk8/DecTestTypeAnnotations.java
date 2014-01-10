@@ -8,47 +8,58 @@ import java.util.Map;
 
 public class DecTestTypeAnnotations<U, @Nonnull V extends @Nonnull @Size(min = 1, max = 10) HashMap<String, @Nonnull @Size(max = 11) Integer> & @Size(max = 12) @Nonnull CharSequence>
 		extends
-		@Nonnull HashMap<@Nonnull U, @Size(max = 13) @Nonnull List<List<@Nonnull List<String>>>>
+		@Nonnull HashMap<@Nonnull U, @Size(max = 13) @Nonnull List<List<@Nonnull List<@Nonnull ? extends @Nonnull String>>>>
 		implements @Nonnull @Size(max = 14) Serializable {
 
+	class Outer {
+		class Middle {
+			class Inner {
+				Inner testInnerNew(
+						@Size(max = 15) Outer.@Nonnull @Size(max = 16) Middle.@Size(max = 17) Inner this) {
+					return new @Nonnull Middle.@Size(max = 18) Inner();
+				}
+			}
+		}
+	}
+
 	public static @Deprecated
-	@Size(max = 15)
-	Map<Short, @Nonnull @Size(max = 16) String> testStatic;
+	@Size(max = 19)
+	Map<@Nonnull ? super Short, /* TODO bug eclipse ? super */@Nonnull @Size(max = 20) String> testStatic;
 
 	public static String testArrays() {
-		CharSequence[] @Size(max = 17) [] @Nonnull @Size(max = 18) [][] test = new CharSequence @Nonnull [10][][] @Nonnull [];
+		CharSequence[] @Size(max = 21) [] @Nonnull @Size(max = 22) [][] test = new CharSequence @Nonnull [10][][] @Nonnull [];
 		return (@Nonnull String) test[0][1][2][3];
 	}
 
 	public static @Nonnull
-	String testParam(@Nonnull @Size(max = 19) CharSequence str) {
-		return (@Nonnull @Size(min = 1, max = 17) String) str;
+	String testParam(@Nonnull @Size(max = 23) CharSequence str) {
+		return (@Nonnull @Size(max = 24) String) str;
 	}
 
-	public static <U, @Nonnull @Size(max = 20) V extends @Size(max = 21) @Nonnull String, @Nonnull W> @Nonnull @Size(max = 22) V testTypeParam(
+	public static <U, @Nonnull @Size(max = 25) V extends @Size(max = 26) @Nonnull String, @Nonnull W> @Nonnull @Size(max = 27) V testTypeParam(
 			final @Nonnull U muh) {
-		@Size(max = 23)
+		@Size(max = 28)
 		@Nonnull
 		CharSequence str = "test";
-		return (@Nonnull @Size(max = 24) V) str;
+		return (@Nonnull @Size(max = 29) V) str;
 	}
 
 	public @Deprecated
-	@Size(max = 25)
-	Map<Short, @Nonnull @Size(max = 26) String> test;
+	@Size(max = 30)
+	Map<Short, @Nonnull @Size(max = 31) String> test;
 
 	public void testThrows() throws IOException, @Nonnull RuntimeException,
-			@Size(max = 27) @Nonnull NullPointerException {
+			@Size(max = 32) @Nonnull NullPointerException {
 		System.out.println("TEST");
 	}
 
 	public void testTryCatch() {
 		try {
 			System.out.println("TEST");
-		} catch (final @Size(max = 28) NullPointerException e) {
+		} catch (final @Size(max = 33) NullPointerException e) {
 			System.out.println("CATCH");
-		} catch (final @Size(max = 29) RuntimeException
-				| @Size(max = 30) @Nonnull Error e) {
+		} catch (final @Size(max = 34) RuntimeException
+				| @Size(max = 35) @Nonnull Error e) {
 			System.out.println("MULTI_CATCH");
 		}
 	}
