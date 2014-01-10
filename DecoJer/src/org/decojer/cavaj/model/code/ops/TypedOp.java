@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.code.ops;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
 
@@ -39,7 +40,8 @@ import org.decojer.cavaj.model.T;
 public abstract class TypedOp extends Op {
 
 	@Getter
-	private final T t;
+	@Setter
+	private T t;
 
 	/**
 	 * Constructor.

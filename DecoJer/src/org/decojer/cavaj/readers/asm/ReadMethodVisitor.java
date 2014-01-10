@@ -935,13 +935,19 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final String desc, final boolean visible) {
 		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
+		final Op op = this.ops.get(this.ops.size() - 1);
+		// TODO JDK 8 has +1 index to Eclipse!
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.CAST: {
-			// TODO JDK 8 has +1 index to Eclipse!
-			final Op op = this.ops.get(this.ops.size() - 1);
 			if (op instanceof CAST) {
 				((CAST) op).setToT(annotate(((CAST) op).getToT(), a, typePath));
+			}
+			break;
+		}
+		case TypeReference.NEW: {
+			if (op instanceof NEW) {
+				((NEW) op).setT(annotate(((NEW) op).getT(), a, typePath));
 			}
 			break;
 		}
@@ -1525,6 +1531,10 @@ public class ReadMethodVisitor extends MethodVisitor {
 			paramTs[formalParameterIndex] = annotate(paramTs[formalParameterIndex], a, typePath);
 			break;
 		}
+		case TypeReference.METHOD_RECEIVER:
+			LOGGER.warning(getMd() + ": TODO METHOD_RECEIVER: " + desc);
+			// TODO thats for test(@annots this, ...)
+			break;
 		case TypeReference.METHOD_RETURN:
 			getMd().getM().setReturnT(annotate(getMd().getReturnT(), a, typePath));
 			break;

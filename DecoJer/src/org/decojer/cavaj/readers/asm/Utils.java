@@ -28,6 +28,7 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.types.AnnotT;
+import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParamT.TypeArg;
 import org.objectweb.asm.TypePath;
@@ -63,6 +64,18 @@ public class Utils {
 			final int arg = typePath.getStepArgument(i);
 			final int step = typePath.getStep(i);
 			switch (step) {
+			case TypePath.ARRAY_ELEMENT: {
+				if (currentT instanceof AnnotT) {
+					currentT = ((AnnotT) currentT).getRawT();
+				}
+				LOGGER.warning("TODO Annotate Array Type.");
+				((ArrayT) currentT).getComponentT();
+				break;
+			}
+			case TypePath.INNER_TYPE: {
+				LOGGER.warning("TODO Annotate Inner type.");
+				break;
+			}
 			case TypePath.TYPE_ARGUMENT: {
 				if (currentT instanceof AnnotT) {
 					currentT = ((AnnotT) currentT).getRawT();
@@ -74,6 +87,10 @@ public class Utils {
 					continue;
 				}
 				typeArgs[arg] = new TypeArg(annotate(typeArg.getT(), a), typeArg.getKind());
+				break;
+			}
+			case TypePath.WILDCARD_BOUND: {
+				LOGGER.warning("TODO Annotate Wildcard Bound.");
 				break;
 			}
 			default:
