@@ -12,41 +12,43 @@ public class DecTestTypeAnnotations<U, @Nonnull V extends @Nonnull @Size(min = 1
 		implements @Nonnull @Size(max = 14) Serializable {
 
 	public static @Deprecated
-	Map<Short, @Nonnull @Size(max = 15) String> testStatic;
+	@Size(max = 15)
+	Map<Short, @Nonnull @Size(max = 16) String> testStatic;
 
-	public static String test() {
-		CharSequence str = "test";
-		return (@Nonnull String) str;
+	public static String testArrays() {
+		CharSequence[] @Size(max = 17) [] @Nonnull @Size(max = 18) [][] test = new CharSequence @Nonnull [10][][] @Nonnull [];
+		return (@Nonnull String) test[0][1][2][3];
 	}
 
 	public static @Nonnull
-	String testParam(@Nonnull @Size(max = 16) CharSequence str) {
+	String testParam(@Nonnull @Size(max = 19) CharSequence str) {
 		return (@Nonnull @Size(min = 1, max = 17) String) str;
 	}
 
-	public static <U, @Nonnull @Size(max = 18) V extends @Size(max = 19) @Nonnull String, @Nonnull W> @Nonnull @Size(max = 20) V testTypeParam(
+	public static <U, @Nonnull @Size(max = 20) V extends @Size(max = 21) @Nonnull String, @Nonnull W> @Nonnull @Size(max = 22) V testTypeParam(
 			final @Nonnull U muh) {
-		@Size(max = 4)
+		@Size(max = 23)
 		@Nonnull
 		CharSequence str = "test";
-		return (@Nonnull @Size(max = 21) V) str;
+		return (@Nonnull @Size(max = 24) V) str;
 	}
 
 	public @Deprecated
-	Map<Short, @Nonnull @Size(max = 22) String> test;
+	@Size(max = 25)
+	Map<Short, @Nonnull @Size(max = 26) String> test;
 
 	public void testThrows() throws IOException, @Nonnull RuntimeException,
-			@Size(max = 23) @Nonnull NullPointerException {
+			@Size(max = 27) @Nonnull NullPointerException {
 		System.out.println("TEST");
 	}
 
 	public void testTryCatch() {
 		try {
 			System.out.println("TEST");
-		} catch (final @Size(max = 24) NullPointerException e) {
+		} catch (final @Size(max = 28) NullPointerException e) {
 			System.out.println("CATCH");
-		} catch (final @Size(max = 25) RuntimeException
-				| @Size(max = 26) @Nonnull Error e) {
+		} catch (final @Size(max = 29) RuntimeException
+				| @Size(max = 30) @Nonnull Error e) {
 			System.out.println("MULTI_CATCH");
 		}
 	}
