@@ -63,6 +63,15 @@ public final class MD extends BD {
 	private final M m;
 
 	/**
+	 * For type annotations like: void test(@Annots This this, ...) for none-static methods.
+	 * 
+	 * TODO rarely used, could try to move this into M.T when inner classes work nicely
+	 */
+	@Getter
+	@Setter
+	private T receiverT;
+
+	/**
 	 * Remember signature for Eclipse method finding.
 	 */
 	@Getter
