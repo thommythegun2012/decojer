@@ -343,6 +343,9 @@ public final class TrJvmStruct2JavaAst {
 		final AST ast = td.getCu().getAst();
 
 		final T[] paramTs = md.getParamTs();
+		if (md.getReceiverT() != null) {
+			methodDeclaration.setReceiverType(newType(md.getReceiverT(), td));
+		}
 		final A[][] paramAs = md.getParamAss();
 		for (int i = 0; i < paramTs.length; ++i) {
 			final Type methodParameterType = newType(paramTs[i], td);
