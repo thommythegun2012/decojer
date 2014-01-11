@@ -1317,11 +1317,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 		switch (typeReference.getSort()) {
 		case TypeReference.LOCAL_VARIABLE:
 			for (int i = index.length; i-- > 0;) {
-				final List<V> vs = this.reg2vs.get(i);
+				final List<V> vs = this.reg2vs.get(index[i]);
 				for (final V v : vs) {
-					final int[] pcs = v.getPcs();
-					System.out.println("TODO local var start-end : " + pcs + " : " + start);
-					v.setT(annotate(v.getT(), a, typePath));
+					if (v.validIn(getPc(start[i]), getPc(end[i]))) {
+						v.setT(annotate(v.getT(), a, typePath));
+					}
 				}
 			}
 			break;

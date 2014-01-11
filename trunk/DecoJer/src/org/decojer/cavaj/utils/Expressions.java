@@ -710,6 +710,8 @@ public final class Expressions {
 			final T enclosingT = ((ClassT) t).getEnclosingT();
 			if (enclosingT != null) {
 				// could be ParamT etc., not decompileable with Name as target
+				// TODO restrict qualifications to really necessary enclosings...
+				// td = Outer.Inner.InnerInner, t = Outer.Inner -> Inner
 				final Type qualifier = newType(enclosingT, td);
 				return ast.newQualifiedType(qualifier, ast.newSimpleName(t.getSimpleIdentifier()));
 			}
