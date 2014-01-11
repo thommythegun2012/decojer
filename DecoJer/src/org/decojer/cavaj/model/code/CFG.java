@@ -269,7 +269,7 @@ public final class CFG {
 		}
 		for (int i = vs.length; i-- > 0;) {
 			final V v = vs[i];
-			if (v.validIn(pc)) {
+			if (v.validFor(pc)) {
 				return v;
 			}
 		}

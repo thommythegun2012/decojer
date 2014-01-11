@@ -147,10 +147,28 @@ public final class V {
 	 *            pc
 	 * @return {@code true} - variable valid for pc
 	 */
-	public boolean validIn(final int pc) {
-		for (int i = 0; i < this.pcs.length;) {
+	public boolean validFor(final int pc) {
+		for (int i = 0; i < this.pcs.length; ++i) {
 			// end pc is first pc _after_ (multiple byte) operation (even after final return)
-			if (this.pcs[i++] <= pc && pc < this.pcs[i++]) {
+			if (this.pcs[i++] <= pc && pc < this.pcs[i]) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Is variable valid in pc range?
+	 * 
+	 * @param startPc
+	 *            start pc
+	 * @param endPc
+	 *            end pc
+	 * @return {@code true} - variable valid in pc range
+	 */
+	public boolean validIn(final int startPc, final int endPc) {
+		for (int i = 0; i < this.pcs.length; ++i) {
+			if (startPc <= this.pcs[i++] && this.pcs[i] <= endPc) {
 				return true;
 			}
 		}
