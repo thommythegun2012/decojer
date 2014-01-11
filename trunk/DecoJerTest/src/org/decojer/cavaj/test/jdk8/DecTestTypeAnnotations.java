@@ -12,14 +12,29 @@ public class DecTestTypeAnnotations<U, @Nonnull V extends @Nonnull @Size(min = 1
 		implements @Nonnull @Size(max = 14) Serializable {
 
 	class Outer {
+
 		class Middle {
-			class Inner {
-				Inner testInnerNew(
-						@Size(max = 15) Outer.@Nonnull @Size(max = 16) Middle.@Size(max = 17) Inner this) {
-					return new @Nonnull Middle.@Size(max = 18) Inner();
+
+			class Inner extends @Nonnull Middle {
+
+				@Nonnull
+				private final Integer arg;
+
+				public Inner(@Nonnull Integer arg) {
+					this.arg = arg;
 				}
+
+				@Nonnull
+				Inner testInnerNew(
+						@Size(max = 15) Outer.@Nonnull @Size(max = 16) Middle.@Size(max = 17) Inner this,
+						@Nonnull Integer arg) {
+					return new @Nonnull Middle.@Size(max = 18) Inner(arg);
+				}
+
 			}
+
 		}
+
 	}
 
 	public static @Deprecated
