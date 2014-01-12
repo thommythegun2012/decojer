@@ -709,12 +709,16 @@ public final class Expressions {
 		if (t instanceof ClassT) {
 			final T enclosingT = ((ClassT) t).getEnclosingT();
 			if (enclosingT != null) {
-				// could be ParamT etc., not decompileable with Name as target
-				// TODO restrict qualifications to really necessary enclosings...
-				// td = Outer.Inner.InnerInner, t = Outer.Inner -> Inner
+				// could be ParamT etc., not decompileable with Name as target;
+				// restrict qualifications to really necessary enclosings:
+				// td = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
+				if (td.getT().getName().startsWith(enclosingT.getName())) {
+					return ast.newSimpleType(ast.newSimpleName(t.getSimpleIdentifier()));
+				}
 				final Type qualifier = newType(enclosingT, td);
 				return ast.newQualifiedType(qualifier, ast.newSimpleName(t.getSimpleIdentifier()));
 			}
+			// else fall through...
 		}
 		return ast.newSimpleType(newTypeName(t, td));
 	}
