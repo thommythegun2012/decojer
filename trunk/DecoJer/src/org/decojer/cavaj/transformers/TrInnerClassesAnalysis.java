@@ -40,6 +40,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.Version;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.ops.NEW;
 import org.decojer.cavaj.model.code.ops.Op;
@@ -64,7 +65,7 @@ public class TrInnerClassesAnalysis {
 			}
 			// Inner name is not necessary anymore since JVM 5, see T#getInnerName(), but we
 			// validate the new "Binary Compatibility" rules here.
-			if (td.getVersion() < 49 || t.getEnclosingT() == null) {
+			if (td.getVersion() < Version.JVM_5.getMajor() || t.getEnclosingT() == null) {
 				continue;
 			}
 			final String innerName = t.getInnerName();

@@ -117,7 +117,8 @@ public final class CU extends D {
 	 */
 	public String createSourceCode() {
 		final Map<String, String> options = JavaCore.getOptions();
-		options.put(JavaCore.COMPILER_SOURCE, "1." + (getTd().getVersion() - 44));
+		options.put(JavaCore.COMPILER_SOURCE,
+				"1." + (getTd().getVersion() - Version.JVM_1.getMajor() + 1));
 
 		final Document document = new Document();
 		final TextEdit edits = this.compilationUnit.rewrite(document, options);
@@ -181,10 +182,10 @@ public final class CU extends D {
 		} else {
 			final int version = getTd().getVersion();
 			sb.append(" * Class File Version: ").append(version).append(" (Java ");
-			if (version < 49) {
+			if (version < Version.JVM_5.getMajor()) {
 				sb.append("1.");
 			}
-			sb.append(version - 44).append(')');
+			sb.append(version - Version.JVM_1.getMajor() + 1).append(')');
 		}
 		sb.append(br);
 		if (getTd().getSourceFileName() != null) {

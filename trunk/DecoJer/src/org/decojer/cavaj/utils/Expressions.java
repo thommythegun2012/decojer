@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.Version;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.types.AnnotT;
 import org.decojer.cavaj.model.types.ClassT;
@@ -345,25 +346,25 @@ public final class Expressions {
 					return ast.newQualifiedName(ast.newSimpleName("Character"),
 							ast.newSimpleName("MIN_VALUE"));
 				case Character.MAX_HIGH_SURROGATE:
-					if (td.getVersion() >= 49) {
+					if (td.getVersion() >= Version.JVM_5.getMajor()) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MAX_HIGH_SURROGATE"));
 					}
 					break;
 				case Character.MAX_LOW_SURROGATE:
-					if (td.getVersion() >= 49) {
+					if (td.getVersion() >= Version.JVM_5.getMajor()) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MAX_LOW_SURROGATE"));
 					}
 					break;
 				case Character.MIN_HIGH_SURROGATE:
-					if (td.getVersion() >= 49) {
+					if (td.getVersion() >= Version.JVM_5.getMajor()) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MIN_HIGH_SURROGATE"));
 					}
 					break;
 				case Character.MIN_LOW_SURROGATE:
-					if (td.getVersion() >= 49) {
+					if (td.getVersion() >= Version.JVM_5.getMajor()) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MIN_LOW_SURROGATE"));
 					}
@@ -448,7 +449,7 @@ public final class Expressions {
 							ast.newSimpleName("MIN_VALUE"));
 				}
 				if (f == Float.MIN_NORMAL) {
-					if (td.getVersion() >= 50) {
+					if (td.getVersion() >= Version.JVM_6.getMajor()) {
 						return ast.newQualifiedName(ast.newSimpleName("Float"),
 								ast.newSimpleName("MIN_NORMAL"));
 					}
@@ -507,7 +508,7 @@ public final class Expressions {
 							ast.newSimpleName("MIN_VALUE"));
 				}
 				if (d == Double.MIN_NORMAL) {
-					if (td.getVersion() >= 50) {
+					if (td.getVersion() >= Version.JVM_6.getMajor()) {
 						return ast.newQualifiedName(ast.newSimpleName("Double"),
 								ast.newSimpleName("MIN_NORMAL"));
 					}
