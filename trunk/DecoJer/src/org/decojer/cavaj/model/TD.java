@@ -241,7 +241,7 @@ public final class TD extends BD {
 	 *            version
 	 * @return {@code true} - at least of given version
 	 */
-	public boolean isAtLeastVersion(final Version version) {
+	public boolean isAtLeast(final Version version) {
 		return this.version >= version.getMajor();
 	}
 
@@ -252,7 +252,7 @@ public final class TD extends BD {
 	 *            version
 	 * @return {@code true} - less then given version
 	 */
-	public boolean isBelowVersion(final Version version) {
+	public boolean isBelow(final Version version) {
 		return this.version < version.getMajor();
 	}
 
