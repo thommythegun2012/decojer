@@ -45,8 +45,9 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 public final class TrMergeAll {
 
 	private static boolean addBodyDeclaration(final TD td, final BodyDeclaration bodyDeclaration) {
-		assert bodyDeclaration != null;
-
+		if (bodyDeclaration == null) {
+			return false;
+		}
 		if (td.getTypeDeclaration() instanceof AnonymousClassDeclaration) {
 			return ((AnonymousClassDeclaration) td.getTypeDeclaration()).bodyDeclarations().add(
 					bodyDeclaration);
@@ -60,6 +61,16 @@ public final class TrMergeAll {
 		}
 		return ((AbstractTypeDeclaration) td.getTypeDeclaration()).bodyDeclarations().add(
 				bodyDeclaration);
+	}
+
+	private static int countConstructors(final TD td) {
+		int constructors = 0;
+		for (final BD bd : td.getBds()) {
+			if (bd instanceof MD && ((MD) bd).isConstructor()) {
+				++constructors;
+			}
+		}
+		return constructors;
 	}
 
 	/**
@@ -85,28 +96,17 @@ public final class TrMergeAll {
 
 	private static void transform(final TD td) {
 		// multiple constructors? => no omissable default constructor
-		int constructors = 0;
-		for (final BD bd : td.getBds()) {
-			if (bd instanceof MD && ((MD) bd).isConstructor()) {
-				++constructors;
-			}
-		}
+		final int constructors = countConstructors(td);
 		for (final BD bd : td.getBds()) {
 			if (bd instanceof TD) {
 				if (!((TD) bd).isAnonymous()) {
-					final ASTNode typeDeclaration = ((TD) bd).getTypeDeclaration();
-					if (typeDeclaration != null) {
-						addBodyDeclaration(td, (AbstractTypeDeclaration) typeDeclaration);
-					}
+					addBodyDeclaration(td, (AbstractTypeDeclaration) ((TD) bd).getTypeDeclaration());
 				}
 				transform((TD) bd);
 				continue;
 			}
 			if (bd instanceof FD) {
-				final BodyDeclaration fieldDeclaration = ((FD) bd).getFieldDeclaration();
-				if (fieldDeclaration != null) {
-					addBodyDeclaration(td, fieldDeclaration);
-				}
+				addBodyDeclaration(td, ((FD) bd).getFieldDeclaration());
 				if (!bd.getBds().isEmpty()) {
 					for (final BD innerTd : bd.getBds()) {
 						transform((TD) innerTd);
@@ -116,14 +116,13 @@ public final class TrMergeAll {
 			}
 			if (bd instanceof MD) {
 				final MD md = (MD) bd;
-				final BodyDeclaration methodDeclaration = md.getMethodDeclaration();
 				if (!md.getBds().isEmpty()) {
 					for (final BD innerTd : md.getBds()) {
 						if (!((TD) innerTd).isAnonymous()) {
 							final ASTNode typeDeclaration = ((TD) innerTd).getTypeDeclaration();
 							if (typeDeclaration != null) {
-								((MethodDeclaration) md.getMethodDeclaration())
-										.getBody()
+								md.getCfg()
+										.getBlock()
 										.statements()
 										.add(typeDeclaration.getAST().newTypeDeclarationStatement(
 												(AbstractTypeDeclaration) typeDeclaration));
@@ -132,7 +131,9 @@ public final class TrMergeAll {
 						transform((TD) innerTd);
 					}
 				}
-				if (methodDeclaration instanceof MethodDeclaration && md.isConstructor()) {
+				final BodyDeclaration methodDeclaration = md.getMethodDeclaration();
+				if (methodDeclaration instanceof MethodDeclaration
+						&& ((MethodDeclaration) methodDeclaration).isConstructor()) {
 					if (td.getTypeDeclaration() instanceof AnonymousClassDeclaration) {
 						// anonymous inner classes cannot have visible Java constructors
 						continue;
@@ -149,10 +150,8 @@ public final class TrMergeAll {
 						continue;
 					}
 				}
-				if (methodDeclaration != null) {
-					// e.g. bridge methods?
-					addBodyDeclaration(td, methodDeclaration);
-				}
+				// e.g. bridge methods?
+				addBodyDeclaration(td, methodDeclaration);
 				continue;
 			}
 		}
