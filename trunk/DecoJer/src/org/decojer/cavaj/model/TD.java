@@ -235,6 +235,28 @@ public final class TD extends BD {
 	}
 
 	/**
+	 * Is this version at least of the given version?
+	 * 
+	 * @param version
+	 *            version
+	 * @return {@code true} - at least of given version
+	 */
+	public boolean isAtLeastVersion(final Version version) {
+		return this.version >= version.getMajor();
+	}
+
+	/**
+	 * Is this version less then given version?
+	 * 
+	 * @param version
+	 *            version
+	 * @return {@code true} - less then given version
+	 */
+	public boolean isBelowVersion(final Version version) {
+		return this.version < version.getMajor();
+	}
+
+	/**
 	 * Is Dalvik?
 	 * 
 	 * @return {@code true} - is Dalvik
