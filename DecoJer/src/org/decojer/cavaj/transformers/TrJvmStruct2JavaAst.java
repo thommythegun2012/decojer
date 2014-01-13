@@ -40,6 +40,7 @@ import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.Version;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.utils.Annotations;
@@ -245,7 +246,7 @@ public final class TrJvmStruct2JavaAst {
 		// decompile modifier flags:
 		// interfaces can have default methods since JVM 8
 		if (isInterfaceMember && md.getCfg() != null) {
-			if (md.getTd().getVersion() < 52) {
+			if (md.getTd().getVersion() < Version.JVM_8.getMajor()) {
 				LOGGER.warning("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
 			}
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.DEFAULT_KEYWORD));

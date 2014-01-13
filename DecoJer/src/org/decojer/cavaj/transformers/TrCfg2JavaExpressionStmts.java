@@ -54,6 +54,7 @@ import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.Version;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
@@ -1439,7 +1440,7 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!f.getName().startsWith("class$") && !f.getName().startsWith("array$")) {
 			return false;
 		}
-		if (getCfg().getTd().getVersion() >= 49) {
+		if (getCfg().getTd().getVersion() >= Version.JVM_5.getMajor()) {
 			LOGGER.warning(getMd() + ": Class literal caching isn't necessary anymore in JDK 5!");
 		}
 		// now this really should be a cached class literal, giving warnings in other cases are OK
@@ -1768,7 +1769,7 @@ public final class TrCfg2JavaExpressionStmts {
 					if (methodInvocation.arguments().size() != 1) {
 						break classLiteral;
 					}
-					if (getCfg().getTd().getVersion() >= 49) {
+					if (getCfg().getTd().getVersion() >= Version.JVM_5.getMajor()) {
 						LOGGER.warning(getMd()
 								+ ": Unexpected class literal code with class$() in >= JVM 5 code!");
 					}
@@ -2149,7 +2150,7 @@ public final class TrCfg2JavaExpressionStmts {
 			if (!SwitchTypes.rewriteCaseValues(bb, index2enum)) {
 				return false;
 			}
-			if (getCfg().getTd().getVersion() < 49) {
+			if (getCfg().getTd().getVersion() < Version.JVM_5.getMajor()) {
 				LOGGER.warning(getMd()
 						+ ": Enumerations switches are not known before JVM 5! Rewriting anyway, check this.");
 			}
@@ -2229,7 +2230,7 @@ public final class TrCfg2JavaExpressionStmts {
 					defaultCase.joinPredBb(bb);
 					defaultCase.addStmt(switchStatement);
 				}
-				if (getCfg().getTd().getVersion() < 51) {
+				if (getCfg().getTd().getVersion() < Version.JVM_7.getMajor()) {
 					LOGGER.warning(getMd()
 							+ ": String switches are not known before JVM 7! Rewriting anyway, check this.");
 				}
@@ -2254,7 +2255,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				SwitchTypes.rewriteCaseStrings(bb, string2bb, defaultCase);
 
-				if (getCfg().getTd().getVersion() < 51) {
+				if (getCfg().getTd().getVersion() < Version.JVM_7.getMajor()) {
 					LOGGER.warning(getMd()
 							+ ": String switches are not known before JVM 7! Rewriting anyway, check this.");
 				}
