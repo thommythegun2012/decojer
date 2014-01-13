@@ -92,6 +92,8 @@ public final class MD extends BD {
 
 	/**
 	 * AST method declaration.
+	 * 
+	 * Lambda expressions don't really match: Prevent using getBody(), use CFG.getBlock()!
 	 */
 	@Getter
 	@Setter
