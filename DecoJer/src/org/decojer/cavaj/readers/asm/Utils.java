@@ -83,14 +83,25 @@ public class Utils {
 				final TypeArg[] typeArgs = ((ParamT) currentT).getTypeArgs();
 				final TypeArg typeArg = typeArgs[arg];
 				if (!isLast) {
+					// TODO wrong, typeArg itself would be new context! must derive T? => ArgT!
+					currentT = typeArg.getT();
+					continue;
+				}
+				// TODO wrong, have to annotate typeArgs itself here, not the bound!
+				// typeArgs[arg] = new TypeArg(annotate(typeArg.getT(), a), typeArg.getKind());
+				break;
+			}
+			case TypePath.WILDCARD_BOUND: {
+				if (currentT instanceof AnnotT) {
+					currentT = ((AnnotT) currentT).getRawT();
+				}
+				final TypeArg[] typeArgs = ((ParamT) currentT).getTypeArgs();
+				final TypeArg typeArg = typeArgs[arg];
+				if (!isLast) {
 					currentT = typeArg.getT();
 					continue;
 				}
 				typeArgs[arg] = new TypeArg(annotate(typeArg.getT(), a), typeArg.getKind());
-				break;
-			}
-			case TypePath.WILDCARD_BOUND: {
-				LOGGER.warning("TODO Annotate Wildcard Bound.");
 				break;
 			}
 			default:
