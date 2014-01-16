@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.types;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
@@ -40,7 +41,8 @@ public final class ArrayT extends T {
 	 * Component type (could be an array type too, has one dimension less).
 	 */
 	@Getter
-	private final T componentT;
+	@Setter
+	private T componentT;
 
 	@Getter
 	private final DU du;
