@@ -68,8 +68,12 @@ public class Utils {
 				if (currentT instanceof AnnotT) {
 					currentT = ((AnnotT) currentT).getRawT();
 				}
-				LOGGER.warning("TODO Annotate Array Type.");
-				((ArrayT) currentT).getComponentT();
+				final T componentT = ((ArrayT) currentT).getComponentT();
+				if (!isLast) {
+					currentT = componentT;
+					continue;
+				}
+				((ArrayT) currentT).setComponentT(annotate(componentT, a));
 				break;
 			}
 			case TypePath.INNER_TYPE: {
@@ -88,20 +92,19 @@ public class Utils {
 					continue;
 				}
 				// TODO wrong, have to annotate typeArgs itself here, not the bound!
-				// typeArgs[arg] = new TypeArg(annotate(typeArg.getT(), a), typeArg.getKind());
+				typeArgs[arg] = new TypeArg(annotate(typeArg.getT(), a), typeArg.getKind());
 				break;
 			}
 			case TypePath.WILDCARD_BOUND: {
 				if (currentT instanceof AnnotT) {
 					currentT = ((AnnotT) currentT).getRawT();
 				}
-				final TypeArg[] typeArgs = ((ParamT) currentT).getTypeArgs();
-				final TypeArg typeArg = typeArgs[arg];
-				if (!isLast) {
-					currentT = typeArg.getT();
-					continue;
-				}
-				typeArgs[arg] = new TypeArg(annotate(typeArg.getT(), a), typeArg.getKind());
+				// TODO
+				/*
+				 * final TypeArg[] typeArgs = ((ParamT) currentT).getTypeArgs(); final TypeArg
+				 * typeArg = typeArgs[arg]; if (!isLast) { currentT = typeArg.getT(); continue; }
+				 * typeArgs[arg] = new TypeArg(annotate(typeArg.getT(), a), typeArg.getKind());
+				 */
 				break;
 			}
 			default:
