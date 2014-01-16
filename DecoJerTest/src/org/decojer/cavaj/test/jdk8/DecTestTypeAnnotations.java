@@ -42,7 +42,7 @@ public class DecTestTypeAnnotations<U, @Nonnull V extends @Nonnull @Size(min = 1
 	Map<@Nonnull ? super Short, /* TODO bug eclipse ? super */@Nonnull @Size(max = 20) String> testStatic;
 
 	public static String testArrays() {
-		CharSequence[] @Size(max = 21) [] @Nonnull @Size(max = 22) [][] test = new CharSequence @Nonnull [10][][] @Nonnull [];
+		CharSequence[] @Size(max = 21) [] @Nonnull @Size(max = 22) [][] test = new @Nonnull CharSequence @Nonnull [10][][] @Nonnull [];
 		return (@Nonnull String) test[0][1][2][3];
 	}
 
