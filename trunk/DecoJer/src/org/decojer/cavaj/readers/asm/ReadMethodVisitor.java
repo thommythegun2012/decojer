@@ -79,6 +79,7 @@ import org.decojer.cavaj.model.code.ops.SUB;
 import org.decojer.cavaj.model.code.ops.SWAP;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
+import org.decojer.cavaj.model.code.ops.TypedOp;
 import org.decojer.cavaj.model.code.ops.XOR;
 import org.decojer.cavaj.model.types.AnnotT;
 import org.decojer.cavaj.model.types.ClassT;
@@ -940,15 +941,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.CAST: {
-			if (op instanceof CAST) {
-				((CAST) op).setToT(annotate(((CAST) op).getToT(), a, typePath));
-			}
+			((CAST) op).setToT(annotate(((CAST) op).getToT(), a, typePath));
 			break;
 		}
 		case TypeReference.NEW: {
-			if (op instanceof NEW) {
-				((NEW) op).setT(annotate(((NEW) op).getT(), a, typePath));
-			}
+			((TypedOp) op).setT(annotate(((TypedOp) op).getT(), a, typePath));
 			break;
 		}
 		default:
