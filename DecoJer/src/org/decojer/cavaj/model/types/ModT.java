@@ -55,8 +55,18 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public T getComponentT() {
+		return getRawT().getComponentT();
+	}
+
+	@Override
 	public DU getDu() {
 		return getRawT().getDu();
+	}
+
+	@Override
+	public T getElementT() {
+		return getRawT().getElementT();
 	}
 
 	@Override
@@ -87,6 +97,11 @@ public abstract class ModT extends T {
 	@Override
 	public TD getTd() {
 		return getRawT().getTd();
+	}
+
+	@Override
+	public boolean isArray() {
+		return this.rawT != null && this.rawT.isArray();
 	}
 
 	@Override

@@ -39,10 +39,12 @@ import org.decojer.cavaj.model.types.ParamT.TypeArg;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AnnotatableType;
+import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
+import org.eclipse.jdt.core.dom.Dimension;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.Name;
@@ -629,6 +631,29 @@ public final class Expressions {
 	 */
 	public static Type newType(final T t, final TD td) {
 		final AST ast = td.getCu().getAst();
+		// handle array first because annot(array()) is special...
+		if (t.isArray()) {
+			if (ast.apiLevel() >= AST.JLS8) {
+				for (T checkT = t; checkT.isArray(); checkT = checkT.getComponentT()) {
+					if (checkT instanceof AnnotT) {
+						final ArrayType arrayType = ast.newArrayType(newType(t.getElementT(), td));
+						final List<Dimension> dimensions = arrayType.dimensions();
+						for (T elementT = t; elementT.isArray(); elementT = elementT
+								.getComponentT()) {
+							final Dimension dimension = ast.newDimension();
+							if (elementT instanceof AnnotT) {
+								Annotations.decompileAnnotations(td, dimension.annotations(),
+										elementT);
+							}
+							dimensions.add(dimension);
+						}
+						return arrayType;
+					}
+				}
+				return ast.newArrayType(newType(t.getElementT(), td), t.getDimensions());
+			}
+			return ast.newArrayType(newType(t.getComponentT(), td));
+		}
 		if (t instanceof AnnotT) {
 			final Type type = newType(t.getRawT(), td);
 			Type annotatableType = type;
@@ -638,12 +663,6 @@ public final class Expressions {
 			Annotations.decompileAnnotations(td, ((AnnotatableType) annotatableType).annotations(),
 					t);
 			return type;
-		}
-		if (t.isArray()) {
-			if (ast.apiLevel() >= AST.JLS8) {
-				return ast.newArrayType(newType(t.getElementT(), td), t.getDimensions());
-			}
-			return ast.newArrayType(newType(t.getComponentT(), td));
 		}
 		if (t instanceof ParamT) {
 			final ParameterizedType parameterizedType = ast.newParameterizedType(newType(
