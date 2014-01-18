@@ -90,6 +90,11 @@ public final class ArrayT extends T {
 	}
 
 	@Override
+	public String getFullName() {
+		return getComponentT().getFullName() + "[]";
+	}
+
+	@Override
 	public T[] getInterfaceTs() {
 		return getDu().getArrayInterfaceTs();
 	}
