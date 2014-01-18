@@ -23,11 +23,15 @@
  */
 package org.decojer.cavaj.model.types;
 
+import java.util.Map;
+
 import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
+
+import com.google.common.collect.Maps;
 
 /**
  * Array type.
@@ -46,6 +50,8 @@ public final class ArrayT extends T {
 
 	@Getter
 	private final DU du;
+
+	private Map<String, Object> member;
 
 	/**
 	 * Constructor.
@@ -102,6 +108,14 @@ public final class ArrayT extends T {
 	@Override
 	public int getKind() {
 		return Kind.REF.getKind();
+	}
+
+	@Override
+	public Map<String, Object> getMember() {
+		if (this.member == null) {
+			this.member = Maps.newHashMap();
+		}
+		return this.member;
 	}
 
 	@Override

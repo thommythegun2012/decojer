@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.types;
 
+import java.util.Map;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -86,6 +88,11 @@ public abstract class ModT extends T {
 	@Override
 	public int getKind() {
 		return getRawT().getKind();
+	}
+
+	@Override
+	public Map<String, Object> getMember() {
+		return getRawT().getMember();
 	}
 
 	@Override

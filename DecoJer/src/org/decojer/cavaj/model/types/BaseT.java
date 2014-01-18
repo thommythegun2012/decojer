@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.types;
 
+import java.util.Map;
+
 import lombok.Getter;
 
 import org.decojer.cavaj.model.T;
@@ -58,6 +60,11 @@ public class BaseT extends T {
 	@Override
 	public T[] getInterfaceTs() {
 		return INTERFACES_NONE;
+	}
+
+	@Override
+	public Map<String, Object> getMember() {
+		return null;
 	}
 
 	@Override

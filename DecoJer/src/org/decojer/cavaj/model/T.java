@@ -417,8 +417,6 @@ public abstract class T {
 		return t1;
 	}
 
-	private Map<String, Object> member;
-
 	/**
 	 * Assign from given type. There are 3 possible outcomes: Cannot assign from given type, which
 	 * returns {@code null}. Can assign from given type and primitive multitype reduction, which
@@ -660,15 +658,11 @@ public abstract class T {
 		return m;
 	}
 
-	protected Map<String, Object> getMember() {
-		if (this.member == null) {
-			this.member = Maps.newHashMap();
-		}
-		return this.member;
-	}
+	abstract public Map<String, Object> getMember();
 
 	/**
-	 * Get type name.
+	 * Get type name - is like a unique descriptor without modifiers like annotations or
+	 * parameterization.
 	 * 
 	 * Names consist of '.'-separated package names (for full name) and '$'-separated type names
 	 * (but '$' is also a valid Java name char!)
