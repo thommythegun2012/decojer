@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DecTestTypeAnnotations<U, @Nonnull V extends @Nonnull @Size(min = 1, max = 10) HashMap<String, @Nonnull @Size(max = 11) Integer> & @Size(max = 12) @Nonnull CharSequence>
+public class DecTestTypeAnnotations<U, @Nonnull V extends @Nonnull @Size(max = 1) @Size(min = 1, max = 10) HashMap<String, @Nonnull @Size(max = 11) Integer> & @Size(max = 12) @Nonnull CharSequence>
 		extends
 		@Nonnull HashMap<@Nonnull U, @Size(max = 13) @Nonnull List<List<@Nonnull List<@Nonnull ? extends @Nonnull String>>>>
 		implements @Nonnull @Size(max = 14) Serializable {
