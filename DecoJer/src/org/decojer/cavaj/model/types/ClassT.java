@@ -58,6 +58,9 @@ public class ClassT extends T {
 		return sb.toString();
 	}
 
+	@Getter
+	private final String name;
+
 	/**
 	 * Access flags.
 	 */
@@ -105,11 +108,11 @@ public class ClassT extends T {
 	 *            type name
 	 */
 	public ClassT(final DU du, final String name) {
-		super(name);
-
 		assert du != null;
+		assert name != null;
 
 		this.du = du;
+		this.name = name;
 	}
 
 	/**
@@ -121,8 +124,7 @@ public class ClassT extends T {
 	 *            interface types
 	 */
 	public ClassT(final T superT, final T... interfaceTs) {
-		super(toString(superT, interfaceTs));
-
+		this.name = toString(superT, interfaceTs);
 		this.du = superT.getDu();
 		this.superT = superT;
 		this.interfaceTs = interfaceTs;

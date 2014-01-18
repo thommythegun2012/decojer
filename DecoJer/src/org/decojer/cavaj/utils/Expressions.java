@@ -628,6 +628,7 @@ public final class Expressions {
 	 *            type declaration (context)
 	 * @return AST type
 	 */
+	@SuppressWarnings("deprecation")
 	public static Type newType(final T t, final TD td) {
 		final AST ast = td.getCu().getAst();
 		// handle array first because annot(array()) is special

@@ -56,10 +56,11 @@ public final class ArrayT extends T {
 	 *            component type
 	 */
 	public ArrayT(final DU du, final T componentT) {
-		super(componentT.getName() + "[]");
+		assert du != null;
+		assert componentT != null;
 
-		this.componentT = componentT;
 		this.du = du;
+		this.componentT = componentT;
 	}
 
 	@Override
@@ -96,6 +97,11 @@ public final class ArrayT extends T {
 	@Override
 	public int getKind() {
 		return Kind.REF.getKind();
+	}
+
+	@Override
+	public String getName() {
+		return getComponentT().getName() + "[]";
 	}
 
 	@Override
