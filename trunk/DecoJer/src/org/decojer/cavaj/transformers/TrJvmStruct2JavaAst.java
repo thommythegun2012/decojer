@@ -371,12 +371,12 @@ public final class TrJvmStruct2JavaAst {
 				if (methodParameterType instanceof ArrayType) {
 					singleVariableDeclaration.setVarargs(true);
 					// must copy because we cannot delete mandatory ArrayType.componentType
-					if (ast.apiLevel() >= AST.JLS8) {
-						singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
-								((ArrayType) methodParameterType).getElementType()));
-					} else {
+					if (ast.apiLevel() <= AST.JLS4) {
 						singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
 								((ArrayType) methodParameterType).getComponentType()));
+					} else {
+						singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
+								((ArrayType) methodParameterType).getElementType()));
 					}
 				} else {
 					LOGGER.warning("Last method parameter is no ArrayType, but method '"
@@ -398,10 +398,10 @@ public final class TrJvmStruct2JavaAst {
 			for (final T throwT : throwsTs) {
 				// Eclipse AST expects a List<Name> for thrownExceptions, not a List<Type>:
 				// is OK - thrownExceptions cannot be generic
-				if (ast.apiLevel() >= AST.JLS8) {
-					methodDeclaration.thrownExceptionTypes().add(newType(throwT, td));
-				} else {
+				if (ast.apiLevel() <= AST.JLS4) {
 					methodDeclaration.thrownExceptions().add(newTypeName(throwT, td));
+				} else {
+					methodDeclaration.thrownExceptionTypes().add(newType(throwT, td));
 				}
 			}
 		}
