@@ -15,16 +15,17 @@
         * https://bugs.eclipse.org/bugs/show_bug.cgi?id=424718
         * http://code.google.com/p/projectlombok/issues/detail?id=597 
       * ASTView shows "NullLiteral malformed" for Lambda
-    * API >= AST.JLS8
+    * check JLS8 API (old for <= AST.JLS4)
       * ArrayTypes are not recursive anymore, have dimension attribute and elementType instead of componentType
       * method: thrownExceptionTypes instead of throwsExceptions (names)
-    * Default Methods work, was easy change
+    * Default Methods work
     * Lambdas work mostly
-      * change Parameter and Inner Classes Handling (like Anonymous)
     * Type Annotations
-      * strange ASM 5 API, understand?
+      * Simple Types, Parameterized Types and Arrays work mostly
+      * Wildcards and Innner Types open
       * Examples:
         * http://www.tutego.de/blog/javainsel/2012/02/erster-draft-fr-annotations-on-java-types-jsr-308/
+    * Repeatable Annotations (@Repeatable) open
 
 = NOTICES =
 
