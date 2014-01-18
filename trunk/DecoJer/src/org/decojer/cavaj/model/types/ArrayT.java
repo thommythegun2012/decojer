@@ -112,6 +112,7 @@ public final class ArrayT extends T {
 
 	@Override
 	public Map<String, Object> getMember() {
+		// should only be used for getM("clone", "()Ljava/lang/Object;")
 		if (this.member == null) {
 			this.member = Maps.newHashMap();
 		}
