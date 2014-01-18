@@ -26,6 +26,7 @@ package org.decojer.cavaj.readers.asm;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.types.AnnotT;
 import org.decojer.cavaj.model.types.ArrayT;
@@ -42,21 +43,9 @@ public class Utils {
 
 	private final static Logger LOGGER = Logger.getLogger(Utils.class.getName());
 
-	public static AnnotT annotate(final T t, final A a) {
-		if (!t.isAnnotation()) {
-			return new AnnotT(t, new A[] { a });
-		}
-		// don't change annotation array (changes name), recreate type
-		final A[] oldAs = ((AnnotT) t).getAs();
-		final A[] as = new A[oldAs.length + 1];
-		System.arraycopy(oldAs, 0, as, 0, oldAs.length);
-		as[oldAs.length] = a;
-		return new AnnotT(((AnnotT) t).getRawT(), as);
-	}
-
 	public static T annotate(final T t, final A a, final TypePath typePath) {
 		if (typePath == null) {
-			return annotate(t, a);
+			return DU.getAnnotT(t, a);
 		}
 		T currentT = t;
 		for (int i = 0; i < typePath.getLength(); ++i) {
@@ -73,7 +62,7 @@ public class Utils {
 					currentT = componentT;
 					continue;
 				}
-				((ArrayT) currentT).setComponentT(annotate(componentT, a));
+				((ArrayT) currentT).setComponentT(DU.getAnnotT(componentT, a));
 				break;
 			}
 			case TypePath.INNER_TYPE: {
@@ -92,7 +81,7 @@ public class Utils {
 					continue;
 				}
 				// TODO wrong, have to annotate typeArgs itself here, not the bound!
-				typeArgs[arg] = new TypeArg(annotate(typeArg.getT(), a), typeArg.getKind());
+				typeArgs[arg] = new TypeArg(DU.getAnnotT(typeArg.getT(), a), typeArg.getKind());
 				break;
 			}
 			case TypePath.WILDCARD_BOUND: {
