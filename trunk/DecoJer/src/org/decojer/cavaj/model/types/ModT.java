@@ -44,9 +44,8 @@ public abstract class ModT extends T {
 	@Setter(value = AccessLevel.PROTECTED)
 	private T rawT;
 
-	protected ModT(final String name, final T rawT) {
-		super(name);
-		this.rawT = rawT;
+	protected ModT(final T rawT) {
+		this.rawT = rawT; // can be null for VarT lazy resolving
 	}
 
 	@Override
@@ -87,6 +86,11 @@ public abstract class ModT extends T {
 	@Override
 	public int getKind() {
 		return getRawT().getKind();
+	}
+
+	@Override
+	public String getName() {
+		return getRawT().getName();
 	}
 
 	@Override

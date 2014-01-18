@@ -123,12 +123,25 @@ public final class ParamT extends ModT {
 	 *            type arguments for matching type parameters
 	 */
 	public ParamT(final T genericT, final TypeArg[] typeArgs) {
-		super(genericT.getName(), genericT);
+		super(genericT);
 		// we have to use the raw name here, not name<typeArgs>, else many enclosing-dependant stuff
 		// will not work, like getT() for enclosed, getSimpleName() etc.,
 		// cannot cache this anyway because of type variables
 
+		assert genericT != null;
+		assert typeArgs != null && typeArgs.length > 0;
+
 		this.typeArgs = typeArgs;
+	}
+
+	@Override
+	public String getFullName() {
+		final StringBuilder sb = new StringBuilder(getGenericT().getFullName()).append('<');
+		for (final TypeArg typeArg : getTypeArgs()) {
+			sb.append(typeArg).append(',');
+		}
+		sb.setCharAt(sb.length() - 1, '>');
+		return sb.toString();
 	}
 
 	/**
@@ -143,16 +156,6 @@ public final class ParamT extends ModT {
 	@Override
 	public boolean isParameterized() {
 		return true;
-	}
-
-	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder(getGenericT().toString()).append('<');
-		for (final TypeArg typeArg : getTypeArgs()) {
-			sb.append(typeArg).append(',');
-		}
-		sb.setCharAt(sb.length() - 1, '>');
-		return sb.toString();
 	}
 
 }

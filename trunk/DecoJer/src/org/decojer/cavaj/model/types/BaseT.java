@@ -35,6 +35,9 @@ import org.decojer.cavaj.model.T;
 public class BaseT extends T {
 
 	@Getter
+	private final String name;
+
+	@Getter
 	private final int kind;
 
 	/**
@@ -46,8 +49,9 @@ public class BaseT extends T {
 	 *            type kind
 	 */
 	public BaseT(final String name, final int kind) {
-		super(name);
+		assert name != null;
 
+		this.name = name;
 		this.kind = kind;
 	}
 

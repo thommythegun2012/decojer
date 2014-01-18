@@ -52,26 +52,29 @@ public class AnnotT extends ModT {
 	 *            type annotations
 	 */
 	public AnnotT(final T t, final A[] as) {
-		super(t.getName(), t);
+		super(t);
 		// we have to use the raw name here, not @annotations name, else many enclosing-dependant
 		// stuff will not work, like getT() for enclosed, getSimpleName() etc.,
 		// cannot cache this anyway because of lazy application of type annotations
+
+		assert t != null;
+		assert as != null && as.length > 0;
 
 		this.as = as;
 	}
 
 	@Override
-	public boolean isAnnotation() {
-		return true;
-	}
-
-	@Override
-	public String toString() {
+	public String getFullName() {
 		final StringBuilder sb = new StringBuilder();
 		for (final A a : this.as) {
 			sb.append('@').append(a).append(' ');
 		}
-		return sb.append(getRawT().getName()).toString();
+		return sb.append(getRawT().getFullName()).toString();
+	}
+
+	@Override
+	public boolean isAnnotation() {
+		return true;
 	}
 
 }

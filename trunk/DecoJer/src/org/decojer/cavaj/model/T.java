@@ -27,8 +27,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import lombok.Getter;
-
 import org.decojer.cavaj.model.types.BaseT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.Kind;
@@ -419,27 +417,7 @@ public abstract class T {
 		return t1;
 	}
 
-	/**
-	 * Type name.
-	 * 
-	 * Names consist of '.'-separated package names (for full name) and '$'-separated type names
-	 * (but '$' is also a valid Java name char!)
-	 * 
-	 * Valid name chars contain also connecting characters and other, e.g.:
-	 * 
-	 * $ _ ¢ £ ¤ ¥ ؋ ৲ ৳ ৻ ૱ ௹ ฿ ៛ ‿ ⁀ ⁔ ₠ ₡ ₢ ₣ ₤ ₥ ₦ ₧ ₨ ₩ ₪ ₫ € ₭ ₮ ₯ ₰ ₱ ₲ ₳ ₴ ₵ ₶ ₷ ₸ ₹ ꠸ ﷼ ︳ ︴
-	 * ﹍ ﹎ ﹏ ﹩ ＄ ＿ ￠ ￡ ￥ ￦
-	 */
-	@Getter
-	private final String name;
-
 	private Map<String, Object> member;
-
-	protected T(final String name) {
-		assert name != null;
-
-		this.name = name;
-	}
 
 	/**
 	 * Assign from given type. There are 3 possible outcomes: Cannot assign from given type, which
@@ -499,13 +477,13 @@ public abstract class T {
 		if (!(obj instanceof T)) {
 			return false;
 		}
-		if (this.name.equals(((T) obj).name)) {
+		if (getName().equals(((T) obj).getName())) {
 			return true;
 		}
 		// 'Lcom/google/common/collect/ImmutableList<TE;>.SubList;' to type
 		// 'com.google.common.collect.ImmutableList$SubList'
 		// FIXME currently this are ClassT without parent/enclosing...whats correct?
-		return this.name.replaceAll("<[^>]+>", "").equals(((T) obj).name);
+		return getName().replaceAll("<[^>]+>", "").equals(((T) obj).getName());
 	}
 
 	/**
@@ -617,6 +595,16 @@ public abstract class T {
 	}
 
 	/**
+	 * Get the full name, including modifiers like generic arguments, parameterization, type
+	 * annotations.
+	 * 
+	 * @return full name
+	 */
+	public String getFullName() {
+		return getName();
+	}
+
+	/**
 	 * Get inner name. Can derive for JVM > 5 from type names (compatibility rules), but not before.<br>
 	 * <br>
 	 * According to JLS3 "Binary Compatibility" (13.1) the binary name of non-package classes (not
@@ -680,6 +668,21 @@ public abstract class T {
 	}
 
 	/**
+	 * Get type name.
+	 * 
+	 * Names consist of '.'-separated package names (for full name) and '$'-separated type names
+	 * (but '$' is also a valid Java name char!)
+	 * 
+	 * Valid name chars contain also connecting characters and other, e.g.:
+	 * 
+	 * $ _ ¢ £ ¤ ¥ ؋ ৲ ৳ ৻ ૱ ௹ ฿ ៛ ‿ ⁀ ⁔ ₠ ₡ ₢ ₣ ₤ ₥ ₦ ₧ ₨ ₩ ₪ ₫ € ₭ ₮ ₯ ₰ ₱ ₲ ₳ ₴ ₵ ₶ ₷ ₸ ₹ ꠸ ﷼ ︳ ︴
+	 * ﹍ ﹎ ﹏ ﹩ ＄ ＿ ￠ ￡ ￥ ￦
+	 * 
+	 * @return type name
+	 */
+	abstract public String getName();
+
+	/**
 	 * Get package name.
 	 * 
 	 * @return package name or {@code null} for no package
@@ -687,8 +690,8 @@ public abstract class T {
 	public String getPackageName() {
 		// TODO can be simplified later...< and $ no valid parts in ClassT, need NestedClassT
 		int pos = -1;
-		loop: for (int i = 0; i < this.name.length(); ++i) {
-			switch (this.name.charAt(i)) {
+		loop: for (int i = 0; i < getName().length(); ++i) {
+			switch (getName().charAt(i)) {
 			case '.':
 				pos = i;
 				continue;
@@ -697,7 +700,7 @@ public abstract class T {
 				break loop;
 			}
 		}
-		return pos == -1 ? null : this.name.substring(0, pos);
+		return pos == -1 ? null : getName().substring(0, pos);
 	}
 
 	/**
@@ -706,17 +709,17 @@ public abstract class T {
 	 * @return primary name
 	 */
 	public String getPName() {
-		if (this.name.startsWith("{")) {
+		if (getName().startsWith("{")) {
 			return getName();
 		}
 		final String packageName = getPackageName();
 		if (packageName == null) {
-			return this.name;
+			return getName();
 		}
 		if (packageName.length() == 0) {
-			return this.name;
+			return getName();
 		}
-		return this.name.substring(packageName.length() + 1);
+		return getName().substring(packageName.length() + 1);
 	}
 
 	/**
@@ -818,7 +821,7 @@ public abstract class T {
 
 	@Override
 	public int hashCode() {
-		return this.name.hashCode();
+		return getName().hashCode();
 	}
 
 	/**
@@ -1025,7 +1028,7 @@ public abstract class T {
 	@Override
 	public String toString() {
 		// getSimpleName() not possible, potentially needs unresolved attributes, e.g. enclosing
-		return getName();
+		return getFullName();
 	}
 
 }

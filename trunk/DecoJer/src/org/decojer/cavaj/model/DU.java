@@ -587,6 +587,7 @@ public final class DU {
 				if (!name.endsWith(".class")) {
 					continue;
 				}
+				@SuppressWarnings("resource")
 				FileInputStream is = null;
 				try {
 					is = new FileInputStream(entry);
