@@ -28,58 +28,67 @@ import lombok.Getter;
 import org.decojer.cavaj.model.T;
 
 /**
- * Parameterized type.
- * 
- * @since JVM 5
- * 
  * @author André Pankraz
  */
-public final class ParamT extends ModT {
+public class WildcardT extends ModT {
 
-	/**
-	 * Type arguments for matching type parameters.
-	 */
+	public static WildcardT matches() {
+		return new WildcardT(null, false);
+	}
+
+	public static WildcardT subclassOf(final T t) {
+		assert t != null;
+
+		return new WildcardT(t, true);
+	}
+
+	public static WildcardT superOf(final T t) {
+		assert t != null;
+
+		return new WildcardT(t, false);
+	}
+
 	@Getter
-	private final T[] typeArgs;
+	private final boolean subclassOf;
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param genericT
-	 *            generic type with matching type parameters
-	 * @param typeArgs
-	 *            type arguments for matching type parameters
+	 * @param boundT
+	 *            bound type
+	 * @param subclass
+	 *            is subclass (extends)
 	 */
-	public ParamT(final T genericT, final T[] typeArgs) {
-		super(genericT);
-		// we have to use the raw name here, not name<typeArgs>, else many enclosing-dependant stuff
-		// will not work, like getT() for enclosed, getSimpleName() etc.,
-		// cannot cache this anyway because of type variables
+	protected WildcardT(final T boundT, final boolean subclass) {
+		super(boundT);
 
-		assert genericT != null;
-		assert typeArgs != null && typeArgs.length > 0;
-
-		this.typeArgs = typeArgs;
+		this.subclassOf = subclass;
 	}
 
 	@Override
-	public String getFullName() {
-		final StringBuilder sb = new StringBuilder(getGenericT().getFullName()).append('<');
-		for (final T typeArg : getTypeArgs()) {
-			sb.append(typeArg).append(',');
-		}
-		sb.setCharAt(sb.length() - 1, '>');
-		return sb.toString();
-	}
-
-	@Override
-	public T getGenericT() {
+	public T getBoundT() {
 		return getRawT();
 	}
 
 	@Override
-	public boolean isParameterized() {
+	public String getFullName() {
+		if (getBoundT() == null) {
+			return "?";
+		}
+		if (isSubclassOf()) {
+			return "? extends " + getBoundT().getFullName();
+		}
+		return "? super " + getBoundT().getFullName();
+	}
+
+	@Override
+	public boolean isWildcard() {
 		return true;
+	}
+
+	@Override
+	public void setBoundT(final T boundT) {
+		setRawT(boundT);
 	}
 
 }

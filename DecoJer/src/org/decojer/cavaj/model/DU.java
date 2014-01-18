@@ -51,8 +51,8 @@ import org.decojer.cavaj.model.types.AnnotT;
 import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
-import org.decojer.cavaj.model.types.ParamT.TypeArg;
 import org.decojer.cavaj.model.types.VarT;
+import org.decojer.cavaj.model.types.WildcardT;
 import org.decojer.cavaj.readers.AsmReader;
 import org.decojer.cavaj.readers.ClassReader;
 import org.decojer.cavaj.readers.DexReader;
@@ -113,7 +113,7 @@ public final class DU {
 	 *            type arguments for matching type parameters
 	 * @return parameterized type for generic type and type arguments
 	 */
-	public static ParamT getParamT(final T genericT, final TypeArg[] typeArgs) {
+	public static ParamT getParamT(final T genericT, final T[] typeArgs) {
 		// cannot cache because of type variables
 		return new ParamT(genericT, typeArgs);
 	}
@@ -384,7 +384,7 @@ public final class DU {
 			t = getT(s.substring(start, c.pos).replace('/', '.'));
 		}
 		// TypeArguments_opt
-		final TypeArg[] typeArgs = parseTypeArgs(s, c, context);
+		final T[] typeArgs = parseTypeArgs(s, c, context);
 		if (typeArgs != null) {
 			t = getParamT(t, typeArgs);
 		}
@@ -488,34 +488,34 @@ public final class DU {
 	 *            enclosing type context
 	 * @return type arguments or {@code null}
 	 */
-	private TypeArg[] parseTypeArgs(final String s, final Cursor c, final Object context) {
+	private T[] parseTypeArgs(final String s, final Cursor c, final Object context) {
 		// TypeArguments_opt
 		if (s.length() <= c.pos || s.charAt(c.pos) != '<') {
 			return null;
 		}
 		++c.pos;
-		final List<TypeArg> ts = Lists.newArrayList();
+		final List<T> ts = Lists.newArrayList();
 		char ch;
 		while ((ch = s.charAt(c.pos)) != '>') {
 			switch (ch) {
 			case '+':
 				++c.pos;
-				ts.add(TypeArg.subclassOf(parseT(s, c, context)));
+				ts.add(WildcardT.subclassOf(parseT(s, c, context)));
 				break;
 			case '-':
 				++c.pos;
-				ts.add(TypeArg.superOf(parseT(s, c, context)));
+				ts.add(WildcardT.superOf(parseT(s, c, context)));
 				break;
 			case '*':
 				++c.pos;
-				ts.add(new TypeArg());
+				ts.add(WildcardT.matches());
 				break;
 			default:
-				ts.add(new TypeArg(parseT(s, c, context)));
+				ts.add(parseT(s, c, context));
 			}
 		}
 		++c.pos;
-		return ts.toArray(new TypeArg[ts.size()]);
+		return ts.toArray(new T[ts.size()]);
 	}
 
 	/**

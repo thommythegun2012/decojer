@@ -248,11 +248,6 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public boolean isPrimitive() {
-		return false;
-	}
-
-	@Override
 	public boolean isRef() {
 		return true;
 	}

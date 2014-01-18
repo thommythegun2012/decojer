@@ -151,11 +151,6 @@ public final class ArrayT extends T {
 	}
 
 	@Override
-	public boolean isPrimitive() {
-		return false;
-	}
-
-	@Override
 	public boolean isRef() {
 		return true;
 	}
