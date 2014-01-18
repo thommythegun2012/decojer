@@ -32,7 +32,6 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.Version;
 import org.decojer.cavaj.model.code.ops.Op;
-import org.decojer.cavaj.model.types.AnnotT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParamT.TypeArg;
@@ -635,13 +634,14 @@ public final class Expressions {
 		if (t.isArray()) {
 			if (ast.apiLevel() >= AST.JLS8) {
 				for (T checkT = t; checkT.isArray(); checkT = checkT.getComponentT()) {
-					if (checkT instanceof AnnotT) {
+					if (checkT.isAnnotation()) {
 						final ArrayType arrayType = ast.newArrayType(newType(t.getElementT(), td));
 						final List<Dimension> dimensions = arrayType.dimensions();
+						dimensions.clear();
 						for (T elementT = t; elementT.isArray(); elementT = elementT
 								.getComponentT()) {
 							final Dimension dimension = ast.newDimension();
-							if (elementT instanceof AnnotT) {
+							if (elementT.isAnnotation()) {
 								Annotations.decompileAnnotations(td, dimension.annotations(),
 										elementT);
 							}
@@ -654,7 +654,7 @@ public final class Expressions {
 			}
 			return ast.newArrayType(newType(t.getComponentT(), td));
 		}
-		if (t instanceof AnnotT) {
+		if (t.isAnnotation()) {
 			final Type type = newType(t.getRawT(), td);
 			Type annotatableType = type;
 			if (annotatableType instanceof ParameterizedType) {

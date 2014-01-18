@@ -61,6 +61,11 @@ public class AnnotT extends ModT {
 	}
 
 	@Override
+	public boolean isAnnotation() {
+		return true;
+	}
+
+	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder();
 		for (final A a : this.as) {

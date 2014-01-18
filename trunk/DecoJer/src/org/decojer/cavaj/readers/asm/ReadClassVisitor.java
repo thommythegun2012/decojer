@@ -241,7 +241,7 @@ public class ReadClassVisitor extends ClassVisitor {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
 			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
 			T t = getTd().getTypeParams()[typeParameterIndex];
-			if (t instanceof AnnotT) {
+			if (t.isAnnotation()) {
 				t = ((AnnotT) t).getRawT();
 			}
 			if (typeParameterBoundIndex == 0) {

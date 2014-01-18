@@ -43,7 +43,7 @@ public class Utils {
 	private final static Logger LOGGER = Logger.getLogger(Utils.class.getName());
 
 	public static AnnotT annotate(final T t, final A a) {
-		if (!(t instanceof AnnotT)) {
+		if (!t.isAnnotation()) {
 			return new AnnotT(t, new A[] { a });
 		}
 		// don't change annotation array (changes name), recreate type
@@ -65,7 +65,7 @@ public class Utils {
 			final int step = typePath.getStep(i);
 			switch (step) {
 			case TypePath.ARRAY_ELEMENT: {
-				if (currentT instanceof AnnotT) {
+				if (currentT.isAnnotation()) {
 					currentT = ((AnnotT) currentT).getRawT();
 				}
 				final T componentT = ((ArrayT) currentT).getComponentT();
@@ -81,7 +81,7 @@ public class Utils {
 				break;
 			}
 			case TypePath.TYPE_ARGUMENT: {
-				if (currentT instanceof AnnotT) {
+				if (currentT.isAnnotation()) {
 					currentT = ((AnnotT) currentT).getRawT();
 				}
 				final TypeArg[] typeArgs = ((ParamT) currentT).getTypeArgs();
@@ -96,7 +96,7 @@ public class Utils {
 				break;
 			}
 			case TypePath.WILDCARD_BOUND: {
-				if (currentT instanceof AnnotT) {
+				if (currentT.isAnnotation()) {
 					currentT = ((AnnotT) currentT).getRawT();
 				}
 				// TODO
