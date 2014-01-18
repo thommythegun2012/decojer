@@ -25,6 +25,7 @@ package org.decojer.cavaj.model.types;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -36,6 +37,8 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
+
+import com.google.common.collect.Maps;
 
 /**
  * Class type.
@@ -92,6 +95,8 @@ public class ClassT extends T {
 
 	@Getter
 	private TD td;
+
+	private Map<String, Object> member;
 
 	/**
 	 * Type parameters. (They define the useable type variables)
@@ -187,6 +192,14 @@ public class ClassT extends T {
 	@Override
 	public int getKind() {
 		return Kind.REF.getKind();
+	}
+
+	@Override
+	public Map<String, Object> getMember() {
+		if (this.member == null) {
+			this.member = Maps.newHashMap();
+		}
+		return this.member;
 	}
 
 	@Override
