@@ -7,6 +7,9 @@ package org.decojer.cavaj.test.jdk8;
 		java.lang.annotation.ElementType.TYPE_PARAMETER })
 public @interface Sizes {
 
+	// is allowed, ignore...
+	int muh() default 1;
+
 	Size[] value();
 
 }
