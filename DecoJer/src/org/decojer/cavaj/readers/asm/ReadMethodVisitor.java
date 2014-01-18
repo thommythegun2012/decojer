@@ -937,15 +937,27 @@ public class ReadMethodVisitor extends MethodVisitor {
 		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
 		final Op op = this.ops.get(this.ops.size() - 1);
-		// TODO JDK 8 has +1 index to Eclipse!
+		// TODO JDK 8 has +1 index to Eclipse! who is wrong? JDK or Eclipse?
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.CAST: {
-			((CAST) op).setToT(annotate(((CAST) op).getToT(), a, typePath));
+			if (op instanceof CAST) {
+				((CAST) op).setToT(annotate(((CAST) op).getToT(), a, typePath));
+			} else {
+				LOGGER.warning(getMd() + ": Wrong operation '" + op
+						+ "' for type annotation ref sort 'CAST' : " + typeRef + " : " + typePath
+						+ " : " + desc + " : " + visible);
+			}
 			break;
 		}
 		case TypeReference.NEW: {
-			((TypedOp) op).setT(annotate(((TypedOp) op).getT(), a, typePath));
+			if (op instanceof NEW || op instanceof NEWARRAY) {
+				((TypedOp) op).setT(annotate(((TypedOp) op).getT(), a, typePath));
+			} else {
+				LOGGER.warning(getMd() + ": Wrong operation '" + op
+						+ "' for type annotation ref sort 'NEW' : " + typeRef + " : " + typePath
+						+ " : " + desc + " : " + visible);
+			}
 			break;
 		}
 		default:
@@ -1548,7 +1560,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
 			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
 			T t = getMd().getTypeParams()[typeParameterIndex];
-			if (t instanceof AnnotT) {
+			if (t.isAnnotation()) {
 				t = ((AnnotT) t).getRawT();
 			}
 			if (typeParameterBoundIndex == 0) {

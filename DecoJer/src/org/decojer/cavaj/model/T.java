@@ -852,6 +852,15 @@ public abstract class T {
 	}
 
 	/**
+	 * Is Type Annotation?
+	 * 
+	 * @return {@code true} - is Type Annotation
+	 */
+	public boolean isAnnotation() {
+		return false; // overwrite in AnnotT
+	}
+
+	/**
 	 * Returns {@code true} if and only if the underlying class is an anonymous class.<br>
 	 * <br>
 	 * This is heavily dependant from {@link #getEnclosingT()}, which can be {@code null} for
