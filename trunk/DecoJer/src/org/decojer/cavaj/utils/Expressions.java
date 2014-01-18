@@ -33,8 +33,6 @@ import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.Version;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.types.ClassT;
-import org.decojer.cavaj.model.types.ParamT;
-import org.decojer.cavaj.model.types.ParamT.TypeArg;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AnnotatableType;
@@ -665,31 +663,27 @@ public final class Expressions {
 		}
 		if (t.isParameterized()) {
 			final ParameterizedType parameterizedType = ast.newParameterizedType(newType(
-					((ParamT) t).getGenericT(), td));
-			for (final TypeArg typeArg : ((ParamT) t).getTypeArgs()) {
-				switch (typeArg.getKind()) {
-				case UNBOUND: {
-					parameterizedType.typeArguments().add(ast.newWildcardType());
-					break;
-				}
-				case SUBCLASS_OF: {
-					final WildcardType wildcardType = ast.newWildcardType();
-					// default...newWildcardType.setUpperBound(true);
-					wildcardType.setBound(newType(typeArg.getT(), td));
-					parameterizedType.typeArguments().add(wildcardType);
-					break;
-				}
-				case SUPER_OF: {
+					t.getGenericT(), td));
+			for (final T typeArg : t.getTypeArgs()) {
+				if (typeArg.isWildcard()) {
+					if (typeArg.getBoundT() == null) {
+						parameterizedType.typeArguments().add(ast.newWildcardType());
+						break;
+					}
+					if (typeArg.isSubclassOf()) {
+						final WildcardType wildcardType = ast.newWildcardType();
+						// default...newWildcardType.setUpperBound(true);
+						wildcardType.setBound(newType(typeArg.getBoundT(), td));
+						parameterizedType.typeArguments().add(wildcardType);
+						break;
+					}
 					final WildcardType wildcardType = ast.newWildcardType();
 					wildcardType.setUpperBound(false);
-					wildcardType.setBound(newType(typeArg.getT(), td));
+					wildcardType.setBound(newType(typeArg.getBoundT(), td));
 					parameterizedType.typeArguments().add(wildcardType);
 					break;
 				}
-				default: {
-					parameterizedType.typeArguments().add(newType(typeArg.getT(), td));
-				}
-				}
+				parameterizedType.typeArguments().add(newType(typeArg, td));
 			}
 			return parameterizedType;
 		}

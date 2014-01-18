@@ -508,9 +508,18 @@ public abstract class T {
 	}
 
 	/**
-	 * Get component type of array type (null if no array type).
+	 * Get bound type for wildcard type or null.
 	 * 
-	 * @return component type of array type (null if no array type)
+	 * @return bound type for wildcard type or null
+	 */
+	public T getBoundT() {
+		return null;
+	}
+
+	/**
+	 * Get component type of array type or null.
+	 * 
+	 * @return component type of array type or null
 	 * 
 	 * @see Class#isAssignableFrom(Class)
 	 */
@@ -600,6 +609,15 @@ public abstract class T {
 	 */
 	public String getFullName() {
 		return getName();
+	}
+
+	/**
+	 * Get generic type for parameterized type or null.
+	 * 
+	 * @return generic type for parameterized type or null
+	 */
+	public T getGenericT() {
+		return null;
 	}
 
 	/**
@@ -804,6 +822,15 @@ public abstract class T {
 	}
 
 	/**
+	 * Get type arguments for parameterized types.
+	 * 
+	 * @return type arguments for parameterized types
+	 */
+	public T[] getTypeArgs() {
+		return null;
+	}
+
+	/**
 	 * Get type parameters.
 	 * 
 	 * @return type parameters, not {@code null}
@@ -984,7 +1011,9 @@ public abstract class T {
 	 * 
 	 * @return {@code true} - is primitive
 	 */
-	public abstract boolean isPrimitive();
+	public boolean isPrimitive() {
+		return false; // overwrite in BaseT
+	}
 
 	/**
 	 * Is reference type (includes array type, parameterized type)?
@@ -992,6 +1021,15 @@ public abstract class T {
 	 * @return {@code true} - is reference type
 	 */
 	public abstract boolean isRef();
+
+	/**
+	 * Is subclass - for wildcard types?
+	 * 
+	 * @return {@code true} - is subclass - for wildcard types
+	 */
+	public boolean isSubclassOf() {
+		return false;
+	}
 
 	/**
 	 * Is unresolveable?
@@ -1007,6 +1045,45 @@ public abstract class T {
 	 */
 	public boolean isWide() {
 		return false; // only base types can be wide, overwrite in BaseT
+	}
+
+	/**
+	 * Is wildcard type?
+	 * 
+	 * @return {@code true} - is wildcard type
+	 */
+	public boolean isWildcard() {
+		return false; // overwrite in WildcardT
+	}
+
+	/**
+	 * Set bound type for wildcard type.
+	 * 
+	 * @param boundT
+	 *            bound type for wildcard type
+	 */
+	public void setBoundT(final T boundT) {
+		assert false;
+	}
+
+	/**
+	 * Set component type for array type.
+	 * 
+	 * @param componentT
+	 *            component type for array type
+	 */
+	public void setComponentT(final T componentT) {
+		assert false;
+	}
+
+	/**
+	 * Set generic type for parameterized type.
+	 * 
+	 * @param genericT
+	 *            generic type for parameterized type
+	 */
+	public void setGenericT(final T genericT) {
+		assert false;
 	}
 
 	/**

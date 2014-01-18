@@ -29,9 +29,6 @@ import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.types.AnnotT;
-import org.decojer.cavaj.model.types.ArrayT;
-import org.decojer.cavaj.model.types.ParamT;
-import org.decojer.cavaj.model.types.ParamT.TypeArg;
 import org.objectweb.asm.TypePath;
 
 /**
@@ -50,22 +47,32 @@ public class Utils {
 		T currentT = t;
 		for (int i = 0; i < typePath.getLength(); ++i) {
 			final boolean isLast = i == typePath.getLength() - 1;
+			// JVMS: If the value of the type_path_kind item is 0, 1, or 2, then the value of the
+			// type_argument_index item is 0.
+			// If the value of the type_path_kind item is 3, then the value of
+			// the type_argument_index item specifies which type argument of a
+			// parameterized type is annotated, where 0 indicates the first type argument
+			// of a parameterized type.
 			final int arg = typePath.getStepArgument(i);
 			final int step = typePath.getStep(i);
 			switch (step) {
 			case TypePath.ARRAY_ELEMENT: {
+				assert arg == 0;
+
 				if (currentT.isAnnotation()) {
 					currentT = ((AnnotT) currentT).getRawT();
 				}
-				final T componentT = ((ArrayT) currentT).getComponentT();
+				final T componentT = currentT.getComponentT();
 				if (!isLast) {
 					currentT = componentT;
 					continue;
 				}
-				((ArrayT) currentT).setComponentT(DU.getAnnotT(componentT, a));
+				currentT.setComponentT(DU.getAnnotT(componentT, a));
 				break;
 			}
 			case TypePath.INNER_TYPE: {
+				assert arg == 0;
+
 				LOGGER.warning("TODO Annotate Inner type.");
 				break;
 			}
@@ -73,27 +80,29 @@ public class Utils {
 				if (currentT.isAnnotation()) {
 					currentT = ((AnnotT) currentT).getRawT();
 				}
-				final TypeArg[] typeArgs = ((ParamT) currentT).getTypeArgs();
-				final TypeArg typeArg = typeArgs[arg];
+				final T[] typeArgs = currentT.getTypeArgs();
+				final T typeArg = typeArgs[arg];
 				if (!isLast) {
-					// TODO wrong, typeArg itself would be new context! must derive T? => ArgT!
-					currentT = typeArg.getT();
+					currentT = typeArg;
 					continue;
 				}
-				// TODO wrong, have to annotate typeArgs itself here, not the bound!
-				typeArgs[arg] = new TypeArg(DU.getAnnotT(typeArg.getT(), a), typeArg.getKind());
+				typeArgs[arg] = DU.getAnnotT(typeArg, a);
 				break;
 			}
 			case TypePath.WILDCARD_BOUND: {
+				assert arg == 0;
+
 				if (currentT.isAnnotation()) {
 					currentT = ((AnnotT) currentT).getRawT();
 				}
-				// TODO
-				/*
-				 * final TypeArg[] typeArgs = ((ParamT) currentT).getTypeArgs(); final TypeArg
-				 * typeArg = typeArgs[arg]; if (!isLast) { currentT = typeArg.getT(); continue; }
-				 * typeArgs[arg] = new TypeArg(annotate(typeArg.getT(), a), typeArg.getKind());
-				 */
+				final T bound = currentT.getBoundT();
+				assert bound != null;
+
+				if (!isLast) {
+					currentT = bound;
+					continue;
+				}
+				currentT.setBoundT(DU.getAnnotT(bound, a));
 				break;
 			}
 			default:

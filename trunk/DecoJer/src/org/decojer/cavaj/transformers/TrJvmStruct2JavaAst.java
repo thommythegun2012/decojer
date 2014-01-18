@@ -42,7 +42,6 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.Version;
 import org.decojer.cavaj.model.code.DFlag;
-import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.utils.Annotations;
 import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.AST;
@@ -516,7 +515,7 @@ public final class TrJvmStruct2JavaAst {
 					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
 					if (td.getSuperT() == null || !td.getSuperT().isParameterized()
-							|| !((ParamT) td.getSuperT()).getGenericT().is(Enum.class)) {
+							|| !td.getSuperT().getGenericT().is(Enum.class)) {
 						LOGGER.warning("Type '" + td
 								+ "' with AccessFlag.ENUM has no super class '"
 								+ Enum.class.getName() + "' but has '" + td.getSuperT() + "'!");
