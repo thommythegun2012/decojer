@@ -852,9 +852,9 @@ public abstract class T {
 	}
 
 	/**
-	 * Is Type Annotation?
+	 * Is (or has) type annotation?
 	 * 
-	 * @return {@code true} - is Type Annotation
+	 * @return {@code true} - is type annotation
 	 */
 	public boolean isAnnotation() {
 		return false; // overwrite in AnnotT
@@ -874,9 +874,9 @@ public abstract class T {
 	}
 
 	/**
-	 * Is Array Type?
+	 * Is array type?
 	 * 
-	 * @return {@code true} - is Array Type
+	 * @return {@code true} - is array type
 	 */
 	public boolean isArray() {
 		return false; // overwrite in ArrayT
@@ -971,6 +971,15 @@ public abstract class T {
 	 */
 	public boolean isObject() {
 		return false; // only class types can be Object type, overwrite in ClassT
+	}
+
+	/**
+	 * Is parameterized type?
+	 * 
+	 * @return {@code true} - is parameterized type
+	 */
+	public boolean isParameterized() {
+		return false; // overwrite in ParamT
 	}
 
 	/**

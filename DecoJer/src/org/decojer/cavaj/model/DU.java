@@ -47,6 +47,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.DecoJerException;
+import org.decojer.cavaj.model.types.AnnotT;
 import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
@@ -74,6 +75,34 @@ import com.google.common.collect.Maps;
 public final class DU {
 
 	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
+
+	/**
+	 * Get type with added type annotation for given type and type annotation.
+	 * 
+	 * @param t
+	 *            type
+	 * @param a
+	 *            annotation
+	 * @return annotated type
+	 */
+	public static AnnotT getAnnotT(final T t, final A a) {
+		if (!t.isAnnotation()) {
+			return new AnnotT(t, new A[] { a });
+		}
+		final AnnotT annotT = (AnnotT) t;
+		for (final A checkA : annotT.getAs()) {
+			if (checkA.getT().equals(a.getT())) {
+				LOGGER.warning("Type '" + t + "' already has the type annotation '" + a + "'!");
+				return annotT;
+			}
+		}
+		// don't change annotation array (changes name), recreate type
+		final A[] oldAs = annotT.getAs();
+		final A[] as = new A[oldAs.length + 1];
+		System.arraycopy(oldAs, 0, as, 0, oldAs.length);
+		as[oldAs.length] = a;
+		return new AnnotT(annotT.getRawT(), as);
+	}
 
 	/**
 	 * Get parameterized type for generic type and type arguments.

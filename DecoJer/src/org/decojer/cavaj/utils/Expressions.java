@@ -664,7 +664,7 @@ public final class Expressions {
 					t);
 			return type;
 		}
-		if (t instanceof ParamT) {
+		if (t.isParameterized()) {
 			final ParameterizedType parameterizedType = ast.newParameterizedType(newType(
 					((ParamT) t).getGenericT(), td));
 			for (final TypeArg typeArg : ((ParamT) t).getTypeArgs()) {

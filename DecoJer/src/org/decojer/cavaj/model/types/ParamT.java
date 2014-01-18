@@ -141,6 +141,11 @@ public final class ParamT extends ModT {
 	}
 
 	@Override
+	public boolean isParameterized() {
+		return true;
+	}
+
+	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(getGenericT().toString()).append('<');
 		for (final TypeArg typeArg : getTypeArgs()) {
