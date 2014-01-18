@@ -21,11 +21,12 @@
     * Default Methods work
     * Lambdas work mostly
     * Type Annotations
-      * Simple Types, Parameterized Types and Arrays work mostly
-      * Wildcards and Innner Types open
+      * Simple Types, Parameterized Types, Wildcards and Arrays work mostly
+      * Inner Types open
       * Examples:
         * http://www.tutego.de/blog/javainsel/2012/02/erster-draft-fr-annotations-on-java-types-jsr-308/
     * Repeatable Annotations (@Repeatable) open
+      * http://docs.oracle.com/javase/tutorial/java/annotations/repeating.html
 
 = NOTICES =
 
