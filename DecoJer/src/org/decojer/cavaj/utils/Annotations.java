@@ -29,6 +29,7 @@ import static org.decojer.cavaj.utils.Expressions.newTypeName;
 
 import java.lang.reflect.Array;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -70,10 +71,10 @@ public final class Annotations {
 	 */
 	private static Annotation decompileAnnotation(final TD td, final A a) {
 		final AST ast = td.getCu().getAst();
-		final Set<String> memberNames = a.getMemberNames();
-		if (memberNames != null) {
-			if (memberNames.size() == 1) {
-				final Object memberValue = a.getMemberValue("value");
+		final Set<Entry<String, Object>> members = a.getMembers();
+		if (!members.isEmpty()) {
+			if (members.size() == 1) {
+				final Object memberValue = a.getMember("value");
 				if (memberValue != null) {
 					// a single member name "value=" is optional
 					final SingleMemberAnnotation singleMemberAnnotation = ast
@@ -86,12 +87,11 @@ public final class Annotations {
 			}
 			final NormalAnnotation normalAnnotation = ast.newNormalAnnotation();
 			normalAnnotation.setTypeName(newTypeName(a.getT(), td));
-			for (final String memberName : memberNames) {
-				final Expression expression = decompileAnnotationDefaultValue(td,
-						a.getMemberValue(memberName));
+			for (final Entry<String, Object> member : members) {
+				final Expression expression = decompileAnnotationDefaultValue(td, member.getValue());
 				if (expression != null) {
 					final MemberValuePair newMemberValuePair = ast.newMemberValuePair();
-					newMemberValuePair.setName(newSimpleName(memberName, ast));
+					newMemberValuePair.setName(newSimpleName(member.getKey(), ast));
 					newMemberValuePair.setValue(expression);
 					normalAnnotation.values().add(newMemberValuePair);
 				}
@@ -205,7 +205,7 @@ public final class Annotations {
 		}
 		for (final A a : as) {
 			if (isRepeatable(a)) {
-				for (final Object aa : (Object[]) a.getMemberValue()) {
+				for (final Object aa : (Object[]) a.getValueMember()) {
 					annotations.add(decompileAnnotation(td, (A) aa));
 				}
 			} else {
@@ -249,18 +249,56 @@ public final class Annotations {
 		return false;
 	}
 
+	@SuppressWarnings("null")
 	private static boolean isRepeatable(final A a) {
-		final Object memberValue = a.getMemberValue();
-		if (!(memberValue instanceof Object[])) {
+		if (a.getMembers().size() != 1) {
+			// annotation declaration can have other members, but they must have defaults...this is
+			// implicitely true because our code can only be compiled against such annotations with
+			// only one value field (containing child annotations)
 			return false;
 		}
-		for (final Object o : (Object[]) memberValue) {
+		final Object valueMember = a.getValueMember();
+		if (!(valueMember instanceof Object[])) {
+			return false;
+		}
+		T aT = null;
+		for (final Object o : (Object[]) valueMember) {
 			if (!(o instanceof A)) {
 				return false;
 			}
+			final T t = ((A) o).getT();
+			if (aT == null) {
+				aT = t;
+				continue;
+			}
+			if (!aT.equals(t)) {
+				return false;
+			}
 		}
-		LOGGER.warning("TODO Potential repeatable: " + a);
-		// java.lang.annotation.Repeatable
+		if (aT == null) {
+			return false;
+		}
+		final TD aTd = aT.getTd();
+		if (aTd == null) {
+			LOGGER.warning("Potential repeatable annotation '" + a
+					+ "' with repeated annotation type '" + aT
+					+ "' has not the necessary TD information!");
+		}
+		final A[] aAs = aTd.getAs();
+		if (aAs == null) {
+			return false;
+		}
+		for (final A aA : aAs) {
+			if (aA.getT().getName().equals("java.lang.annotation.Repeatable")) {
+				final Object value = aA.getValueMember();
+				if (!(value instanceof T)) {
+					return false;
+				}
+				if (((T) value).equals(a.getT())) {
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 
