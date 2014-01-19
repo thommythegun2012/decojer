@@ -66,24 +66,21 @@ public final class Annotations {
 	 *            Type Declaration
 	 * @param a
 	 *            Annotation
-	 * @return Annotation AST Node or {@code null}
+	 * @return Annotation AST Node
 	 */
 	private static Annotation decompileAnnotation(final TD td, final A a) {
 		final AST ast = td.getCu().getAst();
-		if (a == null) {
-			return null;
-		}
 		final Set<String> memberNames = a.getMemberNames();
 		if (memberNames != null) {
-			// a single member name "value=" is optional
-			if (memberNames.size() == 1 && "value".equals(memberNames.iterator().next())) {
-				final Expression expression = decompileAnnotationDefaultValue(td,
-						a.getMemberValue("value"));
-				if (expression != null) {
+			if (memberNames.size() == 1) {
+				final Object memberValue = a.getMemberValue("value");
+				if (memberValue != null) {
+					// a single member name "value=" is optional
 					final SingleMemberAnnotation singleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
 					singleMemberAnnotation.setTypeName(newTypeName(a.getT(), td));
-					singleMemberAnnotation.setValue(expression);
+					singleMemberAnnotation
+							.setValue(decompileAnnotationDefaultValue(td, memberValue));
 					return singleMemberAnnotation;
 				}
 			}
@@ -207,9 +204,12 @@ public final class Annotations {
 			return;
 		}
 		for (final A a : as) {
-			final Annotation decompileAnnotation = decompileAnnotation(td, a);
-			if (decompileAnnotation != null) {
-				annotations.add(decompileAnnotation);
+			if (isRepeatable(a)) {
+				for (final Object aa : (Object[]) a.getMemberValue()) {
+					annotations.add(decompileAnnotation(td, (A) aa));
+				}
+			} else {
+				annotations.add(decompileAnnotation(td, a));
 			}
 		}
 	}
@@ -246,6 +246,21 @@ public final class Annotations {
 				}
 			}
 		}
+		return false;
+	}
+
+	private static boolean isRepeatable(final A a) {
+		final Object memberValue = a.getMemberValue();
+		if (!(memberValue instanceof Object[])) {
+			return false;
+		}
+		for (final Object o : (Object[]) memberValue) {
+			if (!(o instanceof A)) {
+				return false;
+			}
+		}
+		LOGGER.warning("TODO Potential repeatable: " + a);
+		// java.lang.annotation.Repeatable
 		return false;
 	}
 
