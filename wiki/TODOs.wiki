@@ -25,7 +25,7 @@
       * Inner Types open
       * Examples:
         * http://www.tutego.de/blog/javainsel/2012/02/erster-draft-fr-annotations-on-java-types-jsr-308/
-    * Repeatable Annotations (@Repeatable) open
+    * Repeatable Annotations (@Repeatable) work, if annotation TD can be resolved
       * http://docs.oracle.com/javase/tutorial/java/annotations/repeating.html
 
 = NOTICES =
