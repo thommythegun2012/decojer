@@ -174,12 +174,12 @@ public class SmaliReader implements DexReader {
 							// annotation default values, not encoded in
 							// method annotations, but in global annotation with
 							// "field name" -> value
-							annotationDefaultValues = (A) a.getMemberValue();
+							annotationDefaultValues = (A) a.getValueMember();
 							continue;
 						}
 						if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
 							// signature, is encoded as annotation with string array value
-							final Object[] signature = (Object[]) a.getMemberValue();
+							final Object[] signature = (Object[]) a.getValueMember();
 							final StringBuilder sb = new StringBuilder();
 							for (final Object element : signature) {
 								sb.append(element);
@@ -188,20 +188,20 @@ public class SmaliReader implements DexReader {
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
-							t.setEnclosingT((ClassT) a.getMemberValue());
+							t.setEnclosingT((ClassT) a.getValueMember());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingMethod".equals(a.getT().getName())) {
-							t.setEnclosingM((M) a.getMemberValue());
+							t.setEnclosingM((M) a.getValueMember());
 							continue;
 						}
 						if ("dalvik.annotation.InnerClass".equals(a.getT().getName())) {
-							t.setInnerInfo((String) a.getMemberValue("name"),
-									(Integer) a.getMemberValue("accessFlags"));
+							t.setInnerInfo((String) a.getMember("name"),
+									(Integer) a.getMember("accessFlags"));
 							continue;
 						}
 						if ("dalvik.annotation.MemberClasses".equals(a.getT().getName())) {
-							for (final Object v : (Object[]) a.getMemberValue()) {
+							for (final Object v : (Object[]) a.getValueMember()) {
 								((ClassT) v).setEnclosingT(td.getT());
 							}
 							continue;
@@ -220,7 +220,7 @@ public class SmaliReader implements DexReader {
 						if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
 							// signature, is encoded as annotation
 							// with string array value
-							final Object[] signature = (Object[]) a.getMemberValue();
+							final Object[] signature = (Object[]) a.getValueMember();
 							final StringBuilder sb = new StringBuilder();
 							for (final Object element : signature) {
 								sb.append(element);
@@ -242,7 +242,7 @@ public class SmaliReader implements DexReader {
 						if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
 							// signature, is encoded as annotation
 							// with string array value
-							final Object[] signature = (Object[]) a.getMemberValue();
+							final Object[] signature = (Object[]) a.getValueMember();
 							final StringBuilder sb = new StringBuilder();
 							for (final Object element : signature) {
 								sb.append(element);
@@ -252,7 +252,7 @@ public class SmaliReader implements DexReader {
 						} else if ("dalvik.annotation.Throws".equals(a.getT().getName())) {
 							// throws, is encoded as annotation with
 							// type array value
-							final Object[] throwables = (Object[]) a.getMemberValue();
+							final Object[] throwables = (Object[]) a.getValueMember();
 							final T[] throwsTs = new T[throwables.length];
 							for (int i = throwables.length; i-- > 0;) {
 								throwsTs[i] = (T) throwables[i];
@@ -411,7 +411,7 @@ public class SmaliReader implements DexReader {
 			md.setSignature(methodSignatures.get(method));
 
 			if (annotationDefaultValues != null) {
-				md.setAnnotationDefaultValue(annotationDefaultValues.getMemberValue(md.getName()));
+				md.setAnnotationDefaultValue(annotationDefaultValues.getMember(md.getName()));
 			}
 
 			md.setAs(methodAs.get(method));

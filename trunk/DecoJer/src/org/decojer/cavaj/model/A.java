@@ -25,6 +25,7 @@ package org.decojer.cavaj.model;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import lombok.Getter;
@@ -55,6 +56,8 @@ public final class A {
 	 *            retention policy
 	 */
 	public A(final T t, final RetentionPolicy retentionPolicy) {
+		assert t != null;
+
 		this.t = t;
 		this.retentionPolicy = retentionPolicy;
 	}
@@ -72,42 +75,42 @@ public final class A {
 	}
 
 	/**
-	 * Get member names.
-	 * 
-	 * @return member names
-	 */
-	public Set<String> getMemberNames() {
-		return this.members.keySet();
-	}
-
-	/**
-	 * Get member value.
-	 * 
-	 * @return value
-	 */
-	public Object getMemberValue() {
-		return this.members.get("value");
-	}
-
-	/**
 	 * Get member value.
 	 * 
 	 * @param name
 	 *            name
 	 * @return value
 	 */
-	public Object getMemberValue(final String name) {
+	public Object getMember(final String name) {
 		return this.members.get(name);
+	}
+
+	/**
+	 * Get members.
+	 * 
+	 * @return members
+	 */
+	public Set<Entry<String, Object>> getMembers() {
+		return this.members.entrySet();
+	}
+
+	/**
+	 * Get member value.
+	 * 
+	 * @return value
+	 */
+	public Object getValueMember() {
+		return this.members.get("value");
 	}
 
 	@Override
 	public String toString() {
-		if (getMemberNames().isEmpty()) {
+		if (getMembers().isEmpty()) {
 			return getT().getName();
 		}
 		final StringBuilder sb = new StringBuilder(getT().getName()).append("(");
-		for (final String name : getMemberNames()) {
-			sb.append(name).append("=").append(getMemberValue(name)).append(",");
+		for (final Entry<String, Object> member : getMembers()) {
+			sb.append(member.getKey()).append("=").append(member.getValue()).append(",");
 		}
 		sb.setCharAt(sb.length() - 1, ')');
 		return sb.toString();
