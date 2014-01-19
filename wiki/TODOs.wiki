@@ -2,6 +2,8 @@
 
 = TODOs =
 
+  * second map part missing: DecTestTypeParams
+	private Map<? extends T, ? super T> getBothBounds() throws U, U 
   * merge-replace register
     * can recursively create new merges, back-branch algorithm
   * JSR-merge stuff
