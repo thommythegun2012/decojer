@@ -3,6 +3,9 @@
 	<name>DecoJer</name>
 	<comment></comment>
 	<projects>
+		<project>asm3</project>
+		<project>org.eclipse.jdt.core</project>
+		<project>org.eclipse.jdt.ui</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

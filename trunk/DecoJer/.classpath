@@ -14,6 +14,5 @@
 	<classpathentry kind="lib" path="lib/jsr305-2.0.1.jar"/>
 	<classpathentry kind="lib" path="lib/asm-5.0_BETA.jar" sourcepath="/asm3"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/asm3"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
