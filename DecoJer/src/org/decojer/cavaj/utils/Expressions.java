@@ -674,20 +674,20 @@ public final class Expressions {
 				if (typeArg.isWildcard()) {
 					if (typeArg.getBoundT() == null) {
 						parameterizedType.typeArguments().add(ast.newWildcardType());
-						break;
+						continue;
 					}
 					if (typeArg.isSubclassOf()) {
 						final WildcardType wildcardType = ast.newWildcardType();
 						// default...newWildcardType.setUpperBound(true);
 						wildcardType.setBound(newType(typeArg.getBoundT(), td));
 						parameterizedType.typeArguments().add(wildcardType);
-						break;
+						continue;
 					}
 					final WildcardType wildcardType = ast.newWildcardType();
 					wildcardType.setUpperBound(false);
 					wildcardType.setBound(newType(typeArg.getBoundT(), td));
 					parameterizedType.typeArguments().add(wildcardType);
-					break;
+					continue;
 				}
 				parameterizedType.typeArguments().add(newType(typeArg, td));
 			}
