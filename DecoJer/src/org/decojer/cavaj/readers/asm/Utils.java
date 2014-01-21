@@ -61,8 +61,8 @@ public class Utils {
 			if (innerCounter > 0 && step != TypePath.INNER_TYPE) {
 				final T[] enclosingTs = t.getEnclosingTs();
 				if (innerCounter >= enclosingTs.length) {
-					LOGGER.warning("Not enough enclosings in '" + currentT
-							+ "' for type annotation path depth '" + innerCounter + "'.");
+					LOGGER.warning("Not enough enclosings in '" + t + "' for '" + currentT
+							+ "' for type annotation with path depth '" + innerCounter + "'!");
 					break;
 				}
 				currentT = enclosingTs[innerCounter - 1];
@@ -77,7 +77,13 @@ public class Utils {
 			case TypePath.ARRAY_ELEMENT: {
 				assert arg == 0;
 
+				// TODO need a counter here too because the spec fails totally here in the ordering
 				final T componentT = currentT.getComponentT();
+				if (componentT == null) {
+					LOGGER.warning("Not enough array components in '" + t + "' for '" + currentT
+							+ "'  for type annotation path!");
+					break;
+				}
 				if (!isLast) {
 					currentT = componentT;
 					continue;
@@ -94,8 +100,8 @@ public class Utils {
 				}
 				final T[] enclosingTs = t.getEnclosingTs();
 				if (innerCounter >= enclosingTs.length) {
-					LOGGER.warning("Not enough enclosings in '" + currentT
-							+ "' for type annotation path depth '" + innerCounter + "'.");
+					LOGGER.warning("Not enough enclosings in '" + t + "' for '" + currentT
+							+ "' for type annotation with path depth '" + innerCounter + "'!");
 					break;
 				}
 				enclosingTs[innerCounter].setEnclosingT(DU.getAnnotT(enclosingTs[innerCounter - 1],
@@ -105,6 +111,11 @@ public class Utils {
 			}
 			case TypePath.TYPE_ARGUMENT: {
 				final T[] typeArgs = currentT.getTypeArgs();
+				if (typeArgs == null || typeArgs.length <= arg) {
+					LOGGER.warning("Not enough type arguments in '" + t + "' for '" + currentT
+							+ "' for type annotation path with argument '" + arg + "'!");
+					break;
+				}
 				final T typeArg = typeArgs[arg];
 				if (!isLast) {
 					currentT = typeArg;
@@ -117,8 +128,11 @@ public class Utils {
 				assert arg == 0;
 
 				final T bound = currentT.getBoundT();
-				assert bound != null;
-
+				if (bound == null) {
+					LOGGER.warning("No wildcard bound in '" + t + "' for '" + currentT
+							+ "'  for type annotation path!");
+					break;
+				}
 				if (!isLast) {
 					currentT = bound;
 					continue;
@@ -127,8 +141,9 @@ public class Utils {
 				break;
 			}
 			default:
-				LOGGER.warning("Unknown type path step: 0x" + Integer.toHexString(step) + " : "
-						+ typePath.getStepArgument(i));
+				LOGGER.warning("Unknown step '0x" + Integer.toHexString(step) + "' in '" + t
+						+ "' for '" + currentT + "' for type annotation path with argument '" + arg
+						+ "'!");
 			}
 		}
 		return t;
