@@ -65,7 +65,7 @@ public class Utils {
 							+ "' for type annotation with path depth '" + innerCounter + "'!");
 					break;
 				}
-				currentT = enclosingTs[innerCounter - 1];
+				currentT = enclosingTs[innerCounter];
 				innerCounter = 0;
 			}
 			// that we are here means, that we have to zoom into the modified type...so we can
@@ -104,11 +104,8 @@ public class Utils {
 							+ "' for type annotation with path depth '" + innerCounter + "'!");
 					break;
 				}
-				// TODO thats wrong, because we really could change cached class types here!!!
-				// need kind of annotated qualified type?
-				// clone enclosingTs[innerCounter], or have the annotation wrapper there?
-				enclosingTs[innerCounter].setEnclosingT(DU.getAnnotT(enclosingTs[innerCounter - 1],
-						a));
+				// TODO hmmm, how do we change our parent type? recursive mode?
+				DU.getAnnotT(enclosingTs[innerCounter], a);
 				innerCounter = 0;
 				break;
 			}
