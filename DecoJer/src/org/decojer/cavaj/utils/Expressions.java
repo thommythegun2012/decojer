@@ -731,7 +731,7 @@ public final class Expressions {
 				// could be ParamT etc., not decompileable with Name as target;
 				// restrict qualifications to really necessary enclosings:
 				// td = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
-				if (td.getT().getName().startsWith(enclosingT.getName())) {
+				if (td.getT().getFullName().startsWith(enclosingT.getFullName())) {
 					return ast.newSimpleType(ast.newSimpleName(t.getSimpleIdentifier()));
 				}
 				final Type qualifier = newType(enclosingT, td);
