@@ -2,8 +2,7 @@
 
 = TODOs =
 
-  * second map part missing: DecTestTypeParams
-	private Map<? extends T, ? super T> getBothBounds() throws U, U 
+  * inner classes synthetic initializer for eclosing.this 
   * merge-replace register
     * can recursively create new merges, back-branch algorithm
   * JSR-merge stuff
@@ -23,8 +22,8 @@
     * Default Methods work
     * Lambdas work mostly
     * Type Annotations
-      * Simple Types, Parameterized Types, Wildcards and Arrays work mostly
-      * Inner Types open
+      * Simple Types, Parameterized Types, Wildcards and Arrays work mostly (reorder Arrays)
+      * Inner Types: reading works, but we have to copy because cache!
       * Examples:
         * http://www.tutego.de/blog/javainsel/2012/02/erster-draft-fr-annotations-on-java-types-jsr-308/
     * Repeatable Annotations (@Repeatable) work, if annotation TD can be resolved
