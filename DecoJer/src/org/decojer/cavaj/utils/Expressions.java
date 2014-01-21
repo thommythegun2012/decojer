@@ -36,10 +36,12 @@ import org.decojer.cavaj.model.types.ClassT;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AnnotatableType;
+import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
+import org.eclipse.jdt.core.dom.Dimension;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.Name;
@@ -627,25 +629,44 @@ public final class Expressions {
 	@SuppressWarnings("deprecation")
 	public static Type newType(final T t, final TD td) {
 		final AST ast = td.getCu().getAst();
+		// handle array first because annot(array()) is special
+		if (t.isArray()) {
+			if (ast.apiLevel() <= AST.JLS4) {
+				return ast.newArrayType(newType(t.getComponentT(), td));
+			}
+			for (T checkT = t; checkT.isArray(); checkT = checkT.getComponentT()) {
+				if (checkT.isAnnotation()) {
+					final ArrayType arrayType = ast.newArrayType(newType(t.getElementT(), td));
+					final List<Dimension> dimensions = arrayType.dimensions();
+					dimensions.clear();
+					for (T elementT = t; elementT.isArray(); elementT = elementT.getComponentT()) {
+						final Dimension dimension = ast.newDimension();
+						if (elementT.isAnnotation()) {
+							Annotations.decompileAnnotations(td, dimension.annotations(), elementT);
+						}
+						dimensions.add(dimension);
+					}
+					return arrayType;
+				}
+			}
+			return ast.newArrayType(newType(t.getElementT(), td), t.getDimensions());
+		}
 		if (t.isAnnotation()) {
 			final Type type = newType(t.getRawT(), td);
-			Type annotatableType = type;
 			if (ast.apiLevel() <= AST.JLS4) {
 				LOGGER.warning("Cannot decompile type annotations for type '" + t
 						+ "' in Eclipse AST JLS4!");
 				return type;
 			}
-			if (annotatableType instanceof ParameterizedType) {
-				// is not directly annotateable
-				annotatableType = ((ParameterizedType) annotatableType).getType();
-			}
-			Annotations.decompileAnnotations(td, ((AnnotatableType) annotatableType).annotations(),
-					t);
+			// parameterized type is not directly annotateable in Eclipse; but DecoJer thinks the
+			// whole type is meant, not just the generic type, hence translate here
+			final AnnotatableType annotatableType = (AnnotatableType) (type instanceof ParameterizedType ? ((ParameterizedType) type)
+					.getType() : type);
+			Annotations.decompileAnnotations(td, annotatableType.annotations(), t);
 			return type;
 		}
-		if (t.isArray()) {
-			return ast.newArrayType(newType(t.getComponentT(), td));
-		}
+		// doesn't work, now with Dimension (see above): if (t.isArray()) { return
+		// ast.newArrayType(newType(t.getComponentT(), td)); }
 		if (t.isParameterized()) {
 			final ParameterizedType parameterizedType = ast.newParameterizedType(newType(
 					t.getGenericT(), td));

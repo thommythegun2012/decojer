@@ -48,7 +48,6 @@ import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
-import org.eclipse.jdt.core.dom.AnnotatableType;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
 import org.eclipse.jdt.core.dom.ArrayType;
@@ -334,7 +333,7 @@ public final class TrJvmStruct2JavaAst {
 
 		final T[] paramTs = md.getParamTs();
 		if (md.getReceiverT() != null) {
-			methodDeclaration.setReceiverType((AnnotatableType) newType(md.getReceiverT(), td));
+			methodDeclaration.setReceiverType(newType(md.getReceiverT(), td));
 		}
 		final A[][] paramAs = md.getParamAss();
 		for (int i = 0; i < paramTs.length; ++i) {
@@ -429,7 +428,7 @@ public final class TrJvmStruct2JavaAst {
 			Annotations.decompileAnnotations(td, typeParameter.annotations(), typeParam);
 			final T superT = typeParam.getSuperT();
 			if (superT != null && !superT.isObject()) {
-				typeParameter.typeBounds().add(newType(typeParam.getSuperT(), td));
+				typeParameter.typeBounds().add(newType(superT, td));
 			}
 			for (final T interfaceT : typeParam.getInterfaceTs()) {
 				typeParameter.typeBounds().add(newType(interfaceT, td));
