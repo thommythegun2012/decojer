@@ -104,6 +104,9 @@ public class Utils {
 							+ "' for type annotation with path depth '" + innerCounter + "'!");
 					break;
 				}
+				// TODO thats wrong, because we really could change cached class types here!!!
+				// need kind of annotated qualified type?
+				// clone enclosingTs[innerCounter], or have the annotation wrapper there?
 				enclosingTs[innerCounter].setEnclosingT(DU.getAnnotT(enclosingTs[innerCounter - 1],
 						a));
 				innerCounter = 0;

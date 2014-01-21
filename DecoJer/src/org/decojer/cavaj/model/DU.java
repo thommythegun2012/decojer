@@ -477,9 +477,6 @@ public final class DU {
 	/**
 	 * Parse type arguments from signature.
 	 * 
-	 * We don't follow the often used {@code WildcardType} paradigma. Wildcards are only allowed in
-	 * the context of parameterized types and aren't useable as standalone types.
-	 * 
 	 * @param s
 	 *            signature
 	 * @param c
