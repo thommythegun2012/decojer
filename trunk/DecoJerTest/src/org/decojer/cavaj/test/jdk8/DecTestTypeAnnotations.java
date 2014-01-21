@@ -6,16 +6,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DecTestTypeAnnotations<U, @Nonnull V extends @Nonnull @Size(max = 1) @Size(min = 1, max = 10) HashMap<String, @Nonnull @Size(max = 11) Integer> & @Size(max = 12) @Nonnull CharSequence>
+// @Nonnull java.util.HashMap not allowed...strange spec
+public class DecTestTypeAnnotations<U, @Nonnull V extends java.util.@Nonnull @Size(max = 1) @Size(min = 1, max = 10) HashMap<String, @Nonnull @Size(max = 11) Integer> & @Size(max = 12) @Nonnull CharSequence>
 		extends
 		@Nonnull HashMap<@Nonnull U, @Size(max = 13) @Nonnull List<List<@Nonnull List<@Nonnull ? extends @Nonnull String>>>>
 		implements @Nonnull @Size(max = 14) Serializable {
 
-	class Outer {
+	class Outer<W> {
 
 		class Middle {
 
-			class Inner extends @Nonnull Middle {
+			class Inner extends Outer<@Nonnull String>.@Nonnull Middle {
 
 				@Nonnull
 				private final Integer arg;
@@ -26,11 +27,11 @@ public class DecTestTypeAnnotations<U, @Nonnull V extends @Nonnull @Size(max = 1
 
 				@Nonnull
 				Inner testInnerNew(
-						@Size(max = 15) Outer.@Nonnull @Size(max = 16) Middle.@Size(max = 17) Inner this,
+						@Size(max = 15) Outer<W>.@Nonnull @Size(max = 16) Middle.@Size(max = 17) Inner this,
 						@Nonnull Integer arg) {
-					return new @Nonnull Middle.@Size(max = 18) Inner(arg);
+					// Eclipse Bug: Outer<String> not allowed
+					return new Outer.@Nonnull Middle.@Size(max = 18) Inner(arg);
 				}
-
 			}
 
 		}
@@ -39,7 +40,7 @@ public class DecTestTypeAnnotations<U, @Nonnull V extends @Nonnull @Size(max = 1
 
 	public static @Deprecated
 	@Size(max = 19)
-	Map<@Nonnull ? super Short, /* TODO bug eclipse ? super */@Nonnull @Size(max = 20) String> testStatic;
+	Map<@Nonnull ? super Short, ? super @Nonnull @Size(max = 20) String> testStatic;
 
 	public static String testArrays() {
 		CharSequence[] @Size(max = 21) [] @Nonnull @Size(max = 22) [][] test = new @Nonnull CharSequence @Nonnull [10][][] @Nonnull [];
