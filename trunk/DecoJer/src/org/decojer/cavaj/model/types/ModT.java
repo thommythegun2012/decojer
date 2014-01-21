@@ -141,6 +141,11 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public void setEnclosingT(final T t) {
+		getRawT().setEnclosingT(t);
+	}
+
+	@Override
 	public void setInterface(final boolean f) {
 		if (getRawT() != null) {
 			getRawT().setInterface(f);

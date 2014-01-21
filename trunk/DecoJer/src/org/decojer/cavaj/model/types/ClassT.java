@@ -366,37 +366,7 @@ public class ClassT extends T {
 		this.enclosing = m;
 	}
 
-	/**
-	 * Set enclosing class type (since JVM 5).
-	 * 
-	 * There are five kinds of classes (or interfaces):<br>
-	 * 
-	 * a) Top level classes<br>
-	 * b) Nested classes (static member classes)<br>
-	 * c) Inner classes (non-static member classes)<br>
-	 * d) Local classes (named classes declared within a method)<br>
-	 * e) Anonymous classes<br>
-	 * 
-	 * JVM Spec 4.8.6: A class must have an EnclosingMethod attribute if and only if it is a local
-	 * class or an anonymous class.<br>
-	 * 
-	 * We mix declaring classes info and enclosing method / classes attribut info.<br>
-	 * 
-	 * JVM 5 has enclosing method attribute for local/anonymous, outer info only for declaring outer<br>
-	 * JVM < 5 has no enclosing method attribute and:<br>
-	 * JVM 1.1 has normal outer info for anonymous/local, like declaring for JVM 5,<br>
-	 * JVM 1.2 .. 1.4 has no outer info at all,<br>
-	 * obfuscated code could also strip all these info!!!
-	 * 
-	 * We can not ignore this information and rely on naming rules alone, because the separator '$'
-	 * is a valid character in none-inner type names. If we don't have this info, we need to check
-	 * the existence of the other types by other means.
-	 * 
-	 * @param t
-	 *            class type
-	 * 
-	 * @see Class#getEnclosingClass()
-	 */
+	@Override
 	public void setEnclosingT(final T t) {
 		if (this.enclosing != null) {
 			if (this.enclosing.equals(t)) {
