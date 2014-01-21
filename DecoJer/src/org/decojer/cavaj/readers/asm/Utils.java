@@ -45,6 +45,7 @@ public class Utils {
 			return DU.getAnnotT(t, a);
 		}
 		T currentT = t;
+		int innerCounter = 0;
 		for (int i = 0; i < typePath.getLength(); ++i) {
 			final boolean isLast = i == typePath.getLength() - 1;
 			// JVMS: If the value of the type_path_kind item is 0, 1, or 2, then the value of the
@@ -53,15 +54,29 @@ public class Utils {
 			// the type_argument_index item specifies which type argument of a
 			// parameterized type is annotated, where 0 indicates the first type argument
 			// of a parameterized type.
-			final int arg = typePath.getStepArgument(i);
 			final int step = typePath.getStep(i);
+			final int arg = typePath.getStepArgument(i);
+			// inner path is from front to end, but enclosings are from end to front (enclosings),
+			// ParamT can be enclosings with own type annotation sub pathes
+			if (innerCounter > 0 && step != TypePath.INNER_TYPE) {
+				final T[] enclosingTs = t.getEnclosingTs();
+				if (innerCounter >= enclosingTs.length) {
+					LOGGER.warning("Not enough enclosings in '" + currentT
+							+ "' for type annotation path depth '" + innerCounter + "'.");
+					break;
+				}
+				currentT = enclosingTs[innerCounter - 1];
+				innerCounter = 0;
+			}
+			// that we are here means, that we have to zoom into the modified type...so we can
+			// unwrap the annotation type here
+			if (currentT.isAnnotation()) {
+				currentT = ((AnnotT) currentT).getRawT();
+			}
 			switch (step) {
 			case TypePath.ARRAY_ELEMENT: {
 				assert arg == 0;
 
-				if (currentT.isAnnotation()) {
-					currentT = ((AnnotT) currentT).getRawT();
-				}
 				final T componentT = currentT.getComponentT();
 				if (!isLast) {
 					currentT = componentT;
@@ -73,13 +88,22 @@ public class Utils {
 			case TypePath.INNER_TYPE: {
 				assert arg == 0;
 
-				LOGGER.warning("TODO Annotate Inner type.");
+				++innerCounter;
+				if (!isLast) {
+					continue;
+				}
+				final T[] enclosingTs = t.getEnclosingTs();
+				if (innerCounter >= enclosingTs.length) {
+					LOGGER.warning("Not enough enclosings in '" + currentT
+							+ "' for type annotation path depth '" + innerCounter + "'.");
+					break;
+				}
+				enclosingTs[innerCounter].setEnclosingT(DU.getAnnotT(enclosingTs[innerCounter - 1],
+						a));
+				innerCounter = 0;
 				break;
 			}
 			case TypePath.TYPE_ARGUMENT: {
-				if (currentT.isAnnotation()) {
-					currentT = ((AnnotT) currentT).getRawT();
-				}
 				final T[] typeArgs = currentT.getTypeArgs();
 				final T typeArg = typeArgs[arg];
 				if (!isLast) {
@@ -92,9 +116,6 @@ public class Utils {
 			case TypePath.WILDCARD_BOUND: {
 				assert arg == 0;
 
-				if (currentT.isAnnotation()) {
-					currentT = ((AnnotT) currentT).getRawT();
-				}
 				final T bound = currentT.getBoundT();
 				assert bound != null;
 
