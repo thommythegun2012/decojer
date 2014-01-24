@@ -46,7 +46,9 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 	Map<@Size(max = 32) ? super Short, ? super @Nonnull @Size(max = 33) String> testStatic;
 
 	public static String testArrays() {
-		List<@Size(max = 41) CharSequence>[] @Size(max = 42) [] @Nonnull @Size(max = 43) [][] test = new @Size(max = 44) ArrayList @Size(max = 45) [10][][] @Size(max = 47) @Size(max = 48) [];
+		@Size(max = 41)
+		@Nonnull
+		List<@Size(max = 42) CharSequence>[] @Size(max = 43) [] @Nonnull @Size(max = 44) [][] test = new @Size(max = 45) ArrayList @Size(max = 45) [10][][] @Size(max = 46) @Size(max = 47) [];
 		return (@Size(max = 49) String) test[0][1][2][3].get(0);
 	}
 
