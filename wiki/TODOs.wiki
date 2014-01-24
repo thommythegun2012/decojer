@@ -23,6 +23,7 @@
     * Lambdas work mostly
     * Type Annotations
       * Simple Types, Parameterized Types, Wildcards and Arrays work mostly (reorder Arrays)
+      *  Eclipse Bugs: https://bugs.eclipse.org/bugs/show_bug.cgi?id=426616
       * Inner Types: reading works, but we have to copy because cache!
       * Examples:
         * http://www.tutego.de/blog/javainsel/2012/02/erster-draft-fr-annotations-on-java-types-jsr-308/
