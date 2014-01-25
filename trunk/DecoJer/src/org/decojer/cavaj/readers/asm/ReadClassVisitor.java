@@ -36,7 +36,7 @@ import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.types.AnnotT;
+import org.decojer.cavaj.model.types.AnnotatedT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
@@ -242,7 +242,7 @@ public class ReadClassVisitor extends ClassVisitor {
 			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
 			T t = getTd().getTypeParams()[typeParameterIndex];
 			if (t.isAnnotation()) {
-				t = ((AnnotT) t).getRawT();
+				t = ((AnnotatedT) t).getRawT();
 			}
 			if (typeParameterBoundIndex == 0) {
 				// 0: annotation targets extends type

@@ -81,7 +81,7 @@ import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.TypedOp;
 import org.decojer.cavaj.model.code.ops.XOR;
-import org.decojer.cavaj.model.types.AnnotT;
+import org.decojer.cavaj.model.types.AnnotatedT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Cursor;
 import org.objectweb.asm.AnnotationVisitor;
@@ -1561,7 +1561,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
 			T t = getMd().getTypeParams()[typeParameterIndex];
 			if (t.isAnnotation()) {
-				t = ((AnnotT) t).getRawT();
+				t = ((AnnotatedT) t).getRawT();
 			}
 			if (typeParameterBoundIndex == 0) {
 				// 0: annotation targets extends type

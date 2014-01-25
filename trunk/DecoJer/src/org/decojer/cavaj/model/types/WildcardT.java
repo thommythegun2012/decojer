@@ -28,6 +28,8 @@ import lombok.Getter;
 import org.decojer.cavaj.model.T;
 
 /**
+ * Wildcard type, which is always an type argument. But other types can be type arguments too.
+ * 
  * @author André Pankraz
  */
 public class WildcardT extends ModT {

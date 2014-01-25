@@ -47,10 +47,10 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.DecoJerException;
-import org.decojer.cavaj.model.types.AnnotT;
+import org.decojer.cavaj.model.types.AnnotatedT;
 import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
-import org.decojer.cavaj.model.types.ParamT;
+import org.decojer.cavaj.model.types.ParameterizedT;
 import org.decojer.cavaj.model.types.VarT;
 import org.decojer.cavaj.model.types.WildcardT;
 import org.decojer.cavaj.readers.AsmReader;
@@ -85,11 +85,11 @@ public final class DU {
 	 *            annotation
 	 * @return annotated type
 	 */
-	public static AnnotT getAnnotT(final T t, final A a) {
+	public static AnnotatedT getAnnotT(final T t, final A a) {
 		if (!t.isAnnotation()) {
-			return new AnnotT(t, new A[] { a });
+			return new AnnotatedT(t, new A[] { a });
 		}
-		final AnnotT annotT = (AnnotT) t;
+		final AnnotatedT annotT = (AnnotatedT) t;
 		for (final A checkA : annotT.getAs()) {
 			if (checkA.getT().equals(a.getT())) {
 				LOGGER.warning("Type '" + t + "' already has the type annotation '" + a + "'!");
@@ -101,7 +101,7 @@ public final class DU {
 		final A[] as = new A[oldAs.length + 1];
 		System.arraycopy(oldAs, 0, as, 0, oldAs.length);
 		as[oldAs.length] = a;
-		return new AnnotT(annotT.getRawT(), as);
+		return new AnnotatedT(annotT.getRawT(), as);
 	}
 
 	/**
@@ -113,9 +113,9 @@ public final class DU {
 	 *            type arguments for matching type parameters
 	 * @return parameterized type for generic type and type arguments
 	 */
-	public static ParamT getParamT(final T genericT, final T[] typeArgs) {
+	public static ParameterizedT getParamT(final T genericT, final T[] typeArgs) {
 		// cannot cache because of type variables
-		return new ParamT(genericT, typeArgs);
+		return new ParameterizedT(genericT, typeArgs);
 	}
 
 	@Getter
