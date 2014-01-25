@@ -28,59 +28,34 @@ import lombok.Getter;
 import org.decojer.cavaj.model.T;
 
 /**
- * Type variable.
- * 
- * This type is used as type argument, but other types can be type arguments too, e.g. a ClassT or
- * an extension by WildcardT.
- * 
- * Is not used in declaration like ParamT but is used for referencing it, should be resolved to a
- * ParamT, but can only be done lazy.
+ * Qualified type. This is used for references with parameterization and annotations of enclosing
+ * classes. We cannot set it in the unmodified class type enclosing info, because it can differ
+ * between references.
  * 
  * @author André Pankraz
  */
-public class VarT extends ModT {
+public class QualifiedT extends ModT {
 
 	/**
-	 * Enclosing type context.
+	 * Type qualifier, is like enclosing type in references.
 	 */
 	@Getter
-	private final Object context;
-
-	@Getter
-	private final String name;
+	private final T qualifierT;
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param name
-	 *            type name
-	 * @param context
-	 *            enclosing type context
+	 * @param t
+	 *            type
+	 * @param qualifierT
+	 *            type qualifier
 	 */
-	public VarT(final String name, final Object context) {
-		super(null);
+	protected QualifiedT(final T t, final T qualifierT) {
+		super(t); // the qualified t is the raw t, because we inherit its properties
 
-		assert name != null;
+		assert t.getName().startsWith(qualifierT.getName());
 
-		// TODO add this after we know what happens for:
-		// Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;
-		// assert enclosing != null;
-
-		this.name = name;
-		this.context = context;
-	}
-
-	@Override
-	public boolean eraseTo(final T t) {
-		if (getRawT() != null) {
-			return getRawT().equals(t);
-		}
-		setRawT(t);
-		return true;
-	}
-
-	public void setReducedT(final T t) {
-		setRawT(t);
+		this.qualifierT = qualifierT;
 	}
 
 }

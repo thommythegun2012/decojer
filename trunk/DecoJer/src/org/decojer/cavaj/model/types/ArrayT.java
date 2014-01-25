@@ -146,11 +146,6 @@ public final class ArrayT extends T {
 	}
 
 	@Override
-	public boolean isInterface() {
-		return false;
-	}
-
-	@Override
 	public boolean isRef() {
 		return true;
 	}

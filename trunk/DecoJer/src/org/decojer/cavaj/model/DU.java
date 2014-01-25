@@ -50,6 +50,7 @@ import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.types.AnnotatedT;
 import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParameterizedT;
 import org.decojer.cavaj.model.types.VarT;
 import org.decojer.cavaj.model.types.WildcardT;
@@ -85,7 +86,7 @@ public final class DU {
 	 *            annotation
 	 * @return annotated type
 	 */
-	public static AnnotatedT getAnnotT(final T t, final A a) {
+	public static AnnotatedT getAnnotatedT(final T t, final A a) {
 		if (!t.isAnnotation()) {
 			return new AnnotatedT(t, new A[] { a });
 		}
@@ -105,6 +106,17 @@ public final class DU {
 	}
 
 	/**
+	 * Get wildcard type {@code <?>}.
+	 * 
+	 * This type is used as type argument, but other types can be type arguments too.
+	 * 
+	 * @return wildcard type
+	 */
+	public static WildcardT getMatchesWildcardT() {
+		return new WildcardT(null, false);
+	}
+
+	/**
 	 * Get parameterized type for generic type and type arguments.
 	 * 
 	 * @param genericT
@@ -113,9 +125,60 @@ public final class DU {
 	 *            type arguments for matching type parameters
 	 * @return parameterized type for generic type and type arguments
 	 */
-	public static ParameterizedT getParamT(final T genericT, final T[] typeArgs) {
+	public static ParameterizedT getParameterizedT(final T genericT, final T[] typeArgs) {
 		// cannot cache because of type variables
 		return new ParameterizedT(genericT, typeArgs);
+	}
+
+	/**
+	 * Get wildcard type {@code <? extends t>}.
+	 * 
+	 * This type is used as type argument, but other types can be type arguments too.
+	 * 
+	 * @param t
+	 *            type bound
+	 * 
+	 * @return wildcard type
+	 */
+	public static WildcardT getSubclassOfWildcardT(final T t) {
+		assert t != null;
+
+		return new WildcardT(t, true);
+	}
+
+	/**
+	 * Get wildcard type {@code <? super t>}.
+	 * 
+	 * This type is used as type argument, but other types can be type arguments too.
+	 * 
+	 * @param t
+	 *            type bound
+	 * 
+	 * @return wildcard type
+	 */
+	public static WildcardT getSuperOfWildcardT(final T t) {
+		assert t != null;
+
+		return new WildcardT(t, false);
+	}
+
+	/**
+	 * Get type variable.
+	 * 
+	 * This type is used as type argument, but other types can be type arguments too, e.g. a ClassT
+	 * or an extension by WildcardT.
+	 * 
+	 * Is not used in declaration like ParamT but is used for referencing it, should be resolved to
+	 * a ParamT, but can only be done lazy.
+	 * 
+	 * @param name
+	 *            type name
+	 * @param context
+	 *            enclosing type context
+	 * @return type variable
+	 */
+	public static VarT getVarT(final String name, final Object context) {
+		return new VarT(name, context);
 	}
 
 	@Getter
@@ -386,7 +449,7 @@ public final class DU {
 		// TypeArguments_opt
 		final T[] typeArgs = parseTypeArgs(s, c, context);
 		if (typeArgs != null) {
-			t = getParamT(t, typeArgs);
+			t = getParameterizedT(t, typeArgs);
 		}
 		// ClassTypeSignatureSuffix_*
 		if (s.length() > c.pos && s.charAt(c.pos) == '.') {
@@ -465,7 +528,7 @@ public final class DU {
 			return getArrayT(parseT(s, c, context));
 		case 'T': {
 			final int pos = s.indexOf(';', c.pos);
-			final T t = new VarT(s.substring(c.pos, pos), context);
+			final T t = getVarT(s.substring(c.pos, pos), context);
 			c.pos = pos + 1;
 			return t;
 		}
@@ -497,15 +560,15 @@ public final class DU {
 			switch (ch) {
 			case '+':
 				++c.pos;
-				ts.add(WildcardT.subclassOf(parseT(s, c, context)));
+				ts.add(getSubclassOfWildcardT(parseT(s, c, context)));
 				break;
 			case '-':
 				++c.pos;
-				ts.add(WildcardT.superOf(parseT(s, c, context)));
+				ts.add(getSuperOfWildcardT(parseT(s, c, context)));
 				break;
 			case '*':
 				++c.pos;
-				ts.add(WildcardT.matches());
+				ts.add(getMatchesWildcardT());
 				break;
 			default:
 				ts.add(parseT(s, c, context));
@@ -536,7 +599,7 @@ public final class DU {
 		while (s.charAt(c.pos) != '>') {
 			final int pos = s.indexOf(':', c.pos);
 			// reuse ClassT for type parameter
-			final ClassT typeParam = new ClassT(this, s.substring(c.pos, pos));
+			final ParamT typeParam = new ParamT(this, s.substring(c.pos, pos));
 			c.pos = pos + 1;
 			if (s.charAt(c.pos) == ':') {
 				typeParam.setSuperT(getObjectT());
@@ -553,7 +616,6 @@ public final class DU {
 				} while (s.charAt(c.pos) == ':');
 				typeParam.setInterfaceTs(interfaceTs.toArray(new T[interfaceTs.size()]));
 			}
-			typeParam.resolved();
 			ts.add(typeParam);
 		}
 		++c.pos;

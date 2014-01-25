@@ -28,27 +28,13 @@ import lombok.Getter;
 import org.decojer.cavaj.model.T;
 
 /**
- * Wildcard type, which is always an type argument. But other types can be type arguments too.
+ * Wildcard type.
+ * 
+ * This type is used as type argument, but other types can be type arguments too.
  * 
  * @author André Pankraz
  */
 public class WildcardT extends ModT {
-
-	public static WildcardT matches() {
-		return new WildcardT(null, false);
-	}
-
-	public static WildcardT subclassOf(final T t) {
-		assert t != null;
-
-		return new WildcardT(t, true);
-	}
-
-	public static WildcardT superOf(final T t) {
-		assert t != null;
-
-		return new WildcardT(t, false);
-	}
 
 	@Getter
 	private final boolean subclassOf;
@@ -61,7 +47,7 @@ public class WildcardT extends ModT {
 	 * @param subclass
 	 *            is subclass (extends)
 	 */
-	protected WildcardT(final T boundT, final boolean subclass) {
+	public WildcardT(final T boundT, final boolean subclass) {
 		super(boundT);
 
 		this.subclassOf = subclass;

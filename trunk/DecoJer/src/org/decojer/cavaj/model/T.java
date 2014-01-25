@@ -993,7 +993,9 @@ public abstract class T {
 	 * 
 	 * @return {@code true} - is interface
 	 */
-	public abstract boolean isInterface();
+	public boolean isInterface() {
+		return false; // only class types can be interface types, overwrite in ClassT / ModT
+	}
 
 	/**
 	 * Is multi type?
@@ -1145,6 +1147,26 @@ public abstract class T {
 	 */
 	public void setInterface(final boolean f) {
 		assert !f;
+	}
+
+	/**
+	 * Set interface types.
+	 * 
+	 * @param interfaceTs
+	 *            interface types
+	 */
+	public void setInterfaceTs(final T[] interfaceTs) {
+		assert false;
+	}
+
+	/**
+	 * Set super type.
+	 * 
+	 * @param superT
+	 *            super type
+	 */
+	public void setSuperT(final T superT) {
+		assert false;
 	}
 
 	@Override
