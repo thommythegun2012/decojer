@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.types.AnnotT;
+import org.decojer.cavaj.model.types.AnnotatedT;
 import org.objectweb.asm.TypePath;
 
 /**
@@ -71,7 +71,7 @@ public class Utils {
 			// that we are here means, that we have to zoom into the modified type...so we can
 			// unwrap the annotation type here
 			if (currentT.isAnnotation()) {
-				currentT = ((AnnotT) currentT).getRawT();
+				currentT = ((AnnotatedT) currentT).getRawT();
 			}
 			switch (step) {
 			case TypePath.ARRAY_ELEMENT: {

@@ -38,7 +38,7 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.types.AnnotT;
+import org.decojer.cavaj.model.types.AnnotatedT;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
@@ -227,7 +227,7 @@ public final class Annotations {
 	public static void decompileAnnotations(final TD td, final List<Annotation> annotations,
 			final T t) {
 		if (t.isAnnotation()) {
-			decompileAnnotations(td, annotations, ((AnnotT) t).getAs());
+			decompileAnnotations(td, annotations, ((AnnotatedT) t).getAs());
 		}
 	}
 

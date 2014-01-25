@@ -35,7 +35,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class AnnotT extends ModT {
+public class AnnotatedT extends ModT {
 
 	/**
 	 * Type annotations.
@@ -51,7 +51,7 @@ public class AnnotT extends ModT {
 	 * @param as
 	 *            type annotations
 	 */
-	public AnnotT(final T t, final A[] as) {
+	public AnnotatedT(final T t, final A[] as) {
 		super(t);
 		// we have to use the raw name here, not @annotations name, else many enclosing-dependant
 		// stuff will not work, like getT() for enclosed, getSimpleName() etc.,

@@ -34,7 +34,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public final class ParamT extends ModT {
+public final class ParameterizedT extends ModT {
 
 	/**
 	 * Type arguments for matching type parameters.
@@ -50,7 +50,7 @@ public final class ParamT extends ModT {
 	 * @param typeArgs
 	 *            type arguments for matching type parameters
 	 */
-	public ParamT(final T genericT, final T[] typeArgs) {
+	public ParameterizedT(final T genericT, final T[] typeArgs) {
 		super(genericT);
 		// we have to use the raw name here, not name<typeArgs>, else many enclosing-dependant stuff
 		// will not work, like getT() for enclosed, getSimpleName() etc.,
