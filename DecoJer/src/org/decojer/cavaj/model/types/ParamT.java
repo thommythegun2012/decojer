@@ -23,64 +23,97 @@
  */
 package org.decojer.cavaj.model.types;
 
+import java.util.Map;
+
 import lombok.Getter;
 
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
- * Type variable.
- * 
- * This type is used as type argument, but other types can be type arguments too, e.g. a ClassT or
- * an extension by WildcardT.
- * 
- * Is not used in declaration like ParamT but is used for referencing it, should be resolved to a
- * ParamT, but can only be done lazy.
+ * Type parameter.
  * 
  * @author André Pankraz
  */
-public class VarT extends ModT {
-
-	/**
-	 * Enclosing type context.
-	 */
-	@Getter
-	private final Object context;
+public class ParamT extends T {
 
 	@Getter
 	private final String name;
 
+	@Getter
+	private final DU du;
+
+	/**
+	 * Interface types.
+	 */
+	private T[] interfaceTs;
+
+	/**
+	 * Super type.
+	 */
+	@Getter
+	private T superT;
+
 	/**
 	 * Constructor.
 	 * 
+	 * @param du
+	 *            decompilation unit
 	 * @param name
 	 *            type name
-	 * @param context
-	 *            enclosing type context
 	 */
-	public VarT(final String name, final Object context) {
-		super(null);
-
+	public ParamT(final DU du, final String name) {
+		assert du != null;
 		assert name != null;
 
-		// TODO add this after we know what happens for:
-		// Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;
-		// assert enclosing != null;
-
+		this.du = du;
 		this.name = name;
-		this.context = context;
 	}
 
 	@Override
-	public boolean eraseTo(final T t) {
-		if (getRawT() != null) {
-			return getRawT().equals(t);
+	public T[] getInterfaceTs() {
+		if (this.interfaceTs == null) {
+			return INTERFACES_NONE;
 		}
-		setRawT(t);
+		return this.interfaceTs;
+	}
+
+	@Override
+	public int getKind() {
+		return Kind.REF.getKind();
+	}
+
+	@Override
+	public Map<String, Object> getMember() {
+		return null;
+	}
+
+	@Override
+	public boolean isRef() {
 		return true;
 	}
 
-	public void setReducedT(final T t) {
-		setRawT(t);
+	@Override
+	public boolean isUnresolvable() {
+		return false;
+	}
+
+	@Override
+	public void setInterfaceTs(final T[] interfaceTs) {
+		for (final T t : interfaceTs) {
+			t.setInterface(true);
+		}
+		this.interfaceTs = interfaceTs;
+	}
+
+	@Override
+	public void setSuperT(final T superT) {
+		if (superT == null) {
+			this.superT = NONE;
+			return;
+		}
+		superT.setInterface(false);
+		this.superT = superT;
 	}
 
 }

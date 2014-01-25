@@ -81,11 +81,6 @@ public class BaseT extends T {
 	}
 
 	@Override
-	public boolean isInterface() {
-		return false;
-	}
-
-	@Override
 	public boolean isMulti() {
 		int nr = getKind() - (getKind() >> 1 & 0x55555555);
 		nr = (nr & 0x33333333) + (nr >> 2 & 0x33333333);

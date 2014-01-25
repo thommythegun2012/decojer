@@ -246,7 +246,7 @@ public class ReadClassVisitor extends ClassVisitor {
 			}
 			if (typeParameterBoundIndex == 0) {
 				// 0: annotation targets extends type
-				((ClassT) t).setSuperT(annotate(t.getSuperT(), a, typePath));
+				t.setSuperT(annotate(t.getSuperT(), a, typePath));
 			} else {
 				// 1-based interface index
 				final T[] interfaceTs = t.getInterfaceTs();

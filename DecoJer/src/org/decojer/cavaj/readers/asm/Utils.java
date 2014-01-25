@@ -42,7 +42,7 @@ public class Utils {
 
 	public static T annotate(final T t, final A a, final TypePath typePath) {
 		if (typePath == null) {
-			return DU.getAnnotT(t, a);
+			return DU.getAnnotatedT(t, a);
 		}
 		T currentT = t;
 		int innerCounter = 0;
@@ -88,7 +88,7 @@ public class Utils {
 					currentT = componentT;
 					continue;
 				}
-				currentT.setComponentT(DU.getAnnotT(componentT, a));
+				currentT.setComponentT(DU.getAnnotatedT(componentT, a));
 				break;
 			}
 			case TypePath.INNER_TYPE: {
@@ -105,7 +105,7 @@ public class Utils {
 					break;
 				}
 				// TODO hmmm, how do we change our parent type? recursive mode?
-				DU.getAnnotT(enclosingTs[innerCounter], a);
+				DU.getAnnotatedT(enclosingTs[innerCounter], a);
 				innerCounter = 0;
 				break;
 			}
@@ -121,7 +121,7 @@ public class Utils {
 					currentT = typeArg;
 					continue;
 				}
-				typeArgs[arg] = DU.getAnnotT(typeArg, a);
+				typeArgs[arg] = DU.getAnnotatedT(typeArg, a);
 				break;
 			}
 			case TypePath.WILDCARD_BOUND: {
@@ -137,7 +137,7 @@ public class Utils {
 					currentT = bound;
 					continue;
 				}
-				currentT.setBoundT(DU.getAnnotT(bound, a));
+				currentT.setBoundT(DU.getAnnotatedT(bound, a));
 				break;
 			}
 			default:
