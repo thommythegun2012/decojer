@@ -77,4 +77,19 @@ public class AnnotatedT extends ModT {
 		return true;
 	}
 
+	@Override
+	public void setComponentT(final T componentT) {
+		getRawT().setComponentT(componentT);
+	}
+
+	@Override
+	public void setInterfaceTs(final T[] interfaceTs) {
+		getRawT().setInterfaceTs(interfaceTs);
+	}
+
+	@Override
+	public void setSuperT(final T t) {
+		getRawT().setSuperT(t);
+	}
+
 }

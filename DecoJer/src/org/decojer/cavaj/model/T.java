@@ -509,6 +509,15 @@ public abstract class T {
 	}
 
 	/**
+	 * Get type annotations.
+	 * 
+	 * @return type annotations
+	 */
+	public A[] getAs() {
+		return null;
+	}
+
+	/**
 	 * Get bound type for wildcard type or null.
 	 * 
 	 * @return bound type for wildcard type or null
