@@ -30,11 +30,11 @@ import lombok.Getter;
 import org.decojer.cavaj.model.T;
 
 /**
- * Base type (primitives and artificial / internal VM types).
+ * Primitive type (normal primitives and artificial / internal VM types).
  * 
  * @author André Pankraz
  */
-public class BaseT extends T {
+public class PrimitiveT extends T {
 
 	@Getter
 	private final String name;
@@ -50,7 +50,7 @@ public class BaseT extends T {
 	 * @param kind
 	 *            type kind
 	 */
-	public BaseT(final String name, final int kind) {
+	public PrimitiveT(final String name, final int kind) {
 		assert name != null;
 
 		this.name = name;

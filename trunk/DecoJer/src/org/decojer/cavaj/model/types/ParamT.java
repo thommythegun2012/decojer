@@ -89,11 +89,6 @@ public class ParamT extends T {
 	}
 
 	@Override
-	public boolean isRef() {
-		return true;
-	}
-
-	@Override
 	public boolean isUnresolvable() {
 		return false;
 	}

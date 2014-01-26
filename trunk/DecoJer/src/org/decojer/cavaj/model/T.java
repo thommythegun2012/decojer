@@ -28,9 +28,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.decojer.cavaj.model.types.BaseT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.Kind;
+import org.decojer.cavaj.model.types.PrimitiveT;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -217,7 +217,7 @@ public abstract class T {
 		return getT(kinds);
 	}
 
-	public static BaseT getJvmIntT(final int literal) {
+	public static PrimitiveT getJvmIntT(final int literal) {
 		int kinds = 0;
 		if (literal == 0 || literal == 1) {
 			kinds |= T.BOOLEAN.getKind();
@@ -235,11 +235,11 @@ public abstract class T {
 		return getT(kinds);
 	}
 
-	private static BaseT getT(final int kinds) {
+	private static PrimitiveT getT(final int kinds) {
 		if (kinds == 0) {
 			return null;
 		}
-		BaseT t = (BaseT) KIND_2_TS.get(kinds);
+		PrimitiveT t = (PrimitiveT) KIND_2_TS.get(kinds);
 		if (t != null) {
 			return t;
 		}
@@ -249,22 +249,22 @@ public abstract class T {
 				sb.append(k.getName()).append(",");
 			}
 		}
-		t = new BaseT(sb.substring(0, sb.length() - 1) + "}", kinds);
+		t = new PrimitiveT(sb.substring(0, sb.length() - 1) + "}", kinds);
 		KIND_2_TS.put(kinds, t);
 		return t;
 	}
 
-	private static BaseT getT(final Kind kind) {
-		BaseT t = (BaseT) KIND_2_TS.get(kind.getKind());
+	private static PrimitiveT getT(final Kind kind) {
+		PrimitiveT t = (PrimitiveT) KIND_2_TS.get(kind.getKind());
 		if (t != null) {
 			return t;
 		}
-		t = new BaseT(kind.getName(), kind.getKind());
+		t = new PrimitiveT(kind.getName(), kind.getKind());
 		KIND_2_TS.put(kind.getKind(), t);
 		return t;
 	}
 
-	private static BaseT getT(final Kind... kinds) {
+	private static PrimitiveT getT(final Kind... kinds) {
 		// don't use types as input, restrict to kind-types
 		int flags = 0;
 		for (final Kind k : kinds) {
@@ -1003,7 +1003,7 @@ public abstract class T {
 	 * @return {@code true} - is multi type
 	 */
 	public boolean isMulti() {
-		return false; // only base types can be multi types, overwrite in BaseT
+		return false; // only primitive types can be multi types, overwrite in PrimitiveT
 	}
 
 	/**
@@ -1030,7 +1030,7 @@ public abstract class T {
 	 * @return {@code true} - is primitive
 	 */
 	public boolean isPrimitive() {
-		return false; // overwrite in BaseT
+		return false; // overwrite in PrimitiveT
 	}
 
 	/**
@@ -1038,7 +1038,9 @@ public abstract class T {
 	 * 
 	 * @return {@code true} - is reference type
 	 */
-	public abstract boolean isRef();
+	public boolean isRef() {
+		return true; // only primitive types can not be references, overwrite in PrimitiveT
+	}
 
 	/**
 	 * Is subclass - for wildcard types?
@@ -1062,7 +1064,7 @@ public abstract class T {
 	 * @return {@code true} - is wide type
 	 */
 	public boolean isWide() {
-		return false; // only base types can be wide, overwrite in BaseT
+		return false; // only primitive types can be wide, overwrite in PrimitiveT
 	}
 
 	/**
