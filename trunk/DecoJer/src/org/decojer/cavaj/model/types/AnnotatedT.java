@@ -73,7 +73,7 @@ public class AnnotatedT extends ModT {
 	}
 
 	@Override
-	public boolean isAnnotation() {
+	public boolean isAnnotated() {
 		return true;
 	}
 

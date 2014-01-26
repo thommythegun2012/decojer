@@ -112,7 +112,8 @@ public abstract class ModT extends T {
 
 	@Override
 	public boolean isArray() {
-		return this.rawT != null && this.rawT.isArray();
+		// null: unresolved VarT or Matches-Wildcard
+		return getRawT() != null && getRawT().isArray();
 	}
 
 	@Override
