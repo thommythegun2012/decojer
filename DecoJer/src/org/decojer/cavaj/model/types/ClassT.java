@@ -366,6 +366,11 @@ public class ClassT extends T {
 
 	@Override
 	public void setEnclosingT(final T t) {
+		if (t.isParameterized() || t.isAnnotated()) {
+			// TODO think about type system, when do we need QualifiedType, when is it enclosing?
+			System.out.println("Check this enclosing: " + t);
+			// return;
+		}
 		if (this.enclosing != null) {
 			if (this.enclosing.equals(t)) {
 				return;

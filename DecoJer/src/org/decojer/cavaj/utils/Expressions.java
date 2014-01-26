@@ -635,13 +635,13 @@ public final class Expressions {
 				return ast.newArrayType(newType(t.getComponentT(), td));
 			}
 			for (T checkT = t; checkT.isArray(); checkT = checkT.getComponentT()) {
-				if (checkT.isAnnotation()) {
+				if (checkT.isAnnotated()) {
 					final ArrayType arrayType = ast.newArrayType(newType(t.getElementT(), td));
 					final List<Dimension> dimensions = arrayType.dimensions();
 					dimensions.clear();
 					for (T elementT = t; elementT.isArray(); elementT = elementT.getComponentT()) {
 						final Dimension dimension = ast.newDimension();
-						if (elementT.isAnnotation()) {
+						if (elementT.isAnnotated()) {
 							Annotations.decompileAnnotations(td, dimension.annotations(), elementT);
 						}
 						dimensions.add(dimension);
@@ -651,7 +651,7 @@ public final class Expressions {
 			}
 			return ast.newArrayType(newType(t.getElementT(), td), t.getDimensions());
 		}
-		if (t.isAnnotation()) {
+		if (t.isAnnotated()) {
 			final Type type = newType(t.getRawT(), td);
 			if (ast.apiLevel() <= AST.JLS4) {
 				LOGGER.warning("Cannot decompile type annotations for type '" + t

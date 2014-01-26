@@ -225,7 +225,7 @@ public final class Annotations {
 	 */
 	public static void decompileAnnotations(final TD td, final List<Annotation> annotations,
 			final T t) {
-		if (t.isAnnotation()) {
+		if (t.isAnnotated()) {
 			decompileAnnotations(td, annotations, t.getAs());
 		}
 	}

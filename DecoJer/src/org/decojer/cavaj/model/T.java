@@ -905,7 +905,7 @@ public abstract class T {
 	 * 
 	 * @return {@code true} - is type annotation
 	 */
-	public boolean isAnnotation() {
+	public boolean isAnnotated() {
 		return false; // overwrite in AnnotT
 	}
 
