@@ -250,11 +250,6 @@ public class ClassT extends T {
 		return is(Object.class);
 	}
 
-	@Override
-	public boolean isRef() {
-		return true;
-	}
-
 	/**
 	 * Is synthetic type?
 	 * 
