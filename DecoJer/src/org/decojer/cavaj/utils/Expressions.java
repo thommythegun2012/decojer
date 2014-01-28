@@ -671,27 +671,25 @@ public final class Expressions {
 			final ParameterizedType parameterizedType = ast.newParameterizedType(newType(
 					t.getGenericT(), td));
 			for (final T typeArg : t.getTypeArgs()) {
-				if (typeArg.isWildcard()) {
-					if (typeArg.getBoundT() == null) {
-						parameterizedType.typeArguments().add(ast.newWildcardType());
-						continue;
-					}
-					if (typeArg.isSubclassOf()) {
-						final WildcardType wildcardType = ast.newWildcardType();
-						// default...newWildcardType.setUpperBound(true);
-						wildcardType.setBound(newType(typeArg.getBoundT(), td));
-						parameterizedType.typeArguments().add(wildcardType);
-						continue;
-					}
-					final WildcardType wildcardType = ast.newWildcardType();
-					wildcardType.setUpperBound(false);
-					wildcardType.setBound(newType(typeArg.getBoundT(), td));
-					parameterizedType.typeArguments().add(wildcardType);
-					continue;
-				}
 				parameterizedType.typeArguments().add(newType(typeArg, td));
 			}
 			return parameterizedType;
+		}
+		if (t.isWildcard()) {
+			final T boundT = t.getBoundT();
+			if (boundT == null) {
+				return ast.newWildcardType();
+			}
+			if (t.isSubclassOf()) {
+				final WildcardType wildcardType = ast.newWildcardType();
+				// default...newWildcardType.setUpperBound(true);
+				wildcardType.setBound(newType(boundT, td));
+				return wildcardType;
+			}
+			final WildcardType wildcardType = ast.newWildcardType();
+			wildcardType.setUpperBound(false);
+			wildcardType.setBound(newType(boundT, td));
+			return wildcardType;
 		}
 		if (t.isMulti()) {
 			LOGGER.warning("Convert type for multi-type '" + t + "'!");
