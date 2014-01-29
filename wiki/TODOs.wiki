@@ -30,6 +30,7 @@
         * http://www.tutego.de/blog/javainsel/2012/02/erster-draft-fr-annotations-on-java-types-jsr-308/
     * Repeatable Annotations (@Repeatable) work, if annotation TD can be resolved
       * http://docs.oracle.com/javase/tutorial/java/annotations/repeating.html
+    * Inner classes buggy in Eclipse: https://bugs.eclipse.org/bugs/show_bug.cgi?id=426854 
 
 = NOTICES =
 
