@@ -1,4 +1,4 @@
-#summary TODOs
+#summary Next steps and open issues
 
 = TODOs =
 
