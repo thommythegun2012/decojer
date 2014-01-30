@@ -31,6 +31,9 @@
     * Repeatable Annotations (@Repeatable) work, if annotation TD can be resolved
       * http://docs.oracle.com/javase/tutorial/java/annotations/repeating.html
     * Inner classes buggy in Eclipse: https://bugs.eclipse.org/bugs/show_bug.cgi?id=426854 
+    * IntelliJ Plugin
+      * http://bjorn.tipling.com/how-to-make-an-intellij-idea-plugin-in-30-minutes
+    * Netbeans Plugin
 
 = NOTICES =
 
