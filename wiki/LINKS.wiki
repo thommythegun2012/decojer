@@ -1,4 +1,5 @@
 #summary Various links to interesting ressources
 
 Programming
-  * http://google-styleguide.googlecode.com/svn/trunk/javaguide.html
+  * Google Java Code Style Guides: http://google-styleguide.googlecode.com/svn/trunk/javaguide.html
+  * Prototypes / Inheritance in JavaScript: http://msdn.microsoft.com/en-us/magazine/ff852808.aspx
