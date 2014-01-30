@@ -1,3 +1,7 @@
 Not necessarily for DecoJer. Nice quick wiki...
 
+Programming
+  * http://google-styleguide.googlecode.com/svn/trunk/javaguide.html
+
+Aquarium
   * Sarcophyton Elegans from here: http://www.korallen-und-meer.de/de/KORALLEN/Stockliste/Weichkorallen-etc./Sarcophyton-elegans-Fiji.html
