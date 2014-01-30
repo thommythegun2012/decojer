@@ -1,4 +1,4 @@
-#summary Links
+#summary Various links to interesting ressources
 
 Programming
   * http://google-styleguide.googlecode.com/svn/trunk/javaguide.html
