@@ -52,6 +52,7 @@ import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParameterizedT;
+import org.decojer.cavaj.model.types.QualifiedT;
 import org.decojer.cavaj.model.types.VarT;
 import org.decojer.cavaj.model.types.WildcardT;
 import org.decojer.cavaj.readers.AsmReader;
@@ -128,6 +129,19 @@ public final class DU {
 	public static ParameterizedT getParameterizedT(final T genericT, final T[] typeArgs) {
 		// cannot cache because of type variables
 		return new ParameterizedT(genericT, typeArgs);
+	}
+
+	/**
+	 * Get qualified type for type and qualifier type.
+	 * 
+	 * @param t
+	 *            type
+	 * @param qualifierT
+	 *            qualifier type
+	 * @return qualified type
+	 */
+	public static QualifiedT getQualifiedT(final T t, final T qualifierT) {
+		return new QualifiedT(t, qualifierT);
 	}
 
 	/**
@@ -421,11 +435,11 @@ public final class DU {
 	 *            cursor
 	 * @param context
 	 *            enclosing type context
-	 * @param enclosing
+	 * @param enclosingT
 	 *            parent type (for recursion)
 	 * @return class type
 	 */
-	private T parseClassT(final String s, final Cursor c, final Object context, final T enclosing) {
+	private T parseClassT(final String s, final Cursor c, final Object context, final T enclosingT) {
 		// ClassTypeSignature: L PackageSpecifier_opt SimpleClassTypeSignature
 		// ClassTypeSignatureSuffix_* ;
 		// PackageSpecifier: Identifier / PackageSpecifier_*
@@ -444,10 +458,9 @@ public final class DU {
 		}
 		T t;
 		final String typeName = s.substring(start, c.pos).replace('/', '.');
-		if (enclosing != null) {
+		if (enclosingT != null) {
 			// can just happen for signatures, they have . instead of $ for enclosing
-			t = getT(enclosing.getName() + "$" + typeName);
-			((ClassT) t).setEnclosingT(enclosing);
+			t = getQualifiedT(getT(enclosingT.getName() + "$" + typeName), enclosingT);
 		} else {
 			t = getT(typeName);
 		}
