@@ -50,7 +50,7 @@ public class QualifiedT extends ModT {
 	 * @param qualifierT
 	 *            type qualifier
 	 */
-	protected QualifiedT(final T t, final T qualifierT) {
+	public QualifiedT(final T t, final T qualifierT) {
 		super(t); // the qualified t is the raw t, because we inherit its properties
 
 		assert t.getName().startsWith(qualifierT.getName());
