@@ -142,7 +142,7 @@ public final class TD extends BD {
 	 * 
 	 * @return enclosing type declaration
 	 * 
-	 * @see ClassT#setEnclosingT(T)
+	 * @see ClassT#getEnclosingT()
 	 * @see Class#getEnclosingClass()
 	 */
 	public TD getEnclosingTd() {
