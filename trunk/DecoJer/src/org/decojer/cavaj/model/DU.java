@@ -432,19 +432,24 @@ public final class DU {
 		// SimpleClassTypeSignature: Identifier TypeArguments_opt
 		// ClassTypeSignatureSuffix: . SimpleClassTypeSignature
 		final int start = c.pos;
-		char ch;
 		// PackageSpecifier_opt Identifier
-		while (s.length() > c.pos && (ch = s.charAt(c.pos)) != '<' && ch != '.' && ch != ';') {
-			// $ could be a regular identifier char, we cannot do anything about this here
-			++c.pos;
+		typeName: for (; c.pos < s.length(); ++c.pos) {
+			// $ can be a regular identifier char, we cannot do anything about this here
+			switch (s.charAt(c.pos)) {
+			case ';': // type name end
+			case '.': // inner type
+			case '<': // type argument
+				break typeName;
+			}
 		}
 		T t;
+		final String typeName = s.substring(start, c.pos).replace('/', '.');
 		if (enclosing != null) {
 			// can just happen for signatures, they have . instead of $ for enclosing
-			t = getT(enclosing.getName() + "$" + s.substring(start, c.pos).replace('/', '.'));
+			t = getT(enclosing.getName() + "$" + typeName);
 			((ClassT) t).setEnclosingT(enclosing);
 		} else {
-			t = getT(s.substring(start, c.pos).replace('/', '.'));
+			t = getT(typeName);
 		}
 		// TypeArguments_opt
 		final T[] typeArgs = parseTypeArgs(s, c, context);
