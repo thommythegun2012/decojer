@@ -25,6 +25,7 @@ package org.decojer.cavaj.transformers;
 
 import static org.decojer.cavaj.utils.Expressions.newLiteral;
 import static org.decojer.cavaj.utils.Expressions.newSimpleName;
+import static org.decojer.cavaj.utils.Expressions.newSingleVariableDeclaration;
 import static org.decojer.cavaj.utils.Expressions.newType;
 import static org.decojer.cavaj.utils.Expressions.newTypeName;
 
@@ -45,12 +46,10 @@ import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.utils.Annotations;
 import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.AST;
-import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnnotationTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
-import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.CompilationUnit;
@@ -63,9 +62,7 @@ import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.Modifier.ModifierKeyword;
 import org.eclipse.jdt.core.dom.PackageDeclaration;
-import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.TagElement;
-import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.TypeParameter;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
@@ -335,9 +332,8 @@ public final class TrJvmStruct2JavaAst {
 		if (md.getReceiverT() != null) {
 			methodDeclaration.setReceiverType(newType(md.getReceiverT(), td));
 		}
-		final A[][] paramAs = md.getParamAss();
+		final A[][] paramAss = md.getParamAss();
 		for (int i = 0; i < paramTs.length; ++i) {
-			final Type methodParameterType = newType(paramTs[i], td);
 			if (methodDeclaration.isConstructor()) {
 				if (i <= 1 && td.check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
 					// enum constructors have two leading synthetic parameters,
@@ -359,35 +355,8 @@ public final class TrJvmStruct2JavaAst {
 				// anonymous inner classes are static if context is static,
 				// enums are static and can not be anonymous or inner method
 			}
-			final SingleVariableDeclaration singleVariableDeclaration = ast
-					.newSingleVariableDeclaration();
-			if (paramAs != null && i < paramAs.length) {
-				Annotations.decompileAnnotations(td, singleVariableDeclaration.modifiers(),
-						paramAs[i]);
-			}
-			// decompile varargs (flag set, ArrayType and last method param)
-			if (i == paramTs.length - 1 && md.check(AF.VARARGS)) {
-				if (methodParameterType instanceof ArrayType) {
-					singleVariableDeclaration.setVarargs(true);
-					// must copy because we cannot delete mandatory ArrayType.componentType
-					if (ast.apiLevel() <= AST.JLS4) {
-						singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
-								((ArrayType) methodParameterType).getComponentType()));
-					} else {
-						singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
-								((ArrayType) methodParameterType).getElementType()));
-					}
-				} else {
-					LOGGER.warning("Last method parameter is no ArrayType, but method '"
-							+ methodDeclaration.getName() + "' has vararg attribute!");
-					// try handling as normal type
-					singleVariableDeclaration.setType(methodParameterType);
-				}
-			} else {
-				singleVariableDeclaration.setType(methodParameterType);
-			}
-			singleVariableDeclaration.setName(newSimpleName(md.getParamName(i), ast));
-			methodDeclaration.parameters().add(singleVariableDeclaration);
+			methodDeclaration.parameters().add(
+					newSingleVariableDeclaration(md, paramTs, paramAss, i, td));
 		}
 		// decompile return type
 		methodDeclaration.setReturnType2(newType(md.getReturnT(), td));

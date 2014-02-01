@@ -32,6 +32,7 @@ import static org.decojer.cavaj.utils.Expressions.newLiteral;
 import static org.decojer.cavaj.utils.Expressions.newPostfixExpression;
 import static org.decojer.cavaj.utils.Expressions.newPrefixExpression;
 import static org.decojer.cavaj.utils.Expressions.newSimpleName;
+import static org.decojer.cavaj.utils.Expressions.newSingleVariableDeclaration;
 import static org.decojer.cavaj.utils.Expressions.newType;
 import static org.decojer.cavaj.utils.Expressions.newTypeName;
 import static org.decojer.cavaj.utils.Expressions.not;
@@ -47,6 +48,7 @@ import java.util.logging.Logger;
 import lombok.AccessLevel;
 import lombok.Getter;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
@@ -643,15 +645,12 @@ public final class TrCfg2JavaExpressionStmts {
 						final M lambdaM = (M) bsArgs[1];
 						final MD lambdaMd = lambdaM.getMd();
 						final T[] paramTs = lambdaM.getParamTs();
+						final A[][] paramAss = lambdaMd.getParamAss();
 						// first m.paramTs.length parameters are for outer capture inits
 						for (int i = m.getParamTs().length; i < paramTs.length; ++i) {
-							final Type methodParameterType = newType(paramTs[i], this.cfg.getTd());
-							final SingleVariableDeclaration singleVariableDeclaration = getAst()
-									.newSingleVariableDeclaration();
-							singleVariableDeclaration.setType(methodParameterType);
-							singleVariableDeclaration.setName(newSimpleName(
-									lambdaMd.getParamName(i), getAst()));
-							lambdaExpression.parameters().add(singleVariableDeclaration);
+							lambdaExpression.parameters().add(
+									newSingleVariableDeclaration(lambdaMd, paramTs, paramAss, i,
+											this.cfg.getTd()));
 						}
 						// init lambda body
 						final CFG lambdaCfg = lambdaMd.getCfg();
