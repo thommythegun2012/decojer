@@ -66,7 +66,7 @@ public final class CU extends D {
 	@Setter
 	private CompilationUnit compilationUnit;
 
-	private final EnumSet<DFlag> dFlags = EnumSet.noneOf(DFlag.class);
+	private final EnumSet<DFlag> dFlags = EnumSet.of(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC); // EnumSet.noneOf(DFlag.class);
 
 	/**
 	 * Source file name (calculated).
