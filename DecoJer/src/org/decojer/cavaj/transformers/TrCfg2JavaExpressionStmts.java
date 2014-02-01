@@ -656,10 +656,18 @@ public final class TrCfg2JavaExpressionStmts {
 						// init lambda body
 						final CFG lambdaCfg = lambdaMd.getCfg();
 						if (lambdaCfg.getBlock() == null) {
-							// lambda method is synthetic: init block, could later add more checks
+							// if synthetics are not decompiled...
+							// lambda methods are synthetic: init block, could later add more checks
 							// and alternatives here if obfuscators play with these flags
 							lambdaCfg.setBlock((Block) lambdaExpression.getBody());
 							lambdaCfg.decompile();
+						} else {
+							// if synthetics are decompiled...
+							lambdaCfg.getBlock().delete(); // delete from parent
+							// don't show this recognized (normally anyway synthetic) method
+							// declaration
+							lambdaMd.setMethodDeclaration(null);
+							lambdaExpression.setBody(lambdaCfg.getBlock());
 						}
 						methodExpression = lambdaExpression;
 					} else {
