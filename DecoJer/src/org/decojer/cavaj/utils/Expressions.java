@@ -28,6 +28,9 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.Version;
@@ -52,6 +55,7 @@ import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.PrimitiveType;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeLiteral;
@@ -615,6 +619,57 @@ public final class Expressions {
 				return ast.newSimpleName("_invalid_identifier_");
 			}
 		}
+	}
+
+	/**
+	 * New single variable declaration.
+	 * 
+	 * @param md
+	 *            method declaration
+	 * @param paramTs
+	 *            parameter types
+	 * @param paramAss
+	 *            parameter annotations
+	 * @param i
+	 *            index
+	 * @param td
+	 *            type declaration (context)
+	 * @return single variable declaration
+	 */
+	@SuppressWarnings("deprecation")
+	public static SingleVariableDeclaration newSingleVariableDeclaration(final MD md,
+			final T[] paramTs, final A[][] paramAss, final int i, final TD td) {
+		final AST ast = td.getCu().getAst();
+		final SingleVariableDeclaration singleVariableDeclaration = ast
+				.newSingleVariableDeclaration();
+		if (paramAss != null && i < paramAss.length) {
+			Annotations
+					.decompileAnnotations(td, singleVariableDeclaration.modifiers(), paramAss[i]);
+		}
+		final Type methodParameterType = newType(paramTs[i], td);
+		// decompile varargs (flag set, ArrayType and last method param)
+		if (i == paramTs.length - 1 && md.check(AF.VARARGS)) {
+			if (methodParameterType instanceof ArrayType) {
+				singleVariableDeclaration.setVarargs(true);
+				// must copy because we cannot delete mandatory ArrayType.componentType
+				if (ast.apiLevel() <= AST.JLS4) {
+					singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
+							((ArrayType) methodParameterType).getComponentType()));
+				} else {
+					singleVariableDeclaration.setType((Type) ASTNode.copySubtree(ast,
+							((ArrayType) methodParameterType).getElementType()));
+				}
+			} else {
+				LOGGER.warning("Last method parameter is no ArrayType, but method '" + md.getName()
+						+ "' has vararg attribute!");
+				// try handling as normal type
+				singleVariableDeclaration.setType(methodParameterType);
+			}
+		} else {
+			singleVariableDeclaration.setType(methodParameterType);
+		}
+		singleVariableDeclaration.setName(newSimpleName(md.getParamName(i), ast));
+		return singleVariableDeclaration;
 	}
 
 	/**
