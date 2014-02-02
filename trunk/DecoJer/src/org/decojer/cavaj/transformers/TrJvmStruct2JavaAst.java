@@ -77,7 +77,7 @@ public final class TrJvmStruct2JavaAst {
 	private final static Logger LOGGER = Logger.getLogger(TrJvmStruct2JavaAst.class.getName());
 
 	private static void decompileField(final FD fd, final CU cu) {
-		if (fd.check(AF.SYNTHETIC) && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (fd.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 		final String name = fd.getName();
@@ -89,11 +89,6 @@ public final class TrJvmStruct2JavaAst {
 			// could extract this field name from initializer for more robustness
 			return;
 		}
-		if (name.startsWith("this$") && !cu.check(DFlag.START_TD_ONLY)) {
-			// cache for outer none-static context
-			return;
-		}
-
 		final AST ast = cu.getAst();
 
 		final boolean isEnum = fd.check(AF.ENUM);
@@ -171,7 +166,7 @@ public final class TrJvmStruct2JavaAst {
 	}
 
 	private static void decompileMethod(final MD md, final CU cu, final boolean strictFp) {
-		if (md.check(AF.SYNTHETIC) && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (md.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 		final String name = md.getName();
@@ -183,7 +178,6 @@ public final class TrJvmStruct2JavaAst {
 				&& td.check(AF.ENUM) && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
-
 		final AST ast = cu.getAst();
 
 		final boolean isAnnotationMember = td.check(AF.ANNOTATION);
@@ -445,7 +439,7 @@ public final class TrJvmStruct2JavaAst {
 			}
 			return;
 		}
-		if (td.check(AF.DEPRECATED) && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (td.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 

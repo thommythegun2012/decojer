@@ -121,6 +121,15 @@ public class F {
 		return check(AF.STATIC);
 	}
 
+	/**
+	 * Is synthetic field?
+	 * 
+	 * @return {@code true} - is synthetic field
+	 */
+	public boolean isSynthetic() {
+		return check(AF.SYNTHETIC);
+	}
+
 	public boolean isUnresolvable() {
 		return true;
 	}
@@ -165,7 +174,7 @@ public class F {
 	}
 
 	/**
-	 * Field must be synthetic (from Synthetic attribute).
+	 * Field must be synthetic (from synthetic attribute).
 	 */
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();

@@ -203,6 +203,11 @@ public final class MD extends BD {
 		return getM().isStatic();
 	}
 
+	@Override
+	public boolean isSynthetic() {
+		return getM().isSynthetic();
+	}
+
 	/**
 	 * Parse throw types from signature.
 	 * 

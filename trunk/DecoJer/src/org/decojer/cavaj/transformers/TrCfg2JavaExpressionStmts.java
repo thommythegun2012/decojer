@@ -1442,7 +1442,7 @@ public final class TrCfg2JavaExpressionStmts {
 		// field-get for synthetic field which name starts with "class$" or "array$"
 		// (is class$<[0-9]+> for Eclipse or class$<classname> for JDK)
 		final F f = op.getF();
-		if (!f.isStatic() || !f.check(AF.SYNTHETIC)) {
+		if (!f.isStatic() || !f.isSynthetic()) {
 			return false;
 		}
 		if (!f.getName().startsWith("class$") && !f.getName().startsWith("array$")) {
@@ -1906,7 +1906,7 @@ public final class TrCfg2JavaExpressionStmts {
 				return true; // ignore such assignments completely
 			}
 		}
-		if (f.check(AF.SYNTHETIC)) {
+		if (f.isSynthetic()) {
 			if (getCfg().getCu().check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 				return false; // not as field initializer
 			}

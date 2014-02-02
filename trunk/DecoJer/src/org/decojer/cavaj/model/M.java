@@ -223,7 +223,7 @@ public class M {
 	}
 
 	/**
-	 * Method must be synthetic (from Synthetic attribute).
+	 * Method must be synthetic (from synthetic attribute).
 	 */
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
