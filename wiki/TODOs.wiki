@@ -2,12 +2,14 @@
 
 = TODOs =
 
-  * inner classes synthetic initializer for eclosing.this 
   * merge-replace register
     * can recursively create new merges, back-branch algorithm
   * JSR-merge stuff
   * assign-to with "maybe"
-  * loop recognition from bottum up
+  * inner classes synthetic initializer for eclosing.this, comment in PUT indicates, data flowe analysis must be solved first:
+    * we want to rewrite this$0 here, but for this constructor methods have to be handled first to mark such fields for consumption?
+    * fieldInit is false for synthetic this$0 initializer in constructor, also not sufficient check for conditionals, alternative via data flow analysis?!
+  * loop recognition from bottom up
   * JDK 8
     * Eclipse AST for JDK 8: http://www.oracle.com/technetwork/articles/java/lambda-1984522.html
       * http://wiki.eclipse.org/JDT_Core/Java8
