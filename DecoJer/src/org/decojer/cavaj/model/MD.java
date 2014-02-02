@@ -63,6 +63,24 @@ public final class MD extends BD {
 	private final M m;
 
 	/**
+	 * AST method declaration.
+	 * 
+	 * Lambda expressions don't really match: Prevent using getBody(), use CFG.getBlock()!
+	 */
+	@Getter
+	@Setter
+	private BodyDeclaration methodDeclaration;
+
+	/**
+	 * Method parameter annotations.
+	 */
+	@Getter
+	@Setter
+	private A[][] paramAss;
+
+	private String[] paramNames;
+
+	/**
 	 * For type annotations like: void test(@Annots This this, ...) for none-static methods.
 	 * 
 	 * TODO rarely used, could try to move this into M.T when inner classes work nicely
@@ -89,24 +107,6 @@ public final class MD extends BD {
 	 */
 	@Getter
 	private T[] typeParams;
-
-	/**
-	 * AST method declaration.
-	 * 
-	 * Lambda expressions don't really match: Prevent using getBody(), use CFG.getBlock()!
-	 */
-	@Getter
-	@Setter
-	private BodyDeclaration methodDeclaration;
-
-	/**
-	 * Method parameter annotations.
-	 */
-	@Getter
-	@Setter
-	private A[][] paramAss;
-
-	private String[] paramNames;
 
 	/**
 	 * Constructor.

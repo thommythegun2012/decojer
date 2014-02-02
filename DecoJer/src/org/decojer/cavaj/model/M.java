@@ -57,11 +57,11 @@ public class M {
 	private T[] paramTs;
 
 	@Getter
-	private final T t;
-
-	@Getter
 	@Setter
 	private T returnT;
+
+	@Getter
+	private final T t;
 
 	/**
 	 * Constructor for dynamic method.
