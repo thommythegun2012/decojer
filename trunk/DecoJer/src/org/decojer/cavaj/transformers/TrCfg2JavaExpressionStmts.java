@@ -116,6 +116,7 @@ import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.InfixExpression.Operator;
 import org.eclipse.jdt.core.dom.InstanceofExpression;
 import org.eclipse.jdt.core.dom.LambdaExpression;
+import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NullLiteral;
@@ -660,12 +661,12 @@ public final class TrCfg2JavaExpressionStmts {
 							// and alternatives here if obfuscators play with these flags
 							lambdaCfg.setBlock((Block) lambdaExpression.getBody());
 							lambdaCfg.decompile();
-						} else {
-							// if synthetics are decompiled...
+						} else if (lambdaCfg.getBlock().getParent() instanceof MethodDeclaration) {
+							// if synthetics are decompiled...but not for re-decompilation:
+							// don't show this recognized (normally synthetic) method declaration
 							lambdaCfg.getBlock().delete(); // delete from parent
-							// don't show this recognized (normally anyway synthetic) method
-							// declaration
 							lambdaMd.setMethodDeclaration(null);
+							// is our new lambda body
 							lambdaExpression.setBody(lambdaCfg.getBlock());
 						}
 						methodExpression = lambdaExpression;
