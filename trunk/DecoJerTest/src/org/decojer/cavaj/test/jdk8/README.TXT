@@ -6,6 +6,7 @@ Differences to previous
 
 
 * new language features:
-  + Lambdas
   + Default Methods (Defender Methods)
+  + Lambdas
   + Type Annotations
+  + Repeatable Annotations
