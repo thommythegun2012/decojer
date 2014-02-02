@@ -47,7 +47,7 @@ public abstract class ModT extends T {
 	private T rawT;
 
 	protected ModT(final T rawT) {
-		this.rawT = rawT; // can be null for VarT lazy resolving
+		this.rawT = rawT; // can be null for VarT lazy resolving or Matches-Wildcard
 	}
 
 	@Override
