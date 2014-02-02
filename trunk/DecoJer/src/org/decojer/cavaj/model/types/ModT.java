@@ -56,6 +56,11 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public T getBoundT() {
+		return getRawT().getBoundT();
+	}
+
+	@Override
 	public T getComponentT() {
 		return getRawT().getComponentT();
 	}
@@ -111,6 +116,11 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public T[] getTypeArgs() {
+		return getRawT().getTypeArgs();
+	}
+
+	@Override
 	public boolean isArray() {
 		// null: unresolved VarT or Matches-Wildcard
 		return getRawT() != null && getRawT().isArray();
@@ -139,6 +149,18 @@ public abstract class ModT extends T {
 	@Override
 	public boolean isUnresolvable() {
 		return getRawT().isUnresolvable();
+	}
+
+	@Override
+	public void setBoundT(final T boundT) {
+		// for annotation application
+		getRawT().setBoundT(boundT);
+	}
+
+	@Override
+	public void setComponentT(final T componentT) {
+		// for annotation application
+		getRawT().setComponentT(componentT);
 	}
 
 	@Override
