@@ -986,8 +986,11 @@ public final class TrCfg2JavaExpressionStmts {
 				final PUT cop = (PUT) op;
 				final Expression rightOperand = bb.pop();
 				final F f = cop.getF();
-				if (fieldInit && getMd().getTd().getT() == f.getT()
-						&& rewriteFieldInit(bb, f, rightOperand)) {
+				// TODO we want to rewrite this$0 here, but for this constructor methods have to be
+				// handled first to mark such fields for consumption?
+				// TODO fieldInit is false for synthetic this$0 initializer in constructor,
+				// also not sufficient check for conditionals, alternative via data flow analysis?!
+				if (fieldInit && rewriteFieldInit(bb, f, rightOperand)) {
 					break;
 				}
 				Expression leftOperand;
@@ -1819,6 +1822,9 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteFieldInit(final BB bb, final F f, final Expression rightOperand) {
+		if (getMd().getTd().getT() != f.getT()) {
+			return false;
+		}
 		// set local field, could be initializer
 		if (f.isStatic()) {
 			if (!getMd().isInitializer()) {
