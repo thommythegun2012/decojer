@@ -95,8 +95,18 @@ public final class FD extends BD {
 		return ((ClassT) getF().getT()).getTd();
 	}
 
+	/**
+	 * Get value type.
+	 * 
+	 * @return value type
+	 */
 	public T getValueT() {
 		return getF().getValueT();
+	}
+
+	@Override
+	public boolean isSynthetic() {
+		return getF().isSynthetic();
 	}
 
 	/**

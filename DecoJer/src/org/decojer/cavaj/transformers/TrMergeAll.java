@@ -107,29 +107,25 @@ public final class TrMergeAll {
 			}
 			if (bd instanceof FD) {
 				addBodyDeclaration(td, ((FD) bd).getFieldDeclaration());
-				if (!bd.getBds().isEmpty()) {
-					for (final BD innerTd : bd.getBds()) {
-						transform((TD) innerTd);
-					}
+				for (final BD innerTd : bd.getBds()) {
+					transform((TD) innerTd);
 				}
 				continue;
 			}
 			if (bd instanceof MD) {
 				final MD md = (MD) bd;
-				if (!md.getBds().isEmpty()) {
-					for (final BD innerTd : md.getBds()) {
-						if (!((TD) innerTd).isAnonymous()) {
-							final ASTNode typeDeclaration = ((TD) innerTd).getTypeDeclaration();
-							if (typeDeclaration != null) {
-								md.getCfg()
-										.getBlock()
-										.statements()
-										.add(typeDeclaration.getAST().newTypeDeclarationStatement(
-												(AbstractTypeDeclaration) typeDeclaration));
-							}
+				for (final BD innerTd : md.getBds()) {
+					if (!((TD) innerTd).isAnonymous()) {
+						final ASTNode typeDeclaration = ((TD) innerTd).getTypeDeclaration();
+						if (typeDeclaration != null) {
+							md.getCfg()
+									.getBlock()
+									.statements()
+									.add(typeDeclaration.getAST().newTypeDeclarationStatement(
+											(AbstractTypeDeclaration) typeDeclaration));
 						}
-						transform((TD) innerTd);
 					}
+					transform((TD) innerTd);
 				}
 				final BodyDeclaration methodDeclaration = md.getMethodDeclaration();
 				if (methodDeclaration instanceof MethodDeclaration

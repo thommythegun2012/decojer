@@ -283,6 +283,11 @@ public final class TD extends BD {
 		return getSourceFileName().endsWith(".scala");
 	}
 
+	@Override
+	public boolean isSynthetic() {
+		return getT().isSynthetic();
+	}
+
 	/**
 	 * Parse interface types from signature.
 	 * 

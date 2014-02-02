@@ -449,7 +449,7 @@ public class ClassT extends T {
 	}
 
 	/**
-	 * Type must be synthetic (from Synthetic attribute).
+	 * Type must be synthetic (from synthetic attribute).
 	 */
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();

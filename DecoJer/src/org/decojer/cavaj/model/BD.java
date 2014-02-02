@@ -84,6 +84,13 @@ public abstract class BD extends D {
 	}
 
 	/**
+	 * Is synthetic?
+	 * 
+	 * @return {@code true} - is synthetic
+	 */
+	public abstract boolean isSynthetic();
+
+	/**
 	 * Set access flags.
 	 * 
 	 * @param accessFlags
@@ -113,7 +120,7 @@ public abstract class BD extends D {
 	public abstract void setSignature(final String signature);
 
 	/**
-	 * Declaration must be synthetic (from Synthetic attribute).
+	 * Declaration must be synthetic (from synthetic attribute).
 	 * 
 	 * The Synthetic attribute is a fixed-length attribute in the attributes table of a ClassFile,
 	 * field_info or method_info structure. A class member that does not appear in the source code
