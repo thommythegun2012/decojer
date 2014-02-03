@@ -73,7 +73,14 @@ public class Utils {
 			case TypePath.ARRAY_ELEMENT: {
 				assert arg == 0;
 
-				// TODO need a counter here too because the spec fails totally here in the ordering
+				// @C int @A [] @B [] f;
+				// @A applies to the array type int[][], @B applies to its component type int[], and
+				// @C applies to the final element type int.
+
+				// -> Bytecode: @A (NEW / VAR), @B (ARRAY), @C (ARRAY, ARRAY)
+
+				// hence: ARRAY can be interpreted as: component type
+
 				final T componentT = currentT.getComponentT();
 				if (componentT == null) {
 					LOGGER.warning("Not enough array components in '" + t + "' for '" + currentT
