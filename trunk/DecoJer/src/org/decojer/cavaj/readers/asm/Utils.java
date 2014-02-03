@@ -31,7 +31,7 @@ import org.decojer.cavaj.model.T;
 import org.objectweb.asm.TypePath;
 
 /**
- * Utilities.
+ * ASM Utilities.
  * 
  * @author André Pankraz
  */
@@ -75,7 +75,7 @@ public class Utils {
 			// unwrap the annotation type here
 			switch (step) {
 			case TypePath.ARRAY_ELEMENT: {
-				assert arg == 0;
+				assert arg == 0 : arg;
 
 				// @C int @A [] @B [] f;
 				// @A applies to the array type int[][], @B applies to its component type int[], and
@@ -99,7 +99,7 @@ public class Utils {
 				break;
 			}
 			case TypePath.INNER_TYPE: {
-				assert arg == 0;
+				assert arg == 0 : arg;
 
 				++innerCounter;
 				if (!isLast) {
@@ -132,7 +132,7 @@ public class Utils {
 				break;
 			}
 			case TypePath.WILDCARD_BOUND: {
-				assert arg == 0;
+				assert arg == 0 : arg;
 
 				final T bound = currentT.getBoundT();
 				if (bound == null) {
