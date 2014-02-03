@@ -43,7 +43,7 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 
 	public static @Deprecated
 	@Size(max = 31)
-	Map<@Size(max = 32) Short, ? super @Nonnull @Size(max = 33) String> testStatic;
+	Map<@Size(max = 32) ?, ? extends @Nonnull @Size(max = 33) Object> testStatic;
 
 	public static String testArrays() {
 		@Size(max = 41)
@@ -67,7 +67,7 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 
 	public @Deprecated
 	@Size(max = 34)
-	Map<@Size(max = 35) ?, @Nonnull @Size(max = 36) ? extends Object> test;
+	Outer<? super @Size(max = 35) String>.@Size(max = 36) Middle @Nonnull @Size(max = 37) [] @Size(max = 38) [] test;
 
 	public void testThrows() throws IOException,
 			@Size(max = 71) RuntimeException,
