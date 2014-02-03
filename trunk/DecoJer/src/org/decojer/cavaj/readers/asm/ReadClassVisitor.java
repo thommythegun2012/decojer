@@ -226,7 +226,12 @@ public class ReadClassVisitor extends ClassVisitor {
 			} else {
 				// 0-based interface index
 				final T[] interfaceTs = getTd().getInterfaceTs();
-				interfaceTs[superTypeIndex] = annotate(interfaceTs[superTypeIndex], a, typePath);
+				if (superTypeIndex < interfaceTs.length) {
+					interfaceTs[superTypeIndex] = annotate(interfaceTs[superTypeIndex], a, typePath);
+				} else {
+					LOGGER.warning("Super type index '" + superTypeIndex + "' is to large for '"
+							+ getTd() + "'!");
+				}
 			}
 			break;
 		}
@@ -246,8 +251,13 @@ public class ReadClassVisitor extends ClassVisitor {
 			} else {
 				// 1-based interface index
 				final T[] interfaceTs = t.getInterfaceTs();
-				interfaceTs[typeParameterBoundIndex - 1] = annotate(
-						interfaceTs[typeParameterBoundIndex - 1], a, typePath);
+				if (typeParameterBoundIndex - 1 < interfaceTs.length) {
+					interfaceTs[typeParameterBoundIndex - 1] = annotate(
+							interfaceTs[typeParameterBoundIndex - 1], a, typePath);
+				} else {
+					LOGGER.warning("Type parameter bound index '" + (typeParameterBoundIndex - 1)
+							+ "' is to large for '" + getTd() + "'!");
+				}
 			}
 			break;
 		}
