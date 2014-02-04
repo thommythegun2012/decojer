@@ -61,13 +61,13 @@ public class Utils {
 			// inner path is from front to end, but enclosings are from end to front (enclosings),
 			// ParamT can be enclosings with own type annotation sub pathes
 			if (innerCounter > 0 && step != TypePath.INNER_TYPE) {
-				final T[] enclosingTs = t.getEnclosingTs();
-				if (innerCounter >= enclosingTs.length) {
-					LOGGER.warning("Not enough enclosings in '" + t + "' for '" + currentT
+				final T[] qualifierTs = t.getQualifierTs();
+				if (innerCounter >= qualifierTs.length) {
+					LOGGER.warning("Not enough qualifiers in '" + t + "' for '" + currentT
 							+ "' for type annotation with path depth '" + innerCounter + "'!");
 					break;
 				}
-				currentT = enclosingTs[innerCounter];
+				currentT = qualifierTs[innerCounter];
 				innerCounter = 0;
 			}
 
@@ -105,14 +105,14 @@ public class Utils {
 				if (!isLast) {
 					continue;
 				}
-				final T[] enclosingTs = t.getEnclosingTs();
-				if (innerCounter >= enclosingTs.length) {
-					LOGGER.warning("Not enough enclosings in '" + t + "' for '" + currentT
+				final T[] qualifierTs = t.getQualifierTs();
+				if (innerCounter >= qualifierTs.length) {
+					LOGGER.warning("Not enough qualifiers in '" + t + "' for '" + currentT
 							+ "' for type annotation with path depth '" + innerCounter + "'!");
 					break;
 				}
 				// TODO hmmm, how do we change our parent type? recursive mode?
-				DU.getAnnotatedT(enclosingTs[innerCounter], a);
+				DU.getAnnotatedT(qualifierTs[innerCounter], a);
 				innerCounter = 0;
 				break;
 			}

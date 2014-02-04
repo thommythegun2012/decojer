@@ -760,6 +760,30 @@ public abstract class T {
 	}
 
 	/**
+	 * Get qualifier type.
+	 * 
+	 * @return qualifier type
+	 */
+	public T getQualifierT() {
+		return getEnclosingT();
+	}
+
+	/**
+	 * Get qualifier type path from front to end.
+	 * 
+	 * @return qualifier type path from front to end
+	 */
+	public T[] getQualifierTs() {
+		final List<T> qualifierTs = new ArrayList<T>();
+		for (T qualifierT = getQualifierT(); qualifierT != null; qualifierT = qualifierT
+				.getQualifierT()) {
+			qualifierTs.add(0, qualifierT);
+		}
+		qualifierTs.add(this);
+		return qualifierTs.toArray(new T[qualifierTs.size()]);
+	}
+
+	/**
 	 * Get raw type for modifying types (annotation, parameterized, variable) or {@code this}.
 	 * 
 	 * @return raw type or {@code this}
