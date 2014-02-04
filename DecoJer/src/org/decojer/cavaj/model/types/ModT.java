@@ -106,6 +106,11 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public T getQualifierT() {
+		return getRawT().getQualifierT();
+	}
+
+	@Override
 	public T getSuperT() {
 		return getRawT().getSuperT();
 	}
