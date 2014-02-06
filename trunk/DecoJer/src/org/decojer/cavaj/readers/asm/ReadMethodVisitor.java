@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.readers.asm;
 
-import static org.decojer.cavaj.readers.asm.Utils.annotate;
+import static org.decojer.cavaj.readers.asm.ReadUtils.annotate;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;

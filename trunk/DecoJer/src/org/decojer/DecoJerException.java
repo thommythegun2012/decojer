@@ -25,7 +25,7 @@ package org.decojer;
 
 public class DecoJerException extends RuntimeException {
 
-	private static final long serialVersionUID = 3536420088681939399L;
+	private static final long serialVersionUID = 1L;
 
 	public DecoJerException(final String message) {
 		super(message);
