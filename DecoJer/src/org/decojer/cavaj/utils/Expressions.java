@@ -35,7 +35,6 @@ import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.Version;
 import org.decojer.cavaj.model.code.ops.Op;
-import org.decojer.cavaj.model.types.ClassT;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AnnotatableType;
@@ -778,20 +777,18 @@ public final class Expressions {
 		if (t.is(T.VOID)) {
 			return ast.newPrimitiveType(PrimitiveType.VOID);
 		}
-		if (t instanceof ClassT) {
-			final T enclosingT = ((ClassT) t).getEnclosingT();
-			if (enclosingT != null) {
-				// could be ParamT etc., not decompileable with Name as target;
-				// restrict qualifications to really necessary enclosings:
-				// td = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
-				if (td.getT().getFullName().startsWith(enclosingT.getFullName())) {
-					return ast.newSimpleType(ast.newSimpleName(t.getSimpleIdentifier()));
-				}
-				final Type qualifier = newType(enclosingT, td);
-				return ast.newQualifiedType(qualifier, ast.newSimpleName(t.getSimpleIdentifier()));
+		if (t.isQualified()) {
+			final T qualifierT = t.getQualifierT();
+			// could be ParamT etc., not decompileable with Name as target;
+			// restrict qualifications to really necessary enclosings:
+			// td = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
+			if (td.getT().getFullName().startsWith(qualifierT.getFullName())) {
+				return ast.newSimpleType(ast.newSimpleName(t.getSimpleIdentifier()));
 			}
-			// else fall through...
+			final Type qualifier = newType(qualifierT, td);
+			return ast.newQualifiedType(qualifier, ast.newSimpleName(t.getSimpleIdentifier()));
 		}
+		// else fall through...
 		return ast.newSimpleType(newTypeName(t, td));
 	}
 
