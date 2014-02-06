@@ -896,8 +896,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final String thisName = getCfg().getTd().getName();
 				final T newT = cop.getT();
 				final String newName = newT.getName();
-				if (newName.startsWith(thisName) && newName.length() >= thisName.length() + 2
-						&& newName.charAt(thisName.length()) == '$') {
+				if (newT.validateQualifierName(thisName)) {
 					inner: try {
 						Integer.parseInt(newName.substring(thisName.length() + 1));
 
