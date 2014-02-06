@@ -345,46 +345,56 @@ public class ClassT extends T {
 	/**
 	 * Set enclosing method (since JVM 5).
 	 * 
-	 * @param m
-	 *            method
+	 * @param enclosingM
+	 *            enclosing method
 	 * 
 	 * @see ClassT#setEnclosingT(T)
 	 */
-	public void setEnclosingM(final M m) {
-		if (this.enclosing != null) {
-			if (this.enclosing.equals(m)) {
+	public void setEnclosingM(final M enclosingM) {
+		if (this.enclosing != null && this.enclosing != NONE) {
+			if (this.enclosing.equals(enclosingM)) {
 				return;
 			}
-			if (!this.enclosing.equals(m.getT())) {
+			if (!this.enclosing.equals(enclosingM.getT())) {
 				LOGGER.warning("Enclosing method cannot be changed from '" + this.enclosing
-						+ "' to '" + m + "'!");
+						+ "' to '" + enclosingM + "'!");
 				return;
 			}
+			// enclosing method is more specific, overwrite enclosing type...
 		}
-		this.enclosing = m;
+		if (!validateQualifierName(enclosingM.getT().getName())) {
+			LOGGER.warning("Enclosing type for '" + this
+					+ "' cannot be set to not matching method '" + enclosingM + "'!");
+			return;
+		}
+		this.enclosing = enclosingM;
 	}
 
 	@Override
-	public void setEnclosingT(final T t) {
-		if (!(t instanceof ClassT)) {
-			LOGGER.warning("Enclosing type for '" + this
-					+ "' shouldn't be set to the modified type '" + t + "'!");
+	public void setEnclosingT(final T enclosingT) {
+		if (!(enclosingT instanceof ClassT)) {
+			LOGGER.warning("Enclosing type for '" + this + "' cannot be set to modified type '"
+					+ enclosingT + "'!");
+			return;
 		}
-		if (this.enclosing != null) {
-			if (this.enclosing.equals(t)) {
+		if (this.enclosing != null && this.enclosing != NONE) {
+			if (this.enclosing.equals(enclosingT)) {
 				return;
 			}
-			if (this.enclosing instanceof M && ((M) this.enclosing).getT().equals(t)) {
+			if (this.enclosing instanceof M && ((M) this.enclosing).getT().equals(enclosingT)) {
+				// enclosing method is more specific, don't change it
 				return;
 			}
-			// extend signature?
-			if (!this.enclosing.equals(t.getRawT())) {
-				LOGGER.warning("Enclosing type  for '" + this + "' cannot be changed from '"
-						+ this.enclosing + "' to '" + t + "'!");
-				return;
-			}
+			LOGGER.warning("Enclosing type cannot be changed from '" + this.enclosing + "' to '"
+					+ enclosingT + "'!");
+			return;
 		}
-		this.enclosing = t;
+		if (!validateQualifierName(enclosingT.getName())) {
+			LOGGER.warning("Enclosing type for '" + this + "' cannot be set to not matching type '"
+					+ enclosingT + "'!");
+			return;
+		}
+		this.enclosing = enclosingT;
 	}
 
 	/**

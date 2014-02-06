@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.types;
 
+import java.util.logging.Logger;
+
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
@@ -34,6 +36,8 @@ import org.decojer.cavaj.model.T;
  * @author André Pankraz
  */
 public class QualifiedT extends ModT {
+
+	private final static Logger LOGGER = Logger.getLogger(QualifiedT.class.getName());
 
 	/**
 	 * Type qualifier, is like enclosing type in references.
@@ -76,8 +80,11 @@ public class QualifiedT extends ModT {
 
 	@Override
 	public void setQualifierT(final T qualifierT) {
-		assert getName().startsWith(qualifierT.getName() + "$");
-
+		if (!validateQualifierName(qualifierT.getName())) {
+			LOGGER.warning("Qualifier type for '" + this + "' cannot be set to not matching type '"
+					+ qualifierT + "'!");
+			return;
+		}
 		this.qualifierT = qualifierT;
 	}
 

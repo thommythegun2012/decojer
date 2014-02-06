@@ -726,19 +726,12 @@ public abstract class T {
 	 * @return package name or {@code null} for no package
 	 */
 	public String getPackageName() {
-		// TODO can be simplified later...< and $ no valid parts in ClassT, need NestedClassT
-		int pos = -1;
-		loop: for (int i = 0; i < getName().length(); ++i) {
-			switch (getName().charAt(i)) {
-			case '.':
-				pos = i;
-				continue;
-			case '<':
-			case '$':
-				break loop;
-			}
+		final String name = getName();
+		final int pos = name.lastIndexOf('.');
+		if (pos < 0) {
+			return null;
 		}
-		return pos == -1 ? null : getName().substring(0, pos);
+		return name.substring(0, pos);
 	}
 
 	/**
@@ -827,15 +820,12 @@ public abstract class T {
 		if (innerName == null) {
 			final T enclosingT = getEnclosingT();
 			if (enclosingT == null) {
+				// top level class, strip the package name
 				return getPName();
 			}
-			final String enclosingName = enclosingT.getName();
-			if (!getName().startsWith(enclosingName)
-					|| getName().charAt(enclosingName.length()) != '$') {
-				return getPName();
-			}
-			innerName = getName().substring(enclosingName.length() + 1);
+			innerName = getName().substring(enclosingT.getName().length() + 1);
 		}
+		// Remove leading "[0-9]*" from the name
 		final int length = innerName.length();
 		int index = 0;
 		while (index < length && isAsciiDigit(innerName.charAt(index))) {
@@ -1165,12 +1155,12 @@ public abstract class T {
 	 * is a valid character in none-inner type names. If we don't have this info, we need to check
 	 * the existence of the other types by other means.
 	 * 
-	 * @param t
-	 *            class type
+	 * @param enclosingT
+	 *            enclosing type
 	 * 
 	 * @see Class#getEnclosingClass()
 	 */
-	public void setEnclosingT(final T t) {
+	public void setEnclosingT(final T enclosingT) {
 		assert false;
 	}
 
@@ -1238,6 +1228,19 @@ public abstract class T {
 	public String toString() {
 		// getSimpleName() not possible, potentially needs unresolved attributes, e.g. enclosing
 		return getFullName();
+	}
+
+	/**
+	 * Validate qualifier name for enclosings and qualifiers.
+	 * 
+	 * @param qualifierName
+	 *            qualifier name
+	 * @return {@code true} - valid qualifier name
+	 */
+	public boolean validateQualifierName(final String qualifierName) {
+		final String name = getName();
+		return name.length() > qualifierName.length() + 1 && name.startsWith(qualifierName)
+				&& name.charAt(qualifierName.length()) == '$';
 	}
 
 }

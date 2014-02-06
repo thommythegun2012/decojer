@@ -168,8 +168,8 @@ public abstract class ModT extends T {
 	}
 
 	@Override
-	public void setEnclosingT(final T t) {
-		getRawT().setEnclosingT(t);
+	public void setEnclosingT(final T enclosingT) {
+		getRawT().setEnclosingT(enclosingT);
 	}
 
 	@Override
