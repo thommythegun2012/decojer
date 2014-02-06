@@ -49,6 +49,17 @@ public class ReadUtils {
 		return DU.getAnnotatedT(findT, a);
 	}
 
+	/**
+	 * Annotate given type with annotation under consideration of the type path.
+	 * 
+	 * @param t
+	 *            type
+	 * @param a
+	 *            annotation
+	 * @param typePath
+	 *            type path
+	 * @return annotated type
+	 */
 	public static T annotate(final T t, final A a, final TypePath typePath) {
 		return annotate(t, a, typePath, 0);
 	}
