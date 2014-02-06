@@ -479,10 +479,11 @@ public abstract class T {
 		if (getName().equals(((T) obj).getName())) {
 			return true;
 		}
+		return false;
 		// 'Lcom/google/common/collect/ImmutableList<TE;>.SubList;' to type
 		// 'com.google.common.collect.ImmutableList$SubList'
 		// FIXME currently this are ClassT without parent/enclosing...whats correct?
-		return getName().replaceAll("<[^>]+>", "").equals(((T) obj).getName());
+		// return getName().replaceAll("<[^>]+>", "").equals(((T) obj).getName());
 	}
 
 	/**
@@ -1067,6 +1068,15 @@ public abstract class T {
 	}
 
 	/**
+	 * Is qualified type?
+	 * 
+	 * @return {@code true} - is qualified type
+	 */
+	public boolean isQualified() {
+		return false; // overwrite in QualifiedT
+	}
+
+	/**
 	 * Is reference type (includes array type, parameterized type)?
 	 * 
 	 * @return {@code true} - is reference type
@@ -1191,6 +1201,16 @@ public abstract class T {
 	 *            interface types
 	 */
 	public void setInterfaceTs(final T[] interfaceTs) {
+		assert false;
+	}
+
+	/**
+	 * Set qualifier type for qualified type.
+	 * 
+	 * @param qualifierT
+	 *            qualifierd type for qualified type
+	 */
+	public void setQualifierT(final T qualifierT) {
 		assert false;
 	}
 

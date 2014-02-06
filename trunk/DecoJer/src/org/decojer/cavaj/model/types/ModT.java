@@ -82,7 +82,7 @@ public abstract class ModT extends T {
 
 	@Override
 	public T getEnclosingT() {
-		return getRawT().getEnclosingT();
+		return getRawT() == null ? null : getRawT().getEnclosingT();
 	}
 
 	@Override
