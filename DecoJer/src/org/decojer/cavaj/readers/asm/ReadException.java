@@ -24,13 +24,13 @@
 package org.decojer.cavaj.readers.asm;
 
 /**
- * Already read exception. No other measure to stop ASM from reading.
+ * Read exception. No other measure to stop ASM from reading.
  * 
  * @author André Pankraz
  */
-public class AlreadyReadException extends RuntimeException {
+public class ReadException extends RuntimeException {
 
-	private static final long serialVersionUID = -7170866930378627146L;
+	private static final long serialVersionUID = 1L;
 
 	// nothing
 

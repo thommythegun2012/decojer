@@ -116,7 +116,7 @@ public class Struct {
 		if (members == null) {
 			members = new ArrayList<BB>() {
 
-				private static final long serialVersionUID = 245251325232440102L;
+				private static final long serialVersionUID = 1L;
 
 				@Override
 				public boolean add(final BB bb) {

@@ -35,9 +35,9 @@ import org.objectweb.asm.TypePath;
  * 
  * @author André Pankraz
  */
-public class Utils {
+public class ReadUtils {
 
-	private final static Logger LOGGER = Logger.getLogger(Utils.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(ReadUtils.class.getName());
 
 	private static T annotate(final T t, final A a) {
 		// flip inner type annotations, look for outmost enclosing
@@ -165,7 +165,7 @@ public class Utils {
 		return t;
 	}
 
-	private Utils() {
+	private ReadUtils() {
 		// nothing
 	}
 

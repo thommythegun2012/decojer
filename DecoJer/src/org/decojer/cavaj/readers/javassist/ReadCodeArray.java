@@ -28,7 +28,7 @@ package org.decojer.cavaj.readers.javassist;
  * 
  * @author André Pankraz
  */
-public class CodeArrayReader {
+public class ReadCodeArray {
 
 	public final byte[] code;
 
@@ -40,7 +40,7 @@ public class CodeArrayReader {
 	 * @param code
 	 *            code
 	 */
-	public CodeArrayReader(final byte[] code) {
+	public ReadCodeArray(final byte[] code) {
 		this.code = code;
 	}
 

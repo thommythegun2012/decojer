@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.readers.asm;
 
-import static org.decojer.cavaj.readers.asm.Utils.annotate;
+import static org.decojer.cavaj.readers.asm.ReadUtils.annotate;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.logging.Logger;
@@ -96,7 +96,7 @@ public class ReadClassVisitor extends ClassVisitor {
 		final ClassT t = (ClassT) this.du.getT(name);
 		if (t.getTd() != null) {
 			LOGGER.warning(getTd() + ": Type '" + t + "' already read!");
-			throw new AlreadyReadException();
+			throw new ReadException();
 		}
 		this.td = t.createTd();
 		this.td.setAccessFlags(access);

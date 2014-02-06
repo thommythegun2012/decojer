@@ -28,8 +28,8 @@ import java.io.InputStream;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.readers.asm.AlreadyReadException;
 import org.decojer.cavaj.readers.asm.ReadClassVisitor;
+import org.decojer.cavaj.readers.asm.ReadException;
 
 /**
  * Reader from ObjectWeb ASM.
@@ -59,7 +59,7 @@ public class AsmReader implements ClassReader {
 		this.readClassVisitor.init();
 		try {
 			classReader.accept(this.readClassVisitor, 0);
-		} catch (final AlreadyReadException e) {
+		} catch (final ReadException e) {
 			// no other measure to stop ASM in reading
 			return null;
 		}
