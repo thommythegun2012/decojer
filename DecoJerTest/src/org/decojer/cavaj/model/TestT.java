@@ -69,7 +69,7 @@ class TestT {
 		assertEquals(
 				t.toString(),
 				"org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo<java.lang.Object>");
-		assertEquals(t.getEnclosingT().toString(),
+		assertEquals(t.getQualifierT().toString(),
 				"org.pushingpixels.trident.TimelinePropertyBuilder<T>");
 		assertEquals(t.getName(),
 				"org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo");
