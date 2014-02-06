@@ -134,14 +134,45 @@ public final class DU {
 	/**
 	 * Get qualified type for type and qualifier type.
 	 * 
+	 * Final result should be a chain like for T0.T1.T2.T3 this: Q(Q(Q(T0, T1), T2, T3))
+	 * 
+	 * Enclosing info might yet be unknown! Chain is fixed lazy in
+	 * {@link QualifiedT#getQualifierT()}.
+	 * 
 	 * @param t
 	 *            type
 	 * @param qualifierT
 	 *            qualifier type
 	 * @return qualified type
 	 */
-	public static QualifiedT getQualifiedT(final T t, final T qualifierT) {
-		return new QualifiedT(t, qualifierT);
+	public static T getQualifiedT(final T qualifierT, final T t) {
+		if (!t.getName().startsWith(qualifierT.getName() + "$")) {
+			LOGGER.warning("Cannot get qualified type for '" + t + "' with qualifier '"
+					+ qualifierT + "'!");
+			return t;
+		}
+		if (!t.isQualified()) {
+			return new QualifiedT(qualifierT, t);
+		}
+		final T currentQualifierT = t.getQualifierT();
+
+		// both names must intersect from beginning till somewhere:
+		final int qNl = qualifierT.getName().length();
+		final int cqNl = currentQualifierT.getName().length();
+
+		// now we have 3 possebilities comparing lengths: qNl == cqNl, qNl > cqNl, qNl < cqNl
+		if (qNl == cqNl) {
+			// replace qualifier and done
+			t.setQualifierT(qualifierT);
+			return t;
+		}
+		if (qNl > cqNl) {
+			t.setQualifierT(getQualifiedT(currentQualifierT, qualifierT));
+			return t;
+		}
+		// qNl < cqNl
+		t.setQualifierT(getQualifiedT(qualifierT, currentQualifierT));
+		return t;
 	}
 
 	/**
@@ -460,7 +491,7 @@ public final class DU {
 		final String typeName = s.substring(start, c.pos).replace('/', '.');
 		if (enclosingT != null) {
 			// can just happen for signatures, they have . instead of $ for enclosing
-			t = getQualifiedT(getT(enclosingT.getName() + "$" + typeName), enclosingT);
+			t = getQualifiedT(enclosingT, getT(enclosingT.getName() + "$" + typeName));
 		} else {
 			t = getT(typeName);
 		}

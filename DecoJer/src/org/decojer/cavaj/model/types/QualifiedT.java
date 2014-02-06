@@ -23,8 +23,7 @@
  */
 package org.decojer.cavaj.model.types;
 
-import lombok.Getter;
-
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
@@ -39,21 +38,43 @@ public class QualifiedT extends ModT {
 	/**
 	 * Type qualifier, is like enclosing type in references.
 	 */
-	@Getter
-	private final T qualifierT;
+	private T qualifierT;
 
 	/**
 	 * Constructor.
 	 * 
-	 * @param t
-	 *            type
 	 * @param qualifierT
 	 *            type qualifier
+	 * @param t
+	 *            type
 	 */
-	public QualifiedT(final T t, final T qualifierT) {
+	public QualifiedT(final T qualifierT, final T t) {
 		super(t); // the qualified t is the raw t, because we inherit its properties
 
-		assert t.getName().startsWith(qualifierT.getName());
+		setQualifierT(qualifierT);
+	}
+
+	@Override
+	public T getQualifierT() {
+		final T enclosingT = getEnclosingT();
+		if (enclosingT == null
+				|| enclosingT.getName().length() <= this.qualifierT.getName().length()) {
+			// this qualifier is most relevant
+			return this.qualifierT;
+		}
+		// enclosing is more relevant, fix the chain
+		setQualifierT(DU.getQualifiedT(this.qualifierT, enclosingT));
+		return this.qualifierT;
+	}
+
+	@Override
+	public boolean isQualified() {
+		return true;
+	}
+
+	@Override
+	public void setQualifierT(final T qualifierT) {
+		assert getName().startsWith(qualifierT.getName() + "$");
 
 		this.qualifierT = qualifierT;
 	}
