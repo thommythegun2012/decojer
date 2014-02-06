@@ -1215,6 +1215,16 @@ public abstract class T {
 	}
 
 	/**
+	 * Set raw type for modified type.
+	 * 
+	 * @param rawT
+	 *            raw type for modified type
+	 */
+	public void setRawT(final T rawT) {
+		assert false;
+	}
+
+	/**
 	 * Set super type.
 	 * 
 	 * @param superT

@@ -25,7 +25,6 @@ package org.decojer.cavaj.model.types;
 
 import java.util.Map;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -43,7 +42,7 @@ public abstract class ModT extends T {
 
 	@Getter
 	// for VarT lazy resolving:
-	@Setter(value = AccessLevel.PROTECTED)
+	@Setter
 	private T rawT;
 
 	protected ModT(final T rawT) {

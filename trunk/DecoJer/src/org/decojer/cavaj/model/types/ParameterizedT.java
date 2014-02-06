@@ -58,6 +58,7 @@ public final class ParameterizedT extends ModT {
 
 		assert genericT != null;
 		assert typeArgs != null && typeArgs.length > 0;
+		assert !genericT.isAnnotated() : "Anno(Param(t, args)) is same like Param(Anno(t), args), prefer first";
 
 		this.typeArgs = typeArgs;
 	}

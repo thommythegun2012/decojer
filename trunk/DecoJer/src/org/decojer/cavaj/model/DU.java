@@ -152,6 +152,11 @@ public final class DU {
 			return t;
 		}
 		if (!t.isQualified()) {
+			if (t.isAnnotated()) {
+				// Anno(Qual(qual,t)) is same like Qual(qual,Anno(t)), prefer first
+				t.setRawT(new QualifiedT(qualifierT, t.getRawT()));
+				return t;
+			}
 			return new QualifiedT(qualifierT, t);
 		}
 		final T currentQualifierT = t.getQualifierT();
