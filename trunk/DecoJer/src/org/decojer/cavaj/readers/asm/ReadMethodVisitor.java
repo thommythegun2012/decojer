@@ -102,6 +102,27 @@ import com.google.common.collect.Maps;
  */
 public class ReadMethodVisitor extends MethodVisitor {
 
+	/**
+	 * JDK 8.0 has +1 index to Eclipse! who is wrong? JDK or Eclipse? we try both...
+	 */
+	private static class InsnAnnotationInfo {
+
+		A a;
+
+		int typeRef;
+
+		TypePath typePath;
+
+		public InsnAnnotationInfo(final A a, final int typeRef, final TypePath typePath) {
+			this.a = a;
+			this.typeRef = typeRef;
+			this.typePath = typePath;
+		}
+
+	}
+
+	private InsnAnnotationInfo insnAnnotationInfo;
+
 	private final static Logger LOGGER = Logger.getLogger(ReadMethodVisitor.class.getName());
 
 	private A[] as;
@@ -140,6 +161,53 @@ public class ReadMethodVisitor extends MethodVisitor {
 		super(Opcodes.ASM5);
 		this.du = du;
 		this.annotationVisitor = new ReadAnnotationMemberVisitor(du);
+	}
+
+	private final void add(final Op op) {
+		this.ops.add(op);
+		if (this.insnAnnotationInfo != null) {
+			// JDK 8.0 has +1 index to Eclipse! who is wrong? JDK or Eclipse? we try both...
+			applyOperationAnnotation(this.insnAnnotationInfo.a, this.insnAnnotationInfo.typeRef,
+					this.insnAnnotationInfo.typePath, true);
+			this.insnAnnotationInfo = null;
+		}
+	}
+
+	private boolean applyOperationAnnotation(final A a, final int typeRef, final TypePath typePath,
+			final boolean logError) {
+		final Op op = this.ops.get(this.ops.size() - 1);
+		final TypeReference typeReference = new TypeReference(typeRef);
+		switch (typeReference.getSort()) {
+		case TypeReference.CAST: {
+			if (op instanceof CAST) {
+				((CAST) op).setToT(annotate(((CAST) op).getToT(), a, typePath));
+				return true;
+			}
+			if (logError) {
+				LOGGER.warning(getMd() + ": Wrong operation '" + op
+						+ "' for type annotation ref sort 'CAST' : " + typeRef + " : " + typePath
+						+ " : " + a);
+			}
+			return false;
+		}
+		case TypeReference.NEW: {
+			if (op instanceof NEW || op instanceof NEWARRAY) {
+				((TypedOp) op).setT(annotate(((TypedOp) op).getT(), a, typePath));
+				return true;
+			}
+			if (logError) {
+				LOGGER.warning(getMd() + ": Wrong operation '" + op
+						+ "' for type annotation ref sort 'NEW' : " + typeRef + " : " + typePath
+						+ " : " + a);
+			}
+			return false;
+		}
+		default:
+			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
+					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
+					+ typePath + " : " + a);
+		}
+		return false;
 	}
 
 	/**
@@ -279,7 +347,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final T ownerT = this.du.getT(owner);
 			final F f = ownerT.getF(name, desc);
 			f.setStatic(opcode == Opcodes.GETSTATIC);
-			this.ops.add(new GET(this.ops.size(), opcode, this.line, f));
+			add(new GET(this.ops.size(), opcode, this.line, f));
 			return;
 		}
 		/*******
@@ -290,7 +358,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final T ownerT = this.du.getT(owner);
 			final F f = ownerT.getF(name, desc);
 			f.setStatic(opcode == Opcodes.PUTSTATIC);
-			this.ops.add(new PUT(this.ops.size(), opcode, this.line, f));
+			add(new PUT(this.ops.size(), opcode, this.line, f));
 			return;
 		}
 		default:
@@ -310,7 +378,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		/*******
 		 * INC *
 		 *******/
-		this.ops.add(new INC(this.ops.size(), Opcodes.IINC, this.line, T.INT, var, increment));
+		add(new INC(this.ops.size(), Opcodes.IINC, this.line, T.INT, var, increment));
 	}
 
 	@Override
@@ -343,7 +411,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new ADD(this.ops.size(), opcode, this.line, t));
+			add(new ADD(this.ops.size(), opcode, this.line, t));
 			break;
 		/*********
 		 * ALOAD *
@@ -385,7 +453,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.SHORT;
 			}
-			this.ops.add(new ALOAD(this.ops.size(), opcode, this.line, t));
+			add(new ALOAD(this.ops.size(), opcode, this.line, t));
 			break;
 		/*******
 		 * AND *
@@ -397,13 +465,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new AND(this.ops.size(), opcode, this.line, t));
+			add(new AND(this.ops.size(), opcode, this.line, t));
 			break;
 		/***************
 		 * ARRAYLENGTH *
 		 ***************/
 		case Opcodes.ARRAYLENGTH:
-			this.ops.add(new ARRAYLENGTH(this.ops.size(), opcode, this.line));
+			add(new ARRAYLENGTH(this.ops.size(), opcode, this.line));
 			break;
 		/**********
 		 * ASTORE *
@@ -445,7 +513,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.SHORT;
 			}
-			this.ops.add(new ASTORE(this.ops.size(), opcode, this.line, t));
+			add(new ASTORE(this.ops.size(), opcode, this.line, t));
 			break;
 		/********
 		 * CAST *
@@ -537,7 +605,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				t = T.LONG;
 				oValue = T.INT;
 			}
-			this.ops.add(new CAST(this.ops.size(), opcode, this.line, t, (T) oValue));
+			add(new CAST(this.ops.size(), opcode, this.line, t, (T) oValue));
 			break;
 		/*******
 		 * CMP *
@@ -569,7 +637,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				t = T.LONG;
 				iValue = CMP.T_0;
 			}
-			this.ops.add(new CMP(this.ops.size(), opcode, this.line, t, iValue));
+			add(new CMP(this.ops.size(), opcode, this.line, t, iValue));
 			break;
 		/*******
 		 * DIV *
@@ -591,7 +659,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new DIV(this.ops.size(), opcode, this.line, t));
+			add(new DIV(this.ops.size(), opcode, this.line, t));
 			break;
 		/*******
 		 * DUP *
@@ -623,7 +691,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (oValue == null) {
 				oValue = DUP.Kind.DUP2_X2;
 			}
-			this.ops.add(new DUP(this.ops.size(), opcode, this.line, (DUP.Kind) oValue));
+			add(new DUP(this.ops.size(), opcode, this.line, (DUP.Kind) oValue));
 			break;
 		/***********
 		 * MONITOR *
@@ -635,7 +703,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (oValue == null) {
 				oValue = MONITOR.Kind.EXIT;
 			}
-			this.ops.add(new MONITOR(this.ops.size(), opcode, this.line, (MONITOR.Kind) oValue));
+			add(new MONITOR(this.ops.size(), opcode, this.line, (MONITOR.Kind) oValue));
 			break;
 		/*******
 		 * MUL *
@@ -657,7 +725,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new MUL(this.ops.size(), opcode, this.line, t));
+			add(new MUL(this.ops.size(), opcode, this.line, t));
 			break;
 		/*******
 		 * NEG *
@@ -679,7 +747,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new NEG(this.ops.size(), opcode, this.line, t));
+			add(new NEG(this.ops.size(), opcode, this.line, t));
 			break;
 		/******
 		 * OR *
@@ -691,7 +759,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new OR(this.ops.size(), opcode, this.line, t));
+			add(new OR(this.ops.size(), opcode, this.line, t));
 			break;
 		/*******
 		 * POP *
@@ -703,7 +771,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (oValue == null) {
 				oValue = POP.Kind.POP2;
 			}
-			this.ops.add(new POP(this.ops.size(), opcode, this.line, (POP.Kind) oValue));
+			add(new POP(this.ops.size(), opcode, this.line, (POP.Kind) oValue));
 			break;
 		/********
 		 * PUSH *
@@ -794,7 +862,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				oValue = -1;
 				t = T.getJvmIntT(-1);
 			}
-			this.ops.add(new PUSH(this.ops.size(), opcode, this.line, t, oValue));
+			add(new PUSH(this.ops.size(), opcode, this.line, t, oValue));
 			break;
 		/*******
 		 * REM *
@@ -816,7 +884,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new REM(this.ops.size(), opcode, this.line, t));
+			add(new REM(this.ops.size(), opcode, this.line, t));
 			break;
 		/**********
 		 * RETURN *
@@ -848,7 +916,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.VOID;
 			}
-			this.ops.add(new RETURN(this.ops.size(), opcode, this.line, t));
+			add(new RETURN(this.ops.size(), opcode, this.line, t));
 			break;
 		/*******
 		 * SHL *
@@ -860,7 +928,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new SHL(this.ops.size(), opcode, this.line, t, T.INT));
+			add(new SHL(this.ops.size(), opcode, this.line, t, T.INT));
 			break;
 		/*******
 		 * SHR *
@@ -874,8 +942,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new SHR(this.ops.size(), opcode, this.line, t, T.INT,
-					opcode == Opcodes.IUSHR || opcode == Opcodes.LUSHR));
+			add(new SHR(this.ops.size(), opcode, this.line, t, T.INT, opcode == Opcodes.IUSHR
+					|| opcode == Opcodes.LUSHR));
 			break;
 		/*******
 		 * SUB *
@@ -897,19 +965,19 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new SUB(this.ops.size(), opcode, this.line, t));
+			add(new SUB(this.ops.size(), opcode, this.line, t));
 			break;
 		/********
 		 * SWAP *
 		 ********/
 		case Opcodes.SWAP:
-			this.ops.add(new SWAP(this.ops.size(), opcode, this.line));
+			add(new SWAP(this.ops.size(), opcode, this.line));
 			break;
 		/*********
 		 * THROW *
 		 *********/
 		case Opcodes.ATHROW:
-			this.ops.add(new THROW(this.ops.size(), opcode, this.line));
+			add(new THROW(this.ops.size(), opcode, this.line));
 			break;
 		/*******
 		 * XOR *
@@ -921,7 +989,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new XOR(this.ops.size(), opcode, this.line, t));
+			add(new XOR(this.ops.size(), opcode, this.line, t));
 			break;
 		}
 		default:
@@ -934,34 +1002,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final String desc, final boolean visible) {
 		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
-		final Op op = this.ops.get(this.ops.size() - 1);
-		// TODO JDK 8 has +1 index to Eclipse! who is wrong? JDK or Eclipse?
-		final TypeReference typeReference = new TypeReference(typeRef);
-		switch (typeReference.getSort()) {
-		case TypeReference.CAST: {
-			if (op instanceof CAST) {
-				((CAST) op).setToT(annotate(((CAST) op).getToT(), a, typePath));
-			} else {
-				LOGGER.warning(getMd() + ": Wrong operation '" + op
-						+ "' for type annotation ref sort 'CAST' : " + typeRef + " : " + typePath
-						+ " : " + desc + " : " + visible);
-			}
-			break;
-		}
-		case TypeReference.NEW: {
-			if (op instanceof NEW || op instanceof NEWARRAY) {
-				((TypedOp) op).setT(annotate(((TypedOp) op).getT(), a, typePath));
-			} else {
-				LOGGER.warning(getMd() + ": Wrong operation '" + op
-						+ "' for type annotation ref sort 'NEW' : " + typeRef + " : " + typePath
-						+ " : " + desc + " : " + visible);
-			}
-			break;
-		}
-		default:
-			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
-					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
-					+ typePath + " : " + desc + " : " + visible);
+		if (!applyOperationAnnotation(a, typeRef, typePath, false)) {
+			// JDK 8.0 has +1 index to Eclipse! who is wrong? JDK or Eclipse? we try both...
+			this.insnAnnotationInfo = new InsnAnnotationInfo(a, typeRef, typePath);
 		}
 		return this.annotationVisitor;
 	}
@@ -974,15 +1017,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 ********/
 		case Opcodes.BIPUSH:
 		case Opcodes.SIPUSH:
-			this.ops.add(new PUSH(this.ops.size(), opcode, this.line, T.getJvmIntT(operand),
-					operand));
+			add(new PUSH(this.ops.size(), opcode, this.line, T.getJvmIntT(operand), operand));
 			break;
 		/************
 		 * NEWARRAY *
 		 ************/
 		case Opcodes.NEWARRAY:
-			this.ops.add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du
-					.getArrayT(T.TYPES[operand]), 1));
+			add(new NEWARRAY(this.ops.size(), opcode, this.line,
+					this.du.getArrayT(T.TYPES[operand]), 1));
 			break;
 		default:
 			LOGGER.warning(getMd() + ": Unknown int insn opcode '" + opcode + "'!");
@@ -1006,7 +1048,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			bsArgs[i] = arg;
 		}
-		this.ops.add(new INVOKE(this.ops.size(), Opcodes.INVOKEVIRTUAL, this.line, m, bsM, bsArgs));
+		add(new INVOKE(this.ops.size(), Opcodes.INVOKEVIRTUAL, this.line, m, bsM, bsArgs));
 	}
 
 	@Override
@@ -1022,7 +1064,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 ********/
 		case Opcodes.GOTO: {
 			final GOTO op = new GOTO(this.ops.size(), opcode, this.line);
-			this.ops.add(op);
+			add(op);
 			op.setTargetPc(targetPc);
 			if (targetPc < 0) {
 				getUnresolved(label).add(op);
@@ -1079,7 +1121,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			{
 				final JCMP op = new JCMP(this.ops.size(), opcode, this.line, t, (CmpType) oValue);
-				this.ops.add(op);
+				add(op);
 				op.setTargetPc(targetPc);
 				if (targetPc < 0) {
 					getUnresolved(label).add(op);
@@ -1136,7 +1178,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			{
 				final JCND op = new JCND(this.ops.size(), opcode, this.line, t, (CmpType) oValue);
-				this.ops.add(op);
+				add(op);
 				op.setTargetPc(targetPc);
 				if (targetPc < 0) {
 					getUnresolved(label).add(op);
@@ -1148,7 +1190,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 *******/
 		case Opcodes.JSR: {
 			final JSR op = new JSR(this.ops.size(), opcode, this.line);
-			this.ops.add(op);
+			add(op);
 			op.setTargetPc(targetPc);
 			if (targetPc < 0) {
 				getUnresolved(label).add(op);
@@ -1254,7 +1296,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				LOGGER.warning(getMd() + ": Unknown ldc insn cst '" + cst + "'!");
 			}
 		}
-		this.ops.add(new PUSH(this.ops.size(), Opcodes.LDC, this.line, t, oValue));
+		add(new PUSH(this.ops.size(), Opcodes.LDC, this.line, t, oValue));
 	}
 
 	@Override
@@ -1346,7 +1388,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * SWITCH *
 		 **********/
 		final SWITCH op = new SWITCH(this.ops.size(), Opcodes.LOOKUPSWITCH, this.line);
-		this.ops.add(op);
+		add(op);
 		// default
 		int targetPc = getPc(dflt);
 		op.setDefaultPc(targetPc);
@@ -1397,8 +1439,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 			final M m = ownerT.getM(name, desc);
 			m.setStatic(opcode == Opcodes.INVOKESTATIC);
-			this.ops.add(new INVOKE(this.ops.size(), opcode, this.line, m,
-					opcode == Opcodes.INVOKESPECIAL));
+			add(new INVOKE(this.ops.size(), opcode, this.line, m, opcode == Opcodes.INVOKESPECIAL));
 			break;
 		}
 		default:
@@ -1414,8 +1455,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		// operation works different from other newarrays, descriptor contains array with
 		// dimension > given sizes on stack, e.g.: new int[1][2][3][][], dimension is 3 and
 		// descriptor is [[[[[I
-		this.ops.add(new NEWARRAY(this.ops.size(), Opcodes.MULTIANEWARRAY, this.line, this.du
-				.getDescT(desc), dims));
+		add(new NEWARRAY(this.ops.size(), Opcodes.MULTIANEWARRAY, this.line,
+				this.du.getDescT(desc), dims));
 	}
 
 	@Override
@@ -1457,7 +1498,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * SWITCH *
 		 **********/
 		final SWITCH op = new SWITCH(this.ops.size(), Opcodes.TABLESWITCH, this.line);
-		this.ops.add(op);
+		add(op);
 		// default
 		int targetPc = getPc(dflt);
 		op.setDefaultPc(targetPc);
@@ -1592,25 +1633,25 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * CAST *
 		 ********/
 		case Opcodes.CHECKCAST:
-			this.ops.add(new CAST(this.ops.size(), opcode, this.line, T.REF, t));
+			add(new CAST(this.ops.size(), opcode, this.line, T.REF, t));
 			break;
 		/**************
 		 * INSTANCEOF *
 		 **************/
 		case Opcodes.INSTANCEOF:
-			this.ops.add(new INSTANCEOF(this.ops.size(), opcode, this.line, t));
+			add(new INSTANCEOF(this.ops.size(), opcode, this.line, t));
 			break;
 		/*******
 		 * NEW *
 		 *******/
 		case Opcodes.NEW:
-			this.ops.add(new NEW(this.ops.size(), opcode, this.line, t));
+			add(new NEW(this.ops.size(), opcode, this.line, t));
 			break;
 		/************
 		 * NEWARRAY *
 		 ************/
 		case Opcodes.ANEWARRAY:
-			this.ops.add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du.getArrayT(t), 1));
+			add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du.getArrayT(t), 1));
 			break;
 		default:
 			LOGGER.warning(getMd() + ": Unknown var insn opcode '" + opcode + "'!");
@@ -1647,7 +1688,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new LOAD(this.ops.size(), opcode, this.line, t, var));
+			add(new LOAD(this.ops.size(), opcode, this.line, t, var));
 			break;
 		/*********
 		 * STORE *
@@ -1674,13 +1715,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (t == null) {
 				t = T.LONG;
 			}
-			this.ops.add(new STORE(this.ops.size(), opcode, this.line, t, var));
+			add(new STORE(this.ops.size(), opcode, this.line, t, var));
 			break;
 		/*******
 		 * RET *
 		 *******/
 		case Opcodes.RET: {
-			this.ops.add(new RET(this.ops.size(), opcode, this.line, var));
+			add(new RET(this.ops.size(), opcode, this.line, var));
 			break;
 		}
 		default:
