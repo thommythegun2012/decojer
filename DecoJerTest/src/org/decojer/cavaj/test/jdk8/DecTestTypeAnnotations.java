@@ -11,7 +11,7 @@ import java.util.Map;
 public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.util.@Nonnull @Size(min = 1, max = 2) @Size(max = 3) HashMap<String, @Nonnull @Size(max = 4) Integer> & @Size(max = 5) @Nonnull CharSequence>
 		extends
 		@Size(max = 6) HashMap<@Size(max = 7) U, @Size(max = 8) @Nonnull List<List<@Size(max = 9) List<@Size(max = 10) ? extends @Size(max = 11) String>>>>
-		implements @Nonnull @Size(max = 14) Serializable {
+		implements @Nonnull @Size(max = 12) Serializable {
 
 	class Outer<W> {
 
