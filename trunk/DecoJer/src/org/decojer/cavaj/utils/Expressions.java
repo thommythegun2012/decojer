@@ -819,7 +819,7 @@ public final class Expressions {
 					// ignore package iff same like context or like Java default package
 					break;
 				}
-				// TODO add package name
+				// TODO here we could seperate packages for outest type annotations
 				int end = packageName.length();
 				while (true) {
 					final int pos = packageName.lastIndexOf('.', end - 1);
