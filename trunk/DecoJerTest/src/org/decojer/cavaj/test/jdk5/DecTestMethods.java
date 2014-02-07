@@ -15,8 +15,11 @@ public abstract class DecTestMethods {
 	public abstract int getIntTest(final String test) throws Throwable;
 
 	public int varargsTest(final int a,
-			@DecTestAnnotations(enumTest = State.NEW) final Object... b) {
-		return 1;
+			@DecTestAnnotations(enumTest = State.NEW) final Class<?>... b) {
+		varargsTest(1);
+		varargsTest(2, DecTestAnnotations.class);
+		varargsTest(3, String.class, Object.class);
+		return -1;
 	}
 
 }

@@ -50,7 +50,7 @@ public abstract class DecTestLambdas {
 			return greetings.getGreetings() + " " + firstname + " "
 					+ lastname[0];
 		};
-		System.out.println(test.hello("André", "Pankraz"));
+		System.out.println(test.hello("André", "Pankraz", "TestVararg"));
 
 	}
 
