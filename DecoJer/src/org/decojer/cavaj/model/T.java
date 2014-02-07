@@ -1112,6 +1112,8 @@ public abstract class T {
 	/**
 	 * Set bound type for wildcard type.
 	 * 
+	 * For annotation application.
+	 * 
 	 * @param boundT
 	 *            bound type for wildcard type
 	 */
@@ -1121,6 +1123,8 @@ public abstract class T {
 
 	/**
 	 * Set component type for array type.
+	 * 
+	 * For annotation application.
 	 * 
 	 * @param componentT
 	 *            component type for array type
@@ -1165,16 +1169,6 @@ public abstract class T {
 	}
 
 	/**
-	 * Set generic type for parameterized type.
-	 * 
-	 * @param genericT
-	 *            generic type for parameterized type
-	 */
-	public void setGenericT(final T genericT) {
-		assert false;
-	}
-
-	/**
 	 * Type must be an interface or a class (from usage, e.g. invoke/get/set).
 	 * 
 	 * @param f
@@ -1197,6 +1191,8 @@ public abstract class T {
 	/**
 	 * Set qualifier type for qualified type.
 	 * 
+	 * For annotation application.
+	 * 
 	 * @param qualifierT
 	 *            qualifierd type for qualified type
 	 */
@@ -1206,6 +1202,8 @@ public abstract class T {
 
 	/**
 	 * Set raw type for modified type.
+	 * 
+	 * For annotation application.
 	 * 
 	 * @param rawT
 	 *            raw type for modified type
