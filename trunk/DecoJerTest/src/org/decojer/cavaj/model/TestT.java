@@ -23,12 +23,9 @@ class TestT {
 
 	private DU du;
 
-	private T objectT;
-
 	@BeforeClass
 	void _beforeClass() {
 		du = DecoJer.createDu();
-		objectT = du.getObjectT();
 	}
 
 	@Test
@@ -50,14 +47,14 @@ class TestT {
 		assertSame(du.getT(int[].class).getComponentT(), T.INT);
 
 		assertSame(Object[].class.getComponentType(), Object.class);
-		assertSame(du.getT(Object[].class).getComponentT(), objectT);
+		assertSame(du.getT(Object[].class).getComponentT(), du.getObjectT());
 
 		assertSame(Object[][].class.getComponentType(), Object[].class);
 		assertEquals(du.getT(Object[][].class).getComponentT(),
 				du.getT(Object[].class));
 
 		assertNull(Object.class.getComponentType());
-		assertNull(objectT.getComponentT());
+		assertNull(du.getObjectT().getComponentT());
 
 		assertSame(du.getArrayT(T.BYTE).getComponentT(), T.BYTE);
 		assertSame(du.getArrayT(T.SMALL).getComponentT(), T.SMALL);
@@ -84,7 +81,7 @@ class TestT {
 		assertEquals(T.INT.getInterfaceTs().length, 0);
 
 		assertEquals(Object.class.getInterfaces().length, 0);
-		assertEquals(objectT.getInterfaceTs().length, 0);
+		assertEquals(du.getObjectT().getInterfaceTs().length, 0);
 
 		// Interface order is relevant
 		Class<?>[] clazzes = String.class.getInterfaces();
@@ -133,7 +130,7 @@ class TestT {
 		assertEquals(du.getT(int.class).getName(), "int");
 
 		assertEquals(Object.class.getName(), "java.lang.Object");
-		assertEquals(objectT.getName(), "java.lang.Object");
+		assertEquals(du.getObjectT().getName(), "java.lang.Object");
 
 		// strange rule for Class.getName(): just arrays with descriptor syntax,
 		// but with dots
@@ -168,13 +165,13 @@ class TestT {
 		assertNull(T.BYTE.getSuperT());
 
 		assertNull(Object.class.getSuperclass());
-		assertNull(objectT.getSuperT());
+		assertNull(du.getObjectT().getSuperT());
 
 		assertNull(Cloneable.class.getSuperclass());
 		assertNull(du.getT(Cloneable.class).getSuperT());
 
 		assertSame(int[].class.getSuperclass(), Object.class);
-		assertSame(du.getT(int[].class).getSuperT(), objectT);
+		assertSame(du.getT(int[].class).getSuperT(), du.getObjectT());
 		// is not Number[], even though this would be nice because of array
 		// covariance:
 		assertSame(Integer[].class.getSuperclass(), Object.class);
@@ -187,7 +184,7 @@ class TestT {
 		assertEquals(T.INT.getTypeParams().length, 0);
 
 		assertEquals(Object.class.getTypeParameters().length, 0);
-		assertEquals(objectT.getTypeParams().length, 0);
+		assertEquals(du.getObjectT().getTypeParams().length, 0);
 
 		assertEquals(int[].class.getTypeParameters().length, 0);
 		assertEquals(du.getT(int[].class).getTypeParams().length, 0);
@@ -203,9 +200,9 @@ class TestT {
 	void is() {
 		assertTrue(T.AINT.is(T.INT, T.CHAR));
 		assertFalse(T.AINT.is(T.INT, T.FLOAT));
-		assertTrue(objectT.is(objectT));
-		assertFalse(objectT.is(du.getT(String.class)));
-		assertFalse(du.getT(String.class).is(objectT));
+		assertTrue(du.getObjectT().is(du.getObjectT()));
+		assertFalse(du.getObjectT().is(du.getT(String.class)));
+		assertFalse(du.getT(String.class).is(du.getObjectT()));
 	}
 
 	@Test
@@ -217,7 +214,7 @@ class TestT {
 		assertFalse(T.VOID.isArray());
 
 		assertFalse(Object.class.isArray());
-		assertFalse(objectT.isArray());
+		assertFalse(du.getObjectT().isArray());
 
 		assertTrue(int[].class.isArray());
 		assertTrue(du.getT(int[].class).isArray());
@@ -232,20 +229,20 @@ class TestT {
 		assertTrue(T.INT.isAssignableFrom(T.INT));
 
 		assertFalse(Object.class.isAssignableFrom(byte.class));
-		assertFalse(objectT.isAssignableFrom(du.getT(byte.class)));
+		assertFalse(du.getObjectT().isAssignableFrom(du.getT(byte.class)));
 		assertFalse(T.REF.isAssignableFrom(du.getT(byte.class)));
 		assertFalse(T.AREF.isAssignableFrom(du.getT(byte.class)));
 
 		assertTrue(Object.class.isAssignableFrom(Object.class));
-		assertTrue(objectT.isAssignableFrom(du.getT(Object.class)));
+		assertTrue(du.getObjectT().isAssignableFrom(du.getT(Object.class)));
 		assertTrue(T.REF.isAssignableFrom(du.getT(Object.class)));
 		assertTrue(T.AREF.isAssignableFrom(du.getT(Object.class)));
 		assertTrue(Object.class.isAssignableFrom(Byte.class));
-		assertTrue(objectT.isAssignableFrom(du.getT(Byte.class)));
+		assertTrue(du.getObjectT().isAssignableFrom(du.getT(Byte.class)));
 		assertTrue(T.REF.isAssignableFrom(du.getT(Byte.class)));
 		assertTrue(T.AREF.isAssignableFrom(du.getT(Byte.class)));
 		assertTrue(Object.class.isAssignableFrom(Cloneable.class));
-		assertTrue(objectT.isAssignableFrom(du.getT(Cloneable.class)));
+		assertTrue(du.getObjectT().isAssignableFrom(du.getT(Cloneable.class)));
 		assertTrue(T.REF.isAssignableFrom(du.getT(Cloneable.class)));
 		assertTrue(T.AREF.isAssignableFrom(du.getT(Cloneable.class)));
 
@@ -264,7 +261,7 @@ class TestT {
 
 		// arrays are REFs with {Object,Cloneable,Serializable}
 		assertTrue(Object.class.isAssignableFrom(byte[].class));
-		assertTrue(objectT.isAssignableFrom(du.getT(byte[].class)));
+		assertTrue(du.getObjectT().isAssignableFrom(du.getT(byte[].class)));
 		assertTrue(Cloneable.class.isAssignableFrom(byte[].class));
 		assertTrue(du.getT(Cloneable.class).isAssignableFrom(
 				du.getT(byte[].class)));
@@ -293,8 +290,8 @@ class TestT {
 
 		// FIXME to assertTrue!? anonymous join type
 		assertFalse(new ClassT(du.getT(Object.class), du.getT(Cloneable.class),
-				du.getT(Serializable.class)).isAssignableFrom(du
-				.getArrayT(objectT)));
+				du.getT(Serializable.class)).isAssignableFrom(du.getArrayT(du
+				.getObjectT())));
 
 		assertTrue(int[].class.isAssignableFrom(int[].class));
 		assertTrue(du.getT(int[].class).isAssignableFrom(du.getT(int[].class)));
@@ -341,7 +338,7 @@ class TestT {
 	@Test
 	void isInterface() {
 		assertFalse(Object.class.isInterface());
-		assertFalse(objectT.isInterface());
+		assertFalse(du.getObjectT().isInterface());
 		assertFalse(int.class.isInterface());
 		assertFalse(T.INT.isInterface());
 		assertFalse(String.class.isInterface());
@@ -366,7 +363,7 @@ class TestT {
 
 	@Test
 	void isObject() {
-		assertTrue(objectT.isObject());
+		assertTrue(du.getObjectT().isObject());
 		assertFalse(T.INT.isObject());
 		assertFalse(du.getT(String.class).isObject());
 		assertFalse(du.getT(Comparable.class).isObject());
@@ -378,7 +375,7 @@ class TestT {
 		assertTrue(T.INT.isPrimitive());
 
 		assertFalse(Object.class.isPrimitive());
-		assertFalse(objectT.isPrimitive());
+		assertFalse(du.getObjectT().isPrimitive());
 
 		assertFalse(int[].class.isPrimitive());
 		assertFalse(du.getT(int[].class).isPrimitive());
@@ -386,7 +383,7 @@ class TestT {
 
 	@Test
 	void isUnresolvable() {
-		assertFalse(objectT.isUnresolvable());
+		assertFalse(du.getObjectT().isUnresolvable());
 		assertFalse(T.INT.isUnresolvable());
 		assertFalse(T.VOID.isUnresolvable());
 		assertFalse(du.getT(Character.class).isUnresolvable());
@@ -429,16 +426,20 @@ class TestT {
 		assertSame(T.join(T.WIDE, T.LONG), T.LONG);
 		assertSame(T.join(T.LONG, T.WIDE), T.LONG);
 
-		assertSame(T.join(objectT, objectT), objectT);
+		assertSame(T.join(du.getObjectT(), du.getObjectT()), du.getObjectT());
 
-		assertNull(T.join(objectT, T.INT));
-		assertNull(T.join(T.INT, objectT));
+		assertNull(T.join(du.getObjectT(), T.INT));
+		assertNull(T.join(T.INT, du.getObjectT()));
 
-		assertSame(T.join(objectT, du.getT(Integer.class)), objectT);
-		assertSame(T.join(du.getT(Integer.class), objectT), objectT);
+		assertSame(T.join(du.getObjectT(), du.getT(Integer.class)),
+				du.getObjectT());
+		assertSame(T.join(du.getT(Integer.class), du.getObjectT()),
+				du.getObjectT());
 
-		assertSame(T.join(objectT, du.getT(Cloneable.class)), objectT);
-		assertSame(T.join(du.getT(Cloneable.class), objectT), objectT);
+		assertSame(T.join(du.getObjectT(), du.getT(Cloneable.class)),
+				du.getObjectT());
+		assertSame(T.join(du.getT(Cloneable.class), du.getObjectT()),
+				du.getObjectT());
 
 		assertSame(T.join(du.getT(Serializable.class), du.getT(Byte.class)),
 				du.getT(Serializable.class));
@@ -452,10 +453,11 @@ class TestT {
 
 		assertSame(
 				T.join(du.getT(javax.swing.JComponent.class),
-						du.getT(javax.swing.MenuElement.class)), objectT);
+						du.getT(javax.swing.MenuElement.class)),
+				du.getObjectT());
 		assertSame(
 				T.join(du.getT(javax.swing.MenuElement.class),
-						du.getT(javax.swing.JComponent.class)), objectT);
+						du.getT(javax.swing.JComponent.class)), du.getObjectT());
 
 		T t = T.join(du.getT(Integer.class), du.getT(Long.class));
 		assertSame(t.getSuperT(), du.getT(Number.class));
@@ -477,7 +479,7 @@ class TestT {
 				du.getT(int[].class));
 		// but if we cannot join component types...
 		t = T.join(du.getT(byte[].class), du.getT(long[].class));
-		assertSame(t.getSuperT(), objectT);
+		assertSame(t.getSuperT(), du.getObjectT());
 		assertEquals(t.getInterfaceTs().length, 2);
 		assertSame(t.getInterfaceTs()[0], du.getT(Cloneable.class));
 		assertSame(t.getInterfaceTs()[1], du.getT(Serializable.class));

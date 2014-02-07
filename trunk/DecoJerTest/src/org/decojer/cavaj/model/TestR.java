@@ -1,6 +1,7 @@
 package org.decojer.cavaj.model;
 
 import static org.testng.Assert.assertSame;
+import static org.testng.Assert.assertTrue;
 
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.code.R;
@@ -19,7 +20,14 @@ class TestR {
 	}
 
 	@Test
-	void testProps() {
+	void isMethodParam() {
+		R r = new R(0, 1, T.INT, Kind.CONST);
+
+		assertTrue(r.isMethodParam());
+	}
+
+	@Test
+	void properties() {
 		R r = new R(1, 1, T.INT, Kind.CONST);
 
 		assertSame(r.getPc(), 1);

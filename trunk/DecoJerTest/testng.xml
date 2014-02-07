@@ -1,0 +1,14 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
+<suite name="TestAll">
+	<test name="model">
+		<classes>
+			<class name="org.decojer.cavaj.model.TestR" />
+			<class name="org.decojer.cavaj.model.TestT" />
+		</classes>
+	</test>
+	<test name="utils">
+		<classes>
+			<class name="org.decojer.cavaj.utils.TestExpressions" />
+		</classes>
+	</test>
+</suite>

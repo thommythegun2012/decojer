@@ -5,6 +5,9 @@ import static org.testng.Assert.assertEquals;
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.transformers.TrInnerClassesAnalysis;
+import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -13,18 +16,20 @@ public class TestExpressions {
 
 	private DU du;
 
-	private T objectT;
+	private TD context;
 
 	@BeforeClass
 	void _beforeClass() {
 		du = DecoJer.createDu();
-		objectT = du.getObjectT();
+		du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
+		TrInnerClassesAnalysis.transform(du);
+		context = du.getTd("org.decojer.cavaj.test.DecTestArrays");
+		TrJvmStruct2JavaAst.transform(context);
 	}
 
 	@Test
 	void testNewType() {
-		assertEquals(Expressions.newType(T.AINT, objectT.getTd()).toString(),
-				"");
+		assertEquals(Expressions.newType(T.AINT, context).toString(), "boolean");
 	}
 
 }
