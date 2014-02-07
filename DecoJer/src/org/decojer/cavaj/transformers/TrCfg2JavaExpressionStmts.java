@@ -547,12 +547,34 @@ public final class TrCfg2JavaExpressionStmts {
 			case INVOKE: {
 				final INVOKE cop = (INVOKE) op;
 				final M m = cop.getM();
-				// read method invokation arguments
+
+				// read method invokation arguments, handle varargs
 				final List<Expression> arguments = Lists.newArrayList();
-				for (int i = m.getParamTs().length; i-- > 0;) {
-					arguments.add(wrap(bb.pop()));
+				final int params = m.getParamTs().length;
+				if (params > 0) {
+					if (m.isVarargs()) {
+						final Expression array = bb.pop();
+						if (array instanceof ArrayCreation) {
+							final ArrayInitializer initializer = ((ArrayCreation) array)
+									.getInitializer();
+							if (initializer != null) {
+								for (final Expression e : (List<Expression>) initializer
+										.expressions()) {
+									arguments.add(wrap(e));
+								}
+								Collections.reverse(arguments);
+							}
+						} else {
+							arguments.add(wrap(array));
+						}
+					} else {
+						arguments.add(wrap(bb.pop()));
+					}
+					for (int i = params - 1; i-- > 0;) {
+						arguments.add(wrap(bb.pop()));
+					}
+					Collections.reverse(arguments);
 				}
-				Collections.reverse(arguments);
 
 				final Expression methodExpression;
 				if (cop.isDirect()) {

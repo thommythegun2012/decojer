@@ -29,7 +29,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
@@ -647,7 +646,7 @@ public final class Expressions {
 		}
 		final Type methodParameterType = newType(paramTs[i], td);
 		// decompile varargs (flag set, ArrayType and last method param)
-		if (i == paramTs.length - 1 && md.check(AF.VARARGS)) {
+		if (i == paramTs.length - 1 && md.isVarargs()) {
 			if (methodParameterType instanceof ArrayType) {
 				singleVariableDeclaration.setVarargs(true);
 				// must copy because we cannot delete mandatory ArrayType.componentType

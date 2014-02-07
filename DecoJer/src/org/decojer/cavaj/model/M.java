@@ -191,6 +191,15 @@ public class M {
 	}
 
 	/**
+	 * Is method with final varargs parameter?
+	 * 
+	 * @return {@code true} - is method with final varargs parameter
+	 */
+	public boolean isVarargs() {
+		return check(AF.VARARGS);
+	}
+
+	/**
 	 * Method must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
 	 */
 	public void setDeprecated() {
