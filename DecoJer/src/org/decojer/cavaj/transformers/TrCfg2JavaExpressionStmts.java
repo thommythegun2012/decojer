@@ -565,11 +565,14 @@ public final class TrCfg2JavaExpressionStmts {
 								Collections.reverse(arguments);
 							}
 						} else {
+							LOGGER.warning("Method invocation for '" + m
+									+ "' with varargs hasn't an ArrayInitializer as last argument!");
 							arguments.add(wrap(array));
 						}
 					} else {
 						arguments.add(wrap(bb.pop()));
 					}
+					// now add remaining parameters that cannot be varargs
 					for (int i = params - 1; i-- > 0;) {
 						arguments.add(wrap(bb.pop()));
 					}
