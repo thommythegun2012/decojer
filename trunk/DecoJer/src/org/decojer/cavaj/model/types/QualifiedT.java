@@ -55,7 +55,8 @@ public class QualifiedT extends ModT {
 	public QualifiedT(final T qualifierT, final T t) {
 		super(t); // the qualified t is the raw t, because we inherit its properties
 
-		assert !t.isAnnotated() : "Anno(Qual(qual,t)) is same like Qual(qual,Anno(t)), prefer first";
+		assert !t.isAnnotated() : "Anno(Qual(qual, t)) is same like Qual(qual, Anno(t)), prefer first";
+		assert !t.isQualified() : "Qual(qual, Qual(qual, t)) is not allowed";
 
 		setQualifierT(qualifierT);
 	}

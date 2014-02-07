@@ -61,6 +61,7 @@ public abstract class ModT extends T {
 
 	@Override
 	public T getComponentT() {
+		// modified type is also array, iff raw type is array
 		return getRawT().getComponentT();
 	}
 
@@ -71,6 +72,7 @@ public abstract class ModT extends T {
 
 	@Override
 	public T getElementT() {
+		// modified type is also array, iff raw type is array
 		return getRawT().getElementT();
 	}
 
@@ -106,6 +108,7 @@ public abstract class ModT extends T {
 
 	@Override
 	public T getQualifierT() {
+		// modified type is also qualified, iff raw type is qualified
 		return getRawT().getQualifierT();
 	}
 
@@ -126,6 +129,7 @@ public abstract class ModT extends T {
 
 	@Override
 	public boolean isArray() {
+		// modified type is also array, iff raw type is array
 		// null: unresolved VarT or Matches-Wildcard
 		return getRawT() != null && getRawT().isArray();
 	}
@@ -146,6 +150,12 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public boolean isQualified() {
+		// modified type is also qualified, iff raw type is qualified
+		return getRawT() != null && getRawT().isQualified();
+	}
+
+	@Override
 	public boolean isRef() {
 		return getRawT().isRef();
 	}
@@ -163,7 +173,7 @@ public abstract class ModT extends T {
 
 	@Override
 	public void setComponentT(final T componentT) {
-		// for annotation application
+		// modified type is also array, iff raw type is array
 		getRawT().setComponentT(componentT);
 	}
 
@@ -177,6 +187,12 @@ public abstract class ModT extends T {
 		if (getRawT() != null) {
 			getRawT().setInterface(f);
 		}
+	}
+
+	@Override
+	public void setQualifierT(final T qualifierT) {
+		// modified type is also qualified, iff raw type is qualified
+		getRawT().setQualifierT(qualifierT);
 	}
 
 }
