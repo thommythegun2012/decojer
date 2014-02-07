@@ -565,8 +565,7 @@ public final class TrCfg2JavaExpressionStmts {
 								Collections.reverse(arguments);
 							}
 						} else {
-							LOGGER.warning("Method invocation for '" + m
-									+ "' with varargs hasn't an ArrayInitializer as last argument!");
+							// can happen if forwarded as variable
 							arguments.add(wrap(array));
 						}
 					} else {
