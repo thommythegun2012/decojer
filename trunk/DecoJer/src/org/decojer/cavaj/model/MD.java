@@ -209,6 +209,15 @@ public final class MD extends BD {
 	}
 
 	/**
+	 * Is method with final varargs parameter?
+	 * 
+	 * @return {@code true} - is method with final varargs parameter
+	 */
+	public boolean isVarargs() {
+		return getM().isVarargs();
+	}
+
+	/**
 	 * Parse throw types from signature.
 	 * 
 	 * @param s
