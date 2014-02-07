@@ -59,7 +59,6 @@ import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.TypeLiteral;
 import org.eclipse.jdt.core.dom.WildcardType;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 
@@ -782,10 +781,11 @@ public final class Expressions {
 			// restrict qualifications to really necessary enclosings:
 			// td = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
 			if (td.getT().getFullName().startsWith(qualifierT.getFullName())) {
+				// TODO full name has too much info yet (like annotations)
 				return ast.newSimpleType(ast.newSimpleName(t.getSimpleIdentifier()));
 			}
-			final Type qualifier = newType(qualifierT, td);
-			return ast.newQualifiedType(qualifier, ast.newSimpleName(t.getSimpleIdentifier()));
+			return ast.newQualifiedType(newType(qualifierT, td),
+					ast.newSimpleName(t.getSimpleIdentifier()));
 		}
 		// else fall through...
 		return ast.newSimpleType(newTypeName(t, td));
@@ -802,32 +802,42 @@ public final class Expressions {
 	 */
 	public static Name newTypeName(final T t, final TD td) {
 		final AST ast = td.getCu().getAst();
-		final String packageName = t.getPackageName();
-		// check if not in same package...
-		if (!Objects.equal(td.getPackageName(), t.getPackageName())) {
-			// check if at least Java default package...
-			if (JAVA_LANG.equals(packageName)) {
-				// ignore Java default package
-				return ast.newName(t.getPName());
-			}
-			// ...full name necessary
-			return ast.newName(t.getName());
-		}
-		// ...is in same package, check if not enclosed...
-		if (t.getEnclosingT() == null) {
-			return ast.newName(t.getPName());
-		}
-		// ...is enclosed
+		final String contextName = td.getName();
 
 		// convert inner classes separator '$' into '.',
 		// cannot use string replace because '$' is also a regular Java type name!
-		// find common name dominator and stop there, for relative inner names
-		final String name = td.getName();
-		final List<String> names = Lists.newArrayList(t.getSimpleIdentifier());
-		T enclosingT = t.getEnclosingT();
-		while (enclosingT != null && !name.startsWith(enclosingT.getName())) {
-			names.add(enclosingT.getSimpleIdentifier());
-			enclosingT = enclosingT.getEnclosingT();
+		// must use enclosing info
+		final List<String> names = Lists.newArrayList();
+		T currentT = t;
+		while (true) {
+			final T enclosingT = currentT.getEnclosingT();
+			if (enclosingT == null) {
+				names.add(0, currentT.getPName());
+				final String packageName = currentT.getPackageName();
+				if (packageName == null || packageName.equals(td.getPackageName())
+						|| packageName.equals(JAVA_LANG)) {
+					// ignore package iff same like context or like Java default package
+					break;
+				}
+				// TODO add package name
+				int end = packageName.length();
+				while (true) {
+					final int pos = packageName.lastIndexOf('.', end - 1);
+					if (pos == -1) {
+						names.add(0, packageName.substring(0, end));
+						break;
+					}
+					names.add(0, packageName.substring(pos + 1, end));
+					end = pos;
+				}
+				break;
+			}
+			names.add(0, currentT.getSimpleIdentifier());
+			if (contextName.startsWith(enclosingT.getName())) {
+				// find common name dominator and stop there, for relative inner names
+				break;
+			}
+			currentT = enclosingT;
 		}
 		return ast.newName(names.toArray(new String[names.size()]));
 	}
