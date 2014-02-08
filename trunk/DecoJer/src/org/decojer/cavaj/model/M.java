@@ -61,7 +61,7 @@ public class M {
 	private T returnT;
 
 	@Getter
-	private final T t;
+	private T t;
 
 	/**
 	 * Constructor for dynamic method.
@@ -137,6 +137,17 @@ public class M {
 	}
 
 	/**
+	 * Get receiver-type (this) for none-static methods.
+	 * 
+	 * @return receiver-type
+	 * 
+	 * @see M#setReceiverT(T)
+	 */
+	public T getReceiverT() {
+		return getT() instanceof ClassT ? null : getT();
+	}
+
+	/**
 	 * Is constructor?
 	 * 
 	 * @return {@code true} - is constructor
@@ -204,6 +215,27 @@ public class M {
 	 */
 	public void setDeprecated() {
 		this.accessFlags |= AF.DEPRECATED.getValue();
+	}
+
+	/**
+	 * Set receiver type (this) for none-static methods.
+	 * 
+	 * We reuse the owner type here, because this is a very rarely used feature, where we don't want
+	 * to add memory per method.
+	 *
+	 * @param receiverT
+	 *            receiver type
+	 * @return {@code true} - success
+	 */
+	public boolean setReceiverT(final T receiverT) {
+		if (isStatic() || isDynamic()) {
+			return false;
+		}
+		if (!getT().equals(receiverT)) {
+			return false;
+		}
+		this.t = receiverT;
+		return true;
 	}
 
 	/**

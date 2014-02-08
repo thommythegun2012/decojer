@@ -30,7 +30,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.code.CFG;
-import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
@@ -81,15 +80,6 @@ public final class MD extends BD {
 	private String[] paramNames;
 
 	/**
-	 * For type annotations like: void test(@Annots This this, ...) for none-static methods.
-	 * 
-	 * TODO rarely used, could try to move this into M.T when inner classes work nicely
-	 */
-	@Getter
-	@Setter
-	private T receiverT;
-
-	/**
 	 * Remember signature for Eclipse method finding.
 	 */
 	@Getter
@@ -136,6 +126,11 @@ public final class MD extends BD {
 		super.clear();
 	}
 
+	/**
+	 * Get unique method descriptor.
+	 * 
+	 * @return method descriptor
+	 */
 	public String getDescriptor() {
 		return getM().getDescriptor();
 	}
@@ -163,6 +158,20 @@ public final class MD extends BD {
 		return getM().getParamTs();
 	}
 
+	/**
+	 * Get receiver-type (this) for none-static methods.
+	 * 
+	 * @return receiver-type
+	 */
+	public T getReceiverT() {
+		return getM().getReceiverT();
+	}
+
+	/**
+	 * Get return type.
+	 * 
+	 * @return return type
+	 */
 	public T getReturnT() {
 		return getM().getReturnT();
 	}
@@ -173,7 +182,7 @@ public final class MD extends BD {
 	 * @return owner type declaration
 	 */
 	public TD getTd() {
-		return ((ClassT) getM().getT()).getTd();
+		return getM().getT().getTd();
 	}
 
 	/**
@@ -265,6 +274,17 @@ public final class MD extends BD {
 			this.paramNames = new String[getParamTs().length];
 		}
 		this.paramNames[i] = name;
+	}
+
+	/**
+	 * Set receiver type (this) for none-static methods.
+	 * 
+	 * @param receiverT
+	 *            receiver type
+	 * @return {@code true} - success
+	 */
+	public boolean setReceiverT(final T receiverT) {
+		return getM().setReceiverT(receiverT);
 	}
 
 	@Override
