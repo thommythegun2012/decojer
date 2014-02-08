@@ -139,4 +139,4 @@ mkdir %DecoJerTest%\dex\bin
 
 rmdir /S/Q %DecoJerTest%\dex\bin
 
-"D:\Data\Decomp\android-sdk-windows\platform-tools\dx" --dex --output=%DecoJerTest%\dex\classes.dex %DecoJerTest%\dex\classes.jar
+"D:\Data\Decomp\android-sdk-windows\build-tools\19.0.1\dx" --dex --output=%DecoJerTest%\dex\classes.dex %DecoJerTest%\dex\classes.jar

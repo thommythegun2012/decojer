@@ -35,6 +35,11 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 					return new Outer.@Size(max = 28) Middle.@Size(max = 29) Inner(
 							arg);
 				}
+
+			}
+
+			private void test() {
+				new @Nonnull Inner(1).testInnerNew(1);
 			}
 
 		}
