@@ -18,15 +18,17 @@
         * https://bugs.eclipse.org/bugs/show_bug.cgi?id=424718
         * http://code.google.com/p/projectlombok/issues/detail?id=597 
       * ASTView not working for new stuff
-    * check JLS8 API (old for <= AST.JLS4)
-      * ArrayTypes are not recursive anymore, have dimension attribute and elementType instead of componentType
-      * method: thrownExceptionTypes instead of throwsExceptions (names)
+    * JLS8 API
+      * changes for Type Annotations:
+        * AnnotatableType & NameQualifiedTypeName
+        * ArrayTypes are not recursive anymore, have dimension attribute and elementType instead of componentType
+        * method: thrownExceptionTypes instead of thrownExceptions (names)
     * Default Methods OK
     * Lambdas OK
     * Repeatable Annotations (@Repeatable) OK (if annotation TD can be resolved)
     * Type Annotations OK
-      * Receiver must get full parameterized reference
-      *  Eclipse Bugs: https://bugs.eclipse.org/bugs/show_bug.cgi?id=426616
+      * Receiver must get fully parameterized reference
+      * Eclipse Bugs: https://bugs.eclipse.org/bugs/show_bug.cgi?id=426616
       * JDK Bug: Issue here: https://bugs.openjdk.java.net/issues/?jql=&startIndex=50
       * Eclipse and JDK Bug: http://mail.openjdk.java.net/pipermail/type-annotations-dev/2014-February/001590.html
       * Examples:
