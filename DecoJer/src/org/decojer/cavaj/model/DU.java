@@ -132,6 +132,41 @@ public final class DU {
 	}
 
 	/**
+	 * Get default qualified type for given type, converting type parameters to type arguments with
+	 * variables.
+	 * 
+	 * This is for instance used for generating fully qualified types for {@link M#setReceiverT(T)}.
+	 * 
+	 * TODO doesn't yet work this way because we would have to read outer types first
+	 * 
+	 * @param t
+	 *            type
+	 * @return qualified type
+	 */
+	public static T getQualifiedT(final T t) {
+		if (t.isQualified()) {
+			return t;
+		}
+		T qualifiedT = null;
+		for (T currentT : t.getEnclosingTs()) {
+			final T[] typeParams = currentT.getTypeParams();
+			if (typeParams.length > 0) {
+				final T[] typeArgs = new T[typeParams.length];
+				for (int i = typeParams.length; i-- > 0;) {
+					typeArgs[i] = getVarT(typeParams[i].getName(), t);
+				}
+				currentT = getParameterizedT(currentT, typeArgs);
+			}
+			if (qualifiedT == null) {
+				qualifiedT = currentT;
+				continue;
+			}
+			qualifiedT = getQualifiedT(qualifiedT, currentT);
+		}
+		return qualifiedT;
+	}
+
+	/**
 	 * Get qualified type for type and qualifier type.
 	 * 
 	 * Final result should be a chain like for T0.T1.T2.T3 this: Q(Q(Q(T0, T1), T2, T3))
