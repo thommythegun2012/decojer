@@ -52,7 +52,9 @@ import org.eclipse.jdt.core.dom.ParenthesizedExpression;
 import org.eclipse.jdt.core.dom.PostfixExpression;
 import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.PrimitiveType;
+import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SimpleType;
 import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.Type;
@@ -704,7 +706,7 @@ public final class Expressions {
 			return ast.newArrayType(newType(t.getElementT(), td), t.getDimensions());
 		}
 		if (t.isAnnotated()) {
-			final Type type = newType(t.getRawT(), td);
+			Type type = newType(t.getRawT(), td);
 			if (ast.apiLevel() <= AST.JLS4) {
 				LOGGER.warning("Cannot decompile type annotations for type '" + t
 						+ "' in Eclipse AST JLS4!");
@@ -712,8 +714,27 @@ public final class Expressions {
 			}
 			// parameterized type is not directly annotateable in Eclipse; but DecoJer thinks the
 			// whole type is meant, not just the generic type, hence translate here
-			final AnnotatableType annotatableType = (AnnotatableType) (type instanceof ParameterizedType ? ((ParameterizedType) type)
+			AnnotatableType annotatableType = (AnnotatableType) (type instanceof ParameterizedType ? ((ParameterizedType) type)
 					.getType() : type);
+			qualified: if (annotatableType instanceof SimpleType) {
+				// direct annotation of qualified types adds the annotations as first element,
+				// strange Java spec doesn't allow "@A package.Name" but wants "package.@A Name"
+				final Name typeName = ((SimpleType) annotatableType).getName();
+				if (!(typeName instanceof QualifiedName)) {
+					break qualified;
+				}
+				final Name qualifier = ((QualifiedName) typeName).getQualifier();
+				final SimpleName name = ((QualifiedName) typeName).getName();
+				// cannot delete mandory childs, copy them
+				annotatableType = ast.newNameQualifiedType(
+						(Name) ASTNode.copySubtree(ast, qualifier),
+						(SimpleName) ASTNode.copySubtree(ast, name));
+				if (type instanceof ParameterizedType) {
+					((ParameterizedType) type).setType(annotatableType);
+				} else {
+					type = annotatableType;
+				}
+			}
 			Annotations.decompileAnnotations(td, annotatableType.annotations(), t);
 			return type;
 		}
