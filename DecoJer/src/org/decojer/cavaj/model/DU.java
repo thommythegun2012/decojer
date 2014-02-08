@@ -450,7 +450,7 @@ public final class DU {
 	 * @return type declaration
 	 */
 	public TD getTd(final String name) {
-		return ((ClassT) getT(name, false)).getTd();
+		return getT(name, false).getTd();
 	}
 
 	/**
