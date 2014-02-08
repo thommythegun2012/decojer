@@ -103,7 +103,9 @@ public final class MD extends BD {
 	private T[] throwsTs;
 
 	/**
-	 * Better in M, maybe later if necessary for static invokes.
+	 * Type parameters.
+	 * 
+	 * TODO Better in M? Maybe later if it's necessary for invokes.
 	 */
 	@Getter
 	private T[] typeParams;
