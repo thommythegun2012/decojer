@@ -132,7 +132,7 @@ public class M {
 		assert this.md == null;
 
 		this.md = new MD(this);
-		((ClassT) this.t).getTd().addBd(this.md);
+		this.t.getTd().addBd(this.md);
 		return this.md;
 	}
 
@@ -144,7 +144,7 @@ public class M {
 	 * @see M#setReceiverT(T)
 	 */
 	public T getReceiverT() {
-		return getT() instanceof ClassT ? null : getT();
+		return this.t instanceof ClassT ? null : this.t;
 	}
 
 	/**
