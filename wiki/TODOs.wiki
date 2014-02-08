@@ -17,25 +17,26 @@
       * *done*: Lombok doesn't work yet ootB in Test Eclipse for JDK 8, fix via added method in Eclipse:
         * https://bugs.eclipse.org/bugs/show_bug.cgi?id=424718
         * http://code.google.com/p/projectlombok/issues/detail?id=597 
-      * ASTView shows "NullLiteral malformed" for Lambda
+      * ASTView not working for new stuff
     * check JLS8 API (old for <= AST.JLS4)
       * ArrayTypes are not recursive anymore, have dimension attribute and elementType instead of componentType
       * method: thrownExceptionTypes instead of throwsExceptions (names)
-    * Default Methods work
-    * Lambdas work mostly
-    * Type Annotations
-      * Simple Types, Parameterized Types, Wildcards and Arrays work mostly (reorder Arrays)
+    * Default Methods OK
+    * Lambdas OK
+    * Repeatable Annotations (@Repeatable) OK (if annotation TD can be resolved)
+    * Type Annotations OK
+      * Receiver must get full parameterized reference
       *  Eclipse Bugs: https://bugs.eclipse.org/bugs/show_bug.cgi?id=426616
       * JDK Bug: Issue here: https://bugs.openjdk.java.net/issues/?jql=&startIndex=50
-      * Inner Types: reading works, but we have to copy because cache!
+      * Eclipse and JDK Bug: http://mail.openjdk.java.net/pipermail/type-annotations-dev/2014-February/001590.html
       * Examples:
         * http://www.tutego.de/blog/javainsel/2012/02/erster-draft-fr-annotations-on-java-types-jsr-308/
-    * Repeatable Annotations (@Repeatable) work, if annotation TD can be resolved
       * http://docs.oracle.com/javase/tutorial/java/annotations/repeating.html
     * Inner classes buggy in Eclipse: https://bugs.eclipse.org/bugs/show_bug.cgi?id=426854 
-  * IntelliJ Plugin
-    * http://bjorn.tipling.com/how-to-make-an-intellij-idea-plugin-in-30-minutes
-  * Netbeans Plugin
+  * other IDEs
+    * IntelliJ Plugin
+      * http://bjorn.tipling.com/how-to-make-an-intellij-idea-plugin-in-30-minutes
+    * Netbeans Plugin
 
 = NOTICES =
 
