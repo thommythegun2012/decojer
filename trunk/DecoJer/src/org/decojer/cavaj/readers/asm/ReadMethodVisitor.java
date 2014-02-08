@@ -1581,6 +1581,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		}
 		case TypeReference.METHOD_RECEIVER: {
 			// for type annotations like: void test(@Annots This this, ...) for none-static methods
+			// TODO receiver needs full signature, test-method DU#getQualifiedT(T) does't work,
+			// because we would have to read outer classes first
 			getMd().setReceiverT(
 					annotate(getMd().getReceiverT() != null ? getMd().getReceiverT() : getMd()
 							.getM().getT(), a, typePath));
