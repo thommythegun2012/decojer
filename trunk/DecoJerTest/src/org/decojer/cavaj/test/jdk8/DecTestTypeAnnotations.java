@@ -29,9 +29,9 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 
 				@Nonnull
 				Inner testInnerNew(
-						@Size(max = 24) Outer<W>.@Nonnull @Size(max = 25) Middle.@Size(max = 26) Inner this,
+						Outer<@Size(max = 24) W /* <W> is necessary! */>.@Nonnull @Size(max = 25) Middle.@Size(max = 26) Inner this,
 						@Size(max = 27) Integer arg) {
-					// Eclipse Bug: Outer<String> not allowed
+					// Eclipse Bug?: Outer<String> not allowed
 					return new Outer.@Size(max = 28) Middle.@Size(max = 29) Inner(
 							arg);
 				}
