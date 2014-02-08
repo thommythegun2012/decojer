@@ -41,9 +41,7 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 
 	}
 
-	public static @Deprecated
-	@Size(max = 31)
-	Map<@Size(max = 32) ?, ? extends @Nonnull @Size(max = 33) Object> testStatic;
+	public static @Deprecated @Size(max = 31) Map<@Size(max = 32) ?, ? extends @Nonnull @Size(max = 33) Object> testStatic;
 
 	public static String testArrays() {
 		@Size(max = 41)
@@ -52,8 +50,8 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 		return (@Size(max = 49) String) test[0][1][2][3].get(0);
 	}
 
-	public static @Size(max = 51)
-	String testParam(@Nonnull @Size(max = 52) CharSequence str) {
+	public static @Size(max = 51) String testParam(
+			@Nonnull @Size(max = 52) CharSequence str) {
 		return (@Nonnull @Size(max = 53) String) str;
 	}
 
@@ -65,9 +63,7 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 		return (@Nonnull @Size(max = 67) V) str;
 	}
 
-	public @Deprecated
-	@Size(max = 34)
-	Outer<? super @Size(max = 35) String>.@Size(max = 36) Middle @Nonnull @Size(max = 37) [] @Size(max = 38) [] test;
+	public @Deprecated @Size(max = 34) Outer<? super @Size(max = 35) String>.@Size(max = 36) Middle @Nonnull @Size(max = 37) [] @Size(max = 38) [] test;
 
 	public void testThrows() throws IOException,
 			@Size(max = 71) RuntimeException,

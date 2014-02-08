@@ -17,7 +17,6 @@ public abstract class DecTestLambdas {
 			return "Hello " + firstname + " " + lastname;
 		};
 		System.out.println(test.hello("André", "Pankraz"));
-
 	}
 
 	public static void testCapture() {
