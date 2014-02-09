@@ -883,13 +883,21 @@ public final class TrDataFlowAnalysis {
 
 			if (r.getPc() == pc) {
 				// register does change here...
-				if (r.getKind() == Kind.MOVE) {
+				switch (r.getKind()) {
+				case BOOLMATH:
+				case CONST:
+					// stop backpropagation here
+					return;
+				case MERGE:
+					assert false : "MERGE can only be first op in BB";
+
+					// stop backpropagation here
+					return;
+				case MOVE:
 					// register changes here, MOVE from different incoming register in same BB
 					aliveI = r.getIn().getI();
 					continue;
 				}
-				assert r.getKind() != Kind.MERGE; // can only be first op in BB
-
 				// stop backpropagation here
 				return;
 			}
@@ -909,6 +917,10 @@ public final class TrDataFlowAnalysis {
 		if (r.getPc() == pc) {
 			// different kinds possible, e.g. exceptions can split BBs
 			switch (r.getKind()) {
+			case BOOLMATH:
+			case CONST:
+				// stop backpropagation here
+				return;
 			case MERGE:
 				// register does change at BB start, we are interested in a merge which could wrap
 				// other freshly changed registers; but could also be a CONST from method start or
@@ -918,26 +930,30 @@ public final class TrDataFlowAnalysis {
 
 				break;
 			case MOVE:
-				// register changes here, MOVE from different incoming register in different BB
+				// register changes here, MOVE from different incoming register in previous BB
 				aliveI = r.getIn().getI();
 				break;
-			default:
-				// stop backpropagation here
-				return;
 			}
 		}
 		// backpropagate alive to previous BBs
-		marked: for (final E in : bb.getIns()) {
+		previousLoop: for (final E in : bb.getIns()) {
 			final BB predBb = in.getStart();
 			// TODO conditionally jump over JSR-RET!
 			if (mergeIns != null) {
-				final int opPc = predBb.getFinalOp().getPc() + 1;
+				// if the MERGE wraps a register, then we must stop or fix the alive index
+				final int finalOpOutPc = predBb.getFinalOp().getPc() + 1;
 				for (final R inR : mergeIns) {
-					if (inR.getPc() == opPc) {
-						if (inR.getKind() == Kind.MOVE) {
+					if (finalOpOutPc == inR.getPc()) {
+						switch (inR.getKind()) {
+						case BOOLMATH:
+						case CONST:
+						case MERGE:
+							continue previousLoop; // stop backpropagation here
+						case MOVE:
 							markAlive(predBb, inR.getIn().getI());
+							continue previousLoop; // alive index changed and backpropagated
 						}
-						continue marked;
+						continue previousLoop; // stop backpropagation here
 					}
 				}
 			}
