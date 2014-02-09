@@ -872,13 +872,15 @@ public final class TrDataFlowAnalysis {
 		// we defer MOVE alive markings, to prevent DUP/POP stuff etc.
 		int aliveI = i;
 		for (int j = bb.getOps(); j-- > 1;) {
-			final Op op = bb.getOp(j);
-			final int pc = op.getPc();
-			final Frame frame = getCfg().getFrame(pc);
+			final int pc = bb.getOp(j).getPc();
+			final Frame frame = getFrame(pc);
 			if (!frame.markAlive(aliveI)) {
-				return;
+				return; // was already alive, can happen via MOVE-out
 			}
 			final R r = frame.load(aliveI);
+			assert r != null : "R is null for pc '" + pc + "' and op '" + bb.getOp(j) + "' and '"
+					+ aliveI + "'!";
+
 			if (r.getPc() == pc) {
 				// register does change here...
 				if (r.getKind() == Kind.MOVE) {
@@ -887,14 +889,15 @@ public final class TrDataFlowAnalysis {
 					continue;
 				}
 				assert r.getKind() != Kind.MERGE; // can only be first op in BB
+
 				// stop backpropagation here
 				return;
 			}
 		}
 		final int pc = bb.getPc();
-		final Frame frame = getCfg().getFrame(pc);
+		final Frame frame = getFrame(pc);
 		if (!frame.markAlive(aliveI)) {
-			return;
+			return; // was already alive, can happen via MOVE-out
 		}
 
 		// now backpropagate to other BBs;
@@ -1158,11 +1161,14 @@ public final class TrDataFlowAnalysis {
 	private boolean replaceFrameReg(final int pc, final R prevR, @Nullable final R newR) {
 		// replace potential out registers before the current register, this function goes always
 		// one step further
-		for (final R out : prevR.getOuts()) {
-			if (out.getPc() == pc) {
-				// no complete merge handling here...what if we replace only one occurence in
-				// multi-merge of same register...handle in BB navigation: replaceBbRegDeep
-				out.replaceIn(prevR, newR);
+		final R[] outs = prevR.getOuts();
+		if (outs != null) {
+			for (final R out : outs) {
+				if (out.getPc() == pc) {
+					// no complete merge handling here...what if we replace only one occurence in
+					// multi-merge of same register...handle in BB navigation: replaceBbRegDeep
+					out.replaceIn(prevR, newR);
+				}
 			}
 		}
 		final int i = prevR.getI();
