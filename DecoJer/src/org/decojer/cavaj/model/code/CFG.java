@@ -524,7 +524,10 @@ public final class CFG {
 	}
 
 	/**
-	 * Set frame for PC, automatically update frame PC. Copy if already used!
+	 * Set frame for PC.
+	 * 
+	 * Copy frame to prevent lots of possible effects with multi-merges like in RET and
+	 * automatically set frame PC.
 	 * 
 	 * @param pc
 	 *            PC
@@ -532,11 +535,6 @@ public final class CFG {
 	 *            frame
 	 */
 	public void setFrame(final int pc, final Frame frame) {
-		if (frame.getPc() < 0) {
-			frame.setPc(pc);
-			this.frames[pc] = frame;
-			return;
-		}
 		this.frames[pc] = new Frame(frame, pc);
 	}
 

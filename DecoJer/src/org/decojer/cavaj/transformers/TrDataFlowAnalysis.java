@@ -126,11 +126,6 @@ public final class TrDataFlowAnalysis {
 	 */
 	private int currentPc;
 
-	/**
-	 * Current operation.
-	 */
-	private Op currentOp;
-
 	private final boolean isIgnoreExceptions;
 
 	/**
@@ -150,29 +145,14 @@ public final class TrDataFlowAnalysis {
 
 	private boolean checkRegisterAccessInSub(final int i, final RET ret) {
 		final Frame retFrame = getFrame(ret.getPc());
-		final R retR = retFrame.load(ret.getReg());
-		final Sub sub = (Sub) retR.getValue();
-		final Frame subFrame = getFrame(sub.getPc());
-
-		final R regAtSub = subFrame.load(i);
 		final R regAtRet = retFrame.load(i);
 
-		if (regAtSub != regAtRet) {
-			return false;
-		}
-		// are equal...null or merge at sub pc?
-		if (regAtRet == null) {
-			return true;
-		}
-		// no initial merge? simply route through, even if not changed in sub
-		if (regAtRet.getKind() != R.Kind.MERGE) {
-			return false;
-		}
-		if (regAtRet.getPc() != sub.getPc()) {
-			return false;
-		}
-		// TODO check merge-ins? check null-merges in sub?
-		return true;
+		final Sub sub = (Sub) retFrame.load(ret.getReg()).getValue();
+
+		final Frame subFrame = getFrame(sub.getPc());
+		final R regAtSub = subFrame.load(i);
+
+		return regAtRet != regAtSub; // register changed somewhere in sub
 	}
 
 	private void evalBinaryMath(final TypedOp op) {
@@ -212,7 +192,8 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private int execute() {
-		final Op op = this.currentOp;
+		final Op op = getOp(this.currentPc);
+		this.currentBb.addOp(op);
 		int nextPc = this.currentPc + 1;
 		switch (op.getOptype()) {
 		case ADD: {
@@ -476,6 +457,9 @@ public final class TrDataFlowAnalysis {
 			// already visited this sub -> restore jsr-follow-address (Sub) and merge -> check RET
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
+				assert false : "Already visited sub with pc '" + subPc
+						+ "' but didn't find initial sub register!";
+
 				return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
@@ -484,13 +468,14 @@ public final class TrDataFlowAnalysis {
 			}
 			this.currentFrame.push(subR);
 			merge(subPc);
-			// RET already visited -> link RET BB to JSR follower and merge
+
+			// RET already visited? -> link RET BB to JSR follower and merge
 			final RET ret = sub.getRet();
 			if (ret == null) {
 				return -1;
 			}
 			this.currentFrame = new Frame(getFrame(ret.getPc()));
-			if (loadRead(ret.getReg(), T.RET).getValue() != sub) {
+			if (load(ret.getReg(), T.RET).getValue() != sub) {
 				LOGGER.warning(getMd() + ": Incorrect sub!");
 			}
 			final BB retBb = getBb(ret.getPc());
@@ -499,7 +484,7 @@ public final class TrDataFlowAnalysis {
 			// modify RET frame for untouched registers in sub
 			final Frame jsrFrame = getCfg().getInFrame(jsr);
 			for (int i = this.currentFrame.size(); i-- > 0;) {
-				if (checkRegisterAccessInSub(i, ret)) {
+				if (!checkRegisterAccessInSub(i, ret)) {
 					this.currentFrame.store(i, jsrFrame.load(i));
 				}
 			}
@@ -549,7 +534,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case NEWARRAY: {
-			final NEWARRAY cop = (NEWARRAY) this.currentOp;
+			final NEWARRAY cop = (NEWARRAY) op;
 			for (int i = cop.getDimensions(); i-- > 0;) {
 				popRead(T.INT);
 			}
@@ -557,7 +542,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		case OR: {
-			final OR cop = (OR) this.currentOp;
+			final OR cop = (OR) op;
 			evalBinaryMath(cop);
 			break;
 		}
@@ -622,7 +607,7 @@ public final class TrDataFlowAnalysis {
 				// modify RET frame for untouched registers in sub
 				final Frame jsrFrame = getCfg().getInFrame(jsr);
 				for (int i = this.currentFrame.size(); i-- > 0;) {
-					if (checkRegisterAccessInSub(i, ret)) {
+					if (!checkRegisterAccessInSub(i, ret)) {
 						this.currentFrame.store(i, jsrFrame.load(i));
 					}
 				}
@@ -812,6 +797,10 @@ public final class TrDataFlowAnalysis {
 		return getCfg().getMd();
 	}
 
+	private Op getOp(final int pc) {
+		return getCfg().getOps()[pc];
+	}
+
 	/**
 	 * Get target BB for PC. Split or create new if necessary.
 	 * 
@@ -938,10 +927,17 @@ public final class TrDataFlowAnalysis {
 		// backpropagate alive to previous BBs
 		previousLoop: for (final E in : bb.getIns()) {
 			final BB inBb = in.getStart();
-			// TODO conditionally jump over JSR-RET!
+			final Op finalOp = inBb.getFinalOp();
+			if (finalOp instanceof RET) {
+				// jump over subs, where the register is unchanged
+				if (!checkRegisterAccessInSub(aliveI, (RET) finalOp)) {
+					markAlive(getBb(pc - 1), aliveI);
+					continue previousLoop;
+				}
+			}
 			if (mergeIns != null) {
 				// if the MERGE wraps a register, then we must stop or fix the alive index
-				final int finalOpOutPc = inBb.getFinalOp().getPc() + 1;
+				final int finalOpOutPc = finalOp.getPc() + 1;
 				for (final R inR : mergeIns) {
 					if (finalOpOutPc == inR.getPc()) {
 						switch (inR.getKind()) {
@@ -1138,10 +1134,9 @@ public final class TrDataFlowAnalysis {
 			// final operation is RET & register untouched in sub => modify to state before sub
 			// TODO check JSR and RET, register same before and after??? replace RET
 			// TODO not same? overwrite RET
-			final boolean jumpOverSub;
 			final Op finalOp = currentBb.getFinalOp();
-			jumpOverSub = finalOp instanceof RET ? checkRegisterAccessInSub((RET) finalOp,
-					prevR.getI()) : false;
+			final boolean jumpOverSub = finalOp instanceof RET ? !checkRegisterAccessInSub(
+					prevR.getI(), (RET) finalOp) : false;
 
 			// replacement propagation to next BB necessary
 			for (final E out : currentBb.getOuts()) {
@@ -1222,8 +1217,9 @@ public final class TrDataFlowAnalysis {
 			} else {
 				// exception endPc is eclusive, but often points to final GOTO or RETURN in
 				// try-block, this is especially not usefull for returns with values!
+				final Op currentOp = getOp(this.currentPc);
 				if (!exc.validIn(this.currentBb.getPc()) || this.currentPc == exc.getEndPc()
-						&& (this.currentOp instanceof GOTO || this.currentOp instanceof RETURN)) {
+						&& (currentOp instanceof GOTO || currentOp instanceof RETURN)) {
 					// exception isn't valid - hasn't bean valid at BB entry -> OK
 					continue;
 				}
@@ -1242,16 +1238,16 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void transform() {
-		final Op[] ops = getCfg().getOps();
-		this.pc2bbs = new BB[ops.length];
+		final CFG cfg = getCfg();
+		this.pc2bbs = new BB[cfg.getOps().length];
 		this.openPcs = Lists.newLinkedList();
 
 		// start with PC 0 and new BB
 		this.currentPc = 0;
 		this.currentBb = newBb(0); // need pc2bb and openPcs
 
-		getCfg().initFrames();
-		getCfg().setStartBb(this.currentBb);
+		cfg.initFrames();
+		cfg.setStartBb(this.currentBb);
 
 		while (true) {
 			if (this.currentPc < 0) {
@@ -1260,14 +1256,11 @@ public final class TrDataFlowAnalysis {
 					break;
 				}
 				this.currentPc = this.openPcs.removeFirst();
-				this.currentOp = ops[this.currentPc];
 				this.currentBb = getBb(this.currentPc);
 			} else {
-				this.currentOp = ops[this.currentPc];
 				this.currentBb = splitExceptions(); // exception boundary? split...
 				setBb(this.currentPc, this.currentBb);
 			}
-			this.currentBb.addOp(this.currentOp);
 			this.currentFrame = new Frame(getFrame(this.currentPc)); // copy, merge to next PCs
 			final int nextPc = execute();
 			executeExceptions();
