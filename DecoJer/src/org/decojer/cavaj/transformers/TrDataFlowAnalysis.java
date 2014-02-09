@@ -937,11 +937,11 @@ public final class TrDataFlowAnalysis {
 		}
 		// backpropagate alive to previous BBs
 		previousLoop: for (final E in : bb.getIns()) {
-			final BB predBb = in.getStart();
+			final BB inBb = in.getStart();
 			// TODO conditionally jump over JSR-RET!
 			if (mergeIns != null) {
 				// if the MERGE wraps a register, then we must stop or fix the alive index
-				final int finalOpOutPc = predBb.getFinalOp().getPc() + 1;
+				final int finalOpOutPc = inBb.getFinalOp().getPc() + 1;
 				for (final R inR : mergeIns) {
 					if (finalOpOutPc == inR.getPc()) {
 						switch (inR.getKind()) {
@@ -950,14 +950,14 @@ public final class TrDataFlowAnalysis {
 						case MERGE:
 							continue previousLoop; // stop backpropagation here
 						case MOVE:
-							markAlive(predBb, inR.getIn().getI());
+							markAlive(inBb, inR.getIn().getI());
 							continue previousLoop; // alive index changed and backpropagated
 						}
 						continue previousLoop; // stop backpropagation here
 					}
 				}
 			}
-			markAlive(predBb, aliveI);
+			markAlive(inBb, aliveI);
 		}
 	}
 
