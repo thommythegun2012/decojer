@@ -28,6 +28,7 @@
     * Repeatable Annotations (@Repeatable) OK (if annotation TD can be resolved)
     * Type Annotations OK
       * Receiver must get fully parameterized reference
+      * check more examples: http://www.mscharhag.com/2014/02/java-8-type-annotations.html
       * Eclipse Bugs: https://bugs.eclipse.org/bugs/show_bug.cgi?id=426616
       * JDK Bug: Issue here: https://bugs.openjdk.java.net/issues/?jql=&startIndex=50
       * Eclipse and JDK Bug: http://mail.openjdk.java.net/pipermail/type-annotations-dev/2014-February/001590.html
