@@ -277,9 +277,9 @@ public final class TrControlFlowAnalysis {
 					// 2) is fall through in previous follow
 					// 3) is fall through in later follow
 					// 4) is incoming goto if nothing works anymore...
-					final BB prevBb = in.getStart();
+					final BB inBb = in.getStart();
 					for (int j = i; j-- > 0;) {
-						if (!switchStruct.isMember(caseOuts.get(j).getValue(), prevBb)) {
+						if (!switchStruct.isMember(caseOuts.get(j).getValue(), inBb)) {
 							continue;
 						}
 						if (prevCaseIndex == j) {
