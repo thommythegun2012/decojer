@@ -66,7 +66,7 @@ public final class Frame {
 	 *            copy frame
 	 */
 	public Frame(final Frame frame) {
-		this(frame, -1);
+		this(frame, frame.pc);
 	}
 
 	/**
