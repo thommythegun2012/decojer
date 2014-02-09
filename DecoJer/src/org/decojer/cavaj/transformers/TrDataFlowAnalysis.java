@@ -121,11 +121,6 @@ public final class TrDataFlowAnalysis {
 	 */
 	private Frame currentFrame;
 
-	/**
-	 * Current PC.
-	 */
-	private int currentPc;
-
 	private final boolean isIgnoreExceptions;
 
 	/**
@@ -192,9 +187,10 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private int execute() {
-		final Op op = getOp(this.currentPc);
+		final int currentPc = getCurrentPc();
+		final Op op = getOp(currentPc);
 		this.currentBb.addOp(op);
-		int nextPc = this.currentPc + 1;
+		int nextPc = currentPc + 1;
 		switch (op.getOptype()) {
 		case ADD: {
 			evalBinaryMath((ADD) op);
@@ -732,11 +728,12 @@ public final class TrDataFlowAnalysis {
 		if (isNoExceptions()) {
 			return;
 		}
+		final int currentPc = getCurrentPc();
 		if (this.currentBb.getOps() == 1) {
 			// build sorted map: unique handler pc -> matching handler types
 			final TreeMap<Integer, List<T>> handlerPc2type = Maps.newTreeMap();
 			for (final Exc exc : getCfg().getExcs()) {
-				if (!exc.validIn(this.currentPc)) {
+				if (!exc.validIn(currentPc)) {
 					continue;
 				}
 				// it would be nice to prone unreachable outer exception handlers here, but this
@@ -759,7 +756,7 @@ public final class TrDataFlowAnalysis {
 			}
 		}
 		for (final Exc exc : getCfg().getExcs()) {
-			if (!exc.validIn(this.currentPc)) {
+			if (!exc.validIn(currentPc)) {
 				continue;
 			}
 			final int handlerPc = exc.getHandlerPc();
@@ -776,13 +773,17 @@ public final class TrDataFlowAnalysis {
 				excR = handlerFrame.peek(); // reuse exception register
 			}
 			// use current PC before operation for forwarding failed assignments -> null
-			this.currentFrame = new Frame(getFrame(this.currentPc), excR);
+			this.currentFrame = new Frame(getFrame(currentPc), excR);
 			merge(handlerPc);
 		}
 	}
 
 	private BB getBb(final int pc) {
 		return this.pc2bbs[pc];
+	}
+
+	private int getCurrentPc() {
+		return this.currentFrame.getPc();
 	}
 
 	private DU getDu() {
@@ -964,7 +965,7 @@ public final class TrDataFlowAnalysis {
 			getCfg().setFrame(targetPc, this.currentFrame);
 			return;
 		}
-		assert targetFrame.getPc() != this.currentFrame.getPc() : "merge is called twice";
+		assert targetFrame.getPc() != getCurrentPc() : "merge is called twice";
 		// target frame has already been visited before, hence this must be a BB start with multiple
 		// predecessors => register merge necessary
 		assert targetFrame.size() == this.currentFrame.size() : "incompatible frame sizes";
@@ -1102,12 +1103,12 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R push(final R r) {
-		return this.currentFrame.push(new R(this.currentPc + 1, this.currentFrame.size(), r.getT(),
+		return this.currentFrame.push(new R(getCurrentPc() + 1, this.currentFrame.size(), r.getT(),
 				r.getValue(), Kind.MOVE, r));
 	}
 
 	private R pushBoolmath(final T t, final R r1, final R r2) {
-		return this.currentFrame.push(new R(this.currentPc + 1, this.currentFrame.size(), t,
+		return this.currentFrame.push(new R(getCurrentPc() + 1, this.currentFrame.size(), t,
 				null /* TODO do something? */, Kind.BOOLMATH, r1, r2));
 	}
 
@@ -1116,7 +1117,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R pushConst(final T t, final Object value) {
-		return this.currentFrame.push(new R(this.currentPc + 1, this.currentFrame.size(), t, value,
+		return this.currentFrame.push(new R(getCurrentPc() + 1, this.currentFrame.size(), t, value,
 				Kind.CONST));
 	}
 
@@ -1199,17 +1200,19 @@ public final class TrDataFlowAnalysis {
 	/**
 	 * Exception block changes in current BB? -> split necessary!
 	 * 
+	 * @param currentPc
+	 *            current pc
 	 * @return original BB or new BB for beginning exception block
 	 */
-	private BB splitExceptions() {
+	private BB splitExceptions(final int currentPc) {
 		if (isNoExceptions()) {
 			return this.currentBb;
 		}
 		// could happen with GOTO-mode: create no entry in BB, currently unused
-		assert this.currentBb.getPc() == this.currentPc || this.currentBb.getOps() > 0;
+		assert this.currentBb.getPc() == currentPc || this.currentBb.getOps() > 0;
 
 		for (final Exc exc : getCfg().getExcs()) {
-			if (exc.validIn(this.currentPc)) {
+			if (exc.validIn(currentPc)) {
 				if (exc.validIn(this.currentBb.getPc())) {
 					// exception is valid - has been valid at BB entry -> OK
 					continue;
@@ -1217,15 +1220,15 @@ public final class TrDataFlowAnalysis {
 			} else {
 				// exception endPc is eclusive, but often points to final GOTO or RETURN in
 				// try-block, this is especially not usefull for returns with values!
-				final Op currentOp = getOp(this.currentPc);
-				if (!exc.validIn(this.currentBb.getPc()) || this.currentPc == exc.getEndPc()
+				final Op currentOp = getOp(currentPc);
+				if (!exc.validIn(this.currentBb.getPc()) || currentPc == exc.getEndPc()
 						&& (currentOp instanceof GOTO || currentOp instanceof RETURN)) {
 					// exception isn't valid - hasn't bean valid at BB entry -> OK
 					continue;
 				}
 			}
 			// at least one exception has changed, newBb() links exceptions
-			final BB succBb = newBb(this.currentPc);
+			final BB succBb = newBb(currentPc);
 			this.currentBb.setSucc(succBb);
 			return succBb;
 		}
@@ -1233,7 +1236,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R store(final int i, final R r) {
-		return this.currentFrame.store(i, new R(this.currentPc + 1, i, r.getT(), r.getValue(),
+		return this.currentFrame.store(i, new R(getCurrentPc() + 1, i, r.getT(), r.getValue(),
 				Kind.MOVE, r));
 	}
 
@@ -1243,28 +1246,28 @@ public final class TrDataFlowAnalysis {
 		this.openPcs = Lists.newLinkedList();
 
 		// start with PC 0 and new BB
-		this.currentPc = 0;
+		int currentPc = 0; // better not as global attribute, current context changes sometimes
 		this.currentBb = newBb(0); // need pc2bb and openPcs
 
 		cfg.initFrames();
 		cfg.setStartBb(this.currentBb);
 
 		while (true) {
-			if (this.currentPc < 0) {
+			if (currentPc < 0) {
 				// next open pc?
 				if (this.openPcs.isEmpty()) {
 					break;
 				}
-				this.currentPc = this.openPcs.removeFirst();
-				this.currentBb = getBb(this.currentPc);
+				currentPc = this.openPcs.removeFirst();
+				this.currentBb = getBb(currentPc);
 			} else {
-				this.currentBb = splitExceptions(); // exception boundary? split...
-				setBb(this.currentPc, this.currentBb);
+				this.currentBb = splitExceptions(currentPc); // exception boundary? split...
+				setBb(currentPc, this.currentBb);
 			}
-			this.currentFrame = new Frame(getFrame(this.currentPc)); // copy, merge to next PCs
+			this.currentFrame = new Frame(getFrame(currentPc)); // copy, merge to next PCs
 			final int nextPc = execute();
 			executeExceptions();
-			this.currentPc = nextPc;
+			currentPc = nextPc;
 		}
 	}
 
