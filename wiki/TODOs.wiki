@@ -9,7 +9,7 @@ java.lang.AssertionError
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:720)
 
 
-
+{java.util.AbstractList,java.io.Serializable}.isAssignableFrom(com.google.common.collect.Lists$TransformingRandomAccessList) must be true!
 
 
 = TODOs =
