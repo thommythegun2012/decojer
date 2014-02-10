@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.model.types.IntersectionT;
 import org.decojer.cavaj.model.types.Kind;
 import org.decojer.cavaj.model.types.PrimitiveT;
 
@@ -329,7 +330,7 @@ public abstract class T {
 				return t1.getDu().getArrayT(joinT);
 			}
 			// could fall through here to general algorithm, but following is always same result
-			return new ClassT(t1.getDu().getObjectT(), t1.getDu().getArrayInterfaceTs());
+			return new IntersectionT(t1.getDu().getObjectT(), t1.getDu().getArrayInterfaceTs());
 		}
 		// find common supertypes, raise in t1-hierarchy till assignable from t2
 		T superT = null;
@@ -370,7 +371,7 @@ public abstract class T {
 		if (interfaceTs.size() == 1 && (superT == null || superT.isObject())) {
 			return interfaceTs.get(0);
 		}
-		return new ClassT(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
+		return new IntersectionT(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
 	}
 
 	private static int joinKinds(final int kind1, final int kind2) {
@@ -702,7 +703,14 @@ public abstract class T {
 		return m;
 	}
 
-	abstract public Map<String, Object> getMember();
+	/**
+	 * Get members (methods, fields).
+	 * 
+	 * @return members
+	 */
+	public Map<String, Object> getMember() {
+		return null;
+	}
 
 	/**
 	 * Get type name - is like a unique descriptor without modifiers like annotations or
@@ -841,7 +849,7 @@ public abstract class T {
 	 * @return stack size
 	 */
 	public int getStackSize() {
-		return 1;
+		return 1; // overwrite in PrimitiveT for wides
 	}
 
 	/**
@@ -1022,6 +1030,15 @@ public abstract class T {
 	}
 
 	/**
+	 * Is intersection type?
+	 * 
+	 * @return {@code true} - is intersection type
+	 */
+	public boolean isIntersection() {
+		return false; // overwrite in IntersectionT
+	}
+
+	/**
 	 * Is multi type?
 	 * 
 	 * @return {@code true} - is multi type
@@ -1089,7 +1106,9 @@ public abstract class T {
 	 * 
 	 * @return {@code true} - is unresolveable
 	 */
-	public abstract boolean isUnresolvable();
+	public boolean isUnresolvable() {
+		return false;
+	}
 
 	/**
 	 * Is wide type?
