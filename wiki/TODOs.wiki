@@ -1,17 +1,5 @@
 #summary Next steps and open issues
 
-Feb 09, 2014 4:59:03 PM org.decojer.cavaj.model.CU decompile
-Warnung: Cannot transform 'com.google.common.collect.Lists.transform(Ljava/util/List;Lcom/google/common/base/Function;)Ljava/util/List; (ops: 15, regs: 2)'!
-java.lang.AssertionError
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:186)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.mergeReg(TrDataFlowAnalysis.java:1034)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:977)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:720)
-
-
-{java.util.AbstractList,java.io.Serializable}.isAssignableFrom(com.google.common.collect.Lists$TransformingRandomAccessList) must be true!
-
-
 = TODOs =
 
   * merge-replace register
