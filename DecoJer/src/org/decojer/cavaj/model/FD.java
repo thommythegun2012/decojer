@@ -138,7 +138,6 @@ public final class FD extends BD {
 		if (signature == null) {
 			return;
 		}
-
 		final T valueT = getTd().getDu().parseT(signature, new Cursor(), getF());
 		if (!valueT.eraseTo(getValueT())) {
 			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getValueT()
