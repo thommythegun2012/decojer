@@ -1,5 +1,19 @@
 #summary Next steps and open issues
 
+TestR: this doesn't work in Data Flow Analysis yet:
+		// the following has to be modelled via union types of array types of primitives:
+		assertFalse(du.getArrayT(T.SMALL).isAssignableFrom(du.getT(byte[].class)));
+
+		case ALOAD: {
+			final ALOAD cop = (ALOAD) op;
+			popRead(T.INT); // index
+			final R aR = popRead(getDu().getArrayT(cop.getT())); // array
+			pushConst(aR.getT() == T.REF ? T.REF : aR.getT().getComponentT()); // value
+			break;
+
+
+
+
 = TODOs =
 
   * merge-replace register
