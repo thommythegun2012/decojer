@@ -80,6 +80,19 @@ public class IntersectionT extends T {
 	}
 
 	@Override
+	public boolean isAssignableFrom(final T t) {
+		if (!getSuperT().isAssignableFrom(t)) {
+			return false;
+		}
+		for (final T interfactT : getInterfaceTs()) {
+			if (!interfactT.isAssignableFrom(t)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	@Override
 	public boolean isIntersection() {
 		return true;
 	}
