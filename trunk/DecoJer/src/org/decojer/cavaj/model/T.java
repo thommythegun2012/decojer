@@ -32,6 +32,7 @@ import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.IntersectionT;
 import org.decojer.cavaj.model.types.Kind;
 import org.decojer.cavaj.model.types.PrimitiveT;
+import org.decojer.cavaj.model.types.VarT;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -488,9 +489,10 @@ public abstract class T {
 	}
 
 	/**
-	 * Is extended signature type for given type? This function also makes changes to the types,
-	 * e.g. setting enclosed for the given type (signatures have more info about that because of '.'
-	 * instead of '$') or setting raw types for type variables.
+	 * Is extended signature type for given type?
+	 * 
+	 * This function also makes changes to the types, especially it is setting raw types for type
+	 * variables (see {@link VarT#eraseTo(T)}).
 	 * 
 	 * JVM Spec: "A class type signature gives complete type information for a class or interface
 	 * type. The class type signature must be formulated such that it can be reliably mapped to the
