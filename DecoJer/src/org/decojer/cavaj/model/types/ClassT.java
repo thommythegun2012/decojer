@@ -43,23 +43,15 @@ import com.google.common.collect.Maps;
 /**
  * Class type.
  * 
+ * Class types are uniquely cached in the decompilation unit, they are used very often. Hence it's
+ * very important that all type infos are only set as they declared and not as they are referenced
+ * (no type arguments here, e.g. in enclosing info).
+ * 
  * @author André Pankraz
  */
 public class ClassT extends T {
 
 	private final static Logger LOGGER = Logger.getLogger(ClassT.class.getName());
-
-	private static String toString(final T superT, final T[] interfaceTs) {
-		final StringBuilder sb = new StringBuilder("{");
-		if (superT != null) {
-			sb.append(superT.getName()).append(',');
-		}
-		for (final T interfaceT : interfaceTs) {
-			sb.append(interfaceT.getName()).append(",");
-		}
-		sb.setCharAt(sb.length() - 1, '}');
-		return sb.toString();
-	}
 
 	@Getter
 	private final String name;
@@ -121,21 +113,6 @@ public class ClassT extends T {
 
 		this.du = du;
 		this.name = name;
-	}
-
-	/**
-	 * Constructor for anonymous multi class type.
-	 * 
-	 * @param superT
-	 *            super type
-	 * @param interfaceTs
-	 *            interface types
-	 */
-	public ClassT(final T superT, final T... interfaceTs) {
-		this.name = toString(superT, interfaceTs);
-		this.du = superT.getDu();
-		this.superT = superT;
-		this.interfaceTs = interfaceTs;
 	}
 
 	/**

@@ -25,78 +25,63 @@ package org.decojer.cavaj.model.types;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
 
 /**
- * Type parameter.
+ * Intersection type.
+ * 
+ * @see T#join(T, T)
  * 
  * @author André Pankraz
  */
-public class ParamT extends T {
-
-	@Getter
-	private final String name;
-
-	@Getter
-	private final DU du;
+public class IntersectionT extends T {
 
 	/**
 	 * Interface types.
 	 */
-	private T[] interfaceTs;
+	@Getter
+	private final T[] interfaceTs;
 
 	/**
 	 * Super type.
 	 */
 	@Getter
-	private T superT;
+	private final T superT;
 
 	/**
-	 * Constructor.
+	 * Constructor for anonymous multi class type.
 	 * 
-	 * @param du
-	 *            decompilation unit
-	 * @param name
-	 *            type name
+	 * @param superT
+	 *            super type
+	 * @param interfaceTs
+	 *            interface types
 	 */
-	public ParamT(final DU du, final String name) {
-		assert du != null;
-		assert name != null;
-
-		this.du = du;
-		this.name = name;
-	}
-
-	@Override
-	public T[] getInterfaceTs() {
-		if (this.interfaceTs == null) {
-			return INTERFACES_NONE;
-		}
-		return this.interfaceTs;
-	}
-
-	@Override
-	public int getKind() {
-		return Kind.REF.getKind();
-	}
-
-	@Override
-	public void setInterfaceTs(final T[] interfaceTs) {
-		for (final T t : interfaceTs) {
-			t.setInterface(true);
-		}
+	public IntersectionT(final T superT, final T... interfaceTs) {
+		this.superT = superT;
 		this.interfaceTs = interfaceTs;
 	}
 
 	@Override
-	public void setSuperT(final T superT) {
-		if (superT == null) {
-			this.superT = NONE;
-			return;
+	public int getKind() {
+		return T.REF.getKind();
+	}
+
+	@Override
+	public String getName() {
+		final StringBuilder sb = new StringBuilder("{");
+		if (this.superT != null) {
+			sb.append(this.superT.getName()).append(',');
 		}
-		superT.setInterface(false);
-		this.superT = superT;
+		for (final T interfaceT : this.interfaceTs) {
+			sb.append(interfaceT.getName()).append(",");
+		}
+		sb.setCharAt(sb.length() - 1, '}');
+		return sb.toString();
+	}
+
+	@Override
+	public boolean isIntersection() {
+		return true;
 	}
 
 }

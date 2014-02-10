@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model.types;
 
-import java.util.Map;
-
 import lombok.Getter;
 
 import org.decojer.cavaj.model.T;
@@ -63,11 +61,6 @@ public class PrimitiveT extends T {
 	}
 
 	@Override
-	public Map<String, Object> getMember() {
-		return null;
-	}
-
-	@Override
 	public int getStackSize() {
 		if (this.kind == Kind.VOID.getKind()) {
 			return 0;
@@ -100,11 +93,6 @@ public class PrimitiveT extends T {
 	public boolean isRef() {
 		// not always false - consider REF/RET multitypes
 		return (getKind() & REF.getKind()) != 0;
-	}
-
-	@Override
-	public boolean isUnresolvable() {
-		return false;
 	}
 
 	/**
