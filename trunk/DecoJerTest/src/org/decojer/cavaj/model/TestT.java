@@ -52,8 +52,7 @@ class TestT {
 		assertSame(du.getT(Object[].class).getComponentT(), du.getObjectT());
 
 		assertSame(Object[][].class.getComponentType(), Object[].class);
-		assertEquals(du.getT(Object[][].class).getComponentT(),
-				du.getT(Object[].class));
+		assertEquals(du.getT(Object[][].class).getComponentT(), du.getT(Object[].class));
 
 		assertNull(Object.class.getComponentType());
 		assertNull(du.getObjectT().getComponentT());
@@ -65,16 +64,14 @@ class TestT {
 	@Test
 	void getEnclosingT() {
 		T t = du.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;");
-		assertEquals(
-				t.toString(),
+		assertEquals(t.toString(),
 				"org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo<java.lang.Object>");
 		assertEquals(t.getQualifierT().toString(),
 				"org.pushingpixels.trident.TimelinePropertyBuilder<T>");
 		assertEquals(t.getName(),
 				"org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo");
-		assertTrue(t
-				.eraseTo(du
-						.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder$AbstractFieldInfo;")));
+		assertTrue(t.eraseTo(du
+				.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder$AbstractFieldInfo;")));
 	}
 
 	@Test
@@ -138,8 +135,7 @@ class TestT {
 		// but with dots
 		assertEquals(Object[][].class.getName(), "[[Ljava.lang.Object;");
 		// we handle that different
-		assertEquals(du.getT(Object[][].class).getName(),
-				"java.lang.Object[][]");
+		assertEquals(du.getT(Object[][].class).getName(), "java.lang.Object[][]");
 
 		// multi-types just for primitives / internal
 		assertEquals(T.AINT.getName(), "{int,short,byte,char,boolean}");
@@ -251,92 +247,74 @@ class TestT {
 		assertTrue(Number.class.isAssignableFrom(Byte.class));
 		assertTrue(du.getT(Number.class).isAssignableFrom(du.getT(Byte.class)));
 		assertTrue(Comparable.class.isAssignableFrom(Byte.class));
-		assertTrue(du.getT(Comparable.class).isAssignableFrom(
-				du.getT(Byte.class)));
+		assertTrue(du.getT(Comparable.class).isAssignableFrom(du.getT(Byte.class)));
 		assertTrue(Serializable.class.isAssignableFrom(Byte.class));
-		assertTrue(du.getT(Serializable.class).isAssignableFrom(
-				du.getT(Byte.class)));
+		assertTrue(du.getT(Serializable.class).isAssignableFrom(du.getT(Byte.class)));
 
 		assertFalse(Cloneable.class.isAssignableFrom(Byte.class));
-		assertFalse(du.getT(Cloneable.class).isAssignableFrom(
-				du.getT(Byte.class)));
+		assertFalse(du.getT(Cloneable.class).isAssignableFrom(du.getT(Byte.class)));
 
 		// arrays are REFs with {Object,Cloneable,Serializable}
 		assertTrue(Object.class.isAssignableFrom(byte[].class));
 		assertTrue(du.getObjectT().isAssignableFrom(du.getT(byte[].class)));
 		assertTrue(Cloneable.class.isAssignableFrom(byte[].class));
-		assertTrue(du.getT(Cloneable.class).isAssignableFrom(
-				du.getT(byte[].class)));
+		assertTrue(du.getT(Cloneable.class).isAssignableFrom(du.getT(byte[].class)));
 		assertTrue(Serializable.class.isAssignableFrom(byte[][][].class));
-		assertTrue(du.getT(Serializable.class).isAssignableFrom(
-				du.getT(byte[][][].class)));
+		assertTrue(du.getT(Serializable.class).isAssignableFrom(du.getT(byte[][][].class)));
 
 		assertTrue(Object[].class.isAssignableFrom(byte[][][].class));
-		assertTrue(du.getT(Object[].class).isAssignableFrom(
-				du.getT(byte[][][].class)));
+		assertTrue(du.getT(Object[].class).isAssignableFrom(du.getT(byte[][][].class)));
 		assertTrue(Object[][].class.isAssignableFrom(byte[][][].class));
-		assertTrue(du.getT(Object[][].class).isAssignableFrom(
-				du.getT(byte[][][].class)));
+		assertTrue(du.getT(Object[][].class).isAssignableFrom(du.getT(byte[][][].class)));
 
-		assertTrue(du.getArrayT(T.REF).isAssignableFrom(
-				du.getT(byte[][][].class)));
-		assertTrue(du.getArrayT(T.SMALL)
-				.isAssignableFrom(du.getT(byte[].class)));
+		assertTrue(du.getArrayT(T.REF).isAssignableFrom(du.getT(byte[][][].class)));
+		// the following has to be modelled via union types of array types of primitives:
+		assertFalse(du.getArrayT(T.SMALL).isAssignableFrom(du.getT(byte[].class)));
 
 		assertTrue(Serializable[][].class.isAssignableFrom(byte[][][].class));
-		assertTrue(du.getT(Serializable[][].class).isAssignableFrom(
-				du.getT(byte[][][].class)));
+		assertTrue(du.getT(Serializable[][].class).isAssignableFrom(du.getT(byte[][][].class)));
 		assertFalse(Serializable[][][].class.isAssignableFrom(byte[][][].class));
-		assertFalse(du.getT(Serializable[][][].class).isAssignableFrom(
-				du.getT(byte[][][].class)));
+		assertFalse(du.getT(Serializable[][][].class).isAssignableFrom(du.getT(byte[][][].class)));
 
 		assertTrue(int[].class.isAssignableFrom(int[].class));
 		assertTrue(du.getT(int[].class).isAssignableFrom(du.getT(int[].class)));
 		assertFalse(int[].class.isAssignableFrom(int[][].class));
-		assertFalse(du.getT(int[].class).isAssignableFrom(
-				du.getT(int[][].class)));
+		assertFalse(du.getT(int[].class).isAssignableFrom(du.getT(int[][].class)));
 		assertFalse(int[][][].class.isAssignableFrom(int[].class));
-		assertFalse(du.getT(int[][][].class).isAssignableFrom(
-				du.getT(int[].class)));
+		assertFalse(du.getT(int[][][].class).isAssignableFrom(du.getT(int[].class)));
 
 		// covariant arrays
 		assertTrue(Number[].class.isAssignableFrom(Integer[].class));
-		assertTrue(du.getT(Number[].class).isAssignableFrom(
-				du.getT(Integer[].class)));
+		assertTrue(du.getT(Number[].class).isAssignableFrom(du.getT(Integer[].class)));
 		// this is the Array-Serializable
 		assertTrue(Serializable[][].class.isAssignableFrom(Byte[][][].class));
-		assertTrue(du.getT(Serializable[][].class).isAssignableFrom(
-				du.getT(Byte[][][].class)));
+		assertTrue(du.getT(Serializable[][].class).isAssignableFrom(du.getT(Byte[][][].class)));
 		assertTrue(Cloneable[][].class.isAssignableFrom(Byte[][][].class));
-		assertTrue(du.getT(Cloneable[][].class).isAssignableFrom(
-				du.getT(Byte[][][].class)));
+		assertTrue(du.getT(Cloneable[][].class).isAssignableFrom(du.getT(Byte[][][].class)));
 		// this is the Number-Serializable...true!
 		assertTrue(Serializable[][][].class.isAssignableFrom(Byte[][][].class));
-		assertTrue(du.getT(Serializable[][][].class).isAssignableFrom(
-				du.getT(Byte[][][].class)));
+		assertTrue(du.getT(Serializable[][][].class).isAssignableFrom(du.getT(Byte[][][].class)));
 		assertFalse(Cloneable[][][].class.isAssignableFrom(Byte[][][].class));
-		assertFalse(du.getT(Cloneable[][][].class).isAssignableFrom(
-				du.getT(Byte[][][].class)));
+		assertFalse(du.getT(Cloneable[][][].class).isAssignableFrom(du.getT(Byte[][][].class)));
 
-		// assignableFrom() means is-superclass-of in JDK function, for
-		// primitives too! even though int=short/byte/char etc. is possible,
-		// false is returned! we change this behavior for the decompiler:
+		// even though arrays are covariant in the Java language, no auto-conversion is applied
+		// here and "int[] is = new byte[1]" isn't allowed in Java:
+		// isAssignableFrom() usually means "is-superclass-of" in JDK function, but even though
+		// "int i = short/etc." is not an allowed assignment by inheritence (it's an
+		// auto-conversion) we allow it here
 		assertFalse(int.class.isAssignableFrom(byte.class));
 		assertTrue(T.INT.isAssignableFrom(T.BYTE));
-		// but cannot int=boolean
+		// no auto-conversion for "int i = boolean"
 		assertFalse(int.class.isAssignableFrom(boolean.class));
 		assertFalse(T.INT.isAssignableFrom(T.BOOLEAN));
-		// but this isn't covariant in the Java language:
+		// no auto-conversion for array components
 		assertFalse(int[].class.isAssignableFrom(byte[].class));
-		assertFalse(du.getT(int[].class)
-				.isAssignableFrom(du.getT(byte[].class)));
+		assertFalse(du.getT(int[].class).isAssignableFrom(du.getT(byte[].class)));
 
-		assertTrue(new IntersectionT(du.getT(Object.class),
-				du.getT(Cloneable.class), du.getT(Serializable.class))
-				.isAssignableFrom(du.getArrayT(du.getObjectT())));
-		assertFalse(new IntersectionT(du.getT(Object.class),
-				du.getT(Cloneable.class), du.getT(Serializable.class))
-				.isAssignableFrom(du.getObjectT()));
+		assertTrue(new IntersectionT(du.getT(Object.class), du.getT(Cloneable.class),
+				du.getT(Serializable.class)).isAssignableFrom(du.getArrayT(du.getObjectT())));
+		assertFalse(new IntersectionT(du.getT(Object.class), du.getT(Cloneable.class),
+				du.getT(Serializable.class)).isAssignableFrom(du.getObjectT()));
 	}
 
 	@Test
@@ -435,15 +413,11 @@ class TestT {
 		assertNull(T.join(du.getObjectT(), T.INT));
 		assertNull(T.join(T.INT, du.getObjectT()));
 
-		assertSame(T.join(du.getObjectT(), du.getT(Integer.class)),
-				du.getObjectT());
-		assertSame(T.join(du.getT(Integer.class), du.getObjectT()),
-				du.getObjectT());
+		assertSame(T.join(du.getObjectT(), du.getT(Integer.class)), du.getObjectT());
+		assertSame(T.join(du.getT(Integer.class), du.getObjectT()), du.getObjectT());
 
-		assertSame(T.join(du.getObjectT(), du.getT(Cloneable.class)),
-				du.getObjectT());
-		assertSame(T.join(du.getT(Cloneable.class), du.getObjectT()),
-				du.getObjectT());
+		assertSame(T.join(du.getObjectT(), du.getT(Cloneable.class)), du.getObjectT());
+		assertSame(T.join(du.getT(Cloneable.class), du.getObjectT()), du.getObjectT());
 
 		assertSame(T.join(du.getT(Serializable.class), du.getT(Byte.class)),
 				du.getT(Serializable.class));
@@ -457,8 +431,7 @@ class TestT {
 
 		assertSame(
 				T.join(du.getT(javax.swing.JComponent.class),
-						du.getT(javax.swing.MenuElement.class)),
-				du.getObjectT());
+						du.getT(javax.swing.MenuElement.class)), du.getObjectT());
 		assertSame(
 				T.join(du.getT(javax.swing.MenuElement.class),
 						du.getT(javax.swing.JComponent.class)), du.getObjectT());
@@ -468,19 +441,17 @@ class TestT {
 		assertEquals(t.getInterfaceTs().length, 1);
 		assertSame(t.getInterfaceTs()[0], du.getT(Comparable.class));
 		assertEquals(t.getName(), "{java.lang.Number,java.lang.Comparable}");
-		assertEquals(t.getSimpleName(),
-				"{java.lang.Number,java.lang.Comparable}");
+		assertEquals(t.getSimpleName(), "{java.lang.Number,java.lang.Comparable}");
 		// not same:
 		assertEquals(T.join(du.getT(Long.class), du.getT(Integer.class)), t);
 
 		// covariant arrays, but super/int is {Object,Cloneable,Serializable},
 		// not superXY[]
-		assertEquals(T.join(du.getT(Integer[].class), du.getT(Long[].class))
-				.getName(), "{java.lang.Number,java.lang.Comparable}[]");
+		assertEquals(T.join(du.getT(Integer[].class), du.getT(Long[].class)).getName(),
+				"{java.lang.Number,java.lang.Comparable}[]");
 		assertEquals(T.join(du.getT(Integer[].class), du.getT(Number[].class)),
 				du.getT(Number[].class));
-		assertEquals(T.join(du.getT(byte[].class), du.getT(char[].class)),
-				du.getT(int[].class));
+		assertEquals(T.join(du.getT(byte[].class), du.getT(char[].class)), du.getT(int[].class));
 		// but if we cannot join component types...
 		t = T.join(du.getT(byte[].class), du.getT(long[].class));
 		assertSame(t.getSuperT(), du.getObjectT());
