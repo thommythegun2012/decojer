@@ -290,13 +290,6 @@ class TestT {
 		assertFalse(du.getT(Serializable[][][].class).isAssignableFrom(
 				du.getT(byte[][][].class)));
 
-		assertTrue(new IntersectionT(du.getT(Object.class),
-				du.getT(Cloneable.class), du.getT(Serializable.class))
-				.isAssignableFrom(du.getArrayT(du.getObjectT())));
-		assertFalse(new IntersectionT(du.getT(Object.class),
-				du.getT(Cloneable.class), du.getT(Serializable.class))
-				.isAssignableFrom(du.getObjectT()));
-
 		assertTrue(int[].class.isAssignableFrom(int[].class));
 		assertTrue(du.getT(int[].class).isAssignableFrom(du.getT(int[].class)));
 		assertFalse(int[].class.isAssignableFrom(int[][].class));
@@ -335,8 +328,15 @@ class TestT {
 		assertFalse(T.INT.isAssignableFrom(T.BOOLEAN));
 		// but this isn't covariant in the Java language:
 		assertFalse(int[].class.isAssignableFrom(byte[].class));
-		// FIXME assertFalse!
-		assertTrue(du.getT(int[].class).isAssignableFrom(du.getT(byte[].class)));
+		assertFalse(du.getT(int[].class)
+				.isAssignableFrom(du.getT(byte[].class)));
+
+		assertTrue(new IntersectionT(du.getT(Object.class),
+				du.getT(Cloneable.class), du.getT(Serializable.class))
+				.isAssignableFrom(du.getArrayT(du.getObjectT())));
+		assertFalse(new IntersectionT(du.getT(Object.class),
+				du.getT(Cloneable.class), du.getT(Serializable.class))
+				.isAssignableFrom(du.getObjectT()));
 	}
 
 	@Test
