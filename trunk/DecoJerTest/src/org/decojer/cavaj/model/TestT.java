@@ -7,14 +7,16 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Vector;
 
 import javax.lang.model.element.Element;
 import javax.lang.model.element.TypeElement;
 
 import org.decojer.DecoJer;
-import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.model.types.IntersectionT;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -288,10 +290,12 @@ class TestT {
 		assertFalse(du.getT(Serializable[][][].class).isAssignableFrom(
 				du.getT(byte[][][].class)));
 
-		// FIXME to assertTrue!? anonymous join type
-		assertFalse(new ClassT(du.getT(Object.class), du.getT(Cloneable.class),
-				du.getT(Serializable.class)).isAssignableFrom(du.getArrayT(du
-				.getObjectT())));
+		assertTrue(new IntersectionT(du.getT(Object.class),
+				du.getT(Cloneable.class), du.getT(Serializable.class))
+				.isAssignableFrom(du.getArrayT(du.getObjectT())));
+		assertFalse(new IntersectionT(du.getT(Object.class),
+				du.getT(Cloneable.class), du.getT(Serializable.class))
+				.isAssignableFrom(du.getObjectT()));
 
 		assertTrue(int[].class.isAssignableFrom(int[].class));
 		assertTrue(du.getT(int[].class).isAssignableFrom(du.getT(int[].class)));
@@ -483,6 +487,13 @@ class TestT {
 		assertEquals(t.getInterfaceTs().length, 2);
 		assertSame(t.getInterfaceTs()[0], du.getT(Cloneable.class));
 		assertSame(t.getInterfaceTs()[1], du.getT(Serializable.class));
+
+		t = T.join(du.getT(ArrayList.class), du.getT(Vector.class));
+		assertTrue(t.isIntersection());
+		// TODO java.util.List is too much, reduce!
+		assertEquals(
+				t.getName(),
+				"{java.util.AbstractList,java.util.List,java.util.RandomAccess,java.lang.Cloneable,java.io.Serializable}");
 	}
 
 	@Test
