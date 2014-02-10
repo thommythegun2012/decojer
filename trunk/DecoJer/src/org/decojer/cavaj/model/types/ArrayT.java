@@ -70,6 +70,14 @@ public final class ArrayT extends T {
 	}
 
 	@Override
+	public boolean equals(final Object obj) {
+		if (!(obj instanceof ArrayT)) {
+			return false;
+		}
+		return getComponentT().equals(((ArrayT) obj).getComponentT());
+	}
+
+	@Override
 	public boolean eraseTo(final T t) {
 		if (!t.isArray()) {
 			return false;

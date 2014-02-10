@@ -506,9 +506,6 @@ public abstract class T {
 	 * @return {@code true} - is extended signature type for given type
 	 */
 	public boolean eraseTo(final T t) {
-		// 'Lcom/google/common/collect/ImmutableList<TE;>.SubList;' to type
-		// 'com.google.common.collect.ImmutableList$SubList'
-		// FIXME currently this are ClassT without parent/enclosing...whats correct?
 		return equals(t);
 	}
 
