@@ -195,6 +195,101 @@ class TestT {
 	}
 
 	@Test
+	void intersect() {
+		assertSame(T.intersect(T.INT, T.INT), T.INT);
+		assertSame(T.intersect(T.SHORT, T.SHORT), T.SHORT);
+		assertSame(T.intersect(T.BYTE, T.BYTE), T.BYTE);
+		assertSame(T.intersect(T.CHAR, T.CHAR), T.CHAR);
+
+		assertSame(T.intersect(T.INT, T.SHORT), T.INT);
+		assertSame(T.intersect(T.SHORT, T.INT), T.INT);
+		assertSame(T.intersect(T.INT, T.BYTE), T.INT);
+		assertSame(T.intersect(T.BYTE, T.INT), T.INT);
+		assertSame(T.intersect(T.INT, T.CHAR), T.INT);
+		assertSame(T.intersect(T.CHAR, T.INT), T.INT);
+		assertSame(T.intersect(T.SHORT, T.BYTE), T.SHORT);
+		assertSame(T.intersect(T.BYTE, T.SHORT), T.SHORT);
+
+		assertSame(T.intersect(T.BOOLEAN, T.BOOLEAN), T.BOOLEAN);
+		assertSame(T.intersect(T.FLOAT, T.FLOAT), T.FLOAT);
+		assertSame(T.intersect(T.LONG, T.LONG), T.LONG);
+		assertSame(T.intersect(T.DOUBLE, T.DOUBLE), T.DOUBLE);
+
+		assertNull(T.intersect(T.INT, T.BOOLEAN));
+		assertNull(T.intersect(T.BOOLEAN, T.INT));
+		assertNull(T.intersect(T.INT, T.FLOAT));
+		assertNull(T.intersect(T.FLOAT, T.INT));
+		assertNull(T.intersect(T.INT, T.LONG));
+		assertNull(T.intersect(T.LONG, T.INT));
+		assertNull(T.intersect(T.INT, T.DOUBLE));
+		assertNull(T.intersect(T.DOUBLE, T.INT));
+
+		assertSame(T.intersect(T.INT, T.AINT), T.INT);
+		assertSame(T.intersect(T.AINT, T.INT), T.INT);
+		assertSame(T.intersect(T.WIDE, T.LONG), T.LONG);
+		assertSame(T.intersect(T.LONG, T.WIDE), T.LONG);
+
+		assertSame(T.intersect(du.getObjectT(), du.getObjectT()), du.getObjectT());
+
+		assertNull(T.intersect(du.getObjectT(), T.INT));
+		assertNull(T.intersect(T.INT, du.getObjectT()));
+
+		assertSame(T.intersect(du.getObjectT(), du.getT(Integer.class)), du.getObjectT());
+		assertSame(T.intersect(du.getT(Integer.class), du.getObjectT()), du.getObjectT());
+
+		assertSame(T.intersect(du.getObjectT(), du.getT(Cloneable.class)), du.getObjectT());
+		assertSame(T.intersect(du.getT(Cloneable.class), du.getObjectT()), du.getObjectT());
+
+		assertSame(T.intersect(du.getT(Serializable.class), du.getT(Byte.class)),
+				du.getT(Serializable.class));
+		assertSame(T.intersect(du.getT(Byte.class), du.getT(Serializable.class)),
+				du.getT(Serializable.class));
+
+		assertSame(T.intersect(du.getT(Element.class), du.getT(TypeElement.class)),
+				du.getT(Element.class));
+		assertSame(T.intersect(du.getT(TypeElement.class), du.getT(Element.class)),
+				du.getT(Element.class));
+
+		assertSame(
+				T.intersect(du.getT(javax.swing.JComponent.class),
+						du.getT(javax.swing.MenuElement.class)), du.getObjectT());
+		assertSame(
+				T.intersect(du.getT(javax.swing.MenuElement.class),
+						du.getT(javax.swing.JComponent.class)), du.getObjectT());
+
+		T t = T.intersect(du.getT(Integer.class), du.getT(Long.class));
+		assertSame(t.getSuperT(), du.getT(Number.class));
+		assertEquals(t.getInterfaceTs().length, 1);
+		assertSame(t.getInterfaceTs()[0], du.getT(Comparable.class));
+		assertEquals(t.getName(), "{java.lang.Number,java.lang.Comparable}");
+		assertEquals(t.getSimpleName(), "{java.lang.Number,java.lang.Comparable}");
+		// not same:
+		assertEquals(T.intersect(du.getT(Long.class), du.getT(Integer.class)), t);
+
+		// covariant arrays, but super/int is {Object,Cloneable,Serializable},
+		// not superXY[]
+		assertEquals(T.intersect(du.getT(Integer[].class), du.getT(Long[].class)).getName(),
+				"{java.lang.Number,java.lang.Comparable}[]");
+		assertEquals(T.intersect(du.getT(Integer[].class), du.getT(Number[].class)),
+				du.getT(Number[].class));
+		assertEquals(T.intersect(du.getT(byte[].class), du.getT(char[].class)),
+				du.getT(int[].class));
+		// but if we cannot join component types...
+		t = T.intersect(du.getT(byte[].class), du.getT(long[].class));
+		assertSame(t.getSuperT(), du.getObjectT());
+		assertEquals(t.getInterfaceTs().length, 2);
+		assertSame(t.getInterfaceTs()[0], du.getT(Cloneable.class));
+		assertSame(t.getInterfaceTs()[1], du.getT(Serializable.class));
+
+		t = T.intersect(du.getT(ArrayList.class), du.getT(Vector.class));
+		assertTrue(t.isIntersection());
+		// TODO java.util.List is too much, reduce!
+		assertEquals(
+				t.getName(),
+				"{java.util.AbstractList,java.util.List,java.util.RandomAccess,java.lang.Cloneable,java.io.Serializable}");
+	}
+
+	@Test
 	void is() {
 		assertTrue(T.AINT.is(T.INT, T.CHAR));
 		assertFalse(T.AINT.is(T.INT, T.FLOAT));
@@ -370,100 +465,6 @@ class TestT {
 		assertFalse(du.getT(Character.class).isUnresolvable());
 		assertFalse(du.getT(Double[][].class).isUnresolvable());
 		assertTrue(du.getT("Test").isUnresolvable());
-	}
-
-	@Test
-	void join() {
-		assertSame(T.join(T.INT, T.INT), T.INT);
-		assertSame(T.join(T.SHORT, T.SHORT), T.SHORT);
-		assertSame(T.join(T.BYTE, T.BYTE), T.BYTE);
-		assertSame(T.join(T.CHAR, T.CHAR), T.CHAR);
-
-		assertSame(T.join(T.INT, T.SHORT), T.INT);
-		assertSame(T.join(T.SHORT, T.INT), T.INT);
-		assertSame(T.join(T.INT, T.BYTE), T.INT);
-		assertSame(T.join(T.BYTE, T.INT), T.INT);
-		assertSame(T.join(T.INT, T.CHAR), T.INT);
-		assertSame(T.join(T.CHAR, T.INT), T.INT);
-		assertSame(T.join(T.SHORT, T.BYTE), T.SHORT);
-		assertSame(T.join(T.BYTE, T.SHORT), T.SHORT);
-
-		assertSame(T.join(T.BOOLEAN, T.BOOLEAN), T.BOOLEAN);
-		assertSame(T.join(T.FLOAT, T.FLOAT), T.FLOAT);
-		assertSame(T.join(T.LONG, T.LONG), T.LONG);
-		assertSame(T.join(T.DOUBLE, T.DOUBLE), T.DOUBLE);
-
-		assertNull(T.join(T.INT, T.BOOLEAN));
-		assertNull(T.join(T.BOOLEAN, T.INT));
-		assertNull(T.join(T.INT, T.FLOAT));
-		assertNull(T.join(T.FLOAT, T.INT));
-		assertNull(T.join(T.INT, T.LONG));
-		assertNull(T.join(T.LONG, T.INT));
-		assertNull(T.join(T.INT, T.DOUBLE));
-		assertNull(T.join(T.DOUBLE, T.INT));
-
-		assertSame(T.join(T.INT, T.AINT), T.INT);
-		assertSame(T.join(T.AINT, T.INT), T.INT);
-		assertSame(T.join(T.WIDE, T.LONG), T.LONG);
-		assertSame(T.join(T.LONG, T.WIDE), T.LONG);
-
-		assertSame(T.join(du.getObjectT(), du.getObjectT()), du.getObjectT());
-
-		assertNull(T.join(du.getObjectT(), T.INT));
-		assertNull(T.join(T.INT, du.getObjectT()));
-
-		assertSame(T.join(du.getObjectT(), du.getT(Integer.class)), du.getObjectT());
-		assertSame(T.join(du.getT(Integer.class), du.getObjectT()), du.getObjectT());
-
-		assertSame(T.join(du.getObjectT(), du.getT(Cloneable.class)), du.getObjectT());
-		assertSame(T.join(du.getT(Cloneable.class), du.getObjectT()), du.getObjectT());
-
-		assertSame(T.join(du.getT(Serializable.class), du.getT(Byte.class)),
-				du.getT(Serializable.class));
-		assertSame(T.join(du.getT(Byte.class), du.getT(Serializable.class)),
-				du.getT(Serializable.class));
-
-		assertSame(T.join(du.getT(Element.class), du.getT(TypeElement.class)),
-				du.getT(Element.class));
-		assertSame(T.join(du.getT(TypeElement.class), du.getT(Element.class)),
-				du.getT(Element.class));
-
-		assertSame(
-				T.join(du.getT(javax.swing.JComponent.class),
-						du.getT(javax.swing.MenuElement.class)), du.getObjectT());
-		assertSame(
-				T.join(du.getT(javax.swing.MenuElement.class),
-						du.getT(javax.swing.JComponent.class)), du.getObjectT());
-
-		T t = T.join(du.getT(Integer.class), du.getT(Long.class));
-		assertSame(t.getSuperT(), du.getT(Number.class));
-		assertEquals(t.getInterfaceTs().length, 1);
-		assertSame(t.getInterfaceTs()[0], du.getT(Comparable.class));
-		assertEquals(t.getName(), "{java.lang.Number,java.lang.Comparable}");
-		assertEquals(t.getSimpleName(), "{java.lang.Number,java.lang.Comparable}");
-		// not same:
-		assertEquals(T.join(du.getT(Long.class), du.getT(Integer.class)), t);
-
-		// covariant arrays, but super/int is {Object,Cloneable,Serializable},
-		// not superXY[]
-		assertEquals(T.join(du.getT(Integer[].class), du.getT(Long[].class)).getName(),
-				"{java.lang.Number,java.lang.Comparable}[]");
-		assertEquals(T.join(du.getT(Integer[].class), du.getT(Number[].class)),
-				du.getT(Number[].class));
-		assertEquals(T.join(du.getT(byte[].class), du.getT(char[].class)), du.getT(int[].class));
-		// but if we cannot join component types...
-		t = T.join(du.getT(byte[].class), du.getT(long[].class));
-		assertSame(t.getSuperT(), du.getObjectT());
-		assertEquals(t.getInterfaceTs().length, 2);
-		assertSame(t.getInterfaceTs()[0], du.getT(Cloneable.class));
-		assertSame(t.getInterfaceTs()[1], du.getT(Serializable.class));
-
-		t = T.join(du.getT(ArrayList.class), du.getT(Vector.class));
-		assertTrue(t.isIntersection());
-		// TODO java.util.List is too much, reduce!
-		assertEquals(
-				t.getName(),
-				"{java.util.AbstractList,java.util.List,java.util.RandomAccess,java.lang.Cloneable,java.io.Serializable}");
 	}
 
 	@Test
