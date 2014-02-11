@@ -62,11 +62,6 @@ public class IntersectionT extends T {
 	}
 
 	@Override
-	public int getKind() {
-		return T.REF.getKind();
-	}
-
-	@Override
 	public String getName() {
 		final StringBuilder sb = new StringBuilder("{");
 		if (this.superT != null) {

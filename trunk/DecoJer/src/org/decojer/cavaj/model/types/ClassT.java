@@ -170,11 +170,6 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public int getKind() {
-		return Kind.REF.getKind();
-	}
-
-	@Override
 	public Map<String, Object> getMember() {
 		if (this.member == null) {
 			this.member = Maps.newHashMap();

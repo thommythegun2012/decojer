@@ -77,11 +77,6 @@ public class ParamT extends T {
 	}
 
 	@Override
-	public int getKind() {
-		return Kind.REF.getKind();
-	}
-
-	@Override
 	public void setInterfaceTs(final T[] interfaceTs) {
 		for (final T t : interfaceTs) {
 			t.setInterface(true);
