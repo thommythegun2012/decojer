@@ -268,8 +268,7 @@ class TestT {
 		assertTrue(du.getT(Object[][].class).isAssignableFrom(du.getT(byte[][][].class)));
 
 		assertTrue(du.getArrayT(T.REF).isAssignableFrom(du.getT(byte[][][].class)));
-		// the following has to be modelled via union types of array types of primitives:
-		assertFalse(du.getArrayT(T.SMALL).isAssignableFrom(du.getT(byte[].class)));
+		assertTrue(du.getArrayT(T.SMALL).isAssignableFrom(du.getT(byte[].class)));
 
 		assertTrue(Serializable[][].class.isAssignableFrom(byte[][][].class));
 		assertTrue(du.getT(Serializable[][].class).isAssignableFrom(du.getT(byte[][][].class)));
