@@ -17,36 +17,37 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 
 		class Middle {
 
-			class Inner extends
-					Outer<@Size(max = 21) String>.@Size(max = 22) Middle {
+			class Inner extends Outer<@Size(max = 21) String>.@Size(max = 22) Middle {
 
 				@Nonnull
 				private final Integer arg;
 
 				public Inner(@Size(max = 23) Integer arg) {
 					this.arg = arg;
+					DecTestTypeAnnotations<@Nonnull U, V>.Outer<W> test;
 				}
 
 				@Nonnull
 				Inner testInnerNew(
-						Outer<@Size(max = 24) W /* <W> is necessary! */>.@Nonnull @Size(max = 25) Middle.@Size(max = 26) Inner this,
-						@Size(max = 27) Integer arg) {
+						Outer<@Size(max = 24) W /* <W> is necessary! */>.Middle.@Nonnull @Size(max = 25) Inner this,
+						@Size(max = 26) DecTestTypeAnnotations<@Size(max = 27) U, V>.Outer<@Size(max = 28) W> arg) {
 					// Eclipse Bug?: Outer<String> not allowed
-					return new Outer.@Size(max = 28) Middle.@Size(max = 29) Inner(
-							arg);
+					return new Outer.@Size(max = 29) Middle. Inner(1);
 				}
 
 			}
 
 			private void test() {
-				new @Nonnull Inner(1).testInnerNew(1);
+				new @Nonnull Inner(1).testInnerNew(new @Nonnull Outer<>());
 			}
 
 		}
 
 	}
 
-	public static @Deprecated @Size(max = 31) Map<@Size(max = 32) ?, ? extends @Nonnull @Size(max = 33) Object> testStatic;
+	public static @Deprecated
+	@Size(max = 31)
+	Map<@Size(max = 32) ?, ? extends @Nonnull @Size(max = 33) Object> testStatic;
 
 	public static String testArrays() {
 		@Size(max = 41)
@@ -55,8 +56,8 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 		return (@Size(max = 49) String) test[0][1][2][3].get(0);
 	}
 
-	public static @Size(max = 51) String testParam(
-			@Nonnull @Size(max = 52) CharSequence str) {
+	public static @Size(max = 51)
+	String testParam(@Nonnull @Size(max = 52) CharSequence str) {
 		return (@Nonnull @Size(max = 53) String) str;
 	}
 
@@ -68,10 +69,11 @@ public class DecTestTypeAnnotations<U, @Size(max = 1) @Nonnull V extends java.ut
 		return (@Nonnull @Size(max = 67) V) str;
 	}
 
-	public @Deprecated @Size(max = 34) Outer<? super @Size(max = 35) String>.@Size(max = 36) Middle @Nonnull @Size(max = 37) [] @Size(max = 38) [] test;
+	public @Deprecated
+	@Size(max = 34)
+	Outer<? super @Size(max = 35) String>.@Size(max = 36) Middle @Nonnull @Size(max = 37) [] @Size(max = 38) [] test;
 
-	public void testThrows() throws IOException,
-			@Size(max = 71) RuntimeException,
+	public void testThrows() throws IOException, @Size(max = 71) RuntimeException,
 			@Size(max = 72) @Nonnull NullPointerException {
 		System.out.println("TEST");
 	}
