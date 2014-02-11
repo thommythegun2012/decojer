@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.T;
 /**
  * Intersection type.
  * 
- * @see T#join(T, T)
+ * @see T#intersect(T, T)
  * 
  * @author André Pankraz
  */
