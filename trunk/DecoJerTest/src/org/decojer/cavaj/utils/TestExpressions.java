@@ -21,9 +21,9 @@ class TestExpressions {
 	@BeforeClass
 	void _beforeClass() {
 		du = DecoJer.createDu();
-		du.read(getClass().getResource("TestDU.class").getFile());
+		du.read(getClass().getResource("TestExpressions.class").getFile());
 		TrInnerClassesAnalysis.transform(du);
-		context = du.getTd("org.decojer.cavaj.test.DecTestArrays");
+		context = du.getTd("org.decojer.cavaj.utils.TestExpressions");
 		TrJvmStruct2JavaAst.transform(context);
 	}
 
