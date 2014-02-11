@@ -28,7 +28,7 @@ public class TestExpressions {
 	}
 
 	@Test
-	void testNewType() {
+	void newType() {
 		assertEquals(Expressions.newType(T.AINT, context).toString(), "boolean");
 	}
 
