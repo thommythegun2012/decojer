@@ -4,6 +4,7 @@
 		<classes>
 			<class name="org.decojer.cavaj.model.TestR" />
 			<class name="org.decojer.cavaj.model.TestT" />
+			<class name="org.decojer.cavaj.model.TestDU" />
 		</classes>
 	</test>
 	<test name="utils">
