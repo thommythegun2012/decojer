@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.types;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.T;
 
@@ -34,10 +35,14 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class WildcardT extends ModT {
+public class WildcardT extends T {
 
 	@Getter
 	private final boolean subclassOf;
+
+	@Getter
+	@Setter
+	private T boundT;
 
 	/**
 	 * Constructor.
@@ -48,18 +53,23 @@ public class WildcardT extends ModT {
 	 *            is subclass (extends)
 	 */
 	public WildcardT(final T boundT, final boolean subclass) {
-		super(boundT);
-
+		setBoundT(boundT);
 		this.subclassOf = subclass;
 	}
 
 	@Override
-	public T getBoundT() {
-		return getRawT();
+	public T[] getInterfaceTs() {
+		if (isSubclassOf()) {
+			final T boundT = getBoundT();
+			if (boundT.isInterface()) {
+				return new T[] { boundT };
+			}
+		}
+		return null;
 	}
 
 	@Override
-	public String getFullName() {
+	public String getName() {
 		if (getBoundT() == null) {
 			return "?";
 		}
@@ -70,13 +80,19 @@ public class WildcardT extends ModT {
 	}
 
 	@Override
-	public boolean isWildcard() {
-		return true;
+	public T getSuperT() {
+		if (isSubclassOf()) {
+			final T boundT = getBoundT();
+			if (!boundT.isInterface()) {
+				return boundT;
+			}
+		}
+		return null;
 	}
 
 	@Override
-	public void setBoundT(final T boundT) {
-		setRawT(boundT);
+	public boolean isWildcard() {
+		return true;
 	}
 
 }

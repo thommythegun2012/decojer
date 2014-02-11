@@ -26,7 +26,6 @@ package org.decojer.cavaj.model.types;
 import java.util.Map;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.M;
@@ -36,17 +35,18 @@ import org.decojer.cavaj.model.TD;
 /**
  * Modifying type.
  * 
+ * The general rule here should be, that this modification is optional from the view of the type
+ * system and that getSimpleName() and getEnclosingT() don't really change.
+ * 
  * @author André Pankraz
  */
 public abstract class ModT extends T {
 
 	@Getter
-	// for VarT lazy resolving:
-	@Setter
 	private T rawT;
 
 	protected ModT(final T rawT) {
-		this.rawT = rawT; // can be null for VarT lazy resolving or Matches-Wildcard
+		setRawT(rawT);
 	}
 
 	@Override
@@ -83,7 +83,7 @@ public abstract class ModT extends T {
 
 	@Override
 	public T getEnclosingT() {
-		return getRawT() == null ? null : getRawT().getEnclosingT();
+		return getRawT().getEnclosingT();
 	}
 
 	@Override
@@ -130,8 +130,7 @@ public abstract class ModT extends T {
 	@Override
 	public boolean isArray() {
 		// modified type is also array, iff raw type is array
-		// null: unresolved VarT or Matches-Wildcard
-		return getRawT() != null && getRawT().isArray();
+		return getRawT().isArray();
 	}
 
 	@Override
@@ -152,7 +151,7 @@ public abstract class ModT extends T {
 	@Override
 	public boolean isQualified() {
 		// modified type is also qualified, iff raw type is qualified
-		return getRawT() != null && getRawT().isQualified();
+		return getRawT().isQualified();
 	}
 
 	@Override
@@ -184,15 +183,20 @@ public abstract class ModT extends T {
 
 	@Override
 	public void setInterface(final boolean f) {
-		if (getRawT() != null) {
-			getRawT().setInterface(f);
-		}
+		getRawT().setInterface(f);
 	}
 
 	@Override
 	public void setQualifierT(final T qualifierT) {
 		// modified type is also qualified, iff raw type is qualified
 		getRawT().setQualifierT(qualifierT);
+	}
+
+	@Override
+	public void setRawT(final T rawT) {
+		assert rawT != null;
+
+		this.rawT = rawT;
 	}
 
 }

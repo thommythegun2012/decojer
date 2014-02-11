@@ -38,7 +38,7 @@ import org.decojer.cavaj.model.T;
  * 
  * @author André Pankraz
  */
-public class VarT extends ModT {
+public class VarT extends T {
 
 	/**
 	 * Enclosing type context.
@@ -49,6 +49,9 @@ public class VarT extends ModT {
 	@Getter
 	private final String name;
 
+	@Getter
+	private T resolvedT;
+
 	/**
 	 * Constructor.
 	 * 
@@ -58,13 +61,7 @@ public class VarT extends ModT {
 	 *            enclosing type context
 	 */
 	public VarT(final String name, final Object context) {
-		super(null);
-
 		assert name != null;
-
-		// TODO add this after we know what happens for:
-		// Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;
-		// assert enclosing != null;
 
 		this.name = name;
 		this.context = context;
@@ -72,15 +69,21 @@ public class VarT extends ModT {
 
 	@Override
 	public boolean eraseTo(final T t) {
-		if (getRawT() != null) {
-			return getRawT().equals(t);
+		if (getResolvedT() != null) {
+			return getResolvedT().equals(t);
 		}
-		setRawT(t);
+		this.resolvedT = t;
 		return true;
 	}
 
-	public void setReducedT(final T t) {
-		setRawT(t);
+	@Override
+	public T[] getInterfaceTs() {
+		return this.resolvedT == null ? INTERFACES_NONE : this.resolvedT.getInterfaceTs();
+	}
+
+	@Override
+	public T getSuperT() {
+		return this.resolvedT == null ? null : this.resolvedT.getSuperT();
 	}
 
 }
