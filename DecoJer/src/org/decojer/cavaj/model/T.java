@@ -1226,7 +1226,7 @@ public abstract class T {
 	/**
 	 * Set raw type for modified type.
 	 * 
-	 * For annotation application.
+	 * For type annotation application.
 	 * 
 	 * @param rawT
 	 *            raw type for modified type
