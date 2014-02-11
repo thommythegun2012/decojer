@@ -9,7 +9,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @Test
-public class TestDU {
+class TestDU {
 
 	private final static Logger LOGGER = Logger.getLogger(TestDU.class.getName());
 
