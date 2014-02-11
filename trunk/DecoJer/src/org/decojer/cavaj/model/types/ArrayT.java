@@ -82,7 +82,7 @@ public final class ArrayT extends T {
 		if (!t.isArray()) {
 			return false;
 		}
-		return this.componentT.eraseTo(t.getComponentT());
+		return getComponentT().eraseTo(t.getComponentT());
 	}
 
 	@Override
@@ -142,7 +142,7 @@ public final class ArrayT extends T {
 		if (super.isAssignableFrom(t)) {
 			return true;
 		}
-		if (!this.componentT.isRef() || t == null) {
+		if (t == null || (getComponentT().getKind() & t.getComponentT().getKind()) == 0) {
 			// even though arrays are covariant in the Java language, no auto-conversion is applied
 			// here and "int[] is = new byte[1]" isn't allowed in Java:
 			// isAssignableFrom() usually means "is-superclass-of" in JDK function, but even though
@@ -150,12 +150,12 @@ public final class ArrayT extends T {
 			// auto-conversion) we allow it here
 			return false;
 		}
-		return this.componentT.isAssignableFrom(t.getComponentT()); // assign from null is false
+		return getComponentT().isAssignableFrom(t.getComponentT()); // assign from null is false
 	}
 
 	@Override
 	public boolean isUnresolvable() {
-		return this.componentT.isUnresolvable();
+		return getComponentT().isUnresolvable();
 	}
 
 }
