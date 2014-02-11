@@ -12,7 +12,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @Test
-public class TestExpressions {
+class TestExpressions {
 
 	private DU du;
 
@@ -21,7 +21,7 @@ public class TestExpressions {
 	@BeforeClass
 	void _beforeClass() {
 		du = DecoJer.createDu();
-		du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
+		du.read(getClass().getResource("TestDU.class").getFile());
 		TrInnerClassesAnalysis.transform(du);
 		context = du.getTd("org.decojer.cavaj.test.DecTestArrays");
 		TrJvmStruct2JavaAst.transform(context);
