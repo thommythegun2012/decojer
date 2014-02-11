@@ -489,7 +489,7 @@ public abstract class T {
 	}
 
 	/**
-	 * Is extended signature type for given type?
+	 * Is extended signature compatible to given type?
 	 * 
 	 * This function also makes changes to the types, especially it is setting raw types for type
 	 * variables (see {@link VarT#eraseTo(T)}).
@@ -680,7 +680,9 @@ public abstract class T {
 	 * 
 	 * @return kind
 	 */
-	public abstract int getKind();
+	public int getKind() {
+		return Kind.REF.getKind(); // overwrite im PrimitiveT
+	}
 
 	/**
 	 * Get method.<br>

@@ -114,11 +114,6 @@ public final class ArrayT extends T {
 	}
 
 	@Override
-	public int getKind() {
-		return Kind.REF.getKind();
-	}
-
-	@Override
 	public Map<String, Object> getMember() {
 		// should only be used for getM("clone", "()Ljava/lang/Object;")
 		if (this.member == null) {
