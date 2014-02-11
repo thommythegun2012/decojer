@@ -47,15 +47,15 @@ public abstract class T {
 	private static final Map<Integer, T> KIND_2_TS = Maps.newHashMap();
 
 	/**
-	 * Multitype READ target-multitype => reduced (left) multitype (according to Java-conversions),
-	 * e.g.:<br>
+	 * Java allows the automatic type conversion for primitives. For union-primitives we can reduce
+	 * the possible from-types in case of assignments:<br>
 	 * __s_ read ___i => __s_<br>
 	 * __s_ read __si => __s_<br>
 	 * __si read __s_ => __s_<br>
 	 * __s_ read _b__ => ____<br>
 	 * _bsi read c__i => _bsi
 	 */
-	private static int[][] ASSIGN_TO_INT = {
+	private static int[][] AUTO_CONVERSION_ASSIGN_REDUCTION_FROM_TO = {
 	/* ___i */{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
 	/* __s_ */{ 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2 },
 	/* __si */{ 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3 },
@@ -72,7 +72,11 @@ public abstract class T {
 	/* cbs_ */{ 14, 6, 14, 4, 14, 6, 14, 8, 14, 14, 14, 12, 14, 14, 14 },
 	/* cbsi */{ 15, 6, 15, 4, 15, 6, 15, 8, 15, 14, 15, 12, 15, 14, 15 } };
 
-	private static int[][] JOIN_INT = {
+	/**
+	 * Java allows the automatic type conversion for primitives. For union-primitives we can reduce
+	 * the possible types in case of intersections:<br>
+	 */
+	private static int[][] AUTO_CONVERSION_INTERSECT_REDUCTION = {
 	/* ___i */{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
 	/* __s_ */{ 1, 2, 3, 2, 3, 2, 2, 1, 1, 3, 3, 3, 3, 3, 3 },
 	/* __si */{ 1, 3, 3, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 3, 3 },
@@ -80,7 +84,6 @@ public abstract class T {
 	/* _b_i */{ 1, 3, 3, 5, 5, 7, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
 	/* _bs_ */{ 1, 2, 3, 6, 7, 7, 1, 1, 1, 3, 3, 7, 7, 7, 7 },
 	/* _bsi */{ 1, 3, 3, 7, 7, 7, 7, 1, 1, 3, 3, 7, 7, 7, 7 },
-
 	/* c___ */{ 1, 1, 1, 1, 1, 1, 1, 8, 9, 9, 9, 9, 9, 9, 9 },
 	/* c__i */{ 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9 },
 	/* c_s_ */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
@@ -198,6 +201,15 @@ public abstract class T {
 
 	public static final T[] TYPE_PARAMS_NONE = new T[0];
 
+	private static int assignKindsToFrom(final int kindTo, final int kindFrom) {
+		final int kTo = (kindTo & 0xF) - 1;
+		final int kFrom = (kindFrom & 0xF) - 1;
+		if (kTo >= 0 && kFrom >= 0) {
+			return AUTO_CONVERSION_ASSIGN_REDUCTION_FROM_TO[kFrom][kTo] | kindTo & kindFrom;
+		}
+		return kindTo & kindFrom;
+	}
+
 	public static T getDalvikIntT(final int literal) {
 		int kinds = T.FLOAT.getKind();
 		if (literal == 0) {
@@ -275,23 +287,10 @@ public abstract class T {
 		return getT(flags);
 	}
 
-	private static boolean isAsciiDigit(final char c) {
-		return '0' <= c && c <= '9';
-	}
-
-	private static int isAssignableToFrom(final int kindTo, final int kindFrom) {
-		final int kTo = (kindTo & 0xF) - 1;
-		final int kFrom = (kindFrom & 0xF) - 1;
-		if (kTo >= 0 && kFrom >= 0) {
-			return ASSIGN_TO_INT[kFrom][kTo] | kindTo & kindFrom;
-		}
-		return kindTo & kindFrom;
-	}
-
 	/**
-	 * Merge/join store/up/and types: Find common super type. Use AND operation for kind - primitive
-	 * multitypes: no conversion. No primitive reduction of source types, done through eventual
-	 * following register read. Resulting reference type contains one class and multiple interfaces.
+	 * Intersect types: Find common super type. Use AND operation for kind - primitive multitypes:
+	 * no conversion. No primitive reduction of source types, done through eventual following
+	 * register read. Resulting reference type contains one class and multiple interfaces.
 	 * 
 	 * If type is yet unknown, leave name empty.
 	 * 
@@ -301,14 +300,14 @@ public abstract class T {
 	 *            type 2
 	 * @return merged type
 	 */
-	public static T join(final T t1, final T t2) {
+	public static T intersect(final T t1, final T t2) {
 		if (t1 == null || t2 == null) {
 			return null;
 		}
 		if (t1.equals(t2)) {
 			return t1;
 		}
-		final int kind = joinKinds(t1.getKind(), t2.getKind());
+		final int kind = intersectKinds(t1.getKind(), t2.getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
@@ -326,7 +325,7 @@ public abstract class T {
 		}
 		if (t1.isArray() && t2.isArray()) {
 			// covariant arrays, but super/int is {Object,Cloneable,Serializable}, not superXY[]
-			final T joinT = join(t1.getComponentT(), t2.getComponentT());
+			final T joinT = intersect(t1.getComponentT(), t2.getComponentT());
 			if (joinT != null) {
 				return t1.getDu().getArrayT(joinT);
 			}
@@ -375,13 +374,17 @@ public abstract class T {
 		return new IntersectionT(superT, interfaceTs.toArray(new T[interfaceTs.size()]));
 	}
 
-	private static int joinKinds(final int kind1, final int kind2) {
+	private static int intersectKinds(final int kind1, final int kind2) {
 		final int k1 = (kind1 & 0xF) - 1;
 		final int k2 = (kind2 & 0xF) - 1;
 		if (k1 >= 0 && k2 >= 0) {
-			return JOIN_INT[k1][k2] | kind1 & kind2;
+			return AUTO_CONVERSION_INTERSECT_REDUCTION[k1][k2] | kind1 & kind2;
 		}
 		return kind1 & kind2;
+	}
+
+	private static boolean isAsciiDigit(final char c) {
+		return '0' <= c && c <= '9';
 	}
 
 	/**
@@ -434,7 +437,7 @@ public abstract class T {
 		if (t == null) {
 			return null;
 		}
-		final int kind = isAssignableToFrom(getKind(), t.getKind());
+		final int kind = assignKindsToFrom(getKind(), t.getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
@@ -459,7 +462,7 @@ public abstract class T {
 		if (t == null) {
 			return null;
 		}
-		final int kind = isAssignableToFrom(t.getKind(), getKind());
+		final int kind = assignKindsToFrom(t.getKind(), getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
@@ -986,7 +989,7 @@ public abstract class T {
 		if (equals(t.getRawT())) {
 			return true;
 		}
-		final int kind = isAssignableToFrom(getKind(), t.getKind());
+		final int kind = assignKindsToFrom(getKind(), t.getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return kind != 0;
 		}

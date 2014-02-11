@@ -166,7 +166,7 @@ public final class TrDataFlowAnalysis {
 		// TODO merge delete value for loop, com.google.common.base.CharMatcher.setBits
 
 		// reduce to reasonable parameters pairs, e.g. BOOL, {SHORT,BOOL}-Constant -> both BOOL
-		final T joinT = T.join(s1.getT(), s2.getT());
+		final T joinT = T.intersect(s1.getT(), s2.getT());
 		assert joinT != null; // TODO ref1 == ref2 is allowed with result void (bool math)
 
 		s2.assignTo(joinT);
@@ -235,7 +235,7 @@ public final class TrDataFlowAnalysis {
 			// pairs[counter++] = this.bindingResolver.getMemberValuePairBinding(valuePair);
 
 			// more specific read possible here
-			final T joinT = T.join(vR.getT(), aR.getT().getComponentT());
+			final T joinT = T.intersect(vR.getT(), aR.getT().getComponentT());
 			// FIXME replace vR with super?
 			// org.eclipse.jdt.internal.codeassist.InternalExtendedCompletionContext.getVisibleElements()
 			// org.eclipse.jdt.internal.core.JavaElement.read(
@@ -993,7 +993,7 @@ public final class TrDataFlowAnalysis {
 			return;
 		}
 		if (prevR.getKind() == Kind.MERGE && prevR.getPc() == targetBb.getPc()) {
-			final T t = T.join(prevR.getT(), newR.getT());
+			final T t = T.intersect(prevR.getT(), newR.getT());
 			if (t == null) {
 				// merge type is null? merge to null => replace previous register from here
 				assert !targetFrame.isAlive(i);
@@ -1014,7 +1014,7 @@ public final class TrDataFlowAnalysis {
 			prevR.addInMerge(t, newR);
 			return;
 		}
-		final T t = T.join(prevR.getT(), newR.getT());
+		final T t = T.intersect(prevR.getT(), newR.getT());
 		if (t == null) {
 			// merge type is null? merge to null => replace previous register from here
 			assert !targetFrame.isAlive(i);
