@@ -198,9 +198,23 @@ public final class CU extends D {
 	/**
 	 * Decompile compilation unit.
 	 * 
+	 * Log runtime errors in CFG and continue.
+	 * 
 	 * @return source code
 	 */
 	public String decompile() {
+		return decompile(true);
+	}
+
+	/**
+	 * Decompile compilation unit.
+	 * 
+	 * @param ignoreCfgError
+	 *            {@code true} - log runtime errors in CFG and continue
+	 * 
+	 * @return source code
+	 */
+	public String decompile(final boolean ignoreCfgError) {
 		for (final TD td : getAllTds()) {
 			TrJvmStruct2JavaAst.transform(td);
 
@@ -216,8 +230,20 @@ public final class CU extends D {
 				}
 				try {
 					cfg.decompile();
+				} catch (final RuntimeException e) {
+					if (ignoreCfgError) {
+						LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+					} else {
+						throw e;
+					}
+				} catch (final Error e) {
+					if (ignoreCfgError) {
+						LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+					} else {
+						throw e;
+					}
 				} catch (final Throwable e) {
-					LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+					LOGGER.log(Level.SEVERE, "Cannot transform '" + cfg + "'!", e);
 				}
 			}
 		}
