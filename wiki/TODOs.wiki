@@ -1,9 +1,18 @@
 #summary Next steps and open issues
 
-	private static T annotate(final T t, final A a, final TypePath typePath, final int index) {
 
-=> we have to go into the first inner type also for none-inner type pathes
-some tests?
+com.rsa.cryptoj.c.aF.d()V (ops: 77, regs: 6)
+
+pc 67
+THROW 
+popRead (Throwable)
+
+markAlive  r is null!
+			assert r != null : "R is null for pc '" + pc + "' and op '" + bb.getOp(j) + "' and '"
+					+ aliveI + "'!";
+
+reason: merge into sub doesnt set throwable to null from start to end?!
+
 
 
 = TODOs =
