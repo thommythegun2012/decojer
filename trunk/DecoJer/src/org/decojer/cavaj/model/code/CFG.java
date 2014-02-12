@@ -365,6 +365,9 @@ public final class CFG {
 			final V v = getDebugV(i, 0);
 			if (v != null) {
 				frame.store(i, new R(0, i, v.getT(), Kind.CONST));
+			} else if (i == 0 && !getMd().isStatic()) {
+				// fix wrong or missing info about "this"
+				frame.store(i, new R(0, 0, getMd().getTd().getT(), Kind.CONST));
 			}
 		}
 		this.frames[0] = frame;
@@ -494,9 +497,15 @@ public final class CFG {
 		if (!this.md.isStatic()) {
 			final V[] vs = this.vss[reg];
 			if (vs != null) {
+				// fix missing / wrong stuff in CFG#initFrames()
 				if (vs.length > 1) {
-					log("Found multiple local variable info for method parameter '" + reg
-							+ "' (this)!");
+					log("Found local variable info for method parameter '" + reg
+							+ "' (this) with multiple ranges!");
+				}
+				final int[] pcs = vs[0].getPcs();
+				if (pcs[0] != 0) {
+					log("Found local variable info for method parameter '" + reg
+							+ "' (this) with non-zero start pc '" + pcs[0] + "'!");
 				}
 				++reg;
 			} else {

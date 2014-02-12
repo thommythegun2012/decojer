@@ -1696,7 +1696,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * STORE *
 		 *********/
 		case Opcodes.ASTORE:
-			t = T.AREF;
+			t = T.AREF; // RET allowed too
 			// fall through
 		case Opcodes.DSTORE:
 			if (t == null) {
