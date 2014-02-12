@@ -22,23 +22,35 @@ class TestDU {
 	}
 
 	@Test
-	void testDecojerTests() {
-		DU du = DecoJer.createDu();
-		du.read(new File(new File(projectFolder, "dex"), "classes.jar").getAbsolutePath());
-		for (final CU cu : du.getCus()) {
-			cu.decompile(false);
-		}
-	}
-
-	@Test
-	void testOpenSourceBytecode() {
-		for (File file : new File(projectFolder, "testdata").listFiles()) {
+	void testBytecodeClosed() {
+		for (File file : new File(projectFolder, "test_bytecode_closed").listFiles()) {
 			LOGGER.info("######### Decompiling: " + file + " #########");
 			DU du = DecoJer.createDu();
 			du.read(file.getAbsolutePath());
 			for (final CU cu : du.getCus()) {
 				cu.decompile(false);
 			}
+		}
+	}
+
+	@Test
+	void testBytecodeFree() {
+		for (File file : new File(projectFolder, "test_bytecode_free").listFiles()) {
+			LOGGER.info("######### Decompiling: " + file + " #########");
+			DU du = DecoJer.createDu();
+			du.read(file.getAbsolutePath());
+			for (final CU cu : du.getCus()) {
+				cu.decompile(false);
+			}
+		}
+	}
+
+	@Test
+	void testDecojerJar() {
+		DU du = DecoJer.createDu();
+		du.read(new File(new File(projectFolder, "dex"), "classes.jar").getAbsolutePath());
+		for (final CU cu : du.getCus()) {
+			cu.decompile(false);
 		}
 	}
 
