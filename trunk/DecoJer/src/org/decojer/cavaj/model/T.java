@@ -582,6 +582,20 @@ public abstract class T {
 	}
 
 	/**
+	 * Get outest enclosing (root) type.
+	 * 
+	 * @return outest enclosing (root) type
+	 */
+	public T getEnclosingRootT() {
+		T findT = this;
+		for (T enclosingT = findT.getEnclosingT(); enclosingT != null; enclosingT = findT
+				.getEnclosingT()) {
+			findT = enclosingT;
+		}
+		return findT;
+	}
+
+	/**
 	 * Get enclosing type.
 	 * 
 	 * @return enclosing type
