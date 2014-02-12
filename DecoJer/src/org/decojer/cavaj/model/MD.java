@@ -264,6 +264,8 @@ public final class MD extends BD {
 	/**
 	 * Set parameter name.
 	 * 
+	 * Dalvik provides this information directly, the JVM indirect via the local variable table.
+	 * 
 	 * @param i
 	 *            index
 	 * @param name

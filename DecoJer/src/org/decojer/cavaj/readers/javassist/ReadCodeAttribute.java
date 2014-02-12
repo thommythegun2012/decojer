@@ -1279,7 +1279,7 @@ public class ReadCodeAttribute {
 			 * STORE *
 			 *********/
 			case Opcode.ASTORE:
-				t = T.AREF;
+				t = T.AREF; // RET allowed too
 				// fall through
 			case Opcode.DSTORE:
 				if (t == null) {
