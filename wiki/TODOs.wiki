@@ -1,5 +1,15 @@
 #summary Next steps and open issues
 
+---
+problems with wrong start pcs in: EvaluatorTemplate.class
+
+(are 2 for this and params, first frame is wrongly created from this)
+
+CFG.postProcessVar()
+initFrames()
+getDebugV()
+md.paramNames
+---
 
 com.rsa.cryptoj.c.aF.d()V (ops: 77, regs: 6)
 
@@ -12,7 +22,7 @@ markAlive  r is null!
 					+ aliveI + "'!";
 
 reason: merge into sub doesnt set throwable to null from start to end?!
-
+---
 
 
 = TODOs =
