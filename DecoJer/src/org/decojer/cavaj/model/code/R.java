@@ -179,11 +179,8 @@ public final class R {
 			if (this.t.isUnresolvable() && this.t != T.REF) {
 				return true;
 			}
-			// TODO problem with generic type reduction to classes, invoke interface allowed
-
-			// TODO check org.decojer.cavaj.test.jdk6.DecTestMethodTypeParams:
-			// RETURN Long as TypeParam U - resolve to TypeArg <U extends Long>
-			assert false;
+			assert false : "assignment must not be null, happens with '" + getT() + "' assign to '"
+					+ t + "'";
 
 			return false;
 		}
