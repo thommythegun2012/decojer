@@ -13,18 +13,26 @@ class TestDU {
 
 	private final static Logger LOGGER = Logger.getLogger(TestDU.class.getName());
 
-	private File testdataFolder;
+	private File projectFolder;
 
 	@BeforeClass
 	void _beforeClass() throws URISyntaxException {
-		testdataFolder = new File(new File(getClass().getResource("TestDU.class").toURI())
-				.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile()
-				.getParentFile(), "testdata");
+		projectFolder = new File(getClass().getResource("TestDU.class").toURI()).getParentFile()
+				.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile();
 	}
 
 	@Test
-	void testAll() {
-		for (File file : testdataFolder.listFiles()) {
+	void testDecojerTests() {
+		DU du = DecoJer.createDu();
+		du.read(new File(new File(projectFolder, "dex"), "classes.jar").getAbsolutePath());
+		for (final CU cu : du.getCus()) {
+			cu.decompile(false);
+		}
+	}
+
+	@Test
+	void testOpenSourceBytecode() {
+		for (File file : new File(projectFolder, "testdata").listFiles()) {
 			LOGGER.info("######### Decompiling: " + file + " #########");
 			DU du = DecoJer.createDu();
 			du.read(file.getAbsolutePath());
