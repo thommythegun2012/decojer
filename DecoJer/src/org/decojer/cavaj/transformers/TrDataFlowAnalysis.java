@@ -840,10 +840,6 @@ public final class TrDataFlowAnalysis {
 
 	private R load(final int i, final T t) {
 		final R r = this.currentFrame.load(i);
-		// should be handled in CFG#initFrames():
-		assert r != null || i != 0 || getCfg().getMd().isStatic() : getMd()
-				+ ": missing 'this' register, wrong entry in variable table";
-
 		if (!r.assignTo(t)) {
 			throw new RuntimeException("Incompatible type for register '" + i
 					+ "'! Cannot assign '" + r + "' to '" + t + "'.");
