@@ -29,6 +29,7 @@ some tests?
         * AnnotatableType & NameQualifiedTypeName
         * ArrayTypes are not recursive anymore, have dimension attribute and elementType instead of componentType
         * method: thrownExceptionTypes instead of thrownExceptions (names)
+    * Method References TODO
     * Default Methods OK
     * Lambdas OK
     * Repeatable Annotations (@Repeatable) OK (if annotation TD can be resolved)
