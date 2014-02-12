@@ -987,7 +987,7 @@ public final class TrDataFlowAnalysis {
 		}
 		if (newR == null) {
 			// new register is null? merge to null => replace previous register from here
-			assert !targetFrame.isAlive(i);
+			assert !targetFrame.isAlive(i) : "cannot set alive register to null";
 
 			replaceBbRegDeep(targetBb, prevR, null);
 			return;
@@ -996,7 +996,7 @@ public final class TrDataFlowAnalysis {
 			final T t = T.intersect(prevR.getT(), newR.getT());
 			if (t == null) {
 				// merge type is null? merge to null => replace previous register from here
-				assert !targetFrame.isAlive(i);
+				assert !targetFrame.isAlive(i) : "cannot set alive register to null";
 
 				replaceBbRegDeep(targetBb, prevR, null);
 				return;
@@ -1027,9 +1027,9 @@ public final class TrDataFlowAnalysis {
 		if (targetFrame.isAlive(i)) {
 			// register i for current BB must be alive too for merging
 			if (newR.getPc() != targetBb.getPc()) {
-				markAlive(targetBb, i);
+				markAlive(this.currentBb, i);
 			} else if (newR.getKind() == Kind.MOVE) {
-				markAlive(targetBb, newR.getIn().getI());
+				markAlive(this.currentBb, newR.getIn().getI());
 			}
 			newR.assignTo(t);
 			prevR.assignTo(t);
