@@ -54,4 +54,16 @@ class TestDU {
 		}
 	}
 
+	@Test
+	void testEclipsePlugins() {
+		for (File file : new File("D:/Software/eclipse-rcp-kepler-64-jdk8/plugins").listFiles()) {
+			LOGGER.info("######### Decompiling: " + file + " #########");
+			DU du = DecoJer.createDu();
+			du.read(file.getAbsolutePath());
+			for (final CU cu : du.getCus()) {
+				cu.decompile(false);
+			}
+		}
+	}
+
 }
