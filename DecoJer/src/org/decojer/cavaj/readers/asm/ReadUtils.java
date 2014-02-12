@@ -39,16 +39,6 @@ public class ReadUtils {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadUtils.class.getName());
 
-	private static T annotate(final T t, final A a) {
-		// flip inner type annotations, look for outmost enclosing
-		T findT = t;
-		for (T enclosingT = findT.getEnclosingT(); enclosingT != null; enclosingT = findT
-				.getEnclosingT()) {
-			findT = enclosingT;
-		}
-		return DU.getAnnotatedT(findT, a);
-	}
-
 	/**
 	 * Annotate given type with annotation under consideration of the type path.
 	 * 
@@ -66,11 +56,11 @@ public class ReadUtils {
 
 	private static T annotate(final T t, final A a, final TypePath typePath, final int index) {
 		if (typePath == null) {
-			return annotate(t, a);
+			return DU.getAnnotatedT(t.getEnclosingRootT(), a);
 		}
 		final int typePathLength = typePath.getLength();
 		if (typePathLength == index) {
-			return annotate(t, a);
+			return DU.getAnnotatedT(t.getEnclosingRootT(), a);
 		}
 		if (typePathLength < index) {
 			LOGGER.warning("Type path exceeded for '" + t + "'!");
@@ -119,7 +109,7 @@ public class ReadUtils {
 
 			// hence: type path step "INNER" can be interpreted from front to end,
 			// @C applies to full type: Anno(T0.T1.T2, @A) -> package.@A T0.T1.T2
-			// we have to flip this strange behaviour into:
+			// we have to flip this strange bytecode behaviour into:
 			// Anno(Qual(Anno(Qual(Anno(T0, @A), T1), @B), T2), @C)
 
 			int innerCounter = 1;
