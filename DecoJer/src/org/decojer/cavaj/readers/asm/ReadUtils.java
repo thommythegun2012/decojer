@@ -55,17 +55,38 @@ public class ReadUtils {
 	}
 
 	private static T annotate(final T t, final A a, final TypePath typePath, final int index) {
+		int innerCounter = 0;
+		if (typePath != null) {
+			final int typePathLength = typePath.getLength();
+			for (; index + innerCounter < typePathLength; ++innerCounter) {
+				if (typePath.getStep(index + innerCounter) != TypePath.INNER_TYPE) {
+					break;
+				}
+				assert typePath.getStepArgument(index + innerCounter) == 0 : "type path step argument for INNER must be 0";
+			}
+		}
+		final T[] qualifierTs = t.getQualifierTs();
+		if (innerCounter >= qualifierTs.length) {
+			LOGGER.warning("Not enough qualifiers in '" + t
+					+ "' for type annotation with path depth '" + innerCounter + "'!");
+			return t;
+		}
+		if (innerCounter == qualifierTs.length - 1) {
+			return annotatePart(qualifierTs[innerCounter], a, typePath, index + innerCounter);
+		}
+		return DU.getQualifiedT(
+				annotatePart(qualifierTs[innerCounter], a, typePath, index + innerCounter), t);
+	}
+
+	private static T annotatePart(final T t, final A a, final TypePath typePath, final int index) {
 		if (typePath == null) {
-			return DU.getAnnotatedT(t.getEnclosingRootT(), a);
+			return DU.getAnnotatedT(t, a);
 		}
 		final int typePathLength = typePath.getLength();
 		if (typePathLength == index) {
-			return DU.getAnnotatedT(t.getEnclosingRootT(), a);
+			return DU.getAnnotatedT(t, a);
 		}
-		if (typePathLength < index) {
-			LOGGER.warning("Type path exceeded for '" + t + "'!");
-			return t;
-		}
+		assert index < typePathLength : "type path exceeded for: " + t;
 
 		// JVMS: If the value of the type_path_kind item is 0, 1, or 2, then the value of the
 		// type_argument_index item is 0.
@@ -102,40 +123,7 @@ public class ReadUtils {
 			return t;
 		}
 		case TypePath.INNER_TYPE: {
-			assert arg == 0 : arg;
-
-			// @A T0.@B T1.@C T2;
-			// -> Bytecode: T0.T1.T2 and @A (NEW / VAR), @B (INNER), @C (INNER, INNER)
-
-			// hence: type path step "INNER" can be interpreted from front to end,
-			// @C applies to full type: Anno(T0.T1.T2, @A) -> package.@A T0.T1.T2
-			// we have to flip this strange bytecode behaviour into:
-			// Anno(Qual(Anno(Qual(Anno(T0, @A), T1), @B), T2), @C)
-
-			int innerCounter = 1;
-			for (; index + innerCounter < typePathLength; ++innerCounter) {
-				if (typePath.getStep(index + innerCounter) != TypePath.INNER_TYPE) {
-					break;
-				}
-			}
-			final T[] qualifierTs = t.getQualifierTs();
-			if (innerCounter >= qualifierTs.length) {
-				LOGGER.warning("Not enough qualifiers in '" + t
-						+ "' for type annotation with path depth '" + innerCounter + "'!");
-				break;
-			}
-			if (index + innerCounter == typePathLength) {
-				// flip inner type annotations: don't annotate outmost enclosing here
-				if (innerCounter == qualifierTs.length - 1) {
-					return DU.getAnnotatedT(qualifierTs[innerCounter], a);
-				}
-				return DU.getQualifiedT(DU.getAnnotatedT(qualifierTs[innerCounter], a), t);
-			}
-			if (innerCounter == qualifierTs.length - 1) {
-				return annotate(qualifierTs[innerCounter], a, typePath, index + innerCounter);
-			}
-			return DU.getQualifiedT(
-					annotate(qualifierTs[innerCounter], a, typePath, index + innerCounter), t);
+			assert false : "type path step argument for INNER must be handled in calling function annotate()";
 		}
 		case TypePath.TYPE_ARGUMENT: {
 			final T[] typeArgs = t.getTypeArgs();

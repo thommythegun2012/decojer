@@ -161,6 +161,7 @@ public final class TrControlFlowAnalysis {
 		}
 		// only if unrelated conditional tails???
 		LOGGER.warning(getMd() + ": Unknown struct, no common follow for:\n" + cond);
+		cond.setKind(Cond.Kind.IF);
 		return cond;
 	}
 

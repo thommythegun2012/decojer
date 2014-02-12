@@ -245,6 +245,11 @@ public class ClassT extends T {
 			// LOGGER.warning("Couldn't load type '" + getName() + "'!");
 			this.accessFlags |= AF.UNRESOLVABLE.getValue();
 			return true;
+		} catch (final SecurityException e) {
+			LOGGER.warning("Couldn't load type class '" + getName()
+					+ "' because of security issues!\nMessage: " + e.getMessage());
+			this.accessFlags |= AF.UNRESOLVABLE.getValue();
+			return true;
 		}
 		this.accessFlags = klass.getModifiers();
 
