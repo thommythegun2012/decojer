@@ -2,14 +2,9 @@
 
 {{{
 ---
-problems with wrong start pcs in: EvaluatorTemplate.class
 
-(are 2 for this and params, first frame is wrongly created from this)
+org.objectweb.asm.ClassReader.a(Lorg/objectweb/asm/MethodVisitor;Lorg/objectweb/asm/Context;I)V (ops: 1647, regs: 37)
 
-CFG.postProcessVar()
-initFrames()
-getDebugV()
-md.paramNames
 ---
 
 com.rsa.cryptoj.c.aF.d()V (ops: 77, regs: 6)
@@ -30,6 +25,8 @@ reason: merge into sub doesnt set throwable to null from start to end?!
 
   * merge-replace register
     * can recursively create new merges, back-branch algorithm
+  * variable analysis
+    * special recognition of thhis and params for invalid debug vars
   * JSR-merge stuff
   * assign-to with "maybe"
   * inner classes synthetic initializer for eclosing.this, comment in PUT indicates, data flowe analysis must be solved first:
