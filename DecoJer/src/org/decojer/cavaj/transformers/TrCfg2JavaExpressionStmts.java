@@ -981,19 +981,27 @@ public final class TrCfg2JavaExpressionStmts {
 			case POP: {
 				final POP cop = (POP) op;
 				switch (cop.getKind()) {
-				case POP2:
-					if (!isWide(cop)) {
-						statement = getAst().newExpressionStatement(wrap(bb.pop()));
-
-						LOGGER.warning(getMd() + ": TODO: POP2 for not wide in '" + getCfg()
-								+ "'! Statement output?");
-						bb.pop();
+				case POP2: {
+					final Expression e = bb.pop();
+					if (!(e instanceof Name)) {
+						// single name not allowed as expression, disturbs formatting
+						// TODO also other stuff like literals (no common interface in Eclipse) etc.
+						statement = getAst().newExpressionStatement(wrap(e));
+					}
+					if (isWide(cop)) {
 						break;
 					}
-					// fall through for wide
-				case POP:
-					statement = getAst().newExpressionStatement(wrap(bb.pop()));
+					// fall through for second pop iff none-wide
+				}
+				case POP: {
+					final Expression e = bb.pop();
+					if (!(e instanceof Name)) {
+						// single name not allowed as expression, disturbs formatting
+						// TODO also other stuff like literals (no common interface in Eclipse) etc.
+						statement = getAst().newExpressionStatement(wrap(e));
+					}
 					break;
+				}
 				default:
 					LOGGER.warning(getMd() + ": Unknown POP type '" + cop.getKind() + "'!");
 				}
@@ -1209,6 +1217,10 @@ public final class TrCfg2JavaExpressionStmts {
 		final V v = getCfg().getFrameVar(reg, pc);
 		final String name = v == null ? null : v.getName();
 		if (name == null) {
+			if (reg == 0 && !getMd().isStatic() && getCfg().getFrame(pc).load(reg).isMethodParam()) {
+				// TODO later we move this to a real variable analysis
+				return "this";
+			}
 			return "r" + reg;
 		}
 		return name;

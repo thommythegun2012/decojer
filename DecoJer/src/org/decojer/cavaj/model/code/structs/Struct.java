@@ -85,7 +85,7 @@ public class Struct {
 	 * @return {@code true} - added
 	 */
 	public boolean addMember(final Object value, final BB bb) {
-		assert bb != this.head;
+		assert bb != this.head : "cannot add head as struct member for: " + bb;
 
 		return getMembers(value).add(bb);
 	}

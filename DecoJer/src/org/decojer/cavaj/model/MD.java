@@ -143,6 +143,9 @@ public final class MD extends BD {
 	/**
 	 * Get parameter name for index.
 	 * 
+	 * Dalvik provides this information directly, the JVM indirect via the local variable table.
+	 * Could also be extracted from JavaDoc etc.
+	 * 
 	 * @param i
 	 *            index (starts with 0, double/long params count as 1)
 	 * @return parameter name
@@ -265,6 +268,7 @@ public final class MD extends BD {
 	 * Set parameter name.
 	 * 
 	 * Dalvik provides this information directly, the JVM indirect via the local variable table.
+	 * Could also be extracted from JavaDoc etc.
 	 * 
 	 * @param i
 	 *            index
