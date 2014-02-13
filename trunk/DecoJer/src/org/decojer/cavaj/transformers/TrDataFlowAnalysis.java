@@ -546,17 +546,16 @@ public final class TrDataFlowAnalysis {
 			final POP cop = (POP) op;
 			// no new register or type reduction necessary, simply let it die off
 			switch (cop.getKind()) {
+			case POP2:
+				final R s1 = pop();
+				if (s1.getT().isWide()) {
+					break;
+				}
+				// fall through for second pop iff none-wide
 			case POP: {
 				popSingle();
 				break;
 			}
-			case POP2:
-				final R s1 = pop();
-				if (!s1.getT().isWide()) {
-					popSingle();
-					break;
-				}
-				break;
 			default:
 				LOGGER.warning(getMd() + ": Unknown POP type '" + cop.getKind() + "'!");
 			}
@@ -868,8 +867,8 @@ public final class TrDataFlowAnalysis {
 				return; // was already alive, can happen via MOVE-out
 			}
 			final R r = frame.load(aliveI);
-			assert r != null : "R is null for pc '" + pc + "' and op '" + bb.getOp(j) + "' and '"
-					+ aliveI + "'!";
+			assert r != null : "register is null for pc '" + pc + "' and index '" + aliveI
+					+ "' for operation: " + bb.getOp(j);
 
 			if (r.getPc() == pc) {
 				// register does change here...

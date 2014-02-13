@@ -361,13 +361,18 @@ public final class CFG {
 	public void initFrames() {
 		this.frames = new Frame[this.ops.length];
 		final Frame frame = new Frame(this);
-		for (int i = getRegs(); i-- > 0;) {
-			final V v = getDebugV(i, 0);
-			if (v != null) {
-				frame.store(i, new R(0, i, v.getT(), Kind.CONST));
-			} else if (i == 0 && !getMd().isStatic()) {
-				// fix wrong or missing info about "this"
-				frame.store(i, new R(0, 0, getMd().getTd().getT(), Kind.CONST));
+
+		int reg = 0;
+		if (!getMd().isStatic()) {
+			frame.store(0, new R(0, 0, getMd().getTd().getT(), Kind.CONST));
+			++reg;
+		}
+		final T[] paramTs = getMd().getParamTs();
+		for (final T paramT : paramTs) {
+			frame.store(reg, new R(0, reg, paramT, Kind.CONST));
+			++reg;
+			if (paramT.isWide()) {
+				++reg;
 			}
 		}
 		this.frames[0] = frame;
