@@ -19,6 +19,8 @@ Kommt von: R259:MO
 loop back auf 298 merged int[] und REF zu REF,
 und typ wird nicht auf null (259) zurückpropagiert.
 
+RET (von null) assignTo t2 should set to t2?
+
 ---
 
 com.rsa.cryptoj.c.aF.d()V (ops: 77, regs: 6)
