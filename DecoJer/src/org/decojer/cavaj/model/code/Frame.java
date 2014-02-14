@@ -344,6 +344,7 @@ public final class Frame {
 	 */
 	public R store(final int i, final R r) {
 		// stack allowed too: assert i < this.cfg.getRegs();
+		assert r != null || !isAlive(i) : this.cfg.getMd() + ": cannot set alive register to null";
 
 		// we have to lazy copy here because Frame-copy relies onto this
 		final R[] newRs = new R[this.rs.length];

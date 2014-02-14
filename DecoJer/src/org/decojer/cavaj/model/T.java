@@ -325,9 +325,9 @@ public abstract class T {
 		}
 		if (t1.isArray() && t2.isArray()) {
 			// covariant arrays, but super/int is {Object,Cloneable,Serializable}, not superXY[]
-			final T joinT = intersect(t1.getComponentT(), t2.getComponentT());
-			if (joinT != null) {
-				return t1.getDu().getArrayT(joinT);
+			final T intersectT = intersect(t1.getComponentT(), t2.getComponentT());
+			if (intersectT != null) {
+				return t1.getDu().getArrayT(intersectT);
 			}
 			// could fall through here to general algorithm, but following is always same result
 			return new IntersectionT(t1.getDu().getObjectT(), t1.getDu().getArrayInterfaceTs());
