@@ -5,6 +5,20 @@
 
 org.objectweb.asm.ClassReader.a(Lorg/objectweb/asm/MethodVisitor;Lorg/objectweb/asm/Context;I)V (ops: 1647, regs: 37)
 
+INVOKE readByte(I)I
+  pc 1538
+
+pop: R1538_CO: REF
+
+kommt von LOAD 12, LOAD 27, ALOAD
+12 sollte int[] sein    (STORE 12: 205, 50, 258, 446)
+Kommt von: R259:MO
+
+259 setzte null
+446 setzt int[]
+loop back auf 298 merged int[] und REF zu REF,
+und typ wird nicht auf null (259) zurückpropagiert.
+
 ---
 
 com.rsa.cryptoj.c.aF.d()V (ops: 77, regs: 6)
