@@ -2,7 +2,7 @@ package org.decojer.cavaj.test.jdk8;
 
 import java.io.Serializable;
 
-public abstract class DecTestLambdas {
+public class DecTestLambdas {
 
 	interface Test {
 		String hello(String firstname, String lastname);
@@ -29,8 +29,7 @@ public abstract class DecTestLambdas {
 	}
 
 	public static void testInner() {
-		final TestVarargs test = (final @Deprecated @Nonnull String firstname,
-				String... lastname) -> {
+		final TestVarargs test = (final @Deprecated @Nonnull String firstname, String... lastname) -> {
 
 			class Test implements Serializable {
 
@@ -46,14 +45,13 @@ public abstract class DecTestLambdas {
 
 			Test greetings = new Test();
 
-			return greetings.getGreetings() + " " + firstname + " "
-					+ lastname[0];
+			return greetings.getGreetings() + " " + firstname + " " + lastname[0];
 		};
 		System.out.println(test.hello("André", "Pankraz", "TestVararg"));
 
 	}
 
-	public static void testThread() {
+	public void testThread() {
 		new Thread(() -> {
 			System.out.println("Hello from a thread");
 		}).start();
