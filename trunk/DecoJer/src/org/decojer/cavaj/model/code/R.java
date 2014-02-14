@@ -179,8 +179,7 @@ public final class R {
 			if (this.t.isUnresolvable() && this.t != T.REF) {
 				return true;
 			}
-			assert false : "assignment must not be null, happens with '" + getT() + "' assign to '"
-					+ t + "'";
+			assert false : "cannot assign '" + this + "' to '" + t + "'";
 
 			return false;
 		}
