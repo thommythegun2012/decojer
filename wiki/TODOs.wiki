@@ -70,11 +70,8 @@ Assert happens in Cond.
         * AnnotatableType & NameQualifiedTypeName
         * ArrayTypes are not recursive anymore, have dimension attribute and elementType instead of componentType
         * method: thrownExceptionTypes instead of thrownExceptions (names)
-    * Method References TODO
-    * Default Methods OK
-    * Lambdas OK
-    * Repeatable Annotations (@Repeatable) OK (if annotation TD can be resolved)
-    * Type Annotations OK
+    * Method References, Default & Static Interface Methods, Lambdas, Repeatable Annotations OK
+    * Type Annotations OK, but:
       * Receiver must get fully parameterized reference
       * check more examples: http://www.mscharhag.com/2014/02/java-8-type-annotations.html
       * Eclipse Bugs: https://bugs.eclipse.org/bugs/show_bug.cgi?id=426616
