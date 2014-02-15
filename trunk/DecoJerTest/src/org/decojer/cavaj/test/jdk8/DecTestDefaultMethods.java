@@ -2,6 +2,11 @@ package org.decojer.cavaj.test.jdk8;
 
 public interface DecTestDefaultMethods {
 
+	// static method in interfaces
+	public static int compareByLength(String in, String out) {
+		return in.length() - out.length();
+	}
+
 	default String test() {
 		return "test";
 	}
