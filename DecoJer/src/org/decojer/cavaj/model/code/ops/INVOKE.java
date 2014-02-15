@@ -111,6 +111,9 @@ public class INVOKE extends Op {
 	 * @return bootstrap method arguments
 	 */
 	public Object[] getBsArgs() {
+		if (this.extra == null || isDirect()) {
+			return null;
+		}
 		final Object[] ret = new Object[this.extra.length - 1];
 		System.arraycopy(this.extra, 1, ret, 0, ret.length);
 		return ret;
@@ -122,6 +125,9 @@ public class INVOKE extends Op {
 	 * @return bootstrap method
 	 */
 	public M getBsM() {
+		if (this.extra == null || isDirect()) {
+			return null;
+		}
 		return (M) this.extra[0];
 	}
 

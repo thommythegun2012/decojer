@@ -190,6 +190,25 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			return false;
 		}
+		case TypeReference.CONSTRUCTOR_REFERENCE:
+		case TypeReference.METHOD_REFERENCE: {
+			if (op instanceof INVOKE) {
+				final Object[] bsArgs = ((INVOKE) op).getBsArgs();
+				if (bsArgs != null && bsArgs.length > 1 && bsArgs[1] instanceof M) {
+					final M m = (M) bsArgs[1];
+					m.setT(annotate(m.getT(), a, typePath));
+					return true;
+				}
+			}
+			if (logError) {
+				LOGGER.warning(getMd()
+						+ ": Wrong operation '"
+						+ op
+						+ "' for type annotation ref sort 'CONSTRUCTOR_REFERENCE' or 'METHOD_REFERENCE' : "
+						+ typeRef + " : " + typePath + " : " + a);
+			}
+			return false;
+		}
 		case TypeReference.NEW: {
 			if (op instanceof NEW || op instanceof NEWARRAY) {
 				((TypedOp) op).setT(annotate(((TypedOp) op).getT(), a, typePath));

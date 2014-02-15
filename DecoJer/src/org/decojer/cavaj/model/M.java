@@ -61,6 +61,8 @@ public class M {
 	private T returnT;
 
 	@Getter
+	@Setter
+	// setter for applaying annotations to method references
 	private T t;
 
 	/**
