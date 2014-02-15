@@ -87,54 +87,6 @@ Assert happens in Cond.
     * Netbeans Plugin
 
 = NOTICES =
-
-Catches have empty frame, but are nevertheless alive?
-
-
-WARNUNG: Cannot transform 'com.google.common.cache.LocalCache.getAll(Ljava/lang/Iterable;)Lcom/google/common/collect/ImmutableMap; (ops: 128, regs: 11)'!
-java.lang.NullPointerException
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:826)
-
-
-
-
-
-WARNUNG: Cannot transform 'com.google.common.collect.Lists.transform(Ljava/util/List;Lcom/google/common/base/Function;)Ljava/util/List; (ops: 15, regs: 2)'!
-java.lang.AssertionError
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:176)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:898)
-
-
-
-
-WARNUNG: Cannot transform 'com.google.common.collect.MapMaker.makeComputingMap(Lcom/google/common/base/Function;)Ljava/util/concurrent/ConcurrentMap; (ops: 15, regs: 2)'!
-java.lang.AssertionError
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:176)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:899)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:694)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1180)
-
-
-
-
- com.google.common.cache;
-public final class RemovalNotification
-
-01.09.2013 13:41:17 org.decojer.cavaj.utils.Expressions newLiteral2
-WARNUNG: Convert literal '0' for multi-type '{byte,char,boolean}'!
-
-
-http://www.techempower.com/blog/2013/03/26/everything-about-java-8/
-
-22.01.2013 21:59:53 org.decojer.cavaj.transformers.TrControlFlowAnalysis log
-WARNUNG: com.itextpdf.text.pdf.CFFFont$IndexOffsetItem.emit([B)V: Fall-through case '5 -> 3[3]' must be reordered: 'BB 5 (l 459, pc 0)
-Stmts: [int i=0;
-, switch (this.size) {
-}
-]
-Succ: 4 3 2 1 0 
-
-
 Eclipse Editor
   * open JAR: Tree View
   * open JAR: Bytecode View
