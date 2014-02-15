@@ -1367,9 +1367,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case TypeReference.LOCAL_VARIABLE:
 			for (int i = index.length; i-- > 0;) {
 				final List<V> vs = this.reg2vs.get(index[i]);
-				for (final V v : vs) {
-					if (v.validIn(getPc(start[i]), getPc(end[i]))) {
-						v.setT(annotate(v.getT(), a, typePath));
+				if (vs != null) {
+					// TODO hmmm, we may have to remember this info (like receiver),
+					// we cannot apply it without variable analysis in none-debug bytecode,
+					// missing local variable tables! this whole new bytecode sucks
+					for (final V v : vs) {
+						if (v.validIn(getPc(start[i]), getPc(end[i]))) {
+							v.setT(annotate(v.getT(), a, typePath));
+						}
 					}
 				}
 			}
