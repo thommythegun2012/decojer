@@ -109,6 +109,7 @@ import org.eclipse.jdt.core.dom.ConstructorInvocation;
 import org.eclipse.jdt.core.dom.CreationReference;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ExpressionMethodReference;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -708,16 +709,26 @@ public final class TrCfg2JavaExpressionStmts {
 										.newCreationReference();
 								methodReference.setType(newType(dynamicM.getT(), getCfg().getTd()));
 								methodExpression = methodReference;
-							} else {
+							} else if (dynamicM.isStatic()) {
 								final TypeMethodReference methodReference = getAst()
 										.newTypeMethodReference();
 								methodReference.setType(newType(dynamicM.getT(), getCfg().getTd()));
 								methodReference
 										.setName(newSimpleName(dynamicM.getName(), getAst()));
 								methodExpression = methodReference;
+							} else {
+								assert arguments.size() == 1 : getMd()
+										+ ": expression method reference doesn't have 1 argument";
+
+								final ExpressionMethodReference methodReference = getAst()
+										.newExpressionMethodReference();
+								methodReference.setExpression(arguments.get(0));
+								methodReference
+										.setName(newSimpleName(dynamicM.getName(), getAst()));
+								methodExpression = methodReference;
 							}
-							// TODO getAst().newExpressionMethodReference();
-							// TODO getAst().newSuperMethodReference();
+							// TODO is in bytecode via lambda, we could let it be or recognize this
+							// pattern and shorten down to getAst().newSuperMethodReference();
 						}
 					} else {
 						final MethodInvocation methodInvocation = setOp(getAst()
