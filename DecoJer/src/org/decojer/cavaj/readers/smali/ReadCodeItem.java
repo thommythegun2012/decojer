@@ -1092,7 +1092,9 @@ public class ReadCodeItem {
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
-				ownerT.setInterface(instruction.opcode == Opcode.INVOKE_INTERFACE);
+				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
+					ownerT.setInterface(true); // static also possible in interface since JVM 8
+				}
 				final M m = ownerT.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
 						.getPrototype().getPrototypeString());
 				m.setStatic(instruction.opcode == Opcode.INVOKE_STATIC);
