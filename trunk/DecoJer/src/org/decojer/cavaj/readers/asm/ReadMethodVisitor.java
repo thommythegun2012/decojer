@@ -244,7 +244,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private M handle2m(final Handle handle) {
 		final T ownerT = this.du.getT(handle.getOwner());
-		ownerT.setInterface(handle.getTag() == Opcodes.H_INVOKEINTERFACE);
+		if (handle.getTag() == Opcodes.H_INVOKEINTERFACE) {
+			ownerT.setInterface(true); // static also possible in interface since JVM 8
+		}
 		final M m = ownerT.getM(handle.getName(), handle.getDesc());
 		m.setStatic(handle.getTag() == Opcodes.H_INVOKESTATIC);
 		return m;
@@ -1439,7 +1441,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.INVOKESTATIC:
 		case Opcodes.INVOKEVIRTUAL: {
 			final T ownerT = this.du.getT(owner);
-			ownerT.setInterface(opcode == Opcodes.INVOKEINTERFACE);
+			if (opcode == Opcodes.INVOKEINTERFACE) {
+				ownerT.setInterface(true); // static also possible in interface since JVM 8
+			}
 			assert opcode != Opcodes.INVOKEINTERFACE || itf;
 
 			final M m = ownerT.getM(name, desc);

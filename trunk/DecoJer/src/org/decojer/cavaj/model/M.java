@@ -222,7 +222,7 @@ public class M {
 	 * 
 	 * We reuse the owner type here, because this is a very rarely used feature, where we don't want
 	 * to add memory per method.
-	 *
+	 * 
 	 * @param receiverT
 	 *            receiver type
 	 * @return {@code true} - success
@@ -246,9 +246,7 @@ public class M {
 	 */
 	public void setStatic(final boolean f) {
 		if (f) {
-			if (!isDynamic()) {
-				this.t.setInterface(false);
-			}
+			// static also possible in interface since JVM 8
 			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
 				return;
 			}

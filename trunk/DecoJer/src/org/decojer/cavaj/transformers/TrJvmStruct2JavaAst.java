@@ -235,7 +235,7 @@ public final class TrJvmStruct2JavaAst {
 
 		// decompile modifier flags:
 		// interfaces can have default methods since JVM 8
-		if (isInterfaceMember && md.getCfg() != null && !md.isInitializer()) {
+		if (isInterfaceMember && md.getCfg() != null && !md.isStatic()) {
 			if (md.getTd().isBelow(Version.JVM_8)) {
 				LOGGER.warning("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
 			}

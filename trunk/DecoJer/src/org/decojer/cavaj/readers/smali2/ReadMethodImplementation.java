@@ -1233,7 +1233,9 @@ public class ReadMethodImplementation {
 
 				final MethodReference methodReference = (MethodReference) instr.getReference();
 				final T ownerT = getDu().getDescT(methodReference.getDefiningClass());
-				ownerT.setInterface(instruction.getOpcode() == Opcode.INVOKE_INTERFACE);
+				if (instruction.getOpcode() == Opcode.INVOKE_INTERFACE) {
+					ownerT.setInterface(true); // static also possible in interface since JVM 8
+				}
 				final M m = ownerT.getM(methodReference.getName(),
 						Smali2Reader.desc(methodReference));
 				m.setStatic(instruction.getOpcode() == Opcode.INVOKE_STATIC);
