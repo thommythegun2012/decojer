@@ -159,6 +159,9 @@ public final class TrCfg2JavaExpressionStmts {
 			.getLogger(TrCfg2JavaExpressionStmts.class.getName());
 
 	private static boolean isDynamicBootstrapMethod(final M m) {
+		if (m == null) {
+			return false;
+		}
 		if (!m.getT().getName().equals("java.lang.invoke.LambdaMetafactory")) {
 			return false;
 		}
@@ -666,8 +669,9 @@ public final class TrCfg2JavaExpressionStmts {
 						methodExpression = methodInvocation;
 					}
 				} else if (m.isDynamic()) {
-					if (isDynamicBootstrapMethod(cop.getBsM())) {
-						final Object[] bsArgs = cop.getBsArgs();
+					final Object[] bsArgs = cop.getBsArgs();
+					if (isDynamicBootstrapMethod(cop.getBsM()) && bsArgs.length > 1
+							&& bsArgs[1] instanceof M) {
 						final M dynamicM = (M) bsArgs[1];
 						final MD dynamicMd = dynamicM.getMd();
 						if (dynamicM.isSynthetic()) {
