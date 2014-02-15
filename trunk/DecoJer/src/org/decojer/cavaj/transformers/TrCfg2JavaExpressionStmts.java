@@ -106,6 +106,7 @@ import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
+import org.eclipse.jdt.core.dom.CreationReference;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
@@ -139,6 +140,7 @@ import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.TypeMethodReference;
 import org.eclipse.jdt.core.dom.UnionType;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
@@ -155,7 +157,7 @@ public final class TrCfg2JavaExpressionStmts {
 	private final static Logger LOGGER = Logger
 			.getLogger(TrCfg2JavaExpressionStmts.class.getName());
 
-	private static boolean isLambdaBootstrapMethod(final M m) {
+	private static boolean isDynamicBootstrapMethod(final M m) {
 		if (!m.getT().getName().equals("java.lang.invoke.LambdaMetafactory")) {
 			return false;
 		}
@@ -663,37 +665,60 @@ public final class TrCfg2JavaExpressionStmts {
 						methodExpression = methodInvocation;
 					}
 				} else if (m.isDynamic()) {
-					if (isLambdaBootstrapMethod(cop.getBsM())) {
+					if (isDynamicBootstrapMethod(cop.getBsM())) {
 						final Object[] bsArgs = cop.getBsArgs();
-						final LambdaExpression lambdaExpression = getAst().newLambdaExpression();
-						// init lambda parameters
-						final M lambdaM = (M) bsArgs[1];
-						final MD lambdaMd = lambdaM.getMd();
-						final T[] paramTs = lambdaM.getParamTs();
-						final A[][] paramAss = lambdaMd.getParamAss();
-						// first m.paramTs.length parameters are for outer capture inits
-						for (int i = m.getParamTs().length; i < paramTs.length; ++i) {
-							lambdaExpression.parameters().add(
-									newSingleVariableDeclaration(lambdaMd, paramTs, paramAss, i,
-											this.cfg.getTd()));
+						final M dynamicM = (M) bsArgs[1];
+						final MD dynamicMd = dynamicM.getMd();
+						if (dynamicM.isSynthetic()) {
+							// is lambda
+							final LambdaExpression lambdaExpression = getAst()
+									.newLambdaExpression();
+							// init lambda parameters
+							final T[] paramTs = dynamicM.getParamTs();
+							final A[][] paramAss = dynamicMd.getParamAss();
+							// first m.paramTs.length parameters are for outer capture inits
+							for (int i = m.getParamTs().length; i < paramTs.length; ++i) {
+								lambdaExpression.parameters().add(
+										newSingleVariableDeclaration(dynamicMd, paramTs, paramAss,
+												i, this.cfg.getTd()));
+							}
+							// init lambda body
+							final CFG lambdaCfg = dynamicMd.getCfg();
+							if (lambdaCfg.getBlock() == null) {
+								// if synthetics are not decompiled...
+								// lambda methods are synthetic: init block, could later add more
+								// checks
+								// and alternatives here if obfuscators play with these flags
+								lambdaCfg.setBlock((Block) lambdaExpression.getBody());
+								lambdaCfg.decompile();
+							} else if (lambdaCfg.getBlock().getParent() instanceof MethodDeclaration) {
+								// if synthetics are decompiled...but not for re-decompilation:
+								// don't show this recognized (normally synthetic) method
+								// declaration
+								lambdaCfg.getBlock().delete(); // delete from parent
+								dynamicMd.setMethodDeclaration(null);
+								// is our new lambda body
+								lambdaExpression.setBody(lambdaCfg.getBlock());
+							}
+							methodExpression = lambdaExpression;
+						} else {
+							// is a method reference, 4 different variants possible
+							if (dynamicM.isConstructor()) {
+								final CreationReference methodReference = getAst()
+										.newCreationReference();
+								methodReference.setType(newType(dynamicM.getT(), getCfg().getTd()));
+								methodExpression = methodReference;
+							} else {
+								final TypeMethodReference methodReference = getAst()
+										.newTypeMethodReference();
+								methodReference.setType(newType(dynamicM.getT(), getCfg().getTd()));
+								methodReference
+										.setName(newSimpleName(dynamicM.getName(), getAst()));
+								methodExpression = methodReference;
+							}
+							// TODO getAst().newExpressionMethodReference();
+							// TODO getAst().newSuperMethodReference();
 						}
-						// init lambda body
-						final CFG lambdaCfg = lambdaMd.getCfg();
-						if (lambdaCfg.getBlock() == null) {
-							// if synthetics are not decompiled...
-							// lambda methods are synthetic: init block, could later add more checks
-							// and alternatives here if obfuscators play with these flags
-							lambdaCfg.setBlock((Block) lambdaExpression.getBody());
-							lambdaCfg.decompile();
-						} else if (lambdaCfg.getBlock().getParent() instanceof MethodDeclaration) {
-							// if synthetics are decompiled...but not for re-decompilation:
-							// don't show this recognized (normally synthetic) method declaration
-							lambdaCfg.getBlock().delete(); // delete from parent
-							lambdaMd.setMethodDeclaration(null);
-							// is our new lambda body
-							lambdaExpression.setBody(lambdaCfg.getBlock());
-						}
-						methodExpression = lambdaExpression;
 					} else {
 						final MethodInvocation methodInvocation = setOp(getAst()
 								.newMethodInvocation(), op);
