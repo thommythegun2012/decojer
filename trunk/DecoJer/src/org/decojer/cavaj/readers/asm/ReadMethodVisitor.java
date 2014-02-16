@@ -190,6 +190,10 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			return false;
 		}
+		// TODO we need some kind of ParameterizedM for this:
+		// CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT
+		// METHOD_INVOCATION_TYPE_ARGUMENT
+		// also for this, setT() wrong here because m is cached! only OK for receiver
 		case TypeReference.CONSTRUCTOR_REFERENCE:
 		case TypeReference.METHOD_REFERENCE: {
 			if (op instanceof INVOKE) {
@@ -209,6 +213,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			return false;
 		}
+		// TODO we need some kind of ParameterizedM for this:
+		// CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT
+		// METHOD_REFERENCE_TYPE_ARGUMENT
 		case TypeReference.NEW: {
 			if (op instanceof NEW || op instanceof NEWARRAY) {
 				((TypedOp) op).setT(annotate(((TypedOp) op).getT(), a, typePath));
