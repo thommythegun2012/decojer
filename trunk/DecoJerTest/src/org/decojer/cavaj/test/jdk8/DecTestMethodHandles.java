@@ -25,10 +25,9 @@ public class DecTestMethodHandles {
 		void testInnerGenericHandles() {
 			Runnable r = @Nonnull Test<@Nonnull String>::<@Nonnull Integer> new;
 			r = @Nonnull Test::<@Nonnull Integer> testStatic;
-			r = new @Nonnull Test<@Nonnull String>()::<@Nonnull Integer> test;
+			r = new<@Nonnull Integer> @Nonnull Test<@Nonnull String>()::<@Nonnull Integer> test;
 			r = super::<@Nonnull String> testSimpleHandles;
 		}
-
 	}
 
 	static void testInterfaceHandles() {
@@ -42,8 +41,8 @@ public class DecTestMethodHandles {
 	static void testLocalHandles() {
 		DecTestMethodHandles decTestMethodHandles = new DecTestMethodHandles();
 		Runnable r = decTestMethodHandles::testSimpleHandles;
-		// direct:
-		r = new @Nonnull DecTestMethodHandles()::testSimpleHandles;
+		// direct, unsued type arg:
+		r = new<@Nonnull String> @Nonnull DecTestMethodHandles()::testSimpleHandles;
 	}
 
 	<T> void testSimpleHandles() {
