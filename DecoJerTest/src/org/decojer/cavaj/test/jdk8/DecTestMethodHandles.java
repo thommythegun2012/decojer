@@ -15,7 +15,7 @@ public class DecTestMethodHandles {
 		}
 
 		public <T> Test() {
-			System.out.println("Contstructor");
+			System.out.println("new...");
 		}
 
 		public <T> void test() {
