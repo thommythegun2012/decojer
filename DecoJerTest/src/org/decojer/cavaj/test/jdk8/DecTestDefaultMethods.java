@@ -3,7 +3,7 @@ package org.decojer.cavaj.test.jdk8;
 public interface DecTestDefaultMethods {
 
 	// static method in interfaces
-	public static int compareByLength(String in, String out) {
+	public static <S extends String> int compareByLength(S in, S out) {
 		return in.length() - out.length();
 	}
 
