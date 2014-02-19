@@ -1,11 +1,15 @@
 package org.decojer.cavaj.test.jdk8;
 
-@java.lang.annotation.Documented
-@java.lang.annotation.Retention(value = java.lang.annotation.RetentionPolicy.RUNTIME)
-@java.lang.annotation.Target(value = {
-		java.lang.annotation.ElementType.TYPE_USE,
-		java.lang.annotation.ElementType.TYPE_PARAMETER })
-public @interface Sizes {
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Documented
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE_USE)
+@interface Sizes {
 
 	// is allowed, ignore...
 	int muh() default 1;
