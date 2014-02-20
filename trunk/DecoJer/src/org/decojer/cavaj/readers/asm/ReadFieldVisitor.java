@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.readers.asm;
 
-import static org.decojer.cavaj.readers.asm.ReadUtils.annotate;
+import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.logging.Logger;
@@ -119,7 +119,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.FIELD:
-			getFd().getF().setValueT(annotate(getFd().getValueT(), a, typePath));
+			getFd().getF().setValueT(annotateT(getFd().getValueT(), a, typePath));
 			break;
 		default:
 			LOGGER.warning(getFd() + ": Unknown type annotation ref sort '0x"

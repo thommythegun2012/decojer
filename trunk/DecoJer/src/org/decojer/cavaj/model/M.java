@@ -23,96 +23,16 @@
  */
 package org.decojer.cavaj.model;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import org.decojer.cavaj.model.types.ClassT;
-import org.decojer.cavaj.utils.Cursor;
-
 /**
  * Method.
  * 
  * @author André Pankraz
  */
-public class M {
+public abstract class M {
 
 	public static final String CONSTRUCTOR_NAME = "<init>";
 
 	public static final String INITIALIZER_NAME = "<clinit>";
-
-	@Setter
-	private int accessFlags;
-
-	@Getter
-	private final String descriptor;
-
-	@Getter
-	private MD md;
-
-	@Getter
-	private final String name;
-
-	@Getter
-	@Setter
-	private T[] paramTs;
-
-	@Getter
-	@Setter
-	private T returnT;
-
-	@Getter
-	@Setter
-	// setter for applaying annotations to method references
-	private T t;
-
-	/**
-	 * Constructor for dynamic method.
-	 * 
-	 * @param du
-	 *            DU
-	 * @param name
-	 *            name
-	 * @param descriptor
-	 *            descriptor
-	 */
-	protected M(final DU du, final String name, final String descriptor) {
-		assert name != null;
-		assert descriptor != null;
-
-		this.t = null; // dynamic method
-		this.name = name;
-		this.descriptor = descriptor;
-
-		final Cursor c = new Cursor();
-		this.paramTs = du.parseMethodParamTs(descriptor, c, this);
-		this.returnT = du.parseT(descriptor, c, this);
-
-		setStatic(true); // dynamic callsite resolution, never reference on stack
-	}
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param t
-	 *            type
-	 * @param name
-	 *            name
-	 * @param descriptor
-	 *            descriptor
-	 */
-	protected M(final T t, final String name, final String descriptor) {
-		assert t != null;
-		assert name != null;
-		assert descriptor != null;
-
-		this.t = t;
-		this.name = name;
-		this.descriptor = descriptor;
-
-		final Cursor c = new Cursor();
-		this.paramTs = t.getDu().parseMethodParamTs(descriptor, c, this);
-		this.returnT = t.getDu().parseT(descriptor, c, this);
-	}
 
 	/**
 	 * Check access flag.
@@ -121,123 +41,109 @@ public class M {
 	 *            access flag
 	 * @return {@code true} - is access flag
 	 */
-	public boolean check(final AF af) {
-		return (this.accessFlags & af.getValue()) != 0;
-	}
+	public abstract boolean check(final AF af);
 
 	/**
 	 * Create method declaration for this method.
 	 * 
 	 * @return method declaration
 	 */
-	public MD createMd() {
-		assert this.md == null;
+	public abstract MD createMd();
 
-		this.md = new MD(this);
-		this.t.getTd().addBd(this.md);
-		return this.md;
-	}
+	/**
+	 * Get descriptor. Unique in owner context.
+	 * 
+	 * @return descriptor
+	 */
+	public abstract String getDescriptor();
+
+	/**
+	 * Get method declaration.
+	 * 
+	 * @return method declaration
+	 */
+	public abstract MD getMd();
+
+	/**
+	 * Get name.
+	 * 
+	 * @return name
+	 */
+	public abstract String getName();
+
+	/**
+	 * get parameter types.
+	 * 
+	 * @return parameter types
+	 */
+	public abstract T[] getParamTs();
 
 	/**
 	 * Get receiver-type (this) for none-static methods.
 	 * 
 	 * @return receiver-type
-	 * 
-	 * @see M#setReceiverT(T)
 	 */
-	public T getReceiverT() {
-		return this.t instanceof ClassT ? null : this.t;
-	}
+	public abstract T getReceiverT();
+
+	/**
+	 * Get return type.
+	 * 
+	 * @return return type
+	 */
+	public abstract T getReturnT();
+
+	/**
+	 * Get owner type.
+	 * 
+	 * @return owner type
+	 */
+	public abstract T getT();
 
 	/**
 	 * Is constructor?
 	 * 
 	 * @return {@code true} - is constructor
 	 */
-	public boolean isConstructor() {
-		return CONSTRUCTOR_NAME.equals(getName());
-	}
-
-	/**
-	 * Is deprecated method, marked via Javadoc @deprecated?
-	 * 
-	 * @return {@code true} - is deprecated method
-	 */
-	public boolean isDeprecated() {
-		return check(AF.DEPRECATED);
-	}
+	public abstract boolean isConstructor();
 
 	/**
 	 * Is dynamic?
 	 * 
 	 * @return {@code true} - is dynamic
 	 */
-	public boolean isDynamic() {
-		return this.t == null;
-	}
-
-	/**
-	 * Is initializer?
-	 * 
-	 * @return {@code true} - is constructor
-	 */
-	public boolean isInitializer() {
-		return INITIALIZER_NAME.equals(getName());
-	}
+	public abstract boolean isDynamic();
 
 	/**
 	 * Is static method?
 	 * 
 	 * @return {@code true} - is static method
 	 */
-	public boolean isStatic() {
-		return check(AF.STATIC);
-	}
+	public abstract boolean isStatic();
 
 	/**
 	 * Is synthetic method?
 	 * 
 	 * @return {@code true} - is synthetic method
 	 */
-	public boolean isSynthetic() {
-		return check(AF.SYNTHETIC);
-	}
+	public abstract boolean isSynthetic();
 
 	/**
 	 * Is method with final varargs parameter?
 	 * 
 	 * @return {@code true} - is method with final varargs parameter
 	 */
-	public boolean isVarargs() {
-		return check(AF.VARARGS);
-	}
+	public abstract boolean isVarargs();
 
 	/**
-	 * Method must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
-	 */
-	public void setDeprecated() {
-		this.accessFlags |= AF.DEPRECATED.getValue();
-	}
-
-	/**
-	 * Set receiver type (this) for none-static methods.
+	 * Set raw method for modified method.
 	 * 
-	 * We reuse the owner type here, because this is a very rarely used feature, where we don't want
-	 * to add memory per method.
+	 * For type annotation application.
 	 * 
-	 * @param receiverT
-	 *            receiver type
-	 * @return {@code true} - success
+	 * @param rawM
+	 *            raw method for modified method
 	 */
-	public boolean setReceiverT(final T receiverT) {
-		if (isStatic() || isDynamic()) {
-			return false;
-		}
-		if (!getT().equals(receiverT)) {
-			return false;
-		}
-		this.t = receiverT;
-		return true;
+	public void setRawM(final M rawM) {
+		assert false;
 	}
 
 	/**
@@ -246,33 +152,16 @@ public class M {
 	 * @param f
 	 *            {@code true} - is static
 	 */
-	public void setStatic(final boolean f) {
-		if (f) {
-			// static also possible in interface since JVM 8
-			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
-				return;
-			}
-			assert (this.accessFlags & AF.STATIC_ASSERTED.getValue()) == 0;
-
-			this.accessFlags |= AF.STATIC.getValue() | AF.STATIC_ASSERTED.getValue();
-			return;
-		}
-		assert (this.accessFlags & AF.STATIC.getValue()) == 0;
-
-		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
-		return;
-	}
+	public abstract void setStatic(final boolean f);
 
 	/**
-	 * Method must be synthetic (from synthetic attribute).
+	 * Set owner type (for applying type annotations).
+	 * 
+	 * @param t
+	 *            owner type
 	 */
-	public void setSynthetic() {
-		this.accessFlags |= AF.SYNTHETIC.getValue();
-	}
-
-	@Override
-	public String toString() {
-		return this.t + "." + this.name + this.descriptor;
+	public void setT(final T t) {
+		assert false; // overwrite in QualifiedM
 	}
 
 }

@@ -23,7 +23,8 @@
  */
 package org.decojer.cavaj.readers.asm;
 
-import static org.decojer.cavaj.readers.asm.ReadUtils.annotate;
+import static org.decojer.cavaj.readers.asm.ReadUtils.annotateM;
+import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
@@ -180,7 +181,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		switch (typeReference.getSort()) {
 		case TypeReference.CAST: {
 			if (op instanceof CAST) {
-				((CAST) op).setToT(annotate(((CAST) op).getToT(), a, typePath));
+				((CAST) op).setToT(annotateT(((CAST) op).getToT(), a, typePath));
 				return true;
 			}
 			if (logError) {
@@ -199,8 +200,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (op instanceof INVOKE) {
 				final Object[] bsArgs = ((INVOKE) op).getBsArgs();
 				if (bsArgs != null && bsArgs.length > 1 && bsArgs[1] instanceof M) {
-					final M m = (M) bsArgs[1];
-					m.setT(annotate(m.getT(), a, typePath));
+					bsArgs[1] = annotateM((M) bsArgs[1], a, typePath);
 					return true;
 				}
 			}
@@ -218,7 +218,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		// METHOD_REFERENCE_TYPE_ARGUMENT
 		case TypeReference.NEW: {
 			if (op instanceof NEW || op instanceof NEWARRAY) {
-				((TypedOp) op).setT(annotate(((TypedOp) op).getT(), a, typePath));
+				((TypedOp) op).setT(annotateT(((TypedOp) op).getT(), a, typePath));
 				return true;
 			}
 			if (logError) {
@@ -1401,7 +1401,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 					// missing local variable tables! this whole new bytecode sucks
 					for (final V v : vs) {
 						if (v.validIn(getPc(start[i]), getPc(end[i]))) {
-							v.setT(annotate(v.getT(), a, typePath));
+							v.setT(annotateT(v.getT(), a, typePath));
 						}
 					}
 				}
@@ -1565,7 +1565,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case TypeReference.EXCEPTION_PARAMETER: {
 			final int tryCatchBlockIndex = typeReference.getTryCatchBlockIndex();
 			final Exc exc = this.excs.get(tryCatchBlockIndex);
-			exc.setT(annotate(exc.getT(), a, typePath));
+			exc.setT(annotateT(exc.getT(), a, typePath));
 			break;
 		}
 		default:
@@ -1611,7 +1611,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case TypeReference.METHOD_FORMAL_PARAMETER: {
 			final int formalParameterIndex = typeReference.getFormalParameterIndex();
 			final T[] paramTs = getMd().getParamTs();
-			paramTs[formalParameterIndex] = annotate(paramTs[formalParameterIndex], a, typePath);
+			paramTs[formalParameterIndex] = annotateT(paramTs[formalParameterIndex], a, typePath);
 			break;
 		}
 		case TypeReference.METHOD_RECEIVER: {
@@ -1619,17 +1619,17 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// TODO receiver needs full signature, test-method DU#getQualifiedT(T) does't work,
 			// because we would have to read outer classes first
 			getMd().setReceiverT(
-					annotate(getMd().getReceiverT() != null ? getMd().getReceiverT() : getMd()
+					annotateT(getMd().getReceiverT() != null ? getMd().getReceiverT() : getMd()
 							.getM().getT(), a, typePath));
 			break;
 		}
 		case TypeReference.METHOD_RETURN:
-			getMd().getM().setReturnT(annotate(getMd().getReturnT(), a, typePath));
+			getMd().getM().setReturnT(annotateT(getMd().getReturnT(), a, typePath));
 			break;
 		case TypeReference.METHOD_TYPE_PARAMETER: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
 			final T[] typeParams = getMd().getTypeParams();
-			typeParams[typeParameterIndex] = annotate(typeParams[typeParameterIndex], a, typePath);
+			typeParams[typeParameterIndex] = annotateT(typeParams[typeParameterIndex], a, typePath);
 			break;
 		}
 		case TypeReference.METHOD_TYPE_PARAMETER_BOUND: {
@@ -1638,11 +1638,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final T t = getMd().getTypeParams()[typeParameterIndex];
 			if (typeParameterBoundIndex == 0) {
 				// 0: annotation targets extends type
-				t.setSuperT(annotate(t.getSuperT(), a, typePath));
+				t.setSuperT(annotateT(t.getSuperT(), a, typePath));
 			} else {
 				// 1-based interface index
 				final T[] interfaceTs = t.getInterfaceTs();
-				interfaceTs[typeParameterBoundIndex - 1] = annotate(
+				interfaceTs[typeParameterBoundIndex - 1] = annotateT(
 						interfaceTs[typeParameterBoundIndex - 1], a, typePath);
 			}
 			break;
@@ -1650,7 +1650,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case TypeReference.THROWS: {
 			final int exceptionIndex = typeReference.getExceptionIndex();
 			final T[] throwsTs = getMd().getThrowsTs();
-			throwsTs[exceptionIndex] = annotate(throwsTs[exceptionIndex], a, typePath);
+			throwsTs[exceptionIndex] = annotateT(throwsTs[exceptionIndex], a, typePath);
 			break;
 		}
 		default:

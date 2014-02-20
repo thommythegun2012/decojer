@@ -27,7 +27,9 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.methods.QualifiedM;
 import org.objectweb.asm.TypePath;
 
 /**
@@ -40,42 +42,26 @@ public class ReadUtils {
 	private final static Logger LOGGER = Logger.getLogger(ReadUtils.class.getName());
 
 	/**
-	 * Annotate given type with annotation under consideration of the type path.
+	 * Annotate given method with annotation under consideration of the type path.
 	 * 
-	 * @param t
-	 *            type
+	 * @param m
+	 *            method
 	 * @param a
 	 *            annotation
 	 * @param typePath
 	 *            type path
-	 * @return annotated type
+	 * @return annotated method
 	 */
-	public static T annotate(final T t, final A a, final TypePath typePath) {
-		return annotate(t, a, typePath, 0);
-	}
-
-	private static T annotate(final T t, final A a, final TypePath typePath, final int index) {
-		int innerCounter = 0;
-		if (typePath != null) {
-			final int typePathLength = typePath.getLength();
-			for (; index + innerCounter < typePathLength; ++innerCounter) {
-				if (typePath.getStep(index + innerCounter) != TypePath.INNER_TYPE) {
-					break;
-				}
-				assert typePath.getStepArgument(index + innerCounter) == 0 : "type path step argument for INNER must be 0";
-			}
+	public static M annotateM(final M m, final A a, final TypePath typePath) {
+		final T annotatedT = annotateT(m.getT(), a, typePath);
+		if (m.getT() == annotatedT) {
+			return m;
 		}
-		final T[] qualifierTs = t.getQualifierTs();
-		if (innerCounter >= qualifierTs.length) {
-			LOGGER.warning("Not enough qualifiers in '" + t
-					+ "' for type annotation with path depth '" + innerCounter + "'!");
-			return t;
+		if (m instanceof QualifiedM) {
+			m.setT(annotatedT);
+			return m;
 		}
-		if (innerCounter == qualifierTs.length - 1) {
-			return annotatePart(qualifierTs[innerCounter], a, typePath, index + innerCounter);
-		}
-		return DU.getQualifiedT(
-				annotatePart(qualifierTs[innerCounter], a, typePath, index + innerCounter), t);
+		return new QualifiedM(annotatedT, m);
 	}
 
 	private static T annotatePart(final T t, final A a, final TypePath typePath, final int index) {
@@ -119,7 +105,7 @@ public class ReadUtils {
 						+ "' for type annotation path!");
 				break;
 			}
-			t.setComponentT(annotate(componentT, a, typePath, index + 1));
+			t.setComponentT(annotateT(componentT, a, typePath, index + 1));
 			return t;
 		}
 		case TypePath.INNER_TYPE: {
@@ -133,7 +119,7 @@ public class ReadUtils {
 				break;
 			}
 			final T typeArg = typeArgs[arg];
-			typeArgs[arg] = annotate(typeArg, a, typePath, index + 1);
+			typeArgs[arg] = annotateT(typeArg, a, typePath, index + 1);
 			break;
 		}
 		case TypePath.WILDCARD_BOUND: {
@@ -144,7 +130,7 @@ public class ReadUtils {
 				LOGGER.warning("No wildcard bound in '" + t + "' for type annotation path!");
 				break;
 			}
-			t.setBoundT(annotate(boundT, a, typePath, index + 1));
+			t.setBoundT(annotateT(boundT, a, typePath, index + 1));
 			break;
 		}
 		default:
@@ -152,6 +138,45 @@ public class ReadUtils {
 					+ "' for type annotation path with argument '" + arg + "'!");
 		}
 		return t;
+	}
+
+	/**
+	 * Annotate given type with annotation under consideration of the type path.
+	 * 
+	 * @param t
+	 *            type
+	 * @param a
+	 *            annotation
+	 * @param typePath
+	 *            type path
+	 * @return annotated type
+	 */
+	public static T annotateT(final T t, final A a, final TypePath typePath) {
+		return annotateT(t, a, typePath, 0);
+	}
+
+	private static T annotateT(final T t, final A a, final TypePath typePath, final int index) {
+		int innerCounter = 0;
+		if (typePath != null) {
+			final int typePathLength = typePath.getLength();
+			for (; index + innerCounter < typePathLength; ++innerCounter) {
+				if (typePath.getStep(index + innerCounter) != TypePath.INNER_TYPE) {
+					break;
+				}
+				assert typePath.getStepArgument(index + innerCounter) == 0 : "type path step argument for INNER must be 0";
+			}
+		}
+		final T[] qualifierTs = t.getQualifierTs();
+		if (innerCounter >= qualifierTs.length) {
+			LOGGER.warning("Not enough qualifiers in '" + t
+					+ "' for type annotation with path depth '" + innerCounter + "'!");
+			return t;
+		}
+		if (innerCounter == qualifierTs.length - 1) {
+			return annotatePart(qualifierTs[innerCounter], a, typePath, index + innerCounter);
+		}
+		return DU.getQualifiedT(
+				annotatePart(qualifierTs[innerCounter], a, typePath, index + innerCounter), t);
 	}
 
 	private ReadUtils() {

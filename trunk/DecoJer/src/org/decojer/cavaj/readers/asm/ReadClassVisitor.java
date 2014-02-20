@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.readers.asm;
 
-import static org.decojer.cavaj.readers.asm.ReadUtils.annotate;
+import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
 import java.util.logging.Logger;
@@ -222,12 +222,13 @@ public class ReadClassVisitor extends ClassVisitor {
 			final int superTypeIndex = typeReference.getSuperTypeIndex();
 			if (superTypeIndex == -1) {
 				// -1: annotation targets extends type
-				getTd().setSuperT(annotate(getTd().getSuperT(), a, typePath));
+				getTd().setSuperT(annotateT(getTd().getSuperT(), a, typePath));
 			} else {
 				// 0-based interface index
 				final T[] interfaceTs = getTd().getInterfaceTs();
 				if (superTypeIndex < interfaceTs.length) {
-					interfaceTs[superTypeIndex] = annotate(interfaceTs[superTypeIndex], a, typePath);
+					interfaceTs[superTypeIndex] = annotateT(interfaceTs[superTypeIndex], a,
+							typePath);
 				} else {
 					LOGGER.warning("Super type index '" + superTypeIndex + "' is to large for '"
 							+ getTd() + "'!");
@@ -238,7 +239,7 @@ public class ReadClassVisitor extends ClassVisitor {
 		case TypeReference.CLASS_TYPE_PARAMETER: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
 			final T[] typeParams = getTd().getTypeParams();
-			typeParams[typeParameterIndex] = annotate(typeParams[typeParameterIndex], a, typePath);
+			typeParams[typeParameterIndex] = annotateT(typeParams[typeParameterIndex], a, typePath);
 			break;
 		}
 		case TypeReference.CLASS_TYPE_PARAMETER_BOUND: {
@@ -247,12 +248,12 @@ public class ReadClassVisitor extends ClassVisitor {
 			final T t = getTd().getTypeParams()[typeParameterIndex];
 			if (typeParameterBoundIndex == 0) {
 				// 0: annotation targets extends type
-				t.setSuperT(annotate(t.getSuperT(), a, typePath));
+				t.setSuperT(annotateT(t.getSuperT(), a, typePath));
 			} else {
 				// 1-based interface index
 				final T[] interfaceTs = t.getInterfaceTs();
 				if (typeParameterBoundIndex - 1 < interfaceTs.length) {
-					interfaceTs[typeParameterBoundIndex - 1] = annotate(
+					interfaceTs[typeParameterBoundIndex - 1] = annotateT(
 							interfaceTs[typeParameterBoundIndex - 1], a, typePath);
 				} else {
 					LOGGER.warning("Type parameter bound index '" + (typeParameterBoundIndex - 1)

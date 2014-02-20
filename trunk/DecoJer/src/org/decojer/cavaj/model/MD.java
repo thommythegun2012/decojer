@@ -30,6 +30,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.methods.ClassM;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
@@ -59,7 +60,7 @@ public final class MD extends BD {
 	private CFG cfg;
 
 	@Getter
-	private final M m;
+	private final ClassM m;
 
 	/**
 	 * AST method declaration.
@@ -106,7 +107,7 @@ public final class MD extends BD {
 	 * @param m
 	 *            method
 	 */
-	protected MD(final M m) {
+	public MD(final ClassM m) {
 		assert m != null;
 
 		this.m = m;
@@ -157,6 +158,11 @@ public final class MD extends BD {
 		return this.paramNames[i];
 	}
 
+	/**
+	 * Get parameter types.
+	 * 
+	 * @return parameter types
+	 */
 	public T[] getParamTs() {
 		return getM().getParamTs();
 	}
@@ -202,7 +208,7 @@ public final class MD extends BD {
 	 * Is initializer?
 	 * 
 	 * @return {@code true} - is initializer
-	 * @see M#isInitializer()
+	 * @see ClassM#isInitializer()
 	 */
 	public boolean isInitializer() {
 		return getM().isInitializer();
