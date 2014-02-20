@@ -269,4 +269,5 @@ public class ReadClassVisitor extends ClassVisitor {
 		}
 		return this.readAnnotationMemberVisitor;
 	}
+
 }
