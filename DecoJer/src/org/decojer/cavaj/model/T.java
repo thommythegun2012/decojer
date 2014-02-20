@@ -28,6 +28,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.decojer.cavaj.model.methods.ClassM;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.IntersectionT;
 import org.decojer.cavaj.model.types.Kind;
@@ -473,6 +474,17 @@ public abstract class T {
 		return null;
 	}
 
+	/**
+	 * Create type declaration for this type.
+	 * 
+	 * @return type declaration
+	 */
+	public TD createTd() {
+		assert false;
+
+		return null;
+	}
+
 	@Override
 	public boolean equals(final Object obj) {
 		if (this == obj) {
@@ -715,7 +727,7 @@ public abstract class T {
 		final String handle = name + desc;
 		M m = (M) getMember().get(handle);
 		if (m == null) {
-			m = new M(this, name, desc);
+			m = new ClassM(this, name, desc);
 			getMember().put(handle, m);
 		}
 		return m;
@@ -1171,6 +1183,18 @@ public abstract class T {
 	}
 
 	/**
+	 * Set enclosing method (since JVM 5).
+	 * 
+	 * @param enclosingM
+	 *            enclosing method
+	 * 
+	 * @see ClassT#setEnclosingT(T)
+	 */
+	public void setEnclosingM(final M enclosingM) {
+		assert false;
+	}
+
+	/**
 	 * Set enclosing class type (since JVM 5).
 	 * 
 	 * There are five kinds of classes (or interfaces):<br>
@@ -1202,6 +1226,21 @@ public abstract class T {
 	 * @see Class#getEnclosingClass()
 	 */
 	public void setEnclosingT(final T enclosingT) {
+		assert false;
+	}
+
+	/**
+	 * Set inner info.<br>
+	 * Inner name: Can derive for JVM > 5 from type names (compatibility rules), but not before.<br>
+	 * Inner access flags: Have _exclusively_ modifiers PROTECTED, PRIVATE, STATIC, but not SUPER
+	 * 
+	 * @param name
+	 *            inner name
+	 * @param accessFlags
+	 *            inner access flags
+	 * @see T#getInnerName()
+	 */
+	public void setInnerInfo(final String name, final int accessFlags) {
 		assert false;
 	}
 

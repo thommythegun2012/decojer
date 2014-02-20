@@ -47,6 +47,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.DecoJerException;
+import org.decojer.cavaj.model.methods.ClassM;
 import org.decojer.cavaj.model.types.AnnotatedT;
 import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
@@ -135,7 +136,8 @@ public final class DU {
 	 * Get default qualified type for given type, converting type parameters to type arguments with
 	 * variables.
 	 * 
-	 * This is for instance used for generating fully qualified types for {@link M#setReceiverT(T)}.
+	 * This is for instance used for generating fully qualified types for
+	 * {@link ClassM#setReceiverT(T)}.
 	 * 
 	 * TODO doesn't yet work this way because we would have to read outer types first
 	 * 
@@ -400,7 +402,7 @@ public final class DU {
 	 * @return method
 	 */
 	public M getDynamicM(final String name, final String descriptor) {
-		return new M(this, name, descriptor);
+		return new ClassM(this, name, descriptor);
 	}
 
 	/**

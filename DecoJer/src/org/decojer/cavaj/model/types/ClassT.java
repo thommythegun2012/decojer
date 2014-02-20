@@ -126,11 +126,7 @@ public class ClassT extends T {
 		return (this.accessFlags & af.getValue()) != 0;
 	}
 
-	/**
-	 * Create type declaration for this type.
-	 * 
-	 * @return type declaration
-	 */
+	@Override
 	public TD createTd() {
 		assert this.td == null;
 
@@ -319,14 +315,7 @@ public class ClassT extends T {
 		this.accessFlags |= AF.DEPRECATED.getValue();
 	}
 
-	/**
-	 * Set enclosing method (since JVM 5).
-	 * 
-	 * @param enclosingM
-	 *            enclosing method
-	 * 
-	 * @see ClassT#setEnclosingT(T)
-	 */
+	@Override
 	public void setEnclosingM(final M enclosingM) {
 		if (this.enclosing != null && this.enclosing != NONE) {
 			if (this.enclosing.equals(enclosingM)) {
@@ -374,17 +363,7 @@ public class ClassT extends T {
 		this.enclosing = enclosingT;
 	}
 
-	/**
-	 * Set inner info.<br>
-	 * Inner name: Can derive for JVM > 5 from type names (compatibility rules), but not before.<br>
-	 * Inner access flags: Have _exclusively_ modifiers PROTECTED, PRIVATE, STATIC, but not SUPER
-	 * 
-	 * @param name
-	 *            inner name
-	 * @param accessFlags
-	 *            inner access flags
-	 * @see T#getInnerName()
-	 */
+	@Override
 	public void setInnerInfo(final String name, final int accessFlags) {
 		// inner access flags have _exclusively_ following modifiers: PROTECTED, PRIVATE, STATIC,
 		// but not: SUPER

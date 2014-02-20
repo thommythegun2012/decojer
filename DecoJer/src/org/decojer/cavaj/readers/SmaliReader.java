@@ -135,7 +135,7 @@ public class SmaliReader implements DexReader {
 							selectorPrefix.length()) != -1)) {
 				continue;
 			}
-			final ClassT t = (ClassT) this.du.getDescT(typeDescriptor);
+			final T t = this.du.getDescT(typeDescriptor);
 			if (t.getTd() != null) {
 				LOGGER.warning("Type '" + t + "' already read!");
 				continue;

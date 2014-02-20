@@ -63,7 +63,7 @@ public abstract class D {
 	 * @param bd
 	 *            bode declaration
 	 */
-	protected void addBd(final BD bd) {
+	public void addBd(final BD bd) {
 		if (bd.getParent() != null) {
 			if (bd.getParent() != this) {
 				LOGGER.warning("Cannot change parent declaration for '" + bd + "' from '"
