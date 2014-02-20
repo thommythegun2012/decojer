@@ -191,10 +191,23 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			return false;
 		}
-		// TODO we need some kind of ParameterizedM for this:
-		// CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT
-		// METHOD_INVOCATION_TYPE_ARGUMENT
-		// also for this, setT() wrong here because m is cached! only OK for receiver
+		case TypeReference.CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT:
+		case TypeReference.METHOD_INVOCATION_TYPE_ARGUMENT: {
+			if (op instanceof INVOKE) {
+				LOGGER.warning(getMd()
+						+ ": Missing bytecode info, cannot really apply type annotation ref sort 'CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT' or 'METHOD_INVOCATION_TYPE_ARGUMENT' : "
+						+ typeRef + " : " + typePath + " : " + a);
+				return true;
+			}
+			if (logError) {
+				LOGGER.warning(getMd()
+						+ ": Wrong operation '"
+						+ op
+						+ "' for type annotation ref sort 'CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT' or 'METHOD_INVOCATION_TYPE_ARGUMENT' : "
+						+ typeRef + " : " + typePath + " : " + a);
+			}
+			return false;
+		}
 		case TypeReference.CONSTRUCTOR_REFERENCE:
 		case TypeReference.METHOD_REFERENCE: {
 			if (op instanceof INVOKE) {
@@ -213,9 +226,26 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			return false;
 		}
-		// TODO we need some kind of ParameterizedM for this:
-		// CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT
-		// METHOD_REFERENCE_TYPE_ARGUMENT
+		case TypeReference.CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT:
+		case TypeReference.METHOD_REFERENCE_TYPE_ARGUMENT: {
+			if (op instanceof INVOKE) {
+				final Object[] bsArgs = ((INVOKE) op).getBsArgs();
+				if (bsArgs != null && bsArgs.length > 1 && bsArgs[1] instanceof M) {
+					LOGGER.warning(getMd()
+							+ ": Missing bytecode info, cannot really apply type annotation ref sort 'CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT' or 'METHOD_REFERENCE_TYPE_ARGUMENT' : "
+							+ typeRef + " : " + typePath + " : " + a);
+					return true;
+				}
+			}
+			if (logError) {
+				LOGGER.warning(getMd()
+						+ ": Wrong operation '"
+						+ op
+						+ "' for type annotation ref sort 'CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT' or 'METHOD_REFERENCE_TYPE_ARGUMENT' : "
+						+ typeRef + " : " + typePath + " : " + a);
+			}
+			return false;
+		}
 		case TypeReference.NEW: {
 			if (op instanceof NEW || op instanceof NEWARRAY) {
 				((TypedOp) op).setT(annotateT(((TypedOp) op).getT(), a, typePath));
