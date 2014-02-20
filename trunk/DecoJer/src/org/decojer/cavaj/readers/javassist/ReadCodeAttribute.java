@@ -86,7 +86,6 @@ import org.decojer.cavaj.model.code.ops.SWAP;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
-import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Cursor;
 
 import com.google.common.collect.Lists;
@@ -588,7 +587,7 @@ public class ReadCodeAttribute {
 				codeReader.readUnsignedByte(); // reserved, unused
 
 				final T ownerT = getT(constPool, constPool.getInterfaceMethodrefClass(methodIndex));
-				((ClassT) ownerT).setInterface(true);
+				ownerT.setInterface(true);
 				final M m = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
 				m.setStatic(false);
@@ -602,7 +601,7 @@ public class ReadCodeAttribute {
 				final int cpMethodIndex = codeReader.readUnsignedShort();
 
 				final T ownerT = getT(constPool, constPool.getMethodrefClass(cpMethodIndex));
-				((ClassT) ownerT).setInterface(false);
+				// static also possible in interface since JVM 8: not ownerT.setInterface(false)
 				final M m = ownerT.getM(constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
 				m.setStatic(opcode == Opcode.INVOKESTATIC);
