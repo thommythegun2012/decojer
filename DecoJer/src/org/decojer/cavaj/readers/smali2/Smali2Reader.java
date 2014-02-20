@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.readers;
+package org.decojer.cavaj.readers.smali2;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +40,7 @@ import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ClassT;
-import org.decojer.cavaj.readers.smali2.ReadMethodImplementation;
+import org.decojer.cavaj.readers.DexReader;
 import org.jf.dexlib2.AnnotationVisibility;
 import org.jf.dexlib2.Opcodes;
 import org.jf.dexlib2.ValueType;
