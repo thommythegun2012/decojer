@@ -75,7 +75,6 @@ import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
 import org.decojer.cavaj.model.types.ClassT;
-import org.decojer.cavaj.readers.Smali2Reader;
 import org.decojer.cavaj.utils.Cursor;
 import org.jf.dexlib2.DebugItemType;
 import org.jf.dexlib2.Opcode;
