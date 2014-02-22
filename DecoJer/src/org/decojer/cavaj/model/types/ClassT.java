@@ -150,11 +150,15 @@ public class ClassT extends T {
 	@Override
 	public T getEnclosingT() {
 		final Object enclosing = getEnclosing();
-		// like Class#getEnclosingClass()
+		if (enclosing instanceof T) {
+			return (T) enclosing;
+		}
 		if (enclosing instanceof M) {
 			return ((M) enclosing).getT();
 		}
-		return enclosing instanceof T ? (T) enclosing : null;
+		assert false : this + ": enclosing must be T or M";
+
+		return null;
 	}
 
 	@Override
@@ -199,11 +203,7 @@ public class ClassT extends T {
 		return check(AF.DEPRECATED);
 	}
 
-	/**
-	 * Is enum type?
-	 * 
-	 * @return {@code true} - is enum type
-	 */
+	@Override
 	public boolean isEnum() {
 		return check(AF.ENUM);
 	}
@@ -216,6 +216,11 @@ public class ClassT extends T {
 	@Override
 	public boolean isObject() {
 		return is(Object.class);
+	}
+
+	@Override
+	public boolean isStatic() {
+		return check(AF.STATIC);
 	}
 
 	/**
