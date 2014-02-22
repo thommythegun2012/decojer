@@ -633,17 +633,20 @@ public final class TrCfg2JavaExpressionStmts {
 							break;
 						}
 						if (expression instanceof ClassInstanceCreation) {
-							final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) expression;
-							if (classInstanceCreation.getAnonymousClassDeclaration() != null) {
-								// if none-static context remove initial this parameter or check
-								// this$0 in inner?
+							if (!m.getT().isStatic()) {
+								// inner classes get synthetic this reference as first argument
+								if (arguments.size() == 0) {
+									LOGGER.warning(getMd()
+											+ ": inner class new invocation has no this context parameter! No arguments given.");
+								} else if (!(arguments.get(0) instanceof ThisExpression)) {
+									LOGGER.warning(getMd()
+											+ ": inner class new invocation has no this context parameter! Wrong first argument: "
+											+ arguments.get(0));
+								} else {
+									arguments.remove(0);
+								}
 							}
-							// ignore synthetic constructor parameter for inner classes:
-							// none-static inner classes get extra constructor argument,
-							// anonymous inner classes are static if context is static
-							// (see SignatureDecompiler.decompileMethodTypes)
-							// TODO
-							classInstanceCreation.arguments().addAll(arguments);
+							((ClassInstanceCreation) expression).arguments().addAll(arguments);
 							// normally there was a DUP in advance, don't use:
 							// basicBlock.pushExpression(classInstanceCreation);
 							break;
@@ -960,8 +963,10 @@ public final class TrCfg2JavaExpressionStmts {
 				final String thisName = getCfg().getTd().getName();
 				final T newT = cop.getT();
 				final String newName = newT.getName();
-				if (newT.validateQualifierName(thisName)) {
-					inner: try {
+				// check for valid inner anonymous
+				anonymous: if (newT.validateQualifierName(thisName)) {
+					try {
+						// anonymous classes typically use a number postfix, try it
 						Integer.parseInt(newName.substring(thisName.length() + 1));
 
 						final TD newTd = ((ClassT) newT).getTd();
@@ -979,20 +984,13 @@ public final class TrCfg2JavaExpressionStmts {
 										.getTd()));
 								break;
 							default:
-								break inner;
+								break anonymous;
 							}
-							if (newTd.getParent() == null) {
-								// TODO getCfg().getCu().addTd(newTd);
-							}
-							// TODO newTd.setPd(getMd());
-
 							final AnonymousClassDeclaration anonymousClassDeclaration = setOp(
 									getAst().newAnonymousClassDeclaration(), op);
 							newTd.setTypeDeclaration(anonymousClassDeclaration);
-
 							classInstanceCreation
 									.setAnonymousClassDeclaration(anonymousClassDeclaration);
-
 							bb.push(classInstanceCreation);
 							break;
 						}
