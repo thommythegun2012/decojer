@@ -156,7 +156,7 @@ public class ClassT extends T {
 		if (enclosing instanceof M) {
 			return ((M) enclosing).getT();
 		}
-		assert false : this + ": enclosing must be T or M";
+		assert enclosing != NONE : this + ": enclosing must be T or M";
 
 		return null;
 	}

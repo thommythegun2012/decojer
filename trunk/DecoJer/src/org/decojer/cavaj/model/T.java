@@ -797,6 +797,9 @@ public abstract class T {
 	 * @return qualifier type
 	 */
 	public T getQualifierT() {
+		if (isStatic()) {
+			return null;
+		}
 		return getEnclosingT();
 	}
 
