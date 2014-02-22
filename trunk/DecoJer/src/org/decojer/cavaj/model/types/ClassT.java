@@ -138,13 +138,22 @@ public class ClassT extends T {
 		if (this.enclosing == null && isUnresolvable()) {
 			return null;
 		}
-		return this.enclosing == NONE ? null : this.enclosing;
+		if (this.enclosing == NONE) {
+			return null;
+		}
+		assert this.enclosing instanceof T || this.enclosing instanceof M : this
+				+ ": enclosing must be T or M";
+
+		return this.enclosing;
 	}
 
 	@Override
 	public M getEnclosingM() {
 		final Object enclosing = getEnclosing();
-		return enclosing instanceof M ? (M) enclosing : null;
+		if (enclosing instanceof M) {
+			return (M) enclosing;
+		}
+		return null;
 	}
 
 	@Override
@@ -156,8 +165,6 @@ public class ClassT extends T {
 		if (enclosing instanceof M) {
 			return ((M) enclosing).getT();
 		}
-		assert enclosing != NONE : this + ": enclosing must be T or M";
-
 		return null;
 	}
 
