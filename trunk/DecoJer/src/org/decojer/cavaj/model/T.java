@@ -612,7 +612,7 @@ public abstract class T {
 	 * 
 	 * @return enclosing type
 	 * 
-	 * @see ClassT#setEnclosingT(T)
+	 * @see T#setEnclosingT(T)
 	 * @see Class#getEnclosingClass()
 	 */
 	public T getEnclosingT() {
@@ -969,6 +969,7 @@ public abstract class T {
 	 * obfuscate code! Hence this is not a reliable answer.
 	 * 
 	 * @return {@code true} if and only if this class is an anonymous class.
+	 * 
 	 * @see Class#isAnonymousClass()
 	 */
 	public boolean isAnonymous() {
@@ -1051,6 +1052,30 @@ public abstract class T {
 	}
 
 	/**
+	 * Is enum type?
+	 * 
+	 * @return {@code true} - is enum type
+	 */
+	public boolean isEnum() {
+		return false;
+	}
+
+	/**
+	 * Is inner type?
+	 * 
+	 * @return {@code true}- is inner type
+	 */
+	public boolean isInner() {
+		if (!isNested()) {
+			return false;
+		}
+		if (isStatic()) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
 	 * Is interface?
 	 * 
 	 * @return {@code true} - is interface
@@ -1075,6 +1100,17 @@ public abstract class T {
 	 */
 	public boolean isMulti() {
 		return false; // only primitive types can be multi types, overwrite in PrimitiveT
+	}
+
+	/**
+	 * Is nested type? Includes none-static inner types.
+	 * 
+	 * @return {@code true}- is nested type
+	 * 
+	 * @see T#getEnclosingT()
+	 */
+	public boolean isNested() {
+		return getEnclosingT() != null;
 	}
 
 	/**
@@ -1120,6 +1156,15 @@ public abstract class T {
 	 */
 	public boolean isRef() {
 		return true; // only primitive types can not be references, overwrite in PrimitiveT
+	}
+
+	/**
+	 * Is static type?
+	 * 
+	 * @return {@code true} - is static type
+	 */
+	public boolean isStatic() {
+		return true;
 	}
 
 	/**
