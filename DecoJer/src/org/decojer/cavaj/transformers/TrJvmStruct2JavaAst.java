@@ -341,6 +341,7 @@ public final class TrJvmStruct2JavaAst {
 					}
 				}
 				if (i == 0 && t.isInner()) {
+					// inner class constructor has synthetic this reference as first argument: skip
 					if (md.getParamTs()[0].is(t.getEnclosingT())) {
 						continue;
 					}

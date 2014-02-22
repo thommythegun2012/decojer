@@ -635,7 +635,7 @@ public final class TrCfg2JavaExpressionStmts {
 						if (expression instanceof ClassInstanceCreation) {
 							if (m.getT().isInner()) {
 								// inner class constructor invocation has synthetic this reference
-								// as first argument: remove here
+								// as first argument: remove
 								if (arguments.size() == 0) {
 									LOGGER.warning(getMd()
 											+ ": Inner class constructor invocation has no synthetic this reference as first argument! No arguments given.");
