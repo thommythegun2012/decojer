@@ -633,14 +633,15 @@ public final class TrCfg2JavaExpressionStmts {
 							break;
 						}
 						if (expression instanceof ClassInstanceCreation) {
-							if (!m.getT().isStatic()) {
-								// inner classes get synthetic this reference as first argument
+							if (m.getT().isInner()) {
+								// inner class constructor invocation has synthetic this reference
+								// as first argument: remove here
 								if (arguments.size() == 0) {
 									LOGGER.warning(getMd()
-											+ ": inner class new invocation has no this context parameter! No arguments given.");
+											+ ": Inner class constructor invocation has no synthetic this reference as first argument! No arguments given.");
 								} else if (!(arguments.get(0) instanceof ThisExpression)) {
 									LOGGER.warning(getMd()
-											+ ": inner class new invocation has no this context parameter! Wrong first argument: "
+											+ ": Inner class constructor invocation has no synthetic this reference as first argument! Wrong first argument: "
 											+ arguments.get(0));
 								} else {
 									arguments.remove(0);

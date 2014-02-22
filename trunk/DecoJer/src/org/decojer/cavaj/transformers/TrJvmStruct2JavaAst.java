@@ -320,6 +320,7 @@ public final class TrJvmStruct2JavaAst {
 		// <U:TT;>(TT;TU;)V
 		final MethodDeclaration methodDeclaration = (MethodDeclaration) md.getMethodDeclaration();
 		final TD td = md.getTd();
+		final T t = td.getT();
 		final AST ast = td.getCu().getAst();
 
 		final T[] paramTs = md.getParamTs();
@@ -328,7 +329,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 		final A[][] paramAss = md.getParamAss();
 		for (int i = 0; i < paramTs.length; ++i) {
-			if (methodDeclaration.isConstructor()) {
+			if (md.isConstructor()) {
 				if (i <= 1 && td.check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
 					// enum constructors have two leading synthetic parameters,
 					// enum classes are static and can not be anonymous or inner method
@@ -338,6 +339,13 @@ public final class TrJvmStruct2JavaAst {
 					if (i == 1 && md.getParamTs()[1] == T.INT) {
 						continue;
 					}
+				}
+				if (i == 0 && t.isInner()) {
+					if (md.getParamTs()[0].is(t.getEnclosingT())) {
+						continue;
+					}
+					LOGGER.warning(md
+							+ ": Inner class constructor has no synthetic this reference as first argument!");
 				}
 				// anonymous inner classes cannot have visible Java constructors, don't handle
 				// here but ignore in merge all
