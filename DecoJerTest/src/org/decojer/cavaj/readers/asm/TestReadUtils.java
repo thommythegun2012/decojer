@@ -28,11 +28,11 @@ public class TestReadUtils {
 	void annotate() {
 		final A a = new A(du.getT("Nonnull"), RetentionPolicy.RUNTIME);
 
-		T t = ReadUtils.annotate(du.getObjectT(), a, null);
+		T t = ReadUtils.annotateT(du.getObjectT(), a, null);
 		assertEquals(t.getFullName(), "@Nonnull java.lang.Object");
 
 		// this should annotate Map, not Entry:
-		t = ReadUtils.annotate(du.getT(Map.Entry.class), a, null);
+		t = ReadUtils.annotateT(du.getT(Map.Entry.class), a, null);
 		// outest enclosing / qualifier is annotated, not myself
 		assertFalse(t.isAnnotated());
 		assertTrue(t.isQualified());
