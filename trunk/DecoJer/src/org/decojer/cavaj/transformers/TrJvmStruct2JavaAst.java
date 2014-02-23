@@ -77,16 +77,24 @@ public final class TrJvmStruct2JavaAst {
 	private final static Logger LOGGER = Logger.getLogger(TrJvmStruct2JavaAst.class.getName());
 
 	private static void decompileField(final FD fd, final CU cu) {
-		if (fd.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
-			return;
-		}
 		final String name = fd.getName();
 		final TD td = fd.getTd();
 
-		// enum synthetic fields
-		if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.check(AF.ENUM)
-				&& !cu.check(DFlag.IGNORE_ENUM)) {
-			// could extract this field name from initializer for more robustness
+		if (fd.isStatic()) {
+			// enum synthetic fields
+			if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.check(AF.ENUM)
+					&& !cu.check(DFlag.IGNORE_ENUM)) {
+				// TODO could extract this field name from initializer for more robustness
+				return;
+			}
+		} else {
+			if (name.startsWith("this$") && td.isInner() && fd.getValueT().is(td.getEnclosingT())
+					&& !cu.check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
+				// TODO could extract this field name from constructor for more robustness
+				return;
+			}
+		}
+		if (fd.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 		final AST ast = cu.getAst();
@@ -166,16 +174,17 @@ public final class TrJvmStruct2JavaAst {
 	}
 
 	private static void decompileMethod(final MD md, final CU cu, final boolean strictFp) {
-		if (md.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
-			return;
-		}
 		final String name = md.getName();
 		final TD td = md.getTd();
 
 		// enum synthetic methods
-		if (("values".equals(name) && md.getParamTs().length == 0 || "valueOf".equals(name)
-				&& md.getParamTs().length == 1 && md.getParamTs()[0].is(String.class))
+		if (md.isStatic()
+				&& ("values".equals(name) && md.getParamTs().length == 0 || "valueOf".equals(name)
+						&& md.getParamTs().length == 1 && md.getParamTs()[0].is(String.class))
 				&& td.check(AF.ENUM) && !cu.check(DFlag.IGNORE_ENUM)) {
+			return;
+		}
+		if (md.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 		final AST ast = cu.getAst();
@@ -377,76 +386,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 	}
 
-	/**
-	 * Decompile Type Parameters.
-	 * 
-	 * @param typeParams
-	 *            Type Parameters
-	 * @param typeParameters
-	 *            AST Type Parameters
-	 * @param td
-	 *            Type Declaration
-	 */
-	private static void decompileTypeParams(final T[] typeParams,
-			final List<TypeParameter> typeParameters, final TD td) {
-		if (typeParams == null) {
-			return;
-		}
-		final AST ast = td.getCu().getAst();
-		for (final T typeParam : typeParams) {
-			final TypeParameter typeParameter = ast.newTypeParameter();
-			typeParameter.setName(newSimpleName(typeParam.getName(), ast));
-			Annotations.decompileAnnotations(td, typeParameter.modifiers(), typeParam);
-			final T superT = typeParam.getSuperT();
-			if (superT != null && !superT.isObject()) {
-				typeParameter.typeBounds().add(newType(superT, td));
-			}
-			for (final T interfaceT : typeParam.getInterfaceTs()) {
-				typeParameter.typeBounds().add(newType(interfaceT, td));
-			}
-			typeParameters.add(typeParameter);
-		}
-	}
-
-	/**
-	 * Transform type declaration.
-	 * 
-	 * @param td
-	 *            type declaration
-	 */
-	public static void transform(final TD td) {
-		final CU cu = td.getCu();
-
-		if (cu.getCompilationUnit() == null) {
-			// initializes AST for compilation unit if still uninitialized
-			final ASTParser parser = ASTParser.newParser(AST.JLS8);
-			parser.setSource(new char[0]);
-			final CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
-			compilationUnit.recordModifications();
-			// decompile package name
-			final String packageName = td.getPackageName();
-			if (packageName != null) {
-				final PackageDeclaration packageDeclaration = compilationUnit.getAST()
-						.newPackageDeclaration();
-				packageDeclaration.setName(compilationUnit.getAST().newName(packageName));
-				compilationUnit.setPackage(packageDeclaration);
-			}
-			cu.setCompilationUnit(compilationUnit);
-		}
-		final AST ast = cu.getAst();
-
-		if ("package-info".equals(td.getPName())) {
-			// this is not a valid Java type name and is used for package annotations, we must
-			// handle this here, is "interface" in JDK 5, is "abstract synthetic interface" in JDK 7
-			if (!td.isInterface()) {
-				LOGGER.warning("Type declaration with name 'package-info' is not an interface!");
-			}
-			if (td.getAs() != null) {
-				Annotations.decompileAnnotations(td, cu.getCompilationUnit().getPackage()
-						.annotations(), td.getAs());
-			}
-			return;
-		}
+	private static void decompileType(final TD td, final CU cu) {
 		if (td.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
@@ -463,6 +403,7 @@ public final class TrJvmStruct2JavaAst {
 			}
 			strictFp = true;
 		}
+		final AST ast = cu.getAst();
 
 		if (td.getTypeDeclaration() == null) {
 			AbstractTypeDeclaration typeDeclaration = null;
@@ -584,6 +525,77 @@ public final class TrJvmStruct2JavaAst {
 				decompileMethod((MD) bd, cu, strictFp);
 			}
 		}
+	}
+
+	/**
+	 * Decompile Type Parameters.
+	 * 
+	 * @param typeParams
+	 *            Type Parameters
+	 * @param typeParameters
+	 *            AST Type Parameters
+	 * @param td
+	 *            Type Declaration
+	 */
+	private static void decompileTypeParams(final T[] typeParams,
+			final List<TypeParameter> typeParameters, final TD td) {
+		if (typeParams == null) {
+			return;
+		}
+		final AST ast = td.getCu().getAst();
+		for (final T typeParam : typeParams) {
+			final TypeParameter typeParameter = ast.newTypeParameter();
+			typeParameter.setName(newSimpleName(typeParam.getName(), ast));
+			Annotations.decompileAnnotations(td, typeParameter.modifiers(), typeParam);
+			final T superT = typeParam.getSuperT();
+			if (superT != null && !superT.isObject()) {
+				typeParameter.typeBounds().add(newType(superT, td));
+			}
+			for (final T interfaceT : typeParam.getInterfaceTs()) {
+				typeParameter.typeBounds().add(newType(interfaceT, td));
+			}
+			typeParameters.add(typeParameter);
+		}
+	}
+
+	/**
+	 * Transform type declaration.
+	 * 
+	 * @param td
+	 *            type declaration
+	 */
+	public static void transform(final TD td) {
+		final CU cu = td.getCu();
+
+		if (cu.getCompilationUnit() == null) {
+			// initializes AST for compilation unit if still uninitialized
+			final ASTParser parser = ASTParser.newParser(AST.JLS8);
+			parser.setSource(new char[0]);
+			final CompilationUnit compilationUnit = (CompilationUnit) parser.createAST(null);
+			compilationUnit.recordModifications();
+			// decompile package name
+			final String packageName = td.getPackageName();
+			if (packageName != null) {
+				final PackageDeclaration packageDeclaration = compilationUnit.getAST()
+						.newPackageDeclaration();
+				packageDeclaration.setName(compilationUnit.getAST().newName(packageName));
+				compilationUnit.setPackage(packageDeclaration);
+			}
+			cu.setCompilationUnit(compilationUnit);
+		}
+		if ("package-info".equals(td.getPName())) {
+			// this is not a valid Java type name and is used for package annotations, we must
+			// handle this here, is "interface" in JDK 5, is "abstract synthetic interface" in JDK 7
+			if (!td.isInterface()) {
+				LOGGER.warning("Type declaration with name 'package-info' is not an interface!");
+			}
+			if (td.getAs() != null) {
+				Annotations.decompileAnnotations(td, cu.getCompilationUnit().getPackage()
+						.annotations(), td.getAs());
+			}
+			return;
+		}
+		decompileType(td, cu);
 	}
 
 }

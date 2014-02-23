@@ -2024,8 +2024,7 @@ public final class TrCfg2JavaExpressionStmts {
 				return false;
 			}
 			if (getMd().getTd().isInner() && !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
-				if (f.isSynthetic()) {
-					// TODO more checks if this$0 / $1 etc.
+				if (f.isSynthetic() && f.getName().startsWith("this$")) {
 					bb.pop();
 					return true;
 				}
