@@ -422,14 +422,13 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
 			// enum declaration
-			if (td.isEnum()) {
+			if (td.isEnum() && !td.getCu().check(DFlag.IGNORE_ENUM)) {
 				if (typeDeclaration != null) {
 					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
 					if (td.getSuperT() == null || !td.getSuperT().isParameterized()
 							|| !td.getSuperT().getGenericT().is(Enum.class)) {
-						LOGGER.warning("Type '" + td
-								+ "' with AccessFlag.ENUM has no super class '"
+						LOGGER.warning("Enum type '" + td + "' has no super class '"
 								+ Enum.class.getName() + "' but has '" + td.getSuperT() + "'!");
 					}
 					typeDeclaration = ast.newEnumDeclaration();
