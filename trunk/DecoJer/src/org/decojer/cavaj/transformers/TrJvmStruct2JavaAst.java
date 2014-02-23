@@ -143,7 +143,7 @@ public final class TrJvmStruct2JavaAst {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
 		// static is default for enum and interface
-		if (fd.check(AF.STATIC) && !isEnum && !isInterfaceMember) {
+		if (fd.isStatic() && !isEnum && !isInterfaceMember) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
 		// final is default for enum and interface
@@ -260,7 +260,7 @@ public final class TrJvmStruct2JavaAst {
 		if (md.check(AF.PROTECTED)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
-		if (md.check(AF.STATIC)) {
+		if (md.isStatic()) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
 		if (md.check(AF.FINAL)) {
@@ -478,7 +478,7 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 			}
 			// for inner classes
-			if (td.check(AF.STATIC) && !td.isInterface()) {
+			if (td.isStatic() && !td.isInterface()) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 			}
 			if (td.check(AF.FINAL) && !(typeDeclaration instanceof EnumDeclaration)) {

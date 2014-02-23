@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.D;
@@ -302,7 +301,7 @@ public class TrInnerClassesAnalysis {
 				continue;
 			}
 			final FD fd = (FD) bd;
-			if (!fd.check(AF.STATIC)) {
+			if (!fd.isStatic()) {
 				continue;
 			}
 			if (!fd.getName().startsWith("$SwitchMap$")) {
