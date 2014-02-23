@@ -47,6 +47,7 @@ import java.util.logging.Logger;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
@@ -238,12 +239,15 @@ public final class TrCfg2JavaExpressionStmts {
 	@Getter(value = AccessLevel.PRIVATE)
 	private final CFG cfg;
 
+	@Getter(value = AccessLevel.PRIVATE)
+	@Setter(value = AccessLevel.PRIVATE)
+	private boolean fieldInit;
+
 	private TrCfg2JavaExpressionStmts(final CFG cfg) {
 		this.cfg = cfg;
 	}
 
 	private boolean convertToHLLIntermediate(final BB bb) {
-		boolean fieldInit = true; // small hack for now...later because of conditionals?
 		while (bb.getOps() > 0) {
 			while (isStackUnderflow(bb)) {
 				// try to pull previous single sequence nodes including stack
@@ -590,7 +594,6 @@ public final class TrCfg2JavaExpressionStmts {
 					if (m.isConstructor()) {
 						methodExpression = null;
 						if (expression instanceof ThisExpression) {
-							fieldInit = true;
 							enumConstructor: if (m.getT().is(Enum.class)
 									&& !getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
 								if (arguments.size() < 2) {
@@ -633,7 +636,8 @@ public final class TrCfg2JavaExpressionStmts {
 							break;
 						}
 						if (expression instanceof ClassInstanceCreation) {
-							if (m.getT().isInner()) {
+							if (m.getT().isInner()
+									&& !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
 								// inner class constructor invocation has synthetic this reference
 								// as first argument: remove
 								if (arguments.size() == 0) {
@@ -916,9 +920,28 @@ public final class TrCfg2JavaExpressionStmts {
 				 */
 
 				// must not access method parameters for fieldInits...
-				fieldInit &= cop.getReg() == 0 && getMd().isConstructor()
-						|| !getCfg().getInFrame(op).load(cop.getReg()).isMethodParam();
-
+				fieldInitCheck: if (isFieldInit()) {
+					final R r = getCfg().getInFrame(op).load(cop.getReg());
+					if (!getMd().isConstructor()) {
+						setFieldInit(false);
+						break fieldInitCheck;
+					}
+					if (!r.isMethodParam()) {
+						setFieldInit(false);
+						break fieldInitCheck;
+					}
+					if (cop.getReg() == 0) {
+						break fieldInitCheck; // this
+					}
+					// only synthetic parameters are allowed
+					if (getMd().getTd().getT().isInner()
+							&& !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
+						if (cop.getReg() == 1 && r.getT().is(getMd().getTd().getT())) {
+							break fieldInitCheck;
+						}
+					}
+					setFieldInit(false);
+				}
 				bb.push(getVarExpression(cop.getReg(), cop.getPc(), op));
 				break;
 			}
@@ -1060,7 +1083,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// handled first to mark such fields for consumption?
 				// TODO fieldInit is false for synthetic this$0 initializer in constructor,
 				// also not sufficient check for conditionals, alternative via data flow analysis?!
-				if (fieldInit && rewriteFieldInit(bb, f, rightOperand)) {
+				if (isFieldInit() && rewriteFieldInit(bb, f, rightOperand)) {
 					break;
 				}
 				Expression leftOperand;
@@ -1923,7 +1946,7 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		// TODO this checks are not enough, we must assure that we don't use method
 		// arguments here!!!
-		if (((ClassT) f.getT()).isEnum() && !getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
+		if (f.getT().isEnum() && !getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
 			if (f.check(AF.ENUM)) {
 				// assignment to enum constant declaration
 				if (!(rightOperand instanceof ClassInstanceCreation)) {
@@ -1994,6 +2017,8 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		final FD fd = f.getFd();
 		if (fd == null || !(fd.getFieldDeclaration() instanceof FieldDeclaration)) {
+			assert false : "TODO check this";
+
 			return false;
 		}
 		try {
@@ -2360,6 +2385,7 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private void transform() {
+		setFieldInit(getMd().isConstructor() || getMd().isInitializer());
 		final List<BB> bbs = getCfg().getPostorderedBbs();
 		// for all nodes in _reverse_ postorder: is also backward possible with nice optimizations,
 		// but this way easier handling of dalvik temporary registers
