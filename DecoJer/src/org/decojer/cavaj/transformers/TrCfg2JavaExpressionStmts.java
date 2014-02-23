@@ -2023,7 +2023,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// initial super(<arguments>) is allowed for constructors
 				return false;
 			}
-			if (getMd().getTd().getT().isInner()) {
+			if (getMd().getTd().isInner() && !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
 				if (f.isSynthetic()) {
 					// TODO more checks if this$0 / $1 etc.
 					bb.pop();
