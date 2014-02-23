@@ -621,7 +621,7 @@ public final class TrCfg2JavaExpressionStmts {
 								arguments.remove(0);
 								arguments.remove(0);
 							}
-							if (m.getT().is(getCfg().getTd().getT())) {
+							if (m.getT().is(getCfg().getT())) {
 								final ConstructorInvocation constructorInvocation = getAst()
 										.newConstructorInvocation();
 								constructorInvocation.arguments().addAll(arguments);
@@ -937,7 +937,7 @@ public final class TrCfg2JavaExpressionStmts {
 						break fieldInitCheck; // this
 					}
 					// only synthetic parameters are allowed
-					if (getMd().getTd().getT().isInner()
+					if (getMd().getTd().isInner()
 							&& !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
 						if (cop.getReg() == 1 && r.getT().is(getMd().getParamTs()[0])) {
 							break fieldInitCheck;
@@ -1933,7 +1933,7 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!isFieldInit()) {
 			return false;
 		}
-		if (!getMd().getTd().getT().is(f.getT())) {
+		if (!getMd().getT().is(f.getT())) {
 			return false;
 		}
 		// set local field, could be initializer

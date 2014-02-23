@@ -345,12 +345,21 @@ public final class CFG {
 	}
 
 	/**
+	 * Get type.
+	 * 
+	 * @return type
+	 */
+	public T getT() {
+		return getMd().getT();
+	}
+
+	/**
 	 * Get type declaration.
 	 * 
 	 * @return type declaration
 	 */
 	public TD getTd() {
-		return this.md.getTd();
+		return getT().getTd();
 	}
 
 	/**
@@ -364,7 +373,7 @@ public final class CFG {
 
 		int reg = 0;
 		if (!getMd().isStatic()) {
-			frame.store(0, new R(0, 0, getMd().getTd().getT(), Kind.CONST));
+			frame.store(0, new R(0, 0, getMd().getT(), Kind.CONST));
 			++reg;
 		}
 		final T[] paramTs = getMd().getParamTs();
@@ -493,7 +502,7 @@ public final class CFG {
 
 					// nevertheless we simply overwrite it for now...
 				}
-				this.vss[reg] = new V[] { new V(this.md.getTd().getT(), "this", 0, this.ops.length) };
+				this.vss[reg] = new V[] { new V(this.md.getT(), "this", 0, this.ops.length) };
 			}
 			return;
 		}
@@ -514,8 +523,7 @@ public final class CFG {
 				}
 				++reg;
 			} else {
-				this.vss[reg++] = new V[] { new V(this.md.getTd().getT(), "this", 0,
-						this.ops.length) };
+				this.vss[reg++] = new V[] { new V(this.md.getT(), "this", 0, this.ops.length) };
 			}
 		}
 		for (int i = 0; i < paramTs.length; ++i) {

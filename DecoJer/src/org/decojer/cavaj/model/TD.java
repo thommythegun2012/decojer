@@ -26,6 +26,7 @@ package org.decojer.cavaj.model;
 import java.util.List;
 import java.util.logging.Logger;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -54,7 +55,7 @@ public final class TD extends BD {
 	@Setter
 	private String sourceFileName;
 
-	@Getter
+	@Getter(AccessLevel.PROTECTED)
 	private final ClassT t;
 
 	/**
@@ -160,6 +161,16 @@ public final class TD extends BD {
 	public TD getEnclosingTd() {
 		final T enclosingT = getT().getEnclosingT();
 		return enclosingT == null ? null : enclosingT.getTd();
+	}
+
+	/**
+	 * Get the full name, including modifiers like generic arguments, parameterization, type
+	 * annotations.
+	 * 
+	 * @return full name
+	 */
+	public String getFullName() {
+		return getT().getFullName();
 	}
 
 	/**
@@ -362,6 +373,26 @@ public final class TD extends BD {
 	@Override
 	public void setDeprecated() {
 		getT().setDeprecated();
+	}
+
+	/**
+	 * Set enclosing method.
+	 * 
+	 * @param enclosingM
+	 *            enclosing method
+	 */
+	public void setEnclosingM(final M enclosingM) {
+		getT().setEnclosingM(enclosingM);
+	}
+
+	/**
+	 * Set enclosing class type.
+	 * 
+	 * @param enclosingT
+	 *            enclosing type
+	 */
+	public void setEnclosingT(final ClassT enclosingT) {
+		getT().setEnclosingT(enclosingT);
 	}
 
 	/**

@@ -195,9 +195,9 @@ public class ReadClassVisitor extends ClassVisitor {
 	public void visitOuterClass(final String owner, final String name, final String desc) {
 		final ClassT enclosingT = (ClassT) this.du.getT(owner);
 		if (name == null) {
-			this.td.getT().setEnclosingT(enclosingT);
+			this.td.setEnclosingT(enclosingT);
 		} else {
-			this.td.getT().setEnclosingM(enclosingT.getM(name, desc));
+			this.td.setEnclosingM(enclosingT.getM(name, desc));
 		}
 	}
 
