@@ -936,7 +936,7 @@ public final class TrCfg2JavaExpressionStmts {
 					// only synthetic parameters are allowed
 					if (getMd().getTd().getT().isInner()
 							&& !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
-						if (cop.getReg() == 1 && r.getT().is(getMd().getTd().getT())) {
+						if (cop.getReg() == 1 && r.getT().is(getMd().getParamTs()[0])) {
 							break fieldInitCheck;
 						}
 					}
@@ -1077,13 +1077,10 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			case PUT: {
 				final PUT cop = (PUT) op;
-				final Expression rightOperand = bb.pop();
 				final F f = cop.getF();
-				// TODO we want to rewrite this$0 here, but for this constructor methods have to be
-				// handled first to mark such fields for consumption?
-				// TODO fieldInit is false for synthetic this$0 initializer in constructor,
-				// also not sufficient check for conditionals, alternative via data flow analysis?!
-				if (isFieldInit() && rewriteFieldInit(bb, f, rightOperand)) {
+				final Expression rightOperand = bb.pop();
+				if (rewriteFieldInit(bb, f, rightOperand)) {
+					// was a constructor or initializer field init, done
 					break;
 				}
 				Expression leftOperand;
@@ -1919,6 +1916,9 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteFieldInit(final BB bb, final F f, final Expression rightOperand) {
+		if (!isFieldInit()) {
+			return false;
+		}
 		if (getMd().getTd().getT() != f.getT()) {
 			return false;
 		}
