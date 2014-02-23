@@ -104,6 +104,15 @@ public final class FD extends BD {
 		return getF().getValueT();
 	}
 
+	/**
+	 * Is static field?
+	 * 
+	 * @return {@code true} - is static field
+	 */
+	public boolean isStatic() {
+		return getF().isStatic();
+	}
+
 	@Override
 	public boolean isSynthetic() {
 		return getF().isSynthetic();
