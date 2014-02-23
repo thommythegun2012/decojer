@@ -119,7 +119,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.FIELD:
-			getFd().getF().setValueT(annotateT(getFd().getValueT(), a, typePath));
+			getFd().setValueT(annotateT(getFd().getValueT(), a, typePath));
 			break;
 		default:
 			LOGGER.warning(getFd() + ": Unknown type annotation ref sort '0x"

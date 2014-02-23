@@ -304,6 +304,16 @@ public final class MD extends BD {
 		return getM().setReceiverT(receiverT);
 	}
 
+	/**
+	 * Set return type.
+	 * 
+	 * @param returnT
+	 *            return type
+	 */
+	public void setReturnT(final T returnT) {
+		getM().setReturnT(returnT);
+	}
+
 	@Override
 	public void setSignature(final String signature) {
 		if (signature == null) {

@@ -1650,11 +1650,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// because we would have to read outer classes first
 			getMd().setReceiverT(
 					annotateT(getMd().getReceiverT() != null ? getMd().getReceiverT() : getMd()
-							.getM().getT(), a, typePath));
+							.getT(), a, typePath));
 			break;
 		}
 		case TypeReference.METHOD_RETURN:
-			getMd().getM().setReturnT(annotateT(getMd().getReturnT(), a, typePath));
+			getMd().setReturnT(annotateT(getMd().getReturnT(), a, typePath));
 			break;
 		case TypeReference.METHOD_TYPE_PARAMETER: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();

@@ -25,6 +25,7 @@ package org.decojer.cavaj.model;
 
 import java.util.logging.Logger;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,7 +41,7 @@ public final class FD extends BD {
 
 	private final static Logger LOGGER = Logger.getLogger(FD.class.getName());
 
-	@Getter
+	@Getter(AccessLevel.PROTECTED)
 	private final F f;
 
 	/**
@@ -172,6 +173,16 @@ public final class FD extends BD {
 	@Override
 	public void setSynthetic() {
 		getF().setSynthetic();
+	}
+
+	/**
+	 * Set value type.
+	 * 
+	 * @param valueT
+	 *            value type
+	 */
+	public void setValueT(final T valueT) {
+		getF().setValueT(valueT);
 	}
 
 	@Override
