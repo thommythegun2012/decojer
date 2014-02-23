@@ -36,6 +36,11 @@ public enum DFlag {
 	IGNORE_ENUM,
 
 	/**
+	 * Ignore synthetic this-reference as first argument in inner class constructor.
+	 */
+	IGNORE_CONSTRUCTOR_THIS,
+
+	/**
 	 * Ignore exceptions?
 	 */
 	IGNORE_EXCEPTIONS,

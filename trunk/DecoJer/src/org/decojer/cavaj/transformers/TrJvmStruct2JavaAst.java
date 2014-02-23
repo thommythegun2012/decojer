@@ -340,7 +340,7 @@ public final class TrJvmStruct2JavaAst {
 						continue;
 					}
 				}
-				if (i == 0 && t.isInner()) {
+				if (i == 0 && t.isInner() && !td.getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
 					// inner class constructor has synthetic this reference as first argument: skip
 					if (md.getParamTs()[0].is(t.getEnclosingT())) {
 						continue;
