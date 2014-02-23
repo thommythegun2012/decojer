@@ -50,7 +50,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
@@ -1946,7 +1945,7 @@ public final class TrCfg2JavaExpressionStmts {
 				return false;
 			}
 			if (f.getT().isEnum() && !getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
-				if (f.check(AF.ENUM)) {
+				if (f.isEnum()) {
 					// assignment to enum constant declaration
 					if (!(rightOperand instanceof ClassInstanceCreation)) {
 						LOGGER.warning(getMd() + ": Assignment to enum field '" + f

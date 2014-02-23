@@ -113,18 +113,27 @@ public class F {
 	}
 
 	/**
-	 * Is static field?
+	 * Is enum?
 	 * 
-	 * @return {@code true} - is static field
+	 * @return {@code true} - is enum
+	 */
+	public boolean isEnum() {
+		return check(AF.ENUM);
+	}
+
+	/**
+	 * Is static?
+	 * 
+	 * @return {@code true} - is static
 	 */
 	public boolean isStatic() {
 		return check(AF.STATIC);
 	}
 
 	/**
-	 * Is synthetic field?
+	 * Is synthetic?
 	 * 
-	 * @return {@code true} - is synthetic field
+	 * @return {@code true} - is synthetic
 	 */
 	public boolean isSynthetic() {
 		return check(AF.SYNTHETIC);

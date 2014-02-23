@@ -214,11 +214,7 @@ public final class MD extends BD {
 		return getM().isInitializer();
 	}
 
-	/**
-	 * Is static method?
-	 * 
-	 * @return {@code true} - is static method
-	 */
+	@Override
 	public boolean isStatic() {
 		return getM().isStatic();
 	}

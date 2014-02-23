@@ -278,6 +278,15 @@ public final class TD extends BD {
 	}
 
 	/**
+	 * Is enum type?
+	 * 
+	 * @return {@code true} - is enum type
+	 */
+	public boolean isEnum() {
+		return getT().isEnum();
+	}
+
+	/**
 	 * Is inner type?
 	 * 
 	 * @return {@code true}- is inner type
@@ -302,6 +311,11 @@ public final class TD extends BD {
 	 */
 	public boolean isScala() {
 		return getSourceFileName().endsWith(".scala");
+	}
+
+	@Override
+	public boolean isStatic() {
+		return getT().isStatic();
 	}
 
 	@Override
