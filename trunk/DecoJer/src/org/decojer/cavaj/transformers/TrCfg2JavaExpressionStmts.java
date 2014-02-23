@@ -239,6 +239,10 @@ public final class TrCfg2JavaExpressionStmts {
 	@Getter(value = AccessLevel.PRIVATE)
 	private final CFG cfg;
 
+	/**
+	 * Flag indicates whether rewrite field init (for PUT operation) is possible, that means that no
+	 * previous invalid operations happened (like LOAD normal method argument).
+	 */
 	@Getter(value = AccessLevel.PRIVATE)
 	@Setter(value = AccessLevel.PRIVATE)
 	private boolean fieldInit;
@@ -1915,17 +1919,97 @@ public final class TrCfg2JavaExpressionStmts {
 		return false;
 	}
 
+	/**
+	 * Rewrite PUT-access to a class (static) or instance field.
+	 * 
+	 * @param bb
+	 *            current BB
+	 * @param f
+	 *            lass (static) or instance field
+	 * @param rightOperand
+	 *            right operand expression
+	 * @return {@code true} - success
+	 */
 	private boolean rewriteFieldInit(final BB bb, final F f, final Expression rightOperand) {
 		if (!isFieldInit()) {
 			return false;
 		}
-		if (getMd().getTd().getT() != f.getT()) {
+		if (!getMd().getTd().getT().is(f.getT())) {
 			return false;
 		}
 		// set local field, could be initializer
 		if (f.isStatic()) {
 			if (!getMd().isInitializer()) {
 				return false;
+			}
+			if (getCfg().getStartBb() != bb || bb.getStmts() > 0) {
+				return false;
+			}
+			if (f.getT().isEnum() && !getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
+				if (f.check(AF.ENUM)) {
+					// assignment to enum constant declaration
+					if (!(rightOperand instanceof ClassInstanceCreation)) {
+						LOGGER.warning(getMd() + ": Assignment to enum field '" + f
+								+ "' is no class instance creation!");
+						return false;
+					}
+					final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) rightOperand;
+					// first two arguments must be String (== field name) and int (ordinal)
+					final List<Expression> arguments = classInstanceCreation.arguments();
+					if (arguments.size() < 2) {
+						LOGGER.warning(getMd() + ": Class instance creation for enum field '" + f
+								+ "' has less than 2 arguments!");
+						return false;
+					}
+					if (!(arguments.get(0) instanceof StringLiteral)) {
+						LOGGER.warning(getMd() + ": Class instance creation for enum field '" + f
+								+ "' must contain string literal as first parameter!");
+						return false;
+					}
+					final String literalValue = ((StringLiteral) arguments.get(0))
+							.getLiteralValue();
+					if (!literalValue.equals(f.getName())) {
+						LOGGER.warning(getMd()
+								+ ": Class instance creation for enum field '"
+								+ f
+								+ "' must contain string literal equal to field name as first parameter!");
+						return false;
+					}
+					if (!(arguments.get(1) instanceof NumberLiteral)) {
+						LOGGER.warning(getMd() + ": Class instance creation for enum field '" + f
+								+ "' must contain number literal as first parameter!");
+						return false;
+					}
+					final FD fd = f.getFd();
+					final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
+					assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
+
+					final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
+
+					for (int i = arguments.size(); i-- > 2;) {
+						final Expression e = arguments.get(i);
+						e.delete();
+						enumConstantDeclaration.arguments().add(0, e);
+					}
+					final AnonymousClassDeclaration anonymousClassDeclaration = classInstanceCreation
+							.getAnonymousClassDeclaration();
+					if (anonymousClassDeclaration != null) {
+						anonymousClassDeclaration.delete();
+						enumConstantDeclaration
+								.setAnonymousClassDeclaration(anonymousClassDeclaration);
+						// normally contains one constructor, that calls a synthetic super
+						// constructor with the enum class as additional last parameter,
+						// this may contain field initializers, that we must keep,
+						// so we can only remove the constructor in final merge (because
+						// anonymous inner classes cannot have visible Java constructor)
+						fd.relocateTd((TD) fd.getCu()
+								.getBdForDeclaration(anonymousClassDeclaration));
+					}
+					return true;
+				}
+				if ("$VALUES".equals(f.getName()) || "ENUM$VALUES".equals(f.getName())) {
+					return true; // ignore such assignments completely
+				}
 			}
 		} else {
 			if (!getMd().isConstructor()) {
@@ -1934,84 +2018,27 @@ public final class TrCfg2JavaExpressionStmts {
 			if (!(bb.peek() instanceof ThisExpression)) {
 				return false;
 			}
+			if (getCfg().getStartBb() != bb || bb.getStmts() > 1 || bb.getStmts() == 1
+					&& !(bb.getStmt(0) instanceof SuperConstructorInvocation)) {
+				// initial super(<arguments>) is allowed for constructors
+				return false;
+			}
+			if (getMd().getTd().getT().isInner()) {
+				if (f.isSynthetic()) {
+					// TODO more checks if this$0 / $1 etc.
+					bb.pop();
+					return true;
+				}
+			}
 			// multiple constructors with different signatures possible, all of them
 			// contain the same field initializer code after super() - simply overwrite
-		}
-		if (getCfg().getStartBb() != bb || bb.getStmts() > 1) {
-			return false;
-		}
-		if (bb.getStmts() == 1 && !(bb.getStmt(0) instanceof SuperConstructorInvocation)) {
-			// initial super(<arguments>) is allowed
-			return false;
-		}
-		// TODO this checks are not enough, we must assure that we don't use method
-		// arguments here!!!
-		if (f.getT().isEnum() && !getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
-			if (f.check(AF.ENUM)) {
-				// assignment to enum constant declaration
-				if (!(rightOperand instanceof ClassInstanceCreation)) {
-					LOGGER.warning(getMd() + ": Assignment to enum field '" + f
-							+ "' is no class instance creation!");
-					return false;
-				}
-				final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) rightOperand;
-				// first two arguments must be String (== field name) and int (ordinal)
-				final List<Expression> arguments = classInstanceCreation.arguments();
-				if (arguments.size() < 2) {
-					LOGGER.warning(getMd() + ": Class instance creation for enum field '" + f
-							+ "' has less than 2 arguments!");
-					return false;
-				}
-				if (!(arguments.get(0) instanceof StringLiteral)) {
-					LOGGER.warning(getMd() + ": Class instance creation for enum field '" + f
-							+ "' must contain string literal as first parameter!");
-					return false;
-				}
-				final String literalValue = ((StringLiteral) arguments.get(0)).getLiteralValue();
-				if (!literalValue.equals(f.getName())) {
-					LOGGER.warning(getMd()
-							+ ": Class instance creation for enum field '"
-							+ f
-							+ "' must contain string literal equal to field name as first parameter!");
-					return false;
-				}
-				if (!(arguments.get(1) instanceof NumberLiteral)) {
-					LOGGER.warning(getMd() + ": Class instance creation for enum field '" + f
-							+ "' must contain number literal as first parameter!");
-					return false;
-				}
-				final FD fd = f.getFd();
-				final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
-				assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
-
-				final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
-
-				for (int i = arguments.size(); i-- > 2;) {
-					final Expression e = arguments.get(i);
-					e.delete();
-					enumConstantDeclaration.arguments().add(0, e);
-				}
-				final AnonymousClassDeclaration anonymousClassDeclaration = classInstanceCreation
-						.getAnonymousClassDeclaration();
-				if (anonymousClassDeclaration != null) {
-					anonymousClassDeclaration.delete();
-					enumConstantDeclaration.setAnonymousClassDeclaration(anonymousClassDeclaration);
-					// normally contains one constructor, that calls a synthetic super
-					// constructor with the enum class as additional last parameter,
-					// this may contain field initializers, that we must keep,
-					// so we can only remove the constructor in final merge (because
-					// anonymous inner classes cannot have visible Java constructor)
-					fd.relocateTd((TD) fd.getCu().getBdForDeclaration(anonymousClassDeclaration));
-				}
-				return true;
-			}
-			if ("$VALUES".equals(f.getName()) || "ENUM$VALUES".equals(f.getName())) {
-				return true; // ignore such assignments completely
-			}
 		}
 		if (f.isSynthetic()) {
 			if (getCfg().getCu().check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 				return false; // not as field initializer
+			}
+			if (!f.isStatic()) {
+				bb.pop();
 			}
 			return true; // ignore such assignments completely
 		}
@@ -2029,11 +2056,11 @@ public final class TrCfg2JavaExpressionStmts {
 			if (!f.isStatic()) {
 				bb.pop();
 			}
+			return true;
 		} catch (final Exception e) {
 			LOGGER.log(Level.WARNING, getMd() + ": Rewrite to field-initializer didn't work!", e);
 			return false;
 		}
-		return true;
 	}
 
 	private boolean rewriteHandler(final BB bb) {
