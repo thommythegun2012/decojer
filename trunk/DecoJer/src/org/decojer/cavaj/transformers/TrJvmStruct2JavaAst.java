@@ -82,7 +82,7 @@ public final class TrJvmStruct2JavaAst {
 
 		if (fd.isStatic()) {
 			// enum synthetic fields
-			if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.check(AF.ENUM)
+			if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.isEnum()
 					&& !cu.check(DFlag.IGNORE_ENUM)) {
 				// TODO could extract this field name from initializer for more robustness
 				return;
@@ -99,7 +99,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 		final AST ast = cu.getAst();
 
-		final boolean isEnum = fd.check(AF.ENUM);
+		final boolean isEnum = fd.isEnum();
 
 		// decompile BodyDeclaration, possible subtypes:
 		// FieldDeclaration, EnumConstantDeclaration
@@ -181,7 +181,7 @@ public final class TrJvmStruct2JavaAst {
 		if (md.isStatic()
 				&& ("values".equals(name) && md.getParamTs().length == 0 || "valueOf".equals(name)
 						&& md.getParamTs().length == 1 && md.getParamTs()[0].is(String.class))
-				&& td.check(AF.ENUM) && !cu.check(DFlag.IGNORE_ENUM)) {
+				&& td.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
 		if (md.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
@@ -338,7 +338,7 @@ public final class TrJvmStruct2JavaAst {
 		final A[][] paramAss = md.getParamAss();
 		for (int i = 0; i < paramTs.length; ++i) {
 			if (md.isConstructor()) {
-				if (i <= 1 && td.check(AF.ENUM) && !td.getCu().check(DFlag.IGNORE_ENUM)) {
+				if (i <= 1 && td.isEnum() && !td.getCu().check(DFlag.IGNORE_ENUM)) {
 					// enum constructors have two leading synthetic parameters,
 					// enum classes are static and can not be anonymous or inner method
 					if (i == 0 && md.getParamTs()[0].is(String.class)) {
@@ -422,7 +422,7 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
 			// enum declaration
-			if (td.check(AF.ENUM)) {
+			if (td.isEnum()) {
 				if (typeDeclaration != null) {
 					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {

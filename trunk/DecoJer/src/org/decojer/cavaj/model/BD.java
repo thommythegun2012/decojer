@@ -84,6 +84,13 @@ public abstract class BD extends D {
 	}
 
 	/**
+	 * Is static?
+	 * 
+	 * @return {@code true} - is static
+	 */
+	public abstract boolean isStatic();
+
+	/**
 	 * Is synthetic?
 	 * 
 	 * @return {@code true} - is synthetic

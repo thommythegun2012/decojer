@@ -105,10 +105,15 @@ public final class FD extends BD {
 	}
 
 	/**
-	 * Is static field?
+	 * Is enum?
 	 * 
-	 * @return {@code true} - is static field
+	 * @return {@code true} - is enum
 	 */
+	public boolean isEnum() {
+		return getF().isEnum();
+	}
+
+	@Override
 	public boolean isStatic() {
 		return getF().isStatic();
 	}
