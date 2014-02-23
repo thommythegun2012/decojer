@@ -147,7 +147,6 @@ public class ClassM extends M {
 	 * 
 	 * @return {@code true} - is deprecated method
 	 */
-
 	public boolean isDeprecated() {
 		return check(AF.DEPRECATED);
 	}
