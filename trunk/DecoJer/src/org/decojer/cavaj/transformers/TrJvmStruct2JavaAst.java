@@ -320,7 +320,6 @@ public final class TrJvmStruct2JavaAst {
 		// <U:TT;>(TT;TU;)V
 		final MethodDeclaration methodDeclaration = (MethodDeclaration) md.getMethodDeclaration();
 		final TD td = md.getTd();
-		final T t = td.getT();
 		final AST ast = td.getCu().getAst();
 
 		final T[] paramTs = md.getParamTs();
@@ -340,9 +339,9 @@ public final class TrJvmStruct2JavaAst {
 						continue;
 					}
 				}
-				if (i == 0 && t.isInner() && !td.getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
+				if (i == 0 && td.isInner() && !td.getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
 					// inner class constructor has synthetic this reference as first argument: skip
-					if (md.getParamTs()[0].is(t.getEnclosingT())) {
+					if (md.getParamTs()[0].is(td.getEnclosingT())) {
 						continue;
 					}
 					LOGGER.warning(md

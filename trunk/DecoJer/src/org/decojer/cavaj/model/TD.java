@@ -138,6 +138,18 @@ public final class TD extends BD {
 	}
 
 	/**
+	 * Get enclosing type.
+	 * 
+	 * @return enclosing type
+	 * 
+	 * @see T#setEnclosingT(T)
+	 * @see Class#getEnclosingClass()
+	 */
+	public T getEnclosingT() {
+		return getT().getEnclosingT();
+	}
+
+	/**
 	 * Get enclosing type declaration.
 	 * 
 	 * @return enclosing type declaration
@@ -263,6 +275,15 @@ public final class TD extends BD {
 	 */
 	public boolean isDalvik() {
 		return this.version == 0;
+	}
+
+	/**
+	 * Is inner type?
+	 * 
+	 * @return {@code true}- is inner type
+	 */
+	public boolean isInner() {
+		return getT().isInner();
 	}
 
 	/**
