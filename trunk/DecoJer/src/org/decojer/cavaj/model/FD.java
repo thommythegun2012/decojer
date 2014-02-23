@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
@@ -87,12 +86,21 @@ public final class FD extends BD {
 	}
 
 	/**
+	 * Get owner type.
+	 * 
+	 * @return owner type
+	 */
+	public T getT() {
+		return getF().getT();
+	}
+
+	/**
 	 * Get owner type declaration.
 	 * 
 	 * @return owner type declaration
 	 */
 	public TD getTd() {
-		return ((ClassT) getF().getT()).getTd();
+		return getT().getTd();
 	}
 
 	/**

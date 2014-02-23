@@ -202,7 +202,7 @@ public class SmaliReader implements DexReader {
 						}
 						if ("dalvik.annotation.MemberClasses".equals(a.getT().getName())) {
 							for (final Object v : (Object[]) a.getValueMember()) {
-								((ClassT) v).setEnclosingT(td.getT());
+								((T) v).setEnclosingT(t);
 							}
 							continue;
 						}

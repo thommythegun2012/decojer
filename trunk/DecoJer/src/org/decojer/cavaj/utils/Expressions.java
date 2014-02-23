@@ -801,7 +801,7 @@ public final class Expressions {
 			// could be ParamT etc., not decompileable with Name as target;
 			// restrict qualifications to really necessary enclosings:
 			// td = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
-			if (td.getT().getFullName().startsWith(qualifierT.getFullName())) {
+			if (td.getFullName().startsWith(qualifierT.getFullName())) {
 				// TODO full name has too much info yet (like annotations)
 				return ast.newSimpleType(ast.newSimpleName(t.getSimpleIdentifier()));
 			}

@@ -186,12 +186,21 @@ public final class MD extends BD {
 	}
 
 	/**
+	 * Get owner type.
+	 * 
+	 * @return owner type
+	 */
+	public T getT() {
+		return getM().getT();
+	}
+
+	/**
 	 * Get owner type declaration.
 	 * 
 	 * @return owner type declaration
 	 */
 	public TD getTd() {
-		return getM().getT().getTd();
+		return getT().getTd();
 	}
 
 	/**
