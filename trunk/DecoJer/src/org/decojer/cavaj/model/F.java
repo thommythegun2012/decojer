@@ -47,7 +47,7 @@ import org.decojer.cavaj.model.types.ClassT;
  * 
  * @author André Pankraz
  */
-public class F {
+public class F extends Element {
 
 	@Setter
 	private int accessFlags;
@@ -121,20 +121,12 @@ public class F {
 		return check(AF.ENUM);
 	}
 
-	/**
-	 * Is static?
-	 * 
-	 * @return {@code true} - is static
-	 */
+	@Override
 	public boolean isStatic() {
 		return check(AF.STATIC);
 	}
 
-	/**
-	 * Is synthetic?
-	 * 
-	 * @return {@code true} - is synthetic
-	 */
+	@Override
 	public boolean isSynthetic() {
 		return check(AF.SYNTHETIC);
 	}
@@ -153,9 +145,7 @@ public class F {
 		getFd().setAs(as);
 	}
 
-	/**
-	 * Field must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
-	 */
+	@Override
 	public void setDeprecated() {
 		this.accessFlags |= AF.DEPRECATED.getValue();
 	}
@@ -169,12 +159,7 @@ public class F {
 				| AF.ENUM.getValue();
 	}
 
-	/**
-	 * Set signature.
-	 * 
-	 * @param signature
-	 *            signature
-	 */
+	@Override
 	public void setSignature(final String signature) {
 		getFd().setSignature(signature);
 	}
@@ -202,9 +187,7 @@ public class F {
 		return;
 	}
 
-	/**
-	 * Field must be synthetic (from synthetic attribute).
-	 */
+	@Override
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
 	}

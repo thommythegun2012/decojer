@@ -43,7 +43,7 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
-public abstract class T {
+public abstract class T extends Element {
 
 	private static final Map<Integer, T> KIND_2_TS = Maps.newHashMap();
 
@@ -1205,11 +1205,7 @@ public abstract class T {
 		return true; // only primitive types can not be references, overwrite in PrimitiveT
 	}
 
-	/**
-	 * Is static type?
-	 * 
-	 * @return {@code true} - is static type
-	 */
+	@Override
 	public boolean isStatic() {
 		return true;
 	}
@@ -1221,6 +1217,11 @@ public abstract class T {
 	 */
 	public boolean isSubclassOf() {
 		return false;
+	}
+
+	@Override
+	public boolean isSynthetic() {
+		return false; // overwrite in ClassT
 	}
 
 	/**
@@ -1257,14 +1258,9 @@ public abstract class T {
 		getTd().resolve();
 	}
 
-	/**
-	 * Set access flags.
-	 * 
-	 * @param accessFlags
-	 *            access flags
-	 */
+	@Override
 	public void setAccessFlags(final int accessFlags) {
-		getTd().setAccessFlags(accessFlags);
+		assert false; // overwrite in ClassT
 	}
 
 	/**
@@ -1301,19 +1297,9 @@ public abstract class T {
 		assert false;
 	}
 
-	/**
-	 * Declaration must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
-	 * 
-	 * The Deprecated attribute is an optional fixed-length attribute in the attributes table of a
-	 * ClassFile, field_info or method_info structure. A class, interface, method, or field may be
-	 * marked using a Deprecated attribute to indicate that the class, interface, method, or field
-	 * has been superseded.
-	 * 
-	 * Since version 49 the Deprecated Annotation is the preferred solution and not the variant with
-	 * Javadoc @deprecated. We simply put this information into the access flags as internal flag.
-	 */
+	@Override
 	public void setDeprecated() {
-		getTd().setDeprecated();
+		assert false; // overwrite in ClassT
 	}
 
 	/**
@@ -1429,12 +1415,7 @@ public abstract class T {
 		getTd().setScala();
 	}
 
-	/**
-	 * Set signature.
-	 * 
-	 * @param signature
-	 *            signature
-	 */
+	@Override
 	public void setSignature(final String signature) {
 		getTd().setSignature(signature);
 	}
@@ -1459,18 +1440,9 @@ public abstract class T {
 		assert false;
 	}
 
-	/**
-	 * Declaration must be synthetic (from synthetic attribute).
-	 * 
-	 * The Synthetic attribute is a fixed-length attribute in the attributes table of a ClassFile,
-	 * field_info or method_info structure. A class member that does not appear in the source code
-	 * must be marked using a Synthetic attribute, or else it must have its ACC_SYNTHETIC flag set.
-	 * 
-	 * Since version 49 the ACC_SYNTHETIC attribute is the preferred solution. We simply put this
-	 * information into the access flags in both cases.
-	 */
+	@Override
 	public void setSynthetic() {
-		getTd().setSynthetic();
+		assert false; // overwrite in ClassT
 	}
 
 	/**
