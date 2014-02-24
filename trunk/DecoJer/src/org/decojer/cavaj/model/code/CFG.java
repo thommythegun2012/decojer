@@ -31,7 +31,7 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.R.Kind;
@@ -85,7 +85,7 @@ public final class CFG {
 	private final int maxStack;
 
 	@Getter
-	private final MD md;
+	private final M m;
 
 	@Getter
 	@Setter
@@ -113,19 +113,19 @@ public final class CFG {
 	/**
 	 * Constructor.
 	 * 
-	 * @param md
-	 *            method declaration
+	 * @param m
+	 *            method
 	 * @param regs
 	 *            register count (max locals)
 	 * @param maxStack
 	 *            max stack size
 	 */
-	public CFG(final MD md, final int regs, final int maxStack) {
-		assert md != null;
+	public CFG(final M m, final int regs, final int maxStack) {
+		assert m != null;
 		assert regs >= 0 : regs;
 		assert maxStack >= 0 : maxStack;
 
-		this.md = md;
+		this.m = m;
 		this.regs = regs;
 		this.maxStack = maxStack;
 	}
@@ -350,7 +350,7 @@ public final class CFG {
 	 * @return type
 	 */
 	public T getT() {
-		return getMd().getT();
+		return getM().getT();
 	}
 
 	/**
@@ -372,11 +372,11 @@ public final class CFG {
 		final Frame frame = new Frame(this);
 
 		int reg = 0;
-		if (!getMd().isStatic()) {
-			frame.store(0, new R(0, 0, getMd().getT(), Kind.CONST));
+		if (!getM().isStatic()) {
+			frame.store(0, new R(0, 0, getM().getT(), Kind.CONST));
 			++reg;
 		}
-		final T[] paramTs = getMd().getParamTs();
+		final T[] paramTs = getM().getParamTs();
 		for (final T paramT : paramTs) {
 			frame.store(reg, new R(0, reg, paramT, Kind.CONST));
 			++reg;
@@ -429,7 +429,7 @@ public final class CFG {
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(getMd() + ": " + message);
+		LOGGER.warning(getM() + ": " + message);
 	}
 
 	/**
@@ -458,8 +458,8 @@ public final class CFG {
 			System.arraycopy(this.vss, 0, newVarss, 0, this.vss.length);
 			this.vss = newVarss;
 		}
-		final T[] paramTs = this.md.getParamTs();
-		if (this.md.getTd().isDalvik()) {
+		final T[] paramTs = this.m.getParamTs();
+		if (this.m.getT().isDalvik()) {
 			// Dalvik...function parameters right aligned
 			int reg = this.regs;
 			for (int i = paramTs.length; i-- > 0;) {
@@ -484,9 +484,9 @@ public final class CFG {
 
 					// nevertheless we simply overwrite it for now...
 				}
-				this.vss[reg] = new V[] { new V(paramT, this.md.getParamName(i), 0, this.ops.length) };
+				this.vss[reg] = new V[] { new V(paramT, this.m.getParamName(i), 0, this.ops.length) };
 			}
-			if (!this.md.isStatic()) {
+			if (!this.m.isStatic()) {
 				final V[] vs = this.vss[--reg];
 				if (vs != null) {
 					// this can happen, we can find local variable info for synthetic "this" in JVM
@@ -502,13 +502,13 @@ public final class CFG {
 
 					// nevertheless we simply overwrite it for now...
 				}
-				this.vss[reg] = new V[] { new V(this.md.getT(), "this", 0, this.ops.length) };
+				this.vss[reg] = new V[] { new V(this.m.getT(), "this", 0, this.ops.length) };
 			}
 			return;
 		}
 		// JVM...function parameters left aligned
 		int reg = 0;
-		if (!this.md.isStatic()) {
+		if (!this.m.isStatic()) {
 			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				// fix missing / wrong stuff in CFG#initFrames()
@@ -523,7 +523,7 @@ public final class CFG {
 				}
 				++reg;
 			} else {
-				this.vss[reg++] = new V[] { new V(this.md.getT(), "this", 0, this.ops.length) };
+				this.vss[reg++] = new V[] { new V(this.m.getT(), "this", 0, this.ops.length) };
 			}
 		}
 		for (int i = 0; i < paramTs.length; ++i) {
@@ -533,10 +533,10 @@ public final class CFG {
 				if (vs.length > 1) {
 					log("Found multiple local variable info for method parameter '" + reg + "'!");
 				}
-				this.md.setParamName(i, vs[0].getName());
+				this.m.setParamName(i, vs[0].getName());
 				++reg;
 			} else {
-				this.vss[reg++] = new V[] { new V(paramT, this.md.getParamName(i), 0,
+				this.vss[reg++] = new V[] { new V(paramT, this.m.getParamName(i), 0,
 						this.ops.length) };
 			}
 			if (paramT.isWide()) {
@@ -562,7 +562,7 @@ public final class CFG {
 
 	@Override
 	public String toString() {
-		return this.md.toString() + " (ops: " + this.ops.length + ", regs: " + this.regs + ")";
+		return this.m.toString() + " (ops: " + this.ops.length + ", regs: " + this.regs + ")";
 	}
 
 }

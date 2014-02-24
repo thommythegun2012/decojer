@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.F;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.FieldVisitor;
@@ -49,7 +49,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 
 	private A[] as;
 
-	private FD fd;
+	private F f;
 
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
@@ -69,18 +69,18 @@ public class ReadFieldVisitor extends FieldVisitor {
 	 * 
 	 * @return field declaration
 	 */
-	public FD getFd() {
-		return this.fd;
+	public F getFd() {
+		return this.f;
 	}
 
 	/**
-	 * Init and set field declaration.
+	 * Init and set field.
 	 * 
-	 * @param fd
-	 *            field declaration
+	 * @param f
+	 *            field
 	 */
-	public void init(final FD fd) {
-		this.fd = fd;
+	public void init(final F f) {
+		this.f = f;
 		this.as = null;
 	}
 
@@ -101,13 +101,13 @@ public class ReadFieldVisitor extends FieldVisitor {
 	@Override
 	public void visitAttribute(final Attribute attr) {
 		LOGGER.warning(getFd() + ": Unknown field attribute tag '" + attr.type
-				+ "' for field info '" + this.fd.getTd() + "'!");
+				+ "' for field info '" + this.f.getT() + "'!");
 	}
 
 	@Override
 	public void visitEnd() {
 		if (this.as != null) {
-			this.fd.setAs(this.as);
+			this.f.setAs(this.as);
 		}
 	}
 

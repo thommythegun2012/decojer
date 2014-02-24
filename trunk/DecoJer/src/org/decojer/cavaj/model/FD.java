@@ -41,7 +41,7 @@ public final class FD extends BD {
 
 	private final static Logger LOGGER = Logger.getLogger(FD.class.getName());
 
-	@Getter(AccessLevel.PROTECTED)
+	@Getter(value = AccessLevel.PRIVATE)
 	private final F f;
 
 	/**

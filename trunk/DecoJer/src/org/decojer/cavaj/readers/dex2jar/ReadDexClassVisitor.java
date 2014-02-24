@@ -27,9 +27,9 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.M;
+import org.decojer.cavaj.model.T;
 
 import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.Method;
@@ -53,7 +53,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	private final ReadDexMethodVisitor readDexMethodVisitor;
 
-	private TD td;
+	private T t;
 
 	/**
 	 * Constructor.
@@ -70,13 +70,13 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	/**
-	 * Init and set type declaration.
+	 * Init and set type.
 	 * 
-	 * @param td
-	 *            type declaration
+	 * @param t
+	 *            type
 	 */
-	public void init(final TD td) {
-		this.td = td;
+	public void init(final T t) {
+		this.t = t;
 		this.as = null;
 	}
 
@@ -97,38 +97,38 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	@Override
 	public void visitEnd() {
 		if (this.as != null) {
-			this.td.setAs(this.as);
+			this.t.setAs(this.as);
 		}
-		this.td.resolve();
+		this.t.resolve();
 	}
 
 	@Override
 	public DexFieldVisitor visitField(final int accessFlags, final Field field, final Object value) {
-		final FD fd = this.td.createFd(field.getName(), field.getType());
+		final F f = this.t.createFd(field.getName(), field.getType());
 
-		fd.setAccessFlags(accessFlags);
+		f.setAccessFlags(accessFlags);
 		// TODO signature in annotation
 
-		fd.setValue(value);
+		f.setValue(value);
 
-		this.readDexFieldVisitor.init(fd);
+		this.readDexFieldVisitor.init(f);
 		return this.readDexFieldVisitor;
 	}
 
 	@Override
 	public DexMethodVisitor visitMethod(final int accessFlags, final Method method) {
-		final MD md = this.td.createMd(method.getName(), method.getDesc());
+		final M m = this.t.createMd(method.getName(), method.getDesc());
 
-		md.setAccessFlags(accessFlags);
+		m.setAccessFlags(accessFlags);
 		// TODO throws in annotation
 
-		this.readDexMethodVisitor.init(md);
+		this.readDexMethodVisitor.init(m);
 		return this.readDexMethodVisitor;
 	}
 
 	@Override
 	public void visitSource(final String file) {
-		this.td.setSourceFileName(file);
+		this.t.setSourceFileName(file);
 	}
 
 }

@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
@@ -74,7 +73,6 @@ import org.decojer.cavaj.model.code.ops.SUB;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
-import org.decojer.cavaj.model.types.ClassT;
 import org.jf.dexlib.CodeItem;
 import org.jf.dexlib.CodeItem.EncodedTypeAddrPair;
 import org.jf.dexlib.CodeItem.TryItem;
@@ -124,7 +122,7 @@ public class ReadCodeItem {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadCodeItem.class.getName());
 
-	private MD md;
+	private M m;
 
 	final List<Op> ops = Lists.newArrayList();
 
@@ -135,7 +133,7 @@ public class ReadCodeItem {
 	private final ReadDebugInfo readDebugInfo = new ReadDebugInfo();
 
 	private DU getDu() {
-		return this.md.getTd().getDu();
+		return this.m.getDu();
 	}
 
 	private int getPc(final int vmpc) {
@@ -160,26 +158,26 @@ public class ReadCodeItem {
 	/**
 	 * Init and visit.
 	 * 
-	 * @param md
-	 *            method declaration
+	 * @param m
+	 *            method
 	 * @param codeItem
 	 *            smali code item
 	 */
-	public void initAndVisit(final MD md, final CodeItem codeItem) {
+	public void initAndVisit(final M m, final CodeItem codeItem) {
 		if (codeItem == null) {
 			return;
 		}
-		this.md = md;
+		this.m = m;
 
 		this.ops.clear();
 		this.vmpc2pc.clear();
 		this.vmpc2unresolved.clear();
 
-		final CFG cfg = new CFG(md, codeItem.getRegisterCount(), 0);
-		md.setCfg(cfg);
+		final CFG cfg = new CFG(m, codeItem.getRegisterCount(), 0);
+		m.setCfg(cfg);
 
 		// read debug info here, need lines early, but handle read vars after code
-		this.readDebugInfo.initAndVisit(md, codeItem.getDebugInfo());
+		this.readDebugInfo.initAndVisit(m, codeItem.getDebugInfo());
 
 		final Instruction[] instructions = codeItem.getInstructions();
 
@@ -1095,24 +1093,24 @@ public class ReadCodeItem {
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
 					ownerT.setInterface(true); // static also possible in interface since JVM 8
 				}
-				final M m = ownerT.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
-						.getPrototype().getPrototypeString());
-				m.setStatic(instruction.opcode == Opcode.INVOKE_STATIC);
+				final M refM = ownerT.getM(methodIdItem.getMethodName().getStringValue(),
+						methodIdItem.getPrototype().getPrototypeString());
+				refM.setStatic(instruction.opcode == Opcode.INVOKE_STATIC);
 				if (instruction.opcode != Opcode.INVOKE_STATIC) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, regs[reg++]));
 				}
 
-				for (final T paramT : m.getParamTs()) {
+				for (final T paramT : refM.getParamTs()) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, regs[reg++]));
 					if (paramT.isWide()) {
 						++reg;
 					}
 				}
 
-				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m,
+				this.ops.add(new INVOKE(this.ops.size(), opcode, line, refM,
 						instruction.opcode == Opcode.INVOKE_DIRECT));
-				if (m.getReturnT() != T.VOID) {
-					moveInvokeResultT = m.getReturnT();
+				if (refM.getReturnT() != T.VOID) {
+					moveInvokeResultT = refM.getReturnT();
 				}
 				break;
 			}
@@ -1129,25 +1127,25 @@ public class ReadCodeItem {
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
-				((ClassT) ownerT).setInterface(instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE);
-				final M m = ownerT.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
-						.getPrototype().getPrototypeString());
-				m.setStatic(instruction.opcode == Opcode.INVOKE_STATIC_RANGE);
+				ownerT.setInterface(instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE);
+				final M refM = ownerT.getM(methodIdItem.getMethodName().getStringValue(),
+						methodIdItem.getPrototype().getPrototypeString());
+				refM.setStatic(instruction.opcode == Opcode.INVOKE_STATIC_RANGE);
 				if (instruction.opcode != Opcode.INVOKE_STATIC_RANGE) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, reg++));
 				}
 
-				for (final T paramT : m.getParamTs()) {
+				for (final T paramT : refM.getParamTs()) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, reg++));
 					if (paramT.isWide()) {
 						++reg;
 					}
 				}
 
-				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m,
+				this.ops.add(new INVOKE(this.ops.size(), opcode, line, refM,
 						instruction.opcode == Opcode.INVOKE_DIRECT_RANGE));
-				if (m.getReturnT() != T.VOID) {
-					moveInvokeResultT = m.getReturnT();
+				if (refM.getReturnT() != T.VOID) {
+					moveInvokeResultT = refM.getReturnT();
 				}
 				break;
 			}

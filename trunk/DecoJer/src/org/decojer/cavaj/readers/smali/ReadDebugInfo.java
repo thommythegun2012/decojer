@@ -29,7 +29,7 @@ import java.util.logging.Logger;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.utils.Cursor;
@@ -53,7 +53,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private final static boolean DEBUG = false;
 
-	private MD md;
+	private M m;
 
 	private final Map<Integer, Integer> opLines = Maps.newHashMap();
 
@@ -81,13 +81,13 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	/**
 	 * Init and visit.
 	 * 
-	 * @param md
-	 *            method declaration
+	 * @param m
+	 *            method
 	 * @param debugInfoItem
 	 *            Smail debug info item
 	 */
-	public void initAndVisit(final MD md, final DebugInfoItem debugInfoItem) {
-		this.md = md;
+	public void initAndVisit(final M m, final DebugInfoItem debugInfoItem) {
+		this.m = m;
 
 		this.opLines.clear();
 		this.reg2vs.clear();
@@ -104,17 +104,17 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 					// could happen, e.g. synthetic methods, inner constructor with outer type param
 					continue;
 				}
-				md.setParamName(i, parameterNames[i].getStringValue());
+				m.setParamName(i, parameterNames[i].getStringValue());
 			}
 		}
 		if (DEBUG) {
-			System.out.println("****DecodeDebugInstructions: " + md);
+			System.out.println("****DecodeDebugInstructions: " + m);
 		}
-		DebugInstructionIterator.DecodeInstructions(debugInfoItem, md.getCfg().getRegs(), this);
+		DebugInstructionIterator.DecodeInstructions(debugInfoItem, m.getCfg().getRegs(), this);
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(this.md + ": " + message);
+		LOGGER.warning(this.m + ": " + message);
 	}
 
 	@Override
@@ -229,14 +229,14 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		// + registerNum + " : " + name + " : " + type + " : " + signature);
 		assert length > 0; // have no idea what this is
 
-		T vT = this.md.getTd().getDu().getDescT(type.getTypeDescriptor());
+		T vT = this.m.getT().getDu().getDescT(type.getTypeDescriptor());
 		if (signature != null) {
-			final T sigT = this.md.getTd().getDu()
-					.parseT(signature.getStringValue(), new Cursor(), this.md.getM());
+			final T sigT = this.m.getT().getDu()
+					.parseT(signature.getStringValue(), new Cursor(), this.m);
 			if (!sigT.eraseTo(vT)) {
 				LOGGER.info("Cannot reduce signature '" + signature.getStringValue()
 						+ "' to type '" + vT + "' for method (local variable '" + name + "') "
-						+ this.md);
+						+ this.m);
 			} else {
 				vT = sigT;
 			}

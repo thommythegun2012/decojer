@@ -30,7 +30,6 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ClassT;
 
 import com.google.common.collect.Lists;
@@ -55,7 +54,7 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 	private String selectorMatch;
 
 	@Getter
-	private final List<TD> tds = Lists.newArrayList();
+	private final List<T> ts = Lists.newArrayList();
 
 	/**
 	 * Constructor.
@@ -89,7 +88,7 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 			this.selectorMatch = null;
 			this.selectorPrefix = null;
 		}
-		this.tds.clear();
+		this.ts.clear();
 	}
 
 	@Override
@@ -108,20 +107,20 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 			LOGGER.warning("Type '" + t + "' already read!");
 			return null;
 		}
-		final TD td = t.createTd();
-		td.setAccessFlags(access_flags);
-		td.setSuperT(this.du.getDescT(superClass));
+		t.createTd();
+		t.setAccessFlags(access_flags);
+		t.setSuperT(this.du.getDescT(superClass));
 		if (interfaceNames != null && interfaceNames.length > 0) {
 			final T[] interfaceTs = new T[interfaceNames.length];
 			for (int i = interfaceNames.length; i-- > 0;) {
 				interfaceTs[i] = this.du.getDescT(interfaceNames[i]);
 			}
-			td.setInterfaceTs(interfaceTs);
+			t.setInterfaceTs(interfaceTs);
 		}
 		if (this.selectorMatch == null || this.selectorMatch.equals(className)) {
-			this.tds.add(td);
+			this.ts.add(t);
 		}
-		this.readDexClassVisitor.init(td);
+		this.readDexClassVisitor.init(t);
 		return this.readDexClassVisitor;
 	}
 

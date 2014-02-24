@@ -280,7 +280,7 @@ public final class DU {
 	private final DexReader dexReader = new Smali2Reader(this);
 
 	@Getter
-	private final List<TD> selectedTds = Lists.newArrayList();
+	private final List<T> selectedTs = Lists.newArrayList();
 
 	private final Map<String, T> ts = Maps.newHashMap();
 
@@ -724,10 +724,10 @@ public final class DU {
 	 *            selector (in case of an archive)
 	 * @return type declarations, not null
 	 */
-	private List<TD> read(final File file, final String selector) {
+	private List<T> read(final File file, final String selector) {
 		final String fileName = file.getName();
 		if (fileName.endsWith(".class")) {
-			final List<TD> tds = Lists.newArrayList();
+			final List<T> ts = Lists.newArrayList();
 
 			// load full type declarations from complete package, to complex to decide here if
 			// really not part of the compilation unit
@@ -741,9 +741,9 @@ public final class DU {
 				FileInputStream is = null;
 				try {
 					is = new FileInputStream(entry);
-					final List<TD> readTds = read(is, name, fileName);
+					final List<T> readTds = read(is, name, fileName);
 					if (readTds != null) {
-						tds.addAll(readTds);
+						ts.addAll(readTds);
 					}
 				} catch (final Throwable e) {
 					LOGGER.log(Level.WARNING, "Couldn't read file '" + name + "'!", e);
@@ -757,7 +757,7 @@ public final class DU {
 					}
 				}
 			}
-			return tds;
+			return ts;
 		}
 		FileInputStream fileInputStream = null;
 		try {
@@ -792,7 +792,7 @@ public final class DU {
 	 * @throws IOException
 	 *             read exception
 	 */
-	public List<TD> read(final InputStream is, final String fileName, final String selector)
+	public List<T> read(final InputStream is, final String fileName, final String selector)
 			throws IOException {
 		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
 		final int read = is.read(magicNumber, 0, magicNumber.length);
@@ -803,10 +803,10 @@ public final class DU {
 			final PushbackInputStream pis = new PushbackInputStream(is, 4);
 			pis.unread(magicNumber, 0, magicNumber.length);
 			// selector has no meaning here
-			final TD td = this.classReader.read(pis);
+			final T t = this.classReader.read(pis);
 			if (selector == null || fileName.equals(selector)) {
-				this.selectedTds.add(td);
-				return Collections.singletonList(td);
+				this.selectedTs.add(t);
+				return Collections.singletonList(t);
 			}
 			return Collections.emptyList();
 		} else if (fileName.endsWith(".class")) {
@@ -816,9 +816,9 @@ public final class DU {
 				|| Arrays.equals(magicNumber, MagicNumbers.ODEX)) {
 			final PushbackInputStream pis = new PushbackInputStream(is, 4);
 			pis.unread(magicNumber, 0, magicNumber.length);
-			final List<TD> tds = this.dexReader.read(pis, selector);
-			this.selectedTds.addAll(tds);
-			return tds;
+			final List<T> ts = this.dexReader.read(pis, selector);
+			this.selectedTs.addAll(ts);
+			return ts;
 		} else if (fileName.endsWith(".dex") || fileName.endsWith(".odex")) {
 			LOGGER.warning("Wrong magic number for file '" + fileName + "', isn't a Dalvik-Class!");
 		}
@@ -832,7 +832,7 @@ public final class DU {
 					selectorPrefix = selectorMatch.substring(0, pos + 1);
 				}
 			}
-			final List<TD> tds = Lists.newArrayList();
+			final List<T> ts = Lists.newArrayList();
 
 			final PushbackInputStream pis = new PushbackInputStream(is, 4);
 			pis.unread(magicNumber, 0, magicNumber.length);
@@ -850,15 +850,15 @@ public final class DU {
 					continue;
 				}
 				try {
-					final List<TD> readTds = read(zip, name, null);
+					final List<T> readTds = read(zip, name, null);
 					if (readTds != null && (selectorMatch == null || selectorMatch.equals(name))) {
-						tds.addAll(readTds);
+						ts.addAll(readTds);
 					}
 				} catch (final Exception e) {
 					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!", e);
 				}
 			}
-			return tds;
+			return ts;
 		}
 		return null;
 	}
@@ -872,7 +872,7 @@ public final class DU {
 	 *            file name & optional selector
 	 * @return type declarations
 	 */
-	public List<TD> read(final String fileName) {
+	public List<T> read(final String fileName) {
 		final int pos = fileName.indexOf('!');
 		if (pos == -1) {
 			return read(new File(fileName), null);

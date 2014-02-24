@@ -68,10 +68,8 @@ import javassist.bytecode.annotation.StringMemberValue;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.readers.ClassReader;
 
@@ -117,7 +115,7 @@ public class JavassistReader implements ClassReader {
 	}
 
 	@Override
-	public TD read(final InputStream is) throws IOException {
+	public T read(final InputStream is) throws IOException {
 		final ClassFile classFile = new ClassFile(new DataInputStream(is));
 
 		final ConstPool constPool = classFile.getConstPool();
@@ -127,9 +125,9 @@ public class JavassistReader implements ClassReader {
 			LOGGER.warning("Type '" + t + "' already read!");
 			return null;
 		}
-		final TD td = t.createTd();
-		td.setAccessFlags(classFile.getAccessFlags());
-		td.setSuperT(getT(constPool, classFile.getSuperclassId()));
+		t.createTd();
+		t.setAccessFlags(classFile.getAccessFlags());
+		t.setSuperT(getT(constPool, classFile.getSuperclassId()));
 		// FIXME problem with / (avoid getClassInfo in Javassist)
 		final String[] interfaces = classFile.getInterfaces();
 		if (interfaces != null && interfaces.length > 0) {
@@ -137,7 +135,7 @@ public class JavassistReader implements ClassReader {
 			for (int i = interfaces.length; i-- > 0;) {
 				interfaceTs[i] = this.du.getT(interfaces[i]);
 			}
-			td.setInterfaceTs(interfaceTs);
+			t.setInterfaceTs(interfaceTs);
 		}
 		// only annotations with RetentionPolicy.CLASS or RUNTIME are visible
 		// here and can be decompiled, e.g. @SuppressWarnings not visible here,
@@ -177,16 +175,16 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 		if (signatureAttribute != null) {
-			td.setSignature(signatureAttribute.getSignature());
+			t.setSignature(signatureAttribute.getSignature());
 		}
-		td.setVersion(classFile.getMajorVersion());
+		t.setVersion(classFile.getMajorVersion());
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
 				annotationsAttributeRuntimeVisible);
 		if (as != null) {
-			td.setAs(as);
+			t.setAs(as);
 		}
 		if (deprecatedAttribute != null) {
-			td.setDeprecated();
+			t.setDeprecated();
 		}
 		if (enclosingMethodAttribute != null) {
 			final ClassT enclosingT = (ClassT) getT(constPool,
@@ -212,22 +210,22 @@ public class JavassistReader implements ClassReader {
 			}
 		}
 		if (sourceFileAttribute != null) {
-			td.setSourceFileName(sourceFileAttribute.getFileName());
+			t.setSourceFileName(sourceFileAttribute.getFileName());
 		}
 		if (syntheticAttribute != null) {
-			td.setSynthetic();
+			t.setSynthetic();
 		}
 		if (scalaAttributes) {
-			td.setScala();
+			t.setScala();
 		}
 		for (final FieldInfo fieldInfo : (List<FieldInfo>) classFile.getFields()) {
-			readField(td, fieldInfo);
+			readField(t, fieldInfo);
 		}
 		for (final MethodInfo methodInfo : (List<MethodInfo>) classFile.getMethods()) {
-			readMethod(td, methodInfo);
+			readMethod(t, methodInfo);
 		}
-		td.resolve();
-		return td;
+		t.resolve();
+		return t;
 	}
 
 	private A readAnnotation(final Annotation annotation, final RetentionPolicy retentionPolicy) {
@@ -270,7 +268,7 @@ public class JavassistReader implements ClassReader {
 		return as;
 	}
 
-	private FD readField(final TD td, final FieldInfo fieldInfo) {
+	private F readField(final T t, final FieldInfo fieldInfo) {
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
 		ConstantAttribute constantAttribute = null;
@@ -298,15 +296,15 @@ public class JavassistReader implements ClassReader {
 		}
 		final ConstPool constPool = fieldInfo.getConstPool();
 
-		final FD fd = td.createFd(fieldInfo.getName(), fieldInfo.getDescriptor());
-		fd.setAccessFlags(fieldInfo.getAccessFlags());
+		final F f = t.createFd(fieldInfo.getName(), fieldInfo.getDescriptor());
+		f.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
-			fd.setSignature(signatureAttribute.getSignature());
+			f.setSignature(signatureAttribute.getSignature());
 		}
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
 				annotationsAttributeRuntimeVisible);
 		if (as != null) {
-			fd.setAs(as);
+			f.setAs(as);
 		}
 		if (constantAttribute != null) {
 			Object value = null;
@@ -334,18 +332,18 @@ public class JavassistReader implements ClassReader {
 				LOGGER.warning("Unknown constant attribute '" + tag + "' for field info '"
 						+ fieldInfo.getName() + "'!");
 			}
-			fd.setValue(value);
+			f.setValue(value);
 		}
 		if (deprecatedAttribute != null) {
-			fd.setDeprecated();
+			f.setDeprecated();
 		}
 		if (syntheticAttribute != null) {
-			fd.setSynthetic();
+			f.setSynthetic();
 		}
-		return fd;
+		return f;
 	}
 
-	private MD readMethod(final TD td, final MethodInfo methodInfo) {
+	private M readMethod(final T t, final MethodInfo methodInfo) {
 		AnnotationDefaultAttribute annotationDefaultAttribute = null;
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
@@ -385,8 +383,8 @@ public class JavassistReader implements ClassReader {
 		}
 		final ConstPool constPool = methodInfo.getConstPool();
 
-		final MD md = td.createMd(methodInfo.getName(), methodInfo.getDescriptor());
-		md.setAccessFlags(methodInfo.getAccessFlags());
+		final M m = t.createMd(methodInfo.getName(), methodInfo.getDescriptor());
+		m.setAccessFlags(methodInfo.getAccessFlags());
 		if (exceptionsAttribute != null) {
 			final int[] exceptions = exceptionsAttribute.getExceptionIndexes();
 			if (exceptions != null && exceptions.length > 0) {
@@ -394,25 +392,25 @@ public class JavassistReader implements ClassReader {
 				for (int i = exceptions.length; i-- > 0;) {
 					throwsTs[i] = getT(constPool, exceptions[i]);
 				}
-				md.setThrowsTs(throwsTs);
+				m.setThrowsTs(throwsTs);
 			}
 		}
 		if (signatureAttribute != null) {
-			md.setSignature(signatureAttribute.getSignature());
+			m.setSignature(signatureAttribute.getSignature());
 		}
 		if (annotationDefaultAttribute != null) {
 			final MemberValue defaultMemberValue = annotationDefaultAttribute.getDefaultValue();
 			final Object annotationDefaultValue = readValue(defaultMemberValue);
-			md.setAnnotationDefaultValue(annotationDefaultValue);
+			m.setAnnotationDefaultValue(annotationDefaultValue);
 		}
 		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
 				annotationsAttributeRuntimeVisible);
 		if (as != null) {
-			md.setAs(as);
+			m.setAs(as);
 		}
-		this.readCodeAttribute.initAndVisit(md, codeAttribute);
+		this.readCodeAttribute.initAndVisit(m, codeAttribute);
 		if (deprecatedAttribute != null) {
-			md.setDeprecated();
+			m.setDeprecated();
 		}
 		A[][] paramAss = null;
 		// Visible comes first in bytecode, but here we start with invisible
@@ -455,11 +453,11 @@ public class JavassistReader implements ClassReader {
 				}
 			}
 		}
-		md.setParamAss(paramAss);
+		m.setParamAss(paramAss);
 		if (syntheticAttribute != null) {
-			md.setSynthetic();
+			m.setSynthetic();
 		}
-		return md;
+		return m;
 	}
 
 	private Object readValue(final MemberValue memberValue) {

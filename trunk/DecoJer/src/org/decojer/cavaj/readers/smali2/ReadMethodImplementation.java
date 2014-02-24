@@ -32,7 +32,6 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
@@ -134,7 +133,7 @@ public class ReadMethodImplementation {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadMethodImplementation.class.getName());
 
-	private MD md;
+	private M m;
 
 	private final Map<Integer, Integer> opLines = Maps.newHashMap();
 
@@ -147,7 +146,7 @@ public class ReadMethodImplementation {
 	private final Map<Integer, List<Object>> vmpc2unresolved = Maps.newHashMap();
 
 	private DU getDu() {
-		return this.md.getTd().getDu();
+		return this.m.getDu();
 	}
 
 	/**
@@ -190,16 +189,16 @@ public class ReadMethodImplementation {
 	/**
 	 * Init and visit.
 	 * 
-	 * @param md
-	 *            method declaration
+	 * @param m
+	 *            method
 	 * @param implementation
 	 *            method implementation
 	 */
-	public void initAndVisit(final MD md, final DexBackedMethodImplementation implementation) {
+	public void initAndVisit(final M m, final DexBackedMethodImplementation implementation) {
 		if (implementation == null) {
 			return;
 		}
-		this.md = md;
+		this.m = m;
 
 		this.ops.clear();
 		this.opLines.clear();
@@ -207,12 +206,12 @@ public class ReadMethodImplementation {
 		this.vmpc2pc.clear();
 		this.vmpc2unresolved.clear();
 
-		final CFG cfg = new CFG(md, implementation.getRegisterCount(), 0);
-		md.setCfg(cfg);
+		final CFG cfg = new CFG(m, implementation.getRegisterCount(), 0);
+		m.setCfg(cfg);
 
 		final Iterator<String> parameterNames = implementation.getParameterNames(null);
 		for (int i = 0; parameterNames.hasNext(); ++i) {
-			md.setParamName(i, parameterNames.next());
+			m.setParamName(i, parameterNames.next());
 		}
 
 		for (final DebugItem debugItem : implementation.getDebugItems()) {
@@ -226,13 +225,12 @@ public class ReadMethodImplementation {
 				final String signature = ((StartLocal) debugItem).getSignature();
 				final int registerNum = ((StartLocal) debugItem).getRegister();
 
-				T vT = this.md.getTd().getDu().getDescT(type);
+				T vT = getDu().getDescT(type);
 				if (signature != null) {
-					final T sigT = this.md.getTd().getDu()
-							.parseT(signature, new Cursor(), this.md.getM());
+					final T sigT = getDu().parseT(signature, new Cursor(), this.m);
 					if (!sigT.eraseTo(vT)) {
 						LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + vT
-								+ "' for method (local variable '" + name + "') " + this.md);
+								+ "' for method (local variable '" + name + "') " + this.m);
 					} else {
 						vT = sigT;
 					}
@@ -1235,24 +1233,24 @@ public class ReadMethodImplementation {
 				if (instruction.getOpcode() == Opcode.INVOKE_INTERFACE) {
 					ownerT.setInterface(true); // static also possible in interface since JVM 8
 				}
-				final M m = ownerT.getM(methodReference.getName(),
+				final M refM = ownerT.getM(methodReference.getName(),
 						Smali2Reader.desc(methodReference));
-				m.setStatic(instruction.getOpcode() == Opcode.INVOKE_STATIC);
+				refM.setStatic(instruction.getOpcode() == Opcode.INVOKE_STATIC);
 				if (instruction.getOpcode() != Opcode.INVOKE_STATIC) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, regs[reg++]));
 				}
 
-				for (final T paramT : m.getParamTs()) {
+				for (final T paramT : refM.getParamTs()) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, regs[reg++]));
 					if (paramT.isWide()) {
 						++reg;
 					}
 				}
 
-				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m,
-						instruction.getOpcode() == Opcode.INVOKE_DIRECT));
-				if (m.getReturnT() != T.VOID) {
-					moveInvokeResultT = m.getReturnT();
+				this.ops.add(new INVOKE(this.ops.size(), opcode, line, refM, instruction
+						.getOpcode() == Opcode.INVOKE_DIRECT));
+				if (refM.getReturnT() != T.VOID) {
+					moveInvokeResultT = refM.getReturnT();
 				}
 				break;
 			}
@@ -1270,24 +1268,24 @@ public class ReadMethodImplementation {
 				final T ownerT = getDu().getDescT(methodReference.getDefiningClass());
 				((ClassT) ownerT)
 						.setInterface(instruction.getOpcode() == Opcode.INVOKE_INTERFACE_RANGE);
-				final M m = ownerT.getM(methodReference.getName(),
+				final M refM = ownerT.getM(methodReference.getName(),
 						Smali2Reader.desc(methodReference));
-				m.setStatic(instruction.getOpcode() == Opcode.INVOKE_STATIC_RANGE);
+				refM.setStatic(instruction.getOpcode() == Opcode.INVOKE_STATIC_RANGE);
 				if (instruction.getOpcode() != Opcode.INVOKE_STATIC_RANGE) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, reg++));
 				}
 
-				for (final T paramT : m.getParamTs()) {
+				for (final T paramT : refM.getParamTs()) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, reg++));
 					if (paramT.isWide()) {
 						++reg;
 					}
 				}
 
-				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m,
-						instruction.getOpcode() == Opcode.INVOKE_DIRECT_RANGE));
-				if (m.getReturnT() != T.VOID) {
-					moveInvokeResultT = m.getReturnT();
+				this.ops.add(new INVOKE(this.ops.size(), opcode, line, refM, instruction
+						.getOpcode() == Opcode.INVOKE_DIRECT_RANGE));
+				if (refM.getReturnT() != T.VOID) {
+					moveInvokeResultT = refM.getReturnT();
 				}
 				break;
 			}
@@ -2467,7 +2465,7 @@ public class ReadMethodImplementation {
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(this.md + ": " + message);
+		LOGGER.warning(this.m + ": " + message);
 	}
 
 	private void readLocalVariables(final CFG cfg) {

@@ -38,7 +38,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
@@ -103,8 +103,8 @@ public final class TrCfg2JavaControlFlowStmts {
 		return getCfg().getCu().getAst();
 	}
 
-	private MD getMd() {
-		return getCfg().getMd();
+	private M getMd() {
+		return getCfg().getM();
 	}
 
 	public void transform() {

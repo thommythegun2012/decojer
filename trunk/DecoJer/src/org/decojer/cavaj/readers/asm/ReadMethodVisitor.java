@@ -36,7 +36,6 @@ import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
@@ -142,7 +141,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private int maxStack;
 
-	private MD md;
+	private M m;
 
 	private final List<Op> ops = Lists.newArrayList();
 
@@ -271,8 +270,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	 * 
 	 * @return method declaration
 	 */
-	public MD getMd() {
-		return this.md;
+	public M getMd() {
+		return this.m;
 	}
 
 	private int getPc(final Label label) {
@@ -309,13 +308,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	/**
-	 * Init and set method declaration.
+	 * Init and set method.
 	 * 
-	 * @param md
-	 *            method declaration
+	 * @param m
+	 *            method
 	 */
-	public void init(final MD md) {
-		this.md = md;
+	public void init(final M m) {
+		this.m = m;
 	}
 
 	@Override
@@ -338,7 +337,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 			@Override
 			protected void add(final String name, final Object value) {
-				ReadMethodVisitor.this.md.setAnnotationDefaultValue(value);
+				ReadMethodVisitor.this.m.setAnnotationDefaultValue(value);
 			}
 
 		};
@@ -347,7 +346,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitAttribute(final Attribute attr) {
 		LOGGER.warning(getMd() + ": Unknown method attribute tag '" + attr.type
-				+ "' for field info '" + this.md.getTd() + "'!");
+				+ "' for field info '" + this.m.getT() + "'!");
 	}
 
 	@Override
@@ -358,16 +357,16 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitEnd() {
 		if (this.as != null) {
-			this.md.setAs(this.as);
+			this.m.setAs(this.as);
 			this.as = null;
 		}
 		if (this.paramAss != null) {
-			this.md.setParamAss(this.paramAss);
+			this.m.setParamAss(this.paramAss);
 			this.paramAss = null;
 		}
 		if (this.ops.size() > 0) {
-			final CFG cfg = new CFG(this.md, this.maxLocals, this.maxStack);
-			this.md.setCfg(cfg);
+			final CFG cfg = new CFG(this.m, this.maxLocals, this.maxStack);
+			this.m.setCfg(cfg);
 
 			cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 			this.ops.clear();
@@ -1372,10 +1371,10 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final Label start, final Label end, final int index) {
 		T vT = this.du.getDescT(desc);
 		if (signature != null) {
-			final T sigT = this.du.parseT(signature, new Cursor(), this.md.getM());
+			final T sigT = this.du.parseT(signature, new Cursor(), this.m);
 			if (!sigT.eraseTo(vT)) {
 				LOGGER.info(getMd() + ": Cannot reduce signature '" + signature + "' to type '"
-						+ vT + "' for method (local variable '" + name + "') " + this.md);
+						+ vT + "' for method (local variable '" + name + "') " + this.m);
 			} else {
 				vT = sigT;
 			}

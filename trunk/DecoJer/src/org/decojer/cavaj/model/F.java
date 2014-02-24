@@ -144,6 +144,16 @@ public class F {
 	}
 
 	/**
+	 * Set annotations.
+	 * 
+	 * @param as
+	 *            annotations
+	 */
+	public void setAs(final A[] as) {
+		getFd().setAs(as);
+	}
+
+	/**
 	 * Field must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
 	 */
 	public void setDeprecated() {
@@ -157,6 +167,16 @@ public class F {
 		getT().setInterface(false); // TODO we know even more, must be from Enum
 		this.accessFlags |= AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
 				| AF.ENUM.getValue();
+	}
+
+	/**
+	 * Set signature.
+	 * 
+	 * @param signature
+	 *            signature
+	 */
+	public void setSignature(final String signature) {
+		getFd().setSignature(signature);
 	}
 
 	/**
@@ -187,6 +207,17 @@ public class F {
 	 */
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
+	}
+
+	/**
+	 * Set value for constant attributes or {@code null}. Type Integer: int, short, byte, char,
+	 * boolean.
+	 * 
+	 * @param value
+	 *            value for constant attributes or {@code null}
+	 */
+	public void setValue(final Object value) {
+		getFd().setValue(value);
 	}
 
 	@Override

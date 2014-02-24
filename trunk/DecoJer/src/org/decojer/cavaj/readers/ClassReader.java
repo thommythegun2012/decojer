@@ -26,7 +26,7 @@ package org.decojer.cavaj.readers;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.T;
 
 /**
  * Class reader.
@@ -44,6 +44,6 @@ public interface ClassReader {
 	 * @throws IOException
 	 *             read exception
 	 */
-	TD read(final InputStream is) throws IOException;
+	T read(final InputStream is) throws IOException;
 
 }

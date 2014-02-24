@@ -28,14 +28,14 @@ import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 import java.lang.annotation.RetentionPolicy;
 import java.util.logging.Logger;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ClassT;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
@@ -65,8 +65,8 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	private final ReadMethodVisitor readMethodVisitor;
 
-	@Getter
-	private TD td;
+	@Getter(AccessLevel.PROTECTED)
+	private T t;
 
 	/**
 	 * Constructor.
@@ -87,7 +87,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	 */
 	public void init() {
 		this.as = null;
-		this.td = null;
+		this.t = null;
 	}
 
 	@Override
@@ -95,25 +95,25 @@ public class ReadClassVisitor extends ClassVisitor {
 			final String signature, final String superName, final String[] interfaces) {
 		final ClassT t = (ClassT) this.du.getT(name);
 		if (t.getTd() != null) {
-			LOGGER.warning(getTd() + ": Type '" + t + "' already read!");
+			LOGGER.warning(this.t + ": Type '" + t + "' already read!");
 			throw new ReadException();
 		}
-		this.td = t.createTd();
-		this.td.setAccessFlags(access);
-		this.td.setSuperT(this.du.getT(superName));
+		this.t = t.createTd();
+		this.t.setAccessFlags(access);
+		this.t.setSuperT(this.du.getT(superName));
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
 				interfaceTs[i] = this.du.getT(interfaces[i]);
 			}
-			this.td.setInterfaceTs(interfaceTs);
+			this.t.setInterfaceTs(interfaceTs);
 		}
-		this.td.setSignature(signature);
+		this.t.setSignature(signature);
 
 		// fix ASM bug: mixup of minor and major (which is 196653),
 		// only JDK 1.1 class files use a minor number (45.3),
 		// JDK 1.1 - JDK 1.3 create this version without a target option
-		this.td.setVersion(version & 0xffff);
+		this.t.setVersion(version & 0xffff);
 	}
 
 	@Override
@@ -133,31 +133,31 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public void visitAttribute(final Attribute attr) {
 		if ("Scala".equals(attr.type) || "ScalaSig".equals(attr.type)) {
-			this.td.setScala();
+			this.t.setScala();
 			return;
 		}
-		LOGGER.warning(getTd() + ": Unknown class attribute tag '" + attr.type + "'!");
+		LOGGER.warning(this.t + ": Unknown class attribute tag '" + attr.type + "'!");
 	}
 
 	@Override
 	public void visitEnd() {
 		if (this.as != null) {
-			this.td.setAs(this.as);
+			this.t.setAs(this.as);
 		}
-		this.td.resolve();
+		this.t.resolve();
 	}
 
 	@Override
 	public FieldVisitor visitField(final int access, final String name, final String desc,
 			final String signature, final Object value) {
-		final FD fd = this.td.createFd(name, desc);
+		final F f = this.t.createFd(name, desc);
 
-		fd.setAccessFlags(access);
-		fd.setSignature(signature);
+		f.setAccessFlags(access);
+		f.setSignature(signature);
 
-		fd.setValue(value);
+		f.setValue(value);
 
-		this.readFieldVisitor.init(fd);
+		this.readFieldVisitor.init(f);
 		return this.readFieldVisitor;
 	}
 
@@ -175,19 +175,19 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name, final String desc,
 			final String signature, final String[] exceptions) {
-		final MD md = this.td.createMd(name, desc);
+		final M m = this.t.createMd(name, desc);
 
-		md.setAccessFlags(access);
+		m.setAccessFlags(access);
 		if (exceptions != null && exceptions.length > 0) {
 			final T[] throwsTs = new T[exceptions.length];
 			for (int i = exceptions.length; i-- > 0;) {
 				throwsTs[i] = this.du.getT(exceptions[i]);
 			}
-			md.setThrowsTs(throwsTs);
+			m.setThrowsTs(throwsTs);
 		}
-		md.setSignature(signature);
+		m.setSignature(signature);
 
-		this.readMethodVisitor.init(md);
+		this.readMethodVisitor.init(m);
 		return this.readMethodVisitor;
 	}
 
@@ -195,9 +195,9 @@ public class ReadClassVisitor extends ClassVisitor {
 	public void visitOuterClass(final String owner, final String name, final String desc) {
 		final ClassT enclosingT = (ClassT) this.du.getT(owner);
 		if (name == null) {
-			this.td.setEnclosingT(enclosingT);
+			this.t.setEnclosingT(enclosingT);
 		} else {
-			this.td.setEnclosingM(enclosingT.getM(name, desc));
+			this.t.setEnclosingM(enclosingT.getM(name, desc));
 		}
 	}
 
@@ -206,9 +206,9 @@ public class ReadClassVisitor extends ClassVisitor {
 		if (debug != null) {
 			// TODO need an example, really useful in the wild?
 			// JVM spec: 4.7.11 The SourceDebugExtension Attribute
-			LOGGER.warning(getTd() + ": " + debug);
+			LOGGER.warning(this.t + ": " + debug);
 		}
-		this.td.setSourceFileName(source);
+		this.t.setSourceFileName(source);
 	}
 
 	@Override
@@ -222,30 +222,30 @@ public class ReadClassVisitor extends ClassVisitor {
 			final int superTypeIndex = typeReference.getSuperTypeIndex();
 			if (superTypeIndex == -1) {
 				// -1: annotation targets extends type
-				getTd().setSuperT(annotateT(getTd().getSuperT(), a, typePath));
+				this.t.setSuperT(annotateT(this.t.getSuperT(), a, typePath));
 			} else {
 				// 0-based interface index
-				final T[] interfaceTs = getTd().getInterfaceTs();
+				final T[] interfaceTs = this.t.getInterfaceTs();
 				if (superTypeIndex < interfaceTs.length) {
 					interfaceTs[superTypeIndex] = annotateT(interfaceTs[superTypeIndex], a,
 							typePath);
 				} else {
 					LOGGER.warning("Super type index '" + superTypeIndex + "' is to large for '"
-							+ getTd() + "'!");
+							+ this.t + "'!");
 				}
 			}
 			break;
 		}
 		case TypeReference.CLASS_TYPE_PARAMETER: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
-			final T[] typeParams = getTd().getTypeParams();
+			final T[] typeParams = this.t.getTypeParams();
 			typeParams[typeParameterIndex] = annotateT(typeParams[typeParameterIndex], a, typePath);
 			break;
 		}
 		case TypeReference.CLASS_TYPE_PARAMETER_BOUND: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
 			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
-			final T t = getTd().getTypeParams()[typeParameterIndex];
+			final T t = this.t.getTypeParams()[typeParameterIndex];
 			if (typeParameterBoundIndex == 0) {
 				// 0: annotation targets extends type
 				t.setSuperT(annotateT(t.getSuperT(), a, typePath));
@@ -257,13 +257,13 @@ public class ReadClassVisitor extends ClassVisitor {
 							interfaceTs[typeParameterBoundIndex - 1], a, typePath);
 				} else {
 					LOGGER.warning("Type parameter bound index '" + (typeParameterBoundIndex - 1)
-							+ "' is to large for '" + getTd() + "'!");
+							+ "' is to large for '" + this.t + "'!");
 				}
 			}
 			break;
 		}
 		default:
-			LOGGER.warning(getTd() + ": Unknown type annotation ref sort '0x"
+			LOGGER.warning(this.t + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}

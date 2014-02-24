@@ -33,7 +33,7 @@ import java.util.logging.Logger;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
@@ -523,8 +523,8 @@ public final class TrControlFlowAnalysis {
 		return false;
 	}
 
-	private MD getMd() {
-		return getCfg().getMd();
+	private M getMd() {
+		return getCfg().getM();
 	}
 
 	private void transform() {

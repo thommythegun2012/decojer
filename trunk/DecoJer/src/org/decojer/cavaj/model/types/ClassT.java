@@ -127,11 +127,11 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public TD createTd() {
+	public T createTd() {
 		assert this.td == null;
 
 		this.td = new TD(this);
-		return this.td;
+		return this;
 	}
 
 	private Object getEnclosing() {
@@ -320,9 +320,7 @@ public class ClassT extends T {
 		}
 	}
 
-	/**
-	 * Type must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
-	 */
+	@Override
 	public void setDeprecated() {
 		this.accessFlags |= AF.DEPRECATED.getValue();
 	}
@@ -425,9 +423,7 @@ public class ClassT extends T {
 		this.superT = superT;
 	}
 
-	/**
-	 * Type must be synthetic (from synthetic attribute).
-	 */
+	@Override
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
 	}

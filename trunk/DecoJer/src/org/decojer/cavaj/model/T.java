@@ -475,11 +475,37 @@ public abstract class T {
 	}
 
 	/**
+	 * Create field declaration.
+	 * 
+	 * @param name
+	 *            field name
+	 * @param descriptor
+	 *            field descriptor
+	 * @return field declaration
+	 */
+	public F createFd(final String name, final String descriptor) {
+		return getTd().createFd(name, descriptor);
+	}
+
+	/**
+	 * Create method declaration.
+	 * 
+	 * @param name
+	 *            method name
+	 * @param descriptor
+	 *            method descriptor
+	 * @return method declaration
+	 */
+	public M createMd(final String name, final String descriptor) {
+		return getTd().createMd(name, descriptor);
+	}
+
+	/**
 	 * Create type declaration for this type.
 	 * 
 	 * @return type declaration
 	 */
-	public TD createTd() {
+	public T createTd() {
 		assert false;
 
 		return null;
@@ -551,6 +577,15 @@ public abstract class T {
 	 */
 	public T getComponentT() {
 		return null;
+	}
+
+	/**
+	 * Get compilation unit.
+	 * 
+	 * @return compilation unit
+	 */
+	public CU getCu() {
+		return getTd().getCu();
 	}
 
 	/**
@@ -1055,6 +1090,15 @@ public abstract class T {
 	}
 
 	/**
+	 * Is Dalvik?
+	 * 
+	 * @return {@code true} - is Dalvik
+	 */
+	public boolean isDalvik() {
+		return getTd().isDalvik();
+	}
+
+	/**
 	 * Is enum type?
 	 * 
 	 * @return {@code true} - is enum type
@@ -1207,6 +1251,33 @@ public abstract class T {
 	}
 
 	/**
+	 * Resolve unfilled parameters.
+	 */
+	public void resolve() {
+		getTd().resolve();
+	}
+
+	/**
+	 * Set access flags.
+	 * 
+	 * @param accessFlags
+	 *            access flags
+	 */
+	public void setAccessFlags(final int accessFlags) {
+		getTd().setAccessFlags(accessFlags);
+	}
+
+	/**
+	 * Set annotations.
+	 * 
+	 * @param as
+	 *            annotations
+	 */
+	public void setAs(final A[] as) {
+		getTd().setAs(as);
+	}
+
+	/**
 	 * Set bound type for wildcard type.
 	 * 
 	 * For annotation application.
@@ -1228,6 +1299,21 @@ public abstract class T {
 	 */
 	public void setComponentT(final T componentT) {
 		assert false;
+	}
+
+	/**
+	 * Declaration must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
+	 * 
+	 * The Deprecated attribute is an optional fixed-length attribute in the attributes table of a
+	 * ClassFile, field_info or method_info structure. A class, interface, method, or field may be
+	 * marked using a Deprecated attribute to indicate that the class, interface, method, or field
+	 * has been superseded.
+	 * 
+	 * Since version 49 the Deprecated Annotation is the preferred solution and not the variant with
+	 * Javadoc @deprecated. We simply put this information into the access flags as internal flag.
+	 */
+	public void setDeprecated() {
+		getTd().setDeprecated();
 	}
 
 	/**
@@ -1337,6 +1423,33 @@ public abstract class T {
 	}
 
 	/**
+	 * This should be scala code.
+	 */
+	public void setScala() {
+		getTd().setScala();
+	}
+
+	/**
+	 * Set signature.
+	 * 
+	 * @param signature
+	 *            signature
+	 */
+	public void setSignature(final String signature) {
+		getTd().setSignature(signature);
+	}
+
+	/**
+	 * Set source file name (from source file attribute).
+	 * 
+	 * @param sourceFileName
+	 *            source file name
+	 */
+	public void setSourceFileName(final String sourceFileName) {
+		getTd().setSourceFileName(sourceFileName);
+	}
+
+	/**
 	 * Set super type.
 	 * 
 	 * @param superT
@@ -1344,6 +1457,35 @@ public abstract class T {
 	 */
 	public void setSuperT(final T superT) {
 		assert false;
+	}
+
+	/**
+	 * Declaration must be synthetic (from synthetic attribute).
+	 * 
+	 * The Synthetic attribute is a fixed-length attribute in the attributes table of a ClassFile,
+	 * field_info or method_info structure. A class member that does not appear in the source code
+	 * must be marked using a Synthetic attribute, or else it must have its ACC_SYNTHETIC flag set.
+	 * 
+	 * Since version 49 the ACC_SYNTHETIC attribute is the preferred solution. We simply put this
+	 * information into the access flags in both cases.
+	 */
+	public void setSynthetic() {
+		getTd().setSynthetic();
+	}
+
+	/**
+	 * Set class file version.
+	 * 
+	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51, 8: 52
+	 * 
+	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
+	 * target option given.
+	 * 
+	 * @param version
+	 *            class file version
+	 */
+	public void setVersion(final int version) {
+		getTd().setVersion(version);
 	}
 
 	@Override

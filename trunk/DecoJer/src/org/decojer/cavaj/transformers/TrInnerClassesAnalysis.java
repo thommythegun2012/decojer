@@ -346,9 +346,9 @@ public class TrInnerClassesAnalysis {
 		}
 		// not very optimized...but it works for now...
 		final List<CU> selectedCus = Lists.newArrayList();
-		for (final CU cu : cus) {
-			for (final TD td : cu.getAllTds()) {
-				if (du.getSelectedTds().contains(td)) {
+		for (final T selectedT : du.getSelectedTs()) {
+			for (final CU cu : cus) {
+				if (cu.getAllTds().contains(selectedT.getTd())) {
 					selectedCus.add(cu);
 					break;
 				}
