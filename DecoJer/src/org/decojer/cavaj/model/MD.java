@@ -26,6 +26,7 @@ package org.decojer.cavaj.model;
 import java.util.List;
 import java.util.logging.Logger;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -59,7 +60,7 @@ public final class MD extends BD {
 	@Setter
 	private CFG cfg;
 
-	@Getter
+	@Getter(value = AccessLevel.PRIVATE)
 	private final ClassM m;
 
 	/**
@@ -95,8 +96,6 @@ public final class MD extends BD {
 
 	/**
 	 * Type parameters.
-	 * 
-	 * TODO Better in M? Maybe later if it's necessary for invokes.
 	 */
 	@Getter
 	private T[] typeParams;

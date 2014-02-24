@@ -156,12 +156,7 @@ public class ClassM extends M {
 		return this.t == null;
 	}
 
-	/**
-	 * Is initializer?
-	 * 
-	 * @return {@code true} - is constructor
-	 */
-
+	@Override
 	public boolean isInitializer() {
 		return INITIALIZER_NAME.equals(getName());
 	}
@@ -181,10 +176,7 @@ public class ClassM extends M {
 		return check(AF.VARARGS);
 	}
 
-	/**
-	 * Method must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
-	 */
-
+	@Override
 	public void setDeprecated() {
 		this.accessFlags |= AF.DEPRECATED.getValue();
 	}
@@ -199,7 +191,7 @@ public class ClassM extends M {
 	 *            receiver type
 	 * @return {@code true} - success
 	 */
-
+	@Override
 	public boolean setReceiverT(final T receiverT) {
 		if (isStatic() || isDynamic()) {
 			return false;
@@ -229,10 +221,7 @@ public class ClassM extends M {
 		return;
 	}
 
-	/**
-	 * Method must be synthetic (from synthetic attribute).
-	 */
-
+	@Override
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
 	}

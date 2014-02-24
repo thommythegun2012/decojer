@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.T;
 
 /**
  * DEX reader.
@@ -47,6 +47,6 @@ public interface DexReader {
 	 * @throws IOException
 	 *             read exception
 	 */
-	List<TD> read(final InputStream is, final String selector) throws IOException;
+	List<T> read(final InputStream is, final String selector) throws IOException;
 
 }

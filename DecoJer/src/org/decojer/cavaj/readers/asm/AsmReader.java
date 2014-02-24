@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.readers.ClassReader;
 
 /**
@@ -52,7 +52,7 @@ public class AsmReader implements ClassReader {
 	}
 
 	@Override
-	public TD read(final InputStream is) throws IOException {
+	public T read(final InputStream is) throws IOException {
 		final org.objectweb.asm.ClassReader classReader = new org.objectweb.asm.ClassReader(is);
 
 		this.readClassVisitor.init();
@@ -62,7 +62,7 @@ public class AsmReader implements ClassReader {
 			// no other measure to stop ASM in reading
 			return null;
 		}
-		return this.readClassVisitor.getTd();
+		return this.readClassVisitor.getT();
 	}
 
 }

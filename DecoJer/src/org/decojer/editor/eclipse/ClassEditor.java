@@ -37,6 +37,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.utils.Cursor;
 import org.decojer.editor.eclipse.cfg.CfgViewer;
@@ -555,7 +556,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					+ input.getClass().getSimpleName() + "'!");
 		}
 		this.du = DecoJer.createDu();
-		final List<TD> selectedTds;
+		final List<T> selectedTds;
 		try {
 			final long currentTimeMillis = System.currentTimeMillis();
 			selectedTds = this.du.read(fileName);

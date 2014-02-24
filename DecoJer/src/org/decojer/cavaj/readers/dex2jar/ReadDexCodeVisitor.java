@@ -29,7 +29,7 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
@@ -75,7 +75,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	private int maxLocals;
 
-	private MD md;
+	private M m;
 
 	private final List<Op> ops = Lists.newArrayList();
 
@@ -119,11 +119,11 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	/**
 	 * Init and set method declaration.
 	 * 
-	 * @param md
-	 *            method declaration
+	 * @param m
+	 *            method
 	 */
-	public void init(final MD md) {
-		this.md = md;
+	public void init(final M m) {
+		this.m = m;
 	}
 
 	@Override
@@ -181,8 +181,8 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	@Override
 	public void visitEnd() {
 		if (this.ops.size() > 0) {
-			final CFG cfg = new CFG(this.md, this.maxLocals, 0);
-			this.md.setCfg(cfg);
+			final CFG cfg = new CFG(this.m, this.maxLocals, 0);
+			this.m.setCfg(cfg);
 
 			cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 			this.ops.clear();
@@ -345,10 +345,10 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 			final DexLabel start, final DexLabel end, final int reg) {
 		T vT = this.du.getDescT(type);
 		if (signature != null) {
-			final T sigT = this.md.getTd().getDu().parseT(signature, new Cursor(), this.md.getM());
+			final T sigT = this.m.getDu().parseT(signature, new Cursor(), this.m);
 			if (!sigT.eraseTo(vT)) {
 				LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + vT
-						+ "' for method (local variable '" + name + "') " + this.md);
+						+ "' for method (local variable '" + name + "') " + this.m);
 			} else {
 				vT = sigT;
 			}
@@ -439,7 +439,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 				t = T.REF;
 				break;
 			default:
-				t = this.md.getReturnT();
+				t = this.m.getReturnT();
 				LOGGER.warning("Unknown operation return type '" + xt
 						+ "'! Using method return type '" + t + "'.");
 			}

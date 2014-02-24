@@ -37,7 +37,6 @@ import lombok.Getter;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
@@ -795,8 +794,8 @@ public final class TrDataFlowAnalysis {
 		return getCfg().getFrame(pc);
 	}
 
-	private MD getMd() {
-		return getCfg().getMd();
+	private M getMd() {
+		return getCfg().getM();
 	}
 
 	private Op getOp(final int pc) {

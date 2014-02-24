@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model;
 
+import org.decojer.cavaj.model.code.CFG;
+
 /**
  * Method.
  * 
@@ -51,11 +53,29 @@ public abstract class M {
 	public abstract MD createMd();
 
 	/**
+	 * Get control flow graph.
+	 * 
+	 * @return control flow graph
+	 */
+	public CFG getCfg() {
+		return getMd().getCfg();
+	}
+
+	/**
 	 * Get descriptor. Unique in owner context.
 	 * 
 	 * @return descriptor
 	 */
 	public abstract String getDescriptor();
+
+	/**
+	 * Get decompilation unit or null (for primitive and special types).
+	 * 
+	 * @return decompilation unit or null
+	 */
+	public DU getDu() {
+		return getT().getDu();
+	}
 
 	/**
 	 * Get method declaration.
@@ -70,6 +90,29 @@ public abstract class M {
 	 * @return name
 	 */
 	public abstract String getName();
+
+	/**
+	 * Get method parameter annotations or {@code null}.
+	 * 
+	 * @return method parameter annotations or {@code null}
+	 */
+	public A[][] getParamAss() {
+		return getMd().getParamAss();
+	}
+
+	/**
+	 * Get parameter name for index.
+	 * 
+	 * Dalvik provides this information directly, the JVM indirect via the local variable table.
+	 * Could also be extracted from JavaDoc etc.
+	 * 
+	 * @param i
+	 *            index (starts with 0, double/long params count as 1)
+	 * @return parameter name
+	 */
+	public String getParamName(final int i) {
+		return getMd().getParamName(i);
+	}
 
 	/**
 	 * get parameter types.
@@ -100,6 +143,24 @@ public abstract class M {
 	public abstract T getT();
 
 	/**
+	 * Get throws types or {@code null}.
+	 * 
+	 * @return throws types or {@code null}
+	 */
+	public T[] getThrowsTs() {
+		return getMd().getThrowsTs();
+	}
+
+	/**
+	 * Get type parameters.
+	 * 
+	 * @return type parameters
+	 */
+	public T[] getTypeParams() {
+		return getMd().getTypeParams();
+	}
+
+	/**
 	 * Is constructor?
 	 * 
 	 * @return {@code true} - is constructor
@@ -112,6 +173,15 @@ public abstract class M {
 	 * @return {@code true} - is dynamic
 	 */
 	public abstract boolean isDynamic();
+
+	/**
+	 * Is initializer?
+	 * 
+	 * @return {@code true} - is constructor
+	 */
+	public boolean isInitializer() {
+		return false;
+	}
 
 	/**
 	 * Is static method?
@@ -135,6 +205,78 @@ public abstract class M {
 	public abstract boolean isVarargs();
 
 	/**
+	 * Set access flags.
+	 * 
+	 * @param accessFlags
+	 *            access flags
+	 */
+	public void setAccessFlags(final int accessFlags) {
+		getMd().setAccessFlags(accessFlags);
+	}
+
+	/**
+	 * Set annotation default value..
+	 * 
+	 * @param annotationDefaultValue
+	 *            annotation default value
+	 */
+	public void setAnnotationDefaultValue(final Object annotationDefaultValue) {
+		getMd().setAnnotationDefaultValue(annotationDefaultValue);
+	}
+
+	/**
+	 * Set annotations.
+	 * 
+	 * @param as
+	 *            annotations
+	 */
+	public void setAs(final A[] as) {
+		getMd().setAs(as);
+	}
+
+	/**
+	 * Set control flow graph.
+	 * 
+	 * @param cfg
+	 *            control flow graph
+	 */
+	public void setCfg(final CFG cfg) {
+		getMd().setCfg(cfg);
+	}
+
+	/**
+	 * Method must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
+	 */
+	public void setDeprecated() {
+		assert false;
+	}
+
+	/**
+	 * Set method parameter annotations.
+	 * 
+	 * @param paramAss
+	 *            method parameter annotations
+	 */
+	public void setParamAss(final A[][] paramAss) {
+		getMd().setParamAss(paramAss);
+	}
+
+	/**
+	 * Set parameter name.
+	 * 
+	 * Dalvik provides this information directly, the JVM indirect via the local variable table.
+	 * Could also be extracted from JavaDoc etc.
+	 * 
+	 * @param i
+	 *            index
+	 * @param name
+	 *            parameter name
+	 */
+	public void setParamName(final int i, final String name) {
+		getMd().setParamName(i, name);
+	}
+
+	/**
 	 * Set raw method for modified method.
 	 * 
 	 * For type annotation application.
@@ -147,12 +289,50 @@ public abstract class M {
 	}
 
 	/**
+	 * Set receiver type (this) for none-static methods.
+	 * 
+	 * @param receiverT
+	 *            receiver type
+	 * @return {@code true} - success
+	 */
+	public boolean setReceiverT(final T receiverT) {
+		return getMd().setReceiverT(receiverT);
+	}
+
+	/**
+	 * Set return type.
+	 * 
+	 * @param returnT
+	 *            return type
+	 */
+	public void setReturnT(final T returnT) {
+		assert false; // overwrite in ClassM
+	}
+
+	/**
+	 * Set signature.
+	 * 
+	 * @param signature
+	 *            signature
+	 */
+	public void setSignature(final String signature) {
+		getMd().setSignature(signature);
+	}
+
+	/**
 	 * Method must be static or dynamic (from usage, e.g. invoke).
 	 * 
 	 * @param f
 	 *            {@code true} - is static
 	 */
 	public abstract void setStatic(final boolean f);
+
+	/**
+	 * Method must be synthetic (from synthetic attribute).
+	 */
+	public void setSynthetic() {
+		assert false;
+	}
 
 	/**
 	 * Set owner type (for applying type annotations).
@@ -162,6 +342,16 @@ public abstract class M {
 	 */
 	public void setT(final T t) {
 		assert false; // overwrite in QualifiedM
+	}
+
+	/**
+	 * Set throws types or {@code null}.
+	 * 
+	 * @param throwsTs
+	 *            throws types or {@code null}
+	 */
+	public void setThrowsTs(final T[] throwsTs) {
+		getMd().setThrowsTs(throwsTs);
 	}
 
 }

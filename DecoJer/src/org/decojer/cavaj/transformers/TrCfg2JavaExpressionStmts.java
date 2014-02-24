@@ -53,7 +53,6 @@ import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.Version;
@@ -271,7 +270,7 @@ public final class TrCfg2JavaExpressionStmts {
 							// special handling for RETURN, multiple predecessors possible and can
 							// directly return value - should be Scala only code
 							if (!getCfg().getTd().isScala()) {
-								LOGGER.warning(getMd()
+								LOGGER.warning(getM()
 										+ ": Rewriting of conditional returns should only happen for Scala based classes!");
 							}
 							return true; // deleted myself
@@ -458,7 +457,7 @@ public final class TrCfg2JavaExpressionStmts {
 					break;
 				}
 				default:
-					LOGGER.warning(getMd() + ": Unknown DUP type '" + cop.getKind() + "'!");
+					LOGGER.warning(getM() + ": Unknown DUP type '" + cop.getKind() + "'!");
 				}
 				break;
 			}
@@ -529,7 +528,7 @@ public final class TrCfg2JavaExpressionStmts {
 										getVarExpression(cop.getReg(), cop.getPc(), op), op));
 						break;
 					}
-					LOGGER.warning(getMd() + ": Inline ++/--!");
+					LOGGER.warning(getM() + ": Inline ++/--!");
 					break;
 				}
 				if (rewriteInlineRegAssignment(bb, cop)) {
@@ -545,7 +544,7 @@ public final class TrCfg2JavaExpressionStmts {
 											.getTd(), op), op));
 					break;
 				}
-				LOGGER.warning(getMd() + ": Inline INC with value '" + value + "'!");
+				LOGGER.warning(getM() + ": Inline INC with value '" + value + "'!");
 				break;
 			}
 			case INSTANCEOF: {
@@ -600,19 +599,19 @@ public final class TrCfg2JavaExpressionStmts {
 							enumConstructor: if (m.getT().is(Enum.class)
 									&& !getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
 								if (arguments.size() < 2) {
-									LOGGER.warning(getMd() + ": Super constructor invocation '" + m
+									LOGGER.warning(getM() + ": Super constructor invocation '" + m
 											+ "' for enum has less than 2 arguments!");
 									break enumConstructor;
 								}
 								if (!m.getParamTs()[0].is(String.class)) {
-									LOGGER.warning(getMd()
+									LOGGER.warning(getM()
 											+ ": Super constructor invocation '"
 											+ m
 											+ "' for enum must contain string literal as first parameter!");
 									break enumConstructor;
 								}
 								if (m.getParamTs()[1] != T.INT) {
-									LOGGER.warning(getMd()
+									LOGGER.warning(getM()
 											+ ": Super constructor invocation '"
 											+ m
 											+ "' for enum must contain number literal as first parameter!");
@@ -644,10 +643,10 @@ public final class TrCfg2JavaExpressionStmts {
 								// inner class constructor invocation has synthetic this reference
 								// as first argument: remove
 								if (arguments.size() == 0) {
-									LOGGER.warning(getMd()
+									LOGGER.warning(getM()
 											+ ": Inner class constructor invocation has no synthetic this reference as first argument! No arguments given.");
 								} else if (!(arguments.get(0) instanceof ThisExpression)) {
-									LOGGER.warning(getMd()
+									LOGGER.warning(getM()
 											+ ": Inner class constructor invocation has no synthetic this reference as first argument! Wrong first argument: "
 											+ arguments.get(0));
 								} else {
@@ -659,7 +658,7 @@ public final class TrCfg2JavaExpressionStmts {
 							// basicBlock.pushExpression(classInstanceCreation);
 							break;
 						}
-						LOGGER.warning(getMd()
+						LOGGER.warning(getM()
 								+ ": Constructor expects expression class 'ThisExpression' or 'ClassInstanceCreation' but is '"
 								+ expression.getClass() + "' with value: " + expression);
 						break;
@@ -684,22 +683,21 @@ public final class TrCfg2JavaExpressionStmts {
 					if (isDynamicBootstrapMethod(cop.getBsM()) && bsArgs.length > 1
 							&& bsArgs[1] instanceof M) {
 						final M dynamicM = (M) bsArgs[1];
-						final MD dynamicMd = dynamicM.getMd();
 						if (dynamicM.isSynthetic()) {
 							// is lambda
 							final LambdaExpression lambdaExpression = getAst()
 									.newLambdaExpression();
 							// init lambda parameters
 							final T[] paramTs = dynamicM.getParamTs();
-							final A[][] paramAss = dynamicMd.getParamAss();
+							final A[][] paramAss = dynamicM.getParamAss();
 							// first m.paramTs.length parameters are for outer capture inits
 							for (int i = m.getParamTs().length; i < paramTs.length; ++i) {
 								lambdaExpression.parameters().add(
-										newSingleVariableDeclaration(dynamicMd, paramTs, paramAss,
-												i, this.cfg.getTd()));
+										newSingleVariableDeclaration(dynamicM.getMd(), paramTs,
+												paramAss, i, this.cfg.getTd()));
 							}
 							// init lambda body
-							final CFG lambdaCfg = dynamicMd.getCfg();
+							final CFG lambdaCfg = dynamicM.getCfg();
 							if (lambdaCfg.getBlock() == null) {
 								// if synthetics are not decompiled...
 								// lambda methods are synthetic: init block, could later add more
@@ -712,7 +710,7 @@ public final class TrCfg2JavaExpressionStmts {
 								// don't show this recognized (normally synthetic) method
 								// declaration
 								lambdaCfg.getBlock().delete(); // delete from parent
-								dynamicMd.setMethodDeclaration(null);
+								dynamicM.getMd().setMethodDeclaration(null);
 								// is our new lambda body
 								lambdaExpression.setBody(lambdaCfg.getBlock());
 							}
@@ -732,7 +730,7 @@ public final class TrCfg2JavaExpressionStmts {
 										.setName(newSimpleName(dynamicM.getName(), getAst()));
 								methodExpression = methodReference;
 							} else {
-								assert arguments.size() == 1 : getMd()
+								assert arguments.size() == 1 : getM()
 										+ ": expression method reference doesn't have 1 argument";
 
 								final ExpressionMethodReference methodReference = getAst()
@@ -806,7 +804,7 @@ public final class TrCfg2JavaExpressionStmts {
 					operator = InfixExpression.Operator.NOT_EQUALS;
 					break;
 				default:
-					LOGGER.warning(getMd() + ": Unknown cmp type '" + cop.getCmpType() + "'!");
+					LOGGER.warning(getM() + ": Unknown cmp type '" + cop.getCmpType() + "'!");
 					operator = null;
 				}
 				statement = getAst().newIfStatement();
@@ -841,7 +839,7 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
-						LOGGER.warning(getMd() + ": Unknown cmp type '" + cop.getCmpType() + "'!");
+						LOGGER.warning(getM() + ": Unknown cmp type '" + cop.getCmpType() + "'!");
 						operator = null;
 					}
 					((InfixExpression) expression).setOperator(operator);
@@ -855,7 +853,7 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
-						LOGGER.warning(getMd() + ": Unknown cmp type '" + cop.getCmpType()
+						LOGGER.warning(getM() + ": Unknown cmp type '" + cop.getCmpType()
 								+ "' for null-expression!");
 						operator = null;
 					}
@@ -872,7 +870,7 @@ public final class TrCfg2JavaExpressionStmts {
 						// "!= 0" means "is true"
 						break;
 					default:
-						LOGGER.warning(getMd() + ": Unknown cmp type '" + cop.getCmpType()
+						LOGGER.warning(getM() + ": Unknown cmp type '" + cop.getCmpType()
 								+ "' for boolean expression '" + expression + "'!");
 					}
 				} else {
@@ -897,7 +895,7 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = InfixExpression.Operator.NOT_EQUALS;
 						break;
 					default:
-						LOGGER.warning(getMd() + ": Unknown cmp type '" + cop.getCmpType()
+						LOGGER.warning(getM() + ": Unknown cmp type '" + cop.getCmpType()
 								+ "' for 0-expression!");
 						operator = null;
 					}
@@ -925,7 +923,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// must not access method parameters for fieldInits...
 				fieldInitCheck: if (isFieldInit()) {
 					final R r = getCfg().getInFrame(op).load(cop.getReg());
-					if (!getMd().isConstructor()) {
+					if (!getM().isConstructor()) {
 						setFieldInit(false);
 						break fieldInitCheck;
 					}
@@ -937,9 +935,9 @@ public final class TrCfg2JavaExpressionStmts {
 						break fieldInitCheck; // this
 					}
 					// only synthetic parameters are allowed
-					if (getMd().getTd().isInner()
+					if (getM().getT().isInner()
 							&& !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
-						if (cop.getReg() == 1 && r.getT().is(getMd().getParamTs()[0])) {
+						if (cop.getReg() == 1 && r.getT().is(getM().getParamTs()[0])) {
 							break fieldInitCheck;
 						}
 					}
@@ -969,7 +967,7 @@ public final class TrCfg2JavaExpressionStmts {
 					break;
 				}
 				default:
-					LOGGER.warning(getMd() + ": Unknown monitor kind '" + cop.getKind() + "'!");
+					LOGGER.warning(getM() + ": Unknown monitor kind '" + cop.getKind() + "'!");
 				}
 				break;
 			}
@@ -1068,7 +1066,7 @@ public final class TrCfg2JavaExpressionStmts {
 					break;
 				}
 				default:
-					LOGGER.warning(getMd() + ": Unknown POP type '" + cop.getKind() + "'!");
+					LOGGER.warning(getM() + ": Unknown POP type '" + cop.getKind() + "'!");
 				}
 				break;
 			}
@@ -1263,8 +1261,8 @@ public final class TrCfg2JavaExpressionStmts {
 		return getCfg().getCu().getAst();
 	}
 
-	private MD getMd() {
-		return getCfg().getMd();
+	private M getM() {
+		return getCfg().getM();
 	}
 
 	private Expression getVarExpression(final int reg, final int pc, final Op op) {
@@ -1279,7 +1277,7 @@ public final class TrCfg2JavaExpressionStmts {
 		final V v = getCfg().getFrameVar(reg, pc);
 		final String name = v == null ? null : v.getName();
 		if (name == null) {
-			if (reg == 0 && !getMd().isStatic() && getCfg().getFrame(pc).load(reg).isMethodParam()) {
+			if (reg == 0 && !getM().isStatic() && getCfg().getFrame(pc).load(reg).isMethodParam()) {
 				// TODO later we move this to a real variable analysis
 				return "this";
 			}
@@ -1549,7 +1547,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		if (getCfg().getTd().isAtLeast(Version.JVM_5)) {
-			LOGGER.warning(getMd() + ": Class literal caching isn't necessary anymore in JDK 5!");
+			LOGGER.warning(getM() + ": Class literal caching isn't necessary anymore in JDK 5!");
 		}
 		// now this really should be a cached class literal, giving warnings in other cases are OK
 		try {
@@ -1564,10 +1562,10 @@ public final class TrCfg2JavaExpressionStmts {
 					return true;
 				}
 			}
-			LOGGER.warning(getMd() + ": Couldn't rewrite cached class literal '" + f + "'!");
+			LOGGER.warning(getM() + ": Couldn't rewrite cached class literal '" + f + "'!");
 			return false;
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, getMd() + ": Couldn't rewrite cached class literal '" + f
+			LOGGER.log(Level.WARNING, getM() + ": Couldn't rewrite cached class literal '" + f
 					+ "'!", e);
 			return false;
 		}
@@ -1721,7 +1719,7 @@ public final class TrCfg2JavaExpressionStmts {
 					// "!= 0" means "is true"
 					break;
 				default:
-					LOGGER.warning(getMd() + ": Unknown cmp type '" + cmpType + "'!");
+					LOGGER.warning(getM() + ": Unknown cmp type '" + cmpType + "'!");
 				}
 				if (c.getStmts() == 0 && c.isStackEmpty()) {
 					c.moveIns(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
@@ -1740,7 +1738,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// "!= 0" means "is true"
 				break;
 			default:
-				LOGGER.warning(getMd() + ": Unknown cmp type '" + cmpType
+				LOGGER.warning(getM() + ": Unknown cmp type '" + cmpType
 						+ "' for boolean expression '" + expression + "'!");
 			}
 			final IfStatement statement = setOp(getAst().newIfStatement(), op);
@@ -1878,7 +1876,7 @@ public final class TrCfg2JavaExpressionStmts {
 						break classLiteral;
 					}
 					if (getCfg().getTd().isAtLeast(Version.JVM_5)) {
-						LOGGER.warning(getMd()
+						LOGGER.warning(getM()
 								+ ": Unexpected class literal code with class$() in >= JVM 5 code!");
 					}
 					try {
@@ -1933,12 +1931,12 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!isFieldInit()) {
 			return false;
 		}
-		if (!getMd().getT().is(f.getT())) {
+		if (!getM().getT().is(f.getT())) {
 			return false;
 		}
 		// set local field, could be initializer
 		if (f.isStatic()) {
-			if (!getMd().isInitializer()) {
+			if (!getM().isInitializer()) {
 				return false;
 			}
 			if (getCfg().getStartBb() != bb || bb.getStmts() > 0) {
@@ -1948,7 +1946,7 @@ public final class TrCfg2JavaExpressionStmts {
 				if (f.isEnum()) {
 					// assignment to enum constant declaration
 					if (!(rightOperand instanceof ClassInstanceCreation)) {
-						LOGGER.warning(getMd() + ": Assignment to enum field '" + f
+						LOGGER.warning(getM() + ": Assignment to enum field '" + f
 								+ "' is no class instance creation!");
 						return false;
 					}
@@ -1956,26 +1954,26 @@ public final class TrCfg2JavaExpressionStmts {
 					// first two arguments must be String (== field name) and int (ordinal)
 					final List<Expression> arguments = classInstanceCreation.arguments();
 					if (arguments.size() < 2) {
-						LOGGER.warning(getMd() + ": Class instance creation for enum field '" + f
+						LOGGER.warning(getM() + ": Class instance creation for enum field '" + f
 								+ "' has less than 2 arguments!");
 						return false;
 					}
 					if (!(arguments.get(0) instanceof StringLiteral)) {
-						LOGGER.warning(getMd() + ": Class instance creation for enum field '" + f
+						LOGGER.warning(getM() + ": Class instance creation for enum field '" + f
 								+ "' must contain string literal as first parameter!");
 						return false;
 					}
 					final String literalValue = ((StringLiteral) arguments.get(0))
 							.getLiteralValue();
 					if (!literalValue.equals(f.getName())) {
-						LOGGER.warning(getMd()
+						LOGGER.warning(getM()
 								+ ": Class instance creation for enum field '"
 								+ f
 								+ "' must contain string literal equal to field name as first parameter!");
 						return false;
 					}
 					if (!(arguments.get(1) instanceof NumberLiteral)) {
-						LOGGER.warning(getMd() + ": Class instance creation for enum field '" + f
+						LOGGER.warning(getM() + ": Class instance creation for enum field '" + f
 								+ "' must contain number literal as first parameter!");
 						return false;
 					}
@@ -2011,7 +2009,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 			}
 		} else {
-			if (!getMd().isConstructor()) {
+			if (!getM().isConstructor()) {
 				return false;
 			}
 			if (!(bb.peek() instanceof ThisExpression)) {
@@ -2022,7 +2020,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// initial super(<arguments>) is allowed for constructors
 				return false;
 			}
-			if (getMd().getTd().isInner() && !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
+			if (getM().getT().isInner() && !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
 				if (f.isSynthetic() && f.getName().startsWith("this$")) {
 					bb.pop();
 					return true;
@@ -2056,7 +2054,7 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			return true;
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, getMd() + ": Rewrite to field-initializer didn't work!", e);
+			LOGGER.log(Level.WARNING, getM() + ": Rewrite to field-initializer didn't work!", e);
 			return false;
 		}
 	}
@@ -2079,7 +2077,7 @@ public final class TrCfg2JavaExpressionStmts {
 			// TODO could also be: LOAD x, MONITOR_EXIT - THROW ...kill POP case above?
 			// TODO or could be: DUP, STORE 0, INVOKE printStackTrace()V
 			// or whatever...need are much more generalized version!
-			LOGGER.warning(getMd() + ": First operation in handler isn't STORE or POP, but is '"
+			LOGGER.warning(getM() + ": First operation in handler isn't STORE or POP, but is '"
 					+ firstOp + "': " + bb);
 			name = "e"; // TODO hmmm...free variable name needed...
 			bb.push(newSimpleName(name, getAst()));
@@ -2245,7 +2243,7 @@ public final class TrCfg2JavaExpressionStmts {
 			bb.push(stringExpression);
 			return true;
 		} catch (final Exception e) {
-			LOGGER.log(Level.WARNING, getMd() + ": Rewrite to string-add didn't work!", e);
+			LOGGER.log(Level.WARNING, getM() + ": Rewrite to string-add didn't work!", e);
 			return false;
 		}
 	}
@@ -2289,7 +2287,7 @@ public final class TrCfg2JavaExpressionStmts {
 				return false;
 			}
 			if (getCfg().getTd().isBelow(Version.JVM_5)) {
-				LOGGER.warning(getMd()
+				LOGGER.warning(getM()
 						+ ": Enumerations switches are not known before JVM 5! Rewriting anyway, check this.");
 			}
 			final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
@@ -2369,7 +2367,7 @@ public final class TrCfg2JavaExpressionStmts {
 					defaultCase.addStmt(switchStatement);
 				}
 				if (getCfg().getTd().isBelow(Version.JVM_7)) {
-					LOGGER.warning(getMd()
+					LOGGER.warning(getM()
 							+ ": String switches are not known before JVM 7! Rewriting anyway, check this.");
 				}
 				return true;
@@ -2394,7 +2392,7 @@ public final class TrCfg2JavaExpressionStmts {
 				SwitchTypes.rewriteCaseStrings(bb, string2bb, defaultCase);
 
 				if (getCfg().getTd().isBelow(Version.JVM_7)) {
-					LOGGER.warning(getMd()
+					LOGGER.warning(getM()
 							+ ": String switches are not known before JVM 7! Rewriting anyway, check this.");
 				}
 				final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
@@ -2410,7 +2408,7 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private void transform() {
-		setFieldInit(getMd().isConstructor() || getMd().isInitializer());
+		setFieldInit(getM().isConstructor() || getM().isInitializer());
 		final List<BB> bbs = getCfg().getPostorderedBbs();
 		// for all nodes in _reverse_ postorder: is also backward possible with nice optimizations,
 		// but this way easier handling of dalvik temporary registers
@@ -2430,7 +2428,7 @@ public final class TrCfg2JavaExpressionStmts {
 			if (!convertToHLLIntermediate(bb)) {
 				// in Java should never happen in forward mode, but in Scala exists a more complex
 				// conditional value ternary variant with sub statements
-				LOGGER.warning(getMd() + ": Stack underflow in '" + getCfg() + "':\n" + bb);
+				LOGGER.warning(getM() + ": Stack underflow in '" + getCfg() + "':\n" + bb);
 			}
 		}
 	}

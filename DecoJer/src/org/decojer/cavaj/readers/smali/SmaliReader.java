@@ -33,11 +33,8 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.FD;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.readers.DexReader;
 import org.jf.dexlib.AnnotationDirectoryItem;
@@ -107,7 +104,7 @@ public class SmaliReader implements DexReader {
 	}
 
 	@Override
-	public List<TD> read(final InputStream is, final String selector) throws IOException {
+	public List<T> read(final InputStream is, final String selector) throws IOException {
 		String selectorPrefix = null;
 		String selectorMatch = null;
 		if (selector != null && selector.endsWith(".class")) {
@@ -119,7 +116,7 @@ public class SmaliReader implements DexReader {
 				selectorPrefix = selectorMatch.substring(0, pos + 1);
 			}
 		}
-		final List<TD> tds = Lists.newArrayList();
+		final List<T> ts = Lists.newArrayList();
 
 		final byte[] bytes = ByteStreams.toByteArray(is);
 		final DexFile dexFile = new DexFile(new ByteArrayInput(bytes), true, false);
@@ -140,9 +137,9 @@ public class SmaliReader implements DexReader {
 				LOGGER.warning("Type '" + t + "' already read!");
 				continue;
 			}
-			final TD td = t.createTd();
-			td.setAccessFlags(classDefItem.getAccessFlags());
-			td.setSuperT(this.du.getDescT(classDefItem.getSuperclass().getTypeDescriptor()));
+			t.createTd();
+			t.setAccessFlags(classDefItem.getAccessFlags());
+			t.setSuperT(this.du.getDescT(classDefItem.getSuperclass().getTypeDescriptor()));
 			final TypeListItem interfaces = classDefItem.getInterfaces();
 			if (interfaces != null && interfaces.getTypeCount() > 0) {
 				final T[] interfaceTs = new T[interfaces.getTypeCount()];
@@ -150,10 +147,10 @@ public class SmaliReader implements DexReader {
 					interfaceTs[i] = this.du.getDescT(interfaces.getTypeIdItem(i)
 							.getTypeDescriptor());
 				}
-				td.setInterfaceTs(interfaceTs);
+				t.setInterfaceTs(interfaceTs);
 			}
 			if (selectorMatch == null || selectorMatch.equals(typeDescriptor)) {
-				tds.add(td);
+				ts.add(t);
 			}
 			A annotationDefaultValues = null;
 			final Map<FieldIdItem, String> fieldSignatures = Maps.newHashMap();
@@ -184,7 +181,7 @@ public class SmaliReader implements DexReader {
 							for (final Object element : signature) {
 								sb.append(element);
 							}
-							td.setSignature(sb.toString());
+							t.setSignature(sb.toString());
 							continue;
 						}
 						if ("dalvik.annotation.EnclosingClass".equals(a.getT().getName())) {
@@ -209,7 +206,7 @@ public class SmaliReader implements DexReader {
 						as.add(a);
 					}
 					if (as.size() > 0) {
-						td.setAs(as.toArray(new A[as.size()]));
+						t.setAs(as.toArray(new A[as.size()]));
 					}
 				}
 				for (final FieldAnnotation fieldAnnotation : annotations.getFieldAnnotations()) {
@@ -283,19 +280,19 @@ public class SmaliReader implements DexReader {
 				}
 			}
 			if (classDefItem.getSourceFile() != null) {
-				td.setSourceFileName(classDefItem.getSourceFile().getStringValue());
+				t.setSourceFileName(classDefItem.getSourceFile().getStringValue());
 			}
 			final ClassDataItem classData = classDefItem.getClassData();
 			if (classData != null) {
-				readFields(td, classData.getStaticFields(), classData.getInstanceFields(),
+				readFields(t, classData.getStaticFields(), classData.getInstanceFields(),
 						fieldSignatures, classDefItem.getStaticFieldInitializers(), fieldAs);
-				readMethods(td, classData.getDirectMethods(), classData.getVirtualMethods(),
+				readMethods(t, classData.getDirectMethods(), classData.getVirtualMethods(),
 						methodSignatures, methodThrowsTs, annotationDefaultValues, methodAs,
 						methodParamAs);
 			}
-			td.resolve();
+			t.resolve();
 		}
-		return tds;
+		return ts;
 	}
 
 	private A readAnnotation(final AnnotationEncodedSubValue encodedValue,
@@ -330,7 +327,7 @@ public class SmaliReader implements DexReader {
 		return readAnnotation(annotationItem.getEncodedAnnotation(), retentionPolicy);
 	}
 
-	private void readFields(final TD td, final List<EncodedField> staticFields,
+	private void readFields(final T t, final List<EncodedField> staticFields,
 			final List<EncodedField> instanceFields,
 			final Map<FieldIdItem, String> fieldSignatures,
 			final EncodedArrayItem staticFieldInitializers, final Map<FieldIdItem, A[]> fieldAs) {
@@ -346,39 +343,39 @@ public class SmaliReader implements DexReader {
 			final EncodedField encodedField = staticFields.get(i);
 			final FieldIdItem field = encodedField.field;
 
-			final FD fd = td.createFd(field.getFieldName().getStringValue(), field.getFieldType()
+			final F f = t.createFd(field.getFieldName().getStringValue(), field.getFieldType()
 					.getTypeDescriptor());
 
-			fd.setAccessFlags(encodedField.accessFlags);
+			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
-				fd.setSignature(fieldSignatures.get(field));
+				f.setSignature(fieldSignatures.get(field));
 			}
 
 			if (staticFieldValues.length > i) {
-				fd.setValue(readValue(staticFieldValues[i], this.du));
+				f.setValue(readValue(staticFieldValues[i], this.du));
 			}
 
-			fd.setAs(fieldAs.get(field));
+			f.setAs(fieldAs.get(field));
 		}
 		for (final EncodedField encodedField : instanceFields) {
 			final FieldIdItem field = encodedField.field;
 
-			final FD fd = td.createFd(field.getFieldName().getStringValue(), field.getFieldType()
+			final F f = t.createFd(field.getFieldName().getStringValue(), field.getFieldType()
 					.getTypeDescriptor());
 
-			fd.setAccessFlags(encodedField.accessFlags);
+			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
-				fd.setSignature(fieldSignatures.get(field));
+				f.setSignature(fieldSignatures.get(field));
 			}
 
 			// there is no field initializer section for instance fields,
 			// only via constructor
 
-			fd.setAs(fieldAs.get(field));
+			f.setAs(fieldAs.get(field));
 		}
 	}
 
-	private void readMethods(final TD td, final List<EncodedMethod> directMethods,
+	private void readMethods(final T t, final List<EncodedMethod> directMethods,
 			final List<EncodedMethod> virtualMethods,
 			final Map<MethodIdItem, String> methodSignatures,
 			final Map<MethodIdItem, T[]> methodThrowsTs, final A annotationDefaultValues,
@@ -386,38 +383,38 @@ public class SmaliReader implements DexReader {
 		for (final EncodedMethod encodedMethod : directMethods) {
 			final MethodIdItem method = encodedMethod.method;
 
-			final MD md = td.createMd(method.getMethodName().getStringValue(), method
-					.getPrototype().getPrototypeString());
+			final M m = t.createMd(method.getMethodName().getStringValue(), method.getPrototype()
+					.getPrototypeString());
 
-			md.setAccessFlags(encodedMethod.accessFlags);
-			md.setThrowsTs(methodThrowsTs.get(method));
-			md.setSignature(methodSignatures.get(method));
+			m.setAccessFlags(encodedMethod.accessFlags);
+			m.setThrowsTs(methodThrowsTs.get(method));
+			m.setSignature(methodSignatures.get(method));
 
 			// no annotation default values
 
-			md.setAs(methodAs.get(method));
-			md.setParamAss(methodParamAs.get(method));
+			m.setAs(methodAs.get(method));
+			m.setParamAss(methodParamAs.get(method));
 
-			this.readCodeItem.initAndVisit(md, encodedMethod.codeItem);
+			this.readCodeItem.initAndVisit(m, encodedMethod.codeItem);
 		}
 		for (final EncodedMethod encodedMethod : virtualMethods) {
 			final MethodIdItem method = encodedMethod.method;
 
-			final MD md = td.createMd(method.getMethodName().getStringValue(), method
-					.getPrototype().getPrototypeString());
+			final M m = t.createMd(method.getMethodName().getStringValue(), method.getPrototype()
+					.getPrototypeString());
 
-			md.setAccessFlags(encodedMethod.accessFlags);
-			md.setThrowsTs(methodThrowsTs.get(method));
-			md.setSignature(methodSignatures.get(method));
+			m.setAccessFlags(encodedMethod.accessFlags);
+			m.setThrowsTs(methodThrowsTs.get(method));
+			m.setSignature(methodSignatures.get(method));
 
 			if (annotationDefaultValues != null) {
-				md.setAnnotationDefaultValue(annotationDefaultValues.getMember(md.getName()));
+				m.setAnnotationDefaultValue(annotationDefaultValues.getMember(m.getName()));
 			}
 
-			md.setAs(methodAs.get(method));
-			md.setParamAss(methodParamAs.get(method));
+			m.setAs(methodAs.get(method));
+			m.setParamAss(methodParamAs.get(method));
 
-			this.readCodeItem.initAndVisit(md, encodedMethod.codeItem);
+			this.readCodeItem.initAndVisit(m, encodedMethod.codeItem);
 		}
 	}
 

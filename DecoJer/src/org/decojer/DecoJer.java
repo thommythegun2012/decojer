@@ -135,10 +135,10 @@ public class DecoJer {
 			break;
 		}
 		case 4: {
-			du.read("D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1.jar");
+			du.read("D:/Data/Decomp/workspace/DecoJerTest/test_bytecode_closed/myCinema_v1.6.1.jar");
 			du.decompileAll(new FileOutputStream(
 					new File(
-							"D:/Data/Decomp/workspace/DecoJerTest/uploaded_test/myCinema_v1.6.1_source.jar")));
+							"D:/Data/Decomp/workspace/DecoJerTest/test_bytecode_closed/myCinema_v1.6.1_source.jar")));
 			break;
 		}
 		case 5: {

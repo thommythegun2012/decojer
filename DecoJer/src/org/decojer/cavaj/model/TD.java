@@ -55,7 +55,7 @@ public final class TD extends BD {
 	@Setter
 	private String sourceFileName;
 
-	@Getter(AccessLevel.PROTECTED)
+	@Getter(value = AccessLevel.PRIVATE)
 	private final ClassT t;
 
 	/**
@@ -112,8 +112,10 @@ public final class TD extends BD {
 	 *            field descriptor
 	 * @return field declaration
 	 */
-	public FD createFd(final String name, final String descriptor) {
-		return getT().getF(name, descriptor).createFd();
+	public F createFd(final String name, final String descriptor) {
+		final F f = getT().getF(name, descriptor);
+		f.createFd();
+		return f;
 	}
 
 	/**
@@ -125,8 +127,10 @@ public final class TD extends BD {
 	 *            method descriptor
 	 * @return method declaration
 	 */
-	public MD createMd(final String name, final String descriptor) {
-		return getT().getM(name, descriptor).createMd();
+	public M createMd(final String name, final String descriptor) {
+		final M m = getT().getM(name, descriptor);
+		m.createMd();
+		return m;
 	}
 
 	/**

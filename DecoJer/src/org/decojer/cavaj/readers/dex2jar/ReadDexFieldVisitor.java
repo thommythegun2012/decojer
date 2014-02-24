@@ -27,7 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.FD;
+import org.decojer.cavaj.model.F;
 
 import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 import com.googlecode.dex2jar.visitors.DexFieldVisitor;
@@ -41,7 +41,7 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 
 	private A[] as;
 
-	private FD fd;
+	private F f;
 
 	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
 
@@ -58,13 +58,13 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 	}
 
 	/**
-	 * Init and set field declaration.
+	 * Init and set field.
 	 * 
-	 * @param fd
-	 *            field declaration
+	 * @param f
+	 *            field
 	 */
-	public void init(final FD fd) {
-		this.fd = fd;
+	public void init(final F f) {
+		this.f = f;
 		this.as = null;
 	}
 
@@ -85,7 +85,7 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 	@Override
 	public void visitEnd() {
 		if (this.as != null) {
-			this.fd.setAs(this.as);
+			this.f.setAs(this.as);
 		}
 	}
 

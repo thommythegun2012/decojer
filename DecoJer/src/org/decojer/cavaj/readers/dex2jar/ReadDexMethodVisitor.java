@@ -27,7 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.MD;
+import org.decojer.cavaj.model.M;
 
 import com.googlecode.dex2jar.visitors.DexAnnotationAble;
 import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
@@ -43,7 +43,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 
 	private A[] as;
 
-	private MD md;
+	private M m;
 
 	private A[][] paramAss;
 
@@ -65,13 +65,13 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 	}
 
 	/**
-	 * Init and set method declaration.
+	 * Init and set method.
 	 * 
-	 * @param md
-	 *            method declaration
+	 * @param m
+	 *            method
 	 */
-	public void init(final MD md) {
-		this.md = md;
+	public void init(final M m) {
+		this.m = m;
 		this.as = null;
 		this.paramAss = null;
 	}
@@ -92,17 +92,17 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 
 	@Override
 	public DexCodeVisitor visitCode() {
-		this.readDexCodeVisitor.init(this.md);
+		this.readDexCodeVisitor.init(this.m);
 		return this.readDexCodeVisitor;
 	}
 
 	@Override
 	public void visitEnd() {
 		if (this.as != null) {
-			this.md.setAs(this.as);
+			this.m.setAs(this.as);
 		}
 		if (this.paramAss != null) {
-			this.md.setParamAss(this.paramAss);
+			this.m.setParamAss(this.paramAss);
 		}
 	}
 

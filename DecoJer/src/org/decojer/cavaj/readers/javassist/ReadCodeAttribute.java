@@ -41,7 +41,6 @@ import javassist.bytecode.StackMapTable;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.F;
 import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
 import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
@@ -100,7 +99,7 @@ public class ReadCodeAttribute {
 
 	private final static Logger LOGGER = Logger.getLogger(ReadCodeAttribute.class.getName());
 
-	private MD md;
+	private M m;
 
 	final List<Op> ops = Lists.newArrayList();
 
@@ -109,7 +108,7 @@ public class ReadCodeAttribute {
 	private final Map<Integer, List<Object>> vmpc2unresolved = Maps.newHashMap();
 
 	private DU getDu() {
-		return this.md.getTd().getDu();
+		return this.m.getDu();
 	}
 
 	private int getPc(final int vmpc) {
@@ -150,13 +149,13 @@ public class ReadCodeAttribute {
 	/**
 	 * Init and visit.
 	 * 
-	 * @param md
-	 *            method declaration
+	 * @param m
+	 *            method
 	 * @param codeAttribute
 	 *            Javassist code attribute
 	 */
-	public void initAndVisit(final MD md, final CodeAttribute codeAttribute) {
-		this.md = md;
+	public void initAndVisit(final M m, final CodeAttribute codeAttribute) {
+		this.m = m;
 
 		this.ops.clear();
 		this.vmpc2pc.clear();
@@ -184,15 +183,15 @@ public class ReadCodeAttribute {
 			} else if (StackMapTable.tag.equals(attributeTag)) {
 				stackMapTable = (StackMapTable) attributeInfo;
 			} else {
-				LOGGER.warning("Unknown code attribute tag '" + attributeTag + "' in '" + md + "'!");
+				LOGGER.warning("Unknown code attribute tag '" + attributeTag + "' in '" + m + "'!");
 			}
 		}
 		final ConstPool constPool = codeAttribute.getConstPool();
 
 		LOGGER.fine("Stack info: " + stackMap + " : " + stackMapTable); // no unused warning
 
-		final CFG cfg = new CFG(md, codeAttribute.getMaxLocals(), codeAttribute.getMaxStack());
-		md.setCfg(cfg);
+		final CFG cfg = new CFG(m, codeAttribute.getMaxLocals(), codeAttribute.getMaxStack());
+		m.setCfg(cfg);
 
 		final ReadCodeArray codeReader = new ReadCodeArray(codeAttribute.getCode());
 
@@ -588,10 +587,10 @@ public class ReadCodeAttribute {
 
 				final T ownerT = getT(constPool, constPool.getInterfaceMethodrefClass(methodIndex));
 				ownerT.setInterface(true);
-				final M m = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
+				final M refM = ownerT.getM(constPool.getInterfaceMethodrefName(methodIndex),
 						constPool.getInterfaceMethodrefType(methodIndex));
-				m.setStatic(false);
-				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m, false));
+				refM.setStatic(false);
+				this.ops.add(new INVOKE(this.ops.size(), opcode, line, refM, false));
 				break;
 			}
 			case Opcode.INVOKESPECIAL:
@@ -602,10 +601,10 @@ public class ReadCodeAttribute {
 
 				final T ownerT = getT(constPool, constPool.getMethodrefClass(cpMethodIndex));
 				// static also possible in interface since JVM 8: not ownerT.setInterface(false)
-				final M m = ownerT.getM(constPool.getMethodrefName(cpMethodIndex),
+				final M refM = ownerT.getM(constPool.getMethodrefName(cpMethodIndex),
 						constPool.getMethodrefType(cpMethodIndex));
-				m.setStatic(opcode == Opcode.INVOKESTATIC);
-				this.ops.add(new INVOKE(this.ops.size(), opcode, line, m,
+				refM.setStatic(opcode == Opcode.INVOKESTATIC);
+				this.ops.add(new INVOKE(this.ops.size(), opcode, line, refM,
 						opcode == Opcode.INVOKESPECIAL));
 				break;
 			}
@@ -1650,11 +1649,10 @@ public class ReadCodeAttribute {
 					continue;
 				}
 				final String signature = localVariableTypeAttribute.signature(i);
-				final T sigT = this.md.getTd().getDu()
-						.parseT(signature, new Cursor(), this.md.getM());
+				final T sigT = getDu().parseT(signature, new Cursor(), this.m);
 				if (!sigT.eraseTo(v.getT())) {
 					LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + v.getT()
-							+ "' for method (local variable '" + v.getName() + "') " + this.md);
+							+ "' for method (local variable '" + v.getName() + "') " + this.m);
 				} else {
 					v.cmpSetT(sigT);
 				}
