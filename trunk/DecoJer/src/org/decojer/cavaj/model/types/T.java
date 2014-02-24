@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
@@ -475,6 +476,11 @@ public abstract class T extends Element {
 		return null;
 	}
 
+	@Override
+	public boolean check(final AF af) {
+		return false;
+	}
+
 	/**
 	 * Create field declaration.
 	 * 
@@ -551,11 +557,7 @@ public abstract class T extends Element {
 		return equals(t);
 	}
 
-	/**
-	 * Get type annotations.
-	 * 
-	 * @return type annotations
-	 */
+	@Override
 	public A[] getAs() {
 		return null;
 	}
@@ -1264,12 +1266,7 @@ public abstract class T extends Element {
 		assert false; // overwrite in ClassT
 	}
 
-	/**
-	 * Set annotations.
-	 * 
-	 * @param as
-	 *            annotations
-	 */
+	@Override
 	public void setAs(final A[] as) {
 		getTd().setAs(as);
 	}

@@ -24,7 +24,6 @@
 package org.decojer.cavaj.model.methods;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.CFG;
@@ -42,20 +41,16 @@ public abstract class M extends Element {
 	public static final String INITIALIZER_NAME = "<clinit>";
 
 	/**
-	 * Check access flag.
-	 * 
-	 * @param af
-	 *            access flag
-	 * @return {@code true} - is access flag
-	 */
-	public abstract boolean check(final AF af);
-
-	/**
 	 * Create method declaration for this method.
 	 * 
 	 * @return method declaration
 	 */
 	public abstract MD createMd();
+
+	@Override
+	public A[] getAs() {
+		return getMd().getAs();
+	}
 
 	/**
 	 * Get control flow graph.
@@ -214,12 +209,7 @@ public abstract class M extends Element {
 		getMd().setAnnotationDefaultValue(annotationDefaultValue);
 	}
 
-	/**
-	 * Set annotations.
-	 * 
-	 * @param as
-	 *            annotations
-	 */
+	@Override
 	public void setAs(final A[] as) {
 		getMd().setAs(as);
 	}

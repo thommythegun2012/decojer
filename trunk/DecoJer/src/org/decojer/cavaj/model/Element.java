@@ -31,6 +31,30 @@ package org.decojer.cavaj.model;
 public abstract class Element {
 
 	/**
+	 * Check access flag.
+	 * 
+	 * @param af
+	 *            access flag
+	 * @return {@code true} - is access flag
+	 */
+	public abstract boolean check(final AF af);
+
+	/**
+	 * Get annotations.
+	 * 
+	 * @return annotations
+	 */
+	public abstract A[] getAs();
+
+	/**
+	 * Set annotations.
+	 * 
+	 * @param as
+	 *            annotations
+	 */
+	public abstract void setAs(final A[] as);
+
+	/**
 	 * Is static?
 	 * 
 	 * @return {@code true} - is static
