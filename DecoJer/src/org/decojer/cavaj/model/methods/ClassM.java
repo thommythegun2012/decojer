@@ -119,7 +119,7 @@ public class ClassM extends M {
 		assert this.md == null;
 
 		this.md = new MD(this);
-		this.t.getTd().addBd(this.md);
+		getT().getTd().addBd(this.md);
 		return this.md;
 	}
 
@@ -132,7 +132,7 @@ public class ClassM extends M {
 	 */
 	@Override
 	public T getReceiverT() {
-		return this.t instanceof ClassT ? null : this.t;
+		return getT() instanceof ClassT ? null : getT();
 	}
 
 	@Override
@@ -151,7 +151,7 @@ public class ClassM extends M {
 
 	@Override
 	public boolean isDynamic() {
-		return this.t == null;
+		return getT() == null;
 	}
 
 	@Override
@@ -226,7 +226,7 @@ public class ClassM extends M {
 
 	@Override
 	public String toString() {
-		return this.t + "." + this.name + this.descriptor;
+		return getT() + "." + getName() + getDescriptor();
 	}
 
 }

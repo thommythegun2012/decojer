@@ -29,7 +29,6 @@ import lombok.Setter;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Element;
-import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.T;
 
 /**
@@ -92,13 +91,7 @@ public class F extends Element {
 		this.valueT = t.getDu().getDescT(descriptor);
 	}
 
-	/**
-	 * Check access flag.
-	 * 
-	 * @param af
-	 *            access flag
-	 * @return {@code true} - is access flag
-	 */
+	@Override
 	public boolean check(final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;
 	}
@@ -112,8 +105,13 @@ public class F extends Element {
 		assert this.fd == null;
 
 		this.fd = new FD(this);
-		((ClassT) getT()).getTd().addBd(this.fd);
+		getT().getTd().addBd(this.fd);
 		return this.fd;
+	}
+
+	@Override
+	public A[] getAs() {
+		return this.fd.getAs();
 	}
 
 	/**
@@ -139,14 +137,9 @@ public class F extends Element {
 		return true;
 	}
 
-	/**
-	 * Set annotations.
-	 * 
-	 * @param as
-	 *            annotations
-	 */
+	@Override
 	public void setAs(final A[] as) {
-		getFd().setAs(as);
+		this.fd.setAs(as);
 	}
 
 	@Override
@@ -165,7 +158,7 @@ public class F extends Element {
 
 	@Override
 	public void setSignature(final String signature) {
-		getFd().setSignature(signature);
+		this.fd.setSignature(signature);
 	}
 
 	/**
@@ -204,12 +197,12 @@ public class F extends Element {
 	 *            value for constant attributes or {@code null}
 	 */
 	public void setValue(final Object value) {
-		getFd().setValue(value);
+		this.fd.setValue(value);
 	}
 
 	@Override
 	public String toString() {
-		return getT() + "." + this.name;
+		return getT() + "." + getName();
 	}
 
 }

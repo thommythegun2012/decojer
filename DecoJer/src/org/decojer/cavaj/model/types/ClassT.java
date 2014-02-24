@@ -113,13 +113,7 @@ public class ClassT extends T {
 		this.name = name;
 	}
 
-	/**
-	 * Check access flag.
-	 * 
-	 * @param af
-	 *            access flag
-	 * @return {@code true} - is access flag
-	 */
+	@Override
 	public boolean check(final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;
 	}
