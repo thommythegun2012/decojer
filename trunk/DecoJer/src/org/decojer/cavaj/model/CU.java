@@ -53,8 +53,10 @@ import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
 
 /**
- * Compilation unit. Can contain multiple type declarations, but only one with type name equal to
- * source file name can be public.
+ * Compilation unit.
+ * 
+ * Can contain multiple type declarations, but only one with type name equal to source file name can
+ * be public.
  * 
  * @author André Pankraz
  */
