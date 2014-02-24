@@ -29,9 +29,9 @@ import java.util.logging.Logger;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.V;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
 import org.jf.dexlib.DebugInfoItem;
 import org.jf.dexlib.StringIdItem;

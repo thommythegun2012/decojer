@@ -26,7 +26,6 @@ package org.decojer.cavaj.model.types;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.T;
 
 /**
  * Type parameter.

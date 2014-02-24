@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Operation 'INSTANCEOF'.

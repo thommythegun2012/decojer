@@ -25,7 +25,7 @@ package org.decojer.cavaj.model.code.ops;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.fields.F;
 
 /**
  * Operation 'GET'.

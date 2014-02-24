@@ -29,8 +29,8 @@ import java.util.logging.Logger;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.model.types.T;
 
 import com.google.common.collect.Lists;
 import com.googlecode.dex2jar.visitors.DexClassVisitor;

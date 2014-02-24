@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.readers.ClassReader;
 
 /**

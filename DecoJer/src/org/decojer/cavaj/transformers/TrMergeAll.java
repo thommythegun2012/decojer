@@ -25,9 +25,9 @@ package org.decojer.cavaj.transformers;
 
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.FD;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.fields.FD;
+import org.decojer.cavaj.model.methods.MD;
+import org.decojer.cavaj.model.types.TD;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;

@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model;
+package org.decojer.cavaj.model.types;
 
 import lombok.Getter;
 

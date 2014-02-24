@@ -28,10 +28,8 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
 
 /**

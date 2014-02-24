@@ -21,19 +21,20 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model;
+package org.decojer.cavaj.model.types;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.ClassM;
-import org.decojer.cavaj.model.types.ClassT;
-import org.decojer.cavaj.model.types.IntersectionT;
-import org.decojer.cavaj.model.types.Kind;
-import org.decojer.cavaj.model.types.PrimitiveT;
-import org.decojer.cavaj.model.types.VarT;
+import org.decojer.cavaj.model.methods.M;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

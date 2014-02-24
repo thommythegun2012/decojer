@@ -25,8 +25,6 @@ package org.decojer.cavaj.model.types;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.T;
-
 /**
  * Intersection type.
  * 

@@ -27,7 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Dex2jar read annotation member visitor.

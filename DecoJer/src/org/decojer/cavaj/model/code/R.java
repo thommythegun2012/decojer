@@ -26,7 +26,7 @@ package org.decojer.cavaj.model.code;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Register.

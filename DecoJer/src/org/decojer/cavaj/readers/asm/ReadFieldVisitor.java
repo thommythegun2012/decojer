@@ -30,7 +30,7 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.fields.F;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.FieldVisitor;

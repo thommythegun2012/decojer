@@ -21,7 +21,7 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model;
+package org.decojer.cavaj.model.fields;
 
 import java.util.logging.Logger;
 
@@ -29,6 +29,10 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.BD;
+import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 

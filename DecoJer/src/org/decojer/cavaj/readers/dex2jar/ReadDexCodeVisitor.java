@@ -29,8 +29,6 @@ import java.util.Map.Entry;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.V;
@@ -44,6 +42,8 @@ import org.decojer.cavaj.model.code.ops.RETURN;
 import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
 
 import com.google.common.collect.Lists;

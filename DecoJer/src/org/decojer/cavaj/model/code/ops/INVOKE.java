@@ -25,8 +25,8 @@ package org.decojer.cavaj.model.code.ops;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Operation 'INVOKE'.

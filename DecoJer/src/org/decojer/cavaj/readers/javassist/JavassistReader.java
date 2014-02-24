@@ -67,10 +67,10 @@ import javassist.bytecode.annotation.StringMemberValue;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.readers.ClassReader;
 
 /**

@@ -27,9 +27,9 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 
 import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.Method;

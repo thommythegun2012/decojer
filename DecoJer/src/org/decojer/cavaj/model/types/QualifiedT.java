@@ -26,7 +26,6 @@ package org.decojer.cavaj.model.types;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.T;
 
 /**
  * Qualified type. This is used for references with parameterization and annotations of enclosing

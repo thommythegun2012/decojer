@@ -33,13 +33,13 @@ import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.ops.GOTO;
 import org.decojer.cavaj.model.code.ops.MONITOR;
 import org.decojer.cavaj.model.code.ops.MONITOR.Kind;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.RET;
 import org.decojer.cavaj.model.code.structs.Struct;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IfStatement;

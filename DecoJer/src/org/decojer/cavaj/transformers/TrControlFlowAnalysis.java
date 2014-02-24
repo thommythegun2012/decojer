@@ -33,7 +33,6 @@ import java.util.logging.Logger;
 import lombok.AccessLevel;
 import lombok.Getter;
 
-import org.decojer.cavaj.model.M;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
@@ -44,6 +43,7 @@ import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.code.structs.Switch;
 import org.decojer.cavaj.model.code.structs.Switch.Kind;
 import org.decojer.cavaj.model.code.structs.Sync;
+import org.decojer.cavaj.model.methods.M;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
 
