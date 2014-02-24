@@ -230,11 +230,7 @@ public class ClassT extends T {
 		return check(AF.STATIC);
 	}
 
-	/**
-	 * Is synthetic type?
-	 * 
-	 * @return {@code true} - is synthetic type
-	 */
+	@Override
 	public boolean isSynthetic() {
 		return check(AF.SYNTHETIC);
 	}

@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.code.CFG;
  * 
  * @author André Pankraz
  */
-public abstract class M {
+public abstract class M extends Element {
 
 	public static final String CONSTRUCTOR_NAME = "<init>";
 
@@ -183,18 +183,10 @@ public abstract class M {
 		return false;
 	}
 
-	/**
-	 * Is static method?
-	 * 
-	 * @return {@code true} - is static method
-	 */
+	@Override
 	public abstract boolean isStatic();
 
-	/**
-	 * Is synthetic method?
-	 * 
-	 * @return {@code true} - is synthetic method
-	 */
+	@Override
 	public abstract boolean isSynthetic();
 
 	/**
@@ -204,15 +196,8 @@ public abstract class M {
 	 */
 	public abstract boolean isVarargs();
 
-	/**
-	 * Set access flags.
-	 * 
-	 * @param accessFlags
-	 *            access flags
-	 */
-	public void setAccessFlags(final int accessFlags) {
-		getMd().setAccessFlags(accessFlags);
-	}
+	@Override
+	public abstract void setAccessFlags(final int accessFlags);
 
 	/**
 	 * Set annotation default value..
@@ -244,12 +229,8 @@ public abstract class M {
 		getMd().setCfg(cfg);
 	}
 
-	/**
-	 * Method must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
-	 */
-	public void setDeprecated() {
-		assert false;
-	}
+	@Override
+	public abstract void setDeprecated();
 
 	/**
 	 * Set method parameter annotations.
@@ -315,6 +296,7 @@ public abstract class M {
 	 * @param signature
 	 *            signature
 	 */
+	@Override
 	public void setSignature(final String signature) {
 		getMd().setSignature(signature);
 	}
@@ -327,12 +309,8 @@ public abstract class M {
 	 */
 	public abstract void setStatic(final boolean f);
 
-	/**
-	 * Method must be synthetic (from synthetic attribute).
-	 */
-	public void setSynthetic() {
-		assert false;
-	}
+	@Override
+	public abstract void setSynthetic();
 
 	/**
 	 * Set owner type (for applying type annotations).

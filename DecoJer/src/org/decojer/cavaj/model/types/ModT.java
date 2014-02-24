@@ -160,6 +160,11 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public boolean isSynthetic() {
+		return getRawT().isSynthetic();
+	}
+
+	@Override
 	public boolean isUnresolvable() {
 		return getRawT().isUnresolvable();
 	}
@@ -197,6 +202,11 @@ public abstract class ModT extends T {
 		assert rawT != null;
 
 		this.rawT = rawT;
+	}
+
+	@Override
+	public void setSynthetic() {
+		getRawT().setSynthetic();
 	}
 
 }

@@ -115,6 +115,16 @@ public abstract class ModM extends M {
 	}
 
 	@Override
+	public void setAccessFlags(final int accessFlags) {
+		getRawM().setAccessFlags(accessFlags);
+	}
+
+	@Override
+	public void setDeprecated() {
+		getRawM().setDeprecated();
+	}
+
+	@Override
 	public void setRawM(final M rawM) {
 		assert rawM != null;
 
@@ -124,6 +134,11 @@ public abstract class ModM extends M {
 	@Override
 	public void setStatic(final boolean f) {
 		getRawM().setStatic(f);
+	}
+
+	@Override
+	public void setSynthetic() {
+		getRawM().setSynthetic();
 	}
 
 	@Override
