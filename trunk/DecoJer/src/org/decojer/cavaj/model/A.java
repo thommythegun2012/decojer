@@ -28,6 +28,8 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.decojer.cavaj.model.types.T;
+
 import lombok.Getter;
 
 import com.google.common.collect.Maps;

@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.types.T;
 
 import com.google.common.collect.Lists;
 import com.googlecode.dex2jar.DexType;

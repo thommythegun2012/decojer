@@ -29,11 +29,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
-import org.decojer.cavaj.model.Version;
 import org.decojer.cavaj.model.code.ops.Op;
+import org.decojer.cavaj.model.methods.MD;
+import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.model.types.TD;
+import org.decojer.cavaj.model.types.Version;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AnnotatableType;

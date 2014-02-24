@@ -23,8 +23,7 @@
  */
 package org.decojer.cavaj.model.methods;
 
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Qualified method.

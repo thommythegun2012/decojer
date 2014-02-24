@@ -48,12 +48,15 @@ import lombok.Setter;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.methods.ClassM;
+import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.AnnotatedT;
 import org.decojer.cavaj.model.types.ArrayT;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParameterizedT;
 import org.decojer.cavaj.model.types.QualifiedT;
+import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.model.types.VarT;
 import org.decojer.cavaj.model.types.WildcardT;
 import org.decojer.cavaj.readers.ClassReader;

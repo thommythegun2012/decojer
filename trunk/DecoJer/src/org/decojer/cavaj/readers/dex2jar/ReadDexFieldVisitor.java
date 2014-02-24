@@ -27,7 +27,7 @@ import java.lang.annotation.RetentionPolicy;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.F;
+import org.decojer.cavaj.model.fields.F;
 
 import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 import com.googlecode.dex2jar.visitors.DexFieldVisitor;

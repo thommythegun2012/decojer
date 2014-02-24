@@ -34,9 +34,9 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.model.types.TD;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;

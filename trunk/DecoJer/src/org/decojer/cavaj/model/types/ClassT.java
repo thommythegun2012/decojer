@@ -34,9 +34,7 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.methods.M;
 
 import com.google.common.collect.Maps;
 

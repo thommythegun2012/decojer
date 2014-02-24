@@ -26,8 +26,8 @@ package org.decojer.cavaj.readers.asm;
 import java.util.List;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.types.T;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;

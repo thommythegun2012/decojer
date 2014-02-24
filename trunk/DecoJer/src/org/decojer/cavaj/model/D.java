@@ -29,6 +29,9 @@ import java.util.logging.Logger;
 
 import lombok.Getter;
 
+import org.decojer.cavaj.model.fields.FD;
+import org.decojer.cavaj.model.methods.MD;
+import org.decojer.cavaj.model.types.TD;
 import org.eclipse.jdt.core.dom.ASTNode;
 
 import com.google.common.collect.Lists;

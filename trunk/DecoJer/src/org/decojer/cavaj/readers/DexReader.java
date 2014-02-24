@@ -27,7 +27,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * DEX reader.

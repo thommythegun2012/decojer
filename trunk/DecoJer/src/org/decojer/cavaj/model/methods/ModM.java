@@ -26,9 +26,7 @@ package org.decojer.cavaj.model.methods;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Modified method.

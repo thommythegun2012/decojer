@@ -39,9 +39,6 @@ import javassist.bytecode.StackMap;
 import javassist.bytecode.StackMapTable;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
 import org.decojer.cavaj.model.code.V;
@@ -85,6 +82,9 @@ import org.decojer.cavaj.model.code.ops.SWAP;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
 
 import com.google.common.collect.Lists;

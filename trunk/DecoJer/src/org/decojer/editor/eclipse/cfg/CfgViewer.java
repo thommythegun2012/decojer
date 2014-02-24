@@ -29,11 +29,11 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.BD;
 import org.decojer.cavaj.model.D;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
+import org.decojer.cavaj.model.methods.MD;
+import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.Label;

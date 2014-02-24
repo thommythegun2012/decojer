@@ -26,7 +26,7 @@ package org.decojer.cavaj.readers;
 import java.io.IOException;
 import java.io.InputStream;
 
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Class reader.

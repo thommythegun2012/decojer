@@ -28,7 +28,7 @@ import java.io.InputStream;
 import java.util.List;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.readers.DexReader;
 
 import com.googlecode.dex2jar.reader.DexFileReader;

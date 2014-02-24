@@ -28,9 +28,7 @@ import java.util.Map;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
+import org.decojer.cavaj.model.methods.M;
 
 /**
  * Modifying type.

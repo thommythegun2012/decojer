@@ -21,12 +21,16 @@
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
-package org.decojer.cavaj.model;
+package org.decojer.cavaj.model.fields;
 
 import lombok.Getter;
 import lombok.Setter;
 
+import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.ClassT;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Field.
@@ -78,7 +82,7 @@ public class F extends Element {
 	 * @param descriptor
 	 *            descriptor
 	 */
-	protected F(final T t, final String name, final String descriptor) {
+	public F(final T t, final String name, final String descriptor) {
 		assert t != null;
 		assert name != null;
 		assert descriptor != null;

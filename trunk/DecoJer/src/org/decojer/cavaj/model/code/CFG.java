@@ -31,11 +31,11 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
-import org.decojer.cavaj.model.TD;
 import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.code.ops.Op;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
 import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;

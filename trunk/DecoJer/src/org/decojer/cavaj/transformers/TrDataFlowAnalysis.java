@@ -35,9 +35,6 @@ import lombok.AccessLevel;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
@@ -84,6 +81,9 @@ import org.decojer.cavaj.model.code.ops.SUB;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.TypedOp;
 import org.decojer.cavaj.model.code.ops.XOR;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;

@@ -25,8 +25,7 @@ package org.decojer.cavaj.model.methods;
 
 import lombok.Getter;
 
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Parameterized method.

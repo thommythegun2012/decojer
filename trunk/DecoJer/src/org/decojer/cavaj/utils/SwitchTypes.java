@@ -31,10 +31,6 @@ import java.util.TreeMap;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.decojer.cavaj.model.F;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.MD;
-import org.decojer.cavaj.model.T;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.ops.ASTORE;
@@ -46,6 +42,10 @@ import org.decojer.cavaj.model.code.ops.LOAD;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.PUSH;
 import org.decojer.cavaj.model.code.ops.STORE;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.methods.MD;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
 
 import com.google.common.collect.Lists;

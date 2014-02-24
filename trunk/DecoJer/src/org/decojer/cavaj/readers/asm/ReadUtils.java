@@ -27,9 +27,9 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.M;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.methods.QualifiedM;
+import org.decojer.cavaj.model.types.T;
 import org.objectweb.asm.TypePath;
 
 /**
