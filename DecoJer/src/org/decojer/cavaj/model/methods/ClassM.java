@@ -33,6 +33,8 @@ import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
 
 /**
+ * Class method.
+ * 
  * @author André Pankraz
  */
 public class ClassM extends M {

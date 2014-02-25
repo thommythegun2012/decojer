@@ -23,10 +23,6 @@
  */
 package org.decojer.cavaj.model.fields;
 
-import lombok.Getter;
-import lombok.Setter;
-
-import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.T;
@@ -50,69 +46,42 @@ import org.decojer.cavaj.model.types.T;
  * 
  * @author André Pankraz
  */
-public class F extends Element {
-
-	@Setter
-	private int accessFlags;
-
-	@Getter
-	private FD fd;
-
-	@Getter
-	private final String name;
-
-	@Getter
-	private final T t;
-
-	/**
-	 * Value Type.
-	 */
-	@Getter
-	@Setter
-	private T valueT;
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param t
-	 *            type
-	 * @param name
-	 *            name
-	 * @param descriptor
-	 *            descriptor
-	 */
-	public F(final T t, final String name, final String descriptor) {
-		assert t != null;
-		assert name != null;
-		assert descriptor != null;
-
-		this.t = t;
-		this.name = name;
-		this.valueT = t.getDu().getDescT(descriptor);
-	}
-
-	@Override
-	public boolean check(final AF af) {
-		return (this.accessFlags & af.getValue()) != 0;
-	}
+public abstract class F extends Element {
 
 	/**
 	 * Create field declaration for this field.
 	 * 
 	 * @return field declaration
 	 */
-	public FD createFd() {
-		assert this.fd == null;
+	public abstract FD createFd();
 
-		this.fd = new FD(this);
-		getT().getTd().addBd(this.fd);
-		return this.fd;
-	}
+	/**
+	 * Get field declaration.
+	 * 
+	 * @return field declaration
+	 */
+	public abstract FD getFd();
 
-	@Override
-	public A[] getAs() {
-		return this.fd.getAs();
-	}
+	/**
+	 * Get name.
+	 * 
+	 * @return name
+	 */
+	public abstract String getName();
+
+	/**
+	 * Get owner type.
+	 * 
+	 * @return owner type
+	 */
+	public abstract T getT();
+
+	/**
+	 * Get value type.
+	 * 
+	 * @return value type
+	 */
+	public abstract T getValueT();
 
 	/**
 	 * Is enum?
@@ -123,43 +92,14 @@ public class F extends Element {
 		return check(AF.ENUM);
 	}
 
-	@Override
-	public boolean isStatic() {
-		return check(AF.STATIC);
-	}
-
-	@Override
-	public boolean isSynthetic() {
-		return check(AF.SYNTHETIC);
-	}
-
 	public boolean isUnresolvable() {
 		return true;
-	}
-
-	@Override
-	public void setAs(final A[] as) {
-		this.fd.setAs(as);
-	}
-
-	@Override
-	public void setDeprecated() {
-		this.accessFlags |= AF.DEPRECATED.getValue();
 	}
 
 	/**
 	 * Field must be an enum (from Annotations attribute).
 	 */
-	public void setEnum() {
-		getT().setInterface(false); // TODO we know even more, must be from Enum
-		this.accessFlags |= AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
-				| AF.ENUM.getValue();
-	}
-
-	@Override
-	public void setSignature(final String signature) {
-		this.fd.setSignature(signature);
-	}
+	public abstract void setEnum();
 
 	/**
 	 * Field must be static or dynamic (from usage, e.g. get/set).
@@ -167,27 +107,7 @@ public class F extends Element {
 	 * @param f
 	 *            {@code true} - is static
 	 */
-	public void setStatic(final boolean f) {
-		if (f) {
-			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
-				return;
-			}
-			assert (this.accessFlags & AF.STATIC_ASSERTED.getValue()) == 0;
-
-			this.accessFlags |= AF.STATIC.getValue() | AF.STATIC_ASSERTED.getValue();
-			return;
-		}
-		assert (this.accessFlags & AF.STATIC.getValue()) == 0;
-
-		getT().setInterface(false);
-		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
-		return;
-	}
-
-	@Override
-	public void setSynthetic() {
-		this.accessFlags |= AF.SYNTHETIC.getValue();
-	}
+	public abstract void setStatic(final boolean f);
 
 	/**
 	 * Set value for constant attributes or {@code null}. Type Integer: int, short, byte, char,
@@ -196,13 +116,19 @@ public class F extends Element {
 	 * @param value
 	 *            value for constant attributes or {@code null}
 	 */
-	public void setValue(final Object value) {
-		this.fd.setValue(value);
-	}
+	public abstract void setValue(final Object value);
 
 	@Override
 	public String toString() {
 		return getT() + "." + getName();
 	}
+
+	/**
+	 * Set value type.
+	 * 
+	 * @param valueT
+	 *            value type
+	 */
+	public abstract void setValueT(final T valueT);
 
 }
