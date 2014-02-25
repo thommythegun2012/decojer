@@ -30,9 +30,9 @@ import java.util.regex.Pattern;
 
 import org.decojer.DecoJer;
 import org.decojer.DecoJerException;
-import org.decojer.cavaj.model.BD;
+import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.D;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.FD;
 import org.decojer.cavaj.model.methods.M;
@@ -364,7 +364,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	 *            Eclipse Java element
 	 * @return declaration
 	 */
-	private D findDeclarationForJavaElement(final IJavaElement javaElement) {
+	private Container findDeclarationForJavaElement(final IJavaElement javaElement) {
 		// type.getFullyQualifiedName() potentially follows a different naming strategy for inner
 		// classes than the internal model from the bytecode, hence we must iterate through the tree
 		final List<IJavaElement> path = Lists.newArrayList();
@@ -372,13 +372,13 @@ public class ClassEditor extends MultiPageEditorPart {
 			path.add(0, element);
 		}
 		try {
-			D d = this.selectedCu;
+			Container d = this.selectedCu;
 			path: for (final IJavaElement element : path) {
 				if (element instanceof IType) {
 					final String typeName = element.getElementName();
 					// count anonymous!
 					int occurrenceCount = ((IType) element).getOccurrenceCount();
-					for (final BD bd : d.getBds()) {
+					for (final Declaration bd : d.getBds()) {
 						if (bd instanceof TD && ((TD) bd).getSimpleName().equals(typeName)) {
 							if (--occurrenceCount == 0) {
 								d = bd;
@@ -393,7 +393,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					// isEnum() doesn't imply isStatic() for source code
 					if (!Flags.isEnum(((IField) element).getFlags())) {
 						if (Flags.isStatic(((IField) element).getFlags())) {
-							for (final BD bd : d.getBds()) {
+							for (final Declaration bd : d.getBds()) {
 								if (bd instanceof MD && ((MD) bd).isInitializer()) {
 									d = bd;
 									continue path;
@@ -401,7 +401,7 @@ public class ClassEditor extends MultiPageEditorPart {
 							}
 							return null;
 						}
-						for (final BD bd : d.getBds()) {
+						for (final Declaration bd : d.getBds()) {
 							// descriptor not important, all constructors have same field
 							// initializers
 							if (bd instanceof MD && ((MD) bd).isConstructor()) {
@@ -412,7 +412,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					}
 					// TODO relocation of other anonymous field initializer TDs...difficult
 					final String fieldName = element.getElementName();
-					for (final BD bd : d.getBds()) {
+					for (final Declaration bd : d.getBds()) {
 						if (bd instanceof FD && ((FD) bd).getName().equals(fieldName)) {
 							d = bd;
 							continue path;
@@ -421,7 +421,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					return null;
 				}
 				if (element instanceof IInitializer) {
-					for (final BD bd : d.getBds()) {
+					for (final Declaration bd : d.getBds()) {
 						if (bd instanceof MD && ((MD) bd).isInitializer()) {
 							d = bd;
 							continue path;
@@ -435,7 +435,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					final String signature = ((IMethod) element).getSignature();
 					// get all method declarations with this name
 					final List<MD> mds = Lists.newArrayList();
-					for (final BD bd : d.getBds()) {
+					for (final Declaration bd : d.getBds()) {
 						if (bd instanceof MD && ((MD) bd).getName().equals(methodName)) {
 							mds.add((MD) bd);
 						}
@@ -522,7 +522,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					@Override
 					public void selectionChanged(final SelectionChangedEvent event) {
 						final TreeSelection treeSelection = (TreeSelection) event.getSelection();
-						final D d = findDeclarationForJavaElement((IJavaElement) treeSelection
+						final Container d = findDeclarationForJavaElement((IJavaElement) treeSelection
 								.getFirstElement());
 						if (d == null) {
 							LOGGER.warning("Unknown declaration for path '"

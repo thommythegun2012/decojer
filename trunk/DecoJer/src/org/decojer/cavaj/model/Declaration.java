@@ -29,11 +29,11 @@ import lombok.Setter;
 import org.decojer.cavaj.model.types.TD;
 
 /**
- * Body declaration.
+ * Declaration.
  * 
  * @author André Pankraz
  */
-public abstract class BD extends D {
+public abstract class Declaration extends Container {
 
 	/**
 	 * Annotations.
@@ -47,7 +47,7 @@ public abstract class BD extends D {
 	 */
 	@Getter
 	@Setter
-	private D parent;
+	private Container parent;
 
 	/**
 	 * Add type declaration.
@@ -78,8 +78,8 @@ public abstract class BD extends D {
 		if (this.parent instanceof CU) {
 			return (CU) this.parent;
 		}
-		if (this.parent instanceof BD) {
-			return ((BD) this.parent).getCu();
+		if (this.parent instanceof Declaration) {
+			return ((Declaration) this.parent).getCu();
 		}
 		return null;
 	}

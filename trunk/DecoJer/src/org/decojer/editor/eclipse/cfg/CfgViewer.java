@@ -27,8 +27,8 @@ import java.util.IdentityHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.BD;
-import org.decojer.cavaj.model.D;
+import org.decojer.cavaj.model.Declaration;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
@@ -67,7 +67,7 @@ public class CfgViewer extends Composite {
 
 	private final Graph graph;
 
-	private D selectedD;
+	private Container selectedD;
 
 	/**
 	 * Constructor.
@@ -169,7 +169,7 @@ public class CfgViewer extends Composite {
 		if (this.selectedD instanceof MD) {
 			cfg = ((MD) this.selectedD).getCfg();
 		} else if (this.selectedD instanceof TD) {
-			for (final BD bd : ((TD) this.selectedD).getBds()) {
+			for (final Declaration bd : ((TD) this.selectedD).getBds()) {
 				if (bd instanceof MD && ((MD) bd).isConstructor()) {
 					cfg = ((MD) bd).getCfg();
 					if (cfg != null) {
@@ -214,7 +214,7 @@ public class CfgViewer extends Composite {
 	 * @param selectedD
 	 *            selected declaration
 	 */
-	public void setlectD(final D selectedD) {
+	public void setlectD(final Container selectedD) {
 		this.selectedD = selectedD;
 		initGraph();
 	}
