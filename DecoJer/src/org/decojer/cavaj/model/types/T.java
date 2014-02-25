@@ -907,6 +907,15 @@ public abstract class T extends Element {
 	}
 
 	/**
+	 * Get source file name (from source file attribute).
+	 * 
+	 * @return source file name
+	 */
+	public Object getSourceFileName() {
+		return null;
+	}
+
+	/**
 	 * Get stack size.
 	 * 
 	 * @return stack size
@@ -958,6 +967,20 @@ public abstract class T extends Element {
 	 */
 	public T[] getTypeParams() {
 		return TYPE_PARAMS_NONE;
+	}
+
+	/**
+	 * Get class file version.
+	 * 
+	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51, 8: 52
+	 * 
+	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
+	 * target option given.
+	 * 
+	 * @return class file version
+	 */
+	public int getVersion() {
+		return -1;
 	}
 
 	@Override
