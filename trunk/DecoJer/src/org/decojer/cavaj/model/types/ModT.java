@@ -23,11 +23,13 @@
  */
 package org.decojer.cavaj.model.types;
 
+import java.util.List;
 import java.util.Map;
 
 import lombok.Getter;
 
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.methods.M;
 
 /**
@@ -61,6 +63,11 @@ public abstract class ModT extends T {
 	public T getComponentT() {
 		// modified type is also array, iff raw type is array
 		return getRawT().getComponentT();
+	}
+
+	@Override
+	public List<Element> getDeclarations() {
+		return getRawT().getDeclarations();
 	}
 
 	@Override
@@ -134,6 +141,11 @@ public abstract class ModT extends T {
 	@Override
 	public boolean isAssignableFrom(final T t) {
 		return getRawT().isAssignableFrom(t);
+	}
+
+	@Override
+	public boolean isDeclaration() {
+		return getRawT().isDeclaration();
 	}
 
 	@Override

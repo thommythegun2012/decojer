@@ -23,14 +23,18 @@
  */
 package org.decojer.cavaj.model.methods;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
  * Class method.
@@ -125,6 +129,16 @@ public class ClassM extends M {
 		return this.md;
 	}
 
+	@Override
+	public List<Element> getDeclarations() {
+		return null;
+	}
+
+	@Override
+	public BodyDeclaration getMethodDeclaration() {
+		return getMd().getMethodDeclaration();
+	}
+
 	/**
 	 * Get receiver-type (this) for none-static methods.
 	 * 
@@ -140,6 +154,11 @@ public class ClassM extends M {
 	@Override
 	public boolean isConstructor() {
 		return CONSTRUCTOR_NAME.equals(getName());
+	}
+
+	@Override
+	public boolean isDeclaration() {
+		return getMd() != null;
 	}
 
 	/**

@@ -23,12 +23,16 @@
  */
 package org.decojer.cavaj.model.fields;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.T;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
  * Class field.
@@ -96,6 +100,21 @@ public class ClassF extends F {
 	}
 
 	@Override
+	public List<Element> getDeclarations() {
+		return null;
+	}
+
+	@Override
+	public Object getValue() {
+		return getFd().getValue();
+	}
+
+	@Override
+	public boolean isDeclaration() {
+		return getFd() != null;
+	}
+
+	@Override
 	public boolean isEnum() {
 		return check(AF.ENUM);
 	}
@@ -130,6 +149,11 @@ public class ClassF extends F {
 		getT().setInterface(false); // TODO we know even more, must be from Enum
 		this.accessFlags |= AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
 				| AF.ENUM.getValue();
+	}
+
+	@Override
+	public void setFieldDeclaration(final BodyDeclaration fieldDeclaration) {
+		getFd().setFieldDeclaration(fieldDeclaration);
 	}
 
 	@Override

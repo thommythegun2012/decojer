@@ -35,13 +35,12 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.DFlag;
-import org.decojer.cavaj.model.fields.FD;
-import org.decojer.cavaj.model.methods.MD;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.model.types.Version;
 import org.decojer.cavaj.utils.Annotations;
 import org.decojer.cavaj.utils.Expressions;
@@ -76,9 +75,9 @@ public final class TrJvmStruct2JavaAst {
 
 	private final static Logger LOGGER = Logger.getLogger(TrJvmStruct2JavaAst.class.getName());
 
-	private static void decompileField(final FD fd, final CU cu) {
+	private static void decompileField(final F fd, final CU cu) {
 		final String name = fd.getName();
-		final TD td = fd.getTd();
+		final T td = fd.getT();
 
 		if (fd.isStatic()) {
 			// enum synthetic fields
@@ -173,9 +172,9 @@ public final class TrJvmStruct2JavaAst {
 		}
 	}
 
-	private static void decompileMethod(final MD md, final CU cu, final boolean strictFp) {
+	private static void decompileMethod(final M md, final CU cu, final boolean strictFp) {
 		final String name = md.getName();
-		final TD td = md.getTd();
+		final T td = md.getT();
 
 		// enum synthetic methods
 		if (md.isStatic()
@@ -245,7 +244,7 @@ public final class TrJvmStruct2JavaAst {
 		// decompile modifier flags:
 		// interfaces can have default methods since JVM 8
 		if (isInterfaceMember && md.getCfg() != null && !md.isStatic()) {
-			if (md.getTd().isBelow(Version.JVM_8)) {
+			if (md.getT().isBelow(Version.JVM_8)) {
 				LOGGER.warning("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
 			}
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.DEFAULT_KEYWORD));
@@ -323,12 +322,12 @@ public final class TrJvmStruct2JavaAst {
 	 *            method declaration
 	 */
 	@SuppressWarnings("deprecation")
-	private static void decompileMethodParams(final MD md) {
+	private static void decompileMethodParams(final M md) {
 		// method type parameters (full signature only):
 		// <T:Ljava/lang/Integer;U:Ljava/lang/Long;>(TT;TU;)V
 		// <U:TT;>(TT;TU;)V
 		final MethodDeclaration methodDeclaration = (MethodDeclaration) md.getMethodDeclaration();
-		final TD td = md.getTd();
+		final T td = md.getT();
 		final AST ast = td.getCu().getAst();
 
 		final T[] paramTs = md.getParamTs();
@@ -386,7 +385,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 	}
 
-	private static void decompileType(final TD td, final CU cu) {
+	private static void decompileType(final T td, final CU cu) {
 		if (td.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
@@ -394,11 +393,11 @@ public final class TrJvmStruct2JavaAst {
 		// AF.STRICTFP is no valid inner modifier for bytecode, strictfp modifier at class generates
 		// strictfp modifier for all method in class -> check here and oppress then in methods
 		boolean strictFp = false;
-		for (final Declaration bd : td.getBds()) {
-			if (!(bd instanceof MD)) {
+		for (final Element bd : td.getDeclarations()) {
+			if (!(bd instanceof M)) {
 				continue;
 			}
-			if (!((MD) bd).check(AF.STRICTFP)) {
+			if (!((M) bd).check(AF.STRICTFP)) {
 				break;
 			}
 			strictFp = true;
@@ -516,12 +515,12 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration.setJavadoc(newJavadoc);
 			}
 		}
-		for (final Declaration bd : td.getBds()) {
-			if (bd instanceof FD) {
-				decompileField((FD) bd, cu);
+		for (final Element bd : td.getDeclarations()) {
+			if (bd instanceof F) {
+				decompileField((F) bd, cu);
 			}
-			if (bd instanceof MD) {
-				decompileMethod((MD) bd, cu, strictFp);
+			if (bd instanceof M) {
+				decompileMethod((M) bd, cu, strictFp);
 			}
 		}
 	}
@@ -537,7 +536,7 @@ public final class TrJvmStruct2JavaAst {
 	 *            Type Declaration
 	 */
 	private static void decompileTypeParams(final T[] typeParams,
-			final List<TypeParameter> typeParameters, final TD td) {
+			final List<TypeParameter> typeParameters, final T td) {
 		if (typeParams == null) {
 			return;
 		}
@@ -563,7 +562,7 @@ public final class TrJvmStruct2JavaAst {
 	 * @param td
 	 *            type declaration
 	 */
-	public static void transform(final TD td) {
+	public static void transform(final T td) {
 		final CU cu = td.getCu();
 
 		if (cu.getCompilationUnit() == null) {

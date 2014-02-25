@@ -37,6 +37,8 @@ import org.decojer.cavaj.model.fields.ClassF;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.ClassM;
 import org.decojer.cavaj.model.methods.M;
+import org.eclipse.jdt.core.dom.ASTNode;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -592,6 +594,11 @@ public abstract class T extends Element {
 		return getTd().getCu();
 	}
 
+	@Override
+	public List<Element> getDeclarations() {
+		return null;
+	}
+
 	/**
 	 * Get dimensions of array type (0 if no array type).
 	 * 
@@ -935,6 +942,15 @@ public abstract class T extends Element {
 	}
 
 	/**
+	 * Get AST type declaration or {@code null}.
+	 * 
+	 * @return AST type declaration or {@code null}
+	 */
+	public ASTNode getTypeDeclaration() {
+		return getTd().getTypeDeclaration();
+	}
+
+	/**
 	 * Get type parameters.
 	 * 
 	 * @return type parameters, not {@code null}
@@ -1078,12 +1094,39 @@ public abstract class T extends Element {
 	}
 
 	/**
+	 * Is this version at least of the given version?
+	 * 
+	 * @param version
+	 *            version
+	 * @return {@code true} - at least of given version
+	 */
+	public boolean isAtLeast(final Version version) {
+		return getTd().isAtLeast(version);
+	}
+
+	/**
+	 * Is this version less then given version?
+	 * 
+	 * @param version
+	 *            version
+	 * @return {@code true} - less then given version
+	 */
+	public boolean isBelow(final Version version) {
+		return getTd().isBelow(version);
+	}
+
+	/**
 	 * Is Dalvik?
 	 * 
 	 * @return {@code true} - is Dalvik
 	 */
 	public boolean isDalvik() {
 		return getTd().isDalvik();
+	}
+
+	@Override
+	public boolean isDeclaration() {
+		return false;
 	}
 
 	/**
@@ -1426,6 +1469,16 @@ public abstract class T extends Element {
 	@Override
 	public void setSynthetic() {
 		assert false; // overwrite in ClassT
+	}
+
+	/**
+	 * Set type declaration.
+	 * 
+	 * @param typeDeclaration
+	 *            type declaration
+	 */
+	public void setTypeDeclaration(final AbstractTypeDeclaration typeDeclaration) {
+		assert false;
 	}
 
 	/**

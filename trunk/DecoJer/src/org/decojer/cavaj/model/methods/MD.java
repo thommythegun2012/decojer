@@ -26,7 +26,6 @@ package org.decojer.cavaj.model.methods;
 import java.util.List;
 import java.util.logging.Logger;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -64,7 +63,7 @@ public final class MD extends Declaration {
 	@Setter
 	private CFG cfg;
 
-	@Getter(value = AccessLevel.PRIVATE)
+	@Getter
 	private final ClassM m;
 
 	/**
