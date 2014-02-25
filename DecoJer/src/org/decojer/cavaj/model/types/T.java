@@ -782,22 +782,6 @@ public abstract class T extends Element {
 	}
 
 	/**
-	 * Get type name - is like a unique descriptor without modifiers like annotations or
-	 * parameterization.
-	 * 
-	 * Names consist of '.'-separated package names (for full name) and '$'-separated type names
-	 * (but '$' is also a valid Java name char!)
-	 * 
-	 * Valid name chars contain also connecting characters and other, e.g.:
-	 * 
-	 * $ _ ¢ £ ¤ ¥ ؋ ৲ ৳ ৻ ૱ ௹ ฿ ៛ ‿ ⁀ ⁔ ₠ ₡ ₢ ₣ ₤ ₥ ₦ ₧ ₨ ₩ ₪ ₫ € ₭ ₮ ₯ ₰ ₱ ₲ ₳ ₴ ₵ ₶ ₷ ₸ ₹ ꠸ ﷼ ︳ ︴
-	 * ﹍ ﹎ ﹏ ﹩ ＄ ＿ ￠ ￡ ￥ ￦
-	 * 
-	 * @return type name
-	 */
-	abstract public String getName();
-
-	/**
 	 * Get package name.
 	 * 
 	 * @return package name or {@code null} for no package

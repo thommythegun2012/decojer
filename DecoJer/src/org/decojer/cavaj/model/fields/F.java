@@ -63,13 +63,6 @@ public abstract class F extends Element {
 	public abstract FD getFd();
 
 	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	public abstract String getName();
-
-	/**
 	 * Get owner type.
 	 * 
 	 * @return owner type
