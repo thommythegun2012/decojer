@@ -33,6 +33,7 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.fields.ClassF;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.ClassM;
 import org.decojer.cavaj.model.methods.M;
@@ -688,7 +689,7 @@ public abstract class T extends Element {
 		final String handle = name + ":" + desc;
 		F f = (F) getMember().get(handle);
 		if (f == null) {
-			f = new F(this, name, desc);
+			f = new ClassF(this, name, desc);
 			getMember().put(handle, f);
 		}
 		return f;
