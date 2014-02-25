@@ -46,6 +46,11 @@ public abstract class ModM extends M {
 	}
 
 	@Override
+	public void addTypeDeclaration(final T t) {
+		getRawM().addTypeDeclaration(t);
+	}
+
+	@Override
 	public boolean check(final AF af) {
 		return getRawM().check(af);
 	}
@@ -53,6 +58,11 @@ public abstract class ModM extends M {
 	@Override
 	public MD createMd() {
 		return getRawM().createMd();
+	}
+
+	@Override
+	public Element getDeclarationOwner() {
+		return getRawM().getDeclarationOwner();
 	}
 
 	@Override

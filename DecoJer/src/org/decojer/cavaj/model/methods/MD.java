@@ -30,7 +30,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.T;
@@ -113,11 +112,6 @@ public final class MD extends Declaration {
 		assert m != null;
 
 		this.m = m;
-	}
-
-	@Override
-	public boolean check(final AF af) {
-		return getM().check(af);
 	}
 
 	@Override
@@ -225,16 +219,6 @@ public final class MD extends Declaration {
 		return getM().isInitializer();
 	}
 
-	@Override
-	public boolean isStatic() {
-		return getM().isStatic();
-	}
-
-	@Override
-	public boolean isSynthetic() {
-		return getM().isSynthetic();
-	}
-
 	/**
 	 * Is method with final varargs parameter?
 	 * 
@@ -265,16 +249,6 @@ public final class MD extends Declaration {
 			ts.add(throwT);
 		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
 		return ts.toArray(new T[ts.size()]);
-	}
-
-	@Override
-	public void setAccessFlags(final int accessFlags) {
-		getM().setAccessFlags(accessFlags);
-	}
-
-	@Override
-	public void setDeprecated() {
-		getM().setDeprecated();
 	}
 
 	/**
@@ -378,11 +352,6 @@ public final class MD extends Declaration {
 				throwsTs[i] = throwT;
 			}
 		}
-	}
-
-	@Override
-	public void setSynthetic() {
-		getM().setSynthetic();
 	}
 
 	@Override

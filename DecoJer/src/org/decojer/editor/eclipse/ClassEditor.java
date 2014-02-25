@@ -30,10 +30,10 @@ import java.util.regex.Pattern;
 
 import org.decojer.DecoJer;
 import org.decojer.DecoJerException;
-import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.fields.FD;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.methods.MD;
@@ -541,6 +541,7 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	@Override
 	public void init(final IEditorSite site, final IEditorInput input) throws PartInitException {
+		super.init(site, input);
 		String fileName;
 		if (input instanceof IClassFileEditorInput) {
 			// is a simple Eclipse-pre-analyzed class file, not an archive
@@ -565,14 +566,19 @@ public class ClassEditor extends MultiPageEditorPart {
 		} catch (final Throwable e) {
 			throw new PartInitException("Couldn't read file '" + fileName + "'!", e);
 		}
-		final List<CU> cus = this.du.getCus();
+		final List<CU> cus;
+		try {
+			cus = this.du.getCus();
+		} catch (final Throwable e) {
+			throw new PartInitException(
+					"Couldn't create compilation units for '" + fileName + "'!", e);
+		}
 		if (cus.isEmpty()) {
 			throw new PartInitException("Couldn't find a class in file '" + fileName + "'!");
 		}
 		if (selectedTds.size() == 1) {
 			this.selectedCu = selectedTds.get(0).getCu();
 		}
-		super.init(site, input);
 	}
 
 	@Override

@@ -61,15 +61,6 @@ public abstract class Declaration extends Container {
 	}
 
 	/**
-	 * Check access flag.
-	 * 
-	 * @param af
-	 *            access flag
-	 * @return {@code true} - is access flag
-	 */
-	public abstract boolean check(final AF af);
-
-	/**
 	 * Get compilation unit.
 	 * 
 	 * @return compilation unit
@@ -85,58 +76,11 @@ public abstract class Declaration extends Container {
 	}
 
 	/**
-	 * Is static?
-	 * 
-	 * @return {@code true} - is static
-	 */
-	public abstract boolean isStatic();
-
-	/**
-	 * Is synthetic?
-	 * 
-	 * @return {@code true} - is synthetic
-	 */
-	public abstract boolean isSynthetic();
-
-	/**
-	 * Set access flags.
-	 * 
-	 * @param accessFlags
-	 *            access flags
-	 */
-	public abstract void setAccessFlags(final int accessFlags);
-
-	/**
-	 * Declaration must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
-	 * 
-	 * The Deprecated attribute is an optional fixed-length attribute in the attributes table of a
-	 * ClassFile, field_info or method_info structure. A class, interface, method, or field may be
-	 * marked using a Deprecated attribute to indicate that the class, interface, method, or field
-	 * has been superseded.
-	 * 
-	 * Since version 49 the Deprecated Annotation is the preferred solution and not the variant with
-	 * Javadoc @deprecated. We simply put this information into the access flags as internal flag.
-	 */
-	public abstract void setDeprecated();
-
-	/**
 	 * Set signature.
 	 * 
 	 * @param signature
 	 *            signature
 	 */
 	public abstract void setSignature(final String signature);
-
-	/**
-	 * Declaration must be synthetic (from synthetic attribute).
-	 * 
-	 * The Synthetic attribute is a fixed-length attribute in the attributes table of a ClassFile,
-	 * field_info or method_info structure. A class member that does not appear in the source code
-	 * must be marked using a Synthetic attribute, or else it must have its ACC_SYNTHETIC flag set.
-	 * 
-	 * Since version 49 the ACC_SYNTHETIC attribute is the preferred solution. We simply put this
-	 * information into the access flags in both cases.
-	 */
-	public abstract void setSynthetic();
 
 }

@@ -83,16 +83,16 @@ public final class CU extends Container {
 	/**
 	 * Constructor.
 	 * 
-	 * @param td
+	 * @param t
 	 *            main type declaration
 	 * @param sourceFileName
 	 *            source file name
 	 */
-	public CU(final TD td, final String sourceFileName) {
-		assert td != null;
+	public CU(final T t, final String sourceFileName) {
+		assert t != null;
 		assert sourceFileName != null;
 
-		addTd(td);
+		addTd(t.getTd());
 		this.sourceFileName = sourceFileName;
 	}
 

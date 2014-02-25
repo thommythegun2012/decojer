@@ -28,7 +28,6 @@ import java.util.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.TD;
@@ -71,11 +70,6 @@ public final class FD extends Declaration {
 		assert f != null;
 
 		this.f = f;
-	}
-
-	@Override
-	public boolean check(final AF af) {
-		return getF().check(af);
 	}
 
 	@Override
@@ -125,16 +119,6 @@ public final class FD extends Declaration {
 		return getF().isEnum();
 	}
 
-	@Override
-	public boolean isStatic() {
-		return getF().isStatic();
-	}
-
-	@Override
-	public boolean isSynthetic() {
-		return getF().isSynthetic();
-	}
-
 	/**
 	 * Relocate type declaration to field declaration, e.g. anonymous enum fields.
 	 * 
@@ -150,16 +134,6 @@ public final class FD extends Declaration {
 	}
 
 	@Override
-	public void setAccessFlags(final int accessFlags) {
-		getF().setAccessFlags(accessFlags);
-	}
-
-	@Override
-	public void setDeprecated() {
-		getF().setDeprecated();
-	}
-
-	@Override
 	public void setSignature(final String signature) {
 		if (signature == null) {
 			return;
@@ -171,11 +145,6 @@ public final class FD extends Declaration {
 		} else {
 			getF().setValueT(valueT);
 		}
-	}
-
-	@Override
-	public void setSynthetic() {
-		getF().setSynthetic();
 	}
 
 	/**

@@ -429,6 +429,11 @@ public abstract class T extends Element {
 		return t1;
 	}
 
+	@Override
+	public void addTypeDeclaration(final T t) {
+		assert false;
+	}
+
 	/**
 	 * Assign from given type. There are 3 possible outcomes: Cannot assign from given type, which
 	 * returns {@code null}. Can assign from given type and primitive multitype reduction, which
@@ -592,6 +597,11 @@ public abstract class T extends Element {
 	 */
 	public CU getCu() {
 		return getTd().getCu();
+	}
+
+	@Override
+	public Element getDeclarationOwner() {
+		return null;
 	}
 
 	@Override
@@ -911,7 +921,7 @@ public abstract class T extends Element {
 	 * 
 	 * @return source file name
 	 */
-	public Object getSourceFileName() {
+	public String getSourceFileName() {
 		return null;
 	}
 

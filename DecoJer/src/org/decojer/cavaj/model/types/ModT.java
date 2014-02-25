@@ -50,6 +50,11 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public void addTypeDeclaration(final T t) {
+		getRawT().addTypeDeclaration(t);
+	}
+
+	@Override
 	public boolean eraseTo(final T t) {
 		return getRawT().eraseTo(t);
 	}
@@ -63,6 +68,11 @@ public abstract class ModT extends T {
 	public T getComponentT() {
 		// modified type is also array, iff raw type is array
 		return getRawT().getComponentT();
+	}
+
+	@Override
+	public Element getDeclarationOwner() {
+		return getRawT().getDeclarationOwner();
 	}
 
 	@Override
