@@ -23,9 +23,12 @@
  */
 package org.decojer.cavaj.model.methods;
 
+import java.util.List;
+
 import lombok.Getter;
 
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.T;
 
 /**
@@ -50,6 +53,11 @@ public abstract class ModM extends M {
 	@Override
 	public MD createMd() {
 		return getRawM().createMd();
+	}
+
+	@Override
+	public List<Element> getDeclarations() {
+		return getRawM().getDeclarations();
 	}
 
 	@Override
@@ -90,6 +98,11 @@ public abstract class ModM extends M {
 	@Override
 	public boolean isConstructor() {
 		return getRawM().isConstructor();
+	}
+
+	@Override
+	public boolean isDeclaration() {
+		return getRawM().isDeclaration();
 	}
 
 	@Override

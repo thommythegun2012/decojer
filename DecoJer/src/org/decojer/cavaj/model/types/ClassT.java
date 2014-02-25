@@ -25,6 +25,7 @@ package org.decojer.cavaj.model.types;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -34,7 +35,9 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.methods.M;
+import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 
 import com.google.common.collect.Maps;
 
@@ -138,6 +141,11 @@ public class ClassT extends T {
 		return this;
 	}
 
+	@Override
+	public List<Element> getDeclarations() {
+		return getTd().getDeclarations();
+	}
+
 	private Object getEnclosing() {
 		if (this.enclosing == null && isUnresolvable()) {
 			return null;
@@ -203,6 +211,11 @@ public class ClassT extends T {
 			return TYPE_PARAMS_NONE;
 		}
 		return this.typeParams;
+	}
+
+	@Override
+	public boolean isDeclaration() {
+		return getTd() != null;
 	}
 
 	/**
@@ -426,6 +439,11 @@ public class ClassT extends T {
 	@Override
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
+	}
+
+	@Override
+	public void setTypeDeclaration(final AbstractTypeDeclaration typeDeclaration) {
+		getTd().setTypeDeclaration(typeDeclaration);
 	}
 
 }

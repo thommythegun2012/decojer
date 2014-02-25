@@ -26,6 +26,7 @@ package org.decojer.cavaj.model.fields;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.T;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
  * Field.
@@ -123,5 +124,22 @@ public abstract class F extends Element {
 	 *            value type
 	 */
 	public abstract void setValueT(final T valueT);
+
+	/**
+	 * Get value for constant attributes or {@code null}.
+	 * 
+	 * Type Integer: int, short, byte, char, boolean.
+	 * 
+	 * @return value for constant attributes or {@code null}
+	 */
+	public abstract Object getValue();
+
+	/**
+	 * Set AST field declaration.
+	 * 
+	 * @param fieldDeclaration
+	 *            AST field declaration
+	 */
+	public abstract void setFieldDeclaration(final BodyDeclaration fieldDeclaration);
 
 }

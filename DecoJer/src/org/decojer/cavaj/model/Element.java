@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model;
 
+import java.util.List;
+
 /**
  * Element.
  * 
@@ -47,12 +49,25 @@ public abstract class Element {
 	public abstract A[] getAs();
 
 	/**
-	 * Set annotations.
+	 * Get name.
 	 * 
-	 * @param as
-	 *            annotations
+	 * @return name
 	 */
-	public abstract void setAs(final A[] as);
+	public abstract String getName();
+
+	/**
+	 * Is declaration?
+	 * 
+	 * @return {@code true} - is declaration
+	 */
+	public abstract boolean isDeclaration();
+
+	/**
+	 * Get contained declarations.
+	 * 
+	 * @return declarations
+	 */
+	public abstract List<Element> getDeclarations();
 
 	/**
 	 * Is static?
@@ -75,6 +90,14 @@ public abstract class Element {
 	 *            access flags
 	 */
 	public abstract void setAccessFlags(final int accessFlags);
+
+	/**
+	 * Set annotations.
+	 * 
+	 * @param as
+	 *            annotations
+	 */
+	public abstract void setAs(final A[] as);
 
 	/**
 	 * Declaration must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
@@ -108,12 +131,5 @@ public abstract class Element {
 	 * information into the access flags in both cases.
 	 */
 	public abstract void setSynthetic();
-
-	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	public abstract String getName();
 
 }

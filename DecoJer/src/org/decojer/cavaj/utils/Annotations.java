@@ -67,7 +67,7 @@ public final class Annotations {
 	 *            Annotation
 	 * @return Annotation AST Node
 	 */
-	private static Annotation decompileAnnotation(final TD td, final A a) {
+	private static Annotation decompileAnnotation(final T td, final A a) {
 		final AST ast = td.getCu().getAst();
 		final Set<Entry<String, Object>> members = a.getMembers();
 		if (!members.isEmpty()) {
@@ -112,7 +112,7 @@ public final class Annotations {
 	 *            Default Value
 	 * @return Expression AST Node or {@code null}
 	 */
-	public static Expression decompileAnnotationDefaultValue(final TD td, final Object defaultValue) {
+	public static Expression decompileAnnotationDefaultValue(final T td, final Object defaultValue) {
 		final AST ast = td.getCu().getAst();
 		if (defaultValue == null) {
 			return null;
@@ -196,7 +196,7 @@ public final class Annotations {
 	 * @param as
 	 *            Annotations
 	 */
-	public static void decompileAnnotations(final TD td, final List<Annotation> annotations,
+	public static void decompileAnnotations(final T td, final List<Annotation> annotations,
 			final A[] as) {
 		if (as == null) {
 			return;
@@ -222,7 +222,7 @@ public final class Annotations {
 	 * @param t
 	 *            Annotated Type
 	 */
-	public static void decompileAnnotations(final TD td, final List<Annotation> annotations,
+	public static void decompileAnnotations(final T td, final List<Annotation> annotations,
 			final T t) {
 		if (t.isAnnotated()) {
 			decompileAnnotations(td, annotations, t.getAs());

@@ -26,13 +26,12 @@ package org.decojer.cavaj.model.types;
 import java.util.List;
 import java.util.logging.Logger;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.utils.Cursor;
@@ -59,7 +58,7 @@ public final class TD extends Declaration {
 	@Setter
 	private String sourceFileName;
 
-	@Getter(value = AccessLevel.PRIVATE)
+	@Getter
 	private final ClassT t;
 
 	/**

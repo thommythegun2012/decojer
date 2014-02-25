@@ -28,6 +28,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.T;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
  * Method.
@@ -46,6 +47,15 @@ public abstract class M extends Element {
 	 * @return method declaration
 	 */
 	public abstract MD createMd();
+
+	/**
+	 * Get annotation default value.
+	 * 
+	 * @return annotation default value
+	 */
+	public Object getAnnotationDefaultValue() {
+		return getMd().getAnnotationDefaultValue();
+	}
 
 	@Override
 	public A[] getAs() {
@@ -83,6 +93,15 @@ public abstract class M extends Element {
 	 * @return method declaration
 	 */
 	public abstract MD getMd();
+
+	/**
+	 * Get AST method declaration or {@code null}.
+	 * 
+	 * @return AST method declaration or {@code null}
+	 */
+	public BodyDeclaration getMethodDeclaration() {
+		return null;
+	}
 
 	/**
 	 * Get method parameter annotations or {@code null}.
@@ -219,6 +238,16 @@ public abstract class M extends Element {
 
 	@Override
 	public abstract void setDeprecated();
+
+	/**
+	 * Set AST method declaration or {@code null}.
+	 * 
+	 * @param methodDeclaration
+	 *            AST method declaration or {@code null}
+	 */
+	public void setMethodDeclaration(final BodyDeclaration methodDeclaration) {
+		getMd().setMethodDeclaration(methodDeclaration);
+	}
 
 	/**
 	 * Set method parameter annotations.

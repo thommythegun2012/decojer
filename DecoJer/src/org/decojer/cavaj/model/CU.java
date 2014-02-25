@@ -35,7 +35,8 @@ import lombok.Setter;
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
-import org.decojer.cavaj.model.methods.MD;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.model.types.Version;
 import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
@@ -220,16 +221,17 @@ public final class CU extends Container {
 	 * @return source code
 	 */
 	public String decompile(final boolean ignoreCfgError) {
-		for (final TD td : getAllTds()) {
+		for (final TD td2 : getAllTds()) {
+			final T td = td2.getT();
 			TrJvmStruct2JavaAst.transform(td);
 
-			final List<Declaration> bds = td.getBds();
+			final List<Element> bds = td.getDeclarations();
 			for (int j = 0; j < bds.size(); ++j) {
-				final Declaration bd = bds.get(j);
-				if (!(bd instanceof MD)) {
+				final Element bd = bds.get(j);
+				if (!(bd instanceof M)) {
 					continue;
 				}
-				final CFG cfg = ((MD) bd).getCfg();
+				final CFG cfg = ((M) bd).getCfg();
 				if (cfg == null || cfg.isIgnore()) {
 					continue;
 				}

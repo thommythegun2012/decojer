@@ -25,7 +25,6 @@ package org.decojer.cavaj.model.fields;
 
 import java.util.logging.Logger;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,8 +44,8 @@ public final class FD extends Declaration {
 
 	private final static Logger LOGGER = Logger.getLogger(FD.class.getName());
 
-	@Getter(value = AccessLevel.PRIVATE)
-	private final F f;
+	@Getter
+	private final ClassF f;
 
 	/**
 	 * AST field declaration.
@@ -68,7 +67,7 @@ public final class FD extends Declaration {
 	 * @param f
 	 *            field
 	 */
-	protected FD(final F f) {
+	protected FD(final ClassF f) {
 		assert f != null;
 
 		this.f = f;

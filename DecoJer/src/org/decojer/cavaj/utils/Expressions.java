@@ -30,9 +30,8 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.code.ops.Op;
-import org.decojer.cavaj.model.methods.MD;
+import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.model.types.Version;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -271,11 +270,11 @@ public final class Expressions {
 	 *            originating operation
 	 * @return AST literal expression
 	 */
-	public static Expression newLiteral(final T t, final Object value, final TD td, final Op op) {
+	public static Expression newLiteral(final T t, final Object value, final T td, final Op op) {
 		return setOp(setValue(newLiteral2(t, value, td), value), op);
 	}
 
-	private static Expression newLiteral2(final T t, final Object value, final TD td) {
+	private static Expression newLiteral2(final T t, final Object value, final T td) {
 		final AST ast = td.getCu().getAst();
 		if (t.isRef() /* incl. T.AREF */) {
 			if (value == null) {
@@ -636,8 +635,8 @@ public final class Expressions {
 	 * @return single variable declaration
 	 */
 	@SuppressWarnings("deprecation")
-	public static SingleVariableDeclaration newSingleVariableDeclaration(final MD md,
-			final T[] paramTs, final A[][] paramAss, final int i, final TD td) {
+	public static SingleVariableDeclaration newSingleVariableDeclaration(final M md,
+			final T[] paramTs, final A[][] paramAss, final int i, final T td) {
 		final AST ast = td.getCu().getAst();
 		final SingleVariableDeclaration singleVariableDeclaration = ast
 				.newSingleVariableDeclaration();
@@ -681,7 +680,7 @@ public final class Expressions {
 	 * @return AST type
 	 */
 	@SuppressWarnings("deprecation")
-	public static Type newType(final T t, final TD td) {
+	public static Type newType(final T t, final T td) {
 		final AST ast = td.getCu().getAst();
 		// handle array first because annot(array()) is special
 		if (t.isArray()) {
@@ -821,7 +820,7 @@ public final class Expressions {
 	 *            type declaration (context)
 	 * @return AST type name
 	 */
-	public static Name newTypeName(final T t, final TD td) {
+	public static Name newTypeName(final T t, final T td) {
 		final AST ast = td.getCu().getAst();
 		final String contextName = td.getName();
 
