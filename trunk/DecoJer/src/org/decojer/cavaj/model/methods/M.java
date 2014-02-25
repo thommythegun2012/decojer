@@ -85,13 +85,6 @@ public abstract class M extends Element {
 	public abstract MD getMd();
 
 	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	public abstract String getName();
-
-	/**
 	 * Get method parameter annotations or {@code null}.
 	 * 
 	 * @return method parameter annotations or {@code null}

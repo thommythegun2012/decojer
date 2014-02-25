@@ -109,4 +109,11 @@ public abstract class Element {
 	 */
 	public abstract void setSynthetic();
 
+	/**
+	 * Get name.
+	 * 
+	 * @return name
+	 */
+	public abstract String getName();
+
 }
