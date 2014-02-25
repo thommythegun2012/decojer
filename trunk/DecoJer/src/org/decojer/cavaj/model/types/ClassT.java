@@ -197,6 +197,11 @@ public class ClassT extends T {
 	}
 
 	@Override
+	public Object getSourceFileName() {
+		return getTd().getSourceFileName();
+	}
+
+	@Override
 	public T getSuperT() {
 		if (this.superT == null && isUnresolvable()) {
 			return null;
@@ -211,6 +216,11 @@ public class ClassT extends T {
 			return TYPE_PARAMS_NONE;
 		}
 		return this.typeParams;
+	}
+
+	@Override
+	public int getVersion() {
+		return getTd().getVersion();
 	}
 
 	@Override

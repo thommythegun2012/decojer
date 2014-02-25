@@ -133,6 +133,11 @@ public abstract class ModT extends T {
 	}
 
 	@Override
+	public int getVersion() {
+		return getRawT().getVersion();
+	}
+
+	@Override
 	public boolean isArray() {
 		// modified type is also array, iff raw type is array
 		return getRawT().isArray();
