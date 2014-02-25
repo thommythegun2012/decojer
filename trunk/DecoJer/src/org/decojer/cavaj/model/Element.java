@@ -25,6 +25,8 @@ package org.decojer.cavaj.model;
 
 import java.util.List;
 
+import org.decojer.cavaj.model.types.T;
+
 /**
  * Element.
  * 
@@ -49,6 +51,14 @@ public abstract class Element {
 	public abstract A[] getAs();
 
 	/**
+	 * Add type declaration.
+	 * 
+	 * @param t
+	 *            type declaration
+	 */
+	public abstract void addTypeDeclaration(final T t);
+
+	/**
 	 * Get name.
 	 * 
 	 * @return name
@@ -68,6 +78,13 @@ public abstract class Element {
 	 * @return declarations
 	 */
 	public abstract List<Element> getDeclarations();
+
+	/**
+	 * Get declaration owner.
+	 * 
+	 * @return declaration owner
+	 */
+	public abstract Element getDeclarationOwner();
 
 	/**
 	 * Is static?

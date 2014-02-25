@@ -81,6 +81,11 @@ public class ClassF extends F {
 	}
 
 	@Override
+	public void addTypeDeclaration(final T t) {
+		assert false;
+	}
+
+	@Override
 	public boolean check(final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;
 	}
@@ -97,6 +102,11 @@ public class ClassF extends F {
 	@Override
 	public A[] getAs() {
 		return this.fd.getAs();
+	}
+
+	@Override
+	public Element getDeclarationOwner() {
+		return getFd().getParent().getElement();
 	}
 
 	@Override

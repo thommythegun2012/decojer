@@ -116,6 +116,11 @@ public class ClassM extends M {
 	}
 
 	@Override
+	public void addTypeDeclaration(final T t) {
+		getMd().addTd(t.getTd());
+	}
+
+	@Override
 	public boolean check(final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;
 	}
@@ -127,6 +132,11 @@ public class ClassM extends M {
 		this.md = new MD(this);
 		getT().getTd().addBd(this.md);
 		return this.md;
+	}
+
+	@Override
+	public Element getDeclarationOwner() {
+		return getMd().getParent().getElement();
 	}
 
 	@Override

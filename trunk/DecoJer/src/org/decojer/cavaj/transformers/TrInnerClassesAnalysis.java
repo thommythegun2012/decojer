@@ -30,18 +30,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.ops.NEW;
 import org.decojer.cavaj.model.code.ops.Op;
-import org.decojer.cavaj.model.fields.FD;
+import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
-import org.decojer.cavaj.model.methods.MD;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.model.types.Version;
 
 import com.google.common.collect.Lists;
@@ -58,13 +55,12 @@ public class TrInnerClassesAnalysis {
 
 	private static void checkBinaryCompatibilityNamingRules(final Collection<T> ts) {
 		for (final T t : ts) {
-			final TD td = t.getTd();
-			if (td == null) {
+			if (t == null || !t.isDeclaration()) {
 				continue;
 			}
 			// Inner name is not necessary anymore since JVM 5, see T#getInnerName(), but we
 			// validate the new "Binary Compatibility" rules here.
-			if (td.isBelow(Version.JVM_5) || t.getEnclosingT() == null) {
+			if (t.isBelow(Version.JVM_5) || t.getEnclosingT() == null) {
 				continue;
 			}
 			final String innerName = t.getInnerName();
@@ -89,15 +85,14 @@ public class TrInnerClassesAnalysis {
 	 */
 	private static void findEnclosingMethods(final Collection<T> ts) {
 		for (final T t : ts) {
-			final TD td = t.getTd();
-			if (td == null) {
+			if (t == null || !t.isDeclaration()) {
 				continue;
 			}
-			for (final Declaration bd : td.getBds()) {
-				if (!(bd instanceof MD)) {
+			for (final Element bd : t.getDeclarations()) {
+				if (!(bd instanceof M)) {
 					continue;
 				}
-				final MD enclosingMd = (MD) bd;
+				final M enclosingMd = (M) bd;
 				final CFG cfg = enclosingMd.getCfg();
 				if (cfg == null) {
 					continue;
@@ -111,8 +106,7 @@ public class TrInnerClassesAnalysis {
 						continue;
 					}
 					final T newT = ((NEW) op).getT();
-					final TD newTd = newT.getTd();
-					if (newTd == null) {
+					if (newT == null) {
 						continue;
 					}
 
@@ -120,7 +114,7 @@ public class TrInnerClassesAnalysis {
 					// we will never be anonymous! we should repair enclosing info here, overwrite
 					// old read info?
 
-					if (!newT.isAnonymous()) {
+					if (!newT.isAnonymous() || !newT.isDeclaration()) {
 						continue;
 					}
 					final M enclosingM = newT.getEnclosingM();
@@ -131,47 +125,45 @@ public class TrInnerClassesAnalysis {
 					if (enclosingT != null) {
 						// TODO check if equal
 					}
-					final Container newParent = newTd.getParent();
-					if (newParent != null) {
+					final Element newTowner = newT.getDeclarationOwner();
+					if (newTowner != null) {
 						// TODO can happen for each constructor if this is a field value!!!
-						if (newParent instanceof MD && ((MD) newParent).isConstructor()) {
-							// TODO should link to MDs parent, but might not be linked yet???
+						if (newTowner instanceof M && ((M) newTowner).isConstructor()) {
+							// TODO should link to Ms parent, but might not be linked yet???
 							// parallel findTopTds necessary?
 							continue;
 						}
-						LOGGER.warning("New ananymous type declaration '" + newTd
-								+ "' already has parent '" + newParent + "'!");
+						LOGGER.warning("New ananymous type declaration '" + newT
+								+ "' already has parent '" + newTowner + "'!");
 						continue;
 					}
-					enclosingMd.addTd(newTd);
+					enclosingMd.addTypeDeclaration(newT);
 				}
 			}
 		}
 	}
 
-	private static List<TD> findTopTds(final Collection<T> ts) {
-		final List<TD> tds = Lists.newArrayList();
-		// separate all read tds, not just selected tds
+	private static List<T> findTopTs(final Collection<T> ts) {
+		final List<T> topTs = Lists.newArrayList();
+		// separate all read ts, not just selected ts
 		for (final T t : ts) {
-			final TD td = t.getTd();
-			if (td == null) {
+			if (t == null || !t.isDeclaration()) {
 				continue;
 			}
-			if (td.isAnonymous()) {
-				if (td.getParent() != null) {
-					if (!(td.getParent() instanceof MD)) {
+			if (t.isAnonymous()) {
+				if (t.getDeclarationOwner() != null) {
+					if (!(t.getDeclarationOwner() instanceof M)) {
 						LOGGER.warning("Parent of inner local/anonymous type '" + t
-								+ "' is no method but '" + td.getParent() + "'!");
+								+ "' is no method but '" + t.getDeclarationOwner() + "'!");
 					}
 					continue;
 				}
-				if (isEnumSwitchMap(td)) {
+				if (isEnumSwitchMap(t)) {
 					// use enclosingT info, should exist
 					final T enclosingT = t.getEnclosingT();
 					if (enclosingT != null) {
-						final TD enclosingTd = enclosingT.getTd();
-						if (enclosingTd != null) {
-							enclosingTd.addTd(td);
+						if (enclosingT.isDeclaration()) {
+							enclosingT.addTypeDeclaration(t);
 							continue;
 						}
 					}
@@ -183,23 +175,21 @@ public class TrInnerClassesAnalysis {
 			// first check enclosing method, potentially deeper nested than in type
 			final M enclosingM = t.getEnclosingM();
 			if (enclosingM != null) {
-				final MD enclosingMd = enclosingM.getMd();
-				if (enclosingMd != null) {
-					enclosingMd.addTd(td);
+				if (enclosingM.isDeclaration()) {
+					enclosingM.addTypeDeclaration(t);
 					continue;
 				}
 			}
 			final T enclosingT = t.getEnclosingT();
 			if (enclosingT != null) {
-				final TD enclosingTd = enclosingT.getTd();
-				if (enclosingTd != null) {
-					enclosingTd.addTd(td);
+				if (enclosingT.isDeclaration()) {
+					enclosingT.addTypeDeclaration(t);
 					continue;
 				}
 			}
-			tds.add(td);
+			topTs.add(t);
 		}
-		return tds;
+		return topTs;
 	}
 
 	/**
@@ -268,7 +258,7 @@ public class TrInnerClassesAnalysis {
 		return simpleName.substring(index);
 	}
 
-	private static String getSourceId(final TD mainTd) {
+	private static String getSourceId(final T mainTd) {
 		final String sourceFileName = mainTd.getSourceFileName();
 		if (sourceFileName == null) {
 			return null;
@@ -291,16 +281,16 @@ public class TrInnerClassesAnalysis {
 	/**
 	 * Enum switches use static inner with static cached map, use enclosingT info.
 	 * 
-	 * @param td
+	 * @param t
 	 *            type declaration
 	 * @return {@code true} - is enum switch mal inner
 	 */
-	private static boolean isEnumSwitchMap(final TD td) {
-		for (final Declaration bd : td.getBds()) {
-			if (!(bd instanceof FD)) {
+	private static boolean isEnumSwitchMap(final T t) {
+		for (final Element declaration : t.getDeclarations()) {
+			if (!(declaration instanceof F)) {
 				continue;
 			}
-			final FD fd = (FD) bd;
+			final F fd = (F) declaration;
 			if (!fd.isStatic()) {
 				continue;
 			}
@@ -323,16 +313,16 @@ public class TrInnerClassesAnalysis {
 
 		checkBinaryCompatibilityNamingRules(ts);
 		findEnclosingMethods(ts);
-		final List<TD> topTds = findTopTds(ts);
+		final List<T> topTds = findTopTs(ts);
 
 		final List<CU> cus = Lists.newArrayList();
 		final Map<String, CU> sourceId2cu = Maps.newHashMap();
-		for (final TD topTd : topTds) {
+		for (final T topTd : topTds) {
 			final String sourceId = getSourceId(topTd);
 			if (sourceId != null) {
 				final CU cu = sourceId2cu.get(sourceId);
 				if (cu != null) {
-					cu.addTd(topTd);
+					cu.addTd(topTd.getTd());
 					continue;
 				}
 			}

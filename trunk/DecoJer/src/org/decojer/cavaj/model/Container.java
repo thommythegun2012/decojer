@@ -130,20 +130,22 @@ public abstract class Container {
 	public List<Element> getDeclarations() {
 		final List<Element> declarations = Lists.newArrayList();
 		for (final Declaration bd : getBds()) {
-			if (bd instanceof TD) {
-				declarations.add(((TD) bd).getT());
-				continue;
-			}
-			if (bd instanceof MD) {
-				declarations.add(((MD) bd).getM());
-				continue;
-			}
-			if (bd instanceof FD) {
-				declarations.add(((FD) bd).getF());
-				continue;
-			}
+			declarations.add(bd.getElement());
 		}
 		return declarations;
+	}
+
+	public Element getElement() {
+		if (this instanceof TD) {
+			return ((TD) this).getT();
+		}
+		if (this instanceof MD) {
+			return ((MD) this).getM();
+		}
+		if (this instanceof FD) {
+			return ((FD) this).getF();
+		}
+		return null;
 	}
 
 	/**

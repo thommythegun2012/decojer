@@ -129,6 +129,11 @@ public class ClassT extends T {
 	}
 
 	@Override
+	public void addTypeDeclaration(final T t) {
+		getTd().addTd(t.getTd());
+	}
+
+	@Override
 	public boolean check(final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;
 	}
@@ -139,6 +144,11 @@ public class ClassT extends T {
 
 		this.td = new TD(this);
 		return this;
+	}
+
+	@Override
+	public Element getDeclarationOwner() {
+		return getTd().getParent() == null ? null : getTd().getParent().getElement();
 	}
 
 	@Override
@@ -197,7 +207,7 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public Object getSourceFileName() {
+	public String getSourceFileName() {
 		return getTd().getSourceFileName();
 	}
 

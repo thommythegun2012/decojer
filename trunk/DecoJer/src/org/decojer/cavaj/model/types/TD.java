@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.fields.F;
@@ -90,11 +89,6 @@ public final class TD extends Declaration {
 		assert t != null;
 
 		this.t = t;
-	}
-
-	@Override
-	public boolean check(final AF af) {
-		return getT().check(af);
 	}
 
 	/**
@@ -331,16 +325,6 @@ public final class TD extends Declaration {
 		return getSourceFileName().endsWith(".scala");
 	}
 
-	@Override
-	public boolean isStatic() {
-		return getT().isStatic();
-	}
-
-	@Override
-	public boolean isSynthetic() {
-		return getT().isSynthetic();
-	}
-
 	/**
 	 * Parse interface types from signature.
 	 * 
@@ -370,16 +354,6 @@ public final class TD extends Declaration {
 	public void resolve() {
 		// has other name in ClassT
 		getT().resolved();
-	}
-
-	@Override
-	public void setAccessFlags(final int accessFlags) {
-		getT().setAccessFlags(accessFlags);
-	}
-
-	@Override
-	public void setDeprecated() {
-		getT().setDeprecated();
 	}
 
 	/**
@@ -474,11 +448,6 @@ public final class TD extends Declaration {
 	 */
 	public void setSuperT(final T superT) {
 		getT().setSuperT(superT);
-	}
-
-	@Override
-	public void setSynthetic() {
-		getT().setSynthetic();
 	}
 
 	@Override
