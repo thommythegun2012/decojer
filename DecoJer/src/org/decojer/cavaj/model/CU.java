@@ -60,7 +60,7 @@ import org.eclipse.text.edits.TextEdit;
  * 
  * @author André Pankraz
  */
-public final class CU extends D {
+public final class CU extends Container {
 
 	private final static Logger LOGGER = Logger.getLogger(CU.class.getName());
 
@@ -223,9 +223,9 @@ public final class CU extends D {
 		for (final TD td : getAllTds()) {
 			TrJvmStruct2JavaAst.transform(td);
 
-			final List<BD> bds = td.getBds();
+			final List<Declaration> bds = td.getBds();
 			for (int j = 0; j < bds.size(); ++j) {
-				final BD bd = bds.get(j);
+				final Declaration bd = bds.get(j);
 				if (!(bd instanceof MD)) {
 					continue;
 				}

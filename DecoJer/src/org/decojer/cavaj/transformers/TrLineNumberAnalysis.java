@@ -28,7 +28,7 @@ import static org.decojer.cavaj.utils.Expressions.getOp;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.BD;
+import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.fields.FD;
@@ -54,7 +54,7 @@ public final class TrLineNumberAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrLineNumberAnalysis.class.getName());
 
-	private static void analyzeLines(final Block block, final BD bd) {
+	private static void analyzeLines(final Block block, final Declaration bd) {
 		assert bd != null;
 
 		for (final Statement statement : (List<Statement>) block.statements()) {
@@ -71,7 +71,7 @@ public final class TrLineNumberAnalysis {
 	}
 
 	private static void analyzeLines(final TD td) {
-		for (final BD bd : td.getBds()) {
+		for (final Declaration bd : td.getBds()) {
 			if (bd instanceof TD) {
 				analyzeLines((TD) bd);
 				continue;
@@ -135,7 +135,7 @@ public final class TrLineNumberAnalysis {
 	 *            compilation unit
 	 */
 	public static void transform(final CU cu) {
-		for (final BD bd : cu.getBds()) {
+		for (final Declaration bd : cu.getBds()) {
 			analyzeLines((TD) bd);
 		}
 	}

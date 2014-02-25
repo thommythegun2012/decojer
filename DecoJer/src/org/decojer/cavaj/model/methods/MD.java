@@ -32,7 +32,7 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.BD;
+import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.TD;
@@ -46,7 +46,7 @@ import com.google.common.collect.Lists;
  * 
  * @author André Pankraz
  */
-public final class MD extends BD {
+public final class MD extends Declaration {
 
 	private final static Logger LOGGER = Logger.getLogger(MD.class.getName());
 

@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.transformers;
 
-import org.decojer.cavaj.model.BD;
+import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.fields.FD;
 import org.decojer.cavaj.model.methods.MD;
@@ -65,7 +65,7 @@ public final class TrMergeAll {
 
 	private static int countConstructors(final TD td) {
 		int constructors = 0;
-		for (final BD bd : td.getBds()) {
+		for (final Declaration bd : td.getBds()) {
 			if (bd instanceof MD && ((MD) bd).isConstructor()) {
 				++constructors;
 			}
@@ -80,7 +80,7 @@ public final class TrMergeAll {
 	 *            compilation unit
 	 */
 	public static void transform(final CU cu) {
-		for (final BD bd : cu.getBds()) {
+		for (final Declaration bd : cu.getBds()) {
 			final TD td = (TD) bd;
 			if (td.isAnonymous() && td.getEnclosingTd() != null) {
 				continue;
@@ -97,7 +97,7 @@ public final class TrMergeAll {
 	private static void transform(final TD td) {
 		// multiple constructors? => no omissable default constructor
 		final int constructors = countConstructors(td);
-		for (final BD bd : td.getBds()) {
+		for (final Declaration bd : td.getBds()) {
 			if (bd instanceof TD) {
 				if (!((TD) bd).isAnonymous()) {
 					addBodyDeclaration(td, (AbstractTypeDeclaration) ((TD) bd).getTypeDeclaration());
@@ -107,14 +107,14 @@ public final class TrMergeAll {
 			}
 			if (bd instanceof FD) {
 				addBodyDeclaration(td, ((FD) bd).getFieldDeclaration());
-				for (final BD innerTd : bd.getBds()) {
+				for (final Declaration innerTd : bd.getBds()) {
 					transform((TD) innerTd);
 				}
 				continue;
 			}
 			if (bd instanceof MD) {
 				final MD md = (MD) bd;
-				for (final BD innerTd : md.getBds()) {
+				for (final Declaration innerTd : md.getBds()) {
 					if (!((TD) innerTd).isAnonymous()) {
 						final ASTNode typeDeclaration = ((TD) innerTd).getTypeDeclaration();
 						if (typeDeclaration != null) {

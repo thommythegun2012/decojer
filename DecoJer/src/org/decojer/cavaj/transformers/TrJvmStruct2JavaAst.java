@@ -35,7 +35,7 @@ import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.BD;
+import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.fields.FD;
@@ -394,7 +394,7 @@ public final class TrJvmStruct2JavaAst {
 		// AF.STRICTFP is no valid inner modifier for bytecode, strictfp modifier at class generates
 		// strictfp modifier for all method in class -> check here and oppress then in methods
 		boolean strictFp = false;
-		for (final BD bd : td.getBds()) {
+		for (final Declaration bd : td.getBds()) {
 			if (!(bd instanceof MD)) {
 				continue;
 			}
@@ -516,7 +516,7 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration.setJavadoc(newJavadoc);
 			}
 		}
-		for (final BD bd : td.getBds()) {
+		for (final Declaration bd : td.getBds()) {
 			if (bd instanceof FD) {
 				decompileField((FD) bd, cu);
 			}

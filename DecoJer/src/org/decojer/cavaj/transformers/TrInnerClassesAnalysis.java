@@ -30,9 +30,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.BD;
+import org.decojer.cavaj.model.Declaration;
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.D;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.ops.NEW;
@@ -93,7 +93,7 @@ public class TrInnerClassesAnalysis {
 			if (td == null) {
 				continue;
 			}
-			for (final BD bd : td.getBds()) {
+			for (final Declaration bd : td.getBds()) {
 				if (!(bd instanceof MD)) {
 					continue;
 				}
@@ -131,7 +131,7 @@ public class TrInnerClassesAnalysis {
 					if (enclosingT != null) {
 						// TODO check if equal
 					}
-					final D newParent = newTd.getParent();
+					final Container newParent = newTd.getParent();
 					if (newParent != null) {
 						// TODO can happen for each constructor if this is a field value!!!
 						if (newParent instanceof MD && ((MD) newParent).isConstructor()) {
@@ -296,7 +296,7 @@ public class TrInnerClassesAnalysis {
 	 * @return {@code true} - is enum switch mal inner
 	 */
 	private static boolean isEnumSwitchMap(final TD td) {
-		for (final BD bd : td.getBds()) {
+		for (final Declaration bd : td.getBds()) {
 			if (!(bd instanceof FD)) {
 				continue;
 			}
