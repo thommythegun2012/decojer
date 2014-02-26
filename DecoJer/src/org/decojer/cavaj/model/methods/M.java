@@ -35,7 +35,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * 
  * @author André Pankraz
  */
-public abstract class M extends Element {
+public abstract class M implements Element {
 
 	public static final String CONSTRUCTOR_NAME = "<init>";
 

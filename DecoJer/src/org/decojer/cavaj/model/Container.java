@@ -49,10 +49,10 @@ public abstract class Container {
 	 * All body declarations: inner type / method / field declarations.
 	 */
 	@Getter
-	private final List<Declaration> bds = new ArrayList<Declaration>(4);
+	private final List<ED> bds = new ArrayList<ED>(4);
 
 	protected void _getAllTds(final List<TD> tds) {
-		for (final Declaration bd : this.bds) {
+		for (final ED bd : this.bds) {
 			if (bd instanceof TD) {
 				tds.add((TD) bd);
 			}
@@ -66,7 +66,7 @@ public abstract class Container {
 	 * @param bd
 	 *            bode declaration
 	 */
-	public void addBd(final Declaration bd) {
+	public void addBd(final ED bd) {
 		if (bd.getParent() != null) {
 			if (bd.getParent() != this) {
 				LOGGER.warning("Cannot change parent declaration for '" + bd + "' from '"
@@ -92,7 +92,7 @@ public abstract class Container {
 	 * Clear all generated data after read.
 	 */
 	public void clear() {
-		for (final Declaration bd : this.bds) {
+		for (final ED bd : this.bds) {
 			bd.clear();
 		}
 	}
@@ -103,8 +103,8 @@ public abstract class Container {
 		return tds;
 	}
 
-	public Declaration getBdForDeclaration(final ASTNode node) {
-		for (final Declaration bd : getBds()) {
+	public ED getBdForDeclaration(final ASTNode node) {
+		for (final ED bd : getBds()) {
 			// could also work with polymorphism here...but why pollute subclasses with helper
 			if (bd instanceof FD) {
 				if (((FD) bd).getFieldDeclaration() == node) {
@@ -119,7 +119,7 @@ public abstract class Container {
 					return bd;
 				}
 			}
-			final Declaration retBd = bd.getBdForDeclaration(node);
+			final ED retBd = bd.getBdForDeclaration(node);
 			if (retBd != null) {
 				return retBd;
 			}
@@ -129,7 +129,7 @@ public abstract class Container {
 
 	public List<Element> getDeclarations() {
 		final List<Element> declarations = Lists.newArrayList();
-		for (final Declaration bd : getBds()) {
+		for (final ED bd : getBds()) {
 			declarations.add(bd.getElement());
 		}
 		return declarations;
@@ -154,7 +154,7 @@ public abstract class Container {
 	 * @return static initializer method declaration
 	 */
 	public MD getInitializer() {
-		for (final Declaration bd : getBds()) {
+		for (final ED bd : getBds()) {
 			if (!(bd instanceof MD)) {
 				continue;
 			}

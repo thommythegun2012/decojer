@@ -28,7 +28,7 @@ import java.util.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.Declaration;
+import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.utils.Cursor;
@@ -39,7 +39,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * 
  * @author André Pankraz
  */
-public final class FD extends Declaration {
+public final class FD extends ED {
 
 	private final static Logger LOGGER = Logger.getLogger(FD.class.getName());
 

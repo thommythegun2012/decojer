@@ -48,7 +48,7 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
-public abstract class T extends Element {
+public abstract class T implements Element {
 
 	private static final Map<Integer, T> KIND_2_TS = Maps.newHashMap();
 

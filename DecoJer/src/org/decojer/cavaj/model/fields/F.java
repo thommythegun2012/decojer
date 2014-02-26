@@ -47,7 +47,7 @@ import org.eclipse.jdt.core.dom.BodyDeclaration;
  * 
  * @author André Pankraz
  */
-public abstract class F extends Element {
+public abstract class F implements Element {
 
 	/**
 	 * Create field declaration for this field.
