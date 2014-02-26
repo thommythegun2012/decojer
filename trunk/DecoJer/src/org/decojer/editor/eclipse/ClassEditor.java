@@ -33,7 +33,7 @@ import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.Declaration;
+import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.fields.FD;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.methods.MD;
@@ -378,7 +378,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					final String typeName = element.getElementName();
 					// count anonymous!
 					int occurrenceCount = ((IType) element).getOccurrenceCount();
-					for (final Declaration bd : d.getBds()) {
+					for (final ED bd : d.getBds()) {
 						if (bd instanceof TD && ((TD) bd).getSimpleName().equals(typeName)) {
 							if (--occurrenceCount == 0) {
 								d = bd;
@@ -393,7 +393,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					// isEnum() doesn't imply isStatic() for source code
 					if (!Flags.isEnum(((IField) element).getFlags())) {
 						if (Flags.isStatic(((IField) element).getFlags())) {
-							for (final Declaration bd : d.getBds()) {
+							for (final ED bd : d.getBds()) {
 								if (bd instanceof MD && ((MD) bd).isInitializer()) {
 									d = bd;
 									continue path;
@@ -401,7 +401,7 @@ public class ClassEditor extends MultiPageEditorPart {
 							}
 							return null;
 						}
-						for (final Declaration bd : d.getBds()) {
+						for (final ED bd : d.getBds()) {
 							// descriptor not important, all constructors have same field
 							// initializers
 							if (bd instanceof MD && ((MD) bd).isConstructor()) {
@@ -412,7 +412,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					}
 					// TODO relocation of other anonymous field initializer TDs...difficult
 					final String fieldName = element.getElementName();
-					for (final Declaration bd : d.getBds()) {
+					for (final ED bd : d.getBds()) {
 						if (bd instanceof FD && ((FD) bd).getName().equals(fieldName)) {
 							d = bd;
 							continue path;
@@ -421,7 +421,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					return null;
 				}
 				if (element instanceof IInitializer) {
-					for (final Declaration bd : d.getBds()) {
+					for (final ED bd : d.getBds()) {
 						if (bd instanceof MD && ((MD) bd).isInitializer()) {
 							d = bd;
 							continue path;
@@ -435,7 +435,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					final String signature = ((IMethod) element).getSignature();
 					// get all method declarations with this name
 					final List<MD> mds = Lists.newArrayList();
-					for (final Declaration bd : d.getBds()) {
+					for (final ED bd : d.getBds()) {
 						if (bd instanceof MD && ((MD) bd).getName().equals(methodName)) {
 							mds.add((MD) bd);
 						}

@@ -33,7 +33,7 @@ import org.decojer.cavaj.model.types.TD;
  * 
  * @author André Pankraz
  */
-public abstract class Declaration extends Container {
+public abstract class ED extends Container {
 
 	/**
 	 * Annotations.
@@ -69,8 +69,8 @@ public abstract class Declaration extends Container {
 		if (this.parent instanceof CU) {
 			return (CU) this.parent;
 		}
-		if (this.parent instanceof Declaration) {
-			return ((Declaration) this.parent).getCu();
+		if (this.parent instanceof ED) {
+			return ((ED) this.parent).getCu();
 		}
 		return null;
 	}

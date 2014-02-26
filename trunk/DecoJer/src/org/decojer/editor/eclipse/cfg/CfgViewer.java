@@ -27,7 +27,7 @@ import java.util.IdentityHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.Declaration;
+import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
@@ -169,7 +169,7 @@ public class CfgViewer extends Composite {
 		if (this.selectedD instanceof MD) {
 			cfg = ((MD) this.selectedD).getCfg();
 		} else if (this.selectedD instanceof TD) {
-			for (final Declaration bd : ((TD) this.selectedD).getBds()) {
+			for (final ED bd : ((TD) this.selectedD).getBds()) {
 				if (bd instanceof MD && ((MD) bd).isConstructor()) {
 					cfg = ((MD) bd).getCfg();
 					if (cfg != null) {

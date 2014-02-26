@@ -32,7 +32,7 @@ import org.decojer.cavaj.model.types.T;
  * 
  * @author André Pankraz
  */
-public abstract class Element {
+public interface Element {
 
 	/**
 	 * Check access flag.
@@ -41,14 +41,14 @@ public abstract class Element {
 	 *            access flag
 	 * @return {@code true} - is access flag
 	 */
-	public abstract boolean check(final AF af);
+	boolean check(final AF af);
 
 	/**
 	 * Get annotations.
 	 * 
 	 * @return annotations
 	 */
-	public abstract A[] getAs();
+	A[] getAs();
 
 	/**
 	 * Add type declaration.
@@ -56,49 +56,49 @@ public abstract class Element {
 	 * @param t
 	 *            type declaration
 	 */
-	public abstract void addTypeDeclaration(final T t);
+	void addTypeDeclaration(final T t);
 
 	/**
 	 * Get name.
 	 * 
 	 * @return name
 	 */
-	public abstract String getName();
+	String getName();
 
 	/**
 	 * Is declaration?
 	 * 
 	 * @return {@code true} - is declaration
 	 */
-	public abstract boolean isDeclaration();
+	boolean isDeclaration();
 
 	/**
 	 * Get contained declarations.
 	 * 
 	 * @return declarations
 	 */
-	public abstract List<Element> getDeclarations();
+	List<Element> getDeclarations();
 
 	/**
 	 * Get declaration owner.
 	 * 
 	 * @return declaration owner
 	 */
-	public abstract Element getDeclarationOwner();
+	Element getDeclarationOwner();
 
 	/**
 	 * Is static?
 	 * 
 	 * @return {@code true} - is static
 	 */
-	public abstract boolean isStatic();
+	boolean isStatic();
 
 	/**
 	 * Is synthetic?
 	 * 
 	 * @return {@code true} - is synthetic
 	 */
-	public abstract boolean isSynthetic();
+	boolean isSynthetic();
 
 	/**
 	 * Set access flags.
@@ -106,7 +106,7 @@ public abstract class Element {
 	 * @param accessFlags
 	 *            access flags
 	 */
-	public abstract void setAccessFlags(final int accessFlags);
+	void setAccessFlags(final int accessFlags);
 
 	/**
 	 * Set annotations.
@@ -114,7 +114,7 @@ public abstract class Element {
 	 * @param as
 	 *            annotations
 	 */
-	public abstract void setAs(final A[] as);
+	void setAs(final A[] as);
 
 	/**
 	 * Declaration must be deprecated (from Deprecated attribute, marked via Javadoc @deprecate).
@@ -127,7 +127,7 @@ public abstract class Element {
 	 * Since version 49 the Deprecated Annotation is the preferred solution and not the variant with
 	 * Javadoc @deprecated. We simply put this information into the access flags as internal flag.
 	 */
-	public abstract void setDeprecated();
+	void setDeprecated();
 
 	/**
 	 * Set signature.
@@ -135,7 +135,7 @@ public abstract class Element {
 	 * @param signature
 	 *            signature
 	 */
-	public abstract void setSignature(final String signature);
+	void setSignature(final String signature);
 
 	/**
 	 * Declaration must be synthetic (from synthetic attribute).
@@ -147,6 +147,6 @@ public abstract class Element {
 	 * Since version 49 the ACC_SYNTHETIC attribute is the preferred solution. We simply put this
 	 * information into the access flags in both cases.
 	 */
-	public abstract void setSynthetic();
+	void setSynthetic();
 
 }
