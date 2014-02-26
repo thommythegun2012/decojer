@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,7 +46,7 @@ public abstract class ED extends Container {
 	/**
 	 * Parent declaration.
 	 */
-	@Getter
+	@Getter(AccessLevel.PROTECTED)
 	@Setter
 	private Container parent;
 
@@ -73,6 +74,16 @@ public abstract class ED extends Container {
 			return ((ED) this.parent).getCu();
 		}
 		return null;
+	}
+
+	public Element getDeclarationOwner() {
+		return getParent() == null ? null : getParent().getElement();
+	}
+
+	public void setDeclarationOwner(final Element declarationOwner) {
+		if (getParent() != null) {
+			getParent().getBds().remove(this);
+		}
 	}
 
 	/**

@@ -600,6 +600,11 @@ public abstract class T implements Element {
 	}
 
 	@Override
+	public Element getDeclarationForNode(final ASTNode node) {
+		return null;
+	}
+
+	@Override
 	public Element getDeclarationOwner() {
 		return null;
 	}
@@ -961,9 +966,9 @@ public abstract class T implements Element {
 	}
 
 	/**
-	 * Get AST type declaration or {@code null}.
+	 * Get AST node or {@code null}.
 	 * 
-	 * @return AST type declaration or {@code null}
+	 * @return AST node or {@code null}
 	 */
 	public ASTNode getTypeDeclaration() {
 		return getTd().getTypeDeclaration();
@@ -1357,6 +1362,11 @@ public abstract class T implements Element {
 	}
 
 	@Override
+	public void setDeclarationOwner(final Element declarationOwner) {
+		assert false;
+	}
+
+	@Override
 	public void setDeprecated() {
 		assert false; // overwrite in ClassT
 	}
@@ -1505,10 +1515,10 @@ public abstract class T implements Element {
 	}
 
 	/**
-	 * Set type declaration.
+	 * Set AST node or {@code null}.
 	 * 
 	 * @param typeDeclaration
-	 *            type declaration
+	 *            AST node or {@code null}
 	 */
 	public void setTypeDeclaration(final AbstractTypeDeclaration typeDeclaration) {
 		assert false;

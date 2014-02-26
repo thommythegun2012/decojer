@@ -426,7 +426,7 @@ public final class TrJvmStruct2JavaAst {
 					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
 					if (td.getSuperT() == null || !td.getSuperT().isParameterized()
-							|| !td.getSuperT().getGenericT().is(Enum.class)) {
+							|| !td.getSuperT().is(Enum.class)) {
 						LOGGER.warning("Enum type '" + td + "' has no super class '"
 								+ Enum.class.getName() + "' but has '" + td.getSuperT() + "'!");
 					}

@@ -32,6 +32,7 @@ import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.T;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
@@ -105,13 +106,23 @@ public class ClassF extends F {
 	}
 
 	@Override
+	public Element getDeclarationForNode(final ASTNode node) {
+		return getFd().getDeclarationForNode(node);
+	}
+
+	@Override
 	public Element getDeclarationOwner() {
-		return getFd().getParent().getElement();
+		return getFd().getDeclarationOwner();
 	}
 
 	@Override
 	public List<Element> getDeclarations() {
 		return null;
+	}
+
+	@Override
+	public BodyDeclaration getFieldDeclaration() {
+		return getFd().getFieldDeclaration();
 	}
 
 	@Override
@@ -147,6 +158,11 @@ public class ClassF extends F {
 	@Override
 	public void setAs(final A[] as) {
 		this.fd.setAs(as);
+	}
+
+	@Override
+	public void setDeclarationOwner(final Element declarationOwner) {
+		getFd().setDeclarationOwner(declarationOwner);
 	}
 
 	@Override
