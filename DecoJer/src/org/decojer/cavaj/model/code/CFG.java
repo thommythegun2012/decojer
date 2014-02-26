@@ -35,7 +35,6 @@ import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
 import org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
@@ -246,7 +245,7 @@ public final class CFG {
 	 * @return compilation unit
 	 */
 	public CU getCu() {
-		return getTd().getCu();
+		return getT().getCu();
 	}
 
 	/**
@@ -282,7 +281,7 @@ public final class CFG {
 	 * @return decompilation unit
 	 */
 	public DU getDu() {
-		return getTd().getDu();
+		return getT().getDu();
 	}
 
 	/**
@@ -351,15 +350,6 @@ public final class CFG {
 	 */
 	public T getT() {
 		return getM().getT();
-	}
-
-	/**
-	 * Get type declaration.
-	 * 
-	 * @return type declaration
-	 */
-	public TD getTd() {
-		return getT().getTd();
 	}
 
 	/**

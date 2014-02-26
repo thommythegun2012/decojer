@@ -120,8 +120,8 @@ public class JavassistReader implements ClassReader {
 
 		final ConstPool constPool = classFile.getConstPool();
 
-		final ClassT t = (ClassT) this.du.getT(classFile.getName());
-		if (t.getTd() != null) {
+		final T t = this.du.getT(classFile.getName());
+		if (t.isDeclaration()) {
 			LOGGER.warning("Type '" + t + "' already read!");
 			return null;
 		}

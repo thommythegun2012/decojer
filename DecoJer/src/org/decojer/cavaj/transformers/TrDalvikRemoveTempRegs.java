@@ -46,7 +46,7 @@ public final class TrDalvikRemoveTempRegs {
 	 *            CFG
 	 */
 	public static void transform(final CFG cfg) {
-		if (!cfg.getTd().isDalvik()) {
+		if (!cfg.getT().isDalvik()) {
 			return;
 		}
 		new TrDalvikRemoveTempRegs(cfg).transform();

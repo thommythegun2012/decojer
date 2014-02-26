@@ -133,7 +133,7 @@ public class SmaliReader implements DexReader {
 				continue;
 			}
 			final T t = this.du.getDescT(typeDescriptor);
-			if (t.getTd() != null) {
+			if (t.isDeclaration()) {
 				LOGGER.warning("Type '" + t + "' already read!");
 				continue;
 			}

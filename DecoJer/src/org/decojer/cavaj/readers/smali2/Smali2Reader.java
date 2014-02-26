@@ -141,8 +141,8 @@ public class Smali2Reader implements DexReader {
 							selectorPrefix.length()) != -1)) {
 				continue;
 			}
-			final ClassT t = (ClassT) this.du.getDescT(typeDescriptor);
-			if (t.getTd() != null) {
+			final T t = this.du.getDescT(typeDescriptor);
+			if (t.isDeclaration()) {
 				LOGGER.warning("Type '" + t + "' already read!");
 				continue;
 			}
@@ -290,8 +290,7 @@ public class Smali2Reader implements DexReader {
 		}
 	}
 
-	private void readMethod(final T t, final DexBackedMethod method,
-			final A annotationDefaultValues) {
+	private void readMethod(final T t, final DexBackedMethod method, final A annotationDefaultValues) {
 		final M m = t.createMd(method.getName(), desc(method));
 		m.setAccessFlags(method.getAccessFlags());
 

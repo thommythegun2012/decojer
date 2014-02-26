@@ -93,8 +93,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName, final String[] interfaces) {
-		final ClassT t = (ClassT) this.du.getT(name);
-		if (t.getTd() != null) {
+		final T t = this.du.getT(name);
+		if (t.isDeclaration()) {
 			LOGGER.warning(this.t + ": Type '" + t + "' already read!");
 			throw new ReadException();
 		}

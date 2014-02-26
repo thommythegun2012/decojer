@@ -33,12 +33,12 @@ import java.util.logging.Logger;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.methods.M;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 
 import com.google.common.collect.Maps;
 
@@ -145,6 +145,11 @@ public class ClassT extends T {
 
 		this.td = new TD(this);
 		return this;
+	}
+
+	@Override
+	public A[] getAs() {
+		return getTd().getAs();
 	}
 
 	@Override
@@ -473,7 +478,7 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public void setTypeDeclaration(final AbstractTypeDeclaration typeDeclaration) {
+	public void setTypeDeclaration(final ASTNode typeDeclaration) {
 		getTd().setTypeDeclaration(typeDeclaration);
 	}
 

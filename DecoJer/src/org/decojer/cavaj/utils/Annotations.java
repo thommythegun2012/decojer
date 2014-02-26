@@ -36,7 +36,6 @@ import java.util.logging.Logger;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
@@ -247,7 +246,6 @@ public final class Annotations {
 		return false;
 	}
 
-	@SuppressWarnings("null")
 	private static boolean isRepeatable(final A a) {
 		if (a.getMembers().size() != 1) {
 			// annotation declaration can have other members, but they must have defaults...this is
@@ -276,13 +274,12 @@ public final class Annotations {
 		if (aT == null) {
 			return false;
 		}
-		final TD aTd = aT.getTd();
-		if (aTd == null) {
+		if (!aT.isDeclaration()) {
 			LOGGER.warning("Potential repeatable annotation '" + a
 					+ "' with repeated annotation type '" + aT
-					+ "' has not the necessary TD information!");
+					+ "' has not the necessary declaration information!");
 		}
-		final A[] aAs = aTd.getAs();
+		final A[] aAs = aT.getAs();
 		if (aAs == null) {
 			return false;
 		}
