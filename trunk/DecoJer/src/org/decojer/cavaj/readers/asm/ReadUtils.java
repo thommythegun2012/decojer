@@ -58,7 +58,7 @@ public class ReadUtils {
 			return m;
 		}
 		if (m instanceof QualifiedM) {
-			m.setT(annotatedT);
+			m.setQualifierT(annotatedT);
 			return m;
 		}
 		return new QualifiedM(annotatedT, m);

@@ -25,11 +25,15 @@ package org.decojer.cavaj.model.methods;
 
 import java.util.List;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.T;
+import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
  * Modified method.
@@ -38,11 +42,13 @@ import org.decojer.cavaj.model.types.T;
  */
 public abstract class ModM extends M {
 
-	@Getter
-	private M rawM;
+	@Getter(AccessLevel.PRIVATE)
+	private final M rawM;
 
 	protected ModM(final M rawM) {
-		setRawM(rawM);
+		assert rawM != null;
+
+		this.rawM = rawM;
 	}
 
 	@Override
@@ -61,6 +67,21 @@ public abstract class ModM extends M {
 	}
 
 	@Override
+	public Object getAnnotationDefaultValue() {
+		return getRawM().getAnnotationDefaultValue();
+	}
+
+	@Override
+	public A[] getAs() {
+		return getRawM().getAs();
+	}
+
+	@Override
+	public CFG getCfg() {
+		return getRawM().getCfg();
+	}
+
+	@Override
 	public Element getDeclarationOwner() {
 		return getRawM().getDeclarationOwner();
 	}
@@ -76,13 +97,23 @@ public abstract class ModM extends M {
 	}
 
 	@Override
-	public MD getMd() {
-		return getRawM().getMd();
+	public BodyDeclaration getMethodDeclaration() {
+		return getRawM().getMethodDeclaration();
 	}
 
 	@Override
 	public String getName() {
 		return getRawM().getName();
+	}
+
+	@Override
+	public A[][] getParamAss() {
+		return getRawM().getParamAss();
+	}
+
+	@Override
+	public String getParamName(final int i) {
+		return getRawM().getParamName(i);
 	}
 
 	@Override
@@ -103,6 +134,16 @@ public abstract class ModM extends M {
 	@Override
 	public T getT() {
 		return getRawM().getT();
+	}
+
+	@Override
+	public T[] getThrowsTs() {
+		return getRawM().getThrowsTs();
+	}
+
+	@Override
+	public T[] getTypeParams() {
+		return getRawM().getTypeParams();
 	}
 
 	@Override
@@ -141,15 +182,48 @@ public abstract class ModM extends M {
 	}
 
 	@Override
+	public void setAnnotationDefaultValue(final Object annotationDefaultValue) {
+		getRawM().setAnnotationDefaultValue(annotationDefaultValue);
+	}
+
+	@Override
+	public void setAs(final A[] as) {
+		getRawM().setAs(as);
+	}
+
+	@Override
+	public void setCfg(final CFG cfg) {
+		getRawM().setCfg(cfg);
+	}
+
+	@Override
 	public void setDeprecated() {
 		getRawM().setDeprecated();
 	}
 
 	@Override
-	public void setRawM(final M rawM) {
-		assert rawM != null;
+	public void setMethodDeclaration(final BodyDeclaration methodDeclaration) {
+		getRawM().setMethodDeclaration(methodDeclaration);
+	}
 
-		this.rawM = rawM;
+	@Override
+	public void setParamAss(final A[][] paramAss) {
+		getRawM().setParamAss(paramAss);
+	}
+
+	@Override
+	public void setParamName(final int i, final String name) {
+		getRawM().setParamName(i, name);
+	}
+
+	@Override
+	public boolean setReceiverT(final T receiverT) {
+		return getRawM().setReceiverT(receiverT);
+	}
+
+	@Override
+	public void setSignature(final String signature) {
+		getRawM().setSignature(signature);
 	}
 
 	@Override
@@ -163,8 +237,8 @@ public abstract class ModM extends M {
 	}
 
 	@Override
-	public void setT(final T t) {
-		getRawM().setT(t);
+	public void setThrowsTs(final T[] throwsTs) {
+		getRawM().setThrowsTs(throwsTs);
 	}
 
 }

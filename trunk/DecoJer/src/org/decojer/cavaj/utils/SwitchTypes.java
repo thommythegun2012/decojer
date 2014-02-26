@@ -44,7 +44,6 @@ import org.decojer.cavaj.model.code.ops.PUSH;
 import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
-import org.decojer.cavaj.model.methods.MD;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts;
 
@@ -178,17 +177,17 @@ public class SwitchTypes {
 	/**
 	 * Extract from bytecode for enumeration-switches the case value map: index to enum field.
 	 * 
-	 * @param md
+	 * @param m
 	 *            method containing the map.
 	 * @param enumT
 	 *            enum type for filtering
 	 * @return case value map: index to enum field
 	 */
-	public static Map<Integer, F> extractIndex2enum(final MD md, final T enumT) {
+	public static Map<Integer, F> extractIndex2enum(final M m, final T enumT) {
 		// very simplistic matcher and may have false positives with obfuscated / strange bytecode,
 		// works for JDK / Eclipse
 		final Map<Integer, F> index2enums = Maps.newHashMap();
-		final Op[] ops = md.getCfg().getOps();
+		final Op[] ops = m.getCfg().getOps();
 		final int length = ops.length - 3;
 		for (int i = 0; i < length; ++i) {
 			Op op = ops[i];
@@ -203,11 +202,11 @@ public class SwitchTypes {
 			if (!(op instanceof INVOKE)) {
 				continue;
 			}
-			final M m = ((INVOKE) op).getM();
-			if (!m.getT().equals(enumT)) {
+			final M refM = ((INVOKE) op).getM();
+			if (!refM.getT().equals(enumT)) {
 				continue;
 			}
-			if (!"ordinal".equals(m.getName()) || !"()I".equals(m.getDescriptor())) {
+			if (!"ordinal".equals(refM.getName()) || !"()I".equals(refM.getDescriptor())) {
 				continue;
 			}
 			op = ops[i + 2];

@@ -28,9 +28,11 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
@@ -135,6 +137,21 @@ public class ClassM extends M {
 	}
 
 	@Override
+	public Object getAnnotationDefaultValue() {
+		return getMd().getAnnotationDefaultValue();
+	}
+
+	@Override
+	public A[] getAs() {
+		return getMd().getAs();
+	}
+
+	@Override
+	public CFG getCfg() {
+		return getMd().getCfg();
+	}
+
+	@Override
 	public Element getDeclarationOwner() {
 		return getMd().getParent().getElement();
 	}
@@ -149,6 +166,16 @@ public class ClassM extends M {
 		return getMd().getMethodDeclaration();
 	}
 
+	@Override
+	public A[][] getParamAss() {
+		return getMd().getParamAss();
+	}
+
+	@Override
+	public String getParamName(final int i) {
+		return getMd().getParamName(i);
+	}
+
 	/**
 	 * Get receiver-type (this) for none-static methods.
 	 * 
@@ -159,6 +186,16 @@ public class ClassM extends M {
 	@Override
 	public T getReceiverT() {
 		return getT() instanceof ClassT ? null : getT();
+	}
+
+	@Override
+	public T[] getThrowsTs() {
+		return getMd().getThrowsTs();
+	}
+
+	@Override
+	public T[] getTypeParams() {
+		return getMd().getTypeParams();
 	}
 
 	@Override
@@ -206,20 +243,40 @@ public class ClassM extends M {
 	}
 
 	@Override
+	public void setAnnotationDefaultValue(final Object annotationDefaultValue) {
+		getMd().setAnnotationDefaultValue(annotationDefaultValue);
+	}
+
+	@Override
+	public void setAs(final A[] as) {
+		getMd().setAs(as);
+	}
+
+	@Override
+	public void setCfg(final CFG cfg) {
+		getMd().setCfg(cfg);
+	}
+
+	@Override
 	public void setDeprecated() {
 		this.accessFlags |= AF.DEPRECATED.getValue();
 	}
 
-	/**
-	 * Set receiver type (this) for none-static methods.
-	 * 
-	 * We reuse the owner type here, because this is a very rarely used feature, where we don't want
-	 * to add memory per method.
-	 * 
-	 * @param receiverT
-	 *            receiver type
-	 * @return {@code true} - success
-	 */
+	@Override
+	public void setMethodDeclaration(final BodyDeclaration methodDeclaration) {
+		getMd().setMethodDeclaration(methodDeclaration);
+	}
+
+	@Override
+	public void setParamAss(final A[][] paramAss) {
+		getMd().setParamAss(paramAss);
+	}
+
+	@Override
+	public void setParamName(final int i, final String name) {
+		getMd().setParamName(i, name);
+	}
+
 	@Override
 	public boolean setReceiverT(final T receiverT) {
 		if (isStatic() || isDynamic()) {
@@ -230,6 +287,11 @@ public class ClassM extends M {
 		}
 		this.t = receiverT;
 		return true;
+	}
+
+	@Override
+	public void setSignature(final String signature) {
+		getMd().setSignature(signature);
 	}
 
 	@Override
@@ -253,6 +315,11 @@ public class ClassM extends M {
 	@Override
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
+	}
+
+	@Override
+	public void setThrowsTs(final T[] throwsTs) {
+		getMd().setThrowsTs(throwsTs);
 	}
 
 	@Override

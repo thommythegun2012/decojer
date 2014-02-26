@@ -50,6 +50,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
@@ -710,7 +711,7 @@ public final class TrCfg2JavaExpressionStmts {
 								// don't show this recognized (normally synthetic) method
 								// declaration
 								lambdaCfg.getBlock().delete(); // delete from parent
-								dynamicM.getMd().setMethodDeclaration(null);
+								dynamicM.setMethodDeclaration(null);
 								// is our new lambda body
 								lambdaExpression.setBody(lambdaCfg.getBlock());
 							}
@@ -2271,14 +2272,27 @@ public final class TrCfg2JavaExpressionStmts {
 				assert array instanceof QualifiedName : array.getClass();
 
 				final F arrayF = ((GET) arrayOp).getF();
-				index2enum = SwitchTypes.extractIndex2enum(arrayF.getFd().getParent()
-						.getInitializer(), ordinalM.getT());
+				M initializer = null;
+				for (final Element bd : arrayF.getDeclarationOwner().getDeclarations()) {
+					if (!(bd instanceof M)) {
+						continue;
+					}
+					final M md = (M) bd;
+					if (md.isInitializer()) {
+						initializer = md;
+						break;
+					}
+				}
+				if (initializer == null) {
+					return false;
+				}
+				index2enum = SwitchTypes.extractIndex2enum(initializer, ordinalM.getT());
 			} else if (arrayOp instanceof INVOKE) {
 				// Eclipse-Bytecode mode: map in same class file - or general in a function
 				assert array instanceof MethodInvocation : array.getClass();
 
 				final M arrayM = ((INVOKE) arrayOp).getM();
-				index2enum = SwitchTypes.extractIndex2enum(arrayM.getMd(), ordinalM.getT());
+				index2enum = SwitchTypes.extractIndex2enum(arrayM, ordinalM.getT());
 			} else {
 				return false;
 			}

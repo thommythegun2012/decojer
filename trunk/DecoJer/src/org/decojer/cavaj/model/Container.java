@@ -148,24 +148,6 @@ public abstract class Container {
 		return null;
 	}
 
-	/**
-	 * Get static initializer method declaration.
-	 * 
-	 * @return static initializer method declaration
-	 */
-	public MD getInitializer() {
-		for (final ED bd : getBds()) {
-			if (!(bd instanceof MD)) {
-				continue;
-			}
-			final MD md = (MD) bd;
-			if (md.isInitializer()) {
-				return md;
-			}
-		}
-		return null;
-	}
-
 	public abstract String getName();
 
 }
