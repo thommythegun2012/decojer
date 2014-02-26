@@ -1452,7 +1452,7 @@ public abstract class T implements Element {
 	 *            qualifierd type for qualified type
 	 */
 	public void setQualifierT(final T qualifierT) {
-		assert false;
+		assert false; // overwrite in QualifiedT
 	}
 
 	/**

@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.methods;
 
+import java.util.logging.Logger;
+
 import org.decojer.cavaj.model.types.T;
 
 /**
@@ -31,6 +33,13 @@ import org.decojer.cavaj.model.types.T;
  * @author André Pankraz
  */
 public class QualifiedM extends ModM {
+
+	private final static Logger LOGGER = Logger.getLogger(QualifiedM.class.getName());
+
+	/**
+	 * Method qualifier.
+	 */
+	private T qualifierT;
 
 	/**
 	 * Constructor.
@@ -42,6 +51,22 @@ public class QualifiedM extends ModM {
 	 */
 	public QualifiedM(final T qualifierT, final M m) {
 		super(m);
+		setQualifierT(qualifierT);
+	}
+
+	@Override
+	public T getT() {
+		return this.qualifierT;
+	}
+
+	@Override
+	public void setQualifierT(final T qualifierT) {
+		if (!getT().validateQualifierName(qualifierT.getName())) {
+			LOGGER.warning("Qualifier type for '" + this + "' cannot be set to not matching type '"
+					+ qualifierT + "'!");
+			return;
+		}
+		this.qualifierT = qualifierT;
 	}
 
 }

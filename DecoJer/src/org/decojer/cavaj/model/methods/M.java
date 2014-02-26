@@ -53,23 +53,14 @@ public abstract class M implements Element {
 	 * 
 	 * @return annotation default value
 	 */
-	public Object getAnnotationDefaultValue() {
-		return getMd().getAnnotationDefaultValue();
-	}
-
-	@Override
-	public A[] getAs() {
-		return getMd().getAs();
-	}
+	public abstract Object getAnnotationDefaultValue();
 
 	/**
 	 * Get control flow graph.
 	 * 
 	 * @return control flow graph
 	 */
-	public CFG getCfg() {
-		return getMd().getCfg();
-	}
+	public abstract CFG getCfg();
 
 	/**
 	 * Get descriptor. Unique in owner context.
@@ -88,29 +79,18 @@ public abstract class M implements Element {
 	}
 
 	/**
-	 * Get method declaration.
-	 * 
-	 * @return method declaration
-	 */
-	public abstract MD getMd();
-
-	/**
 	 * Get AST method declaration or {@code null}.
 	 * 
 	 * @return AST method declaration or {@code null}
 	 */
-	public BodyDeclaration getMethodDeclaration() {
-		return null;
-	}
+	public abstract BodyDeclaration getMethodDeclaration();
 
 	/**
 	 * Get method parameter annotations or {@code null}.
 	 * 
 	 * @return method parameter annotations or {@code null}
 	 */
-	public A[][] getParamAss() {
-		return getMd().getParamAss();
-	}
+	public abstract A[][] getParamAss();
 
 	/**
 	 * Get parameter name for index.
@@ -122,9 +102,7 @@ public abstract class M implements Element {
 	 *            index (starts with 0, double/long params count as 1)
 	 * @return parameter name
 	 */
-	public String getParamName(final int i) {
-		return getMd().getParamName(i);
-	}
+	public abstract String getParamName(final int i);
 
 	/**
 	 * get parameter types.
@@ -159,18 +137,14 @@ public abstract class M implements Element {
 	 * 
 	 * @return throws types or {@code null}
 	 */
-	public T[] getThrowsTs() {
-		return getMd().getThrowsTs();
-	}
+	public abstract T[] getThrowsTs();
 
 	/**
 	 * Get type parameters.
 	 * 
 	 * @return type parameters
 	 */
-	public T[] getTypeParams() {
-		return getMd().getTypeParams();
-	}
+	public abstract T[] getTypeParams();
 
 	/**
 	 * Is constructor?
@@ -195,12 +169,6 @@ public abstract class M implements Element {
 		return false;
 	}
 
-	@Override
-	public abstract boolean isStatic();
-
-	@Override
-	public abstract boolean isSynthetic();
-
 	/**
 	 * Is method with final varargs parameter?
 	 * 
@@ -208,23 +176,13 @@ public abstract class M implements Element {
 	 */
 	public abstract boolean isVarargs();
 
-	@Override
-	public abstract void setAccessFlags(final int accessFlags);
-
 	/**
 	 * Set annotation default value..
 	 * 
 	 * @param annotationDefaultValue
 	 *            annotation default value
 	 */
-	public void setAnnotationDefaultValue(final Object annotationDefaultValue) {
-		getMd().setAnnotationDefaultValue(annotationDefaultValue);
-	}
-
-	@Override
-	public void setAs(final A[] as) {
-		getMd().setAs(as);
-	}
+	public abstract void setAnnotationDefaultValue(final Object annotationDefaultValue);
 
 	/**
 	 * Set control flow graph.
@@ -232,12 +190,7 @@ public abstract class M implements Element {
 	 * @param cfg
 	 *            control flow graph
 	 */
-	public void setCfg(final CFG cfg) {
-		getMd().setCfg(cfg);
-	}
-
-	@Override
-	public abstract void setDeprecated();
+	public abstract void setCfg(final CFG cfg);
 
 	/**
 	 * Set AST method declaration or {@code null}.
@@ -245,9 +198,7 @@ public abstract class M implements Element {
 	 * @param methodDeclaration
 	 *            AST method declaration or {@code null}
 	 */
-	public void setMethodDeclaration(final BodyDeclaration methodDeclaration) {
-		getMd().setMethodDeclaration(methodDeclaration);
-	}
+	public abstract void setMethodDeclaration(final BodyDeclaration methodDeclaration);
 
 	/**
 	 * Set method parameter annotations.
@@ -255,9 +206,7 @@ public abstract class M implements Element {
 	 * @param paramAss
 	 *            method parameter annotations
 	 */
-	public void setParamAss(final A[][] paramAss) {
-		getMd().setParamAss(paramAss);
-	}
+	public abstract void setParamAss(final A[][] paramAss);
 
 	/**
 	 * Set parameter name.
@@ -270,20 +219,18 @@ public abstract class M implements Element {
 	 * @param name
 	 *            parameter name
 	 */
-	public void setParamName(final int i, final String name) {
-		getMd().setParamName(i, name);
-	}
+	public abstract void setParamName(final int i, final String name);
 
 	/**
-	 * Set raw method for modified method.
+	 * Set qualifier type for qualified method.
 	 * 
-	 * For type annotation application.
+	 * For annotation application.
 	 * 
-	 * @param rawM
-	 *            raw method for modified method
+	 * @param qualifierT
+	 *            qualifierd type for qualified method
 	 */
-	public void setRawM(final M rawM) {
-		assert false;
+	public void setQualifierT(final T qualifierT) {
+		assert false; // overwrite in QualifiedM
 	}
 
 	/**
@@ -293,9 +240,7 @@ public abstract class M implements Element {
 	 *            receiver type
 	 * @return {@code true} - success
 	 */
-	public boolean setReceiverT(final T receiverT) {
-		return getMd().setReceiverT(receiverT);
-	}
+	public abstract boolean setReceiverT(final T receiverT);
 
 	/**
 	 * Set return type.
@@ -308,17 +253,6 @@ public abstract class M implements Element {
 	}
 
 	/**
-	 * Set signature.
-	 * 
-	 * @param signature
-	 *            signature
-	 */
-	@Override
-	public void setSignature(final String signature) {
-		getMd().setSignature(signature);
-	}
-
-	/**
 	 * Method must be static or dynamic (from usage, e.g. invoke).
 	 * 
 	 * @param f
@@ -326,27 +260,12 @@ public abstract class M implements Element {
 	 */
 	public abstract void setStatic(final boolean f);
 
-	@Override
-	public abstract void setSynthetic();
-
-	/**
-	 * Set owner type (for applying type annotations).
-	 * 
-	 * @param t
-	 *            owner type
-	 */
-	public void setT(final T t) {
-		assert false; // overwrite in QualifiedM
-	}
-
 	/**
 	 * Set throws types or {@code null}.
 	 * 
 	 * @param throwsTs
 	 *            throws types or {@code null}
 	 */
-	public void setThrowsTs(final T[] throwsTs) {
-		getMd().setThrowsTs(throwsTs);
-	}
+	public abstract void setThrowsTs(final T[] throwsTs);
 
 }
