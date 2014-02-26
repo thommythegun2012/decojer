@@ -29,7 +29,6 @@ import java.util.logging.Logger;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.T;
 
 import com.google.common.collect.Lists;
@@ -102,8 +101,8 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 						this.selectorPrefix.length()) != -1)) {
 			return null;
 		}
-		final ClassT t = (ClassT) this.du.getDescT(className);
-		if (t.getTd() != null) {
+		final T t = this.du.getDescT(className);
+		if (t.isDeclaration()) {
 			LOGGER.warning("Type '" + t + "' already read!");
 			return null;
 		}

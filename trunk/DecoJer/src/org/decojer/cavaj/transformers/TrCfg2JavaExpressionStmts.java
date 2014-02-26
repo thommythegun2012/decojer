@@ -83,9 +83,7 @@ import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
-import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.model.types.Version;
 import org.decojer.cavaj.utils.Priority;
 import org.decojer.cavaj.utils.SwitchTypes;
@@ -269,7 +267,7 @@ public final class TrCfg2JavaExpressionStmts {
 						if (rewriteConditionalReturn(bb, (RETURN) op)) {
 							// special handling for RETURN, multiple predecessors possible and can
 							// directly return value - should be Scala only code
-							if (!getCfg().getTd().isScala()) {
+							if (!getCfg().getT().isScala()) {
 								LOGGER.warning(getM()
 										+ ": Rewriting of conditional returns should only happen for Scala based classes!");
 							}
@@ -985,7 +983,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final ClassInstanceCreation classInstanceCreation = setOp(getAst()
 						.newClassInstanceCreation(), op);
 
-				final String thisName = getCfg().getTd().getName();
+				final String thisName = getCfg().getT().getName();
 				final T newT = cop.getT();
 				final String newName = newT.getName();
 				// check for valid inner anonymous
@@ -994,8 +992,7 @@ public final class TrCfg2JavaExpressionStmts {
 						// anonymous classes typically use a number postfix, try it
 						Integer.parseInt(newName.substring(thisName.length() + 1));
 
-						final TD newTd = ((ClassT) newT).getTd();
-						if (newTd != null) {
+						if (newT.isDeclaration()) {
 							// anonymous inner can only have a single interface
 							// (with generic super "Object") or a super class
 							final T[] interfaceTs = newT.getInterfaceTs();
@@ -1013,7 +1010,7 @@ public final class TrCfg2JavaExpressionStmts {
 							}
 							final AnonymousClassDeclaration anonymousClassDeclaration = setOp(
 									getAst().newAnonymousClassDeclaration(), op);
-							newTd.setTypeDeclaration(anonymousClassDeclaration);
+							newT.setTypeDeclaration(anonymousClassDeclaration);
 							classInstanceCreation
 									.setAnonymousClassDeclaration(anonymousClassDeclaration);
 							bb.push(classInstanceCreation);
@@ -1545,7 +1542,7 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!f.getName().startsWith("class$") && !f.getName().startsWith("array$")) {
 			return false;
 		}
-		if (getCfg().getTd().isAtLeast(Version.JVM_5)) {
+		if (getCfg().getT().isAtLeast(Version.JVM_5)) {
 			LOGGER.warning(getM() + ": Class literal caching isn't necessary anymore in JDK 5!");
 		}
 		// now this really should be a cached class literal, giving warnings in other cases are OK
@@ -1874,7 +1871,7 @@ public final class TrCfg2JavaExpressionStmts {
 					if (methodInvocation.arguments().size() != 1) {
 						break classLiteral;
 					}
-					if (getCfg().getTd().isAtLeast(Version.JVM_5)) {
+					if (getCfg().getT().isAtLeast(Version.JVM_5)) {
 						LOGGER.warning(getM()
 								+ ": Unexpected class literal code with class$() in >= JVM 5 code!");
 					}
@@ -2296,7 +2293,7 @@ public final class TrCfg2JavaExpressionStmts {
 			if (!SwitchTypes.rewriteCaseValues(bb, index2enum)) {
 				return false;
 			}
-			if (getCfg().getTd().isBelow(Version.JVM_5)) {
+			if (getCfg().getT().isBelow(Version.JVM_5)) {
 				LOGGER.warning(getM()
 						+ ": Enumerations switches are not known before JVM 5! Rewriting anyway, check this.");
 			}
@@ -2376,7 +2373,7 @@ public final class TrCfg2JavaExpressionStmts {
 					defaultCase.joinPredBb(bb);
 					defaultCase.addStmt(switchStatement);
 				}
-				if (getCfg().getTd().isBelow(Version.JVM_7)) {
+				if (getCfg().getT().isBelow(Version.JVM_7)) {
 					LOGGER.warning(getM()
 							+ ": String switches are not known before JVM 7! Rewriting anyway, check this.");
 				}
@@ -2401,7 +2398,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				SwitchTypes.rewriteCaseStrings(bb, string2bb, defaultCase);
 
-				if (getCfg().getTd().isBelow(Version.JVM_7)) {
+				if (getCfg().getT().isBelow(Version.JVM_7)) {
 					LOGGER.warning(getM()
 							+ ": String switches are not known before JVM 7! Rewriting anyway, check this.");
 				}

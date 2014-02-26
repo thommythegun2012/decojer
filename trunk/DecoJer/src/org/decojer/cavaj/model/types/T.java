@@ -38,7 +38,6 @@ import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.ClassM;
 import org.decojer.cavaj.model.methods.M;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -1274,6 +1273,15 @@ public abstract class T implements Element {
 		return true; // only primitive types can not be references, overwrite in PrimitiveT
 	}
 
+	/**
+	 * Is Scala source code?
+	 * 
+	 * @return {@code true} - is Scala source code
+	 */
+	public boolean isScala() {
+		return getTd().isScala();
+	}
+
 	@Override
 	public boolean isStatic() {
 		return true;
@@ -1520,7 +1528,7 @@ public abstract class T implements Element {
 	 * @param typeDeclaration
 	 *            AST node or {@code null}
 	 */
-	public void setTypeDeclaration(final AbstractTypeDeclaration typeDeclaration) {
+	public void setTypeDeclaration(final ASTNode typeDeclaration) {
 		assert false;
 	}
 
