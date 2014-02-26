@@ -302,9 +302,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 		if (handle.getTag() == Opcodes.H_INVOKEINTERFACE) {
 			ownerT.setInterface(true); // static also possible in interface since JVM 8
 		}
-		final M m = ownerT.getM(handle.getName(), handle.getDesc());
-		m.setStatic(handle.getTag() == Opcodes.H_INVOKESTATIC);
-		return m;
+		final M refM = ownerT.getM(handle.getName(), handle.getDesc());
+		refM.setStatic(handle.getTag() == Opcodes.H_INVOKESTATIC);
+		return refM;
 	}
 
 	/**
@@ -1501,9 +1501,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			assert opcode != Opcodes.INVOKEINTERFACE || itf;
 
-			final M m = ownerT.getM(name, desc);
-			m.setStatic(opcode == Opcodes.INVOKESTATIC);
-			add(new INVOKE(this.ops.size(), opcode, this.line, m, opcode == Opcodes.INVOKESPECIAL));
+			final M refM = ownerT.getM(name, desc);
+			refM.setStatic(opcode == Opcodes.INVOKESTATIC);
+			add(new INVOKE(this.ops.size(), opcode, this.line, refM, opcode == Opcodes.INVOKESPECIAL));
 			break;
 		}
 		default:
