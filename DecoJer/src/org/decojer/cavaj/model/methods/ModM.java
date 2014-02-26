@@ -33,6 +33,7 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.T;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
@@ -79,6 +80,11 @@ public abstract class ModM extends M {
 	@Override
 	public CFG getCfg() {
 		return getRawM().getCfg();
+	}
+
+	@Override
+	public Element getDeclarationForNode(final ASTNode node) {
+		return getRawM().getDeclarationForNode(node);
 	}
 
 	@Override
@@ -194,6 +200,11 @@ public abstract class ModM extends M {
 	@Override
 	public void setCfg(final CFG cfg) {
 		getRawM().setCfg(cfg);
+	}
+
+	@Override
+	public void setDeclarationOwner(final Element declarationOwner) {
+		getRawM().setDeclarationOwner(declarationOwner);
 	}
 
 	@Override

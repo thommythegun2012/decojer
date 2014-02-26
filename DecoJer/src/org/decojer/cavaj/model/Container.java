@@ -29,8 +29,11 @@ import java.util.logging.Logger;
 
 import lombok.Getter;
 
+import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.fields.FD;
+import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.methods.MD;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.TD;
 import org.eclipse.jdt.core.dom.ASTNode;
 
@@ -103,23 +106,23 @@ public abstract class Container {
 		return tds;
 	}
 
-	public ED getBdForDeclaration(final ASTNode node) {
-		for (final ED bd : getBds()) {
+	public Element getDeclarationForNode(final ASTNode node) {
+		for (final Element bd : getDeclarations()) {
 			// could also work with polymorphism here...but why pollute subclasses with helper
-			if (bd instanceof FD) {
-				if (((FD) bd).getFieldDeclaration() == node) {
+			if (bd instanceof F) {
+				if (((F) bd).getFieldDeclaration() == node) {
 					return bd;
 				}
-			} else if (bd instanceof MD) {
-				if (((MD) bd).getMethodDeclaration() == node) {
+			} else if (bd instanceof M) {
+				if (((M) bd).getMethodDeclaration() == node) {
 					return bd;
 				}
-			} else if (bd instanceof TD) {
-				if (((TD) bd).getTypeDeclaration() == node) {
+			} else if (bd instanceof T) {
+				if (((T) bd).getTypeDeclaration() == node) {
 					return bd;
 				}
 			}
-			final ED retBd = bd.getBdForDeclaration(node);
+			final Element retBd = bd.getDeclarationForNode(node);
 			if (retBd != null) {
 				return retBd;
 			}

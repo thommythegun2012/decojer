@@ -31,6 +31,7 @@ import lombok.Getter;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.methods.M;
+import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Modifying type.
@@ -68,6 +69,11 @@ public abstract class ModT extends T {
 	public T getComponentT() {
 		// modified type is also array, iff raw type is array
 		return getRawT().getComponentT();
+	}
+
+	@Override
+	public Element getDeclarationForNode(final ASTNode node) {
+		return getRawT().getDeclarationForNode(node);
 	}
 
 	@Override
@@ -204,6 +210,11 @@ public abstract class ModT extends T {
 	public void setComponentT(final T componentT) {
 		// modified type is also array, iff raw type is array
 		getRawT().setComponentT(componentT);
+	}
+
+	@Override
+	public void setDeclarationOwner(final Element declarationOwner) {
+		getRawT().setDeclarationOwner(declarationOwner);
 	}
 
 	@Override

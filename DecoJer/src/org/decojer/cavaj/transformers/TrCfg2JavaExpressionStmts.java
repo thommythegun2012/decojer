@@ -82,7 +82,6 @@ import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.fields.F;
-import org.decojer.cavaj.model.fields.FD;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.T;
@@ -1977,8 +1976,7 @@ public final class TrCfg2JavaExpressionStmts {
 								+ "' must contain number literal as first parameter!");
 						return false;
 					}
-					final FD fd = f.getFd();
-					final BodyDeclaration fieldDeclaration = fd.getFieldDeclaration();
+					final BodyDeclaration fieldDeclaration = f.getFieldDeclaration();
 					assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
 
 					final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
@@ -1999,8 +1997,8 @@ public final class TrCfg2JavaExpressionStmts {
 						// this may contain field initializers, that we must keep,
 						// so we can only remove the constructor in final merge (because
 						// anonymous inner classes cannot have visible Java constructor)
-						fd.relocateTd((TD) fd.getCu()
-								.getBdForDeclaration(anonymousClassDeclaration));
+						f.getT().getCu().getDeclarationForNode(anonymousClassDeclaration)
+								.setDeclarationOwner(f);
 					}
 					return true;
 				}
@@ -2038,15 +2036,14 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			return true; // ignore such assignments completely
 		}
-		final FD fd = f.getFd();
-		if (fd == null || !(fd.getFieldDeclaration() instanceof FieldDeclaration)) {
+		if (!(f.getFieldDeclaration() instanceof FieldDeclaration)) {
 			assert false : "TODO check this";
 
 			return false;
 		}
 		try {
-			((VariableDeclarationFragment) ((FieldDeclaration) fd.getFieldDeclaration())
-					.fragments().get(0)).setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
+			((VariableDeclarationFragment) ((FieldDeclaration) f.getFieldDeclaration()).fragments()
+					.get(0)).setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
 			// TODO move anonymous TD to FD as child!!! important for ClassEditor
 			// select, if fixed change ClassEditor#findDeclarationForJavaElement too
 			if (!f.isStatic()) {

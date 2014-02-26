@@ -36,6 +36,7 @@ import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
@@ -152,8 +153,13 @@ public class ClassM extends M {
 	}
 
 	@Override
+	public Element getDeclarationForNode(final ASTNode node) {
+		return getMd().getDeclarationForNode(node);
+	}
+
+	@Override
 	public Element getDeclarationOwner() {
-		return getMd().getParent().getElement();
+		return getMd().getDeclarationOwner();
 	}
 
 	@Override
@@ -255,6 +261,11 @@ public class ClassM extends M {
 	@Override
 	public void setCfg(final CFG cfg) {
 		getMd().setCfg(cfg);
+	}
+
+	@Override
+	public void setDeclarationOwner(final Element declarationOwner) {
+		getMd().setDeclarationOwner(declarationOwner);
 	}
 
 	@Override

@@ -79,9 +79,9 @@ public abstract class M implements Element {
 	}
 
 	/**
-	 * Get AST method declaration or {@code null}.
+	 * Get AST node or {@code null}.
 	 * 
-	 * @return AST method declaration or {@code null}
+	 * @return AST node or {@code null}
 	 */
 	public abstract BodyDeclaration getMethodDeclaration();
 
@@ -193,10 +193,10 @@ public abstract class M implements Element {
 	public abstract void setCfg(final CFG cfg);
 
 	/**
-	 * Set AST method declaration or {@code null}.
+	 * Set AST node or {@code null}.
 	 * 
 	 * @param methodDeclaration
-	 *            AST method declaration or {@code null}
+	 *            AST node or {@code null}
 	 */
 	public abstract void setMethodDeclaration(final BodyDeclaration methodDeclaration);
 

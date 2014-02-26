@@ -26,6 +26,7 @@ package org.decojer.cavaj.model;
 import java.util.List;
 
 import org.decojer.cavaj.model.types.T;
+import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Element.
@@ -85,6 +86,14 @@ public interface Element {
 	 * @return declaration owner
 	 */
 	Element getDeclarationOwner();
+
+	/**
+	 * Set declaration owner.
+	 * 
+	 * @param declarationOwner
+	 *            declaration owner
+	 */
+	void setDeclarationOwner(final Element declarationOwner);
 
 	/**
 	 * Is static?
@@ -148,5 +157,14 @@ public interface Element {
 	 * information into the access flags in both cases.
 	 */
 	void setSynthetic();
+
+	/**
+	 * Get declaration for AST node.
+	 * 
+	 * @param node
+	 *            AST node
+	 * @return declaration
+	 */
+	Element getDeclarationForNode(final ASTNode node);
 
 }

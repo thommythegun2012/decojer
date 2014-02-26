@@ -61,7 +61,7 @@ public class QualifiedM extends ModM {
 
 	@Override
 	public void setQualifierT(final T qualifierT) {
-		if (!getT().validateQualifierName(qualifierT.getName())) {
+		if (!super.getT().validateQualifierName(qualifierT.getName())) {
 			LOGGER.warning("Qualifier type for '" + this + "' cannot be set to not matching type '"
 					+ qualifierT + "'!");
 			return;

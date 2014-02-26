@@ -37,6 +37,7 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.methods.M;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 
 import com.google.common.collect.Maps;
@@ -147,8 +148,13 @@ public class ClassT extends T {
 	}
 
 	@Override
+	public Element getDeclarationForNode(final ASTNode node) {
+		return getTd().getDeclarationForNode(node);
+	}
+
+	@Override
 	public Element getDeclarationOwner() {
-		return getTd().getParent() == null ? null : getTd().getParent().getElement();
+		return getTd().getDeclarationOwner();
 	}
 
 	@Override
@@ -351,6 +357,11 @@ public class ClassT extends T {
 		if (this.enclosing == null) {
 			this.enclosing = NONE;
 		}
+	}
+
+	@Override
+	public void setDeclarationOwner(final Element declarationOwner) {
+		getTd().setDeclarationOwner(declarationOwner);
 	}
 
 	@Override

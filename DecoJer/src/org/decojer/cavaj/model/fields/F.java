@@ -57,13 +57,6 @@ public abstract class F implements Element {
 	public abstract FD createFd();
 
 	/**
-	 * Get field declaration.
-	 * 
-	 * @return field declaration
-	 */
-	public abstract FD getFd();
-
-	/**
 	 * Get owner type.
 	 * 
 	 * @return owner type
@@ -135,11 +128,18 @@ public abstract class F implements Element {
 	public abstract Object getValue();
 
 	/**
-	 * Set AST field declaration.
+	 * Set AST node or {@code null}.
 	 * 
 	 * @param fieldDeclaration
-	 *            AST field declaration
+	 *            AST node or {@code null}
 	 */
 	public abstract void setFieldDeclaration(final BodyDeclaration fieldDeclaration);
+
+	/**
+	 * Get AST node or {@code null}.
+	 * 
+	 * @return AST node or {@code null}
+	 */
+	public abstract BodyDeclaration getFieldDeclaration();
 
 }
