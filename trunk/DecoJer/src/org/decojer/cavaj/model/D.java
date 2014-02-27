@@ -44,9 +44,9 @@ import com.google.common.collect.Lists;
  * 
  * @author André Pankraz
  */
-public abstract class Container {
+public abstract class D {
 
-	private final static Logger LOGGER = Logger.getLogger(Container.class.getName());
+	private final static Logger LOGGER = Logger.getLogger(D.class.getName());
 
 	/**
 	 * All body declarations: inner type / method / field declarations.

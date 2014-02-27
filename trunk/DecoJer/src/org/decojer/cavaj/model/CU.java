@@ -61,7 +61,7 @@ import org.eclipse.text.edits.TextEdit;
  * 
  * @author André Pankraz
  */
-public final class CU extends Container {
+public final class CU extends D {
 
 	private final static Logger LOGGER = Logger.getLogger(CU.class.getName());
 
