@@ -46,13 +46,6 @@ public final class FD extends ED {
 	private final ClassF f;
 
 	/**
-	 * AST node.
-	 */
-	@Getter
-	@Setter
-	private Object astNode;
-
-	/**
 	 * Value for constant attributes or {@code null}. Type Integer: int, short, byte, char, boolean.
 	 */
 	@Getter
@@ -69,12 +62,6 @@ public final class FD extends ED {
 		assert f != null;
 
 		this.f = f;
-	}
-
-	@Override
-	public void clear() {
-		this.astNode = null;
-		super.clear();
 	}
 
 	@Override
