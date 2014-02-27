@@ -30,6 +30,7 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.fields.F;
@@ -54,8 +55,8 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
-	public void addTypeDeclaration(final T t) {
-		getRawT().addTypeDeclaration(t);
+	public void clear() {
+		getRawT().clear();
 	}
 
 	@Override
@@ -105,7 +106,7 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
-	public Element getDeclarationOwner() {
+	public Container getDeclarationOwner() {
 		return getRawT().getDeclarationOwner();
 	}
 
@@ -276,7 +277,7 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
-	public void setDeclarationOwner(final Element declarationOwner) {
+	public void setDeclarationOwner(final Container declarationOwner) {
 		getRawT().setDeclarationOwner(declarationOwner);
 	}
 

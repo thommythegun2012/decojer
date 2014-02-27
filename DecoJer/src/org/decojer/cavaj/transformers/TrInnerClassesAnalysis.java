@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.CFG;
@@ -125,7 +126,7 @@ public class TrInnerClassesAnalysis {
 					if (enclosingT != null) {
 						// TODO check if equal
 					}
-					final Element newTowner = newT.getDeclarationOwner();
+					final Container newTowner = newT.getDeclarationOwner();
 					if (newTowner != null) {
 						// TODO can happen for each constructor if this is a field value!!!
 						if (newTowner instanceof M && ((M) newTowner).isConstructor()) {
@@ -137,7 +138,7 @@ public class TrInnerClassesAnalysis {
 								+ "' already has parent '" + newTowner + "'!");
 						continue;
 					}
-					enclosingMd.addTypeDeclaration(newT);
+					newT.setDeclarationOwner(enclosingMd);
 				}
 			}
 		}
@@ -163,7 +164,7 @@ public class TrInnerClassesAnalysis {
 					final T enclosingT = t.getEnclosingT();
 					if (enclosingT != null) {
 						if (enclosingT.isDeclaration()) {
-							enclosingT.addTypeDeclaration(t);
+							t.setDeclarationOwner(enclosingT);
 							continue;
 						}
 					}
@@ -176,14 +177,14 @@ public class TrInnerClassesAnalysis {
 			final M enclosingM = t.getEnclosingM();
 			if (enclosingM != null) {
 				if (enclosingM.isDeclaration()) {
-					enclosingM.addTypeDeclaration(t);
+					t.setDeclarationOwner(enclosingM);
 					continue;
 				}
 			}
 			final T enclosingT = t.getEnclosingT();
 			if (enclosingT != null) {
 				if (enclosingT.isDeclaration()) {
-					enclosingT.addTypeDeclaration(t);
+					t.setDeclarationOwner(enclosingT);
 					continue;
 				}
 			}
@@ -313,22 +314,22 @@ public class TrInnerClassesAnalysis {
 
 		checkBinaryCompatibilityNamingRules(ts);
 		findEnclosingMethods(ts);
-		final List<T> topTds = findTopTs(ts);
+		final List<T> topTs = findTopTs(ts);
 
 		final List<CU> cus = Lists.newArrayList();
 		final Map<String, CU> sourceId2cu = Maps.newHashMap();
-		for (final T topTd : topTds) {
-			final String sourceId = getSourceId(topTd);
+		for (final T topT : topTs) {
+			final String sourceId = getSourceId(topT);
 			if (sourceId != null) {
 				final CU cu = sourceId2cu.get(sourceId);
 				if (cu != null) {
-					cu.addTd(topTd.getTd());
+					topT.setDeclarationOwner(cu);
 					continue;
 				}
 			}
-			final String sourceFileName = sourceId != null ? topTd.getSourceFileName() : topTd
+			final String sourceFileName = sourceId != null ? topT.getSourceFileName() : topT
 					.getPName() + ".java";
-			final CU cu = new CU(topTd, sourceFileName);
+			final CU cu = new CU(topT, sourceFileName);
 			if (sourceId != null) {
 				sourceId2cu.put(sourceId, cu);
 			}
@@ -338,7 +339,7 @@ public class TrInnerClassesAnalysis {
 		final List<CU> selectedCus = Lists.newArrayList();
 		for (final T selectedT : du.getSelectedTs()) {
 			for (final CU cu : cus) {
-				if (cu.getAllTds().contains(selectedT.getTd())) {
+				if (cu.getDeclarations().contains(selectedT)) {
 					selectedCus.add(cu);
 					break;
 				}

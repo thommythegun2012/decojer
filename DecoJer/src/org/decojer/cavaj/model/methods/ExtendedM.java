@@ -30,6 +30,8 @@ import lombok.Getter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.T;
@@ -52,13 +54,13 @@ public abstract class ExtendedM extends M {
 	}
 
 	@Override
-	public void addTypeDeclaration(final T t) {
-		getRawM().addTypeDeclaration(t);
+	public boolean check(final AF af) {
+		return getRawM().check(af);
 	}
 
 	@Override
-	public boolean check(final AF af) {
-		return getRawM().check(af);
+	public void clear() {
+		getRawM().clear();
 	}
 
 	@Override
@@ -87,12 +89,17 @@ public abstract class ExtendedM extends M {
 	}
 
 	@Override
+	public CU getCu() {
+		return getRawM().getCu();
+	}
+
+	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return getRawM().getDeclarationForNode(node);
 	}
 
 	@Override
-	public Element getDeclarationOwner() {
+	public Container getDeclarationOwner() {
 		return getRawM().getDeclarationOwner();
 	}
 
@@ -134,6 +141,11 @@ public abstract class ExtendedM extends M {
 	@Override
 	public T getReturnT() {
 		return getRawM().getReturnT();
+	}
+
+	@Override
+	public String getSignature() {
+		return getRawM().getSignature();
 	}
 
 	@Override
@@ -207,7 +219,7 @@ public abstract class ExtendedM extends M {
 	}
 
 	@Override
-	public void setDeclarationOwner(final Element declarationOwner) {
+	public void setDeclarationOwner(final Container declarationOwner) {
 		getRawM().setDeclarationOwner(declarationOwner);
 	}
 

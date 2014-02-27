@@ -23,17 +23,12 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.List;
-
-import org.decojer.cavaj.model.types.T;
-import org.eclipse.jdt.core.dom.ASTNode;
-
 /**
  * Element.
  * 
  * @author André Pankraz
  */
-public interface Element {
+public interface Element extends Container {
 
 	/**
 	 * Check access flag.
@@ -45,26 +40,18 @@ public interface Element {
 	boolean check(final AF af);
 
 	/**
+	 * Get compilation unit.
+	 * 
+	 * @return compilation unit
+	 */
+	CU getCu();
+
+	/**
 	 * Get annotations.
 	 * 
 	 * @return annotations
 	 */
 	A[] getAs();
-
-	/**
-	 * Add type declaration.
-	 * 
-	 * @param t
-	 *            type declaration
-	 */
-	void addTypeDeclaration(final T t);
-
-	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 */
-	String getName();
 
 	/**
 	 * Is declaration?
@@ -74,18 +61,11 @@ public interface Element {
 	boolean isDeclaration();
 
 	/**
-	 * Get contained declarations.
-	 * 
-	 * @return declarations
-	 */
-	List<Element> getDeclarations();
-
-	/**
 	 * Get declaration owner.
 	 * 
 	 * @return declaration owner
 	 */
-	Element getDeclarationOwner();
+	Container getDeclarationOwner();
 
 	/**
 	 * Set declaration owner.
@@ -93,7 +73,7 @@ public interface Element {
 	 * @param declarationOwner
 	 *            declaration owner
 	 */
-	void setDeclarationOwner(final Element declarationOwner);
+	void setDeclarationOwner(final Container declarationOwner);
 
 	/**
 	 * Is static?
@@ -157,29 +137,5 @@ public interface Element {
 	 * information into the access flags in both cases.
 	 */
 	void setSynthetic();
-
-	/**
-	 * Get declaration for AST node.
-	 * 
-	 * @param node
-	 *            AST node
-	 * @return declaration
-	 */
-	Element getDeclarationForNode(final ASTNode node);
-
-	/**
-	 * Set AST node or {@code null}.
-	 * 
-	 * @param astNode
-	 *            AST node or {@code null}
-	 */
-	void setAstNode(final Object astNode);
-
-	/**
-	 * Get AST node or {@code null}.
-	 * 
-	 * @return AST node or {@code null}
-	 */
-	Object getAstNode();
 
 }

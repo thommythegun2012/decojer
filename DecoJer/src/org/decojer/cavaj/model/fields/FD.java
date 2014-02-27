@@ -64,11 +64,6 @@ public final class FD extends ED {
 		this.f = f;
 	}
 
-	@Override
-	public String getName() {
-		return getF().getName();
-	}
-
 	/**
 	 * Get owner type.
 	 * 

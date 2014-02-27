@@ -30,7 +30,7 @@ import java.util.Map;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
-import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.fields.ClassF;
@@ -427,11 +427,6 @@ public abstract class T implements Element {
 		return t1;
 	}
 
-	@Override
-	public void addTypeDeclaration(final T t) {
-		assert false;
-	}
-
 	/**
 	 * Assign from given type. There are 3 possible outcomes: Cannot assign from given type, which
 	 * returns {@code null}. Can assign from given type and primitive multitype reduction, which
@@ -579,13 +574,6 @@ public abstract class T implements Element {
 	public T getComponentT() {
 		return null;
 	}
-
-	/**
-	 * Get compilation unit.
-	 * 
-	 * @return compilation unit
-	 */
-	public abstract CU getCu();
 
 	/**
 	 * Get dimensions of array type (0 if no array type).
@@ -1320,7 +1308,7 @@ public abstract class T implements Element {
 	}
 
 	@Override
-	public void setDeclarationOwner(final Element declarationOwner) {
+	public void setDeclarationOwner(final Container declarationOwner) {
 		assert false;
 	}
 

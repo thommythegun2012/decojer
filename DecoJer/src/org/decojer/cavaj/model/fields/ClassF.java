@@ -30,6 +30,8 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.T;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -81,13 +83,13 @@ public class ClassF extends F {
 	}
 
 	@Override
-	public void addTypeDeclaration(final T t) {
-		assert false;
+	public boolean check(final AF af) {
+		return (this.accessFlags & af.getValue()) != 0;
 	}
 
 	@Override
-	public boolean check(final AF af) {
-		return (this.accessFlags & af.getValue()) != 0;
+	public void clear() {
+		getFd().clear();
 	}
 
 	@Override
@@ -95,7 +97,7 @@ public class ClassF extends F {
 		assert this.fd == null;
 
 		this.fd = new FD(this);
-		getT().getTd().addBd(this.fd);
+		setDeclarationOwner(getT());
 		return this.fd;
 	}
 
@@ -110,18 +112,23 @@ public class ClassF extends F {
 	}
 
 	@Override
+	public CU getCu() {
+		return getFd().getCu();
+	}
+
+	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return getFd().getDeclarationForNode(node);
 	}
 
 	@Override
-	public Element getDeclarationOwner() {
+	public Container getDeclarationOwner() {
 		return getFd().getDeclarationOwner();
 	}
 
 	@Override
 	public List<Element> getDeclarations() {
-		return null;
+		return getFd().getDeclarations();
 	}
 
 	@Override
@@ -165,7 +172,7 @@ public class ClassF extends F {
 	}
 
 	@Override
-	public void setDeclarationOwner(final Element declarationOwner) {
+	public void setDeclarationOwner(final Container declarationOwner) {
 		getFd().setDeclarationOwner(declarationOwner);
 	}
 

@@ -565,7 +565,7 @@ public final class TrJvmStruct2JavaAst {
 	public static void transform(final T td) {
 		final CU cu = td.getCu();
 
-		if (cu.getCompilationUnit() == null) {
+		if (cu.getAstNode() == null) {
 			// initializes AST for compilation unit if still uninitialized
 			final ASTParser parser = ASTParser.newParser(AST.JLS8);
 			parser.setSource(new char[0]);
@@ -579,7 +579,7 @@ public final class TrJvmStruct2JavaAst {
 				packageDeclaration.setName(compilationUnit.getAST().newName(packageName));
 				compilationUnit.setPackage(packageDeclaration);
 			}
-			cu.setCompilationUnit(compilationUnit);
+			cu.setAstNode(compilationUnit);
 		}
 		if ("package-info".equals(td.getPName())) {
 			// this is not a valid Java type name and is used for package annotations, we must

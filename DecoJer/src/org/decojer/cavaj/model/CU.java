@@ -30,14 +30,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import lombok.Getter;
-import lombok.Setter;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.model.types.Version;
 import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
 import org.decojer.cavaj.transformers.TrLineNumberAnalysis;
@@ -45,6 +43,7 @@ import org.decojer.cavaj.transformers.TrMergeAll;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.ToolFactory;
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.eclipse.jface.text.BadLocationException;
@@ -52,6 +51,8 @@ import org.eclipse.jface.text.Document;
 import org.eclipse.jface.text.TextUtilities;
 import org.eclipse.text.edits.MalformedTreeException;
 import org.eclipse.text.edits.TextEdit;
+
+import com.google.common.collect.Lists;
 
 /**
  * Compilation unit.
@@ -61,16 +62,16 @@ import org.eclipse.text.edits.TextEdit;
  * 
  * @author André Pankraz
  */
-public final class CU extends D {
+public final class CU implements Container {
 
 	private final static Logger LOGGER = Logger.getLogger(CU.class.getName());
 
-	/**
-	 * AST compilation unit.
-	 */
 	@Getter
-	@Setter
-	private CompilationUnit compilationUnit;
+	private final D Cud = new D() {
+
+		// nothing special
+
+	};
 
 	private final EnumSet<DFlag> dFlags = EnumSet.of(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC); // EnumSet.noneOf(DFlag.class);
 
@@ -92,7 +93,7 @@ public final class CU extends D {
 		assert t != null;
 		assert sourceFileName != null;
 
-		addTd(t.getTd());
+		t.setDeclarationOwner(this);
 		this.sourceFileName = sourceFileName;
 	}
 
@@ -107,13 +108,9 @@ public final class CU extends D {
 		return this.dFlags.contains(dFlag);
 	}
 
-	/**
-	 * Clear all generated data after read.
-	 */
 	@Override
 	public void clear() {
-		this.compilationUnit = null;
-		super.clear();
+		getCud().clear();
 	}
 
 	/**
@@ -127,7 +124,7 @@ public final class CU extends D {
 				"1." + (getT().getVersion() - Version.JVM_1.getMajor() + 1));
 
 		final Document document = new Document();
-		final TextEdit edits = this.compilationUnit.rewrite(document, options);
+		final TextEdit edits = getCompilationUnit().rewrite(document, options);
 		try {
 			edits.apply(document);
 		} catch (final MalformedTreeException e) {
@@ -162,8 +159,8 @@ public final class CU extends D {
 				source = document.get();
 			}
 		}
-		packageAnnotationBug: if (this.compilationUnit.getPackage() != null
-				&& this.compilationUnit.getPackage().annotations().size() > 0) {
+		packageAnnotationBug: if (getCompilationUnit().getPackage() != null
+				&& getCompilationUnit().getPackage().annotations().size() > 0) {
 			// bugfix for: https://bugs.eclipse.org/bugs/show_bug.cgi?id=361071
 			// for Eclipse 4.3 still necessary
 			// see TrJvmStruct2JavaAst.transform(TD)
@@ -221,8 +218,11 @@ public final class CU extends D {
 	 * @return source code
 	 */
 	public String decompile(final boolean ignoreCfgError) {
-		for (final TD td2 : getAllTds()) {
-			final T td = td2.getT();
+		for (final Element element : getAllDeclarations()) {
+			if (!(element instanceof T)) {
+				continue;
+			}
+			final T td = (T) element;
 			TrJvmStruct2JavaAst.transform(td);
 
 			final List<Element> bds = td.getDeclarations();
@@ -259,6 +259,15 @@ public final class CU extends D {
 		return createSourceCode();
 	}
 
+	private List<Element> getAllDeclarations() {
+		final List<Element> elements = Lists.newArrayList();
+		elements.addAll(getDeclarations());
+		for (int i = 0; i < elements.size(); ++i) {
+			elements.addAll(elements.get(i).getDeclarations());
+		}
+		return elements;
+	}
+
 	/**
 	 * Get abstract syntax tree.
 	 * 
@@ -269,6 +278,30 @@ public final class CU extends D {
 		assert ast != null;
 
 		return ast;
+	}
+
+	@Override
+	public Object getAstNode() {
+		return getCud().getAstNode();
+	}
+
+	/**
+	 * Get compilation unit.
+	 * 
+	 * @return compilation unit
+	 */
+	public CompilationUnit getCompilationUnit() {
+		return (CompilationUnit) getAstNode();
+	}
+
+	@Override
+	public Element getDeclarationForNode(final ASTNode node) {
+		return getCud().getDeclarationForNode(node);
+	}
+
+	@Override
+	public List<Element> getDeclarations() {
+		return getCud().getDeclarations();
 	}
 
 	/**
@@ -296,7 +329,12 @@ public final class CU extends D {
 	 * @return first type declaration
 	 */
 	public T getT() {
-		return ((TD) getBds().get(0)).getT();
+		return (T) getDeclarations().get(0);
+	}
+
+	@Override
+	public void setAstNode(final Object astNode) {
+		getCud().setAstNode(astNode);
 	}
 
 	@Override

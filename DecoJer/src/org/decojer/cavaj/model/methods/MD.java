@@ -121,11 +121,6 @@ public final class MD extends ED {
 		return getM().getDescriptor();
 	}
 
-	@Override
-	public String getName() {
-		return getM().getName();
-	}
-
 	/**
 	 * Get parameter name for index.
 	 * 
