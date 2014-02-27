@@ -137,11 +137,11 @@ public class ClassM extends M {
 
 	@Override
 	public MD createMd() {
-		assert this.md == null;
+		assert getMd() == null;
 
 		this.md = new MD(this);
 		setDeclarationOwner(getT());
-		return this.md;
+		return getMd();
 	}
 
 	@Override

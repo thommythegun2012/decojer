@@ -172,18 +172,18 @@ public final class TrJvmStruct2JavaAst {
 		}
 	}
 
-	private static void decompileMethod(final M md, final CU cu, final boolean strictFp) {
-		final String name = md.getName();
-		final T td = md.getT();
+	private static void decompileMethod(final M m, final CU cu, final boolean strictFp) {
+		final String name = m.getName();
+		final T td = m.getT();
 
 		// enum synthetic methods
-		if (md.isStatic()
-				&& ("values".equals(name) && md.getParamTs().length == 0 || "valueOf".equals(name)
-						&& md.getParamTs().length == 1 && md.getParamTs()[0].is(String.class))
+		if (m.isStatic()
+				&& ("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
+						&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
 				&& td.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
-		if (md.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (m.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 		final AST ast = cu.getAst();
@@ -195,9 +195,9 @@ public final class TrJvmStruct2JavaAst {
 		// AnnotationTypeMemberDeclaration (all methods in @interface) or
 		// Initializer (static {})
 		final BodyDeclaration methodDeclaration;
-		if (md.isInitializer()) {
+		if (m.isInitializer()) {
 			methodDeclaration = ast.newInitializer();
-		} else if (md.isConstructor()) {
+		} else if (m.isConstructor()) {
 			// MethodDeclaration with type declaration name as name
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setConstructor(true);
@@ -209,9 +209,9 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration = ast.newAnnotationTypeMemberDeclaration();
 			((AnnotationTypeMemberDeclaration) methodDeclaration).setName(newSimpleName(name, ast));
 			// check if default value (e.g.: byte byteTest() default 2;)
-			if (md.getAnnotationDefaultValue() != null) {
+			if (m.getAnnotationDefaultValue() != null) {
 				final Expression expression = Annotations.decompileAnnotationDefaultValue(td,
-						md.getAnnotationDefaultValue());
+						m.getAnnotationDefaultValue());
 				if (expression != null) {
 					((AnnotationTypeMemberDeclaration) methodDeclaration).setDefault(expression);
 				}
@@ -221,10 +221,10 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setName(newSimpleName(name, ast));
 		}
-		md.setAstNode(methodDeclaration);
+		m.setAstNode(methodDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
-		if (md.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(md.getAs())) {
+		if (m.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(m.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");
@@ -235,81 +235,81 @@ public final class TrJvmStruct2JavaAst {
 		// decompile annotations:
 		// add annotation modifiers before other modifiers, order preserved in
 		// source code generation through Eclipse JDT
-		if (md.getAs() != null) {
-			Annotations.decompileAnnotations(td, methodDeclaration.modifiers(), md.getAs());
+		if (m.getAs() != null) {
+			Annotations.decompileAnnotations(td, methodDeclaration.modifiers(), m.getAs());
 		}
 
 		final boolean isInterfaceMember = td.isInterface();
 
 		// decompile modifier flags:
 		// interfaces can have default methods since JVM 8
-		if (isInterfaceMember && md.getCfg() != null && !md.isStatic()) {
-			if (md.getT().isBelow(Version.JVM_8)) {
+		if (isInterfaceMember && m.getCfg() != null && !m.isStatic()) {
+			if (m.getT().isBelow(Version.JVM_8)) {
 				LOGGER.warning("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
 			}
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.DEFAULT_KEYWORD));
 		}
 		// public is default for interface and annotation type declarations
-		if (md.check(AF.PUBLIC) && !isAnnotationMember && !isInterfaceMember) {
+		if (m.check(AF.PUBLIC) && !isAnnotationMember && !isInterfaceMember) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
-		if (md.check(AF.PRIVATE)) {
+		if (m.check(AF.PRIVATE)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		}
-		if (md.check(AF.PROTECTED)) {
+		if (m.check(AF.PROTECTED)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
-		if (md.isStatic()) {
+		if (m.isStatic()) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
-		if (md.check(AF.FINAL)) {
+		if (m.check(AF.FINAL)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
-		if (md.check(AF.SYNCHRONIZED)) {
+		if (m.check(AF.SYNCHRONIZED)) {
 			methodDeclaration.modifiers()
 					.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
 		}
-		if (md.check(AF.BRIDGE)) {
+		if (m.check(AF.BRIDGE)) {
 			// TODO
 		}
-		if (md.check(AF.NATIVE)) {
+		if (m.check(AF.NATIVE)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.NATIVE_KEYWORD));
 		}
 		// abstract is default for interface and annotation type declarations
-		if (md.check(AF.ABSTRACT) && !isAnnotationMember && !isInterfaceMember) {
+		if (m.check(AF.ABSTRACT) && !isAnnotationMember && !isInterfaceMember) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 		}
-		if (md.check(AF.STRICTFP) && !strictFp) {
+		if (m.check(AF.STRICTFP) && !strictFp) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
 		}
 		/*
 		 * AF.CONSTRUCTOR, AF.DECLARED_SYNCHRONIZED nothing, Dalvik only?
 		 */
 		if (methodDeclaration instanceof MethodDeclaration) {
-			decompileTypeParams(md.getTypeParams(),
+			decompileTypeParams(m.getTypeParams(),
 					((MethodDeclaration) methodDeclaration).typeParameters(), td);
-			decompileMethodParams(md);
-			if (!md.check(AF.ABSTRACT) && !md.check(AF.NATIVE)) {
+			decompileMethodParams(m);
+			if (!m.check(AF.ABSTRACT) && !m.check(AF.NATIVE)) {
 				// create method block for valid syntax, abstract and native methods have none
 				final Block block = ast.newBlock();
 				((MethodDeclaration) methodDeclaration).setBody(block);
-				if (md.getCfg() != null) {
+				if (m.getCfg() != null) {
 					// could have no CFG because of empty or incomplete read code attribute
-					md.getCfg().setBlock(block);
+					m.getCfg().setBlock(block);
 				}
 			}
 		} else if (methodDeclaration instanceof Initializer) {
 			// Initializer (static{}) has block per default
 			assert ((Initializer) methodDeclaration).getBody() != null;
 
-			if (md.getCfg() != null) {
+			if (m.getCfg() != null) {
 				// could have no CFG because of empty or incomplete read code attribute
-				md.getCfg().setBlock(((Initializer) methodDeclaration).getBody());
+				m.getCfg().setBlock(((Initializer) methodDeclaration).getBody());
 			}
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
-			assert md.getParamTs().length == 0;
+			assert m.getParamTs().length == 0;
 
-			((AnnotationTypeMemberDeclaration) methodDeclaration).setType(newType(md.getReturnT(),
+			((AnnotationTypeMemberDeclaration) methodDeclaration).setType(newType(m.getReturnT(),
 					td));
 		}
 	}
@@ -318,41 +318,41 @@ public final class TrJvmStruct2JavaAst {
 	 * Decompile method parameters (parameter types, return type, exception types, annotations,
 	 * names).
 	 * 
-	 * @param md
+	 * @param m
 	 *            method declaration
 	 */
 	@SuppressWarnings("deprecation")
-	private static void decompileMethodParams(final M md) {
+	private static void decompileMethodParams(final M m) {
 		// method type parameters (full signature only):
 		// <T:Ljava/lang/Integer;U:Ljava/lang/Long;>(TT;TU;)V
 		// <U:TT;>(TT;TU;)V
-		final MethodDeclaration methodDeclaration = (MethodDeclaration) md.getAstNode();
-		final T td = md.getT();
+		final MethodDeclaration methodDeclaration = (MethodDeclaration) m.getAstNode();
+		final T td = m.getT();
 		final AST ast = td.getCu().getAst();
 
-		final T[] paramTs = md.getParamTs();
-		if (md.getReceiverT() != null) {
-			methodDeclaration.setReceiverType(newType(md.getReceiverT(), td));
+		final T[] paramTs = m.getParamTs();
+		if (m.getReceiverT() != null) {
+			methodDeclaration.setReceiverType(newType(m.getReceiverT(), td));
 		}
-		final A[][] paramAss = md.getParamAss();
+		final A[][] paramAss = m.getParamAss();
 		for (int i = 0; i < paramTs.length; ++i) {
-			if (md.isConstructor()) {
+			if (m.isConstructor()) {
 				if (i <= 1 && td.isEnum() && !td.getCu().check(DFlag.IGNORE_ENUM)) {
 					// enum constructors have two leading synthetic parameters,
 					// enum classes are static and can not be anonymous or inner method
-					if (i == 0 && md.getParamTs()[0].is(String.class)) {
+					if (i == 0 && m.getParamTs()[0].is(String.class)) {
 						continue;
 					}
-					if (i == 1 && md.getParamTs()[1] == T.INT) {
+					if (i == 1 && m.getParamTs()[1] == T.INT) {
 						continue;
 					}
 				}
 				if (i == 0 && td.isInner() && !td.getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
 					// inner class constructor has synthetic this reference as first argument: skip
-					if (md.getParamTs()[0].is(td.getEnclosingT())) {
+					if (m.getParamTs()[0].is(td.getEnclosingT())) {
 						continue;
 					}
-					LOGGER.warning(md
+					LOGGER.warning(m
 							+ ": Inner class constructor has no synthetic this reference as first argument!");
 				}
 				// anonymous inner classes cannot have visible Java constructors, don't handle
@@ -366,12 +366,12 @@ public final class TrJvmStruct2JavaAst {
 				// enums are static and can not be anonymous or inner method
 			}
 			methodDeclaration.parameters().add(
-					newSingleVariableDeclaration(md, paramTs, paramAss, i, td));
+					newSingleVariableDeclaration(m, paramTs, paramAss, i, td));
 		}
 		// decompile return type
-		methodDeclaration.setReturnType2(newType(md.getReturnT(), td));
+		methodDeclaration.setReturnType2(newType(m.getReturnT(), td));
 		// decompile exceptions
-		final T[] throwsTs = md.getThrowsTs();
+		final T[] throwsTs = m.getThrowsTs();
 		if (throwsTs != null) {
 			for (final T throwT : throwsTs) {
 				// Eclipse AST expects a List<Name> for thrownExceptions, not a List<Type>:

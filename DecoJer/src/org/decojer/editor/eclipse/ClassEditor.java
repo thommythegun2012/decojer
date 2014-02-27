@@ -432,20 +432,20 @@ public class ClassEditor extends MultiPageEditorPart {
 							: element.getElementName();
 					final String signature = ((IMethod) element).getSignature();
 					// get all method declarations with this name
-					final List<M> mds = Lists.newArrayList();
+					final List<M> ms = Lists.newArrayList();
 					for (final Element e : c.getDeclarations()) {
 						if (e instanceof M && ((M) e).getName().equals(methodName)) {
-							mds.add((M) e);
+							ms.add((M) e);
 						}
 					}
-					switch (mds.size()) {
+					switch (ms.size()) {
 					case 0:
 						// shouldn't happen, after all we have decompiled this from the model
 						LOGGER.warning("Unknown method declaration for '" + methodName + "'!");
 						return null;
 					case 1:
 						// only 1 possible method, signature check not really necessary
-						c = mds.get(0);
+						c = ms.get(0);
 						continue path;
 					default:
 						// multiple methods with different signatures, we now have to match against
@@ -459,7 +459,7 @@ public class ClassEditor extends MultiPageEditorPart {
 						// Such signatures doesn't contain method parameter types but they contain
 						// generic type parameters.
 						final Pattern signaturePattern = createEclipseMethodSignaturePattern(signature);
-						for (final M checkMd : mds) {
+						for (final M checkMd : ms) {
 							// exact match for descriptor
 							if (signaturePattern.matcher(checkMd.getDescriptor()).matches()) {
 								c = checkMd;
