@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 import org.decojer.DecoJer;
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.Container;
+import org.decojer.cavaj.model.D;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.fields.FD;
@@ -364,7 +364,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	 *            Eclipse Java element
 	 * @return declaration
 	 */
-	private Container findDeclarationForJavaElement(final IJavaElement javaElement) {
+	private D findDeclarationForJavaElement(final IJavaElement javaElement) {
 		// type.getFullyQualifiedName() potentially follows a different naming strategy for inner
 		// classes than the internal model from the bytecode, hence we must iterate through the tree
 		final List<IJavaElement> path = Lists.newArrayList();
@@ -372,7 +372,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			path.add(0, element);
 		}
 		try {
-			Container d = this.selectedCu;
+			D d = this.selectedCu;
 			path: for (final IJavaElement element : path) {
 				if (element instanceof IType) {
 					final String typeName = element.getElementName();
@@ -522,7 +522,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					@Override
 					public void selectionChanged(final SelectionChangedEvent event) {
 						final TreeSelection treeSelection = (TreeSelection) event.getSelection();
-						final Container d = findDeclarationForJavaElement((IJavaElement) treeSelection
+						final D d = findDeclarationForJavaElement((IJavaElement) treeSelection
 								.getFirstElement());
 						if (d == null) {
 							LOGGER.warning("Unknown declaration for path '"

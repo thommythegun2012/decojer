@@ -34,7 +34,7 @@ import org.decojer.cavaj.model.types.TD;
  * 
  * @author André Pankraz
  */
-public abstract class ED extends Container {
+public abstract class ED extends D {
 
 	/**
 	 * Annotations.
@@ -52,7 +52,7 @@ public abstract class ED extends Container {
 	 */
 	@Getter(AccessLevel.PROTECTED)
 	@Setter
-	private Container parent;
+	private D parent;
 
 	/**
 	 * Add type declaration.

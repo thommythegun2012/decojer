@@ -28,7 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.ED;
-import org.decojer.cavaj.model.Container;
+import org.decojer.cavaj.model.D;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
@@ -67,7 +67,7 @@ public class CfgViewer extends Composite {
 
 	private final Graph graph;
 
-	private Container selectedD;
+	private D selectedD;
 
 	/**
 	 * Constructor.
@@ -214,7 +214,7 @@ public class CfgViewer extends Composite {
 	 * @param selectedD
 	 *            selected declaration
 	 */
-	public void setlectD(final Container selectedD) {
+	public void setlectD(final D selectedD) {
 		this.selectedD = selectedD;
 		initGraph();
 	}
