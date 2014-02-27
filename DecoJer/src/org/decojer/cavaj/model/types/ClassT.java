@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -41,8 +42,10 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -105,7 +108,7 @@ public class ClassT extends T {
 	 */
 	private T superT;
 
-	@Getter
+	@Getter(AccessLevel.PRIVATE)
 	private TD td;
 
 	private Map<String, Object> member;
@@ -144,12 +147,16 @@ public class ClassT extends T {
 
 	@Override
 	public F createFd(final String name, final String descriptor) {
-		return getTd().createFd(name, descriptor);
+		final F f = getF(name, descriptor);
+		f.createFd();
+		return f;
 	}
 
 	@Override
 	public M createMd(final String name, final String descriptor) {
-		return getTd().createMd(name, descriptor);
+		final M m = getM(name, descriptor);
+		m.createMd();
+		return m;
 	}
 
 	@Override
@@ -269,17 +276,17 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isAtLeast(final Version version) {
-		return getTd().isAtLeast(version);
+		return getVersion() >= version.getMajor();
 	}
 
 	@Override
 	public boolean isBelow(final Version version) {
-		return getTd().isBelow(version);
+		return getVersion() < version.getMajor();
 	}
 
 	@Override
 	public boolean isDalvik() {
-		return getTd().isDalvik();
+		return getVersion() == 0;
 	}
 
 	@Override
@@ -313,7 +320,7 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isScala() {
-		return getTd().isScala();
+		return getSourceFileName().endsWith(".scala");
 	}
 
 	@Override
@@ -388,16 +395,35 @@ public class ClassT extends T {
 				LOGGER.log(Level.WARNING, "Couldn't get descriptor for class loaded method!", e);
 			}
 		}
-		resolved();
+		resolve();
 		return false;
+	}
+
+	/**
+	 * Parse interface types from signature.
+	 * 
+	 * @param s
+	 *            signature
+	 * @param c
+	 *            cursor
+	 * @return interface types or {@code null}
+	 */
+	private T[] parseInterfaceTs(final String s, final Cursor c) {
+		if (c.pos >= s.length() || s.charAt(c.pos) != 'L') {
+			return null;
+		}
+		final List<T> ts = Lists.newArrayList();
+		do {
+			final T interfaceT = getDu().parseT(s, c, this);
+			// not here...signature could be wrong (not bytecode checked), check erasure first
+			// interfaceT.setInterface(true);
+			ts.add(interfaceT);
+		} while (c.pos < s.length() && s.charAt(c.pos) == 'L');
+		return ts.toArray(new T[ts.size()]);
 	}
 
 	@Override
 	public void resolve() {
-		getTd().resolve();
-	}
-
-	public void resolved() {
 		if (this.superT == null) {
 			this.superT = NONE; // Object/Interfaces have no super!
 		}
@@ -522,12 +548,54 @@ public class ClassT extends T {
 
 	@Override
 	public void setScala() {
-		getTd().setScala();
+		if (getSourceFileName() != null) {
+			if (!isScala()) {
+				LOGGER.warning("This should be a Scala source code!");
+			}
+			return;
+		}
 	}
 
 	@Override
 	public void setSignature(final String signature) {
-		getTd().setSignature(signature);
+		if (signature == null) {
+			return;
+		}
+		final Cursor c = new Cursor();
+		setTypeParams(getDu().parseTypeParams(signature, c, this));
+
+		final T superT = getDu().parseT(signature, c, this);
+		if (!superT.eraseTo(getSuperT())) {
+			LOGGER.info("Cannot reduce type '" + superT + "' to super type '" + getSuperT()
+					+ "' for type declaration '" + this + "' with signature: " + signature);
+			return;
+		}
+		setSuperT(superT);
+		final T[] signInterfaceTs = parseInterfaceTs(signature, c);
+		if (signInterfaceTs != null) {
+			final T[] interfaceTs = getInterfaceTs();
+			if (signInterfaceTs.length > interfaceTs.length) {
+				// < can happen, e.g. scala-lift misses the final java.io.Serializable in signatures
+				LOGGER.info("Cannot reduce interface types for type declaration '" + this
+						+ "' with signature: " + signature);
+				return;
+			}
+			for (int i = 0; i < signInterfaceTs.length; ++i) {
+				final T interfaceT = signInterfaceTs[i];
+				if (!interfaceT.eraseTo(interfaceTs[i])) {
+					LOGGER.info("Cannot reduce type '" + interfaceT + "' to interface type '"
+							+ interfaceTs[i] + "' for type declaration '" + this
+							+ "' with signature: " + signature);
+					return;
+				}
+				// erasure works...now we are safe to assert interface...but should be anyway
+				// because erasure leads to right type, not necessary:
+				// interfaceT.setInterface(true);
+				assert interfaceT.isInterface();
+
+				interfaceTs[i] = interfaceT;
+			}
+		}
 	}
 
 	@Override

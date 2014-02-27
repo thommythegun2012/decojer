@@ -55,7 +55,6 @@ import org.decojer.cavaj.model.types.ParamT;
 import org.decojer.cavaj.model.types.ParameterizedT;
 import org.decojer.cavaj.model.types.QualifiedT;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.model.types.VarT;
 import org.decojer.cavaj.model.types.WildcardT;
 import org.decojer.cavaj.readers.ClassReader;
@@ -313,7 +312,7 @@ public final class DU {
 		if (t == null) {
 			return "<UNKNOWN>";
 		}
-		return ((ClassT) t).getTd().getCu().decompile();
+		return t.getCu().decompile();
 	}
 
 	/**
@@ -479,17 +478,6 @@ public final class DU {
 			this.ts.put(name, t);
 		}
 		return t;
-	}
-
-	/**
-	 * Get type declaration for type name.
-	 * 
-	 * @param name
-	 *            type name
-	 * @return type declaration
-	 */
-	public TD getTd(final String name) {
-		return getT(name, false).getTd();
 	}
 
 	/**

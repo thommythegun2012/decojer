@@ -909,15 +909,6 @@ public abstract class T implements Element {
 	public abstract T getSuperT();
 
 	/**
-	 * Get type declaration.
-	 * 
-	 * @return type declaration
-	 */
-	public TD getTd() {
-		return null; // overwrite in ClassT
-	}
-
-	/**
 	 * Get type arguments for parameterized types.
 	 * 
 	 * @return type arguments for parameterized types

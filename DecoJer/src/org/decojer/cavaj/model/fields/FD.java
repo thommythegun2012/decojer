@@ -23,32 +23,29 @@
  */
 package org.decojer.cavaj.model.fields;
 
-import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.ED;
-import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.utils.Cursor;
 
 /**
  * Field declaration.
  * 
  * @author André Pankraz
  */
+@Getter(AccessLevel.PACKAGE)
+@Setter(AccessLevel.PACKAGE)
 public final class FD extends ED {
 
-	private final static Logger LOGGER = Logger.getLogger(FD.class.getName());
-
-	@Getter
-	private final ClassF f;
-
 	/**
-	 * Value for constant attributes or {@code null}. Type Integer: int, short, byte, char, boolean.
+	 * Value for constant attributes.
+	 * 
+	 * Type Integer: int, short, byte, char, boolean.
 	 */
-	@Getter
-	@Setter
+	@Nullable
 	private Object value;
 
 	/**
@@ -58,65 +55,7 @@ public final class FD extends ED {
 	 *            field
 	 */
 	protected FD(final ClassF f) {
-		assert f != null;
-
-		this.f = f;
-	}
-
-	/**
-	 * Get owner type.
-	 * 
-	 * @return owner type
-	 */
-	public T getT() {
-		return getF().getT();
-	}
-
-	/**
-	 * Get value type.
-	 * 
-	 * @return value type
-	 */
-	public T getValueT() {
-		return getF().getValueT();
-	}
-
-	/**
-	 * Is enum?
-	 * 
-	 * @return {@code true} - is enum
-	 */
-	public boolean isEnum() {
-		return getF().isEnum();
-	}
-
-	@Override
-	public void setSignature(final String signature) {
-		if (signature == null) {
-			return;
-		}
-		final T valueT = getT().getDu().parseT(signature, new Cursor(), getF());
-		if (!valueT.eraseTo(getValueT())) {
-			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getValueT()
-					+ "' for field value: " + this);
-		} else {
-			getF().setValueT(valueT);
-		}
-	}
-
-	/**
-	 * Set value type.
-	 * 
-	 * @param valueT
-	 *            value type
-	 */
-	public void setValueT(final T valueT) {
-		getF().setValueT(valueT);
-	}
-
-	@Override
-	public String toString() {
-		return getF().toString();
+		super(f);
 	}
 
 }

@@ -46,6 +46,16 @@ public abstract class ED extends CD {
 	@Getter
 	private Container declarationOwner;
 
+	/**
+	 * Constructor.
+	 * 
+	 * @param element
+	 *            element
+	 */
+	public ED(final Container element) {
+		super(element);
+	}
+
 	@Override
 	public void clear() {
 		setAstNode(null);
@@ -74,21 +84,13 @@ public abstract class ED extends CD {
 	 *            declaration owner
 	 */
 	public void setDeclarationOwner(final Container declarationOwner) {
-		final Element element = getElement();
+		final Container element = getElement();
 		final Container previousDeclarationOwner = getDeclarationOwner();
 		if (previousDeclarationOwner != null) {
 			previousDeclarationOwner.getDeclarations().remove(element);
 		}
-		declarationOwner.getDeclarations().add(element);
+		declarationOwner.getDeclarations().add((Element) element);
 		this.declarationOwner = declarationOwner;
 	}
-
-	/**
-	 * Set signature.
-	 * 
-	 * @param signature
-	 *            signature
-	 */
-	public abstract void setSignature(final String signature);
 
 }
