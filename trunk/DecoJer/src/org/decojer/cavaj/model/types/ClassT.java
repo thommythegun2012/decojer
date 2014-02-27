@@ -51,7 +51,7 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
-public class ClassT extends T {
+public class ClassT extends BaseT {
 
 	private final static Logger LOGGER = Logger.getLogger(ClassT.class.getName());
 
@@ -229,6 +229,11 @@ public class ClassT extends T {
 		}
 		// can be null, e.g. for Object or Interfaces
 		return this.superT == NONE ? null : this.superT;
+	}
+
+	@Override
+	public ASTNode getTypeDeclaration() {
+		return getTd().getTypeDeclaration();
 	}
 
 	@Override

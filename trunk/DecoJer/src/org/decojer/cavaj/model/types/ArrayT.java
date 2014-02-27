@@ -38,7 +38,7 @@ import com.google.common.collect.Maps;
  * @author André Pankraz
  */
 @Getter
-public final class ArrayT extends T {
+public final class ArrayT extends BaseT {
 
 	/**
 	 * Component type (could be an array type too, has one dimension less).
