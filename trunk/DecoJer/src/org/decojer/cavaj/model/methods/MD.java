@@ -33,7 +33,6 @@ import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.utils.Cursor;
 
 import com.google.common.collect.Lists;
@@ -175,15 +174,6 @@ public final class MD extends ED {
 	}
 
 	/**
-	 * Get owner type declaration.
-	 * 
-	 * @return owner type declaration
-	 */
-	public TD getTd() {
-		return getT().getTd();
-	}
-
-	/**
 	 * Is constructor?
 	 * 
 	 * @return {@code true} - is constructor
@@ -228,7 +218,7 @@ public final class MD extends ED {
 		final List<T> ts = Lists.newArrayList();
 		do {
 			++c.pos;
-			final T throwT = getTd().getDu().parseT(s, c, getM());
+			final T throwT = getT().getDu().parseT(s, c, getM());
 			throwT.setInterface(false); // TODO we know even more, must be from Throwable
 			ts.add(throwT);
 		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
@@ -284,10 +274,10 @@ public final class MD extends ED {
 
 		final Cursor c = new Cursor();
 		// typeParams better in M, maybe later if necessary for static invokes
-		this.typeParams = getTd().getDu().parseTypeParams(signature, c, getM());
+		this.typeParams = getT().getDu().parseTypeParams(signature, c, getM());
 
 		final T[] paramTs = getParamTs();
-		final T[] signParamTs = getTd().getDu().parseMethodParamTs(signature, c, getM());
+		final T[] signParamTs = getT().getDu().parseMethodParamTs(signature, c, getM());
 		if (signParamTs.length != 0) {
 			if (paramTs.length != signParamTs.length) {
 				// can happen with Sun JVM for constructor:
@@ -312,7 +302,7 @@ public final class MD extends ED {
 				}
 			}
 		}
-		final T returnT = getTd().getDu().parseT(signature, c, getM());
+		final T returnT = getT().getDu().parseT(signature, c, getM());
 		if (!returnT.eraseTo(getReturnT())) {
 			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
 					+ "' for method return: " + this);

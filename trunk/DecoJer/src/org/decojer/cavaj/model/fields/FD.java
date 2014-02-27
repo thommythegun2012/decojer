@@ -30,7 +30,6 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.utils.Cursor;
 
 /**
@@ -74,15 +73,6 @@ public final class FD extends ED {
 	}
 
 	/**
-	 * Get owner type declaration.
-	 * 
-	 * @return owner type declaration
-	 */
-	public TD getTd() {
-		return getT().getTd();
-	}
-
-	/**
 	 * Get value type.
 	 * 
 	 * @return value type
@@ -105,7 +95,7 @@ public final class FD extends ED {
 		if (signature == null) {
 			return;
 		}
-		final T valueT = getTd().getDu().parseT(signature, new Cursor(), getF());
+		final T valueT = getT().getDu().parseT(signature, new Cursor(), getF());
 		if (!valueT.eraseTo(getValueT())) {
 			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getValueT()
 					+ "' for field value: " + this);
