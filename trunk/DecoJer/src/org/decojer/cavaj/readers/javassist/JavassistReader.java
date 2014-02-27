@@ -121,11 +121,10 @@ public class JavassistReader implements ClassReader {
 		final ConstPool constPool = classFile.getConstPool();
 
 		final T t = this.du.getT(classFile.getName());
-		if (t.isDeclaration()) {
+		if (!t.createTd()) {
 			LOGGER.warning("Type '" + t + "' already read!");
 			return null;
 		}
-		t.createTd();
 		t.setAccessFlags(classFile.getAccessFlags());
 		t.setSuperT(getT(constPool, classFile.getSuperclassId()));
 		// FIXME problem with / (avoid getClassInfo in Javassist)
@@ -296,7 +295,8 @@ public class JavassistReader implements ClassReader {
 		}
 		final ConstPool constPool = fieldInfo.getConstPool();
 
-		final F f = t.createFd(fieldInfo.getName(), fieldInfo.getDescriptor());
+		final F f = t.getF(fieldInfo.getName(), fieldInfo.getDescriptor());
+		f.createFd();
 		f.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
 			f.setSignature(signatureAttribute.getSignature());
@@ -383,7 +383,8 @@ public class JavassistReader implements ClassReader {
 		}
 		final ConstPool constPool = methodInfo.getConstPool();
 
-		final M m = t.createMd(methodInfo.getName(), methodInfo.getDescriptor());
+		final M m = t.getM(methodInfo.getName(), methodInfo.getDescriptor());
+		m.createMd();
 		m.setAccessFlags(methodInfo.getAccessFlags());
 		if (exceptionsAttribute != null) {
 			final int[] exceptions = exceptionsAttribute.getExceptionIndexes();

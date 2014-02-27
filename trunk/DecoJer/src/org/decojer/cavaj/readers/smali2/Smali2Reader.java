@@ -142,11 +142,10 @@ public class Smali2Reader implements DexReader {
 				continue;
 			}
 			final T t = this.du.getDescT(typeDescriptor);
-			if (t.isDeclaration()) {
+			if (!t.createTd()) {
 				LOGGER.warning("Type '" + t + "' already read!");
 				continue;
 			}
-			t.createTd();
 			t.setAccessFlags(classDefItem.getAccessFlags());
 			t.setSuperT(this.du.getDescT(classDefItem.getSuperclass()));
 			final Set<String> interfaces = classDefItem.getInterfaces();
@@ -250,7 +249,8 @@ public class Smali2Reader implements DexReader {
 	}
 
 	private void readField(final T t, final DexBackedField field) {
-		final F f = t.createFd(field.getName(), field.getType());
+		final F f = t.getF(field.getName(), field.getType());
+		f.createFd();
 		f.setAccessFlags(field.getAccessFlags());
 
 		final Set<? extends Annotation> annotations = field.getAnnotations();
@@ -291,7 +291,8 @@ public class Smali2Reader implements DexReader {
 	}
 
 	private void readMethod(final T t, final DexBackedMethod method, final A annotationDefaultValues) {
-		final M m = t.createMd(method.getName(), desc(method));
+		final M m = t.getM(method.getName(), desc(method));
+		m.createMd();
 		m.setAccessFlags(method.getAccessFlags());
 
 		final Set<? extends Annotation> annotations = method.getAnnotations();

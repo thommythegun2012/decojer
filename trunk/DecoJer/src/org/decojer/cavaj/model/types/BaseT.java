@@ -28,8 +28,6 @@ import java.util.List;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Element;
-import org.decojer.cavaj.model.fields.F;
-import org.decojer.cavaj.model.methods.M;
 import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
@@ -45,24 +43,8 @@ public abstract class BaseT extends T {
 	}
 
 	@Override
-	public F createFd(final String name, final String descriptor) {
-		assert false;
-
-		return null;
-	}
-
-	@Override
-	public M createMd(final String name, final String descriptor) {
-		assert false;
-
-		return null;
-	}
-
-	@Override
-	public T createTd() {
-		assert false;
-
-		return null;
+	public boolean createTd() {
+		return false;
 	}
 
 	@Override

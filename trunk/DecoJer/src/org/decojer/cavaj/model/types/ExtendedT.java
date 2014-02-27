@@ -33,7 +33,6 @@ import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
-import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.eclipse.jdt.core.dom.ASTNode;
 
@@ -60,17 +59,7 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
-	public F createFd(final String name, final String descriptor) {
-		return getRawT().createFd(name, descriptor);
-	}
-
-	@Override
-	public M createMd(final String name, final String descriptor) {
-		return getRawT().createMd(name, descriptor);
-	}
-
-	@Override
-	public T createTd() {
+	public boolean createTd() {
 		return getRawT().createTd();
 	}
 

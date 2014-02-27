@@ -40,7 +40,6 @@ import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
-import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -146,25 +145,12 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public F createFd(final String name, final String descriptor) {
-		final F f = getF(name, descriptor);
-		f.createFd();
-		return f;
-	}
-
-	@Override
-	public M createMd(final String name, final String descriptor) {
-		final M m = getM(name, descriptor);
-		m.createMd();
-		return m;
-	}
-
-	@Override
-	public T createTd() {
-		assert this.td == null;
-
+	public boolean createTd() {
+		if (isDeclaration()) {
+			return false;
+		}
 		this.td = new TD(this);
-		return this;
+		return true;
 	}
 
 	@Override

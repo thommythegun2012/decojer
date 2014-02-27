@@ -94,11 +94,11 @@ public class ReadClassVisitor extends ClassVisitor {
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName, final String[] interfaces) {
 		final T t = this.du.getT(name);
-		if (t.isDeclaration()) {
+		if (!t.createTd()) {
 			LOGGER.warning(this.t + ": Type '" + t + "' already read!");
 			throw new ReadException();
 		}
-		this.t = t.createTd();
+		this.t = t;
 		this.t.setAccessFlags(access);
 		this.t.setSuperT(this.du.getT(superName));
 		if (interfaces != null && interfaces.length > 0) {
@@ -150,7 +150,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public FieldVisitor visitField(final int access, final String name, final String desc,
 			final String signature, final Object value) {
-		final F f = this.t.createFd(name, desc);
+		final F f = this.t.getF(name, desc);
+		f.createFd();
 
 		f.setAccessFlags(access);
 		f.setSignature(signature);
@@ -175,7 +176,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name, final String desc,
 			final String signature, final String[] exceptions) {
-		final M m = this.t.createMd(name, desc);
+		final M m = this.t.getM(name, desc);
+		m.createMd();
 
 		m.setAccessFlags(access);
 		if (exceptions != null && exceptions.length > 0) {

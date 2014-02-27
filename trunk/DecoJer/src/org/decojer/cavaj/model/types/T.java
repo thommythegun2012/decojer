@@ -483,33 +483,11 @@ public abstract class T implements Element {
 	}
 
 	/**
-	 * Create field declaration.
-	 * 
-	 * @param name
-	 *            field name
-	 * @param descriptor
-	 *            field descriptor
-	 * @return field declaration
-	 */
-	public abstract F createFd(final String name, final String descriptor);
-
-	/**
-	 * Create method declaration.
-	 * 
-	 * @param name
-	 *            method name
-	 * @param descriptor
-	 *            method descriptor
-	 * @return method declaration
-	 */
-	public abstract M createMd(final String name, final String descriptor);
-
-	/**
 	 * Create type declaration for this type.
 	 * 
 	 * @return type declaration
 	 */
-	public abstract T createTd();
+	public abstract boolean createTd();
 
 	@Override
 	public boolean equals(final Object obj) {
