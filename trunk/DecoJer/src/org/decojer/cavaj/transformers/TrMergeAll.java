@@ -138,7 +138,7 @@ public final class TrMergeAll {
 									.size() == 0) {
 						continue;
 					}
-				} else if (methodDeclaration instanceof Initializer /* md.isInitializer() is true */) {
+				} else if (methodDeclaration instanceof Initializer /* m.isInitializer() is true */) {
 					if (((Initializer) methodDeclaration).getBody().statements().size() == 0) {
 						continue;
 					}

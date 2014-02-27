@@ -2270,9 +2270,9 @@ public final class TrCfg2JavaExpressionStmts {
 					if (!(bd instanceof M)) {
 						continue;
 					}
-					final M md = (M) bd;
-					if (md.isInitializer()) {
-						initializer = md;
+					final M m = (M) bd;
+					if (m.isInitializer()) {
+						initializer = m;
 						break;
 					}
 				}

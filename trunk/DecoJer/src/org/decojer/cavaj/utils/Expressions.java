@@ -622,7 +622,7 @@ public final class Expressions {
 	/**
 	 * New single variable declaration.
 	 * 
-	 * @param md
+	 * @param m
 	 *            method declaration
 	 * @param paramTs
 	 *            parameter types
@@ -635,7 +635,7 @@ public final class Expressions {
 	 * @return single variable declaration
 	 */
 	@SuppressWarnings("deprecation")
-	public static SingleVariableDeclaration newSingleVariableDeclaration(final M md,
+	public static SingleVariableDeclaration newSingleVariableDeclaration(final M m,
 			final T[] paramTs, final A[][] paramAss, final int i, final T td) {
 		final AST ast = td.getCu().getAst();
 		final SingleVariableDeclaration singleVariableDeclaration = ast
@@ -646,7 +646,7 @@ public final class Expressions {
 		}
 		final Type methodParameterType = newType(paramTs[i], td);
 		// decompile varargs (flag set, ArrayType and last method param)
-		if (i == paramTs.length - 1 && md.isVarargs()) {
+		if (i == paramTs.length - 1 && m.isVarargs()) {
 			if (methodParameterType instanceof ArrayType) {
 				singleVariableDeclaration.setVarargs(true);
 				// must copy because we cannot delete mandatory ArrayType.componentType
@@ -658,7 +658,7 @@ public final class Expressions {
 							((ArrayType) methodParameterType).getElementType()));
 				}
 			} else {
-				LOGGER.warning("Last method parameter is no ArrayType, but method '" + md.getName()
+				LOGGER.warning("Last method parameter is no ArrayType, but method '" + m.getName()
 						+ "' has vararg attribute!");
 				// try handling as normal type
 				singleVariableDeclaration.setType(methodParameterType);
@@ -666,7 +666,7 @@ public final class Expressions {
 		} else {
 			singleVariableDeclaration.setType(methodParameterType);
 		}
-		singleVariableDeclaration.setName(newSimpleName(md.getParamName(i), ast));
+		singleVariableDeclaration.setName(newSimpleName(m.getParamName(i), ast));
 		return singleVariableDeclaration;
 	}
 
