@@ -291,11 +291,11 @@ public class TrInnerClassesAnalysis {
 			if (!(declaration instanceof F)) {
 				continue;
 			}
-			final F fd = (F) declaration;
-			if (!fd.isStatic()) {
+			final F f = (F) declaration;
+			if (!f.isStatic()) {
 				continue;
 			}
-			if (!fd.getName().startsWith("$SwitchMap$")) {
+			if (!f.getName().startsWith("$SwitchMap$")) {
 				continue;
 			}
 			return true;

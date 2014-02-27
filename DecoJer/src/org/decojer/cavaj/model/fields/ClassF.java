@@ -99,16 +99,16 @@ public class ClassF extends F {
 
 	@Override
 	public FD createFd() {
-		assert this.fd == null;
+		assert getFd() == null;
 
 		this.fd = new FD(this);
 		setDeclarationOwner(getT());
-		return this.fd;
+		return getFd();
 	}
 
 	@Override
 	public A[] getAs() {
-		return this.fd.getAs();
+		return getFd().getAs();
 	}
 
 	@Override
@@ -168,7 +168,7 @@ public class ClassF extends F {
 
 	@Override
 	public void setAs(final A[] as) {
-		this.fd.setAs(as);
+		getFd().setAs(as);
 	}
 
 	@Override
@@ -232,7 +232,7 @@ public class ClassF extends F {
 
 	@Override
 	public void setValue(final Object value) {
-		this.fd.setValue(value);
+		getFd().setValue(value);
 	}
 
 	@Override

@@ -75,11 +75,11 @@ public final class TrJvmStruct2JavaAst {
 
 	private final static Logger LOGGER = Logger.getLogger(TrJvmStruct2JavaAst.class.getName());
 
-	private static void decompileField(final F fd, final CU cu) {
-		final String name = fd.getName();
-		final T td = fd.getT();
+	private static void decompileField(final F f, final CU cu) {
+		final String name = f.getName();
+		final T td = f.getT();
 
-		if (fd.isStatic()) {
+		if (f.isStatic()) {
 			// enum synthetic fields
 			if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && td.isEnum()
 					&& !cu.check(DFlag.IGNORE_ENUM)) {
@@ -87,18 +87,18 @@ public final class TrJvmStruct2JavaAst {
 				return;
 			}
 		} else {
-			if (name.startsWith("this$") && td.isInner() && fd.getValueT().is(td.getEnclosingT())
+			if (name.startsWith("this$") && td.isInner() && f.getValueT().is(td.getEnclosingT())
 					&& !cu.check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
 				// TODO could extract this field name from constructor for more robustness
 				return;
 			}
 		}
-		if (fd.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (f.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 			return;
 		}
 		final AST ast = cu.getAst();
 
-		final boolean isEnum = fd.isEnum();
+		final boolean isEnum = f.isEnum();
 
 		// decompile BodyDeclaration, possible subtypes:
 		// FieldDeclaration, EnumConstantDeclaration
@@ -112,10 +112,10 @@ public final class TrJvmStruct2JavaAst {
 			variableDeclarationFragment.setName(Expressions.newSimpleName(name, ast));
 			fieldDeclaration = ast.newFieldDeclaration(variableDeclarationFragment);
 		}
-		fd.setAstNode(fieldDeclaration);
+		f.setAstNode(fieldDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
-		if (fd.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(fd.getAs())) {
+		if (f.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(f.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");
@@ -125,44 +125,44 @@ public final class TrJvmStruct2JavaAst {
 
 		// decompile annotations, add annotation modifiers before other modifiers, order preserved
 		// in source code generation through Eclipse JDT
-		if (fd.getAs() != null) {
-			Annotations.decompileAnnotations(td, fieldDeclaration.modifiers(), fd.getAs());
+		if (f.getAs() != null) {
+			Annotations.decompileAnnotations(td, fieldDeclaration.modifiers(), f.getAs());
 		}
 
 		final boolean isInterfaceMember = td.isInterface();
 
 		// decompile modifier flags, public is default for enum and interface
-		if (fd.check(AF.PUBLIC) && !isEnum && !isInterfaceMember) {
+		if (f.check(AF.PUBLIC) && !isEnum && !isInterfaceMember) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
-		if (fd.check(AF.PRIVATE)) {
+		if (f.check(AF.PRIVATE)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		}
-		if (fd.check(AF.PROTECTED)) {
+		if (f.check(AF.PROTECTED)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
 		// static is default for enum and interface
-		if (fd.isStatic() && !isEnum && !isInterfaceMember) {
+		if (f.isStatic() && !isEnum && !isInterfaceMember) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
 		// final is default for enum and interface
-		if (fd.check(AF.FINAL) && !isEnum && !isInterfaceMember) {
+		if (f.check(AF.FINAL) && !isEnum && !isInterfaceMember) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
-		if (fd.check(AF.VOLATILE)) {
+		if (f.check(AF.VOLATILE)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.VOLATILE_KEYWORD));
 		}
-		if (fd.check(AF.TRANSIENT)) {
+		if (f.check(AF.TRANSIENT)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.TRANSIENT_KEYWORD));
 		}
 
 		// not for enum constant declaration
 		if (fieldDeclaration instanceof FieldDeclaration) {
-			((FieldDeclaration) fieldDeclaration).setType(newType(fd.getValueT(), td));
-			final Object value = fd.getValue();
+			((FieldDeclaration) fieldDeclaration).setType(newType(f.getValueT(), td));
+			final Object value = f.getValue();
 			if (value != null) {
 				// only final, non static - no arrays, class types
-				final Expression expr = newLiteral(fd.getValueT(), value, td, null);
+				final Expression expr = newLiteral(f.getValueT(), value, td, null);
 				if (expr != null) {
 					final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
 							.fragments().get(0);
