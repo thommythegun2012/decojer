@@ -32,7 +32,7 @@ import org.decojer.cavaj.model.types.T;
  * 
  * @author André Pankraz
  */
-public class QualifiedM extends ModM {
+public class QualifiedM extends ExtendedM {
 
 	private final static Logger LOGGER = Logger.getLogger(QualifiedM.class.getName());
 

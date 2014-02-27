@@ -34,7 +34,7 @@ import org.decojer.cavaj.model.DU;
  * 
  * @author André Pankraz
  */
-public class QualifiedT extends ModT {
+public class QualifiedT extends ExtendedT {
 
 	private final static Logger LOGGER = Logger.getLogger(QualifiedT.class.getName());
 

@@ -32,7 +32,7 @@ import lombok.Getter;
  * 
  * @author André Pankraz
  */
-public final class ParameterizedT extends ModT {
+public final class ParameterizedT extends ExtendedT {
 
 	/**
 	 * Type arguments for matching type parameters.

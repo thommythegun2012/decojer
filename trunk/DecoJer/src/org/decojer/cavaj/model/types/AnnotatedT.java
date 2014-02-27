@@ -34,7 +34,7 @@ import org.decojer.cavaj.model.A;
  * 
  * @author André Pankraz
  */
-public class AnnotatedT extends ModT {
+public class AnnotatedT extends ExtendedT {
 
 	/**
 	 * Type annotations.
