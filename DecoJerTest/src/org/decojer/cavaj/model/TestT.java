@@ -17,6 +17,7 @@ import javax.lang.model.element.TypeElement;
 
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.types.IntersectionT;
+import org.decojer.cavaj.model.types.T;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
