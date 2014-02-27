@@ -27,11 +27,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * Declaration.
+ * Element declaration.
  * 
  * @author André Pankraz
  */
-public abstract class ED extends D {
+public abstract class ED extends CD {
 
 	/**
 	 * Annotations or {@code null}.

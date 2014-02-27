@@ -38,11 +38,11 @@ import org.decojer.cavaj.model.types.TD;
 import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
- * Container for Declarations.
+ * Container declaration.
  * 
  * @author André Pankraz
  */
-public abstract class D {
+public abstract class CD {
 
 	/**
 	 * All body declarations: inner type / method / field declarations.
