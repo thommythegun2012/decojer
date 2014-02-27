@@ -10,7 +10,7 @@ import java.util.Map;
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.T;
+import org.decojer.cavaj.model.types.T;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 

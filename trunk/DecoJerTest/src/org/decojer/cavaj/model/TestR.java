@@ -6,6 +6,7 @@ import static org.testng.Assert.assertTrue;
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.R.Kind;
+import org.decojer.cavaj.model.types.T;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
