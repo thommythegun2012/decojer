@@ -60,14 +60,14 @@ public final class Annotations {
 	/**
 	 * Decompile Annotation.
 	 * 
-	 * @param td
+	 * @param t
 	 *            Type Declaration
 	 * @param a
 	 *            Annotation
 	 * @return Annotation AST Node
 	 */
-	private static Annotation decompileAnnotation(final T td, final A a) {
-		final AST ast = td.getCu().getAst();
+	private static Annotation decompileAnnotation(final T t, final A a) {
+		final AST ast = t.getCu().getAst();
 		final Set<Entry<String, Object>> members = a.getMembers();
 		if (!members.isEmpty()) {
 			if (members.size() == 1) {
@@ -76,16 +76,16 @@ public final class Annotations {
 					// a single member name "value=" is optional
 					final SingleMemberAnnotation singleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
-					singleMemberAnnotation.setTypeName(newTypeName(a.getT(), td));
+					singleMemberAnnotation.setTypeName(newTypeName(a.getT(), t));
 					singleMemberAnnotation
-							.setValue(decompileAnnotationDefaultValue(td, memberValue));
+							.setValue(decompileAnnotationDefaultValue(t, memberValue));
 					return singleMemberAnnotation;
 				}
 			}
 			final NormalAnnotation normalAnnotation = ast.newNormalAnnotation();
-			normalAnnotation.setTypeName(newTypeName(a.getT(), td));
+			normalAnnotation.setTypeName(newTypeName(a.getT(), t));
 			for (final Entry<String, Object> member : members) {
-				final Expression expression = decompileAnnotationDefaultValue(td, member.getValue());
+				final Expression expression = decompileAnnotationDefaultValue(t, member.getValue());
 				if (expression != null) {
 					final MemberValuePair newMemberValuePair = ast.newMemberValuePair();
 					newMemberValuePair.setName(newSimpleName(member.getKey(), ast));
@@ -98,37 +98,37 @@ public final class Annotations {
 			}
 		}
 		final MarkerAnnotation markerAnnotation = ast.newMarkerAnnotation();
-		markerAnnotation.setTypeName(newTypeName(a.getT(), td));
+		markerAnnotation.setTypeName(newTypeName(a.getT(), t));
 		return markerAnnotation;
 	}
 
 	/**
 	 * Decompile Annotation Default Value (value or Default Value literal).
 	 * 
-	 * @param td
+	 * @param t
 	 *            Type Declaration
 	 * @param defaultValue
 	 *            Default Value
 	 * @return Expression AST Node or {@code null}
 	 */
-	public static Expression decompileAnnotationDefaultValue(final T td, final Object defaultValue) {
-		final AST ast = td.getCu().getAst();
+	public static Expression decompileAnnotationDefaultValue(final T t, final Object defaultValue) {
+		final AST ast = t.getCu().getAst();
 		if (defaultValue == null) {
 			return null;
 		}
 		if (defaultValue instanceof A) {
-			return decompileAnnotation(td, (A) defaultValue);
+			return decompileAnnotation(t, (A) defaultValue);
 		}
 		// could be primitive array - use slow reflection
 		if (defaultValue.getClass().isArray()) {
 			final int size = Array.getLength(defaultValue);
 			if (size == 1) {
 				// single entry autoboxing
-				return decompileAnnotationDefaultValue(td, Array.get(defaultValue, 0));
+				return decompileAnnotationDefaultValue(t, Array.get(defaultValue, 0));
 			}
 			final ArrayInitializer arrayInitializer = ast.newArrayInitializer();
 			for (int i = 0; i < size; ++i) {
-				final Expression expression = decompileAnnotationDefaultValue(td,
+				final Expression expression = decompileAnnotationDefaultValue(t,
 						Array.get(defaultValue, i));
 				if (expression != null) {
 					arrayInitializer.expressions().add(expression);
@@ -149,7 +149,7 @@ public final class Annotations {
 		}
 		if (defaultValue instanceof T) {
 			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-			typeLiteral.setType(newType((T) defaultValue, td));
+			typeLiteral.setType(newType((T) defaultValue, t));
 			return typeLiteral;
 		}
 		if (defaultValue instanceof Double) {
@@ -160,7 +160,7 @@ public final class Annotations {
 			if (!f.isEnum()) {
 				LOGGER.warning("Default value field must be enum!");
 			}
-			return ast.newQualifiedName(newTypeName(f.getT(), td), newSimpleName(f.getName(), ast));
+			return ast.newQualifiedName(newTypeName(f.getT(), t), newSimpleName(f.getName(), ast));
 		}
 		if (defaultValue instanceof Float) {
 			return ast.newNumberLiteral(defaultValue.toString() + 'F');
@@ -188,25 +188,25 @@ public final class Annotations {
 	/**
 	 * Decompile Annotations.
 	 * 
-	 * @param td
-	 *            Type Declaration
-	 * @param annotations
-	 *            Annotation AST Nodes
 	 * @param as
 	 *            Annotations
+	 * @param annotations
+	 *            Annotation AST Nodes
+	 * @param contextT
+	 *            Type Declaration
 	 */
-	public static void decompileAnnotations(final T td, final List<Annotation> annotations,
-			final A[] as) {
+	public static void decompileAnnotations(final A[] as, final List<Annotation> annotations,
+			final T contextT) {
 		if (as == null) {
 			return;
 		}
 		for (final A a : as) {
 			if (isRepeatable(a)) {
 				for (final Object aa : (Object[]) a.getValueMember()) {
-					annotations.add(decompileAnnotation(td, (A) aa));
+					annotations.add(decompileAnnotation(contextT, (A) aa));
 				}
 			} else {
-				annotations.add(decompileAnnotation(td, a));
+				annotations.add(decompileAnnotation(contextT, a));
 			}
 		}
 	}
@@ -214,17 +214,17 @@ public final class Annotations {
 	/**
 	 * Decompile Annotations.
 	 * 
-	 * @param td
-	 *            Type Declaration
-	 * @param annotations
-	 *            Annotation AST Nodes
 	 * @param t
 	 *            Annotated Type
+	 * @param annotations
+	 *            Annotation AST Nodes
+	 * @param contextT
+	 *            Type Declaration
 	 */
-	public static void decompileAnnotations(final T td, final List<Annotation> annotations,
-			final T t) {
+	public static void decompileAnnotations(final T t, final List<Annotation> annotations,
+			final T contextT) {
 		if (t.isAnnotated()) {
-			decompileAnnotations(td, annotations, t.getAs());
+			decompileAnnotations(t.getAs(), annotations, contextT);
 		}
 	}
 

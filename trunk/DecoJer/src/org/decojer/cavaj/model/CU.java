@@ -222,10 +222,10 @@ public final class CU implements Container {
 			if (!(element instanceof T)) {
 				continue;
 			}
-			final T td = (T) element;
-			TrJvmStruct2JavaAst.transform(td);
+			final T t = (T) element;
+			TrJvmStruct2JavaAst.transform(t);
 
-			final List<Element> bds = td.getDeclarations();
+			final List<Element> bds = t.getDeclarations();
 			for (int j = 0; j < bds.size(); ++j) {
 				final Element bd = bds.get(j);
 				if (!(bd instanceof M)) {

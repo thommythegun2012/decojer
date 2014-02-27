@@ -69,8 +69,8 @@ public final class TrLineNumberAnalysis {
 		}
 	}
 
-	private static void analyzeLines(final T td) {
-		for (final Element e : td.getDeclarations()) {
+	private static void analyzeLines(final T t) {
+		for (final Element e : t.getDeclarations()) {
 			if (e instanceof T) {
 				analyzeLines((T) e);
 				continue;
