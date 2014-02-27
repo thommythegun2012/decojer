@@ -964,14 +964,7 @@ public abstract class T implements Element {
 		return null;
 	}
 
-	/**
-	 * Get AST node or {@code null}.
-	 * 
-	 * @return AST node or {@code null}
-	 */
-	public ASTNode getTypeDeclaration() {
-		return getTd().getTypeDeclaration();
-	}
+	public abstract ASTNode getTypeDeclaration();
 
 	/**
 	 * Get type parameters.

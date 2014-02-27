@@ -30,7 +30,7 @@ import lombok.Getter;
  * 
  * @author André Pankraz
  */
-public class PrimitiveT extends T {
+public class PrimitiveT extends BaseT {
 
 	@Getter
 	private final String name;

@@ -23,74 +23,18 @@
  */
 package org.decojer.cavaj.model.types;
 
-import lombok.Getter;
-
-import org.decojer.cavaj.model.DU;
+import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
- * Type parameter.
+ * Base type.
  * 
  * @author André Pankraz
  */
-public class ParamT extends BaseT {
-
-	@Getter
-	private final String name;
-
-	@Getter
-	private final DU du;
-
-	/**
-	 * Interface types.
-	 */
-	private T[] interfaceTs;
-
-	/**
-	 * Super type.
-	 */
-	@Getter
-	private T superT;
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param du
-	 *            decompilation unit
-	 * @param name
-	 *            type name
-	 */
-	public ParamT(final DU du, final String name) {
-		assert du != null;
-		assert name != null;
-
-		this.du = du;
-		this.name = name;
-	}
+public abstract class BaseT extends T {
 
 	@Override
-	public T[] getInterfaceTs() {
-		if (this.interfaceTs == null) {
-			return INTERFACES_NONE;
-		}
-		return this.interfaceTs;
-	}
-
-	@Override
-	public void setInterfaceTs(final T[] interfaceTs) {
-		for (final T t : interfaceTs) {
-			t.setInterface(true);
-		}
-		this.interfaceTs = interfaceTs;
-	}
-
-	@Override
-	public void setSuperT(final T superT) {
-		if (superT == null) {
-			this.superT = NONE;
-			return;
-		}
-		superT.setInterface(false);
-		this.superT = superT;
+	public ASTNode getTypeDeclaration() {
+		return null;
 	}
 
 }

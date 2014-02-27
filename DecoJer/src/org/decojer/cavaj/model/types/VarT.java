@@ -36,7 +36,7 @@ import lombok.Getter;
  * 
  * @author André Pankraz
  */
-public class VarT extends T {
+public class VarT extends BaseT {
 
 	/**
 	 * Enclosing type context.

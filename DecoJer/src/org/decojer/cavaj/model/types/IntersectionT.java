@@ -32,7 +32,7 @@ import lombok.Getter;
  * 
  * @author André Pankraz
  */
-public class IntersectionT extends T {
+public class IntersectionT extends BaseT {
 
 	/**
 	 * Interface types.

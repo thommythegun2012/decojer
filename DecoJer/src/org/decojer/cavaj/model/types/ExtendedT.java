@@ -149,6 +149,11 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
+	public ASTNode getTypeDeclaration() {
+		return getRawT().getTypeDeclaration();
+	}
+
+	@Override
 	public int getVersion() {
 		return getRawT().getVersion();
 	}

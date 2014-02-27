@@ -33,7 +33,7 @@ import lombok.Setter;
  * 
  * @author André Pankraz
  */
-public class WildcardT extends T {
+public class WildcardT extends BaseT {
 
 	@Getter
 	private final boolean subclassOf;
