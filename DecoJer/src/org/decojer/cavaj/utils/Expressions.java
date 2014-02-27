@@ -264,25 +264,25 @@ public final class Expressions {
 	 *            literal type
 	 * @param value
 	 *            literal value
-	 * @param td
+	 * @param contextT
 	 *            type declaration (context)
 	 * @param op
 	 *            originating operation
 	 * @return AST literal expression
 	 */
-	public static Expression newLiteral(final T t, final Object value, final T td, final Op op) {
-		return setOp(setValue(newLiteral2(t, value, td), value), op);
+	public static Expression newLiteral(final T t, final Object value, final T contextT, final Op op) {
+		return setOp(setValue(newLiteral2(t, value, contextT), value), op);
 	}
 
-	private static Expression newLiteral2(final T t, final Object value, final T td) {
-		final AST ast = td.getCu().getAst();
+	private static Expression newLiteral2(final T t, final Object value, final T contextT) {
+		final AST ast = contextT.getCu().getAst();
 		if (t.isRef() /* incl. T.AREF */) {
 			if (value == null) {
 				return ast.newNullLiteral();
 			}
 			if (value instanceof T && t.isAssignableFrom(Class.class)) {
 				final TypeLiteral typeLiteral = ast.newTypeLiteral();
-				typeLiteral.setType(newType((T) value, td));
+				typeLiteral.setType(newType((T) value, contextT));
 				return typeLiteral;
 			}
 			if (value instanceof String && t.isAssignableFrom(String.class)) {
@@ -347,25 +347,25 @@ public final class Expressions {
 					return ast.newQualifiedName(ast.newSimpleName("Character"),
 							ast.newSimpleName("MIN_VALUE"));
 				case Character.MAX_HIGH_SURROGATE:
-					if (td.isAtLeast(Version.JVM_5)) {
+					if (contextT.isAtLeast(Version.JVM_5)) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MAX_HIGH_SURROGATE"));
 					}
 					break;
 				case Character.MAX_LOW_SURROGATE:
-					if (td.isAtLeast(Version.JVM_5)) {
+					if (contextT.isAtLeast(Version.JVM_5)) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MAX_LOW_SURROGATE"));
 					}
 					break;
 				case Character.MIN_HIGH_SURROGATE:
-					if (td.isAtLeast(Version.JVM_5)) {
+					if (contextT.isAtLeast(Version.JVM_5)) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MIN_HIGH_SURROGATE"));
 					}
 					break;
 				case Character.MIN_LOW_SURROGATE:
-					if (td.isAtLeast(Version.JVM_5)) {
+					if (contextT.isAtLeast(Version.JVM_5)) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MIN_LOW_SURROGATE"));
 					}
@@ -450,7 +450,7 @@ public final class Expressions {
 							ast.newSimpleName("MIN_VALUE"));
 				}
 				if (f == Float.MIN_NORMAL) {
-					if (td.isAtLeast(Version.JVM_6)) {
+					if (contextT.isAtLeast(Version.JVM_6)) {
 						return ast.newQualifiedName(ast.newSimpleName("Float"),
 								ast.newSimpleName("MIN_NORMAL"));
 					}
@@ -509,7 +509,7 @@ public final class Expressions {
 							ast.newSimpleName("MIN_VALUE"));
 				}
 				if (d == Double.MIN_NORMAL) {
-					if (td.isAtLeast(Version.JVM_6)) {
+					if (contextT.isAtLeast(Version.JVM_6)) {
 						return ast.newQualifiedName(ast.newSimpleName("Double"),
 								ast.newSimpleName("MIN_NORMAL"));
 					}
@@ -630,21 +630,21 @@ public final class Expressions {
 	 *            parameter annotations
 	 * @param i
 	 *            index
-	 * @param td
+	 * @param contextT
 	 *            type declaration (context)
 	 * @return single variable declaration
 	 */
 	@SuppressWarnings("deprecation")
 	public static SingleVariableDeclaration newSingleVariableDeclaration(final M m,
-			final T[] paramTs, final A[][] paramAss, final int i, final T td) {
-		final AST ast = td.getCu().getAst();
+			final T[] paramTs, final A[][] paramAss, final int i, final T contextT) {
+		final AST ast = contextT.getCu().getAst();
 		final SingleVariableDeclaration singleVariableDeclaration = ast
 				.newSingleVariableDeclaration();
 		if (paramAss != null && i < paramAss.length) {
-			Annotations
-					.decompileAnnotations(td, singleVariableDeclaration.modifiers(), paramAss[i]);
+			Annotations.decompileAnnotations(paramAss[i], singleVariableDeclaration.modifiers(),
+					contextT);
 		}
-		final Type methodParameterType = newType(paramTs[i], td);
+		final Type methodParameterType = newType(paramTs[i], contextT);
 		// decompile varargs (flag set, ArrayType and last method param)
 		if (i == paramTs.length - 1 && m.isVarargs()) {
 			if (methodParameterType instanceof ArrayType) {
@@ -675,37 +675,39 @@ public final class Expressions {
 	 * 
 	 * @param t
 	 *            type
-	 * @param td
+	 * @param contextT
 	 *            type declaration (context)
 	 * @return AST type
 	 */
 	@SuppressWarnings("deprecation")
-	public static Type newType(final T t, final T td) {
-		final AST ast = td.getCu().getAst();
+	public static Type newType(final T t, final T contextT) {
+		final AST ast = contextT.getCu().getAst();
 		// handle array first because annot(array()) is special
 		if (t.isArray()) {
 			if (ast.apiLevel() <= AST.JLS4) {
-				return ast.newArrayType(newType(t.getComponentT(), td));
+				return ast.newArrayType(newType(t.getComponentT(), contextT));
 			}
 			for (T checkT = t; checkT.isArray(); checkT = checkT.getComponentT()) {
 				if (checkT.isAnnotated()) {
-					final ArrayType arrayType = ast.newArrayType(newType(t.getElementT(), td));
+					final ArrayType arrayType = ast
+							.newArrayType(newType(t.getElementT(), contextT));
 					final List<Dimension> dimensions = arrayType.dimensions();
 					dimensions.clear();
 					for (T elementT = t; elementT.isArray(); elementT = elementT.getComponentT()) {
 						final Dimension dimension = ast.newDimension();
 						if (elementT.isAnnotated()) {
-							Annotations.decompileAnnotations(td, dimension.annotations(), elementT);
+							Annotations.decompileAnnotations(elementT, dimension.annotations(),
+									contextT);
 						}
 						dimensions.add(dimension);
 					}
 					return arrayType;
 				}
 			}
-			return ast.newArrayType(newType(t.getElementT(), td), t.getDimensions());
+			return ast.newArrayType(newType(t.getElementT(), contextT), t.getDimensions());
 		}
 		if (t.isAnnotated()) {
-			Type type = newType(t.getRawT(), td);
+			Type type = newType(t.getRawT(), contextT);
 			if (ast.apiLevel() <= AST.JLS4) {
 				LOGGER.warning("Cannot decompile type annotations for type '" + t
 						+ "' in Eclipse AST JLS4!");
@@ -734,16 +736,16 @@ public final class Expressions {
 					type = annotatableType;
 				}
 			}
-			Annotations.decompileAnnotations(td, annotatableType.annotations(), t);
+			Annotations.decompileAnnotations(t, annotatableType.annotations(), contextT);
 			return type;
 		}
 		// doesn't work, now with Dimension (see above): if (t.isArray()) { return
-		// ast.newArrayType(newType(t.getComponentT(), td)); }
+		// ast.newArrayType(newType(t.getComponentT(), contextT)); }
 		if (t.isParameterized()) {
 			final ParameterizedType parameterizedType = ast.newParameterizedType(newType(
-					t.getGenericT(), td));
+					t.getGenericT(), contextT));
 			for (final T typeArg : t.getTypeArgs()) {
-				parameterizedType.typeArguments().add(newType(typeArg, td));
+				parameterizedType.typeArguments().add(newType(typeArg, contextT));
 			}
 			return parameterizedType;
 		}
@@ -755,12 +757,12 @@ public final class Expressions {
 			if (t.isSubclassOf()) {
 				final WildcardType wildcardType = ast.newWildcardType();
 				// default...newWildcardType.setUpperBound(true);
-				wildcardType.setBound(newType(boundT, td));
+				wildcardType.setBound(newType(boundT, contextT));
 				return wildcardType;
 			}
 			final WildcardType wildcardType = ast.newWildcardType();
 			wildcardType.setUpperBound(false);
-			wildcardType.setBound(newType(boundT, td));
+			wildcardType.setBound(newType(boundT, contextT));
 			return wildcardType;
 		}
 		if (t.isMulti()) {
@@ -797,18 +799,18 @@ public final class Expressions {
 		}
 		if (t.isQualified()) {
 			final T qualifierT = t.getQualifierT();
-			// could be ParamT etc., not decompileable with Name as target;
+			// could be ParamT etc., not decompileable with name as target;
 			// restrict qualifications to really necessary enclosings:
-			// td = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
-			if (td.getFullName().startsWith(qualifierT.getFullName())) {
+			// t = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
+			if (contextT.getFullName().startsWith(qualifierT.getFullName())) {
 				// TODO full name has too much info yet (like annotations)
 				return ast.newSimpleType(ast.newSimpleName(t.getSimpleIdentifier()));
 			}
-			return ast.newQualifiedType(newType(qualifierT, td),
+			return ast.newQualifiedType(newType(qualifierT, contextT),
 					ast.newSimpleName(t.getSimpleIdentifier()));
 		}
 		// else fall through...
-		return ast.newSimpleType(newTypeName(t, td));
+		return ast.newSimpleType(newTypeName(t, contextT));
 	}
 
 	/**
@@ -816,13 +818,13 @@ public final class Expressions {
 	 * 
 	 * @param t
 	 *            type
-	 * @param td
+	 * @param contextT
 	 *            type declaration (context)
 	 * @return AST type name
 	 */
-	public static Name newTypeName(final T t, final T td) {
-		final AST ast = td.getCu().getAst();
-		final String contextName = td.getName();
+	public static Name newTypeName(final T t, final T contextT) {
+		final AST ast = contextT.getCu().getAst();
+		final String contextName = contextT.getName();
 
 		// convert inner classes separator '$' into '.',
 		// cannot use string replace because '$' is also a regular Java type name!
@@ -834,7 +836,7 @@ public final class Expressions {
 			if (enclosingT == null) {
 				names.add(0, currentT.getPName());
 				final String packageName = currentT.getPackageName();
-				if (packageName == null || packageName.equals(td.getPackageName())
+				if (packageName == null || packageName.equals(contextT.getPackageName())
 						|| packageName.equals(JAVA_LANG)) {
 					// ignore package iff same like context or like Java default package
 					break;

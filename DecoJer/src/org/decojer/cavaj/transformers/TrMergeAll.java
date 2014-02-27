@@ -43,26 +43,26 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
  */
 public final class TrMergeAll {
 
-	private static boolean addBodyDeclaration(final T td, final Object bodyDeclaration) {
+	private static boolean addBodyDeclaration(final T t, final Object bodyDeclaration) {
 		if (bodyDeclaration == null) {
 			return false;
 		}
-		if (td.getAstNode() instanceof AnonymousClassDeclaration) {
-			return ((AnonymousClassDeclaration) td.getAstNode()).bodyDeclarations().add(
+		if (t.getAstNode() instanceof AnonymousClassDeclaration) {
+			return ((AnonymousClassDeclaration) t.getAstNode()).bodyDeclarations().add(
 					bodyDeclaration);
 		}
 		if (bodyDeclaration instanceof EnumConstantDeclaration) {
-			if (td.getAstNode() instanceof EnumDeclaration) {
-				return ((EnumDeclaration) td.getAstNode()).enumConstants().add(bodyDeclaration);
+			if (t.getAstNode() instanceof EnumDeclaration) {
+				return ((EnumDeclaration) t.getAstNode()).enumConstants().add(bodyDeclaration);
 			}
 			return false;
 		}
-		return ((AbstractTypeDeclaration) td.getAstNode()).bodyDeclarations().add(bodyDeclaration);
+		return ((AbstractTypeDeclaration) t.getAstNode()).bodyDeclarations().add(bodyDeclaration);
 	}
 
-	private static int countConstructors(final T td) {
+	private static int countConstructors(final T t) {
 		int constructors = 0;
-		for (final Element e : td.getDeclarations()) {
+		for (final Element e : t.getDeclarations()) {
 			if (e instanceof M && ((M) e).isConstructor()) {
 				++constructors;
 			}
@@ -78,32 +78,32 @@ public final class TrMergeAll {
 	 */
 	public static void transform(final CU cu) {
 		for (final Element e : cu.getDeclarations()) {
-			final T td = (T) e;
-			if (td.isAnonymous() && td.getEnclosingT() != null) {
+			final T t = (T) e;
+			if (t.isAnonymous() && t.getEnclosingT() != null) {
 				continue;
 			}
-			final Object typeDeclaration = td.getAstNode();
+			final Object typeDeclaration = t.getAstNode();
 			// no package-info.java (typeDeclaration == null)
 			if (typeDeclaration instanceof AbstractTypeDeclaration) {
 				cu.getCompilationUnit().types().add(typeDeclaration);
 			}
-			transform(td);
+			transform(t);
 		}
 	}
 
-	private static void transform(final T td) {
+	private static void transform(final T t) {
 		// multiple constructors? => no omissable default constructor
-		final int constructors = countConstructors(td);
-		for (final Element e : td.getDeclarations()) {
+		final int constructors = countConstructors(t);
+		for (final Element e : t.getDeclarations()) {
 			if (e instanceof T) {
 				if (!((T) e).isAnonymous()) {
-					addBodyDeclaration(td, e.getAstNode());
+					addBodyDeclaration(t, e.getAstNode());
 				}
 				transform((T) e);
 				continue;
 			}
 			if (e instanceof F) {
-				addBodyDeclaration(td, e.getAstNode());
+				addBodyDeclaration(t, e.getAstNode());
 				for (final Element innerE : e.getDeclarations()) {
 					transform((T) innerE);
 				}
@@ -127,7 +127,7 @@ public final class TrMergeAll {
 				final Object methodDeclaration = m.getAstNode();
 				if (methodDeclaration instanceof MethodDeclaration
 						&& ((MethodDeclaration) methodDeclaration).isConstructor()) {
-					if (td.getAstNode() instanceof AnonymousClassDeclaration) {
+					if (t.getAstNode() instanceof AnonymousClassDeclaration) {
 						// anonymous inner classes cannot have visible Java constructors
 						continue;
 					}
@@ -144,7 +144,7 @@ public final class TrMergeAll {
 					}
 				}
 				// e.g. bridge methods?
-				addBodyDeclaration(td, methodDeclaration);
+				addBodyDeclaration(t, methodDeclaration);
 				continue;
 			}
 		}
