@@ -28,8 +28,11 @@ import java.util.Map;
 
 import lombok.Getter;
 
+import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.eclipse.jdt.core.dom.ASTNode;
 
@@ -56,6 +59,21 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
+	public F createFd(final String name, final String descriptor) {
+		return getRawT().createFd(name, descriptor);
+	}
+
+	@Override
+	public M createMd(final String name, final String descriptor) {
+		return getRawT().createMd(name, descriptor);
+	}
+
+	@Override
+	public T createTd() {
+		return getRawT().createTd();
+	}
+
+	@Override
 	public boolean eraseTo(final T t) {
 		return getRawT().eraseTo(t);
 	}
@@ -74,6 +92,11 @@ public abstract class ExtendedT extends T {
 	public T getComponentT() {
 		// modified type is also array, iff raw type is array
 		return getRawT().getComponentT();
+	}
+
+	@Override
+	public CU getCu() {
+		return getRawT().getCu();
 	}
 
 	@Override
@@ -170,6 +193,21 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
+	public boolean isAtLeast(final Version version) {
+		return getRawT().isAtLeast(version);
+	}
+
+	@Override
+	public boolean isBelow(final Version version) {
+		return isBelow(version);
+	}
+
+	@Override
+	public boolean isDalvik() {
+		return getRawT().isDalvik();
+	}
+
+	@Override
 	public boolean isDeclaration() {
 		return getRawT().isDeclaration();
 	}
@@ -196,6 +234,11 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
+	public boolean isScala() {
+		return getRawT().isScala();
+	}
+
+	@Override
 	public boolean isSynthetic() {
 		return getRawT().isSynthetic();
 	}
@@ -203,6 +246,16 @@ public abstract class ExtendedT extends T {
 	@Override
 	public boolean isUnresolvable() {
 		return getRawT().isUnresolvable();
+	}
+
+	@Override
+	public void resolve() {
+		getRawT().resolve();
+	}
+
+	@Override
+	public void setAs(final A[] as) {
+		getRawT().setAs(as);
 	}
 
 	@Override
@@ -251,8 +304,28 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
+	public void setScala() {
+		getRawT().setScala();
+	}
+
+	@Override
+	public void setSignature(final String signature) {
+		getRawT().setSignature(signature);
+	}
+
+	@Override
+	public void setSourceFileName(final String sourceFileName) {
+		getRawT().setSourceFileName(sourceFileName);
+	}
+
+	@Override
 	public void setSynthetic() {
 		getRawT().setSynthetic();
+	}
+
+	@Override
+	public void setVersion(final int version) {
+		getRawT().setVersion(version);
 	}
 
 }

@@ -37,7 +37,6 @@ import org.decojer.cavaj.model.fields.ClassF;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.ClassM;
 import org.decojer.cavaj.model.methods.M;
-import org.eclipse.jdt.core.dom.ASTNode;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -497,9 +496,7 @@ public abstract class T implements Element {
 	 *            field descriptor
 	 * @return field declaration
 	 */
-	public F createFd(final String name, final String descriptor) {
-		return getTd().createFd(name, descriptor);
-	}
+	public abstract F createFd(final String name, final String descriptor);
 
 	/**
 	 * Create method declaration.
@@ -510,20 +507,14 @@ public abstract class T implements Element {
 	 *            method descriptor
 	 * @return method declaration
 	 */
-	public M createMd(final String name, final String descriptor) {
-		return getTd().createMd(name, descriptor);
-	}
+	public abstract M createMd(final String name, final String descriptor);
 
 	/**
 	 * Create type declaration for this type.
 	 * 
 	 * @return type declaration
 	 */
-	public T createTd() {
-		assert false;
-
-		return null;
-	}
+	public abstract T createTd();
 
 	@Override
 	public boolean equals(final Object obj) {
@@ -594,24 +585,7 @@ public abstract class T implements Element {
 	 * 
 	 * @return compilation unit
 	 */
-	public CU getCu() {
-		return getTd().getCu();
-	}
-
-	@Override
-	public Element getDeclarationForNode(final ASTNode node) {
-		return null;
-	}
-
-	@Override
-	public Element getDeclarationOwner() {
-		return null;
-	}
-
-	@Override
-	public List<Element> getDeclarations() {
-		return null;
-	}
+	public abstract CU getCu();
 
 	/**
 	 * Get dimensions of array type (0 if no array type).
@@ -1128,9 +1102,7 @@ public abstract class T implements Element {
 	 *            version
 	 * @return {@code true} - at least of given version
 	 */
-	public boolean isAtLeast(final Version version) {
-		return getTd().isAtLeast(version);
-	}
+	public abstract boolean isAtLeast(final Version version);
 
 	/**
 	 * Is this version less then given version?
@@ -1139,18 +1111,14 @@ public abstract class T implements Element {
 	 *            version
 	 * @return {@code true} - less then given version
 	 */
-	public boolean isBelow(final Version version) {
-		return getTd().isBelow(version);
-	}
+	public abstract boolean isBelow(final Version version);
 
 	/**
 	 * Is Dalvik?
 	 * 
 	 * @return {@code true} - is Dalvik
 	 */
-	public boolean isDalvik() {
-		return getTd().isDalvik();
-	}
+	public abstract boolean isDalvik();
 
 	@Override
 	public boolean isDeclaration() {
@@ -1269,9 +1237,7 @@ public abstract class T implements Element {
 	 * 
 	 * @return {@code true} - is Scala source code
 	 */
-	public boolean isScala() {
-		return getTd().isScala();
-	}
+	public abstract boolean isScala();
 
 	@Override
 	public boolean isStatic() {
@@ -1322,18 +1288,11 @@ public abstract class T implements Element {
 	/**
 	 * Resolve unfilled parameters.
 	 */
-	public void resolve() {
-		getTd().resolve();
-	}
+	public abstract void resolve();
 
 	@Override
 	public void setAccessFlags(final int accessFlags) {
 		assert false; // overwrite in ClassT
-	}
-
-	@Override
-	public void setAs(final A[] as) {
-		getTd().setAs(as);
 	}
 
 	/**
@@ -1479,14 +1438,7 @@ public abstract class T implements Element {
 	/**
 	 * This should be scala code.
 	 */
-	public void setScala() {
-		getTd().setScala();
-	}
-
-	@Override
-	public void setSignature(final String signature) {
-		getTd().setSignature(signature);
-	}
+	public abstract void setScala();
 
 	/**
 	 * Set source file name (from source file attribute).
@@ -1494,9 +1446,7 @@ public abstract class T implements Element {
 	 * @param sourceFileName
 	 *            source file name
 	 */
-	public void setSourceFileName(final String sourceFileName) {
-		getTd().setSourceFileName(sourceFileName);
-	}
+	public abstract void setSourceFileName(final String sourceFileName);
 
 	/**
 	 * Set super type.
@@ -1524,9 +1474,7 @@ public abstract class T implements Element {
 	 * @param version
 	 *            class file version
 	 */
-	public void setVersion(final int version) {
-		getTd().setVersion(version);
-	}
+	public abstract void setVersion(final int version);
 
 	@Override
 	public String toString() {

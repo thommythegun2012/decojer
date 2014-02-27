@@ -35,8 +35,10 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.eclipse.jdt.core.dom.ASTNode;
 
@@ -51,7 +53,7 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
-public class ClassT extends BaseT {
+public class ClassT extends T {
 
 	private final static Logger LOGGER = Logger.getLogger(ClassT.class.getName());
 
@@ -140,6 +142,16 @@ public class ClassT extends BaseT {
 	}
 
 	@Override
+	public F createFd(final String name, final String descriptor) {
+		return getTd().createFd(name, descriptor);
+	}
+
+	@Override
+	public M createMd(final String name, final String descriptor) {
+		return getTd().createMd(name, descriptor);
+	}
+
+	@Override
 	public T createTd() {
 		assert this.td == null;
 
@@ -155,6 +167,11 @@ public class ClassT extends BaseT {
 	@Override
 	public Object getAstNode() {
 		return getTd().getAstNode();
+	}
+
+	@Override
+	public CU getCu() {
+		return getTd().getCu();
 	}
 
 	@Override
@@ -250,6 +267,21 @@ public class ClassT extends BaseT {
 	}
 
 	@Override
+	public boolean isAtLeast(final Version version) {
+		return getTd().isAtLeast(version);
+	}
+
+	@Override
+	public boolean isBelow(final Version version) {
+		return getTd().isBelow(version);
+	}
+
+	@Override
+	public boolean isDalvik() {
+		return getTd().isDalvik();
+	}
+
+	@Override
 	public boolean isDeclaration() {
 		return getTd() != null;
 	}
@@ -276,6 +308,11 @@ public class ClassT extends BaseT {
 	@Override
 	public boolean isObject() {
 		return is(Object.class);
+	}
+
+	@Override
+	public boolean isScala() {
+		return getTd().isScala();
 	}
 
 	@Override
@@ -354,6 +391,11 @@ public class ClassT extends BaseT {
 		return false;
 	}
 
+	@Override
+	public void resolve() {
+		getTd().resolve();
+	}
+
 	public void resolved() {
 		if (this.superT == null) {
 			this.superT = NONE; // Object/Interfaces have no super!
@@ -367,6 +409,11 @@ public class ClassT extends BaseT {
 		if (this.enclosing == null) {
 			this.enclosing = NONE;
 		}
+	}
+
+	@Override
+	public void setAs(final A[] as) {
+		getTd().setAs(as);
 	}
 
 	@Override
@@ -473,6 +520,21 @@ public class ClassT extends BaseT {
 	}
 
 	@Override
+	public void setScala() {
+		getTd().setScala();
+	}
+
+	@Override
+	public void setSignature(final String signature) {
+		getTd().setSignature(signature);
+	}
+
+	@Override
+	public void setSourceFileName(final String sourceFileName) {
+		getTd().setSourceFileName(sourceFileName);
+	}
+
+	@Override
 	public void setSuperT(final T superT) {
 		if (superT == null) {
 			this.superT = NONE;
@@ -485,6 +547,11 @@ public class ClassT extends BaseT {
 	@Override
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
+	}
+
+	@Override
+	public void setVersion(final int version) {
+		getTd().setVersion(version);
 	}
 
 }
