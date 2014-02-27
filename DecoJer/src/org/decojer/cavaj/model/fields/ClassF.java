@@ -98,12 +98,13 @@ public class ClassF extends F {
 	}
 
 	@Override
-	public FD createFd() {
-		assert getFd() == null;
-
+	public boolean createFd() {
+		if (isDeclaration()) {
+			return false;
+		}
 		this.fd = new FD(this);
 		setDeclarationOwner(getT());
-		return getFd();
+		return true;
 	}
 
 	@Override

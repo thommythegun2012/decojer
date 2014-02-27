@@ -133,11 +133,10 @@ public class SmaliReader implements DexReader {
 				continue;
 			}
 			final T t = this.du.getDescT(typeDescriptor);
-			if (t.isDeclaration()) {
+			if (!t.createTd()) {
 				LOGGER.warning("Type '" + t + "' already read!");
 				continue;
 			}
-			t.createTd();
 			t.setAccessFlags(classDefItem.getAccessFlags());
 			t.setSuperT(this.du.getDescT(classDefItem.getSuperclass().getTypeDescriptor()));
 			final TypeListItem interfaces = classDefItem.getInterfaces();
@@ -343,8 +342,9 @@ public class SmaliReader implements DexReader {
 			final EncodedField encodedField = staticFields.get(i);
 			final FieldIdItem field = encodedField.field;
 
-			final F f = t.createFd(field.getFieldName().getStringValue(), field.getFieldType()
+			final F f = t.getF(field.getFieldName().getStringValue(), field.getFieldType()
 					.getTypeDescriptor());
+			f.createFd();
 
 			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
@@ -360,8 +360,9 @@ public class SmaliReader implements DexReader {
 		for (final EncodedField encodedField : instanceFields) {
 			final FieldIdItem field = encodedField.field;
 
-			final F f = t.createFd(field.getFieldName().getStringValue(), field.getFieldType()
+			final F f = t.getF(field.getFieldName().getStringValue(), field.getFieldType()
 					.getTypeDescriptor());
+			f.createFd();
 
 			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
@@ -383,8 +384,9 @@ public class SmaliReader implements DexReader {
 		for (final EncodedMethod encodedMethod : directMethods) {
 			final MethodIdItem method = encodedMethod.method;
 
-			final M m = t.createMd(method.getMethodName().getStringValue(), method.getPrototype()
+			final M m = t.getM(method.getMethodName().getStringValue(), method.getPrototype()
 					.getPrototypeString());
+			m.createMd();
 
 			m.setAccessFlags(encodedMethod.accessFlags);
 			m.setThrowsTs(methodThrowsTs.get(method));
@@ -400,8 +402,9 @@ public class SmaliReader implements DexReader {
 		for (final EncodedMethod encodedMethod : virtualMethods) {
 			final MethodIdItem method = encodedMethod.method;
 
-			final M m = t.createMd(method.getMethodName().getStringValue(), method.getPrototype()
+			final M m = t.getM(method.getMethodName().getStringValue(), method.getPrototype()
 					.getPrototypeString());
+			m.createMd();
 
 			m.setAccessFlags(encodedMethod.accessFlags);
 			m.setThrowsTs(methodThrowsTs.get(method));

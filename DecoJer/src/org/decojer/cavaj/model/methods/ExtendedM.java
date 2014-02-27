@@ -64,7 +64,7 @@ public abstract class ExtendedM extends M {
 	}
 
 	@Override
-	public MD createMd() {
+	public boolean createMd() {
 		return getRawM().createMd();
 	}
 

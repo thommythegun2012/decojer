@@ -136,12 +136,13 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public MD createMd() {
-		assert getMd() == null;
-
+	public boolean createMd() {
+		if (isDeclaration()) {
+			return false;
+		}
 		this.md = new MD(this);
 		setDeclarationOwner(getT());
-		return getMd();
+		return true;
 	}
 
 	@Override

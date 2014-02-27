@@ -43,9 +43,9 @@ public abstract class M implements Element {
 	/**
 	 * Create method declaration for this method.
 	 * 
-	 * @return method declaration
+	 * @return {@code true} - success
 	 */
-	public abstract MD createMd();
+	public abstract boolean createMd();
 
 	/**
 	 * Get annotation default value.

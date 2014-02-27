@@ -102,11 +102,10 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 			return null;
 		}
 		final T t = this.du.getDescT(className);
-		if (t.isDeclaration()) {
+		if (!t.createTd()) {
 			LOGGER.warning("Type '" + t + "' already read!");
 			return null;
 		}
-		t.createTd();
 		t.setAccessFlags(access_flags);
 		t.setSuperT(this.du.getDescT(superClass));
 		if (interfaceNames != null && interfaceNames.length > 0) {

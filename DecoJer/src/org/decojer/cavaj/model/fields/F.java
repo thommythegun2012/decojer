@@ -51,9 +51,9 @@ public abstract class F implements Element {
 	/**
 	 * Create field declaration for this field.
 	 * 
-	 * @return field declaration
+	 * @return {@code true} - success
 	 */
-	public abstract FD createFd();
+	public abstract boolean createFd();
 
 	/**
 	 * Get owner type.

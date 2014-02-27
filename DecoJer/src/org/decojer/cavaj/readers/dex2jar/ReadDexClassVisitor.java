@@ -104,7 +104,8 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexFieldVisitor visitField(final int accessFlags, final Field field, final Object value) {
-		final F f = this.t.createFd(field.getName(), field.getType());
+		final F f = this.t.getF(field.getName(), field.getType());
+		f.createFd();
 
 		f.setAccessFlags(accessFlags);
 		// TODO signature in annotation
@@ -117,7 +118,8 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexMethodVisitor visitMethod(final int accessFlags, final Method method) {
-		final M m = this.t.createMd(method.getName(), method.getDesc());
+		final M m = this.t.getM(method.getName(), method.getDesc());
+		m.createMd();
 
 		m.setAccessFlags(accessFlags);
 		// TODO throws in annotation
