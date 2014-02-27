@@ -60,13 +60,6 @@ public final class TD extends ED {
 	private final ClassT t;
 
 	/**
-	 * AST type declaration.
-	 */
-	@Getter
-	@Setter
-	private Object astNode;
-
-	/**
 	 * Class file version.
 	 * 
 	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51, 8: 52
@@ -88,15 +81,6 @@ public final class TD extends ED {
 		assert t != null;
 
 		this.t = t;
-	}
-
-	/**
-	 * Clear all generated data after read.
-	 */
-	@Override
-	public void clear() {
-		this.astNode = null;
-		super.clear();
 	}
 
 	/**

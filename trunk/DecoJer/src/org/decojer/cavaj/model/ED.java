@@ -43,6 +43,10 @@ public abstract class ED extends Container {
 	@Setter
 	private A[] as;
 
+	@Getter
+	@Setter
+	private Object astNode;
+
 	/**
 	 * Parent declaration.
 	 */
@@ -59,6 +63,11 @@ public abstract class ED extends Container {
 	@Override
 	public void addTd(final TD td) {
 		addBd(td);
+	}
+
+	@Override
+	public void clear() {
+		setAstNode(null);
 	}
 
 	/**

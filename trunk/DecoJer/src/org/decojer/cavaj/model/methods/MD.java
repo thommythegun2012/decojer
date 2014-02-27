@@ -65,15 +65,6 @@ public final class MD extends ED {
 	private final ClassM m;
 
 	/**
-	 * AST method declaration.
-	 * 
-	 * Lambda expressions don't really match: Prevent using getBody(), use CFG.getBlock()!
-	 */
-	@Getter
-	@Setter
-	private Object astNode;
-
-	/**
 	 * Method parameter annotations.
 	 */
 	@Getter
@@ -115,7 +106,6 @@ public final class MD extends ED {
 
 	@Override
 	public void clear() {
-		this.astNode = null;
 		if (this.cfg != null) {
 			this.cfg.clear();
 		}
