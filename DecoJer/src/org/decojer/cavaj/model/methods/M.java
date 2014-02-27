@@ -28,7 +28,6 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.T;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
  * Method.
@@ -77,13 +76,6 @@ public abstract class M implements Element {
 	public DU getDu() {
 		return getT().getDu();
 	}
-
-	/**
-	 * Get AST node or {@code null}.
-	 * 
-	 * @return AST node or {@code null}
-	 */
-	public abstract BodyDeclaration getMethodDeclaration();
 
 	/**
 	 * Get method parameter annotations or {@code null}.
@@ -191,14 +183,6 @@ public abstract class M implements Element {
 	 *            control flow graph
 	 */
 	public abstract void setCfg(final CFG cfg);
-
-	/**
-	 * Set AST node or {@code null}.
-	 * 
-	 * @param methodDeclaration
-	 *            AST node or {@code null}
-	 */
-	public abstract void setMethodDeclaration(final BodyDeclaration methodDeclaration);
 
 	/**
 	 * Set method parameter annotations.

@@ -28,15 +28,14 @@ import static org.decojer.cavaj.utils.Expressions.getOp;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.fields.FD;
 import org.decojer.cavaj.model.methods.MD;
 import org.decojer.cavaj.model.types.TD;
 import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
 import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
@@ -77,7 +76,7 @@ public final class TrLineNumberAnalysis {
 				continue;
 			}
 			if (bd instanceof FD) {
-				final BodyDeclaration fieldDeclaration = ((FD) bd).getFieldDeclaration();
+				final Object fieldDeclaration = ((FD) bd).getAstNode();
 				if (fieldDeclaration == null) {
 					continue;
 				}
@@ -104,7 +103,7 @@ public final class TrLineNumberAnalysis {
 				continue;
 			}
 			if (bd instanceof MD) {
-				final BodyDeclaration methodDeclaration = ((MD) bd).getMethodDeclaration();
+				final Object methodDeclaration = ((MD) bd).getAstNode();
 				if (methodDeclaration == null) {
 					continue;
 				}

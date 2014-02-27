@@ -96,7 +96,6 @@ import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.AssertStatement;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.CatchClause;
@@ -708,7 +707,7 @@ public final class TrCfg2JavaExpressionStmts {
 								// don't show this recognized (normally synthetic) method
 								// declaration
 								lambdaCfg.getBlock().delete(); // delete from parent
-								dynamicM.setMethodDeclaration(null);
+								dynamicM.setAstNode(null);
 								// is our new lambda body
 								lambdaExpression.setBody(lambdaCfg.getBlock());
 							}
@@ -1010,7 +1009,7 @@ public final class TrCfg2JavaExpressionStmts {
 							}
 							final AnonymousClassDeclaration anonymousClassDeclaration = setOp(
 									getAst().newAnonymousClassDeclaration(), op);
-							newT.setTypeDeclaration(anonymousClassDeclaration);
+							newT.setAstNode(anonymousClassDeclaration);
 							classInstanceCreation
 									.setAnonymousClassDeclaration(anonymousClassDeclaration);
 							bb.push(classInstanceCreation);
@@ -1973,7 +1972,7 @@ public final class TrCfg2JavaExpressionStmts {
 								+ "' must contain number literal as first parameter!");
 						return false;
 					}
-					final BodyDeclaration fieldDeclaration = f.getFieldDeclaration();
+					final Object fieldDeclaration = f.getAstNode();
 					assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
 
 					final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
@@ -2033,14 +2032,14 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			return true; // ignore such assignments completely
 		}
-		if (!(f.getFieldDeclaration() instanceof FieldDeclaration)) {
+		if (!(f.getAstNode() instanceof FieldDeclaration)) {
 			assert false : "TODO check this";
 
 			return false;
 		}
 		try {
-			((VariableDeclarationFragment) ((FieldDeclaration) f.getFieldDeclaration()).fragments()
-					.get(0)).setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
+			((VariableDeclarationFragment) ((FieldDeclaration) f.getAstNode()).fragments().get(0))
+					.setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
 			// TODO move anonymous TD to FD as child!!! important for ClassEditor
 			// select, if fixed change ClassEditor#findDeclarationForJavaElement too
 			if (!f.isStatic()) {

@@ -32,7 +32,6 @@ import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.utils.Cursor;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
  * Field declaration.
@@ -47,11 +46,11 @@ public final class FD extends ED {
 	private final ClassF f;
 
 	/**
-	 * AST field declaration.
+	 * AST node.
 	 */
 	@Getter
 	@Setter
-	private BodyDeclaration fieldDeclaration;
+	private Object astNode;
 
 	/**
 	 * Value for constant attributes or {@code null}. Type Integer: int, short, byte, char, boolean.
@@ -74,7 +73,7 @@ public final class FD extends ED {
 
 	@Override
 	public void clear() {
-		this.fieldDeclaration = null;
+		this.astNode = null;
 		super.clear();
 	}
 

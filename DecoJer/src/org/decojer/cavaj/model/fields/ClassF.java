@@ -33,7 +33,6 @@ import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.T;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
  * Class field.
@@ -106,6 +105,11 @@ public class ClassF extends F {
 	}
 
 	@Override
+	public Object getAstNode() {
+		return getFd().getAstNode();
+	}
+
+	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return getFd().getDeclarationForNode(node);
 	}
@@ -118,11 +122,6 @@ public class ClassF extends F {
 	@Override
 	public List<Element> getDeclarations() {
 		return null;
-	}
-
-	@Override
-	public BodyDeclaration getFieldDeclaration() {
-		return getFd().getFieldDeclaration();
 	}
 
 	@Override
@@ -161,6 +160,11 @@ public class ClassF extends F {
 	}
 
 	@Override
+	public void setAstNode(final Object fieldDeclaration) {
+		getFd().setAstNode(fieldDeclaration);
+	}
+
+	@Override
 	public void setDeclarationOwner(final Element declarationOwner) {
 		getFd().setDeclarationOwner(declarationOwner);
 	}
@@ -175,11 +179,6 @@ public class ClassF extends F {
 		getT().setInterface(false); // TODO we know even more, must be from Enum
 		this.accessFlags |= AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
 				| AF.ENUM.getValue();
-	}
-
-	@Override
-	public void setFieldDeclaration(final BodyDeclaration fieldDeclaration) {
-		getFd().setFieldDeclaration(fieldDeclaration);
 	}
 
 	@Override

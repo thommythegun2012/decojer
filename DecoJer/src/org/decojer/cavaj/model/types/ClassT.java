@@ -153,6 +153,11 @@ public class ClassT extends BaseT {
 	}
 
 	@Override
+	public Object getAstNode() {
+		return getTd().getAstNode();
+	}
+
+	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return getTd().getDeclarationForNode(node);
 	}
@@ -229,11 +234,6 @@ public class ClassT extends BaseT {
 		}
 		// can be null, e.g. for Object or Interfaces
 		return this.superT == NONE ? null : this.superT;
-	}
-
-	@Override
-	public ASTNode getTypeDeclaration() {
-		return getTd().getTypeDeclaration();
 	}
 
 	@Override
@@ -370,6 +370,11 @@ public class ClassT extends BaseT {
 	}
 
 	@Override
+	public void setAstNode(final Object astNode) {
+		getTd().setAstNode(astNode);
+	}
+
+	@Override
 	public void setDeclarationOwner(final Element declarationOwner) {
 		getTd().setDeclarationOwner(declarationOwner);
 	}
@@ -480,11 +485,6 @@ public class ClassT extends BaseT {
 	@Override
 	public void setSynthetic() {
 		this.accessFlags |= AF.SYNTHETIC.getValue();
-	}
-
-	@Override
-	public void setTypeDeclaration(final ASTNode typeDeclaration) {
-		getTd().setTypeDeclaration(typeDeclaration);
 	}
 
 }

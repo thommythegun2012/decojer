@@ -964,8 +964,6 @@ public abstract class T implements Element {
 		return null;
 	}
 
-	public abstract ASTNode getTypeDeclaration();
-
 	/**
 	 * Get type parameters.
 	 * 
@@ -1513,16 +1511,6 @@ public abstract class T implements Element {
 	@Override
 	public void setSynthetic() {
 		assert false; // overwrite in ClassT
-	}
-
-	/**
-	 * Set AST node or {@code null}.
-	 * 
-	 * @param typeDeclaration
-	 *            AST node or {@code null}
-	 */
-	public void setTypeDeclaration(final ASTNode typeDeclaration) {
-		assert false;
 	}
 
 	/**

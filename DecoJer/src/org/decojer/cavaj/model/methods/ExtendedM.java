@@ -34,7 +34,6 @@ import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.T;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
  * Extended method.
@@ -78,6 +77,11 @@ public abstract class ExtendedM extends M {
 	}
 
 	@Override
+	public Object getAstNode() {
+		return getRawM().getAstNode();
+	}
+
+	@Override
 	public CFG getCfg() {
 		return getRawM().getCfg();
 	}
@@ -100,11 +104,6 @@ public abstract class ExtendedM extends M {
 	@Override
 	public String getDescriptor() {
 		return getRawM().getDescriptor();
-	}
-
-	@Override
-	public BodyDeclaration getMethodDeclaration() {
-		return getRawM().getMethodDeclaration();
 	}
 
 	@Override
@@ -198,6 +197,11 @@ public abstract class ExtendedM extends M {
 	}
 
 	@Override
+	public void setAstNode(final Object astNode) {
+		getRawM().setAstNode(astNode);
+	}
+
+	@Override
 	public void setCfg(final CFG cfg) {
 		getRawM().setCfg(cfg);
 	}
@@ -210,11 +214,6 @@ public abstract class ExtendedM extends M {
 	@Override
 	public void setDeprecated() {
 		getRawM().setDeprecated();
-	}
-
-	@Override
-	public void setMethodDeclaration(final BodyDeclaration methodDeclaration) {
-		getRawM().setMethodDeclaration(methodDeclaration);
 	}
 
 	@Override

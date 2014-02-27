@@ -167,4 +167,19 @@ public interface Element {
 	 */
 	Element getDeclarationForNode(final ASTNode node);
 
+	/**
+	 * Set AST node or {@code null}.
+	 * 
+	 * @param astNode
+	 *            AST node or {@code null}
+	 */
+	void setAstNode(final Object astNode);
+
+	/**
+	 * Get AST node or {@code null}.
+	 * 
+	 * @return AST node or {@code null}
+	 */
+	Object getAstNode();
+
 }

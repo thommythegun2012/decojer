@@ -35,7 +35,6 @@ import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.utils.Cursor;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 import com.google.common.collect.Lists;
 
@@ -72,7 +71,7 @@ public final class MD extends ED {
 	 */
 	@Getter
 	@Setter
-	private BodyDeclaration methodDeclaration;
+	private Object astNode;
 
 	/**
 	 * Method parameter annotations.
@@ -116,7 +115,7 @@ public final class MD extends ED {
 
 	@Override
 	public void clear() {
-		this.methodDeclaration = null;
+		this.astNode = null;
 		if (this.cfg != null) {
 			this.cfg.clear();
 		}

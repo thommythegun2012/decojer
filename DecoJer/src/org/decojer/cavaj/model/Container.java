@@ -110,15 +110,15 @@ public abstract class Container {
 		for (final Element bd : getDeclarations()) {
 			// could also work with polymorphism here...but why pollute subclasses with helper
 			if (bd instanceof F) {
-				if (((F) bd).getFieldDeclaration() == node) {
+				if (((F) bd).getAstNode() == node) {
 					return bd;
 				}
 			} else if (bd instanceof M) {
-				if (((M) bd).getMethodDeclaration() == node) {
+				if (((M) bd).getAstNode() == node) {
 					return bd;
 				}
 			} else if (bd instanceof T) {
-				if (((T) bd).getTypeDeclaration() == node) {
+				if (((T) bd).getAstNode() == node) {
 					return bd;
 				}
 			}
