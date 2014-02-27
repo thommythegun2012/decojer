@@ -23,11 +23,8 @@
  */
 package org.decojer.cavaj.model;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
-
-import org.decojer.cavaj.model.types.TD;
 
 /**
  * Declaration.
@@ -37,33 +34,17 @@ import org.decojer.cavaj.model.types.TD;
 public abstract class ED extends D {
 
 	/**
-	 * Annotations.
+	 * Annotations or {@code null}.
 	 */
 	@Getter
 	@Setter
 	private A[] as;
 
+	/**
+	 * Declaration owner or {@code null}.
+	 */
 	@Getter
-	@Setter
-	private Object astNode;
-
-	/**
-	 * Parent declaration.
-	 */
-	@Getter(AccessLevel.PROTECTED)
-	@Setter
-	private D parent;
-
-	/**
-	 * Add type declaration.
-	 * 
-	 * @param td
-	 *            type declaration
-	 */
-	@Override
-	public void addTd(final TD td) {
-		addBd(td);
-	}
+	private Container declarationOwner;
 
 	@Override
 	public void clear() {
@@ -76,23 +57,30 @@ public abstract class ED extends D {
 	 * @return compilation unit
 	 */
 	public CU getCu() {
-		if (this.parent instanceof CU) {
-			return (CU) this.parent;
+		final Container declarationOwner = getDeclarationOwner();
+		if (declarationOwner instanceof CU) {
+			return (CU) declarationOwner;
 		}
-		if (this.parent instanceof ED) {
-			return ((ED) this.parent).getCu();
+		if (declarationOwner instanceof Element) {
+			return ((Element) declarationOwner).getCu();
 		}
 		return null;
 	}
 
-	public Element getDeclarationOwner() {
-		return getParent() == null ? null : getParent().getElement();
-	}
-
-	public void setDeclarationOwner(final Element declarationOwner) {
-		if (getParent() != null) {
-			getParent().getBds().remove(this);
+	/**
+	 * Set declaration owner.
+	 * 
+	 * @param declarationOwner
+	 *            declaration owner
+	 */
+	public void setDeclarationOwner(final Container declarationOwner) {
+		final Element element = getElement();
+		final Container previousDeclarationOwner = getDeclarationOwner();
+		if (previousDeclarationOwner != null) {
+			previousDeclarationOwner.getDeclarations().remove(element);
 		}
+		declarationOwner.getDeclarations().add(element);
+		this.declarationOwner = declarationOwner;
 	}
 
 	/**

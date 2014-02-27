@@ -25,9 +25,9 @@ package org.decojer.cavaj.model;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Logger;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.fields.FD;
@@ -37,8 +37,6 @@ import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.TD;
 import org.eclipse.jdt.core.dom.ASTNode;
 
-import com.google.common.collect.Lists;
-
 /**
  * Container for Declarations.
  * 
@@ -46,66 +44,35 @@ import com.google.common.collect.Lists;
  */
 public abstract class D {
 
-	private final static Logger LOGGER = Logger.getLogger(D.class.getName());
-
 	/**
 	 * All body declarations: inner type / method / field declarations.
 	 */
 	@Getter
-	private final List<ED> bds = new ArrayList<ED>(4);
-
-	protected void _getAllTds(final List<TD> tds) {
-		for (final ED bd : this.bds) {
-			if (bd instanceof TD) {
-				tds.add((TD) bd);
-			}
-			bd._getAllTds(tds);
-		}
-	}
+	private final List<Element> declarations = new ArrayList<Element>(0);
 
 	/**
-	 * Add body declaration.
-	 * 
-	 * @param bd
-	 *            bode declaration
+	 * AST node or {@code null}.
 	 */
-	public void addBd(final ED bd) {
-		if (bd.getParent() != null) {
-			if (bd.getParent() != this) {
-				LOGGER.warning("Cannot change parent declaration for '" + bd + "' from '"
-						+ bd.getParent() + "' to '" + this + "'!");
-			}
-			return;
-		}
-		bd.setParent(this);
-		this.bds.add(bd);
-	}
+	@Getter
+	@Setter
+	private Object astNode;
 
 	/**
-	 * Add type declaration.
-	 * 
-	 * @param td
-	 *            type declaration
-	 */
-	public void addTd(final TD td) {
-		addBd(td);
-	}
-
-	/**
-	 * Clear all generated data after read.
+	 * Clear all decompile infos, e.g. AST nodes.
 	 */
 	public void clear() {
-		for (final ED bd : this.bds) {
-			bd.clear();
+		for (final Element e : getDeclarations()) {
+			e.clear();
 		}
 	}
 
-	public List<TD> getAllTds() {
-		final List<TD> tds = Lists.newArrayList();
-		_getAllTds(tds);
-		return tds;
-	}
-
+	/**
+	 * Get declaration for AST node or {@code null}.
+	 * 
+	 * @param node
+	 *            AST node or {@code null}
+	 * @return declaration
+	 */
 	public Element getDeclarationForNode(final ASTNode node) {
 		for (final Element bd : getDeclarations()) {
 			// could also work with polymorphism here...but why pollute subclasses with helper
@@ -130,14 +97,6 @@ public abstract class D {
 		return null;
 	}
 
-	public List<Element> getDeclarations() {
-		final List<Element> declarations = Lists.newArrayList();
-		for (final ED bd : getBds()) {
-			declarations.add(bd.getElement());
-		}
-		return declarations;
-	}
-
 	public Element getElement() {
 		if (this instanceof TD) {
 			return ((TD) this).getT();
@@ -150,7 +109,5 @@ public abstract class D {
 		}
 		return null;
 	}
-
-	public abstract String getName();
 
 }

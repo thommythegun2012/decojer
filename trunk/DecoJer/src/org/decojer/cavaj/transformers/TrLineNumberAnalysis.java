@@ -29,11 +29,11 @@ import java.util.List;
 import java.util.logging.Logger;
 
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.ED;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.ops.Op;
-import org.decojer.cavaj.model.fields.FD;
-import org.decojer.cavaj.model.methods.MD;
-import org.decojer.cavaj.model.types.TD;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 import org.eclipse.jdt.core.dom.AnnotationTypeMemberDeclaration;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
@@ -53,8 +53,8 @@ public final class TrLineNumberAnalysis {
 
 	private final static Logger LOGGER = Logger.getLogger(TrLineNumberAnalysis.class.getName());
 
-	private static void analyzeLines(final Block block, final ED bd) {
-		assert bd != null;
+	private static void analyzeLines(final Block block, final Element e) {
+		assert e != null;
 
 		for (final Statement statement : (List<Statement>) block.statements()) {
 			final Op op = getOp(statement);
@@ -69,14 +69,14 @@ public final class TrLineNumberAnalysis {
 		}
 	}
 
-	private static void analyzeLines(final TD td) {
-		for (final ED bd : td.getBds()) {
-			if (bd instanceof TD) {
-				analyzeLines((TD) bd);
+	private static void analyzeLines(final T td) {
+		for (final Element e : td.getDeclarations()) {
+			if (e instanceof T) {
+				analyzeLines((T) e);
 				continue;
 			}
-			if (bd instanceof FD) {
-				final Object fieldDeclaration = ((FD) bd).getAstNode();
+			if (e instanceof F) {
+				final Object fieldDeclaration = e.getAstNode();
 				if (fieldDeclaration == null) {
 					continue;
 				}
@@ -102,8 +102,8 @@ public final class TrLineNumberAnalysis {
 				}
 				continue;
 			}
-			if (bd instanceof MD) {
-				final Object methodDeclaration = ((MD) bd).getAstNode();
+			if (e instanceof M) {
+				final Object methodDeclaration = e.getAstNode();
 				if (methodDeclaration == null) {
 					continue;
 				}
@@ -120,7 +120,7 @@ public final class TrLineNumberAnalysis {
 					continue;
 				}
 				if (block != null) {
-					analyzeLines(block, bd);
+					analyzeLines(block, e);
 				}
 				continue;
 			}
@@ -134,8 +134,8 @@ public final class TrLineNumberAnalysis {
 	 *            compilation unit
 	 */
 	public static void transform(final CU cu) {
-		for (final ED bd : cu.getBds()) {
-			analyzeLines((TD) bd);
+		for (final Element e : cu.getDeclarations()) {
+			analyzeLines((T) e);
 		}
 	}
 

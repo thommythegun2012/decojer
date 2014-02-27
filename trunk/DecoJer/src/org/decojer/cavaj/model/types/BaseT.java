@@ -40,6 +40,11 @@ import org.eclipse.jdt.core.dom.ASTNode;
 public abstract class BaseT extends T {
 
 	@Override
+	public void clear() {
+		// nothing
+	}
+
+	@Override
 	public F createFd(final String name, final String descriptor) {
 		assert false;
 

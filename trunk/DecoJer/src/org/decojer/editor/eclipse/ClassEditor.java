@@ -31,14 +31,12 @@ import java.util.regex.Pattern;
 import org.decojer.DecoJer;
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.D;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.ED;
-import org.decojer.cavaj.model.fields.FD;
+import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
-import org.decojer.cavaj.model.methods.MD;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.decojer.cavaj.utils.Cursor;
 import org.decojer.editor.eclipse.cfg.CfgViewer;
 import org.decojer.editor.eclipse.du.DecompilationUnitEditor;
@@ -364,7 +362,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	 *            Eclipse Java element
 	 * @return declaration
 	 */
-	private D findDeclarationForJavaElement(final IJavaElement javaElement) {
+	private Container findDeclarationForJavaElement(final IJavaElement javaElement) {
 		// type.getFullyQualifiedName() potentially follows a different naming strategy for inner
 		// classes than the internal model from the bytecode, hence we must iterate through the tree
 		final List<IJavaElement> path = Lists.newArrayList();
@@ -372,16 +370,16 @@ public class ClassEditor extends MultiPageEditorPart {
 			path.add(0, element);
 		}
 		try {
-			D d = this.selectedCu;
+			Container c = this.selectedCu;
 			path: for (final IJavaElement element : path) {
 				if (element instanceof IType) {
 					final String typeName = element.getElementName();
 					// count anonymous!
 					int occurrenceCount = ((IType) element).getOccurrenceCount();
-					for (final ED bd : d.getBds()) {
-						if (bd instanceof TD && ((TD) bd).getSimpleName().equals(typeName)) {
+					for (final Element e : c.getDeclarations()) {
+						if (e instanceof T && ((T) e).getSimpleName().equals(typeName)) {
 							if (--occurrenceCount == 0) {
-								d = bd;
+								c = e;
 								continue path;
 							}
 						}
@@ -393,37 +391,37 @@ public class ClassEditor extends MultiPageEditorPart {
 					// isEnum() doesn't imply isStatic() for source code
 					if (!Flags.isEnum(((IField) element).getFlags())) {
 						if (Flags.isStatic(((IField) element).getFlags())) {
-							for (final ED bd : d.getBds()) {
-								if (bd instanceof MD && ((MD) bd).isInitializer()) {
-									d = bd;
+							for (final Element e : c.getDeclarations()) {
+								if (e instanceof M && ((M) e).isInitializer()) {
+									c = e;
 									continue path;
 								}
 							}
 							return null;
 						}
-						for (final ED bd : d.getBds()) {
+						for (final Element e : c.getDeclarations()) {
 							// descriptor not important, all constructors have same field
 							// initializers
-							if (bd instanceof MD && ((MD) bd).isConstructor()) {
-								d = bd;
+							if (e instanceof M && ((M) e).isConstructor()) {
+								c = e;
 								continue path;
 							}
 						}
 					}
 					// TODO relocation of other anonymous field initializer TDs...difficult
 					final String fieldName = element.getElementName();
-					for (final ED bd : d.getBds()) {
-						if (bd instanceof FD && ((FD) bd).getName().equals(fieldName)) {
-							d = bd;
+					for (final Element e : c.getDeclarations()) {
+						if (e instanceof F && ((F) e).getName().equals(fieldName)) {
+							c = e;
 							continue path;
 						}
 					}
 					return null;
 				}
 				if (element instanceof IInitializer) {
-					for (final ED bd : d.getBds()) {
-						if (bd instanceof MD && ((MD) bd).isInitializer()) {
-							d = bd;
+					for (final Element e : c.getDeclarations()) {
+						if (e instanceof M && ((M) e).isInitializer()) {
+							c = e;
 							continue path;
 						}
 					}
@@ -434,10 +432,10 @@ public class ClassEditor extends MultiPageEditorPart {
 							: element.getElementName();
 					final String signature = ((IMethod) element).getSignature();
 					// get all method declarations with this name
-					final List<MD> mds = Lists.newArrayList();
-					for (final ED bd : d.getBds()) {
-						if (bd instanceof MD && ((MD) bd).getName().equals(methodName)) {
-							mds.add((MD) bd);
+					final List<M> mds = Lists.newArrayList();
+					for (final Element e : c.getDeclarations()) {
+						if (e instanceof M && ((M) e).getName().equals(methodName)) {
+							mds.add((M) e);
 						}
 					}
 					switch (mds.size()) {
@@ -447,7 +445,7 @@ public class ClassEditor extends MultiPageEditorPart {
 						return null;
 					case 1:
 						// only 1 possible method, signature check not really necessary
-						d = mds.get(0);
+						c = mds.get(0);
 						continue path;
 					default:
 						// multiple methods with different signatures, we now have to match against
@@ -461,10 +459,10 @@ public class ClassEditor extends MultiPageEditorPart {
 						// Such signatures doesn't contain method parameter types but they contain
 						// generic type parameters.
 						final Pattern signaturePattern = createEclipseMethodSignaturePattern(signature);
-						for (final MD checkMd : mds) {
+						for (final M checkMd : mds) {
 							// exact match for descriptor
 							if (signaturePattern.matcher(checkMd.getDescriptor()).matches()) {
-								d = checkMd;
+								c = checkMd;
 								continue path;
 							}
 							if (checkMd.getSignature() == null) {
@@ -474,7 +472,7 @@ public class ClassEditor extends MultiPageEditorPart {
 							// ^T...^T...;
 							// <T:Ljava/lang/Integer;E:Ljava/lang/RuntimeException;>(TT;TT;)V^TE;^Ljava/lang/RuntimeException;
 							if (signaturePattern.matcher(checkMd.getSignature()).find()) {
-								d = checkMd;
+								c = checkMd;
 								continue path;
 							}
 						}
@@ -485,7 +483,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					}
 				}
 			}
-			return d;
+			return c;
 		} catch (final JavaModelException e) {
 			LOGGER.log(Level.SEVERE, "Couldn't get Eclipse Java element data for selection!", e);
 			return null;
@@ -522,14 +520,14 @@ public class ClassEditor extends MultiPageEditorPart {
 					@Override
 					public void selectionChanged(final SelectionChangedEvent event) {
 						final TreeSelection treeSelection = (TreeSelection) event.getSelection();
-						final D d = findDeclarationForJavaElement((IJavaElement) treeSelection
+						final Container c = findDeclarationForJavaElement((IJavaElement) treeSelection
 								.getFirstElement());
-						if (d == null) {
+						if (c == null) {
 							LOGGER.warning("Unknown declaration for path '"
 									+ treeSelection.getFirstElement() + "'!");
 							return;
 						}
-						ClassEditor.this.cfgViewer.setlectD(d);
+						ClassEditor.this.cfgViewer.setlectD(c);
 					}
 
 				});

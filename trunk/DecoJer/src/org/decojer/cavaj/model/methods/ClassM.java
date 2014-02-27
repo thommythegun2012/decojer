@@ -30,6 +30,8 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.CFG;
@@ -118,13 +120,13 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void addTypeDeclaration(final T t) {
-		getMd().addTd(t.getTd());
+	public boolean check(final AF af) {
+		return (this.accessFlags & af.getValue()) != 0;
 	}
 
 	@Override
-	public boolean check(final AF af) {
-		return (this.accessFlags & af.getValue()) != 0;
+	public void clear() {
+		getMd().clear();
 	}
 
 	@Override
@@ -132,7 +134,7 @@ public class ClassM extends M {
 		assert this.md == null;
 
 		this.md = new MD(this);
-		getT().getTd().addBd(this.md);
+		setDeclarationOwner(getT());
 		return this.md;
 	}
 
@@ -157,18 +159,23 @@ public class ClassM extends M {
 	}
 
 	@Override
+	public CU getCu() {
+		return getMd().getCu();
+	}
+
+	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return getMd().getDeclarationForNode(node);
 	}
 
 	@Override
-	public Element getDeclarationOwner() {
+	public Container getDeclarationOwner() {
 		return getMd().getDeclarationOwner();
 	}
 
 	@Override
 	public List<Element> getDeclarations() {
-		return null;
+		return getMd().getDeclarations();
 	}
 
 	@Override
@@ -191,6 +198,11 @@ public class ClassM extends M {
 	@Override
 	public T getReceiverT() {
 		return getT() instanceof ClassT ? null : getT();
+	}
+
+	@Override
+	public String getSignature() {
+		return getMd().getSignature();
 	}
 
 	@Override
@@ -268,7 +280,7 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void setDeclarationOwner(final Element declarationOwner) {
+	public void setDeclarationOwner(final Container declarationOwner) {
 		getMd().setDeclarationOwner(declarationOwner);
 	}
 

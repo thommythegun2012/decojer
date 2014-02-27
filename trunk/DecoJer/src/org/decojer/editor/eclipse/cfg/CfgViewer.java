@@ -27,13 +27,13 @@ import java.util.IdentityHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.decojer.cavaj.model.ED;
-import org.decojer.cavaj.model.D;
+import org.decojer.cavaj.model.Container;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
-import org.decojer.cavaj.model.methods.MD;
-import org.decojer.cavaj.model.types.TD;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.Label;
@@ -67,7 +67,7 @@ public class CfgViewer extends Composite {
 
 	private final Graph graph;
 
-	private D selectedD;
+	private Container selectedD;
 
 	/**
 	 * Constructor.
@@ -166,12 +166,12 @@ public class CfgViewer extends Composite {
 
 	public void initGraph() {
 		CFG cfg = null;
-		if (this.selectedD instanceof MD) {
-			cfg = ((MD) this.selectedD).getCfg();
-		} else if (this.selectedD instanceof TD) {
-			for (final ED bd : ((TD) this.selectedD).getBds()) {
-				if (bd instanceof MD && ((MD) bd).isConstructor()) {
-					cfg = ((MD) bd).getCfg();
+		if (this.selectedD instanceof M) {
+			cfg = ((M) this.selectedD).getCfg();
+		} else if (this.selectedD instanceof T) {
+			for (final Element e : ((T) this.selectedD).getDeclarations()) {
+				if (e instanceof M && ((M) e).isConstructor()) {
+					cfg = ((M) e).getCfg();
 					if (cfg != null) {
 						break;
 					}
@@ -214,7 +214,7 @@ public class CfgViewer extends Composite {
 	 * @param selectedD
 	 *            selected declaration
 	 */
-	public void setlectD(final D selectedD) {
+	public void setlectD(final Container selectedD) {
 		this.selectedD = selectedD;
 		initGraph();
 	}

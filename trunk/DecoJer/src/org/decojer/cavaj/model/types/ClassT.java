@@ -36,6 +36,7 @@ import lombok.Setter;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.fields.F;
@@ -132,13 +133,13 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public void addTypeDeclaration(final T t) {
-		getTd().addTd(t.getTd());
+	public boolean check(final AF af) {
+		return (this.accessFlags & af.getValue()) != 0;
 	}
 
 	@Override
-	public boolean check(final AF af) {
-		return (this.accessFlags & af.getValue()) != 0;
+	public void clear() {
+		getTd().clear();
 	}
 
 	@Override
@@ -180,7 +181,7 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public Element getDeclarationOwner() {
+	public Container getDeclarationOwner() {
 		return getTd().getDeclarationOwner();
 	}
 
@@ -422,7 +423,7 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public void setDeclarationOwner(final Element declarationOwner) {
+	public void setDeclarationOwner(final Container declarationOwner) {
 		getTd().setDeclarationOwner(declarationOwner);
 	}
 

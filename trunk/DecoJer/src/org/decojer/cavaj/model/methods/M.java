@@ -252,4 +252,11 @@ public abstract class M implements Element {
 	 */
 	public abstract void setThrowsTs(final T[] throwsTs);
 
+	/**
+	 * Get signature or {@code null}.
+	 * 
+	 * @return signature or {@code null}
+	 */
+	public abstract String getSignature();
+
 }

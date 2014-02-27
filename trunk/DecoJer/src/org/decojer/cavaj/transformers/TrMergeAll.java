@@ -24,10 +24,10 @@
 package org.decojer.cavaj.transformers;
 
 import org.decojer.cavaj.model.CU;
-import org.decojer.cavaj.model.ED;
-import org.decojer.cavaj.model.fields.FD;
-import org.decojer.cavaj.model.methods.MD;
-import org.decojer.cavaj.model.types.TD;
+import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
@@ -43,7 +43,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
  */
 public final class TrMergeAll {
 
-	private static boolean addBodyDeclaration(final TD td, final Object bodyDeclaration) {
+	private static boolean addBodyDeclaration(final T td, final Object bodyDeclaration) {
 		if (bodyDeclaration == null) {
 			return false;
 		}
@@ -60,10 +60,10 @@ public final class TrMergeAll {
 		return ((AbstractTypeDeclaration) td.getAstNode()).bodyDeclarations().add(bodyDeclaration);
 	}
 
-	private static int countConstructors(final TD td) {
+	private static int countConstructors(final T td) {
 		int constructors = 0;
-		for (final ED bd : td.getBds()) {
-			if (bd instanceof MD && ((MD) bd).isConstructor()) {
+		for (final Element e : td.getDeclarations()) {
+			if (e instanceof M && ((M) e).isConstructor()) {
 				++constructors;
 			}
 		}
@@ -77,9 +77,9 @@ public final class TrMergeAll {
 	 *            compilation unit
 	 */
 	public static void transform(final CU cu) {
-		for (final ED bd : cu.getBds()) {
-			final TD td = (TD) bd;
-			if (td.isAnonymous() && td.getEnclosingTd() != null) {
+		for (final Element e : cu.getDeclarations()) {
+			final T td = (T) e;
+			if (td.isAnonymous() && td.getEnclosingT() != null) {
 				continue;
 			}
 			final Object typeDeclaration = td.getAstNode();
@@ -91,40 +91,40 @@ public final class TrMergeAll {
 		}
 	}
 
-	private static void transform(final TD td) {
+	private static void transform(final T td) {
 		// multiple constructors? => no omissable default constructor
 		final int constructors = countConstructors(td);
-		for (final ED bd : td.getBds()) {
-			if (bd instanceof TD) {
-				if (!((TD) bd).isAnonymous()) {
-					addBodyDeclaration(td, ((TD) bd).getAstNode());
+		for (final Element e : td.getDeclarations()) {
+			if (e instanceof T) {
+				if (!((T) e).isAnonymous()) {
+					addBodyDeclaration(td, e.getAstNode());
 				}
-				transform((TD) bd);
+				transform((T) e);
 				continue;
 			}
-			if (bd instanceof FD) {
-				addBodyDeclaration(td, ((FD) bd).getAstNode());
-				for (final ED innerTd : bd.getBds()) {
-					transform((TD) innerTd);
+			if (e instanceof F) {
+				addBodyDeclaration(td, e.getAstNode());
+				for (final Element innerE : e.getDeclarations()) {
+					transform((T) innerE);
 				}
 				continue;
 			}
-			if (bd instanceof MD) {
-				final MD md = (MD) bd;
-				for (final ED innerTd : md.getBds()) {
-					if (!((TD) innerTd).isAnonymous()) {
-						final ASTNode typeDeclaration = (ASTNode) ((TD) innerTd).getAstNode();
+			if (e instanceof M) {
+				final M m = (M) e;
+				for (final Element innerE : m.getDeclarations()) {
+					if (!((T) innerE).isAnonymous()) {
+						final ASTNode typeDeclaration = (ASTNode) ((T) innerE).getAstNode();
 						if (typeDeclaration != null) {
-							md.getCfg()
+							m.getCfg()
 									.getBlock()
 									.statements()
 									.add(typeDeclaration.getAST().newTypeDeclarationStatement(
 											(AbstractTypeDeclaration) typeDeclaration));
 						}
 					}
-					transform((TD) innerTd);
+					transform((T) innerE);
 				}
-				final Object methodDeclaration = md.getAstNode();
+				final Object methodDeclaration = m.getAstNode();
 				if (methodDeclaration instanceof MethodDeclaration
 						&& ((MethodDeclaration) methodDeclaration).isConstructor()) {
 					if (td.getAstNode() instanceof AnonymousClassDeclaration) {

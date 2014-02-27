@@ -168,17 +168,6 @@ public final class TD extends ED {
 	}
 
 	/**
-	 * Get name.
-	 * 
-	 * @return name
-	 * @see T#getName()
-	 */
-	@Override
-	public String getName() {
-		return getT().getName();
-	}
-
-	/**
 	 * Get package name.
 	 * 
 	 * @return package name or {@code null} for no package
