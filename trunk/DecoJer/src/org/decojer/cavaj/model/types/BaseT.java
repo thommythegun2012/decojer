@@ -23,6 +23,14 @@
  */
 package org.decojer.cavaj.model.types;
 
+import java.util.List;
+
+import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.methods.M;
+import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Base type.
@@ -32,13 +40,104 @@ package org.decojer.cavaj.model.types;
 public abstract class BaseT extends T {
 
 	@Override
+	public F createFd(final String name, final String descriptor) {
+		assert false;
+
+		return null;
+	}
+
+	@Override
+	public M createMd(final String name, final String descriptor) {
+		assert false;
+
+		return null;
+	}
+
+	@Override
+	public T createTd() {
+		assert false;
+
+		return null;
+	}
+
+	@Override
 	public Object getAstNode() {
 		return null;
 	}
 
 	@Override
+	public CU getCu() {
+		return null;
+	}
+
+	@Override
+	public Element getDeclarationForNode(final ASTNode node) {
+		return null;
+	}
+
+	@Override
+	public Element getDeclarationOwner() {
+		return null;
+	}
+
+	@Override
+	public List<Element> getDeclarations() {
+		return null;
+	}
+
+	@Override
+	public boolean isAtLeast(final Version version) {
+		return true;
+	}
+
+	@Override
+	public boolean isBelow(final Version version) {
+		return false;
+	}
+
+	@Override
+	public boolean isDalvik() {
+		return false;
+	}
+
+	@Override
+	public boolean isScala() {
+		return false;
+	}
+
+	@Override
+	public void resolve() {
+		assert false;
+	}
+
+	@Override
+	public void setAs(final A[] as) {
+		assert false;
+	}
+
+	@Override
 	public void setAstNode(final Object astNode) {
-		assert false : "Cannot set AST node for '" + this + "'!";
+		assert false;
+	}
+
+	@Override
+	public void setScala() {
+		assert false;
+	}
+
+	@Override
+	public void setSignature(final String signature) {
+		assert false;
+	}
+
+	@Override
+	public void setSourceFileName(final String sourceFileName) {
+		assert false;
+	}
+
+	@Override
+	public void setVersion(final int version) {
+		assert false;
 	}
 
 }
