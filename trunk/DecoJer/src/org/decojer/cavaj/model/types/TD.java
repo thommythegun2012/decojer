@@ -34,7 +34,6 @@ import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.utils.Cursor;
-import org.eclipse.jdt.core.dom.ASTNode;
 
 import com.google.common.collect.Lists;
 
@@ -65,7 +64,7 @@ public final class TD extends ED {
 	 */
 	@Getter
 	@Setter
-	private ASTNode typeDeclaration;
+	private Object astNode;
 
 	/**
 	 * Class file version.
@@ -96,7 +95,7 @@ public final class TD extends ED {
 	 */
 	@Override
 	public void clear() {
-		this.typeDeclaration = null;
+		this.astNode = null;
 		super.clear();
 	}
 

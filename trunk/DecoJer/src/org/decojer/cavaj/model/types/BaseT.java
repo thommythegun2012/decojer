@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.model.types;
 
-import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Base type.
@@ -33,8 +32,13 @@ import org.eclipse.jdt.core.dom.ASTNode;
 public abstract class BaseT extends T {
 
 	@Override
-	public ASTNode getTypeDeclaration() {
+	public Object getAstNode() {
 		return null;
+	}
+
+	@Override
+	public void setAstNode(final Object astNode) {
+		assert false : "Cannot set AST node for '" + this + "'!";
 	}
 
 }

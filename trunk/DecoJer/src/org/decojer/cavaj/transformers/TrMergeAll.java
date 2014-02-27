@@ -23,15 +23,14 @@
  */
 package org.decojer.cavaj.transformers;
 
-import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.CU;
+import org.decojer.cavaj.model.ED;
 import org.decojer.cavaj.model.fields.FD;
 import org.decojer.cavaj.model.methods.MD;
 import org.decojer.cavaj.model.types.TD;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Initializer;
@@ -44,23 +43,21 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
  */
 public final class TrMergeAll {
 
-	private static boolean addBodyDeclaration(final TD td, final BodyDeclaration bodyDeclaration) {
+	private static boolean addBodyDeclaration(final TD td, final Object bodyDeclaration) {
 		if (bodyDeclaration == null) {
 			return false;
 		}
-		if (td.getTypeDeclaration() instanceof AnonymousClassDeclaration) {
-			return ((AnonymousClassDeclaration) td.getTypeDeclaration()).bodyDeclarations().add(
+		if (td.getAstNode() instanceof AnonymousClassDeclaration) {
+			return ((AnonymousClassDeclaration) td.getAstNode()).bodyDeclarations().add(
 					bodyDeclaration);
 		}
 		if (bodyDeclaration instanceof EnumConstantDeclaration) {
-			if (td.getTypeDeclaration() instanceof EnumDeclaration) {
-				return ((EnumDeclaration) td.getTypeDeclaration()).enumConstants().add(
-						bodyDeclaration);
+			if (td.getAstNode() instanceof EnumDeclaration) {
+				return ((EnumDeclaration) td.getAstNode()).enumConstants().add(bodyDeclaration);
 			}
 			return false;
 		}
-		return ((AbstractTypeDeclaration) td.getTypeDeclaration()).bodyDeclarations().add(
-				bodyDeclaration);
+		return ((AbstractTypeDeclaration) td.getAstNode()).bodyDeclarations().add(bodyDeclaration);
 	}
 
 	private static int countConstructors(final TD td) {
@@ -85,7 +82,7 @@ public final class TrMergeAll {
 			if (td.isAnonymous() && td.getEnclosingTd() != null) {
 				continue;
 			}
-			final ASTNode typeDeclaration = td.getTypeDeclaration();
+			final Object typeDeclaration = td.getAstNode();
 			// no package-info.java (typeDeclaration == null)
 			if (typeDeclaration instanceof AbstractTypeDeclaration) {
 				cu.getCompilationUnit().types().add(typeDeclaration);
@@ -100,13 +97,13 @@ public final class TrMergeAll {
 		for (final ED bd : td.getBds()) {
 			if (bd instanceof TD) {
 				if (!((TD) bd).isAnonymous()) {
-					addBodyDeclaration(td, (AbstractTypeDeclaration) ((TD) bd).getTypeDeclaration());
+					addBodyDeclaration(td, ((TD) bd).getAstNode());
 				}
 				transform((TD) bd);
 				continue;
 			}
 			if (bd instanceof FD) {
-				addBodyDeclaration(td, ((FD) bd).getFieldDeclaration());
+				addBodyDeclaration(td, ((FD) bd).getAstNode());
 				for (final ED innerTd : bd.getBds()) {
 					transform((TD) innerTd);
 				}
@@ -116,7 +113,7 @@ public final class TrMergeAll {
 				final MD md = (MD) bd;
 				for (final ED innerTd : md.getBds()) {
 					if (!((TD) innerTd).isAnonymous()) {
-						final ASTNode typeDeclaration = ((TD) innerTd).getTypeDeclaration();
+						final ASTNode typeDeclaration = (ASTNode) ((TD) innerTd).getAstNode();
 						if (typeDeclaration != null) {
 							md.getCfg()
 									.getBlock()
@@ -127,10 +124,10 @@ public final class TrMergeAll {
 					}
 					transform((TD) innerTd);
 				}
-				final BodyDeclaration methodDeclaration = md.getMethodDeclaration();
+				final Object methodDeclaration = md.getAstNode();
 				if (methodDeclaration instanceof MethodDeclaration
 						&& ((MethodDeclaration) methodDeclaration).isConstructor()) {
-					if (td.getTypeDeclaration() instanceof AnonymousClassDeclaration) {
+					if (td.getAstNode() instanceof AnonymousClassDeclaration) {
 						// anonymous inner classes cannot have visible Java constructors
 						continue;
 					}

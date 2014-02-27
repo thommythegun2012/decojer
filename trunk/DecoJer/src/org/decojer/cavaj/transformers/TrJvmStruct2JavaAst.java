@@ -112,7 +112,7 @@ public final class TrJvmStruct2JavaAst {
 			variableDeclarationFragment.setName(Expressions.newSimpleName(name, ast));
 			fieldDeclaration = ast.newFieldDeclaration(variableDeclarationFragment);
 		}
-		fd.setFieldDeclaration(fieldDeclaration);
+		fd.setAstNode(fieldDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
 		if (fd.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(fd.getAs())) {
@@ -221,7 +221,7 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration = ast.newMethodDeclaration();
 			((MethodDeclaration) methodDeclaration).setName(newSimpleName(name, ast));
 		}
-		md.setMethodDeclaration(methodDeclaration);
+		md.setAstNode(methodDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
 		if (md.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(md.getAs())) {
@@ -326,7 +326,7 @@ public final class TrJvmStruct2JavaAst {
 		// method type parameters (full signature only):
 		// <T:Ljava/lang/Integer;U:Ljava/lang/Long;>(TT;TU;)V
 		// <U:TT;>(TT;TU;)V
-		final MethodDeclaration methodDeclaration = (MethodDeclaration) md.getMethodDeclaration();
+		final MethodDeclaration methodDeclaration = (MethodDeclaration) md.getAstNode();
 		final T td = md.getT();
 		final AST ast = td.getCu().getAst();
 
@@ -404,7 +404,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 		final AST ast = cu.getAst();
 
-		if (td.getTypeDeclaration() == null) {
+		if (td.getAstNode() == null) {
 			AbstractTypeDeclaration typeDeclaration = null;
 
 			// annotation type declaration
@@ -455,7 +455,7 @@ public final class TrJvmStruct2JavaAst {
 							newType(interfaceT, td));
 				}
 			}
-			td.setTypeDeclaration(typeDeclaration);
+			td.setAstNode(typeDeclaration);
 
 			// add annotation modifiers before other modifiers, order preserved in source code
 			// generation through eclipse.jdt

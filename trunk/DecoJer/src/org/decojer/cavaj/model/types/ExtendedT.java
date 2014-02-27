@@ -61,6 +61,11 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
+	public Object getAstNode() {
+		return getRawT().getAstNode();
+	}
+
+	@Override
 	public T getBoundT() {
 		return getRawT().getBoundT();
 	}
@@ -149,11 +154,6 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
-	public ASTNode getTypeDeclaration() {
-		return getRawT().getTypeDeclaration();
-	}
-
-	@Override
 	public int getVersion() {
 		return getRawT().getVersion();
 	}
@@ -203,6 +203,11 @@ public abstract class ExtendedT extends T {
 	@Override
 	public boolean isUnresolvable() {
 		return getRawT().isUnresolvable();
+	}
+
+	@Override
+	public void setAstNode(final Object astNode) {
+		getRawT().setAstNode(astNode);
 	}
 
 	@Override

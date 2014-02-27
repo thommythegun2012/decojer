@@ -37,7 +37,6 @@ import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
-import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
  * Class method.
@@ -148,6 +147,11 @@ public class ClassM extends M {
 	}
 
 	@Override
+	public Object getAstNode() {
+		return getMd().getAstNode();
+	}
+
+	@Override
 	public CFG getCfg() {
 		return getMd().getCfg();
 	}
@@ -165,11 +169,6 @@ public class ClassM extends M {
 	@Override
 	public List<Element> getDeclarations() {
 		return null;
-	}
-
-	@Override
-	public BodyDeclaration getMethodDeclaration() {
-		return getMd().getMethodDeclaration();
 	}
 
 	@Override
@@ -259,6 +258,11 @@ public class ClassM extends M {
 	}
 
 	@Override
+	public void setAstNode(final Object astNode) {
+		getMd().setAstNode(astNode);
+	}
+
+	@Override
 	public void setCfg(final CFG cfg) {
 		getMd().setCfg(cfg);
 	}
@@ -271,11 +275,6 @@ public class ClassM extends M {
 	@Override
 	public void setDeprecated() {
 		this.accessFlags |= AF.DEPRECATED.getValue();
-	}
-
-	@Override
-	public void setMethodDeclaration(final BodyDeclaration methodDeclaration) {
-		getMd().setMethodDeclaration(methodDeclaration);
 	}
 
 	@Override
