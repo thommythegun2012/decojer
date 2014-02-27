@@ -37,16 +37,16 @@ import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.BodyDeclaration;
 
 /**
- * Modified method.
+ * Extended method.
  * 
  * @author André Pankraz
  */
-public abstract class ModM extends M {
+public abstract class ExtendedM extends M {
 
 	@Getter(AccessLevel.PRIVATE)
 	private final M rawM;
 
-	protected ModM(final M rawM) {
+	protected ExtendedM(final M rawM) {
 		assert rawM != null;
 
 		this.rawM = rawM;

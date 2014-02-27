@@ -34,7 +34,7 @@ import org.decojer.cavaj.model.types.T;
  * 
  * @author André Pankraz
  */
-public class ParameterizedM extends ModM {
+public class ParameterizedM extends ExtendedM {
 
 	/**
 	 * Type arguments for matching type parameters.

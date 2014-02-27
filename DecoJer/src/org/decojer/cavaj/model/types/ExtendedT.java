@@ -34,19 +34,19 @@ import org.decojer.cavaj.model.methods.M;
 import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
- * Modifying type.
+ * Extended type.
  * 
  * The general rule here should be, that this modification is optional from the view of the type
  * system and that getSimpleName() and getEnclosingT() don't really change.
  * 
  * @author André Pankraz
  */
-public abstract class ModT extends T {
+public abstract class ExtendedT extends T {
 
 	@Getter
 	private T rawT;
 
-	protected ModT(final T rawT) {
+	protected ExtendedT(final T rawT) {
 		setRawT(rawT);
 	}
 
