@@ -67,7 +67,7 @@ public final class CU implements Container {
 	private final static Logger LOGGER = Logger.getLogger(CU.class.getName());
 
 	@Getter
-	private final CD Cud = new CD() {
+	private final CD Cud = new CD(this) {
 
 		// nothing special
 

@@ -24,7 +24,9 @@
 package org.decojer.cavaj.model.fields;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,6 +36,7 @@ import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
@@ -43,10 +46,12 @@ import org.eclipse.jdt.core.dom.ASTNode;
  */
 public class ClassF extends F {
 
+	private final static Logger LOGGER = Logger.getLogger(F.class.getName());
+
 	@Setter
 	private int accessFlags;
 
-	@Getter
+	@Getter(AccessLevel.PRIVATE)
 	private FD fd;
 
 	@Getter
@@ -190,7 +195,16 @@ public class ClassF extends F {
 
 	@Override
 	public void setSignature(final String signature) {
-		this.fd.setSignature(signature);
+		if (signature == null) {
+			return;
+		}
+		final T valueT = getT().getDu().parseT(signature, new Cursor(), this);
+		if (!valueT.eraseTo(getValueT())) {
+			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getValueT()
+					+ "' for field value: " + this);
+		} else {
+			setValueT(valueT);
+		}
 	}
 
 	@Override

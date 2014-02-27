@@ -24,7 +24,9 @@
 package org.decojer.cavaj.model.methods;
 
 import java.util.List;
+import java.util.logging.Logger;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,6 +42,8 @@ import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
 
+import com.google.common.collect.Lists;
+
 /**
  * Class method.
  * 
@@ -47,13 +51,15 @@ import org.eclipse.jdt.core.dom.ASTNode;
  */
 public class ClassM extends M {
 
+	private final static Logger LOGGER = Logger.getLogger(ClassM.class.getName());
+
 	@Setter
 	private int accessFlags;
 
 	@Getter
 	private final String descriptor;
 
-	@Getter
+	@Getter(AccessLevel.PRIVATE)
 	private MD md;
 
 	@Getter
@@ -185,7 +191,11 @@ public class ClassM extends M {
 
 	@Override
 	public String getParamName(final int i) {
-		return getMd().getParamName(i);
+		final String[] paramNames = getMd().getParamNames();
+		if (paramNames == null || i >= paramNames.length || paramNames[i] == null) {
+			return "arg" + i;
+		}
+		return paramNames[i];
 	}
 
 	/**
@@ -259,6 +269,29 @@ public class ClassM extends M {
 		return check(AF.VARARGS);
 	}
 
+	/**
+	 * Parse throw types from signature.
+	 * 
+	 * @param s
+	 *            signature
+	 * @param c
+	 *            cursor
+	 * @return throw types or {@code null}
+	 */
+	private T[] parseThrowsTs(final String s, final Cursor c) {
+		if (c.pos >= s.length() || s.charAt(c.pos) != '^') {
+			return null;
+		}
+		final List<T> ts = Lists.newArrayList();
+		do {
+			++c.pos;
+			final T throwT = getT().getDu().parseT(s, c, this);
+			throwT.setInterface(false); // TODO we know even more, must be from Throwable
+			ts.add(throwT);
+		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
+		return ts.toArray(new T[ts.size()]);
+	}
+
 	@Override
 	public void setAnnotationDefaultValue(final Object annotationDefaultValue) {
 		getMd().setAnnotationDefaultValue(annotationDefaultValue);
@@ -296,7 +329,12 @@ public class ClassM extends M {
 
 	@Override
 	public void setParamName(final int i, final String name) {
-		getMd().setParamName(i, name);
+		String[] paramNames = getMd().getParamNames();
+		if (paramNames == null) {
+			paramNames = new String[getParamTs().length];
+			getMd().setParamNames(paramNames);
+		}
+		paramNames[i] = name;
 	}
 
 	@Override
@@ -313,7 +351,66 @@ public class ClassM extends M {
 
 	@Override
 	public void setSignature(final String signature) {
+		if (signature == null) {
+			return;
+		}
+		// remember signature for Eclipse method finding...
 		getMd().setSignature(signature);
+
+		final Cursor c = new Cursor();
+		// typeParams better in M, maybe later if necessary for static invokes
+		getMd().setTypeParams(getT().getDu().parseTypeParams(signature, c, this));
+
+		final T[] paramTs = getParamTs();
+		final T[] signParamTs = getT().getDu().parseMethodParamTs(signature, c, this);
+		if (signParamTs.length != 0) {
+			if (paramTs.length != signParamTs.length) {
+				// can happen with Sun JVM for constructor:
+				// see org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11.1.InnerMethod
+				// or org.decojer.cavaj.test.jdk5.DecTestEnumStatus
+				// Signature since JVM 5 exists but doesn't contain synthetic parameters,
+				// e.g. outer context for methods in inner classes: (I)V instead of (Lthis;_I_II)V
+				// or enum constructor parameters arg0: String, arg1: int
+				if (!isConstructor()) {
+					LOGGER.info("Cannot reduce signature '" + signature
+							+ "' to types for method params: " + this);
+				}
+			} else {
+				for (int i = 0; i < paramTs.length; ++i) {
+					final T paramT = signParamTs[i];
+					if (!paramT.eraseTo(paramTs[i])) {
+						LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
+								+ paramTs[i] + "' for method param: " + this);
+						break;
+					}
+					paramTs[i] = paramT;
+				}
+			}
+		}
+		final T returnT = getT().getDu().parseT(signature, c, this);
+		if (!returnT.eraseTo(getReturnT())) {
+			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
+					+ "' for method return: " + this);
+		} else {
+			setReturnT(returnT);
+		}
+		final T[] signThrowTs = parseThrowsTs(signature, c);
+		if (signThrowTs != null) {
+			final T[] throwsTs = getThrowsTs();
+			if (throwsTs.length != signThrowTs.length) {
+				LOGGER.info("Cannot reduce signature '" + signature
+						+ "' to types for method throws: " + this);
+			}
+			for (int i = 0; i < throwsTs.length; ++i) {
+				final T throwT = signThrowTs[i];
+				if (!throwT.eraseTo(throwsTs[i])) {
+					LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
+							+ throwsTs[i] + "' for method throw: " + this);
+					break;
+				}
+				throwsTs[i] = throwT;
+			}
+		}
 	}
 
 	@Override

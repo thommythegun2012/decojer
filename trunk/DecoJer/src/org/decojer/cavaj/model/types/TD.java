@@ -23,19 +23,13 @@
  */
 package org.decojer.cavaj.model.types;
 
-import java.util.List;
-import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
-import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.ED;
-import org.decojer.cavaj.model.fields.F;
-import org.decojer.cavaj.model.methods.M;
-import org.decojer.cavaj.utils.Cursor;
-
-import com.google.common.collect.Lists;
 
 /**
  * Type declaration. This includes Java class and interface declarations.
@@ -45,19 +39,15 @@ import com.google.common.collect.Lists;
  * 
  * @author André Pankraz
  */
+@Getter(AccessLevel.PACKAGE)
+@Setter(AccessLevel.PACKAGE)
 public final class TD extends ED {
-
-	private final static Logger LOGGER = Logger.getLogger(TD.class.getName());
 
 	/**
 	 * Source file name (from source file attribute).
 	 */
-	@Getter
-	@Setter
+	@Nullable
 	private String sourceFileName;
-
-	@Getter
-	private final ClassT t;
 
 	/**
 	 * Class file version.
@@ -67,8 +57,6 @@ public final class TD extends ED {
 	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
 	 * target option given.
 	 */
-	@Getter
-	@Setter
 	private int version;
 
 	/**
@@ -78,353 +66,7 @@ public final class TD extends ED {
 	 *            class type
 	 */
 	public TD(final ClassT t) {
-		assert t != null;
-
-		this.t = t;
-	}
-
-	/**
-	 * Create field declaration.
-	 * 
-	 * @param name
-	 *            field name
-	 * @param descriptor
-	 *            field descriptor
-	 * @return field declaration
-	 */
-	public F createFd(final String name, final String descriptor) {
-		final F f = getT().getF(name, descriptor);
-		f.createFd();
-		return f;
-	}
-
-	/**
-	 * Create method declaration.
-	 * 
-	 * @param name
-	 *            method name
-	 * @param descriptor
-	 *            method descriptor
-	 * @return method declaration
-	 */
-	public M createMd(final String name, final String descriptor) {
-		final M m = getT().getM(name, descriptor);
-		m.createMd();
-		return m;
-	}
-
-	/**
-	 * Get decompilation unit.
-	 * 
-	 * @return decompilation unit
-	 */
-	public DU getDu() {
-		return getT().getDu();
-	}
-
-	/**
-	 * Get enclosing type.
-	 * 
-	 * @return enclosing type
-	 * 
-	 * @see T#setEnclosingT(T)
-	 * @see Class#getEnclosingClass()
-	 */
-	public T getEnclosingT() {
-		return getT().getEnclosingT();
-	}
-
-	/**
-	 * Get enclosing type declaration.
-	 * 
-	 * @return enclosing type declaration
-	 * 
-	 * @see ClassT#getEnclosingT()
-	 * @see Class#getEnclosingClass()
-	 */
-	public TD getEnclosingTd() {
-		final T enclosingT = getT().getEnclosingT();
-		return enclosingT == null ? null : enclosingT.getTd();
-	}
-
-	/**
-	 * Get the full name, including modifiers like generic arguments, parameterization, type
-	 * annotations.
-	 * 
-	 * @return full name
-	 */
-	public String getFullName() {
-		return getT().getFullName();
-	}
-
-	/**
-	 * Get interface types.
-	 * 
-	 * @return interface types, not {@code null}
-	 * @see T#getInterfaceTs()
-	 */
-	public T[] getInterfaceTs() {
-		return getT().getInterfaceTs();
-	}
-
-	/**
-	 * Get package name.
-	 * 
-	 * @return package name or {@code null} for no package
-	 * @see T#getPackageName()
-	 */
-	public String getPackageName() {
-		return getT().getPackageName();
-	}
-
-	/**
-	 * Get primary name.
-	 * 
-	 * @return primary name
-	 * @see T#getPName()
-	 */
-	public String getPName() {
-		return getT().getPName();
-	}
-
-	/**
-	 * Get inner name.
-	 * 
-	 * @return inner name
-	 * @see T#getSimpleName()
-	 */
-	public String getSimpleName() {
-		return getT().getSimpleName();
-	}
-
-	/**
-	 * Get super type.
-	 * 
-	 * @return super type
-	 * @see T#getSuperT()
-	 */
-	public T getSuperT() {
-		return getT().getSuperT();
-	}
-
-	/**
-	 * Get type parameters.
-	 * 
-	 * @return type parameters, not {@code null}
-	 * @see T#getTypeParams()
-	 */
-	public T[] getTypeParams() {
-		return getT().getTypeParams();
-	}
-
-	/**
-	 * Returns {@code true} if and only if the underlying class is an anonymous class.<br>
-	 * <br>
-	 * This is heavily dependant from {@link T#getEnclosingT()}, which can be {@code null} for
-	 * obfuscate code! Hence this is not a reliable answer.
-	 * 
-	 * @return {@code true} if and only if this class is an anonymous class.
-	 * @see T#isAnonymous()
-	 */
-	public boolean isAnonymous() {
-		return getT().isAnonymous();
-	}
-
-	/**
-	 * Is this version at least of the given version?
-	 * 
-	 * @param version
-	 *            version
-	 * @return {@code true} - at least of given version
-	 */
-	public boolean isAtLeast(final Version version) {
-		return this.version >= version.getMajor();
-	}
-
-	/**
-	 * Is this version less then given version?
-	 * 
-	 * @param version
-	 *            version
-	 * @return {@code true} - less then given version
-	 */
-	public boolean isBelow(final Version version) {
-		return this.version < version.getMajor();
-	}
-
-	/**
-	 * Is Dalvik?
-	 * 
-	 * @return {@code true} - is Dalvik
-	 */
-	public boolean isDalvik() {
-		return this.version == 0;
-	}
-
-	/**
-	 * Is enum type?
-	 * 
-	 * @return {@code true} - is enum type
-	 */
-	public boolean isEnum() {
-		return getT().isEnum();
-	}
-
-	/**
-	 * Is inner type?
-	 * 
-	 * @return {@code true}- is inner type
-	 */
-	public boolean isInner() {
-		return getT().isInner();
-	}
-
-	/**
-	 * Is interface?
-	 * 
-	 * @return {@code true} - is interface
-	 */
-	public boolean isInterface() {
-		return getT().isInterface();
-	}
-
-	/**
-	 * Is Scala source code?
-	 * 
-	 * @return {@code true} - is Scala source code
-	 */
-	public boolean isScala() {
-		return getSourceFileName().endsWith(".scala");
-	}
-
-	/**
-	 * Parse interface types from signature.
-	 * 
-	 * @param s
-	 *            signature
-	 * @param c
-	 *            cursor
-	 * @return interface types or {@code null}
-	 */
-	private T[] parseInterfaceTs(final String s, final Cursor c) {
-		if (c.pos >= s.length() || s.charAt(c.pos) != 'L') {
-			return null;
-		}
-		final List<T> ts = Lists.newArrayList();
-		do {
-			final T interfaceT = getT().getDu().parseT(s, c, getT());
-			// not here...signature could be wrong (not bytecode checked), check erasure first
-			// interfaceT.setInterface(true);
-			ts.add(interfaceT);
-		} while (c.pos < s.length() && s.charAt(c.pos) == 'L');
-		return ts.toArray(new T[ts.size()]);
-	}
-
-	/**
-	 * Resolve unfilled parameters.
-	 */
-	public void resolve() {
-		// has other name in ClassT
-		getT().resolved();
-	}
-
-	/**
-	 * Set enclosing method.
-	 * 
-	 * @param enclosingM
-	 *            enclosing method
-	 */
-	public void setEnclosingM(final M enclosingM) {
-		getT().setEnclosingM(enclosingM);
-	}
-
-	/**
-	 * Set enclosing class type.
-	 * 
-	 * @param enclosingT
-	 *            enclosing type
-	 */
-	public void setEnclosingT(final ClassT enclosingT) {
-		getT().setEnclosingT(enclosingT);
-	}
-
-	/**
-	 * Set interface types.
-	 * 
-	 * @param interfaceTs
-	 *            interface types
-	 */
-	public void setInterfaceTs(final T[] interfaceTs) {
-		getT().setInterfaceTs(interfaceTs);
-	}
-
-	/**
-	 * This should be scala code.
-	 */
-	public void setScala() {
-		if (getSourceFileName() != null) {
-			if (!isScala()) {
-				LOGGER.warning("This should be a Scala source code!");
-			}
-			return;
-		}
-	}
-
-	@Override
-	public void setSignature(final String signature) {
-		if (signature == null) {
-			return;
-		}
-		final Cursor c = new Cursor();
-		getT().setTypeParams(getDu().parseTypeParams(signature, c, getT()));
-
-		final T superT = getDu().parseT(signature, c, getT());
-		if (!superT.eraseTo(getSuperT())) {
-			LOGGER.info("Cannot reduce type '" + superT + "' to super type '" + getSuperT()
-					+ "' for type declaration '" + this + "' with signature: " + signature);
-			return;
-		}
-		getT().setSuperT(superT);
-		final T[] signInterfaceTs = parseInterfaceTs(signature, c);
-		if (signInterfaceTs != null) {
-			final T[] interfaceTs = getInterfaceTs();
-			if (signInterfaceTs.length > interfaceTs.length) {
-				// < can happen, e.g. scala-lift misses the final java.io.Serializable in signatures
-				LOGGER.info("Cannot reduce interface types for type declaration '" + this
-						+ "' with signature: " + signature);
-				return;
-			}
-			for (int i = 0; i < signInterfaceTs.length; ++i) {
-				final T interfaceT = signInterfaceTs[i];
-				if (!interfaceT.eraseTo(interfaceTs[i])) {
-					LOGGER.info("Cannot reduce type '" + interfaceT + "' to interface type '"
-							+ interfaceTs[i] + "' for type declaration '" + this
-							+ "' with signature: " + signature);
-					return;
-				}
-				// erasure works...now we are safe to assert interface...but should be anyway
-				// because erasure leads to right type, not necessary:
-				// interfaceT.setInterface(true);
-				assert interfaceT.isInterface();
-
-				interfaceTs[i] = interfaceT;
-			}
-		}
-	}
-
-	/**
-	 * Set super type.
-	 * 
-	 * @param superT
-	 *            super type
-	 */
-	public void setSuperT(final T superT) {
-		getT().setSuperT(superT);
-	}
-
-	@Override
-	public String toString() {
-		return getT().toString();
+		super(t);
 	}
 
 }

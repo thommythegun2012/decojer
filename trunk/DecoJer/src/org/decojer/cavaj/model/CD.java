@@ -30,11 +30,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.fields.F;
-import org.decojer.cavaj.model.fields.FD;
 import org.decojer.cavaj.model.methods.M;
-import org.decojer.cavaj.model.methods.MD;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.model.types.TD;
 import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
@@ -45,17 +42,32 @@ import org.eclipse.jdt.core.dom.ASTNode;
 public abstract class CD {
 
 	/**
-	 * All body declarations: inner type / method / field declarations.
-	 */
-	@Getter
-	private final List<Element> declarations = new ArrayList<Element>(0);
-
-	/**
 	 * AST node or {@code null}.
 	 */
 	@Getter
 	@Setter
 	private Object astNode;
+
+	@Getter
+	private final Container element;
+
+	/**
+	 * Child declarations.
+	 */
+	@Getter
+	private final List<Element> declarations = new ArrayList<Element>(0);
+
+	/**
+	 * Constructor.
+	 * 
+	 * @param element
+	 *            element
+	 */
+	public CD(final Container element) {
+		assert element != null;
+
+		this.element = element;
+	}
 
 	/**
 	 * Clear all decompile infos, e.g. AST nodes.
@@ -93,19 +105,6 @@ public abstract class CD {
 			if (retBd != null) {
 				return retBd;
 			}
-		}
-		return null;
-	}
-
-	public Element getElement() {
-		if (this instanceof TD) {
-			return ((TD) this).getT();
-		}
-		if (this instanceof MD) {
-			return ((MD) this).getM();
-		}
-		if (this instanceof FD) {
-			return ((FD) this).getF();
 		}
 		return null;
 	}

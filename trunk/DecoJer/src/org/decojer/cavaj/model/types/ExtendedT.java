@@ -168,11 +168,6 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
-	public TD getTd() {
-		return getRawT().getTd();
-	}
-
-	@Override
 	public T[] getTypeArgs() {
 		return getRawT().getTypeArgs();
 	}
