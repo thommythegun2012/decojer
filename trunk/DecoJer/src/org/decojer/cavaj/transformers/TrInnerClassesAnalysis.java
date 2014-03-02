@@ -339,7 +339,7 @@ public class TrInnerClassesAnalysis {
 		final List<CU> selectedCus = Lists.newArrayList();
 		for (final T selectedT : du.getSelectedTs()) {
 			for (final CU cu : cus) {
-				if (cu.getDeclarations().contains(selectedT)) {
+				if (cu.getDeclarations().contains(selectedT) && !selectedCus.contains(cu)) {
 					selectedCus.add(cu);
 					break;
 				}

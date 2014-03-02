@@ -218,6 +218,7 @@ public final class CU implements Container {
 	 * @return source code
 	 */
 	public String decompile(final boolean ignoreCfgError) {
+		clear(); // doesn't cost much, helps to mitigate many potential problems
 		for (final Element element : getAllDeclarations()) {
 			if (!(element instanceof T)) {
 				continue;
