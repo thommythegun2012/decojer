@@ -48,26 +48,11 @@ public abstract class CD {
 	@Setter
 	private Object astNode;
 
-	@Getter
-	private final Container element;
-
 	/**
 	 * Child declarations.
 	 */
 	@Getter
 	private final List<Element> declarations = new ArrayList<Element>(0);
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param element
-	 *            element
-	 */
-	public CD(final Container element) {
-		assert element != null;
-
-		this.element = element;
-	}
 
 	/**
 	 * Clear all decompile infos, e.g. AST nodes.

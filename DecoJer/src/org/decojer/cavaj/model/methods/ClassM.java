@@ -140,7 +140,7 @@ public class ClassM extends M {
 		if (isDeclaration()) {
 			return false;
 		}
-		this.md = new MD(this);
+		this.md = new MD();
 		setDeclarationOwner(getT());
 		return true;
 	}
@@ -315,6 +315,11 @@ public class ClassM extends M {
 
 	@Override
 	public void setDeclarationOwner(final Container declarationOwner) {
+		final Container previousDeclarationOwner = getMd().getDeclarationOwner();
+		if (previousDeclarationOwner != null) {
+			previousDeclarationOwner.getDeclarations().remove(this);
+		}
+		declarationOwner.getDeclarations().add(this);
 		getMd().setDeclarationOwner(declarationOwner);
 	}
 

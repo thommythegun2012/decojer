@@ -87,16 +87,6 @@ public final class MD extends ED {
 	@Nullable
 	private T[] typeParams;
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param m
-	 *            method
-	 */
-	public MD(final ClassM m) {
-		super(m);
-	}
-
 	@Override
 	public void clear() {
 		if (this.cfg != null) {

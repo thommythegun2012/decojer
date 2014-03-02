@@ -102,7 +102,7 @@ public class ClassF extends F {
 		if (isDeclaration()) {
 			return false;
 		}
-		this.fd = new FD(this);
+		this.fd = new FD();
 		setDeclarationOwner(getT());
 		return true;
 	}
@@ -179,6 +179,11 @@ public class ClassF extends F {
 
 	@Override
 	public void setDeclarationOwner(final Container declarationOwner) {
+		final Container previousDeclarationOwner = getFd().getDeclarationOwner();
+		if (previousDeclarationOwner != null) {
+			previousDeclarationOwner.getDeclarations().remove(this);
+		}
+		declarationOwner.getDeclarations().add(this);
 		getFd().setDeclarationOwner(declarationOwner);
 	}
 

@@ -44,17 +44,8 @@ public abstract class ED extends CD {
 	 * Declaration owner or {@code null}.
 	 */
 	@Getter
+	@Setter
 	private Container declarationOwner;
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param element
-	 *            element
-	 */
-	public ED(final Container element) {
-		super(element);
-	}
 
 	@Override
 	public void clear() {
@@ -75,22 +66,6 @@ public abstract class ED extends CD {
 			return ((Element) declarationOwner).getCu();
 		}
 		return null;
-	}
-
-	/**
-	 * Set declaration owner.
-	 * 
-	 * @param declarationOwner
-	 *            declaration owner
-	 */
-	public void setDeclarationOwner(final Container declarationOwner) {
-		final Container element = getElement();
-		final Container previousDeclarationOwner = getDeclarationOwner();
-		if (previousDeclarationOwner != null) {
-			previousDeclarationOwner.getDeclarations().remove(element);
-		}
-		declarationOwner.getDeclarations().add((Element) element);
-		this.declarationOwner = declarationOwner;
 	}
 
 }
