@@ -1926,6 +1926,9 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!isFieldInit()) {
 			return false;
 		}
+		if (!f.isDeclaration()) {
+			return false;
+		}
 		if (!getM().getT().is(f.getT())) {
 			return false;
 		}
@@ -2031,11 +2034,6 @@ public final class TrCfg2JavaExpressionStmts {
 				bb.pop();
 			}
 			return true; // ignore such assignments completely
-		}
-		if (!(f.getAstNode() instanceof FieldDeclaration)) {
-			assert false : "TODO check this";
-
-			return false;
 		}
 		try {
 			((VariableDeclarationFragment) ((FieldDeclaration) f.getAstNode()).fragments().get(0))
