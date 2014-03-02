@@ -48,14 +48,4 @@ public final class FD extends ED {
 	@Nullable
 	private Object value;
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param f
-	 *            field
-	 */
-	protected FD(final ClassF f) {
-		super(f);
-	}
-
 }

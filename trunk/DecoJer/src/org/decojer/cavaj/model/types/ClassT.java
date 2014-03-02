@@ -149,7 +149,7 @@ public class ClassT extends T {
 		if (isDeclaration()) {
 			return false;
 		}
-		this.td = new TD(this);
+		this.td = new TD();
 		return true;
 	}
 
@@ -436,6 +436,11 @@ public class ClassT extends T {
 
 	@Override
 	public void setDeclarationOwner(final Container declarationOwner) {
+		final Container previousDeclarationOwner = getTd().getDeclarationOwner();
+		if (previousDeclarationOwner != null) {
+			previousDeclarationOwner.getDeclarations().remove(this);
+		}
+		declarationOwner.getDeclarations().add(this);
 		getTd().setDeclarationOwner(declarationOwner);
 	}
 

@@ -59,14 +59,4 @@ public final class TD extends ED {
 	 */
 	private int version;
 
-	/**
-	 * Constructor.
-	 * 
-	 * @param t
-	 *            class type
-	 */
-	public TD(final ClassT t) {
-		super(t);
-	}
-
 }
