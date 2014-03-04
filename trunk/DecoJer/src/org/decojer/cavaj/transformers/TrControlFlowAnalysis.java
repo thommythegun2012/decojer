@@ -170,11 +170,11 @@ public final class TrControlFlowAnalysis {
 
 		findLoop(loop, head, Sets.<BB> newHashSet());
 
-		final BB tail = loop.getLast();
+		final BB last = loop.getLast();
 
+		// we check if this could be a pre-loop:
 		Loop.Kind headKind = null;
 		BB headFollow = null;
-
 		if (head.getStmts() == 1 && head.isCond()) {
 			final BB falseSucc = head.getFalseSucc();
 			final BB trueSucc = head.getTrueSucc();
@@ -189,52 +189,58 @@ public final class TrControlFlowAnalysis {
 				headKind = Loop.Kind.WHILENOT;
 				headFollow = trueSucc;
 			}
-			// no proper pre head!
+			// no proper pre-loop head!
 		}
-
-		Loop.Kind tailKind = null;
-		BB tailFollow = null;
-
-		if (tail != null && tail.isCond() && !tail.isLoopHead() && !head.isLoopLast()) {
-			final BB falseSucc = tail.getFalseSucc();
-			final BB trueSucc = tail.getTrueSucc();
+		// we check if this could be a post-loop:
+		Loop.Kind lastKind = null;
+		BB lastFollow = null;
+		if (last != null && last.isCond()) {
+			// don't exclude last.isLoopHead(), simple back loops with multiple statements possible
+			final BB falseSucc = last.getFalseSucc();
+			final BB trueSucc = last.getTrueSucc();
 			if (loop.isHead(trueSucc)) {
-				tailKind = Loop.Kind.DO_WHILE;
-				tailFollow = falseSucc;
+				lastKind = Loop.Kind.DO_WHILE;
+				lastFollow = falseSucc;
 			} else if (loop.isHead(falseSucc)) {
-				tailKind = Loop.Kind.DO_WHILENOT;
-				tailFollow = trueSucc;
+				lastKind = Loop.Kind.DO_WHILENOT;
+				lastFollow = trueSucc;
 			}
+			// no proper post-loop last!
 		}
-
-		if (headKind != null && tailKind == null) {
+		// now we check with some heuristics if pre-loop or post-loop is the prefered loop, this is
+		// not always exact science...
+		if (headKind != null && lastKind == null) {
 			loop.setKind(headKind);
 			loop.setFollow(headFollow);
 			return loop;
 		}
-		if (headKind == null && tailKind != null) {
-			loop.setKind(tailKind);
-			loop.setFollow(tailFollow);
+		if (headKind == null && lastKind != null) {
+			loop.setKind(lastKind);
+			loop.setFollow(lastFollow);
 			return loop;
 		}
-		if (headKind != null && tailKind != null) {
+		// we have to compare the tails for head and last
+		if (headKind != null && lastKind != null) {
 			final List<BB> headMembers = Lists.newArrayList();
 			final Set<BB> headFollows = Sets.newHashSet();
 			findBranch(loop, headFollow, headMembers, headFollows);
-			if (headFollows.contains(tailFollow)) {
-				loop.setKind(tailKind);
-				loop.setFollow(tailFollow);
+			if (headFollows.contains(lastFollow)) {
+				loop.setKind(lastKind);
+				loop.setFollow(lastFollow);
 				return loop;
 			}
-			final List<BB> tailMembers = Lists.newArrayList();
-			final Set<BB> tailFollows = Sets.newHashSet();
-			findBranch(loop, tailFollow, tailMembers, tailFollows);
-			if (tailFollows.contains(headFollow)) {
+			final List<BB> lastMembers = Lists.newArrayList();
+			final Set<BB> lastFollows = Sets.newHashSet();
+			findBranch(loop, lastFollow, lastMembers, lastFollows);
+			if (lastFollows.contains(headFollow)) {
 				loop.setKind(headKind);
 				loop.setFollow(headFollow);
 				return loop;
 			}
-			// TODO more checks here, see http://code.google.com/p/decojer/issues/detail?id=15
+			// we can decide like we want: we prefer pre-loops
+			loop.setKind(headKind);
+			loop.setFollow(headFollow);
+			return loop;
 		}
 		loop.setKind(Loop.Kind.ENDLESS);
 		return loop;
@@ -485,7 +491,7 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			if (out.isBack()) {
-				// back edge (continue, tail, inner loop, outer label-continue)
+				// back edge (continue, last, inner loop, outer label-continue)
 				if (out.getEnd() == loop.getHead()) {
 					backEdge = true;
 				}
@@ -513,7 +519,7 @@ public final class TrControlFlowAnalysis {
 		}
 		if (backEdge) {
 			// TODO or biggest line number or further structure analyzis?
-			// TODO e.g. tail with >2 succ not possible, see warning
+			// TODO e.g. last with >2 succ not possible, see warning
 			// lowest last is loop struct last
 			if (loop.getLast() == null || loop.getLast().isBefore(bb)) {
 				loop.setLast(bb);
