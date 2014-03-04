@@ -214,15 +214,16 @@ public final class TrCfg2JavaControlFlowStmts {
 			whileStatement.setExpression(wrap(negate ? not(expression) : expression));
 
 			final List<Statement> subStatements = Lists.newArrayList();
-			transformSequence(loop, negate ? head.getFalseSucc() : head.getTrueSucc(),
-					subStatements);
-
-			if (subStatements.size() == 1) {
-				whileStatement.setBody(subStatements.get(0));
-			} else {
-				final Block block = getAst().newBlock();
-				block.statements().addAll(subStatements);
-				whileStatement.setBody(block);
+			final BB firstLoopBb = negate ? head.getFalseSucc() : head.getTrueSucc();
+			if (!loop.isHead(firstLoopBb)) {
+				transformSequence(loop, firstLoopBb, subStatements);
+				if (subStatements.size() == 1) {
+					whileStatement.setBody(subStatements.get(0));
+				} else {
+					final Block block = getAst().newBlock();
+					block.statements().addAll(subStatements);
+					whileStatement.setBody(block);
+				}
 			}
 			return whileStatement;
 		}
