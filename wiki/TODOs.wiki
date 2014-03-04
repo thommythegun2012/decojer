@@ -40,6 +40,14 @@ reason: merge into sub doesnt set throwable to null from start to end?!
 com.ibm.icu.impl.data.TokenIterator.nextToken(I)I (ops: 142, regs: 7)
 
 triggered assert:
+
+Mär 04, 2014 9:54:44 AM org.decojer.cavaj.transformers.TrDataFlowAnalysis execute
+WARNUNG: com.ibm.icu.impl.data.TokenIterator.nextToken(I)I: Cannot store array value!
+FAILED: testEclipsePlugins
+java.lang.AssertionError: cannot assign 'R88_CO: REF' to 'int'
+	at org.decojer.cavaj.model.code.R.assignTo(R.java:182)
+
+
 	public boolean assignTo(final T t) {
 		final T reducedT = this.t.assignTo(t); // primitive reduction for this.t possible
 		if (reducedT == null) {
