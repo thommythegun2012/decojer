@@ -104,6 +104,20 @@ public abstract class DecTestLoopStmt {
 		do {
 			System.out.println(i += a);
 		} while (i < 10);
+		int j = 0;
+		do {
+			// nothing
+		} while (j++ < 10);
+		j = 0;
+		do {
+			System.out.println(j += a);
+			System.out.println("Multiple statements and following stuff");
+		} while (j < 10);
+		j = 0;
+		do {
+			System.out.println(j += a);
+			System.out.println("Multiple statements");
+		} while (j < 10);
 	}
 
 	public static void testPostEndless() {
@@ -112,16 +126,44 @@ public abstract class DecTestLoopStmt {
 		} while (true);
 	}
 
+	public static void testPostEndlessMultiple() {
+		do {
+			System.out.println("TEST");
+			System.out.println("TEST Multiple");
+		} while (true);
+	}
+
 	public static void testPre(final int a) {
 		int i = 0;
 		while (i < 10) {
 			System.out.println(i += a);
+		}
+		int j = 0;
+		while (+j < 10) {
+			// nothing
+		}
+		j = 0;
+		while (j < 10) {
+			System.out.println(j += a);
+			System.out.println("Multiple statements and following stuff");
+		}
+		j = 0;
+		while (j < 10) {
+			System.out.println(j += a);
+			System.out.println("Multiple statements");
 		}
 	}
 
 	public static void testPreEndless() {
 		while (true) {
 			System.out.println("TEST");
+		}
+	}
+
+	public static void testPreEndlessMultiple() {
+		while (true) {
+			System.out.println("TEST");
+			System.out.println("TEST Multiple");
 		}
 	}
 
