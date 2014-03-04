@@ -37,11 +37,18 @@ reason: merge into sub doesnt set throwable to null from start to end?!
 
 ---
 
-com.google.gwt.resources.css.GenerateCssAst.extractValueOf(Ljava/util/List;Lorg/w3c/css/sac/LexicalUnit;)V (ops: 11, regs: 2)
+com.ibm.icu.impl.data.TokenIterator.nextToken(I)I (ops: 142, regs: 7)
 
-Assert happens in Cond.
-	public boolean addMember(final Object value, final BB bb) {
-		assert bb != this.head : "cannot add head as struct member for: " + bb;
+triggered assert:
+	public boolean assignTo(final T t) {
+		final T reducedT = this.t.assignTo(t); // primitive reduction for this.t possible
+		if (reducedT == null) {
+			if (this.t.isUnresolvable() && this.t != T.REF) {
+				return true;
+			}
+			assert false : "cannot assign '" + this + "' to '" + t + "'";
+
+
 
 }}}
 
