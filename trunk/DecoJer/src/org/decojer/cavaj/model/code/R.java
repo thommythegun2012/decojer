@@ -229,7 +229,7 @@ public final class R {
 	 * @return {@code true} - is wide type
 	 */
 	public boolean isWide() {
-		return getT().isWide();
+		return this.t.isWide();
 	}
 
 	private boolean readForwardPropagate(final T t) {
@@ -280,7 +280,7 @@ public final class R {
 			this.ins[i] = newIn;
 			newIn.addOut(this);
 			// oldIn dies anyway, no out remove necessary
-			setT(newIn.getT());
+			setT(newIn.t);
 		}
 		return false;
 	}
