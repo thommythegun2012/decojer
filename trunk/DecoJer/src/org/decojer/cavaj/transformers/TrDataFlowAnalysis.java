@@ -278,7 +278,7 @@ public final class TrDataFlowAnalysis {
 			case DUP_X2: {
 				final R s1 = popSingle();
 				final R s2 = pop();
-				if (!s2.getT().isWide()) {
+				if (!s2.isWide()) {
 					final R s3 = popSingle();
 					push(s1);
 					push(s3);
@@ -293,7 +293,7 @@ public final class TrDataFlowAnalysis {
 			}
 			case DUP2: {
 				final R s1 = peek();
-				if (!s1.getT().isWide()) {
+				if (!s1.isWide()) {
 					final R s2 = peekSingle(1);
 					push(s2);
 					push(s1);
@@ -304,7 +304,7 @@ public final class TrDataFlowAnalysis {
 			}
 			case DUP2_X1: {
 				final R s1 = pop();
-				if (!s1.getT().isWide()) {
+				if (!s1.isWide()) {
 					final R s2 = popSingle();
 					final R s3 = popSingle();
 					push(s2);
@@ -322,10 +322,10 @@ public final class TrDataFlowAnalysis {
 			}
 			case DUP2_X2: {
 				final R s1 = pop();
-				if (!s1.getT().isWide()) {
+				if (!s1.isWide()) {
 					final R s2 = popSingle();
 					final R s3 = pop();
-					if (!s3.getT().isWide()) {
+					if (!s3.isWide()) {
 						final R s4 = popSingle();
 						push(s2);
 						push(s1);
@@ -343,7 +343,7 @@ public final class TrDataFlowAnalysis {
 					break;
 				}
 				final R s3 = pop();
-				if (!s3.getT().isWide()) {
+				if (!s3.isWide()) {
 					final R s4 = popSingle();
 					push(s1);
 					push(s4);
@@ -548,7 +548,7 @@ public final class TrDataFlowAnalysis {
 			switch (cop.getKind()) {
 			case POP2:
 				final R s1 = pop();
-				if (s1.getT().isWide()) {
+				if (s1.isWide()) {
 					break;
 				}
 				// fall through for second pop iff none-wide
@@ -1051,7 +1051,7 @@ public final class TrDataFlowAnalysis {
 
 	private R peekSingle(final int i) {
 		final R s = this.currentFrame.peek(i);
-		if (s.getT().isWide()) {
+		if (s.isWide()) {
 			LOGGER.warning(getMd() + ": Peek '" + i
 					+ "' attempts to split long or double on the stack!");
 		}
@@ -1078,7 +1078,7 @@ public final class TrDataFlowAnalysis {
 
 	private R popSingle() {
 		final R s = this.currentFrame.pop();
-		if (s.getT().isWide()) {
+		if (s.isWide()) {
 			LOGGER.warning(getMd() + ": Pop attempts to split long or double on the stack!");
 		}
 		return s;

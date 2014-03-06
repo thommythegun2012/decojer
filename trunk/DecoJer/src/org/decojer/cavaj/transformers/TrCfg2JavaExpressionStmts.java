@@ -1298,7 +1298,7 @@ public final class TrCfg2JavaExpressionStmts {
 		if (r == null) {
 			return false;
 		}
-		return r.getT().isWide();
+		return r.isWide();
 	}
 
 	private T peekT(final Op op) {
