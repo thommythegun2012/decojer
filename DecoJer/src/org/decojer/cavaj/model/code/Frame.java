@@ -392,7 +392,7 @@ public final class Frame {
 	public int wideStacks(final int stacks) {
 		int wides = 0;
 		for (int j = stacks, i = 0; j-- > 0; ++i) {
-			if (peek(i).getT().isWide()) {
+			if (peek(i).isWide()) {
 				--j;
 				++wides;
 			}

@@ -83,10 +83,10 @@ public final class R {
 	/**
 	 * Upper bound of register type, reads lower the bound through type unions.
 	 */
-	// private T readT;
+	private T readT;
 
 	/**
-	 * Lower bound of register type, stores/merges rise the bound through type joins.
+	 * Lower bound of register type, stores (and merges) rise the bound through type joins.
 	 */
 	private T t;
 
@@ -196,7 +196,7 @@ public final class R {
 		for (final R in : this.ins) {
 			in.assignTo(reducedT);
 		}
-		// TODO this.readT = T.union(this.readT, t);
+		this.readT = T.union(this.readT, t);
 		return true;
 	}
 
@@ -221,6 +221,15 @@ public final class R {
 	 */
 	public boolean isMethodParam() {
 		return this.pc == 0;
+	}
+
+	/**
+	 * Is wide type?
+	 * 
+	 * @return {@code true} - is wide type
+	 */
+	public boolean isWide() {
+		return getT().isWide();
 	}
 
 	private boolean readForwardPropagate(final T t) {
