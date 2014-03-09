@@ -71,6 +71,18 @@ public final class R {
 
 	private final Kind kind;
 
+	/**
+	 * Lower bound of register type, stores (and merges) rise the type bound through type joins.
+	 * 
+	 * Lowest bound is artificial union type "Bottom". All reads must be assignable from this type.
+	 * The derived Java variable type must be somewhere between lowerT and upperT.
+	 * 
+	 * Primitive types behave a bit different: E.g. Dalvik uses 0-constants that are assigned to int
+	 * and bool variables for variable initialization. Hence we sometimes extend the lower type into
+	 * multi-types for primitives.
+	 */
+	private T lowerT;
+
 	private R[] outs;
 
 	/**
@@ -81,14 +93,12 @@ public final class R {
 	private final int pc;
 
 	/**
-	 * Upper bound of register type, reads lower the bound through type unions.
+	 * Upper bound of register type, reads lower the type bound through type unions.
+	 * 
+	 * Highest bound for reference types is Object. All stores must be assignable to this type. The
+	 * derived Java variable type must be somewhere between lowerT and upperT.
 	 */
-	private T readT;
-
-	/**
-	 * Lower bound of register type, stores (and merges) rise the bound through type joins.
-	 */
-	private T t;
+	private T upperT;
 
 	/**
 	 * Register value, for constants as far as we can derive them easily.
@@ -134,7 +144,7 @@ public final class R {
 			final R... ins) {
 		this.pc = pc;
 		this.i = i;
-		this.t = t;
+		this.lowerT = t;
 		this.value = value;
 		this.kind = kind;
 		if (ins != null) {
@@ -174,16 +184,16 @@ public final class R {
 	 * @return {@code true} - success
 	 */
 	public boolean assignTo(final T t) {
-		final T reducedT = this.t.assignTo(t); // primitive reduction for this.t possible
+		final T reducedT = this.lowerT.assignTo(t); // primitive reduction for this.t possible
 		if (reducedT == null) {
-			if (this.t.isUnresolvable() && this.t != T.REF) {
+			if (this.lowerT.isUnresolvable() && this.lowerT != T.REF) {
 				return true;
 			}
 			assert false : "cannot assign '" + this + "' to '" + t + "'";
 
 			return false;
 		}
-		if (this.t.equals(reducedT)) {
+		if (this.lowerT.equals(reducedT)) {
 			return true;
 		}
 		// possible primitive multitype reduction
@@ -196,7 +206,7 @@ public final class R {
 		for (final R in : this.ins) {
 			in.assignTo(reducedT);
 		}
-		this.readT = T.union(this.readT, t);
+		this.upperT = T.union(this.upperT, t);
 		return true;
 	}
 
@@ -229,18 +239,18 @@ public final class R {
 	 * @return {@code true} - is wide type
 	 */
 	public boolean isWide() {
-		return this.t.isWide();
+		return this.lowerT.isWide();
 	}
 
 	private boolean readForwardPropagate(final T t) {
-		final T reducedT = this.t.assignTo(t);
+		final T reducedT = this.lowerT.assignTo(t);
 		if (reducedT == null) {
-			if (this.t.isUnresolvable()) {
+			if (this.lowerT.isUnresolvable()) {
 				return true;
 			}
 			assert false;
 		}
-		if (!this.t.equals(reducedT)) {
+		if (!this.lowerT.equals(reducedT)) {
 			// possible primitive multitype reduction
 			setT(reducedT);
 			if (this.outs != null) {
@@ -280,18 +290,18 @@ public final class R {
 			this.ins[i] = newIn;
 			newIn.addOut(this);
 			// oldIn dies anyway, no out remove necessary
-			setT(newIn.t);
+			setT(newIn.lowerT);
 		}
 		return false;
 	}
 
 	private void setT(final T t) {
-		if (this.t == t) {
+		if (this.lowerT == t) {
 			return;
 		}
 		assert !isMethodParam();
 
-		this.t = t;
+		this.lowerT = t;
 		if (this.outs != null) {
 			for (final R r : getOuts()) {
 				r.setT(t);
@@ -313,7 +323,7 @@ public final class R {
 	@Override
 	public String toString() {
 		return "R" + this.pc + "_" + this.kind.name().substring(0, 2) + ": "
-				+ this.t.getSimpleName();
+				+ this.lowerT.getSimpleName();
 	}
 
 }
