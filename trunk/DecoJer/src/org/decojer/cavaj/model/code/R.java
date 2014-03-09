@@ -162,7 +162,7 @@ public final class R {
 	public void addInMerge(final T t, final R r) {
 		assert getKind() == R.Kind.MERGE;
 
-		setT(t);
+		setLowerT(t);
 		final R[] newIns = new R[this.ins.length + 1];
 		System.arraycopy(this.ins, 0, newIns, 0, this.ins.length);
 		newIns[this.ins.length] = r;
@@ -201,7 +201,7 @@ public final class R {
 			return true;
 		}
 		// possible primitive multitype reduction
-		setT(reducedT);
+		setLowerT(reducedT);
 		if (this.outs != null) {
 			for (final R out : this.outs) {
 				out.readForwardPropagate(t);
@@ -256,7 +256,7 @@ public final class R {
 		}
 		if (!this.lowerT.equals(reducedT)) {
 			// possible primitive multitype reduction
-			setT(reducedT);
+			setLowerT(reducedT);
 			if (this.outs != null) {
 				for (final R out : this.outs) {
 					out.readForwardPropagate(t);
@@ -294,12 +294,12 @@ public final class R {
 			this.ins[i] = newIn;
 			newIn.addOut(this);
 			// oldIn dies anyway, no out remove necessary
-			setT(newIn.lowerT);
+			setLowerT(newIn.lowerT);
 		}
 		return false;
 	}
 
-	private void setT(final T t) {
+	private void setLowerT(final T t) {
 		if (this.lowerT == t) {
 			return;
 		}
@@ -308,7 +308,7 @@ public final class R {
 		this.lowerT = t;
 		if (this.outs != null) {
 			for (final R r : getOuts()) {
-				r.setT(t);
+				r.setLowerT(t);
 			}
 		}
 
@@ -319,7 +319,7 @@ public final class R {
 		}
 		if (this.ins != null) {
 			for (final R r : getIns()) {
-				r.setT(t);
+				r.setLowerT(t);
 			}
 		}
 	}
