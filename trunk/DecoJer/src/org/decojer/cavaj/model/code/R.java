@@ -75,11 +75,14 @@ public final class R {
 	 * Lower bound of register type, stores (and merges) rise the type bound through type joins.
 	 * 
 	 * Lowest bound is artificial union type "Bottom". All reads must be assignable from this type.
-	 * The derived Java variable type must be somewhere between lowerT and upperT.
+	 * The derived Java variable type must be somewhere between upperT and lowerT. We prefer the
+	 * most exact type near lowerT.
 	 * 
-	 * Primitive types behave a bit different: E.g. Dalvik uses 0-constants that are assigned to int
-	 * and bool variables for variable initialization. Hence we sometimes extend the lower type into
-	 * multi-types for primitives.
+	 * Primitive types behave a bit different for stores: The JVM doesn't really differentiate
+	 * between int, bool etc. but Java does. In the JVM you can assign int to bool, but not in Java.
+	 * E.g. Dalvik often uses 0-constants that are assigned to int and bool variables for variable
+	 * initialization. Hence we sometimes extend the lower type through unions into multi-types for
+	 * primitives.
 	 */
 	private T lowerT;
 
@@ -96,7 +99,8 @@ public final class R {
 	 * Upper bound of register type, reads lower the type bound through type unions.
 	 * 
 	 * Highest bound for reference types is Object. All stores must be assignable to this type. The
-	 * derived Java variable type must be somewhere between lowerT and upperT.
+	 * derived Java variable type must be somewhere between upperT and lowerT. We prefer the most
+	 * exact type near lowerT.
 	 */
 	private T upperT;
 
