@@ -111,6 +111,20 @@ public final class R {
 	private Object value;
 
 	/**
+	 * Constructor for MOVE.
+	 *
+	 * @param pc
+	 *            register start pc (MOVE operation pc)
+	 * @param i
+	 *            register index
+	 * @param r
+	 *            moved register
+	 */
+	public R(final int pc, final int i, final R r) {
+		this(pc, i, r.getLowerT(), r.getValue(), Kind.MOVE, r);
+	}
+
+	/**
 	 * Constructor.
 	 * 
 	 * @param pc
@@ -225,6 +239,12 @@ public final class R {
 		assert getKind() == Kind.MOVE && this.ins.length == 1;
 
 		return this.ins[0];
+	}
+
+	public T getT() {
+		// TODO for now we return lower T, especially if value is set...later we must find the
+		// proper type between upper and lower
+		return getLowerT();
 	}
 
 	/**
