@@ -22,14 +22,14 @@ class TestR {
 
 	@Test
 	void isMethodParam() {
-		R r = new R(0, 1, T.INT, Kind.CONST);
+		R r = R.createConstR(0, 1, T.INT, null);
 
 		assertTrue(r.isMethodParam());
 	}
 
 	@Test
 	void properties() {
-		R r = new R(1, 1, T.INT, Kind.CONST);
+		R r = R.createConstR(1, 1, T.INT, null);
 
 		assertSame(r.getPc(), 1);
 		assertSame(r.getT(), T.INT);
