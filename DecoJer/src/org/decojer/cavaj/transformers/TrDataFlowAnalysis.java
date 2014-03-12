@@ -1085,7 +1085,8 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R push(final R r) {
-		return this.currentFrame.push(new R(getCurrentPc() + 1, this.currentFrame.size(), r));
+		return this.currentFrame
+				.push(R.createMoveR(getCurrentPc() + 1, this.currentFrame.size(), r));
 	}
 
 	private R pushBoolmath(final T t, final R r1, final R r2) {
@@ -1219,7 +1220,7 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R store(final int i, final R r) {
-		return this.currentFrame.store(i, new R(getCurrentPc() + 1, i, r));
+		return this.currentFrame.store(i, R.createMoveR(getCurrentPc() + 1, i, r));
 	}
 
 	private void transform() {

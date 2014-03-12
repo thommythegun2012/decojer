@@ -65,6 +65,21 @@ public final class R {
 
 	}
 
+	/**
+	 * Create register of type MOVE.
+	 * 
+	 * @param pc
+	 *            register start pc (MOVE operation pc)
+	 * @param i
+	 *            register index
+	 * @param r
+	 *            moved register
+	 * @return register of type MOVE
+	 */
+	public static R createMoveR(final int pc, final int i, final R r) {
+		return new R(pc, i, r.getLowerT(), r.getValue(), Kind.MOVE, r);
+	}
+
 	private final int i;
 
 	private R[] ins;
@@ -109,20 +124,6 @@ public final class R {
 	 */
 	@Setter
 	private Object value;
-
-	/**
-	 * Constructor for MOVE.
-	 *
-	 * @param pc
-	 *            register start pc (MOVE operation pc)
-	 * @param i
-	 *            register index
-	 * @param r
-	 *            moved register
-	 */
-	public R(final int pc, final int i, final R r) {
-		this(pc, i, r.getLowerT(), r.getValue(), Kind.MOVE, r);
-	}
 
 	/**
 	 * Constructor.
