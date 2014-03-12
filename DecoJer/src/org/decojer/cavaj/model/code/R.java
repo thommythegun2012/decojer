@@ -66,6 +66,68 @@ public final class R {
 	}
 
 	/**
+	 * Create register of type BOOLMATH.
+	 * 
+	 * @param pc
+	 *            register start pc (BOOLMATH operation pc)
+	 * @param i
+	 *            register index
+	 * @param t
+	 *            value type
+	 * @param value
+	 *            value
+	 * @param r1
+	 *            operation register 1
+	 * @param r2
+	 *            operation register 2
+	 * @return register of type BOOLMATH
+	 */
+	public static R createBoolmathR(final int pc, final int i, final T t, final Object value,
+			final R r1, final R r2) {
+		return new R(pc, i, t, value, Kind.BOOLMATH, r1, r2);
+	}
+
+	/**
+	 * Create register of type CONST.
+	 * 
+	 * @param pc
+	 *            register start pc (CONST operation pc)
+	 * @param i
+	 *            register index
+	 * @param t
+	 *            value type
+	 * @param value
+	 *            value
+	 * @return register of type CONST
+	 */
+	public static R createConstR(final int pc, final int i, final T t, final Object value) {
+		// value == null possible for method parameters, GETs, exception handlers etc.
+		return new R(pc, i, t, value, Kind.CONST);
+	}
+
+	/**
+	 * Create register of type MERGE.
+	 * 
+	 * @param pc
+	 *            register start pc (MERGE pc)
+	 * @param i
+	 *            register index
+	 * @param t
+	 *            value type
+	 * @param value
+	 *            value
+	 * @param r1
+	 *            input register 1
+	 * @param r2
+	 *            input register 2
+	 * @return register of type MERGE
+	 */
+	public static R createMergeR(final int pc, final int i, final T t, final Object value,
+			final R r1, final R r2) {
+		return new R(pc, i, t, value, Kind.MERGE, r1, r2);
+	}
+
+	/**
 	 * Create register of type MOVE.
 	 * 
 	 * @param pc
@@ -134,24 +196,6 @@ public final class R {
 	 *            register index
 	 * @param t
 	 *            register type
-	 * @param kind
-	 *            register kind
-	 * @param ins
-	 *            input registers
-	 */
-	public R(final int pc, final int i, final T t, final Kind kind, final R... ins) {
-		this(pc, i, t, null, kind, ins);
-	}
-
-	/**
-	 * Constructor.
-	 * 
-	 * @param pc
-	 *            register start pc
-	 * @param i
-	 *            register index
-	 * @param t
-	 *            register type
 	 * @param value
 	 *            register value
 	 * @param kind
@@ -159,7 +203,7 @@ public final class R {
 	 * @param ins
 	 *            input registers
 	 */
-	public R(final int pc, final int i, final T t, final Object value, final Kind kind,
+	private R(final int pc, final int i, final T t, final Object value, final Kind kind,
 			final R... ins) {
 		this.pc = pc;
 		this.i = i;

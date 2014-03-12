@@ -445,8 +445,7 @@ public final class TrDataFlowAnalysis {
 				if (!this.currentFrame.pushSub(sub)) {
 					return -1;
 				}
-				this.currentFrame.push(new R(subPc, this.currentFrame.size(), T.RET, sub,
-						Kind.CONST));
+				this.currentFrame.push(R.createConstR(subPc, this.currentFrame.size(), T.RET, sub));
 				merge(subPc);
 				return -1;
 			}
@@ -764,8 +763,8 @@ public final class TrDataFlowAnalysis {
 			R excR;
 			if (handlerFrame == null) {
 				// null is <any> (means Java finally) -> Throwable
-				excR = new R(handlerPc, getCfg().getRegs(), exc.getT() == null ? getDu().getT(
-						Throwable.class) : exc.getT(), Kind.CONST);
+				excR = R.createConstR(handlerPc, getCfg().getRegs(), exc.getT() == null ? getDu()
+						.getT(Throwable.class) : exc.getT(), null);
 			} else {
 				if (handlerFrame.getTop() != 1) {
 					LOGGER.warning(getMd() + ": Handler stack for exception merge not of size 1!");
@@ -1017,7 +1016,7 @@ public final class TrDataFlowAnalysis {
 			return;
 		}
 		// else start new merge register
-		final R mergeR = new R(targetBb.getPc(), i, intersectT, Kind.MERGE, prevR, newR);
+		final R mergeR = R.createMergeR(targetBb.getPc(), i, intersectT, null, prevR, newR);
 		final List<BB> endBbs = replaceBbRegDeep(targetBb, prevR, mergeR);
 		if (endBbs != null) {
 			for (final BB endBb : endBbs) {
@@ -1090,8 +1089,8 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R pushBoolmath(final T t, final R r1, final R r2) {
-		return this.currentFrame.push(new R(getCurrentPc() + 1, this.currentFrame.size(), t,
-				null /* TODO do something? */, Kind.BOOLMATH, r1, r2));
+		return this.currentFrame.push(R.createBoolmathR(getCurrentPc() + 1,
+				this.currentFrame.size(), t, null /* TODO do something? */, r1, r2));
 	}
 
 	private R pushConst(final T t) {
@@ -1099,8 +1098,8 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R pushConst(final T t, final Object value) {
-		return this.currentFrame.push(new R(getCurrentPc() + 1, this.currentFrame.size(), t, value,
-				Kind.CONST));
+		return this.currentFrame.push(R.createConstR(getCurrentPc() + 1, this.currentFrame.size(),
+				t, value));
 	}
 
 	private List<BB> replaceBbRegDeep(final BB bb, final R prevR, @Nullable final R newR) {

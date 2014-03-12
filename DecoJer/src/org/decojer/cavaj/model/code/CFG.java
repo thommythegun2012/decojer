@@ -31,7 +31,6 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
@@ -363,12 +362,12 @@ public final class CFG {
 
 		int reg = 0;
 		if (!getM().isStatic()) {
-			frame.store(0, new R(0, 0, getM().getT(), Kind.CONST));
+			frame.store(0, R.createConstR(0, 0, getM().getT(), null));
 			++reg;
 		}
 		final T[] paramTs = getM().getParamTs();
 		for (final T paramT : paramTs) {
-			frame.store(reg, new R(0, reg, paramT, Kind.CONST));
+			frame.store(reg, R.createConstR(0, reg, paramT, null));
 			++reg;
 			if (paramT.isWide()) {
 				++reg;
