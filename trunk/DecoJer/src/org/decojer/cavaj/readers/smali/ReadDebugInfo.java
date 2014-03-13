@@ -25,9 +25,9 @@ package org.decojer.cavaj.readers.smali;
 
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.methods.M;
@@ -47,9 +47,8 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
-
-	private final static Logger LOGGER = Logger.getLogger(ReadDebugInfo.class.getName());
 
 	private final static boolean DEBUG = false;
 
@@ -114,7 +113,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(this.m + ": " + message);
+		log.warn(this.m + ": " + message);
 	}
 
 	@Override
@@ -234,9 +233,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			final T sigT = this.m.getT().getDu()
 					.parseT(signature.getStringValue(), new Cursor(), this.m);
 			if (!sigT.eraseTo(vT)) {
-				LOGGER.info("Cannot reduce signature '" + signature.getStringValue()
-						+ "' to type '" + vT + "' for method (local variable '" + name + "') "
-						+ this.m);
+				log.info("Cannot reduce signature '" + signature.getStringValue() + "' to type '"
+						+ vT + "' for method (local variable '" + name + "') " + this.m);
 			} else {
 				vT = sigT;
 			}

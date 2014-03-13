@@ -27,7 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.CFG;
@@ -129,9 +130,8 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ReadMethodImplementation {
-
-	private final static Logger LOGGER = Logger.getLogger(ReadMethodImplementation.class.getName());
 
 	private M m;
 
@@ -229,7 +229,7 @@ public class ReadMethodImplementation {
 				if (signature != null) {
 					final T sigT = getDu().parseT(signature, new Cursor(), this.m);
 					if (!sigT.eraseTo(vT)) {
-						LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + vT
+						log.info("Cannot reduce signature '" + signature + "' to type '" + vT
 								+ "' for method (local variable '" + name + "') " + this.m);
 					} else {
 						vT = sigT;
@@ -1554,7 +1554,7 @@ public class ReadMethodImplementation {
 				if (targetPc < 0) {
 					getUnresolved(targetVmpc).add(op);
 				} else {
-					LOGGER.warning("Array pseudo operation must have forward target!");
+					log.warn("Array pseudo operation must have forward target!");
 				}
 				break;
 			}
@@ -2342,7 +2342,7 @@ public class ReadMethodImplementation {
 				if (targetPc < 0) {
 					getUnresolved(targetVmpc).add(op);
 				} else {
-					LOGGER.warning("Switch pseudo operation must have forward target!");
+					log.warn("Switch pseudo operation must have forward target!");
 				}
 				break;
 			}
@@ -2465,7 +2465,7 @@ public class ReadMethodImplementation {
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(this.m + ": " + message);
+		log.warn(this.m + ": " + message);
 	}
 
 	private void readLocalVariables(final CFG cfg) {
@@ -2566,7 +2566,7 @@ public class ReadMethodImplementation {
 					op.setCasePcs(casePcs);
 					continue;
 				}
-				LOGGER.warning("Unresolved switch target isn't a SwitchDataPseudoInstruction!");
+				log.warn("Unresolved switch target isn't a SwitchDataPseudoInstruction!");
 				continue;
 			}
 			// cannot happen for Exc / Var here

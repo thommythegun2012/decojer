@@ -23,18 +23,16 @@
  */
 package org.decojer.cavaj.model.code;
 
-import java.util.logging.Logger;
-
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Frame.
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class Frame {
-
-	private final static Logger LOGGER = Logger.getLogger(Frame.class.getName());
 
 	private boolean[] alive;
 
@@ -156,7 +154,7 @@ public final class Frame {
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(this.cfg.getM() + ": " + message);
+		log.warn(this.cfg.getM() + ": " + message);
 	}
 
 	/**

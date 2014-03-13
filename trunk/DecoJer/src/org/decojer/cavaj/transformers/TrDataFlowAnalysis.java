@@ -27,12 +27,12 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.logging.Logger;
 
 import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.BB;
@@ -93,9 +93,8 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class TrDataFlowAnalysis {
-
-	private final static Logger LOGGER = Logger.getLogger(TrDataFlowAnalysis.class.getName());
 
 	/**
 	 * Transform CFG.
@@ -241,7 +240,7 @@ public final class TrDataFlowAnalysis {
 			// org.eclipse.jdt.internal.core.JavaElement.read(
 			// {java.lang.Object,org.eclipse.jdt.core.IJavaElement,org.eclipse.core.runtime.IAdaptable})
 			if (intersectT == null || !vR.assignTo(intersectT)) {
-				LOGGER.warning(getMd() + ": Cannot store array value!");
+				log.warn(getMd() + ": Cannot store array value!");
 			}
 			break;
 		}
@@ -357,7 +356,7 @@ public final class TrDataFlowAnalysis {
 				break;
 			}
 			default:
-				LOGGER.warning(getMd() + ": Unknown DUP type '" + cop.getKind() + "'!");
+				log.warn(getMd() + ": Unknown DUP type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -471,7 +470,7 @@ public final class TrDataFlowAnalysis {
 			}
 			this.currentFrame = new Frame(getFrame(ret.getPc()));
 			if (load(ret.getReg(), T.RET).getValue() != sub) {
-				LOGGER.warning(getMd() + ": Incorrect sub!");
+				log.warn(getMd() + ": Incorrect sub!");
 			}
 			final BB retBb = getBb(ret.getPc());
 			final int jsrFollowPc = jsr.getPc() + 1;
@@ -508,7 +507,7 @@ public final class TrDataFlowAnalysis {
 			case EXIT:
 				break;
 			default:
-				LOGGER.warning(getMd() + ": Unknown MONITOR type '" + cop.getKind() + "'!");
+				log.warn(getMd() + ": Unknown MONITOR type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -556,7 +555,7 @@ public final class TrDataFlowAnalysis {
 				break;
 			}
 			default:
-				LOGGER.warning(getMd() + ": Unknown POP type '" + cop.getKind() + "'!");
+				log.warn(getMd() + ": Unknown POP type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -767,7 +766,7 @@ public final class TrDataFlowAnalysis {
 						.getT(Throwable.class) : exc.getT(), null);
 			} else {
 				if (handlerFrame.getTop() != 1) {
-					LOGGER.warning(getMd() + ": Handler stack for exception merge not of size 1!");
+					log.warn(getMd() + ": Handler stack for exception merge not of size 1!");
 				}
 				excR = handlerFrame.peek(); // reuse exception register
 			}
@@ -1051,8 +1050,7 @@ public final class TrDataFlowAnalysis {
 	private R peekSingle(final int i) {
 		final R s = this.currentFrame.peek(i);
 		if (s.isWide()) {
-			LOGGER.warning(getMd() + ": Peek '" + i
-					+ "' attempts to split long or double on the stack!");
+			log.warn(getMd() + ": Peek '" + i + "' attempts to split long or double on the stack!");
 		}
 		return s;
 	}
@@ -1078,7 +1076,7 @@ public final class TrDataFlowAnalysis {
 	private R popSingle() {
 		final R s = this.currentFrame.pop();
 		if (s.isWide()) {
-			LOGGER.warning(getMd() + ": Pop attempts to split long or double on the stack!");
+			log.warn(getMd() + ": Pop attempts to split long or double on the stack!");
 		}
 		return s;
 	}

@@ -31,7 +31,8 @@ import static org.decojer.cavaj.utils.Expressions.newTypeName;
 
 import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
@@ -71,9 +72,8 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class TrJvmStruct2JavaAst {
-
-	private final static Logger LOGGER = Logger.getLogger(TrJvmStruct2JavaAst.class.getName());
 
 	private static void decompileField(final F f, final CU cu) {
 		final String name = f.getName();
@@ -245,7 +245,7 @@ public final class TrJvmStruct2JavaAst {
 		// interfaces can have default methods since JVM 8
 		if (isInterfaceMember && m.getCfg() != null && !m.isStatic()) {
 			if (m.getT().isBelow(Version.JVM_8)) {
-				LOGGER.warning("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
+				log.warn("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
 			}
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.DEFAULT_KEYWORD));
 		}
@@ -352,7 +352,7 @@ public final class TrJvmStruct2JavaAst {
 					if (m.getParamTs()[0].is(t.getEnclosingT())) {
 						continue;
 					}
-					LOGGER.warning(m
+					log.warn(m
 							+ ": Inner class constructor has no synthetic this reference as first argument!");
 				}
 				// anonymous inner classes cannot have visible Java constructors, don't handle
@@ -410,11 +410,11 @@ public final class TrJvmStruct2JavaAst {
 			// annotation type declaration
 			if (t.check(AF.ANNOTATION)) {
 				if (t.getSuperT() == null || !t.getSuperT().isObject()) {
-					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no super class Object but has '"
+					log.warn("Classfile with AccessFlag.ANNOTATION has no super class Object but has '"
 							+ t.getSuperT() + "'!");
 				}
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
-					LOGGER.warning("Classfile with AccessFlag.ANNOTATION has no interface '"
+					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
 							+ "'!");
 				}
@@ -423,11 +423,11 @@ public final class TrJvmStruct2JavaAst {
 			// enum declaration
 			if (t.isEnum() && !t.getCu().check(DFlag.IGNORE_ENUM)) {
 				if (typeDeclaration != null) {
-					LOGGER.warning("Enum declaration cannot be an annotation type declaration! Ignoring.");
+					log.warn("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
 					if (t.getSuperT() == null || !t.getSuperT().isParameterized()
 							|| !t.getSuperT().is(Enum.class)) {
-						LOGGER.warning("Enum type '" + t + "' has no super class '"
+						log.warn("Enum type '" + t + "' has no super class '"
 								+ Enum.class.getName() + "' but has '" + t.getSuperT() + "'!");
 					}
 					typeDeclaration = ast.newEnumDeclaration();
@@ -490,7 +490,7 @@ public final class TrJvmStruct2JavaAst {
 			} else if (!t.check(AF.SUPER) && !t.isDalvik()) {
 				// modern invokesuper syntax, is always set in current JVM, but not in Dalvik or
 				// inner classes info flags
-				LOGGER.warning("Modern invokesuper syntax flag not set in type '" + t + "'!");
+				log.warn("Modern invokesuper syntax flag not set in type '" + t + "'!");
 			}
 			if (t.check(AF.ABSTRACT)
 					&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
@@ -585,7 +585,7 @@ public final class TrJvmStruct2JavaAst {
 			// this is not a valid Java type name and is used for package annotations, we must
 			// handle this here, is "interface" in JDK 5, is "abstract synthetic interface" in JDK 7
 			if (!t.isInterface()) {
-				LOGGER.warning("Type declaration with name 'package-info' is not an interface!");
+				log.warn("Type declaration with name 'package-info' is not an interface!");
 			}
 			if (t.getAs() != null) {
 				Annotations.decompileAnnotations(t.getAs(), cu.getCompilationUnit().getPackage()

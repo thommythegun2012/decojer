@@ -26,10 +26,10 @@ package org.decojer.cavaj.readers.asm;
 import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
-import java.util.logging.Logger;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
@@ -51,9 +51,8 @@ import org.objectweb.asm.TypeReference;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ReadClassVisitor extends ClassVisitor {
-
-	private final static Logger LOGGER = Logger.getLogger(ReadClassVisitor.class.getName());
 
 	private A[] as;
 
@@ -95,7 +94,7 @@ public class ReadClassVisitor extends ClassVisitor {
 			final String signature, final String superName, final String[] interfaces) {
 		final T t = this.du.getT(name);
 		if (!t.createTd()) {
-			LOGGER.warning(this.t + ": Type '" + t + "' already read!");
+			log.warn(this.t + ": Type '" + t + "' already read!");
 			throw new ReadException();
 		}
 		this.t = t;
@@ -136,7 +135,7 @@ public class ReadClassVisitor extends ClassVisitor {
 			this.t.setScala();
 			return;
 		}
-		LOGGER.warning(this.t + ": Unknown class attribute tag '" + attr.type + "'!");
+		log.warn(this.t + ": Unknown class attribute tag '" + attr.type + "'!");
 	}
 
 	@Override
@@ -208,7 +207,7 @@ public class ReadClassVisitor extends ClassVisitor {
 		if (debug != null) {
 			// TODO need an example, really useful in the wild?
 			// JVM spec: 4.7.11 The SourceDebugExtension Attribute
-			LOGGER.warning(this.t + ": " + debug);
+			log.warn(this.t + ": " + debug);
 		}
 		this.t.setSourceFileName(source);
 	}
@@ -232,8 +231,8 @@ public class ReadClassVisitor extends ClassVisitor {
 					interfaceTs[superTypeIndex] = annotateT(interfaceTs[superTypeIndex], a,
 							typePath);
 				} else {
-					LOGGER.warning("Super type index '" + superTypeIndex + "' is to large for '"
-							+ this.t + "'!");
+					log.warn("Super type index '" + superTypeIndex + "' is to large for '" + this.t
+							+ "'!");
 				}
 			}
 			break;
@@ -258,14 +257,14 @@ public class ReadClassVisitor extends ClassVisitor {
 					interfaceTs[typeParameterBoundIndex - 1] = annotateT(
 							interfaceTs[typeParameterBoundIndex - 1], a, typePath);
 				} else {
-					LOGGER.warning("Type parameter bound index '" + (typeParameterBoundIndex - 1)
+					log.warn("Type parameter bound index '" + (typeParameterBoundIndex - 1)
 							+ "' is to large for '" + this.t + "'!");
 				}
 			}
 			break;
 		}
 		default:
-			LOGGER.warning(this.t + ": Unknown type annotation ref sort '0x"
+			log.warn(this.t + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}

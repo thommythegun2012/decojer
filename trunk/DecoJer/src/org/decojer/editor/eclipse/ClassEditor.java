@@ -24,9 +24,9 @@
 package org.decojer.editor.eclipse;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.DecoJer;
 import org.decojer.DecoJerException;
@@ -78,9 +78,8 @@ import com.google.common.collect.Lists;
  * Class editor.
  */
 @SuppressWarnings("restriction")
+@Slf4j
 public class ClassEditor extends MultiPageEditorPart {
-
-	private final static Logger LOGGER = Logger.getLogger(ClassEditor.class.getName());
 
 	private static Pattern createEclipseMethodSignaturePattern(final String signature) {
 		final Cursor c = new Cursor();
@@ -441,7 +440,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					switch (ms.size()) {
 					case 0:
 						// shouldn't happen, after all we have decompiled this from the model
-						LOGGER.warning("Unknown method declaration for '" + methodName + "'!");
+						log.warn("Unknown method declaration for '" + methodName + "'!");
 						return null;
 					case 1:
 						// only 1 possible method, signature check not really necessary
@@ -476,7 +475,7 @@ public class ClassEditor extends MultiPageEditorPart {
 								continue path;
 							}
 						}
-						LOGGER.warning("Unknown method declaration for '" + methodName
+						log.warn("Unknown method declaration for '" + methodName
 								+ "' and signature '" + signature + "'! Derived pattern:\n"
 								+ signaturePattern.toString());
 						return null;
@@ -485,7 +484,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			}
 			return c;
 		} catch (final JavaModelException e) {
-			LOGGER.log(Level.SEVERE, "Couldn't get Eclipse Java element data for selection!", e);
+			log.error("Couldn't get Eclipse Java element data for selection!", e);
 			return null;
 		}
 	}
@@ -523,7 +522,7 @@ public class ClassEditor extends MultiPageEditorPart {
 						final Container c = findDeclarationForJavaElement((IJavaElement) treeSelection
 								.getFirstElement());
 						if (c == null) {
-							LOGGER.warning("Unknown declaration for path '"
+							log.warn("Unknown declaration for path '"
 									+ treeSelection.getFirstElement() + "'!");
 							return;
 						}
@@ -559,7 +558,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		try {
 			final long currentTimeMillis = System.currentTimeMillis();
 			selectedTds = this.du.read(fileName);
-			LOGGER.info("Read '" + selectedTds.size() + "' TDs from file '" + fileName + "' in "
+			log.info("Read '" + selectedTds.size() + "' TDs from file '" + fileName + "' in "
 					+ (System.currentTimeMillis() - currentTimeMillis) + " ms");
 		} catch (final Throwable e) {
 			throw new PartInitException("Couldn't read file '" + fileName + "'!", e);

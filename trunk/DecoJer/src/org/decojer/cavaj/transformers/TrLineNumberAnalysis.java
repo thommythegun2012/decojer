@@ -26,7 +26,8 @@ package org.decojer.cavaj.transformers;
 import static org.decojer.cavaj.utils.Expressions.getOp;
 
 import java.util.List;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Element;
@@ -49,9 +50,8 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class TrLineNumberAnalysis {
-
-	private final static Logger LOGGER = Logger.getLogger(TrLineNumberAnalysis.class.getName());
 
 	private static void analyzeLines(final Block block, final Element e) {
 		assert e != null;
@@ -96,8 +96,7 @@ public final class TrLineNumberAnalysis {
 				} else if (fieldDeclaration instanceof EnumConstantDeclaration) {
 					// TODO
 				} else {
-					LOGGER.warning("Unknown field ASTNode type '" + fieldDeclaration.getClass()
-							+ "'!");
+					log.warn("Unknown field ASTNode type '" + fieldDeclaration.getClass() + "'!");
 					continue;
 				}
 				continue;
@@ -115,8 +114,7 @@ public final class TrLineNumberAnalysis {
 				} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 					continue;
 				} else {
-					LOGGER.warning("Unknown method ASTNode type '" + methodDeclaration.getClass()
-							+ "'!");
+					log.warn("Unknown method ASTNode type '" + methodDeclaration.getClass() + "'!");
 					continue;
 				}
 				if (block != null) {

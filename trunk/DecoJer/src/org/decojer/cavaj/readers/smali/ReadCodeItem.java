@@ -27,7 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.CFG;
@@ -118,9 +119,8 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ReadCodeItem {
-
-	private final static Logger LOGGER = Logger.getLogger(ReadCodeItem.class.getName());
 
 	private M m;
 
@@ -232,7 +232,7 @@ public class ReadCodeItem {
 					final Instruction11x instr = (Instruction11x) instruction;
 
 					if (moveInvokeResultT == null) {
-						LOGGER.warning("Move result without previous result type!");
+						log.warn("Move result without previous result type!");
 						moveInvokeResultT = T.REF;
 					}
 
@@ -1414,7 +1414,7 @@ public class ReadCodeItem {
 				if (targetPc < 0) {
 					getUnresolved(targetVmpc).add(op);
 				} else {
-					LOGGER.warning("Array pseudo operation must have forward target!");
+					log.warn("Array pseudo operation must have forward target!");
 				}
 				break;
 			}
@@ -2205,7 +2205,7 @@ public class ReadCodeItem {
 				if (targetPc < 0) {
 					getUnresolved(targetVmpc).add(op);
 				} else {
-					LOGGER.warning("Switch pseudo operation must have forward target!");
+					log.warn("Switch pseudo operation must have forward target!");
 				}
 				break;
 			}
@@ -2433,7 +2433,7 @@ public class ReadCodeItem {
 					op.setCasePcs(casePcs);
 					continue;
 				}
-				LOGGER.warning("Unresolved switch target isn't a SwitchDataPseudoInstruction!");
+				log.warn("Unresolved switch target isn't a SwitchDataPseudoInstruction!");
 				continue;
 			}
 			if (o instanceof FILLARRAY) {
@@ -2469,8 +2469,8 @@ public class ReadCodeItem {
 									| ((long) b[bi + 1] & 0xFF) << 8 | (long) b[bi] & 0xFF;
 							continue;
 						default:
-							LOGGER.warning("Unknown fill array element length '"
-									+ element.elementWidth + "'!");
+							log.warn("Unknown fill array element length '" + element.elementWidth
+									+ "'!");
 						}
 					}
 					op.setValues(values);

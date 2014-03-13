@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.model.methods;
 
-import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.types.T;
 
@@ -32,9 +32,8 @@ import org.decojer.cavaj.model.types.T;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class QualifiedM extends ExtendedM {
-
-	private final static Logger LOGGER = Logger.getLogger(QualifiedM.class.getName());
 
 	/**
 	 * Method qualifier.
@@ -62,7 +61,7 @@ public class QualifiedM extends ExtendedM {
 	@Override
 	public void setQualifierT(final T qualifierT) {
 		if (!super.getT().validateQualifierName(qualifierT.getName())) {
-			LOGGER.warning("Qualifier type for '" + this + "' cannot be set to not matching type '"
+			log.warn("Qualifier type for '" + this + "' cannot be set to not matching type '"
 					+ qualifierT + "'!");
 			return;
 		}

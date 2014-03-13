@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.model.types;
 
-import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
 
@@ -34,9 +34,8 @@ import org.decojer.cavaj.model.DU;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class QualifiedT extends ExtendedT {
-
-	private final static Logger LOGGER = Logger.getLogger(QualifiedT.class.getName());
 
 	/**
 	 * Type qualifier, is like enclosing type in references.
@@ -81,7 +80,7 @@ public class QualifiedT extends ExtendedT {
 	@Override
 	public void setQualifierT(final T qualifierT) {
 		if (!validateQualifierName(qualifierT.getName())) {
-			LOGGER.warning("Qualifier type for '" + this + "' cannot be set to not matching type '"
+			log.warn("Qualifier type for '" + this + "' cannot be set to not matching type '"
 					+ qualifierT + "'!");
 			return;
 		}

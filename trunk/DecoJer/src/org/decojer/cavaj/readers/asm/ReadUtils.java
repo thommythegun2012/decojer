@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.readers.asm;
 
-import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
@@ -37,9 +37,8 @@ import org.objectweb.asm.TypePath;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ReadUtils {
-
-	private final static Logger LOGGER = Logger.getLogger(ReadUtils.class.getName());
 
 	/**
 	 * Annotate given method with annotation under consideration of the type path.
@@ -101,8 +100,7 @@ public class ReadUtils {
 
 			final T componentT = t.getComponentT();
 			if (componentT == null) {
-				LOGGER.warning("Not enough array components in '" + t
-						+ "' for type annotation path!");
+				log.warn("Not enough array components in '" + t + "' for type annotation path!");
 				break;
 			}
 			t.setComponentT(annotateT(componentT, a, typePath, index + 1));
@@ -114,7 +112,7 @@ public class ReadUtils {
 		case TypePath.TYPE_ARGUMENT: {
 			final T[] typeArgs = t.getTypeArgs();
 			if (typeArgs == null || typeArgs.length <= arg) {
-				LOGGER.warning("Not enough type arguments in '" + t
+				log.warn("Not enough type arguments in '" + t
 						+ "' for type annotation path with argument '" + arg + "'!");
 				break;
 			}
@@ -127,14 +125,14 @@ public class ReadUtils {
 
 			final T boundT = t.getBoundT();
 			if (boundT == null) {
-				LOGGER.warning("No wildcard bound in '" + t + "' for type annotation path!");
+				log.warn("No wildcard bound in '" + t + "' for type annotation path!");
 				break;
 			}
 			t.setBoundT(annotateT(boundT, a, typePath, index + 1));
 			break;
 		}
 		default:
-			LOGGER.warning("Unknown step '0x" + Integer.toHexString(step) + "' in '" + t
+			log.warn("Unknown step '0x" + Integer.toHexString(step) + "' in '" + t
 					+ "' for type annotation path with argument '" + arg + "'!");
 		}
 		return t;
@@ -168,8 +166,8 @@ public class ReadUtils {
 		}
 		final T[] qualifierTs = t.getQualifierTs();
 		if (innerCounter >= qualifierTs.length) {
-			LOGGER.warning("Not enough qualifiers in '" + t
-					+ "' for type annotation with path depth '" + innerCounter + "'!");
+			log.warn("Not enough qualifiers in '" + t + "' for type annotation with path depth '"
+					+ innerCounter + "'!");
 			return t;
 		}
 		if (innerCounter == qualifierTs.length - 1) {

@@ -27,12 +27,11 @@ import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
@@ -56,9 +55,8 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ClassT extends T {
-
-	private final static Logger LOGGER = Logger.getLogger(ClassT.class.getName());
 
 	/**
 	 * Type name - is like a unique descriptor without modifiers like annotations or
@@ -330,11 +328,11 @@ public class ClassT extends T {
 		try {
 			klass = getClass().getClassLoader().loadClass(getName());
 		} catch (final ClassNotFoundException e) {
-			// LOGGER.warning("Couldn't load type '" + getName() + "'!");
+			// log.warning("Couldn't load type '" + getName() + "'!");
 			this.accessFlags |= AF.UNRESOLVABLE.getValue();
 			return true;
 		} catch (final SecurityException e) {
-			LOGGER.warning("Couldn't load type class '" + getName()
+			log.warn("Couldn't load type class '" + getName()
 					+ "' because of security issues!\nMessage: " + e.getMessage());
 			this.accessFlags |= AF.UNRESOLVABLE.getValue();
 			return true;
@@ -378,7 +376,7 @@ public class ClassT extends T {
 				setEnclosingM(methodT.getM(enclosingMethod.getName() /* also info[1] */,
 						(String) info[2]));
 			} catch (final Exception e) {
-				LOGGER.log(Level.WARNING, "Couldn't get descriptor for class loaded method!", e);
+				log.warn("Couldn't get descriptor for class loaded method!", e);
 			}
 		}
 		resolve();
@@ -456,15 +454,15 @@ public class ClassT extends T {
 				return;
 			}
 			if (!this.enclosing.equals(enclosingM.getT())) {
-				LOGGER.warning("Enclosing method cannot be changed from '" + this.enclosing
-						+ "' to '" + enclosingM + "'!");
+				log.warn("Enclosing method cannot be changed from '" + this.enclosing + "' to '"
+						+ enclosingM + "'!");
 				return;
 			}
 			// enclosing method is more specific, overwrite enclosing type...
 		}
 		if (!validateQualifierName(enclosingM.getT().getName())) {
-			LOGGER.warning("Enclosing type for '" + this
-					+ "' cannot be set to not matching method '" + enclosingM + "'!");
+			log.warn("Enclosing type for '" + this + "' cannot be set to not matching method '"
+					+ enclosingM + "'!");
 			return;
 		}
 		this.enclosing = enclosingM;
@@ -473,7 +471,7 @@ public class ClassT extends T {
 	@Override
 	public void setEnclosingT(final T enclosingT) {
 		if (!(enclosingT instanceof ClassT)) {
-			LOGGER.warning("Enclosing type for '" + this + "' cannot be set to modified type '"
+			log.warn("Enclosing type for '" + this + "' cannot be set to modified type '"
 					+ enclosingT + "'!");
 			return;
 		}
@@ -485,12 +483,12 @@ public class ClassT extends T {
 				// enclosing method is more specific, don't change it
 				return;
 			}
-			LOGGER.warning("Enclosing type cannot be changed from '" + this.enclosing + "' to '"
+			log.warn("Enclosing type cannot be changed from '" + this.enclosing + "' to '"
 					+ enclosingT + "'!");
 			return;
 		}
 		if (!validateQualifierName(enclosingT.getName())) {
-			LOGGER.warning("Enclosing type for '" + this + "' cannot be set to not matching type '"
+			log.warn("Enclosing type for '" + this + "' cannot be set to not matching type '"
 					+ enclosingT + "'!");
 			return;
 		}
@@ -541,7 +539,7 @@ public class ClassT extends T {
 	public void setScala() {
 		if (getSourceFileName() != null) {
 			if (!isScala()) {
-				LOGGER.warning("This should be a Scala source code!");
+				log.warn("This should be a Scala source code!");
 			}
 			return;
 		}
@@ -557,7 +555,7 @@ public class ClassT extends T {
 
 		final T superT = getDu().parseT(signature, c, this);
 		if (!superT.eraseTo(getSuperT())) {
-			LOGGER.info("Cannot reduce type '" + superT + "' to super type '" + getSuperT()
+			log.info("Cannot reduce type '" + superT + "' to super type '" + getSuperT()
 					+ "' for type declaration '" + this + "' with signature: " + signature);
 			return;
 		}
@@ -567,14 +565,14 @@ public class ClassT extends T {
 			final T[] interfaceTs = getInterfaceTs();
 			if (signInterfaceTs.length > interfaceTs.length) {
 				// < can happen, e.g. scala-lift misses the final java.io.Serializable in signatures
-				LOGGER.info("Cannot reduce interface types for type declaration '" + this
+				log.info("Cannot reduce interface types for type declaration '" + this
 						+ "' with signature: " + signature);
 				return;
 			}
 			for (int i = 0; i < signInterfaceTs.length; ++i) {
 				final T interfaceT = signInterfaceTs[i];
 				if (!interfaceT.eraseTo(interfaceTs[i])) {
-					LOGGER.info("Cannot reduce type '" + interfaceT + "' to interface type '"
+					log.info("Cannot reduce type '" + interfaceT + "' to interface type '"
 							+ interfaceTs[i] + "' for type declaration '" + this
 							+ "' with signature: " + signature);
 					return;
