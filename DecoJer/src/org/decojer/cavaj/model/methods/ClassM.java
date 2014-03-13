@@ -24,11 +24,11 @@
 package org.decojer.cavaj.model.methods;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
@@ -49,9 +49,8 @@ import com.google.common.collect.Lists;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ClassM extends M {
-
-	private final static Logger LOGGER = Logger.getLogger(ClassM.class.getName());
 
 	@Setter
 	private int accessFlags;
@@ -378,14 +377,14 @@ public class ClassM extends M {
 				// e.g. outer context for methods in inner classes: (I)V instead of (Lthis;_I_II)V
 				// or enum constructor parameters arg0: String, arg1: int
 				if (!isConstructor()) {
-					LOGGER.info("Cannot reduce signature '" + signature
+					log.info("Cannot reduce signature '" + signature
 							+ "' to types for method params: " + this);
 				}
 			} else {
 				for (int i = 0; i < paramTs.length; ++i) {
 					final T paramT = signParamTs[i];
 					if (!paramT.eraseTo(paramTs[i])) {
-						LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
+						log.info("Cannot reduce signature '" + signature + "' to type '"
 								+ paramTs[i] + "' for method param: " + this);
 						break;
 					}
@@ -395,7 +394,7 @@ public class ClassM extends M {
 		}
 		final T returnT = getT().getDu().parseT(signature, c, this);
 		if (!returnT.eraseTo(getReturnT())) {
-			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
+			log.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
 					+ "' for method return: " + this);
 		} else {
 			setReturnT(returnT);
@@ -404,14 +403,14 @@ public class ClassM extends M {
 		if (signThrowTs != null) {
 			final T[] throwsTs = getThrowsTs();
 			if (throwsTs.length != signThrowTs.length) {
-				LOGGER.info("Cannot reduce signature '" + signature
-						+ "' to types for method throws: " + this);
+				log.info("Cannot reduce signature '" + signature + "' to types for method throws: "
+						+ this);
 			}
 			for (int i = 0; i < throwsTs.length; ++i) {
 				final T throwT = signThrowTs[i];
 				if (!throwT.eraseTo(throwsTs[i])) {
-					LOGGER.info("Cannot reduce signature '" + signature + "' to type '"
-							+ throwsTs[i] + "' for method throw: " + this);
+					log.info("Cannot reduce signature '" + signature + "' to type '" + throwsTs[i]
+							+ "' for method throw: " + this);
 					break;
 				}
 				throwsTs[i] = throwT;

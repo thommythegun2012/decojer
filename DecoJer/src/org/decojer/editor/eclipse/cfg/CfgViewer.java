@@ -24,8 +24,8 @@
 package org.decojer.editor.eclipse.cfg;
 
 import java.util.IdentityHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.Element;
@@ -57,9 +57,8 @@ import org.eclipse.zest.layouts.LayoutStyles;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class CfgViewer extends Composite {
-
-	private final static Logger LOGGER = Logger.getLogger(CfgViewer.class.getName());
 
 	private final Button cfgAntialiasingCheckbox;
 
@@ -188,7 +187,7 @@ public class CfgViewer extends Composite {
 			cfg.decompile(stage);
 		} catch (final Throwable e) {
 			TrCalculatePostorder.transform(cfg);
-			LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+			log.warn("Cannot transform '" + cfg + "'!", e);
 		}
 		initGraph(cfg);
 	}

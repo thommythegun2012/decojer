@@ -30,7 +30,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
@@ -100,6 +101,7 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ReadMethodVisitor extends MethodVisitor {
 
 	/**
@@ -122,8 +124,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	private InsnAnnotationInfo insnAnnotationInfo;
-
-	private final static Logger LOGGER = Logger.getLogger(ReadMethodVisitor.class.getName());
 
 	private A[] as;
 
@@ -184,7 +184,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				return true;
 			}
 			if (logError) {
-				LOGGER.warning(getMd() + ": Wrong operation '" + op
+				log.warn(getMd() + ": Wrong operation '" + op
 						+ "' for type annotation ref sort 'CAST' : " + typeRef + " : " + typePath
 						+ " : " + a);
 			}
@@ -193,13 +193,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case TypeReference.CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT:
 		case TypeReference.METHOD_INVOCATION_TYPE_ARGUMENT: {
 			if (op instanceof INVOKE) {
-				LOGGER.warning(getMd()
+				log.warn(getMd()
 						+ ": Missing bytecode info, cannot really apply type annotation ref sort 'CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT' or 'METHOD_INVOCATION_TYPE_ARGUMENT' : "
 						+ typeRef + " : " + typePath + " : " + a);
 				return true;
 			}
 			if (logError) {
-				LOGGER.warning(getMd()
+				log.warn(getMd()
 						+ ": Wrong operation '"
 						+ op
 						+ "' for type annotation ref sort 'CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT' or 'METHOD_INVOCATION_TYPE_ARGUMENT' : "
@@ -217,7 +217,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				}
 			}
 			if (logError) {
-				LOGGER.warning(getMd()
+				log.warn(getMd()
 						+ ": Wrong operation '"
 						+ op
 						+ "' for type annotation ref sort 'CONSTRUCTOR_REFERENCE' or 'METHOD_REFERENCE' : "
@@ -230,14 +230,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (op instanceof INVOKE) {
 				final Object[] bsArgs = ((INVOKE) op).getBsArgs();
 				if (bsArgs != null && bsArgs.length > 1 && bsArgs[1] instanceof M) {
-					LOGGER.warning(getMd()
+					log.warn(getMd()
 							+ ": Missing bytecode info, cannot really apply type annotation ref sort 'CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT' or 'METHOD_REFERENCE_TYPE_ARGUMENT' : "
 							+ typeRef + " : " + typePath + " : " + a);
 					return true;
 				}
 			}
 			if (logError) {
-				LOGGER.warning(getMd()
+				log.warn(getMd()
 						+ ": Wrong operation '"
 						+ op
 						+ "' for type annotation ref sort 'CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT' or 'METHOD_REFERENCE_TYPE_ARGUMENT' : "
@@ -251,14 +251,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 				return true;
 			}
 			if (logError) {
-				LOGGER.warning(getMd() + ": Wrong operation '" + op
+				log.warn(getMd() + ": Wrong operation '" + op
 						+ "' for type annotation ref sort 'NEW' : " + typeRef + " : " + typePath
 						+ " : " + a);
 			}
 			return false;
 		}
 		default:
-			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
+			log.warn(getMd() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + a);
 		}
@@ -345,8 +345,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
-		LOGGER.warning(getMd() + ": Unknown method attribute tag '" + attr.type
-				+ "' for field info '" + this.m.getT() + "'!");
+		log.warn(getMd() + ": Unknown method attribute tag '" + attr.type + "' for field info '"
+				+ this.m.getT() + "'!");
 	}
 
 	@Override
@@ -419,14 +419,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 			return;
 		}
 		default:
-			LOGGER.warning(getMd() + ": Unknown field insn opcode '" + opcode + "'!");
+			log.warn(getMd() + ": Unknown field insn opcode '" + opcode + "'!");
 		}
 	}
 
 	@Override
 	public void visitFrame(final int type, final int nLocal, final Object[] local,
 			final int nStack, final Object[] stack) {
-		// LOGGER.info(getMd() + ": " + type + " : " + nLocal
+		// log.info(getMd() + ": " + type + " : " + nLocal
 		// + " : " + local + " : " + nStack + " : " + stack);
 	}
 
@@ -1050,7 +1050,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			LOGGER.warning(getMd() + ": Unknown insn opcode '" + opcode + "'!");
+			log.warn(getMd() + ": Unknown insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1084,7 +1084,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 					this.du.getArrayT(T.TYPES[operand]), 1));
 			break;
 		default:
-			LOGGER.warning(getMd() + ": Unknown int insn opcode '" + opcode + "'!");
+			log.warn(getMd() + ": Unknown int insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1255,7 +1255,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			LOGGER.warning(getMd() + ": Unknown jump insn opcode '" + opcode + "'!");
+			log.warn(getMd() + ": Unknown jump insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1268,7 +1268,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		}
 		if (pc > 0) {
 			// visited before but is known?!
-			LOGGER.warning(getMd() + ": Label '" + label + "' is not unique, has old PC '"
+			log.warn(getMd() + ": Label '" + label + "' is not unique, has old PC '"
 					+ this.ops.size() + "'!");
 			return;
 		}
@@ -1350,7 +1350,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			} else if (cst instanceof String) {
 				t = this.du.getT(String.class);
 			} else {
-				LOGGER.warning(getMd() + ": Unknown ldc insn cst '" + cst + "'!");
+				log.warn(getMd() + ": Unknown ldc insn cst '" + cst + "'!");
 			}
 		}
 		add(new PUSH(this.ops.size(), Opcodes.LDC, this.line, t, oValue));
@@ -1360,7 +1360,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public void visitLineNumber(final int line, final Label start) {
 		final int pc = getPc(start);
 		if (pc < 0) {
-			LOGGER.warning(getMd() + ": Line number '" + line + "' start label '" + start
+			log.warn(getMd() + ": Line number '" + line + "' start label '" + start
 					+ "' unknown yet?");
 		}
 		this.line = line;
@@ -1373,8 +1373,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		if (signature != null) {
 			final T sigT = this.du.parseT(signature, new Cursor(), this.m);
 			if (!sigT.eraseTo(vT)) {
-				LOGGER.info(getMd() + ": Cannot reduce signature '" + signature + "' to type '"
-						+ vT + "' for method (local variable '" + name + "') " + this.m);
+				log.info(getMd() + ": Cannot reduce signature '" + signature + "' to type '" + vT
+						+ "' for method (local variable '" + name + "') " + this.m);
 			} else {
 				vT = sigT;
 			}
@@ -1437,7 +1437,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			break;
 		default:
-			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
+			log.warn(getMd() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}
@@ -1479,7 +1479,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@SuppressWarnings("deprecation")
 	public void visitMethodInsn(final int opcode, final String owner, final String name,
 			final String desc) {
-		LOGGER.warning(getMd() + ": Shouldn't be called with ASM5!");
+		log.warn(getMd() + ": Shouldn't be called with ASM5!");
 		super.visitMethodInsn(opcode, owner, name, desc);
 	}
 
@@ -1503,11 +1503,12 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 			final M refM = ownerT.getM(name, desc);
 			refM.setStatic(opcode == Opcodes.INVOKESTATIC);
-			add(new INVOKE(this.ops.size(), opcode, this.line, refM, opcode == Opcodes.INVOKESPECIAL));
+			add(new INVOKE(this.ops.size(), opcode, this.line, refM,
+					opcode == Opcodes.INVOKESPECIAL));
 			break;
 		}
 		default:
-			LOGGER.warning(getMd() + ": Unknown method insn opcode '" + opcode + "'!");
+			log.warn(getMd() + ": Unknown method insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1525,7 +1526,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitParameter(final String name, final int access) {
-		LOGGER.warning(getMd() + ": " + name + " : " + access);
+		log.warn(getMd() + ": " + name + " : " + access);
 		super.visitParameter(name, access);
 	}
 
@@ -1598,7 +1599,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
+			log.warn(getMd() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}
@@ -1683,7 +1684,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			LOGGER.warning(getMd() + ": Unknown type annotation ref sort '0x"
+			log.warn(getMd() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}
@@ -1720,7 +1721,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du.getArrayT(t), 1));
 			break;
 		default:
-			LOGGER.warning(getMd() + ": Unknown var insn opcode '" + opcode + "'!");
+			log.warn(getMd() + ": Unknown var insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1791,7 +1792,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			LOGGER.warning(getMd() + ": Unknown var insn opcode '" + opcode + "'!");
+			log.warn(getMd() + ": Unknown var insn opcode '" + opcode + "'!");
 		}
 	}
 

@@ -24,11 +24,11 @@
 package org.decojer.cavaj.model.fields;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
@@ -44,9 +44,8 @@ import org.eclipse.jdt.core.dom.ASTNode;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ClassF extends F {
-
-	private final static Logger LOGGER = Logger.getLogger(F.class.getName());
 
 	@Setter
 	private int accessFlags;
@@ -206,7 +205,7 @@ public class ClassF extends F {
 		}
 		final T valueT = getT().getDu().parseT(signature, new Cursor(), this);
 		if (!valueT.eraseTo(getValueT())) {
-			LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + getValueT()
+			log.info("Cannot reduce signature '" + signature + "' to type '" + getValueT()
 					+ "' for field value: " + this);
 		} else {
 			setValueT(valueT);

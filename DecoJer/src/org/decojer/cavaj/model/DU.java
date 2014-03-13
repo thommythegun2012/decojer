@@ -36,14 +36,13 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.methods.ClassM;
@@ -76,9 +75,8 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class DU {
-
-	private final static Logger LOGGER = Logger.getLogger(DU.class.getName());
 
 	/**
 	 * Get type with added type annotation for given type and type annotation.
@@ -96,7 +94,7 @@ public final class DU {
 		final AnnotatedT annotT = (AnnotatedT) t;
 		for (final A checkA : annotT.getAs()) {
 			if (checkA.getT().equals(a.getT())) {
-				LOGGER.warning("Type '" + t + "' already has the type annotation '" + a + "'!");
+				log.warn("Type '" + t + "' already has the type annotation '" + a + "'!");
 				return annotT;
 			}
 		}
@@ -185,8 +183,8 @@ public final class DU {
 	 */
 	public static T getQualifiedT(final T qualifierT, final T t) {
 		if (!t.getName().startsWith(qualifierT.getName() + "$")) {
-			LOGGER.warning("Cannot get qualified type for '" + t + "' with qualifier '"
-					+ qualifierT + "'!");
+			log.warn("Cannot get qualified type for '" + t + "' with qualifier '" + qualifierT
+					+ "'!");
 			return t;
 		}
 		if (!t.isQualified()) {
@@ -340,7 +338,7 @@ public final class DU {
 				zip.putNextEntry(zipEntry);
 				zip.write(source.getBytes(Charsets.UTF_8));
 			} catch (final Throwable t) {
-				LOGGER.log(Level.WARNING, "Decompilation problems for '" + cu + "'!", t);
+				log.warn("Decompilation problems for '" + cu + "'!", t);
 			} finally {
 				cu.clear();
 			}
@@ -736,7 +734,7 @@ public final class DU {
 						ts.addAll(readTds);
 					}
 				} catch (final Throwable e) {
-					LOGGER.log(Level.WARNING, "Couldn't read file '" + name + "'!", e);
+					log.warn("Couldn't read file '" + name + "'!", e);
 				} finally {
 					if (is != null) {
 						try {
@@ -754,7 +752,7 @@ public final class DU {
 			fileInputStream = new FileInputStream(file);
 			return read(fileInputStream, fileName, selector);
 		} catch (final IOException e) {
-			LOGGER.warning("Couldn't read file '" + file + "'!");
+			log.warn("Couldn't read file '" + file + "'!");
 			return Lists.newArrayList();
 		} finally {
 			if (fileInputStream != null) {
@@ -800,7 +798,7 @@ public final class DU {
 			}
 			return Collections.emptyList();
 		} else if (fileName.endsWith(".class")) {
-			LOGGER.warning("Wrong magic number for file '" + fileName + "', isn't a JVM-Class!");
+			log.warn("Wrong magic number for file '" + fileName + "', isn't a JVM-Class!");
 		}
 		if (Arrays.equals(magicNumber, MagicNumbers.DEX)
 				|| Arrays.equals(magicNumber, MagicNumbers.ODEX)) {
@@ -810,7 +808,7 @@ public final class DU {
 			this.selectedTs.addAll(ts);
 			return ts;
 		} else if (fileName.endsWith(".dex") || fileName.endsWith(".odex")) {
-			LOGGER.warning("Wrong magic number for file '" + fileName + "', isn't a Dalvik-Class!");
+			log.warn("Wrong magic number for file '" + fileName + "', isn't a Dalvik-Class!");
 		}
 		if (Arrays.equals(magicNumber, MagicNumbers.ZIP)) {
 			String selectorPrefix = null;
@@ -845,7 +843,7 @@ public final class DU {
 						ts.addAll(readTds);
 					}
 				} catch (final Exception e) {
-					LOGGER.log(Level.WARNING, "Couldn't read '" + name + "'!", e);
+					log.warn("Couldn't read '" + name + "'!", e);
 				}
 			}
 			return ts;

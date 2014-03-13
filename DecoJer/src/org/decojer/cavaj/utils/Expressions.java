@@ -25,8 +25,8 @@ package org.decojer.cavaj.utils;
 
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.code.ops.Op;
@@ -68,9 +68,8 @@ import com.google.common.collect.Sets;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class Expressions {
-
-	private final static Logger LOGGER = Logger.getLogger(Expressions.class.getName());
 
 	private static final String JAVA_LANG = "java.lang";
 
@@ -290,11 +289,11 @@ public final class Expressions {
 				stringLiteral.setLiteralValue((String) value);
 				return stringLiteral;
 			}
-			LOGGER.warning("Unknown reference type '" + t + "'!");
+			log.warn("Unknown reference type '" + t + "'!");
 			return ast.newNullLiteral();
 		}
 		if (t.isMulti() && t.is(T.BOOLEAN)) {
-			LOGGER.warning("Convert literal '" + value + "' for multi-type '" + t + "'!");
+			log.warn("Convert literal '" + value + "' for multi-type '" + t + "'!");
 			// prefer boolean for multi-type with 0 or 1, synchronous to newType()!
 			// prefer byte before char if no explicit char type given
 		}
@@ -308,7 +307,7 @@ public final class Expressions {
 			if (value == null) {
 				return ast.newBooleanLiteral(false);
 			}
-			LOGGER.warning("Boolean type with value '" + value + "' has type '"
+			log.warn("Boolean type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
 			return ast.newBooleanLiteral(value instanceof String ? Boolean.valueOf((String) value)
 					: true /* value is not null here */);
@@ -329,8 +328,8 @@ public final class Expressions {
 			if (value == null) {
 				return ast.newNumberLiteral(Byte.toString((byte) 0));
 			}
-			LOGGER.warning("Byte type with value '" + value + "' has type '"
-					+ value.getClass().getName() + "'!");
+			log.warn("Byte type with value '" + value + "' has type '" + value.getClass().getName()
+					+ "'!");
 			return ast.newNumberLiteral(value.toString());
 		}
 		if (t.is(T.CHAR)) {
@@ -380,7 +379,7 @@ public final class Expressions {
 				characterLiteral.setCharValue((char) 0);
 				return characterLiteral;
 			}
-			LOGGER.warning("Character type with value '" + value + "' has type '"
+			log.warn("Character type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
 			// char is per default 'X'
 			return ast.newCharacterLiteral();
@@ -401,7 +400,7 @@ public final class Expressions {
 			if (value == null) {
 				return ast.newNumberLiteral(Short.toString((short) 0));
 			}
-			LOGGER.warning("Short type with value '" + value + "' has type '"
+			log.warn("Short type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString());
 		}
@@ -421,7 +420,7 @@ public final class Expressions {
 			if (value == null) {
 				return ast.newNumberLiteral(Integer.toString(0));
 			}
-			LOGGER.warning("Integer type with value '" + value + "' has type '"
+			log.warn("Integer type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString());
 		}
@@ -460,7 +459,7 @@ public final class Expressions {
 			if (value == null) {
 				return ast.newNumberLiteral(Float.toString(0F) + 'F');
 			}
-			LOGGER.warning("Float type with value '" + value + "' has type '"
+			log.warn("Float type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString() + 'F');
 		}
@@ -480,8 +479,8 @@ public final class Expressions {
 			if (value == null) {
 				return ast.newNumberLiteral(Long.toString(0L) + 'L');
 			}
-			LOGGER.warning("Long type with value '" + value + "' has type '"
-					+ value.getClass().getName() + "'!");
+			log.warn("Long type with value '" + value + "' has type '" + value.getClass().getName()
+					+ "'!");
 			return ast.newNumberLiteral(value.toString() + 'L');
 		}
 		if (t.is(T.DOUBLE)) {
@@ -519,11 +518,11 @@ public final class Expressions {
 			if (value == null) {
 				return ast.newNumberLiteral(Double.toString(0D) + 'D');
 			}
-			LOGGER.warning("Double type with value '" + value + "' has type '"
+			log.warn("Double type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString() + 'D');
 		}
-		LOGGER.warning("Unknown data type '" + t + "'!");
+		log.warn("Unknown data type '" + t + "'!");
 		final StringLiteral stringLiteral = ast.newStringLiteral();
 		if (value != null) {
 			stringLiteral.setLiteralValue(value.toString());
@@ -608,12 +607,12 @@ public final class Expressions {
 			}
 			try {
 				final SimpleName simpleName = ast.newSimpleName(name);
-				LOGGER.info("Couldn't create simple name with identifier '" + identifier
+				log.info("Couldn't create simple name with identifier '" + identifier
 						+ "'! Rewritten to '" + name + "'.");
 				return simpleName;
 			} catch (final IllegalArgumentException e1) {
-				LOGGER.log(Level.WARNING, "Couldn't create simple name with identifier '"
-						+ identifier + "' or rewritten '" + name + "'!", e);
+				log.warn("Couldn't create simple name with identifier '" + identifier
+						+ "' or rewritten '" + name + "'!", e);
 				return ast.newSimpleName("_invalid_identifier_");
 			}
 		}
@@ -658,7 +657,7 @@ public final class Expressions {
 							((ArrayType) methodParameterType).getElementType()));
 				}
 			} else {
-				LOGGER.warning("Last method parameter is no ArrayType, but method '" + m.getName()
+				log.warn("Last method parameter is no ArrayType, but method '" + m.getName()
 						+ "' has vararg attribute!");
 				// try handling as normal type
 				singleVariableDeclaration.setType(methodParameterType);
@@ -709,7 +708,7 @@ public final class Expressions {
 		if (t.isAnnotated()) {
 			Type type = newType(t.getRawT(), contextT);
 			if (ast.apiLevel() <= AST.JLS4) {
-				LOGGER.warning("Cannot decompile type annotations for type '" + t
+				log.warn("Cannot decompile type annotations for type '" + t
 						+ "' in Eclipse AST JLS4!");
 				return type;
 			}
@@ -766,7 +765,7 @@ public final class Expressions {
 			return wildcardType;
 		}
 		if (t.isMulti()) {
-			LOGGER.warning("Convert type for multi-type '" + t + "'!");
+			log.warn("Convert type for multi-type '" + t + "'!");
 			// prefer boolean for multi-type with 0 or 1, synchronous to newLiteral()!
 			// prefer byte before char if no explicit char type given
 		}

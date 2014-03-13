@@ -28,7 +28,8 @@ import java.io.InputStream;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
@@ -83,9 +84,8 @@ import com.google.common.io.ByteStreams;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class SmaliReader implements DexReader {
-
-	private final static Logger LOGGER = Logger.getLogger(SmaliReader.class.getName());
 
 	private final DU du;
 
@@ -134,7 +134,7 @@ public class SmaliReader implements DexReader {
 			}
 			final T t = this.du.getDescT(typeDescriptor);
 			if (!t.createTd()) {
-				LOGGER.warning("Type '" + t + "' already read!");
+				log.warn("Type '" + t + "' already read!");
 				continue;
 			}
 			t.setAccessFlags(classDefItem.getAccessFlags());
@@ -320,8 +320,8 @@ public class SmaliReader implements DexReader {
 			break;
 		default:
 			retentionPolicy = null;
-			LOGGER.warning("Unknown annotation visibility '"
-					+ annotationItem.getVisibility().visibility + "'!");
+			log.warn("Unknown annotation visibility '" + annotationItem.getVisibility().visibility
+					+ "'!");
 		}
 		return readAnnotation(annotationItem.getEncodedAnnotation(), retentionPolicy);
 	}
@@ -482,7 +482,7 @@ public class SmaliReader implements DexReader {
 		if (encodedValue instanceof TypeEncodedValue) {
 			return du.getDescT(((TypeEncodedValue) encodedValue).value.getTypeDescriptor());
 		}
-		LOGGER.warning("Unknown encoded value type '" + encodedValue.getClass().getName() + "'!");
+		log.warn("Unknown encoded value type '" + encodedValue.getClass().getName() + "'!");
 		return null;
 	}
 

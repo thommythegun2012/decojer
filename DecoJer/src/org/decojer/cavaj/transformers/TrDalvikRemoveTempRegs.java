@@ -23,10 +23,9 @@
  */
 package org.decojer.cavaj.transformers;
 
-import java.util.logging.Logger;
-
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.code.CFG;
 
@@ -35,9 +34,8 @@ import org.decojer.cavaj.model.code.CFG;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class TrDalvikRemoveTempRegs {
-
-	private final static Logger LOGGER = Logger.getLogger(TrDalvikRemoveTempRegs.class.getName());
 
 	/**
 	 * Transform CFG.
@@ -60,7 +58,7 @@ public final class TrDalvikRemoveTempRegs {
 	}
 
 	private void transform() {
-		LOGGER.info("transform: " + getCfg());
+		log.info("transform: " + getCfg());
 		/*
 		 * TODO ZIP ZAP: PUSH v1 STORE r1 ... PUSH vn STORE rn, LOAD v1 ... LOAD vn, INVOKE => kill
 		 * STORES and LOADS PUSH 0 STORE r0

@@ -28,8 +28,8 @@ import java.io.InputStream;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
@@ -76,9 +76,8 @@ import com.google.common.io.ByteStreams;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class Smali2Reader implements DexReader {
-
-	private final static Logger LOGGER = Logger.getLogger(Smali2Reader.class.getName());
 
 	/**
 	 * Build method descriptor of method reference.
@@ -143,7 +142,7 @@ public class Smali2Reader implements DexReader {
 			}
 			final T t = this.du.getDescT(typeDescriptor);
 			if (!t.createTd()) {
-				LOGGER.warning("Type '" + t + "' already read!");
+				log.warn("Type '" + t + "' already read!");
 				continue;
 			}
 			t.setAccessFlags(classDefItem.getAccessFlags());
@@ -233,7 +232,7 @@ public class Smali2Reader implements DexReader {
 			break;
 		default:
 			retentionPolicy = null;
-			LOGGER.warning("Unknown annotation visibility '" + annotation.getVisibility() + "'!");
+			log.warn("Unknown annotation visibility '" + annotation.getVisibility() + "'!");
 		}
 		return readAnnotation(annotation.getType(), annotation.getElements(), retentionPolicy);
 	}
@@ -352,7 +351,7 @@ public class Smali2Reader implements DexReader {
 		try {
 			this.readMethodImplementation.initAndVisit(m, method.getImplementation());
 		} catch (final ExceptionWithContext e) {
-			LOGGER.log(Level.WARNING, "Bytecode problems in method '" + m + "'! " + e.getMessage());
+			log.warn("Bytecode problems in method '" + m + "'! " + e.getMessage());
 		}
 	}
 
@@ -422,8 +421,7 @@ public class Smali2Reader implements DexReader {
 		case ValueType.TYPE:
 			return du.getDescT(((TypeEncodedValue) encodedValue).getValue());
 		default:
-			LOGGER.warning("Unknown encoded value type '" + encodedValue.getClass().getName()
-					+ "'!");
+			log.warn("Unknown encoded value type '" + encodedValue.getClass().getName() + "'!");
 			return null;
 		}
 	}

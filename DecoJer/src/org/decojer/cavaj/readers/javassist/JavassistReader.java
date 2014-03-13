@@ -29,7 +29,6 @@ import java.io.InputStream;
 import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import javassist.bytecode.AnnotationDefaultAttribute;
 import javassist.bytecode.AnnotationsAttribute;
@@ -64,6 +63,7 @@ import javassist.bytecode.annotation.LongMemberValue;
 import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
@@ -78,9 +78,8 @@ import org.decojer.cavaj.readers.ClassReader;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class JavassistReader implements ClassReader {
-
-	private final static Logger LOGGER = Logger.getLogger(JavassistReader.class.getName());
 
 	private final DU du;
 
@@ -122,7 +121,7 @@ public class JavassistReader implements ClassReader {
 
 		final T t = this.du.getT(classFile.getName());
 		if (!t.createTd()) {
-			LOGGER.warning("Type '" + t + "' already read!");
+			log.warn("Type '" + t + "' already read!");
 			return null;
 		}
 		t.setAccessFlags(classFile.getAccessFlags());
@@ -170,7 +169,7 @@ public class JavassistReader implements ClassReader {
 			} else if ("Scala".equals(attributeTag) || "ScalaSig".equals(attributeTag)) {
 				scalaAttributes = true;
 			} else {
-				LOGGER.warning("Unknown class attribute tag '" + attributeTag + "'!");
+				log.warn("Unknown class attribute tag '" + attributeTag + "'!");
 			}
 		}
 		if (signatureAttribute != null) {
@@ -289,8 +288,8 @@ public class JavassistReader implements ClassReader {
 			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
 				syntheticAttribute = (SyntheticAttribute) attributeInfo;
 			} else {
-				LOGGER.warning("Unknown field attribute tag '" + attributeTag
-						+ "' for field info '" + fieldInfo.getName() + "'!");
+				log.warn("Unknown field attribute tag '" + attributeTag + "' for field info '"
+						+ fieldInfo.getName() + "'!");
 			}
 		}
 		final ConstPool constPool = fieldInfo.getConstPool();
@@ -329,7 +328,7 @@ public class JavassistReader implements ClassReader {
 				value = constPool.getStringInfo(index);
 				break;
 			default:
-				LOGGER.warning("Unknown constant attribute '" + tag + "' for field info '"
+				log.warn("Unknown constant attribute '" + tag + "' for field info '"
 						+ fieldInfo.getName() + "'!");
 			}
 			f.setValue(value);
@@ -377,8 +376,8 @@ public class JavassistReader implements ClassReader {
 			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
 				syntheticAttribute = (SyntheticAttribute) attributeInfo;
 			} else {
-				LOGGER.warning("Unknown method attribute tag '" + attributeTag
-						+ "' for method info '" + methodInfo.getName() + "'!");
+				log.warn("Unknown method attribute tag '" + attributeTag + "' for method info '"
+						+ methodInfo.getName() + "'!");
 			}
 		}
 		final ConstPool constPool = methodInfo.getConstPool();
@@ -511,7 +510,7 @@ public class JavassistReader implements ClassReader {
 		if (memberValue instanceof StringMemberValue) {
 			return ((StringMemberValue) memberValue).getValue();
 		}
-		LOGGER.warning("Unknown member value type '" + memberValue.getClass().getName() + "'!");
+		log.warn("Unknown member value type '" + memberValue.getClass().getName() + "'!");
 		return null;
 	}
 

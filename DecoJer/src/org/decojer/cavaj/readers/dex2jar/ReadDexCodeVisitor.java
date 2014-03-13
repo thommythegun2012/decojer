@@ -26,7 +26,8 @@ package org.decojer.cavaj.readers.dex2jar;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.CFG;
@@ -59,9 +60,8 @@ import com.googlecode.dex2jar.visitors.OdexCodeVisitor;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
-
-	private final static Logger LOGGER = Logger.getLogger(ReadDexCodeVisitor.class.getName());
 
 	private final DU du;
 
@@ -274,8 +274,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 		}
 		if (pc > 0) {
 			// visited before but is known?!
-			LOGGER.warning("Label '" + label + "' is not unique, has old PC '" + this.ops.size()
-					+ "'!");
+			log.warn("Label '" + label + "' is not unique, has old PC '" + this.ops.size() + "'!");
 			return;
 		}
 		// unknown and has forward reference
@@ -347,7 +346,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 		if (signature != null) {
 			final T sigT = this.m.getDu().parseT(signature, new Cursor(), this.m);
 			if (!sigT.eraseTo(vT)) {
-				LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + vT
+				log.info("Cannot reduce signature '" + signature + "' to type '" + vT
 						+ "' for method (local variable '" + name + "') " + this.m);
 			} else {
 				vT = sigT;
@@ -413,7 +412,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	@Override
 	public void visitReturnStmt(final int opcode) {
 		if (opcode != OP_RETURN_VOID) {
-			LOGGER.warning("Unexpected opcode '" + opcode
+			log.warn("Unexpected opcode '" + opcode
 					+ "' for 'visitReturnStmt(VOID)'! Using operation 'RETURN' with type '"
 					+ T.VOID + "'.");
 		}
@@ -424,7 +423,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	public void visitReturnStmt(final int opcode, final int reg, final int xt) {
 		switch (opcode) {
 		default:
-			LOGGER.warning("Unexpected opcode '" + opcode
+			log.warn("Unexpected opcode '" + opcode
 					+ "' for 'visitReturnStmt(RETURN|THROW)'! Using operation 'RETURN'.");
 		case OP_RETURN: {
 			T t;
@@ -440,8 +439,8 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 				break;
 			default:
 				t = this.m.getReturnT();
-				LOGGER.warning("Unknown operation return type '" + xt
-						+ "'! Using method return type '" + t + "'.");
+				log.warn("Unknown operation return type '" + xt + "'! Using method return type '"
+						+ t + "'.");
 			}
 			this.ops.add(new LOAD(this.ops.size(), opcode, this.line, t, reg));
 
@@ -454,7 +453,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 			case TYPE_OBJECT:
 				break;
 			default:
-				LOGGER.warning("Unknown throw type '" + xt + "'! Using 'Throwable' type.");
+				log.warn("Unknown throw type '" + xt + "'! Using 'Throwable' type.");
 			}
 			this.ops.add(new LOAD(this.ops.size(), opcode, this.line,
 					this.du.getT(Throwable.class), reg));
@@ -468,7 +467,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	public void visitReturnStmt(final int opcode, final int cause, final Object ref) {
 		// ODEX only
 		if (opcode != OP_THROW_VERIFICATION_ERROR) {
-			LOGGER.warning("Unexpected opcode '"
+			log.warn("Unexpected opcode '"
 					+ opcode
 					+ "' for 'visitReturnStmt(OP_THROW_VERIFICATION_ERROR)'! Using operation 'THROW' with type '"
 					+ ref + "'.");

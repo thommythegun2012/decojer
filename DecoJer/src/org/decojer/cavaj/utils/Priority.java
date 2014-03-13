@@ -23,7 +23,7 @@
  */
 package org.decojer.cavaj.utils;
 
-import java.util.logging.Logger;
+import lombok.extern.slf4j.Slf4j;
 
 import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.Assignment;
@@ -44,6 +44,7 @@ import org.eclipse.jdt.core.dom.PrefixExpression;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public enum Priority {
 
 	LITERAL(0, true),
@@ -84,8 +85,6 @@ public enum Priority {
 
 	ASSIGNMENT(14, false); // TODO aassignment + op == 15?
 							// http://openbook.galileodesign.de/javainsel8/javainsel_02_005.htm#mjb7472917f33c38fb79c0baa79ca8a846
-
-	private final static Logger LOGGER = Logger.getLogger(Priority.class.getName());
 
 	/**
 	 * Get priority for expression. From http://bmanolov.free.fr/javaoperators.php
@@ -153,7 +152,7 @@ public enum Priority {
 			if (operator == InfixExpression.Operator.CONDITIONAL_OR) {
 				return CONDITIONAL_OR;
 			}
-			LOGGER.warning("Unknown infix expression operator '" + operator + "'!");
+			log.warn("Unknown infix expression operator '" + operator + "'!");
 			return LITERAL;
 		}
 		if (expression instanceof InstanceofExpression) {

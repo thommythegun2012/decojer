@@ -26,10 +26,9 @@ package org.decojer.cavaj.model;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.code.CFG;
@@ -62,9 +61,8 @@ import com.google.common.collect.Lists;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class CU implements Container {
-
-	private final static Logger LOGGER = Logger.getLogger(CU.class.getName());
 
 	@Getter
 	private final CD Cud = new CD() {
@@ -140,21 +138,21 @@ public final class CU implements Container {
 		if (numberOfLines == 4) {
 			// package + 2 empty lines + 1-line class
 			// TODO more checks necessary
-			LOGGER.warning("Couldn't format correctly '" + this + "'! Reformatting.");
+			log.warn("Couldn't format correctly '" + this + "'! Reformatting.");
 			// now try another reformat
 			final CodeFormatter codeFormatter = ToolFactory.createCodeFormatter(options);
 			final TextEdit edit = codeFormatter.format(CodeFormatter.K_COMPILATION_UNIT, source, 0,
 					source.length(), 0, br);
 			if (edit == null) {
-				LOGGER.warning("Couldn't reformat source code!");
+				log.warn("Couldn't reformat source code!");
 			} else {
 				// can happen if no known source code version has been found
 				try {
 					edit.apply(document);
 				} catch (final MalformedTreeException e) {
-					LOGGER.log(Level.WARNING, "Couldn't reformat source code!", e);
+					log.warn("Couldn't reformat source code!", e);
 				} catch (final BadLocationException e) {
-					LOGGER.log(Level.WARNING, "Couldn't reformat source code!", e);
+					log.warn("Couldn't reformat source code!", e);
 				}
 				source = document.get();
 			}
@@ -240,18 +238,18 @@ public final class CU implements Container {
 					cfg.decompile();
 				} catch (final RuntimeException e) {
 					if (ignoreCfgError) {
-						LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+						log.warn("Cannot transform '" + cfg + "'!", e);
 					} else {
 						throw e;
 					}
 				} catch (final Error e) {
 					if (ignoreCfgError) {
-						LOGGER.log(Level.WARNING, "Cannot transform '" + cfg + "'!", e);
+						log.warn("Cannot transform '" + cfg + "'!", e);
 					} else {
 						throw e;
 					}
 				} catch (final Throwable e) {
-					LOGGER.log(Level.SEVERE, "Cannot transform '" + cfg + "'!", e);
+					log.error("Cannot transform '" + cfg + "'!", e);
 				}
 			}
 		}

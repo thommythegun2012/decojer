@@ -31,7 +31,8 @@ import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.fields.F;
@@ -53,9 +54,8 @@ import org.eclipse.jdt.core.dom.TypeLiteral;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class Annotations {
-
-	private final static Logger LOGGER = Logger.getLogger(Annotations.class.getName());
 
 	/**
 	 * Decompile Annotation.
@@ -158,7 +158,7 @@ public final class Annotations {
 		if (defaultValue instanceof F) {
 			final F f = (F) defaultValue;
 			if (!f.isEnum()) {
-				LOGGER.warning("Default value field must be enum!");
+				log.warn("Default value field must be enum!");
 			}
 			return ast.newQualifiedName(newTypeName(f.getT(), t), newSimpleName(f.getName(), ast));
 		}
@@ -179,7 +179,7 @@ public final class Annotations {
 			stringLiteral.setLiteralValue((String) defaultValue);
 			return stringLiteral;
 		}
-		LOGGER.warning("Unknown member value type '" + defaultValue.getClass().getName() + "'!");
+		log.warn("Unknown member value type '" + defaultValue.getClass().getName() + "'!");
 		final StringLiteral stringLiteral = ast.newStringLiteral();
 		stringLiteral.setLiteralValue(defaultValue.toString());
 		return stringLiteral;
@@ -275,9 +275,8 @@ public final class Annotations {
 			return false;
 		}
 		if (!aT.isDeclaration()) {
-			LOGGER.warning("Potential repeatable annotation '" + a
-					+ "' with repeated annotation type '" + aT
-					+ "' has not the necessary declaration information!");
+			log.warn("Potential repeatable annotation '" + a + "' with repeated annotation type '"
+					+ aT + "' has not the necessary declaration information!");
 		}
 		final A[] aAs = aT.getAs();
 		if (aAs == null) {

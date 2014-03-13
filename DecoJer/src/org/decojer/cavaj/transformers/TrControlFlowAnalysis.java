@@ -28,10 +28,10 @@ import static org.decojer.cavaj.utils.Expressions.getOp;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import lombok.AccessLevel;
 import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
@@ -55,9 +55,8 @@ import com.google.common.collect.Sets;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class TrControlFlowAnalysis {
-
-	private final static Logger LOGGER = Logger.getLogger(TrControlFlowAnalysis.class.getName());
 
 	/**
 	 * Transform CFG.
@@ -160,7 +159,7 @@ public final class TrControlFlowAnalysis {
 			return cond;
 		}
 		// only if unrelated conditional tails???
-		LOGGER.warning(getMd() + ": Unknown struct, no common follow for:\n" + cond);
+		log.warn(getMd() + ": Unknown struct, no common follow for:\n" + cond);
 		cond.setKind(Cond.Kind.IF);
 		return cond;
 	}
@@ -398,7 +397,7 @@ public final class TrControlFlowAnalysis {
 					}
 					continue bbs;
 				default:
-					LOGGER.warning(getMd() + ": Unknown MONITOR type for operation '" + op + "'!");
+					log.warn(getMd() + ": Unknown MONITOR type for operation '" + op + "'!");
 				}
 			}
 			sync.addMember(null, bb);

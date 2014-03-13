@@ -26,7 +26,8 @@ package org.decojer.cavaj.readers.asm;
 import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
@@ -43,9 +44,8 @@ import org.objectweb.asm.TypeReference;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ReadFieldVisitor extends FieldVisitor {
-
-	private final static Logger LOGGER = Logger.getLogger(ReadFieldVisitor.class.getName());
 
 	private A[] as;
 
@@ -100,8 +100,8 @@ public class ReadFieldVisitor extends FieldVisitor {
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
-		LOGGER.warning(getFd() + ": Unknown field attribute tag '" + attr.type
-				+ "' for field info '" + this.f.getT() + "'!");
+		log.warn(getFd() + ": Unknown field attribute tag '" + attr.type + "' for field info '"
+				+ this.f.getT() + "'!");
 	}
 
 	@Override
@@ -122,7 +122,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 			getFd().setValueT(annotateT(getFd().getValueT(), a, typePath));
 			break;
 		default:
-			LOGGER.warning(getFd() + ": Unknown type annotation ref sort '0x"
+			log.warn(getFd() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}

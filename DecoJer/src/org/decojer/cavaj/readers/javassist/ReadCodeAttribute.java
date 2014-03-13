@@ -26,7 +26,6 @@ package org.decojer.cavaj.readers.javassist;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.logging.Logger;
 
 import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.CodeAttribute;
@@ -37,6 +36,7 @@ import javassist.bytecode.LocalVariableAttribute;
 import javassist.bytecode.Opcode;
 import javassist.bytecode.StackMap;
 import javassist.bytecode.StackMapTable;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.CFG;
@@ -95,9 +95,8 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class ReadCodeAttribute {
-
-	private final static Logger LOGGER = Logger.getLogger(ReadCodeAttribute.class.getName());
 
 	private M m;
 
@@ -183,12 +182,12 @@ public class ReadCodeAttribute {
 			} else if (StackMapTable.tag.equals(attributeTag)) {
 				stackMapTable = (StackMapTable) attributeInfo;
 			} else {
-				LOGGER.warning("Unknown code attribute tag '" + attributeTag + "' in '" + m + "'!");
+				log.warn("Unknown code attribute tag '" + attributeTag + "' in '" + m + "'!");
 			}
 		}
 		final ConstPool constPool = codeAttribute.getConstPool();
 
-		LOGGER.fine("Stack info: " + stackMap + " : " + stackMapTable); // no unused warning
+		log.debug("Stack info: " + stackMap + " : " + stackMapTable); // no unused warning
 
 		final CFG cfg = new CFG(m, codeAttribute.getMaxLocals(), codeAttribute.getMaxStack());
 		m.setCfg(cfg);
@@ -1643,7 +1642,7 @@ public class ReadCodeAttribute {
 				final V v = cfg.getDebugV(localVariableTypeAttribute.index(i),
 						this.vmpc2pc.get(localVariableTypeAttribute.startPc(i)));
 				if (v == null) {
-					LOGGER.warning("Local variable type attribute '"
+					log.warn("Local variable type attribute '"
 							+ localVariableTypeAttribute.index(i)
 							+ "' without local variable attribute!");
 					continue;
@@ -1651,7 +1650,7 @@ public class ReadCodeAttribute {
 				final String signature = localVariableTypeAttribute.signature(i);
 				final T sigT = getDu().parseT(signature, new Cursor(), this.m);
 				if (!sigT.eraseTo(v.getT())) {
-					LOGGER.info("Cannot reduce signature '" + signature + "' to type '" + v.getT()
+					log.info("Cannot reduce signature '" + signature + "' to type '" + v.getT()
 							+ "' for method (local variable '" + v.getName() + "') " + this.m);
 				} else {
 					v.cmpSetT(sigT);
@@ -1669,8 +1668,7 @@ public class ReadCodeAttribute {
 		}
 		if (pc > 0) {
 			// visited before but is known?!
-			LOGGER.warning("VM PC '" + vmpc + "' is not unique, has old PC '" + this.ops.size()
-					+ "'!");
+			log.warn("VM PC '" + vmpc + "' is not unique, has old PC '" + this.ops.size() + "'!");
 			return;
 		}
 		// unknown and has forward reference

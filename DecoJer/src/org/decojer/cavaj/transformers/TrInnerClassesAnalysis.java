@@ -28,7 +28,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Container;
@@ -50,9 +51,8 @@ import com.google.common.collect.Maps;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public class TrInnerClassesAnalysis {
-
-	private final static Logger LOGGER = Logger.getLogger(TrInnerClassesAnalysis.class.getName());
 
 	private static void checkBinaryCompatibilityNamingRules(final Collection<T> ts) {
 		for (final T t : ts) {
@@ -71,7 +71,7 @@ public class TrInnerClassesAnalysis {
 				// TODO check oracle.net.aso.m in obfuscated
 				// .m2\repository\com\oracle\ojdbc6\11.2.0.1.0\ojdbc6-11.2.0.1.0.jar
 				// should be a local class with name "m" in constructor?
-				LOGGER.warning("Inner name '" + innerName + "' for type '" + t
+				log.warn("Inner name '" + innerName + "' for type '" + t
 						+ "' is different from enclosing info '" + simpleName + "'!");
 			}
 		}
@@ -134,7 +134,7 @@ public class TrInnerClassesAnalysis {
 							// parallel findTopTds necessary?
 							continue;
 						}
-						LOGGER.warning("New ananymous type declaration '" + newT
+						log.warn("New ananymous type declaration '" + newT
 								+ "' already has parent '" + newTowner + "'!");
 						continue;
 					}
@@ -154,7 +154,7 @@ public class TrInnerClassesAnalysis {
 			if (t.isAnonymous()) {
 				if (t.getDeclarationOwner() != null) {
 					if (!(t.getDeclarationOwner() instanceof M)) {
-						LOGGER.warning("Parent of inner local/anonymous type '" + t
+						log.warn("Parent of inner local/anonymous type '" + t
 								+ "' is no method but '" + t.getDeclarationOwner() + "'!");
 					}
 					continue;
@@ -168,8 +168,8 @@ public class TrInnerClassesAnalysis {
 							continue;
 						}
 					}
-					LOGGER.warning("No enclosing type info for inner class with Enum Switch Map '"
-							+ t + "'!");
+					log.warn("No enclosing type info for inner class with Enum Switch Map '" + t
+							+ "'!");
 				}
 				// use existing enclosing info
 			}

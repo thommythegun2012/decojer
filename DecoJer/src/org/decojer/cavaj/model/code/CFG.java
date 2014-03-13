@@ -24,10 +24,10 @@
 package org.decojer.cavaj.model.code;
 
 import java.util.List;
-import java.util.logging.Logger;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.DU;
@@ -47,9 +47,8 @@ import org.eclipse.jdt.core.dom.Block;
  * 
  * @author André Pankraz
  */
+@Slf4j
 public final class CFG {
-
-	private final static Logger LOGGER = Logger.getLogger(CFG.class.getName());
 
 	/**
 	 * AST method block.
@@ -418,7 +417,7 @@ public final class CFG {
 	}
 
 	private void log(final String message) {
-		LOGGER.warning(getM() + ": " + message);
+		log.warn(getM() + ": " + message);
 	}
 
 	/**
