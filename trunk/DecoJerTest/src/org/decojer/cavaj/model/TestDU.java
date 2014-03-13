@@ -2,16 +2,16 @@ package org.decojer.cavaj.model;
 
 import java.io.File;
 import java.net.URISyntaxException;
-import java.util.logging.Logger;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.DecoJer;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @Test
+@Slf4j
 class TestDU {
-
-	private final static Logger LOGGER = Logger.getLogger(TestDU.class.getName());
 
 	private File projectFolder;
 
@@ -24,7 +24,7 @@ class TestDU {
 	@Test
 	void testBytecodeClosed() {
 		for (File file : new File(projectFolder, "test_bytecode_closed").listFiles()) {
-			LOGGER.info("######### Decompiling: " + file + " #########");
+			log.info("######### Decompiling: " + file + " #########");
 			DU du = DecoJer.createDu();
 			du.read(file.getAbsolutePath());
 			for (final CU cu : du.getCus()) {
@@ -36,7 +36,7 @@ class TestDU {
 	@Test
 	void testBytecodeFree() {
 		for (File file : new File(projectFolder, "test_bytecode_free").listFiles()) {
-			LOGGER.info("######### Decompiling: " + file + " #########");
+			log.info("######### Decompiling: " + file + " #########");
 			DU du = DecoJer.createDu();
 			du.read(file.getAbsolutePath());
 			for (final CU cu : du.getCus()) {
@@ -56,8 +56,8 @@ class TestDU {
 
 	@Test
 	void testEclipsePlugins() {
-		for (File file : new File("D:/Software/eclipse-rcp-kepler-64-jdk8/plugins").listFiles()) {
-			LOGGER.info("######### Decompiling: " + file + " #########");
+		for (File file : new File("D:/Software/eclipse-rcp-kepler-SR2-64-jdk8/plugins").listFiles()) {
+			log.info("######### Decompiling: " + file + " #########");
 			DU du = DecoJer.createDu();
 			du.read(file.getAbsolutePath());
 			for (final CU cu : du.getCus()) {
