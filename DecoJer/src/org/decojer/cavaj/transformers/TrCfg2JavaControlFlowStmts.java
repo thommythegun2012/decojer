@@ -133,6 +133,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		return null;
 	}
 
+	@SuppressWarnings("null")
 	private IfStatement transformCond(final Cond cond) {
 		final BB head = cond.getHead();
 
@@ -195,6 +196,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
+	@SuppressWarnings("null")
 	private Statement transformLoop(final Loop loop) {
 		final BB head = loop.getHead();
 		final BB last = loop.getLast();
@@ -432,6 +434,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		return struct.getFollow();
 	}
 
+	@SuppressWarnings("null")
 	private Statement transformSwitch(final Switch switchStruct) {
 		switch (switchStruct.getKind()) {
 		case NO_DEFAULT:
@@ -493,6 +496,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
+	@SuppressWarnings("null")
 	private Statement transformSync(final Sync sync) {
 		final BB head = sync.getHead();
 		final SynchronizedStatement synchronizedStatement = (SynchronizedStatement) head

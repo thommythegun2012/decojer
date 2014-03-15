@@ -105,7 +105,6 @@ import org.eclipse.jdt.core.dom.CreationReference;
 import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionMethodReference;
-import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.FieldAccess;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
 import org.eclipse.jdt.core.dom.IfStatement;
@@ -243,6 +242,7 @@ public final class TrCfg2JavaExpressionStmts {
 		this.cfg = cfg;
 	}
 
+	@SuppressWarnings("null")
 	private boolean convertToHLLIntermediate(final BB bb) {
 		while (bb.getOps() > 0) {
 			while (isStackUnderflow(bb)) {
@@ -1302,6 +1302,7 @@ public final class TrCfg2JavaExpressionStmts {
 		return getCfg().getInFrame(op).peek().getT();
 	}
 
+	@SuppressWarnings("null")
 	private boolean rewriteAssertStatement(final BB bb, final THROW op,
 			final Expression exceptionExpression) {
 		// if (!DecTestAsserts.$assertionsDisabled && (l1 > 0L ? l1 >= l2 : l1 > l2))
@@ -1364,6 +1365,7 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
+	@SuppressWarnings("null")
 	private boolean rewriteBooleanCompound(final BB bb) {
 		for (final E in : bb.getIns()) {
 			// all following patterns have the following base form:
@@ -1562,6 +1564,7 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 	}
 
+	@SuppressWarnings("null")
 	private boolean rewriteCachedClassLiteralEclipse(final BB bb, final GET op) {
 		// we are not very flexible here...the patterns are very special, but I don't know if more
 		// general pattern matching is even possible, kind of none-decidable?
@@ -1622,6 +1625,7 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
+	@SuppressWarnings("null")
 	private boolean rewriteCachedClassLiteralJdk(final BB bb, final GET op) {
 		// we are not very flexible here...the patterns are very special, but I don't know if more
 		// general pattern matching is even possible, kind of none-decidable?
@@ -1769,6 +1773,7 @@ public final class TrCfg2JavaExpressionStmts {
 		return ins.isEmpty();
 	}
 
+	@SuppressWarnings("null")
 	private boolean rewriteConditionalValue(final BB bb) {
 		if (bb.getIns().size() < 2) {
 			// this has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
@@ -2300,6 +2305,7 @@ public final class TrCfg2JavaExpressionStmts {
 		return false;
 	}
 
+	@SuppressWarnings("null")
 	private boolean rewriteSwitchString(final BB bb, final SWITCH op,
 			final Expression switchExpression) {
 		// we shouldn't do this earlier at the operations level because the switchExpression could
@@ -2325,16 +2331,16 @@ public final class TrCfg2JavaExpressionStmts {
 				if (bb.getStmts() < 2) {
 					return false;
 				}
-				final Assignment indexAssignment = (Assignment) ((ExpressionStatement) bb
-						.getStmt(bb.getStmts() - 1)).getExpression();
+				final Assignment indexAssignment = (Assignment) bb.getExpression(bb.getStmts() - 1);
+				assert indexAssignment != null;
 				if (!"-1".equals(((NumberLiteral) indexAssignment.getRightHandSide()).getToken())) {
 					return false;
 				}
 				final int indexReg = ((STORE) getOp(indexAssignment.getLeftHandSide())).getReg();
 
 				// first: r1 = stringSwitchExpression
-				final Assignment assignment = (Assignment) ((ExpressionStatement) bb.getStmt(bb
-						.getStmts() - 2)).getExpression();
+				final Assignment assignment = (Assignment) bb.getExpression(bb.getStmts() - 2);
+				assert assignment != null;
 				if (((STORE) getOp(assignment.getLeftHandSide())).getReg() != tmpReg) {
 					return false;
 				}

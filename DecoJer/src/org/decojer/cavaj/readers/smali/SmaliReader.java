@@ -55,6 +55,7 @@ import org.jf.dexlib.ItemType;
 import org.jf.dexlib.MethodIdItem;
 import org.jf.dexlib.Section;
 import org.jf.dexlib.StringIdItem;
+import org.jf.dexlib.TypeIdItem;
 import org.jf.dexlib.TypeListItem;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedSubValue;
 import org.jf.dexlib.EncodedValue.AnnotationEncodedValue;
@@ -138,7 +139,8 @@ public class SmaliReader implements DexReader {
 				continue;
 			}
 			t.setAccessFlags(classDefItem.getAccessFlags());
-			t.setSuperT(this.du.getDescT(classDefItem.getSuperclass().getTypeDescriptor()));
+			final TypeIdItem superclass = classDefItem.getSuperclass();
+			t.setSuperT(this.du.getDescT(superclass == null ? null : superclass.getTypeDescriptor()));
 			final TypeListItem interfaces = classDefItem.getInterfaces();
 			if (interfaces != null && interfaces.getTypeCount() > 0) {
 				final T[] interfaceTs = new T[interfaces.getTypeCount()];
@@ -278,8 +280,9 @@ public class SmaliReader implements DexReader {
 					methodParamAs.put(paramAnnotation.method, paramAss);
 				}
 			}
-			if (classDefItem.getSourceFile() != null) {
-				t.setSourceFileName(classDefItem.getSourceFile().getStringValue());
+			final StringIdItem sourceFile = classDefItem.getSourceFile();
+			if (sourceFile != null) {
+				t.setSourceFileName(sourceFile.getStringValue());
 			}
 			final ClassDataItem classData = classDefItem.getClassData();
 			if (classData != null) {

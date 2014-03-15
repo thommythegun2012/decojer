@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry exported="true" kind="lib" path="lib/dexlib2-2.0b5.jar"/>
+	<classpathentry exported="true" kind="lib" path="lib/dexlib2-2.0b5.jar" sourcepath="/dexlib2"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/javassist.jar" sourcepath="/jvst"/>

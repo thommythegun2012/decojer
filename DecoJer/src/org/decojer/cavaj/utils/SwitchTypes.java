@@ -74,6 +74,7 @@ public class SwitchTypes {
 	 *            case value map: string to BB
 	 * @return {@code true} - success
 	 */
+	@SuppressWarnings("null")
 	private static boolean executeBbStringHashCond(final BB caseBb, final int stringReg,
 			final int hash, final BB defaultCase, final Map<String, BB> string2bb) {
 		final Stack<Object> stack = new Stack<Object>();
