@@ -185,6 +185,7 @@ public final class TrDataFlowAnalysis {
 		}
 	}
 
+	@SuppressWarnings("null")
 	private int execute() {
 		final int currentPc = getCurrentPc();
 		final Op op = getOp(currentPc);
@@ -807,6 +808,7 @@ public final class TrDataFlowAnalysis {
 	 *            target PC
 	 * @return target BB
 	 */
+	@SuppressWarnings("null")
 	private BB getTargetBb(final int pc) {
 		final BB bb = getBb(pc); // get BB for target PC
 		if (bb == null) {
@@ -855,6 +857,7 @@ public final class TrDataFlowAnalysis {
 		return r;
 	}
 
+	@SuppressWarnings("null")
 	private void markAlive(final BB bb, final int i) {
 		// mark this BB alive for register i;
 		// we defer MOVE alive markings, to prevent DUP/POP stuff etc.

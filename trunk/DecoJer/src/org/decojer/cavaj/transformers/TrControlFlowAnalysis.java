@@ -75,6 +75,7 @@ public final class TrControlFlowAnalysis {
 		this.cfg = cfg;
 	}
 
+	@SuppressWarnings("null")
 	private Cond createCondStruct(final BB head) {
 		final Cond cond = new Cond(head);
 

@@ -42,6 +42,7 @@ import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
@@ -183,6 +184,22 @@ public final class BB {
 	 */
 	public Expression get(final int i) {
 		return this.vs[i];
+	}
+
+	/**
+	 * Get expression from expression statement at index.
+	 * 
+	 * @param i
+	 *            expression statement index
+	 * @return expression
+	 */
+	@Nullable
+	public Expression getExpression(final int i) {
+		final Statement stmt = getStmt(i);
+		if (!(stmt instanceof ExpressionStatement)) {
+			return null;
+		}
+		return ((ExpressionStatement) stmt).getExpression();
 	}
 
 	/**
