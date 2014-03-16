@@ -777,6 +777,7 @@ public final class TrDataFlowAnalysis {
 		}
 	}
 
+	@Nullable
 	private BB getBb(final int pc) {
 		return this.pc2bbs[pc];
 	}

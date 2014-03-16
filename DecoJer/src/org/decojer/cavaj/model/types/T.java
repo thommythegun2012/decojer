@@ -28,6 +28,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Container;
@@ -304,7 +306,8 @@ public abstract class T implements Element {
 	 *            type 2
 	 * @return merged type
 	 */
-	public static T intersect(final T t1, final T t2) {
+	@Nullable
+	public static T intersect(@Nullable final T t1, @Nullable final T t2) {
 		if (t1 == null || t2 == null) {
 			return null;
 		}
@@ -528,6 +531,7 @@ public abstract class T implements Element {
 		return equals(t);
 	}
 
+	@Nullable
 	@Override
 	public A[] getAs() {
 		return null;
@@ -538,6 +542,7 @@ public abstract class T implements Element {
 	 * 
 	 * @return bound type for wildcard type or null
 	 */
+	@Nullable
 	public T getBoundT() {
 		return null;
 	}
@@ -884,6 +889,7 @@ public abstract class T implements Element {
 	 * @return super type, can be {@code null} for {@code Object}, interfaces and primitives
 	 * @see Class#getSuperclass()
 	 */
+	@Nullable
 	public abstract T getSuperT();
 
 	/**
