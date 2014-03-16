@@ -129,7 +129,7 @@ public class Smali2Reader implements DexReader {
 		final List<T> ts = Lists.newArrayList();
 
 		final byte[] bytes = ByteStreams.toByteArray(is);
-		@SuppressWarnings("null")
+		assert bytes != null;
 		final DexBackedDexFile dexFile = new DexBackedDexFile(new Opcodes(15), bytes);
 		for (final DexBackedClassDef classDefItem : dexFile.getClasses()) {
 			final String typeDescriptor = classDefItem.getType();
