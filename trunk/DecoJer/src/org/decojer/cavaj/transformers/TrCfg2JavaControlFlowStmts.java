@@ -231,6 +231,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = false;
 		case DO_WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) last.getFinalStmt();
+			assert ifStatement != null;
 			final DoStatement doStatement = setOp(getAst().newDoStatement(), getOp(ifStatement));
 
 			final List<Statement> subStatements = Lists.newArrayList();
