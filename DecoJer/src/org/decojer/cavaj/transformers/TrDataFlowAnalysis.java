@@ -185,7 +185,6 @@ public final class TrDataFlowAnalysis {
 		}
 	}
 
-	@SuppressWarnings("null")
 	private int execute() {
 		final int currentPc = getCurrentPc();
 		final Op op = getOp(currentPc);
@@ -596,6 +595,7 @@ public final class TrDataFlowAnalysis {
 			for (final E in : subBb.getIns()) {
 				// JSR is last operation in previous BB
 				final Op jsr = in.getStart().getFinalOp();
+				assert jsr != null;
 				final int jsrFollowPc = jsr.getPc() + 1;
 				this.currentBb.setSucc(getTargetBb(jsrFollowPc));
 				// modify RET frame for untouched registers in sub
@@ -808,7 +808,6 @@ public final class TrDataFlowAnalysis {
 	 *            target PC
 	 * @return target BB
 	 */
-	@SuppressWarnings("null")
 	private BB getTargetBb(final int pc) {
 		final BB bb = getBb(pc); // get BB for target PC
 		if (bb == null) {
@@ -827,6 +826,7 @@ public final class TrDataFlowAnalysis {
 		newInBb.setSucc(bb);
 		while (bb.getOps() > 0 && bb.getOp(0).getPc() != pc) {
 			final Op op = bb.removeOp(0);
+			assert op != null;
 			newInBb.addOp(op);
 			setBb(op.getPc(), newInBb);
 		}
@@ -857,7 +857,6 @@ public final class TrDataFlowAnalysis {
 		return r;
 	}
 
-	@SuppressWarnings("null")
 	private void markAlive(final BB bb, final int i) {
 		// mark this BB alive for register i;
 		// we defer MOVE alive markings, to prevent DUP/POP stuff etc.
@@ -930,6 +929,7 @@ public final class TrDataFlowAnalysis {
 		previousLoop: for (final E in : bb.getIns()) {
 			final BB inBb = in.getStart();
 			final Op finalOp = inBb.getFinalOp();
+			assert finalOp != null;
 			if (finalOp instanceof RET) {
 				// jump over subs, where the register is unchanged
 				if (!checkRegisterAccessInSub(aliveI, (RET) finalOp)) {

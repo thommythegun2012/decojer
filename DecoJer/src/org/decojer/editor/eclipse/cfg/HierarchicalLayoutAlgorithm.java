@@ -23,8 +23,8 @@
  */
 package org.decojer.editor.eclipse.cfg;
 
+import java.util.ArrayList;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.geometry.Dimension;
@@ -92,9 +92,7 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 		final DirectedGraphLayout directedGraphLayout = new DirectedGraphLayout();
 		directedGraphLayout.visit(graph);
 
-		for (@SuppressWarnings("rawtypes")
-		final Iterator iterator = graph.nodes.iterator(); iterator.hasNext();) {
-			final Node node = (Node) iterator.next();
+		for (final Node node : (ArrayList<Node>) graph.nodes) {
 			final InternalNode internalNode = (InternalNode) node.data;
 			// For horizontal layout transpose the x and y coordinates
 			if ((this.layout_styles & SWT.HORIZONTAL) == SWT.HORIZONTAL) {

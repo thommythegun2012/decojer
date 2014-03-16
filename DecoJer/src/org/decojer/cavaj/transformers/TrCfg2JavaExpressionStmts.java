@@ -242,7 +242,6 @@ public final class TrCfg2JavaExpressionStmts {
 		this.cfg = cfg;
 	}
 
-	@SuppressWarnings("null")
 	private boolean convertToHLLIntermediate(final BB bb) {
 		while (bb.getOps() > 0) {
 			while (isStackUnderflow(bb)) {
@@ -294,6 +293,7 @@ public final class TrCfg2JavaExpressionStmts {
 				bb.joinPredBb(in.getStart());
 			}
 			final Op op = bb.removeOp(0);
+			assert op != null;
 			Statement statement = null;
 			switch (op.getOptype()) {
 			case ADD: {
@@ -1302,7 +1302,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return getCfg().getInFrame(op).peek().getT();
 	}
 
-	@SuppressWarnings("null")
 	private boolean rewriteAssertStatement(final BB bb, final THROW op,
 			final Expression exceptionExpression) {
 		// if (!DecTestAsserts.$assertionsDisabled && (l1 > 0L ? l1 >= l2 : l1 > l2))
@@ -1341,6 +1340,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final IfStatement ifStatement = (IfStatement) start.getFinalStmt();
+		assert ifStatement != null;
 		Expression expression = ifStatement.getExpression();
 		Expression condExpression;
 		if (expression instanceof InfixExpression) {
@@ -1361,11 +1361,12 @@ public final class TrCfg2JavaExpressionStmts {
 			assertStatement.setMessage(wrap(messageExpression));
 		}
 		start.addStmt(assertStatement);
-		start.getTrueSucc().joinPredBb(start);
+		final BB trueSucc = start.getTrueSucc();
+		assert trueSucc != null;
+		trueSucc.joinPredBb(start);
 		return true;
 	}
 
-	@SuppressWarnings("null")
 	private boolean rewriteBooleanCompound(final BB bb) {
 		for (final E in : bb.getIns()) {
 			// all following patterns have the following base form:
@@ -1389,12 +1390,14 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			// now we have the potential compound head, go down again and identify patterns
 			final E c_bb2 = c_bb.isCondTrue() ? c.getFalseOut() : c.getTrueOut();
+			assert c_bb2 != null;
 			final BB bb2 = c_bb2.getRelevantEnd();
 			if (a == bb2) {
 				// C goes back to A is not allowed as pattern
 				continue;
 			}
 			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
+			assert a_x != null;
 			final BB x = a_x.getRelevantEnd();
 
 			if (bb == x || bb2 == x) {
@@ -1419,7 +1422,9 @@ public final class TrCfg2JavaExpressionStmts {
 
 				// rewrite AST
 				final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
+				assert ifStatement != null;
 				final IfStatement rightIfStatement = (IfStatement) c.removeStmt(0);
+				assert rightIfStatement != null;
 				if (bb == x && c_bb.isCondTrue() || bb2 == x && c_bb2.isCondTrue() /* ?t */) {
 					if (a_x.isCondTrue() /* tt */) {
 						ifStatement.setExpression(newInfixExpression(
@@ -1453,8 +1458,11 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			// check cross...
 			E x_bb = x.getTrueOut();
+			assert x_bb != null;
 			if (x_bb.getRelevantEnd() == bb) {
-				if (x.getFalseOut().getRelevantEnd() != bb2) {
+				final E falseOut = x.getFalseOut();
+				assert falseOut != null;
+				if (falseOut.getRelevantEnd() != bb2) {
 					continue;
 				}
 			} else {
@@ -1462,6 +1470,7 @@ public final class TrCfg2JavaExpressionStmts {
 					continue;
 				}
 				x_bb = x.getFalseOut();
+				assert x_bb != null;
 				if (x_bb.getRelevantEnd() != bb) {
 					continue;
 				}
@@ -1484,6 +1493,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 			// rewrite AST
 			final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
+			assert ifStatement != null;
 
 			Expression expression = ifStatement.getExpression();
 			Expression thenExpression;
@@ -1492,8 +1502,12 @@ public final class TrCfg2JavaExpressionStmts {
 				if (a_c.isCondFalse()) {
 					expression = not(expression);
 				}
-				thenExpression = ((IfStatement) c.removeStmt(0)).getExpression();
-				elseExpression = ((IfStatement) x.removeStmt(0)).getExpression();
+				final IfStatement thenStatement = (IfStatement) c.removeStmt(0);
+				assert thenStatement != null;
+				thenExpression = thenStatement.getExpression();
+				final IfStatement elseStatement = (IfStatement) x.removeStmt(0);
+				assert elseStatement != null;
+				elseExpression = elseStatement.getExpression();
 				if (c_bb.isCondTrue() ^ x_bb.isCondTrue()) {
 					// cross is true/false mix, for join we must inverse the none-join node x
 					elseExpression = not(elseExpression);
@@ -1502,8 +1516,12 @@ public final class TrCfg2JavaExpressionStmts {
 				if (a_x.isCondFalse()) {
 					expression = not(expression);
 				}
-				thenExpression = ((IfStatement) x.removeStmt(0)).getExpression();
-				elseExpression = ((IfStatement) c.removeStmt(0)).getExpression();
+				final IfStatement thenStatement = (IfStatement) x.removeStmt(0);
+				assert thenStatement != null;
+				thenExpression = thenStatement.getExpression();
+				final IfStatement elseStatement = (IfStatement) c.removeStmt(0);
+				assert elseStatement != null;
+				elseExpression = elseStatement.getExpression();
 				if (c_bb.isCondTrue() ^ x_bb.isCondTrue()) {
 					// cross is true/false mix, for join we must inverse the none-join node x
 					thenExpression = not(thenExpression);
@@ -1564,7 +1582,6 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 	}
 
-	@SuppressWarnings("null")
 	private boolean rewriteCachedClassLiteralEclipse(final BB bb, final GET op) {
 		// we are not very flexible here...the patterns are very special, but I don't know if more
 		// general pattern matching is even possible, kind of none-decidable?
@@ -1581,14 +1598,18 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!(bb.getOp(1) instanceof JCND)) {
 			return false;
 		}
-		final BB popBb = bb.getFalseOut().getEnd();
+		E out = bb.getFalseOut();
+		assert out != null;
+		final BB popBb = out.getEnd();
 		if (popBb.getOps() != 1) {
 			return false;
 		}
 		if (!(popBb.getOp(0) instanceof POP)) {
 			return false;
 		}
-		final BB pushBb = popBb.getSequenceOut().getEnd();
+		out = popBb.getSequenceOut();
+		assert out != null;
+		final BB pushBb = out.getEnd();
 		if (pushBb.getOps() != 2) {
 			return false;
 		}
@@ -1598,7 +1619,9 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!(pushBb.getOp(1) instanceof INVOKE)) {
 			return false;
 		}
-		final BB dupBb = pushBb.getSequenceOut().getEnd();
+		out = pushBb.getSequenceOut();
+		assert out != null;
+		final BB dupBb = out.getEnd();
 		if (dupBb.getOps() != 3) {
 			return false;
 		}
@@ -1611,8 +1634,12 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!(dupBb.getOp(2) instanceof GOTO)) {
 			return false;
 		}
-		final BB followBb = dupBb.getSequenceOut().getEnd();
-		if (followBb != bb.getTrueOut().getEnd()) {
+		out = dupBb.getSequenceOut();
+		assert out != null;
+		final BB followBb = out.getEnd();
+		out = bb.getTrueOut();
+		assert out != null;
+		if (followBb != out.getEnd()) {
 			return false;
 		}
 		// can just happen for JDK<5: replace . -> /
@@ -1625,7 +1652,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
-	@SuppressWarnings("null")
 	private boolean rewriteCachedClassLiteralJdk(final BB bb, final GET op) {
 		// we are not very flexible here...the patterns are very special, but I don't know if more
 		// general pattern matching is even possible, kind of none-decidable?
@@ -1639,6 +1665,7 @@ public final class TrCfg2JavaExpressionStmts {
 		// JDK 1 & 2 is EQ, 3 & 4 is NE, >=5 has direct Class Literals
 		final E initCacheOut = ((JCND) bb.getOp(0)).getCmpType() == CmpType.T_EQ ? bb.getTrueOut()
 				: bb.getFalseOut();
+		assert initCacheOut != null;
 
 		final BB pushBb = initCacheOut.getEnd();
 		if (pushBb.getOps() != 4 && pushBb.getOps() != 5) {
@@ -1773,7 +1800,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return ins.isEmpty();
 	}
 
-	@SuppressWarnings("null")
 	private boolean rewriteConditionalValue(final BB bb) {
 		if (bb.getIns().size() < 2) {
 			// this has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
@@ -1791,12 +1817,14 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final E a_c = c.getRelevantIn();
+			assert a_c != null;
 			final BB a = a_c.getStart();
 			if (!a.isCond()) {
 				continue;
 			}
 			// now we have the potential compound head, go down again and identify pattern
 			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
+			assert a_x != null;
 			final BB x = a_x.getRelevantEnd();
 			if (x.getIns().size() != 1 || x.getStmts() != 0 || x.getTop() != 1) {
 				continue;
@@ -2305,7 +2333,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return false;
 	}
 
-	@SuppressWarnings("null")
 	private boolean rewriteSwitchString(final BB bb, final SWITCH op,
 			final Expression switchExpression) {
 		// we shouldn't do this earlier at the operations level because the switchExpression could

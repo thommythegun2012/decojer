@@ -1476,14 +1476,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
-	public void visitMethodInsn(final int opcode, final String owner, final String name,
-			final String desc) {
-		log.warn(getMd() + ": Shouldn't be called with ASM5!");
-		super.visitMethodInsn(opcode, owner, name, desc);
-	}
-
-	@Override
 	public void visitMethodInsn(final int opcode, final String owner, final String name,
 			final String desc, final boolean itf) {
 		switch (opcode) {

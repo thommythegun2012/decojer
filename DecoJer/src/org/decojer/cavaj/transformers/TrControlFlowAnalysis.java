@@ -75,12 +75,13 @@ public final class TrControlFlowAnalysis {
 		this.cfg = cfg;
 	}
 
-	@SuppressWarnings("null")
 	private Cond createCondStruct(final BB head) {
 		final Cond cond = new Cond(head);
 
 		final BB falseSucc = head.getFalseSucc();
+		assert falseSucc != null;
 		final BB trueSucc = head.getTrueSucc();
+		assert trueSucc != null;
 
 		// if-statement compilation hasn't changed with JDK versions (unlike boolean expressions)
 		// means: negated if-expression, false successor contains if-body (PC & line before true),
