@@ -473,6 +473,7 @@ public final class TrDataFlowAnalysis {
 				log.warn(getMd() + ": Incorrect sub!");
 			}
 			final BB retBb = getBb(ret.getPc());
+			assert retBb != null;
 			final int jsrFollowPc = jsr.getPc() + 1;
 			retBb.setSucc(getTargetBb(jsrFollowPc));
 			// modify RET frame for untouched registers in sub
@@ -592,6 +593,7 @@ public final class TrDataFlowAnalysis {
 			// link RET BB to all yet known JSR followers and merge, Sub BB incomings are JSRs
 			final int subPc = sub.getPc();
 			final BB subBb = getBb(subPc);
+			assert subBb != null;
 			for (final E in : subBb.getIns()) {
 				// JSR is last operation in previous BB
 				final Op jsr = in.getStart().getFinalOp();

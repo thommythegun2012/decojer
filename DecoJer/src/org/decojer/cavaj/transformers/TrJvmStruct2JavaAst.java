@@ -404,14 +404,15 @@ public final class TrJvmStruct2JavaAst {
 		}
 		final AST ast = cu.getAst();
 
+		final T superT = t.getSuperT();
 		if (t.getAstNode() == null) {
 			AbstractTypeDeclaration typeDeclaration = null;
 
 			// annotation type declaration
 			if (t.check(AF.ANNOTATION)) {
-				if (t.getSuperT() == null || !t.getSuperT().isObject()) {
+				if (superT == null || !superT.isObject()) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no super class Object but has '"
-							+ t.getSuperT() + "'!");
+							+ superT + "'!");
 				}
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
@@ -425,10 +426,9 @@ public final class TrJvmStruct2JavaAst {
 				if (typeDeclaration != null) {
 					log.warn("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
-					if (t.getSuperT() == null || !t.getSuperT().isParameterized()
-							|| !t.getSuperT().is(Enum.class)) {
+					if (superT == null || !superT.isParameterized() || !superT.is(Enum.class)) {
 						log.warn("Enum type '" + t + "' has no super class '"
-								+ Enum.class.getName() + "' but has '" + t.getSuperT() + "'!");
+								+ Enum.class.getName() + "' but has '" + superT + "'!");
 					}
 					typeDeclaration = ast.newEnumDeclaration();
 					// enums cannot extend other classes than Enum.class, but can have interfaces
@@ -446,7 +446,6 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration = ast.newTypeDeclaration();
 				decompileTypeParams(t.getTypeParams(),
 						((TypeDeclaration) typeDeclaration).typeParameters(), t);
-				final T superT = t.getSuperT();
 				if (superT != null && !superT.isObject()) {
 					((TypeDeclaration) typeDeclaration).setSuperclassType(newType(superT, t));
 				}
