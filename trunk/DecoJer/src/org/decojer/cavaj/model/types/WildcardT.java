@@ -59,6 +59,7 @@ public class WildcardT extends BaseT {
 	public T[] getInterfaceTs() {
 		if (isSubclassOf()) {
 			final T boundT = getBoundT();
+			assert boundT != null;
 			if (boundT.isInterface()) {
 				return new T[] { boundT };
 			}
@@ -68,19 +69,21 @@ public class WildcardT extends BaseT {
 
 	@Override
 	public String getName() {
-		if (getBoundT() == null) {
+		final T boundT = getBoundT();
+		if (boundT == null) {
 			return "?";
 		}
 		if (isSubclassOf()) {
-			return "? extends " + getBoundT().getFullName();
+			return "? extends " + boundT.getFullName();
 		}
-		return "? super " + getBoundT().getFullName();
+		return "? super " + boundT.getFullName();
 	}
 
 	@Override
 	public T getSuperT() {
 		if (isSubclassOf()) {
 			final T boundT = getBoundT();
+			assert boundT != null;
 			if (!boundT.isInterface()) {
 				return boundT;
 			}

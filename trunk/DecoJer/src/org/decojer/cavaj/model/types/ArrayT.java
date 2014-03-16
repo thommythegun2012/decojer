@@ -25,6 +25,8 @@ package org.decojer.cavaj.model.types;
 
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -50,6 +52,7 @@ public final class ArrayT extends BaseT {
 	@Getter
 	private final DU du;
 
+	@Nullable
 	private Map<String, Object> member;
 
 	/**
@@ -137,7 +140,7 @@ public final class ArrayT extends BaseT {
 	}
 
 	@Override
-	public boolean isAssignableFrom(final T t) {
+	public boolean isAssignableFrom(@Nullable final T t) {
 		if (super.isAssignableFrom(t)) {
 			return true;
 		}
