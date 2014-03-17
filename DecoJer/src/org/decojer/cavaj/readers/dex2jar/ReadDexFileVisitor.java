@@ -25,6 +25,8 @@ package org.decojer.cavaj.readers.dex2jar;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,8 +49,10 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 
 	private final ReadDexClassVisitor readDexClassVisitor;
 
+	@Nullable
 	private String selectorPrefix;
 
+	@Nullable
 	private String selectorMatch;
 
 	@Getter
@@ -73,7 +77,7 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 	 * @param selector
 	 *            selector
 	 */
-	public void init(final String selector) {
+	public void init(@Nullable final String selector) {
 		if (selector != null && selector.endsWith(".class")) {
 			this.selectorMatch = "L"
 					+ selector.substring(selector.charAt(0) == '/' ? 1 : 0, selector.length() - 6)
@@ -89,9 +93,10 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 		this.ts.clear();
 	}
 
+	@Nullable
 	@Override
 	public DexClassVisitor visit(final int access_flags, final String className,
-			final String superClass, final String[] interfaceNames) {
+			final String superClass, @Nullable final String[] interfaceNames) {
 		// load full type declarations from complete package, to complex to decide here if
 		// really not part of the compilation unit
 		// TODO later load all type declarations, but not all bytecode details

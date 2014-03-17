@@ -29,6 +29,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -105,7 +107,7 @@ public class SmaliReader implements DexReader {
 	}
 
 	@Override
-	public List<T> read(final InputStream is, final String selector) throws IOException {
+	public List<T> read(final InputStream is, @Nullable final String selector) throws IOException {
 		String selectorPrefix = null;
 		String selectorMatch = null;
 		if (selector != null && selector.endsWith(".class")) {
@@ -298,7 +300,7 @@ public class SmaliReader implements DexReader {
 	}
 
 	private A readAnnotation(final AnnotationEncodedSubValue encodedValue,
-			final RetentionPolicy retentionPolicy) {
+			@Nullable final RetentionPolicy retentionPolicy) {
 		final T t = this.du.getDescT(encodedValue.annotationType.getTypeDescriptor());
 		final A a = new A(t, retentionPolicy);
 		final StringIdItem[] names = encodedValue.names;
@@ -382,7 +384,7 @@ public class SmaliReader implements DexReader {
 	private void readMethods(final T t, final List<EncodedMethod> directMethods,
 			final List<EncodedMethod> virtualMethods,
 			final Map<MethodIdItem, String> methodSignatures,
-			final Map<MethodIdItem, T[]> methodThrowsTs, final A annotationDefaultValues,
+			final Map<MethodIdItem, T[]> methodThrowsTs, @Nullable final A annotationDefaultValues,
 			final Map<MethodIdItem, A[]> methodAs, final Map<MethodIdItem, A[][]> methodParamAs) {
 		for (final EncodedMethod encodedMethod : directMethods) {
 			final MethodIdItem method = encodedMethod.method;
@@ -424,6 +426,7 @@ public class SmaliReader implements DexReader {
 		}
 	}
 
+	@Nullable
 	private Object readValue(final EncodedValue encodedValue, final DU du) {
 		if (encodedValue instanceof AnnotationEncodedSubValue) {
 			// retention unknown for annotation constant
