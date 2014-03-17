@@ -152,7 +152,7 @@ public final class TrDataFlowAnalysis {
 		evalBinaryMath(op, null);
 	}
 
-	private void evalBinaryMath(final TypedOp op, final T resultT) {
+	private void evalBinaryMath(final TypedOp op, @Nullable final T resultT) {
 		// AND, OR, XOR and JCMP can have T.BOOLEAN and T.INT!
 		final T t = op.getT();
 
@@ -792,6 +792,7 @@ public final class TrDataFlowAnalysis {
 		return getCfg().getDu();
 	}
 
+	@Nullable
 	private Frame getFrame(final int pc) {
 		return getCfg().getFrame(pc);
 	}

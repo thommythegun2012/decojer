@@ -148,6 +148,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private final List<Op> ops = Lists.newArrayList();
 
+	@Nullable
 	private A[][] paramAss;
 
 	private final ReadAnnotationMemberVisitor annotationVisitor;

@@ -43,6 +43,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -150,7 +152,7 @@ import com.google.common.collect.Lists;
 @Slf4j
 public final class TrCfg2JavaExpressionStmts {
 
-	private static boolean isDynamicBootstrapMethod(final M m) {
+	private static boolean isDynamicBootstrapMethod(@Nullable final M m) {
 		if (m == null) {
 			return false;
 		}
@@ -1292,9 +1294,6 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private boolean isWide(final Op op) {
 		final R r = getCfg().getInFrame(op).peek();
-		if (r == null) {
-			return false;
-		}
 		return r.isWide();
 	}
 
