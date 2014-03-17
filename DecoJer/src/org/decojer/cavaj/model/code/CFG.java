@@ -25,6 +25,8 @@ package org.decojer.cavaj.model.code;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -55,6 +57,7 @@ public final class CFG {
 	 */
 	@Getter
 	@Setter
+	@Nullable
 	private Block block;
 
 	/**
@@ -68,11 +71,13 @@ public final class CFG {
 	@Setter
 	private Exc[] excs;
 
+	@Nullable
 	private Frame[] frames;
 
 	/**
 	 * Array with immediate dominators, index is postorder.
 	 */
+	@Nullable
 	private BB[] iDoms;
 
 	/**
@@ -93,6 +98,7 @@ public final class CFG {
 	 */
 	@Getter
 	@Setter
+	@Nullable
 	private List<BB> postorderedBbs;
 
 	/**
@@ -103,8 +109,10 @@ public final class CFG {
 
 	@Getter
 	@Setter
+	@Nullable
 	private BB startBb;
 
+	@Nullable
 	private V[][] vss;
 
 	/**

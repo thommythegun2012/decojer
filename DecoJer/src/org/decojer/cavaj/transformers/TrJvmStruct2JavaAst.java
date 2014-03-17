@@ -125,9 +125,7 @@ public final class TrJvmStruct2JavaAst {
 
 		// decompile annotations, add annotation modifiers before other modifiers, order preserved
 		// in source code generation through Eclipse JDT
-		if (f.getAs() != null) {
-			Annotations.decompileAnnotations(f.getAs(), fieldDeclaration.modifiers(), t);
-		}
+		Annotations.decompileAnnotations(f.getAs(), fieldDeclaration.modifiers(), t);
 
 		final boolean isInterfaceMember = t.isInterface();
 
@@ -235,9 +233,7 @@ public final class TrJvmStruct2JavaAst {
 		// decompile annotations:
 		// add annotation modifiers before other modifiers, order preserved in
 		// source code generation through Eclipse JDT
-		if (m.getAs() != null) {
-			Annotations.decompileAnnotations(m.getAs(), methodDeclaration.modifiers(), t);
-		}
+		Annotations.decompileAnnotations(m.getAs(), methodDeclaration.modifiers(), t);
 
 		final boolean isInterfaceMember = t.isInterface();
 
@@ -458,9 +454,7 @@ public final class TrJvmStruct2JavaAst {
 
 			// add annotation modifiers before other modifiers, order preserved in source code
 			// generation through eclipse.jdt
-			if (t.getAs() != null) {
-				Annotations.decompileAnnotations(t.getAs(), typeDeclaration.modifiers(), t);
-			}
+			Annotations.decompileAnnotations(t.getAs(), typeDeclaration.modifiers(), t);
 
 			// decompile remaining modifier flags
 			if (t.check(AF.PUBLIC)) {
@@ -543,7 +537,8 @@ public final class TrJvmStruct2JavaAst {
 		for (final T typeParam : typeParams) {
 			final TypeParameter typeParameter = ast.newTypeParameter();
 			typeParameter.setName(newSimpleName(typeParam.getName(), ast));
-			Annotations.decompileAnnotations(typeParam, typeParameter.modifiers(), contextT);
+			Annotations
+					.decompileAnnotations(typeParam.getAs(), typeParameter.modifiers(), contextT);
 			final T superT = typeParam.getSuperT();
 			if (superT != null && !superT.isObject()) {
 				typeParameter.typeBounds().add(newType(superT, contextT));
@@ -586,10 +581,8 @@ public final class TrJvmStruct2JavaAst {
 			if (!t.isInterface()) {
 				log.warn("Type declaration with name 'package-info' is not an interface!");
 			}
-			if (t.getAs() != null) {
-				Annotations.decompileAnnotations(t.getAs(), cu.getCompilationUnit().getPackage()
-						.annotations(), t);
-			}
+			Annotations.decompileAnnotations(t.getAs(), cu.getCompilationUnit().getPackage()
+					.annotations(), t);
 			return;
 		}
 		decompileType(t, cu);

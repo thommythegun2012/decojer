@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.methods;
 
+import javax.annotation.Nullable;
+
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
@@ -52,6 +54,7 @@ public abstract class M implements Element {
 	 * 
 	 * @return annotation default value
 	 */
+	@Nullable
 	public abstract Object getAnnotationDefaultValue();
 
 	/**

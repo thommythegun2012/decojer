@@ -26,6 +26,8 @@ package org.decojer.cavaj.utils;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -188,6 +190,7 @@ public final class Expressions {
 	 *            AST node
 	 * @return originating operation
 	 */
+	@Nullable
 	public static Op getOp(final ASTNode node) {
 		return (Op) node.getProperty(PROP_OP);
 	}
@@ -273,7 +276,7 @@ public final class Expressions {
 		return setOp(setValue(newLiteral2(t, value, contextT), value), op);
 	}
 
-	private static Expression newLiteral2(final T t, final Object value, final T contextT) {
+	private static Expression newLiteral2(final T t, @Nullable final Object value, final T contextT) {
 		final AST ast = contextT.getCu().getAst();
 		if (t.isRef() /* incl. T.AREF */) {
 			if (value == null) {
@@ -695,8 +698,8 @@ public final class Expressions {
 					for (T elementT = t; elementT.isArray(); elementT = elementT.getComponentT()) {
 						final Dimension dimension = ast.newDimension();
 						if (elementT.isAnnotated()) {
-							Annotations.decompileAnnotations(elementT, dimension.annotations(),
-									contextT);
+							Annotations.decompileAnnotations(elementT.getAs(),
+									dimension.annotations(), contextT);
 						}
 						dimensions.add(dimension);
 					}
@@ -735,7 +738,7 @@ public final class Expressions {
 					type = annotatableType;
 				}
 			}
-			Annotations.decompileAnnotations(t, annotatableType.annotations(), contextT);
+			Annotations.decompileAnnotations(t.getAs(), annotatableType.annotations(), contextT);
 			return type;
 		}
 		// doesn't work, now with Dimension (see above): if (t.isArray()) { return

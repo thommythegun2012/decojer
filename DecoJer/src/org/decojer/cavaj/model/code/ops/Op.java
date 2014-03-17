@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 
 import org.decojer.cavaj.model.code.Frame;
@@ -66,7 +68,7 @@ public abstract class Op {
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
+	public boolean equals(@Nullable final Object obj) {
 		return obj instanceof Op && this.pc == ((Op) obj).pc;
 	}
 
@@ -111,7 +113,9 @@ public abstract class Op {
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName();
+		final String simpleName = getClass().getSimpleName();
+		assert simpleName != null : "JDKs Class#getSimpleName() is never null";
+		return simpleName;
 	}
 
 }

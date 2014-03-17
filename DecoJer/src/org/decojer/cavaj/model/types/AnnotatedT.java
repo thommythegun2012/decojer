@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model.types;
 
-import javax.annotation.Nonnull;
-
 import lombok.Getter;
 
 import org.decojer.cavaj.model.A;
@@ -42,7 +40,6 @@ public class AnnotatedT extends ExtendedT {
 	 * Type annotations.
 	 */
 	@Getter
-	@Nonnull
 	private final A[] as;
 
 	/**

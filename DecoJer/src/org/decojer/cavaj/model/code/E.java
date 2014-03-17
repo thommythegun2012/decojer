@@ -27,6 +27,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,7 +45,10 @@ public final class E {
 	public static final Comparator<E> LINE_COMPARATOR = new Comparator<E>() {
 
 		@Override
-		public int compare(final E e1, final E e2) {
+		public int compare(@Nullable final E e1, @Nullable final E e2) {
+			if (e1 == null || e2 == null) {
+				return 0;
+			}
 			// don't change order for out lines that are before the in line
 			final int startLine = e1.getStart().getLine();
 			final int endLine1 = e1.getEnd().getLine();
@@ -71,6 +76,7 @@ public final class E {
 
 	@Getter
 	@Setter
+	@Nullable
 	private Object value;
 
 	/**
@@ -83,14 +89,14 @@ public final class E {
 	 * @param value
 	 *            value
 	 */
-	public E(final BB start, final BB end, final Object value) {
+	public E(final BB start, final BB end, @Nullable final Object value) {
 		this.start = start;
 		this.end = end;
 		this.value = value;
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
+	public boolean equals(@Nullable final Object obj) {
 		if (!(obj instanceof E)) {
 			return false;
 		}
@@ -105,8 +111,13 @@ public final class E {
 	 * 
 	 * @see BB#isRelevant()
 	 */
+	@Nullable
 	public BB getRelevantEnd() {
-		return getRelevantOut().getEnd();
+		final E relevantOut = getRelevantOut();
+		if (relevantOut == null) {
+			return null;
+		}
+		return relevantOut.getEnd();
 	}
 
 	/**
@@ -116,6 +127,7 @@ public final class E {
 	 * 
 	 * @see BB#isRelevant()
 	 */
+	@Nullable
 	public E getRelevantIn() {
 		final BB start = getStart();
 		return start.isRelevant() ? this : start.getRelevantIn();
@@ -128,6 +140,7 @@ public final class E {
 	 * 
 	 * @see BB#isRelevant()
 	 */
+	@Nullable
 	public E getRelevantOut() {
 		final BB end = getEnd();
 		return end.isRelevant() ? this : end.getRelevantOut();
@@ -140,8 +153,13 @@ public final class E {
 	 * 
 	 * @see BB#isRelevant()
 	 */
+	@Nullable
 	public BB getRelevantStart() {
-		return getRelevantIn().getStart();
+		final E relevantIn = getRelevantIn();
+		if (relevantIn == null) {
+			return null;
+		}
+		return relevantIn.getStart();
 	}
 
 	public String getValueString() {
@@ -246,6 +264,10 @@ public final class E {
 			return false;
 		}
 		final Object[] caseValues = (Object[]) this.value;
+		if (caseValues == null) {
+			assert false : "case values cannot be null for switch case";
+			return false;
+		}
 		for (int i = caseValues.length; i-- > 0;) {
 			if (caseValues[i] == null) {
 				return true;
