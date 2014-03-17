@@ -26,6 +26,8 @@ package org.decojer.cavaj.readers.smali;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,7 +87,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	 * @param debugInfoItem
 	 *            Smail debug info item
 	 */
-	public void initAndVisit(final M m, final DebugInfoItem debugInfoItem) {
+	public void initAndVisit(final M m, @Nullable final DebugInfoItem debugInfoItem) {
 		this.m = m;
 
 		this.opLines.clear();
