@@ -25,6 +25,8 @@ package org.decojer.cavaj.readers.dex2jar;
 
 import java.lang.annotation.RetentionPolicy;
 
+import javax.annotation.Nullable;
+
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
@@ -45,6 +47,7 @@ import com.googlecode.dex2jar.visitors.DexMethodVisitor;
  */
 public class ReadDexClassVisitor implements DexClassVisitor {
 
+	@Nullable
 	private A[] as;
 
 	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
