@@ -32,6 +32,8 @@ import static org.decojer.cavaj.utils.Expressions.newTypeName;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -528,7 +530,7 @@ public final class TrJvmStruct2JavaAst {
 	 * @param contextT
 	 *            Type Declaration
 	 */
-	private static void decompileTypeParams(final T[] typeParams,
+	private static void decompileTypeParams(@Nullable final T[] typeParams,
 			final List<TypeParameter> typeParameters, final T contextT) {
 		if (typeParams == null) {
 			return;

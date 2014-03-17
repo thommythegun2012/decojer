@@ -23,6 +23,8 @@
  */
 package org.decojer.editor.eclipse.du;
 
+import javax.annotation.Nullable;
+
 import org.decojer.cavaj.model.CU;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
@@ -50,8 +52,9 @@ public class DecompilationUnitEditor extends CompilationUnitEditor {
 				|| cu.getSourceFileName() == null ? null : new Path(cu.getSourceFileName())));
 	}
 
+	@Nullable
 	@Override
-	public Object getAdapter(final Class required) {
+	public Object getAdapter(@Nullable final Class required) {
 		// overwrite because of fix for Eclipse since 3.9:
 		// new check JavaEditor.isCalledByOutline() doesn't work for us, call stack to high
 		if (IContentOutlinePage.class.equals(required)) {

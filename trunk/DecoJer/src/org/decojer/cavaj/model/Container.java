@@ -58,12 +58,13 @@ public interface Container {
 	void clear();
 
 	/**
-	 * Get declaration for AST node or {@code null}.
+	 * Get declaration for AST node.
 	 * 
 	 * @param node
-	 *            AST node or {@code null}
+	 *            AST node
 	 * @return declaration
 	 */
+	@Nullable
 	Element getDeclarationForNode(final ASTNode node);
 
 	/**

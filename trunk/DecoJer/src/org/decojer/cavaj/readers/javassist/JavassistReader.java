@@ -63,6 +63,9 @@ import javassist.bytecode.annotation.LongMemberValue;
 import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
+
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -237,8 +240,10 @@ public class JavassistReader implements ClassReader {
 		return a;
 	}
 
-	private A[] readAnnotations(final AnnotationsAttribute annotationsAttributeRuntimeInvisible,
-			final AnnotationsAttribute annotationsAttributeRuntimeVisible) {
+	@Nullable
+	private A[] readAnnotations(
+			@Nullable final AnnotationsAttribute annotationsAttributeRuntimeInvisible,
+			@Nullable final AnnotationsAttribute annotationsAttributeRuntimeVisible) {
 		A[] as = null;
 		// Visible comes first in bytecode, but here we start with invisible
 		// because of array extension trick

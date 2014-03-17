@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.types;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 
 import org.decojer.cavaj.model.DU;
@@ -43,12 +45,14 @@ public class ParamT extends BaseT {
 	/**
 	 * Interface types.
 	 */
+	@Nullable
 	private T[] interfaceTs;
 
 	/**
 	 * Super type.
 	 */
 	@Getter
+	@Nullable
 	private T superT;
 
 	/**
@@ -84,7 +88,7 @@ public class ParamT extends BaseT {
 	}
 
 	@Override
-	public void setSuperT(final T superT) {
+	public void setSuperT(@Nullable final T superT) {
 		if (superT == null) {
 			this.superT = NONE;
 			return;

@@ -28,6 +28,8 @@ import java.lang.reflect.TypeVariable;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -87,6 +89,7 @@ public class ClassT extends T {
 	 * 
 	 * @see ClassT#setEnclosingT(T)
 	 */
+	@Nullable
 	private Object enclosing;
 
 	/**
@@ -98,22 +101,26 @@ public class ClassT extends T {
 	/**
 	 * Interface types.
 	 */
+	@Nullable
 	private T[] interfaceTs;
 
 	/**
 	 * Super type.
 	 */
+	@Nullable
 	private T superT;
 
 	@Getter(AccessLevel.PRIVATE)
 	private TD td;
 
+	@Nullable
 	private Map<String, Object> member;
 
 	/**
 	 * Type parameters. (They define the useable type variables)
 	 */
 	@Setter
+	@Nullable
 	private T[] typeParams;
 
 	/**
@@ -181,6 +188,7 @@ public class ClassT extends T {
 		return getTd().getDeclarations();
 	}
 
+	@Nullable
 	private Object getEnclosing() {
 		if (this.enclosing == null && isUnresolvable()) {
 			return null;
@@ -546,7 +554,7 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public void setSignature(final String signature) {
+	public void setSignature(@Nullable final String signature) {
 		if (signature == null) {
 			return;
 		}
@@ -593,7 +601,7 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public void setSuperT(final T superT) {
+	public void setSuperT(@Nullable final T superT) {
 		if (superT == null) {
 			this.superT = NONE;
 			return;

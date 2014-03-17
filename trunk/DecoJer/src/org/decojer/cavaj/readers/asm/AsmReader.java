@@ -26,6 +26,8 @@ package org.decojer.cavaj.readers.asm;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.Nullable;
+
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.readers.ClassReader;
@@ -51,6 +53,7 @@ public class AsmReader implements ClassReader {
 		this.readClassVisitor = new ReadClassVisitor(du);
 	}
 
+	@Nullable
 	@Override
 	public T read(final InputStream is) throws IOException {
 		final org.objectweb.asm.ClassReader classReader = new org.objectweb.asm.ClassReader(is);

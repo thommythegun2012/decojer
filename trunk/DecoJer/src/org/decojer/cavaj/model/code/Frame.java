@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -34,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class Frame {
 
+	@Nullable
 	private boolean[] alive;
 
 	private final CFG cfg;
@@ -43,6 +46,7 @@ public final class Frame {
 
 	private R[] rs;
 
+	@Nullable
 	private Sub[] subs;
 
 	/**
@@ -147,6 +151,7 @@ public final class Frame {
 	 *            register index
 	 * @return register (local or stack)
 	 */
+	@Nullable
 	public R load(final int i) {
 		// stack allowed too: assert i < this.cfg.getRegs();
 
@@ -205,6 +210,7 @@ public final class Frame {
 		return this.rs[this.rs.length - i - 1];
 	}
 
+	@Nullable
 	public R peekSub(final int callerTop, final int subPc) {
 		// JSR already visited, reuse Sub
 		if (getTop() != callerTop + 1) {

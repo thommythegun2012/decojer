@@ -62,6 +62,7 @@ public abstract class M implements Element {
 	 * 
 	 * @return control flow graph
 	 */
+	@Nullable
 	public abstract CFG getCfg();
 
 	/**
@@ -72,12 +73,14 @@ public abstract class M implements Element {
 	public abstract String getDescriptor();
 
 	/**
-	 * Get decompilation unit or null (for primitive and special types).
+	 * Get decompilation unit.
 	 * 
-	 * @return decompilation unit or null
+	 * @return decompilation unit
 	 */
 	public DU getDu() {
-		return getT().getDu();
+		final DU du = getT().getDu();
+		assert du != null : "cannot be null, because owner cannot be primitive";
+		return du;
 	}
 
 	/**
@@ -100,7 +103,7 @@ public abstract class M implements Element {
 	public abstract String getParamName(final int i);
 
 	/**
-	 * get parameter types.
+	 * Get parameter types.
 	 * 
 	 * @return parameter types
 	 */
@@ -111,6 +114,7 @@ public abstract class M implements Element {
 	 * 
 	 * @return receiver-type
 	 */
+	@Nullable
 	public abstract T getReceiverT();
 
 	/**
@@ -128,10 +132,11 @@ public abstract class M implements Element {
 	public abstract T getT();
 
 	/**
-	 * Get throws types or {@code null}.
+	 * Get throws types.
 	 * 
-	 * @return throws types or {@code null}
+	 * @return throws types
 	 */
+	@Nullable
 	public abstract T[] getThrowsTs();
 
 	/**
@@ -139,6 +144,7 @@ public abstract class M implements Element {
 	 * 
 	 * @return type parameters
 	 */
+	@Nullable
 	public abstract T[] getTypeParams();
 
 	/**
@@ -248,18 +254,19 @@ public abstract class M implements Element {
 	public abstract void setStatic(final boolean f);
 
 	/**
-	 * Set throws types or {@code null}.
+	 * Set throws types.
 	 * 
 	 * @param throwsTs
-	 *            throws types or {@code null}
+	 *            throws types
 	 */
-	public abstract void setThrowsTs(final T[] throwsTs);
+	public abstract void setThrowsTs(@Nullable final T[] throwsTs);
 
 	/**
-	 * Get signature or {@code null}.
+	 * Get signature.
 	 * 
-	 * @return signature or {@code null}
+	 * @return signature
 	 */
+	@Nullable
 	public abstract String getSignature();
 
 }

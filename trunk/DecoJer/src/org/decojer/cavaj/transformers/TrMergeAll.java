@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.transformers;
 
+import javax.annotation.Nullable;
+
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.fields.F;
@@ -43,7 +45,7 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
  */
 public final class TrMergeAll {
 
-	private static boolean addBodyDeclaration(final T t, final Object bodyDeclaration) {
+	private static boolean addBodyDeclaration(final T t, @Nullable final Object bodyDeclaration) {
 		if (bodyDeclaration == null) {
 			return false;
 		}

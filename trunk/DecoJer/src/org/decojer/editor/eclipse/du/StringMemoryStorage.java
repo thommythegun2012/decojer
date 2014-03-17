@@ -27,6 +27,8 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.core.resources.IEncodedStorage;
 import org.eclipse.core.runtime.IPath;
 
@@ -41,6 +43,7 @@ public class StringMemoryStorage implements IEncodedStorage {
 
 	private final byte[] contents;
 
+	@Nullable
 	private final IPath fullPath;
 
 	/**
@@ -51,7 +54,7 @@ public class StringMemoryStorage implements IEncodedStorage {
 	 * @param fullPath
 	 *            full path, important for faked compilation unit and outline
 	 */
-	public StringMemoryStorage(final String content, final IPath fullPath) {
+	public StringMemoryStorage(final String content, @Nullable final IPath fullPath) {
 		assert fullPath != null;
 		assert content != null;
 
@@ -59,8 +62,9 @@ public class StringMemoryStorage implements IEncodedStorage {
 		this.contents = content.getBytes(UTF8);
 	}
 
+	@Nullable
 	@Override
-	public Object getAdapter(final Class adapter) {
+	public Object getAdapter(@Nullable final Class adapter) {
 		return null;
 	}
 
@@ -74,18 +78,21 @@ public class StringMemoryStorage implements IEncodedStorage {
 		return new ByteArrayInputStream(this.contents);
 	}
 
+	@Nullable
 	@Override
 	public IPath getFullPath() {
 		return this.fullPath;
 	}
 
+	@Nullable
 	@Override
 	public String getName() {
-		if (this.fullPath == null) {
+		final IPath fullPath = getFullPath();
+		if (fullPath == null) {
 			return null;
 		}
-		final String lastSegment = this.fullPath.lastSegment();
-		return lastSegment == null ? this.fullPath.toString() : lastSegment;
+		final String lastSegment = fullPath.lastSegment();
+		return lastSegment == null ? fullPath.toString() : lastSegment;
 	}
 
 	@Override

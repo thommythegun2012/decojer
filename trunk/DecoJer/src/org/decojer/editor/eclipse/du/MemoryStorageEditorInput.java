@@ -62,15 +62,17 @@ public class MemoryStorageEditorInput implements IStorageEditorInput {
 
 	@Nullable
 	@Override
-	public Object getAdapter(final Class adapter) {
+	public Object getAdapter(@Nullable final Class adapter) {
 		return null;
 	}
 
+	@Nullable
 	@Override
 	public ImageDescriptor getImageDescriptor() {
 		return null;
 	}
 
+	@Nullable
 	@Override
 	public String getName() {
 		return this.storage.getName();
