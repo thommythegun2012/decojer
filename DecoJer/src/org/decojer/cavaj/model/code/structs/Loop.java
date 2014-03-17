@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.structs;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -66,10 +68,12 @@ public class Loop extends Struct {
 	}
 
 	@Getter
+	@Nullable
 	private BB last;
 
 	@Getter
 	@Setter
+	@Nullable
 	private Kind kind;
 
 	/**
@@ -169,9 +173,12 @@ public class Loop extends Struct {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(super.toString());
-		sb.append("\nLast: BB " + (getLast() == null ? "???" : getLast().getPostorder()));
+		final BB last = getLast();
+		sb.append("\nLast: BB " + (last == null ? "???" : last.getPostorder()));
 		sb.append("\nType: " + getKind());
-		return sb.toString();
+		final String ret = sb.toString();
+		assert ret != null : "cannot be null";
+		return ret;
 	}
 
 }

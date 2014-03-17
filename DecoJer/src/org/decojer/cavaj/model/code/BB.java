@@ -169,7 +169,7 @@ public final class BB {
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
+	public boolean equals(@Nullable final Object obj) {
 		if (!(obj instanceof BB)) {
 			return false;
 		}

@@ -144,7 +144,9 @@ public class DUP extends Op {
 
 	@Override
 	public String toString() {
-		return this.kind.toString();
+		final String ret = this.kind.toString();
+		assert ret != null : "cannot be null";
+		return ret;
 	}
 
 }

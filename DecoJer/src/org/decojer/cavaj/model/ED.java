@@ -61,6 +61,7 @@ public abstract class ED extends CD {
 	 * 
 	 * @return compilation unit
 	 */
+	@Nullable
 	public CU getCu() {
 		final Container declarationOwner = getDeclarationOwner();
 		if (declarationOwner instanceof CU) {

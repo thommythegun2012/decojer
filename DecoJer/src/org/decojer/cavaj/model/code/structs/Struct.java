@@ -105,7 +105,9 @@ public class Struct {
 	 */
 	public void addMembers(final Object value, final Collection<BB> bbs) {
 		for (final BB bb : bbs) {
-			addMember(value, bb);
+			if (bb != null) {
+				addMember(value, bb);
+			}
 		}
 	}
 
@@ -124,7 +126,11 @@ public class Struct {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public boolean add(final BB bb) {
+				public boolean add(@Nullable final BB bb) {
+					if (bb == null) {
+						assert false : "should not be null";
+						return false;
+					}
 					bb.setStruct(Struct.this);
 					return super.add(bb);
 				}
@@ -244,8 +250,9 @@ public class Struct {
 		}
 		sb.append("--- ").append(getClass().getSimpleName()).append(" ---");
 		sb.append("\nHead: BB ").append(getHead().getPostorder());
-		if (this.follow != null) {
-			sb.append("  Follow: BB ").append(getFollow().getPostorder());
+		final BB follow = getFollow();
+		if (follow != null) {
+			sb.append("  Follow: BB ").append(follow.getPostorder());
 		}
 		sb.append("\nMembers: ");
 		int i = 0;
@@ -268,7 +275,9 @@ public class Struct {
 				sb.append("BB ").append(bb.getPostorder()).append("   ");
 			}
 		}
-		return sb.toString();
+		final String ret = sb.toString();
+		assert ret != null : "cannot be null";
+		return ret;
 	}
 
 }
