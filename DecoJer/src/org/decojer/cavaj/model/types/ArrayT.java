@@ -69,7 +69,7 @@ public final class ArrayT extends BaseT {
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
+	public boolean equals(@Nullable final Object obj) {
 		if (!(obj instanceof ArrayT)) {
 			return false;
 		}
