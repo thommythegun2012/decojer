@@ -171,7 +171,7 @@ public final class Expressions {
 	 * 
 	 * @param literal
 	 *            literal expression
-	 * @return integer for literal or {@code null}
+	 * @return integer for literal
 	 */
 	@Nullable
 	public static Number getNumberValue(final Expression literal) {
