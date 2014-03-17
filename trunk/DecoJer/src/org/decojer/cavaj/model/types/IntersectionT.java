@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.types;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 
 /**
@@ -44,6 +46,7 @@ public class IntersectionT extends BaseT {
 	 * Super type.
 	 */
 	@Getter
+	@Nullable
 	private final T superT;
 
 	/**
@@ -54,7 +57,7 @@ public class IntersectionT extends BaseT {
 	 * @param interfaceTs
 	 *            interface types
 	 */
-	public IntersectionT(final T superT, final T... interfaceTs) {
+	public IntersectionT(@Nullable final T superT, final T... interfaceTs) {
 		this.superT = superT;
 		this.interfaceTs = interfaceTs;
 	}
@@ -69,11 +72,13 @@ public class IntersectionT extends BaseT {
 			sb.append(interfaceT.getName()).append(",");
 		}
 		sb.setCharAt(sb.length() - 1, '}');
-		return sb.toString();
+		final String ret = sb.toString();
+		assert ret != null : "cannot be null";
+		return ret;
 	}
 
 	@Override
-	public boolean isAssignableFrom(final T t) {
+	public boolean isAssignableFrom(@Nullable final T t) {
 		final T superT = getSuperT();
 		if (superT != null && !superT.isAssignableFrom(t)) {
 			return false;

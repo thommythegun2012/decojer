@@ -282,6 +282,7 @@ public final class CU implements Container {
 		return ast;
 	}
 
+	@Nullable
 	@Override
 	public Object getAstNode() {
 		return getCud().getAstNode();
@@ -296,6 +297,7 @@ public final class CU implements Container {
 		return (CompilationUnit) getAstNode();
 	}
 
+	@Nullable
 	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return getCud().getDeclarationForNode(node);
@@ -321,6 +323,7 @@ public final class CU implements Container {
 	 * 
 	 * @return package name
 	 */
+	@Nullable
 	public String getPackageName() {
 		return getT().getPackageName();
 	}
@@ -335,7 +338,7 @@ public final class CU implements Container {
 	}
 
 	@Override
-	public void setAstNode(final Object astNode) {
+	public void setAstNode(@Nullable final Object astNode) {
 		getCud().setAstNode(astNode);
 	}
 

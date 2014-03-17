@@ -68,7 +68,9 @@ public class AnnotatedT extends ExtendedT {
 		for (final A a : this.as) {
 			sb.append('@').append(a).append(' ');
 		}
-		return sb.append(getRawT().getFullName()).toString();
+		final String ret = sb.append(getRawT().getFullName()).toString();
+		assert ret != null : "cannot be null";
+		return ret;
 	}
 
 	@Override

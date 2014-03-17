@@ -25,6 +25,8 @@ package org.decojer.cavaj.model.types;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Element;
@@ -47,6 +49,7 @@ public abstract class BaseT extends T {
 		return false;
 	}
 
+	@Nullable
 	@Override
 	public Object getAstNode() {
 		return null;
@@ -57,11 +60,13 @@ public abstract class BaseT extends T {
 		return null;
 	}
 
+	@Nullable
 	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return null;
 	}
 
+	@Nullable
 	@Override
 	public Element getDeclarationOwner() {
 		return null;
@@ -103,7 +108,7 @@ public abstract class BaseT extends T {
 	}
 
 	@Override
-	public void setAstNode(final Object astNode) {
+	public void setAstNode(@Nullable final Object astNode) {
 		assert false;
 	}
 

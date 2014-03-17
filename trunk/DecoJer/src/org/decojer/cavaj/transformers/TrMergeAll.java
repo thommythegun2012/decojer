@@ -49,17 +49,17 @@ public final class TrMergeAll {
 		if (bodyDeclaration == null) {
 			return false;
 		}
-		if (t.getAstNode() instanceof AnonymousClassDeclaration) {
-			return ((AnonymousClassDeclaration) t.getAstNode()).bodyDeclarations().add(
-					bodyDeclaration);
+		final Object astNode = t.getAstNode();
+		if (astNode instanceof AnonymousClassDeclaration) {
+			return ((AnonymousClassDeclaration) astNode).bodyDeclarations().add(bodyDeclaration);
 		}
 		if (bodyDeclaration instanceof EnumConstantDeclaration) {
-			if (t.getAstNode() instanceof EnumDeclaration) {
-				return ((EnumDeclaration) t.getAstNode()).enumConstants().add(bodyDeclaration);
+			if (astNode instanceof EnumDeclaration) {
+				return ((EnumDeclaration) astNode).enumConstants().add(bodyDeclaration);
 			}
 			return false;
 		}
-		return ((AbstractTypeDeclaration) t.getAstNode()).bodyDeclarations().add(bodyDeclaration);
+		return ((AbstractTypeDeclaration) astNode).bodyDeclarations().add(bodyDeclaration);
 	}
 
 	private static int countConstructors(final T t) {
