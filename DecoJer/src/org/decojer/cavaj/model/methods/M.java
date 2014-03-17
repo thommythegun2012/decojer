@@ -200,7 +200,7 @@ public abstract class M implements Element {
 	 * @param paramAss
 	 *            method parameter annotations
 	 */
-	public abstract void setParamAss(final A[][] paramAss);
+	public abstract void setParamAss(@Nullable final A[][] paramAss);
 
 	/**
 	 * Set parameter name.

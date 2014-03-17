@@ -151,21 +151,25 @@ public class ClassM extends M {
 		return true;
 	}
 
+	@Nullable
 	@Override
 	public Object getAnnotationDefaultValue() {
 		return getMd().getAnnotationDefaultValue();
 	}
 
+	@Nullable
 	@Override
 	public A[] getAs() {
 		return getMd().getAs();
 	}
 
+	@Nullable
 	@Override
 	public Object getAstNode() {
 		return getMd().getAstNode();
 	}
 
+	@Nullable
 	@Override
 	public CFG getCfg() {
 		return getMd().getCfg();
@@ -176,11 +180,13 @@ public class ClassM extends M {
 		return getMd().getCu();
 	}
 
+	@Nullable
 	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return getMd().getDeclarationForNode(node);
 	}
 
+	@Nullable
 	@Override
 	public Container getDeclarationOwner() {
 		return getMd().getDeclarationOwner();
@@ -191,6 +197,7 @@ public class ClassM extends M {
 		return getMd().getDeclarations();
 	}
 
+	@Nullable
 	@Override
 	public A[][] getParamAss() {
 		return getMd().getParamAss();
@@ -212,21 +219,25 @@ public class ClassM extends M {
 	 * 
 	 * @see ClassM#setReceiverT(T)
 	 */
+	@Nullable
 	@Override
 	public T getReceiverT() {
 		return getT() instanceof ClassT ? null : getT();
 	}
 
+	@Nullable
 	@Override
 	public String getSignature() {
 		return getMd().getSignature();
 	}
 
+	@Nullable
 	@Override
 	public T[] getThrowsTs() {
 		return getMd().getThrowsTs();
 	}
 
+	@Nullable
 	@Override
 	public T[] getTypeParams() {
 		return getMd().getTypeParams();
@@ -311,7 +322,7 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void setAstNode(final Object astNode) {
+	public void setAstNode(@Nullable final Object astNode) {
 		getMd().setAstNode(astNode);
 	}
 
@@ -450,7 +461,7 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void setThrowsTs(final T[] throwsTs) {
+	public void setThrowsTs(@Nullable final T[] throwsTs) {
 		getMd().setThrowsTs(throwsTs);
 	}
 

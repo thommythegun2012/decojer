@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.types;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -40,6 +42,7 @@ public class WildcardT extends BaseT {
 
 	@Getter
 	@Setter
+	@Nullable
 	private T boundT;
 
 	/**
@@ -50,7 +53,7 @@ public class WildcardT extends BaseT {
 	 * @param subclass
 	 *            is subclass (extends)
 	 */
-	public WildcardT(final T boundT, final boolean subclass) {
+	public WildcardT(@Nullable final T boundT, final boolean subclass) {
 		setBoundT(boundT);
 		this.subclassOf = subclass;
 	}
@@ -79,6 +82,7 @@ public class WildcardT extends BaseT {
 		return "? super " + boundT.getFullName();
 	}
 
+	@Nullable
 	@Override
 	public T getSuperT() {
 		if (isSubclassOf()) {

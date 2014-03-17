@@ -380,6 +380,7 @@ public final class CFG {
 		}
 		final T[] paramTs = getM().getParamTs();
 		for (final T paramT : paramTs) {
+			assert paramT != null : "cannot be null";
 			frame.store(reg, R.createConstR(0, reg, paramT, null));
 			++reg;
 			if (paramT.isWide()) {

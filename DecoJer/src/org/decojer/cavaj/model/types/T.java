@@ -499,7 +499,7 @@ public abstract class T implements Element {
 	public abstract boolean createTd();
 
 	@Override
-	public boolean equals(final Object obj) {
+	public boolean equals(@Nullable final Object obj) {
 		if (this == obj) {
 			return true;
 		}

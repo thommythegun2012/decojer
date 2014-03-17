@@ -198,6 +198,7 @@ public final class DU {
 			return new QualifiedT(qualifierT, t);
 		}
 		final T currentQualifierT = t.getQualifierT();
+		assert currentQualifierT != null : "cannot be null for qualified type";
 
 		// both names must intersect from beginning till somewhere:
 		final int qNl = qualifierT.getName().length();
@@ -869,7 +870,6 @@ public final class DU {
 	 *            file name & optional selector
 	 * @return type declarations
 	 */
-	@Nullable
 	public List<T> read(final String fileName) {
 		final int pos = fileName.indexOf('!');
 		if (pos == -1) {
