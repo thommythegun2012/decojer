@@ -26,6 +26,8 @@ package org.decojer.cavaj.readers;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.Nullable;
+
 import org.decojer.cavaj.model.types.T;
 
 /**
@@ -44,6 +46,7 @@ public interface ClassReader {
 	 * @throws IOException
 	 *             read exception
 	 */
+	@Nullable
 	T read(final InputStream is) throws IOException;
 
 }

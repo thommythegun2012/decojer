@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -43,6 +45,7 @@ public final class Sub {
 	 */
 	@Getter
 	@Setter
+	@Nullable
 	private RET ret;
 
 	/**
@@ -56,7 +59,7 @@ public final class Sub {
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
+	public boolean equals(@Nullable final Object obj) {
 		if (!(obj instanceof Sub)) {
 			return false;
 		}

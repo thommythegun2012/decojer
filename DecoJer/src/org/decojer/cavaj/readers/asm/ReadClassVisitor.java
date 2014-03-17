@@ -27,6 +27,8 @@ import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
 
+import javax.annotation.Nullable;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -54,6 +56,7 @@ import org.objectweb.asm.TypeReference;
 @Slf4j
 public class ReadClassVisitor extends ClassVisitor {
 
+	@Nullable
 	private A[] as;
 
 	private final DU du;
@@ -65,6 +68,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	private final ReadMethodVisitor readMethodVisitor;
 
 	@Getter(AccessLevel.PROTECTED)
+	@Nullable
 	private T t;
 
 	/**
@@ -193,7 +197,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public void visitOuterClass(final String owner, final String name, final String desc) {
+	public void visitOuterClass(final String owner, @Nullable final String name, final String desc) {
 		final ClassT enclosingT = (ClassT) this.du.getT(owner);
 		if (name == null) {
 			this.t.setEnclosingT(enclosingT);

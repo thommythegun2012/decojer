@@ -222,12 +222,13 @@ public final class Annotations {
 	 *            Annotations
 	 * @return {@code true} - Annotations contain the Deprecated Annotation
 	 */
-	public static boolean isDeprecatedAnnotation(final A[] as) {
-		if (as != null) {
-			for (final A a : as) {
-				if (a.getT().is(Deprecated.class)) {
-					return true;
-				}
+	public static boolean isDeprecatedAnnotation(@Nullable final A[] as) {
+		if (as == null) {
+			return false;
+		}
+		for (final A a : as) {
+			if (a.getT().is(Deprecated.class)) {
+				return true;
 			}
 		}
 		return false;

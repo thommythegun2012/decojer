@@ -40,6 +40,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -274,6 +276,7 @@ public final class DU {
 	private final ClassReader classReader = new AsmReader(this);
 
 	@Setter
+	@Nullable
 	private List<CU> cus;
 
 	private final DexReader dexReader = new Smali2Reader(this);
@@ -299,10 +302,6 @@ public final class DU {
 			throw new RuntimeException("Couldn't init decompilation unit!", e);
 		}
 		this.arrayInterfaceTs = new T[] { getT(Cloneable.class), getT(Serializable.class) };
-	}
-
-	protected void createCus() {
-		TrInnerClassesAnalysis.transform(this);
 	}
 
 	public String decompile(final String typeDeclarationName) {
@@ -364,6 +363,7 @@ public final class DU {
 	 *            compilation unit name
 	 * @return compilation unit or {@code null}
 	 */
+	@Nullable
 	public CU getCu(final String name) {
 		for (final CU cu : getCus()) {
 			if (cu.getName().equals(name)) {
@@ -375,9 +375,11 @@ public final class DU {
 
 	public List<CU> getCus() {
 		if (this.cus == null) {
-			createCus();
+			TrInnerClassesAnalysis.transform(this);
 		}
-		return this.cus;
+		final List<CU> cus = this.cus;
+		assert cus != null : "cus cannot be uninitialized here";
+		return cus;
 	}
 
 	/**
@@ -447,7 +449,8 @@ public final class DU {
 	// org/infinispan/util/InfinispanCollections$EmptyReversibleOrderedSet.1
 	// [I
 	// java.lang.String[]
-	private T getT(final String name, final boolean create) {
+	@Nullable
+	private T getT(@Nullable final String name, final boolean create) {
 		if (name == null) {
 			// important for e.g. read Object.class: super is null
 			return null;
@@ -500,7 +503,8 @@ public final class DU {
 	 *            parent type (for recursion)
 	 * @return class type
 	 */
-	private T parseClassT(final String s, final Cursor c, final Object context, final T enclosingT) {
+	private T parseClassT(final String s, final Cursor c, @Nullable final Object context,
+			@Nullable final T enclosingT) {
 		// ClassTypeSignature: L PackageSpecifier_opt SimpleClassTypeSignature
 		// ClassTypeSignatureSuffix_* ;
 		// PackageSpecifier: Identifier / PackageSpecifier_*
@@ -627,7 +631,7 @@ public final class DU {
 	 *            enclosing type context
 	 * @return type arguments or {@code null}
 	 */
-	private T[] parseTypeArgs(final String s, final Cursor c, final Object context) {
+	private T[] parseTypeArgs(final String s, final Cursor c, @Nullable final Object context) {
 		// TypeArguments_opt
 		if (s.length() <= c.pos || s.charAt(c.pos) != '<') {
 			return null;
@@ -710,9 +714,10 @@ public final class DU {
 	 *            file
 	 * @param selector
 	 *            selector (in case of an archive)
-	 * @return type declarations, not null
+	 * @return type declarations
 	 */
-	private List<T> read(final File file, final String selector) {
+	@Nullable
+	private List<T> read(final File file, @Nullable final String selector) {
 		final String fileName = file.getName();
 		if (fileName.endsWith(".class")) {
 			final List<T> ts = Lists.newArrayList();
@@ -780,7 +785,8 @@ public final class DU {
 	 * @throws IOException
 	 *             read exception
 	 */
-	public List<T> read(final InputStream is, final String fileName, final String selector)
+	@Nullable
+	public List<T> read(final InputStream is, final String fileName, @Nullable final String selector)
 			throws IOException {
 		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
 		final int read = is.read(magicNumber, 0, magicNumber.length);
@@ -860,6 +866,7 @@ public final class DU {
 	 *            file name & optional selector
 	 * @return type declarations
 	 */
+	@Nullable
 	public List<T> read(final String fileName) {
 		final int pos = fileName.indexOf('!');
 		if (pos == -1) {

@@ -26,6 +26,8 @@ package org.decojer.cavaj.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -46,6 +48,7 @@ public abstract class CD {
 	 */
 	@Getter
 	@Setter
+	@Nullable
 	private Object astNode;
 
 	/**
@@ -70,6 +73,7 @@ public abstract class CD {
 	 *            AST node or {@code null}
 	 * @return declaration
 	 */
+	@Nullable
 	public Element getDeclarationForNode(final ASTNode node) {
 		for (final Element bd : getDeclarations()) {
 			// could also work with polymorphism here...but why pollute subclasses with helper

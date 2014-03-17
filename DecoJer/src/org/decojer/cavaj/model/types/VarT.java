@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.types;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 
 /**
@@ -48,6 +50,7 @@ public class VarT extends BaseT {
 	private final String name;
 
 	@Getter
+	@Nullable
 	private T resolvedT;
 
 	/**

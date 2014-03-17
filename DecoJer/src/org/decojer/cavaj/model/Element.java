@@ -68,6 +68,7 @@ public interface Element extends Container {
 	 * 
 	 * @return declaration owner
 	 */
+	@Nullable
 	Container getDeclarationOwner();
 
 	/**

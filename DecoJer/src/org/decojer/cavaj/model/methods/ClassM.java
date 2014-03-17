@@ -25,6 +25,8 @@ package org.decojer.cavaj.model.methods;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -59,6 +61,7 @@ public class ClassM extends M {
 	private final String descriptor;
 
 	@Getter(AccessLevel.PRIVATE)
+	@Nullable
 	private MD md;
 
 	@Getter
@@ -72,7 +75,11 @@ public class ClassM extends M {
 	@Setter
 	private T returnT;
 
+	/**
+	 * {@code null} for dynamic
+	 */
 	@Getter
+	@Nullable
 	private T t;
 
 	/**
@@ -120,8 +127,8 @@ public class ClassM extends M {
 		this.descriptor = descriptor;
 
 		final Cursor c = new Cursor();
-		this.paramTs = t.getDu().parseMethodParamTs(descriptor, c, this);
-		this.returnT = t.getDu().parseT(descriptor, c, this);
+		this.paramTs = getDu().parseMethodParamTs(descriptor, c, this);
+		this.returnT = getDu().parseT(descriptor, c, this);
 	}
 
 	@Override
@@ -276,8 +283,9 @@ public class ClassM extends M {
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @return throw types or {@code null}
+	 * @return throw types
 	 */
+	@Nullable
 	private T[] parseThrowsTs(final String s, final Cursor c) {
 		if (c.pos >= s.length() || s.charAt(c.pos) != '^') {
 			return null;
@@ -285,7 +293,7 @@ public class ClassM extends M {
 		final List<T> ts = Lists.newArrayList();
 		do {
 			++c.pos;
-			final T throwT = getT().getDu().parseT(s, c, this);
+			final T throwT = getDu().parseT(s, c, this);
 			throwT.setInterface(false); // TODO we know even more, must be from Throwable
 			ts.add(throwT);
 		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
@@ -355,7 +363,7 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void setSignature(final String signature) {
+	public void setSignature(@Nullable final String signature) {
 		if (signature == null) {
 			return;
 		}
@@ -364,10 +372,10 @@ public class ClassM extends M {
 
 		final Cursor c = new Cursor();
 		// typeParams better in M, maybe later if necessary for static invokes
-		getMd().setTypeParams(getT().getDu().parseTypeParams(signature, c, this));
+		getMd().setTypeParams(getDu().parseTypeParams(signature, c, this));
 
 		final T[] paramTs = getParamTs();
-		final T[] signParamTs = getT().getDu().parseMethodParamTs(signature, c, this);
+		final T[] signParamTs = getDu().parseMethodParamTs(signature, c, this);
 		if (signParamTs.length != 0) {
 			if (paramTs.length != signParamTs.length) {
 				// can happen with Sun JVM for constructor:
@@ -392,7 +400,7 @@ public class ClassM extends M {
 				}
 			}
 		}
-		final T returnT = getT().getDu().parseT(signature, c, this);
+		final T returnT = getDu().parseT(signature, c, this);
 		if (!returnT.eraseTo(getReturnT())) {
 			log.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
 					+ "' for method return: " + this);

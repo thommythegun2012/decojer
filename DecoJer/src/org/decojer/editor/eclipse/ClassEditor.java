@@ -240,6 +240,7 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private JavaOutlinePage javaOutlinePage;
 
+	@Nullable
 	private CU selectedCu;
 
 	private void createClassFileEditor() {

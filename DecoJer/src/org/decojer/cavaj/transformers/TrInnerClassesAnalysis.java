@@ -29,6 +29,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.CU;
@@ -206,6 +208,7 @@ public class TrInnerClassesAnalysis {
 	 * @since 1.5
 	 * @see Class#getSimpleName()
 	 */
+	@Nullable
 	private static String getSimpleBinaryName(final T t) {
 		final T enclosingT = t.getEnclosingT();
 		if (enclosingT == null) {

@@ -27,6 +27,8 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,6 +79,7 @@ public final class CU implements Container {
 	 * Source file name (calculated).
 	 */
 	@Getter
+	@Nullable
 	private final String sourceFileName;
 
 	/**
