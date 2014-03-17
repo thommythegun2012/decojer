@@ -89,6 +89,7 @@ public final class BB {
 
 	@Getter
 	@Setter
+	@Nullable
 	private Struct struct;
 
 	/**

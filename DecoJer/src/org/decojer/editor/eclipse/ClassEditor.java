@@ -26,6 +26,8 @@ package org.decojer.editor.eclipse;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.DecoJer;
@@ -225,6 +227,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		return;
 	}
 
+	@Nullable
 	private Tree archiveTree;
 
 	private CfgViewer cfgViewer;
@@ -361,6 +364,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	 *            Eclipse Java element
 	 * @return declaration
 	 */
+	@Nullable
 	private Container findDeclarationForJavaElement(final IJavaElement javaElement) {
 		// type.getFullyQualifiedName() potentially follows a different naming strategy for inner
 		// classes than the internal model from the bytecode, hence we must iterate through the tree

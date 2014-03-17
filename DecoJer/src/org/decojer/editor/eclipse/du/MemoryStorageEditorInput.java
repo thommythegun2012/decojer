@@ -23,6 +23,8 @@
  */
 package org.decojer.editor.eclipse.du;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IPersistableElement;
@@ -58,6 +60,7 @@ public class MemoryStorageEditorInput implements IStorageEditorInput {
 		return true;
 	}
 
+	@Nullable
 	@Override
 	public Object getAdapter(final Class adapter) {
 		return null;
@@ -73,6 +76,7 @@ public class MemoryStorageEditorInput implements IStorageEditorInput {
 		return this.storage.getName();
 	}
 
+	@Nullable
 	@Override
 	public IPersistableElement getPersistable() {
 		return null;
