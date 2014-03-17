@@ -69,6 +69,7 @@ public final class CFG {
 	 */
 	@Getter
 	@Setter
+	@Nullable
 	private Exc[] excs;
 
 	@Nullable
@@ -91,6 +92,7 @@ public final class CFG {
 
 	@Getter
 	@Setter
+	@Nullable
 	private Op[] ops;
 
 	/**
@@ -264,6 +266,7 @@ public final class CFG {
 	 * 
 	 * @return local variable (from debug info)
 	 */
+	@Nullable
 	public V getDebugV(final int reg, final int pc) {
 		if (this.vss == null || reg >= this.vss.length) {
 			return null;
@@ -297,6 +300,7 @@ public final class CFG {
 	 *            PC
 	 * @return frame
 	 */
+	@Nullable
 	public Frame getFrame(final int pc) {
 		return this.frames[pc];
 	}
@@ -310,6 +314,7 @@ public final class CFG {
 	 *            PC
 	 * @return local variable (from frame)
 	 */
+	@Nullable
 	public V getFrameVar(final int reg, final int pc) {
 		return getDebugV(reg, pc); // hack TODO this.frames[pc].get(reg);
 	}
@@ -332,6 +337,7 @@ public final class CFG {
 	 *            operation
 	 * @return input frame
 	 */
+	@Nullable
 	public Frame getInFrame(final Op op) {
 		return this.frames[op.getPc()];
 	}

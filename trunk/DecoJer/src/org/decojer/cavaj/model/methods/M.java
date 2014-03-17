@@ -84,10 +84,11 @@ public abstract class M implements Element {
 	}
 
 	/**
-	 * Get method parameter annotations or {@code null}.
+	 * Get method parameter annotations.
 	 * 
-	 * @return method parameter annotations or {@code null}
+	 * @return method parameter annotations
 	 */
+	@Nullable
 	public abstract A[][] getParamAss();
 
 	/**

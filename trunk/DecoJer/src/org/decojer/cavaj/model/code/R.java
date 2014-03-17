@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -100,7 +102,7 @@ public final class R {
 	 *            value
 	 * @return register of type CONST
 	 */
-	public static R createConstR(final int pc, final int i, final T t, final Object value) {
+	public static R createConstR(final int pc, final int i, final T t, @Nullable final Object value) {
 		// value == null possible for method parameters, GETs, exception handlers etc.
 		return new R(pc, i, t, value, Kind.CONST);
 	}
@@ -144,6 +146,7 @@ public final class R {
 
 	private final int i;
 
+	@Nullable
 	private R[] ins;
 
 	private final Kind kind;
@@ -163,6 +166,7 @@ public final class R {
 	 */
 	private T lowerT;
 
+	@Nullable
 	private R[] outs;
 
 	/**
@@ -179,12 +183,14 @@ public final class R {
 	 * derived Java variable type must be somewhere between upperT and lowerT. We prefer the most
 	 * exact type near lowerT.
 	 */
+	@Nullable
 	private T upperT;
 
 	/**
 	 * Register value, for constants as far as we can derive them easily.
 	 */
 	@Setter
+	@Nullable
 	private Object value;
 
 	/**
@@ -203,7 +209,7 @@ public final class R {
 	 * @param ins
 	 *            input registers
 	 */
-	private R(final int pc, final int i, final T t, final Object value, final Kind kind,
+	private R(final int pc, final int i, final T t, @Nullable final Object value, final Kind kind,
 			final R... ins) {
 		this.pc = pc;
 		this.i = i;
@@ -340,7 +346,7 @@ public final class R {
 	 *            new input register
 	 * @return {@code true} - forward replace merge register to null
 	 */
-	public boolean replaceIn(final R prevIn, final R newIn) {
+	public boolean replaceIn(final R prevIn, @Nullable final R newIn) {
 		assert this.ins != null;
 
 		for (int i = this.ins.length; i-- > 0;) {

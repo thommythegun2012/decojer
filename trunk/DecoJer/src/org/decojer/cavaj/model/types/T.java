@@ -924,7 +924,8 @@ public abstract class T implements Element {
 	/**
 	 * Get type parameters.
 	 * 
-	 * @return type parameters, not {@code null}
+	 * @return type parameters
+	 * 
 	 * @see Class#getTypeParameters()
 	 */
 	public T[] getTypeParams() {

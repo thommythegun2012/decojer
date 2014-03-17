@@ -146,6 +146,7 @@ public final class Expressions {
 	 * @return {@code null} - no boolean literal, {@code Boolean#TRUE} - true, {@code Boolean#FALSE}
 	 *         - true
 	 */
+	@Nullable
 	public static Boolean getBooleanValue(final Expression literal) {
 		// don't add Number and NumberLiteral here or we run into problems for (test ? 4 : 0) etc.,
 		// improve data flow analysis instead
@@ -172,6 +173,7 @@ public final class Expressions {
 	 *            literal expression
 	 * @return integer for literal or {@code null}
 	 */
+	@Nullable
 	public static Number getNumberValue(final Expression literal) {
 		final Object value = getValue(literal);
 		if (value instanceof Number) {

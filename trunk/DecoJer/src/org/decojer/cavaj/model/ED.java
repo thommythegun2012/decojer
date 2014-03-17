@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -34,17 +36,19 @@ import lombok.Setter;
 public abstract class ED extends CD {
 
 	/**
-	 * Annotations or {@code null}.
+	 * Annotations.
 	 */
 	@Getter
 	@Setter
+	@Nullable
 	private A[] as;
 
 	/**
-	 * Declaration owner or {@code null}.
+	 * Declaration owner.
 	 */
 	@Getter
 	@Setter
+	@Nullable
 	private Container declarationOwner;
 
 	@Override

@@ -398,8 +398,9 @@ public class ClassT extends T {
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @return interface types or {@code null}
+	 * @return interface types
 	 */
+	@Nullable
 	private T[] parseInterfaceTs(final String s, final Cursor c) {
 		if (c.pos >= s.length() || s.charAt(c.pos) != 'L') {
 			return null;
