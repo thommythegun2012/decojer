@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -93,8 +93,6 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	private static String extractPath(final IClassFile eclipseClassFile) {
-		assert eclipseClassFile != null;
-
 		// is from JAR...
 		// example: sun/org/mozilla/javascript/internal/
 		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
@@ -360,7 +358,7 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	/**
 	 * Find type declaration for Eclipse type.
-	 * 
+	 *
 	 * @param javaElement
 	 *            Eclipse Java element
 	 * @return declaration

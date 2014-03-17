@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -39,7 +39,7 @@ import com.googlecode.dex2jar.visitors.DexFileVisitor;
 
 /**
  * Dex2jar read file visitor.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -60,20 +60,18 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
 	public ReadDexFileVisitor(final DU du) {
-		assert du != null;
-
 		this.du = du;
 		this.readDexClassVisitor = new ReadDexClassVisitor(du);
 	}
 
 	/**
 	 * Init.
-	 * 
+	 *
 	 * @param selector
 	 *            selector
 	 */

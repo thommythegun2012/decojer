@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -30,11 +30,11 @@ import org.decojer.cavaj.model.types.T;
 
 /**
  * Operation.
- * 
+ *
  * The operation code is the VM Code (Class / Dalvik, so far it's possible with reader abstraction).
  * Line numbers are only available if debug info given. The PC is the operation index, not the VM PC
  * (that is not available with Label-based readers). But the original PC / read order is preserved!
- * 
+ *
  * @author André Pankraz
  */
 public abstract class TypedOp extends Op {
@@ -45,7 +45,7 @@ public abstract class TypedOp extends Op {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 * @param opcode
@@ -57,9 +57,6 @@ public abstract class TypedOp extends Op {
 	 */
 	public TypedOp(final int pc, final int opcode, final int line, final T t) {
 		super(pc, opcode, line);
-
-		assert t != null;
-
 		this.t = t;
 	}
 

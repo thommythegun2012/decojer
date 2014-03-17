@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -59,7 +59,7 @@ import com.googlecode.dex2jar.visitors.OdexCodeVisitor;
 
 /**
  * Dex2jar code visitor.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -86,19 +86,15 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
 	public ReadDexCodeVisitor(final DU du) {
-		assert du != null;
-
 		this.du = du;
 	}
 
 	private int getPc(final DexLabel label) {
-		assert label != null;
-
 		final Integer pc = this.label2pc.get(label);
 		if (pc != null) {
 			return pc;
@@ -109,8 +105,6 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	private List<Object> getUnresolved(final DexLabel label) {
-		assert label != null;
-
 		List<Object> unresolved = this.label2unresolved.get(label);
 		if (unresolved == null) {
 			unresolved = Lists.newArrayList();
@@ -121,7 +115,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	/**
 	 * Init and set method declaration.
-	 * 
+	 *
 	 * @param m
 	 *            method
 	 */
