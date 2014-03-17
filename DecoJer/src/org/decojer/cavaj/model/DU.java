@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -72,9 +72,9 @@ import com.google.common.collect.Maps;
 
 /**
  * Decompilation unit.
- * 
+ *
  * Contains the global type pool (like {@code ClassLoader}) and loader.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -82,7 +82,7 @@ public final class DU {
 
 	/**
 	 * Get type with added type annotation for given type and type annotation.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @param a
@@ -110,9 +110,9 @@ public final class DU {
 
 	/**
 	 * Get wildcard type {@code <?>}.
-	 * 
+	 *
 	 * This type is used as type argument, but other types can be type arguments too.
-	 * 
+	 *
 	 * @return wildcard type
 	 */
 	public static WildcardT getMatchesWildcardT() {
@@ -121,7 +121,7 @@ public final class DU {
 
 	/**
 	 * Get parameterized type for generic type and type arguments.
-	 * 
+	 *
 	 * @param genericT
 	 *            generic type with matching type parameters
 	 * @param typeArgs
@@ -136,12 +136,12 @@ public final class DU {
 	/**
 	 * Get default qualified type for given type, converting type parameters to type arguments with
 	 * variables.
-	 * 
+	 *
 	 * This is for instance used for generating fully qualified types for
 	 * {@link ClassM#setReceiverT(T)}.
-	 * 
+	 *
 	 * TODO doesn't yet work this way because we would have to read outer types first
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @return qualified type
@@ -171,12 +171,12 @@ public final class DU {
 
 	/**
 	 * Get qualified type for type and qualifier type.
-	 * 
+	 *
 	 * Final result should be a chain like for T0.T1.T2.T3 this: Q(Q(Q(T0, T1), T2, T3))
-	 * 
+	 *
 	 * Enclosing info might yet be unknown! Chain is fixed lazy in
 	 * {@link QualifiedT#getQualifierT()}.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @param qualifierT
@@ -221,45 +221,41 @@ public final class DU {
 
 	/**
 	 * Get wildcard type {@code <? extends t>}.
-	 * 
+	 *
 	 * This type is used as type argument, but other types can be type arguments too.
-	 * 
+	 *
 	 * @param t
 	 *            type bound
-	 * 
+	 *
 	 * @return wildcard type
 	 */
 	public static WildcardT getSubclassOfWildcardT(final T t) {
-		assert t != null;
-
 		return new WildcardT(t, true);
 	}
 
 	/**
 	 * Get wildcard type {@code <? super t>}.
-	 * 
+	 *
 	 * This type is used as type argument, but other types can be type arguments too.
-	 * 
+	 *
 	 * @param t
 	 *            type bound
-	 * 
+	 *
 	 * @return wildcard type
 	 */
 	public static WildcardT getSuperOfWildcardT(final T t) {
-		assert t != null;
-
 		return new WildcardT(t, false);
 	}
 
 	/**
 	 * Get type variable.
-	 * 
+	 *
 	 * This type is used as type argument, but other types can be type arguments too, e.g. a ClassT
 	 * or an extension by WildcardT.
-	 * 
+	 *
 	 * Is not used in declaration like ParamT but is used for referencing it, should be resolved to
 	 * a ParamT, but can only be done lazy.
-	 * 
+	 *
 	 * @param name
 	 *            type name
 	 * @param context
@@ -315,7 +311,7 @@ public final class DU {
 
 	/**
 	 * Decompile all type declarations from decompilation unit into output stream.
-	 * 
+	 *
 	 * @param os
 	 *            output stream
 	 * @throws IOException
@@ -348,7 +344,7 @@ public final class DU {
 
 	/**
 	 * Get array type for component type.
-	 * 
+	 *
 	 * @param componentT
 	 *            component type (could be an array type)
 	 * @return array type for component type
@@ -359,7 +355,7 @@ public final class DU {
 
 	/**
 	 * Get compilaton unit for name.
-	 * 
+	 *
 	 * @param name
 	 *            compilation unit name
 	 * @return compilation unit
@@ -385,7 +381,7 @@ public final class DU {
 
 	/**
 	 * Get type for descriptor.
-	 * 
+	 *
 	 * @param desc
 	 *            descriptor (package/subpackage/Type$Inner)
 	 * @return type
@@ -396,7 +392,7 @@ public final class DU {
 
 	/**
 	 * Get dynamic method.
-	 * 
+	 *
 	 * @param name
 	 *            name
 	 * @param descriptor
@@ -409,7 +405,7 @@ public final class DU {
 
 	/**
 	 * Get object type.
-	 * 
+	 *
 	 * @return object type
 	 */
 	public ClassT getObjectT() {
@@ -418,7 +414,7 @@ public final class DU {
 
 	/**
 	 * Get type for class.
-	 * 
+	 *
 	 * @param klass
 	 *            class
 	 * @return type
@@ -429,12 +425,12 @@ public final class DU {
 
 	/**
 	 * Get type for type name.
-	 * 
+	 *
 	 * Works for basic types, predefined multi-type constants, type declarations and array types,
 	 * but not for Parameterized Types.
-	 * 
+	 *
 	 * Works also for class names, where array types are presented by internal descriptor names.
-	 * 
+	 *
 	 * @param name
 	 *            type name
 	 * @return type
@@ -484,7 +480,7 @@ public final class DU {
 
 	/**
 	 * Get all types.
-	 * 
+	 *
 	 * @return types
 	 */
 	public List<T> getTs() {
@@ -493,7 +489,7 @@ public final class DU {
 
 	/**
 	 * Parse class type.
-	 * 
+	 *
 	 * @param s
 	 *            descriptor / signature
 	 * @param c
@@ -545,7 +541,7 @@ public final class DU {
 
 	/**
 	 * Parse method parameter types from signature.
-	 * 
+	 *
 	 * @param s
 	 *            signature
 	 * @param c
@@ -568,7 +564,7 @@ public final class DU {
 
 	/**
 	 * Parse type from signature.
-	 * 
+	 *
 	 * @param s
 	 *            signature
 	 * @param c
@@ -624,7 +620,7 @@ public final class DU {
 
 	/**
 	 * Parse type arguments from signature.
-	 * 
+	 *
 	 * @param s
 	 *            signature
 	 * @param c
@@ -666,7 +662,7 @@ public final class DU {
 
 	/**
 	 * Parse type parameters from signature.
-	 * 
+	 *
 	 * @param s
 	 *            signature
 	 * @param c
@@ -711,9 +707,9 @@ public final class DU {
 
 	/**
 	 * Read file. May be an archive with a file selector like this:
-	 * 
+	 *
 	 * e.g. \jre\lib\rt.jar and /com/sun/xml/internal/fastinfoset/Decoder.class
-	 * 
+	 *
 	 * @param file
 	 *            file
 	 * @param selector
@@ -776,9 +772,9 @@ public final class DU {
 
 	/**
 	 * Read file. May be an archive with a file selector like this:
-	 * 
+	 *
 	 * e.g. rt.jar and /com/sun/xml/internal/fastinfoset/Decoder.class
-	 * 
+	 *
 	 * @param is
 	 *            input stream
 	 * @param fileName
@@ -863,9 +859,9 @@ public final class DU {
 
 	/**
 	 * Read file. May be an archive with a file selector like this:
-	 * 
+	 *
 	 * e.g. \jre\lib\rt.jar!/com/sun/xml/internal/fastinfoset/Decoder.class
-	 * 
+	 *
 	 * @param fileName
 	 *            file name & optional selector
 	 * @return type declarations

@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -73,7 +73,7 @@ import com.google.common.io.ByteStreams;
 
 /**
  * Reader from Smali.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -81,7 +81,7 @@ public class Smali2Reader implements DexReader {
 
 	/**
 	 * Build method descriptor of method reference.
-	 * 
+	 *
 	 * @param method
 	 *            method reference
 	 * @return method descriptor
@@ -103,13 +103,11 @@ public class Smali2Reader implements DexReader {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
 	public Smali2Reader(final DU du) {
-		assert du != null;
-
 		this.du = du;
 	}
 

@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -78,7 +78,7 @@ import org.decojer.cavaj.readers.ClassReader;
 
 /**
  * Reader from Javassist.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -90,20 +90,18 @@ public class JavassistReader implements ClassReader {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
 	public JavassistReader(final DU du) {
-		assert du != null;
-
 		this.du = du;
 	}
 
 	/**
 	 * Helper function to avoid constPool.getClassInfo(i), which replaces '/' with '.'. This leads
 	 * to problems with new signatures that contain '.' for nested classes.
-	 * 
+	 *
 	 * @param constPool
 	 *            constant pool
 	 * @param index

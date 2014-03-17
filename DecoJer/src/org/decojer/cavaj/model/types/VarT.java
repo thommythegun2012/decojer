@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -29,13 +29,13 @@ import lombok.Getter;
 
 /**
  * Type variable.
- * 
+ *
  * This type is used as type argument, but other types can be type arguments too, e.g. a ClassT or
  * an extension by WildcardT.
- * 
+ *
  * Is not used in declaration like ParamT but is used for referencing it, should be resolved to a
  * ParamT, but can only be done lazy.
- * 
+ *
  * @author André Pankraz
  */
 public class VarT extends BaseT {
@@ -55,15 +55,13 @@ public class VarT extends BaseT {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param name
 	 *            type name
 	 * @param context
 	 *            enclosing type context
 	 */
 	public VarT(final String name, final Object context) {
-		assert name != null;
-
 		this.name = name;
 		this.context = context;
 	}

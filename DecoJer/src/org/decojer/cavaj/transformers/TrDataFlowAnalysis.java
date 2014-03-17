@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -90,7 +90,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Transformer: Data Flow Analysis and create CFG.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -98,7 +98,7 @@ public final class TrDataFlowAnalysis {
 
 	/**
 	 * Transform CFG.
-	 * 
+	 *
 	 * @param cfg
 	 *            CFG
 	 */
@@ -215,7 +215,7 @@ public final class TrDataFlowAnalysis {
 		case ASTORE: {
 			final ASTORE cop = (ASTORE) op;
 			final R vR = popRead(cop.getT()); // value: no read here, more specific possible, see
-												// below
+			// below
 			popRead(T.INT); // index
 			// don't use getArrayT(vR.getT()), wrong assignment direction for supertype,
 			// e.g. java.lang.Object[] <- java.io.PrintWriter[] or int[] <- {byte,char}[]
@@ -452,9 +452,9 @@ public final class TrDataFlowAnalysis {
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
 				assert false : getMd() + ": already visited sub with pc '" + subPc
-						+ "' but didn't find initial sub register";
+				+ "' but didn't find initial sub register";
 
-				return -1;
+			return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
 			if (!this.currentFrame.pushSub(sub)) {
@@ -615,7 +615,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getMd().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : getMd() + ": cannot assign '" + returnT
-					+ "' to return type '" + cop.getT() + "'";
+			+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -807,7 +807,7 @@ public final class TrDataFlowAnalysis {
 
 	/**
 	 * Get target BB for PC. Split or create new if necessary.
-	 * 
+	 *
 	 * @param pc
 	 *            target PC
 	 * @return target BB
@@ -885,8 +885,8 @@ public final class TrDataFlowAnalysis {
 				case MERGE:
 					assert false : getMd() + ": MERGE can only be first op in BB";
 
-					// stop backpropagation here
-					return;
+				// stop backpropagation here
+				return;
 				case MOVE:
 					// register changes here, MOVE from different incoming register in same BB
 					aliveI = r.getIn().getI();
@@ -1126,20 +1126,20 @@ public final class TrDataFlowAnalysis {
 			final boolean jumpOverSub = finalOp instanceof RET ? !checkRegisterAccessInSub(
 					prevR.getI(), (RET) finalOp) : false;
 
-			// replacement propagation to next BB necessary
-			for (final E out : currentBb.getOuts()) {
-				final BB outBb = out.getEnd();
-				if (getFrame(outBb.getPc()) == null) {
-					assert out.isCatch() : getMd()
+					// replacement propagation to next BB necessary
+					for (final E out : currentBb.getOuts()) {
+						final BB outBb = out.getEnd();
+						if (getFrame(outBb.getPc()) == null) {
+							assert out.isCatch() : getMd()
 							+ ": out frames can just be null for splitted catch-handlers that havn't been visited yet: "
 							+ out;
 
-					continue;
-				}
-				// final operation is RET & register untouched in sub => modify to state before sub
-				replaceBbRegDeep(outBb, prevR,
-						jumpOverSub ? getFrame(outBb.getPc() - 1).load(prevR.getI()) : newR);
-			}
+							continue;
+						}
+						// final operation is RET & register untouched in sub => modify to state before sub
+						replaceBbRegDeep(outBb, prevR,
+								jumpOverSub ? getFrame(outBb.getPc() - 1).load(prevR.getI()) : newR);
+					}
 		}
 		return endBbs;
 	}
@@ -1187,7 +1187,7 @@ public final class TrDataFlowAnalysis {
 
 	/**
 	 * Exception block changes in current BB? -> split necessary!
-	 * 
+	 *
 	 * @param currentPc
 	 *            current pc
 	 * @return original BB or new BB for beginning exception block

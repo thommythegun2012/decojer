@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -41,7 +41,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Struct.
- * 
+ *
  * @author André Pankraz
  */
 public class Struct {
@@ -66,13 +66,11 @@ public class Struct {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param bb
 	 *            struct head
 	 */
 	public Struct(final BB bb) {
-		assert bb != null;
-
 		this.parent = bb.getStruct();
 		assert this != this.parent;
 
@@ -82,7 +80,7 @@ public class Struct {
 
 	/**
 	 * Add struct member for value (not head).
-	 * 
+	 *
 	 * @param value
 	 *            value
 	 * @param bb
@@ -97,7 +95,7 @@ public class Struct {
 
 	/**
 	 * Add struct members for value (not head).
-	 * 
+	 *
 	 * @param value
 	 *            value
 	 * @param bbs
@@ -113,7 +111,7 @@ public class Struct {
 
 	/**
 	 * Get struct members for value, changeable list!
-	 * 
+	 *
 	 * @param value
 	 *            value
 	 * @return struct members, changeable list
@@ -129,7 +127,7 @@ public class Struct {
 				public boolean add(@Nullable final BB bb) {
 					if (bb == null) {
 						assert false : "should not be null";
-						return false;
+					return false;
 					}
 					bb.setStruct(Struct.this);
 					return super.add(bb);
@@ -143,7 +141,7 @@ public class Struct {
 
 	/**
 	 * Is BB a branching statement node (pre / endless loop head for continue, struct follow)?
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is a branching statement node
@@ -161,7 +159,7 @@ public class Struct {
 
 	/**
 	 * Is BB target for struct break?
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is target for struct break
@@ -172,7 +170,7 @@ public class Struct {
 
 	/**
 	 * Is BB struct follow?
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is struct follow
@@ -183,7 +181,7 @@ public class Struct {
 
 	/**
 	 * Is BB struct head?
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is struct head
@@ -194,7 +192,7 @@ public class Struct {
 
 	/**
 	 * Is BB struct member (includes struct head and loop last)?
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is struct member
@@ -213,7 +211,7 @@ public class Struct {
 
 	/**
 	 * Is BB struct member for value?
-	 * 
+	 *
 	 * @param value
 	 *            value
 	 * @param bb
@@ -227,7 +225,7 @@ public class Struct {
 
 	/**
 	 * Set follow.
-	 * 
+	 *
 	 * @param bb
 	 *            follow
 	 */

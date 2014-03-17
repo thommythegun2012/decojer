@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -48,7 +48,7 @@ import com.google.common.collect.Lists;
 
 /**
  * Class method.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -84,7 +84,7 @@ public class ClassM extends M {
 
 	/**
 	 * Constructor for dynamic method.
-	 * 
+	 *
 	 * @param du
 	 *            DU
 	 * @param name
@@ -93,9 +93,6 @@ public class ClassM extends M {
 	 *            descriptor
 	 */
 	public ClassM(final DU du, final String name, final String descriptor) {
-		assert name != null;
-		assert descriptor != null;
-
 		this.t = null; // dynamic method
 		this.name = name;
 		this.descriptor = descriptor;
@@ -109,7 +106,7 @@ public class ClassM extends M {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @param name
@@ -118,10 +115,6 @@ public class ClassM extends M {
 	 *            descriptor
 	 */
 	public ClassM(final T t, final String name, final String descriptor) {
-		assert t != null;
-		assert name != null;
-		assert descriptor != null;
-
 		this.t = t;
 		this.name = name;
 		this.descriptor = descriptor;
@@ -214,9 +207,9 @@ public class ClassM extends M {
 
 	/**
 	 * Get receiver-type (this) for none-static methods.
-	 * 
+	 *
 	 * @return receiver-type
-	 * 
+	 *
 	 * @see ClassM#setReceiverT(T)
 	 */
 	@Nullable
@@ -255,7 +248,7 @@ public class ClassM extends M {
 
 	/**
 	 * Is deprecated method, marked via Javadoc @deprecated?
-	 * 
+	 *
 	 * @return {@code true} - is deprecated method
 	 */
 	public boolean isDeprecated() {
@@ -289,7 +282,7 @@ public class ClassM extends M {
 
 	/**
 	 * Parse throw types from signature.
-	 * 
+	 *
 	 * @param s
 	 *            signature
 	 * @param c

@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -29,9 +29,9 @@ import org.decojer.cavaj.model.A;
 
 /**
  * Annotated type.
- * 
+ *
  * @since JVM 8, see JSR 308
- * 
+ *
  * @author André Pankraz
  */
 public class AnnotatedT extends ExtendedT {
@@ -44,7 +44,7 @@ public class AnnotatedT extends ExtendedT {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @param as
@@ -55,9 +55,7 @@ public class AnnotatedT extends ExtendedT {
 		// we have to use the raw name here, not @annotations name, else many enclosing-dependant
 		// stuff will not work, like getT() for enclosed, getSimpleName() etc.,
 		// cannot cache this anyway because of lazy application of type annotations
-
-		assert t != null;
-		assert as != null && as.length > 0;
+		assert as.length > 0;
 
 		this.as = as;
 	}
