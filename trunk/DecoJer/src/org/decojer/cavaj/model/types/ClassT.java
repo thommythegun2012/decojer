@@ -96,6 +96,7 @@ public class ClassT extends T {
 	 * @see T#getInnerName()
 	 */
 	@Getter
+	@Nullable
 	private String innerName;
 
 	/**
@@ -111,6 +112,7 @@ public class ClassT extends T {
 	private T superT;
 
 	@Getter(AccessLevel.PRIVATE)
+	@Nullable
 	private TD td;
 
 	@Nullable

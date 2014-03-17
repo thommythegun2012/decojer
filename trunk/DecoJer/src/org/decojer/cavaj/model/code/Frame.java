@@ -132,7 +132,8 @@ public final class Frame {
 	 * @return {@code true} - is alive
 	 */
 	public boolean isAlive(final int i) {
-		return this.alive == null || this.alive.length <= i ? false : this.alive[i];
+		final boolean[] alive = this.alive;
+		return alive == null || alive.length <= i ? false : alive[i];
 	}
 
 	/**
@@ -173,16 +174,24 @@ public final class Frame {
 		if (i >= this.rs.length) {
 			return false;
 		}
-		if (this.alive == null) {
-			this.alive = new boolean[i + 1];
-		} else if (this.alive.length <= i) {
-			final boolean[] tmp = new boolean[i + 1];
-			System.arraycopy(this.alive, 0, tmp, 0, this.alive.length);
-			this.alive = tmp;
-		} else if (this.alive[i]) {
+		boolean alive[] = this.alive;
+		if (alive == null) {
+			alive = new boolean[i + 1];
+			alive[i] = true;
+			this.alive = alive;
+			return true;
+		}
+		if (alive.length <= i) {
+			final boolean[] newAlive = new boolean[i + 1];
+			System.arraycopy(this.alive, 0, newAlive, 0, alive.length);
+			newAlive[i] = true;
+			this.alive = newAlive;
+			return true;
+		}
+		if (alive[i]) {
 			return false;
 		}
-		this.alive[i] = true;
+		alive[i] = true;
 		return true;
 	}
 
@@ -305,19 +314,20 @@ public final class Frame {
 	 * @return {@code true} - success (not in stack, added)
 	 */
 	public boolean pushSub(final Sub sub) {
-		if (this.subs == null) {
+		final Sub[] subs = this.subs;
+		if (subs == null) {
 			this.subs = new Sub[] { sub };
 			return true;
 		}
-		for (int i = this.subs.length; i-- > 0;) {
-			if (this.subs[i].equals(sub)) {
+		for (int i = subs.length; i-- > 0;) {
+			if (subs[i].equals(sub)) {
 				log("Recursive call to jsr entry!");
 				return false;
 			}
 		}
-		final Sub[] newSubs = new Sub[this.subs.length + 1];
-		System.arraycopy(this.subs, 0, newSubs, 0, this.subs.length);
-		newSubs[this.subs.length] = sub;
+		final Sub[] newSubs = new Sub[subs.length + 1];
+		System.arraycopy(subs, 0, newSubs, 0, subs.length);
+		newSubs[subs.length] = sub;
 		this.subs = newSubs;
 		return true;
 	}

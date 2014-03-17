@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
@@ -75,6 +77,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	private int maxLocals;
 
+	@Nullable
 	private M m;
 
 	private final List<Op> ops = Lists.newArrayList();
@@ -340,8 +343,9 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitLocalVariable(final String name, final String type, final String signature,
-			final DexLabel start, final DexLabel end, final int reg) {
+	public void visitLocalVariable(final String name, final String type,
+			@Nullable final String signature, final DexLabel start, final DexLabel end,
+			final int reg) {
 		T vT = this.du.getDescT(type);
 		if (signature != null) {
 			final T sigT = this.m.getDu().parseT(signature, new Cursor(), this.m);
@@ -484,7 +488,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	@Override
 	public void visitTryCatch(final DexLabel start, final DexLabel end, final DexLabel handler,
-			final String type) {
+			@Nullable final String type) {
 		// type: Ljava/lang/Exception;
 		final T catchT = type == null ? null : this.du.getDescT(type);
 		final Exc exc = new Exc(catchT);
