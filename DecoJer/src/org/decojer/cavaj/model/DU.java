@@ -361,7 +361,7 @@ public final class DU {
 	 * 
 	 * @param name
 	 *            compilation unit name
-	 * @return compilation unit or {@code null}
+	 * @return compilation unit
 	 */
 	@Nullable
 	public CU getCu(final String name) {
@@ -574,8 +574,9 @@ public final class DU {
 	 *            cursor
 	 * @param context
 	 *            enclosing type context
-	 * @return type or {@code null} for signature end
+	 * @return type
 	 */
+	@Nullable
 	public T parseT(final String s, final Cursor c, final Object context) {
 		if (s.length() <= c.pos) {
 			return null;
@@ -629,8 +630,9 @@ public final class DU {
 	 *            cursor
 	 * @param context
 	 *            enclosing type context
-	 * @return type arguments or {@code null}
+	 * @return type arguments
 	 */
+	@Nullable
 	private T[] parseTypeArgs(final String s, final Cursor c, @Nullable final Object context) {
 		// TypeArguments_opt
 		if (s.length() <= c.pos || s.charAt(c.pos) != '<') {
@@ -670,8 +672,9 @@ public final class DU {
 	 *            cursor
 	 * @param context
 	 *            enclosing type context
-	 * @return type parameters or {@code null}
+	 * @return type parameters
 	 */
+	@Nullable
 	public T[] parseTypeParams(final String s, final Cursor c, final Object context) {
 		// TypeParams_opt
 		if (s.charAt(c.pos) != '<') {

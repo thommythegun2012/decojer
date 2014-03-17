@@ -44,7 +44,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 public abstract class CD {
 
 	/**
-	 * AST node or {@code null}.
+	 * AST node.
 	 */
 	@Getter
 	@Setter
@@ -67,10 +67,10 @@ public abstract class CD {
 	}
 
 	/**
-	 * Get declaration for AST node or {@code null}.
+	 * Get declaration for AST node.
 	 * 
 	 * @param node
-	 *            AST node or {@code null}
+	 *            AST node
 	 * @return declaration
 	 */
 	@Nullable

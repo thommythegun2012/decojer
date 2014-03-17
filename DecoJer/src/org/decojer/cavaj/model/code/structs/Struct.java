@@ -30,6 +30,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -45,6 +47,7 @@ import com.google.common.collect.Maps;
 public class Struct {
 
 	@Getter
+	@Nullable
 	private BB follow;
 
 	@Getter
@@ -52,11 +55,13 @@ public class Struct {
 
 	@Getter
 	@Setter
+	@Nullable
 	private String label;
 
 	protected final Map<Object, List<BB>> value2members = Maps.newHashMap();
 
 	@Getter
+	@Nullable
 	private final Struct parent;
 
 	/**
@@ -220,7 +225,7 @@ public class Struct {
 	 * @param bb
 	 *            follow
 	 */
-	public void setFollow(final BB bb) {
+	public void setFollow(@Nullable final BB bb) {
 		// a direct back link at the end of a loop is not a valid follow, have to handle this
 		// differently or we will loop into loop create statements twice,
 		// dismiss such settings silently for now, else have to handle it at many places

@@ -76,7 +76,7 @@ public class ClassM extends M {
 	private T returnT;
 
 	/**
-	 * {@code null} for dynamic
+	 * Owner type, is {@code null} for dynamic
 	 */
 	@Getter
 	@Nullable
