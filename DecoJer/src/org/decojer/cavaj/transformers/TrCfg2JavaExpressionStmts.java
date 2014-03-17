@@ -1688,8 +1688,15 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 
-		final BB getBb = initCacheOut.isCondTrue() ? bb.getFalseOut().getEnd() : bb.getTrueOut()
-				.getEnd();
+		final E falseOut = bb.getFalseOut();
+		if (falseOut == null) {
+			return false;
+		}
+		final E trueOut = bb.getTrueOut();
+		if (trueOut == null) {
+			return false;
+		}
+		final BB getBb = initCacheOut.isCondTrue() ? falseOut.getEnd() : trueOut.getEnd();
 		if (getBb.getOps() != 1 && getBb.getOps() != 2) {
 			return false;
 		}
@@ -1700,7 +1707,11 @@ public final class TrCfg2JavaExpressionStmts {
 			// JDK 1 & 2
 			return false;
 		}
-		final BB followBb = getBb.getSequenceOut().getEnd();
+		final E sequenceOut = getBb.getSequenceOut();
+		if (sequenceOut == null) {
+			return false;
+		}
+		final BB followBb = sequenceOut.getEnd();
 		// can just happen for JDK<5: replace . -> /
 		final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace('.', '/');
 		followBb.push(newLiteral(getCfg().getDu().getT(Class.class),
@@ -1817,19 +1828,27 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final E a_c = c.getRelevantIn();
-			assert a_c != null;
+			if (a_c == null) {
+				continue;
+			}
 			final BB a = a_c.getStart();
 			if (!a.isCond()) {
 				continue;
 			}
 			// now we have the potential compound head, go down again and identify pattern
 			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
-			assert a_x != null;
+			if (a_x == null) {
+				continue;
+			}
 			final BB x = a_x.getRelevantEnd();
 			if (x.getIns().size() != 1 || x.getStmts() != 0 || x.getTop() != 1) {
 				continue;
 			}
-			if (bb != x.getRelevantOut().getEnd()) {
+			final E relevantOut = x.getRelevantOut();
+			if (relevantOut == null) {
+				continue;
+			}
+			if (bb != relevantOut.getEnd()) {
 				continue;
 			}
 			// This is a conditional compound value, example is A ? C : x:
@@ -1844,7 +1863,11 @@ public final class TrCfg2JavaExpressionStmts {
 
 			Expression thenExpression = c.peek();
 			Expression elseExpression = x.peek();
-			Expression expression = ((IfStatement) a.removeFinalStmt()).getExpression();
+			final Statement ifStatement = a.removeFinalStmt();
+			if (!(ifStatement instanceof IfStatement)) {
+				continue;
+			}
+			Expression expression = ((IfStatement) ifStatement).getExpression();
 
 			final Boolean thenBooleanConst = getBooleanValue(thenExpression);
 			final Boolean elseBooleanConst = getBooleanValue(elseExpression);
@@ -2346,7 +2369,11 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		Expression stringSwitchExpression = hashMethodInvocation.getExpression();
-		final BB defaultCase = bb.getSwitchDefaultOut().getRelevantEnd();
+		final E switchDefaultOut = bb.getSwitchDefaultOut();
+		if (switchDefaultOut == null) {
+			return false;
+		}
+		final BB defaultCase = switchDefaultOut.getRelevantEnd();
 		// we are not very flexible here...the patterns are very special, but I don't know if more
 		// general pattern matching is even possible, kind of none-decidable?
 		// obfuscators or different compilers could currently easily sabotage this method...
