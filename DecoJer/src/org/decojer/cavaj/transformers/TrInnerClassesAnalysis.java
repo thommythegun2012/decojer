@@ -109,9 +109,6 @@ public class TrInnerClassesAnalysis {
 						continue;
 					}
 					final T newT = ((NEW) op).getT();
-					if (newT == null) {
-						continue;
-					}
 
 					// TODO the following function is dependant from enclosingT...if this is null,
 					// we will never be anonymous! we should repair enclosing info here, overwrite

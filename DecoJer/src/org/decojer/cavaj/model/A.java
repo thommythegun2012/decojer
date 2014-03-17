@@ -28,9 +28,11 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.decojer.cavaj.model.types.T;
+import javax.annotation.Nullable;
 
 import lombok.Getter;
+
+import org.decojer.cavaj.model.types.T;
 
 import com.google.common.collect.Maps;
 
@@ -44,6 +46,7 @@ public final class A {
 	private final LinkedHashMap<String, Object> members = Maps.newLinkedHashMap();
 
 	@Getter
+	@Nullable
 	private final RetentionPolicy retentionPolicy;
 
 	@Getter
@@ -57,7 +60,7 @@ public final class A {
 	 * @param retentionPolicy
 	 *            retention policy
 	 */
-	public A(final T t, final RetentionPolicy retentionPolicy) {
+	public A(final T t, @Nullable final RetentionPolicy retentionPolicy) {
 		assert t != null;
 
 		this.t = t;
