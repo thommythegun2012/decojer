@@ -25,6 +25,8 @@ package org.decojer.cavaj.model.fields;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -199,7 +201,7 @@ public class ClassF extends F {
 	}
 
 	@Override
-	public void setSignature(final String signature) {
+	public void setSignature(@Nullable final String signature) {
 		if (signature == null) {
 			return;
 		}
