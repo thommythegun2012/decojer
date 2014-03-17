@@ -74,7 +74,8 @@ public class IntersectionT extends BaseT {
 
 	@Override
 	public boolean isAssignableFrom(final T t) {
-		if (!getSuperT().isAssignableFrom(t)) {
+		final T superT = getSuperT();
+		if (superT != null && !superT.isAssignableFrom(t)) {
 			return false;
 		}
 		for (final T interfactT : getInterfaceTs()) {
