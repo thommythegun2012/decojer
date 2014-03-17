@@ -27,6 +27,8 @@ import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
 
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -47,6 +49,7 @@ import org.objectweb.asm.TypeReference;
 @Slf4j
 public class ReadFieldVisitor extends FieldVisitor {
 
+	@Nullable
 	private A[] as;
 
 	private F f;
