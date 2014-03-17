@@ -26,6 +26,8 @@ package org.decojer.cavaj.model.code.structs;
 import java.util.List;
 import java.util.Map.Entry;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -58,6 +60,7 @@ public class Switch extends Struct {
 
 	@Getter
 	@Setter
+	@Nullable
 	private Kind kind;
 
 	/**
@@ -87,7 +90,9 @@ public class Switch extends Struct {
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(super.toString());
 		sb.append("\nType: " + getKind());
-		return sb.toString();
+		final String ret = sb.toString();
+		assert ret != null : "cannot be null";
+		return ret;
 	}
 
 }

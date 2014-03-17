@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.structs;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -63,6 +65,7 @@ public class Cond extends Struct {
 
 	@Getter
 	@Setter
+	@Nullable
 	private Kind kind;
 
 	/**
@@ -79,7 +82,9 @@ public class Cond extends Struct {
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(super.toString());
 		sb.append("\nKind: " + this.kind);
-		return sb.toString();
+		final String ret = sb.toString();
+		assert ret != null : "cannot be null";
+		return ret;
 	}
 
 }
