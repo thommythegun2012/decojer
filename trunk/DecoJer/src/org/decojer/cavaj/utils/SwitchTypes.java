@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -52,7 +52,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Static functions for decompiling switch types like switch(char|Enum|String).
- *
+ * 
  * @author André Pankraz
  * @see TrCfg2JavaExpressionStmts
  */
@@ -61,7 +61,7 @@ public class SwitchTypes {
 	/**
 	 * Is used for string-switches. Execute switch case BB to create the case value map: string to
 	 * BB.
-	 *
+	 * 
 	 * @param caseBb
 	 *            case BB
 	 * @param stringReg
@@ -74,6 +74,7 @@ public class SwitchTypes {
 	 *            case value map: string to BB
 	 * @return {@code true} - success
 	 */
+	@SuppressWarnings("null")
 	private static boolean executeBbStringHashCond(final BB caseBb, final int stringReg,
 			final int hash, final BB defaultCase, final Map<String, BB> string2bb) {
 		final Stack<Object> stack = new Stack<Object>();
@@ -118,7 +119,6 @@ public class SwitchTypes {
 				}
 				string2bb.put(str, dir ? caseBb.getTrueSucc() : caseBb.getFalseSucc());
 				final E out = dir ? caseBb.getFalseOut() : caseBb.getTrueOut();
-				assert out != null : "cannot be null for caseBb";
 				if (out.getRelevantEnd() == defaultCase) {
 					return true;
 				}
@@ -134,7 +134,7 @@ public class SwitchTypes {
 	/**
 	 * Is used for JDK-Bytecode mode string-switches. Execute switch case BB to create the case
 	 * value map: index to string.
-	 *
+	 * 
 	 * @param caseBb
 	 *            case BB
 	 * @param indexReg
@@ -149,6 +149,8 @@ public class SwitchTypes {
 	 */
 	private static boolean executeBbStringIndex(final BB caseBb, final int indexReg,
 			final String str, final BB defaultCase, final Map<Integer, String> index2string) {
+		assert defaultCase != null; // prevent warning for now, later check more
+
 		final Stack<Object> stack = new Stack<Object>();
 		for (int i = 0; i < caseBb.getOps(); ++i) {
 			final Op op = caseBb.getOp(i);
@@ -175,7 +177,7 @@ public class SwitchTypes {
 
 	/**
 	 * Extract from bytecode for enumeration-switches the case value map: index to enum field.
-	 *
+	 * 
 	 * @param m
 	 *            method containing the map.
 	 * @param enumT
@@ -228,7 +230,7 @@ public class SwitchTypes {
 
 	/**
 	 * Extract from bytecode for string-switches the case value map: index to string.
-	 *
+	 * 
 	 * @param string2bb
 	 *            previously extracted map string to BB
 	 * @param indexReg
@@ -252,7 +254,7 @@ public class SwitchTypes {
 
 	/**
 	 * Extract from bytecode for string-switches the case value map: hash to BB.
-	 *
+	 * 
 	 * @param switchHead
 	 *            switch head
 	 * @param stringReg
@@ -290,11 +292,11 @@ public class SwitchTypes {
 	/**
 	 * Rewrite string-switches from hash to value: Apply previously extracted case value maps to
 	 * bytecode case edges.
-	 *
+	 * 
 	 * This works differently to {@link #rewriteCaseValues(BB, Map)} because strings could yield to
 	 * same hashes and cases have to be restructered. It is more reasonable to add new case edges
 	 * and delete all previous case edges.
-	 *
+	 * 
 	 * @param switchHead
 	 *            switch head
 	 * @param string2bb
@@ -350,7 +352,7 @@ public class SwitchTypes {
 	/**
 	 * Rewrite enumeration- or string-switches from index to value: Apply previously extracted case
 	 * value maps to bytecode case edges.
-	 *
+	 * 
 	 * @param switchHead
 	 *            switch head
 	 * @param caseIndex2value

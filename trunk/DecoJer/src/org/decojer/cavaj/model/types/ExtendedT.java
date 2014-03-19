@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -38,10 +38,10 @@ import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Extended type.
- *
+ * 
  * The general rule here should be, that this modification is optional from the view of the type
  * system and that getSimpleName() and getEnclosingT() don't really change.
- *
+ * 
  * @author André Pankraz
  */
 public abstract class ExtendedT extends T {
@@ -283,6 +283,8 @@ public abstract class ExtendedT extends T {
 
 	@Override
 	public void setRawT(final T rawT) {
+		assert rawT != null;
+
 		this.rawT = rawT;
 	}
 

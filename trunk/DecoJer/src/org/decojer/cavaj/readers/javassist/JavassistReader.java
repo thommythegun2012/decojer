@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -63,9 +63,6 @@ import javassist.bytecode.annotation.LongMemberValue;
 import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
-
-import javax.annotation.Nullable;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -78,7 +75,7 @@ import org.decojer.cavaj.readers.ClassReader;
 
 /**
  * Reader from Javassist.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -90,18 +87,20 @@ public class JavassistReader implements ClassReader {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param du
 	 *            decompilation unit
 	 */
 	public JavassistReader(final DU du) {
+		assert du != null;
+
 		this.du = du;
 	}
 
 	/**
 	 * Helper function to avoid constPool.getClassInfo(i), which replaces '/' with '.'. This leads
 	 * to problems with new signatures that contain '.' for nested classes.
-	 *
+	 * 
 	 * @param constPool
 	 *            constant pool
 	 * @param index
@@ -238,10 +237,8 @@ public class JavassistReader implements ClassReader {
 		return a;
 	}
 
-	@Nullable
-	private A[] readAnnotations(
-			@Nullable final AnnotationsAttribute annotationsAttributeRuntimeInvisible,
-			@Nullable final AnnotationsAttribute annotationsAttributeRuntimeVisible) {
+	private A[] readAnnotations(final AnnotationsAttribute annotationsAttributeRuntimeInvisible,
+			final AnnotationsAttribute annotationsAttributeRuntimeVisible) {
 		A[] as = null;
 		// Visible comes first in bytecode, but here we start with invisible
 		// because of array extension trick

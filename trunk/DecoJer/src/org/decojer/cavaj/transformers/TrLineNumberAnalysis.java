@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -47,13 +47,15 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 /**
  * Transformer: Line Number Analysis.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
 public final class TrLineNumberAnalysis {
 
 	private static void analyzeLines(final Block block, final Element e) {
+		assert e != null;
+
 		for (final Statement statement : (List<Statement>) block.statements()) {
 			final Op op = getOp(statement);
 			if (op == null) {
@@ -125,7 +127,7 @@ public final class TrLineNumberAnalysis {
 
 	/**
 	 * Transform compilation unit.
-	 *
+	 * 
 	 * @param cu
 	 *            compilation unit
 	 */

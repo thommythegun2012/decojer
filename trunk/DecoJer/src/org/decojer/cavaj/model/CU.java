@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -26,8 +26,6 @@ package org.decojer.cavaj.model;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -57,10 +55,10 @@ import com.google.common.collect.Lists;
 
 /**
  * Compilation unit.
- *
+ * 
  * Can contain multiple type declarations, but only one with type name equal to source file name can
  * be public.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -83,20 +81,23 @@ public final class CU implements Container {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param t
 	 *            main type declaration
 	 * @param sourceFileName
 	 *            source file name
 	 */
 	public CU(final T t, final String sourceFileName) {
+		assert t != null;
+		assert sourceFileName != null;
+
 		t.setDeclarationOwner(this);
 		this.sourceFileName = sourceFileName;
 	}
 
 	/**
 	 * Check decompile flag.
-	 *
+	 * 
 	 * @param dFlag
 	 *            decompile flag
 	 * @return {@code true} - decompile flag is active
@@ -112,7 +113,7 @@ public final class CU implements Container {
 
 	/**
 	 * Create source code.
-	 *
+	 * 
 	 * @return source code
 	 */
 	public String createSourceCode() {
@@ -197,9 +198,9 @@ public final class CU implements Container {
 
 	/**
 	 * Decompile compilation unit.
-	 *
+	 * 
 	 * Log runtime errors in CFG and continue.
-	 *
+	 * 
 	 * @return source code
 	 */
 	public String decompile() {
@@ -208,10 +209,10 @@ public final class CU implements Container {
 
 	/**
 	 * Decompile compilation unit.
-	 *
+	 * 
 	 * @param ignoreCfgError
 	 *            {@code true} - log runtime errors in CFG and continue
-	 *
+	 * 
 	 * @return source code
 	 */
 	public String decompile(final boolean ignoreCfgError) {
@@ -268,7 +269,7 @@ public final class CU implements Container {
 
 	/**
 	 * Get abstract syntax tree.
-	 *
+	 * 
 	 * @return abstract syntax tree
 	 */
 	public AST getAst() {
@@ -278,7 +279,6 @@ public final class CU implements Container {
 		return ast;
 	}
 
-	@Nullable
 	@Override
 	public Object getAstNode() {
 		return getCud().getAstNode();
@@ -286,14 +286,13 @@ public final class CU implements Container {
 
 	/**
 	 * Get compilation unit.
-	 *
+	 * 
 	 * @return compilation unit
 	 */
 	public CompilationUnit getCompilationUnit() {
 		return (CompilationUnit) getAstNode();
 	}
 
-	@Nullable
 	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return getCud().getDeclarationForNode(node);
@@ -306,7 +305,7 @@ public final class CU implements Container {
 
 	/**
 	 * Get name.
-	 *
+	 * 
 	 * @return name
 	 */
 	@Override
@@ -316,17 +315,16 @@ public final class CU implements Container {
 
 	/**
 	 * Get package name.
-	 *
+	 * 
 	 * @return package name
 	 */
-	@Nullable
 	public String getPackageName() {
 		return getT().getPackageName();
 	}
 
 	/**
 	 * Get first type declaration.
-	 *
+	 * 
 	 * @return first type declaration
 	 */
 	public T getT() {
@@ -334,7 +332,7 @@ public final class CU implements Container {
 	}
 
 	@Override
-	public void setAstNode(@Nullable final Object astNode) {
+	public void setAstNode(final Object astNode) {
 		getCud().setAstNode(astNode);
 	}
 

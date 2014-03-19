@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,8 +24,6 @@
 package org.decojer.cavaj.model.methods;
 
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -48,7 +46,7 @@ import com.google.common.collect.Lists;
 
 /**
  * Class method.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -61,7 +59,6 @@ public class ClassM extends M {
 	private final String descriptor;
 
 	@Getter(AccessLevel.PRIVATE)
-	@Nullable
 	private MD md;
 
 	@Getter
@@ -75,16 +72,12 @@ public class ClassM extends M {
 	@Setter
 	private T returnT;
 
-	/**
-	 * Owner type, is {@code null} for dynamic
-	 */
 	@Getter
-	@Nullable
 	private T t;
 
 	/**
 	 * Constructor for dynamic method.
-	 *
+	 * 
 	 * @param du
 	 *            DU
 	 * @param name
@@ -93,6 +86,9 @@ public class ClassM extends M {
 	 *            descriptor
 	 */
 	public ClassM(final DU du, final String name, final String descriptor) {
+		assert name != null;
+		assert descriptor != null;
+
 		this.t = null; // dynamic method
 		this.name = name;
 		this.descriptor = descriptor;
@@ -106,7 +102,7 @@ public class ClassM extends M {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param t
 	 *            type
 	 * @param name
@@ -115,13 +111,17 @@ public class ClassM extends M {
 	 *            descriptor
 	 */
 	public ClassM(final T t, final String name, final String descriptor) {
+		assert t != null;
+		assert name != null;
+		assert descriptor != null;
+
 		this.t = t;
 		this.name = name;
 		this.descriptor = descriptor;
 
 		final Cursor c = new Cursor();
-		this.paramTs = getDu().parseMethodParamTs(descriptor, c, this);
-		this.returnT = getDu().parseT(descriptor, c, this);
+		this.paramTs = t.getDu().parseMethodParamTs(descriptor, c, this);
+		this.returnT = t.getDu().parseT(descriptor, c, this);
 	}
 
 	@Override
@@ -144,25 +144,21 @@ public class ClassM extends M {
 		return true;
 	}
 
-	@Nullable
 	@Override
 	public Object getAnnotationDefaultValue() {
 		return getMd().getAnnotationDefaultValue();
 	}
 
-	@Nullable
 	@Override
 	public A[] getAs() {
 		return getMd().getAs();
 	}
 
-	@Nullable
 	@Override
 	public Object getAstNode() {
 		return getMd().getAstNode();
 	}
 
-	@Nullable
 	@Override
 	public CFG getCfg() {
 		return getMd().getCfg();
@@ -173,13 +169,11 @@ public class ClassM extends M {
 		return getMd().getCu();
 	}
 
-	@Nullable
 	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return getMd().getDeclarationForNode(node);
 	}
 
-	@Nullable
 	@Override
 	public Container getDeclarationOwner() {
 		return getMd().getDeclarationOwner();
@@ -190,7 +184,6 @@ public class ClassM extends M {
 		return getMd().getDeclarations();
 	}
 
-	@Nullable
 	@Override
 	public A[][] getParamAss() {
 		return getMd().getParamAss();
@@ -207,30 +200,26 @@ public class ClassM extends M {
 
 	/**
 	 * Get receiver-type (this) for none-static methods.
-	 *
+	 * 
 	 * @return receiver-type
-	 *
+	 * 
 	 * @see ClassM#setReceiverT(T)
 	 */
-	@Nullable
 	@Override
 	public T getReceiverT() {
 		return getT() instanceof ClassT ? null : getT();
 	}
 
-	@Nullable
 	@Override
 	public String getSignature() {
 		return getMd().getSignature();
 	}
 
-	@Nullable
 	@Override
 	public T[] getThrowsTs() {
 		return getMd().getThrowsTs();
 	}
 
-	@Nullable
 	@Override
 	public T[] getTypeParams() {
 		return getMd().getTypeParams();
@@ -248,7 +237,7 @@ public class ClassM extends M {
 
 	/**
 	 * Is deprecated method, marked via Javadoc @deprecated?
-	 *
+	 * 
 	 * @return {@code true} - is deprecated method
 	 */
 	public boolean isDeprecated() {
@@ -282,14 +271,13 @@ public class ClassM extends M {
 
 	/**
 	 * Parse throw types from signature.
-	 *
+	 * 
 	 * @param s
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @return throw types
+	 * @return throw types or {@code null}
 	 */
-	@Nullable
 	private T[] parseThrowsTs(final String s, final Cursor c) {
 		if (c.pos >= s.length() || s.charAt(c.pos) != '^') {
 			return null;
@@ -297,7 +285,7 @@ public class ClassM extends M {
 		final List<T> ts = Lists.newArrayList();
 		do {
 			++c.pos;
-			final T throwT = getDu().parseT(s, c, this);
+			final T throwT = getT().getDu().parseT(s, c, this);
 			throwT.setInterface(false); // TODO we know even more, must be from Throwable
 			ts.add(throwT);
 		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
@@ -315,7 +303,7 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void setAstNode(@Nullable final Object astNode) {
+	public void setAstNode(final Object astNode) {
 		getMd().setAstNode(astNode);
 	}
 
@@ -367,7 +355,7 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void setSignature(@Nullable final String signature) {
+	public void setSignature(final String signature) {
 		if (signature == null) {
 			return;
 		}
@@ -376,10 +364,10 @@ public class ClassM extends M {
 
 		final Cursor c = new Cursor();
 		// typeParams better in M, maybe later if necessary for static invokes
-		getMd().setTypeParams(getDu().parseTypeParams(signature, c, this));
+		getMd().setTypeParams(getT().getDu().parseTypeParams(signature, c, this));
 
 		final T[] paramTs = getParamTs();
-		final T[] signParamTs = getDu().parseMethodParamTs(signature, c, this);
+		final T[] signParamTs = getT().getDu().parseMethodParamTs(signature, c, this);
 		if (signParamTs.length != 0) {
 			if (paramTs.length != signParamTs.length) {
 				// can happen with Sun JVM for constructor:
@@ -404,7 +392,7 @@ public class ClassM extends M {
 				}
 			}
 		}
-		final T returnT = getDu().parseT(signature, c, this);
+		final T returnT = getT().getDu().parseT(signature, c, this);
 		if (!returnT.eraseTo(getReturnT())) {
 			log.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
 					+ "' for method return: " + this);
@@ -454,7 +442,7 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void setThrowsTs(@Nullable final T[] throwsTs) {
+	public void setThrowsTs(final T[] throwsTs) {
 		getMd().setThrowsTs(throwsTs);
 	}
 

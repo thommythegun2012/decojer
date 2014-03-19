@@ -33,14 +33,13 @@ import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
-import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -198,7 +197,6 @@ public final class DU {
 			return new QualifiedT(qualifierT, t);
 		}
 		final T currentQualifierT = t.getQualifierT();
-		assert currentQualifierT != null : "cannot be null for qualified type";
 
 		// both names must intersect from beginning till somewhere:
 		final int qNl = qualifierT.getName().length();
@@ -230,6 +228,8 @@ public final class DU {
 	 * @return wildcard type
 	 */
 	public static WildcardT getSubclassOfWildcardT(final T t) {
+		assert t != null;
+
 		return new WildcardT(t, true);
 	}
 
@@ -244,6 +244,8 @@ public final class DU {
 	 * @return wildcard type
 	 */
 	public static WildcardT getSuperOfWildcardT(final T t) {
+		assert t != null;
+
 		return new WildcardT(t, false);
 	}
 
@@ -273,7 +275,6 @@ public final class DU {
 	private final ClassReader classReader = new AsmReader(this);
 
 	@Setter
-	@Nullable
 	private List<CU> cus;
 
 	private final DexReader dexReader = new Smali2Reader(this);
@@ -299,6 +300,10 @@ public final class DU {
 			throw new RuntimeException("Couldn't init decompilation unit!", e);
 		}
 		this.arrayInterfaceTs = new T[] { getT(Cloneable.class), getT(Serializable.class) };
+	}
+
+	protected void createCus() {
+		TrInnerClassesAnalysis.transform(this);
 	}
 
 	public String decompile(final String typeDeclarationName) {
@@ -358,9 +363,8 @@ public final class DU {
 	 *
 	 * @param name
 	 *            compilation unit name
-	 * @return compilation unit
+	 * @return compilation unit or {@code null}
 	 */
-	@Nullable
 	public CU getCu(final String name) {
 		for (final CU cu : getCus()) {
 			if (cu.getName().equals(name)) {
@@ -372,11 +376,9 @@ public final class DU {
 
 	public List<CU> getCus() {
 		if (this.cus == null) {
-			TrInnerClassesAnalysis.transform(this);
+			createCus();
 		}
-		final List<CU> cus = this.cus;
-		assert cus != null : "cus cannot be uninitialized here";
-		return cus;
+		return this.cus;
 	}
 
 	/**
@@ -446,8 +448,7 @@ public final class DU {
 	// org/infinispan/util/InfinispanCollections$EmptyReversibleOrderedSet.1
 	// [I
 	// java.lang.String[]
-	@Nullable
-	private T getT(@Nullable final String name, final boolean create) {
+	private T getT(final String name, final boolean create) {
 		if (name == null) {
 			// important for e.g. read Object.class: super is null
 			return null;
@@ -484,7 +485,9 @@ public final class DU {
 	 * @return types
 	 */
 	public List<T> getTs() {
-		return Lists.newArrayList(this.ts.values());
+		final Collection<T> values = this.ts.values();
+		assert values != null;
+		return Lists.newArrayList(values);
 	}
 
 	/**
@@ -500,8 +503,7 @@ public final class DU {
 	 *            parent type (for recursion)
 	 * @return class type
 	 */
-	private T parseClassT(final String s, final Cursor c, @Nullable final Object context,
-			@Nullable final T enclosingT) {
+	private T parseClassT(final String s, final Cursor c, final Object context, final T enclosingT) {
 		// ClassTypeSignature: L PackageSpecifier_opt SimpleClassTypeSignature
 		// ClassTypeSignatureSuffix_* ;
 		// PackageSpecifier: Identifier / PackageSpecifier_*
@@ -571,9 +573,8 @@ public final class DU {
 	 *            cursor
 	 * @param context
 	 *            enclosing type context
-	 * @return type
+	 * @return type or {@code null} for signature end
 	 */
-	@Nullable
 	public T parseT(final String s, final Cursor c, final Object context) {
 		if (s.length() <= c.pos) {
 			return null;
@@ -627,10 +628,9 @@ public final class DU {
 	 *            cursor
 	 * @param context
 	 *            enclosing type context
-	 * @return type arguments
+	 * @return type arguments or {@code null}
 	 */
-	@Nullable
-	private T[] parseTypeArgs(final String s, final Cursor c, @Nullable final Object context) {
+	private T[] parseTypeArgs(final String s, final Cursor c, final Object context) {
 		// TypeArguments_opt
 		if (s.length() <= c.pos || s.charAt(c.pos) != '<') {
 			return null;
@@ -669,9 +669,8 @@ public final class DU {
 	 *            cursor
 	 * @param context
 	 *            enclosing type context
-	 * @return type parameters
+	 * @return type parameters or {@code null}
 	 */
-	@Nullable
 	public T[] parseTypeParams(final String s, final Cursor c, final Object context) {
 		// TypeParams_opt
 		if (s.charAt(c.pos) != '<') {
@@ -714,10 +713,9 @@ public final class DU {
 	 *            file
 	 * @param selector
 	 *            selector (in case of an archive)
-	 * @return type declarations
+	 * @return type declarations, not null
 	 */
-	@Nullable
-	private List<T> read(final File file, @Nullable final String selector) {
+	private List<T> read(final File file, final String selector) {
 		final String fileName = file.getName();
 		if (fileName.endsWith(".class")) {
 			final List<T> ts = Lists.newArrayList();
@@ -785,8 +783,7 @@ public final class DU {
 	 * @throws IOException
 	 *             read exception
 	 */
-	@Nullable
-	public List<T> read(final InputStream is, final String fileName, @Nullable final String selector)
+	public List<T> read(final InputStream is, final String fileName, final String selector)
 			throws IOException {
 		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
 		final int read = is.read(magicNumber, 0, magicNumber.length);

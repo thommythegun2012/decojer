@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
-import javax.annotation.Nullable;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -37,7 +35,6 @@ public class FILLARRAY extends Op {
 
 	@Getter
 	@Setter
-	@Nullable
 	private Object[] values;
 
 	/**

@@ -133,11 +133,11 @@ public final class TrCfg2JavaControlFlowStmts {
 		return null;
 	}
 
+	@SuppressWarnings("null")
 	private IfStatement transformCond(final Cond cond) {
 		final BB head = cond.getHead();
 
 		final IfStatement ifStatement = (IfStatement) head.getFinalStmt();
-		assert ifStatement != null;
 
 		final BB falseSucc = head.getFalseSucc();
 		final BB trueSucc = head.getTrueSucc();
@@ -196,6 +196,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
+	@SuppressWarnings("null")
 	private Statement transformLoop(final Loop loop) {
 		final BB head = loop.getHead();
 		final BB last = loop.getLast();
@@ -206,7 +207,6 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = false;
 		case WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) head.getStmt(0);
-			assert ifStatement != null;
 			final WhileStatement whileStatement = setOp(getAst().newWhileStatement(),
 					getOp(ifStatement));
 
@@ -231,7 +231,6 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = false;
 		case DO_WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) last.getFinalStmt();
-			assert ifStatement != null;
 			final DoStatement doStatement = setOp(getAst().newDoStatement(), getOp(ifStatement));
 
 			final List<Statement> subStatements = Lists.newArrayList();
@@ -435,13 +434,13 @@ public final class TrCfg2JavaControlFlowStmts {
 		return struct.getFollow();
 	}
 
+	@SuppressWarnings("null")
 	private Statement transformSwitch(final Switch switchStruct) {
 		switch (switchStruct.getKind()) {
 		case NO_DEFAULT:
 		case WITH_DEFAULT: {
 			final BB head = switchStruct.getHead();
 			final SwitchStatement switchStatement = (SwitchStatement) head.getFinalStmt();
-			assert switchStatement != null;
 			final Op op = getOp(switchStatement);
 
 			for (final E out : head.getOuts()) {
@@ -497,14 +496,13 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
+	@SuppressWarnings("null")
 	private Statement transformSync(final Sync sync) {
 		final BB head = sync.getHead();
 		final SynchronizedStatement synchronizedStatement = (SynchronizedStatement) head
 				.getFinalStmt();
-		assert synchronizedStatement != null;
-		final E syncOut = sync.getHead().getSequenceOut();
-		assert syncOut != null;
-		transformSequence(sync, syncOut.getEnd(), synchronizedStatement.getBody().statements());
+		transformSequence(sync, sync.getHead().getSequenceOut().getEnd(), synchronizedStatement
+				.getBody().statements());
 
 		final BB follow = sync.getFollow();
 		if (follow.getStmt(0) instanceof SynchronizedStatement) {

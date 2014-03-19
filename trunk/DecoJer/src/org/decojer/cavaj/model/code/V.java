@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.types.T;
 
 /**
  * Variable.
- *
+ * 
  * @author André Pankraz
  */
 public final class V {
@@ -51,7 +51,7 @@ public final class V {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param t
 	 *            type
 	 * @param name
@@ -62,6 +62,7 @@ public final class V {
 	 *            end pc
 	 */
 	public V(final T t, final String name, final int startPc, final int endPc) {
+		assert t != null;
 		// assert startPc >= 0 : startPc;
 		// assert endPc == -1 || endPc >= startPc : endPc;
 
@@ -72,11 +73,13 @@ public final class V {
 
 	/**
 	 * Copy constructor.
-	 *
+	 * 
 	 * @param v
 	 *            variable
 	 */
 	public V(final V v) {
+		assert v != null;
+
 		this.t = v.t;
 		this.name = v.name;
 		this.pcs = v.pcs; // TODO copy?
@@ -84,7 +87,7 @@ public final class V {
 
 	/**
 	 * Add pc range.
-	 *
+	 * 
 	 * @param startPc
 	 *            start pc
 	 * @param endPc
@@ -104,7 +107,7 @@ public final class V {
 
 	/**
 	 * Set type.
-	 *
+	 * 
 	 * @param t
 	 *            type
 	 * @return {@code true} - changed
@@ -139,7 +142,7 @@ public final class V {
 
 	/**
 	 * Is variable valid for pc?
-	 *
+	 * 
 	 * @param pc
 	 *            pc
 	 * @return {@code true} - variable valid for pc
@@ -156,7 +159,7 @@ public final class V {
 
 	/**
 	 * Is variable valid in pc range?
-	 *
+	 * 
 	 * @param startPc
 	 *            start pc
 	 * @param endPc

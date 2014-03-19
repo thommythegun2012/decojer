@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,8 +24,6 @@
 package org.decojer.cavaj.readers.dex2jar;
 
 import java.lang.annotation.RetentionPolicy;
-
-import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
@@ -42,12 +40,11 @@ import com.googlecode.dex2jar.visitors.DexMethodVisitor;
 
 /**
  * Dex2jar read class visitor.
- *
+ * 
  * @author André Pankraz
  */
 public class ReadDexClassVisitor implements DexClassVisitor {
 
-	@Nullable
 	private A[] as;
 
 	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
@@ -60,11 +57,13 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param du
 	 *            decompilation unit
 	 */
 	public ReadDexClassVisitor(final DU du) {
+		assert du != null;
+
 		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(du);
 		this.readDexFieldVisitor = new ReadDexFieldVisitor(du);
 		this.readDexMethodVisitor = new ReadDexMethodVisitor(du);
@@ -72,7 +71,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	/**
 	 * Init and set type.
-	 *
+	 * 
 	 * @param t
 	 *            type
 	 */
@@ -82,7 +81,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	@Override
-	public DexAnnotationVisitor visitAnnotation(@Nullable final String name, final boolean visible) {
+	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -104,8 +103,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	@Override
-	public DexFieldVisitor visitField(final int accessFlags, @Nullable final Field field,
-			@Nullable final Object value) {
+	public DexFieldVisitor visitField(final int accessFlags, final Field field, final Object value) {
 		final F f = this.t.getF(field.getName(), field.getType());
 		f.createFd();
 
@@ -119,7 +117,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	@Override
-	public DexMethodVisitor visitMethod(final int accessFlags, @Nullable final Method method) {
+	public DexMethodVisitor visitMethod(final int accessFlags, final Method method) {
 		final M m = this.t.getM(method.getName(), method.getDesc());
 		m.createMd();
 
@@ -131,7 +129,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	@Override
-	public void visitSource(@Nullable final String file) {
+	public void visitSource(final String file) {
 		this.t.setSourceFileName(file);
 	}
 

@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,8 +24,6 @@
 package org.decojer.cavaj.model.code;
 
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -46,7 +44,7 @@ import org.eclipse.jdt.core.dom.Block;
 
 /**
  * Control flow graph.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -57,7 +55,6 @@ public final class CFG {
 	 */
 	@Getter
 	@Setter
-	@Nullable
 	private Block block;
 
 	/**
@@ -69,16 +66,13 @@ public final class CFG {
 	 */
 	@Getter
 	@Setter
-	@Nullable
 	private Exc[] excs;
 
-	@Nullable
 	private Frame[] frames;
 
 	/**
 	 * Array with immediate dominators, index is postorder.
 	 */
-	@Nullable
 	private BB[] iDoms;
 
 	/**
@@ -92,7 +86,6 @@ public final class CFG {
 
 	@Getter
 	@Setter
-	@Nullable
 	private Op[] ops;
 
 	/**
@@ -100,7 +93,6 @@ public final class CFG {
 	 */
 	@Getter
 	@Setter
-	@Nullable
 	private List<BB> postorderedBbs;
 
 	/**
@@ -111,15 +103,13 @@ public final class CFG {
 
 	@Getter
 	@Setter
-	@Nullable
 	private BB startBb;
 
-	@Nullable
 	private V[][] vss;
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param m
 	 *            method
 	 * @param regs
@@ -128,6 +118,7 @@ public final class CFG {
 	 *            max stack size
 	 */
 	public CFG(final M m, final int regs, final int maxStack) {
+		assert m != null;
 		assert regs >= 0 : regs;
 		assert maxStack >= 0 : maxStack;
 
@@ -138,15 +129,17 @@ public final class CFG {
 
 	/**
 	 * Add local variable.
-	 *
+	 * 
 	 * Only basic checks, compare later with method parameters.
-	 *
+	 * 
 	 * @param reg
 	 *            register
 	 * @param var
 	 *            local variable
 	 */
 	public void addVar(final int reg, final V var) {
+		assert var != null;
+
 		V[] vars = null;
 		if (this.vss == null) {
 			this.vss = new V[reg + 1][];
@@ -221,7 +214,7 @@ public final class CFG {
 
 	/**
 	 * Decompile CFG.
-	 *
+	 * 
 	 * @param stage
 	 *            stage
 	 */
@@ -246,7 +239,7 @@ public final class CFG {
 
 	/**
 	 * Get compilation unit.
-	 *
+	 * 
 	 * @return compilation unit
 	 */
 	public CU getCu() {
@@ -255,15 +248,14 @@ public final class CFG {
 
 	/**
 	 * Get local variable (from debug info).
-	 *
+	 * 
 	 * @param reg
 	 *            register
 	 * @param pc
 	 *            pc
-	 *
+	 * 
 	 * @return local variable (from debug info)
 	 */
-	@Nullable
 	public V getDebugV(final int reg, final int pc) {
 		if (this.vss == null || reg >= this.vss.length) {
 			return null;
@@ -283,7 +275,7 @@ public final class CFG {
 
 	/**
 	 * Get decompilation unit.
-	 *
+	 * 
 	 * @return decompilation unit
 	 */
 	public DU getDu() {
@@ -292,33 +284,31 @@ public final class CFG {
 
 	/**
 	 * Get frame for PC.
-	 *
+	 * 
 	 * @param pc
 	 *            PC
 	 * @return frame
 	 */
-	@Nullable
 	public Frame getFrame(final int pc) {
 		return this.frames[pc];
 	}
 
 	/**
 	 * Get local variable (from frame).
-	 *
+	 * 
 	 * @param reg
 	 *            register
 	 * @param pc
 	 *            PC
 	 * @return local variable (from frame)
 	 */
-	@Nullable
 	public V getFrameVar(final int reg, final int pc) {
 		return getDebugV(reg, pc); // hack TODO this.frames[pc].get(reg);
 	}
 
 	/**
 	 * Get immediate dominator (IDom) for BB.
-	 *
+	 * 
 	 * @param bb
 	 *            BB
 	 * @return immediate domminator (IDom) for BB
@@ -329,21 +319,20 @@ public final class CFG {
 
 	/**
 	 * Get input frame for operation.
-	 *
+	 * 
 	 * @param op
 	 *            operation
 	 * @return input frame
 	 */
-	@Nullable
 	public Frame getInFrame(final Op op) {
 		return this.frames[op.getPc()];
 	}
 
 	/**
 	 * Get output frame for operation.
-	 *
+	 * 
 	 * Doesn't (and isn't required to) work for control flow statements.
-	 *
+	 * 
 	 * @param op
 	 *            operation
 	 * @return output frame
@@ -354,7 +343,7 @@ public final class CFG {
 
 	/**
 	 * Get type.
-	 *
+	 * 
 	 * @return type
 	 */
 	public T getT() {
@@ -363,7 +352,7 @@ public final class CFG {
 
 	/**
 	 * Initialize frames. Create first frame from method parameters.
-	 *
+	 * 
 	 * @see R#isMethodParam()
 	 */
 	public void initFrames() {
@@ -377,7 +366,6 @@ public final class CFG {
 		}
 		final T[] paramTs = getM().getParamTs();
 		for (final T paramT : paramTs) {
-			assert paramT != null : "cannot be null";
 			frame.store(reg, R.createConstR(0, reg, paramT, null));
 			++reg;
 			if (paramT.isWide()) {
@@ -403,7 +391,7 @@ public final class CFG {
 
 	/**
 	 * Are frames initialized?
-	 *
+	 * 
 	 * @return {@code true} - frames are initialized
 	 */
 	public boolean isFrames() {
@@ -412,7 +400,7 @@ public final class CFG {
 
 	/**
 	 * Should transformer ignore this?
-	 *
+	 * 
 	 * @return {@code true} - ignore this
 	 */
 	public boolean isIgnore() {
@@ -421,7 +409,7 @@ public final class CFG {
 
 	/**
 	 * Is line information available?
-	 *
+	 * 
 	 * @return {@code true} - line information is available
 	 */
 	public boolean isLineInfo() {
@@ -434,10 +422,10 @@ public final class CFG {
 
 	/**
 	 * New BB.
-	 *
+	 * 
 	 * @param opPc
 	 *            first operation PC
-	 *
+	 * 
 	 * @return BB
 	 */
 	public BB newBb(final int opPc) {
@@ -547,10 +535,10 @@ public final class CFG {
 
 	/**
 	 * Set frame for PC.
-	 *
+	 * 
 	 * Copy frame to prevent lots of possible effects with multi-merges like in RET and
 	 * automatically set frame PC.
-	 *
+	 * 
 	 * @param pc
 	 *            PC
 	 * @param frame

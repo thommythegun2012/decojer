@@ -16,14 +16,12 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.editor.eclipse.du;
-
-import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.CU;
 import org.eclipse.core.runtime.Path;
@@ -33,7 +31,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 /**
  * Decompilation Unit Editor.
- *
+ * 
  * @author André Pankraz
  */
 @SuppressWarnings("restriction")
@@ -48,13 +46,12 @@ public class DecompilationUnitEditor extends CompilationUnitEditor {
 			t.printStackTrace();
 			sourceCode = "// Decompilation error!";
 		}
-		return new MemoryStorageEditorInput(new StringMemoryStorage(sourceCode, new Path(
-				cu.getSourceFileName())));
+		return new MemoryStorageEditorInput(new StringMemoryStorage(sourceCode, cu == null
+				|| cu.getSourceFileName() == null ? null : new Path(cu.getSourceFileName())));
 	}
 
-	@Nullable
 	@Override
-	public Object getAdapter(@Nullable final Class required) {
+	public Object getAdapter(final Class required) {
 		// overwrite because of fix for Eclipse since 3.9:
 		// new check JavaEditor.isCalledByOutline() doesn't work for us, call stack to high
 		if (IContentOutlinePage.class.equals(required)) {

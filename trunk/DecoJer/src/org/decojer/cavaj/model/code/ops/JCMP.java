@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.types.T;
 
 /**
  * Operation 'JCMP'.
- *
+ * 
  * @author André Pankraz
  */
 public class JCMP extends TypedOp {
@@ -48,7 +48,7 @@ public class JCMP extends TypedOp {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param pc
 	 *            pc
 	 * @param opcode
@@ -62,6 +62,9 @@ public class JCMP extends TypedOp {
 	 */
 	public JCMP(final int pc, final int opcode, final int line, final T t, final CmpType cmpType) {
 		super(pc, opcode, line, t);
+
+		assert cmpType != null;
+
 		this.cmpType = cmpType;
 	}
 

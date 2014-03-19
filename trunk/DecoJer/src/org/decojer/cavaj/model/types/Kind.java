@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model.types;
 
-import javax.annotation.Nullable;
-
 import lombok.Getter;
 
 /**
@@ -67,26 +65,22 @@ public enum Kind {
 	NONE(1 << 13);
 
 	@Getter
-	private final int kind;
+	private final Class<?> klass;
 
 	@Getter
-	@Nullable
-	private final Class<?> klass;
+	private final int kind;
 
 	private Kind(final int flag) {
 		this(flag, null);
 	}
 
-	private Kind(final int flag, @Nullable final Class<?> klass) {
-		this.kind = flag;
+	private Kind(final int flag, final Class<?> klass) {
 		this.klass = klass;
+		this.kind = flag;
 	}
 
 	public String getName() {
-		final Class<?> klass = getKlass();
-		final String ret = klass == null ? name() : klass.getName();
-		assert ret != null : "cannot be null";
-		return ret;
+		return this.klass == null ? name() : this.klass.getName();
 	}
 
 }

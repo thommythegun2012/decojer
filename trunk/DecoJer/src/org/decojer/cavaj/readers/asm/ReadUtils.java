@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.readers.asm;
 
-import javax.annotation.Nullable;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -65,8 +63,7 @@ public class ReadUtils {
 		return new QualifiedM(annotatedT, m);
 	}
 
-	private static T annotatePart(final T t, final A a, @Nullable final TypePath typePath,
-			final int index) {
+	private static T annotatePart(final T t, final A a, final TypePath typePath, final int index) {
 		if (typePath == null) {
 			return DU.getAnnotatedT(t, a);
 		}
@@ -156,8 +153,7 @@ public class ReadUtils {
 		return annotateT(t, a, typePath, 0);
 	}
 
-	private static T annotateT(final T t, final A a, @Nullable final TypePath typePath,
-			final int index) {
+	private static T annotateT(final T t, final A a, final TypePath typePath, final int index) {
 		int innerCounter = 0;
 		if (typePath != null) {
 			final int typePathLength = typePath.getLength();

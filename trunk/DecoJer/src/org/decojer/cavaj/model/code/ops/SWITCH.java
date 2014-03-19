@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
-import javax.annotation.Nullable;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -37,12 +35,10 @@ public class SWITCH extends Op {
 
 	@Getter
 	@Setter
-	@Nullable
 	private int[] caseKeys;
 
 	@Getter
 	@Setter
-	@Nullable
 	private int[] casePcs;
 
 	@Getter

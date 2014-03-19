@@ -32,8 +32,6 @@ import static org.decojer.cavaj.utils.Expressions.newTypeName;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -127,7 +125,9 @@ public final class TrJvmStruct2JavaAst {
 
 		// decompile annotations, add annotation modifiers before other modifiers, order preserved
 		// in source code generation through Eclipse JDT
-		Annotations.decompileAnnotations(f.getAs(), fieldDeclaration.modifiers(), t);
+		if (f.getAs() != null) {
+			Annotations.decompileAnnotations(f.getAs(), fieldDeclaration.modifiers(), t);
+		}
 
 		final boolean isInterfaceMember = t.isInterface();
 
@@ -235,7 +235,9 @@ public final class TrJvmStruct2JavaAst {
 		// decompile annotations:
 		// add annotation modifiers before other modifiers, order preserved in
 		// source code generation through Eclipse JDT
-		Annotations.decompileAnnotations(m.getAs(), methodDeclaration.modifiers(), t);
+		if (m.getAs() != null) {
+			Annotations.decompileAnnotations(m.getAs(), methodDeclaration.modifiers(), t);
+		}
 
 		final boolean isInterfaceMember = t.isInterface();
 
@@ -402,15 +404,14 @@ public final class TrJvmStruct2JavaAst {
 		}
 		final AST ast = cu.getAst();
 
-		final T superT = t.getSuperT();
 		if (t.getAstNode() == null) {
 			AbstractTypeDeclaration typeDeclaration = null;
 
 			// annotation type declaration
 			if (t.check(AF.ANNOTATION)) {
-				if (superT == null || !superT.isObject()) {
+				if (t.getSuperT() == null || !t.getSuperT().isObject()) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no super class Object but has '"
-							+ superT + "'!");
+							+ t.getSuperT() + "'!");
 				}
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
@@ -424,9 +425,10 @@ public final class TrJvmStruct2JavaAst {
 				if (typeDeclaration != null) {
 					log.warn("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
-					if (superT == null || !superT.isParameterized() || !superT.is(Enum.class)) {
+					if (t.getSuperT() == null || !t.getSuperT().isParameterized()
+							|| !t.getSuperT().is(Enum.class)) {
 						log.warn("Enum type '" + t + "' has no super class '"
-								+ Enum.class.getName() + "' but has '" + superT + "'!");
+								+ Enum.class.getName() + "' but has '" + t.getSuperT() + "'!");
 					}
 					typeDeclaration = ast.newEnumDeclaration();
 					// enums cannot extend other classes than Enum.class, but can have interfaces
@@ -444,6 +446,7 @@ public final class TrJvmStruct2JavaAst {
 				typeDeclaration = ast.newTypeDeclaration();
 				decompileTypeParams(t.getTypeParams(),
 						((TypeDeclaration) typeDeclaration).typeParameters(), t);
+				final T superT = t.getSuperT();
 				if (superT != null && !superT.isObject()) {
 					((TypeDeclaration) typeDeclaration).setSuperclassType(newType(superT, t));
 				}
@@ -456,7 +459,9 @@ public final class TrJvmStruct2JavaAst {
 
 			// add annotation modifiers before other modifiers, order preserved in source code
 			// generation through eclipse.jdt
-			Annotations.decompileAnnotations(t.getAs(), typeDeclaration.modifiers(), t);
+			if (t.getAs() != null) {
+				Annotations.decompileAnnotations(t.getAs(), typeDeclaration.modifiers(), t);
+			}
 
 			// decompile remaining modifier flags
 			if (t.check(AF.PUBLIC)) {
@@ -530,7 +535,7 @@ public final class TrJvmStruct2JavaAst {
 	 * @param contextT
 	 *            Type Declaration
 	 */
-	private static void decompileTypeParams(@Nullable final T[] typeParams,
+	private static void decompileTypeParams(final T[] typeParams,
 			final List<TypeParameter> typeParameters, final T contextT) {
 		if (typeParams == null) {
 			return;
@@ -539,8 +544,7 @@ public final class TrJvmStruct2JavaAst {
 		for (final T typeParam : typeParams) {
 			final TypeParameter typeParameter = ast.newTypeParameter();
 			typeParameter.setName(newSimpleName(typeParam.getName(), ast));
-			Annotations
-					.decompileAnnotations(typeParam.getAs(), typeParameter.modifiers(), contextT);
+			Annotations.decompileAnnotations(typeParam, typeParameter.modifiers(), contextT);
 			final T superT = typeParam.getSuperT();
 			if (superT != null && !superT.isObject()) {
 				typeParameter.typeBounds().add(newType(superT, contextT));
@@ -583,8 +587,10 @@ public final class TrJvmStruct2JavaAst {
 			if (!t.isInterface()) {
 				log.warn("Type declaration with name 'package-info' is not an interface!");
 			}
-			Annotations.decompileAnnotations(t.getAs(), cu.getCompilationUnit().getPackage()
-					.annotations(), t);
+			if (t.getAs() != null) {
+				Annotations.decompileAnnotations(t.getAs(), cu.getCompilationUnit().getPackage()
+						.annotations(), t);
+			}
 			return;
 		}
 		decompileType(t, cu);

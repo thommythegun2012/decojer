@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model.methods;
 
-import javax.annotation.Nullable;
-
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
@@ -54,7 +52,6 @@ public abstract class M implements Element {
 	 * 
 	 * @return annotation default value
 	 */
-	@Nullable
 	public abstract Object getAnnotationDefaultValue();
 
 	/**
@@ -62,7 +59,6 @@ public abstract class M implements Element {
 	 * 
 	 * @return control flow graph
 	 */
-	@Nullable
 	public abstract CFG getCfg();
 
 	/**
@@ -73,22 +69,19 @@ public abstract class M implements Element {
 	public abstract String getDescriptor();
 
 	/**
-	 * Get decompilation unit.
+	 * Get decompilation unit or null (for primitive and special types).
 	 * 
-	 * @return decompilation unit
+	 * @return decompilation unit or null
 	 */
 	public DU getDu() {
-		final DU du = getT().getDu();
-		assert du != null : "cannot be null, because owner cannot be primitive";
-		return du;
+		return getT().getDu();
 	}
 
 	/**
-	 * Get method parameter annotations.
+	 * Get method parameter annotations or {@code null}.
 	 * 
-	 * @return method parameter annotations
+	 * @return method parameter annotations or {@code null}
 	 */
-	@Nullable
 	public abstract A[][] getParamAss();
 
 	/**
@@ -104,7 +97,7 @@ public abstract class M implements Element {
 	public abstract String getParamName(final int i);
 
 	/**
-	 * Get parameter types.
+	 * get parameter types.
 	 * 
 	 * @return parameter types
 	 */
@@ -115,7 +108,6 @@ public abstract class M implements Element {
 	 * 
 	 * @return receiver-type
 	 */
-	@Nullable
 	public abstract T getReceiverT();
 
 	/**
@@ -133,11 +125,10 @@ public abstract class M implements Element {
 	public abstract T getT();
 
 	/**
-	 * Get throws types.
+	 * Get throws types or {@code null}.
 	 * 
-	 * @return throws types
+	 * @return throws types or {@code null}
 	 */
-	@Nullable
 	public abstract T[] getThrowsTs();
 
 	/**
@@ -145,7 +136,6 @@ public abstract class M implements Element {
 	 * 
 	 * @return type parameters
 	 */
-	@Nullable
 	public abstract T[] getTypeParams();
 
 	/**
@@ -200,7 +190,7 @@ public abstract class M implements Element {
 	 * @param paramAss
 	 *            method parameter annotations
 	 */
-	public abstract void setParamAss(@Nullable final A[][] paramAss);
+	public abstract void setParamAss(final A[][] paramAss);
 
 	/**
 	 * Set parameter name.
@@ -255,19 +245,18 @@ public abstract class M implements Element {
 	public abstract void setStatic(final boolean f);
 
 	/**
-	 * Set throws types.
+	 * Set throws types or {@code null}.
 	 * 
 	 * @param throwsTs
-	 *            throws types
+	 *            throws types or {@code null}
 	 */
-	public abstract void setThrowsTs(@Nullable final T[] throwsTs);
+	public abstract void setThrowsTs(final T[] throwsTs);
 
 	/**
-	 * Get signature.
+	 * Get signature or {@code null}.
 	 * 
-	 * @return signature
+	 * @return signature or {@code null}
 	 */
-	@Nullable
 	public abstract String getSignature();
 
 }

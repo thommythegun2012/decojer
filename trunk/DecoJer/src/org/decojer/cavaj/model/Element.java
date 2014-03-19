@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import javax.annotation.Nullable;
-
 /**
  * Element.
  * 
@@ -53,7 +51,6 @@ public interface Element extends Container {
 	 * 
 	 * @return annotations
 	 */
-	@Nullable
 	A[] getAs();
 
 	/**
@@ -68,7 +65,6 @@ public interface Element extends Container {
 	 * 
 	 * @return declaration owner
 	 */
-	@Nullable
 	Container getDeclarationOwner();
 
 	/**

@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model.fields;
 
-import javax.annotation.Nullable;
-
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.T;
@@ -98,12 +96,13 @@ public abstract class F implements Element {
 	public abstract void setStatic(final boolean f);
 
 	/**
-	 * Set value for constant attributes. Type Integer: int, short, byte, char, boolean.
+	 * Set value for constant attributes or {@code null}. Type Integer: int, short, byte, char,
+	 * boolean.
 	 * 
 	 * @param value
-	 *            value for constant attributes
+	 *            value for constant attributes or {@code null}
 	 */
-	public abstract void setValue(@Nullable final Object value);
+	public abstract void setValue(final Object value);
 
 	@Override
 	public String toString() {
@@ -119,13 +118,12 @@ public abstract class F implements Element {
 	public abstract void setValueT(final T valueT);
 
 	/**
-	 * Get value for constant attributes.
+	 * Get value for constant attributes or {@code null}.
 	 * 
 	 * Type Integer: int, short, byte, char, boolean.
 	 * 
-	 * @return value for constant attributes
+	 * @return value for constant attributes or {@code null}
 	 */
-	@Nullable
 	public abstract Object getValue();
 
 }

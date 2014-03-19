@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,8 +24,6 @@
 package org.decojer.cavaj.readers.dex2jar;
 
 import java.lang.annotation.RetentionPolicy;
-
-import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
@@ -38,17 +36,15 @@ import com.googlecode.dex2jar.visitors.DexMethodVisitor;
 
 /**
  * Dex2jar read method visitor.
- *
+ * 
  * @author André Pankraz
  */
 public class ReadDexMethodVisitor implements DexMethodVisitor {
 
-	@Nullable
 	private A[] as;
 
 	private M m;
 
-	@Nullable
 	private A[][] paramAss;
 
 	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
@@ -57,18 +53,20 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param du
 	 *            decompilation unit
 	 */
 	public ReadDexMethodVisitor(final DU du) {
+		assert du != null;
+
 		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(du);
 		this.readDexCodeVisitor = new ReadDexCodeVisitor(du);
 	}
 
 	/**
 	 * Init and set method.
-	 *
+	 * 
 	 * @param m
 	 *            method
 	 */
@@ -79,7 +77,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 	}
 
 	@Override
-	public DexAnnotationVisitor visitAnnotation(@Nullable final String name, final boolean visible) {
+	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -113,8 +111,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 		return new DexAnnotationAble() {
 
 			@Override
-			public DexAnnotationVisitor visitAnnotation(@Nullable final String name,
-					final boolean visible) {
+			public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
 				A[] paramAs = null;
 				if (ReadDexMethodVisitor.this.paramAss == null) {
 					ReadDexMethodVisitor.this.paramAss = new A[index + 1][];

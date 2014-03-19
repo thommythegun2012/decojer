@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,8 +24,6 @@
 package org.decojer.cavaj.model.fields;
 
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -43,7 +41,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Class field.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -53,7 +51,6 @@ public class ClassF extends F {
 	private int accessFlags;
 
 	@Getter(AccessLevel.PRIVATE)
-	@Nullable
 	private FD fd;
 
 	@Getter
@@ -71,7 +68,7 @@ public class ClassF extends F {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param t
 	 *            type
 	 * @param name
@@ -80,6 +77,10 @@ public class ClassF extends F {
 	 *            descriptor
 	 */
 	public ClassF(final T t, final String name, final String descriptor) {
+		assert t != null;
+		assert name != null;
+		assert descriptor != null;
+
 		this.t = t;
 		this.name = name;
 		this.valueT = t.getDu().getDescT(descriptor);
@@ -198,7 +199,7 @@ public class ClassF extends F {
 	}
 
 	@Override
-	public void setSignature(@Nullable final String signature) {
+	public void setSignature(final String signature) {
 		if (signature == null) {
 			return;
 		}

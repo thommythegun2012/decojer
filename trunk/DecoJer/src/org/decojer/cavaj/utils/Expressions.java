@@ -26,8 +26,6 @@ package org.decojer.cavaj.utils;
 import java.util.List;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -146,7 +144,6 @@ public final class Expressions {
 	 * @return {@code null} - no boolean literal, {@code Boolean#TRUE} - true, {@code Boolean#FALSE}
 	 *         - true
 	 */
-	@Nullable
 	public static Boolean getBooleanValue(final Expression literal) {
 		// don't add Number and NumberLiteral here or we run into problems for (test ? 4 : 0) etc.,
 		// improve data flow analysis instead
@@ -171,9 +168,8 @@ public final class Expressions {
 	 * 
 	 * @param literal
 	 *            literal expression
-	 * @return integer for literal
+	 * @return integer for literal or {@code null}
 	 */
-	@Nullable
 	public static Number getNumberValue(final Expression literal) {
 		final Object value = getValue(literal);
 		if (value instanceof Number) {
@@ -192,7 +188,6 @@ public final class Expressions {
 	 *            AST node
 	 * @return originating operation
 	 */
-	@Nullable
 	public static Op getOp(final ASTNode node) {
 		return (Op) node.getProperty(PROP_OP);
 	}
@@ -278,7 +273,7 @@ public final class Expressions {
 		return setOp(setValue(newLiteral2(t, value, contextT), value), op);
 	}
 
-	private static Expression newLiteral2(final T t, @Nullable final Object value, final T contextT) {
+	private static Expression newLiteral2(final T t, final Object value, final T contextT) {
 		final AST ast = contextT.getCu().getAst();
 		if (t.isRef() /* incl. T.AREF */) {
 			if (value == null) {
@@ -700,8 +695,8 @@ public final class Expressions {
 					for (T elementT = t; elementT.isArray(); elementT = elementT.getComponentT()) {
 						final Dimension dimension = ast.newDimension();
 						if (elementT.isAnnotated()) {
-							Annotations.decompileAnnotations(elementT.getAs(),
-									dimension.annotations(), contextT);
+							Annotations.decompileAnnotations(elementT, dimension.annotations(),
+									contextT);
 						}
 						dimensions.add(dimension);
 					}
@@ -740,7 +735,7 @@ public final class Expressions {
 					type = annotatableType;
 				}
 			}
-			Annotations.decompileAnnotations(t.getAs(), annotatableType.annotations(), contextT);
+			Annotations.decompileAnnotations(t, annotatableType.annotations(), contextT);
 			return type;
 		}
 		// doesn't work, now with Dimension (see above): if (t.isArray()) { return

@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model;
 
-import javax.annotation.Nullable;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -36,19 +34,17 @@ import lombok.Setter;
 public abstract class ED extends CD {
 
 	/**
-	 * Annotations.
+	 * Annotations or {@code null}.
 	 */
 	@Getter
 	@Setter
-	@Nullable
 	private A[] as;
 
 	/**
-	 * Declaration owner.
+	 * Declaration owner or {@code null}.
 	 */
 	@Getter
 	@Setter
-	@Nullable
 	private Container declarationOwner;
 
 	@Override
@@ -61,7 +57,6 @@ public abstract class ED extends CD {
 	 * 
 	 * @return compilation unit
 	 */
-	@Nullable
 	public CU getCu() {
 		final Container declarationOwner = getDeclarationOwner();
 		if (declarationOwner instanceof CU) {

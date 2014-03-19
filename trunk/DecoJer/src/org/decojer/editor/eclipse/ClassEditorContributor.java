@@ -16,14 +16,12 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.editor.eclipse;
-
-import javax.annotation.Nullable;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -61,14 +59,14 @@ public class ClassEditorContributor extends MultiPageEditorActionBarContributor 
 	}
 
 	@Override
-	public void contributeToMenu(@Nullable final IMenuManager manager) {
+	public void contributeToMenu(final IMenuManager manager) {
 		final IMenuManager menu = new MenuManager("Editor &Menu");
 		manager.prependToGroup(IWorkbenchActionConstants.MB_ADDITIONS, menu);
 		menu.add(this.sampleAction);
 	}
 
 	@Override
-	public void contributeToToolBar(@Nullable final IToolBarManager manager) {
+	public void contributeToToolBar(final IToolBarManager manager) {
 		manager.add(new Separator());
 		manager.add(this.sampleAction);
 	}
@@ -88,7 +86,7 @@ public class ClassEditorContributor extends MultiPageEditorActionBarContributor 
 
 	/**
 	 * Returns the action registed with the given text editor.
-	 *
+	 * 
 	 * @param editor
 	 *            editor
 	 * @param actionID
@@ -103,7 +101,7 @@ public class ClassEditorContributor extends MultiPageEditorActionBarContributor 
 	 * (non-JavaDoc) Method declared in AbstractMultiPageEditorActionBarContributor.
 	 */
 	@Override
-	public void setActivePage(@Nullable final IEditorPart part) {
+	public void setActivePage(final IEditorPart part) {
 		if (this.activeEditorPart == part) {
 			return;
 		}

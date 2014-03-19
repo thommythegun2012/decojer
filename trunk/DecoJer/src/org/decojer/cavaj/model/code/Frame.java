@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model.code;
 
-import javax.annotation.Nullable;
-
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class Frame {
 
-	@Nullable
 	private boolean[] alive;
 
 	private final CFG cfg;
@@ -46,7 +43,6 @@ public final class Frame {
 
 	private R[] rs;
 
-	@Nullable
 	private Sub[] subs;
 
 	/**
@@ -132,8 +128,7 @@ public final class Frame {
 	 * @return {@code true} - is alive
 	 */
 	public boolean isAlive(final int i) {
-		final boolean[] alive = this.alive;
-		return alive == null || alive.length <= i ? false : alive[i];
+		return this.alive == null || this.alive.length <= i ? false : this.alive[i];
 	}
 
 	/**
@@ -152,7 +147,6 @@ public final class Frame {
 	 *            register index
 	 * @return register (local or stack)
 	 */
-	@Nullable
 	public R load(final int i) {
 		// stack allowed too: assert i < this.cfg.getRegs();
 
@@ -174,24 +168,16 @@ public final class Frame {
 		if (i >= this.rs.length) {
 			return false;
 		}
-		boolean alive[] = this.alive;
-		if (alive == null) {
-			alive = new boolean[i + 1];
-			alive[i] = true;
-			this.alive = alive;
-			return true;
-		}
-		if (alive.length <= i) {
-			final boolean[] newAlive = new boolean[i + 1];
-			System.arraycopy(this.alive, 0, newAlive, 0, alive.length);
-			newAlive[i] = true;
-			this.alive = newAlive;
-			return true;
-		}
-		if (alive[i]) {
+		if (this.alive == null) {
+			this.alive = new boolean[i + 1];
+		} else if (this.alive.length <= i) {
+			final boolean[] tmp = new boolean[i + 1];
+			System.arraycopy(this.alive, 0, tmp, 0, this.alive.length);
+			this.alive = tmp;
+		} else if (this.alive[i]) {
 			return false;
 		}
-		alive[i] = true;
+		this.alive[i] = true;
 		return true;
 	}
 
@@ -219,7 +205,6 @@ public final class Frame {
 		return this.rs[this.rs.length - i - 1];
 	}
 
-	@Nullable
 	public R peekSub(final int callerTop, final int subPc) {
 		// JSR already visited, reuse Sub
 		if (getTop() != callerTop + 1) {
@@ -314,20 +299,19 @@ public final class Frame {
 	 * @return {@code true} - success (not in stack, added)
 	 */
 	public boolean pushSub(final Sub sub) {
-		final Sub[] subs = this.subs;
-		if (subs == null) {
+		if (this.subs == null) {
 			this.subs = new Sub[] { sub };
 			return true;
 		}
-		for (int i = subs.length; i-- > 0;) {
-			if (subs[i].equals(sub)) {
+		for (int i = this.subs.length; i-- > 0;) {
+			if (this.subs[i].equals(sub)) {
 				log("Recursive call to jsr entry!");
 				return false;
 			}
 		}
-		final Sub[] newSubs = new Sub[subs.length + 1];
-		System.arraycopy(subs, 0, newSubs, 0, subs.length);
-		newSubs[subs.length] = sub;
+		final Sub[] newSubs = new Sub[this.subs.length + 1];
+		System.arraycopy(this.subs, 0, newSubs, 0, this.subs.length);
+		newSubs[this.subs.length] = sub;
 		this.subs = newSubs;
 		return true;
 	}

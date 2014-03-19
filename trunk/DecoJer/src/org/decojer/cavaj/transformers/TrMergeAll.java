@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.transformers;
 
-import javax.annotation.Nullable;
-
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.fields.F;
@@ -45,21 +43,21 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
  */
 public final class TrMergeAll {
 
-	private static boolean addBodyDeclaration(final T t, @Nullable final Object bodyDeclaration) {
+	private static boolean addBodyDeclaration(final T t, final Object bodyDeclaration) {
 		if (bodyDeclaration == null) {
 			return false;
 		}
-		final Object astNode = t.getAstNode();
-		if (astNode instanceof AnonymousClassDeclaration) {
-			return ((AnonymousClassDeclaration) astNode).bodyDeclarations().add(bodyDeclaration);
+		if (t.getAstNode() instanceof AnonymousClassDeclaration) {
+			return ((AnonymousClassDeclaration) t.getAstNode()).bodyDeclarations().add(
+					bodyDeclaration);
 		}
 		if (bodyDeclaration instanceof EnumConstantDeclaration) {
-			if (astNode instanceof EnumDeclaration) {
-				return ((EnumDeclaration) astNode).enumConstants().add(bodyDeclaration);
+			if (t.getAstNode() instanceof EnumDeclaration) {
+				return ((EnumDeclaration) t.getAstNode()).enumConstants().add(bodyDeclaration);
 			}
 			return false;
 		}
-		return ((AbstractTypeDeclaration) astNode).bodyDeclarations().add(bodyDeclaration);
+		return ((AbstractTypeDeclaration) t.getAstNode()).bodyDeclarations().add(bodyDeclaration);
 	}
 
 	private static int countConstructors(final T t) {
