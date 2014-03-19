@@ -1177,6 +1177,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				oValue = CmpType.T_NE;
 			}
 			{
+				assert oValue != null : "cannot be null";
 				final JCMP op = new JCMP(this.ops.size(), opcode, this.line, t, (CmpType) oValue);
 				add(op);
 				op.setTargetPc(targetPc);
@@ -1234,6 +1235,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				oValue = CmpType.T_NE;
 			}
 			{
+				assert oValue != null : "cannot be null";
 				final JCND op = new JCND(this.ops.size(), opcode, this.line, t, (CmpType) oValue);
 				add(op);
 				op.setTargetPc(targetPc);
