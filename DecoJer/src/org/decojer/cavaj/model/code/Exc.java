@@ -60,9 +60,7 @@ public final class Exc {
 		final StringBuilder sb = new StringBuilder("Exc");
 		sb.append("(").append(this.startPc).append(" - ").append(this.endPc).append(") ");
 		sb.append(this.t).append(": ").append(this.handlerPc);
-		final String ret = sb.toString();
-		assert ret != null : "cannot be null";
-		return ret;
+		return sb.toString();
 	}
 
 	/**

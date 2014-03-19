@@ -28,8 +28,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.Nullable;
-
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Container;
@@ -216,7 +214,6 @@ public abstract class T implements Element {
 		return kindTo & kindFrom;
 	}
 
-	@Nullable
 	public static T getDalvikIntT(final int literal) {
 		int kinds = T.FLOAT.getKind();
 		if (literal == 0) {
@@ -238,7 +235,6 @@ public abstract class T implements Element {
 		return getT(kinds);
 	}
 
-	@Nullable
 	public static PrimitiveT getJvmIntT(final int literal) {
 		int kinds = 0;
 		if (literal == 0 || literal == 1) {
@@ -257,7 +253,6 @@ public abstract class T implements Element {
 		return getT(kinds);
 	}
 
-	@Nullable
 	private static PrimitiveT getT(final int kinds) {
 		if (kinds == 0) {
 			return null;
@@ -309,8 +304,7 @@ public abstract class T implements Element {
 	 *            type 2
 	 * @return merged type
 	 */
-	@Nullable
-	public static T intersect(@Nullable final T t1, @Nullable final T t2) {
+	public static T intersect(final T t1, final T t2) {
 		if (t1 == null || t2 == null) {
 			return null;
 		}
@@ -408,8 +402,7 @@ public abstract class T implements Element {
 	 *            type 2
 	 * @return merged type
 	 */
-	@Nullable
-	public static T union(@Nullable final T t1, @Nullable final T t2) {
+	public static T union(final T t1, final T t2) {
 		if (t1 == null) {
 			return t2;
 		}
@@ -444,8 +437,7 @@ public abstract class T implements Element {
 	 *            assign from type
 	 * @return {@code null} or reduced type or {@code this}
 	 */
-	@Nullable
-	public T assignFrom(@Nullable final T t) {
+	public T assignFrom(final T t) {
 		if (t == null) {
 			return null;
 		}
@@ -470,8 +462,7 @@ public abstract class T implements Element {
 	 *            assign to type
 	 * @return {@code null} or reduced type or {@code this}
 	 */
-	@Nullable
-	public T assignTo(@Nullable final T t) {
+	public T assignTo(final T t) {
 		if (t == null) {
 			return null;
 		}
@@ -499,7 +490,7 @@ public abstract class T implements Element {
 	public abstract boolean createTd();
 
 	@Override
-	public boolean equals(@Nullable final Object obj) {
+	public boolean equals(final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -537,7 +528,6 @@ public abstract class T implements Element {
 		return equals(t);
 	}
 
-	@Nullable
 	@Override
 	public A[] getAs() {
 		return null;
@@ -548,7 +538,6 @@ public abstract class T implements Element {
 	 * 
 	 * @return bound type for wildcard type or null
 	 */
-	@Nullable
 	public T getBoundT() {
 		return null;
 	}
@@ -560,7 +549,6 @@ public abstract class T implements Element {
 	 * 
 	 * @see Class#isAssignableFrom(Class)
 	 */
-	@Nullable
 	public T getComponentT() {
 		return null;
 	}
@@ -579,7 +567,6 @@ public abstract class T implements Element {
 	 * 
 	 * @return decompilation unit or null
 	 */
-	@Nullable
 	public DU getDu() {
 		return null;
 	}
@@ -589,7 +576,6 @@ public abstract class T implements Element {
 	 * 
 	 * @return element type of array type (null if no array type)
 	 */
-	@Nullable
 	public T getElementT() {
 		return null;
 	}
@@ -603,7 +589,6 @@ public abstract class T implements Element {
 	 * @see Class#getEnclosingMethod()
 	 * @see Class#getEnclosingConstructor()
 	 */
-	@Nullable
 	public M getEnclosingM() {
 		return null; // overwrite in ClassT
 	}
@@ -630,7 +615,6 @@ public abstract class T implements Element {
 	 * @see T#setEnclosingT(T)
 	 * @see Class#getEnclosingClass()
 	 */
-	@Nullable
 	public T getEnclosingT() {
 		return null; // overwrite in ClassT
 	}
@@ -687,7 +671,6 @@ public abstract class T implements Element {
 	 * 
 	 * @return generic type for parameterized type or null
 	 */
-	@Nullable
 	public T getGenericT() {
 		return null;
 	}
@@ -707,10 +690,8 @@ public abstract class T implements Element {
 	 * Before JVM 5: {@code org.decojer.cavaj.test.DecTestInner$$1$AInner2}
 	 * 
 	 * @return inner name
-	 * 
 	 * @see Class#getSimpleName()
 	 */
-	@Nullable
 	public String getInnerName() {
 		return null; // overwrite in ClassT
 	}
@@ -718,8 +699,7 @@ public abstract class T implements Element {
 	/**
 	 * Get interface types.
 	 * 
-	 * @return interface types
-	 * 
+	 * @return interface types, not {@code null}
 	 * @see Class#getInterfaces()
 	 */
 	public abstract T[] getInterfaceTs();
@@ -758,7 +738,6 @@ public abstract class T implements Element {
 	 * 
 	 * @return members
 	 */
-	@Nullable
 	public Map<String, Object> getMember() {
 		return null;
 	}
@@ -768,7 +747,6 @@ public abstract class T implements Element {
 	 * 
 	 * @return package name or {@code null} for no package
 	 */
-	@Nullable
 	public String getPackageName() {
 		final String name = getName();
 		final int pos = name.lastIndexOf('.');
@@ -802,7 +780,6 @@ public abstract class T implements Element {
 	 * 
 	 * @return qualifier type
 	 */
-	@Nullable
 	public T getQualifierT() {
 		if (isStatic()) {
 			return null;
@@ -888,7 +865,6 @@ public abstract class T implements Element {
 	 * 
 	 * @return source file name
 	 */
-	@Nullable
 	public String getSourceFileName() {
 		return null;
 	}
@@ -908,7 +884,6 @@ public abstract class T implements Element {
 	 * @return super type, can be {@code null} for {@code Object}, interfaces and primitives
 	 * @see Class#getSuperclass()
 	 */
-	@Nullable
 	public abstract T getSuperT();
 
 	/**
@@ -916,7 +891,6 @@ public abstract class T implements Element {
 	 * 
 	 * @return type arguments for parameterized types
 	 */
-	@Nullable
 	public T[] getTypeArgs() {
 		return null;
 	}
@@ -924,8 +898,7 @@ public abstract class T implements Element {
 	/**
 	 * Get type parameters.
 	 * 
-	 * @return type parameters
-	 * 
+	 * @return type parameters, not {@code null}
 	 * @see Class#getTypeParameters()
 	 */
 	public T[] getTypeParams() {
@@ -1037,7 +1010,7 @@ public abstract class T implements Element {
 	 * 
 	 * @see Class#isAssignableFrom(Class)
 	 */
-	public boolean isAssignableFrom(@Nullable final T t) {
+	public boolean isAssignableFrom(final T t) {
 		if (t == null) {
 			return false;
 		}

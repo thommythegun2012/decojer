@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -28,17 +28,15 @@ import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.annotation.Nullable;
+import org.decojer.cavaj.model.types.T;
 
 import lombok.Getter;
-
-import org.decojer.cavaj.model.types.T;
 
 import com.google.common.collect.Maps;
 
 /**
  * Annotation.
- *
+ * 
  * @author André Pankraz
  */
 public final class A {
@@ -46,7 +44,6 @@ public final class A {
 	private final LinkedHashMap<String, Object> members = Maps.newLinkedHashMap();
 
 	@Getter
-	@Nullable
 	private final RetentionPolicy retentionPolicy;
 
 	@Getter
@@ -54,20 +51,22 @@ public final class A {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param t
 	 *            type
 	 * @param retentionPolicy
 	 *            retention policy
 	 */
-	public A(final T t, @Nullable final RetentionPolicy retentionPolicy) {
+	public A(final T t, final RetentionPolicy retentionPolicy) {
+		assert t != null;
+
 		this.t = t;
 		this.retentionPolicy = retentionPolicy;
 	}
 
 	/**
 	 * Add member.
-	 *
+	 * 
 	 * @param name
 	 *            name
 	 * @param value
@@ -79,7 +78,7 @@ public final class A {
 
 	/**
 	 * Get member value.
-	 *
+	 * 
 	 * @param name
 	 *            name
 	 * @return value
@@ -90,7 +89,7 @@ public final class A {
 
 	/**
 	 * Get members.
-	 *
+	 * 
 	 * @return members
 	 */
 	public Set<Entry<String, Object>> getMembers() {
@@ -99,7 +98,7 @@ public final class A {
 
 	/**
 	 * Get member value.
-	 *
+	 * 
 	 * @return value
 	 */
 	public Object getValueMember() {

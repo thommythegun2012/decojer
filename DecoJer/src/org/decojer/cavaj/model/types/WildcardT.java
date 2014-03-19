@@ -23,8 +23,6 @@
  */
 package org.decojer.cavaj.model.types;
 
-import javax.annotation.Nullable;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -42,7 +40,6 @@ public class WildcardT extends BaseT {
 
 	@Getter
 	@Setter
-	@Nullable
 	private T boundT;
 
 	/**
@@ -53,7 +50,7 @@ public class WildcardT extends BaseT {
 	 * @param subclass
 	 *            is subclass (extends)
 	 */
-	public WildcardT(@Nullable final T boundT, final boolean subclass) {
+	public WildcardT(final T boundT, final boolean subclass) {
 		setBoundT(boundT);
 		this.subclassOf = subclass;
 	}
@@ -62,7 +59,6 @@ public class WildcardT extends BaseT {
 	public T[] getInterfaceTs() {
 		if (isSubclassOf()) {
 			final T boundT = getBoundT();
-			assert boundT != null;
 			if (boundT.isInterface()) {
 				return new T[] { boundT };
 			}
@@ -72,22 +68,19 @@ public class WildcardT extends BaseT {
 
 	@Override
 	public String getName() {
-		final T boundT = getBoundT();
-		if (boundT == null) {
+		if (getBoundT() == null) {
 			return "?";
 		}
 		if (isSubclassOf()) {
-			return "? extends " + boundT.getFullName();
+			return "? extends " + getBoundT().getFullName();
 		}
-		return "? super " + boundT.getFullName();
+		return "? super " + getBoundT().getFullName();
 	}
 
-	@Nullable
 	@Override
 	public T getSuperT() {
 		if (isSubclassOf()) {
 			final T boundT = getBoundT();
-			assert boundT != null;
 			if (!boundT.isInterface()) {
 				return boundT;
 			}

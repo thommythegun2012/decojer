@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,8 +25,6 @@ package org.decojer.editor.eclipse;
 
 import java.util.List;
 import java.util.regex.Pattern;
-
-import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -93,6 +91,8 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	private static String extractPath(final IClassFile eclipseClassFile) {
+		assert eclipseClassFile != null;
+
 		// is from JAR...
 		// example: sun/org/mozilla/javascript/internal/
 		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
@@ -225,25 +225,18 @@ public class ClassEditor extends MultiPageEditorPart {
 		return;
 	}
 
-	@Nullable
 	private Tree archiveTree;
 
-	@Nullable
 	private CfgViewer cfgViewer;
 
-	@Nullable
 	private ClassFileEditor classFileEditor;
 
-	@Nullable
 	private DecompilationUnitEditor decompilationUnitEditor;
 
-	@Nullable
 	private DU du;
 
-	@Nullable
 	private JavaOutlinePage javaOutlinePage;
 
-	@Nullable
 	private CU selectedCu;
 
 	private void createClassFileEditor() {
@@ -277,7 +270,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	@Override
-	protected Composite createPageContainer(@Nullable final Composite parent) {
+	protected Composite createPageContainer(final Composite parent) {
 		// method is called before createPages() - change pageContainer for archives
 		final Composite pageContainer = super.createPageContainer(parent);
 		if (this.selectedCu != null) {
@@ -297,12 +290,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		this.archiveTree.addSelectionListener(new SelectionListener() {
 
 			@Override
-			public void widgetDefaultSelected(@Nullable final SelectionEvent e) {
+			public void widgetDefaultSelected(final SelectionEvent e) {
 				// OK
 			}
 
 			@Override
-			public void widgetSelected(@Nullable final SelectionEvent e) {
+			public void widgetSelected(final SelectionEvent e) {
 				final TreeItem[] selections = ClassEditor.this.archiveTree.getSelection();
 				if (selections.length != 1) {
 					return;
@@ -345,7 +338,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	 * Saves the multi-page editor's document.
 	 */
 	@Override
-	public void doSave(@Nullable final IProgressMonitor monitor) {
+	public void doSave(final IProgressMonitor monitor) {
 		getEditor(0).doSave(monitor);
 	}
 
@@ -363,12 +356,11 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	/**
 	 * Find type declaration for Eclipse type.
-	 *
+	 * 
 	 * @param javaElement
 	 *            Eclipse Java element
 	 * @return declaration
 	 */
-	@Nullable
 	private Container findDeclarationForJavaElement(final IJavaElement javaElement) {
 		// type.getFullyQualifiedName() potentially follows a different naming strategy for inner
 		// classes than the internal model from the bytecode, hence we must iterate through the tree
@@ -377,16 +369,16 @@ public class ClassEditor extends MultiPageEditorPart {
 			path.add(0, element);
 		}
 		try {
-			Container container = this.selectedCu;
+			Container c = this.selectedCu;
 			path: for (final IJavaElement element : path) {
 				if (element instanceof IType) {
 					final String typeName = element.getElementName();
 					// count anonymous!
 					int occurrenceCount = ((IType) element).getOccurrenceCount();
-					for (final Element e : container.getDeclarations()) {
+					for (final Element e : c.getDeclarations()) {
 						if (e instanceof T && ((T) e).getSimpleName().equals(typeName)) {
 							if (--occurrenceCount == 0) {
-								container = e;
+								c = e;
 								continue path;
 							}
 						}
@@ -398,37 +390,37 @@ public class ClassEditor extends MultiPageEditorPart {
 					// isEnum() doesn't imply isStatic() for source code
 					if (!Flags.isEnum(((IField) element).getFlags())) {
 						if (Flags.isStatic(((IField) element).getFlags())) {
-							for (final Element e : container.getDeclarations()) {
+							for (final Element e : c.getDeclarations()) {
 								if (e instanceof M && ((M) e).isInitializer()) {
-									container = e;
+									c = e;
 									continue path;
 								}
 							}
 							return null;
 						}
-						for (final Element e : container.getDeclarations()) {
+						for (final Element e : c.getDeclarations()) {
 							// descriptor not important, all constructors have same field
 							// initializers
 							if (e instanceof M && ((M) e).isConstructor()) {
-								container = e;
+								c = e;
 								continue path;
 							}
 						}
 					}
 					// TODO relocation of other anonymous field initializer TDs...difficult
 					final String fieldName = element.getElementName();
-					for (final Element e : container.getDeclarations()) {
+					for (final Element e : c.getDeclarations()) {
 						if (e instanceof F && ((F) e).getName().equals(fieldName)) {
-							container = e;
+							c = e;
 							continue path;
 						}
 					}
 					return null;
 				}
 				if (element instanceof IInitializer) {
-					for (final Element e : container.getDeclarations()) {
+					for (final Element e : c.getDeclarations()) {
 						if (e instanceof M && ((M) e).isInitializer()) {
-							container = e;
+							c = e;
 							continue path;
 						}
 					}
@@ -440,7 +432,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					final String signature = ((IMethod) element).getSignature();
 					// get all method declarations with this name
 					final List<M> ms = Lists.newArrayList();
-					for (final Element e : container.getDeclarations()) {
+					for (final Element e : c.getDeclarations()) {
 						if (e instanceof M && ((M) e).getName().equals(methodName)) {
 							ms.add((M) e);
 						}
@@ -452,7 +444,7 @@ public class ClassEditor extends MultiPageEditorPart {
 						return null;
 					case 1:
 						// only 1 possible method, signature check not really necessary
-						container = ms.get(0);
+						c = ms.get(0);
 						continue path;
 					default:
 						// multiple methods with different signatures, we now have to match against
@@ -469,7 +461,7 @@ public class ClassEditor extends MultiPageEditorPart {
 						for (final M checkMd : ms) {
 							// exact match for descriptor
 							if (signaturePattern.matcher(checkMd.getDescriptor()).matches()) {
-								container = checkMd;
+								c = checkMd;
 								continue path;
 							}
 							if (checkMd.getSignature() == null) {
@@ -479,7 +471,7 @@ public class ClassEditor extends MultiPageEditorPart {
 							// ^T...^T...;
 							// <T:Ljava/lang/Integer;E:Ljava/lang/RuntimeException;>(TT;TT;)V^TE;^Ljava/lang/RuntimeException;
 							if (signaturePattern.matcher(checkMd.getSignature()).find()) {
-								container = checkMd;
+								c = checkMd;
 								continue path;
 							}
 						}
@@ -490,7 +482,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					}
 				}
 			}
-			return container;
+			return c;
 		} catch (final JavaModelException e) {
 			log.error("Couldn't get Eclipse Java element data for selection!", e);
 			return null;
@@ -498,7 +490,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	@Override
-	public Object getAdapter(@Nullable final Class required) {
+	public Object getAdapter(final Class required) {
 		if (IContentOutlinePage.class.equals(required)) {
 			// initialize the CompilationUnitEditor with the decompiled source via a in-memory
 			// StorageEditorInput and ask this Editor for the IContentOutlinePage, this way we can
@@ -525,7 +517,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				this.javaOutlinePage.addSelectionChangedListener(new ISelectionChangedListener() {
 
 					@Override
-					public void selectionChanged(@Nullable final SelectionChangedEvent event) {
+					public void selectionChanged(final SelectionChangedEvent event) {
 						final TreeSelection treeSelection = (TreeSelection) event.getSelection();
 						final Container c = findDeclarationForJavaElement((IJavaElement) treeSelection
 								.getFirstElement());
@@ -545,8 +537,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	@Override
-	public void init(@Nullable final IEditorSite site, @Nullable final IEditorInput input)
-			throws PartInitException {
+	public void init(final IEditorSite site, final IEditorInput input) throws PartInitException {
 		super.init(site, input);
 		String fileName;
 		if (input instanceof IClassFileEditorInput) {

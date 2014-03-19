@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -30,8 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.Nullable;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -41,13 +39,12 @@ import com.google.common.collect.Maps;
 
 /**
  * Struct.
- *
+ * 
  * @author André Pankraz
  */
 public class Struct {
 
 	@Getter
-	@Nullable
 	private BB follow;
 
 	@Getter
@@ -55,22 +52,22 @@ public class Struct {
 
 	@Getter
 	@Setter
-	@Nullable
 	private String label;
 
 	protected final Map<Object, List<BB>> value2members = Maps.newHashMap();
 
 	@Getter
-	@Nullable
 	private final Struct parent;
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param bb
 	 *            struct head
 	 */
 	public Struct(final BB bb) {
+		assert bb != null;
+
 		this.parent = bb.getStruct();
 		assert this != this.parent;
 
@@ -80,7 +77,7 @@ public class Struct {
 
 	/**
 	 * Add struct member for value (not head).
-	 *
+	 * 
 	 * @param value
 	 *            value
 	 * @param bb
@@ -95,7 +92,7 @@ public class Struct {
 
 	/**
 	 * Add struct members for value (not head).
-	 *
+	 * 
 	 * @param value
 	 *            value
 	 * @param bbs
@@ -103,15 +100,13 @@ public class Struct {
 	 */
 	public void addMembers(final Object value, final Collection<BB> bbs) {
 		for (final BB bb : bbs) {
-			if (bb != null) {
-				addMember(value, bb);
-			}
+			addMember(value, bb);
 		}
 	}
 
 	/**
 	 * Get struct members for value, changeable list!
-	 *
+	 * 
 	 * @param value
 	 *            value
 	 * @return struct members, changeable list
@@ -124,11 +119,7 @@ public class Struct {
 				private static final long serialVersionUID = 1L;
 
 				@Override
-				public boolean add(@Nullable final BB bb) {
-					if (bb == null) {
-						assert false : "should not be null";
-					return false;
-					}
+				public boolean add(final BB bb) {
 					bb.setStruct(Struct.this);
 					return super.add(bb);
 				}
@@ -141,7 +132,7 @@ public class Struct {
 
 	/**
 	 * Is BB a branching statement node (pre / endless loop head for continue, struct follow)?
-	 *
+	 * 
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is a branching statement node
@@ -159,7 +150,7 @@ public class Struct {
 
 	/**
 	 * Is BB target for struct break?
-	 *
+	 * 
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is target for struct break
@@ -170,7 +161,7 @@ public class Struct {
 
 	/**
 	 * Is BB struct follow?
-	 *
+	 * 
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is struct follow
@@ -181,7 +172,7 @@ public class Struct {
 
 	/**
 	 * Is BB struct head?
-	 *
+	 * 
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is struct head
@@ -192,7 +183,7 @@ public class Struct {
 
 	/**
 	 * Is BB struct member (includes struct head and loop last)?
-	 *
+	 * 
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is struct member
@@ -211,7 +202,7 @@ public class Struct {
 
 	/**
 	 * Is BB struct member for value?
-	 *
+	 * 
 	 * @param value
 	 *            value
 	 * @param bb
@@ -225,11 +216,11 @@ public class Struct {
 
 	/**
 	 * Set follow.
-	 *
+	 * 
 	 * @param bb
 	 *            follow
 	 */
-	public void setFollow(@Nullable final BB bb) {
+	public void setFollow(final BB bb) {
 		// a direct back link at the end of a loop is not a valid follow, have to handle this
 		// differently or we will loop into loop create statements twice,
 		// dismiss such settings silently for now, else have to handle it at many places
@@ -248,9 +239,8 @@ public class Struct {
 		}
 		sb.append("--- ").append(getClass().getSimpleName()).append(" ---");
 		sb.append("\nHead: BB ").append(getHead().getPostorder());
-		final BB follow = getFollow();
-		if (follow != null) {
-			sb.append("  Follow: BB ").append(follow.getPostorder());
+		if (this.follow != null) {
+			sb.append("  Follow: BB ").append(getFollow().getPostorder());
 		}
 		sb.append("\nMembers: ");
 		int i = 0;
@@ -273,9 +263,7 @@ public class Struct {
 				sb.append("BB ").append(bb.getPostorder()).append("   ");
 			}
 		}
-		final String ret = sb.toString();
-		assert ret != null : "cannot be null";
-		return ret;
+		return sb.toString();
 	}
 
 }

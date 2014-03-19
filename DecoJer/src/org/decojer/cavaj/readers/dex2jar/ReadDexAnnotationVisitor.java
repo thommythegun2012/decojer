@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,8 +24,6 @@
 package org.decojer.cavaj.readers.dex2jar;
 
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,7 +38,7 @@ import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 
 /**
  * Dex2jar read annotation visitor.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -50,7 +48,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param du
 	 *            decompilation unit
 	 */
@@ -61,7 +59,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 	protected abstract void add(final String name, final Object value);
 
 	@Override
-	public void visit(@Nullable final String name, @Nullable final Object value) {
+	public void visit(final String name, final Object value) {
 		if (value instanceof Field) {
 			log.warn("Visit field value '" + name
 					+ "' should be visitEnum! (bug in dex-reader-1.1)");
@@ -76,8 +74,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 	}
 
 	@Override
-	public DexAnnotationVisitor visitAnnotation(@Nullable final String name,
-			@Nullable final String desc) {
+	public DexAnnotationVisitor visitAnnotation(final String name, final String desc) {
 		final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(
 				this.du);
 		add(name, readDexAnnotationMemberVisitor.init(desc, null));
@@ -85,7 +82,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 	}
 
 	@Override
-	public DexAnnotationVisitor visitArray(@Nullable final String name) {
+	public DexAnnotationVisitor visitArray(final String name) {
 		return new ReadDexAnnotationVisitor(this.du) {
 
 			private final List<Object> values = Lists.newArrayList();
@@ -110,8 +107,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 	}
 
 	@Override
-	public void visitEnum(@Nullable final String name, @Nullable final String desc,
-			@Nullable final String value) {
+	public void visitEnum(final String name, final String desc, final String value) {
 		final T ownerT = this.du.getDescT(desc);
 		final F f = ownerT.getF(value, desc);
 		f.setEnum();

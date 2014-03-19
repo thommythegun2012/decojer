@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -27,8 +27,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.TypeVariable;
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -50,11 +48,11 @@ import com.google.common.collect.Maps;
 
 /**
  * Class type.
- *
+ * 
  * Class types are uniquely cached in the decompilation unit, they are used very often. Hence it's
  * very important that all type infos are only set as they declared and not as they are referenced
  * (no type arguments here, e.g. in enclosing info).
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -63,12 +61,12 @@ public class ClassT extends T {
 	/**
 	 * Type name - is like a unique descriptor without modifiers like annotations or
 	 * parameterization.
-	 *
+	 * 
 	 * Names consist of '.'-separated package names (for full name) and '$'-separated type names
 	 * (but '$' is also a valid Java name char!)
-	 *
+	 * 
 	 * Valid name chars contain also connecting characters and other, e.g.:
-	 *
+	 * 
 	 * $ _ ¢ £ ¤ ¥ ؋ ৲ ৳ ৻ ૱ ௹ ฿ ៛ ‿ ⁀ ⁔ ₠ ₡ ₢ ₣ ₤ ₥ ₦ ₧ ₨ ₩ ₪ ₫ € ₭ ₮ ₯ ₰ ₱ ₲ ₳ ₴ ₵ ₶ ₷ ₸ ₹ ꠸ ﷼ ︳ ︴
 	 * ﹍ ﹎ ﹏ ﹩ ＄ ＿ ￠ ￡ ￥ ￦
 	 */
@@ -86,54 +84,50 @@ public class ClassT extends T {
 
 	/**
 	 * We mix here declaring classes info and enclosing method / classes info.
-	 *
+	 * 
 	 * @see ClassT#setEnclosingT(T)
 	 */
-	@Nullable
 	private Object enclosing;
 
 	/**
 	 * @see T#getInnerName()
 	 */
 	@Getter
-	@Nullable
 	private String innerName;
 
 	/**
 	 * Interface types.
 	 */
-	@Nullable
 	private T[] interfaceTs;
 
 	/**
 	 * Super type.
 	 */
-	@Nullable
 	private T superT;
 
 	@Getter(AccessLevel.PRIVATE)
-	@Nullable
 	private TD td;
 
-	@Nullable
 	private Map<String, Object> member;
 
 	/**
 	 * Type parameters. (They define the useable type variables)
 	 */
 	@Setter
-	@Nullable
 	private T[] typeParams;
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param du
 	 *            decompilation unit
 	 * @param name
 	 *            type name
 	 */
 	public ClassT(final DU du, final String name) {
+		assert du != null;
+		assert name != null;
+
 		this.du = du;
 		this.name = name;
 	}
@@ -187,7 +181,6 @@ public class ClassT extends T {
 		return getTd().getDeclarations();
 	}
 
-	@Nullable
 	private Object getEnclosing() {
 		if (this.enclosing == null && isUnresolvable()) {
 			return null;
@@ -196,7 +189,7 @@ public class ClassT extends T {
 			return null;
 		}
 		assert this.enclosing instanceof T || this.enclosing instanceof M : this
-		+ ": enclosing must be T or M";
+				+ ": enclosing must be T or M";
 
 		return this.enclosing;
 	}
@@ -287,7 +280,7 @@ public class ClassT extends T {
 
 	/**
 	 * Is deprecated type, marked via Javadoc @deprecated?
-	 *
+	 * 
 	 * @return {@code true} - is deprecated type
 	 */
 	public boolean isDeprecated() {
@@ -392,14 +385,13 @@ public class ClassT extends T {
 
 	/**
 	 * Parse interface types from signature.
-	 *
+	 * 
 	 * @param s
 	 *            signature
 	 * @param c
 	 *            cursor
-	 * @return interface types
+	 * @return interface types or {@code null}
 	 */
-	@Nullable
 	private T[] parseInterfaceTs(final String s, final Cursor c) {
 		if (c.pos >= s.length() || s.charAt(c.pos) != 'L') {
 			return null;
@@ -514,7 +506,7 @@ public class ClassT extends T {
 
 	/**
 	 * Type must be an interface or class.
-	 *
+	 * 
 	 * @param f
 	 *            {@code true} - is interface
 	 */
@@ -554,7 +546,7 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public void setSignature(@Nullable final String signature) {
+	public void setSignature(final String signature) {
 		if (signature == null) {
 			return;
 		}
@@ -601,7 +593,7 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public void setSuperT(@Nullable final T superT) {
+	public void setSuperT(final T superT) {
 		if (superT == null) {
 			this.superT = NONE;
 			return;

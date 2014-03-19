@@ -25,8 +25,6 @@ package org.decojer.cavaj.model;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
@@ -37,20 +35,19 @@ import org.eclipse.jdt.core.dom.ASTNode;
 public interface Container {
 
 	/**
-	 * Get AST node.
+	 * Get AST node or {@code null}.
 	 * 
-	 * @return AST node
+	 * @return AST node or {@code null}
 	 */
-	@Nullable
 	Object getAstNode();
 
 	/**
-	 * Set AST node.
+	 * Set AST node or {@code null}.
 	 * 
 	 * @param astNode
-	 *            AST node
+	 *            AST node or {@code null}
 	 */
-	void setAstNode(@Nullable final Object astNode);
+	void setAstNode(final Object astNode);
 
 	/**
 	 * Clear all decompile infos, e.g. AST nodes.
@@ -58,13 +55,12 @@ public interface Container {
 	void clear();
 
 	/**
-	 * Get declaration for AST node.
+	 * Get declaration for AST node or {@code null}.
 	 * 
 	 * @param node
-	 *            AST node
+	 *            AST node or {@code null}
 	 * @return declaration
 	 */
-	@Nullable
 	Element getDeclarationForNode(final ASTNode node);
 
 	/**

@@ -32,8 +32,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import javax.annotation.Nullable;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -111,11 +109,9 @@ public final class Annotations {
 	 *            Type Declaration
 	 * @param defaultValue
 	 *            Default Value
-	 * @return Expression AST Node
+	 * @return Expression AST Node or {@code null}
 	 */
-	@Nullable
-	public static Expression decompileAnnotationDefaultValue(final T t,
-			@Nullable final Object defaultValue) {
+	public static Expression decompileAnnotationDefaultValue(final T t, final Object defaultValue) {
 		final AST ast = t.getCu().getAst();
 		if (defaultValue == null) {
 			return null;
@@ -199,8 +195,8 @@ public final class Annotations {
 	 * @param contextT
 	 *            Type Declaration
 	 */
-	public static void decompileAnnotations(@Nullable final A[] as,
-			final List<Annotation> annotations, final T contextT) {
+	public static void decompileAnnotations(final A[] as, final List<Annotation> annotations,
+			final T contextT) {
 		if (as == null) {
 			return;
 		}
@@ -216,19 +212,35 @@ public final class Annotations {
 	}
 
 	/**
+	 * Decompile Annotations.
+	 * 
+	 * @param t
+	 *            Annotated Type
+	 * @param annotations
+	 *            Annotation AST Nodes
+	 * @param contextT
+	 *            Type Declaration
+	 */
+	public static void decompileAnnotations(final T t, final List<Annotation> annotations,
+			final T contextT) {
+		if (t.isAnnotated()) {
+			decompileAnnotations(t.getAs(), annotations, contextT);
+		}
+	}
+
+	/**
 	 * Do Annotations contain the Deprecated Annotation?
 	 * 
 	 * @param as
 	 *            Annotations
 	 * @return {@code true} - Annotations contain the Deprecated Annotation
 	 */
-	public static boolean isDeprecatedAnnotation(@Nullable final A[] as) {
-		if (as == null) {
-			return false;
-		}
-		for (final A a : as) {
-			if (a.getT().is(Deprecated.class)) {
-				return true;
+	public static boolean isDeprecatedAnnotation(final A[] as) {
+		if (as != null) {
+			for (final A a : as) {
+				if (a.getT().is(Deprecated.class)) {
+					return true;
+				}
 			}
 		}
 		return false;

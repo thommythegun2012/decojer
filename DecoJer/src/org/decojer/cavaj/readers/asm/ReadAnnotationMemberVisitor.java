@@ -25,8 +25,6 @@ package org.decojer.cavaj.readers.asm;
 
 import java.lang.annotation.RetentionPolicy;
 
-import javax.annotation.Nullable;
-
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.types.T;
@@ -64,7 +62,7 @@ public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 	 *            retention policy
 	 * @return annotation
 	 */
-	public A init(final String desc, @Nullable final RetentionPolicy retentionPolicy) {
+	public A init(final String desc, final RetentionPolicy retentionPolicy) {
 		final T t = this.du.getDescT(desc);
 		return this.a = new A(t, retentionPolicy);
 	}

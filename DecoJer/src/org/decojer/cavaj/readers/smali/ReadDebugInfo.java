@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,8 +25,6 @@ package org.decojer.cavaj.readers.smali;
 
 import java.util.List;
 import java.util.Map;
-
-import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -46,7 +44,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Smali read debug info.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -63,7 +61,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	/**
 	 * Get line for VM PC.
-	 *
+	 * 
 	 * @param vmpc
 	 *            VM PC
 	 * @return line
@@ -81,13 +79,13 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	/**
 	 * Init and visit.
-	 *
+	 * 
 	 * @param m
 	 *            method
 	 * @param debugInfoItem
 	 *            Smail debug info item
 	 */
-	public void initAndVisit(final M m, @Nullable final DebugInfoItem debugInfoItem) {
+	public void initAndVisit(final M m, final DebugInfoItem debugInfoItem) {
 		this.m = m;
 
 		this.opLines.clear();
@@ -120,8 +118,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	@Override
 	public void ProcessEndLocal(final int codeAddress, final int length, final int registerNum,
-			@Nullable final StringIdItem name, @Nullable final TypeIdItem type,
-			@Nullable final StringIdItem signature) {
+			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
 		// log("*EndLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N" + length + " r"
 		// + registerNum + " : " + name + " : " + type + " : " + signature);
 
@@ -140,6 +137,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 		final V v = vs.get(vs.size() - 1);
 		final int[] pcs = v.getPcs();
+		assert pcs != null;
 		assert pcs.length >= 2;
 
 		if (pcs[pcs.length - 1] != -1) {
@@ -162,8 +160,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	@Override
 	public void ProcessRestartLocal(final int codeAddress, final int length, final int registerNum,
-			@Nullable final StringIdItem name, @Nullable final TypeIdItem type,
-			@Nullable final StringIdItem signature) {
+			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
 		// log("*RestartLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N" + length + " r"
 		// + registerNum + " : " + name + " : " + type + " : " + signature);
 
@@ -181,6 +178,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 		final V v = vs.get(vs.size() - 1);
 		final int[] pcs = v.getPcs();
+		assert pcs != null;
 		assert pcs.length >= 2;
 
 		if (pcs[pcs.length - 1] == -1) {
@@ -200,8 +198,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	}
 
 	@Override
-	public void ProcessSetFile(final int codeAddress, final int length,
-			@Nullable final StringIdItem name) {
+	public void ProcessSetFile(final int codeAddress, final int length, final StringIdItem name) {
 		log("Unknown stuff: SetFile: " + codeAddress + " : " + length + " : " + name);
 	}
 
@@ -214,14 +211,14 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	@Override
 	public void ProcessStartLocal(final int codeAddress, final int length, final int registerNum,
-			@Nullable final StringIdItem name, @Nullable final TypeIdItem type) {
+			final StringIdItem name, final TypeIdItem type) {
 		startLocal(codeAddress, length, registerNum, name, type, null);
 	}
 
 	@Override
 	public void ProcessStartLocalExtended(final int codeAddress, final int length,
-			final int registerNum, @Nullable final StringIdItem name,
-			@Nullable final TypeIdItem type, @Nullable final StringIdItem signature) {
+			final int registerNum, final StringIdItem name, final TypeIdItem type,
+			final StringIdItem signature) {
 		startLocal(codeAddress, length, registerNum, name, type, signature);
 	}
 

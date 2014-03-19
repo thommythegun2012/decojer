@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -27,8 +27,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -129,7 +127,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Read method implementation.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -153,7 +151,7 @@ public class ReadMethodImplementation {
 
 	/**
 	 * Get line for VM PC.
-	 *
+	 * 
 	 * @param vmpc
 	 *            VM PC
 	 * @return line
@@ -190,13 +188,13 @@ public class ReadMethodImplementation {
 
 	/**
 	 * Init and visit.
-	 *
+	 * 
 	 * @param m
 	 *            method
 	 * @param implementation
 	 *            method implementation
 	 */
-	public void initAndVisit(final M m, @Nullable final DexBackedMethodImplementation implementation) {
+	public void initAndVisit(final M m, final DexBackedMethodImplementation implementation) {
 		if (implementation == null) {
 			return;
 		}
@@ -265,6 +263,7 @@ public class ReadMethodImplementation {
 
 				final V v = vs.get(vs.size() - 1);
 				final int[] pcs = v.getPcs();
+				assert pcs != null;
 				assert pcs.length >= 2;
 
 				if (pcs[pcs.length - 1] != -1) {
@@ -293,6 +292,7 @@ public class ReadMethodImplementation {
 
 				final V v = vs.get(vs.size() - 1);
 				final int[] pcs = v.getPcs();
+				assert pcs != null;
 				assert pcs.length >= 2;
 
 				if (pcs[pcs.length - 1] == -1) {

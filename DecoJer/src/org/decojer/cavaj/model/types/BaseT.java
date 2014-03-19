@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,8 +25,6 @@ package org.decojer.cavaj.model.types;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Element;
@@ -34,7 +32,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Base type.
- *
+ * 
  * @author André Pankraz
  */
 public abstract class BaseT extends T {
@@ -49,7 +47,6 @@ public abstract class BaseT extends T {
 		return false;
 	}
 
-	@Nullable
 	@Override
 	public Object getAstNode() {
 		return null;
@@ -60,13 +57,11 @@ public abstract class BaseT extends T {
 		return null;
 	}
 
-	@Nullable
 	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
 		return null;
 	}
 
-	@Nullable
 	@Override
 	public Element getDeclarationOwner() {
 		return null;
@@ -108,7 +103,7 @@ public abstract class BaseT extends T {
 	}
 
 	@Override
-	public void setAstNode(@Nullable final Object astNode) {
+	public void setAstNode(final Object astNode) {
 		assert false;
 	}
 

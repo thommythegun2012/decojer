@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -26,8 +26,6 @@ package org.decojer.cavaj.readers.asm;
 import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
-
-import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -50,13 +48,12 @@ import org.objectweb.asm.TypeReference;
 
 /**
  * ASM read class visitor.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
 public class ReadClassVisitor extends ClassVisitor {
 
-	@Nullable
 	private A[] as;
 
 	private final DU du;
@@ -68,12 +65,11 @@ public class ReadClassVisitor extends ClassVisitor {
 	private final ReadMethodVisitor readMethodVisitor;
 
 	@Getter(AccessLevel.PROTECTED)
-	@Nullable
 	private T t;
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param du
 	 *            decompilation unit
 	 */
@@ -94,9 +90,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public void visit(final int version, final int access, @Nullable final String name,
-			@Nullable final String signature, @Nullable final String superName,
-			@Nullable final String[] interfaces) {
+	public void visit(final int version, final int access, final String name,
+			final String signature, final String superName, final String[] interfaces) {
 		final T t = this.du.getT(name);
 		if (!t.createTd()) {
 			log.warn(this.t + ": Type '" + t + "' already read!");
@@ -121,7 +116,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(@Nullable final String desc, final boolean visible) {
+	public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -135,7 +130,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public void visitAttribute(@Nullable final Attribute attr) {
+	public void visitAttribute(final Attribute attr) {
 		if ("Scala".equals(attr.type) || "ScalaSig".equals(attr.type)) {
 			this.t.setScala();
 			return;
@@ -152,9 +147,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public FieldVisitor visitField(final int access, @Nullable final String name,
-			@Nullable final String desc, @Nullable final String signature,
-			@Nullable final Object value) {
+	public FieldVisitor visitField(final int access, final String name, final String desc,
+			final String signature, final Object value) {
 		final F f = this.t.getF(name, desc);
 		f.createFd();
 
@@ -168,8 +162,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public void visitInnerClass(@Nullable final String name, @Nullable final String outerName,
-			@Nullable final String innerName, final int access) {
+	public void visitInnerClass(final String name, final String outerName, final String innerName,
+			final int access) {
 		final ClassT innerT = (ClassT) this.du.getT(name);
 		if (outerName != null) {
 			// set enclosing first for better inner name check
@@ -179,9 +173,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public MethodVisitor visitMethod(final int access, @Nullable final String name,
-			@Nullable final String desc, @Nullable final String signature,
-			@Nullable final String[] exceptions) {
+	public MethodVisitor visitMethod(final int access, final String name, final String desc,
+			final String signature, final String[] exceptions) {
 		final M m = this.t.getM(name, desc);
 		m.createMd();
 
@@ -200,8 +193,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public void visitOuterClass(@Nullable final String owner, @Nullable final String name,
-			@Nullable final String desc) {
+	public void visitOuterClass(final String owner, final String name, final String desc) {
 		final ClassT enclosingT = (ClassT) this.du.getT(owner);
 		if (name == null) {
 			this.t.setEnclosingT(enclosingT);
@@ -211,7 +203,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public void visitSource(@Nullable final String source, @Nullable final String debug) {
+	public void visitSource(final String source, final String debug) {
 		if (debug != null) {
 			// TODO need an example, really useful in the wild?
 			// JVM spec: 4.7.11 The SourceDebugExtension Attribute
@@ -221,8 +213,8 @@ public class ReadClassVisitor extends ClassVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitTypeAnnotation(final int typeRef,
-			@Nullable final TypePath typePath, @Nullable final String desc, final boolean visible) {
+	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
+			final String desc, final boolean visible) {
 		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
 		final TypeReference typeReference = new TypeReference(typeRef);

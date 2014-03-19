@@ -89,7 +89,6 @@ public final class BB {
 
 	@Getter
 	@Setter
-	@Nullable
 	private Struct struct;
 
 	/**
@@ -148,7 +147,7 @@ public final class BB {
 	 *            value
 	 * @return out edge
 	 */
-	private final E addSucc(final BB succ, @Nullable final Object value) {
+	private final E addSucc(final BB succ, final Object value) {
 		final E e = new E(this, succ, value);
 		this.outs.add(e);
 		succ.ins.add(e);
@@ -169,7 +168,7 @@ public final class BB {
 	}
 
 	@Override
-	public boolean equals(@Nullable final Object obj) {
+	public boolean equals(final Object obj) {
 		if (!(obj instanceof BB)) {
 			return false;
 		}
@@ -441,10 +440,10 @@ public final class BB {
 	 * Is this BB before given BB?
 	 * 
 	 * @param bb
-	 *            given BB
+	 *            given BB or {@code null}
 	 * @return {@code true} - this BB is before given BB, also for given BB as {@code null}
 	 */
-	public boolean isBefore(@Nullable final BB bb) {
+	public boolean isBefore(final BB bb) {
 		if (bb == null) {
 			return true;
 		}

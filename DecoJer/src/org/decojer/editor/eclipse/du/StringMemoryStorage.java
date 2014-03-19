@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -27,14 +27,12 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
-import javax.annotation.Nullable;
-
 import org.eclipse.core.resources.IEncodedStorage;
 import org.eclipse.core.runtime.IPath;
 
 /**
  * Memory Storage for Eclipse Editor Framework.
- *
+ * 
  * @author André Pankraz
  */
 public class StringMemoryStorage implements IEncodedStorage {
@@ -47,7 +45,7 @@ public class StringMemoryStorage implements IEncodedStorage {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param content
 	 *            Content
 	 * @param fullPath
@@ -55,14 +53,14 @@ public class StringMemoryStorage implements IEncodedStorage {
 	 */
 	public StringMemoryStorage(final String content, final IPath fullPath) {
 		assert fullPath != null;
+		assert content != null;
 
 		this.fullPath = fullPath;
 		this.contents = content.getBytes(UTF8);
 	}
 
-	@Nullable
 	@Override
-	public Object getAdapter(@Nullable final Class adapter) {
+	public Object getAdapter(final Class adapter) {
 		return null;
 	}
 
@@ -76,21 +74,18 @@ public class StringMemoryStorage implements IEncodedStorage {
 		return new ByteArrayInputStream(this.contents);
 	}
 
-	@Nullable
 	@Override
 	public IPath getFullPath() {
 		return this.fullPath;
 	}
 
-	@Nullable
 	@Override
 	public String getName() {
-		final IPath fullPath = getFullPath();
-		if (fullPath == null) {
+		if (this.fullPath == null) {
 			return null;
 		}
-		final String lastSegment = fullPath.lastSegment();
-		return lastSegment == null ? fullPath.toString() : lastSegment;
+		final String lastSegment = this.fullPath.lastSegment();
+		return lastSegment == null ? this.fullPath.toString() : lastSegment;
 	}
 
 	@Override

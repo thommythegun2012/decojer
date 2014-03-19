@@ -108,6 +108,8 @@ public class Smali2Reader implements DexReader {
 	 *            decompilation unit
 	 */
 	public Smali2Reader(final DU du) {
+		assert du != null;
+
 		this.du = du;
 	}
 
@@ -126,8 +128,8 @@ public class Smali2Reader implements DexReader {
 		}
 		final List<T> ts = Lists.newArrayList();
 
+		@SuppressWarnings("null")
 		final byte[] bytes = ByteStreams.toByteArray(is);
-		assert bytes != null;
 		final DexBackedDexFile dexFile = new DexBackedDexFile(new Opcodes(15), bytes);
 		for (final DexBackedClassDef classDefItem : dexFile.getClasses()) {
 			final String typeDescriptor = classDefItem.getType();

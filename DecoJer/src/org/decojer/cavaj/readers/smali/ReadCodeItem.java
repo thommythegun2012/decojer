@@ -28,8 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.annotation.Nullable;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
@@ -165,7 +163,7 @@ public class ReadCodeItem {
 	 * @param codeItem
 	 *            smali code item
 	 */
-	public void initAndVisit(final M m, @Nullable final CodeItem codeItem) {
+	public void initAndVisit(final M m, final CodeItem codeItem) {
 		if (codeItem == null) {
 			return;
 		}

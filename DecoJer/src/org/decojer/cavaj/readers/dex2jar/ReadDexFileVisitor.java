@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ * 
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,8 +24,6 @@
 package org.decojer.cavaj.readers.dex2jar;
 
 import java.util.List;
-
-import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -39,7 +37,7 @@ import com.googlecode.dex2jar.visitors.DexFileVisitor;
 
 /**
  * Dex2jar read file visitor.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -49,10 +47,8 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 
 	private final ReadDexClassVisitor readDexClassVisitor;
 
-	@Nullable
 	private String selectorPrefix;
 
-	@Nullable
 	private String selectorMatch;
 
 	@Getter
@@ -60,22 +56,24 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param du
 	 *            decompilation unit
 	 */
 	public ReadDexFileVisitor(final DU du) {
+		assert du != null;
+
 		this.du = du;
 		this.readDexClassVisitor = new ReadDexClassVisitor(du);
 	}
 
 	/**
 	 * Init.
-	 *
+	 * 
 	 * @param selector
 	 *            selector
 	 */
-	public void init(@Nullable final String selector) {
+	public void init(final String selector) {
 		if (selector != null && selector.endsWith(".class")) {
 			this.selectorMatch = "L"
 					+ selector.substring(selector.charAt(0) == '/' ? 1 : 0, selector.length() - 6)
@@ -91,10 +89,9 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 		this.ts.clear();
 	}
 
-	@Nullable
 	@Override
-	public DexClassVisitor visit(final int access_flags, @Nullable final String className,
-			@Nullable final String superClass, @Nullable final String[] interfaceNames) {
+	public DexClassVisitor visit(final int access_flags, final String className,
+			final String superClass, final String[] interfaceNames) {
 		// load full type declarations from complete package, to complex to decide here if
 		// really not part of the compilation unit
 		// TODO later load all type declarations, but not all bytecode details
