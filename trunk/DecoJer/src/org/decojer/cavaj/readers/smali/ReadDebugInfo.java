@@ -120,7 +120,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	@Override
 	public void ProcessEndLocal(final int codeAddress, final int length, final int registerNum,
-			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
+			@Nullable final StringIdItem name, @Nullable final TypeIdItem type,
+			@Nullable final StringIdItem signature) {
 		// log("*EndLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N" + length + " r"
 		// + registerNum + " : " + name + " : " + type + " : " + signature);
 
@@ -161,7 +162,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	@Override
 	public void ProcessRestartLocal(final int codeAddress, final int length, final int registerNum,
-			final StringIdItem name, final TypeIdItem type, final StringIdItem signature) {
+			@Nullable final StringIdItem name, @Nullable final TypeIdItem type,
+			@Nullable final StringIdItem signature) {
 		// log("*RestartLocal: P" + codeAddress + " l" + getLine(codeAddress) + " N" + length + " r"
 		// + registerNum + " : " + name + " : " + type + " : " + signature);
 
@@ -198,7 +200,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	}
 
 	@Override
-	public void ProcessSetFile(final int codeAddress, final int length, final StringIdItem name) {
+	public void ProcessSetFile(final int codeAddress, final int length,
+			@Nullable final StringIdItem name) {
 		log("Unknown stuff: SetFile: " + codeAddress + " : " + length + " : " + name);
 	}
 
@@ -211,14 +214,14 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	@Override
 	public void ProcessStartLocal(final int codeAddress, final int length, final int registerNum,
-			final StringIdItem name, final TypeIdItem type) {
+			@Nullable final StringIdItem name, @Nullable final TypeIdItem type) {
 		startLocal(codeAddress, length, registerNum, name, type, null);
 	}
 
 	@Override
 	public void ProcessStartLocalExtended(final int codeAddress, final int length,
-			final int registerNum, final StringIdItem name, final TypeIdItem type,
-			final StringIdItem signature) {
+			final int registerNum, @Nullable final StringIdItem name,
+			@Nullable final TypeIdItem type, @Nullable final StringIdItem signature) {
 		startLocal(codeAddress, length, registerNum, name, type, signature);
 	}
 

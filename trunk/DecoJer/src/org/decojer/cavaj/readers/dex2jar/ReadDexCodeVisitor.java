@@ -124,7 +124,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitArguments(final int total, final int[] args) {
+	public void visitArguments(final int total, @Nullable final int[] args) {
 		this.maxLocals = total;
 		// set varss
 	}
@@ -151,13 +151,14 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitClassStmt(final int opcode, final int a, final int b, final String type) {
+	public void visitClassStmt(final int opcode, final int a, final int b,
+			@Nullable final String type) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitClassStmt(final int opcode, final int saveTo, final String type) {
+	public void visitClassStmt(final int opcode, final int saveTo, @Nullable final String type) {
 		// TODO Auto-generated method stub
 
 	}
@@ -170,16 +171,20 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitConstStmt(final int opcode, final int toReg, final Object value, final int xt) {
+	public void visitConstStmt(final int opcode, final int toReg, @Nullable final Object value,
+			final int xt) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void visitEnd() {
+		final M m = this.m;
+		assert m != null : "cannot be null";
+
 		if (this.ops.size() > 0) {
-			final CFG cfg = new CFG(this.m, this.maxLocals, 0);
-			this.m.setCfg(cfg);
+			final CFG cfg = new CFG(m, this.maxLocals, 0);
+			m.setCfg(cfg);
 
 			cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 			this.ops.clear();
@@ -205,15 +210,15 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitFieldStmt(final int opcode, final int fromOrToReg, final Field field,
-			final int xt) {
+	public void visitFieldStmt(final int opcode, final int fromOrToReg,
+			@Nullable final Field field, final int xt) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
 	public void visitFieldStmt(final int opcode, final int fromOrToReg, final int objReg,
-			final Field field, final int xt) {
+			@Nullable final Field field, final int xt) {
 		// TODO Auto-generated method stub
 
 	}
@@ -227,7 +232,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	@Override
 	public void visitFillArrayStmt(final int opcode, final int aA, final int elemWidth,
-			final int initLength, final Object[] values) {
+			final int initLength, @Nullable final Object[] values) {
 		this.ops.add(new LOAD(this.ops.size(), opcode, this.line, T.REF, aA));
 
 		final FILLARRAY op = new FILLARRAY(this.ops.size(), opcode, this.line);
@@ -239,31 +244,33 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitFilledNewArrayStmt(final int opcode, final int[] args, final String type) {
+	public void visitFilledNewArrayStmt(final int opcode, @Nullable final int[] args,
+			@Nullable final String type) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitJumpStmt(final int opcode, final DexLabel label) {
+	public void visitJumpStmt(final int opcode, @Nullable final DexLabel label) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitJumpStmt(final int opcode, final int reg, final DexLabel label) {
+	public void visitJumpStmt(final int opcode, final int reg, @Nullable final DexLabel label) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitJumpStmt(final int opcode, final int a, final int b, final DexLabel label) {
+	public void visitJumpStmt(final int opcode, final int a, final int b,
+			@Nullable final DexLabel label) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitLabel(final DexLabel label) {
+	public void visitLabel(@Nullable final DexLabel label) {
 		final Integer pc = this.label2pc.put(label, this.ops.size());
 		if (pc == null) {
 			// fresh new label, never referenced before
@@ -325,7 +332,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitLineNumber(final int line, final DexLabel label) {
+	public void visitLineNumber(final int line, @Nullable final DexLabel label) {
 		// BUG in Dex2jar: visitLineNumber before visitLabel...not really helpful,
 		// should be ordered?! check! TODO could handle this in a more dynamic way
 
@@ -337,9 +344,9 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitLocalVariable(final String name, final String type,
-			@Nullable final String signature, final DexLabel start, final DexLabel end,
-			final int reg) {
+	public void visitLocalVariable(@Nullable final String name, @Nullable final String type,
+			@Nullable final String signature, @Nullable final DexLabel start,
+			@Nullable final DexLabel end, final int reg) {
 		T vT = this.du.getDescT(type);
 		if (signature != null) {
 			final T sigT = this.m.getDu().parseT(signature, new Cursor(), this.m);
@@ -371,20 +378,22 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitLookupSwitchStmt(final int opcode, final int aA, final DexLabel label,
-			final int[] cases, final DexLabel[] labels) {
+	public void visitLookupSwitchStmt(final int opcode, final int aA,
+			@Nullable final DexLabel label, @Nullable final int[] cases,
+			@Nullable final DexLabel[] labels) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitMethodStmt(final int opcode, final int[] args, final int a) {
+	public void visitMethodStmt(final int opcode, @Nullable final int[] args, final int a) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitMethodStmt(final int opcode, final int[] args, final Method method) {
+	public void visitMethodStmt(final int opcode, @Nullable final int[] args,
+			@Nullable final Method method) {
 		// TODO Auto-generated method stub
 
 	}
@@ -462,7 +471,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitReturnStmt(final int opcode, final int cause, final Object ref) {
+	public void visitReturnStmt(final int opcode, final int cause, @Nullable final Object ref) {
 		// ODEX only
 		if (opcode != OP_THROW_VERIFICATION_ERROR) {
 			log.warn("Unexpected opcode '"
@@ -474,15 +483,16 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	}
 
 	@Override
-	public void visitTableSwitchStmt(final int opcode, final int aA, final DexLabel label,
-			final int first_case, final int last_case, final DexLabel[] labels) {
+	public void visitTableSwitchStmt(final int opcode, final int aA,
+			@Nullable final DexLabel label, final int first_case, final int last_case,
+			@Nullable final DexLabel[] labels) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void visitTryCatch(final DexLabel start, final DexLabel end, final DexLabel handler,
-			@Nullable final String type) {
+	public void visitTryCatch(@Nullable final DexLabel start, @Nullable final DexLabel end,
+			@Nullable final DexLabel handler, @Nullable final String type) {
 		// type: Ljava/lang/Exception;
 		final T catchT = type == null ? null : this.du.getDescT(type);
 		final Exc exc = new Exc(catchT);

@@ -70,7 +70,7 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 	}
 
 	@Override
-	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
+	public DexAnnotationVisitor visitAnnotation(@Nullable final String name, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {

@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.editor.eclipse.cfg;
+
+import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.Frame;
@@ -39,7 +41,7 @@ import org.eclipse.draw2d.geometry.Insets;
 
 /**
  * Frames Figure.
- * 
+ *
  * @author André Pankraz
  */
 public class FramesFigure extends Figure {
@@ -49,12 +51,13 @@ public class FramesFigure extends Figure {
 	private static final Border LEFT_BORDER = new AbstractBorder() {
 
 		@Override
-		public Insets getInsets(final IFigure figure) {
+		public Insets getInsets(@Nullable final IFigure figure) {
 			return new Insets(0, 5, 0, 0);
 		}
 
 		@Override
-		public void paint(final IFigure figure, final Graphics graphics, final Insets insets) {
+		public void paint(@Nullable final IFigure figure, @Nullable final Graphics graphics,
+				@Nullable final Insets insets) {
 			tempRect.setBounds(getPaintRectangle(figure, insets));
 			tempRect.shrink(1, 0);
 			graphics.drawLine(tempRect.getTopLeft(), tempRect.getBottomLeft());
@@ -64,7 +67,7 @@ public class FramesFigure extends Figure {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 */

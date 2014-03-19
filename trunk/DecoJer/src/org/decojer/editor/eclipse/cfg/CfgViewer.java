@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,6 +24,8 @@
 package org.decojer.editor.eclipse.cfg;
 
 import java.util.IdentityHashMap;
+
+import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,7 +56,7 @@ import org.eclipse.zest.layouts.LayoutStyles;
 
 /**
  * CFG Viewer.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -70,7 +72,7 @@ public class CfgViewer extends Composite {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param parent
 	 *            parent composite
 	 * @param style
@@ -88,12 +90,12 @@ public class CfgViewer extends Composite {
 		this.cfgAntialiasingCheckbox.addSelectionListener(new SelectionListener() {
 
 			@Override
-			public void widgetDefaultSelected(final SelectionEvent e) {
+			public void widgetDefaultSelected(@Nullable final SelectionEvent e) {
 				initGraph();
 			}
 
 			@Override
-			public void widgetSelected(final SelectionEvent e) {
+			public void widgetSelected(@Nullable final SelectionEvent e) {
 				initGraph();
 			}
 
@@ -105,12 +107,12 @@ public class CfgViewer extends Composite {
 		this.cfgViewModeCombo.addSelectionListener(new SelectionListener() {
 
 			@Override
-			public void widgetDefaultSelected(final SelectionEvent e) {
+			public void widgetDefaultSelected(@Nullable final SelectionEvent e) {
 				initGraph();
 			}
 
 			@Override
-			public void widgetSelected(final SelectionEvent e) {
+			public void widgetSelected(@Nullable final SelectionEvent e) {
 				initGraph();
 			}
 
@@ -209,7 +211,7 @@ public class CfgViewer extends Composite {
 
 	/**
 	 * Select declaration.
-	 * 
+	 *
 	 * @param selectedD
 	 *            selected declaration
 	 */

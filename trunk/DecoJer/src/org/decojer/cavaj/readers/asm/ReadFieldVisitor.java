@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -43,7 +43,7 @@ import org.objectweb.asm.TypeReference;
 
 /**
  * ASM read field visitor.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -58,7 +58,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
@@ -69,7 +69,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 
 	/**
 	 * Get field declaration.
-	 * 
+	 *
 	 * @return field declaration
 	 */
 	public F getFd() {
@@ -78,7 +78,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 
 	/**
 	 * Init and set field.
-	 * 
+	 *
 	 * @param f
 	 *            field
 	 */
@@ -88,7 +88,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
+	public AnnotationVisitor visitAnnotation(@Nullable final String desc, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -102,7 +102,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 	}
 
 	@Override
-	public void visitAttribute(final Attribute attr) {
+	public void visitAttribute(@Nullable final Attribute attr) {
 		log.warn(getFd() + ": Unknown field attribute tag '" + attr.type + "' for field info '"
 				+ this.f.getT() + "'!");
 	}
@@ -115,8 +115,8 @@ public class ReadFieldVisitor extends FieldVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
-			final String desc, final boolean visible) {
+	public AnnotationVisitor visitTypeAnnotation(final int typeRef,
+			@Nullable final TypePath typePath, @Nullable final String desc, final boolean visible) {
 		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
 		final TypeReference typeReference = new TypeReference(typeRef);
