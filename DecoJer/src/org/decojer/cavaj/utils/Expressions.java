@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,6 +25,8 @@ package org.decojer.cavaj.utils;
 
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -65,7 +67,7 @@ import com.google.common.collect.Sets;
 
 /**
  * Helper functions for expressions handling.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -138,12 +140,13 @@ public final class Expressions {
 
 	/**
 	 * Get boolean value from literal.
-	 * 
+	 *
 	 * @param literal
 	 *            literal expression
 	 * @return {@code null} - no boolean literal, {@code Boolean#TRUE} - true, {@code Boolean#FALSE}
 	 *         - true
 	 */
+	@Nullable
 	public static Boolean getBooleanValue(final Expression literal) {
 		// don't add Number and NumberLiteral here or we run into problems for (test ? 4 : 0) etc.,
 		// improve data flow analysis instead
@@ -159,17 +162,18 @@ public final class Expressions {
 
 	/**
 	 * Get original number value for literal expression.
-	 * 
+	 *
 	 * Sometimes we must backtranslate literal constants like Byte.MAX_VALUE.
-	 * 
+	 *
 	 * Potential problem: ASTNode#copySubtree() will forget additional properties, but for the
 	 * backtranslate use case this isn't really expected. Fall back is cast to NumberLiteral and
 	 * Integer parsing.
-	 * 
+	 *
 	 * @param literal
 	 *            literal expression
-	 * @return integer for literal or {@code null}
+	 * @return integer for literal
 	 */
+	@Nullable
 	public static Number getNumberValue(final Expression literal) {
 		final Object value = getValue(literal);
 		if (value instanceof Number) {
@@ -183,7 +187,7 @@ public final class Expressions {
 
 	/**
 	 * Get originating operation.
-	 * 
+	 *
 	 * @param node
 	 *            AST node
 	 * @return originating operation
@@ -194,10 +198,10 @@ public final class Expressions {
 
 	/**
 	 * Get originating literal value.
-	 * 
+	 *
 	 * Cannot replace this through getInFrame(getOp()) because PUSH etc. just change unknown out
 	 * frame.
-	 * 
+	 *
 	 * @param literal
 	 *            AST literal expression
 	 * @return originating literal value
@@ -208,7 +212,7 @@ public final class Expressions {
 
 	/**
 	 * New assignment expression.
-	 * 
+	 *
 	 * @param operator
 	 *            assignment expression operator
 	 * @param leftOperand
@@ -231,7 +235,7 @@ public final class Expressions {
 
 	/**
 	 * New infix expression.
-	 * 
+	 *
 	 * @param operator
 	 *            infix expression operator
 	 * @param leftOperand
@@ -258,7 +262,7 @@ public final class Expressions {
 
 	/**
 	 * New literal.
-	 * 
+	 *
 	 * @param t
 	 *            literal type
 	 * @param value
@@ -532,7 +536,7 @@ public final class Expressions {
 
 	/**
 	 * New postfix expression.
-	 * 
+	 *
 	 * @param operator
 	 *            postfix expression operator
 	 * @param operand
@@ -552,7 +556,7 @@ public final class Expressions {
 
 	/**
 	 * New prefix expression.
-	 * 
+	 *
 	 * @param operator
 	 *            prefix expression operator
 	 * @param operand
@@ -574,7 +578,7 @@ public final class Expressions {
 
 	/**
 	 * New simple name.
-	 * 
+	 *
 	 * @param identifier
 	 *            identifier
 	 * @param ast
@@ -620,7 +624,7 @@ public final class Expressions {
 
 	/**
 	 * New single variable declaration.
-	 * 
+	 *
 	 * @param m
 	 *            method declaration
 	 * @param paramTs
@@ -671,7 +675,7 @@ public final class Expressions {
 
 	/**
 	 * New type.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @param contextT
@@ -814,7 +818,7 @@ public final class Expressions {
 
 	/**
 	 * New type name.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @param contextT
@@ -865,7 +869,7 @@ public final class Expressions {
 
 	/**
 	 * Not expression.
-	 * 
+	 *
 	 * @param operand
 	 *            operand expression
 	 * @return !expression
@@ -937,7 +941,7 @@ public final class Expressions {
 
 	/**
 	 * Set originating operation.
-	 * 
+	 *
 	 * @param node
 	 *            AST node
 	 * @param op
@@ -953,10 +957,10 @@ public final class Expressions {
 
 	/**
 	 * Set originating literal value.
-	 * 
+	 *
 	 * Cannot replace this through setOp() -> getInFrame(getOp()) because PUSH etc. just change
 	 * unknown out frame.
-	 * 
+	 *
 	 * @param expression
 	 *            AST expression
 	 * @param value
@@ -972,9 +976,9 @@ public final class Expressions {
 
 	/**
 	 * Unwrap expression, means remove parathesizes.
-	 * 
+	 *
 	 * We don't remove parents here, copy lazy at wrap time again.
-	 * 
+	 *
 	 * @param expression
 	 *            expression
 	 * @return unwrapped expression
@@ -989,7 +993,7 @@ public final class Expressions {
 
 	/**
 	 * Wrap expression. Ensures that there is no parent set.
-	 * 
+	 *
 	 * @param expression
 	 *            expression
 	 * @return wrapped expression
@@ -1017,7 +1021,7 @@ public final class Expressions {
 	/**
 	 * Wrap expression. Ensures that there is no parent set and adds parantheses if necessary
 	 * (compares operator priority).
-	 * 
+	 *
 	 * @param expression
 	 *            expression
 	 * @param priority

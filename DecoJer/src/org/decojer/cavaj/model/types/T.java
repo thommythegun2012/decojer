@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
@@ -43,7 +45,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Type.
- * 
+ *
  * @author André Pankraz
  */
 public abstract class T implements Element {
@@ -140,7 +142,7 @@ public abstract class T implements Element {
 	public static T REF = getT(Kind.REF);
 	/**
 	 * Artificial type 'return address' for JSR follow pc.
-	 * 
+	 *
 	 * Spec: No return address (a value of type returnAddress) may be loaded from a local variable.
 	 */
 	public static final T RET = getT(Kind.RET);
@@ -295,9 +297,9 @@ public abstract class T implements Element {
 	 * Intersect types: Find common super type. Use AND operation for kind - primitive multitypes:
 	 * no conversion. No primitive reduction of source types, done through eventual following
 	 * register read. Resulting reference type contains one class and multiple interfaces.
-	 * 
+	 *
 	 * If type is yet unknown, leave name empty.
-	 * 
+	 *
 	 * @param t1
 	 *            type 1
 	 * @param t2
@@ -393,9 +395,9 @@ public abstract class T implements Element {
 
 	/**
 	 * Merge/union read/down/or types: Find common lower type. Use OR operation for kind.
-	 * 
+	 *
 	 * If type is yet unknown, leave name empty.
-	 * 
+	 *
 	 * @param t1
 	 *            type 1
 	 * @param t2
@@ -432,11 +434,12 @@ public abstract class T implements Element {
 	 * returns {@code null}. Can assign from given type and primitive multitype reduction, which
 	 * returns the reduced new type. Can assign without reduction, which returns unmodified
 	 * {@code this}.
-	 * 
+	 *
 	 * @param t
 	 *            assign from type
 	 * @return {@code null} or reduced type or {@code this}
 	 */
+	@Nullable
 	public T assignFrom(final T t) {
 		if (t == null) {
 			return null;
@@ -457,11 +460,12 @@ public abstract class T implements Element {
 	 * returns {@code null}. Can assign to given type and primitive multitype reduction, which
 	 * returns the reduced new type. Can assign without reduction, which returns unmodified
 	 * {@code this}.
-	 * 
+	 *
 	 * @param t
 	 *            assign to type
 	 * @return {@code null} or reduced type or {@code this}
 	 */
+	@Nullable
 	public T assignTo(final T t) {
 		if (t == null) {
 			return null;
@@ -484,7 +488,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Create type declaration for this type.
-	 * 
+	 *
 	 * @return type declaration
 	 */
 	public abstract boolean createTd();
@@ -509,17 +513,17 @@ public abstract class T implements Element {
 
 	/**
 	 * Is extended signature compatible to given type?
-	 * 
+	 *
 	 * This function also makes changes to the types, especially it is setting raw types for type
 	 * variables (see {@link VarT#eraseTo(T)}).
-	 * 
+	 *
 	 * JVM Spec: "A class type signature gives complete type information for a class or interface
 	 * type. The class type signature must be formulated such that it can be reliably mapped to the
 	 * binary name of the class it denotes by erasing any type arguments and converting each '.'
 	 * character in the signature to a '$' character."
-	 * 
+	 *
 	 * The char '.' is already replaced by '$' in the name, '.' is used for folders instead of '/'.
-	 * 
+	 *
 	 * @param t
 	 *            raw type
 	 * @return {@code true} - is extended signature type for given type
@@ -535,7 +539,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get bound type for wildcard type or null.
-	 * 
+	 *
 	 * @return bound type for wildcard type or null
 	 */
 	public T getBoundT() {
@@ -544,9 +548,9 @@ public abstract class T implements Element {
 
 	/**
 	 * Get component type of array type or null.
-	 * 
+	 *
 	 * @return component type of array type or null
-	 * 
+	 *
 	 * @see Class#isAssignableFrom(Class)
 	 */
 	public T getComponentT() {
@@ -555,7 +559,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get dimensions of array type (0 if no array type).
-	 * 
+	 *
 	 * @return dimensions of array type (0 if no array type)
 	 */
 	public int getDimensions() {
@@ -564,7 +568,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get decompilation unit or null (for primitive and special types).
-	 * 
+	 *
 	 * @return decompilation unit or null
 	 */
 	public DU getDu() {
@@ -573,7 +577,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get element type of array type (null if no array type).
-	 * 
+	 *
 	 * @return element type of array type (null if no array type)
 	 */
 	public T getElementT() {
@@ -582,9 +586,9 @@ public abstract class T implements Element {
 
 	/**
 	 * Get enclosing method (including constructor).
-	 * 
+	 *
 	 * @return enclosing method
-	 * 
+	 *
 	 * @see ClassT#setEnclosingT(T)
 	 * @see Class#getEnclosingMethod()
 	 * @see Class#getEnclosingConstructor()
@@ -595,7 +599,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get outest enclosing (root) type.
-	 * 
+	 *
 	 * @return outest enclosing (root) type
 	 */
 	public T getEnclosingRootT() {
@@ -609,9 +613,9 @@ public abstract class T implements Element {
 
 	/**
 	 * Get enclosing type.
-	 * 
+	 *
 	 * @return enclosing type
-	 * 
+	 *
 	 * @see T#setEnclosingT(T)
 	 * @see Class#getEnclosingClass()
 	 */
@@ -621,7 +625,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get enclosing type path from front to end.
-	 * 
+	 *
 	 * @return enclosing type path from front to end
 	 */
 	public T[] getEnclosingTs() {
@@ -639,7 +643,7 @@ public abstract class T implements Element {
 	 * Unique identifier in JVM is: "name + descriptor" ({@link F})<br>
 	 * Even though the Java language has the field name as unique identifier, obfuscated code could
 	 * utilize the same name for different descriptors (see e.g. ojdbc6.jar).
-	 * 
+	 *
 	 * @param name
 	 *            field name
 	 * @param desc
@@ -659,7 +663,7 @@ public abstract class T implements Element {
 	/**
 	 * Get the full name, including modifiers like generic arguments, parameterization, type
 	 * annotations.
-	 * 
+	 *
 	 * @return full name
 	 */
 	public String getFullName() {
@@ -668,7 +672,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get generic type for parameterized type or null.
-	 * 
+	 *
 	 * @return generic type for parameterized type or null
 	 */
 	public T getGenericT() {
@@ -685,10 +689,10 @@ public abstract class T implements Element {
 	 * (for local classes): 1 or more digits followed by the simple name.<br>
 	 * (for anonymous classes): 1 or more digits.<br>
 	 * <br>
-	 * 
+	 *
 	 * JVM 5: {@code org.decojer.cavaj.test.DecTestInner$$Inner1$$$$_Inner$1$1AInner2}<br>
 	 * Before JVM 5: {@code org.decojer.cavaj.test.DecTestInner$$1$AInner2}
-	 * 
+	 *
 	 * @return inner name
 	 * @see Class#getSimpleName()
 	 */
@@ -698,15 +702,16 @@ public abstract class T implements Element {
 
 	/**
 	 * Get interface types.
-	 * 
-	 * @return interface types, not {@code null}
+	 *
+	 * @return interface types
+	 *
 	 * @see Class#getInterfaces()
 	 */
 	public abstract T[] getInterfaceTs();
 
 	/**
 	 * Get kind.
-	 * 
+	 *
 	 * @return kind
 	 */
 	public int getKind() {
@@ -716,7 +721,7 @@ public abstract class T implements Element {
 	/**
 	 * Get method.<br>
 	 * Unique identifier in JVM and Java language is: "name + descriptor"
-	 * 
+	 *
 	 * @param name
 	 *            method name
 	 * @param desc
@@ -735,7 +740,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get members (methods, fields).
-	 * 
+	 *
 	 * @return members
 	 */
 	public Map<String, Object> getMember() {
@@ -744,9 +749,10 @@ public abstract class T implements Element {
 
 	/**
 	 * Get package name.
-	 * 
+	 *
 	 * @return package name or {@code null} for no package
 	 */
+	@Nullable
 	public String getPackageName() {
 		final String name = getName();
 		final int pos = name.lastIndexOf('.');
@@ -758,7 +764,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get primary name.
-	 * 
+	 *
 	 * @return primary name
 	 */
 	public String getPName() {
@@ -777,7 +783,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get qualifier type.
-	 * 
+	 *
 	 * @return qualifier type
 	 */
 	public T getQualifierT() {
@@ -789,7 +795,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get qualifier type path from front to end.
-	 * 
+	 *
 	 * @return qualifier type path from front to end
 	 */
 	public T[] getQualifierTs() {
@@ -804,7 +810,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get raw type for modifying types (annotation, parameterized, variable) or {@code this}.
-	 * 
+	 *
 	 * @return raw type or {@code this}
 	 */
 	public T getRawT() {
@@ -814,7 +820,7 @@ public abstract class T implements Element {
 	/**
 	 * Get simple identifier: Often needed for AST creation, if anonymous don't return empty name
 	 * but primary name.
-	 * 
+	 *
 	 * @return simple identifier
 	 */
 	public String getSimpleIdentifier() {
@@ -833,7 +839,7 @@ public abstract class T implements Element {
 	 * <br>
 	 * This is heavily dependant from {@link #getEnclosingT()}, which can be {@code null} for
 	 * obfuscate code! Hence this is not a reliable answer.
-	 * 
+	 *
 	 * @return simple name
 	 * @see Class#getSimpleName()
 	 * @see T#getInnerName()
@@ -862,7 +868,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get source file name (from source file attribute).
-	 * 
+	 *
 	 * @return source file name
 	 */
 	public String getSourceFileName() {
@@ -871,7 +877,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Get stack size.
-	 * 
+	 *
 	 * @return stack size
 	 */
 	public int getStackSize() {
@@ -880,25 +886,28 @@ public abstract class T implements Element {
 
 	/**
 	 * Get super type.
-	 * 
+	 *
 	 * @return super type, can be {@code null} for {@code Object}, interfaces and primitives
+	 *
 	 * @see Class#getSuperclass()
 	 */
+	@Nullable
 	public abstract T getSuperT();
 
 	/**
 	 * Get type arguments for parameterized types.
-	 * 
+	 *
 	 * @return type arguments for parameterized types
 	 */
+	@Nullable
 	public T[] getTypeArgs() {
 		return null;
 	}
 
 	/**
 	 * Get type parameters.
-	 * 
-	 * @return type parameters, not {@code null}
+	 *
+	 * @return type parameters
 	 * @see Class#getTypeParameters()
 	 */
 	public T[] getTypeParams() {
@@ -907,12 +916,12 @@ public abstract class T implements Element {
 
 	/**
 	 * Get class file version.
-	 * 
+	 *
 	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51, 8: 52
-	 * 
+	 *
 	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
 	 * target option given.
-	 * 
+	 *
 	 * @return class file version
 	 */
 	public int getVersion() {
@@ -926,7 +935,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is type of class?
-	 * 
+	 *
 	 * @param klass
 	 *            class
 	 * @return {@code true} - type is of class
@@ -937,7 +946,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is type of types?
-	 * 
+	 *
 	 * @param ts
 	 *            types
 	 * @return {@code true} - type is of types
@@ -956,7 +965,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is (or has) type annotation?
-	 * 
+	 *
 	 * @return {@code true} - is type annotation
 	 */
 	public boolean isAnnotated() {
@@ -968,9 +977,9 @@ public abstract class T implements Element {
 	 * <br>
 	 * This is heavily dependant from {@link #getEnclosingT()}, which can be {@code null} for
 	 * obfuscate code! Hence this is not a reliable answer.
-	 * 
+	 *
 	 * @return {@code true} if and only if this class is an anonymous class.
-	 * 
+	 *
 	 * @see Class#isAnonymousClass()
 	 */
 	public boolean isAnonymous() {
@@ -979,7 +988,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is array type?
-	 * 
+	 *
 	 * @return {@code true} - is array type
 	 */
 	public boolean isArray() {
@@ -988,11 +997,11 @@ public abstract class T implements Element {
 
 	/**
 	 * Is this type instance assignable from given class?
-	 * 
+	 *
 	 * @param klass
 	 *            class
 	 * @return {@code true} - is assignable
-	 * 
+	 *
 	 * @see Class#isAssignableFrom(Class)
 	 */
 	public boolean isAssignableFrom(final Class<?> klass) {
@@ -1001,13 +1010,13 @@ public abstract class T implements Element {
 
 	/**
 	 * Is this type instance assignable from given type instance?
-	 * 
+	 *
 	 * Attention: Doesn't work for primitives implicit conversion (byte 2 short 2 int, char 2 int).
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @return {@code true} - is assignable
-	 * 
+	 *
 	 * @see Class#isAssignableFrom(Class)
 	 */
 	public boolean isAssignableFrom(final T t) {
@@ -1054,7 +1063,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is this version at least of the given version?
-	 * 
+	 *
 	 * @param version
 	 *            version
 	 * @return {@code true} - at least of given version
@@ -1063,7 +1072,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is this version less then given version?
-	 * 
+	 *
 	 * @param version
 	 *            version
 	 * @return {@code true} - less then given version
@@ -1072,7 +1081,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is Dalvik?
-	 * 
+	 *
 	 * @return {@code true} - is Dalvik
 	 */
 	public abstract boolean isDalvik();
@@ -1084,7 +1093,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is enum type?
-	 * 
+	 *
 	 * @return {@code true} - is enum type
 	 */
 	public boolean isEnum() {
@@ -1093,7 +1102,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is inner type?
-	 * 
+	 *
 	 * @return {@code true}- is inner type
 	 */
 	public boolean isInner() {
@@ -1108,7 +1117,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is interface?
-	 * 
+	 *
 	 * @return {@code true} - is interface
 	 */
 	public boolean isInterface() {
@@ -1117,7 +1126,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is intersection type?
-	 * 
+	 *
 	 * @return {@code true} - is intersection type
 	 */
 	public boolean isIntersection() {
@@ -1126,7 +1135,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is multi type?
-	 * 
+	 *
 	 * @return {@code true} - is multi type
 	 */
 	public boolean isMulti() {
@@ -1135,9 +1144,9 @@ public abstract class T implements Element {
 
 	/**
 	 * Is nested type? Includes none-static inner types.
-	 * 
+	 *
 	 * @return {@code true}- is nested type
-	 * 
+	 *
 	 * @see T#getEnclosingT()
 	 */
 	public boolean isNested() {
@@ -1146,7 +1155,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is Object type?
-	 * 
+	 *
 	 * @return {@code true} - is Object type
 	 */
 	public boolean isObject() {
@@ -1155,7 +1164,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is parameterized type?
-	 * 
+	 *
 	 * @return {@code true} - is parameterized type
 	 */
 	public boolean isParameterized() {
@@ -1164,7 +1173,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is primitive?
-	 * 
+	 *
 	 * @return {@code true} - is primitive
 	 */
 	public boolean isPrimitive() {
@@ -1173,7 +1182,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is qualified type?
-	 * 
+	 *
 	 * @return {@code true} - is qualified type
 	 */
 	public boolean isQualified() {
@@ -1182,7 +1191,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is reference type (includes array type, parameterized type)?
-	 * 
+	 *
 	 * @return {@code true} - is reference type
 	 */
 	public boolean isRef() {
@@ -1191,7 +1200,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is Scala source code?
-	 * 
+	 *
 	 * @return {@code true} - is Scala source code
 	 */
 	public abstract boolean isScala();
@@ -1203,7 +1212,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is subclass - for wildcard types?
-	 * 
+	 *
 	 * @return {@code true} - is subclass - for wildcard types
 	 */
 	public boolean isSubclassOf() {
@@ -1217,7 +1226,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is unresolveable?
-	 * 
+	 *
 	 * @return {@code true} - is unresolveable
 	 */
 	public boolean isUnresolvable() {
@@ -1226,7 +1235,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is wide type?
-	 * 
+	 *
 	 * @return {@code true} - is wide type
 	 */
 	public boolean isWide() {
@@ -1235,7 +1244,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Is wildcard type?
-	 * 
+	 *
 	 * @return {@code true} - is wildcard type
 	 */
 	public boolean isWildcard() {
@@ -1254,9 +1263,9 @@ public abstract class T implements Element {
 
 	/**
 	 * Set bound type for wildcard type.
-	 * 
+	 *
 	 * For annotation application.
-	 * 
+	 *
 	 * @param boundT
 	 *            bound type for wildcard type
 	 */
@@ -1266,9 +1275,9 @@ public abstract class T implements Element {
 
 	/**
 	 * Set component type for array type.
-	 * 
+	 *
 	 * For annotation application.
-	 * 
+	 *
 	 * @param componentT
 	 *            component type for array type
 	 */
@@ -1288,10 +1297,10 @@ public abstract class T implements Element {
 
 	/**
 	 * Set enclosing method (since JVM 5).
-	 * 
+	 *
 	 * @param enclosingM
 	 *            enclosing method
-	 * 
+	 *
 	 * @see ClassT#setEnclosingT(T)
 	 */
 	public void setEnclosingM(final M enclosingM) {
@@ -1300,33 +1309,33 @@ public abstract class T implements Element {
 
 	/**
 	 * Set enclosing class type (since JVM 5).
-	 * 
+	 *
 	 * There are five kinds of classes (or interfaces):<br>
-	 * 
+	 *
 	 * a) Top level classes<br>
 	 * b) Nested classes (static member classes)<br>
 	 * c) Inner classes (non-static member classes)<br>
 	 * d) Local classes (named classes declared within a method)<br>
 	 * e) Anonymous classes<br>
-	 * 
+	 *
 	 * JVM Spec 4.8.6: A class must have an EnclosingMethod attribute if and only if it is a local
 	 * class or an anonymous class.<br>
-	 * 
+	 *
 	 * We mix declaring classes info and enclosing method / classes attribut info.<br>
-	 * 
+	 *
 	 * JVM 5 has enclosing method attribute for local/anonymous, outer info only for declaring outer<br>
 	 * JVM < 5 has no enclosing method attribute and:<br>
 	 * JVM 1.1 has normal outer info for anonymous/local, like declaring for JVM 5,<br>
 	 * JVM 1.2 .. 1.4 has no outer info at all,<br>
 	 * obfuscated code could also strip all these info!!!
-	 * 
+	 *
 	 * We can not ignore this information and rely on naming rules alone, because the separator '$'
 	 * is a valid character in none-inner type names. If we don't have this info, we need to check
 	 * the existence of the other types by other means.
-	 * 
+	 *
 	 * @param enclosingT
 	 *            enclosing type
-	 * 
+	 *
 	 * @see Class#getEnclosingClass()
 	 */
 	public void setEnclosingT(final T enclosingT) {
@@ -1337,7 +1346,7 @@ public abstract class T implements Element {
 	 * Set inner info.<br>
 	 * Inner name: Can derive for JVM > 5 from type names (compatibility rules), but not before.<br>
 	 * Inner access flags: Have _exclusively_ modifiers PROTECTED, PRIVATE, STATIC, but not SUPER
-	 * 
+	 *
 	 * @param name
 	 *            inner name
 	 * @param accessFlags
@@ -1350,7 +1359,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Type must be an interface or a class (from usage, e.g. invoke/get/set).
-	 * 
+	 *
 	 * @param f
 	 *            {@code true} - is interface
 	 */
@@ -1360,7 +1369,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Set interface types.
-	 * 
+	 *
 	 * @param interfaceTs
 	 *            interface types
 	 */
@@ -1370,9 +1379,9 @@ public abstract class T implements Element {
 
 	/**
 	 * Set qualifier type for qualified type.
-	 * 
+	 *
 	 * For annotation application.
-	 * 
+	 *
 	 * @param qualifierT
 	 *            qualifierd type for qualified type
 	 */
@@ -1382,9 +1391,9 @@ public abstract class T implements Element {
 
 	/**
 	 * Set raw type for modified type.
-	 * 
+	 *
 	 * For type annotation application.
-	 * 
+	 *
 	 * @param rawT
 	 *            raw type for modified type
 	 */
@@ -1399,7 +1408,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Set source file name (from source file attribute).
-	 * 
+	 *
 	 * @param sourceFileName
 	 *            source file name
 	 */
@@ -1407,7 +1416,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Set super type.
-	 * 
+	 *
 	 * @param superT
 	 *            super type
 	 */
@@ -1422,12 +1431,12 @@ public abstract class T implements Element {
 
 	/**
 	 * Set class file version.
-	 * 
+	 *
 	 * 1.0: 45.0, 1.1: 45.3, 1.2: 46, 1.3: 47, 1.4: 48, 5: 49, 6: 50, 7: 51, 8: 52
-	 * 
+	 *
 	 * JDK 1.2 and 1.3 creates versions 1.1 if no target option given. JDK 1.4 creates 1.2 if no
 	 * target option given.
-	 * 
+	 *
 	 * @param version
 	 *            class file version
 	 */
@@ -1441,7 +1450,7 @@ public abstract class T implements Element {
 
 	/**
 	 * Validate qualifier name for enclosings and qualifiers.
-	 * 
+	 *
 	 * @param qualifierName
 	 *            qualifier name
 	 * @return {@code true} - valid qualifier name
