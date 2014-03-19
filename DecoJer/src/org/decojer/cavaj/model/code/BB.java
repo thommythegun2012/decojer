@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -52,7 +52,7 @@ import com.google.common.collect.Lists;
 
 /**
  * Basic block for CFG.
- * 
+ *
  * @author André Pankraz
  */
 public final class BB {
@@ -67,7 +67,7 @@ public final class BB {
 
 	/**
 	 * Cond / loop-back / switch case and catch outs, pc-ordered after initial read.
-	 * 
+	 *
 	 * Pc-ordering at initial read automatically through read-order and some sorts at branches.
 	 */
 	@Getter
@@ -107,7 +107,7 @@ public final class BB {
 
 	/**
 	 * Add handler.
-	 * 
+	 *
 	 * @param handler
 	 *            handler BB
 	 * @param catchTs
@@ -120,7 +120,7 @@ public final class BB {
 
 	/**
 	 * Add operation.
-	 * 
+	 *
 	 * @param op
 	 *            operation
 	 */
@@ -130,7 +130,7 @@ public final class BB {
 
 	/**
 	 * Add statement.
-	 * 
+	 *
 	 * @param stmt
 	 *            statement
 	 */
@@ -140,7 +140,7 @@ public final class BB {
 
 	/**
 	 * Add successor.
-	 * 
+	 *
 	 * @param succ
 	 *            successor BB
 	 * @param value
@@ -156,7 +156,7 @@ public final class BB {
 
 	/**
 	 * Add switch case.
-	 * 
+	 *
 	 * @param caseBb
 	 *            case BB
 	 * @param values
@@ -177,7 +177,7 @@ public final class BB {
 
 	/**
 	 * Get local expression.
-	 * 
+	 *
 	 * @param i
 	 *            index
 	 * @return expression
@@ -188,7 +188,7 @@ public final class BB {
 
 	/**
 	 * Get expression from expression statement at index.
-	 * 
+	 *
 	 * @param i
 	 *            expression statement index
 	 * @return expression
@@ -204,7 +204,7 @@ public final class BB {
 
 	/**
 	 * Get (conditional) false out.
-	 * 
+	 *
 	 * @return false out
 	 */
 	@Nullable
@@ -219,7 +219,7 @@ public final class BB {
 
 	/**
 	 * Get (conditional) false successor.
-	 * 
+	 *
 	 * @return false successor
 	 */
 	@Nullable
@@ -230,7 +230,7 @@ public final class BB {
 
 	/**
 	 * Get final operation.
-	 * 
+	 *
 	 * @return final operation
 	 */
 	@Nullable
@@ -240,7 +240,7 @@ public final class BB {
 
 	/**
 	 * Get final statement.
-	 * 
+	 *
 	 * @return final statement
 	 */
 	@Nullable
@@ -250,7 +250,7 @@ public final class BB {
 
 	/**
 	 * Get immediate dominator (IDom).
-	 * 
+	 *
 	 * @return immediate domminator (IDom)
 	 */
 	public BB getIDom() {
@@ -259,7 +259,7 @@ public final class BB {
 
 	/**
 	 * Get first operation line.
-	 * 
+	 *
 	 * @return first operation line
 	 */
 	public int getLine() {
@@ -268,7 +268,7 @@ public final class BB {
 
 	/**
 	 * Get operation at index.
-	 * 
+	 *
 	 * @param i
 	 *            operation index
 	 * @return operation
@@ -279,7 +279,7 @@ public final class BB {
 
 	/**
 	 * Get operations number.
-	 * 
+	 *
 	 * @return operations number
 	 */
 	public int getOps() {
@@ -288,7 +288,7 @@ public final class BB {
 
 	/**
 	 * Get register number (locals).
-	 * 
+	 *
 	 * @return register number (locals)
 	 */
 	public int getRegs() {
@@ -297,9 +297,9 @@ public final class BB {
 
 	/**
 	 * Get relevant in.
-	 * 
+	 *
 	 * @return relevant in
-	 * 
+	 *
 	 * @see BB#isRelevant()
 	 */
 	@Nullable
@@ -309,9 +309,9 @@ public final class BB {
 
 	/**
 	 * Get relevant out.
-	 * 
+	 *
 	 * @return relevant out
-	 * 
+	 *
 	 * @see BB#isRelevant()
 	 */
 	@Nullable
@@ -322,7 +322,7 @@ public final class BB {
 
 	/**
 	 * Get sequence out.
-	 * 
+	 *
 	 * @return sequence out
 	 */
 	@Nullable
@@ -337,7 +337,7 @@ public final class BB {
 
 	/**
 	 * Get statement at index.
-	 * 
+	 *
 	 * @param i
 	 *            statement index
 	 * @return statement
@@ -350,7 +350,7 @@ public final class BB {
 
 	/**
 	 * Get statements numer.
-	 * 
+	 *
 	 * @return statements number
 	 */
 	public int getStmts() {
@@ -359,7 +359,7 @@ public final class BB {
 
 	/**
 	 * Get switch default out.
-	 * 
+	 *
 	 * @return switch default out
 	 */
 	@Nullable
@@ -374,7 +374,7 @@ public final class BB {
 
 	/**
 	 * Get (conditional) true out.
-	 * 
+	 *
 	 * @return true out
 	 */
 	@Nullable
@@ -389,7 +389,7 @@ public final class BB {
 
 	/**
 	 * Get (conditional) true successor.
-	 * 
+	 *
 	 * @return true successor
 	 */
 	@Nullable
@@ -405,7 +405,7 @@ public final class BB {
 
 	/**
 	 * Has this BB given BB as predecessor? This excludes same BB!
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - given BB is predecessor of this BB
@@ -427,7 +427,7 @@ public final class BB {
 
 	/**
 	 * Has this BB given BB as successor? This excludes same BB!
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - given BB is successor of this BB
@@ -438,12 +438,12 @@ public final class BB {
 
 	/**
 	 * Is this BB before given BB?
-	 * 
+	 *
 	 * @param bb
-	 *            given BB or {@code null}
+	 *            given BB
 	 * @return {@code true} - this BB is before given BB, also for given BB as {@code null}
 	 */
-	public boolean isBefore(final BB bb) {
+	public boolean isBefore(@Nullable final BB bb) {
 		if (bb == null) {
 			return true;
 		}
@@ -458,7 +458,7 @@ public final class BB {
 
 	/**
 	 * Is BB a catch handler?
-	 * 
+	 *
 	 * @return {@code true} - BB is a catch handler
 	 */
 	public boolean isCatchHandler() {
@@ -472,7 +472,7 @@ public final class BB {
 
 	/**
 	 * Is BB a catch try?
-	 * 
+	 *
 	 * @return {@code true} - BB is a catch try
 	 */
 	public boolean isCatchTry() {
@@ -486,7 +486,7 @@ public final class BB {
 
 	/**
 	 * Is conditional BB? (e.g. if or loop head)
-	 * 
+	 *
 	 * @return {@code true} - is conditional BB
 	 */
 	public boolean isCond() {
@@ -495,7 +495,7 @@ public final class BB {
 
 	/**
 	 * Is line information available?
-	 * 
+	 *
 	 * @return {@code true} - line information is available
 	 */
 	public boolean isLineInfo() {
@@ -504,7 +504,7 @@ public final class BB {
 
 	/**
 	 * Is loop head?
-	 * 
+	 *
 	 * @return {@code true} - is loop head
 	 */
 	public boolean isLoopHead() {
@@ -520,7 +520,7 @@ public final class BB {
 
 	/**
 	 * Is loop last?
-	 * 
+	 *
 	 * @return {@code true} - is loop last
 	 */
 	public boolean isLoopLast() {
@@ -536,13 +536,13 @@ public final class BB {
 
 	/**
 	 * Is BB relevant?
-	 * 
+	 *
 	 * Multiple incomings, none-empty BBs which are not single GOTO operations (after CFG building)
 	 * are relevant.
-	 * 
+	 *
 	 * We could exclude this BBs in CFG building, but may be they are an interesting info for
 	 * decompiling structures.
-	 * 
+	 *
 	 * @return {@code true} - BB is empty
 	 */
 	public boolean isRelevant() {
@@ -560,7 +560,7 @@ public final class BB {
 
 	/**
 	 * Is sub-ret BB?
-	 * 
+	 *
 	 * @return {@code true} - is sub-ret BB
 	 */
 	public boolean isRet() {
@@ -569,7 +569,7 @@ public final class BB {
 
 	/**
 	 * Is BB a sequence?
-	 * 
+	 *
 	 * @return {@code true} - BB is a sequence
 	 */
 	public boolean isSequence() {
@@ -583,7 +583,7 @@ public final class BB {
 
 	/**
 	 * Is stack empty?
-	 * 
+	 *
 	 * @return {@code true} - stack is empty
 	 */
 	public boolean isStackEmpty() {
@@ -592,7 +592,7 @@ public final class BB {
 
 	/**
 	 * Is start BB?
-	 * 
+	 *
 	 * @return {@code true} - is start BB
 	 */
 	public boolean isStartBb() {
@@ -601,7 +601,7 @@ public final class BB {
 
 	/**
 	 * Is switch head?
-	 * 
+	 *
 	 * @return {@code true} - is switch head
 	 */
 	public boolean isSwitchHead() {
@@ -612,10 +612,10 @@ public final class BB {
 
 	/**
 	 * Is sync head?
-	 * 
+	 *
 	 * Works even for trivial / empty sync sections, because BBs are always split behind
 	 * MONITOR_ENTER (see Data Flow Analysis).
-	 * 
+	 *
 	 * @return {@code true} - is sync head
 	 */
 	public boolean isSyncHead() {
@@ -632,7 +632,7 @@ public final class BB {
 
 	/**
 	 * Copy content from BB.
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 */
@@ -658,7 +658,7 @@ public final class BB {
 
 	/**
 	 * Move in edges to target BB. Adjust CFG start BB.
-	 * 
+	 *
 	 * @param target
 	 *            target BB
 	 */
@@ -675,7 +675,7 @@ public final class BB {
 
 	/**
 	 * Move out edges (no catches) to target BB.
-	 * 
+	 *
 	 * @param target
 	 *            target BB
 	 */
@@ -692,7 +692,7 @@ public final class BB {
 
 	/**
 	 * Peek stack expression.
-	 * 
+	 *
 	 * @return expression
 	 */
 	public Expression peek() {
@@ -704,7 +704,7 @@ public final class BB {
 
 	/**
 	 * Pop stack expression.
-	 * 
+	 *
 	 * @return expression
 	 */
 	public Expression pop() {
@@ -716,7 +716,7 @@ public final class BB {
 
 	/**
 	 * Push stack expression.
-	 * 
+	 *
 	 * @param v
 	 *            expression
 	 */
@@ -744,7 +744,7 @@ public final class BB {
 
 	/**
 	 * Remove final statement.
-	 * 
+	 *
 	 * @return statement
 	 */
 	@Nullable
@@ -754,7 +754,7 @@ public final class BB {
 
 	/**
 	 * Remove operation at index.
-	 * 
+	 *
 	 * @param i
 	 *            operation index
 	 * @return operation
@@ -767,7 +767,7 @@ public final class BB {
 
 	/**
 	 * Remove statement at index.
-	 * 
+	 *
 	 * @param i
 	 *            statement index
 	 * @return statement
@@ -780,7 +780,7 @@ public final class BB {
 
 	/**
 	 * Set local expression.
-	 * 
+	 *
 	 * @param i
 	 *            index
 	 * @param v
@@ -792,7 +792,7 @@ public final class BB {
 
 	/**
 	 * Add conditionals.
-	 * 
+	 *
 	 * @param trueBb
 	 *            true BB
 	 * @param falseBb
@@ -812,7 +812,7 @@ public final class BB {
 
 	/**
 	 * Set successor.
-	 * 
+	 *
 	 * @param succ
 	 *            successor
 	 * @return out edge
