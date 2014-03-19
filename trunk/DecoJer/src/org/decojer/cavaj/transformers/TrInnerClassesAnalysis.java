@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -48,7 +48,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Transformer: Analyze inner classes and create compilation units.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -80,7 +80,7 @@ public class TrInnerClassesAnalysis {
 	/**
 	 * All JVMs < 5 have no enclosing method attribute and wrong (JVM 1) or missing (JVM 2...4)
 	 * informations. We are looking for explicit new-ops, this must be the parent method.
-	 * 
+	 *
 	 * @param ts
 	 *            all types
 	 */
@@ -107,9 +107,6 @@ public class TrInnerClassesAnalysis {
 						continue;
 					}
 					final T newT = ((NEW) op).getT();
-					if (newT == null) {
-						continue;
-					}
 
 					// TODO the following function is dependant from enclosingT...if this is null,
 					// we will never be anonymous! we should repair enclosing info here, overwrite
@@ -197,9 +194,9 @@ public class TrInnerClassesAnalysis {
 	 * Returns the "simple binary name" of the underlying class, i.e., the binary name without the
 	 * leading enclosing class name. Returns {@code null} if the underlying class is a top level
 	 * class.
-	 * 
+	 *
 	 * Works just for JVM >= 5.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @return simple binary name
@@ -219,9 +216,9 @@ public class TrInnerClassesAnalysis {
 
 	/**
 	 * Get simple name, like appearing in Java source code.
-	 * 
+	 *
 	 * Works just for JVM >= 5.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @return simple name
@@ -270,7 +267,7 @@ public class TrInnerClassesAnalysis {
 
 	/**
 	 * Character.isDigit answers {@code true} to some non-ascii digits. This one does not.
-	 * 
+	 *
 	 * @param c
 	 *            character
 	 * @return {@code true} - is ascii digit
@@ -281,7 +278,7 @@ public class TrInnerClassesAnalysis {
 
 	/**
 	 * Enum switches use static inner with static cached map, use enclosingT info.
-	 * 
+	 *
 	 * @param t
 	 *            type declaration
 	 * @return {@code true} - is enum switch mal inner
@@ -305,7 +302,7 @@ public class TrInnerClassesAnalysis {
 
 	/**
 	 * Transform decompilation unit.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
