@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,6 +25,8 @@ package org.decojer.cavaj.model;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -36,16 +38,17 @@ import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Container declaration.
- * 
+ *
  * @author André Pankraz
  */
 public abstract class CD {
 
 	/**
-	 * AST node or {@code null}.
+	 * AST node.
 	 */
 	@Getter
 	@Setter
+	@Nullable
 	private Object astNode;
 
 	/**
@@ -64,12 +67,13 @@ public abstract class CD {
 	}
 
 	/**
-	 * Get declaration for AST node or {@code null}.
-	 * 
+	 * Get declaration for AST node.
+	 *
 	 * @param node
-	 *            AST node or {@code null}
+	 *            AST node
 	 * @return declaration
 	 */
+	@Nullable
 	public Element getDeclarationForNode(final ASTNode node) {
 		for (final Element bd : getDeclarations()) {
 			// could also work with polymorphism here...but why pollute subclasses with helper

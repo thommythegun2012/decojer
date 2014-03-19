@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,29 +25,32 @@ package org.decojer.cavaj.model;
 
 import java.util.List;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Container.
- * 
+ *
  * @author André Pankraz
  */
 public interface Container {
 
 	/**
-	 * Get AST node or {@code null}.
-	 * 
-	 * @return AST node or {@code null}
+	 * Get AST node.
+	 *
+	 * @return AST node
 	 */
+	@Nullable
 	Object getAstNode();
 
 	/**
-	 * Set AST node or {@code null}.
-	 * 
+	 * Set AST node.
+	 *
 	 * @param astNode
-	 *            AST node or {@code null}
+	 *            AST node
 	 */
-	void setAstNode(final Object astNode);
+	void setAstNode(@Nullable final Object astNode);
 
 	/**
 	 * Clear all decompile infos, e.g. AST nodes.
@@ -55,24 +58,25 @@ public interface Container {
 	void clear();
 
 	/**
-	 * Get declaration for AST node or {@code null}.
-	 * 
+	 * Get declaration for AST node.
+	 *
 	 * @param node
-	 *            AST node or {@code null}
+	 *            AST node
 	 * @return declaration
 	 */
+	@Nullable
 	Element getDeclarationForNode(final ASTNode node);
 
 	/**
 	 * Get name.
-	 * 
+	 *
 	 * @return name
 	 */
 	String getName();
 
 	/**
 	 * Get contained declarations.
-	 * 
+	 *
 	 * @return declarations
 	 */
 	List<Element> getDeclarations();

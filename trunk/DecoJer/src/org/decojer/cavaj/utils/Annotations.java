@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -31,6 +31,8 @@ import java.lang.reflect.Array;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -51,7 +53,7 @@ import org.eclipse.jdt.core.dom.TypeLiteral;
 
 /**
  * Annotations Decompiler.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -59,7 +61,7 @@ public final class Annotations {
 
 	/**
 	 * Decompile Annotation.
-	 * 
+	 *
 	 * @param t
 	 *            Type Declaration
 	 * @param a
@@ -78,7 +80,7 @@ public final class Annotations {
 							.newSingleMemberAnnotation();
 					singleMemberAnnotation.setTypeName(newTypeName(a.getT(), t));
 					singleMemberAnnotation
-							.setValue(decompileAnnotationDefaultValue(t, memberValue));
+					.setValue(decompileAnnotationDefaultValue(t, memberValue));
 					return singleMemberAnnotation;
 				}
 			}
@@ -104,13 +106,14 @@ public final class Annotations {
 
 	/**
 	 * Decompile Annotation Default Value (value or Default Value literal).
-	 * 
+	 *
 	 * @param t
 	 *            Type Declaration
 	 * @param defaultValue
 	 *            Default Value
-	 * @return Expression AST Node or {@code null}
+	 * @return Expression AST Node
 	 */
+	@Nullable
 	public static Expression decompileAnnotationDefaultValue(final T t, final Object defaultValue) {
 		final AST ast = t.getCu().getAst();
 		if (defaultValue == null) {
@@ -187,7 +190,7 @@ public final class Annotations {
 
 	/**
 	 * Decompile Annotations.
-	 * 
+	 *
 	 * @param as
 	 *            Annotations
 	 * @param annotations
@@ -213,7 +216,7 @@ public final class Annotations {
 
 	/**
 	 * Decompile Annotations.
-	 * 
+	 *
 	 * @param t
 	 *            Annotated Type
 	 * @param annotations
@@ -230,7 +233,7 @@ public final class Annotations {
 
 	/**
 	 * Do Annotations contain the Deprecated Annotation?
-	 * 
+	 *
 	 * @param as
 	 *            Annotations
 	 * @return {@code true} - Annotations contain the Deprecated Annotation
