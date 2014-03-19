@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,6 +25,8 @@ package org.decojer.editor.eclipse.cfg;
 
 import java.util.ArrayList;
 import java.util.IdentityHashMap;
+
+import javax.annotation.Nullable;
 
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.geometry.Dimension;
@@ -40,14 +42,14 @@ import org.eclipse.zest.layouts.dataStructures.InternalRelationship;
 
 /**
  * Hierarchical layout algorithm for visualizing the Control Flow Graph.
- * 
+ *
  * @author André Pankraz
  */
 public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param styles
 	 *            LayoutStyles
 	 */
@@ -57,8 +59,8 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 
 	@Override
 	@SuppressWarnings("unchecked")
-	protected void applyLayoutInternal(final InternalNode[] entitiesToLayout,
-			final InternalRelationship[] relationshipsToConsider, final double boundsX,
+	protected void applyLayoutInternal(@Nullable final InternalNode[] entitiesToLayout,
+			@Nullable final InternalRelationship[] relationshipsToConsider, final double boundsX,
 			final double boundsY, final double boundsWidth, final double boundsHeight) {
 		final IdentityHashMap<InternalNode, Node> mapping = new IdentityHashMap<InternalNode, Node>(
 				entitiesToLayout.length);
@@ -122,16 +124,16 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 	}
 
 	@Override
-	protected void postLayoutAlgorithm(final InternalNode[] entitiesToLayout,
-			final InternalRelationship[] relationshipsToConsider) {
+	protected void postLayoutAlgorithm(@Nullable final InternalNode[] entitiesToLayout,
+			@Nullable final InternalRelationship[] relationshipsToConsider) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	protected void preLayoutAlgorithm(final InternalNode[] entitiesToLayout,
-			final InternalRelationship[] relationshipsToConsider, final double x, final double y,
-			final double width, final double height) {
+	protected void preLayoutAlgorithm(@Nullable final InternalNode[] entitiesToLayout,
+			@Nullable final InternalRelationship[] relationshipsToConsider, final double x,
+			final double y, final double width, final double height) {
 		// TODO Auto-generated method stub
 
 	}

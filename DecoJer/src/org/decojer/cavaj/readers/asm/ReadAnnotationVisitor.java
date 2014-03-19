@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,6 +24,8 @@
 package org.decojer.cavaj.readers.asm;
 
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
@@ -36,7 +38,7 @@ import com.google.common.collect.Lists;
 
 /**
  * ASM read annotation visitor.
- * 
+ *
  * @author André Pankraz
  */
 public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
@@ -45,7 +47,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
@@ -57,7 +59,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	protected abstract void add(final String name, final Object value);
 
 	@Override
-	public void visit(final String name, final Object value) {
+	public void visit(@Nullable final String name, @Nullable final Object value) {
 		if (value instanceof Type) {
 			add(name, this.du.getT(((Type) value).getClassName()));
 			return;
@@ -66,7 +68,8 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String name, final String desc) {
+	public AnnotationVisitor visitAnnotation(@Nullable final String name,
+			@Nullable final String desc) {
 		final ReadAnnotationMemberVisitor readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(
 				this.du);
 		add(name, readAnnotationMemberVisitor.init(desc, null));
@@ -74,7 +77,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitArray(final String name) {
+	public AnnotationVisitor visitArray(@Nullable final String name) {
 		return new ReadAnnotationVisitor(this.du) {
 
 			private final List<Object> values = Lists.newArrayList();
@@ -99,7 +102,8 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	}
 
 	@Override
-	public void visitEnum(final String name, final String desc, final String value) {
+	public void visitEnum(@Nullable final String name, @Nullable final String desc,
+			@Nullable final String value) {
 		final T ownerT = this.du.getDescT(desc);
 		final F f = ownerT.getF(value, desc);
 		f.setEnum();

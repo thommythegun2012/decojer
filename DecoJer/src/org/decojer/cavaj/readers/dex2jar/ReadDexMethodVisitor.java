@@ -79,7 +79,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 	}
 
 	@Override
-	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
+	public DexAnnotationVisitor visitAnnotation(@Nullable final String name, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -113,7 +113,8 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 		return new DexAnnotationAble() {
 
 			@Override
-			public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
+			public DexAnnotationVisitor visitAnnotation(@Nullable final String name,
+					final boolean visible) {
 				A[] paramAs = null;
 				if (ReadDexMethodVisitor.this.paramAss == null) {
 					ReadDexMethodVisitor.this.paramAss = new A[index + 1][];

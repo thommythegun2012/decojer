@@ -97,12 +97,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		// example: sun/org/mozilla/javascript/internal/
 		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
 				.getResource().getLocation().toOSString() : eclipseClassFile.getPath().toOSString();
-		assert jarPath != null;
+				assert jarPath != null;
 
-		final String packageName = eclipseClassFile.getParent().getElementName();
-		final String typeName = eclipseClassFile.getElementName();
-		return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
-				+ typeName;
+				final String packageName = eclipseClassFile.getParent().getElementName();
+				final String typeName = eclipseClassFile.getElementName();
+				return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
+						+ typeName;
 	}
 
 	private static void parseClassT(final String s, final Cursor c, final StringBuilder sb) {
@@ -272,7 +272,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	@Override
-	protected Composite createPageContainer(final Composite parent) {
+	protected Composite createPageContainer(@Nullable final Composite parent) {
 		// method is called before createPages() - change pageContainer for archives
 		final Composite pageContainer = super.createPageContainer(parent);
 		if (this.selectedCu != null) {
@@ -292,12 +292,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		this.archiveTree.addSelectionListener(new SelectionListener() {
 
 			@Override
-			public void widgetDefaultSelected(final SelectionEvent e) {
+			public void widgetDefaultSelected(@Nullable final SelectionEvent e) {
 				// OK
 			}
 
 			@Override
-			public void widgetSelected(final SelectionEvent e) {
+			public void widgetSelected(@Nullable final SelectionEvent e) {
 				final TreeItem[] selections = ClassEditor.this.archiveTree.getSelection();
 				if (selections.length != 1) {
 					return;
@@ -340,7 +340,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	 * Saves the multi-page editor's document.
 	 */
 	@Override
-	public void doSave(final IProgressMonitor monitor) {
+	public void doSave(@Nullable final IProgressMonitor monitor) {
 		getEditor(0).doSave(monitor);
 	}
 
@@ -493,7 +493,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	@Override
-	public Object getAdapter(final Class required) {
+	public Object getAdapter(@Nullable final Class required) {
 		if (IContentOutlinePage.class.equals(required)) {
 			// initialize the CompilationUnitEditor with the decompiled source via a in-memory
 			// StorageEditorInput and ask this Editor for the IContentOutlinePage, this way we can
@@ -520,7 +520,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				this.javaOutlinePage.addSelectionChangedListener(new ISelectionChangedListener() {
 
 					@Override
-					public void selectionChanged(final SelectionChangedEvent event) {
+					public void selectionChanged(@Nullable final SelectionChangedEvent event) {
 						final TreeSelection treeSelection = (TreeSelection) event.getSelection();
 						final Container c = findDeclarationForJavaElement((IJavaElement) treeSelection
 								.getFirstElement());
@@ -540,7 +540,8 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	@Override
-	public void init(final IEditorSite site, final IEditorInput input) throws PartInitException {
+	public void init(@Nullable final IEditorSite site, @Nullable final IEditorInput input)
+			throws PartInitException {
 		super.init(site, input);
 		String fileName;
 		if (input instanceof IClassFileEditorInput) {

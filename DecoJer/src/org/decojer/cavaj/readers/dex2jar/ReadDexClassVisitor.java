@@ -82,7 +82,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	@Override
-	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
+	public DexAnnotationVisitor visitAnnotation(@Nullable final String name, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -104,7 +104,8 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	@Override
-	public DexFieldVisitor visitField(final int accessFlags, final Field field, final Object value) {
+	public DexFieldVisitor visitField(final int accessFlags, @Nullable final Field field,
+			@Nullable final Object value) {
 		final F f = this.t.getF(field.getName(), field.getType());
 		f.createFd();
 
@@ -118,7 +119,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	@Override
-	public DexMethodVisitor visitMethod(final int accessFlags, final Method method) {
+	public DexMethodVisitor visitMethod(final int accessFlags, @Nullable final Method method) {
 		final M m = this.t.getM(method.getName(), method.getDesc());
 		m.createMd();
 
@@ -130,7 +131,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	}
 
 	@Override
-	public void visitSource(final String file) {
+	public void visitSource(@Nullable final String file) {
 		this.t.setSourceFileName(file);
 	}
 

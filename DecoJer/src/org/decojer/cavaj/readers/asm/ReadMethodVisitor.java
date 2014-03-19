@@ -318,7 +318,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitAnnotation(final String desc, final boolean visible) {
+	public AnnotationVisitor visitAnnotation(@Nullable final String desc, final boolean visible) {
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -344,7 +344,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitAttribute(final Attribute attr) {
+	public void visitAttribute(@Nullable final Attribute attr) {
 		log.warn(getMd() + ": Unknown method attribute tag '" + attr.type + "' for field info '"
 				+ this.m.getT() + "'!");
 	}
@@ -392,8 +392,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitFieldInsn(final int opcode, final String owner, final String name,
-			final String desc) {
+	public void visitFieldInsn(final int opcode, @Nullable final String owner,
+			@Nullable final String name, @Nullable final String desc) {
 		// ### 178 : java/lang/System : out : Ljava/io/PrintStream;
 		switch (opcode) {
 		/*******
@@ -424,8 +424,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitFrame(final int type, final int nLocal, final Object[] local,
-			final int nStack, final Object[] stack) {
+	public void visitFrame(final int type, final int nLocal, @Nullable final Object[] local,
+			final int nStack, @Nullable final Object[] stack) {
 		// log.info(getMd() + ": " + type + " : " + nLocal
 		// + " : " + local + " : " + nStack + " : " + stack);
 	}
@@ -1055,8 +1055,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitInsnAnnotation(final int typeRef, final TypePath typePath,
-			final String desc, final boolean visible) {
+	public AnnotationVisitor visitInsnAnnotation(final int typeRef,
+			@Nullable final TypePath typePath, @Nullable final String desc, final boolean visible) {
 		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
 		if (!applyOperationAnnotation(a, typeRef, typePath, false)) {
@@ -1089,8 +1089,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitInvokeDynamicInsn(final String name, final String desc, final Handle bsm,
-			final Object... bsmArgs) {
+	public void visitInvokeDynamicInsn(@Nullable final String name, @Nullable final String desc,
+			@Nullable final Handle bsm, @Nullable final Object... bsmArgs) {
 		/**********
 		 * INVOKE *
 		 **********/
@@ -1109,7 +1109,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitJumpInsn(final int opcode, final Label label) {
+	public void visitJumpInsn(final int opcode, @Nullable final Label label) {
 		T t = null;
 		Object oValue = null;
 
@@ -1260,7 +1260,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitLabel(final Label label) {
+	public void visitLabel(@Nullable final Label label) {
 		final Integer pc = this.label2pc.put(label, this.ops.size());
 		if (pc == null) {
 			// fresh new label, never referenced before
@@ -1327,7 +1327,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitLdcInsn(final Object cst) {
+	public void visitLdcInsn(@Nullable final Object cst) {
 		T t = null;
 		Object oValue = null;
 
@@ -1357,7 +1357,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitLineNumber(final int line, final Label start) {
+	public void visitLineNumber(final int line, @Nullable final Label start) {
 		final int pc = getPc(start);
 		if (pc < 0) {
 			log.warn(getMd() + ": Line number '" + line + "' start label '" + start
@@ -1367,8 +1367,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitLocalVariable(final String name, final String desc, final String signature,
-			final Label start, final Label end, final int index) {
+	public void visitLocalVariable(@Nullable final String name, @Nullable final String desc,
+			@Nullable final String signature, @Nullable final Label start,
+			@Nullable final Label end, final int index) {
 		T vT = this.du.getDescT(desc);
 		if (signature != null) {
 			final T sigT = this.du.parseT(signature, new Cursor(), this.m);
@@ -1401,8 +1402,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public AnnotationVisitor visitLocalVariableAnnotation(final int typeRef,
-			final TypePath typePath, final Label[] start, final Label[] end, final int[] index,
-			final String desc, final boolean visible) {
+			@Nullable final TypePath typePath, @Nullable final Label[] start,
+			@Nullable final Label[] end, @Nullable final int[] index, @Nullable final String desc,
+			final boolean visible) {
 		/*
 		 * 3.3.7: The table length field specifies the number of entries in the table array;
 		 * multiple entries are necessary because a compiler is permitted to break a single variable
@@ -1445,7 +1447,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitLookupSwitchInsn(final Label dflt, final int[] caseKeys, final Label[] labels) {
+	public void visitLookupSwitchInsn(@Nullable final Label dflt, @Nullable final int[] caseKeys,
+			@Nullable final Label[] labels) {
 		/**********
 		 * SWITCH *
 		 **********/
@@ -1476,8 +1479,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitMethodInsn(final int opcode, final String owner, final String name,
-			final String desc, final boolean itf) {
+	public void visitMethodInsn(final int opcode, @Nullable final String owner,
+			@Nullable final String name, @Nullable final String desc, final boolean itf) {
 		switch (opcode) {
 		/**********
 		 * INVOKE *
@@ -1505,7 +1508,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitMultiANewArrayInsn(final String desc, final int dims) {
+	public void visitMultiANewArrayInsn(@Nullable final String desc, final int dims) {
 		/************
 		 * NEWARRAY *
 		 ************/
@@ -1517,14 +1520,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitParameter(final String name, final int access) {
+	public void visitParameter(@Nullable final String name, final int access) {
 		log.warn(getMd() + ": " + name + " : " + access);
 		super.visitParameter(name, access);
 	}
 
 	@Override
-	public AnnotationVisitor visitParameterAnnotation(final int parameter, final String desc,
-			final boolean visible) {
+	public AnnotationVisitor visitParameterAnnotation(final int parameter,
+			@Nullable final String desc, final boolean visible) {
 		A[] paramAs = null;
 		if (this.paramAss == null) {
 			this.paramAss = new A[parameter + 1][];
@@ -1549,8 +1552,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitTableSwitchInsn(final int min, final int max, final Label dflt,
-			final Label... labels) {
+	public void visitTableSwitchInsn(final int min, final int max, @Nullable final Label dflt,
+			@Nullable final Label... labels) {
 		/**********
 		 * SWITCH *
 		 **********/
@@ -1578,8 +1581,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitTryCatchAnnotation(final int typeRef, final TypePath typePath,
-			final String desc, final boolean visible) {
+	public AnnotationVisitor visitTryCatchAnnotation(final int typeRef,
+			@Nullable final TypePath typePath, @Nullable final String desc, final boolean visible) {
 		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
 		final TypeReference typeReference = new TypeReference(typeRef);
@@ -1599,8 +1602,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public void visitTryCatchBlock(final Label start, final Label end, final Label handler,
-			final String type) {
+	public void visitTryCatchBlock(@Nullable final Label start, @Nullable final Label end,
+			@Nullable final Label handler, @Nullable final String type) {
 		// type: java/lang/Exception
 		final T catchT = type == null ? null : this.du.getT(type);
 		final Exc exc = new Exc(catchT);
@@ -1624,8 +1627,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
-			final String desc, final boolean visible) {
+	public AnnotationVisitor visitTypeAnnotation(final int typeRef,
+			@Nullable final TypePath typePath, @Nullable final String desc, final boolean visible) {
 		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
 		final TypeReference typeReference = new TypeReference(typeRef);

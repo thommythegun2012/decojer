@@ -93,8 +93,8 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 
 	@Nullable
 	@Override
-	public DexClassVisitor visit(final int access_flags, final String className,
-			final String superClass, @Nullable final String[] interfaceNames) {
+	public DexClassVisitor visit(final int access_flags, @Nullable final String className,
+			@Nullable final String superClass, @Nullable final String[] interfaceNames) {
 		// load full type declarations from complete package, to complex to decide here if
 		// really not part of the compilation unit
 		// TODO later load all type declarations, but not all bytecode details
