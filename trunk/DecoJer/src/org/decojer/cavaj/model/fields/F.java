@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.fields;
+
+import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Element;
@@ -29,49 +31,49 @@ import org.decojer.cavaj.model.types.T;
 
 /**
  * Field.
- * 
+ *
  * Unique identifier is: "name + descriptor"<br>
  * Even though the Java language has the field name as unique identifier, obfuscated code could
  * utilize the same name for different descriptors (see e.g. ojdbc6.jar).
- * 
+ *
  * Also, an experiment:
- * 
+ *
  * Field descriptor #77 Ljava/util/ArrayList;<br>
  * Signature: Ljava/util/ArrayList<Ljava/lang/Integer;>;<br>
  * public java.util.ArrayList test;
- * 
+ *
  * works: getfield org.decojer.cavaj.test.DecTestFields.test : java.util.ArrayList [19]<br>
  * doesn't work: getfield org.decojer.cavaj.test.DecTestFields.test : java.util.List [19]<br>
  * throws: NoSuchFieldError extends IncompatibleClassChangeError
- * 
+ *
  * @author André Pankraz
  */
 public abstract class F implements Element {
 
 	/**
 	 * Create field declaration for this field.
-	 * 
+	 *
 	 * @return {@code true} - success
 	 */
 	public abstract boolean createFd();
 
 	/**
 	 * Get owner type.
-	 * 
+	 *
 	 * @return owner type
 	 */
 	public abstract T getT();
 
 	/**
 	 * Get value type.
-	 * 
+	 *
 	 * @return value type
 	 */
 	public abstract T getValueT();
 
 	/**
 	 * Is enum?
-	 * 
+	 *
 	 * @return {@code true} - is enum
 	 */
 	public boolean isEnum() {
@@ -89,20 +91,19 @@ public abstract class F implements Element {
 
 	/**
 	 * Field must be static or dynamic (from usage, e.g. get/set).
-	 * 
+	 *
 	 * @param f
 	 *            {@code true} - is static
 	 */
 	public abstract void setStatic(final boolean f);
 
 	/**
-	 * Set value for constant attributes or {@code null}. Type Integer: int, short, byte, char,
-	 * boolean.
-	 * 
+	 * Set value for constant attributes. Type Integer: int, short, byte, char, boolean.
+	 *
 	 * @param value
-	 *            value for constant attributes or {@code null}
+	 *            value for constant attributes
 	 */
-	public abstract void setValue(final Object value);
+	public abstract void setValue(@Nullable final Object value);
 
 	@Override
 	public String toString() {
@@ -111,19 +112,20 @@ public abstract class F implements Element {
 
 	/**
 	 * Set value type.
-	 * 
+	 *
 	 * @param valueT
 	 *            value type
 	 */
 	public abstract void setValueT(final T valueT);
 
 	/**
-	 * Get value for constant attributes or {@code null}.
-	 * 
+	 * Get value for constant attributes.
+	 *
 	 * Type Integer: int, short, byte, char, boolean.
-	 * 
-	 * @return value for constant attributes or {@code null}
+	 *
+	 * @return value for constant attributes
 	 */
+	@Nullable
 	public abstract Object getValue();
 
 }
