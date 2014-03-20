@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.AF;
+import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.types.T;
 
@@ -50,6 +51,15 @@ import org.decojer.cavaj.model.types.T;
  * @author André Pankraz
  */
 public abstract class F implements Element {
+
+	/**
+	 * Get decompilation unit.
+	 *
+	 * @return decompilation unit
+	 */
+	public DU getDu() {
+		return getT().getDu();
+	}
 
 	/**
 	 * Create field declaration for this field.

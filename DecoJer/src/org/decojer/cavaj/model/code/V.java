@@ -125,20 +125,17 @@ public final class V {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder("V: ");
-		if (this.t != null) {
-			sb.append("(");
-			for (int i = 0;;) {
-				sb.append(this.pcs[i++]).append(" - ").append(this.pcs[i++]);
-				if (i == this.pcs.length) {
-					break;
-				}
-				sb.append(", ");
+		sb.append("(");
+		for (int i = 0;;) {
+			sb.append(this.pcs[i++]).append(" - ").append(this.pcs[i++]);
+			if (i == this.pcs.length) {
+				break;
 			}
-			sb.append(") ");
-
-			sb.append(this.name).append(": ");
+			sb.append(", ");
 		}
-		sb.append(this.t).append(" ");
+		sb.append(") ");
+
+		sb.append(this.name).append(": ").append(this.t);
 		return sb.toString();
 	}
 

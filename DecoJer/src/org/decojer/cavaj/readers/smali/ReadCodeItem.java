@@ -539,6 +539,7 @@ public class ReadCodeItem {
 				final Instruction21c instr = (Instruction21c) instruction;
 
 				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				assert t != null;
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr.getRegisterA()));
 
@@ -640,6 +641,7 @@ public class ReadCodeItem {
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
+					assert oValue instanceof T;
 					this.ops.add(new CAST(this.ops.size(), opcode, line, t, (T) oValue));
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, (T) oValue, instr
@@ -940,6 +942,7 @@ public class ReadCodeItem {
 				final Instruction22c instr = (Instruction22c) instruction;
 
 				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				assert t != null;
 
 				// not t, is unknown, result can be false
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr.getRegisterB()));
@@ -1049,6 +1052,7 @@ public class ReadCodeItem {
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
+					assert oValue instanceof CmpType;
 					final JCND op = new JCND(this.ops.size(), opcode, line, t, (CmpType) oValue);
 					this.ops.add(op);
 					final int targetVmpc = vmpc + instr.getTargetAddressOffset();
@@ -1376,6 +1380,7 @@ public class ReadCodeItem {
 				final Instruction21c instr = (Instruction21c) instruction;
 
 				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				assert t != null;
 
 				this.ops.add(new NEW(this.ops.size(), opcode, line, t));
 
@@ -1390,6 +1395,7 @@ public class ReadCodeItem {
 				final Instruction22c instr = (Instruction22c) instruction;
 
 				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				assert t != null;
 				// contains dimensions via [
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
@@ -1424,6 +1430,7 @@ public class ReadCodeItem {
 				final Instruction35c instr = (Instruction35c) instruction;
 
 				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				assert t != null;
 				// contains dimensions via [
 
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, instr.getRegCount()));
@@ -1461,6 +1468,7 @@ public class ReadCodeItem {
 				final Instruction3rc instr = (Instruction3rc) instruction;
 
 				t = getDu().getDescT(((TypeIdItem) instr.getReferencedItem()).getTypeDescriptor());
+				assert t != null;
 				// contains dimensions via [
 
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, instr.getRegCount()));
@@ -1691,6 +1699,8 @@ public class ReadCodeItem {
 					iValue = instr.getRegisterA();
 				}
 				{
+					assert t != null;
+
 					this.ops.add(new PUSH(this.ops.size(), opcode, line, t, oValue));
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, iValue));

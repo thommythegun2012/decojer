@@ -78,7 +78,7 @@ public interface Element extends Container {
 	 * @param declarationOwner
 	 *            declaration owner
 	 */
-	void setDeclarationOwner(@Nullable final Container declarationOwner);
+	void setDeclarationOwner(@Nonnull final Container declarationOwner);
 
 	/**
 	 * Is static?

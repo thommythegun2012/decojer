@@ -85,7 +85,7 @@ public class ClassF extends F {
 	public ClassF(@Nonnull final T t, @Nonnull final String name, @Nonnull final String descriptor) {
 		this.t = t;
 		this.name = name;
-		this.valueT = t.getDu().getDescT(descriptor);
+		this.valueT = getDu().getDescT(descriptor);
 	}
 
 	@Override
@@ -128,6 +128,7 @@ public class ClassF extends F {
 		return getFd().getDeclarationForNode(node);
 	}
 
+	@Nullable
 	@Override
 	public Container getDeclarationOwner() {
 		return getFd().getDeclarationOwner();
@@ -179,7 +180,7 @@ public class ClassF extends F {
 	}
 
 	@Override
-	public void setDeclarationOwner(final Container declarationOwner) {
+	public void setDeclarationOwner(@Nonnull final Container declarationOwner) {
 		final Container previousDeclarationOwner = getFd().getDeclarationOwner();
 		if (previousDeclarationOwner != null) {
 			previousDeclarationOwner.getDeclarations().remove(this);
@@ -202,7 +203,7 @@ public class ClassF extends F {
 
 	@Override
 	public void setSignature(@Nullable final String signature) {
-		final T valueT = getT().getDu().parseT(signature, new Cursor(), this);
+		final T valueT = getDu().parseT(signature, new Cursor(), this);
 		if (valueT == null) {
 			return;
 		}

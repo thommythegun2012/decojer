@@ -26,6 +26,7 @@ package org.decojer.cavaj.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.Getter;
@@ -74,7 +75,7 @@ public abstract class CD {
 	 * @return declaration
 	 */
 	@Nullable
-	public Element getDeclarationForNode(final ASTNode node) {
+	public Element getDeclarationForNode(@Nonnull final ASTNode node) {
 		for (final Element bd : getDeclarations()) {
 			// could also work with polymorphism here...but why pollute subclasses with helper
 			if (bd instanceof F) {

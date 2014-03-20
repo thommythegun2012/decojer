@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,14 +25,14 @@ package org.decojer.cavaj.model.code.ops;
 
 /**
  * Operation 'DUP'.
- * 
+ *
  * @author André Pankraz
  */
 public class DUP extends Op {
 
 	/**
 	 * Dup kind.
-	 * 
+	 *
 	 * @author André Pankraz
 	 */
 	public enum Kind {
@@ -95,7 +95,7 @@ public class DUP extends Op {
 
 		/**
 		 * Get input stack size.
-		 * 
+		 *
 		 * @return input stack size
 		 */
 		public int getInStackSize() {
@@ -108,7 +108,7 @@ public class DUP extends Op {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 * @param opcode
@@ -130,7 +130,7 @@ public class DUP extends Op {
 
 	/**
 	 * Get dup type.
-	 * 
+	 *
 	 * @return dup type
 	 */
 	public Kind getKind() {
@@ -144,7 +144,9 @@ public class DUP extends Op {
 
 	@Override
 	public String toString() {
-		return this.kind.toString();
+		final String ret = this.kind.toString();
+		assert ret != null;
+		return ret;
 	}
 
 }
