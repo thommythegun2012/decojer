@@ -185,6 +185,7 @@ public final class DU {
 	 *            qualifier type
 	 * @return qualified type
 	 */
+	@Nonnull
 	public static T getQualifiedT(final T qualifierT, final T t) {
 		if (!t.getName().startsWith(qualifierT.getName() + "$")) {
 			log.warn("Cannot get qualified type for '" + t + "' with qualifier '" + qualifierT
