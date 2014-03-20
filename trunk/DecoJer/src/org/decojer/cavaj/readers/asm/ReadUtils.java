@@ -55,7 +55,8 @@ public class ReadUtils {
 	 * @return annotated method
 	 */
 	@Nonnull
-	public static M annotateM(final M m, final A a, final TypePath typePath) {
+	public static M annotateM(@Nonnull final M m, @Nonnull final A a,
+			@Nullable final TypePath typePath) {
 		final T annotatedT = annotateT(m.getT(), a, typePath);
 		if (m.getT() == annotatedT) {
 			return m;
@@ -155,13 +156,13 @@ public class ReadUtils {
 	 *            type path
 	 * @return annotated type
 	 */
-	@Nullable
+	@Nonnull
 	public static T annotateT(@Nonnull final T t, @Nonnull final A a,
 			@Nullable final TypePath typePath) {
 		return annotateT(t, a, typePath, 0);
 	}
 
-	@Nullable
+	@Nonnull
 	private static T annotateT(@Nonnull final T t, @Nonnull final A a,
 			@Nullable final TypePath typePath, final int index) {
 		int innerCounter = 0;

@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -175,8 +176,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		}
 	}
 
-	private boolean applyOperationAnnotation(final A a, final int typeRef, final TypePath typePath,
-			final boolean logError) {
+	private boolean applyOperationAnnotation(@Nonnull final A a, final int typeRef,
+			@Nullable final TypePath typePath, final boolean logError) {
 		final Op op = this.ops.get(this.ops.size() - 1);
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
@@ -186,7 +187,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				return true;
 			}
 			if (logError) {
-				log.warn(getMd() + ": Wrong operation '" + op
+				log.warn(getM() + ": Wrong operation '" + op
 						+ "' for type annotation ref sort 'CAST' : " + typeRef + " : " + typePath
 						+ " : " + a);
 			}
@@ -195,13 +196,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case TypeReference.CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT:
 		case TypeReference.METHOD_INVOCATION_TYPE_ARGUMENT: {
 			if (op instanceof INVOKE) {
-				log.warn(getMd()
+				log.warn(getM()
 						+ ": Missing bytecode info, cannot really apply type annotation ref sort 'CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT' or 'METHOD_INVOCATION_TYPE_ARGUMENT' : "
 						+ typeRef + " : " + typePath + " : " + a);
 				return true;
 			}
 			if (logError) {
-				log.warn(getMd()
+				log.warn(getM()
 						+ ": Wrong operation '"
 						+ op
 						+ "' for type annotation ref sort 'CONSTRUCTOR_INVOCATION_TYPE_ARGUMENT' or 'METHOD_INVOCATION_TYPE_ARGUMENT' : "
@@ -219,7 +220,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 				}
 			}
 			if (logError) {
-				log.warn(getMd()
+				log.warn(getM()
 						+ ": Wrong operation '"
 						+ op
 						+ "' for type annotation ref sort 'CONSTRUCTOR_REFERENCE' or 'METHOD_REFERENCE' : "
@@ -232,14 +233,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 			if (op instanceof INVOKE) {
 				final Object[] bsArgs = ((INVOKE) op).getBsArgs();
 				if (bsArgs != null && bsArgs.length > 1 && bsArgs[1] instanceof M) {
-					log.warn(getMd()
+					log.warn(getM()
 							+ ": Missing bytecode info, cannot really apply type annotation ref sort 'CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT' or 'METHOD_REFERENCE_TYPE_ARGUMENT' : "
 							+ typeRef + " : " + typePath + " : " + a);
 					return true;
 				}
 			}
 			if (logError) {
-				log.warn(getMd()
+				log.warn(getM()
 						+ ": Wrong operation '"
 						+ op
 						+ "' for type annotation ref sort 'CONSTRUCTOR_REFERENCE_TYPE_ARGUMENT' or 'METHOD_REFERENCE_TYPE_ARGUMENT' : "
@@ -253,14 +254,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 				return true;
 			}
 			if (logError) {
-				log.warn(getMd() + ": Wrong operation '" + op
+				log.warn(getM() + ": Wrong operation '" + op
 						+ "' for type annotation ref sort 'NEW' : " + typeRef + " : " + typePath
 						+ " : " + a);
 			}
 			return false;
 		}
 		default:
-			log.warn(getMd() + ": Unknown type annotation ref sort '0x"
+			log.warn(getM() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + a);
 		}
@@ -272,7 +273,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	 *
 	 * @return method declaration
 	 */
-	public M getMd() {
+	public M getM() {
 		return this.m;
 	}
 
@@ -348,7 +349,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
-		log.warn(getMd() + ": Unknown method attribute tag '" + attr.type + "' for field info '"
+		log.warn(getM() + ": Unknown method attribute tag '" + attr.type + "' for field info '"
 				+ this.m.getT() + "'!");
 	}
 
@@ -422,14 +423,14 @@ public class ReadMethodVisitor extends MethodVisitor {
 			return;
 		}
 		default:
-			log.warn(getMd() + ": Unknown field insn opcode '" + opcode + "'!");
+			log.warn(getM() + ": Unknown field insn opcode '" + opcode + "'!");
 		}
 	}
 
 	@Override
 	public void visitFrame(final int type, final int nLocal, final Object[] local,
 			final int nStack, final Object[] stack) {
-		// log.info(getMd() + ": " + type + " : " + nLocal
+		// log.info(getM() + ": " + type + " : " + nLocal
 		// + " : " + local + " : " + nStack + " : " + stack);
 	}
 
@@ -451,9 +452,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.NOP:
 			// nothing to do, ignore
 			break;
-			/*******
-			 * ADD *
-			 *******/
+		/*******
+		 * ADD *
+		 *******/
 		case Opcodes.DADD:
 			t = T.DOUBLE;
 			// fall through
@@ -473,9 +474,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new ADD(this.ops.size(), opcode, this.line, t));
 			break;
-			/*********
-			 * ALOAD *
-			 *********/
+		/*********
+		 * ALOAD *
+		 *********/
 		case Opcodes.AALOAD:
 			t = T.REF;
 			// fall through
@@ -515,9 +516,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new ALOAD(this.ops.size(), opcode, this.line, t));
 			break;
-			/*******
-			 * AND *
-			 *******/
+		/*******
+		 * AND *
+		 *******/
 		case Opcodes.IAND:
 			t = T.AINT;
 			// fall through
@@ -527,15 +528,15 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new AND(this.ops.size(), opcode, this.line, t));
 			break;
-			/***************
-			 * ARRAYLENGTH *
-			 ***************/
+		/***************
+		 * ARRAYLENGTH *
+		 ***************/
 		case Opcodes.ARRAYLENGTH:
 			add(new ARRAYLENGTH(this.ops.size(), opcode, this.line));
 			break;
-			/**********
-			 * ASTORE *
-			 **********/
+		/**********
+		 * ASTORE *
+		 **********/
 		case Opcodes.AASTORE:
 			t = T.REF;
 			// fall through
@@ -575,9 +576,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new ASTORE(this.ops.size(), opcode, this.line, t));
 			break;
-			/********
-			 * CAST *
-			 ********/
+		/********
+		 * CAST *
+		 ********/
 		case Opcodes.D2F:
 			t = T.DOUBLE;
 			oValue = T.FLOAT;
@@ -668,9 +669,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			assert oValue instanceof T;
 			add(new CAST(this.ops.size(), opcode, this.line, t, (T) oValue));
 			break;
-			/*******
-			 * CMP *
-			 *******/
+		/*******
+		 * CMP *
+		 *******/
 		case Opcodes.DCMPG:
 			t = T.DOUBLE;
 			iValue = CMP.T_G;
@@ -700,9 +701,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new CMP(this.ops.size(), opcode, this.line, t, iValue));
 			break;
-			/*******
-			 * DIV *
-			 *******/
+		/*******
+		 * DIV *
+		 *******/
 		case Opcodes.DDIV:
 			t = T.DOUBLE;
 			// fall through
@@ -722,9 +723,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new DIV(this.ops.size(), opcode, this.line, t));
 			break;
-			/*******
-			 * DUP *
-			 *******/
+		/*******
+		 * DUP *
+		 *******/
 		case Opcodes.DUP:
 			oValue = DUP.Kind.DUP;
 			// fall through
@@ -754,9 +755,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new DUP(this.ops.size(), opcode, this.line, (DUP.Kind) oValue));
 			break;
-			/***********
-			 * MONITOR *
-			 ***********/
+		/***********
+		 * MONITOR *
+		 ***********/
 		case Opcodes.MONITORENTER:
 			oValue = MONITOR.Kind.ENTER;
 			// fall through
@@ -766,9 +767,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new MONITOR(this.ops.size(), opcode, this.line, (MONITOR.Kind) oValue));
 			break;
-			/*******
-			 * MUL *
-			 *******/
+		/*******
+		 * MUL *
+		 *******/
 		case Opcodes.DMUL:
 			t = T.DOUBLE;
 			// fall through
@@ -788,9 +789,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new MUL(this.ops.size(), opcode, this.line, t));
 			break;
-			/*******
-			 * NEG *
-			 *******/
+		/*******
+		 * NEG *
+		 *******/
 		case Opcodes.DNEG:
 			t = T.DOUBLE;
 			// fall through
@@ -810,9 +811,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new NEG(this.ops.size(), opcode, this.line, t));
 			break;
-			/******
-			 * OR *
-			 ******/
+		/******
+		 * OR *
+		 ******/
 		case Opcodes.IOR:
 			t = T.AINT;
 			// fall through
@@ -822,9 +823,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new OR(this.ops.size(), opcode, this.line, t));
 			break;
-			/*******
-			 * POP *
-			 *******/
+		/*******
+		 * POP *
+		 *******/
 		case Opcodes.POP:
 			oValue = POP.Kind.POP;
 			// fall through
@@ -834,9 +835,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new POP(this.ops.size(), opcode, this.line, (POP.Kind) oValue));
 			break;
-			/********
-			 * PUSH *
-			 ********/
+		/********
+		 * PUSH *
+		 ********/
 		case Opcodes.ACONST_NULL:
 			t = T.REF;
 			// fall through
@@ -925,9 +926,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new PUSH(this.ops.size(), opcode, this.line, t, oValue));
 			break;
-			/*******
-			 * REM *
-			 *******/
+		/*******
+		 * REM *
+		 *******/
 		case Opcodes.DREM:
 			t = T.DOUBLE;
 			// fall through
@@ -947,9 +948,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new REM(this.ops.size(), opcode, this.line, t));
 			break;
-			/**********
-			 * RETURN *
-			 **********/
+		/**********
+		 * RETURN *
+		 **********/
 		case Opcodes.ARETURN:
 			t = T.REF;
 			// fall through
@@ -979,9 +980,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new RETURN(this.ops.size(), opcode, this.line, t));
 			break;
-			/*******
-			 * SHL *
-			 *******/
+		/*******
+		 * SHL *
+		 *******/
 		case Opcodes.ISHL:
 			t = T.INT;
 			// fall through
@@ -991,9 +992,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new SHL(this.ops.size(), opcode, this.line, t, T.INT));
 			break;
-			/*******
-			 * SHR *
-			 *******/
+		/*******
+		 * SHR *
+		 *******/
 		case Opcodes.ISHR:
 		case Opcodes.IUSHR:
 			t = T.INT;
@@ -1006,9 +1007,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			add(new SHR(this.ops.size(), opcode, this.line, t, T.INT, opcode == Opcodes.IUSHR
 					|| opcode == Opcodes.LUSHR));
 			break;
-			/*******
-			 * SUB *
-			 *******/
+		/*******
+		 * SUB *
+		 *******/
 		case Opcodes.DSUB:
 			t = T.DOUBLE;
 			// fall through
@@ -1028,21 +1029,21 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new SUB(this.ops.size(), opcode, this.line, t));
 			break;
-			/********
-			 * SWAP *
-			 ********/
+		/********
+		 * SWAP *
+		 ********/
 		case Opcodes.SWAP:
 			add(new SWAP(this.ops.size(), opcode, this.line));
 			break;
-			/*********
-			 * THROW *
-			 *********/
+		/*********
+		 * THROW *
+		 *********/
 		case Opcodes.ATHROW:
 			add(new THROW(this.ops.size(), opcode, this.line));
 			break;
-			/*******
-			 * XOR *
-			 *******/
+		/*******
+		 * XOR *
+		 *******/
 		case Opcodes.IXOR:
 			t = T.AINT;
 			// fall through
@@ -1054,15 +1055,19 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			log.warn(getMd() + ": Unknown insn opcode '" + opcode + "'!");
+			log.warn(getM() + ": Unknown insn opcode '" + opcode + "'!");
 		}
 	}
 
 	@Override
-	public AnnotationVisitor visitInsnAnnotation(final int typeRef, final TypePath typePath,
-			final String desc, final boolean visible) {
+	public AnnotationVisitor visitInsnAnnotation(final int typeRef,
+			@Nullable final TypePath typePath, final String desc, final boolean visible) {
 		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
+		if (a == null) {
+			log.warn(getM() + ": Cannot read annotation for descriptor '" + desc + "'!");
+			return null;
+		}
 		if (!applyOperationAnnotation(a, typeRef, typePath, false)) {
 			// JDK 8.0 has +1 index to Eclipse! who is wrong? JDK or Eclipse? we try both...
 			this.insnAnnotationInfo = new InsnAnnotationInfo(a, typeRef, typePath);
@@ -1080,9 +1085,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.SIPUSH:
 			add(new PUSH(this.ops.size(), opcode, this.line, T.getJvmIntT(operand), operand));
 			break;
-			/************
-			 * NEWARRAY *
-			 ************/
+		/************
+		 * NEWARRAY *
+		 ************/
 		case Opcodes.NEWARRAY: {
 			final T t = T.TYPES[operand];
 			assert t != null;
@@ -1090,7 +1095,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			log.warn(getMd() + ": Unknown int insn opcode '" + opcode + "'!");
+			log.warn(getM() + ": Unknown int insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1194,9 +1199,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 				}
 			}
 			break;
-			/********
-			 * JCND *
-			 ********/
+		/********
+		 * JCND *
+		 ********/
 		case Opcodes.IFNULL:
 			t = T.REF;
 			oValue = CmpType.T_EQ;
@@ -1252,9 +1257,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 				}
 			}
 			break;
-			/*******
-			 * JSR *
-			 *******/
+		/*******
+		 * JSR *
+		 *******/
 		case Opcodes.JSR: {
 			final JSR op = new JSR(this.ops.size(), opcode, this.line);
 			add(op);
@@ -1265,7 +1270,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			log.warn(getMd() + ": Unknown jump insn opcode '" + opcode + "'!");
+			log.warn(getM() + ": Unknown jump insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1278,7 +1283,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		}
 		if (pc > 0) {
 			// visited before but is known?!
-			log.warn(getMd() + ": Label '" + label + "' is not unique, has old PC '"
+			log.warn(getM() + ": Label '" + label + "' is not unique, has old PC '"
 					+ this.ops.size() + "'!");
 			return;
 		}
@@ -1362,7 +1367,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			} else if (cst instanceof String) {
 				t = this.du.getT(String.class);
 			} else {
-				log.warn(getMd() + ": Unknown ldc insn cst '" + cst + "'!");
+				log.warn(getM() + ": Unknown ldc insn cst '" + cst + "'!");
 				t = T.ANY;
 			}
 		}
@@ -1373,7 +1378,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public void visitLineNumber(final int line, final Label start) {
 		final int pc = getPc(start);
 		if (pc < 0) {
-			log.warn(getMd() + ": Line number '" + line + "' start label '" + start
+			log.warn(getM() + ": Line number '" + line + "' start label '" + start
 					+ "' unknown yet?");
 		}
 		this.line = line;
@@ -1393,7 +1398,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final T sigT = this.du.parseT(signature, new Cursor(), this.m);
 			if (sigT != null) {
 				if (!sigT.eraseTo(vT)) {
-					log.info(getMd() + ": Cannot reduce signature '" + signature + "' to type '"
+					log.info(getM() + ": Cannot reduce signature '" + signature + "' to type '"
 							+ vT + "' for method (local variable '" + name + "') " + this.m);
 				} else {
 					vT = sigT;
@@ -1440,6 +1445,10 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 */
 		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
+		if (a == null) {
+			log.warn(getM() + ": Cannot read annotation for descriptor '" + desc + "'!");
+			return null;
+		}
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.LOCAL_VARIABLE:
@@ -1458,7 +1467,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			break;
 		default:
-			log.warn(getMd() + ": Unknown type annotation ref sort '0x"
+			log.warn(getM() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}
@@ -1500,7 +1509,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@SuppressWarnings("deprecation")
 	public void visitMethodInsn(final int opcode, final String owner, final String name,
 			final String desc) {
-		log.warn(getMd() + ": Shouldn't be called with ASM5!");
+		log.warn(getM() + ": Shouldn't be called with ASM5!");
 		super.visitMethodInsn(opcode, owner, name, desc);
 	}
 
@@ -1529,7 +1538,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			log.warn(getMd() + ": Unknown method insn opcode '" + opcode + "'!");
+			log.warn(getM() + ": Unknown method insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1547,7 +1556,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitParameter(final String name, final int access) {
-		log.warn(getMd() + ": " + name + " : " + access);
+		log.warn(getM() + ": " + name + " : " + access);
 		super.visitParameter(name, access);
 	}
 
@@ -1611,6 +1620,10 @@ public class ReadMethodVisitor extends MethodVisitor {
 			final String desc, final boolean visible) {
 		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
+		if (a == null) {
+			log.warn(getM() + ": Cannot read annotation for descriptor '" + desc + "'!");
+			return null;
+		}
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.EXCEPTION_PARAMETER: {
@@ -1620,7 +1633,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			break;
 		}
 		default:
-			log.warn(getMd() + ": Unknown type annotation ref sort '0x"
+			log.warn(getM() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}
@@ -1653,15 +1666,19 @@ public class ReadMethodVisitor extends MethodVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
-			final String desc, final boolean visible) {
+	public AnnotationVisitor visitTypeAnnotation(final int typeRef,
+			@Nullable final TypePath typePath, final String desc, final boolean visible) {
 		final A a = this.annotationVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
+		if (a == null) {
+			log.warn(getM() + ": Cannot read annotation for descriptor '" + desc + "'!");
+			return null;
+		}
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.METHOD_FORMAL_PARAMETER: {
 			final int formalParameterIndex = typeReference.getFormalParameterIndex();
-			final T[] paramTs = getMd().getParamTs();
+			final T[] paramTs = getM().getParamTs();
 			paramTs[formalParameterIndex] = annotateT(paramTs[formalParameterIndex], a, typePath);
 			break;
 		}
@@ -1669,24 +1686,24 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// for type annotations like: void test(@Annots This this, ...) for none-static methods
 			// TODO receiver needs full signature, test-method DU#getQualifiedT(T) does't work,
 			// because we would have to read outer classes first
-			final T receiverT = getMd().getReceiverT();
-			getMd().setReceiverT(
-					annotateT(receiverT != null ? receiverT : getMd().getT(), a, typePath));
+			final T receiverT = getM().getReceiverT();
+			getM().setReceiverT(
+					annotateT(receiverT != null ? receiverT : getM().getT(), a, typePath));
 			break;
 		}
 		case TypeReference.METHOD_RETURN:
-			getMd().setReturnT(annotateT(getMd().getReturnT(), a, typePath));
+			getM().setReturnT(annotateT(getM().getReturnT(), a, typePath));
 			break;
 		case TypeReference.METHOD_TYPE_PARAMETER: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
-			final T[] typeParams = getMd().getTypeParams();
+			final T[] typeParams = getM().getTypeParams();
 			typeParams[typeParameterIndex] = annotateT(typeParams[typeParameterIndex], a, typePath);
 			break;
 		}
 		case TypeReference.METHOD_TYPE_PARAMETER_BOUND: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
 			final int typeParameterBoundIndex = typeReference.getTypeParameterBoundIndex();
-			final T t = getMd().getTypeParams()[typeParameterIndex];
+			final T t = getM().getTypeParams()[typeParameterIndex];
 			if (typeParameterBoundIndex == 0) {
 				// 0: annotation targets extends type
 				t.setSuperT(annotateT(t.getSuperT(), a, typePath));
@@ -1700,12 +1717,12 @@ public class ReadMethodVisitor extends MethodVisitor {
 		}
 		case TypeReference.THROWS: {
 			final int exceptionIndex = typeReference.getExceptionIndex();
-			final T[] throwsTs = getMd().getThrowsTs();
+			final T[] throwsTs = getM().getThrowsTs();
 			throwsTs[exceptionIndex] = annotateT(throwsTs[exceptionIndex], a, typePath);
 			break;
 		}
 		default:
-			log.warn(getMd() + ": Unknown type annotation ref sort '0x"
+			log.warn(getM() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}
@@ -1723,26 +1740,26 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.CHECKCAST:
 			add(new CAST(this.ops.size(), opcode, this.line, T.REF, t));
 			break;
-			/**************
-			 * INSTANCEOF *
-			 **************/
+		/**************
+		 * INSTANCEOF *
+		 **************/
 		case Opcodes.INSTANCEOF:
 			add(new INSTANCEOF(this.ops.size(), opcode, this.line, t));
 			break;
-			/*******
-			 * NEW *
-			 *******/
+		/*******
+		 * NEW *
+		 *******/
 		case Opcodes.NEW:
 			add(new NEW(this.ops.size(), opcode, this.line, t));
 			break;
-			/************
-			 * NEWARRAY *
-			 ************/
+		/************
+		 * NEWARRAY *
+		 ************/
 		case Opcodes.ANEWARRAY:
 			add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du.getArrayT(t), 1));
 			break;
 		default:
-			log.warn(getMd() + ": Unknown var insn opcode '" + opcode + "'!");
+			log.warn(getM() + ": Unknown var insn opcode '" + opcode + "'!");
 		}
 	}
 
@@ -1778,9 +1795,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new LOAD(this.ops.size(), opcode, this.line, t, var));
 			break;
-			/*********
-			 * STORE *
-			 *********/
+		/*********
+		 * STORE *
+		 *********/
 		case Opcodes.ASTORE:
 			t = T.AREF; // RET allowed too
 			// fall through
@@ -1805,15 +1822,15 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new STORE(this.ops.size(), opcode, this.line, t, var));
 			break;
-			/*******
-			 * RET *
-			 *******/
+		/*******
+		 * RET *
+		 *******/
 		case Opcodes.RET: {
 			add(new RET(this.ops.size(), opcode, this.line, var));
 			break;
 		}
 		default:
-			log.warn(getMd() + ": Unknown var insn opcode '" + opcode + "'!");
+			log.warn(getM() + ": Unknown var insn opcode '" + opcode + "'!");
 		}
 	}
 

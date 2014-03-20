@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -26,6 +26,8 @@ package org.decojer.cavaj.readers.asm;
 import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
+
+import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +43,7 @@ import org.objectweb.asm.TypeReference;
 
 /**
  * ASM read field visitor.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -55,7 +57,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
@@ -66,16 +68,16 @@ public class ReadFieldVisitor extends FieldVisitor {
 
 	/**
 	 * Get field declaration.
-	 * 
+	 *
 	 * @return field declaration
 	 */
-	public F getFd() {
+	public F getF() {
 		return this.f;
 	}
 
 	/**
 	 * Init and set field.
-	 * 
+	 *
 	 * @param f
 	 *            field
 	 */
@@ -100,7 +102,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 
 	@Override
 	public void visitAttribute(final Attribute attr) {
-		log.warn(getFd() + ": Unknown field attribute tag '" + attr.type + "' for field info '"
+		log.warn(getF() + ": Unknown field attribute tag '" + attr.type + "' for field info '"
 				+ this.f.getT() + "'!");
 	}
 
@@ -112,17 +114,21 @@ public class ReadFieldVisitor extends FieldVisitor {
 	}
 
 	@Override
-	public AnnotationVisitor visitTypeAnnotation(final int typeRef, final TypePath typePath,
-			final String desc, final boolean visible) {
+	public AnnotationVisitor visitTypeAnnotation(final int typeRef,
+			@Nullable final TypePath typePath, final String desc, final boolean visible) {
 		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
+		if (a == null) {
+			log.warn(getF() + ": Cannot read annotation for descriptor '" + desc + "'!");
+			return null;
+		}
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.FIELD:
-			getFd().setValueT(annotateT(getFd().getValueT(), a, typePath));
+			getF().setValueT(annotateT(getF().getValueT(), a, typePath));
 			break;
 		default:
-			log.warn(getFd() + ": Unknown type annotation ref sort '0x"
+			log.warn(getF() + ": Unknown type annotation ref sort '0x"
 					+ Integer.toHexString(typeReference.getSort()) + "' : " + typeRef + " : "
 					+ typePath + " : " + desc + " : " + visible);
 		}
