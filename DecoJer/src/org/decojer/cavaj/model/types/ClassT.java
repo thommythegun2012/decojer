@@ -100,11 +100,13 @@ public class ClassT extends T {
 	/**
 	 * Interface types.
 	 */
+	@Nullable
 	private T[] interfaceTs;
 
 	/**
 	 * Super type.
 	 */
+	@Nullable
 	private T superT;
 
 	@Getter(AccessLevel.PRIVATE)
@@ -191,7 +193,7 @@ public class ClassT extends T {
 			return null;
 		}
 		assert this.enclosing instanceof T || this.enclosing instanceof M : this
-				+ ": enclosing must be T or M";
+		+ ": enclosing must be T or M";
 
 		return this.enclosing;
 	}
@@ -553,7 +555,7 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public void setSignature(final String signature) {
+	public void setSignature(@Nullable final String signature) {
 		if (signature == null) {
 			return;
 		}

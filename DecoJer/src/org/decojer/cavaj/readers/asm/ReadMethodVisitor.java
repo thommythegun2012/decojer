@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.Nonnull;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -297,6 +299,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		return unresolved;
 	}
 
+	@Nonnull
 	private M handle2m(final Handle handle) {
 		final T ownerT = this.du.getT(handle.getOwner());
 		if (handle.getTag() == Opcodes.H_INVOKEINTERFACE) {

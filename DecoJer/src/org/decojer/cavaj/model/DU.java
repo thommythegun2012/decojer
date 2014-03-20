@@ -407,6 +407,7 @@ public final class DU {
 	 *            descriptor
 	 * @return method
 	 */
+	@Nonnull
 	public M getDynamicM(final String name, final String descriptor) {
 		return new ClassM(this, name, descriptor);
 	}
@@ -416,6 +417,7 @@ public final class DU {
 	 *
 	 * @return object type
 	 */
+	@Nonnull
 	public ClassT getObjectT() {
 		return (ClassT) getT(Object.class);
 	}

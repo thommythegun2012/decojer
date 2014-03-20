@@ -362,7 +362,7 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void setSignature(final String signature) {
+	public void setSignature(@Nullable final String signature) {
 		if (signature == null) {
 			return;
 		}
