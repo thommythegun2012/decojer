@@ -92,7 +92,7 @@ public final class DU {
 	 * @return annotated type
 	 */
 	@Nonnull
-	public static AnnotatedT getAnnotatedT(final T t, final A a) {
+	public static AnnotatedT getAnnotatedT(@Nonnull final T t, @Nonnull final A a) {
 		if (!t.isAnnotated()) {
 			return new AnnotatedT(t, new A[] { a });
 		}
@@ -153,7 +153,8 @@ public final class DU {
 	 *            type
 	 * @return qualified type
 	 */
-	public static T getQualifiedT(final T t) {
+	@Nonnull
+	public static T getQualifiedT(@Nonnull final T t) {
 		if (t.isQualified()) {
 			return t;
 		}
@@ -173,6 +174,7 @@ public final class DU {
 			}
 			qualifiedT = getQualifiedT(qualifiedT, currentT);
 		}
+		assert qualifiedT != null;
 		return qualifiedT;
 	}
 
@@ -191,7 +193,7 @@ public final class DU {
 	 * @return qualified type
 	 */
 	@Nonnull
-	public static T getQualifiedT(final T qualifierT, final T t) {
+	public static T getQualifiedT(@Nonnull final T qualifierT, @Nonnull final T t) {
 		if (!t.getName().startsWith(qualifierT.getName() + "$")) {
 			log.warn("Cannot get qualified type for '" + t + "' with qualifier '" + qualifierT
 					+ "'!");

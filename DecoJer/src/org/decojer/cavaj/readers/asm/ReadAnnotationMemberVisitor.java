@@ -67,9 +67,15 @@ public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 	 *            retention policy
 	 * @return annotation
 	 */
+	@Nullable
 	public A init(@Nullable final String desc, final RetentionPolicy retentionPolicy) {
 		final T t = this.du.getDescT(desc);
-		return this.a = t == null ? null : new A(t, retentionPolicy);
+		if (t == null) {
+			this.a = null;
+			return null;
+		}
+		this.a = new A(t, retentionPolicy);
+		return this.a;
 	}
 
 }

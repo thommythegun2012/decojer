@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,6 +24,8 @@
 package org.decojer.cavaj.readers.asm;
 
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
@@ -36,7 +38,7 @@ import com.google.common.collect.Lists;
 
 /**
  * ASM read annotation visitor.
- * 
+ *
  * @author André Pankraz
  */
 public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
@@ -45,7 +47,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
@@ -54,7 +56,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 		this.du = du;
 	}
 
-	protected abstract void add(final String name, final Object value);
+	protected abstract void add(final String name, @Nullable final Object value);
 
 	@Override
 	public void visit(final String name, final Object value) {
