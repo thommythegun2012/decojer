@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code.ops;
+
+import javax.annotation.Nullable;
 
 import lombok.Getter;
 
@@ -29,11 +31,11 @@ import org.decojer.cavaj.model.code.Frame;
 
 /**
  * Operation.
- * 
+ *
  * The operation code is the VM Code (Class / Dalvik, so far it's possible with reader abstraction).
  * Line numbers are only available if debug info given. The PC is the operation index, not the VM PC
  * (that is not available with Label-based readers). But the original PC / read order is preserved!
- * 
+ *
  * @author André Pankraz
  */
 @Getter
@@ -47,7 +49,7 @@ public abstract class Op {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 * @param opcode
@@ -66,20 +68,20 @@ public abstract class Op {
 	}
 
 	@Override
-	public boolean equals(final Object obj) {
+	public boolean equals(@Nullable final Object obj) {
 		return obj instanceof Op && this.pc == ((Op) obj).pc;
 	}
 
 	/**
 	 * Get input stack size.
-	 * 
+	 *
 	 * @return input stack size
 	 */
 	public abstract int getInStackSize();
 
 	/**
 	 * Get input stack size where wide registers are count as one.
-	 * 
+	 *
 	 * @param frame
 	 *            operation frame
 	 * @return input stack size
@@ -90,7 +92,7 @@ public abstract class Op {
 
 	/**
 	 * Get operation type.
-	 * 
+	 *
 	 * @return operation type
 	 */
 	public abstract Optype getOptype();
@@ -102,7 +104,7 @@ public abstract class Op {
 
 	/**
 	 * Is line information available?
-	 * 
+	 *
 	 * @return {@code true} - line information is available
 	 */
 	public boolean isLineInfo() {

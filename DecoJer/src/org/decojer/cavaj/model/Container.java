@@ -66,7 +66,7 @@ public interface Container {
 	 * @return declaration
 	 */
 	@Nullable
-	Element getDeclarationForNode(final ASTNode node);
+	Element getDeclarationForNode(@Nonnull final ASTNode node);
 
 	/**
 	 * Get name.

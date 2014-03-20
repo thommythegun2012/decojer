@@ -50,6 +50,7 @@ public class INVOKE extends Op {
 	@Getter
 	private final M m;
 
+	@Nullable
 	private final Object extra[];
 
 	/**
@@ -114,11 +115,12 @@ public class INVOKE extends Op {
 	 */
 	@Nullable
 	public Object[] getBsArgs() {
-		if (this.extra == null || isDirect()) {
+		final Object[] extra = this.extra;
+		if (extra == null || isDirect()) {
 			return null;
 		}
-		final Object[] ret = new Object[this.extra.length - 1];
-		System.arraycopy(this.extra, 1, ret, 0, ret.length);
+		final Object[] ret = new Object[extra.length - 1];
+		System.arraycopy(extra, 1, ret, 0, ret.length);
 		return ret;
 	}
 
@@ -129,10 +131,11 @@ public class INVOKE extends Op {
 	 */
 	@Nullable
 	public M getBsM() {
-		if (this.extra == null || isDirect()) {
+		final Object[] extra = this.extra;
+		if (extra == null || isDirect()) {
 			return null;
 		}
-		return (M) this.extra[0];
+		return (M) extra[0];
 	}
 
 	@Override

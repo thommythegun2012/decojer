@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -116,7 +116,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Smali read code item.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -157,7 +157,7 @@ public class ReadCodeItem {
 
 	/**
 	 * Init and visit.
-	 * 
+	 *
 	 * @param m
 	 *            method
 	 * @param codeItem
@@ -995,6 +995,7 @@ public class ReadCodeItem {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
+					assert oValue instanceof CmpType;
 					final JCMP op = new JCMP(this.ops.size(), opcode, line, t, (CmpType) oValue);
 					this.ops.add(op);
 					final int targetVmpc = vmpc + instr.getTargetAddressOffset();

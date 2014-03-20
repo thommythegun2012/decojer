@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.fields;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.AF;
@@ -62,6 +63,7 @@ public abstract class F implements Element {
 	 *
 	 * @return owner type
 	 */
+	@Nonnull
 	public abstract T getT();
 
 	/**
@@ -69,6 +71,7 @@ public abstract class F implements Element {
 	 *
 	 * @return value type
 	 */
+	@Nonnull
 	public abstract T getValueT();
 
 	/**
@@ -116,7 +119,7 @@ public abstract class F implements Element {
 	 * @param valueT
 	 *            value type
 	 */
-	public abstract void setValueT(final T valueT);
+	public abstract void setValueT(@Nonnull final T valueT);
 
 	/**
 	 * Get value for constant attributes.

@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
@@ -39,7 +40,7 @@ public interface Element extends Container {
 	 *            access flag
 	 * @return {@code true} - is access flag
 	 */
-	boolean check(final AF af);
+	boolean check(@Nonnull final AF af);
 
 	/**
 	 * Get compilation unit.
@@ -53,6 +54,7 @@ public interface Element extends Container {
 	 *
 	 * @return annotations
 	 */
+	@Nullable
 	A[] getAs();
 
 	/**
@@ -67,6 +69,7 @@ public interface Element extends Container {
 	 *
 	 * @return declaration owner
 	 */
+	@Nullable
 	Container getDeclarationOwner();
 
 	/**
@@ -75,7 +78,7 @@ public interface Element extends Container {
 	 * @param declarationOwner
 	 *            declaration owner
 	 */
-	void setDeclarationOwner(final Container declarationOwner);
+	void setDeclarationOwner(@Nullable final Container declarationOwner);
 
 	/**
 	 * Is static?
