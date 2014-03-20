@@ -29,6 +29,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -425,6 +427,7 @@ public class SmaliReader implements DexReader {
 		}
 	}
 
+	@Nullable
 	private Object readValue(final EncodedValue encodedValue, final DU du) {
 		if (encodedValue instanceof AnnotationEncodedSubValue) {
 			// retention unknown for annotation constant

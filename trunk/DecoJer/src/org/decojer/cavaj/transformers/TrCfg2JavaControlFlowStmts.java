@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -32,6 +32,8 @@ import static org.decojer.cavaj.utils.Expressions.wrap;
 
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -68,11 +70,11 @@ import com.google.common.collect.Sets;
 
 /**
  * Transformer: Structured CFG to Java Control Flow Statements ASTs.
- * 
+ *
  * Ignore final empty return statements.
- * 
+ *
  * TODO At most here should be used newBlock(), the other stuff could be shifted to analysis?!
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -80,7 +82,7 @@ public final class TrCfg2JavaControlFlowStmts {
 
 	/**
 	 * Transform CFG.
-	 * 
+	 *
 	 * @param cfg
 	 *            CFG
 	 */
@@ -127,12 +129,14 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
+	@Nullable
 	private IfStatement transformCatch(final Catch catchStruct) {
 		log.warn(getMd() + ": TODO: " + catchStruct);
 		// final BB head = catchStruct.getHead();
 		return null;
 	}
 
+	@Nullable
 	@SuppressWarnings("null")
 	private IfStatement transformCond(final Cond cond) {
 		final BB head = cond.getHead();
@@ -196,6 +200,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
+	@Nullable
 	@SuppressWarnings("null")
 	private Statement transformLoop(final Loop loop) {
 		final BB head = loop.getHead();
@@ -271,7 +276,7 @@ public final class TrCfg2JavaControlFlowStmts {
 	/**
 	 * Transform current BB from current struct (and following BB sequence in same struct) into a
 	 * list of AST statements.
-	 * 
+	 *
 	 * @param struct
 	 *            current struct
 	 * @param firstBb
@@ -397,6 +402,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
+	@Nullable
 	private BB transformStruct(final Struct struct, final List<Statement> statements) {
 		if (!this.traversedStructs.add(struct)) {
 			log.warn(getMd() + ": Cannot transform struct twice:\n" + struct);
@@ -434,6 +440,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		return struct.getFollow();
 	}
 
+	@Nullable
 	@SuppressWarnings("null")
 	private Statement transformSwitch(final Switch switchStruct) {
 		switch (switchStruct.getKind()) {

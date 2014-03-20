@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.editor.eclipse.du;
+
+import javax.annotation.Nullable;
 
 import org.eclipse.core.resources.IStorage;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -30,13 +32,13 @@ import org.eclipse.ui.IStorageEditorInput;
 
 /**
  * Memory Storage Editor Input for Eclipse Editor Framework.
- * 
+ *
  * This wraps for instance a String Storage element which delivers an in-memory String Input Stream.
- * 
+ *
  * This way it isn't necassary to create a local temporary file containing the decompiled source
  * code. I don't know yet if this really works, there are problems with empty outline views from the
  * Compilation Unit Editor and with gotos.
- * 
+ *
  * @author André Pankraz
  */
 public class MemoryStorageEditorInput implements IStorageEditorInput {
@@ -45,7 +47,7 @@ public class MemoryStorageEditorInput implements IStorageEditorInput {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param storage
 	 *            String storage.
 	 */
@@ -58,11 +60,13 @@ public class MemoryStorageEditorInput implements IStorageEditorInput {
 		return true;
 	}
 
+	@Nullable
 	@Override
 	public Object getAdapter(final Class adapter) {
 		return null;
 	}
 
+	@Nullable
 	@Override
 	public ImageDescriptor getImageDescriptor() {
 		return null;
@@ -73,6 +77,7 @@ public class MemoryStorageEditorInput implements IStorageEditorInput {
 		return this.storage.getName();
 	}
 
+	@Nullable
 	@Override
 	public IPersistableElement getPersistable() {
 		return null;

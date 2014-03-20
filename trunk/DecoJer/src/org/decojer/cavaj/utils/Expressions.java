@@ -342,41 +342,41 @@ public final class Expressions {
 				final char c = value instanceof Character ? (Character) value
 						: value instanceof Number ? (char) ((Number) value).intValue()
 								: ((String) value).charAt(0);
-				switch (c) {
-				case Character.MAX_VALUE:
-					return ast.newQualifiedName(ast.newSimpleName("Character"),
-							ast.newSimpleName("MAX_VALUE"));
-				case Character.MIN_VALUE:
-					return ast.newQualifiedName(ast.newSimpleName("Character"),
-							ast.newSimpleName("MIN_VALUE"));
-				case Character.MAX_HIGH_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MAX_HIGH_SURROGATE"));
-					}
-					break;
-				case Character.MAX_LOW_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MAX_LOW_SURROGATE"));
-					}
-					break;
-				case Character.MIN_HIGH_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MIN_HIGH_SURROGATE"));
-					}
-					break;
-				case Character.MIN_LOW_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MIN_LOW_SURROGATE"));
-					}
-					break;
-				}
-				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-				characterLiteral.setCharValue(c);
-				return characterLiteral;
+						switch (c) {
+						case Character.MAX_VALUE:
+							return ast.newQualifiedName(ast.newSimpleName("Character"),
+									ast.newSimpleName("MAX_VALUE"));
+						case Character.MIN_VALUE:
+							return ast.newQualifiedName(ast.newSimpleName("Character"),
+									ast.newSimpleName("MIN_VALUE"));
+						case Character.MAX_HIGH_SURROGATE:
+							if (contextT.isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MAX_HIGH_SURROGATE"));
+							}
+							break;
+						case Character.MAX_LOW_SURROGATE:
+							if (contextT.isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MAX_LOW_SURROGATE"));
+							}
+							break;
+						case Character.MIN_HIGH_SURROGATE:
+							if (contextT.isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MIN_HIGH_SURROGATE"));
+							}
+							break;
+						case Character.MIN_LOW_SURROGATE:
+							if (contextT.isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MIN_LOW_SURROGATE"));
+							}
+							break;
+						}
+						final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+						characterLiteral.setCharValue(c);
+						return characterLiteral;
 			}
 			if (value == null) {
 				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
@@ -802,6 +802,7 @@ public final class Expressions {
 		}
 		if (t.isQualified()) {
 			final T qualifierT = t.getQualifierT();
+			assert qualifierT != null : "cannot be null for qualified";
 			// could be ParamT etc., not decompileable with name as target;
 			// restrict qualifications to really necessary enclosings:
 			// t = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
@@ -916,8 +917,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-						not(infixExpression.getLeftOperand()),
-						not(infixExpression.getRightOperand()), getOp(infixExpression));
+								not(infixExpression.getLeftOperand()),
+								not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible

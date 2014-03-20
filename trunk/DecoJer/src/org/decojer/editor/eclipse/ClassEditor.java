@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,6 +25,8 @@ package org.decojer.editor.eclipse;
 
 import java.util.List;
 import java.util.regex.Pattern;
+
+import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -97,12 +99,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		// example: sun/org/mozilla/javascript/internal/
 		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
 				.getResource().getLocation().toOSString() : eclipseClassFile.getPath().toOSString();
-		assert jarPath != null;
+				assert jarPath != null;
 
-		final String packageName = eclipseClassFile.getParent().getElementName();
-		final String typeName = eclipseClassFile.getElementName();
-		return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
-				+ typeName;
+				final String packageName = eclipseClassFile.getParent().getElementName();
+				final String typeName = eclipseClassFile.getElementName();
+				return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
+						+ typeName;
 	}
 
 	private static void parseClassT(final String s, final Cursor c, final StringBuilder sb) {
@@ -356,11 +358,12 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	/**
 	 * Find type declaration for Eclipse type.
-	 * 
+	 *
 	 * @param javaElement
 	 *            Eclipse Java element
 	 * @return declaration
 	 */
+	@Nullable
 	private Container findDeclarationForJavaElement(final IJavaElement javaElement) {
 		// type.getFullyQualifiedName() potentially follows a different naming strategy for inner
 		// classes than the internal model from the bytecode, hence we must iterate through the tree

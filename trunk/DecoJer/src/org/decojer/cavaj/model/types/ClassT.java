@@ -191,7 +191,7 @@ public class ClassT extends T {
 			return null;
 		}
 		assert this.enclosing instanceof T || this.enclosing instanceof M : this
-		+ ": enclosing must be T or M";
+				+ ": enclosing must be T or M";
 
 		return this.enclosing;
 	}
@@ -309,7 +309,8 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isScala() {
-		return getSourceFileName().endsWith(".scala");
+		final String sourceFileName = getSourceFileName();
+		return sourceFileName != null && sourceFileName.endsWith(".scala");
 	}
 
 	@Override

@@ -259,6 +259,7 @@ public class TrInnerClassesAnalysis {
 		return simpleName.substring(index);
 	}
 
+	@Nullable
 	private static String getSourceId(final T mainTd) {
 		final String sourceFileName = mainTd.getSourceFileName();
 		if (sourceFileName == null) {

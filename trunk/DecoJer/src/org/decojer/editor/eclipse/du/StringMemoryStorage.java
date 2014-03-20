@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -27,12 +27,14 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 
+import javax.annotation.Nullable;
+
 import org.eclipse.core.resources.IEncodedStorage;
 import org.eclipse.core.runtime.IPath;
 
 /**
  * Memory Storage for Eclipse Editor Framework.
- * 
+ *
  * @author André Pankraz
  */
 public class StringMemoryStorage implements IEncodedStorage {
@@ -45,7 +47,7 @@ public class StringMemoryStorage implements IEncodedStorage {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param content
 	 *            Content
 	 * @param fullPath
@@ -59,6 +61,7 @@ public class StringMemoryStorage implements IEncodedStorage {
 		this.contents = content.getBytes(UTF8);
 	}
 
+	@Nullable
 	@Override
 	public Object getAdapter(final Class adapter) {
 		return null;
@@ -79,6 +82,7 @@ public class StringMemoryStorage implements IEncodedStorage {
 		return this.fullPath;
 	}
 
+	@Nullable
 	@Override
 	public String getName() {
 		if (this.fullPath == null) {

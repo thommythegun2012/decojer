@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,6 +24,8 @@
 package org.decojer.cavaj.model.code;
 
 import java.util.List;
+
+import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -44,7 +46,7 @@ import org.eclipse.jdt.core.dom.Block;
 
 /**
  * Control flow graph.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -109,7 +111,7 @@ public final class CFG {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param m
 	 *            method
 	 * @param regs
@@ -129,9 +131,9 @@ public final class CFG {
 
 	/**
 	 * Add local variable.
-	 * 
+	 *
 	 * Only basic checks, compare later with method parameters.
-	 * 
+	 *
 	 * @param reg
 	 *            register
 	 * @param var
@@ -214,7 +216,7 @@ public final class CFG {
 
 	/**
 	 * Decompile CFG.
-	 * 
+	 *
 	 * @param stage
 	 *            stage
 	 */
@@ -239,7 +241,7 @@ public final class CFG {
 
 	/**
 	 * Get compilation unit.
-	 * 
+	 *
 	 * @return compilation unit
 	 */
 	public CU getCu() {
@@ -248,14 +250,15 @@ public final class CFG {
 
 	/**
 	 * Get local variable (from debug info).
-	 * 
+	 *
 	 * @param reg
 	 *            register
 	 * @param pc
 	 *            pc
-	 * 
+	 *
 	 * @return local variable (from debug info)
 	 */
+	@Nullable
 	public V getDebugV(final int reg, final int pc) {
 		if (this.vss == null || reg >= this.vss.length) {
 			return null;
@@ -275,7 +278,7 @@ public final class CFG {
 
 	/**
 	 * Get decompilation unit.
-	 * 
+	 *
 	 * @return decompilation unit
 	 */
 	public DU getDu() {
@@ -284,7 +287,7 @@ public final class CFG {
 
 	/**
 	 * Get frame for PC.
-	 * 
+	 *
 	 * @param pc
 	 *            PC
 	 * @return frame
@@ -295,7 +298,7 @@ public final class CFG {
 
 	/**
 	 * Get local variable (from frame).
-	 * 
+	 *
 	 * @param reg
 	 *            register
 	 * @param pc
@@ -308,7 +311,7 @@ public final class CFG {
 
 	/**
 	 * Get immediate dominator (IDom) for BB.
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return immediate domminator (IDom) for BB
@@ -319,7 +322,7 @@ public final class CFG {
 
 	/**
 	 * Get input frame for operation.
-	 * 
+	 *
 	 * @param op
 	 *            operation
 	 * @return input frame
@@ -330,9 +333,9 @@ public final class CFG {
 
 	/**
 	 * Get output frame for operation.
-	 * 
+	 *
 	 * Doesn't (and isn't required to) work for control flow statements.
-	 * 
+	 *
 	 * @param op
 	 *            operation
 	 * @return output frame
@@ -343,7 +346,7 @@ public final class CFG {
 
 	/**
 	 * Get type.
-	 * 
+	 *
 	 * @return type
 	 */
 	public T getT() {
@@ -352,7 +355,7 @@ public final class CFG {
 
 	/**
 	 * Initialize frames. Create first frame from method parameters.
-	 * 
+	 *
 	 * @see R#isMethodParam()
 	 */
 	public void initFrames() {
@@ -391,7 +394,7 @@ public final class CFG {
 
 	/**
 	 * Are frames initialized?
-	 * 
+	 *
 	 * @return {@code true} - frames are initialized
 	 */
 	public boolean isFrames() {
@@ -400,7 +403,7 @@ public final class CFG {
 
 	/**
 	 * Should transformer ignore this?
-	 * 
+	 *
 	 * @return {@code true} - ignore this
 	 */
 	public boolean isIgnore() {
@@ -409,7 +412,7 @@ public final class CFG {
 
 	/**
 	 * Is line information available?
-	 * 
+	 *
 	 * @return {@code true} - line information is available
 	 */
 	public boolean isLineInfo() {
@@ -422,10 +425,10 @@ public final class CFG {
 
 	/**
 	 * New BB.
-	 * 
+	 *
 	 * @param opPc
 	 *            first operation PC
-	 * 
+	 *
 	 * @return BB
 	 */
 	public BB newBb(final int opPc) {
@@ -535,10 +538,10 @@ public final class CFG {
 
 	/**
 	 * Set frame for PC.
-	 * 
+	 *
 	 * Copy frame to prevent lots of possible effects with multi-merges like in RET and
 	 * automatically set frame PC.
-	 * 
+	 *
 	 * @param pc
 	 *            PC
 	 * @param frame
