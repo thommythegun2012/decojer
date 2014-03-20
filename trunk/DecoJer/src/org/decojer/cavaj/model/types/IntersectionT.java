@@ -69,7 +69,9 @@ public class IntersectionT extends BaseT {
 			sb.append(interfaceT.getName()).append(",");
 		}
 		sb.setCharAt(sb.length() - 1, '}');
-		return sb.toString();
+		final String ret = sb.toString();
+		assert ret != null;
+		return ret;
 	}
 
 	@Override
