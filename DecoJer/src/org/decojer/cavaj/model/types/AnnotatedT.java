@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.types;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 
 import org.decojer.cavaj.model.A;
@@ -50,14 +52,14 @@ public class AnnotatedT extends ExtendedT {
 	 * @param as
 	 *            type annotations
 	 */
-	public AnnotatedT(final T t, final A[] as) {
+	@Nonnull
+	public AnnotatedT(@Nonnull final T t, @Nonnull final A[] as) {
 		super(t);
 		// we have to use the raw name here, not @annotations name, else many enclosing-dependant
 		// stuff will not work, like getT() for enclosed, getSimpleName() etc.,
 		// cannot cache this anyway because of lazy application of type annotations
 
-		assert t != null;
-		assert as != null && as.length > 0;
+		assert as.length > 0;
 
 		this.as = as;
 	}

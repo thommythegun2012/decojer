@@ -25,6 +25,7 @@ package org.decojer.cavaj.model.methods;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
@@ -88,7 +89,7 @@ public class ClassM extends M {
 	 * @param descriptor
 	 *            descriptor
 	 */
-	public ClassM(final DU du, final String name, final String descriptor) {
+	public ClassM(@Nonnull final DU du, @Nonnull final String name, @Nonnull final String descriptor) {
 		assert name != null;
 		assert descriptor != null;
 
@@ -113,11 +114,7 @@ public class ClassM extends M {
 	 * @param descriptor
 	 *            descriptor
 	 */
-	public ClassM(final T t, final String name, final String descriptor) {
-		assert t != null;
-		assert name != null;
-		assert descriptor != null;
-
+	public ClassM(@Nonnull final T t, @Nonnull final String name, @Nonnull final String descriptor) {
 		this.t = t;
 		this.name = name;
 		this.descriptor = descriptor;

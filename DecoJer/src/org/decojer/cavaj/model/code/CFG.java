@@ -450,7 +450,9 @@ public final class CFG {
 			this.vss = newVarss;
 		}
 		final T[] paramTs = this.m.getParamTs();
-		if (this.m.getT().isDalvik()) {
+		final T ownerT = this.m.getT();
+		assert ownerT != null;
+		if (ownerT.isDalvik()) {
 			// Dalvik...function parameters right aligned
 			int reg = this.regs;
 			for (int i = paramTs.length; i-- > 0;) {
@@ -493,7 +495,7 @@ public final class CFG {
 
 					// nevertheless we simply overwrite it for now...
 				}
-				this.vss[reg] = new V[] { new V(this.m.getT(), "this", 0, this.ops.length) };
+				this.vss[reg] = new V[] { new V(ownerT, "this", 0, this.ops.length) };
 			}
 			return;
 		}
@@ -514,11 +516,12 @@ public final class CFG {
 				}
 				++reg;
 			} else {
-				this.vss[reg++] = new V[] { new V(this.m.getT(), "this", 0, this.ops.length) };
+				this.vss[reg++] = new V[] { new V(ownerT, "this", 0, this.ops.length) };
 			}
 		}
 		for (int i = 0; i < paramTs.length; ++i) {
 			final T paramT = paramTs[i];
+			assert paramT != null;
 			final V[] vs = this.vss[reg];
 			if (vs != null) {
 				if (vs.length > 1) {

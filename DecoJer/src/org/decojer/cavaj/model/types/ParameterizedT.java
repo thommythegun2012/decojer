@@ -16,20 +16,22 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.types;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 
 /**
  * Parameterized type.
- * 
+ *
  * @since JVM 5
- * 
+ *
  * @author André Pankraz
  */
 public final class ParameterizedT extends ExtendedT {
@@ -42,19 +44,19 @@ public final class ParameterizedT extends ExtendedT {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param genericT
 	 *            generic type with matching type parameters
 	 * @param typeArgs
 	 *            type arguments for matching type parameters
 	 */
-	public ParameterizedT(final T genericT, final T[] typeArgs) {
+	public ParameterizedT(@Nonnull final T genericT, @Nonnull final T[] typeArgs) {
 		super(genericT);
 		// we have to use the raw name here, not name<typeArgs>, else many enclosing-dependant stuff
 		// will not work, like getT() for enclosed, getSimpleName() etc.,
 		// cannot cache this anyway because of type variables
 
-		assert typeArgs != null && typeArgs.length > 0;
+		assert typeArgs.length > 0;
 		assert !genericT.isAnnotated() : "Anno(Param(t, args)) is same like Param(Anno(t), args), prefer first";
 
 		this.typeArgs = typeArgs;
