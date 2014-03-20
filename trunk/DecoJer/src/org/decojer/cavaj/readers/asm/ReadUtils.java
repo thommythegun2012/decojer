@@ -67,9 +67,12 @@ public class ReadUtils {
 		return new QualifiedM(annotatedT, m);
 	}
 
-	@Nonnull
-	private static T annotatePart(@Nonnull final T t, final A a, final TypePath typePath,
-			final int index) {
+	@Nullable
+	private static T annotatePart(@Nullable final T t, @Nonnull final A a,
+			@Nullable final TypePath typePath, final int index) {
+		if (t == null) {
+			return null;
+		}
 		if (typePath == null) {
 			return DU.getAnnotatedT(t, a);
 		}
@@ -156,13 +159,17 @@ public class ReadUtils {
 	 * @return annotated type
 	 */
 	@Nullable
-	public static T annotateT(@Nullable final T t, final A a, @Nullable final TypePath typePath) {
+	public static T annotateT(@Nullable final T t, @Nullable final A a,
+			@Nullable final TypePath typePath) {
 		return annotateT(t, a, typePath, 0);
 	}
 
 	@Nullable
-	private static T annotateT(@Nullable final T t, final A a, @Nullable final TypePath typePath,
-			final int index) {
+	private static T annotateT(@Nullable final T t, @Nullable final A a,
+			@Nullable final TypePath typePath, final int index) {
+		if (a == null) {
+			return t;
+		}
 		if (t == null) {
 			return null;
 		}
