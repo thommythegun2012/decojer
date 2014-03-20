@@ -29,6 +29,8 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -367,6 +369,7 @@ public class Smali2Reader implements DexReader {
 		}
 	}
 
+	@Nullable
 	private Object readValue(final EncodedValue encodedValue, final DU du) {
 		switch (encodedValue.getValueType()) {
 		case ValueType.ANNOTATION:

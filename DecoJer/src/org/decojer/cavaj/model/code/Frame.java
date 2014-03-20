@@ -16,19 +16,21 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Frame.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -47,7 +49,7 @@ public final class Frame {
 
 	/**
 	 * Constructor for first frame.
-	 * 
+	 *
 	 * @param cfg
 	 *            CFG
 	 */
@@ -59,7 +61,7 @@ public final class Frame {
 
 	/**
 	 * Copy constructor, without alive.
-	 * 
+	 *
 	 * @param frame
 	 *            copy frame
 	 */
@@ -69,7 +71,7 @@ public final class Frame {
 
 	/**
 	 * Copy constructor, without alive.
-	 * 
+	 *
 	 * @param frame
 	 *            copy frame
 	 * @param pc
@@ -85,7 +87,7 @@ public final class Frame {
 
 	/**
 	 * Copy constructor for exception frame, without stack and alive.
-	 * 
+	 *
 	 * @param frame
 	 *            copy frame
 	 * @param exceptionS
@@ -104,7 +106,7 @@ public final class Frame {
 
 	/**
 	 * Get register number (locals).
-	 * 
+	 *
 	 * @return register number (locals)
 	 */
 	public int getRegs() {
@@ -113,7 +115,7 @@ public final class Frame {
 
 	/**
 	 * Get stack register number (stack size).
-	 * 
+	 *
 	 * @return stack register number (stack size)
 	 */
 	public int getTop() {
@@ -122,7 +124,7 @@ public final class Frame {
 
 	/**
 	 * Is register alive?
-	 * 
+	 *
 	 * @param i
 	 *            register index
 	 * @return {@code true} - is alive
@@ -133,7 +135,7 @@ public final class Frame {
 
 	/**
 	 * Is stack empty?
-	 * 
+	 *
 	 * @return {@code true} - stack is empty
 	 */
 	public boolean isStackEmpty() {
@@ -142,7 +144,7 @@ public final class Frame {
 
 	/**
 	 * Load register (local or stack).
-	 * 
+	 *
 	 * @param i
 	 *            register index
 	 * @return register (local or stack)
@@ -159,7 +161,7 @@ public final class Frame {
 
 	/**
 	 * Mark register (local or stack) as alive.
-	 * 
+	 *
 	 * @param i
 	 *            register index
 	 * @return {@code true} - changed, was not alive
@@ -183,7 +185,7 @@ public final class Frame {
 
 	/**
 	 * Peek stack register.
-	 * 
+	 *
 	 * @return register
 	 */
 	public R peek() {
@@ -194,7 +196,7 @@ public final class Frame {
 
 	/**
 	 * Peek stack register.
-	 * 
+	 *
 	 * @param i
 	 *            reverse stack index
 	 * @return register
@@ -205,6 +207,7 @@ public final class Frame {
 		return this.rs[this.rs.length - i - 1];
 	}
 
+	@Nullable
 	public R peekSub(final int callerTop, final int subPc) {
 		// JSR already visited, reuse Sub
 		if (getTop() != callerTop + 1) {
@@ -235,7 +238,7 @@ public final class Frame {
 
 	/**
 	 * Pop stack register.
-	 * 
+	 *
 	 * @return stack register
 	 */
 	public R pop() {
@@ -250,7 +253,7 @@ public final class Frame {
 
 	/**
 	 * Pop subroutine from subroutine stack: Pop all subroutines till given one.
-	 * 
+	 *
 	 * @param sub
 	 *            subroutine
 	 * @return {@code true} - success (found in stack, removed)
@@ -276,7 +279,7 @@ public final class Frame {
 
 	/**
 	 * Push stack register.
-	 * 
+	 *
 	 * @param s
 	 *            stack register
 	 * @return pushed register (for fluent API)
@@ -293,7 +296,7 @@ public final class Frame {
 
 	/**
 	 * Push subroutine to subroutine stack.
-	 * 
+	 *
 	 * @param sub
 	 *            subroutine
 	 * @return {@code true} - success (not in stack, added)
@@ -324,7 +327,7 @@ public final class Frame {
 
 	/**
 	 * Get register number (local or stack).
-	 * 
+	 *
 	 * @return register number (local or stack)
 	 */
 	public int size() {
@@ -333,7 +336,7 @@ public final class Frame {
 
 	/**
 	 * Store register (local or stack).
-	 * 
+	 *
 	 * @param i
 	 *            register index
 	 * @param r
@@ -355,7 +358,7 @@ public final class Frame {
 
 	/**
 	 * Store stack register.
-	 * 
+	 *
 	 * @param i
 	 *            stack index
 	 * @param s
@@ -382,7 +385,7 @@ public final class Frame {
 
 	/**
 	 * Get number of wide stack registers in given stack size.
-	 * 
+	 *
 	 * @param stacks
 	 *            stack size
 	 * @return number of wide stack registers

@@ -774,18 +774,22 @@ public abstract class T implements Element {
 	 *
 	 * @return primary name
 	 */
+	@Nonnull
 	public String getPName() {
-		if (getName().startsWith("{")) {
-			return getName();
+		final String name = getName();
+		if (name.startsWith("{")) {
+			return name;
 		}
 		final String packageName = getPackageName();
 		if (packageName == null) {
-			return getName();
+			return name;
 		}
 		if (packageName.length() == 0) {
-			return getName();
+			return name;
 		}
-		return getName().substring(packageName.length() + 1);
+		final String ret = name.substring(packageName.length() + 1);
+		assert ret != null;
+		return ret;
 	}
 
 	/**
@@ -793,6 +797,7 @@ public abstract class T implements Element {
 	 *
 	 * @return qualifier type
 	 */
+	@Nullable
 	public T getQualifierT() {
 		if (isStatic()) {
 			return null;
@@ -805,6 +810,7 @@ public abstract class T implements Element {
 	 *
 	 * @return qualifier type path from front to end
 	 */
+	@Nonnull
 	public T[] getQualifierTs() {
 		final List<T> qualifierTs = new ArrayList<T>();
 		for (T qualifierT = getQualifierT(); qualifierT != null; qualifierT = qualifierT
@@ -812,7 +818,9 @@ public abstract class T implements Element {
 			qualifierTs.add(0, qualifierT);
 		}
 		qualifierTs.add(this);
-		return qualifierTs.toArray(new T[qualifierTs.size()]);
+		final T[] ret = qualifierTs.toArray(new T[qualifierTs.size()]);
+		assert ret != null;
+		return ret;
 	}
 
 	/**
@@ -830,6 +838,7 @@ public abstract class T implements Element {
 	 *
 	 * @return simple identifier
 	 */
+	@Nonnull
 	public String getSimpleIdentifier() {
 		final String simpleName = getSimpleName();
 		if (simpleName.isEmpty()) {
@@ -851,6 +860,7 @@ public abstract class T implements Element {
 	 * @see Class#getSimpleName()
 	 * @see T#getInnerName()
 	 */
+	@Nonnull
 	public String getSimpleName() {
 		// The original Class-Function doesn't work for JVM < 5 because the naming rules changed,
 		// different solution here with inner name info
@@ -870,7 +880,9 @@ public abstract class T implements Element {
 			index++;
 		}
 		// Eventually, this is the empty string iff this is an anonymous class
-		return innerName.substring(index);
+		final String ret = innerName.substring(index);
+		assert ret != null;
+		return ret;
 	}
 
 	/**
@@ -878,6 +890,7 @@ public abstract class T implements Element {
 	 *
 	 * @return source file name
 	 */
+	@Nullable
 	public String getSourceFileName() {
 		return null;
 	}
@@ -1027,7 +1040,7 @@ public abstract class T implements Element {
 	 *
 	 * @see Class#isAssignableFrom(Class)
 	 */
-	public boolean isAssignableFrom(final T t) {
+	public boolean isAssignableFrom(@Nullable final T t) {
 		if (t == null) {
 			return false;
 		}

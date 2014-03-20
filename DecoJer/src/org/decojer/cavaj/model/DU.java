@@ -200,6 +200,7 @@ public final class DU {
 			return new QualifiedT(qualifierT, t);
 		}
 		final T currentQualifierT = t.getQualifierT();
+		assert currentQualifierT != null : "cannot be null for qualified";
 
 		// both names must intersect from beginning till somewhere:
 		final int qNl = qualifierT.getName().length();
@@ -452,6 +453,7 @@ public final class DU {
 	// org/infinispan/util/InfinispanCollections$EmptyReversibleOrderedSet.1
 	// [I
 	// java.lang.String[]
+	@Nullable
 	private T getT(final String name, final boolean create) {
 		if (name == null) {
 			// important for e.g. read Object.class: super is null
@@ -793,6 +795,7 @@ public final class DU {
 	 * @throws IOException
 	 *             read exception
 	 */
+	@Nullable
 	public List<T> read(final InputStream is, final String fileName, final String selector)
 			throws IOException {
 		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
