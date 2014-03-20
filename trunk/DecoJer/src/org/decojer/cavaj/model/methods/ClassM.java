@@ -75,6 +75,7 @@ public class ClassM extends M {
 	private T returnT;
 
 	@Getter
+	@Nullable
 	private T t;
 
 	/**
@@ -122,8 +123,8 @@ public class ClassM extends M {
 		this.descriptor = descriptor;
 
 		final Cursor c = new Cursor();
-		this.paramTs = t.getDu().parseMethodParamTs(descriptor, c, this);
-		this.returnT = t.getDu().parseT(descriptor, c, this);
+		this.paramTs = getDu().parseMethodParamTs(descriptor, c, this);
+		this.returnT = getDu().parseT(descriptor, c, this);
 	}
 
 	@Override
@@ -288,7 +289,7 @@ public class ClassM extends M {
 		final List<T> ts = Lists.newArrayList();
 		do {
 			++c.pos;
-			final T throwT = getT().getDu().parseT(s, c, this);
+			final T throwT = getDu().parseT(s, c, this);
 			if (throwT == null) {
 				continue;
 			}
@@ -370,10 +371,10 @@ public class ClassM extends M {
 
 		final Cursor c = new Cursor();
 		// typeParams better in M, maybe later if necessary for static invokes
-		getMd().setTypeParams(getT().getDu().parseTypeParams(signature, c, this));
+		getMd().setTypeParams(getDu().parseTypeParams(signature, c, this));
 
 		final T[] paramTs = getParamTs();
-		final T[] signParamTs = getT().getDu().parseMethodParamTs(signature, c, this);
+		final T[] signParamTs = getDu().parseMethodParamTs(signature, c, this);
 		if (signParamTs.length != 0) {
 			if (paramTs.length != signParamTs.length) {
 				// can happen with Sun JVM for constructor:
@@ -398,7 +399,7 @@ public class ClassM extends M {
 				}
 			}
 		}
-		final T returnT = getT().getDu().parseT(signature, c, this);
+		final T returnT = getDu().parseT(signature, c, this);
 		if (returnT != null) {
 			if (!returnT.eraseTo(getReturnT())) {
 				log.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()

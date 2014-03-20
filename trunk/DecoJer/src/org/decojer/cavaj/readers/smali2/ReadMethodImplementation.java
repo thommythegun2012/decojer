@@ -312,15 +312,15 @@ public class ReadMethodImplementation {
 			case DebugItemType.PROLOGUE_END:
 				assert debugItem instanceof PrologueEnd : debugItem.getClass();
 
-			if (codeAddress != 0) {
-				log("Unknown stuff: SetPrologueEnd: " + codeAddress);
-			}
-			continue;
+				if (codeAddress != 0) {
+					log("Unknown stuff: SetPrologueEnd: " + codeAddress);
+				}
+				continue;
 			case DebugItemType.EPILOGUE_BEGIN:
 				assert debugItem instanceof EpilogueBegin : debugItem.getClass();
 
-			log("Unknown stuff: SetEpilogueBegin: " + codeAddress);
-			continue;
+				log("Unknown stuff: SetEpilogueBegin: " + codeAddress);
+				continue;
 			case DebugItemType.SET_SOURCE_FILE:
 				log("Unknown stuff: SetFile: " + codeAddress + " : "
 						+ ((SetSourceFile) debugItem).getSourceFile());
@@ -546,9 +546,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-				/*******
-				 * AND *
-				 *******/
+			/*******
+			 * AND *
+			 *******/
 			case AND_INT:
 				t = T.AINT;
 				// fall through
@@ -677,14 +677,15 @@ public class ReadMethodImplementation {
 					this.ops.add(new ASTORE(this.ops.size(), opcode, line, t));
 				}
 				break;
-				/********
-				 * CAST *
-				 ********/
+			/********
+			 * CAST *
+			 ********/
 			case CHECK_CAST: {
 				// A = (typeIdItem) A
 				final Instruction21c instr = (Instruction21c) instruction;
 
 				t = getDu().getDescT(((TypeReference) instr.getReference()).getType());
+				assert t != null;
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr.getRegisterA()));
 
@@ -786,15 +787,16 @@ public class ReadMethodImplementation {
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
+					assert oValue instanceof T;
 					this.ops.add(new CAST(this.ops.size(), opcode, line, t, (T) oValue));
 
 					this.ops.add(new STORE(this.ops.size(), opcode, line, (T) oValue, instr
 							.getRegisterA()));
 				}
 				break;
-				/*******
-				 * CMP *
-				 *******/
+			/*******
+			 * CMP *
+			 *******/
 			case CMPG_DOUBLE:
 				t = T.DOUBLE;
 				iValue = CMP.T_G;
@@ -835,9 +837,9 @@ public class ReadMethodImplementation {
 							.getRegisterA()));
 				}
 				break;
-				/*******
-				 * DIV *
-				 *******/
+			/*******
+			 * DIV *
+			 *******/
 			case DIV_DOUBLE:
 				t = T.DOUBLE;
 				// fall through
@@ -1038,9 +1040,9 @@ public class ReadMethodImplementation {
 							.getRegisterA()));
 				}
 				break;
-				/********
-				 * GOTO *
-				 ********/
+			/********
+			 * GOTO *
+			 ********/
 			case GOTO: {
 				final Instruction10t instr = (Instruction10t) instruction;
 
@@ -1074,14 +1076,15 @@ public class ReadMethodImplementation {
 					}
 				}
 				break;
-				/**************
-				 * INSTANCEOF *
-				 **************/
+			/**************
+			 * INSTANCEOF *
+			 **************/
 			case INSTANCE_OF: {
 				// A = B instanceof referencedItem
 				final Instruction22c instr = (Instruction22c) instruction;
 
 				t = getDu().getDescT(((TypeReference) instr.getReference()).getType());
+				assert t != null;
 
 				// not t, is unknown, result can be false
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.REF, instr.getRegisterB()));
@@ -1137,6 +1140,7 @@ public class ReadMethodImplementation {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterB()));
 
+					assert oValue instanceof CmpType;
 					final JCMP op = new JCMP(this.ops.size(), opcode, line, t, (CmpType) oValue);
 					this.ops.add(op);
 					final int targetVmpc = vmpc + instr.getCodeOffset();
@@ -1147,10 +1151,10 @@ public class ReadMethodImplementation {
 					}
 				}
 				break;
-				/********
-				 * JCND *
-				 ********/
-				// all IF_???: floats via CMP?_FLOAT
+			/********
+			 * JCND *
+			 ********/
+			// all IF_???: floats via CMP?_FLOAT
 			case IF_EQZ:
 				t = T.AINTREF; // boolean and nullcheck too
 				oValue = CmpType.T_EQ;
@@ -1190,6 +1194,7 @@ public class ReadMethodImplementation {
 
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 
+					assert oValue instanceof CmpType;
 					final JCND op = new JCND(this.ops.size(), opcode, line, t, (CmpType) oValue);
 					this.ops.add(op);
 					final int targetVmpc = vmpc + instr.getCodeOffset();
@@ -1200,9 +1205,9 @@ public class ReadMethodImplementation {
 					}
 				}
 				break;
-				/**********
-				 * INVOKE *
-				 **********/
+			/**********
+			 * INVOKE *
+			 **********/
 			case INVOKE_DIRECT:
 				// Constructor or supermethod (any super) or private method callout.
 			case INVOKE_INTERFACE:
@@ -1269,7 +1274,7 @@ public class ReadMethodImplementation {
 				final MethodReference methodReference = (MethodReference) instr.getReference();
 				final T ownerT = getDu().getDescT(methodReference.getDefiningClass());
 				((ClassT) ownerT)
-				.setInterface(instruction.getOpcode() == Opcode.INVOKE_INTERFACE_RANGE);
+						.setInterface(instruction.getOpcode() == Opcode.INVOKE_INTERFACE_RANGE);
 				final M refM = ownerT.getM(methodReference.getName(),
 						Smali2Reader.desc(methodReference));
 				refM.setStatic(instruction.getOpcode() == Opcode.INVOKE_STATIC_RANGE);
@@ -1311,9 +1316,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new MONITOR(this.ops.size(), opcode, line, (MONITOR.Kind) oValue));
 				}
 				break;
-				/********
-				 * MOVE *
-				 ********/
+			/********
+			 * MOVE *
+			 ********/
 			case MOVE:
 				t = T.SINGLE;
 				// fall through
@@ -1509,14 +1514,15 @@ public class ReadMethodImplementation {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-				/*******
-				 * NEW *
-				 *******/
+			/*******
+			 * NEW *
+			 *******/
 			case NEW_INSTANCE: {
 				// A = new typeIdItem
 				final Instruction21c instr = (Instruction21c) instruction;
 
 				t = getDu().getDescT(((TypeReference) instr.getReference()).getType());
+				assert t != null;
 
 				this.ops.add(new NEW(this.ops.size(), opcode, line, t));
 
@@ -1531,6 +1537,7 @@ public class ReadMethodImplementation {
 				final Instruction22c instr = (Instruction22c) instruction;
 
 				t = getDu().getDescT(((TypeReference) instr.getReference()).getType());
+				assert t != null;
 				// contains dimensions via [
 
 				this.ops.add(new LOAD(this.ops.size(), opcode, line, T.INT, instr.getRegisterB()));
@@ -1565,7 +1572,9 @@ public class ReadMethodImplementation {
 				final Instruction35c instr = (Instruction35c) instruction;
 
 				t = getDu().getDescT(((TypeReference) instr.getReference()).getType());
+				assert t != null;
 				// contains dimensions via [
+
 				final int registerCount = instr.getRegisterCount();
 
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, registerCount));
@@ -1603,7 +1612,9 @@ public class ReadMethodImplementation {
 				final Instruction3rc instr = (Instruction3rc) instruction;
 
 				t = getDu().getDescT(((TypeReference) instr.getReference()).getType());
+				assert t != null;
 				// contains dimensions via [
+
 				final int registerCount = instr.getRegisterCount();
 
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, T.INT, registerCount));
@@ -1630,9 +1641,9 @@ public class ReadMethodImplementation {
 			case NOP:
 				// nothing
 				break;
-				/*******
-				 * NOT *
-				 *******/
+			/*******
+			 * NOT *
+			 *******/
 			case NOT_INT:
 				t = T.INT;
 				// fall through
@@ -1653,9 +1664,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-				/*******
-				 * OR *
-				 *******/
+			/*******
+			 * OR *
+			 *******/
 			case OR_INT:
 				t = T.AINT;
 				// fall through
@@ -1838,9 +1849,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, iValue));
 				}
 				break;
-				/*******
-				 * PUT *
-				 *******/
+			/*******
+			 * PUT *
+			 *******/
 			case IPUT:
 			case IPUT_VOLATILE:
 				t = T.SINGLE; // int & float
@@ -1955,9 +1966,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new PUT(this.ops.size(), opcode, line, f));
 				}
 				break;
-				/*******
-				 * REM *
-				 *******/
+			/*******
+			 * REM *
+			 *******/
 			case REM_DOUBLE:
 				t = T.DOUBLE;
 				// fall through
@@ -2250,7 +2261,7 @@ public class ReadMethodImplementation {
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 			}
-			break;
+				break;
 			case RSUB_INT_LIT8: {
 				// A = literal - B
 				final Instruction22b instr = (Instruction22b) instruction;
@@ -2264,7 +2275,7 @@ public class ReadMethodImplementation {
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 			}
-			break;
+				break;
 			/*******
 			 * SUB *
 			 *******/
@@ -2326,9 +2337,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-				/**********
-				 * SWITCH *
-				 **********/
+			/**********
+			 * SWITCH *
+			 **********/
 			case PACKED_SWITCH:
 			case SPARSE_SWITCH: {
 				// switch(A)

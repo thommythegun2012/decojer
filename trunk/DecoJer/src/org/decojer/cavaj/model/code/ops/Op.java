@@ -113,7 +113,9 @@ public abstract class Op {
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName();
+		final String ret = getClass().getSimpleName();
+		assert ret != null;
+		return ret;
 	}
 
 }

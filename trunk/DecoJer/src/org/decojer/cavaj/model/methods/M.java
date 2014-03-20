@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.methods;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.A;
@@ -71,9 +72,9 @@ public abstract class M implements Element {
 	public abstract String getDescriptor();
 
 	/**
-	 * Get decompilation unit or null (for primitive and special types).
+	 * Get decompilation unit.
 	 *
-	 * @return decompilation unit or null
+	 * @return decompilation unit
 	 */
 	public DU getDu() {
 		return getT().getDu();
@@ -118,13 +119,15 @@ public abstract class M implements Element {
 	 *
 	 * @return return type
 	 */
+	@Nonnull
 	public abstract T getReturnT();
 
 	/**
-	 * Get owner type.
+	 * Get owner type, {@code null} for dynamic.
 	 *
 	 * @return owner type
 	 */
+	@Nullable
 	public abstract T getT();
 
 	/**
@@ -235,7 +238,7 @@ public abstract class M implements Element {
 	 * @param returnT
 	 *            return type
 	 */
-	public void setReturnT(final T returnT) {
+	public void setReturnT(@Nonnull final T returnT) {
 		assert false; // overwrite in ClassM
 	}
 

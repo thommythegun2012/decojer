@@ -359,7 +359,7 @@ public final class DU {
 	 * @return array type for component type
 	 */
 	@Nonnull
-	public ArrayT getArrayT(final T componentT) {
+	public ArrayT getArrayT(@Nonnull final T componentT) {
 		return new ArrayT(this, componentT);
 	}
 
@@ -427,6 +427,7 @@ public final class DU {
 	 *            class
 	 * @return type
 	 */
+	@Nonnull
 	public T getT(final Class<?> klass) {
 		return getT(klass.getName());
 	}
@@ -444,8 +445,11 @@ public final class DU {
 	 * @return type
 	 * @see java.lang.Class#getName()
 	 */
+	@Nonnull
 	public T getT(final String name) {
-		return getT(name, true);
+		final T ret = getT(name, true);
+		assert ret != null;
+		return ret;
 	}
 
 	// Lorg/pushingpixels/substance/internal/animation/StateTransitionMultiTracker.1;
