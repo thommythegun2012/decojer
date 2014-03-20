@@ -358,6 +358,7 @@ public final class DU {
 	 *            component type (could be an array type)
 	 * @return array type for component type
 	 */
+	@Nonnull
 	public ArrayT getArrayT(final T componentT) {
 		return new ArrayT(this, componentT);
 	}

@@ -62,6 +62,7 @@ public abstract class T implements Element {
 	 * __s_ read _b__ => ____<br>
 	 * _bsi read c__i => _bsi
 	 */
+	@Nonnull
 	private static int[][] AUTO_CONVERSION_ASSIGN_REDUCTION_FROM_TO = {
 		/* ___i */{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
 		/* __s_ */{ 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2 },
@@ -83,6 +84,7 @@ public abstract class T implements Element {
 	 * Java allows the automatic type conversion for primitives. For union-primitives we can reduce
 	 * the possible types in case of intersections:<br>
 	 */
+	@Nonnull
 	private static int[][] AUTO_CONVERSION_INTERSECT_REDUCTION = {
 		/* ___i */{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
 		/* __s_ */{ 1, 2, 3, 2, 3, 2, 2, 1, 1, 3, 3, 3, 3, 3, 3 },
@@ -103,99 +105,122 @@ public abstract class T implements Element {
 	/**
 	 * Primitive type int.
 	 */
+	@Nonnull
 	public static T INT = getT(Kind.INT);
 	/**
 	 * Primitive type short.
 	 */
+	@Nonnull
 	public static T SHORT = getT(Kind.SHORT);
 	/**
 	 * Primitive type byte.
 	 */
+	@Nonnull
 	public static T BYTE = getT(Kind.BYTE);
 	/**
 	 * Primitive type char.
 	 */
+	@Nonnull
 	public static T CHAR = getT(Kind.CHAR);
 	/**
 	 * Primitive type boolean.
 	 */
+	@Nonnull
 	public static T BOOLEAN = getT(Kind.BOOLEAN);
 	/**
 	 * Primitive type float.
 	 */
+	@Nonnull
 	public static T FLOAT = getT(Kind.FLOAT);
 	/**
 	 * Primitive type long.
 	 */
+	@Nonnull
 	public static T LONG = getT(Kind.LONG);
 	/**
 	 * Primitive type double.
 	 */
+	@Nonnull
 	public static T DOUBLE = getT(Kind.DOUBLE);
 	/**
 	 * Primitive type void.
 	 */
+	@Nonnull
 	public static T VOID = getT(Kind.VOID);
 
 	/**
 	 * Artificial type 'reference'.
 	 */
+	@Nonnull
 	public static T REF = getT(Kind.REF);
 	/**
 	 * Artificial type 'return address' for JSR follow pc.
 	 *
 	 * Spec: No return address (a value of type returnAddress) may be loaded from a local variable.
 	 */
+	@Nonnull
 	public static final T RET = getT(Kind.RET);
 	/**
 	 * Artificial type long part 2.
 	 */
+	@Nonnull
 	public static T LONG2 = getT(Kind.LONG2);
 	/**
 	 * Artificial type double part 2.
 	 */
+	@Nonnull
 	public static T DOUBLE2 = getT(Kind.DOUBLE2);
 	/**
 	 * Artificial type 'none'.
 	 */
+	@Nonnull
 	public static T NONE = getT(Kind.NONE);
 
 	/**
 	 * Multi-type 'any (for array check)'.
 	 */
+	@Nonnull
 	public static T ANY = getT(Kind.REF, Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
 			Kind.FLOAT, Kind.LONG, Kind.DOUBLE);
 	/**
 	 * Multi-type 'any reference'.
 	 */
+	@Nonnull
 	public static T AREF = getT(Kind.REF, Kind.RET);
+
 	/**
 	 * Multi-type 'any JVM int'.
 	 */
+	@Nonnull
 	public static T AINT = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN);
 	/**
 	 * Multi-type 'any JVM int or ref (for null-checks)'.
 	 */
+	@Nonnull
 	public static T AINTREF = getT(Kind.REF, Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR,
 			Kind.BOOLEAN);
 
 	/**
 	 * Multi-type 'primitive'.
 	 */
+	@Nonnull
 	public static T PRIMITIVE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
 			Kind.FLOAT, Kind.LONG, Kind.DOUBLE, Kind.VOID);
 	/**
 	 * Multi-type 'any small (8 bit)'.
 	 */
+	@Nonnull
 	public static T SMALL = getT(Kind.BYTE, Kind.BOOLEAN);
 	/**
 	 * Multi-type 'any single (32 bit)'.
 	 */
+	@Nonnull
 	public static T SINGLE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
 			Kind.FLOAT);
 	/**
 	 * Multi-type 'any wide (64 bit)'.
 	 */
+	@Nonnull
 	public static T WIDE = getT(Kind.LONG, Kind.DOUBLE);
 
 	/**
@@ -223,6 +248,7 @@ public abstract class T implements Element {
 		return kindTo & kindFrom;
 	}
 
+	@Nonnull
 	public static T getDalvikIntT(final int literal) {
 		int kinds = T.FLOAT.getKind();
 		if (literal == 0) {
@@ -244,6 +270,7 @@ public abstract class T implements Element {
 		return getT(kinds);
 	}
 
+	@Nonnull
 	public static PrimitiveT getJvmIntT(final int literal) {
 		int kinds = 0;
 		if (literal == 0 || literal == 1) {
@@ -262,6 +289,7 @@ public abstract class T implements Element {
 		return getT(kinds);
 	}
 
+	@Nullable
 	private static PrimitiveT getT(final int kinds) {
 		if (kinds == 0) {
 			return null;
@@ -281,6 +309,7 @@ public abstract class T implements Element {
 		return t;
 	}
 
+	@Nonnull
 	private static PrimitiveT getT(final Kind kind) {
 		PrimitiveT t = (PrimitiveT) KIND_2_TS.get(kind.getKind());
 		if (t != null) {
@@ -291,6 +320,7 @@ public abstract class T implements Element {
 		return t;
 	}
 
+	@Nonnull
 	private static PrimitiveT getT(final Kind... kinds) {
 		// don't use types as input, restrict to kind-types
 		int flags = 0;
@@ -313,7 +343,8 @@ public abstract class T implements Element {
 	 *            type 2
 	 * @return merged type
 	 */
-	public static T intersect(final T t1, final T t2) {
+	@Nullable
+	public static T intersect(@Nullable final T t1, @Nullable final T t2) {
 		if (t1 == null || t2 == null) {
 			return null;
 		}
@@ -411,7 +442,8 @@ public abstract class T implements Element {
 	 *            type 2
 	 * @return merged type
 	 */
-	public static T union(final T t1, final T t2) {
+	@Nullable
+	public static T union(@Nullable final T t1, @Nullable final T t2) {
 		if (t1 == null) {
 			return t2;
 		}
@@ -447,7 +479,7 @@ public abstract class T implements Element {
 	 * @return {@code null} or reduced type or {@code this}
 	 */
 	@Nullable
-	public T assignFrom(final T t) {
+	public T assignFrom(@Nullable final T t) {
 		if (t == null) {
 			return null;
 		}
@@ -473,7 +505,7 @@ public abstract class T implements Element {
 	 * @return {@code null} or reduced type or {@code this}
 	 */
 	@Nullable
-	public T assignTo(final T t) {
+	public T assignTo(@Nullable final T t) {
 		if (t == null) {
 			return null;
 		}
@@ -501,7 +533,7 @@ public abstract class T implements Element {
 	public abstract boolean createTd();
 
 	@Override
-	public boolean equals(final Object obj) {
+	public boolean equals(@Nullable final Object obj) {
 		if (this == obj) {
 			return true;
 		}
@@ -539,6 +571,7 @@ public abstract class T implements Element {
 		return equals(t);
 	}
 
+	@Nullable
 	@Override
 	public A[] getAs() {
 		return null;
@@ -549,6 +582,7 @@ public abstract class T implements Element {
 	 *
 	 * @return bound type for wildcard type or null
 	 */
+	@Nullable
 	public T getBoundT() {
 		return null;
 	}
@@ -560,6 +594,7 @@ public abstract class T implements Element {
 	 *
 	 * @see Class#isAssignableFrom(Class)
 	 */
+	@Nullable
 	public T getComponentT() {
 		return null;
 	}
@@ -578,6 +613,7 @@ public abstract class T implements Element {
 	 *
 	 * @return decompilation unit or null
 	 */
+	@Nullable
 	public DU getDu() {
 		return null;
 	}
@@ -587,6 +623,7 @@ public abstract class T implements Element {
 	 *
 	 * @return element type of array type (null if no array type)
 	 */
+	@Nullable
 	public T getElementT() {
 		return null;
 	}
@@ -600,6 +637,7 @@ public abstract class T implements Element {
 	 * @see Class#getEnclosingMethod()
 	 * @see Class#getEnclosingConstructor()
 	 */
+	@Nullable
 	public M getEnclosingM() {
 		return null; // overwrite in ClassT
 	}
@@ -609,6 +647,7 @@ public abstract class T implements Element {
 	 *
 	 * @return outest enclosing (root) type
 	 */
+	@Nonnull
 	public T getEnclosingRootT() {
 		T findT = this;
 		for (T enclosingT = findT.getEnclosingT(); enclosingT != null; enclosingT = findT
@@ -626,6 +665,7 @@ public abstract class T implements Element {
 	 * @see T#setEnclosingT(T)
 	 * @see Class#getEnclosingClass()
 	 */
+	@Nullable
 	public T getEnclosingT() {
 		return null; // overwrite in ClassT
 	}
@@ -635,6 +675,7 @@ public abstract class T implements Element {
 	 *
 	 * @return enclosing type path from front to end
 	 */
+	@Nonnull
 	public T[] getEnclosingTs() {
 		final List<T> enclosingTs = new ArrayList<T>();
 		for (T enclosingT = getEnclosingT(); enclosingT != null; enclosingT = enclosingT
@@ -642,7 +683,9 @@ public abstract class T implements Element {
 			enclosingTs.add(0, enclosingT);
 		}
 		enclosingTs.add(this);
-		return enclosingTs.toArray(new T[enclosingTs.size()]);
+		final T[] ret = enclosingTs.toArray(new T[enclosingTs.size()]);
+		assert ret != null;
+		return ret;
 	}
 
 	/**
@@ -657,6 +700,7 @@ public abstract class T implements Element {
 	 *            field descriptor
 	 * @return field
 	 */
+	@Nonnull
 	public F getF(final String name, final String desc) {
 		final String handle = name + ":" + desc;
 		F f = (F) getMember().get(handle);
@@ -673,6 +717,7 @@ public abstract class T implements Element {
 	 *
 	 * @return full name
 	 */
+	@Nonnull
 	public String getFullName() {
 		return getName();
 	}
@@ -682,6 +727,7 @@ public abstract class T implements Element {
 	 *
 	 * @return generic type for parameterized type or null
 	 */
+	@Nullable
 	public T getGenericT() {
 		return null;
 	}
@@ -703,6 +749,7 @@ public abstract class T implements Element {
 	 * @return inner name
 	 * @see Class#getSimpleName()
 	 */
+	@Nullable
 	public String getInnerName() {
 		return null; // overwrite in ClassT
 	}
@@ -714,6 +761,7 @@ public abstract class T implements Element {
 	 *
 	 * @see Class#getInterfaces()
 	 */
+	@Nonnull
 	public abstract T[] getInterfaceTs();
 
 	/**
@@ -735,6 +783,7 @@ public abstract class T implements Element {
 	 *            method descriptor
 	 * @return method
 	 */
+	@Nonnull
 	public M getM(final String name, final String desc) {
 		final String handle = name + desc;
 		M m = (M) getMember().get(handle);
@@ -750,6 +799,7 @@ public abstract class T implements Element {
 	 *
 	 * @return members
 	 */
+	@Nullable
 	public Map<String, Object> getMember() {
 		return null;
 	}
@@ -810,7 +860,6 @@ public abstract class T implements Element {
 	 *
 	 * @return qualifier type path from front to end
 	 */
-	@Nonnull
 	public T[] getQualifierTs() {
 		final List<T> qualifierTs = new ArrayList<T>();
 		for (T qualifierT = getQualifierT(); qualifierT != null; qualifierT = qualifierT
@@ -1307,7 +1356,7 @@ public abstract class T implements Element {
 	}
 
 	@Override
-	public void setDeclarationOwner(final Container declarationOwner) {
+	public void setDeclarationOwner(@Nullable final Container declarationOwner) {
 		assert false;
 	}
 
@@ -1359,7 +1408,7 @@ public abstract class T implements Element {
 	 *
 	 * @see Class#getEnclosingClass()
 	 */
-	public void setEnclosingT(final T enclosingT) {
+	public void setEnclosingT(@Nullable final T enclosingT) {
 		assert false;
 	}
 
@@ -1406,7 +1455,7 @@ public abstract class T implements Element {
 	 * @param qualifierT
 	 *            qualifierd type for qualified type
 	 */
-	public void setQualifierT(final T qualifierT) {
+	public void setQualifierT(@Nullable final T qualifierT) {
 		assert false; // overwrite in QualifiedT
 	}
 
@@ -1463,6 +1512,7 @@ public abstract class T implements Element {
 	 */
 	public abstract void setVersion(final int version);
 
+	@Nonnull
 	@Override
 	public String toString() {
 		// getSimpleName() not possible, potentially needs unresolved attributes, e.g. enclosing

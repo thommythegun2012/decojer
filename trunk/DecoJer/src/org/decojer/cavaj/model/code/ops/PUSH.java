@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code.ops;
+
+import javax.annotation.Nullable;
 
 import lombok.Getter;
 
@@ -29,17 +31,18 @@ import org.decojer.cavaj.model.types.T;
 
 /**
  * Operation 'PUSH'.
- * 
+ *
  * @author André Pankraz
  */
 public class PUSH extends TypedOp {
 
 	@Getter
+	@Nullable
 	private final Object value;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 * @param opcode
@@ -51,7 +54,8 @@ public class PUSH extends TypedOp {
 	 * @param value
 	 *            value
 	 */
-	public PUSH(final int pc, final int opcode, final int line, final T t, final Object value) {
+	public PUSH(final int pc, final int opcode, final int line, final T t,
+			@Nullable final Object value) {
 		super(pc, opcode, line, t);
 
 		this.value = value; // can be null

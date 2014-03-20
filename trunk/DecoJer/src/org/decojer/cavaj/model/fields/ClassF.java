@@ -25,6 +25,7 @@ package org.decojer.cavaj.model.fields;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
@@ -56,9 +57,11 @@ public class ClassF extends F {
 	private FD fd;
 
 	@Getter
+	@Nonnull
 	private final String name;
 
 	@Getter
+	@Nonnull
 	private final T t;
 
 	/**
@@ -66,6 +69,7 @@ public class ClassF extends F {
 	 */
 	@Getter
 	@Setter
+	@Nonnull
 	private T valueT;
 
 	/**
@@ -78,11 +82,7 @@ public class ClassF extends F {
 	 * @param descriptor
 	 *            descriptor
 	 */
-	public ClassF(final T t, final String name, final String descriptor) {
-		assert t != null;
-		assert name != null;
-		assert descriptor != null;
-
+	public ClassF(@Nonnull final T t, @Nonnull final String name, @Nonnull final String descriptor) {
 		this.t = t;
 		this.name = name;
 		this.valueT = t.getDu().getDescT(descriptor);
