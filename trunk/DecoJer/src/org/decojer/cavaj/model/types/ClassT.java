@@ -229,6 +229,7 @@ public class ClassT extends T {
 		return this.interfaceTs;
 	}
 
+	@Nonnull
 	@Override
 	public Map<String, Object> getMember() {
 		if (this.member == null) {

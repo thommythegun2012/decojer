@@ -1106,6 +1106,7 @@ public class ReadCodeItem {
 				}
 
 				for (final T paramT : refM.getParamTs()) {
+					assert paramT != null;
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, regs[reg++]));
 					if (paramT.isWide()) {
 						++reg;
@@ -1141,6 +1142,7 @@ public class ReadCodeItem {
 				}
 
 				for (final T paramT : refM.getParamTs()) {
+					assert paramT != null;
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, reg++));
 					if (paramT.isWide()) {
 						++reg;

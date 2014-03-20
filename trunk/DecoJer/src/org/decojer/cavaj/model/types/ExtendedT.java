@@ -53,7 +53,7 @@ public abstract class ExtendedT extends T {
 	private T rawT;
 
 	protected ExtendedT(@Nonnull final T rawT) {
-		setRawT(rawT);
+		this.rawT = rawT;
 	}
 
 	@Override
@@ -286,8 +286,6 @@ public abstract class ExtendedT extends T {
 
 	@Override
 	public void setRawT(@Nonnull final T rawT) {
-		assert rawT != null;
-
 		this.rawT = rawT;
 	}
 

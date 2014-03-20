@@ -45,6 +45,7 @@ import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
 import org.eclipse.jdt.core.dom.ASTNode;
 
+import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 /**
@@ -136,11 +137,13 @@ public class ClassM extends M {
 
 	@Override
 	public boolean createMd() {
-		if (isDeclaration()) {
+		if (isDeclaration() || isDynamic()) {
 			return false;
 		}
 		this.md = new MD();
-		setDeclarationOwner(getT());
+		final T t = getT();
+		assert t != null : "cannot be null for none-dynamic";
+		setDeclarationOwner(t);
 		return true;
 	}
 
@@ -205,11 +208,13 @@ public class ClassM extends M {
 	 *
 	 * @see ClassM#setReceiverT(T)
 	 */
+	@Nullable
 	@Override
 	public T getReceiverT() {
 		return getT() instanceof ClassT ? null : getT();
 	}
 
+	@Nullable
 	@Override
 	public String getSignature() {
 		return getMd().getSignature();
@@ -351,7 +356,7 @@ public class ClassM extends M {
 		if (isStatic() || isDynamic()) {
 			return false;
 		}
-		if (!getT().equals(receiverT)) {
+		if (!Objects.equal(getT(), receiverT)) {
 			return false;
 		}
 		this.t = receiverT;

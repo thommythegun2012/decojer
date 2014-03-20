@@ -64,7 +64,7 @@ public final class V {
 	 * @param endPc
 	 *            end pc
 	 */
-	public V(@Nonnull final T t, final String name, final int startPc, final int endPc) {
+	public V(@Nonnull final T t, @Nonnull final String name, final int startPc, final int endPc) {
 		// assert startPc >= 0 : startPc;
 		// assert endPc == -1 || endPc >= startPc : endPc;
 

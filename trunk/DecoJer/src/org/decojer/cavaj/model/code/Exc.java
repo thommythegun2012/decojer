@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code;
+
+import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -30,7 +32,7 @@ import org.decojer.cavaj.model.types.T;
 
 /**
  * Exception handler.
- * 
+ *
  * @author André Pankraz
  */
 @Getter
@@ -43,11 +45,12 @@ public final class Exc {
 
 	private int startPc;
 
+	@Nullable
 	private T t; // null -> catch all
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param t
 	 *            type (null => catch all)
 	 */
@@ -65,7 +68,7 @@ public final class Exc {
 
 	/**
 	 * Is variable valid for pc?
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 * @return {@code true} - variable valid for pc

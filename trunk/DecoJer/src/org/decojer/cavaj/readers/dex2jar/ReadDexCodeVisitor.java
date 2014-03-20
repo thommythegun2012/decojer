@@ -297,9 +297,11 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 					op.setDefaultPc(this.ops.size());
 				}
 				final int[] casePcs = op.getCasePcs();
-				for (int i = casePcs.length; i-- > 0;) {
-					if (pc == casePcs[i]) {
-						casePcs[i] = this.ops.size();
+				if (casePcs != null) {
+					for (int i = casePcs.length; i-- > 0;) {
+						if (pc == casePcs[i]) {
+							casePcs[i] = this.ops.size();
+						}
 					}
 				}
 				continue;
@@ -343,6 +345,9 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	public void visitLocalVariable(final String name, final String type, final String signature,
 			final DexLabel start, final DexLabel end, final int reg) {
 		T vT = this.du.getDescT(type);
+		if (vT == null) {
+			return;
+		}
 		if (signature != null) {
 			final T sigT = this.du.parseT(signature, new Cursor(), this.m);
 			if (sigT != null) {
