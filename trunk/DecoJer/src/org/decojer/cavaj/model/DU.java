@@ -91,6 +91,7 @@ public final class DU {
 	 *            annotation
 	 * @return annotated type
 	 */
+	@Nonnull
 	public static AnnotatedT getAnnotatedT(final T t, final A a) {
 		if (!t.isAnnotated()) {
 			return new AnnotatedT(t, new A[] { a });
