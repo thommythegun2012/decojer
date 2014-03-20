@@ -140,9 +140,14 @@ public class INVOKE extends Op {
 
 	@Override
 	public int getInStackSize() {
-		int inStackSize = getM().isStatic() ? 0 : getM().getT().getStackSize();
+		int inStackSize = 0;
 		for (final T paramT : getM().getParamTs()) {
 			inStackSize += paramT.getStackSize();
+		}
+		if (getM().isStatic() && !getM().isDynamic()) {
+			final T ownerT = getM().getT();
+			assert ownerT != null : "cannot be null for none-dynamic";
+			inStackSize += ownerT.getStackSize();
 		}
 		return inStackSize;
 	}
