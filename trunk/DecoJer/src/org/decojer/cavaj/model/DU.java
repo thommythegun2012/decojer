@@ -96,18 +96,19 @@ public final class DU {
 			return new AnnotatedT(t, new A[] { a });
 		}
 		final AnnotatedT annotT = (AnnotatedT) t;
-		for (final A checkA : annotT.getAs()) {
+		final A[] as = annotT.getAs();
+		assert as != null : "cannot be null for annotated";
+		for (final A checkA : as) {
 			if (checkA.getT().equals(a.getT())) {
 				log.warn("Type '" + t + "' already has the type annotation '" + a + "'!");
 				return annotT;
 			}
 		}
 		// don't change annotation array (changes name), recreate type
-		final A[] oldAs = annotT.getAs();
-		final A[] as = new A[oldAs.length + 1];
-		System.arraycopy(oldAs, 0, as, 0, oldAs.length);
-		as[oldAs.length] = a;
-		return new AnnotatedT(annotT.getRawT(), as);
+		final A[] newAs = new A[as.length + 1];
+		System.arraycopy(as, 0, newAs, 0, as.length);
+		newAs[as.length] = a;
+		return new AnnotatedT(annotT.getRawT(), newAs);
 	}
 
 	/**
@@ -409,7 +410,7 @@ public final class DU {
 	 * @return method
 	 */
 	@Nonnull
-	public M getDynamicM(final String name, final String descriptor) {
+	public M getDynamicM(@Nonnull final String name, @Nonnull final String descriptor) {
 		return new ClassM(this, name, descriptor);
 	}
 

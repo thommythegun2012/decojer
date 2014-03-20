@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.types;
+
+import javax.annotation.Nonnull;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +33,7 @@ import org.decojer.cavaj.model.DU;
  * Qualified type. This is used for references with parameterization and annotations of enclosing
  * classes. We cannot set it in the unmodified class type enclosing info, because it can differ
  * between references.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -44,13 +46,13 @@ public class QualifiedT extends ExtendedT {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param qualifierT
 	 *            type qualifier
 	 * @param t
 	 *            type
 	 */
-	public QualifiedT(final T qualifierT, final T t) {
+	public QualifiedT(@Nonnull final T qualifierT, @Nonnull final T t) {
 		super(t); // the qualified t is the raw t, because we inherit its properties
 
 		assert !t.isAnnotated() : "Anno(Qual(qual, t)) is same like Qual(qual, Anno(t)), prefer first";
