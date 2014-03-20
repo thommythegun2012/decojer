@@ -132,7 +132,6 @@ public abstract class M implements Element {
 	 *
 	 * @return throws types
 	 */
-	@Nullable
 	public abstract T[] getThrowsTs();
 
 	/**

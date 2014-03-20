@@ -41,6 +41,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.Getter;
@@ -506,7 +507,8 @@ public final class DU {
 	 *            parent type (for recursion)
 	 * @return class type
 	 */
-	private T parseClassT(final String s, final Cursor c, final Object context, final T enclosingT) {
+	private T parseClassT(final String s, @Nonnull final Cursor c, final Object context,
+			final T enclosingT) {
 		// ClassTypeSignature: L PackageSpecifier_opt SimpleClassTypeSignature
 		// ClassTypeSignatureSuffix_* ;
 		// PackageSpecifier: Identifier / PackageSpecifier_*
@@ -555,7 +557,7 @@ public final class DU {
 	 *            enclosing type context
 	 * @return method parameter types
 	 */
-	public T[] parseMethodParamTs(final String s, final Cursor c, final Object context) {
+	public T[] parseMethodParamTs(final String s, @Nonnull final Cursor c, final Object context) {
 		assert s.charAt(c.pos) == '(' : "Signature '" + s + "', pos " + c.pos + ", char: "
 				+ s.charAt(c.pos);
 		++c.pos;
@@ -579,8 +581,8 @@ public final class DU {
 	 * @return type
 	 */
 	@Nullable
-	public T parseT(final String s, final Cursor c, final Object context) {
-		if (s.length() <= c.pos) {
+	public T parseT(@Nullable final String s, @Nonnull final Cursor c, final Object context) {
+		if (s == null || s.length() <= c.pos) {
 			return null;
 		}
 		switch (s.charAt(c.pos++)) {
@@ -635,9 +637,10 @@ public final class DU {
 	 * @return type arguments
 	 */
 	@Nullable
-	private T[] parseTypeArgs(final String s, final Cursor c, final Object context) {
+	private T[] parseTypeArgs(@Nullable final String s, @Nonnull final Cursor c,
+			final Object context) {
 		// TypeArguments_opt
-		if (s.length() <= c.pos || s.charAt(c.pos) != '<') {
+		if (s == null || s.length() <= c.pos || s.charAt(c.pos) != '<') {
 			return null;
 		}
 		++c.pos;
@@ -677,9 +680,10 @@ public final class DU {
 	 * @return type parameters
 	 */
 	@Nullable
-	public T[] parseTypeParams(final String s, final Cursor c, final Object context) {
+	public T[] parseTypeParams(@Nullable final String s, @Nonnull final Cursor c,
+			final Object context) {
 		// TypeParams_opt
-		if (s.charAt(c.pos) != '<') {
+		if (s == null || s.charAt(c.pos) != '<') {
 			return null; // optional
 		}
 		++c.pos;

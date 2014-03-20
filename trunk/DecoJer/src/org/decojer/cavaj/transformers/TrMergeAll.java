@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.transformers;
+
+import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Element;
@@ -38,26 +40,29 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 /**
  * Transformer: Merge all.
- * 
+ *
  * @author André Pankraz
  */
 public final class TrMergeAll {
 
-	private static boolean addBodyDeclaration(final T t, final Object bodyDeclaration) {
+	private static boolean addBodyDeclaration(final T t, @Nullable final Object bodyDeclaration) {
 		if (bodyDeclaration == null) {
 			return false;
 		}
-		if (t.getAstNode() instanceof AnonymousClassDeclaration) {
-			return ((AnonymousClassDeclaration) t.getAstNode()).bodyDeclarations().add(
-					bodyDeclaration);
+		final Object astNode = t.getAstNode();
+		if (astNode == null) {
+			return false;
+		}
+		if (astNode instanceof AnonymousClassDeclaration) {
+			return ((AnonymousClassDeclaration) astNode).bodyDeclarations().add(bodyDeclaration);
 		}
 		if (bodyDeclaration instanceof EnumConstantDeclaration) {
-			if (t.getAstNode() instanceof EnumDeclaration) {
-				return ((EnumDeclaration) t.getAstNode()).enumConstants().add(bodyDeclaration);
+			if (astNode instanceof EnumDeclaration) {
+				return ((EnumDeclaration) astNode).enumConstants().add(bodyDeclaration);
 			}
 			return false;
 		}
-		return ((AbstractTypeDeclaration) t.getAstNode()).bodyDeclarations().add(bodyDeclaration);
+		return ((AbstractTypeDeclaration) astNode).bodyDeclarations().add(bodyDeclaration);
 	}
 
 	private static int countConstructors(final T t) {
@@ -72,7 +77,7 @@ public final class TrMergeAll {
 
 	/**
 	 * Transform compilation unit.
-	 * 
+	 *
 	 * @param cu
 	 *            compilation unit
 	 */
@@ -116,10 +121,10 @@ public final class TrMergeAll {
 						final ASTNode typeDeclaration = (ASTNode) ((T) innerE).getAstNode();
 						if (typeDeclaration != null) {
 							m.getCfg()
-									.getBlock()
-									.statements()
-									.add(typeDeclaration.getAST().newTypeDeclarationStatement(
-											(AbstractTypeDeclaration) typeDeclaration));
+							.getBlock()
+							.statements()
+							.add(typeDeclaration.getAST().newTypeDeclarationStatement(
+									(AbstractTypeDeclaration) typeDeclaration));
 						}
 					}
 					transform((T) innerE);
@@ -135,7 +140,7 @@ public final class TrMergeAll {
 					if (constructors == 1
 							&& ((MethodDeclaration) methodDeclaration).parameters().size() == 0
 							&& ((MethodDeclaration) methodDeclaration).getBody().statements()
-									.size() == 0) {
+							.size() == 0) {
 						continue;
 					}
 				} else if (methodDeclaration instanceof Initializer /* m.isInitializer() is true */) {

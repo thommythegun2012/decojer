@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -44,7 +44,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Smali read debug info.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -61,7 +61,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	/**
 	 * Get line for VM PC.
-	 * 
+	 *
 	 * @param vmpc
 	 *            VM PC
 	 * @return line
@@ -79,7 +79,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	/**
 	 * Init and visit.
-	 * 
+	 *
 	 * @param m
 	 *            method
 	 * @param debugInfoItem
@@ -232,11 +232,14 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		if (signature != null) {
 			final T sigT = this.m.getT().getDu()
 					.parseT(signature.getStringValue(), new Cursor(), this.m);
-			if (!sigT.eraseTo(vT)) {
-				log.info("Cannot reduce signature '" + signature.getStringValue() + "' to type '"
-						+ vT + "' for method (local variable '" + name + "') " + this.m);
-			} else {
-				vT = sigT;
+			if (sigT != null) {
+				if (!sigT.eraseTo(vT)) {
+					log.info("Cannot reduce signature '" + signature.getStringValue()
+							+ "' to type '" + vT + "' for method (local variable '" + name + "') "
+							+ this.m);
+				} else {
+					vT = sigT;
+				}
 			}
 		}
 		final V v = new V(vT, name.getStringValue(), codeAddress, -1);
