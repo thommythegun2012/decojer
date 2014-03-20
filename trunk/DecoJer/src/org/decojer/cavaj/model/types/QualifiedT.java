@@ -42,6 +42,7 @@ public class QualifiedT extends ExtendedT {
 	/**
 	 * Type qualifier, is like enclosing type in references.
 	 */
+	@Nonnull
 	private T qualifierT;
 
 	/**
@@ -61,6 +62,7 @@ public class QualifiedT extends ExtendedT {
 		setQualifierT(qualifierT);
 	}
 
+	@Nonnull
 	@Override
 	public T getQualifierT() {
 		final T enclosingT = getEnclosingT();
@@ -80,7 +82,7 @@ public class QualifiedT extends ExtendedT {
 	}
 
 	@Override
-	public void setQualifierT(final T qualifierT) {
+	public void setQualifierT(@Nonnull final T qualifierT) {
 		if (!validateQualifierName(qualifierT.getName())) {
 			log.warn("Qualifier type for '" + this + "' cannot be set to not matching type '"
 					+ qualifierT + "'!");

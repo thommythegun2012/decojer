@@ -28,6 +28,7 @@ import java.lang.reflect.TypeVariable;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
@@ -82,6 +83,7 @@ public class ClassT extends T {
 	private int accessFlags;
 
 	@Getter
+	@Nonnull
 	private final DU du;
 
 	/**
@@ -442,7 +444,7 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public void setDeclarationOwner(final Container declarationOwner) {
+	public void setDeclarationOwner(@Nonnull final Container declarationOwner) {
 		final Container previousDeclarationOwner = getTd().getDeclarationOwner();
 		if (previousDeclarationOwner != null) {
 			previousDeclarationOwner.getDeclarations().remove(this);

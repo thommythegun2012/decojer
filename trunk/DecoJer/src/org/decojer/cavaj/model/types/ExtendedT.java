@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,6 +25,8 @@ package org.decojer.cavaj.model.types;
 
 import java.util.List;
 import java.util.Map;
+
+import javax.annotation.Nonnull;
 
 import lombok.Getter;
 
@@ -38,18 +40,19 @@ import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Extended type.
- * 
+ *
  * The general rule here should be, that this modification is optional from the view of the type
  * system and that getSimpleName() and getEnclosingT() don't really change.
- * 
+ *
  * @author André Pankraz
  */
 public abstract class ExtendedT extends T {
 
 	@Getter
+	@Nonnull
 	private T rawT;
 
-	protected ExtendedT(final T rawT) {
+	protected ExtendedT(@Nonnull final T rawT) {
 		setRawT(rawT);
 	}
 
@@ -282,7 +285,7 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
-	public void setRawT(final T rawT) {
+	public void setRawT(@Nonnull final T rawT) {
 		assert rawT != null;
 
 		this.rawT = rawT;

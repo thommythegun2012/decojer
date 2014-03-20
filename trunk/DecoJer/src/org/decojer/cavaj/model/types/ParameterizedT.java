@@ -69,9 +69,12 @@ public final class ParameterizedT extends ExtendedT {
 			sb.append(typeArg).append(',');
 		}
 		sb.setCharAt(sb.length() - 1, '>');
-		return sb.toString();
+		final String ret = sb.toString();
+		assert ret != null;
+		return ret;
 	}
 
+	@Nonnull
 	@Override
 	public T getGenericT() {
 		return getRawT();

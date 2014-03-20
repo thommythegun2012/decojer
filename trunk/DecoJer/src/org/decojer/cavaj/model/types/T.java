@@ -882,6 +882,7 @@ public abstract class T implements Element {
 	 *
 	 * @return raw type or {@code this}
 	 */
+	@Nonnull
 	public T getRawT() {
 		return this;
 	}
@@ -1361,7 +1362,7 @@ public abstract class T implements Element {
 	}
 
 	@Override
-	public void setDeclarationOwner(@Nullable final Container declarationOwner) {
+	public void setDeclarationOwner(@Nonnull final Container declarationOwner) {
 		assert false;
 	}
 
@@ -1460,7 +1461,7 @@ public abstract class T implements Element {
 	 * @param qualifierT
 	 *            qualifierd type for qualified type
 	 */
-	public void setQualifierT(final T qualifierT) {
+	public void setQualifierT(@Nonnull final T qualifierT) {
 		assert false; // overwrite in QualifiedT
 	}
 
@@ -1472,7 +1473,7 @@ public abstract class T implements Element {
 	 * @param rawT
 	 *            raw type for modified type
 	 */
-	public void setRawT(final T rawT) {
+	public void setRawT(@Nonnull final T rawT) {
 		assert false;
 	}
 
