@@ -25,6 +25,7 @@ package org.decojer.cavaj.model;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.eclipse.jdt.core.dom.ASTNode;
@@ -72,12 +73,13 @@ public interface Container {
 	 *
 	 * @return name
 	 */
+	@Nonnull
 	String getName();
 
 	/**
-	 * Get contained declarations.
+	 * Get child declarations.
 	 *
-	 * @return declarations
+	 * @return child declarations
 	 */
 	List<Element> getDeclarations();
 
