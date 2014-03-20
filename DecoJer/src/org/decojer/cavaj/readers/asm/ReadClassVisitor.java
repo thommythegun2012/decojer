@@ -149,6 +149,9 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public FieldVisitor visitField(final int access, final String name, final String desc,
 			final String signature, final Object value) {
+		if (name == null || desc == null) {
+			return null;
+		}
 		final F f = getT().getF(name, desc);
 		f.createFd();
 
@@ -175,6 +178,9 @@ public class ReadClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(final int access, final String name, final String desc,
 			final String signature, final String[] exceptions) {
+		if (name == null || desc == null) {
+			return null;
+		}
 		final M m = getT().getM(name, desc);
 		m.createMd();
 
@@ -217,6 +223,10 @@ public class ReadClassVisitor extends ClassVisitor {
 			final String desc, final boolean visible) {
 		final A a = this.readAnnotationMemberVisitor.init(desc, visible ? RetentionPolicy.RUNTIME
 				: RetentionPolicy.CLASS);
+		if (a == null) {
+			log.warn(getT() + ": Cannot read annotation for descriptor '" + desc + "'!");
+			return null;
+		}
 		final TypeReference typeReference = new TypeReference(typeRef);
 		switch (typeReference.getSort()) {
 		case TypeReference.CLASS_EXTENDS: {

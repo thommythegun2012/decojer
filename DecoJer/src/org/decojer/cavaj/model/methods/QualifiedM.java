@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.methods;
+
+import javax.annotation.Nonnull;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,7 +31,7 @@ import org.decojer.cavaj.model.types.T;
 
 /**
  * Qualified method.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -38,21 +40,23 @@ public class QualifiedM extends ExtendedM {
 	/**
 	 * Method qualifier.
 	 */
+	@Nonnull
 	private T qualifierT;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param qualifierT
 	 *            type qualifier
 	 * @param m
 	 *            method
 	 */
-	public QualifiedM(final T qualifierT, final M m) {
+	public QualifiedM(@Nonnull final T qualifierT, @Nonnull final M m) {
 		super(m);
 		setQualifierT(qualifierT);
 	}
 
+	@Nonnull
 	@Override
 	public T getT() {
 		return this.qualifierT;
