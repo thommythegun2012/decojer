@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -27,9 +27,9 @@ import lombok.Getter;
 
 /**
  * Intersection type.
- * 
+ *
  * @see T#intersect(T, T)
- * 
+ *
  * @author André Pankraz
  */
 public class IntersectionT extends BaseT {
@@ -48,7 +48,7 @@ public class IntersectionT extends BaseT {
 
 	/**
 	 * Constructor for anonymous multi class type.
-	 * 
+	 *
 	 * @param superT
 	 *            super type
 	 * @param interfaceTs
@@ -74,7 +74,8 @@ public class IntersectionT extends BaseT {
 
 	@Override
 	public boolean isAssignableFrom(final T t) {
-		if (!getSuperT().isAssignableFrom(t)) {
+		final T superT = getSuperT();
+		if (superT != null && !superT.isAssignableFrom(t)) {
 			return false;
 		}
 		for (final T interfactT : getInterfaceTs()) {

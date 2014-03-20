@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -98,7 +98,7 @@ import com.google.common.collect.Maps;
 
 /**
  * ASM read method visitor.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -153,7 +153,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
@@ -267,7 +267,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	/**
 	 * Get method declaration.
-	 * 
+	 *
 	 * @return method declaration
 	 */
 	public M getMd() {
@@ -309,7 +309,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	/**
 	 * Init and set method.
-	 * 
+	 *
 	 * @param m
 	 *            method
 	 */
@@ -448,9 +448,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.NOP:
 			// nothing to do, ignore
 			break;
-		/*******
-		 * ADD *
-		 *******/
+			/*******
+			 * ADD *
+			 *******/
 		case Opcodes.DADD:
 			t = T.DOUBLE;
 			// fall through
@@ -470,9 +470,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new ADD(this.ops.size(), opcode, this.line, t));
 			break;
-		/*********
-		 * ALOAD *
-		 *********/
+			/*********
+			 * ALOAD *
+			 *********/
 		case Opcodes.AALOAD:
 			t = T.REF;
 			// fall through
@@ -512,9 +512,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new ALOAD(this.ops.size(), opcode, this.line, t));
 			break;
-		/*******
-		 * AND *
-		 *******/
+			/*******
+			 * AND *
+			 *******/
 		case Opcodes.IAND:
 			t = T.AINT;
 			// fall through
@@ -524,15 +524,15 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new AND(this.ops.size(), opcode, this.line, t));
 			break;
-		/***************
-		 * ARRAYLENGTH *
-		 ***************/
+			/***************
+			 * ARRAYLENGTH *
+			 ***************/
 		case Opcodes.ARRAYLENGTH:
 			add(new ARRAYLENGTH(this.ops.size(), opcode, this.line));
 			break;
-		/**********
-		 * ASTORE *
-		 **********/
+			/**********
+			 * ASTORE *
+			 **********/
 		case Opcodes.AASTORE:
 			t = T.REF;
 			// fall through
@@ -572,9 +572,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new ASTORE(this.ops.size(), opcode, this.line, t));
 			break;
-		/********
-		 * CAST *
-		 ********/
+			/********
+			 * CAST *
+			 ********/
 		case Opcodes.D2F:
 			t = T.DOUBLE;
 			oValue = T.FLOAT;
@@ -664,9 +664,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new CAST(this.ops.size(), opcode, this.line, t, (T) oValue));
 			break;
-		/*******
-		 * CMP *
-		 *******/
+			/*******
+			 * CMP *
+			 *******/
 		case Opcodes.DCMPG:
 			t = T.DOUBLE;
 			iValue = CMP.T_G;
@@ -696,9 +696,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new CMP(this.ops.size(), opcode, this.line, t, iValue));
 			break;
-		/*******
-		 * DIV *
-		 *******/
+			/*******
+			 * DIV *
+			 *******/
 		case Opcodes.DDIV:
 			t = T.DOUBLE;
 			// fall through
@@ -718,9 +718,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new DIV(this.ops.size(), opcode, this.line, t));
 			break;
-		/*******
-		 * DUP *
-		 *******/
+			/*******
+			 * DUP *
+			 *******/
 		case Opcodes.DUP:
 			oValue = DUP.Kind.DUP;
 			// fall through
@@ -750,9 +750,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new DUP(this.ops.size(), opcode, this.line, (DUP.Kind) oValue));
 			break;
-		/***********
-		 * MONITOR *
-		 ***********/
+			/***********
+			 * MONITOR *
+			 ***********/
 		case Opcodes.MONITORENTER:
 			oValue = MONITOR.Kind.ENTER;
 			// fall through
@@ -762,9 +762,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new MONITOR(this.ops.size(), opcode, this.line, (MONITOR.Kind) oValue));
 			break;
-		/*******
-		 * MUL *
-		 *******/
+			/*******
+			 * MUL *
+			 *******/
 		case Opcodes.DMUL:
 			t = T.DOUBLE;
 			// fall through
@@ -784,9 +784,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new MUL(this.ops.size(), opcode, this.line, t));
 			break;
-		/*******
-		 * NEG *
-		 *******/
+			/*******
+			 * NEG *
+			 *******/
 		case Opcodes.DNEG:
 			t = T.DOUBLE;
 			// fall through
@@ -806,9 +806,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new NEG(this.ops.size(), opcode, this.line, t));
 			break;
-		/******
-		 * OR *
-		 ******/
+			/******
+			 * OR *
+			 ******/
 		case Opcodes.IOR:
 			t = T.AINT;
 			// fall through
@@ -818,9 +818,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new OR(this.ops.size(), opcode, this.line, t));
 			break;
-		/*******
-		 * POP *
-		 *******/
+			/*******
+			 * POP *
+			 *******/
 		case Opcodes.POP:
 			oValue = POP.Kind.POP;
 			// fall through
@@ -830,9 +830,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new POP(this.ops.size(), opcode, this.line, (POP.Kind) oValue));
 			break;
-		/********
-		 * PUSH *
-		 ********/
+			/********
+			 * PUSH *
+			 ********/
 		case Opcodes.ACONST_NULL:
 			t = T.REF;
 			// fall through
@@ -921,9 +921,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new PUSH(this.ops.size(), opcode, this.line, t, oValue));
 			break;
-		/*******
-		 * REM *
-		 *******/
+			/*******
+			 * REM *
+			 *******/
 		case Opcodes.DREM:
 			t = T.DOUBLE;
 			// fall through
@@ -943,9 +943,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new REM(this.ops.size(), opcode, this.line, t));
 			break;
-		/**********
-		 * RETURN *
-		 **********/
+			/**********
+			 * RETURN *
+			 **********/
 		case Opcodes.ARETURN:
 			t = T.REF;
 			// fall through
@@ -975,9 +975,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new RETURN(this.ops.size(), opcode, this.line, t));
 			break;
-		/*******
-		 * SHL *
-		 *******/
+			/*******
+			 * SHL *
+			 *******/
 		case Opcodes.ISHL:
 			t = T.INT;
 			// fall through
@@ -987,9 +987,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new SHL(this.ops.size(), opcode, this.line, t, T.INT));
 			break;
-		/*******
-		 * SHR *
-		 *******/
+			/*******
+			 * SHR *
+			 *******/
 		case Opcodes.ISHR:
 		case Opcodes.IUSHR:
 			t = T.INT;
@@ -1002,9 +1002,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			add(new SHR(this.ops.size(), opcode, this.line, t, T.INT, opcode == Opcodes.IUSHR
 					|| opcode == Opcodes.LUSHR));
 			break;
-		/*******
-		 * SUB *
-		 *******/
+			/*******
+			 * SUB *
+			 *******/
 		case Opcodes.DSUB:
 			t = T.DOUBLE;
 			// fall through
@@ -1024,21 +1024,21 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new SUB(this.ops.size(), opcode, this.line, t));
 			break;
-		/********
-		 * SWAP *
-		 ********/
+			/********
+			 * SWAP *
+			 ********/
 		case Opcodes.SWAP:
 			add(new SWAP(this.ops.size(), opcode, this.line));
 			break;
-		/*********
-		 * THROW *
-		 *********/
+			/*********
+			 * THROW *
+			 *********/
 		case Opcodes.ATHROW:
 			add(new THROW(this.ops.size(), opcode, this.line));
 			break;
-		/*******
-		 * XOR *
-		 *******/
+			/*******
+			 * XOR *
+			 *******/
 		case Opcodes.IXOR:
 			t = T.AINT;
 			// fall through
@@ -1076,9 +1076,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.SIPUSH:
 			add(new PUSH(this.ops.size(), opcode, this.line, T.getJvmIntT(operand), operand));
 			break;
-		/************
-		 * NEWARRAY *
-		 ************/
+			/************
+			 * NEWARRAY *
+			 ************/
 		case Opcodes.NEWARRAY:
 			add(new NEWARRAY(this.ops.size(), opcode, this.line,
 					this.du.getArrayT(T.TYPES[operand]), 1));
@@ -1185,9 +1185,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 				}
 			}
 			break;
-		/********
-		 * JCND *
-		 ********/
+			/********
+			 * JCND *
+			 ********/
 		case Opcodes.IFNULL:
 			t = T.REF;
 			oValue = CmpType.T_EQ;
@@ -1242,9 +1242,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 				}
 			}
 			break;
-		/*******
-		 * JSR *
-		 *******/
+			/*******
+			 * JSR *
+			 *******/
 		case Opcodes.JSR: {
 			final JSR op = new JSR(this.ops.size(), opcode, this.line);
 			add(op);
@@ -1372,11 +1372,13 @@ public class ReadMethodVisitor extends MethodVisitor {
 		T vT = this.du.getDescT(desc);
 		if (signature != null) {
 			final T sigT = this.du.parseT(signature, new Cursor(), this.m);
-			if (!sigT.eraseTo(vT)) {
-				log.info(getMd() + ": Cannot reduce signature '" + signature + "' to type '" + vT
-						+ "' for method (local variable '" + name + "') " + this.m);
-			} else {
-				vT = sigT;
+			if (sigT != null) {
+				if (!sigT.eraseTo(vT)) {
+					log.info(getMd() + ": Cannot reduce signature '" + signature + "' to type '"
+							+ vT + "' for method (local variable '" + name + "') " + this.m);
+				} else {
+					vT = sigT;
+				}
 			}
 		}
 		final int startPc = getPc(start);
@@ -1702,21 +1704,21 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.CHECKCAST:
 			add(new CAST(this.ops.size(), opcode, this.line, T.REF, t));
 			break;
-		/**************
-		 * INSTANCEOF *
-		 **************/
+			/**************
+			 * INSTANCEOF *
+			 **************/
 		case Opcodes.INSTANCEOF:
 			add(new INSTANCEOF(this.ops.size(), opcode, this.line, t));
 			break;
-		/*******
-		 * NEW *
-		 *******/
+			/*******
+			 * NEW *
+			 *******/
 		case Opcodes.NEW:
 			add(new NEW(this.ops.size(), opcode, this.line, t));
 			break;
-		/************
-		 * NEWARRAY *
-		 ************/
+			/************
+			 * NEWARRAY *
+			 ************/
 		case Opcodes.ANEWARRAY:
 			add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du.getArrayT(t), 1));
 			break;
@@ -1757,9 +1759,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new LOAD(this.ops.size(), opcode, this.line, t, var));
 			break;
-		/*********
-		 * STORE *
-		 *********/
+			/*********
+			 * STORE *
+			 *********/
 		case Opcodes.ASTORE:
 			t = T.AREF; // RET allowed too
 			// fall through
@@ -1784,9 +1786,9 @@ public class ReadMethodVisitor extends MethodVisitor {
 			}
 			add(new STORE(this.ops.size(), opcode, this.line, t, var));
 			break;
-		/*******
-		 * RET *
-		 *******/
+			/*******
+			 * RET *
+			 *******/
 		case Opcodes.RET: {
 			add(new RET(this.ops.size(), opcode, this.line, var));
 			break;

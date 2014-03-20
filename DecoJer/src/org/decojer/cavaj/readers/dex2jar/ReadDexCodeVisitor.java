@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -57,7 +57,7 @@ import com.googlecode.dex2jar.visitors.OdexCodeVisitor;
 
 /**
  * Dex2jar code visitor.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -83,7 +83,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
@@ -118,7 +118,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	/**
 	 * Init and set method declaration.
-	 * 
+	 *
 	 * @param m
 	 *            method
 	 */
@@ -345,11 +345,13 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 		T vT = this.du.getDescT(type);
 		if (signature != null) {
 			final T sigT = this.m.getDu().parseT(signature, new Cursor(), this.m);
-			if (!sigT.eraseTo(vT)) {
-				log.info("Cannot reduce signature '" + signature + "' to type '" + vT
-						+ "' for method (local variable '" + name + "') " + this.m);
-			} else {
-				vT = sigT;
+			if (sigT != null) {
+				if (!sigT.eraseTo(vT)) {
+					log.info("Cannot reduce signature '" + signature + "' to type '" + vT
+							+ "' for method (local variable '" + name + "') " + this.m);
+				} else {
+					vT = sigT;
+				}
 			}
 		}
 		final int startPc = getPc(start);

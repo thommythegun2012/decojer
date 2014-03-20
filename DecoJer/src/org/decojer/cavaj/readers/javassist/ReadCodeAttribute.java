@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -92,7 +92,7 @@ import com.google.common.collect.Maps;
 
 /**
  * Javassist read code attribute.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -123,7 +123,7 @@ public class ReadCodeAttribute {
 	/**
 	 * Helper function to avoid constPool.getClassInfo(i), which replaces '/' with '.'. This leads
 	 * to problems with new signatures that contain '.' for nested classes.
-	 * 
+	 *
 	 * @param constPool
 	 *            constant pool
 	 * @param index
@@ -147,7 +147,7 @@ public class ReadCodeAttribute {
 
 	/**
 	 * Init and visit.
-	 * 
+	 *
 	 * @param m
 	 *            method
 	 * @param codeAttribute
@@ -236,9 +236,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new ADD(this.ops.size(), opcode, line, t));
 				break;
-			/*********
-			 * ALOAD *
-			 *********/
+				/*********
+				 * ALOAD *
+				 *********/
 			case Opcode.AALOAD:
 				t = T.REF;
 				// fall through
@@ -278,9 +278,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new ALOAD(this.ops.size(), opcode, line, t));
 				break;
-			/*******
-			 * AND *
-			 *******/
+				/*******
+				 * AND *
+				 *******/
 			case Opcode.IAND:
 				t = T.AINT;
 				// fall through
@@ -290,15 +290,15 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new AND(this.ops.size(), opcode, line, t));
 				break;
-			/***************
-			 * ARRAYLENGTH *
-			 ***************/
+				/***************
+				 * ARRAYLENGTH *
+				 ***************/
 			case Opcode.ARRAYLENGTH:
 				this.ops.add(new ARRAYLENGTH(this.ops.size(), opcode, line));
 				break;
-			/**********
-			 * ASTORE *
-			 **********/
+				/**********
+				 * ASTORE *
+				 **********/
 			case Opcode.AASTORE:
 				t = T.REF;
 				// fall through
@@ -338,9 +338,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new ASTORE(this.ops.size(), opcode, line, t));
 				break;
-			/********
-			 * CAST *
-			 ********/
+				/********
+				 * CAST *
+				 ********/
 			case Opcode.CHECKCAST:
 				t = T.REF;
 				oValue = getT(constPool, codeReader.readUnsignedShort());
@@ -436,9 +436,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new CAST(this.ops.size(), opcode, line, t, (T) oValue));
 				break;
-			/*******
-			 * CMP *
-			 *******/
+				/*******
+				 * CMP *
+				 *******/
 			case Opcode.DCMPG:
 				t = T.DOUBLE;
 				iValue = CMP.T_G;
@@ -468,9 +468,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new CMP(this.ops.size(), opcode, line, t, iValue));
 				break;
-			/*******
-			 * DIV *
-			 *******/
+				/*******
+				 * DIV *
+				 *******/
 			case Opcode.DDIV:
 				t = T.DOUBLE;
 				// fall through
@@ -490,9 +490,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new DIV(this.ops.size(), opcode, line, t));
 				break;
-			/*******
-			 * DUP *
-			 *******/
+				/*******
+				 * DUP *
+				 *******/
 			case Opcode.DUP:
 				oValue = DUP.Kind.DUP;
 				// fall through
@@ -522,9 +522,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new DUP(this.ops.size(), opcode, line, (DUP.Kind) oValue));
 				break;
-			/*******
-			 * GET *
-			 *******/
+				/*******
+				 * GET *
+				 *******/
 			case Opcode.GETFIELD:
 			case Opcode.GETSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
@@ -558,9 +558,9 @@ public class ReadCodeAttribute {
 					}
 				}
 				break;
-			/*******
-			 * INC *
-			 *******/
+				/*******
+				 * INC *
+				 *******/
 			case Opcode.IINC: {
 				final int varIndex = wide ? codeReader.readUnsignedShort() : codeReader
 						.readUnsignedByte();
@@ -576,9 +576,9 @@ public class ReadCodeAttribute {
 				this.ops.add(new INSTANCEOF(this.ops.size(), opcode, line, getT(constPool,
 						codeReader.readUnsignedShort())));
 				break;
-			/**********
-			 * INVOKE *
-			 **********/
+				/**********
+				 * INVOKE *
+				 **********/
 			case Opcode.INVOKEINTERFACE: {
 				final int methodIndex = codeReader.readUnsignedShort();
 				codeReader.readUnsignedByte(); // count, unused
@@ -666,9 +666,9 @@ public class ReadCodeAttribute {
 					}
 				}
 				break;
-			/********
-			 * JCND *
-			 ********/
+				/********
+				 * JCND *
+				 ********/
 			case Opcode.IFNULL:
 				t = T.REF;
 				oValue = CmpType.T_EQ;
@@ -725,9 +725,9 @@ public class ReadCodeAttribute {
 					}
 				}
 				break;
-			/*******
-			 * JSR *
-			 *******/
+				/*******
+				 * JSR *
+				 *******/
 			case Opcode.JSR:
 				type = 0;
 				iValue = codeReader.readUnsignedShort();
@@ -747,9 +747,9 @@ public class ReadCodeAttribute {
 					}
 				}
 				break;
-			/********
-			 * LOAD *
-			 ********/
+				/********
+				 * LOAD *
+				 ********/
 			case Opcode.ALOAD:
 				t = T.REF;
 				// fall through
@@ -908,9 +908,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new MONITOR(this.ops.size(), opcode, line, (MONITOR.Kind) oValue));
 				break;
-			/*******
-			 * MUL *
-			 *******/
+				/*******
+				 * MUL *
+				 *******/
 			case Opcode.DMUL:
 				t = T.DOUBLE;
 				// fall through
@@ -930,9 +930,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new MUL(this.ops.size(), opcode, line, t));
 				break;
-			/*******
-			 * NEG *
-			 *******/
+				/*******
+				 * NEG *
+				 *******/
 			case Opcode.DNEG:
 				t = T.DOUBLE;
 				// fall through
@@ -952,16 +952,16 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new NEG(this.ops.size(), opcode, line, t));
 				break;
-			/*******
-			 * NEW *
-			 *******/
+				/*******
+				 * NEW *
+				 *******/
 			case Opcode.NEW:
 				this.ops.add(new NEW(this.ops.size(), opcode, line, getT(constPool,
 						codeReader.readUnsignedShort())));
 				break;
-			/************
-			 * NEWARRAY *
-			 ************/
+				/************
+				 * NEWARRAY *
+				 ************/
 			case Opcode.ANEWARRAY:
 				this.ops.add(new NEWARRAY(this.ops.size(), opcode, line, getDu().getArrayT(
 						getT(constPool, codeReader.readUnsignedShort())), 1));
@@ -988,9 +988,9 @@ public class ReadCodeAttribute {
 			case Opcode.NOP:
 				// ignore
 				break;
-			/******
-			 * OR *
-			 ******/
+				/******
+				 * OR *
+				 ******/
 			case Opcode.IOR:
 				t = T.AINT;
 				// fall through
@@ -1000,9 +1000,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new OR(this.ops.size(), opcode, line, t));
 				break;
-			/*******
-			 * POP *
-			 *******/
+				/*******
+				 * POP *
+				 *******/
 			case Opcode.POP:
 				oValue = POP.Kind.POP;
 				// fall through
@@ -1012,9 +1012,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new POP(this.ops.size(), opcode, line, (POP.Kind) oValue));
 				break;
-			/********
-			 * PUSH *
-			 ********/
+				/********
+				 * PUSH *
+				 ********/
 			case Opcode.ACONST_NULL:
 				t = T.REF;
 				// fall through
@@ -1195,9 +1195,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new PUSH(this.ops.size(), opcode, line, t, oValue));
 				break;
-			/*******
-			 * PUT *
-			 *******/
+				/*******
+				 * PUT *
+				 *******/
 			case Opcode.PUTFIELD:
 			case Opcode.PUTSTATIC: {
 				final int fieldIndex = codeReader.readUnsignedShort();
@@ -1231,9 +1231,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new REM(this.ops.size(), opcode, line, t));
 				break;
-			/*******
-			 * RET *
-			 *******/
+				/*******
+				 * RET *
+				 *******/
 			case Opcode.RET: {
 				final int varIndex = wide ? codeReader.readUnsignedShort() : codeReader
 						.readUnsignedByte();
@@ -1272,9 +1272,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new RETURN(this.ops.size(), opcode, line, t));
 				break;
-			/*********
-			 * STORE *
-			 *********/
+				/*********
+				 * STORE *
+				 *********/
 			case Opcode.ASTORE:
 				t = T.AREF; // RET allowed too
 				// fall through
@@ -1433,9 +1433,9 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new SHL(this.ops.size(), opcode, line, t, T.INT));
 				break;
-			/*******
-			 * SHR *
-			 *******/
+				/*******
+				 * SHR *
+				 *******/
 			case Opcode.ISHR:
 			case Opcode.IUSHR:
 				t = T.INT;
@@ -1448,9 +1448,9 @@ public class ReadCodeAttribute {
 				this.ops.add(new SHR(this.ops.size(), opcode, line, t, T.INT,
 						opcode == Opcode.IUSHR || opcode == Opcode.LUSHR));
 				break;
-			/*******
-			 * SUB *
-			 *******/
+				/*******
+				 * SUB *
+				 *******/
 			case Opcode.DSUB:
 				t = T.DOUBLE;
 				// fall through
@@ -1470,15 +1470,15 @@ public class ReadCodeAttribute {
 				}
 				this.ops.add(new SUB(this.ops.size(), opcode, line, t));
 				break;
-			/********
-			 * SWAP *
-			 ********/
+				/********
+				 * SWAP *
+				 ********/
 			case Opcode.SWAP:
 				this.ops.add(new SWAP(this.ops.size(), opcode, line));
 				break;
-			/**********
-			 * SWITCH *
-			 **********/
+				/**********
+				 * SWITCH *
+				 **********/
 			case Opcode.LOOKUPSWITCH: {
 				// align
 				if (codeReader.pc % 4 > 0) {
@@ -1552,9 +1552,9 @@ public class ReadCodeAttribute {
 			case Opcode.ATHROW:
 				this.ops.add(new THROW(this.ops.size(), opcode, line));
 				break;
-			/*******
-			 * XOR *
-			 *******/
+				/*******
+				 * XOR *
+				 *******/
 			case Opcode.IXOR:
 				t = T.AINT;
 				// fall through
@@ -1649,11 +1649,13 @@ public class ReadCodeAttribute {
 				}
 				final String signature = localVariableTypeAttribute.signature(i);
 				final T sigT = getDu().parseT(signature, new Cursor(), this.m);
-				if (!sigT.eraseTo(v.getT())) {
-					log.info("Cannot reduce signature '" + signature + "' to type '" + v.getT()
-							+ "' for method (local variable '" + v.getName() + "') " + this.m);
-				} else {
-					v.cmpSetT(sigT);
+				if (sigT != null) {
+					if (!sigT.eraseTo(v.getT())) {
+						log.info("Cannot reduce signature '" + signature + "' to type '" + v.getT()
+								+ "' for method (local variable '" + v.getName() + "') " + this.m);
+					} else {
+						v.cmpSetT(sigT);
+					}
 				}
 			}
 		}

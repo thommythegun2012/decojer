@@ -289,6 +289,9 @@ public class ClassM extends M {
 		do {
 			++c.pos;
 			final T throwT = getT().getDu().parseT(s, c, this);
+			if (throwT == null) {
+				continue;
+			}
 			throwT.setInterface(false); // TODO we know even more, must be from Throwable
 			ts.add(throwT);
 		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
@@ -396,11 +399,13 @@ public class ClassM extends M {
 			}
 		}
 		final T returnT = getT().getDu().parseT(signature, c, this);
-		if (!returnT.eraseTo(getReturnT())) {
-			log.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
-					+ "' for method return: " + this);
-		} else {
-			setReturnT(returnT);
+		if (returnT != null) {
+			if (!returnT.eraseTo(getReturnT())) {
+				log.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
+						+ "' for method return: " + this);
+			} else {
+				setReturnT(returnT);
+			}
 		}
 		final T[] signThrowTs = parseThrowsTs(signature, c);
 		if (signThrowTs != null) {

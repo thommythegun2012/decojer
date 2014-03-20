@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -34,7 +34,7 @@ import org.objectweb.asm.TypePath;
 
 /**
  * ASM Utilities.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -42,7 +42,7 @@ public class ReadUtils {
 
 	/**
 	 * Annotate given method with annotation under consideration of the type path.
-	 * 
+	 *
 	 * @param m
 	 *            method
 	 * @param a
@@ -111,7 +111,7 @@ public class ReadUtils {
 		}
 		case TypePath.TYPE_ARGUMENT: {
 			final T[] typeArgs = t.getTypeArgs();
-			if (typeArgs == null || typeArgs.length <= arg) {
+			if (typeArgs.length <= arg) {
 				log.warn("Not enough type arguments in '" + t
 						+ "' for type annotation path with argument '" + arg + "'!");
 				break;
@@ -140,7 +140,7 @@ public class ReadUtils {
 
 	/**
 	 * Annotate given type with annotation under consideration of the type path.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @param a

@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -144,7 +144,7 @@ import com.google.common.collect.Lists;
 
 /**
  * Transformer: CFG to Java Expression Statements ASTs.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -193,7 +193,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 	/**
 	 * Rewrite char-switches.
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - success
@@ -219,7 +219,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 	/**
 	 * Transform CFG.
-	 * 
+	 *
 	 * @param cfg
 	 *            CFG
 	 */
@@ -519,7 +519,7 @@ public final class TrCfg2JavaExpressionStmts {
 								newPrefixExpression(
 										cop.getValue() == 1 ? PrefixExpression.Operator.INCREMENT
 												: PrefixExpression.Operator.DECREMENT,
-										getVarExpression(cop.getReg(), cop.getPc(), op), op));
+												getVarExpression(cop.getReg(), cop.getPc(), op), op));
 						break;
 					}
 					log.warn(getM() + ": Inline ++/--!");
@@ -533,9 +533,9 @@ public final class TrCfg2JavaExpressionStmts {
 							newAssignment(
 									value >= 0 ? Assignment.Operator.PLUS_ASSIGN
 											: Assignment.Operator.MINUS_ASSIGN,
-									getVarExpression(cop.getReg(), cop.getPc(), op),
-									newLiteral(cop.getT(), value >= 0 ? value : -value, getCfg()
-											.getT(), op), op));
+											getVarExpression(cop.getReg(), cop.getPc(), op),
+											newLiteral(cop.getT(), value >= 0 ? value : -value, getCfg()
+													.getT(), op), op));
 					break;
 				}
 				log.warn(getM() + ": Inline INC with value '" + value + "'!");
@@ -614,22 +614,22 @@ public final class TrCfg2JavaExpressionStmts {
 								arguments.remove(0);
 								arguments.remove(0);
 							}
-							if (m.getT().is(getCfg().getT())) {
-								final ConstructorInvocation constructorInvocation = getAst()
-										.newConstructorInvocation();
-								constructorInvocation.arguments().addAll(arguments);
-								statement = constructorInvocation;
-								break;
-							}
-							if (arguments.size() == 0) {
-								// implicit super callout, more checks possible but not necessary
-								break;
-							}
-							final SuperConstructorInvocation superConstructorInvocation = getAst()
-									.newSuperConstructorInvocation();
-							superConstructorInvocation.arguments().addAll(arguments);
-							statement = superConstructorInvocation;
+						if (m.getT().is(getCfg().getT())) {
+							final ConstructorInvocation constructorInvocation = getAst()
+									.newConstructorInvocation();
+							constructorInvocation.arguments().addAll(arguments);
+							statement = constructorInvocation;
 							break;
+						}
+						if (arguments.size() == 0) {
+							// implicit super callout, more checks possible but not necessary
+							break;
+						}
+						final SuperConstructorInvocation superConstructorInvocation = getAst()
+								.newSuperConstructorInvocation();
+						superConstructorInvocation.arguments().addAll(arguments);
+						statement = superConstructorInvocation;
+						break;
 						}
 						if (expression instanceof ClassInstanceCreation) {
 							if (m.getT().isInner()
@@ -721,7 +721,7 @@ public final class TrCfg2JavaExpressionStmts {
 										.newTypeMethodReference();
 								methodReference.setType(newType(dynamicM.getT(), getCfg().getT()));
 								methodReference
-										.setName(newSimpleName(dynamicM.getName(), getAst()));
+								.setName(newSimpleName(dynamicM.getName(), getAst()));
 								methodExpression = methodReference;
 							} else {
 								assert arguments.size() == 1 : getM()
@@ -731,7 +731,7 @@ public final class TrCfg2JavaExpressionStmts {
 										.newExpressionMethodReference();
 								methodReference.setExpression(arguments.get(0));
 								methodReference
-										.setName(newSimpleName(dynamicM.getName(), getAst()));
+								.setName(newSimpleName(dynamicM.getName(), getAst()));
 								methodExpression = methodReference;
 							}
 							// TODO is in bytecode via lambda, we could let it be or recognize this
@@ -1008,7 +1008,7 @@ public final class TrCfg2JavaExpressionStmts {
 									getAst().newAnonymousClassDeclaration(), op);
 							newT.setAstNode(anonymousClassDeclaration);
 							classInstanceCreation
-									.setAnonymousClassDeclaration(anonymousClassDeclaration);
+							.setAnonymousClassDeclaration(anonymousClassDeclaration);
 							bb.push(classInstanceCreation);
 							break;
 						}
@@ -1100,7 +1100,7 @@ public final class TrCfg2JavaExpressionStmts {
 				if (!bb.isStackEmpty()
 						&& rightOperand instanceof InfixExpression
 						&& (((InfixExpression) rightOperand).getOperator() == InfixExpression.Operator.PLUS || ((InfixExpression) rightOperand)
-								.getOperator() == InfixExpression.Operator.MINUS)) {
+						.getOperator() == InfixExpression.Operator.MINUS)) {
 					// if i'm an peek-1 or peek+1 expression, than we can post-inc/dec
 					// TODO more checks!
 					bb.push(newPostfixExpression(
@@ -1280,7 +1280,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 	/**
 	 * Has BB necessary stack size for first operation?
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB has necessary stack size for first operation
@@ -1523,7 +1523,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 	/**
 	 * Class Literal Caching (no direct Constant Pool Class Literals before JDK 5).
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @param op
@@ -1885,23 +1885,23 @@ public final class TrCfg2JavaExpressionStmts {
 						// rewrite to class literal didn't work
 					}
 				}
-				// expressions: expression ? trueExpression : falseExpression
-				final ConditionalExpression conditionalExpression = getAst()
-						.newConditionalExpression();
-				if (!c.isBefore(x)) {
-					final Expression swapExpression = thenExpression;
-					thenExpression = elseExpression;
-					elseExpression = swapExpression;
-					if (a_c.isCondTrue()) {
-						expression = not(expression);
-					}
-				} else if (a_c.isCondFalse()) {
+			// expressions: expression ? trueExpression : falseExpression
+			final ConditionalExpression conditionalExpression = getAst()
+					.newConditionalExpression();
+			if (!c.isBefore(x)) {
+				final Expression swapExpression = thenExpression;
+				thenExpression = elseExpression;
+				elseExpression = swapExpression;
+				if (a_c.isCondTrue()) {
 					expression = not(expression);
 				}
-				conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
-				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
-				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
-				expression = conditionalExpression;
+			} else if (a_c.isCondFalse()) {
+				expression = not(expression);
+			}
+			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
+			conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
+			conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
+			expression = conditionalExpression;
 			}
 			a.push(expression);
 			a.setSucc(bb);
@@ -1914,7 +1914,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 	/**
 	 * Rewrite PUT-access to a class (static) or instance field.
-	 * 
+	 *
 	 * @param bb
 	 *            current BB
 	 * @param f
@@ -1945,42 +1945,42 @@ public final class TrCfg2JavaExpressionStmts {
 				if (f.isEnum()) {
 					// assignment to enum constant declaration
 					if (!(rightOperand instanceof ClassInstanceCreation)) {
-						log.warn(getM() + ": Assignment to enum field '" + f
-								+ "' is no class instance creation!");
+						log.warn(getM() + ": Enum field initialization for '" + f
+								+ "' has no class instance creation as operand!");
 						return false;
 					}
 					final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) rightOperand;
 					// first two arguments must be String (== field name) and int (ordinal)
 					final List<Expression> arguments = classInstanceCreation.arguments();
 					if (arguments.size() < 2) {
-						log.warn(getM() + ": Class instance creation for enum field '" + f
+						log.warn(getM() + ": Enum field initialization for '" + f
 								+ "' has less than 2 arguments!");
 						return false;
 					}
 					if (!(arguments.get(0) instanceof StringLiteral)) {
-						log.warn(getM() + ": Class instance creation for enum field '" + f
-								+ "' must contain string literal as first parameter!");
+						log.warn(getM() + ": Enum field initialization for '" + f
+								+ "' has no string literal as first parameter!");
 						return false;
 					}
 					final String literalValue = ((StringLiteral) arguments.get(0))
 							.getLiteralValue();
 					if (!literalValue.equals(f.getName())) {
-						log.warn(getM()
-								+ ": Class instance creation for enum field '"
-								+ f
-								+ "' must contain string literal equal to field name as first parameter!");
+						log.warn(getM() + ": Enum field initialization for '" + f
+								+ "' has no string literal equal to field name as first parameter!");
 						return false;
 					}
 					if (!(arguments.get(1) instanceof NumberLiteral)) {
-						log.warn(getM() + ": Class instance creation for enum field '" + f
-								+ "' must contain number literal as first parameter!");
+						log.warn(getM() + ": Enum field initialization for '" + f
+								+ "' has no number literal as first parameter!");
 						return false;
 					}
-					final Object fieldDeclaration = f.getAstNode();
-					assert fieldDeclaration instanceof EnumConstantDeclaration : fieldDeclaration;
-
-					final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) fieldDeclaration;
-
+					final Object astNode = f.getAstNode();
+					if (!(astNode instanceof EnumConstantDeclaration)) {
+						log.warn(getM() + ": Enum field initialization for '" + f
+								+ "' has no EnumConstantDeclaration as AST node!");
+						return false;
+					}
+					final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) astNode;
 					for (int i = arguments.size(); i-- > 2;) {
 						final Expression e = arguments.get(i);
 						e.delete();
@@ -1989,16 +1989,22 @@ public final class TrCfg2JavaExpressionStmts {
 					final AnonymousClassDeclaration anonymousClassDeclaration = classInstanceCreation
 							.getAnonymousClassDeclaration();
 					if (anonymousClassDeclaration != null) {
-						anonymousClassDeclaration.delete();
-						enumConstantDeclaration
-								.setAnonymousClassDeclaration(anonymousClassDeclaration);
-						// normally contains one constructor, that calls a synthetic super
-						// constructor with the enum class as additional last parameter,
-						// this may contain field initializers, that we must keep,
-						// so we can only remove the constructor in final merge (because
-						// anonymous inner classes cannot have visible Java constructor)
-						f.getT().getCu().getDeclarationForNode(anonymousClassDeclaration)
-								.setDeclarationOwner(f);
+						final Element declarationForNode = f.getT().getCu()
+								.getDeclarationForNode(anonymousClassDeclaration);
+						if (declarationForNode == null) {
+							log.warn(getM() + ": Enum field initialization for '" + f
+									+ "' with anonymous declaration has no declaration node!");
+						} else {
+							anonymousClassDeclaration.delete();
+							enumConstantDeclaration
+									.setAnonymousClassDeclaration(anonymousClassDeclaration);
+							// normally contains one constructor, that calls a synthetic super
+							// constructor with the enum class as additional last parameter,
+							// this may contain field initializers, that we must keep,
+							// so we can only remove the constructor in final merge (because
+							// anonymous inner classes cannot have visible Java constructor)
+							declarationForNode.setDeclarationOwner(f);
+						}
 					}
 					return true;
 				}
@@ -2036,19 +2042,20 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			return true; // ignore such assignments completely
 		}
-		try {
-			((VariableDeclarationFragment) ((FieldDeclaration) f.getAstNode()).fragments().get(0))
-					.setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
-			// TODO move anonymous TD to FD as child!!! important for ClassEditor
-			// select, if fixed change ClassEditor#findDeclarationForJavaElement too
-			if (!f.isStatic()) {
-				bb.pop();
-			}
-			return true;
-		} catch (final Exception e) {
-			log.warn(getM() + ": Rewrite to field-initializer didn't work!", e);
+		final Object astNode = f.getAstNode();
+		if (!(astNode instanceof FieldDeclaration)) {
+			log.warn(getM() + ": Field initialization for '" + f
+					+ "' has no FieldDeclaration as AST node!");
 			return false;
 		}
+		((VariableDeclarationFragment) ((FieldDeclaration) astNode).fragments().get(0))
+				.setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
+		// TODO move anonymous TD to FD as child!!! important for ClassEditor
+		// select, if fixed change ClassEditor#findDeclarationForJavaElement too
+		if (!f.isStatic()) {
+			bb.pop();
+		}
+		return true;
 	}
 
 	private boolean rewriteHandler(final BB bb) {
@@ -2263,28 +2270,28 @@ public final class TrCfg2JavaExpressionStmts {
 				// static initializer
 				assert array instanceof QualifiedName : array.getClass();
 
-				final F arrayF = ((GET) arrayOp).getF();
-				M initializer = null;
-				for (final Element bd : arrayF.getDeclarationOwner().getDeclarations()) {
-					if (!(bd instanceof M)) {
-						continue;
-					}
-					final M m = (M) bd;
-					if (m.isInitializer()) {
-						initializer = m;
-						break;
-					}
+			final F arrayF = ((GET) arrayOp).getF();
+			M initializer = null;
+			for (final Element bd : arrayF.getDeclarationOwner().getDeclarations()) {
+				if (!(bd instanceof M)) {
+					continue;
 				}
-				if (initializer == null) {
-					return false;
+				final M m = (M) bd;
+				if (m.isInitializer()) {
+					initializer = m;
+					break;
 				}
-				index2enum = SwitchTypes.extractIndex2enum(initializer, ordinalM.getT());
+			}
+			if (initializer == null) {
+				return false;
+			}
+			index2enum = SwitchTypes.extractIndex2enum(initializer, ordinalM.getT());
 			} else if (arrayOp instanceof INVOKE) {
 				// Eclipse-Bytecode mode: map in same class file - or general in a function
 				assert array instanceof MethodInvocation : array.getClass();
 
-				final M arrayM = ((INVOKE) arrayOp).getM();
-				index2enum = SwitchTypes.extractIndex2enum(arrayM, ordinalM.getT());
+			final M arrayM = ((INVOKE) arrayOp).getM();
+			index2enum = SwitchTypes.extractIndex2enum(arrayM, ordinalM.getT());
 			} else {
 				return false;
 			}

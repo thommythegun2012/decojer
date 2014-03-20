@@ -16,18 +16,20 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.types;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 
 /**
  * JVM Bytecode Version.
- * 
+ *
  * @author André Pankraz
  */
 public enum Version {
@@ -50,17 +52,28 @@ public enum Version {
 
 	JVM_9(53),
 
-	JVM_10(54);
+	JVM_UNKNOWN(-1);
 
 	/**
 	 * Get version.
-	 * 
+	 *
 	 * @param major
 	 *            major version
 	 * @return version
 	 */
+	@Nonnull
 	public static Version versionFor(final int major) {
-		return Version.values()[major - 45];
+		final int jvm1major = JVM_1.getMajor(); // 45
+		if (major < jvm1major) {
+			return JVM_UNKNOWN;
+		}
+		final Version[] values = Version.values();
+		if (major - jvm1major >= values.length) {
+			return JVM_UNKNOWN;
+		}
+		final Version v = values[major - jvm1major];
+		assert v != null;
+		return v;
 	}
 
 	@Getter
@@ -68,7 +81,7 @@ public enum Version {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param major
 	 *            major version
 	 */

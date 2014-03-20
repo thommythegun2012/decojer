@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -69,7 +69,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 
 /**
  * Transformer: JVM Struct to AST.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -317,7 +317,7 @@ public final class TrJvmStruct2JavaAst {
 	/**
 	 * Decompile method parameters (parameter types, return type, exception types, annotations,
 	 * names).
-	 * 
+	 *
 	 * @param m
 	 *            method declaration
 	 */
@@ -326,7 +326,12 @@ public final class TrJvmStruct2JavaAst {
 		// method type parameters (full signature only):
 		// <T:Ljava/lang/Integer;U:Ljava/lang/Long;>(TT;TU;)V
 		// <U:TT;>(TT;TU;)V
-		final MethodDeclaration methodDeclaration = (MethodDeclaration) m.getAstNode();
+		final Object astNode = m.getAstNode();
+		if (!(astNode instanceof MethodDeclaration)) {
+			assert false;
+			return;
+		}
+		final MethodDeclaration methodDeclaration = (MethodDeclaration) astNode;
 		final T t = m.getT();
 		final AST ast = t.getCu().getAst();
 
@@ -409,9 +414,10 @@ public final class TrJvmStruct2JavaAst {
 
 			// annotation type declaration
 			if (t.check(AF.ANNOTATION)) {
-				if (t.getSuperT() == null || !t.getSuperT().isObject()) {
+				final T superT = t.getSuperT();
+				if (superT == null || !superT.isObject()) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no super class Object but has '"
-							+ t.getSuperT() + "'!");
+							+ superT + "'!");
 				}
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
@@ -425,10 +431,10 @@ public final class TrJvmStruct2JavaAst {
 				if (typeDeclaration != null) {
 					log.warn("Enum declaration cannot be an annotation type declaration! Ignoring.");
 				} else {
-					if (t.getSuperT() == null || !t.getSuperT().isParameterized()
-							|| !t.getSuperT().is(Enum.class)) {
+					final T superT = t.getSuperT();
+					if (superT == null || !superT.isParameterized() || !superT.is(Enum.class)) {
 						log.warn("Enum type '" + t + "' has no super class '"
-								+ Enum.class.getName() + "' but has '" + t.getSuperT() + "'!");
+								+ Enum.class.getName() + "' but has '" + superT + "'!");
 					}
 					typeDeclaration = ast.newEnumDeclaration();
 					// enums cannot extend other classes than Enum.class, but can have interfaces
@@ -527,7 +533,7 @@ public final class TrJvmStruct2JavaAst {
 
 	/**
 	 * Decompile Type Parameters.
-	 * 
+	 *
 	 * @param typeParams
 	 *            Type Parameters
 	 * @param typeParameters
@@ -558,7 +564,7 @@ public final class TrJvmStruct2JavaAst {
 
 	/**
 	 * Transform type declaration.
-	 * 
+	 *
 	 * @param t
 	 *            type declaration
 	 */

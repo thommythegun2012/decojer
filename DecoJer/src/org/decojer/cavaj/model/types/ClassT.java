@@ -249,10 +249,13 @@ public class ClassT extends T {
 
 	@Override
 	public T[] getTypeParams() {
-		if (this.typeParams == null && isUnresolvable()) {
-			return TYPE_PARAMS_NONE;
+		T[] typeParams = this.typeParams;
+		if (typeParams == null) {
+			isUnresolvable();
+			typeParams = this.typeParams;
+			assert typeParams != null;
 		}
-		return this.typeParams;
+		return typeParams;
 	}
 
 	@Override
@@ -557,12 +560,14 @@ public class ClassT extends T {
 		setTypeParams(getDu().parseTypeParams(signature, c, this));
 
 		final T superT = getDu().parseT(signature, c, this);
-		if (!superT.eraseTo(getSuperT())) {
-			log.info("Cannot reduce type '" + superT + "' to super type '" + getSuperT()
-					+ "' for type declaration '" + this + "' with signature: " + signature);
-			return;
+		if (superT != null) {
+			if (!superT.eraseTo(getSuperT())) {
+				log.info("Cannot reduce type '" + superT + "' to super type '" + getSuperT()
+						+ "' for type declaration '" + this + "' with signature: " + signature);
+				return;
+			}
+			setSuperT(superT);
 		}
-		setSuperT(superT);
 		final T[] signInterfaceTs = parseInterfaceTs(signature, c);
 		if (signInterfaceTs != null) {
 			final T[] interfaceTs = getInterfaceTs();
