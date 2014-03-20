@@ -16,21 +16,23 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.types;
 
+import javax.annotation.Nullable;
+
 import lombok.Getter;
 import lombok.Setter;
 
 /**
  * Wildcard type.
- * 
+ *
  * This type is used as type argument, but other types can be type arguments too.
- * 
+ *
  * @author André Pankraz
  */
 public class WildcardT extends BaseT {
@@ -40,17 +42,18 @@ public class WildcardT extends BaseT {
 
 	@Getter
 	@Setter
+	@Nullable
 	private T boundT;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param boundT
 	 *            bound type
 	 * @param subclass
 	 *            is subclass (extends)
 	 */
-	public WildcardT(final T boundT, final boolean subclass) {
+	public WildcardT(@Nullable final T boundT, final boolean subclass) {
 		setBoundT(boundT);
 		this.subclassOf = subclass;
 	}
@@ -59,7 +62,7 @@ public class WildcardT extends BaseT {
 	public T[] getInterfaceTs() {
 		if (isSubclassOf()) {
 			final T boundT = getBoundT();
-			if (boundT.isInterface()) {
+			if (boundT != null && boundT.isInterface()) {
 				return new T[] { boundT };
 			}
 		}
@@ -68,20 +71,21 @@ public class WildcardT extends BaseT {
 
 	@Override
 	public String getName() {
-		if (getBoundT() == null) {
+		final T boundT = getBoundT();
+		if (boundT == null) {
 			return "?";
 		}
 		if (isSubclassOf()) {
-			return "? extends " + getBoundT().getFullName();
+			return "? extends " + boundT.getFullName();
 		}
-		return "? super " + getBoundT().getFullName();
+		return "? super " + boundT.getFullName();
 	}
 
 	@Override
 	public T getSuperT() {
 		if (isSubclassOf()) {
 			final T boundT = getBoundT();
-			if (!boundT.isInterface()) {
+			if (boundT != null && !boundT.isInterface()) {
 				return boundT;
 			}
 		}
