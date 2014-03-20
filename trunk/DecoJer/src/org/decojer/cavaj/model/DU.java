@@ -401,6 +401,7 @@ public final class DU {
 	 *            descriptor (package/subpackage/Type$Inner)
 	 * @return type
 	 */
+	@Nullable
 	public T getDescT(final String desc) {
 		return parseT(desc, new Cursor(), null);
 	}

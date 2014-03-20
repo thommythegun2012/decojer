@@ -68,11 +68,8 @@ public class ReadUtils {
 	}
 
 	@Nullable
-	private static T annotatePart(@Nullable final T t, @Nonnull final A a,
+	private static T annotatePart(@Nonnull final T t, @Nonnull final A a,
 			@Nullable final TypePath typePath, final int index) {
-		if (t == null) {
-			return null;
-		}
 		if (typePath == null) {
 			return DU.getAnnotatedT(t, a);
 		}
@@ -159,20 +156,14 @@ public class ReadUtils {
 	 * @return annotated type
 	 */
 	@Nullable
-	public static T annotateT(@Nullable final T t, @Nullable final A a,
+	public static T annotateT(@Nonnull final T t, @Nonnull final A a,
 			@Nullable final TypePath typePath) {
 		return annotateT(t, a, typePath, 0);
 	}
 
 	@Nullable
-	private static T annotateT(@Nullable final T t, @Nullable final A a,
+	private static T annotateT(@Nonnull final T t, @Nonnull final A a,
 			@Nullable final TypePath typePath, final int index) {
-		if (a == null) {
-			return t;
-		}
-		if (t == null) {
-			return null;
-		}
 		int innerCounter = 0;
 		if (typePath != null) {
 			final int typePathLength = typePath.getLength();
