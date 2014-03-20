@@ -24,6 +24,7 @@
 package org.decojer.cavaj.readers.asm;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -154,14 +155,17 @@ public class ReadUtils {
 	 *            type path
 	 * @return annotated type
 	 */
-	@Nonnull
-	public static T annotateT(@Nonnull final T t, final A a, final TypePath typePath) {
+	@Nullable
+	public static T annotateT(@Nullable final T t, final A a, @Nullable final TypePath typePath) {
 		return annotateT(t, a, typePath, 0);
 	}
 
-	@Nonnull
-	private static T annotateT(@Nonnull final T t, final A a, final TypePath typePath,
+	@Nullable
+	private static T annotateT(@Nullable final T t, final A a, @Nullable final TypePath typePath,
 			final int index) {
+		if (t == null) {
+			return null;
+		}
 		int innerCounter = 0;
 		if (typePath != null) {
 			final int typePathLength = typePath.getLength();

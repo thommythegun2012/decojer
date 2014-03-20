@@ -221,11 +221,17 @@ public class ReadMethodImplementation {
 			case DebugItemType.START_LOCAL:
 			case DebugItemType.START_LOCAL_EXTENDED: {
 				final String name = ((StartLocal) debugItem).getName();
+				if (name == null) {
+					continue;
+				}
 				final String type = ((StartLocal) debugItem).getType();
+				T vT = getDu().getDescT(type);
+				if (vT == null) {
+					continue;
+				}
 				final String signature = ((StartLocal) debugItem).getSignature();
 				final int registerNum = ((StartLocal) debugItem).getRegister();
 
-				T vT = getDu().getDescT(type);
 				if (signature != null) {
 					final T sigT = getDu().parseT(signature, new Cursor(), this.m);
 					if (sigT != null) {
@@ -1248,6 +1254,7 @@ public class ReadMethodImplementation {
 				}
 
 				for (final T paramT : refM.getParamTs()) {
+					assert paramT != null;
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, regs[reg++]));
 					if (paramT.isWide()) {
 						++reg;
@@ -1283,6 +1290,7 @@ public class ReadMethodImplementation {
 				}
 
 				for (final T paramT : refM.getParamTs()) {
+					assert paramT != null;
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, paramT, reg++));
 					if (paramT.isWide()) {
 						++reg;

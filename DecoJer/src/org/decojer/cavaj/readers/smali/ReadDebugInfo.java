@@ -229,6 +229,9 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		assert length > 0; // have no idea what this is
 
 		T vT = this.m.getT().getDu().getDescT(type.getTypeDescriptor());
+		if (vT == null) {
+			return;
+		}
 		if (signature != null) {
 			final T sigT = this.m.getT().getDu()
 					.parseT(signature.getStringValue(), new Cursor(), this.m);

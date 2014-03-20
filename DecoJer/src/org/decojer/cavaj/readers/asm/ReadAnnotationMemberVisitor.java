@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,22 +25,25 @@ package org.decojer.cavaj.readers.asm;
 
 import java.lang.annotation.RetentionPolicy;
 
+import javax.annotation.Nullable;
+
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.types.T;
 
 /**
  * ASM read annotation member visitor.
- * 
+ *
  * @author André Pankraz
  */
 public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 
+	@Nullable
 	private A a;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
@@ -50,21 +53,23 @@ public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 
 	@Override
 	protected void add(final String name, final Object value) {
-		this.a.addMember(name, value);
+		if (this.a != null) {
+			this.a.addMember(name, value);
+		}
 	}
 
 	/**
 	 * Init and set annotation.
-	 * 
+	 *
 	 * @param desc
 	 *            annotation descriptor
 	 * @param retentionPolicy
 	 *            retention policy
 	 * @return annotation
 	 */
-	public A init(final String desc, final RetentionPolicy retentionPolicy) {
+	public A init(@Nullable final String desc, final RetentionPolicy retentionPolicy) {
 		final T t = this.du.getDescT(desc);
-		return this.a = new A(t, retentionPolicy);
+		return this.a = t == null ? null : new A(t, retentionPolicy);
 	}
 
 }

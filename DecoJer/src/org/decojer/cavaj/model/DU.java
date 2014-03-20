@@ -119,6 +119,7 @@ public final class DU {
 	 *
 	 * @return wildcard type
 	 */
+	@Nonnull
 	public static WildcardT getMatchesWildcardT() {
 		return new WildcardT(null, false);
 	}
@@ -132,7 +133,9 @@ public final class DU {
 	 *            type arguments for matching type parameters
 	 * @return parameterized type for generic type and type arguments
 	 */
-	public static ParameterizedT getParameterizedT(final T genericT, final T[] typeArgs) {
+	@Nonnull
+	public static ParameterizedT getParameterizedT(@Nonnull final T genericT,
+			@Nonnull final T[] typeArgs) {
 		// cannot cache because of type variables
 		return new ParameterizedT(genericT, typeArgs);
 	}
@@ -234,9 +237,8 @@ public final class DU {
 	 *
 	 * @return wildcard type
 	 */
-	public static WildcardT getSubclassOfWildcardT(final T t) {
-		assert t != null;
-
+	@Nonnull
+	public static WildcardT getSubclassOfWildcardT(@Nonnull final T t) {
 		return new WildcardT(t, true);
 	}
 
@@ -250,9 +252,8 @@ public final class DU {
 	 *
 	 * @return wildcard type
 	 */
-	public static WildcardT getSuperOfWildcardT(final T t) {
-		assert t != null;
-
+	@Nonnull
+	public static WildcardT getSuperOfWildcardT(@Nonnull final T t) {
 		return new WildcardT(t, false);
 	}
 
@@ -271,7 +272,8 @@ public final class DU {
 	 *            enclosing type context
 	 * @return type variable
 	 */
-	public static VarT getVarT(final String name, final Object context) {
+	@Nonnull
+	public static VarT getVarT(@Nonnull final String name, final Object context) {
 		return new VarT(name, context);
 	}
 
@@ -623,12 +625,19 @@ public final class DU {
 			++c.pos;
 			return t;
 		}
-		case '[':
+		case '[': {
 			// ArrayTypeSignature
-			return getArrayT(parseT(s, c, context));
+			final T t = parseT(s, c, context);
+			if (t == null) {
+				return null;
+			}
+			return getArrayT(t);
+		}
 		case 'T': {
 			final int pos = s.indexOf(';', c.pos);
-			final T t = getVarT(s.substring(c.pos, pos), context);
+			final String tName = s.substring(c.pos, pos);
+			assert tName != null;
+			final T t = getVarT(tName, context);
 			c.pos = pos + 1;
 			return t;
 		}
@@ -660,20 +669,38 @@ public final class DU {
 		char ch;
 		while ((ch = s.charAt(c.pos)) != '>') {
 			switch (ch) {
-			case '+':
-				++c.pos;
-				ts.add(getSubclassOfWildcardT(parseT(s, c, context)));
-				break;
-			case '-':
-				++c.pos;
-				ts.add(getSuperOfWildcardT(parseT(s, c, context)));
-				break;
 			case '*':
 				++c.pos;
 				ts.add(getMatchesWildcardT());
 				break;
-			default:
-				ts.add(parseT(s, c, context));
+			case '+': {
+				++c.pos;
+				final T t = parseT(s, c, context);
+				if (t == null) {
+					log.warn("Cannot parse type arg at position '" + c + "' in '" + s + "'!");
+					return null;
+				}
+				ts.add(getSubclassOfWildcardT(t));
+				break;
+			}
+			case '-': {
+				++c.pos;
+				final T t = parseT(s, c, context);
+				if (t == null) {
+					log.warn("Cannot parse type arg at position '" + c + "' in '" + s + "'!");
+					return null;
+				}
+				ts.add(getSuperOfWildcardT(t));
+				break;
+			}
+			default: {
+				final T t = parseT(s, c, context);
+				if (t == null) {
+					log.warn("Cannot parse type arg at position '" + c + "' in '" + s + "'!");
+					return null;
+				}
+				ts.add(t);
+			}
 			}
 		}
 		++c.pos;
