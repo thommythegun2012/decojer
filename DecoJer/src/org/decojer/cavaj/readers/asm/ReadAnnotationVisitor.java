@@ -25,6 +25,7 @@ package org.decojer.cavaj.readers.asm;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.DU;
@@ -43,6 +44,7 @@ import com.google.common.collect.Lists;
  */
 public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 
+	@Nonnull
 	protected final DU du;
 
 	/**
@@ -51,7 +53,7 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadAnnotationVisitor(final DU du) {
+	public ReadAnnotationVisitor(@Nonnull final DU du) {
 		super(Opcodes.ASM5);
 		this.du = du;
 	}

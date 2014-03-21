@@ -26,6 +26,7 @@ package org.decojer.cavaj.readers.asm;
 import java.io.IOException;
 import java.io.InputStream;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.DU;
@@ -47,9 +48,7 @@ public class AsmReader implements ClassReader {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public AsmReader(final DU du) {
-		assert du != null;
-
+	public AsmReader(@Nonnull final DU du) {
 		this.readClassVisitor = new ReadClassVisitor(du);
 	}
 

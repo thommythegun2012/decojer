@@ -79,6 +79,7 @@ public final class CU implements Container {
 	 * Source file name (calculated).
 	 */
 	@Getter
+	@Nonnull
 	private final String sourceFileName;
 
 	/**
@@ -89,10 +90,7 @@ public final class CU implements Container {
 	 * @param sourceFileName
 	 *            source file name
 	 */
-	public CU(final T t, final String sourceFileName) {
-		assert t != null;
-		assert sourceFileName != null;
-
+	public CU(@Nonnull final T t, @Nonnull final String sourceFileName) {
 		t.setDeclarationOwner(this);
 		this.sourceFileName = sourceFileName;
 	}

@@ -29,6 +29,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
@@ -90,8 +91,10 @@ import com.google.common.io.ByteStreams;
 @Slf4j
 public class SmaliReader implements DexReader {
 
+	@Nonnull
 	private final DU du;
 
+	@Nonnull
 	private final ReadCodeItem readCodeItem = new ReadCodeItem();
 
 	/**
@@ -100,9 +103,7 @@ public class SmaliReader implements DexReader {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public SmaliReader(final DU du) {
-		assert du != null;
-
+	public SmaliReader(@Nonnull final DU du) {
 		this.du = du;
 	}
 

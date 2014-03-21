@@ -25,6 +25,7 @@ package org.decojer.cavaj.readers.asm;
 
 import java.lang.annotation.RetentionPolicy;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.A;
@@ -47,7 +48,7 @@ public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadAnnotationMemberVisitor(final DU du) {
+	public ReadAnnotationMemberVisitor(@Nonnull final DU du) {
 		super(du);
 	}
 

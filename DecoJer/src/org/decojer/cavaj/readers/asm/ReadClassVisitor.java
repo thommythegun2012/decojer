@@ -27,6 +27,8 @@ import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
 
+import javax.annotation.Nonnull;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -56,12 +58,16 @@ public class ReadClassVisitor extends ClassVisitor {
 
 	private A[] as;
 
+	@Nonnull
 	private final DU du;
 
+	@Nonnull
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
+	@Nonnull
 	private final ReadFieldVisitor readFieldVisitor;
 
+	@Nonnull
 	private final ReadMethodVisitor readMethodVisitor;
 
 	@Getter(AccessLevel.PROTECTED)
@@ -73,7 +79,7 @@ public class ReadClassVisitor extends ClassVisitor {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadClassVisitor(final DU du) {
+	public ReadClassVisitor(@Nonnull final DU du) {
 		super(Opcodes.ASM5);
 		this.du = du;
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);

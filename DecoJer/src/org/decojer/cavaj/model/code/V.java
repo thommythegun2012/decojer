@@ -79,9 +79,7 @@ public final class V {
 	 * @param v
 	 *            variable
 	 */
-	public V(final V v) {
-		assert v != null;
-
+	public V(@Nonnull final V v) {
 		this.t = v.t;
 		this.name = v.name;
 		this.pcs = v.pcs; // TODO copy?

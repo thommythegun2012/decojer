@@ -130,6 +130,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private A[] as;
 
+	@Nonnull
 	private final DU du;
 
 	private final List<Exc> excs = Lists.newArrayList();
@@ -150,6 +151,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private A[][] paramAss;
 
+	@Nonnull
 	private final ReadAnnotationMemberVisitor annotationVisitor;
 
 	private final Map<Integer, List<V>> reg2vs = Maps.newHashMap();
@@ -160,7 +162,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadMethodVisitor(final DU du) {
+	public ReadMethodVisitor(@Nonnull final DU du) {
 		super(Opcodes.ASM5);
 		this.du = du;
 		this.annotationVisitor = new ReadAnnotationMemberVisitor(du);
@@ -398,7 +400,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitFieldInsn(final int opcode, final String owner, final String name,
 			final String desc) {
-		// ### 178 : java/lang/System : out : Ljava/io/PrintStream;
+		if (name == null || desc == null) {
+			log.warn(getM() + ": Cannot read get operation with field name '" + name
+					+ "' and descriptor '" + desc + "'!");
+			return;
+		}
 		switch (opcode) {
 		/*******
 		 * GET *
@@ -1516,6 +1522,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 	@Override
 	public void visitMethodInsn(final int opcode, final String owner, final String name,
 			final String desc, final boolean itf) {
+		if (name == null || desc == null) {
+			log.warn(getM() + ": Cannot read invoke operation with method name '" + name
+					+ "' and descriptor '" + desc + "'!");
+			return;
+		}
 		switch (opcode) {
 		/**********
 		 * INVOKE *

@@ -64,6 +64,7 @@ import javassist.bytecode.annotation.MemberValue;
 import javassist.bytecode.annotation.ShortMemberValue;
 import javassist.bytecode.annotation.StringMemberValue;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
@@ -84,8 +85,10 @@ import org.decojer.cavaj.readers.ClassReader;
 @Slf4j
 public class JavassistReader implements ClassReader {
 
+	@Nonnull
 	private final DU du;
 
+	@Nonnull
 	private final ReadCodeAttribute readCodeAttribute = new ReadCodeAttribute();
 
 	/**
@@ -94,9 +97,7 @@ public class JavassistReader implements ClassReader {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public JavassistReader(final DU du) {
-		assert du != null;
-
+	public JavassistReader(@Nonnull final DU du) {
 		this.du = du;
 	}
 
