@@ -16,22 +16,21 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.readers.dex2jar;
 
-import java.lang.annotation.RetentionPolicy;
+import javax.annotation.Nonnull;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
-import org.decojer.cavaj.model.types.T;
 
 /**
  * Dex2jar read annotation member visitor.
- * 
+ *
  * @author André Pankraz
  */
 public class ReadDexAnnotationMemberVisitor extends ReadDexAnnotationVisitor {
@@ -40,11 +39,11 @@ public class ReadDexAnnotationMemberVisitor extends ReadDexAnnotationVisitor {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadDexAnnotationMemberVisitor(final DU du) {
+	public ReadDexAnnotationMemberVisitor(@Nonnull final DU du) {
 		super(du);
 	}
 
@@ -54,17 +53,15 @@ public class ReadDexAnnotationMemberVisitor extends ReadDexAnnotationVisitor {
 	}
 
 	/**
-	 * Init and set annotation.
-	 * 
-	 * @param desc
-	 *            annotation descriptor
-	 * @param retentionPolicy
-	 *            retention policy
-	 * @return annotation
+	 * Init visitor.
+	 *
+	 * @param a
+	 *            annotation
+	 * @return initialized visitor
 	 */
-	public A init(final String desc, final RetentionPolicy retentionPolicy) {
-		final T t = this.du.getDescT(desc);
-		return this.a = new A(t, retentionPolicy);
+	public ReadDexAnnotationMemberVisitor init(@Nonnull final A a) {
+		this.a = a;
+		return this;
 	}
 
 }

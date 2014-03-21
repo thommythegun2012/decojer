@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,8 +25,11 @@ package org.decojer.cavaj.readers.dex2jar;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import lombok.extern.slf4j.Slf4j;
 
+import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.types.T;
@@ -38,21 +41,22 @@ import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 
 /**
  * Dex2jar read annotation visitor.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
 public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 
+	@Nonnull
 	protected final DU du;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadDexAnnotationVisitor(final DU du) {
+	public ReadDexAnnotationVisitor(@Nonnull final DU du) {
 		this.du = du;
 	}
 
@@ -77,8 +81,14 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 	public DexAnnotationVisitor visitAnnotation(final String name, final String desc) {
 		final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(
 				this.du);
-		add(name, readDexAnnotationMemberVisitor.init(desc, null));
-		return readDexAnnotationMemberVisitor;
+		final T aT = this.du.getDescT(desc);
+		if (aT == null) {
+			log.warn("Cannot read annotation descriptor '" + desc + "'!");
+			return null;
+		}
+		final A a = new A(aT, null);
+		add(name, a);
+		return readDexAnnotationMemberVisitor.init(a);
 	}
 
 	@Override
@@ -109,6 +119,9 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 	@Override
 	public void visitEnum(final String name, final String desc, final String value) {
 		final T ownerT = this.du.getDescT(desc);
+		if (ownerT == null || value == null || desc == null) {
+			return;
+		}
 		final F f = ownerT.getF(value, desc);
 		f.setEnum();
 		add(name, f);
