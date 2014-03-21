@@ -26,6 +26,8 @@ package org.decojer.cavaj.readers.smali;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,9 +56,11 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private M m;
 
+	@Nonnull
 	private final Map<Integer, Integer> opLines = Maps.newHashMap();
 
 	@Getter
+	@Nonnull
 	private final Map<Integer, List<V>> reg2vs = Maps.newHashMap();
 
 	/**

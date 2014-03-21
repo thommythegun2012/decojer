@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -29,7 +29,7 @@ import org.decojer.cavaj.model.fields.F;
 
 /**
  * Operation 'GET'.
- * 
+ *
  * @author André Pankraz
  */
 public class GET extends Op {
@@ -39,7 +39,7 @@ public class GET extends Op {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 * @param opcode
@@ -51,10 +51,7 @@ public class GET extends Op {
 	 */
 	public GET(final int pc, final int opcode, final int line, final F f) {
 		super(pc, opcode, line);
-
-		assert f != null;
 		// for all variants valid: any superfield possible for static / instance
-
 		this.f = f;
 	}
 

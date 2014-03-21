@@ -16,31 +16,34 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.readers.javassist;
 
+import javax.annotation.Nonnull;
+
 /**
  * Code array reader.
- * 
+ *
  * @author André Pankraz
  */
 public class ReadCodeArray {
 
+	@Nonnull
 	public final byte[] code;
 
 	public int pc;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param code
 	 *            code
 	 */
-	public ReadCodeArray(final byte[] code) {
+	public ReadCodeArray(@Nonnull final byte[] code) {
 		this.code = code;
 	}
 

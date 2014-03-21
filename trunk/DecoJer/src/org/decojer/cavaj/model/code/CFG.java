@@ -25,6 +25,7 @@ package org.decojer.cavaj.model.code;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.Getter;
@@ -84,6 +85,7 @@ public final class CFG {
 	private final int maxStack;
 
 	@Getter
+	@Nonnull
 	private final M m;
 
 	@Getter
@@ -119,8 +121,7 @@ public final class CFG {
 	 * @param maxStack
 	 *            max stack size
 	 */
-	public CFG(final M m, final int regs, final int maxStack) {
-		assert m != null;
+	public CFG(@Nonnull final M m, final int regs, final int maxStack) {
 		assert regs >= 0 : regs;
 		assert maxStack >= 0 : maxStack;
 

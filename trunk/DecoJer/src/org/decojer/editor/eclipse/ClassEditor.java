@@ -99,12 +99,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		// example: sun/org/mozilla/javascript/internal/
 		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
 				.getResource().getLocation().toOSString() : eclipseClassFile.getPath().toOSString();
-				assert jarPath != null;
+		assert jarPath != null;
 
-				final String packageName = eclipseClassFile.getParent().getElementName();
-				final String typeName = eclipseClassFile.getElementName();
-				return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
-						+ typeName;
+		final String packageName = eclipseClassFile.getParent().getElementName();
+		final String typeName = eclipseClassFile.getElementName();
+		return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
+				+ typeName;
 	}
 
 	private static void parseClassT(final String s, final Cursor c, final StringBuilder sb) {
@@ -505,7 +505,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			// the ClassFileEditor, which has other problems and only delivers an Outline if the
 			// class is in the class path
 			Object adapter = null;
-			if ((this.selectedCu != null && this.selectedCu.getSourceFileName() != null || this.classFileEditor == null)
+			if ((this.selectedCu != null || this.classFileEditor == null)
 					&& this.decompilationUnitEditor != null) {
 				adapter = this.decompilationUnitEditor.getAdapter(required);
 			}

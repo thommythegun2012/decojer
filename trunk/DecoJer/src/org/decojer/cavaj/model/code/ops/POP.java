@@ -83,9 +83,6 @@ public class POP extends Op {
 	 */
 	public POP(final int pc, final int opcode, final int line, final Kind kind) {
 		super(pc, opcode, line);
-
-		assert kind != null;
-
 		this.kind = kind;
 	}
 

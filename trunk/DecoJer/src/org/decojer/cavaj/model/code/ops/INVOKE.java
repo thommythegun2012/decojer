@@ -69,11 +69,6 @@ public class INVOKE extends Op {
 	 */
 	public INVOKE(final int pc, final int opcode, final int line, final M m, final boolean direct) {
 		super(pc, opcode, line);
-
-		assert m != null;
-		// for all variants valid: any supermethod possible for direct / static / interface,
-		// for virtual anyway
-
 		this.m = m;
 		this.extra = direct ? EXTRA_MARKER_DIRECT : null;
 	}
@@ -97,11 +92,9 @@ public class INVOKE extends Op {
 	public INVOKE(final int pc, final int opcode, final int line, final M m, final M bsM,
 			final Object[] bsArgs) {
 		super(pc, opcode, line);
-
-		assert m != null;
-		assert m.isDynamic();
-		assert bsM != null;
-
+		assert m.isDynamic() : "method must be dynamic";
+		// for all variants valid: any supermethod possible for direct / static / interface,
+		// for virtual anyway
 		this.m = m;
 		this.extra = new Object[1 + bsArgs.length];
 		this.extra[0] = bsM;
@@ -144,7 +137,7 @@ public class INVOKE extends Op {
 		for (final T paramT : getM().getParamTs()) {
 			inStackSize += paramT.getStackSize();
 		}
-		if (getM().isStatic() && !getM().isDynamic()) {
+		if (!getM().isStatic() && !getM().isDynamic()) {
 			final T ownerT = getM().getT();
 			assert ownerT != null : "cannot be null for none-dynamic";
 			inStackSize += ownerT.getStackSize();

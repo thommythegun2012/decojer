@@ -27,6 +27,7 @@ import static org.decojer.cavaj.readers.asm.ReadUtils.annotateT;
 
 import java.lang.annotation.RetentionPolicy;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
@@ -61,7 +62,7 @@ public class ReadFieldVisitor extends FieldVisitor {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadFieldVisitor(final DU du) {
+	public ReadFieldVisitor(@Nonnull final DU du) {
 		super(Opcodes.ASM5);
 		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
 	}
