@@ -116,6 +116,7 @@ public final class CU implements Container {
 	 *
 	 * @return source code
 	 */
+	@Nonnull
 	public String createSourceCode() {
 		final Map<String, String> options = JavaCore.getOptions();
 		options.put(JavaCore.COMPILER_SOURCE,
@@ -193,7 +194,9 @@ public final class CU implements Container {
 			sb.append(" * Source File Name: ").append(getT().getSourceFileName()).append(br);
 		}
 		sb.append(" */");
-		return sb.toString();
+		final String ret = sb.toString();
+		assert ret != null;
+		return ret;
 	}
 
 	/**
@@ -203,6 +206,7 @@ public final class CU implements Container {
 	 *
 	 * @return source code
 	 */
+	@Nonnull
 	public String decompile() {
 		return decompile(true);
 	}
@@ -215,6 +219,7 @@ public final class CU implements Container {
 	 *
 	 * @return source code
 	 */
+	@Nonnull
 	public String decompile(final boolean ignoreCfgError) {
 		clear(); // doesn't cost much, helps to mitigate many potential problems
 		for (final Element element : getAllDeclarations()) {

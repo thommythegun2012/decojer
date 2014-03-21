@@ -42,6 +42,7 @@ public class StringMemoryStorage implements IEncodedStorage {
 
 	private static final Charset UTF8 = Charset.forName("utf-8");
 
+	@Nonnull
 	private final byte[] contents;
 
 	@Nonnull
@@ -55,9 +56,11 @@ public class StringMemoryStorage implements IEncodedStorage {
 	 * @param fullPath
 	 *            full path, important for faked compilation unit and outline
 	 */
-	public StringMemoryStorage(final String content, @Nonnull final IPath fullPath) {
+	public StringMemoryStorage(@Nonnull final String content, @Nonnull final IPath fullPath) {
 		this.fullPath = fullPath;
-		this.contents = content.getBytes(UTF8);
+		final byte[] contents = content.getBytes(UTF8);
+		assert contents != null;
+		this.contents = contents;
 	}
 
 	@Nullable

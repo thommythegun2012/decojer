@@ -23,6 +23,8 @@
  */
 package org.decojer.editor.eclipse.du;
 
+import javax.annotation.Nonnull;
+
 import org.decojer.cavaj.model.CU;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
@@ -37,7 +39,8 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 @SuppressWarnings("restriction")
 public class DecompilationUnitEditor extends CompilationUnitEditor {
 
-	public static IEditorInput decompileToEditorInput(final CU cu) {
+	@Nonnull
+	public static IEditorInput decompileToEditorInput(@Nonnull final CU cu) {
 		// create editor input, in-memory string with decompiled source
 		String sourceCode = null;
 		try {
@@ -46,8 +49,8 @@ public class DecompilationUnitEditor extends CompilationUnitEditor {
 			t.printStackTrace();
 			sourceCode = "// Decompilation error!";
 		}
-		return new MemoryStorageEditorInput(new StringMemoryStorage(sourceCode, cu == null ? null
-				: new Path(cu.getSourceFileName())));
+		return new MemoryStorageEditorInput(new StringMemoryStorage(sourceCode, new Path(
+				cu.getSourceFileName())));
 	}
 
 	@Override
@@ -63,7 +66,7 @@ public class DecompilationUnitEditor extends CompilationUnitEditor {
 		return super.getAdapter(required);
 	}
 
-	public void setInput(final CU cu) {
+	public void setInput(@Nonnull final CU cu) {
 		setInputWithNotify(decompileToEditorInput(cu));
 	}
 
