@@ -259,16 +259,6 @@ public class TrInnerClassesAnalysis {
 		return simpleName.substring(index);
 	}
 
-	@Nullable
-	private static String getSourceId(final T mainTd) {
-		final String sourceFileName = mainTd.getSourceFileName();
-		if (sourceFileName == null) {
-			return null;
-		}
-		final String packageName = mainTd.getPackageName();
-		return packageName == null ? sourceFileName : packageName + "." + sourceFileName;
-	}
-
 	/**
 	 * Character.isDigit answers {@code true} to some non-ascii digits. This one does not.
 	 *
@@ -320,20 +310,24 @@ public class TrInnerClassesAnalysis {
 		final List<CU> cus = Lists.newArrayList();
 		final Map<String, CU> sourceId2cu = Maps.newHashMap();
 		for (final T topT : topTs) {
-			final String sourceId = getSourceId(topT);
-			if (sourceId != null) {
-				final CU cu = sourceId2cu.get(sourceId);
-				if (cu != null) {
-					topT.setDeclarationOwner(cu);
-					continue;
-				}
+			assert topT != null;
+
+			final String sourceFileName = topT.getSourceFileName();
+			if (sourceFileName == null) {
+				cus.add(new CU(topT, topT.getPName() + ".java"));
+				continue;
 			}
-			final String sourceFileName = sourceId != null ? topT.getSourceFileName() : topT
-					.getPName() + ".java";
-			final CU cu = new CU(topT, sourceFileName);
-			if (sourceId != null) {
-				sourceId2cu.put(sourceId, cu);
+
+			final String packageName = topT.getPackageName();
+			final String sourceId = packageName == null ? sourceFileName : packageName + "."
+					+ sourceFileName;
+			CU cu = sourceId2cu.get(sourceId);
+			if (cu != null) {
+				topT.setDeclarationOwner(cu);
+				continue;
 			}
+			cu = new CU(topT, sourceFileName);
+			sourceId2cu.put(sourceId, cu);
 			cus.add(cu);
 		}
 		// not very optimized...but it works for now...

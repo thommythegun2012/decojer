@@ -74,6 +74,7 @@ public class ClassM extends M {
 
 	@Getter
 	@Setter
+	@Nonnull
 	private T returnT;
 
 	@Getter
