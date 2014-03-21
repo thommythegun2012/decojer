@@ -57,6 +57,19 @@ public final class A {
 	 *
 	 * @param t
 	 *            type
+	 * @param visible
+	 *            visible flag
+	 */
+	public A(@Nonnull final T t, final boolean visible) {
+		this.t = t;
+		this.retentionPolicy = visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS;
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param t
+	 *            type
 	 * @param retentionPolicy
 	 *            retention policy
 	 */

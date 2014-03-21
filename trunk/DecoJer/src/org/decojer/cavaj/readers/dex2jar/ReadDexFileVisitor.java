@@ -25,6 +25,7 @@ package org.decojer.cavaj.readers.dex2jar;
 
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.Getter;
@@ -45,8 +46,10 @@ import com.googlecode.dex2jar.visitors.DexFileVisitor;
 @Slf4j
 public class ReadDexFileVisitor implements DexFileVisitor {
 
+	@Nonnull
 	private final DU du;
 
+	@Nonnull
 	private final ReadDexClassVisitor readDexClassVisitor;
 
 	private String selectorPrefix;
@@ -62,9 +65,7 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadDexFileVisitor(final DU du) {
-		assert du != null;
-
+	public ReadDexFileVisitor(@Nonnull final DU du) {
 		this.du = du;
 		this.readDexClassVisitor = new ReadDexClassVisitor(du);
 	}
@@ -104,6 +105,10 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 			return null;
 		}
 		final T t = this.du.getDescT(className);
+		if (t == null) {
+			log.warn("Cannot read descriptor '" + className + "'!");
+			return null;
+		}
 		if (!t.createTd()) {
 			log.warn("Type '" + t + "' already read!");
 			return null;

@@ -16,14 +16,16 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.readers.dex2jar;
 
-import java.lang.annotation.RetentionPolicy;
+import javax.annotation.Nonnull;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
@@ -40,30 +42,36 @@ import com.googlecode.dex2jar.visitors.DexMethodVisitor;
 
 /**
  * Dex2jar read class visitor.
- * 
+ *
  * @author André Pankraz
  */
+@Slf4j
 public class ReadDexClassVisitor implements DexClassVisitor {
 
 	private A[] as;
 
+	@Nonnull
+	private final DU du;
+
+	@Nonnull
 	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
 
+	@Nonnull
 	private final ReadDexFieldVisitor readDexFieldVisitor;
 
+	@Nonnull
 	private final ReadDexMethodVisitor readDexMethodVisitor;
 
 	private T t;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadDexClassVisitor(final DU du) {
-		assert du != null;
-
+	public ReadDexClassVisitor(@Nonnull final DU du) {
+		this.du = du;
 		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(du);
 		this.readDexFieldVisitor = new ReadDexFieldVisitor(du);
 		this.readDexMethodVisitor = new ReadDexMethodVisitor(du);
@@ -71,7 +79,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	/**
 	 * Init and set type.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 */
@@ -82,6 +90,12 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
+		final T aT = this.du.getDescT(name);
+		if (aT == null) {
+			log.warn("Cannot read annotation descriptor '" + name + "'!");
+			return null;
+		}
+		final A a = new A(aT, visible);
 		if (this.as == null) {
 			this.as = new A[1];
 		} else {
@@ -89,9 +103,8 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 			System.arraycopy(this.as, 0, newAs, 0, this.as.length);
 			this.as = newAs;
 		}
-		this.as[this.as.length - 1] = this.readDexAnnotationMemberVisitor.init(name,
-				visible ? RetentionPolicy.RUNTIME : RetentionPolicy.CLASS);
-		return this.readDexAnnotationMemberVisitor;
+		this.as[this.as.length - 1] = a;
+		return this.readDexAnnotationMemberVisitor.init(a);
 	}
 
 	@Override
@@ -104,7 +117,12 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexFieldVisitor visitField(final int accessFlags, final Field field, final Object value) {
-		final F f = this.t.getF(field.getName(), field.getType());
+		final String name = field.getName();
+		final String desc = field.getType();
+		if (name == null || desc == null) {
+			return null;
+		}
+		final F f = this.t.getF(name, desc);
 		f.createFd();
 
 		f.setAccessFlags(accessFlags);
@@ -118,7 +136,12 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexMethodVisitor visitMethod(final int accessFlags, final Method method) {
-		final M m = this.t.getM(method.getName(), method.getDesc());
+		final String name = method.getName();
+		final String desc = method.getDesc();
+		if (name == null || desc == null) {
+			return null;
+		}
+		final M m = this.t.getM(name, desc);
 		m.createMd();
 
 		m.setAccessFlags(accessFlags);

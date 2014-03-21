@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.Nonnull;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
@@ -63,12 +65,16 @@ import com.googlecode.dex2jar.visitors.OdexCodeVisitor;
 @Slf4j
 public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
+	@Nonnull
 	private final DU du;
 
+	@Nonnull
 	private final List<Exc> excs = Lists.newArrayList();
 
+	@Nonnull
 	private final Map<DexLabel, Integer> label2pc = Maps.newHashMap();
 
+	@Nonnull
 	private final Map<DexLabel, List<Object>> label2unresolved = Maps.newHashMap();
 
 	private int line = -1;
@@ -87,9 +93,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public ReadDexCodeVisitor(final DU du) {
-		assert du != null;
-
+	public ReadDexCodeVisitor(@Nonnull final DU du) {
 		this.du = du;
 	}
 
@@ -345,7 +349,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	public void visitLocalVariable(final String name, final String type, final String signature,
 			final DexLabel start, final DexLabel end, final int reg) {
 		T vT = this.du.getDescT(type);
-		if (vT == null) {
+		if (vT == null || name == null) {
 			return;
 		}
 		if (signature != null) {
