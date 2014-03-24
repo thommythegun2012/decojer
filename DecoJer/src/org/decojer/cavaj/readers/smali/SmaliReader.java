@@ -303,8 +303,13 @@ public class SmaliReader implements DexReader {
 
 	private A readAnnotation(final AnnotationEncodedSubValue encodedValue,
 			final RetentionPolicy retentionPolicy) {
-		final T t = this.du.getDescT(encodedValue.annotationType.getTypeDescriptor());
-		final A a = new A(t, retentionPolicy);
+		final String desc = encodedValue.annotationType.getTypeDescriptor();
+		final T aT = this.du.getDescT(desc);
+		if (aT == null) {
+			log.warn("Cannot read annotation descriptor '" + desc + "'!");
+			return null;
+		}
+		final A a = new A(aT, retentionPolicy);
 		final StringIdItem[] names = encodedValue.names;
 		final EncodedValue[] values = encodedValue.values;
 		for (int i = 0; i < names.length; ++i) {

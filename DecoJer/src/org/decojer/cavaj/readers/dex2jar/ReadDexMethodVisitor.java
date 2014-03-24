@@ -25,6 +25,7 @@ package org.decojer.cavaj.readers.dex2jar;
 
 import javax.annotation.Nonnull;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +49,8 @@ import com.googlecode.dex2jar.visitors.DexMethodVisitor;
 public class ReadDexMethodVisitor implements DexMethodVisitor, ReadVisitor {
 
 	private A[] as;
+
+	@Getter(AccessLevel.PROTECTED)
 	private M m;
 
 	private A[][] paramAss;
@@ -100,7 +103,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor, ReadVisitor {
 	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
 		final T aT = getDu().getDescT(name);
 		if (aT == null) {
-			log.warn("Cannot read annotation descriptor '" + name + "'!");
+			log.warn(getM() + ": Cannot read annotation descriptor '" + name + "'!");
 			return null;
 		}
 		final A a = new A(aT, visible);
