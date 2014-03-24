@@ -83,7 +83,7 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 	public ReadClassVisitor(@Nonnull final DU du) {
 		super(Opcodes.ASM5);
 		this.du = du;
-		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(this);
 		this.readFieldVisitor = new ReadFieldVisitor(this);
 		this.readMethodVisitor = new ReadMethodVisitor(this);
 	}

@@ -57,11 +57,11 @@ public class ReadFieldVisitor extends FieldVisitor implements ReadVisitor {
 
 	private F f;
 
-	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
-
 	@Getter
 	@Nonnull
 	private final ReadClassVisitor parentVisitor;
+
+	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
 	/**
 	 * Constructor.
@@ -72,7 +72,7 @@ public class ReadFieldVisitor extends FieldVisitor implements ReadVisitor {
 	public ReadFieldVisitor(@Nonnull final ReadClassVisitor parentVisitor) {
 		super(Opcodes.ASM5);
 		this.parentVisitor = parentVisitor;
-		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(getDu());
+		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(this);
 	}
 
 	@Override
