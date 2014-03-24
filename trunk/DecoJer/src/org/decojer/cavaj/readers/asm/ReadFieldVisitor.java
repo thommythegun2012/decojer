@@ -30,11 +30,14 @@ import java.lang.annotation.RetentionPolicy;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
+import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.readers.ReadVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
 import org.objectweb.asm.FieldVisitor;
@@ -48,7 +51,7 @@ import org.objectweb.asm.TypeReference;
  * @author André Pankraz
  */
 @Slf4j
-public class ReadFieldVisitor extends FieldVisitor {
+public class ReadFieldVisitor extends FieldVisitor implements ReadVisitor {
 
 	private A[] as;
 
@@ -56,15 +59,25 @@ public class ReadFieldVisitor extends FieldVisitor {
 
 	private final ReadAnnotationMemberVisitor readAnnotationMemberVisitor;
 
+	@Getter
+	@Nonnull
+	private final ReadClassVisitor parentVisitor;
+
 	/**
 	 * Constructor.
 	 *
-	 * @param du
-	 *            decompilation unit
+	 * @param parentVisitor
+	 *            parent visitor
 	 */
-	public ReadFieldVisitor(@Nonnull final DU du) {
+	public ReadFieldVisitor(@Nonnull final ReadClassVisitor parentVisitor) {
 		super(Opcodes.ASM5);
-		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(du);
+		this.parentVisitor = parentVisitor;
+		this.readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(getDu());
+	}
+
+	@Override
+	public DU getDu() {
+		return getParentVisitor().getDu();
 	}
 
 	/**
@@ -74,6 +87,11 @@ public class ReadFieldVisitor extends FieldVisitor {
 	 */
 	public F getF() {
 		return this.f;
+	}
+
+	@Override
+	public T getT() {
+		return getParentVisitor().getT();
 	}
 
 	/**

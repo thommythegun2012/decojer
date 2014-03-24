@@ -28,6 +28,8 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.types.T;
@@ -42,6 +44,7 @@ import com.google.common.collect.Lists;
  *
  * @author André Pankraz
  */
+@Slf4j
 public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 
 	@Nonnull
@@ -104,7 +107,14 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 
 	@Override
 	public void visitEnum(final String name, final String desc, final String value) {
+		if (name == null || desc == null || value == null) {
+			return;
+		}
 		final T ownerT = this.du.getDescT(desc);
+		if (ownerT == null) {
+			log.warn("Cannot read enumeration descriptor '" + desc + "'!");
+			return;
+		}
 		final F f = ownerT.getF(value, desc);
 		f.setEnum();
 		add(name, f);
