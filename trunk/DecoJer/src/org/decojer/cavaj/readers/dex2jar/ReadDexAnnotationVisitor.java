@@ -131,8 +131,13 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor, 
 
 	@Override
 	public void visitEnum(final String name, final String desc, final String value) {
+		if (name == null || desc == null || value == null) {
+			assert false;
+			return;
+		}
 		final T ownerT = getDu().getDescT(desc);
-		if (ownerT == null || value == null || desc == null) {
+		if (ownerT == null) {
+			log.warn(getT() + ": Cannot read enumeration value descriptor '" + desc + "'!");
 			return;
 		}
 		final F f = ownerT.getF(value, desc);
