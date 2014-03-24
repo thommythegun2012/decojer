@@ -101,6 +101,7 @@ public abstract class M implements Element {
 	 *            index (starts with 0, double/long params count as 1)
 	 * @return parameter name
 	 */
+	@Nonnull
 	public abstract String getParamName(final int i);
 
 	/**

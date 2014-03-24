@@ -193,13 +193,16 @@ public class ClassM extends M {
 		return getMd().getParamAss();
 	}
 
+	@Nonnull
 	@Override
 	public String getParamName(final int i) {
 		final String[] paramNames = getMd().getParamNames();
-		if (paramNames == null || i >= paramNames.length || paramNames[i] == null) {
+		final String paramName = paramNames == null || i >= paramNames.length ? null
+				: paramNames[i];
+		if (paramName == null) {
 			return "arg" + i;
 		}
-		return paramNames[i];
+		return paramName;
 	}
 
 	/**

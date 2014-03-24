@@ -197,7 +197,7 @@ public class ClassT extends T {
 			return null;
 		}
 		assert this.enclosing instanceof T || this.enclosing instanceof M : this
-		+ ": enclosing must be T or M";
+				+ ": enclosing must be T or M";
 
 		return this.enclosing;
 	}
@@ -234,10 +234,12 @@ public class ClassT extends T {
 	@Nonnull
 	@Override
 	public Map<String, Object> getMember() {
-		if (this.member == null) {
-			this.member = Maps.newHashMap();
+		Map<String, Object> member = this.member;
+		if (member == null) {
+			member = Maps.newHashMap();
+			this.member = member;
 		}
-		return this.member;
+		return member;
 	}
 
 	@Override
