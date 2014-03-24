@@ -25,12 +25,14 @@ package org.decojer.cavaj.readers.dex2jar;
 
 import javax.annotation.Nonnull;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.readers.ReadVisitor;
 
 import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
 import com.googlecode.dex2jar.visitors.DexFieldVisitor;
@@ -41,26 +43,37 @@ import com.googlecode.dex2jar.visitors.DexFieldVisitor;
  * @author André Pankraz
  */
 @Slf4j
-public class ReadDexFieldVisitor implements DexFieldVisitor {
+public class ReadDexFieldVisitor implements DexFieldVisitor, ReadVisitor {
 
 	private A[] as;
 
-	@Nonnull
-	private final DU du;
-
 	private F f;
+
+	@Getter
+	@Nonnull
+	private final ReadDexClassVisitor parentVisitor;
 
 	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param du
-	 *            decompilation unit
+	 * @param parentVisitor
+	 *            parent visitor
 	 */
-	public ReadDexFieldVisitor(@Nonnull final DU du) {
-		this.du = du;
-		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(du);
+	public ReadDexFieldVisitor(@Nonnull final ReadDexClassVisitor parentVisitor) {
+		this.parentVisitor = parentVisitor;
+		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(this);
+	}
+
+	@Override
+	public DU getDu() {
+		return getParentVisitor().getDu();
+	}
+
+	@Override
+	public T getT() {
+		return getParentVisitor().getT();
 	}
 
 	/**
@@ -76,7 +89,7 @@ public class ReadDexFieldVisitor implements DexFieldVisitor {
 
 	@Override
 	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
-		final T aT = this.du.getDescT(name);
+		final T aT = getDu().getDescT(name);
 		if (aT == null) {
 			log.warn("Cannot read annotation descriptor '" + name + "'!");
 			return null;

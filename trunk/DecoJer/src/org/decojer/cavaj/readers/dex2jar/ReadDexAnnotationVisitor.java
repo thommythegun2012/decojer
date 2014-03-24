@@ -27,12 +27,14 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.readers.ReadVisitor;
 
 import com.google.common.collect.Lists;
 import com.googlecode.dex2jar.DexType;
@@ -45,22 +47,33 @@ import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
  * @author André Pankraz
  */
 @Slf4j
-public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
+public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor, ReadVisitor {
 
+	@Getter
 	@Nonnull
-	protected final DU du;
+	private final ReadVisitor parentVisitor;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param du
-	 *            decompilation unit
+	 * @param parentVisitor
+	 *            parent visitor
 	 */
-	public ReadDexAnnotationVisitor(@Nonnull final DU du) {
-		this.du = du;
+	public ReadDexAnnotationVisitor(@Nonnull final ReadVisitor parentVisitor) {
+		this.parentVisitor = parentVisitor;
 	}
 
 	protected abstract void add(final String name, final Object value);
+
+	@Override
+	public DU getDu() {
+		return getParentVisitor().getDu();
+	}
+
+	@Override
+	public T getT() {
+		return getParentVisitor().getT();
+	}
 
 	@Override
 	public void visit(final String name, final Object value) {
@@ -71,7 +84,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 			return;
 		}
 		if (value instanceof DexType) {
-			add(name, this.du.getDescT(((DexType) value).toString()));
+			add(name, getDu().getDescT(((DexType) value).toString()));
 			return;
 		}
 		add(name, value);
@@ -80,8 +93,8 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 	@Override
 	public DexAnnotationVisitor visitAnnotation(final String name, final String desc) {
 		final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(
-				this.du);
-		final T aT = this.du.getDescT(desc);
+				this);
+		final T aT = getDu().getDescT(desc);
 		if (aT == null) {
 			log.warn("Cannot read annotation descriptor '" + desc + "'!");
 			return null;
@@ -93,7 +106,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 
 	@Override
 	public DexAnnotationVisitor visitArray(final String name) {
-		return new ReadDexAnnotationVisitor(this.du) {
+		return new ReadDexAnnotationVisitor(this) {
 
 			private final List<Object> values = Lists.newArrayList();
 
@@ -118,7 +131,7 @@ public abstract class ReadDexAnnotationVisitor implements DexAnnotationVisitor {
 
 	@Override
 	public void visitEnum(final String name, final String desc, final String value) {
-		final T ownerT = this.du.getDescT(desc);
+		final T ownerT = getDu().getDescT(desc);
 		if (ownerT == null || value == null || desc == null) {
 			return;
 		}

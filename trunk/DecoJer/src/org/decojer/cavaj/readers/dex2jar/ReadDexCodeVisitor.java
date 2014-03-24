@@ -29,6 +29,7 @@ import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
@@ -47,6 +48,7 @@ import org.decojer.cavaj.model.code.ops.SWITCH;
 import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.readers.ReadVisitor;
 import org.decojer.cavaj.utils.Cursor;
 
 import com.google.common.collect.Lists;
@@ -63,10 +65,7 @@ import com.googlecode.dex2jar.visitors.OdexCodeVisitor;
  * @author André Pankraz
  */
 @Slf4j
-public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
-
-	@Nonnull
-	private final DU du;
+public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes, ReadVisitor {
 
 	@Nonnull
 	private final List<Exc> excs = Lists.newArrayList();
@@ -85,16 +84,25 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 
 	private final List<Op> ops = Lists.newArrayList();
 
+	@Getter
+	@Nonnull
+	private final ReadDexMethodVisitor parentVisitor;
+
 	private final Map<Integer, List<V>> reg2vs = Maps.newHashMap();
 
 	/**
 	 * Constructor.
 	 *
-	 * @param du
-	 *            decompilation unit
+	 * @param parentVisitor
+	 *            parent visitor
 	 */
-	public ReadDexCodeVisitor(@Nonnull final DU du) {
-		this.du = du;
+	public ReadDexCodeVisitor(@Nonnull final ReadDexMethodVisitor parentVisitor) {
+		this.parentVisitor = parentVisitor;
+	}
+
+	@Override
+	public DU getDu() {
+		return getParentVisitor().getDu();
 	}
 
 	private int getPc(final DexLabel label) {
@@ -107,6 +115,11 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 		final int unresolvedPc = -1 - this.label2unresolved.size();
 		this.label2pc.put(label, unresolvedPc);
 		return unresolvedPc;
+	}
+
+	@Override
+	public T getT() {
+		return getParentVisitor().getT();
 	}
 
 	private List<Object> getUnresolved(final DexLabel label) {
@@ -348,12 +361,12 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	@Override
 	public void visitLocalVariable(final String name, final String type, final String signature,
 			final DexLabel start, final DexLabel end, final int reg) {
-		T vT = this.du.getDescT(type);
+		T vT = getDu().getDescT(type);
 		if (vT == null || name == null) {
 			return;
 		}
 		if (signature != null) {
-			final T sigT = this.du.parseT(signature, new Cursor(), this.m);
+			final T sigT = getDu().parseT(signature, new Cursor(), this.m);
 			if (sigT != null) {
 				if (!sigT.eraseTo(vT)) {
 					log.info("Cannot reduce signature '" + signature + "' to type '" + vT
@@ -467,7 +480,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 				log.warn("Unknown throw type '" + xt + "'! Using 'Throwable' type.");
 			}
 			this.ops.add(new LOAD(this.ops.size(), opcode, this.line,
-					this.du.getT(Throwable.class), reg));
+					getDu().getT(Throwable.class), reg));
 
 			this.ops.add(new THROW(this.ops.size(), opcode, this.line));
 		}
@@ -497,7 +510,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes {
 	public void visitTryCatch(final DexLabel start, final DexLabel end, final DexLabel handler,
 			final String type) {
 		// type: Ljava/lang/Exception;
-		final T catchT = type == null ? null : this.du.getDescT(type);
+		final T catchT = type == null ? null : getDu().getDescT(type);
 		final Exc exc = new Exc(catchT);
 
 		int pc = getPc(start);

@@ -25,6 +25,7 @@ package org.decojer.cavaj.readers.dex2jar;
 
 import javax.annotation.Nonnull;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -32,6 +33,7 @@ import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.readers.ReadVisitor;
 
 import com.googlecode.dex2jar.Field;
 import com.googlecode.dex2jar.Method;
@@ -46,12 +48,9 @@ import com.googlecode.dex2jar.visitors.DexMethodVisitor;
  * @author André Pankraz
  */
 @Slf4j
-public class ReadDexClassVisitor implements DexClassVisitor {
+public class ReadDexClassVisitor implements DexClassVisitor, ReadVisitor {
 
 	private A[] as;
-
-	@Nonnull
-	private final DU du;
 
 	@Nonnull
 	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
@@ -60,21 +59,31 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 	private final ReadDexFieldVisitor readDexFieldVisitor;
 
 	@Nonnull
+	@Getter
+	private final ReadDexFileVisitor parentVisitor;
+
+	@Nonnull
 	private final ReadDexMethodVisitor readDexMethodVisitor;
 
+	@Getter
 	private T t;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param du
-	 *            decompilation unit
+	 * @param parentVisitor
+	 *            parent visitor
 	 */
-	public ReadDexClassVisitor(@Nonnull final DU du) {
-		this.du = du;
-		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(du);
-		this.readDexFieldVisitor = new ReadDexFieldVisitor(du);
-		this.readDexMethodVisitor = new ReadDexMethodVisitor(du);
+	public ReadDexClassVisitor(@Nonnull final ReadDexFileVisitor parentVisitor) {
+		this.parentVisitor = parentVisitor;
+		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(this);
+		this.readDexFieldVisitor = new ReadDexFieldVisitor(this);
+		this.readDexMethodVisitor = new ReadDexMethodVisitor(this);
+	}
+
+	@Override
+	public DU getDu() {
+		return getParentVisitor().getDu();
 	}
 
 	/**
@@ -90,7 +99,7 @@ public class ReadDexClassVisitor implements DexClassVisitor {
 
 	@Override
 	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
-		final T aT = this.du.getDescT(name);
+		final T aT = getDu().getDescT(name);
 		if (aT == null) {
 			log.warn("Cannot read annotation descriptor '" + name + "'!");
 			return null;

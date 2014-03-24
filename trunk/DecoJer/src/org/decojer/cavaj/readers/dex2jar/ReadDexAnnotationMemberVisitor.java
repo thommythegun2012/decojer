@@ -26,7 +26,7 @@ package org.decojer.cavaj.readers.dex2jar;
 import javax.annotation.Nonnull;
 
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.DU;
+import org.decojer.cavaj.readers.ReadVisitor;
 
 /**
  * Dex2jar read annotation member visitor.
@@ -40,11 +40,11 @@ public class ReadDexAnnotationMemberVisitor extends ReadDexAnnotationVisitor {
 	/**
 	 * Constructor.
 	 *
-	 * @param du
-	 *            decompilation unit
+	 * @param parentVisitor
+	 *            parent visitor
 	 */
-	public ReadDexAnnotationMemberVisitor(@Nonnull final DU du) {
-		super(du);
+	public ReadDexAnnotationMemberVisitor(@Nonnull final ReadVisitor parentVisitor) {
+		super(parentVisitor);
 	}
 
 	@Override

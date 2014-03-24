@@ -33,6 +33,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.readers.ReadVisitor;
 
 import com.google.common.collect.Lists;
 import com.googlecode.dex2jar.visitors.DexClassVisitor;
@@ -44,8 +45,9 @@ import com.googlecode.dex2jar.visitors.DexFileVisitor;
  * @author André Pankraz
  */
 @Slf4j
-public class ReadDexFileVisitor implements DexFileVisitor {
+public class ReadDexFileVisitor implements DexFileVisitor, ReadVisitor {
 
+	@Getter
 	@Nonnull
 	private final DU du;
 
@@ -67,7 +69,17 @@ public class ReadDexFileVisitor implements DexFileVisitor {
 	 */
 	public ReadDexFileVisitor(@Nonnull final DU du) {
 		this.du = du;
-		this.readDexClassVisitor = new ReadDexClassVisitor(du);
+		this.readDexClassVisitor = new ReadDexClassVisitor(this);
+	}
+
+	@Override
+	public ReadVisitor getParentVisitor() {
+		return null;
+	}
+
+	@Override
+	public T getT() {
+		return null;
 	}
 
 	/**

@@ -25,12 +25,14 @@ package org.decojer.cavaj.readers.dex2jar;
 
 import javax.annotation.Nonnull;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.readers.ReadVisitor;
 
 import com.googlecode.dex2jar.visitors.DexAnnotationAble;
 import com.googlecode.dex2jar.visitors.DexAnnotationVisitor;
@@ -43,16 +45,16 @@ import com.googlecode.dex2jar.visitors.DexMethodVisitor;
  * @author André Pankraz
  */
 @Slf4j
-public class ReadDexMethodVisitor implements DexMethodVisitor {
+public class ReadDexMethodVisitor implements DexMethodVisitor, ReadVisitor {
 
 	private A[] as;
-
-	@Nonnull
-	private final DU du;
-
 	private M m;
 
 	private A[][] paramAss;
+
+	@Getter
+	@Nonnull
+	private final ReadDexClassVisitor parentVisitor;
 
 	@Nonnull
 	private final ReadDexAnnotationMemberVisitor readDexAnnotationMemberVisitor;
@@ -63,13 +65,23 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 	/**
 	 * Constructor.
 	 *
-	 * @param du
-	 *            decompilation unit
+	 * @param parentVisitor
+	 *            parent visitor
 	 */
-	public ReadDexMethodVisitor(@Nonnull final DU du) {
-		this.du = du;
-		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(du);
-		this.readDexCodeVisitor = new ReadDexCodeVisitor(du);
+	public ReadDexMethodVisitor(@Nonnull final ReadDexClassVisitor parentVisitor) {
+		this.parentVisitor = parentVisitor;
+		this.readDexAnnotationMemberVisitor = new ReadDexAnnotationMemberVisitor(this);
+		this.readDexCodeVisitor = new ReadDexCodeVisitor(this);
+	}
+
+	@Override
+	public DU getDu() {
+		return getParentVisitor().getDu();
+	}
+
+	@Override
+	public T getT() {
+		return getParentVisitor().getT();
 	}
 
 	/**
@@ -86,7 +98,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 
 	@Override
 	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
-		final T aT = this.du.getDescT(name);
+		final T aT = getDu().getDescT(name);
 		if (aT == null) {
 			log.warn("Cannot read annotation descriptor '" + name + "'!");
 			return null;
@@ -125,7 +137,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor {
 
 			@Override
 			public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
-				final T aT = ReadDexMethodVisitor.this.du.getDescT(name);
+				final T aT = getDu().getDescT(name);
 				if (aT == null) {
 					log.warn("Cannot read annotation descriptor '" + name + "'!");
 					return null;
