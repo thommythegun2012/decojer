@@ -101,7 +101,7 @@ public class ReadDexClassVisitor implements DexClassVisitor, ReadVisitor {
 	public DexAnnotationVisitor visitAnnotation(final String name, final boolean visible) {
 		final T aT = getDu().getDescT(name);
 		if (aT == null) {
-			log.warn("Cannot read annotation descriptor '" + name + "'!");
+			log.warn(getT() + ": Cannot read annotation descriptor '" + name + "'!");
 			return null;
 		}
 		final A a = new A(aT, visible);
