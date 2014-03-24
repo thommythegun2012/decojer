@@ -114,12 +114,14 @@ public class ClassT extends T {
 	@Getter(AccessLevel.PRIVATE)
 	private TD td;
 
+	@Nullable
 	private Map<String, Object> member;
 
 	/**
 	 * Type parameters. (They define the useable type variables)
 	 */
 	@Setter
+	@Nullable
 	private T[] typeParams;
 
 	/**

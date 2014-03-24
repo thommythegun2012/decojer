@@ -34,6 +34,7 @@ import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -85,6 +86,7 @@ import org.decojer.cavaj.model.code.ops.XOR;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.readers.ReadVisitor;
 import org.decojer.cavaj.utils.Cursor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Attribute;
@@ -105,7 +107,7 @@ import com.google.common.collect.Maps;
  * @author André Pankraz
  */
 @Slf4j
-public class ReadMethodVisitor extends MethodVisitor {
+public class ReadMethodVisitor extends MethodVisitor implements ReadVisitor {
 
 	/**
 	 * JDK 8.0 has +1 index to Eclipse! who is wrong? JDK or Eclipse? we try both...
@@ -130,9 +132,6 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private A[] as;
 
-	@Nonnull
-	private final DU du;
-
 	private final List<Exc> excs = Lists.newArrayList();
 
 	private final Map<Label, Integer> label2pc = Maps.newHashMap();
@@ -156,16 +155,20 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	private final Map<Integer, List<V>> reg2vs = Maps.newHashMap();
 
+	@Getter
+	@Nonnull
+	private final ReadClassVisitor parentVisitor;
+
 	/**
 	 * Constructor.
 	 *
-	 * @param du
-	 *            decompilation unit
+	 * @param parentVisitor
+	 *            parent visitor
 	 */
-	public ReadMethodVisitor(@Nonnull final DU du) {
+	public ReadMethodVisitor(@Nonnull final ReadClassVisitor parentVisitor) {
 		super(Opcodes.ASM5);
-		this.du = du;
-		this.annotationVisitor = new ReadAnnotationMemberVisitor(du);
+		this.parentVisitor = parentVisitor;
+		this.annotationVisitor = new ReadAnnotationMemberVisitor(getDu());
 	}
 
 	private final void add(final Op op) {
@@ -270,6 +273,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 		return false;
 	}
 
+	@Override
+	public DU getDu() {
+		return getParentVisitor().getDu();
+	}
+
 	/**
 	 * Get method declaration.
 	 *
@@ -291,6 +299,11 @@ public class ReadMethodVisitor extends MethodVisitor {
 		return unresolvedPc;
 	}
 
+	@Override
+	public T getT() {
+		return getParentVisitor().getT();
+	}
+
 	private List<Object> getUnresolved(final Label label) {
 		assert label != null;
 
@@ -304,7 +317,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Nonnull
 	private M handle2m(final Handle handle) {
-		final T ownerT = this.du.getT(handle.getOwner());
+		final T ownerT = getDu().getT(handle.getOwner());
 		if (handle.getTag() == Opcodes.H_INVOKEINTERFACE) {
 			ownerT.setInterface(true); // static also possible in interface since JVM 8
 		}
@@ -339,7 +352,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public AnnotationVisitor visitAnnotationDefault() {
-		return new ReadAnnotationVisitor(this.du) {
+		return new ReadAnnotationVisitor(getDu()) {
 
 			@Override
 			protected void add(final String name, final Object value) {
@@ -411,7 +424,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 *******/
 		case Opcodes.GETFIELD:
 		case Opcodes.GETSTATIC: {
-			final T ownerT = this.du.getT(owner);
+			final T ownerT = getDu().getT(owner);
 			final F f = ownerT.getF(name, desc);
 			f.setStatic(opcode == Opcodes.GETSTATIC);
 			add(new GET(this.ops.size(), opcode, this.line, f));
@@ -422,7 +435,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 *******/
 		case Opcodes.PUTFIELD:
 		case Opcodes.PUTSTATIC: {
-			final T ownerT = this.du.getT(owner);
+			final T ownerT = getDu().getT(owner);
 			final F f = ownerT.getF(name, desc);
 			f.setStatic(opcode == Opcodes.PUTSTATIC);
 			add(new PUT(this.ops.size(), opcode, this.line, f));
@@ -1097,7 +1110,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		case Opcodes.NEWARRAY: {
 			final T t = T.TYPES[operand];
 			assert t != null;
-			add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du.getArrayT(t), 1));
+			add(new NEWARRAY(this.ops.size(), opcode, this.line, getDu().getArrayT(t), 1));
 			break;
 		}
 		default:
@@ -1113,7 +1126,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		/**********
 		 * INVOKE *
 		 **********/
-		final M m = this.du.getDynamicM(name, desc);
+		final M m = getDu().getDynamicM(name, desc);
 		final M bsM = handle2m(bsm);
 		final Object[] bsArgs = new Object[bsmArgs.length];
 		for (int i = 0; i < bsArgs.length; ++i) {
@@ -1358,8 +1371,8 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * PUSH *
 		 ********/
 		if (cst instanceof Type) {
-			oValue = this.du.getDescT(((Type) cst).getDescriptor());
-			t = this.du.getT(Class.class);
+			oValue = getDu().getDescT(((Type) cst).getDescriptor());
+			t = getDu().getT(Class.class);
 		} else {
 			oValue = cst;
 			if (cst instanceof Double) {
@@ -1371,7 +1384,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			} else if (cst instanceof Long) {
 				t = T.LONG;
 			} else if (cst instanceof String) {
-				t = this.du.getT(String.class);
+				t = getDu().getT(String.class);
 			} else {
 				log.warn(getM() + ": Unknown ldc insn cst '" + cst + "'!");
 				t = T.ANY;
@@ -1396,12 +1409,12 @@ public class ReadMethodVisitor extends MethodVisitor {
 		if (name == null) {
 			return;
 		}
-		T vT = this.du.getDescT(desc);
+		T vT = getDu().getDescT(desc);
 		if (vT == null) {
 			return;
 		}
 		if (signature != null) {
-			final T sigT = this.du.parseT(signature, new Cursor(), this.m);
+			final T sigT = getDu().parseT(signature, new Cursor(), this.m);
 			if (sigT != null) {
 				if (!sigT.eraseTo(vT)) {
 					log.info(getM() + ": Cannot reduce signature '" + signature + "' to type '"
@@ -1536,7 +1549,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 			// Constructor or supermethod (any super) or private method callout.
 		case Opcodes.INVOKESTATIC:
 		case Opcodes.INVOKEVIRTUAL: {
-			final T ownerT = this.du.getT(owner);
+			final T ownerT = getDu().getT(owner);
 			if (opcode == Opcodes.INVOKEINTERFACE) {
 				ownerT.setInterface(true); // static also possible in interface since JVM 8
 			}
@@ -1562,7 +1575,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		// dimension > given sizes on stack, e.g.: new int[1][2][3][][], dimension is 3 and
 		// descriptor is [[[[[I
 		add(new NEWARRAY(this.ops.size(), Opcodes.MULTIANEWARRAY, this.line,
-				this.du.getDescT(desc), dims));
+				getDu().getDescT(desc), dims));
 	}
 
 	@Override
@@ -1655,7 +1668,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 	public void visitTryCatchBlock(final Label start, final Label end, final Label handler,
 			final String type) {
 		// type: java/lang/Exception
-		final T catchT = type == null ? null : this.du.getT(type);
+		final T catchT = type == null ? null : getDu().getT(type);
 		final Exc exc = new Exc(catchT);
 
 		int pc = getPc(start);
@@ -1742,7 +1755,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 
 	@Override
 	public void visitTypeInsn(final int opcode, final String type) {
-		final T t = this.du.getT(type);
+		final T t = getDu().getT(type);
 
 		switch (opcode) {
 		/********
@@ -1767,7 +1780,7 @@ public class ReadMethodVisitor extends MethodVisitor {
 		 * NEWARRAY *
 		 ************/
 		case Opcodes.ANEWARRAY:
-			add(new NEWARRAY(this.ops.size(), opcode, this.line, this.du.getArrayT(t), 1));
+			add(new NEWARRAY(this.ops.size(), opcode, this.line, getDu().getArrayT(t), 1));
 			break;
 		default:
 			log.warn(getM() + ": Unknown var insn opcode '" + opcode + "'!");

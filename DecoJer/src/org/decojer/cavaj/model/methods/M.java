@@ -43,6 +43,9 @@ public abstract class M implements Element {
 
 	public static final String INITIALIZER_NAME = "<clinit>";
 
+	@Nonnull
+	public static final T[] TYPE_PARAMS_NONE = new T[0];
+
 	/**
 	 * Create method declaration for this method.
 	 *
@@ -112,6 +115,7 @@ public abstract class M implements Element {
 	 *
 	 * @return receiver-type
 	 */
+	@Nullable
 	public abstract T getReceiverT();
 
 	/**
@@ -230,7 +234,7 @@ public abstract class M implements Element {
 	 *            receiver type
 	 * @return {@code true} - success
 	 */
-	public abstract boolean setReceiverT(final T receiverT);
+	public abstract boolean setReceiverT(@Nullable final T receiverT);
 
 	/**
 	 * Set return type.
