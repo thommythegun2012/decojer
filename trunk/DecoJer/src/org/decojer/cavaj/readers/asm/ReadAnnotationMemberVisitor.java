@@ -28,15 +28,18 @@ import java.lang.annotation.RetentionPolicy;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.decojer.cavaj.model.A;
-import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.readers.ReadVisitor;
 
 /**
  * ASM read annotation member visitor.
  *
  * @author André Pankraz
  */
+@Slf4j
 public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 
 	@Nullable
@@ -45,11 +48,11 @@ public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 	/**
 	 * Constructor.
 	 *
-	 * @param du
-	 *            decompilation unit
+	 * @param parentVisitor
+	 *            parent visitor
 	 */
-	public ReadAnnotationMemberVisitor(@Nonnull final DU du) {
-		super(du);
+	public ReadAnnotationMemberVisitor(@Nonnull final ReadVisitor parentVisitor) {
+		super(parentVisitor);
 	}
 
 	@Override
@@ -70,8 +73,9 @@ public class ReadAnnotationMemberVisitor extends ReadAnnotationVisitor {
 	 */
 	@Nullable
 	public A init(@Nullable final String desc, final RetentionPolicy retentionPolicy) {
-		final T t = this.du.getDescT(desc);
+		final T t = getDu().getDescT(desc);
 		if (t == null) {
+			log.warn(getT() + ": Cannot read annotation descriptor '" + desc + "'!");
 			this.a = null;
 			return null;
 		}

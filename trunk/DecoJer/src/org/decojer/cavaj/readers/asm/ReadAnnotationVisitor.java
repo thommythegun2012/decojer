@@ -28,11 +28,13 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.readers.ReadVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -45,28 +47,39 @@ import com.google.common.collect.Lists;
  * @author André Pankraz
  */
 @Slf4j
-public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
+public abstract class ReadAnnotationVisitor extends AnnotationVisitor implements ReadVisitor {
 
+	@Getter
 	@Nonnull
-	protected final DU du;
+	private final ReadVisitor parentVisitor;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param du
-	 *            decompilation unit
+	 * @param parentVisitor
+	 *            parent visitor
 	 */
-	public ReadAnnotationVisitor(@Nonnull final DU du) {
+	public ReadAnnotationVisitor(@Nonnull final ReadVisitor parentVisitor) {
 		super(Opcodes.ASM5);
-		this.du = du;
+		this.parentVisitor = parentVisitor;
 	}
 
 	protected abstract void add(final String name, @Nullable final Object value);
 
 	@Override
+	public DU getDu() {
+		return getParentVisitor().getDu();
+	}
+
+	@Override
+	public T getT() {
+		return getParentVisitor().getT();
+	}
+
+	@Override
 	public void visit(final String name, final Object value) {
 		if (value instanceof Type) {
-			add(name, this.du.getT(((Type) value).getClassName()));
+			add(name, getDu().getT(((Type) value).getClassName()));
 			return;
 		}
 		add(name, value);
@@ -75,14 +88,14 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	@Override
 	public AnnotationVisitor visitAnnotation(final String name, final String desc) {
 		final ReadAnnotationMemberVisitor readAnnotationMemberVisitor = new ReadAnnotationMemberVisitor(
-				this.du);
+				this);
 		add(name, readAnnotationMemberVisitor.init(desc, null));
 		return readAnnotationMemberVisitor;
 	}
 
 	@Override
 	public AnnotationVisitor visitArray(final String name) {
-		return new ReadAnnotationVisitor(this.du) {
+		return new ReadAnnotationVisitor(this) {
 
 			private final List<Object> values = Lists.newArrayList();
 
@@ -108,11 +121,12 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor {
 	@Override
 	public void visitEnum(final String name, final String desc, final String value) {
 		if (name == null || desc == null || value == null) {
+			assert false;
 			return;
 		}
-		final T ownerT = this.du.getDescT(desc);
+		final T ownerT = getDu().getDescT(desc);
 		if (ownerT == null) {
-			log.warn("Cannot read enumeration descriptor '" + desc + "'!");
+			log.warn(getT() + ": Cannot read enumeration value descriptor '" + desc + "'!");
 			return;
 		}
 		final F f = ownerT.getF(value, desc);
