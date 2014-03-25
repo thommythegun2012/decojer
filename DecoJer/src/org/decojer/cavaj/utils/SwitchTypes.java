@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Stack;
 import java.util.TreeMap;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.ArrayUtils;
@@ -147,8 +148,9 @@ public class SwitchTypes {
 	 *            case value map: index to string
 	 * @return {@code true} - success
 	 */
-	private static boolean executeBbStringIndex(final BB caseBb, final int indexReg,
-			final String str, final BB defaultCase, final Map<Integer, String> index2string) {
+	private static boolean executeBbStringIndex(@Nonnull final BB caseBb, final int indexReg,
+			@Nonnull final String str, @Nonnull final BB defaultCase,
+			@Nonnull final Map<Integer, String> index2string) {
 		assert defaultCase != null; // prevent warning for now, later check more
 
 		final Stack<Object> stack = new Stack<Object>();
@@ -184,7 +186,7 @@ public class SwitchTypes {
 	 *            enum type for filtering
 	 * @return case value map: index to enum field
 	 */
-	public static Map<Integer, F> extractIndex2enum(final M m, final T enumT) {
+	public static Map<Integer, F> extractIndex2enum(@Nonnull final M m, @Nonnull final T enumT) {
 		// very simplistic matcher and may have false positives with obfuscated / strange bytecode,
 		// works for JDK / Eclipse
 		final Map<Integer, F> index2enums = Maps.newHashMap();
@@ -241,8 +243,9 @@ public class SwitchTypes {
 	 * @return case value map: index to string
 	 */
 	@Nullable
-	public static Map<Integer, String> extractIndex2string(final Map<String, BB> string2bb,
-			final int indexReg, final BB defaultCase) {
+	public static Map<Integer, String> extractIndex2string(
+			@Nonnull final Map<String, BB> string2bb, final int indexReg,
+			@Nonnull final BB defaultCase) {
 		final Map<Integer, String> index2string = Maps.newHashMap();
 		for (final Map.Entry<String, BB> string2bbEntry : string2bb.entrySet()) {
 			if (!executeBbStringIndex(string2bbEntry.getValue(), indexReg, string2bbEntry.getKey(),
@@ -265,8 +268,8 @@ public class SwitchTypes {
 	 * @return case value map: hash to BB
 	 */
 	@Nullable
-	public static Map<String, BB> extractString2bb(final BB switchHead, final int stringReg,
-			final BB defaultCase) {
+	public static Map<String, BB> extractString2bb(@Nonnull final BB switchHead,
+			final int stringReg, @Nonnull final BB defaultCase) {
 		// remember string order: linked!
 		final Map<String, BB> string2bb = Maps.newLinkedHashMap();
 		for (final E out : switchHead.getOuts()) {
@@ -306,8 +309,8 @@ public class SwitchTypes {
 	 * @param defaultCase
 	 *            default case
 	 */
-	public static void rewriteCaseStrings(final BB switchHead, final Map<String, BB> string2bb,
-			final BB defaultCase) {
+	public static void rewriteCaseStrings(@Nonnull final BB switchHead,
+			@Nonnull final Map<String, BB> string2bb, @Nonnull final BB defaultCase) {
 		// remember old switch case edges, delete later
 		final List<E> outs = switchHead.getOuts();
 		int i = outs.size();
@@ -361,8 +364,8 @@ public class SwitchTypes {
 	 *            case value map: index to value (enum field or string)
 	 * @return {@code true} - success
 	 */
-	public static boolean rewriteCaseValues(final BB switchHead,
-			final Map<Integer, ?> caseIndex2value) {
+	public static boolean rewriteCaseValues(@Nonnull final BB switchHead,
+			@Nonnull final Map<Integer, ?> caseIndex2value) {
 		for (final E out : switchHead.getOuts()) {
 			if (!out.isSwitchCase()) {
 				continue;
