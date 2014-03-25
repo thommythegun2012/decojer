@@ -53,8 +53,8 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 @Slf4j
 public final class TrLineNumberAnalysis {
 
-	private static void analyzeLines(final Block block, final Element e) {
-		assert e != null;
+	private static void analyzeLines(final Block block, final Element declaration) {
+		assert declaration != null;
 
 		for (final Statement statement : (List<Statement>) block.statements()) {
 			final Op op = getOp(statement);

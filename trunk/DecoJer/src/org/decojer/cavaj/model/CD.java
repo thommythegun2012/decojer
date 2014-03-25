@@ -62,8 +62,8 @@ public abstract class CD {
 	 * Clear all decompile infos, e.g. AST nodes.
 	 */
 	public void clear() {
-		for (final Element e : getDeclarations()) {
-			e.clear();
+		for (final Element declaration : getDeclarations()) {
+			declaration.clear();
 		}
 	}
 
