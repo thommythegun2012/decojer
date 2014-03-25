@@ -229,13 +229,13 @@ public final class CU implements Container {
 			final T t = (T) element;
 			TrJvmStruct2JavaAst.transform(t);
 
-			final List<Element> bds = t.getDeclarations();
-			for (int j = 0; j < bds.size(); ++j) {
-				final Element bd = bds.get(j);
-				if (!(bd instanceof M)) {
+			final List<Element> declarations = t.getDeclarations();
+			for (int j = 0; j < declarations.size(); ++j) {
+				final Element declaration = declarations.get(j);
+				if (!(declaration instanceof M)) {
 					continue;
 				}
-				final CFG cfg = ((M) bd).getCfg();
+				final CFG cfg = ((M) declaration).getCfg();
 				if (cfg == null || cfg.isIgnore()) {
 					continue;
 				}

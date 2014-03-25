@@ -70,13 +70,13 @@ public final class TrLineNumberAnalysis {
 	}
 
 	private static void analyzeLines(final T t) {
-		for (final Element e : t.getDeclarations()) {
-			if (e instanceof T) {
-				analyzeLines((T) e);
+		for (final Element declaration : t.getDeclarations()) {
+			if (declaration instanceof T) {
+				analyzeLines((T) declaration);
 				continue;
 			}
-			if (e instanceof F) {
-				final Object fieldDeclaration = e.getAstNode();
+			if (declaration instanceof F) {
+				final Object fieldDeclaration = declaration.getAstNode();
 				if (fieldDeclaration == null) {
 					continue;
 				}
@@ -101,8 +101,8 @@ public final class TrLineNumberAnalysis {
 				}
 				continue;
 			}
-			if (e instanceof M) {
-				final Object methodDeclaration = e.getAstNode();
+			if (declaration instanceof M) {
+				final Object methodDeclaration = declaration.getAstNode();
 				if (methodDeclaration == null) {
 					continue;
 				}
@@ -118,7 +118,7 @@ public final class TrLineNumberAnalysis {
 					continue;
 				}
 				if (block != null) {
-					analyzeLines(block, e);
+					analyzeLines(block, declaration);
 				}
 				continue;
 			}
@@ -132,8 +132,8 @@ public final class TrLineNumberAnalysis {
 	 *            compilation unit
 	 */
 	public static void transform(final CU cu) {
-		for (final Element e : cu.getDeclarations()) {
-			analyzeLines((T) e);
+		for (final Element declaration : cu.getDeclarations()) {
+			analyzeLines((T) declaration);
 		}
 	}
 

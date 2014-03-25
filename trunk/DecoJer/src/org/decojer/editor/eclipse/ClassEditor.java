@@ -378,10 +378,10 @@ public class ClassEditor extends MultiPageEditorPart {
 					final String typeName = element.getElementName();
 					// count anonymous!
 					int occurrenceCount = ((IType) element).getOccurrenceCount();
-					for (final Element e : c.getDeclarations()) {
-						if (e instanceof T && ((T) e).getSimpleName().equals(typeName)) {
+					for (final Element declaration : c.getDeclarations()) {
+						if (declaration instanceof T && ((T) declaration).getSimpleName().equals(typeName)) {
 							if (--occurrenceCount == 0) {
-								c = e;
+								c = declaration;
 								continue path;
 							}
 						}
