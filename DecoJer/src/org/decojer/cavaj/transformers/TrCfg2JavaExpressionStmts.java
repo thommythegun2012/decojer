@@ -1734,9 +1734,13 @@ public final class TrCfg2JavaExpressionStmts {
 					log.warn(getM() + ": Unknown cmp type '" + cmpType + "'!");
 				}
 				if (c.getStmts() == 0 && c.isStackEmpty()) {
-					c.moveIns(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
+					final BB newSucc = booleanConst ? bb.getTrueSucc() : bb.getFalseSucc();
+					assert newSucc != null;
+					c.moveIns(newSucc);
 				} else {
-					c.setSucc(booleanConst ? bb.getTrueSucc() : bb.getFalseSucc());
+					final BB newSucc = booleanConst ? bb.getTrueSucc() : bb.getFalseSucc();
+					assert newSucc != null;
+					c.setSucc(newSucc);
 				}
 				in.remove();
 				continue;
