@@ -115,7 +115,7 @@ public final class BB {
 	 *            catch types
 	 * @return out edge
 	 */
-	public E addCatchHandler(final BB handler, final T[] catchTs) {
+	public E addCatchHandler(@Nonnull final BB handler, @Nonnull final T[] catchTs) {
 		return addSucc(handler, catchTs);
 	}
 
@@ -148,7 +148,7 @@ public final class BB {
 	 *            value
 	 * @return out edge
 	 */
-	private final E addSucc(final BB succ, final Object value) {
+	private final E addSucc(@Nonnull final BB succ, @Nullable final Object value) {
 		final E e = new E(this, succ, value);
 		this.outs.add(e);
 		succ.ins.add(e);
@@ -164,7 +164,7 @@ public final class BB {
 	 *            Integer values
 	 * @return out edge
 	 */
-	public E addSwitchCase(final BB caseBb, final Object[] values) {
+	public E addSwitchCase(@Nonnull final BB caseBb, @Nonnull final Object[] values) {
 		return addSucc(caseBb, values);
 	}
 
@@ -663,7 +663,7 @@ public final class BB {
 	 * @param target
 	 *            target BB
 	 */
-	public void moveIns(final BB target) {
+	public void moveIns(@Nonnull final BB target) {
 		if (this.cfg.getStartBb() == this) {
 			this.cfg.setStartBb(target);
 		}
@@ -680,7 +680,7 @@ public final class BB {
 	 * @param target
 	 *            target BB
 	 */
-	public void moveOuts(final BB target) {
+	public void moveOuts(@Nonnull final BB target) {
 		for (final E out : this.outs) {
 			if (out.isCatch()) {
 				continue;
@@ -818,7 +818,7 @@ public final class BB {
 	 *            successor
 	 * @return out edge
 	 */
-	public final E setSucc(final BB succ) {
+	public final E setSucc(@Nonnull final BB succ) {
 		return addSucc(succ, null);
 	}
 
