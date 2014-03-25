@@ -28,6 +28,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.Getter;
@@ -99,7 +100,7 @@ public final class BB {
 
 	private Expression[] vs;
 
-	protected BB(final CFG cfg, final int pc) {
+	protected BB(@Nonnull final CFG cfg, final int pc) {
 		this.cfg = cfg;
 		this.pc = pc;
 		this.vs = new Expression[getRegs()];
@@ -547,7 +548,7 @@ public final class BB {
 	 */
 	public boolean isRelevant() {
 		// for ops.isEmpty() -> later GOTO check
-		if (this.ins.size() > 1 || !this.stmts.isEmpty() || !isStackEmpty()) {
+		if (this.ins.size() != 1 || !this.stmts.isEmpty() || !isStackEmpty()) {
 			return true;
 		}
 		for (final Op op : this.ops) {

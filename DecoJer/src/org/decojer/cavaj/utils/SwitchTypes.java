@@ -276,6 +276,7 @@ public class SwitchTypes {
 				continue;
 			}
 			final Object[] values = (Object[]) out.getValue();
+			assert values != null;
 			assert values.length == 1 : values.length; // just one hash possible
 
 			final Object value = values[0];
@@ -366,8 +367,10 @@ public class SwitchTypes {
 			if (!out.isSwitchCase()) {
 				continue;
 			}
+			final Object[] caseValues = (Object[]) out.getValue();
+			assert caseValues != null;
 			// check for all or nothing...
-			for (final Object caseValue : (Object[]) out.getValue()) {
+			for (final Object caseValue : caseValues) {
 				if (!(caseValue instanceof Integer)) {
 					assert caseValue == null; // default
 
@@ -386,6 +389,7 @@ public class SwitchTypes {
 				continue;
 			}
 			final Object[] caseValues = (Object[]) out.getValue();
+			assert caseValues != null;
 			for (int i = caseValues.length; i-- > 0;) {
 				final Integer caseIndex = (Integer) caseValues[i];
 				if (caseIndex == null) {
@@ -405,5 +409,4 @@ public class SwitchTypes {
 		}
 		return true;
 	}
-
 }
