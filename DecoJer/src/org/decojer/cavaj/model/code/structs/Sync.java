@@ -16,29 +16,31 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code.structs;
 
+import javax.annotation.Nonnull;
+
 import org.decojer.cavaj.model.code.BB;
 
 /**
  * Synchronized struct.
- * 
+ *
  * @author André Pankraz
  */
 public class Sync extends Struct {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param head
 	 *            synchronized head BB
 	 */
-	public Sync(final BB head) {
+	public Sync(@Nonnull final BB head) {
 		super(head);
 	}
 
