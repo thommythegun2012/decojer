@@ -67,8 +67,8 @@ public final class TrMergeAll {
 
 	private static int countConstructors(final T t) {
 		int constructors = 0;
-		for (final Element e : t.getDeclarations()) {
-			if (e instanceof M && ((M) e).isConstructor()) {
+		for (final Element declaration : t.getDeclarations()) {
+			if (declaration instanceof M && ((M) declaration).isConstructor()) {
 				++constructors;
 			}
 		}
@@ -82,8 +82,8 @@ public final class TrMergeAll {
 	 *            compilation unit
 	 */
 	public static void transform(final CU cu) {
-		for (final Element e : cu.getDeclarations()) {
-			final T t = (T) e;
+		for (final Element declaration : cu.getDeclarations()) {
+			final T t = (T) declaration;
 			if (t.isAnonymous() && t.getEnclosingT() != null) {
 				continue;
 			}
@@ -99,26 +99,26 @@ public final class TrMergeAll {
 	private static void transform(final T t) {
 		// multiple constructors? => no omissable default constructor
 		final int constructors = countConstructors(t);
-		for (final Element e : t.getDeclarations()) {
-			if (e instanceof T) {
-				if (!((T) e).isAnonymous()) {
-					addBodyDeclaration(t, e.getAstNode());
+		for (final Element declaration : t.getDeclarations()) {
+			if (declaration instanceof T) {
+				if (!((T) declaration).isAnonymous()) {
+					addBodyDeclaration(t, declaration.getAstNode());
 				}
-				transform((T) e);
+				transform((T) declaration);
 				continue;
 			}
-			if (e instanceof F) {
-				addBodyDeclaration(t, e.getAstNode());
-				for (final Element innerE : e.getDeclarations()) {
-					transform((T) innerE);
+			if (declaration instanceof F) {
+				addBodyDeclaration(t, declaration.getAstNode());
+				for (final Element innerDeclaration : declaration.getDeclarations()) {
+					transform((T) innerDeclaration);
 				}
 				continue;
 			}
-			if (e instanceof M) {
-				final M m = (M) e;
-				for (final Element innerE : m.getDeclarations()) {
-					if (!((T) innerE).isAnonymous()) {
-						final ASTNode typeDeclaration = (ASTNode) ((T) innerE).getAstNode();
+			if (declaration instanceof M) {
+				final M m = (M) declaration;
+				for (final Element innerDeclaration : m.getDeclarations()) {
+					if (!((T) innerDeclaration).isAnonymous()) {
+						final ASTNode typeDeclaration = (ASTNode) ((T) innerDeclaration).getAstNode();
 						if (typeDeclaration != null) {
 							m.getCfg()
 							.getBlock()
@@ -127,7 +127,7 @@ public final class TrMergeAll {
 									(AbstractTypeDeclaration) typeDeclaration));
 						}
 					}
-					transform((T) innerE);
+					transform((T) innerDeclaration);
 				}
 				final Object methodDeclaration = m.getAstNode();
 				if (methodDeclaration instanceof MethodDeclaration

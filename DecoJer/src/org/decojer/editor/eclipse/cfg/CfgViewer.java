@@ -168,9 +168,9 @@ public class CfgViewer extends Composite {
 		if (this.selectedD instanceof M) {
 			cfg = ((M) this.selectedD).getCfg();
 		} else if (this.selectedD instanceof T) {
-			for (final Element e : ((T) this.selectedD).getDeclarations()) {
-				if (e instanceof M && ((M) e).isConstructor()) {
-					cfg = ((M) e).getCfg();
+			for (final Element declaration : ((T) this.selectedD).getDeclarations()) {
+				if (declaration instanceof M && ((M) declaration).isConstructor()) {
+					cfg = ((M) declaration).getCfg();
 					if (cfg != null) {
 						break;
 					}

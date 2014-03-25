@@ -91,11 +91,11 @@ public class TrInnerClassesAnalysis {
 			if (t == null || !t.isDeclaration()) {
 				continue;
 			}
-			for (final Element bd : t.getDeclarations()) {
-				if (!(bd instanceof M)) {
+			for (final Element declaration : t.getDeclarations()) {
+				if (!(declaration instanceof M)) {
 					continue;
 				}
-				final M enclosingMd = (M) bd;
+				final M enclosingMd = (M) declaration;
 				final CFG cfg = enclosingMd.getCfg();
 				if (cfg == null) {
 					continue;

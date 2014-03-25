@@ -398,11 +398,11 @@ public final class TrJvmStruct2JavaAst {
 		// AF.STRICTFP is no valid inner modifier for bytecode, strictfp modifier at class generates
 		// strictfp modifier for all method in class -> check here and oppress then in methods
 		boolean strictFp = false;
-		for (final Element bd : t.getDeclarations()) {
-			if (!(bd instanceof M)) {
+		for (final Element declaration : t.getDeclarations()) {
+			if (!(declaration instanceof M)) {
 				continue;
 			}
-			if (!((M) bd).check(AF.STRICTFP)) {
+			if (!((M) declaration).check(AF.STRICTFP)) {
 				break;
 			}
 			strictFp = true;

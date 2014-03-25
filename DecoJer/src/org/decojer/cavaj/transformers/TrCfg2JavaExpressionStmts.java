@@ -2278,11 +2278,11 @@ public final class TrCfg2JavaExpressionStmts {
 
 				final F arrayF = ((GET) arrayOp).getF();
 				M initializer = null;
-				for (final Element bd : arrayF.getDeclarationOwner().getDeclarations()) {
-					if (!(bd instanceof M)) {
+				for (final Element declaration : arrayF.getDeclarationOwner().getDeclarations()) {
+					if (!(declaration instanceof M)) {
 						continue;
 					}
-					final M m = (M) bd;
+					final M m = (M) declaration;
 					if (m.isInitializer()) {
 						initializer = m;
 						break;
