@@ -186,6 +186,7 @@ public class SwitchTypes {
 	 *            enum type for filtering
 	 * @return case value map: index to enum field
 	 */
+	@Nonnull
 	public static Map<Integer, F> extractIndex2enum(@Nonnull final M m, @Nonnull final T enumT) {
 		// very simplistic matcher and may have false positives with obfuscated / strange bytecode,
 		// works for JDK / Eclipse
