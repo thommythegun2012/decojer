@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -27,6 +27,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
@@ -35,7 +38,7 @@ import org.decojer.cavaj.model.types.T;
 
 /**
  * Edge for CFG.
- * 
+ *
  * @author André Pankraz
  */
 public final class E {
@@ -63,19 +66,22 @@ public final class E {
 
 	@Getter
 	@Setter(AccessLevel.PROTECTED)
+	@Nonnull
 	private BB end;
 
 	@Getter
 	@Setter(AccessLevel.PROTECTED)
+	@Nonnull
 	private BB start;
 
 	@Getter
 	@Setter
+	@Nullable
 	private Object value;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param start
 	 *            start BB
 	 * @param end
@@ -83,7 +89,7 @@ public final class E {
 	 * @param value
 	 *            value
 	 */
-	public E(final BB start, final BB end, final Object value) {
+	public E(@Nonnull final BB start, @Nonnull final BB end, @Nullable final Object value) {
 		this.start = start;
 		this.end = end;
 		this.value = value;
@@ -100,46 +106,60 @@ public final class E {
 
 	/**
 	 * Get relevant end BB.
-	 * 
+	 *
 	 * @return relevant end BB
-	 * 
+	 *
 	 * @see BB#isRelevant()
 	 */
+	@Nonnull
 	public BB getRelevantEnd() {
 		return getRelevantOut().getEnd();
 	}
 
 	/**
 	 * Get relevant incoming edge, maybe {@code this}.
-	 * 
+	 *
 	 * @return relevant incoming edge, maybe {@code this}
-	 * 
+	 *
 	 * @see BB#isRelevant()
 	 */
+	@Nonnull
 	public E getRelevantIn() {
 		final BB start = getStart();
-		return start.isRelevant() ? this : start.getRelevantIn();
+		if (start.isRelevant()) {
+			return this;
+		}
+		final E relevantIn = start.getRelevantIn();
+		assert relevantIn != null;
+		return relevantIn;
 	}
 
 	/**
 	 * Get relevant outgoing edge, maybe {@code this}.
-	 * 
+	 *
 	 * @return relevant outgoing edge, maybe {@code this}
-	 * 
+	 *
 	 * @see BB#isRelevant()
 	 */
+	@Nonnull
 	public E getRelevantOut() {
 		final BB end = getEnd();
-		return end.isRelevant() ? this : end.getRelevantOut();
+		if (end.isRelevant()) {
+			return this;
+		}
+		final E relevantOut = end.getRelevantOut();
+		assert relevantOut != null;
+		return relevantOut;
 	}
 
 	/**
 	 * Get relevant start BB.
-	 * 
+	 *
 	 * @return relevant start BB
-	 * 
+	 *
 	 * @see BB#isRelevant()
 	 */
+	@Nonnull
 	public BB getRelevantStart() {
 		return getRelevantIn().getStart();
 	}
@@ -163,7 +183,7 @@ public final class E {
 
 	/**
 	 * Has BB given BB as predecessor? This excludes same BB!
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - given BB is predecessor of this edge
@@ -174,7 +194,7 @@ public final class E {
 
 	/**
 	 * Is back edge?
-	 * 
+	 *
 	 * @return {@code true} - is back edge
 	 */
 	public boolean isBack() {
@@ -184,7 +204,7 @@ public final class E {
 
 	/**
 	 * Is catch?
-	 * 
+	 *
 	 * @return {@code true} - is catch
 	 */
 	public boolean isCatch() {
@@ -193,7 +213,7 @@ public final class E {
 
 	/**
 	 * Is conditional?
-	 * 
+	 *
 	 * @return {@code true} - is conditional
 	 */
 	public boolean isCond() {
@@ -202,7 +222,7 @@ public final class E {
 
 	/**
 	 * Is conditional false?
-	 * 
+	 *
 	 * @return {@code true} - is conditional false
 	 */
 	public boolean isCondFalse() {
@@ -211,7 +231,7 @@ public final class E {
 
 	/**
 	 * Is conditional true?
-	 * 
+	 *
 	 * @return {@code true} - is conditional true
 	 */
 	public boolean isCondTrue() {
@@ -220,7 +240,7 @@ public final class E {
 
 	/**
 	 * Is sequence?
-	 * 
+	 *
 	 * @return {@code true} - is sequence
 	 */
 	public boolean isSequence() {
@@ -229,7 +249,7 @@ public final class E {
 
 	/**
 	 * Is switch case?
-	 * 
+	 *
 	 * @return {@code true} - is switch case
 	 */
 	public boolean isSwitchCase() {
@@ -238,7 +258,7 @@ public final class E {
 
 	/**
 	 * Is switch default in cases?
-	 * 
+	 *
 	 * @return {@code true} - switch default is in cases
 	 */
 	public boolean isSwitchDefault() {
@@ -246,6 +266,7 @@ public final class E {
 			return false;
 		}
 		final Object[] caseValues = (Object[]) this.value;
+		assert caseValues != null;
 		for (int i = caseValues.length; i-- > 0;) {
 			if (caseValues[i] == null) {
 				return true;
