@@ -2280,65 +2280,68 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final ArrayAccess arrayAccess = (ArrayAccess) switchExpression;
-		try {
-			final MethodInvocation ordinalMethodInvocation = (MethodInvocation) arrayAccess
-					.getIndex();
-			final M ordinalM = ((INVOKE) getOp(ordinalMethodInvocation)).getM();
-			if (!"ordinal".equals(ordinalM.getName()) || !"()I".equals(ordinalM.getDescriptor())) {
-				return false;
-			}
-			final Map<Integer, F> index2enum;
-			final Expression array = arrayAccess.getArray();
-			final Op arrayOp = getOp(array);
-			if (arrayOp instanceof GET) {
-				// JDK-Bytecode mode: map in different class file - or general in a field with
-				// static initializer
-				assert array instanceof QualifiedName : array.getClass();
 
-				final F arrayF = ((GET) arrayOp).getF();
-				final Container declarationOwner = arrayF.getDeclarationOwner();
-				if (declarationOwner == null) {
-					return false;
-				}
-				M initializer = null;
-				for (final Element declaration : declarationOwner.getDeclarations()) {
-					if (!(declaration instanceof M)) {
-						continue;
-					}
-					final M m = (M) declaration;
-					if (m.isInitializer()) {
-						initializer = m;
-						break;
-					}
-				}
-				if (initializer == null) {
-					return false;
-				}
-				index2enum = SwitchTypes.extractIndex2enum(initializer, ordinalM.getT());
-			} else if (arrayOp instanceof INVOKE) {
-				// Eclipse-Bytecode mode: map in same class file - or general in a function
-				assert array instanceof MethodInvocation : array.getClass();
-
-				final M arrayM = ((INVOKE) arrayOp).getM();
-				index2enum = SwitchTypes.extractIndex2enum(arrayM, ordinalM.getT());
-			} else {
-				return false;
-			}
-			if (!SwitchTypes.rewriteCaseValues(bb, index2enum)) {
-				return false;
-			}
-			if (getCfg().getT().isBelow(Version.JVM_5)) {
-				log.warn(getM()
-						+ ": Enumerations switches are not known before JVM 5! Rewriting anyway, check this.");
-			}
-			final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
-			switchStatement.setExpression(wrap(ordinalMethodInvocation.getExpression()));
-			bb.addStmt(switchStatement);
-			return true;
-		} catch (final ClassCastException e) {
-			// nothing
+		// check index expression: ordinal() : int
+		final Expression indexExpression = arrayAccess.getIndex();
+		if (!(indexExpression instanceof MethodInvocation)) {
+			return false;
 		}
-		return false;
+		final MethodInvocation ordinalMethodInvocation = (MethodInvocation) indexExpression;
+		final Op ordinalMOp = getOp(ordinalMethodInvocation);
+		if (!(ordinalMOp instanceof INVOKE)) {
+			return false;
+		}
+		final M ordinalM = ((INVOKE) ordinalMOp).getM();
+		if (!"ordinal".equals(ordinalM.getName()) || !"()I".equals(ordinalM.getDescriptor())) {
+			return false;
+		}
+
+		final Map<Integer, F> index2enum;
+
+		// check array expression: GET (JDK) or INVOKE (Eclipse)
+		final Expression arrayExpression = arrayAccess.getArray();
+		final Op arrayOp = getOp(arrayExpression);
+		if (arrayExpression instanceof QualifiedName && arrayOp instanceof GET) {
+			// JDK-Bytecode mode: map in different class file - or general in a field with
+			// static initializer
+			final F arrayF = ((GET) arrayOp).getF();
+			final Container declarationOwner = arrayF.getDeclarationOwner();
+			if (declarationOwner == null) {
+				return false;
+			}
+			M initializer = null;
+			for (final Element declaration : declarationOwner.getDeclarations()) {
+				if (!(declaration instanceof M)) {
+					continue;
+				}
+				final M m = (M) declaration;
+				if (m.isInitializer()) {
+					initializer = m;
+					break;
+				}
+			}
+			if (initializer == null) {
+				return false;
+			}
+			index2enum = SwitchTypes.extractIndex2enum(initializer, ordinalM.getT());
+		} else if (arrayExpression instanceof MethodInvocation && arrayOp instanceof INVOKE) {
+			// Eclipse-Bytecode mode: map in same class file - or general in a function
+			final M arrayM = ((INVOKE) arrayOp).getM();
+			index2enum = SwitchTypes.extractIndex2enum(arrayM, ordinalM.getT());
+		} else {
+			return false;
+		}
+		if (!SwitchTypes.rewriteCaseValues(bb, index2enum)) {
+			return false;
+		}
+		if (getCfg().getT().isBelow(Version.JVM_5)) {
+			log.warn(getM()
+					+ ": Enumerations switches are not known before JVM 5! Rewriting anyway, check this.");
+		}
+		final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
+		switchStatement.setExpression(wrap(ordinalMethodInvocation.getExpression()));
+		bb.addStmt(switchStatement);
+		return true;
 	}
 
 	@SuppressWarnings("null")
