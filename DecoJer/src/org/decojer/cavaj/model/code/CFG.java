@@ -432,6 +432,7 @@ public final class CFG {
 	 *
 	 * @return BB
 	 */
+	@Nonnull
 	public BB newBb(final int opPc) {
 		return new BB(this, opPc);
 	}

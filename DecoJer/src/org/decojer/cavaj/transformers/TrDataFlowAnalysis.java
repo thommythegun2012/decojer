@@ -810,7 +810,7 @@ public final class TrDataFlowAnalysis {
 	 *            target PC
 	 * @return target BB
 	 */
-	@SuppressWarnings("null")
+	@Nonnull
 	private BB getTargetBb(final int pc) {
 		final BB bb = getBb(pc); // get BB for target PC
 		if (bb == null) {
@@ -829,6 +829,7 @@ public final class TrDataFlowAnalysis {
 		newInBb.setSucc(bb);
 		while (bb.getOps() > 0 && bb.getOp(0).getPc() != pc) {
 			final Op op = bb.removeOp(0);
+			assert op != null;
 			newInBb.addOp(op);
 			setBb(op.getPc(), newInBb);
 		}
@@ -1029,6 +1030,7 @@ public final class TrDataFlowAnalysis {
 		}
 	}
 
+	@Nonnull
 	private BB newBb(final int pc) {
 		final BB bb = getCfg().newBb(pc);
 		setBb(pc, bb);
