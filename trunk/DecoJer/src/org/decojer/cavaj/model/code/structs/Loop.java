@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code.structs;
+
+import javax.annotation.Nonnull;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -30,14 +32,14 @@ import org.decojer.cavaj.model.code.BB;
 
 /**
  * Loop struct.
- * 
+ *
  * @author André Pankraz
  */
 public class Loop extends Struct {
 
 	/**
 	 * Loop kind.
-	 * 
+	 *
 	 * @author André Pankraz
 	 */
 	public enum Kind {
@@ -74,11 +76,11 @@ public class Loop extends Struct {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param bb
 	 *            loop head BB
 	 */
-	public Loop(final BB bb) {
+	public Loop(@Nonnull final BB bb) {
 		super(bb);
 	}
 
@@ -92,7 +94,7 @@ public class Loop extends Struct {
 
 	/**
 	 * Is BB target for continue?
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is target for continue
@@ -112,7 +114,7 @@ public class Loop extends Struct {
 
 	/**
 	 * Is loop endless?
-	 * 
+	 *
 	 * @return {@code true} - loop is endless
 	 */
 	public boolean isEndless() {
@@ -121,7 +123,7 @@ public class Loop extends Struct {
 
 	/**
 	 * Is BB last?
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - BB is last
@@ -138,7 +140,7 @@ public class Loop extends Struct {
 
 	/**
 	 * Is loop post?
-	 * 
+	 *
 	 * @return {@code true} - loop is post
 	 */
 	public boolean isPost() {
@@ -147,7 +149,7 @@ public class Loop extends Struct {
 
 	/**
 	 * Is loop pre?
-	 * 
+	 *
 	 * @return {@code true} - loop is pre
 	 */
 	public boolean isPre() {
@@ -156,7 +158,7 @@ public class Loop extends Struct {
 
 	/**
 	 * Set last BB.
-	 * 
+	 *
 	 * @param bb
 	 *            last BB
 	 */

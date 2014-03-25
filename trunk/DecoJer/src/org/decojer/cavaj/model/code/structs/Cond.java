@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code.structs;
+
+import javax.annotation.Nonnull;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -30,14 +32,14 @@ import org.decojer.cavaj.model.code.BB;
 
 /**
  * Conditional struct.
- * 
+ *
  * @author André Pankraz
  */
 public class Cond extends Struct {
 
 	/**
 	 * Conditional kind.
-	 * 
+	 *
 	 * @author André Pankraz
 	 */
 	public enum Kind {
@@ -67,11 +69,11 @@ public class Cond extends Struct {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param head
 	 *            conditional head BB
 	 */
-	public Cond(final BB head) {
+	public Cond(@Nonnull final BB head) {
 		super(head);
 	}
 

@@ -99,12 +99,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		// example: sun/org/mozilla/javascript/internal/
 		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
 				.getResource().getLocation().toOSString() : eclipseClassFile.getPath().toOSString();
-		assert jarPath != null;
+				assert jarPath != null;
 
-		final String packageName = eclipseClassFile.getParent().getElementName();
-		final String typeName = eclipseClassFile.getElementName();
-		return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
-				+ typeName;
+				final String packageName = eclipseClassFile.getParent().getElementName();
+				final String typeName = eclipseClassFile.getElementName();
+				return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
+						+ typeName;
 	}
 
 	private static void parseClassT(final String s, final Cursor c, final StringBuilder sb) {
@@ -261,6 +261,7 @@ public class ClassEditor extends MultiPageEditorPart {
 	private void createDecompilationUnitEditor() {
 		this.decompilationUnitEditor = new DecompilationUnitEditor();
 
+		assert this.selectedCu != null : "cannot be null";
 		try {
 			addPage(0, this.decompilationUnitEditor,
 					DecompilationUnitEditor.decompileToEditorInput(this.selectedCu));
@@ -306,9 +307,11 @@ public class ClassEditor extends MultiPageEditorPart {
 				if (ClassEditor.this.selectedCu != null) {
 					ClassEditor.this.selectedCu.clear();
 				}
-				ClassEditor.this.selectedCu = ClassEditor.this.du.getCu(selection.getText());
-				ClassEditor.this.decompilationUnitEditor.setInput(ClassEditor.this.selectedCu);
-
+				final CU selectedCu = ClassEditor.this.du.getCu(selection.getText());
+				if (selectedCu != null) {
+					ClassEditor.this.selectedCu = selectedCu;
+					ClassEditor.this.decompilationUnitEditor.setInput(selectedCu);
+				}
 			}
 
 		});

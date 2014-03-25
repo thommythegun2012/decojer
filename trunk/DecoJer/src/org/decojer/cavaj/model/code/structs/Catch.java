@@ -16,29 +16,31 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code.structs;
 
+import javax.annotation.Nonnull;
+
 import org.decojer.cavaj.model.code.BB;
 
 /**
  * Catch struct.
- * 
+ *
  * @author André Pankraz
  */
 public class Catch extends Struct {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param head
 	 *            catch head BB
 	 */
-	public Catch(final BB head) {
+	public Catch(@Nonnull final BB head) {
 		super(head);
 	}
 
