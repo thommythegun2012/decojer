@@ -614,12 +614,7 @@ public abstract class T implements Element {
 		return 0;
 	}
 
-	/**
-	 * Get decompilation unit or null (for primitive and special types).
-	 *
-	 * @return decompilation unit or null
-	 */
-	@Nullable
+	@Override
 	public DU getDu() {
 		return null;
 	}

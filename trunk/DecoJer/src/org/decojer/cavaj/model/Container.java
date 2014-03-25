@@ -59,6 +59,13 @@ public interface Container {
 	void clear();
 
 	/**
+	 * Get decompilation unit.
+	 *
+	 * @return decompilation unit
+	 */
+	DU getDu();
+
+	/**
 	 * Get declaration for AST node.
 	 *
 	 * @param node
