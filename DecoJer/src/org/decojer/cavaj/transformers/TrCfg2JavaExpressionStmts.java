@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
@@ -51,11 +52,13 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.code.E;
+import org.decojer.cavaj.model.code.Frame;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.code.ops.CAST;
@@ -229,22 +232,23 @@ public final class TrCfg2JavaExpressionStmts {
 	 * @param cfg
 	 *            CFG
 	 */
-	public static void transform(final CFG cfg) {
+	public static void transform(@Nonnull final CFG cfg) {
 		new TrCfg2JavaExpressionStmts(cfg).transform();
 	}
 
-	@Getter(value = AccessLevel.PRIVATE)
+	@Getter(AccessLevel.PROTECTED)
+	@Nonnull
 	private final CFG cfg;
 
 	/**
 	 * Flag indicates whether rewrite field init (for PUT operation) is possible, that means that no
 	 * previous invalid operations happened (like LOAD normal method argument).
 	 */
-	@Getter(value = AccessLevel.PRIVATE)
-	@Setter(value = AccessLevel.PRIVATE)
+	@Getter(AccessLevel.PROTECTED)
+	@Setter(AccessLevel.PROTECTED)
 	private boolean fieldInit;
 
-	private TrCfg2JavaExpressionStmts(final CFG cfg) {
+	private TrCfg2JavaExpressionStmts(@Nonnull final CFG cfg) {
 		this.cfg = cfg;
 	}
 
@@ -1259,6 +1263,7 @@ public final class TrCfg2JavaExpressionStmts {
 		return getCfg().getCu().getAst();
 	}
 
+	@Nonnull
 	private M getM() {
 		return getCfg().getM();
 	}
@@ -1293,7 +1298,12 @@ public final class TrCfg2JavaExpressionStmts {
 	 */
 	private boolean isStackUnderflow(final BB bb) {
 		final Op op = bb.getOp(0);
-		return op.getInStackSize(getCfg().getInFrame(op)) > bb.getTop();
+		final Frame inFrame = getCfg().getInFrame(op);
+		if (inFrame == null) {
+			assert false;
+			return true;
+		}
+		return op.getInStackSize(inFrame) > bb.getTop();
 	}
 
 	private boolean isWide(final Op op) {
@@ -1936,7 +1946,11 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!f.isDeclaration()) {
 			return false;
 		}
-		if (!getM().getT().is(f.getT())) {
+		final T ownerT = getM().getT();
+		if (ownerT == null) {
+			return false;
+		}
+		if (!ownerT.is(f.getT())) {
 			return false;
 		}
 		// set local field, could be initializer
@@ -2030,7 +2044,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// initial super(<arguments>) is allowed for constructors
 				return false;
 			}
-			if (getM().getT().isInner() && !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
+			if (ownerT.isInner() && !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
 				if (f.isSynthetic() && f.getName().startsWith("this$")) {
 					bb.pop();
 					return true;
@@ -2184,8 +2198,9 @@ public final class TrCfg2JavaExpressionStmts {
 		// ..."" at the beginning or end are handled very differently...
 
 		final M m = op.getM();
-		if (!"toString".equals(m.getName()) || !m.getT().is(StringBuilder.class)
-				&& !m.getT().is(StringBuffer.class)) {
+		final T ownerT = m.getT();
+		if (!"toString".equals(m.getName()) || ownerT == null || !ownerT.is(StringBuilder.class)
+				&& !ownerT.is(StringBuffer.class)) {
 			return false;
 		}
 		try {
@@ -2277,8 +2292,12 @@ public final class TrCfg2JavaExpressionStmts {
 				assert array instanceof QualifiedName : array.getClass();
 
 				final F arrayF = ((GET) arrayOp).getF();
+				final Container declarationOwner = arrayF.getDeclarationOwner();
+				if (declarationOwner == null) {
+					return false;
+				}
 				M initializer = null;
-				for (final Element declaration : arrayF.getDeclarationOwner().getDeclarations()) {
+				for (final Element declaration : declarationOwner.getDeclarations()) {
 					if (!(declaration instanceof M)) {
 						continue;
 					}

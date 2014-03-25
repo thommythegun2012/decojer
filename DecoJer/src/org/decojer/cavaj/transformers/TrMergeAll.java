@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.transformers;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.CU;
@@ -81,7 +82,7 @@ public final class TrMergeAll {
 	 * @param cu
 	 *            compilation unit
 	 */
-	public static void transform(final CU cu) {
+	public static void transform(@Nonnull final CU cu) {
 		for (final Element declaration : cu.getDeclarations()) {
 			final T t = (T) declaration;
 			if (t.isAnonymous() && t.getEnclosingT() != null) {
@@ -118,13 +119,14 @@ public final class TrMergeAll {
 				final M m = (M) declaration;
 				for (final Element innerDeclaration : m.getDeclarations()) {
 					if (!((T) innerDeclaration).isAnonymous()) {
-						final ASTNode typeDeclaration = (ASTNode) ((T) innerDeclaration).getAstNode();
+						final ASTNode typeDeclaration = (ASTNode) ((T) innerDeclaration)
+								.getAstNode();
 						if (typeDeclaration != null) {
 							m.getCfg()
-							.getBlock()
-							.statements()
-							.add(typeDeclaration.getAST().newTypeDeclarationStatement(
-									(AbstractTypeDeclaration) typeDeclaration));
+									.getBlock()
+									.statements()
+									.add(typeDeclaration.getAST().newTypeDeclarationStatement(
+											(AbstractTypeDeclaration) typeDeclaration));
 						}
 					}
 					transform((T) innerDeclaration);
@@ -140,7 +142,7 @@ public final class TrMergeAll {
 					if (constructors == 1
 							&& ((MethodDeclaration) methodDeclaration).parameters().size() == 0
 							&& ((MethodDeclaration) methodDeclaration).getBody().statements()
-							.size() == 0) {
+									.size() == 0) {
 						continue;
 					}
 				} else if (methodDeclaration instanceof Initializer /* m.isInitializer() is true */) {

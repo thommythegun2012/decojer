@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -28,6 +28,8 @@ import static org.decojer.cavaj.utils.Expressions.getOp;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -52,7 +54,7 @@ import com.google.common.collect.Sets;
 
 /**
  * Transformer: Control Flow Analysis.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -60,18 +62,19 @@ public final class TrControlFlowAnalysis {
 
 	/**
 	 * Transform CFG.
-	 * 
+	 *
 	 * @param cfg
 	 *            CFG
 	 */
-	public static void transform(final CFG cfg) {
+	public static void transform(@Nonnull final CFG cfg) {
 		new TrControlFlowAnalysis(cfg).transform();
 	}
 
-	@Getter(value = AccessLevel.PRIVATE)
+	@Getter(AccessLevel.PROTECTED)
+	@Nonnull
 	private final CFG cfg;
 
-	private TrControlFlowAnalysis(final CFG cfg) {
+	private TrControlFlowAnalysis(@Nonnull final CFG cfg) {
 		this.cfg = cfg;
 	}
 
@@ -414,11 +417,11 @@ public final class TrControlFlowAnalysis {
 
 	/**
 	 * Add successors until unknown predecessors are encountered.
-	 * 
+	 *
 	 * Check incoming edges first, because the start BB could be a direct continue or break!
-	 * 
+	 *
 	 * Switch-case fall-throughs start with case BB as member.
-	 * 
+	 *
 	 * @param struct
 	 *            struct
 	 * @param bb

@@ -32,6 +32,8 @@ import static org.decojer.cavaj.utils.Expressions.newTypeName;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
@@ -175,6 +177,7 @@ public final class TrJvmStruct2JavaAst {
 	private static void decompileMethod(final M m, final CU cu, final boolean strictFp) {
 		final String name = m.getName();
 		final T t = m.getT();
+		assert t != null : m + ": decompile method cannot be dynamic";
 
 		// enum synthetic methods
 		if (m.isStatic()
@@ -244,7 +247,7 @@ public final class TrJvmStruct2JavaAst {
 		// decompile modifier flags:
 		// interfaces can have default methods since JVM 8
 		if (isInterfaceMember && m.getCfg() != null && !m.isStatic()) {
-			if (m.getT().isBelow(Version.JVM_8)) {
+			if (t.isBelow(Version.JVM_8)) {
 				log.warn("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
 			}
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.DEFAULT_KEYWORD));
@@ -333,6 +336,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 		final MethodDeclaration methodDeclaration = (MethodDeclaration) astNode;
 		final T t = m.getT();
+		assert t != null : m + ": decompile method cannot be dynamic";
 		final AST ast = t.getCu().getAst();
 
 		final T[] paramTs = m.getParamTs();
@@ -568,7 +572,7 @@ public final class TrJvmStruct2JavaAst {
 	 * @param t
 	 *            type declaration
 	 */
-	public static void transform(final T t) {
+	public static void transform(@Nonnull final T t) {
 		final CU cu = t.getCu();
 
 		if (cu.getAstNode() == null) {

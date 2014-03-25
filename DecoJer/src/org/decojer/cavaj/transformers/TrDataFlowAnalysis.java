@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
@@ -102,11 +103,12 @@ public final class TrDataFlowAnalysis {
 	 * @param cfg
 	 *            CFG
 	 */
-	public static void transform(final CFG cfg) {
+	public static void transform(@Nonnull final CFG cfg) {
 		new TrDataFlowAnalysis(cfg).transform();
 	}
 
-	@Getter(value = AccessLevel.PRIVATE)
+	@Getter(AccessLevel.PROTECTED)
+	@Nonnull
 	private final CFG cfg;
 
 	/**
@@ -131,7 +133,7 @@ public final class TrDataFlowAnalysis {
 	 */
 	private BB[] pc2bbs;
 
-	private TrDataFlowAnalysis(final CFG cfg) {
+	private TrDataFlowAnalysis(@Nonnull final CFG cfg) {
 		this.cfg = cfg;
 		this.isIgnoreExceptions = getCfg().getCu().check(DFlag.IGNORE_EXCEPTIONS);
 	}
@@ -453,9 +455,9 @@ public final class TrDataFlowAnalysis {
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
 				assert false : getMd() + ": already visited sub with pc '" + subPc
-				+ "' but didn't find initial sub register";
+						+ "' but didn't find initial sub register";
 
-			return -1;
+				return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
 			if (!this.currentFrame.pushSub(sub)) {
@@ -613,7 +615,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getMd().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : getMd() + ": cannot assign '" + returnT
-			+ "' to return type '" + cop.getT() + "'";
+					+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -882,8 +884,8 @@ public final class TrDataFlowAnalysis {
 				case MERGE:
 					assert false : getMd() + ": MERGE can only be first op in BB";
 
-				// stop backpropagation here
-				return;
+					// stop backpropagation here
+					return;
 				case MOVE:
 					// register changes here, MOVE from different incoming register in same BB
 					aliveI = r.getIn().getI();
@@ -1123,20 +1125,20 @@ public final class TrDataFlowAnalysis {
 			final boolean jumpOverSub = finalOp instanceof RET ? !checkRegisterAccessInSub(
 					prevR.getI(), (RET) finalOp) : false;
 
-					// replacement propagation to next BB necessary
-					for (final E out : currentBb.getOuts()) {
-						final BB outBb = out.getEnd();
-						if (getFrame(outBb.getPc()) == null) {
-							assert out.isCatch() : getMd()
+			// replacement propagation to next BB necessary
+			for (final E out : currentBb.getOuts()) {
+				final BB outBb = out.getEnd();
+				if (getFrame(outBb.getPc()) == null) {
+					assert out.isCatch() : getMd()
 							+ ": out frames can just be null for splitted catch-handlers that havn't been visited yet: "
 							+ out;
 
-							continue;
-						}
-						// final operation is RET & register untouched in sub => modify to state before sub
-						replaceBbRegDeep(outBb, prevR,
-								jumpOverSub ? getFrame(outBb.getPc() - 1).load(prevR.getI()) : newR);
-					}
+					continue;
+				}
+				// final operation is RET & register untouched in sub => modify to state before sub
+				replaceBbRegDeep(outBb, prevR,
+						jumpOverSub ? getFrame(outBb.getPc() - 1).load(prevR.getI()) : newR);
+			}
 		}
 		return endBbs;
 	}

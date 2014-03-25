@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.transformers;
+
+import javax.annotation.Nonnull;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,7 +33,7 @@ import org.decojer.cavaj.model.code.CFG;
 
 /**
  * Transformer: Dalvik Remove Temporary Registers.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -39,21 +41,22 @@ public final class TrDalvikRemoveTempRegs {
 
 	/**
 	 * Transform CFG.
-	 * 
+	 *
 	 * @param cfg
 	 *            CFG
 	 */
-	public static void transform(final CFG cfg) {
+	public static void transform(@Nonnull final CFG cfg) {
 		if (!cfg.getT().isDalvik()) {
 			return;
 		}
 		new TrDalvikRemoveTempRegs(cfg).transform();
 	}
 
-	@Getter(value = AccessLevel.PRIVATE)
+	@Getter(AccessLevel.PROTECTED)
+	@Nonnull
 	private final CFG cfg;
 
-	private TrDalvikRemoveTempRegs(final CFG cfg) {
+	private TrDalvikRemoveTempRegs(@Nonnull final CFG cfg) {
 		this.cfg = cfg;
 	}
 
