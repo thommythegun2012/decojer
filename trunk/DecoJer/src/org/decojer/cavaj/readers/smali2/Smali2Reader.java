@@ -144,6 +144,10 @@ public class Smali2Reader implements DexReader {
 				continue;
 			}
 			final T t = this.du.getDescT(typeDescriptor);
+			if (t == null) {
+				log.warn("Cannot parse type descriptor '" + typeDescriptor + "'!");
+				continue;
+			}
 			if (!t.createTd()) {
 				log.warn("Type '" + t + "' already read!");
 				continue;
@@ -167,7 +171,7 @@ public class Smali2Reader implements DexReader {
 			if (!annotations.isEmpty()) {
 				final List<A> as = Lists.newArrayList();
 				for (final DexBackedAnnotation annotation : annotations) {
-					final A a = readAnnotation(annotation);
+					final A a = readAnnotation(t, annotation);
 					if ("dalvik.annotation.AnnotationDefault".equals(a.getT().getName())) {
 						// annotation default values, not encoded in
 						// method annotations, but in global annotation with
@@ -221,7 +225,7 @@ public class Smali2Reader implements DexReader {
 		return ts;
 	}
 
-	private A readAnnotation(final Annotation annotation) {
+	private A readAnnotation(@Nonnull final Object context, final Annotation annotation) {
 		RetentionPolicy retentionPolicy;
 		switch (annotation.getVisibility()) {
 		case AnnotationVisibility.BUILD:
@@ -237,15 +241,21 @@ public class Smali2Reader implements DexReader {
 			retentionPolicy = null;
 			log.warn("Unknown annotation visibility '" + annotation.getVisibility() + "'!");
 		}
-		return readAnnotation(annotation.getType(), annotation.getElements(), retentionPolicy);
+		return readAnnotation(context, annotation.getType(), annotation.getElements(),
+				retentionPolicy);
 	}
 
-	private A readAnnotation(final String type, final Set<? extends AnnotationElement> elements,
-			final RetentionPolicy retentionPolicy) {
-		final T t = this.du.getDescT(type);
-		final A a = new A(t, retentionPolicy);
+	@Nullable
+	private A readAnnotation(@Nonnull final Object context, final String type,
+			final Set<? extends AnnotationElement> elements, final RetentionPolicy retentionPolicy) {
+		final T aT = this.du.getDescT(type);
+		if (aT == null) {
+			log.warn(context + ": Cannot parse annotation type descriptor '" + type + "'!");
+			return null;
+		}
+		final A a = new A(aT, retentionPolicy);
 		for (final AnnotationElement element : elements) {
-			a.addMember(element.getName(), readValue(element.getValue(), this.du));
+			a.addMember(element.getName(), readValue(context, element.getValue(), this.du));
 		}
 		return a;
 	}
@@ -259,7 +269,7 @@ public class Smali2Reader implements DexReader {
 		if (!annotations.isEmpty()) {
 			final List<A> as = Lists.newArrayList();
 			for (final Annotation annotation : annotations) {
-				final A a = readAnnotation(annotation);
+				final A a = readAnnotation(f, annotation);
 				if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
 					// signature, is encoded as annotation
 					// with string array value
@@ -278,7 +288,7 @@ public class Smali2Reader implements DexReader {
 			}
 		}
 		if (field.getInitialValue() != null) {
-			f.setValue(readValue(field.getInitialValue(), this.du));
+			f.setValue(readValue(f, field.getInitialValue(), this.du));
 		}
 	}
 
@@ -304,7 +314,7 @@ public class Smali2Reader implements DexReader {
 			T[] throwsTs = null;
 			String signature = null;
 			for (final Annotation annotation : annotations) {
-				final A a = readAnnotation(annotation);
+				final A a = readAnnotation(m, annotation);
 				if ("dalvik.annotation.Signature".equals(a.getT().getName())) {
 					// signature, is encoded as annotation
 					// with string array value
@@ -346,7 +356,7 @@ public class Smali2Reader implements DexReader {
 				final A[] paramAs = paramAss[i] = new A[iParameterAnnotations.size()];
 				int j = 0;
 				for (final Annotation annotation : iParameterAnnotations) {
-					paramAs[j++] = readAnnotation(annotation);
+					paramAs[j++] = readAnnotation(m, annotation);
 				}
 			}
 			m.setParamAss(paramAss);
@@ -370,18 +380,19 @@ public class Smali2Reader implements DexReader {
 	}
 
 	@Nullable
-	private Object readValue(final EncodedValue encodedValue, final DU du) {
+	private Object readValue(@Nonnull final Object context, final EncodedValue encodedValue,
+			final DU du) {
 		switch (encodedValue.getValueType()) {
 		case ValueType.ANNOTATION:
 			// retention unknown for annotation constant
-			return readAnnotation(((AnnotationEncodedValue) encodedValue).getType(),
+			return readAnnotation(context, ((AnnotationEncodedValue) encodedValue).getType(),
 					((AnnotationEncodedValue) encodedValue).getElements(), null);
 		case ValueType.ARRAY: {
 			final List<? extends EncodedValue> values = ((ArrayEncodedValue) encodedValue)
 					.getValue();
 			final Object[] objects = new Object[values.size()];
 			for (int i = values.size(); i-- > 0;) {
-				objects[i] = readValue(values.get(i), du);
+				objects[i] = readValue(context, values.get(i), du);
 			}
 			return objects;
 		}
@@ -413,8 +424,8 @@ public class Smali2Reader implements DexReader {
 			return ((LongEncodedValue) encodedValue).getValue();
 		case ValueType.METHOD: {
 			final MethodReference methodReference = ((MethodEncodedValue) encodedValue).getValue();
-			final T t = du.getDescT(methodReference.getDefiningClass());
-			return t.getM(methodReference.getName(), desc(methodReference));
+			final T ownerT = du.getDescT(methodReference.getDefiningClass());
+			return ownerT.getM(methodReference.getName(), desc(methodReference));
 		}
 		case ValueType.NULL:
 			return null; // placeholder in constant array
@@ -425,7 +436,8 @@ public class Smali2Reader implements DexReader {
 		case ValueType.TYPE:
 			return du.getDescT(((TypeEncodedValue) encodedValue).getValue());
 		default:
-			log.warn("Unknown encoded value type '" + encodedValue.getClass().getName() + "'!");
+			log.warn(context + ": Unknown encoded value type '" + encodedValue.getClass().getName()
+					+ "'!");
 			return null;
 		}
 	}

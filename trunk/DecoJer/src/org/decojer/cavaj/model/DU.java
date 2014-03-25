@@ -439,7 +439,9 @@ public final class DU {
 	 */
 	@Nonnull
 	public T getT(final Class<?> klass) {
-		return getT(klass.getName());
+		final String name = klass.getName();
+		assert name != null;
+		return getT(name);
 	}
 
 	/**
@@ -456,7 +458,7 @@ public final class DU {
 	 * @see java.lang.Class#getName()
 	 */
 	@Nonnull
-	public T getT(final String name) {
+	public T getT(@Nonnull final String name) {
 		final T ret = getT(name, true);
 		assert ret != null;
 		return ret;
@@ -469,11 +471,7 @@ public final class DU {
 	// [I
 	// java.lang.String[]
 	@Nullable
-	private T getT(final String name, final boolean create) {
-		if (name == null) {
-			// important for e.g. read Object.class: super is null
-			return null;
-		}
+	private T getT(@Nonnull final String name, final boolean create) {
 		final char c = name.charAt(0);
 		if (c == '[') {
 			// java.lang.Class#getName() Javadoc explains this trick, fall back to descriptor
@@ -488,7 +486,9 @@ public final class DU {
 			return parseClassT(name, new Cursor(), null, null);
 		}
 		if (name.charAt(name.length() - 1) == ']' && name.charAt(name.length() - 2) == '[') {
-			return getArrayT(getT(name.substring(0, name.length() - 2)));
+			final String componentName = name.substring(0, name.length() - 2);
+			assert componentName != null;
+			return getArrayT(getT(componentName));
 		}
 		// cache...
 		T t = this.ts.get(name);
@@ -544,6 +544,7 @@ public final class DU {
 		}
 		T t;
 		final String typeName = s.substring(start, c.pos).replace('/', '.');
+		assert typeName != null;
 		if (enclosingT != null) {
 			// can just happen for signatures, they have . instead of $ for enclosing
 			t = getQualifiedT(enclosingT, getT(enclosingT.getName() + "$" + typeName));
