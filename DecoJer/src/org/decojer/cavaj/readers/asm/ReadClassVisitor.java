@@ -213,6 +213,9 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 	@Override
 	public void visitOuterClass(final String owner, final String name, final String desc) {
 		final ClassT enclosingT = (ClassT) this.du.getT(owner);
+		if (enclosingT == null) {
+			log.warn(getT() + ": Cannot find owner type '" + owner + "'!");
+		}
 		if (name == null) {
 			getT().setEnclosingT(enclosingT);
 		} else {
