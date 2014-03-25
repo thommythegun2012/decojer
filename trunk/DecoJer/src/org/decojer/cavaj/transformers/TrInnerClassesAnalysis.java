@@ -29,6 +29,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
@@ -300,7 +301,7 @@ public class TrInnerClassesAnalysis {
 	 * @param du
 	 *            decompilation unit
 	 */
-	public static void transform(final DU du) {
+	public static void transform(@Nonnull final DU du) {
 		final Collection<T> ts = du.getTs();
 
 		checkBinaryCompatibilityNamingRules(ts);

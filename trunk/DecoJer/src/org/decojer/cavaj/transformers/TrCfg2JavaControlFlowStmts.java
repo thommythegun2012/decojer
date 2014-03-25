@@ -33,6 +33,7 @@ import static org.decojer.cavaj.utils.Expressions.wrap;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
@@ -86,16 +87,17 @@ public final class TrCfg2JavaControlFlowStmts {
 	 * @param cfg
 	 *            CFG
 	 */
-	public static void transform(final CFG cfg) {
+	public static void transform(@Nonnull final CFG cfg) {
 		new TrCfg2JavaControlFlowStmts(cfg).transform();
 	}
 
-	@Getter(value = AccessLevel.PRIVATE)
+	@Getter(AccessLevel.PROTECTED)
+	@Nonnull
 	private final CFG cfg;
 
 	private final Set<Struct> traversedStructs = Sets.newHashSet();
 
-	private TrCfg2JavaControlFlowStmts(final CFG cfg) {
+	private TrCfg2JavaControlFlowStmts(@Nonnull final CFG cfg) {
 		this.cfg = cfg;
 	}
 

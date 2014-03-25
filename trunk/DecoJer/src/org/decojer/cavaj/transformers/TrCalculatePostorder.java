@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,6 +25,8 @@ package org.decojer.cavaj.transformers;
 
 import java.util.List;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -38,22 +40,23 @@ import com.google.common.collect.Sets;
 
 /**
  * Transformer: Calculate postorder for BBs of CFG.
- * 
+ *
  * @author André Pankraz
  */
 public final class TrCalculatePostorder {
 
 	/**
 	 * Transform CFG.
-	 * 
+	 *
 	 * @param cfg
 	 *            CFG
 	 */
-	public static void transform(final CFG cfg) {
+	public static void transform(@Nonnull final CFG cfg) {
 		new TrCalculatePostorder(cfg).transform();
 	}
 
-	@Getter(value = AccessLevel.PRIVATE)
+	@Getter(AccessLevel.PROTECTED)
+	@Nonnull
 	private final CFG cfg;
 
 	private List<BB> postorderedBbs;
@@ -62,11 +65,11 @@ public final class TrCalculatePostorder {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param cfg
 	 *            CFG
 	 */
-	private TrCalculatePostorder(final CFG cfg) {
+	private TrCalculatePostorder(@Nonnull final CFG cfg) {
 		this.cfg = cfg;
 	}
 
