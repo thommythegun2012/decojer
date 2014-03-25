@@ -39,6 +39,7 @@ import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.ops.MONITOR;
+import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
 import org.decojer.cavaj.model.code.structs.Struct;
@@ -386,8 +387,11 @@ public final class TrControlFlowAnalysis {
 				if (!(stmt instanceof SynchronizedStatement)) {
 					continue;
 				}
-				final MONITOR op = (MONITOR) getOp(stmt);
-				switch (op.getKind()) {
+				final Op monitorOp = getOp(stmt);
+				if (!(monitorOp instanceof MONITOR)) {
+					continue;
+				}
+				switch (((MONITOR) monitorOp).getKind()) {
 				case ENTER:
 					++level;
 					break;
@@ -401,7 +405,7 @@ public final class TrControlFlowAnalysis {
 					}
 					continue bbs;
 				default:
-					log.warn(getMd() + ": Unknown MONITOR type for operation '" + op + "'!");
+					log.warn(getMd() + ": Unknown MONITOR type for operation '" + monitorOp + "'!");
 				}
 			}
 			sync.addMember(null, bb);
