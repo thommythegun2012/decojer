@@ -28,6 +28,7 @@ import java.util.Map;
 
 import javax.annotation.Nonnull;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -54,6 +55,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private final static boolean DEBUG = false;
 
+	@Getter(AccessLevel.PROTECTED)
 	private M m;
 
 	@Nonnull
@@ -232,13 +234,14 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		// + registerNum + " : " + name + " : " + type + " : " + signature);
 		assert length > 0; // have no idea what this is
 
-		T vT = this.m.getT().getDu().getDescT(type.getTypeDescriptor());
+		T vT = getM().getDu().getDescT(type.getTypeDescriptor());
 		if (vT == null) {
+			log.warn(getM() + ": Cannot parse local variable type descriptor '"
+					+ type.getTypeDescriptor() + "'!");
 			return;
 		}
 		if (signature != null) {
-			final T sigT = this.m.getT().getDu()
-					.parseT(signature.getStringValue(), new Cursor(), this.m);
+			final T sigT = getM().getDu().parseT(signature.getStringValue(), new Cursor(), this.m);
 			if (sigT != null) {
 				if (!sigT.eraseTo(vT)) {
 					log.info("Cannot reduce signature '" + signature.getStringValue()
@@ -249,7 +252,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 				}
 			}
 		}
-		final V v = new V(vT, name.getStringValue(), codeAddress, -1);
+		final String nameString = name.getStringValue();
+		if (nameString == null) {
+			assert false;
+			return;
+		}
+		final V v = new V(vT, nameString, codeAddress, -1);
 
 		List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
