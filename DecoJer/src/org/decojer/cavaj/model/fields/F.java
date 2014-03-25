@@ -52,11 +52,7 @@ import org.decojer.cavaj.model.types.T;
  */
 public abstract class F implements Element {
 
-	/**
-	 * Get decompilation unit.
-	 *
-	 * @return decompilation unit
-	 */
+	@Override
 	public DU getDu() {
 		return getT().getDu();
 	}

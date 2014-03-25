@@ -74,11 +74,7 @@ public abstract class M implements Element {
 	 */
 	public abstract String getDescriptor();
 
-	/**
-	 * Get decompilation unit.
-	 *
-	 * @return decompilation unit
-	 */
+	@Override
 	public DU getDu() {
 		return getT().getDu();
 	}
