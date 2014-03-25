@@ -168,7 +168,7 @@ public final class TrControlFlowAnalysis {
 		return cond;
 	}
 
-	private Loop createLoopStruct(final BB head) {
+	private Loop createLoopStruct(@Nonnull final BB head) {
 		final Loop loop = new Loop(head);
 
 		findLoop(loop, head, Sets.<BB> newHashSet());
@@ -249,7 +249,7 @@ public final class TrControlFlowAnalysis {
 		return loop;
 	}
 
-	private Switch createSwitchStruct(final BB head) {
+	private Switch createSwitchStruct(@Nonnull final BB head) {
 		final Switch switchStruct = new Switch(head);
 
 		// for case reordering we need this as changeable lists
@@ -357,7 +357,7 @@ public final class TrControlFlowAnalysis {
 		return switchStruct;
 	}
 
-	private void createSyncStruct(final BB head) {
+	private void createSyncStruct(@Nonnull final BB head) {
 		// Works even for trivial / empty sync sections, because BBs are always split behind
 		// MONITOR_ENTER (see Data Flow Analysis).
 		final Sync sync = new Sync(head);
