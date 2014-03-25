@@ -372,16 +372,17 @@ public class ClassEditor extends MultiPageEditorPart {
 			path.add(0, element);
 		}
 		try {
-			Container c = this.selectedCu;
+			Container container = this.selectedCu;
 			path: for (final IJavaElement element : path) {
 				if (element instanceof IType) {
 					final String typeName = element.getElementName();
 					// count anonymous!
 					int occurrenceCount = ((IType) element).getOccurrenceCount();
-					for (final Element declaration : c.getDeclarations()) {
-						if (declaration instanceof T && ((T) declaration).getSimpleName().equals(typeName)) {
+					for (final Element declaration : container.getDeclarations()) {
+						if (declaration instanceof T
+								&& ((T) declaration).getSimpleName().equals(typeName)) {
 							if (--occurrenceCount == 0) {
-								c = declaration;
+								container = declaration;
 								continue path;
 							}
 						}
@@ -393,37 +394,38 @@ public class ClassEditor extends MultiPageEditorPart {
 					// isEnum() doesn't imply isStatic() for source code
 					if (!Flags.isEnum(((IField) element).getFlags())) {
 						if (Flags.isStatic(((IField) element).getFlags())) {
-							for (final Element e : c.getDeclarations()) {
-								if (e instanceof M && ((M) e).isInitializer()) {
-									c = e;
+							for (final Element declaration : container.getDeclarations()) {
+								if (declaration instanceof M && ((M) declaration).isInitializer()) {
+									container = declaration;
 									continue path;
 								}
 							}
 							return null;
 						}
-						for (final Element e : c.getDeclarations()) {
+						for (final Element declaration : container.getDeclarations()) {
 							// descriptor not important, all constructors have same field
 							// initializers
-							if (e instanceof M && ((M) e).isConstructor()) {
-								c = e;
+							if (declaration instanceof M && ((M) declaration).isConstructor()) {
+								container = declaration;
 								continue path;
 							}
 						}
 					}
 					// TODO relocation of other anonymous field initializer TDs...difficult
 					final String fieldName = element.getElementName();
-					for (final Element e : c.getDeclarations()) {
-						if (e instanceof F && ((F) e).getName().equals(fieldName)) {
-							c = e;
+					for (final Element declaration : container.getDeclarations()) {
+						if (declaration instanceof F
+								&& ((F) declaration).getName().equals(fieldName)) {
+							container = declaration;
 							continue path;
 						}
 					}
 					return null;
 				}
 				if (element instanceof IInitializer) {
-					for (final Element e : c.getDeclarations()) {
-						if (e instanceof M && ((M) e).isInitializer()) {
-							c = e;
+					for (final Element declaration : container.getDeclarations()) {
+						if (declaration instanceof M && ((M) declaration).isInitializer()) {
+							container = declaration;
 							continue path;
 						}
 					}
@@ -435,9 +437,10 @@ public class ClassEditor extends MultiPageEditorPart {
 					final String signature = ((IMethod) element).getSignature();
 					// get all method declarations with this name
 					final List<M> ms = Lists.newArrayList();
-					for (final Element e : c.getDeclarations()) {
-						if (e instanceof M && ((M) e).getName().equals(methodName)) {
-							ms.add((M) e);
+					for (final Element declaration : container.getDeclarations()) {
+						if (declaration instanceof M
+								&& ((M) declaration).getName().equals(methodName)) {
+							ms.add((M) declaration);
 						}
 					}
 					switch (ms.size()) {
@@ -447,7 +450,7 @@ public class ClassEditor extends MultiPageEditorPart {
 						return null;
 					case 1:
 						// only 1 possible method, signature check not really necessary
-						c = ms.get(0);
+						container = ms.get(0);
 						continue path;
 					default:
 						// multiple methods with different signatures, we now have to match against
@@ -464,7 +467,7 @@ public class ClassEditor extends MultiPageEditorPart {
 						for (final M checkMd : ms) {
 							// exact match for descriptor
 							if (signaturePattern.matcher(checkMd.getDescriptor()).matches()) {
-								c = checkMd;
+								container = checkMd;
 								continue path;
 							}
 							if (checkMd.getSignature() == null) {
@@ -474,7 +477,7 @@ public class ClassEditor extends MultiPageEditorPart {
 							// ^T...^T...;
 							// <T:Ljava/lang/Integer;E:Ljava/lang/RuntimeException;>(TT;TT;)V^TE;^Ljava/lang/RuntimeException;
 							if (signaturePattern.matcher(checkMd.getSignature()).find()) {
-								c = checkMd;
+								container = checkMd;
 								continue path;
 							}
 						}
@@ -485,7 +488,7 @@ public class ClassEditor extends MultiPageEditorPart {
 					}
 				}
 			}
-			return c;
+			return container;
 		} catch (final JavaModelException e) {
 			log.error("Couldn't get Eclipse Java element data for selection!", e);
 			return null;
