@@ -64,7 +64,15 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor implements
 		this.parentVisitor = parentVisitor;
 	}
 
-	protected abstract void add(final String name, @Nullable final Object value);
+	/**
+	 * Ann annotation value.
+	 *
+	 * @param name
+	 *            value name, {@code null} for default value
+	 * @param value
+	 *            value
+	 */
+	protected abstract void add(@Nullable final String name, @Nullable final Object value);
 
 	@Override
 	public DU getDu() {
@@ -79,8 +87,11 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor implements
 	@Override
 	public void visit(final String name, final Object value) {
 		if (value instanceof Type) {
-			add(name, getDu().getT(((Type) value).getClassName()));
-			return;
+			final String className = ((Type) value).getClassName();
+			if (className != null) {
+				add(name, getDu().getT(className));
+				return;
+			}
 		}
 		add(name, value);
 	}
@@ -120,13 +131,13 @@ public abstract class ReadAnnotationVisitor extends AnnotationVisitor implements
 
 	@Override
 	public void visitEnum(final String name, final String desc, final String value) {
-		if (name == null || desc == null || value == null) {
-			assert false;
-			return;
-		}
 		final T ownerT = getDu().getDescT(desc);
 		if (ownerT == null) {
 			log.warn(getT() + ": Cannot read enumeration value descriptor '" + desc + "'!");
+			return;
+		}
+		if (value == null || desc == null) {
+			log.warn(getT() + ": Cannot read null enumeration value for '" + ownerT + "'!");
 			return;
 		}
 		final F f = ownerT.getF(value, desc);
