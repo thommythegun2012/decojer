@@ -92,8 +92,12 @@ import com.google.common.io.ByteStreams;
 public class SmaliReader implements DexReader {
 
 	@Nullable
-	private static F readEncodedField(@Nonnull final T t, @Nonnull final EncodedField encodedField,
+	private static F readEncodedField(@Nonnull final T t,
+			@Nullable final EncodedField encodedField,
 			final Map<FieldIdItem, String> fieldSignatures, final Map<FieldIdItem, A[]> fieldAs) {
+		if (encodedField == null) {
+			return null;
+		}
 		final FieldIdItem field = encodedField.field;
 		if (field == null) {
 			return null;
@@ -118,11 +122,35 @@ public class SmaliReader implements DexReader {
 		f.createFd();
 
 		f.setAccessFlags(encodedField.accessFlags);
-		if (fieldSignatures.get(field) != null) {
-			f.setSignature(fieldSignatures.get(field));
-		}
+		f.setSignature(fieldSignatures.get(field));
 		f.setAs(fieldAs.get(field));
 		return f;
+	}
+
+	@Nullable
+	private static M readEncodedMethod(@Nonnull final T t,
+			@Nullable final EncodedMethod encodedMethod,
+			final Map<MethodIdItem, String> methodSignatures,
+			final Map<MethodIdItem, T[]> methodThrowsTs, final Map<MethodIdItem, A[]> methodAs,
+			final Map<MethodIdItem, A[][]> methodParamAs) {
+		if (encodedMethod == null) {
+			return null;
+		}
+		final MethodIdItem method = encodedMethod.method;
+		if (method == null) {
+			return null;
+		}
+
+		final M m = t.getM(method.getMethodName().getStringValue(), method.getPrototype()
+				.getPrototypeString());
+		m.createMd();
+
+		m.setAccessFlags(encodedMethod.accessFlags);
+		m.setThrowsTs(methodThrowsTs.get(method));
+		m.setSignature(methodSignatures.get(method));
+		m.setAs(methodAs.get(method));
+		m.setParamAss(methodParamAs.get(method));
+		return m;
 	}
 
 	@Nonnull
@@ -325,10 +353,10 @@ public class SmaliReader implements DexReader {
 			final ClassDataItem classData = classDefItem.getClassData();
 			if (classData != null) {
 				readFields(t, classData.getStaticFields(), classData.getInstanceFields(),
-						fieldSignatures, classDefItem.getStaticFieldInitializers(), fieldAs);
+						fieldSignatures, fieldAs, classDefItem.getStaticFieldInitializers());
 				readMethods(t, classData.getDirectMethods(), classData.getVirtualMethods(),
-						methodSignatures, methodThrowsTs, annotationDefaultValues, methodAs,
-						methodParamAs);
+						methodSignatures, methodThrowsTs, methodAs, methodParamAs,
+						annotationDefaultValues);
 			}
 			t.resolve();
 		}
@@ -374,8 +402,8 @@ public class SmaliReader implements DexReader {
 
 	private void readFields(@Nonnull final T t, final List<EncodedField> staticFields,
 			final List<EncodedField> instanceFields,
-			final Map<FieldIdItem, String> fieldSignatures,
-			final EncodedArrayItem staticFieldInitializers, final Map<FieldIdItem, A[]> fieldAs) {
+			final Map<FieldIdItem, String> fieldSignatures, final Map<FieldIdItem, A[]> fieldAs,
+			final EncodedArrayItem staticFieldInitializers) {
 		// static field initializer values are packed away into a different
 		// section, both arrays (encoded fields and static field values) are
 		// sorted in same order, there could be less static field values if
@@ -385,91 +413,40 @@ public class SmaliReader implements DexReader {
 				: staticFieldInitializers.getEncodedArray().values;
 
 		for (int i = 0; i < staticFields.size(); ++i) {
-			final EncodedField encodedField = staticFields.get(i);
-			if (encodedField == null) {
-				continue;
-			}
-			final F f = readEncodedField(t, encodedField, fieldSignatures, fieldAs);
+			final F f = readEncodedField(t, staticFields.get(i), fieldSignatures, fieldAs);
 			if (f != null && staticFieldValues.length > i) {
 				f.setValue(readValue(staticFieldValues[i], this.du));
 			}
 		}
 		for (final EncodedField encodedField : instanceFields) {
-			final FieldIdItem field = encodedField.field;
-			if (field == null) {
-				continue;
-			}
-			final StringIdItem fieldName = field.getFieldName();
-			if (fieldName == null) {
-				continue;
-			}
-			final String fieldNameStr = fieldName.getStringValue();
-			if (fieldNameStr == null) {
-				continue;
-			}
-			final TypeIdItem fieldType = field.getFieldType();
-			if (fieldType == null) {
-				continue;
-			}
-			final String fieldTypeDescriptor = fieldType.getTypeDescriptor();
-			if (fieldTypeDescriptor == null) {
-				continue;
-			}
-			final F f = t.getF(fieldNameStr, fieldTypeDescriptor);
-			f.createFd();
-
-			f.setAccessFlags(encodedField.accessFlags);
-			if (fieldSignatures.get(field) != null) {
-				f.setSignature(fieldSignatures.get(field));
-			}
-			f.setAs(fieldAs.get(field));
+			readEncodedField(t, encodedField, fieldSignatures, fieldAs);
 			// there is no field initializer section for instance fields,
 			// only via constructor
 		}
 	}
 
-	private void readMethods(final T t, final List<EncodedMethod> directMethods,
+	private void readMethods(@Nonnull final T t, final List<EncodedMethod> directMethods,
 			final List<EncodedMethod> virtualMethods,
 			final Map<MethodIdItem, String> methodSignatures,
-			final Map<MethodIdItem, T[]> methodThrowsTs, final A annotationDefaultValues,
-			final Map<MethodIdItem, A[]> methodAs, final Map<MethodIdItem, A[][]> methodParamAs) {
+			final Map<MethodIdItem, T[]> methodThrowsTs, final Map<MethodIdItem, A[]> methodAs,
+			final Map<MethodIdItem, A[][]> methodParamAs, final A annotationDefaultValues) {
 		for (final EncodedMethod encodedMethod : directMethods) {
-			final MethodIdItem method = encodedMethod.method;
-
-			final M m = t.getM(method.getMethodName().getStringValue(), method.getPrototype()
-					.getPrototypeString());
-			m.createMd();
-
-			m.setAccessFlags(encodedMethod.accessFlags);
-			m.setThrowsTs(methodThrowsTs.get(method));
-			m.setSignature(methodSignatures.get(method));
-
-			// no annotation default values
-
-			m.setAs(methodAs.get(method));
-			m.setParamAss(methodParamAs.get(method));
-
-			this.readCodeItem.initAndVisit(m, encodedMethod.codeItem);
+			final M m = readEncodedMethod(t, encodedMethod, methodSignatures, methodThrowsTs,
+					methodAs, methodParamAs);
+			if (m != null) {
+				// no annotation default values
+				this.readCodeItem.initAndVisit(m, encodedMethod.codeItem);
+			}
 		}
 		for (final EncodedMethod encodedMethod : virtualMethods) {
-			final MethodIdItem method = encodedMethod.method;
-
-			final M m = t.getM(method.getMethodName().getStringValue(), method.getPrototype()
-					.getPrototypeString());
-			m.createMd();
-
-			m.setAccessFlags(encodedMethod.accessFlags);
-			m.setThrowsTs(methodThrowsTs.get(method));
-			m.setSignature(methodSignatures.get(method));
-
-			if (annotationDefaultValues != null) {
-				m.setAnnotationDefaultValue(annotationDefaultValues.getMember(m.getName()));
+			final M m = readEncodedMethod(t, encodedMethod, methodSignatures, methodThrowsTs,
+					methodAs, methodParamAs);
+			if (m != null) {
+				if (annotationDefaultValues != null) {
+					m.setAnnotationDefaultValue(annotationDefaultValues.getMember(m.getName()));
+				}
+				this.readCodeItem.initAndVisit(m, encodedMethod.codeItem);
 			}
-
-			m.setAs(methodAs.get(method));
-			m.setParamAss(methodParamAs.get(method));
-
-			this.readCodeItem.initAndVisit(m, encodedMethod.codeItem);
 		}
 	}
 
