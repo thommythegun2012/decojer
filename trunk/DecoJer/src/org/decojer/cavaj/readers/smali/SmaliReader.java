@@ -56,6 +56,7 @@ import org.jf.dexlib.EncodedArrayItem;
 import org.jf.dexlib.FieldIdItem;
 import org.jf.dexlib.ItemType;
 import org.jf.dexlib.MethodIdItem;
+import org.jf.dexlib.ProtoIdItem;
 import org.jf.dexlib.Section;
 import org.jf.dexlib.StringIdItem;
 import org.jf.dexlib.TypeIdItem;
@@ -102,23 +103,23 @@ public class SmaliReader implements DexReader {
 		if (field == null) {
 			return null;
 		}
-		final StringIdItem fieldName = field.getFieldName();
-		if (fieldName == null) {
+		final StringIdItem name = field.getFieldName();
+		if (name == null) {
 			return null;
 		}
-		final String fieldNameStr = fieldName.getStringValue();
-		if (fieldNameStr == null) {
+		final String nameStr = name.getStringValue();
+		if (nameStr == null) {
 			return null;
 		}
-		final TypeIdItem fieldType = field.getFieldType();
-		if (fieldType == null) {
+		final TypeIdItem type = field.getFieldType();
+		if (type == null) {
 			return null;
 		}
-		final String fieldTypeDescriptor = fieldType.getTypeDescriptor();
-		if (fieldTypeDescriptor == null) {
+		final String typeDescriptor = type.getTypeDescriptor();
+		if (typeDescriptor == null) {
 			return null;
 		}
-		final F f = t.getF(fieldNameStr, fieldTypeDescriptor);
+		final F f = t.getF(nameStr, typeDescriptor);
 		f.createFd();
 
 		f.setAccessFlags(encodedField.accessFlags);
@@ -140,9 +141,23 @@ public class SmaliReader implements DexReader {
 		if (method == null) {
 			return null;
 		}
-
-		final M m = t.getM(method.getMethodName().getStringValue(), method.getPrototype()
-				.getPrototypeString());
+		final StringIdItem name = method.getMethodName();
+		if (name == null) {
+			return null;
+		}
+		final String nameStr = name.getStringValue();
+		if (nameStr == null) {
+			return null;
+		}
+		final ProtoIdItem prototype = method.getPrototype();
+		if (prototype == null) {
+			return null;
+		}
+		final String prototypeString = prototype.getPrototypeString();
+		if (prototypeString == null) {
+			return null;
+		}
+		final M m = t.getM(nameStr, prototypeString);
 		m.createMd();
 
 		m.setAccessFlags(encodedMethod.accessFlags);
