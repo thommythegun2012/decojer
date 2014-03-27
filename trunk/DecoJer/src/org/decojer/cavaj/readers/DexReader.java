@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -27,18 +27,21 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import org.decojer.cavaj.model.types.T;
 
 /**
  * DEX reader.
- * 
+ *
  * @author André Pankraz
  */
 public interface DexReader {
 
 	/**
 	 * Read DEX input stream.
-	 * 
+	 *
 	 * @param is
 	 *            DEX input stream
 	 * @param selector
@@ -47,6 +50,6 @@ public interface DexReader {
 	 * @throws IOException
 	 *             read exception
 	 */
-	List<T> read(final InputStream is, final String selector) throws IOException;
+	List<T> read(@Nonnull final InputStream is, @Nullable final String selector) throws IOException;
 
 }

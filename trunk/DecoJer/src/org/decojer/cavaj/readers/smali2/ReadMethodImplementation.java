@@ -28,6 +28,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.DU;
@@ -194,7 +197,8 @@ public class ReadMethodImplementation {
 	 * @param implementation
 	 *            method implementation
 	 */
-	public void initAndVisit(final M m, final DexBackedMethodImplementation implementation) {
+	public void initAndVisit(@Nonnull final M m,
+			@Nullable final DexBackedMethodImplementation implementation) {
 		if (implementation == null) {
 			return;
 		}
