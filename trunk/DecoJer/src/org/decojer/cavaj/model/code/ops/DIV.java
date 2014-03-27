@@ -16,25 +16,27 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
+
 import org.decojer.cavaj.model.types.T;
 
 /**
  * Operation 'DIV'.
- * 
+ *
  * @author André Pankraz
  */
 public class DIV extends TypedOp {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 * @param opcode
@@ -44,7 +46,7 @@ public class DIV extends TypedOp {
 	 * @param t
 	 *            type
 	 */
-	public DIV(final int pc, final int opcode, final int line, final T t) {
+	public DIV(final int pc, final int opcode, final int line, @Nonnull final T t) {
 		super(pc, opcode, line, t);
 	}
 

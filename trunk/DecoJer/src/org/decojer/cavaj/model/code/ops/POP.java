@@ -23,6 +23,10 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
+
+import lombok.Getter;
+
 /**
  * Operation 'POP'.
  *
@@ -67,6 +71,8 @@ public class POP extends Op {
 
 	}
 
+	@Getter
+	@Nonnull
 	private final Kind kind;
 
 	/**
@@ -81,7 +87,7 @@ public class POP extends Op {
 	 * @param kind
 	 *            pop kind
 	 */
-	public POP(final int pc, final int opcode, final int line, final Kind kind) {
+	public POP(final int pc, final int opcode, final int line, @Nonnull final Kind kind) {
 		super(pc, opcode, line);
 		this.kind = kind;
 	}
@@ -89,15 +95,6 @@ public class POP extends Op {
 	@Override
 	public int getInStackSize() {
 		return this.kind.getInStackSize();
-	}
-
-	/**
-	 * Get pop kind.
-	 *
-	 * @return pop kind
-	 */
-	public Kind getKind() {
-		return this.kind;
 	}
 
 	@Override

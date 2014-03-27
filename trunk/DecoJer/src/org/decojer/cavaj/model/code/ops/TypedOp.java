@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -41,6 +43,7 @@ public abstract class TypedOp extends Op {
 
 	@Getter
 	@Setter
+	@Nonnull
 	private T t;
 
 	/**
@@ -55,7 +58,7 @@ public abstract class TypedOp extends Op {
 	 * @param t
 	 *            type
 	 */
-	public TypedOp(final int pc, final int opcode, final int line, final T t) {
+	public TypedOp(final int pc, final int opcode, final int line, @Nonnull final T t) {
 		super(pc, opcode, line);
 		this.t = t;
 	}

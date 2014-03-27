@@ -16,25 +16,27 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 
 /**
  * Operation 'MONITOR'.
- * 
+ *
  * @author André Pankraz
  */
 public class MONITOR extends Op {
 
 	/**
 	 * Pop kind.
-	 * 
+	 *
 	 * @author André Pankraz
 	 */
 	public enum Kind {
@@ -51,11 +53,12 @@ public class MONITOR extends Op {
 	}
 
 	@Getter
+	@Nonnull
 	private final Kind kind;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 * @param opcode
@@ -65,7 +68,7 @@ public class MONITOR extends Op {
 	 * @param kind
 	 *            monitor kind
 	 */
-	public MONITOR(final int pc, final int opcode, final int line, final Kind kind) {
+	public MONITOR(final int pc, final int opcode, final int line, @Nonnull final Kind kind) {
 		super(pc, opcode, line);
 
 		this.kind = kind;

@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -36,6 +38,7 @@ import org.decojer.cavaj.model.types.T;
 public class JCMP extends TypedOp {
 
 	@Getter
+	@Nonnull
 	private final CmpType cmpType;
 
 	/**
@@ -60,7 +63,8 @@ public class JCMP extends TypedOp {
 	 * @param cmpType
 	 *            compare type
 	 */
-	public JCMP(final int pc, final int opcode, final int line, final T t, final CmpType cmpType) {
+	public JCMP(final int pc, final int opcode, final int line, @Nonnull final T t,
+			@Nonnull final CmpType cmpType) {
 		super(pc, opcode, line, t);
 		this.cmpType = cmpType;
 	}

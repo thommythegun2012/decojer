@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 
 import org.decojer.cavaj.model.fields.F;
@@ -35,6 +37,7 @@ import org.decojer.cavaj.model.fields.F;
 public class PUT extends Op {
 
 	@Getter
+	@Nonnull
 	private final F f;
 
 	/**
@@ -49,7 +52,7 @@ public class PUT extends Op {
 	 * @param f
 	 *            field
 	 */
-	public PUT(final int pc, final int opcode, final int line, final F f) {
+	public PUT(final int pc, final int opcode, final int line, @Nonnull final F f) {
 		super(pc, opcode, line);
 		// for all variants valid: any superfield possible for static / instance
 		this.f = f;
