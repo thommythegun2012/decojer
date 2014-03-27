@@ -91,6 +91,40 @@ import com.google.common.io.ByteStreams;
 @Slf4j
 public class SmaliReader implements DexReader {
 
+	@Nullable
+	private static F readEncodedField(@Nonnull final T t, @Nonnull final EncodedField encodedField,
+			final Map<FieldIdItem, String> fieldSignatures, final Map<FieldIdItem, A[]> fieldAs) {
+		final FieldIdItem field = encodedField.field;
+		if (field == null) {
+			return null;
+		}
+		final StringIdItem fieldName = field.getFieldName();
+		if (fieldName == null) {
+			return null;
+		}
+		final String fieldNameStr = fieldName.getStringValue();
+		if (fieldNameStr == null) {
+			return null;
+		}
+		final TypeIdItem fieldType = field.getFieldType();
+		if (fieldType == null) {
+			return null;
+		}
+		final String fieldTypeDescriptor = fieldType.getTypeDescriptor();
+		if (fieldTypeDescriptor == null) {
+			return null;
+		}
+		final F f = t.getF(fieldNameStr, fieldTypeDescriptor);
+		f.createFd();
+
+		f.setAccessFlags(encodedField.accessFlags);
+		if (fieldSignatures.get(field) != null) {
+			f.setSignature(fieldSignatures.get(field));
+		}
+		f.setAs(fieldAs.get(field));
+		return f;
+	}
+
 	@Nonnull
 	private final DU du;
 
@@ -108,7 +142,8 @@ public class SmaliReader implements DexReader {
 	}
 
 	@Override
-	public List<T> read(final InputStream is, final String selector) throws IOException {
+	public List<T> read(@Nonnull final InputStream is, @Nullable final String selector)
+			throws IOException {
 		String selectorPrefix = null;
 		String selectorMatch = null;
 		if (selector != null && selector.endsWith(".class")) {
@@ -122,7 +157,6 @@ public class SmaliReader implements DexReader {
 		}
 		final List<T> ts = Lists.newArrayList();
 
-		@SuppressWarnings("null")
 		final byte[] bytes = ByteStreams.toByteArray(is);
 		final DexFile dexFile = new DexFile(new ByteArrayInput(bytes), true, false);
 		final Section<ClassDefItem> classDefItems = dexFile
@@ -338,7 +372,7 @@ public class SmaliReader implements DexReader {
 		return readAnnotation(annotationItem.getEncodedAnnotation(), retentionPolicy);
 	}
 
-	private void readFields(final T t, final List<EncodedField> staticFields,
+	private void readFields(@Nonnull final T t, final List<EncodedField> staticFields,
 			final List<EncodedField> instanceFields,
 			final Map<FieldIdItem, String> fieldSignatures,
 			final EncodedArrayItem staticFieldInitializers, final Map<FieldIdItem, A[]> fieldAs) {
@@ -352,39 +386,45 @@ public class SmaliReader implements DexReader {
 
 		for (int i = 0; i < staticFields.size(); ++i) {
 			final EncodedField encodedField = staticFields.get(i);
-			final FieldIdItem field = encodedField.field;
-
-			final F f = t.getF(field.getFieldName().getStringValue(), field.getFieldType()
-					.getTypeDescriptor());
-			f.createFd();
-
-			f.setAccessFlags(encodedField.accessFlags);
-			if (fieldSignatures.get(field) != null) {
-				f.setSignature(fieldSignatures.get(field));
+			if (encodedField == null) {
+				continue;
 			}
-
-			if (staticFieldValues.length > i) {
+			final F f = readEncodedField(t, encodedField, fieldSignatures, fieldAs);
+			if (f != null && staticFieldValues.length > i) {
 				f.setValue(readValue(staticFieldValues[i], this.du));
 			}
-
-			f.setAs(fieldAs.get(field));
 		}
 		for (final EncodedField encodedField : instanceFields) {
 			final FieldIdItem field = encodedField.field;
-
-			final F f = t.getF(field.getFieldName().getStringValue(), field.getFieldType()
-					.getTypeDescriptor());
+			if (field == null) {
+				continue;
+			}
+			final StringIdItem fieldName = field.getFieldName();
+			if (fieldName == null) {
+				continue;
+			}
+			final String fieldNameStr = fieldName.getStringValue();
+			if (fieldNameStr == null) {
+				continue;
+			}
+			final TypeIdItem fieldType = field.getFieldType();
+			if (fieldType == null) {
+				continue;
+			}
+			final String fieldTypeDescriptor = fieldType.getTypeDescriptor();
+			if (fieldTypeDescriptor == null) {
+				continue;
+			}
+			final F f = t.getF(fieldNameStr, fieldTypeDescriptor);
 			f.createFd();
 
 			f.setAccessFlags(encodedField.accessFlags);
 			if (fieldSignatures.get(field) != null) {
 				f.setSignature(fieldSignatures.get(field));
 			}
-
+			f.setAs(fieldAs.get(field));
 			// there is no field initializer section for instance fields,
 			// only via constructor
-
-			f.setAs(fieldAs.get(field));
 		}
 	}
 
