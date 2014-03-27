@@ -249,8 +249,11 @@ public class SwitchTypes {
 			@Nonnull final BB defaultCase) {
 		final Map<Integer, String> index2string = Maps.newHashMap();
 		for (final Map.Entry<String, BB> string2bbEntry : string2bb.entrySet()) {
-			if (!executeBbStringIndex(string2bbEntry.getValue(), indexReg, string2bbEntry.getKey(),
-					defaultCase, index2string)) {
+			final String str = string2bbEntry.getKey();
+			final BB caseBb = string2bbEntry.getValue();
+			assert str != null;
+			assert caseBb != null;
+			if (!executeBbStringIndex(caseBb, indexReg, str, defaultCase, index2string)) {
 				return null;
 			}
 		}
@@ -340,12 +343,16 @@ public class SwitchTypes {
 
 		// now add successors, preserve pc-order as edge-order
 		for (final Map.Entry<Integer, List<String>> casePc2valuesEntry : casePc2values.entrySet()) {
-			caseValues = casePc2valuesEntry.getValue();
 			final String caseValue = caseValues.get(0);
-			switchHead.addSwitchCase(caseValue == null ? defaultCase : string2bb.get(caseValue),
-					caseValues.toArray(new Object[caseValues.size()]));
-		}
+			final BB caseBb = caseValue == null ? defaultCase : string2bb.get(caseValue);
+			assert caseBb != null;
 
+			caseValues = casePc2valuesEntry.getValue();
+			final Object[] values = caseValues.toArray(new Object[caseValues.size()]);
+			assert values != null;
+
+			switchHead.addSwitchCase(caseBb, values);
+		}
 		// delete all previous outgoing switch cases
 		for (; i-- > 0;) {
 			final E out = outs.get(i);
