@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.Getter;
@@ -95,6 +96,7 @@ public abstract class Op {
 	 *
 	 * @return operation type
 	 */
+	@Nonnull
 	public abstract Optype getOptype();
 
 	@Override
@@ -111,6 +113,7 @@ public abstract class Op {
 		return this.line >= 0;
 	}
 
+	@Nonnull
 	@Override
 	public String toString() {
 		final String ret = getClass().getSimpleName();

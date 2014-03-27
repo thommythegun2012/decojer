@@ -23,6 +23,10 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
+
+import lombok.Getter;
+
 /**
  * Operation 'DUP'.
  *
@@ -104,6 +108,8 @@ public class DUP extends Op {
 
 	}
 
+	@Getter
+	@Nonnull
 	private final Kind kind;
 
 	/**
@@ -118,7 +124,7 @@ public class DUP extends Op {
 	 * @param kind
 	 *            dup kind
 	 */
-	public DUP(final int pc, final int opcode, final int line, final Kind kind) {
+	public DUP(final int pc, final int opcode, final int line, @Nonnull final Kind kind) {
 		super(pc, opcode, line);
 		this.kind = kind;
 	}
@@ -126,15 +132,6 @@ public class DUP extends Op {
 	@Override
 	public int getInStackSize() {
 		return this.kind.getInStackSize();
-	}
-
-	/**
-	 * Get dup type.
-	 *
-	 * @return dup type
-	 */
-	public Kind getKind() {
-		return this.kind;
 	}
 
 	@Override

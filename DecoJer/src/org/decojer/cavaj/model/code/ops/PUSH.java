@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.Getter;
@@ -54,7 +55,7 @@ public class PUSH extends TypedOp {
 	 * @param value
 	 *            value
 	 */
-	public PUSH(final int pc, final int opcode, final int line, final T t,
+	public PUSH(final int pc, final int opcode, final int line, @Nonnull final T t,
 			@Nullable final Object value) {
 		super(pc, opcode, line, t);
 

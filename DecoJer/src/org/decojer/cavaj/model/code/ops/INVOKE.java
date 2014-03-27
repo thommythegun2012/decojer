@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.Getter;
@@ -48,6 +49,7 @@ public class INVOKE extends Op {
 	private static final Object[] EXTRA_MARKER_DIRECT = new Object[0];
 
 	@Getter
+	@Nonnull
 	private final M m;
 
 	@Nullable
@@ -67,7 +69,8 @@ public class INVOKE extends Op {
 	 * @param direct
 	 *            direct call
 	 */
-	public INVOKE(final int pc, final int opcode, final int line, final M m, final boolean direct) {
+	public INVOKE(final int pc, final int opcode, final int line, @Nonnull final M m,
+			final boolean direct) {
 		super(pc, opcode, line);
 		this.m = m;
 		this.extra = direct ? EXTRA_MARKER_DIRECT : null;

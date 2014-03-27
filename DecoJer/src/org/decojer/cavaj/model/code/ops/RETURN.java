@@ -16,29 +16,31 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
+
 import org.decojer.cavaj.model.types.T;
 
 /**
  * Operation 'RETURN'.<br>
- * 
+ *
  * We cannot precheck operation-type.isAssignableFrom(return-type) and just remember the method or
  * method return type here because it's legal to have unreachable wrong returns! See e.g. final
  * return in weblogic.cluster._RemoteClusterHealthCheckerImpl_Stub.checkClusterMembership()J
- * 
+ *
  * @author André Pankraz
  */
 public class RETURN extends TypedOp {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 * @param opcode
@@ -48,7 +50,7 @@ public class RETURN extends TypedOp {
 	 * @param t
 	 *            return type
 	 */
-	public RETURN(final int pc, final int opcode, final int line, final T t) {
+	public RETURN(final int pc, final int opcode, final int line, @Nonnull final T t) {
 		super(pc, opcode, line, t);
 	}
 

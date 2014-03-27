@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code.ops;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -37,6 +39,7 @@ public class CAST extends TypedOp {
 
 	@Getter
 	@Setter
+	@Nonnull
 	private T toT;
 
 	/**
@@ -53,7 +56,8 @@ public class CAST extends TypedOp {
 	 * @param toT
 	 *            to type
 	 */
-	public CAST(final int pc, final int opcode, final int line, final T t, final T toT) {
+	public CAST(final int pc, final int opcode, final int line, @Nonnull final T t,
+			@Nonnull final T toT) {
 		super(pc, opcode, line, t);
 
 		this.toT = toT;

@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.model.code.ops;
+
+import javax.annotation.Nonnull;
 
 import lombok.Getter;
 
@@ -29,17 +31,18 @@ import org.decojer.cavaj.model.types.T;
 
 /**
  * Operation 'SHL'.
- * 
+ *
  * @author André Pankraz
  */
 public class SHL extends TypedOp {
 
 	@Getter
+	@Nonnull
 	private final T shiftT;
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 * @param opcode
@@ -51,7 +54,8 @@ public class SHL extends TypedOp {
 	 * @param shiftT
 	 *            shift type
 	 */
-	public SHL(final int pc, final int opcode, final int line, final T t, final T shiftT) {
+	public SHL(final int pc, final int opcode, final int line, @Nonnull final T t,
+			@Nonnull final T shiftT) {
 		super(pc, opcode, line, t);
 		this.shiftT = shiftT;
 	}
