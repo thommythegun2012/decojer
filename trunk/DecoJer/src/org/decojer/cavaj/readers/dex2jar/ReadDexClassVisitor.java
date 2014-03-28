@@ -92,7 +92,7 @@ public class ReadDexClassVisitor implements DexClassVisitor, ReadVisitor {
 	 * @param t
 	 *            type
 	 */
-	public void init(final T t) {
+	public void init(@Nonnull final T t) {
 		this.t = t;
 		this.as = null;
 	}

@@ -93,7 +93,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor, ReadVisitor {
 	 * @param m
 	 *            method
 	 */
-	public void init(final M m) {
+	public void init(@Nonnull final M m) {
 		this.m = m;
 		this.as = null;
 		this.paramAss = null;
@@ -120,6 +120,7 @@ public class ReadDexMethodVisitor implements DexMethodVisitor, ReadVisitor {
 
 	@Override
 	public DexCodeVisitor visitCode() {
+		assert this.m != null;
 		this.readDexCodeVisitor.init(this.m);
 		return this.readDexCodeVisitor;
 	}

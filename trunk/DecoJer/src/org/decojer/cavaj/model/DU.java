@@ -524,7 +524,8 @@ public final class DU {
 	 *            parent type (for recursion)
 	 * @return class type
 	 */
-	private T parseClassT(final String s, @Nonnull final Cursor c, final Object context,
+	@Nonnull
+	private T parseClassT(@Nonnull final String s, @Nonnull final Cursor c, final Object context,
 			final T enclosingT) {
 		// ClassTypeSignature: L PackageSpecifier_opt SimpleClassTypeSignature
 		// ClassTypeSignatureSuffix_* ;
@@ -575,15 +576,25 @@ public final class DU {
 	 *            enclosing type context
 	 * @return method parameter types
 	 */
-	public T[] parseMethodParamTs(final String s, @Nonnull final Cursor c, final Object context) {
-		assert s.charAt(c.pos) == '(' : "Signature '" + s + "', pos " + c.pos + ", char: "
-				+ s.charAt(c.pos);
-		++c.pos;
-		final List<T> ts = Lists.newArrayList();
-		while (s.charAt(c.pos) != ')') {
-			ts.add(parseT(s, c, context));
+	@Nullable
+	public T[] parseMethodParamTs(@Nullable final String s, @Nonnull final Cursor c,
+			final Object context) {
+		if (s == null || s.length() <= c.pos || s.charAt(c.pos) != '(') {
+			return null;
 		}
 		++c.pos;
+		final List<T> ts = Lists.newArrayList();
+		while (s.length() > c.pos && s.charAt(c.pos) != ')') {
+			final T t = parseT(s, c, context);
+			if (t == null) {
+				break;
+			}
+			ts.add(t);
+		}
+		++c.pos;
+		if (ts.size() == 0) {
+			return null;
+		}
 		return ts.toArray(new T[ts.size()]);
 	}
 

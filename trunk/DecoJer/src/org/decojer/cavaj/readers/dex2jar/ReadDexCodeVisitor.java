@@ -139,7 +139,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes, ReadVis
 	 * @param m
 	 *            method
 	 */
-	public void init(final M m) {
+	public void init(@Nonnull final M m) {
 		this.m = m;
 	}
 
@@ -198,6 +198,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes, ReadVis
 	@Override
 	public void visitEnd() {
 		if (this.ops.size() > 0) {
+			assert this.m != null;
 			final CFG cfg = new CFG(this.m, this.maxLocals, 0);
 			this.m.setCfg(cfg);
 

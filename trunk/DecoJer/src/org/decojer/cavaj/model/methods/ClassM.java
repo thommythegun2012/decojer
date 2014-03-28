@@ -56,6 +56,9 @@ import com.google.common.collect.Lists;
 @Slf4j
 public class ClassM extends M {
 
+	@Nonnull
+	private static final T[] PARAM_TS_NONE = new T[0];
+
 	@Setter
 	private int accessFlags;
 
@@ -70,6 +73,7 @@ public class ClassM extends M {
 
 	@Getter
 	@Setter
+	@Nonnull
 	private T[] paramTs;
 
 	@Getter
@@ -100,8 +104,10 @@ public class ClassM extends M {
 		this.descriptor = descriptor;
 
 		final Cursor c = new Cursor();
-		this.paramTs = du.parseMethodParamTs(descriptor, c, this);
-		this.returnT = du.parseT(descriptor, c, this);
+		final T[] methodParamTs = du.parseMethodParamTs(descriptor, c, this);
+		this.paramTs = methodParamTs == null ? PARAM_TS_NONE : methodParamTs;
+		final T returnT = du.parseT(descriptor, c, this);
+		this.returnT = returnT == null ? T.VOID : returnT;
 
 		setStatic(true); // dynamic callsite resolution, never reference on stack
 	}
@@ -229,6 +235,7 @@ public class ClassM extends M {
 		return getMd().getThrowsTs();
 	}
 
+	@Nonnull
 	@Override
 	public T[] getTypeParams() {
 		return getMd().getTypeParams();
@@ -381,7 +388,7 @@ public class ClassM extends M {
 
 		final T[] paramTs = getParamTs();
 		final T[] signParamTs = getDu().parseMethodParamTs(signature, c, this);
-		if (signParamTs.length != 0) {
+		if (signParamTs != null && signParamTs.length != 0) {
 			if (paramTs.length != signParamTs.length) {
 				// can happen with Sun JVM for constructor:
 				// see org.decojer.cavaj.test.jdk2.DecTestInnerS.Inner1.Inner11.1.InnerMethod
