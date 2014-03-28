@@ -315,17 +315,17 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void setAnnotationDefaultValue(final Object annotationDefaultValue) {
+	public void setAnnotationDefaultValue(@Nullable final Object annotationDefaultValue) {
 		getMd().setAnnotationDefaultValue(annotationDefaultValue);
 	}
 
 	@Override
-	public void setAs(final A[] as) {
+	public void setAs(@Nullable final A[] as) {
 		getMd().setAs(as);
 	}
 
 	@Override
-	public void setAstNode(final Object astNode) {
+	public void setAstNode(@Nullable final Object astNode) {
 		getMd().setAstNode(astNode);
 	}
 

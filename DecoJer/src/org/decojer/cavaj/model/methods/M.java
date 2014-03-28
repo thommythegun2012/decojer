@@ -180,7 +180,7 @@ public abstract class M implements Element {
 	 * @param annotationDefaultValue
 	 *            annotation default value
 	 */
-	public abstract void setAnnotationDefaultValue(final Object annotationDefaultValue);
+	public abstract void setAnnotationDefaultValue(@Nullable final Object annotationDefaultValue);
 
 	/**
 	 * Set control flow graph.
