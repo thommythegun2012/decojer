@@ -55,6 +55,7 @@ public class ReadFieldVisitor extends FieldVisitor implements ReadVisitor {
 
 	private A[] as;
 
+	@Nullable
 	private F f;
 
 	@Getter
@@ -85,7 +86,9 @@ public class ReadFieldVisitor extends FieldVisitor implements ReadVisitor {
 	 *
 	 * @return field declaration
 	 */
-	public F getF() {
+	@Nonnull
+	protected F getF() {
+		assert this.f != null;
 		return this.f;
 	}
 
@@ -122,13 +125,13 @@ public class ReadFieldVisitor extends FieldVisitor implements ReadVisitor {
 	@Override
 	public void visitAttribute(final Attribute attr) {
 		log.warn(getF() + ": Unknown field attribute tag '" + attr.type + "' for field info '"
-				+ this.f.getT() + "'!");
+				+ getF().getT() + "'!");
 	}
 
 	@Override
 	public void visitEnd() {
 		if (this.as != null) {
-			this.f.setAs(this.as);
+			getF().setAs(this.as);
 		}
 	}
 

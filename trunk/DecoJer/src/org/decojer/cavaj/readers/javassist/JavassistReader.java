@@ -121,10 +121,15 @@ public class JavassistReader implements ClassReader {
 	@Override
 	public T read(final InputStream is) throws IOException {
 		final ClassFile classFile = new ClassFile(new DataInputStream(is));
+		final String name = classFile.getName();
+		if (name == null) {
+			assert false;
+			return null;
+		}
 
 		final ConstPool constPool = classFile.getConstPool();
 
-		final T t = this.du.getT(classFile.getName());
+		final T t = this.du.getT(name);
 		if (!t.createTd()) {
 			log.warn("Type '" + t + "' already read!");
 			return null;
@@ -136,7 +141,9 @@ public class JavassistReader implements ClassReader {
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
-				interfaceTs[i] = this.du.getT(interfaces[i]);
+				final String interfaceName = interfaces[i];
+				assert interfaceName != null;
+				interfaceTs[i] = this.du.getT(interfaceName);
 			}
 			t.setInterfaceTs(interfaceTs);
 		}
@@ -195,8 +202,14 @@ public class JavassistReader implements ClassReader {
 			if (enclosingMethodAttribute.methodIndex() == 0) {
 				t.setEnclosingT(enclosingT);
 			} else {
-				t.setEnclosingM(enclosingT.getM(enclosingMethodAttribute.methodName(),
-						enclosingMethodAttribute.methodDescriptor()));
+				final String methodName = enclosingMethodAttribute.methodName();
+				final String methodDescriptor = enclosingMethodAttribute.methodDescriptor();
+				if (methodName == null || methodDescriptor == null) {
+					assert false;
+					t.setEnclosingT(enclosingT);
+				} else {
+					t.setEnclosingM(enclosingT.getM(methodName, methodDescriptor));
+				}
 			}
 		}
 		if (innerClassesAttribute != null) {
@@ -231,8 +244,14 @@ public class JavassistReader implements ClassReader {
 		return t;
 	}
 
+	@Nullable
 	private A readAnnotation(final Annotation annotation, final RetentionPolicy retentionPolicy) {
-		final T t = this.du.getT(annotation.getTypeName());
+		final String typeName = annotation.getTypeName();
+		if (typeName == null) {
+			assert false;
+			return null;
+		}
+		final T t = this.du.getT(typeName);
 		final A a = new A(t, retentionPolicy);
 		if (annotation.getMemberNames() != null) {
 			for (final String name : (Set<String>) annotation.getMemberNames()) {
@@ -271,7 +290,7 @@ public class JavassistReader implements ClassReader {
 		return as;
 	}
 
-	private F readField(final T t, final FieldInfo fieldInfo) {
+	private F readField(@Nonnull final T t, @Nonnull final FieldInfo fieldInfo) {
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
 		ConstantAttribute constantAttribute = null;
@@ -347,7 +366,7 @@ public class JavassistReader implements ClassReader {
 		return f;
 	}
 
-	private M readMethod(final T t, final MethodInfo methodInfo) {
+	private M readMethod(@Nonnull final T t, @Nonnull final MethodInfo methodInfo) {
 		AnnotationDefaultAttribute annotationDefaultAttribute = null;
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
@@ -405,15 +424,16 @@ public class JavassistReader implements ClassReader {
 		}
 		if (annotationDefaultAttribute != null) {
 			final MemberValue defaultMemberValue = annotationDefaultAttribute.getDefaultValue();
-			final Object annotationDefaultValue = readValue(defaultMemberValue);
-			m.setAnnotationDefaultValue(annotationDefaultValue);
+			if (defaultMemberValue != null) {
+				final Object annotationDefaultValue = readValue(defaultMemberValue);
+				m.setAnnotationDefaultValue(annotationDefaultValue);
+			}
 		}
-		final A[] as = readAnnotations(annotationsAttributeRuntimeInvisible,
-				annotationsAttributeRuntimeVisible);
-		if (as != null) {
-			m.setAs(as);
+		m.setAs(readAnnotations(annotationsAttributeRuntimeInvisible,
+				annotationsAttributeRuntimeVisible));
+		if (codeAttribute != null) {
+			this.readCodeAttribute.initAndVisit(m, codeAttribute);
 		}
-		this.readCodeAttribute.initAndVisit(m, codeAttribute);
 		if (deprecatedAttribute != null) {
 			m.setDeprecated();
 		}
@@ -466,7 +486,7 @@ public class JavassistReader implements ClassReader {
 	}
 
 	@Nullable
-	private Object readValue(final MemberValue memberValue) {
+	private Object readValue(@Nonnull final MemberValue memberValue) {
 		if (memberValue instanceof AnnotationMemberValue) {
 			// retention unknown for annotation constant
 			return readAnnotation(((AnnotationMemberValue) memberValue).getValue(), null);
