@@ -48,7 +48,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
-import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.methods.ClassM;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.AnnotatedT;
@@ -402,7 +401,7 @@ public final class DU {
 	 * @return type
 	 */
 	@Nullable
-	public T getDescT(final String desc) {
+	public T getDescT(@Nullable final String desc) {
 		return parseT(desc, new Cursor(), null);
 	}
 
@@ -524,7 +523,7 @@ public final class DU {
 	 *            parent type (for recursion)
 	 * @return class type
 	 */
-	@Nonnull
+	@Nullable
 	private T parseClassT(@Nonnull final String s, @Nonnull final Cursor c, final Object context,
 			final T enclosingT) {
 		// ClassTypeSignature: L PackageSpecifier_opt SimpleClassTypeSignature
@@ -584,18 +583,22 @@ public final class DU {
 		}
 		++c.pos;
 		final List<T> ts = Lists.newArrayList();
-		while (s.length() > c.pos && s.charAt(c.pos) != ')') {
+		while (s.length() > c.pos) {
+			if (s.charAt(c.pos) == ')') {
+				++c.pos;
+				if (ts.size() == 0) {
+					return null;
+				}
+				return ts.toArray(new T[ts.size()]);
+			}
 			final T t = parseT(s, c, context);
 			if (t == null) {
 				break;
 			}
 			ts.add(t);
 		}
-		++c.pos;
-		if (ts.size() == 0) {
-			return null;
-		}
-		return ts.toArray(new T[ts.size()]);
+		log.warn(context + ": Cannot parse method parameter types in '" + s + "' (" + c.pos + ")!");
+		return null;
 	}
 
 	/**
@@ -636,7 +639,14 @@ public final class DU {
 		case 'L': {
 			// ClassTypeSignature
 			final T t = parseClassT(s, c, context, null);
-			assert s.charAt(c.pos) == ';' : s.charAt(c.pos);
+			if (t == null) {
+				log.warn(context + ": Cannot parse class type in '" + s + "' (" + c.pos + ")!");
+				return null;
+			}
+			if (s.length() <= c.pos || s.charAt(c.pos) != ';') {
+				log.warn(context + ": Cannot parse class type ';' in '" + s + "' (" + c.pos + ")!");
+				return null;
+			}
 			++c.pos;
 			return t;
 		}
@@ -644,6 +654,8 @@ public final class DU {
 			// ArrayTypeSignature
 			final T t = parseT(s, c, context);
 			if (t == null) {
+				log.warn(context + ": Cannot parse array component type in '" + s + "' (" + c.pos
+						+ ")!");
 				return null;
 			}
 			return getArrayT(t);
@@ -657,7 +669,8 @@ public final class DU {
 			return t;
 		}
 		default:
-			throw new DecoJerException("Unknown type in '" + s + "' (" + c.pos + ")!");
+			log.warn(context + ": Unknown type kind in '" + s + "' (" + c.pos + ")!");
+			return null;
 		}
 	}
 
@@ -681,8 +694,15 @@ public final class DU {
 		}
 		++c.pos;
 		final List<T> ts = Lists.newArrayList();
-		char ch;
-		while ((ch = s.charAt(c.pos)) != '>') {
+		while (s.length() > c.pos) {
+			final char ch = s.charAt(c.pos);
+			if (ch == '>') {
+				++c.pos;
+				if (ts.size() == 0) {
+					return null;
+				}
+				return ts.toArray(new T[ts.size()]);
+			}
 			switch (ch) {
 			case '*':
 				++c.pos;
@@ -692,7 +712,7 @@ public final class DU {
 				++c.pos;
 				final T t = parseT(s, c, context);
 				if (t == null) {
-					log.warn("Cannot parse type arg at position '" + c + "' in '" + s + "'!");
+					log.warn(context + ": Cannot parse + type arg in '" + s + "' (" + c.pos + ")!");
 					return null;
 				}
 				ts.add(getSubclassOfWildcardT(t));
@@ -702,7 +722,7 @@ public final class DU {
 				++c.pos;
 				final T t = parseT(s, c, context);
 				if (t == null) {
-					log.warn("Cannot parse type arg at position '" + c + "' in '" + s + "'!");
+					log.warn(context + ": Cannot parse - type arg in '" + s + "' (" + c.pos + ")!");
 					return null;
 				}
 				ts.add(getSuperOfWildcardT(t));
@@ -711,15 +731,15 @@ public final class DU {
 			default: {
 				final T t = parseT(s, c, context);
 				if (t == null) {
-					log.warn("Cannot parse type arg at position '" + c + "' in '" + s + "'!");
+					log.warn(context + ": Cannot parse type arg in '" + s + "' (" + c.pos + ")!");
 					return null;
 				}
 				ts.add(t);
 			}
 			}
 		}
-		++c.pos;
-		return ts.toArray(new T[ts.size()]);
+		log.warn(context + ": Cannot parse type args in '" + s + "' (" + c.pos + ")!");
+		return null;
 	}
 
 	/**
@@ -737,12 +757,19 @@ public final class DU {
 	public T[] parseTypeParams(@Nullable final String s, @Nonnull final Cursor c,
 			final Object context) {
 		// TypeParams_opt
-		if (s == null || s.charAt(c.pos) != '<') {
+		if (s == null || s.length() <= c.pos || s.charAt(c.pos) != '<') {
 			return null; // optional
 		}
 		++c.pos;
 		final List<T> ts = Lists.newArrayList();
-		while (s.charAt(c.pos) != '>') {
+		while (s.length() > c.pos) {
+			if (s.charAt(c.pos) == '>') {
+				++c.pos;
+				if (ts.size() == 0) {
+					return null;
+				}
+				return ts.toArray(new T[ts.size()]);
+			}
 			final int pos = s.indexOf(':', c.pos);
 			// reuse ClassT for type parameter
 			final ParamT typeParam = new ParamT(this, s.substring(c.pos, pos));
@@ -764,8 +791,8 @@ public final class DU {
 			}
 			ts.add(typeParam);
 		}
-		++c.pos;
-		return ts.toArray(new T[ts.size()]);
+		log.warn(context + ": Cannot parse type params in '" + s + "' (" + c.pos + ")!");
+		return null;
 	}
 
 	/**

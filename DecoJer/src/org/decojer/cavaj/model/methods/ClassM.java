@@ -128,8 +128,10 @@ public class ClassM extends M {
 		this.descriptor = descriptor;
 
 		final Cursor c = new Cursor();
-		this.paramTs = getDu().parseMethodParamTs(descriptor, c, this);
-		this.returnT = getDu().parseT(descriptor, c, this);
+		final T[] methodParamTs = getDu().parseMethodParamTs(descriptor, c, this);
+		this.paramTs = methodParamTs == null ? PARAM_TS_NONE : methodParamTs;
+		final T returnT = getDu().parseT(descriptor, c, this);
+		this.returnT = returnT == null ? T.VOID : returnT;
 	}
 
 	@Override

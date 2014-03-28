@@ -102,7 +102,7 @@ public abstract class M implements Element {
 	 *
 	 * @return parameter types
 	 */
-	@Nullable
+	@Nonnull
 	public abstract T[] getParamTs();
 
 	/**
