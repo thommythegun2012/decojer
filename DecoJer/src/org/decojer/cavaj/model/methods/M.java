@@ -43,9 +43,6 @@ public abstract class M implements Element {
 
 	public static final String INITIALIZER_NAME = "<clinit>";
 
-	@Nonnull
-	public static final T[] TYPE_PARAMS_NONE = new T[0];
-
 	/**
 	 * Create method declaration for this method.
 	 *
@@ -105,6 +102,7 @@ public abstract class M implements Element {
 	 *
 	 * @return parameter types
 	 */
+	@Nullable
 	public abstract T[] getParamTs();
 
 	/**
@@ -143,6 +141,7 @@ public abstract class M implements Element {
 	 *
 	 * @return type parameters
 	 */
+	@Nonnull
 	public abstract T[] getTypeParams();
 
 	/**

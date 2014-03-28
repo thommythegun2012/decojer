@@ -84,7 +84,7 @@ public class ReadDexFieldVisitor implements DexFieldVisitor, ReadVisitor {
 	 * @param f
 	 *            field
 	 */
-	public void init(final F f) {
+	public void init(@Nonnull final F f) {
 		this.f = f;
 		this.as = null;
 	}
