@@ -235,10 +235,14 @@ public class JavassistReader implements ClassReader {
 			t.setScala();
 		}
 		for (final FieldInfo fieldInfo : (List<FieldInfo>) classFile.getFields()) {
-			readField(t, fieldInfo);
+			if (fieldInfo != null) {
+				readField(t, fieldInfo);
+			}
 		}
 		for (final MethodInfo methodInfo : (List<MethodInfo>) classFile.getMethods()) {
-			readMethod(t, methodInfo);
+			if (methodInfo != null) {
+				readMethod(t, methodInfo);
+			}
 		}
 		t.resolve();
 		return t;
@@ -255,7 +259,9 @@ public class JavassistReader implements ClassReader {
 		final A a = new A(t, retentionPolicy);
 		if (annotation.getMemberNames() != null) {
 			for (final String name : (Set<String>) annotation.getMemberNames()) {
-				a.addMember(name, readValue(annotation.getMemberValue(name)));
+				final MemberValue memberValue = annotation.getMemberValue(name);
+				assert memberValue != null;
+				a.addMember(name, readValue(memberValue));
 			}
 		}
 		return a;
@@ -495,7 +501,9 @@ public class JavassistReader implements ClassReader {
 			final MemberValue[] values = ((ArrayMemberValue) memberValue).getValue();
 			final Object[] objects = new Object[values.length];
 			for (int i = values.length; i-- > 0;) {
-				objects[i] = readValue(values[i]);
+				final MemberValue value = values[i];
+				assert value != null;
+				objects[i] = readValue(value);
 			}
 			return objects;
 		}
@@ -509,15 +517,21 @@ public class JavassistReader implements ClassReader {
 			return ((CharMemberValue) memberValue).getValue();
 		}
 		if (memberValue instanceof ClassMemberValue) {
-			return this.du.getT(((ClassMemberValue) memberValue).getValue());
+			final String value = ((ClassMemberValue) memberValue).getValue();
+			assert value != null;
+			return this.du.getT(value);
 		}
 		if (memberValue instanceof DoubleMemberValue) {
 			return ((DoubleMemberValue) memberValue).getValue();
 		} else if (memberValue instanceof EnumMemberValue) {
 			// TODO better direct access, but missing method in Javassist API
 			final String desc = Descriptor.of(((EnumMemberValue) memberValue).getType());
+			assert desc != null;
 			final T ownerT = this.du.getDescT(desc);
-			final F f = ownerT.getF(((EnumMemberValue) memberValue).getValue(), desc);
+			assert ownerT != null;
+			final String value = ((EnumMemberValue) memberValue).getValue();
+			assert value != null;
+			final F f = ownerT.getF(value, desc);
 			f.setEnum();
 			return f;
 		}
