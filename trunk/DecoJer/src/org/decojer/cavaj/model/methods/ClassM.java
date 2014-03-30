@@ -232,6 +232,7 @@ public class ClassM extends M {
 		return getMd().getSignature();
 	}
 
+	@Nonnull
 	@Override
 	public T[] getThrowsTs() {
 		return getMd().getThrowsTs();

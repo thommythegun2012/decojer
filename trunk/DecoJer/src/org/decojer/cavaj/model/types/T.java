@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.types;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -51,7 +52,13 @@ import com.google.common.collect.Maps;
  */
 public abstract class T implements Element {
 
+	@Nonnull
 	private static final Map<Integer, T> KIND_2_TS = Maps.newHashMap();
+
+	@Nonnull
+	@SuppressWarnings("null")
+	private static final Map<String, Object> MEMBER_NONE = Collections.unmodifiableMap(Maps
+			.<String, Object> newHashMap());
 
 	/**
 	 * Java allows the automatic type conversion for primitives. For union-primitives we can reduce
@@ -584,9 +591,9 @@ public abstract class T implements Element {
 	}
 
 	/**
-	 * Get bound type for wildcard type or null.
+	 * Get bound type for wildcard type.
 	 *
-	 * @return bound type for wildcard type or null
+	 * @return bound type for wildcard type
 	 */
 	@Nullable
 	public T getBoundT() {
@@ -594,9 +601,9 @@ public abstract class T implements Element {
 	}
 
 	/**
-	 * Get component type of array type or null.
+	 * Get component type of array type.
 	 *
-	 * @return component type of array type or null
+	 * @return component type of array type
 	 *
 	 * @see Class#isAssignableFrom(Class)
 	 */
@@ -724,9 +731,9 @@ public abstract class T implements Element {
 	}
 
 	/**
-	 * Get generic type for parameterized type or null.
+	 * Get generic type for parameterized type.
 	 *
-	 * @return generic type for parameterized type or null
+	 * @return generic type for parameterized type
 	 */
 	@Nullable
 	public T getGenericT() {
@@ -799,9 +806,9 @@ public abstract class T implements Element {
 	 *
 	 * @return members
 	 */
-	@Nullable
+	@Nonnull
 	public Map<String, Object> getMember() {
-		return null;
+		return MEMBER_NONE;
 	}
 
 	/**
