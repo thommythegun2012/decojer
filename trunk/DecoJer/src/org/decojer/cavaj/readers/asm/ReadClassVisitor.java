@@ -249,24 +249,38 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 			final int superTypeIndex = typeReference.getSuperTypeIndex();
 			if (superTypeIndex == -1) {
 				// -1: annotation targets extends type
-				getT().setSuperT(annotateT(getT().getSuperT(), a, typePath));
-			} else {
-				// 0-based interface index
-				final T[] interfaceTs = getT().getInterfaceTs();
-				if (superTypeIndex < interfaceTs.length) {
-					interfaceTs[superTypeIndex] = annotateT(interfaceTs[superTypeIndex], a,
-							typePath);
-				} else {
-					log.warn("Super type index '" + superTypeIndex + "' is to large for '" + this.t
-							+ "'!");
+				final T superT = getT().getSuperT();
+				if (superT == null) {
+					log.warn(getT() + ": Cannot apply type annotation '" + a
+							+ "' to missing super type!");
+					break;
 				}
+				getT().setSuperT(annotateT(superT, a, typePath));
+				break;
 			}
+			// 0-based interface index
+			final T[] interfaceTs = getT().getInterfaceTs();
+			if (superTypeIndex <= interfaceTs.length) {
+				log.warn(getT() + ": Cannot apply type annotation '" + a
+						+ "' to missing interface type at index '" + superTypeIndex + "'!");
+				break;
+			}
+			final T interfaceT = interfaceTs[superTypeIndex];
+			assert interfaceT != null;
+			interfaceTs[superTypeIndex] = annotateT(interfaceT, a, typePath);
 			break;
 		}
 		case TypeReference.CLASS_TYPE_PARAMETER: {
 			final int typeParameterIndex = typeReference.getTypeParameterIndex();
 			final T[] typeParams = getT().getTypeParams();
-			typeParams[typeParameterIndex] = annotateT(typeParams[typeParameterIndex], a, typePath);
+			if (typeParams.length <= typeParameterIndex) {
+				log.warn(getT() + ": Cannot apply type annotation '" + a
+						+ "' to missing type parameter at index '" + typeParameterIndex + "'!");
+				break;
+			}
+			final T typeParam = typeParams[typeParameterIndex];
+			assert typeParam != null;
+			typeParams[typeParameterIndex] = annotateT(typeParam, a, typePath);
 			break;
 		}
 		case TypeReference.CLASS_TYPE_PARAMETER_BOUND: {
@@ -275,18 +289,26 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 			final T t = getT().getTypeParams()[typeParameterIndex];
 			if (typeParameterBoundIndex == 0) {
 				// 0: annotation targets extends type
-				t.setSuperT(annotateT(t.getSuperT(), a, typePath));
-			} else {
-				// 1-based interface index
-				final T[] interfaceTs = t.getInterfaceTs();
-				if (typeParameterBoundIndex - 1 < interfaceTs.length) {
-					interfaceTs[typeParameterBoundIndex - 1] = annotateT(
-							interfaceTs[typeParameterBoundIndex - 1], a, typePath);
-				} else {
-					log.warn("Type parameter bound index '" + (typeParameterBoundIndex - 1)
-							+ "' is to large for '" + this.t + "'!");
+				final T superT = t.getSuperT();
+				if (superT == null) {
+					log.warn(getT() + ": Cannot apply type annotation '" + a
+							+ "' to missing type parameter bound super type!");
+					break;
 				}
+				t.setSuperT(annotateT(superT, a, typePath));
+				break;
 			}
+			// 1-based interface index
+			final T[] interfaceTs = t.getInterfaceTs();
+			if (interfaceTs.length <= typeParameterBoundIndex - 1) {
+				log.warn(getT() + ": Cannot apply type annotation '" + a
+						+ "' to missing interface type at index '" + (typeParameterBoundIndex - 1)
+						+ "'!");
+				break;
+			}
+			final T interfaceT = interfaceTs[typeParameterBoundIndex];
+			assert interfaceT != null;
+			interfaceTs[typeParameterBoundIndex - 1] = annotateT(interfaceT, a, typePath);
 			break;
 		}
 		default:
