@@ -236,7 +236,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 		T vT = getM().getDu().getDescT(type.getTypeDescriptor());
 		if (vT == null) {
-			log.warn(getM() + ": Cannot parse local variable type descriptor '"
+			log.warn(getM() + ": Cannot read local variable type descriptor '"
 					+ type.getTypeDescriptor() + "'!");
 			return;
 		}

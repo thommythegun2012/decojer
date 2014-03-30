@@ -145,7 +145,7 @@ public class Smali2Reader implements DexReader {
 			}
 			final T t = this.du.getDescT(typeDescriptor);
 			if (t == null) {
-				log.warn("Cannot parse type descriptor '" + typeDescriptor + "'!");
+				log.warn("Cannot read type descriptor '" + typeDescriptor + "'!");
 				continue;
 			}
 			if (!t.createTd()) {
@@ -250,7 +250,7 @@ public class Smali2Reader implements DexReader {
 			final Set<? extends AnnotationElement> elements, final RetentionPolicy retentionPolicy) {
 		final T aT = this.du.getDescT(type);
 		if (aT == null) {
-			log.warn(context + ": Cannot parse annotation type descriptor '" + type + "'!");
+			log.warn(context + ": Cannot read annotation type descriptor '" + type + "'!");
 			return null;
 		}
 		final A a = new A(aT, retentionPolicy);
