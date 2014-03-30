@@ -89,7 +89,8 @@ public class Smali2Reader implements DexReader {
 	 *            method reference
 	 * @return method descriptor
 	 */
-	public static String desc(final MethodReference method) {
+	@Nonnull
+	public static String desc(@Nonnull final MethodReference method) {
 		final StringBuilder sb = new StringBuilder();
 		sb.append('(');
 		for (final CharSequence cs : method.getParameterTypes()) {
@@ -97,7 +98,9 @@ public class Smali2Reader implements DexReader {
 		}
 		sb.append(')');
 		sb.append(method.getReturnType());
-		return sb.toString();
+		final String ret = sb.toString();
+		assert ret != null;
+		return ret;
 	}
 
 	@Nonnull
@@ -116,7 +119,8 @@ public class Smali2Reader implements DexReader {
 	}
 
 	@Override
-	public List<T> read(final InputStream is, final String selector) throws IOException {
+	public List<T> read(@Nonnull final InputStream is, @Nullable final String selector)
+			throws IOException {
 		String selectorPrefix = null;
 		String selectorMatch = null;
 		if (selector != null && selector.endsWith(".class")) {
@@ -130,7 +134,6 @@ public class Smali2Reader implements DexReader {
 		}
 		final List<T> ts = Lists.newArrayList();
 
-		@SuppressWarnings("null")
 		final byte[] bytes = ByteStreams.toByteArray(is);
 		final DexBackedDexFile dexFile = new DexBackedDexFile(new Opcodes(15), bytes);
 		for (final DexBackedClassDef classDefItem : dexFile.getClasses()) {
@@ -260,7 +263,7 @@ public class Smali2Reader implements DexReader {
 		return a;
 	}
 
-	private void readField(final T t, final DexBackedField field) {
+	private void readField(@Nonnull final T t, @Nonnull final DexBackedField field) {
 		final F f = t.getF(field.getName(), field.getType());
 		f.createFd();
 		f.setAccessFlags(field.getAccessFlags());
@@ -292,17 +295,23 @@ public class Smali2Reader implements DexReader {
 		}
 	}
 
-	private void readFields(final T t, final Iterable<? extends DexBackedField> staticFields,
-			final Iterable<? extends DexBackedField> instanceFields) {
+	private void readFields(@Nonnull final T t,
+			@Nonnull final Iterable<? extends DexBackedField> staticFields,
+			@Nonnull final Iterable<? extends DexBackedField> instanceFields) {
 		for (final DexBackedField field : staticFields) {
-			readField(t, field);
+			if (field != null) {
+				readField(t, field);
+			}
 		}
 		for (final DexBackedField field : instanceFields) {
-			readField(t, field);
+			if (field != null) {
+				readField(t, field);
+			}
 		}
 	}
 
-	private void readMethod(final T t, final DexBackedMethod method, final A annotationDefaultValues) {
+	private void readMethod(@Nonnull final T t, @Nonnull final DexBackedMethod method,
+			@Nullable final A annotationDefaultValues) {
 		final M m = t.getM(method.getName(), desc(method));
 		m.createMd();
 		m.setAccessFlags(method.getAccessFlags());
@@ -368,14 +377,19 @@ public class Smali2Reader implements DexReader {
 		}
 	}
 
-	private void readMethods(final T t, final Iterable<? extends DexBackedMethod> directMethods,
-			final Iterable<? extends DexBackedMethod> virtualMethods,
-			final A annotationDefaultValues) {
+	private void readMethods(@Nonnull final T t,
+			@Nonnull final Iterable<? extends DexBackedMethod> directMethods,
+			@Nonnull final Iterable<? extends DexBackedMethod> virtualMethods,
+			@Nullable final A annotationDefaultValues) {
 		for (final DexBackedMethod method : directMethods) {
-			readMethod(t, method, annotationDefaultValues);
+			if (method != null) {
+				readMethod(t, method, annotationDefaultValues);
+			}
 		}
 		for (final DexBackedMethod method : virtualMethods) {
-			readMethod(t, method, annotationDefaultValues);
+			if (method != null) {
+				readMethod(t, method, annotationDefaultValues);
+			}
 		}
 	}
 
@@ -413,8 +427,8 @@ public class Smali2Reader implements DexReader {
 		}
 		case ValueType.FIELD: {
 			final FieldReference fieldReference = ((FieldEncodedValue) encodedValue).getValue();
-			final T t = du.getDescT(fieldReference.getDefiningClass());
-			return t.getF(fieldReference.getName(), fieldReference.getType());
+			final T ownerT = du.getDescT(fieldReference.getDefiningClass());
+			return ownerT.getF(fieldReference.getName(), fieldReference.getType());
 		}
 		case ValueType.FLOAT:
 			return ((FloatEncodedValue) encodedValue).getValue();
