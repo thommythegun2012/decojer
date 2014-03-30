@@ -85,7 +85,8 @@ public class ClassF extends F {
 	public ClassF(@Nonnull final T t, @Nonnull final String name, @Nonnull final String descriptor) {
 		this.t = t;
 		this.name = name;
-		this.valueT = getDu().getDescT(descriptor);
+		final T valueT = getDu().getDescT(descriptor);
+		this.valueT = valueT == null ? T.VOID : valueT;
 	}
 
 	@Override

@@ -73,7 +73,8 @@ public abstract class M implements Element {
 
 	@Override
 	public DU getDu() {
-		return getT().getDu();
+		final T t = getT();
+		return t == null ? null : t.getDu();
 	}
 
 	/**
@@ -134,6 +135,7 @@ public abstract class M implements Element {
 	 *
 	 * @return throws types
 	 */
+	@Nonnull
 	public abstract T[] getThrowsTs();
 
 	/**

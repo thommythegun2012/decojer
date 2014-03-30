@@ -88,7 +88,8 @@ public final class ArrayT extends BaseT {
 	@Override
 	public int getDimensions() {
 		int dimensions = 0;
-		for (T elementT = this; elementT.isArray(); elementT = elementT.getComponentT()) {
+		for (T elementT = this; elementT != null && elementT.isArray(); elementT = elementT
+				.getComponentT()) {
 			++dimensions;
 		}
 		return dimensions;
@@ -99,6 +100,7 @@ public final class ArrayT extends BaseT {
 		T elementT = this;
 		while (elementT.isArray()) {
 			elementT = elementT.getComponentT();
+			assert elementT != null;
 		}
 		return elementT;
 	}
@@ -145,7 +147,9 @@ public final class ArrayT extends BaseT {
 		if (t == null || !t.isArray()) {
 			return false;
 		}
-		if ((getComponentT().getKind() & t.getComponentT().getKind()) == 0) {
+		final T componentT = t.getComponentT();
+		assert componentT != null;
+		if ((getComponentT().getKind() & componentT.getKind()) == 0) {
 			// even though arrays are covariant in the Java language, no auto-conversion is applied
 			// here and "int[] is = new byte[1]" isn't allowed in Java:
 			// isAssignableFrom() usually means "is-superclass-of" in JDK function, but even though
