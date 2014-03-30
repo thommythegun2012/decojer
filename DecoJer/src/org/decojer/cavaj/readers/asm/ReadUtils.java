@@ -57,7 +57,12 @@ public class ReadUtils {
 	@Nonnull
 	public static M annotateM(@Nonnull final M m, @Nonnull final A a,
 			@Nullable final TypePath typePath) {
-		final T annotatedT = annotateT(m.getT(), a, typePath);
+		final T ownerT = m.getT();
+		if (ownerT == null) {
+			log.warn("Cannot annotate dynamic method '" + m + "' with annotation '" + a + "'!");
+			return m;
+		}
+		final T annotatedT = annotateT(ownerT, a, typePath);
 		if (m.getT() == annotatedT) {
 			return m;
 		}
@@ -68,7 +73,7 @@ public class ReadUtils {
 		return new QualifiedM(annotatedT, m);
 	}
 
-	@Nullable
+	@Nonnull
 	private static T annotatePart(@Nonnull final T t, @Nonnull final A a,
 			@Nullable final TypePath typePath, final int index) {
 		if (typePath == null) {
@@ -124,6 +129,7 @@ public class ReadUtils {
 				break;
 			}
 			final T typeArg = typeArgs[arg];
+			assert typeArg != null;
 			typeArgs[arg] = annotateT(typeArg, a, typePath, index + 1);
 			break;
 		}
@@ -181,11 +187,12 @@ public class ReadUtils {
 					+ innerCounter + "'!");
 			return t;
 		}
+		final T qualifierT = qualifierTs[innerCounter];
+		assert qualifierT != null;
 		if (innerCounter == qualifierTs.length - 1) {
-			return annotatePart(qualifierTs[innerCounter], a, typePath, index + innerCounter);
+			return annotatePart(qualifierT, a, typePath, index + innerCounter);
 		}
-		return DU.getQualifiedT(
-				annotatePart(qualifierTs[innerCounter], a, typePath, index + innerCounter), t);
+		return DU.getQualifiedT(annotatePart(qualifierT, a, typePath, index + innerCounter), t);
 	}
 
 	private ReadUtils() {
