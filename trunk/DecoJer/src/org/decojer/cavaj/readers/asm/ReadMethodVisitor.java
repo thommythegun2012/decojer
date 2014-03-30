@@ -1576,8 +1576,13 @@ public class ReadMethodVisitor extends MethodVisitor implements ReadVisitor {
 		// operation works different from other newarrays, descriptor contains array with
 		// dimension > given sizes on stack, e.g.: new int[1][2][3][][], dimension is 3 and
 		// descriptor is [[[[[I
-		add(new NEWARRAY(this.ops.size(), Opcodes.MULTIANEWARRAY, this.line,
-				getDu().getDescT(desc), dims));
+		T elementT = getDu().getDescT(desc);
+		if (elementT == null) {
+			log.warn(getM() + ": Cannot read element type from descriptor '" + desc
+					+ "' for MULTIANEWARRAY!");
+			elementT = T.ANY;
+		}
+		add(new NEWARRAY(this.ops.size(), Opcodes.MULTIANEWARRAY, this.line, elementT, dims));
 	}
 
 	@Override

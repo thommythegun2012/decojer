@@ -104,6 +104,10 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 	@Override
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName, final String[] interfaces) {
+		if (name == null) {
+			log.warn("Cannot read type name '" + name + "'!");
+			throw new ReadException();
+		}
 		final T t = this.du.getT(name);
 		if (!t.createTd()) {
 			log.warn(this.t + ": Type '" + t + "' already read!");
@@ -111,7 +115,9 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 		}
 		this.t = t;
 		getT().setAccessFlags(access);
-		getT().setSuperT(this.du.getT(superName));
+		if (superName != null) {
+			getT().setSuperT(this.du.getT(superName));
+		}
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
@@ -179,6 +185,9 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 	@Override
 	public void visitInnerClass(final String name, final String outerName, final String innerName,
 			final int access) {
+		if (name == null) {
+			return;
+		}
 		final ClassT innerT = (ClassT) this.du.getT(name);
 		if (outerName != null) {
 			// set enclosing first for better inner name check

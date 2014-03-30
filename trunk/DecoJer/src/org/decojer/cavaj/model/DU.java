@@ -597,7 +597,7 @@ public final class DU {
 			}
 			ts.add(t);
 		}
-		log.warn(context + ": Cannot parse method parameter types in '" + s + "' (" + c.pos + ")!");
+		log.warn(context + ": Cannot read method parameter types in '" + s + "' (" + c.pos + ")!");
 		return null;
 	}
 
@@ -640,11 +640,11 @@ public final class DU {
 			// ClassTypeSignature
 			final T t = parseClassT(s, c, context, null);
 			if (t == null) {
-				log.warn(context + ": Cannot parse class type in '" + s + "' (" + c.pos + ")!");
+				log.warn(context + ": Cannot read class type in '" + s + "' (" + c.pos + ")!");
 				return null;
 			}
 			if (s.length() <= c.pos || s.charAt(c.pos) != ';') {
-				log.warn(context + ": Cannot parse class type ';' in '" + s + "' (" + c.pos + ")!");
+				log.warn(context + ": Cannot read class type ';' in '" + s + "' (" + c.pos + ")!");
 				return null;
 			}
 			++c.pos;
@@ -654,7 +654,7 @@ public final class DU {
 			// ArrayTypeSignature
 			final T t = parseT(s, c, context);
 			if (t == null) {
-				log.warn(context + ": Cannot parse array component type in '" + s + "' (" + c.pos
+				log.warn(context + ": Cannot read array component type in '" + s + "' (" + c.pos
 						+ ")!");
 				return null;
 			}
@@ -712,7 +712,7 @@ public final class DU {
 				++c.pos;
 				final T t = parseT(s, c, context);
 				if (t == null) {
-					log.warn(context + ": Cannot parse + type arg in '" + s + "' (" + c.pos + ")!");
+					log.warn(context + ": Cannot read + type arg in '" + s + "' (" + c.pos + ")!");
 					return null;
 				}
 				ts.add(getSubclassOfWildcardT(t));
@@ -722,7 +722,7 @@ public final class DU {
 				++c.pos;
 				final T t = parseT(s, c, context);
 				if (t == null) {
-					log.warn(context + ": Cannot parse - type arg in '" + s + "' (" + c.pos + ")!");
+					log.warn(context + ": Cannot read - type arg in '" + s + "' (" + c.pos + ")!");
 					return null;
 				}
 				ts.add(getSuperOfWildcardT(t));
@@ -731,14 +731,14 @@ public final class DU {
 			default: {
 				final T t = parseT(s, c, context);
 				if (t == null) {
-					log.warn(context + ": Cannot parse type arg in '" + s + "' (" + c.pos + ")!");
+					log.warn(context + ": Cannot read type arg in '" + s + "' (" + c.pos + ")!");
 					return null;
 				}
 				ts.add(t);
 			}
 			}
 		}
-		log.warn(context + ": Cannot parse type args in '" + s + "' (" + c.pos + ")!");
+		log.warn(context + ": Cannot read type args in '" + s + "' (" + c.pos + ")!");
 		return null;
 	}
 
@@ -791,7 +791,7 @@ public final class DU {
 			}
 			ts.add(typeParam);
 		}
-		log.warn(context + ": Cannot parse type params in '" + s + "' (" + c.pos + ")!");
+		log.warn(context + ": Cannot read type params in '" + s + "' (" + c.pos + ")!");
 		return null;
 	}
 

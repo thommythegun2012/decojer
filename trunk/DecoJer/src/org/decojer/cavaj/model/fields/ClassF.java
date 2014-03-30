@@ -86,7 +86,10 @@ public class ClassF extends F {
 		this.t = t;
 		this.name = name;
 		final T valueT = getDu().getDescT(descriptor);
-		this.valueT = valueT == null ? T.VOID : valueT;
+		if (valueT == null) {
+			log.warn(t + ": Cannot read field value type from descriptor '" + descriptor + "'!");
+		}
+		this.valueT = valueT == null ? T.ANY : valueT;
 	}
 
 	@Override
