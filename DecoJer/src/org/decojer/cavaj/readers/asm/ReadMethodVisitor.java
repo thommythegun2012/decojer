@@ -219,9 +219,12 @@ public class ReadMethodVisitor extends MethodVisitor implements ReadVisitor {
 		case TypeReference.METHOD_REFERENCE: {
 			if (op instanceof INVOKE) {
 				final Object[] bsArgs = ((INVOKE) op).getBsArgs();
-				if (bsArgs != null && bsArgs.length > 1 && bsArgs[1] instanceof M) {
-					bsArgs[1] = annotateM((M) bsArgs[1], a, typePath);
-					return true;
+				if (bsArgs != null && bsArgs.length > 1) {
+					final Object bsArg = bsArgs[1];
+					if (bsArg instanceof M) {
+						bsArgs[1] = annotateM((M) bsArg, a, typePath);
+						return true;
+					}
 				}
 			}
 			if (logError) {

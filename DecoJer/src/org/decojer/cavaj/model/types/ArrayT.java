@@ -121,6 +121,7 @@ public final class ArrayT extends BaseT {
 		if (this.member == null) {
 			this.member = Maps.newHashMap();
 		}
+		assert this.member != null;
 		return this.member;
 	}
 
