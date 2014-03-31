@@ -121,7 +121,9 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 		if (interfaces != null && interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
-				interfaceTs[i] = this.du.getT(interfaces[i]);
+				final String interfaceName = interfaces[i];
+				assert interfaceName != null;
+				interfaceTs[i] = this.du.getT(interfaceName);
 			}
 			getT().setInterfaceTs(interfaceTs);
 		}
@@ -209,7 +211,9 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 		if (exceptions != null && exceptions.length > 0) {
 			final T[] throwsTs = new T[exceptions.length];
 			for (int i = exceptions.length; i-- > 0;) {
-				throwsTs[i] = this.du.getT(exceptions[i]);
+				final String exception = exceptions[i];
+				assert exception != null;
+				throwsTs[i] = this.du.getT(exception);
 			}
 			m.setThrowsTs(throwsTs);
 		}
