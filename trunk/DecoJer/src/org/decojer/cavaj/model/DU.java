@@ -437,7 +437,7 @@ public final class DU {
 	 * @return type
 	 */
 	@Nonnull
-	public T getT(final Class<?> klass) {
+	public T getT(@Nonnull final Class<?> klass) {
 		final String name = klass.getName();
 		assert name != null;
 		return getT(name);
