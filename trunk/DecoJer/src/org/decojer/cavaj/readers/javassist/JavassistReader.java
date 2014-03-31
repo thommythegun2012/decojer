@@ -296,7 +296,14 @@ public class JavassistReader implements ClassReader {
 		return as;
 	}
 
+	@Nullable
 	private F readField(@Nonnull final T t, @Nonnull final FieldInfo fieldInfo) {
+		final String name = fieldInfo.getName();
+		final String descriptor = fieldInfo.getDescriptor();
+		if (name == null || descriptor == null) {
+			return null;
+		}
+
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
 		ConstantAttribute constantAttribute = null;
@@ -324,7 +331,7 @@ public class JavassistReader implements ClassReader {
 		}
 		final ConstPool constPool = fieldInfo.getConstPool();
 
-		final F f = t.getF(fieldInfo.getName(), fieldInfo.getDescriptor());
+		final F f = t.getF(name, descriptor);
 		f.createFd();
 		f.setAccessFlags(fieldInfo.getAccessFlags());
 		if (signatureAttribute != null && signatureAttribute.getSignature() != null) {
@@ -372,7 +379,14 @@ public class JavassistReader implements ClassReader {
 		return f;
 	}
 
+	@Nullable
 	private M readMethod(@Nonnull final T t, @Nonnull final MethodInfo methodInfo) {
+		final String name = methodInfo.getName();
+		final String descriptor = methodInfo.getDescriptor();
+		if (name == null || descriptor == null) {
+			return null;
+		}
+
 		AnnotationDefaultAttribute annotationDefaultAttribute = null;
 		AnnotationsAttribute annotationsAttributeRuntimeInvisible = null;
 		AnnotationsAttribute annotationsAttributeRuntimeVisible = null;
@@ -412,7 +426,7 @@ public class JavassistReader implements ClassReader {
 		}
 		final ConstPool constPool = methodInfo.getConstPool();
 
-		final M m = t.getM(methodInfo.getName(), methodInfo.getDescriptor());
+		final M m = t.getM(name, descriptor);
 		m.createMd();
 		m.setAccessFlags(methodInfo.getAccessFlags());
 		if (exceptionsAttribute != null) {
