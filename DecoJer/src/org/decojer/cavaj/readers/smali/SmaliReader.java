@@ -215,6 +215,10 @@ public class SmaliReader implements DexReader {
 				continue;
 			}
 			final T t = this.du.getDescT(typeDescriptor);
+			if (t == null) {
+				log.warn("Cannot read type descriptor '" + typeDescriptor + "'!");
+				continue;
+			}
 			if (!t.createTd()) {
 				log.warn("Type '" + t + "' already read!");
 				continue;
@@ -511,8 +515,8 @@ public class SmaliReader implements DexReader {
 		}
 		if (encodedValue instanceof MethodEncodedValue) {
 			final MethodIdItem methodIdItem = ((MethodEncodedValue) encodedValue).value;
-			final T t = du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
-			return t.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
+			final T ownerT = du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
+			return ownerT.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
 					.getPrototype().getPrototypeString());
 		}
 		if (encodedValue instanceof NullEncodedValue) {
