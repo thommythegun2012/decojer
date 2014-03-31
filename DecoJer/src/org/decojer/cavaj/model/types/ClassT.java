@@ -362,7 +362,9 @@ public class ClassT extends T {
 		if (interfaces.length > 0) {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
-				interfaceTs[i] = getDu().getT(interfaces[i]);
+				final Class<?> interfaceClazz = interfaces[i];
+				assert interfaceClazz != null;
+				interfaceTs[i] = getDu().getT(interfaceClazz);
 			}
 			this.interfaceTs = interfaceTs;
 		}
@@ -370,17 +372,20 @@ public class ClassT extends T {
 		if (typeParameters.length > 0) {
 			final T[] typeParams = new T[typeParameters.length];
 			for (int i = typeParameters.length; i-- > 0;) {
-				typeParams[i] = getDu().getT(typeParameters[i].getName());
+				final TypeVariable<?> typeVariable = typeParameters[i];
+				assert typeVariable != null;
+				final String name = typeVariable.getName();
+				assert name != null;
+				typeParams[i] = getDu().getT(name);
 			}
 			this.typeParams = typeParams;
 		}
-		final Class<?> enclosingClass = klass.getEnclosingClass();
-		if (enclosingClass != null) {
-			setEnclosingT(this.du.getT(enclosingClass));
-		}
 		final Method enclosingMethod = klass.getEnclosingMethod();
-		if (enclosingMethod != null) {
+		enclosingMethod: if (enclosingMethod != null) {
 			final Class<?> declaringClass = enclosingMethod.getDeclaringClass();
+			if (declaringClass == null) {
+				break enclosingMethod;
+			}
 			final T methodT = this.du.getT(declaringClass);
 			try {
 				// backcalculating desc is a bit too much trouble, easier for now this way...
@@ -388,11 +393,22 @@ public class ClassT extends T {
 						new Class[0]);
 				method.setAccessible(true);
 				final Object[] info = (Object[]) method.invoke(klass, new Object[0]);
-				setEnclosingM(methodT.getM(enclosingMethod.getName() /* also info[1] */,
-						(String) info[2]));
+				final String name = enclosingMethod.getName(); // also info[1]
+				if (name == null) {
+					break enclosingMethod;
+				}
+				final String descriptor = (String) info[2];
+				if (descriptor == null) {
+					break enclosingMethod;
+				}
+				setEnclosingM(methodT.getM(name, descriptor));
 			} catch (final Exception e) {
 				log.warn("Couldn't get descriptor for class loaded method!", e);
 			}
+		}
+		final Class<?> enclosingClass = klass.getEnclosingClass();
+		if (enclosingClass != null) {
+			setEnclosingT(this.du.getT(enclosingClass));
 		}
 		resolve();
 		return false;
@@ -464,49 +480,55 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public void setEnclosingM(final M enclosingM) {
-		if (this.enclosing != null && this.enclosing != NONE) {
-			if (this.enclosing.equals(enclosingM)) {
-				return;
+	public void setEnclosingM(@Nullable final M enclosingM) {
+		if (enclosingM != null) {
+			if (this.enclosing != null && this.enclosing != NONE) {
+				if (this.enclosing.equals(enclosingM)) {
+					return;
+				}
+				if (!this.enclosing.equals(enclosingM.getT())) {
+					log.warn("Enclosing method cannot be changed from '" + this.enclosing
+							+ "' to '" + enclosingM + "'!");
+					return;
+				}
+				// enclosing method is more specific, overwrite enclosing type...
 			}
-			if (!this.enclosing.equals(enclosingM.getT())) {
-				log.warn("Enclosing method cannot be changed from '" + this.enclosing + "' to '"
+			final T ownerT = enclosingM.getT();
+			if (ownerT == null || !validateQualifierName(ownerT.getName())) {
+				log.warn("Enclosing type for '" + this + "' cannot be set to not matching method '"
 						+ enclosingM + "'!");
 				return;
 			}
-			// enclosing method is more specific, overwrite enclosing type...
-		}
-		if (!validateQualifierName(enclosingM.getT().getName())) {
-			log.warn("Enclosing type for '" + this + "' cannot be set to not matching method '"
-					+ enclosingM + "'!");
-			return;
 		}
 		this.enclosing = enclosingM;
 	}
 
 	@Override
-	public void setEnclosingT(final T enclosingT) {
-		if (!(enclosingT instanceof ClassT)) {
-			log.warn("Enclosing type for '" + this + "' cannot be set to modified type '"
-					+ enclosingT + "'!");
-			return;
-		}
-		if (this.enclosing != null && this.enclosing != NONE) {
-			if (this.enclosing.equals(enclosingT)) {
+	public void setEnclosingT(@Nullable final T enclosingT) {
+		if (enclosingT != null) {
+			if (!(enclosingT instanceof ClassT)) {
+				log.warn("Enclosing type for '" + this + "' cannot be set to modified type '"
+						+ enclosingT + "'!");
 				return;
 			}
-			if (this.enclosing instanceof M && ((M) this.enclosing).getT().equals(enclosingT)) {
-				// enclosing method is more specific, don't change it
+			final Object enclosing = this.enclosing;
+			if (enclosing != null && enclosing != NONE) {
+				if (enclosing.equals(enclosingT)) {
+					return;
+				}
+				if (enclosing instanceof M && enclosingT.equals(((M) enclosing).getT())) {
+					// enclosing method is more specific, don't change it
+					return;
+				}
+				log.warn("Enclosing type cannot be changed from '" + enclosing + "' to '"
+						+ enclosingT + "'!");
 				return;
 			}
-			log.warn("Enclosing type cannot be changed from '" + this.enclosing + "' to '"
-					+ enclosingT + "'!");
-			return;
-		}
-		if (!validateQualifierName(enclosingT.getName())) {
-			log.warn("Enclosing type for '" + this + "' cannot be set to not matching type '"
-					+ enclosingT + "'!");
-			return;
+			if (!validateQualifierName(enclosingT.getName())) {
+				log.warn("Enclosing type for '" + this + "' cannot be set to not matching type '"
+						+ enclosingT + "'!");
+				return;
+			}
 		}
 		this.enclosing = enclosingT;
 	}
