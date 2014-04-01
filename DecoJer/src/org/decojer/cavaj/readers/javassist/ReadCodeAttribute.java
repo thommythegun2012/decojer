@@ -42,6 +42,7 @@ import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
@@ -1096,7 +1097,7 @@ public class ReadCodeAttribute {
 						oValue = constPool.getLdcValue(ldcValueIndex);
 						break;
 					default:
-						throw new RuntimeException("Unknown Const Pool Tag " + tag + " for LDC!");
+						throw new DecoJerException("Unknown Const Pool Tag " + tag + " for LDC!");
 					}
 				}
 				// fall through
@@ -1136,7 +1137,7 @@ public class ReadCodeAttribute {
 						oValue = constPool.getLdcValue(ldcValueIndex);
 						break;
 					default:
-						throw new RuntimeException("Unknown Const Pool Tag " + tag + " for LDC!");
+						throw new DecoJerException("Unknown Const Pool Tag " + tag + " for LDC!");
 					}
 				}
 				// fall through
@@ -1605,7 +1606,7 @@ public class ReadCodeAttribute {
 				// just for once! reset wide after switch
 				continue;
 			default:
-				throw new RuntimeException("Unknown jvm operation code '" + opcode + "'!");
+				throw new DecoJerException("Unknown jvm operation code '" + opcode + "'!");
 			}
 			// reset wide
 			wide = false;

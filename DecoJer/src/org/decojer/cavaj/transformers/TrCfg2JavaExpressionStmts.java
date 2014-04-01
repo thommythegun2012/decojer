@@ -51,6 +51,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.Element;
@@ -1251,7 +1252,7 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			default:
-				throw new RuntimeException("Unknown intermediate vm operation '" + op + "'!");
+				throw new DecoJerException("Unknown intermediate vm operation '" + op + "'!");
 			}
 			if (statement != null) {
 				bb.addStmt(setOp(statement, op));
