@@ -182,7 +182,7 @@ public final class TrJvmStruct2JavaAst {
 		// enum synthetic methods
 		if (m.isStatic()
 				&& ("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
-						&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
+				&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
 				&& t.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
@@ -270,7 +270,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 		if (m.check(AF.SYNCHRONIZED)) {
 			methodDeclaration.modifiers()
-					.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
+			.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
 		}
 		if (m.check(AF.BRIDGE)) {
 			// TODO
@@ -313,7 +313,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-					.setType(newType(m.getReturnT(), t));
+			.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -380,16 +380,13 @@ public final class TrJvmStruct2JavaAst {
 		// decompile return type
 		methodDeclaration.setReturnType2(newType(m.getReturnT(), t));
 		// decompile exceptions
-		final T[] throwsTs = m.getThrowsTs();
-		if (throwsTs != null) {
-			for (final T throwT : throwsTs) {
-				// Eclipse AST expects a List<Name> for thrownExceptions, not a List<Type>:
-				// is OK - thrownExceptions cannot be generic
-				if (ast.apiLevel() <= AST.JLS4) {
-					methodDeclaration.thrownExceptions().add(newTypeName(throwT, t));
-				} else {
-					methodDeclaration.thrownExceptionTypes().add(newType(throwT, t));
-				}
+		for (final T throwT : m.getThrowsTs()) {
+			// Eclipse AST expects a List<Name> for thrownExceptions, not a List<Type>:
+			// is OK - thrownExceptions cannot be generic
+			if (ast.apiLevel() <= AST.JLS4) {
+				methodDeclaration.thrownExceptions().add(newTypeName(throwT, t));
+			} else {
+				methodDeclaration.thrownExceptionTypes().add(newType(throwT, t));
 			}
 		}
 	}
@@ -426,7 +423,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-							+ "'!");
+									+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}

@@ -76,7 +76,6 @@ import org.decojer.cavaj.model.code.ops.THROW;
 import org.decojer.cavaj.model.code.ops.XOR;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
-import org.decojer.cavaj.model.types.ClassT;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Cursor;
 import org.jf.dexlib2.DebugItemType;
@@ -982,6 +981,7 @@ public class ReadMethodImplementation {
 					final FieldReference fieldReference = (FieldReference) instr.getReference();
 
 					final T ownerT = getDu().getDescT(fieldReference.getDefiningClass());
+					assert ownerT != null;
 					final F f = ownerT.getF(fieldReference.getName(), fieldReference.getType());
 					f.setStatic(false);
 
@@ -1039,6 +1039,7 @@ public class ReadMethodImplementation {
 					final FieldReference fieldReference = (FieldReference) instr.getReference();
 
 					final T ownerT = getDu().getDescT(fieldReference.getDefiningClass());
+					assert ownerT != null;
 					final F f = ownerT.getF(fieldReference.getName(), fieldReference.getType());
 					f.setStatic(true);
 
@@ -1247,6 +1248,7 @@ public class ReadMethodImplementation {
 
 				final MethodReference methodReference = (MethodReference) instr.getReference();
 				final T ownerT = getDu().getDescT(methodReference.getDefiningClass());
+				assert ownerT != null;
 				if (instruction.getOpcode() == Opcode.INVOKE_INTERFACE) {
 					ownerT.setInterface(true); // static also possible in interface since JVM 8
 				}
@@ -1284,8 +1286,8 @@ public class ReadMethodImplementation {
 
 				final MethodReference methodReference = (MethodReference) instr.getReference();
 				final T ownerT = getDu().getDescT(methodReference.getDefiningClass());
-				((ClassT) ownerT)
-						.setInterface(instruction.getOpcode() == Opcode.INVOKE_INTERFACE_RANGE);
+				assert ownerT != null;
+				ownerT.setInterface(instruction.getOpcode() == Opcode.INVOKE_INTERFACE_RANGE);
 				final M refM = ownerT.getM(methodReference.getName(),
 						Smali2Reader.desc(methodReference));
 				refM.setStatic(instruction.getOpcode() == Opcode.INVOKE_STATIC_RANGE);
@@ -1909,6 +1911,7 @@ public class ReadMethodImplementation {
 					final FieldReference fieldReference = (FieldReference) instr.getReference();
 
 					final T ownerT = getDu().getDescT(fieldReference.getDefiningClass());
+					assert ownerT != null;
 					final F f = ownerT.getF(fieldReference.getName(), fieldReference.getType());
 					f.setStatic(false);
 
@@ -1967,6 +1970,7 @@ public class ReadMethodImplementation {
 					final FieldReference fieldReference = (FieldReference) instr.getReference();
 
 					final T ownerT = getDu().getDescT(fieldReference.getDefiningClass());
+					assert ownerT != null;
 					final F f = ownerT.getF(fieldReference.getName(), fieldReference.getType());
 					f.setStatic(true);
 
