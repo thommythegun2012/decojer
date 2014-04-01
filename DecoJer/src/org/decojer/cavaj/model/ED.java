@@ -54,6 +54,7 @@ public abstract class ED extends CD {
 	@Override
 	public void clear() {
 		setAstNode(null);
+		super.clear();
 	}
 
 	/**
