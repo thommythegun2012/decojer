@@ -219,9 +219,9 @@ public abstract class M implements Element {
 	 * For annotation application.
 	 *
 	 * @param qualifierT
-	 *            qualifierd type for qualified method
+	 *            qualifier type for qualified method
 	 */
-	public void setQualifierT(final T qualifierT) {
+	public void setQualifierT(@Nonnull final T qualifierT) {
 		assert false; // overwrite in QualifiedM
 	}
 

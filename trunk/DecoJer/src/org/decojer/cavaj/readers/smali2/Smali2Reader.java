@@ -421,6 +421,7 @@ public class Smali2Reader implements DexReader {
 		case ValueType.ENUM: {
 			final FieldReference fieldReference = ((EnumEncodedValue) encodedValue).getValue();
 			final T ownerT = du.getDescT(fieldReference.getDefiningClass());
+			assert ownerT != null;
 			final F f = ownerT.getF(fieldReference.getName(), fieldReference.getType());
 			f.setEnum();
 			return f;
@@ -428,6 +429,7 @@ public class Smali2Reader implements DexReader {
 		case ValueType.FIELD: {
 			final FieldReference fieldReference = ((FieldEncodedValue) encodedValue).getValue();
 			final T ownerT = du.getDescT(fieldReference.getDefiningClass());
+			assert ownerT != null;
 			return ownerT.getF(fieldReference.getName(), fieldReference.getType());
 		}
 		case ValueType.FLOAT:
@@ -439,6 +441,7 @@ public class Smali2Reader implements DexReader {
 		case ValueType.METHOD: {
 			final MethodReference methodReference = ((MethodEncodedValue) encodedValue).getValue();
 			final T ownerT = du.getDescT(methodReference.getDefiningClass());
+			assert ownerT != null;
 			return ownerT.getM(methodReference.getName(), desc(methodReference));
 		}
 		case ValueType.NULL:

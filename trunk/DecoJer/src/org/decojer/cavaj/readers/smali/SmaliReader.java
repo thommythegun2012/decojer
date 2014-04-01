@@ -499,8 +499,9 @@ public class SmaliReader implements DexReader {
 			final FieldIdItem fieldidItem = ((EnumEncodedValue) encodedValue).value;
 			final String desc = fieldidItem.getFieldType().getTypeDescriptor();
 			final T ownerT = du.getDescT(desc);
-			final F f = ownerT.getF(
-					fieldidItem.getFieldName().getStringDataItem().getStringValue(), desc);
+			final String name = fieldidItem.getFieldName().getStringDataItem().getStringValue();
+			assert ownerT != null && name != null && desc != null;
+			final F f = ownerT.getF(name, desc);
 			f.setEnum();
 			return f;
 		}
@@ -516,8 +517,10 @@ public class SmaliReader implements DexReader {
 		if (encodedValue instanceof MethodEncodedValue) {
 			final MethodIdItem methodIdItem = ((MethodEncodedValue) encodedValue).value;
 			final T ownerT = du.getDescT(methodIdItem.getContainingClass().getTypeDescriptor());
-			return ownerT.getM(methodIdItem.getMethodName().getStringValue(), methodIdItem
-					.getPrototype().getPrototypeString());
+			final String name = methodIdItem.getMethodName().getStringValue();
+			final String desc = methodIdItem.getPrototype().getPrototypeString();
+			assert ownerT != null && name != null && desc != null;
+			return ownerT.getM(name, desc);
 		}
 		if (encodedValue instanceof NullEncodedValue) {
 			return null; // placeholder in constant array

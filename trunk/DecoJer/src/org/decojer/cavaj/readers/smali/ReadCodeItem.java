@@ -402,9 +402,9 @@ public class ReadCodeItem {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-				/*******
-				 * AND *
-				 *******/
+			/*******
+			 * AND *
+			 *******/
 			case AND_INT:
 				t = T.AINT;
 				// fall through
@@ -533,9 +533,9 @@ public class ReadCodeItem {
 					this.ops.add(new ASTORE(this.ops.size(), opcode, line, t));
 				}
 				break;
-				/********
-				 * CAST *
-				 ********/
+			/********
+			 * CAST *
+			 ********/
 			case CHECK_CAST: {
 				// A = (typeIdItem) A
 				final Instruction21c instr = (Instruction21c) instruction;
@@ -650,9 +650,9 @@ public class ReadCodeItem {
 							.getRegisterA()));
 				}
 				break;
-				/*******
-				 * CMP *
-				 *******/
+			/*******
+			 * CMP *
+			 *******/
 			case CMPG_DOUBLE:
 				t = T.DOUBLE;
 				iValue = CMP.T_G;
@@ -693,9 +693,9 @@ public class ReadCodeItem {
 							.getRegisterA()));
 				}
 				break;
-				/*******
-				 * DIV *
-				 *******/
+			/*******
+			 * DIV *
+			 *******/
 			case DIV_DOUBLE:
 				t = T.DOUBLE;
 				// fall through
@@ -829,8 +829,10 @@ public class ReadCodeItem {
 
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
-							fieldIdItem.getFieldType().getTypeDescriptor());
+					final String name = fieldIdItem.getFieldName().getStringValue();
+					final String desc = fieldIdItem.getFieldType().getTypeDescriptor();
+					assert ownerT != null && name != null && desc != null;
+					final F f = ownerT.getF(name, desc);
 					f.setStatic(false);
 
 					assert t != null && t.isAssignableFrom(f.getValueT());
@@ -888,8 +890,10 @@ public class ReadCodeItem {
 
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
-							fieldIdItem.getFieldType().getTypeDescriptor());
+					final String name = fieldIdItem.getFieldName().getStringValue();
+					final String desc = fieldIdItem.getFieldType().getTypeDescriptor();
+					assert ownerT != null && name != null && desc != null;
+					final F f = ownerT.getF(name, desc);
 					f.setStatic(true);
 
 					assert t != null && t.isAssignableFrom(f.getValueT());
@@ -900,9 +904,9 @@ public class ReadCodeItem {
 							.getRegisterA()));
 				}
 				break;
-				/********
-				 * GOTO *
-				 ********/
+			/********
+			 * GOTO *
+			 ********/
 			case GOTO: {
 				final Instruction10t instr = (Instruction10t) instruction;
 
@@ -936,9 +940,9 @@ public class ReadCodeItem {
 					}
 				}
 				break;
-				/**************
-				 * INSTANCEOF *
-				 **************/
+			/**************
+			 * INSTANCEOF *
+			 **************/
 			case INSTANCE_OF: {
 				// A = B instanceof referencedItem
 				final Instruction22c instr = (Instruction22c) instruction;
@@ -1011,10 +1015,10 @@ public class ReadCodeItem {
 					}
 				}
 				break;
-				/********
-				 * JCND *
-				 ********/
-				// all IF_???: floats via CMP?_FLOAT
+			/********
+			 * JCND *
+			 ********/
+			// all IF_???: floats via CMP?_FLOAT
 			case IF_EQZ:
 				t = T.AINTREF; // boolean and nullcheck too
 				oValue = CmpType.T_EQ;
@@ -1065,9 +1069,9 @@ public class ReadCodeItem {
 					}
 				}
 				break;
-				/**********
-				 * INVOKE *
-				 **********/
+			/**********
+			 * INVOKE *
+			 **********/
 			case INVOKE_DIRECT:
 				// Constructor or supermethod (any super) or private method callout.
 			case INVOKE_INTERFACE:
@@ -1097,11 +1101,14 @@ public class ReadCodeItem {
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
+				assert ownerT != null;
 				if (instruction.opcode == Opcode.INVOKE_INTERFACE) {
 					ownerT.setInterface(true); // static also possible in interface since JVM 8
 				}
-				final M refM = ownerT.getM(methodIdItem.getMethodName().getStringValue(),
-						methodIdItem.getPrototype().getPrototypeString());
+				final String name = methodIdItem.getMethodName().getStringValue();
+				final String desc = methodIdItem.getPrototype().getPrototypeString();
+				assert name != null && desc != null;
+				final M refM = ownerT.getM(name, desc);
 				refM.setStatic(instruction.opcode == Opcode.INVOKE_STATIC);
 				if (instruction.opcode != Opcode.INVOKE_STATIC) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, regs[reg++]));
@@ -1135,9 +1142,12 @@ public class ReadCodeItem {
 				final MethodIdItem methodIdItem = (MethodIdItem) instr.getReferencedItem();
 				final T ownerT = getDu().getDescT(
 						methodIdItem.getContainingClass().getTypeDescriptor());
+				assert ownerT != null;
 				ownerT.setInterface(instruction.opcode == Opcode.INVOKE_INTERFACE_RANGE);
-				final M refM = ownerT.getM(methodIdItem.getMethodName().getStringValue(),
-						methodIdItem.getPrototype().getPrototypeString());
+				final String name = methodIdItem.getMethodName().getStringValue();
+				final String desc = methodIdItem.getPrototype().getPrototypeString();
+				assert name != null && desc != null;
+				final M refM = ownerT.getM(name, desc);
 				refM.setStatic(instruction.opcode == Opcode.INVOKE_STATIC_RANGE);
 				if (instruction.opcode != Opcode.INVOKE_STATIC_RANGE) {
 					this.ops.add(new LOAD(this.ops.size(), opcode, line, ownerT, reg++));
@@ -1178,9 +1188,9 @@ public class ReadCodeItem {
 					this.ops.add(new MONITOR(this.ops.size(), opcode, line, (MONITOR.Kind) oValue));
 				}
 				break;
-				/********
-				 * MOVE *
-				 ********/
+			/********
+			 * MOVE *
+			 ********/
 			case MOVE:
 				t = T.SINGLE;
 				// fall through
@@ -1376,9 +1386,9 @@ public class ReadCodeItem {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-				/*******
-				 * NEW *
-				 *******/
+			/*******
+			 * NEW *
+			 *******/
 			case NEW_INSTANCE: {
 				// A = new typeIdItem
 				final Instruction21c instr = (Instruction21c) instruction;
@@ -1499,9 +1509,9 @@ public class ReadCodeItem {
 			case NOP:
 				// nothing
 				break;
-				/*******
-				 * NOT *
-				 *******/
+			/*******
+			 * NOT *
+			 *******/
 			case NOT_INT:
 				t = T.INT;
 				// fall through
@@ -1522,9 +1532,9 @@ public class ReadCodeItem {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-				/*******
-				 * OR *
-				 *******/
+			/*******
+			 * OR *
+			 *******/
 			case OR_INT:
 				t = T.AINT;
 				// fall through
@@ -1710,9 +1720,9 @@ public class ReadCodeItem {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, iValue));
 				}
 				break;
-				/*******
-				 * PUT *
-				 *******/
+			/*******
+			 * PUT *
+			 *******/
 			case IPUT:
 			case IPUT_VOLATILE:
 				t = T.SINGLE; // int & float
@@ -1759,8 +1769,10 @@ public class ReadCodeItem {
 
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
-							fieldIdItem.getFieldType().getTypeDescriptor());
+					final String name = fieldIdItem.getFieldName().getStringValue();
+					final String desc = fieldIdItem.getFieldType().getTypeDescriptor();
+					assert ownerT != null && name != null && desc != null;
+					final F f = ownerT.getF(name, desc);
 					f.setStatic(false);
 
 					assert f.getValueT().isAssignableFrom(t);
@@ -1819,8 +1831,10 @@ public class ReadCodeItem {
 
 					final T ownerT = getDu().getDescT(
 							fieldIdItem.getContainingClass().getTypeDescriptor());
-					final F f = ownerT.getF(fieldIdItem.getFieldName().getStringValue(),
-							fieldIdItem.getFieldType().getTypeDescriptor());
+					final String name = fieldIdItem.getFieldName().getStringValue();
+					final String desc = fieldIdItem.getFieldType().getTypeDescriptor();
+					assert ownerT != null && name != null && desc != null;
+					final F f = ownerT.getF(name, desc);
 					f.setStatic(true);
 
 					assert f.getValueT().isAssignableFrom(t);
@@ -1831,9 +1845,9 @@ public class ReadCodeItem {
 					this.ops.add(new PUT(this.ops.size(), opcode, line, f));
 				}
 				break;
-				/*******
-				 * REM *
-				 *******/
+			/*******
+			 * REM *
+			 *******/
 			case REM_DOUBLE:
 				t = T.DOUBLE;
 				// fall through
@@ -2126,7 +2140,7 @@ public class ReadCodeItem {
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 			}
-			break;
+				break;
 			case RSUB_INT_LIT8: {
 				// A = literal - B
 				final Instruction22b instr = (Instruction22b) instruction;
@@ -2140,7 +2154,7 @@ public class ReadCodeItem {
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 			}
-			break;
+				break;
 			/*******
 			 * SUB *
 			 *******/
@@ -2202,9 +2216,9 @@ public class ReadCodeItem {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-				/**********
-				 * SWITCH *
-				 **********/
+			/**********
+			 * SWITCH *
+			 **********/
 			case PACKED_SWITCH:
 			case SPARSE_SWITCH: {
 				// switch(A)
@@ -2472,16 +2486,16 @@ public class ReadCodeItem {
 							continue;
 						case 4:
 							values[i] = (b[bi + 3] & 0xFF) << 24 | (b[bi + 2] & 0xFF) << 16
-							| (b[bi + 1] & 0xFF) << 8 | b[bi] & 0xFF;
+									| (b[bi + 1] & 0xFF) << 8 | b[bi] & 0xFF;
 							continue;
 						case 8:
 							values[i] = ((long) b[bi + 7] & 0xFF) << 56
-							| ((long) b[bi + 6] & 0xFF) << 48
-							| ((long) b[bi + 5] & 0xFF) << 40
-							| ((long) b[bi + 4] & 0xFF) << 32
-							| ((long) b[bi + 3] & 0xFF) << 24
-							| ((long) b[bi + 2] & 0xFF) << 16
-							| ((long) b[bi + 1] & 0xFF) << 8 | (long) b[bi] & 0xFF;
+									| ((long) b[bi + 6] & 0xFF) << 48
+									| ((long) b[bi + 5] & 0xFF) << 40
+									| ((long) b[bi + 4] & 0xFF) << 32
+									| ((long) b[bi + 3] & 0xFF) << 24
+									| ((long) b[bi + 2] & 0xFF) << 16
+									| ((long) b[bi + 1] & 0xFF) << 8 | (long) b[bi] & 0xFF;
 							continue;
 						default:
 							log.warn("Unknown fill array element length '" + element.elementWidth

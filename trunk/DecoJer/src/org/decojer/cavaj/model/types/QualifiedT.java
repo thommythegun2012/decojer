@@ -27,6 +27,7 @@ import javax.annotation.Nonnull;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.DU;
 
 /**
@@ -52,14 +53,18 @@ public class QualifiedT extends ExtendedT {
 	 *            type qualifier
 	 * @param t
 	 *            type
+	 * @throws DecoJerException
+	 *             no valid qualifier type
 	 */
-	public QualifiedT(@Nonnull final T qualifierT, @Nonnull final T t) {
+	public QualifiedT(@Nonnull final T qualifierT, @Nonnull final T t) throws DecoJerException {
 		super(t); // the qualified t is the raw t, because we inherit its properties
 
 		assert !t.isAnnotated() : "Anno(Qual(qual, t)) is same like Qual(qual, Anno(t)), prefer first";
 		assert !t.isQualified() : "Qual(qual, Qual(qual, t)) is not allowed";
+		assert validateQualifierName(qualifierT.getName()) : "qualifier type for '" + this
+		+ "' cannot be set to not matching type '" + qualifierT + "'";
 
-		setQualifierT(qualifierT);
+		this.qualifierT = qualifierT;
 	}
 
 	@Nonnull

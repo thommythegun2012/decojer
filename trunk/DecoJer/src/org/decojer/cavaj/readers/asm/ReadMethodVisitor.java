@@ -321,12 +321,17 @@ public class ReadMethodVisitor extends MethodVisitor implements ReadVisitor {
 	}
 
 	@Nonnull
-	private M handle2m(final Handle handle) {
-		final T ownerT = getDu().getT(handle.getOwner());
+	private M handle2m(@Nonnull final Handle handle) {
+		final String ownerName = handle.getOwner();
+		assert ownerName != null;
+		final T ownerT = getDu().getT(ownerName);
 		if (handle.getTag() == Opcodes.H_INVOKEINTERFACE) {
 			ownerT.setInterface(true); // static also possible in interface since JVM 8
 		}
-		final M refM = ownerT.getM(handle.getName(), handle.getDesc());
+		final String name = handle.getName();
+		final String desc = handle.getDesc();
+		assert name != null && desc != null;
+		final M refM = ownerT.getM(name, desc);
 		refM.setStatic(handle.getTag() == Opcodes.H_INVOKESTATIC);
 		return refM;
 	}
@@ -1126,8 +1131,7 @@ public class ReadMethodVisitor extends MethodVisitor implements ReadVisitor {
 	@Override
 	public void visitInvokeDynamicInsn(final String name, final String desc, final Handle bsm,
 			final Object... bsmArgs) {
-		assert name != null;
-		assert desc != null;
+		assert name != null && desc != null && bsm != null && bsmArgs != null;
 		/**********
 		 * INVOKE *
 		 **********/
@@ -1818,6 +1822,7 @@ public class ReadMethodVisitor extends MethodVisitor implements ReadVisitor {
 
 	@Override
 	public void visitTypeInsn(final int opcode, final String type) {
+		assert type != null;
 		final T t = getDu().getT(type);
 
 		switch (opcode) {
