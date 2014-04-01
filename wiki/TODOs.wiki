@@ -74,8 +74,9 @@ java.lang.AssertionError: cannot assign 'R88_CO: REF' to 'int'
   * loop recognition from bottom up
   * JDK 8
     * Eclipse AST for JDK 8: http://www.oracle.com/technetwork/articles/java/lambda-1984522.html
-      * http://wiki.eclipse.org/JDT_Core/Java8
-      * http://wiki.eclipse.org/JDT/Eclipse_Java_8_Support_%28BETA%29
+      * JDK 8 Update from: http://download.eclipse.org/eclipse/updates/4.3-P-builds/
+        * http://wiki.eclipse.org/JDT_Core/Java8
+        * http://wiki.eclipse.org/JDT/Eclipse_Java_8_Support_%28BETA%29
       * *done*: Lombok doesn't work yet ootB in Test Eclipse for JDK 8, fix via added method in Eclipse:
         * https://bugs.eclipse.org/bugs/show_bug.cgi?id=424718
         * http://code.google.com/p/projectlombok/issues/detail?id=597 
