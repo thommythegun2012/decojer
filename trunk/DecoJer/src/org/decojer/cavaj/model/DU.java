@@ -48,6 +48,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.methods.ClassM;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.AnnotatedT;
@@ -305,9 +306,9 @@ public final class DU {
 				this.ts.put(t.getName(), t);
 			}
 		} catch (final IllegalArgumentException e) {
-			throw new RuntimeException("Couldn't init decompilation unit!", e);
+			throw new DecoJerException("Couldn't init decompilation unit!", e);
 		} catch (final IllegalAccessException e) {
-			throw new RuntimeException("Couldn't init decompilation unit!", e);
+			throw new DecoJerException("Couldn't init decompilation unit!", e);
 		}
 		this.arrayInterfaceTs = new T[] { getT(Cloneable.class), getT(Serializable.class) };
 	}

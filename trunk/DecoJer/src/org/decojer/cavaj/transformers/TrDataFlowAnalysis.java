@@ -35,6 +35,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
@@ -713,7 +714,7 @@ public final class TrDataFlowAnalysis {
 			break;
 		}
 		default:
-			throw new RuntimeException("Unknown intermediate vm operation '" + op + "'!");
+			throw new DecoJerException("Unknown intermediate vm operation '" + op + "'!");
 		}
 		if (getBb(nextPc) != null) {
 			// already have been here, switch current BB
@@ -845,7 +846,7 @@ public final class TrDataFlowAnalysis {
 	private R load(final int i, final T t) {
 		final R r = this.currentFrame.load(i);
 		if (!r.assignTo(t)) {
-			throw new RuntimeException("Incompatible type for register '" + i
+			throw new DecoJerException("Incompatible type for register '" + i
 					+ "'! Cannot assign '" + r + "' to '" + t + "'.");
 		}
 		if (r.getT() == T.RET) {
@@ -1045,7 +1046,7 @@ public final class TrDataFlowAnalysis {
 	private R peek(final T t) {
 		final R s = this.currentFrame.peek();
 		if (!s.assignTo(t)) {
-			throw new RuntimeException("Incompatible type for stack register! Cannot assign '" + s
+			throw new DecoJerException("Incompatible type for stack register! Cannot assign '" + s
 					+ "' to '" + t + "'.");
 		}
 		return s;
@@ -1070,7 +1071,7 @@ public final class TrDataFlowAnalysis {
 	private R pop(final T t) {
 		final R s = this.currentFrame.pop();
 		if (!s.assignTo(t)) {
-			throw new RuntimeException("Incompatible type for stack register! Cannot assign '" + s
+			throw new DecoJerException("Incompatible type for stack register! Cannot assign '" + s
 					+ "' to '" + t + "'.");
 		}
 		return s;

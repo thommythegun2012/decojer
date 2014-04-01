@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.Exc;
@@ -321,15 +322,15 @@ public class ReadMethodImplementation {
 			case DebugItemType.PROLOGUE_END:
 				assert debugItem instanceof PrologueEnd : debugItem.getClass();
 
-				if (codeAddress != 0) {
-					log("Unknown stuff: SetPrologueEnd: " + codeAddress);
-				}
-				continue;
+			if (codeAddress != 0) {
+				log("Unknown stuff: SetPrologueEnd: " + codeAddress);
+			}
+			continue;
 			case DebugItemType.EPILOGUE_BEGIN:
 				assert debugItem instanceof EpilogueBegin : debugItem.getClass();
 
-				log("Unknown stuff: SetEpilogueBegin: " + codeAddress);
-				continue;
+			log("Unknown stuff: SetEpilogueBegin: " + codeAddress);
+			continue;
 			case DebugItemType.SET_SOURCE_FILE:
 				log("Unknown stuff: SetFile: " + codeAddress + " : "
 						+ ((SetSourceFile) debugItem).getSourceFile());
@@ -555,9 +556,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-			/*******
-			 * AND *
-			 *******/
+				/*******
+				 * AND *
+				 *******/
 			case AND_INT:
 				t = T.AINT;
 				// fall through
@@ -686,9 +687,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new ASTORE(this.ops.size(), opcode, line, t));
 				}
 				break;
-			/********
-			 * CAST *
-			 ********/
+				/********
+				 * CAST *
+				 ********/
 			case CHECK_CAST: {
 				// A = (typeIdItem) A
 				final Instruction21c instr = (Instruction21c) instruction;
@@ -803,9 +804,9 @@ public class ReadMethodImplementation {
 							.getRegisterA()));
 				}
 				break;
-			/*******
-			 * CMP *
-			 *******/
+				/*******
+				 * CMP *
+				 *******/
 			case CMPG_DOUBLE:
 				t = T.DOUBLE;
 				iValue = CMP.T_G;
@@ -846,9 +847,9 @@ public class ReadMethodImplementation {
 							.getRegisterA()));
 				}
 				break;
-			/*******
-			 * DIV *
-			 *******/
+				/*******
+				 * DIV *
+				 *******/
 			case DIV_DOUBLE:
 				t = T.DOUBLE;
 				// fall through
@@ -1051,9 +1052,9 @@ public class ReadMethodImplementation {
 							.getRegisterA()));
 				}
 				break;
-			/********
-			 * GOTO *
-			 ********/
+				/********
+				 * GOTO *
+				 ********/
 			case GOTO: {
 				final Instruction10t instr = (Instruction10t) instruction;
 
@@ -1087,9 +1088,9 @@ public class ReadMethodImplementation {
 					}
 				}
 				break;
-			/**************
-			 * INSTANCEOF *
-			 **************/
+				/**************
+				 * INSTANCEOF *
+				 **************/
 			case INSTANCE_OF: {
 				// A = B instanceof referencedItem
 				final Instruction22c instr = (Instruction22c) instruction;
@@ -1162,10 +1163,10 @@ public class ReadMethodImplementation {
 					}
 				}
 				break;
-			/********
-			 * JCND *
-			 ********/
-			// all IF_???: floats via CMP?_FLOAT
+				/********
+				 * JCND *
+				 ********/
+				// all IF_???: floats via CMP?_FLOAT
 			case IF_EQZ:
 				t = T.AINTREF; // boolean and nullcheck too
 				oValue = CmpType.T_EQ;
@@ -1216,9 +1217,9 @@ public class ReadMethodImplementation {
 					}
 				}
 				break;
-			/**********
-			 * INVOKE *
-			 **********/
+				/**********
+				 * INVOKE *
+				 **********/
 			case INVOKE_DIRECT:
 				// Constructor or supermethod (any super) or private method callout.
 			case INVOKE_INTERFACE:
@@ -1330,9 +1331,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new MONITOR(this.ops.size(), opcode, line, (MONITOR.Kind) oValue));
 				}
 				break;
-			/********
-			 * MOVE *
-			 ********/
+				/********
+				 * MOVE *
+				 ********/
 			case MOVE:
 				t = T.SINGLE;
 				// fall through
@@ -1528,9 +1529,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-			/*******
-			 * NEW *
-			 *******/
+				/*******
+				 * NEW *
+				 *******/
 			case NEW_INSTANCE: {
 				// A = new typeIdItem
 				final Instruction21c instr = (Instruction21c) instruction;
@@ -1655,9 +1656,9 @@ public class ReadMethodImplementation {
 			case NOP:
 				// nothing
 				break;
-			/*******
-			 * NOT *
-			 *******/
+				/*******
+				 * NOT *
+				 *******/
 			case NOT_INT:
 				t = T.INT;
 				// fall through
@@ -1678,9 +1679,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-			/*******
-			 * OR *
-			 *******/
+				/*******
+				 * OR *
+				 *******/
 			case OR_INT:
 				t = T.AINT;
 				// fall through
@@ -1863,9 +1864,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, iValue));
 				}
 				break;
-			/*******
-			 * PUT *
-			 *******/
+				/*******
+				 * PUT *
+				 *******/
 			case IPUT:
 			case IPUT_VOLATILE:
 				t = T.SINGLE; // int & float
@@ -1982,9 +1983,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new PUT(this.ops.size(), opcode, line, f));
 				}
 				break;
-			/*******
-			 * REM *
-			 *******/
+				/*******
+				 * REM *
+				 *******/
 			case REM_DOUBLE:
 				t = T.DOUBLE;
 				// fall through
@@ -2277,7 +2278,7 @@ public class ReadMethodImplementation {
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 			}
-				break;
+			break;
 			case RSUB_INT_LIT8: {
 				// A = literal - B
 				final Instruction22b instr = (Instruction22b) instruction;
@@ -2291,7 +2292,7 @@ public class ReadMethodImplementation {
 
 				this.ops.add(new STORE(this.ops.size(), opcode, line, T.INT, instr.getRegisterA()));
 			}
-				break;
+			break;
 			/*******
 			 * SUB *
 			 *******/
@@ -2353,9 +2354,9 @@ public class ReadMethodImplementation {
 					this.ops.add(new STORE(this.ops.size(), opcode, line, t, instr.getRegisterA()));
 				}
 				break;
-			/**********
-			 * SWITCH *
-			 **********/
+				/**********
+				 * SWITCH *
+				 **********/
 			case PACKED_SWITCH:
 			case SPARSE_SWITCH: {
 				// switch(A)
@@ -2464,7 +2465,7 @@ public class ReadMethodImplementation {
 				// pseudo operations, that are handled in visitVmpc()
 				break;
 			default:
-				throw new RuntimeException("Unknown jvm operation '" + instruction.getOpcode()
+				throw new DecoJerException("Unknown jvm operation '" + instruction.getOpcode()
 						+ "'!");
 			}
 			vmpc += instruction.getCodeUnits();
