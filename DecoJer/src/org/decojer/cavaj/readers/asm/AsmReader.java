@@ -29,6 +29,7 @@ import java.io.InputStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.readers.ClassReader;
@@ -60,7 +61,7 @@ public class AsmReader implements ClassReader {
 		this.readClassVisitor.init();
 		try {
 			classReader.accept(this.readClassVisitor, 0);
-		} catch (final ReadException e) {
+		} catch (final DecoJerException e) {
 			// no other measure to stop ASM in reading
 			return null;
 		}
