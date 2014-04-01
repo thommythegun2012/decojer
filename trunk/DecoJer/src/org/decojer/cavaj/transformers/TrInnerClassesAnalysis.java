@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
@@ -250,7 +251,7 @@ public class TrInnerClassesAnalysis {
 		// Remove leading "\$[0-9]*" from the name
 		final int length = simpleName.length();
 		if (length < 1 || simpleName.charAt(0) != '$') {
-			throw new InternalError("Malformed class name");
+			throw new DecoJerException("Malformed class name");
 		}
 		int index = 1;
 		while (index < length && isAsciiDigit(simpleName.charAt(index))) {
