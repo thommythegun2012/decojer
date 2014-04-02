@@ -91,7 +91,7 @@ public class ClassT extends T {
 	 *
 	 * @see ClassT#setEnclosingT(T)
 	 */
-	private Object enclosing;
+	private Element enclosing;
 
 	/**
 	 * @see T#getInnerName()
@@ -189,7 +189,7 @@ public class ClassT extends T {
 		return getTd().getDeclarations();
 	}
 
-	private Object getEnclosing() {
+	private Element getEnclosing() {
 		if (this.enclosing == null && isUnresolvable()) {
 			return null;
 		}
@@ -197,7 +197,7 @@ public class ClassT extends T {
 			return null;
 		}
 		assert this.enclosing instanceof T || this.enclosing instanceof M : this
-				+ ": enclosing must be T or M";
+		+ ": enclosing must be T or M";
 
 		return this.enclosing;
 	}
