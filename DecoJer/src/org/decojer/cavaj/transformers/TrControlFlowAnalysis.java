@@ -79,12 +79,12 @@ public final class TrControlFlowAnalysis {
 		this.cfg = cfg;
 	}
 
-	@SuppressWarnings("null")
-	private Cond createCondStruct(final BB head) {
+	private Cond createCondStruct(@Nonnull final BB head) {
 		final Cond cond = new Cond(head);
 
 		final BB falseSucc = head.getFalseSucc();
 		final BB trueSucc = head.getTrueSucc();
+		assert falseSucc != null && trueSucc != null;
 
 		// if-statement compilation hasn't changed with JDK versions (unlike boolean expressions)
 		// means: negated if-expression, false successor contains if-body (PC & line before true),
@@ -103,15 +103,15 @@ public final class TrControlFlowAnalysis {
 		 */
 		// JDK 1 && 2 create wrong line numbers for final return (see DecTestIfStmt)
 
-		// second part is trick against things like iteration in loop last:
+		// 2nd condition part is trick against things like iteration in loop last:
 		final boolean negated = falseSucc.isBefore(trueSucc) || trueSucc.isBefore(head);
 		final BB firstSucc = negated ? falseSucc : trueSucc;
 		final BB secondSucc = negated ? trueSucc : falseSucc;
 		final Boolean firstValue = negated;
 		final Boolean secondValue = !negated;
 
-		final Set<BB> firstFollows = Sets.newHashSet();
 		final List<BB> firstMembers = Lists.newArrayList();
+		final Set<BB> firstFollows = Sets.newHashSet();
 		findBranch(cond, firstSucc, firstMembers, firstFollows);
 
 		// no else BBs: normal if-block without else or
@@ -119,13 +119,13 @@ public final class TrControlFlowAnalysis {
 		if (firstFollows.isEmpty() || firstFollows.contains(secondSucc)) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setKind(negated ? Cond.Kind.IFNOT : Cond.Kind.IF);
-			cond.setFollow(secondSucc);
 			cond.addMembers(firstValue, firstMembers);
+			cond.setFollow(secondSucc);
 			return cond;
 		}
 
-		final Set<BB> secondFollows = Sets.newHashSet();
 		final List<BB> secondMembers = Lists.newArrayList();
+		final Set<BB> secondFollows = Sets.newHashSet();
 		findBranch(cond, secondSucc, secondMembers, secondFollows);
 
 		// no else BBs: normal if-block without else or
@@ -133,8 +133,8 @@ public final class TrControlFlowAnalysis {
 		if (secondFollows.isEmpty() || secondFollows.contains(firstSucc)) {
 			// also often in JDK 6 bytecode, especially in parent structs
 			cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
-			cond.setFollow(firstSucc);
 			cond.addMembers(secondValue, secondMembers);
+			cond.setFollow(firstSucc);
 			return cond;
 		}
 
@@ -157,10 +157,10 @@ public final class TrControlFlowAnalysis {
 		// follow exists?
 		if (firstFollow == secondFollow) {
 			// normal stuff
-			cond.setFollow(firstFollow);
 			cond.setKind(negated ? Cond.Kind.IFNOT_ELSE : Cond.Kind.IF_ELSE);
 			cond.addMembers(firstValue, firstMembers);
 			cond.addMembers(secondValue, secondMembers);
+			cond.setFollow(firstFollow);
 			return cond;
 		}
 		// only if unrelated conditional tails???
