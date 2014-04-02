@@ -44,7 +44,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Class field.
- *
+ * 
  * @author André Pankraz
  */
 @Slf4j
@@ -74,7 +74,7 @@ public class ClassF extends F {
 
 	/**
 	 * Constructor.
-	 *
+	 * 
 	 * @param t
 	 *            type
 	 * @param name
@@ -93,7 +93,7 @@ public class ClassF extends F {
 	}
 
 	@Override
-	public boolean check(final AF af) {
+	public boolean check(@Nonnull final AF af) {
 		return (this.accessFlags & af.getValue()) != 0;
 	}
 
