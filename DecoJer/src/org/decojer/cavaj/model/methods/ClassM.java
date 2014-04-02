@@ -161,16 +161,19 @@ public class ClassM extends M {
 		return getMd().getAnnotationDefaultValue();
 	}
 
+	@Nullable
 	@Override
 	public A[] getAs() {
 		return getMd().getAs();
 	}
 
+	@Nullable
 	@Override
 	public Object getAstNode() {
 		return getMd().getAstNode();
 	}
 
+	@Nullable
 	@Override
 	public CFG getCfg() {
 		return getMd().getCfg();

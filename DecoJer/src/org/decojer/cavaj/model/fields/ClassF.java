@@ -179,7 +179,7 @@ public class ClassF extends F {
 	}
 
 	@Override
-	public void setAstNode(final Object fieldDeclaration) {
+	public void setAstNode(@Nullable final Object fieldDeclaration) {
 		getFd().setAstNode(fieldDeclaration);
 	}
 
