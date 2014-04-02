@@ -51,12 +51,6 @@ public abstract class ED extends CD {
 	@Nullable
 	private Container declarationOwner;
 
-	@Override
-	public void clear() {
-		setAstNode(null);
-		super.clear();
-	}
-
 	/**
 	 * Get compilation unit.
 	 *
