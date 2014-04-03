@@ -99,12 +99,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		// example: sun/org/mozilla/javascript/internal/
 		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
 				.getResource().getLocation().toOSString() : eclipseClassFile.getPath().toOSString();
-				assert jarPath != null;
+		assert jarPath != null;
 
-				final String packageName = eclipseClassFile.getParent().getElementName();
-				final String typeName = eclipseClassFile.getElementName();
-				return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
-						+ typeName;
+		final String packageName = eclipseClassFile.getParent().getElementName();
+		final String typeName = eclipseClassFile.getElementName();
+		return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
+				+ typeName;
 	}
 
 	private static void parseClassT(final String s, final Cursor c, final StringBuilder sb) {
@@ -253,7 +253,9 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	private void createControlFlowGraphViewer() {
-		this.cfgViewer = new CfgViewer(getContainer(), SWT.NONE);
+		final Composite container = getContainer();
+		assert container != null;
+		this.cfgViewer = new CfgViewer(container, SWT.NONE);
 		addPage(0, this.cfgViewer);
 		setPageText(0, "CFG Viewer");
 	}
