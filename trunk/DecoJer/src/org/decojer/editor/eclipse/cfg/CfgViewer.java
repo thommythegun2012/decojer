@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,6 +24,9 @@
 package org.decojer.editor.eclipse.cfg;
 
 import java.util.IdentityHashMap;
+import java.util.List;
+
+import javax.annotation.Nonnull;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -39,6 +42,7 @@ import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.Polyline;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
@@ -48,13 +52,14 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.zest.core.widgets.Graph;
 import org.eclipse.zest.core.widgets.GraphConnection;
+import org.eclipse.zest.core.widgets.GraphItem;
 import org.eclipse.zest.core.widgets.GraphNode;
 import org.eclipse.zest.core.widgets.ZestStyles;
 import org.eclipse.zest.layouts.LayoutStyles;
 
 /**
  * CFG Viewer.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -70,13 +75,13 @@ public class CfgViewer extends Composite {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param parent
 	 *            parent composite
 	 * @param style
 	 *            component style
 	 */
-	public CfgViewer(final Composite parent, final int style) {
+	public CfgViewer(@Nonnull final Composite parent, final int style) {
 		super(parent, style);
 		final GridLayout layout = new GridLayout(2, false);
 		setLayout(layout);
@@ -129,9 +134,23 @@ public class CfgViewer extends Composite {
 		this.graph.setLayoutData(gridData);
 		this.graph.setLayoutAlgorithm(new HierarchicalLayoutAlgorithm(
 				LayoutStyles.NO_LAYOUT_NODE_RESIZING), true);
+		this.graph.addSelectionListener(new SelectionAdapter() {
+
+			@Override
+			public void widgetSelected(final SelectionEvent e) {
+				for (final GraphItem g : (List<GraphItem>) ((Graph) e.widget).getSelection()) {
+					final Object data = g.getData();
+					if (data instanceof BB) {
+						log.info(renderBbInfo((BB) data));
+					}
+				}
+			}
+
+		});
 	}
 
-	private GraphNode addToGraph(final BB bb, final IdentityHashMap<BB, GraphNode> map) {
+	private GraphNode addToGraph(@Nonnull final BB bb,
+			@Nonnull final IdentityHashMap<BB, GraphNode> map) {
 		final GraphNode node = new GraphNode(this.graph, SWT.NONE, bb.toString(), bb);
 		if (bb.getStruct() != null) {
 			node.setTooltip(new Label(bb.getStruct().toString()));
@@ -192,7 +211,7 @@ public class CfgViewer extends Composite {
 		initGraph(cfg);
 	}
 
-	private void initGraph(final CFG cfg) {
+	private void initGraph(@Nonnull final CFG cfg) {
 		// dispose old graph content, first connections than nodes
 		Object[] objects = this.graph.getConnections().toArray();
 		for (final Object object : objects) {
@@ -203,17 +222,25 @@ public class CfgViewer extends Composite {
 			((GraphNode) object).dispose();
 		}
 		// add graph content
-		addToGraph(cfg.getStartBb(), new IdentityHashMap<BB, GraphNode>());
+		final BB startBb = cfg.getStartBb();
+		assert startBb != null;
+		addToGraph(startBb, new IdentityHashMap<BB, GraphNode>());
 		this.graph.applyLayout();
+	}
+
+	protected String renderBbInfo(@Nonnull final BB bb) {
+
+		// TODO Auto-generated method stub
+		return "TEST " + bb;
 	}
 
 	/**
 	 * Select declaration.
-	 * 
+	 *
 	 * @param selectedD
 	 *            selected declaration
 	 */
-	public void setlectD(final Container selectedD) {
+	public void setlectD(@Nonnull final Container selectedD) {
 		this.selectedD = selectedD;
 		initGraph();
 	}
