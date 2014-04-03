@@ -35,6 +35,8 @@ import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
+import org.decojer.cavaj.model.code.Frame;
+import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
@@ -229,9 +231,25 @@ public class CfgViewer extends Composite {
 	}
 
 	protected String renderBbInfo(@Nonnull final BB bb) {
-
-		// TODO Auto-generated method stub
-		return "TEST " + bb;
+		final StringBuilder sb = new StringBuilder();
+		final int ops = bb.getOps();
+		for (int i = 0; i < ops; ++i) {
+			final Op op = bb.getOp(i);
+			sb.append("\n").append(op);
+			final Frame frame = bb.getCfg().getInFrame(op);
+			if (frame == null) {
+				continue;
+			}
+			final int regs = frame.getRegs();
+			for (int j = 0; j < regs; ++j) {
+				sb.append("|").append(frame.load(j));
+			}
+			final int top = frame.getTop();
+			for (int j = 0; j < top; ++j) {
+				sb.append("|").append(frame.load(j));
+			}
+		}
+		return sb.toString();
 	}
 
 	/**
