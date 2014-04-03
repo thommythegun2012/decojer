@@ -242,11 +242,11 @@ public class CfgViewer extends Composite {
 			}
 			final int regs = frame.getRegs();
 			for (int j = 0; j < regs; ++j) {
-				sb.append("|").append(frame.load(j));
+				sb.append(j == 0 ? "\t# " : " | ").append(frame.load(j));
 			}
 			final int top = frame.getTop();
 			for (int j = 0; j < top; ++j) {
-				sb.append("|").append(frame.load(j));
+				sb.append(j == 0 ? "\t# " : " | ").append(frame.load(j));
 			}
 		}
 		return sb.toString();
