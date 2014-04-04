@@ -251,16 +251,17 @@ public final class BB {
 	}
 
 	public String[][] getFrameInfos() {
-		final int regs = getCfg().getRegs();
+		final int regs = getRegs();
+		final int stackRegs = getStackRegs();
 		final int ops = getOps();
 		final String[][] frameInfos = new String[1 + ops][];
-		final String[] header = new String[1 + this.cfg.getRegs() + this.cfg.getMaxStack()];
+		final String[] header = new String[1 + getRegs() + getStackRegs()];
 		header[0] = "Operation";
-		for (int j = 0; j < regs; ++j) {
-			header[1 + j] = "r" + j;
+		for (int j = 0; j < stackRegs; ++j) {
+			header[1 + j] = "s" + j;
 		}
-		for (int j = 0; j < getCfg().getMaxStack(); ++j) {
-			header[1 + regs + j] = "s" + j;
+		for (int j = 0; j < regs; ++j) {
+			header[1 + stackRegs + j] = "r" + j;
 		}
 		frameInfos[0] = header;
 		for (int i = 0; i < ops; ++i) {
@@ -276,14 +277,27 @@ public final class BB {
 			if (frame == null) {
 				continue;
 			}
-			for (int j = 0; j < regs + frame.getTop(); ++j) {
-				final R r = frame.load(j);
+			for (int j = 0; j < frame.getTop(); ++j) {
+				final R r = frame.load(regs + j);
 				if (r != null) {
-					row[1 + j] = r.toString();
+					row[1 + j] = (frame.isAlive(j) ? "A " : "") + r.toString();
 					// align header
 					if (header[1 + j].length() < row[1 + j].length()) {
 						header[1 + j] += Strings.repeat(" ",
 								row[1 + j].length() - header[1 + j].length());
+					}
+				}
+			}
+			for (int j = 0; j < regs; ++j) {
+				final R r = frame.load(j);
+				if (r != null) {
+					row[1 + stackRegs + j] = (frame.isAlive(j) ? "A " : "") + r.toString();
+					// align header
+					if (header[1 + stackRegs + j].length() < row[1 + stackRegs + j].length()) {
+						header[1 + stackRegs + j] += Strings.repeat(
+								" ",
+								row[1 + stackRegs + j].length()
+								- header[1 + stackRegs + j].length());
 					}
 				}
 			}
@@ -292,6 +306,7 @@ public final class BB {
 	}
 
 	public String getFrameInfosString() {
+		final int stackRegs = getStackRegs();
 		final String[][] frameInfos = getFrameInfos();
 		final String[] header = frameInfos[0];
 		final StringBuilder sb = new StringBuilder();
@@ -305,7 +320,7 @@ public final class BB {
 				}
 				sb.append(str);
 				sb.append(Strings.repeat(" ", header[j].length() - str.length()));
-				if (j == 0 || j == getRegs()) {
+				if (j == 0 || j == stackRegs) {
 					sb.append(" # ");
 					continue;
 				}
@@ -324,7 +339,7 @@ public final class BB {
 	 * @return immediate domminator (IDom)
 	 */
 	public BB getIDom() {
-		return this.cfg.getIDom(this);
+		return getCfg().getIDom(this);
 	}
 
 	/**
@@ -333,7 +348,7 @@ public final class BB {
 	 * @return first operation line
 	 */
 	public int getLine() {
-		return this.cfg.getOps()[this.pc].getLine();
+		return getCfg().getOps()[this.pc].getLine();
 	}
 
 	/**
@@ -362,7 +377,7 @@ public final class BB {
 	 * @return register number (locals)
 	 */
 	public int getRegs() {
-		return this.cfg.getRegs();
+		return getCfg().getRegs();
 	}
 
 	/**
@@ -403,6 +418,25 @@ public final class BB {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Get maximum stack register number.
+	 *
+	 * @return maximum stack register number
+	 */
+	public int getStackRegs() {
+		int stackRegs = 0;
+		for (int i = 0; i < getOps(); ++i) {
+			final Frame frame = getCfg().getInFrame(getOp(i));
+			if (frame == null) {
+				break;
+			}
+			if (stackRegs < frame.getTop()) {
+				stackRegs = frame.getTop();
+			}
+		}
+		return stackRegs;
 	}
 
 	/**
@@ -666,7 +700,7 @@ public final class BB {
 	 * @return {@code true} - is start BB
 	 */
 	public boolean isStartBb() {
-		return this.cfg.getStartBb() == this;
+		return getCfg().getStartBb() == this;
 	}
 
 	/**
@@ -733,8 +767,8 @@ public final class BB {
 	 *            target BB
 	 */
 	public void moveIns(@Nonnull final BB target) {
-		if (this.cfg.getStartBb() == this) {
-			this.cfg.setStartBb(target);
+		if (getCfg().getStartBb() == this) {
+			getCfg().setStartBb(target);
 		}
 		for (final E in : this.ins) {
 			in.setEnd(target);
@@ -803,7 +837,7 @@ public final class BB {
 	 * Remove BB from CFG.
 	 */
 	public void remove() {
-		this.cfg.getPostorderedBbs().set(this.postorder, null);
+		getCfg().getPostorderedBbs().set(this.postorder, null);
 		for (int i = this.ins.size(); i-- > 0;) {
 			this.ins.get(i).remove();
 		}

@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,14 +24,10 @@
 package org.decojer.editor.eclipse.cfg;
 
 import org.decojer.cavaj.model.code.BB;
-import org.decojer.cavaj.model.code.Frame;
-import org.decojer.cavaj.model.code.R;
-import org.decojer.cavaj.model.code.ops.Op;
 import org.eclipse.draw2d.AbstractBorder;
 import org.eclipse.draw2d.Border;
 import org.eclipse.draw2d.Figure;
 import org.eclipse.draw2d.Graphics;
-import org.eclipse.draw2d.GridData;
 import org.eclipse.draw2d.GridLayout;
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
@@ -39,12 +35,10 @@ import org.eclipse.draw2d.geometry.Insets;
 
 /**
  * Frames Figure.
- * 
+ *
  * @author André Pankraz
  */
 public class FramesFigure extends Figure {
-
-	private static final GridData GRID_DATA = new GridData(GridData.FILL_HORIZONTAL);
 
 	private static final Border LEFT_BORDER = new AbstractBorder() {
 
@@ -62,74 +56,48 @@ public class FramesFigure extends Figure {
 
 	};
 
+	private static final Border LEFT_BORDER_3 = new AbstractBorder() {
+
+		@Override
+		public Insets getInsets(final IFigure figure) {
+			return new Insets(0, 5, 0, 0);
+		}
+
+		@Override
+		public void paint(final IFigure figure, final Graphics graphics, final Insets insets) {
+			tempRect.setBounds(getPaintRectangle(figure, insets));
+			tempRect.shrink(1, 0);
+			graphics.setLineWidth(3);
+			graphics.drawLine(tempRect.getTopLeft(), tempRect.getBottomLeft());
+		}
+
+	};
+
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param bb
 	 *            BB
 	 */
 	public FramesFigure(final BB bb) {
-		final int regs = bb.getCfg().getRegs();
-		int maxStack = 0; // don't use bb.getCfg().getMaxStack()
-		for (int i = bb.getOps(); i-- > 0;) {
-			final Frame frame = bb.getCfg().getInFrame(bb.getOp(i));
-			if (frame == null) {
-				continue;
-			}
-			if (maxStack < frame.getTop()) {
-				maxStack = frame.getTop();
-			}
-		}
-
-		final GridLayout gridLayout = new GridLayout(1 + regs + maxStack, false);
+		final int stackRegs = bb.getStackRegs();
+		final String[][] frameInfos = bb.getFrameInfos();
+		final String[] header = frameInfos[0];
+		final GridLayout gridLayout = new GridLayout(header.length, false);
 		gridLayout.horizontalSpacing = gridLayout.verticalSpacing = 0;
 		setLayoutManager(gridLayout);
-
-		for (int j = 0; j < bb.getOps(); ++j) {
-			final Op op = bb.getOp(j);
-			final Frame frame = bb.getCfg().getInFrame(op);
-			add(new Label(op.getPc() + " " + op.toString() + (frame == null ? "?" : " ")));
-			for (int i = 0; i < regs; ++i) {
-				String s;
-				if (frame != null) {
-					final R r = frame.load(i);
-					if (r == null) {
-						s = "";
-					} else {
-						s = (frame.isAlive(i) ? "A " : "") + r.toString();
-					}
-				} else {
-					s = "";
+		for (final String[] row : frameInfos) {
+			for (int j = 0; j < row.length; ++j) {
+				final String str = row[j];
+				final Label label = new Label(str == null ? "" : str);
+				if (j == 1 || j - 1 == stackRegs) {
+					label.setBorder(LEFT_BORDER_3);
+				} else if (j != 0) {
+					label.setBorder(LEFT_BORDER);
 				}
-				final Label label = new Label(s);
-				label.setBorder(LEFT_BORDER);
-				add(label);
-			}
-			for (int i = maxStack; i-- > 0;) {
-				String s;
-				if (frame != null) {
-					final R r = i < frame.getTop() ? frame.load(regs + i) : null;
-					if (r == null) {
-						s = "";
-					} else {
-						s = (frame.isAlive(regs + i) ? "A " : "") + r.toString();
-					}
-				} else {
-					s = "";
-				}
-				final Label label = new Label(s);
-				label.setBorder(LEFT_BORDER);
 				add(label);
 			}
 		}
-
-		for (int i = maxStack; i-- > 0;) {
-			add(new Label("s" + i), GRID_DATA, 0);
-		}
-		for (int i = regs; i-- > 0;) {
-			add(new Label("r" + i), GRID_DATA, 0);
-		}
-		add(new Label(""), 0);
 	}
 
 }
