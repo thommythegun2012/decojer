@@ -35,9 +35,6 @@ import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
-import org.decojer.cavaj.model.code.Frame;
-import org.decojer.cavaj.model.code.R;
-import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
@@ -59,8 +56,6 @@ import org.eclipse.zest.core.widgets.GraphItem;
 import org.eclipse.zest.core.widgets.GraphNode;
 import org.eclipse.zest.core.widgets.ZestStyles;
 import org.eclipse.zest.layouts.LayoutStyles;
-
-import com.google.common.base.Strings;
 
 /**
  * CFG Viewer.
@@ -146,7 +141,7 @@ public class CfgViewer extends Composite {
 				for (final GraphItem g : (List<GraphItem>) ((Graph) e.widget).getSelection()) {
 					final Object data = g.getData();
 					if (data instanceof BB) {
-						log.info(renderBbInfo((BB) data));
+						log.info(((BB) data).getFrameInfosString());
 					}
 				}
 			}
@@ -231,71 +226,6 @@ public class CfgViewer extends Composite {
 		assert startBb != null;
 		addToGraph(startBb, new IdentityHashMap<BB, GraphNode>());
 		this.graph.applyLayout();
-	}
-
-	protected String renderBbInfo(@Nonnull final BB bb) {
-		final CFG cfg = bb.getCfg();
-		final int regs = cfg.getRegs();
-		final int ops = bb.getOps();
-		final int[] sizes = new int[1 + regs + cfg.getMaxStack()];
-		final String[][] table = new String[1 + ops][];
-		for (int i = -1; i < ops; ++i) {
-			final String[] row = new String[1 + cfg.getRegs() + cfg.getMaxStack()];
-			table[1 + i] = row;
-			if (i == -1) {
-				row[0] = "Operation";
-				sizes[0] = row[0].length();
-				for (int j = 0; j < cfg.getRegs(); ++j) {
-					row[1 + j] = "r" + j;
-					sizes[1 + j] = row[1 + j].length();
-				}
-				for (int j = 0; j < cfg.getMaxStack(); ++j) {
-					row[1 + regs + j] = "s" + j;
-					sizes[1 + regs + j] = row[1 + regs + j].length();
-				}
-				continue;
-			}
-			final Op op = bb.getOp(i);
-			row[0] = op.toString();
-			if (sizes[0] < row[0].length()) {
-				sizes[0] = row[0].length();
-			}
-			final Frame frame = bb.getCfg().getInFrame(op);
-			if (frame == null) {
-				continue;
-			}
-			for (int j = 0; j < regs + frame.getTop(); ++j) {
-				final R r = frame.load(j);
-				if (r != null) {
-					row[1 + j] = r.toString();
-					if (sizes[1 + j] < row[1 + j].length()) {
-						sizes[1 + j] = row[1 + j].length();
-					}
-				}
-			}
-		}
-		final StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < table.length; ++i) {
-			final String[] row = table[i];
-			sb.append("\n");
-			for (int j = 0; j < row.length; ++j) {
-				String str = row[j];
-				if (str == null) {
-					str = "";
-				}
-				sb.append(str);
-				sb.append(Strings.repeat(" ", sizes[j] - str.length()));
-				if (j == 0 || j == bb.getRegs()) {
-					sb.append(" # ");
-					continue;
-				}
-				sb.append(" | ");
-			}
-			if (i == 0) {
-				sb.append('\n').append(Strings.repeat("-", sb.length() - 3));
-			}
-		}
-		return sb.toString();
 	}
 
 	/**
