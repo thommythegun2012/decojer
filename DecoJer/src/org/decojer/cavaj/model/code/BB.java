@@ -49,6 +49,7 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 
 /**
@@ -247,6 +248,74 @@ public final class BB {
 	@Nullable
 	public Statement getFinalStmt() {
 		return this.stmts.isEmpty() ? null : this.stmts.get(this.stmts.size() - 1);
+	}
+
+	public String[][] getFrameInfos() {
+		final int regs = getCfg().getRegs();
+		final int ops = getOps();
+		final String[][] frameInfos = new String[1 + ops][];
+		final String[] header = new String[1 + this.cfg.getRegs() + this.cfg.getMaxStack()];
+		header[0] = "Operation";
+		for (int j = 0; j < this.cfg.getRegs(); ++j) {
+			header[1 + j] = "r" + j;
+		}
+		for (int j = 0; j < this.cfg.getMaxStack(); ++j) {
+			header[1 + regs + j] = "s" + j;
+		}
+		frameInfos[0] = header;
+		for (int i = 0; i < ops; ++i) {
+			final String[] row = new String[header.length];
+			frameInfos[1 + i] = row;
+			final Op op = getOp(i);
+			row[0] = op.toString();
+			// align header
+			if (header[0].length() < row[0].length()) {
+				header[0] += Strings.repeat(" ", row[0].length() - header[0].length());
+			}
+			final Frame frame = getCfg().getInFrame(op);
+			if (frame == null) {
+				continue;
+			}
+			for (int j = 0; j < regs + frame.getTop(); ++j) {
+				final R r = frame.load(j);
+				if (r != null) {
+					row[1 + j] = r.toString();
+					// align header
+					if (header[1 + j].length() < row[1 + j].length()) {
+						header[1 + j] += Strings.repeat(" ",
+								row[1 + j].length() - header[1 + j].length());
+					}
+				}
+			}
+		}
+		return frameInfos;
+	}
+
+	public String getFrameInfosString() {
+		final String[][] frameInfos = getFrameInfos();
+		final String[] header = frameInfos[0];
+		final StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < frameInfos.length; ++i) {
+			final String[] row = frameInfos[i];
+			sb.append("\n|");
+			for (int j = 0; j < row.length; ++j) {
+				String str = row[j];
+				if (str == null) {
+					str = "";
+				}
+				sb.append(str);
+				sb.append(Strings.repeat(" ", header[j].length() - str.length()));
+				if (j == 0 || j == getRegs()) {
+					sb.append(" # ");
+					continue;
+				}
+				sb.append(" | ");
+			}
+			if (i == 0) {
+				sb.append('\n').append(Strings.repeat("-", sb.length() - 3));
+			}
+		}
+		return sb.toString();
 	}
 
 	/**
