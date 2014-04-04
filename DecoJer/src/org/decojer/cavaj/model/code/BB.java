@@ -256,10 +256,10 @@ public final class BB {
 		final String[][] frameInfos = new String[1 + ops][];
 		final String[] header = new String[1 + this.cfg.getRegs() + this.cfg.getMaxStack()];
 		header[0] = "Operation";
-		for (int j = 0; j < this.cfg.getRegs(); ++j) {
+		for (int j = 0; j < regs; ++j) {
 			header[1 + j] = "r" + j;
 		}
-		for (int j = 0; j < this.cfg.getMaxStack(); ++j) {
+		for (int j = 0; j < getCfg().getMaxStack(); ++j) {
 			header[1 + regs + j] = "s" + j;
 		}
 		frameInfos[0] = header;
