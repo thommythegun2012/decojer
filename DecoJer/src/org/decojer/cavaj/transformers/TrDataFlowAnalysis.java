@@ -141,11 +141,13 @@ public final class TrDataFlowAnalysis {
 
 	private boolean checkRegisterAccessInSub(final int i, final RET ret) {
 		final Frame retFrame = getFrame(ret.getPc());
+		assert retFrame != null;
 		final R regAtRet = retFrame.load(i);
 
 		final Sub sub = (Sub) retFrame.load(ret.getReg()).getValue();
 
 		final Frame subFrame = getFrame(sub.getPc());
+		assert subFrame != null;
 		final R regAtSub = subFrame.load(i);
 
 		return regAtRet != regAtSub; // register changed somewhere in sub
@@ -168,7 +170,7 @@ public final class TrDataFlowAnalysis {
 
 		// reduce to reasonable parameters pairs, e.g. BOOL, {SHORT,BOOL}-Constant -> both BOOL
 		final T intersectT = T.intersect(s1.getT(), s2.getT());
-		assert intersectT != null : getMd() + ": intersect to null not allowed";
+		assert intersectT != null : getM() + ": intersect to null not allowed";
 		// TODO ref1 == ref2 is allowed with result void (bool math)
 
 		s2.assignTo(intersectT);
@@ -244,7 +246,7 @@ public final class TrDataFlowAnalysis {
 			// org.eclipse.jdt.internal.core.JavaElement.read(
 			// {java.lang.Object,org.eclipse.jdt.core.IJavaElement,org.eclipse.core.runtime.IAdaptable})
 			if (intersectT == null || !vR.assignTo(intersectT)) {
-				log.warn(getMd() + ": Cannot store array value!");
+				log.warn(getM() + ": Cannot store array value!");
 			}
 			break;
 		}
@@ -360,7 +362,7 @@ public final class TrDataFlowAnalysis {
 				break;
 			}
 			default:
-				log.warn(getMd() + ": Unknown DUP type '" + cop.getKind() + "'!");
+				log.warn(getM() + ": Unknown DUP type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -455,10 +457,10 @@ public final class TrDataFlowAnalysis {
 			// already visited this sub -> restore jsr-follow-address (Sub) and merge -> check RET
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
-				assert false : getMd() + ": already visited sub with pc '" + subPc
-				+ "' but didn't find initial sub register";
+				assert false : getM() + ": already visited sub with pc '" + subPc
+						+ "' but didn't find initial sub register";
 
-			return -1;
+				return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
 			if (!this.currentFrame.pushSub(sub)) {
@@ -474,7 +476,7 @@ public final class TrDataFlowAnalysis {
 			}
 			this.currentFrame = new Frame(getFrame(ret.getPc()));
 			if (load(ret.getReg(), T.RET).getValue() != sub) {
-				log.warn(getMd() + ": Incorrect sub!");
+				log.warn(getM() + ": Incorrect sub!");
 			}
 			final BB retBb = getBb(ret.getPc());
 			final int jsrFollowPc = jsr.getPc() + 1;
@@ -511,7 +513,7 @@ public final class TrDataFlowAnalysis {
 			case EXIT:
 				break;
 			default:
-				log.warn(getMd() + ": Unknown MONITOR type '" + cop.getKind() + "'!");
+				log.warn(getM() + ": Unknown MONITOR type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -559,7 +561,7 @@ public final class TrDataFlowAnalysis {
 				break;
 			}
 			default:
-				log.warn(getMd() + ": Unknown POP type '" + cop.getKind() + "'!");
+				log.warn(getM() + ": Unknown POP type '" + cop.getKind() + "'!");
 			}
 			break;
 		}
@@ -614,9 +616,9 @@ public final class TrDataFlowAnalysis {
 		}
 		case RETURN: {
 			final RETURN cop = (RETURN) op;
-			final T returnT = getMd().getReturnT();
-			assert cop.getT().isAssignableFrom(returnT) : getMd() + ": cannot assign '" + returnT
-			+ "' to return type '" + cop.getT() + "'";
+			final T returnT = getM().getReturnT();
+			assert cop.getT().isAssignableFrom(returnT) : getM() + ": cannot assign '" + returnT
+					+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -771,7 +773,7 @@ public final class TrDataFlowAnalysis {
 						.getT(Throwable.class) : exc.getT(), null);
 			} else {
 				if (handlerFrame.getTop() != 1) {
-					log.warn(getMd() + ": Handler stack for exception merge not of size 1!");
+					log.warn(getM() + ": Handler stack for exception merge not of size 1!");
 				}
 				excR = handlerFrame.peek(); // reuse exception register
 			}
@@ -789,15 +791,18 @@ public final class TrDataFlowAnalysis {
 		return this.currentFrame.getPc();
 	}
 
+	@Nonnull
 	private DU getDu() {
 		return getCfg().getDu();
 	}
 
+	@Nullable
 	private Frame getFrame(final int pc) {
 		return getCfg().getFrame(pc);
 	}
 
-	private M getMd() {
+	@Nonnull
+	private M getM() {
 		return getCfg().getM();
 	}
 
@@ -874,7 +879,7 @@ public final class TrDataFlowAnalysis {
 				return; // was already alive, can happen via MOVE-out
 			}
 			final R r = frame.load(aliveI);
-			assert r != null : getMd() + ": register is null for pc '" + pc + "' and index '"
+			assert r != null : getM() + ": register is null for pc '" + pc + "' and index '"
 					+ aliveI + "' for operation: " + bb.getOp(j);
 
 			if (r.getPc() == pc) {
@@ -885,10 +890,10 @@ public final class TrDataFlowAnalysis {
 					// stop backpropagation here
 					return;
 				case MERGE:
-					assert false : getMd() + ": MERGE can only be first op in BB";
+					assert false : getM() + ": MERGE can only be first op in BB";
 
-				// stop backpropagation here
-				return;
+					// stop backpropagation here
+					return;
 				case MOVE:
 					// register changes here, MOVE from different incoming register in same BB
 					aliveI = r.getIn().getI();
@@ -922,7 +927,7 @@ public final class TrDataFlowAnalysis {
 				// other freshly changed registers; but could also be a CONST from method start or
 				// catched exception
 				mergeIns = r.getIns();
-				assert mergeIns.length > 1 : getMd() + ": merge ins must exist";
+				assert mergeIns.length > 1 : getM() + ": merge ins must exist";
 
 				break;
 			case MOVE:
@@ -971,14 +976,14 @@ public final class TrDataFlowAnalysis {
 			getCfg().setFrame(targetPc, this.currentFrame);
 			return;
 		}
-		assert targetFrame.getPc() != getCurrentPc() : getMd() + ": is called twice";
+		assert targetFrame.getPc() != getCurrentPc() : getM() + ": is called twice";
 		// target frame has already been visited before, hence this must be a BB start with multiple
 		// predecessors => register merge necessary
-		assert targetFrame.size() == this.currentFrame.size() : getMd()
+		assert targetFrame.size() == this.currentFrame.size() : getM()
 				+ ": incompatible frame sizes";
 
 		final BB targetBb = getBb(targetPc);
-		assert targetBb != null && targetBb.getPc() == targetPc : getMd()
+		assert targetBb != null && targetBb.getPc() == targetPc : getM()
 				+ ": target PC is not start of a target BB";
 
 		for (int i = targetFrame.size(); i-- > 0;) {
@@ -988,6 +993,7 @@ public final class TrDataFlowAnalysis {
 
 	private void mergeReg(final BB targetBb, final int i, @Nullable final R newR) {
 		final Frame targetFrame = getFrame(targetBb.getPc());
+		assert targetFrame != null;
 		final R prevR = targetFrame.load(i);
 		if (prevR == newR || prevR == null) {
 			// previous register is null? => merge to null => nothing to do
@@ -1059,7 +1065,7 @@ public final class TrDataFlowAnalysis {
 	private R peekSingle(final int i) {
 		final R s = this.currentFrame.peek(i);
 		if (s.isWide()) {
-			log.warn(getMd() + ": Peek '" + i + "' attempts to split long or double on the stack!");
+			log.warn(getM() + ": Peek '" + i + "' attempts to split long or double on the stack!");
 		}
 		return s;
 	}
@@ -1085,7 +1091,7 @@ public final class TrDataFlowAnalysis {
 	private R popSingle() {
 		final R s = this.currentFrame.pop();
 		if (s.isWide()) {
-			log.warn(getMd() + ": Pop attempts to split long or double on the stack!");
+			log.warn(getM() + ": Pop attempts to split long or double on the stack!");
 		}
 		return s;
 	}
@@ -1111,7 +1117,7 @@ public final class TrDataFlowAnalysis {
 
 	@Nullable
 	private List<BB> replaceBbRegDeep(final BB bb, final R prevR, @Nullable final R newR) {
-		assert newR == null || prevR.getI() == newR.getI() && newR.getKind() == Kind.MERGE : getMd()
+		assert newR == null || prevR.getI() == newR.getI() && newR.getKind() == Kind.MERGE : getM()
 				+ ": not allowed newR: " + newR;
 
 		if (!replaceBbRegSingle(bb, prevR, newR)) {
@@ -1129,20 +1135,27 @@ public final class TrDataFlowAnalysis {
 			final boolean jumpOverSub = finalOp instanceof RET ? !checkRegisterAccessInSub(
 					prevR.getI(), (RET) finalOp) : false;
 
-					// replacement propagation to next BB necessary
-					for (final E out : currentBb.getOuts()) {
-						final BB outBb = out.getEnd();
-						if (getFrame(outBb.getPc()) == null) {
-							assert out.isCatch() : getMd()
+			// replacement propagation to next BB necessary
+			for (final E out : currentBb.getOuts()) {
+				final BB outBb = out.getEnd();
+				if (getFrame(outBb.getPc()) == null) {
+					assert out.isCatch() : getM()
 							+ ": out frames can just be null for splitted catch-handlers that havn't been visited yet: "
 							+ out;
 
-							continue;
-						}
-						// final operation is RET & register untouched in sub => modify to state before sub
-						replaceBbRegDeep(outBb, prevR,
-								jumpOverSub ? getFrame(outBb.getPc() - 1).load(prevR.getI()) : newR);
-					}
+					continue;
+				}
+				// final operation is RET & register untouched in sub => modify to state before sub
+				R newOutR;
+				if (jumpOverSub) {
+					final Frame frame = getFrame(outBb.getPc() - 1);
+					assert frame != null;
+					newOutR = frame.load(prevR.getI());
+				} else {
+					newOutR = newR;
+				}
+				replaceBbRegDeep(outBb, prevR, newOutR);
+			}
 		}
 		return endBbs;
 	}
@@ -1177,6 +1190,7 @@ public final class TrDataFlowAnalysis {
 		}
 		final int i = prevR.getI();
 		final Frame frame = getFrame(pc);
+		assert frame != null;
 		if (i >= frame.size() || prevR != frame.load(i)) {
 			return false;
 		}
@@ -1199,7 +1213,7 @@ public final class TrDataFlowAnalysis {
 		if (isNoExceptions()) {
 			return this.currentBb;
 		}
-		assert this.currentBb.getPc() == currentPc || this.currentBb.getOps() > 0 : getMd()
+		assert this.currentBb.getPc() == currentPc || this.currentBb.getOps() > 0 : getM()
 				+ ": could happen with GOTO-mode: create no entry in BB, currently unused";
 
 		for (final Exc exc : getCfg().getExcs()) {
