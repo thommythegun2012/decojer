@@ -282,8 +282,11 @@ public final class CFG {
 	 *
 	 * @return decompilation unit
 	 */
+	@Nonnull
 	public DU getDu() {
-		return getT().getDu();
+		final DU du = getT().getDu();
+		assert du != null;
+		return du;
 	}
 
 	/**
@@ -293,6 +296,7 @@ public final class CFG {
 	 *            PC
 	 * @return frame
 	 */
+	@Nullable
 	public Frame getFrame(final int pc) {
 		return this.frames[pc];
 	}
