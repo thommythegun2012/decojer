@@ -3,58 +3,16 @@
 {{{
 ---
 
-org.objectweb.asm.ClassReader.a(Lorg/objectweb/asm/MethodVisitor;Lorg/objectweb/asm/Context;I)V (ops: 1647, regs: 37)
+com.rsa.cryptoj.c.bq.a(Lcom/rsa/cryptoj/c/xg;Lcom/rsa/cryptoj/c/xg;Lcom/rsa/cryptoj/c/xg;Lcom/rsa/cryptoj/c/xg;Lcom/rsa/cryptoj/c/fB;ILcom/rsa/cryptoj/c/fN;)Z (ops: 101, regs: 16)
 
-INVOKE readByte(I)I
-  pc 1538
+com.google.common.cache.Striped64.retryUpdate(JLcom/google/common/cache/Striped64$HashCode;Z)V (ops: 242, regs: 20)
 
-pop: R1538_CO: REF
-
-kommt von LOAD 12, LOAD 27, ALOAD
-12 sollte int[] sein    (STORE 12: 205, 50, 258, 446)
-Kommt von: R259:MO
-
-259 setzte null
-446 setzt int[]
-loop back auf 298 merged int[] und REF zu REF,
-und typ wird nicht auf null (259) zurückpropagiert.
-
-RET (von null) assignTo t2 should set to t2?
-
----
-
-com.rsa.cryptoj.c.aF.d()V (ops: 77, regs: 6)
-
-pc 67
-THROW 
-popRead (Throwable)
-
-markAlive  r is null!
-			assert r != null : "R is null for pc '" + pc + "' and op '" + bb.getOp(j) + "' and '"
-					+ aliveI + "'!";
-
-reason: merge into sub doesnt set throwable to null from start to end?!
-
----
-
-com.ibm.icu.impl.data.TokenIterator.nextToken(I)I (ops: 142, regs: 7)
-
-triggered assert:
-
-Mär 04, 2014 9:54:44 AM org.decojer.cavaj.transformers.TrDataFlowAnalysis execute
-WARNUNG: com.ibm.icu.impl.data.TokenIterator.nextToken(I)I: Cannot store array value!
-FAILED: testEclipsePlugins
-java.lang.AssertionError: cannot assign 'R88_CO: REF' to 'int'
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:182)
+java.lang.AssertionError: com.google.common.cache.Striped64.retryUpdate(JLcom/google/common/cache/Striped64$HashCode;Z)V: register is null for pc '4' and index '6' for operation: STORE 6
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:883)
 
 
-	public boolean assignTo(final T t) {
-		final T reducedT = this.t.assignTo(t); // primitive reduction for this.t possible
-		if (reducedT == null) {
-			if (this.t.isUnresolvable() && this.t != T.REF) {
-				return true;
-			}
-			assert false : "cannot assign '" + this + "' to '" + t + "'";
+com.ibm.icu_50.1.1.v201304230130.jar
+	com.ibm.icu.text.UnicodeSet.containsAll(Lcom/ibm/icu/text/UnicodeSet;)Z (ops: 101, regs: 13)
 
 
 
