@@ -458,9 +458,9 @@ public final class TrDataFlowAnalysis {
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
 				assert false : getM() + ": already visited sub with pc '" + subPc
-						+ "' but didn't find initial sub register";
+				+ "' but didn't find initial sub register";
 
-				return -1;
+			return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
 			if (!this.currentFrame.pushSub(sub)) {
@@ -618,7 +618,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : getM() + ": cannot assign '" + returnT
-					+ "' to return type '" + cop.getT() + "'";
+			+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -892,8 +892,8 @@ public final class TrDataFlowAnalysis {
 				case MERGE:
 					assert false : getM() + ": MERGE can only be first op in BB";
 
-					// stop backpropagation here
-					return;
+				// stop backpropagation here
+				return;
 				case MOVE:
 					// register changes here, MOVE from different incoming register in same BB
 					aliveI = r.getIn().getI();
@@ -1001,7 +1001,7 @@ public final class TrDataFlowAnalysis {
 		}
 		if (newR == null) {
 			// new register is null? => merge to null => replace previous register from here
-			replaceBbRegDeep(targetBb, prevR, null);
+			replaceRegBbDeep(targetBb, prevR, null);
 			return;
 		}
 
@@ -1009,7 +1009,7 @@ public final class TrDataFlowAnalysis {
 		if (intersectT == null) {
 			// merge type is null? => merge to null => replace previous register from here
 			// TODO handle types with unknown super not as null-intersect
-			replaceBbRegDeep(targetBb, prevR, null);
+			replaceRegBbDeep(targetBb, prevR, null);
 			return;
 		}
 		if (targetFrame.isAlive(i)) {
@@ -1030,12 +1030,7 @@ public final class TrDataFlowAnalysis {
 		}
 		// else start new merge register
 		final R mergeR = R.createMergeR(targetBb.getPc(), i, intersectT, null, prevR, newR);
-		final List<BB> endBbs = replaceBbRegDeep(targetBb, prevR, mergeR);
-		if (endBbs != null) {
-			for (final BB endBb : endBbs) {
-				mergeReg(endBb, prevR.getI(), mergeR);
-			}
-		}
+		replaceRegBbDeep(targetBb, prevR, mergeR);
 	}
 
 	@Nonnull
@@ -1115,67 +1110,60 @@ public final class TrDataFlowAnalysis {
 				t, value));
 	}
 
-	@Nullable
-	private List<BB> replaceBbRegDeep(final BB bb, final R prevR, @Nullable final R newR) {
-		assert newR == null || prevR.getI() == newR.getI() && newR.getKind() == Kind.MERGE : getM()
-				+ ": not allowed newR: " + newR;
-
-		if (!replaceBbRegSingle(bb, prevR, newR)) {
-			return null;
-		}
-		// navigate to next BBs...replace branch as far as possible before creating/extending merges
-		final BB currentBb = bb;
-		final List<BB> endBbs = Lists.newArrayList();
-		for (int i = endBbs.size(); i-- > 0;) {
-
-			// final operation is RET & register untouched in sub => modify to state before sub
-			// TODO check JSR and RET, register same before and after??? replace RET
-			// TODO not same? overwrite RET
-			final Op finalOp = currentBb.getFinalOp();
-			final boolean jumpOverSub = finalOp instanceof RET ? !checkRegisterAccessInSub(
-					prevR.getI(), (RET) finalOp) : false;
-
-			// replacement propagation to next BB necessary
-			for (final E out : currentBb.getOuts()) {
-				final BB outBb = out.getEnd();
-				if (getFrame(outBb.getPc()) == null) {
-					assert out.isCatch() : getM()
-							+ ": out frames can just be null for splitted catch-handlers that havn't been visited yet: "
-							+ out;
-
-					continue;
-				}
-				// final operation is RET & register untouched in sub => modify to state before sub
-				R newOutR;
-				if (jumpOverSub) {
-					final Frame frame = getFrame(outBb.getPc() - 1);
-					assert frame != null;
-					newOutR = frame.load(prevR.getI());
-				} else {
-					newOutR = newR;
-				}
-				replaceBbRegDeep(outBb, prevR, newOutR);
-			}
-		}
-		return endBbs;
-	}
-
-	private boolean replaceBbRegSingle(final BB bb, final R prevR, @Nullable final R newR) {
+	private boolean replaceRegBb(final BB bb, final R prevR, @Nullable final R newR) {
 		// BB possibly not visited yet => BB input frame known, but no operations exist,
 		// but BB input frame cannot be null here
-		if (!replaceFrameReg(bb.getPc(), prevR, newR)) {
+		if (!replaceRegFrame(bb.getPc(), prevR, newR)) {
 			return false;
 		}
 		// replacement propagation to already known BB operations
 		for (int j = 1; j < bb.getOps(); ++j) {
-			if (!replaceFrameReg(bb.getOp(j).getPc(), prevR, newR)) {
+			if (!replaceRegFrame(bb.getOp(j).getPc(), prevR, newR)) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	private boolean replaceFrameReg(final int pc, final R prevR, @Nullable final R newR) {
+	private void replaceRegBbDeep(@Nonnull final BB bb, @Nonnull final R prevR,
+			@Nullable final R newR) {
+		if (!replaceRegBb(bb, prevR, newR)) {
+			return;
+		}
+		// final operation is RET & register untouched in sub => modify to state before sub
+		// TODO check JSR and RET, register same before and after??? replace RET
+		// TODO not same? overwrite RET
+		final Op finalOp = bb.getFinalOp();
+		final boolean jumpOverSub = finalOp instanceof RET ? !checkRegisterAccessInSub(
+				prevR.getI(), (RET) finalOp) : false;
+
+		// replacement propagation to next BB necessary
+		for (final E out : bb.getOuts()) {
+			final BB outBb = out.getEnd();
+			if (getFrame(outBb.getPc()) == null) {
+				assert out.isCatch() : getM()
+						+ ": out frames can just be null for splitted catch-handlers that havn't been visited yet: "
+						+ out;
+
+				continue;
+			}
+			// final operation is RET & register untouched in sub => modify to state before sub
+			R newOutR;
+			if (jumpOverSub) {
+				final Frame frame = getFrame(outBb.getPc() - 1);
+				assert frame != null;
+				newOutR = frame.load(prevR.getI());
+			} else {
+				newOutR = newR;
+			}
+			replaceRegBbDeep(outBb, prevR, newOutR);
+		}
+	}
+
+	private boolean replaceRegFrame(final int pc, final R prevR, @Nullable final R newR) {
+		if (prevR == newR) {
+			return false;
+		}
 		// replace potential out registers before the current register, this function goes always
 		// one step further
 		final R[] outs = prevR.getOuts();
