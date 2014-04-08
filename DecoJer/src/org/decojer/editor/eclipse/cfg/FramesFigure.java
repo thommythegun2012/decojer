@@ -44,7 +44,7 @@ public class FramesFigure extends Figure {
 
 		@Override
 		public Insets getInsets(final IFigure figure) {
-			return new Insets(0, 5, 0, 0);
+			return new Insets(0, 3, 0, 3);
 		}
 
 		@Override
@@ -60,7 +60,7 @@ public class FramesFigure extends Figure {
 
 		@Override
 		public Insets getInsets(final IFigure figure) {
-			return new Insets(0, 5, 0, 0);
+			return new Insets(0, 3, 0, 3);
 		}
 
 		@Override
@@ -90,7 +90,7 @@ public class FramesFigure extends Figure {
 			for (int j = 0; j < row.length; ++j) {
 				final String str = row[j];
 				final Label label = new Label(str == null ? "" : str);
-				if (j == 1 || j - 1 == stackRegs) {
+				if (j == 2 || j - 2 == stackRegs) {
 					label.setBorder(LEFT_BORDER_3);
 				} else if (j != 0) {
 					label.setBorder(LEFT_BORDER);
