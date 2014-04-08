@@ -255,23 +255,29 @@ public final class BB {
 		final int stackRegs = getStackRegs();
 		final int ops = getOps();
 		final String[][] frameInfos = new String[1 + ops][];
-		final String[] header = new String[1 + getRegs() + getStackRegs()];
-		header[0] = "Operation";
+		final String[] header = new String[2 + getRegs() + getStackRegs()];
+		header[0] = "PC";
+		header[1] = "Operation";
 		for (int j = 0; j < stackRegs; ++j) {
-			header[1 + j] = "s" + j;
+			header[2 + j] = "s" + j;
 		}
 		for (int j = 0; j < regs; ++j) {
-			header[1 + stackRegs + j] = "r" + j;
+			header[2 + stackRegs + j] = "r" + j;
 		}
 		frameInfos[0] = header;
 		for (int i = 0; i < ops; ++i) {
 			final String[] row = new String[header.length];
 			frameInfos[1 + i] = row;
 			final Op op = getOp(i);
-			row[0] = op.toString();
+			row[0] = Integer.toString(op.getPc());
 			// align header
 			if (header[0].length() < row[0].length()) {
 				header[0] += Strings.repeat(" ", row[0].length() - header[0].length());
+			}
+			row[1] = op.toString();
+			// align header
+			if (header[1].length() < row[1].length()) {
+				header[1] += Strings.repeat(" ", row[1].length() - header[1].length());
 			}
 			final Frame frame = getCfg().getInFrame(op);
 			if (frame == null) {
@@ -280,24 +286,24 @@ public final class BB {
 			for (int j = 0; j < frame.getTop(); ++j) {
 				final R r = frame.load(regs + j);
 				if (r != null) {
-					row[1 + j] = (frame.isAlive(j) ? "A " : "") + r.toString();
+					row[2 + j] = (frame.isAlive(j) ? "A " : "") + r.toString();
 					// align header
-					if (header[1 + j].length() < row[1 + j].length()) {
-						header[1 + j] += Strings.repeat(" ",
-								row[1 + j].length() - header[1 + j].length());
+					if (header[2 + j].length() < row[2 + j].length()) {
+						header[2 + j] += Strings.repeat(" ",
+								row[2 + j].length() - header[2 + j].length());
 					}
 				}
 			}
 			for (int j = 0; j < regs; ++j) {
 				final R r = frame.load(j);
 				if (r != null) {
-					row[1 + stackRegs + j] = (frame.isAlive(j) ? "A " : "") + r.toString();
+					row[2 + stackRegs + j] = (frame.isAlive(j) ? "A " : "") + r.toString();
 					// align header
-					if (header[1 + stackRegs + j].length() < row[1 + stackRegs + j].length()) {
-						header[1 + stackRegs + j] += Strings.repeat(
+					if (header[2 + stackRegs + j].length() < row[2 + stackRegs + j].length()) {
+						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
-								row[1 + stackRegs + j].length()
-								- header[1 + stackRegs + j].length());
+								row[2 + stackRegs + j].length()
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -320,7 +326,7 @@ public final class BB {
 				}
 				sb.append(str);
 				sb.append(Strings.repeat(" ", header[j].length() - str.length()));
-				if (j == 0 || j == stackRegs) {
+				if (j == 1 || j - 1 == stackRegs) {
 					sb.append(" # ");
 					continue;
 				}
