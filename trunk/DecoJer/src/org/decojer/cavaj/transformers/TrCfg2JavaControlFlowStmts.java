@@ -372,6 +372,7 @@ public final class TrCfg2JavaControlFlowStmts {
 								statements.add(bb.getStmt(i));
 							}
 						} else {
+							// only from sub structure
 							statements.add(getAst().newContinueStatement());
 						}
 						return;
