@@ -120,6 +120,17 @@ public abstract class DecTestLoopStmt {
 		} while (j < 10);
 	}
 
+	public static void testPostDouble() {
+		int a = 0;
+		do {
+			do {
+				// nothing
+			} while (a++ % 10 < 5);
+			System.out.println("TEST");
+		} while (a++ < 100);
+		System.out.println("END");
+	}
+
 	public static void testPostEndless() {
 		do {
 			System.out.println("TEST");
