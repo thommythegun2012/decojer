@@ -351,7 +351,7 @@ public final class TrCfg2JavaControlFlowStmts {
 					// continue statement skips the current iteration of an
 					// outer loop marked with the given label.
 					if (loop.isHead(bb)) {
-						if (struct != loop && (loop.isEndless() || loop.isPre())) {
+						if (struct != loop && !loop.isPost()) {
 							// only from sub structure
 							statements.add(getAst().newContinueStatement());
 							return;
@@ -376,10 +376,9 @@ public final class TrCfg2JavaControlFlowStmts {
 							statements.add(getAst().newContinueStatement());
 						}
 						return;
-					} else if (loop.isPre() || loop.isEndless()) {
-						for (int i = 0; i < bb.getStmts(); ++i) {
-							statements.add(bb.getStmt(i));
-						}
+					}
+					for (int i = 0; i < bb.getStmts(); ++i) {
+						statements.add(bb.getStmt(i));
 					}
 					return;
 				} else if (findStruct instanceof Switch) {
