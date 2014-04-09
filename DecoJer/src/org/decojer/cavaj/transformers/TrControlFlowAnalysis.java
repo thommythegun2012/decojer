@@ -47,7 +47,9 @@ import org.decojer.cavaj.model.code.structs.Switch;
 import org.decojer.cavaj.model.code.structs.Switch.Kind;
 import org.decojer.cavaj.model.code.structs.Sync;
 import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.Statement;
+import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
 
 import com.google.common.collect.Lists;
@@ -60,6 +62,67 @@ import com.google.common.collect.Sets;
  */
 @Slf4j
 public final class TrControlFlowAnalysis {
+
+	/**
+	 * Is unhandled loop head?
+	 *
+	 * @param bb
+	 *            BB
+	 *
+	 * @return {@code true} - is unhandled loop head
+	 */
+	private static boolean isLoopHead(final BB bb) {
+		// at least one incoming edge must be a back edge (self loop possible), in Java only
+		// possible for loop heads (exclude JVM self catches)
+		// nested post/endless loops with same head are possible and cannot be handled by continue!
+		for (final E in : bb.getIns()) {
+			if (!in.isBack() || in.isCatch()) {
+				continue;
+			}
+			final Struct struct = in.getStart().getStruct();
+			if (!(struct instanceof Loop) || ((Loop) struct).isPre() || !((Loop) struct).isLast(bb)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Is switch head?
+	 *
+	 * @param bb
+	 *            BB
+	 *
+	 * @return {@code true} - is switch head
+	 */
+	private static boolean isSwitchHead(final BB bb) {
+		// don't use successor number as indicator, switch with 2 successors
+		// (JVM 6: 1 case and default) possible, not optimized
+		return bb.getFinalStmt() instanceof SwitchStatement;
+	}
+
+	/**
+	 * Is sync head?
+	 *
+	 * Works even for trivial / empty sync sections, because BBs are always split behind
+	 * MONITOR_ENTER (see Data Flow Analysis).
+	 *
+	 * @param bb
+	 *            BB
+	 *
+	 * @return {@code true} - is sync head
+	 */
+	private static boolean isSyncHead(final BB bb) {
+		final Statement statement = bb.getFinalStmt();
+		if (!(statement instanceof SynchronizedStatement)) {
+			return false;
+		}
+		final Op op = Expressions.getOp(statement);
+		if (!(op instanceof MONITOR)) {
+			return false;
+		}
+		return ((MONITOR) op).getKind() == MONITOR.Kind.ENTER;
+	}
 
 	/**
 	 * Transform CFG.
@@ -548,18 +611,18 @@ public final class TrControlFlowAnalysis {
 			bb.sortOuts();
 
 			// check loop first, could be a post / endless loop with additional sub struct heads
-			if (bb.isLoopHead()) {
+			if (isLoopHead(bb)) {
 				if (createLoopStruct(bb).isPre()) {
 					// exit: no additional struct head possible here
 					continue;
 				}
 				// fall through: additional sub struct heads possible
 			}
-			if (bb.isSyncHead()) {
+			if (isSyncHead(bb)) {
 				createSyncStruct(bb);
 				continue;
 			}
-			if (bb.isSwitchHead()) {
+			if (isSwitchHead(bb)) {
 				createSwitchStruct(bb);
 				continue;
 			}

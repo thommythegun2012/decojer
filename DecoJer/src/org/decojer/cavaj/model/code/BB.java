@@ -35,19 +35,14 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.code.ops.GOTO;
-import org.decojer.cavaj.model.code.ops.MONITOR;
-import org.decojer.cavaj.model.code.ops.MONITOR.Kind;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.RET;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Statement;
-import org.eclipse.jdt.core.dom.SwitchStatement;
-import org.eclipse.jdt.core.dom.SynchronizedStatement;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
@@ -303,7 +298,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -613,38 +608,6 @@ public final class BB {
 	}
 
 	/**
-	 * Is loop head?
-	 *
-	 * @return {@code true} - is loop head
-	 */
-	public boolean isLoopHead() {
-		// at least one incoming edge must be a back edge (self loop possible), in Java only
-		// possible for loop heads (exclude JVM self catches)
-		for (final E in : this.ins) {
-			if (in.isBack() && !in.isCatch()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Is loop last?
-	 *
-	 * @return {@code true} - is loop last
-	 */
-	public boolean isLoopLast() {
-		// at least one outgoing edge must be a back edge (self loop possible), in Java only
-		// possible for implicit and explicit continues (exclude JVM self catches)
-		for (final E out : this.outs) {
-			if (out.isBack() && !out.isCatch()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Is BB relevant?
 	 *
 	 * Multiple incomings, none-empty BBs which are not single GOTO operations (after CFG building)
@@ -707,37 +670,6 @@ public final class BB {
 	 */
 	public boolean isStartBb() {
 		return getCfg().getStartBb() == this;
-	}
-
-	/**
-	 * Is switch head?
-	 *
-	 * @return {@code true} - is switch head
-	 */
-	public boolean isSwitchHead() {
-		// don't use successor number as indicator, switch with 2 successors
-		// (JVM 6: 1 case and default) possible, not optimized
-		return getFinalStmt() instanceof SwitchStatement;
-	}
-
-	/**
-	 * Is sync head?
-	 *
-	 * Works even for trivial / empty sync sections, because BBs are always split behind
-	 * MONITOR_ENTER (see Data Flow Analysis).
-	 *
-	 * @return {@code true} - is sync head
-	 */
-	public boolean isSyncHead() {
-		final Statement statement = getFinalStmt();
-		if (!(statement instanceof SynchronizedStatement)) {
-			return false;
-		}
-		final Op op = Expressions.getOp(statement);
-		if (!(op instanceof MONITOR)) {
-			return false;
-		}
-		return ((MONITOR) op).getKind() == Kind.ENTER;
 	}
 
 	/**
