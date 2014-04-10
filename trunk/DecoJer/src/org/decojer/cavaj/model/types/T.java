@@ -381,12 +381,19 @@ public abstract class T implements Element {
 			return t2;
 		}
 		if (t1.isArray() && t2.isArray()) {
-			// covariant arrays, but super/int is {Object,Cloneable,Serializable}, not superXY[]
-			final T intersectT = intersect(t1.getComponentT(), t2.getComponentT());
-			if (intersectT != null) {
-				return t1.getDu().getArrayT(intersectT);
+			final T componentT1 = t1.getComponentT();
+			final T componentT2 = t2.getComponentT();
+			assert componentT1 != null && componentT2 != null;
+			// covariant arrays, but super/interfaces are {Object,Cloneable,Serializable}, not
+			// {superXY}[], and it doesn't work for primitives because no auto-conversion!
+			if ((componentT1.getKind() & componentT2.getKind()) != 0) {
+				final T intersectT = intersect(componentT1, componentT2);
+				if (intersectT != null) {
+					return t1.getDu().getArrayT(intersectT);
+				}
 			}
 			// could fall through here to general algorithm, but following is always same result
+			// TODO getDu().getArrayIntersection?, also in TestT?
 			return new IntersectionT(t1.getDu().getObjectT(), t1.getDu().getArrayInterfaceTs());
 		}
 		// find common supertypes, raise in t1-hierarchy till assignable from t2
