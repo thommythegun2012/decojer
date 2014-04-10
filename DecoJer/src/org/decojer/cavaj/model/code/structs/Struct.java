@@ -112,6 +112,7 @@ public class Struct {
 	 *            value
 	 * @return struct members, changeable list
 	 */
+	@Nonnull
 	public List<BB> getMembers(final Object value) {
 		List<BB> members = this.value2members.get(value);
 		if (members == null) {
