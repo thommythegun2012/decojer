@@ -267,14 +267,17 @@ class TestT {
 		// not same:
 		assertEquals(T.intersect(du.getT(Long.class), du.getT(Integer.class)), t);
 
-		// covariant arrays, but super/int is {Object,Cloneable,Serializable},
-		// not superXY[]
+		// covariant arrays, but super/interfaces are {Object,Cloneable,Serializable}, not
+		// {superXY}[], and it doesn't work for primitives because no auto-conversion!
 		assertEquals(T.intersect(du.getT(Integer[].class), du.getT(Long[].class)).getName(),
 				"{java.lang.Number,java.lang.Comparable}[]");
 		assertEquals(T.intersect(du.getT(Integer[].class), du.getT(Number[].class)),
 				du.getT(Number[].class));
-		assertEquals(T.intersect(du.getT(byte[].class), du.getT(char[].class)),
-				du.getT(int[].class));
+		t = T.intersect(du.getT(byte[].class), du.getT(char[].class));
+		assertSame(t.getSuperT(), du.getObjectT());
+		assertEquals(t.getInterfaceTs().length, 2);
+		assertSame(t.getInterfaceTs()[0], du.getT(Cloneable.class));
+		assertSame(t.getInterfaceTs()[1], du.getT(Serializable.class));
 		// but if we cannot join component types...
 		t = T.intersect(du.getT(byte[].class), du.getT(long[].class));
 		assertSame(t.getSuperT(), du.getObjectT());
