@@ -71,20 +71,24 @@ public final class TrControlFlowAnalysis {
 	 *
 	 * @return {@code true} - is unhandled loop head
 	 */
-	private static boolean isLoopHead(final BB bb) {
+	private static List<BB> getLoopHeadIns(final BB bb) {
 		// at least one incoming edge must be a back edge (self loop possible), in Java only
 		// possible for loop heads (exclude JVM self catches)
 		// nested post/endless loops with same head are possible and cannot be handled by continue!
+		List<BB> loopHeadIns = null;
 		for (final E in : bb.getIns()) {
 			if (!in.isBack() || in.isCatch()) {
 				continue;
 			}
 			final Struct struct = in.getStart().getStruct();
 			if (!(struct instanceof Loop) || ((Loop) struct).isPre() || !((Loop) struct).isLast(bb)) {
-				return true;
+				if (loopHeadIns == null) {
+					loopHeadIns = Lists.newArrayList();
+				}
+				loopHeadIns.add(bb);
 			}
 		}
-		return false;
+		return loopHeadIns;
 	}
 
 	/**
@@ -232,7 +236,7 @@ public final class TrControlFlowAnalysis {
 		return cond;
 	}
 
-	private Loop createLoopStruct(@Nonnull final BB head) {
+	private Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<BB> headIns) {
 		final Loop loop = new Loop(head);
 
 		findLoop(loop, head, Sets.<BB> newHashSet());
@@ -288,6 +292,7 @@ public final class TrControlFlowAnalysis {
 		}
 		// we have to compare the tails for head and last
 		if (headKind != null && lastKind != null) {
+			assert headFollow != null && lastFollow != null;
 			final List<BB> headMembers = Lists.newArrayList();
 			final Set<BB> headFollows = Sets.newHashSet();
 			findBranch(loop, headFollow, headMembers, headFollows);
@@ -400,6 +405,7 @@ public final class TrControlFlowAnalysis {
 			}
 
 			final List<BB> members = switchStruct.getMembers(caseOut.getValue());
+			assert members != null;
 			if (isFallThrough) {
 				follows.remove(caseBb);
 				members.add(caseBb);
@@ -498,8 +504,8 @@ public final class TrControlFlowAnalysis {
 	 * @param follows
 	 *            potential struct follows (no continues or breaks)
 	 */
-	private void findBranch(final Struct struct, final BB bb, final List<BB> members,
-			final Set<BB> follows) {
+	private void findBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
+			@Nonnull final List<BB> members, @Nonnull final Set<BB> follows) {
 		if (!members.contains(bb)) { // necessary check because of switch-case fall-throughs
 			// TODO this is not sufficient...cond-follow with self-loop will be recognized as
 			// follow, see commons-io:FileUtils#decode()
@@ -549,7 +555,8 @@ public final class TrControlFlowAnalysis {
 		}
 	}
 
-	private boolean findLoop(final Loop loop, final BB bb, final Set<BB> traversed) {
+	private boolean findLoop(@Nonnull final Loop loop, @Nonnull final BB bb,
+			@Nonnull final Set<BB> traversed) {
 		// DFS
 		traversed.add(bb);
 		boolean loopSucc = false;
@@ -606,17 +613,25 @@ public final class TrControlFlowAnalysis {
 	private void transform() {
 		final List<BB> bbs = getCfg().getPostorderedBbs();
 		// for all nodes in _reverse_ postorder: find outer structs first
-		for (int i = bbs.size(); i-- > 0;) {
+		nextBb: for (int i = bbs.size(); i-- > 0;) {
 			final BB bb = bbs.get(i);
 			bb.sortOuts();
 
-			// check loop first, could be a post / endless loop with additional sub struct heads
-			if (isLoopHead(bb)) {
-				if (createLoopStruct(bb).isPre()) {
-					// exit: no additional struct head possible here
-					continue;
-				}
-				// fall through: additional sub struct heads possible
+			// check loop first, could be a post / endless loop with additional sub struct heads;
+			// including also nested loops, that cannot be mitigated by continue
+			final List<BB> loopHeadIns = getLoopHeadIns(bb);
+			if (loopHeadIns != null) {
+				do {
+					final Loop loop = createLoopStruct(bb, loopHeadIns);
+					if (loop.isPre()) {
+						// exit: no additional struct head possible here
+						// TODO but we know that "loopHeadIns - last" are continues? mark?
+						continue nextBb;
+					}
+					// continue to this loop head not possible, nested loop check...
+					loopHeadIns.remove(loop.getLast());
+				} while (!loopHeadIns.isEmpty());
+				// fall through: additional sub struct heads possible for post / endless
 			}
 			if (isSyncHead(bb)) {
 				createSyncStruct(bb);
@@ -639,5 +654,4 @@ public final class TrControlFlowAnalysis {
 			}
 		}
 	}
-
 }
