@@ -281,7 +281,7 @@ public final class BB {
 			for (int j = 0; j < frame.getTop(); ++j) {
 				final R r = frame.load(regs + j);
 				if (r != null) {
-					row[2 + j] = (frame.isAlive(j) ? "A " : "") + r.toString();
+					row[2 + j] = (frame.isAlive(j) ? "A " : "") + r.getSimpleName();
 					// align header
 					if (header[2 + j].length() < row[2 + j].length()) {
 						header[2 + j] += Strings.repeat(" ",
@@ -292,7 +292,7 @@ public final class BB {
 			for (int j = 0; j < regs; ++j) {
 				final R r = frame.load(j);
 				if (r != null) {
-					row[2 + stackRegs + j] = (frame.isAlive(j) ? "A " : "") + r.toString();
+					row[2 + stackRegs + j] = (frame.isAlive(j) ? "A " : "") + r.getSimpleName();
 					// align header
 					if (header[2 + stackRegs + j].length() < row[2 + stackRegs + j].length()) {
 						header[2 + stackRegs + j] += Strings.repeat(
