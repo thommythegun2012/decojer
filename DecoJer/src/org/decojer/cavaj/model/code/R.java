@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.types.T;
 
 /**
  * Register.
- * 
+ *
  * @author André Pankraz
  */
 @Getter
@@ -38,7 +38,7 @@ public final class R {
 
 	/**
 	 * Register kind.
-	 * 
+	 *
 	 * @author André Pankraz
 	 */
 	public enum Kind {
@@ -67,7 +67,7 @@ public final class R {
 
 	/**
 	 * Create register of type BOOLMATH.
-	 * 
+	 *
 	 * @param pc
 	 *            register start pc (BOOLMATH operation pc)
 	 * @param i
@@ -89,7 +89,7 @@ public final class R {
 
 	/**
 	 * Create register of type CONST.
-	 * 
+	 *
 	 * @param pc
 	 *            register start pc (CONST operation pc)
 	 * @param i
@@ -107,7 +107,7 @@ public final class R {
 
 	/**
 	 * Create register of type MERGE.
-	 * 
+	 *
 	 * @param pc
 	 *            register start pc (MERGE pc)
 	 * @param i
@@ -129,7 +129,7 @@ public final class R {
 
 	/**
 	 * Create register of type MOVE.
-	 * 
+	 *
 	 * @param pc
 	 *            register start pc (MOVE operation pc)
 	 * @param i
@@ -150,11 +150,11 @@ public final class R {
 
 	/**
 	 * Lower bound of register type, stores (and merges) rise the type bound through type joins.
-	 * 
+	 *
 	 * Lowest bound is artificial union type "Bottom". All reads must be assignable from this type.
 	 * The derived Java variable type must be somewhere between upperT and lowerT. We prefer the
 	 * most exact type near lowerT.
-	 * 
+	 *
 	 * Primitive types behave a bit different for stores: The JVM doesn't really differentiate
 	 * between int, bool etc. but Java does. In the JVM you can assign int to bool, but not in Java.
 	 * E.g. Dalvik often uses 0-constants that are assigned to int and bool variables for variable
@@ -167,14 +167,14 @@ public final class R {
 
 	/**
 	 * Register start PC, this is generally the previous changing operation.
-	 * 
+	 *
 	 * Method parameter registers have -1 and merge registers have BB start as PC.
 	 */
 	private final int pc;
 
 	/**
 	 * Upper bound of register type, reads lower the type bound through type unions.
-	 * 
+	 *
 	 * Highest bound for reference types is Object. All stores must be assignable to this type. The
 	 * derived Java variable type must be somewhere between upperT and lowerT. We prefer the most
 	 * exact type near lowerT.
@@ -189,7 +189,7 @@ public final class R {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            register start pc
 	 * @param i
@@ -241,7 +241,7 @@ public final class R {
 
 	/**
 	 * Read type.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @return {@code true} - success
@@ -275,15 +275,24 @@ public final class R {
 
 	/**
 	 * Get incoming register.
-	 * 
+	 *
 	 * Should be a MOVE.
-	 * 
+	 *
 	 * @return incoming register
 	 */
 	public R getIn() {
 		assert getKind() == Kind.MOVE && this.ins.length == 1;
 
 		return this.ins[0];
+	}
+
+	/**
+	 * Get simple name, e.g.: "MO123: int[]"
+	 * 
+	 * @return simple name
+	 */
+	public String getSimpleName() {
+		return getKind().name().substring(0, 2) + getPc() + ": " + this.lowerT.getSimpleName();
 	}
 
 	public T getT() {
@@ -294,7 +303,7 @@ public final class R {
 
 	/**
 	 * Is register a method parameter?
-	 * 
+	 *
 	 * @return {@code true} - is method parameter
 	 * @see CFG#initFrames()
 	 */
@@ -304,7 +313,7 @@ public final class R {
 
 	/**
 	 * Is wide type?
-	 * 
+	 *
 	 * @return {@code true} - is wide type
 	 */
 	public boolean isWide() {
@@ -333,7 +342,7 @@ public final class R {
 
 	/**
 	 * Replace input register.
-	 * 
+	 *
 	 * @param prevIn
 	 *            previous input register
 	 * @param newIn
@@ -391,8 +400,7 @@ public final class R {
 
 	@Override
 	public String toString() {
-		return "R" + this.pc + "_" + this.kind.name().substring(0, 2) + ": "
-				+ this.lowerT.getSimpleName();
+		return "R" + getI() + "." + getSimpleName();
 	}
 
 }
