@@ -3,24 +3,32 @@
 {{{
 ---
 
-com.itextpdf.text.pdf.codec.TIFFDirectory.initialize(Lcom/itextpdf/text/pdf/RandomAccessFileOrArray;)V (ops: 364, regs: 22)
+oracle.jdbc.driver.ArrayDataResultSet.getCursor(I)Ljava/sql/ResultSet; 
+(ops: 21, regs: 5)
 
-java.lang.AssertionError: cannot assign 'R181_MO: char[]' to 'int[]'
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:255)
+--- Sync ---
+Head: BB 3
+Members: 
+  BB 2   
 
-mergeReg: BB  (l 372, pc 337)
+is null:
+final BB follow = sync.getFollow();
+if (follow.getStmt(0) instanceof SynchronizedStatement) {
+			follow.removeStmt(0);
+		}
 
+###
 
 com.google.common.cache.Striped64.retryUpdate(JLcom/google/common/cache/Striped64$HashCode;Z)V (ops: 242, regs: 20)
 
 java.lang.AssertionError: com.google.common.cache.Striped64.retryUpdate(JLcom/google/common/cache/Striped64$HashCode;Z)V: register is null for pc '4' and index '6' for operation: STORE 6
+
+###
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:883)
 
 
 com.ibm.icu_50.1.1.v201304230130.jar
 	com.ibm.icu.text.UnicodeSet.containsAll(Lcom/ibm/icu/text/UnicodeSet;)Z (ops: 101, regs: 13)
-
-
 
 }}}
 
