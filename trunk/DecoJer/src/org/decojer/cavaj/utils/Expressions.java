@@ -536,6 +536,29 @@ public final class Expressions {
 	}
 
 	/**
+	 * New name. Handles illegal Java names.
+	 *
+	 * @param identifiers
+	 *            identifiers
+	 * @param ast
+	 *            AST
+	 * @return AST name
+	 */
+	public static Name newName(final String[] identifiers, final AST ast) {
+		// update internalSetName(String[] if changed
+		final int count = identifiers.length;
+		if (count == 0) {
+			throw new IllegalArgumentException();
+		}
+		Name result = newSimpleName(identifiers[0], ast);
+		for (int i = 1; i < count; i++) {
+			final SimpleName name = newSimpleName(identifiers[i], ast);
+			result = ast.newQualifiedName(result, name);
+		}
+		return result;
+	}
+
+	/**
 	 * New postfix expression.
 	 *
 	 * @param operator
@@ -578,7 +601,7 @@ public final class Expressions {
 	}
 
 	/**
-	 * New simple name.
+	 * New simple name. Handles illegal Java names.
 	 *
 	 * @param identifier
 	 *            identifier
@@ -809,10 +832,10 @@ public final class Expressions {
 			// t = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
 			if (contextT.getFullName().startsWith(qualifierT.getFullName())) {
 				// TODO full name has too much info yet (like annotations)
-				return ast.newSimpleType(ast.newSimpleName(t.getSimpleIdentifier()));
+				return ast.newSimpleType(newSimpleName(t.getSimpleIdentifier(), ast));
 			}
 			return ast.newQualifiedType(newType(qualifierT, contextT),
-					ast.newSimpleName(t.getSimpleIdentifier()));
+					newSimpleName(t.getSimpleIdentifier(), ast));
 		}
 		// else fall through...
 		return ast.newSimpleType(newTypeName(t, contextT));
@@ -866,7 +889,7 @@ public final class Expressions {
 			}
 			currentT = enclosingT;
 		}
-		return ast.newName(names.toArray(new String[names.size()]));
+		return newName(names.toArray(new String[names.size()]), ast);
 	}
 
 	/**
