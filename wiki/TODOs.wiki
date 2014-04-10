@@ -8,6 +8,8 @@ com.itextpdf.text.pdf.codec.TIFFDirectory.initialize(Lcom/itextpdf/text/pdf/Rand
 java.lang.AssertionError: cannot assign 'R181_MO: char[]' to 'int[]'
 	at org.decojer.cavaj.model.code.R.assignTo(R.java:255)
 
+mergeReg: BB  (l 372, pc 337)
+
 
 com.google.common.cache.Striped64.retryUpdate(JLcom/google/common/cache/Striped64$HashCode;Z)V (ops: 242, regs: 20)
 
