@@ -3,19 +3,8 @@
 {{{
 ---
 
-oracle.jdbc.driver.ArrayDataResultSet.getCursor(I)Ljava/sql/ResultSet; 
-(ops: 21, regs: 5)
-
---- Sync ---
-Head: BB 3
-Members: 
-  BB 2   
-
-is null:
-final BB follow = sync.getFollow();
-if (follow.getStmt(0) instanceof SynchronizedStatement) {
-			follow.removeStmt(0);
-		}
+java.lang.AssertionError: oracle.jdbc.pool.OracleImplicitConnectionCacheThread.run()V: register is null for pc '5' and index '5' for operation: STORE 5
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:883)
 
 ###
 
@@ -43,7 +32,6 @@ com.ibm.icu_50.1.1.v201304230130.jar
   * inner classes synthetic initializer for eclosing.this, comment in PUT indicates, data flowe analysis must be solved first:
     * we want to rewrite this$0 here, but for this constructor methods have to be handled first to mark such fields for consumption?
     * fieldInit is false for synthetic this$0 initializer in constructor, also not sufficient check for conditionals, alternative via data flow analysis?!
-  * loop recognition from bottom up
   * JDK 8
     * Eclipse AST for JDK 8: http://www.oracle.com/technetwork/articles/java/lambda-1984522.html
       * JDK 8 Update from: http://download.eclipse.org/eclipse/updates/4.3-P-builds/
