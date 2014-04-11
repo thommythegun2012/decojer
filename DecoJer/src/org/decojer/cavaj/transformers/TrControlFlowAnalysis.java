@@ -579,8 +579,8 @@ public final class TrControlFlowAnalysis {
 				continue; // ignore incoming back edges, sub loop-heads belong to branch
 			}
 			final BB pred = in.getStart();
-			// we could check if postorder smaller than loop head, but invalid in-jumps are an
-			// exception anyway
+			// we could check if postorder smaller than loop head, but invalid struct multi-entries
+			// are a rare exception anyway
 			if (findReverseBranch(struct, pred, members, traversedBbs)) {
 				isMember = true;
 			}
