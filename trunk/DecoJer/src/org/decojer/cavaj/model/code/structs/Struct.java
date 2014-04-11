@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -47,6 +48,7 @@ import com.google.common.collect.Maps;
 public class Struct {
 
 	@Getter
+	@Nullable
 	private BB follow;
 
 	@Getter
@@ -241,8 +243,9 @@ public class Struct {
 		}
 		sb.append("--- ").append(getClass().getSimpleName()).append(" ---");
 		sb.append("\nHead: BB ").append(getHead().getPostorder());
-		if (this.follow != null) {
-			sb.append("  Follow: BB ").append(getFollow().getPostorder());
+		final BB follow = getFollow();
+		if (follow != null) {
+			sb.append("  Follow: BB ").append(follow.getPostorder());
 		}
 		sb.append("\nMembers: ");
 		int i = 0;
