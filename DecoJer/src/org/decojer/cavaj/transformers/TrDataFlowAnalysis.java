@@ -144,7 +144,9 @@ public final class TrDataFlowAnalysis {
 		assert retFrame != null;
 		final R regAtRet = retFrame.load(i);
 
-		final Sub sub = (Sub) retFrame.load(ret.getReg()).getValue();
+		final R retReg = retFrame.load(ret.getReg());
+		assert retReg != null;
+		final Sub sub = (Sub) retReg.getValue();
 
 		final Frame subFrame = getFrame(sub.getPc());
 		assert subFrame != null;
@@ -850,7 +852,7 @@ public final class TrDataFlowAnalysis {
 
 	private R load(final int i, final T t) {
 		final R r = this.currentFrame.load(i);
-		if (!r.assignTo(t)) {
+		if (r == null || !r.assignTo(t)) {
 			throw new DecoJerException("Incompatible type for register '" + i
 					+ "'! Cannot assign '" + r + "' to '" + t + "'.");
 		}
@@ -879,8 +881,11 @@ public final class TrDataFlowAnalysis {
 				return; // was already alive, can happen via MOVE-out
 			}
 			final R r = frame.load(aliveI);
-			assert r != null : getM() + ": register is null for pc '" + pc + "' and index '"
-					+ aliveI + "' for operation: " + bb.getOp(j);
+			if (r == null) {
+				log.warn(getM() + ": Alive register is null for pc '" + pc + "' and index '"
+						+ aliveI + "' for operation '" + bb.getOp(j) + "'!");
+				return;
+			}
 
 			if (r.getPc() == pc) {
 				// register does change here...
