@@ -1,5 +1,6 @@
 package org.decojer.cavaj.test;
 
+
 public abstract class DecTestSynchronized {
 
 	private static final Object MUTEX = new Object();
@@ -58,6 +59,12 @@ public abstract class DecTestSynchronized {
 				System.out.println("NESTEDSYNC");
 			}
 			System.out.println("SYNC");
+		}
+	}
+
+	public void noFollowSync() {
+		synchronized (this) {
+			throw new RuntimeException("TEST");
 		}
 	}
 
