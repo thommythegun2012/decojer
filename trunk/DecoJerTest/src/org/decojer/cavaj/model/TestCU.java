@@ -8,10 +8,10 @@ import java.util.Map;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.ToolFactory;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
+import org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.eclipse.text.edits.TextEdit;
 import org.testng.annotations.Test;
 
-@Test
 public class TestCU {
 
 	@Test
@@ -23,8 +23,12 @@ public class TestCU {
 			src.append(line);
 		}
 		String source = src.toString();
+		@SuppressWarnings("unchecked")
 		final Map<String, String> options = JavaCore.getOptions();
 		options.put(JavaCore.COMPILER_SOURCE, "1.5");
+		// Eclipse-Bug with low values and long lines like in com.ibm.icu.util.LocaleMatcher,
+		// prevent this anyway and do it manually because of line number preservation?
+		options.put(DefaultCodeFormatterConstants.FORMATTER_LINE_SPLIT, "10000");
 		final CodeFormatter codeFormatter = ToolFactory.createCodeFormatter(options);
 		final TextEdit edit = codeFormatter.format(CodeFormatter.K_COMPILATION_UNIT, source, 0,
 				source.length(), 0, "\r\n");
