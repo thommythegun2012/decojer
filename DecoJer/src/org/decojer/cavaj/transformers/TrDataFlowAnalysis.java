@@ -884,9 +884,9 @@ public final class TrDataFlowAnalysis {
 			if (r == null) {
 				log.warn(getM() + ": Alive register is null for pc '" + pc + "' and index '"
 						+ aliveI + "' for operation '" + bb.getOp(j) + "'!");
+				assert false;
 				return;
 			}
-
 			if (r.getPc() == pc) {
 				// register does change here...
 				switch (r.getKind()) {
