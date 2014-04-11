@@ -42,6 +42,7 @@ com.ibm.icu_50.1.1.v201304230130.jar
     * special recognition of thhis and params for invalid debug vars
   * JSR-merge stuff
   * assign-to with "maybe"
+  * Infinity Loop in Eclipse-CodeFormatter: https://bugs.eclipse.org/bugs/show_bug.cgi?id=432593
   * inner classes synthetic initializer for eclosing.this, comment in PUT indicates, data flowe analysis must be solved first:
     * we want to rewrite this$0 here, but for this constructor methods have to be handled first to mark such fields for consumption?
     * fieldInit is false for synthetic this$0 initializer in constructor, also not sufficient check for conditionals, alternative via data flow analysis?!
