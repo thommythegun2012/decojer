@@ -2,9 +2,16 @@
 
 {{{
 ---
-
 java.lang.AssertionError: oracle.jdbc.pool.OracleImplicitConnectionCacheThread.run()V: register is null for pc '5' and index '5' for operation: STORE 5
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:883)
+
+CMP (84) long -> int
+
+markAlive 5 in:
+
+BB 0 (l 53, pc 0)
+Ops: [PUSH 0, STORE 1, PUSH 0, STORE 3, PUSH 0, STORE 5]
+
 
 ###
 
