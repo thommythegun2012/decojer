@@ -149,6 +149,7 @@ public final class Frame {
 	 *            register index
 	 * @return register (local or stack)
 	 */
+	@Nullable
 	public R load(final int i) {
 		// stack allowed too: assert i < this.cfg.getRegs();
 

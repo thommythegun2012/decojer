@@ -1284,9 +1284,12 @@ public final class TrCfg2JavaExpressionStmts {
 		if (name == null) {
 			if (reg == 0 && !getM().isStatic()) {
 				final Frame frame = getCfg().getFrame(pc);
-				if (frame != null && frame.load(reg).isMethodParam()) {
-					// TODO later we move this to a real variable analysis
-					return "this";
+				if (frame != null) {
+					final R r = frame.load(reg);
+					if (r != null && r.isMethodParam()) {
+						// TODO later we move this to a real variable analysis
+						return "this";
+					}
 				}
 			}
 			return "r" + reg;
