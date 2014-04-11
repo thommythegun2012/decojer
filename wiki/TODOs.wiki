@@ -12,6 +12,12 @@ markAlive 5 in:
 BB 0 (l 53, pc 0)
 Ops: [PUSH 0, STORE 1, PUSH 0, STORE 3, PUSH 0, STORE 5]
 
+Problem is ME90 in follow BB start, reg 5:
+
+|PC | Operation      # s0                                         # r0                                         | r1           | r2 | r3           | r4 | r5           | r6 | r7 | 
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+|6  | LOAD 0         #                                            # A CO0: OracleImplicitConnectionCacheThread | A ME90: long |    | A ME90: long |    | A ME90: long |    |    | 
+
 
 ###
 
