@@ -98,32 +98,32 @@ rem default target is 1.2 (46)
 "%Java%\jdk1.7.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk6\*.java -g:none -d %DecoJerTest%\bin_jdk1.7.0
 "%Java%\jdk1.7.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk7\*.java -g:none -d %DecoJerTest%\bin_jdk1.7.0
 
-"C:\Program Files\Java\jdk1.7.0_51\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
-"C:\Program Files\Java\jdk1.7.0_51\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk2\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
-"C:\Program Files\Java\jdk1.7.0_51\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk3\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
-"C:\Program Files\Java\jdk1.7.0_51\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk4\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
-"C:\Program Files\Java\jdk1.7.0_51\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk5\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
-"C:\Program Files\Java\jdk1.7.0_51\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk6\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
-"C:\Program Files\Java\jdk1.7.0_51\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk7\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_55\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_55\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk2\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_55\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk3\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_55\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk4\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_55\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk5\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_55\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk6\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
+"C:\Program Files\Java\jdk1.7.0_55\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk7\*.java -g -d %DecoJerTest%\bin_jdk1.7.0_c
 
 
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk2\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk3\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk4\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk5\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk6\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk7\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk8\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
+"%Java%\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
+"%Java%\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk2\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
+"%Java%\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk3\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
+"%Java%\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk4\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
+"%Java%\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk5\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
+"%Java%\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk6\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
+"%Java%\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk7\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
+"%Java%\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk8\*.java -g:none -d %DecoJerTest%\bin_jdk1.8.0
 
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk2\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk3\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk4\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk5\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk6\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk7\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
-"C:\Program Files\Java\jdk1.8.0\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk8\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
+"C:\Program Files\Java\jdk1.8.0_05\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
+"C:\Program Files\Java\jdk1.8.0_05\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk2\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
+"C:\Program Files\Java\jdk1.8.0_05\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk3\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
+"C:\Program Files\Java\jdk1.8.0_05\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk4\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
+"C:\Program Files\Java\jdk1.8.0_05\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk5\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
+"C:\Program Files\Java\jdk1.8.0_05\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk6\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
+"C:\Program Files\Java\jdk1.8.0_05\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk7\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
+"C:\Program Files\Java\jdk1.8.0_05\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk8\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
 
 
 mkdir %DecoJerTest%\dex\bin
