@@ -151,8 +151,7 @@ public final class Frame {
 	 */
 	@Nullable
 	public R load(final int i) {
-		// stack allowed too: assert i < this.cfg.getRegs();
-
+		assert i < this.rs.length;
 		return this.rs[i];
 	}
 
