@@ -26,6 +26,7 @@ package org.decojer.cavaj.transformers;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
@@ -89,6 +90,7 @@ import org.decojer.cavaj.model.types.T;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Transformer: Data Flow Analysis and create CFG.
@@ -459,9 +461,9 @@ public final class TrDataFlowAnalysis {
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
 				assert false : getM() + ": already visited sub with pc '" + subPc
-						+ "' but didn't find initial sub register";
+				+ "' but didn't find initial sub register";
 
-				return -1;
+			return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
 			if (!this.currentFrame.pushSub(sub)) {
@@ -620,7 +622,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : getM() + ": cannot assign '" + returnT
-					+ "' to return type '" + cop.getT() + "'";
+			+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -901,8 +903,8 @@ public final class TrDataFlowAnalysis {
 				case MERGE:
 					assert false : getM() + ": MERGE can only be first op in BB";
 
-					// stop backpropagation here
-					return;
+				// stop backpropagation here
+				return;
 				case MOVE:
 					// register changes here, MOVE from different incoming register in same BB
 					aliveI = r.getIn().getI();
@@ -1010,7 +1012,8 @@ public final class TrDataFlowAnalysis {
 		}
 		if (newR == null) {
 			// new register is null? => merge to null => replace previous register from here
-			replaceRegBbDeep(targetBb, prevR, null);
+			final Set<BB> mergeBbs = replaceRegBbDeep(targetBb, prevR, null);
+			assert mergeBbs == null;
 			return;
 		}
 
@@ -1018,7 +1021,8 @@ public final class TrDataFlowAnalysis {
 		if (intersectT == null) {
 			// merge type is null? => merge to null => replace previous register from here
 			// TODO handle types with unknown super not as null-intersect
-			replaceRegBbDeep(targetBb, prevR, null);
+			final Set<BB> mergeBbs = replaceRegBbDeep(targetBb, prevR, null);
+			assert mergeBbs == null;
 			return;
 		}
 		if (targetFrame.isAlive(i)) {
@@ -1039,7 +1043,13 @@ public final class TrDataFlowAnalysis {
 		}
 		// else start new merge register
 		final R mergeR = R.createMergeR(targetBb.getPc(), i, intersectT, null, prevR, newR);
-		replaceRegBbDeep(targetBb, prevR, mergeR);
+		final Set<BB> mergeBbs = replaceRegBbDeep(targetBb, prevR, mergeR);
+		if (mergeBbs != null) {
+			// replace triggered new merges
+			for (final BB mergeBb : mergeBbs) {
+				mergeReg(mergeBb, i, newR);
+			}
+		}
 	}
 
 	@Nonnull
@@ -1134,39 +1144,108 @@ public final class TrDataFlowAnalysis {
 		return true;
 	}
 
-	private void replaceRegBbDeep(@Nonnull final BB bb, @Nonnull final R prevR,
+	@Nullable
+	private Set<BB> replaceRegBbDeep(@Nonnull final BB bb, @Nonnull final R prevR,
 			@Nullable final R newR) {
-		if (!replaceRegBb(bb, prevR, newR)) {
-			return;
-		}
-		// final operation is RET & register untouched in sub => modify to state before sub
-		// TODO check JSR and RET, register same before and after??? replace RET
-		// TODO not same? overwrite RET
-		final Op finalOp = bb.getFinalOp();
-		final boolean jumpOverSub = finalOp instanceof RET ? !checkRegisterAccessInSub(
-				prevR.getI(), (RET) finalOp) : false;
+		// no recursion here: we must try to forward replace the register prevR as far as we can and
+		// all potential new merge points triggered by this replacement are put into the set
+		// mergeBbs; it's a bit like "find conditional branch" in the control flow analysis
+		final List<BB> replaceBbs = Lists.newArrayList(bb);
+		Set<BB> mergeBbs = null;
 
-				// replacement propagation to next BB necessary
-				for (final E out : bb.getOuts()) {
-					final BB outBb = out.getEnd();
-					if (getFrame(outBb.getPc()) == null) {
-						assert out.isCatch() : getM()
-						+ ": out frames can just be null for splitted catch-handlers that havn't been visited yet: "
-						+ out;
-
+		outer: while (!replaceBbs.isEmpty()) {
+			final BB replaceBb = replaceBbs.remove(0);
+			if (mergeBbs != null) {
+				mergeBbs.remove(replaceBb);
+			}
+			// replace register in current BB
+			if (!replaceRegBb(replaceBb, prevR, newR)) {
+				// end of replacement encountered in current BB
+				continue;
+			}
+			// check iff subroutine encountered (final operation RET or JSR)
+			final Op finalOp = replaceBb.getFinalOp();
+			if (finalOp instanceof RET && !checkRegisterAccessInSub(prevR.getI(), (RET) finalOp)) {
+				// simply stop here with replacement, the deep replacement must either be triggered
+				// via the JSR node or is the initial Sub-Merge
+				continue;
+			}
+			if (finalOp instanceof JSR) {
+				// always try to replace the sub-ret-frame iff prevR is same
+				final BB outBb = getBb(finalOp.getPc() + 1);
+				if (outBb == null) {
+					continue;
+				}
+				final Frame outFrame = getFrame(outBb.getPc());
+				if (outFrame == null) {
+					assert false;
+					continue;
+				}
+				final R outPrevR = outFrame.load(prevR.getI());
+				// new merge register points are not really possible here
+				if (outPrevR == prevR) {
+					replaceBbs.add(outBb);
+				}
+			}
+			// replacement propagation to next BB necessary
+			for (final E out : replaceBb.getOuts()) {
+				final BB outBb = out.getEnd();
+				final Frame outFrame = getFrame(outBb.getPc());
+				if (outFrame == null) {
+					assert out.isCatch();
+					continue;
+				}
+				if (prevR.getI() >= outFrame.getRegs()) {
+					// stack register popped?
+					if (prevR.getI() - outFrame.getRegs() >= outFrame.getTop()) {
 						continue;
 					}
-					// final operation is RET & register untouched in sub => modify to state before sub
-					R newOutR;
-					if (jumpOverSub) {
-						final Frame frame = getFrame(outBb.getPc() - 1);
-						assert frame != null;
-						newOutR = frame.load(prevR.getI());
-					} else {
-						newOutR = newR;
-					}
-					replaceRegBbDeep(outBb, prevR, newOutR);
 				}
+				final R outPrevR = outFrame.load(prevR.getI());
+				if (outPrevR != prevR || outPrevR == null) {
+					continue;
+				}
+				if (newR != null) {
+					// additional checks to see if this is a new register merge point triggered by
+					// the deep register replacement
+					if (outPrevR.getPc() == replaceBb.getPc()) {
+						// register changes here? -> new merge point!
+						if (mergeBbs == null) {
+							mergeBbs = Sets.newHashSet();
+						}
+						mergeBbs.add(outBb);
+						continue;
+					}
+					// any incoming BB has still prevR? -> new potential merge point!
+					for (final E in : outBb.getIns()) {
+						if (in == out /* || in.isBack() we don't know yet */) {
+							continue;
+						}
+						final BB inBb = in.getStart();
+						final Op finalInOp = inBb.getFinalOp();
+						if (finalInOp == null) {
+							assert false;
+							continue;
+						}
+						final Frame inFrame = getFrame(finalInOp.getPc());
+						if (inFrame == null) {
+							assert false;
+							continue;
+						}
+						final R inR = inFrame.load(prevR.getI());
+						if (inR == prevR) {
+							if (mergeBbs == null) {
+								mergeBbs = Sets.newHashSet();
+							}
+							mergeBbs.add(outBb);
+							continue outer;
+						}
+					}
+				}
+				replaceBbs.add(outBb);
+			}
+		}
+		return mergeBbs;
 	}
 
 	private boolean replaceRegFrame(final int pc, final R prevR, @Nullable final R newR) {
