@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import lombok.extern.slf4j.Slf4j;
@@ -68,7 +69,8 @@ public final class Annotations {
 	 *            Annotation
 	 * @return Annotation AST Node
 	 */
-	private static Annotation decompileAnnotation(final T t, final A a) {
+	@Nonnull
+	private static Annotation decompileAnnotation(@Nonnull final T t, @Nonnull final A a) {
 		final AST ast = t.getCu().getAst();
 		final Set<Entry<String, Object>> members = a.getMembers();
 		if (!members.isEmpty()) {
@@ -199,14 +201,19 @@ public final class Annotations {
 	 *            Type Declaration
 	 */
 	public static void decompileAnnotations(final A[] as, final List<Annotation> annotations,
-			final T contextT) {
+			@Nonnull final T contextT) {
 		if (as == null) {
 			return;
 		}
 		for (final A a : as) {
+			if (a == null) {
+				continue;
+			}
 			if (isRepeatable(a)) {
 				for (final Object aa : (Object[]) a.getValueMember()) {
-					annotations.add(decompileAnnotation(contextT, (A) aa));
+					if (aa instanceof A) {
+						annotations.add(decompileAnnotation(contextT, (A) aa));
+					}
 				}
 			} else {
 				annotations.add(decompileAnnotation(contextT, a));
@@ -224,8 +231,8 @@ public final class Annotations {
 	 * @param contextT
 	 *            Type Declaration
 	 */
-	public static void decompileAnnotations(final T t, final List<Annotation> annotations,
-			final T contextT) {
+	public static void decompileAnnotations(@Nonnull final T t,
+			@Nonnull final List<Annotation> annotations, @Nonnull final T contextT) {
 		if (t.isAnnotated()) {
 			decompileAnnotations(t.getAs(), annotations, contextT);
 		}
@@ -249,7 +256,7 @@ public final class Annotations {
 		return false;
 	}
 
-	private static boolean isRepeatable(final A a) {
+	private static boolean isRepeatable(@Nonnull final A a) {
 		if (a.getMembers().size() != 1) {
 			// annotation declaration can have other members, but they must have defaults...this is
 			// implicitely true because our code can only be compiled against such annotations with
