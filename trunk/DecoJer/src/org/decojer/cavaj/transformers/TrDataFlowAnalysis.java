@@ -1014,7 +1014,17 @@ public final class TrDataFlowAnalysis {
 				+ ": target PC is not start of a target BB";
 
 		for (int i = targetFrame.size(); i-- > 0;) {
-			mergeReg(targetBb, i, this.currentFrame.load(i));
+			final R newR = this.currentFrame.load(i);
+			mergeReg(targetBb, i, newR);
+			if (targetFrame.isAlive(i)) {
+				assert newR != null;
+				// register i for current BB must be alive too for merging
+				if (newR.getPc() != targetBb.getPc()) {
+					markAlive(this.currentBb, i);
+				} else if (newR.getKind() == Kind.MOVE) {
+					markAlive(this.currentBb, newR.getIn().getI());
+				}
+			}
 		}
 	}
 
@@ -1032,7 +1042,6 @@ public final class TrDataFlowAnalysis {
 			assert mergeBbs == null;
 			return;
 		}
-
 		final T intersectT = T.intersect(prevR.getT(), newR.getT());
 		if (intersectT == null) {
 			// merge type is null? => merge to null => replace previous register from here
@@ -1042,16 +1051,9 @@ public final class TrDataFlowAnalysis {
 			return;
 		}
 		if (targetFrame.isAlive(i)) {
-			// register i for current BB must be alive too for merging
-			if (newR.getPc() != targetBb.getPc()) {
-				markAlive(this.currentBb, i);
-			} else if (newR.getKind() == Kind.MOVE) {
-				markAlive(this.currentBb, newR.getIn().getI());
-			}
 			newR.assignTo(intersectT);
 			prevR.assignTo(intersectT);
 		}
-
 		if (prevR.getKind() == Kind.MERGE && prevR.getPc() == targetBb.getPc()) {
 			// this is a new merge register, add us in
 			prevR.addInMerge(intersectT, newR);
