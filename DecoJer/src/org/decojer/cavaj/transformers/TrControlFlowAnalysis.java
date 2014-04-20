@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -48,6 +49,8 @@ import org.decojer.cavaj.model.code.structs.Switch.Kind;
 import org.decojer.cavaj.model.code.structs.Sync;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.utils.Expressions;
+import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
@@ -146,12 +149,35 @@ public final class TrControlFlowAnalysis {
 		this.cfg = cfg;
 	}
 
+	@Nullable
 	private Cond createCondStruct(@Nonnull final BB head) {
-		final Cond cond = new Cond(head);
-
 		final BB falseSucc = head.getFalseSucc();
 		final BB trueSucc = head.getTrueSucc();
 		assert falseSucc != null && trueSucc != null;
+
+		if (falseSucc == trueSucc) {
+			// have seen this e.g. in org.python.core.PyJavaClass.addMethod()
+			final Statement finalStmt = head.removeFinalStmt();
+			if (!(finalStmt instanceof IfStatement)) {
+				assert false;
+				return null;
+			}
+			// convert if statement to expression statement
+			final Expression expression = ((IfStatement) finalStmt).getExpression();
+			head.addStmt(finalStmt.getAST().newExpressionStatement(Expressions.wrap(expression)));
+			// convert conditional out edges to sequence edge
+			head.setSucc(falseSucc);
+			final List<E> outs = head.getOuts();
+			for (int i = outs.size(); i-- > 0;) {
+				final E out = outs.get(i);
+				if (out.isCond()) {
+					out.remove();
+				}
+			}
+			return null;
+		}
+
+		final Cond cond = new Cond(head);
 
 		// if-statement compilation hasn't changed with JDK versions (unlike boolean expressions)
 		// means: negated if-expression, false successor contains if-body (PC & line before true),
