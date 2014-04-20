@@ -38,6 +38,7 @@ import org.decojer.cavaj.model.types.Version;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AnnotatableType;
+import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
@@ -722,9 +723,10 @@ public final class Expressions {
 					dimensions.clear();
 					for (T elementT = t; elementT.isArray(); elementT = elementT.getComponentT()) {
 						final Dimension dimension = ast.newDimension();
+						final List<Annotation> annotations = dimension.annotations();
+						assert annotations != null;
 						if (elementT.isAnnotated()) {
-							Annotations.decompileAnnotations(elementT, dimension.annotations(),
-									contextT);
+							Annotations.decompileAnnotations(elementT, annotations, contextT);
 						}
 						dimensions.add(dimension);
 					}
@@ -763,7 +765,9 @@ public final class Expressions {
 					type = annotatableType;
 				}
 			}
-			Annotations.decompileAnnotations(t, annotatableType.annotations(), contextT);
+			final List<Annotation> annotations = annotatableType.annotations();
+			assert annotations != null;
+			Annotations.decompileAnnotations(t, annotations, contextT);
 			return type;
 		}
 		// doesn't work, now with Dimension (see above): if (t.isArray()) { return
