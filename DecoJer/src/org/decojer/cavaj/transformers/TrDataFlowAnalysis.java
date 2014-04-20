@@ -461,9 +461,9 @@ public final class TrDataFlowAnalysis {
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
 				assert false : getM() + ": already visited sub with pc '" + subPc
-				+ "' but didn't find initial sub register";
+						+ "' but didn't find initial sub register";
 
-			return -1;
+				return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
 			if (!this.currentFrame.pushSub(sub)) {
@@ -622,7 +622,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : getM() + ": cannot assign '" + returnT
-			+ "' to return type '" + cop.getT() + "'";
+					+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -875,7 +875,6 @@ public final class TrDataFlowAnalysis {
 		return r;
 	}
 
-	@SuppressWarnings("null")
 	private void markAlive(final BB bb, final int i) {
 		// mark this BB alive for register i;
 		// we defer MOVE alive markings, to prevent DUP/POP stuff etc.
@@ -883,6 +882,10 @@ public final class TrDataFlowAnalysis {
 		for (int j = bb.getOps(); j-- > 1;) {
 			final int pc = bb.getOp(j).getPc();
 			final Frame frame = getFrame(pc);
+			if (frame == null) {
+				assert false;
+				return;
+			}
 			if (!frame.markAlive(aliveI)) {
 				return; // was already alive, can happen via MOVE-out
 			}
@@ -903,8 +906,8 @@ public final class TrDataFlowAnalysis {
 				case MERGE:
 					assert false : getM() + ": MERGE can only be first op in BB";
 
-				// stop backpropagation here
-				return;
+					// stop backpropagation here
+					return;
 				case MOVE:
 					// register changes here, MOVE from different incoming register in same BB
 					aliveI = r.getIn().getI();
@@ -916,6 +919,10 @@ public final class TrDataFlowAnalysis {
 		}
 		final int pc = bb.getPc();
 		final Frame frame = getFrame(pc);
+		if (frame == null) {
+			assert false;
+			return;
+		}
 		if (!frame.markAlive(aliveI)) {
 			return; // was already alive, can happen via MOVE-out
 		}
@@ -926,6 +933,10 @@ public final class TrDataFlowAnalysis {
 		// so we could fan out into multiple register indices here!
 		R[] mergeIns = null;
 		final R r = frame.load(aliveI);
+		if (r == null) {
+			assert false;
+			return;
+		}
 		if (r.getPc() == pc) {
 			// different kinds possible, e.g. exceptions can split BBs
 			switch (r.getKind()) {
@@ -951,11 +962,15 @@ public final class TrDataFlowAnalysis {
 		previousLoop: for (final E in : bb.getIns()) {
 			final BB inBb = in.getStart();
 			final Op finalOp = inBb.getFinalOp();
+			if (finalOp == null) {
+				assert false;
+				continue;
+			}
 			if (finalOp instanceof RET) {
 				// jump over subs, where the register is unchanged
 				if (!checkRegisterAccessInSub(aliveI, (RET) finalOp)) {
 					markAlive(getBb(pc - 1), aliveI);
-					continue previousLoop;
+					continue;
 				}
 			}
 			if (mergeIns != null) {
@@ -1002,7 +1017,7 @@ public final class TrDataFlowAnalysis {
 		}
 	}
 
-	private void mergeReg(final BB targetBb, final int i, @Nullable final R newR) {
+	private void mergeReg(@Nonnull final BB targetBb, final int i, @Nullable final R newR) {
 		final Frame targetFrame = getFrame(targetBb.getPc());
 		assert targetFrame != null;
 		final R prevR = targetFrame.load(i);
@@ -1047,6 +1062,7 @@ public final class TrDataFlowAnalysis {
 		if (mergeBbs != null) {
 			// replace triggered new merges
 			for (final BB mergeBb : mergeBbs) {
+				assert mergeBb != null;
 				mergeReg(mergeBb, i, newR);
 			}
 		}
@@ -1257,7 +1273,7 @@ public final class TrDataFlowAnalysis {
 		final R[] outs = prevR.getOuts();
 		if (outs != null) {
 			for (final R out : outs) {
-				if (out.getPc() == pc) {
+				if (out.getPc() == pc && out.getKind() == Kind.MERGE) {
 					// no complete merge handling here...what if we replace only one occurence in
 					// multi-merge of same register...handle in BB navigation: replaceBbRegDeep
 					out.replaceIn(prevR, newR);
