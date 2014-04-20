@@ -413,6 +413,13 @@ class TestT {
 				du.getT(Serializable.class)).isAssignableFrom(du.getArrayT(du.getObjectT())));
 		assertFalse(new IntersectionT(du.getT(Object.class), du.getT(Cloneable.class),
 				du.getT(Serializable.class)).isAssignableFrom(du.getObjectT()));
+
+		// we can assign Object to interface, will be checked at runtime!
+		// works: Comparable c = (Comparable) new Object();
+		// we have to add casting!
+		// but we don't do it here or intersect etc. wount work
+		assertFalse(Comparable.class.isAssignableFrom(Object.class));
+		assertFalse(du.getT(Comparable.class).isAssignableFrom(du.getObjectT()));
 	}
 
 	@Test
