@@ -29,6 +29,7 @@ class TestDU {
 			du.read(file.getAbsolutePath());
 			for (final CU cu : du.getCus()) {
 				cu.decompile(false);
+				cu.clear();
 			}
 		}
 	}
@@ -41,6 +42,7 @@ class TestDU {
 			du.read(file.getAbsolutePath());
 			for (final CU cu : du.getCus()) {
 				cu.decompile(false);
+				cu.clear();
 			}
 		}
 	}
@@ -51,6 +53,7 @@ class TestDU {
 		du.read(new File(new File(projectFolder, "dex"), "classes.jar").getAbsolutePath());
 		for (final CU cu : du.getCus()) {
 			cu.decompile(false);
+			cu.clear();
 		}
 	}
 
@@ -62,6 +65,7 @@ class TestDU {
 			du.read(file.getAbsolutePath());
 			for (final CU cu : du.getCus()) {
 				cu.decompile(false);
+				cu.clear();
 			}
 		}
 	}
