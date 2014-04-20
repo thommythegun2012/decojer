@@ -1678,7 +1678,10 @@ public final class TrCfg2JavaExpressionStmts {
 		// JDK 1 & 2 is EQ, 3 & 4 is NE, >=5 has direct Class Literals
 		final E initCacheOut = ((JCND) bb.getOp(0)).getCmpType() == CmpType.T_EQ ? bb.getTrueOut()
 				: bb.getFalseOut();
-
+		if (initCacheOut == null) {
+			assert false;
+			return false;
+		}
 		final BB pushBb = initCacheOut.getEnd();
 		if (pushBb.getOps() != 4 && pushBb.getOps() != 5) {
 			return false;
