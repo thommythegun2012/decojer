@@ -872,11 +872,12 @@ public final class TrDataFlowAnalysis {
 
 	private R loadRead(final int i, final T t) {
 		final R r = load(i, t);
+		assert this.currentBb != null;
 		markAlive(this.currentBb, i);
 		return r;
 	}
 
-	private void markAlive(final BB bb, final int i) {
+	private void markAlive(@Nonnull final BB bb, final int i) {
 		// mark this BB alive for register i;
 		// we defer MOVE alive markings, to prevent DUP/POP stuff etc.
 		int aliveI = i;
@@ -968,10 +969,12 @@ public final class TrDataFlowAnalysis {
 				assert false;
 				continue;
 			}
-			if (finalOp instanceof RET) {
+			if (finalOp instanceof RET && !in.isCatch()) {
 				// jump over subs, where the register is unchanged
 				if (!checkRegisterAccessInSub(aliveI, (RET) finalOp)) {
-					markAlive(getBb(pc - 1), aliveI);
+					final BB jsrBb = getBb(pc - 1);
+					assert jsrBb != null;
+					markAlive(jsrBb, aliveI);
 					continue;
 				}
 			}
@@ -1021,9 +1024,13 @@ public final class TrDataFlowAnalysis {
 				assert newR != null;
 				// register i for current BB must be alive too for merging
 				if (newR.getPc() != targetBb.getPc()) {
-					markAlive(this.currentBb, i);
+					final BB bb = this.currentBb;
+					assert bb != null;
+					markAlive(bb, i);
 				} else if (newR.getKind() == Kind.MOVE) {
-					markAlive(this.currentBb, newR.getIn().getI());
+					final BB bb = this.currentBb;
+					assert bb != null;
+					markAlive(bb, newR.getIn().getI());
 				}
 			}
 		}
@@ -1118,7 +1125,9 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R popRead(final T t) {
-		markAlive(this.currentBb, this.currentFrame.size() - 1);
+		final BB bb = this.currentBb;
+		assert bb != null;
+		markAlive(bb, this.currentFrame.size() - 1);
 		return pop(t);
 	}
 
