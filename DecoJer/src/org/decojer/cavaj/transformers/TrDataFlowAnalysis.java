@@ -208,7 +208,8 @@ public final class TrDataFlowAnalysis {
 			final ALOAD cop = (ALOAD) op;
 			popRead(T.INT); // index
 			final R aR = popRead(getDu().getArrayT(cop.getT())); // array
-			pushConst(aR.getT() == T.REF ? T.REF : aR.getT().getComponentT()); // value
+			// TODO backpropagate type for T.REF??? null is not very cool here...
+			pushConst(aR.getT() == T.REF ? cop.getT() : aR.getT().getComponentT()); // value
 			break;
 		}
 		case AND: {
@@ -461,9 +462,9 @@ public final class TrDataFlowAnalysis {
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
 				assert false : getM() + ": already visited sub with pc '" + subPc
-				+ "' but didn't find initial sub register";
+						+ "' but didn't find initial sub register";
 
-			return -1;
+				return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
 			if (!this.currentFrame.pushSub(sub)) {
@@ -622,7 +623,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : getM() + ": cannot assign '" + returnT
-			+ "' to return type '" + cop.getT() + "'";
+					+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -906,8 +907,8 @@ public final class TrDataFlowAnalysis {
 					return;
 				case MERGE:
 					assert false : getM() + ": MERGE can only be first op in BB";
-				// stop backpropagation here
-				return;
+					// stop backpropagation here
+					return;
 				case MOVE:
 					// register changes here, MOVE from different incoming register in same BB
 					aliveI = r.getIn().getI();
@@ -1227,7 +1228,7 @@ public final class TrDataFlowAnalysis {
 				if (newR != null) {
 					// additional checks to see if this is a new register merge point triggered by
 					// the deep register replacement
-					if (outPrevR.getPc() == replaceBb.getPc()) {
+					if (outPrevR.getPc() == outBb.getPc()) {
 						// register changes here? -> new merge point!
 						if (mergeBbs == null) {
 							mergeBbs = Sets.newHashSet();
