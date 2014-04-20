@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.lang.model.element.Element;
@@ -42,6 +43,17 @@ class TestT {
 		assertSame(T.SINGLE.assignTo(T.AINT), T.AINT);
 		assertSame(T.SINGLE.assignTo(T.SINGLE), T.SINGLE);
 		assertNull(T.WIDE.assignTo(T.SINGLE));
+
+		// we can assign Object to interface, will be checked at runtime!
+		// works: Comparable c = (Comparable) new Object();
+		// works: Serializable s = (Serializable) new HashSet();
+		// we have to add casting!
+		// but we don't do it here or intersect etc. wount work
+
+		// TODO must recognice interface here! may be even set it as recognized interface
+		// assertSame(du.getObjectT().assignTo(du.getT(Comparable.class)),
+		// du.getT(Comparable.class));
+		// assertSame(du.getT(Set.class).assignTo(du.getT(Serializable.class)), du.getT(Set.class));
 	}
 
 	@Test
@@ -416,10 +428,13 @@ class TestT {
 
 		// we can assign Object to interface, will be checked at runtime!
 		// works: Comparable c = (Comparable) new Object();
+		// works: Serializable s = (Serializable) new HashSet();
 		// we have to add casting!
 		// but we don't do it here or intersect etc. wount work
 		assertFalse(Comparable.class.isAssignableFrom(Object.class));
 		assertFalse(du.getT(Comparable.class).isAssignableFrom(du.getObjectT()));
+		assertFalse(Serializable.class.isAssignableFrom(Set.class));
+		assertFalse(du.getT(Serializable.class).isAssignableFrom(du.getT(Set.class)));
 	}
 
 	@Test
