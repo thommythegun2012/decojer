@@ -511,6 +511,12 @@ public abstract class T implements Element {
 		if (isAssignableFrom(t)) {
 			return this;
 		}
+		// we can assign Object to interface, will be checked at runtime!
+		// works: Comparable c = (Comparable) new Object();
+		// we have to add casting!
+		if (t.isObject() && isInterface()) {
+			return this;
+		}
 		return null;
 	}
 
@@ -535,6 +541,12 @@ public abstract class T implements Element {
 		}
 		// no type reduction, can assign types to different single supertypes / interfaces
 		if (t.isAssignableFrom(this)) {
+			return this;
+		}
+		// we can assign Object to interface, will be checked at runtime!
+		// works: Comparable c = (Comparable) new Object();
+		// we have to add casting!
+		if (isObject() && t.isInterface()) {
 			return this;
 		}
 		return null;

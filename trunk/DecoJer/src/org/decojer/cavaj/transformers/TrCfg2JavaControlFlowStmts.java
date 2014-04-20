@@ -139,12 +139,14 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	@Nullable
-	@SuppressWarnings("null")
 	private IfStatement transformCond(final Cond cond) {
 		final BB head = cond.getHead();
 
 		final IfStatement ifStatement = (IfStatement) head.getFinalStmt();
-
+		if (ifStatement == null) {
+			assert false;
+			return null;
+		}
 		final BB falseSucc = head.getFalseSucc();
 		final BB trueSucc = head.getTrueSucc();
 		boolean negate = false;
@@ -203,7 +205,6 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	@Nullable
-	@SuppressWarnings("null")
 	private Statement transformLoop(final Loop loop) {
 		final BB head = loop.getHead();
 		final BB last = loop.getLast();
@@ -214,6 +215,10 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = false;
 		case WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) head.getStmt(0);
+			if (ifStatement == null) {
+				assert false;
+				return null;
+			}
 			final WhileStatement whileStatement = setOp(getAst().newWhileStatement(),
 					getOp(ifStatement));
 
@@ -238,6 +243,10 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = false;
 		case DO_WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) last.getFinalStmt();
+			if (ifStatement == null) {
+				assert false;
+				return null;
+			}
 			final DoStatement doStatement = setOp(getAst().newDoStatement(), getOp(ifStatement));
 
 			final List<Statement> subStatements = Lists.newArrayList();
@@ -443,13 +452,16 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	@Nullable
-	@SuppressWarnings("null")
 	private Statement transformSwitch(final Switch switchStruct) {
 		switch (switchStruct.getKind()) {
 		case NO_DEFAULT:
 		case WITH_DEFAULT: {
 			final BB head = switchStruct.getHead();
 			final SwitchStatement switchStatement = (SwitchStatement) head.getFinalStmt();
+			if (switchStatement == null) {
+				assert false;
+				return null;
+			}
 			final Op op = getOp(switchStatement);
 
 			for (final E out : head.getOuts()) {
@@ -457,7 +469,12 @@ public final class TrCfg2JavaControlFlowStmts {
 					continue;
 				}
 				boolean defaultAdded = false; // prevent [null, null] - double defaults
-				for (final Object caseValue : (Object[]) out.getValue()) {
+				final Object value = out.getValue();
+				if (!(value instanceof Object[])) {
+					assert false;
+					continue;
+				}
+				for (final Object caseValue : (Object[]) value) {
 					if (out.isSwitchDefault() && switchStruct.getKind() == Switch.Kind.NO_DEFAULT) {
 						continue;
 					}
@@ -505,13 +522,21 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
-	@SuppressWarnings("null")
+	@Nullable
 	private Statement transformSync(final Sync sync) {
 		final BB head = sync.getHead();
 		final SynchronizedStatement synchronizedStatement = (SynchronizedStatement) head
 				.getFinalStmt();
-		transformSequence(sync, sync.getHead().getSequenceOut().getEnd(), synchronizedStatement
-				.getBody().statements());
+		if (synchronizedStatement == null) {
+			assert false;
+			return null;
+		}
+		final E sequenceOut = head.getSequenceOut();
+		if (sequenceOut == null) {
+			assert false;
+			return null;
+		}
+		transformSequence(sync, sequenceOut.getEnd(), synchronizedStatement.getBody().statements());
 
 		final BB follow = sync.getFollow(); // can happen with final throw in sync block
 		if (follow != null && follow.getStmt(0) instanceof SynchronizedStatement) {

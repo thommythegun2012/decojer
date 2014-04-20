@@ -253,7 +253,6 @@ public final class R {
 				return true;
 			}
 			assert false : "cannot assign '" + this + "' to '" + t + "'";
-
 			return false;
 		}
 		if (this.lowerT.equals(reducedT)) {
@@ -288,7 +287,7 @@ public final class R {
 
 	/**
 	 * Get simple name, e.g.: "MO123: int[]"
-	 * 
+	 *
 	 * @return simple name
 	 */
 	public String getSimpleName() {
