@@ -461,9 +461,9 @@ public final class TrDataFlowAnalysis {
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
 				assert false : getM() + ": already visited sub with pc '" + subPc
-						+ "' but didn't find initial sub register";
+				+ "' but didn't find initial sub register";
 
-				return -1;
+			return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
 			if (!this.currentFrame.pushSub(sub)) {
@@ -622,7 +622,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : getM() + ": cannot assign '" + returnT
-					+ "' to return type '" + cop.getT() + "'";
+			+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -879,6 +879,7 @@ public final class TrDataFlowAnalysis {
 		// mark this BB alive for register i;
 		// we defer MOVE alive markings, to prevent DUP/POP stuff etc.
 		int aliveI = i;
+		// 1) first mark the 2nd to last operation frames in BB
 		for (int j = bb.getOps(); j-- > 1;) {
 			final int pc = bb.getOp(j).getPc();
 			final Frame frame = getFrame(pc);
@@ -905,9 +906,8 @@ public final class TrDataFlowAnalysis {
 					return;
 				case MERGE:
 					assert false : getM() + ": MERGE can only be first op in BB";
-
-					// stop backpropagation here
-					return;
+				// stop backpropagation here
+				return;
 				case MOVE:
 					// register changes here, MOVE from different incoming register in same BB
 					aliveI = r.getIn().getI();
@@ -917,6 +917,7 @@ public final class TrDataFlowAnalysis {
 				return;
 			}
 		}
+		// 2) now mark the first operation frame in BB and derive merge info from r.kind
 		final int pc = bb.getPc();
 		final Frame frame = getFrame(pc);
 		if (frame == null) {
@@ -926,14 +927,14 @@ public final class TrDataFlowAnalysis {
 		if (!frame.markAlive(aliveI)) {
 			return; // was already alive, can happen via MOVE-out
 		}
-
-		// now backpropagate to other BBs;
 		// MERGE could contain a wrapped CONST or MOVE with same register change PC...CONST
 		// wouldn't be a problem, but MOVE could change the back propagation index!
 		// so we could fan out into multiple register indices here!
 		R[] mergeIns = null;
 		final R r = frame.load(aliveI);
 		if (r == null) {
+			log.warn(getM() + ": Alive register is null for pc '" + pc + "' and index '" + aliveI
+					+ "' for first BB operation '" + bb.getOp(0) + "'!");
 			assert false;
 			return;
 		}
@@ -958,7 +959,7 @@ public final class TrDataFlowAnalysis {
 				break;
 			}
 		}
-		// backpropagate alive to previous BBs
+		// 3) now backpropagate to previous BBs:
 		previousLoop: for (final E in : bb.getIns()) {
 			final BB inBb = in.getStart();
 			final Op finalOp = inBb.getFinalOp();
