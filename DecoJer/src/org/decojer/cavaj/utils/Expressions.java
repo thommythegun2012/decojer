@@ -292,7 +292,12 @@ public final class Expressions {
 			}
 			if (value instanceof String && t.isAssignableFrom(String.class)) {
 				final StringLiteral stringLiteral = ast.newStringLiteral();
-				stringLiteral.setLiteralValue((String) value);
+				try {
+					stringLiteral.setLiteralValue((String) value);
+				} catch (final IllegalArgumentException e) {
+					// TODO hmm, escaping doesn't always work?
+					stringLiteral.setLiteralValue("<Invalid string literal>");
+				}
 				return stringLiteral;
 			}
 			log.warn("Unknown reference type '" + t + "'!");
