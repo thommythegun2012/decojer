@@ -172,6 +172,10 @@ public final class TrCfg2JavaControlFlowStmts {
 			ifStatement.setExpression(wrap(not(ifStatement.getExpression())));
 			negate = true;
 		case IF_ELSE: {
+			if (falseSucc == trueSucc) {
+				assert false; // is handled in control flow analysis
+				return null;
+			}
 			{
 				final List<Statement> subStatements = Lists.newArrayList();
 				transformSequence(cond, negate ? falseSucc : trueSucc, subStatements);
