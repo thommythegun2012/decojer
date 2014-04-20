@@ -197,7 +197,7 @@ public class ClassT extends T {
 			return null;
 		}
 		assert this.enclosing instanceof T || this.enclosing instanceof M : this
-		+ ": enclosing must be T or M";
+				+ ": enclosing must be T or M";
 
 		return this.enclosing;
 	}
@@ -343,6 +343,10 @@ public class ClassT extends T {
 		try {
 			klass = getClass().getClassLoader().loadClass(getName());
 		} catch (final ClassNotFoundException e) {
+			// log.warning("Couldn't load type '" + getName() + "'!");
+			this.accessFlags |= AF.UNRESOLVABLE.getValue();
+			return true;
+		} catch (final NoClassDefFoundError e) {
 			// log.warning("Couldn't load type '" + getName() + "'!");
 			this.accessFlags |= AF.UNRESOLVABLE.getValue();
 			return true;
