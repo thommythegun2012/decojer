@@ -28,6 +28,11 @@ java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°
 
 com.google.common.io.CharStreams.newReaderSupplier(Lcom/google/common/io/InputSupplier;Ljava/nio/charset/Charset;)Lcom/google/common/io/InputSupplier; (ops: 12, regs: 2)
 
+11: RETURN REF
+
+assign to: cannot assign 
+com.google.common.io.CharStreams$2 -> com.google.common.io.InputSupplier<java.io.InputStreamReader>
+
 ---
 
 weblogic.ejb.container.manager.BaseEntityManager.setup(Lweblogic/ejb/container/interfaces/BaseEJBRemoteHomeIntf;Lweblogic/ejb/container/interfaces/BaseEJBLocalHomeIntf;Lweblogic/ejb/container/interfaces/BeanInfo;Ljavax/naming/Context;)V (ops: 246, regs: 10)
