@@ -33,6 +33,9 @@ com.google.common.io.CharStreams.newReaderSupplier(Lcom/google/common/io/InputSu
 assign to: cannot assign 
 com.google.common.io.CharStreams$2 -> com.google.common.io.InputSupplier<java.io.InputStreamReader>
 
+!!!
+JDK 7 has nested ZIP bugs: only gets 3 bytes (CAFEBA..) instead of 4 for CharStreams$2
+
 ---
 
 weblogic.ejb.container.manager.BaseEntityManager.setup(Lweblogic/ejb/container/interfaces/BaseEJBRemoteHomeIntf;Lweblogic/ejb/container/interfaces/BaseEJBLocalHomeIntf;Lweblogic/ejb/container/interfaces/BeanInfo;Ljavax/naming/Context;)V (ops: 246, regs: 10)
@@ -64,6 +67,9 @@ D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\org.eclipse.m2e.maven.runtime
 f.getDeclarationOwner -> no FD
 
 rewrite switch enum: com.google.common.collect.Cut$1.$SwitchMap$com$google$common$collect$BoundType
+
+!!!
+JDK 7 has nested ZIP bugs: only gets 3 bytes (CAFEBA..) instead of 4 for Cut$1
 
 }}}
 
