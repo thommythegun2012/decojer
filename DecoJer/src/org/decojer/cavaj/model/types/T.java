@@ -546,8 +546,9 @@ public abstract class T implements Element {
 		// we can assign Object to interface, will be checked at runtime!
 		// works: Comparable c = (Comparable) new Object();
 		// works: Serializable s = (Serializable) new HashSet();
+		// works: OutputStream o = (OutputStream) new Object();
 		// we have to add casting!
-		if ((isObject() || isInterface()) && t.isInterface()) {
+		if ((isObject() || isInterface()) && (t.isInterface() || t.check(AF.ABSTRACT))) {
 			return this;
 		}
 		return null;

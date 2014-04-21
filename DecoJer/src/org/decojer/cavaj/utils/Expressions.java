@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.utils;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -350,41 +349,41 @@ public final class Expressions {
 				final char c = value instanceof Character ? (Character) value
 						: value instanceof Number ? (char) ((Number) value).intValue()
 								: ((String) value).charAt(0);
-						switch (c) {
-						case Character.MAX_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MAX_VALUE"));
-						case Character.MIN_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MIN_VALUE"));
-						case Character.MAX_HIGH_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MAX_LOW_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_LOW_SURROGATE"));
-							}
-							break;
-						case Character.MIN_HIGH_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MIN_LOW_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_LOW_SURROGATE"));
-							}
-							break;
-						}
-						final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-						characterLiteral.setCharValue(c);
-						return characterLiteral;
+				switch (c) {
+				case Character.MAX_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MAX_VALUE"));
+				case Character.MIN_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MIN_VALUE"));
+				case Character.MAX_HIGH_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MAX_LOW_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_LOW_SURROGATE"));
+					}
+					break;
+				case Character.MIN_HIGH_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MIN_LOW_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_LOW_SURROGATE"));
+					}
+					break;
+				}
+				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+				characterLiteral.setCharValue(c);
+				return characterLiteral;
 			}
 			if (value == null) {
 				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
@@ -951,8 +950,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-								not(infixExpression.getLeftOperand()),
-								not(infixExpression.getRightOperand()), getOp(infixExpression));
+						not(infixExpression.getLeftOperand()),
+						not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible
@@ -1068,36 +1067,20 @@ public final class Expressions {
 	}
 
 	/**
-	 * Wrap expressions. Ensures that there is no parent set.
+	 * Wrap and add expressions. Ensures that there is no parent set.
+	 *
+	 * We use this instead of returning a wrapped list because of potential DUP operations.
 	 *
 	 * @param expressions
 	 *            expressions
-	 * @return wrapped expressions
+	 * @param addExpressions
+	 *            expressions that are wrapped and added
 	 */
-	public static List<Expression> wrap(final List<Expression> expressions) {
-		final List<Expression> wrappedExpressions = new ArrayList<Expression>(expressions.size());
-		for (final Expression expression : expressions) {
-			wrappedExpressions.add(wrap(expression));
+	public static void wrapAddAll(final List<Expression> expressions,
+			final List<Expression> addExpressions) {
+		for (final Expression expression : addExpressions) {
+			expressions.add(wrap(expression));
 		}
-		return wrappedExpressions;
-	}
-
-	/**
-	 * Wrap expressions. Ensures that there is no parent set and adds parantheses if necessary
-	 * (compares operator priority).
-	 *
-	 * @param expressions
-	 *            expressions
-	 * @param priority
-	 *            priority
-	 * @return expressions
-	 */
-	public static List<Expression> wrap(final List<Expression> expressions, final Priority priority) {
-		final List<Expression> wrappedExpressions = new ArrayList<Expression>(expressions.size());
-		for (final Expression expression : expressions) {
-			wrappedExpressions.add(wrap(expression, priority.getPriority()));
-		}
-		return wrappedExpressions;
 	}
 
 	private Expressions() {
