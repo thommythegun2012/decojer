@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.utils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -1064,6 +1065,39 @@ public final class Expressions {
 	 */
 	public static Expression wrap(final Expression expression, final Priority priority) {
 		return wrap(expression, priority.getPriority());
+	}
+
+	/**
+	 * Wrap expressions. Ensures that there is no parent set.
+	 *
+	 * @param expressions
+	 *            expressions
+	 * @return wrapped expressions
+	 */
+	public static List<Expression> wrap(final List<Expression> expressions) {
+		final List<Expression> wrappedExpressions = new ArrayList<Expression>(expressions.size());
+		for (final Expression expression : expressions) {
+			wrappedExpressions.add(wrap(expression));
+		}
+		return wrappedExpressions;
+	}
+
+	/**
+	 * Wrap expressions. Ensures that there is no parent set and adds parantheses if necessary
+	 * (compares operator priority).
+	 *
+	 * @param expressions
+	 *            expressions
+	 * @param priority
+	 *            priority
+	 * @return expressions
+	 */
+	public static List<Expression> wrap(final List<Expression> expressions, final Priority priority) {
+		final List<Expression> wrappedExpressions = new ArrayList<Expression>(expressions.size());
+		for (final Expression expression : expressions) {
+			wrappedExpressions.add(wrap(expression, priority.getPriority()));
+		}
+		return wrappedExpressions;
 	}
 
 	private Expressions() {
