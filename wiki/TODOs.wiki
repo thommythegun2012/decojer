@@ -24,6 +24,15 @@ Succ: 8 5
 
 
 ---
+
+com.google.common.collect.Cut$BelowValue.withLowerBoundType(Lcom/google/common/collect/BoundType;Lcom/google/common/collect/DiscreteDomain;)Lcom/google/common/collect/Cut; (ops: 25, regs: 4)
+
+D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\org.eclipse.m2e.maven.runtime_1.4.0.20130531-2315.jar
+
+f.getDeclarationOwner -> no FD
+
+rewrite switch enum: com.google.common.collect.Cut$1.$SwitchMap$com$google$common$collect$BoundType
+
 }}}
 
 = TODOs =
