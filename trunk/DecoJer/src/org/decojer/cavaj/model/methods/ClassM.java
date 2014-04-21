@@ -66,6 +66,7 @@ public class ClassM extends M {
 	private final String descriptor;
 
 	@Getter(AccessLevel.PRIVATE)
+	// TODO @Nullable
 	private MD md;
 
 	@Getter

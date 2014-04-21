@@ -44,7 +44,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Class field.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -54,6 +54,7 @@ public class ClassF extends F {
 	private int accessFlags;
 
 	@Getter(AccessLevel.PRIVATE)
+	@Nullable
 	private FD fd;
 
 	@Getter
@@ -74,7 +75,7 @@ public class ClassF extends F {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param t
 	 *            type
 	 * @param name
@@ -99,7 +100,10 @@ public class ClassF extends F {
 
 	@Override
 	public void clear() {
-		getFd().clear();
+		final FD fd = getFd();
+		if (fd != null) {
+			fd.clear();
+		}
 	}
 
 	@Override
@@ -114,38 +118,45 @@ public class ClassF extends F {
 
 	@Override
 	public A[] getAs() {
-		return getFd().getAs();
+		final FD fd = getFd();
+		return fd == null ? null : fd.getAs();
 	}
 
 	@Override
 	public Object getAstNode() {
-		return getFd().getAstNode();
+		final FD fd = getFd();
+		return fd == null ? null : fd.getAstNode();
 	}
 
 	@Override
 	public CU getCu() {
-		return getFd().getCu();
+		final FD fd = getFd();
+		return fd == null ? null : fd.getCu();
 	}
 
 	@Override
 	public Element getDeclarationForNode(final ASTNode node) {
-		return getFd().getDeclarationForNode(node);
+		final FD fd = getFd();
+		return fd == null ? null : fd.getDeclarationForNode(node);
 	}
 
 	@Nullable
 	@Override
 	public Container getDeclarationOwner() {
-		return getFd().getDeclarationOwner();
+		final FD fd = getFd();
+		return fd == null ? null : fd.getDeclarationOwner();
 	}
 
 	@Override
 	public List<Element> getDeclarations() {
-		return getFd().getDeclarations();
+		final FD fd = getFd();
+		return fd == null ? null : fd.getDeclarations();
 	}
 
 	@Override
 	public Object getValue() {
-		return getFd().getValue();
+		final FD fd = getFd();
+		return fd == null ? null : fd.getValue();
 	}
 
 	@Override
@@ -175,22 +186,32 @@ public class ClassF extends F {
 
 	@Override
 	public void setAs(final A[] as) {
-		getFd().setAs(as);
+		final FD fd = getFd();
+		if (fd != null) {
+			fd.setAs(as);
+		}
 	}
 
 	@Override
 	public void setAstNode(@Nullable final Object fieldDeclaration) {
-		getFd().setAstNode(fieldDeclaration);
+		final FD fd = getFd();
+		if (fd != null) {
+			fd.setAstNode(fieldDeclaration);
+		}
 	}
 
 	@Override
 	public void setDeclarationOwner(@Nonnull final Container declarationOwner) {
-		final Container previousDeclarationOwner = getFd().getDeclarationOwner();
+		final FD fd = getFd();
+		if (fd == null) {
+			return;
+		}
+		final Container previousDeclarationOwner = fd.getDeclarationOwner();
 		if (previousDeclarationOwner != null) {
 			previousDeclarationOwner.getDeclarations().remove(this);
 		}
 		declarationOwner.getDeclarations().add(this);
-		getFd().setDeclarationOwner(declarationOwner);
+		fd.setDeclarationOwner(declarationOwner);
 	}
 
 	@Override
@@ -244,7 +265,10 @@ public class ClassF extends F {
 
 	@Override
 	public void setValue(final Object value) {
-		getFd().setValue(value);
+		final FD fd = getFd();
+		if (fd != null) {
+			fd.setValue(value);
+		}
 	}
 
 	@Override
