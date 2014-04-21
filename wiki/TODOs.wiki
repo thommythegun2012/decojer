@@ -1,6 +1,22 @@
 #summary Next steps and open issues
 
 {{{
+
+Automatically add casting for incompatible:
+  oracle.jdbc.proxy.oracle$1jdbc$1replay$1driver$1NonTxnReplayableArray$2java$1sql$1Array$$$Proxy.setDelegate():
+		// works: Comparable c = (Comparable) new Object();
+  weblogic.cluster.singleton._RemoteLeasingBasisImpl_Stub.renewLeases():
+		// works: Serializable s = (Serializable) new HashSet();
+
+
+Backpropagate real array type instead of "null"-REF to PC 5 for array read in 278
+  com.ibm.icu.util.VTimeZone.parseRRULE
+
+paramAss can contain null in inner array, why?
+
+com.google.common.collect.Cut.BelowValue:
+  why doesn't he recognize the SwitchMap if guava.jar enclosed in org.eclipse.m2e.maven.runtime_1.4.0.20130531-2315.jar
+
 ---
 
 weblogic.ejb.container.manager.BaseEntityManager.setup(Lweblogic/ejb/container/interfaces/BaseEJBRemoteHomeIntf;Lweblogic/ejb/container/interfaces/BaseEJBLocalHomeIntf;Lweblogic/ejb/container/interfaces/BeanInfo;Ljavax/naming/Context;)V (ops: 246, regs: 10)
