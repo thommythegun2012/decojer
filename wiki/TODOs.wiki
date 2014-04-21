@@ -43,7 +43,7 @@ weblogic.ejb.container.manager.BaseEntityManager.setup(Lweblogic/ejb/container/i
 D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\weblogic.jar
 
 
-Some compound operation creates a double incoming with none-catch and catch in PC 177.
+rewriteAssertStatement() creates a double incoming with none-catch and catch in PC 177.
 
 
 BB 9 (l 245, pc 177)
