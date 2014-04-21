@@ -7,6 +7,22 @@ weblogic.ejb.container.manager.BaseEntityManager.setup(Lweblogic/ejb/container/i
 
 D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\weblogic.jar
 
+
+Some compound operation creates a double incoming with none-catch and catch in PC 177.
+
+
+BB 9 (l 245, pc 177)
+Ops: [LOAD 0, LOAD 0, LOAD 5, INVOKE setupPM(Lweblogic/ejb/container/interfaces/EntityBeanInfo;)Lweblogic/ejb/container/persistence/spi/PersistenceManager;, PUT weblogic.ejb.container.manager.BaseEntityManager.persistence, LOAD 0, GET initialized, JCND T_NE 201]
+Stmts: [try {
+}
+ catch (NoSuchMethodException r9) {
+}
+, assert false : r9;
+]
+Stack: [e]
+Succ: 8 5 
+
+
 ---
 }}}
 
