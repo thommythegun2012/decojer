@@ -585,20 +585,21 @@ public final class TrCfg2JavaExpressionStmts {
 							if (initializer != null) {
 								for (final Expression e : (List<Expression>) initializer
 										.expressions()) {
-									arguments.add(wrap(e));
+									// wrap() in addAll(), DUP could happen with receiver & argument
+									arguments.add(e);
 								}
 								Collections.reverse(arguments);
 							}
 						} else {
 							// can happen if forwarded as variable
-							arguments.add(wrap(array));
+							arguments.add(array);
 						}
 					} else {
-						arguments.add(wrap(bb.pop()));
+						arguments.add(bb.pop());
 					}
 					// now add remaining parameters that cannot be varargs
 					for (int i = params - 1; i-- > 0;) {
-						arguments.add(wrap(bb.pop()));
+						arguments.add(bb.pop());
 					}
 					Collections.reverse(arguments);
 				}
@@ -637,7 +638,7 @@ public final class TrCfg2JavaExpressionStmts {
 						if (ownerT != null && ownerT.is(getCfg().getT())) {
 							final ConstructorInvocation constructorInvocation = getAst()
 									.newConstructorInvocation();
-							constructorInvocation.arguments().addAll(arguments);
+							constructorInvocation.arguments().addAll(wrap(arguments));
 							statement = constructorInvocation;
 							break;
 						}
@@ -647,7 +648,7 @@ public final class TrCfg2JavaExpressionStmts {
 						}
 						final SuperConstructorInvocation superConstructorInvocation = getAst()
 								.newSuperConstructorInvocation();
-						superConstructorInvocation.arguments().addAll(arguments);
+						superConstructorInvocation.arguments().addAll(wrap(arguments));
 						statement = superConstructorInvocation;
 						break;
 						}
@@ -667,7 +668,8 @@ public final class TrCfg2JavaExpressionStmts {
 									arguments.remove(0);
 								}
 							}
-							((ClassInstanceCreation) expression).arguments().addAll(arguments);
+							((ClassInstanceCreation) expression).arguments()
+							.addAll(wrap(arguments));
 							// normally there was a DUP in advance, don't use:
 							// basicBlock.pushExpression(classInstanceCreation);
 							break;
@@ -681,7 +683,7 @@ public final class TrCfg2JavaExpressionStmts {
 						final SuperMethodInvocation superMethodInvocation = setOp(getAst()
 								.newSuperMethodInvocation(), op);
 						superMethodInvocation.setName(newSimpleName(m.getName(), getAst()));
-						superMethodInvocation.arguments().addAll(arguments);
+						superMethodInvocation.arguments().addAll(wrap(arguments));
 						methodExpression = superMethodInvocation;
 					} else {
 						// could be private method call in same object, nothing special in syntax
@@ -689,7 +691,7 @@ public final class TrCfg2JavaExpressionStmts {
 								.newMethodInvocation(), op);
 						methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
 						methodInvocation.setName(newSimpleName(m.getName(), getAst()));
-						methodInvocation.arguments().addAll(arguments);
+						methodInvocation.arguments().addAll(wrap(arguments));
 						methodExpression = methodInvocation;
 					}
 				} else if (m.isDynamic()) {
@@ -715,8 +717,7 @@ public final class TrCfg2JavaExpressionStmts {
 							if (lambdaCfg.getBlock() == null) {
 								// if synthetics are not decompiled...
 								// lambda methods are synthetic: init block, could later add more
-								// checks
-								// and alternatives here if obfuscators play with these flags
+								// checks and alternatives here if obfuscators play with these flags
 								lambdaCfg.setBlock((Block) lambdaExpression.getBody());
 								lambdaCfg.decompile();
 							} else if (lambdaCfg.getBlock().getParent() instanceof MethodDeclaration) {
@@ -761,7 +762,7 @@ public final class TrCfg2JavaExpressionStmts {
 						final MethodInvocation methodInvocation = setOp(getAst()
 								.newMethodInvocation(), op);
 						methodInvocation.setName(newSimpleName(m.getName(), getAst()));
-						methodInvocation.arguments().addAll(arguments);
+						methodInvocation.arguments().addAll(wrap(arguments));
 						methodExpression = methodInvocation;
 					}
 				} else if (m.isStatic()) {
@@ -769,7 +770,7 @@ public final class TrCfg2JavaExpressionStmts {
 							op);
 					methodInvocation.setExpression(newTypeName(m.getT(), getCfg().getT()));
 					methodInvocation.setName(newSimpleName(m.getName(), getAst()));
-					methodInvocation.arguments().addAll(arguments);
+					methodInvocation.arguments().addAll(wrap(arguments));
 					methodExpression = methodInvocation;
 				} else {
 					if (rewriteStringAppend(bb, cop)) {
@@ -783,7 +784,7 @@ public final class TrCfg2JavaExpressionStmts {
 					methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
 					// }
 					methodInvocation.setName(newSimpleName(m.getName(), getAst()));
-					methodInvocation.arguments().addAll(arguments);
+					methodInvocation.arguments().addAll(wrap(arguments));
 					methodExpression = methodInvocation;
 				}
 				final T returnT = m.getReturnT();
@@ -1782,9 +1783,9 @@ public final class TrCfg2JavaExpressionStmts {
 				log.warn(getM() + ": Unknown cmp type '" + cmpType + "' for boolean expression '"
 						+ expression + "'!");
 			}
-			final IfStatement statement = setOp(getAst().newIfStatement(), op);
-			statement.setExpression(wrap(expression));
-			c.addStmt(statement);
+			final IfStatement ifStatement = setOp(getAst().newIfStatement(), op);
+			ifStatement.setExpression(wrap(expression));
+			c.addStmt(ifStatement);
 			c.setConds(bb.getTrueSucc(), bb.getFalseSucc());
 			in.remove();
 		}
