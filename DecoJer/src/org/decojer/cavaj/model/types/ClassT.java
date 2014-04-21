@@ -112,6 +112,7 @@ public class ClassT extends T {
 	private T superT;
 
 	@Getter(AccessLevel.PRIVATE)
+	// TODO @Nullable
 	private TD td;
 
 	@Nullable
@@ -197,7 +198,7 @@ public class ClassT extends T {
 			return null;
 		}
 		assert this.enclosing instanceof T || this.enclosing instanceof M : this
-				+ ": enclosing must be T or M";
+		+ ": enclosing must be T or M";
 
 		return this.enclosing;
 	}
