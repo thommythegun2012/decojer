@@ -879,13 +879,13 @@ public final class DU {
 	public List<T> read(final InputStream is, final String fileName, final String selector)
 			throws IOException {
 		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
-		final int read = is.read(magicNumber, 0, magicNumber.length);
+		final int read = is.read(magicNumber);
 		if (read < magicNumber.length) {
 			return null;
 		}
 		if (Arrays.equals(magicNumber, MagicNumbers.CLASS)) {
-			final PushbackInputStream pis = new PushbackInputStream(is, 4);
-			pis.unread(magicNumber, 0, magicNumber.length);
+			final PushbackInputStream pis = new PushbackInputStream(is, magicNumber.length);
+			pis.unread(magicNumber);
 			// selector has no meaning here
 			final T t = this.classReader.read(pis);
 			if (selector == null || fileName.equals(selector)) {
@@ -898,8 +898,8 @@ public final class DU {
 		}
 		if (Arrays.equals(magicNumber, MagicNumbers.DEX)
 				|| Arrays.equals(magicNumber, MagicNumbers.ODEX)) {
-			final PushbackInputStream pis = new PushbackInputStream(is, 4);
-			pis.unread(magicNumber, 0, magicNumber.length);
+			final PushbackInputStream pis = new PushbackInputStream(is, magicNumber.length);
+			pis.unread(magicNumber);
 			final List<T> ts = this.dexReader.read(pis, selector);
 			this.selectedTs.addAll(ts);
 			return ts;
@@ -918,8 +918,8 @@ public final class DU {
 			}
 			final List<T> ts = Lists.newArrayList();
 
-			final PushbackInputStream pis = new PushbackInputStream(is, 4);
-			pis.unread(magicNumber, 0, magicNumber.length);
+			final PushbackInputStream pis = new PushbackInputStream(is, magicNumber.length);
+			pis.unread(magicNumber);
 			final ZipInputStream zip = new ZipInputStream(pis);
 			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
 					.getNextEntry()) {
