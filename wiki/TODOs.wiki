@@ -8,39 +8,6 @@ weblogic.ejb.container.manager.BaseEntityManager.setup(Lweblogic/ejb/container/i
 D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\weblogic.jar
 
 ---
-
-org.eclipse.ant.internal.core.ant.InternalProject.createDataType(Ljava/lang/String;)Ljava/lang/Object; (ops: 131, regs: 7)
-
-D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\org.eclipse.ant.core_3.2.500.v20140203-1328.jar
-
-convertToHll:
-
-51:INVOKE getConstructor([Ljava/lang/Class;)Ljava/lang/reflect/Constructor;
-
-|PC | Operation                                                                # s0                  | s1              | s2            | s3                | s4          # r0                     | r1            | r2          | r3        | r4                  | r5            | r6 | 
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-|50 | ASTORE                                                                   # A MO31: Class       | A CO33: Class[] | MO34: Class[] | CO35: {byte,char} | ME50: Class # A CO0: InternalProject | A CO0: String | MO11: Class | MO17: REF | ME29: Constructor   | MO21: boolean |    | 
-|51 | INVOKE getConstructor([Ljava/lang/Class;)Ljava/lang/reflect/Constructor; # A MO31: Class       | A CO33: Class[] |               |                   |             # A CO0: InternalProject | A CO0: String | MO11: Class | MO17: REF | ME29: Constructor   | MO21: boolean |    | 
-|52 | STORE 4                                                                  # A CO52: Constructor |                 |               |                   |             # A CO0: InternalProject | A CO0: String | MO11: Class | MO17: REF | ME29: Constructor   | MO21: boolean |    | 
-|53 | PUSH 0                                                                   #                     |                 |               |                   |             # A CO0: InternalProject | A CO0: String | MO11: Class | MO17: REF | A MO53: Constructor | MO21: boolean |    | 
-|54 | STORE 5                                                                  # A CO54: boolean     |                 |               |                   |             # A CO0: InternalProject | A CO0: String | MO11: Class | MO17: REF | A MO53: Constructor | MO21: boolean |    | 
-
-
-BB 17 (l 92, pc 50)
-Ops: [STORE 4, PUSH 0, STORE 5]
-Stmts: [try {
-}
- catch (NoSuchMethodException e) {
-}
-, try {
-}
- catch (NoSuchMethodException e) {
-}
-, 0[org.apache.tools.ant.Project.class]=e;
-]
-Stack: [typeClass]
-Succ: 4 5 6 7 8 9 16 
-
 }}}
 
 = TODOs =
