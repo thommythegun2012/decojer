@@ -2,35 +2,16 @@
 
 {{{
 ---
-java.lang.AssertionError: oracle.jdbc.pool.OracleImplicitConnectionCacheThread.run()V: register is null for pc '5' and index '5' for operation: STORE 5
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:883)
 
-CMP (84) long -> int
+weblogic.ejb.container.manager.BaseEntityManager.setup(Lweblogic/ejb/container/interfaces/BaseEJBRemoteHomeIntf;Lweblogic/ejb/container/interfaces/BaseEJBLocalHomeIntf;Lweblogic/ejb/container/interfaces/BeanInfo;Ljavax/naming/Context;)V (ops: 246, regs: 10)
 
-markAlive 5 in:
+D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\weblogic.jar
 
-BB 0 (l 53, pc 0)
-Ops: [PUSH 0, STORE 1, PUSH 0, STORE 3, PUSH 0, STORE 5]
+---
 
-Problem is ME90 in follow BB start, reg 5:
+org.eclipse.ant.internal.core.ant.InternalProject.createDataType(Ljava/lang/String;)Ljava/lang/Object; (ops: 131, regs: 7)
 
-|PC | Operation      # s0                                         # r0                                         | r1           | r2 | r3           | r4 | r5           | r6 | r7 | 
----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-|6  | LOAD 0         #                                            # A CO0: OracleImplicitConnectionCacheThread | A ME90: long |    | A ME90: long |    | A ME90: long |    |    | 
-
-
-###
-
-com.google.common.cache.Striped64.retryUpdate(JLcom/google/common/cache/Striped64$HashCode;Z)V (ops: 242, regs: 20)
-
-java.lang.AssertionError: com.google.common.cache.Striped64.retryUpdate(JLcom/google/common/cache/Striped64$HashCode;Z)V: register is null for pc '4' and index '6' for operation: STORE 6
-
-###
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.markAlive(TrDataFlowAnalysis.java:883)
-
-
-com.ibm.icu_50.1.1.v201304230130.jar
-	com.ibm.icu.text.UnicodeSet.containsAll(Lcom/ibm/icu/text/UnicodeSet;)Z (ops: 101, regs: 13)
+D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\org.eclipse.ant.core_3.2.500.v20140203-1328.jar
 
 }}}
 
