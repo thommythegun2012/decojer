@@ -3,7 +3,7 @@
 	<classpathentry exported="true" kind="lib" path="lib/dexlib2-2.0b5.jar" sourcepath="/dexlib2"/>
 	<classpathentry exported="true" kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="lib" path="lib/javassist.jar" sourcepath="/jvst"/>
+	<classpathentry kind="lib" path="lib/javassist.jar" sourcepath="/javassist"/>
 	<classpathentry exported="true" kind="lib" path="lib/commons-io-2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/lombok.jar"/>
 	<classpathentry kind="lib" path="lib/dex-reader-1.11-SNAPSHOT.jar" sourcepath="/dex2jar"/>
