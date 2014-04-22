@@ -126,7 +126,7 @@ public final class E {
 	@Nonnull
 	public E getRelevantIn() {
 		final BB start = getStart();
-		if (start.isRelevant()) {
+		if (!isSequence() || start.isRelevant()) {
 			return this;
 		}
 		final E relevantIn = start.getRelevantIn();
