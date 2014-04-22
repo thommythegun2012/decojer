@@ -17,7 +17,6 @@ java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°
 	at org.eclipse.jdt.core.dom.StringLiteral.setEscapedValue(StringLiteral.java:187)
 	at org.eclipse.jdt.core.dom.StringLiteral.setLiteralValue(StringLiteral.java:327)
 	at org.decojer.cavaj.utils.Expressions.newLiteral2(Expressions.java:295)
-"
 
 ---
 
