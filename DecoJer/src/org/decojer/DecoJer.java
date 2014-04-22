@@ -53,7 +53,7 @@ public class DecoJer {
 	 */
 	public static int analyze(final InputStream is) throws IOException {
 		final byte[] magicNumber = new byte[MagicNumbers.LENGTH];
-		final int read = is.read(magicNumber, 0, magicNumber.length);
+		final int read = is.read(magicNumber);
 		if (read < magicNumber.length) {
 			return 0;
 		}
@@ -116,7 +116,7 @@ public class DecoJer {
 		switch (4) {
 		case 0:
 			System.out
-					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"));
+			.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/bin/org/decojer/cavaj/test/DecTestFields.class"));
 			break;
 		case 1: {
 			du.read("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar");
@@ -125,7 +125,7 @@ public class DecoJer {
 		}
 		case 2: {
 			System.out
-					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar!/org/decojer/cavaj/test/jdk5/DecTestAnnotations.class"));
+			.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.jar!/org/decojer/cavaj/test/jdk5/DecTestAnnotations.class"));
 			break;
 		}
 		case 3: {
@@ -154,7 +154,7 @@ public class DecoJer {
 		}
 		case 12: {
 			System.out
-					.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex!/org/decojer/cavaj/test/DecTestBooleanOperators.class"));
+			.println(decompile("D:/Data/Decomp/workspace/DecoJerTest/dex/classes.dex!/org/decojer/cavaj/test/DecTestBooleanOperators.class"));
 			break;
 		}
 		case 13: {
