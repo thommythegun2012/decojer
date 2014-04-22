@@ -25,6 +25,8 @@ package org.decojer.cavaj.model.types;
 
 import lombok.Getter;
 
+import org.decojer.cavaj.model.DU;
+
 /**
  * Intersection type.
  *
@@ -57,6 +59,19 @@ public class IntersectionT extends BaseT {
 	public IntersectionT(final T superT, final T... interfaceTs) {
 		this.superT = superT;
 		this.interfaceTs = interfaceTs;
+	}
+
+	@Override
+	public DU getDu() {
+		if (this.superT != null && this.superT.getDu() != null) {
+			return this.superT.getDu();
+		}
+		for (final T interfaceT : this.interfaceTs) {
+			if (interfaceT.getDu() != null) {
+				return interfaceT.getDu();
+			}
+		}
+		return null;
 	}
 
 	@Override
