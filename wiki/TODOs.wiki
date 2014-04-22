@@ -8,15 +8,10 @@ Automatically add casting for incompatible:
   weblogic.cluster.singleton._RemoteLeasingBasisImpl_Stub.renewLeases():
 		// works: Serializable s = (Serializable) new HashSet();
 
-
 Backpropagate real array type instead of "null"-REF to PC 5 for array read in 278
   com.ibm.icu.util.VTimeZone.parseRRULE
 
 paramAss can contain null in inner array, why?
-
-com.google.common.collect.Cut.BelowValue:
-  why doesn't he recognize the SwitchMap if guava.jar enclosed in org.eclipse.m2e.maven.runtime_1.4.0.20130531-2315.jar
-
 
 java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°\0Ü\0C\0J\0Š\0?\0?\0G\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?"<
 	at org.eclipse.jdt.core.dom.StringLiteral.setEscapedValue(StringLiteral.java:187)
@@ -35,28 +30,6 @@ com.google.common.io.CharStreams$2 -> com.google.common.io.InputSupplier<java.io
 
 !!!
 JDK 7 has nested ZIP bugs: only gets 3 bytes (CAFEBA..) instead of 4 for CharStreams$2
-
----
-
-weblogic.ejb.container.manager.BaseEntityManager.setup(Lweblogic/ejb/container/interfaces/BaseEJBRemoteHomeIntf;Lweblogic/ejb/container/interfaces/BaseEJBLocalHomeIntf;Lweblogic/ejb/container/interfaces/BeanInfo;Ljavax/naming/Context;)V (ops: 246, regs: 10)
-
-D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\weblogic.jar
-
-
-rewriteAssertStatement() creates a double incoming with none-catch and catch in PC 177.
-
-
-BB 9 (l 245, pc 177)
-Ops: [LOAD 0, LOAD 0, LOAD 5, INVOKE setupPM(Lweblogic/ejb/container/interfaces/EntityBeanInfo;)Lweblogic/ejb/container/persistence/spi/PersistenceManager;, PUT weblogic.ejb.container.manager.BaseEntityManager.persistence, LOAD 0, GET initialized, JCND T_NE 201]
-Stmts: [try {
-}
- catch (NoSuchMethodException r9) {
-}
-, assert false : r9;
-]
-Stack: [e]
-Succ: 8 5 
-
 
 ---
 
@@ -80,6 +53,7 @@ JDK 7 has nested ZIP bugs: only gets 3 bytes (CAFEBA..) instead of 4 for Cut$1
   * variable analysis
     * special recognition of thhis and params for invalid debug vars
   * JSR-merge stuff
+  * remove assert field ".$assertionsDisabled" and static init
   * assign-to with "maybe"
   * Infinity Loop in Eclipse-CodeFormatter: https://bugs.eclipse.org/bugs/show_bug.cgi?id=432593
   * inner classes synthetic initializer for eclosing.this, comment in PUT indicates, data flowe analysis must be solved first:
