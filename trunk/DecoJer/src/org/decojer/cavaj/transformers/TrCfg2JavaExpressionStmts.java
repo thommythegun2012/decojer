@@ -1382,26 +1382,37 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		final IfStatement ifStatement = (IfStatement) start.getFinalStmt();
 		Expression expression = ifStatement.getExpression();
-		Expression condExpression;
 		if (expression instanceof InfixExpression) {
 			final InfixExpression infixExpression = (InfixExpression) expression;
-			if (infixExpression.getOperator() != InfixExpression.Operator.CONDITIONAL_OR) {
-				return false;
+			if (infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_OR) {
+				final Expression leftOperand = infixExpression.getLeftOperand();
+				if (leftOperand instanceof QualifiedName
+						&& leftOperand.toString().endsWith(".$assertionsDisabled")) {
+					expression = infixExpression.getRightOperand();
+				}
 			}
-			expression = infixExpression.getLeftOperand();
-			condExpression = infixExpression.getRightOperand();
-		} else {
-			condExpression = null;
+		} else if (expression instanceof QualifiedName
+				&& ((QualifiedName) expression).toString().endsWith(".$assertionsDisabled")) {
+			expression = getAst().newBooleanLiteral(false);
 		}
 		start.removeFinalStmt();
 		final AssertStatement assertStatement = setOp(getAst().newAssertStatement(), op);
-		assertStatement.setExpression(condExpression == null ? getAst().newBooleanLiteral(false)
-				: wrap(condExpression));
+		assertStatement.setExpression(wrap(expression));
 		if (messageExpression != null) {
 			assertStatement.setMessage(wrap(messageExpression));
 		}
 		start.addStmt(assertStatement);
-		start.getTrueSucc().joinPredBb(start);
+		final E trueOut = start.getTrueOut();
+		final BB trueSucc = trueOut.getEnd();
+		if (trueSucc.getIns().size() == 1) {
+			trueSucc.joinPredBb(start);
+		} else {
+			// true succ has additional incoming: don't join!
+			// remove throw-BB and convert conditional out edge to sequence edge
+			bb.remove();
+			start.setSucc(trueSucc);
+			trueOut.remove();
+		}
 		return true;
 	}
 
