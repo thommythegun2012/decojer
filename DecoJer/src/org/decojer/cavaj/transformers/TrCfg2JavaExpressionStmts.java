@@ -2119,7 +2119,9 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteHandler(@Nonnull final BB bb) {
-		if (!bb.isCatchHandler()) {
+		if (!bb.isCatchHandler() || bb.getStmts() > 0 || bb.getTop() > 0) {
+			// check stmts and top: some rewrites could combine join nodes and this would again be a
+			// catch handler
 			return false;
 		}
 		// first operations are usually STORE or POP (if exception not needed)
