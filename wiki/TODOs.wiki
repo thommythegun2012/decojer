@@ -20,41 +20,17 @@ java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°
 
 ---
 
-com.google.common.io.CharStreams.newReaderSupplier(Lcom/google/common/io/InputSupplier;Ljava/nio/charset/Charset;)Lcom/google/common/io/InputSupplier; (ops: 12, regs: 2)
-
-11: RETURN REF
-
-assign to: cannot assign 
-com.google.common.io.CharStreams$2 -> com.google.common.io.InputSupplier<java.io.InputStreamReader>
-
-!!!
-JDK 7 has nested ZIP bugs: only gets 3 bytes (CAFEBA..) instead of 4 for CharStreams$2
-
----
-
-com.google.common.collect.Cut$BelowValue.withLowerBoundType(Lcom/google/common/collect/BoundType;Lcom/google/common/collect/DiscreteDomain;)Lcom/google/common/collect/Cut; (ops: 25, regs: 4)
-
-D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\org.eclipse.m2e.maven.runtime_1.4.0.20130531-2315.jar
-
-f.getDeclarationOwner -> no FD
-
-rewrite switch enum: com.google.common.collect.Cut$1.$SwitchMap$com$google$common$collect$BoundType
-
-!!!
-JDK 7 has nested ZIP bugs: only gets 3 bytes (CAFEBA..) instead of 4 for Cut$1
-
 }}}
 
 = TODOs =
 
-  * merge-replace register
-    * can recursively create new merges, back-branch algorithm
   * variable analysis
-    * special recognition of thhis and params for invalid debug vars
-  * JSR-merge stuff
+    * special recognition of this and params for invalid debug vars
   * remove assert field ".$assertionsDisabled" and static init
   * assign-to with "maybe"
   * Infinity Loop in Eclipse-CodeFormatter: https://bugs.eclipse.org/bugs/show_bug.cgi?id=432593
+  * optimize stream reader -> use more byte arrays down to bytecode libs
+    * copy zip entries because JDK 7 has nested ZIP bugs: only gets 3 bytes (CAFEBA..) instead of 4 (e.g. CharStreams$2 in com.google.common.io.CharStreams.newReaderSupplier)
   * inner classes synthetic initializer for eclosing.this, comment in PUT indicates, data flowe analysis must be solved first:
     * we want to rewrite this$0 here, but for this constructor methods have to be handled first to mark such fields for consumption?
     * fieldInit is false for synthetic this$0 initializer in constructor, also not sufficient check for conditionals, alternative via data flow analysis?!
