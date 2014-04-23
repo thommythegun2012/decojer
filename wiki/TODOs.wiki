@@ -20,6 +20,14 @@ java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°
 
 ---
 
+net.miginfocom.layout.Grid$Cell.access$476(Lnet/miginfocom/layout/Grid$Cell;I)Z (ops: 9, regs: 2)
+
+D:\Oracle\JDeveloper\jdeveloper\ide\lib\miglayout-3.6-swing.jar
+
+4: OR
+
+intersect R3.CO3: boolean and R4.MO4: int
+
 }}}
 
 = TODOs =
