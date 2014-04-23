@@ -82,7 +82,7 @@ public final class Annotations {
 							.newSingleMemberAnnotation();
 					singleMemberAnnotation.setTypeName(newTypeName(a.getT(), t));
 					singleMemberAnnotation
-					.setValue(decompileAnnotationDefaultValue(t, memberValue));
+							.setValue(decompileAnnotationDefaultValue(t, memberValue));
 					return singleMemberAnnotation;
 				}
 			}
@@ -287,6 +287,7 @@ public final class Annotations {
 		if (!aT.isDeclaration()) {
 			log.warn("Potential repeatable annotation '" + a + "' with repeated annotation type '"
 					+ aT + "' has not the necessary declaration information!");
+			return false;
 		}
 		final A[] aAs = aT.getAs();
 		if (aAs == null) {
