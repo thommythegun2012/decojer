@@ -7,7 +7,7 @@ public abstract class DecTestExceptions {
 		out: try {
 			System.out.println("TRY");
 		} catch (final Exception e) {
-			System.out.println("EXC" + e);
+			System.out.println(Exception.class.getName() + e);
 		} finally {
 			System.out.println("FIN");
 			in: try {
