@@ -809,6 +809,7 @@ public final class DU {
 	 *            selector (in case of an archive)
 	 * @return type declarations, not null
 	 */
+	@Nullable
 	private List<T> read(final File file, final String selector) {
 		final String fileName = file.getName();
 		if (fileName.endsWith(".class")) {
