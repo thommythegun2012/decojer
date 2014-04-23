@@ -2,10 +2,12 @@ package org.decojer.cavaj.model;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.util.List;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.DecoJer;
+import org.decojer.cavaj.model.types.T;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -21,36 +23,18 @@ class TestDU {
 				.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile();
 	}
 
-	@Test
-	void testBytecodeClosed() {
-		for (File file : new File(projectFolder, "test_bytecode_closed").listFiles()) {
-			log.info("######### Decompiling: " + file + " #########");
-			DU du = DecoJer.createDu();
-			du.read(file.getAbsolutePath());
-			for (final CU cu : du.getCus()) {
-				cu.decompile(false);
-				cu.clear();
+	private void read(File file) {
+		if (file.isDirectory()) {
+			for (File child : file.listFiles()) {
+				read(child);
 			}
 		}
-	}
-
-	@Test
-	void testBytecodeFree() {
-		for (File file : new File(projectFolder, "test_bytecode_free").listFiles()) {
-			log.info("######### Decompiling: " + file + " #########");
-			DU du = DecoJer.createDu();
-			du.read(file.getAbsolutePath());
-			for (final CU cu : du.getCus()) {
-				cu.decompile(false);
-				cu.clear();
-			}
-		}
-	}
-
-	@Test
-	void testDecojerJar() {
 		DU du = DecoJer.createDu();
-		du.read(new File(new File(projectFolder, "dex"), "classes.jar").getAbsolutePath());
+		List<T> read = du.read(file.getAbsolutePath());
+		if (read == null || read.isEmpty()) {
+			return;
+		}
+		log.info("######### Decompiling: " + file + " (" + read.size() + ") #########");
 		for (final CU cu : du.getCus()) {
 			cu.decompile(false);
 			cu.clear();
@@ -58,16 +42,33 @@ class TestDU {
 	}
 
 	@Test
+	void testBytecodeClosed() {
+		read(new File(projectFolder, "test_bytecode_closed"));
+	}
+
+	@Test
+	void testBytecodeFree() {
+		read(new File(projectFolder, "test_bytecode_free"));
+	}
+
+	@Test
+	void testBytecodeMaven() {
+		read(new File("C:/Users/andre/.m2/repository"));
+	}
+
+	@Test
+	void testBytecodeOracle() {
+		read(new File("D:/Oracle"));
+	}
+
+	@Test
+	void testDecojerJar() {
+		read(new File(new File(projectFolder, "dex"), "classes.jar"));
+	}
+
+	@Test
 	void testEclipsePlugins() {
-		for (File file : new File("D:/Software/eclipse-rcp-kepler-SR2-64-jdk8/plugins").listFiles()) {
-			log.info("######### Decompiling: " + file + " #########");
-			DU du = DecoJer.createDu();
-			du.read(file.getAbsolutePath());
-			for (final CU cu : du.getCus()) {
-				cu.decompile(false);
-				cu.clear();
-			}
-		}
+		read(new File("D:/Software/eclipse-rcp-kepler-SR2-64-jdk8/plugins"));
 	}
 
 }
