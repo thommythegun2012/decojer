@@ -20,28 +20,6 @@ java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°
 
 ---
 
-org.eclipse.ui.editors.text.templates.ContributionContextTypeRegistry.createContextType(Lorg/eclipse/core/runtime/IConfigurationElement;)Lorg/eclipse/jface/text/templates/TemplateContextType; (ops: 65, regs: 4)
-
-D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\org.eclipse.ui.editors_3.8.100.v20130513-1637.jar
-
-cycle: new org.eclipse.core.runtime.Status() add-expression new org.eclipse.core.runtime.Status()
-
-Eclipse-cached-typeliteral as first node in catch:
-combined BBs creates new BB which is again a catch-handler: double stack add of e
-
-63: INVOKE <init>(Lorg/eclipse/core/runtime/IStatus;)V
-
-|PC | Operation                                                                   # s0                  | s1                  | s2             | s3           | s4                  | s5             | s6                  | s7                   | s8                         # r0                         | r1          | r2                         | r3 | 
--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-|58 | INVOKE getName()Ljava/lang/String;                                          # CO33: CoreException | MO34: CoreException | A CO35: Status | MO36: Status | A CO37: {byte,char} | A CO38: String | A CO39: {byte,char} | A CO40: StringBuffer | A ME58: Class              # CO0: IConfigurationElement | MO4: String | A MO32: ClassCastException |    | 
-|59 | INVOKE append(Ljava/lang/String;)Ljava/lang/StringBuffer;                   # CO33: CoreException | MO34: CoreException | A CO35: Status | MO36: Status | A CO37: {byte,char} | A CO38: String | A CO39: {byte,char} | A CO40: StringBuffer | A CO59: String             # CO0: IConfigurationElement | MO4: String | A MO32: ClassCastException |    | 
-|60 | INVOKE toString()Ljava/lang/String;                                         # CO33: CoreException | MO34: CoreException | A CO35: Status | MO36: Status | A CO37: {byte,char} | A CO38: String | A CO39: {byte,char} | A CO60: StringBuffer |                            # CO0: IConfigurationElement | MO4: String | A MO32: ClassCastException |    | 
-|61 | LOAD 2                                                                      # CO33: CoreException | MO34: CoreException | A CO35: Status | MO36: Status | A CO37: {byte,char} | A CO38: String | A CO39: {byte,char} | A CO61: String       |                            # CO0: IConfigurationElement | MO4: String | A MO32: ClassCastException |    | 
-|62 | INVOKE <init>(ILjava/lang/String;ILjava/lang/String;Ljava/lang/Throwable;)V # CO33: CoreException | MO34: CoreException | CO35: Status   | MO36: Status | A CO37: {byte,char} | A CO38: String | A CO39: {byte,char} | A CO61: String       | A MO62: ClassCastException # CO0: IConfigurationElement | MO4: String | MO32: ClassCastException   |    | 
-|63 | INVOKE <init>(Lorg/eclipse/core/runtime/IStatus;)V                          # CO33: CoreException | MO34: CoreException | CO35: Status   |              |                     |                |                     |                      |                            # CO0: IConfigurationElement | MO4: String | MO32: ClassCastException   |    | 
-|64 | THROW                                                                       # CO33: CoreException |                     |                |              |                     |                |                     |                      |                            # CO0: IConfigurationElement | MO4: String | MO32: ClassCastException   |    | 
-
-
 }}}
 
 = TODOs =
