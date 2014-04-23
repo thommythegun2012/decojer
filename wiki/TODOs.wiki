@@ -32,12 +32,14 @@ cycle: new org.eclipse.core.runtime.Status() add-expression new org.eclipse.core
 
 = TODOs =
 
+  * read folders recursively, especially for test of maven/Oracle etc.
   * variable analysis
     * special recognition of this and params for invalid debug vars
   * remove assert field ".$assertionsDisabled" and static init
   * assign-to with "maybe"
   * Infinity Loop in Eclipse-CodeFormatter: https://bugs.eclipse.org/bugs/show_bug.cgi?id=432593
   * optimize stream reader -> use more byte arrays down to bytecode libs
+    * check for this org.eclipse.m2e.maven.runtime_1.4.0.20130531-2315.jar
     * copy zip entries because JDK 7 has nested ZIP bugs: only gets 3 bytes (CAFEBA..) instead of 4 (e.g. CharStreams$2 in com.google.common.io.CharStreams.newReaderSupplier)
   * inner classes synthetic initializer for eclosing.this, comment in PUT indicates, data flowe analysis must be solved first:
     * we want to rewrite this$0 here, but for this constructor methods have to be handled first to mark such fields for consumption?
