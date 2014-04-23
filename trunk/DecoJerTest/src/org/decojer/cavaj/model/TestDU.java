@@ -23,21 +23,27 @@ class TestDU {
 				.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile();
 	}
 
-	private void read(File file) {
+	private void read(final File file) {
 		if (file.isDirectory()) {
-			for (File child : file.listFiles()) {
-				read(child);
+			final File[] listFiles = file.listFiles();
+			if (listFiles != null) {
+				for (File child : listFiles) {
+					read(child);
+				}
 			}
 		}
-		DU du = DecoJer.createDu();
-		List<T> read = du.read(file.getAbsolutePath());
+		final DU du = DecoJer.createDu();
+		final List<T> read = du.read(file.getAbsolutePath());
 		if (read == null || read.isEmpty()) {
 			return;
 		}
 		log.info("######### Decompiling: " + file + " (" + read.size() + ") #########");
 		for (final CU cu : du.getCus()) {
-			cu.decompile(false);
-			cu.clear();
+			try {
+				cu.decompile(false);
+			} finally {
+				cu.clear();
+			}
 		}
 	}
 
