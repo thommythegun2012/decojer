@@ -26,7 +26,8 @@ D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\org.eclipse.ui.editors_3.8.10
 
 cycle: new org.eclipse.core.runtime.Status() add-expression new org.eclipse.core.runtime.Status()
 
-Some stack underflow operation works wrong and creates wrong stack!
+Eclipse-cached-typeliteral as first node in catch:
+combined BBs creates new BB which is again a catch-handler: double stack add of e
 
 63: INVOKE <init>(Lorg/eclipse/core/runtime/IStatus;)V
 
