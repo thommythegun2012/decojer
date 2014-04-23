@@ -23,6 +23,7 @@
  */
 package org.decojer;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,6 +35,8 @@ import java.util.zip.ZipInputStream;
 
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.utils.MagicNumbers;
+
+import com.google.common.io.ByteStreams;
 
 /**
  * DecoJer.
@@ -71,7 +74,9 @@ public class DecoJer {
 			int nr = 0;
 			for (ZipEntry zipEntry = zip.getNextEntry(); zipEntry != null; zipEntry = zip
 					.getNextEntry()) {
-				nr += analyze(zip);
+				// nested ZipStreams have bugs and skip some entries, hence copy the stream
+				final byte[] buf = ByteStreams.toByteArray(zip);
+				nr += analyze(new ByteArrayInputStream(buf));
 			}
 			return nr;
 		}
