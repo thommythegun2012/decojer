@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -71,6 +72,7 @@ import org.decojer.cavaj.utils.MagicNumbers;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.io.ByteStreams;
 
 /**
  * Decompilation unit.
@@ -934,7 +936,9 @@ public final class DU {
 					continue;
 				}
 				try {
-					final List<T> readTds = read(zip, name, null);
+					// nested ZipStreams have bugs and skip some entries, hence copy the stream
+					final byte[] buf = ByteStreams.toByteArray(zip);
+					final List<T> readTds = read(new ByteArrayInputStream(buf), name, null);
 					if (readTds != null && (selectorMatch == null || selectorMatch.equals(name))) {
 						ts.addAll(readTds);
 					}
