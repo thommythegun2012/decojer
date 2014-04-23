@@ -20,6 +20,14 @@ java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°
 
 ---
 
+org.eclipse.ui.editors.text.templates.ContributionContextTypeRegistry.createContextType(Lorg/eclipse/core/runtime/IConfigurationElement;)Lorg/eclipse/jface/text/templates/TemplateContextType; (ops: 65, regs: 4)
+
+D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\org.eclipse.ui.editors_3.8.100.v20130513-1637.jar
+
+cycle: new org.eclipse.core.runtime.Status() add-expression new org.eclipse.core.runtime.Status()
+
+63: INVOKE <init>(Lorg/eclipse/core/runtime/IStatus;)V
+
 }}}
 
 = TODOs =
