@@ -24,7 +24,6 @@ java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°
 
 = TODOs =
 
-  * read folders recursively, especially for test of maven/Oracle etc.
   * variable analysis
     * special recognition of this and params for invalid debug vars
   * remove assert field ".$assertionsDisabled" and static init
