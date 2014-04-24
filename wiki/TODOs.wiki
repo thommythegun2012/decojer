@@ -18,30 +18,11 @@ java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°
 	at org.eclipse.jdt.core.dom.StringLiteral.setLiteralValue(StringLiteral.java:327)
 	at org.decojer.cavaj.utils.Expressions.newLiteral2(Expressions.java:295)
 
----
-
-java.lang.AssertionError: net.miginfocom.layout.Grid$Cell.access$476(Lnet/miginfocom/layout/Grid$Cell;I)Z: intersect to null not allowed
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.evalBinaryMath(TrDataFlowAnalysis.java:177)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.evalBinaryMath(TrDataFlowAnalysis.java:161)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:550)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1377)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:110)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:227)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
-	at org.decojer.cavaj.model.CU.decompile(CU.java:247)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:43)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.testBytecodeOracle(TestDU.java:67)
-
-D:\Oracle\JDeveloper\jdeveloper\ide\lib\miglayout-3.6-swing.jar
-
-4: OR
-
-intersect R3.CO3: boolean and R4.MO4: int
+bool -> int etc.
+ check net.miginfocom.layout.Grid$Cell.access$476 in
+ Oracle\JDeveloper\jdeveloper\ide\lib\miglayout-3.6-swing.jar
+ not a valid Java code but valid JVM code
+introduce CastT()?
 
 ---
 
