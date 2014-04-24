@@ -20,13 +20,49 @@ java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°
 
 ---
 
-net.miginfocom.layout.Grid$Cell.access$476(Lnet/miginfocom/layout/Grid$Cell;I)Z (ops: 9, regs: 2)
+java.lang.AssertionError: net.miginfocom.layout.Grid$Cell.access$476(Lnet/miginfocom/layout/Grid$Cell;I)Z: intersect to null not allowed
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.evalBinaryMath(TrDataFlowAnalysis.java:177)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.evalBinaryMath(TrDataFlowAnalysis.java:161)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:550)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1377)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:110)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:227)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
+	at org.decojer.cavaj.model.CU.decompile(CU.java:247)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:43)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.testBytecodeOracle(TestDU.java:67)
 
 D:\Oracle\JDeveloper\jdeveloper\ide\lib\miglayout-3.6-swing.jar
 
 4: OR
 
 intersect R3.CO3: boolean and R4.MO4: int
+
+---
+
+java.lang.AssertionError: cannot assign 'R11.CO212: Object' to 'ch.qos.logback.classic.gaffer.ComponentDelegate'
+	at org.decojer.cavaj.model.code.R.assignTo(R.java:255)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.pop(TrDataFlowAnalysis.java:1120)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.popRead(TrDataFlowAnalysis.java:1131)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:657)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1377)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:110)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:227)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
+	at org.decojer.cavaj.model.CU.decompile(CU.java:247)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:43)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
+	at org.decojer.cavaj.model.TestDU.testBytecodeMaven(TestDU.java:62)
 
 }}}
 
