@@ -153,13 +153,12 @@ public final class TrControlFlowAnalysis {
 	private Cond createCondStruct(@Nonnull final BB head) {
 		final BB falseSucc = head.getFalseSucc();
 		final BB trueSucc = head.getTrueSucc();
-		assert falseSucc != null && trueSucc != null;
-
+		assert falseSucc != null && trueSucc != null : getMd();
 		if (falseSucc == trueSucc) {
 			// have seen this e.g. in org.python.core.PyJavaClass.addMethod()
 			final Statement finalStmt = head.removeFinalStmt();
 			if (!(finalStmt instanceof IfStatement)) {
-				assert false;
+				assert 0 == 1 : getMd();
 				return null;
 			}
 			// convert if statement to expression statement
@@ -176,7 +175,6 @@ public final class TrControlFlowAnalysis {
 			}
 			return null;
 		}
-
 		final Cond cond = new Cond(head);
 
 		// if-statement compilation hasn't changed with JDK versions (unlike boolean expressions)
@@ -269,9 +267,9 @@ public final class TrControlFlowAnalysis {
 		final List<BB> members = loop.getMembers(null);
 		BB last = null;
 		for (final BB backBb : backBbs) {
-			assert backBb != null;
+			assert backBb != null : getMd();
 			final boolean found = findReverseBranch(loop, backBb, members, traversedBbs);
-			assert found : "cannot have a loop back BB that is not in reverse branch";
+			assert found : getMd() + ": cannot have a loop back BB that is not in reverse branch";
 			if (last == null || last.isBefore(backBb)) {
 				last = backBb;
 			}
@@ -327,7 +325,7 @@ public final class TrControlFlowAnalysis {
 		}
 		// we have to compare the tails for head and last
 		if (headKind != null && lastKind != null) {
-			assert headFollow != null && lastFollow != null;
+			assert headFollow != null && lastFollow != null : getMd();
 			final List<BB> headMembers = Lists.newArrayList();
 			final Set<BB> headFollows = Sets.newHashSet();
 			findBranch(loop, headFollow, headMembers, headFollows);
@@ -438,9 +436,8 @@ public final class TrControlFlowAnalysis {
 				}
 				isFallThrough = true;
 			}
-
 			final List<BB> members = switchStruct.getMembers(caseOut.getValue());
-			assert members != null;
+			assert members != null : getMd();
 			if (isFallThrough) {
 				follows.remove(caseBb);
 				members.add(caseBb);
