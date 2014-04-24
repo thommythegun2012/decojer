@@ -489,38 +489,6 @@ public abstract class T implements Element {
 	}
 
 	/**
-	 * Assign from given type. There are 3 possible outcomes: Cannot assign from given type, which
-	 * returns {@code null}. Can assign from given type and primitive multitype reduction, which
-	 * returns the reduced new type. Can assign without reduction, which returns unmodified
-	 * {@code this}.
-	 *
-	 * @param t
-	 *            assign from type
-	 * @return {@code null} or reduced type or {@code this}
-	 */
-	@Nullable
-	public T assignFrom(@Nullable final T t) {
-		if (t == null) {
-			return null;
-		}
-		final int kind = assignKindsToFrom(getKind(), t.getKind());
-		if ((kind & Kind.REF.getKind()) == 0) {
-			return getT(kind);
-		}
-		// FIXME join up / reduce for store overwrite!
-		if (isAssignableFrom(t)) {
-			return this;
-		}
-		// we can assign Object to interface, will be checked at runtime!
-		// works: Comparable c = (Comparable) new Object();
-		// we have to add casting!
-		if (t.isObject() && isInterface()) {
-			return this;
-		}
-		return null;
-	}
-
-	/**
 	 * Assign to given type. There are 3 possible outcomes: Cannot assign to given type, which
 	 * returns {@code null}. Can assign to given type and primitive multitype reduction, which
 	 * returns the reduced new type. Can assign without reduction, which returns unmodified
@@ -543,15 +511,19 @@ public abstract class T implements Element {
 		if (t.isAssignableFrom(this)) {
 			return this;
 		}
-		// we can assign Object to interface, will be checked at runtime!
-		// works: Comparable c = (Comparable) new Object();
-		// works: Serializable s = (Serializable) new HashSet();
-		// works: OutputStream o = (OutputStream) new Object();
-		// we have to add casting!
-		if ((isObject() || isInterface()) && (t.isInterface() || t.check(AF.ABSTRACT))) {
+		if (isAssignableFrom(t)) {
+			// TODO many stuff will be checked at runtime, only rare class cases are explicitely not
+			// possible! try to identify and classify such cases. Move method to R?
+			// We have to add casting for Java, e.g. with CastT()
+			// same for BOOL primitives etc.?
+			// works: Comparable c = (Comparable) new Object();
+			// works: Integer c = (Integer) new Object();
+			// works: Serializable s = (Serializable) new HashSet();
+			// works: OutputStream o = (OutputStream) new Object();
+			// works: Set set = new HashSet(); Serializable s = (Serializable) set;
 			return this;
 		}
-		return null;
+		return this;
 	}
 
 	@Override

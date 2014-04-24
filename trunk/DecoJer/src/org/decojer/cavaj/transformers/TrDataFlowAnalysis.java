@@ -143,15 +143,15 @@ public final class TrDataFlowAnalysis {
 
 	private boolean checkRegisterAccessInSub(final int i, final RET ret) {
 		final Frame retFrame = getFrame(ret.getPc());
-		assert retFrame != null;
+		assert retFrame != null : getM();
 		final R regAtRet = retFrame.load(i);
 
 		final R retReg = retFrame.load(ret.getReg());
-		assert retReg != null;
+		assert retReg != null : getM();
 		final Sub sub = (Sub) retReg.getValue();
 
 		final Frame subFrame = getFrame(sub.getPc());
-		assert subFrame != null;
+		assert subFrame != null : getM();
 		final R regAtSub = subFrame.load(i);
 
 		return regAtRet != regAtSub; // register changed somewhere in sub
@@ -173,8 +173,18 @@ public final class TrDataFlowAnalysis {
 		// TODO merge delete value for loop, com.google.common.base.CharMatcher.setBits
 
 		// reduce to reasonable parameters pairs, e.g. BOOL, {SHORT,BOOL}-Constant -> both BOOL
-		final T intersectT = T.intersect(s1.getT(), s2.getT());
-		assert intersectT != null : getM() + ": intersect to null not allowed";
+		T intersectT = T.intersect(s1.getT(), s2.getT());
+		intersect: if (intersectT == null) {
+			if (s1.getT().is(T.BOOLEAN) || s2.getT().is(T.BOOLEAN)) {
+				// TODO HACK: check net.miginfocom.layout.Grid$Cell.access$476 in
+				// miglayout-3.6-swing.jar
+				// not a valid Java code but valid JVM code:
+				// intersect to INT and assignTo will generate casts
+				intersectT = T.INT;
+				break intersect;
+			}
+			assert false : getM() + ": intersect to null not allowed";
+		}
 		// TODO ref1 == ref2 is allowed with result void (bool math)
 
 		s2.assignTo(intersectT);
@@ -461,9 +471,8 @@ public final class TrDataFlowAnalysis {
 			// already visited this sub -> restore jsr-follow-address (Sub) and merge -> check RET
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
-				assert false : getM() + ": already visited sub with pc '" + subPc
+				assert 0 == 1 : getM() + ": already visited sub with pc '" + subPc
 						+ "' but didn't find initial sub register";
-
 				return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
@@ -605,7 +614,7 @@ public final class TrDataFlowAnalysis {
 			for (final E in : subBb.getIns()) {
 				// JSR is last operation in previous BB
 				final Op jsr = in.getStart().getFinalOp();
-				assert jsr != null;
+				assert jsr != null : getM();
 				final int jsrFollowPc = jsr.getPc() + 1;
 				this.currentBb.setSucc(getTargetBb(jsrFollowPc));
 				// modify RET frame for untouched registers in sub
@@ -677,9 +686,11 @@ public final class TrDataFlowAnalysis {
 
 			// add case branches
 			final int[] caseKeys = cop.getCaseKeys();
-			assert caseKeys != null;
+			assert caseKeys != null : getM();
+
 			final int[] casePcs = cop.getCasePcs();
-			assert casePcs != null;
+			assert casePcs != null : getM();
+
 			for (int i = 0; i < caseKeys.length; ++i) {
 				final int casePc = casePcs[i];
 				List<Integer> keys = casePc2values.get(casePc);
@@ -703,7 +714,7 @@ public final class TrDataFlowAnalysis {
 					.entrySet()) {
 				caseValues = casePc2valuesEntry.getValue();
 				final Object[] caseValueArray = caseValues.toArray(new Object[caseValues.size()]);
-				assert caseValueArray != null;
+				assert caseValueArray != null : getM();
 				this.currentBb.addSwitchCase(getTargetBb(casePc2valuesEntry.getKey()),
 						caseValueArray);
 			}
@@ -765,7 +776,7 @@ public final class TrDataFlowAnalysis {
 			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
 				final List<T> types = handlerPc2typeEntry.getValue();
 				final T[] ts = types.toArray(new T[types.size()]);
-				assert ts != null;
+				assert ts != null : getM();
 				this.currentBb.addCatchHandler(getTargetBb(handlerPc2typeEntry.getKey()), ts);
 			}
 		}
@@ -845,7 +856,7 @@ public final class TrDataFlowAnalysis {
 		newInBb.setSucc(bb);
 		while (bb.getOps() > 0 && bb.getOp(0).getPc() != pc) {
 			final Op op = bb.removeOp(0);
-			assert op != null;
+			assert op != null : getM();
 			newInBb.addOp(op);
 			setBb(op.getPc(), newInBb);
 		}
@@ -872,8 +883,9 @@ public final class TrDataFlowAnalysis {
 
 	private R loadRead(final int i, final T t) {
 		final R r = load(i, t);
-		assert this.currentBb != null;
-		markAlive(this.currentBb, i);
+		final BB currentBb = this.currentBb;
+		assert currentBb != null : getM();
+		markAlive(currentBb, i);
 		return r;
 	}
 
@@ -886,7 +898,7 @@ public final class TrDataFlowAnalysis {
 			final int pc = bb.getOp(j).getPc();
 			final Frame frame = getFrame(pc);
 			if (frame == null) {
-				assert false;
+				assert 0 == 1 : getM();
 				return;
 			}
 			if (!frame.markAlive(aliveI)) {
@@ -896,7 +908,7 @@ public final class TrDataFlowAnalysis {
 			if (r == null) {
 				log.warn(getM() + ": Alive register is null for pc '" + pc + "' and index '"
 						+ aliveI + "' for operation '" + bb.getOp(j) + "'!");
-				assert false;
+				assert 0 == 1 : getM();
 				return;
 			}
 			if (r.getPc() == pc) {
@@ -907,7 +919,7 @@ public final class TrDataFlowAnalysis {
 					// stop backpropagation here
 					return;
 				case MERGE:
-					assert false : getM() + ": MERGE can only be first op in BB";
+					assert 0 == 1 : getM() + ": MERGE can only be first op in BB";
 					// stop backpropagation here
 					return;
 				case MOVE:
@@ -923,7 +935,7 @@ public final class TrDataFlowAnalysis {
 		final int pc = bb.getPc();
 		final Frame frame = getFrame(pc);
 		if (frame == null) {
-			assert false;
+			assert 0 == 1 : getM();
 			return;
 		}
 		if (!frame.markAlive(aliveI)) {
@@ -937,7 +949,7 @@ public final class TrDataFlowAnalysis {
 		if (r == null) {
 			log.warn(getM() + ": Alive register is null for pc '" + pc + "' and index '" + aliveI
 					+ "' for first BB operation '" + bb.getOp(0) + "'!");
-			assert false;
+			assert 0 == 1 : getM();
 			return;
 		}
 		if (r.getPc() == pc) {
@@ -966,14 +978,14 @@ public final class TrDataFlowAnalysis {
 			final BB inBb = in.getStart();
 			final Op finalOp = inBb.getFinalOp();
 			if (finalOp == null) {
-				assert false;
+				assert 0 == 1 : getM();
 				continue;
 			}
 			if (finalOp instanceof RET && !in.isCatch()) {
 				// jump over subs, where the register is unchanged
 				if (!checkRegisterAccessInSub(aliveI, (RET) finalOp)) {
 					final BB jsrBb = getBb(pc - 1);
-					assert jsrBb != null;
+					assert jsrBb != null : getM();
 					markAlive(jsrBb, aliveI);
 					continue;
 				}
@@ -1021,15 +1033,15 @@ public final class TrDataFlowAnalysis {
 			final R newR = this.currentFrame.load(i);
 			mergeReg(targetBb, i, newR);
 			if (targetFrame.isAlive(i)) {
-				assert newR != null;
+				assert newR != null : getM();
 				// register i for current BB must be alive too for merging
 				if (newR.getPc() != targetBb.getPc()) {
 					final BB bb = this.currentBb;
-					assert bb != null;
+					assert bb != null : getM();
 					markAlive(bb, i);
 				} else if (newR.getKind() == Kind.MOVE) {
 					final BB bb = this.currentBb;
-					assert bb != null;
+					assert bb != null : getM();
 					markAlive(bb, newR.getIn().getI());
 				}
 			}
@@ -1038,7 +1050,7 @@ public final class TrDataFlowAnalysis {
 
 	private void mergeReg(@Nonnull final BB targetBb, final int i, @Nullable final R newR) {
 		final Frame targetFrame = getFrame(targetBb.getPc());
-		assert targetFrame != null;
+		assert targetFrame != null : getM();
 		final R prevR = targetFrame.load(i);
 		if (prevR == newR || prevR == null) {
 			// previous register is null? => merge to null => nothing to do
@@ -1047,7 +1059,7 @@ public final class TrDataFlowAnalysis {
 		if (newR == null) {
 			// new register is null? => merge to null => replace previous register from here
 			final Set<BB> mergeBbs = replaceRegBbDeep(targetBb, prevR, null);
-			assert mergeBbs == null;
+			assert mergeBbs == null : getM();
 			return;
 		}
 		final T intersectT = T.intersect(prevR.getT(), newR.getT());
@@ -1055,7 +1067,7 @@ public final class TrDataFlowAnalysis {
 			// merge type is null? => merge to null => replace previous register from here
 			// TODO handle types with unknown super not as null-intersect
 			final Set<BB> mergeBbs = replaceRegBbDeep(targetBb, prevR, null);
-			assert mergeBbs == null;
+			assert mergeBbs == null : getM();
 			return;
 		}
 		if (targetFrame.isAlive(i)) {
@@ -1073,7 +1085,7 @@ public final class TrDataFlowAnalysis {
 		if (mergeBbs != null) {
 			// replace triggered new merges
 			for (final BB mergeBb : mergeBbs) {
-				assert mergeBb != null;
+				assert mergeBb != null : getM();
 				mergeReg(mergeBb, i, newR);
 			}
 		}
@@ -1126,7 +1138,7 @@ public final class TrDataFlowAnalysis {
 
 	private R popRead(final T t) {
 		final BB bb = this.currentBb;
-		assert bb != null;
+		assert bb != null : getM();
 		markAlive(bb, this.currentFrame.size() - 1);
 		return pop(t);
 	}
@@ -1207,7 +1219,7 @@ public final class TrDataFlowAnalysis {
 				}
 				final Frame outFrame = getFrame(outBb.getPc());
 				if (outFrame == null) {
-					assert false;
+					assert 0 == 1 : getM();
 					continue;
 				}
 				final R outPrevR = outFrame.load(prevR.getI());
@@ -1221,7 +1233,7 @@ public final class TrDataFlowAnalysis {
 				final BB outBb = out.getEnd();
 				final Frame outFrame = getFrame(outBb.getPc());
 				if (outFrame == null) {
-					assert out.isCatch();
+					assert out.isCatch() : getM();
 					continue;
 				}
 				if (prevR.getI() >= outFrame.getRegs()) {
@@ -1253,7 +1265,7 @@ public final class TrDataFlowAnalysis {
 						final BB inBb = in.getStart();
 						final Op finalInOp = inBb.getFinalOp();
 						if (finalInOp == null) {
-							assert false;
+							assert 0 == 1 : getM();
 							continue;
 						}
 						final Frame inFrame = getFrame(finalInOp.getPc());
@@ -1295,7 +1307,7 @@ public final class TrDataFlowAnalysis {
 		}
 		final int i = prevR.getI();
 		final Frame frame = getFrame(pc);
-		assert frame != null;
+		assert frame != null : getM();
 		if (i >= frame.size() || prevR != frame.load(i)) {
 			return false;
 		}

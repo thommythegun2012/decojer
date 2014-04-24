@@ -303,14 +303,14 @@ public final class TrJvmStruct2JavaAst {
 			}
 		} else if (methodDeclaration instanceof Initializer) {
 			// Initializer (static{}) has block per default
-			assert ((Initializer) methodDeclaration).getBody() != null;
+			assert ((Initializer) methodDeclaration).getBody() != null : m;
 
 			if (m.getCfg() != null) {
 				// could have no CFG because of empty or incomplete read code attribute
 				m.getCfg().setBlock(((Initializer) methodDeclaration).getBody());
 			}
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
-			assert m.getParamTs().length == 0;
+			assert m.getParamTs().length == 0 : m;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
 			.setType(newType(m.getReturnT(), t));
@@ -331,7 +331,7 @@ public final class TrJvmStruct2JavaAst {
 		// <U:TT;>(TT;TU;)V
 		final Object astNode = m.getAstNode();
 		if (!(astNode instanceof MethodDeclaration)) {
-			assert false;
+			assert 0 == 1 : m;
 			return;
 		}
 		final MethodDeclaration methodDeclaration = (MethodDeclaration) astNode;
@@ -542,17 +542,14 @@ public final class TrJvmStruct2JavaAst {
 	 * @param contextT
 	 *            Type Declaration
 	 */
-	private static void decompileTypeParams(final T[] typeParams,
-			final List<TypeParameter> typeParameters, final T contextT) {
-		if (typeParams == null) {
-			return;
-		}
+	private static void decompileTypeParams(@Nonnull final T[] typeParams,
+			final List<TypeParameter> typeParameters, @Nonnull final T contextT) {
 		final AST ast = contextT.getCu().getAst();
 		for (final T typeParam : typeParams) {
 			final TypeParameter typeParameter = ast.newTypeParameter();
 			typeParameter.setName(newSimpleName(typeParam.getName(), ast));
 			final List<org.eclipse.jdt.core.dom.Annotation> modifiers = typeParameter.modifiers();
-			assert modifiers != null;
+			assert modifiers != null : contextT;
 			Annotations.decompileAnnotations(typeParam, modifiers, contextT);
 			final T superT = typeParam.getSuperT();
 			if (superT != null && !superT.isObject()) {

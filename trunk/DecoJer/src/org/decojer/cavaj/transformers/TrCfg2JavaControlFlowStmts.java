@@ -105,7 +105,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		return getCfg().getCu().getAst();
 	}
 
-	private M getMd() {
+	private M getM() {
 		return getCfg().getM();
 	}
 
@@ -133,7 +133,7 @@ public final class TrCfg2JavaControlFlowStmts {
 
 	@Nullable
 	private IfStatement transformCatch(final Catch catchStruct) {
-		log.warn(getMd() + ": TODO: " + catchStruct);
+		log.warn(getM() + ": TODO: " + catchStruct);
 		// final BB head = catchStruct.getHead();
 		return null;
 	}
@@ -144,7 +144,7 @@ public final class TrCfg2JavaControlFlowStmts {
 
 		final IfStatement ifStatement = (IfStatement) head.getFinalStmt();
 		if (ifStatement == null) {
-			assert false;
+			assert 0 == 1 : getM();
 			return null;
 		}
 		final BB falseSucc = head.getFalseSucc();
@@ -173,7 +173,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = true;
 		case IF_ELSE: {
 			if (falseSucc == trueSucc) {
-				assert false; // is handled in control flow analysis
+				assert 0 == 1 : getM(); // is handled in control flow analysis
 				return null;
 			}
 			{
@@ -203,7 +203,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			return ifStatement;
 		}
 		default:
-			log.warn(getMd() + ": Unknown cond type '" + cond.getKind() + "'!");
+			log.warn(getM() + ": Unknown cond type '" + cond.getKind() + "'!");
 			return null;
 		}
 	}
@@ -220,7 +220,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		case WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) head.getStmt(0);
 			if (ifStatement == null) {
-				assert false;
+				assert 0 == 1 : getM();
 				return null;
 			}
 			final WhileStatement whileStatement = setOp(getAst().newWhileStatement(),
@@ -248,7 +248,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		case DO_WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) last.getFinalStmt();
 			if (ifStatement == null) {
-				assert false;
+				assert 0 == 1 : getM();
 				return null;
 			}
 			final DoStatement doStatement = setOp(getAst().newDoStatement(), getOp(ifStatement));
@@ -283,7 +283,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			return whileStatement;
 		}
 		default:
-			log.warn(getMd() + ": Unknown loop type '" + loop.getKind() + "'!");
+			log.warn(getM() + ": Unknown loop type '" + loop.getKind() + "'!");
 			return null;
 		}
 	}
@@ -325,13 +325,13 @@ public final class TrCfg2JavaControlFlowStmts {
 						return;
 					}
 					if (findStruct.getParent() == bb.getStruct()) {
-						log.warn(getMd() + ": Struct leave in BB " + bb.getPostorder()
+						log.warn(getM() + ": Struct leave in BB " + bb.getPostorder()
 								+ " without regular follow encounter:\n" + struct);
 						return;
 					}
 				}
 				if (!bb.getStruct().isHead(bb)) {
-					log.warn(getMd() + ": Struct change in BB " + bb.getPostorder()
+					log.warn(getM() + ": Struct change in BB " + bb.getPostorder()
 							+ " without regular follow or head encounter:\n" + struct);
 					return;
 				}
@@ -344,7 +344,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				while (struct != subStruct.getParent()) {
 					subStruct = subStruct.getParent();
 					if (subStruct == null) {
-						log.warn(getMd() + ": Struct enter in BB " + bb.getPostorder()
+						log.warn(getM() + ": Struct enter in BB " + bb.getPostorder()
 								+ " without regular head encounter:\n" + struct);
 						return;
 					}
@@ -420,7 +420,7 @@ public final class TrCfg2JavaControlFlowStmts {
 	@Nullable
 	private BB transformStruct(final Struct struct, final List<Statement> statements) {
 		if (!this.traversedStructs.add(struct)) {
-			log.warn(getMd() + ": Cannot transform struct twice:\n" + struct);
+			log.warn(getM() + ": Cannot transform struct twice:\n" + struct);
 			return null;
 		}
 
@@ -443,12 +443,12 @@ public final class TrCfg2JavaControlFlowStmts {
 			} else if (struct instanceof Sync) {
 				structStatement = transformSync((Sync) struct);
 			} else {
-				log.warn(getMd() + ": Unknown struct:\n" + struct);
+				log.warn(getM() + ": Unknown struct:\n" + struct);
 				structStatement = null;
 			}
 		}
 		if (structStatement == null) {
-			log.warn(getMd() + ": Couldn't decompile struct:\n" + struct);
+			log.warn(getM() + ": Couldn't decompile struct:\n" + struct);
 		} else {
 			statements.add(structStatement);
 		}
@@ -463,7 +463,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			final BB head = switchStruct.getHead();
 			final SwitchStatement switchStatement = (SwitchStatement) head.getFinalStmt();
 			if (switchStatement == null) {
-				assert false;
+				assert 0 == 1 : getM();
 				return null;
 			}
 			final Op op = getOp(switchStatement);
@@ -475,7 +475,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				boolean defaultAdded = false; // prevent [null, null] - double defaults
 				final Object value = out.getValue();
 				if (!(value instanceof Object[])) {
-					assert false;
+					assert 0 == 1 : getM();
 					continue;
 				}
 				for (final Object caseValue : (Object[]) value) {
@@ -521,7 +521,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			return switchStatement;
 		}
 		default:
-			log.warn(getMd() + ": Unknown switch type '" + switchStruct.getKind() + "'!");
+			log.warn(getM() + ": Unknown switch type '" + switchStruct.getKind() + "'!");
 			return null;
 		}
 	}
@@ -532,12 +532,12 @@ public final class TrCfg2JavaControlFlowStmts {
 		final SynchronizedStatement synchronizedStatement = (SynchronizedStatement) head
 				.getFinalStmt();
 		if (synchronizedStatement == null) {
-			assert false;
+			assert 0 == 1 : getM();
 			return null;
 		}
 		final E sequenceOut = head.getSequenceOut();
 		if (sequenceOut == null) {
-			assert false;
+			assert 0 == 1 : getM();
 			return null;
 		}
 		transformSequence(sync, sequenceOut.getEnd(), synchronizedStatement.getBody().statements());

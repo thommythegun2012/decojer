@@ -312,7 +312,7 @@ public class TrInnerClassesAnalysis {
 		final List<CU> cus = Lists.newArrayList();
 		final Map<String, CU> sourceId2cu = Maps.newHashMap();
 		for (final T topT : topTs) {
-			assert topT != null;
+			assert topT != null : du;
 
 			final String sourceFileName = topT.getSourceFileName();
 			if (sourceFileName == null) {
