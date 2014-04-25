@@ -32,18 +32,22 @@ class TestDU {
 				}
 			}
 		}
-		final DU du = DecoJer.createDu();
-		final List<T> read = du.read(file.getAbsolutePath());
-		if (read == null || read.isEmpty()) {
-			return;
-		}
-		log.info("######### Decompiling: " + file + " (" + read.size() + ") #########");
-		for (final CU cu : du.getCus()) {
-			try {
-				cu.decompile(false);
-			} finally {
-				cu.clear();
+		try {
+			final DU du = DecoJer.createDu();
+			final List<T> read = du.read(file.getAbsolutePath());
+			if (read == null || read.isEmpty()) {
+				return;
 			}
+			log.info("######### Decompiling: " + file + " (" + read.size() + ") #########");
+			for (final CU cu : du.getCus()) {
+				try {
+					cu.decompile(false);
+				} finally {
+					cu.clear();
+				}
+			}
+		} catch (Throwable e) {
+			throw new RuntimeException("File: " + file, e);
 		}
 	}
 
