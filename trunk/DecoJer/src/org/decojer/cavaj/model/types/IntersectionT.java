@@ -85,7 +85,7 @@ public class IntersectionT extends BaseT {
 		}
 		sb.setCharAt(sb.length() - 1, '}');
 		final String ret = sb.toString();
-		assert ret != null;
+		assert ret != null : this;
 		return ret;
 	}
 

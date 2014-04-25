@@ -134,8 +134,8 @@ public class ClassT extends T {
 	 *            type name
 	 */
 	public ClassT(final DU du, final String name) {
-		assert du != null;
-		assert name != null;
+		assert du != null : this;
+		assert name != null : this;
 
 		this.du = du;
 		this.name = name;
@@ -263,7 +263,7 @@ public class ClassT extends T {
 		if (typeParams == null) {
 			isUnresolvable();
 			typeParams = this.typeParams;
-			assert typeParams != null;
+			assert typeParams != null : this;
 		}
 		return typeParams;
 	}
@@ -368,7 +368,7 @@ public class ClassT extends T {
 			final T[] interfaceTs = new T[interfaces.length];
 			for (int i = interfaces.length; i-- > 0;) {
 				final Class<?> interfaceClazz = interfaces[i];
-				assert interfaceClazz != null;
+				assert interfaceClazz != null : this;
 				interfaceTs[i] = getDu().getT(interfaceClazz);
 			}
 			this.interfaceTs = interfaceTs;
@@ -378,9 +378,9 @@ public class ClassT extends T {
 			final T[] typeParams = new T[typeParameters.length];
 			for (int i = typeParameters.length; i-- > 0;) {
 				final TypeVariable<?> typeVariable = typeParameters[i];
-				assert typeVariable != null;
+				assert typeVariable != null : this;
 				final String name = typeVariable.getName();
-				assert name != null;
+				assert name != null : this;
 				typeParams[i] = getDu().getT(name);
 			}
 			this.typeParams = typeParams;
@@ -559,13 +559,11 @@ public class ClassT extends T {
 			if ((this.accessFlags & AF.INTERFACE.getValue()) != 0) {
 				return;
 			}
-			assert (this.accessFlags & AF.INTERFACE_ASSERTED.getValue()) == 0;
-
+			assert (this.accessFlags & AF.INTERFACE_ASSERTED.getValue()) == 0 : this;
 			this.accessFlags |= AF.INTERFACE.getValue() | AF.INTERFACE_ASSERTED.getValue();
 			return;
 		}
-		assert (this.accessFlags & AF.INTERFACE.getValue()) == 0;
-
+		assert (this.accessFlags & AF.INTERFACE.getValue()) == 0 : this;
 		this.accessFlags |= AF.INTERFACE_ASSERTED.getValue();
 		return;
 	}
@@ -625,7 +623,7 @@ public class ClassT extends T {
 				// erasure works...now we are safe to assert interface...but should be anyway
 				// because erasure leads to right type, not necessary:
 				// interfaceT.setInterface(true);
-				assert interfaceT.isInterface();
+				assert interfaceT.isInterface() : this;
 
 				interfaceTs[i] = interfaceT;
 			}

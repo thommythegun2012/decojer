@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -32,7 +32,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Base type.
- * 
+ *
  * @author André Pankraz
  */
 public abstract class BaseT extends T {
@@ -94,37 +94,37 @@ public abstract class BaseT extends T {
 
 	@Override
 	public void resolve() {
-		assert false;
+		assert false : this;
 	}
 
 	@Override
 	public void setAs(final A[] as) {
-		assert false;
+		assert false : this;
 	}
 
 	@Override
 	public void setAstNode(final Object astNode) {
-		assert false;
+		assert false : this;
 	}
 
 	@Override
 	public void setScala() {
-		assert false;
+		assert false : this;
 	}
 
 	@Override
 	public void setSignature(final String signature) {
-		assert false;
+		assert false : this;
 	}
 
 	@Override
 	public void setSourceFileName(final String sourceFileName) {
-		assert false;
+		assert false : this;
 	}
 
 	@Override
 	public void setVersion(final int version) {
-		assert false;
+		assert false : this;
 	}
 
 }
