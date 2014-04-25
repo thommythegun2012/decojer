@@ -26,14 +26,11 @@ introduce CastT()?
 
 ---
 
-java.lang.AssertionError: cannot assign 'R11.CO212: Object' to 'ch.qos.logback.classic.gaffer.ComponentDelegate'
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:255)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.pop(TrDataFlowAnalysis.java:1120)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.popRead(TrDataFlowAnalysis.java:1131)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:657)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1377)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:110)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:227)
+java.lang.AssertionError: com.sun.media.BasicOutputConnector.writeReport()V
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createCondStruct(TrControlFlowAnalysis.java:156)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:661)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:141)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:236)
 	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
 	at org.decojer.cavaj.model.CU.decompile(CU.java:247)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:43)
@@ -42,8 +39,7 @@ java.lang.AssertionError: cannot assign 'R11.CO212: Object' to 'ch.qos.logback.c
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.testBytecodeMaven(TestDU.java:62)
+	at org.decojer.cavaj.model.TestDU.testBytecodeOracle(TestDU.java:67)
 
 }}}
 
