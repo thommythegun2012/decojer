@@ -47,7 +47,7 @@ class TestDU {
 				}
 			}
 		} catch (Throwable e) {
-			throw new RuntimeException("File: " + file, e);
+			throw new RuntimeException("File: " + file + "\n" + e.getMessage(), e);
 		}
 	}
 
