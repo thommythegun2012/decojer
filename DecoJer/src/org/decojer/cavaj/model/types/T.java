@@ -275,7 +275,7 @@ public abstract class T implements Element {
 			kinds |= T.INT.getKind();
 		}
 		final PrimitiveT ret = getT(kinds);
-		assert ret != null;
+		assert ret != null : this;
 		return ret;
 	}
 
@@ -296,7 +296,7 @@ public abstract class T implements Element {
 			kinds |= T.INT.getKind();
 		}
 		final PrimitiveT ret = getT(kinds);
-		assert ret != null;
+		assert ret != null : this;
 		return ret;
 	}
 
@@ -339,7 +339,7 @@ public abstract class T implements Element {
 			flags |= k.getKind();
 		}
 		final PrimitiveT t = getT(flags);
-		assert t != null;
+		assert t != null : this;
 		return t;
 	}
 
@@ -383,7 +383,7 @@ public abstract class T implements Element {
 		if (t1.isArray() && t2.isArray()) {
 			final T componentT1 = t1.getComponentT();
 			final T componentT2 = t2.getComponentT();
-			assert componentT1 != null && componentT2 != null;
+			assert componentT1 != null && componentT2 != null : this;
 			// covariant arrays, but super/interfaces are {Object,Cloneable,Serializable}, not
 			// {superXY}[], and it doesn't work for primitives because no auto-conversion!
 			if ((componentT1.getKind() & componentT2.getKind()) != 0) {
@@ -685,7 +685,7 @@ public abstract class T implements Element {
 		}
 		enclosingTs.add(this);
 		final T[] ret = enclosingTs.toArray(new T[enclosingTs.size()]);
-		assert ret != null;
+		assert ret != null : this;
 		return ret;
 	}
 
@@ -838,7 +838,7 @@ public abstract class T implements Element {
 			return name;
 		}
 		final String ret = name.substring(packageName.length() + 1);
-		assert ret != null;
+		assert ret != null : this;
 		return ret;
 	}
 
@@ -868,7 +868,7 @@ public abstract class T implements Element {
 		}
 		qualifierTs.add(this);
 		final T[] ret = qualifierTs.toArray(new T[qualifierTs.size()]);
-		assert ret != null;
+		assert ret != null : this;
 		return ret;
 	}
 
@@ -931,7 +931,7 @@ public abstract class T implements Element {
 		}
 		// Eventually, this is the empty string iff this is an anonymous class
 		final String ret = innerName.substring(index);
-		assert ret != null;
+		assert ret != null : this;
 		return ret;
 	}
 
@@ -1340,7 +1340,7 @@ public abstract class T implements Element {
 
 	@Override
 	public void setAccessFlags(final int accessFlags) {
-		assert false; // overwrite in ClassT
+		assert false : this; // overwrite in ClassT
 	}
 
 	/**
@@ -1352,7 +1352,7 @@ public abstract class T implements Element {
 	 *            bound type for wildcard type
 	 */
 	public void setBoundT(final T boundT) {
-		assert false;
+		assert false : this;
 	}
 
 	/**
@@ -1364,17 +1364,17 @@ public abstract class T implements Element {
 	 *            component type for array type
 	 */
 	public void setComponentT(final T componentT) {
-		assert false;
+		assert false : this;
 	}
 
 	@Override
 	public void setDeclarationOwner(@Nonnull final Container declarationOwner) {
-		assert false;
+		assert false : this;
 	}
 
 	@Override
 	public void setDeprecated() {
-		assert false; // overwrite in ClassT
+		assert false : this; // overwrite in ClassT
 	}
 
 	/**
@@ -1386,7 +1386,7 @@ public abstract class T implements Element {
 	 * @see ClassT#setEnclosingT(T)
 	 */
 	public void setEnclosingM(final M enclosingM) {
-		assert false;
+		assert false : this;
 	}
 
 	/**
@@ -1421,7 +1421,7 @@ public abstract class T implements Element {
 	 * @see Class#getEnclosingClass()
 	 */
 	public void setEnclosingT(@Nullable final T enclosingT) {
-		assert false;
+		assert false : this;
 	}
 
 	/**
@@ -1436,7 +1436,7 @@ public abstract class T implements Element {
 	 * @see T#getInnerName()
 	 */
 	public void setInnerInfo(final String name, final int accessFlags) {
-		assert false;
+		assert false : this;
 	}
 
 	/**
@@ -1446,7 +1446,7 @@ public abstract class T implements Element {
 	 *            {@code true} - is interface
 	 */
 	public void setInterface(final boolean f) {
-		assert !f;
+		assert !f : this;
 	}
 
 	/**
@@ -1456,7 +1456,7 @@ public abstract class T implements Element {
 	 *            interface types
 	 */
 	public void setInterfaceTs(final T[] interfaceTs) {
-		assert false;
+		assert false : this;
 	}
 
 	/**
@@ -1468,7 +1468,7 @@ public abstract class T implements Element {
 	 *            qualifierd type for qualified type
 	 */
 	public void setQualifierT(@Nonnull final T qualifierT) {
-		assert false; // overwrite in QualifiedT
+		assert false : this; // overwrite in QualifiedT
 	}
 
 	/**
@@ -1480,7 +1480,7 @@ public abstract class T implements Element {
 	 *            raw type for modified type
 	 */
 	public void setRawT(@Nonnull final T rawT) {
-		assert false;
+		assert false : this;
 	}
 
 	/**
@@ -1503,12 +1503,12 @@ public abstract class T implements Element {
 	 *            super type
 	 */
 	public void setSuperT(final T superT) {
-		assert false;
+		assert false : this;
 	}
 
 	@Override
 	public void setSynthetic() {
-		assert false; // overwrite in ClassT
+		assert false : this; // overwrite in ClassT
 	}
 
 	/**

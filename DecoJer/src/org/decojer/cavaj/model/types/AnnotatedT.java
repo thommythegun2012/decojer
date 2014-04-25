@@ -58,9 +58,7 @@ public class AnnotatedT extends ExtendedT {
 		// we have to use the raw name here, not @annotations name, else many enclosing-dependant
 		// stuff will not work, like getT() for enclosed, getSimpleName() etc.,
 		// cannot cache this anyway because of lazy application of type annotations
-
-		assert as.length > 0;
-
+		assert as.length > 0 : this;
 		this.as = as;
 	}
 
@@ -71,7 +69,7 @@ public class AnnotatedT extends ExtendedT {
 			sb.append('@').append(a).append(' ');
 		}
 		final String ret = sb.append(getRawT().getFullName()).toString();
-		assert ret != null;
+		assert ret != null : this;
 		return ret;
 	}
 

@@ -59,10 +59,11 @@ public class QualifiedT extends ExtendedT {
 	public QualifiedT(@Nonnull final T qualifierT, @Nonnull final T t) throws DecoJerException {
 		super(t); // the qualified t is the raw t, because we inherit its properties
 
-		assert !t.isAnnotated() : "Anno(Qual(qual, t)) is same like Qual(qual, Anno(t)), prefer first";
-		assert !t.isQualified() : "Qual(qual, Qual(qual, t)) is not allowed";
-		assert validateQualifierName(qualifierT.getName()) : "qualifier type for '" + this
-		+ "' cannot be set to not matching type '" + qualifierT + "'";
+		assert !t.isAnnotated() : this
+		+ "Anno(Qual(qual, t)) is same like Qual(qual, Anno(t)), prefer first";
+		assert !t.isQualified() : this + "Qual(qual, Qual(qual, t)) is not allowed";
+		assert validateQualifierName(qualifierT.getName()) : this
+		+ ": qualifier type cannot be set to not matching type '" + qualifierT + "'";
 
 		this.qualifierT = qualifierT;
 	}

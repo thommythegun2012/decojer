@@ -100,7 +100,7 @@ public final class ArrayT extends BaseT {
 		T elementT = this;
 		while (elementT.isArray()) {
 			elementT = elementT.getComponentT();
-			assert elementT != null;
+			assert elementT != null : this;
 		}
 		return elementT;
 	}
@@ -121,7 +121,7 @@ public final class ArrayT extends BaseT {
 		if (this.member == null) {
 			this.member = Maps.newHashMap();
 		}
-		assert this.member != null;
+		assert this.member != null : this;
 		return this.member;
 	}
 
@@ -149,7 +149,7 @@ public final class ArrayT extends BaseT {
 			return false;
 		}
 		final T componentT = t.getComponentT();
-		assert componentT != null;
+		assert componentT != null : this;
 		if ((getComponentT().getKind() & componentT.getKind()) == 0) {
 			// even though arrays are covariant in the Java language, no auto-conversion is applied
 			// here and "int[] is = new byte[1]" isn't allowed in Java:

@@ -56,8 +56,9 @@ public final class ParameterizedT extends ExtendedT {
 		// will not work, like getT() for enclosed, getSimpleName() etc.,
 		// cannot cache this anyway because of type variables
 
-		assert typeArgs.length > 0;
-		assert !genericT.isAnnotated() : "Anno(Param(t, args)) is same like Param(Anno(t), args), prefer first";
+		assert typeArgs.length > 0 : this;
+		assert !genericT.isAnnotated() : this
+		+ ": Anno(Param(t, args)) is same like Param(Anno(t), args), prefer first";
 
 		this.typeArgs = typeArgs;
 	}
@@ -70,7 +71,7 @@ public final class ParameterizedT extends ExtendedT {
 		}
 		sb.setCharAt(sb.length() - 1, '>');
 		final String ret = sb.toString();
-		assert ret != null;
+		assert ret != null : this;
 		return ret;
 	}
 
