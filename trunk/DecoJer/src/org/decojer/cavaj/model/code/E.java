@@ -126,12 +126,11 @@ public final class E {
 	@Nonnull
 	public E getRelevantIn() {
 		final BB start = getStart();
-		if (!isSequence() || start.isRelevant()) {
+		if (start.isRelevant()) {
 			return this;
 		}
 		final E relevantIn = start.getRelevantIn();
-		assert relevantIn != null;
-		return relevantIn;
+		return relevantIn == null ? this : relevantIn;
 	}
 
 	/**
@@ -148,8 +147,7 @@ public final class E {
 			return this;
 		}
 		final E relevantOut = end.getRelevantOut();
-		assert relevantOut != null;
-		return relevantOut;
+		return relevantOut == null ? this : relevantOut;
 	}
 
 	/**
