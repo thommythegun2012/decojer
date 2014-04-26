@@ -26,6 +26,24 @@ introduce CastT()?
 
 ---
 
+createCondStruct()
+
+BB 2 (l 123, pc 22)
+Ops: [STORE 2, LOAD 1, MONITOR_EXIT, RET 2]
+Stmts: [switch (this.protocol) {
+}
+, r1=this.circularBuffer;
+, synchronized (r1) {
+}
+, if (!this.reset) {
+}
+]
+com.sun.media.BasicOutputConnector.writeReport()V (ops: 62, regs: 3)
+[]
+[STORE 2, LOAD 1, MONITOR_EXIT, RET 2]
+[2 -> 1]
+
+
 java.lang.AssertionError: com.sun.media.BasicOutputConnector.writeReport()V
 	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createCondStruct(TrControlFlowAnalysis.java:156)
 	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:661)
