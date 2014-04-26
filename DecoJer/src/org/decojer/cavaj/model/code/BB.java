@@ -298,7 +298,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -390,7 +390,8 @@ public final class BB {
 	 */
 	@Nullable
 	public E getRelevantIn() {
-		return getIns().size() != 1 ? null : getIns().get(0).getRelevantIn();
+		final E in = getSequenceIn();
+		return in == null ? null : in.getRelevantIn();
 	}
 
 	/**
@@ -404,6 +405,21 @@ public final class BB {
 	public E getRelevantOut() {
 		final E out = getSequenceOut();
 		return out == null ? null : out.getRelevantOut();
+	}
+
+	/**
+	 * Get sequence in.
+	 *
+	 * @return sequence in
+	 */
+	@Nullable
+	public E getSequenceIn() {
+		for (final E in : getIns()) {
+			if (in.isSequence()) {
+				return in;
+			}
+		}
+		return null;
 	}
 
 	/**
