@@ -44,6 +44,9 @@ com.sun.media.BasicOutputConnector.writeReport()V (ops: 62, regs: 3)
 [2 -> 1]
 
 
+IfStmt is from 10: JCND T_EQ 13
+
+
 java.lang.AssertionError: com.sun.media.BasicOutputConnector.writeReport()V
 	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createCondStruct(TrControlFlowAnalysis.java:156)
 	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:661)
