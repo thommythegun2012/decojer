@@ -34,6 +34,8 @@ hm20ipixa.b6(Z)V (ops: 478, regs: 23)
 
 287: JCND T_NE 217
 
+intersect int / bool is null ->
+
 merge / mergeReg / Deep / mergeReg / RegFrame / store 23 null
 
 Frame: Frame (23, 1) R0.CO0: hm20ipixa, R1.CO0: boolean, R2.MO22: int, R3.ME47: int, R4.ME85: int, R5.MO51: {byte,char}, R6.ME85: {byte,char,boolean}, R7.ME85: boolean, R8.MO91: {byte,char}, R9.MO97: int, R10.MO108: int, R11.MO121: int, R12.MO130: int, R13.MO139: {byte,char}, R14.MO141: int, R15.MO147: int, R16.MO151: int, R17.MO153: int, R18.ME186: int, R19.MO212: {byte,char}, null, null, R22.MO2: int, R23.CO217: int
