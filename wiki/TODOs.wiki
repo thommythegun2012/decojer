@@ -28,6 +28,8 @@ introduce CastT()?
 
 test_bytecode_free\jmf.jar
 
+null.JAX:
+
 hm20ipixa.b6(Z)V (ops: 478, regs: 23)
 
 287: JCND T_NE 217
