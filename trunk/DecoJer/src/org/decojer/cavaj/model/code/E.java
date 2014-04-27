@@ -109,7 +109,7 @@ public final class E {
 	 *
 	 * @return relevant end BB
 	 *
-	 * @see BB#isRelevant()
+	 * @see E#getRelevantOut()
 	 */
 	@Nonnull
 	public BB getRelevantEnd() {
@@ -125,6 +125,9 @@ public final class E {
 	 */
 	@Nonnull
 	public E getRelevantIn() {
+		if (!isSequence()) {
+			return this;
+		}
 		final BB start = getStart();
 		if (start.isRelevant()) {
 			return this;
@@ -142,6 +145,9 @@ public final class E {
 	 */
 	@Nonnull
 	public E getRelevantOut() {
+		if (!isSequence()) {
+			return this;
+		}
 		final BB end = getEnd();
 		if (end.isRelevant()) {
 			return this;
@@ -155,7 +161,7 @@ public final class E {
 	 *
 	 * @return relevant start BB
 	 *
-	 * @see BB#isRelevant()
+	 * @see E#getRelevantIn()
 	 */
 	@Nonnull
 	public BB getRelevantStart() {
