@@ -625,6 +625,11 @@ public final class BB {
 	 * @return {@code true} - BB is empty
 	 */
 	public boolean isRelevant() {
+		// important in-check for getRelevantOut()
+		final List<E> ins = getIns();
+		if (ins.size() != 1 || !ins.get(0).isSequence()) {
+			return true;
+		}
 		// for ops.isEmpty() -> later GOTO check
 		if (!this.stmts.isEmpty() || !isStackEmpty()) {
 			return true;

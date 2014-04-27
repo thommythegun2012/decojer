@@ -168,6 +168,7 @@ public final class E {
 		return getRelevantIn().getStart();
 	}
 
+	@Nonnull
 	public String getValueString() {
 		final List<E> outs = getStart().getOuts();
 		final String prefix = outs.size() > 1 ? outs.indexOf(this) + " " : "";
