@@ -298,7 +298,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -886,12 +886,10 @@ public final class BB {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("BB ");
-		sb.append(getPostorder()).append(" (");
+		final StringBuilder sb = new StringBuilder("BB").append(getPc());
 		if (getLine() >= 0) {
-			sb.append("l ").append(getLine()).append(", ");
+			sb.append('/').append(getLine());
 		}
-		sb.append("pc ").append(getPc()).append(")");
 		if (this.ops.size() > 0) {
 			sb.append("\nOps: ").append(this.ops);
 		}

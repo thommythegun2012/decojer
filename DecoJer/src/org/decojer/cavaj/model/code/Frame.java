@@ -372,11 +372,12 @@ public final class Frame {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder("Frame (").append(getRegs());
+		final StringBuilder sb = new StringBuilder("Frame").append(getPc()).append('.')
+				.append(getRegs());
 		if (!isStackEmpty()) {
-			sb.append(", ").append(getTop());
+			sb.append("/").append(getTop());
 		}
-		sb.append(") ");
+		sb.append(": ");
 		for (final R r : this.rs) {
 			sb.append(r).append(", ");
 		}
