@@ -44,26 +44,6 @@ Frame: Frame (23, 1) R0.CO0: hm20ipixa, R1.CO0: boolean, R2.MO22: int, R3.ME47: 
 
 ---
 
-java.lang.RuntimeException: File: D:\Oracle\JDeveloper\jdeveloper\sqldeveloper\lib\oracle.sqldeveloper.utils-nodeps.jar
-
-Caused by: java.lang.AssertionError: oracle.dbtools.parser.CYK.tree(Loracle/dbtools/parser/Matrix;III)Loracle/dbtools/parser/ParseNode;: cannot have a loop back BB that is not in reverse branch
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createLoopStruct(TrControlFlowAnalysis.java:272)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:634)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:141)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:236)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
-	at org.decojer.cavaj.model.CU.decompile(CU.java:247)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:44)
-	... 30 more
-
-createLoopStruct
-
-BB152/702
-Stmts: [assert arg1 >= r5 : "failed to extract the tree at [" + arg1 + "," + arg2 + ")";
-]
-
----
-
 java.lang.RuntimeException: File: D:\Oracle\JDeveloper\jdeveloper\webcenter\modules\oracle.wcps.sal-tools_1.0.0.0\nitrous-server.jar
 oracle.nitrous.runtime.env.Version$.<init>()V
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:50)
