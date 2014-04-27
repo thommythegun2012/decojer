@@ -509,7 +509,9 @@ public final class TrControlFlowAnalysis {
 					log.warn(getMd() + ": Unknown MONITOR type for operation '" + monitorOp + "'!");
 				}
 			}
-			sync.addMember(null, bb);
+			if (!sync.addMember(null, bb)) {
+				continue;
+			}
 			for (final E out : bb.getOuts()) {
 				if (out.isBack()) {
 					continue;
