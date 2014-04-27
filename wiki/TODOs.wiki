@@ -44,6 +44,18 @@ Frame: Frame (23, 1) R0.CO0: hm20ipixa, R1.CO0: boolean, R2.MO22: int, R3.ME47: 
 
 ---
 
+endless loop in com.mysql.jdbc.PreparedStatement.executePreparedBatchAsMultiStatement(I)[I (ops: 358, regs: 25)
+
+in D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\cae-live-httpcache-webapp-16.war
+null
+
+createSyncStruct()
+
+BB0/1496
+Stmts: [synchronized (r2=this.connection) {
+
+----
+
 java.lang.RuntimeException: File: D:\Oracle\JDeveloper\jdeveloper\webcenter\modules\oracle.wcps.sal-tools_1.0.0.0\nitrous-server.jar
 oracle.nitrous.runtime.env.Version$.<init>()V
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:50)
