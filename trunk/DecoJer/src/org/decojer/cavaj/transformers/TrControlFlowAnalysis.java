@@ -509,6 +509,7 @@ public final class TrControlFlowAnalysis {
 					log.warn(getMd() + ": Unknown MONITOR type for operation '" + monitorOp + "'!");
 				}
 			}
+			// TODO potential endless, activate assert in Struct...add and check errors
 			if (!sync.addMember(null, bb)) {
 				continue;
 			}
