@@ -32,6 +32,8 @@ null.JAX:
 
 hm20ipixa.b6(Z)V (ops: 478, regs: 23)
 
+tree view in eclipse editor is wrong: null.JAX
+
 287: JCND T_NE 217
 
 intersect int / bool is null ->
