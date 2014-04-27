@@ -42,6 +42,20 @@ merge / mergeReg / Deep / mergeReg / RegFrame / store 23 null
 
 Frame: Frame (23, 1) R0.CO0: hm20ipixa, R1.CO0: boolean, R2.MO22: int, R3.ME47: int, R4.ME85: int, R5.MO51: {byte,char}, R6.ME85: {byte,char,boolean}, R7.ME85: boolean, R8.MO91: {byte,char}, R9.MO97: int, R10.MO108: int, R11.MO121: int, R12.MO130: int, R13.MO139: {byte,char}, R14.MO141: int, R15.MO147: int, R16.MO151: int, R17.MO153: int, R18.ME186: int, R19.MO212: {byte,char}, null, null, R22.MO2: int, R23.CO217: int
 
+---
+
+java.lang.RuntimeException: File: D:\Oracle\JDeveloper\jdeveloper\sqldeveloper\lib\oracle.sqldeveloper.utils-nodeps.jar
+
+Caused by: java.lang.AssertionError: oracle.dbtools.parser.CYK.tree(Loracle/dbtools/parser/Matrix;III)Loracle/dbtools/parser/ParseNode;: cannot have a loop back BB that is not in reverse branch
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createLoopStruct(TrControlFlowAnalysis.java:272)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:634)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:141)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:236)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
+	at org.decojer.cavaj.model.CU.decompile(CU.java:247)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:44)
+	... 30 more
+
 
 }}}
 
