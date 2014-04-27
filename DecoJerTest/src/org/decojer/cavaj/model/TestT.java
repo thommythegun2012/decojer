@@ -228,8 +228,10 @@ class TestT {
 		assertSame(T.intersect(T.LONG, T.LONG), T.LONG);
 		assertSame(T.intersect(T.DOUBLE, T.DOUBLE), T.DOUBLE);
 
-		assertNull(T.intersect(T.INT, T.BOOLEAN));
-		assertNull(T.intersect(T.BOOLEAN, T.INT));
+		// even though not allowed in Java without casts: JVM allows this
+		assertSame(T.intersect(T.INT, T.BOOLEAN), T.INT);
+		assertSame(T.intersect(T.BOOLEAN, T.INT), T.INT);
+
 		assertNull(T.intersect(T.INT, T.FLOAT));
 		assertNull(T.intersect(T.FLOAT, T.INT));
 		assertNull(T.intersect(T.INT, T.LONG));
