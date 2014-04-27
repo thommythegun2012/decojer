@@ -364,6 +364,10 @@ public abstract class T implements Element {
 		if (t1.equals(t2)) {
 			return t1;
 		}
+		// TODO HACK change...
+		if (t1 == T.BOOLEAN && t2 == T.INT || t1 == T.INT && t2 == T.BOOLEAN) {
+			return T.INT;
+		}
 		final int kind = intersectKinds(t1.getKind(), t2.getKind());
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
