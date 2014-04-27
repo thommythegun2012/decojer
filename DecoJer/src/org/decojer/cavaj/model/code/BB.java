@@ -298,7 +298,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -386,12 +386,13 @@ public final class BB {
 	 *
 	 * @return relevant in
 	 *
-	 * @see BB#isRelevant()
+	 * @see E#getRelevantIn()
 	 */
 	@Nullable
 	public E getRelevantIn() {
-		final E in = getSequenceIn();
-		return in == null ? null : in.getRelevantIn();
+		final List<E> ins = getIns();
+		// only single ins are relevant, including none-sequences like conditional edges
+		return ins.size() != 1 ? null : ins.get(0).getRelevantIn();
 	}
 
 	/**
@@ -399,31 +400,21 @@ public final class BB {
 	 *
 	 * @return relevant out
 	 *
-	 * @see BB#isRelevant()
+	 * @see E#getRelevantEnd()
 	 */
 	@Nullable
 	public E getRelevantOut() {
 		final E out = getSequenceOut();
+		// only sequence outs are relevant, don't follow error handlers etc.
 		return out == null ? null : out.getRelevantOut();
 	}
 
 	/**
-	 * Get sequence in.
-	 *
-	 * @return sequence in
-	 */
-	@Nullable
-	public E getSequenceIn() {
-		for (final E in : getIns()) {
-			if (in.isSequence()) {
-				return in;
-			}
-		}
-		return null;
-	}
-
-	/**
 	 * Get sequence out.
+	 *
+	 * Only this direction needed, get sequence incoming doesn't make too much sense. Relevant outs
+	 * are sequence edges with relevant outs, relevant ins are single ins (any type) where the start
+	 * BB is relevant and has only a single in.
 	 *
 	 * @return sequence out
 	 */
@@ -626,8 +617,7 @@ public final class BB {
 	/**
 	 * Is BB relevant?
 	 *
-	 * Multiple incomings, none-empty BBs which are not single GOTO operations (after CFG building)
-	 * are relevant.
+	 * None-empty BBs which are not single GOTO operations (after CFG building) are relevant.
 	 *
 	 * We could exclude this BBs in CFG building, but may be they are an interesting info for
 	 * decompiling structures.
@@ -636,7 +626,7 @@ public final class BB {
 	 */
 	public boolean isRelevant() {
 		// for ops.isEmpty() -> later GOTO check
-		if (this.ins.size() != 1 || !this.stmts.isEmpty() || !isStackEmpty()) {
+		if (!this.stmts.isEmpty() || !isStackEmpty()) {
 			return true;
 		}
 		for (final Op op : this.ops) {
