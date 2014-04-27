@@ -108,6 +108,20 @@ Caused by: java.lang.AssertionError: oracle.nitrous.runtime.env.Version$.<init>(
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:44)
 	... 31 more
 
+looks like scala with complicated stack polls.
+
+createCondStruct()
+
+BB52/14
+Stmts: [java.io.InputStream s=r2;
+, scala.collection.immutable.Map vp=oracle.nitrous.util.PropertyFile$.MODULE$.apply(s);
+, r5="true";
+, if (vp.getOrElse("isRelease",new Version$$anonfun$3()) != null) {
+}
+]
+Stack: [new scala.Tuple3(vp.getOrElse("version",new Version$$anonfun$1()),vp.getOrElse("build",new Version$$anonfun$2()),scala.runtime.BoxesRunTime.boxToBoolean(vp.getOrElse("isRelease",new Version$$anonfun$3()).equals(r5)))]
+
+
 }}}
 
 = TODOs =
