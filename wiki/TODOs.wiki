@@ -56,6 +56,11 @@ Caused by: java.lang.AssertionError: oracle.dbtools.parser.CYK.tree(Loracle/dbto
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:44)
 	... 30 more
 
+createLoopStruct
+
+BB152/702
+Stmts: [assert arg1 >= r5 : "failed to extract the tree at [" + arg1 + "," + arg2 + ")";
+]
 
 }}}
 
