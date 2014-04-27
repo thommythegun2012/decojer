@@ -124,6 +124,10 @@ public class Struct {
 
 				@Override
 				public boolean add(final BB bb) {
+					if (bb.getStruct() == Struct.this) {
+						// TODO sync assert 0 == 1 : bb;
+						return false;
+					}
 					bb.setStruct(Struct.this);
 					return super.add(bb);
 				}
