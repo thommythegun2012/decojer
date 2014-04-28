@@ -27,7 +27,10 @@ class TestDU {
 		if (file.isDirectory()) {
 			final File[] listFiles = file.listFiles();
 			if (listFiles != null) {
-				for (File child : listFiles) {
+				for (final File child : listFiles) {
+					if (child.getName().equals("jaxb-xjc-2.0.5.jar")) {
+						continue;
+					}
 					read(child);
 				}
 			}
