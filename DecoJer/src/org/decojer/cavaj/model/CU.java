@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -330,7 +331,11 @@ public final class CU implements Container {
 	 */
 	@Override
 	public String getName() {
-		return getPackageName() + "." + this.sourceFileName;
+		final String packageName = getPackageName();
+		if (packageName != null) {
+			return packageName + "." + this.sourceFileName;
+		}
+		return this.sourceFileName;
 	}
 
 	/**
@@ -338,6 +343,7 @@ public final class CU implements Container {
 	 *
 	 * @return package name
 	 */
+	@Nullable
 	public String getPackageName() {
 		return getT().getPackageName();
 	}
