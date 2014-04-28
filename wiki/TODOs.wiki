@@ -101,58 +101,6 @@ Stmts: [java.io.InputStream s=r2;
 ]
 Stack: [new scala.Tuple3(vp.getOrElse("version",new Version$$anonfun$1()),vp.getOrElse("build",new Version$$anonfun$2()),scala.runtime.BoxesRunTime.boxToBoolean(vp.getOrElse("isRelease",new Version$$anonfun$3()).equals(r5)))]
 
----
-
-java.lang.RuntimeException: File: C:\Users\andre\.m2\repository\com\sun\xml\bind\jaxb-xjc\2.0.5\jaxb-xjc-2.0.5.jar
-com.sun.codemodel.CodeWriter
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:50)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:31)
-	at org.decojer.cavaj.model.TestDU.testBytecodeMaven(TestDU.java:66)
-	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-	at java.lang.reflect.Method.invoke(Method.java:483)
-	at org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:84)
-	at org.testng.internal.Invoker.invokeMethod(Invoker.java:714)
-	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)
-	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)
-	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)
-	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)
-	at org.testng.TestRunner.privateRun(TestRunner.java:767)
-	at org.testng.TestRunner.run(TestRunner.java:617)
-	at org.testng.SuiteRunner.runTest(SuiteRunner.java:334)
-	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)
-	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)
-	at org.testng.SuiteRunner.run(SuiteRunner.java:240)
-	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
-	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)
-	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)
-	at org.testng.TestNG.runSuitesLocally(TestNG.java:1149)
-	at org.testng.TestNG.run(TestNG.java:1057)
-	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)
-	at org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)
-	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)
-Caused by: java.lang.AssertionError: com.sun.codemodel.CodeWriter
-	at org.decojer.cavaj.model.types.ClassT.setInterface(ClassT.java:562)
-	at org.decojer.cavaj.model.types.ClassT.setInterfaceTs(ClassT.java:574)
-	at org.decojer.cavaj.readers.asm.ReadClassVisitor.visit(ReadClassVisitor.java:127)
-	at org.objectweb.asm.ClassReader.accept(Unknown Source)
-	at org.objectweb.asm.ClassReader.accept(Unknown Source)
-	at org.decojer.cavaj.readers.asm.AsmReader.read(AsmReader.java:63)
-	at org.decojer.cavaj.model.DU.read(DU.java:893)
-	at org.decojer.cavaj.model.DU.read(DU.java:942)
-	at org.decojer.cavaj.model.DU.read(DU.java:851)
-	at org.decojer.cavaj.model.DU.read(DU.java:967)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:37)
-	... 32 more
-
-
 }}}
 
 = TODOs =
@@ -164,6 +112,7 @@ Caused by: java.lang.AssertionError: com.sun.codemodel.CodeWriter
     * special recognition of this and params for invalid debug vars
   * remove assert field ".$assertionsDisabled" and static init
   * assign-to with "maybe"
+  * jaxb-xjc-2.0.5.jar contains multiple versions of the same code, which are conflicting, e.g. CodeWraiter interface / abstract class in newer
   * Infinity Loop in Eclipse-CodeFormatter: https://bugs.eclipse.org/bugs/show_bug.cgi?id=432593
   * optimize stream reader -> use more byte arrays down to bytecode libs
     * check for this org.eclipse.m2e.maven.runtime_1.4.0.20130531-2315.jar
