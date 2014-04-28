@@ -1,5 +1,5 @@
 <!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd" >
-<suite name="TestAll">
+<suite name="TestAll" parallel="tests" thread-count="4">
 	<test name="model">
 		<classes>
 			<class name="org.decojer.cavaj.model.TestR" />
