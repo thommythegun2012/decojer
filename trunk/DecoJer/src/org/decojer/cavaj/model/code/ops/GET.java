@@ -70,7 +70,15 @@ public class GET extends Op {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + this.f.getName();
+		final StringBuilder sb = new StringBuilder(super.toString());
+		final F f = getF();
+		if (f.isStatic()) {
+			sb.append('S');
+		}
+		sb.append(' ').append(f.getT().getPName()).append('.').append(f.getName());
+		final String ret = sb.toString();
+		assert ret != null;
+		return ret;
 	}
 
 }

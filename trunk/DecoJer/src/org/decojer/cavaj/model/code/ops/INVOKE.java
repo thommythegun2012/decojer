@@ -164,7 +164,27 @@ public class INVOKE extends Op {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + this.m.getName() + this.m.getDescriptor();
+		final StringBuilder sb = new StringBuilder(super.toString());
+		if (this.m.isStatic()) {
+			sb.append('S');
+		}
+		sb.append(' ');
+		final M m = getM();
+		final T ownerT = m.getT();
+		if (ownerT != null) {
+			sb.append(ownerT.getPName()).append('.');
+		}
+		sb.append(m.getName()).append('(');
+		final T[] paramTs = m.getParamTs();
+		for (int i = 0; i < paramTs.length; ++i) {
+			sb.append(paramTs[i].getPName());
+			if (i != paramTs.length - 1) {
+				sb.append(',');
+			}
+		}
+		sb.append("):").append(m.getReturnT().getPName());
+		final String ret = sb.toString();
+		assert ret != null;
+		return ret;
 	}
-
 }
