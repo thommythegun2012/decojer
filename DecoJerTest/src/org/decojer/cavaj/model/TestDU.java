@@ -28,7 +28,7 @@ class TestDU {
 			final File[] listFiles = file.listFiles();
 			if (listFiles != null) {
 				for (final File child : listFiles) {
-					if (child.getName().equals("jaxb-xjc-2.0.5.jar")) {
+					if (child.getName().startsWith("jaxb-xjc-")) {
 						continue;
 					}
 					read(child);
