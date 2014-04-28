@@ -75,7 +75,7 @@ public class CAST extends TypedOp {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + getToT();
+		return super.toString() + " " + getToT().getPName();
 	}
 
 }
