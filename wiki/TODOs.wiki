@@ -34,28 +34,6 @@ intersect int / bool is null
 
 ---
 
-java.lang.RuntimeException: File: C:\Users\andre\.m2\repository\de\init\xrepository\app\xrepositoryApp\2.2\xrepositoryApp-2.2.ear
-null
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:53)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
-	at org.decojer.cavaj.model.TestDU.testBytecodeMaven(TestDU.java:69)
-Caused by: java.lang.AssertionError
-	at org.decojer.cavaj.model.methods.ClassM.setStatic(ClassM.java:457)
-	at org.decojer.cavaj.readers.asm.ReadMethodVisitor.visitMethodInsn(ReadMethodVisitor.java:1568)
-	at org.objectweb.asm.ClassReader.a(Unknown Source)
-	at org.objectweb.asm.ClassReader.b(Unknown Source)
-	at org.objectweb.asm.ClassReader.accept(Unknown Source)
-	at org.objectweb.asm.ClassReader.accept(Unknown Source)
-	at org.decojer.cavaj.readers.asm.AsmReader.read(AsmReader.java:63)
-
----
-
 java.lang.RuntimeException: File: D:\Oracle\JDeveloper\jdeveloper\webcenter\modules\oracle.wcps.sal-tools_1.0.0.0\scala-library-2.9.1.jar
 scala.collection.Traversable
 	at org.decojer.cavaj.model.TestDU.testBytecodeOracle(TestDU.java:74)
