@@ -8,7 +8,7 @@
             class="org.decojer.editor.eclipse.ClassEditor"
             contributorClass="org.decojer.editor.eclipse.ClassEditorContributor"
             default="true"
-            extensions="class,class without source,jar,dex,apk"
+            extensions="class,class without source,jar,war,ear,dex,apk"
             id="decojer.editor.ClassEditor"
             name="Class Editor">
       </editor>
