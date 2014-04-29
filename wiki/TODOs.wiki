@@ -34,33 +34,6 @@ intersect int / bool is null
 
 ---
 
-java.lang.RuntimeException: File: D:\Oracle\JDeveloper\jdeveloper\webcenter\modules\oracle.wcps.sal-tools_1.0.0.0\nitrous-server.jar
-oracle.nitrous.runtime.env.Version$.<init>()V
-
-org.decojer.cavaj.transformers.TrControlFlowAnalysis.createCondStruct(TrControlFlowAnalysis.java:156)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:661)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:141)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:236)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
-	at org.decojer.cavaj.model.CU.decompile(CU.java:247)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:44)
-	... 31 more
-
-looks like scala with complicated stack polls.
-
-createCondStruct()
-
-BB52/14
-Stmts: [java.io.InputStream s=r2;
-, scala.collection.immutable.Map vp=oracle.nitrous.util.PropertyFile$.MODULE$.apply(s);
-, r5="true";
-, if (vp.getOrElse("isRelease",new Version$$anonfun$3()) != null) {
-}
-]
-Stack: [new scala.Tuple3(vp.getOrElse("version",new Version$$anonfun$1()),vp.getOrElse("build",new Version$$anonfun$2()),scala.runtime.BoxesRunTime.boxToBoolean(vp.getOrElse("isRelease",new Version$$anonfun$3()).equals(r5)))]
-
----
-
 java.lang.RuntimeException: File: C:\Users\andre\.m2\repository\de\init\xrepository\app\xrepositoryApp\2.2\xrepositoryApp-2.2.ear
 null
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:53)
