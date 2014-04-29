@@ -550,20 +550,24 @@ public class ClassT extends T {
 	/**
 	 * Type must be an interface or class.
 	 *
-	 * @param f
+	 * @param isInterface
 	 *            {@code true} - is interface
 	 */
 	@Override
-	public void setInterface(final boolean f) {
-		if (f) {
-			if ((this.accessFlags & AF.INTERFACE.getValue()) != 0) {
+	public void setInterface(final boolean isInterface) {
+		if (isInterface) {
+			assert !isObject() : this;
+			if (check(AF.INTERFACE)) {
 				return;
 			}
-			assert (this.accessFlags & AF.INTERFACE_ASSERTED.getValue()) == 0 : this;
+			assert !check(AF.INTERFACE_ASSERTED) : this;
 			this.accessFlags |= AF.INTERFACE.getValue() | AF.INTERFACE_ASSERTED.getValue();
 			return;
 		}
-		assert (this.accessFlags & AF.INTERFACE.getValue()) == 0 : this;
+		if (!check(AF.INTERFACE)) {
+			return;
+		}
+		assert !check(AF.INTERFACE_ASSERTED) : this;
 		this.accessFlags |= AF.INTERFACE_ASSERTED.getValue();
 		return;
 	}
