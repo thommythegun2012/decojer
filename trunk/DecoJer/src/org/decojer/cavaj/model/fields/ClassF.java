@@ -241,19 +241,19 @@ public class ClassF extends F {
 	}
 
 	@Override
-	public void setStatic(final boolean f) {
-		if (f) {
-			if ((this.accessFlags & AF.STATIC.getValue()) != 0) {
+	public void setStatic(final boolean isStatic) {
+		if (isStatic) {
+			if (check(AF.STATIC)) {
 				return;
 			}
-			assert (this.accessFlags & AF.STATIC_ASSERTED.getValue()) == 0;
-
+			assert !check(AF.STATIC_ASSERTED) : this;
 			this.accessFlags |= AF.STATIC.getValue() | AF.STATIC_ASSERTED.getValue();
 			return;
 		}
-		assert (this.accessFlags & AF.STATIC.getValue()) == 0;
-
-		getT().setInterface(false);
+		if (!check(AF.STATIC)) {
+			return;
+		}
+		assert !check(AF.STATIC_ASSERTED) : this;
 		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
 		return;
 	}
