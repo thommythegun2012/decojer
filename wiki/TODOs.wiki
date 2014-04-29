@@ -35,19 +35,14 @@ intersect int / bool is null
 ---
 
 java.lang.RuntimeException: File: C:\Users\andre\.m2\repository\io\undertow\undertow-core\1.0.0.Beta17\undertow-core-1.0.0.Beta17.jar
+
 cannot assign 'R10.MO229: byte' to 'char'
-Caused by: java.lang.AssertionError: cannot assign 'R10.MO229: byte' to 'char'
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:261)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.pop(TrDataFlowAnalysis.java:1132)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.popRead(TrDataFlowAnalysis.java:1143)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:423)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1389)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:110)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:227)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
-	at org.decojer.cavaj.model.CU.decompile(CU.java:248)
-	at org.decojer.cavaj.model.TestDU.read(TestDU.java:47)
-	... 30 more
+
+io.undertow.client.http.HttpResponseParser$$generated.handleHttpVersion(Ljava/nio/ByteBuffer;Lio/undertow/client/http/ResponseParseState;Lio/undertow/client/http/HttpResponseBuilder;)V (ops: 581, regs: 9)
+
+182: INVOKE StringBuilder.append(char):StringBuilder
+
+R10.MO229: byte -> char
 
 ---
 java.lang.RuntimeException: File: D:\Oracle\JDeveloper\jdeveloper\webcenter\modules\oracle.wcps.sal-tools_1.0.0.0\scala-library-2.9.1.jar
