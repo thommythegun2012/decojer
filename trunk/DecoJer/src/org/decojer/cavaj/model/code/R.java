@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.code;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -246,7 +248,7 @@ public final class R {
 	 *            type
 	 * @return {@code true} - success
 	 */
-	public boolean assignTo(final T t) {
+	public boolean assignTo(@Nonnull final T t) {
 		final T reducedT = this.lowerT.assignTo(t); // primitive reduction for this.t possible
 		if (reducedT == null) {
 			if (this.lowerT.isUnresolvable() && this.lowerT != T.REF) {
@@ -268,7 +270,7 @@ public final class R {
 		setLowerT(reducedT);
 		if (this.outs != null) {
 			for (final R out : this.outs) {
-				out.readForwardPropagate(t);
+				out.assignTo(t);
 			}
 		}
 		for (final R in : this.ins) {
@@ -323,26 +325,6 @@ public final class R {
 	 */
 	public boolean isWide() {
 		return this.lowerT.isWide();
-	}
-
-	private boolean readForwardPropagate(final T t) {
-		final T reducedT = this.lowerT.assignTo(t);
-		if (reducedT == null) {
-			if (this.lowerT.isUnresolvable()) {
-				return true;
-			}
-			assert false;
-		}
-		if (!this.lowerT.equals(reducedT)) {
-			// possible primitive multitype reduction
-			setLowerT(reducedT);
-			if (this.outs != null) {
-				for (final R out : this.outs) {
-					out.readForwardPropagate(t);
-				}
-			}
-		}
-		return true;
 	}
 
 	/**

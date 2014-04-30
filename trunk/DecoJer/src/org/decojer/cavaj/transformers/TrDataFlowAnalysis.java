@@ -184,6 +184,7 @@ public final class TrDataFlowAnalysis {
 				break intersect;
 			}
 			assert false : getM() + ": intersect to null not allowed";
+			return;
 		}
 		// TODO ref1 == ref2 is allowed with result void (bool math)
 
@@ -420,10 +421,14 @@ public final class TrDataFlowAnalysis {
 			final M m = cop.getM();
 			final T[] paramTs = m.getParamTs();
 			for (int i = m.getParamTs().length; i-- > 0;) {
-				popRead(paramTs[i]);
+				final T paramT = paramTs[i];
+				assert paramT != null : getM();
+				popRead(paramT);
 			}
 			if (!m.isStatic()) {
-				popRead(m.getT());
+				final T ownerT = m.getT();
+				assert ownerT != null : getM();
+				popRead(ownerT);
 			}
 			if (m.getReturnT() != T.VOID) {
 				pushConst(m.getReturnT());
@@ -868,7 +873,7 @@ public final class TrDataFlowAnalysis {
 		return this.isIgnoreExceptions || getCfg().getExcs() == null;
 	}
 
-	private R load(final int i, final T t) {
+	private R load(final int i, @Nonnull final T t) {
 		final R r = this.currentFrame.load(i);
 		if (r == null || !r.assignTo(t)) {
 			throw new DecoJerException("Incompatible type for register '" + i
@@ -881,7 +886,7 @@ public final class TrDataFlowAnalysis {
 		return r;
 	}
 
-	private R loadRead(final int i, final T t) {
+	private R loadRead(final int i, @Nonnull final T t) {
 		final R r = load(i, t);
 		final BB currentBb = this.currentBb;
 		assert currentBb != null : getM();
@@ -1102,7 +1107,7 @@ public final class TrDataFlowAnalysis {
 		return this.currentFrame.peek();
 	}
 
-	private R peek(final T t) {
+	private R peek(@Nonnull final T t) {
 		final R s = this.currentFrame.peek();
 		if (!s.assignTo(t)) {
 			throw new DecoJerException("Incompatible type for stack register! Cannot assign '" + s
@@ -1127,7 +1132,7 @@ public final class TrDataFlowAnalysis {
 		return this.currentFrame.pop();
 	}
 
-	private R pop(final T t) {
+	private R pop(@Nonnull final T t) {
 		final R s = this.currentFrame.pop();
 		if (!s.assignTo(t)) {
 			throw new DecoJerException("Incompatible type for stack register! Cannot assign '" + s
@@ -1136,7 +1141,7 @@ public final class TrDataFlowAnalysis {
 		return s;
 	}
 
-	private R popRead(final T t) {
+	private R popRead(@Nonnull final T t) {
 		final BB bb = this.currentBb;
 		assert bb != null : getM();
 		markAlive(bb, this.currentFrame.size() - 1);
