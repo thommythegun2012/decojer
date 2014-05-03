@@ -23,6 +23,8 @@
  */
 package org.decojer.cavaj.model.types;
 
+import javax.annotation.Nonnull;
+
 import lombok.Getter;
 
 import org.decojer.cavaj.model.DU;
@@ -59,7 +61,7 @@ public class ParamT extends BaseT {
 	 * @param name
 	 *            type name
 	 */
-	public ParamT(final DU du, final String name) {
+	public ParamT(@Nonnull final DU du, @Nonnull final String name) {
 		assert du != null : this;
 		assert name != null : this;
 
@@ -76,7 +78,7 @@ public class ParamT extends BaseT {
 	}
 
 	@Override
-	public void setInterfaceTs(final T[] interfaceTs) {
+	public void setInterfaceTs(@Nonnull final T[] interfaceTs) {
 		for (final T t : interfaceTs) {
 			t.setInterface(true);
 		}

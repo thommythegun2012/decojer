@@ -775,7 +775,9 @@ public final class DU {
 			}
 			final int pos = s.indexOf(':', c.pos);
 			// reuse ClassT for type parameter
-			final ParamT typeParam = new ParamT(this, s.substring(c.pos, pos));
+			final String typeParamName = s.substring(c.pos, pos);
+			assert typeParamName != null : s;
+			final ParamT typeParam = new ParamT(this, typeParamName);
 			c.pos = pos + 1;
 			if (s.charAt(c.pos) == ':') {
 				typeParam.setSuperT(getObjectT());
@@ -790,7 +792,9 @@ public final class DU {
 					final T interfaceT = parseT(s, c, context);
 					interfaceTs.add(interfaceT);
 				} while (s.charAt(c.pos) == ':');
-				typeParam.setInterfaceTs(interfaceTs.toArray(new T[interfaceTs.size()]));
+				final T[] interfaceTsArray = interfaceTs.toArray(new T[interfaceTs.size()]);
+				assert interfaceTsArray != null : s;
+				typeParam.setInterfaceTs(interfaceTsArray);
 			}
 			ts.add(typeParam);
 		}
