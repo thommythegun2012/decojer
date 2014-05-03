@@ -45,6 +45,10 @@ Caused by: java.lang.AssertionError: scala.collection.Traversable
 
 multiple bugs in scala lib signatures, wrong handling of type parameter :super:interface
 
+---
+
+com.tangosol.coherence.component.util.windowedArray.ConcurrentWindowedArray.get(JJ)Ljava/lang/Object; (ops: 142, regs: 19)
+
 }}}
 
 = TODOs =
