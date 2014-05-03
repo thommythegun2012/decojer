@@ -523,8 +523,6 @@ public abstract class T implements Element {
 			// same for BOOL primitives etc.?
 			// works: Comparable c = (Comparable) new Object();
 			// works: Integer c = (Integer) new Object();
-			// works: Serializable s = (Serializable) new HashSet();
-			// works: OutputStream o = (OutputStream) new Object();
 			// works: Set set = new HashSet(); Serializable s = (Serializable) set;
 			return this;
 		}
@@ -532,7 +530,7 @@ public abstract class T implements Element {
 	}
 
 	@Override
-	public boolean check(final AF af) {
+	public boolean getAf(final AF af) {
 		return false;
 	}
 
@@ -1344,6 +1342,12 @@ public abstract class T implements Element {
 	public abstract void resolve();
 
 	@Override
+	public void setAf(@Nonnull final AF... af) {
+		assert 0 == 1 : this;
+		return;
+	}
+
+	@Override
 	public void setAccessFlags(final int accessFlags) {
 		assert false : this; // overwrite in ClassT
 	}
@@ -1449,9 +1453,11 @@ public abstract class T implements Element {
 	 *
 	 * @param f
 	 *            {@code true} - is interface
+	 * @return {@code true} - success, can fail for wrong signatures etc.
 	 */
-	public void setInterface(final boolean f) {
-		assert !f : this;
+	public boolean setInterface(final boolean f) {
+		assert f == false : this;
+		return false;
 	}
 
 	/**

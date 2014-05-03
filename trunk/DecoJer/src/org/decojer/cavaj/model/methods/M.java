@@ -62,6 +62,7 @@ public abstract class M implements Element {
 	 *
 	 * @return control flow graph
 	 */
+	@Nullable
 	public abstract CFG getCfg();
 
 	/**

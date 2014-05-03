@@ -40,6 +40,7 @@ import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
@@ -117,7 +118,7 @@ public final class TrJvmStruct2JavaAst {
 		f.setAstNode(fieldDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
-		if (f.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(f.getAs())) {
+		if (f.getAf(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(f.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");
@@ -134,13 +135,13 @@ public final class TrJvmStruct2JavaAst {
 		final boolean isInterfaceMember = t.isInterface();
 
 		// decompile modifier flags, public is default for enum and interface
-		if (f.check(AF.PUBLIC) && !isEnum && !isInterfaceMember) {
+		if (f.getAf(AF.PUBLIC) && !isEnum && !isInterfaceMember) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
-		if (f.check(AF.PRIVATE)) {
+		if (f.getAf(AF.PRIVATE)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		}
-		if (f.check(AF.PROTECTED)) {
+		if (f.getAf(AF.PROTECTED)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
 		// static is default for enum and interface
@@ -148,13 +149,13 @@ public final class TrJvmStruct2JavaAst {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
 		// final is default for enum and interface
-		if (f.check(AF.FINAL) && !isEnum && !isInterfaceMember) {
+		if (f.getAf(AF.FINAL) && !isEnum && !isInterfaceMember) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
-		if (f.check(AF.VOLATILE)) {
+		if (f.getAf(AF.VOLATILE)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.VOLATILE_KEYWORD));
 		}
-		if (f.check(AF.TRANSIENT)) {
+		if (f.getAf(AF.TRANSIENT)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.TRANSIENT_KEYWORD));
 		}
 
@@ -182,7 +183,7 @@ public final class TrJvmStruct2JavaAst {
 		// enum synthetic methods
 		if (m.isStatic()
 				&& ("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
-				&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
+						&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
 				&& t.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
@@ -191,7 +192,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 		final AST ast = cu.getAst();
 
-		final boolean isAnnotationMember = t.check(AF.ANNOTATION);
+		final boolean isAnnotationMember = t.getAf(AF.ANNOTATION);
 
 		// decompile BodyDeclaration, possible subtypes:
 		// MethodDeclaration (method or constructor),
@@ -227,7 +228,7 @@ public final class TrJvmStruct2JavaAst {
 		m.setAstNode(methodDeclaration);
 
 		// decompile deprecated Javadoc-tag if no annotation set
-		if (m.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(m.getAs())) {
+		if (m.getAf(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(m.getAs())) {
 			final Javadoc newJavadoc = ast.newJavadoc();
 			final TagElement newTagElement = ast.newTagElement();
 			newTagElement.setTagName("@deprecated");
@@ -253,36 +254,36 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.DEFAULT_KEYWORD));
 		}
 		// public is default for interface and annotation type declarations
-		if (m.check(AF.PUBLIC) && !isAnnotationMember && !isInterfaceMember) {
+		if (m.getAf(AF.PUBLIC) && !isAnnotationMember && !isInterfaceMember) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
-		if (m.check(AF.PRIVATE)) {
+		if (m.getAf(AF.PRIVATE)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		}
-		if (m.check(AF.PROTECTED)) {
+		if (m.getAf(AF.PROTECTED)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
 		if (m.isStatic()) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
-		if (m.check(AF.FINAL)) {
+		if (m.getAf(AF.FINAL)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
-		if (m.check(AF.SYNCHRONIZED)) {
+		if (m.getAf(AF.SYNCHRONIZED)) {
 			methodDeclaration.modifiers()
-			.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
+					.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
 		}
-		if (m.check(AF.BRIDGE)) {
+		if (m.getAf(AF.BRIDGE)) {
 			// TODO
 		}
-		if (m.check(AF.NATIVE)) {
+		if (m.getAf(AF.NATIVE)) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.NATIVE_KEYWORD));
 		}
 		// abstract is default for interface and annotation type declarations
-		if (m.check(AF.ABSTRACT) && !isAnnotationMember && !isInterfaceMember) {
+		if (m.getAf(AF.ABSTRACT) && !isAnnotationMember && !isInterfaceMember) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 		}
-		if (m.check(AF.STRICTFP) && !strictFp) {
+		if (m.getAf(AF.STRICTFP) && !strictFp) {
 			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
 		}
 		/*
@@ -292,28 +293,30 @@ public final class TrJvmStruct2JavaAst {
 			decompileTypeParams(m.getTypeParams(),
 					((MethodDeclaration) methodDeclaration).typeParameters(), t);
 			decompileMethodParams(m);
-			if (!m.check(AF.ABSTRACT) && !m.check(AF.NATIVE)) {
+			if (!m.getAf(AF.ABSTRACT) && !m.getAf(AF.NATIVE)) {
 				// create method block for valid syntax, abstract and native methods have none
 				final Block block = ast.newBlock();
 				((MethodDeclaration) methodDeclaration).setBody(block);
-				if (m.getCfg() != null) {
+				final CFG cfg = m.getCfg();
+				if (cfg != null) {
 					// could have no CFG because of empty or incomplete read code attribute
-					m.getCfg().setBlock(block);
+					cfg.setBlock(block);
 				}
 			}
 		} else if (methodDeclaration instanceof Initializer) {
 			// Initializer (static{}) has block per default
 			assert ((Initializer) methodDeclaration).getBody() != null : m;
 
-			if (m.getCfg() != null) {
+			final CFG cfg = m.getCfg();
+			if (cfg != null) {
 				// could have no CFG because of empty or incomplete read code attribute
-				m.getCfg().setBlock(((Initializer) methodDeclaration).getBody());
+				cfg.setBlock(((Initializer) methodDeclaration).getBody());
 			}
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
 			assert m.getParamTs().length == 0 : m;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-			.setType(newType(m.getReturnT(), t));
+					.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -403,7 +406,7 @@ public final class TrJvmStruct2JavaAst {
 			if (!(declaration instanceof M)) {
 				continue;
 			}
-			if (!((M) declaration).check(AF.STRICTFP)) {
+			if (!((M) declaration).getAf(AF.STRICTFP)) {
 				break;
 			}
 			strictFp = true;
@@ -414,7 +417,7 @@ public final class TrJvmStruct2JavaAst {
 			AbstractTypeDeclaration typeDeclaration = null;
 
 			// annotation type declaration
-			if (t.check(AF.ANNOTATION)) {
+			if (t.getAf(AF.ANNOTATION)) {
 				final T superT = t.getSuperT();
 				if (superT == null || !superT.isObject()) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no super class Object but has '"
@@ -423,7 +426,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-									+ "'!");
+							+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
@@ -471,22 +474,22 @@ public final class TrJvmStruct2JavaAst {
 			}
 
 			// decompile remaining modifier flags
-			if (t.check(AF.PUBLIC)) {
+			if (t.getAf(AF.PUBLIC)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 			}
 			// for inner classes
-			if (t.check(AF.PRIVATE)) {
+			if (t.getAf(AF.PRIVATE)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 			}
 			// for inner classes
-			if (t.check(AF.PROTECTED)) {
+			if (t.getAf(AF.PROTECTED)) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 			}
 			// for inner classes
 			if (t.isStatic() && !t.isInterface()) {
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 			}
-			if (t.check(AF.FINAL) && !(typeDeclaration instanceof EnumDeclaration)) {
+			if (t.getAf(AF.FINAL) && !(typeDeclaration instanceof EnumDeclaration)) {
 				// enum declaration is final by default
 				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 			}
@@ -494,12 +497,12 @@ public final class TrJvmStruct2JavaAst {
 				if (typeDeclaration instanceof TypeDeclaration) {
 					((TypeDeclaration) typeDeclaration).setInterface(true);
 				}
-			} else if (!t.check(AF.SUPER) && !t.isDalvik()) {
+			} else if (!t.getAf(AF.SUPER) && !t.isDalvik()) {
 				// modern invokesuper syntax, is always set in current JVM, but not in Dalvik or
 				// inner classes info flags
 				log.warn("Modern invokesuper syntax flag not set in type '" + t + "'!");
 			}
-			if (t.check(AF.ABSTRACT)
+			if (t.getAf(AF.ABSTRACT)
 					&& !(typeDeclaration instanceof AnnotationTypeDeclaration)
 					&& !(typeDeclaration instanceof EnumDeclaration)
 					&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
@@ -514,7 +517,7 @@ public final class TrJvmStruct2JavaAst {
 			typeDeclaration.setName(newSimpleName(
 					simpleName.length() > 0 ? simpleName : t.getPName(), ast));
 
-			if (t.check(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(t.getAs())) {
+			if (t.getAf(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(t.getAs())) {
 				final Javadoc newJavadoc = ast.newJavadoc();
 				final TagElement newTagElement = ast.newTagElement();
 				newTagElement.setTagName("@deprecated");

@@ -28,6 +28,7 @@ import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Element;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
@@ -121,9 +122,9 @@ public final class TrMergeAll {
 					if (!((T) innerDeclaration).isAnonymous()) {
 						final ASTNode typeDeclaration = (ASTNode) ((T) innerDeclaration)
 								.getAstNode();
-						if (typeDeclaration != null) {
-							m.getCfg()
-									.getBlock()
+						final CFG cfg = m.getCfg();
+						if (cfg != null && typeDeclaration != null) {
+							cfg.getBlock()
 									.statements()
 									.add(typeDeclaration.getAST().newTypeDeclarationStatement(
 											(AbstractTypeDeclaration) typeDeclaration));

@@ -94,11 +94,6 @@ public class ClassF extends F {
 	}
 
 	@Override
-	public boolean check(@Nonnull final AF af) {
-		return (this.accessFlags & af.getValue()) != 0;
-	}
-
-	@Override
 	public void clear() {
 		final FD fd = getFd();
 		if (fd != null) {
@@ -114,6 +109,11 @@ public class ClassF extends F {
 		this.fd = new FD();
 		setDeclarationOwner(getT());
 		return true;
+	}
+
+	@Override
+	public boolean getAf(@Nonnull final AF af) {
+		return (this.accessFlags & af.getValue()) != 0;
 	}
 
 	@Override
@@ -166,22 +166,29 @@ public class ClassF extends F {
 
 	@Override
 	public boolean isEnum() {
-		return check(AF.ENUM);
+		return getAf(AF.ENUM);
 	}
 
 	@Override
 	public boolean isStatic() {
-		return check(AF.STATIC);
+		return getAf(AF.STATIC);
 	}
 
 	@Override
 	public boolean isSynthetic() {
-		return check(AF.SYNTHETIC);
+		return getAf(AF.SYNTHETIC);
 	}
 
 	@Override
 	public boolean isUnresolvable() {
 		return true;
+	}
+
+	@Override
+	public void setAf(@Nonnull final AF... af) {
+		for (final AF v : af) {
+			this.accessFlags |= v.getValue();
+		}
 	}
 
 	@Override
@@ -216,14 +223,13 @@ public class ClassF extends F {
 
 	@Override
 	public void setDeprecated() {
-		this.accessFlags |= AF.DEPRECATED.getValue();
+		setAf(AF.DEPRECATED);
 	}
 
 	@Override
 	public void setEnum() {
 		getT().setInterface(false); // TODO we know even more, must be from Enum
-		this.accessFlags |= AF.PUBLIC.getValue() | AF.STATIC.getValue() | AF.FINAL.getValue()
-				| AF.ENUM.getValue();
+		setAf(AF.PUBLIC, AF.STATIC, AF.FINAL, AF.ENUM);
 	}
 
 	@Override
@@ -243,24 +249,24 @@ public class ClassF extends F {
 	@Override
 	public void setStatic(final boolean isStatic) {
 		if (isStatic) {
-			if (check(AF.STATIC)) {
+			if (getAf(AF.STATIC)) {
 				return;
 			}
-			assert !check(AF.STATIC_ASSERTED) : this;
-			this.accessFlags |= AF.STATIC.getValue() | AF.STATIC_ASSERTED.getValue();
+			assert !getAf(AF.STATIC_CONFIRMED) : this;
+			setAf(AF.STATIC, AF.STATIC_CONFIRMED);
 			return;
 		}
-		if (!check(AF.STATIC)) {
+		if (!getAf(AF.STATIC)) {
 			return;
 		}
-		assert !check(AF.STATIC_ASSERTED) : this;
-		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
+		assert !getAf(AF.STATIC_CONFIRMED) : this;
+		setAf(AF.STATIC_CONFIRMED);
 		return;
 	}
 
 	@Override
 	public void setSynthetic() {
-		this.accessFlags |= AF.SYNTHETIC.getValue();
+		setAf(AF.SYNTHETIC);
 	}
 
 	@Override

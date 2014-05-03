@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -24,6 +24,9 @@
 package org.decojer.cavaj.model.methods;
 
 import java.util.List;
+
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -39,7 +42,7 @@ import org.eclipse.jdt.core.dom.ASTNode;
 
 /**
  * Extended method.
- * 
+ *
  * @author André Pankraz
  */
 public abstract class ExtendedM extends M {
@@ -54,11 +57,6 @@ public abstract class ExtendedM extends M {
 	}
 
 	@Override
-	public boolean check(final AF af) {
-		return getRawM().check(af);
-	}
-
-	@Override
 	public void clear() {
 		getRawM().clear();
 	}
@@ -66,6 +64,11 @@ public abstract class ExtendedM extends M {
 	@Override
 	public boolean createMd() {
 		return getRawM().createMd();
+	}
+
+	@Override
+	public boolean getAf(final AF af) {
+		return getRawM().getAf(af);
 	}
 
 	@Override
@@ -83,6 +86,7 @@ public abstract class ExtendedM extends M {
 		return getRawM().getAstNode();
 	}
 
+	@Nullable
 	@Override
 	public CFG getCfg() {
 		return getRawM().getCfg();
@@ -196,6 +200,11 @@ public abstract class ExtendedM extends M {
 	@Override
 	public void setAccessFlags(final int accessFlags) {
 		getRawM().setAccessFlags(accessFlags);
+	}
+
+	@Override
+	public void setAf(@Nonnull final AF... af) {
+		getRawM().setAf(af);
 	}
 
 	@Override

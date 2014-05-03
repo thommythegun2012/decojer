@@ -34,13 +34,21 @@ import javax.annotation.Nullable;
 public interface Element extends Container {
 
 	/**
-	 * Check access flag.
+	 * Get access flag.
 	 *
 	 * @param af
 	 *            access flag
 	 * @return {@code true} - is access flag
 	 */
-	boolean check(@Nonnull final AF af);
+	boolean getAf(@Nonnull final AF af);
+
+	/**
+	 * Set access flag.
+	 *
+	 * @param af
+	 *            access flag
+	 */
+	void setAf(@Nonnull final AF... af);
 
 	/**
 	 * Get compilation unit.
