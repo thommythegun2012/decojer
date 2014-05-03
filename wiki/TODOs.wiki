@@ -51,6 +51,8 @@ com.tangosol.coherence.component.util.windowedArray.ConcurrentWindowedArray.get(
 
 115: JSR 132
 
+r14: intersect long / Object -> null
+
 115: Frame115.19/1: R0.CO0: ConcurrentWindowedArray, R1.CO0: long, null, R3.CO0: long, null, R5.MO14: long, null, R7.MO17: Object[], R8.MO24: int, R9.MO28: Object, R10.MO31: Object, R11.MO36: Object, R12.MO41: long, null, R14.MO85: long, null, R16.MO115: REF, null, null, R19.CO132: RET
 
 132: Frame132.19/1: R0.CO0: ConcurrentWindowedArray, R1.CO0: long, null, R3.CO0: long, null, R5.MO14: long, null, R7.MO17: Object[], R8.MO24: int, R9.MO28: Object, R10.MO31: Object, R11.MO36: Object, R12.MO41: long, null, R14.ME132: Object, null, null, null, null, R19.CO132: RET
