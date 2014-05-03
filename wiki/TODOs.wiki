@@ -53,10 +53,15 @@ com.tangosol.coherence.component.util.windowedArray.ConcurrentWindowedArray.get(
 
 r14: intersect long / Object -> null
 
-115: Frame115.19/1: R0.CO0: ConcurrentWindowedArray, R1.CO0: long, null, R3.CO0: long, null, R5.MO14: long, null, R7.MO17: Object[], R8.MO24: int, R9.MO28: Object, R10.MO31: Object, R11.MO36: Object, R12.MO41: long, null, R14.MO85: long, null, R16.MO115: REF, null, null, R19.CO132: RET
+The assert in subs is wrong, there could it be reduced to null!
 
-132: Frame132.19/1: R0.CO0: ConcurrentWindowedArray, R1.CO0: long, null, R3.CO0: long, null, R5.MO14: long, null, R7.MO17: Object[], R8.MO24: int, R9.MO28: Object, R10.MO31: Object, R11.MO36: Object, R12.MO41: long, null, R14.ME132: Object, null, null, null, null, R19.CO132: RET
+	public R store(final int i, final R r) {
+		// stack allowed too: assert i < this.cfg.getRegs();
+		assert r != null || !isAlive(i) : this.cfg.getM() + ": cannot set alive register to null";
 
+
+how to handle this case? 
+delete alive or never set it?
 
 java.lang.RuntimeException: File: D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\coherence.jar
 com.tangosol.coherence.component.util.windowedArray.ConcurrentWindowedArray.get(JJ)Ljava/lang/Object;: cannot set alive register to null
