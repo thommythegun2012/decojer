@@ -32,6 +32,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
@@ -101,7 +102,6 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		if (debugInfoItem == null) {
 			return;
 		}
-
 		final StringIdItem[] parameterNames = debugInfoItem.getParameterNames();
 		if (parameterNames != null && parameterNames.length > 0) {
 			for (int i = parameterNames.length; i-- > 0;) {
@@ -115,7 +115,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		if (DEBUG) {
 			System.out.println("****DecodeDebugInstructions: " + m);
 		}
-		DebugInstructionIterator.DecodeInstructions(debugInfoItem, m.getCfg().getRegs(), this);
+		final CFG cfg = m.getCfg();
+		if (cfg == null) {
+			assert 0 == 1 : getM();
+			return;
+		}
+		DebugInstructionIterator.DecodeInstructions(debugInfoItem, cfg.getRegs(), this);
 	}
 
 	private void log(final String message) {

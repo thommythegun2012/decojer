@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -27,7 +27,7 @@ import lombok.Getter;
 
 /**
  * Access flag.
- * 
+ *
  * @author André Pankraz
  */
 public enum AF {
@@ -116,11 +116,11 @@ public enum AF {
 	/**
 	 * Artificial flag 'interface_asserted' for type.
 	 */
-	INTERFACE_ASSERTED(1 << 29, "<interface_asserted>", true, false, false),
+	INTERFACE_CONFIRMED(1 << 29, "<interface_confirmed>", true, false, false),
 	/**
 	 * Artificial flag 'static_asserted' for method or field.
 	 */
-	STATIC_ASSERTED(1 << 29, "<static_asserted>", false, true, true),
+	STATIC_CONFIRMED(1 << 29, "<static_confirmed>", false, true, true),
 	/**
 	 * Artificial flag 'deprecated'.
 	 */

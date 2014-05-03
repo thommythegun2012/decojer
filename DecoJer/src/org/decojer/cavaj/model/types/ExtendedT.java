@@ -31,6 +31,7 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CU;
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.DU;
@@ -242,6 +243,11 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
+	public void setAf(@Nonnull final AF... af) {
+		super.setAf(af);
+	}
+
+	@Override
 	public void setAs(final A[] as) {
 		getRawT().setAs(as);
 	}
@@ -274,8 +280,8 @@ public abstract class ExtendedT extends T {
 	}
 
 	@Override
-	public void setInterface(final boolean f) {
-		getRawT().setInterface(f);
+	public boolean setInterface(final boolean f) {
+		return getRawT().setInterface(f);
 	}
 
 	@Override

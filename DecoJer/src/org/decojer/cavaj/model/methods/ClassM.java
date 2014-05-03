@@ -136,11 +136,6 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public boolean check(final AF af) {
-		return (this.accessFlags & af.getValue()) != 0;
-	}
-
-	@Override
 	public void clear() {
 		getMd().clear();
 	}
@@ -155,6 +150,11 @@ public class ClassM extends M {
 		assert t != null : "cannot be null for none-dynamic";
 		setDeclarationOwner(t);
 		return true;
+	}
+
+	@Override
+	public boolean getAf(final AF af) {
+		return (this.accessFlags & af.getValue()) != 0;
 	}
 
 	@Override
@@ -264,7 +264,7 @@ public class ClassM extends M {
 	 * @return {@code true} - is deprecated method
 	 */
 	public boolean isDeprecated() {
-		return check(AF.DEPRECATED);
+		return getAf(AF.DEPRECATED);
 	}
 
 	@Override
@@ -279,17 +279,17 @@ public class ClassM extends M {
 
 	@Override
 	public boolean isStatic() {
-		return check(AF.STATIC);
+		return getAf(AF.STATIC);
 	}
 
 	@Override
 	public boolean isSynthetic() {
-		return check(AF.SYNTHETIC);
+		return getAf(AF.SYNTHETIC);
 	}
 
 	@Override
 	public boolean isVarargs() {
-		return check(AF.VARARGS);
+		return getAf(AF.VARARGS);
 	}
 
 	/**
@@ -317,6 +317,13 @@ public class ClassM extends M {
 			ts.add(throwT);
 		} while (c.pos < s.length() && s.charAt(c.pos) == '^');
 		return ts.toArray(new T[ts.size()]);
+	}
+
+	@Override
+	public void setAf(@Nonnull final AF... af) {
+		for (final AF v : af) {
+			this.accessFlags |= v.getValue();
+		}
 	}
 
 	@Override
@@ -351,7 +358,7 @@ public class ClassM extends M {
 
 	@Override
 	public void setDeprecated() {
-		this.accessFlags |= AF.DEPRECATED.getValue();
+		setAf(AF.DEPRECATED);
 	}
 
 	@Override
@@ -451,24 +458,24 @@ public class ClassM extends M {
 	public void setStatic(final boolean isStatic) {
 		if (isStatic) {
 			// don't change owner, static also possible in interface since JVM 8
-			if (check(AF.STATIC)) {
+			if (getAf(AF.STATIC)) {
 				return;
 			}
-			assert !check(AF.STATIC_ASSERTED) : this;
-			this.accessFlags |= AF.STATIC.getValue() | AF.STATIC_ASSERTED.getValue();
+			assert !getAf(AF.STATIC_CONFIRMED) : this;
+			setAf(AF.STATIC, AF.STATIC_CONFIRMED);
 			return;
 		}
-		if (!check(AF.STATIC)) {
+		if (!getAf(AF.STATIC)) {
 			return;
 		}
-		assert !check(AF.STATIC_ASSERTED) : this;
-		this.accessFlags |= AF.STATIC_ASSERTED.getValue();
+		assert !getAf(AF.STATIC_CONFIRMED) : this;
+		setAf(AF.STATIC_CONFIRMED);
 		return;
 	}
 
 	@Override
 	public void setSynthetic() {
-		this.accessFlags |= AF.SYNTHETIC.getValue();
+		setAf(AF.SYNTHETIC);
 	}
 
 	@Override

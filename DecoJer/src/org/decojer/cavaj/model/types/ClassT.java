@@ -142,11 +142,6 @@ public class ClassT extends T {
 	}
 
 	@Override
-	public boolean check(final AF af) {
-		return (this.accessFlags & af.getValue()) != 0;
-	}
-
-	@Override
 	public void clear() {
 		getTd().clear();
 	}
@@ -158,6 +153,11 @@ public class ClassT extends T {
 		}
 		this.td = new TD();
 		return true;
+	}
+
+	@Override
+	public boolean getAf(final AF af) {
+		return (this.accessFlags & af.getValue()) != 0;
 	}
 
 	@Override
@@ -299,17 +299,17 @@ public class ClassT extends T {
 	 * @return {@code true} - is deprecated type
 	 */
 	public boolean isDeprecated() {
-		return check(AF.DEPRECATED);
+		return getAf(AF.DEPRECATED);
 	}
 
 	@Override
 	public boolean isEnum() {
-		return check(AF.ENUM);
+		return getAf(AF.ENUM);
 	}
 
 	@Override
 	public boolean isInterface() {
-		return check(AF.INTERFACE);
+		return getAf(AF.INTERFACE);
 	}
 
 	@Override
@@ -325,17 +325,17 @@ public class ClassT extends T {
 
 	@Override
 	public boolean isStatic() {
-		return check(AF.STATIC);
+		return getAf(AF.STATIC);
 	}
 
 	@Override
 	public boolean isSynthetic() {
-		return check(AF.SYNTHETIC);
+		return getAf(AF.SYNTHETIC);
 	}
 
 	@Override
 	public boolean isUnresolvable() {
-		if (check(AF.UNRESOLVABLE)) {
+		if (getAf(AF.UNRESOLVABLE)) {
 			return true;
 		}
 		// try simple class loading, may be we are lucky ;)
@@ -345,16 +345,16 @@ public class ClassT extends T {
 			klass = getClass().getClassLoader().loadClass(getName());
 		} catch (final ClassNotFoundException e) {
 			// log.warning("Couldn't load type '" + getName() + "'!");
-			this.accessFlags |= AF.UNRESOLVABLE.getValue();
+			setAf(AF.UNRESOLVABLE);
 			return true;
 		} catch (final NoClassDefFoundError e) {
 			// log.warning("Couldn't load type '" + getName() + "'!");
-			this.accessFlags |= AF.UNRESOLVABLE.getValue();
+			setAf(AF.UNRESOLVABLE);
 			return true;
 		} catch (final SecurityException e) {
 			log.warn("Couldn't load type class '" + getName()
 					+ "' because of security issues!\nMessage: " + e.getMessage());
-			this.accessFlags |= AF.UNRESOLVABLE.getValue();
+			setAf(AF.UNRESOLVABLE);
 			return true;
 		}
 		this.accessFlags = klass.getModifiers();
@@ -445,6 +445,8 @@ public class ClassT extends T {
 
 	@Override
 	public void resolve() {
+		setAf(AF.INTERFACE_CONFIRMED);
+		setAf(AF.STATIC_CONFIRMED);
 		if (this.superT == null) {
 			this.superT = NONE; // Object/Interfaces have no super!
 		}
@@ -456,6 +458,13 @@ public class ClassT extends T {
 		}
 		if (this.enclosing == null) {
 			this.enclosing = NONE;
+		}
+	}
+
+	@Override
+	public void setAf(@Nonnull final AF... af) {
+		for (final AF v : af) {
+			this.accessFlags |= v.getValue();
 		}
 	}
 
@@ -481,7 +490,7 @@ public class ClassT extends T {
 
 	@Override
 	public void setDeprecated() {
-		this.accessFlags |= AF.DEPRECATED.getValue();
+		setAf(AF.DEPRECATED);
 	}
 
 	@Override
@@ -547,29 +556,26 @@ public class ClassT extends T {
 		this.innerName = name != null ? name : "";
 	}
 
-	/**
-	 * Type must be an interface or class.
-	 *
-	 * @param isInterface
-	 *            {@code true} - is interface
-	 */
 	@Override
-	public void setInterface(final boolean isInterface) {
+	public boolean setInterface(final boolean isInterface) {
 		if (isInterface) {
-			assert !isObject() : this;
-			if (check(AF.INTERFACE)) {
-				return;
+			if (getAf(AF.INTERFACE)) {
+				return true;
 			}
-			assert !check(AF.INTERFACE_ASSERTED) : this;
-			this.accessFlags |= AF.INTERFACE.getValue() | AF.INTERFACE_ASSERTED.getValue();
-			return;
+			if (getAf(AF.INTERFACE_CONFIRMED)) {
+				return false;
+			}
+			setAf(AF.INTERFACE, AF.INTERFACE_CONFIRMED);
+			return true;
 		}
-		if (!check(AF.INTERFACE)) {
-			return;
+		if (!getAf(AF.INTERFACE)) {
+			return true;
 		}
-		assert !check(AF.INTERFACE_ASSERTED) : this;
-		this.accessFlags |= AF.INTERFACE_ASSERTED.getValue();
-		return;
+		if (getAf(AF.INTERFACE_CONFIRMED)) {
+			return false;
+		}
+		setAf(AF.INTERFACE_CONFIRMED);
+		return true;
 	}
 
 	@Override
@@ -651,7 +657,7 @@ public class ClassT extends T {
 
 	@Override
 	public void setSynthetic() {
-		this.accessFlags |= AF.SYNTHETIC.getValue();
+		setAf(AF.SYNTHETIC);
 	}
 
 	@Override

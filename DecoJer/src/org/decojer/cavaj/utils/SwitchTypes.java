@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.ArrayUtils;
 import org.decojer.cavaj.model.code.BB;
+import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.ops.ASTORE;
 import org.decojer.cavaj.model.code.ops.CmpType;
@@ -194,7 +195,12 @@ public class SwitchTypes {
 		// very simplistic matcher and may have false positives with obfuscated / strange bytecode,
 		// works for JDK / Eclipse
 		final Map<Integer, F> index2enums = Maps.newHashMap();
-		final Op[] ops = m.getCfg().getOps();
+		final CFG cfg = m.getCfg();
+		if (cfg == null) {
+			assert 0 == 1 : m;
+			return index2enums;
+		}
+		final Op[] ops = cfg.getOps();
 		final int length = ops.length - 3;
 		for (int i = 0; i < length; ++i) {
 			Op op = ops[i];

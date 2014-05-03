@@ -86,7 +86,7 @@ public abstract class F implements Element {
 	 * @return {@code true} - is enum
 	 */
 	public boolean isEnum() {
-		return check(AF.ENUM);
+		return getAf(AF.ENUM);
 	}
 
 	public boolean isUnresolvable() {
