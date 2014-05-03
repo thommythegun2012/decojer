@@ -2,17 +2,6 @@
 
 {{{
 
-Automatically add casting for incompatible:
-  oracle.jdbc.proxy.oracle$1jdbc$1replay$1driver$1NonTxnReplayableArray$2java$1sql$1Array$$$Proxy.setDelegate():
-		// works: Comparable c = (Comparable) new Object();
-  weblogic.cluster.singleton._RemoteLeasingBasisImpl_Stub.renewLeases():
-		// works: Serializable s = (Serializable) new HashSet();
-
-Backpropagate real array type instead of "null"-REF to PC 5 for array read in 278
-  com.ibm.icu.util.VTimeZone.parseRRULE
-
-paramAss can contain null in inner array, why?
-
 java.lang.IllegalArgumentException: Invalid string literal : >"\0\0\0,\0X\0?\0°\0Ü\0C\0J\0Š\0?\0?\0G\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?\0?"<
 	at org.eclipse.jdt.core.dom.StringLiteral.setEscapedValue(StringLiteral.java:187)
 	at org.eclipse.jdt.core.dom.StringLiteral.setLiteralValue(StringLiteral.java:327)
@@ -65,9 +54,18 @@ multiple bugs in scala lib signatures, wrong handling of type parameter :super:i
 
 = TODOs =
 
-  * endless loop in createSyncStruct()
-    * check com.mysql.jdbc.PreparedStatement.executePreparedBatchAsMultiStatement in D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\cae-live-httpcache-webapp-16.war
+  * backpropagate real array type instead of "null"-REF to PC 5 for array read in 278
+    * com.ibm.icu.util.VTimeZone.parseRRULE
+  * paramAss can contain null in inner array, why?
+  * Automatically add casting for incompatible (narrowing casts):
+    * bool -> int etc.
+    * oracle.jdbc.proxy.oracle$1jdbc$1replay$1driver$1NonTxnReplayableArray$2java$1sql$1Array$$$Proxy.setDelegate():
+		// works: Comparable c = (Comparable) new Object();
+  weblogic.cluster.singleton._RemoteLeasingBasisImpl_Stub.renewLeases():
+		// works: Serializable s = (Serializable) new HashSet();
+  * endless loop in createSyncStruct() if struct.memberAdd woudln't stopp now
     * activate assert in Struct-add
+    * check com.mysql.jdbc.PreparedStatement.executePreparedBatchAsMultiStatement in D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\cae-live-httpcache-webapp-16.war
   * variable analysis
     * special recognition of this and params for invalid debug vars
   * remove assert field ".$assertionsDisabled" and static init
