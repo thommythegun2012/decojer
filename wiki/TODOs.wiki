@@ -70,7 +70,8 @@ multiple bugs in scala lib signatures, wrong handling of type parameter :super:i
     * special recognition of this and params for invalid debug vars
   * remove assert field ".$assertionsDisabled" and static init
   * assign-to with "maybe"
-  * jaxb-xjc-2.0.5.jar contains multiple versions of the same code
+  * cascading DUs like class loaders, check package/folders, root can have META-INF
+    * jaxb-xjc-2.0.5.jar contains multiple versions of the same code
     * are conflicting, e.g. CodeWraiter interface / abstract class in newer
     * currently excluded from TestDU.read()
   * Infinity Loop in Eclipse-CodeFormatter: https://bugs.eclipse.org/bugs/show_bug.cgi?id=432593
