@@ -80,6 +80,7 @@ multiple bugs in scala lib signatures, wrong handling of type parameter :super:i
 	at org.eclipse.jdt.core.dom.StringLiteral.setEscapedValue(StringLiteral.java:187)
 	at org.eclipse.jdt.core.dom.StringLiteral.setLiteralValue(StringLiteral.java:327)
 	at org.decojer.cavaj.utils.Expressions.newLiteral2(Expressions.java:295)
+
   * JDK 8
     * Eclipse AST for JDK 8: http://www.oracle.com/technetwork/articles/java/lambda-1984522.html
       * JDK 8 Update from: http://download.eclipse.org/eclipse/updates/4.3-P-builds/
