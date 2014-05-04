@@ -29,23 +29,6 @@ io.undertow.client.http.HttpResponseParser$$generated.handleHttpVersion(Ljava/ni
 R10.MO229: byte -> char
 
 ---
-java.lang.RuntimeException: File: D:\Oracle\JDeveloper\jdeveloper\webcenter\modules\oracle.wcps.sal-tools_1.0.0.0\scala-library-2.9.1.jar
-scala.collection.Traversable
-	at org.decojer.cavaj.model.TestDU.testBytecodeOracle(TestDU.java:74)
-Caused by: java.lang.AssertionError: scala.collection.Traversable
-	at org.decojer.cavaj.model.types.ClassT.setInterface(ClassT.java:566)
-	at org.decojer.cavaj.model.types.ExtendedT.setInterface(ExtendedT.java:278)
-	at org.decojer.cavaj.model.types.ParamT.setSuperT(ParamT.java:92)
-	at org.decojer.cavaj.model.DU.parseTypeParams(DU.java:784)
-	at org.decojer.cavaj.model.types.ClassT.setSignature(ClassT.java:595)
-	at org.decojer.cavaj.readers.asm.ReadClassVisitor.visit(ReadClassVisitor.java:129)
-	at org.objectweb.asm.ClassReader.accept(Unknown Source)
-	at org.objectweb.asm.ClassReader.accept(Unknown Source)
-	at org.decojer.cavaj.readers.asm.AsmReader.read(AsmReader.java:63)
-
-multiple bugs in scala lib signatures, wrong handling of type parameter :super:interface
-
----
 
 java.lang.RuntimeException: File: D:\Oracle\JDeveloper\modules\com.bea.cie.comdev_6.1.0.0.jar
 cannot assign 'R3.ME48: int' to 'char'
@@ -112,6 +95,10 @@ Caused by: java.lang.AssertionError: cannot assign 'R3.ME48: int' to 'char'
     * jaxb-xjc-2.0.5.jar contains multiple versions of the same code
     * are conflicting, e.g. CodeWraiter interface / abstract class in newer
     * currently excluded from TestDU.read()
+  * what to do with wrong type signatures? happens in valid byte code!
+    * multiple bugs in scala lib signatures, wrong handling of type parameter :super:interface
+    * java.lang.RuntimeException: File: D:\Oracle\JDeveloper\jdeveloper\webcenter\modules\oracle.wcps.sal-tools_1.0.0.0\scala-library-2.9.1.jar
+
   * Infinity Loop in Eclipse-CodeFormatter: https://bugs.eclipse.org/bugs/show_bug.cgi?id=432593
   * optimize stream reader -> use more byte arrays down to bytecode libs
     * check for this org.eclipse.m2e.maven.runtime_1.4.0.20130531-2315.jar
