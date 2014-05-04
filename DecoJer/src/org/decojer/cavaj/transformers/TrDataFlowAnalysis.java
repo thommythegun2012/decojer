@@ -1199,7 +1199,7 @@ public final class TrDataFlowAnalysis {
 		final List<BB> replaceBbs = Lists.newArrayList(bb);
 		Set<BB> mergeBbs = null;
 
-		outer: while (!replaceBbs.isEmpty()) {
+		while (!replaceBbs.isEmpty()) {
 			final BB replaceBb = replaceBbs.remove(0);
 			if (mergeBbs != null) {
 				mergeBbs.remove(replaceBb);
@@ -1234,7 +1234,7 @@ public final class TrDataFlowAnalysis {
 				}
 			}
 			// replacement propagation to next BB necessary
-			for (final E out : replaceBb.getOuts()) {
+			outer: for (final E out : replaceBb.getOuts()) {
 				final BB outBb = out.getEnd();
 				final Frame outFrame = getFrame(outBb.getPc());
 				if (outFrame == null) {
@@ -1303,7 +1303,7 @@ public final class TrDataFlowAnalysis {
 		final R[] outs = prevR.getOuts();
 		if (outs != null) {
 			for (final R out : outs) {
-				if (out.getPc() == pc && out.getKind() == Kind.MERGE) {
+				if (out.getPc() == pc && out.getKind() == Kind.MERGE && out != newR) {
 					// no complete merge handling here...what if we replace only one occurence in
 					// multi-merge of same register...handle in BB navigation: replaceBbRegDeep
 					out.replaceIn(prevR, newR);
