@@ -294,7 +294,7 @@ public final class E {
 	@Override
 	public String toString() {
 		final String valueString = getValueString();
-		return this.start.getPostorder() + " -> " + this.end.getPostorder()
+		return this.start.getPc() + " -> " + this.end.getPc()
 				+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
