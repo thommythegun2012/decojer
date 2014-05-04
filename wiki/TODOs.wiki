@@ -47,29 +47,13 @@ multiple bugs in scala lib signatures, wrong handling of type parameter :super:i
 
 ---
 
-com.tangosol.coherence.component.util.windowedArray.ConcurrentWindowedArray.get(JJ)Ljava/lang/Object; (ops: 142, regs: 19)
-
-115: JSR 132
-
-r14: intersect long / Object -> null
-
-The assert in subs is wrong, there could it be reduced to null!
-
-	public R store(final int i, final R r) {
-		// stack allowed too: assert i < this.cfg.getRegs();
-		assert r != null || !isAlive(i) : this.cfg.getM() + ": cannot set alive register to null";
-
-
-
-BB 132 MERGE not forwarded properly to BB JSR RETs
-
-
-
-java.lang.RuntimeException: File: D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\coherence.jar
-com.tangosol.coherence.component.util.windowedArray.ConcurrentWindowedArray.get(JJ)Ljava/lang/Object;: cannot set alive register to null
+java.lang.RuntimeException: File: D:\Oracle\JDeveloper\modules\com.bea.cie.comdev_6.1.0.0.jar
+cannot assign 'R3.ME48: int' to 'char'
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:53)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
-	at org.decojer.cavaj.model.TestDU.testBytecodeClosed(TestDU.java:59)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.testBytecodeOracle(TestDU.java:74)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -83,32 +67,25 @@ com.tangosol.coherence.component.util.windowedArray.ConcurrentWindowedArray.get(
 	at org.testng.TestRunner.privateRun(TestRunner.java:767)
 	at org.testng.TestRunner.run(TestRunner.java:617)
 	at org.testng.SuiteRunner.runTest(SuiteRunner.java:334)
-	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)
-	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)
-	at org.testng.SuiteRunner.run(SuiteRunner.java:240)
-	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
-	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)
-	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)
-	at org.testng.TestNG.runSuitesLocally(TestNG.java:1149)
-	at org.testng.TestNG.run(TestNG.java:1057)
-	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)
-	at org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)
-	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)
-Caused by: java.lang.AssertionError: com.tangosol.coherence.component.util.windowedArray.ConcurrentWindowedArray.get(JJ)Ljava/lang/Object;: cannot set alive register to null
-	at org.decojer.cavaj.model.code.Frame.store(Frame.java:348)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.replaceRegFrame(TrDataFlowAnalysis.java:1319)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.replaceRegBb(TrDataFlowAnalysis.java:1181)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.replaceRegBbDeep(TrDataFlowAnalysis.java:1208)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.mergeReg(TrDataFlowAnalysis.java:1074)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:1039)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:488)
+	at org.testng.SuiteRunner.access$000(SuiteRunner.java:37)
+	at org.testng.SuiteRunner$SuiteWorker.run(SuiteRunner.java:368)
+	at org.testng.internal.thread.ThreadUtil$2.call(ThreadUtil.java:64)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+Caused by: java.lang.AssertionError: cannot assign 'R3.ME48: int' to 'char'
+	at org.decojer.cavaj.model.code.R.assignTo(R.java:263)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.pop(TrDataFlowAnalysis.java:1137)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.popRead(TrDataFlowAnalysis.java:1148)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:643)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1394)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:110)
 	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:227)
 	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
 	at org.decojer.cavaj.model.CU.decompile(CU.java:248)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:47)
-	... 26 more
+	... 24 more
 
 
 }}}
