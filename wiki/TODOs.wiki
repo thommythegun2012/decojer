@@ -60,8 +60,10 @@ The assert in subs is wrong, there could it be reduced to null!
 		assert r != null || !isAlive(i) : this.cfg.getM() + ": cannot set alive register to null";
 
 
-how to handle this case? 
-delete alive or never set it?
+
+BB 132 MERGE not forwarded properly to BB JSR RETs
+
+
 
 java.lang.RuntimeException: File: D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\coherence.jar
 com.tangosol.coherence.component.util.windowedArray.ConcurrentWindowedArray.get(JJ)Ljava/lang/Object;: cannot set alive register to null
