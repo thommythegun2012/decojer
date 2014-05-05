@@ -387,6 +387,7 @@ public final class TrCfg2JavaExpressionStmts {
 			case DUP: {
 				final DUP cop = (DUP) op;
 				switch (cop.getKind()) {
+				// for all following variants: don't change op without copying!
 				case DUP:
 					bb.push(bb.peek());
 					break;
@@ -407,6 +408,7 @@ public final class TrCfg2JavaExpressionStmts {
 						bb.push(e3);
 						bb.push(e2);
 						bb.push(e1);
+						break;
 					}
 					bb.push(e1);
 					bb.push(e2);
