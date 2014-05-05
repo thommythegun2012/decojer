@@ -254,12 +254,6 @@ public final class R {
 			if (this.lowerT.isUnresolvable() && this.lowerT != T.REF) {
 				return true;
 			}
-			if (this.lowerT.is(T.BOOLEAN) || t.is(T.BOOLEAN)) {
-				// TODO HACK: check net.miginfocom.layout.Grid$Cell.access$476 in
-				// miglayout-3.6-swing.jar
-				// not a valid Java code but valid JVM code
-				return true;
-			}
 			assert false : "cannot assign '" + this + "' to '" + t + "'";
 			return false;
 		}
