@@ -74,9 +74,11 @@ Caused by: java.lang.IndexOutOfBoundsException: Stack is empty!
 
 ---
 
-java.lang.RuntimeException: File: D:\Oracle\JDeveloper\modules\com.bea.cie.comdev_6.1.0.0.jar
-cannot assign 'R3.ME48: int' to 'char'
+java.lang.RuntimeException: File: D:\Oracle\JDeveloper\wlserver_10.3\common\lib\oxy-cci.jar
+weblogic.oxygen.util.ShutdownHandler$3.run()V: is called twice
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:53)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
@@ -101,19 +103,16 @@ cannot assign 'R3.ME48: int' to 'char'
 	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
 	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
 	at java.lang.Thread.run(Thread.java:745)
-Caused by: java.lang.AssertionError: cannot assign 'R3.ME48: int' to 'char'
-	at org.decojer.cavaj.model.code.R.assignTo(R.java:263)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.pop(TrDataFlowAnalysis.java:1137)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.popRead(TrDataFlowAnalysis.java:1148)
-	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:643)
+Caused by: java.lang.AssertionError: weblogic.oxygen.util.ShutdownHandler$3.run()V: is called twice
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:1027)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:749)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1394)
 	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:110)
 	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:227)
 	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
 	at org.decojer.cavaj.model.CU.decompile(CU.java:248)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:47)
-	... 24 more
-
+	... 26 more
 
 }}}
 
