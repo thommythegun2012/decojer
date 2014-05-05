@@ -1600,8 +1600,9 @@ public final class TrCfg2JavaExpressionStmts {
 					thenExpression = not(thenExpression);
 				}
 			}
+			// not from "expression", we need the full resulting expression type
 			final ConditionalExpression conditionalExpression = setOp(getAst()
-					.newConditionalExpression(), getOp(expression));
+					.newConditionalExpression(), getOp(thenExpression));
 			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
 			conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
 			conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
@@ -1981,11 +1982,11 @@ public final class TrCfg2JavaExpressionStmts {
 						// rewrite to class literal didn't work
 					}
 				}
-				// expressions: expression ? trueExpression : falseExpression
+				// not from "expression", we need the full resulting expression type
 				final ConditionalExpression conditionalExpression = setOp(getAst()
-						.newConditionalExpression(), getOp(expression));
+						.newConditionalExpression(), getOp(thenExpression));
 				if (!c.isBefore(x)) {
-					final Expression swapExpression = thenExpression;
+				final Expression swapExpression = thenExpression;
 					thenExpression = elseExpression;
 					elseExpression = swapExpression;
 					if (a_c.isCondTrue()) {
