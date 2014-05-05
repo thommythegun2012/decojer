@@ -364,11 +364,14 @@ public abstract class T implements Element {
 		if (t1.equals(t2)) {
 			return t1;
 		}
-		// TODO HACK change...
-		if (t1 == T.BOOLEAN && t2 == T.INT || t1 == T.INT && t2 == T.BOOLEAN) {
-			return T.INT;
-		}
 		final int kind = intersectKinds(t1.getKind(), t2.getKind());
+		if (kind == 0) {
+			if (t1.isAInt() && t2.isAInt()) {
+				// TODO could also return AINT or temporary IntersectT?!
+				return T.INT;
+			}
+			return null;
+		}
 		if ((kind & Kind.REF.getKind()) == 0) {
 			return getT(kind);
 		}
@@ -509,7 +512,15 @@ public abstract class T implements Element {
 			return null;
 		}
 		final int kind = assignKindsToFrom(t.getKind(), getKind());
+		if (kind == 0) {
+			if (isAInt() && t.isAInt()) {
+				// don't reduce here
+				return this;
+			}
+			return null;
+		}
 		if ((kind & Kind.REF.getKind()) == 0) {
+			// reduced kind if primitive
 			return getT(kind);
 		}
 		// no type reduction, can assign types to different single supertypes / interfaces
@@ -1035,6 +1046,15 @@ public abstract class T implements Element {
 			return true;
 		}
 		return equals(ts[0]);
+	}
+
+	/**
+	 * Is any int (JVM).
+	 *
+	 * @return {@code true} - is any int
+	 */
+	private boolean isAInt() {
+		return (getKind() & 0x1F) != 0;
 	}
 
 	/**
