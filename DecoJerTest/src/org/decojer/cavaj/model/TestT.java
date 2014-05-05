@@ -35,7 +35,7 @@ class TestT {
 	@Test
 	void assignTo() {
 		assertSame(T.INT.assignTo(T.INT), T.INT);
-		assertNull(T.INT.assignTo(T.BYTE));
+		// allowed in JVM: assertNull(T.INT.assignTo(T.BYTE));
 		assertSame(T.BYTE.assignTo(T.INT), T.BYTE);
 
 		assertSame(T.AINT.assignTo(T.BOOLEAN), T.BOOLEAN);
