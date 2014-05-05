@@ -387,33 +387,9 @@ public final class TrCfg2JavaExpressionStmts {
 			case DUP: {
 				final DUP cop = (DUP) op;
 				switch (cop.getKind()) {
-				case DUP2:
-					if (!isWide(cop)) {
-						final Expression e1 = bb.pop();
-						final Expression e2 = bb.pop();
-						bb.push(e2);
-						bb.push(e1);
-						bb.push(e2);
-						bb.push(e1);
-						break;
-					}
-					// fall through for wide
 				case DUP:
 					bb.push(bb.peek());
 					break;
-				case DUP2_X1:
-					if (!isWide(cop)) {
-						final Expression e1 = bb.pop();
-						final Expression e2 = bb.pop();
-						final Expression e3 = bb.pop();
-						bb.push(e2);
-						bb.push(e1);
-						bb.push(e3);
-						bb.push(e2);
-						bb.push(e1);
-						break;
-					}
-					// fall through for wide
 				case DUP_X1: {
 					final Expression e1 = bb.pop();
 					final Expression e2 = bb.pop();
@@ -422,28 +398,83 @@ public final class TrCfg2JavaExpressionStmts {
 					bb.push(e1);
 					break;
 				}
-				case DUP2_X2:
-					if (!isWide(cop)) {
-						final Expression e1 = bb.pop();
-						final Expression e2 = bb.pop();
+				case DUP_X2: {
+					final Expression e1 = bb.pop();
+					final Expression e2 = bb.pop();
+					if (!isWide(e2)) {
 						final Expression e3 = bb.pop();
-						final Expression e4 = bb.pop();
+						bb.push(e1);
+						bb.push(e3);
 						bb.push(e2);
 						bb.push(e1);
-						bb.push(e4);
+					}
+					bb.push(e1);
+					bb.push(e2);
+					bb.push(e1);
+					break;
+				}
+				case DUP2: {
+					final Expression e1 = bb.peek();
+					if (!isWide(e1)) {
+						final Expression e2 = bb.peek(1);
+						bb.push(e2);
+						bb.push(e1);
+						break;
+					}
+					bb.push(e1);
+					break;
+				}
+				case DUP2_X1: {
+					final Expression e1 = bb.pop();
+					if (!isWide(e1)) {
+						final Expression e2 = bb.pop();
+						final Expression e3 = bb.pop();
+						bb.push(e2);
+						bb.push(e1);
 						bb.push(e3);
 						bb.push(e2);
 						bb.push(e1);
 						break;
 					}
-					// fall through for wide
-				case DUP_X2: {
-					final Expression e1 = bb.pop();
-					final Expression e2 = bb.pop();
 					final Expression e3 = bb.pop();
 					bb.push(e1);
 					bb.push(e3);
-					bb.push(e2);
+					bb.push(e1);
+					break;
+				}
+				case DUP2_X2: {
+					final Expression e1 = bb.pop();
+					if (!isWide(e1)) {
+						final Expression e2 = bb.pop();
+						final Expression e3 = bb.pop();
+						if (!isWide(e3)) {
+							final Expression e4 = bb.pop();
+							bb.push(e2);
+							bb.push(e1);
+							bb.push(e4);
+							bb.push(e3);
+							bb.push(e2);
+							bb.push(e1);
+							break;
+						}
+						bb.push(e2);
+						bb.push(e1);
+						bb.push(e3);
+						bb.push(e2);
+						bb.push(e1);
+						break;
+					}
+					final Expression e3 = bb.pop();
+					if (!isWide(e3)) {
+						final Expression e4 = bb.pop();
+						bb.push(e1);
+						bb.push(e4);
+						bb.push(e3);
+						bb.push(e1);
+						break;
+					}
+					bb.push(e1);
+					bb.push(e3);
 					bb.push(e1);
 					break;
 				}
@@ -1049,7 +1080,7 @@ public final class TrCfg2JavaExpressionStmts {
 						// TODO also other stuff like literals (no common interface in Eclipse) etc.
 						statement = getAst().newExpressionStatement(wrap(e));
 					}
-					if (isWide(cop)) {
+					if (isWide(e)) {
 						break;
 					}
 					// fall through for second pop iff none-wide
@@ -1310,9 +1341,15 @@ public final class TrCfg2JavaExpressionStmts {
 		return op.getInStackSize(inFrame) > bb.getTop();
 	}
 
-	private boolean isWide(final Op op) {
-		final R r = getCfg().getInFrame(op).peek();
+	private boolean isWide(final Expression e) {
+		final Op op = getOp(e);
+		if (op == null) {
+			assert 0 == 1 : getM();
+			return false;
+		}
+		final R r = getCfg().getOutFrame(op).peek();
 		if (r == null) {
+			assert 0 == 1 : getM();
 			return false;
 		}
 		return r.isWide();

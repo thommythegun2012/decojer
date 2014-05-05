@@ -282,11 +282,9 @@ public final class TrDataFlowAnalysis {
 		case DUP: {
 			final DUP cop = (DUP) op;
 			switch (cop.getKind()) {
-			case DUP: {
-				final R s = peekSingle();
-				push(s);
+			case DUP:
+				push(peekSingle());
 				break;
-			}
 			case DUP_X1: {
 				final R s1 = popSingle();
 				final R s2 = popSingle();
@@ -1024,7 +1022,8 @@ public final class TrDataFlowAnalysis {
 			getCfg().setFrame(targetPc, this.currentFrame);
 			return;
 		}
-		assert targetFrame.getPc() != getCurrentPc() : getM() + ": is called twice";
+		// target frame _can_ be equal to current frame, GOTO-selfloops / endless while(true)
+
 		// target frame has already been visited before, hence this must be a BB start with multiple
 		// predecessors => register merge necessary
 		assert targetFrame.size() == this.currentFrame.size() : getM()
