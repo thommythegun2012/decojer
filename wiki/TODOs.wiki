@@ -18,80 +18,16 @@ intersect int / bool is null
 
 ---
 
-java.lang.RuntimeException: File: C:\Users\andre\.m2\repository\io\undertow\undertow-core\1.0.0.Beta17\undertow-core-1.0.0.Beta17.jar
-
-cannot assign 'R10.MO229: byte' to 'char'
-
-io.undertow.client.http.HttpResponseParser$$generated.handleHttpVersion(Ljava/nio/ByteBuffer;Lio/undertow/client/http/ResponseParseState;Lio/undertow/client/http/HttpResponseBuilder;)V (ops: 581, regs: 9)
-
-182: INVOKE StringBuilder.append(char):StringBuilder
-
-R10.MO229: byte -> char
-
----
-
-codecLib.mpa.g.a()V (ops: 1289, regs: 27)
-869: ASTORE
-
-Information: 
-|PC  | Operation          # s0                   | s1                   | s2                    | s3               # r0       | r1            | r2           | r3          | r4                   | r5                | r6          | r7           | r8           | r9         | r10          | r11 | r12                  | r13                  | r14 | r15 | r16        | r17          | r18           | r19                | r20              | r21         | r22         | r23        | r24 | r25 | r26 | 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-|862 | LOAD 19            #                      |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] |                  | A MO41: int | A ME66: int |            |     |     |     | 
-|863 | LOAD 12            # A MO863: float[][][] |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] |                  | A MO41: int | A ME66: int |            |     |     |     | 
-|864 | ALOAD              # A MO863: float[][][] | A MO864: {byte,char} |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] |                  | A MO41: int | A ME66: int |            |     |     |     | 
-|865 | LOAD 13            # A CO865: float[][]   |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] |                  | A MO41: int | A ME66: int |            |     |     |     | 
-|866 | PUSH 576           # A CO865: float[][]   | A MO866: {byte,char} |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] |                  | A MO41: int | A ME66: int |            |     |     |     | 
-|867 | NEWARRAY           # A CO865: float[][]   | A MO866: {byte,char} | A CO867: {short,char} |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] |                  | A MO41: int | A ME66: int |            |     |     |     | 
-|868 | DUP_X2             # A CO865: float[][]   | A MO866: {byte,char} | A CO868: float[]      |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] |                  | A MO41: int | A ME66: int |            |     |     |     | 
-|869 | ASTORE             # A MO869: float[]     | A MO869: float[][]   | A MO869: {byte,char}  | A MO869: float[] # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] |                  | A MO41: int | A ME66: int |            |     |     |     | 
-|870 | STORE 20           # A MO869: float[]     |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] |                  | A MO41: int | A ME66: int |            |     |     |     | 
-|871 | LOAD 0             #                      |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int |            |     |     |     | 
-|872 | GET g.b            # A MO872: g           |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int |            |     |     |     | 
-|873 | LOAD 12            # A CO873: b[][]       |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int |            |     |     |     | 
-|874 | ALOAD              # A CO873: b[][]       | A MO874: {byte,char} |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int |            |     |     |     | 
-|875 | LOAD 13            # A CO875: b[]         |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int |            |     |     |     | 
-|876 | ALOAD              # A CO875: b[]         | A MO876: {byte,char} |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int |            |     |     |     | 
-|877 | STORE 23           # A CO877: b           |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int |            |     |     |     | 
-|878 | LOAD 0             #                      |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|879 | LOAD 23            # A MO879: g           |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|880 | INVOKE g.b(b):void # A MO879: g           | A MO880: b           |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|881 | LOAD 0             #                      |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|882 | GET g.u            # A MO882: g           |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|883 | GET r.i            # A CO883: r           |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|884 | INVOKE k.c():int   # A CO884: k           |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|885 | STORE 10           # A CO885: int         |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int |              |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|886 | LOAD 0             #                      |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int | A MO886: int |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|887 | GET g.u            # A MO887: g           |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int | A MO886: int |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|888 | GET r.j            # A CO888: r           |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int | A MO886: int |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|889 | GET n.p            # A CO889: n           |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int | A MO886: int |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|890 | PUSH 1             # A CO890: int         |                      |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int | A MO886: int |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-|891 | JCMP T_NE 908      # A CO890: int         | A CO891: {byte,char} |                       |                  # A CO0: g | A MO25: short | A ME656: int | A MO14: int | A ME177: {byte,char} | ME638: {int,byte} | MO111: byte | A MO830: int | A MO127: int | ME544: int | A MO886: int |     | A ME862: {byte,char} | A ME970: {byte,char} |     |     | ME638: int | A MO581: int | A MO5: byte[] | A MO9: float[][][] | A MO871: float[] | A MO41: int | A ME66: int | A MO878: b |     |     |     | 
-
-
-----
-
-
-|PC | Operation                                                                                               # s0                                  | s1                                | s2         | s3         | s4           # r0                                 | r1 | r2 | r3 | 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-|37 | LOAD 0                                                                                                  #                                     |                                   |            |            |              # A CO0: closing_2473194355759371067 |    |    |    | 
-|38 | GET ClientBrowserDelegate$closing_2473194355759371067.typedTargetObject                                 # A MO38: closing_2473194355759371067 |                                   |            |            |              # A CO0: closing_2473194355759371067 |    |    |    | 
-|39 | LOAD 0                                                                                                  # A CO39: ClientBrowserDelegate       |                                   |            |            |              # A CO0: closing_2473194355759371067 |    |    |    | 
-|40 | GET ClientBrowserDelegate$closing_2473194355759371067.arg0                                              # CO39: ClientBrowserDelegate         | MO40: closing_2473194355759371067 |            |            |              # CO0: closing_2473194355759371067   |    |    |    | 
-|41 | INVOKE ClientBrowserDelegate.org$jboss$jms$client$delegate$ClientBrowserDelegate$closing$aop(long):long # CO39: ClientBrowserDelegate         | CO41: long                        |            |            |              # CO0: closing_2473194355759371067   |    |    |    | 
-|42 | NEW Long                                                                                                # CO42: long                          |                                   |            |            |              # CO0: closing_2473194355759371067   |    |    |    | 
-|43 | DUP                                                                                                     # CO42: long                          | CO43: Long                        |            |            |              # CO0: closing_2473194355759371067   |    |    |    | 
-|44 | DUP2_X2                                                                                                 # CO42: long                          | CO43: Long                        | MO44: Long |            |              # CO0: closing_2473194355759371067   |    |    |    | 
-|45 | POP2                                                                                                    # MO45: Long                          | MO45: Long                        | MO45: long | MO45: Long | A MO45: Long # CO0: closing_2473194355759371067   |    |    |    | 
-|46 | INVOKE Long.<init>(long):void                                                                           # MO45: Long                          | MO45: Long                        | MO45: long |            |              # CO0: closing_2473194355759371067   |    |    |    | 
-|47 | RETURN                                                                                                  # MO45: Long                          |                                   |            |            |              # CO0: closing_2473194355759371067   |    |    |    | 
-
-
-java.lang.RuntimeException: File: D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_free\jboss-embedded-all-beta3.SP12.jar
-org.jboss.jms.client.delegate.ClientBrowserDelegate$closing_2473194355759371067.invokeNext()Ljava/lang/Object; (ops: 48, regs: 4): Stack is empty: BB37
-Ops: [POP2, INVOKE Long.<init>(long):void, RETURN]
+java.lang.RuntimeException: File: C:\Users\andre\.m2\repository\com\coremedia\blueprint\cae-live-httpcache-webapp\16\cae-live-httpcache-webapp-16.war
+org.hsqldb.jdbc.JDBCBlobFile.position(Ljava/sql/Blob;J)J
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:53)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
-	at org.decojer.cavaj.model.TestDU.testBytecodeFree(TestDU.java:64)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.testBytecodeMaven(TestDU.java:69)
 	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
 	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
 	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
@@ -105,28 +41,23 @@ Ops: [POP2, INVOKE Long.<init>(long):void, RETURN]
 	at org.testng.TestRunner.privateRun(TestRunner.java:767)
 	at org.testng.TestRunner.run(TestRunner.java:617)
 	at org.testng.SuiteRunner.runTest(SuiteRunner.java:334)
-	at org.testng.SuiteRunner.runSequentially(SuiteRunner.java:329)
-	at org.testng.SuiteRunner.privateRun(SuiteRunner.java:291)
-	at org.testng.SuiteRunner.run(SuiteRunner.java:240)
-	at org.testng.SuiteRunnerWorker.runSuite(SuiteRunnerWorker.java:52)
-	at org.testng.SuiteRunnerWorker.run(SuiteRunnerWorker.java:86)
-	at org.testng.TestNG.runSuitesSequentially(TestNG.java:1224)
-	at org.testng.TestNG.runSuitesLocally(TestNG.java:1149)
-	at org.testng.TestNG.run(TestNG.java:1057)
-	at org.testng.remote.RemoteTestNG.run(RemoteTestNG.java:111)
-	at org.testng.remote.RemoteTestNG.initAndRun(RemoteTestNG.java:204)
-	at org.testng.remote.RemoteTestNG.main(RemoteTestNG.java:175)
-Caused by: org.decojer.DecoJerException: org.jboss.jms.client.delegate.ClientBrowserDelegate$closing_2473194355759371067.invokeNext()Ljava/lang/Object; (ops: 48, regs: 4): Stack is empty: BB37
-Ops: [POP2, INVOKE Long.<init>(long):void, RETURN]
-	at org.decojer.cavaj.model.code.BB.pop(BB.java:766)
-	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.convertToHLLIntermediate(TrCfg2JavaExpressionStmts.java:430)
-	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.transform(TrCfg2JavaExpressionStmts.java:2542)
+	at org.testng.SuiteRunner.access$000(SuiteRunner.java:37)
+	at org.testng.SuiteRunner$SuiteWorker.run(SuiteRunner.java:368)
+	at org.testng.internal.thread.ThreadUtil$2.call(ThreadUtil.java:64)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+Caused by: java.lang.AssertionError: org.hsqldb.jdbc.JDBCBlobFile.position(Ljava/sql/Blob;J)J
+	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.isWide(TrCfg2JavaExpressionStmts.java:1349)
+	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.convertToHLLIntermediate(TrCfg2JavaExpressionStmts.java:420)
+	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.transform(TrCfg2JavaExpressionStmts.java:2581)
 	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.transform(TrCfg2JavaExpressionStmts.java:212)
 	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:232)
 	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
 	at org.decojer.cavaj.model.CU.decompile(CU.java:248)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:47)
-	... 26 more
+	... 27 more
 
 
 }}}
