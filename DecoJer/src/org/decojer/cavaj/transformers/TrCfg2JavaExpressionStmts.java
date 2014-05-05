@@ -1346,12 +1346,12 @@ public final class TrCfg2JavaExpressionStmts {
 	private boolean isWide(final Expression e) {
 		final Op op = getOp(e);
 		if (op == null) {
-			assert 0 == 1 : getM();
+			assert 0 == 1 : getM() + "Expression operation is unknown: " + e;
 			return false;
 		}
 		final R r = getCfg().getOutFrame(op).peek();
 		if (r == null) {
-			assert 0 == 1 : getM();
+			assert 0 == 1 : getM() + "Expression register is unknown: " + e;
 			return false;
 		}
 		return r.isWide();
@@ -1600,7 +1600,8 @@ public final class TrCfg2JavaExpressionStmts {
 					thenExpression = not(thenExpression);
 				}
 			}
-			final ConditionalExpression conditionalExpression = getAst().newConditionalExpression();
+			final ConditionalExpression conditionalExpression = setOp(getAst()
+					.newConditionalExpression(), getOp(expression));
 			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
 			conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
 			conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
@@ -1980,23 +1981,23 @@ public final class TrCfg2JavaExpressionStmts {
 						// rewrite to class literal didn't work
 					}
 				}
-			// expressions: expression ? trueExpression : falseExpression
-			final ConditionalExpression conditionalExpression = getAst()
-					.newConditionalExpression();
-			if (!c.isBefore(x)) {
-				final Expression swapExpression = thenExpression;
-				thenExpression = elseExpression;
-				elseExpression = swapExpression;
-				if (a_c.isCondTrue()) {
+				// expressions: expression ? trueExpression : falseExpression
+				final ConditionalExpression conditionalExpression = setOp(getAst()
+						.newConditionalExpression(), getOp(expression));
+				if (!c.isBefore(x)) {
+					final Expression swapExpression = thenExpression;
+					thenExpression = elseExpression;
+					elseExpression = swapExpression;
+					if (a_c.isCondTrue()) {
+						expression = not(expression);
+					}
+				} else if (a_c.isCondFalse()) {
 					expression = not(expression);
 				}
-			} else if (a_c.isCondFalse()) {
-				expression = not(expression);
-			}
-			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
-			conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
-			conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
-			expression = conditionalExpression;
+				conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
+				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
+				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
+				expression = conditionalExpression;
 			}
 			a.push(expression);
 			a.setSucc(bb);
