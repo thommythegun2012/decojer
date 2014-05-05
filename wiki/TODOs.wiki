@@ -66,6 +66,12 @@ endless loop in Oracle: Mai 05, 2014 5:53:05 PM org.decojer.cavaj.readers.asm.Re
 WARNUNG: jsp_servlet._jsp._security.__viewsecuritypolicy: SMAP
 __viewsecuritypolicy.java
 
+sbconsole
+
+D:\Oracle\Middleware\Oracle_OSB1\lib\sbconsoleEar\webapp\WEB-INF\lib
+D:\Oracle\Middleware\user_projects\domains\soa_domain\servers\AdminServer\tmp\_WL_user\ServiceBus_Console\71mbvr\war\WEB-INF\lib
+
+
 }}}
 
 = TODOs =
