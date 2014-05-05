@@ -123,18 +123,16 @@ public class JavassistReader implements ClassReader {
 		final ClassFile classFile = new ClassFile(new DataInputStream(is));
 		final String name = classFile.getName();
 		if (name == null) {
-			assert false;
+			log.warn("Cannot read type name '" + name + "'!");
 			return null;
 		}
-
-		final ConstPool constPool = classFile.getConstPool();
-
 		final T t = this.du.getT(name);
 		if (!t.createTd()) {
 			log.warn("Type '" + t + "' already read!");
 			return null;
 		}
 		t.setAccessFlags(classFile.getAccessFlags());
+		final ConstPool constPool = classFile.getConstPool();
 		t.setSuperT(getT(constPool, classFile.getSuperclassId()));
 		// FIXME problem with / (avoid getClassInfo in Javassist)
 		final String[] interfaces = classFile.getInterfaces();

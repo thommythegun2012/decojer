@@ -32,7 +32,6 @@ import javax.annotation.Nonnull;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.fields.F;
@@ -106,11 +105,13 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 	public void visit(final int version, final int access, final String name,
 			final String signature, final String superName, final String[] interfaces) {
 		if (name == null) {
-			throw new DecoJerException("Cannot read type name '" + name + "'!");
+			log.warn("Cannot read type name '" + name + "'!");
+			throw new ReadClassStopException();
 		}
 		final T t = this.du.getT(name);
 		if (!t.createTd()) {
-			throw new DecoJerException("Type '" + t + "' already read!");
+			log.warn("Type '" + t + "' already read!");
+			throw new ReadClassStopException();
 		}
 		this.t = t;
 		getT().setAccessFlags(access);
