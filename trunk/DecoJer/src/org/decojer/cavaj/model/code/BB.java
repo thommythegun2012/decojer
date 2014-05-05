@@ -34,6 +34,7 @@ import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.Setter;
 
+import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.code.ops.GOTO;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.RET;
@@ -298,7 +299,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -750,7 +751,21 @@ public final class BB {
 	 */
 	public Expression peek() {
 		if (this.top <= 0) {
-			throw new IndexOutOfBoundsException("Stack is empty!");
+			throw new DecoJerException(getCfg() + ": Stack is empty for: " + this);
+		}
+		return this.vs[getRegs() + this.top - 1];
+	}
+
+	/**
+	 * Peek stack expression.
+	 *
+	 * @param i
+	 *            reverse stack index
+	 * @return expression
+	 */
+	public Expression peek(final int i) {
+		if (this.top <= i) {
+			throw new DecoJerException(getCfg() + ": Stack is empty for: " + this);
 		}
 		return this.vs[getRegs() + this.top - 1];
 	}
