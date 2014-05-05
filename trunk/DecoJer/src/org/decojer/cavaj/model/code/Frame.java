@@ -38,6 +38,7 @@ public final class Frame {
 
 	private boolean[] alive;
 
+	@Getter
 	private final CFG cfg;
 
 	@Getter
@@ -151,7 +152,8 @@ public final class Frame {
 	 */
 	@Nullable
 	public R load(final int i) {
-		assert i < this.rs.length;
+		assert i < this.rs.length : getCfg();
+
 		return this.rs[i];
 	}
 
@@ -189,7 +191,7 @@ public final class Frame {
 	 * @return register
 	 */
 	public R peek() {
-		assert !isStackEmpty();
+		assert !isStackEmpty() : getCfg();
 
 		return this.rs[this.rs.length - 1];
 	}
@@ -202,7 +204,7 @@ public final class Frame {
 	 * @return register
 	 */
 	public R peek(final int i) {
-		assert i < getTop();
+		assert i < getTop() : getCfg();
 
 		return this.rs[this.rs.length - i - 1];
 	}
@@ -242,7 +244,7 @@ public final class Frame {
 	 * @return stack register
 	 */
 	public R pop() {
-		assert !isStackEmpty();
+		assert !isStackEmpty() : getCfg();
 
 		final R s = this.rs[this.rs.length - 1];
 		final R[] newRs = new R[this.rs.length - 1];
@@ -285,7 +287,7 @@ public final class Frame {
 	 * @return pushed register (for fluent API)
 	 */
 	public R push(final R s) {
-		assert getTop() < this.cfg.getMaxStack() || this.cfg.getMaxStack() == 0;
+		assert getTop() < this.cfg.getMaxStack() || this.cfg.getMaxStack() == 0 : getCfg();
 
 		final R[] newRs = new R[this.rs.length + 1];
 		System.arraycopy(this.rs, 0, newRs, 0, this.rs.length);
@@ -320,7 +322,7 @@ public final class Frame {
 	}
 
 	protected void setPc(final int pc) {
-		assert this.pc == -1 : this.pc;
+		assert this.pc == -1 : getCfg();
 
 		this.pc = pc;
 	}
@@ -345,7 +347,7 @@ public final class Frame {
 	 */
 	public R store(final int i, final R r) {
 		// stack allowed too: assert i < this.cfg.getRegs();
-		assert r != null || !isAlive(i) : this.cfg.getM() + ": cannot set alive register to null";
+		assert r != null || !isAlive(i) : getCfg() + ": cannot set alive register to null";
 
 		// we have to lazy copy here because Frame-copy relies onto this
 		final R[] newRs = new R[this.rs.length];
@@ -365,7 +367,7 @@ public final class Frame {
 	 *            stack register
 	 */
 	public void storeS(final int i, final R s) {
-		assert getTop() > i : i;
+		assert getTop() > i : getCfg();
 
 		store(getRegs() + i, s);
 	}
