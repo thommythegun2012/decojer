@@ -24,7 +24,9 @@
 package org.decojer.cavaj.readers.asm;
 
 /**
- * Type read problems, stop reading.
+ * Type read problems in ASM.
+ *
+ * We can only stop further type reading via an exception in this visitor based system.
  *
  * @author André Pankraz
  */
