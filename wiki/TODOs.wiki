@@ -60,6 +60,12 @@ Caused by: java.lang.AssertionError: cannot assign 'R14.CO133: {byte,char,boolea
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:47)
 	... 26 more
 
+---
+
+endless loop in Oracle: Mai 05, 2014 5:53:05 PM org.decojer.cavaj.readers.asm.ReadClassVisitor visitSource
+WARNUNG: jsp_servlet._jsp._security.__viewsecuritypolicy: SMAP
+__viewsecuritypolicy.java
+
 }}}
 
 = TODOs =
