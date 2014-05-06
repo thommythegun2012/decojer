@@ -18,6 +18,15 @@ intersect int / bool is null
 
 ---
 
+org.springframework.aop.framework.Cglib2AopProxy.getCallbacks(Ljava/lang/Class;)[Lnet/sf/cglib/proxy/Callback; (ops: 221, regs: 14)
+
+133: STORE 11
+
+			final V debugV = getCfg().getDebugV(cop.getReg(), nextPc);
+			final R r = popRead(debugV != null ? debugV.getT() : cop.getT());
+
+pop(net.sf.cglib.proxy.Callback[])  ->  R14.CO133: {byte,char,boolean}
+
 java.lang.RuntimeException: File: C:\Users\andre\.m2\repository\org\springframework\spring\2.5.1\spring-2.5.1.jar
 cannot assign 'R14.CO133: {byte,char,boolean}' to 'net.sf.cglib.proxy.Callback[]'
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:53)
