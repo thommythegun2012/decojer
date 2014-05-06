@@ -635,7 +635,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : getM() + ": cannot assign '" + returnT
-			+ "' to return type '" + cop.getT() + "'";
+					+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -666,7 +666,13 @@ public final class TrDataFlowAnalysis {
 
 			// use potentially known variable types, e.g. "boolean b = true"
 			final V debugV = getCfg().getDebugV(cop.getReg(), nextPc);
-			final R r = popRead(debugV != null ? debugV.getT() : cop.getT());
+			// debugV could be wrong, not checked by JVM!
+			R r;
+			if (debugV != null && cop.getT().isAssignableFrom(debugV.getT())) {
+				r = popRead(debugV.getT());
+			} else {
+				r = popRead(cop.getT());
+			}
 			store(cop.getReg(), r);
 			break;
 		}
