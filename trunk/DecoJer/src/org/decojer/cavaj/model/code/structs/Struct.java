@@ -72,7 +72,7 @@ public class Struct {
 	 */
 	public Struct(@Nonnull final BB bb) {
 		this.parent = bb.getStruct();
-		assert this != this.parent;
+		assert this != this.parent : bb.getCfg();
 
 		this.head = bb;
 		bb.setStruct(this);
@@ -88,7 +88,7 @@ public class Struct {
 	 * @return {@code true} - added
 	 */
 	public boolean addMember(final Object value, final BB bb) {
-		assert bb != this.head : "cannot add head as struct member for: " + bb;
+		assert bb != this.head : bb.getCfg() + ": Cannot add head as struct member for: " + bb;
 
 		return getMembers(value).add(bb);
 	}
