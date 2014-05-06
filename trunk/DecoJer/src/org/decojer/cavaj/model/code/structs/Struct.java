@@ -87,7 +87,7 @@ public class Struct {
 	 *            struct member for value
 	 * @return {@code true} - added
 	 */
-	public boolean addMember(final Object value, final BB bb) {
+	public boolean addMember(final Object value, @Nonnull final BB bb) {
 		assert bb != this.head : bb.getCfg() + ": Cannot add head as struct member for: " + bb;
 
 		return getMembers(value).add(bb);
@@ -101,8 +101,9 @@ public class Struct {
 	 * @param bbs
 	 *            struct members for value
 	 */
-	public void addMembers(final Object value, final Collection<BB> bbs) {
+	public void addMembers(final Object value, @Nonnull final Collection<BB> bbs) {
 		for (final BB bb : bbs) {
+			assert bb != null : this;
 			addMember(value, bb);
 		}
 	}
