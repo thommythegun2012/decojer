@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -47,6 +48,7 @@ import org.eclipse.jdt.core.dom.Statement;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 /**
  * Basic block for CFG.
@@ -517,22 +519,33 @@ public final class BB {
 	}
 
 	/**
-	 * Has this BB given BB as predecessor? This excludes same BB!
+	 * Has this BB given BB as predecessor?
 	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - given BB is predecessor of this BB
 	 */
-	public boolean hasPred(final BB bb) {
-		if (this.postorder >= bb.postorder) {
-			return false;
-		}
-		for (final E in : this.ins) {
-			if (in.isBack()) {
+	public boolean hasPred(@Nonnull final BB bb) {
+		final List<BB> checks = Lists.newArrayList(this);
+		final Set<BB> noPred = Sets.newHashSet();
+		while (!checks.isEmpty()) {
+			final BB check = checks.remove(0);
+			if (check == bb) {
+				return true;
+			}
+			noPred.add(check);
+			if (check.getPostorder() >= bb.getPostorder()) {
 				continue;
 			}
-			if (in.hasPred(bb)) {
-				return true;
+			for (final E in : getIns()) {
+				if (in.isBack()) {
+					continue;
+				}
+				final BB pred = in.getStart();
+				if (noPred.contains(pred) || checks.contains(pred)) {
+					continue;
+				}
+				checks.add(pred);
 			}
 		}
 		return false;
@@ -545,7 +558,7 @@ public final class BB {
 	 *            BB
 	 * @return {@code true} - given BB is successor of this BB
 	 */
-	public boolean hasSucc(final BB bb) {
+	public boolean hasSucc(@Nonnull final BB bb) {
 		return !hasPred(bb);
 	}
 

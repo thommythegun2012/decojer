@@ -187,14 +187,14 @@ public final class E {
 	}
 
 	/**
-	 * Has BB given BB as predecessor? This excludes same BB!
+	 * Has this edge given BB as predecessor?
 	 *
 	 * @param bb
 	 *            BB
 	 * @return {@code true} - given BB is predecessor of this edge
 	 */
-	public boolean hasPred(final BB bb) {
-		return this.start == bb || this.start.hasPred(bb);
+	public boolean hasPred(@Nonnull final BB bb) {
+		return this.start.hasPred(bb);
 	}
 
 	/**
