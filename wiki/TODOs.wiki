@@ -30,6 +30,7 @@ Stmts: [component=component.getParent();
 Succ: 2 0 
 
 
+error in expression building: wrongly combined expressions, can never combine this afther the first component = component.getParent() (or just as special infix notation)
 
 
 java.lang.RuntimeException: File: D:\Oracle\Middleware\Oracle_SOA1\webcenter\applications\WebCenterWorklistDetailApp.ear
