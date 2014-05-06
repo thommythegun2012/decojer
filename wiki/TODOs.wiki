@@ -18,6 +18,16 @@ intersect int / bool is null
 
 ---
 
+!!!
+
+Mai 06, 2014 11:07:01 AM org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts transform
+Warnung: org.decojer.cavaj.test.DecTestBooleanOperators.conditionalCompound(ZZZZZ)V: Stack underflow in 'org.decojer.cavaj.test.DecTestBooleanOperators.conditionalCompound(ZZZZZ)V (ops: 322, regs: 5)':
+BB30
+Ops: [INVOKE PrintStream.println(boolean):void, GETS System.out, LOAD 0, JCND T_NE 36]
+Succ: 137 132 
+Mai 06, 2014 11:07:01 AM org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts transform
+
+---
 java.lang.RuntimeException: File: C:\Users\andre\.m2\repository\org\springframework\spring\2.5.1\spring-2.5.1.jar
 cannot assign 'R14.CO133: {byte,char,boolean}' to 'net.sf.cglib.proxy.Callback[]'
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:53)
@@ -59,19 +69,6 @@ Caused by: java.lang.AssertionError: cannot assign 'R14.CO133: {byte,char,boolea
 	at org.decojer.cavaj.model.CU.decompile(CU.java:248)
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:47)
 	... 26 more
-
----
-
-endless loop in Oracle: Mai 05, 2014 5:53:05 PM org.decojer.cavaj.readers.asm.ReadClassVisitor visitSource
-WARNUNG: jsp_servlet._jsp._security.__viewsecuritypolicy: SMAP
-__viewsecuritypolicy.java
-
-sbconsole
-
-D:\Oracle\Middleware\Oracle_OSB1\lib\sbconsoleEar\webapp\WEB-INF\lib
-D:\Oracle\Middleware\user_projects\domains\soa_domain\servers\AdminServer\tmp\_WL_user\ServiceBus_Console\71mbvr\war\WEB-INF\lib
-
-
 }}}
 
 = TODOs =
