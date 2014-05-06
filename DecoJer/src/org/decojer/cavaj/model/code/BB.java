@@ -301,7 +301,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -641,7 +641,7 @@ public final class BB {
 	public boolean isRelevant() {
 		// important in-check for getRelevantOut()
 		final List<E> ins = getIns();
-		if (ins.size() != 1 || !ins.get(0).isSequence()) {
+		if (ins.size() != 1) {
 			return true;
 		}
 		// for ops.isEmpty() -> later GOTO check
