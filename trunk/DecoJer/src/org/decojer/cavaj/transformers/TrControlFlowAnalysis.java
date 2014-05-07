@@ -654,16 +654,19 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			if (bb.isCond()) {
-				if (bb.getStruct() instanceof Loop) {
-					final Loop loopStruct = (Loop) bb.getStruct();
+				for (Struct struct = bb.getStruct(); struct != null; struct = struct.getParent()) {
+					if (!(struct instanceof Loop)) {
+						continue;
+					}
+					final Loop loopStruct = (Loop) struct;
 					if (loopStruct.isPost() && loopStruct.isLast(bb)) {
 						// exit: conditional already used for post loops last condition
-						continue;
+						continue nextBb;
 					}
 				}
 				createCondStruct(bb);
-				continue;
 			}
 		}
 	}
+
 }
