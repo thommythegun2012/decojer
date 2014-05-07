@@ -18,6 +18,13 @@ intersect int / bool is null
 
 ---
 
+org.apache.fop.image.FopImageFactory.Make(Ljava/lang/String;)Lorg/apache/fop/image/FopImage; (ops: 425, regs: 12)
+
+'R12.CO196: RET' to 'java.lang.String'
+
+196: STORE 6
+
+
 java.lang.RuntimeException: File: D:\Oracle\product\11.2.0\dbhome_1\apex\utilities\fop\fop.war
 cannot assign 'R12.CO196: RET' to 'java.lang.String'
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:53)
