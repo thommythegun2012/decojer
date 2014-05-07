@@ -247,10 +247,10 @@ public class Struct {
 			sb.append(this.parent).append("\n\n");
 		}
 		sb.append("--- ").append(getClass().getSimpleName()).append(" ---");
-		sb.append("\nHead: BB ").append(getHead().getPostorder());
+		sb.append("\nHead: BB ").append(getHead().getPc());
 		final BB follow = getFollow();
 		if (follow != null) {
-			sb.append("  Follow: BB ").append(follow.getPostorder());
+			sb.append("  Follow: BB ").append(follow.getPc());
 		}
 		sb.append("\nMembers: ");
 		int i = 0;
@@ -270,7 +270,7 @@ public class Struct {
 				continue;
 			}
 			for (final BB bb : entry.getValue()) {
-				sb.append("BB ").append(bb.getPostorder()).append("   ");
+				sb.append("BB ").append(bb.getPc()).append("   ");
 			}
 		}
 		return sb.toString();
