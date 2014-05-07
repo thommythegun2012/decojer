@@ -668,7 +668,10 @@ public final class TrDataFlowAnalysis {
 			final V debugV = getCfg().getDebugV(cop.getReg(), nextPc);
 			// debugV could be wrong, not checked by JVM!
 			R r;
-			if (debugV != null && cop.getT().isAssignableFrom(debugV.getT())) {
+			// TODO more and better checks and mark debug var as invalid?
+			// last cond part necessary because of T.RET -> T.REF (e.g. String):
+			if (debugV != null && cop.getT().isAssignableFrom(debugV.getT())
+					&& debugV.getT().isAssignableFrom(peek().getT())) {
 				r = popRead(debugV.getT());
 			} else {
 				r = popRead(cop.getT());
