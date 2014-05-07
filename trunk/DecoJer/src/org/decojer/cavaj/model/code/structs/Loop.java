@@ -171,7 +171,7 @@ public class Loop extends Struct {
 	@Override
 	public String toString() {
 		final StringBuilder sb = new StringBuilder(super.toString());
-		sb.append("\nLast: BB " + (getLast() == null ? "???" : getLast().getPostorder()));
+		sb.append("\nLast: BB " + (getLast() == null ? "???" : getLast().getPc()));
 		sb.append("\nType: " + getKind());
 		return sb.toString();
 	}

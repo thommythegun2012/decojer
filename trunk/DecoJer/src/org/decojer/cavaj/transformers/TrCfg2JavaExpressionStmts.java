@@ -1466,7 +1466,7 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final BB c = c_bb.getStart();
-			if (c.getStmts() != 1 || !c.isCond() || !c.isStackEmpty()) {
+			if (c.getStmts() != 1 || !c.isCond() || !c.isStackEmpty() || c.hasPred(bb)) {
 				continue;
 			}
 			final E a_c = c.getRelevantIn();
@@ -1474,15 +1474,13 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final BB a = a_c.getStart();
-			if (!a.isCond() || a == c) {
-				// a == c check necessary because of loop with GOTO-BB, relevant ins jumps over this
+			if (!a.isCond() || a.hasPred(c)) {
 				continue;
 			}
 			// now we have the potential compound head, go down again and identify patterns
 			final E c_bb2 = c_bb.isCondTrue() ? c.getFalseOut() : c.getTrueOut();
 			final BB bb2 = c_bb2.getRelevantEnd();
-			if (a == bb2) {
-				// C goes back to A is not allowed as pattern
+			if (c.hasPred(bb2)) {
 				continue;
 			}
 			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
