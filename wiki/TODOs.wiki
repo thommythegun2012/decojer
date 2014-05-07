@@ -22,15 +22,13 @@ oracle.adfinternal.view.faces.util.rich.InvokeOnComponentUtils$RenderCallback._f
 
 createCondStruct()
 
-BB2/112
-Stmts: [component=component.getParent();
-, if (component instanceof javax.faces.component.UIForm) {
-}
-]
-Succ: 2 0 
 
+doesn't work if loop contains conditional and wraps lastBB:
 
-error in expression building: wrongly combined expressions, can never combine this afther the first component = component.getParent() (or just as special infix notation)
+			if (bb.isCond()) {
+				if (bb.getStruct() instanceof Loop) {
+					final Loop loopStruct = (Loop) bb.getStruct();
+					if (loopStruct.isPost() && loopStruct.isLast(bb)) {
 
 
 java.lang.RuntimeException: File: D:\Oracle\Middleware\Oracle_SOA1\webcenter\applications\WebCenterWorklistDetailApp.ear
