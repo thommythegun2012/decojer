@@ -66,7 +66,7 @@ class TestDU {
 
 	@Test
 	void testBytecodeMaven() {
-		read(new File("C:/Users/andre/.m2/repository"));
+		read(new File("C:/Users/andre/.m2"));
 	}
 
 	@Test
