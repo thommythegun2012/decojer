@@ -301,7 +301,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -527,14 +527,15 @@ public final class BB {
 	 */
 	public boolean hasPred(@Nonnull final BB bb) {
 		final List<BB> checks = Lists.newArrayList(this);
-		final Set<BB> noPred = Sets.newHashSet();
+		final Set<BB> checked = Sets.newHashSet();
 		while (!checks.isEmpty()) {
 			final BB check = checks.remove(0);
 			if (check == bb) {
 				return true;
 			}
-			noPred.add(check);
+			checked.add(check);
 			if (check.getPostorder() >= bb.getPostorder()) {
+				// check cannot have BB as pred here, are above it in postordering
 				continue;
 			}
 			for (final E in : getIns()) {
@@ -542,7 +543,7 @@ public final class BB {
 					continue;
 				}
 				final BB pred = in.getStart();
-				if (noPred.contains(pred) || checks.contains(pred)) {
+				if (checked.contains(pred) || checks.contains(pred)) {
 					continue;
 				}
 				checks.add(pred);
