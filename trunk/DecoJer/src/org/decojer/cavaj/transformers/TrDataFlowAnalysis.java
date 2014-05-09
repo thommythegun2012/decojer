@@ -423,7 +423,12 @@ public final class TrDataFlowAnalysis {
 				assert paramT != null : getM();
 				popRead(paramT);
 			}
-			if (!m.isStatic()) {
+			// found INVOKESPECIAL of static method in:
+			// net.sf.json.groovy.GJso.this$2$enhanceCollection();
+			// according to JVM spec this is invalid bytecode with IncompatibleClassChangeError;
+			// we could change error handing into LOG or we could remember the INVOKE-type if more
+			// such cases are found with other types like INVOKEINTERFACE? (similar with GET)
+			if (!m.isStatic() || cop.isDirect()) {
 				final T ownerT = m.getT();
 				assert ownerT != null : getM();
 				popRead(ownerT);
@@ -635,7 +640,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : getM() + ": cannot assign '" + returnT
-					+ "' to return type '" + cop.getT() + "'";
+			+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
