@@ -18,9 +18,39 @@ intersect int / bool is null
 
 ---
 
-endless loop?
-
-D:\Oracle\product\11.2.0\dbhome_1\oc4j\j2ee\home\applications\ascontrol.ea
+java.lang.RuntimeException: File: D:\Oracle\product\11.2.0\dbhome_1\owb\jrt\applications\jrt.ear
+null
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:53)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:34)
+	at org.decojer.cavaj.model.TestDU.testBytecodeOracle(TestDU.java:74)
+	at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.lang.reflect.Method.invoke(Method.java:483)
+	at org.testng.internal.MethodInvocationHelper.invokeMethod(MethodInvocationHelper.java:84)
+	at org.testng.internal.Invoker.invokeMethod(Invoker.java:714)
+	at org.testng.internal.Invoker.invokeTestMethod(Invoker.java:901)
+	at org.testng.internal.Invoker.invokeTestMethods(Invoker.java:1231)
+	at org.testng.internal.TestMethodWorker.invokeTestMethods(TestMethodWorker.java:127)
+	at org.testng.internal.TestMethodWorker.run(TestMethodWorker.java:111)
+	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1142)
+	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:617)
+	at java.lang.Thread.run(Thread.java:745)
+Caused by: java.lang.NullPointerException
+	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.rewriteBooleanCompound(TrCfg2JavaExpressionStmts.java:1487)
+	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.transform(TrCfg2JavaExpressionStmts.java:2576)
+	at org.decojer.cavaj.transformers.TrCfg2JavaExpressionStmts.transform(TrCfg2JavaExpressionStmts.java:212)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:232)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
+	at org.decojer.cavaj.model.CU.decompile(CU.java:248)
+	at org.decojer.cavaj.model.TestDU.read(TestDU.java:47)
+	... 21 more
 
 ---
 pc 1: INVOKES GJson.enhanceString():boolean
