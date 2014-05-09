@@ -22,7 +22,7 @@ import org.decojer.cavaj.model.types.T;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-@Test
+@Test(singleThreaded = true)
 class TestT {
 
 	private DU du;
