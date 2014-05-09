@@ -23,6 +23,9 @@ endless loop?
 D:\Oracle\product\11.2.0\dbhome_1\oc4j\j2ee\home\applications\ascontrol.ea
 
 ---
+pc 1: INVOKES GJson.enhanceString():boolean
+
+returnT: boolean 
 
 java.lang.RuntimeException: File: C:\Users\andre\.m2\artifactory_backup\repositories\libs-release-local\de\init\gmlsa\gm-lsa-web\1.0.1\gm-lsa-web-1.0.1.war
 net.sf.json.groovy.GJson.this$2$enhanceString()Z (ops: 3, regs: 1)
