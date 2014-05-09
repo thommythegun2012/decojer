@@ -67,6 +67,79 @@ import com.google.common.collect.Sets;
 public final class TrControlFlowAnalysis {
 
 	/**
+	 * Add successors until unknown predecessors are encountered.
+	 *
+	 * Check incoming edges first, because the start BB could be a direct continue or break!
+	 *
+	 * Switch-case fall-throughs start with case BB as member.
+	 *
+	 * @param struct
+	 *            struct
+	 * @param bb
+	 *            current BB
+	 * @param members
+	 *            found struct members
+	 * @param followBbs
+	 *            potential struct follows (no continues or breaks)
+	 */
+	private static void findBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
+			@Nonnull final List<BB> members, @Nonnull final Set<BB> followBbs) {
+		final List<BB> checks = Lists.newArrayList(bb);
+		while (!checks.isEmpty()) {
+			final BB check = checks.remove(0);
+			if (!members.contains(check)) { // necessary check because of switch-case fall-throughs
+
+				// TODO this is not sufficient...cond-follow with self-loop will be recognized as
+				// follow, see commons-io:FileUtils#decode()
+				if (check.getIns().size() > 1) {
+					// is there a none-member pred?
+					for (final E in : check.getIns()) {
+						if (in.isBack()) {
+							continue; // ignore incoming back edges, sub loop-heads belong to branch
+						}
+						final BB pred = in.getStart();
+						if (members.contains(pred)) {
+							continue;
+						}
+						if (pred == struct.getHead()) {
+							if (members.isEmpty()) {
+								continue;
+							}
+						} else if (!pred.hasPred(struct.getHead())) {
+							return;
+						}
+						if (followBbs.contains(check)) {
+							return;
+						}
+						if (check.isCatchHandler()) {
+							// if all incoming catches are inside branch then the above pred-member
+							// check was allready sucessful, but we will never be a follow
+							return;
+						}
+						// multiple follows during iteration possible, reduce after #findBranch() to
+						// single top follow
+						followBbs.add(check);
+						return;
+					}
+					followBbs.remove(check); // all pred are now members, maybe we where already
+					// here
+				}
+				members.add(check);
+			}
+			for (final E out : check.getOuts()) {
+				if (out.isBack()) {
+					continue;
+				}
+				final BB succ = out.getEnd();
+				if (members.contains(succ) || checks.contains(succ)) {
+					continue;
+				}
+				checks.add(succ);
+			}
+		}
+	}
+
+	/**
 	 * Is unhandled loop head?
 	 *
 	 * @param bb
@@ -521,73 +594,6 @@ public final class TrControlFlowAnalysis {
 			}
 		}
 		sync.setFollow(syncFollow);
-	}
-
-	/**
-	 * Add successors until unknown predecessors are encountered.
-	 *
-	 * Check incoming edges first, because the start BB could be a direct continue or break!
-	 *
-	 * Switch-case fall-throughs start with case BB as member.
-	 *
-	 * @param struct
-	 *            struct
-	 * @param bb
-	 *            current BB
-	 * @param members
-	 *            found struct members
-	 * @param followBbs
-	 *            potential struct follows (no continues or breaks)
-	 */
-	private void findBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
-			@Nonnull final List<BB> members, @Nonnull final Set<BB> followBbs) {
-		if (!members.contains(bb)) { // necessary check because of switch-case fall-throughs
-			// TODO this is not sufficient...cond-follow with self-loop will be recognized as
-			// follow, see commons-io:FileUtils#decode()
-			if (bb.getIns().size() > 1) {
-				// is there a none-member pred?
-				for (final E in : bb.getIns()) {
-					if (in.isBack()) {
-						continue; // ignore incoming back edges, sub loop-heads belong to branch
-					}
-					final BB pred = in.getStart();
-					if (members.contains(pred)) {
-						continue;
-					}
-					if (pred == struct.getHead()) {
-						if (members.isEmpty()) {
-							continue;
-						}
-					} else if (!pred.hasPred(struct.getHead())) {
-						return;
-					}
-					if (followBbs.contains(bb)) {
-						return;
-					}
-					if (bb.isCatchHandler()) {
-						// if all incoming catches are inside branch then the above pred-member
-						// check was allready sucessful, but we will never be a follow
-						return;
-					}
-					// multiple follows during iteration possible, reduce after #findBranch() to
-					// single top follow
-					followBbs.add(bb);
-					return;
-				}
-				followBbs.remove(bb); // all pred are now members, maybe we where already here
-			}
-			members.add(bb);
-		}
-		for (final E out : bb.getOuts()) {
-			if (out.isBack()) {
-				continue;
-			}
-			final BB succ = out.getEnd();
-			if (!members.contains(succ)) {
-				// DFS
-				findBranch(struct, succ, members, followBbs);
-			}
-		}
 	}
 
 	private boolean findReverseBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
