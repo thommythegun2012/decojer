@@ -85,7 +85,7 @@ public final class TrControlFlowAnalysis {
 	private static void findBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
 			@Nonnull final List<BB> members, @Nonnull final Set<BB> followBbs) {
 		final List<BB> checks = Lists.newArrayList(bb);
-		while (!checks.isEmpty()) {
+		outer: while (!checks.isEmpty()) {
 			final BB check = checks.remove(0);
 			if (!members.contains(check)) { // necessary check because of switch-case fall-throughs
 
@@ -105,21 +105,25 @@ public final class TrControlFlowAnalysis {
 							if (members.isEmpty()) {
 								continue;
 							}
-						} else if (!pred.hasPred(struct.getHead())) {
-							return;
 						}
 						if (followBbs.contains(check)) {
-							return;
+							continue outer;
 						}
 						if (check.isCatchHandler()) {
 							// if all incoming catches are inside branch then the above pred-member
 							// check was allready sucessful, but we will never be a follow
-							return;
+							continue outer;
+						}
+						// we are escaping our struct via break or continue?!
+						// expensive test, should always be last test! JSPs in Oracle ascontrol.ear
+						// is good DoS test for this problem
+						if (!pred.hasPred(struct.getHead())) {
+							continue outer;
 						}
 						// multiple follows during iteration possible, reduce after #findBranch() to
 						// single top follow
 						followBbs.add(check);
-						return;
+						continue outer;
 					}
 					followBbs.remove(check); // all pred are now members, maybe we where already
 					// here
