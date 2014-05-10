@@ -18,6 +18,17 @@ intersect int / bool is null
 
 ---
 
+BB30 / 6
+Stmts: [r3=true;
+, if (r5) {
+}
+]
+
+only 1 out: [30 -> 34 : (false)]
+
+
+ 
+
 java.lang.RuntimeException: File: D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\jrt.ear
 Cannot transform 'com.sunopsis.graphical.component.jtable.d.c(Ljava/lang/Object;)V (ops: 53, regs: 6)'!
 	at org.decojer.cavaj.model.TestDU.read(TestDU.java:53)
