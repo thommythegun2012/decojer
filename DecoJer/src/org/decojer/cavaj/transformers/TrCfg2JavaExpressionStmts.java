@@ -1537,7 +1537,8 @@ public final class TrCfg2JavaExpressionStmts {
 				c.joinPredBb(a);
 				return true;
 			}
-			if (x.getStmts() != 1 || !x.isCond() || !x.isStackEmpty()) {
+			if (x.getStmts() != 1 || !x.isCond() || !x.isStackEmpty() || x.hasPred(bb)
+					|| x.hasPred(bb2)) {
 				continue;
 			}
 			// check cross...
