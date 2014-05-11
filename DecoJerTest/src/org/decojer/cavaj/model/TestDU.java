@@ -24,6 +24,9 @@ class TestDU {
 	}
 
 	private void read(final File file) {
+		if (!file.exists() || !file.canRead()) {
+			return;
+		}
 		if (file.isDirectory()) {
 			final File[] listFiles = file.listFiles();
 			if (listFiles != null) {
@@ -67,6 +70,8 @@ class TestDU {
 	@Test
 	void testBytecodeMaven() {
 		read(new File("C:/Users/andre/.m2"));
+		read(new File("C:/Users/André Pankraz/.m2"));
+		read(new File("F:/.m2"));
 	}
 
 	@Test
