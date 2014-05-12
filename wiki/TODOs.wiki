@@ -16,6 +16,33 @@ JAX: hm20ipixa.b6(Z)V (ops: 478, regs: 23)
 287: JCND T_NE 217
 intersect int / bool is null
 
+---
+
+java.lang.RuntimeException: File: D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_free\myCinema_v1.11.1.jar
+Cannot transform 'org.sqlite.SQLite.run_0x148800()V (ops: 116, regs: 9)'!
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:65)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinPool$WorkQueue.runTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.runWorker(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+Caused by: org.decojer.DecoJerException: Cannot transform 'org.sqlite.SQLite.run_0x148800()V (ops: 116, regs: 9)'!
+	at org.decojer.cavaj.model.CU.decompile(CU.java:259)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:59)
+	... 7 more
+Caused by: java.lang.OutOfMemoryError: GC overhead limit exceeded
+	at org.decojer.cavaj.model.code.CFG.setFrame(CFG.java:560)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.merge(TrDataFlowAnalysis.java:1039)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.execute(TrDataFlowAnalysis.java:764)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:1410)
+	at org.decojer.cavaj.transformers.TrDataFlowAnalysis.transform(TrDataFlowAnalysis.java:110)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:227)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
+	at org.decojer.cavaj.model.CU.decompile(CU.java:248)
+	... 8 more
+
 }}}
 
 = TODOs =
