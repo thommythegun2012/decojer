@@ -2185,17 +2185,17 @@ public final class TrCfg2JavaExpressionStmts {
 			bb.push(newSimpleName(name, getAst()));
 		}
 		final T[] handlerTypes = (T[]) bb.getIns().get(0).getValue();
-		assert handlerTypes != null : getM();
-		final boolean isFinally = handlerTypes.length == 1 && handlerTypes[0] == null;
+		assert handlerTypes != null && handlerTypes.length > 0 : getM();
+		final T handlerType = handlerTypes[0];
 
 		final TryStatement tryStatement = getAst().newTryStatement();
-		if (!isFinally) {
+		if (handlerType != null) { // not "finally"
 			final CatchClause catchClause = getAst().newCatchClause();
 			final SingleVariableDeclaration singleVariableDeclaration = getAst()
 					.newSingleVariableDeclaration();
 			singleVariableDeclaration.setName(newSimpleName(name, getAst()));
 			if (handlerTypes.length == 1) {
-				singleVariableDeclaration.setType(newType(handlerTypes[0], getCfg().getT()));
+				singleVariableDeclaration.setType(newType(handlerType, getCfg().getT()));
 			} else {
 				// Multi-Catch
 				final UnionType unionType = getAst().newUnionType();
