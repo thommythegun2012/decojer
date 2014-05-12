@@ -787,7 +787,10 @@ public final class TrDataFlowAnalysis {
 					types = Lists.newArrayList();
 					handlerPc2type.put(handlerPc, types);
 				}
-				types.add(exc.getT());
+				if (!types.contains(exc.getT())) {
+					// sometimes none-Java bytecode contains same handler multiple times
+					types.add(exc.getT());
+				}
 			}
 			// now add successors
 			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
