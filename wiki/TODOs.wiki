@@ -22,6 +22,7 @@ intersect int / bool is null
 
   * backpropagate real array type instead of "null"-REF to PC 5 for array read in 278
     * com.ibm.icu.util.VTimeZone.parseRRULE
+  * speed up inner classes analysis, find selected CUs
   * paramAss can contain null in inner array, why?
   * Automatically add casting for incompatible (narrowing casts):
     * bool -> int etc.
