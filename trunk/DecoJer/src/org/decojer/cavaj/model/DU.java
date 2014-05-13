@@ -895,7 +895,7 @@ public final class DU {
 			pis.unread(magicNumber);
 			// selector has no meaning here
 			final T t = this.classReader.read(pis);
-			if (selector == null || fileName.equals(selector)) {
+			if (t != null && (selector == null || fileName.equals(selector))) {
 				this.selectedTs.add(t);
 				return Collections.singletonList(t);
 			}
