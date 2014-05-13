@@ -347,7 +347,7 @@ public class ClassM extends M {
 	}
 
 	@Override
-	public void setDeclarationOwner(final Container declarationOwner) {
+	public void setDeclarationOwner(@Nonnull final Container declarationOwner) {
 		final Container previousDeclarationOwner = getMd().getDeclarationOwner();
 		if (previousDeclarationOwner != null) {
 			previousDeclarationOwner.getDeclarations().remove(this);
