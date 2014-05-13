@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -49,6 +50,7 @@ import org.decojer.cavaj.model.types.Version;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 
 /**
  * Transformer: Analyze inner classes and create compilation units.
@@ -309,41 +311,38 @@ public class TrInnerClassesAnalysis {
 		findEnclosingMethods(ts);
 		final List<T> topTs = findTopTs(ts);
 
-		final List<CU> cus = Lists.newArrayList();
 		final Map<String, CU> sourceId2cu = Maps.newHashMap();
 		for (final T topT : topTs) {
 			assert topT != null : du;
-
+			// source file name set? then this top T could belong to a multi-top-CU, check
 			final String sourceFileName = topT.getSourceFileName();
 			if (sourceFileName == null) {
-				cus.add(new CU(topT, topT.getPName() + ".java"));
+				// no multi-top CU, we have our own
+				final String sourceId = topT.getPName() + ".java";
+				sourceId2cu.put(sourceId, new CU(topT, sourceId));
 				continue;
 			}
-
+			// source file name is set! check if multi-top-CU
 			final String packageName = topT.getPackageName();
 			final String sourceId = packageName == null ? sourceFileName : packageName + "."
 					+ sourceFileName;
-			CU cu = sourceId2cu.get(sourceId);
+			final CU cu = sourceId2cu.get(sourceId);
 			if (cu != null) {
 				topT.setDeclarationOwner(cu);
 				continue;
 			}
-			cu = new CU(topT, sourceFileName);
-			sourceId2cu.put(sourceId, cu);
-			cus.add(cu);
+			sourceId2cu.put(sourceId, new CU(topT, sourceFileName));
 		}
-		// not very optimized...but it works for now...
-		final List<CU> selectedCus = Lists.newArrayList();
-		for (final CU cu : cus) {
-			final List<Element> allDeclarations = cu.getAllDeclarations();
-			for (final T selectedT : du.getSelectedTs()) {
-				if (allDeclarations.contains(selectedT)) {
-					selectedCus.add(cu);
-					break;
-				}
-			}
+		// find selected CUs
+		final Set<CU> selectedCus = Sets.newHashSet();
+		for (final T selectedT : du.getSelectedTs()) {
+			final CU cu = selectedT.getCu();
+			assert cu != null;
+			selectedCus.add(cu);
 		}
-		Collections.sort(selectedCus, new Comparator<CU>() {
+		// sort selected CUs by name
+		final List<CU> sortedSelectedCus = Lists.newArrayList(selectedCus);
+		Collections.sort(sortedSelectedCus, new Comparator<CU>() {
 
 			@Override
 			public int compare(final CU cu1, final CU cu2) {
@@ -351,7 +350,7 @@ public class TrInnerClassesAnalysis {
 			}
 
 		});
-		du.setCus(selectedCus);
+		du.setCus(sortedSelectedCus);
 	}
 
 }
