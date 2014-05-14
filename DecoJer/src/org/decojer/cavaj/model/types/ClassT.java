@@ -482,7 +482,20 @@ public class ClassT extends T {
 	public void setDeclarationOwner(@Nonnull final Container declarationOwner) {
 		final Container previousDeclarationOwner = getTd().getDeclarationOwner();
 		if (previousDeclarationOwner != null) {
+			if (declarationOwner == previousDeclarationOwner) {
+				assert false;
+				return;
+			}
 			previousDeclarationOwner.getDeclarations().remove(this);
+		}
+		if (declarationOwner instanceof Element) {
+			// check again: method cannot be enclosing method from it's owner, see
+			// scala-library-2.9.1.jar
+			final Container parent = ((Element) declarationOwner).getDeclarationOwner();
+			if (parent == this) {
+				assert 0 == 1 : this;
+				return;
+			}
 		}
 		declarationOwner.getDeclarations().add(this);
 		getTd().setDeclarationOwner(declarationOwner);
