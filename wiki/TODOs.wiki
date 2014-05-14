@@ -16,77 +16,15 @@ JAX: hm20ipixa.b6(Z)V (ops: 478, regs: 23)
 287: JCND T_NE 217
 intersect int / bool is null
 
----
-
-java.lang.RuntimeException: File: C:\Users\andre\.m2\artifactory_backup\repositories\libs-release-local\de\init\irr\irr-ear\1.1.0\irr-ear-1.1.0.ear
-Java heap space
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:64)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
-	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.doInvoke(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.invokeAll(Unknown Source)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:45)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
-	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.doInvoke(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.invokeAll(Unknown Source)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:45)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
-	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.doJoin(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.invokeAll(Unknown Source)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:45)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
-	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
-	at java.util.concurrent.ForkJoinPool$WorkQueue.runTask(Unknown Source)
-	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
-	at java.util.concurrent.ForkJoinPool.runWorker(Unknown Source)
-	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
-Caused by: java.lang.OutOfMemoryError: Java heap space
-	at org.eclipse.jdt.internal.compiler.ast.TypeReference.baseTypeReference(TypeReference.java:259)
-	at org.eclipse.jdt.internal.compiler.parser.Parser.getTypeReference(Parser.java:10133)
-	at org.eclipse.jdt.internal.compiler.parser.Parser.consumeMethodHeaderName(Parser.java:5055)
-	at org.eclipse.jdt.internal.compiler.parser.Parser.consumeRule(Parser.java:6279)
-	at org.eclipse.jdt.internal.compiler.parser.Parser.parse(Parser.java:11023)
-	at org.eclipse.jdt.internal.compiler.parser.Parser.parseClassBodyDeclarations(Parser.java:11440)
-	at org.eclipse.jdt.internal.core.util.CodeSnippetParsingUtil.parseClassBodyDeclarations(CodeSnippetParsingUtil.java:97)
-	at org.eclipse.jdt.internal.core.util.CodeSnippetParsingUtil.parseClassBodyDeclarations(CodeSnippetParsingUtil.java:65)
-	at org.eclipse.jdt.internal.formatter.DefaultCodeFormatter.formatClassBodyDeclarations(DefaultCodeFormatter.java:183)
-	at org.eclipse.jdt.internal.formatter.DefaultCodeFormatter.format(DefaultCodeFormatter.java:164)
-	at org.eclipse.jdt.internal.formatter.DefaultCodeFormatter.format(DefaultCodeFormatter.java:149)
-	at org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteFormatter.formatString(ASTRewriteFormatter.java:250)
-	at org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteFormatter.formatNode(ASTRewriteFormatter.java:380)
-	at org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteFormatter.getFormattedResult(ASTRewriteFormatter.java:191)
-	at org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer.doTextInsert(ASTRewriteAnalyzer.java:1343)
-	at org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer$ListRewriter.rewriteList(ASTRewriteAnalyzer.java:635)
-	at org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer$ListRewriter.rewriteList(ASTRewriteAnalyzer.java:788)
-	at org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer.rewriteParagraphList(ASTRewriteAnalyzer.java:1161)
-	at org.eclipse.jdt.internal.core.dom.rewrite.ASTRewriteAnalyzer.visit(ASTRewriteAnalyzer.java:1669)
-	at org.eclipse.jdt.core.dom.CompilationUnit.accept0(CompilationUnit.java:207)
-	at org.eclipse.jdt.core.dom.ASTNode.accept(ASTNode.java:2715)
-	at org.eclipse.jdt.core.dom.InternalASTRewrite.rewriteAST(InternalASTRewrite.java:101)
-	at org.eclipse.jdt.core.dom.AST.rewrite(AST.java:3081)
-	at org.eclipse.jdt.core.dom.CompilationUnit.rewrite(CompilationUnit.java:929)
-	at org.decojer.cavaj.model.CU.createSourceCode(CU.java:131)
-	at org.decojer.cavaj.model.CU.decompile(CU.java:268)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:58)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
-	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.doInvoke(Unknown Source)
-	at java.util.concurrent.ForkJoinTask.invokeAll(Unknown Source)
-
 }}}
 
 = TODOs =
 
   * backpropagate real array type instead of "null"-REF to PC 5 for array read in 278
     * com.ibm.icu.util.VTimeZone.parseRRULE
-  * speed up inner classes analysis, find selected CUs
+  * speed up enclosing method analysis
+    * find NEWs on the fly during reading?
+    * improve finding circles with declaration owner (ClassT, enclosingMethod finder and reading), more then 1 level
   * paramAss can contain null in inner array, why?
   * Automatically add casting for incompatible (narrowing casts):
     * bool -> int etc.
