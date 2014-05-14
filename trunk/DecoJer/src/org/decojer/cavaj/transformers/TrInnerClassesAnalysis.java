@@ -113,7 +113,11 @@ public class TrInnerClassesAnalysis {
 						continue;
 					}
 					final T newT = ((NEW) op).getT();
-
+					if (t.equals(newT)) {
+						// method cannot be enclosing method from it's owner, see
+						// scala-library-2.9.1.jar
+						continue;
+					}
 					// TODO the following function is dependant from enclosingT...if this is null,
 					// we will never be anonymous! we should repair enclosing info here, overwrite
 					// old read info?
