@@ -16,6 +16,14 @@ JAX: hm20ipixa.b6(Z)V (ops: 478, regs: 23)
 287: JCND T_NE 217
 intersect int / bool is null
 
+---
+
+TestALL: 6697 s
+
+Maven: 4915 s
+Oracle: 2505 s
+Eclipse: 45 s
+
 }}}
 
 = TODOs =
