@@ -13,6 +13,23 @@ public abstract class DecTestLoopStmt {
 		return false;
 	}
 
+	public static int ifElseForLoops() {
+		if (Math.random() > .5) {
+			for (int i = 0; i < 10; ++i) {
+				System.out.println("TEST: " + i);
+				if (i % 5 == 2)
+					return i;
+			}
+		} else {
+			for (int i = 10; i-- > 0;) {
+				System.out.println("TEST2: " + i);
+				if (i % 2 == 5)
+					return i;
+			}
+		}
+		return -1;
+	}
+
 	public static void testFor(final int a) {
 		for (int i = 0, j = 1; i < 10 && j < 10; i /= 2, j++) {
 			System.out.println(i += a);
