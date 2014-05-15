@@ -24,6 +24,66 @@ Maven: 4915 s
 Oracle: 2505 s
 Eclipse: 45 s
 
+----
+
+EDU.oswego.cs.dl.util.concurrent.CopyOnWriteArrayList
+
+doesn't recognize if/else here.
+
+
+75
+
+ /*      */   protected static int  [More ...] indexOf(Object elem, Object[] elementData, int len)
+
+76
+
+ /*      */   {
+
+77
+
+ /*  197 */     if (elem == null)
+
+78
+
+ /*  198 */       for (int i = 0; i < len; i++)
+
+79
+
+ /*  199 */         if (elementData[i] == null)
+
+80
+
+ /*  200 */           return i;
+
+81
+
+ /*      */     else {
+
+82
+
+ /*  202 */       for (int i = 0; i < len; i++)
+
+83
+
+ /*  203 */         if (elem.equals(elementData[i]))
+
+84
+
+ /*  204 */           return i;
+
+85
+
+ /*      */     }
+
+86
+
+ /*  206 */     return -1;
+
+87
+
+ /*      */   }
+
+
 }}}
 
 = TODOs =
