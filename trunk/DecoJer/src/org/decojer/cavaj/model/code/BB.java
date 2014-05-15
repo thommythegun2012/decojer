@@ -301,7 +301,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -538,7 +538,7 @@ public final class BB {
 				// check cannot have BB as pred here, are above it in postordering
 				continue;
 			}
-			for (final E in : getIns()) {
+			for (final E in : check.getIns()) {
 				if (in.isBack()) {
 					continue;
 				}
