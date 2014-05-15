@@ -301,15 +301,11 @@ public final class Expressions {
 				}
 				return stringLiteral;
 			}
-			log.warn("Unknown reference type '" + t + "'!");
+			log.warn(contextT + ": Unknown reference type '" + t + "'!");
 			return ast.newNullLiteral();
 		}
-		if (t.isMulti() && t.is(T.BOOLEAN)) {
-			log.warn("Convert literal '" + value + "' for multi-type '" + t + "'!");
-			// prefer boolean for multi-type with 0 or 1, synchronous to newType()!
-			// prefer byte before char if no explicit char type given
-		}
 		if (t.is(T.BOOLEAN)) {
+			// we prefer boolean, even if this is a multi-type
 			if (value instanceof Boolean) {
 				return ast.newBooleanLiteral(((Boolean) value).booleanValue());
 			}
@@ -343,58 +339,6 @@ public final class Expressions {
 			log.warn("Byte type with value '" + value + "' has type '" + value.getClass().getName()
 					+ "'!");
 			return ast.newNumberLiteral(value.toString());
-		}
-		if (t.is(T.CHAR)) {
-			if (value instanceof Character || value instanceof Number || value instanceof String
-					&& ((String) value).length() == 1) {
-				final char c = value instanceof Character ? (Character) value
-						: value instanceof Number ? (char) ((Number) value).intValue()
-								: ((String) value).charAt(0);
-						switch (c) {
-						case Character.MAX_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MAX_VALUE"));
-						case Character.MIN_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MIN_VALUE"));
-						case Character.MAX_HIGH_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MAX_LOW_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_LOW_SURROGATE"));
-							}
-							break;
-						case Character.MIN_HIGH_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MIN_LOW_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_LOW_SURROGATE"));
-							}
-							break;
-						}
-						final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-						characterLiteral.setCharValue(c);
-						return characterLiteral;
-			}
-			if (value == null) {
-				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-				characterLiteral.setCharValue((char) 0);
-				return characterLiteral;
-			}
-			log.warn("Character type with value '" + value + "' has type '"
-					+ value.getClass().getName() + "'!");
-			// char is per default 'X'
-			return ast.newCharacterLiteral();
 		}
 		if (t.is(T.SHORT)) {
 			if (value instanceof Number) {
@@ -435,6 +379,60 @@ public final class Expressions {
 			log.warn("Integer type with value '" + value + "' has type '"
 					+ value.getClass().getName() + "'!");
 			return ast.newNumberLiteral(value.toString());
+		}
+		if (t.is(T.CHAR)) {
+			// if this is a multi-type, we only use char if this is not already consumed;
+			// we don't want to output strange characters if we are not very shure about this
+			if (value instanceof Character || value instanceof Number || value instanceof String
+					&& ((String) value).length() == 1) {
+				final char c = value instanceof Character ? (Character) value
+						: value instanceof Number ? (char) ((Number) value).intValue()
+								: ((String) value).charAt(0);
+				switch (c) {
+				case Character.MAX_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MAX_VALUE"));
+				case Character.MIN_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MIN_VALUE"));
+				case Character.MAX_HIGH_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MAX_LOW_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_LOW_SURROGATE"));
+					}
+					break;
+				case Character.MIN_HIGH_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MIN_LOW_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_LOW_SURROGATE"));
+					}
+					break;
+				}
+				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+				characterLiteral.setCharValue(c);
+				return characterLiteral;
+			}
+			if (value == null) {
+				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+				characterLiteral.setCharValue((char) 0);
+				return characterLiteral;
+			}
+			log.warn("Character type with value '" + value + "' has type '"
+					+ value.getClass().getName() + "'!");
+			// char is per default 'X'
+			return ast.newCharacterLiteral();
 		}
 		if (t.is(T.FLOAT)) {
 			if (value instanceof Float || value instanceof Integer) {
@@ -951,8 +949,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-								not(infixExpression.getLeftOperand()),
-								not(infixExpression.getRightOperand()), getOp(infixExpression));
+						not(infixExpression.getLeftOperand()),
+						not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible
