@@ -26,6 +26,21 @@ Eclipse: 41 s
 
 ---
 
+transformLoop()
+--- Loop ---
+Head: BB 114  Follow: BB 117
+Members: 
+  BB 72   BB 79   BB 88   BB 94   BB 96   BB 104   
+Last: BB 104
+Type: WHILE
+
+firstBb: 72
+currentBb: 128
+currentBbStruct: Cond in 128
+
+Hmmm...128 shouldn't be encountered in Loop, isn't a member
+Previous Warning relevant? Struct leave in BB 114 without regular
+
 java.lang.RuntimeException: File: D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\ascontrol.ear
 Cannot transform 'edu.emory.mathcs.backport.java.util.concurrent.AbstractExecutorService.invokeAll(Ljava/util/Collection;JLedu/emory/mathcs/backport/java/util/concurrent/TimeUnit;)Ljava/util/List; (ops: 147, regs: 21)'!
 	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:64)
