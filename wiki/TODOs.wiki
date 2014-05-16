@@ -26,6 +26,28 @@ Eclipse: 41 s
 
 ---
 
+trLoop()
+
+
+trSequ:
+--- Loop ---
+Head: BB 4
+Members: 
+  BB 16   
+Last: BB 16
+Type: ENDLESS
+
+firstBb: BB4 / 4 (l281)
+currentBb: BB19 / 3 (l284)
+
+currentStruc:
+--- Cond ---
+Head: BB 19  Follow: BB 23
+Members: 
+  true: BB 22   
+Kind: IFNOT
+
+---
 transformLoop()
 --- Loop ---
 Head: BB 114  Follow: BB 117
