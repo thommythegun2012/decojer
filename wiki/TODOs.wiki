@@ -29,9 +29,7 @@ Eclipse: 41 s
 commonsio.WriterOutputStream
 
 
-trLoop()
-
-why endless?
+trLoop(): endless while(true) with break -> no follow leads to problems
 
 trSequ:
 --- Loop ---
