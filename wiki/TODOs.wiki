@@ -24,6 +24,41 @@ Maven: 3581 s
 Oracle: 2318 s
 Eclipse: 41 s
 
+---
+
+java.lang.RuntimeException: File: D:\Data\Decomp\workspace\DecoJerTest\test_bytecode_closed\ascontrol.ear
+Cannot transform 'edu.emory.mathcs.backport.java.util.concurrent.AbstractExecutorService.invokeAll(Ljava/util/Collection;JLedu/emory/mathcs/backport/java/util/concurrent/TimeUnit;)Ljava/util/List; (ops: 147, regs: 21)'!
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:64)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doInvoke(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.invokeAll(Unknown Source)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:45)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinPool$WorkQueue.runTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.runWorker(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+Caused by: org.decojer.DecoJerException: Cannot transform 'edu.emory.mathcs.backport.java.util.concurrent.AbstractExecutorService.invokeAll(Ljava/util/Collection;JLedu/emory/mathcs/backport/java/util/concurrent/TimeUnit;)Ljava/util/List; (ops: 147, regs: 21)'!
+	at org.decojer.cavaj.model.CU.decompile(CU.java:259)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:58)
+	... 13 more
+Caused by: java.lang.AssertionError: edu.emory.mathcs.backport.java.util.concurrent.AbstractExecutorService.invokeAll(Ljava/util/Collection;JLedu/emory/mathcs/backport/java/util/concurrent/TimeUnit;)Ljava/util/List;
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:360)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformLoop(TrCfg2JavaControlFlowStmts.java:246)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformStruct(TrCfg2JavaControlFlowStmts.java:445)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transformSequence(TrCfg2JavaControlFlowStmts.java:364)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:126)
+	at org.decojer.cavaj.transformers.TrCfg2JavaControlFlowStmts.transform(TrCfg2JavaControlFlowStmts.java:91)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:239)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
+	at org.decojer.cavaj.model.CU.decompile(CU.java:248)
+	... 14 more
+
+
 }}}
 
 = TODOs =
