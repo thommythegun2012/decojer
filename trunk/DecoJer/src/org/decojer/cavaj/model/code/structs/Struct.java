@@ -147,7 +147,7 @@ public class Struct {
 	 * @return {@code true} - BB is a branching statement node
 	 */
 	public boolean isBranching(final BB bb) {
-		if (isBreakTarget(bb)) {
+		if (hasBreakTarget(bb)) {
 			return true;
 		}
 		if (this.parent instanceof Loop) {
@@ -164,7 +164,7 @@ public class Struct {
 	 *            BB
 	 * @return {@code true} - BB is target for struct break
 	 */
-	public boolean isBreakTarget(final BB bb) {
+	public boolean hasBreakTarget(final BB bb) {
 		return isFollow(bb);
 	}
 

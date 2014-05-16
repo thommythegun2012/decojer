@@ -72,10 +72,6 @@ import com.google.common.collect.Sets;
 /**
  * Transformer: Structured CFG to Java Control Flow Statements ASTs.
  *
- * Ignore final empty return statements.
- *
- * TODO At most here should be used newBlock(), the other stuff could be shifted to analysis?!
- *
  * @author André Pankraz
  */
 @Slf4j
@@ -101,10 +97,12 @@ public final class TrCfg2JavaControlFlowStmts {
 		this.cfg = cfg;
 	}
 
+	@Nonnull
 	private AST getAst() {
 		return getCfg().getCu().getAst();
 	}
 
+	@Nonnull
 	private M getM() {
 		return getCfg().getM();
 	}
@@ -119,9 +117,11 @@ public final class TrCfg2JavaControlFlowStmts {
 		final List<Statement> statements = getCfg().getBlock().statements();
 		statements.clear(); // possible in debug mode
 
-		transformSequence(null, getCfg().getStartBb(), statements);
+		final BB startBb = getCfg().getStartBb();
+		assert startBb != null;
+		transformSequence(null, startBb, statements);
 
-		// remove final return
+		// remove final empty return statement
 		if (statements.size() > 0) {
 			final Object object = statements.get(statements.size() - 1);
 			if (object instanceof ReturnStatement
@@ -132,19 +132,19 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	@Nullable
-	private IfStatement transformCatch(final Catch catchStruct) {
+	private IfStatement transformCatch(@Nonnull final Catch catchStruct) {
 		log.warn(getM() + ": TODO: " + catchStruct);
 		// final BB head = catchStruct.getHead();
 		return null;
 	}
 
 	@Nullable
-	private IfStatement transformCond(final Cond cond) {
+	private IfStatement transformCond(@Nonnull final Cond cond) {
 		final BB head = cond.getHead();
 
 		final IfStatement ifStatement = (IfStatement) head.getFinalStmt();
 		if (ifStatement == null) {
-			assert 0 == 1 : getM();
+			assert false;
 			return null;
 		}
 		final BB falseSucc = head.getFalseSucc();
@@ -157,7 +157,9 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = true;
 		case IF: {
 			final List<Statement> subStatements = Lists.newArrayList();
-			transformSequence(cond, negate ? falseSucc : trueSucc, subStatements);
+			final BB firstBb = negate ? falseSucc : trueSucc;
+			assert firstBb != null;
+			transformSequence(cond, firstBb, subStatements);
 
 			if (subStatements.size() == 1) {
 				ifStatement.setThenStatement(subStatements.get(0));
@@ -173,12 +175,14 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = true;
 		case IF_ELSE: {
 			if (falseSucc == trueSucc) {
-				assert 0 == 1 : getM(); // is handled in control flow analysis
+				assert false; // is handled in control flow analysis
 				return null;
 			}
 			{
 				final List<Statement> subStatements = Lists.newArrayList();
-				transformSequence(cond, negate ? falseSucc : trueSucc, subStatements);
+				final BB firstBb = negate ? falseSucc : trueSucc;
+				assert firstBb != null;
+				transformSequence(cond, firstBb, subStatements);
 
 				if (subStatements.size() == 1) {
 					ifStatement.setThenStatement(subStatements.get(0));
@@ -190,7 +194,9 @@ public final class TrCfg2JavaControlFlowStmts {
 			}
 			{
 				final List<Statement> subStatements = Lists.newArrayList();
-				transformSequence(cond, negate ? trueSucc : falseSucc, subStatements);
+				final BB firstBb = negate ? trueSucc : falseSucc;
+				assert firstBb != null;
+				transformSequence(cond, firstBb, subStatements);
 
 				if (subStatements.size() == 1) {
 					ifStatement.setElseStatement(subStatements.get(0));
@@ -209,7 +215,7 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	@Nullable
-	private Statement transformLoop(final Loop loop) {
+	private Statement transformLoop(@Nonnull final Loop loop) {
 		final BB head = loop.getHead();
 		final BB last = loop.getLast();
 
@@ -220,7 +226,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		case WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) head.getStmt(0);
 			if (ifStatement == null) {
-				assert 0 == 1 : getM();
+				assert false;
 				return null;
 			}
 			final WhileStatement whileStatement = setOp(getAst().newWhileStatement(),
@@ -231,6 +237,7 @@ public final class TrCfg2JavaControlFlowStmts {
 
 			final List<Statement> subStatements = Lists.newArrayList();
 			final BB firstLoopBb = negate ? head.getFalseSucc() : head.getTrueSucc();
+			assert firstLoopBb != null;
 			if (!loop.isHead(firstLoopBb)) {
 				transformSequence(loop, firstLoopBb, subStatements);
 				if (subStatements.size() == 1) {
@@ -248,7 +255,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		case DO_WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) last.getFinalStmt();
 			if (ifStatement == null) {
-				assert 0 == 1 : getM();
+				assert false;
 				return null;
 			}
 			final DoStatement doStatement = setOp(getAst().newDoStatement(), getOp(ifStatement));
@@ -295,20 +302,21 @@ public final class TrCfg2JavaControlFlowStmts {
 	 * @param struct
 	 *            current struct
 	 * @param firstBb
-	 *            first BB
+	 *            first BB in current struct
 	 * @param statements
 	 *            statement block
 	 */
-	private void transformSequence(final Struct struct, final BB firstBb,
-			final List<Statement> statements) {
-		BB bb = firstBb;
-		while (bb != null) {
+	private void transformSequence(@Nullable final Struct struct, @Nonnull final BB firstBb,
+			@Nonnull final List<Statement> statements) {
+		BB currentBb = firstBb; // iterate over BB
+		while (currentBb != null) {
+			final Struct currentBbStruct = currentBb.getStruct();
 			// does BB leave current struct or enter a new sub struct?
-			if (struct != bb.getStruct()) {
+			if (currentBbStruct != struct) {
 				// check leaving with priority, can both happen in one BB
 				for (Struct findStruct = struct; findStruct != null; findStruct = findStruct
 						.getParent()) {
-					if (findStruct.isBreakTarget(bb)) {
+					if (findStruct.hasBreakTarget(currentBb)) {
 						// leaving struct!
 						// an unlabeled break statement terminates the innermost loop or switch
 						// statement, but a labeled break terminates any outer struct
@@ -324,32 +332,32 @@ public final class TrCfg2JavaControlFlowStmts {
 						}
 						return;
 					}
-					if (findStruct.getParent() == bb.getStruct()) {
-						log.warn(getM() + ": Struct leave in BB " + bb.getPostorder()
+					if (currentBbStruct == findStruct.getParent()) {
+						log.warn(getM() + ": Struct leave in BB " + currentBb.getPc()
 								+ " without regular follow encounter:\n" + struct);
 						return;
 					}
 				}
-				if (!bb.getStruct().isHead(bb)) {
-					log.warn(getM() + ": Struct change in BB " + bb.getPostorder()
+				if (!currentBbStruct.isHead(currentBb)) {
+					log.warn(getM() + ": Struct change in BB " + currentBb.getPc()
 							+ " without regular follow or head encounter:\n" + struct);
 					return;
 				}
-				// entering a new sub struct!
-				// enter this sub struct and come back...
+				// entering a new sub struct! enter this sub struct and come back...
 
 				// multiple overlaying heads possible (e.g. endless-loop -> post-loop -> cond),
 				// find topmost unused and use this as sub struct
-				Struct subStruct = bb.getStruct();
-				while (struct != subStruct.getParent()) {
+				Struct subStruct = currentBbStruct;
+				while (subStruct.getParent() != struct) {
 					subStruct = subStruct.getParent();
 					if (subStruct == null) {
-						log.warn(getM() + ": Struct enter in BB " + bb.getPostorder()
+						log.warn(getM() + ": Struct enter in BB " + currentBb.getPc()
 								+ " without regular head encounter:\n" + struct);
+						assert false;
 						return;
 					}
 				}
-				bb = transformStruct(subStruct, statements);
+				currentBb = transformStruct(subStruct, statements);
 				continue;
 			}
 			// no struct change, but check loop and switch ends
@@ -363,26 +371,26 @@ public final class TrCfg2JavaControlFlowStmts {
 					// boolean expression that controls the loop. A labeled
 					// continue statement skips the current iteration of an
 					// outer loop marked with the given label.
-					if (loop.isHead(bb)) {
+					if (loop.isHead(currentBb)) {
 						if (struct != loop && !loop.isPost()) {
 							// only from sub structure
 							statements.add(getAst().newContinueStatement());
 							return;
 						}
-						if (bb != firstBb) {
+						if (currentBb != firstBb) {
 							// encountered loop head through direct backjump through sub sequence
 							return;
 						}
 						// head == last possible for self loops => fall through to next checks...
 					}
-					if (!loop.isLast(bb)) {
+					if (!loop.isLast(currentBb)) {
 						continue;
 					}
 					if (loop.isPost()) {
 						if (struct == loop) {
-							final int size = bb.getStmts() - 1;
+							final int size = currentBb.getStmts() - 1;
 							for (int i = 0; i < size; ++i) {
-								statements.add(bb.getStmt(i));
+								statements.add(currentBb.getStmt(i));
 							}
 						} else {
 							// only from sub structure
@@ -390,14 +398,14 @@ public final class TrCfg2JavaControlFlowStmts {
 						}
 						return;
 					}
-					for (int i = 0; i < bb.getStmts(); ++i) {
-						statements.add(bb.getStmt(i));
+					for (int i = 0; i < currentBb.getStmts(); ++i) {
+						statements.add(currentBb.getStmt(i));
 					}
 					return;
 				} else if (findStruct instanceof Switch) {
 					final Switch findSwitch = (Switch) findStruct;
-					if (findSwitch.isCase(bb)) {
-						if (firstBb != bb) {
+					if (findSwitch.isCase(currentBb)) {
+						if (firstBb != currentBb) {
 							// fall-through follow-case
 							return;
 						}
@@ -405,20 +413,21 @@ public final class TrCfg2JavaControlFlowStmts {
 				}
 			}
 			// simple sequence block, 0 statements possible with empty GOTO BBs
-			for (int i = 0; i < bb.getStmts(); ++i) {
-				statements.add(bb.getStmt(i));
+			for (int i = 0; i < currentBb.getStmts(); ++i) {
+				statements.add(currentBb.getStmt(i));
 			}
-			final E out = bb.getSequenceOut();
+			final E out = currentBb.getSequenceOut();
 			if (out == null) {
 				return;
 			}
 			// follow back edges for continues
-			bb = out.getEnd();
+			currentBb = out.getEnd();
 		}
 	}
 
 	@Nullable
-	private BB transformStruct(final Struct struct, final List<Statement> statements) {
+	private BB transformStruct(@Nonnull final Struct struct,
+			@Nonnull final List<Statement> statements) {
 		if (!this.traversedStructs.add(struct)) {
 			log.warn(getM() + ": Cannot transform struct twice:\n" + struct);
 			return null;
@@ -456,14 +465,14 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	@Nullable
-	private Statement transformSwitch(final Switch switchStruct) {
+	private Statement transformSwitch(@Nonnull final Switch switchStruct) {
 		switch (switchStruct.getKind()) {
 		case NO_DEFAULT:
 		case WITH_DEFAULT: {
 			final BB head = switchStruct.getHead();
 			final SwitchStatement switchStatement = (SwitchStatement) head.getFinalStmt();
 			if (switchStatement == null) {
-				assert 0 == 1 : getM();
+				assert false;
 				return null;
 			}
 			final Op op = getOp(switchStatement);
@@ -475,7 +484,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				boolean defaultAdded = false; // prevent [null, null] - double defaults
 				final Object value = out.getValue();
 				if (!(value instanceof Object[])) {
-					assert 0 == 1 : getM();
+					assert false;
 					continue;
 				}
 				for (final Object caseValue : (Object[]) value) {
@@ -527,20 +536,22 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	@Nullable
-	private Statement transformSync(final Sync sync) {
+	private Statement transformSync(@Nonnull final Sync sync) {
 		final BB head = sync.getHead();
 		final SynchronizedStatement synchronizedStatement = (SynchronizedStatement) head
 				.getFinalStmt();
 		if (synchronizedStatement == null) {
-			assert 0 == 1 : getM();
+			assert false;
 			return null;
 		}
 		final E sequenceOut = head.getSequenceOut();
 		if (sequenceOut == null) {
-			assert 0 == 1 : getM();
+			assert false;
 			return null;
 		}
-		transformSequence(sync, sequenceOut.getEnd(), synchronizedStatement.getBody().statements());
+		final List<Statement> syncStatements = synchronizedStatement.getBody().statements();
+		assert syncStatements != null;
+		transformSequence(sync, sequenceOut.getEnd(), syncStatements);
 
 		final BB follow = sync.getFollow(); // can happen with final throw in sync block
 		if (follow != null && follow.getStmt(0) instanceof SynchronizedStatement) {
