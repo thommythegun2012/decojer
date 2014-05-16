@@ -26,6 +26,9 @@ Eclipse: 41 s
 
 ---
 
+commonsio.WriterOutputStream
+
+
 trLoop()
 
 
@@ -48,6 +51,7 @@ Members:
 Kind: IFNOT
 
 ---
+
 transformLoop()
 --- Loop ---
 Head: BB 114  Follow: BB 117
