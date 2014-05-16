@@ -18,11 +18,11 @@ intersect int / bool is null
 
 ---
 
-TestALL: 6697 s
+TestALL: 6070 s
 
-Maven: 4915 s
-Oracle: 2505 s
-Eclipse: 45 s
+Maven: 3581 s
+Oracle: 2318 s
+Eclipse: 41 s
 
 }}}
 
