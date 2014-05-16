@@ -29,7 +29,10 @@ Eclipse: 41 s
 commonsio.WriterOutputStream
 
 
-trLoop(): endless while(true) with break -> no follow leads to problems
+trLoop():
+- endless while(true) with break -> no existing follow leads to problems?
+- first embedded cond struct has follow outside of loop, should be negated condition with break?
+
 
 trSequ:
 --- Loop ---
