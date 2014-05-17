@@ -66,6 +66,206 @@ import com.google.common.collect.Sets;
 @Slf4j
 public final class TrControlFlowAnalysis {
 
+	private static Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<BB> backBbs) {
+		final Loop loop = new Loop(head);
+
+		final Set<BB> traversedBbs = Sets.<BB> newHashSet();
+		final List<BB> members = Lists.newArrayList();
+		BB last = null;
+		for (final BB backBb : backBbs) {
+			assert backBb != null;
+			final boolean found = findReverseBranch(loop, backBb, members, traversedBbs);
+			assert found : "cannot have a loop back BB that is not in reverse branch";
+			if (last == null || last.isBefore(backBb)) {
+				last = backBb;
+			}
+		}
+		loop.addMembers(null, members);
+		loop.setLast(last);
+
+		// we check if this could be a pre-loop:
+		Loop.Kind headKind = null;
+		BB headFollow = null;
+		if (head.getStmts() == 1 && head.isCond()) {
+			final BB falseSucc = head.getFalseSucc();
+			final BB trueSucc = head.getTrueSucc();
+			if (loop.isMember(trueSucc) && !loop.isMember(falseSucc)) {
+				// JDK 6: true is member, opPc of pre head > next member,
+				// leading goto
+				headKind = Loop.Kind.WHILE;
+				headFollow = falseSucc;
+			} else if (loop.isMember(falseSucc) && !loop.isMember(trueSucc)) {
+				// JDK 5: false is member, opPc of pre head < next member,
+				// trailing goto (negated, check class javascript.Decompiler)
+				headKind = Loop.Kind.WHILENOT;
+				headFollow = trueSucc;
+			}
+			// no proper pre-loop head!
+		}
+		// we check if this could be a post-loop:
+		Loop.Kind lastKind = null;
+		BB lastFollow = null;
+		if (last != null && last.isCond()) {
+			// don't exclude last.isLoopHead(), simple back loops with multiple statements possible
+			final BB falseSucc = last.getFalseSucc();
+			final BB trueSucc = last.getTrueSucc();
+			if (loop.isHead(trueSucc)) {
+				lastKind = Loop.Kind.DO_WHILE;
+				lastFollow = falseSucc;
+			} else if (loop.isHead(falseSucc)) {
+				lastKind = Loop.Kind.DO_WHILENOT;
+				lastFollow = trueSucc;
+			}
+			// no proper post-loop last!
+		}
+		// now we check with some heuristics if pre-loop or post-loop is the prefered loop, this is
+		// not always exact science...
+		if (headKind != null && lastKind == null) {
+			loop.setKind(headKind);
+			loop.setFollow(headFollow);
+			return loop;
+		}
+		if (headKind == null && lastKind != null) {
+			loop.setKind(lastKind);
+			loop.setFollow(lastFollow);
+			return loop;
+		}
+		// we have to compare the tails for head and last
+		if (headKind != null && lastKind != null) {
+			assert headFollow != null && lastFollow != null;
+			final List<BB> headMembers = Lists.newArrayList();
+			final Set<BB> headFollows = Sets.newHashSet();
+			findBranch(loop, headFollow, headMembers, headFollows);
+			if (headFollows.contains(lastFollow)) {
+				loop.setKind(lastKind);
+				loop.setFollow(lastFollow);
+				return loop;
+			}
+			final List<BB> lastMembers = Lists.newArrayList();
+			final Set<BB> lastFollows = Sets.newHashSet();
+			findBranch(loop, lastFollow, lastMembers, lastFollows);
+			if (lastFollows.contains(headFollow)) {
+				loop.setKind(headKind);
+				loop.setFollow(headFollow);
+				return loop;
+			}
+			// we can decide like we want: we prefer pre-loops
+			loop.setKind(headKind);
+			loop.setFollow(headFollow);
+			return loop;
+		}
+		loop.setKind(Loop.Kind.ENDLESS);
+		return loop;
+	}
+
+	private static Switch createSwitchStruct(@Nonnull final BB head) {
+		final Switch switchStruct = new Switch(head);
+
+		// for case reordering we need this as changeable lists
+		final List<E> caseOuts = head.getOuts();
+		final int size = caseOuts.size();
+
+		final Set<BB> follows = Sets.newHashSet();
+
+		int hack = 10;
+		cases: for (int i = 0; i < size && hack > 0; ++i) {
+			final E caseOut = caseOuts.get(i);
+			if (!caseOut.isSwitchCase()) {
+				continue;
+			}
+			final BB caseBb = caseOut.getEnd();
+			final List<E> ins = caseBb.getIns();
+
+			boolean isFallThrough = false;
+			if (ins.size() > 1) {
+				// are we a follow?
+				// - in this case _all_ incomings must come from _one_ previous case
+				// - then we have to...
+				// 1) insert current edge after previous case edge
+				// 2) remove this edge as potential switch follow
+				// 3) add current case BB explicitely as member
+				int prevCaseIndex = -1;
+				for (final E in : ins) {
+					if (in == caseOut) {
+						continue;
+					}
+					if (in.isBack()) {
+						continue;
+					}
+					// 1) is direct break or continue
+					// 2) is fall through in previous follow
+					// 3) is fall through in later follow
+					// 4) is incoming goto if nothing works anymore...
+					final BB inBb = in.getStart();
+					for (int j = i; j-- > 0;) {
+						if (!switchStruct.isMember(caseOuts.get(j).getValue(), inBb)) {
+							continue;
+						}
+						if (prevCaseIndex == j) {
+							continue;
+						}
+						if (prevCaseIndex == -1) {
+							prevCaseIndex = j;
+							continue;
+						}
+						// multiple previous cases => we cannot be a fall-through and are a
+						// real follow ... should just happen for _direct_ breaks or _empty_ default
+						if (caseOut.isSwitchDefault()) {
+							// TODO hmmm...could be a default with direct continue etc. -> no follow
+							// if other follows...
+							switchStruct.setKind(Kind.NO_DEFAULT);
+							switchStruct.setFollow(caseBb);
+						}
+						continue cases;
+					}
+					if (prevCaseIndex == -1) {
+						if (caseOut.isSwitchDefault()) {
+							switchStruct.setKind(Kind.NO_DEFAULT);
+							switchStruct.setFollow(caseBb);
+							continue cases;
+						}
+						// we cannot be a fall-through yet...may be later
+						caseOuts.remove(i--);
+						--hack;
+						caseOuts.add(caseOut); // as last for now
+						continue cases;
+					}
+				}
+				if (prevCaseIndex < i - 1) {
+					caseOuts.remove(i);
+					caseOuts.add(prevCaseIndex + 1, caseOut);
+				}
+				if (caseOut.isSwitchDefault() && follows.size() == 1 && follows.contains(caseBb)) {
+					// TODO when we are the final fall-through without other follows...
+					switchStruct.setKind(Kind.NO_DEFAULT);
+					switchStruct.setFollow(caseBb);
+					continue cases;
+				}
+				isFallThrough = true;
+			}
+			final List<BB> members = Lists.newArrayList();
+			if (isFallThrough) {
+				follows.remove(caseBb);
+				members.add(caseBb);
+			}
+			findBranch(switchStruct, caseBb, members, follows);
+			switchStruct.addMembers(caseOut.getValue(), members);
+		}
+		if (switchStruct.getFollow() != null) {
+			return switchStruct;
+		}
+		switchStruct.setKind(Switch.Kind.WITH_DEFAULT);
+		// highest follow is switch struct follow
+		BB switchFollow = null;
+		for (final BB follow : follows) {
+			if (follow.isBefore(switchFollow)) {
+				switchFollow = follow;
+			}
+		}
+		switchStruct.setFollow(switchFollow);
+		return switchStruct;
+	}
+
 	/**
 	 * Add successors until unknown predecessors are encountered.
 	 *
@@ -141,6 +341,34 @@ public final class TrControlFlowAnalysis {
 				checks.add(succ);
 			}
 		}
+	}
+
+	private static boolean findReverseBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
+			@Nonnull final List<BB> members, @Nonnull final Set<BB> traversedBbs) {
+		if (members.contains(bb) || struct.isHead(bb)) {
+			return true;
+		}
+		if (traversedBbs.contains(bb)) {
+			return false;
+		}
+		traversedBbs.add(bb);
+		boolean isMember = false;
+		for (final E in : bb.getIns()) {
+			if (in.isBack()) {
+				continue; // ignore incoming back edges, sub loop-heads belong to branch
+			}
+			final BB pred = in.getStart();
+			// we could check if postorder smaller than loop head, but invalid struct multi-entries
+			// are a rare exception anyway
+			if (findReverseBranch(struct, pred, members, traversedBbs)) {
+				isMember = true;
+			}
+		}
+		if (isMember) {
+			members.add(bb);
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -230,12 +458,12 @@ public final class TrControlFlowAnalysis {
 	private Cond createCondStruct(@Nonnull final BB head) {
 		final BB falseSucc = head.getFalseSucc();
 		final BB trueSucc = head.getTrueSucc();
-		assert falseSucc != null && trueSucc != null : getMd();
+		assert falseSucc != null && trueSucc != null;
 		if (falseSucc == trueSucc) {
 			// have seen this e.g. in org.python.core.PyJavaClass.addMethod()
 			final Statement finalStmt = head.removeFinalStmt();
 			if (!(finalStmt instanceof IfStatement)) {
-				assert 0 == 1 : getMd();
+				assert false;
 				return null;
 			}
 			// convert if statement to expression statement
@@ -337,205 +565,6 @@ public final class TrControlFlowAnalysis {
 		return cond;
 	}
 
-	private Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<BB> backBbs) {
-		final Loop loop = new Loop(head);
-
-		final Set<BB> traversedBbs = Sets.<BB> newHashSet();
-		final List<BB> members = loop.getMembers(null);
-		BB last = null;
-		for (final BB backBb : backBbs) {
-			assert backBb != null : getMd();
-			final boolean found = findReverseBranch(loop, backBb, members, traversedBbs);
-			assert found : getMd() + ": cannot have a loop back BB that is not in reverse branch";
-			if (last == null || last.isBefore(backBb)) {
-				last = backBb;
-			}
-		}
-		loop.setLast(last);
-
-		// we check if this could be a pre-loop:
-		Loop.Kind headKind = null;
-		BB headFollow = null;
-		if (head.getStmts() == 1 && head.isCond()) {
-			final BB falseSucc = head.getFalseSucc();
-			final BB trueSucc = head.getTrueSucc();
-			if (loop.isMember(trueSucc) && !loop.isMember(falseSucc)) {
-				// JDK 6: true is member, opPc of pre head > next member,
-				// leading goto
-				headKind = Loop.Kind.WHILE;
-				headFollow = falseSucc;
-			} else if (loop.isMember(falseSucc) && !loop.isMember(trueSucc)) {
-				// JDK 5: false is member, opPc of pre head < next member,
-				// trailing goto (negated, check class javascript.Decompiler)
-				headKind = Loop.Kind.WHILENOT;
-				headFollow = trueSucc;
-			}
-			// no proper pre-loop head!
-		}
-		// we check if this could be a post-loop:
-		Loop.Kind lastKind = null;
-		BB lastFollow = null;
-		if (last != null && last.isCond()) {
-			// don't exclude last.isLoopHead(), simple back loops with multiple statements possible
-			final BB falseSucc = last.getFalseSucc();
-			final BB trueSucc = last.getTrueSucc();
-			if (loop.isHead(trueSucc)) {
-				lastKind = Loop.Kind.DO_WHILE;
-				lastFollow = falseSucc;
-			} else if (loop.isHead(falseSucc)) {
-				lastKind = Loop.Kind.DO_WHILENOT;
-				lastFollow = trueSucc;
-			}
-			// no proper post-loop last!
-		}
-		// now we check with some heuristics if pre-loop or post-loop is the prefered loop, this is
-		// not always exact science...
-		if (headKind != null && lastKind == null) {
-			loop.setKind(headKind);
-			loop.setFollow(headFollow);
-			return loop;
-		}
-		if (headKind == null && lastKind != null) {
-			loop.setKind(lastKind);
-			loop.setFollow(lastFollow);
-			return loop;
-		}
-		// we have to compare the tails for head and last
-		if (headKind != null && lastKind != null) {
-			assert headFollow != null && lastFollow != null : getMd();
-			final List<BB> headMembers = Lists.newArrayList();
-			final Set<BB> headFollows = Sets.newHashSet();
-			findBranch(loop, headFollow, headMembers, headFollows);
-			if (headFollows.contains(lastFollow)) {
-				loop.setKind(lastKind);
-				loop.setFollow(lastFollow);
-				return loop;
-			}
-			final List<BB> lastMembers = Lists.newArrayList();
-			final Set<BB> lastFollows = Sets.newHashSet();
-			findBranch(loop, lastFollow, lastMembers, lastFollows);
-			if (lastFollows.contains(headFollow)) {
-				loop.setKind(headKind);
-				loop.setFollow(headFollow);
-				return loop;
-			}
-			// we can decide like we want: we prefer pre-loops
-			loop.setKind(headKind);
-			loop.setFollow(headFollow);
-			return loop;
-		}
-		loop.setKind(Loop.Kind.ENDLESS);
-		return loop;
-	}
-
-	private Switch createSwitchStruct(@Nonnull final BB head) {
-		final Switch switchStruct = new Switch(head);
-
-		// for case reordering we need this as changeable lists
-		final List<E> caseOuts = head.getOuts();
-		final int size = caseOuts.size();
-
-		final Set<BB> follows = Sets.newHashSet();
-
-		int hack = 10;
-		cases: for (int i = 0; i < size && hack > 0; ++i) {
-			final E caseOut = caseOuts.get(i);
-			if (!caseOut.isSwitchCase()) {
-				continue;
-			}
-			final BB caseBb = caseOut.getEnd();
-			final List<E> ins = caseBb.getIns();
-
-			boolean isFallThrough = false;
-			if (ins.size() > 1) {
-				// are we a follow?
-				// - in this case _all_ incomings must come from _one_ previous case
-				// - then we have to...
-				// 1) insert current edge after previous case edge
-				// 2) remove this edge as potential switch follow
-				// 3) add current case BB explicitely as member
-				int prevCaseIndex = -1;
-				for (final E in : ins) {
-					if (in == caseOut) {
-						continue;
-					}
-					if (in.isBack()) {
-						continue;
-					}
-					// 1) is direct break or continue
-					// 2) is fall through in previous follow
-					// 3) is fall through in later follow
-					// 4) is incoming goto if nothing works anymore...
-					final BB inBb = in.getStart();
-					for (int j = i; j-- > 0;) {
-						if (!switchStruct.isMember(caseOuts.get(j).getValue(), inBb)) {
-							continue;
-						}
-						if (prevCaseIndex == j) {
-							continue;
-						}
-						if (prevCaseIndex == -1) {
-							prevCaseIndex = j;
-							continue;
-						}
-						// multiple previous cases => we cannot be a fall-through and are a
-						// real follow ... should just happen for _direct_ breaks or _empty_ default
-						if (caseOut.isSwitchDefault()) {
-							// TODO hmmm...could be a default with direct continue etc. -> no follow
-							// if other follows...
-							switchStruct.setKind(Kind.NO_DEFAULT);
-							switchStruct.setFollow(caseBb);
-						}
-						continue cases;
-					}
-					if (prevCaseIndex == -1) {
-						if (caseOut.isSwitchDefault()) {
-							switchStruct.setKind(Kind.NO_DEFAULT);
-							switchStruct.setFollow(caseBb);
-							continue cases;
-						}
-						// we cannot be a fall-through yet...may be later
-						caseOuts.remove(i--);
-						--hack;
-						caseOuts.add(caseOut); // as last for now
-						continue cases;
-					}
-				}
-				if (prevCaseIndex < i - 1) {
-					caseOuts.remove(i);
-					caseOuts.add(prevCaseIndex + 1, caseOut);
-				}
-				if (caseOut.isSwitchDefault() && follows.size() == 1 && follows.contains(caseBb)) {
-					// TODO when we are the final fall-through without other follows...
-					switchStruct.setKind(Kind.NO_DEFAULT);
-					switchStruct.setFollow(caseBb);
-					continue cases;
-				}
-				isFallThrough = true;
-			}
-			final List<BB> members = switchStruct.getMembers(caseOut.getValue());
-			assert members != null : getMd();
-			if (isFallThrough) {
-				follows.remove(caseBb);
-				members.add(caseBb);
-			}
-			findBranch(switchStruct, caseBb, members, follows);
-		}
-		if (switchStruct.getFollow() != null) {
-			return switchStruct;
-		}
-		switchStruct.setKind(Switch.Kind.WITH_DEFAULT);
-		// highest follow is switch struct follow
-		BB switchFollow = null;
-		for (final BB follow : follows) {
-			if (follow.isBefore(switchFollow)) {
-				switchFollow = follow;
-			}
-		}
-		switchStruct.setFollow(switchFollow);
-		return switchStruct;
-	}
-
 	private void createSyncStruct(@Nonnull final BB head) {
 		// Works even for trivial / empty sync sections, because BBs are always split behind
 		// MONITOR_ENTER (see Data Flow Analysis).
@@ -598,34 +627,6 @@ public final class TrControlFlowAnalysis {
 			}
 		}
 		sync.setFollow(syncFollow);
-	}
-
-	private boolean findReverseBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
-			@Nonnull final List<BB> members, @Nonnull final Set<BB> traversedBbs) {
-		if (members.contains(bb) || struct.isHead(bb)) {
-			return true;
-		}
-		if (traversedBbs.contains(bb)) {
-			return false;
-		}
-		traversedBbs.add(bb);
-		boolean isMember = false;
-		for (final E in : bb.getIns()) {
-			if (in.isBack()) {
-				continue; // ignore incoming back edges, sub loop-heads belong to branch
-			}
-			final BB pred = in.getStart();
-			// we could check if postorder smaller than loop head, but invalid struct multi-entries
-			// are a rare exception anyway
-			if (findReverseBranch(struct, pred, members, traversedBbs)) {
-				isMember = true;
-			}
-		}
-		if (isMember) {
-			members.add(bb);
-			return true;
-		}
-		return false;
 	}
 
 	private M getMd() {
