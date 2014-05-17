@@ -462,8 +462,6 @@ public final class TrDataFlowAnalysis {
 			final int subPc = jsr.getTargetPc();
 			// Spec, JSR/RET is stack-like:
 			// http://docs.oracle.com/javase/specs/jvms/se7/jvms7.pdf
-			final BB subBb = getTargetBb(subPc);
-			this.currentBb.setSucc(subBb);
 			// use common value (we take Sub) instead of jsr-follow-address because of merge
 			final Frame subFrame = getFrame(subPc);
 			if (subFrame == null) {
@@ -473,6 +471,8 @@ public final class TrDataFlowAnalysis {
 					return -1;
 				}
 				this.currentFrame.push(R.createConstR(subPc, this.currentFrame.size(), T.RET, sub));
+				final BB subBb = getTargetBb(subPc);
+				this.currentBb.setJsrSucc(subBb, sub);
 				merge(subPc);
 				return -1;
 			}
@@ -484,10 +484,13 @@ public final class TrDataFlowAnalysis {
 				return -1;
 			}
 			final Sub sub = (Sub) subR.getValue();
+			assert sub != null;
 			if (!this.currentFrame.pushSub(sub)) {
 				return -1;
 			}
 			this.currentFrame.push(subR);
+			final BB subBb = getTargetBb(subPc);
+			this.currentBb.setJsrSucc(subBb, sub);
 			merge(subPc);
 
 			// RET already visited? -> link RET BB to JSR follower and merge
@@ -501,7 +504,7 @@ public final class TrDataFlowAnalysis {
 			}
 			final BB retBb = getBb(ret.getPc());
 			final int jsrFollowPc = jsr.getPc() + 1;
-			retBb.setSucc(getTargetBb(jsrFollowPc));
+			retBb.setRetSucc(getTargetBb(jsrFollowPc), sub);
 			// modify RET frame for untouched registers in sub
 			final Frame jsrFrame = getCfg().getInFrame(jsr);
 			for (int i = this.currentFrame.size(); i-- > 0;) {
@@ -624,7 +627,7 @@ public final class TrDataFlowAnalysis {
 				final Op jsr = in.getStart().getFinalOp();
 				assert jsr != null : getM();
 				final int jsrFollowPc = jsr.getPc() + 1;
-				this.currentBb.setSucc(getTargetBb(jsrFollowPc));
+				this.currentBb.setRetSucc(getTargetBb(jsrFollowPc), sub);
 				// modify RET frame for untouched registers in sub
 				final Frame jsrFrame = getCfg().getInFrame(jsr);
 				for (int i = this.currentFrame.size(); i-- > 0;) {
@@ -640,7 +643,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : getM() + ": cannot assign '" + returnT
-			+ "' to return type '" + cop.getT() + "'";
+					+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction

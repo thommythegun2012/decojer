@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -30,7 +30,7 @@ import org.decojer.cavaj.model.code.ops.RET;
 
 /**
  * Subroutine.
- * 
+ *
  * @author André Pankraz
  */
 public final class Sub {
@@ -47,7 +47,7 @@ public final class Sub {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param pc
 	 *            pc
 	 */
@@ -67,6 +67,11 @@ public final class Sub {
 	@Override
 	public int hashCode() {
 		return this.pc;
+	}
+
+	@Override
+	public String toString() {
+		return "Sub" + getPc();
 	}
 
 }

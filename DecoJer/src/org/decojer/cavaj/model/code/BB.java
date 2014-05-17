@@ -301,7 +301,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -873,14 +873,14 @@ public final class BB {
 	}
 
 	/**
-	 * Add conditionals.
+	 * Set conditional successors.
 	 *
 	 * @param trueBb
 	 *            true BB
 	 * @param falseBb
 	 *            false BB
 	 */
-	public void setConds(final BB trueBb, final BB falseBb) {
+	public void setConds(@Nonnull final BB trueBb, @Nonnull final BB falseBb) {
 		// preserve pc-order as edge-order
 		if (falseBb.getPc() < trueBb.getPc()) {
 			// usual case, if not a direct branching
@@ -890,6 +890,32 @@ public final class BB {
 		}
 		addSucc(trueBb, Boolean.TRUE);
 		addSucc(falseBb, Boolean.FALSE);
+	}
+
+	/**
+	 * Set JSR successor.
+	 *
+	 * @param succ
+	 *            JSR successor (Sub routine).
+	 * @param sub
+	 *            sub routine
+	 * @return out edge
+	 */
+	public final E setJsrSucc(@Nonnull final BB succ, @Nonnull final Sub sub) {
+		return addSucc(succ, sub);
+	}
+
+	/**
+	 * Set RET successor.
+	 *
+	 * @param succ
+	 *            RET successor
+	 * @param sub
+	 *            sub routine
+	 * @return out edge
+	 */
+	public final E setRetSucc(@Nonnull final BB succ, @Nonnull final Sub sub) {
+		return addSucc(succ, sub);
 	}
 
 	/**
