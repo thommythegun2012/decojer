@@ -23,9 +23,9 @@
  */
 package org.decojer.cavaj.model.code.structs;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -38,6 +38,7 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.code.BB;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 /**
@@ -90,7 +91,21 @@ public class Struct {
 	public boolean addMember(final Object value, @Nonnull final BB bb) {
 		assert bb != this.head : bb.getCfg() + ": Cannot add head as struct member for: " + bb;
 
-		return getMembers(value).add(bb);
+		List<BB> members = this.value2members.get(value);
+		if (members == null) {
+			members = Lists.newArrayList();
+			this.value2members.put(value, members);
+		}
+		if (members.contains(bb)) {
+			return false;
+		}
+		final Struct parent = getParent();
+		if (parent instanceof Loop) {
+			parent.addMember(null, bb);
+		}
+		members.add(bb);
+		bb.setStruct(this);
+		return true;
 	}
 
 	/**
@@ -102,6 +117,7 @@ public class Struct {
 	 *            struct members for value
 	 */
 	public void addMembers(final Object value, @Nonnull final Collection<BB> bbs) {
+		// TODO could be made faster if necessary when directly implemented
 		for (final BB bb : bbs) {
 			assert bb != null : this;
 			addMember(value, bb);
@@ -115,28 +131,26 @@ public class Struct {
 	 *            value
 	 * @return struct members, changeable list
 	 */
-	@Nonnull
+	@Nullable
 	public List<BB> getMembers(final Object value) {
-		List<BB> members = this.value2members.get(value);
+		final List<BB> members = this.value2members.get(value);
 		if (members == null) {
-			members = new ArrayList<BB>() {
-
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public boolean add(final BB bb) {
-					if (bb.getStruct() == Struct.this) {
-						// TODO sync assert 0 == 1 : bb;
-						return false;
-					}
-					bb.setStruct(Struct.this);
-					return super.add(bb);
-				}
-
-			};
-			this.value2members.put(value, members);
+			return null;
 		}
-		return members;
+		final List<BB> unmodifiableMembers = Collections.unmodifiableList(members);
+		assert unmodifiableMembers != null;
+		return unmodifiableMembers;
+	}
+
+	/**
+	 * Is BB target for struct break?
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is target for struct break
+	 */
+	public boolean hasBreakTarget(final BB bb) {
+		return isFollow(bb);
 	}
 
 	/**
@@ -155,17 +169,6 @@ public class Struct {
 			return this.parent.isBranching(bb);
 		}
 		return false;
-	}
-
-	/**
-	 * Is BB target for struct break?
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - BB is target for struct break
-	 */
-	public boolean hasBreakTarget(final BB bb) {
-		return isFollow(bb);
 	}
 
 	/**
