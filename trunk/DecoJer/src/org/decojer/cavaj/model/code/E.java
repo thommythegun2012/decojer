@@ -238,6 +238,15 @@ public final class E {
 	}
 
 	/**
+	 * Is JSR or RET?
+	 * 
+	 * @return {@code true} - is JSR or RET
+	 */
+	public boolean isJsrRet() {
+		return this.value instanceof Sub;
+	}
+
+	/**
 	 * Is sequence?
 	 *
 	 * @return {@code true} - is sequence
