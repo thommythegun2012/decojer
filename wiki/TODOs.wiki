@@ -29,6 +29,26 @@ Eclipse: 41 s
 commonsio.WriterOutputStream
 
 
+    private void processInput(boolean endOfInput) throws IOException {
+        // Prepare decoderIn for reading
+        decoderIn.flip();
+        CoderResult coderResult;
+        while (true) {
+            coderResult = decoder.decode(decoderIn, decoderOut, endOfInput);
+            if (coderResult.isOverflow()) {
+                flushOutput();
+            } else if (coderResult.isUnderflow()) {
+                break;
+            } else {
+                // The decoder is configured to replace malformed input and unmappable characters,
+                // so we should not get here.
+                throw new IOException("Unexpected coder result");
+            }
+        }
+        // Discard the bytes that have been read
+        decoderIn.compact();
+    }
+
 trLoop():
 - endless while(true) with break -> no existing follow leads to problems?
 - first embedded cond struct has follow outside of loop, should be negated condition with break?
