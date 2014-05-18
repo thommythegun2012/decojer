@@ -640,6 +640,8 @@ public final class TrControlFlowAnalysis {
 			final BB bb = bbs.get(i);
 			bb.sortOuts();
 
+			// TODO isCatch...
+
 			// check loop first, could be a post / endless loop with additional sub struct heads;
 			// including also nested loops, that cannot be mitigated by continue
 			final List<BB> loopBackBbs = getLoopBackBbs(bb);

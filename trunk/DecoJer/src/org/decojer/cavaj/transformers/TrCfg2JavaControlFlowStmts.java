@@ -333,6 +333,13 @@ public final class TrCfg2JavaControlFlowStmts {
 						return;
 					}
 					if (currentBbStruct == findStruct.getParent()) {
+						if (currentBbStruct instanceof Loop) {
+							final Loop loop = (Loop) currentBbStruct;
+							if (loop.isPost() ? loop.isLast(currentBb) : loop.isHead(currentBb)) {
+								statements.add(getAst().newContinueStatement());
+								return;
+							}
+						}
 						log.warn(getM() + ": Struct leave in BB " + currentBb.getPc()
 								+ " without regular follow encounter:\n" + struct);
 						return;
@@ -373,7 +380,8 @@ public final class TrCfg2JavaControlFlowStmts {
 					// outer loop marked with the given label.
 					if (loop.isHead(currentBb)) {
 						if (struct != loop && !loop.isPost()) {
-							// only from sub structure
+							// only from sub structure, e.g. embedded conditional contains head and
+							// continue
 							statements.add(getAst().newContinueStatement());
 							return;
 						}
@@ -393,7 +401,8 @@ public final class TrCfg2JavaControlFlowStmts {
 								statements.add(currentBb.getStmt(i));
 							}
 						} else {
-							// only from sub structure
+							// only from sub structure, e.g. embedded conditional contains head and
+							// last
 							statements.add(getAst().newContinueStatement());
 						}
 						return;
