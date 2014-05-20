@@ -89,12 +89,12 @@ public final class TrControlFlowAnalysis {
 		if (head.getStmts() == 1 && head.isCond()) {
 			final BB falseSucc = head.getFalseSucc();
 			final BB trueSucc = head.getTrueSucc();
-			if (loop.isMember(trueSucc) && !loop.isMember(falseSucc)) {
+			if (loop.hasMember(trueSucc) && !loop.hasMember(falseSucc)) {
 				// JDK 6: true is member, opPc of pre head > next member,
 				// leading goto
 				headKind = Loop.Kind.WHILE;
 				headFollow = falseSucc;
-			} else if (loop.isMember(falseSucc) && !loop.isMember(trueSucc)) {
+			} else if (loop.hasMember(falseSucc) && !loop.hasMember(trueSucc)) {
 				// JDK 5: false is member, opPc of pre head < next member,
 				// trailing goto (negated, check class javascript.Decompiler)
 				headKind = Loop.Kind.WHILENOT;
@@ -198,7 +198,7 @@ public final class TrControlFlowAnalysis {
 					// 4) is incoming goto if nothing works anymore...
 					final BB inBb = in.getStart();
 					for (int j = i; j-- > 0;) {
-						if (!switchStruct.isMember(caseOuts.get(j).getValue(), inBb)) {
+						if (!switchStruct.hasMember(caseOuts.get(j).getValue(), inBb)) {
 							continue;
 						}
 						if (prevCaseIndex == j) {
@@ -334,6 +334,7 @@ public final class TrControlFlowAnalysis {
 				if (out.isBack()) {
 					continue;
 				}
+				// TODO jump over finally here
 				final BB succ = out.getEnd();
 				if (members.contains(succ) || checks.contains(succ)) {
 					continue;
@@ -459,8 +460,8 @@ public final class TrControlFlowAnalysis {
 		final BB falseSucc = head.getFalseSucc();
 		final BB trueSucc = head.getTrueSucc();
 		assert falseSucc != null && trueSucc != null;
+		// parallel edges? have seen this e.g. in org.python.core.PyJavaClass.addMethod()
 		if (falseSucc == trueSucc) {
-			// have seen this e.g. in org.python.core.PyJavaClass.addMethod()
 			final Statement finalStmt = head.removeFinalStmt();
 			if (!(finalStmt instanceof IfStatement)) {
 				assert false;
@@ -488,15 +489,6 @@ public final class TrControlFlowAnalysis {
 		// direct continue back-edges and break forward-edges (only possible with true)
 
 		// we have to check all possibilities anyway...but prefer normal variants
-		/*
-		 * // check direct continue-back-edges first, no members if (trueSucc.getPostorder() >=
-		 * head.getPostorder()) { // normal JDK continue-back-edge, only since JDK 5
-		 * (target-indepandant) compiler? cond.setType(Cond.IF); cond.setFollow(falseSucc); return
-		 * cond; } if (falseSucc.getPostorder() >= head.getPostorder()) { // no JDK, not really
-		 * possible with normal JCND / JCMP conditionals
-		 * log("Unexpected unnegated direct continue-back-edge."); cond.setType(Cond.IFNOT);
-		 * cond.setFollow(falseSucc); return cond; }
-		 */
 		// JDK 1 && 2 create wrong line numbers for final return (see DecTestIfStmt)
 
 		// 2nd condition part is trick against things like iteration in loop last:

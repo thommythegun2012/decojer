@@ -154,6 +154,39 @@ public class Struct {
 	}
 
 	/**
+	 * Is BB struct member (includes struct head and loop last)?
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is struct member
+	 */
+	public boolean hasMember(final BB bb) {
+		if (isHead(bb)) {
+			return true;
+		}
+		for (final Map.Entry<Object, List<BB>> members : this.value2members.entrySet()) {
+			if (members.getValue().contains(bb)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Is BB struct member for value?
+	 *
+	 * @param value
+	 *            value
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - BB is struct member for value
+	 */
+	public boolean hasMember(final Object value, final BB bb) {
+		final List<BB> members = this.value2members.get(value);
+		return members != null && members.contains(bb);
+	}
+
+	/**
 	 * Is BB a branching statement node (pre / endless loop head for continue, struct follow)?
 	 *
 	 * @param bb
@@ -194,39 +227,6 @@ public class Struct {
 	}
 
 	/**
-	 * Is BB struct member (includes struct head and loop last)?
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - BB is struct member
-	 */
-	public boolean isMember(final BB bb) {
-		if (isHead(bb)) {
-			return true;
-		}
-		for (final Map.Entry<Object, List<BB>> members : this.value2members.entrySet()) {
-			if (members.getValue().contains(bb)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Is BB struct member for value?
-	 *
-	 * @param value
-	 *            value
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - BB is struct member for value
-	 */
-	public boolean isMember(final Object value, final BB bb) {
-		final List<BB> members = this.value2members.get(value);
-		return members != null && members.contains(bb);
-	}
-
-	/**
 	 * Set follow.
 	 *
 	 * @param bb
@@ -240,6 +240,16 @@ public class Struct {
 			this.follow = null;
 		} else {
 			this.follow = bb;
+		}
+		// if parent struct exists and doesn't has BB as member, check existend follow!
+		final Struct parent = getParent();
+		if (parent != null && !parent.hasMember(bb)) {
+			if (!parent.isFollow(bb)) {
+				assert false; // TODO is never cool, handle before
+				if (parent.getFollow() == null) {
+					parent.setFollow(bb);
+				}
+			}
 		}
 	}
 
