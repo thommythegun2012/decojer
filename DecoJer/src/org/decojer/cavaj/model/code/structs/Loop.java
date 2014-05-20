@@ -133,9 +133,9 @@ public class Loop extends Struct {
 	}
 
 	@Override
-	public boolean isMember(final BB bb) {
+	public boolean hasMember(final BB bb) {
 		// last BB for loops is separately stored but counts as normal member
-		return isLast(bb) || super.isMember(bb);
+		return isLast(bb) || super.hasMember(bb);
 	}
 
 	/**

@@ -238,12 +238,31 @@ public final class E {
 	}
 
 	/**
-	 * Is JSR or RET?
-	 * 
-	 * @return {@code true} - is JSR or RET
+	 * Is JSR edge?
+	 *
+	 * @return {@code true} - is JSR edge
 	 */
-	public boolean isJsrRet() {
-		return this.value instanceof Sub;
+	public boolean isJsr() {
+		final Object value = getValue();
+		if (!(value instanceof Sub)) {
+			return false;
+		}
+		final Sub sub = (Sub) value;
+		return sub.getPc() == getEnd().getPc();
+	}
+
+	/**
+	 * Is RET edge?
+	 *
+	 * @return {@code true} - is RET edge
+	 */
+	public boolean isRet() {
+		final Object value = getValue();
+		if (!(value instanceof Sub)) {
+			return false;
+		}
+		final Sub sub = (Sub) value;
+		return sub.getPc() != getEnd().getPc();
 	}
 
 	/**

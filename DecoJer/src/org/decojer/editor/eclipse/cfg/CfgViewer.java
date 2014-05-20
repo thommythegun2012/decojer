@@ -177,7 +177,7 @@ public class CfgViewer extends Composite {
 				connection.setLineColor(ColorConstants.red);
 			} else if (out.isCatch()) {
 				connection.setLineColor(ColorConstants.yellow);
-			} else if (out.isJsrRet()) {
+			} else if (out.isJsr() || out.isRet()) {
 				connection.setLineColor(ColorConstants.green);
 			}
 		}
