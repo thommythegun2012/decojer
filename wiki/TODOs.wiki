@@ -26,6 +26,68 @@ Eclipse: 41 s
 
 ---
 
+java.lang.RuntimeException: File: C:\Users\andre\.m2\artifactory_backup\repositories\third-party-local\com\jclark\jclark\0.1\jclark-0.1.jar
+Cannot transform 'com.jclark.xml.parse.EntityParser.parseMisc()V (ops: 34, regs: 1)'!
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:64)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doInvoke(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.invokeAll(Unknown Source)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:45)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doInvoke(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.invokeAll(Unknown Source)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:45)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doInvoke(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.invokeAll(Unknown Source)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:45)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doJoin(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.invokeAll(Unknown Source)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:45)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doJoin(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.invokeAll(Unknown Source)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:45)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
+	at java.util.concurrent.RecursiveTask.exec(Unknown Source)
+	at java.util.concurrent.ForkJoinTask.doExec(Unknown Source)
+	at java.util.concurrent.ForkJoinPool$WorkQueue.runTask(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.scan(Unknown Source)
+	at java.util.concurrent.ForkJoinPool.runWorker(Unknown Source)
+	at java.util.concurrent.ForkJoinWorkerThread.run(Unknown Source)
+Caused by: org.decojer.DecoJerException: Cannot transform 'com.jclark.xml.parse.EntityParser.parseMisc()V (ops: 34, regs: 1)'!
+	at org.decojer.cavaj.model.CU.decompile(CU.java:259)
+	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:58)
+	... 37 more
+Caused by: java.lang.AssertionError: com.jclark.xml.parse.EntityParser.parseMisc()V (ops: 34, regs: 1): Cannot add head as struct member for: BB0 / 5
+Stmts: [switch (super.tokenizeProlog()) {
+}
+]
+Succ: 5 0 1 2 3 4 
+	at org.decojer.cavaj.model.code.structs.Struct.addMember(Struct.java:92)
+	at org.decojer.cavaj.model.code.structs.Struct.addMembers(Struct.java:123)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createSwitchStruct(TrControlFlowAnalysis.java:252)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:687)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:476)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:236)
+	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
+	at org.decojer.cavaj.model.CU.decompile(CU.java:248)
+	... 38 more
+
+
+---
+
 http://grepcode.com/file_/repo1.maven.org/maven2/commons-io/commons-io/2.0.1/org/apache/commons/io/output/WriterOutputStream.java/?v=source
 
     private void processInput(boolean endOfInput) throws IOException {
