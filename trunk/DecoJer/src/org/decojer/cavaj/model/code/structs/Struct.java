@@ -73,7 +73,7 @@ public class Struct {
 	 */
 	public Struct(@Nonnull final BB bb) {
 		this.parent = bb.getStruct();
-		assert this != this.parent : bb.getCfg();
+		assert this != this.parent;
 
 		this.head = bb;
 		bb.setStruct(this);
@@ -89,7 +89,7 @@ public class Struct {
 	 * @return {@code true} - added
 	 */
 	public boolean addMember(final Object value, @Nonnull final BB bb) {
-		assert bb != this.head : bb.getCfg() + ": Cannot add head as struct member for: " + bb;
+		assert bb != this.head : "Cannot add head as struct member for: " + bb;
 
 		List<BB> members = this.value2members.get(value);
 		if (members == null) {
@@ -119,7 +119,7 @@ public class Struct {
 	public void addMembers(final Object value, @Nonnull final Collection<BB> bbs) {
 		// TODO could be made faster if necessary when directly implemented
 		for (final BB bb : bbs) {
-			assert bb != null : this;
+			assert bb != null;
 			addMember(value, bb);
 		}
 	}
