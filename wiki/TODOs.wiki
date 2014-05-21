@@ -26,9 +26,9 @@ Eclipse: 41 s
 
 ---
 
-- CopyOnWriteArrayList last Compound not combined
-- direct backloop is if/else or else!
-- findBranch cannot handle Subs, kill Subs before?
+- CopyOnWriteArrayList.equals(): last Compound not combined
+- - CopyOnWriteArrayList.equals(): direct backloop is if/else or else!
+- AbstractExecutorService.invokeAll): findBranch cannot handle Subs, kill Subs before?
 
 ---
 
