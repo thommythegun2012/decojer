@@ -266,7 +266,9 @@ public final class TrControlFlowAnalysis {
 				switchFollow = follow;
 			}
 		}
-		switchStruct.setFollow(switchFollow);
+		if (switchFollow != null) {
+			switchStruct.setFollow(switchFollow);
+		}
 		return switchStruct;
 	}
 
@@ -570,12 +572,14 @@ public final class TrControlFlowAnalysis {
 				firstFollow = follow;
 			}
 		}
+		assert firstFollow != null;
 		BB secondFollow = null;
 		for (final BB follow : secondFollows) {
 			if (follow.isBefore(secondFollow)) {
 				secondFollow = follow;
 			}
 		}
+		assert secondFollow != null;
 
 		// follow exists?
 		if (firstFollow == secondFollow) {

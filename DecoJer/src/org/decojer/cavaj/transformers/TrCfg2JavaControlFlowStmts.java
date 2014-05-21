@@ -360,7 +360,7 @@ public final class TrCfg2JavaControlFlowStmts {
 					if (subStruct == null) {
 						log.warn(getM() + ": Struct enter in BB " + currentBb.getPc()
 								+ " without regular head encounter:\n" + struct);
-						assert false;
+						// assert false;
 						return;
 					}
 				}
