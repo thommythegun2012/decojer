@@ -66,6 +66,7 @@ import com.google.common.collect.Sets;
 @Slf4j
 public final class TrControlFlowAnalysis {
 
+	@Nonnull
 	private static Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<BB> backBbs) {
 		final Loop loop = new Loop(head);
 
@@ -170,13 +171,16 @@ public final class TrControlFlowAnalysis {
 		int hack = 10;
 		cases: for (int i = 0; i < size && hack > 0; ++i) {
 			final E caseOut = caseOuts.get(i);
+			if (caseOut.isBack()) {
+				continue;
+			}
 			if (!caseOut.isSwitchCase()) {
+				assert caseOut.isCatch();
 				continue;
 			}
 			final BB caseBb = caseOut.getEnd();
-			final List<E> ins = caseBb.getIns();
-
 			boolean isFallThrough = false;
+			final List<E> ins = caseBb.getIns();
 			if (ins.size() > 1) {
 				// are we a follow?
 				// - in this case _all_ incomings must come from _one_ previous case
@@ -244,7 +248,7 @@ public final class TrControlFlowAnalysis {
 				isFallThrough = true;
 			}
 			final List<BB> members = Lists.newArrayList();
-			if (isFallThrough) {
+			if (isFallThrough) { // TODO better check follows.contains(caseBb))?
 				follows.remove(caseBb);
 				members.add(caseBb);
 			}
@@ -373,31 +377,62 @@ public final class TrControlFlowAnalysis {
 	}
 
 	/**
-	 * Is unhandled loop head?
+	 * Find all unhandled loop back BBs for the given BB. The given BB is a loop head if at least
+	 * one such back BB exists, which isn't a self-catch handler (valid bytecode).
+	 *
+	 * Nested post loops with same head are possible and cannot be handled by continue (which goes
+	 * in this cases to the last loop node), hence we have to exclude already handled enclosing loop
+	 * back BBs.
 	 *
 	 * @param bb
 	 *            BB
 	 *
 	 * @return {@code true} - is unhandled loop head
 	 */
-	private static List<BB> getLoopBackBbs(final BB bb) {
-		// at least one incoming edge must be a back edge (self loop possible), in Java only
-		// possible for loop heads (exclude JVM self catches)
-		// nested post/endless loops with same head are possible and cannot be handled by continue!
+	@Nullable
+	private static List<BB> findUnhandledLoopBackBbs(final BB bb) {
 		List<BB> backBbs = null;
 		for (final E in : bb.getIns()) {
 			if (!in.isBack() || in.isCatch()) {
 				continue;
 			}
-			final Struct struct = in.getStart().getStruct();
-			if (!(struct instanceof Loop) || ((Loop) struct).isPre() || !((Loop) struct).isLast(bb)) {
-				if (backBbs == null) {
-					backBbs = Lists.newArrayList();
-				}
-				backBbs.add(in.getStart());
+			final BB pred = in.getStart();
+			final Struct struct = pred.getStruct();
+			if (struct instanceof Loop && struct.getHead() == bb
+					&& (!((Loop) struct).isPost() || ((Loop) struct).isLast(pred))) {
+				continue;
 			}
+			if (backBbs == null) {
+				backBbs = Lists.newArrayList();
+			}
+			backBbs.add(pred);
 		}
 		return backBbs;
+	}
+
+	/**
+	 * Is cond head?
+	 *
+	 * @param bb
+	 *            BB
+	 *
+	 * @return {@code true} - is cond head
+	 */
+	private static boolean isCondHead(final BB bb) {
+		if (!bb.isCond()) {
+			return false;
+		}
+		for (Struct struct = bb.getStruct(); struct != null; struct = struct.getParent()) {
+			if (!(struct instanceof Loop)) {
+				continue;
+			}
+			final Loop loopStruct = (Loop) struct;
+			if (loopStruct.isPost() && loopStruct.isLast(bb)) {
+				// exit: conditional already used for post loops last condition
+				return false;
+			}
+		}
+		return true;
 	}
 
 	/**
@@ -634,21 +669,20 @@ public final class TrControlFlowAnalysis {
 
 			// TODO isCatch...
 
-			// check loop first, could be a post / endless loop with additional sub struct heads;
-			// including also nested loops, that cannot be mitigated by continue
-			final List<BB> loopBackBbs = getLoopBackBbs(bb);
-			if (loopBackBbs != null) {
-				do {
-					final Loop loop = createLoopStruct(bb, loopBackBbs);
-					if (loop.isPre()) {
-						// exit: no additional struct head possible here
-						// TODO but we know that "loopHeadIns - last" are continues? mark?
-						continue nextBb;
-					}
-					// continue to this loop head not possible, nested loop check...
-					loopBackBbs.remove(loop.getLast());
-				} while (!loopBackBbs.isEmpty());
-				// fall through: additional sub struct heads possible for post / endless
+			// check loop first, could be endless / post loop with additional sub struct heads;
+			// including nested post loops that cannot be mitigated by continue
+			while (true) {
+				final List<BB> loopBackBbs = findUnhandledLoopBackBbs(bb);
+				if (loopBackBbs == null) {
+					break;
+				}
+				final Loop loop = createLoopStruct(bb, loopBackBbs);
+				if (loop.isPre()) {
+					// exit: no additional struct head possible here
+					continue nextBb;
+				}
+				// fall through: additional sub struct heads possible for post / endless, including
+				// nested post loops that cannot be handled by continue
 			}
 			if (isSyncHead(bb)) {
 				createSyncStruct(bb);
@@ -658,17 +692,7 @@ public final class TrControlFlowAnalysis {
 				createSwitchStruct(bb);
 				continue;
 			}
-			if (bb.isCond()) {
-				for (Struct struct = bb.getStruct(); struct != null; struct = struct.getParent()) {
-					if (!(struct instanceof Loop)) {
-						continue;
-					}
-					final Loop loopStruct = (Loop) struct;
-					if (loopStruct.isPost() && loopStruct.isLast(bb)) {
-						// exit: conditional already used for post loops last condition
-						continue nextBb;
-					}
-				}
+			if (isCondHead(bb)) {
 				createCondStruct(bb);
 			}
 		}
