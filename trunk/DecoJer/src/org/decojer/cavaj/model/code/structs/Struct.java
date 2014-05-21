@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.code.BB;
 
@@ -46,6 +47,7 @@ import com.google.common.collect.Maps;
  *
  * @author André Pankraz
  */
+@Slf4j
 public class Struct {
 
 	@Getter
@@ -232,11 +234,11 @@ public class Struct {
 	 * @param bb
 	 *            follow
 	 */
-	public void setFollow(final BB bb) {
+	public void setFollow(@Nonnull final BB bb) {
 		// a direct back link at the end of a loop is not a valid follow, have to handle this
 		// differently or we will loop into loop create statements twice,
 		// dismiss such settings silently for now, else have to handle it at many places
-		if (bb == null || bb.getPostorder() >= this.head.getPostorder()) {
+		if (bb.getPostorder() >= this.head.getPostorder()) {
 			this.follow = null;
 		} else {
 			this.follow = bb;
@@ -245,9 +247,11 @@ public class Struct {
 		final Struct parent = getParent();
 		if (parent != null && !parent.hasMember(bb)) {
 			if (!parent.isFollow(bb)) {
-				assert false; // TODO is never cool, handle before
 				if (parent.getFollow() == null) {
 					parent.setFollow(bb);
+				} else {
+					log.warn("Cannot change follow to BB" + bb.getPc() + " for:\n" + this);
+					assert false;
 				}
 			}
 		}
