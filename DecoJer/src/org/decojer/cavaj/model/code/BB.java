@@ -598,20 +598,6 @@ public final class BB {
 	}
 
 	/**
-	 * Is BB a catch try?
-	 *
-	 * @return {@code true} - BB is a catch try
-	 */
-	public boolean isCatchTry() {
-		for (final E out : this.outs) {
-			if (out.isCatch()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
 	 * Is conditional BB? (e.g. if or loop head)
 	 *
 	 * @return {@code true} - is conditional BB
