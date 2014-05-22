@@ -41,6 +41,7 @@ import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.ops.MONITOR;
 import org.decojer.cavaj.model.code.ops.Op;
+import org.decojer.cavaj.model.code.structs.Catch;
 import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
 import org.decojer.cavaj.model.code.structs.Struct;
@@ -65,6 +66,11 @@ import com.google.common.collect.Sets;
  */
 @Slf4j
 public final class TrControlFlowAnalysis {
+
+	@Nullable
+	private static Catch createCatchStruct(final E e) {
+		return null;
+	}
 
 	@Nonnull
 	private static Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<BB> backBbs) {
@@ -123,11 +129,13 @@ public final class TrControlFlowAnalysis {
 		// not always exact science...
 		if (headKind != null && lastKind == null) {
 			loop.setKind(headKind);
+			assert headFollow != null;
 			loop.setFollow(headFollow);
 			return loop;
 		}
 		if (headKind == null && lastKind != null) {
 			loop.setKind(lastKind);
+			assert lastFollow != null;
 			loop.setFollow(lastFollow);
 			return loop;
 		}
@@ -159,6 +167,7 @@ public final class TrControlFlowAnalysis {
 		return loop;
 	}
 
+	@Nonnull
 	private static Switch createSwitchStruct(@Nonnull final BB head) {
 		final Switch switchStruct = new Switch(head);
 
@@ -378,6 +387,20 @@ public final class TrControlFlowAnalysis {
 		return false;
 	}
 
+	private static E findUnhandledCatch(final BB bb) {
+		for (final E out : bb.getOuts()) {
+			if (!out.isCatch()) {
+				continue;
+			}
+			if (isHandlerHandled(out.getEnd())) {
+				continue;
+			}
+			// TODO find outmost or return list
+			return out;
+		}
+		return null;
+	}
+
 	/**
 	 * Find all unhandled loop back BBs for the given BB. The given BB is a loop head if at least
 	 * one such back BB exists, which isn't a self-catch handler (valid bytecode).
@@ -435,6 +458,25 @@ public final class TrControlFlowAnalysis {
 			}
 		}
 		return true;
+	}
+
+	/**
+	 * Is given BB a handler and has already been assigned to a cond struct?
+	 *
+	 * Handler could already be part of enclosing struct like e.g. enclosing try, so getting only
+	 * the outmost struct doesn't work.
+	 *
+	 * @param bb
+	 *            potential handler
+	 * @return {@code true} - is handler with assigned struct
+	 */
+	private static boolean isHandlerHandled(final BB bb) {
+		for (Struct struct = bb.getStruct(); struct != null; struct = struct.getParent()) {
+			if (struct instanceof Catch && ((Catch) struct).getHandler() == bb) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -671,8 +713,16 @@ public final class TrControlFlowAnalysis {
 			final BB bb = bbs.get(i);
 			bb.sortOuts();
 
-			// TODO isCatch...
-
+			while (true) {
+				final E e = findUnhandledCatch(bb);
+				if (e == null) {
+					break;
+				}
+				// TODO change to nonnull? just for testing now
+				if (createCatchStruct(e) == null) {
+					break;
+				}
+			}
 			// check loop first, could be endless / post loop with additional sub struct heads;
 			// including nested post loops that cannot be mitigated by continue
 			while (true) {

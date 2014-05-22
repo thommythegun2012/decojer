@@ -25,6 +25,8 @@ package org.decojer.cavaj.model.code.structs;
 
 import javax.annotation.Nonnull;
 
+import lombok.Getter;
+
 import org.decojer.cavaj.model.code.BB;
 
 /**
@@ -34,14 +36,20 @@ import org.decojer.cavaj.model.code.BB;
  */
 public class Catch extends Struct {
 
+	@Getter
+	final BB handler;
+
 	/**
 	 * Constructor.
 	 *
 	 * @param head
 	 *            catch head BB
+	 * @param handler
+	 *            catch handler BB
 	 */
-	public Catch(@Nonnull final BB head) {
+	public Catch(@Nonnull final BB head, @Nonnull final BB handler) {
 		super(head);
+		this.handler = handler;
 	}
 
 }
