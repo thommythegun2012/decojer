@@ -69,6 +69,7 @@ public final class TrControlFlowAnalysis {
 
 	@Nullable
 	private static Catch createCatchStruct(final E e) {
+		assert e != null;
 		return null;
 	}
 
@@ -699,7 +700,9 @@ public final class TrControlFlowAnalysis {
 				es.add(new SyncE(out, level));
 			}
 		}
-		sync.setFollow(syncFollow);
+		if (syncFollow != null) {
+			sync.setFollow(syncFollow);
+		}
 	}
 
 	private M getMd() {
