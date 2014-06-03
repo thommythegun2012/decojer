@@ -388,41 +388,41 @@ public final class Expressions {
 				final char c = value instanceof Character ? (Character) value
 						: value instanceof Number ? (char) ((Number) value).intValue()
 								: ((String) value).charAt(0);
-				switch (c) {
-				case Character.MAX_VALUE:
-					return ast.newQualifiedName(ast.newSimpleName("Character"),
-							ast.newSimpleName("MAX_VALUE"));
-				case Character.MIN_VALUE:
-					return ast.newQualifiedName(ast.newSimpleName("Character"),
-							ast.newSimpleName("MIN_VALUE"));
-				case Character.MAX_HIGH_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MAX_HIGH_SURROGATE"));
-					}
-					break;
-				case Character.MAX_LOW_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MAX_LOW_SURROGATE"));
-					}
-					break;
-				case Character.MIN_HIGH_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MIN_HIGH_SURROGATE"));
-					}
-					break;
-				case Character.MIN_LOW_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MIN_LOW_SURROGATE"));
-					}
-					break;
-				}
-				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-				characterLiteral.setCharValue(c);
-				return characterLiteral;
+						switch (c) {
+						case Character.MAX_VALUE:
+							return ast.newQualifiedName(ast.newSimpleName("Character"),
+									ast.newSimpleName("MAX_VALUE"));
+						case Character.MIN_VALUE:
+							return ast.newQualifiedName(ast.newSimpleName("Character"),
+									ast.newSimpleName("MIN_VALUE"));
+						case Character.MAX_HIGH_SURROGATE:
+							if (contextT.isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MAX_HIGH_SURROGATE"));
+							}
+							break;
+						case Character.MAX_LOW_SURROGATE:
+							if (contextT.isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MAX_LOW_SURROGATE"));
+							}
+							break;
+						case Character.MIN_HIGH_SURROGATE:
+							if (contextT.isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MIN_HIGH_SURROGATE"));
+							}
+							break;
+						case Character.MIN_LOW_SURROGATE:
+							if (contextT.isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MIN_LOW_SURROGATE"));
+							}
+							break;
+						}
+						final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+						characterLiteral.setCharValue(c);
+						return characterLiteral;
 			}
 			if (value == null) {
 				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
@@ -676,7 +676,9 @@ public final class Expressions {
 			Annotations.decompileAnnotations(paramAss[i], singleVariableDeclaration.modifiers(),
 					contextT);
 		}
-		final Type methodParameterType = newType(paramTs[i], contextT);
+		final T paramT = paramTs[i];
+		assert paramT != null;
+		final Type methodParameterType = newType(paramT, contextT);
 		// decompile varargs (flag set, ArrayType and last method param)
 		if (i == paramTs.length - 1 && m.isVarargs()) {
 			if (methodParameterType instanceof ArrayType) {
@@ -717,27 +719,31 @@ public final class Expressions {
 		// handle array first because annot(array()) is special
 		if (t.isArray()) {
 			if (ast.apiLevel() <= AST.JLS4) {
-				return ast.newArrayType(newType(t.getComponentT(), contextT));
+				final T componentT = t.getComponentT();
+				assert componentT != null;
+				return ast.newArrayType(newType(componentT, contextT));
 			}
+			final T elementT = t.getElementT();
+			assert elementT != null;
 			for (T checkT = t; checkT != null && checkT.isArray(); checkT = checkT.getComponentT()) {
 				if (checkT.isAnnotated()) {
-					final ArrayType arrayType = ast
-							.newArrayType(newType(t.getElementT(), contextT));
+					final ArrayType arrayType = ast.newArrayType(newType(elementT, contextT));
 					final List<Dimension> dimensions = arrayType.dimensions();
 					dimensions.clear();
-					for (T elementT = t; elementT.isArray(); elementT = elementT.getComponentT()) {
+					for (T componentT = t; componentT != null && componentT.isArray(); componentT = componentT
+							.getComponentT()) {
 						final Dimension dimension = ast.newDimension();
 						final List<Annotation> annotations = dimension.annotations();
 						assert annotations != null;
-						if (elementT.isAnnotated()) {
-							Annotations.decompileAnnotations(elementT, annotations, contextT);
+						if (componentT.isAnnotated()) {
+							Annotations.decompileAnnotations(componentT, annotations, contextT);
 						}
 						dimensions.add(dimension);
 					}
 					return arrayType;
 				}
 			}
-			return ast.newArrayType(newType(t.getElementT(), contextT), t.getDimensions());
+			return ast.newArrayType(newType(elementT, contextT), t.getDimensions());
 		}
 		if (t.isAnnotated()) {
 			Type type = newType(t.getRawT(), contextT);
@@ -777,9 +783,12 @@ public final class Expressions {
 		// doesn't work, now with Dimension (see above): if (t.isArray()) { return
 		// ast.newArrayType(newType(t.getComponentT(), contextT)); }
 		if (t.isParameterized()) {
-			final ParameterizedType parameterizedType = ast.newParameterizedType(newType(
-					t.getGenericT(), contextT));
+			final T genericT = t.getGenericT();
+			assert genericT != null;
+			final ParameterizedType parameterizedType = ast.newParameterizedType(newType(genericT,
+					contextT));
 			for (final T typeArg : t.getTypeArgs()) {
+				assert typeArg != null;
 				parameterizedType.typeArguments().add(newType(typeArg, contextT));
 			}
 			return parameterizedType;
@@ -949,8 +958,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-						not(infixExpression.getLeftOperand()),
-						not(infixExpression.getRightOperand()), getOp(infixExpression));
+								not(infixExpression.getLeftOperand()),
+								not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible

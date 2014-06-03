@@ -748,12 +748,16 @@ public final class TrCfg2JavaExpressionStmts {
 							if (dynamicM.isConstructor()) {
 								final CreationReference methodReference = getAst()
 										.newCreationReference();
-								methodReference.setType(newType(dynamicM.getT(), getCfg().getT()));
+								final T ownerT = dynamicM.getT();
+								assert ownerT != null;
+								methodReference.setType(newType(ownerT, getCfg().getT()));
 								methodExpression = methodReference;
 							} else if (dynamicM.isStatic()) {
 								final TypeMethodReference methodReference = getAst()
 										.newTypeMethodReference();
-								methodReference.setType(newType(dynamicM.getT(), getCfg().getT()));
+								final T ownerT = dynamicM.getT();
+								assert ownerT != null;
+								methodReference.setType(newType(ownerT, getCfg().getT()));
 								methodReference
 								.setName(newSimpleName(dynamicM.getName(), getAst()));
 								methodExpression = methodReference;
@@ -1031,14 +1035,18 @@ public final class TrCfg2JavaExpressionStmts {
 							// (with generic super "Object") or a super class
 							final T[] interfaceTs = newT.getInterfaceTs();
 							switch (interfaceTs.length) {
-							case 0:
-								classInstanceCreation.setType(newType(newT.getSuperT(), getCfg()
-										.getT()));
+							case 0: {
+								final T superT = newT.getSuperT();
+								assert superT != null;
+								classInstanceCreation.setType(newType(superT, getCfg().getT()));
 								break;
-							case 1:
-								classInstanceCreation.setType(newType(interfaceTs[0], getCfg()
-										.getT()));
+							}
+							case 1: {
+								final T interfaceT = interfaceTs[0];
+								assert interfaceT != null;
+								classInstanceCreation.setType(newType(interfaceT, getCfg().getT()));
 								break;
+							}
 							default:
 								break anonymous;
 							}
@@ -1838,7 +1846,11 @@ public final class TrCfg2JavaExpressionStmts {
 			final IfStatement ifStatement = setOp(getAst().newIfStatement(), op);
 			ifStatement.setExpression(wrap(expression));
 			c.addStmt(ifStatement);
-			c.setConds(bb.getTrueSucc(), bb.getFalseSucc());
+			final BB trueSucc = bb.getTrueSucc();
+			assert trueSucc != null;
+			final BB falseSucc = bb.getFalseSucc();
+			assert falseSucc != null;
+			c.setConds(trueSucc, falseSucc);
 			in.remove();
 		}
 		return ins.isEmpty();
@@ -2200,6 +2212,7 @@ public final class TrCfg2JavaExpressionStmts {
 				// Multi-Catch
 				final UnionType unionType = getAst().newUnionType();
 				for (final T t : handlerTypes) {
+					assert t != null;
 					unionType.types().add(newType(t, getCfg().getT()));
 				}
 				singleVariableDeclaration.setType(unionType);

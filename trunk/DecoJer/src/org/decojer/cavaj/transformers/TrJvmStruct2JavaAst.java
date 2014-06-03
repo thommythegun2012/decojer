@@ -343,8 +343,9 @@ public final class TrJvmStruct2JavaAst {
 		final AST ast = t.getCu().getAst();
 
 		final T[] paramTs = m.getParamTs();
-		if (m.getReceiverT() != null) {
-			methodDeclaration.setReceiverType(newType(m.getReceiverT(), t));
+		final T receiverT = m.getReceiverT();
+		if (receiverT != null) {
+			methodDeclaration.setReceiverType(newType(receiverT, t));
 		}
 		final A[][] paramAss = m.getParamAss();
 		for (int i = 0; i < paramTs.length; ++i) {
@@ -384,6 +385,7 @@ public final class TrJvmStruct2JavaAst {
 		methodDeclaration.setReturnType2(newType(m.getReturnT(), t));
 		// decompile exceptions
 		for (final T throwT : m.getThrowsTs()) {
+			assert throwT != null;
 			// Eclipse AST expects a List<Name> for thrownExceptions, not a List<Type>:
 			// is OK - thrownExceptions cannot be generic
 			if (ast.apiLevel() <= AST.JLS4) {
@@ -444,6 +446,7 @@ public final class TrJvmStruct2JavaAst {
 					// enums cannot extend other classes than Enum.class, but can have interfaces
 					if (t.getInterfaceTs() != null) {
 						for (final T interfaceT : t.getInterfaceTs()) {
+							assert interfaceT != null;
 							((EnumDeclaration) typeDeclaration).superInterfaceTypes().add(
 									newType(interfaceT, t));
 						}
@@ -461,6 +464,7 @@ public final class TrJvmStruct2JavaAst {
 					((TypeDeclaration) typeDeclaration).setSuperclassType(newType(superT, t));
 				}
 				for (final T interfaceT : t.getInterfaceTs()) {
+					assert interfaceT != null;
 					((TypeDeclaration) typeDeclaration).superInterfaceTypes().add(
 							newType(interfaceT, t));
 				}
@@ -559,6 +563,7 @@ public final class TrJvmStruct2JavaAst {
 				typeParameter.typeBounds().add(newType(superT, contextT));
 			}
 			for (final T interfaceT : typeParam.getInterfaceTs()) {
+				assert interfaceT != null;
 				typeParameter.typeBounds().add(newType(interfaceT, contextT));
 			}
 			typeParameters.add(typeParameter);
