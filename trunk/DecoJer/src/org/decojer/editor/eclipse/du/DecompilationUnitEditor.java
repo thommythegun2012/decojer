@@ -25,6 +25,8 @@ package org.decojer.editor.eclipse.du;
 
 import javax.annotation.Nonnull;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.decojer.cavaj.model.CU;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.jdt.internal.ui.javaeditor.CompilationUnitEditor;
@@ -36,6 +38,7 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
  *
  * @author André Pankraz
  */
+@Slf4j
 @SuppressWarnings("restriction")
 public class DecompilationUnitEditor extends CompilationUnitEditor {
 
@@ -46,7 +49,7 @@ public class DecompilationUnitEditor extends CompilationUnitEditor {
 		try {
 			sourceCode = cu.decompile();
 		} catch (final Throwable t) {
-			t.printStackTrace();
+			log.warn("Decompilation error for compilation unit '" + cu + "'!", t);
 			sourceCode = "// Decompilation error!";
 		}
 		return new MemoryStorageEditorInput(new StringMemoryStorage(sourceCode, new Path(
