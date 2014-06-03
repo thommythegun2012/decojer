@@ -105,6 +105,7 @@ class TestDU {
 	@Test
 	void testBytecodeOracle() {
 		read(new File("D:/Oracle"));
+		read(new File("E:/Oracle"));
 	}
 
 	@Test
