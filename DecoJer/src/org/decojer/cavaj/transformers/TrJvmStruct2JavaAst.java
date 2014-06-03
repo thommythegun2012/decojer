@@ -178,12 +178,12 @@ public final class TrJvmStruct2JavaAst {
 	private static void decompileMethod(final M m, final CU cu, final boolean strictFp) {
 		final String name = m.getName();
 		final T t = m.getT();
-		assert t != null : m + ": decompile method cannot be dynamic";
+		assert t != null : "decompile method cannot be dynamic";
 
 		// enum synthetic methods
 		if (m.isStatic()
 				&& ("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
-						&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
+				&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
 				&& t.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
@@ -271,7 +271,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 		if (m.getAf(AF.SYNCHRONIZED)) {
 			methodDeclaration.modifiers()
-					.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
+			.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
 		}
 		if (m.getAf(AF.BRIDGE)) {
 			// TODO
@@ -305,7 +305,7 @@ public final class TrJvmStruct2JavaAst {
 			}
 		} else if (methodDeclaration instanceof Initializer) {
 			// Initializer (static{}) has block per default
-			assert ((Initializer) methodDeclaration).getBody() != null : m;
+			assert ((Initializer) methodDeclaration).getBody() != null;
 
 			final CFG cfg = m.getCfg();
 			if (cfg != null) {
@@ -313,10 +313,10 @@ public final class TrJvmStruct2JavaAst {
 				cfg.setBlock(((Initializer) methodDeclaration).getBody());
 			}
 		} else if (methodDeclaration instanceof AnnotationTypeMemberDeclaration) {
-			assert m.getParamTs().length == 0 : m;
+			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-					.setType(newType(m.getReturnT(), t));
+			.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -334,12 +334,12 @@ public final class TrJvmStruct2JavaAst {
 		// <U:TT;>(TT;TU;)V
 		final Object astNode = m.getAstNode();
 		if (!(astNode instanceof MethodDeclaration)) {
-			assert 0 == 1 : m;
+			assert false;
 			return;
 		}
 		final MethodDeclaration methodDeclaration = (MethodDeclaration) astNode;
 		final T t = m.getT();
-		assert t != null : m + ": decompile method cannot be dynamic";
+		assert t != null : "decompile method cannot be dynamic";
 		final AST ast = t.getCu().getAst();
 
 		final T[] paramTs = m.getParamTs();
@@ -428,7 +428,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-							+ "'!");
+									+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
