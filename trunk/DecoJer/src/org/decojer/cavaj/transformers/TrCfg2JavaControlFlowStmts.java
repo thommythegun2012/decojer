@@ -355,7 +355,7 @@ public final class TrCfg2JavaControlFlowStmts {
 						if (currentBbStruct instanceof Loop) {
 							final Loop loop = (Loop) currentBbStruct;
 							if (loop.isPost() ? loop.isLast(currentBb) : loop.isHead(currentBb)) {
-								assert !loop.isHead(currentBb) : "TODO not needed anymore";
+								assert !loop.isHead(currentBb) : "should only find forward continues";
 								statements.add(getAst().newContinueStatement());
 								return;
 							}
@@ -458,9 +458,9 @@ public final class TrCfg2JavaControlFlowStmts {
 			@Nonnull final List<Statement> statements) {
 		if (!this.traversedStructs.add(struct)) {
 			log.warn(getM() + ": Cannot transform struct twice:\n" + struct);
+			assert false;
 			return null;
 		}
-
 		// decompile sub structure into a statement
 		Statement structStatement;
 		if (struct instanceof Catch) {
