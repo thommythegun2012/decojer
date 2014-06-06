@@ -34,6 +34,8 @@ Eclipse: 41 s
   + Reverse Cond, 59 is the Follow, 66 is the Member
 - org.objectweb.asm.ClassReader.a(MethodVisitor,Context,int):
   + Cond(532).setFollow(600) in Cond(528, Follow 556)
+  + long if-elseif-elseif cascade before loop-last
+  + enclosing Ifnot-Cond with Follow 556 is wrong, is an if-else!
 
 - CopyOnWriteArrayList.equals(): last Compound not combined
 - - CopyOnWriteArrayList.equals(): direct backloop is if/else or else!
