@@ -27,7 +27,9 @@ Eclipse: 41 s
 ---
 
 - AbstractExecutorService.invokeAll(): findBranch cannot handle Subs, kill Subs before?
-- org.objectweb.asm.ByteVector.putUTF(): Cond(56).setFollow(66) in Loop(46) mit Follow 77
+- org.objectweb.asm.ByteVector.putUTF():
+  + Cond(56, member 59).setFollow(66) in Loop(46) mit Follow 77
+  + Reverse Cond, 59 is the Follow, 66 is the Member
 
 - CopyOnWriteArrayList.equals(): last Compound not combined
 - - CopyOnWriteArrayList.equals(): direct backloop is if/else or else!
