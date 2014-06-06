@@ -26,9 +26,11 @@ Eclipse: 41 s
 
 ---
 
+- AbstractExecutorService.invokeAll(): findBranch cannot handle Subs, kill Subs before?
+- asm/AllPerfTest.main(): 
+
 - CopyOnWriteArrayList.equals(): last Compound not combined
 - - CopyOnWriteArrayList.equals(): direct backloop is if/else or else!
-- AbstractExecutorService.invokeAll): findBranch cannot handle Subs, kill Subs before?
 
 ---
 
