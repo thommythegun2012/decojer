@@ -1513,9 +1513,9 @@ public final class TrCfg2JavaExpressionStmts {
 			// now we have the potential compound head, go down again and identify patterns
 			final E c_bb2 = c_bb.isCondTrue() ? c.getFalseOut() : c.getTrueOut();
 			final BB bb2 = c_bb2.getRelevantEnd();
-			if (c.hasPred(bb2)) {
-				continue;
-			}
+			// condition wrong for org.objectweb.asm.ALLPerfTest.main(): last 2 conditions in loop
+			// a=87 -> c=87 -> bb=92 and bb2=129 as loop head is combining end node
+			// if (c.hasPred(bb2)) { continue; }
 			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
 			final BB x = a_x.getRelevantEnd();
 
