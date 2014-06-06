@@ -30,9 +30,9 @@ Eclipse: 41 s
   + findBranch cannot handle Subs
   + kill Subs before?
 - org.objectweb.asm.ByteVector.putUTF():
-  + Cond(56, member 59).setFollow(66) in Loop(46) mit Follow 77
+  + Cond(56, member 59).setFollow(66) in Loop(46, Follow 77)
   + Reverse Cond, 59 is the Follow, 66 is the Member
-- org.objectweb.asm.ClassReader.a():
+- org.objectweb.asm.ClassReader.a(MethodVisitor,Context,int):
   + Cond(532).setFollow(600) in Cond(528, Follow 556)
 
 - CopyOnWriteArrayList.equals(): last Compound not combined
