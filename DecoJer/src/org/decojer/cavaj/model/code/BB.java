@@ -301,7 +301,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -943,12 +943,6 @@ public final class BB {
 		if (this.top > 0) {
 			sb.append("\nStack: ").append(
 					Arrays.toString(Arrays.copyOfRange(this.vs, getRegs(), getRegs() + this.top)));
-		}
-		if (this.outs.size() > 1) {
-			sb.append("\nSucc: ");
-			for (final E out : this.outs) {
-				sb.append(out.getEnd().getPostorder()).append(' ');
-			}
 		}
 		return sb.toString();
 	}
