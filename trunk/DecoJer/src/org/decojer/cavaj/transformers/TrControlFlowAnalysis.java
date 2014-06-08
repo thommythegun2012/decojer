@@ -304,16 +304,18 @@ public final class TrControlFlowAnalysis {
 	 */
 	private static void findBranch(@Nonnull final Struct struct, @Nonnull final E firstIn,
 			@Nonnull final List<BB> members, @Nonnull final Set<BB> followBbs) {
+		// no recursion, can be very deep
 		final List<BB> checkBbs = Lists.newArrayList(firstIn.getEnd());
-		outer: while (!checkBbs.isEmpty()) {
+		outer: do {
 			final BB checkBb = checkBbs.remove(0);
-			if (!members.contains(checkBb)) { // necessary check because of switch-case
-				// fall-throughs
-
-				// TODO this is not sufficient...cond-follow with self-loop will be recognized as
-				// follow, see commons-io:FileUtils#decode()
+			if (!members.contains(checkBb)) { // check necessary for switch case fall throughs
+				if (checkBb.isStartBb()) {
+					// special case: checkBb is loop head and is CFG-startBb (no additional ins)
+					followBbs.add(checkBb);
+					continue;
+				}
 				if (checkBb.getIns().size() > 1) {
-					// is there a none-member pred?
+					// has checkBb a none-member predecessor? only possible for multiple ins
 					for (final E in : checkBb.getIns()) {
 						if (in == firstIn) {
 							continue; // ignore first incoming edge into branch
@@ -325,44 +327,25 @@ public final class TrControlFlowAnalysis {
 						if (members.contains(pred)) {
 							continue;
 						}
-						// check is a potential follow BB
-						if (followBbs.contains(checkBb)) {
-							continue outer; // check was already a follow BB
-						}
-						if (checkBb.isCatchHandler()) {
-							// if all incoming catches are inside branch then the above member check
-							// was allready sucessful, but catch-handler will never be a follow BB
-							continue outer;
-						}
-						// we are escaping our struct via break or continue?!
-						// expensive test, should always be last test! JSPs in Oracle ascontrol.ear
-						// is good DoS test for this problem
-						if (!pred.hasPred(struct.getHead())) {
-							// TODO doesn't work for combining if-else-cascades! kill this check
-							continue outer;
-						}
-						// multiple follows during iteration possible, reduce after #findBranch() to
-						// single top follow
 						followBbs.add(checkBb);
 						continue outer;
 					}
-					followBbs.remove(checkBb); // all pred are now members, maybe we where already
-					// here
+					// all predecessors of checkBb are members
+					followBbs.remove(checkBb); // maybe we where already here
 				}
+				// checkBb is a member
 				members.add(checkBb);
 			}
+			// deep recursion into out edges of this member
+			// TODO jump over finally here?
 			for (final E out : checkBb.getOuts()) {
-				if (out.isBack()) {
-					continue;
-				}
-				// TODO jump over finally here
 				final BB succ = out.getEnd();
-				if (members.contains(succ) || checkBbs.contains(succ)) {
-					continue;
+				if (!members.contains(succ) && !checkBbs.contains(succ)) {
+					// follows must be checked again
+					checkBbs.add(succ);
 				}
-				checkBbs.add(succ);
 			}
-		}
+		} while (!checkBbs.isEmpty());
 	}
 
 	private static boolean findReverseBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
