@@ -93,36 +93,40 @@ public final class TrControlFlowAnalysis {
 
 		// we check if this could be a pre-loop:
 		Loop.Kind headKind = null;
-		BB headFollow = null;
+		E headFollow = null;
 		if (head.getStmts() == 1 && head.isCond()) {
-			final BB falseSucc = head.getFalseSucc();
-			final BB trueSucc = head.getTrueSucc();
-			if (loop.hasMember(trueSucc) && !loop.hasMember(falseSucc)) {
+			final E falseOut = head.getFalseOut();
+			assert falseOut != null;
+			final E trueOut = head.getTrueOut();
+			assert trueOut != null;
+			if (loop.hasMember(trueOut.getEnd()) && !loop.hasMember(falseOut.getEnd())) {
 				// JDK 6: true is member, opPc of pre head > next member,
 				// leading goto
 				headKind = Loop.Kind.WHILE;
-				headFollow = falseSucc;
-			} else if (loop.hasMember(falseSucc) && !loop.hasMember(trueSucc)) {
+				headFollow = falseOut;
+			} else if (loop.hasMember(falseOut.getEnd()) && !loop.hasMember(trueOut.getEnd())) {
 				// JDK 5: false is member, opPc of pre head < next member,
 				// trailing goto (negated, check class javascript.Decompiler)
 				headKind = Loop.Kind.WHILENOT;
-				headFollow = trueSucc;
+				headFollow = trueOut;
 			}
 			// no proper pre-loop head!
 		}
 		// we check if this could be a post-loop:
 		Loop.Kind lastKind = null;
-		BB lastFollow = null;
+		E lastFollow = null;
 		if (last != null && last.isCond()) {
 			// don't exclude last.isLoopHead(), simple back loops with multiple statements possible
-			final BB falseSucc = last.getFalseSucc();
-			final BB trueSucc = last.getTrueSucc();
-			if (loop.isHead(trueSucc)) {
+			final E falseOut = last.getFalseOut();
+			assert falseOut != null;
+			final E trueOut = last.getTrueOut();
+			assert trueOut != null;
+			if (loop.isHead(trueOut.getEnd())) {
 				lastKind = Loop.Kind.DO_WHILE;
-				lastFollow = falseSucc;
-			} else if (loop.isHead(falseSucc)) {
+				lastFollow = falseOut;
+			} else if (loop.isHead(falseOut.getEnd())) {
 				lastKind = Loop.Kind.DO_WHILENOT;
-				lastFollow = trueSucc;
+				lastFollow = trueOut;
 			}
 			// no proper post-loop last!
 		}
@@ -131,13 +135,13 @@ public final class TrControlFlowAnalysis {
 		if (headKind != null && lastKind == null) {
 			loop.setKind(headKind);
 			assert headFollow != null;
-			loop.setFollow(headFollow);
+			loop.setFollow(headFollow.getEnd());
 			return loop;
 		}
 		if (headKind == null && lastKind != null) {
 			loop.setKind(lastKind);
 			assert lastFollow != null;
-			loop.setFollow(lastFollow);
+			loop.setFollow(lastFollow.getEnd());
 			return loop;
 		}
 		// we have to compare the tails for head and last
@@ -148,7 +152,7 @@ public final class TrControlFlowAnalysis {
 			findBranch(loop, headFollow, headMembers, headFollows);
 			if (headFollows.contains(lastFollow)) {
 				loop.setKind(lastKind);
-				loop.setFollow(lastFollow);
+				loop.setFollow(lastFollow.getEnd());
 				return loop;
 			}
 			final List<BB> lastMembers = Lists.newArrayList();
@@ -156,12 +160,12 @@ public final class TrControlFlowAnalysis {
 			findBranch(loop, lastFollow, lastMembers, lastFollows);
 			if (lastFollows.contains(headFollow)) {
 				loop.setKind(headKind);
-				loop.setFollow(headFollow);
+				loop.setFollow(headFollow.getEnd());
 				return loop;
 			}
 			// we can decide like we want: we prefer pre-loops
 			loop.setKind(headKind);
-			loop.setFollow(headFollow);
+			loop.setFollow(headFollow.getEnd());
 			return loop;
 		}
 		loop.setKind(Loop.Kind.ENDLESS);
@@ -262,7 +266,7 @@ public final class TrControlFlowAnalysis {
 				follows.remove(caseBb);
 				members.add(caseBb);
 			}
-			findBranch(switchStruct, caseBb, members, follows);
+			findBranch(switchStruct, caseOut, members, follows);
 			switchStruct.addMembers(caseOut.getValue(), members);
 		}
 		if (switchStruct.getFollow() != null) {
@@ -291,16 +295,16 @@ public final class TrControlFlowAnalysis {
 	 *
 	 * @param struct
 	 *            struct
-	 * @param bb
-	 *            current BB
+	 * @param firstIn
+	 *            first incoming edge into branch
 	 * @param members
 	 *            found struct members
 	 * @param followBbs
 	 *            potential struct follows (no continues or breaks)
 	 */
-	private static void findBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
+	private static void findBranch(@Nonnull final Struct struct, @Nonnull final E firstIn,
 			@Nonnull final List<BB> members, @Nonnull final Set<BB> followBbs) {
-		final List<BB> checks = Lists.newArrayList(bb);
+		final List<BB> checks = Lists.newArrayList(firstIn.getEnd());
 		outer: while (!checks.isEmpty()) {
 			final BB check = checks.remove(0);
 			if (!members.contains(check)) { // necessary check because of switch-case fall-throughs
@@ -310,17 +314,15 @@ public final class TrControlFlowAnalysis {
 				if (check.getIns().size() > 1) {
 					// is there a none-member pred?
 					for (final E in : check.getIns()) {
+						if (in == firstIn) {
+							continue; // ignore first incoming edge into branch
+						}
 						if (in.isBack()) {
 							continue; // ignore incoming back edges, sub loop-heads belong to branch
 						}
 						final BB pred = in.getStart();
 						if (members.contains(pred)) {
 							continue;
-						}
-						if (pred == struct.getHead()) {
-							if (members.isEmpty()) {
-								continue;
-							}
 						}
 						if (followBbs.contains(check)) {
 							continue outer;
@@ -537,9 +539,13 @@ public final class TrControlFlowAnalysis {
 
 	@Nullable
 	private Cond createCondStruct(@Nonnull final BB head) {
-		final BB falseSucc = head.getFalseSucc();
-		final BB trueSucc = head.getTrueSucc();
-		assert falseSucc != null && trueSucc != null;
+		final E falseOut = head.getFalseOut();
+		assert falseOut != null;
+		final BB falseSucc = falseOut.getEnd();
+		final E trueOut = head.getTrueOut();
+		assert trueOut != null;
+		final BB trueSucc = trueOut.getEnd();
+
 		// parallel edges? have seen this e.g. in org.python.core.PyJavaClass.addMethod()
 		if (falseSucc == trueSucc) {
 			final Statement finalStmt = head.removeFinalStmt();
@@ -573,36 +579,36 @@ public final class TrControlFlowAnalysis {
 
 		// 2nd condition part is trick against things like iteration in loop last:
 		final boolean negated = falseSucc.isBefore(trueSucc) || trueSucc.isBefore(head);
-		final BB firstSucc = negated ? falseSucc : trueSucc;
-		final BB secondSucc = negated ? trueSucc : falseSucc;
+		final E firstOut = negated ? falseOut : trueOut;
+		final E secondOut = negated ? trueOut : falseOut;
 		final Boolean firstValue = negated;
 		final Boolean secondValue = !negated;
 
 		final List<BB> firstMembers = Lists.newArrayList();
 		final Set<BB> firstFollows = Sets.newHashSet();
-		findBranch(cond, firstSucc, firstMembers, firstFollows);
+		findBranch(cond, firstOut, firstMembers, firstFollows);
 
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
-		if (firstFollows.isEmpty() || firstFollows.contains(secondSucc)) {
+		if (firstFollows.isEmpty() || firstFollows.contains(secondOut.getEnd())) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setKind(negated ? Cond.Kind.IFNOT : Cond.Kind.IF);
 			cond.addMembers(firstValue, firstMembers);
-			cond.setFollow(secondSucc);
+			cond.setFollow(secondOut.getEnd());
 			return cond;
 		}
 
 		final List<BB> secondMembers = Lists.newArrayList();
 		final Set<BB> secondFollows = Sets.newHashSet();
-		findBranch(cond, secondSucc, secondMembers, secondFollows);
+		findBranch(cond, secondOut, secondMembers, secondFollows);
 
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
-		if (secondFollows.isEmpty() || secondFollows.contains(firstSucc)) {
+		if (secondFollows.isEmpty() || secondFollows.contains(firstOut.getEnd())) {
 			// also often in JDK 6 bytecode, especially in parent structs
 			cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
 			cond.addMembers(secondValue, secondMembers);
-			cond.setFollow(firstSucc);
+			cond.setFollow(firstOut.getEnd());
 			return cond;
 		}
 
