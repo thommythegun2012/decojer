@@ -304,16 +304,17 @@ public final class TrControlFlowAnalysis {
 	 */
 	private static void findBranch(@Nonnull final Struct struct, @Nonnull final E firstIn,
 			@Nonnull final List<BB> members, @Nonnull final Set<BB> followBbs) {
-		final List<BB> checks = Lists.newArrayList(firstIn.getEnd());
-		outer: while (!checks.isEmpty()) {
-			final BB check = checks.remove(0);
-			if (!members.contains(check)) { // necessary check because of switch-case fall-throughs
+		final List<BB> checkBbs = Lists.newArrayList(firstIn.getEnd());
+		outer: while (!checkBbs.isEmpty()) {
+			final BB checkBb = checkBbs.remove(0);
+			if (!members.contains(checkBb)) { // necessary check because of switch-case
+				// fall-throughs
 
 				// TODO this is not sufficient...cond-follow with self-loop will be recognized as
 				// follow, see commons-io:FileUtils#decode()
-				if (check.getIns().size() > 1) {
+				if (checkBb.getIns().size() > 1) {
 					// is there a none-member pred?
-					for (final E in : check.getIns()) {
+					for (final E in : checkBb.getIns()) {
 						if (in == firstIn) {
 							continue; // ignore first incoming edge into branch
 						}
@@ -324,40 +325,42 @@ public final class TrControlFlowAnalysis {
 						if (members.contains(pred)) {
 							continue;
 						}
-						if (followBbs.contains(check)) {
-							continue outer;
+						// check is a potential follow BB
+						if (followBbs.contains(checkBb)) {
+							continue outer; // check was already a follow BB
 						}
-						if (check.isCatchHandler()) {
-							// if all incoming catches are inside branch then the above pred-member
-							// check was allready sucessful, but we will never be a follow
+						if (checkBb.isCatchHandler()) {
+							// if all incoming catches are inside branch then the above member check
+							// was allready sucessful, but catch-handler will never be a follow BB
 							continue outer;
 						}
 						// we are escaping our struct via break or continue?!
 						// expensive test, should always be last test! JSPs in Oracle ascontrol.ear
 						// is good DoS test for this problem
 						if (!pred.hasPred(struct.getHead())) {
+							// TODO doesn't work for combining if-else-cascades! kill this check
 							continue outer;
 						}
 						// multiple follows during iteration possible, reduce after #findBranch() to
 						// single top follow
-						followBbs.add(check);
+						followBbs.add(checkBb);
 						continue outer;
 					}
-					followBbs.remove(check); // all pred are now members, maybe we where already
+					followBbs.remove(checkBb); // all pred are now members, maybe we where already
 					// here
 				}
-				members.add(check);
+				members.add(checkBb);
 			}
-			for (final E out : check.getOuts()) {
+			for (final E out : checkBb.getOuts()) {
 				if (out.isBack()) {
 					continue;
 				}
 				// TODO jump over finally here
 				final BB succ = out.getEnd();
-				if (members.contains(succ) || checks.contains(succ)) {
+				if (members.contains(succ) || checkBbs.contains(succ)) {
 					continue;
 				}
-				checks.add(succ);
+				checkBbs.add(succ);
 			}
 		}
 	}
