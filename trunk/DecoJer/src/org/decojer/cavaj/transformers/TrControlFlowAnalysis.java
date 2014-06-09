@@ -93,7 +93,7 @@ public final class TrControlFlowAnalysis {
 
 		// we check if this could be a pre-loop:
 		Loop.Kind headKind = null;
-		E headFollow = null;
+		E headFollowOut = null;
 		if (head.getStmts() == 1 && head.isCond()) {
 			final E falseOut = head.getFalseOut();
 			assert falseOut != null;
@@ -103,18 +103,18 @@ public final class TrControlFlowAnalysis {
 				// JDK 6: true is member, opPc of pre head > next member,
 				// leading goto
 				headKind = Loop.Kind.WHILE;
-				headFollow = falseOut;
+				headFollowOut = falseOut;
 			} else if (loop.hasMember(falseOut.getEnd()) && !loop.hasMember(trueOut.getEnd())) {
 				// JDK 5: false is member, opPc of pre head < next member,
 				// trailing goto (negated, check class javascript.Decompiler)
 				headKind = Loop.Kind.WHILENOT;
-				headFollow = trueOut;
+				headFollowOut = trueOut;
 			}
 			// no proper pre-loop head!
 		}
 		// we check if this could be a post-loop:
 		Loop.Kind lastKind = null;
-		E lastFollow = null;
+		E lastFollowOut = null;
 		if (last != null && last.isCond()) {
 			// don't exclude last.isLoopHead(), simple back loops with multiple statements possible
 			final E falseOut = last.getFalseOut();
@@ -123,10 +123,10 @@ public final class TrControlFlowAnalysis {
 			assert trueOut != null;
 			if (loop.isHead(trueOut.getEnd())) {
 				lastKind = Loop.Kind.DO_WHILE;
-				lastFollow = falseOut;
+				lastFollowOut = falseOut;
 			} else if (loop.isHead(falseOut.getEnd())) {
 				lastKind = Loop.Kind.DO_WHILENOT;
-				lastFollow = trueOut;
+				lastFollowOut = trueOut;
 			}
 			// no proper post-loop last!
 		}
@@ -134,38 +134,38 @@ public final class TrControlFlowAnalysis {
 		// not always exact science...
 		if (headKind != null && lastKind == null) {
 			loop.setKind(headKind);
-			assert headFollow != null;
-			loop.setFollow(headFollow.getEnd());
+			assert headFollowOut != null;
+			loop.setFollow(headFollowOut.getEnd());
 			return loop;
 		}
 		if (headKind == null && lastKind != null) {
 			loop.setKind(lastKind);
-			assert lastFollow != null;
-			loop.setFollow(lastFollow.getEnd());
+			assert lastFollowOut != null;
+			loop.setFollow(lastFollowOut.getEnd());
 			return loop;
 		}
 		// we have to compare the tails for head and last
 		if (headKind != null && lastKind != null) {
-			assert headFollow != null && lastFollow != null;
+			assert headFollowOut != null && lastFollowOut != null;
 			final List<BB> headMembers = Lists.newArrayList();
 			final Set<BB> headFollows = Sets.newHashSet();
-			findBranch(loop, headFollow, headMembers, headFollows);
-			if (headFollows.contains(lastFollow)) {
+			findBranch(loop, headFollowOut, headMembers, headFollows);
+			if (headFollows.contains(lastFollowOut.getEnd())) {
 				loop.setKind(lastKind);
-				loop.setFollow(lastFollow.getEnd());
+				loop.setFollow(lastFollowOut.getEnd());
 				return loop;
 			}
 			final List<BB> lastMembers = Lists.newArrayList();
 			final Set<BB> lastFollows = Sets.newHashSet();
-			findBranch(loop, lastFollow, lastMembers, lastFollows);
-			if (lastFollows.contains(headFollow)) {
+			findBranch(loop, lastFollowOut, lastMembers, lastFollows);
+			if (lastFollows.contains(headFollowOut.getEnd())) {
 				loop.setKind(headKind);
-				loop.setFollow(headFollow.getEnd());
+				loop.setFollow(headFollowOut.getEnd());
 				return loop;
 			}
 			// we can decide like we want: we prefer pre-loops
 			loop.setKind(headKind);
-			loop.setFollow(headFollow.getEnd());
+			loop.setFollow(headFollowOut.getEnd());
 			return loop;
 		}
 		loop.setKind(Loop.Kind.ENDLESS);
