@@ -122,7 +122,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		transformSequence(null, startBb, statements);
 
 		// remove final empty return statement
-		if (statements.size() > 0) {
+		if (!statements.isEmpty()) {
 			final Object object = statements.get(statements.size() - 1);
 			if (object instanceof ReturnStatement
 					&& ((ReturnStatement) object).getExpression() == null) {
@@ -157,53 +157,16 @@ public final class TrCfg2JavaControlFlowStmts {
 		case IFNOT:
 			ifStatement.setExpression(wrap(not(ifStatement.getExpression())));
 			negate = true;
-		case IF: {
-			final List<Statement> subStatements = Lists.newArrayList();
-			transformSequence(cond, negate ? falseOut : trueOut, subStatements);
-
-			if (subStatements.size() == 1) {
-				ifStatement.setThenStatement(subStatements.get(0));
-			} else {
-				final Block block = getAst().newBlock();
-				block.statements().addAll(subStatements);
-				ifStatement.setThenStatement(block);
-			}
+		case IF:
+			ifStatement.setThenStatement(transformSequence(cond, negate ? falseOut : trueOut));
 			return ifStatement;
-		}
 		case IFNOT_ELSE:
 			ifStatement.setExpression(wrap(not(ifStatement.getExpression())));
 			negate = true;
-		case IF_ELSE: {
-			if (falseOut.getEnd() == trueOut.getEnd()) {
-				assert false; // is handled in control flow analysis
-				return null;
-			}
-			{
-				final List<Statement> subStatements = Lists.newArrayList();
-				transformSequence(cond, negate ? falseOut : trueOut, subStatements);
-
-				if (subStatements.size() == 1) {
-					ifStatement.setThenStatement(subStatements.get(0));
-				} else {
-					final Block block = getAst().newBlock();
-					block.statements().addAll(subStatements);
-					ifStatement.setThenStatement(block);
-				}
-			}
-			{
-				final List<Statement> subStatements = Lists.newArrayList();
-				transformSequence(cond, negate ? trueOut : falseOut, subStatements);
-
-				if (subStatements.size() == 1) {
-					ifStatement.setElseStatement(subStatements.get(0));
-				} else {
-					final Block block = getAst().newBlock();
-					block.statements().addAll(subStatements);
-					ifStatement.setElseStatement(block);
-				}
-			}
+		case IF_ELSE:
+			ifStatement.setThenStatement(transformSequence(cond, negate ? falseOut : trueOut));
+			ifStatement.setElseStatement(transformSequence(cond, negate ? trueOut : falseOut));
 			return ifStatement;
-		}
 		default:
 			log.warn(getM() + ": Unknown cond type '" + cond.getKind() + "'!");
 			return null;
@@ -242,19 +205,9 @@ public final class TrCfg2JavaControlFlowStmts {
 			final Expression expression = ifStatement.getExpression();
 			whileStatement.setExpression(wrap(negate ? not(expression) : expression));
 
-			final List<Statement> subStatements = Lists.newArrayList();
 			final E out = negate ? head.getFalseOut() : head.getTrueOut();
 			assert out != null;
-			transformSequence(loop, out, subStatements);
-			if (subStatements.isEmpty()) {
-				whileStatement.setBody(getAst().newEmptyStatement());
-			} else if (subStatements.size() == 1) {
-				whileStatement.setBody(subStatements.get(0));
-			} else {
-				final Block block = getAst().newBlock();
-				block.statements().addAll(subStatements);
-				whileStatement.setBody(block);
-			}
+			whileStatement.setBody(transformSequence(loop, out));
 			return whileStatement;
 		}
 		case DO_WHILE:
@@ -268,14 +221,12 @@ public final class TrCfg2JavaControlFlowStmts {
 			}
 			final DoStatement doStatement = setOp(getAst().newDoStatement(), getOp(ifStatement));
 
-			final List<Statement> subStatements = Lists.newArrayList();
-			transformSequence(loop, head, subStatements);
-
 			final Expression expression = ifStatement.getExpression();
 			doStatement.setExpression(wrap(negate ? not(expression) : expression));
 
-			// has always block
-			((Block) doStatement.getBody()).statements().addAll(subStatements);
+			final List<Statement> doWhileStatements = ((Block) doStatement.getBody()).statements();
+			assert doWhileStatements != null;
+			transformSequence(loop, head, doWhileStatements);
 			return doStatement;
 		}
 		case ENDLESS: {
@@ -285,22 +236,27 @@ public final class TrCfg2JavaControlFlowStmts {
 
 			whileStatement.setExpression(getAst().newBooleanLiteral(true));
 
-			final List<Statement> subStatements = Lists.newArrayList();
-			transformSequence(loop, head, subStatements);
-
-			if (subStatements.size() == 1) {
-				whileStatement.setBody(subStatements.get(0));
-			} else {
-				final Block block = getAst().newBlock();
-				block.statements().addAll(subStatements);
-				whileStatement.setBody(block);
-			}
+			whileStatement.setBody(transformSequence(loop, head));
 			return whileStatement;
 		}
 		default:
 			log.warn(getM() + ": Unknown loop type '" + loop.getKind() + "'!");
 			return null;
 		}
+	}
+
+	private Statement transformSequence(@Nullable final Struct struct, @Nonnull final BB firstBb) {
+		final List<Statement> statements = Lists.newArrayList();
+		transformSequence(struct, firstBb, statements);
+		if (statements.isEmpty()) {
+			return getAst().newEmptyStatement();
+		}
+		if (statements.size() == 1) {
+			return statements.get(0);
+		}
+		final Block block = getAst().newBlock();
+		block.statements().addAll(statements);
+		return block;
 	}
 
 	/**
@@ -433,6 +389,20 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 	}
 
+	private Statement transformSequence(@Nullable final Struct struct, @Nonnull final E firstE) {
+		final List<Statement> statements = Lists.newArrayList();
+		transformSequence(struct, firstE, statements);
+		if (statements.isEmpty()) {
+			return getAst().newEmptyStatement();
+		}
+		if (statements.size() == 1) {
+			return statements.get(0);
+		}
+		final Block block = getAst().newBlock();
+		block.statements().addAll(statements);
+		return block;
+	}
+
 	/**
 	 * Transform first edge from current struct (and following BB sequence in same struct) into a
 	 * list of AST statements.
@@ -545,9 +515,9 @@ public final class TrCfg2JavaControlFlowStmts {
 					}
 					switchStatement.statements().add(switchCase);
 				}
-				final List<Statement> subStatements = Lists.newArrayList();
-				transformSequence(switchStruct, out, subStatements);
-				switchStatement.statements().addAll(subStatements);
+				final List<Statement> switchStatements = switchStatement.statements();
+				assert switchStatements != null;
+				transformSequence(switchStruct, out, switchStatements);
 			}
 			// remove final break
 			final Object object = switchStatement.statements().get(

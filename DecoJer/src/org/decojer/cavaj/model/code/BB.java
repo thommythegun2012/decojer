@@ -301,7 +301,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -685,12 +685,13 @@ public final class BB {
 	}
 
 	/**
-	 * Copy content from BB.
+	 * Copy content from predecessor BB.
 	 *
 	 * @param bb
-	 *            BB
+	 *            predecessor BB
 	 */
 	public void joinPredBb(final BB bb) {
+		setPc(bb.getPc());
 		this.ops.addAll(0, bb.ops);
 		this.stmts.addAll(0, bb.stmts);
 		if (bb.top > 0) {
