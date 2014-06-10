@@ -533,14 +533,6 @@ public final class TrControlFlowAnalysis {
 		final BB falseSucc = falseOut.getEnd();
 		final BB trueSucc = trueOut.getEnd();
 
-		// check for empty if-statements: if(cond);
-		if (falseSucc == trueSucc) {
-			// TODO jdk-default is negated if-expression, check if JCND_EQ used?
-			cond.setKind(Cond.Kind.IFNOT);
-			cond.setFollow(falseSucc);
-			return cond;
-		}
-
 		// if-statement compilation hasn't changed with JDK versions (unlike boolean expressions)
 		// means: negated if-expression, false successor contains if-body (PC & line before true),
 		// special unnegated cases (with JDK 5 compiler?):
@@ -549,7 +541,8 @@ public final class TrControlFlowAnalysis {
 		// we have to check all possibilities anyway...but prefer normal variants
 		// JDK 1 && 2 create wrong line numbers for final return (see DecTestIfStmt)
 
-		// 2nd condition part is trick against things like iteration in loop last:
+		// 2nd condition part is trick against things like iteration in loop last,
+		// also handles empty if-statements as negated
 		final boolean negated = falseSucc.isBefore(trueSucc) || trueSucc.isBefore(head);
 		final E firstOut = negated ? falseOut : trueOut;
 		final E secondOut = negated ? trueOut : falseOut;
@@ -565,6 +558,8 @@ public final class TrControlFlowAnalysis {
 		if (firstFollows.isEmpty() || firstFollows.contains(secondOut.getEnd())) {
 			// normal in JDK 6 bytecode, ifnot-expressions
 			cond.setKind(negated ? Cond.Kind.IFNOT : Cond.Kind.IF);
+			// also handles empty if-statements, members are empty in this case, see
+			// DecTestIfStmt.emptyIf()
 			cond.addMembers(firstValue, firstMembers);
 			cond.setFollow(secondOut.getEnd());
 			return cond;
