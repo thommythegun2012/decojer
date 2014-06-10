@@ -2,8 +2,46 @@ package org.decojer.cavaj.test;
 
 public abstract class DecTestIfStmt {
 
-	public static void ifConditionalCompound(final boolean a, final boolean b,
-			final boolean c, final boolean d, final boolean e) {
+	public static void emptyIf(final Number a, final int b, final boolean c) {
+		if (a instanceof Integer && ((Integer) a).intValue() > b && c)
+			; // nothing
+		System.out.println("END");
+	}
+
+	public static void ifBreak(final int a, final int b) {
+		muh: if (a > b) {
+			System.out.println("TEST a");
+			break muh;
+		}
+		System.out.println("TEST END");
+	}
+
+	public static void ifBreakOuter(final int a, final int b) {
+		muh: if (a > b) {
+			System.out.println("TEST a");
+			if (2 * a > b) {
+				System.out.println("TEST 2a");
+				break muh;
+			}
+			System.out.println("TEST END");
+		}
+		System.out.println("TEST OUTER END");
+		muh: {
+			if (a > b) {
+				System.out.println("TEST a");
+				if (2 * a > b) {
+					System.out.println("TEST 2a");
+					break muh;
+				}
+				System.out.println("TEST 3a");
+			}
+			System.out.println("TEST END");
+		}
+		System.out.println("TEST OUTER END");
+	}
+
+	public static void ifConditionalCompound(final boolean a, final boolean b, final boolean c,
+			final boolean d, final boolean e) {
 		if (a && d ? b : c && e)
 			System.out.println("T1");
 		if (a && (d ? b : c) && e)
@@ -49,8 +87,54 @@ public abstract class DecTestIfStmt {
 			System.out.println("T19");
 	}
 
-	public static void ifShortCircuitCompound(final boolean a, final boolean b,
-			final boolean c) {
+	public static void ifDoubleBoolean(final boolean b) {
+		if (b) {
+			System.out.println("TEST b");
+		}
+		if (b) {
+			System.out.println("TEST b");
+		}
+		System.out.println("TEST END");
+	}
+
+	public static void ifElse(final int a, final int b) {
+		if (a > b) {
+			System.out.println("TEST a");
+		} else {
+			System.out.println("TEST b");
+		}
+		System.out.println("TEST END");
+	}
+
+	public static void ifElseBreak(final int a, final int b) {
+		muh: if (a > b) {
+			System.out.println("TEST a");
+			break muh;
+		} else {
+			System.out.println("TEST b");
+			break muh;
+		}
+		System.out.println("TEST END");
+	}
+
+	public static void ifElseBreakOuter(final int a, final int b) {
+		muh: {
+			if (a > b) {
+				System.out.println("TEST a");
+				break muh;
+			} else {
+				System.out.println("TEST b");
+				if (2 * a > b) {
+					break muh;
+				}
+				System.out.println("TEST 2b");
+			}
+			System.out.println("TEST END");
+		}
+		System.out.println("TEST OUTER END");
+	}
+
+	public static void ifShortCircuitCompound(final boolean a, final boolean b, final boolean c) {
 		if (a && b && c)
 			System.out.println("T1");
 		if (a && !b && c)
@@ -83,85 +167,6 @@ public abstract class DecTestIfStmt {
 			System.out.println("TEST a");
 		}
 		System.out.println("TEST END");
-	}
-
-	public static void testIfBreak(final int a, final int b) {
-		muh: if (a > b) {
-			System.out.println("TEST a");
-			break muh;
-		}
-		System.out.println("TEST END");
-	}
-
-	public static void testIfBreakOuter(final int a, final int b) {
-		muh: if (a > b) {
-			System.out.println("TEST a");
-			if (2 * a > b) {
-				System.out.println("TEST 2a");
-				break muh;
-			}
-			System.out.println("TEST END");
-		}
-		System.out.println("TEST OUTER END");
-		muh: {
-			if (a > b) {
-				System.out.println("TEST a");
-				if (2 * a > b) {
-					System.out.println("TEST 2a");
-					break muh;
-				}
-				System.out.println("TEST 3a");
-			}
-			System.out.println("TEST END");
-		}
-		System.out.println("TEST OUTER END");
-	}
-
-	public static void testIfDoubleBoolean(final boolean b) {
-		if (b) {
-			System.out.println("TEST b");
-		}
-		if (b) {
-			System.out.println("TEST b");
-		}
-		System.out.println("TEST END");
-	}
-
-	public static void testIfElse(final int a, final int b) {
-		if (a > b) {
-			System.out.println("TEST a");
-		} else {
-			System.out.println("TEST b");
-		}
-		System.out.println("TEST END");
-	}
-
-	public static void testIfElseBreak(final int a, final int b) {
-		muh: if (a > b) {
-			System.out.println("TEST a");
-			break muh;
-		} else {
-			System.out.println("TEST b");
-			break muh;
-		}
-		System.out.println("TEST END");
-	}
-
-	public static void testIfElseBreakOuter(final int a, final int b) {
-		muh: {
-			if (a > b) {
-				System.out.println("TEST a");
-				break muh;
-			} else {
-				System.out.println("TEST b");
-				if (2 * a > b) {
-					break muh;
-				}
-				System.out.println("TEST 2b");
-			}
-			System.out.println("TEST END");
-		}
-		System.out.println("TEST OUTER END");
 	}
 
 }
