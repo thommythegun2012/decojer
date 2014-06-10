@@ -50,8 +50,6 @@ import org.decojer.cavaj.model.code.structs.Switch.Kind;
 import org.decojer.cavaj.model.code.structs.Sync;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.utils.Expressions;
-import org.eclipse.jdt.core.dom.Expression;
-import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
@@ -523,37 +521,25 @@ public final class TrControlFlowAnalysis {
 		this.cfg = cfg;
 	}
 
-	@Nullable
+	@Nonnull
 	private Cond createCondStruct(@Nonnull final BB head) {
+		final Cond cond = new Cond(head);
+
 		final E falseOut = head.getFalseOut();
 		assert falseOut != null;
-		final BB falseSucc = falseOut.getEnd();
 		final E trueOut = head.getTrueOut();
 		assert trueOut != null;
+
+		final BB falseSucc = falseOut.getEnd();
 		final BB trueSucc = trueOut.getEnd();
 
-		// parallel edges? have seen this e.g. in org.python.core.PyJavaClass.addMethod()
+		// check for empty if-statements: if(cond);
 		if (falseSucc == trueSucc) {
-			final Statement finalStmt = head.removeFinalStmt();
-			if (!(finalStmt instanceof IfStatement)) {
-				assert false;
-				return null;
-			}
-			// convert if statement to expression statement
-			final Expression expression = ((IfStatement) finalStmt).getExpression();
-			head.addStmt(finalStmt.getAST().newExpressionStatement(Expressions.wrap(expression)));
-			// convert conditional out edges to sequence edge
-			head.setSucc(falseSucc);
-			final List<E> outs = head.getOuts();
-			for (int i = outs.size(); i-- > 0;) {
-				final E out = outs.get(i);
-				if (out.isCond()) {
-					out.remove();
-				}
-			}
-			return null;
+			// TODO jdk-default is negated if-expression, check if JCND_EQ used?
+			cond.setKind(Cond.Kind.IFNOT);
+			cond.setFollow(falseSucc);
+			return cond;
 		}
-		final Cond cond = new Cond(head);
 
 		// if-statement compilation hasn't changed with JDK versions (unlike boolean expressions)
 		// means: negated if-expression, false successor contains if-body (PC & line before true),
