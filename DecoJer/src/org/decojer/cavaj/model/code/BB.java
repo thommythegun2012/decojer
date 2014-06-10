@@ -568,7 +568,8 @@ public final class BB {
 	 *
 	 * @param bb
 	 *            given BB
-	 * @return {@code true} - this BB is before given BB, also for given BB as {@code null}
+	 * @return {@code true} - this BB is before given BB, also for same BBs or given BB as
+	 *         {@code null}
 	 */
 	public boolean isBefore(@Nullable final BB bb) {
 		if (bb == null) {
@@ -577,7 +578,7 @@ public final class BB {
 		if (getLine() < bb.getLine()) {
 			return true;
 		}
-		if (getLine() == bb.getLine() && getPc() < bb.getPc()) {
+		if (getLine() == bb.getLine() && getPc() <= bb.getPc()) {
 			return true;
 		}
 		return false;
