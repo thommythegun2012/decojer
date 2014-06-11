@@ -301,7 +301,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -564,7 +564,7 @@ public final class BB {
 	}
 
 	/**
-	 * Is this BB before given BB?
+	 * Is this BB before (or same like) given BB?
 	 *
 	 * @param bb
 	 *            given BB

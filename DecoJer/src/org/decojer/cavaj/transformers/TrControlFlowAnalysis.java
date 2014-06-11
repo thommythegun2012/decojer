@@ -541,8 +541,8 @@ public final class TrControlFlowAnalysis {
 		// we have to check all possibilities anyway...but prefer normal variants
 		// JDK 1 && 2 create wrong line numbers for final return (see DecTestIfStmt)
 
+		// negated also handles empty if-statements as negated by default,
 		// 2nd condition part is trick against things like iteration in loop last,
-		// also handles empty if-statements as negated
 		final boolean negated = falseSucc.isBefore(trueSucc) || trueSucc.isBefore(head);
 		final E firstOut = negated ? falseOut : trueOut;
 		final E secondOut = negated ? trueOut : falseOut;
