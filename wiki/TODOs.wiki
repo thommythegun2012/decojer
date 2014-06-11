@@ -26,6 +26,7 @@ Eclipse: 41 s
 
 ---
 
+- heavy bug in DecTestIfStmt 1.3: Edge Management wrong in 211 / 195
 - AbstractExecutorService.invokeAll():
   + findBranch cannot handle Subs
   + kill Subs before?
