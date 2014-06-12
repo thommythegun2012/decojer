@@ -301,7 +301,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -727,23 +727,6 @@ public final class BB {
 			target.ins.add(in);
 		}
 		this.ins.clear();
-	}
-
-	/**
-	 * Move out edges (no catches) to target BB.
-	 *
-	 * @param target
-	 *            target BB
-	 */
-	public void moveOuts(@Nonnull final BB target) {
-		for (final E out : this.outs) {
-			if (out.isCatch()) {
-				continue;
-			}
-			out.setStart(target);
-			target.outs.add(out);
-		}
-		this.outs.clear();
 	}
 
 	/**
