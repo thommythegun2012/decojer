@@ -70,9 +70,8 @@ public final class E {
 	private BB end;
 
 	@Getter
-	@Setter(AccessLevel.PROTECTED)
 	@Nonnull
-	private BB start;
+	private final BB start;
 
 	@Getter
 	@Setter
