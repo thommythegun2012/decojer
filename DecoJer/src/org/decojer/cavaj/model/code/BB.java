@@ -149,7 +149,7 @@ public final class BB {
 	 */
 	private final E addSucc(@Nonnull final BB succ, @Nullable final Object value) {
 		final E e = new E(this, succ, value);
-		this.outs.add(e);
+		this.outs.add(e); // add as last important for cleanupOuts
 		succ.ins.add(e);
 		return e;
 	}
@@ -165,6 +165,44 @@ public final class BB {
 	 */
 	public E addSwitchCase(@Nonnull final BB caseBb, @Nonnull final Object[] values) {
 		return addSucc(caseBb, values);
+	}
+
+	/**
+	 * Just one outgoing sequence or condition allowed.
+	 *
+	 * All public methods in CFG, BB, E have to be atomar and leave a consistent CFG state.
+	 */
+	private void cleanupOuts() {
+		boolean foundSequence = false;
+		boolean foundCondTrue = false;
+		boolean foundCondFalse = false;
+		for (int i = this.outs.size(); i-- > 0;) {
+			final E out = this.outs.get(i);
+			if (out.isSequence()) {
+				if (foundSequence || foundCondFalse || foundCondTrue) {
+					out.remove();
+				} else {
+					foundSequence = true;
+				}
+				continue;
+			}
+			if (out.isCondFalse()) {
+				if (foundSequence || foundCondFalse) {
+					out.remove();
+				} else {
+					foundCondFalse = true;
+				}
+				continue;
+			}
+			if (out.isCondTrue()) {
+				if (foundSequence || foundCondTrue) {
+					out.remove();
+				} else {
+					foundCondTrue = true;
+				}
+				continue;
+			}
+		}
 	}
 
 	@Override
@@ -709,11 +747,12 @@ public final class BB {
 			this.top += bb.top;
 		}
 		bb.moveIns(this);
-		bb.remove();
 	}
 
 	/**
 	 * Move in edges to target BB. Adjust CFG start BB.
+	 *
+	 * Is an atomic operation and removes this node.
 	 *
 	 * @param target
 	 *            target BB
@@ -726,7 +765,8 @@ public final class BB {
 			in.setEnd(target);
 			target.ins.add(in);
 		}
-		this.ins.clear();
+		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
+		remove();
 	}
 
 	/**
@@ -861,6 +901,8 @@ public final class BB {
 		}
 		addSucc(trueBb, Boolean.TRUE);
 		addSucc(falseBb, Boolean.FALSE);
+
+		cleanupOuts();
 	}
 
 	/**
@@ -897,7 +939,10 @@ public final class BB {
 	 * @return out edge
 	 */
 	public final E setSucc(@Nonnull final BB succ) {
-		return addSucc(succ, null);
+		final E e = addSucc(succ, null);
+
+		cleanupOuts();
+		return e;
 	}
 
 	/**
@@ -908,6 +953,28 @@ public final class BB {
 			return;
 		}
 		Collections.sort(this.outs, E.LINE_COMPARATOR);
+	}
+
+	/**
+	 * Split off predecessor BB.
+	 *
+	 * Necessary for CFG building, we must preserve "this" for new found backloops into same BB.
+	 *
+	 * @return new predecessor BB
+	 */
+	public BB splitPredBb() {
+		final BB bb = getCfg().newBb(getPc());
+		// like moveIns(this), but without final remove
+		if (getCfg().getStartBb() == this) {
+			getCfg().setStartBb(bb);
+		}
+		for (final E in : this.ins) {
+			in.setEnd(bb);
+			bb.ins.add(in);
+		}
+		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
+		bb.setSucc(this);
+		return bb;
 	}
 
 	@Override

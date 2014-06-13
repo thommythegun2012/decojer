@@ -643,7 +643,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : "cannot assign '" + returnT
-			+ "' to return type '" + cop.getT() + "'";
+					+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -874,9 +874,8 @@ public final class TrDataFlowAnalysis {
 		}
 		// split BB, new incoming block, adapt BB pcs,
 		// it's necessary to preserve the outgoing block for back edges to same BB!!!
-		final BB newInBb = newBb(bb.getPc());
-		newInBb.setSucc(bb);
-		bb.moveIns(newInBb);
+		final BB newInBb = bb.splitPredBb();
+		setBb(newInBb.getPc(), newInBb);
 		while (bb.getOps() > 0 && bb.getOp(0).getPc() != pc) {
 			final Op op = bb.removeOp(0);
 			assert op != null;
