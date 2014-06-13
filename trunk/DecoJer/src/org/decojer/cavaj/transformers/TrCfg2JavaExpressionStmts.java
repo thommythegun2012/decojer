@@ -1843,13 +1843,11 @@ public final class TrCfg2JavaExpressionStmts {
 				default:
 					log.warn(getM() + ": Unknown cmp type '" + cmpType + "'!");
 				}
+				final BB constantSucc = booleanConst ? bb.getTrueSucc() : bb.getFalseSucc();
+				assert constantSucc != null;
 				if (c.getStmts() == 0 && c.isStackEmpty()) {
-					final BB constantSucc = booleanConst ? bb.getTrueSucc() : bb.getFalseSucc();
-					assert constantSucc != null;
 					c.moveIns(constantSucc);
 				} else {
-					final BB constantSucc = booleanConst ? bb.getTrueSucc() : bb.getFalseSucc();
-					assert constantSucc != null;
 					c.setSucc(constantSucc);
 				}
 				continue;
