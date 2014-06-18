@@ -23,8 +23,8 @@
  */
 package org.decojer.cavaj.model.code;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -40,7 +40,6 @@ import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.RET;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.utils.UnmodifiableArrayList;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.IfStatement;
@@ -60,9 +59,10 @@ public final class BB {
 	@Getter
 	private final CFG cfg;
 
-	@Nullable
-	private E[] ins;
+	@Nonnull
+	private final List<E> ins = Lists.newArrayListWithCapacity(2);
 
+	@Nonnull
 	private final List<Op> ops = Lists.newArrayList();
 
 	/**
@@ -70,8 +70,8 @@ public final class BB {
 	 *
 	 * Pc-ordering at initial read automatically through read-order and some sorts at branches.
 	 */
-	@Nullable
-	private E[] outs;
+	@Nonnull
+	private final List<E> outs = Lists.newArrayListWithCapacity(2);
 
 	/**
 	 * Must cache and manage first operation PC separately because operations are removed through
@@ -85,7 +85,8 @@ public final class BB {
 	@Setter
 	private int postorder;
 
-	private final List<Statement> stmts = new ArrayList<Statement>(4);
+	@Nonnull
+	private final List<Statement> stmts = Lists.newArrayListWithCapacity(2);
 
 	@Getter
 	@Setter
@@ -119,16 +120,7 @@ public final class BB {
 	}
 
 	protected final void addIn(final E e) {
-		final E[] ins = this.ins;
-		if (ins == null) {
-			this.ins = new E[] { e };
-			return;
-		}
-		final int l = ins.length;
-		final E[] newIns = new E[l + 1];
-		System.arraycopy(ins, 0, newIns, 0, l);
-		newIns[l] = e;
-		this.ins = newIns;
+		this.ins.add(e);
 	}
 
 	/**
@@ -142,16 +134,7 @@ public final class BB {
 	}
 
 	protected final void addOut(final E e) {
-		final E[] outs = this.outs;
-		if (outs == null) {
-			this.outs = new E[] { e };
-			return;
-		}
-		final int l = outs.length;
-		final E[] newOuts = new E[l + 1];
-		System.arraycopy(outs, 0, newOuts, 0, l);
-		newOuts[l] = e;
-		this.outs = newOuts;
+		this.outs.add(e);
 	}
 
 	/**
@@ -199,15 +182,11 @@ public final class BB {
 	 * All public methods in CFG, BB, E have to be atomar and leave a consistent CFG state.
 	 */
 	private void cleanupOuts() {
-		final E[] outs = this.outs;
-		if (outs == null) {
-			return;
-		}
 		boolean foundSequence = false;
 		boolean foundCondTrue = false;
 		boolean foundCondFalse = false;
-		for (int i = outs.length; i-- > 0;) {
-			final E out = outs[i];
+		for (int i = this.outs.size(); i-- > 0;) {
+			final E out = this.outs.get(i);
 			if (out.isSequence()) {
 				if (foundSequence || foundCondFalse || foundCondTrue) {
 					out.remove();
@@ -277,11 +256,9 @@ public final class BB {
 	 */
 	@Nullable
 	public E getFalseOut() {
-		if (this.outs != null) {
-			for (final E out : this.outs) {
-				if (out.getValue() == Boolean.FALSE) {
-					return out;
-				}
+		for (final E out : this.outs) {
+			if (out.getValue() == Boolean.FALSE) {
+				return out;
 			}
 		}
 		return null;
@@ -371,7 +348,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -417,7 +394,7 @@ public final class BB {
 	}
 
 	public List<E> getIns() {
-		return UnmodifiableArrayList.fromArray(this.ins);
+		return Collections.unmodifiableList(this.ins);
 	}
 
 	/**
@@ -453,7 +430,7 @@ public final class BB {
 	}
 
 	public List<E> getOuts() {
-		return UnmodifiableArrayList.fromArray(this.outs);
+		return Collections.unmodifiableList(this.outs);
 	}
 
 	/**
@@ -475,7 +452,7 @@ public final class BB {
 	@Nullable
 	public E getRelevantIn() {
 		// only single ins are relevant, including none-sequences like conditional edges
-		return this.ins == null || this.ins.length != 1 ? null : this.ins[0].getRelevantIn();
+		return this.ins.size() != 1 ? null : this.ins.get(0).getRelevantIn();
 	}
 
 	/**
@@ -503,11 +480,9 @@ public final class BB {
 	 */
 	@Nullable
 	public E getSequenceOut() {
-		if (this.outs != null) {
-			for (final E out : this.outs) {
-				if (out.isSequence()) {
-					return out;
-				}
+		for (final E out : this.outs) {
+			if (out.isSequence()) {
+				return out;
 			}
 		}
 		return null;
@@ -561,11 +536,9 @@ public final class BB {
 	 */
 	@Nullable
 	public E getSwitchDefaultOut() {
-		if (this.outs != null) {
-			for (final E out : this.outs) {
-				if (out.isSwitchDefault()) {
-					return out;
-				}
+		for (final E out : this.outs) {
+			if (out.isSwitchDefault()) {
+				return out;
 			}
 		}
 		return null;
@@ -674,11 +647,9 @@ public final class BB {
 	 * @return {@code true} - BB is a catch handler
 	 */
 	public boolean isCatchHandler() {
-		if (this.ins != null) {
-			for (final E in : this.ins) {
-				if (in.isCatch()) {
-					return true;
-				}
+		for (final E in : this.ins) {
+			if (in.isCatch()) {
+				return true;
 			}
 		}
 		return false;
@@ -714,7 +685,7 @@ public final class BB {
 	 */
 	public boolean isRelevant() {
 		// important in-check for getRelevantOut()
-		if (this.ins == null || this.ins.length != 1) {
+		if (this.ins.size() != 1) {
 			return true;
 		}
 		// for ops.isEmpty() -> later GOTO check
@@ -744,11 +715,9 @@ public final class BB {
 	 * @return {@code true} - BB is a sequence
 	 */
 	public boolean isSequence() {
-		if (this.outs != null) {
-			for (final E out : this.outs) {
-				if (out.isSequence()) {
-					return true;
-				}
+		for (final E out : this.outs) {
+			if (out.isSequence()) {
+				return true;
 			}
 		}
 		return false;
@@ -810,13 +779,11 @@ public final class BB {
 		if (getCfg().getStartBb() == this) {
 			getCfg().setStartBb(target);
 		}
-		if (this.ins != null) {
-			for (final E in : this.ins) {
-				in.setEnd(target);
-				target.addIn(in);
-			}
-			this.ins = null; // necessary, all incomings are relocated, don't remove!
+		for (final E in : this.ins) {
+			in.setEnd(target);
+			target.addIn(in);
 		}
+		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
 		remove();
 	}
 
@@ -878,22 +845,16 @@ public final class BB {
 	 */
 	public void remove() {
 		assert !isStartBb();
-		final E[] ins = this.ins;
-		if (ins != null) {
-			for (int i = ins.length; i-- > 0;) {
-				final E e = ins[i];
-				e.getStart().removeOut(e);
-			}
-			this.ins = null;
+		for (int i = this.ins.size(); i-- > 0;) {
+			final E e = this.ins.get(i);
+			e.getStart().removeOut(e);
 		}
-		final E[] outs = this.outs;
-		if (outs != null) {
-			for (int i = outs.length; i-- > 0;) {
-				final E e = outs[i];
-				e.getEnd().removeIn(e);
-			}
-			this.outs = null;
+		this.ins.clear();
+		for (int i = this.outs.size(); i-- > 0;) {
+			final E e = this.outs.get(i);
+			e.getEnd().removeIn(e);
 		}
+		this.outs.clear();
 		getCfg().getPostorderedBbs().set(this.postorder, null);
 		this.pc = -1;
 	}
@@ -909,30 +870,9 @@ public final class BB {
 	}
 
 	protected void removeIn(final E e) {
-		final E[] ins = this.ins;
-		if (ins == null) {
-			return;
-		}
-		for (int i = ins.length; i-- > 0;) {
-			if (ins[i] == e) {
-				final int l = ins.length;
-				if (i < 0 || i >= l) {
-					assert false;
-					return;
-				}
-				if (l == 1) {
-					if (!isStartBb()) {
-						remove();
-					}
-					this.ins = null;
-					return;
-				}
-				final E[] newIns = new E[l - 1];
-				System.arraycopy(ins, 0, newIns, 0, i);
-				System.arraycopy(ins, i + 1, newIns, i, l - i - 1);
-				this.ins = newIns;
-				return;
-			}
+		this.ins.remove(e);
+		if (this.ins.isEmpty() && !isStartBb()) {
+			remove();
 		}
 	}
 
@@ -950,28 +890,7 @@ public final class BB {
 	}
 
 	protected void removeOut(final E e) {
-		final E[] outs = this.outs;
-		if (outs == null) {
-			return;
-		}
-		for (int i = outs.length; i-- > 0;) {
-			if (outs[i] == e) {
-				final int l = outs.length;
-				if (i < 0 || i >= l) {
-					// assert false;
-					return;
-				}
-				if (l == 1) {
-					this.outs = null;
-					return;
-				}
-				final E[] newOuts = new E[l - 1];
-				System.arraycopy(outs, 0, newOuts, 0, i);
-				System.arraycopy(outs, i + 1, newOuts, i, l - i - 1);
-				this.outs = newOuts;
-				return;
-			}
-		}
+		this.outs.remove(e);
 	}
 
 	/**
@@ -1067,9 +986,7 @@ public final class BB {
 		if (!getCfg().isLineInfo()) {
 			return;
 		}
-		if (this.outs != null) {
-			Arrays.sort(this.outs, E.LINE_COMPARATOR);
-		}
+		Collections.sort(this.outs, E.LINE_COMPARATOR);
 	}
 
 	/**
@@ -1085,13 +1002,11 @@ public final class BB {
 		if (getCfg().getStartBb() == this) {
 			getCfg().setStartBb(bb);
 		}
-		if (this.ins != null) {
-			for (final E in : this.ins) {
-				in.setEnd(bb);
-				bb.addIn(in);
-			}
-			this.ins = null; // necessary, all incomings are relocated, don't remove!
+		for (final E in : this.ins) {
+			in.setEnd(bb);
+			bb.addIn(in);
 		}
+		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
 		bb.setSucc(this);
 		return bb;
 	}
