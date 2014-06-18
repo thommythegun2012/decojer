@@ -141,7 +141,13 @@ public class CfgViewer extends Composite {
 				for (final GraphItem g : (List<GraphItem>) ((Graph) e.widget).getSelection()) {
 					final Object data = g.getData();
 					if (data instanceof BB) {
-						log.info(((BB) data).getFrameInfosString());
+						final BB bb = (BB) data;
+						if (bb.getCfg().isFrames() && bb.getOps() > 0) {
+							log.info(bb.getFrameInfosString());
+						} else {
+							log.info(bb.toString());
+						}
+						log.info("Ins: " + bb.getIns() + " |  Outs: " + bb.getOuts());
 					}
 				}
 			}
@@ -154,7 +160,7 @@ public class CfgViewer extends Composite {
 		final GraphNode node = new GraphNode(this.graph, SWT.NONE, bb.toString(), bb);
 		if (bb.getStruct() != null) {
 			node.setTooltip(new Label(bb.getStruct().toString()));
-		} else if (bb.getCfg().isFrames()) {
+		} else if (bb.getCfg().isFrames() && bb.getOps() > 0) {
 			node.setTooltip(new FramesFigure(bb));
 		} else {
 			node.setTooltip(null);
