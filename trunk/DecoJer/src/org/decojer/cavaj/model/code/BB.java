@@ -371,7 +371,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -647,30 +647,6 @@ public final class BB {
 		return !hasPred(bb);
 	}
 
-	protected int indexOfIn(@Nonnull final E e) {
-		if (this.ins != null) {
-			for (int i = this.ins.length; i-- > 0;) {
-				if (this.ins[i] == e) {
-					return i;
-				}
-
-			}
-		}
-		return -1;
-	}
-
-	protected int indexOfOut(@Nonnull final E e) {
-		if (this.outs != null) {
-			for (int i = this.outs.length; i-- > 0;) {
-				if (this.outs[i] == e) {
-					return i;
-				}
-
-			}
-		}
-		return -1;
-	}
-
 	/**
 	 * Is this BB before (or same like) given BB?
 	 *
@@ -906,8 +882,7 @@ public final class BB {
 		if (ins != null) {
 			for (int i = ins.length; i-- > 0;) {
 				final E e = ins[i];
-				final BB pred = e.getStart();
-				pred.removeOut(pred.indexOfOut(e));
+				e.getStart().removeOut(e);
 			}
 			this.ins = null;
 		}
@@ -915,8 +890,7 @@ public final class BB {
 		if (outs != null) {
 			for (int i = outs.length; i-- > 0;) {
 				final E e = outs[i];
-				final BB succ = e.getEnd();
-				succ.removeIn(succ.indexOfIn(e));
+				e.getEnd().removeIn(e);
 			}
 			this.outs = null;
 		}
@@ -934,28 +908,32 @@ public final class BB {
 		return this.stmts.isEmpty() ? null : this.stmts.remove(this.stmts.size() - 1);
 	}
 
-	protected void removeIn(final int i) {
+	protected void removeIn(final E e) {
 		final E[] ins = this.ins;
 		if (ins == null) {
-			assert false;
 			return;
 		}
-		final int l = ins.length;
-		if (i < 0 || i >= l) {
-			assert false;
-			return;
-		}
-		if (l == 1) {
-			if (!isStartBb()) {
-				remove();
+		for (int i = ins.length; i-- > 0;) {
+			if (ins[i] == e) {
+				final int l = ins.length;
+				if (i < 0 || i >= l) {
+					assert false;
+					return;
+				}
+				if (l == 1) {
+					if (!isStartBb()) {
+						remove();
+					}
+					this.ins = null;
+					return;
+				}
+				final E[] newIns = new E[l - 1];
+				System.arraycopy(ins, 0, newIns, 0, i);
+				System.arraycopy(ins, i + 1, newIns, i, l - i - 1);
+				this.ins = newIns;
+				return;
 			}
-			this.ins = null;
-			return;
 		}
-		final E[] newIns = new E[l - 1];
-		System.arraycopy(ins, 0, newIns, 0, i);
-		System.arraycopy(ins, i + 1, newIns, i, l - i - 1);
-		this.ins = newIns;
 	}
 
 	/**
@@ -971,25 +949,29 @@ public final class BB {
 		return size <= i ? null : this.ops.remove(i);
 	}
 
-	protected void removeOut(final int i) {
+	protected void removeOut(final E e) {
 		final E[] outs = this.outs;
 		if (outs == null) {
-			assert false;
 			return;
 		}
-		final int l = outs.length;
-		if (i < 0 || i >= l) {
-			// assert false;
-			return;
+		for (int i = outs.length; i-- > 0;) {
+			if (outs[i] == e) {
+				final int l = outs.length;
+				if (i < 0 || i >= l) {
+					// assert false;
+					return;
+				}
+				if (l == 1) {
+					this.outs = null;
+					return;
+				}
+				final E[] newOuts = new E[l - 1];
+				System.arraycopy(outs, 0, newOuts, 0, i);
+				System.arraycopy(outs, i + 1, newOuts, i, l - i - 1);
+				this.outs = newOuts;
+				return;
+			}
 		}
-		if (l == 1) {
-			this.outs = null;
-			return;
-		}
-		final E[] newOuts = new E[l - 1];
-		System.arraycopy(outs, 0, newOuts, 0, i);
-		System.arraycopy(outs, i + 1, newOuts, i, l - i - 1);
-		this.outs = newOuts;
 	}
 
 	/**
