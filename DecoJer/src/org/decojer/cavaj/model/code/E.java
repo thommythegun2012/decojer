@@ -305,11 +305,8 @@ public final class E {
 	 * Remove edge from CFG.
 	 */
 	public void remove() {
-		this.start.getOuts().remove(this);
-		this.end.getIns().remove(this);
-		if (this.end.getIns().isEmpty() && !this.end.isStartBb()) {
-			this.end.remove();
-		}
+		this.start.removeOut(this.start.indexOfOut(this));
+		this.end.removeIn(this.end.indexOfIn(this));
 	}
 
 	@Override
