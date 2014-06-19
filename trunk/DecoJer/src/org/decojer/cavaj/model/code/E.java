@@ -35,6 +35,8 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.types.T;
 
+import com.google.common.base.Objects;
+
 /**
  * Edge for CFG.
  *
@@ -63,13 +65,11 @@ public final class E {
 
 	};
 
-	@Getter
-	@Nonnull
+	@Nullable
 	private BB end;
 
-	@Getter
-	@Nonnull
-	private final BB start;
+	@Nullable
+	private BB start;
 
 	@Getter
 	@Setter
@@ -79,17 +79,12 @@ public final class E {
 	/**
 	 * Constructor.
 	 *
-	 * @param start
-	 *            start BB
-	 * @param end
-	 *            end BB
+	 * Init as empty edge in "removed state" and update start/end via BB-add/remove-In/out.
+	 *
 	 * @param value
 	 *            value
 	 */
-	public E(@Nonnull final BB start, @Nonnull final BB end, @Nullable final Object value) {
-		assert !start.isRemoved() && !end.isRemoved();
-		this.start = start;
-		this.end = end;
+	public E(@Nullable final Object value) {
 		this.value = value;
 	}
 
@@ -99,7 +94,14 @@ public final class E {
 			return false;
 		}
 		final E e = (E) obj;
-		return this.start.equals(e.start) && this.end.equals(e.end);
+		return Objects.equal(this.start, e.start) && Objects.equal(this.end, e.end);
+	}
+
+	@Nonnull
+	public BB getEnd() {
+		final BB end = this.end;
+		assert end != null && !end.isRemoved();
+		return end;
 	}
 
 	/**
@@ -161,8 +163,16 @@ public final class E {
 	}
 
 	@Nonnull
+	public BB getStart() {
+		final BB start = this.start;
+		assert start != null && !start.isRemoved();
+		return start;
+	}
+
+	@Nonnull
 	public String getValueString() {
-		final List<E> outs = getStart().isRemoved() ? null : getStart().getOuts();
+		final BB start = this.start;
+		final List<E> outs = start == null || start.isRemoved() ? null : start.getOuts();
 		final String prefix = outs != null && outs.size() > 1 ? outs.indexOf(this) + " " : "";
 		if (this.value == null) {
 			return prefix + "";
@@ -175,7 +185,7 @@ public final class E {
 
 	@Override
 	public int hashCode() {
-		return this.start.hashCode() * 13 + this.end.hashCode();
+		return getStart().hashCode() * 13 + getEnd().hashCode();
 	}
 
 	/**
@@ -186,7 +196,7 @@ public final class E {
 	 * @return {@code true} - given BB is predecessor of this edge
 	 */
 	public boolean hasPred(@Nonnull final BB bb) {
-		return this.start.hasPred(bb);
+		return getStart().hasPred(bb);
 	}
 
 	/**
@@ -196,7 +206,7 @@ public final class E {
 	 */
 	public boolean isBack() {
 		// equal: check self back edge too, ignore catch handler self loops
-		return this.start.getPostorder() <= this.end.getPostorder();
+		return getStart().getPostorder() <= getEnd().getPostorder();
 	}
 
 	/**
@@ -247,10 +257,6 @@ public final class E {
 		}
 		final Sub sub = (Sub) value;
 		return sub.getPc() == getEnd().getPc();
-	}
-
-	protected boolean isRemoved() {
-		return !getStart().getOuts().contains(this);
 	}
 
 	/**
@@ -308,19 +314,25 @@ public final class E {
 	 * Remove edge from CFG.
 	 */
 	public void remove() {
-		this.start.removeOut(this);
-		this.end.removeIn(this);
+		getStart().removeOut(this);
+		getEnd().removeIn(this);
 	}
 
-	protected void setEnd(@Nonnull final BB end) {
-		assert !isRemoved();
+	protected void setEnd(final BB end) {
+		assert end == null || !end.isRemoved() && getStart().getOuts().contains(this);
 		this.end = end;
+	}
+
+	protected void setStart(final BB start) {
+		assert start == null || !start.isRemoved();
+		this.start = start;
 	}
 
 	@Override
 	public String toString() {
 		final String valueString = getValueString();
-		return this.start.getPc() + " -> " + this.end.getPc()
+		return (this.start == null ? "null" : getStart().getPc()) + " -> "
+				+ (this.start == null ? "null" : getEnd().getPc())
 				+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
