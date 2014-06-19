@@ -787,6 +787,10 @@ public final class BB {
 	 *            target BB
 	 */
 	public void moveIns(@Nonnull final BB target) {
+		if (target == this) {
+			assert false;
+			return;
+		}
 		if (getCfg().getStartBb() == this) {
 			getCfg().setStartBb(target);
 		}
