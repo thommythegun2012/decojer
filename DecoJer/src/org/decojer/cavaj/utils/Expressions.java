@@ -44,10 +44,12 @@ import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
+import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.Dimension;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.InfixExpression;
+import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.NumberLiteral;
 import org.eclipse.jdt.core.dom.ParameterizedType;
@@ -211,6 +213,37 @@ public final class Expressions {
 	 */
 	public static Object getValue(final Expression literal) {
 		return literal.getProperty(PROP_VALUE);
+	}
+
+	/**
+	 * Check if given expression is a StatementExpression, that can be wrapped into a single
+	 * ExpressionStatement (see Java Language Specification, chapter 14, Blocks and Statements).
+	 *
+	 * @param e
+	 *            expression
+	 * @return {@code true} - is a statement expression
+	 */
+	public static boolean isStatementExpression(@Nullable final Expression e) {
+		if (e instanceof Assignment) {
+			return true;
+		}
+		if (e instanceof PrefixExpression) {
+			final PrefixExpression pe = (PrefixExpression) e;
+			return pe.getOperator() == PrefixExpression.Operator.INCREMENT
+					|| pe.getOperator() == PrefixExpression.Operator.DECREMENT;
+		}
+		if (e instanceof PostfixExpression) {
+			final PostfixExpression pe = (PostfixExpression) e;
+			return pe.getOperator() == PostfixExpression.Operator.INCREMENT
+					|| pe.getOperator() == PostfixExpression.Operator.DECREMENT;
+		}
+		if (e instanceof MethodInvocation) {
+			return true;
+		}
+		if (e instanceof ClassInstanceCreation) {
+			return true;
+		}
+		return false;
 	}
 
 	/**
@@ -388,41 +421,41 @@ public final class Expressions {
 				final char c = value instanceof Character ? (Character) value
 						: value instanceof Number ? (char) ((Number) value).intValue()
 								: ((String) value).charAt(0);
-						switch (c) {
-						case Character.MAX_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MAX_VALUE"));
-						case Character.MIN_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MIN_VALUE"));
-						case Character.MAX_HIGH_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MAX_LOW_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_LOW_SURROGATE"));
-							}
-							break;
-						case Character.MIN_HIGH_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MIN_LOW_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_LOW_SURROGATE"));
-							}
-							break;
-						}
-						final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-						characterLiteral.setCharValue(c);
-						return characterLiteral;
+				switch (c) {
+				case Character.MAX_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MAX_VALUE"));
+				case Character.MIN_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MIN_VALUE"));
+				case Character.MAX_HIGH_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MAX_LOW_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_LOW_SURROGATE"));
+					}
+					break;
+				case Character.MIN_HIGH_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MIN_LOW_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_LOW_SURROGATE"));
+					}
+					break;
+				}
+				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+				characterLiteral.setCharValue(c);
+				return characterLiteral;
 			}
 			if (value == null) {
 				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
@@ -958,8 +991,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-								not(infixExpression.getLeftOperand()),
-								not(infixExpression.getRightOperand()), getOp(infixExpression));
+						not(infixExpression.getLeftOperand()),
+						not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible

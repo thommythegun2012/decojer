@@ -91,6 +91,7 @@ import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.Version;
+import org.decojer.cavaj.utils.Expressions;
 import org.decojer.cavaj.utils.Priority;
 import org.decojer.cavaj.utils.SwitchTypes;
 import org.eclipse.jdt.core.dom.AST;
@@ -1122,11 +1123,10 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				case POP: {
 					final Expression e = bb.pop();
-					if (!(e instanceof Name)) {
-						// single name not allowed as expression, disturbs formatting
-						// TODO also other stuff like literals (no common interface in Eclipse) etc.
+					if (Expressions.isStatementExpression(e)) {
 						statement = getAst().newExpressionStatement(wrap(e));
 					}
+					// TODO check boolean, create empty if for JDK <1.4, warnings
 					break;
 				}
 				default:
