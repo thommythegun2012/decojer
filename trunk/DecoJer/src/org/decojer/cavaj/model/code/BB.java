@@ -57,6 +57,7 @@ import com.google.common.collect.Sets;
 public final class BB {
 
 	@Getter
+	@Nonnull
 	private final CFG cfg;
 
 	@Nonnull
@@ -78,7 +79,6 @@ public final class BB {
 	 * Java statement transformations.
 	 */
 	@Getter
-	@Setter
 	private int pc;
 
 	@Getter
@@ -90,6 +90,7 @@ public final class BB {
 
 	@Getter
 	@Setter
+	@Nullable
 	private Struct struct;
 
 	/**
@@ -98,11 +99,13 @@ public final class BB {
 	@Getter
 	private int top;
 
+	@Nonnull
 	private Expression[] vs;
 
 	protected BB(@Nonnull final CFG cfg, final int pc) {
 		this.cfg = cfg;
-		this.pc = pc;
+		assert pc >= 0 : pc;
+		setPc(pc);
 		this.vs = new Expression[getRegs()];
 	}
 
@@ -119,7 +122,8 @@ public final class BB {
 		return addSucc(handler, catchTs);
 	}
 
-	protected final void addIn(final E e) {
+	protected final void addIn(@Nonnull final E e) {
+		assert !isRemoved() && !e.isRemoved();
 		this.ins.add(e);
 	}
 
@@ -133,7 +137,8 @@ public final class BB {
 		this.ops.add(op);
 	}
 
-	protected final void addOut(final E e) {
+	protected final void addOut(@Nonnull final E e) {
+		assert !isRemoved();
 		this.outs.add(e);
 	}
 
@@ -348,7 +353,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -394,6 +399,7 @@ public final class BB {
 	}
 
 	public List<E> getIns() {
+		assert !isRemoved();
 		return Collections.unmodifiableList(this.ins);
 	}
 
@@ -430,6 +436,7 @@ public final class BB {
 	}
 
 	public List<E> getOuts() {
+		assert !isRemoved();
 		return Collections.unmodifiableList(this.outs);
 	}
 
@@ -700,6 +707,10 @@ public final class BB {
 		return false;
 	}
 
+	protected boolean isRemoved() {
+		return this.pc < 0;
+	}
+
 	/**
 	 * Is sub-ret BB?
 	 *
@@ -856,7 +867,7 @@ public final class BB {
 		}
 		this.outs.clear();
 		getCfg().getPostorderedBbs().set(this.postorder, null);
-		this.pc = -1;
+		setPc(-1);
 	}
 
 	/**
@@ -952,6 +963,11 @@ public final class BB {
 		return addSucc(succ, sub);
 	}
 
+	protected void setPc(final int pc) {
+		assert pc >= 0 || this.ins.isEmpty() && this.outs.isEmpty();
+		this.pc = pc;
+	}
+
 	/**
 	 * Set RET successor.
 	 *
@@ -994,9 +1010,12 @@ public final class BB {
 	 *
 	 * Necessary for CFG building, we must preserve "this" for new found backloops into same BB.
 	 *
+	 * @param pc
+	 *            new first operation PC for this BB
+	 *
 	 * @return new predecessor BB
 	 */
-	public BB splitPredBb() {
+	public BB splitPredBb(final int pc) {
 		final BB bb = getCfg().newBb(getPc());
 		// like moveIns(this), but without final remove
 		if (getCfg().getStartBb() == this) {
@@ -1008,6 +1027,7 @@ public final class BB {
 		}
 		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
 		bb.setSucc(this);
+		setPc(pc);
 		return bb;
 	}
 
