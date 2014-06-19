@@ -123,7 +123,7 @@ public final class BB {
 	}
 
 	protected final void addIn(@Nonnull final E e) {
-		assert !isRemoved() && !e.isRemoved();
+		e.setEnd(this); // necessary asserts are included here
 		this.ins.add(e);
 	}
 
@@ -138,7 +138,7 @@ public final class BB {
 	}
 
 	protected final void addOut(@Nonnull final E e) {
-		assert !isRemoved();
+		e.setStart(this); // necessary asserts are included here
 		this.outs.add(e);
 	}
 
@@ -162,7 +162,7 @@ public final class BB {
 	 * @return out edge
 	 */
 	private final E addSucc(@Nonnull final BB succ, @Nullable final Object value) {
-		final E e = new E(this, succ, value);
+		final E e = new E(value);
 		addOut(e); // add as last important for cleanupOuts
 		succ.addIn(e);
 		return e;
@@ -885,6 +885,7 @@ public final class BB {
 	}
 
 	protected void removeIn(final E e) {
+		e.setEnd(null);
 		this.ins.remove(e);
 		if (this.ins.isEmpty() && !isStartBb()) {
 			remove();
@@ -905,6 +906,7 @@ public final class BB {
 	}
 
 	protected void removeOut(final E e) {
+		e.setStart(null);
 		this.outs.remove(e);
 	}
 
