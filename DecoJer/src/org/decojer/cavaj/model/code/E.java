@@ -162,8 +162,8 @@ public final class E {
 
 	@Nonnull
 	public String getValueString() {
-		final List<E> outs = getStart().getOuts();
-		final String prefix = outs.size() > 1 ? outs.indexOf(this) + " " : "";
+		final List<E> outs = getStart().isRemoved() ? null : getStart().getOuts();
+		final String prefix = outs != null && outs.size() > 1 ? outs.indexOf(this) + " " : "";
 		if (this.value == null) {
 			return prefix + "";
 		}
