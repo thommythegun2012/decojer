@@ -1111,11 +1111,10 @@ public final class TrCfg2JavaExpressionStmts {
 				switch (cop.getKind()) {
 				case POP2: {
 					final Expression e = bb.pop();
-					if (!(e instanceof Name)) {
-						// single name not allowed as expression, disturbs formatting
-						// TODO also other stuff like literals (no common interface in Eclipse) etc.
+					if (Expressions.isStatementExpression(e)) {
 						statement = getAst().newExpressionStatement(wrap(e));
 					}
+					// TODO check boolean, create empty if for JDK <1.4, warnings
 					if (isWide(e)) {
 						break;
 					}
