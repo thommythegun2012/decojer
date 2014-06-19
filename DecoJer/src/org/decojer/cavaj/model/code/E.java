@@ -30,7 +30,6 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -65,7 +64,6 @@ public final class E {
 	};
 
 	@Getter
-	@Setter(AccessLevel.PROTECTED)
 	@Nonnull
 	private BB end;
 
@@ -89,6 +87,7 @@ public final class E {
 	 *            value
 	 */
 	public E(@Nonnull final BB start, @Nonnull final BB end, @Nullable final Object value) {
+		assert !start.isRemoved() && !end.isRemoved();
 		this.start = start;
 		this.end = end;
 		this.value = value;
@@ -250,6 +249,10 @@ public final class E {
 		return sub.getPc() == getEnd().getPc();
 	}
 
+	protected boolean isRemoved() {
+		return !getStart().getOuts().contains(this);
+	}
+
 	/**
 	 * Is RET edge?
 	 *
@@ -307,6 +310,11 @@ public final class E {
 	public void remove() {
 		this.start.removeOut(this);
 		this.end.removeIn(this);
+	}
+
+	protected void setEnd(@Nonnull final BB end) {
+		assert !isRemoved();
+		this.end = end;
 	}
 
 	@Override

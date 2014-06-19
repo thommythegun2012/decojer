@@ -874,7 +874,8 @@ public final class TrDataFlowAnalysis {
 		}
 		// split BB, new incoming block, adapt BB pcs,
 		// it's necessary to preserve the outgoing block for back edges to same BB!!!
-		final BB newInBb = bb.splitPredBb();
+		final BB newInBb = bb.splitPredBb(pc);
+		// TODO move into split pred and also move BB-array for setBb()?
 		setBb(newInBb.getPc(), newInBb);
 		while (bb.getOps() > 0 && bb.getOp(0).getPc() != pc) {
 			final Op op = bb.removeOp(0);
@@ -882,7 +883,6 @@ public final class TrDataFlowAnalysis {
 			newInBb.addOp(op);
 			setBb(op.getPc(), newInBb);
 		}
-		bb.setPc(pc); // necessary because we must preserve outgoing BB
 		return bb;
 	}
 
