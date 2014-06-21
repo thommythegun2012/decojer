@@ -197,7 +197,7 @@ public final class Expressions {
 	 * @return originating operation
 	 */
 	@Nullable
-	public static Op getOp(final ASTNode node) {
+	public static Op getOp(@Nonnull final ASTNode node) {
 		return (Op) node.getProperty(PROP_OP);
 	}
 
@@ -259,6 +259,7 @@ public final class Expressions {
 	 *            originating operation
 	 * @return expression
 	 */
+	@Nonnull
 	public static Assignment newAssignment(final Assignment.Operator operator,
 			final Expression leftOperand, final Expression rightOperand, final Op op) {
 		final Assignment assignment = setOp(leftOperand.getAST().newAssignment(), op);
@@ -282,6 +283,7 @@ public final class Expressions {
 	 *            originating operation
 	 * @return expression
 	 */
+	@Nonnull
 	public static InfixExpression newInfixExpression(final InfixExpression.Operator operator,
 			final Expression leftOperand, final Expression rightOperand, final Op op) {
 		final InfixExpression infixExpression = setOp(leftOperand.getAST().newInfixExpression(), op);
@@ -627,8 +629,9 @@ public final class Expressions {
 	 *            originating operation
 	 * @return expression
 	 */
-	public static Expression newPrefixExpression(final PrefixExpression.Operator operator,
-			final Expression operand, final Op op) {
+	@Nonnull
+	public static Expression newPrefixExpression(@Nonnull final PrefixExpression.Operator operator,
+			@Nonnull final Expression operand, @Nonnull final Op op) {
 		if (operator == PrefixExpression.Operator.NOT) {
 			return not(operand);
 		}
@@ -949,7 +952,8 @@ public final class Expressions {
 	 *            operand expression
 	 * @return !expression
 	 */
-	public static Expression not(final Expression operand) {
+	@Nonnull
+	public static Expression not(@Nonnull final Expression operand) {
 		if (operand instanceof ParenthesizedExpression) {
 			return not(((ParenthesizedExpression) operand).getExpression());
 		}
@@ -1023,7 +1027,9 @@ public final class Expressions {
 	 *            originating operation
 	 * @return expression
 	 */
-	public static <E extends ASTNode> E setOp(final E node, final Op op) {
+	@Nonnull
+	public static <E extends ASTNode> E setOp(final E node, @Nullable final Op op) {
+		assert node != null; // don't mark as @Nonnull in params, many warnings
 		if (op != null) {
 			node.setProperty(PROP_OP, op);
 		}
@@ -1058,11 +1064,13 @@ public final class Expressions {
 	 *            expression
 	 * @return unwrapped expression
 	 */
-	public static Expression unwrap(final Expression expression) {
+	@Nonnull
+	public static Expression unwrap(@Nonnull final Expression expression) {
 		Expression e = expression;
 		while (e instanceof ParenthesizedExpression) {
 			e = ((ParenthesizedExpression) e).getExpression();
 		}
+		assert e != null;
 		return e;
 	}
 

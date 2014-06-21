@@ -353,7 +353,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -807,6 +807,8 @@ public final class BB {
 	 *
 	 * @return expression
 	 */
+
+	@Nonnull
 	public Expression peek() {
 		if (this.top <= 0) {
 			throw new DecoJerException(getCfg() + ": Stack is empty for: " + this);
@@ -821,6 +823,7 @@ public final class BB {
 	 *            reverse stack index
 	 * @return expression
 	 */
+	@Nonnull
 	public Expression peek(final int i) {
 		if (this.top <= i) {
 			throw new DecoJerException(getCfg() + ": Stack is empty for: " + this);
@@ -833,6 +836,7 @@ public final class BB {
 	 *
 	 * @return expression
 	 */
+	@Nonnull
 	public Expression pop() {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
@@ -846,7 +850,7 @@ public final class BB {
 	 * @param v
 	 *            expression
 	 */
-	public void push(final Expression v) {
+	public void push(@Nonnull final Expression v) {
 		if (getRegs() + this.top >= this.vs.length) {
 			final Expression[] newVs = new Expression[getRegs() + this.top + 1];
 			System.arraycopy(this.vs, 0, newVs, 0, getRegs() + this.top);
