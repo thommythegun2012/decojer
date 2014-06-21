@@ -353,7 +353,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -663,12 +663,15 @@ public final class BB {
 	}
 
 	/**
-	 * Is conditional BB? (e.g. if or loop head)
+	 * Is conditional BB? (e.g. if() or loop head)
+	 *
+	 * Exclude empty if-statements that can be created by rewriteConditionalConstants().
 	 *
 	 * @return {@code true} - is conditional BB
 	 */
 	public boolean isCond() {
-		return getFinalStmt() instanceof IfStatement;
+		return getFinalStmt() instanceof IfStatement && getTrueOut() != null
+				&& getFalseOut() != null;
 	}
 
 	/**
