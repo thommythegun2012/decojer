@@ -26,7 +26,7 @@ Eclipse: 41 s
 
 ---
 
-- DecTestIfStmt 1.3, POP/empty if: check for boolean, create empty if for JDK <1.4, warnings
+- resolve Switch problems with unsupported changes in unmod lists
 - AbstractExecutorService.invokeAll():
   + findBranch cannot handle Subs
   + kill Subs before?
