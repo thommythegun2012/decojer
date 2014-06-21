@@ -151,7 +151,7 @@ public final class Expressions {
 	 *         - true
 	 */
 	@Nullable
-	public static Boolean getBooleanValue(final Expression literal) {
+	public static Boolean getBooleanValue(@Nonnull final Expression literal) {
 		// don't add Number and NumberLiteral here or we run into problems for (test ? 4 : 0) etc.,
 		// improve data flow analysis instead
 		final Object value = getValue(literal);
@@ -178,7 +178,7 @@ public final class Expressions {
 	 * @return integer for literal
 	 */
 	@Nullable
-	public static Number getNumberValue(final Expression literal) {
+	public static Number getNumberValue(@Nonnull final Expression literal) {
 		final Object value = getValue(literal);
 		if (value instanceof Number) {
 			return (Number) value;
@@ -211,7 +211,8 @@ public final class Expressions {
 	 *            AST literal expression
 	 * @return originating literal value
 	 */
-	public static Object getValue(final Expression literal) {
+	@Nullable
+	public static Object getValue(@Nonnull final Expression literal) {
 		return literal.getProperty(PROP_VALUE);
 	}
 
@@ -260,8 +261,9 @@ public final class Expressions {
 	 * @return expression
 	 */
 	@Nonnull
-	public static Assignment newAssignment(final Assignment.Operator operator,
-			final Expression leftOperand, final Expression rightOperand, final Op op) {
+	public static Assignment newAssignment(@Nonnull final Assignment.Operator operator,
+			@Nonnull final Expression leftOperand, @Nonnull final Expression rightOperand,
+			@Nonnull final Op op) {
 		final Assignment assignment = setOp(leftOperand.getAST().newAssignment(), op);
 		assignment.setOperator(operator);
 		final int operatorPriority = Priority.priority(assignment).getPriority();
@@ -284,8 +286,10 @@ public final class Expressions {
 	 * @return expression
 	 */
 	@Nonnull
-	public static InfixExpression newInfixExpression(final InfixExpression.Operator operator,
-			final Expression leftOperand, final Expression rightOperand, final Op op) {
+	public static InfixExpression newInfixExpression(
+			@Nonnull final InfixExpression.Operator operator,
+			@Nonnull final Expression leftOperand, @Nonnull final Expression rightOperand,
+			@Nonnull final Op op) {
 		final InfixExpression infixExpression = setOp(leftOperand.getAST().newInfixExpression(), op);
 		infixExpression.setOperator(operator);
 		final int operatorPriority = Priority.priority(infixExpression).getPriority();
@@ -311,11 +315,15 @@ public final class Expressions {
 	 *            originating operation
 	 * @return AST literal expression
 	 */
-	public static Expression newLiteral(final T t, final Object value, final T contextT, final Op op) {
+	@Nonnull
+	public static Expression newLiteral(@Nonnull final T t, @Nullable final Object value,
+			@Nonnull final T contextT, @Nonnull final Op op) {
 		return setOp(setValue(newLiteral2(t, value, contextT), value), op);
 	}
 
-	private static Expression newLiteral2(final T t, final Object value, final T contextT) {
+	@Nonnull
+	private static Expression newLiteral2(@Nonnull final T t, @Nullable final Object value,
+			@Nonnull final T contextT) {
 		final AST ast = contextT.getCu().getAst();
 		if (t.isRef() /* incl. T.AREF */) {
 			if (value == null) {
