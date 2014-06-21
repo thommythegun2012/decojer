@@ -720,15 +720,14 @@ public final class TrCfg2JavaExpressionStmts {
 						break;
 					}
 					if (expression instanceof ThisExpression) {
-						final SuperMethodInvocation superMethodInvocation = setOp(getAst()
-								.newSuperMethodInvocation(), op);
+						final SuperMethodInvocation superMethodInvocation = getAst()
+								.newSuperMethodInvocation();
 						superMethodInvocation.setName(newSimpleName(m.getName(), getAst()));
 						wrapAddAll(superMethodInvocation.arguments(), arguments);
 						methodExpression = superMethodInvocation;
 					} else {
 						// could be private method call in same object, nothing special in syntax
-						final MethodInvocation methodInvocation = setOp(getAst()
-								.newMethodInvocation(), op);
+						final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 						methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
 						methodInvocation.setName(newSimpleName(m.getName(), getAst()));
 						wrapAddAll(methodInvocation.arguments(), arguments);
@@ -803,15 +802,13 @@ public final class TrCfg2JavaExpressionStmts {
 							// pattern and shorten down to getAst().newSuperMethodReference();
 						}
 					} else {
-						final MethodInvocation methodInvocation = setOp(getAst()
-								.newMethodInvocation(), op);
+						final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 						methodInvocation.setName(newSimpleName(m.getName(), getAst()));
 						wrapAddAll(methodInvocation.arguments(), arguments);
 						methodExpression = methodInvocation;
 					}
 				} else if (m.isStatic()) {
-					final MethodInvocation methodInvocation = setOp(getAst().newMethodInvocation(),
-							op);
+					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 					methodInvocation.setExpression(newTypeName(m.getT(), getCfg().getT()));
 					methodInvocation.setName(newSimpleName(m.getName(), getAst()));
 					wrapAddAll(methodInvocation.arguments(), arguments);
@@ -820,8 +817,7 @@ public final class TrCfg2JavaExpressionStmts {
 					if (rewriteStringAppend(bb, cop)) {
 						break;
 					}
-					final MethodInvocation methodInvocation = setOp(getAst().newMethodInvocation(),
-							op);
+					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 					final Expression expression = bb.pop();
 					// TODO need this for switch(this.ordinal) rewrites, delete later?
 					// if (!(expression instanceof ThisExpression)) {
@@ -831,11 +827,13 @@ public final class TrCfg2JavaExpressionStmts {
 					wrapAddAll(methodInvocation.arguments(), arguments);
 					methodExpression = methodInvocation;
 				}
+				setOp(methodExpression, op);
 				final T returnT = m.getReturnT();
 				if (returnT == T.VOID) {
-					statement = getAst().newExpressionStatement(methodExpression);
+					statement = setOp(getAst().newExpressionStatement(methodExpression), op);
 					break;
 				}
+				assert methodExpression != null;
 				bb.push(methodExpression);
 				break;
 			}
