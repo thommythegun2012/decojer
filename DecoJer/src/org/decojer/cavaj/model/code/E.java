@@ -314,17 +314,17 @@ public final class E {
 	 * Remove edge from CFG.
 	 */
 	public void remove() {
-		getStart().removeOut(this);
 		getEnd().removeIn(this);
+		getStart().removeOut(this);
 	}
 
 	protected void setEnd(final BB end) {
-		assert end == null || !end.isRemoved() && getStart().getOuts().contains(this);
+		assert end == null || this.start != null && !end.isRemoved();
 		this.end = end;
 	}
 
 	protected void setStart(final BB start) {
-		assert start == null || !start.isRemoved();
+		assert start == null ? this.end == null : !start.isRemoved();
 		this.start = start;
 	}
 
@@ -332,8 +332,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-				+ (this.start == null ? "null" : getEnd().getPc())
-				+ (valueString.isEmpty() ? "" : " : " + getValueString());
+		+ (this.start == null ? "null" : getEnd().getPc())
+		+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }
