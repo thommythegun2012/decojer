@@ -240,16 +240,14 @@ public final class TrControlFlowAnalysis {
 							switchStruct.setFollow(caseBb);
 							continue cases;
 						}
-						// we cannot be a fall-through yet...may be later
-						caseOuts.remove(i--);
+						// we cannot be a fall-through yet...may be later, add as last for now
 						--hack;
-						caseOuts.add(caseOut); // as last for now
+						head.moveOut(i--, caseOuts.size() - 1);
 						continue cases;
 					}
 				}
 				if (prevCaseIndex < i - 1) {
-					caseOuts.remove(i);
-					caseOuts.add(prevCaseIndex + 1, caseOut);
+					head.moveOut(i, prevCaseIndex + 1);
 				}
 				if (caseOut.isSwitchDefault() && follows.size() == 1 && follows.contains(caseBb)) {
 					// TODO when we are the final fall-through without other follows...

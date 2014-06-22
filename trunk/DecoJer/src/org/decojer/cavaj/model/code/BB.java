@@ -353,7 +353,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -806,6 +806,19 @@ public final class BB {
 	}
 
 	/**
+	 * Move out egde to another index in outs list. For switch case rewrites.
+	 *
+	 * @param fromIndex
+	 *            from index
+	 * @param toIndex
+	 *            to index
+	 */
+	public void moveOut(final int fromIndex, final int toIndex) {
+		final E e = this.outs.remove(fromIndex);
+		this.outs.add(toIndex, e);
+	}
+
+	/**
 	 * Peek stack expression.
 	 *
 	 * @return expression
@@ -867,16 +880,18 @@ public final class BB {
 	 */
 	public void remove() {
 		assert !isStartBb();
-		for (int i = this.ins.size(); i-- > 0;) {
-			final E e = this.ins.get(i);
-			e.getStart().removeOut(e);
-		}
-		this.ins.clear();
 		for (int i = this.outs.size(); i-- > 0;) {
 			final E e = this.outs.get(i);
 			e.getEnd().removeIn(e);
+			e.setStart(null);
 		}
 		this.outs.clear();
+		for (int i = this.ins.size(); i-- > 0;) {
+			final E e = this.ins.get(i);
+			e.setEnd(null);
+			e.getStart().removeOut(e);
+		}
+		this.ins.clear();
 		getCfg().getPostorderedBbs().set(this.postorder, null);
 		setPc(-1);
 	}
