@@ -85,6 +85,12 @@ public class Loop extends Struct {
 	}
 
 	@Override
+	public boolean hasMember(final BB bb) {
+		// last BB for loops is separately stored but counts as normal member
+		return isLast(bb) || super.hasMember(bb);
+	}
+
+	@Override
 	public boolean isBranching(final BB bb) {
 		if (isContinueTarget(bb)) {
 			return true;
@@ -132,12 +138,6 @@ public class Loop extends Struct {
 		return getLast() == bb;
 	}
 
-	@Override
-	public boolean hasMember(final BB bb) {
-		// last BB for loops is separately stored but counts as normal member
-		return isLast(bb) || super.hasMember(bb);
-	}
-
 	/**
 	 * Is loop post?
 	 *
@@ -169,10 +169,10 @@ public class Loop extends Struct {
 	}
 
 	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder(super.toString());
-		sb.append("\nLast: BB " + (getLast() == null ? "???" : getLast().getPc()));
-		sb.append("\nType: " + getKind());
+	public String toStringSpecial(final String prefix) {
+		final StringBuilder sb = new StringBuilder();
+		sb.append(prefix).append("Last: BB " + (getLast() == null ? "???" : getLast().getPc()));
+		sb.append('\n').append(prefix).append("Kind: ").append(getKind());
 		return sb.toString();
 	}
 

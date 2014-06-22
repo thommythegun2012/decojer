@@ -78,10 +78,8 @@ public class Cond extends Struct {
 	}
 
 	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder(super.toString());
-		sb.append("\nKind: " + this.kind);
-		return sb.toString();
+	public String toStringSpecial(final String prefix) {
+		return prefix + "Kind: " + this.kind;
 	}
 
 }

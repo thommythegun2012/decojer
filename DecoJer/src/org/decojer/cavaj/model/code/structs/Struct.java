@@ -39,6 +39,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.code.BB;
 
+import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -259,20 +260,33 @@ public class Struct {
 
 	@Override
 	public String toString() {
-		final StringBuilder sb = new StringBuilder();
-		if (this.parent != null) {
-			sb.append(this.parent).append("\n\n");
+		// calculate prefix from parent indentation level
+		String parentStr;
+		String prefix;
+		if (this.parent == null) {
+			parentStr = null;
+			prefix = "";
+		} else {
+			parentStr = this.parent.toString();
+			prefix = "  ";
+			for (int i = 0; i < parentStr.length(); ++i) {
+				if (parentStr.charAt(i) != ' ') {
+					prefix += Strings.repeat(" ", i);
+					break;
+				}
+			}
 		}
-		sb.append("--- ").append(getClass().getSimpleName()).append(" ---");
-		sb.append("\nHead: BB ").append(getHead().getPc());
+		final StringBuilder sb = new StringBuilder();
+		sb.append(prefix).append("--- ").append(getClass().getSimpleName()).append(" ---\n");
+		sb.append(prefix).append("Head: BB ").append(getHead().getPc());
 		final BB follow = getFollow();
 		if (follow != null) {
 			sb.append("  Follow: BB ").append(follow.getPc());
 		}
-		sb.append("\nMembers: ");
+		sb.append('\n').append(prefix).append("Members: ");
 		int i = 0;
 		for (final Entry<Object, List<BB>> entry : this.value2members.entrySet()) {
-			sb.append("\n  ");
+			sb.append("\n  ").append(prefix);
 			if (i++ > 5) {
 				sb.append(this.value2members.size()).append(" switches");
 				break;
@@ -290,7 +304,19 @@ public class Struct {
 				sb.append("BB ").append(bb.getPc()).append("   ");
 			}
 		}
+		final String special = toStringSpecial(prefix);
+		if (special != null) {
+			sb.append('\n').append(special);
+		}
+		if (parentStr != null) {
+			sb.append('\n').append(parentStr);
+		}
 		return sb.toString();
+	}
+
+	@SuppressWarnings("unused")
+	protected String toStringSpecial(final String prefix) {
+		return null;
 	}
 
 }

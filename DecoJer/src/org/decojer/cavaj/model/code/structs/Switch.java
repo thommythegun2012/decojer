@@ -86,10 +86,8 @@ public class Switch extends Struct {
 	}
 
 	@Override
-	public String toString() {
-		final StringBuilder sb = new StringBuilder(super.toString());
-		sb.append("\nType: " + getKind());
-		return sb.toString();
+	public String toStringSpecial(final String prefix) {
+		return prefix + "Kind: " + getKind();
 	}
 
 }
