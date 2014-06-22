@@ -26,7 +26,10 @@ Eclipse: 41 s
 
 ---
 
-- resolve Switch problems with unsupported changes in unmod lists
+- DecTestException 1.1.3
+java.lang.AssertionError
+	at org.decojer.cavaj.model.code.structs.Struct.setFollow(Struct.java:254)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createCondStruct(TrControlFlowAnalysis.java:562)
 - AbstractExecutorService.invokeAll():
   + findBranch cannot handle Subs
   + kill Subs before?
