@@ -240,8 +240,7 @@ public class Struct {
 		// dismiss such settings silently for now, else have to handle it at many places
 		if (bb.getPostorder() >= this.head.getPostorder()) {
 			this.follow = null;
-		} else {
-			this.follow = bb;
+			return;
 		}
 		// if parent struct exists and doesn't has BB as member, check existend follow!
 		final Struct parent = getParent();
@@ -250,11 +249,12 @@ public class Struct {
 				if (parent.getFollow() == null) {
 					parent.setFollow(bb);
 				} else {
-					log.warn("Cannot change follow to BB" + bb.getPc() + " for:\n" + this);
+					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert false;
 				}
 			}
 		}
+		this.follow = bb;
 	}
 
 	@Override
