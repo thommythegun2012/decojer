@@ -333,9 +333,14 @@ public final class TrControlFlowAnalysis {
 				members.add(checkBb);
 			}
 			// deep recursion into out edges of this member
-			// TODO jump over finally here?
+			// TODO jump over finally here? handle before and remove?
 			for (final E out : checkBb.getOuts()) {
 				final BB succ = out.getEnd();
+				if (succ.isCatchHandler()) {
+					// don't follow catches or we get handler BBs from enclosing catches as follows
+					// TODO shouldn't happen later, handle catches and remove edges before
+					continue;
+				}
 				if (!members.contains(succ) && !checkBbs.contains(succ)) {
 					// follows must be checked again
 					checkBbs.add(succ);
