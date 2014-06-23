@@ -26,10 +26,8 @@ Eclipse: 41 s
 
 ---
 
-- DecTestException 1.1.3
-java.lang.AssertionError
-	at org.decojer.cavaj.model.code.structs.Struct.setFollow(Struct.java:254)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createCondStruct(TrControlFlowAnalysis.java:562)
+- bbk-stat-fdi ... EDU.oswego.cs.dl.util.concurrent.BoundedBuffer.peek()L
+  + synchronized with condition and 2 returns (no follows) triggers cond.setFollow() problem, no follow in sync!
 - AbstractExecutorService.invokeAll():
   + findBranch cannot handle Subs
   + kill Subs before?
