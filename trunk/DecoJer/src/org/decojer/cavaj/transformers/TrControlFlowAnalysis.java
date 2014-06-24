@@ -25,7 +25,6 @@ package org.decojer.cavaj.transformers;
 
 import static org.decojer.cavaj.utils.Expressions.getOp;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -282,6 +281,65 @@ public final class TrControlFlowAnalysis {
 		return switchStruct;
 	}
 
+	@Nonnull
+	private static Sync createSyncStruct(@Nonnull final BB head) {
+		final Sync sync = new Sync(head);
+		final E sequenceOut = head.getSequenceOut();
+		assert sequenceOut != null;
+
+		final List<BB> checkBbs = Lists.newArrayList(sequenceOut.getEnd());
+		BB syncFollow = null;
+		outer: while (!checkBbs.isEmpty()) {
+			final BB checkBb = checkBbs.remove(0);
+
+			for (int i = 0; i < checkBb.getStmts(); ++i) {
+				final Statement stmt = checkBb.getStmt(i);
+				if (!(stmt instanceof SynchronizedStatement)) {
+					continue;
+				}
+				final Op monitorOp = getOp(stmt);
+				if (!(monitorOp instanceof MONITOR)) {
+					assert false;
+					continue;
+				}
+				if (((MONITOR) monitorOp).getKind() != MONITOR.Kind.EXIT) {
+					continue;
+				}
+				// kill exits, encoded in struct now
+				checkBb.removeStmt(i);
+				// highest follow is sync struct follow
+				// TODO add checkBb always as member, check if sequenceOut -> this must be follow or
+				// break
+				if (checkBb.isCatchHandler()) {
+					sync.addMember(null, checkBb);
+				} else if (syncFollow == null) {
+					syncFollow = checkBb;
+				} else if (syncFollow.isBefore(checkBb)) {
+					sync.addMember(null, syncFollow);
+					syncFollow = checkBb;
+				}
+				continue outer;
+			}
+			if (!sync.addMember(null, checkBb)) {
+				continue;
+			}
+			// deep recursion into out edges of this member
+			for (final E out : checkBb.getOuts()) {
+				if (out.isBack()) {
+					continue;
+				}
+				final BB succ = out.getEnd();
+				if (succ != syncFollow && !sync.hasMember(succ) && !checkBbs.contains(succ)) {
+					checkBbs.add(succ);
+				}
+			}
+		}
+		if (syncFollow != null) {
+			sync.setFollow(syncFollow);
+		}
+		return sync;
+	}
+
 	/**
 	 * Add successors until unknown predecessors are encountered.
 	 *
@@ -487,7 +545,7 @@ public final class TrControlFlowAnalysis {
 	 * Is sync head?
 	 *
 	 * Works even for trivial / empty sync sections, because BBs are always split behind
-	 * MONITOR_ENTER (see Data Flow Analysis).
+	 * MONITOR_ENTER (see {@link TrDataFlowAnalysis}).
 	 *
 	 * @param bb
 	 *            BB
@@ -613,72 +671,6 @@ public final class TrControlFlowAnalysis {
 		log.warn(getMd() + ": Unknown struct, no common follow for:\n" + cond);
 		cond.setKind(Cond.Kind.IF);
 		return cond;
-	}
-
-	private void createSyncStruct(@Nonnull final BB head) {
-		// Works even for trivial / empty sync sections, because BBs are always split behind
-		// MONITOR_ENTER (see Data Flow Analysis).
-		final Sync sync = new Sync(head);
-		// monitor enter-exit ranges are always paired, it's not necessary to track the register
-		class SyncE {
-
-			final E e;
-
-			final int level; // monitor level, top is 1, nested is 2, 3...
-
-			public SyncE(final E e, final int level) {
-				this.e = e;
-				this.level = level;
-			}
-
-		}
-		final LinkedList<SyncE> es = Lists.newLinkedList();
-		es.push(new SyncE(head.getSequenceOut(), 1));
-		BB syncFollow = null;
-		bbs: while (!es.isEmpty()) {
-			final SyncE syncE = es.poll();
-			final BB bb = syncE.e.getEnd();
-			int level = syncE.level;
-			for (int i = 0; i < bb.getStmts(); ++i) {
-				final Statement stmt = bb.getStmt(i);
-				if (!(stmt instanceof SynchronizedStatement)) {
-					continue;
-				}
-				final Op monitorOp = getOp(stmt);
-				if (!(monitorOp instanceof MONITOR)) {
-					continue;
-				}
-				switch (((MONITOR) monitorOp).getKind()) {
-				case ENTER:
-					++level;
-					break;
-				case EXIT:
-					if (--level > 0) {
-						break;
-					}
-					// highest follow is sync struct follow
-					if (bb.isBefore(syncFollow) && !bb.isCatchHandler()) {
-						syncFollow = bb;
-					}
-					continue bbs;
-				default:
-					log.warn(getMd() + ": Unknown MONITOR type for operation '" + monitorOp + "'!");
-				}
-			}
-			// TODO potential endless, activate assert in Struct...add and check errors
-			if (!sync.addMember(null, bb)) {
-				continue;
-			}
-			for (final E out : bb.getOuts()) {
-				if (out.isBack()) {
-					continue;
-				}
-				es.add(new SyncE(out, level));
-			}
-		}
-		if (syncFollow != null) {
-			sync.setFollow(syncFollow);
-		}
 	}
 
 	private M getMd() {
