@@ -27,7 +27,7 @@ Eclipse: 41 s
 ---
 
 - bbk-stat-fdi ... EDU.oswego.cs.dl.util.concurrent.BoundedBuffer.peek()L
-  + synchronized with condition and 2 returns (no follows) triggers cond.setFollow() problem, no follow in sync!
+  + TODO add checkBb always as member, check if sequenceOut -> this must be follow or break
 - CopyOnWriteArrayList constructor: don't move new Object[] in initializer because it's not same in all constructors!
 - AbstractExecutorService.invokeAll():
   + findBranch cannot handle Subs
