@@ -379,6 +379,19 @@ public final class R {
 		}
 	}
 
+	/**
+	 * Get original R (mostly constant).
+	 *
+	 * @return original R
+	 */
+	public R toOriginal() {
+		R original = this;
+		while (original.ins != null && original.ins.length > 0) {
+			original = original.ins[0];
+		}
+		return original;
+	}
+
 	@Override
 	public String toString() {
 		return "R" + getI() + "." + getSimpleName();
