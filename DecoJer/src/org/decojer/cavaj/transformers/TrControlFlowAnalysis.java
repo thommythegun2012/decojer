@@ -38,6 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
+import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.ops.MONITOR;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.structs.Catch;
@@ -281,65 +282,6 @@ public final class TrControlFlowAnalysis {
 		return switchStruct;
 	}
 
-	@Nonnull
-	private static Sync createSyncStruct(@Nonnull final BB head) {
-		final Sync sync = new Sync(head);
-		final E sequenceOut = head.getSequenceOut();
-		assert sequenceOut != null;
-
-		final List<BB> checkBbs = Lists.newArrayList(sequenceOut.getEnd());
-		BB syncFollow = null;
-		outer: while (!checkBbs.isEmpty()) {
-			final BB checkBb = checkBbs.remove(0);
-
-			for (int i = 0; i < checkBb.getStmts(); ++i) {
-				final Statement stmt = checkBb.getStmt(i);
-				if (!(stmt instanceof SynchronizedStatement)) {
-					continue;
-				}
-				final Op monitorOp = getOp(stmt);
-				if (!(monitorOp instanceof MONITOR)) {
-					assert false;
-					continue;
-				}
-				if (((MONITOR) monitorOp).getKind() != MONITOR.Kind.EXIT) {
-					continue;
-				}
-				// kill exits, encoded in struct now
-				checkBb.removeStmt(i);
-				// highest follow is sync struct follow
-				// TODO add checkBb always as member, check if sequenceOut -> this must be follow or
-				// break
-				if (checkBb.isCatchHandler()) {
-					sync.addMember(null, checkBb);
-				} else if (syncFollow == null) {
-					syncFollow = checkBb;
-				} else if (syncFollow.isBefore(checkBb)) {
-					sync.addMember(null, syncFollow);
-					syncFollow = checkBb;
-				}
-				continue outer;
-			}
-			if (!sync.addMember(null, checkBb)) {
-				continue;
-			}
-			// deep recursion into out edges of this member
-			for (final E out : checkBb.getOuts()) {
-				if (out.isBack()) {
-					continue;
-				}
-				final BB succ = out.getEnd();
-				if (succ != syncFollow && !sync.hasMember(succ) && !checkBbs.contains(succ)) {
-					checkBbs.add(succ);
-				}
-			}
-		}
-		if (syncFollow != null) {
-			sync.setFollow(syncFollow);
-		}
-		return sync;
-	}
-
 	/**
 	 * Add successors until unknown predecessors are encountered.
 	 *
@@ -542,29 +484,6 @@ public final class TrControlFlowAnalysis {
 	}
 
 	/**
-	 * Is sync head?
-	 *
-	 * Works even for trivial / empty sync sections, because BBs are always split behind
-	 * MONITOR_ENTER (see {@link TrDataFlowAnalysis}).
-	 *
-	 * @param bb
-	 *            BB
-	 *
-	 * @return {@code true} - is sync head
-	 */
-	private static boolean isSyncHead(final BB bb) {
-		final Statement statement = bb.getFinalStmt();
-		if (!(statement instanceof SynchronizedStatement)) {
-			return false;
-		}
-		final Op op = Expressions.getOp(statement);
-		if (!(op instanceof MONITOR)) {
-			return false;
-		}
-		return ((MONITOR) op).getKind() == MONITOR.Kind.ENTER;
-	}
-
-	/**
 	 * Transform CFG.
 	 *
 	 * @param cfg
@@ -673,8 +592,102 @@ public final class TrControlFlowAnalysis {
 		return cond;
 	}
 
+	@Nonnull
+	private Sync createSyncStruct(@Nonnull final BB head, @Nonnull final R syncR) {
+		final Sync sync = new Sync(head);
+		final E sequenceOut = head.getSequenceOut();
+		assert sequenceOut != null;
+
+		final List<BB> checkBbs = Lists.newArrayList(sequenceOut.getEnd());
+		BB syncFollow = null;
+		outer: do {
+			final BB checkBb = checkBbs.remove(0);
+
+			for (int i = 0; i < checkBb.getStmts(); ++i) {
+				final Statement stmt = checkBb.getStmt(i);
+				if (!(stmt instanceof SynchronizedStatement)) {
+					continue;
+				}
+				final Op monitorOp = getOp(stmt);
+				if (!(monitorOp instanceof MONITOR)) {
+					assert false;
+					continue;
+				}
+				if (((MONITOR) monitorOp).getKind() != MONITOR.Kind.EXIT) {
+					continue;
+				}
+				if (syncR != getCfg().getInFrame(monitorOp).peek().toOriginal()) {
+					continue;
+				}
+				// kill monitor-exits, they are encoded in struct now
+				checkBb.removeStmt(i);
+				if (checkBb.isCatchHandler()) {
+					continue outer;
+				}
+				sync.addMember(null, checkBb);
+				// TODO major difference in <1.3 and >= 1.3: in 1.3 the LOAD,EXIT,GOTO/RETURN is
+				// part of try, in <=1.2.2 it's after the try and combined with follow stuff, e.g. a
+				// new ENTER! split necessary?! check for i == 0? as follow is possible...
+				final E syncOut = checkBb.getSequenceOut();
+				if (syncOut == null) {
+					continue outer;
+				}
+				if (syncFollow == null) {
+					syncFollow = syncOut.getEnd();
+					continue outer;
+				}
+				if (syncOut.getEnd().isBefore(syncFollow)) {
+					syncFollow = syncOut.getEnd();
+					continue outer;
+				}
+				continue outer;
+			}
+			sync.addMember(null, checkBb);
+			// deep recursion into out edges of this member
+			for (final E out : checkBb.getOuts()) {
+				if (out.isBack()) {
+					continue;
+				}
+				final BB succ = out.getEnd();
+				if (succ != syncFollow && !sync.hasMember(succ) && !checkBbs.contains(succ)) {
+					checkBbs.add(succ);
+				}
+			}
+		} while (!checkBbs.isEmpty());
+		if (syncFollow != null) {
+			sync.setFollow(syncFollow);
+		}
+		return sync;
+	}
+
 	private M getMd() {
 		return getCfg().getM();
+	}
+
+	/**
+	 * Is sync head?
+	 *
+	 * Works even for trivial / empty sync sections, because BBs are always split behind
+	 * MONITOR_ENTER (see {@link TrDataFlowAnalysis}).
+	 *
+	 * @param bb
+	 *            BB
+	 *
+	 * @return {@code true} - is sync head
+	 */
+	private R isSyncHead(final BB bb) {
+		final Statement statement = bb.getFinalStmt();
+		if (!(statement instanceof SynchronizedStatement)) {
+			return null;
+		}
+		final Op monitorOp = Expressions.getOp(statement);
+		if (!(monitorOp instanceof MONITOR)) {
+			return null;
+		}
+		if (((MONITOR) monitorOp).getKind() != MONITOR.Kind.ENTER) {
+			return null;
+		}
+		return getCfg().getInFrame(monitorOp).peek().toOriginal();
 	}
 
 	private void transform() {
@@ -709,8 +722,9 @@ public final class TrControlFlowAnalysis {
 				// fall through: additional sub struct heads possible for post / endless, including
 				// nested post loops that cannot be handled by continue
 			}
-			if (isSyncHead(bb)) {
-				createSyncStruct(bb);
+			final R syncR = isSyncHead(bb);
+			if (syncR != null) {
+				createSyncStruct(bb, syncR);
 				continue;
 			}
 			if (isSwitchHead(bb)) {
