@@ -28,6 +28,7 @@ Eclipse: 41 s
 
 - bbk-stat-fdi ... EDU.oswego.cs.dl.util.concurrent.BoundedBuffer.peek()L
   + TODO add checkBb always as member, check if sequenceOut -> this must be follow or break
+  + TODO rewriteHandler() should do nothing special, just push a temporary placeholder onto BB-stack and hope for later store
 - CopyOnWriteArrayList constructor: don't move new Object[] in initializer because it's not same in all constructors!
 - AbstractExecutorService.invokeAll():
   + findBranch cannot handle Subs
