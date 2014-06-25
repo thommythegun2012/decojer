@@ -195,14 +195,12 @@ public final class TrCfg2JavaControlFlowStmts {
 			negate = false;
 		case WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) head.getStmt(0);
-			if (ifStatement == null) {
-				assert false;
-				return null;
-			}
+			assert ifStatement != null;
+
 			final WhileStatement whileStatement = setOp(getAst().newWhileStatement(),
 					getOp(ifStatement));
-
 			final Expression expression = ifStatement.getExpression();
+			assert expression != null;
 			whileStatement.setExpression(wrap(negate ? not(expression) : expression));
 
 			final E out = negate ? head.getFalseOut() : head.getTrueOut();
@@ -215,13 +213,11 @@ public final class TrCfg2JavaControlFlowStmts {
 		case DO_WHILENOT: {
 			final BB last = loop.getLast();
 			final IfStatement ifStatement = (IfStatement) last.getFinalStmt();
-			if (ifStatement == null) {
-				assert false;
-				return null;
-			}
+			assert ifStatement != null;
 			final DoStatement doStatement = setOp(getAst().newDoStatement(), getOp(ifStatement));
 
 			final Expression expression = ifStatement.getExpression();
+			assert expression != null;
 			doStatement.setExpression(wrap(negate ? not(expression) : expression));
 
 			final List<Statement> doWhileStatements = ((Block) doStatement.getBody()).statements();
