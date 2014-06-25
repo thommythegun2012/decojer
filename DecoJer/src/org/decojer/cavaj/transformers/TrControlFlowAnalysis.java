@@ -53,6 +53,8 @@ import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
+import org.eclipse.jdt.core.dom.ThrowStatement;
+import org.eclipse.jdt.core.dom.TryStatement;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -621,7 +623,21 @@ public final class TrControlFlowAnalysis {
 				}
 				// kill monitor-exits, they are encoded in struct now
 				checkBb.removeStmt(i);
+				// typical default finally-exit catch-handler can be removed
 				if (checkBb.isCatchHandler()) {
+					remove: if (checkBb.getStmts() == 2) {
+						final Statement tryStatement = checkBb.getStmt(0);
+						if (!(tryStatement instanceof TryStatement)) {
+							break remove;
+						}
+						if (!((TryStatement) tryStatement).catchClauses().isEmpty()) {
+							break remove;
+						}
+						if (!(checkBb.getStmt(1) instanceof ThrowStatement)) {
+							break remove;
+						}
+						checkBb.remove();
+					}
 					continue outer;
 				}
 				sync.addMember(null, checkBb);
@@ -695,6 +711,10 @@ public final class TrControlFlowAnalysis {
 		// for all nodes in _reverse_ postorder: find outer structs first
 		nextBb: for (int i = bbs.size(); i-- > 0;) {
 			final BB bb = bbs.get(i);
+			if (bb == null) {
+				// could have been removed by synchronized-check
+				continue;
+			}
 			bb.sortOuts();
 
 			while (true) {
