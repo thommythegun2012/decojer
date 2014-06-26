@@ -1112,6 +1112,8 @@ public final class TrCfg2JavaExpressionStmts {
 					final Expression e = bb.pop();
 					if (Expressions.isStatementExpression(e)) {
 						statement = getAst().newExpressionStatement(wrap(e));
+					} else if (e instanceof SimpleName && getOp(e) == null /* is exception */) {
+						break;
 					} else if (isBoolean(e)) {
 						if (getCfg().getT().isAtLeast(Version.JVM_4)) {
 							log.warn(getM() + ": Boolean expression POP in '" + cop
@@ -1131,6 +1133,8 @@ public final class TrCfg2JavaExpressionStmts {
 					final Expression e = bb.pop();
 					if (Expressions.isStatementExpression(e)) {
 						statement = getAst().newExpressionStatement(wrap(e));
+					} else if (e instanceof SimpleName && getOp(e) == null /* is exception */) {
+						break;
 					} else if (isBoolean(e)) {
 						if (getCfg().getT().isAtLeast(Version.JVM_4)) {
 							log.warn(getM() + ": Boolean expression POP in '" + cop
@@ -1229,11 +1233,16 @@ public final class TrCfg2JavaExpressionStmts {
 				final STORE cop = (STORE) op;
 
 				final Expression rightOperand = bb.pop();
-
+				final V v = getCfg().getFrameVar(cop.getReg(), cop.getPc() + 1);
+				// check for wrapped temporary exception name
+				if (rightOperand instanceof SimpleName && getOp(rightOperand) == null /* is exception */) {
+					if (v != null) {
+						((SimpleName) rightOperand).setIdentifier(v.getName());
+					}
+					break;
+				}
 				// inline assignment, DUP -> STORE
 				final boolean isInlineAssignment = !bb.isStackEmpty() && bb.peek() == rightOperand;
-				final V v = getCfg().getFrameVar(cop.getReg(), cop.getPc() + 1);
-
 				if (v == null /* tmp hack */|| v.getName() == null) {
 					// temporary local
 					// bb.set(cop.getReg(), rightOperand);
@@ -2230,25 +2239,9 @@ public final class TrCfg2JavaExpressionStmts {
 			// catch handler
 			return false;
 		}
-		// first operations are usually STORE or POP (if exception not needed)
-		final Op firstOp = bb.getOps() == 0 ? null : bb.getOp(0);
-		String name = null;
-		if (firstOp instanceof STORE) {
-			bb.removeOp(0);
-			final STORE op = (STORE) firstOp;
-			name = getVarName(op.getReg(), op.getPc() + 1);
-		} else if (firstOp instanceof POP) {
-			bb.removeOp(0);
-			name = "e"; // TODO hmmm...free variable name needed...
-		} else {
-			// TODO could also be: LOAD x, MONITOR_EXIT - THROW ...kill POP case above?
-			// TODO or could be: DUP, STORE 0, INVOKE printStackTrace()V
-			// or whatever...need are much more generalized version!
-			log.warn(getM() + ": First operation in handler isn't STORE or POP, but is '" + firstOp
-					+ "': " + bb);
-			name = "e"; // TODO hmmm...free variable name needed...
-			bb.push(newSimpleName(name, getAst()));
-		}
+		final SimpleName name = newSimpleName("e", getAst());
+		bb.push(name);
+
 		final T[] handlerTypes = (T[]) bb.getIns().get(0).getValue();
 		assert handlerTypes != null && handlerTypes.length > 0;
 		final T handlerType = handlerTypes[0];
@@ -2258,7 +2251,7 @@ public final class TrCfg2JavaExpressionStmts {
 			final CatchClause catchClause = getAst().newCatchClause();
 			final SingleVariableDeclaration singleVariableDeclaration = getAst()
 					.newSingleVariableDeclaration();
-			singleVariableDeclaration.setName(newSimpleName(name, getAst()));
+			singleVariableDeclaration.setName(name);
 			if (handlerTypes.length == 1) {
 				singleVariableDeclaration.setType(newType(handlerType, getCfg().getT()));
 			} else {
