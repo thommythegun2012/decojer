@@ -658,9 +658,11 @@ public final class Expressions {
 	 *            AST
 	 * @return AST simple name
 	 */
+	@Nonnull
 	public static SimpleName newSimpleName(final String identifier, final AST ast) {
+		SimpleName simpleName;
 		try {
-			return ast.newSimpleName(identifier);
+			simpleName = ast.newSimpleName(identifier);
 		} catch (final IllegalArgumentException e) {
 			String name;
 			if (JAVA_KEYWORDS.contains(identifier)) {
@@ -683,16 +685,17 @@ public final class Expressions {
 				name = sb.toString();
 			}
 			try {
-				final SimpleName simpleName = ast.newSimpleName(name);
+				simpleName = ast.newSimpleName(name);
 				log.info("Couldn't create simple name with identifier '" + identifier
 						+ "'! Rewritten to '" + name + "'.");
-				return simpleName;
 			} catch (final IllegalArgumentException e1) {
 				log.warn("Couldn't create simple name with identifier '" + identifier
 						+ "' or rewritten '" + name + "'!", e);
-				return ast.newSimpleName("_invalid_identifier_");
+				simpleName = ast.newSimpleName("_invalid_identifier_");
 			}
 		}
+		assert simpleName != null;
+		return simpleName;
 	}
 
 	/**
@@ -1056,7 +1059,9 @@ public final class Expressions {
 	 *            originating literal value
 	 * @return expression
 	 */
-	public static <E extends Expression> E setValue(final E expression, final Object value) {
+	@Nonnull
+	public static <E extends Expression> E setValue(final E expression, @Nullable final Object value) {
+		assert expression != null; // don't mark as @Nonnull in params, many warnings
 		if (value != null) {
 			expression.setProperty(PROP_VALUE, value);
 		}
@@ -1089,7 +1094,8 @@ public final class Expressions {
 	 *            expression
 	 * @return wrapped expression
 	 */
-	public static Expression wrap(final Expression expression) {
+	@Nonnull
+	public static Expression wrap(@Nonnull final Expression expression) {
 		if (expression.getParent() == null) {
 			return expression;
 		}
@@ -1098,7 +1104,8 @@ public final class Expressions {
 						getValue(expression)), getOp(expression));
 	}
 
-	private static Expression wrap(final Expression expression, final int priority) {
+	@Nonnull
+	private static Expression wrap(@Nonnull final Expression expression, final int priority) {
 		final Expression e = wrap(expression);
 		if (Priority.priority(e).getPriority() <= priority) {
 			return e;
@@ -1119,7 +1126,8 @@ public final class Expressions {
 	 *            priority
 	 * @return expression
 	 */
-	public static Expression wrap(final Expression expression, final Priority priority) {
+	@Nonnull
+	public static Expression wrap(@Nonnull final Expression expression, final Priority priority) {
 		return wrap(expression, priority.getPriority());
 	}
 
@@ -1136,6 +1144,7 @@ public final class Expressions {
 	public static void wrapAddAll(final List<Expression> expressions,
 			final List<Expression> addExpressions) {
 		for (final Expression expression : addExpressions) {
+			assert expression != null;
 			expressions.add(wrap(expression));
 		}
 	}
