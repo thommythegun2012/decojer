@@ -89,8 +89,11 @@ public final class TrControlFlowAnalysis {
 			}
 		}
 		loop.addMembers(null, members);
-		loop.setLast(last);
-
+		if (last != null) {
+			loop.setLast(last);
+		} else {
+			assert false;
+		}
 		// we check if this could be a pre-loop:
 		Loop.Kind headKind = null;
 		E headFollowOut = null;
