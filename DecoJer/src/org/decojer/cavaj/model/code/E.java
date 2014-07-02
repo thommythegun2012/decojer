@@ -196,7 +196,7 @@ public final class E {
 	 * @return {@code true} - given BB is predecessor of this edge
 	 */
 	public boolean hasPred(@Nonnull final BB bb) {
-		return getStart().hasPred(bb);
+		return getStart().isPred(bb);
 	}
 
 	/**
