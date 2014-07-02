@@ -91,7 +91,7 @@ public class Struct {
 	 *            struct member for value
 	 * @return {@code true} - added
 	 */
-	public boolean addMember(final Object value, @Nonnull final BB bb) {
+	public boolean addMember(@Nullable final Object value, @Nonnull final BB bb) {
 		assert bb != this.head : "Cannot add head as struct member for: " + bb;
 
 		List<BB> members = this.value2members.get(value);
@@ -119,7 +119,7 @@ public class Struct {
 	 * @param bbs
 	 *            struct members for value
 	 */
-	public void addMembers(final Object value, @Nonnull final Collection<BB> bbs) {
+	public void addMembers(@Nullable final Object value, @Nonnull final Collection<BB> bbs) {
 		// TODO could be made faster if necessary when directly implemented
 		for (final BB bb : bbs) {
 			assert bb != null;
@@ -135,7 +135,7 @@ public class Struct {
 	 * @return struct members, changeable list
 	 */
 	@Nullable
-	public List<BB> getMembers(final Object value) {
+	public List<BB> getMembers(@Nullable final Object value) {
 		final List<BB> members = this.value2members.get(value);
 		if (members == null) {
 			return null;
@@ -152,7 +152,7 @@ public class Struct {
 	 *            BB
 	 * @return {@code true} - BB is target for struct break
 	 */
-	public boolean hasBreakTarget(final BB bb) {
+	public boolean hasBreakTarget(@Nullable final BB bb) {
 		return isFollow(bb);
 	}
 
@@ -163,7 +163,7 @@ public class Struct {
 	 *            BB
 	 * @return {@code true} - BB is struct member
 	 */
-	public boolean hasMember(final BB bb) {
+	public boolean hasMember(@Nullable final BB bb) {
 		if (isHead(bb)) {
 			return true;
 		}
@@ -184,7 +184,7 @@ public class Struct {
 	 *            BB
 	 * @return {@code true} - BB is struct member for value
 	 */
-	public boolean hasMember(final Object value, final BB bb) {
+	public boolean hasMember(@Nullable final Object value, @Nullable final BB bb) {
 		final List<BB> members = this.value2members.get(value);
 		return members != null && members.contains(bb);
 	}
@@ -196,7 +196,7 @@ public class Struct {
 	 *            BB
 	 * @return {@code true} - BB is a branching statement node
 	 */
-	public boolean isBranching(final BB bb) {
+	public boolean isBranching(@Nullable final BB bb) {
 		if (hasBreakTarget(bb)) {
 			return true;
 		}
@@ -214,7 +214,7 @@ public class Struct {
 	 *            BB
 	 * @return {@code true} - BB is struct follow
 	 */
-	public boolean isFollow(final BB bb) {
+	public boolean isFollow(@Nullable final BB bb) {
 		return getFollow() == bb;
 	}
 
@@ -225,7 +225,7 @@ public class Struct {
 	 *            BB
 	 * @return {@code true} - BB is struct head
 	 */
-	public boolean isHead(final BB bb) {
+	public boolean isHead(@Nullable final BB bb) {
 		return getHead() == bb;
 	}
 

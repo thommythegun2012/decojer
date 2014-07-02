@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map.Entry;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -72,7 +73,7 @@ public class Switch extends Struct {
 		super(head);
 	}
 
-	public boolean isCase(final BB bb) {
+	public boolean isCase(@Nullable final BB bb) {
 		for (final Entry<Object, List<BB>> entry : this.value2members.entrySet()) {
 			final List<BB> value = entry.getValue();
 			if (value.isEmpty()) {
