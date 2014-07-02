@@ -312,12 +312,12 @@ public final class Expressions {
 	 * @param contextT
 	 *            type declaration (context)
 	 * @param op
-	 *            originating operation
+	 *            originating operation, can be {@code null} for field constants
 	 * @return AST literal expression
 	 */
 	@Nonnull
 	public static Expression newLiteral(@Nonnull final T t, @Nullable final Object value,
-			@Nonnull final T contextT, @Nonnull final Op op) {
+			@Nonnull final T contextT, @Nullable final Op op) {
 		return setOp(setValue(newLiteral2(t, value, contextT), value), op);
 	}
 

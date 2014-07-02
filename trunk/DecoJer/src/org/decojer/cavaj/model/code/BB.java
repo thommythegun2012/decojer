@@ -583,51 +583,6 @@ public final class BB {
 	}
 
 	/**
-	 * Has this BB given BB as predecessor?
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - given BB is predecessor of this BB
-	 */
-	public boolean hasPred(@Nonnull final BB bb) {
-		final List<BB> checks = Lists.newArrayList(this);
-		final Set<BB> checked = Sets.newHashSet();
-		while (!checks.isEmpty()) {
-			final BB check = checks.remove(0);
-			if (check == bb) {
-				return true;
-			}
-			checked.add(check);
-			if (check.getPostorder() >= bb.getPostorder()) {
-				// check cannot have BB as pred here, are above it in postordering
-				continue;
-			}
-			for (final E in : this.ins) {
-				if (in.isBack()) {
-					continue;
-				}
-				final BB pred = in.getStart();
-				if (checked.contains(pred) || checks.contains(pred)) {
-					continue;
-				}
-				checks.add(pred);
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Has this BB given BB as successor? This excludes same BB!
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - given BB is successor of this BB
-	 */
-	public boolean hasSucc(@Nonnull final BB bb) {
-		return !hasPred(bb);
-	}
-
-	/**
 	 * Is this BB before (or same like) given BB?
 	 *
 	 * @param bb
@@ -681,6 +636,40 @@ public final class BB {
 	 */
 	public boolean isLineInfo() {
 		return getLine() >= 0;
+	}
+
+	/**
+	 * Is given BB a predecessor (or same)?
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - given BB is a predecessor (or same)
+	 */
+	public boolean isPred(@Nonnull final BB bb) {
+		final List<BB> checks = Lists.newArrayList(this);
+		final Set<BB> checked = Sets.newHashSet();
+		while (!checks.isEmpty()) {
+			final BB check = checks.remove(0);
+			if (check == bb) {
+				return true;
+			}
+			checked.add(check);
+			if (check.getPostorder() >= bb.getPostorder()) {
+				// check cannot have BB as pred here, are above it in postordering
+				continue;
+			}
+			for (final E in : this.ins) {
+				if (in.isBack()) {
+					continue;
+				}
+				final BB pred = in.getStart();
+				if (checked.contains(pred) || checks.contains(pred)) {
+					continue;
+				}
+				checks.add(pred);
+			}
+		}
+		return false;
 	}
 
 	/**
@@ -756,6 +745,17 @@ public final class BB {
 	}
 
 	/**
+	 * Is given BB a successor (or same)?
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - given BB is a successor (or same)
+	 */
+	public boolean isSucc(@Nonnull final BB bb) {
+		return !isPred(bb) || this == bb;
+	}
+
+	/**
 	 * Copy content from predecessor BB.
 	 *
 	 * @param bb
@@ -823,13 +823,14 @@ public final class BB {
 	 *
 	 * @return expression
 	 */
-
 	@Nonnull
 	public Expression peek() {
 		if (this.top <= 0) {
 			throw new DecoJerException(getCfg() + ": Stack is empty for: " + this);
 		}
-		return this.vs[getRegs() + this.top - 1];
+		final Expression e = this.vs[getRegs() + this.top - 1];
+		assert e != null;
+		return e;
 	}
 
 	/**
@@ -844,7 +845,9 @@ public final class BB {
 		if (this.top <= i) {
 			throw new DecoJerException(getCfg() + ": Stack is empty for: " + this);
 		}
-		return this.vs[getRegs() + this.top - 1];
+		final Expression e = this.vs[getRegs() + this.top - 1];
+		assert e != null;
+		return e;
 	}
 
 	/**
@@ -857,7 +860,9 @@ public final class BB {
 		if (this.top <= 0) {
 			throw new IndexOutOfBoundsException("Stack is empty!");
 		}
-		return this.vs[getRegs() + --this.top];
+		final Expression e = this.vs[getRegs() + --this.top];
+		assert e != null;
+		return e;
 	}
 
 	/**

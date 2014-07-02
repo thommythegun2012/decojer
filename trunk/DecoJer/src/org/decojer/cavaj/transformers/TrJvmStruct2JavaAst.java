@@ -158,7 +158,6 @@ public final class TrJvmStruct2JavaAst {
 		if (f.getAf(AF.TRANSIENT)) {
 			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.TRANSIENT_KEYWORD));
 		}
-
 		// not for enum constant declaration
 		if (fieldDeclaration instanceof FieldDeclaration) {
 			((FieldDeclaration) fieldDeclaration).setType(newType(f.getValueT(), t));
@@ -166,11 +165,9 @@ public final class TrJvmStruct2JavaAst {
 			if (value != null) {
 				// only final, non static - no arrays, class types
 				final Expression expr = newLiteral(f.getValueT(), value, t, null);
-				if (expr != null) {
-					final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
-							.fragments().get(0);
-					variableDeclarationFragment.setInitializer(expr);
-				}
+				final VariableDeclarationFragment variableDeclarationFragment = (VariableDeclarationFragment) ((FieldDeclaration) fieldDeclaration)
+						.fragments().get(0);
+				variableDeclarationFragment.setInitializer(expr);
 			}
 		}
 	}

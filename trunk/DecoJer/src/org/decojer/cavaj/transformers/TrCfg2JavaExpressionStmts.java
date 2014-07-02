@@ -1540,7 +1540,7 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final BB c = c_bb.getStart();
-			if (c.getStmts() != 1 || !c.isCond() || !c.isStackEmpty() || c.hasPred(bb)) {
+			if (c.getStmts() != 1 || !c.isCond() || !c.isStackEmpty() || c.isPred(bb)) {
 				continue;
 			}
 			final E a_c = c.getRelevantIn();
@@ -1548,7 +1548,7 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final BB a = a_c.getStart();
-			if (!a.isCond() || a.hasPred(c)) {
+			if (!a.isCond() || a.isPred(c)) {
 				continue;
 			}
 			// now we have the potential compound head, go down again and identify patterns
@@ -1613,8 +1613,8 @@ public final class TrCfg2JavaExpressionStmts {
 				c.joinPredBb(a);
 				return true;
 			}
-			if (x.getStmts() != 1 || !x.isCond() || !x.isStackEmpty() || x.hasPred(bb)
-					|| x.hasPred(bb2)) {
+			if (x.getStmts() != 1 || !x.isCond() || !x.isStackEmpty() || x.isPred(bb)
+					|| x.isPred(bb2)) {
 				continue;
 			}
 			// check cross...
