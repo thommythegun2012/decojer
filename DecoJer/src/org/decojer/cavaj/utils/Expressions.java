@@ -197,8 +197,8 @@ public final class Expressions {
 	 * @return originating operation
 	 */
 	@Nullable
-	public static Op getOp(@Nonnull final ASTNode node) {
-		return (Op) node.getProperty(PROP_OP);
+	public static Op getOp(@Nullable final ASTNode node) {
+		return node == null ? null : (Op) node.getProperty(PROP_OP);
 	}
 
 	/**
@@ -287,7 +287,7 @@ public final class Expressions {
 	 */
 	@Nonnull
 	public static InfixExpression newInfixExpression(
-			@Nonnull final InfixExpression.Operator operator,
+			@Nullable final InfixExpression.Operator operator,
 			@Nonnull final Expression leftOperand, @Nonnull final Expression rightOperand,
 			@Nonnull final Op op) {
 		final InfixExpression infixExpression = setOp(leftOperand.getAST().newInfixExpression(), op);
@@ -322,6 +322,7 @@ public final class Expressions {
 	}
 
 	@Nonnull
+	@SuppressWarnings("null")
 	private static Expression newLiteral2(@Nonnull final T t, @Nullable final Object value,
 			@Nonnull final T contextT) {
 		final AST ast = contextT.getCu().getAst();
@@ -617,8 +618,9 @@ public final class Expressions {
 	 *            originating operation
 	 * @return expression
 	 */
-	public static PostfixExpression newPostfixExpression(final PostfixExpression.Operator operator,
-			final Expression operand, final Op op) {
+	public static PostfixExpression newPostfixExpression(
+			@Nullable final PostfixExpression.Operator operator, @Nonnull final Expression operand,
+			@Nonnull final Op op) {
 		final PostfixExpression postfixExpression = setOp(operand.getAST().newPostfixExpression(),
 				op);
 		postfixExpression.setOperator(operator);
@@ -638,8 +640,9 @@ public final class Expressions {
 	 * @return expression
 	 */
 	@Nonnull
-	public static Expression newPrefixExpression(@Nonnull final PrefixExpression.Operator operator,
-			@Nonnull final Expression operand, @Nonnull final Op op) {
+	public static Expression newPrefixExpression(
+			@Nullable final PrefixExpression.Operator operator, @Nonnull final Expression operand,
+			@Nonnull final Op op) {
 		if (operator == PrefixExpression.Operator.NOT) {
 			return not(operand);
 		}
@@ -964,6 +967,7 @@ public final class Expressions {
 	 * @return !expression
 	 */
 	@Nonnull
+	@SuppressWarnings("null")
 	public static Expression not(@Nonnull final Expression operand) {
 		if (operand instanceof ParenthesizedExpression) {
 			return not(((ParenthesizedExpression) operand).getExpression());
