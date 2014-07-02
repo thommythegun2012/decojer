@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.code.structs;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -85,7 +86,7 @@ public class Loop extends Struct {
 	}
 
 	@Override
-	public boolean hasMember(final BB bb) {
+	public boolean hasMember(@Nullable final BB bb) {
 		// last BB for loops is separately stored but counts as normal member
 		return isLast(bb) || super.hasMember(bb);
 	}
@@ -105,7 +106,7 @@ public class Loop extends Struct {
 	 *            BB
 	 * @return {@code true} - BB is target for continue
 	 */
-	public boolean isContinueTarget(final BB bb) {
+	public boolean isContinueTarget(@Nullable final BB bb) {
 		switch (getKind()) {
 		case DO_WHILE:
 		case DO_WHILENOT:
@@ -134,7 +135,7 @@ public class Loop extends Struct {
 	 *            BB
 	 * @return {@code true} - BB is last
 	 */
-	public boolean isLast(final BB bb) {
+	public boolean isLast(@Nullable final BB bb) {
 		return getLast() == bb;
 	}
 
@@ -162,7 +163,7 @@ public class Loop extends Struct {
 	 * @param bb
 	 *            last BB
 	 */
-	public void setLast(final BB bb) {
+	public void setLast(@Nonnull final BB bb) {
 		// cannot add as member, tail could be equal to head!
 		this.last = bb;
 		bb.setStruct(this);
