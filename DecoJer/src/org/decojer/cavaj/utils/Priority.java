@@ -16,12 +16,14 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
  */
 package org.decojer.cavaj.utils;
+
+import javax.annotation.Nonnull;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +43,7 @@ import org.eclipse.jdt.core.dom.PrefixExpression;
 
 /**
  * Expression priority.
- * 
+ *
  * @author André Pankraz
  */
 @Slf4j
@@ -84,15 +86,16 @@ public enum Priority {
 	CONDITIONAL(13, false),
 
 	ASSIGNMENT(14, false); // TODO aassignment + op == 15?
-							// http://openbook.galileodesign.de/javainsel8/javainsel_02_005.htm#mjb7472917f33c38fb79c0baa79ca8a846
+	// http://openbook.galileodesign.de/javainsel8/javainsel_02_005.htm#mjb7472917f33c38fb79c0baa79ca8a846
 
 	/**
 	 * Get priority for expression. From http://bmanolov.free.fr/javaoperators.php
-	 * 
+	 *
 	 * @param expression
 	 *            expression
 	 * @return priority
 	 */
+	@Nonnull
 	public static Priority priority(final Expression expression) {
 		if (expression instanceof ArrayAccess) {
 			return ARRAY_INDEX;
@@ -173,7 +176,7 @@ public enum Priority {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param priority
 	 *            priority
 	 * @param isLeftAssoc
@@ -186,7 +189,7 @@ public enum Priority {
 
 	/**
 	 * Get priority.
-	 * 
+	 *
 	 * @return priority
 	 */
 	public int getPriority() {
@@ -195,7 +198,7 @@ public enum Priority {
 
 	/**
 	 * Is priority class left associative?
-	 * 
+	 *
 	 * @return {@code true} - is left associative
 	 */
 	public boolean isLeftAssoc() {
