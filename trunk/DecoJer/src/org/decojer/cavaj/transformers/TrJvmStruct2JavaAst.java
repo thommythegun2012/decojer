@@ -180,7 +180,7 @@ public final class TrJvmStruct2JavaAst {
 		// enum synthetic methods
 		if (m.isStatic()
 				&& ("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
-				&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
+						&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
 				&& t.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
@@ -211,8 +211,8 @@ public final class TrJvmStruct2JavaAst {
 			((AnnotationTypeMemberDeclaration) methodDeclaration).setName(newSimpleName(name, ast));
 			// check if default value (e.g.: byte byteTest() default 2;)
 			if (m.getAnnotationDefaultValue() != null) {
-				final Expression expression = Annotations.decompileAnnotationDefaultValue(t,
-						m.getAnnotationDefaultValue());
+				final Expression expression = Annotations.decompileAnnotationDefaultValue(
+						m.getAnnotationDefaultValue(), t);
 				if (expression != null) {
 					((AnnotationTypeMemberDeclaration) methodDeclaration).setDefault(expression);
 				}
@@ -268,7 +268,7 @@ public final class TrJvmStruct2JavaAst {
 		}
 		if (m.getAf(AF.SYNCHRONIZED)) {
 			methodDeclaration.modifiers()
-			.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
+					.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
 		}
 		if (m.getAf(AF.BRIDGE)) {
 			// TODO
@@ -313,7 +313,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-			.setType(newType(m.getReturnT(), t));
+					.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -425,7 +425,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-									+ "'!");
+							+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
