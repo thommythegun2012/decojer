@@ -55,7 +55,7 @@ public class QualifiedM extends ExtendedM {
 		super(m);
 
 		final T t = super.getT();
-		assert t != null && t.validateQualifierName(qualifierT.getName()) : "qualifier type for '"
+		assert t != null && (t.equals(qualifierT) || t.validateQualifierName(qualifierT.getName())) : "qualifier type for '"
 				+ this + "' cannot be set to not matching type '" + qualifierT + "'";
 
 		this.qualifierT = qualifierT;
@@ -70,7 +70,7 @@ public class QualifiedM extends ExtendedM {
 	@Override
 	public void setQualifierT(@Nonnull final T qualifierT) {
 		final T t = super.getT();
-		if (t == null || !t.validateQualifierName(qualifierT.getName())) {
+		if (t == null || !t.equals(qualifierT) && !t.validateQualifierName(qualifierT.getName())) {
 			log.warn("Qualifier type for '" + this + "' cannot be set to not matching type '"
 					+ qualifierT + "'!");
 			return;
