@@ -363,8 +363,9 @@ public final class TrCfg2JavaExpressionStmts {
 						arrayCreation.setInitializer(arrayInitializer);
 						// TODO for higher performance and for full array creation removement we
 						// could defer the 0-fill and rewrite to the final A/STORE phase
-						final Number size = getNumberValue((Expression) arrayCreation.dimensions()
-								.get(0));
+						final Object sizeExpression = arrayCreation.dimensions().get(0);
+						final Number size = sizeExpression instanceof Expression ? getNumberValue((Expression) sizeExpression)
+								: null;
 						assert size != null;
 						// not all indexes may be set, null/0/false in JVM 7 are not set, fill
 						for (int i = size.intValue(); i-- > 0;) {
@@ -1487,6 +1488,7 @@ public final class TrCfg2JavaExpressionStmts {
 				&& ((QualifiedName) expression).toString().endsWith(".$assertionsDisabled")) {
 			expression = getAst().newBooleanLiteral(false);
 		}
+		assert expression != null;
 		final E trueOut = start.getTrueOut();
 		assert trueOut != null; // start.isCond() is true
 		final BB trueSucc = trueOut.getEnd();
@@ -1513,7 +1515,7 @@ public final class TrCfg2JavaExpressionStmts {
 
 		start.removeFinalStmt();
 		final AssertStatement assertStatement = setOp(getAst().newAssertStatement(), op);
-		assertStatement.setExpression(wrap(negated ? expression : expression));
+		assertStatement.setExpression(wrap(negated ? not(expression) : expression));
 		if (messageExpression != null) {
 			assertStatement.setMessage(wrap(messageExpression));
 		}
