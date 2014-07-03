@@ -39,7 +39,6 @@ import org.decojer.cavaj.model.types.Version;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AnnotatableType;
-import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.ArrayType;
 import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
@@ -48,6 +47,7 @@ import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.Dimension;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.IExtendedModifier;
 import org.eclipse.jdt.core.dom.InfixExpression;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.Name;
@@ -432,41 +432,41 @@ public final class Expressions {
 				final char c = value instanceof Character ? (Character) value
 						: value instanceof Number ? (char) ((Number) value).intValue()
 								: ((String) value).charAt(0);
-						switch (c) {
-						case Character.MAX_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MAX_VALUE"));
-						case Character.MIN_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MIN_VALUE"));
-						case Character.MAX_HIGH_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MAX_LOW_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_LOW_SURROGATE"));
-							}
-							break;
-						case Character.MIN_HIGH_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MIN_LOW_SURROGATE:
-							if (contextT.isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_LOW_SURROGATE"));
-							}
-							break;
-						}
-						final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-						characterLiteral.setCharValue(c);
-						return characterLiteral;
+				switch (c) {
+				case Character.MAX_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MAX_VALUE"));
+				case Character.MIN_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MIN_VALUE"));
+				case Character.MAX_HIGH_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MAX_LOW_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_LOW_SURROGATE"));
+					}
+					break;
+				case Character.MIN_HIGH_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MIN_LOW_SURROGATE:
+					if (contextT.isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_LOW_SURROGATE"));
+					}
+					break;
+				}
+				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+				characterLiteral.setCharValue(c);
+				return characterLiteral;
 			}
 			if (value == null) {
 				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
@@ -723,8 +723,9 @@ public final class Expressions {
 		final SingleVariableDeclaration singleVariableDeclaration = ast
 				.newSingleVariableDeclaration();
 		if (paramAss != null && i < paramAss.length) {
-			Annotations.decompileAnnotations(paramAss[i], singleVariableDeclaration.modifiers(),
-					contextT);
+			final List<IExtendedModifier> modifiers = singleVariableDeclaration.modifiers();
+			assert modifiers != null;
+			Annotations.decompileAnnotations(paramAss[i], modifiers, contextT);
 		}
 		final T paramT = paramTs[i];
 		assert paramT != null;
@@ -783,7 +784,7 @@ public final class Expressions {
 					for (T componentT = t; componentT != null && componentT.isArray(); componentT = componentT
 							.getComponentT()) {
 						final Dimension dimension = ast.newDimension();
-						final List<Annotation> annotations = dimension.annotations();
+						final List<IExtendedModifier> annotations = dimension.annotations();
 						assert annotations != null;
 						if (componentT.isAnnotated()) {
 							Annotations.decompileAnnotations(componentT, annotations, contextT);
@@ -825,7 +826,7 @@ public final class Expressions {
 					type = annotatableType;
 				}
 			}
-			final List<Annotation> annotations = annotatableType.annotations();
+			final List<IExtendedModifier> annotations = annotatableType.annotations();
 			assert annotations != null;
 			Annotations.decompileAnnotations(t, annotations, contextT);
 			return type;
@@ -1010,8 +1011,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-								not(infixExpression.getLeftOperand()),
-								not(infixExpression.getRightOperand()), getOp(infixExpression));
+						not(infixExpression.getLeftOperand()),
+						not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible

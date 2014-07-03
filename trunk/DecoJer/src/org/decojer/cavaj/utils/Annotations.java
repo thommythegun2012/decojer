@@ -45,6 +45,7 @@ import org.eclipse.jdt.core.dom.Annotation;
 import org.eclipse.jdt.core.dom.ArrayInitializer;
 import org.eclipse.jdt.core.dom.CharacterLiteral;
 import org.eclipse.jdt.core.dom.Expression;
+import org.eclipse.jdt.core.dom.IExtendedModifier;
 import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MemberValuePair;
 import org.eclipse.jdt.core.dom.NormalAnnotation;
@@ -204,7 +205,7 @@ public final class Annotations {
 	 *            Type Declaration
 	 */
 	public static void decompileAnnotations(@Nullable final A[] as,
-			@Nonnull final List<Annotation> annotations, @Nonnull final T contextT) {
+			@Nonnull final List<IExtendedModifier> annotations, @Nonnull final T contextT) {
 		if (as == null) {
 			return;
 		}
@@ -235,7 +236,7 @@ public final class Annotations {
 	 *            Type Declaration
 	 */
 	public static void decompileAnnotations(@Nonnull final T t,
-			@Nonnull final List<Annotation> annotations, @Nonnull final T contextT) {
+			@Nonnull final List<IExtendedModifier> annotations, @Nonnull final T contextT) {
 		if (t.isAnnotated()) {
 			decompileAnnotations(t.getAs(), annotations, contextT);
 		}

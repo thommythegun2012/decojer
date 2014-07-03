@@ -60,6 +60,7 @@ import org.eclipse.jdt.core.dom.EnumConstantDeclaration;
 import org.eclipse.jdt.core.dom.EnumDeclaration;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.FieldDeclaration;
+import org.eclipse.jdt.core.dom.IExtendedModifier;
 import org.eclipse.jdt.core.dom.Initializer;
 import org.eclipse.jdt.core.dom.Javadoc;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
@@ -126,37 +127,40 @@ public final class TrJvmStruct2JavaAst {
 			fieldDeclaration.setJavadoc(newJavadoc);
 		}
 
+		final List<IExtendedModifier> modifiers = fieldDeclaration.modifiers();
+		assert modifiers != null;
+
 		// decompile annotations, add annotation modifiers before other modifiers, order preserved
 		// in source code generation through Eclipse JDT
 		if (f.getAs() != null) {
-			Annotations.decompileAnnotations(f.getAs(), fieldDeclaration.modifiers(), t);
+			Annotations.decompileAnnotations(f.getAs(), modifiers, t);
 		}
 
 		final boolean isInterfaceMember = t.isInterface();
 
 		// decompile modifier flags, public is default for enum and interface
 		if (f.getAf(AF.PUBLIC) && !isEnum && !isInterfaceMember) {
-			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
 		if (f.getAf(AF.PRIVATE)) {
-			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		}
 		if (f.getAf(AF.PROTECTED)) {
-			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
 		// static is default for enum and interface
 		if (f.isStatic() && !isEnum && !isInterfaceMember) {
-			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
 		// final is default for enum and interface
 		if (f.getAf(AF.FINAL) && !isEnum && !isInterfaceMember) {
-			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
 		if (f.getAf(AF.VOLATILE)) {
-			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.VOLATILE_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.VOLATILE_KEYWORD));
 		}
 		if (f.getAf(AF.TRANSIENT)) {
-			fieldDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.TRANSIENT_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.TRANSIENT_KEYWORD));
 		}
 		// not for enum constant declaration
 		if (fieldDeclaration instanceof FieldDeclaration) {
@@ -233,11 +237,14 @@ public final class TrJvmStruct2JavaAst {
 			methodDeclaration.setJavadoc(newJavadoc);
 		}
 
+		final List<IExtendedModifier> modifiers = methodDeclaration.modifiers();
+		assert modifiers != null;
+
 		// decompile annotations:
 		// add annotation modifiers before other modifiers, order preserved in
 		// source code generation through Eclipse JDT
 		if (m.getAs() != null) {
-			Annotations.decompileAnnotations(m.getAs(), methodDeclaration.modifiers(), t);
+			Annotations.decompileAnnotations(m.getAs(), modifiers, t);
 		}
 
 		final boolean isInterfaceMember = t.isInterface();
@@ -248,40 +255,39 @@ public final class TrJvmStruct2JavaAst {
 			if (t.isBelow(Version.JVM_8)) {
 				log.warn("Default methods are not known before JVM 8! Adding default keyword anyway, check this.");
 			}
-			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.DEFAULT_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.DEFAULT_KEYWORD));
 		}
 		// public is default for interface and annotation type declarations
 		if (m.getAf(AF.PUBLIC) && !isAnnotationMember && !isInterfaceMember) {
-			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 		}
 		if (m.getAf(AF.PRIVATE)) {
-			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 		}
 		if (m.getAf(AF.PROTECTED)) {
-			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 		}
 		if (m.isStatic()) {
-			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 		}
 		if (m.getAf(AF.FINAL)) {
-			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 		}
 		if (m.getAf(AF.SYNCHRONIZED)) {
-			methodDeclaration.modifiers()
-					.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.SYNCHRONIZED_KEYWORD));
 		}
 		if (m.getAf(AF.BRIDGE)) {
 			// TODO
 		}
 		if (m.getAf(AF.NATIVE)) {
-			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.NATIVE_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.NATIVE_KEYWORD));
 		}
 		// abstract is default for interface and annotation type declarations
 		if (m.getAf(AF.ABSTRACT) && !isAnnotationMember && !isInterfaceMember) {
-			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 		}
 		if (m.getAf(AF.STRICTFP) && !strictFp) {
-			methodDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
+			modifiers.add(ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
 		}
 		/*
 		 * AF.CONSTRUCTOR, AF.DECLARED_SYNCHRONIZED nothing, Dalvik only?
@@ -468,31 +474,34 @@ public final class TrJvmStruct2JavaAst {
 			}
 			t.setAstNode(typeDeclaration);
 
+			final List<IExtendedModifier> modifiers = typeDeclaration.modifiers();
+			assert modifiers != null;
+
 			// add annotation modifiers before other modifiers, order preserved in source code
 			// generation through eclipse.jdt
 			if (t.getAs() != null) {
-				Annotations.decompileAnnotations(t.getAs(), typeDeclaration.modifiers(), t);
+				Annotations.decompileAnnotations(t.getAs(), modifiers, t);
 			}
 
 			// decompile remaining modifier flags
 			if (t.getAf(AF.PUBLIC)) {
-				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
+				modifiers.add(ast.newModifier(ModifierKeyword.PUBLIC_KEYWORD));
 			}
 			// for inner classes
 			if (t.getAf(AF.PRIVATE)) {
-				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
+				modifiers.add(ast.newModifier(ModifierKeyword.PRIVATE_KEYWORD));
 			}
 			// for inner classes
 			if (t.getAf(AF.PROTECTED)) {
-				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
+				modifiers.add(ast.newModifier(ModifierKeyword.PROTECTED_KEYWORD));
 			}
 			// for inner classes
 			if (t.isStatic() && !t.isInterface()) {
-				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
+				modifiers.add(ast.newModifier(ModifierKeyword.STATIC_KEYWORD));
 			}
 			if (t.getAf(AF.FINAL) && !(typeDeclaration instanceof EnumDeclaration)) {
 				// enum declaration is final by default
-				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
+				modifiers.add(ast.newModifier(ModifierKeyword.FINAL_KEYWORD));
 			}
 			if (t.isInterface()) {
 				if (typeDeclaration instanceof TypeDeclaration) {
@@ -508,10 +517,10 @@ public final class TrJvmStruct2JavaAst {
 					&& !(typeDeclaration instanceof EnumDeclaration)
 					&& !(typeDeclaration instanceof TypeDeclaration && ((TypeDeclaration) typeDeclaration)
 							.isInterface())) {
-				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
+				modifiers.add(ast.newModifier(ModifierKeyword.ABSTRACT_KEYWORD));
 			}
 			if (strictFp) {
-				typeDeclaration.modifiers().add(ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
+				modifiers.add(ast.newModifier(ModifierKeyword.STRICTFP_KEYWORD));
 			}
 
 			final String simpleName = t.getSimpleName();
@@ -552,8 +561,8 @@ public final class TrJvmStruct2JavaAst {
 		for (final T typeParam : typeParams) {
 			final TypeParameter typeParameter = ast.newTypeParameter();
 			typeParameter.setName(newSimpleName(typeParam.getName(), ast));
-			final List<org.eclipse.jdt.core.dom.Annotation> modifiers = typeParameter.modifiers();
-			assert modifiers != null : contextT;
+			final List<IExtendedModifier> modifiers = typeParameter.modifiers();
+			assert modifiers != null;
 			Annotations.decompileAnnotations(typeParam, modifiers, contextT);
 			final T superT = typeParam.getSuperT();
 			if (superT != null && !superT.isObject()) {
