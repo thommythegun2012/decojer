@@ -321,7 +321,7 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 						+ "'!");
 				break;
 			}
-			final T interfaceT = interfaceTs[typeParameterBoundIndex];
+			final T interfaceT = interfaceTs[typeParameterBoundIndex - 1];
 			assert interfaceT != null;
 			interfaceTs[typeParameterBoundIndex - 1] = annotateT(interfaceT, a, typePath);
 			break;
