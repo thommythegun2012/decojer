@@ -61,17 +61,17 @@ import org.eclipse.jdt.core.dom.TypeLiteral;
 public final class Annotations {
 
 	/**
-	 * Decompile Annotation.
+	 * Decompile annotation.
 	 *
-	 * @param t
-	 *            Type Declaration
 	 * @param a
-	 *            Annotation
-	 * @return Annotation AST Node
+	 *            annotation
+	 * @param contextT
+	 *            context
+	 * @return annotation AST Node
 	 */
 	@Nonnull
-	private static Annotation decompileAnnotation(@Nonnull final T t, @Nonnull final A a) {
-		final AST ast = t.getCu().getAst();
+	private static Annotation decompileAnnotation(@Nonnull final A a, @Nonnull final T contextT) {
+		final AST ast = contextT.getCu().getAst();
 		final Set<Entry<String, Object>> members = a.getMembers();
 		if (!members.isEmpty()) {
 			if (members.size() == 1) {
@@ -80,16 +80,17 @@ public final class Annotations {
 					// a single member name "value=" is optional
 					final SingleMemberAnnotation singleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
-					singleMemberAnnotation.setTypeName(newTypeName(a.getT(), t));
-					singleMemberAnnotation
-							.setValue(decompileAnnotationDefaultValue(t, memberValue));
+					singleMemberAnnotation.setTypeName(newTypeName(a.getT(), contextT));
+					singleMemberAnnotation.setValue(decompileAnnotationDefaultValue(memberValue,
+							contextT));
 					return singleMemberAnnotation;
 				}
 			}
 			final NormalAnnotation normalAnnotation = ast.newNormalAnnotation();
-			normalAnnotation.setTypeName(newTypeName(a.getT(), t));
+			normalAnnotation.setTypeName(newTypeName(a.getT(), contextT));
 			for (final Entry<String, Object> member : members) {
-				final Expression expression = decompileAnnotationDefaultValue(t, member.getValue());
+				final Expression expression = decompileAnnotationDefaultValue(member.getValue(),
+						contextT);
 				if (expression != null) {
 					final MemberValuePair newMemberValuePair = ast.newMemberValuePair();
 					newMemberValuePair.setName(newSimpleName(member.getKey(), ast));
@@ -102,39 +103,40 @@ public final class Annotations {
 			}
 		}
 		final MarkerAnnotation markerAnnotation = ast.newMarkerAnnotation();
-		markerAnnotation.setTypeName(newTypeName(a.getT(), t));
+		markerAnnotation.setTypeName(newTypeName(a.getT(), contextT));
 		return markerAnnotation;
 	}
 
 	/**
-	 * Decompile Annotation Default Value (value or Default Value literal).
+	 * Decompile annotation default value (value or default value literal).
 	 *
-	 * @param t
-	 *            Type Declaration
 	 * @param defaultValue
-	 *            Default Value
-	 * @return Expression AST Node
+	 *            default value
+	 * @param contextT
+	 *            context
+	 * @return expression AST Node
 	 */
 	@Nullable
-	public static Expression decompileAnnotationDefaultValue(final T t, final Object defaultValue) {
-		final AST ast = t.getCu().getAst();
+	public static Expression decompileAnnotationDefaultValue(@Nullable final Object defaultValue,
+			@Nonnull final T contextT) {
+		final AST ast = contextT.getCu().getAst();
 		if (defaultValue == null) {
 			return null;
 		}
 		if (defaultValue instanceof A) {
-			return decompileAnnotation(t, (A) defaultValue);
+			return decompileAnnotation((A) defaultValue, contextT);
 		}
 		// could be primitive array - use slow reflection
 		if (defaultValue.getClass().isArray()) {
 			final int size = Array.getLength(defaultValue);
 			if (size == 1) {
 				// single entry autoboxing
-				return decompileAnnotationDefaultValue(t, Array.get(defaultValue, 0));
+				return decompileAnnotationDefaultValue(Array.get(defaultValue, 0), contextT);
 			}
 			final ArrayInitializer arrayInitializer = ast.newArrayInitializer();
 			for (int i = 0; i < size; ++i) {
-				final Expression expression = decompileAnnotationDefaultValue(t,
-						Array.get(defaultValue, i));
+				final Expression expression = decompileAnnotationDefaultValue(
+						Array.get(defaultValue, i), contextT);
 				if (expression != null) {
 					arrayInitializer.expressions().add(expression);
 				}
@@ -154,7 +156,7 @@ public final class Annotations {
 		}
 		if (defaultValue instanceof T) {
 			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-			typeLiteral.setType(newType((T) defaultValue, t));
+			typeLiteral.setType(newType((T) defaultValue, contextT));
 			return typeLiteral;
 		}
 		if (defaultValue instanceof Double) {
@@ -165,7 +167,8 @@ public final class Annotations {
 			if (!f.isEnum()) {
 				log.warn("Default value field must be enum!");
 			}
-			return ast.newQualifiedName(newTypeName(f.getT(), t), newSimpleName(f.getName(), ast));
+			return ast.newQualifiedName(newTypeName(f.getT(), contextT),
+					newSimpleName(f.getName(), ast));
 		}
 		if (defaultValue instanceof Float) {
 			return ast.newNumberLiteral(defaultValue.toString() + 'F');
@@ -200,8 +203,8 @@ public final class Annotations {
 	 * @param contextT
 	 *            Type Declaration
 	 */
-	public static void decompileAnnotations(final A[] as, final List<Annotation> annotations,
-			@Nonnull final T contextT) {
+	public static void decompileAnnotations(@Nullable final A[] as,
+			@Nonnull final List<Annotation> annotations, @Nonnull final T contextT) {
 		if (as == null) {
 			return;
 		}
@@ -212,11 +215,11 @@ public final class Annotations {
 			if (isRepeatable(a)) {
 				for (final Object aa : (Object[]) a.getValueMember()) {
 					if (aa instanceof A) {
-						annotations.add(decompileAnnotation(contextT, (A) aa));
+						annotations.add(decompileAnnotation((A) aa, contextT));
 					}
 				}
 			} else {
-				annotations.add(decompileAnnotation(contextT, a));
+				annotations.add(decompileAnnotation(a, contextT));
 			}
 		}
 	}
@@ -245,7 +248,7 @@ public final class Annotations {
 	 *            Annotations
 	 * @return {@code true} - Annotations contain the Deprecated Annotation
 	 */
-	public static boolean isDeprecatedAnnotation(final A[] as) {
+	public static boolean isDeprecatedAnnotation(@Nullable final A[] as) {
 		if (as != null) {
 			for (final A a : as) {
 				if (a.getT().is(Deprecated.class)) {
