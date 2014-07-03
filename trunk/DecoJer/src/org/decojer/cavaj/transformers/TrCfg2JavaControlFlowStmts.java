@@ -147,6 +147,12 @@ public final class TrCfg2JavaControlFlowStmts {
 			assert false;
 			return null;
 		}
+		final Expression condExpression = ifStatement.getExpression();
+		if (condExpression == null) {
+			assert false;
+			return null;
+		}
+
 		final E falseOut = head.getFalseOut();
 		assert falseOut != null;
 		final E trueOut = head.getTrueOut();
@@ -155,14 +161,16 @@ public final class TrCfg2JavaControlFlowStmts {
 
 		switch (cond.getKind()) {
 		case IFNOT:
-			ifStatement.setExpression(wrap(not(ifStatement.getExpression())));
+			ifStatement.setExpression(wrap(not(condExpression)));
 			negate = true;
+			// fall through
 		case IF:
 			ifStatement.setThenStatement(transformSequence(cond, negate ? falseOut : trueOut));
 			return ifStatement;
 		case IFNOT_ELSE:
-			ifStatement.setExpression(wrap(not(ifStatement.getExpression())));
+			ifStatement.setExpression(wrap(not(condExpression)));
 			negate = true;
+			// fall through
 		case IF_ELSE:
 			ifStatement.setThenStatement(transformSequence(cond, negate ? falseOut : trueOut));
 			ifStatement.setElseStatement(transformSequence(cond, negate ? trueOut : falseOut));
@@ -321,7 +329,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				// + entering a new sub struct +
 				// +++++++++++++++++++++++++++++
 				// Java is struct-single-entry/-multi-exit: must enter via struct head
-				if (!currentBbStruct.isHead(currentBb)) {
+				if (currentBbStruct == null || !currentBbStruct.isHead(currentBb)) {
 					log.warn(getM() + ": Struct change in BB " + currentBb.getPc()
 							+ " without regular follow or head encounter:\n" + struct);
 					return;
