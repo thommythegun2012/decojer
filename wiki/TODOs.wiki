@@ -41,7 +41,7 @@ Eclipse: 41 s
   + long if-elseif-elseif cascade before loop-last
   + enclosing Ifnot-Cond with Follow 556 is wrong, is an if-else!
   + wrong here: if (!pred.hasPred(struct.getHead())) {	continue outer; }
-
+- dynamic handles can be methods or fields, not only in invoke for bootstrap, also possible as constants at _many_ places (e.g. class-const, ldc, annotations etc.)
 }}}
 
 = TODOs =
