@@ -184,7 +184,7 @@ public final class TrJvmStruct2JavaAst {
 		// enum synthetic methods
 		if (m.isStatic()
 				&& ("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
-						&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
+				&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
 				&& t.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
@@ -319,7 +319,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-					.setType(newType(m.getReturnT(), t));
+			.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -431,7 +431,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-							+ "'!");
+									+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
@@ -608,8 +608,10 @@ public final class TrJvmStruct2JavaAst {
 				log.warn("Type declaration with name 'package-info' is not an interface!");
 			}
 			if (t.getAs() != null) {
-				Annotations.decompileAnnotations(t.getAs(), cu.getCompilationUnit().getPackage()
-						.annotations(), t);
+				final List<IExtendedModifier> annotations = cu.getCompilationUnit().getPackage()
+						.annotations();
+				assert annotations != null;
+				Annotations.decompileAnnotations(t.getAs(), annotations, t);
 			}
 			return;
 		}
