@@ -503,17 +503,17 @@ public final class TrCfg2JavaControlFlowStmts {
 						defaultAdded = true;
 					} else {
 						if (caseValue instanceof Character) {
-							switchCase.setExpression(newLiteral(T.CHAR, caseValue, getCfg().getT(),
+							switchCase.setExpression(newLiteral(T.CHAR, caseValue, getCfg().getM(),
 									op));
 						} else if (caseValue instanceof String) {
 							switchCase.setExpression(newLiteral(
 									getCfg().getDu().getT(String.class), caseValue,
-									getCfg().getT(), op));
+									getCfg().getM(), op));
 						} else if (caseValue instanceof F) {
 							switchCase.setExpression(newSimpleName(((F) caseValue).getName(),
 									getAst()));
 						} else {
-							switchCase.setExpression(newLiteral(T.INT, caseValue, getCfg().getT(),
+							switchCase.setExpression(newLiteral(T.INT, caseValue, getCfg().getM(),
 									op));
 						}
 					}

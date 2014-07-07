@@ -26,6 +26,8 @@ package org.decojer.cavaj.model;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import org.decojer.cavaj.model.types.T;
+
 /**
  * Element.
  *
@@ -64,6 +66,14 @@ public interface Element extends Container {
 	 */
 	@Nullable
 	A[] getAs();
+
+	/**
+	 * Get element type, is owner for field or method ({@code null} for dynamic), same for type.
+	 *
+	 * @return element type
+	 */
+	@Nullable
+	T getT();
 
 	/**
 	 * Is declaration?

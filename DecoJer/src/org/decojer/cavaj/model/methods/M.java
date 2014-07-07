@@ -124,14 +124,6 @@ public abstract class M implements Element {
 	public abstract T getReturnT();
 
 	/**
-	 * Get owner type, {@code null} for dynamic.
-	 *
-	 * @return owner type
-	 */
-	@Nullable
-	public abstract T getT();
-
-	/**
 	 * Get throws types.
 	 *
 	 * @return throws types

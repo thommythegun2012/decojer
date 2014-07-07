@@ -32,6 +32,7 @@ import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
@@ -309,30 +310,30 @@ public final class Expressions {
 	 *            literal type
 	 * @param value
 	 *            literal value
-	 * @param contextT
-	 *            type declaration (context)
+	 * @param context
+	 *            context
 	 * @param op
 	 *            originating operation, can be {@code null} for field constants
 	 * @return AST literal expression
 	 */
 	@Nonnull
 	public static Expression newLiteral(@Nonnull final T t, @Nullable final Object value,
-			@Nonnull final T contextT, @Nullable final Op op) {
-		return setOp(setValue(newLiteral2(t, value, contextT), value), op);
+			@Nonnull final Element context, @Nullable final Op op) {
+		return setOp(setValue(newLiteral2(t, value, context), value), op);
 	}
 
 	@Nonnull
 	@SuppressWarnings("null")
 	private static Expression newLiteral2(@Nonnull final T t, @Nullable final Object value,
-			@Nonnull final T contextT) {
-		final AST ast = contextT.getCu().getAst();
+			@Nonnull final Element context) {
+		final AST ast = context.getCu().getAst();
 		if (t.isRef() /* incl. T.AREF */) {
 			if (value == null) {
 				return ast.newNullLiteral();
 			}
 			if (value instanceof T && t.isAssignableFrom(Class.class)) {
 				final TypeLiteral typeLiteral = ast.newTypeLiteral();
-				typeLiteral.setType(newType((T) value, contextT));
+				typeLiteral.setType(newType((T) value, context));
 				return typeLiteral;
 			}
 			if (value instanceof String && t.isAssignableFrom(String.class)) {
@@ -345,7 +346,7 @@ public final class Expressions {
 				}
 				return stringLiteral;
 			}
-			log.warn(contextT + ": Unknown reference type '" + t + "'!");
+			log.warn(context + ": Unknown reference type '" + t + "'!");
 			return ast.newNullLiteral();
 		}
 		if (t.is(T.BOOLEAN)) {
@@ -440,25 +441,25 @@ public final class Expressions {
 					return ast.newQualifiedName(ast.newSimpleName("Character"),
 							ast.newSimpleName("MIN_VALUE"));
 				case Character.MAX_HIGH_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
+					if (context.getT().isAtLeast(Version.JVM_5)) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MAX_HIGH_SURROGATE"));
 					}
 					break;
 				case Character.MAX_LOW_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
+					if (context.getT().isAtLeast(Version.JVM_5)) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MAX_LOW_SURROGATE"));
 					}
 					break;
 				case Character.MIN_HIGH_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
+					if (context.getT().isAtLeast(Version.JVM_5)) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MIN_HIGH_SURROGATE"));
 					}
 					break;
 				case Character.MIN_LOW_SURROGATE:
-					if (contextT.isAtLeast(Version.JVM_5)) {
+					if (context.getT().isAtLeast(Version.JVM_5)) {
 						return ast.newQualifiedName(ast.newSimpleName("Character"),
 								ast.newSimpleName("MIN_LOW_SURROGATE"));
 					}
@@ -503,7 +504,7 @@ public final class Expressions {
 							ast.newSimpleName("MIN_VALUE"));
 				}
 				if (f == Float.MIN_NORMAL) {
-					if (contextT.isAtLeast(Version.JVM_6)) {
+					if (context.getT().isAtLeast(Version.JVM_6)) {
 						return ast.newQualifiedName(ast.newSimpleName("Float"),
 								ast.newSimpleName("MIN_NORMAL"));
 					}
@@ -562,7 +563,7 @@ public final class Expressions {
 							ast.newSimpleName("MIN_VALUE"));
 				}
 				if (d == Double.MIN_NORMAL) {
-					if (contextT.isAtLeast(Version.JVM_6)) {
+					if (context.getT().isAtLeast(Version.JVM_6)) {
 						return ast.newQualifiedName(ast.newSimpleName("Double"),
 								ast.newSimpleName("MIN_NORMAL"));
 					}
@@ -760,25 +761,25 @@ public final class Expressions {
 	 *
 	 * @param t
 	 *            type
-	 * @param contextT
-	 *            type declaration (context)
+	 * @param context
+	 *            context
 	 * @return AST type
 	 */
 	@SuppressWarnings("deprecation")
-	public static Type newType(@Nonnull final T t, @Nonnull final T contextT) {
-		final AST ast = contextT.getCu().getAst();
+	public static Type newType(@Nonnull final T t, @Nonnull final Element context) {
+		final AST ast = context.getCu().getAst();
 		// handle array first because annot(array()) is special
 		if (t.isArray()) {
 			if (ast.apiLevel() <= AST.JLS4) {
 				final T componentT = t.getComponentT();
 				assert componentT != null;
-				return ast.newArrayType(newType(componentT, contextT));
+				return ast.newArrayType(newType(componentT, context));
 			}
 			final T elementT = t.getElementT();
 			assert elementT != null;
 			for (T checkT = t; checkT != null && checkT.isArray(); checkT = checkT.getComponentT()) {
 				if (checkT.isAnnotated()) {
-					final ArrayType arrayType = ast.newArrayType(newType(elementT, contextT));
+					final ArrayType arrayType = ast.newArrayType(newType(elementT, context));
 					final List<Dimension> dimensions = arrayType.dimensions();
 					dimensions.clear();
 					for (T componentT = t; componentT != null && componentT.isArray(); componentT = componentT
@@ -787,17 +788,17 @@ public final class Expressions {
 						final List<IExtendedModifier> annotations = dimension.annotations();
 						assert annotations != null;
 						if (componentT.isAnnotated()) {
-							Annotations.decompileAnnotations(componentT, annotations, contextT);
+							Annotations.decompileAnnotations(componentT, annotations, context);
 						}
 						dimensions.add(dimension);
 					}
 					return arrayType;
 				}
 			}
-			return ast.newArrayType(newType(elementT, contextT), t.getDimensions());
+			return ast.newArrayType(newType(elementT, context), t.getDimensions());
 		}
 		if (t.isAnnotated()) {
-			Type type = newType(t.getRawT(), contextT);
+			Type type = newType(t.getRawT(), context);
 			if (ast.apiLevel() <= AST.JLS4) {
 				log.warn("Cannot decompile type annotations for type '" + t
 						+ "' in Eclipse AST JLS4!");
@@ -828,7 +829,7 @@ public final class Expressions {
 			}
 			final List<IExtendedModifier> annotations = annotatableType.annotations();
 			assert annotations != null;
-			Annotations.decompileAnnotations(t, annotations, contextT);
+			Annotations.decompileAnnotations(t, annotations, context);
 			return type;
 		}
 		// doesn't work, now with Dimension (see above): if (t.isArray()) { return
@@ -837,10 +838,10 @@ public final class Expressions {
 			final T genericT = t.getGenericT();
 			assert genericT != null;
 			final ParameterizedType parameterizedType = ast.newParameterizedType(newType(genericT,
-					contextT));
+					context));
 			for (final T typeArg : t.getTypeArgs()) {
 				assert typeArg != null;
-				parameterizedType.typeArguments().add(newType(typeArg, contextT));
+				parameterizedType.typeArguments().add(newType(typeArg, context));
 			}
 			return parameterizedType;
 		}
@@ -852,12 +853,12 @@ public final class Expressions {
 			if (t.isSubclassOf()) {
 				final WildcardType wildcardType = ast.newWildcardType();
 				// default...newWildcardType.setUpperBound(true);
-				wildcardType.setBound(newType(boundT, contextT));
+				wildcardType.setBound(newType(boundT, context));
 				return wildcardType;
 			}
 			final WildcardType wildcardType = ast.newWildcardType();
 			wildcardType.setUpperBound(false);
-			wildcardType.setBound(newType(boundT, contextT));
+			wildcardType.setBound(newType(boundT, context));
 			return wildcardType;
 		}
 		if (t.isMulti()) {
@@ -898,15 +899,15 @@ public final class Expressions {
 			// could be ParamT etc., not decompileable with name as target;
 			// restrict qualifications to really necessary enclosings:
 			// t = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
-			if (contextT.getFullName().startsWith(qualifierT.getFullName())) {
+			if (context.getT().getFullName().startsWith(qualifierT.getFullName())) {
 				// TODO full name has too much info yet (like annotations)
 				return ast.newSimpleType(newSimpleName(t.getSimpleIdentifier(), ast));
 			}
-			return ast.newQualifiedType(newType(qualifierT, contextT),
+			return ast.newQualifiedType(newType(qualifierT, context),
 					newSimpleName(t.getSimpleIdentifier(), ast));
 		}
 		// else fall through...
-		return ast.newSimpleType(newTypeName(t, contextT));
+		return ast.newSimpleType(newTypeName(t, context));
 	}
 
 	/**
@@ -914,13 +915,13 @@ public final class Expressions {
 	 *
 	 * @param t
 	 *            type
-	 * @param contextT
-	 *            type declaration (context)
+	 * @param context
+	 *            context
 	 * @return AST type name
 	 */
-	public static Name newTypeName(final T t, final T contextT) {
-		final AST ast = contextT.getCu().getAst();
-		final String contextName = contextT.getName();
+	public static Name newTypeName(final T t, @Nonnull final Element context) {
+		final AST ast = context.getCu().getAst();
+		final String contextName = context.getName();
 
 		// convert inner classes separator '$' into '.',
 		// cannot use string replace because '$' is also a regular Java type name!
@@ -932,7 +933,7 @@ public final class Expressions {
 			if (enclosingT == null) {
 				names.add(0, currentT.getPName());
 				final String packageName = currentT.getPackageName();
-				if (packageName == null || packageName.equals(contextT.getPackageName())
+				if (packageName == null || packageName.equals(context.getT().getPackageName())
 						|| packageName.equals(JAVA_LANG)) {
 					// ignore package iff same like context or like Java default package
 					break;
@@ -1011,8 +1012,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-						not(infixExpression.getLeftOperand()),
-						not(infixExpression.getRightOperand()), getOp(infixExpression));
+								not(infixExpression.getLeftOperand()),
+								not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible

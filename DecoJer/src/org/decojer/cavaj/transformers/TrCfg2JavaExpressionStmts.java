@@ -370,7 +370,7 @@ public final class TrCfg2JavaExpressionStmts {
 						// not all indexes may be set, null/0/false in JVM 7 are not set, fill
 						for (int i = size.intValue(); i-- > 0;) {
 							arrayInitializer.expressions().add(
-									newLiteral(peekT(op), null, getCfg().getT(), op));
+									newLiteral(peekT(op), null, getCfg().getM(), op));
 						}
 						arrayCreation.dimensions().clear();
 					}
@@ -398,7 +398,7 @@ public final class TrCfg2JavaExpressionStmts {
 			case CAST: {
 				final CAST cop = (CAST) op;
 				final CastExpression castExpression = setOp(getAst().newCastExpression(), op);
-				castExpression.setType(newType(cop.getToT(), getCfg().getT()));
+				castExpression.setType(newType(cop.getToT(), getCfg().getM()));
 				castExpression.setExpression(wrap(bb.pop(), Priority.TYPE_CAST));
 				bb.push(castExpression);
 				break;
@@ -518,20 +518,21 @@ public final class TrCfg2JavaExpressionStmts {
 				final FILLARRAY cop = (FILLARRAY) op;
 				final T t = peekT(op);
 				final T componentT = t.getComponentT();
+				assert componentT != null;
 
 				Expression expression = bb.pop();
 				if (!(expression instanceof ArrayCreation)) {
 					// LOAD 0, NEWARRAY, STORE 0, LOAD 0, FILLARRAY <end>
 					// TODO Dalvik: if STORE x / LOAD x are compressed then we shouldn't need this:
 					expression = setOp(getAst().newArrayCreation(), op);
-					((ArrayCreation) expression).setType((ArrayType) newType(t, getCfg().getT()));
+					((ArrayCreation) expression).setType((ArrayType) newType(t, getCfg().getM()));
 				}
 				final ArrayInitializer arrayInitializer = setOp(getAst().newArrayInitializer(), op);
 				final Object[] values = cop.getValues();
 				assert values != null;
 				for (final Object value : values) {
 					arrayInitializer.expressions().add(
-							newLiteral(componentT, value, getCfg().getT(), op));
+							newLiteral(componentT, value, getCfg().getM(), op));
 				}
 				((ArrayCreation) expression).setInitializer(arrayInitializer);
 
@@ -548,7 +549,7 @@ public final class TrCfg2JavaExpressionStmts {
 					// Eclipse AST expects a Name for f.getT(), not a Type:
 					// is OK - f.getT() cannot be generic
 					bb.push(setOp(
-							getAst().newQualifiedName(newTypeName(f.getT(), getCfg().getT()),
+							getAst().newQualifiedName(newTypeName(f.getT(), getCfg().getM()),
 									newSimpleName(f.getName(), getAst())), op));
 					break;
 				}
@@ -596,7 +597,7 @@ public final class TrCfg2JavaExpressionStmts {
 											: Assignment.Operator.MINUS_ASSIGN,
 									getVarExpression(cop.getReg(), cop.getPc(), op),
 									newLiteral(cop.getT(), value >= 0 ? value : -value, getCfg()
-											.getT(), op), op));
+											.getM(), op), op));
 					break;
 				}
 				log.warn(getM() + ": Inline INC with value '" + value + "'!");
@@ -607,7 +608,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final InstanceofExpression instanceofExpression = setOp(getAst()
 						.newInstanceofExpression(), op);
 				instanceofExpression.setLeftOperand(wrap(bb.pop(), Priority.INSTANCEOF));
-				instanceofExpression.setRightOperand(newType(cop.getT(), getCfg().getT()));
+				instanceofExpression.setRightOperand(newType(cop.getT(), getCfg().getM()));
 				bb.push(instanceofExpression);
 				break;
 			}
@@ -778,14 +779,14 @@ public final class TrCfg2JavaExpressionStmts {
 										.newCreationReference();
 								final T ownerT = dynamicM.getT();
 								assert ownerT != null;
-								methodReference.setType(newType(ownerT, getCfg().getT()));
+								methodReference.setType(newType(ownerT, getCfg().getM()));
 								methodExpression = methodReference;
 							} else if (dynamicM.isStatic()) {
 								final TypeMethodReference methodReference = getAst()
 										.newTypeMethodReference();
 								final T ownerT = dynamicM.getT();
 								assert ownerT != null;
-								methodReference.setType(newType(ownerT, getCfg().getT()));
+								methodReference.setType(newType(ownerT, getCfg().getM()));
 								methodReference
 										.setName(newSimpleName(dynamicM.getName(), getAst()));
 								methodExpression = methodReference;
@@ -810,7 +811,7 @@ public final class TrCfg2JavaExpressionStmts {
 					}
 				} else if (m.isStatic()) {
 					final MethodInvocation methodInvocation = getAst().newMethodInvocation();
-					methodInvocation.setExpression(newTypeName(m.getT(), getCfg().getT()));
+					methodInvocation.setExpression(newTypeName(m.getT(), getCfg().getM()));
 					methodInvocation.setName(newSimpleName(m.getName(), getAst()));
 					wrapAddAll(methodInvocation.arguments(), arguments);
 					methodExpression = methodInvocation;
@@ -916,7 +917,7 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = null;
 					}
 					expression = newInfixExpression(operator, expression,
-							newLiteral(T.REF, null, getCfg().getT(), op), op);
+							newLiteral(T.REF, null, getCfg().getM(), op), op);
 				} else if (peekT(op).is(T.BOOLEAN)) {
 					// "!a" or "a == 0"?
 					switch (cop.getCmpType()) {
@@ -958,7 +959,7 @@ public final class TrCfg2JavaExpressionStmts {
 						operator = null;
 					}
 					expression = newInfixExpression(operator, expression,
-							newLiteral(T.INT, 0, getCfg().getT(), op), op);
+							newLiteral(T.INT, 0, getCfg().getM(), op), op);
 				}
 				statement = getAst().newIfStatement();
 				((IfStatement) statement).setExpression(wrap(expression));
@@ -1064,13 +1065,13 @@ public final class TrCfg2JavaExpressionStmts {
 							case 0: {
 								final T superT = newT.getSuperT();
 								assert superT != null;
-								classInstanceCreation.setType(newType(superT, getCfg().getT()));
+								classInstanceCreation.setType(newType(superT, getCfg().getM()));
 								break;
 							}
 							case 1: {
 								final T interfaceT = interfaceTs[0];
 								assert interfaceT != null;
-								classInstanceCreation.setType(newType(interfaceT, getCfg().getT()));
+								classInstanceCreation.setType(newType(interfaceT, getCfg().getM()));
 								break;
 							}
 							default:
@@ -1088,14 +1089,14 @@ public final class TrCfg2JavaExpressionStmts {
 						// no int
 					}
 				}
-				classInstanceCreation.setType(newType(newT, getCfg().getT()));
+				classInstanceCreation.setType(newType(newT, getCfg().getM()));
 				bb.push(classInstanceCreation);
 				break;
 			}
 			case NEWARRAY: {
 				final NEWARRAY cop = (NEWARRAY) op;
 				final ArrayCreation arrayCreation = setOp(getAst().newArrayCreation(), op);
-				arrayCreation.setType((ArrayType) newType(cop.getT(), getCfg().getT()));
+				arrayCreation.setType((ArrayType) newType(cop.getT(), getCfg().getM()));
 				for (int i = cop.getDimensions(); i-- > 0;) {
 					arrayCreation.dimensions().add(wrap(bb.pop()));
 				}
@@ -1156,7 +1157,7 @@ public final class TrCfg2JavaExpressionStmts {
 			case PUSH: {
 				final PUSH cop = (PUSH) op;
 				bb.push(newLiteral(getCfg().getOutFrame(op).peek().getT(), cop.getValue(), getCfg()
-						.getT(), op));
+						.getM(), op));
 				break;
 			}
 			case PUT: {
@@ -1170,7 +1171,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				Expression leftOperand;
 				if (f.isStatic()) {
-					leftOperand = getAst().newQualifiedName(newTypeName(f.getT(), getCfg().getT()),
+					leftOperand = getAst().newQualifiedName(newTypeName(f.getT(), getCfg().getM()),
 							newSimpleName(f.getName(), getAst()));
 				} else {
 					final FieldAccess fieldAccess = getAst().newFieldAccess();
@@ -1259,7 +1260,7 @@ public final class TrCfg2JavaExpressionStmts {
 								Priority.ASSIGNMENT));
 						final VariableDeclarationStatement variableDeclarationStatement = getAst()
 								.newVariableDeclarationStatement(variableDeclarationFragment);
-						variableDeclarationStatement.setType(newType(v.getT(), getCfg().getT()));
+						variableDeclarationStatement.setType(newType(v.getT(), getCfg().getM()));
 						statement = variableDeclarationStatement;
 						break;
 					}
@@ -1586,7 +1587,9 @@ public final class TrCfg2JavaExpressionStmts {
 
 				// rewrite AST
 				final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
+				assert ifStatement != null;
 				final IfStatement rightIfStatement = (IfStatement) c.removeStmt(0);
+				assert rightIfStatement != null;
 				if (bb == x && c_bb.isCondTrue() || bb2 == x && c_bb2.isCondTrue() /* ?t */) {
 					if (a_x.isCondTrue() /* tt */) {
 						ifStatement.setExpression(newInfixExpression(
@@ -1621,6 +1624,7 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			// check cross...
 			E x_bb = x.getTrueOut();
+			assert x_bb != null;
 			if (x_bb.getRelevantEnd() == bb) {
 				if (x.getFalseOut().getRelevantEnd() != bb2) {
 					continue;
@@ -1630,6 +1634,7 @@ public final class TrCfg2JavaExpressionStmts {
 					continue;
 				}
 				x_bb = x.getFalseOut();
+				assert x_bb != null;
 				if (x_bb.getRelevantEnd() != bb) {
 					continue;
 				}
@@ -1652,8 +1657,10 @@ public final class TrCfg2JavaExpressionStmts {
 
 			// rewrite AST
 			final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
+			assert ifStatement != null;
 
 			Expression expression = ifStatement.getExpression();
+			assert expression != null;
 			Expression thenExpression;
 			Expression elseExpression;
 			if (c.isBefore(x)) {
@@ -1786,8 +1793,9 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		// can just happen for JDK<5: replace . -> /
 		final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace('.', '/');
+		assert classInfo != null;
 		followBb.push(newLiteral(getCfg().getDu().getT(Class.class),
-				getCfg().getDu().getT(classInfo), getCfg().getT(), op));
+				getCfg().getDu().getT(classInfo), getCfg().getM(), op));
 		bb.removeOp(0);
 		bb.removeOp(0);
 		followBb.joinPredBb(bb);
@@ -1833,6 +1841,7 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 
 		final BB getBb = initCacheOut.isCondTrue() ? bb.getFalseSucc() : bb.getTrueSucc();
+		assert getBb != null;
 		if (getBb.getOps() != 1 && getBb.getOps() != 2) {
 			return false;
 		}
@@ -1847,7 +1856,7 @@ public final class TrCfg2JavaExpressionStmts {
 		// can just happen for JDK<5: replace . -> /
 		final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace('.', '/');
 		followBb.push(newLiteral(getCfg().getDu().getT(Class.class),
-				getCfg().getDu().getT(classInfo), getCfg().getT(), op));
+				getCfg().getDu().getT(classInfo), getCfg().getM(), op));
 		bb.removeOp(0);
 		followBb.joinPredBb(bb);
 		return true;
@@ -1961,12 +1970,14 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			final E a_c = c.getRelevantIn();
+			assert a_c != null;
 			final BB a = a_c.getStart();
 			if (!a.isCond()) {
 				continue;
 			}
 			// now we have the potential compound head, go down again and identify pattern
 			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
+			assert a_x != null;
 			final BB x = a_x.getRelevantEnd();
 			if (x.getIns().size() != 1 || x.getStmts() != 0 || x.getTop() != 1) {
 				continue;
@@ -2055,7 +2066,7 @@ public final class TrCfg2JavaExpressionStmts {
 						final String classInfo = ((StringLiteral) methodInvocation.arguments().get(
 								0)).getLiteralValue();
 						expression = newLiteral(getCfg().getDu().getT(Class.class), getCfg()
-								.getDu().getT(classInfo), getCfg().getT(), getOp(equalsExpression));
+								.getDu().getT(classInfo), getCfg().getM(), getOp(equalsExpression));
 						break rewrite;
 					} catch (final Exception e) {
 						// rewrite to class literal didn't work
@@ -2259,13 +2270,13 @@ public final class TrCfg2JavaExpressionStmts {
 					.newSingleVariableDeclaration();
 			singleVariableDeclaration.setName(name);
 			if (handlerTypes.length == 1) {
-				singleVariableDeclaration.setType(newType(handlerType, getCfg().getT()));
+				singleVariableDeclaration.setType(newType(handlerType, getCfg().getM()));
 			} else {
 				// Multi-Catch
 				final UnionType unionType = getAst().newUnionType();
 				for (final T t : handlerTypes) {
 					assert t != null;
-					unionType.types().add(newType(t, getCfg().getT()));
+					unionType.types().add(newType(t, getCfg().getM()));
 				}
 				singleVariableDeclaration.setType(unionType);
 			}
@@ -2326,7 +2337,7 @@ public final class TrCfg2JavaExpressionStmts {
 		final int value = op.getValue();
 		final Assignment assignment = newAssignment(value >= 0 ? Assignment.Operator.PLUS_ASSIGN
 				: Assignment.Operator.MINUS_ASSIGN, getVarExpression(op.getReg(), op.getPc(), op),
-				newLiteral(op.getT(), value >= 0 ? value : -value, getCfg().getT(), op), op);
+				newLiteral(op.getT(), value >= 0 ? value : -value, getCfg().getM(), op), op);
 		bb.removeOp(0);
 		bb.push(assignment);
 		return true;
