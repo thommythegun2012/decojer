@@ -35,6 +35,7 @@ import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
+import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
@@ -158,8 +159,9 @@ public class CfgViewer extends Composite {
 	private GraphNode addToGraph(@Nonnull final BB bb,
 			@Nonnull final IdentityHashMap<BB, GraphNode> map) {
 		final GraphNode node = new GraphNode(this.graph, SWT.NONE, bb.toString(), bb);
-		if (bb.getStruct() != null) {
-			node.setTooltip(new Label(bb.getStruct().toString()));
+		final Struct struct = bb.getStruct();
+		if (struct != null) {
+			node.setTooltip(new Label(struct.toString()));
 		} else if (bb.getCfg().isFrames() && bb.getOps() > 0) {
 			node.setTooltip(new FramesFigure(bb));
 		} else {
