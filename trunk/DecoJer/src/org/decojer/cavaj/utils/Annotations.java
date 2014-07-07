@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.types.T;
 import org.eclipse.jdt.core.dom.AST;
@@ -66,13 +67,13 @@ public final class Annotations {
 	 *
 	 * @param a
 	 *            annotation
-	 * @param contextT
+	 * @param context
 	 *            context
 	 * @return annotation AST Node
 	 */
 	@Nonnull
-	private static Annotation decompileAnnotation(@Nonnull final A a, @Nonnull final T contextT) {
-		final AST ast = contextT.getCu().getAst();
+	private static Annotation decompileAnnotation(@Nonnull final A a, @Nonnull final Element context) {
+		final AST ast = context.getCu().getAst();
 		final Set<Entry<String, Object>> members = a.getMembers();
 		if (!members.isEmpty()) {
 			if (members.size() == 1) {
@@ -81,17 +82,17 @@ public final class Annotations {
 					// a single member name "value=" is optional
 					final SingleMemberAnnotation singleMemberAnnotation = ast
 							.newSingleMemberAnnotation();
-					singleMemberAnnotation.setTypeName(newTypeName(a.getT(), contextT));
+					singleMemberAnnotation.setTypeName(newTypeName(a.getT(), context));
 					singleMemberAnnotation.setValue(decompileAnnotationDefaultValue(memberValue,
-							contextT));
+							context));
 					return singleMemberAnnotation;
 				}
 			}
 			final NormalAnnotation normalAnnotation = ast.newNormalAnnotation();
-			normalAnnotation.setTypeName(newTypeName(a.getT(), contextT));
+			normalAnnotation.setTypeName(newTypeName(a.getT(), context));
 			for (final Entry<String, Object> member : members) {
 				final Expression expression = decompileAnnotationDefaultValue(member.getValue(),
-						contextT);
+						context);
 				if (expression != null) {
 					final MemberValuePair newMemberValuePair = ast.newMemberValuePair();
 					newMemberValuePair.setName(newSimpleName(member.getKey(), ast));
@@ -104,7 +105,7 @@ public final class Annotations {
 			}
 		}
 		final MarkerAnnotation markerAnnotation = ast.newMarkerAnnotation();
-		markerAnnotation.setTypeName(newTypeName(a.getT(), contextT));
+		markerAnnotation.setTypeName(newTypeName(a.getT(), context));
 		return markerAnnotation;
 	}
 
@@ -113,31 +114,31 @@ public final class Annotations {
 	 *
 	 * @param defaultValue
 	 *            default value
-	 * @param contextT
+	 * @param context
 	 *            context
 	 * @return expression AST Node
 	 */
 	@Nullable
 	public static Expression decompileAnnotationDefaultValue(@Nullable final Object defaultValue,
-			@Nonnull final T contextT) {
-		final AST ast = contextT.getCu().getAst();
+			@Nonnull final Element context) {
+		final AST ast = context.getCu().getAst();
 		if (defaultValue == null) {
 			return null;
 		}
 		if (defaultValue instanceof A) {
-			return decompileAnnotation((A) defaultValue, contextT);
+			return decompileAnnotation((A) defaultValue, context);
 		}
 		// could be primitive array - use slow reflection
 		if (defaultValue.getClass().isArray()) {
 			final int size = Array.getLength(defaultValue);
 			if (size == 1) {
 				// single entry autoboxing
-				return decompileAnnotationDefaultValue(Array.get(defaultValue, 0), contextT);
+				return decompileAnnotationDefaultValue(Array.get(defaultValue, 0), context);
 			}
 			final ArrayInitializer arrayInitializer = ast.newArrayInitializer();
 			for (int i = 0; i < size; ++i) {
 				final Expression expression = decompileAnnotationDefaultValue(
-						Array.get(defaultValue, i), contextT);
+						Array.get(defaultValue, i), context);
 				if (expression != null) {
 					arrayInitializer.expressions().add(expression);
 				}
@@ -157,7 +158,7 @@ public final class Annotations {
 		}
 		if (defaultValue instanceof T) {
 			final TypeLiteral typeLiteral = ast.newTypeLiteral();
-			typeLiteral.setType(newType((T) defaultValue, contextT));
+			typeLiteral.setType(newType((T) defaultValue, context));
 			return typeLiteral;
 		}
 		if (defaultValue instanceof Double) {
@@ -168,7 +169,7 @@ public final class Annotations {
 			if (!f.isEnum()) {
 				log.warn("Default value field must be enum!");
 			}
-			return ast.newQualifiedName(newTypeName(f.getT(), contextT),
+			return ast.newQualifiedName(newTypeName(f.getT(), context),
 					newSimpleName(f.getName(), ast));
 		}
 		if (defaultValue instanceof Float) {
@@ -201,11 +202,11 @@ public final class Annotations {
 	 *            Annotations
 	 * @param annotations
 	 *            Annotation AST Nodes
-	 * @param contextT
-	 *            Type Declaration
+	 * @param context
+	 *            context
 	 */
 	public static void decompileAnnotations(@Nullable final A[] as,
-			@Nonnull final List<IExtendedModifier> annotations, @Nonnull final T contextT) {
+			@Nonnull final List<IExtendedModifier> annotations, @Nonnull final Element context) {
 		if (as == null) {
 			return;
 		}
@@ -216,11 +217,11 @@ public final class Annotations {
 			if (isRepeatable(a)) {
 				for (final Object aa : (Object[]) a.getValueMember()) {
 					if (aa instanceof A) {
-						annotations.add(decompileAnnotation((A) aa, contextT));
+						annotations.add(decompileAnnotation((A) aa, context));
 					}
 				}
 			} else {
-				annotations.add(decompileAnnotation(a, contextT));
+				annotations.add(decompileAnnotation(a, context));
 			}
 		}
 	}
@@ -232,13 +233,13 @@ public final class Annotations {
 	 *            Annotated Type
 	 * @param annotations
 	 *            Annotation AST Nodes
-	 * @param contextT
-	 *            Type Declaration
+	 * @param context
+	 *            context
 	 */
 	public static void decompileAnnotations(@Nonnull final T t,
-			@Nonnull final List<IExtendedModifier> annotations, @Nonnull final T contextT) {
+			@Nonnull final List<IExtendedModifier> annotations, @Nonnull final Element context) {
 		if (t.isAnnotated()) {
-			decompileAnnotations(t.getAs(), annotations, contextT);
+			decompileAnnotations(t.getAs(), annotations, context);
 		}
 	}
 

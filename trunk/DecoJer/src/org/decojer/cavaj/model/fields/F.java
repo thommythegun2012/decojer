@@ -57,20 +57,16 @@ public abstract class F implements Element {
 		return getT().getDu();
 	}
 
+	@Nonnull
+	@Override
+	public abstract T getT();
+
 	/**
 	 * Create field declaration for this field.
 	 *
 	 * @return {@code true} - success
 	 */
 	public abstract boolean createFd();
-
-	/**
-	 * Get owner type.
-	 *
-	 * @return owner type
-	 */
-	@Nonnull
-	public abstract T getT();
 
 	/**
 	 * Get value type.
