@@ -1556,13 +1556,19 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			// now we have the potential compound head, go down again and identify patterns
 			final E c_bb2 = c_bb.isCondTrue() ? c.getFalseOut() : c.getTrueOut();
-			assert c_bb2 != null;
+			if (c_bb2 == null) {
+				assert false;
+				continue;
+			}
 			final BB bb2 = c_bb2.getRelevantEnd();
 			// condition wrong for org.objectweb.asm.ALLPerfTest.main(): last 2 conditions in loop
 			// a=87 -> c=87 -> bb=92 and bb2=129 as loop head is combining end node
 			// if (c.hasPred(bb2)) { continue; }
 			final E a_x = a_c.isCondTrue() ? a.getFalseOut() : a.getTrueOut();
-			assert a_x != null;
+			if (a_x == null) {
+				assert false;
+				continue;
+			}
 			final BB x = a_x.getRelevantEnd();
 
 			if (bb == x || bb2 == x) {
@@ -1588,31 +1594,34 @@ public final class TrCfg2JavaExpressionStmts {
 				// rewrite AST
 				final IfStatement ifStatement = (IfStatement) a.getFinalStmt();
 				assert ifStatement != null;
+				final Expression ifExpression = ifStatement.getExpression();
+				assert ifExpression != null;
 				final IfStatement rightIfStatement = (IfStatement) c.removeStmt(0);
 				assert rightIfStatement != null;
+				final Expression rightIfExpression = rightIfStatement.getExpression();
+				assert rightIfExpression != null;
+				final Op op = getOp(rightIfStatement);
+				assert op != null;
+
 				if (bb == x && c_bb.isCondTrue() || bb2 == x && c_bb2.isCondTrue() /* ?t */) {
 					if (a_x.isCondTrue() /* tt */) {
 						ifStatement.setExpression(newInfixExpression(
-								InfixExpression.Operator.CONDITIONAL_OR,
-								ifStatement.getExpression(), rightIfStatement.getExpression(),
-								getOp(rightIfStatement)));
+								InfixExpression.Operator.CONDITIONAL_OR, ifExpression,
+								rightIfExpression, op));
 					} else {
 						ifStatement.setExpression(newInfixExpression(
-								InfixExpression.Operator.CONDITIONAL_OR,
-								not(ifStatement.getExpression()), rightIfStatement.getExpression(),
-								getOp(rightIfStatement)));
+								InfixExpression.Operator.CONDITIONAL_OR, not(ifExpression),
+								rightIfExpression, op));
 					}
 				} else {
 					if (a_x.isCondTrue() /* tf */) {
 						ifStatement.setExpression(newInfixExpression(
-								InfixExpression.Operator.CONDITIONAL_AND,
-								not(ifStatement.getExpression()), rightIfStatement.getExpression(),
-								getOp(rightIfStatement)));
+								InfixExpression.Operator.CONDITIONAL_AND, not(ifExpression),
+								rightIfExpression, op));
 					} else {
 						ifStatement.setExpression(newInfixExpression(
-								InfixExpression.Operator.CONDITIONAL_AND,
-								ifStatement.getExpression(), rightIfStatement.getExpression(),
-								getOp(rightIfStatement)));
+								InfixExpression.Operator.CONDITIONAL_AND, ifExpression,
+								rightIfExpression, op));
 					}
 				}
 				c.joinPredBb(a);
@@ -2528,7 +2537,12 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final MethodInvocation hashMethodInvocation = (MethodInvocation) switchExpression;
-		final M hashM = ((INVOKE) getOp(hashMethodInvocation)).getM();
+		final Op invokeOp = getOp(hashMethodInvocation);
+		if (!(invokeOp instanceof INVOKE)) {
+			assert false;
+			return false;
+		}
+		final M hashM = ((INVOKE) invokeOp).getM();
 		if (!"hashCode".equals(hashM.getName()) || !"()I".equals(hashM.getDescriptor())) {
 			return false;
 		}
@@ -2537,15 +2551,20 @@ public final class TrCfg2JavaExpressionStmts {
 			assert false;
 			return false;
 		}
-		final BB defaultCase = bb.getSwitchDefaultOut().getRelevantEnd();
+		final E switchDefaultOut = bb.getSwitchDefaultOut();
+		if (switchDefaultOut == null) {
+			assert false;
+			return false;
+		}
+
+		final BB defaultCase = switchDefaultOut.getRelevantEnd();
 		// we are not very flexible here...the patterns are very special, but I don't know if more
 		// general pattern matching is even possible, kind of none-decidable?
 		// obfuscators or different compilers could currently easily sabotage this method...
 		if (stringSwitchExpression instanceof SimpleName) {
-			// JDK-Bytecode mode: 2 switches, first switch assigns index
+			// JDK-Bytecode mode: combination of 2 switches, first switch assigns to index
 			try {
 				final int tmpReg = ((LOAD) getOp(stringSwitchExpression)).getReg();
-
 				if (bb.getStmts() < 2) {
 					return false;
 				}
@@ -2587,9 +2606,10 @@ public final class TrCfg2JavaExpressionStmts {
 					}
 					final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
 					switchStatement.setExpression(wrap(stringSwitchExpression));
-					bb.removeFinalStmt();
-					bb.removeFinalStmt();
-					defaultCase.removeOp(0);
+					bb.removeFinalStmt(); // r<x> = -1
+					bb.removeFinalStmt(); // r<y> = stringSwitchExpression
+					defaultCase.removeOp(0); // LOAD x
+					defaultCase.removeOp(0); // second SWITCH
 					defaultCase.joinPredBb(bb);
 					defaultCase.addStmt(switchStatement);
 				}
