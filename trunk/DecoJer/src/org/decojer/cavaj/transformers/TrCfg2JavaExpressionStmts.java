@@ -2556,100 +2556,149 @@ public final class TrCfg2JavaExpressionStmts {
 			assert false;
 			return false;
 		}
-
 		final BB defaultCase = switchDefaultOut.getRelevantEnd();
 		// we are not very flexible here...the patterns are very special, but I don't know if more
 		// general pattern matching is even possible, kind of none-decidable?
 		// obfuscators or different compilers could currently easily sabotage this method...
 		if (stringSwitchExpression instanceof SimpleName) {
 			// JDK-Bytecode mode: combination of 2 switches, first switch assigns to index
-			try {
-				final int tmpReg = ((LOAD) getOp(stringSwitchExpression)).getReg();
-				if (bb.getStmts() < 2) {
-					return false;
-				}
-				final Assignment indexAssignment = (Assignment) bb.getExpression(bb.getStmts() - 1);
-				assert indexAssignment != null;
-				if (!"-1".equals(((NumberLiteral) indexAssignment.getRightHandSide()).getToken())) {
-					return false;
-				}
-				final int indexReg = ((STORE) getOp(indexAssignment.getLeftHandSide())).getReg();
-
-				// first: r1 = stringSwitchExpression
-				final Assignment assignment = (Assignment) bb.getExpression(bb.getStmts() - 2);
-				assert assignment != null;
-				if (((STORE) getOp(assignment.getLeftHandSide())).getReg() != tmpReg) {
-					return false;
-				}
-				stringSwitchExpression = assignment.getRightHandSide();
-				if (stringSwitchExpression == null) {
-					assert false;
-					return false;
-				}
-				final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, tmpReg,
-						defaultCase);
-				if (string2bb == null) {
-					return false;
-				}
-				final Map<Integer, String> index2string = SwitchTypes.extractIndex2string(
-						string2bb, indexReg, defaultCase);
-				if (index2string == null) {
-					SwitchTypes.rewriteCaseStrings(bb, string2bb, defaultCase);
-					final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
-					switchStatement.setExpression(wrap(stringSwitchExpression));
-					bb.removeFinalStmt();
-					bb.removeFinalStmt();
-					bb.addStmt(switchStatement);
-				} else {
-					if (!SwitchTypes.rewriteCaseValues(defaultCase, index2string)) {
-						return false;
-					}
-					final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
-					switchStatement.setExpression(wrap(stringSwitchExpression));
-					bb.removeFinalStmt(); // r<x> = -1
-					bb.removeFinalStmt(); // r<y> = stringSwitchExpression
-					defaultCase.removeOp(0); // LOAD x
-					defaultCase.removeOp(0); // second SWITCH
-					defaultCase.joinPredBb(bb);
-					defaultCase.addStmt(switchStatement);
-				}
-				if (getCfg().getT().isBelow(Version.JVM_7)) {
-					log.warn(getM()
-							+ ": String switches are not known before JVM 7! Rewriting anyway, check this.");
-				}
-				return true;
-			} catch (final ClassCastException e) {
-				// nothing
+			final Op loadOp = getOp(stringSwitchExpression);
+			if (!(loadOp instanceof LOAD)) {
+				assert false;
+				return false;
 			}
-			return false;
-		}
-		if (stringSwitchExpression instanceof ParenthesizedExpression) {
-			// more compact Eclipse-Bytecode mode: one switch
-			try {
-				final Assignment assignment = (Assignment) ((ParenthesizedExpression) stringSwitchExpression)
-						.getExpression();
-				final int tmpReg = ((STORE) getOp(assignment.getLeftHandSide())).getReg();
-				stringSwitchExpression = assignment.getRightHandSide();
-
-				final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, tmpReg,
-						defaultCase);
-				if (string2bb == null) {
-					return false;
-				}
+			final int tmpReg = ((LOAD) loadOp).getReg();
+			if (bb.getStmts() < 2) {
+				assert false;
+				return false;
+			}
+			// extract second statement: r<y> = -1
+			final Expression indexAssignment = bb.getExpression(bb.getStmts() - 1);
+			if (!(indexAssignment instanceof Assignment)) {
+				assert false;
+				return false;
+			}
+			final Expression indexRightHandSide = ((Assignment) indexAssignment).getRightHandSide();
+			if (!(indexRightHandSide instanceof NumberLiteral)) {
+				assert false;
+				return false;
+			}
+			if (!"-1".equals(((NumberLiteral) indexRightHandSide).getToken())) {
+				assert false;
+				return false;
+			}
+			final Expression indexLeftHandSide = ((Assignment) indexAssignment).getLeftHandSide();
+			if (indexLeftHandSide == null) {
+				assert false;
+				return false;
+			}
+			final Op indexStoreOp = getOp(indexLeftHandSide);
+			if (!(indexStoreOp instanceof STORE)) {
+				assert false;
+				return false;
+			}
+			final int indexReg = ((STORE) indexStoreOp).getReg();
+			// extract first statement: r<x> = stringSwitchExpression
+			final Expression assignment = bb.getExpression(bb.getStmts() - 2);
+			if (!(assignment instanceof Assignment)) {
+				assert false;
+				return false;
+			}
+			final Expression leftHandSide = ((Assignment) assignment).getLeftHandSide();
+			if (leftHandSide == null) {
+				assert false;
+				return false;
+			}
+			final Op storeOp = getOp(leftHandSide);
+			if (!(storeOp instanceof STORE)) {
+				assert false;
+				return false;
+			}
+			if (((STORE) storeOp).getReg() != tmpReg) {
+				return false;
+			}
+			stringSwitchExpression = ((Assignment) assignment).getRightHandSide();
+			if (stringSwitchExpression == null) {
+				assert false;
+				return false;
+			}
+			// extract string case values
+			final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, tmpReg, defaultCase);
+			if (string2bb == null) {
+				return false;
+			}
+			// rewrite switch
+			final Map<Integer, String> index2string = SwitchTypes.extractIndex2string(string2bb,
+					indexReg, defaultCase);
+			if (index2string == null) {
 				SwitchTypes.rewriteCaseStrings(bb, string2bb, defaultCase);
-
-				if (getCfg().getT().isBelow(Version.JVM_7)) {
-					log.warn(getM()
-							+ ": String switches are not known before JVM 7! Rewriting anyway, check this.");
+				final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
+				switchStatement.setExpression(wrap(stringSwitchExpression));
+				bb.removeFinalStmt();
+				bb.removeFinalStmt();
+				bb.addStmt(switchStatement);
+			} else {
+				if (!SwitchTypes.rewriteCaseValues(defaultCase, index2string)) {
+					return false;
 				}
 				final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
 				switchStatement.setExpression(wrap(stringSwitchExpression));
-				bb.addStmt(switchStatement);
-				return true;
-			} catch (final ClassCastException e) {
-				// nothing
+				bb.removeFinalStmt(); // r<y> = -1
+				bb.removeFinalStmt(); // r<x> = stringSwitchExpression
+				defaultCase.removeOp(0); // LOAD y
+				defaultCase.removeOp(0); // second SWITCH
+				defaultCase.joinPredBb(bb);
+				defaultCase.addStmt(switchStatement);
 			}
-			return false;
+			if (getCfg().getT().isBelow(Version.JVM_7)) {
+				log.warn(getM()
+						+ ": String switches are not known before JVM 7! Rewriting anyway, check this.");
+			}
+			return true;
+		}
+		if (stringSwitchExpression instanceof ParenthesizedExpression) {
+			// (r<x>=stringSwitchExpression).hashCode()
+			// more compact Eclipse-Bytecode mode: one switch
+			final Expression assignment = ((ParenthesizedExpression) stringSwitchExpression)
+					.getExpression();
+			if (!(assignment instanceof Assignment)) {
+				assert false;
+				return false;
+			}
+			// extract left assignment: r<x>, tmpReg: x
+			final Expression leftHandSide = ((Assignment) assignment).getLeftHandSide();
+			if (leftHandSide == null) {
+				assert false;
+				return false;
+			}
+			final Op storeOp = getOp(leftHandSide);
+			if (!(storeOp instanceof STORE)) {
+				assert false;
+				return false;
+			}
+			final int tmpReg = ((STORE) storeOp).getReg();
+			// extract right assignment: stringSwitchExpression
+			stringSwitchExpression = ((Assignment) assignment).getRightHandSide();
+			if (stringSwitchExpression == null) {
+				assert false;
+				return false;
+			}
+			// extract string case values
+			final Map<String, BB> string2bb = SwitchTypes.extractString2bb(bb, tmpReg, defaultCase);
+			if (string2bb == null) {
+				return false;
+			}
+			// rewrite switch
+			SwitchTypes.rewriteCaseStrings(bb, string2bb, defaultCase);
+			final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
+			switchStatement.setExpression(wrap(stringSwitchExpression));
+			bb.addStmt(switchStatement);
+
+			if (getCfg().getT().isBelow(Version.JVM_7)) {
+				log.warn(getM()
+						+ ": String switches are not known before JVM 7! Rewriting anyway, check this.");
+			}
+			return true;
 		}
 		return false;
 	}
