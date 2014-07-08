@@ -83,22 +83,30 @@ public final class TrJvmStruct2JavaAst {
 		final String name = f.getName();
 		final T t = f.getT();
 
-		if (f.isStatic()) {
-			// enum synthetic fields
-			if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && t.isEnum()
-					&& !cu.check(DFlag.IGNORE_ENUM)) {
-				// TODO could extract this field name from initializer for more robustness
+		if (f.isSynthetic()) {
+			if (!cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
 				return;
 			}
-		} else {
-			if (name.startsWith("this$") && t.isInner() && f.getValueT().is(t.getEnclosingT())
-					&& !cu.check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
-				// TODO could extract this field name from constructor for more robustness
-				return;
+			if (f.isStatic()) {
+				// enum synthetic fields for Enum.values() method
+				if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && t.isEnum()
+						&& t.equals(f.getValueT().getComponentT()) && !cu.check(DFlag.IGNORE_ENUM)) {
+					// JDK Enum has synthetic "$VALUES" field for Enum.values(),
+					// Eclipse Enum has synthetic "ENUM$VALUES" field for Enum.values()
+					return;
+				}
+				if (name.startsWith("$SWITCH_TABLE$") && f.getValueT().getComponentT() == T.INT
+						&& !cu.check(DFlag.IGNORE_ENUM)) {
+					// Eclipse switch(enum) has embedded synthethis int[] field in using class,
+					// JDK references external inner class for this
+					return;
+				}
+			} else {
+				if (name.startsWith("this$") && t.isInner() && f.getValueT().is(t.getEnclosingT())
+						&& !cu.check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
+					return;
+				}
 			}
-		}
-		if (f.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
-			return;
 		}
 		final AST ast = cu.getAst();
 
@@ -184,7 +192,7 @@ public final class TrJvmStruct2JavaAst {
 		// enum synthetic methods
 		if (m.isStatic()
 				&& ("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
-				&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
+						&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
 				&& t.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
 			return;
 		}
@@ -319,7 +327,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-			.setType(newType(m.getReturnT(), t));
+					.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -431,7 +439,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-									+ "'!");
+							+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
