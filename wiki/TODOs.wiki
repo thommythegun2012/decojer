@@ -26,6 +26,8 @@ Eclipse: 41 s
 
 ---
 
+- bug in eclipse-enum-switchmap:
+  fix decompile and ignore with flag: static int[] $SWITCH_TABLE$org$decojer$cavaj$test$jdk5$DecTestSwitchEnum()
 - bug in eclipse-string-switcher
 - bbk-stat-fdi ... EDU.oswego.cs.dl.util.concurrent.BoundedBuffer.peek()L
   + TODO add checkBb always as member, check if sequenceOut -> this must be follow or break
