@@ -429,4 +429,5 @@ public class SwitchTypes {
 		}
 		return true;
 	}
+
 }
