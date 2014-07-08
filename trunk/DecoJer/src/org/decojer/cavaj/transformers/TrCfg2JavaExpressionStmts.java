@@ -2461,7 +2461,6 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final ArrayAccess arrayAccess = (ArrayAccess) switchExpression;
-
 		// check index expression: ordinal() : int
 		final Expression indexExpression = arrayAccess.getIndex();
 		if (!(indexExpression instanceof MethodInvocation)) {
@@ -2470,6 +2469,7 @@ public final class TrCfg2JavaExpressionStmts {
 		final MethodInvocation ordinalMethodInvocation = (MethodInvocation) indexExpression;
 		final Op ordinalMOp = getOp(ordinalMethodInvocation);
 		if (!(ordinalMOp instanceof INVOKE)) {
+			assert false;
 			return false;
 		}
 		final M ordinalM = ((INVOKE) ordinalMOp).getM();
@@ -2478,7 +2478,11 @@ public final class TrCfg2JavaExpressionStmts {
 				|| ordinalOwnerT == null) {
 			return false;
 		}
-
+		final Expression enumSwitchExpression = ordinalMethodInvocation.getExpression();
+		if (enumSwitchExpression == null) {
+			assert false;
+			return false;
+		}
 		// extract index 2 enumeration map
 		final Map<Integer, F> index2enum;
 
@@ -2523,7 +2527,7 @@ public final class TrCfg2JavaExpressionStmts {
 					+ ": Enumerations switches are not known before JVM 5! Rewriting anyway, check this.");
 		}
 		final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
-		switchStatement.setExpression(wrap(ordinalMethodInvocation.getExpression()));
+		switchStatement.setExpression(wrap(enumSwitchExpression));
 		bb.addStmt(switchStatement);
 		return true;
 	}
