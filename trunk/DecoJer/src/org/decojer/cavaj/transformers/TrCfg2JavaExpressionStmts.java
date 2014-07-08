@@ -2561,6 +2561,7 @@ public final class TrCfg2JavaExpressionStmts {
 		// general pattern matching is even possible, kind of none-decidable?
 		// obfuscators or different compilers could currently easily sabotage this method...
 		if (stringSwitchExpression instanceof SimpleName) {
+			// switch (r<x>)
 			// JDK-Bytecode mode: combination of 2 switches, first switch assigns to index
 			final Op loadOp = getOp(stringSwitchExpression);
 			if (!(loadOp instanceof LOAD)) {
@@ -2657,7 +2658,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return true;
 		}
 		if (stringSwitchExpression instanceof ParenthesizedExpression) {
-			// (r<x>=stringSwitchExpression).hashCode()
+			// switch((r<x>=stringSwitchExpression).hashCode())
 			// more compact Eclipse-Bytecode mode: one switch
 			final Expression assignment = ((ParenthesizedExpression) stringSwitchExpression)
 					.getExpression();
