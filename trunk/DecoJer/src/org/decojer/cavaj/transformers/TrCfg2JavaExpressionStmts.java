@@ -2635,8 +2635,8 @@ public final class TrCfg2JavaExpressionStmts {
 				SwitchTypes.rewriteCaseStrings(bb, string2bb, defaultCase);
 				final SwitchStatement switchStatement = setOp(getAst().newSwitchStatement(), op);
 				switchStatement.setExpression(wrap(stringSwitchExpression));
-				bb.removeFinalStmt();
-				bb.removeFinalStmt();
+				bb.removeFinalStmt(); // r<y> = -1
+				bb.removeFinalStmt(); // r<x> = stringSwitchExpression
 				bb.addStmt(switchStatement);
 			} else {
 				if (!SwitchTypes.rewriteCaseValues(defaultCase, index2string)) {
