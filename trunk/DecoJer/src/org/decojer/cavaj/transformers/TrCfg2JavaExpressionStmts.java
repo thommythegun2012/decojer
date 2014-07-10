@@ -2382,11 +2382,11 @@ public final class TrCfg2JavaExpressionStmts {
 	private boolean rewriteStringAppend(@Nonnull final BB bb, @Nonnull final INVOKE op) {
 		// method-invoke for StringBuffer.toString() or StringBuilder.toString()
 
-		// jdk1.1.6:
+		// JVM 1.1.6:
 		// new StringBuffer(String.valueOf(super.toString())).append(" TEST").toString()
-		// jdk1.3:
+		// JVM 1.3:
 		// new StringBuffer().append(super.toString()).append(" TEST").toString();
-		// jdk1.5.0:
+		// JVM 1.5.0:
 		// new StringBuilder().append(super.toString()).append(" TEST").toString()
 		// Eclipse (constructor argument fail?):
 		// new StringBuilder(String.valueOf(super.toString())).append(" TEST").toString()
