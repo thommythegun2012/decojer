@@ -324,13 +324,12 @@ public class SwitchTypes {
 	 */
 	public static void rewriteCaseStrings(@Nonnull final BB switchHead,
 			@Nonnull final Map<String, BB> string2bb, @Nonnull final BB defaultCase) {
-		// remember old switch case edges, delete later
+		// remember old switch case edges, for final deletion
 		final List<E> outs = switchHead.getOuts();
 		int i = outs.size();
 
 		// build sorted map: unique case pc -> matching case keys
 		final TreeMap<Integer, List<String>> casePc2values = Maps.newTreeMap();
-
 		// add case branches
 		for (final Map.Entry<String, BB> string2bbEntry : string2bb.entrySet()) {
 			final int casePc = string2bbEntry.getValue().getPc();
@@ -343,23 +342,24 @@ public class SwitchTypes {
 		}
 		// add default branch
 		final int defaultPc = defaultCase.getPc();
-		List<String> caseValues = casePc2values.get(defaultPc);
-		if (caseValues == null) {
-			caseValues = Lists.newArrayList();
-			casePc2values.put(defaultPc, caseValues);
+		List<String> defaultCaseValues = casePc2values.get(defaultPc);
+		if (defaultCaseValues == null) {
+			defaultCaseValues = Lists.newArrayList();
+			casePc2values.put(defaultPc, defaultCaseValues);
 		}
-		caseValues.add(null);
+		defaultCaseValues.add(null);
 
 		// now add successors, preserve pc-order as edge-order
 		for (final Map.Entry<Integer, List<String>> casePc2valuesEntry : casePc2values.entrySet()) {
+			final List<String> caseValues = casePc2valuesEntry.getValue();
+
+			// get BB from first value via previous string2bb map
 			final String caseValue = caseValues.get(0);
 			final BB caseBb = caseValue == null ? defaultCase : string2bb.get(caseValue);
 			assert caseBb != null;
 
-			caseValues = casePc2valuesEntry.getValue();
 			final Object[] values = caseValues.toArray(new Object[caseValues.size()]);
 			assert values != null;
-
 			switchHead.addSwitchCase(caseBb, values);
 		}
 		// delete all previous outgoing switch cases
