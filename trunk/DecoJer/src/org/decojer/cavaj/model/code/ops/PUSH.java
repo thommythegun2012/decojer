@@ -74,7 +74,14 @@ public class PUSH extends TypedOp {
 
 	@Override
 	public String toString() {
-		return super.toString() + " " + (this.value instanceof String ? "\"...\"" : this.value);
+		final Object value = getValue();
+		if (!(value instanceof String)) {
+			return super.toString() + value;
+		}
+		if (((String) value).length() <= 5) {
+			return super.toString() + " \"" + value + "\"";
+		}
+		return super.toString() + " \"" + ((String) value).substring(0, 4) + "...\"";
 	}
 
 }
