@@ -84,22 +84,22 @@ public final class TrJvmStruct2JavaAst {
 		final T t = f.getT();
 
 		if (f.isStatic()) {
-			// jdk4: assert remembers assertion disabled flag
+			// JVM 4: assert remembers assertion disabled flag
 			// TODO better kill in static initializer?
 			if ("$assertionsDisabled".equals(name) && f.getValueT() == T.BOOLEAN) {
 				assert f.isSynthetic();
 				assert f.getAf(AF.FINAL);
 				return;
 			}
-			// jdk5: enum synthetic fields for method Enum.values()
+			// JVM 5: enum synthetic fields for method Enum.values()
 			if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && t.isEnum()
 					&& t.equals(f.getValueT().getComponentT()) && !cu.check(DFlag.IGNORE_ENUM)) {
-				// JDK Enum has synthetic "$VALUES" field for Enum.values(),
-				// Eclipse Enum has synthetic "ENUM$VALUES" field for Enum.values()
+				// JDK: synthetic "$VALUES" field for Enum.values(),
+				// Eclipse: synthetic "ENUM$VALUES" field for Enum.values()
 				assert f.isSynthetic();
 				return;
 			}
-			// jdk5: Eclipse switch(enum) has embedded synthethis int[] field in using class
+			// JVM 5 Eclipse: switch(enum) has embedded synthethis int[] field in using class
 			// (JDK references external inner class for this)
 			if (name.startsWith("$SWITCH_TABLE$") && f.getValueT().getComponentT() == T.INT
 					&& !cu.check(DFlag.IGNORE_ENUM)) {
@@ -201,14 +201,14 @@ public final class TrJvmStruct2JavaAst {
 		assert t != null : "decompile method cannot be dynamic";
 
 		if (m.isStatic()) {
-			// jdk5: enum synthetic methods Enum.values(), Enum.valueOf(String)
+			// JVM 5: synthetic enum methods Enum.values(), Enum.valueOf(String)
 			if (("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
 					&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
 					&& t.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
 				// is not always marked as synthetic, e.g. JDK 8
 				return;
 			}
-			// jdk5: Eclipse switch(enum) has embedded synthethis int[] field in using class with
+			// JVM 5 Eclipse: switch(enum) has embedded synthethis int[] field in using class with
 			// static initializer methods (JDK references external inner class for this)
 			if (name.startsWith("$SWITCH_TABLE$") && m.getParamTs().length == 0
 					&& m.getReturnT().getComponentT() == T.INT && !cu.check(DFlag.IGNORE_ENUM)) {
