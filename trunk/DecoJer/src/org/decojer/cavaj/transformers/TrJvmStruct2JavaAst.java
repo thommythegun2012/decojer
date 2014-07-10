@@ -83,29 +83,40 @@ public final class TrJvmStruct2JavaAst {
 		final String name = f.getName();
 		final T t = f.getT();
 
-		if (f.isSynthetic()) {
-			if (!cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+		if (f.isStatic()) {
+			// jdk4: assert remembers assertion disabled flag
+			// TODO better kill in static initializer?
+			if ("$assertionsDisabled".equals(name) && f.getValueT() == T.BOOLEAN) {
+				assert f.isSynthetic();
+				assert f.getAf(AF.FINAL);
 				return;
 			}
-			if (f.isStatic()) {
-				// enum synthetic fields for Enum.values() method
-				if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && t.isEnum()
-						&& t.equals(f.getValueT().getComponentT()) && !cu.check(DFlag.IGNORE_ENUM)) {
-					// JDK Enum has synthetic "$VALUES" field for Enum.values(),
-					// Eclipse Enum has synthetic "ENUM$VALUES" field for Enum.values()
-					return;
-				}
-				if (name.startsWith("$SWITCH_TABLE$") && f.getValueT().getComponentT() == T.INT
-						&& !cu.check(DFlag.IGNORE_ENUM)) {
-					// Eclipse switch(enum) has embedded synthethis int[] field in using class,
-					// JDK references external inner class for this
-					return;
-				}
-			} else {
-				if (name.startsWith("this$") && t.isInner() && f.getValueT().is(t.getEnclosingT())
-						&& !cu.check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
-					return;
-				}
+			// jdk5: enum synthetic fields for method Enum.values()
+			if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && t.isEnum()
+					&& t.equals(f.getValueT().getComponentT()) && !cu.check(DFlag.IGNORE_ENUM)) {
+				// JDK Enum has synthetic "$VALUES" field for Enum.values(),
+				// Eclipse Enum has synthetic "ENUM$VALUES" field for Enum.values()
+				assert f.isSynthetic();
+				return;
+			}
+			// jdk5: Eclipse switch(enum) has embedded synthethis int[] field in using class
+			// (JDK references external inner class for this)
+			if (name.startsWith("$SWITCH_TABLE$") && f.getValueT().getComponentT() == T.INT
+					&& !cu.check(DFlag.IGNORE_ENUM)) {
+				assert f.isSynthetic();
+				return;
+			}
+		} else {
+			if (name.startsWith("this$") && t.isInner() && f.getValueT().is(t.getEnclosingT())
+					&& !cu.check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
+				assert f.isSynthetic();
+				return;
+			}
+		}
+		if (f.isSynthetic()) {
+			log.warn("Synthetic field unknown: " + f);
+			if (!cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+				return;
 			}
 		}
 		final AST ast = cu.getAst();
@@ -189,15 +200,27 @@ public final class TrJvmStruct2JavaAst {
 		final T t = m.getT();
 		assert t != null : "decompile method cannot be dynamic";
 
-		// enum synthetic methods
-		if (m.isStatic()
-				&& ("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
-						&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
-				&& t.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
-			return;
+		if (m.isStatic()) {
+			// jdk5: enum synthetic methods Enum.values(), Enum.valueOf(String)
+			if (("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
+					&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
+					&& t.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
+				// is not always marked as synthetic, e.g. JDK 8
+				return;
+			}
+			// jdk5: Eclipse switch(enum) has embedded synthethis int[] field in using class with
+			// static initializer methods (JDK references external inner class for this)
+			if (name.startsWith("$SWITCH_TABLE$") && m.getParamTs().length == 0
+					&& m.getReturnT().getComponentT() == T.INT && !cu.check(DFlag.IGNORE_ENUM)) {
+				assert m.isSynthetic();
+				return;
+			}
 		}
-		if (m.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
-			return;
+		if (m.isSynthetic()) {
+			log.warn("Synthetic method unknown: " + m);
+			if (!cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+				return;
+			}
 		}
 		final AST ast = cu.getAst();
 
@@ -408,9 +431,13 @@ public final class TrJvmStruct2JavaAst {
 	}
 
 	private static void decompileType(final T t, final CU cu) {
-		if (t.isSynthetic() && !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
-			return;
+		if (t.isSynthetic()) {
+			log.warn("Synthetic type unknown: " + t);
+			if (!cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
+				return;
+			}
 		}
+		final AST ast = cu.getAst();
 
 		// AF.STRICTFP is no valid inner modifier for bytecode, strictfp modifier at class generates
 		// strictfp modifier for all method in class -> check here and oppress then in methods
@@ -424,8 +451,6 @@ public final class TrJvmStruct2JavaAst {
 			}
 			strictFp = true;
 		}
-		final AST ast = cu.getAst();
-
 		if (t.getAstNode() == null) {
 			AbstractTypeDeclaration typeDeclaration = null;
 
