@@ -79,46 +79,117 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 @Slf4j
 public final class TrJvmStruct2JavaAst {
 
-	private static void decompileField(final F f, final CU cu) {
+	private static boolean checkFieldIgnore(@Nonnull final F f, @Nonnull final CU cu) {
 		final String name = f.getName();
-		final T t = f.getT();
+		final T ownerT = f.getT();
 
 		if (f.isStatic()) {
 			// JVM 4: assert remembers assertion disabled flag
-			// TODO better kill in static initializer?
-			if ("$assertionsDisabled".equals(name) && f.getValueT() == T.BOOLEAN) {
+			if ("$assertionsDisabled".equals(name)) {
+				if (f.getValueT() != T.BOOLEAN) {
+					return false;
+				}
 				assert f.isSynthetic();
 				assert f.getAf(AF.FINAL);
-				return;
+				assert ownerT.isAtLeast(Version.JVM_4);
+				return !cu.check(DFlag.IGNORE_ASSERT);
 			}
 			// JVM 5: enum synthetic fields for method Enum.values()
-			if (("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) && t.isEnum()
-					&& t.equals(f.getValueT().getComponentT()) && !cu.check(DFlag.IGNORE_ENUM)) {
-				// JDK: synthetic "$VALUES" field for Enum.values(),
-				// Eclipse: synthetic "ENUM$VALUES" field for Enum.values()
+			// JDK: synthetic "$VALUES" field for Enum.values(),
+			// Eclipse: synthetic "ENUM$VALUES" field for Enum.values()
+			if ("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) {
+				if (!ownerT.isEnum() || !ownerT.equals(f.getValueT().getComponentT())) {
+					return false;
+				}
 				assert f.isSynthetic();
-				return;
+				assert ownerT.isAtLeast(Version.JVM_5);
+				return !cu.check(DFlag.IGNORE_ENUM);
 			}
-			// JVM 5 Eclipse: switch(enum) has embedded synthethis int[] field in using class
-			// (JDK references external inner class for this)
-			if (name.startsWith("$SWITCH_TABLE$") && f.getValueT().getComponentT() == T.INT
-					&& !cu.check(DFlag.IGNORE_ENUM)) {
+			// JVM 5: switch(enum) uses synthethis int[] fields
+			// JDK: external anonymous class for this with "$SwitchMap$" and static initializer,
+			// Eclipse: same class with "$SWITCH_TABLE$" and initializer methods
+			if (name.startsWith("$SwitchMap$") || name.startsWith("$SWITCH_TABLE$")) {
+				if (f.getValueT().getComponentT() != T.INT) {
+					return false;
+				}
 				assert f.isSynthetic();
-				return;
+				assert ownerT.isAtLeast(Version.JVM_5);
+				return !cu.check(DFlag.IGNORE_ENUM);
 			}
 		} else {
-			if (name.startsWith("this$") && t.isInner() && f.getValueT().is(t.getEnclosingT())
-					&& !cu.check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
+			if (name.startsWith("this$")) {
+				if (!ownerT.isInner() || !f.getValueT().equals(ownerT.getEnclosingT())) {
+					return false;
+				}
 				assert f.isSynthetic();
-				return;
+				return !cu.check(DFlag.IGNORE_CONSTRUCTOR_THIS);
 			}
 		}
 		if (f.isSynthetic()) {
 			log.warn("Synthetic field unknown: " + f);
-			if (!cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
-				return;
+			return !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC);
+		}
+		return false;
+	}
+
+	private static boolean checkMethodIgnore(@Nonnull final M m, @Nonnull final CU cu) {
+		final String name = m.getName();
+		final T ownerT = m.getT();
+		assert ownerT != null : "decompile method cannot be dynamic";
+
+		if (m.isStatic()) {
+			// JVM 5: synthetic enum method Enum.values()
+			if ("values".equals(name)) {
+				if (m.getParamTs().length != 0 || !ownerT.isEnum()) {
+					return false;
+				}
+				// is not marked as synthetic in JDK
+				assert ownerT.isAtLeast(Version.JVM_5);
+				return !cu.check(DFlag.IGNORE_ENUM);
+			}
+			// JVM 5: synthetic enum method Enum.valueOf(String)
+			if ("valueOf".equals(name)) {
+				if (m.getParamTs().length != 1 || !m.getParamTs()[0].is(String.class)
+						|| !ownerT.isEnum()) {
+					return false;
+				}
+				// is not marked as synthetic in JDK
+				assert ownerT.isAtLeast(Version.JVM_5);
+				return !cu.check(DFlag.IGNORE_ENUM);
+			}
+			// JVM 5 Eclipse: switch(enum) has embedded synthethis int[] field in using class with
+			// static initializer methods (JDK references external inner class for this)
+			if (name.startsWith("$SWITCH_TABLE$")) {
+				if (m.getParamTs().length != 0 || m.getReturnT().getComponentT() != T.INT) {
+					return false;
+				}
+				assert m.isSynthetic();
+				assert ownerT.isAtLeast(Version.JVM_5);
+				return !cu.check(DFlag.IGNORE_ENUM);
 			}
 		}
+		if (m.isSynthetic()) {
+			log.warn("Synthetic method unknown: " + m);
+			return !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC);
+		}
+		return false;
+	}
+
+	private static boolean checkTypeIgnore(@Nonnull final T t, @Nonnull final CU cu) {
+		// TODO could check if it only contains "synthetic int[] $SwitchMap$"s and cinit
+		if (t.isSynthetic()) {
+			log.warn("Synthetic type unknown: " + t);
+			return !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC);
+		}
+		return false;
+	}
+
+	private static void decompileField(@Nonnull final F f, @Nonnull final CU cu) {
+		if (checkFieldIgnore(f, cu)) {
+			return;
+		}
+		final String name = f.getName();
+		final T t = f.getT();
 		final AST ast = cu.getAst();
 
 		final boolean isEnum = f.isEnum();
@@ -195,33 +266,14 @@ public final class TrJvmStruct2JavaAst {
 		}
 	}
 
-	private static void decompileMethod(final M m, final CU cu, final boolean strictFp) {
+	private static void decompileMethod(@Nonnull final M m, @Nonnull final CU cu,
+			final boolean strictFp) {
+		if (checkMethodIgnore(m, cu)) {
+			return;
+		}
 		final String name = m.getName();
 		final T t = m.getT();
 		assert t != null : "decompile method cannot be dynamic";
-
-		if (m.isStatic()) {
-			// JVM 5: synthetic enum methods Enum.values(), Enum.valueOf(String)
-			if (("values".equals(name) && m.getParamTs().length == 0 || "valueOf".equals(name)
-					&& m.getParamTs().length == 1 && m.getParamTs()[0].is(String.class))
-					&& t.isEnum() && !cu.check(DFlag.IGNORE_ENUM)) {
-				// is not always marked as synthetic, e.g. JDK 8
-				return;
-			}
-			// JVM 5 Eclipse: switch(enum) has embedded synthethis int[] field in using class with
-			// static initializer methods (JDK references external inner class for this)
-			if (name.startsWith("$SWITCH_TABLE$") && m.getParamTs().length == 0
-					&& m.getReturnT().getComponentT() == T.INT && !cu.check(DFlag.IGNORE_ENUM)) {
-				assert m.isSynthetic();
-				return;
-			}
-		}
-		if (m.isSynthetic()) {
-			log.warn("Synthetic method unknown: " + m);
-			if (!cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
-				return;
-			}
-		}
 		final AST ast = cu.getAst();
 
 		final boolean isAnnotationMember = t.getAf(AF.ANNOTATION);
@@ -350,7 +402,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-					.setType(newType(m.getReturnT(), t));
+			.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -430,12 +482,9 @@ public final class TrJvmStruct2JavaAst {
 		}
 	}
 
-	private static void decompileType(final T t, final CU cu) {
-		if (t.isSynthetic()) {
-			log.warn("Synthetic type unknown: " + t);
-			if (!cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
-				return;
-			}
+	private static void decompileType(@Nonnull final T t, @Nonnull final CU cu) {
+		if (checkTypeIgnore(t, cu)) {
+			return;
 		}
 		final AST ast = cu.getAst();
 
@@ -464,7 +513,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-							+ "'!");
+									+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}

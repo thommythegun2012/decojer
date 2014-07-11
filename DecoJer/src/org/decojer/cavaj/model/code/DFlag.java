@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -25,13 +25,18 @@ package org.decojer.cavaj.model.code;
 
 /**
  * Decompilation flags.
- * 
+ *
  * @author André Pankraz
  */
 public enum DFlag {
 
 	/**
-	 * Ignore enum synthetic structures?
+	 * Ignore JVM 4 asserts?
+	 */
+	IGNORE_ASSERT,
+
+	/**
+	 * Ignore JVM 5 enum synthetic structures?
 	 */
 	IGNORE_ENUM,
 
