@@ -1437,6 +1437,9 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private boolean rewriteAssertStatement(@Nonnull final BB bb, @Nonnull final THROW op,
 			@Nonnull final Expression exceptionExpression) {
+		if (getCfg().getCu().check(DFlag.IGNORE_ASSERT)) {
+			return false;
+		}
 		// if (!DecTestAsserts.$assertionsDisabled && (l1 > 0L ? l1 >= l2 : l1 > l2))
 		// throw new AssertionError("complex expression " + l1 - l2);
 		if (!(exceptionExpression instanceof ClassInstanceCreation)) {
@@ -2169,76 +2172,74 @@ public final class TrCfg2JavaExpressionStmts {
 			if (getCfg().getStartBb() != bb || bb.getStmts() > 0) {
 				return false;
 			}
-			if (f.getT().isEnum() && !getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
-				if (f.isEnum()) {
-					// assignment to enum constant declaration
-					if (!(rightOperand instanceof ClassInstanceCreation)) {
-						log.warn(getM() + ": Enum field initialization for '" + f
-								+ "' has no class instance creation as operand!");
-						return false;
-					}
-					final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) rightOperand;
-					// first two arguments must be String (== field name) and int (ordinal)
-					final List<Expression> arguments = classInstanceCreation.arguments();
-					if (arguments.size() < 2) {
-						log.warn(getM() + ": Enum field initialization for '" + f
-								+ "' has less than 2 arguments!");
-						return false;
-					}
-					if (!(arguments.get(0) instanceof StringLiteral)) {
-						log.warn(getM() + ": Enum field initialization for '" + f
-								+ "' has no string literal as first parameter!");
-						return false;
-					}
-					final String literalValue = ((StringLiteral) arguments.get(0))
-							.getLiteralValue();
-					if (!literalValue.equals(f.getName())) {
-						log.warn(getM() + ": Enum field initialization for '" + f
-								+ "' has no string literal equal to field name as first parameter!");
-						return false;
-					}
-					if (!(arguments.get(1) instanceof NumberLiteral)) {
-						log.warn(getM() + ": Enum field initialization for '" + f
-								+ "' has no number literal as first parameter!");
-						return false;
-					}
-					final Object astNode = f.getAstNode();
-					if (!(astNode instanceof EnumConstantDeclaration)) {
-						log.warn(getM() + ": Enum field initialization for '" + f
-								+ "' has no EnumConstantDeclaration as AST node!");
-						return false;
-					}
-					final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) astNode;
-					for (int i = arguments.size(); i-- > 2;) {
-						final Expression e = arguments.get(i);
-						e.delete();
-						enumConstantDeclaration.arguments().add(0, e);
-					}
-					final AnonymousClassDeclaration anonymousClassDeclaration = classInstanceCreation
-							.getAnonymousClassDeclaration();
-					if (anonymousClassDeclaration != null) {
-						final Element declarationForNode = f.getT().getCu()
-								.getDeclarationForNode(anonymousClassDeclaration);
-						if (declarationForNode == null) {
-							log.warn(getM() + ": Enum field initialization for '" + f
-									+ "' with anonymous declaration has no declaration node!");
-						} else {
-							anonymousClassDeclaration.delete();
-							enumConstantDeclaration
-							.setAnonymousClassDeclaration(anonymousClassDeclaration);
-							// normally contains one constructor, that calls a synthetic super
-							// constructor with the enum class as additional last parameter,
-							// this may contain field initializers, that we must keep,
-							// so we can only remove the constructor in final merge (because
-							// anonymous inner classes cannot have visible Java constructor)
-							declarationForNode.setDeclarationOwner(f);
-						}
-					}
-					return true;
+			if (f.getAstNode() == null) {
+				// synthetic has been recognized before in TrJvmStruct2JavaAst, ignore assignment
+				return true;
+			}
+			if (f.isEnum() && f.getT().isEnum() && !getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
+				// assignment to enum constant declaration
+				if (!(rightOperand instanceof ClassInstanceCreation)) {
+					log.warn(getM() + ": Enum field initialization for '" + f
+							+ "' has no class instance creation as operand!");
+					return false;
 				}
-				if ("$VALUES".equals(f.getName()) || "ENUM$VALUES".equals(f.getName())) {
-					return true; // ignore such assignments completely
+				final ClassInstanceCreation classInstanceCreation = (ClassInstanceCreation) rightOperand;
+				// first two arguments must be String (== field name) and int (ordinal)
+				final List<Expression> arguments = classInstanceCreation.arguments();
+				if (arguments.size() < 2) {
+					log.warn(getM() + ": Enum field initialization for '" + f
+							+ "' has less than 2 arguments!");
+					return false;
 				}
+				if (!(arguments.get(0) instanceof StringLiteral)) {
+					log.warn(getM() + ": Enum field initialization for '" + f
+							+ "' has no string literal as first parameter!");
+					return false;
+				}
+				final String literalValue = ((StringLiteral) arguments.get(0)).getLiteralValue();
+				if (!literalValue.equals(f.getName())) {
+					log.warn(getM() + ": Enum field initialization for '" + f
+							+ "' has no string literal equal to field name as first parameter!");
+					return false;
+				}
+				if (!(arguments.get(1) instanceof NumberLiteral)) {
+					log.warn(getM() + ": Enum field initialization for '" + f
+							+ "' has no number literal as first parameter!");
+					return false;
+				}
+				final Object astNode = f.getAstNode();
+				if (!(astNode instanceof EnumConstantDeclaration)) {
+					log.warn(getM() + ": Enum field initialization for '" + f
+							+ "' has no EnumConstantDeclaration as AST node!");
+					return false;
+				}
+				final EnumConstantDeclaration enumConstantDeclaration = (EnumConstantDeclaration) astNode;
+				for (int i = arguments.size(); i-- > 2;) {
+					final Expression e = arguments.get(i);
+					e.delete();
+					enumConstantDeclaration.arguments().add(0, e);
+				}
+				final AnonymousClassDeclaration anonymousClassDeclaration = classInstanceCreation
+						.getAnonymousClassDeclaration();
+				if (anonymousClassDeclaration != null) {
+					final Element declarationForNode = f.getT().getCu()
+							.getDeclarationForNode(anonymousClassDeclaration);
+					if (declarationForNode == null) {
+						log.warn(getM() + ": Enum field initialization for '" + f
+								+ "' with anonymous declaration has no declaration node!");
+					} else {
+						anonymousClassDeclaration.delete();
+						enumConstantDeclaration
+								.setAnonymousClassDeclaration(anonymousClassDeclaration);
+						// normally contains one constructor, that calls a synthetic super
+						// constructor with the enum class as additional last parameter,
+						// this may contain field initializers, that we must keep,
+						// so we can only remove the constructor in final merge (because
+						// anonymous inner classes cannot have visible Java constructor)
+						declarationForNode.setDeclarationOwner(f);
+					}
+				}
+				return true;
 			}
 		} else {
 			if (!getM().isConstructor()) {
@@ -2252,23 +2253,13 @@ public final class TrCfg2JavaExpressionStmts {
 				// initial super(<arguments>) is allowed for constructors
 				return false;
 			}
-			if (ownerT.isInner() && !getCfg().getCu().check(DFlag.IGNORE_CONSTRUCTOR_THIS)) {
-				if (f.isSynthetic() && f.getName().startsWith("this$")) {
-					bb.pop();
-					return true;
-				}
+			if (f.getAstNode() == null) {
+				// synthetic has been recognized before in TrJvmStruct2JavaAst, ignore assignment
+				bb.pop();
+				return true;
 			}
 			// multiple constructors with different signatures possible, all of them
 			// contain the same field initializer code after super() - simply overwrite
-		}
-		if (f.isSynthetic()) {
-			if (getCfg().getCu().check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC)) {
-				return false; // not as field initializer
-			}
-			if (!f.isStatic()) {
-				bb.pop();
-			}
-			return true; // ignore such assignments completely
 		}
 		final Object astNode = f.getAstNode();
 		if (!(astNode instanceof FieldDeclaration)) {
@@ -2481,6 +2472,9 @@ public final class TrCfg2JavaExpressionStmts {
 
 	private boolean rewriteSwitchEnum(@Nonnull final BB bb, @Nonnull final SWITCH op,
 			@Nonnull final Expression switchExpression) {
+		if (getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
+			return false;
+		}
 		// we shouldn't do this earlier at the operations level because the switchExpression could
 		// be very complex
 		if (!(switchExpression instanceof ArrayAccess)) {
