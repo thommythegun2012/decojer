@@ -433,41 +433,41 @@ public final class Expressions {
 				final char c = value instanceof Character ? (Character) value
 						: value instanceof Number ? (char) ((Number) value).intValue()
 								: ((String) value).charAt(0);
-						switch (c) {
-						case Character.MAX_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MAX_VALUE"));
-						case Character.MIN_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MIN_VALUE"));
-						case Character.MAX_HIGH_SURROGATE:
-							if (context.getT().isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MAX_LOW_SURROGATE:
-							if (context.getT().isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_LOW_SURROGATE"));
-							}
-							break;
-						case Character.MIN_HIGH_SURROGATE:
-							if (context.getT().isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MIN_LOW_SURROGATE:
-							if (context.getT().isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_LOW_SURROGATE"));
-							}
-							break;
-						}
-						final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-						characterLiteral.setCharValue(c);
-						return characterLiteral;
+				switch (c) {
+				case Character.MAX_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MAX_VALUE"));
+				case Character.MIN_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MIN_VALUE"));
+				case Character.MAX_HIGH_SURROGATE:
+					if (context.getT().isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MAX_LOW_SURROGATE:
+					if (context.getT().isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_LOW_SURROGATE"));
+					}
+					break;
+				case Character.MIN_HIGH_SURROGATE:
+					if (context.getT().isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MIN_LOW_SURROGATE:
+					if (context.getT().isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_LOW_SURROGATE"));
+					}
+					break;
+				}
+				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+				characterLiteral.setCharValue(c);
+				return characterLiteral;
 			}
 			if (value == null) {
 				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
@@ -902,7 +902,9 @@ public final class Expressions {
 			// could be ParamT etc., not decompileable with name as target;
 			// restrict qualifications to really necessary enclosings:
 			// t = Outer.Inner.InnerInner, t = Outer.Inner ==> Inner
-			if (context.getT().getFullName().startsWith(qualifierT.getFullName())) {
+			final T contextT = context.getT();
+			assert contextT != null;
+			if (contextT.getFullName().startsWith(qualifierT.getFullName())) {
 				// TODO full name has too much info yet (like annotations)
 				return ast.newSimpleType(newSimpleName(t.getSimpleIdentifier(), ast));
 			}
@@ -925,18 +927,23 @@ public final class Expressions {
 	public static Name newTypeName(final T t, @Nonnull final Element context) {
 		final AST ast = context.getCu().getAst();
 		final String contextName = context.getName();
+		final T contextT = context.getT();
+		assert contextT != null;
+		final String contextPackageName = contextT.getPackageName();
 
 		// convert inner classes separator '$' into '.',
 		// cannot use string replace because '$' is also a regular Java type name!
 		// must use enclosing info
-		final List<String> names = Lists.newArrayList();
+
 		T currentT = t;
+		final List<String> names = Lists.newArrayList();
+
 		while (true) {
 			final T enclosingT = currentT.getEnclosingT();
 			if (enclosingT == null) {
 				names.add(0, currentT.getPName());
 				final String packageName = currentT.getPackageName();
-				if (packageName == null || packageName.equals(context.getT().getPackageName())
+				if (packageName == null || packageName.equals(contextPackageName)
 						|| packageName.equals(JAVA_LANG)) {
 					// ignore package iff same like context or like Java default package
 					break;
@@ -1017,8 +1024,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-						not(infixExpression.getLeftOperand()),
-						not(infixExpression.getRightOperand()), getOp(infixExpression));
+								not(infixExpression.getLeftOperand()),
+								not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible
