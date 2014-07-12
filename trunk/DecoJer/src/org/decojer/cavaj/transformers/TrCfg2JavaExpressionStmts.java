@@ -966,7 +966,7 @@ public final class TrCfg2JavaExpressionStmts {
 				break;
 			}
 			case JSR: {
-				// <finally> till JDK 6 (50), we don't really push something at the sub BB, we
+				// <finally> till JVM 6 (50), we don't really push something at the sub BB, we
 				// rewrite this or catch the stack underflow for the STORE
 				break;
 			}
@@ -1331,7 +1331,7 @@ public final class TrCfg2JavaExpressionStmts {
 					bb.push(newPrefixExpression(PrefixExpression.Operator.COMPLEMENT, bb.pop(), op));
 					break;
 				}
-				// "a ^ true" => "!a" (found in JDK 1.2 boolean expressions)
+				// "a ^ true" => "!a" (found in JVM 1.2 boolean expressions)
 				if (rightOperand instanceof BooleanLiteral
 						&& getBooleanValue(rightOperand) == Boolean.TRUE) {
 					bb.push(newPrefixExpression(PrefixExpression.Operator.NOT, bb.pop(), op));
@@ -1653,7 +1653,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 			}
 
-			// This is a conditional compound (since JDK 4 with C/x is cond), example is A ? C : x:
+			// This is a conditional compound (since JVM 4 with C/x is cond), example is A ? C : x:
 			//
 			// ...|...
 			// ...A...
@@ -1722,7 +1722,7 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	/**
-	 * Class Literal Caching (no direct Constant Pool Class Literals before JDK 5).
+	 * Class Literal Caching (no direct Constant Pool Class Literals before JVM 5).
 	 *
 	 * @param bb
 	 *            BB
@@ -1741,7 +1741,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		if (getCfg().getT().isAtLeast(Version.JVM_5)) {
-			log.warn(getM() + ": Class literal caching isn't necessary anymore in JDK 5!");
+			log.warn(getM() + ": Class literal caching isn't necessary anymore in JVM 5!");
 		}
 		// now this really should be a cached class literal, giving warns in other cases are OK
 		try {
@@ -1836,7 +1836,7 @@ public final class TrCfg2JavaExpressionStmts {
 		if (followBb != bbTrueOut.getEnd()) {
 			return false;
 		}
-		// can just happen for JDK<5: replace . -> /
+		// can just happen before JVM 5: replace . -> /
 		final Object value = ((PUSH) pushBb.getOp(0)).getValue();
 		if (!(value instanceof String)) {
 			return false;
@@ -1861,7 +1861,7 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!(bb.getOp(0) instanceof JCND)) {
 			return false;
 		}
-		// JDK 1 & 2 is EQ, 3 & 4 is NE, >=5 has direct Class Literals
+		// JVM 1 & 2 is EQ, JVM 3 & 4 is NE, since JVM 5 direct class literals
 		final E initCacheOut = ((JCND) bb.getOp(0)).getCmpType() == CmpType.T_EQ ? bb.getTrueOut()
 				: bb.getFalseOut();
 		if (initCacheOut == null) {
@@ -1885,7 +1885,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		if (pushBb.getOps() == 5 && !(pushBb.getOp(4) instanceof GOTO)) {
-			// JDK 3 & 4
+			// JVM 3 & 4
 			return false;
 		}
 
@@ -1898,7 +1898,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		if (pushBb.getOps() == 2 && !(getBb.getOp(1) instanceof GOTO)) {
-			// JDK 1 & 2
+			// JVM 1 & 2
 			return false;
 		}
 		final E getBbSequenceOut = getBb.getSequenceOut();
@@ -1906,7 +1906,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final BB followBb = getBbSequenceOut.getEnd();
-		// can just happen for JDK<5: replace . -> /
+		// can just happen before JVM 5: replace . -> /
 		final Object value = ((PUSH) pushBb.getOp(0)).getValue();
 		if (!(value instanceof String)) {
 			return false;
@@ -2442,7 +2442,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				// parentheses necessary for arithmetic add after string: "s" + (l1 + l2)
 				// TODO System.out.println(((double) i + d) + s); ...must handle this here too for
-				// JDK>=5 ...allready encountered append(String) here? must iterate from start?
+				// JVM>=5 ...allready encountered append(String) here? must iterate from start?
 				// where is the info in AST?
 				if (Priority.priority(appendArgumentExpression) == Priority.ADD_SUB) {
 					appendArgumentExpression = wrap(appendArgumentExpression, Priority.MULT_DIV_MOD);

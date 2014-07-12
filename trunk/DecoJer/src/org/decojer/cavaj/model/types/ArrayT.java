@@ -153,7 +153,7 @@ public final class ArrayT extends BaseT {
 		if ((getComponentT().getKind() & componentT.getKind()) == 0) {
 			// even though arrays are covariant in the Java language, no auto-conversion is applied
 			// here and "int[] is = new byte[1]" isn't allowed in Java:
-			// isAssignableFrom() usually means "is-superclass-of" in JDK function, but even though
+			// isAssignableFrom() usually means "is-superclass-of" in JVM function, but even though
 			// "int i = short/etc." is not an allowed assignment by inheritence (it's an
 			// auto-conversion) we allow it here
 			return false;

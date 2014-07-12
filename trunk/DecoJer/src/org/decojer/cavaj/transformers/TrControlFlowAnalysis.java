@@ -103,12 +103,12 @@ public final class TrControlFlowAnalysis {
 			final E trueOut = head.getTrueOut();
 			assert trueOut != null;
 			if (loop.hasMember(trueOut.getEnd()) && !loop.hasMember(falseOut.getEnd())) {
-				// JDK 6: true is member, opPc of pre head > next member,
+				// JVM 6: true is member, opPc of pre head > next member,
 				// leading goto
 				headKind = Loop.Kind.WHILE;
 				headFollowOut = falseOut;
 			} else if (loop.hasMember(falseOut.getEnd()) && !loop.hasMember(trueOut.getEnd())) {
-				// JDK 5: false is member, opPc of pre head < next member,
+				// JVM 5: false is member, opPc of pre head < next member,
 				// trailing goto (negated, check class javascript.Decompiler)
 				headKind = Loop.Kind.WHILENOT;
 				headFollowOut = trueOut;
@@ -541,7 +541,7 @@ public final class TrControlFlowAnalysis {
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
 		if (firstFollows.isEmpty() || firstFollows.contains(secondOut.getEnd())) {
-			// normal in JDK 6 bytecode, ifnot-expressions
+			// normal in JVM 6 bytecode, ifnot-expressions
 			cond.setKind(negated ? Cond.Kind.IFNOT : Cond.Kind.IF);
 			// also handles empty if-statements, members are empty in this case, see
 			// DecTestIfStmt.emptyIf()
@@ -557,7 +557,7 @@ public final class TrControlFlowAnalysis {
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
 		if (secondFollows.isEmpty() || secondFollows.contains(firstOut.getEnd())) {
-			// also often in JDK 6 bytecode, especially in parent structs
+			// also often in JVM 6 bytecode, especially in parent structs
 			cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
 			cond.addMembers(secondValue, secondMembers);
 			cond.setFollow(firstOut.getEnd());
@@ -566,7 +566,7 @@ public final class TrControlFlowAnalysis {
 
 		// end nodes are follows or breaks - no continues, returns, throws
 
-		// JDK 6: highest follow is potential branch follow
+		// JVM 6: highest follow is potential branch follow
 		BB firstFollow = null;
 		for (final BB follow : firstFollows) {
 			if (follow.isBefore(firstFollow)) {

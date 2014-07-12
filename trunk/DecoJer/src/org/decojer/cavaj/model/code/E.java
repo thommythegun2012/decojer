@@ -58,7 +58,7 @@ public final class E {
 			return compare(e1.getEnd().getLine(), e2.getEnd().getLine());
 		}
 
-		// since JDK 7...GAE not
+		// since JVM 7...GAE not
 		private int compare(final int x, final int y) {
 			return x < y ? -1 : x == y ? 0 : 1;
 		}
@@ -332,8 +332,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-		+ (this.start == null ? "null" : getEnd().getPc())
-		+ (valueString.isEmpty() ? "" : " : " + getValueString());
+				+ (this.start == null ? "null" : getEnd().getPc())
+				+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }
