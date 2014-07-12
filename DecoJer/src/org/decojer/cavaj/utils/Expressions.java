@@ -89,7 +89,7 @@ public final class Expressions {
 	static {
 		JAVA_KEYWORDS = Sets.newHashSet();
 		JAVA_KEYWORDS.add("abstract");
-		JAVA_KEYWORDS.add("assert"); // added in JDK 5
+		JAVA_KEYWORDS.add("assert"); // added in JVM 4
 		JAVA_KEYWORDS.add("boolean");
 		JAVA_KEYWORDS.add("break");
 		JAVA_KEYWORDS.add("byte");
@@ -103,7 +103,7 @@ public final class Expressions {
 		JAVA_KEYWORDS.add("do");
 		JAVA_KEYWORDS.add("double");
 		JAVA_KEYWORDS.add("else");
-		JAVA_KEYWORDS.add("enum"); // added in JDK 5
+		JAVA_KEYWORDS.add("enum"); // added in JVM 5
 		JAVA_KEYWORDS.add("extends");
 		JAVA_KEYWORDS.add("false"); // boolean literal
 		JAVA_KEYWORDS.add("final");
@@ -128,7 +128,7 @@ public final class Expressions {
 		JAVA_KEYWORDS.add("return");
 		JAVA_KEYWORDS.add("short");
 		JAVA_KEYWORDS.add("static");
-		JAVA_KEYWORDS.add("strictfp"); // added JDK 4
+		JAVA_KEYWORDS.add("strictfp"); // added in JVM 4
 		JAVA_KEYWORDS.add("super");
 		JAVA_KEYWORDS.add("switch");
 		JAVA_KEYWORDS.add("synchronized");
