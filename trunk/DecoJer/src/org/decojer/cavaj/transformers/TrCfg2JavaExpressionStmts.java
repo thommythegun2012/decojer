@@ -1783,14 +1783,23 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!(bb.getOp(1) instanceof JCND)) {
 			return false;
 		}
-		final BB popBb = bb.getFalseOut().getEnd();
+		final E bbFalseOut = bb.getFalseOut();
+		if (bbFalseOut == null) {
+			assert false;
+			return false;
+		}
+		final BB popBb = bbFalseOut.getEnd();
 		if (popBb.getOps() != 1) {
 			return false;
 		}
 		if (!(popBb.getOp(0) instanceof POP)) {
 			return false;
 		}
-		final BB pushBb = popBb.getSequenceOut().getEnd();
+		final E popBbSequenceOut = popBb.getSequenceOut();
+		if (popBbSequenceOut == null) {
+			return false;
+		}
+		final BB pushBb = popBbSequenceOut.getEnd();
 		if (pushBb.getOps() != 2) {
 			return false;
 		}
@@ -1800,7 +1809,11 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!(pushBb.getOp(1) instanceof INVOKE)) {
 			return false;
 		}
-		final BB dupBb = pushBb.getSequenceOut().getEnd();
+		final E pushBbSequenceOut = pushBb.getSequenceOut();
+		if (pushBbSequenceOut == null) {
+			return false;
+		}
+		final BB dupBb = pushBbSequenceOut.getEnd();
 		if (dupBb.getOps() != 3) {
 			return false;
 		}
@@ -1813,8 +1826,17 @@ public final class TrCfg2JavaExpressionStmts {
 		if (!(dupBb.getOp(2) instanceof GOTO)) {
 			return false;
 		}
-		final BB followBb = dupBb.getSequenceOut().getEnd();
-		if (followBb != bb.getTrueOut().getEnd()) {
+		final E dupBbSequenceOut = dupBb.getSequenceOut();
+		if (dupBbSequenceOut == null) {
+			return false;
+		}
+		final BB followBb = dupBbSequenceOut.getEnd();
+		final E bbTrueOut = bb.getTrueOut();
+		if (bbTrueOut == null) {
+			assert false;
+			return false;
+		}
+		if (followBb != bbTrueOut.getEnd()) {
 			return false;
 		}
 		// can just happen for JDK<5: replace . -> /
@@ -1878,7 +1900,11 @@ public final class TrCfg2JavaExpressionStmts {
 			// JDK 1 & 2
 			return false;
 		}
-		final BB followBb = getBb.getSequenceOut().getEnd();
+		final E getBbSequenceOut = getBb.getSequenceOut();
+		if (getBbSequenceOut == null) {
+			return false;
+		}
+		final BB followBb = getBbSequenceOut.getEnd();
 		// can just happen for JDK<5: replace . -> /
 		final String classInfo = ((String) ((PUSH) pushBb.getOp(0)).getValue()).replace('.', '/');
 		assert classInfo != null;
