@@ -1504,18 +1504,15 @@ public final class TrCfg2JavaExpressionStmts {
 
 		final boolean negated;
 		final E assertOut;
-		final E okOut;
 		final BB okSucc;
 
 		if (bb == falseSucc) {
 			negated = false;
 			assertOut = falseOut;
-			okOut = trueOut;
 			okSucc = trueSucc;
 		} else {
 			negated = true;
 			assertOut = trueOut;
-			okOut = falseOut;
 			okSucc = falseSucc;
 		}
 
@@ -1533,8 +1530,7 @@ public final class TrCfg2JavaExpressionStmts {
 			// false succ has additional incoming: don't join!
 			// remove throw-BB and convert conditional out edge to sequence edge
 			assertOut.remove();
-			start.setSucc(okSucc);
-			okOut.remove(); // remove old conditional edge
+			start.setSucc(okSucc); // okOut automatically removed here
 		}
 		return true;
 	}
