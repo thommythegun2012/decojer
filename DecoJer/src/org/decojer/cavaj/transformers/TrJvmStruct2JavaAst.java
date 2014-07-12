@@ -84,6 +84,15 @@ public final class TrJvmStruct2JavaAst {
 		final T ownerT = f.getT();
 
 		if (f.isStatic()) {
+			// just until JVM 4: type literals via synthetic fields with initializer
+			if (name.startsWith("array$") || name.startsWith("class$")) {
+				if (!f.getValueT().is(Class.class)) {
+					return false;
+				}
+				assert f.isSynthetic();
+				assert ownerT.isBelow(Version.JVM_5);
+				return true;
+			}
 			// JVM 4: assert remembers assertion disabled flag
 			if ("$assertionsDisabled".equals(name)) {
 				if (f.getValueT() != T.BOOLEAN) {
@@ -138,6 +147,15 @@ public final class TrJvmStruct2JavaAst {
 		assert ownerT != null : "decompile method cannot be dynamic";
 
 		if (m.isStatic()) {
+			// just until JVM 4: type literals via synthetic fields with initializer
+			if ("class$".equals(name)) {
+				if (!m.getReturnT().is(Class.class)) {
+					return false;
+				}
+				assert m.isSynthetic();
+				assert ownerT.isBelow(Version.JVM_5);
+				return true;
+			}
 			// JVM 5: synthetic enum method Enum.values()
 			if ("values".equals(name)) {
 				if (m.getParamTs().length != 0 || !ownerT.isEnum()) {
@@ -402,7 +420,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-			.setType(newType(m.getReturnT(), t));
+					.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -513,7 +531,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-									+ "'!");
+							+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
