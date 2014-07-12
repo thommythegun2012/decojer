@@ -433,41 +433,41 @@ public final class Expressions {
 				final char c = value instanceof Character ? (Character) value
 						: value instanceof Number ? (char) ((Number) value).intValue()
 								: ((String) value).charAt(0);
-				switch (c) {
-				case Character.MAX_VALUE:
-					return ast.newQualifiedName(ast.newSimpleName("Character"),
-							ast.newSimpleName("MAX_VALUE"));
-				case Character.MIN_VALUE:
-					return ast.newQualifiedName(ast.newSimpleName("Character"),
-							ast.newSimpleName("MIN_VALUE"));
-				case Character.MAX_HIGH_SURROGATE:
-					if (context.getT().isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MAX_HIGH_SURROGATE"));
-					}
-					break;
-				case Character.MAX_LOW_SURROGATE:
-					if (context.getT().isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MAX_LOW_SURROGATE"));
-					}
-					break;
-				case Character.MIN_HIGH_SURROGATE:
-					if (context.getT().isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MIN_HIGH_SURROGATE"));
-					}
-					break;
-				case Character.MIN_LOW_SURROGATE:
-					if (context.getT().isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MIN_LOW_SURROGATE"));
-					}
-					break;
-				}
-				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-				characterLiteral.setCharValue(c);
-				return characterLiteral;
+						switch (c) {
+						case Character.MAX_VALUE:
+							return ast.newQualifiedName(ast.newSimpleName("Character"),
+									ast.newSimpleName("MAX_VALUE"));
+						case Character.MIN_VALUE:
+							return ast.newQualifiedName(ast.newSimpleName("Character"),
+									ast.newSimpleName("MIN_VALUE"));
+						case Character.MAX_HIGH_SURROGATE:
+							if (context.getT().isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MAX_HIGH_SURROGATE"));
+							}
+							break;
+						case Character.MAX_LOW_SURROGATE:
+							if (context.getT().isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MAX_LOW_SURROGATE"));
+							}
+							break;
+						case Character.MIN_HIGH_SURROGATE:
+							if (context.getT().isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MIN_HIGH_SURROGATE"));
+							}
+							break;
+						case Character.MIN_LOW_SURROGATE:
+							if (context.getT().isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MIN_LOW_SURROGATE"));
+							}
+							break;
+						}
+						final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+						characterLiteral.setCharValue(c);
+						return characterLiteral;
 			}
 			if (value == null) {
 				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
@@ -594,7 +594,8 @@ public final class Expressions {
 	 *            AST
 	 * @return AST name
 	 */
-	public static Name newName(final String[] identifiers, final AST ast) {
+	@Nonnull
+	public static Name newName(@Nonnull final String[] identifiers, @Nonnull final AST ast) {
 		// update internalSetName(String[] if changed
 		final int count = identifiers.length;
 		if (count == 0) {
@@ -604,6 +605,7 @@ public final class Expressions {
 		for (int i = 1; i < count; i++) {
 			final SimpleName name = newSimpleName(identifiers[i], ast);
 			result = ast.newQualifiedName(result, name);
+			assert result != null;
 		}
 		return result;
 	}
@@ -619,6 +621,7 @@ public final class Expressions {
 	 *            originating operation
 	 * @return expression
 	 */
+	@Nonnull
 	public static PostfixExpression newPostfixExpression(
 			@Nullable final PostfixExpression.Operator operator, @Nonnull final Expression operand,
 			@Nonnull final Op op) {
@@ -958,7 +961,9 @@ public final class Expressions {
 			}
 			currentT = enclosingT;
 		}
-		return newName(names.toArray(new String[names.size()]), ast);
+		final String[] namesArray = names.toArray(new String[names.size()]);
+		assert namesArray != null;
+		return newName(namesArray, ast);
 	}
 
 	/**
@@ -1012,8 +1017,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-								not(infixExpression.getLeftOperand()),
-								not(infixExpression.getRightOperand()), getOp(infixExpression));
+						not(infixExpression.getLeftOperand()),
+						not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible
