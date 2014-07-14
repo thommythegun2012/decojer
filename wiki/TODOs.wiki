@@ -26,8 +26,10 @@ Eclipse: 41 s
 
 ---
 
-- bug in eclipse-enum-switchmap:
-  fix decompile and ignore with flag: static int[] $SWITCH_TABLE$org$decojer$cavaj$test$jdk5$DecTestSwitchEnum()
+- fix AbstractMap.eq and hashCode() backport:
+  + 1) why strange current decomp?
+  + 2) new pattern: false -> POP
+  + 3) check SwitchEnum without ENUM recog too for underflow stuff
 - bbk-stat-fdi ... EDU.oswego.cs.dl.util.concurrent.BoundedBuffer.peek()L
   + TODO add checkBb always as member, check if sequenceOut -> this must be follow or break
   + TODO rewriteHandler() should do nothing special, just push a temporary placeholder onto BB-stack and hope for later store
