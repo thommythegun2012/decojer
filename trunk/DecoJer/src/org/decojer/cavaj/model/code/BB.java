@@ -353,7 +353,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -477,11 +477,26 @@ public final class BB {
 	}
 
 	/**
+	 * Get sequence in.
+	 *
+	 * Relevant outs are sequence edges with relevant outs, relevant ins are single ins (any type)
+	 * where the start BB is relevant and has only a single in.
+	 *
+	 * @return sequence in
+	 */
+	@Nullable
+	public E getSequenceIn() {
+		if (this.ins.size() != 1) {
+			return null;
+		}
+		return this.ins.get(0);
+	}
+
+	/**
 	 * Get sequence out.
 	 *
-	 * Only this direction needed, get sequence incoming doesn't make too much sense. Relevant outs
-	 * are sequence edges with relevant outs, relevant ins are single ins (any type) where the start
-	 * BB is relevant and has only a single in.
+	 * Relevant outs are sequence edges with relevant outs, relevant ins are single ins (any type)
+	 * where the start BB is relevant and has only a single in.
 	 *
 	 * @return sequence out
 	 */
@@ -878,6 +893,23 @@ public final class BB {
 			this.vs = newVs;
 		}
 		this.vs[getRegs() + this.top++] = v;
+	}
+
+	/**
+	 * Push stack expression as first stack value.
+	 *
+	 * @param v
+	 *            expression
+	 */
+	public void pushFirst(@Nonnull final Expression v) {
+		if (getRegs() + this.top >= this.vs.length) {
+			final Expression[] newVs = new Expression[getRegs() + this.top + 1];
+			System.arraycopy(this.vs, 0, newVs, 0, getRegs());
+			System.arraycopy(this.vs, getRegs(), newVs, getRegs() + 1, this.top);
+			this.vs = newVs;
+		}
+		this.vs[getRegs()] = v;
+		++this.top;
 	}
 
 	/**
