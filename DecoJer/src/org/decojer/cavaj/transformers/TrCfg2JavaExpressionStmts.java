@@ -158,6 +158,8 @@ import com.google.common.collect.Lists;
 @Slf4j
 public final class TrCfg2JavaExpressionStmts {
 
+	private static final String JCND = null;
+
 	private static boolean isLambdaBootstrapMethod(@Nullable final M m) {
 		if (m == null) {
 			return false;
@@ -225,6 +227,57 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
+	private static boolean rewriteConditionalPop(@Nonnull final BB bb) {
+		// PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb
+		if (bb.getOps() != 2) {
+			return false;
+		}
+		assert bb.getOp(0) instanceof POP : bb.getOp(0);
+
+		final E out = bb.getSequenceOut();
+		if (out == null) {
+			return false;
+		}
+		final Op op = bb.getOp(1);
+		if (!(op instanceof PUSH)) {
+			return false;
+		}
+		final Object value = ((PUSH) op).getValue();
+		if (!(value instanceof Integer)) {
+			return false;
+		}
+		final boolean secondBooleanValue = ((Integer) value).intValue() > 0;
+
+		final List<E> ins = bb.getIns();
+		assert ins.size() == 1;
+		final E in = ins.get(0);
+		if (!in.isCond()) {
+			return false;
+		}
+		final BB pred = in.getStart();
+		if (pred.getTop() == 0) {
+			return false;
+		}
+		final Boolean firstBooleanValue = getBooleanValue(pred.peek());
+		if (firstBooleanValue == null || !(firstBooleanValue ^ secondBooleanValue)) {
+			return false;
+		}
+		final boolean negated = in.isCondFalse();
+		final BB succ = negated ? pred.getTrueSucc() : pred.getFalseSucc();
+		if (succ == null || succ != out.getEnd()) {
+			return false;
+		}
+		final Statement ifStatement = pred.removeFinalStmt();
+		assert ifStatement instanceof IfStatement; // start.isCond() is true
+		final Expression expression = ((IfStatement) ifStatement).getExpression();
+		assert expression != null;
+
+		pred.pop(); // boolean value
+		pred.push(negated ^ firstBooleanValue ? not(expression) : expression);
+		succ.joinPredBb(pred);
+		return true;
+	}
+
 	/**
 	 * Rewrite char-switches.
 	 *
@@ -287,14 +340,15 @@ public final class TrCfg2JavaExpressionStmts {
 				final Op op = bb.getOp(0);
 				if (bb.getIns().size() > 1) {
 					if (op instanceof JCND) {
-						if (rewriteConditionalConstants(bb, (JCND) op)) {
+						if (rewriteConditionalConstants(bb)) {
 							// special handling for JCND, multiple predecessors possible and can be
 							// directly routed through this BB
 							return true; // deleted myself
 						}
 						return false;
-					} else if (op instanceof RETURN) {
-						if (rewriteConditionalReturn(bb, (RETURN) op)) {
+					}
+					if (op instanceof RETURN) {
+						if (rewriteConditionalReturn(bb)) {
 							// special handling for RETURN, multiple predecessors possible and can
 							// directly return value - should be Scala only code
 							if (!getCfg().getT().isScala()) {
@@ -306,7 +360,12 @@ public final class TrCfg2JavaExpressionStmts {
 						return false;
 					}
 				}
-				if (op instanceof STORE) {
+				if (op instanceof POP) {
+					// PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb
+					if (rewriteConditionalPop(bb)) {
+						return true; // deleted myself
+					}
+				} else if (op instanceof STORE) {
 					// special trick for store <return_address> till finally is established
 					if (peekT(op) == T.RET) {
 						bb.removeOp(0);
@@ -330,6 +389,9 @@ public final class TrCfg2JavaExpressionStmts {
 					bb.joinPredBb(pred);
 					continue;
 				}
+				// this is a last resort (helps e.g. for synthetic enum-switch-map-initializer),
+				// sometimes gives wrong results for conditionals with merging stack values:
+				// (e.g. PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb)
 				if (!pullStackValue(bb)) {
 					return false;
 				}
@@ -603,7 +665,7 @@ public final class TrCfg2JavaExpressionStmts {
 								newPrefixExpression(
 										cop.getValue() == 1 ? PrefixExpression.Operator.INCREMENT
 												: PrefixExpression.Operator.DECREMENT,
-										getVarExpression(cop.getReg(), cop.getPc(), op), op));
+												getVarExpression(cop.getReg(), cop.getPc(), op), op));
 						break;
 					}
 					log.warn(getM() + ": Inline ++/--!");
@@ -617,9 +679,9 @@ public final class TrCfg2JavaExpressionStmts {
 							newAssignment(
 									value >= 0 ? Assignment.Operator.PLUS_ASSIGN
 											: Assignment.Operator.MINUS_ASSIGN,
-									getVarExpression(cop.getReg(), cop.getPc(), op),
-									newLiteral(cop.getT(), value >= 0 ? value : -value, getCfg()
-											.getM(), op), op));
+											getVarExpression(cop.getReg(), cop.getPc(), op),
+											newLiteral(cop.getT(), value >= 0 ? value : -value, getCfg()
+													.getM(), op), op));
 					break;
 				}
 				log.warn(getM() + ": Inline INC with value '" + value + "'!");
@@ -700,22 +762,22 @@ public final class TrCfg2JavaExpressionStmts {
 								arguments.remove(0);
 								arguments.remove(0);
 							}
-							if (ownerT != null && ownerT.is(getCfg().getT())) {
-								final ConstructorInvocation constructorInvocation = getAst()
-										.newConstructorInvocation();
-								wrapAddAll(constructorInvocation.arguments(), arguments);
-								statement = constructorInvocation;
-								break;
-							}
-							if (arguments.size() == 0) {
-								// implicit super callout, more checks possible but not necessary
-								break;
-							}
-							final SuperConstructorInvocation superConstructorInvocation = getAst()
-									.newSuperConstructorInvocation();
-							wrapAddAll(superConstructorInvocation.arguments(), arguments);
-							statement = superConstructorInvocation;
+						if (ownerT != null && ownerT.is(getCfg().getT())) {
+							final ConstructorInvocation constructorInvocation = getAst()
+									.newConstructorInvocation();
+							wrapAddAll(constructorInvocation.arguments(), arguments);
+							statement = constructorInvocation;
 							break;
+						}
+						if (arguments.size() == 0) {
+							// implicit super callout, more checks possible but not necessary
+							break;
+						}
+						final SuperConstructorInvocation superConstructorInvocation = getAst()
+								.newSuperConstructorInvocation();
+						wrapAddAll(superConstructorInvocation.arguments(), arguments);
+						statement = superConstructorInvocation;
+						break;
 						}
 						if (expression instanceof ClassInstanceCreation) {
 							if (ownerT != null && ownerT.isInner()
@@ -810,7 +872,7 @@ public final class TrCfg2JavaExpressionStmts {
 								assert ownerT != null;
 								methodReference.setType(newType(ownerT, getM()));
 								methodReference
-										.setName(newSimpleName(dynamicM.getName(), getAst()));
+								.setName(newSimpleName(dynamicM.getName(), getAst()));
 								methodExpression = methodReference;
 							} else {
 								assert arguments.size() == 1 : "expression method reference doesn't have 1 argument";
@@ -819,7 +881,7 @@ public final class TrCfg2JavaExpressionStmts {
 										.newExpressionMethodReference();
 								methodReference.setExpression(arguments.get(0));
 								methodReference
-										.setName(newSimpleName(dynamicM.getName(), getAst()));
+								.setName(newSimpleName(dynamicM.getName(), getAst()));
 								methodExpression = methodReference;
 							}
 							// TODO is in bytecode via lambda, we could let it be or recognize this
@@ -1103,7 +1165,7 @@ public final class TrCfg2JavaExpressionStmts {
 									getAst().newAnonymousClassDeclaration(), op);
 							newT.setAstNode(anonymousClassDeclaration);
 							classInstanceCreation
-									.setAnonymousClassDeclaration(anonymousClassDeclaration);
+							.setAnonymousClassDeclaration(anonymousClassDeclaration);
 							bb.push(classInstanceCreation);
 							break;
 						}
@@ -1216,7 +1278,7 @@ public final class TrCfg2JavaExpressionStmts {
 				if (!bb.isStackEmpty()
 						&& rightOperand instanceof InfixExpression
 						&& (((InfixExpression) rightOperand).getOperator() == InfixExpression.Operator.PLUS || ((InfixExpression) rightOperand)
-								.getOperator() == InfixExpression.Operator.MINUS)) {
+						.getOperator() == InfixExpression.Operator.MINUS)) {
 					// if i'm an peek-1 or peek+1 expression, than we can post-inc/dec
 					// TODO more checks!
 					bb.push(newPostfixExpression(
@@ -1942,15 +2004,17 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
-	private boolean rewriteConditionalConstants(@Nonnull final BB bb, @Nonnull final JCND op) {
+	private boolean rewriteConditionalConstants(@Nonnull final BB bb) {
 		// in boolean compounds in JDK 1 & 2: PUSH true/false -> JCND,
 		// also found in Scala
 		assert bb.getOps() == 1 : bb.getOps();
 		assert bb.isStackEmpty() : bb.getTop();
 
-		final CmpType cmpType = ((JCND) bb.getOp(0)).getCmpType();
-
+		final JCND opJcnd = (JCND) bb.getOp(0);
+		final CmpType cmpType = opJcnd.getCmpType();
 		final List<E> ins = bb.getIns();
+		assert ins.size() > 1;
+
 		for (int i = ins.size(); i-- > 0;) {
 			final E in = ins.get(i);
 			final E c_bb = in.getRelevantIn();
@@ -1996,7 +2060,7 @@ public final class TrCfg2JavaExpressionStmts {
 				log.warn(getM() + ": Unknown cmp type '" + cmpType + "' for boolean expression '"
 						+ expression + "'!");
 			}
-			final IfStatement ifStatement = setOp(getAst().newIfStatement(), op);
+			final IfStatement ifStatement = setOp(getAst().newIfStatement(), opJcnd);
 			ifStatement.setExpression(wrap(expression));
 			c.addStmt(ifStatement);
 			final BB trueSucc = bb.getTrueSucc();
@@ -2008,16 +2072,16 @@ public final class TrCfg2JavaExpressionStmts {
 		return ins.isEmpty();
 	}
 
-	private boolean rewriteConditionalReturn(@Nonnull final BB bb, @Nonnull final RETURN op) {
+	private boolean rewriteConditionalReturn(@Nonnull final BB bb) {
 		// Scala feature: return conditional value with additional statements in conditions
-
 		// TODO BB is NEW/NEW -> [INVOKE <init>(Lscala/Either;)V, RETURN]
-		assert bb.getIns().size() > 1;
 		assert bb.getOps() == 1 : bb.getOps();
-		assert bb.getOp(0) instanceof RETURN : bb.getOp(0);
 		assert bb.isStackEmpty() : bb.getTop();
 
+		final RETURN opReturn = (RETURN) bb.getOp(0);
 		final List<E> ins = bb.getIns();
+		assert ins.size() > 1;
+
 		for (int i = ins.size(); i-- > 0;) {
 			final E in = ins.get(i);
 			final E c_bb = in.getRelevantIn();
@@ -2028,7 +2092,7 @@ public final class TrCfg2JavaExpressionStmts {
 			if (c.isStackEmpty()) {
 				continue;
 			}
-			final ReturnStatement cReturnStatement = setOp(getAst().newReturnStatement(), op);
+			final ReturnStatement cReturnStatement = setOp(getAst().newReturnStatement(), opReturn);
 			cReturnStatement.setExpression(wrap(c.pop()));
 			c.addStmt(cReturnStatement);
 			in.remove();
@@ -2037,12 +2101,13 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteConditionalValue(@Nonnull final BB bb) {
-		if (bb.getIns().size() < 2) {
+		final List<E> ins = bb.getIns();
+		if (ins.size() < 2) {
 			// this has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
 			// even more preds possible with boolean conditionals
 			return false;
 		}
-		for (final E in : bb.getIns()) {
+		for (final E in : ins) {
 			final E c_bb = in.getRelevantIn();
 			final BB c = c_bb.getStart();
 			// in Scala exists a more complex ternary variant with sub statements
@@ -2167,23 +2232,23 @@ public final class TrCfg2JavaExpressionStmts {
 						// rewrite to class literal didn't work
 					}
 				}
-				// not from "expression", we need the full resulting expression type
-				final ConditionalExpression conditionalExpression = setOp(getAst()
-						.newConditionalExpression(), getOp(thenExpression));
-				if (!c.isBefore(x)) {
-					final Expression swapExpression = thenExpression;
-					thenExpression = elseExpression;
-					elseExpression = swapExpression;
-					if (a_c.isCondTrue()) {
-						expression = not(expression);
-					}
-				} else if (a_c.isCondFalse()) {
+			// not from "expression", we need the full resulting expression type
+			final ConditionalExpression conditionalExpression = setOp(getAst()
+					.newConditionalExpression(), getOp(thenExpression));
+			if (!c.isBefore(x)) {
+				final Expression swapExpression = thenExpression;
+				thenExpression = elseExpression;
+				elseExpression = swapExpression;
+				if (a_c.isCondTrue()) {
 					expression = not(expression);
 				}
-				conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
-				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
-				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
-				expression = conditionalExpression;
+			} else if (a_c.isCondFalse()) {
+				expression = not(expression);
+			}
+			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
+			conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
+			conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
+			expression = conditionalExpression;
 			}
 			a.push(expression);
 			a.setSucc(bb);
@@ -2286,7 +2351,7 @@ public final class TrCfg2JavaExpressionStmts {
 					} else {
 						anonymousClassDeclaration.delete();
 						enumConstantDeclaration
-						.setAnonymousClassDeclaration(anonymousClassDeclaration);
+								.setAnonymousClassDeclaration(anonymousClassDeclaration);
 						// normally contains one constructor, that calls a synthetic super
 						// constructor with the enum class as additional last parameter,
 						// this may contain field initializers, that we must keep,
@@ -2324,7 +2389,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		((VariableDeclarationFragment) ((FieldDeclaration) astNode).fragments().get(0))
-				.setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
+		.setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
 		// TODO move anonymous TD to FD as child!!! important for ClassEditor
 		// select, if fixed change ClassEditor#findDeclarationForJavaElement too
 		if (!f.isStatic()) {
