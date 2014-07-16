@@ -158,8 +158,6 @@ import com.google.common.collect.Lists;
 @Slf4j
 public final class TrCfg2JavaExpressionStmts {
 
-	private static final String JCND = null;
-
 	private static boolean isLambdaBootstrapMethod(@Nullable final M m) {
 		if (m == null) {
 			return false;
@@ -222,7 +220,18 @@ public final class TrCfg2JavaExpressionStmts {
 				continue; // stack cleared
 			}
 			final BB end = out.getEnd();
-			end.pushFirst(pop);
+			final List<E> ins = end.getIns();
+			// single incoming edge? no merge necessary
+			if (ins.size() == 1) {
+				end.pushFirst(pop);
+				continue;
+			}
+			// add artificial entry BB with value
+			final BB newBb = bb.getCfg().newBb(0);
+			newBb.push(pop);
+			pred.addSucc(newBb, out.getValue());
+			newBb.setSucc(end);
+			out.remove();
 		}
 		return true;
 	}
@@ -309,7 +318,7 @@ public final class TrCfg2JavaExpressionStmts {
 						return false;
 					}
 				}
-				if (op instanceof POP) {
+				if (false && op instanceof POP) {
 					// PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb
 					if (rewriteConditionalValuePop(bb)) {
 						return true; // deleted myself

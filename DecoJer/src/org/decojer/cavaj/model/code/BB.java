@@ -161,7 +161,7 @@ public final class BB {
 	 *            value
 	 * @return out edge
 	 */
-	private final E addSucc(@Nonnull final BB succ, @Nullable final Object value) {
+	public final E addSucc(@Nonnull final BB succ, @Nullable final Object value) {
 		final E e = new E(value);
 		addOut(e); // add as last important for cleanupOuts
 		succ.addIn(e);
@@ -353,7 +353,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -813,7 +813,7 @@ public final class BB {
 			getCfg().setStartBb(target);
 		}
 		for (final E in : this.ins) {
-			in.setEnd(target);
+			assert in != null;
 			target.addIn(in);
 		}
 		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
@@ -1087,7 +1087,7 @@ public final class BB {
 			getCfg().setStartBb(bb);
 		}
 		for (final E in : this.ins) {
-			in.setEnd(bb);
+			assert in != null;
 			bb.addIn(in);
 		}
 		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
