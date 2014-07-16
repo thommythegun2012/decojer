@@ -227,57 +227,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
-	private static boolean rewriteConditionalPop(@Nonnull final BB bb) {
-		// PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb
-		if (bb.getOps() != 2) {
-			return false;
-		}
-		assert bb.getOp(0) instanceof POP : bb.getOp(0);
-
-		final E out = bb.getSequenceOut();
-		if (out == null) {
-			return false;
-		}
-		final Op op = bb.getOp(1);
-		if (!(op instanceof PUSH)) {
-			return false;
-		}
-		final Object value = ((PUSH) op).getValue();
-		if (!(value instanceof Integer)) {
-			return false;
-		}
-		final boolean secondBooleanValue = ((Integer) value).intValue() > 0;
-
-		final List<E> ins = bb.getIns();
-		assert ins.size() == 1;
-		final E in = ins.get(0);
-		if (!in.isCond()) {
-			return false;
-		}
-		final BB pred = in.getStart();
-		if (pred.getTop() == 0) {
-			return false;
-		}
-		final Boolean firstBooleanValue = getBooleanValue(pred.peek());
-		if (firstBooleanValue == null || !(firstBooleanValue ^ secondBooleanValue)) {
-			return false;
-		}
-		final boolean negated = in.isCondFalse();
-		final BB succ = negated ? pred.getTrueSucc() : pred.getFalseSucc();
-		if (succ == null || succ != out.getEnd()) {
-			return false;
-		}
-		final Statement ifStatement = pred.removeFinalStmt();
-		assert ifStatement instanceof IfStatement; // start.isCond() is true
-		final Expression expression = ((IfStatement) ifStatement).getExpression();
-		assert expression != null;
-
-		pred.pop(); // boolean value
-		pred.push(negated ^ firstBooleanValue ? not(expression) : expression);
-		succ.joinPredBb(pred);
-		return true;
-	}
-
 	/**
 	 * Rewrite char-switches.
 	 *
@@ -362,7 +311,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				if (op instanceof POP) {
 					// PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb
-					if (rewriteConditionalPop(bb)) {
+					if (rewriteConditionalValuePop(bb)) {
 						return true; // deleted myself
 					}
 				} else if (op instanceof STORE) {
@@ -2170,7 +2119,7 @@ public final class TrCfg2JavaExpressionStmts {
 				if (a_c.isCondTrue() ^ thenBooleanConst) {
 					expression = not(expression);
 				}
-				// fix operation to one of the constants, so that we get the correct out type
+				// use one of the constants, so that we get the correct out type
 				setOp(expression, getOp(thenExpression));
 			} else {
 				classLiteral: if (expression instanceof InfixExpression) {
@@ -2232,7 +2181,7 @@ public final class TrCfg2JavaExpressionStmts {
 						// rewrite to class literal didn't work
 					}
 				}
-			// not from "expression", we need the full resulting expression type
+				// use one of the constants, so that we get the correct out type
 			final ConditionalExpression conditionalExpression = setOp(getAst()
 					.newConditionalExpression(), getOp(thenExpression));
 			if (!c.isBefore(x)) {
@@ -2257,6 +2206,70 @@ public final class TrCfg2JavaExpressionStmts {
 			return true;
 		}
 		return false;
+	}
+
+	private boolean rewriteConditionalValuePop(@Nonnull final BB bb) {
+		// PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb
+		if (bb.getOps() != 2) {
+			return false;
+		}
+		assert bb.getOp(0) instanceof POP : bb.getOp(0);
+
+		final E out = bb.getSequenceOut();
+		if (out == null) {
+			return false;
+		}
+		final Op op = bb.getOp(1);
+		if (!(op instanceof PUSH)) {
+			return false;
+		}
+		final List<E> ins = bb.getIns();
+		assert ins.size() == 1;
+		final E in = ins.get(0);
+		if (!in.isCond()) {
+			return false;
+		}
+		final BB pred = in.getStart();
+		if (pred.getTop() == 0) {
+			return false;
+		}
+		final boolean negated = in.isCondFalse();
+		final BB succ = negated ? pred.getTrueSucc() : pred.getFalseSucc();
+		if (succ == null || succ != out.getEnd()) {
+			return false;
+		}
+		// remove if statement
+		final Statement ifStatement = pred.removeFinalStmt();
+		assert ifStatement instanceof IfStatement; // start.isCond() is true
+		final Expression expression = ((IfStatement) ifStatement).getExpression();
+		assert expression != null;
+
+		// remove first conditional constant
+		final Expression elseExpression = pred.pop();
+		final Object thenValue = ((PUSH) op).getValue();
+
+		final Boolean thenBooleanConst = thenValue instanceof Integer ? ((Integer) thenValue)
+				.intValue() > 0 : null;
+		final Boolean elseBooleanConst = getBooleanValue(elseExpression);
+
+		if (thenBooleanConst != null && elseBooleanConst != null && thenBooleanConst
+				^ elseBooleanConst) {
+			pred.push(negated ^ elseBooleanConst ? not(expression) : expression);
+		} else {
+			final T t = getCfg().getOutFrame(op).peek().getT();
+			assert t != null;
+			final Expression thenExpression = newLiteral(t, ((PUSH) op).getValue(),
+					getCfg().getM(), op);
+
+			final ConditionalExpression conditionalExpression = setOp(getAst()
+					.newConditionalExpression(), getOp(negated ? not(expression) : expression));
+			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
+			conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
+			conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
+			pred.push(conditionalExpression);
+		}
+		succ.joinPredBb(pred);
+		return true;
 	}
 
 	/**
