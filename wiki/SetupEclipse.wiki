@@ -16,7 +16,7 @@ The following details give an overview of the necessary steps to check out the s
 == Eclipse & Plugins ==
 
   * Prepare Eclipse:
-    * download *Eclipse for RCP and RAP Developers* (Version 3.7.2 or 4.3) from http://www.eclipse.org/downloads/
+    * download *Eclipse for RCP and RAP Developers* (Version 3.7.2 or 4.4) from http://www.eclipse.org/downloads/
     * extract Eclipse
     * install *Lombok*:
       * download from http://projectlombok.org/download.html
@@ -25,27 +25,27 @@ The following details give an overview of the necessary steps to check out the s
 {{{
 ...
 -vmargs
--Dosgi.requiredJavaVersion=1.6
--Xms1200m
--Xmx1200m
+-Dosgi.requiredJavaVersion=1.7
+-Xms1g
+-Xmx2g
 -javaagent:lombok.jar
 -Xbootclasspath/a:lombok.jar
 }}}
     * start and _Check for Updates_ -> update if necessary
-  * Install Plugins:
-    * Install *ZEST*
-      * choose Update Manager: Kepler - http://download.eclipse.org/releases/kepler
-      * select _Modeling_ / _Graphical Editing Framework Zest Visualization Toolkit SDK_
+  * Install New Software...:
     * Install *Subversive*:
-      * choose Update Manager: Kepler - http://download.eclipse.org/releases/kepler
-      * for Eclipse 3.7.2: Subversion compatible to new 1.7 repository: http://download.eclipse.org/technology/subversive/0.7/update-site/
-      * select _Collaboration_ / _Subversive SVN..._
-      * after Installation and Eclipse Restart should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.7.x for Win32
+      * Work with, choose: Luna - http://download.eclipse.org/releases/luna
+        * for Eclipse 3.7.2: Subversion compatible to new 1.7 repository: http://download.eclipse.org/technology/subversive/0.7/update-site/
+      * select _Collaboration_ / _Subversive SVN Team Provider_
+      * after Installation and Eclipse Restart; open SVN Perspective and then should appear the Subversive Connector Installer: Choose e.g. Native JavaHL 1.7.x for Win64
+    * Install *ZEST*
+      * Work with, choose: Luna - http://download.eclipse.org/releases/luna
+      * select _Modeling_ / _Graphical Editing Framework Zest Visualization Toolkit SDK_
     * Install *AST View*:
-      * add Update Manager http://www.eclipse.org/jdt/ui/update-site
-      * select _AST View_ / _AST View_
+      * Work with, add: http://www.eclipse.org/jdt/ui/update-site
+      * select _AST View 1.1.9 for Eclipse Luna (4.4) and later_ / _AST View_
     * Install *TestNG*:
-      * add Update Manager http://beust.com/eclipse
+      * Work with, add: http://beust.com/eclipse
       * select _TestNG_ / _TestNG_
 
 == Checkout Source Code ==
