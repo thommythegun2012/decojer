@@ -57,6 +57,8 @@ http://decojer.googlecode.com/svn/wiki/img/eclipse_svn_repository_location.png
 
   * because we are heaviliy dependant from Eclipse JDT - download plugin sources from http://download.eclipse.org/eclipse/downloads/drops4/R-4.2.2-201302041200/download.php?dropFile=org.eclipse.jdt.source-4.2.2.zip and copy jdt-stuff into plugins
 
+  * SWT Errors, e.g. Colors not found: change target platform settings in workspace: http://stackoverflow.com/questions/4498018/eclipse-plugin-dependency-on-swt-classes-not-being-resolved
+
 == Additional Plugins for Dalvik ==
 
   * Install Android SDK
