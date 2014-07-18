@@ -291,53 +291,46 @@ public final class TrCfg2JavaExpressionStmts {
 	private boolean convertToHLLIntermediate(@Nonnull final BB bb) {
 		while (bb.getOps() > 0) {
 			while (isStackUnderflow(bb)) {
-				// we must try to pull stack values down
 				while (rewriteConditionalValue(bb)) {
 					// nested possible
-				} // ...now pull this value
+				} // ...now continue to pull generated stack value down...
 				final Op op = bb.getOp(0);
 				if (bb.getIns().size() > 1) {
-					// sometimes conditional values are not a possible pattern, because the
-					// conditional sides contains statements or multiple ins, special handling for
-					// JCND and RETURN possible:
-
-					// TODO scalalib Symbol/updateCache: also found with STORE, this here can be
-					// more general! build extra nodes or pushup STORE op?
-					// TODO also found invoke(switch(pushes)) in
-					// scala.xml.parsing.MarkupParsewrCommons, need temporary vars here
+					// we cannot really pull down stack values from multiple predecessors, try to
+					// "push operation back": rewriteConditionalValue() hasn't worked, e.g.
+					// conditional sides contained statements
+					if (op instanceof STORE) {
+						// special trick for store <return_address> till finally is established
+						if (peekT(op) == T.RET) {
+							bb.removeOp(0);
+							if (bb.getOps() != 0) {
+								continue;
+							}
+							// i'm empty now...can delete myself (move ins to succ)
+							final E out = bb.getSequenceOut();
+							assert out != null;
+							bb.moveIns(out.getEnd());
+							return true;
+						}
+					}
 					if (op instanceof JCND) {
 						if (rewriteConditionalConstants(bb)) {
 							// special handling for JCND, multiple predecessors possible and can be
-							// directly routed through this BB
+							// directly routed through this BB,
+							// seen e.g. in JDK 1 & 2 and Scala
 							return true; // deleted myself
 						}
-					} else if (op instanceof RETURN) {
-						if (rewriteConditionalReturn(bb)) {
-							// special handling for RETURN, multiple predecessors possible and can
-							// directly return value - should be Scala only code
-							if (!getCfg().getT().isScala()) {
-								log.warn(getM()
-										+ ": Rewriting of conditional returns should only happen for Scala based classes!");
-							}
-							return true; // deleted myself
+					} else if (rewriteConditionalStack(bb)) {
+						// happens e.g. for RETURN, STORE, INVOKE, POP
+						if (!getCfg().getT().isScala()) {
+							log.warn(getM()
+									+ ": Rewriting of conditional stack values should only happen for Scala based classes!");
 						}
+						return true; // deleted myself
 					}
 					return false;
 				}
-				if (op instanceof STORE) {
-					// special trick for store <return_address> till finally is established
-					if (peekT(op) == T.RET) {
-						bb.removeOp(0);
-						if (bb.getOps() != 0) {
-							continue;
-						}
-						// i'm empty now...can delete myself (move ins to succ)
-						final E out = bb.getSequenceOut();
-						assert out != null;
-						bb.moveIns(out.getEnd());
-						return true;
-					}
-				}
+				// try to pull existing stack values in relevant predecessor down
 				final E pred2bb = bb.getRelevantIn();
 				if (pred2bb == null) {
 					return false; // multiple or conditional incomings -> real fail
@@ -345,6 +338,7 @@ public final class TrCfg2JavaExpressionStmts {
 				final BB pred = pred2bb.getStart();
 				final E pred2bbBack = pred.getRelevantOut();
 				if (pred2bbBack != null && bb == pred2bbBack.getEnd()) {
+					// is a 1:1 connection, just join it
 					bb.joinPredBb(pred);
 					continue;
 				}
@@ -2032,14 +2026,14 @@ public final class TrCfg2JavaExpressionStmts {
 		return ins.isEmpty();
 	}
 
-	private boolean rewriteConditionalReturn(@Nonnull final BB bb) {
+	private boolean rewriteConditionalStack(@Nonnull final BB bb) {
 		// return conditional value with additional statements in conditions,
 		// rewriteConditionalValue() cannot work here, seen in Scala
 		// TODO BB is NEW/NEW -> [INVOKE <init>(Lscala/Either;)V, RETURN]
-		assert bb.getOps() == 1 : bb.getOps();
+		assert bb.getOps() > 0;
 		assert bb.isStackEmpty() : bb.getTop();
 
-		final RETURN opReturn = (RETURN) bb.getOp(0);
+		final Op op = bb.getOp(0);
 		final List<E> ins = bb.getIns();
 		assert ins.size() > 1;
 
@@ -2052,12 +2046,19 @@ public final class TrCfg2JavaExpressionStmts {
 			if (pred.isStackEmpty()) {
 				continue;
 			}
-			final ReturnStatement cReturnStatement = setOp(getAst().newReturnStatement(), opReturn);
-			cReturnStatement.setExpression(wrap(pred.pop()));
-			pred.addStmt(cReturnStatement);
-			in.remove();
+			pred.addOp(op);
+			final boolean success = convertToHLLIntermediate(pred);
+			assert success;
+			if (op instanceof RETURN) {
+				in.remove();
+			}
 		}
-		return ins.isEmpty();
+		if (op instanceof RETURN) {
+			assert bb.getOps() == 1 : bb.getOps();
+			return ins.isEmpty();
+		}
+		bb.removeOp(0);
+		return true;
 	}
 
 	private boolean rewriteConditionalValue(@Nonnull final BB bb) {
