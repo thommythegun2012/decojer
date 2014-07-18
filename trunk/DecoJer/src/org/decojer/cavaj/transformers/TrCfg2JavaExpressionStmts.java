@@ -231,7 +231,7 @@ public final class TrCfg2JavaExpressionStmts {
 			newBb.push(pop);
 			pred.addSucc(newBb, out.getValue());
 			newBb.setSucc(end);
-			out.remove();
+			// TODO why doest it trigger exceptions? newBb.setPostorder(Integer.MAX_VALUE);
 		}
 		return true;
 	}
@@ -291,10 +291,10 @@ public final class TrCfg2JavaExpressionStmts {
 	private boolean convertToHLLIntermediate(@Nonnull final BB bb) {
 		while (bb.getOps() > 0) {
 			while (isStackUnderflow(bb)) {
-				// try to pull previous single sequence nodes including stack
+				// we must try to pull stack values down
 				while (rewriteConditionalValue(bb)) {
 					// nested possible
-				} // now we must pull created value down...
+				} // ...now pull this value
 				final Op op = bb.getOp(0);
 				if (bb.getIns().size() > 1) {
 					if (op instanceof JCND) {
@@ -318,12 +318,7 @@ public final class TrCfg2JavaExpressionStmts {
 						return false;
 					}
 				}
-				if (false && op instanceof POP) {
-					// PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb
-					if (rewriteConditionalValuePop(bb)) {
-						return true; // deleted myself
-					}
-				} else if (op instanceof STORE) {
+				if (op instanceof STORE) {
 					// special trick for store <return_address> till finally is established
 					if (peekT(op) == T.RET) {
 						bb.removeOp(0);
@@ -1156,9 +1151,10 @@ public final class TrCfg2JavaExpressionStmts {
 					final Expression e = bb.pop();
 					if (Expressions.isStatementExpression(e)) {
 						statement = getAst().newExpressionStatement(wrap(e));
-					} else if (e instanceof SimpleName && getOp(e) == null /* is exception */) {
+					} else if (e instanceof SimpleName) {
+						// exception or simple literal
 						break;
-					} else if (isBoolean(e)) {
+					} else if (isBoolean(e) && !(e instanceof BooleanLiteral)) {
 						if (getCfg().getT().isAtLeast(Version.JVM_4)) {
 							log.warn(getM() + ": Boolean expression POP in '" + cop
 									+ "' for >= JVM 5 code! Rewriting to empty if.");
@@ -1177,9 +1173,10 @@ public final class TrCfg2JavaExpressionStmts {
 					final Expression e = bb.pop();
 					if (Expressions.isStatementExpression(e)) {
 						statement = getAst().newExpressionStatement(wrap(e));
-					} else if (e instanceof SimpleName && getOp(e) == null /* is exception */) {
+					} else if (e instanceof SimpleName) {
+						// exception or simple literal
 						break;
-					} else if (isBoolean(e)) {
+					} else if (isBoolean(e) && !(e instanceof BooleanLiteral)) {
 						if (getCfg().getT().isAtLeast(Version.JVM_4)) {
 							log.warn(getM() + ": Boolean expression POP in '" + cop
 									+ "' for >= JVM 5 code! Rewriting to empty if.");
@@ -2217,70 +2214,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return false;
 	}
 
-	private boolean rewriteConditionalValuePop(@Nonnull final BB bb) {
-		// PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb
-		if (bb.getOps() != 2) {
-			return false;
-		}
-		assert bb.getOp(0) instanceof POP : bb.getOp(0);
-
-		final E out = bb.getSequenceOut();
-		if (out == null) {
-			return false;
-		}
-		final Op op = bb.getOp(1);
-		if (!(op instanceof PUSH)) {
-			return false;
-		}
-		final List<E> ins = bb.getIns();
-		assert ins.size() == 1;
-		final E in = ins.get(0);
-		if (!in.isCond()) {
-			return false;
-		}
-		final BB pred = in.getStart();
-		if (pred.getTop() == 0) {
-			return false;
-		}
-		final boolean negated = in.isCondFalse();
-		final BB succ = negated ? pred.getTrueSucc() : pred.getFalseSucc();
-		if (succ == null || succ != out.getEnd()) {
-			return false;
-		}
-		// remove if statement
-		final Statement ifStatement = pred.removeFinalStmt();
-		assert ifStatement instanceof IfStatement; // start.isCond() is true
-		final Expression expression = ((IfStatement) ifStatement).getExpression();
-		assert expression != null;
-
-		// remove first conditional constant
-		final Expression elseExpression = pred.pop();
-		final Object thenValue = ((PUSH) op).getValue();
-
-		final Boolean thenBooleanConst = thenValue instanceof Integer ? ((Integer) thenValue)
-				.intValue() > 0 : null;
-		final Boolean elseBooleanConst = getBooleanValue(elseExpression);
-
-		if (thenBooleanConst != null && elseBooleanConst != null && thenBooleanConst
-				^ elseBooleanConst) {
-			pred.push(negated ^ elseBooleanConst ? not(expression) : expression);
-		} else {
-			final T t = getCfg().getOutFrame(op).peek().getT();
-			assert t != null;
-			final Expression thenExpression = newLiteral(t, ((PUSH) op).getValue(),
-					getCfg().getM(), op);
-
-			final ConditionalExpression conditionalExpression = setOp(getAst()
-					.newConditionalExpression(), getOp(negated ? not(expression) : expression));
-			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
-			conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
-			conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
-			pred.push(conditionalExpression);
-		}
-		succ.joinPredBb(pred);
-		return true;
-	}
-
 	/**
 	 * Rewrite PUT-access to a class (static) or instance field.
 	 *
@@ -2893,6 +2826,13 @@ public final class TrCfg2JavaExpressionStmts {
 				// conditional value ternary variant with sub statements
 				log.warn(getM() + ": Stack underflow in '" + getCfg() + "':\n" + bb);
 				assert false;
+			}
+			// remove empty nodes
+			if (bb.getStmts() == 0 && bb.getTop() == 0) {
+				final E sequenceOut = bb.getSequenceOut();
+				if (sequenceOut != null) {
+					bb.moveIns(sequenceOut.getEnd());
+				}
 			}
 		}
 	}
