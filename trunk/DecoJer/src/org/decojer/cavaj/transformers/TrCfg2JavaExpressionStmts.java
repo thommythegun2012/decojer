@@ -2033,7 +2033,8 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteConditionalReturn(@Nonnull final BB bb) {
-		// Scala feature: return conditional value with additional statements in conditions
+		// return conditional value with additional statements in conditions,
+		// rewriteConditionalValue() cannot work here, seen in Scala
 		// TODO BB is NEW/NEW -> [INVOKE <init>(Lscala/Either;)V, RETURN]
 		assert bb.getOps() == 1 : bb.getOps();
 		assert bb.isStackEmpty() : bb.getTop();
@@ -2060,6 +2061,15 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteConditionalValue(@Nonnull final BB bb) {
+		// Is this a conditional compound value, example is A ? C : x:
+		//
+		// ...|...
+		// ...A...
+		// .t/.\f.
+		// .C...x.
+		// ..\./..
+		// ...B...
+		// ...|...
 		final List<E> ins = bb.getIns();
 		if (ins.size() < 2) {
 			// this has 3 preds: a == null ? 0 : a.length() == 0 ? 0 : 1
@@ -2100,15 +2110,7 @@ public final class TrCfg2JavaExpressionStmts {
 			if (x_bb.getEnd() != bb) {
 				continue;
 			}
-			// This is a conditional compound value, example is A ? C : x:
-			//
-			// ...|...
-			// ...A...
-			// .t/.\f.
-			// .C...x.
-			// ..\./..
-			// ...B...
-			// ...|...
+			// is a conditional compound value
 			Expression thenExpression = c.peek();
 			Expression elseExpression = x.peek();
 			final Statement aStmt = a.removeFinalStmt();
