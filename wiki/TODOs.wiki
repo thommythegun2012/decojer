@@ -34,6 +34,8 @@ false instead of 0 in first condition
                    (value == null ? 0 : value.hashCode());
         }
 
+- scala.xml.parsing.MarkupParser$class.markupDecl1 ..RETURN still there
+
 - missing buf.appends() in switch with direct continue in scalalib / scala.xml.parsing.MarkupParserCommon$class.normalizeAttributeValue()
 - bbk-stat-fdi ... EDU.oswego.cs.dl.util.concurrent.BoundedBuffer.peek()L
   + TODO add checkBb always as member, check if sequenceOut -> this must be follow or break
