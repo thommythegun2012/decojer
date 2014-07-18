@@ -34,7 +34,7 @@ false instead of 0 in first condition
                    (value == null ? 0 : value.hashCode());
         }
 
-- scala stuff also has INVOKE(switch(pushes)) and STORE like conditional RETURN etc., more general solution?
+- missing buf.appends() in switch with direct continue in scalalib / scala.xml.parsing.MarkupParserCommon$class.normalizeAttributeValue()
 - bbk-stat-fdi ... EDU.oswego.cs.dl.util.concurrent.BoundedBuffer.peek()L
   + TODO add checkBb always as member, check if sequenceOut -> this must be follow or break
   + TODO rewriteHandler() should do nothing special, just push a temporary placeholder onto BB-stack and hope for later store
