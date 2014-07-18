@@ -165,6 +165,7 @@ public final class BB {
 		final E e = new E(value);
 		addOut(e); // add as last important for cleanupOuts
 		succ.addIn(e);
+		cleanupOuts();
 		return e;
 	}
 
@@ -353,7 +354,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -1012,7 +1013,6 @@ public final class BB {
 			addSucc(trueBb, Boolean.TRUE);
 			addSucc(falseBb, Boolean.FALSE);
 		}
-		cleanupOuts();
 	}
 
 	/**
@@ -1054,10 +1054,7 @@ public final class BB {
 	 * @return out edge
 	 */
 	public final E setSucc(@Nonnull final BB succ) {
-		final E e = addSucc(succ, null);
-
-		cleanupOuts();
-		return e;
+		return addSucc(succ, null);
 	}
 
 	/**
