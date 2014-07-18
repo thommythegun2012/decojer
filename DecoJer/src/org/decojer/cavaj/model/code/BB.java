@@ -109,6 +109,13 @@ public final class BB {
 		this.vs = new Expression[getRegs()];
 	}
 
+	private final E _addSucc(@Nonnull final BB succ, @Nullable final Object value) {
+		final E e = new E(value);
+		addOut(e); // add as last important for cleanupOuts
+		succ.addIn(e);
+		return e;
+	}
+
 	/**
 	 * Add handler.
 	 *
@@ -162,9 +169,7 @@ public final class BB {
 	 * @return out edge
 	 */
 	public final E addSucc(@Nonnull final BB succ, @Nullable final Object value) {
-		final E e = new E(value);
-		addOut(e); // add as last important for cleanupOuts
-		succ.addIn(e);
+		final E e = _addSucc(succ, value);
 		cleanupOuts();
 		return e;
 	}
@@ -716,7 +721,8 @@ public final class BB {
 	}
 
 	protected boolean isRemoved() {
-		return this.pc < 0;
+		// cannot use if (ins.empty() && !isStart()) because will also be triggered in CFG building
+		return getPc() < 0;
 	}
 
 	/**
@@ -1007,12 +1013,13 @@ public final class BB {
 		// preserve pc-order as edge-order
 		if (falseBb.getPc() < trueBb.getPc()) {
 			// usual case, if not a direct branching
-			addSucc(falseBb, Boolean.FALSE);
-			addSucc(trueBb, Boolean.TRUE);
+			_addSucc(falseBb, Boolean.FALSE);
+			_addSucc(trueBb, Boolean.TRUE);
 		} else {
-			addSucc(trueBb, Boolean.TRUE);
-			addSucc(falseBb, Boolean.FALSE);
+			_addSucc(trueBb, Boolean.TRUE);
+			_addSucc(falseBb, Boolean.FALSE);
 		}
+		cleanupOuts();
 	}
 
 	/**
