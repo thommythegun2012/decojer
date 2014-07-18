@@ -27,9 +27,16 @@ Eclipse: 41 s
 ---
 
 - fix AbstractMap.eq and hashCode() backport:
-  + 1) why strange current decomp?
-  + 2) new pattern: false -> POP
   + 3) check SwitchEnum without ENUM recog too for underflow stuff
+
+false instead of 0 in first condition
+        public int hashCode() {
+            return (key   == null ? 0 :   key.hashCode()) ^
+                   (value == null ? 0 : value.hashCode());
+        }
+
+pullValue: why does newBb.setPostorder(Integer.MAX_VALUE); trigger exception
+
 - bbk-stat-fdi ... EDU.oswego.cs.dl.util.concurrent.BoundedBuffer.peek()L
   + TODO add checkBb always as member, check if sequenceOut -> this must be follow or break
   + TODO rewriteHandler() should do nothing special, just push a temporary placeholder onto BB-stack and hope for later store
