@@ -153,7 +153,8 @@ public final class TrJvmStruct2JavaAst {
 					return false;
 				}
 				assert m.isSynthetic();
-				assert ownerT.isBelow(Version.JVM_5);
+				// normally ownerT.isBelow(Version.JVM_5), but have also seen in JDK 5 with Groovy
+				// (ch.qos.logback.classic.boolex.EvaluatorTemplate)
 				return true;
 			}
 			// JVM 5: synthetic enum method Enum.values()
@@ -420,7 +421,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-					.setType(newType(m.getReturnT(), t));
+			.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -531,7 +532,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-							+ "'!");
+									+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
