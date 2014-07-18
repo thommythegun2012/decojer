@@ -252,7 +252,8 @@ public class Struct {
 					parent.setFollow(bb);
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
-					assert false;
+					assert false : "Cannot change follow to BB" + bb.getPc() + " for struct:\n"
+							+ this;
 				}
 			}
 		}
