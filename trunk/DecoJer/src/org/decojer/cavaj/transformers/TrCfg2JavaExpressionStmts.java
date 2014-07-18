@@ -227,11 +227,11 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			// add artificial entry BB with value
-			final BB newBb = bb.getCfg().newBb(0);
+			final BB newBb = bb.getCfg().newBb(end.getPc());
+			newBb.setPostorder(end.getPostorder());
 			newBb.push(pop);
 			pred.addSucc(newBb, out.getValue());
 			newBb.setSucc(end);
-			// TODO why doest it trigger exceptions? newBb.setPostorder(Integer.MAX_VALUE);
 		}
 		return true;
 	}
