@@ -1977,16 +1977,15 @@ public final class TrCfg2JavaExpressionStmts {
 		assert ins.size() > 1;
 
 		for (int i = ins.size(); i-- > 0;) {
-			final E in = ins.get(i);
-			final E c_bb = in.getRelevantIn();
-			if (!c_bb.isSequence()) {
+			final E in = ins.get(i).getRelevantIn();
+			if (!in.isSequence()) {
 				continue;
 			}
-			final BB c = c_bb.getStart();
-			if (c.isStackEmpty()) {
+			final BB pred = in.getStart();
+			if (pred.isStackEmpty()) {
 				continue;
 			}
-			Expression expression = c.pop();
+			Expression expression = pred.pop();
 			Boolean booleanConst = getBooleanValue(expression);
 			if (booleanConst != null) {
 				switch (cmpType) {
@@ -2002,10 +2001,10 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				final BB constantSucc = booleanConst ? bb.getTrueSucc() : bb.getFalseSucc();
 				assert constantSucc != null;
-				if (c.getStmts() == 0 && c.isStackEmpty()) {
-					c.moveIns(constantSucc);
+				if (pred.getStmts() == 0 && pred.isStackEmpty()) {
+					pred.moveIns(constantSucc);
 				} else {
-					c.setSucc(constantSucc);
+					pred.setSucc(constantSucc);
 				}
 				continue;
 			}
@@ -2023,12 +2022,12 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			final IfStatement ifStatement = setOp(getAst().newIfStatement(), opJcnd);
 			ifStatement.setExpression(wrap(expression));
-			c.addStmt(ifStatement);
+			pred.addStmt(ifStatement);
 			final BB trueSucc = bb.getTrueSucc();
 			assert trueSucc != null;
 			final BB falseSucc = bb.getFalseSucc();
 			assert falseSucc != null;
-			c.setConds(trueSucc, falseSucc);
+			pred.setConds(trueSucc, falseSucc);
 		}
 		return ins.isEmpty();
 	}
@@ -2044,18 +2043,17 @@ public final class TrCfg2JavaExpressionStmts {
 		assert ins.size() > 1;
 
 		for (int i = ins.size(); i-- > 0;) {
-			final E in = ins.get(i);
-			final E c_bb = in.getRelevantIn();
-			if (!c_bb.isSequence()) {
+			final E in = ins.get(i).getRelevantIn();
+			if (!in.isSequence()) {
 				continue;
 			}
-			final BB c = c_bb.getStart();
-			if (c.isStackEmpty()) {
+			final BB pred = in.getStart();
+			if (pred.isStackEmpty()) {
 				continue;
 			}
 			final ReturnStatement cReturnStatement = setOp(getAst().newReturnStatement(), opReturn);
-			cReturnStatement.setExpression(wrap(c.pop()));
-			c.addStmt(cReturnStatement);
+			cReturnStatement.setExpression(wrap(pred.pop()));
+			pred.addStmt(cReturnStatement);
 			in.remove();
 		}
 		return ins.isEmpty();
