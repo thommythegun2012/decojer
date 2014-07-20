@@ -99,8 +99,8 @@ public class TrInnerClassesAnalysis {
 				if (!(declaration instanceof M)) {
 					continue;
 				}
-				final M enclosingMd = (M) declaration;
-				final CFG cfg = enclosingMd.getCfg();
+				final M enclosingM = (M) declaration;
+				final CFG cfg = enclosingM.getCfg();
 				if (cfg == null) {
 					continue;
 				}
@@ -125,13 +125,13 @@ public class TrInnerClassesAnalysis {
 					if (!newT.isAnonymous() || !newT.isDeclaration()) {
 						continue;
 					}
-					final M enclosingM = newT.getEnclosingM();
-					if (enclosingM != null) {
-						// TODO check if equal
+					final M newTenclosingM = newT.getEnclosingM();
+					if (newTenclosingM == enclosingM) {
+						continue;
 					}
-					final T enclosingT = newT.getEnclosingT();
-					if (enclosingT != null) {
-						// TODO check if equal
+					final T newTenclosingT = newT.getEnclosingT();
+					if (newTenclosingT == t) {
+						continue;
 					}
 					final Container newTowner = newT.getDeclarationOwner();
 					if (newTowner != null) {
@@ -141,11 +141,14 @@ public class TrInnerClassesAnalysis {
 							// parallel findTopTds necessary?
 							continue;
 						}
-						log.warn("New ananymous type declaration '" + newT
-								+ "' already has parent '" + newTowner + "'!");
+						if (!t.isScala()) {
+							// happens often in scala, remote "...$anonfun$...$1" in other classes
+							log.warn("New ananymous type declaration '" + newT
+									+ "' already has parent '" + newTowner + "'!");
+						}
 						continue;
 					}
-					newT.setDeclarationOwner(enclosingMd);
+					newT.setDeclarationOwner(enclosingM);
 				}
 			}
 		}
