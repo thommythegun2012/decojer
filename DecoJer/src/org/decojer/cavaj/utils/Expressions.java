@@ -368,41 +368,41 @@ public final class Expressions {
 				final char c = value instanceof Character ? (Character) value
 						: value instanceof Number ? (char) ((Number) value).intValue()
 								: ((String) value).charAt(0);
-						switch (c) {
-						case Character.MAX_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MAX_VALUE"));
-						case Character.MIN_VALUE:
-							return ast.newQualifiedName(ast.newSimpleName("Character"),
-									ast.newSimpleName("MIN_VALUE"));
-						case Character.MAX_HIGH_SURROGATE:
-							if (context.getT().isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MAX_LOW_SURROGATE:
-							if (context.getT().isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MAX_LOW_SURROGATE"));
-							}
-							break;
-						case Character.MIN_HIGH_SURROGATE:
-							if (context.getT().isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_HIGH_SURROGATE"));
-							}
-							break;
-						case Character.MIN_LOW_SURROGATE:
-							if (context.getT().isAtLeast(Version.JVM_5)) {
-								return ast.newQualifiedName(ast.newSimpleName("Character"),
-										ast.newSimpleName("MIN_LOW_SURROGATE"));
-							}
-							break;
-						}
-						final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-						characterLiteral.setCharValue(c);
-						return characterLiteral;
+				switch (c) {
+				case Character.MAX_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MAX_VALUE"));
+				case Character.MIN_VALUE:
+					return ast.newQualifiedName(ast.newSimpleName("Character"),
+							ast.newSimpleName("MIN_VALUE"));
+				case Character.MAX_HIGH_SURROGATE:
+					if (context.getT().isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MAX_LOW_SURROGATE:
+					if (context.getT().isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MAX_LOW_SURROGATE"));
+					}
+					break;
+				case Character.MIN_HIGH_SURROGATE:
+					if (context.getT().isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_HIGH_SURROGATE"));
+					}
+					break;
+				case Character.MIN_LOW_SURROGATE:
+					if (context.getT().isAtLeast(Version.JVM_5)) {
+						return ast.newQualifiedName(ast.newSimpleName("Character"),
+								ast.newSimpleName("MIN_LOW_SURROGATE"));
+					}
+					break;
+				}
+				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+				characterLiteral.setCharValue(c);
+				return characterLiteral;
 			}
 			if (value == null) {
 				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
@@ -607,7 +607,7 @@ public final class Expressions {
 			simpleName = ast.newSimpleName(identifier);
 			// setIdentifier() uses fixed scanner.sourceLevel = ClassFileConstants.JDK1_3,
 			// don't know why, but this doesn't recognize JDK4 assert and JDK5 enum here
-			// TODO create Eclipse Bug reportfor this, expensive double check,
+			// TODO create Eclipse Bug report for this, expensive double check,
 			// seen in AbstractExecutorService.assert (1.4 code)
 			if ("assert".equals(identifier) || "enum".equals(identifier)) {
 				throw new IllegalArgumentException();
@@ -966,8 +966,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-						not(infixExpression.getLeftOperand()),
-						not(infixExpression.getRightOperand()), getOp(infixExpression));
+								not(infixExpression.getLeftOperand()),
+								not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible

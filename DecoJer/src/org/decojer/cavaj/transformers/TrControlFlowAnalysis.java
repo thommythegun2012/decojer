@@ -534,6 +534,9 @@ public final class TrControlFlowAnalysis {
 		final Boolean firstValue = negated;
 		final Boolean secondValue = !negated;
 
+		// TODO see XmlParser.filterCR() - findBranch() now also contains breaks etc.,
+		// filter them!
+
 		final List<BB> firstMembers = Lists.newArrayList();
 		final Set<BB> firstFollows = Sets.newHashSet();
 		findBranch(cond, firstOut, firstMembers, firstFollows);
@@ -641,7 +644,7 @@ public final class TrControlFlowAnalysis {
 						}
 						checkBb.remove();
 					}
-					continue outer;
+				continue outer;
 				}
 				sync.addMember(null, checkBb);
 				// TODO major difference in <1.3 and >= 1.3: in 1.3 the LOAD,EXIT,GOTO/RETURN is

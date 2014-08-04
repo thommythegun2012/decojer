@@ -93,36 +93,39 @@ public final class TrJvmStruct2JavaAst {
 				return true;
 			}
 			// JVM 4: assert remembers assertion disabled flag
-			if ("$assertionsDisabled".equals(name)) {
+			if (ownerT.isAtLeast(Version.JVM_4)
+					&& ("$assertionsDisabled".equals(name) || "assert".equals(name))) {
+				// "assert" seen in AbstractExecutorService (JDK 1.4), could later scan for
+				// ...desiredAssertionStatus() to detect such fields in a more flexible way
 				if (f.getValueT() != T.BOOLEAN) {
 					return false;
 				}
 				assert f.isSynthetic();
 				assert f.getAf(AF.FINAL);
-				assert ownerT.isAtLeast(Version.JVM_4);
 				return !cu.check(DFlag.IGNORE_ASSERT);
 			}
-			// JVM 5: enum synthetic fields for method Enum.values()
-			// JDK: synthetic "$VALUES" field for Enum.values(),
-			// Eclipse: synthetic "ENUM$VALUES" field for Enum.values()
-			if ("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) {
-				if (!ownerT.isEnum() || !ownerT.equals(f.getValueT().getComponentT())) {
-					return false;
+			if (ownerT.isAtLeast(Version.JVM_5)) {
+				// JVM 5: enum synthetic fields for method Enum.values()
+				// JDK: synthetic "$VALUES" field for Enum.values(),
+				// Eclipse: synthetic "ENUM$VALUES" field for Enum.values()
+				if ("$VALUES".equals(name) || "ENUM$VALUES".equals(name)) {
+					if (!ownerT.isEnum() || !ownerT.equals(f.getValueT().getComponentT())) {
+						return false;
+					}
+					assert f.isSynthetic();
+					return !cu.check(DFlag.IGNORE_ENUM);
 				}
-				assert f.isSynthetic();
-				assert ownerT.isAtLeast(Version.JVM_5);
-				return !cu.check(DFlag.IGNORE_ENUM);
-			}
-			// JVM 5: switch(enum) uses synthethis int[] fields
-			// JDK: external anonymous class for this with "$SwitchMap$" and static initializer,
-			// Eclipse: same class with "$SWITCH_TABLE$" and initializer methods
-			if (name.startsWith("$SwitchMap$") || name.startsWith("$SWITCH_TABLE$")) {
-				if (f.getValueT().getComponentT() != T.INT) {
-					return false;
+				// JVM 5: switch(enum) uses synthethis int[] fields
+				// JDK: external anonymous class for this with "$SwitchMap$" and static initializer,
+				// Eclipse: same class with "$SWITCH_TABLE$" and initializer methods
+				if (name.startsWith("$SwitchMap$") || name.startsWith("$SWITCH_TABLE$")) {
+					if (f.getValueT().getComponentT() != T.INT) {
+						return false;
+					}
+					assert f.isSynthetic();
+					assert ownerT.isAtLeast(Version.JVM_5);
+					return !cu.check(DFlag.IGNORE_ENUM);
 				}
-				assert f.isSynthetic();
-				assert ownerT.isAtLeast(Version.JVM_5);
-				return !cu.check(DFlag.IGNORE_ENUM);
 			}
 		} else {
 			if (name.startsWith("this$")) {
@@ -156,34 +159,34 @@ public final class TrJvmStruct2JavaAst {
 				// (ch.qos.logback.classic.boolex.EvaluatorTemplate)
 				return true;
 			}
-			// JVM 5: synthetic enum method Enum.values()
-			if ("values".equals(name)) {
-				if (m.getParamTs().length != 0 || !ownerT.isEnum()) {
-					return false;
+			if (ownerT.isAtLeast(Version.JVM_5)) {
+				// JVM 5: synthetic enum method Enum.values()
+				if ("values".equals(name)) {
+					if (m.getParamTs().length != 0 || !ownerT.isEnum()) {
+						return false;
+					}
+					// is not marked as synthetic in JDK
+					return !cu.check(DFlag.IGNORE_ENUM);
 				}
-				// is not marked as synthetic in JDK
-				assert ownerT.isAtLeast(Version.JVM_5);
-				return !cu.check(DFlag.IGNORE_ENUM);
-			}
-			// JVM 5: synthetic enum method Enum.valueOf(String)
-			if ("valueOf".equals(name)) {
-				if (m.getParamTs().length != 1 || !m.getParamTs()[0].is(String.class)
-						|| !ownerT.isEnum()) {
-					return false;
+				// JVM 5: synthetic enum method Enum.valueOf(String)
+				if ("valueOf".equals(name)) {
+					if (m.getParamTs().length != 1 || !m.getParamTs()[0].is(String.class)
+							|| !ownerT.isEnum()) {
+						return false;
+					}
+					// is not marked as synthetic in JDK
+					return !cu.check(DFlag.IGNORE_ENUM);
 				}
-				// is not marked as synthetic in JDK
-				assert ownerT.isAtLeast(Version.JVM_5);
-				return !cu.check(DFlag.IGNORE_ENUM);
-			}
-			// JVM 5 Eclipse: switch(enum) has embedded synthethis int[] field in using class with
-			// static initializer methods (JDK references external inner class for this)
-			if (name.startsWith("$SWITCH_TABLE$")) {
-				if (m.getParamTs().length != 0 || m.getReturnT().getComponentT() != T.INT) {
-					return false;
+				// JVM 5 Eclipse: switch(enum) has embedded synthethis int[] field in using class
+				// with
+				// static initializer methods (JDK references external inner class for this)
+				if (name.startsWith("$SWITCH_TABLE$")) {
+					if (m.getParamTs().length != 0 || m.getReturnT().getComponentT() != T.INT) {
+						return false;
+					}
+					assert m.isSynthetic();
+					return !cu.check(DFlag.IGNORE_ENUM);
 				}
-				assert m.isSynthetic();
-				assert ownerT.isAtLeast(Version.JVM_5);
-				return !cu.check(DFlag.IGNORE_ENUM);
 			}
 		}
 		if (m.isSynthetic()) {
@@ -420,7 +423,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-					.setType(newType(m.getReturnT(), t));
+			.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -531,7 +534,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-							+ "'!");
+									+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
