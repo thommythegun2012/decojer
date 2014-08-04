@@ -78,71 +78,6 @@ import com.google.common.collect.Sets;
 @Slf4j
 public final class Expressions {
 
-	private static final String JAVA_LANG = "java.lang";
-
-	public static final String PROP_OP = "propOp";
-
-	private static final String PROP_VALUE = "propValue";
-
-	private static final Set<String> JAVA_KEYWORDS;
-
-	static {
-		JAVA_KEYWORDS = Sets.newHashSet();
-		JAVA_KEYWORDS.add("abstract");
-		JAVA_KEYWORDS.add("assert"); // added in JVM 4
-		JAVA_KEYWORDS.add("boolean");
-		JAVA_KEYWORDS.add("break");
-		JAVA_KEYWORDS.add("byte");
-		JAVA_KEYWORDS.add("case");
-		JAVA_KEYWORDS.add("catch");
-		JAVA_KEYWORDS.add("char");
-		JAVA_KEYWORDS.add("class");
-		JAVA_KEYWORDS.add("const"); // not used
-		JAVA_KEYWORDS.add("continue");
-		JAVA_KEYWORDS.add("default");
-		JAVA_KEYWORDS.add("do");
-		JAVA_KEYWORDS.add("double");
-		JAVA_KEYWORDS.add("else");
-		JAVA_KEYWORDS.add("enum"); // added in JVM 5
-		JAVA_KEYWORDS.add("extends");
-		JAVA_KEYWORDS.add("false"); // boolean literal
-		JAVA_KEYWORDS.add("final");
-		JAVA_KEYWORDS.add("finally");
-		JAVA_KEYWORDS.add("float");
-		JAVA_KEYWORDS.add("for");
-		JAVA_KEYWORDS.add("goto"); // not used
-		JAVA_KEYWORDS.add("if");
-		JAVA_KEYWORDS.add("implements");
-		JAVA_KEYWORDS.add("import");
-		JAVA_KEYWORDS.add("instanceof");
-		JAVA_KEYWORDS.add("int");
-		JAVA_KEYWORDS.add("interface");
-		JAVA_KEYWORDS.add("long");
-		JAVA_KEYWORDS.add("native");
-		JAVA_KEYWORDS.add("new");
-		JAVA_KEYWORDS.add("null"); // null literal
-		JAVA_KEYWORDS.add("package");
-		JAVA_KEYWORDS.add("private");
-		JAVA_KEYWORDS.add("protected");
-		JAVA_KEYWORDS.add("public");
-		JAVA_KEYWORDS.add("return");
-		JAVA_KEYWORDS.add("short");
-		JAVA_KEYWORDS.add("static");
-		JAVA_KEYWORDS.add("strictfp"); // added in JVM 4
-		JAVA_KEYWORDS.add("super");
-		JAVA_KEYWORDS.add("switch");
-		JAVA_KEYWORDS.add("synchronized");
-		JAVA_KEYWORDS.add("this");
-		JAVA_KEYWORDS.add("throw");
-		JAVA_KEYWORDS.add("throws");
-		JAVA_KEYWORDS.add("transient");
-		JAVA_KEYWORDS.add("true"); // boolean literal
-		JAVA_KEYWORDS.add("try");
-		JAVA_KEYWORDS.add("void");
-		JAVA_KEYWORDS.add("volatile");
-		JAVA_KEYWORDS.add("while");
-	}
-
 	/**
 	 * Get boolean value from literal.
 	 *
@@ -433,41 +368,41 @@ public final class Expressions {
 				final char c = value instanceof Character ? (Character) value
 						: value instanceof Number ? (char) ((Number) value).intValue()
 								: ((String) value).charAt(0);
-				switch (c) {
-				case Character.MAX_VALUE:
-					return ast.newQualifiedName(ast.newSimpleName("Character"),
-							ast.newSimpleName("MAX_VALUE"));
-				case Character.MIN_VALUE:
-					return ast.newQualifiedName(ast.newSimpleName("Character"),
-							ast.newSimpleName("MIN_VALUE"));
-				case Character.MAX_HIGH_SURROGATE:
-					if (context.getT().isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MAX_HIGH_SURROGATE"));
-					}
-					break;
-				case Character.MAX_LOW_SURROGATE:
-					if (context.getT().isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MAX_LOW_SURROGATE"));
-					}
-					break;
-				case Character.MIN_HIGH_SURROGATE:
-					if (context.getT().isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MIN_HIGH_SURROGATE"));
-					}
-					break;
-				case Character.MIN_LOW_SURROGATE:
-					if (context.getT().isAtLeast(Version.JVM_5)) {
-						return ast.newQualifiedName(ast.newSimpleName("Character"),
-								ast.newSimpleName("MIN_LOW_SURROGATE"));
-					}
-					break;
-				}
-				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
-				characterLiteral.setCharValue(c);
-				return characterLiteral;
+						switch (c) {
+						case Character.MAX_VALUE:
+							return ast.newQualifiedName(ast.newSimpleName("Character"),
+									ast.newSimpleName("MAX_VALUE"));
+						case Character.MIN_VALUE:
+							return ast.newQualifiedName(ast.newSimpleName("Character"),
+									ast.newSimpleName("MIN_VALUE"));
+						case Character.MAX_HIGH_SURROGATE:
+							if (context.getT().isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MAX_HIGH_SURROGATE"));
+							}
+							break;
+						case Character.MAX_LOW_SURROGATE:
+							if (context.getT().isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MAX_LOW_SURROGATE"));
+							}
+							break;
+						case Character.MIN_HIGH_SURROGATE:
+							if (context.getT().isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MIN_HIGH_SURROGATE"));
+							}
+							break;
+						case Character.MIN_LOW_SURROGATE:
+							if (context.getT().isAtLeast(Version.JVM_5)) {
+								return ast.newQualifiedName(ast.newSimpleName("Character"),
+										ast.newSimpleName("MIN_LOW_SURROGATE"));
+							}
+							break;
+						}
+						final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
+						characterLiteral.setCharValue(c);
+						return characterLiteral;
 			}
 			if (value == null) {
 				final CharacterLiteral characterLiteral = ast.newCharacterLiteral();
@@ -670,6 +605,13 @@ public final class Expressions {
 		SimpleName simpleName;
 		try {
 			simpleName = ast.newSimpleName(identifier);
+			// setIdentifier() uses fixed scanner.sourceLevel = ClassFileConstants.JDK1_3,
+			// don't know why, but this doesn't recognize JDK4 assert and JDK5 enum here
+			// TODO create Eclipse Bug reportfor this, expensive double check,
+			// seen in AbstractExecutorService.assert (1.4 code)
+			if ("assert".equals(identifier) || "enum".equals(identifier)) {
+				throw new IllegalArgumentException();
+			}
 		} catch (final IllegalArgumentException e) {
 			String name;
 			if (JAVA_KEYWORDS.contains(identifier)) {
@@ -1024,8 +966,8 @@ public final class Expressions {
 				return newInfixExpression(
 						infixExpression.getOperator() == InfixExpression.Operator.CONDITIONAL_AND ? InfixExpression.Operator.CONDITIONAL_OR
 								: InfixExpression.Operator.CONDITIONAL_AND,
-								not(infixExpression.getLeftOperand()),
-								not(infixExpression.getRightOperand()), getOp(infixExpression));
+						not(infixExpression.getLeftOperand()),
+						not(infixExpression.getRightOperand()), getOp(infixExpression));
 			}
 		} else if (operand instanceof ConditionalExpression) {
 			// conditional has very low operator priority (before assignment), reuse possible
@@ -1166,6 +1108,71 @@ public final class Expressions {
 			assert expression != null;
 			expressions.add(wrap(expression));
 		}
+	}
+
+	private static final String JAVA_LANG = "java.lang";
+
+	public static final String PROP_OP = "propOp";
+
+	private static final String PROP_VALUE = "propValue";
+
+	private static final Set<String> JAVA_KEYWORDS;
+
+	static {
+		JAVA_KEYWORDS = Sets.newHashSet();
+		JAVA_KEYWORDS.add("abstract");
+		JAVA_KEYWORDS.add("assert"); // added in JVM 4
+		JAVA_KEYWORDS.add("boolean");
+		JAVA_KEYWORDS.add("break");
+		JAVA_KEYWORDS.add("byte");
+		JAVA_KEYWORDS.add("case");
+		JAVA_KEYWORDS.add("catch");
+		JAVA_KEYWORDS.add("char");
+		JAVA_KEYWORDS.add("class");
+		JAVA_KEYWORDS.add("const"); // not used
+		JAVA_KEYWORDS.add("continue");
+		JAVA_KEYWORDS.add("default");
+		JAVA_KEYWORDS.add("do");
+		JAVA_KEYWORDS.add("double");
+		JAVA_KEYWORDS.add("else");
+		JAVA_KEYWORDS.add("enum"); // added in JVM 5
+		JAVA_KEYWORDS.add("extends");
+		JAVA_KEYWORDS.add("false"); // boolean literal
+		JAVA_KEYWORDS.add("final");
+		JAVA_KEYWORDS.add("finally");
+		JAVA_KEYWORDS.add("float");
+		JAVA_KEYWORDS.add("for");
+		JAVA_KEYWORDS.add("goto"); // not used
+		JAVA_KEYWORDS.add("if");
+		JAVA_KEYWORDS.add("implements");
+		JAVA_KEYWORDS.add("import");
+		JAVA_KEYWORDS.add("instanceof");
+		JAVA_KEYWORDS.add("int");
+		JAVA_KEYWORDS.add("interface");
+		JAVA_KEYWORDS.add("long");
+		JAVA_KEYWORDS.add("native");
+		JAVA_KEYWORDS.add("new");
+		JAVA_KEYWORDS.add("null"); // null literal
+		JAVA_KEYWORDS.add("package");
+		JAVA_KEYWORDS.add("private");
+		JAVA_KEYWORDS.add("protected");
+		JAVA_KEYWORDS.add("public");
+		JAVA_KEYWORDS.add("return");
+		JAVA_KEYWORDS.add("short");
+		JAVA_KEYWORDS.add("static");
+		JAVA_KEYWORDS.add("strictfp"); // added in JVM 4
+		JAVA_KEYWORDS.add("super");
+		JAVA_KEYWORDS.add("switch");
+		JAVA_KEYWORDS.add("synchronized");
+		JAVA_KEYWORDS.add("this");
+		JAVA_KEYWORDS.add("throw");
+		JAVA_KEYWORDS.add("throws");
+		JAVA_KEYWORDS.add("transient");
+		JAVA_KEYWORDS.add("true"); // boolean literal
+		JAVA_KEYWORDS.add("try");
+		JAVA_KEYWORDS.add("void");
+		JAVA_KEYWORDS.add("volatile");
+		JAVA_KEYWORDS.add("while");
 	}
 
 	private Expressions() {

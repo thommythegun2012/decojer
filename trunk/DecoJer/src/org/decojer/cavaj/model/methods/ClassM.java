@@ -411,15 +411,15 @@ public class ClassM extends M {
 				// e.g. outer context for methods in inner classes: (I)V instead of (Lthis;_I_II)V
 				// or enum constructor parameters arg0: String, arg1: int
 				if (!isConstructor()) {
-					log.info("Cannot reduce signature '" + signature
-							+ "' to types for method params: " + this);
+					log.info("Cannot reduce method param signatures '" + signature + "' for: "
+							+ this);
 				}
 			} else {
 				for (int i = 0; i < paramTs.length; ++i) {
 					final T paramT = signParamTs[i];
 					if (!paramT.eraseTo(paramTs[i])) {
-						log.info("Cannot reduce signature '" + signature + "' to type '"
-								+ paramTs[i] + "' for method param: " + this);
+						log.info("Cannot reduce " + (i + 1) + ". method param signature '"
+								+ signParamTs[i] + "' to '" + paramTs[i] + "' for: " + this);
 						break;
 					}
 					paramTs[i] = paramT;
@@ -429,8 +429,8 @@ public class ClassM extends M {
 		final T returnT = getDu().parseT(signature, c, this);
 		if (returnT != null) {
 			if (!returnT.eraseTo(getReturnT())) {
-				log.info("Cannot reduce signature '" + signature + "' to type '" + getReturnT()
-						+ "' for method return: " + this);
+				log.info("Cannot reduce method return signature '" + returnT + "' to '"
+						+ getReturnT() + "' for: " + this);
 			} else {
 				setReturnT(returnT);
 			}
@@ -439,14 +439,13 @@ public class ClassM extends M {
 		if (signThrowTs != null) {
 			final T[] throwsTs = getThrowsTs();
 			if (throwsTs.length != signThrowTs.length) {
-				log.info("Cannot reduce signature '" + signature + "' to types for method throws: "
-						+ this);
+				log.info("Cannot reduce method throws signatures '" + signature + "' for: " + this);
 			}
 			for (int i = 0; i < throwsTs.length; ++i) {
 				final T throwT = signThrowTs[i];
 				if (!throwT.eraseTo(throwsTs[i])) {
-					log.info("Cannot reduce signature '" + signature + "' to type '" + throwsTs[i]
-							+ "' for method throw: " + this);
+					log.info("Cannot reduce " + (i + 1) + ". method throw signature '"
+							+ signThrowTs[i] + "' to type '" + throwsTs[i] + "' for: " + this);
 					break;
 				}
 				throwsTs[i] = throwT;

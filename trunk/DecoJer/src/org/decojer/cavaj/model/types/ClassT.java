@@ -620,8 +620,8 @@ public class ClassT extends T {
 		final T superT = getDu().parseT(signature, c, this);
 		if (superT != null) {
 			if (!superT.eraseTo(getSuperT())) {
-				log.info("Cannot reduce type '" + superT + "' to super type '" + getSuperT()
-						+ "' for type declaration '" + this + "' with signature: " + signature);
+				log.info("Cannot reduce type super signature '" + superT + "' to '" + getSuperT()
+						+ "' for: '" + this);
 				return;
 			}
 			setSuperT(superT);
@@ -631,16 +631,14 @@ public class ClassT extends T {
 			final T[] interfaceTs = getInterfaceTs();
 			if (signInterfaceTs.length > interfaceTs.length) {
 				// < can happen, e.g. scala-lift misses the final java.io.Serializable in signatures
-				log.info("Cannot reduce interface types for type declaration '" + this
-						+ "' with signature: " + signature);
+				log.info("Cannot reduce type interface signatures '" + signature + "' for: " + this);
 				return;
 			}
 			for (int i = 0; i < signInterfaceTs.length; ++i) {
 				final T interfaceT = signInterfaceTs[i];
 				if (!interfaceT.eraseTo(interfaceTs[i])) {
-					log.info("Cannot reduce type '" + interfaceT + "' to interface type '"
-							+ interfaceTs[i] + "' for type declaration '" + this
-							+ "' with signature: " + signature);
+					log.info("Cannot reduce '" + (i + 1) + "'. type interface signature '"
+							+ signInterfaceTs[i] + "' to '" + interfaceTs[i] + "' for: " + this);
 					return;
 				}
 				// erasure works...now we are safe to assert interface...but should be anyway
