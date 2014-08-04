@@ -76,7 +76,7 @@ public class PUSH extends TypedOp {
 	public String toString() {
 		final Object value = getValue();
 		if (!(value instanceof String)) {
-			return super.toString() + value;
+			return super.toString() + " " + value;
 		}
 		if (((String) value).length() <= 5) {
 			return super.toString() + " \"" + value + "\"";
