@@ -47,7 +47,6 @@ import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.Version;
 import org.decojer.cavaj.utils.Annotations;
-import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.AbstractTypeDeclaration;
@@ -222,7 +221,7 @@ public final class TrJvmStruct2JavaAst {
 		} else {
 			final VariableDeclarationFragment variableDeclarationFragment = ast
 					.newVariableDeclarationFragment();
-			variableDeclarationFragment.setName(Expressions.newSimpleName(name, ast));
+			variableDeclarationFragment.setName(newSimpleName(name, ast));
 			fieldDeclaration = ast.newFieldDeclaration(variableDeclarationFragment);
 		}
 		f.setAstNode(fieldDeclaration);
@@ -421,7 +420,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-			.setType(newType(m.getReturnT(), t));
+					.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -532,7 +531,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-									+ "'!");
+							+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}

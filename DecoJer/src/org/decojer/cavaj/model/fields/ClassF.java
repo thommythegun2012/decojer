@@ -239,8 +239,8 @@ public class ClassF extends F {
 			return;
 		}
 		if (!valueT.eraseTo(getValueT())) {
-			log.info("Cannot reduce signature '" + signature + "' to type '" + getValueT()
-					+ "' for field value: " + this);
+			log.info("Cannot reduce field value signature '" + valueT + "' to '" + getValueT()
+					+ "' for: " + this);
 		} else {
 			setValueT(valueT);
 		}
