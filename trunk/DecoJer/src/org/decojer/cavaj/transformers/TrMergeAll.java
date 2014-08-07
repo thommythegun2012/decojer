@@ -86,8 +86,11 @@ public final class TrMergeAll {
 	public static void transform(@Nonnull final CU cu) {
 		for (final Element declaration : cu.getDeclarations()) {
 			final T t = (T) declaration;
-			if (t.isAnonymous() && t.getEnclosingT() != null) {
-				continue;
+			if (t.isAnonymous()) {
+				final T enclosingT = t.getEnclosingT();
+				if (enclosingT != null && enclosingT.isDeclaration()) {
+					continue;
+				}
 			}
 			final Object typeDeclaration = t.getAstNode();
 			// no package-info.java (typeDeclaration == null)
@@ -125,9 +128,9 @@ public final class TrMergeAll {
 						final CFG cfg = m.getCfg();
 						if (cfg != null && typeDeclaration != null) {
 							cfg.getBlock()
-									.statements()
-									.add(typeDeclaration.getAST().newTypeDeclarationStatement(
-											(AbstractTypeDeclaration) typeDeclaration));
+							.statements()
+							.add(typeDeclaration.getAST().newTypeDeclarationStatement(
+									(AbstractTypeDeclaration) typeDeclaration));
 						}
 					}
 					transform((T) innerDeclaration);
@@ -143,7 +146,7 @@ public final class TrMergeAll {
 					if (constructors == 1
 							&& ((MethodDeclaration) methodDeclaration).parameters().size() == 0
 							&& ((MethodDeclaration) methodDeclaration).getBody().statements()
-									.size() == 0) {
+							.size() == 0) {
 						continue;
 					}
 				} else if (methodDeclaration instanceof Initializer /* m.isInitializer() is true */) {
