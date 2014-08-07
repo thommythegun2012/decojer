@@ -148,6 +148,40 @@ public class ReadMethodImplementation {
 
 	private final Map<Integer, List<Object>> vmpc2unresolved = Maps.newHashMap();
 
+	private void fixLocalVariablesPcRanges(final CFG cfg) {
+		for (final Entry<Integer, List<V>> reg2v : this.reg2vs.entrySet()) {
+			final int reg = reg2v.getKey();
+			for (final V v : reg2v.getValue()) {
+				final int[] pcs = v.getPcs();
+				outer: for (int i = pcs.length; i-- > 0;) {
+					if (pcs[i] == -1) {
+						// dalvik doesn't encode end pc if local vars live until method end
+						pcs[i] = this.ops.size();
+						continue;
+					}
+					if (i % 2 == 0) {
+						// start pc range for local var
+						pcs[i] = this.vmpc2pc.get(pcs[i]);
+						continue;
+					}
+					// find end pc range for local var...
+					int vmpc = pcs[i]; // vmpc's have spaces (multi-byte ops)
+					for (int j = 10; j-- > 0;) {
+						final Integer pc = this.vmpc2pc.get(++vmpc);
+						if (pc != null) {
+							pcs[i] = pc - 1;
+							continue outer;
+						}
+					}
+					// ...no end pc range for local var found, lives until method end
+					pcs[i] = this.ops.size();
+				}
+				cfg.addVar(reg, v);
+			}
+		}
+		cfg.postProcessVars();
+	}
+
 	private DU getDu() {
 		return this.m.getDu();
 	}
@@ -2491,39 +2525,11 @@ public class ReadMethodImplementation {
 			}
 			cfg.setExcs(excs.toArray(new Exc[excs.size()]));
 		}
-		readLocalVariables(cfg);
+		fixLocalVariablesPcRanges(cfg);
 	}
 
 	private void log(final String message) {
 		log.warn(this.m + ": " + message);
-	}
-
-	private void readLocalVariables(final CFG cfg) {
-		for (final Entry<Integer, List<V>> reg2v : this.reg2vs.entrySet()) {
-			final int reg = reg2v.getKey();
-			for (final V v : reg2v.getValue()) {
-				final int[] pcs = v.getPcs();
-				for (int i = pcs.length; i-- > 0;) {
-					if (pcs[i] == -1) {
-						// dalvik doesn't encode end pc if locals preserve till method end
-						pcs[i] = this.ops.size();
-						continue;
-					}
-					int vmpc = this.vmpc2pc.get(pcs[i]);
-					// TODO really necessary???
-					// find end, must find because multiple ops could be created
-					for (int j = 0; j < 10; ++j) {
-						final Integer pc = this.vmpc2pc.get(++vmpc);
-						if (pc != null) {
-							pcs[i] = pc - 1;
-							break;
-						}
-					}
-				}
-				cfg.addVar(reg, v);
-			}
-		}
-		cfg.postProcessVars();
 	}
 
 	private void visitVmpc(final int vmpc, final Instruction instruction) {
