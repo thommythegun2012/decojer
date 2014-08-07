@@ -127,15 +127,20 @@ public class ReadCodeItem {
 
 	private M m;
 
+	@Nonnull
 	final List<Op> ops = Lists.newArrayList();
 
+	@Nonnull
 	private final Map<Integer, Integer> vmpc2pc = Maps.newHashMap();
 
+	@Nonnull
 	private final Map<Integer, List<Object>> vmpc2unresolved = Maps.newHashMap();
 
+	@Nonnull
 	private final ReadDebugInfo readDebugInfo = new ReadDebugInfo();
 
-	private void fixLocalVariablesPcRanges(final CFG cfg, final ReadDebugInfo readDebugInfo) {
+	private void calcLocalVarPcRanges(@Nonnull final CFG cfg,
+			@Nonnull final ReadDebugInfo readDebugInfo) {
 		final Map<Integer, List<V>> reg2vs = readDebugInfo.getReg2vs();
 		for (final Entry<Integer, List<V>> reg2v : reg2vs.entrySet()) {
 			final int reg = reg2v.getKey();
@@ -2391,7 +2396,7 @@ public class ReadCodeItem {
 			}
 			cfg.setExcs(excs.toArray(new Exc[excs.size()]));
 		}
-		fixLocalVariablesPcRanges(cfg, this.readDebugInfo);
+		calcLocalVarPcRanges(cfg, this.readDebugInfo);
 	}
 
 	private void visitVmpc(final int vmpc, final Instruction instruction) {
