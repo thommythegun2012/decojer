@@ -14,6 +14,9 @@ WARNUNG: com.ibm.icu.impl.data.TokenIterator.nextToken(I)I: Cannot store array v
 
 50: LOAD 5    R5.MO36: REF
 
+34: PUSH null, STORE 5
+116 is follow BB with back loop!   merges int[] into REF and doesn't change in!
+
 }}}
 
 = TODOs =
