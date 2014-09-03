@@ -2,7 +2,8 @@
 
 {{{
 
-  * to complex: EntityParser.parseContent 
+org.decojer.cavaj.transformers.TrDataFlowAnalysis execute
+WARNUNG: com.ibm.icu.impl.data.TokenIterator.nextToken(I)I: Cannot store array value!
 
 }}}
 
