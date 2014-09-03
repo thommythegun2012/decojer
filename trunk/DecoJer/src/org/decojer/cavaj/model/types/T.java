@@ -52,200 +52,6 @@ import com.google.common.collect.Maps;
  */
 public abstract class T implements Element {
 
-	@Nonnull
-	private static final Map<Integer, T> KIND_2_TS = Maps.newHashMap();
-
-	@Nonnull
-	@SuppressWarnings("null")
-	private static final Map<String, Object> MEMBER_NONE = Collections.unmodifiableMap(Maps
-			.<String, Object> newHashMap());
-
-	/**
-	 * Java allows the automatic type conversion for primitives. For union-primitives we can reduce
-	 * the possible from-types in case of assignments:<br>
-	 * __s_ read ___i => __s_<br>
-	 * __s_ read __si => __s_<br>
-	 * __si read __s_ => __s_<br>
-	 * __s_ read _b__ => ____<br>
-	 * _bsi read c__i => _bsi
-	 */
-	@Nonnull
-	private static int[][] AUTO_CONVERSION_ASSIGN_REDUCTION_FROM_TO = {
-	/* ___i */{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
-	/* __s_ */{ 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2 },
-	/* __si */{ 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3 },
-	/* _b__ */{ 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4 },
-	/* _b_i */{ 5, 4, 5, 4, 5, 4, 5, 0, 5, 4, 5, 4, 5, 4, 5 },
-	/* _bs_ */{ 6, 6, 6, 4, 6, 6, 6, 0, 6, 6, 6, 4, 6, 6, 6 },
-	/* _bsi */{ 7, 6, 7, 4, 7, 6, 7, 0, 7, 6, 7, 4, 7, 6, 7 },
-	/* c___ */{ 8, 0, 8, 0, 8, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8 },
-	/* c__i */{ 9, 0, 9, 0, 9, 0, 9, 8, 9, 8, 9, 8, 9, 8, 9 },
-	/* c_s_ */{ 10, 2, 10, 0, 10, 2, 10, 8, 10, 10, 10, 8, 10, 10, 10 },
-	/* c_si */{ 11, 2, 11, 0, 11, 2, 11, 8, 11, 10, 11, 8, 11, 10, 11 },
-	/* cb__ */{ 12, 4, 12, 4, 12, 4, 12, 8, 12, 12, 12, 12, 12, 12, 12 },
-	/* cb_i */{ 13, 4, 13, 4, 13, 4, 13, 8, 13, 12, 13, 12, 13, 12, 13 },
-	/* cbs_ */{ 14, 6, 14, 4, 14, 6, 14, 8, 14, 14, 14, 12, 14, 14, 14 },
-	/* cbsi */{ 15, 6, 15, 4, 15, 6, 15, 8, 15, 14, 15, 12, 15, 14, 15 } };
-
-	/**
-	 * Java allows the automatic type conversion for primitives. For union-primitives we can reduce
-	 * the possible types in case of intersections:<br>
-	 */
-	@Nonnull
-	private static int[][] AUTO_CONVERSION_INTERSECT_REDUCTION = {
-	/* ___i */{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-	/* __s_ */{ 1, 2, 3, 2, 3, 2, 2, 1, 1, 3, 3, 3, 3, 3, 3 },
-	/* __si */{ 1, 3, 3, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 3, 3 },
-	/* _b__ */{ 1, 2, 3, 4, 5, 6, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
-	/* _b_i */{ 1, 3, 3, 5, 5, 7, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
-	/* _bs_ */{ 1, 2, 3, 6, 7, 7, 1, 1, 1, 3, 3, 7, 7, 7, 7 },
-	/* _bsi */{ 1, 3, 3, 7, 7, 7, 7, 1, 1, 3, 3, 7, 7, 7, 7 },
-	/* c___ */{ 1, 1, 1, 1, 1, 1, 1, 8, 9, 9, 9, 9, 9, 9, 9 },
-	/* c__i */{ 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9 },
-	/* c_s_ */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
-	/* c_si */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
-	/* cb__ */{ 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15 },
-	/* cb_i */{ 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15 },
-	/* cbs_ */{ 1, 3, 3, 7, 7, 7, 7, 9, 9, 11, 11, 15, 15, 15, 15 },
-	/* cbsi */{ 1, 3, 3, 7, 7, 7, 7, 9, 9, 11, 11, 15, 15, 15, 15 } };
-
-	/**
-	 * Primitive type int.
-	 */
-	@Nonnull
-	public static T INT = getT(Kind.INT);
-	/**
-	 * Primitive type short.
-	 */
-	@Nonnull
-	public static T SHORT = getT(Kind.SHORT);
-	/**
-	 * Primitive type byte.
-	 */
-	@Nonnull
-	public static T BYTE = getT(Kind.BYTE);
-	/**
-	 * Primitive type char.
-	 */
-	@Nonnull
-	public static T CHAR = getT(Kind.CHAR);
-	/**
-	 * Primitive type boolean.
-	 */
-	@Nonnull
-	public static T BOOLEAN = getT(Kind.BOOLEAN);
-	/**
-	 * Primitive type float.
-	 */
-	@Nonnull
-	public static T FLOAT = getT(Kind.FLOAT);
-	/**
-	 * Primitive type long.
-	 */
-	@Nonnull
-	public static T LONG = getT(Kind.LONG);
-	/**
-	 * Primitive type double.
-	 */
-	@Nonnull
-	public static T DOUBLE = getT(Kind.DOUBLE);
-	/**
-	 * Primitive type void.
-	 */
-	@Nonnull
-	public static T VOID = getT(Kind.VOID);
-
-	/**
-	 * Artificial type 'reference'.
-	 */
-	@Nonnull
-	public static T REF = getT(Kind.REF);
-	/**
-	 * Artificial type 'return address' for JSR follow pc.
-	 *
-	 * Spec: No return address (a value of type returnAddress) may be loaded from a local variable.
-	 */
-	@Nonnull
-	public static final T RET = getT(Kind.RET);
-	/**
-	 * Artificial type long part 2.
-	 */
-	@Nonnull
-	public static T LONG2 = getT(Kind.LONG2);
-	/**
-	 * Artificial type double part 2.
-	 */
-	@Nonnull
-	public static T DOUBLE2 = getT(Kind.DOUBLE2);
-	/**
-	 * Artificial type 'none'.
-	 */
-	@Nonnull
-	public static T NONE = getT(Kind.NONE);
-
-	/**
-	 * Multi-type 'any (for array check)'.
-	 */
-	@Nonnull
-	public static T ANY = getT(Kind.REF, Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
-			Kind.FLOAT, Kind.LONG, Kind.DOUBLE);
-	/**
-	 * Multi-type 'any reference'.
-	 */
-	@Nonnull
-	public static T AREF = getT(Kind.REF, Kind.RET);
-
-	/**
-	 * Multi-type 'any JVM int'.
-	 */
-	@Nonnull
-	public static T AINT = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN);
-	/**
-	 * Multi-type 'any JVM int or ref (for null-checks)'.
-	 */
-	@Nonnull
-	public static T AINTREF = getT(Kind.REF, Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR,
-			Kind.BOOLEAN);
-
-	/**
-	 * Multi-type 'primitive'.
-	 */
-	@Nonnull
-	public static T PRIMITIVE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
-			Kind.FLOAT, Kind.LONG, Kind.DOUBLE, Kind.VOID);
-	/**
-	 * Multi-type 'any small (8 bit)'.
-	 */
-	@Nonnull
-	public static T SMALL = getT(Kind.BYTE, Kind.BOOLEAN);
-	/**
-	 * Multi-type 'any single (32 bit)'.
-	 */
-	@Nonnull
-	public static T SINGLE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
-			Kind.FLOAT);
-	/**
-	 * Multi-type 'any wide (64 bit)'.
-	 */
-	@Nonnull
-	public static T WIDE = getT(Kind.LONG, Kind.DOUBLE);
-
-	/**
-	 * Translation from JVM Array Opcodes: T_BOOLEAN = 4 to T_LONG = 11.
-	 */
-	@Nonnull
-	public static final T[] TYPES = new T[] { null, null, null, null, T.BOOLEAN, T.CHAR, T.FLOAT,
-			T.DOUBLE, T.BYTE, T.SHORT, T.INT, T.LONG };
-
-	@Nonnull
-	public static final T[] INTERFACES_NONE = new T[0];
-
-	@Nonnull
-	public static final T[] TYPE_ARGS_NONE = new T[0];
-
-	@Nonnull
-	public static final T[] TYPE_PARAMS_NONE = new T[0];
-
 	private static int assignKindsToFrom(final int kindTo, final int kindFrom) {
 		final int kTo = (kindTo & 0xF) - 1;
 		final int kFrom = (kindFrom & 0xF) - 1;
@@ -496,6 +302,206 @@ public abstract class T implements Element {
 		return t1;
 	}
 
+	@Nonnull
+	private static final Map<Integer, T> KIND_2_TS = Maps.newHashMap();
+	@Nonnull
+	@SuppressWarnings("null")
+	private static final Map<String, Object> MEMBER_NONE = Collections.unmodifiableMap(Maps
+			.<String, Object> newHashMap());
+	/**
+	 * Java allows the automatic type conversion for primitives. For union-primitives we can reduce
+	 * the possible from-types in case of assignments:<br>
+	 * __s_ read ___i => __s_<br>
+	 * __s_ read __si => __s_<br>
+	 * __si read __s_ => __s_<br>
+	 * __s_ read _b__ => ____<br>
+	 * _bsi read c__i => _bsi
+	 */
+	@Nonnull
+	private static int[][] AUTO_CONVERSION_ASSIGN_REDUCTION_FROM_TO = {
+	/* ___i */{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
+	/* __s_ */{ 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2 },
+	/* __si */{ 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3 },
+	/* _b__ */{ 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4 },
+	/* _b_i */{ 5, 4, 5, 4, 5, 4, 5, 0, 5, 4, 5, 4, 5, 4, 5 },
+	/* _bs_ */{ 6, 6, 6, 4, 6, 6, 6, 0, 6, 6, 6, 4, 6, 6, 6 },
+	/* _bsi */{ 7, 6, 7, 4, 7, 6, 7, 0, 7, 6, 7, 4, 7, 6, 7 },
+	/* c___ */{ 8, 0, 8, 0, 8, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8 },
+	/* c__i */{ 9, 0, 9, 0, 9, 0, 9, 8, 9, 8, 9, 8, 9, 8, 9 },
+	/* c_s_ */{ 10, 2, 10, 0, 10, 2, 10, 8, 10, 10, 10, 8, 10, 10, 10 },
+	/* c_si */{ 11, 2, 11, 0, 11, 2, 11, 8, 11, 10, 11, 8, 11, 10, 11 },
+	/* cb__ */{ 12, 4, 12, 4, 12, 4, 12, 8, 12, 12, 12, 12, 12, 12, 12 },
+	/* cb_i */{ 13, 4, 13, 4, 13, 4, 13, 8, 13, 12, 13, 12, 13, 12, 13 },
+	/* cbs_ */{ 14, 6, 14, 4, 14, 6, 14, 8, 14, 14, 14, 12, 14, 14, 14 },
+	/* cbsi */{ 15, 6, 15, 4, 15, 6, 15, 8, 15, 14, 15, 12, 15, 14, 15 } };
+
+	/**
+	 * Java allows the automatic type conversion for primitives. For union-primitives we can reduce
+	 * the possible types in case of intersections:<br>
+	 */
+	@Nonnull
+	private static int[][] AUTO_CONVERSION_INTERSECT_REDUCTION = {
+	/* ___i */{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+	/* __s_ */{ 1, 2, 3, 2, 3, 2, 2, 1, 1, 3, 3, 3, 3, 3, 3 },
+	/* __si */{ 1, 3, 3, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 3, 3 },
+	/* _b__ */{ 1, 2, 3, 4, 5, 6, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
+	/* _b_i */{ 1, 3, 3, 5, 5, 7, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
+	/* _bs_ */{ 1, 2, 3, 6, 7, 7, 1, 1, 1, 3, 3, 7, 7, 7, 7 },
+	/* _bsi */{ 1, 3, 3, 7, 7, 7, 7, 1, 1, 3, 3, 7, 7, 7, 7 },
+	/* c___ */{ 1, 1, 1, 1, 1, 1, 1, 8, 9, 9, 9, 9, 9, 9, 9 },
+	/* c__i */{ 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9 },
+	/* c_s_ */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
+	/* c_si */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
+	/* cb__ */{ 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15 },
+	/* cb_i */{ 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15 },
+	/* cbs_ */{ 1, 3, 3, 7, 7, 7, 7, 9, 9, 11, 11, 15, 15, 15, 15 },
+	/* cbsi */{ 1, 3, 3, 7, 7, 7, 7, 9, 9, 11, 11, 15, 15, 15, 15 } };
+	/**
+	 * Primitive type int.
+	 */
+	@Nonnull
+	public static T INT = getT(Kind.INT);
+	/**
+	 * Primitive type short.
+	 */
+	@Nonnull
+	public static T SHORT = getT(Kind.SHORT);
+	/**
+	 * Primitive type byte.
+	 */
+	@Nonnull
+	public static T BYTE = getT(Kind.BYTE);
+	/**
+	 * Primitive type char.
+	 */
+	@Nonnull
+	public static T CHAR = getT(Kind.CHAR);
+
+	/**
+	 * Primitive type boolean.
+	 */
+	@Nonnull
+	public static T BOOLEAN = getT(Kind.BOOLEAN);
+	/**
+	 * Primitive type float.
+	 */
+	@Nonnull
+	public static T FLOAT = getT(Kind.FLOAT);
+
+	/**
+	 * Primitive type long.
+	 */
+	@Nonnull
+	public static T LONG = getT(Kind.LONG);
+	/**
+	 * Primitive type double.
+	 */
+	@Nonnull
+	public static T DOUBLE = getT(Kind.DOUBLE);
+
+	/**
+	 * Primitive type void.
+	 */
+	@Nonnull
+	public static T VOID = getT(Kind.VOID);
+	/**
+	 * Artificial type 'reference'.
+	 */
+	@Nonnull
+	public static T REF = getT(Kind.REF);
+	/**
+	 * Artificial type 'return address' for JSR follow pc.
+	 *
+	 * Spec: No return address (a value of type returnAddress) may be loaded from a local variable.
+	 */
+	@Nonnull
+	public static final T RET = getT(Kind.RET);
+	/**
+	 * Artificial type long part 2.
+	 */
+	@Nonnull
+	public static T LONG2 = getT(Kind.LONG2);
+
+	/**
+	 * Artificial type double part 2.
+	 */
+	@Nonnull
+	public static T DOUBLE2 = getT(Kind.DOUBLE2);
+
+	/**
+	 * Artificial type 'none'.
+	 */
+	@Nonnull
+	public static T NONE = getT(Kind.NONE);
+
+	/**
+	 * Multi-type 'any (for array check)'.
+	 */
+	@Nonnull
+	public static T ANY = getT(Kind.REF, Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
+			Kind.FLOAT, Kind.LONG, Kind.DOUBLE);
+
+	/**
+	 * Multi-type 'any reference'.
+	 */
+	@Nonnull
+	public static T AREF = getT(Kind.REF, Kind.RET);
+
+	/**
+	 * Multi-type 'any JVM int'.
+	 */
+	@Nonnull
+	public static T AINT = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN);
+
+	/**
+	 * Multi-type 'any JVM int or ref (for null-checks)'.
+	 */
+	@Nonnull
+	public static T AINTREF = getT(Kind.REF, Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR,
+			Kind.BOOLEAN);
+
+	/**
+	 * Multi-type 'primitive'.
+	 */
+	@Nonnull
+	public static T PRIMITIVE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
+			Kind.FLOAT, Kind.LONG, Kind.DOUBLE, Kind.VOID);
+
+	/**
+	 * Multi-type 'any small (8 bit)'.
+	 */
+	@Nonnull
+	public static T SMALL = getT(Kind.BYTE, Kind.BOOLEAN);
+
+	/**
+	 * Multi-type 'any single (32 bit)'.
+	 */
+	@Nonnull
+	public static T SINGLE = getT(Kind.INT, Kind.SHORT, Kind.BYTE, Kind.CHAR, Kind.BOOLEAN,
+			Kind.FLOAT);
+
+	/**
+	 * Multi-type 'any wide (64 bit)'.
+	 */
+	@Nonnull
+	public static T WIDE = getT(Kind.LONG, Kind.DOUBLE);
+
+	/**
+	 * Translation from JVM Array Opcodes: T_BOOLEAN = 4 to T_LONG = 11.
+	 */
+	@Nonnull
+	public static final T[] TYPES = new T[] { null, null, null, null, T.BOOLEAN, T.CHAR, T.FLOAT,
+			T.DOUBLE, T.BYTE, T.SHORT, T.INT, T.LONG };
+
+	@Nonnull
+	public static final T[] INTERFACES_NONE = new T[0];
+
+	@Nonnull
+	public static final T[] TYPE_ARGS_NONE = new T[0];
+
+	@Nonnull
+	public static final T[] TYPE_PARAMS_NONE = new T[0];
+
 	/**
 	 * Assign to given type. There are 3 possible outcomes: Cannot assign to given type, which
 	 * returns {@code null}. Can assign to given type and primitive multitype reduction, which
@@ -522,6 +528,10 @@ public abstract class T implements Element {
 		if ((kind & Kind.REF.getKind()) == 0) {
 			// reduced kind if primitive
 			return getT(kind);
+		}
+		// null primitives are T.RET and should change their type to something meaningful
+		if (this == T.REF) {
+			return t;
 		}
 		// no type reduction, can assign types to different single supertypes / interfaces
 		if (t.isAssignableFrom(this)) {
