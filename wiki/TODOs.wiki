@@ -2,20 +2,12 @@
 
 {{{
 
-org.decojer.cavaj.transformers.TrDataFlowAnalysis execute
-WARNUNG: com.ibm.icu.impl.data.TokenIterator.nextToken(I)I: Cannot store array value for op '55'!
+LOAD 27
+1537: ALOAD (int)
+INVOKE ClassReader.readByte(int):int
 
-|55 | ASTORE                                       # A MO51: REF           | A CO52: {byte,char} | A CO55: int |
+r38 CONST null
 
-|PC | Operation                                    # s0                    | s1                  | s2          | s3                # r0                   | r1           | r2          | r3         | r4           | r5            | r6          | 
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-|50 | LOAD 5                                       #                       |                     |             |                   # A CO0: TokenIterator | A ME116: int | A MO14: int | MO42: char | A ME34: char | A ME50: int[] |             | 
-|51 | PUSH 0                                       # A MO51: REF           |                     |             |                   # A CO0: TokenIterator | A ME116: int | A MO14: int | MO42: char | A ME34: char | A ME50: int[] |             | 
-
-50: LOAD 5    R5.MO36: REF
-
-34: PUSH null, STORE 5
-116 is follow BB with back loop!   merges int[] into REF and doesn't change in!
 
 }}}
 
