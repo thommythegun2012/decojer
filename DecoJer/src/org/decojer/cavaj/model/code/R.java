@@ -209,6 +209,7 @@ public final class R {
 			final R... ins) {
 		this.pc = pc;
 		this.i = i;
+		assert t != null;
 		this.lowerT = t;
 		this.value = value;
 		this.kind = kind;
@@ -254,6 +255,8 @@ public final class R {
 			if (this.lowerT.isUnresolvable() && this.lowerT != T.REF) {
 				return true;
 			}
+			// TODO could have multiple reasons, one of them is central null-constant for
+			// incompatibly typed reads? see T.assignTo(T) for T.REF
 			assert false : "cannot assign '" + this + "' to '" + t + "'";
 			return false;
 		}
@@ -359,7 +362,7 @@ public final class R {
 			return;
 		}
 		assert !isMethodParam();
-
+		assert t != null;
 		this.lowerT = t;
 		if (this.outs != null) {
 			for (final R r : getOuts()) {
