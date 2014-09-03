@@ -3,7 +3,9 @@
 {{{
 
 org.decojer.cavaj.transformers.TrDataFlowAnalysis execute
-WARNUNG: com.ibm.icu.impl.data.TokenIterator.nextToken(I)I: Cannot store array value!
+WARNUNG: com.ibm.icu.impl.data.TokenIterator.nextToken(I)I: Cannot store array value for op '55'!
+
+|55 | ASTORE                                       # A MO51: REF           | A CO52: {byte,char} | A CO55: int |
 
 }}}
 
