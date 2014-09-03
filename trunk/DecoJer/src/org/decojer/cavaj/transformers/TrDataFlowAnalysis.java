@@ -261,7 +261,7 @@ public final class TrDataFlowAnalysis {
 			// org.eclipse.jdt.internal.core.JavaElement.read(
 			// {java.lang.Object,org.eclipse.jdt.core.IJavaElement,org.eclipse.core.runtime.IAdaptable})
 			if (intersectT == null || !vR.assignTo(intersectT)) {
-				log.warn(getM() + ": Cannot store array value!");
+				log.warn(getM() + ": Cannot store array value for op '" + cop.getPc() + "'!");
 			}
 			break;
 		}
