@@ -12,6 +12,7 @@ WARNUNG: com.ibm.icu.impl.data.TokenIterator.nextToken(I)I: Cannot store array v
 |50 | LOAD 5                                       #                       |                     |             |                   # A CO0: TokenIterator | A ME116: int | A MO14: int | MO42: char | A ME34: char | A ME50: int[] |             | 
 |51 | PUSH 0                                       # A MO51: REF           |                     |             |                   # A CO0: TokenIterator | A ME116: int | A MO14: int | MO42: char | A ME34: char | A ME50: int[] |             | 
 
+50: LOAD 5    R5.MO36: REF
 
 }}}
 
