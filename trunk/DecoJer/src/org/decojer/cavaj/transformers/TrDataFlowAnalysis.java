@@ -219,8 +219,13 @@ public final class TrDataFlowAnalysis {
 			final ALOAD cop = (ALOAD) op;
 			popRead(T.INT); // index
 			final R aR = popRead(getDu().getArrayT(cop.getT())); // array
-			// TODO backpropagate type for T.REF??? null is not very cool here...
-			pushConst(aR.getT() == T.REF ? cop.getT() : aR.getT().getComponentT()); // value
+			T componentT = aR.getT().getComponentT();
+			if (componentT == null) {
+				assert false;
+				// TODO backpropagate type for T.REF! null is not very cool here...
+				componentT = cop.getT();
+			}
+			pushConst(componentT); // value
 			break;
 		}
 		case AND: {
@@ -643,7 +648,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : "cannot assign '" + returnT
-					+ "' to return type '" + cop.getT() + "'";
+			+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -1177,16 +1182,16 @@ public final class TrDataFlowAnalysis {
 				.push(R.createMoveR(getCurrentPc() + 1, this.currentFrame.size(), r));
 	}
 
-	private R pushBoolmath(final T t, final R r1, final R r2) {
+	private R pushBoolmath(@Nonnull final T t, @Nonnull final R r1, @Nonnull final R r2) {
 		return this.currentFrame.push(R.createBoolmathR(getCurrentPc() + 1,
 				this.currentFrame.size(), t, null /* TODO do something? */, r1, r2));
 	}
 
-	private R pushConst(final T t) {
+	private R pushConst(@Nonnull final T t) {
 		return pushConst(t, null);
 	}
 
-	private R pushConst(final T t, final Object value) {
+	private R pushConst(@Nonnull final T t, @Nullable final Object value) {
 		return this.currentFrame.push(R.createConstR(getCurrentPc() + 1, this.currentFrame.size(),
 				t, value));
 	}

@@ -24,6 +24,7 @@
 package org.decojer.cavaj.model.code;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -84,8 +85,8 @@ public final class R {
 	 *            operation register 2
 	 * @return register of type BOOLMATH
 	 */
-	public static R createBoolmathR(final int pc, final int i, final T t, final Object value,
-			final R r1, final R r2) {
+	public static R createBoolmathR(final int pc, final int i, @Nonnull final T t,
+			@Nullable final Object value, @Nonnull final R r1, @Nonnull final R r2) {
 		return new R(pc, i, t, value, Kind.BOOLMATH, r1, r2);
 	}
 
@@ -102,7 +103,8 @@ public final class R {
 	 *            value
 	 * @return register of type CONST
 	 */
-	public static R createConstR(final int pc, final int i, final T t, final Object value) {
+	public static R createConstR(final int pc, final int i, @Nonnull final T t,
+			@Nullable final Object value) {
 		// value == null possible for method parameters, GETs, exception handlers etc.
 		return new R(pc, i, t, value, Kind.CONST);
 	}
@@ -124,8 +126,8 @@ public final class R {
 	 *            input register 2
 	 * @return register of type MERGE
 	 */
-	public static R createMergeR(final int pc, final int i, final T t, final Object value,
-			final R r1, final R r2) {
+	public static R createMergeR(final int pc, final int i, @Nonnull final T t,
+			@Nullable final Object value, @Nonnull final R r1, @Nonnull final R r2) {
 		return new R(pc, i, t, value, Kind.MERGE, r1, r2);
 	}
 
@@ -146,8 +148,10 @@ public final class R {
 
 	private final int i;
 
+	@Nullable
 	private R[] ins;
 
+	@Nonnull
 	private final Kind kind;
 
 	/**
@@ -163,8 +167,10 @@ public final class R {
 	 * initialization. Hence we sometimes extend the lower type through unions into multi-types for
 	 * primitives.
 	 */
+	@Nonnull
 	private T lowerT;
 
+	@Nullable
 	private R[] outs;
 
 	/**
@@ -181,12 +187,14 @@ public final class R {
 	 * derived Java variable type must be somewhere between upperT and lowerT. We prefer the most
 	 * exact type near lowerT.
 	 */
+	@Nullable
 	private T upperT;
 
 	/**
 	 * Register value, for constants as far as we can derive them easily.
 	 */
 	@Setter
+	@Nullable
 	private Object value;
 
 	/**
@@ -205,15 +213,15 @@ public final class R {
 	 * @param ins
 	 *            input registers
 	 */
-	private R(final int pc, final int i, final T t, final Object value, final Kind kind,
-			final R... ins) {
+	private R(final int pc, final int i, @Nonnull final T t, @Nullable final Object value,
+			@Nonnull final Kind kind, @Nullable final R... ins) {
 		this.pc = pc;
 		this.i = i;
 		assert t != null;
 		this.lowerT = t;
 		this.value = value;
 		this.kind = kind;
-		if (ins != null) {
+		if (ins != null && ins.length > 0) {
 			this.ins = ins;
 			for (final R in : ins) {
 				in.addOut(this);
@@ -221,25 +229,28 @@ public final class R {
 		}
 	}
 
-	public void addInMerge(final T t, final R r) {
+	public void addInMerge(@Nonnull final T t, @Nonnull final R r) {
 		assert getKind() == R.Kind.MERGE;
+		final R[] prevIns = getIns();
+		assert prevIns != null;
 
 		setLowerT(t);
-		final R[] newIns = new R[this.ins.length + 1];
-		System.arraycopy(this.ins, 0, newIns, 0, this.ins.length);
-		newIns[this.ins.length] = r;
+		final R[] newIns = new R[prevIns.length + 1];
+		System.arraycopy(prevIns, 0, newIns, 0, prevIns.length);
+		newIns[prevIns.length] = r;
 		this.ins = newIns;
 	}
 
-	private void addOut(final R r) {
-		if (this.outs == null) {
+	private void addOut(@Nonnull final R r) {
+		final R[] prevOuts = getOuts();
+		if (prevOuts == null) {
 			this.outs = new R[] { r };
-		} else {
-			final R[] newOuts = new R[this.outs.length + 1];
-			System.arraycopy(this.outs, 0, newOuts, 0, this.outs.length);
-			newOuts[this.outs.length] = r;
-			this.outs = newOuts;
+			return;
 		}
+		final R[] newOuts = new R[prevOuts.length + 1];
+		System.arraycopy(prevOuts, 0, newOuts, 0, prevOuts.length);
+		newOuts[prevOuts.length] = r;
+		this.outs = newOuts;
 	}
 
 	/**
@@ -270,8 +281,10 @@ public final class R {
 				out.assignTo(t);
 			}
 		}
-		for (final R in : this.ins) {
-			in.assignTo(reducedT);
+		if (this.ins != null) {
+			for (final R in : this.ins) {
+				in.assignTo(reducedT);
+			}
 		}
 		this.upperT = T.union(this.upperT, t);
 		return true;
@@ -285,7 +298,7 @@ public final class R {
 	 * @return incoming register
 	 */
 	public R getIn() {
-		assert getKind() == Kind.MOVE && this.ins.length == 1;
+		assert getKind() == Kind.MOVE && this.ins != null && this.ins.length == 1;
 
 		return this.ins[0];
 	}
@@ -365,7 +378,7 @@ public final class R {
 		assert t != null;
 		this.lowerT = t;
 		if (this.outs != null) {
-			for (final R r : getOuts()) {
+			for (final R r : this.outs) {
 				r.setLowerT(t);
 			}
 		}
@@ -376,7 +389,7 @@ public final class R {
 			return;
 		}
 		if (this.ins != null) {
-			for (final R r : getIns()) {
+			for (final R r : this.ins) {
 				r.setLowerT(t);
 			}
 		}
