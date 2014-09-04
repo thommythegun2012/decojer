@@ -2,24 +2,6 @@
 
 {{{
 
-WARNUNG: Cannot transform 'org.objectweb.asm.ClassReader.a(Lorg/objectweb/asm/MethodVisitor;Lorg/objectweb/asm/Context;I)V (ops: 1647, regs: 37)'!
-java.lang.AssertionError
-	at org.decojer.cavaj.model.code.R.<init>(R.java:212)
-
-LOAD 27
-1537: ALOAD (int)
-INVOKE ClassReader.readByte(int):int
-
-r38 CONST null
-
-
-R38.MO1536: {REF,RET}
-  [R12.ME686: {REF,RET}]
-    [R12.ME647: {REF,RET}, R12.MO447: int[]]
-      [R12.MO259: {REF,RET}, R12.MO447: int[]]
-        [R37.CO258: {REF,RET}]
-        [R37.CO446: int[]]
-      [R37.CO446: int[]]
 
 }}}
 
