@@ -13,15 +13,13 @@ INVOKE ClassReader.readByte(int):int
 r38 CONST null
 
 
-		case ALOAD: {
-			final ALOAD cop = (ALOAD) op;
-			popRead(T.INT); // index
-			final R aR = popRead(getDu().getArrayT(cop.getT())); // array
-			// TODO backpropagate type for T.REF??? null is not very cool here...
-			pushConst(aR.getT() == T.REF ? cop.getT() : aR.getT().getComponentT()); // value
-			break;
-		}
-
+R38.MO1536: {REF,RET}
+  [R12.ME686: {REF,RET}]
+    [R12.ME647: {REF,RET}, R12.MO447: int[]]
+      [R12.MO259: {REF,RET}, R12.MO447: int[]]
+        [R37.CO258: {REF,RET}]
+        [R37.CO446: int[]]
+      [R37.CO446: int[]]
 
 }}}
 
