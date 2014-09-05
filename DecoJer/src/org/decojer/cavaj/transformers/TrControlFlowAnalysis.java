@@ -603,6 +603,7 @@ public final class TrControlFlowAnalysis {
 	@Nonnull
 	private Sync createSyncStruct(@Nonnull final BB head, @Nonnull final R syncR) {
 		final Sync sync = new Sync(head);
+		// BBs are always split behind MONITOR_ENTER! (see {@link TrDataFlowAnalysis})
 		final E sequenceOut = head.getSequenceOut();
 		assert sequenceOut != null;
 
@@ -610,8 +611,9 @@ public final class TrControlFlowAnalysis {
 		BB syncFollow = null;
 		outer: do {
 			final BB checkBb = checkBbs.remove(0);
-
+			// check BB statements from start to end if matching synchronization exit found
 			for (int i = 0; i < checkBb.getStmts(); ++i) {
+				// check this statement for matching synchronization exit
 				final Statement stmt = checkBb.getStmt(i);
 				if (!(stmt instanceof SynchronizedStatement)) {
 					continue;
@@ -627,7 +629,7 @@ public final class TrControlFlowAnalysis {
 				if (syncR != getCfg().getInFrame(monitorOp).peek().toOriginal()) {
 					continue;
 				}
-				// kill monitor-exits, they are encoded in struct now
+				// gotcha! kill exits, they are encoded in struct now
 				checkBb.removeStmt(i);
 				// typical default finally-exit catch-handler can be removed
 				if (checkBb.isCatchHandler()) {
@@ -644,7 +646,7 @@ public final class TrControlFlowAnalysis {
 						}
 						checkBb.remove();
 					}
-				continue outer;
+					continue outer;
 				}
 				sync.addMember(null, checkBb);
 				// TODO major difference in <1.3 and >= 1.3: in 1.3 the LOAD,EXIT,GOTO/RETURN is
@@ -699,6 +701,7 @@ public final class TrControlFlowAnalysis {
 	 */
 	private R isSyncHead(final BB bb) {
 		final Statement statement = bb.getFinalStmt();
+		// BBs are always split behind MONITOR_ENTER! (see {@link TrDataFlowAnalysis})
 		if (!(statement instanceof SynchronizedStatement)) {
 			return null;
 		}
