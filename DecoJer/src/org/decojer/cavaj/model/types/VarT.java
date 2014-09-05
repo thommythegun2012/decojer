@@ -85,4 +85,9 @@ public class VarT extends BaseT {
 		return this.resolvedT == null ? null : this.resolvedT.getSuperT();
 	}
 
+	@Override
+	public boolean isVar() {
+		return true;
+	}
+
 }

@@ -347,10 +347,11 @@ public final class R {
 	 * @return {@code true} - forward replace merge register to null
 	 */
 	public boolean replaceIn(final R prevIn, final R newIn) {
-		assert this.ins != null;
+		final R[] ins = this.ins;
+		assert ins != null;
 
-		for (int i = this.ins.length; i-- > 0;) {
-			if (this.ins[i] != prevIn) {
+		for (int i = ins.length; i-- > 0;) {
+			if (ins[i] != prevIn) {
 				continue;
 			}
 			if (newIn == null) {
@@ -362,7 +363,7 @@ public final class R {
 
 				return false;
 			}
-			this.ins[i] = newIn;
+			ins[i] = newIn;
 			newIn.addOut(this);
 			// oldIn dies anyway, no out remove necessary
 			setLowerT(newIn.lowerT);
@@ -374,7 +375,8 @@ public final class R {
 		if (this.lowerT == t) {
 			return;
 		}
-		assert !isMethodParam();
+		assert !isMethodParam() : "Cannot change register type '" + getLowerT() + "' to '" + t
+				+ "!"; // TODO, change VarT bound?
 		assert t != null;
 		this.lowerT = t;
 		if (this.outs != null) {
@@ -402,10 +404,13 @@ public final class R {
 	 */
 	public R toOriginal() {
 		R original = this;
-		while (original.ins != null && original.ins.length > 0) {
-			original = original.ins[0];
+		while (true) {
+			final R ins[] = original.ins;
+			if (ins == null || ins.length == 0) {
+				return original;
+			}
+			original = ins[0];
 		}
-		return original;
 	}
 
 	@Override

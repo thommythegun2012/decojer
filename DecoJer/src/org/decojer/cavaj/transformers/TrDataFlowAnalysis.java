@@ -149,6 +149,7 @@ public final class TrDataFlowAnalysis {
 		final R retReg = retFrame.load(ret.getReg());
 		assert retReg != null;
 		final Sub sub = (Sub) retReg.getValue();
+		assert sub != null;
 
 		final Frame subFrame = getFrame(sub.getPc());
 		assert subFrame != null;
@@ -267,6 +268,7 @@ public final class TrDataFlowAnalysis {
 			// {java.lang.Object,org.eclipse.jdt.core.IJavaElement,org.eclipse.core.runtime.IAdaptable})
 			if (intersectT == null || !vR.assignTo(intersectT)) {
 				log.warn(getM() + ": Cannot store array value for op '" + cop.getPc() + "'!");
+				assert false;
 			}
 			break;
 		}
@@ -380,7 +382,9 @@ public final class TrDataFlowAnalysis {
 				break;
 			}
 			default:
-				log.warn(getM() + ": Unknown DUP type '" + cop.getKind() + "'!");
+				log.warn(getM() + ": Unknown DUP type '" + cop.getKind() + "' for op '"
+						+ cop.getPc() + "'!");
+				assert false;
 			}
 			break;
 		}
@@ -408,8 +412,13 @@ public final class TrDataFlowAnalysis {
 			// read-store necessary, so that we can change the const value,
 			// char c = this.c++; is possible, even though char c = this.c + 1 would complain
 			final R r = store(cop.getReg(), loadRead(cop.getReg(), cop.getT()));
-			if (r.getValue() != null) {
-				r.setValue(((Number) r.getValue()).intValue() + cop.getValue());
+			final Object value = r.getValue();
+			if (value instanceof Number) {
+				r.setValue(((Number) value).intValue() + cop.getValue());
+			} else if (value != null) {
+				log.warn(getM() + ": Register value isn't a number for INC op '" + cop.getPc()
+						+ "'!");
+				assert false;
 			}
 			break;
 		}
@@ -590,7 +599,9 @@ public final class TrDataFlowAnalysis {
 				break;
 			}
 			default:
-				log.warn(getM() + ": Unknown POP type '" + cop.getKind() + "'!");
+				log.warn(getM() + ": Unknown POP type '" + cop.getKind() + "' for op '"
+						+ cop.getPc() + "'!");
+				assert false;
 			}
 			break;
 		}
@@ -618,6 +629,7 @@ public final class TrDataFlowAnalysis {
 			final R r = loadRead(ret.getReg(), T.RET);
 			// bytecode restriction: only called via matching JSR, Sub known as register value
 			final Sub sub = (Sub) r.getValue();
+			assert sub != null;
 			if (!this.currentFrame.popSub(sub)) {
 				return -1;
 			}
@@ -648,7 +660,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : "cannot assign '" + returnT
-			+ "' to return type '" + cop.getT() + "'";
+					+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -816,9 +828,12 @@ public final class TrDataFlowAnalysis {
 			final Frame handlerFrame = getFrame(handlerPc);
 			R excR;
 			if (handlerFrame == null) {
+				T excT = exc.getT();
+				if (excT == null) {
+					excT = getDu().getT(Throwable.class);
+				}
 				// null is <any> (means Java finally) -> Throwable
-				excR = R.createConstR(handlerPc, getCfg().getRegs(), exc.getT() == null ? getDu()
-						.getT(Throwable.class) : exc.getT(), null);
+				excR = R.createConstR(handlerPc, getCfg().getRegs(), excT, null);
 			} else {
 				if (handlerFrame.getTop() != 1) {
 					log.warn(getM() + ": Handler stack for exception merge not of size 1!");
@@ -991,7 +1006,7 @@ public final class TrDataFlowAnalysis {
 				// other freshly changed registers; but could also be a CONST from method start or
 				// catched exception
 				mergeIns = r.getIns();
-				assert mergeIns.length > 1 : "merge ins must exist";
+				assert mergeIns != null && mergeIns.length > 1 : "merge ins must exist";
 
 				break;
 			case MOVE:

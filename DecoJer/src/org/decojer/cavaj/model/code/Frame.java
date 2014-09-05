@@ -228,6 +228,7 @@ public final class Frame {
 			return null;
 		}
 		final Sub sub = (Sub) subR.getValue();
+		assert sub != null;
 		if (sub.getPc() != subPc) {
 			log("Wrong JSR Sub merge! Subroutine has wrong start PC.");
 			return null;
