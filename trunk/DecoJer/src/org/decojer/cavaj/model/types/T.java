@@ -530,8 +530,8 @@ public abstract class T implements Element {
 			return getT(kind);
 		}
 		// null primitives are T.REF and should change their type to something meaningful,
-		// but not to {T.REF, T.RET}
-		if (getDu() == null && t.getDu() != null) {
+		// but don't change VarT or to {T.REF, T.RET} etc.
+		if (this instanceof PrimitiveT && !(t instanceof PrimitiveT)) {
 			return t;
 		}
 		// no type reduction, can assign types to different single supertypes / interfaces
@@ -1294,9 +1294,9 @@ public abstract class T implements Element {
 	}
 
 	/**
-	 * Is primitive?
+	 * Is primitive (not including REF, RET etc.)?
 	 *
-	 * @return {@code true} - is primitive
+	 * @return {@code true} - is primitive (not including REF, RET etc.)
 	 */
 	public boolean isPrimitive() {
 		return false; // overwrite in PrimitiveT
@@ -1353,6 +1353,15 @@ public abstract class T implements Element {
 	 */
 	public boolean isUnresolvable() {
 		return false;
+	}
+
+	/**
+	 * Is var type?
+	 *
+	 * @return {@code true} - is var type
+	 */
+	public boolean isVar() {
+		return false; // overwrite in VarT
 	}
 
 	/**

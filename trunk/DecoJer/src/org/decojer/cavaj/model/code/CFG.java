@@ -369,11 +369,14 @@ public final class CFG {
 
 		int reg = 0;
 		if (!getM().isStatic()) {
-			frame.store(0, R.createConstR(0, 0, getM().getT(), null));
+			final T ownerT = getM().getT();
+			assert ownerT != null;
+			frame.store(0, R.createConstR(0, 0, ownerT, null));
 			++reg;
 		}
 		final T[] paramTs = getM().getParamTs();
 		for (final T paramT : paramTs) {
+			assert paramT != null;
 			frame.store(reg, R.createConstR(0, reg, paramT, null));
 			++reg;
 			if (paramT.isWide()) {
