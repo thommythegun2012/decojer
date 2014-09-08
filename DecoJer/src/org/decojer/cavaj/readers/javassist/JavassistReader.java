@@ -178,7 +178,8 @@ public class JavassistReader implements ClassReader {
 				syntheticAttribute = (SyntheticAttribute) attributeInfo;
 			} else if ("Scala".equals(attributeTag) || "ScalaSig".equals(attributeTag)) {
 				scalaAttributes = true;
-			} else {
+			} else if (!attributeTag.equals("org.aspectj.weaver.WeaverState")
+					&& !attributeTag.equals("OJC")) {
 				log.warn("Unknown class attribute tag '" + attributeTag + "'!");
 			}
 		}
@@ -417,7 +418,7 @@ public class JavassistReader implements ClassReader {
 				signatureAttribute = (SignatureAttribute) attributeInfo;
 			} else if (SyntheticAttribute.tag.equals(attributeTag)) {
 				syntheticAttribute = (SyntheticAttribute) attributeInfo;
-			} else {
+			} else if (!attributeTag.equals("org.aspectj.weaver.MethodDeclarationLineNumber")) {
 				log.warn("Unknown method attribute tag '" + attributeTag + "' for method info '"
 						+ methodInfo.getName() + "'!");
 			}

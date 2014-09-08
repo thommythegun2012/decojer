@@ -106,13 +106,13 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 			final String signature, final String superName, final String[] interfaces) {
 		if (name == null) {
 			log.warn("Cannot read type name '" + name + "'!");
-			// We can only stop further type reading via an exception in this visitor based system.
+			// We can stop further type reading only via an exception in this visitor based system.
 			throw new ReadClassStopException();
 		}
 		final T t = this.du.getT(name);
 		if (!t.createTd()) {
 			log.warn("Type '" + t + "' already read!");
-			// We can only stop further type reading via an exception in this visitor based system.
+			// We can stop further type reading only via an exception in this visitor based system.
 			throw new ReadClassStopException();
 		}
 		this.t = t;
@@ -157,7 +157,9 @@ public class ReadClassVisitor extends ClassVisitor implements ReadVisitor {
 			getT().setScala();
 			return;
 		}
-		log.warn(this.t + ": Unknown class attribute tag '" + attr.type + "'!");
+		if (!attr.type.equals("org.aspectj.weaver.WeaverState") && !attr.type.equals("OJC")) {
+			log.warn(this.t + ": Unknown class attribute tag '" + attr.type + "'!");
+		}
 	}
 
 	@Override
