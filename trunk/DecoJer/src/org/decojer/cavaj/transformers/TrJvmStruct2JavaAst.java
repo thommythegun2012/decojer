@@ -137,7 +137,10 @@ public final class TrJvmStruct2JavaAst {
 			}
 		}
 		if (f.isSynthetic()) {
-			log.warn("Synthetic field unknown: " + f);
+			// TODO val$ for bound outer vars
+			if (!name.startsWith("val$")) {
+				log.warn("Synthetic field unknown: " + f);
+			}
 			return !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC);
 		}
 		return false;
@@ -190,7 +193,10 @@ public final class TrJvmStruct2JavaAst {
 			}
 		}
 		if (m.isSynthetic()) {
-			log.warn("Synthetic method unknown: " + m);
+			// TODO access$ for private outer methods
+			if (!name.startsWith("access$")) {
+				log.warn("Synthetic method unknown: " + m);
+			}
 			return !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC);
 		}
 		return false;
@@ -423,7 +429,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-			.setType(newType(m.getReturnT(), t));
+					.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -534,7 +540,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-									+ "'!");
+							+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}
