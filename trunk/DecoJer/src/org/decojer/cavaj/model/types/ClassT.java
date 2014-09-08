@@ -198,7 +198,7 @@ public class ClassT extends T {
 			return null;
 		}
 		assert this.enclosing instanceof T || this.enclosing instanceof M : this
-		+ ": enclosing must be T or M";
+				+ ": enclosing must be T or M";
 
 		return this.enclosing;
 	}
@@ -483,7 +483,7 @@ public class ClassT extends T {
 		final Container previousDeclarationOwner = getTd().getDeclarationOwner();
 		if (previousDeclarationOwner != null) {
 			if (declarationOwner == previousDeclarationOwner) {
-				assert false;
+				// can happen in Eclipse re-view mode
 				return;
 			}
 			previousDeclarationOwner.getDeclarations().remove(this);
