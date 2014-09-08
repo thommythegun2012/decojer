@@ -515,6 +515,7 @@ public final class TrDataFlowAnalysis {
 			this.currentFrame = new Frame(getFrame(ret.getPc()));
 			if (load(ret.getReg(), T.RET).getValue() != sub) {
 				log.warn(getM() + ": Incorrect sub!");
+				assert false;
 			}
 			final BB retBb = getBb(ret.getPc());
 			final int jsrFollowPc = jsr.getPc() + 1;
@@ -540,16 +541,17 @@ public final class TrDataFlowAnalysis {
 			final MONITOR cop = (MONITOR) op;
 			popRead(T.REF);
 			switch (cop.getKind()) {
-			case ENTER: {
+			case ENTER:
+			case EXIT:
+				// major difference in <1.3 and >= 1.3: in 1.3 the LOAD,EXIT,GOTO/RETURN is
+				// part of try, in <=1.2.2 it's after the try and combined with follow stuff, e.g. a
+				// new ENTER!
 				// always split, even for trivial / empty synchronize-blocks without
 				// rethrow-handlers: else we would be forced to check & remember header nodes and
 				// statement number for the later control flow analysis
 				this.currentBb.setSucc(getTargetBb(nextPc));
 				merge(nextPc);
 				return -1; // switch current BB
-			}
-			case EXIT:
-				break;
 			default:
 				log.warn(getM() + ": Unknown MONITOR type '" + cop.getKind() + "'!");
 			}
@@ -601,7 +603,6 @@ public final class TrDataFlowAnalysis {
 			default:
 				log.warn(getM() + ": Unknown POP type '" + cop.getKind() + "' for op '"
 						+ cop.getPc() + "'!");
-				assert false;
 			}
 			break;
 		}
@@ -1160,6 +1161,7 @@ public final class TrDataFlowAnalysis {
 		final R s = this.currentFrame.peek(i);
 		if (s.isWide()) {
 			log.warn(getM() + ": Peek '" + i + "' attempts to split long or double on the stack!");
+			assert false;
 		}
 		return s;
 	}
@@ -1188,6 +1190,7 @@ public final class TrDataFlowAnalysis {
 		final R s = this.currentFrame.pop();
 		if (s.isWide()) {
 			log.warn(getM() + ": Pop attempts to split long or double on the stack!");
+			assert false;
 		}
 		return s;
 	}
