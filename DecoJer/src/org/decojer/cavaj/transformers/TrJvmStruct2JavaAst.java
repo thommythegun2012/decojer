@@ -137,10 +137,8 @@ public final class TrJvmStruct2JavaAst {
 			}
 		}
 		if (f.isSynthetic()) {
-			// TODO val$ for bound outer vars
-			if (!name.startsWith("val$")) {
-				log.warn("Synthetic field unknown: " + f);
-			}
+			// cannot really log this, too many known (val$) and unknown (generic erasure,
+			// frameworks) synthetics
 			return !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC);
 		}
 		return false;
@@ -193,10 +191,8 @@ public final class TrJvmStruct2JavaAst {
 			}
 		}
 		if (m.isSynthetic()) {
-			// TODO access$ for private outer methods
-			if (!name.startsWith("access$")) {
-				log.warn("Synthetic method unknown: " + m);
-			}
+			// cannot really log this, too many known (access$) and unknown (generic erasure,
+			// frameworks) synthetics
 			return !cu.check(DFlag.DECOMPILE_UNKNOWN_SYNTHETIC);
 		}
 		return false;
@@ -235,13 +231,21 @@ public final class TrJvmStruct2JavaAst {
 		}
 		f.setAstNode(fieldDeclaration);
 
+		// decompile synthetic Javadoc-comment if no annotation set
+		if (f.isSynthetic()) {
+			final Javadoc javadoc = ast.newJavadoc();
+			final TagElement tagElement = ast.newTagElement();
+			tagElement.setTagName("is synthetic");
+			javadoc.tags().add(tagElement);
+			fieldDeclaration.setJavadoc(javadoc);
+		}
 		// decompile deprecated Javadoc-tag if no annotation set
 		if (f.getAf(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(f.getAs())) {
-			final Javadoc newJavadoc = ast.newJavadoc();
-			final TagElement newTagElement = ast.newTagElement();
-			newTagElement.setTagName("@deprecated");
-			newJavadoc.tags().add(newTagElement);
-			fieldDeclaration.setJavadoc(newJavadoc);
+			final Javadoc javadoc = ast.newJavadoc();
+			final TagElement tagElement = ast.newTagElement();
+			tagElement.setTagName("@deprecated");
+			javadoc.tags().add(tagElement);
+			fieldDeclaration.setJavadoc(javadoc);
 		}
 
 		final List<IExtendedModifier> modifiers = fieldDeclaration.modifiers();
@@ -338,13 +342,21 @@ public final class TrJvmStruct2JavaAst {
 		}
 		m.setAstNode(methodDeclaration);
 
+		// decompile synthetic Javadoc-comment if no annotation set
+		if (m.isSynthetic()) {
+			final Javadoc javadoc = ast.newJavadoc();
+			final TagElement tagElement = ast.newTagElement();
+			tagElement.setTagName("is synthetic");
+			javadoc.tags().add(tagElement);
+			methodDeclaration.setJavadoc(javadoc);
+		}
 		// decompile deprecated Javadoc-tag if no annotation set
 		if (m.getAf(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(m.getAs())) {
-			final Javadoc newJavadoc = ast.newJavadoc();
-			final TagElement newTagElement = ast.newTagElement();
-			newTagElement.setTagName("@deprecated");
-			newJavadoc.tags().add(newTagElement);
-			methodDeclaration.setJavadoc(newJavadoc);
+			final Javadoc javadoc = ast.newJavadoc();
+			final TagElement tagElement = ast.newTagElement();
+			tagElement.setTagName("@deprecated");
+			javadoc.tags().add(tagElement);
+			methodDeclaration.setJavadoc(javadoc);
 		}
 
 		final List<IExtendedModifier> modifiers = methodDeclaration.modifiers();
@@ -636,12 +648,20 @@ public final class TrJvmStruct2JavaAst {
 			typeDeclaration.setName(newSimpleName(
 					simpleName.length() > 0 ? simpleName : t.getPName(), ast));
 
+			// decompile synthetic Javadoc-comment if no annotation set
+			if (t.isSynthetic()) {
+				final Javadoc javadoc = ast.newJavadoc();
+				final TagElement tagElement = ast.newTagElement();
+				tagElement.setTagName("is synthetic");
+				javadoc.tags().add(tagElement);
+				typeDeclaration.setJavadoc(javadoc);
+			}
 			if (t.getAf(AF.DEPRECATED) && !Annotations.isDeprecatedAnnotation(t.getAs())) {
-				final Javadoc newJavadoc = ast.newJavadoc();
-				final TagElement newTagElement = ast.newTagElement();
-				newTagElement.setTagName("@deprecated");
-				newJavadoc.tags().add(newTagElement);
-				typeDeclaration.setJavadoc(newJavadoc);
+				final Javadoc javadoc = ast.newJavadoc();
+				final TagElement tagElement = ast.newTagElement();
+				tagElement.setTagName("@deprecated");
+				javadoc.tags().add(tagElement);
+				typeDeclaration.setJavadoc(javadoc);
 			}
 		}
 		for (final Element bd : t.getDeclarations()) {
