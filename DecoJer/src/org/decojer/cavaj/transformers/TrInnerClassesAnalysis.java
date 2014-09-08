@@ -72,11 +72,7 @@ public class TrInnerClassesAnalysis {
 			}
 			final String innerName = t.getInnerName();
 			final String simpleName = getSimpleClassName(t);
-			if (innerName == null && !simpleName.isEmpty() || innerName != null
-					&& !innerName.equals(simpleName)) {
-				// TODO check oracle.net.aso.m in obfuscated
-				// .m2\repository\com\oracle\ojdbc6\11.2.0.1.0\ojdbc6-11.2.0.1.0.jar
-				// should be a local class with name "m" in constructor?
+			if (innerName != null && !innerName.isEmpty() && !innerName.equals(simpleName)) {
 				log.warn("Inner name '" + innerName + "' for type '" + t
 						+ "' is different from enclosing info '" + simpleName + "'!");
 			}
@@ -239,6 +235,7 @@ public class TrInnerClassesAnalysis {
 	 * @since 1.5
 	 * @see Class#getSimpleName()
 	 */
+	@Nonnull
 	private static String getSimpleClassName(final T t) {
 		final String simpleName = getSimpleBinaryName(t);
 		if (simpleName == null) { // is top level class
@@ -267,7 +264,9 @@ public class TrInnerClassesAnalysis {
 			index++;
 		}
 		// Eventually, this is the empty string iff this is an anonymous class
-		return simpleName.substring(index);
+		final String ret = simpleName.substring(index);
+		assert ret != null;
+		return ret;
 	}
 
 	/**

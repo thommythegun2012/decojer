@@ -940,7 +940,7 @@ public abstract class T implements Element {
 		// The original Class-Function doesn't work for JVM < 5 because the naming rules changed,
 		// different solution here with inner name info
 		String innerName = getInnerName();
-		if (innerName == null) {
+		if (innerName == null || innerName.isEmpty()) {
 			final T enclosingT = getEnclosingT();
 			if (enclosingT == null) {
 				// top level class, strip the package name
