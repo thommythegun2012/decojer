@@ -430,6 +430,29 @@ public final class TrControlFlowAnalysis {
 		return backBbs;
 	}
 
+	private static boolean handleSyncFinally(@Nonnull final BB bb) {
+		if (!bb.isCatchHandler()) {
+			return false;
+		}
+		if (bb.getStmts() != 2) {
+			return false;
+		}
+		final Statement tryStatement = bb.getStmt(0);
+		if (!(tryStatement instanceof TryStatement)) {
+			return false;
+		}
+		if (!((TryStatement) tryStatement).catchClauses().isEmpty()) {
+			return false;
+		}
+		final E throwBb = bb.getSequenceOut();
+		if (throwBb == null || throwBb.getEnd().getStmts() != 1
+				|| !(throwBb.getEnd().getStmt(0) instanceof ThrowStatement)) {
+			return false;
+		}
+		bb.remove();
+		return true;
+	}
+
 	/**
 	 * Is cond head?
 	 *
@@ -595,7 +618,7 @@ public final class TrControlFlowAnalysis {
 			return cond;
 		}
 		// only if unrelated conditional tails???
-		log.warn(getMd() + ": Unknown struct, no common follow for:\n" + cond);
+		log.warn(getM() + ": Unknown struct, no common follow for:\n" + cond);
 		cond.setKind(Cond.Kind.IF);
 		return cond;
 	}
@@ -603,68 +626,64 @@ public final class TrControlFlowAnalysis {
 	@Nonnull
 	private Sync createSyncStruct(@Nonnull final BB head, @Nonnull final R syncR) {
 		final Sync sync = new Sync(head);
-		// BBs are always split behind MONITOR_ENTER! (see {@link TrDataFlowAnalysis})
+		// BBs are always split behind MONITOR_ENTER! hence: struct starts at sequence out
 		final E sequenceOut = head.getSequenceOut();
-		assert sequenceOut != null;
-
+		if (sequenceOut == null) {
+			assert false;
+			return sync;
+		}
 		final List<BB> checkBbs = Lists.newArrayList(sequenceOut.getEnd());
 		BB syncFollow = null;
-		outer: do {
+		do {
 			final BB checkBb = checkBbs.remove(0);
-			// check BB statements from start to end if matching synchronization exit found
-			for (int i = 0; i < checkBb.getStmts(); ++i) {
-				// check this statement for matching synchronization exit
-				final Statement stmt = checkBb.getStmt(i);
-				if (!(stmt instanceof SynchronizedStatement)) {
-					continue;
-				}
+			// BBs are always split behind MONITOR_EXIT! hence: check last statement for exit
+			final Statement stmt = checkBb.getFinalStmt();
+			checkSyncEnd: if (stmt instanceof SynchronizedStatement) {
 				final Op monitorOp = getOp(stmt);
 				if (!(monitorOp instanceof MONITOR)) {
 					assert false;
-					continue;
+					break checkSyncEnd;
 				}
 				if (((MONITOR) monitorOp).getKind() != MONITOR.Kind.EXIT) {
-					continue;
+					break checkSyncEnd;
 				}
 				if (syncR != getCfg().getInFrame(monitorOp).peek().toOriginal()) {
+					break checkSyncEnd;
+				}
+				// gotcha! kill all exits, they are encoded in struct now
+
+				if (handleSyncFinally(checkBb)) {
+					// typical default finally-exit catch-handler is removed completely
 					continue;
 				}
-				// gotcha! kill exits, they are encoded in struct now
-				checkBb.removeStmt(i);
-				// typical default finally-exit catch-handler can be removed
-				if (checkBb.isCatchHandler()) {
-					remove: if (checkBb.getStmts() == 2) {
-						final Statement tryStatement = checkBb.getStmt(0);
-						if (!(tryStatement instanceof TryStatement)) {
-							break remove;
-						}
-						if (!((TryStatement) tryStatement).catchClauses().isEmpty()) {
-							break remove;
-						}
-						if (!(checkBb.getStmt(1) instanceof ThrowStatement)) {
-							break remove;
-						}
-						checkBb.remove();
-					}
-					continue outer;
-				}
+				checkBb.removeFinalStmt();
+
 				sync.addMember(null, checkBb);
-				// TODO major difference in <1.3 and >= 1.3: in 1.3 the LOAD,EXIT,GOTO/RETURN is
-				// part of try, in <=1.2.2 it's after the try and combined with follow stuff, e.g. a
-				// new ENTER! split necessary?! check for i == 0? as follow is possible...
-				final E syncOut = checkBb.getSequenceOut();
-				if (syncOut == null) {
-					continue outer;
+				// find relevant follow and kill potential finally-exit catch-handler
+				final List<E> outs = checkBb.getOuts(); // list modified current iteration
+				for (int i = outs.size(); i-- > 0;) {
+					final E syncOut = outs.get(i);
+					if (syncOut.isBack()) {
+						continue;
+					}
+					final BB succ = syncOut.getEnd();
+					if (handleSyncFinally(succ)) {
+						// typical default finally-exit catch-handler is removed completely
+						continue;
+					}
+					if (!syncOut.isSequence()) {
+						continue;
+					}
+					if (syncFollow == null) {
+						syncFollow = syncOut.getEnd();
+						continue;
+					}
+					if (syncOut.getEnd().isBefore(syncFollow)) {
+						syncFollow = syncOut.getEnd();
+						continue;
+					}
 				}
-				if (syncFollow == null) {
-					syncFollow = syncOut.getEnd();
-					continue outer;
-				}
-				if (syncOut.getEnd().isBefore(syncFollow)) {
-					syncFollow = syncOut.getEnd();
-					continue outer;
-				}
-				continue outer;
+				continue; // next checkBb
 			}
 			sync.addMember(null, checkBb);
 			// deep recursion into out edges of this member
@@ -684,7 +703,7 @@ public final class TrControlFlowAnalysis {
 		return sync;
 	}
 
-	private M getMd() {
+	private M getM() {
 		return getCfg().getM();
 	}
 
@@ -694,6 +713,8 @@ public final class TrControlFlowAnalysis {
 	 * Works even for trivial / empty sync sections, because BBs are always split behind
 	 * MONITOR_ENTER (see {@link TrDataFlowAnalysis}).
 	 *
+	 * We shouldn't find any MONITOR_EXIT here because they are consumed by createSyncStruct.
+	 *
 	 * @param bb
 	 *            BB
 	 *
@@ -701,7 +722,7 @@ public final class TrControlFlowAnalysis {
 	 */
 	private R isSyncHead(final BB bb) {
 		final Statement statement = bb.getFinalStmt();
-		// BBs are always split behind MONITOR_ENTER! (see {@link TrDataFlowAnalysis})
+		// BBs are always split behind MONITOR_ENTER/EXIT! (see {@link TrDataFlowAnalysis})
 		if (!(statement instanceof SynchronizedStatement)) {
 			return null;
 		}
@@ -709,10 +730,19 @@ public final class TrControlFlowAnalysis {
 		if (!(monitorOp instanceof MONITOR)) {
 			return null;
 		}
-		if (((MONITOR) monitorOp).getKind() != MONITOR.Kind.ENTER) {
-			return null;
+		switch (((MONITOR) monitorOp).getKind()) {
+		case ENTER:
+			return getCfg().getInFrame(monitorOp).peek().toOriginal();
+		case EXIT:
+			log.warn(getM() + ": Unexpected synchronized exit in: " + bb);
+			assert bb.isCatchHandler();
+			bb.removeFinalStmt();
+			break;
+		default:
+			log.warn(getM() + ": Unknown MONITOR type '" + ((MONITOR) monitorOp).getKind() + "'!");
+			assert false;
 		}
-		return getCfg().getInFrame(monitorOp).peek().toOriginal();
+		return null;
 	}
 
 	private void transform() {
@@ -751,9 +781,9 @@ public final class TrControlFlowAnalysis {
 				// fall through: additional sub struct heads possible for post / endless, including
 				// nested post loops that cannot be handled by continue
 			}
-			final R syncR = isSyncHead(bb);
+			final R syncR = isSyncHead(bb); // also warn about unexpected exits
 			if (syncR != null) {
-				createSyncStruct(bb, syncR);
+				createSyncStruct(bb, syncR); // also consume/remove exits
 				continue;
 			}
 			if (isSwitchHead(bb)) {

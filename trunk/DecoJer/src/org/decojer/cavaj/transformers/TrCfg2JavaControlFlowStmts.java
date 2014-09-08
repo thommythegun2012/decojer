@@ -432,8 +432,8 @@ public final class TrCfg2JavaControlFlowStmts {
 			@Nonnull final List<Statement> statements) {
 		if (!this.traversedStructs.add(struct)) {
 			assert false : "Cannot transform struct twice:\n" + struct;
-			log.warn(getM() + ": Cannot transform struct twice:\n" + struct);
-			return null;
+		log.warn(getM() + ": Cannot transform struct twice:\n" + struct);
+		return null;
 		}
 		// decompile sub structure into a statement
 		Statement structStatement;
@@ -554,11 +554,6 @@ public final class TrCfg2JavaControlFlowStmts {
 		final List<Statement> syncStatements = synchronizedStatement.getBody().statements();
 		assert syncStatements != null;
 		transformSequence(sync, sequenceOut, syncStatements);
-
-		final BB follow = sync.getFollow(); // can happen with final throw in sync block
-		if (follow != null && follow.getStmt(0) instanceof SynchronizedStatement) {
-			follow.removeStmt(0);
-		}
 		return synchronizedStatement;
 	}
 
