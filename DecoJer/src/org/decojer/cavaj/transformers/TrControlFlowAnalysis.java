@@ -119,7 +119,7 @@ public final class TrControlFlowAnalysis {
 		Loop.Kind lastKind = null;
 		E lastFollowOut = null;
 		if (last != null && last.isCond()) {
-			// don't exclude last.isLoopHead(), simple back loops with multiple statements possible
+			// beware: simple back loops with multiple statements possible
 			final E falseOut = last.getFalseOut();
 			assert falseOut != null;
 			final E trueOut = last.getTrueOut();
