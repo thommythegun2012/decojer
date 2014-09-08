@@ -23,10 +23,17 @@ public class DecTestAsserts {
 		System.out.println("POST");
 	}
 
-	public void testMessageAssert(final long l1, final long l2) {
+	public void testAssertMessage(final long l1, final long l2) {
 		assert l1 < 0 : l1;
 		assert l1 > 0 ? l1 < l2 : l1 > l2 : (l1 >>> 1) + l2 + "complex expression "
 				+ (l1 > l2 && l2 > -1) + l1 * l2 + l1 + l2 + (l1 + l2);
+	}
+
+	public void testManualAssertBehindLoop() {
+		for (int i = 1; i < 10; ++i) {
+			System.out.println("I: " + i);
+		}
+		throw new AssertionError();
 	}
 
 }
