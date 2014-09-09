@@ -52,7 +52,8 @@ class RecursiveRead extends RecursiveTask<Integer> {
 			if (read == null || read.isEmpty()) {
 				return null;
 			}
-			log.info("######### Decompiling: " + file + " (" + read.size() + ") #########");
+			// doesn't make sense for parallel dedompiling tests:
+			// log.info("######### Decompiling: " + file + " (" + read.size() + ") #########");
 			for (final CU cu : du.getCus()) {
 				try {
 					cu.decompile(false);
