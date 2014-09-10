@@ -106,6 +106,13 @@ public interface Element extends Container {
 	boolean isStatic();
 
 	/**
+	 * Is scala?
+	 *
+	 * @return {@code true} - is scala
+	 */
+	boolean isScala();
+
+	/**
 	 * Is synthetic?
 	 *
 	 * @return {@code true} - is synthetic

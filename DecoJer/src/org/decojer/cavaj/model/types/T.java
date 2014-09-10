@@ -1320,13 +1320,6 @@ public abstract class T implements Element {
 		return true; // only primitive types can not be references, overwrite in PrimitiveT
 	}
 
-	/**
-	 * Is Scala source code?
-	 *
-	 * @return {@code true} - is Scala source code
-	 */
-	public abstract boolean isScala();
-
 	@Override
 	public boolean isStatic() {
 		return true;

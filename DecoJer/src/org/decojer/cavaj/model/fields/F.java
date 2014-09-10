@@ -76,6 +76,11 @@ public abstract class F implements Element {
 	@Nonnull
 	public abstract T getValueT();
 
+	@Override
+	public boolean isScala() {
+		return getT().isScala();
+	}
+
 	/**
 	 * Is enum?
 	 *

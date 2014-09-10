@@ -418,8 +418,11 @@ public class ClassM extends M {
 				for (int i = 0; i < paramTs.length; ++i) {
 					final T paramT = signParamTs[i];
 					if (!paramT.eraseTo(paramTs[i])) {
-						log.info("Cannot reduce " + (i + 1) + ". method param signature '"
-								+ signParamTs[i] + "' to '" + paramTs[i] + "' for: " + this);
+						if (!isScala()) {
+							// can even contain incompatible signatures like short for Object
+							log.info("Cannot reduce " + (i + 1) + ". method param signature '"
+									+ signParamTs[i] + "' to '" + paramTs[i] + "' for: " + this);
+						}
 						break;
 					}
 					paramTs[i] = paramT;
@@ -429,8 +432,11 @@ public class ClassM extends M {
 		final T returnT = getDu().parseT(signature, c, this);
 		if (returnT != null) {
 			if (!returnT.eraseTo(getReturnT())) {
-				log.info("Cannot reduce method return signature '" + returnT + "' to '"
-						+ getReturnT() + "' for: " + this);
+				if (!isScala()) {
+					// can even contain incompatible signatures like short for Object
+					log.info("Cannot reduce method return signature '" + returnT + "' to '"
+							+ getReturnT() + "' for: " + this);
+				}
 			} else {
 				setReturnT(returnT);
 			}
@@ -439,16 +445,25 @@ public class ClassM extends M {
 		if (signThrowTs != null) {
 			final T[] throwsTs = getThrowsTs();
 			if (throwsTs.length != signThrowTs.length) {
-				log.info("Cannot reduce method throws signatures '" + signature + "' for: " + this);
-			}
-			for (int i = 0; i < throwsTs.length; ++i) {
-				final T throwT = signThrowTs[i];
-				if (!throwT.eraseTo(throwsTs[i])) {
-					log.info("Cannot reduce " + (i + 1) + ". method throw signature '"
-							+ signThrowTs[i] + "' to type '" + throwsTs[i] + "' for: " + this);
-					break;
+				if (!isScala()) {
+					// can even contain incompatible signatures like short for Object
+					log.info("Cannot reduce method throws signatures '" + signature + "' for: "
+							+ this);
 				}
-				throwsTs[i] = throwT;
+			} else {
+				for (int i = 0; i < throwsTs.length; ++i) {
+					final T throwT = signThrowTs[i];
+					if (!throwT.eraseTo(throwsTs[i])) {
+						if (!isScala()) {
+							// can even contain incompatible signatures like short for Object
+							log.info("Cannot reduce " + (i + 1) + ". method throw signature '"
+									+ signThrowTs[i] + "' to type '" + throwsTs[i] + "' for: "
+									+ this);
+						}
+						break;
+					}
+					throwsTs[i] = throwT;
+				}
 			}
 		}
 	}

@@ -78,6 +78,12 @@ public abstract class M implements Element {
 		return t == null ? null : t.getDu();
 	}
 
+	@Override
+	public boolean isScala() {
+		final T t = getT();
+		return t == null ? false : t.isScala();
+	}
+
 	/**
 	 * Get method parameter annotations.
 	 *
