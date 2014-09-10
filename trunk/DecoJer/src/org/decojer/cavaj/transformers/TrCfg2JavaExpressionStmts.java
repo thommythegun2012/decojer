@@ -349,7 +349,6 @@ public final class TrCfg2JavaExpressionStmts {
 				assert false;
 				return false;
 			}
-			Statement statement = null;
 			switch (op.getOptype()) {
 			case ADD: {
 				bb.push(newInfixExpressionPop(InfixExpression.Operator.PLUS, bb, op));
@@ -425,7 +424,7 @@ public final class TrCfg2JavaExpressionStmts {
 					bb.push(assignment);
 					break;
 				}
-				statement = getAst().newExpressionStatement(assignment);
+				bb.addStmt(setOp(getAst().newExpressionStatement(assignment), op));
 				break;
 			}
 			case CAST: {
@@ -609,11 +608,13 @@ public final class TrCfg2JavaExpressionStmts {
 						break;
 					}
 					if (bb.isStackEmpty()) {
-						statement = getAst().newExpressionStatement(
-								newPrefixExpression(
-										cop.getValue() == 1 ? PrefixExpression.Operator.INCREMENT
-												: PrefixExpression.Operator.DECREMENT,
-												getVarExpression(cop.getReg(), cop.getPc(), op), op));
+						bb.addStmt(setOp(
+								getAst().newExpressionStatement(
+										newPrefixExpression(
+												cop.getValue() == 1 ? PrefixExpression.Operator.INCREMENT
+														: PrefixExpression.Operator.DECREMENT,
+														getVarExpression(cop.getReg(), cop.getPc(), op), op)),
+														op));
 						break;
 					}
 					log.warn(getM() + ": Inline ++/--!");
@@ -623,13 +624,14 @@ public final class TrCfg2JavaExpressionStmts {
 					break;
 				}
 				if (bb.isStackEmpty()) {
-					statement = getAst().newExpressionStatement(
-							newAssignment(
-									value >= 0 ? Assignment.Operator.PLUS_ASSIGN
-											: Assignment.Operator.MINUS_ASSIGN,
-											getVarExpression(cop.getReg(), cop.getPc(), op),
-											newLiteral(cop.getT(), value >= 0 ? value : -value, getCfg()
-													.getM(), op), op));
+					bb.addStmt(setOp(
+							getAst().newExpressionStatement(
+									newAssignment(
+											value >= 0 ? Assignment.Operator.PLUS_ASSIGN
+													: Assignment.Operator.MINUS_ASSIGN,
+													getVarExpression(cop.getReg(), cop.getPc(), op),
+													newLiteral(cop.getT(), value >= 0 ? value : -value,
+															getCfg().getM(), op), op)), op));
 					break;
 				}
 				log.warn(getM() + ": Inline INC with value '" + value + "'!");
@@ -714,7 +716,7 @@ public final class TrCfg2JavaExpressionStmts {
 							final ConstructorInvocation constructorInvocation = getAst()
 									.newConstructorInvocation();
 							wrapAddAll(constructorInvocation.arguments(), arguments);
-							statement = constructorInvocation;
+							bb.addStmt(setOp(constructorInvocation, op));
 							break;
 						}
 						if (arguments.size() == 0) {
@@ -724,7 +726,7 @@ public final class TrCfg2JavaExpressionStmts {
 						final SuperConstructorInvocation superConstructorInvocation = getAst()
 								.newSuperConstructorInvocation();
 						wrapAddAll(superConstructorInvocation.arguments(), arguments);
-						statement = superConstructorInvocation;
+						bb.addStmt(setOp(superConstructorInvocation, op));
 						break;
 						}
 						if (expression instanceof ClassInstanceCreation) {
@@ -864,7 +866,8 @@ public final class TrCfg2JavaExpressionStmts {
 				setOp(methodExpression, op);
 				final T returnT = m.getReturnT();
 				if (returnT == T.VOID) {
-					statement = setOp(getAst().newExpressionStatement(methodExpression), op);
+					bb.addStmt(setOp(setOp(getAst().newExpressionStatement(methodExpression), op),
+							op));
 					break;
 				}
 				assert methodExpression != null;
@@ -898,8 +901,9 @@ public final class TrCfg2JavaExpressionStmts {
 					log.warn(getM() + ": Unknown cmp type '" + cop.getCmpType() + "'!");
 					operator = null;
 				}
-				statement = getAst().newIfStatement();
-				((IfStatement) statement).setExpression(newInfixExpressionPop(operator, bb, op));
+				final IfStatement ifStatement = getAst().newIfStatement();
+				ifStatement.setExpression(newInfixExpressionPop(operator, bb, op));
+				bb.addStmt(setOp(ifStatement, op));
 				break;
 			}
 			case JCND: {
@@ -993,8 +997,9 @@ public final class TrCfg2JavaExpressionStmts {
 					expression = newInfixExpression(operator, expression,
 							newLiteral(T.INT, 0, getM(), op), op);
 				}
-				statement = getAst().newIfStatement();
-				((IfStatement) statement).setExpression(wrap(expression));
+				final IfStatement ifStatement = getAst().newIfStatement();
+				ifStatement.setExpression(wrap(expression));
+				bb.addStmt(setOp(ifStatement, op));
 				break;
 			}
 			case JSR: {
@@ -1049,7 +1054,7 @@ public final class TrCfg2JavaExpressionStmts {
 					final SynchronizedStatement synchronizedStatement = setOp(getAst()
 							.newSynchronizedStatement(), op);
 					synchronizedStatement.setExpression(wrap(bb.pop()));
-					statement = synchronizedStatement;
+					bb.addStmt(setOp(synchronizedStatement, op));
 					break;
 				}
 				case EXIT: {
@@ -1058,7 +1063,7 @@ public final class TrCfg2JavaExpressionStmts {
 					final SynchronizedStatement synchronizedStatement = setOp(getAst()
 							.newSynchronizedStatement(), op);
 					synchronizedStatement.setExpression(wrap(bb.pop()));
-					statement = synchronizedStatement;
+					bb.addStmt(setOp(synchronizedStatement, op));
 					break;
 				}
 				default:
@@ -1145,7 +1150,7 @@ public final class TrCfg2JavaExpressionStmts {
 				case POP2: {
 					final Expression e = bb.pop();
 					if (Expressions.isStatementExpression(e)) {
-						statement = getAst().newExpressionStatement(wrap(e));
+						bb.addStmt(setOp(getAst().newExpressionStatement(wrap(e)), op));
 					} else if (e instanceof SimpleName) {
 						// exception or simple literal
 						break;
@@ -1157,7 +1162,7 @@ public final class TrCfg2JavaExpressionStmts {
 						final IfStatement ifStatement = getAst().newIfStatement();
 						ifStatement.setExpression(wrap(e));
 						ifStatement.setThenStatement(getAst().newEmptyStatement());
-						statement = ifStatement;
+						bb.addStmt(setOp(ifStatement, op));
 					}
 					if (isWide(e)) {
 						break;
@@ -1167,7 +1172,7 @@ public final class TrCfg2JavaExpressionStmts {
 				case POP: {
 					final Expression e = bb.pop();
 					if (Expressions.isStatementExpression(e)) {
-						statement = getAst().newExpressionStatement(wrap(e));
+						bb.addStmt(setOp(getAst().newExpressionStatement(wrap(e)), op));
 					} else if (e instanceof SimpleName) {
 						// exception or simple literal
 						break;
@@ -1179,7 +1184,7 @@ public final class TrCfg2JavaExpressionStmts {
 						final IfStatement ifStatement = getAst().newIfStatement();
 						ifStatement.setExpression(wrap(e));
 						ifStatement.setThenStatement(getAst().newEmptyStatement());
-						statement = ifStatement;
+						bb.addStmt(setOp(ifStatement, op));
 					}
 					break;
 				}
@@ -1236,7 +1241,7 @@ public final class TrCfg2JavaExpressionStmts {
 									: PostfixExpression.Operator.DECREMENT, bb.pop(), op));
 					break;
 				}
-				statement = getAst().newExpressionStatement(assignment);
+				bb.addStmt(setOp(getAst().newExpressionStatement(assignment), op));
 				break;
 			}
 			case REM: {
@@ -1253,7 +1258,7 @@ public final class TrCfg2JavaExpressionStmts {
 				if (cop.getT() != T.VOID) {
 					returnStatement.setExpression(wrap(bb.pop()));
 				}
-				statement = returnStatement;
+				bb.addStmt(setOp(returnStatement, op));
 				break;
 			}
 			case SHL: {
@@ -1297,7 +1302,7 @@ public final class TrCfg2JavaExpressionStmts {
 						final VariableDeclarationStatement variableDeclarationStatement = getAst()
 								.newVariableDeclarationStatement(variableDeclarationFragment);
 						variableDeclarationStatement.setType(newType(v.getT(), getM()));
-						statement = variableDeclarationStatement;
+						bb.addStmt(setOp(variableDeclarationStatement, op));
 						break;
 					}
 				}
@@ -1311,7 +1316,7 @@ public final class TrCfg2JavaExpressionStmts {
 					bb.push(assignment);
 					break;
 				}
-				statement = getAst().newExpressionStatement(assignment);
+				bb.addStmt(setOp(getAst().newExpressionStatement(assignment), op));
 				break;
 			}
 			case SUB: {
@@ -1342,7 +1347,7 @@ public final class TrCfg2JavaExpressionStmts {
 				}
 				final SwitchStatement switchStatement = getAst().newSwitchStatement();
 				switchStatement.setExpression(wrap(switchExpression));
-				statement = switchStatement;
+				bb.addStmt(setOp(switchStatement, op));
 				break;
 			}
 			case THROW: {
@@ -1350,7 +1355,7 @@ public final class TrCfg2JavaExpressionStmts {
 				assert exceptionExpression != null;
 				final ThrowStatement throwStatement = getAst().newThrowStatement();
 				throwStatement.setExpression(wrap(exceptionExpression));
-				statement = throwStatement;
+				bb.addStmt(setOp(throwStatement, op));
 				break;
 			}
 			case XOR: {
@@ -1372,9 +1377,6 @@ public final class TrCfg2JavaExpressionStmts {
 			}
 			default:
 				throw new DecoJerException("Unknown intermediate vm operation '" + op + "'!");
-			}
-			if (statement != null) {
-				bb.addStmt(setOp(statement, op));
 			}
 		}
 		return true;
@@ -2025,22 +2027,22 @@ public final class TrCfg2JavaExpressionStmts {
 					}
 				}
 				// use one of the constants, so that we get the correct out type
-			final ConditionalExpression conditionalExpression = setOp(getAst()
-					.newConditionalExpression(), getOp(thenExpression));
-			if (!c.isBefore(x)) {
-				final Expression swapExpression = thenExpression;
-				thenExpression = elseExpression;
-				elseExpression = swapExpression;
-				if (a_c.isCondTrue()) {
+				final ConditionalExpression conditionalExpression = setOp(getAst()
+						.newConditionalExpression(), getOp(thenExpression));
+				if (!c.isBefore(x)) {
+					final Expression swapExpression = thenExpression;
+					thenExpression = elseExpression;
+					elseExpression = swapExpression;
+					if (a_c.isCondTrue()) {
+						expression = not(expression);
+					}
+				} else if (a_c.isCondFalse()) {
 					expression = not(expression);
 				}
-			} else if (a_c.isCondFalse()) {
-				expression = not(expression);
-			}
-			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
-			conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
-			conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
-			expression = conditionalExpression;
+				conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
+				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
+				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
+				expression = conditionalExpression;
 			}
 			a.push(expression);
 			a.setSucc(bb);
@@ -2181,7 +2183,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		((VariableDeclarationFragment) ((FieldDeclaration) astNode).fragments().get(0))
-		.setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
+				.setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
 		// TODO move anonymous TD to FD as child!!! important for ClassEditor
 		// select, if fixed change ClassEditor#findDeclarationForJavaElement too
 		if (!f.isStatic()) {
