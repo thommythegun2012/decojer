@@ -239,8 +239,11 @@ public class ClassF extends F {
 			return;
 		}
 		if (!valueT.eraseTo(getValueT())) {
-			log.info("Cannot reduce field value signature '" + valueT + "' to '" + getValueT()
-					+ "' for: " + this);
+			if (!isScala()) {
+				// can even contain incompatible signatures like short for Object
+				log.info("Cannot reduce field value signature '" + valueT + "' to '" + getValueT()
+						+ "' for: " + this);
+			}
 		} else {
 			setValueT(valueT);
 		}
