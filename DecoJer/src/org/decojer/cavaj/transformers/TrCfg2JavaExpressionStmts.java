@@ -287,7 +287,7 @@ public final class TrCfg2JavaExpressionStmts {
 	private boolean convertToHLLIntermediate(@Nonnull final BB bb) {
 		while (bb.getOps() > 0) {
 			while (isStackUnderflow(bb)) {
-				while (rewriteConditionalValue(bb)) {
+				while (rewriteCompoundConditional(bb)) {
 					// nested possible
 				} // ...now continue to pull generated stack value down...
 				final Op op = bb.getOp(0);
@@ -310,14 +310,13 @@ public final class TrCfg2JavaExpressionStmts {
 						}
 					}
 					if (op instanceof JCND) {
-						if (rewriteConditionalConstants(bb)) {
+						if (rewriteJcndConstantConditional(bb)) {
 							// special handling for JCND, multiple predecessors possible and can be
-							// directly routed through this BB,
-							// seen e.g. in JDK 1 & 2 and Scala
+							// directly routed through this BB, seen e.g. in JDK 1 & 2 and Scala
 							return true; // deleted myself
 						}
-					} else if (rewriteConditionalStack(bb)) {
-						// happens e.g. for RETURN, STORE, INVOKE, POP
+					} else if (pushBackOperation(bb)) {
+						// push operation back
 						if (!getCfg().getT().isScala()) {
 							log.warn(getM()
 									+ ": Rewriting of conditional stack values should only happen for Scala based classes!");
@@ -1471,6 +1470,41 @@ public final class TrCfg2JavaExpressionStmts {
 		return getCfg().getInFrame(op).peek().getT();
 	}
 
+	private boolean pushBackOperation(@Nonnull final BB bb) {
+		// behaves like rewriteCompoundConditional(), which cannot work here because the conditions
+		// don't fulfill all pattern constraints (like no additonal stack elements or statements);
+		// instead we push back the operation and try to consume the stack value there
+		assert bb.getOps() > 0;
+		assert bb.isStackEmpty() : bb.getTop();
+
+		final Op op = bb.getOp(0);
+		final List<E> ins = bb.getIns();
+		assert ins.size() > 1;
+
+		for (int i = ins.size(); i-- > 0;) {
+			final E in = ins.get(i).getRelevantIn();
+			if (!in.isSequence()) {
+				continue;
+			}
+			final BB pred = in.getStart();
+			if (pred.isStackEmpty()) {
+				continue;
+			}
+			pred.addOp(op);
+			final boolean success = convertToHLLIntermediate(pred);
+			assert success;
+			if (op instanceof RETURN) {
+				in.remove();
+			}
+		}
+		if (op instanceof RETURN) {
+			assert bb.getOps() == 1 : bb.getOps();
+			return ins.isEmpty();
+		}
+		bb.removeOp(0);
+		return true;
+	}
+
 	private boolean rewriteBooleanCompound(@Nonnull final BB bb) {
 		// Is this is a short circuit compound? Example is A || C.
 		// Is this a conditional compound (since JVM 4 with C/x is cond)? Example is A ? C : x.
@@ -1857,109 +1891,7 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
-	private boolean rewriteConditionalConstants(@Nonnull final BB bb) {
-		// in boolean compounds in JDK 1 & 2: PUSH true/false -> JCND,
-		// also found in Scala
-		assert bb.getOps() == 1 : bb.getOps();
-		assert bb.isStackEmpty() : bb.getTop();
-
-		final JCND opJcnd = (JCND) bb.getOp(0);
-		final CmpType cmpType = opJcnd.getCmpType();
-		final List<E> ins = bb.getIns();
-		assert ins.size() > 1;
-
-		for (int i = ins.size(); i-- > 0;) {
-			final E in = ins.get(i).getRelevantIn();
-			if (!in.isSequence()) {
-				continue;
-			}
-			final BB pred = in.getStart();
-			if (pred.isStackEmpty()) {
-				continue;
-			}
-			Expression expression = pred.pop();
-			Boolean booleanConst = getBooleanValue(expression);
-			if (booleanConst != null) {
-				switch (cmpType) {
-				case T_EQ:
-					// "== 0" means "is false"
-					booleanConst = !booleanConst;
-					break;
-				case T_NE:
-					// "!= 0" means "is true"
-					break;
-				default:
-					log.warn(getM() + ": Unknown cmp type '" + cmpType + "'!");
-				}
-				final BB constantSucc = booleanConst ? bb.getTrueSucc() : bb.getFalseSucc();
-				assert constantSucc != null;
-				if (pred.getStmts() == 0 && pred.isStackEmpty()) {
-					pred.moveIns(constantSucc);
-				} else {
-					pred.setSucc(constantSucc);
-				}
-				continue;
-			}
-			switch (cmpType) {
-			case T_EQ:
-				// "== 0" means "is false"
-				expression = not(expression);
-				break;
-			case T_NE:
-				// "!= 0" means "is true"
-				break;
-			default:
-				log.warn(getM() + ": Unknown cmp type '" + cmpType + "' for boolean expression '"
-						+ expression + "'!");
-			}
-			final IfStatement ifStatement = setOp(getAst().newIfStatement(), opJcnd);
-			ifStatement.setExpression(wrap(expression));
-			pred.addStmt(ifStatement);
-			final BB trueSucc = bb.getTrueSucc();
-			assert trueSucc != null;
-			final BB falseSucc = bb.getFalseSucc();
-			assert falseSucc != null;
-			pred.setConds(trueSucc, falseSucc);
-		}
-		return ins.isEmpty();
-	}
-
-	private boolean rewriteConditionalStack(@Nonnull final BB bb) {
-		// return conditional value with additional statements in conditions,
-		// rewriteConditionalValue() cannot work here, seen in Scala
-		// TODO BB is NEW/NEW -> [INVOKE <init>(Lscala/Either;)V, RETURN]
-		assert bb.getOps() > 0;
-		assert bb.isStackEmpty() : bb.getTop();
-
-		final Op op = bb.getOp(0);
-		final List<E> ins = bb.getIns();
-		assert ins.size() > 1;
-
-		for (int i = ins.size(); i-- > 0;) {
-			final E in = ins.get(i).getRelevantIn();
-			if (!in.isSequence()) {
-				continue;
-			}
-			final BB pred = in.getStart();
-			if (pred.isStackEmpty()) {
-				continue;
-			}
-			pred.addOp(op);
-			final boolean success = convertToHLLIntermediate(pred);
-			assert success;
-			if (op instanceof RETURN) {
-				in.remove();
-			}
-		}
-		if (op instanceof RETURN) {
-			assert bb.getOps() == 1 : bb.getOps();
-			return ins.isEmpty();
-		}
-		bb.removeOp(0);
-		return true;
-	}
-
-	private boolean rewriteConditionalValue(@Nonnull final BB bb) {
+	private boolean rewriteCompoundConditional(@Nonnull final BB bb) {
 		// Is this a conditional compound value? Example is A ? C : x:
 		//
 		// ...|...
@@ -2349,6 +2281,73 @@ public final class TrCfg2JavaExpressionStmts {
 		bb.removeOp(0);
 		bb.push(assignment);
 		return true;
+	}
+
+	private boolean rewriteJcndConstantConditional(@Nonnull final BB bb) {
+		// in boolean compounds in JDK 1 & 2: PUSH true/false -> JCND,
+		// also found in Scala
+		assert bb.getOps() == 1 : bb.getOps();
+		assert bb.isStackEmpty() : bb.getTop();
+
+		final JCND opJcnd = (JCND) bb.getOp(0);
+		final CmpType cmpType = opJcnd.getCmpType();
+		final List<E> ins = bb.getIns();
+		assert ins.size() > 1;
+
+		for (int i = ins.size(); i-- > 0;) {
+			final E in = ins.get(i).getRelevantIn();
+			if (!in.isSequence()) {
+				continue;
+			}
+			final BB pred = in.getStart();
+			if (pred.isStackEmpty()) {
+				continue;
+			}
+			Expression expression = pred.pop();
+			Boolean booleanConst = getBooleanValue(expression);
+			if (booleanConst != null) {
+				switch (cmpType) {
+				case T_EQ:
+					// "== 0" means "is false"
+					booleanConst = !booleanConst;
+					break;
+				case T_NE:
+					// "!= 0" means "is true"
+					break;
+				default:
+					log.warn(getM() + ": Unknown cmp type '" + cmpType + "'!");
+				}
+				final BB constantSucc = booleanConst ? bb.getTrueSucc() : bb.getFalseSucc();
+				assert constantSucc != null;
+				if (pred.getStmts() == 0 && pred.isStackEmpty()) {
+					pred.moveIns(constantSucc);
+				} else {
+					pred.setSucc(constantSucc);
+				}
+				continue;
+			}
+			switch (cmpType) {
+			case T_EQ:
+				// "== 0" means "is false"
+				expression = not(expression);
+				break;
+			case T_NE:
+				// "!= 0" means "is true"
+				break;
+			default:
+				log.warn(getM() + ": Unknown cmp type '" + cmpType + "' for boolean expression '"
+						+ expression + "'!");
+			}
+			final IfStatement ifStatement = setOp(getAst().newIfStatement(), opJcnd);
+			ifStatement.setExpression(wrap(expression));
+			pred.addStmt(ifStatement);
+			final BB trueSucc = bb.getTrueSucc();
+			assert trueSucc != null;
+			final BB falseSucc = bb.getFalseSucc();
+			assert falseSucc != null;
+			pred.setConds(trueSucc, falseSucc);
+		}
+		return ins.isEmpty();
 	}
 
 	private boolean rewriteStringAppend(@Nonnull final BB bb, @Nonnull final INVOKE op) {
