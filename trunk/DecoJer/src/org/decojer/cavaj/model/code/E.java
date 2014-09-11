@@ -200,13 +200,14 @@ public final class E {
 	}
 
 	/**
-	 * Is back edge?
+	 * Is back edge? This includes self-loops (same node).
 	 *
 	 * @return {@code true} - is back edge
 	 */
 	public boolean isBack() {
-		// equal: check self back edge too, ignore catch handler self loops
-		return getStart().getPostorder() <= getEnd().getPostorder();
+		// don't use same postorder as check, could happen through artificial helper nodes like
+		// created by TrCfg2JavaExpressionStmts#pullStackValue()
+		return getStart().getPostorder() < getEnd().getPostorder() || getStart() == getEnd();
 	}
 
 	/**
@@ -332,8 +333,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-		+ (this.start == null ? "null" : getEnd().getPc())
-		+ (valueString.isEmpty() ? "" : " : " + getValueString());
+				+ (this.start == null ? "null" : getEnd().getPc())
+				+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }
