@@ -296,7 +296,7 @@ public final class TrCfg2JavaExpressionStmts {
 					// "push operation back": rewriteConditionalValue() hasn't worked, e.g.
 					// conditional sides contained statements
 					if (op instanceof STORE) {
-						// special trick for store <return_address> till finally is established
+						// TODO special trick for store <return_address> till finally is established
 						if (peekT(op) == T.RET) {
 							bb.removeOp(0);
 							if (bb.getOps() != 0) {
@@ -313,19 +313,24 @@ public final class TrCfg2JavaExpressionStmts {
 						if (rewriteJcndConstantConditional(bb)) {
 							// special handling for JCND, multiple predecessors possible and can be
 							// directly routed through this BB, seen e.g. in JDK 1 & 2 and Scala
-							return true; // deleted myself
+							if (bb.isRemoved()) {
+								return true;
+							}
+							// don't continue, if not all ins are removed it ends here
 						}
-					} else if (pushBackOperation(bb)) {
-						// push operation back
-						if (!getCfg().getT().isScala()) {
-							log.warn(getM()
-									+ ": Rewriting of conditional stack values should only happen for Scala based classes!");
+					} else if (!(op instanceof JCMP) && !(op instanceof SWITCH)) {
+						if (pushBackOperation(bb)) {
+							// push operation back: only possible for preds with sequence outs, no
+							// conditionals; can happen for scala, python etc.
+							if (bb.isRemoved()) {
+								return true;
+							}
+							continue;
 						}
-						return true; // deleted myself
 					}
-					return false;
+					return false; // cannot pull down stack values from multiple ins
 				}
-				// try to pull existing stack values in relevant predecessor down
+				// check for single sequence in / predecessor: try to pull it's stack value down
 				final E pred2bb = bb.getRelevantIn();
 				if (pred2bb == null) {
 					return false; // multiple or conditional incomings -> real fail
@@ -1472,7 +1477,14 @@ public final class TrCfg2JavaExpressionStmts {
 		return getCfg().getInFrame(op).peek().getT();
 	}
 
-	private boolean pushBackOperation(@Nonnull final BB bb) {
+	/**
+	 * Push back first operation from this BB to all previous BBs.
+	 *
+	 * @param bb
+	 *            BB with operation
+	 * @return {@code true} - success
+	 */
+	private Boolean pushBackOperation(@Nonnull final BB bb) {
 		// behaves like rewriteCompoundConditional(), which cannot work here because the conditions
 		// don't fulfill all pattern constraints (like no additonal stack elements or statements);
 		// instead we push back the operation and try to consume the stack value there
@@ -1483,25 +1495,30 @@ public final class TrCfg2JavaExpressionStmts {
 		final List<E> ins = bb.getIns();
 		assert ins.size() > 1;
 
+		// first check if this operation push back will be possible for all ins
 		for (int i = ins.size(); i-- > 0;) {
 			final E in = ins.get(i).getRelevantIn();
 			if (!in.isSequence()) {
-				continue;
+				return false;
 			}
 			final BB pred = in.getStart();
 			if (pred.isStackEmpty()) {
-				continue;
+				return false;
 			}
+		}
+
+		for (int i = ins.size(); i-- > 0;) {
+			final E in = ins.get(i).getRelevantIn();
+			assert in.isSequence();
+			final BB pred = in.getStart();
+			assert !pred.isStackEmpty();
+
 			pred.addOp(op);
 			final boolean success = convertToHLLIntermediate(pred);
 			assert success;
 			if (op instanceof RETURN) {
 				in.remove();
 			}
-		}
-		if (op instanceof RETURN) {
-			assert bb.getOps() == 1 : bb.getOps();
-			return ins.isEmpty();
 		}
 		bb.removeOp(0);
 		return true;
@@ -2285,9 +2302,18 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
+	/**
+	 * Rewrite JCND for constant registers: Route directly to targets.
+	 *
+	 * Found in boolean compounds in JDK 1 & 2: PUSH true/false -> JCND.
+	 *
+	 * Also seen in Scala
+	 *
+	 * @param bb
+	 *            BB with JDNC
+	 * @return {@code true} - success
+	 */
 	private boolean rewriteJcndConstantConditional(@Nonnull final BB bb) {
-		// in boolean compounds in JDK 1 & 2: PUSH true/false -> JCND,
-		// also found in Scala
 		assert bb.getOps() == 1 : bb.getOps();
 		assert bb.isStackEmpty() : bb.getTop();
 
@@ -2349,7 +2375,7 @@ public final class TrCfg2JavaExpressionStmts {
 			assert falseSucc != null;
 			pred.setConds(trueSucc, falseSucc);
 		}
-		return ins.isEmpty();
+		return true;
 	}
 
 	private boolean rewriteStringAppend(@Nonnull final BB bb, @Nonnull final INVOKE op) {

@@ -720,7 +720,12 @@ public final class BB {
 		return false;
 	}
 
-	protected boolean isRemoved() {
+	/**
+	 * Is removed?
+	 * 
+	 * @return {@code true} - is removed
+	 */
+	public boolean isRemoved() {
 		// cannot use if (ins.empty() && !isStart()) because will also be triggered in CFG building
 		return getPc() < 0;
 	}
