@@ -219,7 +219,12 @@ public final class TrCfg2JavaExpressionStmts {
 			final List<E> ins = end.getIns();
 			// single incoming edge? no merge necessary
 			if (ins.size() == 1) {
-				end.pushFirst(pop);
+				final Op op = end.getOp(0);
+				if (op instanceof POP) {
+					end.removeOp(0);
+				} else {
+					end.pushFirst(pop);
+				}
 				continue;
 			}
 			// add artificial entry BB with value
@@ -330,15 +335,16 @@ public final class TrCfg2JavaExpressionStmts {
 					}
 					return false; // cannot pull down stack values from multiple ins
 				}
-				// check for single sequence in / predecessor: try to pull it's stack value down
+				// check for single predecessor, jump over unrelevant nodes:
+				// try to pull previous stack value down
 				final E pred2bb = bb.getRelevantIn();
 				if (pred2bb == null) {
-					return false; // multiple or conditional incomings -> real fail
+					return false; // multiple incomings -> real fail
 				}
 				final BB pred = pred2bb.getStart();
 				final E pred2bbBack = pred.getRelevantOut();
 				if (pred2bbBack != null && bb == pred2bbBack.getEnd()) {
-					// is a 1:1 connection, just join it
+					// is a 1:1 sequence connection, just join it
 					bb.joinPredBb(pred);
 					continue;
 				}
