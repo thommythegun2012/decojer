@@ -359,7 +359,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -604,16 +604,55 @@ public final class BB {
 	}
 
 	/**
-	 * Is this BB before (or same like) given BB?
+	 * Has this BB the given BB as predecessor (or same)?
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - this BB has given BB as predecessor (or same)
+	 */
+	public boolean hasPred(@Nonnull final BB bb) {
+		final List<BB> checks = Lists.newArrayList(this);
+		final Set<BB> checked = Sets.newHashSet();
+		while (!checks.isEmpty()) {
+			final BB check = checks.remove(0);
+			if (check == bb) {
+				return true;
+			}
+			checked.add(check);
+			if (check.getPostorder() >= bb.getPostorder()) {
+				// check cannot have BB as pred here, are above it in postordering
+				continue;
+			}
+			for (final E in : this.ins) {
+				if (in.isBack()) {
+					continue;
+				}
+				final BB pred = in.getStart();
+				if (checked.contains(pred) || checks.contains(pred)) {
+					continue;
+				}
+				checks.add(pred);
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * Has this BB it's source code before the given BB (or same)?
+	 *
+	 * This may not be 100% correct if no line number info is available (e.g. Dalvik bytecode
+	 * reorders PCs), but the natural BB order is regarded.
 	 *
 	 * @param bb
 	 *            given BB
-	 * @return {@code true} - this BB is before given BB, also for same BBs or given BB as
-	 *         {@code null}
+	 * @return {@code true} - this BBs has it's source code before the given BB (or same)
 	 */
-	public boolean isBefore(@Nullable final BB bb) {
-		if (bb == null) {
+	public boolean hasSourceBefore(@Nonnull final BB bb) {
+		if (hasSucc(bb)) {
 			return true;
+		}
+		if (hasPred(bb)) {
+			return false;
 		}
 		if (getLine() < bb.getLine()) {
 			return true;
@@ -622,6 +661,17 @@ public final class BB {
 			return true;
 		}
 		return false;
+	}
+
+	/**
+	 * Has this BB the given BB as successor (or same)?
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - this BB has the given BB as successor (or same)
+	 */
+	public boolean hasSucc(@Nonnull final BB bb) {
+		return bb.hasPred(this);
 	}
 
 	/**
@@ -657,40 +707,6 @@ public final class BB {
 	 */
 	public boolean isLineInfo() {
 		return getLine() >= 0;
-	}
-
-	/**
-	 * Is given BB a predecessor (or same)?
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - given BB is a predecessor (or same)
-	 */
-	public boolean isPred(@Nonnull final BB bb) {
-		final List<BB> checks = Lists.newArrayList(this);
-		final Set<BB> checked = Sets.newHashSet();
-		while (!checks.isEmpty()) {
-			final BB check = checks.remove(0);
-			if (check == bb) {
-				return true;
-			}
-			checked.add(check);
-			if (check.getPostorder() >= bb.getPostorder()) {
-				// check cannot have BB as pred here, are above it in postordering
-				continue;
-			}
-			for (final E in : this.ins) {
-				if (in.isBack()) {
-					continue;
-				}
-				final BB pred = in.getStart();
-				if (checked.contains(pred) || checks.contains(pred)) {
-					continue;
-				}
-				checks.add(pred);
-			}
-		}
-		return false;
 	}
 
 	/**
@@ -769,17 +785,6 @@ public final class BB {
 	 */
 	public boolean isStartBb() {
 		return getCfg().getStartBb() == this;
-	}
-
-	/**
-	 * Is given BB a successor (or same)?
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - given BB is a successor (or same)
-	 */
-	public boolean isSucc(@Nonnull final BB bb) {
-		return !isPred(bb) || this == bb;
 	}
 
 	/**
