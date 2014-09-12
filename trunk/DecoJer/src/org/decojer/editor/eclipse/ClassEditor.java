@@ -57,8 +57,11 @@ import org.eclipse.jdt.internal.ui.javaeditor.IClassFileEditorInput;
 import org.eclipse.jdt.internal.ui.javaeditor.JavaOutlinePage;
 import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
+import org.eclipse.jface.viewers.ITreeContentProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.TreeSelection;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.SelectionEvent;
@@ -70,6 +73,8 @@ import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IEditorSite;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.dialogs.FilteredTree;
+import org.eclipse.ui.dialogs.PatternFilter;
 import org.eclipse.ui.part.FileEditorInput;
 import org.eclipse.ui.part.MultiPageEditorPart;
 import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
@@ -227,7 +232,7 @@ public class ClassEditor extends MultiPageEditorPart {
 		return;
 	}
 
-	private Tree archiveTree;
+	private SashForm archiveSash;
 
 	private CfgViewer cfgViewer;
 
@@ -281,18 +286,55 @@ public class ClassEditor extends MultiPageEditorPart {
 		if (this.selectedCu != null) {
 			return pageContainer;
 		}
-		final SashForm sashForm = new SashForm(pageContainer, SWT.HORIZONTAL | SWT.BORDER
-				| SWT.SMOOTH);
-		this.archiveTree = new Tree(sashForm, SWT.NONE);
-		for (final CU cu : this.du.getCus()) {
-			final TreeItem treeItem = new TreeItem(this.archiveTree, SWT.NONE);
-			treeItem.setText(cu.getName());
-			if (this.selectedCu == null) {
-				this.archiveTree.select(treeItem);
-				this.selectedCu = cu;
+		this.archiveSash = new SashForm(pageContainer, SWT.HORIZONTAL | SWT.BORDER | SWT.SMOOTH);
+		final FilteredTree filteredTree = new FilteredTree(this.archiveSash, SWT.BORDER | SWT.MULTI
+				| SWT.NO_FOCUS, new PatternFilter(), true);
+		final TreeViewer filteredTreeViewer = filteredTree.getViewer();
+		filteredTreeViewer.setContentProvider(new ITreeContentProvider() {
+
+			private CU[] elements;
+
+			@Override
+			public void dispose() {
+				// nothing
 			}
-		}
-		this.archiveTree.addSelectionListener(new SelectionListener() {
+
+			@Override
+			public Object[] getChildren(final Object parentElement) {
+				return null;
+			}
+
+			@Override
+			public Object[] getElements(final Object inputElement) {
+				return this.elements;
+			}
+
+			@Override
+			public Object getParent(final Object element) {
+				return null;
+			}
+
+			@Override
+			public boolean hasChildren(final Object element) {
+				return false;
+			}
+
+			@Override
+			public void inputChanged(final Viewer viewer, final Object oldInput,
+					final Object newInput) {
+				if (!(newInput instanceof DU)) {
+					this.elements = null;
+					return;
+				}
+				final List<CU> cus = ((DU) newInput).getCus();
+				this.elements = cus.toArray(new CU[cus.size()]);
+			}
+
+		});
+		filteredTreeViewer.setInput(this.du);
+		final Tree tree = filteredTreeViewer.getTree();
+
+		tree.addSelectionListener(new SelectionListener() {
 
 			@Override
 			public void widgetDefaultSelected(final SelectionEvent e) {
@@ -301,7 +343,7 @@ public class ClassEditor extends MultiPageEditorPart {
 
 			@Override
 			public void widgetSelected(final SelectionEvent e) {
-				final TreeItem[] selections = ClassEditor.this.archiveTree.getSelection();
+				final TreeItem[] selections = tree.getSelection();
 				if (selections.length != 1) {
 					return;
 				}
@@ -309,7 +351,7 @@ public class ClassEditor extends MultiPageEditorPart {
 				if (ClassEditor.this.selectedCu != null) {
 					ClassEditor.this.selectedCu.clear();
 				}
-				final CU selectedCu = ClassEditor.this.du.getCu(selection.getText());
+				final CU selectedCu = (CU) selection.getData();
 				if (selectedCu != null) {
 					ClassEditor.this.selectedCu = selectedCu;
 					ClassEditor.this.decompilationUnitEditor.setInput(selectedCu);
@@ -317,8 +359,9 @@ public class ClassEditor extends MultiPageEditorPart {
 			}
 
 		});
-		this.archiveTree.pack(); // necessary for correct selection box for first item
-		return sashForm;
+		tree.select(tree.getItem(0)); // doesn't trigger listener
+		ClassEditor.this.selectedCu = (CU) tree.getItem(0).getData();
+		return this.archiveSash;
 	}
 
 	/**
@@ -327,15 +370,14 @@ public class ClassEditor extends MultiPageEditorPart {
 	@Override
 	protected void createPages() {
 		setPartName(getEditorInput().getName());
-		if (this.archiveTree != null) {
-			// must happen delayed after added tab pane
-			((SashForm) this.archiveTree.getParent()).setWeights(new int[] { 1, 4 });
+		if (this.archiveSash != null) {
+			// final must happen delayed final after added tab pane
+			this.archiveSash.setWeights(new int[] { 1, 4 });
 		}
-
 		// for debugging purposes:
 		createControlFlowGraphViewer();
 		// initialization comes first, delivers IClassFileEditorInput
-		if (this.archiveTree == null) {
+		if (this.archiveSash == null) {
 			createClassFileEditor();
 		}
 		createDecompilationUnitEditor();
