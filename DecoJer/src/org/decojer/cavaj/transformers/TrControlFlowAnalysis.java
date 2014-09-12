@@ -683,11 +683,7 @@ public final class TrControlFlowAnalysis {
 					if (!syncOut.isSequence()) {
 						continue;
 					}
-					if (syncFollow == null) {
-						syncFollow = syncOut.getEnd();
-						continue;
-					}
-					if (syncOut.getEnd().hasSourceBefore(syncFollow)) {
+					if (syncFollow == null || syncOut.getEnd().hasSourceBefore(syncFollow)) {
 						syncFollow = syncOut.getEnd();
 						continue;
 					}
