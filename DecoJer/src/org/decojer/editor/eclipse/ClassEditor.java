@@ -104,12 +104,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		// example: sun/org/mozilla/javascript/internal/
 		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
 				.getResource().getLocation().toOSString() : eclipseClassFile.getPath().toOSString();
-		assert jarPath != null;
+				assert jarPath != null;
 
-		final String packageName = eclipseClassFile.getParent().getElementName();
-		final String typeName = eclipseClassFile.getElementName();
-		return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
-				+ typeName;
+				final String packageName = eclipseClassFile.getParent().getElementName();
+				final String typeName = eclipseClassFile.getElementName();
+				return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
+						+ typeName;
 	}
 
 	private static void parseClassT(final String s, final Cursor c, final StringBuilder sb) {
@@ -287,7 +287,7 @@ public class ClassEditor extends MultiPageEditorPart {
 			return pageContainer;
 		}
 		this.archiveSash = new SashForm(pageContainer, SWT.HORIZONTAL | SWT.BORDER | SWT.SMOOTH);
-		final FilteredTree filteredTree = new FilteredTree(this.archiveSash, SWT.BORDER | SWT.MULTI
+		final FilteredTree filteredTree = new FilteredTree(this.archiveSash, SWT.BORDER
 				| SWT.NO_FOCUS, new PatternFilter(), true);
 		final TreeViewer filteredTreeViewer = filteredTree.getViewer();
 		filteredTreeViewer.setContentProvider(new ITreeContentProvider() {
