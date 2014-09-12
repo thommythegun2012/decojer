@@ -611,6 +611,9 @@ public final class BB {
 	 * @return {@code true} - this BB has given BB as predecessor (or same)
 	 */
 	public boolean hasPred(@Nonnull final BB bb) {
+		if (getPostorder() > bb.getPostorder()) {
+			return false; // quick fail without collection init
+		}
 		final List<BB> checks = Lists.newArrayList(this);
 		final Set<BB> checked = Sets.newHashSet();
 		while (!checks.isEmpty()) {
