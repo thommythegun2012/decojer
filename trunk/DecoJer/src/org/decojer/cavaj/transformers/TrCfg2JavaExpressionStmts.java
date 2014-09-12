@@ -201,7 +201,7 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private static boolean pullStackValue(@Nonnull final BB bb) {
-		final E pred2bb = bb.getSequenceIn();
+		final E pred2bb = bb.getRelevantIn();
 		if (pred2bb == null || pred2bb.isBack()) {
 			return false;
 		}
@@ -215,16 +215,18 @@ public final class TrCfg2JavaExpressionStmts {
 			if (out.isCatch()) {
 				continue; // stack cleared
 			}
-			final BB end = out.getEnd();
+			final BB end = out.getRelevantEnd();
 			final List<E> ins = end.getIns();
 			// single incoming edge? no merge necessary
 			if (ins.size() == 1) {
-				final Op op = end.getOp(0);
-				if (op instanceof POP) {
-					end.removeOp(0);
-				} else {
-					end.pushFirst(pop);
+				if (end.getOps() > 0) {
+					final Op op = end.getOp(0);
+					if (op instanceof POP) {
+						end.removeOp(0);
+						continue;
+					}
 				}
+				end.pushFirst(pop);
 				continue;
 			}
 			// add artificial entry BB with value
