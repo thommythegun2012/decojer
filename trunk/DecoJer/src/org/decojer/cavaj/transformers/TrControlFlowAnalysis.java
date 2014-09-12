@@ -305,6 +305,7 @@ public final class TrControlFlowAnalysis {
 	 */
 	private static void findBranch(@Nonnull final Struct struct, @Nonnull final E firstIn,
 			@Nonnull final List<BB> members, @Nonnull final Set<BB> followBbs) {
+		final Struct parentStruct = struct.getParent();
 		// no recursion, can be very deep
 		final List<BB> checkBbs = Lists.newArrayList(firstIn.getEnd());
 		outer: do {
@@ -321,8 +322,10 @@ public final class TrControlFlowAnalysis {
 						if (in == firstIn) {
 							continue; // ignore first incoming edge into branch
 						}
-						if (in.isBack()) {
-							continue; // ignore incoming back edges, sub loop-heads belong to branch
+						if (in.isBack() || in.isCatch()) {
+							// ignore incoming back edges, sub loop-heads belong to branch;
+							// ignore incoming catches or wrapping handlers are always catches...
+							continue;
 						}
 						final BB pred = in.getStart();
 						if (members.contains(pred)) {
@@ -334,6 +337,14 @@ public final class TrControlFlowAnalysis {
 					// all predecessors of checkBb are members
 					followBbs.remove(checkBb); // maybe we where already here
 				}
+				if (parentStruct != null) {
+					// can e.g. happen for synchronize follows (no additional ins for follow)
+					if (checkBb == parentStruct.getFollow()) {
+						assert checkBb.getIns().size() == 1;
+						followBbs.add(checkBb);
+						continue outer;
+					}
+				}
 				// checkBb is a member
 				members.add(checkBb);
 			}
@@ -341,11 +352,7 @@ public final class TrControlFlowAnalysis {
 			// TODO jump over finally here? handle before and remove?
 			for (final E out : checkBb.getOuts()) {
 				final BB succ = out.getEnd();
-				if (succ.isCatchHandler()) {
-					// don't follow catches or we get handler BBs from enclosing catches as follows
-					// TODO shouldn't happen later, handle catches and remove edges before
-					continue;
-				}
+				// enclosed catch-handlers could be part of branch: add here und check ins later
 				if (!members.contains(succ) && !checkBbs.contains(succ)) {
 					// follows must be checked again
 					checkBbs.add(succ);
