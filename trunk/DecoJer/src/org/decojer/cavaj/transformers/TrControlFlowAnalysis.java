@@ -84,7 +84,7 @@ public final class TrControlFlowAnalysis {
 			assert backBb != null;
 			final boolean found = findReverseBranch(loop, backBb, members, traversedBbs);
 			assert found : "cannot have a loop back BB that is not in reverse branch";
-			if (last == null || last.isBefore(backBb)) {
+			if (last == null || last.hasSourceBefore(backBb)) {
 				last = backBb;
 			}
 		}
@@ -277,7 +277,7 @@ public final class TrControlFlowAnalysis {
 		// highest follow is switch struct follow
 		BB switchFollow = null;
 		for (final BB follow : follows) {
-			if (follow.isBefore(switchFollow)) {
+			if (switchFollow == null || follow.hasSourceBefore(switchFollow)) {
 				switchFollow = follow;
 			}
 		}
@@ -560,7 +560,8 @@ public final class TrControlFlowAnalysis {
 
 		// negated also handles empty if-statements as negated by default,
 		// 2nd condition part is trick against things like iteration in loop last,
-		final boolean negated = falseSucc.isBefore(trueSucc) || trueSucc.isBefore(head);
+		final boolean negated = falseSucc.hasSourceBefore(trueSucc)
+				|| trueSucc.hasSourceBefore(head);
 		final E firstOut = negated ? falseOut : trueOut;
 		final E secondOut = negated ? trueOut : falseOut;
 		final Boolean firstValue = negated;
@@ -604,14 +605,14 @@ public final class TrControlFlowAnalysis {
 		// JVM 6: highest follow is potential branch follow
 		BB firstFollow = null;
 		for (final BB follow : firstFollows) {
-			if (follow.isBefore(firstFollow)) {
+			if (firstFollow == null || follow.hasSourceBefore(firstFollow)) {
 				firstFollow = follow;
 			}
 		}
 		assert firstFollow != null;
 		BB secondFollow = null;
 		for (final BB follow : secondFollows) {
-			if (follow.isBefore(secondFollow)) {
+			if (secondFollow == null || follow.hasSourceBefore(secondFollow)) {
 				secondFollow = follow;
 			}
 		}
@@ -687,7 +688,7 @@ public final class TrControlFlowAnalysis {
 						syncFollow = syncOut.getEnd();
 						continue;
 					}
-					if (syncOut.getEnd().isBefore(syncFollow)) {
+					if (syncOut.getEnd().hasSourceBefore(syncFollow)) {
 						syncFollow = syncOut.getEnd();
 						continue;
 					}
