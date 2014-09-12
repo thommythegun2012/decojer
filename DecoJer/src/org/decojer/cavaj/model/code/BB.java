@@ -359,7 +359,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -402,6 +402,22 @@ public final class BB {
 	 */
 	public BB getIDom() {
 		return getCfg().getIDom(this);
+	}
+
+	/**
+	 * Get in.
+	 *
+	 * Relevant outs are sequence edges with relevant outs, relevant ins are single ins (any type)
+	 * where the start BB is relevant and has only a single in.
+	 *
+	 * @return sequence in
+	 */
+	@Nullable
+	public E getIn() {
+		if (this.ins.size() != 1) {
+			return null;
+		}
+		return this.ins.get(0);
 	}
 
 	public List<E> getIns() {
@@ -480,22 +496,6 @@ public final class BB {
 		final E out = getSequenceOut();
 		// only sequence outs are relevant, don't follow error handlers etc.
 		return out == null ? null : out.getRelevantOut();
-	}
-
-	/**
-	 * Get sequence in.
-	 *
-	 * Relevant outs are sequence edges with relevant outs, relevant ins are single ins (any type)
-	 * where the start BB is relevant and has only a single in.
-	 *
-	 * @return sequence in
-	 */
-	@Nullable
-	public E getSequenceIn() {
-		if (this.ins.size() != 1) {
-			return null;
-		}
-		return this.ins.get(0);
 	}
 
 	/**
