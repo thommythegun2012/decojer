@@ -322,16 +322,18 @@ public final class TrControlFlowAnalysis {
 						if (in == firstIn) {
 							continue; // ignore first incoming edge into branch
 						}
-						if (in.isBack() || in.isCatch()) {
-							// ignore incoming back edges, sub loop-heads belong to branch;
-							// ignore incoming catches or wrapping handlers are always catches...
+						if (in.isBack()) {
+							// ignore incoming back edges, sub loop-heads belong to branch
 							continue;
 						}
 						final BB pred = in.getStart();
 						if (members.contains(pred)) {
 							continue;
 						}
-						followBbs.add(checkBb);
+						if (!in.isCatch()) {
+							// wrapping handlers are always catches...don't add as follow
+							followBbs.add(checkBb);
+						}
 						continue outer;
 					}
 					// all predecessors of checkBb are members
