@@ -4,6 +4,8 @@
 
 com.android.ide.eclipse.adt.internal.build.AaptParser.checkAndMark
 
+https://android.googlesource.com/platform/sdk/+/474bd94/eclipse/plugins/com.android.ide.eclipse.adt/src/com/android/ide/eclipse/adt/internal/build/AaptParser.java
+
 Multi-Break Exit zu 131
 
 java.lang.RuntimeException: File: D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\com.android.ide.eclipse.adt_22.6.3.v201404151837-1123206.jar
