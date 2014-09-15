@@ -63,6 +63,7 @@ import org.eclipse.jdt.core.dom.DoStatement;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
+import org.eclipse.jdt.core.dom.LabeledStatement;
 import org.eclipse.jdt.core.dom.Name;
 import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
@@ -514,7 +515,7 @@ public final class TrCfg2JavaControlFlowStmts {
 	private BB transformStruct(@Nonnull final Struct struct,
 			@Nonnull final List<Statement> statements) {
 		if (!this.traversedStructs.add(struct)) {
-			assert false : "Cannot transform struct twice:\n" + struct;
+			assert 0 == 1 : "Cannot transform struct twice:\n" + struct;
 			log.warn(getM() + ": Cannot transform struct twice:\n" + struct);
 			return null;
 		}
@@ -545,6 +546,13 @@ public final class TrCfg2JavaControlFlowStmts {
 		if (structStatement == null) {
 			log.warn(getM() + ": Couldn't decompile struct:\n" + struct);
 		} else {
+			final String label = struct.getLabel();
+			if (label != null) {
+				final LabeledStatement labeledStatement = getAst().newLabeledStatement();
+				labeledStatement.setLabel(newSimpleName(label, getAst()));
+				labeledStatement.setBody(structStatement);
+				structStatement = labeledStatement;
+			}
 			statements.add(structStatement);
 		}
 		return struct.getFollow();

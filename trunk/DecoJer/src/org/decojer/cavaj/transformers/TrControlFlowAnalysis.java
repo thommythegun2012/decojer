@@ -534,6 +534,8 @@ public final class TrControlFlowAnalysis {
 	@Nonnull
 	private final CFG cfg;
 
+	int labelCounter = 0;
+
 	private TrControlFlowAnalysis(@Nonnull final CFG cfg) {
 		this.cfg = cfg;
 	}
@@ -563,8 +565,6 @@ public final class TrControlFlowAnalysis {
 		final boolean negated = falseSucc.hasSourceBefore(trueSucc) || trueSucc.hasSucc(head);
 		final E firstOut = negated ? falseOut : trueOut;
 		final E secondOut = negated ? trueOut : falseOut;
-		final Boolean firstValue = negated;
-		final Boolean secondValue = !negated;
 
 		// TODO see XmlParser.filterCR() - findBranch() now also contains breaks etc.,
 		// filter them!
@@ -573,16 +573,31 @@ public final class TrControlFlowAnalysis {
 		final Set<BB> firstFollows = Sets.newHashSet();
 		findBranch(cond, firstOut, firstMembers, firstFollows);
 
+		// TODO filter follows: handle outer breaks
+
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
-		if (firstFollows.isEmpty() || firstFollows.contains(secondOut.getEnd())) {
+		if (firstFollows.isEmpty() || firstFollows.size() == 1
+				&& firstFollows.contains(secondOut.getEnd())) {
 			// normal in JVM 6 bytecode, ifnot-expressions
 			cond.setKind(negated ? Cond.Kind.IFNOT : Cond.Kind.IF);
 			// also handles empty if-statements, members are empty in this case, see
 			// DecTestIfStmt.emptyIf()
-			cond.addMembers(firstValue, firstMembers);
+			cond.addMembers(negated, firstMembers);
 			cond.setFollow(secondOut.getEnd());
 			return cond;
+		}
+		// handle direct jump to follow
+		// TODO more comments why it shoud be behind empty firstFollows
+		for (Struct followStruct = cond.getParent(); followStruct != null; followStruct = followStruct
+				.getParent()) {
+			if (followStruct.getFollow() == secondOut.getEnd()) {
+				cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
+				cond.setFollow(firstOut.getEnd());
+				followStruct.setLabel(this.labelCounter++ == 0 ? "outer" : "outer"
+						+ this.labelCounter);
+				return cond;
+			}
 		}
 
 		final List<BB> secondMembers = Lists.newArrayList();
@@ -591,10 +606,11 @@ public final class TrControlFlowAnalysis {
 
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
-		if (secondFollows.isEmpty() || secondFollows.contains(firstOut.getEnd())) {
+		if (secondFollows.isEmpty() || secondFollows.size() == 1
+				&& secondFollows.contains(firstOut.getEnd())) {
 			// also often in JVM 6 bytecode, especially in parent structs
 			cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
-			cond.addMembers(secondValue, secondMembers);
+			cond.addMembers(!negated, secondMembers);
 			cond.setFollow(firstOut.getEnd());
 			return cond;
 		}
@@ -621,8 +637,8 @@ public final class TrControlFlowAnalysis {
 		if (firstFollow == secondFollow) {
 			// normal stuff
 			cond.setKind(negated ? Cond.Kind.IFNOT_ELSE : Cond.Kind.IF_ELSE);
-			cond.addMembers(firstValue, firstMembers);
-			cond.addMembers(secondValue, secondMembers);
+			cond.addMembers(negated, firstMembers);
+			cond.addMembers(!negated, secondMembers);
 			cond.setFollow(firstFollow);
 			return cond;
 		}
