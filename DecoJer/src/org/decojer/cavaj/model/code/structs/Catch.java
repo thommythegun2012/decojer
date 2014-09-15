@@ -54,13 +54,13 @@ public class Catch extends Struct {
 	}
 
 	/**
-	 * Is BB handler?
+	 * Has this catch struct the given BB as handler?
 	 *
 	 * @param bb
 	 *            BB
-	 * @return {@code true} - BB is handler
+	 * @return {@code true} - this catch struct has the given BB as handler
 	 */
-	public boolean isHandler(@Nullable final BB bb) {
+	public boolean hasHandler(@Nullable final BB bb) {
 		return getHandler() == bb;
 	}
 

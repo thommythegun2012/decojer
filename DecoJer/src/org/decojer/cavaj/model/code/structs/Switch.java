@@ -73,7 +73,14 @@ public class Switch extends Struct {
 		super(head);
 	}
 
-	public boolean isCase(@Nullable final BB bb) {
+	/**
+	 * Has this switch struct the given BB as case node?
+	 * 
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - this switch struct has the given BB as case node
+	 */
+	public boolean hasCase(@Nullable final BB bb) {
 		for (final Entry<Object, List<BB>> entry : this.value2members.entrySet()) {
 			final List<BB> value = entry.getValue();
 			if (value.isEmpty()) {
@@ -84,6 +91,11 @@ public class Switch extends Struct {
 			}
 		}
 		return false;
+	}
+
+	@Override
+	public boolean isDefaultBreakable() {
+		return true;
 	}
 
 	@Override

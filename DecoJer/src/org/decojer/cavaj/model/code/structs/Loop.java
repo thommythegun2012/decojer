@@ -85,18 +85,21 @@ public class Loop extends Struct {
 		super(bb);
 	}
 
-	@Override
-	public boolean hasMember(@Nullable final BB bb) {
-		// last BB for loops is separately stored but counts as normal member
-		return isLast(bb) || super.hasMember(bb);
+	/**
+	 * Has this loop struct the given BB as last node?
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - this loop struct has the given BB as last node
+	 */
+	public boolean hasLast(@Nullable final BB bb) {
+		return getLast() == bb;
 	}
 
 	@Override
-	public boolean isBranching(final BB bb) {
-		if (isContinueTarget(bb)) {
-			return true;
-		}
-		return super.isBranching(bb);
+	public boolean hasMember(@Nullable final BB bb) {
+		// last BB for loops is separately stored but counts as normal member
+		return hasLast(bb) || super.hasMember(bb);
 	}
 
 	/**
@@ -111,12 +114,17 @@ public class Loop extends Struct {
 		case DO_WHILE:
 		case DO_WHILENOT:
 		case ENDLESS: // must reduce empty BBs to direct edges before!
-			return isHead(bb);
+			return hasHead(bb);
 		case WHILE:
 		case WHILENOT:
-			return isLast(bb);
+			return hasLast(bb);
 		}
 		return false;
+	}
+
+	@Override
+	public boolean isDefaultBreakable() {
+		return true;
 	}
 
 	/**
@@ -126,17 +134,6 @@ public class Loop extends Struct {
 	 */
 	public boolean isEndless() {
 		return getKind() == Kind.ENDLESS;
-	}
-
-	/**
-	 * Is BB last?
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - BB is last
-	 */
-	public boolean isLast(@Nullable final BB bb) {
-		return getLast() == bb;
 	}
 
 	/**

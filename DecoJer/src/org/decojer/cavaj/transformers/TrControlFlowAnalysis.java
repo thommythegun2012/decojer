@@ -124,10 +124,10 @@ public final class TrControlFlowAnalysis {
 			assert falseOut != null;
 			final E trueOut = last.getTrueOut();
 			assert trueOut != null;
-			if (loop.isHead(trueOut.getEnd())) {
+			if (loop.hasHead(trueOut.getEnd())) {
 				lastKind = Loop.Kind.DO_WHILE;
 				lastFollowOut = falseOut;
-			} else if (loop.isHead(falseOut.getEnd())) {
+			} else if (loop.hasHead(falseOut.getEnd())) {
 				lastKind = Loop.Kind.DO_WHILENOT;
 				lastFollowOut = trueOut;
 			}
@@ -365,7 +365,7 @@ public final class TrControlFlowAnalysis {
 
 	private static boolean findReverseBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
 			@Nonnull final List<BB> members, @Nonnull final Set<BB> traversedBbs) {
-		if (members.contains(bb) || struct.isHead(bb)) {
+		if (members.contains(bb) || struct.hasHead(bb)) {
 			return true;
 		}
 		if (traversedBbs.contains(bb)) {
@@ -428,7 +428,7 @@ public final class TrControlFlowAnalysis {
 			final BB pred = in.getStart();
 			final Struct struct = pred.getStruct();
 			if (struct instanceof Loop && struct.getHead() == bb
-					&& (!((Loop) struct).isPost() || ((Loop) struct).isLast(pred))) {
+					&& (!((Loop) struct).isPost() || ((Loop) struct).hasLast(pred))) {
 				continue;
 			}
 			if (backBbs == null) {
@@ -479,7 +479,7 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			final Loop loopStruct = (Loop) struct;
-			if (loopStruct.isPost() && loopStruct.isLast(bb)) {
+			if (loopStruct.isPost() && loopStruct.hasLast(bb)) {
 				// exit: conditional already used for post loops last condition
 				return false;
 			}
@@ -587,17 +587,26 @@ public final class TrControlFlowAnalysis {
 			cond.setFollow(secondOut.getEnd());
 			return cond;
 		}
-		// handle direct jump to follow
-		// TODO more comments why it shoud be behind empty firstFollows
+		// handle direct jump to follow;
+		// but nested cond-return as last cond-sub must be handled before
+		boolean defaultBreakableConsumed = false;
 		for (Struct followStruct = cond.getParent(); followStruct != null; followStruct = followStruct
 				.getParent()) {
-			if (followStruct.getFollow() == secondOut.getEnd()) {
-				cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
-				cond.setFollow(firstOut.getEnd());
+			if (followStruct.getFollow() != secondOut.getEnd()) {
+				if (followStruct.isDefaultBreakable()) {
+					defaultBreakableConsumed = true;
+				}
+				continue;
+			}
+			cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
+			cond.setFollow(firstOut.getEnd());
+			// create label if necessary
+			if (followStruct.getLabel() == null
+					&& (!followStruct.isDefaultBreakable() || defaultBreakableConsumed)) {
 				followStruct.setLabel(this.labelCounter++ == 0 ? "outer" : "outer"
 						+ this.labelCounter);
-				return cond;
 			}
+			return cond;
 		}
 
 		final List<BB> secondMembers = Lists.newArrayList();
