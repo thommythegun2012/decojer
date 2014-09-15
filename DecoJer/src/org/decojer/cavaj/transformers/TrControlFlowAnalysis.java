@@ -540,6 +540,27 @@ public final class TrControlFlowAnalysis {
 		this.cfg = cfg;
 	}
 
+	private boolean checkFollow(@Nonnull final Struct cond, @Nonnull final BB bb) {
+		boolean defaultBreakableConsumed = false;
+		for (Struct followStruct = cond.getParent(); followStruct != null; followStruct = followStruct
+				.getParent()) {
+			if (followStruct.getFollow() != bb) {
+				if (followStruct.isDefaultBreakable()) {
+					defaultBreakableConsumed = true;
+				}
+				continue;
+			}
+			// create label if necessary
+			if (followStruct.getLabel() == null
+					&& (!followStruct.isDefaultBreakable() || defaultBreakableConsumed)) {
+				followStruct.setLabel(this.labelCounter++ == 0 ? "outer" : "outer"
+						+ this.labelCounter);
+			}
+			return true;
+		}
+		return false;
+	}
+
 	@Nonnull
 	private Cond createCondStruct(@Nonnull final BB head) {
 		final Cond cond = new Cond(head);
@@ -570,7 +591,11 @@ public final class TrControlFlowAnalysis {
 		final Set<BB> firstFollows = Sets.newHashSet();
 		findBranch(cond, firstOut, firstMembers, firstFollows);
 
-		// TODO filter follows: handle outer breaks
+		// TODO handle/filter follows
+		// * direct follow parent: 2 alternatives, if/else or break
+		// * outer follow parent: break
+		// * topmost follow is our follow
+		// * all other follows -> create artificial break-block
 
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
@@ -586,23 +611,9 @@ public final class TrControlFlowAnalysis {
 		}
 		// handle direct jump to outer follow
 		// (nested cond-return as last cond-sub must be handled before, see above)
-		boolean defaultBreakableConsumed = false;
-		for (Struct followStruct = cond.getParent(); followStruct != null; followStruct = followStruct
-				.getParent()) {
-			if (followStruct.getFollow() != secondOut.getEnd()) {
-				if (followStruct.isDefaultBreakable()) {
-					defaultBreakableConsumed = true;
-				}
-				continue;
-			}
+		if (checkFollow(cond, secondOut.getEnd())) {
 			cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
 			cond.setFollow(firstOut.getEnd());
-			// create label if necessary
-			if (followStruct.getLabel() == null
-					&& (!followStruct.isDefaultBreakable() || defaultBreakableConsumed)) {
-				followStruct.setLabel(this.labelCounter++ == 0 ? "outer" : "outer"
-						+ this.labelCounter);
-			}
 			return cond;
 		}
 
