@@ -341,7 +341,7 @@ public final class TrControlFlowAnalysis {
 				}
 				if (parentStruct != null) {
 					// can e.g. happen for synchronize follows (no additional ins for follow)
-					if (checkBb == parentStruct.getFollow()) {
+					if (parentStruct.hasFollow(checkBb)) {
 						assert checkBb.getIns().size() == 1;
 						followBbs.add(checkBb);
 						continue outer;
@@ -544,7 +544,7 @@ public final class TrControlFlowAnalysis {
 		boolean defaultBreakableConsumed = false;
 		for (Struct followStruct = cond.getParent(); followStruct != null; followStruct = followStruct
 				.getParent()) {
-			if (followStruct.getFollow() != bb) {
+			if (followStruct.hasFollow(bb)) {
 				if (followStruct.isDefaultBreakable()) {
 					defaultBreakableConsumed = true;
 				}
@@ -662,6 +662,7 @@ public final class TrControlFlowAnalysis {
 		cond.setKind(negated ? Cond.Kind.IFNOT_ELSE : Cond.Kind.IF_ELSE);
 		cond.addMembers(negated, firstMembers);
 		cond.addMembers(!negated, secondMembers);
+
 		if (firstFollow == null) {
 			if (secondFollow != null) {
 				cond.setFollow(secondFollow);
