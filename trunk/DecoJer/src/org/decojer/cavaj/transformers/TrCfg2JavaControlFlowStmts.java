@@ -271,8 +271,8 @@ public final class TrCfg2JavaControlFlowStmts {
 		if (!e.isBack()) {
 			return e.getEnd();
 		}
-		if (!(struct instanceof Loop) || !((Loop) struct).isHead(e.getEnd())
-				|| !((Loop) struct).isLast(e.getStart())) {
+		if (!(struct instanceof Loop) || !((Loop) struct).hasHead(e.getEnd())
+				|| !((Loop) struct).hasLast(e.getStart())) {
 			statements.add(getAst().newContinueStatement());
 		}
 		return null;
@@ -374,7 +374,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				// check leaving with priority, can happen together with entering in one BB
 				for (Struct findStruct = struct; findStruct != null; findStruct = findStruct
 						.getParent()) {
-					if (findStruct.hasBreakTarget(currentBb)) {
+					if (findStruct.hasFollow(currentBb)) {
 						// ++++++++++++++++++++++++++
 						// + leaving current struct +
 						// ++++++++++++++++++++++++++
@@ -398,8 +398,8 @@ public final class TrCfg2JavaControlFlowStmts {
 						// ++++++++++++++++++++++++++
 						if (currentBbStruct instanceof Loop) {
 							final Loop loop = (Loop) currentBbStruct;
-							if (loop.isPost() ? loop.isLast(currentBb) : loop.isHead(currentBb)) {
-								assert !loop.isHead(currentBb) : "should only find forward continues";
+							if (loop.isPost() ? loop.hasLast(currentBb) : loop.hasHead(currentBb)) {
+								assert !loop.hasHead(currentBb) : "should only find forward continues";
 								statements.add(getAst().newContinueStatement());
 								return;
 							}
@@ -413,7 +413,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				// + entering a new sub struct +
 				// +++++++++++++++++++++++++++++
 				// Java is struct-single-entry/-multi-exit: must enter via struct head
-				if (currentBbStruct == null || !currentBbStruct.isHead(currentBb)) {
+				if (currentBbStruct == null || !currentBbStruct.hasHead(currentBb)) {
 					log.warn(getM() + ": Struct change in BB " + currentBb.getPc()
 							+ " without regular follow or head encounter:\n" + struct);
 					return;
@@ -445,7 +445,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				// body and evaluates the boolean expression that controls the loop. A labeled
 				// continue statement skips the current iteration of an outer loop marked with
 				// the given label.
-				if (findLoop.isLast(currentBb) && findLoop.isPost()) {
+				if (findLoop.hasLast(currentBb) && findLoop.isPost()) {
 					if (struct != findLoop) {
 						// only from sub structure, e.g. embedded conditional contains head and
 						// last
@@ -460,7 +460,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				}
 			} else if (struct instanceof Switch) {
 				final Switch findSwitch = (Switch) struct;
-				if (findSwitch.isCase(currentBb) && firstBb != currentBb) {
+				if (findSwitch.hasCase(currentBb) && firstBb != currentBb) {
 					// fall-through follow-case
 					return;
 				}

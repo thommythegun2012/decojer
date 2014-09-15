@@ -146,25 +146,38 @@ public class Struct {
 	}
 
 	/**
-	 * Is BB target for struct break?
+	 * Has this struct the given BB as follow?
+	 *
+	 * Only this nodes are potential break targets.
 	 *
 	 * @param bb
 	 *            BB
-	 * @return {@code true} - BB is target for struct break
+	 * @return {@code true} - this struct has the given BB as follow
 	 */
-	public boolean hasBreakTarget(@Nullable final BB bb) {
-		return isFollow(bb);
+	public boolean hasFollow(@Nullable final BB bb) {
+		return getFollow() == bb;
 	}
 
 	/**
-	 * Is BB struct member (includes struct head and loop last)?
+	 * Has this struct the given BB as head?
 	 *
 	 * @param bb
 	 *            BB
-	 * @return {@code true} - BB is struct member
+	 * @return {@code true} - this struct has the given BB as head
+	 */
+	public boolean hasHead(@Nullable final BB bb) {
+		return getHead() == bb;
+	}
+
+	/**
+	 * Has this struct the given BB as member (includes struct head and loop last)?
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - this struct has the given BB as member
 	 */
 	public boolean hasMember(@Nullable final BB bb) {
-		if (isHead(bb)) {
+		if (hasHead(bb)) {
 			return true;
 		}
 		for (final Map.Entry<Object, List<BB>> members : this.value2members.entrySet()) {
@@ -176,13 +189,13 @@ public class Struct {
 	}
 
 	/**
-	 * Is BB struct member for value?
+	 * Has this struct the given BB as member for given value?
 	 *
 	 * @param value
 	 *            value
 	 * @param bb
 	 *            BB
-	 * @return {@code true} - BB is struct member for value
+	 * @return {@code true} - this struct has the given BB as member for given value
 	 */
 	public boolean hasMember(@Nullable final Object value, @Nullable final BB bb) {
 		final List<BB> members = this.value2members.get(value);
@@ -190,43 +203,12 @@ public class Struct {
 	}
 
 	/**
-	 * Is BB a branching statement node (pre / endless loop head for continue, struct follow)?
+	 * Is this struct per default breakable?
 	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - BB is a branching statement node
+	 * @return {@code true} - is per default breakable
 	 */
-	public boolean isBranching(@Nullable final BB bb) {
-		if (hasBreakTarget(bb)) {
-			return true;
-		}
-		if (this.parent instanceof Loop) {
-			// scenario: isn't conditional follow, could still be a loop head
-			return this.parent.isBranching(bb);
-		}
-		return false;
-	}
-
-	/**
-	 * Is BB struct follow?
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - BB is struct follow
-	 */
-	public boolean isFollow(@Nullable final BB bb) {
-		return getFollow() == bb;
-	}
-
-	/**
-	 * Is BB struct head?
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - BB is struct head
-	 */
-	public boolean isHead(@Nullable final BB bb) {
-		return getHead() == bb;
+	public boolean isDefaultBreakable() {
+		return false; // overwritten in loop/switch
 	}
 
 	/**
@@ -247,13 +229,13 @@ public class Struct {
 		// if parent struct exists and doesn't has BB as member, check existend follow!
 		final Struct parent = getParent();
 		if (parent != null && !parent.hasMember(bb)) {
-			if (!parent.isFollow(bb)) {
+			if (!parent.hasFollow(bb)) {
 				if (parent.getFollow() == null) {
 					parent.setFollow(bb);
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert false : "Cannot change follow to BB" + bb.getPc() + " for struct:\n"
-							+ this;
+					+ this;
 				}
 			}
 		}
