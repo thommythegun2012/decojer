@@ -566,9 +566,6 @@ public final class TrControlFlowAnalysis {
 		final E firstOut = negated ? falseOut : trueOut;
 		final E secondOut = negated ? trueOut : falseOut;
 
-		// TODO see XmlParser.filterCR() - findBranch() now also contains breaks etc.,
-		// filter them!
-
 		final List<BB> firstMembers = Lists.newArrayList();
 		final Set<BB> firstFollows = Sets.newHashSet();
 		findBranch(cond, firstOut, firstMembers, firstFollows);
@@ -587,8 +584,8 @@ public final class TrControlFlowAnalysis {
 			cond.setFollow(secondOut.getEnd());
 			return cond;
 		}
-		// handle direct jump to follow;
-		// but nested cond-return as last cond-sub must be handled before
+		// handle direct jump to outer follow
+		// (nested cond-return as last cond-sub must be handled before, see above)
 		boolean defaultBreakableConsumed = false;
 		for (Struct followStruct = cond.getParent(); followStruct != null; followStruct = followStruct
 				.getParent()) {
