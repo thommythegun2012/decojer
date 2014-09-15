@@ -559,7 +559,7 @@ public final class TrControlFlowAnalysis {
 		// JDK 1 && 2 create wrong line numbers for final return (see DecTestIfStmt)
 
 		// negated also handles empty if-statements as negated by default,
-		// 2nd part handles condition in loop last
+		// 2nd part handles condition with direct back edge in loop last
 		final boolean negated = falseSucc.hasSourceBefore(trueSucc) || trueSucc.hasSucc(head);
 		final E firstOut = negated ? falseOut : trueOut;
 		final E secondOut = negated ? trueOut : falseOut;
