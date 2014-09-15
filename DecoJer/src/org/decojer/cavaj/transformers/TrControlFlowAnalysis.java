@@ -561,6 +561,14 @@ public final class TrControlFlowAnalysis {
 		return false;
 	}
 
+	private boolean checkOuterFollow(@Nonnull final Struct cond, @Nonnull final BB bb) {
+		final Struct parent = cond.getParent();
+		if (parent == null || parent.hasFollow(bb)) {
+			return false;
+		}
+		return checkFollow(parent, bb);
+	}
+
 	@Nonnull
 	private Cond createCondStruct(@Nonnull final BB head) {
 		final Cond cond = new Cond(head);
@@ -591,16 +599,29 @@ public final class TrControlFlowAnalysis {
 		final Set<BB> firstFollows = Sets.newHashSet();
 		findBranch(cond, firstOut, firstMembers, firstFollows);
 
-		// TODO handle/filter follows
-		// * direct follow parent: 2 alternatives, if/else or break
+		// handle/filter follows:
+		// * direct follow parent: 2 alternatives, if/else (prefer) or break
 		// * outer follow parent: break
 		// * topmost follow is our follow
 		// * all other follows -> create artificial break-block
 
+		BB firstFollow = null;
+		for (final BB follow : firstFollows) {
+			assert follow != null;
+			if (checkOuterFollow(cond, follow)) {
+				continue;
+			}
+			if (firstFollow == null) {
+				firstFollow = follow;
+			}
+			if (follow.hasSourceBefore(firstFollow)) {
+				// TODO add break-block!
+				firstFollow = follow;
+			}
+		}
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
-		if (firstFollows.isEmpty() || firstFollows.size() == 1
-				&& firstFollows.contains(secondOut.getEnd())) {
+		if (firstFollows.isEmpty() || firstFollow == secondOut.getEnd()) {
 			// normal in JVM 6 bytecode, ifnot-expressions
 			cond.setKind(negated ? Cond.Kind.IFNOT : Cond.Kind.IF);
 			// also handles empty if-statements, members are empty in this case, see
@@ -609,22 +630,28 @@ public final class TrControlFlowAnalysis {
 			cond.setFollow(secondOut.getEnd());
 			return cond;
 		}
-		// handle direct jump to outer follow
-		// (nested cond-return as last cond-sub must be handled before, see above)
-		if (checkFollow(cond, secondOut.getEnd())) {
-			cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
-			cond.setFollow(firstOut.getEnd());
-			return cond;
-		}
 
 		final List<BB> secondMembers = Lists.newArrayList();
 		final Set<BB> secondFollows = Sets.newHashSet();
 		findBranch(cond, secondOut, secondMembers, secondFollows);
 
+		BB secondFollow = null;
+		for (final BB follow : secondFollows) {
+			assert follow != null;
+			if (checkOuterFollow(cond, follow)) {
+				continue;
+			}
+			if (secondFollow == null) {
+				secondFollow = follow;
+			}
+			if (follow.hasSourceBefore(secondFollow)) {
+				// TODO add break-block!
+				secondFollow = follow;
+			}
+		}
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
-		if (secondFollows.isEmpty() || secondFollows.size() == 1
-				&& secondFollows.contains(firstOut.getEnd())) {
+		if (secondFollows.isEmpty() || secondFollow == firstOut.getEnd()) {
 			// also often in JVM 6 bytecode, especially in parent structs
 			cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
 			cond.addMembers(!negated, secondMembers);
@@ -632,36 +659,22 @@ public final class TrControlFlowAnalysis {
 			return cond;
 		}
 
-		// end nodes are follows or breaks - no continues, returns, throws
-
-		// JVM 6: highest follow is potential branch follow
-		BB firstFollow = null;
-		for (final BB follow : firstFollows) {
-			if (firstFollow == null || follow.hasSourceBefore(firstFollow)) {
-				firstFollow = follow;
+		cond.setKind(negated ? Cond.Kind.IFNOT_ELSE : Cond.Kind.IF_ELSE);
+		cond.addMembers(negated, firstMembers);
+		cond.addMembers(!negated, secondMembers);
+		if (firstFollow == null) {
+			if (secondFollow != null) {
+				cond.setFollow(secondFollow);
 			}
-		}
-		assert firstFollow != null;
-		BB secondFollow = null;
-		for (final BB follow : secondFollows) {
-			if (secondFollow == null || follow.hasSourceBefore(secondFollow)) {
-				secondFollow = follow;
-			}
-		}
-		assert secondFollow != null;
-
-		// follow exists?
-		if (firstFollow == secondFollow) {
-			// normal stuff
-			cond.setKind(negated ? Cond.Kind.IFNOT_ELSE : Cond.Kind.IF_ELSE);
-			cond.addMembers(negated, firstMembers);
-			cond.addMembers(!negated, secondMembers);
+		} else if (secondFollow == null || firstFollow == secondFollow) {
 			cond.setFollow(firstFollow);
-			return cond;
+		} else if (firstFollow.hasSourceBefore(secondFollow)) {
+			// TODO add second break-block!
+			cond.setFollow(firstFollow);
+		} else if (secondFollow.hasSourceBefore(firstFollow)) {
+			// TODO add first break-block!
+			cond.setFollow(secondFollow);
 		}
-		// only if unrelated conditional tails???
-		log.warn(getM() + ": Unknown struct, no common follow for:\n" + cond);
-		cond.setKind(Cond.Kind.IF);
 		return cond;
 	}
 
