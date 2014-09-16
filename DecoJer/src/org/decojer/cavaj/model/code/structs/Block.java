@@ -23,6 +23,9 @@
  */
 package org.decojer.cavaj.model.code.structs;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.annotation.Nonnull;
 
 import org.decojer.cavaj.model.code.BB;
@@ -42,6 +45,26 @@ public class Block extends Struct {
 	 */
 	public Block(@Nonnull final BB head) {
 		super(head);
+	}
+
+	/**
+	 * Constructor.
+	 *
+	 * @param childStruct
+	 *            child struct
+	 */
+	public Block(@Nonnull final Struct childStruct) {
+		super(childStruct.getHead(), childStruct.getParent());
+		childStruct.setParent(this);
+
+		for (final Map.Entry<Object, List<BB>> value2membersEntry : childStruct.value2members
+				.entrySet()) {
+			final List<BB> bbs = value2membersEntry.getValue();
+			assert bbs != null;
+			// don't copy values here, mostly for block
+			addMembers(null, bbs);
+		}
+
 	}
 
 }
