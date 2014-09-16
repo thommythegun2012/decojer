@@ -541,15 +541,18 @@ public final class TrControlFlowAnalysis {
 		this.cfg = cfg;
 	}
 
-	private boolean checkFollow(@Nonnull final Struct cond, @Nonnull final BB bb) {
+	private boolean checkBranching(@Nonnull final Struct cond, @Nonnull final BB bb) {
 		boolean defaultBreakableConsumed = false;
 		for (Struct followStruct = cond.getParent(); followStruct != null; followStruct = followStruct
 				.getParent()) {
-			if (!followStruct.hasFollow(bb)) {
+			if (!followStruct.hasBreakTarget(bb) && !followStruct.hasContinueTarget(bb)) {
 				if (followStruct.isDefaultBreakable()) {
 					defaultBreakableConsumed = true;
 				}
 				continue;
+			}
+			if (followStruct == cond.getParent() && followStruct instanceof Cond) {
+				return false; // direct fall-through to direct enclosing cond-follow allowed
 			}
 			// create label if necessary
 			if (followStruct.getLabel() == null
@@ -560,17 +563,6 @@ public final class TrControlFlowAnalysis {
 			return true;
 		}
 		return false;
-	}
-
-	private boolean checkOuterFollow(@Nonnull final Struct cond, @Nonnull final BB bb) {
-		final Struct parent = cond.getParent();
-		if (parent == null) {
-			return false;
-		}
-		if (parent.hasFollow(bb)) {
-			return !(parent instanceof Cond); // direct parent cond-follow can be fall-through
-		}
-		return checkFollow(parent, bb);
 	}
 
 	private Block createBlockStruct(@Nonnull final Struct childStruct, @Nonnull final BB follow) {
@@ -631,7 +623,7 @@ public final class TrControlFlowAnalysis {
 		BB firstFollow = null;
 		for (final BB follow : firstFollows) {
 			assert follow != null;
-			if (checkOuterFollow(cond, follow)) {
+			if (checkBranching(cond, follow)) {
 				continue;
 			}
 			if (firstFollow == null) {
@@ -662,7 +654,7 @@ public final class TrControlFlowAnalysis {
 		BB secondFollow = null;
 		for (final BB follow : secondFollows) {
 			assert follow != null;
-			if (checkOuterFollow(cond, follow)) {
+			if (checkBranching(cond, follow)) {
 				continue;
 			}
 			if (secondFollow == null) {

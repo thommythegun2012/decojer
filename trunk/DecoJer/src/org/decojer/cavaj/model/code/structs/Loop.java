@@ -85,6 +85,20 @@ public class Loop extends Struct {
 		super(bb);
 	}
 
+	@Override
+	public boolean hasContinueTarget(@Nullable final BB bb) {
+		switch (getKind()) {
+		case DO_WHILE:
+		case DO_WHILENOT:
+		case ENDLESS: // must reduce empty BBs to direct edges before!
+			return hasHead(bb);
+		case WHILE:
+		case WHILENOT:
+			return hasLast(bb);
+		}
+		return false;
+	}
+
 	/**
 	 * Has this loop struct the given BB as last node?
 	 *
@@ -100,26 +114,6 @@ public class Loop extends Struct {
 	public boolean hasMember(@Nullable final BB bb) {
 		// last BB for loops is separately stored but counts as normal member
 		return hasLast(bb) || super.hasMember(bb);
-	}
-
-	/**
-	 * Is BB target for continue?
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - BB is target for continue
-	 */
-	public boolean isContinueTarget(@Nullable final BB bb) {
-		switch (getKind()) {
-		case DO_WHILE:
-		case DO_WHILENOT:
-		case ENDLESS: // must reduce empty BBs to direct edges before!
-			return hasHead(bb);
-		case WHILE:
-		case WHILENOT:
-			return hasLast(bb);
-		}
-		return false;
 	}
 
 	@Override

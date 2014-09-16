@@ -164,9 +164,31 @@ public class Struct {
 	}
 
 	/**
+	 * His this struct the given BB as target for break?
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - this struct has the given BB as target for break
+	 */
+	public boolean hasBreakTarget(@Nullable final BB bb) {
+		return hasFollow(bb);
+	}
+
+	/**
+	 * His this loop struct the given BB as target for continue?
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - this loop struct has the given BB as target for continue
+	 */
+	public boolean hasContinueTarget(@Nullable final BB bb) {
+		return false;
+	}
+
+	/**
 	 * Has this struct the given BB as follow?
 	 *
-	 * Only this nodes are potential break targets.
+	 * Only such nodes are potential break targets.
 	 *
 	 * @param bb
 	 *            BB
