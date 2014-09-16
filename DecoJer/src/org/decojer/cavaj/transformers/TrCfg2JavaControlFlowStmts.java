@@ -380,7 +380,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				// check leaving with priority, can happen together with entering in one BB
 				for (Struct findStruct = struct; findStruct != null; findStruct = findStruct
 						.getParent()) {
-					if (findStruct.hasFollow(currentBb)) {
+					if (findStruct.hasBreakTarget(currentBb)) {
 						// ++++++++++++++++++++++++++
 						// + leaving current struct +
 						// ++++++++++++++++++++++++++
