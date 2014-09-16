@@ -359,7 +359,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -788,6 +788,20 @@ public final class BB {
 	 */
 	public boolean isStartBb() {
 		return getCfg().getStartBb() == this;
+	}
+
+	/**
+	 * Is BB a sub head?
+	 *
+	 * @return {@code true} - BB is a sub head
+	 */
+	public boolean isSubHead() {
+		for (final E in : this.ins) {
+			if (in.isJsr()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
