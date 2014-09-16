@@ -138,7 +138,7 @@ public class Struct {
 
 	/**
 	 * Get default label name, like "loop" or "switch".
-	 * 
+	 *
 	 * @return default label name
 	 */
 	public String getDefaultLabelName() {
@@ -252,8 +252,8 @@ public class Struct {
 					parent.setFollow(bb);
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
-					assert 0 == 1 : "Cannot change follow to BB" + bb.getPc() + " for struct:\n"
-							+ this;
+					assert bb.isSubHead() : "Cannot change follow to BB" + bb.getPc()
+							+ " for struct:\n" + this;
 				}
 			}
 		}
