@@ -41,6 +41,7 @@ import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.ops.MONITOR;
 import org.decojer.cavaj.model.code.ops.Op;
+import org.decojer.cavaj.model.code.structs.Block;
 import org.decojer.cavaj.model.code.structs.Catch;
 import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
@@ -544,7 +545,7 @@ public final class TrControlFlowAnalysis {
 		boolean defaultBreakableConsumed = false;
 		for (Struct followStruct = cond.getParent(); followStruct != null; followStruct = followStruct
 				.getParent()) {
-			if (followStruct.hasFollow(bb)) {
+			if (!followStruct.hasFollow(bb)) {
 				if (followStruct.isDefaultBreakable()) {
 					defaultBreakableConsumed = true;
 				}
@@ -553,8 +554,8 @@ public final class TrControlFlowAnalysis {
 			// create label if necessary
 			if (followStruct.getLabel() == null
 					&& (!followStruct.isDefaultBreakable() || defaultBreakableConsumed)) {
-				followStruct.setLabel(this.labelCounter++ == 0 ? "outer" : "outer"
-						+ this.labelCounter);
+				followStruct.setLabel(followStruct.getDefaultLabelName()
+						+ (this.labelCounter++ == 0 ? "" : this.labelCounter));
 			}
 			return true;
 		}
@@ -563,10 +564,32 @@ public final class TrControlFlowAnalysis {
 
 	private boolean checkOuterFollow(@Nonnull final Struct cond, @Nonnull final BB bb) {
 		final Struct parent = cond.getParent();
-		if (parent == null || parent.hasFollow(bb)) {
+		if (parent == null) {
 			return false;
 		}
+		if (parent.hasFollow(bb)) {
+			return !(parent instanceof Cond); // direct parent cond-follow can be fall-through
+		}
 		return checkFollow(parent, bb);
+	}
+
+	private Block createBlockStruct(@Nonnull final Struct childStruct, @Nonnull final BB follow) {
+		final Block block = new Block(childStruct);
+		block.setFollow(follow);
+
+		final Set<BB> traversedBbs = Sets.<BB> newHashSet();
+		final List<BB> members = Lists.newArrayList();
+		for (final E in : follow.getIns()) {
+			if (in.isBack()) {
+				continue;
+			}
+			findReverseBranch(block, in.getStart(), members, traversedBbs);
+		}
+		block.addMembers(null, members);
+
+		block.setLabel(block.getDefaultLabelName()
+				+ (this.labelCounter++ == 0 ? "" : this.labelCounter));
+		return block;
 	}
 
 	@Nonnull
@@ -613,9 +636,10 @@ public final class TrControlFlowAnalysis {
 			}
 			if (firstFollow == null) {
 				firstFollow = follow;
+				continue;
 			}
 			if (follow.hasSourceBefore(firstFollow)) {
-				// TODO add break-block!
+				createBlockStruct(cond, firstFollow);
 				firstFollow = follow;
 			}
 		}
@@ -643,9 +667,10 @@ public final class TrControlFlowAnalysis {
 			}
 			if (secondFollow == null) {
 				secondFollow = follow;
+				continue;
 			}
 			if (follow.hasSourceBefore(secondFollow)) {
-				// TODO add break-block!
+				createBlockStruct(cond, secondFollow);
 				secondFollow = follow;
 			}
 		}
@@ -670,10 +695,10 @@ public final class TrControlFlowAnalysis {
 		} else if (secondFollow == null || firstFollow == secondFollow) {
 			cond.setFollow(firstFollow);
 		} else if (firstFollow.hasSourceBefore(secondFollow)) {
-			// TODO add second break-block!
+			createBlockStruct(cond, secondFollow);
 			cond.setFollow(firstFollow);
 		} else if (secondFollow.hasSourceBefore(firstFollow)) {
-			// TODO add first break-block!
+			createBlockStruct(cond, firstFollow);
 			cond.setFollow(secondFollow);
 		}
 		return cond;

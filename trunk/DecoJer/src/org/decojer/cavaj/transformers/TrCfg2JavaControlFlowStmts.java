@@ -45,6 +45,7 @@ import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.ops.Op;
+import org.decojer.cavaj.model.code.structs.Block;
 import org.decojer.cavaj.model.code.structs.Catch;
 import org.decojer.cavaj.model.code.structs.Cond;
 import org.decojer.cavaj.model.code.structs.Loop;
@@ -56,7 +57,6 @@ import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AssertStatement;
-import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BreakStatement;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.DoStatement;
@@ -211,6 +211,11 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	@Nullable
+	private Statement transformBlock(@Nonnull final Block block) {
+		return transformSequence(block, block.getHead());
+	}
+
+	@Nullable
 	private IfStatement transformCatch(@Nonnull final Catch catchStruct) {
 		log.warn(getM() + ": TODO: " + catchStruct);
 		// final BB head = catchStruct.getHead();
@@ -312,7 +317,8 @@ public final class TrCfg2JavaControlFlowStmts {
 			assert expression != null;
 			doStatement.setExpression(wrap(negate ? not(expression) : expression));
 
-			final List<Statement> doWhileStatements = ((Block) doStatement.getBody()).statements();
+			final List<Statement> doWhileStatements = ((org.eclipse.jdt.core.dom.Block) doStatement
+					.getBody()).statements();
 			assert doWhileStatements != null;
 			transformSequence(loop, head, doWhileStatements);
 			return doStatement;
@@ -342,7 +348,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		if (statements.size() == 1) {
 			return statements.get(0);
 		}
-		final Block block = getAst().newBlock();
+		final org.eclipse.jdt.core.dom.Block block = getAst().newBlock();
 		block.statements().addAll(statements);
 		return block;
 	}
@@ -486,7 +492,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		if (statements.size() == 1) {
 			return statements.get(0);
 		}
-		final Block block = getAst().newBlock();
+		final org.eclipse.jdt.core.dom.Block block = getAst().newBlock();
 		block.statements().addAll(statements);
 		return block;
 	}
@@ -521,12 +527,14 @@ public final class TrCfg2JavaControlFlowStmts {
 		}
 		// decompile sub structure into a statement
 		Statement structStatement;
-		if (struct instanceof Catch) {
+		if (struct instanceof Block) {
+			structStatement = transformBlock((Block) struct);
+		} else if (struct instanceof Catch) {
 			structStatement = transformCatch((Catch) struct);
 		} else if (struct instanceof Loop) {
 			structStatement = transformLoop((Loop) struct);
 		} else {
-			// possible statements before cond in BB
+			// possible statements before following structs in BB
 			final int size = struct.getHead().getStmts() - 1;
 			for (int i = 0; i < size; ++i) {
 				statements.add(struct.getHead().getStmt(i));

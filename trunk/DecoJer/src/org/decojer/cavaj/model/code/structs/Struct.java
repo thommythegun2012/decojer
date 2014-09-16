@@ -33,6 +33,7 @@ import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -61,25 +62,33 @@ public class Struct {
 
 	@Getter
 	@Setter
+	@Nullable
 	private String label;
 
+	@Nonnull
 	protected final Map<Object, List<BB>> value2members = Maps.newHashMap();
 
 	@Getter
-	private final Struct parent;
+	// can change for new outer break-block
+	@Setter(AccessLevel.PROTECTED)
+	@Nullable
+	private Struct parent;
 
 	/**
 	 * Constructor.
 	 *
-	 * @param bb
+	 * @param head
 	 *            struct head
 	 */
-	public Struct(@Nonnull final BB bb) {
-		this.parent = bb.getStruct();
-		assert this != this.parent;
+	public Struct(@Nonnull final BB head) {
+		this(head, head.getStruct());
+		head.setStruct(this);
+	}
 
-		this.head = bb;
-		bb.setStruct(this);
+	protected Struct(@Nonnull final BB head, @Nullable final Struct parent) {
+		this.head = head;
+		assert this != parent;
+		setParent(parent);
 	}
 
 	/**
@@ -125,6 +134,15 @@ public class Struct {
 			assert bb != null;
 			addMember(value, bb);
 		}
+	}
+
+	/**
+	 * Get default label name, like "loop" or "switch".
+	 * 
+	 * @return default label name
+	 */
+	public String getDefaultLabelName() {
+		return getClass().getSimpleName().toLowerCase();
 	}
 
 	/**
@@ -247,11 +265,12 @@ public class Struct {
 		// calculate prefix from parent indentation level
 		String parentStr;
 		String prefix;
-		if (this.parent == null) {
+		final Struct parent = getParent();
+		if (parent == null) {
 			parentStr = null;
 			prefix = "";
 		} else {
-			parentStr = this.parent.toString();
+			parentStr = parent.toString();
 			prefix = "  ";
 			for (int i = 0; i < parentStr.length(); ++i) {
 				if (parentStr.charAt(i) != ' ') {
