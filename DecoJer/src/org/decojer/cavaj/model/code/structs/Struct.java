@@ -281,7 +281,7 @@ public class Struct {
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert bb.isSubHead() : "Cannot change follow to BB" + bb.getPc()
-							+ " for struct:\n" + this;
+					+ " for struct:\n" + this;
 				}
 			}
 		}
@@ -309,6 +309,10 @@ public class Struct {
 		}
 		final StringBuilder sb = new StringBuilder();
 		sb.append(prefix).append("--- ").append(getClass().getSimpleName()).append(" ---\n");
+		final String label = getLabel();
+		if (label != null) {
+			sb.append(prefix).append("Label: ").append(label).append('\n');
+		}
 		sb.append(prefix).append("Head: BB ").append(getHead().getPc());
 		final BB follow = getFollow();
 		if (follow != null) {

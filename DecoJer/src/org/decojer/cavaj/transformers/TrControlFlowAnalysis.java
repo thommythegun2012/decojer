@@ -565,12 +565,22 @@ public final class TrControlFlowAnalysis {
 		return false;
 	}
 
-	private Block createBlockStruct(@Nonnull final Struct childStruct, @Nonnull final BB follow) {
-		final Block block = new Block(childStruct);
-		block.setFollow(follow);
+	private Block createBlockStruct(@Nonnull final Struct enclosedStruct, @Nonnull final BB follow) {
+		// assume proper follow
+		Struct childStruct = enclosedStruct;
+		final Struct parent = enclosedStruct.getParent();
+		if (parent != null && !parent.hasMember(follow) && !parent.hasFollow(follow)
+				&& parent.getFollow() != null) {
+			childStruct = parent;
+		}
 
+		final Block block = new Block(childStruct);
+
+		// fill members: follow-ins up to already existing members or block head
+		final List<BB> blockMembers = block.getMembers(null);
+		assert blockMembers != null;
+		final List<BB> members = Lists.newArrayList(blockMembers);
 		final Set<BB> traversedBbs = Sets.<BB> newHashSet();
-		final List<BB> members = Lists.newArrayList();
 		for (final E in : follow.getIns()) {
 			if (in.isBack()) {
 				continue;
@@ -578,6 +588,8 @@ public final class TrControlFlowAnalysis {
 			findReverseBranch(block, in.getStart(), members, traversedBbs);
 		}
 		block.addMembers(null, members);
+
+		block.setFollow(follow);
 
 		block.setLabel(block.getDefaultLabelName()
 				+ (this.labelCounter++ == 0 ? "" : this.labelCounter));
