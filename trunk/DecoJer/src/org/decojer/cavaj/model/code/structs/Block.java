@@ -30,6 +30,8 @@ import javax.annotation.Nonnull;
 
 import org.decojer.cavaj.model.code.BB;
 
+import com.google.common.collect.Lists;
+
 /**
  * Block struct, as labeled block for forward GOTOs or as variable boundary.
  *
@@ -62,7 +64,8 @@ public class Block extends Struct {
 			final List<BB> bbs = value2membersEntry.getValue();
 			assert bbs != null;
 			// don't copy values here, mostly for block
-			addMembers(null, bbs);
+			// don't use addMember(), which would change the bb-struct
+			this.value2members.put(null, Lists.newArrayList(bbs));
 		}
 
 	}

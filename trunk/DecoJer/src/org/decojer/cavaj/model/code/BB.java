@@ -359,7 +359,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}

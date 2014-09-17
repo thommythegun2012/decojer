@@ -143,7 +143,10 @@ public class CfgViewer extends Composite {
 					final Object data = g.getData();
 					if (data instanceof BB) {
 						final BB bb = (BB) data;
-						if (bb.getCfg().isFrames() && bb.getOps() > 0) {
+						final Struct struct = bb.getStruct();
+						if (struct != null) {
+							log.info("\n" + struct.toString());
+						} else if (bb.getCfg().isFrames() && bb.getOps() > 0) {
 							log.info(bb.getFrameInfosString());
 						} else {
 							log.info(bb.toString());
