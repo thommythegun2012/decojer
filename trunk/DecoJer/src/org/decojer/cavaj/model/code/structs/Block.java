@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.code.structs;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -59,15 +60,16 @@ public class Block extends Struct {
 		super(childStruct.getHead(), childStruct.getParent());
 		childStruct.setParent(this);
 
+		final ArrayList<BB> members = Lists.newArrayList();
 		for (final Map.Entry<Object, List<BB>> value2membersEntry : childStruct.value2members
 				.entrySet()) {
 			final List<BB> bbs = value2membersEntry.getValue();
 			assert bbs != null;
 			// don't copy values here, mostly for block
 			// don't use addMember(), which would change the bb-struct
-			this.value2members.put(null, Lists.newArrayList(bbs));
+			members.addAll(bbs);
 		}
-
+		this.value2members.put(null, members);
 	}
 
 }

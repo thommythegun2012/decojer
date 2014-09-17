@@ -566,14 +566,14 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private Block createBlockStruct(@Nonnull final Struct enclosedStruct, @Nonnull final BB follow) {
-		// assume proper follow
+		// assume proper follow...gu up untill we find some
 		Struct childStruct = enclosedStruct;
-		final Struct parent = enclosedStruct.getParent();
-		if (parent != null && !parent.hasMember(follow) && !parent.hasFollow(follow)
-				&& parent.getFollow() != null) {
+
+		for (Struct parent = childStruct.getParent(); parent != null && !parent.hasMember(follow)
+				&& !parent.hasFollow(follow) && parent.getFollow() != null; parent = childStruct
+				.getParent()) {
 			childStruct = parent;
 		}
-
 		final Block block = new Block(childStruct);
 
 		// fill members: follow-ins up to already existing members or block head
