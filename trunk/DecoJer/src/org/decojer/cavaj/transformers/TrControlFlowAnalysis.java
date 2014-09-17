@@ -742,12 +742,14 @@ public final class TrControlFlowAnalysis {
 					final BB succ = syncOut.getEnd();
 					if (handleSyncFinally(succ)) {
 						// typical default finally-exit catch-handler is removed completely
+						checkBbs.remove(succ);
 						continue;
 					}
 					if (!syncOut.isSequence()) {
 						continue;
 					}
 					if (syncFollow == null || syncOut.getEnd().hasSourceBefore(syncFollow)) {
+						// TODO check outer follow or reduce like cond
 						syncFollow = syncOut.getEnd();
 						continue;
 					}
