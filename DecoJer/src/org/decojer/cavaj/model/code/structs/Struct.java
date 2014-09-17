@@ -275,13 +275,13 @@ public class Struct {
 			if (!parent.hasFollow(bb)) {
 				if (parent.getFollow() == null) {
 					parent.setFollow(bb);
-				} else if (parent instanceof Loop) {
+				} else if (parent instanceof Loop || parent instanceof Block) {
 					// if a loop contains a sub-struct that exits the loop
 					parent.addMember(null, bb);
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert bb.isSubHead() : "Cannot change follow to BB" + bb.getPc()
-					+ " for struct:\n" + this;
+							+ " for struct:\n" + this;
 				}
 			}
 		}
