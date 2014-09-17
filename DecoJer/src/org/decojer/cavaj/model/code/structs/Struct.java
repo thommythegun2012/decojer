@@ -245,6 +245,9 @@ public class Struct {
 	/**
 	 * Is this struct per default breakable?
 	 *
+	 * At the same time Loops and Switches even need breaks to escape these structures (beside last
+	 * case in Switch).
+	 *
 	 * @return {@code true} - is per default breakable
 	 */
 	public boolean isDefaultBreakable() {
@@ -272,6 +275,9 @@ public class Struct {
 			if (!parent.hasFollow(bb)) {
 				if (parent.getFollow() == null) {
 					parent.setFollow(bb);
+				} else if (parent instanceof Loop) {
+					// if a loop contains a sub-struct that exits the loop
+					parent.addMember(null, bb);
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert bb.isSubHead() : "Cannot change follow to BB" + bb.getPc()
