@@ -68,10 +68,25 @@ import com.google.common.collect.Sets;
 @Slf4j
 public final class TrControlFlowAnalysis {
 
-	@Nullable
-	private static Catch createCatchStruct(final E e) {
-		assert e != null;
-		return null;
+	@Nonnull
+	private static Catch createCatchStruct(@Nonnull final BB head, @Nonnull final List<E> catches) {
+		final Catch catchStruct = new Catch(head);
+		// handle innermost catch first...next outer catch in next create-round
+		final List<BB> members = Lists.newArrayList();
+		for (final E findCatch : catches) {
+			final List<E> handlerIns = findCatch.getEnd().getIns();
+			for (final E handlerIn : handlerIns) {
+				final BB member = handlerIn.getStart();
+				if (member != head && !members.contains(member)) {
+					members.add(member);
+				}
+			}
+			catchStruct.addMember(findCatch.getValue(), findCatch.getEnd());
+		}
+		catchStruct.addMembers(null, members);
+		// catches are like branch outs, highest follow wins as global follow
+
+		return catchStruct;
 	}
 
 	@Nonnull
@@ -397,18 +412,51 @@ public final class TrControlFlowAnalysis {
 		return false;
 	}
 
-	private static E findUnhandledCatch(final BB bb) {
-		for (final E out : bb.getOuts()) {
-			if (!out.isCatch()) {
+	/**
+	 * Find all unhandled catch edges for the given BB.
+	 *
+	 * Nested catches with same heads are possible. The returned list is filtered in a way, that if
+	 * handles are pred/succ of each other, only the innermost catches are given.
+	 *
+	 * @param bb
+	 *            BB
+	 * @return all unhandled catch edges for the given BB
+	 */
+	@Nullable
+	private static List<E> findUnhandledCatches(final BB bb) {
+		List<E> unhandledCatches = null;
+		outer: for (final E findCatch : bb.getOuts()) {
+			if (!findCatch.isCatch()) {
 				continue;
 			}
-			if (isHandlerHandled(out.getEnd())) {
-				continue;
+			final BB findHandler = findCatch.getEnd();
+			// handler already handled in outer struct?
+			for (Struct struct = findHandler.getStruct(); struct != null; struct = struct
+					.getParent()) {
+				if (struct instanceof Catch
+						&& ((Catch) struct).hasMember(findCatch.getValue(), findHandler)) {
+					continue outer; // is already handled
+				}
 			}
-			// TODO find outmost or return list
-			return out;
+			if (unhandledCatches == null) {
+				unhandledCatches = Lists.newArrayList();
+			} else {
+				// filter catches: if handles are pred/succ of each other, only the innermost
+				// catches are remembered
+				for (int i = unhandledCatches.size(); i-- > 0;) {
+					final BB unhandledHandler = unhandledCatches.get(i).getEnd();
+					if (findHandler.hasSucc(unhandledHandler)) {
+						unhandledCatches.remove(i); // was not an inner catch, find is new inner
+						continue;
+					}
+					if (unhandledHandler.hasSucc(findHandler)) {
+						continue outer; // find is not an inner catch
+					}
+				}
+			}
+			unhandledCatches.add(findCatch);
 		}
-		return null;
+		return unhandledCatches;
 	}
 
 	/**
@@ -422,7 +470,7 @@ public final class TrControlFlowAnalysis {
 	 * @param bb
 	 *            BB
 	 *
-	 * @return {@code true} - is unhandled loop head
+	 * @return all unhandled loop back BBs for the given BB
 	 */
 	@Nullable
 	private static List<BB> findUnhandledLoopBackBbs(final BB bb) {
@@ -491,25 +539,6 @@ public final class TrControlFlowAnalysis {
 			}
 		}
 		return true;
-	}
-
-	/**
-	 * Is given BB a handler and has already been assigned to a cond struct?
-	 *
-	 * Handler could already be part of enclosing struct like e.g. enclosing try, so getting only
-	 * the outmost struct doesn't work.
-	 *
-	 * @param bb
-	 *            potential handler
-	 * @return {@code true} - is handler with assigned struct
-	 */
-	private static boolean isHandlerHandled(final BB bb) {
-		for (Struct struct = bb.getStruct(); struct != null; struct = struct.getParent()) {
-			if (struct instanceof Catch && ((Catch) struct).getHandler() == bb) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
@@ -859,14 +888,11 @@ public final class TrControlFlowAnalysis {
 			bb.sortOuts();
 
 			while (true) {
-				final E e = findUnhandledCatch(bb);
-				if (e == null) {
+				final List<E> catches = findUnhandledCatches(bb);
+				if (catches == null) {
 					break;
 				}
-				// TODO change to nonnull? just for testing now
-				if (createCatchStruct(e) == null) {
-					break;
-				}
+				createCatchStruct(bb, catches);
 			}
 			// check loop first, could be endless / post loop with additional sub struct heads;
 			// including nested post loops that cannot be mitigated by continue
