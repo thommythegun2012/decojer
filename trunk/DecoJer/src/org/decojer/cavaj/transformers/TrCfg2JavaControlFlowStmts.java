@@ -378,6 +378,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			if (currentBbStruct != struct) {
 				// BB leaves current struct or enters a new sub struct:
 				// check leaving with priority, can happen together with entering in one BB
+				boolean defaultBreakableConsumed = false;
 				for (Struct findStruct = struct; findStruct != null; findStruct = findStruct
 						.getParent()) {
 					if (findStruct.hasBreakTarget(currentBb)) {
@@ -386,7 +387,8 @@ public final class TrCfg2JavaControlFlowStmts {
 						// ++++++++++++++++++++++++++
 						// an unlabeled break statement terminates the innermost loop or switch
 						// statement, but a labeled break terminates any outer struct
-						if (findStruct.getLabel() != null) {
+						if (findStruct != struct && defaultBreakableConsumed
+								&& findStruct.getLabel() != null) {
 							final BreakStatement breakStatement = getAst().newBreakStatement();
 							breakStatement.setLabel(newSimpleName(findStruct.getLabel(), getAst()));
 							statements.add(breakStatement);
@@ -397,6 +399,9 @@ public final class TrCfg2JavaControlFlowStmts {
 							statements.add(getAst().newBreakStatement());
 						}
 						return;
+					}
+					if (findStruct.isDefaultBreakable()) {
+						defaultBreakableConsumed = true;
 					}
 					if (currentBbStruct == findStruct.getParent()) {
 						// ++++++++++++++++++++++++++
@@ -556,6 +561,7 @@ public final class TrCfg2JavaControlFlowStmts {
 		} else {
 			final String label = struct.getLabel();
 			if (label != null) {
+				assert !(structStatement instanceof LabeledStatement);
 				final LabeledStatement labeledStatement = getAst().newLabeledStatement();
 				labeledStatement.setLabel(newSimpleName(label, getAst()));
 				labeledStatement.setBody(structStatement);
