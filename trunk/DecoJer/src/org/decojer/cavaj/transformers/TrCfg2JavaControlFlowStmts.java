@@ -74,6 +74,7 @@ import org.eclipse.jdt.core.dom.SwitchCase;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.ThrowStatement;
+import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
@@ -216,10 +217,13 @@ public final class TrCfg2JavaControlFlowStmts {
 	}
 
 	@Nullable
-	private IfStatement transformCatch(@Nonnull final Catch catchStruct) {
-		log.warn(getM() + ": TODO: " + catchStruct);
-		// final BB head = catchStruct.getHead();
-		return null;
+	private TryStatement transformCatch(@Nonnull final Catch catchStruct) {
+		final TryStatement tryStatement = getAst().newTryStatement();
+		final List<Statement> doWhileStatements = tryStatement.getBody().statements();
+		assert doWhileStatements != null;
+		transformSequence(catchStruct, catchStruct.getHead(), doWhileStatements);
+		// TODO handlers...
+		return tryStatement;
 	}
 
 	@Nullable
