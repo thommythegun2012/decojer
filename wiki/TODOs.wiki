@@ -2,10 +2,10 @@
 
 {{{
 
-pre-loop - pre-loop: follow must become a member!?
+shouldn't happen because then it's handled by follow-check?
 
 java.lang.RuntimeException: File: D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\com.android.ide.eclipse.adt_22.6.3.v201404151837-1123206.jar
-Cannot transform 'com.android.ide.eclipse.adt.internal.project.AndroidClasspathContainerInitializer.checkProjectsCache(Ljava/util/ArrayList;)V (ops: 171, regs: 12)'!
+Cannot transform 'com.android.ide.common.layout.BaseViewRule.addCommonPropertyActions(Ljava/util/List;Lcom/android/ide/common/api/INode;Lcom/android/ide/common/api/IMenuCallback;I)V (ops: 75, regs: 12)'!
 	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:65)
 	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
 	at java.util.concurrent.RecursiveTask.exec(RecursiveTask.java:94)
@@ -20,85 +20,19 @@ Cannot transform 'com.android.ide.eclipse.adt.internal.project.AndroidClasspathC
 	at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1689)
 	at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1644)
 	at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:157)
-Caused by: org.decojer.DecoJerException: Cannot transform 'com.android.ide.eclipse.adt.internal.project.AndroidClasspathContainerInitializer.checkProjectsCache(Ljava/util/ArrayList;)V (ops: 171, regs: 12)'!
+Caused by: org.decojer.DecoJerException: Cannot transform 'com.android.ide.common.layout.BaseViewRule.addCommonPropertyActions(Ljava/util/List;Lcom/android/ide/common/api/INode;Lcom/android/ide/common/api/IMenuCallback;I)V (ops: 75, regs: 12)'!
 	at org.decojer.cavaj.model.CU.decompile(CU.java:260)
 	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:59)
 	... 13 more
-Caused by: java.lang.AssertionError: Cannot change follow to BB155 for struct:
-                    --- Loop ---
-                    Head: BB 151
-                    Members: 
-                      BB 137   BB 150   
-                    Last: BB 150
-                    Kind: WHILE
-                  --- Loop ---
-                  Head: BB 158  Follow: BB 162
-                  Members: 
-                    BB 130   BB 151   BB 137   BB 149   BB 150   
-                  Last: BB 149
-                  Kind: WHILE
-                --- Cond ---
-                Head: BB 111  Follow: BB 162
-                Members: 
-                  false: BB 127   BB 158   BB 130   BB 151   BB 137   BB 155   BB 149   BB 150   
-                  true: BB 125   
-                Kind: IFNOT_ELSE
-              --- Cond ---
-              Head: BB 107  Follow: BB 162
-              Members: 
-                true: BB 111   BB 125   BB 127   BB 158   BB 130   BB 151   BB 137   BB 155   BB 149   BB 150   
-              Kind: IFNOT_ELSE
-            --- Cond ---
-            Head: BB 63
-            Members: 
-              false: BB 107   BB 111   BB 125   BB 127   BB 158   BB 130   BB 162   BB 151   BB 137   BB 155   BB 149   BB 150   
-              true: BB 105   
-            Kind: IFNOT_ELSE
-          --- Cond ---
-          Head: BB 56
-          Members: 
-            false: BB 63   BB 105   BB 107   BB 111   BB 125   BB 127   BB 158   BB 130   BB 162   BB 151   BB 137   BB 155   BB 149   BB 150   
-            true: BB 61   
-          Kind: IFNOT_ELSE
-        --- Cond ---
-        Head: BB 41
-        Members: 
-          false: BB 56   BB 61   BB 63   BB 105   BB 107   BB 111   BB 125   BB 127   BB 158   BB 130   BB 162   BB 151   BB 137   BB 155   BB 149   BB 150   
-          true: BB 54   
-        Kind: IFNOT_ELSE
-      --- Cond ---
-      Head: BB 30
-      Members: 
-        false: BB 41   BB 54   BB 56   BB 61   BB 63   BB 105   BB 107   BB 111   BB 125   BB 127   BB 158   BB 130   BB 162   BB 151   BB 137   BB 155   BB 149   BB 150   
-        true: BB 39   
-      Kind: IFNOT_ELSE
-    --- Cond ---
-    Head: BB 21
-    Members: 
-      false: BB 30   BB 39   BB 41   BB 54   BB 56   BB 61   BB 63   BB 105   BB 107   BB 111   BB 125   BB 127   BB 158   BB 130   BB 162   BB 151   BB 137   BB 155   BB 149   BB 150   
-      true: BB 28   
-    Kind: IFNOT_ELSE
-  --- Cond ---
-  Head: BB 5
-  Members: 
-    false: 22 BBs
-    true: BB 16   
-  Kind: IFNOT_ELSE
---- Loop ---
-Head: BB 166  Follow: BB 170
-Members: 
-  24 BBs
-Last: BB 162
-Kind: WHILE
-	at org.decojer.cavaj.model.code.structs.Struct.setFollow(Struct.java:278)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createLoopStruct(TrControlFlowAnalysis.java:142)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:845)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:531)
+Caused by: java.lang.AssertionError
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.findBranch(TrControlFlowAnalysis.java:351)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createCondStruct(TrControlFlowAnalysis.java:680)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:896)
+	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:536)
 	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:236)
 	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
 	at org.decojer.cavaj.model.CU.decompile(CU.java:255)
 	... 14 more
-
 
 
 
