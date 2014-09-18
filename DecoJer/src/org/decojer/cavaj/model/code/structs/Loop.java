@@ -88,12 +88,12 @@ public class Loop extends Struct {
 	@Override
 	public boolean hasContinueTarget(@Nullable final BB bb) {
 		switch (getKind()) {
-		case DO_WHILE:
-		case DO_WHILENOT:
-		case ENDLESS: // must reduce empty BBs to direct edges before!
-			return hasHead(bb);
 		case WHILE:
 		case WHILENOT:
+		case ENDLESS: // must reduce empty BBs to direct edges before!
+			return hasHead(bb);
+		case DO_WHILE:
+		case DO_WHILENOT:
 			return hasLast(bb);
 		}
 		return false;

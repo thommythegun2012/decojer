@@ -341,6 +341,11 @@ public final class TrControlFlowAnalysis {
 					followBbs.remove(checkBb); // maybe we where already here
 				}
 				if (parentStruct != null) {
+					// stop at loop lasts
+					if (parentStruct instanceof Loop && ((Loop) parentStruct).hasLast(checkBb)) {
+						followBbs.add(checkBb);
+						continue outer;
+					}
 					// can e.g. happen for synchronize follows (no additional ins for follow)
 					if (parentStruct.hasFollow(checkBb)) {
 						assert checkBb.getIns().size() == 1;
@@ -551,8 +556,13 @@ public final class TrControlFlowAnalysis {
 				}
 				continue;
 			}
-			if (followStruct == cond.getParent() && followStruct instanceof Cond) {
-				return false; // direct fall-through to direct enclosing cond-follow allowed
+			if (followStruct == cond.getParent()) {
+				if (followStruct instanceof Loop && ((Loop) followStruct).hasLast(bb)) {
+					return false; // direct fall-through to direct enclosing loop-last allowed
+				}
+				if (!followStruct.isDefaultBreakable()) {
+					return false; // direct fall-through to direct enclosing cond-follow allowed
+				}
 			}
 			// create label if necessary
 			if (followStruct.getLabel() == null
@@ -565,14 +575,19 @@ public final class TrControlFlowAnalysis {
 		return false;
 	}
 
+	@Nullable
 	private Block createBlockStruct(@Nonnull final Struct enclosedStruct, @Nonnull final BB follow) {
-		// assume proper follow...gu up untill we find some
+		// assume proper follow...go up untill we find some
 		Struct childStruct = enclosedStruct;
 
 		for (Struct parent = childStruct.getParent(); parent != null && !parent.hasMember(follow)
 				&& !parent.hasFollow(follow) && parent.getFollow() != null; parent = childStruct
 				.getParent()) {
 			childStruct = parent;
+		}
+		if (childStruct.getParent() instanceof Block && childStruct.getParent().hasFollow(follow)) {
+			// TODO yikes...checkBranching should kill this one earlier...needs additional infos?
+			return null;
 		}
 		final Block block = new Block(childStruct);
 
@@ -618,7 +633,8 @@ public final class TrControlFlowAnalysis {
 
 		// negated also handles empty if-statements as negated by default,
 		// 2nd part handles condition with direct back edge in loop last
-		final boolean negated = falseSucc.hasSourceBefore(trueSucc) || trueSucc.hasSucc(head);
+		final boolean secondIsDirectBack = trueSucc.hasSucc(head);
+		final boolean negated = falseSucc.hasSourceBefore(trueSucc) || secondIsDirectBack;
 		final E firstOut = negated ? falseOut : trueOut;
 		final E secondOut = negated ? trueOut : falseOut;
 
@@ -675,12 +691,15 @@ public final class TrControlFlowAnalysis {
 			}
 			if (follow.hasSourceBefore(secondFollow)) {
 				createBlockStruct(cond, secondFollow);
+				if (firstFollow == secondFollow) {
+					firstFollow = null;
+				}
 				secondFollow = follow;
 			}
 		}
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
-		if (secondFollows.isEmpty() || secondFollow == firstOut.getEnd()) {
+		if (secondFollow == null || secondFollow == firstOut.getEnd()) {
 			// also often in JVM 6 bytecode, especially in parent structs
 			cond.setKind(negated ? Cond.Kind.IF : Cond.Kind.IFNOT);
 			cond.addMembers(!negated, secondMembers);
