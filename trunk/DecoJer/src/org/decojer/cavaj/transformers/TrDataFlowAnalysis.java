@@ -661,7 +661,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : "cannot assign '" + returnT
-			+ "' to return type '" + cop.getT() + "'";
+					+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -808,7 +808,7 @@ public final class TrDataFlowAnalysis {
 					types = Lists.newArrayList();
 					handlerPc2type.put(handlerPc, types);
 				}
-				if (!types.contains(exc.getT())) {
+				if (exc.getT() != null && !types.contains(exc.getT())) {
 					// sometimes none-Java bytecode contains same handler multiple times
 					types.add(exc.getT());
 				}
