@@ -261,7 +261,7 @@ public class Struct {
 	 *            follow
 	 */
 	public void setFollow(@Nonnull final BB bb) {
-		assert !bb.isCatchHandler() : "catch handler cannot be a follow";
+		assert bb.getCatchIn() == null : "catch handler cannot be a follow";
 		// a direct back link at the end of a loop is not a valid follow, have to handle this
 		// differently or we will loop into loop create statements twice,
 		// dismiss such settings silently for now, else have to handle it at many places

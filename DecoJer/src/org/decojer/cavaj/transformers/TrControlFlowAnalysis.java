@@ -415,8 +415,8 @@ public final class TrControlFlowAnalysis {
 	/**
 	 * Find all unhandled catch edges for the given BB.
 	 *
-	 * Nested catches with same heads are possible. The returned list is filtered in a way, that if
-	 * handles are pred/succ of each other, only the innermost catches are given.
+	 * Nested catches with same heads are possible. The returned list is filtered in a way that the
+	 * outermost catches belonging to a single try-catch-finally are given.
 	 *
 	 * @param bb
 	 *            BB
@@ -441,17 +441,46 @@ public final class TrControlFlowAnalysis {
 			if (unhandledCatches == null) {
 				unhandledCatches = Lists.newArrayList();
 			} else {
-				// filter catches: if handles are pred/succ of each other, only the innermost
-				// catches are remembered
+				// TODO what if catch-area ends in the middle of independant condition-branches?
+				final E findHandlerLowestIn = findHandler.getInWithSmallestPostorder();
+				assert findHandlerLowestIn != null;
+
 				for (int i = unhandledCatches.size(); i-- > 0;) {
-					final BB unhandledHandler = unhandledCatches.get(i).getEnd();
-					if (findHandler.hasSucc(unhandledHandler)) {
-						unhandledCatches.remove(i); // was not an inner catch, find is new inner
-						continue;
+					final E unhandledCatch = unhandledCatches.get(i);
+					final BB unhandledHandler = unhandledCatch.getEnd();
+
+					final E unhandledHandlerLowestIn = unhandledHandler
+							.getInWithSmallestPostorder();
+					assert unhandledHandlerLowestIn != null;
+
+					if (findHandlerLowestIn.getStart() == unhandledHandlerLowestIn.getStart()) {
+						assert !unhandledHandler.hasSucc(findHandler) || findCatch.isFinally();
+						assert !findHandler.hasSucc(unhandledHandler) || unhandledCatch.isFinally();
+						continue; // OK, new valid handler for same try-block
 					}
-					if (unhandledHandler.hasSucc(findHandler)) {
-						continue outer; // find is not an inner catch
+					if (findHandlerLowestIn.getStart().getPostorder() > unhandledHandlerLowestIn
+							.getStart().getPostorder()) {
+						// findHandlerLowestIn is higher in CFG -> findHandler not a new outer catch
+						assert findHandler.hasSucc(unhandledHandler);
+						assert !unhandledHandler.hasSucc(findHandler);
+						continue outer;
 					}
+					// findHandlerLowestIn is lower in CFG: we need additional checks only for
+					// finally, which can (and should) also include the handler-branches
+					if (!unhandledCatch.isFinally()) {
+						assert !findHandler.hasSucc(unhandledHandler);
+						// filter catches: if handlers are pred/succ of each other, only the
+						// outermost catches are remembered (excluding finally)
+						unhandledCatches.clear();
+						break;
+					}
+					// TODO finally is really difficult to handle...also wraps the complete
+					// catch-branches down to...where (down to JSRs or synthetic copies?)
+
+					// differentiate wrapping solo-finallies from finallies belonging to found
+					// unhandled handlers
+
+					// there sould be no struct-ends in catch-member-area
 				}
 			}
 			unhandledCatches.add(findCatch);
@@ -494,7 +523,8 @@ public final class TrControlFlowAnalysis {
 	}
 
 	private static boolean handleSyncFinally(@Nonnull final BB bb) {
-		if (!bb.isCatchHandler()) {
+		final E catchIn = bb.getCatchIn();
+		if (catchIn == null || !catchIn.isFinally()) {
 			return false;
 		}
 		if (bb.getStmts() != 2) {
@@ -866,7 +896,7 @@ public final class TrControlFlowAnalysis {
 			return getCfg().getInFrame(monitorOp).peek().toOriginal();
 		case EXIT:
 			log.warn(getM() + ": Unexpected synchronized exit in: " + bb);
-			assert bb.isCatchHandler();
+			assert bb.getCatchIn() != null;
 			bb.removeFinalStmt();
 			break;
 		default:

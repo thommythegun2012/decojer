@@ -2218,7 +2218,8 @@ public final class TrCfg2JavaExpressionStmts {
 	}
 
 	private boolean rewriteHandler(@Nonnull final BB bb) {
-		if (!bb.isCatchHandler() || bb.getStmts() > 0 || bb.getTop() > 0) {
+		final E catchIn = bb.getCatchIn();
+		if (catchIn == null || bb.getStmts() > 0 || bb.getTop() > 0) {
 			// check stmts and top: some rewrites could combine join nodes and this would again be a
 			// catch handler
 			return false;
@@ -2226,17 +2227,17 @@ public final class TrCfg2JavaExpressionStmts {
 		final SimpleName name = newSimpleName("e", getAst());
 		bb.push(name);
 
-		final T[] handlerTypes = (T[]) bb.getIns().get(0).getValue();
-		assert handlerTypes != null && handlerTypes.length > 0;
-		final T handlerType = handlerTypes[0];
-
 		final TryStatement tryStatement = getAst().newTryStatement();
-		if (handlerType != null) { // not "finally"
+		if (!catchIn.isFinally()) {
 			final CatchClause catchClause = getAst().newCatchClause();
 			final SingleVariableDeclaration singleVariableDeclaration = getAst()
 					.newSingleVariableDeclaration();
 			singleVariableDeclaration.setName(name);
+			final T[] handlerTypes = (T[]) catchIn.getValue();
+			assert handlerTypes != null;
 			if (handlerTypes.length == 1) {
+				final T handlerType = handlerTypes[0];
+				assert handlerType != null;
 				singleVariableDeclaration.setType(newType(handlerType, getM()));
 			} else {
 				// Multi-Catch

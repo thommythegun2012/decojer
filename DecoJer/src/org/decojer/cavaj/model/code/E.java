@@ -222,9 +222,9 @@ public final class E {
 	}
 
 	/**
-	 * Is catch?
+	 * Is catch (including finally)?
 	 *
-	 * @return {@code true} - is catch
+	 * @return {@code true} - is catch (including finally)
 	 */
 	public boolean isCatch() {
 		return this.value instanceof T[];
@@ -255,6 +255,19 @@ public final class E {
 	 */
 	public boolean isCondTrue() {
 		return this.value == Boolean.TRUE;
+	}
+
+	/**
+	 * Is finally?
+	 *
+	 * @return {@code true} - is catch
+	 */
+	public boolean isFinally() {
+		final Object value = getValue();
+		if (!(value instanceof T[])) {
+			return false; // !isCatch()
+		}
+		return ((T[]) value).length == 0;
 	}
 
 	/**
@@ -344,8 +357,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-		+ (this.end == null ? "null" : getEnd().getPc())
-		+ (valueString.isEmpty() ? "" : " : " + getValueString());
+				+ (this.end == null ? "null" : getEnd().getPc())
+				+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }

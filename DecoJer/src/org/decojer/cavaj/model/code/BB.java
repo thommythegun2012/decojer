@@ -245,6 +245,21 @@ public final class BB {
 	}
 
 	/**
+	 * Get catch handler if existing?
+	 *
+	 * @return catch handler or {@code null} for no catch handler
+	 */
+	@Nullable
+	public E getCatchIn() {
+		for (final E in : this.ins) {
+			if (in.isCatch()) {
+				return in;
+			}
+		}
+		return null;
+	}
+
+	/**
 	 * Get expression from expression statement at index.
 	 *
 	 * @param i
@@ -359,7 +374,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -420,9 +435,39 @@ public final class BB {
 		return this.ins.get(0);
 	}
 
+	/**
+	 * Get incoming edges as unmodifiable list.
+	 *
+	 * @return incoming edges as unmodifiable list
+	 */
 	public List<E> getIns() {
 		assert !isRemoved();
 		return Collections.unmodifiableList(this.ins);
+	}
+
+	/**
+	 * Get incoming edge with smallest postorder (lower the graph).
+	 *
+	 * Ignore self-loops, self-catches etc.!
+	 *
+	 * @return incoming edge with smallest postorder (lower the graph)
+	 */
+	@Nullable
+	public E getInWithSmallestPostorder() {
+		assert !isRemoved();
+		E foundIn = null;
+		int smallestPostorder = Integer.MAX_VALUE;
+		for (final E in : this.ins) {
+			if (in.getStart() == this) {
+				continue; // ignore self-loops, self-catches etc.
+			}
+			final int postorder = in.getStart().getPostorder();
+			if (postorder < smallestPostorder) {
+				foundIn = in;
+				smallestPostorder = postorder;
+			}
+		}
+		return foundIn;
 	}
 
 	/**
@@ -457,6 +502,11 @@ public final class BB {
 		return this.ops.size();
 	}
 
+	/**
+	 * Get outgoing edges as unmodifiable list.
+	 *
+	 * @return outgoing edges as unmodifiable list
+	 */
 	public List<E> getOuts() {
 		assert !isRemoved();
 		return Collections.unmodifiableList(this.outs);
@@ -675,20 +725,6 @@ public final class BB {
 	 */
 	public boolean hasSucc(@Nonnull final BB bb) {
 		return bb.hasPred(this);
-	}
-
-	/**
-	 * Is BB a catch handler?
-	 *
-	 * @return {@code true} - BB is a catch handler
-	 */
-	public boolean isCatchHandler() {
-		for (final E in : this.ins) {
-			if (in.isCatch()) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	/**
