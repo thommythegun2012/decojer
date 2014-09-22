@@ -661,7 +661,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : "cannot assign '" + returnT
-					+ "' to return type '" + cop.getT() + "'";
+			+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
@@ -842,6 +842,7 @@ public final class TrDataFlowAnalysis {
 				}
 				final T[] ts = types.toArray(new T[types.size()]);
 				assert ts != null;
+				assert handlerBb != null;
 				this.currentBb.addCatchHandler(handlerBb, ts);
 			}
 		}
