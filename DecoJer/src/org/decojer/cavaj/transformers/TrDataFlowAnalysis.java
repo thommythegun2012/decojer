@@ -816,9 +816,33 @@ public final class TrDataFlowAnalysis {
 			// now add successors
 			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
 				final List<T> types = handlerPc2typeEntry.getValue();
+
+				final BB handlerBb = getTargetBb(handlerPc2typeEntry.getKey());
+				final E catchIn = handlerBb.getCatchIn();
+				reuseTs: if (catchIn != null) {
+					// was already a catch? reuse T[] to have Struct#getMembers(ts) working
+					final T[] catchedTs = (T[]) catchIn.getValue();
+					assert catchedTs != null;
+					// compare!
+					if (catchedTs.length != types.size()) {
+						log.warn(getM() + ": Different catch type numbers for same handler: "
+								+ handlerBb);
+						break reuseTs;
+					}
+					for (final T catchedT : catchedTs) {
+						if (!types.contains(catchedT)) {
+							log.warn(getM() + ": Different catch types for same handler: "
+									+ handlerBb);
+							break reuseTs;
+						}
+					}
+					// reuse is OK
+					this.currentBb.addCatchHandler(handlerBb, catchedTs);
+					continue;
+				}
 				final T[] ts = types.toArray(new T[types.size()]);
 				assert ts != null;
-				this.currentBb.addCatchHandler(getTargetBb(handlerPc2typeEntry.getKey()), ts);
+				this.currentBb.addCatchHandler(handlerBb, ts);
 			}
 		}
 		for (final Exc exc : getCfg().getExcs()) {
