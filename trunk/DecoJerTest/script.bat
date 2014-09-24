@@ -126,6 +126,7 @@ rem default target is 1.2 (46)
 "C:\Program Files\Java\jdk1.8.0_20\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\jdk8\*.java -g -d %DecoJerTest%\bin_jdk1.8.0_c
 
 
+del /S/Q %DecoJerTest%\dex\*
 mkdir %DecoJerTest%\dex\bin
 
 "%Java%\jdk1.6.0_45\bin\javac" %DecoJerTest%\src\org\decojer\cavaj\test\*.java -g -d %DecoJerTest%\dex\bin
@@ -139,4 +140,4 @@ mkdir %DecoJerTest%\dex\bin
 
 rmdir /S/Q %DecoJerTest%\dex\bin
 
-"D:\Data\Decomp\android-sdk-windows\build-tools\19.1.0\dx" --dex --output=%DecoJerTest%\dex\classes.dex %DecoJerTest%\dex\classes.jar
+"D:\Data\Decomp\android-sdk\build-tools\20.0.0\dx" --dex --output=%DecoJerTest%\dex\classes.dex %DecoJerTest%\dex\classes.jar
