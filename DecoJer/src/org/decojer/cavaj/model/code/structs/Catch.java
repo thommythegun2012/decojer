@@ -24,8 +24,10 @@
 package org.decojer.cavaj.model.code.structs;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 import org.decojer.cavaj.model.code.BB;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Catch struct.
@@ -42,6 +44,32 @@ public class Catch extends Struct {
 	 */
 	public Catch(@Nonnull final BB head) {
 		super(head);
+	}
+
+	/**
+	 * Get catch types if this catch struct has the given BB as handler node.
+	 *
+	 * @param bb
+	 *            BB
+	 * @return catch types if this catch struct has the given BB as handler node or {@code null}
+	 */
+	@Nullable
+	public T[] getHandlerCatchTypes(@Nullable final BB bb) {
+		final Object value = findValueWhereFirstMemberIs(bb);
+		return value instanceof T[] ? (T[]) findValueWhereFirstMemberIs(bb) : null;
+	}
+
+	/**
+	 * Has this catch struct the given BB as handler node for given types?
+	 *
+	 * @param types
+	 *            catch types
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - this catch struct has the given BB as handler node for given types
+	 */
+	public boolean hasHandler(@Nonnull final T[] types, @Nullable final BB bb) {
+		return getFirstMember(types) == bb;
 	}
 
 }

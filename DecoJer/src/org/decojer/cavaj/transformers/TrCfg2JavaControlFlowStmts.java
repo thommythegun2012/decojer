@@ -58,6 +58,7 @@ import org.decojer.cavaj.model.types.T;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AssertStatement;
 import org.eclipse.jdt.core.dom.BreakStatement;
+import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.DoStatement;
 import org.eclipse.jdt.core.dom.Expression;
@@ -218,11 +219,28 @@ public final class TrCfg2JavaControlFlowStmts {
 
 	@Nullable
 	private TryStatement transformCatch(@Nonnull final Catch catchStruct) {
+		final BB head = catchStruct.getHead();
 		final TryStatement tryStatement = getAst().newTryStatement();
-		final List<Statement> doWhileStatements = tryStatement.getBody().statements();
-		assert doWhileStatements != null;
-		transformSequence(catchStruct, catchStruct.getHead(), doWhileStatements);
-		// TODO handlers...
+		final List<Statement> statements = tryStatement.getBody().statements();
+		assert statements != null;
+		transformSequence(catchStruct, head, statements);
+		// now add handlers
+		for (final E catchE : head.getOuts()) {
+			if (!catchE.isCatch()) {
+				continue;
+			}
+			final BB handler = catchE.getEnd();
+			final T[] catchTypes = (T[]) catchE.getValue();
+			assert catchTypes != null;
+			if (!catchStruct.hasHandler(catchTypes, handler)) {
+				continue;
+			}
+			final CatchClause catchClause = getAst().newCatchClause();
+			tryStatement.catchClauses().add(catchClause);
+			final List<Statement> handlerStatements = catchClause.getBody().statements();
+			assert handlerStatements != null;
+			transformSequence(catchStruct, handler, handlerStatements);
+		}
 		return tryStatement;
 	}
 
@@ -321,10 +339,10 @@ public final class TrCfg2JavaControlFlowStmts {
 			assert expression != null;
 			doStatement.setExpression(wrap(negate ? not(expression) : expression));
 
-			final List<Statement> doWhileStatements = ((org.eclipse.jdt.core.dom.Block) doStatement
+			final List<Statement> statements = ((org.eclipse.jdt.core.dom.Block) doStatement
 					.getBody()).statements();
-			assert doWhileStatements != null;
-			transformSequence(loop, head, doWhileStatements);
+			assert statements != null;
+			transformSequence(loop, head, statements);
 			return doStatement;
 		}
 		case ENDLESS: {
@@ -475,7 +493,7 @@ public final class TrCfg2JavaControlFlowStmts {
 				}
 			} else if (struct instanceof Switch) {
 				final Switch findSwitch = (Switch) struct;
-				if (findSwitch.hasCase(currentBb) && firstBb != currentBb) {
+				if (findSwitch.getCaseValues(currentBb) != null && firstBb != currentBb) {
 					// fall-through follow-case
 					return;
 				}
