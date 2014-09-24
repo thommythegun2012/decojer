@@ -395,7 +395,7 @@ public final class TrControlFlowAnalysis {
 	 * @return all unhandled catch edges for the given BB
 	 */
 	@Nullable
-	private static List<E> findCatchUnhandled(final BB bb) {
+	private static List<E> findCatchOutmostUnhandled(final BB bb) {
 		List<E> unhandledCatches = null;
 		outer: for (final E findCatch : bb.getOuts()) {
 			if (!findCatch.isCatch()) {
@@ -405,9 +405,10 @@ public final class TrControlFlowAnalysis {
 			// handler already handled in outer struct?
 			for (Struct struct = findHandler.getStruct(); struct != null; struct = struct
 					.getParent()) {
+				// member-catch-values T[] are usually same for same handlers, see DataFlowAnalysis
 				if (struct instanceof Catch
 						&& ((Catch) struct).hasMember(findCatch.getValue(), findHandler)) {
-					continue outer; // is already handled
+					continue outer; // this handler is already handled, skip this catch
 				}
 			}
 			if (unhandledCatches == null) {
@@ -635,7 +636,7 @@ public final class TrControlFlowAnalysis {
 		return false;
 	}
 
-	@Nullable
+	@Nonnull
 	private Block createBlockStruct(@Nonnull final Struct enclosedStruct, @Nonnull final BB follow) {
 		// assume proper follow...go up untill we find some
 		Struct childStruct = enclosedStruct;
@@ -919,7 +920,7 @@ public final class TrControlFlowAnalysis {
 			bb.sortOuts();
 
 			while (true) {
-				final List<E> catches = findCatchUnhandled(bb);
+				final List<E> catches = findCatchOutmostUnhandled(bb);
 				if (catches == null) {
 					break;
 				}
