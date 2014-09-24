@@ -402,12 +402,13 @@ public final class TrControlFlowAnalysis {
 
 			for (int i = unhandledCatches.size(); i-- > 0;) {
 				final E unhandledCatch = unhandledCatches.get(i);
+				final BB unhandledHandler = unhandledCatch.getEnd();
 
-				if (unhandledCatch.hasSucc(findCatch)) {
+				if (unhandledHandler.hasSucc(findHandler)) {
 					unhandledCatches.remove(i);
 					continue;
 				}
-				if (findCatch.hasSucc(unhandledCatch)) {
+				if (findHandler.hasSucc(unhandledHandler)) {
 					continue outer;
 				}
 			}
