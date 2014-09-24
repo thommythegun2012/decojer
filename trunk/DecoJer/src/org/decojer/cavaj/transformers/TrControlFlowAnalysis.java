@@ -56,7 +56,6 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.ThrowStatement;
-import org.eclipse.jdt.core.dom.TryStatement;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -485,14 +484,8 @@ public final class TrControlFlowAnalysis {
 		if (catchIn == null || !catchIn.isFinally()) {
 			return false;
 		}
-		if (bb.getStmts() != 2) {
-			return false;
-		}
-		final Statement tryStatement = bb.getStmt(0);
-		if (!(tryStatement instanceof TryStatement)) {
-			return false;
-		}
-		if (!((TryStatement) tryStatement).catchClauses().isEmpty()) {
+		if (bb.getStmts() != 1) {
+			// sync still in here, is deleted later
 			return false;
 		}
 		final E throwBb = bb.getSequenceOut();

@@ -103,7 +103,6 @@ import org.eclipse.jdt.core.dom.Assignment;
 import org.eclipse.jdt.core.dom.Block;
 import org.eclipse.jdt.core.dom.BooleanLiteral;
 import org.eclipse.jdt.core.dom.CastExpression;
-import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.ConditionalExpression;
 import org.eclipse.jdt.core.dom.ConstructorInvocation;
@@ -129,7 +128,6 @@ import org.eclipse.jdt.core.dom.PrefixExpression;
 import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
-import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.StringLiteral;
 import org.eclipse.jdt.core.dom.SuperConstructorInvocation;
@@ -138,9 +136,7 @@ import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.ThisExpression;
 import org.eclipse.jdt.core.dom.ThrowStatement;
-import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.TypeMethodReference;
-import org.eclipse.jdt.core.dom.UnionType;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
@@ -2226,32 +2222,6 @@ public final class TrCfg2JavaExpressionStmts {
 		}
 		final SimpleName name = newSimpleName("e", getAst());
 		bb.push(name);
-
-		final TryStatement tryStatement = getAst().newTryStatement();
-		if (!catchIn.isFinally()) {
-			final CatchClause catchClause = getAst().newCatchClause();
-			final SingleVariableDeclaration singleVariableDeclaration = getAst()
-					.newSingleVariableDeclaration();
-			singleVariableDeclaration.setName(name);
-			final T[] handlerTypes = (T[]) catchIn.getValue();
-			assert handlerTypes != null;
-			if (handlerTypes.length == 1) {
-				final T handlerType = handlerTypes[0];
-				assert handlerType != null;
-				singleVariableDeclaration.setType(newType(handlerType, getM()));
-			} else {
-				// Multi-Catch
-				final UnionType unionType = getAst().newUnionType();
-				for (final T t : handlerTypes) {
-					assert t != null;
-					unionType.types().add(newType(t, getM()));
-				}
-				singleVariableDeclaration.setType(unionType);
-			}
-			catchClause.setException(singleVariableDeclaration);
-			tryStatement.catchClauses().add(catchClause);
-		}
-		bb.addStmt(tryStatement);
 		return true;
 	}
 

@@ -26,6 +26,7 @@ package org.decojer.cavaj.transformers;
 import static org.decojer.cavaj.utils.Expressions.getOp;
 import static org.decojer.cavaj.utils.Expressions.newLiteral;
 import static org.decojer.cavaj.utils.Expressions.newSimpleName;
+import static org.decojer.cavaj.utils.Expressions.newType;
 import static org.decojer.cavaj.utils.Expressions.not;
 import static org.decojer.cavaj.utils.Expressions.setOp;
 import static org.decojer.cavaj.utils.Expressions.wrap;
@@ -70,6 +71,7 @@ import org.eclipse.jdt.core.dom.QualifiedName;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchCase;
 import org.eclipse.jdt.core.dom.SwitchStatement;
@@ -77,6 +79,7 @@ import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
+import org.eclipse.jdt.core.dom.UnionType;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
 import com.google.common.collect.Lists;
@@ -235,8 +238,37 @@ public final class TrCfg2JavaControlFlowStmts {
 			if (!catchStruct.hasHandler(catchTypes, handler)) {
 				continue;
 			}
+			if (catchE.isFinally()) {
+				// finally handler
+				tryStatement.setFinally(getAst().newBlock());
+				final List<Statement> finallyStatements = tryStatement.getFinally().statements();
+				assert finallyStatements != null;
+				transformSequence(catchStruct, handler, finallyStatements);
+				continue;
+			}
+			// normal typed catch handler
 			final CatchClause catchClause = getAst().newCatchClause();
+
+			final SingleVariableDeclaration singleVariableDeclaration = getAst()
+					.newSingleVariableDeclaration();
+			singleVariableDeclaration.setName(newSimpleName("e", getAst()));
+			if (catchTypes.length == 1) {
+				final T handlerType = catchTypes[0];
+				assert handlerType != null;
+				singleVariableDeclaration.setType(newType(handlerType, getM()));
+			} else {
+				// Multi-Catch
+				final UnionType unionType = getAst().newUnionType();
+				for (final T t : catchTypes) {
+					assert t != null;
+					unionType.types().add(newType(t, getM()));
+				}
+				singleVariableDeclaration.setType(unionType);
+			}
+			catchClause.setException(singleVariableDeclaration);
+
 			tryStatement.catchClauses().add(catchClause);
+
 			final List<Statement> handlerStatements = catchClause.getBody().statements();
 			assert handlerStatements != null;
 			transformSequence(catchStruct, handler, handlerStatements);
