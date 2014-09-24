@@ -384,34 +384,6 @@ public final class TrControlFlowAnalysis {
 		} while (!checkBbs.isEmpty());
 	}
 
-	private static boolean findReverseBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
-			@Nonnull final List<BB> members, @Nonnull final Set<BB> traversedBbs) {
-		if (members.contains(bb) || struct.hasHead(bb)) {
-			return true;
-		}
-		if (traversedBbs.contains(bb)) {
-			return false;
-		}
-		traversedBbs.add(bb);
-		boolean isMember = false;
-		for (final E in : bb.getIns()) {
-			if (in.isBack()) {
-				continue; // ignore incoming back edges, sub loop-heads belong to branch
-			}
-			final BB pred = in.getStart();
-			// we could check if postorder smaller than loop head, but invalid struct multi-entries
-			// are a rare exception anyway
-			if (findReverseBranch(struct, pred, members, traversedBbs)) {
-				isMember = true;
-			}
-		}
-		if (isMember) {
-			members.add(bb);
-			return true;
-		}
-		return false;
-	}
-
 	/**
 	 * Find all unhandled catch edges for the given BB.
 	 *
@@ -423,7 +395,7 @@ public final class TrControlFlowAnalysis {
 	 * @return all unhandled catch edges for the given BB
 	 */
 	@Nullable
-	private static List<E> findUnhandledCatches(final BB bb) {
+	private static List<E> findCatchUnhandledHandlerBbs(final BB bb) {
 		List<E> unhandledCatches = null;
 		outer: for (final E findCatch : bb.getOuts()) {
 			if (!findCatch.isCatch()) {
@@ -502,7 +474,8 @@ public final class TrControlFlowAnalysis {
 	 * @return all unhandled loop back BBs for the given BB
 	 */
 	@Nullable
-	private static List<BB> findUnhandledLoopBackBbs(final BB bb) {
+	private static List<BB> findLoopUnhandledBackBbs(final BB bb) {
+		// list necessary, multiple backs possible with no related postorder, identify last later
 		List<BB> backBbs = null;
 		for (final E in : bb.getIns()) {
 			if (!in.isBack() || in.isCatch()) {
@@ -520,6 +493,34 @@ public final class TrControlFlowAnalysis {
 			backBbs.add(pred);
 		}
 		return backBbs;
+	}
+
+	private static boolean findReverseBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
+			@Nonnull final List<BB> members, @Nonnull final Set<BB> traversedBbs) {
+		if (members.contains(bb) || struct.hasHead(bb)) {
+			return true;
+		}
+		if (traversedBbs.contains(bb)) {
+			return false;
+		}
+		traversedBbs.add(bb);
+		boolean isMember = false;
+		for (final E in : bb.getIns()) {
+			if (in.isBack()) {
+				continue; // ignore incoming back edges, sub loop-heads belong to branch
+			}
+			final BB pred = in.getStart();
+			// we could check if postorder smaller than loop head, but invalid struct multi-entries
+			// are a rare exception anyway
+			if (findReverseBranch(struct, pred, members, traversedBbs)) {
+				isMember = true;
+			}
+		}
+		if (isMember) {
+			members.add(bb);
+			return true;
+		}
+		return false;
 	}
 
 	private static boolean handleSyncFinally(@Nonnull final BB bb) {
@@ -918,7 +919,7 @@ public final class TrControlFlowAnalysis {
 			bb.sortOuts();
 
 			while (true) {
-				final List<E> catches = findUnhandledCatches(bb);
+				final List<E> catches = findCatchUnhandledHandlerBbs(bb);
 				if (catches == null) {
 					break;
 				}
@@ -927,7 +928,7 @@ public final class TrControlFlowAnalysis {
 			// check loop first, could be endless / post loop with additional sub struct heads;
 			// including nested post loops that cannot be mitigated by continue
 			while (true) {
-				final List<BB> loopBackBbs = findUnhandledLoopBackBbs(bb);
+				final List<BB> loopBackBbs = findLoopUnhandledBackBbs(bb);
 				if (loopBackBbs == null) {
 					break;
 				}
