@@ -707,7 +707,7 @@ public final class TrCfg2JavaControlFlowStmts {
 			return null;
 		}
 		final E sequenceOut = head.getSequenceOut();
-		if (sequenceOut == null) {
+		if (sequenceOut == null || sequenceOut.isBack()) {
 			assert false;
 			return null;
 		}

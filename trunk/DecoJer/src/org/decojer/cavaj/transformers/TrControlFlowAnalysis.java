@@ -489,7 +489,7 @@ public final class TrControlFlowAnalysis {
 			return false;
 		}
 		final E throwBb = bb.getSequenceOut();
-		if (throwBb == null || throwBb.getEnd().getStmts() != 1
+		if (throwBb == null || throwBb.isBack() || throwBb.getEnd().getStmts() != 1
 				|| !(throwBb.getEnd().getStmt(0) instanceof ThrowStatement)) {
 			return false;
 		}
@@ -787,7 +787,7 @@ public final class TrControlFlowAnalysis {
 		final Sync sync = new Sync(head);
 		// BBs are always split behind MONITOR_ENTER! hence: struct starts at sequence out
 		final E sequenceOut = head.getSequenceOut();
-		if (sequenceOut == null) {
+		if (sequenceOut == null || sequenceOut.isBack()) {
 			assert false;
 			return sync;
 		}
@@ -913,6 +913,7 @@ public final class TrControlFlowAnalysis {
 			}
 			bb.sortOuts();
 
+			// TODO try-catch-direct back loop: loop is outer...check handler-bottom? argl
 			while (true) {
 				final List<E> catches = findCatchOutmostUnhandled(bb);
 				if (catches == null) {

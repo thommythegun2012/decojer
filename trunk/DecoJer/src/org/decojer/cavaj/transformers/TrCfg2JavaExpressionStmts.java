@@ -307,7 +307,7 @@ public final class TrCfg2JavaExpressionStmts {
 							}
 							// i'm empty now...can delete myself (move ins to succ)
 							final E out = bb.getSequenceOut();
-							assert out != null;
+							assert out != null && !out.isBack();
 							bb.moveIns(out.getEnd());
 							return true;
 						}
@@ -1787,7 +1787,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final E popBbSequenceOut = popBb.getSequenceOut();
-		if (popBbSequenceOut == null) {
+		if (popBbSequenceOut == null || popBbSequenceOut.isBack()) {
 			return false;
 		}
 		final BB pushBb = popBbSequenceOut.getEnd();
@@ -1801,7 +1801,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final E pushBbSequenceOut = pushBb.getSequenceOut();
-		if (pushBbSequenceOut == null) {
+		if (pushBbSequenceOut == null || pushBbSequenceOut.isBack()) {
 			return false;
 		}
 		final BB dupBb = pushBbSequenceOut.getEnd();
@@ -1818,7 +1818,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final E dupBbSequenceOut = dupBb.getSequenceOut();
-		if (dupBbSequenceOut == null) {
+		if (dupBbSequenceOut == null || dupBbSequenceOut.isBack()) {
 			return false;
 		}
 		final BB followBb = dupBbSequenceOut.getEnd();
@@ -1896,7 +1896,7 @@ public final class TrCfg2JavaExpressionStmts {
 			return false;
 		}
 		final E getBbSequenceOut = getBb.getSequenceOut();
-		if (getBbSequenceOut == null) {
+		if (getBbSequenceOut == null || getBbSequenceOut.isBack()) {
 			return false;
 		}
 		final BB followBb = getBbSequenceOut.getEnd();
@@ -2742,7 +2742,7 @@ public final class TrCfg2JavaExpressionStmts {
 			// remove empty nodes
 			if (bb.getStmts() == 0 && bb.getTop() == 0) {
 				final E sequenceOut = bb.getSequenceOut();
-				if (sequenceOut != null) {
+				if (sequenceOut != null && !sequenceOut.isBack()) {
 					bb.moveIns(sequenceOut.getEnd());
 				}
 			}
