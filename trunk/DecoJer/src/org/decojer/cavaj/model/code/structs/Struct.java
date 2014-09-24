@@ -137,12 +137,46 @@ public class Struct {
 	}
 
 	/**
+	 * Find value where first member is given BB!
+	 *
+	 * @param bb
+	 *            BB
+	 * @return value where first member is given BB
+	 */
+	@Nullable
+	public Object findValueWhereFirstMemberIs(@Nullable final BB bb) {
+		for (final Entry<Object, List<BB>> entry : this.value2members.entrySet()) {
+			final List<BB> value = entry.getValue();
+			if (value.isEmpty()) {
+				continue;
+			}
+			if (value.get(0) == bb) {
+				return entry.getKey();
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Get default label name, like "loop" or "switch".
 	 *
 	 * @return default label name
 	 */
 	public String getDefaultLabelName() {
 		return getClass().getSimpleName().toLowerCase();
+	}
+
+	/**
+	 * Get first member for given value.
+	 *
+	 * @param value
+	 *            value
+	 * @return first member for given value
+	 */
+	@Nullable
+	public BB getFirstMember(@Nullable final Object value) {
+		final List<BB> members = this.value2members.get(value);
+		return members == null ? null : members.get(0);
 	}
 
 	/**
@@ -281,7 +315,7 @@ public class Struct {
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert bb.isSubHead() : "Cannot change follow to BB" + bb.getPc()
-							+ " for struct:\n" + this;
+					+ " for struct:\n" + this;
 				}
 			}
 		}

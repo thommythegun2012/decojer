@@ -200,6 +200,17 @@ public final class E {
 	}
 
 	/**
+	 * Has this edge the given edge as predecessor?
+	 *
+	 * @param e
+	 *            edge
+	 * @return {@code true} - this edge has the given edge as predecessor
+	 */
+	public boolean hasPred(@Nonnull final E e) {
+		return getStart().hasPred(e.getEnd());
+	}
+
+	/**
 	 * Has this edge the given BB as successor?
 	 *
 	 * @param bb
@@ -208,6 +219,17 @@ public final class E {
 	 */
 	public boolean hasSucc(@Nonnull final BB bb) {
 		return getEnd().hasSucc(bb);
+	}
+
+	/**
+	 * Has this edge the given edge as successor?
+	 *
+	 * @param e
+	 *            edge
+	 * @return {@code true} - this edge has the given edge as successor
+	 */
+	public boolean hasSucc(@Nonnull final E e) {
+		return getEnd().hasSucc(e.getStart());
 	}
 
 	/**
@@ -357,8 +379,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-				+ (this.end == null ? "null" : getEnd().getPc())
-				+ (valueString.isEmpty() ? "" : " : " + getValueString());
+		+ (this.end == null ? "null" : getEnd().getPc())
+		+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }

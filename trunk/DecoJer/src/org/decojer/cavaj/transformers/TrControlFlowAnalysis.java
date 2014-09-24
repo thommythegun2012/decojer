@@ -50,6 +50,7 @@ import org.decojer.cavaj.model.code.structs.Switch;
 import org.decojer.cavaj.model.code.structs.Switch.Kind;
 import org.decojer.cavaj.model.code.structs.Sync;
 import org.decojer.cavaj.model.methods.M;
+import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
@@ -67,27 +68,6 @@ import com.google.common.collect.Sets;
  */
 @Slf4j
 public final class TrControlFlowAnalysis {
-
-	@Nonnull
-	private static Catch createCatchStruct(@Nonnull final BB head, @Nonnull final List<E> catches) {
-		final Catch catchStruct = new Catch(head);
-		// handle innermost catch first...next outer catch in next create-round
-		final List<BB> members = Lists.newArrayList();
-		for (final E findCatch : catches) {
-			final List<E> handlerIns = findCatch.getEnd().getIns();
-			for (final E handlerIn : handlerIns) {
-				final BB member = handlerIn.getStart();
-				if (member != head && !members.contains(member)) {
-					members.add(member);
-				}
-			}
-			catchStruct.addMember(findCatch.getValue(), findCatch.getEnd());
-		}
-		catchStruct.addMembers(null, members);
-		// catches are like branch outs, highest follow wins as global follow
-
-		return catchStruct;
-	}
 
 	@Nonnull
 	private static Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<BB> backBbs) {
@@ -402,58 +382,33 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			final BB findHandler = findCatch.getEnd();
+			final T[] findCatchTypes = (T[]) findCatch.getValue();
+			assert findCatchTypes != null;
+
 			// handler already handled in outer struct?
 			for (Struct struct = findHandler.getStruct(); struct != null; struct = struct
 					.getParent()) {
 				// member-catch-values T[] are usually same for same handlers, see DataFlowAnalysis
 				if (struct instanceof Catch
-						&& ((Catch) struct).hasMember(findCatch.getValue(), findHandler)) {
+						&& ((Catch) struct).hasHandler(findCatchTypes, findHandler)) {
 					continue outer; // this handler is already handled, skip this catch
 				}
 			}
 			if (unhandledCatches == null) {
 				unhandledCatches = Lists.newArrayList();
-			} else {
-				// TODO what if catch-area ends in the middle of independant condition-branches?
-				final E findHandlerLowestIn = findHandler.getInWithSmallestPostorder();
-				assert findHandlerLowestIn != null;
+				unhandledCatches.add(findCatch);
+				continue;
+			}
 
-				for (int i = unhandledCatches.size(); i-- > 0;) {
-					final E unhandledCatch = unhandledCatches.get(i);
-					final BB unhandledHandler = unhandledCatch.getEnd();
+			for (int i = unhandledCatches.size(); i-- > 0;) {
+				final E unhandledCatch = unhandledCatches.get(i);
 
-					final E unhandledHandlerLowestIn = unhandledHandler
-							.getInWithSmallestPostorder();
-					assert unhandledHandlerLowestIn != null;
-
-					if (findHandlerLowestIn.getStart() == unhandledHandlerLowestIn.getStart()) {
-						assert !unhandledHandler.hasSucc(findHandler) || findCatch.isFinally();
-						assert !findHandler.hasSucc(unhandledHandler) || unhandledCatch.isFinally();
-						continue; // OK, new valid handler for same try-block
-					}
-					if (findHandlerLowestIn.getStart().getPostorder() > unhandledHandlerLowestIn
-							.getStart().getPostorder()) {
-						// findHandlerLowestIn is higher in CFG -> findHandler not a new outer catch
-						assert findHandler.hasSucc(unhandledHandler);
-						assert !unhandledHandler.hasSucc(findHandler);
-						continue outer;
-					}
-					// findHandlerLowestIn is lower in CFG: we need additional checks only for
-					// finally, which can (and should) also include the handler-branches
-					if (!unhandledCatch.isFinally()) {
-						assert !findHandler.hasSucc(unhandledHandler);
-						// filter catches: if handlers are pred/succ of each other, only the
-						// outermost catches are remembered (excluding finally)
-						unhandledCatches.clear();
-						break;
-					}
-					// TODO finally is really difficult to handle...also wraps the complete
-					// catch-branches down to...where (down to JSRs or synthetic copies?)
-
-					// differentiate wrapping solo-finallies from finallies belonging to found
-					// unhandled handlers
-
-					// there sould be no struct-ends in catch-member-area
+				if (unhandledCatch.hasSucc(findCatch)) {
+					unhandledCatches.remove(i);
+					continue;
+				}
+				if (findCatch.hasSucc(unhandledCatch)) {
+					continue outer;
 				}
 			}
 			unhandledCatches.add(findCatch);
@@ -670,6 +625,51 @@ public final class TrControlFlowAnalysis {
 		block.setLabel(block.getDefaultLabelName()
 				+ (this.labelCounter++ == 0 ? "" : this.labelCounter));
 		return block;
+	}
+
+	@Nonnull
+	private Catch createCatchStruct(@Nonnull final BB head, @Nonnull final List<E> catches) {
+		final Catch catchStruct = new Catch(head);
+		// handle innermost catch first...next outer catch in next create-round
+		BB firstFollow = null;
+		for (int i = 0; i < catches.size(); ++i) {
+			final E catchE = catches.get(i);
+			final BB handler = catchE.getEnd();
+			final List<E> handlerIns = handler.getIns();
+			for (final E handlerIn : handlerIns) {
+				final BB member = handlerIn.getStart();
+				if (member != head && catchStruct.addMember(null, member) && i != 0) {
+					assert 0 == 1 : "Not properly nested catch struct: " + catchStruct;
+					log.warn(getM() + ": Not properly nested catch struct: " + catchStruct);
+				}
+			}
+			catchStruct.addMember(catchE.getValue(), handler);
+
+			final List<BB> handlerMembers = Lists.newArrayList();
+			final Set<BB> handlerFollows = Sets.newHashSet();
+			findBranch(catchStruct, catchE, handlerMembers, handlerFollows);
+
+			catchStruct.addMembers(catchE.getValue(), handlerMembers);
+
+			for (final BB follow : handlerFollows) {
+				assert follow != null;
+				if (checkBranching(catchStruct, follow)) {
+					continue;
+				}
+				if (firstFollow == null) {
+					firstFollow = follow;
+					continue;
+				}
+				if (follow.hasSourceBefore(firstFollow)) {
+					createBlockStruct(catchStruct, firstFollow);
+					firstFollow = follow;
+				}
+			}
+		}
+		if (firstFollow != null) {
+			catchStruct.setFollow(firstFollow);
+		}
+		return catchStruct;
 	}
 
 	@Nonnull

@@ -23,9 +23,6 @@
  */
 package org.decojer.cavaj.model.code.structs;
 
-import java.util.List;
-import java.util.Map.Entry;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
@@ -33,6 +30,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.code.BB;
+import org.decojer.cavaj.model.types.T;
 
 /**
  * Switch struct.
@@ -74,23 +72,17 @@ public class Switch extends Struct {
 	}
 
 	/**
-	 * Has this switch struct the given BB as case node?
-	 * 
+	 * Get case values if this switch struct has the given BB as case node.
+	 *
 	 * @param bb
 	 *            BB
-	 * @return {@code true} - this switch struct has the given BB as case node
+	 * @return case values if this switch struct has the given BB as case node or {@code null}
 	 */
-	public boolean hasCase(@Nullable final BB bb) {
-		for (final Entry<Object, List<BB>> entry : this.value2members.entrySet()) {
-			final List<BB> value = entry.getValue();
-			if (value.isEmpty()) {
-				continue;
-			}
-			if (value.get(0) == bb) {
-				return true;
-			}
-		}
-		return false;
+	@Nullable
+	public Object[] getCaseValues(@Nullable final BB bb) {
+		final Object value = findValueWhereFirstMemberIs(bb);
+		return value instanceof Object[] && !(value instanceof T[]) ? (Object[]) findValueWhereFirstMemberIs(bb)
+				: null;
 	}
 
 	@Override
