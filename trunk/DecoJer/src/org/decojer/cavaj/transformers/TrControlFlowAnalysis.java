@@ -395,7 +395,7 @@ public final class TrControlFlowAnalysis {
 	 * @return all unhandled catch edges for the given BB
 	 */
 	@Nullable
-	private static List<E> findCatchUnhandledHandlerBbs(final BB bb) {
+	private static List<E> findCatchUnhandled(final BB bb) {
 		List<E> unhandledCatches = null;
 		outer: for (final E findCatch : bb.getOuts()) {
 			if (!findCatch.isCatch()) {
@@ -919,7 +919,7 @@ public final class TrControlFlowAnalysis {
 			bb.sortOuts();
 
 			while (true) {
-				final List<E> catches = findCatchUnhandledHandlerBbs(bb);
+				final List<E> catches = findCatchUnhandled(bb);
 				if (catches == null) {
 					break;
 				}
