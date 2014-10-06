@@ -116,7 +116,7 @@ class TestDU {
 
 	@Test
 	void testEclipsePlugins() {
-		read(new File("D:/Software/eclipse-rcp-kepler-SR2-64-jdk8/plugins"));
+		read(new File("D:/Software/eclipse-rcp-luna-SR1-64/plugins"));
 	}
 
 }
