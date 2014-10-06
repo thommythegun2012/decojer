@@ -69,14 +69,15 @@ import com.google.common.collect.Sets;
 public final class TrControlFlowAnalysis {
 
 	@Nonnull
-	private static Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<BB> backBbs) {
+	private static Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<E> backs) {
 		final Loop loop = new Loop(head);
 
 		final Set<BB> traversedBbs = Sets.<BB> newHashSet();
 		final List<BB> members = Lists.newArrayList();
 		BB last = null;
-		for (final BB backBb : backBbs) {
-			assert backBb != null;
+		for (final E back : backs) {
+			assert back != null;
+			final BB backBb = back.getStart();
 			final boolean found = findReverseBranch(loop, backBb, members, traversedBbs);
 			assert found : "cannot have a loop back BB that is not in reverse branch";
 			if (last == null || last.hasSourceBefore(backBb)) {
@@ -417,7 +418,7 @@ public final class TrControlFlowAnalysis {
 	}
 
 	/**
-	 * Find all unhandled loop back BBs for the given BB. The given BB is a loop head if at least
+	 * Find all unhandled loop back edges for the given BB. The given BB is a loop head if at least
 	 * one such back BB exists, which isn't a self-catch handler (valid bytecode).
 	 *
 	 * Nested post loops with same head are possible and cannot be handled by continue (which goes
@@ -430,9 +431,9 @@ public final class TrControlFlowAnalysis {
 	 * @return all unhandled loop back BBs for the given BB
 	 */
 	@Nullable
-	private static List<BB> findLoopUnhandledBackBbs(final BB bb) {
+	private static List<E> findLoopUnhandledBacks(final BB bb) {
 		// list necessary, multiple backs possible with no related postorder, identify last later
-		List<BB> backBbs = null;
+		List<E> backs = null;
 		for (final E in : bb.getIns()) {
 			if (!in.isBack() || in.isCatch()) {
 				continue;
@@ -443,12 +444,12 @@ public final class TrControlFlowAnalysis {
 					&& (!((Loop) struct).isPost() || ((Loop) struct).hasLast(pred))) {
 				continue;
 			}
-			if (backBbs == null) {
-				backBbs = Lists.newArrayList();
+			if (backs == null) {
+				backs = Lists.newArrayList();
 			}
-			backBbs.add(pred);
+			backs.add(in);
 		}
-		return backBbs;
+		return backs;
 	}
 
 	private static boolean findReverseBranch(@Nonnull final Struct struct, @Nonnull final BB bb,
@@ -918,7 +919,7 @@ public final class TrControlFlowAnalysis {
 			// including nested catches & also post loops that cannot be mitigated by continue
 			while (true) {
 				final List<E> catches = findCatchOutmostUnhandled(bb);
-				final List<BB> loopBackBbs = findLoopUnhandledBackBbs(bb);
+				final List<E> backs = findLoopUnhandledBacks(bb);
 
 				if (catches != null) {
 					// TODO find loop lasts outside catch? loop wins
@@ -926,11 +927,10 @@ public final class TrControlFlowAnalysis {
 					createCatchStruct(bb, catches);
 					continue; // additional sub struct heads possible for catch
 				}
-				if (loopBackBbs == null) {
+				if (backs == null) {
 					break; // exit: isn't catch or loop struct, try other structs
 				}
-				final Loop loop = createLoopStruct(bb, loopBackBbs);
-				if (loop.isPre()) {
+				if (createLoopStruct(bb, backs).isPre()) {
 					// exit: no additional struct head possible here
 					continue nextBb;
 				}
