@@ -913,28 +913,28 @@ public final class TrControlFlowAnalysis {
 			}
 			bb.sortOuts();
 
-			// TODO try-catch-direct back loop: loop is outer...check handler-bottom? argl
+			// check for catch & loop structs first: catch and endless / post loop structs have
+			// additional sub struct heads;
+			// including nested catches & also post loops that cannot be mitigated by continue
 			while (true) {
 				final List<E> catches = findCatchOutmostUnhandled(bb);
-				if (catches == null) {
-					break;
-				}
-				createCatchStruct(bb, catches);
-			}
-			// check loop first, could be endless / post loop with additional sub struct heads;
-			// including nested post loops that cannot be mitigated by continue
-			while (true) {
 				final List<BB> loopBackBbs = findLoopUnhandledBackBbs(bb);
+
+				if (catches != null) {
+					// TODO find loop lasts outside catch? loop wins
+					// if...
+					createCatchStruct(bb, catches);
+					continue; // additional sub struct heads possible for catch
+				}
 				if (loopBackBbs == null) {
-					break;
+					break; // exit: isn't catch or loop struct, try other structs
 				}
 				final Loop loop = createLoopStruct(bb, loopBackBbs);
 				if (loop.isPre()) {
 					// exit: no additional struct head possible here
 					continue nextBb;
 				}
-				// fall through: additional sub struct heads possible for post / endless, including
-				// nested post loops that cannot be handled by continue
+				// additional sub struct heads possible for endless / post loops
 			}
 			final R syncR = isSyncHead(bb); // also warn about unexpected exits
 			if (syncR != null) {
