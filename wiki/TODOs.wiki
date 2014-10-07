@@ -7,6 +7,11 @@ DecTestExceptions.simpleFinally()
   Catch-Follow missing
   finally - throw r1 too much
 
+
+			// TODO we have another important potential follow, which is the first unhandled
+			// post-member!!! important for finally and not-returning catches! gather info here
+
+
 }}}
 
 = TODOs =
