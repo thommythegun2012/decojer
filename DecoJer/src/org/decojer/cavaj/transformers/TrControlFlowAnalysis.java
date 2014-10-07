@@ -921,9 +921,20 @@ public final class TrControlFlowAnalysis {
 				final List<E> catches = findCatchOutmostUnhandled(bb);
 				final List<E> backs = findLoopUnhandledBacks(bb);
 
-				if (catches != null) {
-					// TODO find loop lasts outside catch? loop wins
-					// if...
+				handleCatch: if (catches != null) {
+					if (backs != null) {
+						// check if there is a back that is not handled -> loop is assumed outer for
+						// Java, cannot translate 1:1 all possible CFG structures <- simplification
+						log.warn(getM() + ": priorizing catch / loop in : " + bb);
+						for (final E back : backs) {
+							final BB loopLastBb = back.getStart();
+							for (final E catchE : catches) {
+								if (!loopLastBb.hasSucc(catchE.getEnd())) {
+									break handleCatch;
+								}
+							}
+						}
+					}
 					createCatchStruct(bb, catches);
 					continue; // additional sub struct heads possible for catch
 				}
