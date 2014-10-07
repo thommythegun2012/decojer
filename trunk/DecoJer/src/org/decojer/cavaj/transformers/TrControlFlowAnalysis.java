@@ -306,7 +306,7 @@ public final class TrControlFlowAnalysis {
 		final List<BB> checkBbs = Lists.newArrayList(firstIn.getEnd());
 		outer: do {
 			final BB checkBb = checkBbs.remove(0);
-			if (!members.contains(checkBb)) { // check necessary for switch case fall throughs
+			if (!members.contains(checkBb)) { // given first member (handler/switch)?
 				if (checkBb.isStartBb()) {
 					// special case: checkBb is loop head and is CFG-startBb (no additional ins)
 					followBbs.add(checkBb);
@@ -631,6 +631,8 @@ public final class TrControlFlowAnalysis {
 			final E catchE = catches.get(i);
 			final BB handler = catchE.getEnd();
 			final List<E> handlerIns = handler.getIns();
+			// TODO we have another important potential follow, which is the first unhandled
+			// post-member!!! important for finally and not-returning catches! gather info here
 			for (final E handlerIn : handlerIns) {
 				final BB member = handlerIn.getStart();
 				if (member != head && catchStruct.addMember(null, member) && i != 0) {
@@ -638,9 +640,7 @@ public final class TrControlFlowAnalysis {
 					log.warn(getM() + ": Not properly nested catch struct: " + catchStruct);
 				}
 			}
-			catchStruct.addMember(catchE.getValue(), handler);
-
-			final List<BB> handlerMembers = Lists.newArrayList();
+			final List<BB> handlerMembers = Lists.newArrayList(handler);
 			final Set<BB> handlerFollows = Sets.newHashSet();
 			findBranch(catchStruct, catchE, handlerMembers, handlerFollows);
 
