@@ -2,49 +2,10 @@
 
 {{{
 
-shouldn't happen because then it's handled by follow-check?
+DecTestExceptions.simpleFinally()
 
-java.lang.RuntimeException: File: D:\Software\eclipse-rcp-kepler-SR2-64-jdk8\plugins\com.android.ide.eclipse.adt_22.6.3.v201404151837-1123206.jar
-Cannot transform 'com.android.ide.common.layout.BaseViewRule.addCommonPropertyActions(Ljava/util/List;Lcom/android/ide/common/api/INode;Lcom/android/ide/common/api/IMenuCallback;I)V (ops: 75, regs: 12)'!
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:65)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
-	at java.util.concurrent.RecursiveTask.exec(RecursiveTask.java:94)
-	at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289)
-	at java.util.concurrent.ForkJoinTask.doJoin(ForkJoinTask.java:388)
-	at java.util.concurrent.ForkJoinTask.invokeAll(ForkJoinTask.java:845)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:45)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:1)
-	at java.util.concurrent.RecursiveTask.exec(RecursiveTask.java:94)
-	at java.util.concurrent.ForkJoinTask.doExec(ForkJoinTask.java:289)
-	at java.util.concurrent.ForkJoinPool$WorkQueue.runTask(ForkJoinPool.java:902)
-	at java.util.concurrent.ForkJoinPool.scan(ForkJoinPool.java:1689)
-	at java.util.concurrent.ForkJoinPool.runWorker(ForkJoinPool.java:1644)
-	at java.util.concurrent.ForkJoinWorkerThread.run(ForkJoinWorkerThread.java:157)
-Caused by: org.decojer.DecoJerException: Cannot transform 'com.android.ide.common.layout.BaseViewRule.addCommonPropertyActions(Ljava/util/List;Lcom/android/ide/common/api/INode;Lcom/android/ide/common/api/IMenuCallback;I)V (ops: 75, regs: 12)'!
-	at org.decojer.cavaj.model.CU.decompile(CU.java:260)
-	at org.decojer.cavaj.model.RecursiveRead.compute(TestDU.java:59)
-	... 13 more
-Caused by: java.lang.AssertionError
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.findBranch(TrControlFlowAnalysis.java:351)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.createCondStruct(TrControlFlowAnalysis.java:680)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:896)
-	at org.decojer.cavaj.transformers.TrControlFlowAnalysis.transform(TrControlFlowAnalysis.java:536)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:236)
-	at org.decojer.cavaj.model.code.CFG.decompile(CFG.java:215)
-	at org.decojer.cavaj.model.CU.decompile(CU.java:255)
-	... 14 more
-
-
-
-com.android.ide.eclipse.adt.internal.build.AaptParser.checkAndMark
-
-https://android.googlesource.com/platform/sdk/+/474bd94/eclipse/plugins/com.android.ide.eclipse.adt/src/com/android/ide/eclipse/adt/internal/build/AaptParser.java
-
-
-
-com.android.ide.eclipse.adt.internal.editors.layout.ProjectCallback.instantiateClass()
-
-https://android.googlesource.com/platform/sdk/+/6c75fe8af23e154a5cd90a7272fa9f6aa8648e51/eclipse/plugins/com.android.ide.eclipse.adt/src/com/android/ide/eclipse/adt/internal/editors/layout/ProjectCallback.java
+  Catch-Follow missing
+  finally - throw r1 too much
 
 }}}
 
