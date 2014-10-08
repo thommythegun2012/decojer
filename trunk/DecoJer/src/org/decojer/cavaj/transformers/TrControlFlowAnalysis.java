@@ -297,7 +297,7 @@ public final class TrControlFlowAnalysis {
 	 * @param members
 	 *            found struct members
 	 * @param followBbs
-	 *            potential struct follows (no continues or breaks)
+	 *            potential struct follows
 	 */
 	private static void findBranch(@Nonnull final Struct struct, @Nonnull final E firstIn,
 			@Nonnull final List<BB> members, @Nonnull final Set<BB> followBbs) {
@@ -625,6 +625,11 @@ public final class TrControlFlowAnalysis {
 	@Nonnull
 	private Catch createCatchStruct(@Nonnull final BB head, @Nonnull final List<E> catches) {
 		final Catch catchStruct = new Catch(head);
+
+		final Set<BB> follows = Sets.newHashSet();
+		for (final E out : head.getOuts()) {
+			follows.add(out.getEnd());
+		}
 		// handle innermost catch first...next outer catch in next create-round
 		BB firstFollow = null;
 		for (int i = 0; i < catches.size(); ++i) {
@@ -635,7 +640,17 @@ public final class TrControlFlowAnalysis {
 			// post-member!!! important for finally and not-returning catches! gather info here
 			for (final E handlerIn : handlerIns) {
 				final BB member = handlerIn.getStart();
-				if (member != head && catchStruct.addMember(null, member) && i != 0) {
+				if (member == head || !catchStruct.addMember(null, member)) {
+					continue; // already in
+				}
+				follows.remove(member);
+				for (final E out : member.getOuts()) {
+					final BB follow = out.getEnd();
+					if (!catchStruct.hasMember(null, follow)) {
+						follows.add(follow);
+					}
+				}
+				if (i != 0) {
 					assert 0 == 1 : "Not properly nested catch struct: " + catchStruct;
 					log.warn(getM() + ": Not properly nested catch struct: " + catchStruct);
 				}
