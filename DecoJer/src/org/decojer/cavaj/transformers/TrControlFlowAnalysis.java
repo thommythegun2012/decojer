@@ -297,7 +297,8 @@ public final class TrControlFlowAnalysis {
 	 * @param members
 	 *            found struct members
 	 * @param followBbs
-	 *            potential struct follows
+	 *            potential struct follows: should not gather outs because they might lead to same
+	 *            follows?!
 	 */
 	private static void findBranch(@Nonnull final Struct struct, @Nonnull final E firstIn,
 			@Nonnull final List<BB> members, @Nonnull final Set<BB> followBbs) {
@@ -628,10 +629,11 @@ public final class TrControlFlowAnalysis {
 
 		final Set<BB> follows = Sets.newHashSet();
 		for (final E out : head.getOuts()) {
-			follows.add(out.getEnd());
+			if (!catches.contains(out)) {
+				follows.add(out.getEnd());
+			}
 		}
 		// handle innermost catch first...next outer catch in next create-round
-		BB firstFollow = null;
 		for (int i = 0; i < catches.size(); ++i) {
 			final E catchE = catches.get(i);
 			final BB handler = catchE.getEnd();
@@ -656,26 +658,11 @@ public final class TrControlFlowAnalysis {
 				}
 			}
 			final List<BB> handlerMembers = Lists.newArrayList(handler);
-			final Set<BB> handlerFollows = Sets.newHashSet();
-			findBranch(catchStruct, catchE, handlerMembers, handlerFollows);
+			findBranch(catchStruct, catchE, handlerMembers, follows);
 
 			catchStruct.addMembers(catchE.getValue(), handlerMembers);
-
-			for (final BB follow : handlerFollows) {
-				assert follow != null;
-				if (checkBranching(catchStruct, follow)) {
-					continue;
-				}
-				if (firstFollow == null) {
-					firstFollow = follow;
-					continue;
-				}
-				if (follow.hasSourceBefore(firstFollow)) {
-					createBlockStruct(catchStruct, firstFollow);
-					firstFollow = follow;
-				}
-			}
 		}
+		final BB firstFollow = filterFollows(catchStruct, follows);
 		if (firstFollow != null) {
 			catchStruct.setFollow(firstFollow);
 		}
@@ -719,21 +706,8 @@ public final class TrControlFlowAnalysis {
 		// * topmost follow is our follow
 		// * all other follows -> create artificial break-block
 
-		BB firstFollow = null;
-		for (final BB follow : firstFollows) {
-			assert follow != null;
-			if (checkBranching(cond, follow)) {
-				continue;
-			}
-			if (firstFollow == null) {
-				firstFollow = follow;
-				continue;
-			}
-			if (follow.hasSourceBefore(firstFollow)) {
-				createBlockStruct(cond, firstFollow);
-				firstFollow = follow;
-			}
-		}
+		final BB firstFollow = filterFollows(cond, firstFollows);
+
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
 		if (firstFollows.isEmpty() || firstFollow == secondOut.getEnd()) {
@@ -750,24 +724,8 @@ public final class TrControlFlowAnalysis {
 		final Set<BB> secondFollows = Sets.newHashSet();
 		findBranch(cond, secondOut, secondMembers, secondFollows);
 
-		BB secondFollow = null;
-		for (final BB follow : secondFollows) {
-			assert follow != null;
-			if (checkBranching(cond, follow)) {
-				continue;
-			}
-			if (secondFollow == null) {
-				secondFollow = follow;
-				continue;
-			}
-			if (follow.hasSourceBefore(secondFollow)) {
-				createBlockStruct(cond, secondFollow);
-				if (firstFollow == secondFollow) {
-					firstFollow = null;
-				}
-				secondFollow = follow;
-			}
-		}
+		final BB secondFollow = filterFollows(cond, secondFollows);
+
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
 		if (secondFollow == null || secondFollow == firstOut.getEnd()) {
@@ -874,6 +832,26 @@ public final class TrControlFlowAnalysis {
 			sync.setFollow(syncFollow);
 		}
 		return sync;
+	}
+
+	@Nullable
+	private BB filterFollows(@Nonnull final Struct struct, @Nonnull final Set<BB> follows) {
+		BB firstFollow = null;
+		for (final BB follow : follows) {
+			assert follow != null;
+			if (checkBranching(struct, follow)) {
+				continue;
+			}
+			if (firstFollow == null) {
+				firstFollow = follow;
+				continue;
+			}
+			if (follow.hasSourceBefore(firstFollow)) {
+				createBlockStruct(struct, firstFollow);
+				firstFollow = follow;
+			}
+		}
+		return firstFollow;
 	}
 
 	private M getM() {
