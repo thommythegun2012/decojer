@@ -662,6 +662,9 @@ public final class TrControlFlowAnalysis {
 
 			catchStruct.addMembers(catchE.getValue(), handlerMembers);
 		}
+		if (rewriteFinallyFollows(catchStruct, follows)) {
+			return catchStruct;
+		}
 		final BB firstFollow = filterFollows(catchStruct, follows);
 		if (firstFollow != null) {
 			catchStruct.setFollow(firstFollow);
@@ -894,6 +897,16 @@ public final class TrControlFlowAnalysis {
 			assert false;
 		}
 		return null;
+	}
+
+	private boolean rewriteFinallyFollows(final Catch catchStruct, final Set<BB> follows) {
+		// TODO if we are in finally-mode, all follows should be same and can be reduced
+		final List<BB> finallyHandler = catchStruct.getMembers(Catch.FINALLY_TS);
+		if (finallyHandler == null) {
+			return false;
+		}
+		System.out.println("FINALLY: " + finallyHandler);
+		return false;
 	}
 
 	private void transform() {

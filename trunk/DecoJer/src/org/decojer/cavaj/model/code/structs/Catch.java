@@ -36,6 +36,8 @@ import org.decojer.cavaj.model.types.T;
  */
 public class Catch extends Struct {
 
+	public static final T[] FINALLY_TS = new T[] {};
+
 	/**
 	 * Constructor.
 	 *
