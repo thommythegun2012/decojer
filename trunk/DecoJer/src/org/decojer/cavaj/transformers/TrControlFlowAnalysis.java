@@ -400,7 +400,6 @@ public final class TrControlFlowAnalysis {
 				unhandledCatches.add(findCatch);
 				continue;
 			}
-
 			for (int i = unhandledCatches.size(); i-- > 0;) {
 				final E unhandledCatch = unhandledCatches.get(i);
 				final BB unhandledHandler = unhandledCatch.getEnd();
@@ -901,11 +900,17 @@ public final class TrControlFlowAnalysis {
 
 	private boolean rewriteFinallyFollows(final Catch catchStruct, final Set<BB> follows) {
 		// TODO if we are in finally-mode, all follows should be same and can be reduced
-		final List<BB> finallyHandler = catchStruct.getMembers(Catch.FINALLY_TS);
+		final BB finallyHandler = catchStruct.getFirstMember(Catch.FINALLY_TS);
 		if (finallyHandler == null) {
 			return false;
 		}
 		System.out.println("FINALLY: " + finallyHandler);
+		for (final BB follow : follows) {
+			if (follow == finallyHandler) {
+				continue;
+			}
+			// compare handler with follows...strip same
+		}
 		return false;
 	}
 
