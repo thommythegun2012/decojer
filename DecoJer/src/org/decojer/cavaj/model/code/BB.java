@@ -38,6 +38,7 @@ import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.code.ops.GOTO;
 import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.code.ops.RET;
+import org.decojer.cavaj.model.code.structs.Catch;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.types.T;
 import org.eclipse.jdt.core.dom.Expression;
@@ -117,7 +118,7 @@ public final class BB {
 	}
 
 	/**
-	 * Add handler.
+	 * Add catch handler (not finally).
 	 *
 	 * @param handler
 	 *            handler BB
@@ -126,7 +127,19 @@ public final class BB {
 	 * @return out edge
 	 */
 	public E addCatchHandler(@Nonnull final BB handler, @Nonnull final T[] catchTs) {
+		assert catchTs.length > 0;
 		return addSucc(handler, catchTs);
+	}
+
+	/**
+	 * Add finally handler.
+	 *
+	 * @param handler
+	 *            handler BB
+	 * @return out edge
+	 */
+	public E addFinallyHandler(@Nonnull final BB handler) {
+		return addSucc(handler, Catch.FINALLY_TS);
 	}
 
 	protected final void addIn(@Nonnull final E e) {
@@ -374,7 +387,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}

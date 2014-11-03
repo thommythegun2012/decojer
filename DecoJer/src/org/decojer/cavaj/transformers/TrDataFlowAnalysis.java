@@ -818,9 +818,16 @@ public final class TrDataFlowAnalysis {
 				final List<T> types = handlerPc2typeEntry.getValue();
 
 				final BB handlerBb = getTargetBb(handlerPc2typeEntry.getKey());
+
+				if (types.isEmpty()) {
+					// finally? add handler
+					this.currentBb.addFinallyHandler(handlerBb);
+					continue;
+				}
 				final E catchIn = handlerBb.getCatchIn();
 				reuseTs: if (catchIn != null) {
-					// was already a catch? reuse T[] to have Struct#getMembers(ts) working
+					// was already a known catch? handler
+					// reuse T[] {...} to have Struct#getMembers(ts) working
 					final T[] catchedTs = (T[]) catchIn.getValue();
 					assert catchedTs != null;
 					// compare!
@@ -840,9 +847,10 @@ public final class TrDataFlowAnalysis {
 					this.currentBb.addCatchHandler(handlerBb, catchedTs);
 					continue;
 				}
+				// add new catch handler with new T[] {....}
 				final T[] ts = types.toArray(new T[types.size()]);
 				assert ts != null;
-				assert handlerBb != null;
+				assert handlerBb != null; // don't know why necessary, Eclipse warn bug
 				this.currentBb.addCatchHandler(handlerBb, ts);
 			}
 		}
