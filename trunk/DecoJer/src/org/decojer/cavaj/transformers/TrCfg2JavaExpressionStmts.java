@@ -287,7 +287,7 @@ public final class TrCfg2JavaExpressionStmts {
 		this.cfg = cfg;
 	}
 
-	private boolean convertToHLLIntermediate(@Nonnull final BB bb) {
+	private boolean convertIntoExpressions(@Nonnull final BB bb) {
 		while (bb.getOps() > 0) {
 			while (isStackUnderflow(bb)) {
 				while (rewriteCompoundConditional(bb)) {
@@ -1518,7 +1518,7 @@ public final class TrCfg2JavaExpressionStmts {
 			assert !pred.isStackEmpty();
 
 			pred.addOp(op);
-			final boolean success = convertToHLLIntermediate(pred);
+			final boolean success = convertIntoExpressions(pred);
 			assert success;
 			if (op instanceof RETURN) {
 				in.remove();
@@ -2727,13 +2727,14 @@ public final class TrCfg2JavaExpressionStmts {
 				continue;
 			}
 			if (!rewriteHandler(bb)) {
-				// handler BB cannot match following patterns
+				// condition is a small optimization: handler BB cannot match compound pattern;
+				// compound is independent of content of bb...do it before convertIntoExpressions()
 				while (rewriteBooleanCompound(bb)) {
-					// nested possible
+					// try multiple times: nested is possible
 				}
+				// previous expressions merged into bb, now rewrite...
 			}
-			// previous expressions merged into bb, now rewrite
-			if (!convertToHLLIntermediate(bb)) {
+			if (!convertIntoExpressions(bb)) {
 				// in Java should never happen in forward mode, but in Scala exists a more complex
 				// conditional value ternary variant with sub statements
 				assert 0 == 1 : "Stack underflow in '" + getCfg() + "':\n" + bb;
