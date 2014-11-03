@@ -287,7 +287,7 @@ public final class TrCfg2JavaExpressionStmts {
 		this.cfg = cfg;
 	}
 
-	private boolean convertIntoExpressions(@Nonnull final BB bb) {
+	private boolean convertBbExpressions(@Nonnull final BB bb) {
 		while (bb.getOps() > 0) {
 			while (isStackUnderflow(bb)) {
 				while (rewriteCompoundConditional(bb)) {
@@ -1391,6 +1391,18 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
+	private boolean convertCatchExpression(@Nonnull final BB bb) {
+		final E catchIn = bb.getCatchIn();
+		if (catchIn == null || bb.getStmts() > 0 || bb.getTop() > 0) {
+			// check stmts and top: some rewrites could combine join nodes and this would again be a
+			// catch handler
+			return false;
+		}
+		final SimpleName name = newSimpleName("e", getAst());
+		bb.push(name);
+		return true;
+	}
+
 	@Nonnull
 	private AST getAst() {
 		return getCfg().getCu().getAst();
@@ -1518,7 +1530,7 @@ public final class TrCfg2JavaExpressionStmts {
 			assert !pred.isStackEmpty();
 
 			pred.addOp(op);
-			final boolean success = convertIntoExpressions(pred);
+			final boolean success = convertBbExpressions(pred);
 			assert success;
 			if (op instanceof RETURN) {
 				in.remove();
@@ -2213,18 +2225,6 @@ public final class TrCfg2JavaExpressionStmts {
 		return true;
 	}
 
-	private boolean rewriteHandler(@Nonnull final BB bb) {
-		final E catchIn = bb.getCatchIn();
-		if (catchIn == null || bb.getStmts() > 0 || bb.getTop() > 0) {
-			// check stmts and top: some rewrites could combine join nodes and this would again be a
-			// catch handler
-			return false;
-		}
-		final SimpleName name = newSimpleName("e", getAst());
-		bb.push(name);
-		return true;
-	}
-
 	private boolean rewriteInlinePostfixIncDec(@Nonnull final BB bb, @Nonnull final INC op) {
 		if (bb.isStackEmpty()) {
 			return false;
@@ -2726,15 +2726,15 @@ public final class TrCfg2JavaExpressionStmts {
 				// can happen if BB deleted through rewrite
 				continue;
 			}
-			if (!rewriteHandler(bb)) {
+			if (!convertCatchExpression(bb)) {
 				// condition is a small optimization: handler BB cannot match compound pattern;
 				// compound is independent of content of bb...do it before convertIntoExpressions()
 				while (rewriteBooleanCompound(bb)) {
-					// try multiple times: nested is possible
+					// try multiple times: nested compound is possible
 				}
 				// previous expressions merged into bb, now rewrite...
 			}
-			if (!convertIntoExpressions(bb)) {
+			if (!convertBbExpressions(bb)) {
 				// in Java should never happen in forward mode, but in Scala exists a more complex
 				// conditional value ternary variant with sub statements
 				assert 0 == 1 : "Stack underflow in '" + getCfg() + "':\n" + bb;
