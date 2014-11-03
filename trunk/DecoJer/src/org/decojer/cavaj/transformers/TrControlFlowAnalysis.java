@@ -661,6 +661,8 @@ public final class TrControlFlowAnalysis {
 
 			catchStruct.addMembers(catchE.getValue(), handlerMembers);
 		}
+		// follows means: leaving the catch area (not follows like incoming none-members like
+		// branches), when finally exists here we have to go into the finally-blocks for all follows
 		if (rewriteFinallyFollows(catchStruct, follows)) {
 			return catchStruct;
 		}
