@@ -91,7 +91,7 @@ import com.google.common.collect.Sets;
  * @author André Pankraz
  */
 @Slf4j
-public final class TrCfg2JavaControlFlowStmts {
+public final class TrControlFlowStmts {
 
 	/**
 	 * Transform CFG.
@@ -100,7 +100,7 @@ public final class TrCfg2JavaControlFlowStmts {
 	 *            CFG
 	 */
 	public static void transform(@Nonnull final CFG cfg) {
-		new TrCfg2JavaControlFlowStmts(cfg).transform();
+		new TrControlFlowStmts(cfg).transform();
 	}
 
 	@Getter(AccessLevel.PROTECTED)
@@ -109,7 +109,7 @@ public final class TrCfg2JavaControlFlowStmts {
 
 	private final Set<Struct> traversedStructs = Sets.newHashSet();
 
-	private TrCfg2JavaControlFlowStmts(@Nonnull final CFG cfg) {
+	private TrControlFlowStmts(@Nonnull final CFG cfg) {
 		this.cfg = cfg;
 	}
 
