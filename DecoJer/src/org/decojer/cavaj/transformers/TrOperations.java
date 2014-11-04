@@ -1641,8 +1641,9 @@ public final class TrOperations {
 			// catch handler
 			return false;
 		}
-		// name is changed in STORE
-		final SimpleName name = newSimpleName("_UNKNOWN_EXCEPTION_NAME_", getAst());
+		// name is likely changed in STORE, else could be a direct re-THROW or POP
+		// TODO select an unknown variable name for e, check if used up or down!
+		final SimpleName name = newSimpleName("e", getAst());
 		bb.push(name);
 		return true;
 	}
@@ -2649,8 +2650,7 @@ public final class TrOperations {
 				// check for temporary exception name
 				if (rightOperand instanceof SimpleName && getOp(rightOperand) == null) {
 					// should be an uninitialized, temporary exception name expression
-					assert ((SimpleName) rightOperand).getIdentifier().equals(
-							"_UNKNOWN_EXCEPTION_NAME_");
+					assert ((SimpleName) rightOperand).getIdentifier().equals("e");
 					// TODO how to backpropagate to catch-statement? including DUP-stuff?
 					if (v != null) {
 						((SimpleName) rightOperand).setIdentifier(v.getName());
