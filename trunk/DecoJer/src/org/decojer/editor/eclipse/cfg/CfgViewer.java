@@ -42,7 +42,10 @@ import org.decojer.cavaj.transformers.TrCalculatePostorder;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.Polyline;
+import org.eclipse.draw2d.ScalableFigure;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseWheelListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -154,6 +157,16 @@ public class CfgViewer extends Composite {
 						log.info("Ins: " + bb.getIns() + " |  Outs: " + bb.getOuts());
 					}
 				}
+			}
+
+		});
+		// small zoom functionallity
+		final ScalableFigure rootLayer = CfgViewer.this.graph.getRootLayer();
+		addMouseWheelListener(new MouseWheelListener() {
+
+			@Override
+			public void mouseScrolled(final MouseEvent e) {
+				rootLayer.setScale(rootLayer.getScale() * (e.count > 0 ? 1.05 : 0.95));
 			}
 
 		});
