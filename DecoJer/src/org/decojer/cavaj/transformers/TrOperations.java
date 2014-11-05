@@ -943,23 +943,23 @@ public final class TrOperations {
 						// rewrite to class literal didn't work
 					}
 				}
-			// use one of the constants, so that we get the correct out type
-			final ConditionalExpression conditionalExpression = setOp(getAst()
-					.newConditionalExpression(), getOp(thenExpression));
-			if (!c.hasSourceBefore(x)) {
-				final Expression swapExpression = thenExpression;
-				thenExpression = elseExpression;
-				elseExpression = swapExpression;
-				if (a_c.isCondTrue()) {
+				// use one of the constants, so that we get the correct out type
+				final ConditionalExpression conditionalExpression = setOp(getAst()
+						.newConditionalExpression(), getOp(thenExpression));
+				if (!c.hasSourceBefore(x)) {
+					final Expression swapExpression = thenExpression;
+					thenExpression = elseExpression;
+					elseExpression = swapExpression;
+					if (a_c.isCondTrue()) {
+						expression = not(expression);
+					}
+				} else if (a_c.isCondFalse()) {
 					expression = not(expression);
 				}
-			} else if (a_c.isCondFalse()) {
-				expression = not(expression);
-			}
-			conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
-			conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
-			conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
-			expression = conditionalExpression;
+				conditionalExpression.setExpression(wrap(expression, Priority.CONDITIONAL));
+				conditionalExpression.setThenExpression(wrap(thenExpression, Priority.CONDITIONAL));
+				conditionalExpression.setElseExpression(wrap(elseExpression, Priority.CONDITIONAL));
+				expression = conditionalExpression;
 			}
 			a.push(expression);
 			a.setSucc(bb);
@@ -1062,7 +1062,7 @@ public final class TrOperations {
 					} else {
 						anonymousClassDeclaration.delete();
 						enumConstantDeclaration
-						.setAnonymousClassDeclaration(anonymousClassDeclaration);
+								.setAnonymousClassDeclaration(anonymousClassDeclaration);
 						// normally contains one constructor, that calls a synthetic super
 						// constructor with the enum class as additional last parameter,
 						// this may contain field initializers, that we must keep,
@@ -1100,7 +1100,7 @@ public final class TrOperations {
 			return false;
 		}
 		((VariableDeclarationFragment) ((FieldDeclaration) astNode).fragments().get(0))
-		.setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
+				.setInitializer(wrap(rightOperand, Priority.ASSIGNMENT));
 		// TODO move anonymous TD to FD as child!!! important for ClassEditor
 		// select, if fixed change ClassEditor#findDeclarationForJavaElement too
 		if (!f.isStatic()) {
@@ -1637,8 +1637,8 @@ public final class TrOperations {
 	private boolean transformCatchExpression(@Nonnull final BB bb) {
 		final E catchIn = bb.getCatchIn();
 		if (catchIn == null || bb.getStmts() > 0 || bb.getTop() > 0) {
-			// check stmts and top: some rewrites could combine join nodes and this would again be a
-			// catch handler
+			// TODO some rewrites combine join nodes and push called twice, stmts/top check not
+			// sufficient
 			return false;
 		}
 		// name is likely changed in STORE, else could be a direct re-THROW or POP
@@ -1983,8 +1983,8 @@ public final class TrOperations {
 										newPrefixExpression(
 												cop.getValue() == 1 ? PrefixExpression.Operator.INCREMENT
 														: PrefixExpression.Operator.DECREMENT,
-												getVarExpression(cop.getReg(), cop.getPc(), op), op)),
-								op));
+														getVarExpression(cop.getReg(), cop.getPc(), op), op)),
+														op));
 						break;
 					}
 					log.warn(getM() + ": Inline ++/--!");
@@ -1999,9 +1999,9 @@ public final class TrOperations {
 									newAssignment(
 											value >= 0 ? Assignment.Operator.PLUS_ASSIGN
 													: Assignment.Operator.MINUS_ASSIGN,
-											getVarExpression(cop.getReg(), cop.getPc(), op),
-											newLiteral(cop.getT(), value >= 0 ? value : -value,
-													getCfg().getM(), op), op)), op));
+													getVarExpression(cop.getReg(), cop.getPc(), op),
+													newLiteral(cop.getT(), value >= 0 ? value : -value,
+															getCfg().getM(), op), op)), op));
 					break;
 				}
 				log.warn(getM() + ": Inline INC with value '" + value + "'!");
@@ -2082,22 +2082,22 @@ public final class TrOperations {
 								arguments.remove(0);
 								arguments.remove(0);
 							}
-							if (ownerT != null && ownerT.is(getCfg().getT())) {
-								final ConstructorInvocation constructorInvocation = getAst()
-										.newConstructorInvocation();
-								wrapAddAll(constructorInvocation.arguments(), arguments);
-								bb.addStmt(setOp(constructorInvocation, op));
-								break;
-							}
-							if (arguments.size() == 0) {
-								// implicit super callout, more checks possible but not necessary
-								break;
-							}
-							final SuperConstructorInvocation superConstructorInvocation = getAst()
-									.newSuperConstructorInvocation();
-							wrapAddAll(superConstructorInvocation.arguments(), arguments);
-							bb.addStmt(setOp(superConstructorInvocation, op));
+						if (ownerT != null && ownerT.is(getCfg().getT())) {
+							final ConstructorInvocation constructorInvocation = getAst()
+									.newConstructorInvocation();
+							wrapAddAll(constructorInvocation.arguments(), arguments);
+							bb.addStmt(setOp(constructorInvocation, op));
 							break;
+						}
+						if (arguments.size() == 0) {
+							// implicit super callout, more checks possible but not necessary
+							break;
+						}
+						final SuperConstructorInvocation superConstructorInvocation = getAst()
+								.newSuperConstructorInvocation();
+						wrapAddAll(superConstructorInvocation.arguments(), arguments);
+						bb.addStmt(setOp(superConstructorInvocation, op));
+						break;
 						}
 						if (expression instanceof ClassInstanceCreation) {
 							if (ownerT != null && ownerT.isInner()
@@ -2192,7 +2192,7 @@ public final class TrOperations {
 								assert ownerT != null;
 								methodReference.setType(newType(ownerT, getM()));
 								methodReference
-										.setName(newSimpleName(dynamicM.getName(), getAst()));
+								.setName(newSimpleName(dynamicM.getName(), getAst()));
 								methodExpression = methodReference;
 							} else {
 								assert arguments.size() == 1 : "expression method reference doesn't have 1 argument";
@@ -2201,7 +2201,7 @@ public final class TrOperations {
 										.newExpressionMethodReference();
 								methodReference.setExpression(arguments.get(0));
 								methodReference
-										.setName(newSimpleName(dynamicM.getName(), getAst()));
+								.setName(newSimpleName(dynamicM.getName(), getAst()));
 								methodExpression = methodReference;
 							}
 							// TODO is in bytecode via lambda, we could let it be or recognize this
@@ -2488,7 +2488,7 @@ public final class TrOperations {
 									getAst().newAnonymousClassDeclaration(), op);
 							newT.setAstNode(anonymousClassDeclaration);
 							classInstanceCreation
-									.setAnonymousClassDeclaration(anonymousClassDeclaration);
+							.setAnonymousClassDeclaration(anonymousClassDeclaration);
 							bb.push(classInstanceCreation);
 							break;
 						}
@@ -2603,7 +2603,7 @@ public final class TrOperations {
 				if (!bb.isStackEmpty()
 						&& rightOperand instanceof InfixExpression
 						&& (((InfixExpression) rightOperand).getOperator() == InfixExpression.Operator.PLUS || ((InfixExpression) rightOperand)
-								.getOperator() == InfixExpression.Operator.MINUS)) {
+						.getOperator() == InfixExpression.Operator.MINUS)) {
 					// if i'm an peek-1 or peek+1 expression, than we can post-inc/dec
 					// TODO more checks!
 					bb.push(newPostfixExpression(
@@ -2651,10 +2651,11 @@ public final class TrOperations {
 				if (rightOperand instanceof SimpleName && getOp(rightOperand) == null) {
 					// should be an uninitialized, temporary exception name expression
 					assert ((SimpleName) rightOperand).getIdentifier().equals("e");
-					// TODO how to backpropagate to catch-statement? including DUP-stuff?
 					if (v != null) {
+						// might help for DUPs to replace temporary name
 						((SimpleName) rightOperand).setIdentifier(v.getName());
 					}
+					// TODO how to really backpropagate v name to catch-statement?
 					break;
 				}
 				// inline assignment, DUP -> STORE
