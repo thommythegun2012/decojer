@@ -56,6 +56,7 @@ import org.decojer.cavaj.model.code.structs.Sync;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AssertStatement;
 import org.eclipse.jdt.core.dom.BreakStatement;
@@ -251,7 +252,8 @@ public final class TrControlFlowStmts {
 
 			final SingleVariableDeclaration singleVariableDeclaration = getAst()
 					.newSingleVariableDeclaration();
-			singleVariableDeclaration.setName(newSimpleName("e", getAst()));
+			singleVariableDeclaration.setName(newSimpleName(Expressions.EXCEPTION_NAME_TMP,
+					getAst()));
 			if (catchTypes.length == 1) {
 				final T handlerType = catchTypes[0];
 				assert handlerType != null;
