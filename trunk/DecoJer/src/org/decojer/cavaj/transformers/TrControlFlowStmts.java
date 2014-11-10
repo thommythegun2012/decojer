@@ -56,7 +56,6 @@ import org.decojer.cavaj.model.code.structs.Sync;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.AssertStatement;
 import org.eclipse.jdt.core.dom.BreakStatement;
@@ -81,6 +80,8 @@ import org.eclipse.jdt.core.dom.ThrowStatement;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.jdt.core.dom.Type;
 import org.eclipse.jdt.core.dom.UnionType;
+import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.jdt.core.dom.WhileStatement;
 
 import com.google.common.collect.Lists;
@@ -239,6 +240,18 @@ public final class TrControlFlowStmts {
 			if (!catchStruct.hasHandler(catchTypes, handler)) {
 				continue;
 			}
+
+			// remove temporary throwable declaration and extract exception name
+			final Statement throwableDeclaration = handler.removeStmt(0);
+			assert throwableDeclaration instanceof VariableDeclarationStatement;
+			final List<VariableDeclarationFragment> throwableDeclarationFragments = ((VariableDeclarationStatement) throwableDeclaration)
+					.fragments();
+			assert throwableDeclarationFragments.size() == 1;
+			final VariableDeclarationFragment throwableDeclarationFragment = throwableDeclarationFragments
+					.get(0);
+			final SimpleName exceptionName = throwableDeclarationFragment.getName();
+			assert exceptionName != null;
+
 			if (catchE.isFinally()) {
 				// finally handler
 				tryStatement.setFinally(getAst().newBlock());
@@ -252,8 +265,7 @@ public final class TrControlFlowStmts {
 
 			final SingleVariableDeclaration singleVariableDeclaration = getAst()
 					.newSingleVariableDeclaration();
-			singleVariableDeclaration.setName(newSimpleName(Expressions.EXCEPTION_NAME_TMP,
-					getAst()));
+			singleVariableDeclaration.setName((SimpleName) wrap(exceptionName));
 			if (catchTypes.length == 1) {
 				final T handlerType = catchTypes[0];
 				assert handlerType != null;
