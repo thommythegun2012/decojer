@@ -258,15 +258,30 @@ public final class BB {
 	}
 
 	/**
-	 * Get catch handler if existing?
+	 * Get incoming catch if existing. Hence this BB must be a catch handler.
 	 *
-	 * @return catch handler or {@code null} for no catch handler
+	 * @return incoming catch or {@code null} for no catch handler
 	 */
 	@Nullable
 	public E getCatchIn() {
 		for (final E in : this.ins) {
 			if (in.isCatch()) {
 				return in;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Get outgoing catch if existing.
+	 *
+	 * @return outgoing catch or {@code null} for no existend catch handler
+	 */
+	@Nullable
+	public E getCatchOut() {
+		for (final E out : this.outs) {
+			if (out.isCatch()) {
+				return out;
 			}
 		}
 		return null;
@@ -387,7 +402,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
