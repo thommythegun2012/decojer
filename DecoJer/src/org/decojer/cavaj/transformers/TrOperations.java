@@ -94,6 +94,7 @@ import org.decojer.cavaj.utils.Expressions;
 import org.decojer.cavaj.utils.Priority;
 import org.decojer.cavaj.utils.SwitchTypes;
 import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.AnonymousClassDeclaration;
 import org.eclipse.jdt.core.dom.ArrayAccess;
 import org.eclipse.jdt.core.dom.ArrayCreation;
@@ -1610,10 +1611,14 @@ public final class TrOperations {
 				// can happen if BB deleted through previous rewrite
 				continue;
 			}
-			// compound is independent of content of bb...do it before transformOperations()
-			while (rewriteBooleanCompound(bb)) {
-				// try multiple times: nested compound is possible
-			} // previous expressions merged into bb, now rewrite...
+			if (!transformCatchHandlerExpression(bb)) {
+				// condition is a small optimization: handler BB cannot match compound pattern;
+				// compound is independent of content of bb...do it before convertIntoExpressions()
+				while (rewriteBooleanCompound(bb)) {
+					// try multiple times: nested compound is possible
+				}
+				// previous expressions merged into bb, now rewrite...
+			}
 			if (!transformOperations(bb)) {
 				// in Java should never happen in forward mode, but in Scala exists a more complex
 				// conditional value ternary variant with sub statements
@@ -1627,9 +1632,27 @@ public final class TrOperations {
 					bb.moveIns(sequenceOut.getEnd());
 				}
 			}
-			// transform catch outs here, not ins at loop begin...could happen there multiple times
-			transformOutCatchExpression(bb);
 		}
+	}
+
+	private boolean transformCatchHandlerExpression(@Nonnull final BB bb) {
+		final E catchIn = bb.getCatchIn();
+		if (catchIn == null || bb.getStmts() > 0) {
+			return false;
+		}
+		// build temporary throwable declaration at catch handler start
+		final SimpleName name = newSimpleName(Expressions.EXCEPTION_NAME_TMP, getAst());
+
+		final VariableDeclarationFragment variableDeclarationFragment = getAst()
+				.newVariableDeclarationFragment();
+		variableDeclarationFragment.setName(name);
+		final VariableDeclarationStatement variableDeclarationStatement = getAst()
+				.newVariableDeclarationStatement(variableDeclarationFragment);
+		variableDeclarationStatement
+		.setType(newType(getCfg().getDu().getT(Throwable.class), getM()));
+		bb.addStmt(variableDeclarationStatement);
+		bb.push(name);
+		return true;
 	}
 
 	private boolean transformOperations(@Nonnull final BB bb) {
@@ -2636,11 +2659,13 @@ public final class TrOperations {
 					// should be an uninitialized, temporary exception name expression
 					assert ((SimpleName) rightOperand).getIdentifier().equals(
 							Expressions.EXCEPTION_NAME_TMP);
+					final ASTNode parent = rightOperand.getParent();
+					assert parent instanceof VariableDeclarationFragment;
 					if (v != null) {
-						// might help for DUPs to replace temporary name
+						// also renames the parent temporary throwable declaration name,
+						// later used for catch control statements
 						((SimpleName) rightOperand).setIdentifier(v.getName());
 					}
-					// TODO how to really backpropagate v name to catch-statement?
 					break;
 				}
 				// inline assignment, DUP -> STORE
@@ -2738,16 +2763,6 @@ public final class TrOperations {
 				throw new DecoJerException("Unknown intermediate vm operation '" + op + "'!");
 			}
 		}
-		return true;
-	}
-
-	private boolean transformOutCatchExpression(@Nonnull final BB bb) {
-		final E catchOut = bb.getCatchOut();
-		if (catchOut == null || !catchOut.getEnd().isStackEmpty()) {
-			return false;
-		}
-		final SimpleName name = newSimpleName(Expressions.EXCEPTION_NAME_TMP, getAst());
-		catchOut.getEnd().push(name);
 		return true;
 	}
 
