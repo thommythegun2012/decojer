@@ -139,7 +139,7 @@ public final class TrControlFlowStmts {
 		assert startBb != null;
 		transformSequence(null, startBb, statements);
 
-		// remove final empty return statement
+		// remove final empty return statement from method
 		if (!statements.isEmpty()) {
 			final Object object = statements.get(statements.size() - 1);
 			if (object instanceof ReturnStatement
@@ -240,9 +240,8 @@ public final class TrControlFlowStmts {
 			if (!catchStruct.hasHandler(catchTypes, handler)) {
 				continue;
 			}
-
-			// remove temporary throwable declaration and extract exception name
-			final Statement throwableDeclaration = handler.removeStmt(0);
+			// extract exception name from temporary throwable declaration, don't remove in CFG
+			final Statement throwableDeclaration = handler.getStmt(0);
 			assert throwableDeclaration instanceof VariableDeclarationStatement;
 			final List<VariableDeclarationFragment> throwableDeclarationFragments = ((VariableDeclarationStatement) throwableDeclaration)
 					.fragments();
@@ -258,6 +257,8 @@ public final class TrControlFlowStmts {
 				final List<Statement> finallyStatements = tryStatement.getFinally().statements();
 				assert finallyStatements != null;
 				transformSequence(catchStruct, handler, finallyStatements);
+				// remove temporary throwable declaration from finally
+				finallyStatements.remove(0);
 				continue;
 			}
 			// normal typed catch handler
@@ -286,6 +287,8 @@ public final class TrControlFlowStmts {
 			final List<Statement> handlerStatements = catchClause.getBody().statements();
 			assert handlerStatements != null;
 			transformSequence(catchStruct, handler, handlerStatements);
+			// remove temporary throwable declaration from catch
+			handlerStatements.remove(0);
 		}
 		return tryStatement;
 	}
@@ -697,7 +700,7 @@ public final class TrControlFlowStmts {
 				assert switchStatements != null;
 				transformSequence(switchStruct, out, switchStatements);
 			}
-			// remove final break
+			// remove final break statement from final switch-case
 			final Object object = switchStatement.statements().get(
 					switchStatement.statements().size() - 1);
 			if (object instanceof BreakStatement) {
