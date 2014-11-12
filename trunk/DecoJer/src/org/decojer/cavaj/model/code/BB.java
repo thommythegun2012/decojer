@@ -402,7 +402,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -496,6 +496,21 @@ public final class BB {
 			}
 		}
 		return foundIn;
+	}
+
+	/**
+	 * Get JSR out.
+	 *
+	 * @return JSR out
+	 */
+	@Nullable
+	public E getJsrOut() {
+		for (final E out : this.outs) {
+			if (out.isJsr()) {
+				return out;
+			}
+		}
+		return null;
 	}
 
 	/**
