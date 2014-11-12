@@ -56,6 +56,7 @@ import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
 import org.eclipse.jdt.core.dom.ThrowStatement;
+import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
@@ -661,11 +662,8 @@ public final class TrControlFlowAnalysis {
 
 			catchStruct.addMembers(catchE.getValue(), handlerMembers);
 		}
-		// follows means: leaving the catch area (not follows like incoming none-members like
-		// branches), when finally exists here we have to go into the finally-blocks for all follows
-		if (rewriteFinallyFollows(catchStruct, follows)) {
-			return catchStruct;
-		}
+		// follows means: leaving the catch area (not like incoming none-members for branches)
+		rewriteFinally(catchStruct, follows); // follows rewritten by finally-handling
 		final BB firstFollow = filterFollows(catchStruct, follows);
 		if (firstFollow != null) {
 			catchStruct.setFollow(firstFollow);
@@ -900,13 +898,34 @@ public final class TrControlFlowAnalysis {
 		return null;
 	}
 
-	private boolean rewriteFinallyFollows(final Catch catchStruct, final Set<BB> follows) {
-		// TODO if we are in finally-mode, all follows should be same and can be reduced
+	private boolean rewriteFinally(final Catch catchStruct, final Set<BB> follows) {
 		final BB finallyHandler = catchStruct.getFirstMember(Catch.FINALLY_TS);
 		if (finallyHandler == null) {
 			return false;
 		}
-		System.out.println("FINALLY: " + finallyHandler);
+		// JSR-finally: finallyHandler BB has as single statement the Throwable declaration, a
+		// single JSR-out to the finally-BBs (potentially also additional outer catches) and a RET
+		// to a BB with final throw as single statement
+		final E jsrOut = finallyHandler.getJsrOut();
+		if (jsrOut != null) {
+			assert finallyHandler.getStmt(0) instanceof VariableDeclarationStatement;
+			final BB finallyBb = jsrOut.getEnd();
+			final boolean remove = follows.remove(finallyBb);
+			assert remove : "Catch follows must contain JSR";
+			// we will kill all JSRs now
+			for (final E jsrIn : finallyBb.getIns()) {
+				if (jsrIn == jsrOut) {
+					continue;
+				}
+				// TODO get sub out?
+			}
+			// TODO finallyBb.joinPredBb(finallyHandler);
+			return true;
+		}
+		// JDK6 finally: finallyHandler BB has as first statement the Throwable declaration, the
+		// finally statements and a final throw
+
+		// TODO all follows should be same and can be reduced
 		for (final BB follow : follows) {
 			if (follow == finallyHandler) {
 				continue;
