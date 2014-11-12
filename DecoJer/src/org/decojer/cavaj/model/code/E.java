@@ -23,8 +23,10 @@
  */
 package org.decojer.cavaj.model.code;
 
+import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.List;
 
 import javax.annotation.Nonnull;
@@ -160,6 +162,30 @@ public final class E {
 	@Nonnull
 	public BB getRelevantStart() {
 		return getRelevantIn().getStart();
+	}
+
+	@Nullable
+	public E getRetOut() {
+		final Object value = getValue();
+		if (!(value instanceof Sub)) {
+			return null;
+		}
+		final Sub sub = (Sub) value;
+
+		final Deque<BB> checkBbs = new ArrayDeque<BB>();
+		checkBbs.push(getEnd());
+		while (!checkBbs.isEmpty()) {
+			final BB checkBb = checkBbs.removeFirst();
+			for (final E out : checkBb.getOuts()) {
+				if (sub == out.getValue()) {
+					return out;
+				}
+				if (!out.isBack()) {
+					checkBbs.push(out.getEnd());
+				}
+			}
+		}
+		return null;
 	}
 
 	@Nonnull
@@ -335,8 +361,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-				+ (this.end == null ? "null" : getEnd().getPc())
-				+ (valueString.isEmpty() ? "" : " : " + getValueString());
+		+ (this.end == null ? "null" : getEnd().getPc())
+		+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }

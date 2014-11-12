@@ -23,9 +23,10 @@
  */
 package org.decojer.cavaj.utils;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.Stack;
 import java.util.TreeMap;
 
 import javax.annotation.Nonnull;
@@ -78,7 +79,7 @@ public class SwitchTypes {
 	 */
 	private static boolean executeBbStringHashCond(final BB caseBb, final int stringReg,
 			final int hash, final BB defaultCase, final Map<String, BB> string2bb) {
-		final Stack<Object> stack = new Stack<Object>();
+		final Deque<Object> stack = new ArrayDeque<Object>();
 		String str = null;
 		for (int i = 0; i < caseBb.getOps(); ++i) {
 			final Op op = caseBb.getOp(i);
@@ -157,7 +158,7 @@ public class SwitchTypes {
 			@Nonnull final Map<Integer, String> index2string) {
 		assert defaultCase != null; // prevent warning for now, later check more
 
-		final Stack<Object> stack = new Stack<Object>();
+		final Deque<Object> stack = new ArrayDeque<Object>();
 		for (int i = 0; i < caseBb.getOps(); ++i) {
 			final Op op = caseBb.getOp(i);
 			switch (op.getOptype()) {

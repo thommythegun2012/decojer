@@ -637,6 +637,7 @@ public final class TrControlFlowAnalysis {
 		for (int i = 0; i < catches.size(); ++i) {
 			final E catchE = catches.get(i);
 			final BB handler = catchE.getEnd();
+
 			final List<E> handlerIns = handler.getIns();
 			// TODO we have another important potential follow, which is the first unhandled
 			// post-member!!! important for finally and not-returning catches! gather info here
@@ -649,6 +650,7 @@ public final class TrControlFlowAnalysis {
 				for (final E out : member.getOuts()) {
 					final BB follow = out.getEnd();
 					if (!catchStruct.hasMember(null, follow)) {
+						// TODO catches shoudn't be in here!
 						follows.add(follow);
 					}
 				}
@@ -657,9 +659,9 @@ public final class TrControlFlowAnalysis {
 					log.warn(getM() + ": Not properly nested catch struct: " + catchStruct);
 				}
 			}
+			// TODO to early, JSR rewrites can change BBs
 			final List<BB> handlerMembers = Lists.newArrayList(handler);
 			findBranch(catchStruct, catchE, handlerMembers, follows);
-
 			catchStruct.addMembers(catchE.getValue(), handlerMembers);
 		}
 		// follows means: leaving the catch area (not like incoming none-members for branches)
@@ -903,27 +905,42 @@ public final class TrControlFlowAnalysis {
 		if (finallyHandler == null) {
 			return false;
 		}
-		// JSR-finally: finallyHandler BB has as single statement the Throwable declaration, a
-		// single JSR-out to the finally-BBs (potentially also additional outer catches) and a RET
-		// to a BB with final throw as single statement
+		// JSR-finally: finallyHandler BB has as single statement the temporary throwable
+		// declaration, a single JSR-out to the finally-BBs (potentially also additional outer
+		// catches) and a RET to a BB with final throw as single statement
 		final E jsrOut = finallyHandler.getJsrOut();
 		if (jsrOut != null) {
 			assert finallyHandler.getStmt(0) instanceof VariableDeclarationStatement;
 			final BB finallyBb = jsrOut.getEnd();
-			final boolean remove = follows.remove(finallyBb);
-			assert remove : "Catch follows must contain JSR";
+
 			// we will kill all JSRs now
 			for (final E jsrIn : finallyBb.getIns()) {
 				if (jsrIn == jsrOut) {
 					continue;
 				}
-				// TODO get sub out?
+				final E retOut = jsrIn.getRetOut();
+				assert retOut != null;
+
+				final boolean remove = follows.remove(jsrIn.getStart());
+				assert remove : "Catch follows must contain JSR";
+				follows.add(retOut.getEnd());
+
+				retOut.getEnd().joinPredBb(jsrIn.getStart());
+				retOut.remove(); // join doesn't do this currently
 			}
-			// TODO finallyBb.joinPredBb(finallyHandler);
+			boolean remove = follows.remove(finallyHandler);
+			assert remove : "Catch follows must contain JSR";
+			remove = follows.remove(finallyBb); // why is this in follows?
+			assert remove : "Catch follows must contain JSR ???";
+
+			final E retOut = jsrOut.getRetOut();
+			assert retOut != null;
+			finallyBb.joinPredBb(finallyHandler); // jsrOut collapse
+			retOut.getEnd().joinPredBb(retOut.getStart()); // retOut collapse
 			return true;
 		}
-		// JDK6 finally: finallyHandler BB has as first statement the Throwable declaration, the
-		// finally statements and a final throw
+		// JDK6 finally: finallyHandler BB has as first statement the temporary throwable
+		// declaration, the finally statements and a final throw statement
 
 		// TODO all follows should be same and can be reduced
 		for (final BB follow : follows) {
