@@ -257,8 +257,15 @@ public final class TrControlFlowStmts {
 				final List<Statement> finallyStatements = tryStatement.getFinally().statements();
 				assert finallyStatements != null;
 				transformSequence(catchStruct, handler, finallyStatements);
-				// remove temporary throwable declaration from finally
+				// remove temporary throwable declaration from finally block
 				finallyStatements.remove(0);
+				// remove final throws from finally block
+				if (!finallyStatements.isEmpty()
+						&& finallyStatements.get(finallyStatements.size() - 1) instanceof ThrowStatement) {
+					finallyStatements.remove(finallyStatements.size() - 1);
+				} else {
+					assert false : "Where is ma finally?";
+				}
 				continue;
 			}
 			// normal typed catch handler
