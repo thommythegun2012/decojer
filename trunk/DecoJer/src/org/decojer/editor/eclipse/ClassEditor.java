@@ -28,6 +28,7 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.decojer.DecoJer;
@@ -104,12 +105,12 @@ public class ClassEditor extends MultiPageEditorPart {
 		// example: sun/org/mozilla/javascript/internal/
 		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
 				.getResource().getLocation().toOSString() : eclipseClassFile.getPath().toOSString();
-				assert jarPath != null;
+		assert jarPath != null;
 
-				final String packageName = eclipseClassFile.getParent().getElementName();
-				final String typeName = eclipseClassFile.getElementName();
-				return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
-						+ typeName;
+		final String packageName = eclipseClassFile.getParent().getElementName();
+		final String typeName = eclipseClassFile.getElementName();
+		return jarPath + "!/" + (packageName.isEmpty() ? "" : packageName.replace('.', '/') + '/')
+				+ typeName;
 	}
 
 	private static void parseClassT(final String s, final Cursor c, final StringBuilder sb) {
@@ -240,6 +241,7 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	private DecompilationUnitEditor decompilationUnitEditor;
 
+	@Getter
 	private DU du;
 
 	private JavaOutlinePage javaOutlinePage;
