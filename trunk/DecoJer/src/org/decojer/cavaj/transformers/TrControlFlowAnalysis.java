@@ -627,30 +627,31 @@ public final class TrControlFlowAnalysis {
 	private Catch createCatchStruct(@Nonnull final BB head, @Nonnull final List<E> catches) {
 		final Catch catchStruct = new Catch(head);
 
+		// follows means: _leaving_ the catch area (not like branches) or handler branch
 		final Set<BB> follows = Sets.newHashSet();
+		// follows initialized with head-outs, because these are not handled in handler-in loop
 		for (final E out : head.getOuts()) {
 			if (!catches.contains(out)) {
 				follows.add(out.getEnd());
 			}
 		}
-		// handle innermost catch first...next outer catch in next create-round
+		// for each handler:
+		// 1) add all ins to members (catch area) and all ins-outs as potential follows
+		// 2) add handler branch to members and handler branch follows as potential follows
 		for (int i = 0; i < catches.size(); ++i) {
 			final E catchE = catches.get(i);
 			final BB handler = catchE.getEnd();
 
 			final List<E> handlerIns = handler.getIns();
-			// TODO we have another important potential follow, which is the first unhandled
-			// post-member!!! important for finally and not-returning catches! gather info here
 			for (final E handlerIn : handlerIns) {
 				final BB member = handlerIn.getStart();
 				if (member == head || !catchStruct.addMember(null, member)) {
 					continue; // already in
 				}
-				follows.remove(member);
+				follows.remove(member); // member cannot be a follow
 				for (final E out : member.getOuts()) {
 					final BB follow = out.getEnd();
 					if (!catchStruct.hasMember(null, follow)) {
-						// TODO catches shoudn't be in here!
 						follows.add(follow);
 					}
 				}
@@ -659,13 +660,11 @@ public final class TrControlFlowAnalysis {
 					log.warn(getM() + ": Not properly nested catch struct: " + catchStruct);
 				}
 			}
-			// TODO to early, JSR rewrites can change BBs
 			final List<BB> handlerMembers = Lists.newArrayList(handler);
 			findBranch(catchStruct, catchE, handlerMembers, follows);
 			catchStruct.addMembers(catchE.getValue(), handlerMembers);
 		}
-		// follows means: leaving the catch area (not like incoming none-members for branches)
-		rewriteFinally(catchStruct, follows); // follows rewritten by finally-handling
+		rewriteFinally(catchStruct, follows);
 		final BB firstFollow = filterFollows(catchStruct, follows);
 		if (firstFollow != null) {
 			catchStruct.setFollow(firstFollow);
@@ -910,6 +909,7 @@ public final class TrControlFlowAnalysis {
 		// catches) and a RET to a BB with final throw as single statement
 		final E jsrOut = finallyHandler.getJsrOut();
 		if (jsrOut != null) {
+			assert finallyHandler.getStmts() == 1;
 			assert finallyHandler.getStmt(0) instanceof VariableDeclarationStatement;
 			final BB finallyBb = jsrOut.getEnd();
 
@@ -928,10 +928,7 @@ public final class TrControlFlowAnalysis {
 				retOut.getEnd().joinPredBb(jsrIn.getStart());
 				retOut.remove(); // join doesn't do this currently
 			}
-			boolean remove = follows.remove(finallyHandler);
-			assert remove : "Catch follows must contain JSR";
-			remove = follows.remove(finallyBb); // why is this in follows?
-			assert remove : "Catch follows must contain JSR ???";
+			follows.remove(finallyBb);
 
 			final E retOut = jsrOut.getRetOut();
 			assert retOut != null;
