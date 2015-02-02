@@ -21,7 +21,7 @@ Bundle-ActivationPolicy: lazy
 Bundle-RequiredExecutionEnvironment: JavaSE-1.6
 Bundle-ClassPath: .,
  lib/asm-5.0.3.jar,
- lib/javassist.jar,
+ lib/javassist-3.19.0-GA.jar,
  lib/dex-reader-1.11-SNAPSHOT.jar,
  lib/dexlib2-2.0b5-dev.jar,
  lib/dexlib-1.4.2-dev.jar,
