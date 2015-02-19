@@ -367,42 +367,71 @@ public final class TrControlFlowAnalysis {
 	}
 
 	/**
-	 * Find all unhandled catch edges for the given BB.
+	 * Find all outmost unhandled catch edges for the given BB.
 	 *
 	 * Nested catches with same heads are possible. The returned list is filtered in a way that the
-	 * outermost catches belonging to a single try-catch-finally are given.
+	 * outmost catches belonging to a single try-catch-finally are given.
 	 *
 	 * @param bb
 	 *            BB
-	 * @return all unhandled catch edges for the given BB
+	 * @return all outmost unhandled catch edges for the given BB
 	 */
 	@Nullable
 	private static List<E> findCatchOutmostUnhandled(final BB bb) {
 		List<E> unhandledCatches = null;
-		outer: for (final E findCatch : bb.getOuts()) {
-			if (!isUnhandledCatch(findCatch)) {
+		E unhandledFinally = null;
+		outer: for (final E iCatch : bb.getOuts()) {
+			if (!isUnhandledCatch(iCatch)) {
+				continue;
+			}
+			if (iCatch.isFinally()) {
+				// check later if unhandled finally is conform to unhandled catches
+				if (unhandledFinally == null || unhandledFinally.getEnd().hasSucc(iCatch.getEnd())) {
+					unhandledFinally = iCatch;
+				}
 				continue;
 			}
 			if (unhandledCatches == null) {
-				unhandledCatches = Lists.newArrayList();
-				unhandledCatches.add(findCatch);
+				// nothing further to check, is currently first (for now assumed outmost) edge
+				unhandledCatches = Lists.newArrayList(iCatch);
 				continue;
 			}
-			final BB findHandler = findCatch.getEnd();
-			for (int i = unhandledCatches.size(); i-- > 0;) {
-				final E unhandledCatch = unhandledCatches.get(i);
+			// check if new edge is "more outmost" then previous edges
+			final BB iHandler = iCatch.getEnd();
+			for (int j = unhandledCatches.size(); j-- > 0;) {
+				final E unhandledCatch = unhandledCatches.get(j);
 				final BB unhandledHandler = unhandledCatch.getEnd();
 
-				if (unhandledHandler.hasSucc(findHandler)) {
-					unhandledCatches.remove(i);
+				if (unhandledHandler.hasSucc(iHandler)) {
+					unhandledCatches.remove(j);
 					continue;
 				}
-				if (findHandler.hasSucc(unhandledHandler)) {
+				if (iHandler.hasSucc(unhandledHandler)) {
 					continue outer;
 				}
 			}
-			unhandledCatches.add(findCatch);
+			unhandledCatches.add(iCatch);
 		}
+		if (unhandledFinally == null) {
+			return unhandledCatches;
+		}
+		if (unhandledCatches == null) {
+			return Lists.newArrayList(unhandledFinally);
+		}
+		// check if unhandled finally is conform to unhandled catches
+		final BB finallyHandler = unhandledFinally.getEnd();
+		for (int j = unhandledCatches.size(); j-- > 0;) {
+			final E unhandledCatch = unhandledCatches.get(j);
+			final BB unhandledHandler = unhandledCatch.getEnd();
+
+			if (!unhandledHandler.hasSucc(finallyHandler)) {
+				return Lists.newArrayList(unhandledFinally); // invalid inner catch
+			}
+			if (finallyHandler.hasSucc(unhandledHandler)) {
+				return unhandledCatches; // invalid inner finally
+			}
+		}
+		unhandledCatches.add(unhandledFinally);
 		return unhandledCatches;
 	}
 
@@ -658,10 +687,11 @@ public final class TrControlFlowAnalysis {
 			final List<E> handlerIns = handler.getIns();
 			for (final E handlerIn : handlerIns) {
 				final BB member = handlerIn.getStart();
-				if (member == head || !catchStruct.addMember(null, member)) {
+				if (member == head || catchStruct.hasMember(member)) {
 					continue; // already in
 				}
 				follows.remove(member); // member cannot be a follow
+				catchStruct.addMember(null, member);
 				for (final E out : member.getOuts()) {
 					final BB follow = out.getEnd();
 					if (!catchStruct.hasMember(null, follow)) {
