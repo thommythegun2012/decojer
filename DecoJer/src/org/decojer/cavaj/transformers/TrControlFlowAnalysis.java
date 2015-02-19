@@ -380,27 +380,15 @@ public final class TrControlFlowAnalysis {
 	private static List<E> findCatchOutmostUnhandled(final BB bb) {
 		List<E> unhandledCatches = null;
 		outer: for (final E findCatch : bb.getOuts()) {
-			if (!findCatch.isCatch()) {
+			if (!isUnhandledCatch(findCatch)) {
 				continue;
-			}
-			final BB findHandler = findCatch.getEnd();
-			final T[] findCatchTypes = (T[]) findCatch.getValue();
-			assert findCatchTypes != null;
-
-			// handler already handled in outer struct?
-			for (Struct struct = findHandler.getStruct(); struct != null; struct = struct
-					.getParent()) {
-				// member-catch-values T[] are usually same for same handlers, see DataFlowAnalysis
-				if (struct instanceof Catch
-						&& ((Catch) struct).hasHandler(findCatchTypes, findHandler)) {
-					continue outer; // this handler is already handled, skip this catch
-				}
 			}
 			if (unhandledCatches == null) {
 				unhandledCatches = Lists.newArrayList();
 				unhandledCatches.add(findCatch);
 				continue;
 			}
+			final BB findHandler = findCatch.getEnd();
 			for (int i = unhandledCatches.size(); i-- > 0;) {
 				final E unhandledCatch = unhandledCatches.get(i);
 				final BB unhandledHandler = unhandledCatch.getEnd();
@@ -536,6 +524,31 @@ public final class TrControlFlowAnalysis {
 		// don't use successor number as indicator, switch with 2 successors
 		// (JVM 6: 1 case and default) possible, not optimized
 		return bb.getFinalStmt() instanceof SwitchStatement;
+	}
+
+	/**
+	 * Is given edge (any edge) an _unhandled_ catch edge?
+	 *
+	 * @param e
+	 *            edge to be checked
+	 * @return {@code true} - edge is an unhandled catch edge
+	 */
+	private static boolean isUnhandledCatch(final E e) {
+		if (!e.isCatch()) {
+			return false;
+		}
+		final BB findHandler = e.getEnd();
+		final T[] findCatchTypes = (T[]) e.getValue();
+		assert findCatchTypes != null;
+
+		// handler already handled in outer struct?
+		for (Struct struct = findHandler.getStruct(); struct != null; struct = struct.getParent()) {
+			// member-catch-values T[] are usually same for same handlers, see DataFlowAnalysis
+			if (struct instanceof Catch && ((Catch) struct).hasHandler(findCatchTypes, findHandler)) {
+				return false; // this handler is already handled, skip this catch
+			}
+		}
+		return true;
 	}
 
 	/**
