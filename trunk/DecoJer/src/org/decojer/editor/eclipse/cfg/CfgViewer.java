@@ -200,9 +200,11 @@ public class CfgViewer extends Composite {
 				connection.setCurveDepth(50);
 				connection.setLineColor(ColorConstants.red);
 			} else if (out.isCatch()) {
-				connection.setLineColor(ColorConstants.yellow);
+				connection.setLineColor(ColorConstants.lightGreen);
 			} else if (out.isJsr() || out.isRet()) {
-				connection.setLineColor(ColorConstants.green);
+				connection.setLineColor(ColorConstants.darkGreen);
+			} else {
+				connection.setLineColor(ColorConstants.blue);
 			}
 		}
 		return node;
