@@ -107,8 +107,7 @@ public class Struct {
 		if (members == null) {
 			members = Lists.newArrayList();
 			this.value2members.put(value, members);
-		}
-		if (members.contains(bb)) {
+		} else if (members.contains(bb)) {
 			return false;
 		}
 		final Struct parent = getParent();
