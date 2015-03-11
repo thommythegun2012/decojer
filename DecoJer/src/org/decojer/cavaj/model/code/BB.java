@@ -402,7 +402,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -1030,10 +1030,6 @@ public final class BB {
 	 */
 	public void remove() {
 		assert !isStartBb();
-		final Struct struct = getStruct();
-		if (struct != null) {
-			struct.removeMember(this);
-		}
 		for (int i = this.outs.size(); i-- > 0;) {
 			final E e = this.outs.get(i);
 			e.getEnd().removeIn(e);
@@ -1047,6 +1043,10 @@ public final class BB {
 		}
 		this.ins.clear();
 		getCfg().getPostorderedBbs().set(this.postorder, null);
+		final Struct struct = getStruct();
+		if (struct != null) {
+			struct.removeMember(this);
+		}
 		setPc(-1);
 	}
 
@@ -1147,6 +1147,13 @@ public final class BB {
 
 	protected void setPc(final int pc) {
 		assert pc >= 0 || this.ins.isEmpty() && this.outs.isEmpty();
+		// fix JSR/RET ins with Sub value, see also E.setEnd(BB)
+		for (final E in : this.ins) {
+			final Object value = in.getValue();
+			if (value instanceof Sub && ((Sub) value).getPc() == this.pc) {
+				((Sub) value).setPc(pc);
+			}
+		}
 		this.pc = pc;
 	}
 
