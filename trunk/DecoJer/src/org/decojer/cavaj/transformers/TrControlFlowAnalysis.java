@@ -885,6 +885,9 @@ public final class TrControlFlowAnalysis {
 		BB firstFollow = null;
 		for (final BB follow : follows) {
 			assert follow != null;
+			if (struct.hasMember(follow)) {
+				continue;
+			}
 			if (checkBranching(struct, follow)) {
 				continue;
 			}
