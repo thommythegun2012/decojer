@@ -638,4 +638,11 @@ public class ClassEditor extends MultiPageEditorPart {
 		return true;
 	}
 
+	public void redecompile() {
+		if (this.selectedCu != null) {
+			this.decompilationUnitEditor.setInput(DecompilationUnitEditor
+					.decompileToEditorInput(this.selectedCu));
+		}
+	}
+
 }

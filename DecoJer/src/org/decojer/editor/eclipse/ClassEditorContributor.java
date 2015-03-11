@@ -37,11 +37,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IActionBars;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.actions.ActionFactory;
-import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.ide.IDEActionFactory;
 import org.eclipse.ui.part.MultiPageEditorActionBarContributor;
 import org.eclipse.ui.texteditor.ITextEditor;
@@ -55,6 +55,8 @@ import org.eclipse.ui.texteditor.ITextEditorActionConstants;
 public class ClassEditorContributor extends MultiPageEditorActionBarContributor {
 
 	private IEditorPart activeEditorPart;
+
+	private Action decompileAgain;
 
 	private Action decompileToFile;
 
@@ -70,16 +72,39 @@ public class ClassEditorContributor extends MultiPageEditorActionBarContributor 
 	public void contributeToMenu(final IMenuManager manager) {
 		final IMenuManager menu = new MenuManager("&DecoJer");
 		manager.prependToGroup(IWorkbenchActionConstants.MB_ADDITIONS, menu);
+		menu.add(this.decompileAgain);
 		menu.add(this.decompileToFile);
 	}
 
 	@Override
 	public void contributeToToolBar(final IToolBarManager manager) {
 		manager.add(new Separator());
+		manager.add(this.decompileAgain);
 		manager.add(this.decompileToFile);
 	}
 
 	private void createActions() {
+
+		this.decompileAgain = new Action() {
+
+			@Override
+			public void run() {
+				final IWorkbenchWindow activeWorkbenchWindow = PlatformUI.getWorkbench()
+						.getActiveWorkbenchWindow();
+				final ClassEditor classEditor = (ClassEditor) activeWorkbenchWindow.getActivePage()
+						.getActiveEditor();
+				if (classEditor == null) {
+					return;
+				}
+				classEditor.redecompile();
+			}
+
+		};
+		this.decompileAgain.setText("Decompile again");
+		this.decompileAgain.setToolTipText("Decompile again source");
+		this.decompileAgain.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages()
+				.getImageDescriptor(ISharedImages.IMG_TOOL_REDO));
+
 		this.decompileToFile = new Action() {
 
 			@Override
@@ -121,7 +146,7 @@ public class ClassEditorContributor extends MultiPageEditorActionBarContributor 
 		this.decompileToFile.setText("Decompile To File...");
 		this.decompileToFile.setToolTipText("Decompile source to external file");
 		this.decompileToFile.setImageDescriptor(PlatformUI.getWorkbench().getSharedImages()
-				.getImageDescriptor(IDE.SharedImages.IMG_OBJS_TASK_TSK));
+				.getImageDescriptor(ISharedImages.IMG_ETOOL_SAVE_EDIT));
 	}
 
 	/**
