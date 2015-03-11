@@ -288,6 +288,27 @@ public class Struct {
 	}
 
 	/**
+	 * Remove given BB as member, e.g. by means of rewrite (remove node).
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - removed given BB
+	 */
+	public boolean removeMember(final BB bb) {
+		assert !hasHead(bb);
+		for (final Map.Entry<Object, List<BB>> members : this.value2members.entrySet()) {
+			if (members.getValue().remove(bb)) {
+				if (members.getValue().isEmpty()) {
+					assert false;
+					this.value2members.remove(members.getKey());
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Set follow.
 	 *
 	 * @param bb
@@ -314,7 +335,7 @@ public class Struct {
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert bb.isSubHead() : "Cannot change follow to BB" + bb.getPc()
-					+ " for struct:\n" + this;
+							+ " for struct:\n" + this;
 				}
 			}
 		}
