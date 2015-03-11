@@ -1030,6 +1030,10 @@ public final class BB {
 	 */
 	public void remove() {
 		assert !isStartBb();
+		final Struct struct = getStruct();
+		if (struct != null) {
+			struct.removeMember(this);
+		}
 		for (int i = this.outs.size(); i-- > 0;) {
 			final E e = this.outs.get(i);
 			e.getEnd().removeIn(e);

@@ -975,6 +975,12 @@ public final class TrControlFlowAnalysis {
 
 			final E retOut = jsrOut.getRetOut();
 			assert retOut != null;
+
+			// add finally nodes as members
+			final List<BB> handlerMembers = Lists.newArrayList();
+			findBranch(catchStruct, jsrOut, handlerMembers, follows);
+			catchStruct.addMembers(finallyHandler.getIn().getValue(), handlerMembers);
+
 			finallyBb.joinPredBb(finallyHandler); // jsrOut collapse
 			retOut.getEnd().joinPredBb(retOut.getStart()); // retOut collapse
 			return true;
