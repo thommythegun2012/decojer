@@ -257,14 +257,22 @@ public final class TrControlFlowStmts {
 				final List<Statement> finallyStatements = tryStatement.getFinally().statements();
 				assert finallyStatements != null;
 				transformSequence(catchStruct, handler, finallyStatements);
-				// remove temporary throwable declaration from finally block
-				finallyStatements.remove(0);
-				// remove final throws from finally block
-				if (!finallyStatements.isEmpty()
-						&& finallyStatements.get(finallyStatements.size() - 1) instanceof ThrowStatement) {
+				// remove temporary throwable declaration from finally block, could be nested
+				Statement firstStatement = finallyStatements.get(0);
+				if (firstStatement instanceof TryStatement) {
+					firstStatement = (Statement) ((TryStatement) firstStatement).getBody()
+							.statements().get(0);
+				}
+				if (firstStatement instanceof VariableDeclarationStatement) {
+					firstStatement.delete();
+				} else {
+					assert false : "Where is my finally throwable?";
+				}
+				// remove final throws from finally block, should never be nested
+				if (finallyStatements.get(finallyStatements.size() - 1) instanceof ThrowStatement) {
 					finallyStatements.remove(finallyStatements.size() - 1);
 				} else {
-					assert false : "Where is ma finally?";
+					assert false : "Where is my finally throw?";
 				}
 				continue;
 			}
