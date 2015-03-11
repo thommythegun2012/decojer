@@ -102,6 +102,7 @@ public class Struct {
 	 */
 	public boolean addMember(@Nullable final Object value, @Nonnull final BB bb) {
 		assert bb != this.head : "Cannot add head as struct member for: " + bb;
+		assert !bb.isRemoved() : "Cannot add removed node as member to: " + bb;
 
 		List<BB> members = this.value2members.get(value);
 		if (members == null) {
@@ -302,6 +303,12 @@ public class Struct {
 					assert false;
 					this.value2members.remove(members.getKey());
 				}
+				// recursively
+				final Struct parent = getParent();
+				if (parent != null) {
+					final boolean result = parent.removeMember(bb);
+					assert result; // should always be true...
+				}
 				return true;
 			}
 		}
@@ -335,7 +342,7 @@ public class Struct {
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert bb.isSubHead() : "Cannot change follow to BB" + bb.getPc()
-							+ " for struct:\n" + this;
+					+ " for struct:\n" + this;
 				}
 			}
 		}

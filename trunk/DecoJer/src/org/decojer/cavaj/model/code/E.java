@@ -347,8 +347,14 @@ public final class E {
 		getStart().removeOut(this);
 	}
 
+	@SuppressWarnings("null")
 	protected void setEnd(final BB end) {
 		assert end == null || this.start != null && !end.isRemoved();
+		// fix JSR/RET ins with Sub value, see also BB.setPc(int)
+		if (this.value instanceof Sub && this.end != null && end != null
+				&& ((Sub) this.value).getPc() == this.end.getPc()) {
+			((Sub) this.value).setPc(end.getPc());
+		}
 		this.end = end;
 	}
 

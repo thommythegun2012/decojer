@@ -36,7 +36,8 @@ import org.decojer.cavaj.model.code.ops.RET;
 public final class Sub {
 
 	@Getter
-	private final int pc;
+	@Setter
+	private int pc;
 
 	/**
 	 * RET operation.
