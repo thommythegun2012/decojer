@@ -600,9 +600,21 @@ public final class TrControlFlowAnalysis {
 		this.cfg = cfg;
 	}
 
-	private boolean checkBranching(@Nonnull final Struct cond, @Nonnull final BB bb) {
+	/**
+	 * BB is a potential follower, that means leaving the current struct.
+	 *
+	 * Check if explicit struct leaving with break/continue etc. is necessary or if it's a normal
+	 * follow.
+	 *
+	 * @param struct
+	 *            current struct
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - explicit struct leaving with break/continue etc. is necessary
+	 */
+	private boolean checkBranching(@Nonnull final Struct struct, @Nonnull final BB bb) {
 		boolean defaultBreakableConsumed = false;
-		for (Struct followStruct = cond.getParent(); followStruct != null; followStruct = followStruct
+		for (Struct followStruct = struct.getParent(); followStruct != null; followStruct = followStruct
 				.getParent()) {
 			if (!followStruct.hasBreakTarget(bb) && !followStruct.hasContinueTarget(bb)) {
 				if (followStruct.isDefaultBreakable()) {
@@ -610,7 +622,8 @@ public final class TrControlFlowAnalysis {
 				}
 				continue;
 			}
-			if (followStruct == cond.getParent()) {
+			if (followStruct == struct.getParent()) {
+				// check directly enclosing struct for potential fall-through scenarios
 				if (followStruct instanceof Loop && ((Loop) followStruct).hasLast(bb)) {
 					return false; // direct fall-through to direct enclosing loop-last allowed
 				}
@@ -671,9 +684,10 @@ public final class TrControlFlowAnalysis {
 
 		// follows means: _leaving_ the catch area (not like branches) or handler branch
 		final Set<BB> follows = Sets.newHashSet();
+		// gather potential initial follows (but catches cannot be follows),
 		// follows initialized with head-outs, because these are not handled in handler-in loop
 		for (final E out : head.getOuts()) {
-			if (!catches.contains(out)) {
+			if (!out.isCatch()) {
 				follows.add(out.getEnd());
 			}
 		}
@@ -692,7 +706,11 @@ public final class TrControlFlowAnalysis {
 				}
 				follows.remove(member); // member cannot be a follow
 				catchStruct.addMember(null, member);
+				// gather potential new follows (but catches cannot be follows)
 				for (final E out : member.getOuts()) {
+					if (out.isCatch()) {
+						continue;
+					}
 					final BB follow = out.getEnd();
 					if (!catchStruct.hasMember(null, follow)) {
 						follows.add(follow);
@@ -885,9 +903,7 @@ public final class TrControlFlowAnalysis {
 		BB firstFollow = null;
 		for (final BB follow : follows) {
 			assert follow != null;
-			if (struct.hasMember(follow)) {
-				continue;
-			}
+			assert !struct.hasMember(follow);
 			if (checkBranching(struct, follow)) {
 				continue;
 			}
