@@ -977,16 +977,17 @@ public final class TrControlFlowAnalysis {
 			assert finallyHandler.getStmt(0) instanceof VariableDeclarationStatement;
 			final BB finallyBb = jsrOut.getEnd();
 
-			// we will kill all JSRs now
-			for (final E jsrIn : finallyBb.getIns()) {
+			// we will kill all JSRs now (prevent concurrent modification exception)
+			final List<E> ins = finallyBb.getIns();
+			for (int i = ins.size(); i-- > 0;) {
+				final E jsrIn = ins.get(i);
 				if (jsrIn == jsrOut) {
 					continue;
 				}
 				final E retOut = jsrIn.getRetOut();
 				assert retOut != null;
-
-				final boolean remove = follows.remove(jsrIn.getStart());
-				assert remove : "Catch follows must contain JSR";
+				// was not always in follow (nested finally), but remove always as follow candidate:
+				follows.remove(jsrIn.getStart());
 				follows.add(retOut.getEnd());
 
 				retOut.getEnd().joinPredBb(jsrIn.getStart());
