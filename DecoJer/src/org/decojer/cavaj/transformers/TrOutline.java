@@ -76,7 +76,7 @@ import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
  * @author André Pankraz
  */
 @Slf4j
-public final class TrJvmStruct2JavaAst {
+public final class TrOutline {
 
 	private static boolean checkFieldIgnore(@Nonnull final F f, @Nonnull final CU cu) {
 		final String name = f.getName();
@@ -441,7 +441,7 @@ public final class TrJvmStruct2JavaAst {
 			assert m.getParamTs().length == 0;
 
 			((AnnotationTypeMemberDeclaration) methodDeclaration)
-					.setType(newType(m.getReturnT(), t));
+			.setType(newType(m.getReturnT(), t));
 		}
 	}
 
@@ -552,7 +552,7 @@ public final class TrJvmStruct2JavaAst {
 				if (t.getInterfaceTs().length != 1 || !t.getInterfaceTs()[0].is(Annotation.class)) {
 					log.warn("Classfile with AccessFlag.ANNOTATION has no interface '"
 							+ Annotation.class.getName() + "' but has '" + t.getInterfaceTs()[0]
-							+ "'!");
+									+ "'!");
 				}
 				typeDeclaration = ast.newAnnotationTypeDeclaration();
 			}

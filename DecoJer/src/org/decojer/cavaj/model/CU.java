@@ -39,7 +39,7 @@ import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.model.types.Version;
-import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
+import org.decojer.cavaj.transformers.TrOutline;
 import org.decojer.cavaj.transformers.TrLineNumberAnalysis;
 import org.decojer.cavaj.transformers.TrMergeAll;
 import org.eclipse.jdt.core.JavaCore;
@@ -233,7 +233,7 @@ public final class CU implements Container {
 			}
 			final T t = (T) cuDeclaration;
 			try {
-				TrJvmStruct2JavaAst.transform(t);
+				TrOutline.transform(t);
 			} catch (final Throwable e) {
 				if (ignoreCfgError) {
 					log.warn("Cannot transform '" + t + "'!", e);

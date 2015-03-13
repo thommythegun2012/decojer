@@ -39,7 +39,7 @@ import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
 import org.decojer.cavaj.transformers.TrControlFlowStmts;
-import org.decojer.cavaj.transformers.TrOperations;
+import org.decojer.cavaj.transformers.TrExpressions;
 import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
 import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
 import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
@@ -229,7 +229,7 @@ public final class CFG {
 		if (stage > 0) {
 			TrDalvikRemoveTempRegs.transform(this);
 
-			TrOperations.transform(this);
+			TrExpressions.transform(this);
 			TrCalculatePostorder.transform(this);
 		}
 		if (stage > 1) {
