@@ -6,7 +6,7 @@ import org.decojer.DecoJer;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.transformers.TrInnerClassesAnalysis;
-import org.decojer.cavaj.transformers.TrJvmStruct2JavaAst;
+import org.decojer.cavaj.transformers.TrOutline;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
@@ -23,7 +23,7 @@ class TestExpressions {
 		du.read(getClass().getResource("TestExpressions.class").getFile());
 		TrInnerClassesAnalysis.transform(du);
 		context = du.getT("org.decojer.cavaj.utils.TestExpressions");
-		TrJvmStruct2JavaAst.transform(context);
+		TrOutline.transform(context);
 	}
 
 	@Test
