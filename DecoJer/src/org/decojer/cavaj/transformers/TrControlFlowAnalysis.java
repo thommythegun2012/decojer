@@ -705,7 +705,10 @@ public final class TrControlFlowAnalysis {
 					continue; // already in
 				}
 				follows.remove(member); // member cannot be a follow
-				catchStruct.addMember(null, member);
+				if (catches.size() == 1 || !handlerIn.isFinally()) {
+					// finally catch also contains other handlers, all added seperately
+					catchStruct.addMember(null, member);
+				}
 				// gather potential new follows (but catches cannot be follows)
 				for (final E out : member.getOuts()) {
 					if (out.isCatch()) {
