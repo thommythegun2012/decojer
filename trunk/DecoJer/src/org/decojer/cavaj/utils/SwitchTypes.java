@@ -48,7 +48,7 @@ import org.decojer.cavaj.model.code.ops.STORE;
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.transformers.TrOperations;
+import org.decojer.cavaj.transformers.TrExpressions;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -57,7 +57,7 @@ import com.google.common.collect.Maps;
  * Static functions for decompiling switch types like switch(char|Enum|String).
  *
  * @author André Pankraz
- * @see TrOperations
+ * @see TrExpressions
  */
 public class SwitchTypes {
 
