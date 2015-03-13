@@ -886,6 +886,9 @@ public final class BB {
 	/**
 	 * Copy content from predecessor BB.
 	 *
+	 * This is easier for root-to-end expression transformation then joinSuccBb(), because the
+	 * currently handled BB doesn't change in the transformation loop.
+	 *
 	 * @param bb
 	 *            predecessor BB
 	 */

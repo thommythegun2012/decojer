@@ -178,6 +178,9 @@ public final class E {
 			final BB checkBb = checkBbs.removeFirst();
 			for (final E out : checkBb.getOuts()) {
 				if (sub == out.getValue()) {
+					// TODO this is wrong, there could be multiple RETs,
+					// we would have to check follow PCs, which isn't possible without a proper
+					// working BB.getEndPc()
 					return out;
 				}
 				if (!out.isBack()) {
@@ -367,8 +370,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-		+ (this.end == null ? "null" : getEnd().getPc())
-		+ (valueString.isEmpty() ? "" : " : " + getValueString());
+				+ (this.end == null ? "null" : getEnd().getPc())
+				+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }
