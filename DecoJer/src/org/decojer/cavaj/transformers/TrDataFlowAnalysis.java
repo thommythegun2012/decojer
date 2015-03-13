@@ -40,6 +40,7 @@ import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
+import org.decojer.cavaj.model.code.Call;
 import org.decojer.cavaj.model.code.DFlag;
 import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.Exc;
@@ -486,7 +487,7 @@ public final class TrDataFlowAnalysis {
 				}
 				this.currentFrame.push(R.createConstR(subPc, this.currentFrame.size(), T.RET, sub));
 				final BB subBb = getTargetBb(subPc);
-				this.currentBb.setJsrSucc(subBb, sub);
+				this.currentBb.setJsrSucc(subBb, new Call(sub, jsr));
 				merge(subPc);
 				return -1;
 			}
@@ -504,7 +505,8 @@ public final class TrDataFlowAnalysis {
 			}
 			this.currentFrame.push(subR);
 			final BB subBb = getTargetBb(subPc);
-			this.currentBb.setJsrSucc(subBb, sub);
+			final Call call = new Call(sub, jsr);
+			this.currentBb.setJsrSucc(subBb, call);
 			merge(subPc);
 
 			final RET ret = sub.getRet();
@@ -520,7 +522,7 @@ public final class TrDataFlowAnalysis {
 			}
 			final BB retBb = getBb(ret.getPc());
 			final int jsrFollowPc = jsr.getPc() + 1;
-			retBb.setRetSucc(getTargetBb(jsrFollowPc), sub);
+			retBb.setRetSucc(getTargetBb(jsrFollowPc), call);
 			// modify RET frame for untouched registers in sub
 			final Frame jsrFrame = getCfg().getInFrame(jsr);
 			for (int i = this.currentFrame.size(); i-- > 0;) {
@@ -642,11 +644,16 @@ public final class TrDataFlowAnalysis {
 			final int subPc = sub.getPc();
 			final BB subBb = getBb(subPc);
 			for (final E in : subBb.getIns()) {
+				final Call call = (Call) in.getValue();
+				if (call == null) {
+					// e.g. loop head in Sub head
+					continue;
+				}
 				// JSR is last operation in previous BB
 				final Op jsr = in.getStart().getFinalOp();
 				assert jsr != null;
 				final int jsrFollowPc = jsr.getPc() + 1;
-				this.currentBb.setRetSucc(getTargetBb(jsrFollowPc), sub);
+				this.currentBb.setRetSucc(getTargetBb(jsrFollowPc), call);
 				// modify RET frame for untouched registers in sub
 				final Frame jsrFrame = getCfg().getInFrame(jsr);
 				for (int i = this.currentFrame.size(); i-- > 0;) {
