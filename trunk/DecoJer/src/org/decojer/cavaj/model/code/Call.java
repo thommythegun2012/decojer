@@ -24,64 +24,39 @@
 package org.decojer.cavaj.model.code;
 
 import lombok.Getter;
-import lombok.Setter;
 
-import org.decojer.cavaj.model.code.ops.RET;
+import org.decojer.cavaj.model.code.ops.JSR;
 
 /**
- * Subroutine.
+ * Call Sub.
+ *
+ * We need the Call-object to mark different JSR-RET-pairs, this information is lost in the
+ * Expression transformation (the JSR- and BB-end-pc information).
  *
  * @author André Pankraz
  */
 @Getter
-@Setter
-public final class Sub {
+public class Call {
 
-	private int pc;
+	private final Sub sub;
 
-	/**
-	 * RET operation.
-	 */
-	private RET ret;
-
-	/**
-	 * Constructor.
-	 *
-	 * @param pc
-	 *            pc
-	 */
-	public Sub(final int pc) {
-		this.pc = pc;
-	}
+	private final JSR jsr;
 
 	/**
 	 * Constructor.
 	 *
 	 * @param sub
-	 *            copy sub
+	 *            Sub
+	 * @param jsr
+	 *            JSR operation
 	 */
-	public Sub(final Sub sub) {
-		this.pc = sub.pc;
-		this.ret = sub.ret;
-	}
-
-	@Override
-	public boolean equals(final Object obj) {
-		if (!(obj instanceof Sub)) {
-			return false;
-		}
-		final Sub sub = (Sub) obj;
-		return this.pc == sub.pc;
-	}
-
-	@Override
-	public int hashCode() {
-		return this.pc;
+	public Call(final Sub sub, final JSR jsr) {
+		this.sub = sub;
+		this.jsr = jsr;
 	}
 
 	@Override
 	public String toString() {
-		return "Sub" + getPc();
+		return "Call" + getJsr().getPc() + "/" + getSub().getPc();
 	}
-
 }

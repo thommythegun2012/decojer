@@ -1140,12 +1140,12 @@ public final class BB {
 	 *
 	 * @param succ
 	 *            JSR successor (Sub routine).
-	 * @param sub
-	 *            sub routine
+	 * @param call
+	 *            call
 	 * @return out edge
 	 */
-	public final E setJsrSucc(@Nonnull final BB succ, @Nonnull final Sub sub) {
-		return addSucc(succ, sub);
+	public final E setJsrSucc(@Nonnull final BB succ, @Nonnull final Call call) {
+		return addSucc(succ, call);
 	}
 
 	protected void setPc(final int pc) {
@@ -1153,8 +1153,8 @@ public final class BB {
 		// fix JSR/RET ins with Sub value, see also E.setEnd(BB)
 		for (final E in : this.ins) {
 			final Object value = in.getValue();
-			if (value instanceof Sub && ((Sub) value).getPc() == this.pc) {
-				((Sub) value).setPc(pc);
+			if (value instanceof Call && ((Call) value).getSub().getPc() == this.pc) {
+				((Call) value).getSub().setPc(pc);
 			}
 		}
 		this.pc = pc;
@@ -1165,12 +1165,12 @@ public final class BB {
 	 *
 	 * @param succ
 	 *            RET successor
-	 * @param sub
-	 *            sub routine
+	 * @param call
+	 *            call
 	 * @return out edge
 	 */
-	public final E setRetSucc(@Nonnull final BB succ, @Nonnull final Sub sub) {
-		return addSucc(succ, sub);
+	public final E setRetSucc(@Nonnull final BB succ, @Nonnull final Call call) {
+		return addSucc(succ, call);
 	}
 
 	/**

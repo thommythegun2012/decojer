@@ -167,20 +167,18 @@ public final class E {
 	@Nullable
 	public E getRetOut() {
 		final Object value = getValue();
-		if (!(value instanceof Sub)) {
+		if (!(value instanceof Call)) {
 			return null;
 		}
-		final Sub sub = (Sub) value;
+		final Call call = (Call) value;
 
 		final Deque<BB> checkBbs = new ArrayDeque<BB>();
 		checkBbs.push(getEnd());
 		while (!checkBbs.isEmpty()) {
 			final BB checkBb = checkBbs.removeFirst();
 			for (final E out : checkBb.getOuts()) {
-				if (sub == out.getValue()) {
-					// TODO this is wrong, there could be multiple RETs,
-					// we would have to check follow PCs, which isn't possible without a proper
-					// working BB.getEndPc()
+				if (call == out.getValue()) {
+					// different call-pairs for same sub necessary here
 					return out;
 				}
 				if (!out.isBack()) {
@@ -284,10 +282,10 @@ public final class E {
 	 */
 	public boolean isJsr() {
 		final Object value = getValue();
-		if (!(value instanceof Sub)) {
+		if (!(value instanceof Call)) {
 			return false;
 		}
-		final Sub sub = (Sub) value;
+		final Sub sub = ((Call) value).getSub();
 		return sub.getPc() == getEnd().getPc();
 	}
 
@@ -298,10 +296,10 @@ public final class E {
 	 */
 	public boolean isRet() {
 		final Object value = getValue();
-		if (!(value instanceof Sub)) {
+		if (!(value instanceof Call)) {
 			return false;
 		}
-		final Sub sub = (Sub) value;
+		final Sub sub = ((Call) value).getSub();
 		return sub.getPc() != getEnd().getPc();
 	}
 
@@ -354,9 +352,9 @@ public final class E {
 	protected void setEnd(final BB end) {
 		assert end == null || this.start != null && !end.isRemoved();
 		// fix JSR/RET ins with Sub value, see also BB.setPc(int)
-		if (this.value instanceof Sub && this.end != null && end != null
-				&& ((Sub) this.value).getPc() == this.end.getPc()) {
-			((Sub) this.value).setPc(end.getPc());
+		if (this.value instanceof Call && this.end != null && end != null
+				&& ((Call) this.value).getSub().getPc() == this.end.getPc()) {
+			((Call) this.value).getSub().setPc(end.getPc());
 		}
 		this.end = end;
 	}
