@@ -507,11 +507,12 @@ public final class TrDataFlowAnalysis {
 			this.currentBb.setJsrSucc(subBb, sub);
 			merge(subPc);
 
-			// RET already visited? -> link RET BB to JSR follower and merge
 			final RET ret = sub.getRet();
 			if (ret == null) {
+				// already visited Sub, but not up to the end (RET) yet
 				return -1;
 			}
+			// link RET BB to JSR follower and merge
 			this.currentFrame = new Frame(getFrame(ret.getPc()));
 			if (load(ret.getReg(), T.RET).getValue() != sub) {
 				log.warn(getM() + ": Incorrect sub!");
@@ -661,7 +662,7 @@ public final class TrDataFlowAnalysis {
 			final RETURN cop = (RETURN) op;
 			final T returnT = getM().getReturnT();
 			assert cop.getT().isAssignableFrom(returnT) : "cannot assign '" + returnT
-			+ "' to return type '" + cop.getT() + "'";
+					+ "' to return type '" + cop.getT() + "'";
 
 			if (returnT != T.VOID) {
 				popRead(returnT); // just read type reduction
