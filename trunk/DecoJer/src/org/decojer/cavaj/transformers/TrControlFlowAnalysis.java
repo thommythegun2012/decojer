@@ -452,15 +452,18 @@ public final class TrControlFlowAnalysis {
 	private static List<E> findLoopUnhandledBacks(final BB bb) {
 		// list necessary, multiple backs possible with no related postorder, identify last later
 		List<E> backs = null;
-		for (final E in : bb.getIns()) {
+		isHandled: for (final E in : bb.getIns()) {
 			if (!in.isBack() || in.isCatch()) {
 				continue;
 			}
 			final BB pred = in.getStart();
-			final Struct struct = pred.getStruct();
-			if (struct instanceof Loop && struct.getHead() == bb
-					&& (!((Loop) struct).isPost() || ((Loop) struct).hasLast(pred))) {
-				continue;
+			for (Struct struct = pred.getStruct(); struct != null && struct.getHead() == bb; struct = struct
+					.getParent()) {
+				// iterate through parent structs, loop and catch heads can alternate
+				if (struct instanceof Loop
+						&& (!((Loop) struct).isPost() || ((Loop) struct).hasLast(pred))) {
+					continue isHandled;
+				}
 			}
 			if (backs == null) {
 				backs = Lists.newArrayList();
@@ -535,6 +538,27 @@ public final class TrControlFlowAnalysis {
 			final Loop loopStruct = (Loop) struct;
 			if (loopStruct.isPost() && loopStruct.hasLast(bb)) {
 				// exit: conditional already used for post loops last condition
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private static boolean isLoopInCatches(final @Nonnull List<E> backs,
+			final @Nonnull List<E> catches) {
+		// check if there is a back-start that is not handled -> loop is assumed
+		// outer for Java, cannot translate all possible CFG structures here
+		for (final E catchE : catches) {
+			// iterate through all catch handles (for currently checked head BB), check if loop last
+			// is handled too
+			final List<E> handlerCatches = catchE.getEnd().getIns();
+			back: for (final E back : backs) {
+				final BB loopLast = back.getStart();
+				for (final E handlerCatchE : handlerCatches) {
+					if (loopLast == handlerCatchE.getStart()) {
+						continue back;
+					}
+				}
 				return false;
 			}
 		}
@@ -687,7 +711,7 @@ public final class TrControlFlowAnalysis {
 		// gather potential initial follows (but catches cannot be follows),
 		// follows initialized with head-outs, because these are not handled in handler-in loop
 		for (final E out : head.getOuts()) {
-			if (!out.isCatch()) {
+			if (!out.isCatch() && !out.isBack()) {
 				follows.add(out.getEnd());
 			}
 		}
@@ -908,10 +932,10 @@ public final class TrControlFlowAnalysis {
 		BB firstFollow = null;
 		for (final BB follow : follows) {
 			assert follow != null;
-			assert !struct.hasMember(follow);
 			if (checkBranching(struct, follow)) {
 				continue;
 			}
+			assert !struct.hasMember(follow);
 			if (firstFollow == null) {
 				firstFollow = follow;
 				continue;
@@ -1041,20 +1065,7 @@ public final class TrControlFlowAnalysis {
 				final List<E> catches = findCatchOutmostUnhandled(bb);
 				final List<E> backs = findLoopUnhandledBacks(bb);
 
-				handleCatch: if (catches != null) {
-					if (backs != null) {
-						// check if there is a back that is not handled -> loop is assumed outer for
-						// Java, cannot translate 1:1 all possible CFG structures <- simplification
-						log.warn(getM() + ": priorizing catch / loop in : " + bb);
-						for (final E back : backs) {
-							final BB loopLastBb = back.getStart();
-							for (final E catchE : catches) {
-								if (!loopLastBb.hasSucc(catchE.getEnd())) {
-									break handleCatch;
-								}
-							}
-						}
-					}
+				if (catches != null && (backs == null || isLoopInCatches(backs, catches))) {
 					createCatchStruct(bb, catches);
 					continue; // additional sub struct heads possible for catch
 				}

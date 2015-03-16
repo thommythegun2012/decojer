@@ -272,6 +272,9 @@ public class Struct {
 	 * @return {@code true} - this struct has the given BB as member for given value
 	 */
 	public boolean hasMember(@Nullable final Object value, @Nullable final BB bb) {
+		if (value == null && hasHead(bb)) {
+			return true;
+		}
 		final List<BB> members = this.value2members.get(value);
 		return members != null && members.contains(bb);
 	}
@@ -342,7 +345,7 @@ public class Struct {
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert bb.isSubHead() : "Cannot change follow to BB" + bb.getPc()
-					+ " for struct:\n" + this;
+							+ " for struct:\n" + this;
 				}
 			}
 		}
