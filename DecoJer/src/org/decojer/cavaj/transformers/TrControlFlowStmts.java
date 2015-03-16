@@ -265,14 +265,10 @@ public final class TrControlFlowStmts {
 				}
 				if (firstStatement instanceof VariableDeclarationStatement) {
 					firstStatement.delete();
-				} else {
-					assert false : "Where is my finally throwable?";
 				}
 				// remove final throws from finally block, should never be nested
 				if (finallyStatements.get(finallyStatements.size() - 1) instanceof ThrowStatement) {
 					finallyStatements.remove(finallyStatements.size() - 1);
-				} else {
-					assert false : "Where is my finally throw?";
 				}
 				continue;
 			}
