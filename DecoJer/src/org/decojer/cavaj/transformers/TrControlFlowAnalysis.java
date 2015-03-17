@@ -314,9 +314,10 @@ public final class TrControlFlowAnalysis {
 					followBbs.add(checkBb);
 					continue;
 				}
-				if (checkBb.getIns().size() > 1) {
+				final List<E> checkBbIns = checkBb.getIns();
+				if (checkBbIns.size() > 1) {
 					// has checkBb a none-member predecessor? only possible for multiple ins
-					for (final E in : checkBb.getIns()) {
+					for (final E in : checkBbIns) {
 						if (in == firstIn) {
 							continue; // ignore first incoming edge into branch
 						}
@@ -354,7 +355,6 @@ public final class TrControlFlowAnalysis {
 				members.add(checkBb);
 			}
 			// deep recursion into out edges of this member
-			// TODO jump over finally here? handle before and remove?
 			for (final E out : checkBb.getOuts()) {
 				final BB succ = out.getEnd();
 				// enclosed catch-handlers could be part of branch: add here und check ins later

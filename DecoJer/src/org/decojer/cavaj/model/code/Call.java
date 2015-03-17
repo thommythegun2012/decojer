@@ -57,6 +57,6 @@ public class Call {
 
 	@Override
 	public String toString() {
-		return "Call" + getJsr().getPc() + "/" + getSub().getPc();
+		return getJsr().getPc() + "->" + getSub().getPc();
 	}
 }
