@@ -490,7 +490,6 @@ public final class TrExpressions {
 				final Expression ifExpression = ifStatement.getExpression();
 				assert ifExpression != null;
 				final IfStatement rightIfStatement = (IfStatement) c.removeStmt(0);
-				assert rightIfStatement != null;
 				final Expression rightIfExpression = rightIfStatement.getExpression();
 				assert rightIfExpression != null;
 				final Op op = getOp(rightIfStatement);
@@ -1722,10 +1721,6 @@ public final class TrExpressions {
 				}
 			}
 			final Op op = bb.removeOp(0);
-			if (op == null) {
-				assert false;
-				return false;
-			}
 			switch (op.getOptype()) {
 			case ADD: {
 				bb.push(newInfixExpressionPop(InfixExpression.Operator.PLUS, bb, op));
