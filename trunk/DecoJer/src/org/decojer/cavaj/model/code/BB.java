@@ -532,8 +532,11 @@ public final class BB {
 	 *            operation index
 	 * @return operation
 	 */
+	@Nonnull
 	public Op getOp(final int i) {
-		return this.ops.get(i);
+		final Op op = this.ops.get(i);
+		assert op != null;
+		return op;
 	}
 
 	/**
@@ -635,10 +638,11 @@ public final class BB {
 	 *            statement index
 	 * @return statement
 	 */
-	@Nullable
+	@Nonnull
 	public Statement getStmt(final int i) {
-		final int size = this.stmts.size();
-		return size <= i ? null : this.stmts.get(i);
+		final Statement statement = this.stmts.get(i);
+		assert statement != null;
+		return statement;
 	}
 
 	/**
@@ -892,7 +896,7 @@ public final class BB {
 	 * @param bb
 	 *            predecessor BB
 	 */
-	public void joinPredBb(final BB bb) {
+	public void joinPredBb(@Nonnull final BB bb) {
 		this.ops.addAll(0, bb.ops);
 		this.stmts.addAll(0, bb.stmts);
 		if (bb.top > 0) {
@@ -910,6 +914,34 @@ public final class BB {
 		}
 		setPc(bb.getPc());
 		bb.moveIns(this);
+	}
+
+	/**
+	 * Copy content from sucessor BB.
+	 *
+	 * The advantage of this method is, that it doesn't change the PC and hence the hashCode!
+	 *
+	 * @param bb
+	 *            predecessor BB
+	 */
+	public void joinSuccBb(@Nonnull final BB bb) {
+		this.ops.addAll(bb.ops);
+		this.stmts.addAll(bb.stmts);
+		if (bb.top > 0) {
+			if (getRegs() + bb.top + this.top > this.vs.length) {
+				final Expression[] newVs = new Expression[getRegs() + bb.top + this.top];
+				System.arraycopy(this.vs, 0, newVs, 0, getRegs() + this.top);
+				this.vs = newVs;
+			}
+			System.arraycopy(bb.vs, getRegs(), this.vs, getRegs() + this.top, bb.top);
+			this.top += bb.top;
+		}
+		for (final E out : bb.outs) {
+			assert out != null;
+			addOut(out);
+		}
+		bb.outs.clear();
+		bb.remove();
 	}
 
 	/**
@@ -1078,10 +1110,11 @@ public final class BB {
 	 *            operation index
 	 * @return operation
 	 */
-	@Nullable
+	@Nonnull
 	public Op removeOp(final int i) {
-		final int size = this.ops.size();
-		return size <= i ? null : this.ops.remove(i);
+		final Op op = this.ops.remove(i);
+		assert op != null;
+		return op;
 	}
 
 	protected void removeOut(final E e) {
@@ -1096,10 +1129,11 @@ public final class BB {
 	 *            statement index
 	 * @return statement
 	 */
-	@Nullable
+	@Nonnull
 	public Statement removeStmt(final int i) {
-		final int size = this.stmts.size();
-		return size <= i ? null : this.stmts.remove(i);
+		final Statement statement = this.stmts.remove(i);
+		assert statement != null;
+		return statement;
 	}
 
 	/**

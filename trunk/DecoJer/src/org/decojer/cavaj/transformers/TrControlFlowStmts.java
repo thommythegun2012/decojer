@@ -374,7 +374,6 @@ public final class TrControlFlowStmts {
 			negate = false;
 		case WHILENOT: {
 			final IfStatement ifStatement = (IfStatement) head.getStmt(0);
-			assert ifStatement != null;
 
 			final WhileStatement whileStatement = setOp(getAst().newWhileStatement(),
 					getOp(ifStatement));

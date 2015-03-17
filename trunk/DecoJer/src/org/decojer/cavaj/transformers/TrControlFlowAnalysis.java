@@ -73,7 +73,7 @@ public final class TrControlFlowAnalysis {
 	private static Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<E> backs) {
 		final Loop loop = new Loop(head);
 
-		final Set<BB> traversedBbs = Sets.<BB> newHashSet();
+		final Set<BB> traversedBbs = Sets.newHashSet();
 		final List<BB> members = Lists.newArrayList();
 		BB last = null;
 		for (final E back : backs) {
@@ -686,7 +686,7 @@ public final class TrControlFlowAnalysis {
 		final List<BB> blockMembers = block.getMembers(null);
 		assert blockMembers != null;
 		final List<BB> members = Lists.newArrayList(blockMembers);
-		final Set<BB> traversedBbs = Sets.<BB> newHashSet();
+		final Set<BB> traversedBbs = Sets.newHashSet();
 		for (final E in : follow.getIns()) {
 			if (in.isBack()) {
 				continue;
