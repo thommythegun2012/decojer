@@ -604,6 +604,73 @@ public final class TrControlFlowAnalysis {
 		return true;
 	}
 
+	private static boolean rewriteFinally(final Catch catchStruct, final Set<BB> follows) {
+		final BB finallyHandler = catchStruct.getFirstMember(Catch.FINALLY_TS);
+		if (finallyHandler == null) {
+			return false;
+		}
+		// JSR-finally: finallyHandler BB has as single statement the temporary throwable
+		// declaration, a single JSR-out to the finally-BBs (potentially also additional outer
+		// catches) and a RET to a BB with final throw as single statement
+		final E finallyJsr = finallyHandler.getJsrOut();
+		if (finallyJsr != null) {
+			assert finallyHandler.getStmts() == 1;
+			assert finallyHandler.getStmt(0) instanceof VariableDeclarationStatement;
+			final BB subBb = finallyJsr.getEnd();
+
+			// we will kill all JSRs now (prevent concurrent modification exception)
+			final List<E> jsrs = subBb.getIns();
+			for (int i = jsrs.size(); i-- > 0;) {
+				final E jsr = jsrs.get(i);
+				if (jsr == finallyJsr) {
+					continue;
+				}
+				final E ret = jsr.getRetOut();
+				assert ret != null;
+				// was not always in follow (nested finally), but remove always as follow candidate:
+				final BB end = ret.getEnd();
+				if (end.getIns().size() == 1) {
+					jsr.getStart().joinSuccBb(end);
+				} else {
+					jsr.getStart().setSucc(end);
+					jsr.remove();
+					ret.remove();
+				}
+			}
+			follows.remove(subBb);
+
+			final E finallyRet = finallyJsr.getRetOut();
+			assert finallyRet != null;
+
+			// add finally nodes as members
+			final List<BB> handlerMembers = Lists.newArrayList();
+			findBranch(catchStruct, finallyJsr, handlerMembers, follows);
+			catchStruct.addMembers(finallyHandler.getIns().get(0).getValue(), handlerMembers);
+
+			final BB end = finallyRet.getEnd();
+			if (end.getIns().size() == 1) {
+				finallyRet.getStart().joinSuccBb(end); // retOut collapse
+			} else {
+				finallyJsr.getStart().setSucc(end);
+				finallyJsr.remove();
+				finallyRet.remove();
+			}
+			finallyHandler.joinSuccBb(subBb); // jsrOut collapse
+			return true;
+		}
+		// JDK6 finally: finallyHandler BB has as first statement the temporary throwable
+		// declaration, the finally statements and a final throw statement
+
+		// TODO all follows should be same and can be reduced
+		for (final BB follow : follows) {
+			if (follow == finallyHandler) {
+				continue;
+			}
+			// compare handler with follows...strip same
+		}
+		return false;
+	}
+
 	/**
 	 * Transform CFG.
 	 *
@@ -988,63 +1055,6 @@ public final class TrControlFlowAnalysis {
 			assert false;
 		}
 		return null;
-	}
-
-	private boolean rewriteFinally(final Catch catchStruct, final Set<BB> follows) {
-		final BB finallyHandler = catchStruct.getFirstMember(Catch.FINALLY_TS);
-		if (finallyHandler == null) {
-			return false;
-		}
-		// JSR-finally: finallyHandler BB has as single statement the temporary throwable
-		// declaration, a single JSR-out to the finally-BBs (potentially also additional outer
-		// catches) and a RET to a BB with final throw as single statement
-		final E jsrOut = finallyHandler.getJsrOut();
-		if (jsrOut != null) {
-			assert finallyHandler.getStmts() == 1;
-			assert finallyHandler.getStmt(0) instanceof VariableDeclarationStatement;
-			final BB finallyBb = jsrOut.getEnd();
-
-			// we will kill all JSRs now (prevent concurrent modification exception)
-			final List<E> ins = finallyBb.getIns();
-			for (int i = ins.size(); i-- > 0;) {
-				final E jsrIn = ins.get(i);
-				if (jsrIn == jsrOut) {
-					continue;
-				}
-				final E retOut = jsrIn.getRetOut();
-				assert retOut != null;
-				// was not always in follow (nested finally), but remove always as follow candidate:
-				follows.remove(jsrIn.getStart());
-				follows.add(retOut.getEnd());
-
-				retOut.getEnd().joinPredBb(jsrIn.getStart());
-				retOut.remove(); // join doesn't do this currently
-			}
-			follows.remove(finallyBb);
-
-			final E retOut = jsrOut.getRetOut();
-			assert retOut != null;
-
-			// add finally nodes as members
-			final List<BB> handlerMembers = Lists.newArrayList();
-			findBranch(catchStruct, jsrOut, handlerMembers, follows);
-			catchStruct.addMembers(finallyHandler.getIns().get(0).getValue(), handlerMembers);
-
-			finallyBb.joinPredBb(finallyHandler); // jsrOut collapse
-			retOut.getEnd().joinPredBb(retOut.getStart()); // retOut collapse
-			return true;
-		}
-		// JDK6 finally: finallyHandler BB has as first statement the temporary throwable
-		// declaration, the finally statements and a final throw statement
-
-		// TODO all follows should be same and can be reduced
-		for (final BB follow : follows) {
-			if (follow == finallyHandler) {
-				continue;
-			}
-			// compare handler with follows...strip same
-		}
-		return false;
 	}
 
 	private void transform() {
