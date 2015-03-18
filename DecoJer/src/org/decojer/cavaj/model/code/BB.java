@@ -23,6 +23,7 @@
  */
 package org.decojer.cavaj.model.code;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -936,11 +937,17 @@ public final class BB {
 			System.arraycopy(bb.vs, getRegs(), this.vs, getRegs() + this.top, bb.top);
 			this.top += bb.top;
 		}
+		// remember, removing now would delete nodes
+		final List<E> clearOuts = new ArrayList<E>(this.outs);
+		this.outs.clear();
 		for (final E out : bb.outs) {
 			assert out != null;
 			addOut(out);
 		}
 		bb.outs.clear();
+		for (final E out : clearOuts) {
+			out.remove();
+		}
 		bb.remove();
 	}
 
