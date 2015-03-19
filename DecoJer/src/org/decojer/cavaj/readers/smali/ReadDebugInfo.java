@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
-import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -56,7 +56,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 	private final static boolean DEBUG = false;
 
-	@Getter(AccessLevel.PROTECTED)
+	@Nullable
 	private M m;
 
 	@Nonnull
@@ -82,6 +82,17 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			}
 		}
 		return -1;
+	}
+
+	/**
+	 * Get method.
+	 *
+	 * @return method
+	 */
+	@Nonnull
+	public M getM() {
+		assert this.m != null;
+		return this.m;
 	}
 
 	/**
@@ -124,7 +135,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 	}
 
 	private void log(final String message) {
-		log.warn(this.m + ": " + message);
+		log.warn(getM() + ": " + message);
 	}
 
 	@Override
@@ -246,12 +257,12 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 			return;
 		}
 		if (signature != null) {
-			final T sigT = getM().getDu().parseT(signature.getStringValue(), new Cursor(), this.m);
+			final T sigT = getM().getDu().parseT(signature.getStringValue(), new Cursor(), getM());
 			if (sigT != null) {
 				if (!sigT.eraseTo(vT)) {
 					log.info("Cannot reduce signature '" + signature.getStringValue()
 							+ "' to type '" + vT + "' for method (local variable '" + name + "') "
-							+ this.m);
+							+ getM());
 				} else {
 					vT = sigT;
 				}

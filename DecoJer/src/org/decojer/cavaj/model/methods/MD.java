@@ -114,4 +114,15 @@ public final class MD extends ED {
 		return typeParams == null ? TYPE_PARAM_NONE : typeParams;
 	}
 
+	/**
+	 * Set CFG for method declaration.
+	 * 
+	 * @param cfg
+	 *            CFG
+	 */
+	public void setCfg(final CFG cfg) {
+		assert this.cfg == null;
+		this.cfg = cfg;
+	}
+
 }

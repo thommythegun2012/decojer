@@ -282,9 +282,9 @@ public class ReadMethodVisitor extends MethodVisitor implements ReadVisitor {
 	}
 
 	/**
-	 * Get method declaration.
+	 * Get method.
 	 *
-	 * @return method declaration
+	 * @return method
 	 */
 	@Nonnull
 	public M getM() {
@@ -396,10 +396,9 @@ public class ReadMethodVisitor extends MethodVisitor implements ReadVisitor {
 			this.paramAss = null;
 		}
 		if (this.ops.size() > 0) {
-			final CFG cfg = new CFG(getM(), this.maxLocals, this.maxStack);
-			this.m.setCfg(cfg);
+			final CFG cfg = new CFG(getM(), this.maxLocals, this.maxStack,
+					this.ops.toArray(new Op[this.ops.size()]));
 
-			cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 			this.ops.clear();
 			this.label2pc.clear();
 			this.label2unresolved.clear();

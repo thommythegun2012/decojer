@@ -105,6 +105,17 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes, ReadVis
 		return getParentVisitor().getDu();
 	}
 
+	/**
+	 * Get method.
+	 *
+	 * @return method
+	 */
+	@Nonnull
+	public M getM() {
+		assert this.m != null;
+		return this.m;
+	}
+
 	private int getPc(final DexLabel label) {
 		assert label != null;
 
@@ -198,11 +209,9 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes, ReadVis
 	@Override
 	public void visitEnd() {
 		if (this.ops.size() > 0) {
-			assert this.m != null;
-			final CFG cfg = new CFG(this.m, this.maxLocals, 0);
-			this.m.setCfg(cfg);
+			final CFG cfg = new CFG(getM(), this.maxLocals, 0, this.ops.toArray(new Op[this.ops
+					.size()]));
 
-			cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
 			this.ops.clear();
 			this.label2pc.clear();
 			this.label2unresolved.clear();
@@ -367,11 +376,11 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes, ReadVis
 			return;
 		}
 		if (signature != null) {
-			final T sigT = getDu().parseT(signature, new Cursor(), this.m);
+			final T sigT = getDu().parseT(signature, new Cursor(), getM());
 			if (sigT != null) {
 				if (!sigT.eraseTo(vT)) {
 					log.info("Cannot reduce signature '" + signature + "' to type '" + vT
-							+ "' for method (local variable '" + name + "') " + this.m);
+							+ "' for method (local variable '" + name + "') " + getM());
 				} else {
 					vT = sigT;
 				}
@@ -463,7 +472,7 @@ public class ReadDexCodeVisitor implements OdexCodeVisitor, OdexOpcodes, ReadVis
 				t = T.REF;
 				break;
 			default:
-				t = this.m.getReturnT();
+				t = getM().getReturnT();
 				log.warn("Unknown operation return type '" + xt + "'! Using method return type '"
 						+ t + "'.");
 			}
