@@ -253,6 +253,13 @@ public final class CFG {
 		}
 	}
 
+	/**
+	 * Get BB for PC.
+	 * 
+	 * @param pc
+	 *            PC
+	 * @return BB
+	 */
 	public BB getBb(final int pc) {
 		return this.bbs[pc];
 	}
