@@ -88,13 +88,17 @@ public final class CFG {
 	@Nonnull
 	private final M m;
 
+	/**
+	 * Operations for PCs.
+	 */
 	@Getter
 	private final Op[] ops;
 
 	/**
 	 * BBs for PCs.
 	 */
-	private BB[] bbs;
+	@Getter
+	private final BB[] bbs;
 
 	/**
 	 * Array with postordered BBs.
@@ -136,6 +140,7 @@ public final class CFG {
 		this.regs = regs;
 		this.maxStack = maxStack;
 		this.ops = ops;
+		this.bbs = new BB[ops.length];
 	}
 
 	/**
@@ -246,6 +251,10 @@ public final class CFG {
 		if (stage > 2) {
 			TrControlFlowStmts.transform(this);
 		}
+	}
+
+	public BB getBb(final int pc) {
+		return this.bbs[pc];
 	}
 
 	/**
@@ -554,6 +563,10 @@ public final class CFG {
 				++reg;
 			}
 		}
+	}
+
+	protected BB setBb(final int pc, final BB bb) {
+		return this.bbs[pc] = bb;
 	}
 
 	/**

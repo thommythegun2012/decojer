@@ -143,6 +143,27 @@ public final class BB {
 		return addSucc(handler, Catch.FINALLY_TS);
 	}
 
+	/**
+	 * Add as first operation.
+	 *
+	 * @param op
+	 *            operation
+	 */
+	public void addFirstOp(final Op op) {
+		this.ops.add(0, op);
+		getCfg().setBb(op.getPc(), this);
+	}
+
+	/**
+	 * Add as first statement.
+	 *
+	 * @param stmt
+	 *            statement
+	 */
+	public void addFirstStmt(final Statement stmt) {
+		this.stmts.add(0, stmt);
+	}
+
 	protected final void addIn(@Nonnull final E e) {
 		e.setEnd(this); // necessary asserts are included here
 		this.ins.add(e);
@@ -156,6 +177,7 @@ public final class BB {
 	 */
 	public void addOp(final Op op) {
 		this.ops.add(op);
+		getCfg().setBb(op.getPc(), this);
 	}
 
 	protected final void addOut(@Nonnull final E e) {
@@ -889,7 +911,9 @@ public final class BB {
 	}
 
 	/**
-	 * Copy content from predecessor BB.
+	 * Copy content and ins from predecessor BB, which will be deleted in this process.<br>
+	 *
+	 * This will change the PC and hence the hashcode! Remove from sets before doing this.<br>
 	 *
 	 * This is easier for root-to-end expression transformation then joinSuccBb(), because the
 	 * currently handled BB doesn't change in the transformation loop.
@@ -898,8 +922,13 @@ public final class BB {
 	 *            predecessor BB
 	 */
 	public void joinPredBb(@Nonnull final BB bb) {
-		this.ops.addAll(0, bb.ops);
-		this.stmts.addAll(0, bb.stmts);
+		// don't use List.addAll(): fix PC-BB-mappings etc.
+		for (final Op op : bb.ops) {
+			addFirstOp(op);
+		}
+		for (final Statement stmt : bb.stmts) {
+			addFirstStmt(stmt);
+		}
 		if (bb.top > 0) {
 			if (getRegs() + bb.top + this.top > this.vs.length) {
 				final Expression[] newVs = new Expression[getRegs() + bb.top + this.top];
@@ -918,16 +947,21 @@ public final class BB {
 	}
 
 	/**
-	 * Copy content from sucessor BB.
+	 * Copy content and outs from successor BB, which will also be deleted.<br>
 	 *
-	 * The advantage of this method is, that it doesn't change the PC and hence the hashCode!
+	 * The advantage of this method is, that it doesn't change the PC and hence the hashcode!
 	 *
 	 * @param bb
 	 *            predecessor BB
 	 */
 	public void joinSuccBb(@Nonnull final BB bb) {
-		this.ops.addAll(bb.ops);
-		this.stmts.addAll(bb.stmts);
+		// don't use List.addAll(): fix PC-BB-mappings etc.
+		for (final Op op : bb.ops) {
+			addOp(op);
+		}
+		for (final Statement stmt : bb.stmts) {
+			addStmt(stmt);
+		}
 		if (bb.top > 0) {
 			if (getRegs() + bb.top + this.top > this.vs.length) {
 				final Expression[] newVs = new Expression[getRegs() + bb.top + this.top];
@@ -937,7 +971,7 @@ public final class BB {
 			System.arraycopy(bb.vs, getRegs(), this.vs, getRegs() + this.top, bb.top);
 			this.top += bb.top;
 		}
-		// remember, removing now would delete nodes
+		// remember current outs, removing them now would delete follow nodes
 		final List<E> clearOuts = new ArrayList<E>(this.outs);
 		this.outs.clear();
 		for (final E out : bb.outs) {
@@ -1198,7 +1232,14 @@ public final class BB {
 				((Call) value).getSub().setPc(pc);
 			}
 		}
+		final CFG cfg = getCfg();
+		if (this.pc != -1 && cfg.getBb(this.pc) == this) {
+			cfg.setBb(this.pc, null);
+		}
 		this.pc = pc;
+		if (pc != -1) {
+			cfg.setBb(pc, this);
+		}
 	}
 
 	/**
@@ -1258,6 +1299,9 @@ public final class BB {
 		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
 		bb.setSucc(this);
 		setPc(pc);
+		while (getOps() > 0 && getOp(0).getPc() != pc) {
+			bb.addOp(removeOp(0));
+		}
 		return bb;
 	}
 

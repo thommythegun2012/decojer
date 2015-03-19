@@ -132,11 +132,6 @@ public final class TrDataFlowAnalysis {
 	 */
 	private LinkedList<Integer> openPcs;
 
-	/**
-	 * Remember BBs for PCs.
-	 */
-	private BB[] pc2bbs;
-
 	private TrDataFlowAnalysis(@Nonnull final CFG cfg) {
 		this.cfg = cfg;
 		this.isIgnoreExceptions = getCfg().getCu().check(DFlag.IGNORE_EXCEPTIONS);
@@ -520,7 +515,7 @@ public final class TrDataFlowAnalysis {
 				log.warn(getM() + ": Incorrect sub!");
 				assert false;
 			}
-			final BB retBb = getBb(ret.getPc());
+			final BB retBb = getCfg().getBb(ret.getPc());
 			final int jsrFollowPc = jsr.getPc() + 1;
 			retBb.setRetSucc(getTargetBb(jsrFollowPc), call);
 			// modify RET frame for untouched registers in sub
@@ -642,7 +637,7 @@ public final class TrDataFlowAnalysis {
 
 			// link RET BB to all yet known JSR followers and merge, Sub BB incomings are JSRs
 			final int subPc = sub.getPc();
-			final BB subBb = getBb(subPc);
+			final BB subBb = getCfg().getBb(subPc);
 			for (final E in : subBb.getIns()) {
 				final Call call = (Call) in.getValue();
 				if (call == null) {
@@ -784,7 +779,7 @@ public final class TrDataFlowAnalysis {
 		default:
 			throw new DecoJerException("Unknown intermediate vm operation '" + op + "'!");
 		}
-		if (getBb(nextPc) != null) {
+		if (getCfg().getBb(nextPc) != null) {
 			// already have been here, switch current BB
 			this.currentBb.setSucc(getTargetBb(nextPc));
 			merge(nextPc);
@@ -888,10 +883,6 @@ public final class TrDataFlowAnalysis {
 		}
 	}
 
-	private BB getBb(final int pc) {
-		return this.pc2bbs[pc];
-	}
-
 	private int getCurrentPc() {
 		return this.currentFrame.getPc();
 	}
@@ -924,27 +915,19 @@ public final class TrDataFlowAnalysis {
 	 */
 	@Nonnull
 	private BB getTargetBb(final int pc) {
-		final BB bb = getBb(pc); // get BB for target PC
+		final BB bb = getCfg().getBb(pc); // get BB for target PC
 		if (bb == null) {
 			// PC not processed yet
 			this.openPcs.add(pc);
-			return newBb(pc);
+			return getCfg().newBb(pc);
 		}
 		// found BB has target PC as first PC => return BB, no split necessary
 		if (bb.getPc() == pc) {
 			return bb;
 		}
-		// split BB, new incoming block, adapt BB pcs,
+		// split BB with a new _incoming_ block,
 		// it's necessary to preserve the outgoing block for back edges to same BB!!!
-		final BB newInBb = bb.splitPredBb(pc);
-		// TODO move into split pred and also move BB-array for setBb()?
-		setBb(newInBb.getPc(), newInBb);
-		while (bb.getOps() > 0 && bb.getOp(0).getPc() != pc) {
-			final Op op = bb.removeOp(0);
-			assert op != null;
-			newInBb.addOp(op);
-			setBb(op.getPc(), newInBb);
-		}
+		bb.splitPredBb(pc);
 		return bb;
 	}
 
@@ -1068,7 +1051,7 @@ public final class TrDataFlowAnalysis {
 			if (finalOp instanceof RET && !in.isCatch()) {
 				// jump over subs, where the register is unchanged
 				if (!checkRegisterAccessInSub(aliveI, (RET) finalOp)) {
-					final BB jsrBb = getBb(pc - 1);
+					final BB jsrBb = getCfg().getBb(pc - 1);
 					assert jsrBb != null;
 					markAlive(jsrBb, aliveI);
 					continue;
@@ -1109,7 +1092,7 @@ public final class TrDataFlowAnalysis {
 		// predecessors => register merge necessary
 		assert targetFrame.size() == this.currentFrame.size() : "incompatible frame sizes";
 
-		final BB targetBb = getBb(targetPc);
+		final BB targetBb = getCfg().getBb(targetPc);
 		assert targetBb != null && targetBb.getPc() == targetPc : "target PC is not start of a target BB";
 
 		for (int i = targetFrame.size(); i-- > 0;) {
@@ -1172,13 +1155,6 @@ public final class TrDataFlowAnalysis {
 				mergeReg(mergeBb, i, newR);
 			}
 		}
-	}
-
-	@Nonnull
-	private BB newBb(final int pc) {
-		final BB bb = getCfg().newBb(pc);
-		setBb(pc, bb);
-		return bb;
 	}
 
 	private R peek() {
@@ -1298,7 +1274,7 @@ public final class TrDataFlowAnalysis {
 			}
 			if (finalOp instanceof JSR) {
 				// always try to replace the sub-ret-frame iff prevR is same
-				final BB outBb = getBb(finalOp.getPc() + 1);
+				final BB outBb = getCfg().getBb(finalOp.getPc() + 1);
 				if (outBb == null) {
 					continue;
 				}
@@ -1400,10 +1376,6 @@ public final class TrDataFlowAnalysis {
 		return true;
 	}
 
-	private BB setBb(final int pc, final BB bb) {
-		return this.pc2bbs[pc] = bb;
-	}
-
 	/**
 	 * Exception block changes in current BB? -> split necessary!
 	 *
@@ -1434,7 +1406,7 @@ public final class TrDataFlowAnalysis {
 				}
 			}
 			// at least one exception has changed, newBb() links exceptions
-			final BB succBb = newBb(currentPc);
+			final BB succBb = getCfg().newBb(currentPc);
 			this.currentBb.setSucc(succBb);
 			return succBb;
 		}
@@ -1447,12 +1419,12 @@ public final class TrDataFlowAnalysis {
 
 	private void transform() {
 		final CFG cfg = getCfg();
-		this.pc2bbs = new BB[cfg.getOps().length];
+
 		this.openPcs = Lists.newLinkedList();
 
 		// start with PC 0 and new BB
 		int currentPc = 0; // better not as global attribute, current context changes sometimes
-		this.currentBb = newBb(0); // need pc2bb and openPcs
+		this.currentBb = getCfg().newBb(0); // need pc2bb and openPcs
 
 		cfg.initFrames();
 		cfg.setStartBb(this.currentBb);
@@ -1464,10 +1436,9 @@ public final class TrDataFlowAnalysis {
 					break;
 				}
 				currentPc = this.openPcs.removeFirst();
-				this.currentBb = getBb(currentPc);
+				this.currentBb = getCfg().getBb(currentPc);
 			} else {
 				this.currentBb = splitExceptions(currentPc); // exception boundary? split...
-				setBb(currentPc, this.currentBb);
 			}
 			this.currentFrame = new Frame(getFrame(currentPc)); // copy, merge to next PCs
 			final int nextPc = execute();
