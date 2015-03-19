@@ -38,11 +38,11 @@ import org.decojer.cavaj.model.code.ops.Op;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.transformers.TrCalculatePostorder;
-import org.decojer.cavaj.transformers.TrControlFlowStmts;
-import org.decojer.cavaj.transformers.TrExpressions;
 import org.decojer.cavaj.transformers.TrControlFlowAnalysis;
+import org.decojer.cavaj.transformers.TrControlFlowStmts;
 import org.decojer.cavaj.transformers.TrDalvikRemoveTempRegs;
 import org.decojer.cavaj.transformers.TrDataFlowAnalysis;
+import org.decojer.cavaj.transformers.TrExpressions;
 import org.eclipse.jdt.core.dom.Block;
 
 /**
@@ -89,8 +89,12 @@ public final class CFG {
 	private final M m;
 
 	@Getter
-	@Setter
-	private Op[] ops;
+	private final Op[] ops;
+
+	/**
+	 * BBs for PCs.
+	 */
+	private BB[] bbs;
 
 	/**
 	 * Array with postordered BBs.
@@ -120,14 +124,18 @@ public final class CFG {
 	 *            register count (max locals)
 	 * @param maxStack
 	 *            max stack size
+	 * @param ops
+	 *            operations
 	 */
-	public CFG(@Nonnull final M m, final int regs, final int maxStack) {
+	public CFG(@Nonnull final M m, final int regs, final int maxStack, final Op[] ops) {
 		assert regs >= 0 : regs;
 		assert maxStack >= 0 : maxStack;
 
 		this.m = m;
+		m.setCfg(this);
 		this.regs = regs;
 		this.maxStack = maxStack;
+		this.ops = ops;
 	}
 
 	/**

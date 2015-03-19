@@ -249,9 +249,6 @@ public class ReadMethodImplementation {
 		this.vmpc2pc.clear();
 		this.vmpc2unresolved.clear();
 
-		final CFG cfg = new CFG(m, implementation.getRegisterCount(), 0);
-		m.setCfg(cfg);
-
 		final Iterator<String> parameterNames = implementation.getParameterNames(null);
 		for (int i = 0; parameterNames.hasNext(); ++i) {
 			m.setParamName(i, parameterNames.next());
@@ -2510,7 +2507,9 @@ public class ReadMethodImplementation {
 			vmpc += instruction.getCodeUnits();
 		}
 		visitVmpc(vmpc, null);
-		cfg.setOps(this.ops.toArray(new Op[this.ops.size()]));
+
+		final CFG cfg = new CFG(m, implementation.getRegisterCount(), 0,
+				this.ops.toArray(new Op[this.ops.size()]));
 
 		final List<? extends DexBackedTryBlock> tryBlocks = implementation.getTryBlocks();
 		if (!tryBlocks.isEmpty()) {
