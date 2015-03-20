@@ -113,10 +113,6 @@ public final class CFG {
 	@Getter
 	private final int regs;
 
-	@Getter
-	@Setter
-	private BB startBb;
-
 	private V[][] vss;
 
 	/**
@@ -218,7 +214,6 @@ public final class CFG {
 		this.frames = null;
 		this.iDoms = null;
 		this.postorderedBbs = null;
-		this.startBb = null;
 	}
 
 	/**
@@ -374,6 +369,15 @@ public final class CFG {
 	}
 
 	/**
+	 * Get start BB.
+	 * 
+	 * @return start BB
+	 */
+	public BB getStartBb() {
+		return getBb(0);
+	}
+
+	/**
 	 * Get type.
 	 *
 	 * @return type
@@ -411,9 +415,7 @@ public final class CFG {
 			}
 		}
 		this.frames[0] = frame;
-		final BB startBb = newBb(0);
-		setStartBb(startBb);
-		return startBb;
+		return newBb(0);
 	}
 
 	private BB intersectIDoms(final BB b1, final BB b2) {
@@ -454,7 +456,7 @@ public final class CFG {
 	 * @return {@code true} - line information is available
 	 */
 	public boolean isLineInfo() {
-		return this.startBb.isLineInfo();
+		return getStartBb().isLineInfo();
 	}
 
 	private void log(final String message) {
