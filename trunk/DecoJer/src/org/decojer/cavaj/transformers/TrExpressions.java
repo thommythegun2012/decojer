@@ -1215,8 +1215,8 @@ public final class TrExpressions {
 				}
 				final BB constantSucc = booleanConst ? trueSucc : falseSucc;
 				assert constantSucc != null;
-				if (pred.getStmts() == 0 && pred.isStackEmpty()) {
-					pred.moveIns(constantSucc);
+				if (pred.isEmpty()) {
+					constantSucc.joinPredBb(pred);
 				} else {
 					pred.setSucc(constantSucc);
 				}
@@ -1625,10 +1625,10 @@ public final class TrExpressions {
 				log.warn(getM() + ": Stack underflow in '" + getCfg() + "':\n" + bb);
 			}
 			// remove empty nodes
-			if (bb.getStmts() == 0 && bb.getTop() == 0) {
+			if (bb.isEmpty()) {
 				final E sequenceOut = bb.getSequenceOut();
 				if (sequenceOut != null && !sequenceOut.isBack()) {
-					bb.moveIns(sequenceOut.getEnd());
+					sequenceOut.getEnd().joinPredBb(bb);
 				}
 			}
 		}
@@ -1675,7 +1675,7 @@ public final class TrExpressions {
 							// i'm empty now...can delete myself (move ins to succ)
 							final E out = bb.getSequenceOut();
 							assert out != null && !out.isBack();
-							bb.moveIns(out.getEnd());
+							out.getEnd().joinPredBb(bb);
 							return true;
 						}
 					}

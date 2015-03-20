@@ -425,7 +425,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -810,6 +810,26 @@ public final class BB {
 	}
 
 	/**
+	 * Is node empty?
+	 *
+	 * @return {@code true} - node is empty
+	 */
+	public boolean isEmpty() {
+		if (!this.stmts.isEmpty()) {
+			return false;
+		}
+		if (!isStackEmpty()) {
+			return false;
+		}
+		for (int i = getOps(); i-- > 0;) {
+			if (!(getOp(i) instanceof GOTO)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	/**
 	 * Is line information available?
 	 *
 	 * @return {@code true} - line information is available
@@ -833,16 +853,7 @@ public final class BB {
 		if (this.ins.size() != 1) {
 			return true;
 		}
-		// for ops.isEmpty() -> later GOTO check
-		if (!this.stmts.isEmpty() || !isStackEmpty()) {
-			return true;
-		}
-		for (final Op op : this.ops) {
-			if (!(op instanceof GOTO)) {
-				return true;
-			}
-		}
-		return false;
+		return !isEmpty();
 	}
 
 	/**
@@ -922,6 +933,10 @@ public final class BB {
 	 *            predecessor BB
 	 */
 	public void joinPredBb(@Nonnull final BB bb) {
+		if (bb == this) {
+			assert false;
+			return;
+		}
 		// don't use List.addAll(): fix PC-BB-mappings etc.
 		for (final Op op : bb.ops) {
 			addFirstOp(op);
@@ -943,7 +958,12 @@ public final class BB {
 			this.top += bb.top;
 		}
 		setPc(bb.getPc());
-		bb.moveIns(this);
+		for (final E in : bb.ins) {
+			assert in != null;
+			addIn(in);
+		}
+		bb.ins.clear(); // necessary, all incomings are relocated, don't remove!
+		bb.remove();
 	}
 
 	/**
@@ -955,6 +975,10 @@ public final class BB {
 	 *            predecessor BB
 	 */
 	public void joinSuccBb(@Nonnull final BB bb) {
+		if (bb == this) {
+			assert false;
+			return;
+		}
 		// don't use List.addAll(): fix PC-BB-mappings etc.
 		for (final Op op : bb.ops) {
 			addOp(op);
@@ -983,30 +1007,6 @@ public final class BB {
 			out.remove();
 		}
 		bb.remove();
-	}
-
-	/**
-	 * Move in edges to target BB. Adjust CFG start BB.
-	 *
-	 * Is an atomic operation and removes this node.
-	 *
-	 * @param target
-	 *            target BB
-	 */
-	public void moveIns(@Nonnull final BB target) {
-		if (target == this) {
-			assert false;
-			return;
-		}
-		if (getCfg().getStartBb() == this) {
-			getCfg().setStartBb(target);
-		}
-		for (final E in : this.ins) {
-			assert in != null;
-			target.addIn(in);
-		}
-		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
-		remove();
 	}
 
 	/**
@@ -1288,10 +1288,6 @@ public final class BB {
 	 */
 	public BB splitPredBb(final int pc) {
 		final BB bb = getCfg().newBb(getPc());
-		// like moveIns(this), but without final remove
-		if (getCfg().getStartBb() == this) {
-			getCfg().setStartBb(bb);
-		}
 		for (final E in : this.ins) {
 			assert in != null;
 			bb.addIn(in);
