@@ -143,27 +143,6 @@ public final class BB {
 		return addSucc(handler, Catch.FINALLY_TS);
 	}
 
-	/**
-	 * Add as first operation.
-	 *
-	 * @param op
-	 *            operation
-	 */
-	public void addFirstOp(final Op op) {
-		this.ops.add(0, op);
-		getCfg().setBb(op.getPc(), this);
-	}
-
-	/**
-	 * Add as first statement.
-	 *
-	 * @param stmt
-	 *            statement
-	 */
-	public void addFirstStmt(final Statement stmt) {
-		this.stmts.add(0, stmt);
-	}
-
 	protected final void addIn(@Nonnull final E e) {
 		e.setEnd(this); // necessary asserts are included here
 		this.ins.add(e);
@@ -425,7 +404,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -937,13 +916,11 @@ public final class BB {
 			assert false;
 			return;
 		}
-		// don't use List.addAll(): fix PC-BB-mappings etc.
+		this.ops.addAll(0, bb.ops);
 		for (final Op op : bb.ops) {
-			addFirstOp(op);
+			getCfg().setBb(op.getPc(), this);
 		}
-		for (final Statement stmt : bb.stmts) {
-			addFirstStmt(stmt);
-		}
+		this.stmts.addAll(0, bb.stmts);
 		if (bb.top > 0) {
 			if (getRegs() + bb.top + this.top > this.vs.length) {
 				final Expression[] newVs = new Expression[getRegs() + bb.top + this.top];
@@ -979,13 +956,11 @@ public final class BB {
 			assert false;
 			return;
 		}
-		// don't use List.addAll(): fix PC-BB-mappings etc.
+		this.ops.addAll(bb.ops);
 		for (final Op op : bb.ops) {
-			addOp(op);
+			getCfg().setBb(op.getPc(), this);
 		}
-		for (final Statement stmt : bb.stmts) {
-			addStmt(stmt);
-		}
+		this.stmts.addAll(bb.stmts);
 		if (bb.top > 0) {
 			if (getRegs() + bb.top + this.top > this.vs.length) {
 				final Expression[] newVs = new Expression[getRegs() + bb.top + this.top];
