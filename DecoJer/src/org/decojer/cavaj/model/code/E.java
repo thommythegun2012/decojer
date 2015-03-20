@@ -350,6 +350,7 @@ public final class E {
 
 	@SuppressWarnings("null")
 	protected void setEnd(final BB end) {
+		assert this.end != end;
 		assert end == null || this.start != null && !end.isRemoved();
 		// fix JSR/RET ins with Sub value, see also BB.setPc(int)
 		if (this.value instanceof Call && this.end != null && end != null
@@ -360,6 +361,7 @@ public final class E {
 	}
 
 	protected void setStart(final BB start) {
+		assert this.start != start;
 		assert start == null ? this.end == null : !start.isRemoved();
 		this.start = start;
 	}
@@ -368,8 +370,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-				+ (this.end == null ? "null" : getEnd().getPc())
-				+ (valueString.isEmpty() ? "" : " : " + getValueString());
+		+ (this.end == null ? "null" : getEnd().getPc())
+		+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }
