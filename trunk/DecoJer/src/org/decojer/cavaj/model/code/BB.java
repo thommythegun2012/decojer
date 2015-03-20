@@ -404,7 +404,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -935,6 +935,7 @@ public final class BB {
 			this.top += bb.top;
 		}
 		setPc(bb.getPc());
+		setPostorder(bb.getPostorder());
 		for (final E in : bb.ins) {
 			assert in != null;
 			addIn(in);
