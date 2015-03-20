@@ -322,7 +322,6 @@ public final class R {
 	 * Is register a method parameter?
 	 *
 	 * @return {@code true} - is method parameter
-	 * @see CFG#initFrames()
 	 */
 	public boolean isMethodParam() {
 		return this.pc == 0;
@@ -376,7 +375,7 @@ public final class R {
 			return;
 		}
 		assert !isMethodParam() : "Cannot change register type '" + getLowerT() + "' to '" + t
-				+ "!"; // TODO, change VarT bound?
+		+ "!"; // TODO, change VarT bound?
 		assert t != null;
 		this.lowerT = t;
 		if (this.outs != null) {

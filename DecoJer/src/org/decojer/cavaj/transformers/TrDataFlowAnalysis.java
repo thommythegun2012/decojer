@@ -1418,16 +1418,11 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private void transform() {
-		final CFG cfg = getCfg();
-
 		this.openPcs = Lists.newLinkedList();
 
 		// start with PC 0 and new BB
 		int currentPc = 0; // better not as global attribute, current context changes sometimes
-		this.currentBb = getCfg().newBb(0); // need pc2bb and openPcs
-
-		cfg.initFrames();
-		cfg.setStartBb(this.currentBb);
+		this.currentBb = getCfg().init(); // need pc2bb and openPcs
 
 		while (true) {
 			if (currentPc < 0) {

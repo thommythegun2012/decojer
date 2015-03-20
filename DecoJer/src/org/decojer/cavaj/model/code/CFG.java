@@ -98,7 +98,7 @@ public final class CFG {
 	 * BBs for PCs.
 	 */
 	@Getter
-	private final BB[] bbs;
+	private BB[] bbs;
 
 	/**
 	 * Array with postordered BBs.
@@ -140,7 +140,6 @@ public final class CFG {
 		this.regs = regs;
 		this.maxStack = maxStack;
 		this.ops = ops;
-		this.bbs = new BB[ops.length];
 	}
 
 	/**
@@ -214,6 +213,7 @@ public final class CFG {
 	 * Clear CFG.
 	 */
 	public void clear() {
+		this.bbs = null;
 		this.block = null;
 		this.frames = null;
 		this.iDoms = null;
@@ -255,7 +255,7 @@ public final class CFG {
 
 	/**
 	 * Get BB for PC.
-	 * 
+	 *
 	 * @param pc
 	 *            PC
 	 * @return BB
@@ -385,9 +385,12 @@ public final class CFG {
 	/**
 	 * Initialize frames. Create first frame from method parameters.
 	 *
+	 * @return start BB
 	 * @see R#isMethodParam()
 	 */
-	public void initFrames() {
+	@Nonnull
+	public BB init() {
+		this.bbs = new BB[this.ops.length];
 		this.frames = new Frame[this.ops.length];
 		final Frame frame = new Frame(this);
 
@@ -408,6 +411,9 @@ public final class CFG {
 			}
 		}
 		this.frames[0] = frame;
+		final BB startBb = newBb(0);
+		setStartBb(startBb);
+		return startBb;
 	}
 
 	private BB intersectIDoms(final BB b1, final BB b2) {
