@@ -628,11 +628,15 @@ public final class TrControlFlowAnalysis {
 				final E ret = jsr.getRetOut();
 				assert ret != null;
 				// was not always in follow (nested finally), but remove always as follow candidate:
+				final BB start = jsr.getStart();
 				final BB end = ret.getEnd();
-				if (end.getIns().size() == 1) {
-					jsr.getStart().joinSuccBb(end);
+				if (start.isEmpty()) {
+					boolean remove = follows.remove(start);
+					end.joinPredBb(start);
+					if (remove)
+						follows.add(end);
 				} else {
-					jsr.getStart().setSucc(end);
+					start.setSucc(end);
 					jsr.remove();
 					ret.remove();
 				}
