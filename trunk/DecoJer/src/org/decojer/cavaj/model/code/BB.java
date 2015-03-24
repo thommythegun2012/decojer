@@ -203,16 +203,28 @@ public final class BB {
 	}
 
 	/**
-	 * Just one outgoing sequence or condition allowed.
+	 * Cleanup the outs after an add. The most recent add wins (e.g. for replacing edges).<br>
 	 *
 	 * All public methods in CFG, BB, E have to be atomar and leave a consistent CFG state.
 	 */
 	private void cleanupOuts() {
+		// restrict number of following edge types
 		boolean foundSequence = false;
 		boolean foundCondTrue = false;
 		boolean foundCondFalse = false;
+		// push catches to end of outs
+		int lastFoundCatch = this.outs.size();
+
 		for (int i = this.outs.size(); i-- > 0;) {
 			final E out = this.outs.get(i);
+			if (out.isCatch()) {
+				// push catches to end of outs
+				if (lastFoundCatch - i > 1) {
+					this.outs.remove(i);
+					this.outs.add(--lastFoundCatch, out);
+				}
+				continue;
+			}
 			if (out.isSequence()) {
 				if (foundSequence || foundCondFalse || foundCondTrue) {
 					out.remove();
@@ -404,7 +416,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
