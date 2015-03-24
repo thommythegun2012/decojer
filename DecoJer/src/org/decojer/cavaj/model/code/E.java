@@ -50,6 +50,9 @@ public final class E {
 
 		@Override
 		public int compare(final E e1, final E e2) {
+			if (e1.isCatch() ^ e2.isCatch()) {
+				return e2.isCatch() ? 1 : -1;
+			}
 			// don't change order for out lines that are before the in line
 			final int startLine = e1.getStart().getLine();
 			final int endLine1 = e1.getEnd().getLine();
@@ -57,7 +60,7 @@ public final class E {
 			if (startLine > endLine1 || startLine > endLine2) {
 				return 0;
 			}
-			return compare(e1.getEnd().getLine(), e2.getEnd().getLine());
+			return compare(endLine1, endLine2);
 		}
 
 		// since JVM 7...GAE not

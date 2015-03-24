@@ -453,7 +453,7 @@ public final class TrControlFlowAnalysis {
 		// list necessary, multiple backs possible with no related postorder, identify last later
 		List<E> backs = null;
 		isHandled: for (final E in : bb.getIns()) {
-			if (!in.isBack() || in.isCatch()) {
+			if (!in.isBack() || !in.isSequence()) {
 				continue;
 			}
 			final BB pred = in.getStart();
@@ -631,10 +631,11 @@ public final class TrControlFlowAnalysis {
 				final BB start = jsr.getStart();
 				final BB end = ret.getEnd();
 				if (start.isEmpty()) {
-					boolean remove = follows.remove(start);
+					final boolean remove = follows.remove(start);
 					end.joinPredBb(start);
-					if (remove)
+					if (remove) {
 						follows.add(end);
+					}
 				} else {
 					start.setSucc(end);
 					jsr.remove();
