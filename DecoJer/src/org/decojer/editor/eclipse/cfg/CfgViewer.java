@@ -38,7 +38,6 @@ import org.decojer.cavaj.model.code.E;
 import org.decojer.cavaj.model.code.structs.Struct;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
-import org.decojer.cavaj.transformers.TrCalculatePostorder;
 import org.eclipse.draw2d.ColorConstants;
 import org.eclipse.draw2d.Label;
 import org.eclipse.draw2d.Polyline;
@@ -233,7 +232,7 @@ public class CfgViewer extends Composite {
 			final int stage = this.cfgViewModeCombo.getSelectionIndex();
 			cfg.decompile(stage);
 		} catch (final Throwable e) {
-			TrCalculatePostorder.transform(cfg);
+			// TrCalculatePostorder.transform(cfg);
 			log.warn("Cannot transform '" + cfg + "'!", e);
 		}
 		initGraph(cfg);

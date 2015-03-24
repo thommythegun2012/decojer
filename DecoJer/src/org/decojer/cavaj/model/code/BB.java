@@ -935,7 +935,8 @@ public final class BB {
 			this.top += bb.top;
 		}
 		setPc(bb.getPc());
-		setPostorder(bb.getPostorder());
+		// cannot change this BBs postorder to pred postorder, this BB might have additional ins and
+		// might trigger wrong back loop recognition
 		for (final E in : bb.ins) {
 			assert in != null;
 			addIn(in);
@@ -957,6 +958,8 @@ public final class BB {
 			assert false;
 			return;
 		}
+		assert bb.ins.size() == 1;
+
 		this.ops.addAll(bb.ops);
 		for (final Op op : bb.ops) {
 			getCfg().setBb(op.getPc(), this);
