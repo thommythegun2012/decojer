@@ -806,6 +806,7 @@ public final class TrExpressions {
 		followBb.push(newLiteral(getCfg().getDu().getT(Class.class),
 				getCfg().getDu().getT(classInfo), getM(), op));
 		bb.removeOp(0);
+		pushBb.remove();
 		followBb.joinPredBb(bb);
 		return true;
 	}

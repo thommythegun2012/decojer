@@ -195,13 +195,15 @@ public class CfgViewer extends Composite {
 				((Polyline) connection.getConnectionFigure()).setAntialias(SWT.ON);
 			}
 			connection.setText(out.getValueString());
-			if (out.isBack()) {
-				connection.setCurveDepth(50);
-				connection.setLineColor(out.isCatch() ? ColorConstants.orange : ColorConstants.red);
-			} else if (out.isCatch()) {
-				connection.setLineColor(ColorConstants.lightGreen);
+			if (out.isCatch()) {
+				connection.setLineColor(out.isBack() ? ColorConstants.orange
+						: ColorConstants.lightGreen);
 			} else if (out.isJsr() || out.isRet()) {
-				connection.setLineColor(ColorConstants.darkGreen);
+				connection.setLineColor(out.isBack() ? ColorConstants.orange
+						: ColorConstants.darkGreen);
+			} else if (out.isBack()) {
+				connection.setCurveDepth(50);
+				connection.setLineColor(ColorConstants.red);
 			} else {
 				connection.setLineColor(ColorConstants.blue);
 			}

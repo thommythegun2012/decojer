@@ -928,6 +928,8 @@ public final class BB {
 			assert false;
 			return;
 		}
+		assert this.ins.size() == 1 || bb.isEmpty();
+
 		this.ops.addAll(0, bb.ops);
 		for (final Op op : bb.ops) {
 			getCfg().setBb(op.getPc(), this);
@@ -947,18 +949,23 @@ public final class BB {
 			this.top += bb.top;
 		}
 		setPc(bb.getPc());
-		// cannot change this BBs postorder to pred postorder, this BB might have additional ins and
-		// might trigger wrong back loop recognition
+		setPostorder(bb.getPostorder());
+		// remember current ins, removing them now would delete this node
+		final List<E> clearIns = new ArrayList<E>(this.ins);
+		this.ins.clear();
 		for (final E in : bb.ins) {
 			assert in != null;
 			addIn(in);
+		}
+		for (final E in : clearIns) {
+			in.remove();
 		}
 		bb.ins.clear(); // necessary, all incomings are relocated, don't remove!
 		bb.remove();
 	}
 
 	/**
-	 * Copy content and outs from successor BB, which will also be deleted.<br>
+	 * Copy content and outs from successor BB, which will be deleted in this process.<br>
 	 *
 	 * The advantage of this method is, that it doesn't change the PC and hence the hashcode!
 	 *
@@ -970,7 +977,7 @@ public final class BB {
 			assert false;
 			return;
 		}
-		assert bb.ins.size() == 1;
+		assert bb.ins.size() == 1 || isEmpty();
 
 		this.ops.addAll(bb.ops);
 		for (final Op op : bb.ops) {
