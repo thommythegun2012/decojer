@@ -293,6 +293,15 @@ public final class E {
 	}
 
 	/**
+	 * Is loop back edge (no catch / jsr / ret)? This includes self-loops (same node).
+	 *
+	 * @return {@code true} - is loop back edge
+	 */
+	public boolean isLoopBack() {
+		return isBack() && !isCatch() && !isJsr() && !isRet();
+	}
+
+	/**
 	 * Is RET edge?
 	 *
 	 * @return {@code true} - is RET edge

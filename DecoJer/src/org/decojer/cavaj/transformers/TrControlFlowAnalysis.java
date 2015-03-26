@@ -453,7 +453,7 @@ public final class TrControlFlowAnalysis {
 		// list necessary, multiple backs possible with no related postorder, identify last later
 		List<E> backs = null;
 		isHandled: for (final E in : bb.getIns()) {
-			if (!in.isBack() || !in.isSequence()) {
+			if (!in.isLoopBack()) {
 				continue;
 			}
 			final BB pred = in.getStart();
