@@ -632,7 +632,7 @@ public final class TrControlFlowAnalysis {
 				final BB end = ret.getEnd();
 				if (start.isEmpty()) {
 					final boolean remove = follows.remove(start);
-					end.joinPredBb(start);
+					end.joinPredIns(start);
 					if (remove) {
 						follows.add(end);
 					}

@@ -416,7 +416,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -928,7 +928,7 @@ public final class BB {
 			assert false;
 			return;
 		}
-		assert this.ins.size() == 1 || bb.isEmpty();
+		assert this.ins.size() == 1;
 
 		this.ops.addAll(0, bb.ops);
 		for (final Op op : bb.ops) {
@@ -965,6 +965,27 @@ public final class BB {
 	}
 
 	/**
+	 * Move ins from predecessor BB, which will be deleted in this process.
+	 *
+	 * @param bb
+	 *            predecessor BB
+	 */
+	public void joinPredIns(@Nonnull final BB bb) {
+		if (bb == this) {
+			assert false;
+			return;
+		}
+		assert bb.isEmpty();
+
+		for (final E in : bb.ins) {
+			assert in != null;
+			addIn(in);
+		}
+		bb.ins.clear(); // necessary, all incomings are relocated, don't remove!
+		bb.remove();
+	}
+
+	/**
 	 * Copy content and outs from successor BB, which will be deleted in this process.<br>
 	 *
 	 * The advantage of this method is, that it doesn't change the PC and hence the hashcode!
@@ -977,7 +998,7 @@ public final class BB {
 			assert false;
 			return;
 		}
-		assert bb.ins.size() == 1 || isEmpty();
+		assert bb.ins.size() == 1;
 
 		this.ops.addAll(bb.ops);
 		for (final Op op : bb.ops) {
