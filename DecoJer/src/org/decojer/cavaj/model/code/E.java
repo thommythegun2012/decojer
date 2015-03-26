@@ -205,7 +205,7 @@ public final class E {
 		final List<E> outs = start == null || start.isRemoved() ? null : start.getOuts();
 		final String prefix = outs != null && outs.size() > 1 ? outs.indexOf(this) + " " : "";
 		if (this.value == null) {
-			return prefix + "";
+			return prefix;
 		}
 		if (this.value instanceof Object[]) {
 			return prefix + Arrays.toString((Object[]) this.value);
@@ -382,8 +382,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-		+ (this.end == null ? "null" : getEnd().getPc())
-		+ (valueString.isEmpty() ? "" : " : " + getValueString());
+				+ (this.end == null ? "null" : getEnd().getPc())
+				+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }

@@ -653,13 +653,9 @@ public final class TrControlFlowAnalysis {
 			catchStruct.addMembers(finallyHandler.getIns().get(0).getValue(), handlerMembers);
 
 			final BB end = finallyRet.getEnd();
-			if (end.getIns().size() == 1) {
-				finallyRet.getStart().joinSuccBb(end); // retOut collapse
-			} else {
-				finallyJsr.getStart().setSucc(end);
-				finallyJsr.remove();
-				finallyRet.remove();
-			}
+			assert end.getIns().size() == 1;
+			finallyRet.getStart().joinSuccBb(end); // retOut collapse
+			finallyHandler.setPostorder(subBb.getPostorder());
 			finallyHandler.joinSuccBb(subBb); // jsrOut collapse
 			return true;
 		}
