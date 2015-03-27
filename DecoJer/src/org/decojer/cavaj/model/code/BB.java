@@ -111,6 +111,7 @@ public final class BB {
 		this.vs = new Expression[getRegs()];
 	}
 
+	@Nonnull
 	private final E _addSucc(@Nonnull final BB succ, @Nullable final Object value) {
 		final E e = new E(value);
 		addOut(e); // add as last important for cleanupOuts
@@ -127,6 +128,7 @@ public final class BB {
 	 *            catch types
 	 * @return out edge
 	 */
+	@Nonnull
 	public E addCatchHandler(@Nonnull final BB handler, @Nonnull final T[] catchTs) {
 		assert catchTs.length > 0;
 		return addSucc(handler, catchTs);
@@ -139,6 +141,7 @@ public final class BB {
 	 *            handler BB
 	 * @return out edge
 	 */
+	@Nonnull
 	public E addFinallyHandler(@Nonnull final BB handler) {
 		return addSucc(handler, Catch.FINALLY_TS);
 	}
@@ -183,6 +186,7 @@ public final class BB {
 	 *            value
 	 * @return out edge
 	 */
+	@Nonnull
 	public final E addSucc(@Nonnull final BB succ, @Nullable final Object value) {
 		final E e = _addSucc(succ, value);
 		cleanupOuts();
@@ -198,6 +202,7 @@ public final class BB {
 	 *            Integer values
 	 * @return out edge
 	 */
+	@Nonnull
 	public E addSwitchCase(@Nonnull final BB caseBb, @Nonnull final Object[] values) {
 		return addSucc(caseBb, values);
 	}
@@ -363,6 +368,7 @@ public final class BB {
 		return this.stmts.isEmpty() ? null : this.stmts.get(this.stmts.size() - 1);
 	}
 
+	@Nonnull
 	public String[][] getFrameInfos() {
 		final int regs = getRegs();
 		final int stackRegs = getStackRegs();
@@ -416,7 +422,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-										- header[2 + stackRegs + j].length());
+								- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -424,6 +430,7 @@ public final class BB {
 		return frameInfos;
 	}
 
+	@Nonnull
 	public String getFrameInfosString() {
 		final int stackRegs = getStackRegs();
 		final String[][] frameInfos = getFrameInfos();
@@ -449,7 +456,9 @@ public final class BB {
 				sb.append('\n').append(Strings.repeat("-", sb.length() - 3));
 			}
 		}
-		return sb.toString();
+		final String ret = sb.toString();
+		assert ret != null;
+		return ret;
 	}
 
 	/**
@@ -482,9 +491,12 @@ public final class BB {
 	 *
 	 * @return incoming edges as unmodifiable list
 	 */
+	@Nonnull
 	public List<E> getIns() {
 		assert !isRemoved();
-		return Collections.unmodifiableList(this.ins);
+		final List<E> ret = Collections.unmodifiableList(this.ins);
+		assert ret != null;
+		return ret;
 	}
 
 	/**
@@ -567,9 +579,12 @@ public final class BB {
 	 *
 	 * @return outgoing edges as unmodifiable list
 	 */
+	@Nonnull
 	public List<E> getOuts() {
 		assert !isRemoved();
-		return Collections.unmodifiableList(this.outs);
+		final List<E> ret = Collections.unmodifiableList(this.outs);
+		assert ret != null;
+		return ret;
 	}
 
 	/**
@@ -654,9 +669,9 @@ public final class BB {
 	 */
 	@Nonnull
 	public Statement getStmt(final int i) {
-		final Statement statement = this.stmts.get(i);
-		assert statement != null;
-		return statement;
+		final Statement stmt = this.stmts.get(i);
+		assert stmt != null;
+		return stmt;
 	}
 
 	/**
@@ -1193,9 +1208,9 @@ public final class BB {
 	 */
 	@Nonnull
 	public Statement removeStmt(final int i) {
-		final Statement statement = this.stmts.remove(i);
-		assert statement != null;
-		return statement;
+		final Statement stmt = this.stmts.remove(i);
+		assert stmt != null;
+		return stmt;
 	}
 
 	/**
@@ -1240,6 +1255,7 @@ public final class BB {
 	 *            call
 	 * @return out edge
 	 */
+	@Nonnull
 	public final E setJsrSucc(@Nonnull final BB succ, @Nonnull final Call call) {
 		return addSucc(succ, call);
 	}
@@ -1272,6 +1288,7 @@ public final class BB {
 	 *            call
 	 * @return out edge
 	 */
+	@Nonnull
 	public final E setRetSucc(@Nonnull final BB succ, @Nonnull final Call call) {
 		return addSucc(succ, call);
 	}
@@ -1283,6 +1300,7 @@ public final class BB {
 	 *            successor
 	 * @return out edge
 	 */
+	@Nonnull
 	public final E setSucc(@Nonnull final BB succ) {
 		return addSucc(succ, null);
 	}
@@ -1307,6 +1325,7 @@ public final class BB {
 	 *
 	 * @return new predecessor BB
 	 */
+	@Nonnull
 	public BB splitPredBb(final int pc) {
 		final BB bb = getCfg().newBb(getPc());
 		for (final E in : this.ins) {
