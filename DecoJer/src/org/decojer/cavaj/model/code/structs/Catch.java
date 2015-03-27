@@ -48,6 +48,11 @@ public class Catch extends Struct {
 		super(head);
 	}
 
+	@Override
+	public String getDefaultLabelName() {
+		return "tryStruct";
+	}
+
 	/**
 	 * Get catch types if this catch struct has the given BB as handler node.
 	 *
