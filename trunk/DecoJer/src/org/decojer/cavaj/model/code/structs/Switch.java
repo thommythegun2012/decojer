@@ -86,6 +86,11 @@ public class Switch extends Struct {
 	}
 
 	@Override
+	public String getDefaultLabelName() {
+		return "switchStruct";
+	}
+
+	@Override
 	public boolean isDefaultBreakable() {
 		return true;
 	}

@@ -1042,6 +1042,10 @@ public final class BB {
 			targetBb.addIn(in);
 		}
 		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
+		if (isStartBb()) {
+			// could happen by initial GOTO
+			this.cfg.setBb(0, targetBb);
+		}
 		remove();
 	}
 
