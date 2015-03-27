@@ -416,7 +416,7 @@ public final class BB {
 						header[2 + stackRegs + j] += Strings.repeat(
 								" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -965,27 +965,6 @@ public final class BB {
 	}
 
 	/**
-	 * Move ins from predecessor BB, which will be deleted in this process.
-	 *
-	 * @param bb
-	 *            predecessor BB
-	 */
-	public void joinPredIns(@Nonnull final BB bb) {
-		if (bb == this) {
-			assert false;
-			return;
-		}
-		assert bb.isEmpty();
-
-		for (final E in : bb.ins) {
-			assert in != null;
-			addIn(in);
-		}
-		bb.ins.clear(); // necessary, all incomings are relocated, don't remove!
-		bb.remove();
-	}
-
-	/**
 	 * Copy content and outs from successor BB, which will be deleted in this process.<br>
 	 *
 	 * The advantage of this method is, that it doesn't change the PC and hence the hashcode!
@@ -1026,6 +1005,29 @@ public final class BB {
 			out.remove();
 		}
 		bb.remove();
+	}
+
+	/**
+	 * Move all incoming edges to the given target BB. The BB will be deleted in this process.<br>
+	 *
+	 * This operation is used for empty nodes and target BB is often the direct sequence successor.
+	 *
+	 * @param targetBb
+	 *            target BB
+	 */
+	public void moveIns(@Nonnull final BB targetBb) {
+		if (targetBb == this) {
+			assert false;
+			return;
+		}
+		assert isEmpty();
+
+		for (final E in : this.ins) {
+			assert in != null;
+			targetBb.addIn(in);
+		}
+		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
+		remove();
 	}
 
 	/**
