@@ -28,7 +28,7 @@ Bundle-ClassPath: .,
  lib/util-2.0b5-dev.jar,
  lib/commons-io-2.1.jar,
  lib/commons-lang3-3.1.jar,
- lib/guava-17.0.jar,
+ lib/guava-18.0.jar,
  lib/lombok.jar,
  lib/slf4j-api-1.7.6.jar,
  lib/slf4j-jdk14-1.7.6.jar
