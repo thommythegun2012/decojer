@@ -280,10 +280,10 @@ public class Struct {
 	}
 
 	/**
-	 * Is this struct per default breakable?
+	 * Is this struct per default breakable without a label?<br>
 	 *
-	 * At the same time Loops and Switches even need breaks to escape these structures (beside last
-	 * case in Switch).
+	 * Loops and Switch-Cases (besides last) actually need breaks to escape these structures, but
+	 * they dont need a label.
 	 *
 	 * @return {@code true} - is per default breakable
 	 */
@@ -345,7 +345,7 @@ public class Struct {
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert bb.isSubHead() : "Cannot change follow to BB" + bb.getPc()
-							+ " for struct:\n" + this;
+					+ " for struct:\n" + this;
 				}
 			}
 		}
