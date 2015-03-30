@@ -693,15 +693,13 @@ public final class TrControlFlowAnalysis {
 	}
 
 	/**
-	 * BB is a potential follower, that means leaving the current struct.
-	 *
-	 * Check if explicit struct leaving with break/continue etc. is necessary or if it's a normal
-	 * follow.
+	 * Check for given BB if explicit struct leaving with break/continue etc. is necessary (either
+	 * labeled or none-labeled) or if it's a normal follow.
 	 *
 	 * @param struct
 	 *            current struct
 	 * @param bb
-	 *            BB
+	 *            BB is a potential follower, that means leaving the current struct
 	 * @return {@code true} - explicit struct leaving with break/continue etc. is necessary
 	 */
 	private boolean checkBranching(@Nonnull final Struct struct, @Nonnull final BB bb) {
@@ -710,6 +708,7 @@ public final class TrControlFlowAnalysis {
 				.getParent()) {
 			if (!followStruct.hasBreakTarget(bb) && !followStruct.hasContinueTarget(bb)) {
 				if (followStruct.isDefaultBreakable()) {
+					// none-labeled break/continue not possible anymore
 					defaultBreakableConsumed = true;
 				}
 				continue;
@@ -720,10 +719,11 @@ public final class TrControlFlowAnalysis {
 					return false; // direct fall-through to direct enclosing loop-last allowed
 				}
 				if (!followStruct.isDefaultBreakable()) {
-					return false; // direct fall-through to direct enclosing cond-follow allowed
+					// fall-through to directly enclosing struct allowed (for cond, not for loop)
+					return false;
 				}
 			}
-			// create label if necessary
+			// create label (if not already existing or not none-labeled break/continue possible)
 			if (followStruct.getLabel() == null
 					&& (!followStruct.isDefaultBreakable() || defaultBreakableConsumed)) {
 				followStruct.setLabel(followStruct.getDefaultLabelName()
@@ -823,7 +823,7 @@ public final class TrControlFlowAnalysis {
 			catchStruct.addMembers(catchE.getValue(), handlerMembers);
 		}
 		rewriteFinally(catchStruct, follows);
-		final BB firstFollow = filterFollows(catchStruct, follows);
+		final BB firstFollow = findFollow(catchStruct, follows);
 		if (firstFollow != null) {
 			catchStruct.setFollow(firstFollow);
 		}
@@ -867,11 +867,11 @@ public final class TrControlFlowAnalysis {
 		// * topmost follow is our follow
 		// * all other follows -> create artificial break-block
 
-		final BB firstFollow = filterFollows(cond, firstFollows);
+		final BB firstFollow = findFollow(cond, firstFollows);
 
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
-		if (firstFollows.isEmpty() || firstFollow == secondOut.getEnd()) {
+		if (firstFollow == null || firstFollow == secondOut.getEnd()) {
 			// normal in JVM 6 bytecode, ifnot-expressions
 			cond.setKind(negated ? Cond.Kind.IFNOT : Cond.Kind.IF);
 			// also handles empty if-statements, members are empty in this case, see
@@ -885,7 +885,7 @@ public final class TrControlFlowAnalysis {
 		final Set<BB> secondFollows = Sets.newHashSet();
 		findBranch(cond, secondOut, secondMembers, secondFollows);
 
-		final BB secondFollow = filterFollows(cond, secondFollows);
+		final BB secondFollow = findFollow(cond, secondFollows);
 
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
@@ -996,7 +996,7 @@ public final class TrControlFlowAnalysis {
 	}
 
 	@Nullable
-	private BB filterFollows(@Nonnull final Struct struct, @Nonnull final Set<BB> follows) {
+	private BB findFollow(@Nonnull final Struct struct, @Nonnull final Set<BB> follows) {
 		BB firstFollow = null;
 		for (final BB follow : follows) {
 			assert follow != null;
