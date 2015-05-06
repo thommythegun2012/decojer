@@ -299,7 +299,13 @@ public final class TrControlFlowStmts {
 			assert handlerStatements != null;
 			transformSequence(catchStruct, handler, handlerStatements);
 			// remove temporary throwable declaration from catch
-			handlerStatements.remove(0);
+			if (handlerStatements.isEmpty()) {
+				log.warn(getM()
+						+ ": Missing temporary throwable declaration in handler statements for BB"
+						+ handler.getPc() + ":\n" + catchStruct);
+			} else {
+				handlerStatements.remove(0);
+			}
 		}
 		return tryStatement;
 	}
@@ -496,7 +502,7 @@ public final class TrControlFlowStmts {
 								return;
 							}
 						}
-						log.warn(getM() + ": Struct leave in BB " + currentBb.getPc()
+						log.warn(getM() + ": Struct leave in BB" + currentBb.getPc()
 								+ " without regular follow encounter:\n" + struct);
 						return;
 					}
@@ -506,7 +512,7 @@ public final class TrControlFlowStmts {
 				// +++++++++++++++++++++++++++++
 				// Java is struct-single-entry/-multi-exit: must enter via struct head
 				if (currentBbStruct == null || !currentBbStruct.hasHead(currentBb)) {
-					log.warn(getM() + ": Struct change in BB " + currentBb.getPc()
+					log.warn(getM() + ": Struct change in BB" + currentBb.getPc()
 							+ " without regular follow or head encounter:\n" + struct);
 					return;
 				}
@@ -517,7 +523,7 @@ public final class TrControlFlowStmts {
 				while (subStruct.getParent() != struct) {
 					subStruct = subStruct.getParent();
 					if (subStruct == null) {
-						log.warn(getM() + ": Struct enter in BB " + currentBb.getPc()
+						log.warn(getM() + ": Struct enter in BB" + currentBb.getPc()
 								+ " without regular head encounter:\n" + struct);
 						// assert false;
 						return;
