@@ -230,7 +230,7 @@ public final class BB {
 				}
 				continue;
 			}
-			if (out.isSequence()) {
+			if (out.isSequence() || out.isJsr()) {
 				if (foundSequence || foundCondFalse || foundCondTrue) {
 					out.remove();
 				} else {

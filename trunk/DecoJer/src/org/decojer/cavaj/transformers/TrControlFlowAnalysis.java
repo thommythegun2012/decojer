@@ -25,6 +25,7 @@ package org.decojer.cavaj.transformers;
 
 import static org.decojer.cavaj.utils.Expressions.getOp;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -69,219 +70,13 @@ import com.google.common.collect.Sets;
 @Slf4j
 public final class TrControlFlowAnalysis {
 
-	@Nonnull
-	private static Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<E> backs) {
-		final Loop loop = new Loop(head);
-
-		final Set<BB> traversedBbs = Sets.newHashSet();
-		final List<BB> members = Lists.newArrayList();
-		BB last = null;
-		for (final E back : backs) {
-			assert back != null;
-			final BB backBb = back.getStart();
-			final boolean found = findReverseBranch(loop, backBb, members, traversedBbs);
-			assert found : "cannot have a loop back BB that is not in reverse branch";
-			if (last == null || last.hasSourceBefore(backBb)) {
-				last = backBb;
+	private static boolean containsEnd(final Set<E> outs, final BB end) {
+		for (final E out : outs) {
+			if (out.getEnd() == end) {
+				return true;
 			}
 		}
-		loop.addMembers(null, members);
-		if (last != null) {
-			loop.setLast(last);
-		} else {
-			assert false;
-		}
-		// we check if this could be a pre-loop:
-		Loop.Kind headKind = null;
-		E headFollowOut = null;
-		if (head.getStmts() == 1 && head.isCond()) {
-			final E falseOut = head.getFalseOut();
-			assert falseOut != null;
-			final E trueOut = head.getTrueOut();
-			assert trueOut != null;
-			if (loop.hasMember(trueOut.getEnd()) && !loop.hasMember(falseOut.getEnd())) {
-				// JVM 6: true is member, opPc of pre head > next member,
-				// leading goto
-				headKind = Loop.Kind.WHILE;
-				headFollowOut = falseOut;
-			} else if (loop.hasMember(falseOut.getEnd()) && !loop.hasMember(trueOut.getEnd())) {
-				// JVM 5: false is member, opPc of pre head < next member,
-				// trailing goto (negated, check class javascript.Decompiler)
-				headKind = Loop.Kind.WHILENOT;
-				headFollowOut = trueOut;
-			}
-			// no proper pre-loop head!
-		}
-		// we check if this could be a post-loop:
-		Loop.Kind lastKind = null;
-		E lastFollowOut = null;
-		if (last != null && last.isCond()) {
-			// beware: simple back loops with multiple statements possible
-			final E falseOut = last.getFalseOut();
-			assert falseOut != null;
-			final E trueOut = last.getTrueOut();
-			assert trueOut != null;
-			if (loop.hasHead(trueOut.getEnd())) {
-				lastKind = Loop.Kind.DO_WHILE;
-				lastFollowOut = falseOut;
-			} else if (loop.hasHead(falseOut.getEnd())) {
-				lastKind = Loop.Kind.DO_WHILENOT;
-				lastFollowOut = trueOut;
-			}
-			// no proper post-loop last!
-		}
-		// now we check with some heuristics if pre-loop or post-loop is the prefered loop, this is
-		// not always exact science...
-		if (headKind != null && lastKind == null) {
-			loop.setKind(headKind);
-			assert headFollowOut != null;
-			loop.setFollow(headFollowOut.getEnd());
-			return loop;
-		}
-		if (headKind == null && lastKind != null) {
-			loop.setKind(lastKind);
-			assert lastFollowOut != null;
-			loop.setFollow(lastFollowOut.getEnd());
-			return loop;
-		}
-		// we have to compare the tails for head and last
-		if (headKind != null && lastKind != null) {
-			assert headFollowOut != null && lastFollowOut != null;
-			final List<BB> headMembers = Lists.newArrayList();
-			final Set<BB> headFollows = Sets.newHashSet();
-			findBranch(loop, headFollowOut, headMembers, headFollows);
-			if (headFollows.contains(lastFollowOut.getEnd())) {
-				loop.setKind(lastKind);
-				loop.setFollow(lastFollowOut.getEnd());
-				return loop;
-			}
-			final List<BB> lastMembers = Lists.newArrayList();
-			final Set<BB> lastFollows = Sets.newHashSet();
-			findBranch(loop, lastFollowOut, lastMembers, lastFollows);
-			if (lastFollows.contains(headFollowOut.getEnd())) {
-				loop.setKind(headKind);
-				loop.setFollow(headFollowOut.getEnd());
-				return loop;
-			}
-			// we can decide like we want: we prefer pre-loops
-			loop.setKind(headKind);
-			loop.setFollow(headFollowOut.getEnd());
-			return loop;
-		}
-		loop.setKind(Loop.Kind.ENDLESS);
-		return loop;
-	}
-
-	@Nonnull
-	private static Switch createSwitchStruct(@Nonnull final BB head) {
-		final Switch switchStruct = new Switch(head);
-
-		// for case reordering we need this as changeable lists
-		final List<E> caseOuts = head.getOuts();
-		final int size = caseOuts.size();
-
-		final Set<BB> follows = Sets.newHashSet();
-
-		int hack = 10;
-		cases: for (int i = 0; i < size && hack > 0; ++i) {
-			final E caseOut = caseOuts.get(i);
-			if (caseOut.isBack()) {
-				continue;
-			}
-			if (!caseOut.isSwitchCase()) {
-				assert caseOut.isCatch();
-				continue;
-			}
-			final BB caseBb = caseOut.getEnd();
-			boolean isFallThrough = false;
-			final List<E> ins = caseBb.getIns();
-			if (ins.size() > 1) {
-				// are we a follow?
-				// - in this case _all_ incomings must come from _one_ previous case
-				// - then we have to...
-				// 1) insert current edge after previous case edge
-				// 2) remove this edge as potential switch follow
-				// 3) add current case BB explicitely as member
-				int prevCaseIndex = -1;
-				for (final E in : ins) {
-					if (in == caseOut) {
-						continue;
-					}
-					if (in.isBack()) {
-						continue;
-					}
-					// 1) is direct break or continue
-					// 2) is fall through in previous follow
-					// 3) is fall through in later follow
-					// 4) is incoming goto if nothing works anymore...
-					final BB inBb = in.getStart();
-					for (int j = i; j-- > 0;) {
-						if (!switchStruct.hasMember(caseOuts.get(j).getValue(), inBb)) {
-							continue;
-						}
-						if (prevCaseIndex == j) {
-							continue;
-						}
-						if (prevCaseIndex == -1) {
-							prevCaseIndex = j;
-							continue;
-						}
-						// multiple previous cases => we cannot be a fall-through and are a
-						// real follow ... should just happen for _direct_ breaks or _empty_ default
-						if (caseOut.isSwitchDefault()) {
-							// TODO hmmm...could be a default with direct continue etc. -> no follow
-							// if other follows...
-							switchStruct.setKind(Kind.NO_DEFAULT);
-							switchStruct.setFollow(caseBb);
-						}
-						continue cases;
-					}
-					if (prevCaseIndex == -1) {
-						if (caseOut.isSwitchDefault()) {
-							switchStruct.setKind(Kind.NO_DEFAULT);
-							switchStruct.setFollow(caseBb);
-							continue cases;
-						}
-						// we cannot be a fall-through yet...may be later, add as last for now
-						--hack;
-						head.moveOut(i--, caseOuts.size() - 1);
-						continue cases;
-					}
-				}
-				if (prevCaseIndex < i - 1) {
-					head.moveOut(i, prevCaseIndex + 1);
-				}
-				if (caseOut.isSwitchDefault() && follows.size() == 1 && follows.contains(caseBb)) {
-					// TODO when we are the final fall-through without other follows...
-					switchStruct.setKind(Kind.NO_DEFAULT);
-					switchStruct.setFollow(caseBb);
-					continue cases;
-				}
-				isFallThrough = true;
-			}
-			final List<BB> members = Lists.newArrayList();
-			if (isFallThrough) { // TODO better check follows.contains(caseBb))?
-				follows.remove(caseBb);
-				members.add(caseBb);
-			}
-			findBranch(switchStruct, caseOut, members, follows);
-			switchStruct.addMembers(caseOut.getValue(), members);
-		}
-		if (switchStruct.getFollow() != null) {
-			return switchStruct;
-		}
-		switchStruct.setKind(Switch.Kind.WITH_DEFAULT);
-		// highest follow is switch struct follow
-		BB switchFollow = null;
-		for (final BB follow : follows) {
-			if (switchFollow == null || follow.hasSourceBefore(switchFollow)) {
-				switchFollow = follow;
-			}
-		}
-		if (switchFollow != null) {
-			switchStruct.setFollow(switchFollow);
-		}
-		return switchStruct;
+		return false;
 	}
 
 	/**
@@ -297,29 +92,29 @@ public final class TrControlFlowAnalysis {
 	 *            first incoming edge into branch
 	 * @param members
 	 *            found struct members
-	 * @param followBbs
-	 *            potential struct follows: should not gather outs because they might lead to same
-	 *            follows?!
+	 * @param exits
+	 *            found struct exits, they are potential struct follows
 	 */
 	private static void findBranch(@Nonnull final Struct struct, @Nonnull final E firstIn,
-			@Nonnull final List<BB> members, @Nonnull final Set<BB> followBbs) {
+			@Nonnull final List<BB> members, @Nonnull final Set<E> exits) {
 		final Struct parentStruct = struct.getParent();
 		// no recursion, can be very deep
-		final List<BB> checkBbs = Lists.newArrayList(firstIn.getEnd());
+		final List<E> checkEs = Lists.newArrayList(firstIn);
 		outer: do {
-			final BB checkBb = checkBbs.remove(0);
+			final E checkE = checkEs.remove(0);
+			final BB checkBb = checkE.getEnd();
 			if (!members.contains(checkBb)) { // given first member (handler/switch)?
 				if (checkBb.isStartBb()) {
 					// special case: checkBb is loop head and is CFG-startBb (no additional ins)
-					followBbs.add(checkBb);
+					exits.add(checkE);
 					continue;
 				}
 				final List<E> checkBbIns = checkBb.getIns();
 				if (checkBbIns.size() > 1) {
 					// has checkBb a none-member predecessor? only possible for multiple ins
 					for (final E in : checkBbIns) {
-						if (in == firstIn) {
-							continue; // ignore first incoming edge into branch
+						if (in == checkE) {
+							continue; // also ignores first incoming edge into branch
 						}
 						if (in.isBack()) {
 							// ignore incoming back edges, sub loop-heads belong to branch
@@ -331,39 +126,43 @@ public final class TrControlFlowAnalysis {
 						}
 						if (!in.isCatch()) {
 							// wrapping handlers are always catches...don't add as follow
-							followBbs.add(checkBb);
+							exits.add(checkE);
 						}
+						// this is the usual loop end, till we have encountered all ins to checkBb
 						continue outer;
 					}
 					// all predecessors of checkBb are members
-					followBbs.remove(checkBb); // maybe we where already here
+					for (final E in : checkBbIns) {
+						exits.remove(in); // maybe we where already here
+					}
 				}
 				if (parentStruct != null) {
 					// stop at loop lasts
 					if (parentStruct instanceof Loop && ((Loop) parentStruct).hasLast(checkBb)) {
-						followBbs.add(checkBb);
+						exits.add(checkE);
 						continue outer;
 					}
 					// can e.g. happen for synchronize follows (no additional ins for follow)
 					if (parentStruct.hasFollow(checkBb)) {
 						assert checkBb.getIns().size() == 1;
-						followBbs.add(checkBb);
+						exits.add(checkE);
 						continue outer;
 					}
 				}
 				// checkBb is a member
 				members.add(checkBb);
 			}
-			// deep recursion into out edges of this member
+			// deep recursion into out edges of this member,
+			// should happen only once, because the usual loop end is the upper continue outer
 			for (final E out : checkBb.getOuts()) {
 				final BB succ = out.getEnd();
 				// enclosed catch-handlers could be part of branch: add here und check ins later
-				if (!members.contains(succ) && !checkBbs.contains(succ)) {
+				if (!members.contains(succ)) {
 					// follows must be checked again
-					checkBbs.add(succ);
+					checkEs.add(out);
 				}
 			}
-		} while (!checkBbs.isEmpty());
+		} while (!checkEs.isEmpty());
 	}
 
 	/**
@@ -604,7 +403,20 @@ public final class TrControlFlowAnalysis {
 		return true;
 	}
 
-	private static boolean rewriteFinally(final Catch catchStruct, final Set<BB> follows) {
+	private static boolean removeEnd(final Set<E> outs, final BB end) {
+		boolean removed = false;
+		for (final Iterator<E> outIt = outs.iterator(); outIt.hasNext();) {
+			final E out = outIt.next();
+			if (out.getEnd() == end) {
+				outIt.remove();
+				removed = true;
+			}
+		}
+		return removed;
+	}
+
+	private static boolean rewriteFinally(@Nonnull final Catch catchStruct,
+			@Nonnull final Set<E> exits) {
 		final BB finallyHandler = catchStruct.getFirstMember(Catch.FINALLY_TS);
 		if (finallyHandler == null) {
 			return false;
@@ -631,25 +443,21 @@ public final class TrControlFlowAnalysis {
 				final BB start = jsr.getStart();
 				final BB end = ret.getEnd();
 				if (start.isEmpty()) {
-					final boolean remove = follows.remove(start);
+					// start-ins can be exits, but are automatically relocated to end-ins
 					start.moveIns(end);
-					if (remove) {
-						follows.add(end);
-					}
 				} else {
-					start.setSucc(end);
-					jsr.remove();
-					ret.remove();
+					start.setSucc(end); // jsr removed by cleanup
 				}
+				ret.remove();
 			}
-			follows.remove(subBb);
+			removeEnd(exits, subBb);
 
 			final E finallyRet = finallyJsr.getRetOut();
 			assert finallyRet != null;
 
 			// add finally nodes as members
 			final List<BB> handlerMembers = Lists.newArrayList();
-			findBranch(catchStruct, finallyJsr, handlerMembers, follows);
+			findBranch(catchStruct, finallyJsr, handlerMembers, exits);
 			catchStruct.addMembers(finallyHandler.getIns().get(0).getValue(), handlerMembers);
 
 			final BB end = finallyRet.getEnd();
@@ -663,8 +471,8 @@ public final class TrControlFlowAnalysis {
 		// declaration, the finally statements and a final throw statement
 
 		// TODO all follows should be same and can be reduced
-		for (final BB follow : follows) {
-			if (follow == finallyHandler) {
+		for (final E exit : exits) {
+			if (exit.getEnd() == finallyHandler) {
 				continue;
 			}
 			// compare handler with follows...strip same
@@ -774,13 +582,13 @@ public final class TrControlFlowAnalysis {
 	private Catch createCatchStruct(@Nonnull final BB head, @Nonnull final List<E> catches) {
 		final Catch catchStruct = new Catch(head);
 
-		// follows means: _leaving_ the catch area (not like branches) or handler branch
-		final Set<BB> follows = Sets.newHashSet();
-		// gather potential initial follows (but catches cannot be follows),
-		// follows initialized with head-outs, because these are not handled in handler-in loop
+		// exits means: _leaving_ the catch area or handler branches
+		final Set<E> exits = Sets.newHashSet();
+		// gather potential initial exits (but catches cannot be exits),
+		// exits initialized with head-outs, because these are not handled in handler-in loop
 		for (final E out : head.getOuts()) {
-			if (!out.isCatch() && !out.isBack()) {
-				follows.add(out.getEnd());
+			if (!out.isCatch() && !catchStruct.hasHead(out.getEnd())) {
+				exits.add(out);
 			}
 		}
 		// for each handler:
@@ -793,10 +601,10 @@ public final class TrControlFlowAnalysis {
 			final List<E> handlerIns = handler.getIns();
 			for (final E handlerIn : handlerIns) {
 				final BB member = handlerIn.getStart();
-				if (member == head || catchStruct.hasMember(member)) {
+				if (catchStruct.hasMember(member)) {
 					continue; // already in
 				}
-				follows.remove(member); // member cannot be a follow
+				removeEnd(exits, member); // member cannot be an exit
 				if (catches.size() == 1 || !handlerIn.isFinally()) {
 					// finally catch also contains other handlers, all added seperately
 					catchStruct.addMember(null, member);
@@ -806,9 +614,8 @@ public final class TrControlFlowAnalysis {
 					if (out.isCatch()) {
 						continue;
 					}
-					final BB follow = out.getEnd();
-					if (!catchStruct.hasMember(null, follow)) {
-						follows.add(follow);
+					if (!catchStruct.hasMember(null, out.getEnd())) {
+						exits.add(out);
 					}
 				}
 				if (i != 0 && !handlerIn.isFinally()) {
@@ -819,11 +626,11 @@ public final class TrControlFlowAnalysis {
 				}
 			}
 			final List<BB> handlerMembers = Lists.newArrayList(handler);
-			findBranch(catchStruct, catchE, handlerMembers, follows);
+			findBranch(catchStruct, catchE, handlerMembers, exits);
 			catchStruct.addMembers(catchE.getValue(), handlerMembers);
 		}
-		rewriteFinally(catchStruct, follows);
-		final BB firstFollow = findFollow(catchStruct, follows);
+		rewriteFinally(catchStruct, exits);
+		final BB firstFollow = findFollow(catchStruct, exits);
 		if (firstFollow != null) {
 			catchStruct.setFollow(firstFollow);
 		}
@@ -858,8 +665,8 @@ public final class TrControlFlowAnalysis {
 		final E secondOut = negated ? trueOut : falseOut;
 
 		final List<BB> firstMembers = Lists.newArrayList();
-		final Set<BB> firstFollows = Sets.newHashSet();
-		findBranch(cond, firstOut, firstMembers, firstFollows);
+		final Set<E> firstExits = Sets.newHashSet();
+		findBranch(cond, firstOut, firstMembers, firstExits);
 
 		// handle/filter follows:
 		// * direct follow parent: 2 alternatives, if/else (prefer) or break
@@ -867,7 +674,7 @@ public final class TrControlFlowAnalysis {
 		// * topmost follow is our follow
 		// * all other follows -> create artificial break-block
 
-		final BB firstFollow = findFollow(cond, firstFollows);
+		final BB firstFollow = findFollow(cond, firstExits);
 
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
@@ -882,10 +689,10 @@ public final class TrControlFlowAnalysis {
 		}
 
 		final List<BB> secondMembers = Lists.newArrayList();
-		final Set<BB> secondFollows = Sets.newHashSet();
-		findBranch(cond, secondOut, secondMembers, secondFollows);
+		final Set<E> secondExits = Sets.newHashSet();
+		findBranch(cond, secondOut, secondMembers, secondExits);
 
-		final BB secondFollow = findFollow(cond, secondFollows);
+		final BB secondFollow = findFollow(cond, secondExits);
 
 		// no else BBs: normal if-block without else or
 		// if-continues, if-returns, if-throws => no else necessary
@@ -915,6 +722,228 @@ public final class TrControlFlowAnalysis {
 			cond.setFollow(secondFollow);
 		}
 		return cond;
+	}
+
+	@Nonnull
+	private Loop createLoopStruct(@Nonnull final BB head, @Nonnull final List<E> backs) {
+		final Loop loop = new Loop(head);
+
+		final Set<BB> traversedBbs = Sets.newHashSet();
+		final List<BB> members = Lists.newArrayList();
+		BB last = null;
+		for (final E back : backs) {
+			assert back != null;
+			final BB backBb = back.getStart();
+			final boolean found = findReverseBranch(loop, backBb, members, traversedBbs);
+			if (!found) {
+				assert false : "cannot have a loop back BB that is not in reverse branch";
+
+				log.warn(getM() + ": cannot have a loop back BB that is not in reverse branch");
+			}
+			if (last == null || last.hasSourceBefore(backBb)) {
+				last = backBb;
+			}
+		}
+		loop.addMembers(null, members);
+		if (last != null) {
+			loop.setLast(last);
+		} else {
+			assert false;
+		}
+		// we check if this could be a pre-loop:
+		Loop.Kind headKind = null;
+		E headExit = null;
+		if (head.getStmts() == 1 && head.isCond()) {
+			final E falseOut = head.getFalseOut();
+			assert falseOut != null;
+			final E trueOut = head.getTrueOut();
+			assert trueOut != null;
+			if (loop.hasMember(trueOut.getEnd()) && !loop.hasMember(falseOut.getEnd())) {
+				// JVM 6: true is member, opPc of pre head > next member,
+				// leading goto
+				headKind = Loop.Kind.WHILE;
+				headExit = falseOut;
+			} else if (loop.hasMember(falseOut.getEnd()) && !loop.hasMember(trueOut.getEnd())) {
+				// JVM 5: false is member, opPc of pre head < next member,
+				// trailing goto (negated, check class javascript.Decompiler)
+				headKind = Loop.Kind.WHILENOT;
+				headExit = trueOut;
+			}
+			// no proper pre-loop head!
+		}
+		// we check if this could be a post-loop:
+		Loop.Kind lastKind = null;
+		E lastExit = null;
+		if (last != null && last.isCond()) {
+			// beware: simple back loops with multiple statements possible
+			final E falseOut = last.getFalseOut();
+			assert falseOut != null;
+			final E trueOut = last.getTrueOut();
+			assert trueOut != null;
+			if (loop.hasHead(trueOut.getEnd())) {
+				lastKind = Loop.Kind.DO_WHILE;
+				lastExit = falseOut;
+			} else if (loop.hasHead(falseOut.getEnd())) {
+				lastKind = Loop.Kind.DO_WHILENOT;
+				lastExit = trueOut;
+			}
+			// no proper post-loop last!
+		}
+		// now we check with some heuristics if pre-loop or post-loop is the prefered loop, this is
+		// not always exact science...
+		if (headKind != null && lastKind == null) {
+			loop.setKind(headKind);
+			assert headExit != null;
+			loop.setFollow(headExit.getEnd());
+			return loop;
+		}
+		if (headKind == null && lastKind != null) {
+			loop.setKind(lastKind);
+			assert lastExit != null;
+			loop.setFollow(lastExit.getEnd());
+			return loop;
+		}
+		// we have to compare the tails for head and last
+		if (headKind != null && lastKind != null) {
+			assert headExit != null && lastExit != null;
+			final List<BB> headMembers = Lists.newArrayList();
+			final Set<E> headExits = Sets.newHashSet();
+			findBranch(loop, headExit, headMembers, headExits);
+			if (containsEnd(headExits, lastExit.getEnd())) {
+				loop.setKind(lastKind);
+				loop.setFollow(lastExit.getEnd());
+				return loop;
+			}
+			final List<BB> lastMembers = Lists.newArrayList();
+			final Set<E> lastExits = Sets.newHashSet();
+			findBranch(loop, lastExit, lastMembers, lastExits);
+			if (containsEnd(lastExits, headExit.getEnd())) {
+				loop.setKind(headKind);
+				loop.setFollow(headExit.getEnd());
+				return loop;
+			}
+			// we can decide like we want: we prefer pre-loops
+			loop.setKind(headKind);
+			loop.setFollow(headExit.getEnd());
+			return loop;
+		}
+		loop.setKind(Loop.Kind.ENDLESS);
+		return loop;
+	}
+
+	@Nonnull
+	private Switch createSwitchStruct(@Nonnull final BB head) {
+		final Switch switchStruct = new Switch(head);
+
+		// for case reordering we need this as changeable lists
+		final List<E> caseOuts = head.getOuts();
+		final int size = caseOuts.size();
+
+		final Set<E> exits = Sets.newHashSet();
+
+		int hack = 10;
+		cases: for (int i = 0; i < size; ++i) {
+			final E caseOut = caseOuts.get(i);
+			if (caseOut.isBack()) {
+				continue;
+			}
+			if (!caseOut.isSwitchCase()) {
+				assert caseOut.isCatch();
+				continue;
+			}
+			final BB caseBb = caseOut.getEnd();
+			boolean isFallThrough = false;
+			final List<E> ins = caseBb.getIns();
+			if (ins.size() > 1) {
+				// are we a follow?
+				// - in this case _all_ incomings must come from _one_ previous case
+				// - then we have to...
+				// 1) insert current edge after previous case edge
+				// 2) remove this edge as potential switch follow
+				// 3) add current case BB explicitely as member
+				int prevCaseIndex = -1;
+				for (final E in : ins) {
+					if (in == caseOut) {
+						continue;
+					}
+					if (in.isBack()) {
+						continue;
+					}
+					// 1) is direct break or continue
+					// 2) is fall through in previous follow
+					// 3) is fall through in later follow
+					// 4) is incoming goto if nothing works anymore...
+					final BB inBb = in.getStart();
+					for (int j = i; j-- > 0;) {
+						if (!switchStruct.hasMember(caseOuts.get(j).getValue(), inBb)) {
+							continue;
+						}
+						if (prevCaseIndex == j) {
+							continue;
+						}
+						if (prevCaseIndex == -1) {
+							prevCaseIndex = j;
+							continue;
+						}
+						// multiple previous cases => we cannot be a fall-through and are a
+						// real follow ... should just happen for _direct_ breaks or _empty_ default
+						if (caseOut.isSwitchDefault()) {
+							// TODO hmmm...could be a default with direct continue etc. -> no follow
+							// if other follows...
+							switchStruct.setKind(Kind.NO_DEFAULT);
+							switchStruct.setFollow(caseBb);
+						}
+						continue cases;
+					}
+					if (prevCaseIndex == -1) {
+						if (caseOut.isSwitchDefault()) {
+							switchStruct.setKind(Kind.NO_DEFAULT);
+							switchStruct.setFollow(caseBb);
+							continue cases;
+						}
+						// we cannot be a fall-through yet...may be later, add as last for now
+						if (--hack <= 0) {
+							assert false : "Switch endless loop?";
+						log.warn(getM() + ": Switch endless loop?");
+						}
+						head.moveOut(i--, caseOuts.size() - 1);
+						continue cases;
+					}
+				}
+				if (prevCaseIndex < i - 1) {
+					head.moveOut(i, prevCaseIndex + 1);
+				}
+				if (caseOut.isSwitchDefault() && exits.size() == 1 && containsEnd(exits, caseBb)) {
+					// TODO when we are the final fall-through without other follows...
+					switchStruct.setKind(Kind.NO_DEFAULT);
+					switchStruct.setFollow(caseBb);
+					continue cases;
+				}
+				isFallThrough = true;
+			}
+			final List<BB> members = Lists.newArrayList();
+			if (isFallThrough) { // TODO better check follows.contains(caseBb))?
+				removeEnd(exits, caseBb);
+				members.add(caseBb);
+			}
+			findBranch(switchStruct, caseOut, members, exits);
+			switchStruct.addMembers(caseOut.getValue(), members);
+		}
+		if (switchStruct.getFollow() != null) {
+			return switchStruct;
+		}
+		switchStruct.setKind(Switch.Kind.WITH_DEFAULT);
+		// highest follow is switch struct follow
+		BB switchFollow = null;
+		for (final E exit : exits) {
+			if (switchFollow == null || exit.getEnd().hasSourceBefore(switchFollow)) {
+				switchFollow = exit.getEnd();
+			}
+		}
+		if (switchFollow != null) {
+			switchStruct.setFollow(switchFollow);
+		}
+		return switchStruct;
 	}
 
 	@Nonnull
@@ -996,24 +1025,25 @@ public final class TrControlFlowAnalysis {
 	}
 
 	@Nullable
-	private BB findFollow(@Nonnull final Struct struct, @Nonnull final Set<BB> follows) {
-		BB firstFollow = null;
-		for (final BB follow : follows) {
-			assert follow != null;
-			if (checkBranching(struct, follow)) {
+	private BB findFollow(@Nonnull final Struct struct, @Nonnull final Set<E> exits) {
+		BB follow = null;
+		for (final E exit : exits) {
+			assert exit != null;
+			final BB findFollow = exit.getEnd();
+			if (checkBranching(struct, findFollow)) {
 				continue;
 			}
-			assert !struct.hasMember(follow);
-			if (firstFollow == null) {
-				firstFollow = follow;
+			assert !struct.hasMember(findFollow);
+			if (follow == null) {
+				follow = findFollow;
 				continue;
 			}
-			if (follow.hasSourceBefore(firstFollow)) {
-				createBlockStruct(struct, firstFollow);
-				firstFollow = follow;
+			if (findFollow.hasSourceBefore(follow)) {
+				createBlockStruct(struct, follow);
+				follow = findFollow;
 			}
 		}
-		return firstFollow;
+		return follow;
 	}
 
 	private M getM() {
