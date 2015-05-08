@@ -501,17 +501,19 @@ public final class TrControlFlowAnalysis {
 	}
 
 	/**
-	 * Check for given BB if explicit struct leaving with break/continue etc. is necessary (either
-	 * labeled or none-labeled) or if it's a normal follow.
+	 * Check for given exit if it's a branching statement, that means explicitely struct leaving
+	 * with break/continue etc. (either labeled or none-labeled), or if it's a normal exit to a
+	 * potential follow.
 	 *
 	 * @param struct
 	 *            current struct
-	 * @param bb
-	 *            BB is a potential follower, that means leaving the current struct
+	 * @param exit
+	 *            exit, that means leaving the current struct
 	 * @return {@code true} - explicit struct leaving with break/continue etc. is necessary
 	 */
-	private boolean checkBranching(@Nonnull final Struct struct, @Nonnull final BB bb) {
+	private boolean checkBranching(@Nonnull final Struct struct, @Nonnull final E exit) {
 		boolean defaultBreakableConsumed = false;
+		final BB bb = exit.getEnd();
 		for (Struct followStruct = struct.getParent(); followStruct != null; followStruct = followStruct
 				.getParent()) {
 			if (!followStruct.hasBreakTarget(bb) && !followStruct.hasContinueTarget(bb)) {
@@ -1029,10 +1031,10 @@ public final class TrControlFlowAnalysis {
 		BB follow = null;
 		for (final E exit : exits) {
 			assert exit != null;
-			final BB findFollow = exit.getEnd();
-			if (checkBranching(struct, findFollow)) {
+			if (checkBranching(struct, exit)) {
 				continue;
 			}
+			final BB findFollow = exit.getEnd();
 			assert !struct.hasMember(findFollow);
 			if (follow == null) {
 				follow = findFollow;
