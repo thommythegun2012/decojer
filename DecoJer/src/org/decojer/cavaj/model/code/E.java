@@ -36,6 +36,7 @@ import lombok.Setter;
 
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.ELineComperator;
+import org.eclipse.jdt.core.dom.Statement;
 
 import com.google.common.base.Objects;
 
@@ -47,6 +48,11 @@ import com.google.common.base.Objects;
 public final class E {
 
 	public static final ELineComperator LINE_COMPARATOR = new ELineComperator();
+
+	@Getter
+	@Setter
+	@Nullable
+	private Statement branchingStmt;
 
 	@Nullable
 	private BB end;
@@ -180,15 +186,31 @@ public final class E {
 	@Nonnull
 	public String getValueString() {
 		final BB start = this.start;
+		final StringBuilder sb = new StringBuilder();
+		// find edge index of this out in start BB
 		final List<E> outs = start == null || start.isRemoved() ? null : start.getOuts();
-		final String prefix = outs != null && outs.size() > 1 ? outs.indexOf(this) + " " : "";
-		if (this.value == null) {
-			return prefix;
+		if (outs != null && outs.size() > 1) {
+			sb.append(outs.indexOf(this));
 		}
-		if (this.value instanceof Object[]) {
-			return prefix + Arrays.toString((Object[]) this.value);
+		if (this.value != null) {
+			if (sb.length() != 0) {
+				sb.append(' ');
+			}
+			if (this.value instanceof Object[]) {
+				sb.append(Arrays.toString((Object[]) this.value));
+			} else {
+				sb.append('(').append(this.value).append(')');
+			}
 		}
-		return prefix + "(" + this.value + ")";
+		if (this.branchingStmt != null) {
+			if (sb.length() != 0) {
+				sb.append(' ');
+			}
+			sb.append(this.branchingStmt);
+		}
+		final String ret = sb.toString();
+		assert ret != null;
+		return ret;
 	}
 
 	@Override
@@ -351,8 +373,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-		+ (this.end == null ? "null" : getEnd().getPc())
-		+ (valueString.isEmpty() ? "" : " : " + getValueString());
+				+ (this.end == null ? "null" : getEnd().getPc())
+				+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }
