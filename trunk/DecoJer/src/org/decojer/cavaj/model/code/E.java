@@ -25,7 +25,6 @@ package org.decojer.cavaj.model.code;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
 
@@ -36,6 +35,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import org.decojer.cavaj.model.types.T;
+import org.decojer.cavaj.utils.ELineComperator;
 
 import com.google.common.base.Objects;
 
@@ -46,29 +46,7 @@ import com.google.common.base.Objects;
  */
 public final class E {
 
-	public static final Comparator<E> LINE_COMPARATOR = new Comparator<E>() {
-
-		@Override
-		public int compare(final E e1, final E e2) {
-			if (e1.isCatch() ^ e2.isCatch()) {
-				return e2.isCatch() ? 1 : -1;
-			}
-			// don't change order for out lines that are before the in line
-			final int startLine = e1.getStart().getLine();
-			final int endLine1 = e1.getEnd().getLine();
-			final int endLine2 = e2.getEnd().getLine();
-			if (startLine > endLine1 || startLine > endLine2) {
-				return 0;
-			}
-			return compare(endLine1, endLine2);
-		}
-
-		// since JVM 7...GAE not
-		private int compare(final int x, final int y) {
-			return x < y ? -1 : x == y ? 0 : 1;
-		}
-
-	};
+	public static final ELineComperator LINE_COMPARATOR = new ELineComperator();
 
 	@Nullable
 	private BB end;
@@ -293,15 +271,6 @@ public final class E {
 	}
 
 	/**
-	 * Is loop back edge (no catch / jsr / ret)? This includes self-loops (same node).
-	 *
-	 * @return {@code true} - is loop back edge
-	 */
-	public boolean isLoopBack() {
-		return isBack() && !isCatch() && !isJsr() && !isRet();
-	}
-
-	/**
 	 * Is RET edge?
 	 *
 	 * @return {@code true} - is RET edge
@@ -382,8 +351,8 @@ public final class E {
 	public String toString() {
 		final String valueString = getValueString();
 		return (this.start == null ? "null" : getStart().getPc()) + " -> "
-				+ (this.end == null ? "null" : getEnd().getPc())
-				+ (valueString.isEmpty() ? "" : " : " + getValueString());
+		+ (this.end == null ? "null" : getEnd().getPc())
+		+ (valueString.isEmpty() ? "" : " : " + getValueString());
 	}
 
 }

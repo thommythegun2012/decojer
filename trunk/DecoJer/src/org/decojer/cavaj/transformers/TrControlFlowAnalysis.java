@@ -252,7 +252,7 @@ public final class TrControlFlowAnalysis {
 		// list necessary, multiple backs possible with no related postorder, identify last later
 		List<E> backs = null;
 		isHandled: for (final E in : bb.getIns()) {
-			if (!in.isLoopBack()) {
+			if (!in.isBack() || in.isCatch() || in.isJsr() || in.isRet()) {
 				continue;
 			}
 			final BB pred = in.getStart();
@@ -738,7 +738,7 @@ public final class TrControlFlowAnalysis {
 			if (!found) {
 				assert false : "cannot have a loop back BB that is not in reverse branch";
 
-				log.warn(getM() + ": cannot have a loop back BB that is not in reverse branch");
+			log.warn(getM() + ": cannot have a loop back BB that is not in reverse branch");
 			}
 			if (last == null || last.hasSourceBefore(backBb)) {
 				last = backBb;
@@ -904,7 +904,7 @@ public final class TrControlFlowAnalysis {
 						// we cannot be a fall-through yet...may be later, add as last for now
 						if (--hack <= 0) {
 							assert false : "Switch endless loop?";
-						log.warn(getM() + ": Switch endless loop?");
+							log.warn(getM() + ": Switch endless loop?");
 						}
 						head.moveOut(i--, caseOuts.size() - 1);
 						continue cases;
