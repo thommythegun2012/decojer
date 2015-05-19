@@ -198,6 +198,23 @@ public class Struct {
 	}
 
 	/**
+	 * Has this struct given struct as ancestor (parent, grandparent etc.)?
+	 *
+	 * @param struct
+	 *            potential ancestor struct
+	 * @return {@code true} - is ancestor
+	 */
+	public boolean hasAncestor(@Nonnull final Struct struct) {
+		for (Struct findStruct = getParent(); findStruct != null; findStruct = findStruct
+				.getParent()) {
+			if (struct == findStruct) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * His this struct the given BB as target for break?
 	 *
 	 * @param bb
