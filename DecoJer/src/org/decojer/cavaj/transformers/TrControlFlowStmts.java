@@ -62,6 +62,7 @@ import org.eclipse.jdt.core.dom.BreakStatement;
 import org.eclipse.jdt.core.dom.CatchClause;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.DoStatement;
+import org.eclipse.jdt.core.dom.EmptyStatement;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IfStatement;
 import org.eclipse.jdt.core.dom.InfixExpression;
@@ -106,11 +107,11 @@ public final class TrControlFlowStmts {
 	}
 
 	@Nullable
-	private static BB transformBranching(@Nullable final Struct struct, @Nonnull final E e,
+	private static BB transformBranching(@Nonnull final E e,
 			@Nonnull final List<Statement> statements) {
 		final Statement branchingStmt = e.getBranchingStmt();
 		if (branchingStmt == null) {
-			return e.getEnd();
+			return e.isBack() ? null : e.getEnd();
 		}
 		statements.add(branchingStmt);
 		return null;
@@ -278,7 +279,8 @@ public final class TrControlFlowStmts {
 					firstStatement.delete();
 				}
 				// remove final throws from finally block, should never be nested
-				if (finallyStatements.get(finallyStatements.size() - 1) instanceof ThrowStatement) {
+				if (!finallyStatements.isEmpty()
+						&& finallyStatements.get(finallyStatements.size() - 1) instanceof ThrowStatement) {
 					finallyStatements.remove(finallyStatements.size() - 1);
 				}
 				continue;
@@ -439,63 +441,72 @@ public final class TrControlFlowStmts {
 	}
 
 	/**
-	 * Transform first BB from current struct (and following BB sequence in same struct) into a list
-	 * of AST statements.
+	 * Transform sequence of BBs in given struct into a list of AST statements, starting with given
+	 * first BB and ending with struct change.
 	 *
 	 * Should only directly be called from outside for {@code struct.isHead(firstBb)}, else use
 	 * {@link #transformSequence(Struct, E, List)}.
 	 *
 	 * @param struct
-	 *            current struct
+	 *            struct
 	 * @param firstBb
-	 *            first BB in current struct
+	 *            first BB in struct
 	 * @param statements
 	 *            statement block
 	 */
 	private void transformSequence(@Nullable final Struct struct, @Nonnull final BB firstBb,
 			@Nonnull final List<Statement> statements) {
-		BB currentBb = firstBb; // iterate over BB
-		while (currentBb != null) {
-			final Struct currentBbStruct = currentBb.getStruct();
+		BB bb = firstBb;
+		while (bb != null) {
+			final Struct bbStruct = bb.getStruct();
 			// ***************************
 			// * check for struct change *
 			// ***************************
-			if (currentBbStruct != struct) {
-				// BB leaves current struct or enters a new sub struct:
-				// check leaving with priority, can happen together with entering in one BB
-				for (Struct findStruct = struct; findStruct != null; findStruct = findStruct
-						.getParent()) {
-					if (currentBbStruct == findStruct.getParent()) {
+			if (bbStruct != struct) {
+				// BB leaves current struct or enters a new sub struct
+				// (Java-structs are single-entry but multi-exit: must enter via struct head)
+				if (bbStruct == null) {
+					// ++++++++++++++++++++++++++
+					// + leaving current struct +
+					// ++++++++++++++++++++++++++
+					return;
+				}
+				if (bbStruct.hasHead(bb)) {
+					// entering new sub struct, but first also check leaving with priority, can
+					// happen simultaneously with entering
+					if (struct != null && !bbStruct.hasAncestor(struct)) {
 						// ++++++++++++++++++++++++++
 						// + leaving current struct +
 						// ++++++++++++++++++++++++++
 						return;
 					}
+					// +++++++++++++++++++++++++++++
+					// + entering a new sub struct +
+					// +++++++++++++++++++++++++++++
+					// enter this sub struct and come back, continue loop afterwards:
+					// multiple overlaying heads possible (e.g. endless-loop -> post-loop -> cond),
+					// find topmost unused and use this as sub struct
+					Struct subStruct = bbStruct;
+					while (subStruct.getParent() != struct) {
+						subStruct = subStruct.getParent();
+						if (subStruct == null) {
+							log.warn(getM() + ": Struct enter in BB" + bb.getPc()
+									+ " without regular head encounter:\n" + struct);
+							// assert false;
+							return;
+						}
+					}
+					bb = transformStruct(subStruct, statements);
+					continue;
 				}
-				// +++++++++++++++++++++++++++++
-				// + entering a new sub struct +
-				// +++++++++++++++++++++++++++++
-				// Java is struct-single-entry/-multi-exit: must enter via struct head
-				if (currentBbStruct == null || !currentBbStruct.hasHead(currentBb)) {
-					log.warn(getM() + ": Struct change in BB" + currentBb.getPc()
-							+ " without regular follow or head encounter:\n" + struct);
+				if (struct != null && struct.hasAncestor(bbStruct)) {
+					// ++++++++++++++++++++++++++
+					// + leaving current struct +
+					// ++++++++++++++++++++++++++
 					return;
 				}
-				// enter this sub struct and come back:
-				// multiple overlaying heads possible (e.g. endless-loop -> post-loop -> cond),
-				// find topmost unused and use this as sub struct
-				Struct subStruct = currentBbStruct;
-				while (subStruct.getParent() != struct) {
-					subStruct = subStruct.getParent();
-					if (subStruct == null) {
-						log.warn(getM() + ": Struct enter in BB" + currentBb.getPc()
-								+ " without regular head encounter:\n" + struct);
-						// assert false;
-						return;
-					}
-				}
-				currentBb = transformStruct(subStruct, statements);
-				continue;
+				log.warn(getM() + ": Irregular struct change in BB" + bb.getPc() + ":\n" + struct);
+				return;
 			}
 			// ********************
 			// * no struct change *
@@ -508,46 +519,51 @@ public final class TrControlFlowStmts {
 				// body and evaluates the boolean expression that controls the loop. A labeled
 				// continue statement skips the current iteration of an outer loop marked with
 				// the given label.
-				if (findLoop.hasLast(currentBb) && findLoop.isPost()) {
+				if (findLoop.hasLast(bb) && findLoop.isPost()) {
 					if (struct != findLoop) {
 						// only from sub structure, e.g. embedded conditional contains head and
 						// last
 						statements.add(getAst().newContinueStatement());
 					} else {
-						final int size = currentBb.getStmts() - 1;
+						final int size = bb.getStmts() - 1;
 						for (int i = 0; i < size; ++i) {
-							statements.add(currentBb.getStmt(i));
+							statements.add(bb.getStmt(i));
 						}
 					}
 					return;
 				}
 			} else if (struct instanceof Switch) {
 				final Switch findSwitch = (Switch) struct;
-				if (findSwitch.getCaseValues(currentBb) != null && firstBb != currentBb) {
+				if (findSwitch.getCaseValues(bb) != null && firstBb != bb) {
 					// fall-through follow-case
 					return;
 				}
 			}
 			// simple sequence block, 0 statements possible with empty GOTO BBs
-			for (int i = 0; i < currentBb.getStmts(); ++i) {
-				statements.add(currentBb.getStmt(i));
+			for (int i = 0; i < bb.getStmts(); ++i) {
+				statements.add(bb.getStmt(i));
 			}
-			final E out = currentBb.getSequenceOut();
+			final E out = bb.getSequenceOut();
 			if (out == null) {
 				return;
 			}
-			currentBb = transformBranching(struct, out, statements);
+			bb = transformBranching(out, statements);
 		}
 	}
 
+	@Nonnull
 	private Statement transformSequence(@Nullable final Struct struct, @Nonnull final E firstE) {
 		final List<Statement> statements = Lists.newArrayList();
 		transformSequence(struct, firstE, statements);
 		if (statements.isEmpty()) {
-			return getAst().newEmptyStatement();
+			final EmptyStatement ret = getAst().newEmptyStatement();
+			assert ret != null;
+			return ret;
 		}
 		if (statements.size() == 1) {
-			return statements.get(0);
+			final Statement ret = statements.get(0);
+			assert ret != null;
+			return ret;
 		}
 		final org.eclipse.jdt.core.dom.Block block = getAst().newBlock();
 		block.statements().addAll(statements);
@@ -567,7 +583,7 @@ public final class TrControlFlowStmts {
 	 */
 	private void transformSequence(@Nullable final Struct struct, @Nonnull final E firstE,
 			@Nonnull final List<Statement> statements) {
-		final BB end = transformBranching(struct, firstE, statements);
+		final BB end = transformBranching(firstE, statements);
 		if (end != null) {
 			transformSequence(struct, end, statements);
 			return;
