@@ -24,6 +24,7 @@
 package org.decojer.cavaj.transformers;
 
 import static org.decojer.cavaj.utils.Expressions.getOp;
+import static org.decojer.cavaj.utils.Expressions.newSimpleName;
 
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +54,9 @@ import org.decojer.cavaj.model.code.structs.Sync;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.Expressions;
+import org.eclipse.jdt.core.dom.AST;
+import org.eclipse.jdt.core.dom.BreakStatement;
+import org.eclipse.jdt.core.dom.ContinueStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
@@ -536,8 +540,25 @@ public final class TrControlFlowAnalysis {
 			// create label (if not already existing or not none-labeled break/continue possible)
 			if (followStruct.getLabel() == null
 					&& (!followStruct.isDefaultBreakable() || defaultBreakableConsumed)) {
-				followStruct.setLabel(followStruct.getDefaultLabelName()
-						+ (this.labelCounter++ == 0 ? "" : this.labelCounter));
+				final String label = followStruct.getDefaultLabelName()
+						+ (this.labelCounter++ == 0 ? "" : this.labelCounter);
+				followStruct.setLabel(label);
+				if (followStruct.hasBreakTarget(bb)) {
+					final BreakStatement breakStatement = getAst().newBreakStatement();
+					breakStatement.setLabel(newSimpleName(label, getAst()));
+					exit.setBranchingStmt(breakStatement);
+				} else {
+					final ContinueStatement continueStatement = getAst().newContinueStatement();
+					continueStatement.setLabel(newSimpleName(label, getAst()));
+					exit.setBranchingStmt(continueStatement);
+				}
+			} else {
+				// cannot add breaks/continues to exit.start, e.g. direct IfStmt-breaks/backs happen
+				if (followStruct.hasBreakTarget(bb)) {
+					exit.setBranchingStmt(getAst().newBreakStatement());
+				} else {
+					exit.setBranchingStmt(getAst().newContinueStatement());
+				}
 			}
 			return true;
 		}
@@ -1046,6 +1067,11 @@ public final class TrControlFlowAnalysis {
 			}
 		}
 		return follow;
+	}
+
+	@Nonnull
+	private AST getAst() {
+		return getCfg().getCu().getAst();
 	}
 
 	private M getM() {

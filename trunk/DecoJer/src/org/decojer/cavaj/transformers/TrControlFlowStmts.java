@@ -105,6 +105,17 @@ public final class TrControlFlowStmts {
 		new TrControlFlowStmts(cfg).transform();
 	}
 
+	@Nullable
+	private static BB transformBranching(@Nullable final Struct struct, @Nonnull final E e,
+			@Nonnull final List<Statement> statements) {
+		final Statement branchingStmt = e.getBranchingStmt();
+		if (branchingStmt == null) {
+			return e.getEnd();
+		}
+		statements.add(branchingStmt);
+		return null;
+	}
+
 	@Getter(AccessLevel.PROTECTED)
 	@Nonnull
 	private final CFG cfg;
@@ -359,19 +370,6 @@ public final class TrControlFlowStmts {
 	}
 
 	@Nullable
-	private BB transformContinue(@Nullable final Struct struct, @Nonnull final E e,
-			@Nonnull final List<Statement> statements) {
-		if (!e.isBack()) {
-			return e.getEnd();
-		}
-		if (!(struct instanceof Loop) || !((Loop) struct).hasHead(e.getEnd())
-				|| !((Loop) struct).hasLast(e.getStart())) {
-			statements.add(getAst().newContinueStatement());
-		}
-		return null;
-	}
-
-	@Nullable
 	private Statement transformLoop(@Nonnull final Loop loop) {
 		final BB head = loop.getHead();
 		boolean negate = true;
@@ -465,45 +463,12 @@ public final class TrControlFlowStmts {
 			if (currentBbStruct != struct) {
 				// BB leaves current struct or enters a new sub struct:
 				// check leaving with priority, can happen together with entering in one BB
-				boolean defaultBreakableConsumed = false;
 				for (Struct findStruct = struct; findStruct != null; findStruct = findStruct
 						.getParent()) {
-					if (findStruct.hasBreakTarget(currentBb)) {
-						// ++++++++++++++++++++++++++
-						// + leaving current struct +
-						// ++++++++++++++++++++++++++
-						// an unlabeled break statement terminates the innermost loop or switch
-						// statement, but a labeled break terminates any outer struct
-						if (findStruct != struct && defaultBreakableConsumed
-								&& findStruct.getLabel() != null) {
-							final BreakStatement breakStatement = getAst().newBreakStatement();
-							breakStatement.setLabel(newSimpleName(findStruct.getLabel(), getAst()));
-							statements.add(breakStatement);
-						} else if (findStruct instanceof Loop) {
-							statements.add(getAst().newBreakStatement());
-						} else if (findStruct instanceof Switch) {
-							// final case-break in switches is removed later
-							statements.add(getAst().newBreakStatement());
-						}
-						return;
-					}
-					if (findStruct.isDefaultBreakable()) {
-						defaultBreakableConsumed = true;
-					}
 					if (currentBbStruct == findStruct.getParent()) {
 						// ++++++++++++++++++++++++++
 						// + leaving current struct +
 						// ++++++++++++++++++++++++++
-						if (currentBbStruct instanceof Loop) {
-							final Loop loop = (Loop) currentBbStruct;
-							if (loop.isPost() ? loop.hasLast(currentBb) : loop.hasHead(currentBb)) {
-								assert !loop.hasHead(currentBb) : "should only find forward continues";
-								statements.add(getAst().newContinueStatement());
-								return;
-							}
-						}
-						log.warn(getM() + ": Struct leave in BB" + currentBb.getPc()
-								+ " without regular follow encounter:\n" + struct);
 						return;
 					}
 				}
@@ -571,7 +536,7 @@ public final class TrControlFlowStmts {
 			if (out == null) {
 				return;
 			}
-			currentBb = transformContinue(struct, out, statements);
+			currentBb = transformBranching(struct, out, statements);
 		}
 	}
 
@@ -602,7 +567,7 @@ public final class TrControlFlowStmts {
 	 */
 	private void transformSequence(@Nullable final Struct struct, @Nonnull final E firstE,
 			@Nonnull final List<Statement> statements) {
-		final BB end = transformContinue(struct, firstE, statements);
+		final BB end = transformBranching(struct, firstE, statements);
 		if (end != null) {
 			transformSequence(struct, end, statements);
 			return;
