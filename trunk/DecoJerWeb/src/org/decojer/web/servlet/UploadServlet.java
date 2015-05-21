@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -64,7 +64,7 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 
 /**
  * Upload servlet.
- * 
+ *
  * @author André Pankraz
  */
 public class UploadServlet extends HttpServlet {
@@ -84,15 +84,17 @@ public class UploadServlet extends HttpServlet {
 		final BlobInfoFactory blobInfoFactory = new BlobInfoFactory(datastoreService);
 
 		// check uploaded blob from GAE upload service
-		final Map<String, BlobKey> uploadedBlobs = blobstoreService.getUploadedBlobs(req);
-		if (uploadedBlobs.get("file") == null) {
+		final Map<String, List<BlobKey>> uploads = blobstoreService.getUploads(req);
+		final List<BlobKey> uploadedBlobs = uploads.get("file");
+		if (uploadedBlobs == null || uploadedBlobs.isEmpty()) {
 			Messages.addMessage(req, "Upload was empty!");
 			return;
 		}
+		final BlobKey uploadedBlob = uploadedBlobs.get(0);
 		// uses DatastoreService.get(), seems to be no HA-lagging here
-		BlobInfo uploadBlobInfo = blobInfoFactory.loadBlobInfo(uploadedBlobs.get("file"));
+		BlobInfo uploadBlobInfo = blobInfoFactory.loadBlobInfo(uploadedBlob);
 		if (uploadBlobInfo == null) {
-			LOGGER.warning("Missing upload information for '" + uploadedBlobs.get("file") + "'!");
+			LOGGER.warning("Missing upload information for '" + uploadedBlob + "'!");
 			Messages.addMessage(req, "Missing upload information!");
 			return;
 		}
@@ -174,19 +176,19 @@ public class UploadServlet extends HttpServlet {
 				if (upload.getError() == null && upload.getSourceBlobKey() == null) {
 					QueueFactory.getQueue("decoJer").add(
 							TaskOptions.Builder
-									.withMethod(Method.GET)
-									.param("uploadKey", uploadKey.getName())
-									.param("channelKey", Uploads.getChannelKey(req.getSession()))
-									.countdownMillis(2000)
-									.header("Host",
-											BackendServiceFactory.getBackendService()
-													.getBackendAddress("worker256")));
+							.withMethod(Method.GET)
+							.param("uploadKey", uploadKey.getName())
+							.param("channelKey", Uploads.getChannelKey(req.getSession()))
+							.countdownMillis(2000)
+							.header("Host",
+									BackendServiceFactory.getBackendService()
+									.getBackendAddress("worker256")));
 				}
 			} finally {
 				tx.commit();
 			}
 			blobstoreService
-					.delete(duplicateBlobKeys.toArray(new BlobKey[duplicateBlobKeys.size()]));
+			.delete(duplicateBlobKeys.toArray(new BlobKey[duplicateBlobKeys.size()]));
 
 			if (upload.getError() != null) {
 				return;
