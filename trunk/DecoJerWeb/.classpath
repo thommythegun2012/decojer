@@ -2,10 +2,8 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/decojer.jar" sourcepath="/DecoJer"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/libxjava-cldc-0.3.jar" sourcepath="C:/Users/André Pankraz/.m2/repository/com/github/mcpat/libxjava/libxjava-cldc/0.3/libxjava-cldc-0.3-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jstl-impl-1.2.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/javaxdelta-2.0.1.jar"/>
-	<classpathentry kind="lib" path="war/WEB-INF/lib/trove-2.1.0.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/commons-io-2.1.jar"/>
 	<classpathentry kind="lib" path="lib/lombok.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/commons-lang3-3.1.jar"/>
@@ -13,5 +11,6 @@
 	<classpathentry kind="con" path="com.google.appengine.eclipse.core.GAE_CONTAINER"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/appengine-gcs-client-0.4.4.jar"/>
 	<classpathentry kind="lib" path="war/WEB-INF/lib/guava-18.0.jar"/>
+	<classpathentry kind="lib" path="war/WEB-INF/lib/libxjava-cldc-0.3.jar"/>
 	<classpathentry kind="output" path="war/WEB-INF/classes"/>
 </classpath>

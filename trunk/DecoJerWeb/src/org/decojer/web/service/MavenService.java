@@ -453,7 +453,7 @@ public class MavenService {
 			BlobKey blobKey;
 			if (blobInfo == null) {
 				blobKey = BlobService.getInstance().createBlob("application/java-archive",
-						groupId + '/' + fileName, jarContent);
+						groupId + ':' + fileName, jarContent);
 			} else {
 				blobKey = new BlobKey(blobInfo.getKey().getName());
 			}
