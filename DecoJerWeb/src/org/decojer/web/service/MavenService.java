@@ -123,7 +123,7 @@ public class MavenService {
 			@Override
 			public boolean process(final Entity entity) {
 				final POM pom = new POM(entity);
-				final BlobKey jar = pom.getJar();
+				final BlobKey jar = pom.getJarBlobKey();
 				final BlobInfo blobInfo = jar == null ? null : blobInfoFactory.loadBlobInfo(jar);
 				if (blobInfo == null) {
 					LOGGER.info("No JAR for POM '" + pom.getId() + "'! Delete.");
@@ -459,7 +459,7 @@ public class MavenService {
 			}
 			final POM pom = new POM(new Entity(pomKey));
 			pom.setContent(pomContent);
-			pom.setJar(blobKey);
+			pom.setJarBlobKey(blobKey);
 			datastoreService.put(pom.getWrappedEntity());
 			return pom;
 		} catch (final Exception e) {

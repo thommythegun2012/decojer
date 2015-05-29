@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -31,7 +31,7 @@ import com.google.appengine.api.datastore.Entity;
 
 /**
  * POM (version).
- * 
+ *
  * @author André Pankraz
  */
 public class POM extends BaseEntity {
@@ -55,7 +55,7 @@ public class POM extends BaseEntity {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param entity
 	 */
 	public POM(final Entity entity) {
@@ -64,7 +64,7 @@ public class POM extends BaseEntity {
 
 	/**
 	 * Get artifact id.
-	 * 
+	 *
 	 * @return artifact id
 	 */
 	public String getArtifactId() {
@@ -76,7 +76,7 @@ public class POM extends BaseEntity {
 
 	/**
 	 * Get POM content.
-	 * 
+	 *
 	 * @return POM content
 	 */
 	public byte[] getContent() {
@@ -86,7 +86,7 @@ public class POM extends BaseEntity {
 
 	/**
 	 * Get group id.
-	 * 
+	 *
 	 * @return group id
 	 */
 	public String getGroupId() {
@@ -97,10 +97,10 @@ public class POM extends BaseEntity {
 
 	/**
 	 * Get JAR Blob Key.
-	 * 
+	 *
 	 * @return JAR Blob Key
 	 */
-	public BlobKey getJar() {
+	public BlobKey getJarBlobKey() {
 		final Object property = this.entity.getProperty(PROP_JAR);
 		if (!(property instanceof BlobKey)) {
 			LOGGER.warning("Property JAR = '" + property + "' isn't a BlobKey!");
@@ -116,7 +116,7 @@ public class POM extends BaseEntity {
 
 	/**
 	 * Get version.
-	 * 
+	 *
 	 * @return version
 	 */
 	public String getVersion() {
@@ -128,7 +128,7 @@ public class POM extends BaseEntity {
 
 	/**
 	 * Set POM content.
-	 * 
+	 *
 	 * @param content
 	 *            POM content
 	 */
@@ -138,11 +138,11 @@ public class POM extends BaseEntity {
 
 	/**
 	 * Set JAR Blob Key.
-	 * 
+	 *
 	 * @param blobKey
 	 *            JAR Blob Key
 	 */
-	public void setJar(final BlobKey blobKey) {
+	public void setJarBlobKey(final BlobKey blobKey) {
 		this.entity.setProperty(PROP_JAR, blobKey);
 	}
 
