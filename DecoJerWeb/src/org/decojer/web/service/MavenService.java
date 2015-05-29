@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -57,7 +57,7 @@ import com.google.appengine.api.mail.MailServiceFactory;
 
 /**
  * Maven Service.
- * 
+ *
  * @author André Pankraz
  */
 public class MavenService {
@@ -102,7 +102,7 @@ public class MavenService {
 
 	/**
 	 * Get instance.
-	 * 
+	 *
 	 * @return instance
 	 */
 	public static MavenService getInstance() {
@@ -111,7 +111,7 @@ public class MavenService {
 
 	/**
 	 * Calculate POM statistics. Delete POMs without JAR.
-	 * 
+	 *
 	 * @return POM statistics
 	 */
 	public Stats calculateStats() {
@@ -141,7 +141,7 @@ public class MavenService {
 
 	/**
 	 * Fetch Maven central RSS, deliver list with POM Ids (groupId:artifactId:version).
-	 * 
+	 *
 	 * @return list with POM Ids (groupId:artifactId:version), not null
 	 */
 	public List<String> fetchCentralRss() {
@@ -202,7 +202,7 @@ public class MavenService {
 
 	/**
 	 * Fetch file content from repository.
-	 * 
+	 *
 	 * @param groupId
 	 *            group id
 	 * @param artifactId
@@ -222,7 +222,7 @@ public class MavenService {
 
 	/**
 	 * Fetch available POM versions.
-	 * 
+	 *
 	 * @param groupId
 	 *            group id
 	 * @param artifactId
@@ -284,7 +284,7 @@ public class MavenService {
 
 	/**
 	 * Find all POM entities for group id and artifact id.
-	 * 
+	 *
 	 * @param groupId
 	 *            group id
 	 * @param artifactId
@@ -313,7 +313,7 @@ public class MavenService {
 
 	/**
 	 * Import all versions for POM.
-	 * 
+	 *
 	 * @return imported POMs
 	 */
 	public ImportResults importCentralAll() {
@@ -358,7 +358,7 @@ public class MavenService {
 
 	/**
 	 * Fetch and import Central RSS.
-	 * 
+	 *
 	 * @return imported files
 	 */
 	public ImportResults importCentralRss() {
@@ -412,7 +412,7 @@ public class MavenService {
 
 	/**
 	 * Fetch and import POM.
-	 * 
+	 *
 	 * @param groupId
 	 *            group id
 	 * @param artifactId
@@ -453,7 +453,7 @@ public class MavenService {
 			BlobKey blobKey;
 			if (blobInfo == null) {
 				blobKey = BlobService.getInstance().createBlob("application/java-archive",
-						fileName, jarContent);
+						groupId + '/' + fileName, jarContent);
 			} else {
 				blobKey = new BlobKey(blobInfo.getKey().getName());
 			}

@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -39,22 +39,25 @@ import org.decojer.web.util.IO;
 import com.google.appengine.api.blobstore.BlobInfoFactory;
 import com.google.appengine.api.blobstore.BlobKey;
 import com.google.appengine.api.blobstore.BlobstoreInputStream;
+import com.google.appengine.api.blobstore.BlobstoreService;
 import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
+import com.google.appengine.api.datastore.EntityNotFoundException;
 import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.KeyFactory;
 import com.google.appengine.api.datastore.Query;
-import com.google.appengine.api.files.AppEngineFile;
-import com.google.appengine.api.files.FileService;
-import com.google.appengine.api.files.FileServiceFactory;
-import com.google.appengine.api.files.FileWriteChannel;
 import com.google.appengine.api.utils.SystemProperty;
+import com.google.appengine.tools.cloudstorage.GcsFileOptions;
+import com.google.appengine.tools.cloudstorage.GcsFilename;
+import com.google.appengine.tools.cloudstorage.GcsOutputChannel;
+import com.google.appengine.tools.cloudstorage.GcsService;
+import com.google.appengine.tools.cloudstorage.GcsServiceFactory;
 
 /**
  * Blob service.
- * 
+ *
  * @author André Pankraz
  */
 public class BlobService {
@@ -83,7 +86,7 @@ public class BlobService {
 	/**
 	 * Calculate Blob statistics. Generate and persist MD5 if necessary (sometimes not generated
 	 * through backend at local development environment).
-	 * 
+	 *
 	 * @return Blob statistics
 	 */
 	public Stats calculateStats() {
@@ -137,10 +140,15 @@ public class BlobService {
 	}
 
 	public BlobKey createBlob(final String mimeType, final String fileName, final byte[] content) {
-		final FileService fileService = FileServiceFactory.getFileService();
+		final GcsService gcsService = GcsServiceFactory.createGcsService();
 		try {
-			final AppEngineFile file = fileService.createNewBlobFile(mimeType, fileName);
-			final FileWriteChannel writeChannel = fileService.openWriteChannel(file, true);
+			final GcsFilename gcsFilename = new GcsFilename("decojer", fileName);
+			final GcsFileOptions options = new GcsFileOptions.Builder().mimeType(mimeType)
+					// .acl("public-read")
+					// .addUserMetadata("myfield1", "my field value")
+					.build();
+			final GcsOutputChannel writeChannel = gcsService.createOrReplace(gcsFilename, options);
+
 			final OutputStream fileOutputStream = Channels.newOutputStream(writeChannel);
 			// don't hold file open for too long (around max. 30 seconds), else:
 			// "Caused by: com.google.apphosting.api.ApiProxy$ApplicationException: ApplicationError: 10: Unknown",
@@ -149,31 +157,38 @@ public class BlobService {
 			// "The request to API call file.Append() was too large."
 			// (wrapping with BufferedOutputStream doesn't help - writes big data directly)
 			IO.copy(new ByteArrayInputStream(content), fileOutputStream);
-			writeChannel.closeFinally();
-			try {
-				Thread.sleep(5000);
-			} catch (final InterruptedException ie) {
-				// OK - sleep 5s for index updates
-			}
-			final BlobKey blobKey = fileService.getBlobKey(file);
+			/*
+			 * try { Thread.sleep(5000); } catch (final InterruptedException ie) { // OK - sleep 5s
+			 * for index updates }
+			 */
+			writeChannel.close();
+
+			final BlobstoreService blobstoreService = BlobstoreServiceFactory.getBlobstoreService();
+			final BlobKey blobKey = blobstoreService.createGsBlobKey("/gs/"
+					+ gcsFilename.getBucketName() + "/" + gcsFilename.getObjectName());
+
 			if (SystemProperty.environment.value() == SystemProperty.Environment.Value.Development) {
-				if (blobKey == null) {
-					System.out.println("BlobKey is null? Severe Bug!");
-					return null;
-				}
-				final DatastoreService datastoreService = DatastoreServiceFactory
-						.getDatastoreService();
-				final Entity entity = datastoreService.get(KeyFactory.createKey(
-						BlobInfoFactory.KIND, blobKey.getKeyString()));
-				if (entity == null) {
-					System.out.println("NO INFO?");
-					return blobKey;
-				}
-				final String md5Hash = (String) entity.getProperty(BlobInfoFactory.MD5_HASH);
-				if (md5Hash == null || md5Hash.length() == 0) {
-					entity.setProperty(BlobInfoFactory.MD5_HASH, IO.hexEncode(IO.md5(content)));
-					datastoreService.put(entity);
-					System.out.println("WRITTEN HASH!");
+				try {
+					if (blobKey == null) {
+						System.out.println("BlobKey is null? Severe Bug!");
+						return null;
+					}
+					final DatastoreService datastoreService = DatastoreServiceFactory
+							.getDatastoreService();
+					final Entity entity = datastoreService.get(KeyFactory.createKey(
+							BlobInfoFactory.KIND, blobKey.getKeyString()));
+					if (entity == null) {
+						System.out.println("NO INFO?");
+						return blobKey;
+					}
+					final String md5Hash = (String) entity.getProperty(BlobInfoFactory.MD5_HASH);
+					if (md5Hash == null || md5Hash.length() == 0) {
+						entity.setProperty(BlobInfoFactory.MD5_HASH, IO.hexEncode(IO.md5(content)));
+						datastoreService.put(entity);
+						System.out.println("WRITTEN HASH!");
+					}
+				} catch (final EntityNotFoundException e) {
+					// old method to solve local dev problems
 				}
 			}
 			return blobKey;

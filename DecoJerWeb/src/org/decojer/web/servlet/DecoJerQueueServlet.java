@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -60,7 +60,7 @@ import com.google.appengine.api.taskqueue.TaskOptions.Method;
 
 /**
  * DecoJer queue servlet.
- * 
+ *
  * @author André Pankraz
  */
 public class DecoJerQueueServlet extends HttpServlet {
@@ -108,7 +108,8 @@ public class DecoJerQueueServlet extends HttpServlet {
 					sourcename = (pos == -1 ? filename : filename.substring(0, pos)) + ".java";
 				}
 				final BlobKey sourceBlobKey = BlobService.getInstance().createBlob(
-						"text/x-java-source", sourcename, source.getBytes("UTF-8"));
+						"text/x-java-source", upload.getId() + '/' + sourcename,
+						source.getBytes("UTF-8"));
 				if (upload.getSourceBlobKey() != null) {
 					BlobstoreServiceFactory.getBlobstoreService().delete(upload.getSourceBlobKey());
 				}
@@ -126,7 +127,8 @@ public class DecoJerQueueServlet extends HttpServlet {
 				final String sourcename = (pos == -1 ? filename : filename.substring(0, pos))
 						+ "_source.zip";
 				final BlobKey sourceBlobKey = BlobService.getInstance().createBlob(
-						"application/java-archive", sourcename, sourceOutputStream.toByteArray());
+						"application/java-archive", upload.getId() + '/' + sourcename,
+						sourceOutputStream.toByteArray());
 				if (upload.getSourceBlobKey() != null) {
 					BlobstoreServiceFactory.getBlobstoreService().delete(upload.getSourceBlobKey());
 				}
