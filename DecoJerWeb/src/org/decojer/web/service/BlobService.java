@@ -142,7 +142,8 @@ public class BlobService {
 	public BlobKey createBlob(final String mimeType, final String fileName, final byte[] content) {
 		final GcsService gcsService = GcsServiceFactory.createGcsService();
 		try {
-			final GcsFilename gcsFilename = new GcsFilename("decojer", fileName);
+			// '/' in fileName is a path for GCS, e.g. in md5 hashes !
+			final GcsFilename gcsFilename = new GcsFilename("decojer", fileName.replace('/', '_'));
 			final GcsFileOptions options = new GcsFileOptions.Builder().mimeType(mimeType)
 					// .acl("public-read")
 					// .addUserMetadata("myfield1", "my field value")

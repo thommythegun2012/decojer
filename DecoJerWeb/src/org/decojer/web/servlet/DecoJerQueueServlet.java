@@ -108,7 +108,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 					sourcename = (pos == -1 ? filename : filename.substring(0, pos)) + ".java";
 				}
 				final BlobKey sourceBlobKey = BlobService.getInstance().createBlob(
-						"text/x-java-source", upload.getId() + '/' + sourcename,
+						"text/x-java-source", upload.getId() + '_' + sourcename,
 						source.getBytes("UTF-8"));
 				if (upload.getSourceBlobKey() != null) {
 					BlobstoreServiceFactory.getBlobstoreService().delete(upload.getSourceBlobKey());
@@ -127,7 +127,7 @@ public class DecoJerQueueServlet extends HttpServlet {
 				final String sourcename = (pos == -1 ? filename : filename.substring(0, pos))
 						+ "_source.zip";
 				final BlobKey sourceBlobKey = BlobService.getInstance().createBlob(
-						"application/java-archive", upload.getId() + '/' + sourcename,
+						"application/java-archive", upload.getId() + '_' + sourcename,
 						sourceOutputStream.toByteArray());
 				if (upload.getSourceBlobKey() != null) {
 					BlobstoreServiceFactory.getBlobstoreService().delete(upload.getSourceBlobKey());
