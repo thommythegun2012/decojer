@@ -28,9 +28,6 @@ import java.util.regex.Pattern;
 
 import javax.annotation.Nullable;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.decojer.DecoJer;
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.CU;
@@ -82,6 +79,9 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 
 import com.google.common.collect.Lists;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Class editor.
  */
@@ -103,8 +103,9 @@ public class ClassEditor extends MultiPageEditorPart {
 
 		// is from JAR...
 		// example: sun/org/mozilla/javascript/internal/
-		final String jarPath = eclipseClassFile.getResource() != null ? eclipseClassFile
-				.getResource().getLocation().toOSString() : eclipseClassFile.getPath().toOSString();
+		final String jarPath = eclipseClassFile.getResource() != null
+				? eclipseClassFile.getResource().getLocation().toOSString()
+				: eclipseClassFile.getPath().toOSString();
 		assert jarPath != null;
 
 		final String packageName = eclipseClassFile.getParent().getElementName();
@@ -289,8 +290,8 @@ public class ClassEditor extends MultiPageEditorPart {
 			return pageContainer;
 		}
 		this.archiveSash = new SashForm(pageContainer, SWT.HORIZONTAL | SWT.BORDER | SWT.SMOOTH);
-		final FilteredTree filteredTree = new FilteredTree(this.archiveSash, SWT.BORDER
-				| SWT.NO_FOCUS, new PatternFilter(), true);
+		final FilteredTree filteredTree = new FilteredTree(this.archiveSash,
+				SWT.BORDER | SWT.NO_FOCUS, new PatternFilter(), true);
 		final TreeViewer filteredTreeViewer = filteredTree.getViewer();
 		filteredTreeViewer.setContentProvider(new ITreeContentProvider() {
 
@@ -481,8 +482,8 @@ public class ClassEditor extends MultiPageEditorPart {
 					return null;
 				}
 				if (element instanceof IMethod) {
-					final String methodName = ((IMethod) element).isConstructor() ? M.CONSTRUCTOR_NAME
-							: element.getElementName();
+					final String methodName = ((IMethod) element).isConstructor()
+							? M.CONSTRUCTOR_NAME : element.getElementName();
 					final String signature = ((IMethod) element).getSignature();
 					// get all method declarations with this name
 					final List<M> ms = Lists.newArrayList();
@@ -512,7 +513,8 @@ public class ClassEditor extends MultiPageEditorPart {
 
 						// Such signatures doesn't contain method parameter types but they contain
 						// generic type parameters.
-						final Pattern signaturePattern = createEclipseMethodSignaturePattern(signature);
+						final Pattern signaturePattern = createEclipseMethodSignaturePattern(
+								signature);
 						for (final M checkMd : ms) {
 							// exact match for descriptor
 							if (signaturePattern.matcher(checkMd.getDescriptor()).matches()) {
@@ -545,8 +547,9 @@ public class ClassEditor extends MultiPageEditorPart {
 	}
 
 	@Override
-	public Object getAdapter(final Class required) {
-		if (IContentOutlinePage.class.equals(required)) {
+	@SuppressWarnings({ "hiding", "unchecked" })
+	public <T> T getAdapter(final Class<T> adapter) {
+		if (IContentOutlinePage.class.equals(adapter)) {
 			// initialize the CompilationUnitEditor with the decompiled source via a in-memory
 			// StorageEditorInput and ask this Editor for the IContentOutlinePage, this way we can
 			// also show inner classes
@@ -556,26 +559,26 @@ public class ClassEditor extends MultiPageEditorPart {
 			// didn't work in older Eclipse? JavaOutlinePage.fInput == null in this case, also ask
 			// the ClassFileEditor, which has other problems and only delivers an Outline if the
 			// class is in the class path
-			Object adapter = null;
+			Object javaAdapter = null;
 			if ((this.selectedCu != null || this.classFileEditor == null)
 					&& this.decompilationUnitEditor != null) {
-				adapter = this.decompilationUnitEditor.getAdapter(required);
+				javaAdapter = this.decompilationUnitEditor.getAdapter(adapter);
 			}
-			if (adapter == null && this.classFileEditor != null) {
-				adapter = this.classFileEditor.getAdapter(required);
+			if (javaAdapter == null && this.classFileEditor != null) {
+				javaAdapter = this.classFileEditor.getAdapter(adapter);
 			}
-			if (adapter instanceof JavaOutlinePage) {
-				if (this.javaOutlinePage != null && this.javaOutlinePage == adapter) {
-					return this.javaOutlinePage;
+			if (javaAdapter instanceof JavaOutlinePage) {
+				if (this.javaOutlinePage != null && this.javaOutlinePage == javaAdapter) {
+					return (T) this.javaOutlinePage;
 				}
-				this.javaOutlinePage = (JavaOutlinePage) adapter;
+				this.javaOutlinePage = (JavaOutlinePage) javaAdapter;
 				this.javaOutlinePage.addSelectionChangedListener(new ISelectionChangedListener() {
 
 					@Override
 					public void selectionChanged(final SelectionChangedEvent event) {
 						final TreeSelection treeSelection = (TreeSelection) event.getSelection();
-						final Container c = findDeclarationForJavaElement((IJavaElement) treeSelection
-								.getFirstElement());
+						final Container c = findDeclarationForJavaElement(
+								(IJavaElement) treeSelection.getFirstElement());
 						if (c == null) {
 							log.warn("Unknown declaration for path '"
 									+ treeSelection.getFirstElement() + "'!");
@@ -585,10 +588,10 @@ public class ClassEditor extends MultiPageEditorPart {
 					}
 
 				});
-				return this.javaOutlinePage;
+				return (T) this.javaOutlinePage;
 			}
 		}
-		return super.getAdapter(required);
+		return super.getAdapter(adapter);
 	}
 
 	@Override
@@ -605,8 +608,8 @@ public class ClassEditor extends MultiPageEditorPart {
 			final IPath filePath = fileEditorInput.getPath();
 			fileName = filePath.toString();
 		} else {
-			throw new PartInitException("Unknown editor input type '"
-					+ input.getClass().getSimpleName() + "'!");
+			throw new PartInitException(
+					"Unknown editor input type '" + input.getClass().getSimpleName() + "'!");
 		}
 		this.du = DecoJer.createDu();
 		final List<T> selectedTds;
@@ -622,8 +625,8 @@ public class ClassEditor extends MultiPageEditorPart {
 		try {
 			cus = this.du.getCus();
 		} catch (final Throwable e) {
-			throw new PartInitException(
-					"Couldn't create compilation units for '" + fileName + "'!", e);
+			throw new PartInitException("Couldn't create compilation units for '" + fileName + "'!",
+					e);
 		}
 		if (cus.isEmpty()) {
 			throw new PartInitException("Couldn't find a class in file '" + fileName + "'!");
@@ -640,8 +643,8 @@ public class ClassEditor extends MultiPageEditorPart {
 
 	public void redecompile() {
 		if (this.selectedCu != null) {
-			this.decompilationUnitEditor.setInput(DecompilationUnitEditor
-					.decompileToEditorInput(this.selectedCu));
+			this.decompilationUnitEditor
+					.setInput(DecompilationUnitEditor.decompileToEditorInput(this.selectedCu));
 		}
 	}
 
