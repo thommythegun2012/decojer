@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.model.code;
 
-import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
 import java.util.List;
@@ -31,14 +30,15 @@ import java.util.List;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import org.decojer.cavaj.model.types.T;
 import org.decojer.cavaj.utils.ELineComperator;
 import org.eclipse.jdt.core.dom.Statement;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.Queues;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Edge for CFG.
@@ -159,7 +159,7 @@ public final class E {
 		}
 		final Call call = (Call) value;
 
-		final Deque<BB> checkBbs = new ArrayDeque<BB>();
+		final Deque<BB> checkBbs = Queues.newArrayDeque();
 		checkBbs.push(getEnd());
 		while (!checkBbs.isEmpty()) {
 			final BB checkBb = checkBbs.removeFirst();

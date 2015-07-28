@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.model.code;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -31,9 +30,6 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
-import lombok.Getter;
-import lombok.Setter;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.code.ops.GOTO;
@@ -50,6 +46,9 @@ import org.eclipse.jdt.core.dom.Statement;
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Basic block for CFG.
@@ -419,10 +418,9 @@ public final class BB {
 					row[2 + stackRegs + j] = (frame.isAlive(j) ? "A " : "") + r.getSimpleName();
 					// align header
 					if (header[2 + stackRegs + j].length() < row[2 + stackRegs + j].length()) {
-						header[2 + stackRegs + j] += Strings.repeat(
-								" ",
+						header[2 + stackRegs + j] += Strings.repeat(" ",
 								row[2 + stackRegs + j].length()
-								- header[2 + stackRegs + j].length());
+										- header[2 + stackRegs + j].length());
 					}
 				}
 			}
@@ -493,7 +491,7 @@ public final class BB {
 	 */
 	@Nonnull
 	public List<E> getIns() {
-		assert !isRemoved();
+		assert!isRemoved();
 		final List<E> ret = Collections.unmodifiableList(this.ins);
 		assert ret != null;
 		return ret;
@@ -508,7 +506,7 @@ public final class BB {
 	 */
 	@Nullable
 	public E getInWithSmallestPostorder() {
-		assert !isRemoved();
+		assert!isRemoved();
 		E foundIn = null;
 		int smallestPostorder = Integer.MAX_VALUE;
 		for (final E in : this.ins) {
@@ -581,7 +579,7 @@ public final class BB {
 	 */
 	@Nonnull
 	public List<E> getOuts() {
-		assert !isRemoved();
+		assert!isRemoved();
 		final List<E> ret = Collections.unmodifiableList(this.outs);
 		assert ret != null;
 		return ret;
@@ -966,7 +964,7 @@ public final class BB {
 		setPc(bb.getPc());
 		setPostorder(bb.getPostorder());
 		// remember current ins, removing them now would delete this node
-		final List<E> clearIns = new ArrayList<E>(this.ins);
+		final List<E> clearIns = Lists.newArrayList(this.ins);
 		this.ins.clear();
 		for (final E in : bb.ins) {
 			assert in != null;
@@ -1009,7 +1007,7 @@ public final class BB {
 			this.top += bb.top;
 		}
 		// remember current outs, removing them now would delete follow nodes
-		final List<E> clearOuts = new ArrayList<E>(this.outs);
+		final List<E> clearOuts = Lists.newArrayList(this.outs);
 		this.outs.clear();
 		for (final E out : bb.outs) {
 			assert out != null;
@@ -1145,7 +1143,7 @@ public final class BB {
 	 * Remove BB from CFG.
 	 */
 	public void remove() {
-		assert !isStartBb();
+		assert!isStartBb();
 		for (int i = this.outs.size(); i-- > 0;) {
 			final E e = this.outs.get(i);
 			e.getEnd().removeIn(e);

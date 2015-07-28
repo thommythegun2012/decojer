@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.model.types;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -306,8 +305,8 @@ public abstract class T implements Element {
 	private static final Map<Integer, T> KIND_2_TS = Maps.newHashMap();
 	@Nonnull
 	@SuppressWarnings("null")
-	private static final Map<String, Object> MEMBER_NONE = Collections.unmodifiableMap(Maps
-			.<String, Object> newHashMap());
+	private static final Map<String, Object> MEMBER_NONE = Collections
+			.unmodifiableMap(Maps.<String, Object> newHashMap());
 	/**
 	 * Java allows the automatic type conversion for primitives. For union-primitives we can reduce
 	 * the possible from-types in case of assignments:<br>
@@ -319,21 +318,21 @@ public abstract class T implements Element {
 	 */
 	@Nonnull
 	private static int[][] AUTO_CONVERSION_ASSIGN_REDUCTION_FROM_TO = {
-		/* ___i */{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
-		/* __s_ */{ 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2 },
-		/* __si */{ 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3 },
-		/* _b__ */{ 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4 },
-		/* _b_i */{ 5, 4, 5, 4, 5, 4, 5, 0, 5, 4, 5, 4, 5, 4, 5 },
-		/* _bs_ */{ 6, 6, 6, 4, 6, 6, 6, 0, 6, 6, 6, 4, 6, 6, 6 },
-		/* _bsi */{ 7, 6, 7, 4, 7, 6, 7, 0, 7, 6, 7, 4, 7, 6, 7 },
-		/* c___ */{ 8, 0, 8, 0, 8, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8 },
-		/* c__i */{ 9, 0, 9, 0, 9, 0, 9, 8, 9, 8, 9, 8, 9, 8, 9 },
-		/* c_s_ */{ 10, 2, 10, 0, 10, 2, 10, 8, 10, 10, 10, 8, 10, 10, 10 },
-		/* c_si */{ 11, 2, 11, 0, 11, 2, 11, 8, 11, 10, 11, 8, 11, 10, 11 },
-		/* cb__ */{ 12, 4, 12, 4, 12, 4, 12, 8, 12, 12, 12, 12, 12, 12, 12 },
-		/* cb_i */{ 13, 4, 13, 4, 13, 4, 13, 8, 13, 12, 13, 12, 13, 12, 13 },
-		/* cbs_ */{ 14, 6, 14, 4, 14, 6, 14, 8, 14, 14, 14, 12, 14, 14, 14 },
-		/* cbsi */{ 15, 6, 15, 4, 15, 6, 15, 8, 15, 14, 15, 12, 15, 14, 15 } };
+			/* ___i */{ 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1 },
+			/* __s_ */{ 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2, 0, 2, 2, 2 },
+			/* __si */{ 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3, 0, 3, 2, 3 },
+			/* _b__ */{ 4, 4, 4, 4, 4, 4, 4, 0, 4, 4, 4, 4, 4, 4, 4 },
+			/* _b_i */{ 5, 4, 5, 4, 5, 4, 5, 0, 5, 4, 5, 4, 5, 4, 5 },
+			/* _bs_ */{ 6, 6, 6, 4, 6, 6, 6, 0, 6, 6, 6, 4, 6, 6, 6 },
+			/* _bsi */{ 7, 6, 7, 4, 7, 6, 7, 0, 7, 6, 7, 4, 7, 6, 7 },
+			/* c___ */{ 8, 0, 8, 0, 8, 0, 8, 8, 8, 8, 8, 8, 8, 8, 8 },
+			/* c__i */{ 9, 0, 9, 0, 9, 0, 9, 8, 9, 8, 9, 8, 9, 8, 9 },
+			/* c_s_ */{ 10, 2, 10, 0, 10, 2, 10, 8, 10, 10, 10, 8, 10, 10, 10 },
+			/* c_si */{ 11, 2, 11, 0, 11, 2, 11, 8, 11, 10, 11, 8, 11, 10, 11 },
+			/* cb__ */{ 12, 4, 12, 4, 12, 4, 12, 8, 12, 12, 12, 12, 12, 12, 12 },
+			/* cb_i */{ 13, 4, 13, 4, 13, 4, 13, 8, 13, 12, 13, 12, 13, 12, 13 },
+			/* cbs_ */{ 14, 6, 14, 4, 14, 6, 14, 8, 14, 14, 14, 12, 14, 14, 14 },
+			/* cbsi */{ 15, 6, 15, 4, 15, 6, 15, 8, 15, 14, 15, 12, 15, 14, 15 } };
 
 	/**
 	 * Java allows the automatic type conversion for primitives. For union-primitives we can reduce
@@ -341,21 +340,21 @@ public abstract class T implements Element {
 	 */
 	@Nonnull
 	private static int[][] AUTO_CONVERSION_INTERSECT_REDUCTION = {
-		/* ___i */{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-		/* __s_ */{ 1, 2, 3, 2, 3, 2, 2, 1, 1, 3, 3, 3, 3, 3, 3 },
-		/* __si */{ 1, 3, 3, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 3, 3 },
-		/* _b__ */{ 1, 2, 3, 4, 5, 6, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
-		/* _b_i */{ 1, 3, 3, 5, 5, 7, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
-		/* _bs_ */{ 1, 2, 3, 6, 7, 7, 1, 1, 1, 3, 3, 7, 7, 7, 7 },
-		/* _bsi */{ 1, 3, 3, 7, 7, 7, 7, 1, 1, 3, 3, 7, 7, 7, 7 },
-		/* c___ */{ 1, 1, 1, 1, 1, 1, 1, 8, 9, 9, 9, 9, 9, 9, 9 },
-		/* c__i */{ 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9 },
-		/* c_s_ */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
-		/* c_si */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
-		/* cb__ */{ 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15 },
-		/* cb_i */{ 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15 },
-		/* cbs_ */{ 1, 3, 3, 7, 7, 7, 7, 9, 9, 11, 11, 15, 15, 15, 15 },
-		/* cbsi */{ 1, 3, 3, 7, 7, 7, 7, 9, 9, 11, 11, 15, 15, 15, 15 } };
+			/* ___i */{ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+			/* __s_ */{ 1, 2, 3, 2, 3, 2, 2, 1, 1, 3, 3, 3, 3, 3, 3 },
+			/* __si */{ 1, 3, 3, 3, 3, 3, 3, 1, 1, 3, 3, 3, 3, 3, 3 },
+			/* _b__ */{ 1, 2, 3, 4, 5, 6, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
+			/* _b_i */{ 1, 3, 3, 5, 5, 7, 1, 1, 1, 3, 3, 5, 5, 7, 7 },
+			/* _bs_ */{ 1, 2, 3, 6, 7, 7, 1, 1, 1, 3, 3, 7, 7, 7, 7 },
+			/* _bsi */{ 1, 3, 3, 7, 7, 7, 7, 1, 1, 3, 3, 7, 7, 7, 7 },
+			/* c___ */{ 1, 1, 1, 1, 1, 1, 1, 8, 9, 9, 9, 9, 9, 9, 9 },
+			/* c__i */{ 1, 1, 1, 1, 1, 1, 1, 9, 9, 9, 9, 9, 9, 9, 9 },
+			/* c_s_ */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
+			/* c_si */{ 1, 3, 3, 3, 3, 3, 3, 9, 9, 11, 11, 11, 11, 11, 11 },
+			/* cb__ */{ 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15 },
+			/* cb_i */{ 1, 3, 3, 5, 5, 7, 7, 9, 9, 11, 11, 13, 13, 15, 15 },
+			/* cbs_ */{ 1, 3, 3, 7, 7, 7, 7, 9, 9, 11, 11, 15, 15, 15, 15 },
+			/* cbsi */{ 1, 3, 3, 7, 7, 7, 7, 9, 9, 11, 11, 15, 15, 15, 15 } };
 	/**
 	 * Primitive type int.
 	 */
@@ -491,7 +490,7 @@ public abstract class T implements Element {
 	 */
 	@Nonnull
 	public static final T[] TYPES = new T[] { null, null, null, null, T.BOOLEAN, T.CHAR, T.FLOAT,
-		T.DOUBLE, T.BYTE, T.SHORT, T.INT, T.LONG };
+			T.DOUBLE, T.BYTE, T.SHORT, T.INT, T.LONG };
 
 	@Nonnull
 	public static final T[] INTERFACES_NONE = new T[0];
@@ -703,7 +702,7 @@ public abstract class T implements Element {
 	 */
 	@Nonnull
 	public T[] getEnclosingTs() {
-		final List<T> enclosingTs = new ArrayList<T>();
+		final List<T> enclosingTs = Lists.newArrayList();
 		for (T enclosingT = getEnclosingT(); enclosingT != null; enclosingT = enclosingT
 				.getEnclosingT()) {
 			enclosingTs.add(0, enclosingT);
@@ -759,7 +758,8 @@ public abstract class T implements Element {
 	}
 
 	/**
-	 * Get inner name. Can derive for JVM > 5 from type names (compatibility rules), but not before.<br>
+	 * Get inner name. Can derive for JVM > 5 from type names (compatibility rules), but not before.
+	 * <br>
 	 * <br>
 	 * According to JLS3 "Binary Compatibility" (13.1) the binary name of non-package classes (not
 	 * top level) is the binary name of the immediately enclosing class followed by a '$' followed
@@ -886,7 +886,7 @@ public abstract class T implements Element {
 	 * @return qualifier type path from front to end
 	 */
 	public T[] getQualifierTs() {
-		final List<T> qualifierTs = new ArrayList<T>();
+		final List<T> qualifierTs = Lists.newArrayList();
 		for (T qualifierT = getQualifierT(); qualifierT != null; qualifierT = qualifierT
 				.getQualifierT()) {
 			qualifierTs.add(0, qualifierT);
@@ -1453,7 +1453,8 @@ public abstract class T implements Element {
 	 *
 	 * We mix declaring classes info and enclosing method / classes attribut info.<br>
 	 *
-	 * JVM 5 has enclosing method attribute for local/anonymous, outer info only for declaring outer<br>
+	 * JVM 5 has enclosing method attribute for local/anonymous, outer info only for declaring outer
+	 * <br>
 	 * JVM < 5 has no enclosing method attribute and:<br>
 	 * JVM 1.1 has normal outer info for anonymous/local, like declaring for JVM 5,<br>
 	 * JVM 1.2 .. 1.4 has no outer info at all,<br>

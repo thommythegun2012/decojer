@@ -23,19 +23,20 @@
  */
 package org.decojer.cavaj.model;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import org.decojer.cavaj.model.fields.F;
 import org.decojer.cavaj.model.methods.M;
 import org.decojer.cavaj.model.types.T;
 import org.eclipse.jdt.core.dom.ASTNode;
+
+import com.google.common.collect.Lists;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * Container declaration.
@@ -56,7 +57,7 @@ public abstract class CD {
 	 * Child declarations.
 	 */
 	@Getter
-	private final List<Element> declarations = new ArrayList<Element>(0);
+	private final List<Element> declarations = Lists.newArrayListWithCapacity(0);
 
 	/**
 	 * Clear all decompile infos, e.g. AST nodes.

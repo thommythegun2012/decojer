@@ -45,10 +45,6 @@ import java.util.zip.ZipOutputStream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.methods.ClassM;
 import org.decojer.cavaj.model.methods.M;
@@ -73,6 +69,10 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Decompilation unit.
@@ -827,7 +827,6 @@ public final class DU {
 				if (!name.endsWith(".class")) {
 					continue;
 				}
-				@SuppressWarnings("resource")
 				FileInputStream is = null;
 				try {
 					is = new FileInputStream(entry);
@@ -934,10 +933,9 @@ public final class DU {
 				// load full type declarations from complete package, to complex to decide here if
 				// really not part of the compilation unit
 				// TODO later load all type declarations, but not all bytecode details
-				if (name.endsWith(".class")
-						&& selectorPrefix != null
-						&& (!name.startsWith(selectorPrefix) || name.indexOf('/',
-								selectorPrefix.length()) != -1)) {
+				if (name.endsWith(".class") && selectorPrefix != null
+						&& (!name.startsWith(selectorPrefix)
+								|| name.indexOf('/', selectorPrefix.length()) != -1)) {
 					continue;
 				}
 				try {
