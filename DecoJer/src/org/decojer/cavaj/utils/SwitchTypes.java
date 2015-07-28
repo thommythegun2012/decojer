@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.utils;
 
-import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
@@ -52,6 +51,7 @@ import org.decojer.cavaj.transformers.TrExpressions;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Queues;
 
 /**
  * Static functions for decompiling switch types like switch(char|Enum|String).
@@ -79,7 +79,7 @@ public class SwitchTypes {
 	 */
 	private static boolean executeBbStringHashCond(final BB caseBb, final int stringReg,
 			final int hash, final BB defaultCase, final Map<String, BB> string2bb) {
-		final Deque<Object> stack = new ArrayDeque<Object>();
+		final Deque<Object> stack = Queues.newArrayDeque();
 		String str = null;
 		for (int i = 0; i < caseBb.getOps(); ++i) {
 			final Op op = caseBb.getOp(i);
@@ -158,7 +158,7 @@ public class SwitchTypes {
 			@Nonnull final Map<Integer, String> index2string) {
 		assert defaultCase != null; // prevent warning for now, later check more
 
-		final Deque<Object> stack = new ArrayDeque<Object>();
+		final Deque<Object> stack = Queues.newArrayDeque();
 		for (int i = 0; i < caseBb.getOps(); ++i) {
 			final Op op = caseBb.getOp(i);
 			switch (op.getOptype()) {
@@ -254,9 +254,8 @@ public class SwitchTypes {
 	 * @return case value map: index to string
 	 */
 	@Nullable
-	public static Map<Integer, String> extractIndex2string(
-			@Nonnull final Map<String, BB> string2bb, final int indexReg,
-			@Nonnull final BB defaultCase) {
+	public static Map<Integer, String> extractIndex2string(@Nonnull final Map<String, BB> string2bb,
+			final int indexReg, @Nonnull final BB defaultCase) {
 		final Map<Integer, String> index2string = Maps.newHashMap();
 		for (final Map.Entry<String, BB> string2bbEntry : string2bb.entrySet()) {
 			final String str = string2bbEntry.getKey();
