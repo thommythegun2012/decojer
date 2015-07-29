@@ -15,7 +15,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @Test
-public class TestReadUtils {
+class TestReadUtils {
 
 	private DU du;
 
