@@ -28,8 +28,6 @@ import java.util.List;
 
 import javax.annotation.Nonnull;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.BB;
@@ -59,6 +57,8 @@ import org.eclipse.zest.core.widgets.GraphItem;
 import org.eclipse.zest.core.widgets.GraphNode;
 import org.eclipse.zest.core.widgets.ZestStyles;
 import org.eclipse.zest.layouts.LayoutStyles;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * CFG Viewer.
@@ -135,8 +135,8 @@ public class CfgViewer extends Composite {
 		gridData.verticalAlignment = GridData.FILL;
 		gridData.grabExcessVerticalSpace = true;
 		this.graph.setLayoutData(gridData);
-		this.graph.setLayoutAlgorithm(new HierarchicalLayoutAlgorithm(
-				LayoutStyles.NO_LAYOUT_NODE_RESIZING), true);
+		this.graph.setLayoutAlgorithm(
+				new HierarchicalLayoutAlgorithm(LayoutStyles.NO_LAYOUT_NODE_RESIZING), true);
 		this.graph.addSelectionListener(new SelectionAdapter() {
 
 			@Override
@@ -195,12 +195,13 @@ public class CfgViewer extends Composite {
 				((Polyline) connection.getConnectionFigure()).setAntialias(SWT.ON);
 			}
 			connection.setText(out.getValueString());
+			connection.setData(out); // need data later for view-layouting: back-filtering
 			if (out.isCatch()) {
-				connection.setLineColor(out.isBack() ? ColorConstants.orange
-						: ColorConstants.lightGreen);
+				connection.setLineColor(
+						out.isBack() ? ColorConstants.orange : ColorConstants.lightGreen);
 			} else if (out.isJsr() || out.isRet()) {
-				connection.setLineColor(out.isBack() ? ColorConstants.orange
-						: ColorConstants.darkGreen);
+				connection.setLineColor(
+						out.isBack() ? ColorConstants.orange : ColorConstants.darkGreen);
 			} else if (out.isBack()) {
 				connection.setCurveDepth(50);
 				connection.setLineColor(ColorConstants.red);
