@@ -8,10 +8,10 @@ import java.util.concurrent.RecursiveTask;
 
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.types.T;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-import com.beust.jcommander.internal.Lists;
+import com.google.common.collect.Lists;
 
 class RecursiveRead extends RecursiveTask<Integer> {
 
@@ -25,12 +25,12 @@ class RecursiveRead extends RecursiveTask<Integer> {
 
 	@Override
 	protected Integer compute() {
-		if (!file.exists() || !file.canRead()) {
+		if (!this.file.exists() || !this.file.canRead()) {
 			return null;
 		}
-		if (file.isDirectory()) {
+		if (this.file.isDirectory()) {
 			final List<RecursiveRead> reads = Lists.newArrayList();
-			final File[] listFiles = file.listFiles();
+			final File[] listFiles = this.file.listFiles();
 			if (listFiles != null) {
 				for (final File child : listFiles) {
 					if (!child.exists() || !child.canRead()
@@ -45,7 +45,7 @@ class RecursiveRead extends RecursiveTask<Integer> {
 		}
 		try {
 			final DU du = DecoJer.createDu();
-			final List<T> read = du.read(file.getAbsolutePath());
+			final List<T> read = du.read(this.file.getAbsolutePath());
 			if (read == null || read.isEmpty()) {
 				return null;
 			}
@@ -59,61 +59,60 @@ class RecursiveRead extends RecursiveTask<Integer> {
 				}
 			}
 		} catch (final Throwable e) {
-			throw new RuntimeException("File: " + file + "\n" + e.getMessage(), e);
+			throw new RuntimeException("File: " + this.file + "\n" + e.getMessage(), e);
 		}
 		return null;
 	}
 
 }
 
-@Test(singleThreaded = true)
 // internal parallelization
-class TestDU {
+public class TestDU {
 
-	private File projectFolder;
+	private static File projectFolder;
 
 	@BeforeClass
-	void _beforeClass() throws URISyntaxException {
-		projectFolder = new File(getClass().getResource("TestDU.class").toURI()).getParentFile()
+	public static void _beforeClass() throws URISyntaxException {
+		projectFolder = new File(TestDU.class.getResource("TestDU.class").toURI()).getParentFile()
 				.getParentFile().getParentFile().getParentFile().getParentFile().getParentFile();
 	}
 
-	private void read(final File file) {
+	private static void read(final File file) {
 		final ForkJoinPool pool = new ForkJoinPool(Runtime.getRuntime().availableProcessors());
 		pool.invoke(new RecursiveRead(file));
 	}
 
 	@Test
-	void testBytecodeClosed() {
+	public void testBytecodeClosed() {
 		read(new File(projectFolder, "test_bytecode_closed"));
 	}
 
 	@Test
-	void testBytecodeFree() {
+	public void testBytecodeFree() {
 		read(new File(projectFolder, "test_bytecode_free"));
 	}
 
 	@Test
-	void testBytecodeMaven() {
+	public void testBytecodeMaven() {
 		read(new File("C:/Users/andre/.m2"));
 		read(new File("C:/Users/André Pankraz/.m2"));
 		read(new File("F:/.m2"));
 	}
 
 	@Test
-	void testBytecodeOracle() {
+	public void testBytecodeOracle() {
 		read(new File("C:/Oracle"));
 		read(new File("D:/Oracle"));
 		read(new File("E:/Oracle"));
 	}
 
 	@Test
-	void testDecojerJar() {
-		read(new File(new File(projectFolder, "dex"), "classes.jar"));
+	public void testDecojerJar() {
+		read(new File(new File(projectFolder, "bin_tests/jdk1.6.0_c"), "classes.jar"));
 	}
 
 	@Test
-	void testEclipsePlugins() {
+	public void testEclipsePlugins() {
 		read(new File("D:/Software/eclipse-rcp-luna-SR1-64/plugins"));
 	}
 
