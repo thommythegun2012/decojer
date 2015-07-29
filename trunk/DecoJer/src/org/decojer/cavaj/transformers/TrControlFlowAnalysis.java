@@ -409,7 +409,7 @@ public final class TrControlFlowAnalysis {
 		return true;
 	}
 
-	private static boolean removeEnd(final Set<E> outs, final BB end) {
+	private static boolean removeOutsWithEndFromSet(final Set<E> outs, final BB end) {
 		boolean removed = false;
 		for (final Iterator<E> outIt = outs.iterator(); outIt.hasNext();) {
 			final E out = outIt.next();
@@ -448,6 +448,7 @@ public final class TrControlFlowAnalysis {
 				// was not always in follow (nested finally), but remove always as follow candidate:
 				final BB start = jsr.getStart();
 				final BB end = ret.getEnd();
+				final boolean jsrIsExit = exits.remove(jsr);
 				if (start.isEmpty()) {
 					// start-ins can be exits, but are automatically relocated to end-ins
 					start.moveIns(end);
@@ -455,8 +456,11 @@ public final class TrControlFlowAnalysis {
 					start.setSucc(end); // jsr removed by cleanup
 				}
 				ret.remove();
+				if (jsrIsExit) {
+					exits.addAll(end.getIns());
+				}
 			}
-			removeEnd(exits, subBb);
+			removeOutsWithEndFromSet(exits, subBb);
 
 			final E finallyRet = finallyJsr.getRetOut();
 			assert finallyRet != null;
@@ -630,7 +634,7 @@ public final class TrControlFlowAnalysis {
 				if (catchStruct.hasMember(member)) {
 					continue; // already in
 				}
-				removeEnd(exits, member); // member cannot be an exit
+				removeOutsWithEndFromSet(exits, member); // member cannot be an exit
 				if (catches.size() == 1 || !handlerIn.isFinally()) {
 					// finally catch also contains other handlers, all added seperately
 					catchStruct.addMember(null, member);
@@ -950,7 +954,7 @@ public final class TrControlFlowAnalysis {
 			}
 			final List<BB> members = Lists.newArrayList();
 			if (isFallThrough) { // TODO better check follows.contains(caseBb))?
-				removeEnd(exits, caseBb);
+				removeOutsWithEndFromSet(exits, caseBb);
 				members.add(caseBb);
 			}
 			findBranch(switchStruct, caseOut, members, exits);
