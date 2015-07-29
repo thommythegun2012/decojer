@@ -1,10 +1,10 @@
 package org.decojer.cavaj.model;
 
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertSame;
-import static org.testng.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -19,21 +19,20 @@ import javax.lang.model.element.TypeElement;
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.types.IntersectionT;
 import org.decojer.cavaj.model.types.T;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
-@Test(singleThreaded = true)
-class TestT {
+public class TestT {
 
-	private DU du;
+	private static DU du;
 
 	@BeforeClass
-	void _beforeClass() {
+	public static void _beforeClass() {
 		du = DecoJer.createDu();
 	}
 
 	@Test
-	void assignTo() {
+	public void assignTo() {
 		assertSame(T.INT.assignTo(T.INT), T.INT);
 		// allowed in JVM: assertNull(T.INT.assignTo(T.BYTE));
 		assertSame(T.BYTE.assignTo(T.INT), T.BYTE);
@@ -57,7 +56,7 @@ class TestT {
 	}
 
 	@Test
-	void getComponentT() {
+	public void getComponentT() {
 		assertSame(int[].class.getComponentType(), int.class);
 		assertSame(du.getT(int[].class).getComponentT(), T.INT);
 
@@ -75,20 +74,21 @@ class TestT {
 	}
 
 	@Test
-	void getEnclosingT() {
-		T t = du.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;");
+	public void getEnclosingT() {
+		T t = du.getDescT(
+				"Lorg/pushingpixels/trident/TimelinePropertyBuilder<TT;>.AbstractFieldInfo<Ljava/lang/Object;>;");
 		assertEquals(t.toString(),
 				"org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo<java.lang.Object>");
 		assertEquals(t.getQualifierT().toString(),
 				"org.pushingpixels.trident.TimelinePropertyBuilder<T>");
 		assertEquals(t.getName(),
 				"org.pushingpixels.trident.TimelinePropertyBuilder$AbstractFieldInfo");
-		assertTrue(t.eraseTo(du
-				.getDescT("Lorg/pushingpixels/trident/TimelinePropertyBuilder$AbstractFieldInfo;")));
+		assertTrue(t.eraseTo(du.getDescT(
+				"Lorg/pushingpixels/trident/TimelinePropertyBuilder$AbstractFieldInfo;")));
 	}
 
 	@Test
-	void getInterfaceTs() {
+	public void getInterfaceTs() {
 		assertEquals(int.class.getInterfaces().length, 0);
 		assertEquals(T.INT.getInterfaceTs().length, 0);
 
@@ -119,7 +119,7 @@ class TestT {
 	}
 
 	@Test
-	void getJvmIntT() {
+	public void getJvmIntT() {
 		assertSame(T.getJvmIntT(Short.MIN_VALUE - 1), T.INT);
 		assertSame(T.getJvmIntT(Short.MIN_VALUE), T.SHORT);
 		assertSame(T.getJvmIntT(Byte.MIN_VALUE - 1), T.SHORT);
@@ -137,7 +137,7 @@ class TestT {
 	}
 
 	@Test
-	void getName() {
+	public void getName() {
 		assertEquals(int.class.getName(), "int");
 		assertEquals(du.getT(int.class).getName(), "int");
 
@@ -158,18 +158,18 @@ class TestT {
 	}
 
 	@Test
-	void getPName() {
+	public void getPName() {
 		assertEquals(du.getT(Map.Entry.class).getPName(), "Map$Entry");
 	}
 
 	@Test
-	void getSimpleName() {
+	public void getSimpleName() {
 		assertEquals(Map.Entry.class.getSimpleName(), "Entry");
 		assertEquals(du.getT(Map.Entry.class).getSimpleName(), "Entry");
 	}
 
 	@Test
-	void getSuperT() {
+	public void getSuperT() {
 		assertNull(int.class.getSuperclass());
 		assertNull(T.INT.getSuperT());
 		assertNull(byte.class.getSuperclass());
@@ -190,7 +190,7 @@ class TestT {
 	}
 
 	@Test
-	void getTypeParameters() {
+	public void getTypeParameters() {
 		assertEquals(int.class.getTypeParameters().length, 0);
 		assertEquals(T.INT.getTypeParams().length, 0);
 
@@ -208,7 +208,7 @@ class TestT {
 	}
 
 	@Test
-	void intersect() {
+	public void intersect() {
 		assertSame(T.intersect(T.INT, T.INT), T.INT);
 		assertSame(T.intersect(T.SHORT, T.SHORT), T.SHORT);
 		assertSame(T.intersect(T.BYTE, T.BYTE), T.BYTE);
@@ -265,12 +265,10 @@ class TestT {
 		assertSame(T.intersect(du.getT(TypeElement.class), du.getT(Element.class)),
 				du.getT(Element.class));
 
-		assertSame(
-				T.intersect(du.getT(javax.swing.JComponent.class),
-						du.getT(javax.swing.MenuElement.class)), du.getObjectT());
-		assertSame(
-				T.intersect(du.getT(javax.swing.MenuElement.class),
-						du.getT(javax.swing.JComponent.class)), du.getObjectT());
+		assertSame(T.intersect(du.getT(javax.swing.JComponent.class),
+				du.getT(javax.swing.MenuElement.class)), du.getObjectT());
+		assertSame(T.intersect(du.getT(javax.swing.MenuElement.class),
+				du.getT(javax.swing.JComponent.class)), du.getObjectT());
 
 		T t = T.intersect(du.getT(Integer.class), du.getT(Long.class));
 		assertSame(t.getSuperT(), du.getT(Number.class));
@@ -302,13 +300,12 @@ class TestT {
 		t = T.intersect(du.getT(ArrayList.class), du.getT(Vector.class));
 		assertTrue(t.isIntersection());
 		// TODO java.util.List is too much, reduce!
-		assertEquals(
-				t.getName(),
+		assertEquals(t.getName(),
 				"{java.util.AbstractList,java.util.List,java.util.RandomAccess,java.lang.Cloneable,java.io.Serializable}");
 	}
 
 	@Test
-	void is() {
+	public void is() {
 		assertTrue(T.AINT.is(T.INT, T.CHAR));
 		assertFalse(T.AINT.is(T.INT, T.FLOAT));
 		assertTrue(du.getObjectT().is(du.getObjectT()));
@@ -317,7 +314,7 @@ class TestT {
 	}
 
 	@Test
-	void isArray() {
+	public void isArray() {
 		assertFalse(int.class.isArray());
 		assertFalse(T.INT.isArray());
 
@@ -335,7 +332,7 @@ class TestT {
 	}
 
 	@Test
-	void isAssignableFrom() {
+	public void isAssignableFrom() {
 		assertTrue(int.class.isAssignableFrom(int.class));
 		assertTrue(T.INT.isAssignableFrom(T.INT));
 
@@ -440,7 +437,7 @@ class TestT {
 	}
 
 	@Test
-	void isInterface() {
+	public void isInterface() {
 		assertFalse(Object.class.isInterface());
 		assertFalse(du.getObjectT().isInterface());
 		assertFalse(int.class.isInterface());
@@ -454,7 +451,7 @@ class TestT {
 	}
 
 	@Test
-	void isMulti() {
+	public void isMulti() {
 		assertFalse(T.INT.isMulti());
 		assertFalse(T.VOID.isMulti());
 		assertFalse(T.REF.isMulti());
@@ -466,7 +463,7 @@ class TestT {
 	}
 
 	@Test
-	void isObject() {
+	public void isObject() {
 		assertTrue(du.getObjectT().isObject());
 		assertFalse(T.INT.isObject());
 		assertFalse(du.getT(String.class).isObject());
@@ -474,7 +471,7 @@ class TestT {
 	}
 
 	@Test
-	void isPrimitive() {
+	public void isPrimitive() {
 		assertTrue(int.class.isPrimitive());
 		assertTrue(T.INT.isPrimitive());
 
@@ -486,7 +483,7 @@ class TestT {
 	}
 
 	@Test
-	void isUnresolvable() {
+	public void isUnresolvable() {
 		assertFalse(du.getObjectT().isUnresolvable());
 		assertFalse(T.INT.isUnresolvable());
 		assertFalse(T.VOID.isUnresolvable());
@@ -496,7 +493,7 @@ class TestT {
 	}
 
 	@Test
-	void union() {
+	public void union() {
 		assertSame(T.union(T.INT, T.INT), T.INT);
 		assertSame(T.union(T.LONG, T.DOUBLE), T.WIDE);
 	}

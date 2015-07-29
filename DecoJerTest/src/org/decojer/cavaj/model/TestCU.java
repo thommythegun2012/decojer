@@ -10,12 +10,12 @@ import org.eclipse.jdt.core.ToolFactory;
 import org.eclipse.jdt.core.formatter.CodeFormatter;
 import org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.eclipse.text.edits.TextEdit;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
-class TestCU {
+public class TestCU {
 
 	@Test
-	void testBytecodeClosed() throws IOException {
+	public void testBytecodeClosed() throws IOException {
 		StringBuffer src = new StringBuffer();
 		for (String line : Files.readAllLines(Paths.get(
 				"D:/Data/Decomp/workspace/DecoJerTest/src/org/decojer/cavaj/model/reformatExample.txt"))) {

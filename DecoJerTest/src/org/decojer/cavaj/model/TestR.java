@@ -1,30 +1,29 @@
 package org.decojer.cavaj.model;
 
-import static org.testng.Assert.assertSame;
-import static org.testng.Assert.assertTrue;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.types.T;
-import org.testng.annotations.Test;
+import org.junit.Test;
 
-@Test(singleThreaded = true)
-class TestR {
+public class TestR {
 
 	@Test
-	void isMethodParam() {
+	public void isMethodParam() {
 		R r = R.createConstR(0, 1, T.INT, null);
 
 		assertTrue(r.isMethodParam());
 	}
 
 	@Test
-	void properties() {
+	public void properties() {
 		R r = R.createConstR(1, 1, T.INT, null);
 
-		assertSame(r.getPc(), 1);
-		assertSame(r.getT(), T.INT);
-		assertSame(r.getKind(), Kind.CONST);
+		assertSame(1, r.getPc());
+		assertSame(T.INT, r.getT());
+		assertSame(Kind.CONST, r.getKind());
 	}
 
 }
