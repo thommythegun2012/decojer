@@ -16,7 +16,7 @@
 
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- * 
+ *
  * In accordance with Section 7(b) of the GNU Affero General Public License,
  * a covered work must retain the producer line in every Java Source Code
  * that is created using DecoJer.
@@ -26,7 +26,7 @@ package org.decojer.editor.eclipse.cfg;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 
-import org.eclipse.draw2d.ColorConstants;
+import org.decojer.cavaj.model.code.E;
 import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.graph.DirectedGraph;
 import org.eclipse.draw2d.graph.DirectedGraphLayout;
@@ -40,14 +40,14 @@ import org.eclipse.zest.layouts.dataStructures.InternalRelationship;
 
 /**
  * Hierarchical layout algorithm for visualizing the Control Flow Graph.
- * 
+ *
  * @author André Pankraz
  */
 public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 
 	/**
 	 * Constructor.
-	 * 
+	 *
 	 * @param styles
 	 *            LayoutStyles
 	 */
@@ -65,27 +65,20 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 		final DirectedGraph graph = new DirectedGraph();
 		for (final InternalNode internalNode : entitiesToLayout) {
 			final Node node = new Node(internalNode);
-			node.setSize(new Dimension((int) internalNode.getWidthInLayout(), (int) internalNode
-					.getHeightInLayout()));
+			node.setSize(new Dimension((int) internalNode.getWidthInLayout(),
+					(int) internalNode.getHeightInLayout()));
 			mapping.put(internalNode, node);
 			graph.nodes.add(node);
 		}
 		for (final InternalRelationship relationship : relationshipsToConsider) {
 			final Node source = mapping.get(relationship.getSource());
 			final Node dest = mapping.get(relationship.getDestination());
+			final GraphConnection connection = (GraphConnection) relationship
+					.getLayoutRelationship().getGraphData();
 			// this algorithm cannot handle cycles, ignore them here...
-			if (((GraphConnection) relationship.getLayoutRelationship().getGraphData())
-					.getLineColor() == ColorConstants.red) {
+			if (((E) connection.getData()).isBack()) {
 				continue;
 			}
-			// alternative way...
-			/*
-			 * final int sourcePostorder = ((BB) ((GraphNode) relationship
-			 * .getSource().getLayoutEntity().getGraphData()).getData()) .getPostorder(); final int
-			 * destPostorder = ((BB) ((GraphNode) relationship
-			 * .getDestination().getLayoutEntity().getGraphData()) .getData()).getPostorder(); if
-			 * (sourcePostorder <= destPostorder) { continue; }
-			 */
 			final Edge edge = new Edge(relationship, source, dest);
 			graph.edges.add(edge);
 		}
@@ -108,13 +101,11 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 
 	@Override
 	protected int getCurrentLayoutStep() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
 	@Override
 	protected int getTotalNumberOfLayoutSteps() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 
@@ -126,23 +117,20 @@ public class HierarchicalLayoutAlgorithm extends AbstractLayoutAlgorithm {
 	@Override
 	protected void postLayoutAlgorithm(final InternalNode[] entitiesToLayout,
 			final InternalRelationship[] relationshipsToConsider) {
-		// TODO Auto-generated method stub
-
+		// nothing
 	}
 
 	@Override
 	protected void preLayoutAlgorithm(final InternalNode[] entitiesToLayout,
 			final InternalRelationship[] relationshipsToConsider, final double x, final double y,
 			final double width, final double height) {
-		// TODO Auto-generated method stub
-
+		// nothing
 	}
 
 	@Override
 	public void setLayoutArea(final double x, final double y, final double width,
 			final double height) {
-		// TODO Auto-generated method stub
-
+		// nothing
 	}
 
 }
