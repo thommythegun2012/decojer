@@ -12,14 +12,13 @@ import org.eclipse.jdt.core.formatter.DefaultCodeFormatterConstants;
 import org.eclipse.text.edits.TextEdit;
 import org.testng.annotations.Test;
 
-public class TestCU {
+class TestCU {
 
 	@Test
 	void testBytecodeClosed() throws IOException {
 		StringBuffer src = new StringBuffer();
-		for (String line : Files
-				.readAllLines(Paths
-						.get("D:/Data/Decomp/workspace/DecoJerTest/src/org/decojer/cavaj/model/reformatExample.txt"))) {
+		for (String line : Files.readAllLines(Paths.get(
+				"D:/Data/Decomp/workspace/DecoJerTest/src/org/decojer/cavaj/model/reformatExample.txt"))) {
 			src.append(line);
 		}
 		String source = src.toString();

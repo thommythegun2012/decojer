@@ -6,8 +6,6 @@ import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.RecursiveTask;
 
-import lombok.extern.slf4j.Slf4j;
-
 import org.decojer.DecoJer;
 import org.decojer.cavaj.model.types.T;
 import org.testng.annotations.BeforeClass;
@@ -15,7 +13,6 @@ import org.testng.annotations.Test;
 
 import com.beust.jcommander.internal.Lists;
 
-@Slf4j
 class RecursiveRead extends RecursiveTask<Integer> {
 
 	private static final long serialVersionUID = 8190020749500945009L;

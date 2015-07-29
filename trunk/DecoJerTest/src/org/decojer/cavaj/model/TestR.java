@@ -3,22 +3,13 @@ package org.decojer.cavaj.model;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 
-import org.decojer.DecoJer;
 import org.decojer.cavaj.model.code.R;
 import org.decojer.cavaj.model.code.R.Kind;
 import org.decojer.cavaj.model.types.T;
-import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 @Test(singleThreaded = true)
 class TestR {
-
-	private DU du;
-
-	@BeforeClass
-	void _beforeClass() {
-		du = DecoJer.createDu();
-	}
 
 	@Test
 	void isMethodParam() {
