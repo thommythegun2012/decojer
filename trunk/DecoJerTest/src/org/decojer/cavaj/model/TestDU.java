@@ -93,13 +93,6 @@ public class TestDU {
 	}
 
 	@Test
-	public void testBytecodeMaven() {
-		read(new File("C:/Users/andre/.m2"));
-		read(new File("C:/Users/André Pankraz/.m2"));
-		read(new File("F:/.m2"));
-	}
-
-	@Test
 	public void testBytecodeOracle() {
 		read(new File("C:/Oracle"));
 		read(new File("D:/Oracle"));
@@ -107,13 +100,25 @@ public class TestDU {
 	}
 
 	@Test
-	public void testDecojerJar() {
-		read(new File(new File(projectFolder, "bin_tests/jdk1.6.0_c"), "classes.jar"));
+	public void testDecojerBin() {
+		read(new File(projectFolder, "bin"));
+	}
+
+	@Test
+	public void testDecojerBinTests() {
+		read(new File(projectFolder, "bin_tests"));
 	}
 
 	@Test
 	public void testEclipsePlugins() {
-		read(new File("D:/Software/eclipse-rcp-luna-SR1-64/plugins"));
+		read(new File("D:/Data/Decomp/eclipse-rcp-mars/plugins"));
+	}
+
+	@Test
+	public void testMavenRepositories() {
+		read(new File("C:/Users/andre/.m2"));
+		read(new File("C:/Users/André Pankraz/.m2"));
+		read(new File("F:/.m2"));
 	}
 
 }
