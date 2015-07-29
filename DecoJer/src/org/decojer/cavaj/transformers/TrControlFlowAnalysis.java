@@ -33,10 +33,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.E;
@@ -65,6 +61,10 @@ import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Transformer: Control Flow Analysis.
@@ -189,7 +189,8 @@ public final class TrControlFlowAnalysis {
 			}
 			if (iCatch.isFinally()) {
 				// check later if unhandled finally is conform to unhandled catches
-				if (unhandledFinally == null || unhandledFinally.getEnd().hasSucc(iCatch.getEnd())) {
+				if (unhandledFinally == null
+						|| unhandledFinally.getEnd().hasSucc(iCatch.getEnd())) {
 					unhandledFinally = iCatch;
 				}
 				continue;
@@ -260,8 +261,8 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			final BB pred = in.getStart();
-			for (Struct struct = pred.getStruct(); struct != null && struct.getHead() == bb; struct = struct
-					.getParent()) {
+			for (Struct struct = pred.getStruct(); struct != null
+					&& struct.getHead() == bb; struct = struct.getParent()) {
 				// iterate through parent structs, loop and catch heads can alternate
 				if (struct instanceof Loop
 						&& (!((Loop) struct).isPost() || ((Loop) struct).hasLast(pred))) {
@@ -400,7 +401,8 @@ public final class TrControlFlowAnalysis {
 		// handler already handled in outer struct?
 		for (Struct struct = findHandler.getStruct(); struct != null; struct = struct.getParent()) {
 			// member-catch-values T[] are usually same for same handlers, see DataFlowAnalysis
-			if (struct instanceof Catch && ((Catch) struct).hasHandler(findCatchTypes, findHandler)) {
+			if (struct instanceof Catch
+					&& ((Catch) struct).hasHandler(findCatchTypes, findHandler)) {
 				return false; // this handler is already handled, skip this catch
 			}
 		}
@@ -518,8 +520,8 @@ public final class TrControlFlowAnalysis {
 	private boolean checkBranching(@Nonnull final Struct struct, @Nonnull final E exit) {
 		boolean defaultBreakableConsumed = false;
 		final BB bb = exit.getEnd();
-		for (Struct followStruct = struct.getParent(); followStruct != null; followStruct = followStruct
-				.getParent()) {
+		for (Struct followStruct = struct
+				.getParent(); followStruct != null; followStruct = followStruct.getParent()) {
 			if (!followStruct.hasBreakTarget(bb) && !followStruct.hasContinueTarget(bb)) {
 				if (followStruct.isDefaultBreakable()) {
 					// none-labeled break/continue not possible anymore
@@ -566,13 +568,14 @@ public final class TrControlFlowAnalysis {
 	}
 
 	@Nonnull
-	private Block createBlockStruct(@Nonnull final Struct enclosedStruct, @Nonnull final BB follow) {
+	private Block createBlockStruct(@Nonnull final Struct enclosedStruct,
+			@Nonnull final BB follow) {
 		// assume proper follow...go up untill we find some
 		Struct childStruct = enclosedStruct;
 
 		for (Struct parent = childStruct.getParent(); parent != null && !parent.hasMember(follow)
-				&& !parent.hasFollow(follow) && parent.getFollow() != null; parent = childStruct
-				.getParent()) {
+				&& !parent.hasFollow(follow)
+				&& parent.getFollow() != null; parent = childStruct.getParent()) {
 			childStruct = parent;
 		}
 		if (childStruct.getParent() instanceof Block && childStruct.getParent().hasFollow(follow)) {
@@ -596,8 +599,8 @@ public final class TrControlFlowAnalysis {
 
 		block.setFollow(follow);
 
-		block.setLabel(block.getDefaultLabelName()
-				+ (this.labelCounter++ == 0 ? "" : this.labelCounter));
+		block.setLabel(
+				block.getDefaultLabelName() + (this.labelCounter++ == 0 ? "" : this.labelCounter));
 		return block;
 	}
 
@@ -761,7 +764,7 @@ public final class TrControlFlowAnalysis {
 			if (!found) {
 				assert false : "cannot have a loop back BB that is not in reverse branch";
 
-			log.warn(getM() + ": cannot have a loop back BB that is not in reverse branch");
+				log.warn(getM() + ": cannot have a loop back BB that is not in reverse branch");
 			}
 			if (last == null || last.hasSourceBefore(backBb)) {
 				last = backBb;
@@ -928,6 +931,7 @@ public final class TrControlFlowAnalysis {
 						if (--hack <= 0) {
 							assert false : "Switch endless loop?";
 							log.warn(getM() + ": Switch endless loop?");
+							break cases;
 						}
 						head.moveOut(i--, caseOuts.size() - 1);
 						continue cases;
@@ -1056,7 +1060,7 @@ public final class TrControlFlowAnalysis {
 				continue;
 			}
 			final BB findFollow = exit.getEnd();
-			assert !struct.hasMember(findFollow);
+			assert!struct.hasMember(findFollow);
 			if (follow == null) {
 				follow = findFollow;
 				continue;
