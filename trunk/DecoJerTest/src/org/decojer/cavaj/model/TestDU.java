@@ -15,7 +15,7 @@ import com.beust.jcommander.internal.Lists;
 
 class RecursiveRead extends RecursiveTask<Integer> {
 
-	private static final long serialVersionUID = 8190020749500945009L;
+	private static final long serialVersionUID = 1L;
 
 	private File file;
 
