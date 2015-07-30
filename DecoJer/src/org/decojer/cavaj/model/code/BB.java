@@ -1102,7 +1102,7 @@ public final class BB {
 	@Nonnull
 	public Expression pop() {
 		if (this.top <= 0) {
-			throw new IndexOutOfBoundsException("Stack is empty!");
+			throw new DecoJerException(getCfg() + ": Stack is empty for: " + this);
 		}
 		final Expression e = this.vs[getRegs() + --this.top];
 		assert e != null;
