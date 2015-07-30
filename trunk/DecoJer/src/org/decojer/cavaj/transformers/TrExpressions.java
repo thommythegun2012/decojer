@@ -1785,6 +1785,7 @@ public final class TrExpressions {
 				if (!pullStackValue(bb)) {
 					return false;
 				}
+				continue;
 			}
 			final Op op = bb.removeOp(0);
 			switch (op.getOptype()) {
