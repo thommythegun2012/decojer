@@ -449,16 +449,17 @@ public final class TrControlFlowAnalysis {
 				final BB start = jsr.getStart();
 				final BB end = ret.getEnd();
 				final boolean jsrIsExit = exits.remove(jsr);
+				// jsr edge removed automatically be following operations
 				if (start.isEmpty()) {
-					// start-ins can be exits, but are automatically relocated to end-ins
+					// start-ins can be exits, but are automatically relocated as end-ins exits
 					start.moveIns(end);
 				} else {
-					start.setSucc(end); // jsr removed by cleanup
+					final E succ = start.setSucc(end);
+					if (jsrIsExit) {
+						exits.add(succ);
+					}
 				}
-				ret.remove();
-				if (jsrIsExit) {
-					exits.addAll(end.getIns());
-				}
+				ret.remove(); // must remove, end-incomings are not modified by previous operations
 			}
 			removeOutsWithEndFromSet(exits, subBb);
 

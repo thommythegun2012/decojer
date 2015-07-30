@@ -498,8 +498,8 @@ public final class BB {
 	}
 
 	/**
-	 * Get incoming edge with smallest postorder (lower the graph).
-	 *
+	 * Get incoming edge with smallest postorder (lower the graph).<br>
+	 * <br>
 	 * Ignore self-loops, self-catches etc.!
 	 *
 	 * @return incoming edge with smallest postorder (lower the graph)
@@ -843,10 +843,10 @@ public final class BB {
 	}
 
 	/**
-	 * Is BB relevant?
-	 *
-	 * None-empty BBs which are not single GOTO operations (after CFG building) are relevant.
-	 *
+	 * Is BB relevant?<br>
+	 * <br>
+	 * None-empty BBs which are not single GOTO operations (after CFG building) are relevant.<br>
+	 * <br>
 	 * We could exclude this BBs in CFG building, but may be they are an interesting info for
 	 * decompiling structures.
 	 *
@@ -926,10 +926,10 @@ public final class BB {
 	}
 
 	/**
-	 * Copy content and ins from predecessor BB, which will be deleted in this process.<br>
-	 *
+	 * Copy content and ins from predecessor BB, which will be removed in this process.<br>
+	 * <br>
 	 * This will change the PC and hence the hashcode! Remove from sets before doing this.<br>
-	 *
+	 * <br>
 	 * This is easier for root-to-end expression transformation then joinSuccBb(), because the
 	 * currently handled BB doesn't change in the transformation loop.
 	 *
@@ -963,7 +963,7 @@ public final class BB {
 		}
 		setPc(bb.getPc());
 		setPostorder(bb.getPostorder());
-		// remember current ins, removing them now would delete this node
+		// remember current ins, removing them now would remove this node
 		final List<E> clearIns = Lists.newArrayList(this.ins);
 		this.ins.clear();
 		for (final E in : bb.ins) {
@@ -978,8 +978,8 @@ public final class BB {
 	}
 
 	/**
-	 * Copy content and outs from successor BB, which will be deleted in this process.<br>
-	 *
+	 * Copy content and outs from successor BB, which will be removed in this process.<br>
+	 * <br>
 	 * The advantage of this method is, that it doesn't change the PC and hence the hashcode!
 	 *
 	 * @param bb
@@ -1006,7 +1006,7 @@ public final class BB {
 			System.arraycopy(bb.vs, getRegs(), this.vs, getRegs() + this.top, bb.top);
 			this.top += bb.top;
 		}
-		// remember current outs, removing them now would delete follow nodes
+		// remember current outs, removing them now would remove follow nodes
 		final List<E> clearOuts = Lists.newArrayList(this.outs);
 		this.outs.clear();
 		for (final E out : bb.outs) {
@@ -1021,9 +1021,11 @@ public final class BB {
 	}
 
 	/**
-	 * Move all incoming edges to the given target BB. The BB will be deleted in this process.<br>
-	 *
-	 * This operation is used for empty nodes and target BB is often the direct sequence successor.
+	 * Move all incoming edges to the given target BB. These edges will be added to the target BBs
+	 * incoming edges! The BB will be removed in this process.<br>
+	 * <br>
+	 * This operation is used for empty nodes and target BB is often the direct sequence successor,
+	 * but not always (e.g. for Jsr-Ret-Collapsing).
 	 *
 	 * @param targetBb
 	 *            target BB
@@ -1039,7 +1041,7 @@ public final class BB {
 			assert in != null;
 			targetBb.addIn(in);
 		}
-		this.ins.clear(); // necessary, all incomings are relocated, don't remove!
+		this.ins.clear(); // necessary, all incomings are relocated, don't trigger remove!
 		if (isStartBb()) {
 			// could happen by initial GOTO
 			this.cfg.setBb(0, targetBb);
@@ -1146,12 +1148,14 @@ public final class BB {
 		assert!isStartBb();
 		for (int i = this.outs.size(); i-- > 0;) {
 			final E e = this.outs.get(i);
+			// is like e.remove(), just much faster this way
 			e.getEnd().removeIn(e);
 			e.setStart(null);
 		}
 		this.outs.clear();
 		for (int i = this.ins.size(); i-- > 0;) {
 			final E e = this.ins.get(i);
+			// is like e.remove(), just much faster this way
 			e.setEnd(null);
 			e.getStart().removeOut(e);
 		}
@@ -1318,8 +1322,8 @@ public final class BB {
 	}
 
 	/**
-	 * Split off predecessor BB.
-	 *
+	 * Split off predecessor BB.<br>
+	 * <br>
 	 * Necessary for CFG building, we must preserve "this" for new found backloops into same BB.
 	 *
 	 * @param pc
