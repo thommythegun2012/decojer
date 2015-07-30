@@ -443,12 +443,17 @@ public final class TrControlFlowAnalysis {
 				if (jsr == finallyJsr) {
 					continue;
 				}
+				// was not always in exits (nested finally), but remove always as follow candidate:
+				final boolean jsrIsExit = exits.remove(jsr);
+
 				final E ret = jsr.getRetOut();
-				assert ret != null;
-				// was not always in follow (nested finally), but remove always as follow candidate:
+				if (ret == null) {
+					// no ret is possible, e.g. while-loop with nested finally (Sub with back edge)
+					jsr.remove();
+					continue;
+				}
 				final BB start = jsr.getStart();
 				final BB end = ret.getEnd();
-				final boolean jsrIsExit = exits.remove(jsr);
 				// jsr edge removed automatically be following operations
 				if (start.isEmpty()) {
 					// start-ins can be exits, but are automatically relocated as end-ins exits
@@ -461,19 +466,21 @@ public final class TrControlFlowAnalysis {
 				}
 				ret.remove(); // must remove, end-incomings are not modified by previous operations
 			}
-			removeOutsWithEndFromSet(exits, subBb);
-
-			final E finallyRet = finallyJsr.getRetOut();
-			assert finallyRet != null;
-
 			// add finally nodes as members
 			final List<BB> handlerMembers = Lists.newArrayList();
 			findBranch(catchStruct, finallyJsr, handlerMembers, exits);
 			catchStruct.addMembers(finallyHandler.getIns().get(0).getValue(), handlerMembers);
 
-			final BB end = finallyRet.getEnd();
-			assert end.getIns().size() == 1;
-			finallyRet.getStart().joinSuccBb(end); // retOut collapse
+			// remove here, could have been added again by findBranch with back edge
+			exits.remove(finallyJsr);
+
+			final E finallyRet = finallyJsr.getRetOut();
+			if (finallyRet != null) {
+				// no ret is possible, e.g. while-loop with nested finally (Sub with back edge)
+				final BB end = finallyRet.getEnd();
+				assert end.getIns().size() == 1;
+				finallyRet.getStart().joinSuccBb(end); // retOut collapse
+			}
 			finallyHandler.setPostorder(subBb.getPostorder());
 			finallyHandler.joinSuccBb(subBb); // jsrOut collapse
 			return true;
@@ -1070,7 +1077,7 @@ public final class TrControlFlowAnalysis {
 				follow = findFollow;
 				continue;
 			}
-			if (findFollow.hasSourceBefore(follow)) {
+			if (follow != findFollow && findFollow.hasSourceBefore(follow)) {
 				createBlockStruct(struct, follow);
 				follow = findFollow;
 			}

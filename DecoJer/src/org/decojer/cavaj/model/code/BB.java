@@ -765,8 +765,8 @@ public final class BB {
 	}
 
 	/**
-	 * Has this BB it's source code before the given BB (or same)?
-	 *
+	 * Has this BB it's source code before the given BB (or same)?<br>
+	 * <br>
 	 * This may not be 100% correct if no line number info is available (e.g. Dalvik bytecode
 	 * reorders PCs), but the natural BB order is regarded.
 	 *
