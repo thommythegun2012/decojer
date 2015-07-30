@@ -1294,7 +1294,7 @@ public final class TrExpressions {
 			final PrefixExpression prefixExpression = getAst().newPrefixExpression();
 			prefixExpression.setOperator(operator == InfixExpression.Operator.MINUS
 					? PrefixExpression.Operator.DECREMENT : PrefixExpression.Operator.INCREMENT);
-			prefixExpression.setOperand(bb.pop());
+			prefixExpression.setOperand(wrap(bb.pop(), Priority.PREFIX_OR_POSTFIX));
 			bb.push(prefixExpression);
 			return true;
 		}
