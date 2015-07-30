@@ -49,6 +49,7 @@ import javax.annotation.Nullable;
 
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.A;
+import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.Container;
 import org.decojer.cavaj.model.Element;
 import org.decojer.cavaj.model.code.BB;
@@ -1715,7 +1716,7 @@ public final class TrExpressions {
 
 	private boolean transformOperations(@Nonnull final BB bb) {
 		while (bb.getOps() > 0) {
-			while (isStackUnderflow(bb)) {
+			if (isStackUnderflow(bb)) {
 				while (rewriteCompoundConditional(bb)) {
 					// nested possible
 				} // ...now continue to pull generated stack value down...
@@ -2181,14 +2182,15 @@ public final class TrExpressions {
 										+ expression.getClass() + "' with value: " + expression);
 						break;
 					}
-					if (expression instanceof ThisExpression) {
+					if (expression instanceof ThisExpression && !m.getAf(AF.PRIVATE)) {
 						final SuperMethodInvocation superMethodInvocation = getAst()
 								.newSuperMethodInvocation();
 						superMethodInvocation.setName(newSimpleName(m.getName(), getAst()));
 						wrapAddAll(superMethodInvocation.arguments(), arguments);
 						methodExpression = superMethodInvocation;
 					} else {
-						// could be private method call in same object, nothing special in syntax
+						// could be private method call in same object, nothing special in syntax,
+						// just used together with "this."
 						final MethodInvocation methodInvocation = getAst().newMethodInvocation();
 						methodInvocation.setExpression(wrap(expression, Priority.METHOD_CALL));
 						methodInvocation.setName(newSimpleName(m.getName(), getAst()));

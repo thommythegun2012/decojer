@@ -33,16 +33,16 @@ import java.util.Map.Entry;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.decojer.cavaj.model.code.BB;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Struct.
@@ -102,7 +102,7 @@ public class Struct {
 	 */
 	public boolean addMember(@Nullable final Object value, @Nonnull final BB bb) {
 		assert bb != this.head : "Cannot add head as struct member for: " + bb;
-		assert !bb.isRemoved() : "Cannot add removed node as member to: " + bb;
+		assert!bb.isRemoved() : "Cannot add removed node as member to: " + bb;
 
 		List<BB> members = this.value2members.get(value);
 		if (members == null) {
@@ -237,8 +237,8 @@ public class Struct {
 	}
 
 	/**
-	 * Has this struct the given BB as follow?
-	 *
+	 * Has this struct the given BB as follow?<br>
+	 * <br>
 	 * Only such nodes are potential break targets.
 	 *
 	 * @param bb
@@ -298,7 +298,7 @@ public class Struct {
 
 	/**
 	 * Is this struct per default breakable without a label?<br>
-	 *
+	 * <br>
 	 * Loops and Switch-Cases (besides last) actually need breaks to escape these structures, but
 	 * they dont need a label.
 	 *
@@ -316,7 +316,7 @@ public class Struct {
 	 * @return {@code true} - removed given BB
 	 */
 	public boolean removeMember(final BB bb) {
-		assert !hasHead(bb);
+		assert!hasHead(bb);
 		for (final Map.Entry<Object, List<BB>> members : this.value2members.entrySet()) {
 			if (members.getValue().remove(bb)) {
 				if (members.getValue().isEmpty()) {
@@ -362,7 +362,7 @@ public class Struct {
 				} else {
 					log.warn("Cannot change follow to BB" + bb.getPc() + " for struct:\n" + this);
 					assert bb.isSubHead() : "Cannot change follow to BB" + bb.getPc()
-					+ " for struct:\n" + this;
+							+ " for struct:\n" + this;
 				}
 			}
 		}
@@ -408,9 +408,8 @@ public class Struct {
 				break;
 			}
 			if (entry.getKey() != null) {
-				sb.append(
-						entry.getKey() instanceof Object[] ? Arrays.toString((Object[]) entry
-								.getKey()) : entry.getKey()).append(": ");
+				sb.append(entry.getKey() instanceof Object[]
+						? Arrays.toString((Object[]) entry.getKey()) : entry.getKey()).append(": ");
 			}
 			if (entry.getValue().size() > 20) {
 				sb.append(entry.getValue().size()).append(" BBs");
