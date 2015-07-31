@@ -310,7 +310,7 @@ public final class TrControlFlowAnalysis {
 		if (catchIn == null || !catchIn.isFinally()) {
 			return false;
 		}
-		if (bb.getStmts() != 1) {
+		if (bb.getStmts() != 2) {
 			// sync still in here, is deleted later
 			return false;
 		}
@@ -1015,7 +1015,9 @@ public final class TrControlFlowAnalysis {
 				// gotcha! kill all exits, they are encoded in struct now
 
 				if (handleSyncFinally(checkBb)) {
-					// typical default finally-exit catch-handler is removed completely
+					// typical default finally-exit catch-handler is removed completely:
+					// checKBb == finally can happen, if there is no explicit sync-exit, e.g.
+					// because of embedded throw, see add checkBb below
 					continue;
 				}
 				checkBb.removeFinalStmt();
@@ -1051,6 +1053,7 @@ public final class TrControlFlowAnalysis {
 				if (out.isBack()) {
 					continue;
 				}
+				// catches must also be added, e.g. if there is no explicit sync-exit
 				final BB succ = out.getEnd();
 				if (succ != syncFollow && !sync.hasMember(succ) && !checkBbs.contains(succ)) {
 					checkBbs.add(succ);
