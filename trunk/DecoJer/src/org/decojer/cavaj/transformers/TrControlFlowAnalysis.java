@@ -23,7 +23,6 @@
  */
 package org.decojer.cavaj.transformers;
 
-import static org.decojer.cavaj.utils.Expressions.getOp;
 import static org.decojer.cavaj.utils.Expressions.newSimpleName;
 
 import java.util.Iterator;
@@ -998,22 +997,9 @@ public final class TrControlFlowAnalysis {
 		BB syncFollow = null;
 		do {
 			final BB checkBb = checkBbs.remove(0);
-			// BBs are always split behind MONITOR_EXIT! hence: check last statement for exit
-			final Statement stmt = checkBb.getFinalStmt();
-			checkSyncEnd: if (stmt instanceof SynchronizedStatement) {
-				final Op monitorOp = getOp(stmt);
-				if (!(monitorOp instanceof MONITOR)) {
-					assert false;
-					break checkSyncEnd;
-				}
-				if (((MONITOR) monitorOp).getKind() != MONITOR.Kind.EXIT) {
-					break checkSyncEnd;
-				}
-				if (syncR != getCfg().getInFrame(monitorOp).peek().toOriginal()) {
-					break checkSyncEnd;
-				}
-				// gotcha! kill all exits, they are encoded in struct now
-
+			assert checkBb != null;
+			if (isSyncExit(checkBb, syncR)) {
+				// kill all exits, they are encoded in struct now
 				if (handleSyncFinally(checkBb)) {
 					// typical default finally-exit catch-handler is removed completely:
 					// checKBb == finally can happen, if there is no explicit sync-exit, e.g.
@@ -1097,6 +1083,29 @@ public final class TrControlFlowAnalysis {
 		return getCfg().getM();
 	}
 
+	private boolean isSyncExit(@Nonnull final BB bb, @Nonnull final R syncR) {
+		final Statement statement = bb.getFinalStmt();
+		// BBs are always split behind MONITOR_ENTER/EXIT! (see {@link TrDataFlowAnalysis})
+		if (!(statement instanceof SynchronizedStatement)) {
+			return false;
+		}
+		final Op monitorOp = Expressions.getOp(statement);
+		if (!(monitorOp instanceof MONITOR)) {
+			return false;
+		}
+		switch (((MONITOR) monitorOp).getKind()) {
+		case ENTER:
+			return false;
+		case EXIT:
+			final R original = getCfg().getInFrame(monitorOp).peek().toOriginal();
+			return syncR == original;
+		default:
+			log.warn(getM() + ": Unknown MONITOR type '" + ((MONITOR) monitorOp).getKind() + "'!");
+			assert false;
+		}
+		return false;
+	}
+
 	/**
 	 * Is sync head?
 	 *
@@ -1126,7 +1135,7 @@ public final class TrControlFlowAnalysis {
 		case EXIT:
 			log.warn(getM() + ": Unexpected synchronized exit in: " + bb);
 			assert bb.getCatchIn() != null;
-			bb.removeFinalStmt();
+			bb.removeFinalStmt(); // try to fix somehow
 			break;
 		default:
 			log.warn(getM() + ": Unknown MONITOR type '" + ((MONITOR) monitorOp).getKind() + "'!");
