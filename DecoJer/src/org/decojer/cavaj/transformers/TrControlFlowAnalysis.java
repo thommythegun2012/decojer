@@ -310,6 +310,7 @@ public final class TrControlFlowAnalysis {
 			return false;
 		}
 		if (bb.getStmts() != 2) {
+			assert bb.getStmt(0) instanceof VariableDeclarationStatement;
 			// sync still in here, is deleted later
 			return false;
 		}
