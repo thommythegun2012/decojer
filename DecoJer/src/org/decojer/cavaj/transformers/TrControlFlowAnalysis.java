@@ -359,7 +359,10 @@ public final class TrControlFlowAnalysis {
 			back: for (final E back : backs) {
 				final BB loopLast = back.getStart();
 				for (final E handlerCatchE : handlerCatches) {
-					if (loopLast == handlerCatchE.getStart()) {
+					// 2nd part in this condition: ignore self catches: shouldn't happen here
+					// because killed in Expression Transformer, but is cheap check
+					if (loopLast == handlerCatchE.getStart()
+							&& loopLast != handlerCatchE.getEnd()) {
 						continue back;
 					}
 				}

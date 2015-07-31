@@ -1699,6 +1699,14 @@ public final class TrExpressions {
 		if (catchIn == null || bb.getStmts() > 0) {
 			return false;
 		}
+		// cleanup self catches
+		final List<E> ins = bb.getIns();
+		for (int i = ins.size(); i-- > 0;) {
+			final E in = ins.get(i);
+			if (in.getStart() == in.getEnd()) {
+				in.remove();
+			}
+		}
 		// build temporary throwable declaration at catch handler start
 		final SimpleName name = newSimpleName(Expressions.EXCEPTION_NAME_TMP, getAst());
 
