@@ -37,10 +37,6 @@ import java.util.Set;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.decojer.cavaj.model.code.BB;
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.DFlag;
@@ -87,6 +83,10 @@ import org.eclipse.jdt.core.dom.WhileStatement;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Transformer: Structured CFG to Java Control Flow Statements ASTs.
@@ -231,7 +231,12 @@ public final class TrControlFlowStmts {
 
 	@Nullable
 	private Statement transformBlock(@Nonnull final Block block) {
-		return transformSequence(block, block.getHead());
+		// always create block, is important because it's either labeled or a declaration boundary
+		final org.eclipse.jdt.core.dom.Block blockStatement = getAst().newBlock();
+		final List<Statement> blockStatements = blockStatement.statements();
+		assert blockStatements != null;
+		transformSequence(block, block.getHead(), blockStatements);
+		return blockStatement;
 	}
 
 	@Nullable
@@ -279,8 +284,8 @@ public final class TrControlFlowStmts {
 					firstStatement.delete();
 				}
 				// remove final throws from finally block, should never be nested
-				if (!finallyStatements.isEmpty()
-						&& finallyStatements.get(finallyStatements.size() - 1) instanceof ThrowStatement) {
+				if (!finallyStatements.isEmpty() && finallyStatements
+						.get(finallyStatements.size() - 1) instanceof ThrowStatement) {
 					finallyStatements.remove(finallyStatements.size() - 1);
 				}
 				continue;
@@ -313,9 +318,9 @@ public final class TrControlFlowStmts {
 			transformSequence(catchStruct, handler, handlerStatements);
 			// remove temporary throwable declaration from catch
 			if (handlerStatements.isEmpty()) {
-				log.warn(getM()
-						+ ": Missing temporary throwable declaration in handler statements for BB"
-						+ handler.getPc() + ":\n" + catchStruct);
+				log.warn(
+						getM() + ": Missing temporary throwable declaration in handler statements for BB"
+								+ handler.getPc() + ":\n" + catchStruct);
 			} else {
 				handlerStatements.remove(0);
 			}
@@ -629,7 +634,7 @@ public final class TrControlFlowStmts {
 		} else {
 			final String label = struct.getLabel();
 			if (label != null) {
-				assert !(structStatement instanceof LabeledStatement);
+				assert!(structStatement instanceof LabeledStatement);
 				final LabeledStatement labeledStatement = getAst().newLabeledStatement();
 				labeledStatement.setLabel(newSimpleName(label, getAst()));
 				labeledStatement.setBody(structStatement);
@@ -677,18 +682,17 @@ public final class TrControlFlowStmts {
 						defaultAdded = true;
 					} else {
 						if (caseValue instanceof Character) {
-							switchCase.setExpression(newLiteral(T.CHAR, caseValue, getCfg().getM(),
-									op));
+							switchCase.setExpression(
+									newLiteral(T.CHAR, caseValue, getCfg().getM(), op));
 						} else if (caseValue instanceof String) {
-							switchCase.setExpression(newLiteral(
-									getCfg().getDu().getT(String.class), caseValue,
-									getCfg().getM(), op));
+							switchCase.setExpression(newLiteral(getCfg().getDu().getT(String.class),
+									caseValue, getCfg().getM(), op));
 						} else if (caseValue instanceof F) {
-							switchCase.setExpression(newSimpleName(((F) caseValue).getName(),
-									getAst()));
+							switchCase.setExpression(
+									newSimpleName(((F) caseValue).getName(), getAst()));
 						} else {
-							switchCase.setExpression(newLiteral(T.INT, caseValue, getCfg().getM(),
-									op));
+							switchCase.setExpression(
+									newLiteral(T.INT, caseValue, getCfg().getM(), op));
 						}
 					}
 					switchStatement.statements().add(switchCase);
@@ -698,8 +702,8 @@ public final class TrControlFlowStmts {
 				transformSequence(switchStruct, out, switchStatements);
 			}
 			// remove final break statement from final switch-case
-			final Object object = switchStatement.statements().get(
-					switchStatement.statements().size() - 1);
+			final Object object = switchStatement.statements()
+					.get(switchStatement.statements().size() - 1);
 			if (object instanceof BreakStatement) {
 				((BreakStatement) object).delete();
 			}
