@@ -52,6 +52,7 @@ import org.decojer.cavaj.utils.Expressions;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.BreakStatement;
 import org.eclipse.jdt.core.dom.ContinueStatement;
+import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.Statement;
 import org.eclipse.jdt.core.dom.SwitchStatement;
 import org.eclipse.jdt.core.dom.SynchronizedStatement;
@@ -348,8 +349,8 @@ public final class TrControlFlowAnalysis {
 		return true;
 	}
 
-	private static boolean isLoopInCatches(final @Nonnull List<E> backs,
-			final @Nonnull List<E> catches) {
+	private static boolean isLoopInCatches(@Nonnull final List<E> backs,
+			@Nonnull final List<E> catches) {
 		// check if there is a back-start that is not handled -> loop is assumed
 		// outer for Java, cannot translate all possible CFG structures here
 		for (final E catchE : catches) {
@@ -446,7 +447,7 @@ public final class TrControlFlowAnalysis {
 				if (jsr == finallyJsr) {
 					continue;
 				}
-				// was not always in exits (nested finally), but remove always as follow candidate:
+				// remove jsr as exit: is not always the case, e.g.: try -> empty BB -> JSR -> out:
 				final boolean jsrIsExit = exits.remove(jsr);
 
 				final E ret = jsr.getRetOut();
@@ -457,6 +458,12 @@ public final class TrControlFlowAnalysis {
 				}
 				final BB start = jsr.getStart();
 				final BB end = ret.getEnd();
+				if (end.getStmts() == 1 && end.getStmt(0) instanceof ReturnStatement) {
+					// returns behind finally are considered as inner part of the catch-struct, even
+					// though they have no handler - TODO may be we have to add more here
+					end.joinPredBb(start);
+					continue;
+				}
 				// jsr edge removed automatically be following operations
 				if (start.isEmpty()) {
 					// start-ins can be exits, but are automatically relocated as end-ins exits
