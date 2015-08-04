@@ -31,11 +31,6 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.decojer.cavaj.model.A;
 import org.decojer.cavaj.model.AF;
 import org.decojer.cavaj.model.CU;
@@ -48,6 +43,11 @@ import org.eclipse.jdt.core.dom.ASTNode;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Class type.
@@ -198,7 +198,7 @@ public class ClassT extends T {
 			return null;
 		}
 		assert this.enclosing instanceof T || this.enclosing instanceof M : this
-		+ ": enclosing must be T or M";
+				+ ": enclosing must be T or M";
 
 		return this.enclosing;
 	}
@@ -493,7 +493,7 @@ public class ClassT extends T {
 			// scala-library-2.9.1.jar
 			final Container parent = ((Element) declarationOwner).getDeclarationOwner();
 			if (parent == this) {
-				assert 0 == 1 : this;
+				assert false : this;
 				return;
 			}
 		}
@@ -514,8 +514,8 @@ public class ClassT extends T {
 					return;
 				}
 				if (!this.enclosing.equals(enclosingM.getT())) {
-					log.warn("Enclosing method cannot be changed from '" + this.enclosing
-							+ "' to '" + enclosingM + "'!");
+					log.warn("Enclosing method cannot be changed from '" + this.enclosing + "' to '"
+							+ enclosingM + "'!");
 					return;
 				}
 				// enclosing method is more specific, overwrite enclosing type...
@@ -647,7 +647,8 @@ public class ClassT extends T {
 					if (!isScala()) {
 						// can even contain incompatible signatures like short for Object
 						log.info("Cannot reduce '" + (i + 1) + "'. type interface signature '"
-								+ signInterfaceTs[i] + "' to '" + interfaceTs[i] + "' for: " + this);
+								+ signInterfaceTs[i] + "' to '" + interfaceTs[i] + "' for: "
+								+ this);
 					}
 					return;
 				}

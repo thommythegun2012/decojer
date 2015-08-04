@@ -198,7 +198,7 @@ public class SwitchTypes {
 		final Map<Integer, F> index2enums = Maps.newHashMap();
 		final CFG cfg = m.getCfg();
 		if (cfg == null) {
-			assert 0 == 1 : m;
+			assert false : m;
 			return index2enums;
 		}
 		final Op[] ops = cfg.getOps();

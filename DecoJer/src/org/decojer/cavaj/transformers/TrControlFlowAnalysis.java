@@ -662,7 +662,7 @@ public final class TrControlFlowAnalysis {
 				if (i != 0 && !handlerIn.isFinally()) {
 					// finally-catch also includes exception-handlers (later also use this info?),
 					// other exceptions should share the same try-block
-					assert 0 == 1 : "Not properly nested catch struct: " + catchStruct;
+					assert false : "Not properly nested catch struct: " + catchStruct;
 					log.warn(getM() + ": Not properly nested catch struct: " + catchStruct);
 				}
 			}

@@ -29,9 +29,6 @@ import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.decojer.cavaj.model.code.CFG;
 import org.decojer.cavaj.model.code.V;
 import org.decojer.cavaj.model.methods.M;
@@ -45,6 +42,9 @@ import org.jf.dexlib.Debug.DebugInstructionIterator.ProcessDecodedDebugInstructi
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Smali read debug info.
@@ -128,7 +128,7 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 		}
 		final CFG cfg = m.getCfg();
 		if (cfg == null) {
-			assert 0 == 1 : getM();
+			assert false : getM();
 			return;
 		}
 		DebugInstructionIterator.DecodeInstructions(debugInfoItem, cfg.getRegs(), this);
@@ -146,9 +146,8 @@ public class ReadDebugInfo extends ProcessDecodedDebugInstructionDelegate {
 
 		final List<V> vs = this.reg2vs.get(registerNum);
 		if (vs == null) {
-			log("EndLocal without any StartLocal:   p:" + codeAddress + " l:"
-					+ getLine(codeAddress) + " r:" + registerNum + " n:" + name + " t:" + type
-					+ " s:" + signature);
+			log("EndLocal without any StartLocal:   p:" + codeAddress + " l:" + getLine(codeAddress)
+					+ " r:" + registerNum + " n:" + name + " t:" + type + " s:" + signature);
 
 			// don't know why, but happens sometimes, and all these are null then:
 			assert name == null && type == null && signature == null;

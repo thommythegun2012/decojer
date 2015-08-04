@@ -32,10 +32,6 @@ import java.util.TreeMap;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-
 import org.decojer.DecoJerException;
 import org.decojer.cavaj.model.DU;
 import org.decojer.cavaj.model.code.BB;
@@ -92,6 +88,10 @@ import org.decojer.cavaj.model.types.T;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
+
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Transformer: Data Flow Analysis and create CFG.
@@ -489,7 +489,7 @@ public final class TrDataFlowAnalysis {
 			// already visited this sub -> restore jsr-follow-address (Sub) and merge -> check RET
 			final R subR = subFrame.peekSub(this.currentFrame.getTop(), subPc);
 			if (subR == null) {
-				assert 0 == 1 : "already visited sub with pc '" + subPc
+				assert false : "already visited sub with pc '" + subPc
 						+ "' but didn't find initial sub register";
 				return -1;
 			}
@@ -817,7 +817,8 @@ public final class TrDataFlowAnalysis {
 				}
 			}
 			// now add successors
-			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type.entrySet()) {
+			for (final Map.Entry<Integer, List<T>> handlerPc2typeEntry : handlerPc2type
+					.entrySet()) {
 				final List<T> types = handlerPc2typeEntry.getValue();
 
 				final BB handlerBb = getTargetBb(handlerPc2typeEntry.getKey());
@@ -938,8 +939,8 @@ public final class TrDataFlowAnalysis {
 	private R load(final int i, @Nonnull final T t) {
 		final R r = this.currentFrame.load(i);
 		if (r == null || !r.assignTo(t)) {
-			throw new DecoJerException("Incompatible type for register '" + i
-					+ "'! Cannot assign '" + r + "' to '" + t + "'.");
+			throw new DecoJerException("Incompatible type for register '" + i + "'! Cannot assign '"
+					+ r + "' to '" + t + "'.");
 		}
 		if (r.getT() == T.RET) {
 			// bytecode restriction: internal return address type can only be read once
@@ -986,7 +987,7 @@ public final class TrDataFlowAnalysis {
 					// stop backpropagation here
 					return;
 				case MERGE:
-					assert 0 == 1 : "merge can only be first op in BB";
+					assert false : "merge can only be first op in BB";
 					// stop backpropagation here
 					return;
 				case MOVE:
@@ -1093,7 +1094,8 @@ public final class TrDataFlowAnalysis {
 		assert targetFrame.size() == this.currentFrame.size() : "incompatible frame sizes";
 
 		final BB targetBb = getCfg().getBb(targetPc);
-		assert targetBb != null && targetBb.getPc() == targetPc : "target PC is not start of a target BB";
+		assert targetBb != null
+				&& targetBb.getPc() == targetPc : "target PC is not start of a target BB";
 
 		for (int i = targetFrame.size(); i-- > 0;) {
 			final R newR = this.currentFrame.load(i);
@@ -1227,8 +1229,8 @@ public final class TrDataFlowAnalysis {
 	}
 
 	private R pushConst(@Nonnull final T t, @Nullable final Object value) {
-		return this.currentFrame.push(R.createConstR(getCurrentPc() + 1, this.currentFrame.size(),
-				t, value));
+		return this.currentFrame
+				.push(R.createConstR(getCurrentPc() + 1, this.currentFrame.size(), t, value));
 	}
 
 	private boolean replaceRegBb(final BB bb, final R prevR, @Nullable final R newR) {
@@ -1387,7 +1389,8 @@ public final class TrDataFlowAnalysis {
 		if (isNoExceptions()) {
 			return this.currentBb;
 		}
-		assert this.currentBb.getPc() == currentPc || this.currentBb.getOps() > 0 : "could happen with GOTO-mode: create no entry in BB, currently unused";
+		assert this.currentBb.getPc() == currentPc || this.currentBb
+				.getOps() > 0 : "could happen with GOTO-mode: create no entry in BB, currently unused";
 
 		for (final Exc exc : getCfg().getExcs()) {
 			if (exc.validIn(currentPc)) {

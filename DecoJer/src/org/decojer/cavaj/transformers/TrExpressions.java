@@ -239,32 +239,6 @@ public final class TrExpressions {
 	}
 
 	/**
-	 * Rewrite char-switches.
-	 *
-	 * @param bb
-	 *            BB
-	 * @return {@code true} - success
-	 */
-	private static boolean rewriteSwitchChar(@Nonnull final BB bb) {
-		for (final E out : bb.getOuts()) {
-			if (!out.isSwitchCase()) {
-				continue;
-			}
-			final Object[] caseValues = (Object[]) out.getValue();
-			assert caseValues != null;
-			for (int i = caseValues.length; i-- > 0;) {
-				final Object caseValue = caseValues[i];
-				if (!(caseValue instanceof Integer)) {
-					assert caseValue == null; // default
-					continue;
-				}
-				caseValues[i] = Character.valueOf((char) ((Integer) caseValue).intValue());
-			}
-		}
-		return true;
-	}
-
-	/**
 	 * Transform CFG.
 	 *
 	 * @param cfg
@@ -304,12 +278,12 @@ public final class TrExpressions {
 	private R getR(@Nonnull final Expression e) {
 		final Op op = getOp(e);
 		if (op == null) {
-			assert 0 == 1 : "expression operation '" + e + "' is unknown";
+			assert false : "expression operation '" + e + "' is unknown";
 			return null;
 		}
 		final R r = getCfg().getOutFrame(op).peek();
 		if (r == null) {
-			assert 0 == 1 : "expression register '" + e + "' is unknown";
+			assert false : "expression register '" + e + "' is unknown";
 			return null;
 		}
 		return r;
@@ -1402,6 +1376,36 @@ public final class TrExpressions {
 		}
 	}
 
+	/**
+	 * Rewrite char-switches.
+	 *
+	 * @param bb
+	 *            BB
+	 * @return {@code true} - success
+	 */
+	private boolean rewriteSwitchChar(@Nonnull final BB bb) {
+		for (final E out : bb.getOuts()) {
+			if (!out.isSwitchCase()) {
+				continue;
+			}
+			final Object[] caseValues = (Object[]) out.getValue();
+			assert caseValues != null;
+			for (int i = caseValues.length; i-- > 0;) {
+				final Object caseValue = caseValues[i];
+				if (caseValue == null) {
+					continue;
+				}
+				if (!(caseValue instanceof Integer)) {
+					assert false : "Case value must be of type Integer!";
+					log.warn(getM() + ": Case value must be of type Integer!");
+					continue;
+				}
+				caseValues[i] = Character.valueOf((char) ((Integer) caseValue).intValue());
+			}
+		}
+		return true;
+	}
+
 	private boolean rewriteSwitchEnum(@Nonnull final BB bb, @Nonnull final SWITCH op,
 			@Nonnull final Expression switchExpression) {
 		if (getCfg().getCu().check(DFlag.IGNORE_ENUM)) {
@@ -1670,7 +1674,7 @@ public final class TrExpressions {
 				// can happen if BB deleted through previous rewrite
 				continue;
 			}
-			if (!transformCatchHandlerExpression(bb)) {
+			if (!rewriteCatchHandler(bb)) {
 				// condition is a small optimization: handler BB cannot match compound pattern;
 				// compound is independent of content of bb...do it before convertIntoExpressions()
 				while (rewriteBooleanCompound(bb)) {
@@ -1681,7 +1685,7 @@ public final class TrExpressions {
 			if (!transformOperations(bb)) {
 				// in Java should never happen in forward mode, but in Scala exists a more complex
 				// conditional value ternary variant with sub statements
-				assert 0 == 1 : "Stack underflow in '" + getCfg() + "':\n" + bb;
+				assert false : "Stack underflow in '" + getCfg() + "':\n" + bb;
 				log.warn(getM() + ": Stack underflow in '" + getCfg() + "':\n" + bb);
 			}
 			// remove empty nodes
@@ -1694,7 +1698,7 @@ public final class TrExpressions {
 		}
 	}
 
-	private boolean transformCatchHandlerExpression(@Nonnull final BB bb) {
+	private boolean rewriteCatchHandler(@Nonnull final BB bb) {
 		final E catchIn = bb.getCatchIn();
 		if (catchIn == null || bb.getStmts() > 0) {
 			return false;

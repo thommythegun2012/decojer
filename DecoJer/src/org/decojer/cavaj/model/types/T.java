@@ -1387,7 +1387,7 @@ public abstract class T implements Element {
 
 	@Override
 	public void setAf(@Nonnull final AF... af) {
-		assert 0 == 1 : this;
+		assert false : this;
 		return;
 	}
 
