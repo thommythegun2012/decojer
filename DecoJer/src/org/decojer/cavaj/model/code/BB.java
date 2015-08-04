@@ -217,15 +217,16 @@ public final class BB {
 		boolean foundCondTrue = false;
 		boolean foundCondFalse = false;
 		// push catches to end of outs
-		int lastFoundCatch = this.outs.size();
+		int catches = 0;
 
 		for (int i = this.outs.size(); i-- > 0;) {
 			final E out = this.outs.get(i);
 			if (out.isCatch()) {
+				++catches;
 				// push catches to end of outs
-				if (lastFoundCatch - i > 1) {
+				if (i < this.outs.size() - catches) {
 					this.outs.remove(i);
-					this.outs.add(--lastFoundCatch, out);
+					this.outs.add(this.outs.size() - catches, out);
 				}
 				continue;
 			}
@@ -1022,7 +1023,7 @@ public final class BB {
 
 	/**
 	 * Move all incoming edges to the given target BB. These edges will be added to the target BBs
-	 * incoming edges! The BB will be removed in this process.<br>
+	 * incoming edges (e.g. it's back edges)! The BB will be removed in this process.<br>
 	 * <br>
 	 * This operation is used for empty nodes and target BB is often the direct sequence successor,
 	 * but not always (e.g. for Jsr-Ret-Collapsing).
