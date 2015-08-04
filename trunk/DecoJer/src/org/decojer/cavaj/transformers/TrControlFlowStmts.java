@@ -599,7 +599,7 @@ public final class TrControlFlowStmts {
 	private BB transformStruct(@Nonnull final Struct struct,
 			@Nonnull final List<Statement> statements) {
 		if (!this.traversedStructs.add(struct)) {
-			assert 0 == 1 : "Cannot transform struct twice:\n" + struct;
+			assert false : "Cannot transform struct twice:\n" + struct;
 			log.warn(getM() + ": Cannot transform struct twice:\n" + struct);
 			return null;
 		}
