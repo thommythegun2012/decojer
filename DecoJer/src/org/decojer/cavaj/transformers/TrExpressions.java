@@ -350,6 +350,62 @@ public final class TrExpressions {
 		return r.isWide();
 	}
 
+	private boolean mitigateStackUnderflow(@Nonnull final BB bb) {
+		if (rewriteConditional(bb)) {
+			return true;
+		}
+		if (rewriteStoreReturnAdress(bb)) {
+			return true;
+		}
+		// now continue to pull generated stack value down...
+		final Op op = bb.getOp(0);
+		if (bb.getIns().size() > 1) {
+			// we cannot really pull down stack values from multiple predecessors, try to
+			// "push operation back": rewriteConditional() hasn't worked, e.g.
+			// conditional sides contained statements
+			if (op instanceof JCND) {
+				if (rewriteJcndConstantConditional(bb)) {
+					// special handling for JCND, multiple predecessors possible and can be
+					// directly routed through this BB, seen e.g. in JDK 1 & 2 and Scala
+					return true;
+				}
+			} else if (!(op instanceof JCMP) && !(op instanceof SWITCH)) {
+				if (pushBackOperation(bb)) {
+					// push operation back: only possible for preds with sequence outs, no
+					// conditionals; can happen for scala, python etc.
+					return true;
+				}
+			}
+			// TODO last trick: clone node for each in, see f.class:
+			// com.jidesoft.action.f.a()
+			// tricky problem because of same PC and preorder insert
+
+			// cannot pull down stack values from multiple ins!
+			// TODO maybe check idential in stack values?
+			return false;
+		}
+		// check for single predecessor, jump over unrelevant nodes:
+		// try to pull previous stack value down
+		final E pred2bb = bb.getRelevantIn();
+		if (pred2bb == null) {
+			return false; // multiple incomings -> real fail
+		}
+		final BB pred = pred2bb.getStart();
+		final E pred2bbBack = pred.getRelevantOut();
+		if (pred2bbBack != null && bb == pred2bbBack.getEnd()) {
+			// is a 1:1 sequence connection, just join it
+			bb.joinPredBb(pred);
+			return true;
+		}
+		// this is a last resort (helps e.g. for synthetic enum-switch-map-initializer),
+		// sometimes gives wrong results for conditionals with merging stack values:
+		// (e.g. PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb)
+		if (!pullStackValue(bb)) {
+			return false;
+		}
+		return true;
+	}
+
 	private T peekT(@Nonnull final Op op) {
 		return getCfg().getInFrame(op).peek().getT();
 	}
@@ -788,7 +844,7 @@ public final class TrExpressions {
 		return true;
 	}
 
-	private boolean rewriteCompoundConditional(@Nonnull final BB bb) {
+	private boolean rewriteConditional(@Nonnull final BB bb) {
 		// Is this a conditional compound value? Example is A ? C : x:
 		//
 		// ...|...
@@ -1219,8 +1275,9 @@ public final class TrExpressions {
 			ifStatement.setExpression(wrap(expression));
 			pred.addStmt(ifStatement);
 			pred.setConds(trueSucc, falseSucc);
+			return true;
 		}
-		return true;
+		return false;
 	}
 
 	/**
@@ -1273,6 +1330,27 @@ public final class TrExpressions {
 			return true;
 		}
 		return false;
+	}
+
+	private boolean rewriteStoreReturnAdress(@Nonnull final BB bb) {
+		final Op op = bb.getOp(0);
+		if (!(op instanceof STORE)) {
+			return false;
+		}
+		// <return_address> can only be used by STORE: remove this operation, no AST
+		// representation necessary
+		if (peekT(op) != T.RET) {
+			return false;
+		}
+		bb.removeOp(0);
+		if (bb.getOps() != 0) {
+			return true;
+		}
+		// i'm empty now...can delete myself (move ins to succ)
+		final E out = bb.getSequenceOut();
+		assert out != null && !out.isBack();
+		bb.moveIns(out.getEnd());
+		return true;
 	}
 
 	private boolean rewriteStringAppend(@Nonnull final BB bb, @Nonnull final INVOKE op) {
@@ -1676,9 +1754,9 @@ public final class TrExpressions {
 			}
 			if (!rewriteCatchHandler(bb)) {
 				// condition is a small optimization: handler BB cannot match compound pattern;
-				// compound is independent of content of bb...do it before convertIntoExpressions()
+				// boolean compound not triggered by stack underflow
 				while (rewriteBooleanCompound(bb)) {
-					// try multiple times: nested compound is possible
+					// nested possible
 				}
 				// previous expressions merged into bb, now rewrite...
 			}
@@ -1729,74 +1807,14 @@ public final class TrExpressions {
 	private boolean transformOperations(@Nonnull final BB bb) {
 		while (bb.getOps() > 0) {
 			if (isStackUnderflow(bb)) {
-				while (rewriteCompoundConditional(bb)) {
-					// nested possible
-				} // ...now continue to pull generated stack value down...
-				final Op op = bb.getOp(0);
-				if (bb.getIns().size() > 1) {
-					// we cannot really pull down stack values from multiple predecessors, try to
-					// "push operation back": rewriteConditionalValue() hasn't worked, e.g.
-					// conditional sides contained statements
-					if (op instanceof STORE) {
-						// TODO special trick for store <return_address> till finally is established
-						if (peekT(op) == T.RET) {
-							bb.removeOp(0);
-							if (bb.getOps() != 0) {
-								continue;
-							}
-							// i'm empty now...can delete myself (move ins to succ)
-							final E out = bb.getSequenceOut();
-							assert out != null && !out.isBack();
-							bb.moveIns(out.getEnd());
-							return true;
-						}
-					}
-					if (op instanceof JCND) {
-						if (rewriteJcndConstantConditional(bb)) {
-							// special handling for JCND, multiple predecessors possible and can be
-							// directly routed through this BB, seen e.g. in JDK 1 & 2 and Scala
-							if (bb.isRemoved()) {
-								return true;
-							}
-							// don't continue, if not all ins are removed it ends here
-						}
-					} else if (!(op instanceof JCMP) && !(op instanceof SWITCH)) {
-						if (pushBackOperation(bb)) {
-							// push operation back: only possible for preds with sequence outs, no
-							// conditionals; can happen for scala, python etc.
-							if (bb.isRemoved()) {
-								return true;
-							}
-							continue;
-						}
-					}
-					// TODO last trick: clone node for each in, see f.class:
-					// com.jidesoft.action.f.a()
-					// tricky problem because of same PC and preorder insert
-
-					// cannot pull down stack values from multiple ins!
-					// TODO maybe check idential in stack values?
+				if (!mitigateStackUnderflow(bb)) {
 					return false;
 				}
-				// check for single predecessor, jump over unrelevant nodes:
-				// try to pull previous stack value down
-				final E pred2bb = bb.getRelevantIn();
-				if (pred2bb == null) {
-					return false; // multiple incomings -> real fail
+				if (bb.isRemoved()) {
+					// is also a possible form of stack underflow mitigation
+					return true;
 				}
-				final BB pred = pred2bb.getStart();
-				final E pred2bbBack = pred.getRelevantOut();
-				if (pred2bbBack != null && bb == pred2bbBack.getEnd()) {
-					// is a 1:1 sequence connection, just join it
-					bb.joinPredBb(pred);
-					continue;
-				}
-				// this is a last resort (helps e.g. for synthetic enum-switch-map-initializer),
-				// sometimes gives wrong results for conditionals with merging stack values:
-				// (e.g. PUSH 0, LOAD x, JCND; true -> POP, PUSH 1 -> lastBb; false -> lastBb)
-				if (!pullStackValue(bb)) {
-					return false;
-				}
+				// something has been mitigated...may be not to the full extend, try again
 				continue;
 			}
 			final Op op = bb.removeOp(0);

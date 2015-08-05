@@ -66,10 +66,7 @@ public class RETURN extends TypedOp {
 
 	@Override
 	public String toString() {
-		if (getT() != T.VOID) {
-			return super.toString() + " " + getT();
-		}
-		return super.toString();
+		return getT() == T.VOID ? super.toString() : super.toString() + " x";
 	}
 
 }
