@@ -439,7 +439,6 @@ public final class TrExpressions {
 				return false;
 			}
 		}
-
 		for (int i = ins.size(); i-- > 0;) {
 			final E in = ins.get(i).getRelevantIn();
 			assert in.isSequence();
@@ -449,7 +448,7 @@ public final class TrExpressions {
 			pred.addOp(op);
 			final boolean success = transformOperations(pred);
 			assert success;
-			if (op instanceof RETURN) {
+			if (op.isExit()) {
 				in.remove();
 			}
 		}
