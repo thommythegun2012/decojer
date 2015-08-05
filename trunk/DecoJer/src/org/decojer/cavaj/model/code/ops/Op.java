@@ -26,9 +26,9 @@ package org.decojer.cavaj.model.code.ops;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-import lombok.Getter;
-
 import org.decojer.cavaj.model.code.Frame;
+
+import lombok.Getter;
 
 /**
  * Operation.
@@ -102,6 +102,15 @@ public abstract class Op {
 	@Override
 	public int hashCode() {
 		return this.pc;
+	}
+
+	/**
+	 * Is this operation a method or CFG exit like RETURN and THROW?
+	 *
+	 * @return {@code true} - operation is a method or CFG exit
+	 */
+	public boolean isExit() {
+		return false;
 	}
 
 	/**

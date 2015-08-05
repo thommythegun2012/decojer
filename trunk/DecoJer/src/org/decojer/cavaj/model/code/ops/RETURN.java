@@ -65,6 +65,11 @@ public class RETURN extends TypedOp {
 	}
 
 	@Override
+	public boolean isExit() {
+		return true;
+	}
+
+	@Override
 	public String toString() {
 		return getT() == T.VOID ? super.toString() : super.toString() + " x";
 	}
