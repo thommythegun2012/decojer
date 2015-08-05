@@ -64,4 +64,12 @@ public class RETURN extends TypedOp {
 		return Optype.RETURN;
 	}
 
+	@Override
+	public String toString() {
+		if (getT() != T.VOID) {
+			return super.toString() + " " + getT();
+		}
+		return super.toString();
+	}
+
 }
